@@ -10,27 +10,29 @@ If you are looking for general information about the project, check our website:
 http://sourceforge.net/projects/libdxfrw
 
 
-WARNING: This project is a fork to add a makefile for some of our downstream project's in LibreCAD.
+WARNING: This project is a fork to add a CMakeLists.txt for some of our downstream project's in LibreCAD to make compiling and following this project easer.
 ==========
 
 Building and installing the library
 ==========
-
+```
 mkdir build
 cd build
 cmake ..
 make 
 make install
+```
 
 For non-debug version:
 ==========
 
+```
 mkdir release
 cd release
 cmake -DCMAKE_BUILD_TYPE=Release ..
 make 
 make install
-
+```
 
 
 == Example usage of the library ==
