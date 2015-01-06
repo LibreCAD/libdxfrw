@@ -50,6 +50,18 @@ set(libdxfrw_hdrs
   src/main_doc.h
 )
 
+set(installdxfrw_hdrs
+  src/drw_base.h
+  src/drw_classes.h
+  src/drw_entities.h
+  src/drw_header.h
+  src/drw_interface.h
+  src/drw_objects.h
+  src/libdwgr.h
+  src/libdxfrw.h
+  src/main_doc.h
+)
+
   
 # DEBUGGING PATHS 
 get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
@@ -61,4 +73,5 @@ add_library(dxfrw SHARED ${libdxfrw_srcs} ${libdxfrw_hdrs})
 
 # INSTALLATION
 install(TARGETS dxfrw DESTINATION lib)
-install(FILES ${dxfrw_hdrs}  DESTINATION include)
+set(HDRSUBDIR "/libdxfrw0/")
+install(FILES ${installdxfrw_hdrs} DESTINATION include${HDRSUBDIR})
