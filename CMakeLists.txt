@@ -11,9 +11,12 @@ set(libdxfrw_srcs
   src/intern/dwgreader15.cpp
   src/intern/dwgreader18.cpp
   src/intern/dwgreader21.cpp
+  src/intern/dwgreader24.cpp
+  src/intern/dwgreader27.cpp
   src/intern/dwgutil.cpp
   src/intern/dxfreader.cpp
   src/intern/dxfwriter.cpp
+  src/intern/rscodec.cpp
   src/drw_classes.cpp
   src/drw_entities.cpp
   src/drw_header.cpp
@@ -36,17 +39,12 @@ set(libdxfrw_hdrs
   src/intern/dwgreader15.h
   src/intern/dwgreader18.h
   src/intern/dwgreader21.h
+  src/intern/dwgreader24.h
+  src/intern/dwgreader27.h
   src/intern/dwgutil.h
   src/intern/dxfreader.h
   src/intern/dxfwriter.h
-  src/drw_base.h
-  src/drw_classes.h
-  src/drw_entities.h
-  src/drw_header.h
-  src/drw_interface.h
-  src/drw_objects.h
-  src/libdwgr.h
-  src/libdxfrw.h
+  src/intern/rscodec.h
   src/main_doc.h
 )
 
@@ -59,7 +57,6 @@ set(installdxfrw_hdrs
   src/drw_objects.h
   src/libdwgr.h
   src/libdxfrw.h
-  src/main_doc.h
 )
 
   

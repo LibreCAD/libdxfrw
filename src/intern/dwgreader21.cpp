@@ -1,7 +1,7 @@
 /******************************************************************************
 **  libDXFrw - Library to read/write DXF files (ascii & binary)              **
 **                                                                           **
-**  Copyright (C) 2011-2013 Rallaz, rallazz@gmail.com                        **
+**  Copyright (C) 2011-2015 José F. Soriano, rallazz@gmail.com               **
 **                                                                           **
 **  This library is free software, licensed under the terms of the GNU       **
 **  General Public License as published by the Free Software Foundation,     **
@@ -10,7 +10,7 @@
 **  along with this program.  If not, see <http://www.gnu.org/licenses/>.    **
 ******************************************************************************/
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -20,524 +20,470 @@
 #include "drw_textcodec.h"
 #include "../libdwgr.h"
 
-
-bool dwgReader21::readFileHeader() {
+bool dwgReader21::readMetaData() {
     version = parent->getVersion();
-    decoder.setVersion(version);
-    DBG("dwgReader21::readFileHeader\n");
-    DBG("dwgReader21::parsing metadata\n");
-    if (! buf->setPosition(11))
+    decoder.setVersion(version, false);
+    DRW_DBG("dwgReader21::readFileHeader()\n");
+    DRW_DBG("dwgReader21::parsing metadata\n");
+    if (! fileBuf->setPosition(11))
         return false;
-    DBG("maintenance release version= "); DBG(buf->getRawChar8()); DBG("\n");
-    DBG("byte at 0x0C= "); DBG(buf->getRawChar8()); DBG("\n");
-    seekerImageData = buf->getRawLong32();
-    DBG("seekerImageData= "); DBG(seekerImageData); DBG("\n");
-    DBG("app writer version= "); DRW_DBGH(buf->getRawChar8()); DBG("\n");
-    DBG("app writer maintenance version= "); DRW_DBGH(buf->getRawChar8()); DBG("\n");
-    duint16 cp = buf->getRawShort16();
-    DBG("codepage= "); DBG(cp); DBG("\n");
+    maintenanceVersion = fileBuf->getRawChar8();
+    DRW_DBG("maintenance verion= "); DRW_DBGH(maintenanceVersion);
+    DRW_DBG("\nbyte at 0x0C= "); DRW_DBG(fileBuf->getRawChar8());
+    previewImagePos = fileBuf->getRawLong32();
+    DRW_DBG("previewImagePos (seekerImageData) = "); DRW_DBG(previewImagePos);
+    DRW_DBG("\n\napp writer version= "); DRW_DBGH(fileBuf->getRawChar8());
+    DRW_DBG("\napp writer maintenance version= "); DRW_DBGH(fileBuf->getRawChar8());
+    duint16 cp = fileBuf->getRawShort16();
+    DRW_DBG("\ncodepage= "); DRW_DBG(cp);
     if (cp == 30)
-        decoder.setCodePage("ANSI_1252");
+        decoder.setCodePage("ANSI_1252", false);
     /* UNKNOUWN SECTION 2 bytes*/
-    duint16 uk =    buf->getRawShort16();
-    DBG("UNKNOUWN SECTION= "); DBG(uk); DBG("\n");
-    DBG("UNKNOUWN SECTION 3b= "); DBG(buf->getRawChar8()); DBG("\n");
-    duint32 secType = buf->getRawLong32();
-    DBG("security type flag= "); DRW_DBGH(secType); DBG("\n");
-    /* UNKNOUWN2 SECTION 4 bytes*/
-    DBG("UNKNOUWN SECTION 4bytes= "); DBG(buf->getRawLong32()); DBG("\n");
+    DRW_DBG("\nUNKNOWN SECTION= "); DRW_DBG(fileBuf->getRawShort16());
+    DRW_DBG("\nUNKNOUWN SECTION 3b= "); DRW_DBG(fileBuf->getRawChar8());
+    duint32 secType = fileBuf->getRawLong32();
+    DRW_DBG("\nsecurity type flag= "); DRW_DBGH(secType);
+    /* UNKNOWN2 SECTION 4 bytes*/
+    DRW_DBG("\nUNKNOWN SECTION 4bytes= "); DRW_DBG(fileBuf->getRawLong32());
 
-    DBG("Summary info address= "); DRW_DBGH(buf->getRawLong32()); DBG("\n");
-    DBG("VBA project address= "); DRW_DBGH(buf->getRawLong32()); DBG("\n");
-    DBG("0x00000080 32b= "); DRW_DBGH(buf->getRawLong32()); DBG("\n");
-    DBG("App info address= "); DRW_DBGH(buf->getRawLong32()); DBG("\n");
+    DRW_DBG("\nSummary info address= "); DRW_DBGH(fileBuf->getRawLong32());
+    DRW_DBG("\nVBA project address= "); DRW_DBGH(fileBuf->getRawLong32());
+    DRW_DBG("\n0x00000080 32b= "); DRW_DBGH(fileBuf->getRawLong32());
+    DRW_DBG("\nApp info address= "); DRW_DBGH(fileBuf->getRawLong32());
     //current position are 0x30 from here to 0x80 are undocumented
-    DBG("Another address? = "); DRW_DBGH(buf->getRawLong32()); DBG("\n");
-
-    if (! buf->setPosition(0x80))
-        return false;
-    char byteStr[0x400];
-    buf->getBytes(byteStr, 0x400);
-//    dwgBuffer buff(byteStr, 0x400, &decoder);
-    int j = 0;
-    for (int i=0; i<0x400; i++){
-        DRW_DBGH( (unsigned char)byteStr[i]);
-        if (j== 15){
-            j=0;
-            DBG("\n");
-        } else{
-            j++;
-            DBG(", ");
-        }
-    }
-
-/*    duint32 count = buf->getRawLong32();
-    DBG("count records= "); DBG(count); DBG("\n");
-    for (unsigned int i = 0; i < count; i++) {
-        duint8 rec = buf->getRawChar8();
-        duint32 seek = buf->getRawLong32();
-        duint32 size = buf->getRawLong32();
-        if (rec == 0) {
-            DBG("Section HEADERS seek= ");
-            DBG(seek); DBG(" size= "); DBG(size);  DBG("\n");
-            sections["HEADERS"] = std::pair<duint32,duint32>(seek,size);
-        } else if (rec == 1) {
-            DBG("Section CLASSES seek= ");
-            DBG(seek); DBG(" size= "); DBG(size);  DBG("\n");
-            sections["CLASSES"] = std::pair<duint32,duint32>(seek,size);
-        } else if (rec == 2) {
-            DBG("Section OBJECTS seek= ");
-            DBG(seek); DBG(" size= "); DBG(size);  DBG("\n");
-            sections["OBJECTS"] = std::pair<duint32,duint32>(seek,size);
-        } else if (rec == 3) {
-            DBG("Section UNKNOWN seek= ");
-            DBG(seek); DBG(" size= "); DBG(size);  DBG("\n");
-            sections["UNKNOWN"] = std::pair<dint32,dint32>(seek,size);
-        } else if (rec == 4) {
-            DBG("Section R14DATA seek= ");
-            DBG(seek); DBG(" size= "); DBG(size);  DBG("\n");
-            sections["R14DATA"] = std::pair<dint32,dint32>(seek,size);
-        } else if (rec == 5) {
-            DBG("Section R14REC5 seek= ");
-            DBG(seek); DBG(" size= "); DBG(size);  DBG("\n");
-            sections["R14REC5"] = std::pair<dint32,dint32>(seek,size);
-        } else {
-            std::cerr << "Unsupported section number\n";
-        }
-    }*/
-    if (! buf->isGood())
-        return false;
-/*    DBG("position after read section locator records= "); DBG(buf->getPosition());
-    DBG(", bit are= "); DBG(buf->getBitPos()); DBG("\n");
-    duint32 ckcrc = buf->crc8(0,0,buf->getPosition());
-    DBG("file header crc8 0 result= "); DBG(ckcrc); DBG("\n");
-    switch (count){
-    case 3:
-        ckcrc = ckcrc ^ 0xA598;
-        break;
-    case 4:
-        ckcrc = ckcrc ^ 0x8101;
-        break;
-    case 5:
-        ckcrc = ckcrc ^ 0x3CC4;
-        break;
-    case 6:
-        ckcrc = ckcrc ^ 0x8461;
-    }
-    DBG("file header crc8 xor result= "); DBG(ckcrc); DBG("\n");
-    DBG("file header CRC= "); DBG(buf->getRawShort16()); DBG("\n");
-    DBG("file header sentinel= ");
-    for (int i=0; i<16;i++) {
-        DBGH(buf->getRawChar8()); DBG(" ");
-    }
-
-    DBG("position after read file header sentinel= "); DBG(buf->getPosition());
-    DBG(", bit are= "); DBG(buf->getBitPos()); DBG("\n");*/
-
-    DBG("dwgReader21::readFileHeader END\n");
+    DRW_DBG("\nAnother address? = "); DRW_DBGH(fileBuf->getRawLong32());
     return true;
 }
-/*
-bool dwgReader21::readDwgClasses(){
-    DBG("dwgReader21::readDwgClasses");
-    dint32 offset = sections["CLASSES"].first;
-    dint32 secSize = sections["CLASSES"].second;
-//    dint32 maxPos = offset + sections["CLASSES"].second;
-    //secSize = 16(sentinel) + 4(size) + data + 2 (crc) + 16(sentinel)
-//    dint32 maxPos = offset + secSize;
-    if (!buf->setPosition(offset))
-        return false;
-    DBG("file header sentinel= ");
-    for (int i=0; i<16;i++) {
-        DBGH(buf->getRawChar8()); DBG(" ");
-    }
-    dint32 size = buf->getRawLong32();
-    if (size != (secSize - 38)) {
-        DBG("WARNING dwgReader15::readDwgClasses size are "); DBG(size);
-        DBG(" and secSize - 38 are "); DBG(secSize - 38); DBG("\n");
-    }
-    char byteStr[size];
-    buf->getBytes(byteStr, size);
-    dwgBuffer buff(byteStr, size, &decoder);
-    while (size > buff.getPosition()) {
-        DRW_Class *cl = new DRW_Class();
-        cl->parseDwg(version, &buff);
-        classesmap[cl->classNum] = cl;
-    }
-    return buff.isGood();
 
-    //verify crc
-//    duint16 crcCalc = buff.crc8(0xc0c1,0,size);
-//    duint16 crcRead = buf->getBERawShort16();
-//    DBG("object map section crc8 read= "); DBG(crcRead); DBG("\n");
-//    DBG("object map section crc8 calculated= "); DBG(crcCalc); DBG("\n");
+bool dwgReader21::parseSysPage(duint64 sizeCompressed, duint64 sizeUncompressed, duint64 correctionFactor, duint64 offset, duint8 *decompData){
+    //round to 8
+    duint64 alsize = (sizeCompressed + 7) &(-8);
+    //minimum RS chunk:
+    duint32 chunks = (((alsize * correctionFactor)+238)/239);
+    duint64 fpsize = chunks * 255;
+
+    if (! fileBuf->setPosition(offset))
+        return false;
+    duint8 *tmpDataRaw = new duint8[fpsize];
+    fileBuf->getBytes(tmpDataRaw, fpsize);
+    duint8 *tmpDataRS = new duint8[fpsize];
+    dwgRSCodec::decode239I(tmpDataRaw, tmpDataRS, fpsize/255);
+    dwgCompressor::decompress21(tmpDataRS, decompData, sizeCompressed, sizeUncompressed);
+    delete[]tmpDataRaw;
+    delete[]tmpDataRS;
+    return true;
 }
-*/
-/*********** objects map ************************/
-/** Note: object map are split in sections with max size 2035?
- *  heach section are 2 bytes size + data bytes + 2 bytes crc
- *  size value are data bytes + 2 and to calculate crc are used
- *  2 bytes size + data bytes
- *  last section are 2 bytes size + 2 bytes crc (size value always 2)
-**/
-/*bool dwgReader21::readDwgObjectOffsets() {
-    DBG("dwgReader21::readDwgObjectOffsets\n");
-    dint32 offset = sections["OBJECTS"].first;
-    dint32 maxPos = offset + sections["OBJECTS"].second;
-    DBG("Section OBJECTS offset= "); DBG(offset); DBG("\n");
-    DBG("Section OBJECTS size= "); DBG(sections["OBJECTS"].second); DBG("\n");
-    DBG("Section OBJECTS maxPos= "); DBG(maxPos); DBG("\n");
-    if (!buf->setPosition(offset))
+
+bool dwgReader21::parseDataPage(dwgSectionInfo si, duint8 *dData){
+    DRW_DBG("parseDataPage, section size: "); DRW_DBG(si.size);
+    for (std::map<duint32, dwgPageInfo>::iterator it=si.pages.begin(); it!=si.pages.end(); ++it){
+        dwgPageInfo pi = it->second;
+        if (!fileBuf->setPosition(pi.address))
+            return false;
+
+        duint8 *tmpPageRaw = new duint8[pi.size];
+        fileBuf->getBytes(tmpPageRaw, pi.size);
+    #ifdef DRW_DBG_DUMP
+        DRW_DBG("\nSection OBJECTS raw data=\n");
+        for (unsigned int i=0, j=0; i< pi.size;i++) {
+            DRW_DBGH( (unsigned char)tmpPageRaw[i]);
+            if (j == 7) { DRW_DBG("\n"); j = 0;
+            } else { DRW_DBG(", "); j++; }
+        } DRW_DBG("\n");
+    #endif
+
+        duint8 *tmpPageRS = new duint8[pi.size];
+        duint8 chunks =pi.size / 255;
+        dwgRSCodec::decode251I(tmpPageRaw, tmpPageRS, chunks);
+    #ifdef DRW_DBG_DUMP
+        DRW_DBG("\nSection OBJECTS RS data=\n");
+        for (unsigned int i=0, j=0; i< pi.size;i++) {
+            DRW_DBGH( (unsigned char)tmpPageRS[i]);
+            if (j == 7) { DRW_DBG("\n"); j = 0;
+            } else { DRW_DBG(", "); j++; }
+        } DRW_DBG("\n");
+    #endif
+
+        DRW_DBG("\npage uncomp size: "); DRW_DBG(pi.uSize); DRW_DBG(" comp size: "); DRW_DBG(pi.cSize);
+        DRW_DBG("\noffset: "); DRW_DBG(pi.startOffset);
+        duint8 *pageData = dData + pi.startOffset;
+        dwgCompressor::decompress21(tmpPageRS, pageData, pi.cSize, pi.uSize);
+
+    #ifdef DRW_DBG_DUMP
+        DRW_DBG("\n\nSection OBJECTS decompresed data=\n");
+        for (unsigned int i=0, j=0; i< pi.uSize;i++) {
+            DRW_DBGH( (unsigned char)pageData[i]);
+            if (j == 7) { DRW_DBG("\n"); j = 0;
+            } else { DRW_DBG(", "); j++; }
+        } DRW_DBG("\n");
+    #endif
+
+        delete[]tmpPageRaw;
+        delete[]tmpPageRS;
+    }
+    DRW_DBG("\n");
+    return true;
+}
+
+bool dwgReader21::readFileHeader() {
+
+    DRW_DBG("\n\ndwgReader21::parsing file header\n");
+    if (! fileBuf->setPosition(0x80))
         return false;
-    DBG("Section OBJECTS buf->curPosition()= "); DBG(buf->getPosition()); DBG("\n");
+    duint8 fileHdrRaw[0x2FD];//0x3D8
+    fileBuf->getBytes(fileHdrRaw, 0x2FD);
+    duint8 fileHdrdRS[0x2CD];
+    dwgRSCodec::decode239I(fileHdrRaw, fileHdrdRS, 3);
 
-    int startPos = offset;
+#ifdef DRW_DBG_DUMP
+    DRW_DBG("\ndwgReader21::parsed Reed Solomon decode:\n");
+    int j = 0;
+    for (int i=0, j=0; i<0x2CD; i++){
+        DRW_DBGH( (unsigned char)fileHdrdRS[i]);
+        if (j== 15){ j=0; DRW_DBG("\n");
+        } else{ j++; DRW_DBG(", "); }
+    } DRW_DBG("\n");
+#endif
 
-    while (maxPos > buf->getPosition()) {
-        int pppp = buf->getPosition();
-        DBG("start object section buf->curPosition()= "); DBG(pppp); DBG("\n");
-        duint16 size = buf->getBERawShort16();
-        DBG("object map section size= "); DBG(size); DBG("\n");
-        buf->setPosition(startPos);
-        char byteStr[size];
-        buf->getBytes(byteStr, size);
-        dwgBuffer buff(byteStr, size, &decoder);
-        if (size != 2){
-            buff.setPosition(2);
-            int lastHandle = 0;
-            int lastLoc = 0;
-            //read data
-            while(buff.getPosition()< size){
-                pppp = buff.getPosition();
-                lastHandle += buff.getModularChar();
-                DBG("object map lastHandle= "); DBG(lastHandle); DBG("\n");
-                lastLoc += buff.getModularChar();
-                DBG("object map lastLoc= "); DBG(lastLoc); DBG("\n");
-                ObjectMap.push_back(objHandle(0, lastHandle, lastLoc));
-            }
-        }
-        //verify crc
-        duint16 crcCalc = buff.crc8(0xc0c1,0,size);
-        duint16 crcRead = buf->getBERawShort16();
-        DBG("object map section crc8 read= "); DBG(crcRead); DBG("\n");
-        DBG("object map section crc8 calculated= "); DBG(crcCalc); DBG("\n");
-        pppp = buf->getPosition();
-        DBG("object section buf->curPosition()= "); DBG(pppp); DBG("\n");
-        startPos = buf->getPosition();
+    dwgBuffer fileHdrBuf(fileHdrdRS, 0x2CD, &decoder);
+    DRW_DBG("\nCRC 64b= "); DRW_DBGH(fileHdrBuf.getRawLong64());
+    DRW_DBG("\nunknown key 64b= "); DRW_DBGH(fileHdrBuf.getRawLong64());
+    DRW_DBG("\ncomp data CRC 64b= "); DRW_DBGH(fileHdrBuf.getRawLong64());
+    dint32 fileHdrCompLength = fileHdrBuf.getRawLong32();
+    DRW_DBG("\ncompr len 4bytes= "); DRW_DBG(fileHdrCompLength);
+    dint32 fileHdrCompLength2 = fileHdrBuf.getRawLong32();
+    DRW_DBG("\nlength2 4bytes= "); DRW_DBG(fileHdrCompLength2);
+
+    int fileHdrDataLength = 0x110;
+    duint8 *fileHdrData;
+    if (fileHdrCompLength < 0) {
+        fileHdrDataLength = fileHdrCompLength * -1;
+        fileHdrData = new duint8[fileHdrDataLength];
+        fileHdrBuf.getBytes(fileHdrData, fileHdrDataLength);
+    }else {
+        DRW_DBG("\ndwgReader21:: file header are compresed:\n");
+        duint8 *compByteStr = new duint8[fileHdrCompLength];
+        fileHdrBuf.getBytes(compByteStr, fileHdrCompLength);
+        fileHdrData = new duint8[fileHdrDataLength];
+        dwgCompressor::decompress21(compByteStr, fileHdrData, fileHdrCompLength, fileHdrDataLength);
+        delete[] compByteStr;
     }
 
-    bool ret = buf->isGood();
+#ifdef DRW_DBG_DUMP
+    DRW_DBG("\ndwgReader21::parsed file header:\n");
+    for (int i=0, j=0; i<fileHdrDataLength; i++){
+        DRW_DBGH( (unsigned char)fileHdrData[i]);
+        if (j== 15){ j=0; DRW_DBG("\n");
+        } else{ j++; DRW_DBG(", "); }
+    } DRW_DBG("\n");
+#endif
 
-    //read object types
-    DBG("readDwgObjects() Total objects: "); DBG(ObjectMap.size()); DBG("\n");
-    for (std::list<objHandle>::iterator it=ObjectMap.begin(); it != ObjectMap.end(); ++it){
-        DBG("object map Handle= "); DBG(it->handle); DBG(" "); DBG(it->loc); DBG("\n");
-        ret = buf->setPosition(it->loc); //loc == offset
-        if (!ret){
-            ret = false;
-            continue;
-        }
-        int size = buf->getModularShort();
-        DBG("readDwgObject size: "); DBG(size); DBG("\n");
-        it->type = buf->getBitShort();
-        DBG("readDwgObject object type: "); DBG(it->type); DBG("\n");
+    dwgBuffer fileHdrDataBuf(fileHdrData, fileHdrDataLength, &decoder);
+    DRW_DBG("\nHeader size = "); DRW_DBGH(fileHdrDataBuf.getRawLong64());
+    DRW_DBG("\nFile size = "); DRW_DBGH(fileHdrDataBuf.getRawLong64());
+    DRW_DBG("\nPagesMapCrcCompressed = "); DRW_DBGH(fileHdrDataBuf.getRawLong64());
+    duint64 PagesMapCorrectionFactor = fileHdrDataBuf.getRawLong64();
+    DRW_DBG("\nPagesMapCorrectionFactor = "); DRW_DBG(PagesMapCorrectionFactor);
+    DRW_DBG("\nPagesMapCrcSeed = "); DRW_DBGH(fileHdrDataBuf.getRawLong64());
+    DRW_DBG("\nPages map2offset = "); DRW_DBGH(fileHdrDataBuf.getRawLong64()); //relative to data page map 1, add 0x480 to get stream position
+    DRW_DBG("\nPages map2Id = "); DRW_DBG(fileHdrDataBuf.getRawLong64());
+    duint64 PagesMapOffset = fileHdrDataBuf.getRawLong64();
+    DRW_DBG("\nPagesMapOffset = "); DRW_DBGH(PagesMapOffset); //relative to data page map 1, add 0x480 to get stream position
+    DRW_DBG("\nPagesMapId = "); DRW_DBG(fileHdrDataBuf.getRawLong64());
+    DRW_DBG("\nHeader2offset = "); DRW_DBGH(fileHdrDataBuf.getRawLong64()); //relative to data page map 1, add 0x480 to get stream position
+    duint64 PagesMapSizeCompressed = fileHdrDataBuf.getRawLong64();
+    DRW_DBG("\nPagesMapSizeCompressed = "); DRW_DBG(PagesMapSizeCompressed);
+    duint64 PagesMapSizeUncompressed = fileHdrDataBuf.getRawLong64();
+    DRW_DBG("\nPagesMapSizeUncompressed = "); DRW_DBG(PagesMapSizeUncompressed);
+    DRW_DBG("\nPagesAmount = "); DRW_DBGH(fileHdrDataBuf.getRawLong64());
+    duint64 PagesMaxId = fileHdrDataBuf.getRawLong64();
+    DRW_DBG("\nPagesMaxId = "); DRW_DBG(PagesMaxId);
+    DRW_DBG("\nUnknown (normally 0x20) = "); DRW_DBGH(fileHdrDataBuf.getRawLong64());
+    DRW_DBG("\nUnknown (normally 0x40) = "); DRW_DBGH(fileHdrDataBuf.getRawLong64());
+    DRW_DBG("\nPagesMapCrcUncompressed = "); DRW_DBGH(fileHdrDataBuf.getRawLong64());
+    DRW_DBG("\nUnknown (normally 0xf800) = "); DRW_DBGH(fileHdrDataBuf.getRawLong64());
+    DRW_DBG("\nUnknown (normally 4) = "); DRW_DBGH(fileHdrDataBuf.getRawLong64());
+    DRW_DBG("\nUnknown (normally 1) = "); DRW_DBGH(fileHdrDataBuf.getRawLong64());
+    DRW_DBG("\nSectionsAmount (number of sections + 1) = "); DRW_DBGH(fileHdrDataBuf.getRawLong64());
+    DRW_DBG("\nSectionsMapCrcUncompressed = "); DRW_DBGH(fileHdrDataBuf.getRawLong64());
+    duint64 SectionsMapSizeCompressed = fileHdrDataBuf.getRawLong64();
+    DRW_DBG("\nSectionsMapSizeCompressed = "); DRW_DBGH(SectionsMapSizeCompressed);
+    DRW_DBG("\nSectionsMap2Id = "); DRW_DBG(fileHdrDataBuf.getRawLong64());
+    duint64 SectionsMapId = fileHdrDataBuf.getRawLong64();
+    DRW_DBG("\nSectionsMapId = "); DRW_DBG(SectionsMapId);
+    duint64 SectionsMapSizeUncompressed = fileHdrDataBuf.getRawLong64();
+    DRW_DBG("\nSectionsMapSizeUncompressed = "); DRW_DBGH(SectionsMapSizeUncompressed);
+    DRW_DBG("\nSectionsMapCrcCompressed = "); DRW_DBGH(fileHdrDataBuf.getRawLong64());
+    duint64 SectionsMapCorrectionFactor = fileHdrDataBuf.getRawLong64();
+    DRW_DBG("\nSectionsMapCorrectionFactor = "); DRW_DBG(SectionsMapCorrectionFactor);
+    DRW_DBG("\nSectionsMapCrcSeed = "); DRW_DBGH(fileHdrDataBuf.getRawLong64());
+    DRW_DBG("\nStreamVersion (normally 0x60100) = "); DRW_DBGH(fileHdrDataBuf.getRawLong64());
+    DRW_DBG("\nCrcSeed = "); DRW_DBGH(fileHdrDataBuf.getRawLong64());
+    DRW_DBG("\nCrcSeedEncoded = "); DRW_DBGH(fileHdrDataBuf.getRawLong64());
+    DRW_DBG("\nRandomSeed = "); DRW_DBGH(fileHdrDataBuf.getRawLong64());
+    DRW_DBG("\nHeader CRC64 = "); DRW_DBGH(fileHdrDataBuf.getRawLong64()); DRW_DBG("\n");
+
+    delete[] fileHdrData;
+
+    DRW_DBG("\ndwgReader21::parse page map:\n");
+    duint8 *PagesMapData = new duint8[PagesMapSizeUncompressed];
+
+    bool ret = parseSysPage(PagesMapSizeCompressed, PagesMapSizeUncompressed, PagesMapCorrectionFactor, 0x480+PagesMapOffset, PagesMapData);
+    if (!ret) {
+        delete[]PagesMapData;
+        return false;
     }
 
+    duint64 address = 0x480;
+    duint64 i = 0;
+    dwgBuffer PagesMapBuf(PagesMapData, PagesMapSizeUncompressed, &decoder);
+    //stores temporaly info of all pages:
+    std::map<duint32, dwgPageInfo >sectionPageMapTmp;
+
+//    dwgPageInfo *m_pages= new dwgPageInfo[PagesMaxId+1];
+    while (PagesMapSizeUncompressed > i ) {
+        duint64 size = PagesMapBuf.getRawLong64();
+        dint64 id = PagesMapBuf.getRawLong64();
+        duint64 ind = id > 0 ? id : -id;
+        i += 16;
+
+        DRW_DBG("Page gap= "); DRW_DBG(id); DRW_DBG(" Page num= "); DRW_DBG(ind); DRW_DBG(" size= "); DRW_DBGH(size);
+        DRW_DBG(" address= "); DRW_DBGH(address);  DRW_DBG("\n");
+        sectionPageMapTmp[ind] = dwgPageInfo(ind, address,size);
+        address += size;
+        //TODO num can be negative indicating gap
+//        seek += offset;
+    }
+    delete[]PagesMapData;
+
+    DRW_DBG("\n*** dwgReader21: Processing Section Map ***\n");
+    duint8 *SectionsMapData = new duint8[SectionsMapSizeUncompressed];
+    dwgPageInfo sectionMap = sectionPageMapTmp[SectionsMapId];
+    ret = parseSysPage(SectionsMapSizeCompressed, SectionsMapSizeUncompressed, SectionsMapCorrectionFactor, sectionMap.address, SectionsMapData);
+    if (!ret)
+        return false;
+
+//reads sections:
+    //Note: compressed value are not stored in file then, commpresed field are use to store
+    // encoding value
+    dwgBuffer SectionsMapBuf(SectionsMapData, SectionsMapSizeUncompressed, &decoder);
+    duint8 nextId =1;
+    while(SectionsMapBuf.getPosition() < SectionsMapBuf.size()){
+        dwgSectionInfo secInfo;
+        secInfo.size = SectionsMapBuf.getRawLong64();
+        DRW_DBG("\nSize of section (data size)= "); DRW_DBGH(secInfo.size);
+        secInfo.maxSize = SectionsMapBuf.getRawLong64();
+        DRW_DBG("\nMax Decompressed Size= "); DRW_DBGH(secInfo.maxSize);
+        secInfo.encrypted = SectionsMapBuf.getRawLong64();
+        //encrypted (doc: 0 no, 1 yes, 2 unkn) on read: objects 0 and encrypted yes
+        DRW_DBG("\nencription= "); DRW_DBGH(secInfo.encrypted);
+        DRW_DBG("\nHashCode = "); DRW_DBGH(SectionsMapBuf.getRawLong64());
+        duint64 SectionNameLength = SectionsMapBuf.getRawLong64();
+        DRW_DBG("\nSectionNameLength = "); DRW_DBG(SectionNameLength);
+        DRW_DBG("\nUnknown = "); DRW_DBGH(SectionsMapBuf.getRawLong64());
+        secInfo.compresed = SectionsMapBuf.getRawLong64();
+        DRW_DBG("\nEncoding (compresed) = "); DRW_DBGH(secInfo.compresed);
+        secInfo.pageCount = SectionsMapBuf.getRawLong64();
+        DRW_DBG("\nPage count= "); DRW_DBGH(secInfo.pageCount);
+        secInfo.name = SectionsMapBuf.getUCSStr(SectionNameLength);
+        DRW_DBG("\nSection name = "); DRW_DBG(secInfo.name); DRW_DBG("\n");
+
+        for (unsigned int i=0; i< secInfo.pageCount; i++){
+            duint64 po = SectionsMapBuf.getRawLong64();
+            duint32 ds = SectionsMapBuf.getRawLong64();
+            duint32 pn = SectionsMapBuf.getRawLong64();
+            DRW_DBG("  pag Id = "); DRW_DBGH(pn); DRW_DBG(" data size = "); DRW_DBGH(ds);
+            dwgPageInfo pi = sectionPageMapTmp[pn]; //get a copy
+            pi.dataSize = ds;
+            pi.startOffset = po;
+            pi.uSize = SectionsMapBuf.getRawLong64();
+            pi.cSize = SectionsMapBuf.getRawLong64();
+            secInfo.pages[pn]= pi;//complete copy in secInfo
+            DRW_DBG("\n    Page number= "); DRW_DBGH(secInfo.pages[pn].Id);
+            DRW_DBG("\n    address in file= "); DRW_DBGH(secInfo.pages[pn].address);
+            DRW_DBG("\n    size in file= "); DRW_DBGH(secInfo.pages[pn].size);
+            DRW_DBG("\n    Data size= "); DRW_DBGH(secInfo.pages[pn].dataSize);
+            DRW_DBG("\n    Start offset= "); DRW_DBGH(secInfo.pages[pn].startOffset);
+            DRW_DBG("\n    Page uncompressed size = "); DRW_DBGH(secInfo.pages[pn].uSize);
+            DRW_DBG("\n    Page compressed size = "); DRW_DBGH(secInfo.pages[pn].cSize);
+
+            DRW_DBG("\n    Page checksum = "); DRW_DBGH(SectionsMapBuf.getRawLong64());
+            DRW_DBG("\n    Page CRC = "); DRW_DBGH(SectionsMapBuf.getRawLong64()); DRW_DBG("\n");
+        }
+
+        if (!secInfo.name.empty()) {
+            secInfo.Id = nextId++;
+            DRW_DBG("Saved section Name= "); DRW_DBG( secInfo.name.c_str() ); DRW_DBG("\n");
+            sections[secEnum::getEnum(secInfo.name)] = secInfo;
+        }
+    }
+    delete[]SectionsMapData;
+
+    if (! fileBuf->isGood())
+        return false;
+
+    DRW_DBG("\ndwgReader21::readFileHeader END\n");
+    return true;
+}
+
+bool dwgReader21::readDwgHeader(DRW_Header& hdr){
+    DRW_DBG("\ndwgReader21::readDwgHeader\n");
+    dwgSectionInfo si = sections[secEnum::HEADER];
+    if (si.Id<0)//not found, ends
+        return false;
+    DRW_DBG("\nprepare section of size "); DRW_DBG(si.size);DRW_DBG("\n");
+    duint8 *tmpHeaderData = new duint8[si.size];
+    bool ret = dwgReader21::parseDataPage(si, tmpHeaderData);
+    if (!ret) {
+        delete[]tmpHeaderData;
+        return ret;
+    }
+
+    dwgBuffer dataBuf(tmpHeaderData, si.size, &decoder);
+    dwgBuffer handleBuf(tmpHeaderData, si.size, &decoder);
+    DRW_DBG("Header section sentinel= ");
+    checkSentinel(&dataBuf, secEnum::HEADER, true);
+    ret = dwgReader::readDwgHeader(hdr, &dataBuf, &handleBuf);
+    delete[]tmpHeaderData;
     return ret;
-}*/
+}
+
+bool dwgReader21::readDwgClasses(){
+    DRW_DBG("\ndwgReader21::readDwgClasses");
+    dwgSectionInfo si = sections[secEnum::CLASSES];
+    if (si.Id<0)//not found, ends
+        return false;
+
+    DRW_DBG("\nprepare section of size "); DRW_DBG(si.size);DRW_DBG("\n");
+    duint8 *tmpClassesData = new duint8[si.size];
+    bool ret = dwgReader21::parseDataPage(si, tmpClassesData);
+    if (!ret)
+        return ret;
+
+    dwgBuffer buff(tmpClassesData, si.size, &decoder);
+    DRW_DBG("classes section sentinel= ");
+    checkSentinel(&buff, secEnum::CLASSES, true);
+
+    duint32 size = buff.getRawLong32();
+    DRW_DBG("\ndata size in bytes "); DRW_DBG(size);
+
+    duint32 bitSize = buff.getRawLong32();
+    DRW_DBG("\ntotal size in bits "); DRW_DBG(bitSize);
+
+    duint32 maxClassNum = buff.getBitShort();
+    DRW_DBG("\nMaximum class number "); DRW_DBG(maxClassNum);
+    DRW_DBG("\nRc 1 "); DRW_DBG(buff.getRawChar8());
+    DRW_DBG("\nRc 2 "); DRW_DBG(buff.getRawChar8());
+    DRW_DBG("\nBit "); DRW_DBG(buff.getBit());
+
+    /*******************************/
+    //prepare string stream
+    dwgBuffer strBuff(tmpClassesData, si.size, &decoder);
+    duint32 strStartPos = bitSize + 159;//size in bits + 20 bytes (sn+size) - 1 bit (endbit)
+    DRW_DBG("\nstrStartPos: "); DRW_DBG(strStartPos);
+    strBuff.setPosition(strStartPos >> 3);
+    strBuff.setBitPos(strStartPos & 7);
+    DRW_DBG("\nclasses strings buff.getPosition: "); DRW_DBG(strBuff.getPosition());
+    DRW_DBG("\nclasses strings buff.getBitPos: "); DRW_DBG(strBuff.getBitPos());
+    DRW_DBG("\nendBit "); DRW_DBG(strBuff.getBit());
+    strStartPos -= 16;//decrement 16 bits
+    DRW_DBG("\nstrStartPos: "); DRW_DBG(strStartPos);
+    strBuff.setPosition(strStartPos >> 3);
+    strBuff.setBitPos(strStartPos & 7);
+    DRW_DBG("\nclasses strings buff.getPosition: "); DRW_DBG(strBuff.getPosition());
+    DRW_DBG("\nclasses strings buff.getBitPos: "); DRW_DBG(strBuff.getBitPos());
+    duint32 strDataSize = strBuff.getRawShort16();
+    DRW_DBG("\nstrDataSize: "); DRW_DBG(strDataSize);
+    if (strDataSize & 0x8000) {
+        strStartPos -= 16;//decrement 16 bits
+        strDataSize &= 0x7FFF; //strip 0x8000;
+        strBuff.setPosition(strStartPos >> 3);
+        strBuff.setBitPos(strStartPos & 7);
+        duint32 hiSize = strBuff.getRawShort16();
+        strDataSize |= (hiSize << 15);
+    }
+    strStartPos -= strDataSize;
+    DRW_DBG("\nstrStartPos: "); DRW_DBG(strStartPos);
+    strBuff.setPosition(strStartPos >> 3);
+    strBuff.setBitPos(strStartPos & 7);
+    DRW_DBG("\nclasses strings buff.getPosition: "); DRW_DBG(strBuff.getPosition());
+    DRW_DBG("\nclasses strings buff.getBitPos: "); DRW_DBG(strBuff.getBitPos());
+
+
+    /*******************************/
+
+    duint32 endDataPos = maxClassNum-499;
+    DRW_DBG("\nbuff.getPosition: "); DRW_DBG(buff.getPosition());
+    for (duint32 i= 0; i<endDataPos;i++) {
+        DRW_Class *cl = new DRW_Class();
+        cl->parseDwg(version, &buff, &strBuff);
+        classesmap[cl->classNum] = cl;
+        DRW_DBG("\nbuff.getPosition: "); DRW_DBG(buff.getPosition());
+    }
+    DRW_DBG("\nend classes data buff.getPosition: "); DRW_DBG(buff.getPosition());
+    DRW_DBG("\nend classes data buff.getBitPos: "); DRW_DBG(buff.getBitPos());
+
+    buff.setPosition(size+20);//sizeVal+sn+32bSize
+    DRW_DBG("\nCRC: "); DRW_DBGH(buff.getRawShort16());
+    DRW_DBG("\nclasses section end sentinel= ");
+    checkSentinel(&buff, secEnum::CLASSES, true);
+    delete[]tmpClassesData;
+    return buff.isGood();
+}
+
+
+bool dwgReader21::readDwgHandles(){
+    DRW_DBG("\ndwgReader21::readDwgHandles");
+    dwgSectionInfo si = sections[secEnum::HANDLES];
+    if (si.Id<0)//not found, ends
+        return false;
+
+    DRW_DBG("\nprepare section of size "); DRW_DBG(si.size);DRW_DBG("\n");
+    duint8 *tmpHandlesData = new duint8[si.size];
+    bool ret = dwgReader21::parseDataPage(si, tmpHandlesData);
+    if (!ret)
+        return ret;
+
+    dwgBuffer dataBuf(tmpHandlesData, si.size, &decoder);
+
+    ret = dwgReader::readDwgHandles(&dataBuf, 0, si.size);
+    delete[]tmpHandlesData;
+    return ret;
+}
 
 /*********** objects ************************/
 /**
  * Reads all the object referenced in the object map section of the DWG file
  * (using their object file offsets)
  */
-/*bool dwgReader21::readDwgTables() {
-    bool ret = true;
-    bool ret2 = true;
-    std::list<objHandle>ObjectControlMap;
-    std::list<objHandle>LineTypeMap;
-    std::list<objHandle>LayerMap;
-    std::list<objHandle>BlockRecordMap;
-    std::list<objHandle>StyleMap;
-    std::list<objHandle>DimstyleMap;
-    std::list<objHandle>VportMap;
+bool dwgReader21::readDwgTables(DRW_Header& hdr) {
+    DRW_DBG("\ndwgReader21::readDwgTables\n");
+    dwgSectionInfo si = sections[secEnum::OBJECTS];
+    if (si.Id<0)//not found, ends
+        return false;
 
-//separate control object, layers and linetypes
-    for (std::list<objHandle>::iterator it=ObjectMap.begin(); it != ObjectMap.end(); ){
-        if (it->type == 0x30 || it->type == 0x32 || it->type == 0x34 || it->type == 0x38 || it->type == 0x3C
-                || it->type == 0x3E || it->type == 0x40 || it->type == 0x42 || it->type == 0x44 || it->type == 0x46){
-            ObjectControlMap.push_back(*it);
-            it = ObjectMap.erase(it);
-        } else if (it->type == 0x39){
-            LineTypeMap.push_back(*it);
-            it = ObjectMap.erase(it);
-        } else if (it->type == 0x33){
-            LayerMap.push_back(*it);
-            it = ObjectMap.erase(it);
-        } else if (it->type == 0x31 || it->type == 0x4 || it->type == 0x5){
-            BlockRecordMap.push_back(*it);
-            it = ObjectMap.erase(it);
-        } else if (it->type == 0x35){
-            StyleMap.push_back(*it);
-            it = ObjectMap.erase(it);
-        } else if (it->type == 0x45){
-            DimstyleMap.push_back(*it);
-            it = ObjectMap.erase(it);
-        } else if (it->type == 0x41){
-            VportMap.push_back(*it);
-            it = ObjectMap.erase(it);
-        } else
-            it++;
-    }
-    //parse object controls
-    //parse linetypes
-    for (std::list<objHandle>::iterator it=LineTypeMap.begin(); it != LineTypeMap.end(); ++it){
-        DBG("LineTypeMap map Handle= "); DBG(it->handle); DBG(" "); DBG(it->loc); DBG("\n");
-        DRW_LType *lt = new DRW_LType();
-        buf->setPosition(it->loc);
-        int size = buf->getModularShort();
-        char byteStr[size];
-        buf->getBytes(byteStr, size);
-        dwgBuffer buff(byteStr, size, &decoder);
-        ret2 = lt->parseDwg(version, &buff);
-        ltypemap[lt->handle] = lt;
-        if(ret)
-            ret = ret2;
-    }
+    DRW_DBG("\nprepare section of size "); DRW_DBG(si.size);DRW_DBG("\n");
+    dataSize = si.size;
+    objData = new duint8 [dataSize];
+    bool ret = dwgReader21::parseDataPage(si, objData);
+    if (!ret)
+        return ret;
 
-    //parse layers
-    for (std::list<objHandle>::iterator it=LayerMap.begin(); it != LayerMap.end(); ++it){
-        DBG("LayerMap map Handle= "); DBG(it->handle); DBG(" "); DBG(it->loc); DBG("\n");
-        DRW_Layer *la = new DRW_Layer();
-        buf->setPosition(it->loc);
-        int size = buf->getModularShort();
-        char byteStr[size];
-        buf->getBytes(byteStr, size);
-        dwgBuffer buff(byteStr, size, &decoder);
-        ret2 = la->parseDwg(version, &buff);
-        layermap[la->handle] = la;
-        if(ret)
-            ret = ret2;
-    }
-
-    //parse text styles
-    for (std::list<objHandle>::iterator it=StyleMap.begin(); it != StyleMap.end(); ++it){
-        DBG("StyleMap map Handle= "); DBG(it->handle); DBG(" "); DBG(it->loc); DBG("\n");
-        DRW_Textstyle *la = new DRW_Textstyle();
-        buf->setPosition(it->loc);
-        int size = buf->getModularShort();
-        char byteStr[size];
-        buf->getBytes(byteStr, size);
-        dwgBuffer buff(byteStr, size, &decoder);
-        ret2 = la->parseDwg(version, &buff);
-        stylemap[la->handle] = la;
-        if(ret)
-            ret = ret2;
-    }
-
-    //parse dimstyles
-    for (std::list<objHandle>::iterator it=DimstyleMap.begin(); it != DimstyleMap.end(); ++it){
-        DBG("DimstyleMap map Handle= "); DBG(it->handle); DBG(" "); DBG(it->loc); DBG("\n");
-        DRW_Dimstyle *la = new DRW_Dimstyle();
-        buf->setPosition(it->loc);
-        int size = buf->getModularShort();
-        char byteStr[size];
-        buf->getBytes(byteStr, size);
-        dwgBuffer buff(byteStr, size, &decoder);
-        ret2 = la->parseDwg(version, &buff);
-        dimstylemap[la->handle] = la;
-        if(ret)
-            ret = ret2;
-    }
-
-    //parse vports
-    for (std::list<objHandle>::iterator it=VportMap.begin(); it != VportMap.end(); ++it){
-        DBG("VportMap map Handle= "); DBG(it->handle); DBG(" "); DBG(it->loc); DBG("\n");
-        DRW_Vport *la = new DRW_Vport();
-        buf->setPosition(it->loc);
-        int size = buf->getModularShort();
-        char byteStr[size];
-        buf->getBytes(byteStr, size);
-        dwgBuffer buff(byteStr, size, &decoder);
-        ret2 = la->parseDwg(version, &buff);
-        vportmap[la->handle] = la;
-        if(ret)
-            ret = ret2;
-    }
-
-    //set linetype in layer
-    for (std::map<int, DRW_Layer*>::iterator it=layermap.begin(); it!=layermap.end(); ++it) {
-        DRW_Layer *ly = it->second;
-        duint32 ref =ly->lTypeH.ref;
-        std::map<int, DRW_LType*>::iterator lt_it = ltypemap.find(ref);
-        if (lt_it != ltypemap.end()){
-            ly->lineType = (lt_it->second)->name;
-        }
-    }
-
-    //parse blocks records
-    std::map<int, DRW_Block*> tmpBlockmap;
-    for (std::list<objHandle>::iterator it=BlockRecordMap.begin(); it != BlockRecordMap.end(); ++it){
-        DBG("BlockMap map Handle= "); DBG(it->handle); DBG(" "); DBG(it->loc); DBG("\n");
-        buf->setPosition(it->loc);
-        int size = buf->getModularShort();
-        char byteStr[size];
-        buf->getBytes(byteStr, size);
-        dwgBuffer buff(byteStr, size, &decoder);
-        switch (it->type){
-        case 4: {
-            DRW_Block *e= new DRW_Block();
-            ret2 = e->parseDwg(version, &buff);
-            parseAttribs(e);
-            tmpBlockmap[e->handle] = e;
-            break; }
-        case 5: {
-            DRW_Block e;
-            e.isEnd = true;
-            ret2 = e.parseDwg(version, &buff);
-            parseAttribs(&e);
-            break; }
-        case 49: {
-            DRW_Block_Record *br = new DRW_Block_Record();
-            ret2 = br->parseDwg(version, &buff);
-            block_recmap[br->handle] = br;
-            break; }
-        default:
-            break;
-        }
-        if(ret)
-            ret = ret2;
-    }
-
-    //complete block entity with block record data
-    for (std::map<int, DRW_Block*>::iterator it=tmpBlockmap.begin(); it!=tmpBlockmap.end(); ++it) {
-        DRW_Block* bk = it->second;
-        std::map<int, DRW_Block_Record*>::iterator brit = block_recmap.find(bk->handleBlock);
-        if (brit == block_recmap.end()){//fail, set error
-            if(ret)
-                ret = ret2;
-        } else {
-            DRW_Block_Record *bkR = brit->second;
-            parseAttribs(bk);
-            bk->basePoint = bkR->basePoint;
-            bk->flags = bkR->flags;
-            if(bk->handleBlock == 0 && bk->name[0]=='*'){//verify model/paper space
-                if (bk->name[1]=='P')
-                    bk->handleBlock = bkR->handle;
-            }
-            blockmap[bk->handleBlock] = bk;
-        }
-
-    }
+    DRW_DBG("readDwgTables total data size= "); DRW_DBG(dataSize); DRW_DBG("\n");
+    dwgBuffer dataBuf(objData, dataSize, &decoder);
+    ret = dwgReader::readDwgTables(hdr, &dataBuf);
 
     return ret;
 }
-*/
-/**
- * Reads a dwg drawing entity (dwg object entity) given its offset in the file
- */
-/*bool dwgReader21::readDwgEntity(objHandle& obj, DRW_Interface& intfa){
+
+
+bool dwgReader21::readDwgBlocks(DRW_Interface& intfa){
     bool ret = true;
-
-#define ENTRY_PARSE(e) \
-            ret = e.parseDwg(version, &buff); \
-            if (e.handleBlock != currBlock) { \
-                currBlock = e.handleBlock; \
-                intfa.setBlock(e.handleBlock); \
-            } \
-            parseAttribs(&e)
-
-        buf->setPosition(obj.loc);
-        int size = buf->getModularShort();
-        char byteStr[size];
-        buf->getBytes(byteStr, size);
-        dwgBuffer buff(byteStr, size, &decoder);
-        if (obj.type > 499){
-            std::map<int, DRW_Class*>::iterator it = classesmap.find(obj.type);
-            if (it == classesmap.end()){//fail, not found in classes set error
-                return false;
-            } else {
-                DRW_Class *cl = it->second;
-                if (cl->dwgType != 0)
-                    obj.type = cl->dwgType;
-            }
-        }
-
-        switch (obj.type){
-        case 17: {
-            DRW_Arc e;
-            ENTRY_PARSE(e);
-            intfa.addArc(e);
-            break; }
-        case 18: {
-            DRW_Circle e;
-            ENTRY_PARSE(e);
-            intfa.addCircle(e);
-            break; }
-        case 19:{
-            DRW_Line e;
-            ENTRY_PARSE(e);
-            intfa.addLine(e);
-            break;}
-        case 27: {
-            DRW_Point e;
-            ENTRY_PARSE(e);
-            intfa.addPoint(e);
-            break; }
-        case 35: {
-            DRW_Ellipse e;
-            ENTRY_PARSE(e);
-            intfa.addEllipse(e);
-            break; }
-        case 7: {//minsert = 8
-            DRW_Insert e;
-            ENTRY_PARSE(e);
-            e.name = findTableName(DRW::BLOCK_RECORD, e.blockRecH.ref);
-            intfa.addInsert(e);
-            break; }
-        case 77: {
-            DRW_LWPolyline e;
-            ENTRY_PARSE(e);
-            intfa.addLWPolyline(e);
-            break; }
-        case 1: {
-            DRW_Text e;
-            ENTRY_PARSE(e);
-            e.style = findTableName(DRW::STYLE, e.styleH.ref);
-            intfa.addText(e);
-            break; }
-        case 44: {
-            DRW_MText e;
-            ENTRY_PARSE(e);
-            e.style = findTableName(DRW::STYLE, e.styleH.ref);
-            intfa.addMText(e);
-            break; }
-        case 28: {
-            DRW_3Dface e;
-            ENTRY_PARSE(e);
-            intfa.add3dFace(e);
-            break; }
-        case 31: {
-            DRW_Solid e;
-            ENTRY_PARSE(e);
-            intfa.addSolid(e);
-            break; }
-
-        default:
-            break;
-        }
-
+    dwgBuffer dataBuf(objData, dataSize, &decoder);
+    ret = dwgReader::readDwgBlocks(intfa, &dataBuf);
     return ret;
+
+    return false;
 }
-//        } else if (it->type == 0x31 || it->type == 0x4 || it->type == 0x5){
-*/
 
-///////////////////////////////////////////////////////////////////////
 
-/*bool dwgReader21::readDwgHeader() {
-return false;
-}*/
-
-/*bool dwgReader21::readDwgClasses() {
-return false;
-}*/

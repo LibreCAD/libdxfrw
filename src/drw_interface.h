@@ -1,7 +1,7 @@
 /******************************************************************************
 **  libDXFrw - Library to read/write DXF files (ascii & binary)              **
 **                                                                           **
-**  Copyright (C) 2011-2013 Rallaz, rallazz@gmail.com                        **
+**  Copyright (C) 2011-2015 José F. Soriano, rallazz@gmail.com               **
 **                                                                           **
 **  This library is free software, licensed under the terms of the GNU       **
 **  General Public License as published by the Free Software Foundation,     **
@@ -13,7 +13,7 @@
 #ifndef DRW_INTERFACE_H
 #define DRW_INTERFACE_H
 
-#include <string.h>
+#include <cstring>
 
 #include "drw_entities.h"
 #include "drw_objects.h"
@@ -46,6 +46,8 @@ public:
     virtual void addVport(const DRW_Vport& data) = 0;
     /** Called for every text style. */
     virtual void addTextStyle(const DRW_Textstyle& data) = 0;
+    /** Called for every AppId entry. */
+    virtual void addAppId(const DRW_AppId& data) = 0;
 
     /**
      * Called for every block. Note: all entities added after this
@@ -192,6 +194,7 @@ public:
     virtual void writeTextstyles() = 0;
     virtual void writeVports() = 0;
     virtual void writeDimstyles() = 0;
+    virtual void writeAppId() = 0;
 };
 
 #endif
