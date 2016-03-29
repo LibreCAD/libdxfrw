@@ -20,7 +20,7 @@ mkdir build
 cd build
 cmake ..
 make 
-make install
+sudo make install
 ```
 
 For non-debug version:
@@ -31,7 +31,17 @@ mkdir release
 cd release
 cmake -DCMAKE_BUILD_TYPE=Release ..
 make 
-make install
+sudo make install
+```
+
+== UBUNTU/Mint Folks ==
+
+```
+mkdir release
+cd release
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=/usr .. && make all
+make 
+sudo make install
 ```
 
 
