@@ -378,8 +378,8 @@ DRW_Coord dwgBuffer::get3BitDouble(){
 
 /**Reads raw char 8 bits returns a unsigned char (RC) **/
 duint8 dwgBuffer::getRawChar8(){
-    duint8 ret;
-    duint8 buffer;
+    duint8 ret=0;
+    duint8 buffer=0;
     filestr->read (&buffer,1);
     if (bitPos == 0)
         return buffer;
@@ -393,8 +393,8 @@ duint8 dwgBuffer::getRawChar8(){
 
 /**Reads raw short 16 bits little-endian order, returns a unsigned short (RS) **/
 duint16 dwgBuffer::getRawShort16(){
-    duint8 buffer[2];
-    duint16 ret;
+    duint8 buffer[2]={0,0};
+    duint16 ret=0;
 
     filestr->read (buffer,2);
     if (bitPos == 0) {
@@ -415,6 +415,7 @@ duint16 dwgBuffer::getRawShort16(){
 /**Reads raw double IEEE standard 64 bits returns a double (RD) **/
 double dwgBuffer::getRawDouble(){
     duint8 buffer[8];
+    memset(buffer,0,sizeof(buffer));
     if (bitPos == 0)
         filestr->read (buffer,8);
     else {
@@ -531,7 +532,7 @@ dint32 dwgBuffer::getModularShort(){
 }
 
 dwgHandle dwgBuffer::getHandle(){ //H
-    dwgHandle hl;
+    dwgHandle hl; 
     duint8 data = getRawChar8();
     hl.code = (data >> 4) & 0x0F;
     hl.size = data & 0x0F;
@@ -544,7 +545,6 @@ dwgHandle dwgBuffer::getHandle(){ //H
 
 dwgHandle dwgBuffer::getOffsetHandle(duint32 href){ //H
     dwgHandle hl = getHandle();
-
     if (hl.code > 5){
         if (hl.code == 0x0C)
             hl.ref = href - hl.ref;
