@@ -183,6 +183,52 @@ bool dxfRW::writeEntity(DRW_Entity *ent) {
     if (version > DRW::AC1014) {
         writer->writeInt16(370, DRW_LW_Conv::lineWidth2dxfInt(ent->lWeight));
     }
+    if (version >= DRW::AC1014) {
+        writeAppData(ent->appData);
+    }
+    return true;
+}
+
+bool dxfRW::writeAppData(const std::list<std::list<DRW_Variant>>& appData) {
+    for(auto group : appData) {
+        //Search for application name
+        bool found = false;
+
+        for(auto data : group) {
+            if(data.code() == 102 && data.type() == DRW_Variant::STRING) {
+                writer->writeString(102, "{" + *(data.content.s));
+                found = true;
+                break;
+            }
+        }
+
+        if(found) {
+            for(auto data : group) {
+                if(data.code() == 102) {
+                    continue;
+                }
+
+                switch(data.type()) {
+                    case DRW_Variant::STRING:
+                        writer->writeString(data.code(), *(data.content.s));
+                        break;
+
+                    case DRW_Variant::INTEGER:
+                        writer->writeInt32(data.code(), data.content.i);
+                        break;
+
+                    case DRW_Variant::DOUBLE:
+                        writer->writeDouble(data.code(), data.content.i);
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+
+            writer->writeString(102, "}");
+        }
+    }
     return true;
 }
 
@@ -1346,6 +1392,9 @@ bool dxfRW::writeBlock(DRW_Block *bk){
         writer->writeUtf8String(3, bk->name);
     else
         writer->writeUtf8Caps(3, bk->name);
+    if(version >= DRW::AC1014) {
+        writeAppData(bk->appData);
+    }
     writer->writeString(1, "");
 
     return true;

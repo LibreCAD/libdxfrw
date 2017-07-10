@@ -39,3 +39,4 @@ libtool
 .idea
 build
 debug
+cmake-build-*

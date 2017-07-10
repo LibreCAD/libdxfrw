@@ -120,6 +120,7 @@ private:
     bool writeExtData(const std::vector<DRW_Variant*> &ed);
     /*use version from dwgutil.h*/
     std::string toHexStr(int n);//RLZ removeme
+    bool writeAppData(const std::list<std::list<DRW_Variant>> &appData);
 
 private:
     DRW::Version version;
