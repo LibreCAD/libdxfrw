@@ -47,5 +47,4 @@ sudo make install
 
 == Example usage of the library ==
 
-See how we use it in LibreCAD V3 : https://github.com/LibreCAD/LibreCAD_3/tree/master/lcDXFDWG/lcDXF
-
+See how we use it in LibreCAD V3 : https://github.com/LibreCAD/LibreCAD_3/tree/master/lcDXFDWG/libdxfrw
