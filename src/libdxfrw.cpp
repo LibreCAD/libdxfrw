@@ -811,9 +811,9 @@ bool dxfRW::writePolyline(DRW_Polyline *ent) {
     writeEntity(ent);
     if (version > DRW::AC1009) {
         if (ent->flags & 8 || ent->flags & 16)
-            writer->writeString(100, "AcDb2dPolyline");
-        else
             writer->writeString(100, "AcDb3dPolyline");
+        else
+            writer->writeString(100, "AcDb2dPolyline");
     } else
         writer->writeInt16(66, 1);
     writer->writeDouble(10, 0.0);
