@@ -438,7 +438,7 @@ std::string DRW_Conv932Table::toUtf8(const std::string &s) {
 
 std::string DRW_ConvUTF16::fromUtf8(const std::string &s){
     DRW_UNUSED(s);
-    //RLZ: to be writen (only needed for write dwg 2007+)
+    //RLZ: to be written (only needed for write dwg 2007+)
     return std::string();
 }
 
