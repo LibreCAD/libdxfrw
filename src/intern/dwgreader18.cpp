@@ -91,7 +91,7 @@ void dwgReader18::parseSysPage(duint8 *decompSec, duint32 decompSize){
         } else { DRW_DBG(", "); j++; }
     } DRW_DBG("\n");
 #endif
-    DRW_DBG("decompresing "); DRW_DBG(compSize); DRW_DBG(" bytes in "); DRW_DBG(decompSize); DRW_DBG(" bytes\n");
+    DRW_DBG("decompressing "); DRW_DBG(compSize); DRW_DBG(" bytes in "); DRW_DBG(decompSize); DRW_DBG(" bytes\n");
     dwgCompressor comp;
     comp.decompress18(tmpCompSec, decompSec, compSize, decompSize);
 #ifdef DRW_DBG_DUMP
@@ -162,7 +162,7 @@ bool dwgReader18::parseDataPage(const dwgSectionInfo &si/*, duint8 *dData*/){
 
         duint8* oData = objData.get() + pi.startOffset;
         pi.uSize = si.maxSize;
-        DRW_DBG("decompresing "); DRW_DBG(pi.cSize); DRW_DBG(" bytes in "); DRW_DBG(pi.uSize); DRW_DBG(" bytes\n");
+        DRW_DBG("decompressing "); DRW_DBG(pi.cSize); DRW_DBG(" bytes in "); DRW_DBG(pi.uSize); DRW_DBG(" bytes\n");
         dwgCompressor comp;
         comp.decompress18(cData, oData, pi.cSize, pi.uSize);
         delete[]cData;
