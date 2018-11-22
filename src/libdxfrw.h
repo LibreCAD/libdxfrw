@@ -71,6 +71,8 @@ public:
     bool writeDimension(DRW_Dimension *ent);
     void setEllipseParts(int parts){elParts = parts;} /*!< set parts munber when convert ellipse to polyline */
 
+    DRW::Version getVersion() const;
+
 private:
     /// used by read() to parse the content of the file
     bool processDxf();
