@@ -1885,18 +1885,18 @@ bool dxfRW::processDxf() {
                     sectionstr = reader->getString();
                     DRW_DBG(sectionstr); DRW_DBG("  processDxf\n");
                 //found section, process it
-                    if (sectionstr == "HEADER") {
-                        processHeader();
+                    if (sectionstr == "HEADER" && !processHeader()) {
+                        return false;
                     } else if (sectionstr == "CLASSES") {
 //                        processClasses();
-                    } else if (sectionstr == "TABLES") {
-                        processTables();
-                    } else if (sectionstr == "BLOCKS") {
-                        processBlocks();
-                    } else if (sectionstr == "ENTITIES") {
-                        processEntities(false);
-                    } else if (sectionstr == "OBJECTS") {
-                        processObjects();
+                    } else if (sectionstr == "TABLES" && !processTables()) {
+                        return false;
+                    } else if (sectionstr == "BLOCKS" && !processBlocks()) {
+                        return false;
+                    } else if (sectionstr == "ENTITIES" && !processEntities(false)) {
+                        return false;
+                    } else if (sectionstr == "OBJECTS" && !processObjects()) {
+                        return false;
                     }
                 }
             }
@@ -1904,7 +1904,7 @@ bool dxfRW::processDxf() {
 /*    if (!more)
         return true;*/
     }
-    return true;
+    return false;
 }
 
 /********* Header Section *********/
@@ -1924,7 +1924,7 @@ bool dxfRW::processHeader() {
             }
         } else header.parseCode(code, reader);
     }
-    return true;
+    return false;
 }
 
 /********* Tables Section *********/
@@ -1933,7 +1933,7 @@ bool dxfRW::processTables() {
     DRW_DBG("dxfRW::processTables\n");
     int code;
     std::string sectionstr;
-    bool more = true;
+    bool more;
     while (reader->readRec(&code)) {
         DRW_DBG(code); DRW_DBG("\n");
         if (code == 0) {
@@ -1973,7 +1973,7 @@ bool dxfRW::processTables() {
             }
         }
     }
-    return true;
+    return false;
 }
 
 bool dxfRW::processLType() {
@@ -2000,7 +2000,7 @@ bool dxfRW::processLType() {
         } else if (reading)
             ltype.parseCode(code, reader);
     }
-    return true;
+    return false;
 }
 
 bool dxfRW::processLayer() {
@@ -2025,7 +2025,7 @@ bool dxfRW::processLayer() {
         } else if (reading)
             layer.parseCode(code, reader);
     }
-    return true;
+    return false;
 }
 
 bool dxfRW::processDimStyle() {
@@ -2050,7 +2050,7 @@ bool dxfRW::processDimStyle() {
         } else if (reading)
             dimSty.parseCode(code, reader);
     }
-    return true;
+    return false;
 }
 
 bool dxfRW::processTextStyle(){
@@ -2075,7 +2075,7 @@ bool dxfRW::processTextStyle(){
         } else if (reading)
             TxtSty.parseCode(code, reader);
     }
-    return true;
+    return false;
 }
 
 bool dxfRW::processVports(){
@@ -2100,7 +2100,7 @@ bool dxfRW::processVports(){
         } else if (reading)
             vp.parseCode(code, reader);
     }
-    return true;
+    return false;
 }
 
 bool dxfRW::processAppId(){
@@ -2125,7 +2125,7 @@ bool dxfRW::processAppId(){
         } else if (reading)
             vp.parseCode(code, reader);
     }
-    return true;
+    return false;
 }
 
 /********* Block Section *********/
@@ -2146,7 +2146,7 @@ bool dxfRW::processBlocks() {
             }
         }
     }
-    return true;
+    return false;
 }
 
 bool dxfRW::processBlock() {
@@ -2174,7 +2174,7 @@ bool dxfRW::processBlock() {
             break;
         }
     }
-    return true;
+    return false;
 }
 
 
@@ -2186,7 +2186,7 @@ bool dxfRW::processEntities(bool isblock) {
     if (!reader->readRec(&code)){
         return false;
     }
-    bool next = true;
+
     if (code == 0) {
             nextentity = reader->getString();
     } else if (!isblock) {
@@ -2195,58 +2195,61 @@ bool dxfRW::processEntities(bool isblock) {
     do {
         if (nextentity == "ENDSEC" || nextentity == "ENDBLK") {
             return true;  //found ENDSEC or ENDBLK terminate
-        } else if (nextentity == "POINT") {
-            processPoint();
-        } else if (nextentity == "LINE") {
-            processLine();
-        } else if (nextentity == "CIRCLE") {
-            processCircle();
-        } else if (nextentity == "ARC") {
-            processArc();
-        } else if (nextentity == "ELLIPSE") {
-            processEllipse();
-        } else if (nextentity == "TRACE") {
-            processTrace();
-        } else if (nextentity == "SOLID") {
-            processSolid();
-        } else if (nextentity == "INSERT") {
-            processInsert();
-        } else if (nextentity == "LWPOLYLINE") {
-            processLWPolyline();
-        } else if (nextentity == "POLYLINE") {
-            processPolyline();
-        } else if (nextentity == "TEXT") {
-            processText();
-        } else if (nextentity == "MTEXT") {
-            processMText();
-        } else if (nextentity == "HATCH") {
-            processHatch();
-        } else if (nextentity == "SPLINE") {
-            processSpline();
-        } else if (nextentity == "3DFACE") {
-            process3dface();
-        } else if (nextentity == "VIEWPORT") {
-            processViewport();
-        } else if (nextentity == "IMAGE") {
-            processImage();
-        } else if (nextentity == "DIMENSION") {
-            processDimension();
-        } else if (nextentity == "LEADER") {
-            processLeader();
-        } else if (nextentity == "RAY") {
-            processRay();
-        } else if (nextentity == "XLINE") {
-            processXline();
+        }
+        else if (nextentity == "POINT" && !processPoint()) {
+            return false;
+        } else if (nextentity == "LINE" && !processLine()) {
+            return false;
+        } else if (nextentity == "CIRCLE" && !processCircle()) {
+            return false;
+        } else if (nextentity == "ARC" && !processArc()) {
+            return false;
+        } else if (nextentity == "ELLIPSE" && !processEllipse()) {
+            return false;
+        } else if (nextentity == "TRACE" && !processTrace()) {
+            return false;
+        } else if (nextentity == "SOLID" && !processSolid()) {
+            return false;
+        } else if (nextentity == "INSERT" && !processInsert()) {
+            return false;
+        } else if (nextentity == "LWPOLYLINE" && !processLWPolyline()) {
+            return false;
+        } else if (nextentity == "POLYLINE" && !processPolyline()) {
+            return false;
+        } else if (nextentity == "TEXT" && !processText()) {
+            return false;
+        } else if (nextentity == "MTEXT" && !processMText()) {
+            return false;
+        } else if (nextentity == "HATCH" && !processHatch()) {
+            return false;
+        } else if (nextentity == "SPLINE" && !processSpline()) {
+            return false;
+        } else if (nextentity == "3DFACE" && !process3dface()) {
+            return false;
+        } else if (nextentity == "VIEWPORT" && !processViewport()) {
+            return false;
+        } else if (nextentity == "IMAGE" && !processImage()) {
+            return false;
+        } else if (nextentity == "DIMENSION" && !processDimension()) {
+            return false;
+        } else if (nextentity == "LEADER" && !processLeader()) {
+            return false;
+        } else if (nextentity == "RAY" && !processRay()) {
+            return false;
+        } else if (nextentity == "XLINE" && !processXline()) {
+            return false;
         } else {
-            if (reader->readRec(&code)){
-                if (code == 0)
+            if (reader->readRec(&code)) {
+                if (code == 0) {
                     nextentity = reader->getString();
-            } else
+                }
+            }
+            else {
                 return false; //end of file without ENDSEC
+            }
         }
 
-    } while (next);
-    return true;
+    } while (true);
 }
 
 bool dxfRW::processEllipse() {
@@ -2269,7 +2272,7 @@ bool dxfRW::processEllipse() {
             break;
         }
     }
-    return true;
+    return false;
 }
 
 bool dxfRW::processTrace() {
@@ -2292,7 +2295,7 @@ bool dxfRW::processTrace() {
             break;
         }
     }
-    return true;
+    return false;
 }
 
 bool dxfRW::processSolid() {
@@ -2315,7 +2318,7 @@ bool dxfRW::processSolid() {
             break;
         }
     }
-    return true;
+    return false;
 }
 
 bool dxfRW::process3dface() {
@@ -2336,7 +2339,7 @@ bool dxfRW::process3dface() {
             break;
         }
     }
-    return true;
+    return false;
 }
 
 bool dxfRW::processViewport() {
@@ -2357,7 +2360,7 @@ bool dxfRW::processViewport() {
             break;
         }
     }
-    return true;
+    return false;
 }
 
 bool dxfRW::processPoint() {
@@ -2378,7 +2381,7 @@ bool dxfRW::processPoint() {
             break;
         }
     }
-    return true;
+    return false;
 }
 
 bool dxfRW::processLine() {
@@ -2399,7 +2402,7 @@ bool dxfRW::processLine() {
             break;
         }
     }
-    return true;
+    return false;
 }
 
 bool dxfRW::processRay() {
@@ -2420,7 +2423,7 @@ bool dxfRW::processRay() {
             break;
         }
     }
-    return true;
+    return false;
 }
 
 bool dxfRW::processXline() {
@@ -2441,7 +2444,7 @@ bool dxfRW::processXline() {
             break;
         }
     }
-    return true;
+    return false;
 }
 
 bool dxfRW::processCircle() {
@@ -2464,7 +2467,7 @@ bool dxfRW::processCircle() {
             break;
         }
     }
-    return true;
+    return false;
 }
 
 bool dxfRW::processArc() {
@@ -2487,7 +2490,7 @@ bool dxfRW::processArc() {
             break;
         }
     }
-    return true;
+    return false;
 }
 
 bool dxfRW::processInsert() {
@@ -2508,7 +2511,7 @@ bool dxfRW::processInsert() {
             break;
         }
     }
-    return true;
+    return false;
 }
 
 bool dxfRW::processLWPolyline() {
@@ -2531,7 +2534,7 @@ bool dxfRW::processLWPolyline() {
             break;
         }
     }
-    return true;
+    return false;
 }
 
 bool dxfRW::processPolyline() {
@@ -2556,7 +2559,7 @@ bool dxfRW::processPolyline() {
             break;
         }
     }
-    return true;
+    return false;
 }
 
 bool dxfRW::processVertex(DRW_Polyline *pl) {
@@ -2581,7 +2584,7 @@ bool dxfRW::processVertex(DRW_Polyline *pl) {
             break;
         }
     }
-    return true;
+    return false;
 }
 
 bool dxfRW::processText() {
@@ -2602,7 +2605,7 @@ bool dxfRW::processText() {
             break;
         }
     }
-    return true;
+    return false;
 }
 
 bool dxfRW::processMText() {
@@ -2624,7 +2627,7 @@ bool dxfRW::processMText() {
             break;
         }
     }
-    return true;
+    return false;
 }
 
 bool dxfRW::processHatch() {
@@ -2645,7 +2648,7 @@ bool dxfRW::processHatch() {
             break;
         }
     }
-    return true;
+    return false;
 }
 
 
@@ -2667,7 +2670,7 @@ bool dxfRW::processSpline() {
             break;
         }
     }
-    return true;
+    return false;
 }
 
 
@@ -2689,7 +2692,7 @@ bool dxfRW::processImage() {
             break;
         }
     }
-    return true;
+    return false;
 }
 
 
@@ -2741,7 +2744,7 @@ bool dxfRW::processDimension() {
             break;
         }
     }
-    return true;
+    return false;
 }
 
 bool dxfRW::processLeader() {
@@ -2762,7 +2765,7 @@ bool dxfRW::processLeader() {
             break;
         }
     }
-    return true;
+    return false;
 }
 
 
@@ -2794,7 +2797,7 @@ bool dxfRW::processObjects() {
         }
 
     } while (next);
-    return true;
+    return false;
 }
 
 bool dxfRW::processImageDef() {
@@ -2815,7 +2818,7 @@ bool dxfRW::processImageDef() {
             break;
         }
     }
-    return true;
+    return false;
 }
 
 /** utility function
