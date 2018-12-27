@@ -67,6 +67,7 @@ foreach(dir ${dirs})
 endforeach()
 
 add_library(dxfrw SHARED ${libdxfrw_srcs} ${libdxfrw_hdrs})
+target_link_libraries(dxfrw stdc++)
 
 # INSTALLATION
 install(TARGETS dxfrw DESTINATION lib)
