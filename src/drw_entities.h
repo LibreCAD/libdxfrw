@@ -17,6 +17,7 @@
 #include <string>
 #include <vector>
 #include <list>
+#include <memory>
 #include "drw_base.h"
 
 class dxfReader;
@@ -28,13 +29,13 @@ namespace DRW {
    //! Entity's type.
     enum ETYPE {
         E3DFACE,
-//        E3DSOLID, //encripted propietry data
+//        E3DSOLID, //encrypted proprietary data
 //        ACAD_PROXY_ENTITY,
         ARC,
 //        ATTDEF,
 //        ATTRIB,
         BLOCK,// and ENDBLK
-//        BODY, //encripted propietry data
+//        BODY, //encrypted proprietary data
         CIRCLE,
         DIMENSION,
         DIMALIGNED,
@@ -63,14 +64,14 @@ namespace DRW {
         POINT,
         POLYLINE,
         RAY,
-//        REGION, //encripted propietry data
+//        REGION, //encrypted proprietary data
 //        SECTION,
 //        SEQEND,//not needed?? used in polyline and insert/attrib and dwg
 //        SHAPE,
         SOLID,
         SPLINE,
 //        SUN,
-//        SURFACE, //encripted propietry data can be four types
+//        SURFACE, //encrypted proprietary data can be four types
 //        TABLE,
         TEXT,
 //        TOLERANCE,
@@ -99,59 +100,17 @@ class DRW_Entity {
     SETENTFRIENDS
 public:
     //initializes default values
-        //handles: default no handle (0), color: default BYLAYER (256), 24 bits color: default -1 (not set)
-        //line weight: default BYLAYER  (dxf -1, dwg 29), space: default ModelSpace (0)
-    DRW_Entity(): eType(DRW::UNKNOWN), handle(DRW::NoHandle), parentHandle(DRW::NoHandle), appData(0),
-                  space(DRW::ModelSpace), layer("0"), lineType("BYLAYER"), material(DRW::MaterialByLayer),
-                  color(DRW::ColorByLayer), lWeight(DRW_LW_Conv::widthByLayer), ltypeScale(1.0), visible(true),
-                  numProxyGraph(0), proxyGraphics(std::string()), color24(-1), colorName(std::string()),
-                  transparency(DRW::Opaque), plotStyle(DRW::DefaultPlotStyle), shadow(DRW::CastAndReceieveShadows),
-                  haveExtrusion(false), extData(), haveNextLinks(0),plotFlags(0), ltFlags(0),materialFlag(0),
-                  shadowFlag(0), lTypeH(dwgHandle()), layerH(dwgHandle()), nextEntLink(0), prevEntLink(0),
-                  ownerHandle(false), xDictFlag(0), numReactors(0), objSize(0), oType(0), extAxisX(DRW_Coord()),
-                  extAxisY(DRW_Coord()), curr(NULL) {}
+	DRW_Entity() = default;
+	virtual ~DRW_Entity() = default;
 
-    DRW_Entity(const DRW_Entity& e) {
-        eType = e.eType;
-        handle = e.handle;
-        parentHandle = e.parentHandle; //no handle (0)
-        lineType = e.lineType;
-        color = e.color; // default BYLAYER (256)
-        ltypeScale = e.ltypeScale;
-        visible = e.visible;
-        layer = e.layer;
-        lWeight = e.lWeight;
-        space = e.space;
-        haveExtrusion = e.haveExtrusion;
-        color24 = e.color24; //default -1 not set
-        numProxyGraph = e.numProxyGraph;
-        shadow = e.shadow;
-        material = e.material;
-        plotStyle = e.plotStyle;
-        transparency = e.transparency;
-        nextEntLink = e.nextEntLink;
-        prevEntLink = e.prevEntLink;
-        numReactors = e.numReactors;
-        xDictFlag = e.xDictFlag;
-        curr = NULL;
-        ownerHandle= false;
-        for (std::vector<DRW_Variant*>::const_iterator it=e.extData.begin(); it!=e.extData.end(); ++it){
-            extData.push_back(new DRW_Variant(*(*it)));
-        }
-    }
+	//removed copy/move ctors
+	// looks like the potential issue is the "curr" pointer is reset in previous
+	// versions during copy ctor
 
-    virtual ~DRW_Entity() {
-        for (std::vector<DRW_Variant*>::iterator it=extData.begin(); it!=extData.end(); ++it)
-            delete *it;
-
-        extData.clear();
-    }
-
-    void reset(){
-        for (std::vector<DRW_Variant*>::iterator it=extData.begin(); it!=extData.end(); ++it)
-            delete *it;
-        extData.clear();
-    }
+	void reset() {
+		extData.clear();
+		curr.reset();
+	}
 
     virtual void applyExtrusion() = 0;
 
@@ -172,27 +131,27 @@ protected:
     bool parseDxfGroups(int code, dxfReader *reader);
 
 public:
-    enum DRW::ETYPE eType;     /*!< enum: entity type, code 0 */
-    duint32 handle;            /*!< entity identifier, code 5 */
-    duint32 parentHandle;      /*!< Soft-pointer ID/handle to owner BLOCK_RECORD object, code 330 */
+	enum DRW::ETYPE eType = DRW::UNKNOWN;     /*!< enum: entity type, code 0 */
+	duint32 handle = DRW::NoHandle;            /*!< entity identifier, code 5 */
     std::list<std::list<DRW_Variant> > appData; /*!< list of application data, code 102 */
-    DRW::Space space;          /*!< space indicator, code 67*/
-    UTF8STRING layer;          /*!< layer name, code 8 */
-    UTF8STRING lineType;       /*!< line type, code 6 */
-    duint32 material;          /*!< hard pointer id to material object, code 347 */
-    int color;                 /*!< entity color, code 62 */
-    enum DRW_LW_Conv::lineWidth lWeight; /*!< entity lineweight, code 370 */
-    double ltypeScale;         /*!< linetype scale, code 48 */
-    bool visible;              /*!< entity visibility, code 60 */
-    int numProxyGraph;         /*!< Number of bytes in proxy graphics, code 92 */
+	duint32 parentHandle = DRW::NoHandle;      /*!< Soft-pointer ID/handle to owner BLOCK_RECORD object, code 330 */
+	DRW::Space space = DRW::ModelSpace;          /*!< space indicator, code 67*/
+	UTF8STRING layer = "0";          /*!< layer name, code 8 */
+	UTF8STRING lineType = "BYLAYER";       /*!< line type, code 6 */
+	duint32 material = DRW::MaterialByLayer;          /*!< hard pointer id to material object, code 347 */
+	int color = DRW::ColorByLayer;                 /*!< entity color, code 62 */
+	enum DRW_LW_Conv::lineWidth lWeight = DRW_LW_Conv::widthByLayer; /*!< entity lineweight, code 370 */
+	double ltypeScale = 1.0;         /*!< linetype scale, code 48 */
+	bool visible = true;              /*!< entity visibility, code 60 */
+	int numProxyGraph = 0;         /*!< Number of bytes in proxy graphics, code 92 */
     std::string proxyGraphics; /*!< proxy graphics bytes, code 310 */
-    int color24;               /*!< 24-bit color, code 420 */
+	int color24 = -1;               /*!< 24-bit color, code 420 */
     std::string colorName;     /*!< color name, code 430 */
-    int transparency;          /*!< transparency, code 440 */
-    int plotStyle;             /*!< hard pointer id to plot style object, code 390 */
-    DRW::ShadowMode shadow;    /*!< shadow mode, code 284 */
-    bool haveExtrusion;        /*!< set to true if the entity have extrusion*/
-    std::vector<DRW_Variant*> extData; /*!< FIFO list of extended data, codes 1000 to 1071*/
+	int transparency = DRW::Opaque;          /*!< transparency, code 440 */
+	int plotStyle = DRW::DefaultPlotStyle;             /*!< hard pointer id to plot style object, code 390 */
+	DRW::ShadowMode shadow = DRW::CastAndReceieveShadows;    /*!< shadow mode, code 284 */
+	bool haveExtrusion = false;        /*!< set to true if the entity have extrusion*/
+	std::vector<std::shared_ptr<DRW_Variant>> extData; /*!< FIFO list of extended data, codes 1000 to 1071*/
 
 protected: //only for read dwg
     duint8 haveNextLinks; //aka nolinks //B
@@ -202,19 +161,20 @@ protected: //only for read dwg
     duint8 shadowFlag; //presence of shadow handle ?? (in dwg may be plotflag)//RC
     dwgHandle lTypeH;
     dwgHandle layerH;
-    duint32 nextEntLink;
-    duint32 prevEntLink;
-    bool ownerHandle;
+	duint32 nextEntLink = 0;
+	duint32 prevEntLink = 0;
+	bool ownerHandle = false;
 
-    duint8 xDictFlag;
-    dint32 numReactors; //
+	duint8 xDictFlag = 0;
+	dint32 numReactors = 0; //
     duint32 objSize;  //RL 32bits object data size in bits
     dint16 oType;
 
 private:
-    DRW_Coord extAxisX;
+	void init(DRW_Entity const& rhs);
+	DRW_Coord extAxisX;
     DRW_Coord extAxisY;
-    DRW_Variant* curr;
+	std::shared_ptr<DRW_Variant> curr;
 };
 
 
@@ -233,7 +193,7 @@ public:
         thickness = 0;
     }
 
-    virtual void applyExtrusion(){}
+	virtual void applyExtrusion(){}
 
 protected:
     void parseCode(int code, dxfReader *reader);
@@ -259,8 +219,6 @@ public:
         eType = DRW::LINE;
         secPoint.z = 0;
     }
-
-    virtual void applyExtrusion(){}
 
 protected:
     void parseCode(int code, dxfReader *reader);
@@ -584,8 +542,7 @@ public:
         elevation = thickness = width = 0.0;
         flags = 0;
         extPoint.x = extPoint.y = 0;
-        extPoint.z = 1;
-        vertex = NULL;
+		extPoint.z = 1;
     }
     
     DRW_LWPolyline(const DRW_LWPolyline& p):DRW_Entity(p){
@@ -594,31 +551,21 @@ public:
         this->thickness = p.thickness;
         this->width = p.width;
         this->flags = p.flags;
-        this->extPoint = p.extPoint;
-        this->vertex = NULL;
+		this->extPoint = p.extPoint;
         for (unsigned i=0; i<p.vertlist.size(); i++)// RLZ ok or new
-          this->vertlist.push_back( new DRW_Vertex2D( *(p.vertlist.at(i)) ) );
-
-        this->vertex = NULL;
+		  this->vertlist.push_back(
+					std::make_shared<DRW_Vertex2D>(*p.vertlist.at(i))
+					);
     }
+	// TODO rule of 5
 
-    ~DRW_LWPolyline() {
-        while (!vertlist.empty()) {
-            vertlist.pop_back();
-        }
-    }
     virtual void applyExtrusion();
     void addVertex (DRW_Vertex2D v) {
-        DRW_Vertex2D *vert = new DRW_Vertex2D();
-        vert->x = v.x;
-        vert->y = v.y;
-        vert->stawidth = v.stawidth;
-        vert->endwidth = v.endwidth;
-        vert->bulge = v.bulge;
+		std::shared_ptr<DRW_Vertex2D> vert = std::make_shared<DRW_Vertex2D>(v);
         vertlist.push_back(vert);
     }
-    DRW_Vertex2D *addVertex () {
-        DRW_Vertex2D *vert = new DRW_Vertex2D();
+	std::shared_ptr<DRW_Vertex2D> addVertex () {
+		std::shared_ptr<DRW_Vertex2D> vert = std::make_shared<DRW_Vertex2D>();
         vert->stawidth = 0;
         vert->endwidth = 0;
         vert->bulge = 0;
@@ -637,8 +584,8 @@ public:
     double elevation;         /*!< elevation, code 38 */
     double thickness;         /*!< thickness, code 39 */
     DRW_Coord extPoint;       /*!<  Dir extrusion normal vector, code 210, 220 & 230 */
-    DRW_Vertex2D *vertex;       /*!< current vertex to add data */
-    std::vector<DRW_Vertex2D *> vertlist;  /*!< vertex list */
+	std::shared_ptr<DRW_Vertex2D> vertex;       /*!< current vertex to add data */
+	std::vector<std::shared_ptr<DRW_Vertex2D>> vertlist;  /*!< vertex list */
 };
 
 //! Class to handle insert entries
@@ -723,18 +670,19 @@ public:
         interlin = 1;
         alignV = (VAlign)TopLeft;
         textgen = 1;
-        haveXAxis = false;    //if true needed to recalculate angle
+        hasXAxisVec = false; // if true need to calculate angle from secPoint vector 
     }
 
 protected:
     void parseCode(int code, dxfReader *reader);
-    void updateAngle();    //recalculate angle if 'haveXAxis' is true
+    void updateAngle();    // recalculate angle if 'hasXAxisVec' is true
     virtual bool parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs=0);
 
 public:
     double interlin;     /*!< width factor, code 44 */
 private:
-    bool haveXAxis;
+//    bool haveXAxis;
+    bool hasXAxisVec; /* renamed by djm for better description */
 };
 
 //! Class to handle vertex
@@ -795,14 +743,9 @@ public:
         basePoint.x = basePoint.y = 0.0;
         flags = vertexcount = facecount = 0;
         smoothM = smoothN = curvetype = 0;
-    }
-    ~DRW_Polyline() {
-        while (!vertlist.empty()) {
-           vertlist.pop_back();
-         }
-    }
+	}
     void addVertex (DRW_Vertex v) {
-        DRW_Vertex *vert = new DRW_Vertex();
+		std::shared_ptr<DRW_Vertex> vert = std::make_shared<DRW_Vertex>();
         vert->basePoint.x = v.basePoint.x;
         vert->basePoint.y = v.basePoint.y;
         vert->basePoint.z = v.basePoint.z;
@@ -811,7 +754,7 @@ public:
         vert->bulge = v.bulge;
         vertlist.push_back(vert);
     }
-    void appendVertex (DRW_Vertex *v) {
+	void appendVertex (std::shared_ptr<DRW_Vertex> const& v) {
         vertlist.push_back(v);
     }
 
@@ -829,7 +772,7 @@ public:
     int smoothN;             /*!< smooth surface M density, code 74, default 0 */
     int curvetype;           /*!< curves & smooth surface type, code 75, default 0 */
 
-    std::vector<DRW_Vertex *> vertlist;  /*!< vertex list */
+	std::vector<std::shared_ptr<DRW_Vertex>> vertlist;  /*!< vertex list */
 
 private:
     std::list<duint32>hadlesList; //list of handles, only in 2004+
@@ -852,15 +795,7 @@ public:
         flags = nknots = ncontrol = nfit = 0;
         tolknot = tolcontrol = tolfit = 0.0000001;
 
-    }
-    ~DRW_Spline() {
-        while (!controllist.empty()) {
-           controllist.pop_back();
-        }
-        while (!fitlist.empty()) {
-           fitlist.pop_back();
-        }
-    }
+	}
     virtual void applyExtrusion(){}
 
 protected:
@@ -890,12 +825,12 @@ public:
     double tolfit;            /*!< fit point tolerance, code 44, default 0.0000001 */
 
     std::vector<double> knotslist;           /*!< knots list, code 40 */
-    std::vector<DRW_Coord *> controllist;  /*!< control points list, code 10, 20 & 30 */
-    std::vector<DRW_Coord *> fitlist;      /*!< fit points list, code 11, 21 & 31 */
+	std::vector<std::shared_ptr<DRW_Coord>> controllist;  /*!< control points list, code 10, 20 & 30 */
+	std::vector<std::shared_ptr<DRW_Coord>> fitlist;      /*!< fit points list, code 11, 21 & 31 */
 
 private:
-    DRW_Coord *controlpoint;   /*!< current control point to add data */
-    DRW_Coord *fitpoint;       /*!< current fit point to add data */
+	std::shared_ptr<DRW_Coord> controlpoint;   /*!< current control point to add data */
+	std::shared_ptr<DRW_Coord> fitpoint;       /*!< current fit point to add data */
 };
 
 //! Class to handle hatch loop
@@ -910,15 +845,6 @@ public:
         numedges = 0;
     }
 
-    ~DRW_HatchLoop() {
-/*        while (!pollist.empty()) {
-           pollist.pop_back();
-         }*/
-        while (!objlist.empty()) {
-           objlist.pop_back();
-         }
-    }
-
     void update() {
         numedges = objlist.size();
     }
@@ -928,7 +854,7 @@ public:
     int numedges;           /*!< number of edges (if not a polyline), code 93 */
 //TODO: store lwpolylines as entities
 //    std::vector<DRW_LWPolyline *> pollist;  /*!< polyline list */
-    std::vector<DRW_Entity *> objlist;      /*!< entities list */
+	std::vector<std::shared_ptr<DRW_Entity>> objlist;      /*!< entities list */
 };
 
 //! Class to handle hatch entity
@@ -947,17 +873,10 @@ public:
         loopsnum = hstyle = associative = 0;
         solid = hpattern = 1;
         deflines = doubleflag = 0;
-        loop = NULL;
         clearEntities();
     }
 
-    ~DRW_Hatch() {
-        while (!looplist.empty()) {
-           looplist.pop_back();
-         }
-    }
-
-    void appendLoop (DRW_HatchLoop *v) {
+	void appendLoop (std::shared_ptr<DRW_HatchLoop> const& v) {
         looplist.push_back(v);
     }
 
@@ -979,22 +898,23 @@ public:
     double scale;              /*!< hatch pattern scale, code 41 */
     int deflines;              /*!< number of pattern definition lines, code 78 */
 
-    std::vector<DRW_HatchLoop *> looplist;  /*!< polyline list */
+	std::vector<std::shared_ptr<DRW_HatchLoop>> looplist;  /*!< polyline list */
 
 private:
     void clearEntities(){
-        pt = line = NULL;
-        pline = NULL;
-        arc = NULL;
-        ellipse = NULL;
-        spline = NULL;
-        plvert = NULL;
+		pt.reset();
+		line.reset();
+		pline.reset();
+		arc.reset();
+		ellipse.reset();
+		spline.reset();
+		plvert.reset();
     }
 
     void addLine() {
         clearEntities();
         if (loop) {
-            pt = line = new DRW_Line;
+			pt = line = std::make_shared<DRW_Line>();
             loop->objlist.push_back(line);
         }
     }
@@ -1002,7 +922,7 @@ private:
     void addArc() {
         clearEntities();
         if (loop) {
-            pt = arc = new DRW_Arc;
+			pt = arc = std::make_shared<DRW_Arc>();
             loop->objlist.push_back(arc);
         }
     }
@@ -1010,7 +930,7 @@ private:
     void addEllipse() {
         clearEntities();
         if (loop) {
-            pt = ellipse = new DRW_Ellipse;
+			pt = ellipse = std::make_shared<DRW_Ellipse>();
             loop->objlist.push_back(ellipse);
         }
     }
@@ -1018,20 +938,20 @@ private:
     void addSpline() {
         clearEntities();
         if (loop) {
-            pt = NULL;
-            spline = new DRW_Spline;
+			pt.reset();
+			spline = std::make_shared<DRW_Spline>();
             loop->objlist.push_back(spline);
         }
     }
 
-    DRW_HatchLoop *loop;       /*!< current loop to add data */
-    DRW_Line *line;
-    DRW_Arc *arc;
-    DRW_Ellipse *ellipse;
-    DRW_Spline *spline;
-    DRW_LWPolyline *pline;
-    DRW_Point *pt;
-    DRW_Vertex2D *plvert;
+	std::shared_ptr<DRW_HatchLoop> loop;       /*!< current loop to add data */
+	std::shared_ptr<DRW_Line> line;
+	std::shared_ptr<DRW_Arc> arc;
+	std::shared_ptr<DRW_Ellipse> ellipse;
+	std::shared_ptr<DRW_Spline> spline;
+	std::shared_ptr<DRW_LWPolyline> pline;
+	std::shared_ptr<DRW_Point> pt;
+	std::shared_ptr<DRW_Vertex2D> plvert;
     bool ispol;
 };
 
@@ -1398,12 +1318,7 @@ public:
         extrusionPoint.x = extrusionPoint.y = 0.0;
         arrow = 1;
         extrusionPoint.z = 1.0;
-    }
-    ~DRW_Leader() {
-        while (!vertexlist.empty()) {
-           vertexlist.pop_back();
-        }
-    }
+	}
 
     virtual void applyExtrusion(){}
 
@@ -1428,10 +1343,10 @@ public:
     DRW_Coord offsetblock;     /*!< Offset of last leader vertex from block, code 212, 222 & 232 */
     DRW_Coord offsettext;      /*!< Offset of last leader vertex from annotation, code 213, 223 & 233 */
 
-    std::vector<DRW_Coord *> vertexlist;  /*!< vertex points list, code 10, 20 & 30 */
+	std::vector<std::shared_ptr<DRW_Coord>> vertexlist;  /*!< vertex points list, code 10, 20 & 30 */
 
 private:
-    DRW_Coord *vertexpoint;   /*!< current control point to add data */
+	std::shared_ptr<DRW_Coord> vertexpoint;   /*!< current control point to add data */
     dwgHandle dimStyleH;
     dwgHandle AnnotH;
 };
