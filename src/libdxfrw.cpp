@@ -791,7 +791,7 @@ bool dxfRW::writeLWPolyline(DRW_LWPolyline *ent){
         if (ent->thickness != 0)
             writer->writeDouble(39, ent->thickness);
         for (int i = 0;  i< ent->vertexnum; i++){
-            DRW_Vertex2D *v = ent->vertlist.at(i);
+            auto v = ent->vertlist.at(i);
             writer->writeDouble(10, v->x);
             writer->writeDouble(20, v->y);
             if (v->stawidth != 0)
@@ -852,7 +852,7 @@ bool dxfRW::writePolyline(DRW_Polyline *ent) {
 
     int vertexnum = ent->vertlist.size();
     for (int i = 0;  i< vertexnum; i++){
-        DRW_Vertex *v = ent->vertlist.at(i);
+        DRW_Vertex *v = ent->vertlist.at(i).get();
         writer->writeString(0, "VERTEX");
         writeEntity(ent);
         if (version > DRW::AC1009)
@@ -923,7 +923,7 @@ bool dxfRW::writeSpline(DRW_Spline *ent){
             writer->writeDouble(40, ent->knotslist.at(i));
         }
         for (int i = 0;  i< ent->ncontrol; i++){
-            DRW_Coord *crd = ent->controllist.at(i);
+            auto crd = ent->controllist.at(i);
             writer->writeDouble(10, crd->x);
             writer->writeDouble(20, crd->y);
             writer->writeDouble(30, crd->z);
@@ -952,7 +952,7 @@ bool dxfRW::writeHatch(DRW_Hatch *ent){
         writer->writeInt16(91, ent->loopsnum);
         //write paths data
         for (int i = 0;  i< ent->loopsnum; i++){
-            DRW_HatchLoop *loop = ent->looplist.at(i);
+            DRW_HatchLoop *loop = ent->looplist.at(i).get();
             writer->writeInt16(92, loop->type);
             if ( (loop->type & 2) == 2){
                 //RLZ: polyline boundary writeme
@@ -964,7 +964,7 @@ bool dxfRW::writeHatch(DRW_Hatch *ent){
                     switch ( (loop->objlist.at(j))->eType) {
                     case DRW::LINE: {
                         writer->writeInt16(72, 1);
-                        DRW_Line* l = (DRW_Line*)loop->objlist.at(j);
+                        DRW_Line* l = (DRW_Line*)loop->objlist.at(j).get();
                         writer->writeDouble(10, l->basePoint.x);
                         writer->writeDouble(20, l->basePoint.y);
                         writer->writeDouble(11, l->secPoint.x);
@@ -972,7 +972,7 @@ bool dxfRW::writeHatch(DRW_Hatch *ent){
                         break; }
                     case DRW::ARC: {
                         writer->writeInt16(72, 2);
-                        DRW_Arc* a = (DRW_Arc*)loop->objlist.at(j);
+                        DRW_Arc* a = (DRW_Arc*)loop->objlist.at(j).get();
                         writer->writeDouble(10, a->basePoint.x);
                         writer->writeDouble(20, a->basePoint.y);
                         writer->writeDouble(40, a->radious);
@@ -982,7 +982,7 @@ bool dxfRW::writeHatch(DRW_Hatch *ent){
                         break; }
                     case DRW::ELLIPSE: {
                         writer->writeInt16(72, 3);
-                        DRW_Ellipse* a = (DRW_Ellipse*)loop->objlist.at(j);
+                        DRW_Ellipse* a = (DRW_Ellipse*)loop->objlist.at(j).get();
                         a->correctAxis();
                         writer->writeDouble(10, a->basePoint.x);
                         writer->writeDouble(20, a->basePoint.y);
@@ -1038,7 +1038,7 @@ bool dxfRW::writeLeader(DRW_Leader *ent){
         writer->writeDouble(76, ent->vertnum);
         writer->writeDouble(76, ent->vertexlist.size());
         for (unsigned int i=0; i<ent->vertexlist.size(); i++) {
-            DRW_Coord *vert = ent->vertexlist.at(i);
+            auto vert = ent->vertexlist.at(i);
             writer->writeDouble(10, vert->x);
             writer->writeDouble(20, vert->y);
             writer->writeDouble(30, vert->z);
@@ -2565,7 +2565,7 @@ bool dxfRW::processPolyline() {
 bool dxfRW::processVertex(DRW_Polyline *pl) {
     DRW_DBG("dxfRW::processVertex");
     int code;
-    DRW_Vertex *v = new DRW_Vertex();
+    auto v = std::make_shared<DRW_Vertex>();
     while (reader->readRec(&code)) {
         DRW_DBG(code); DRW_DBG("\n");
         switch (code) {
@@ -2574,9 +2574,9 @@ bool dxfRW::processVertex(DRW_Polyline *pl) {
             nextentity = reader->getString();
             DRW_DBG(nextentity); DRW_DBG("\n");
             if (nextentity == "SEQEND") {
-            return true;  //found SEQEND no more vertex, terminate
+                return true;  //found SEQEND no more vertex, terminate
             } else if (nextentity == "VERTEX"){
-                v = new DRW_Vertex(); //another vertex
+                v = std::make_shared<DRW_Vertex>(); //another vertex
             }
         }
         default:
