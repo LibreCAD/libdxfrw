@@ -1,4 +1,4 @@
-libdxfrw
+libdxfrw ![Build status](https://api.travis-ci.org/LibreCAD/libdxfrw.svg?branch=master)
 ==========
 
 libdxfrw is a free C++ library to read and write DXF files in both formats, ascii and binary form.
@@ -47,4 +47,4 @@ sudo make install
 
 == Example usage of the library ==
 
-See how we use it in LibreCAD V3 : https://github.com/LibreCAD/LibreCAD_3/tree/master/lcDXFDWG/libdxfrw
+See how we use it in LibreCAD V3 : https://github.com/LibreCAD/LibreCAD_3/tree/master/persistence/libdxfrw
