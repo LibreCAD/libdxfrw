@@ -1,5 +1,15 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8.10)
-PROJECT (DXFRW)
+
+if(${CMAKE_MAJOR_VERSION} LESS 3)
+	project(DXFRW)
+	set(VERSION 0.6.3)
+	set(PROJECT_VERSION 0.6.3)
+	set(PROJECT_VERSION_MAJOR 0)
+else()
+	cmake_policy(SET CMP0048 NEW)
+	project(DXFRW VERSION 0.6.3)
+endif()
+
 ADD_DEFINITIONS(-std=c++11)
 
 include(GNUInstallDirs)
@@ -69,8 +79,9 @@ foreach(dir ${dirs})
 endforeach()
 
 add_library(dxfrw SHARED ${libdxfrw_srcs} ${libdxfrw_hdrs})
+set_target_properties(dxfrw PROPERTIES VERSION "${PROJECT_VERSION}" SOVERSION "${PROJECT_VERSION_MAJOR}")
 
 # INSTALLATION
 install(TARGETS dxfrw DESTINATION "${CMAKE_INSTALL_LIBDIR}")
-set(HDRSUBDIR "/libdxfrw0/")
+set(HDRSUBDIR "/libdxfrw${PROJECT_VERSION_MAJOR}/")
 install(FILES ${installdxfrw_hdrs} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/${HDRSUBDIR}")
