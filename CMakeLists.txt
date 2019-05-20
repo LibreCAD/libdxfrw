@@ -81,6 +81,8 @@ endforeach()
 add_library(dxfrw SHARED ${libdxfrw_srcs} ${libdxfrw_hdrs})
 set_target_properties(dxfrw PROPERTIES VERSION "${PROJECT_VERSION}" SOVERSION "${PROJECT_VERSION_MAJOR}")
 
+add_subdirectory(dwg2dxf)
+
 # INSTALLATION
 install(TARGETS dxfrw DESTINATION "${CMAKE_INSTALL_LIBDIR}")
 set(HDRSUBDIR "/libdxfrw${PROJECT_VERSION_MAJOR}/")
