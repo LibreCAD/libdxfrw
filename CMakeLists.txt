@@ -81,9 +81,19 @@ endforeach()
 add_library(dxfrw SHARED ${libdxfrw_srcs} ${libdxfrw_hdrs})
 set_target_properties(dxfrw PROPERTIES VERSION "${PROJECT_VERSION}" SOVERSION "${PROJECT_VERSION_MAJOR}")
 
+add_custom_command(OUTPUT libdxfrw${PROJECT_VERSION_MAJOR}.pc
+	COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/libdxfrw.pc.in libdxfrw${PROJECT_VERSION_MAJOR}.pc
+	COMMAND sed ARGS -i "s|@prefix@|${CMAKE_INSTALL_PREFIX}|g; s|@exec_prefix@|${CMAKE_INSTALL_PREFIX}|g; s|@libdir@|${CMAKE_INSTALL_FULL_LIBDIR}|g; s|@includedir@|${CMAKE_INSTALL_FULL_INCLUDEDIR}|g; s|@PACKAGE_VERSION@|${PROJECT_VERSION}|g; s|@LIBRARY_AGE@|${PROJECT_VERSION_MAJOR}|" libdxfrw${PROJECT_VERSION_MAJOR}.pc
+	MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/libdxfrw.pc.in
+	VERBATIM)
+
+add_custom_target(libdxfrw_pkgconfig ALL
+	DEPENDS libdxfrw${PROJECT_VERSION_MAJOR}.pc)
+
 add_subdirectory(dwg2dxf)
 
 # INSTALLATION
 install(TARGETS dxfrw DESTINATION "${CMAKE_INSTALL_LIBDIR}")
 set(HDRSUBDIR "/libdxfrw${PROJECT_VERSION_MAJOR}/")
 install(FILES ${installdxfrw_hdrs} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/${HDRSUBDIR}")
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libdxfrw${PROJECT_VERSION_MAJOR}.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
