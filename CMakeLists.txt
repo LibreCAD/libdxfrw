@@ -2,6 +2,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.8.10)
 PROJECT (DXFRW)
 ADD_DEFINITIONS(-std=c++11)
 
+include(GNUInstallDirs)
+
 # SOURCE FILES
 set(libdxfrw_srcs
   src/intern/drw_dbg.cpp
@@ -69,6 +71,6 @@ endforeach()
 add_library(dxfrw SHARED ${libdxfrw_srcs} ${libdxfrw_hdrs})
 
 # INSTALLATION
-install(TARGETS dxfrw DESTINATION lib)
+install(TARGETS dxfrw DESTINATION "${CMAKE_INSTALL_LIBDIR}")
 set(HDRSUBDIR "/libdxfrw0/")
-install(FILES ${installdxfrw_hdrs} DESTINATION include${HDRSUBDIR})
+install(FILES ${installdxfrw_hdrs} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/${HDRSUBDIR}")
