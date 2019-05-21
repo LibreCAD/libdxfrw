@@ -90,6 +90,14 @@ add_custom_command(OUTPUT libdxfrw${PROJECT_VERSION_MAJOR}.pc
 add_custom_target(libdxfrw_pkgconfig ALL
 	DEPENDS libdxfrw${PROJECT_VERSION_MAJOR}.pc)
 
+add_custom_command(OUTPUT doc/html/index.html
+	COMMAND doxygen ARGS ${CMAKE_CURRENT_SOURCE_DIR}/libdxfrw.dox
+	MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/libdxfrw.dox
+	VERBATIM)
+
+add_custom_target(doc
+	DEPENDS doc/html/index.html)
+
 add_subdirectory(dwg2dxf)
 
 # INSTALLATION
