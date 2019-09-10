@@ -12,6 +12,8 @@ endif()
 
 ADD_DEFINITIONS(-std=c++11)
 
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+
 include(GNUInstallDirs)
 
 # SOURCE FILES
