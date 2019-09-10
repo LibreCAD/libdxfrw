@@ -40,3 +40,5 @@ libtool
 build
 debug
 cmake-build-*
+.vs/
+out/
