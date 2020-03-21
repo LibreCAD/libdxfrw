@@ -40,3 +40,9 @@ libtool
 build
 debug
 cmake-build-*
+
+# Visual Studio
+.vs/
+out/
+CMakeSettings.json
+CppProperties.json

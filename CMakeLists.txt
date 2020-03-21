@@ -1,9 +1,23 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8.10)
-PROJECT (DXFRW)
+
+if(${CMAKE_MAJOR_VERSION} LESS 3)
+	project(DXFRW)
+	set(VERSION 0.6.3)
+	set(PROJECT_VERSION 0.6.3)
+	set(PROJECT_VERSION_MAJOR 0)
+else()
+	cmake_policy(SET CMP0048 NEW)
+	project(DXFRW VERSION 0.6.3)
+endif()
+
 ADD_DEFINITIONS(-std=c++11)
 
 SET(LIBDXFRW_VERSION 1.0.0)
 SET(LIBDXFRW_SOVERSION 1)
+
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+
+include(GNUInstallDirs)
 
 # SOURCE FILES
 set(libdxfrw_srcs
@@ -70,6 +84,20 @@ foreach(dir ${dirs})
 endforeach()
 
 add_library(dxfrw SHARED ${libdxfrw_srcs} ${libdxfrw_hdrs})
+set_target_properties(dxfrw PROPERTIES VERSION "${PROJECT_VERSION}" SOVERSION "${PROJECT_VERSION_MAJOR}")
+
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libdxfrw.pc.in libdxfrw${PROJECT_VERSION_MAJOR}.pc)
+
+add_custom_command(OUTPUT doc/html/index.html
+	COMMAND doxygen ARGS ${CMAKE_CURRENT_SOURCE_DIR}/libdxfrw.dox
+	MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/libdxfrw.dox
+	VERBATIM)
+
+add_custom_target(doc
+	DEPENDS doc/html/index.html)
+
+add_subdirectory(dwg2dxf)
 
 set_target_properties(dxfrw PROPERTIES
   VERSION ${LIBDXFRW_VERSION}
@@ -77,6 +105,7 @@ set_target_properties(dxfrw PROPERTIES
 )
 
 # INSTALLATION
-install(TARGETS dxfrw DESTINATION lib)
-set(HDRSUBDIR "/libdxfrw0/")
-install(FILES ${installdxfrw_hdrs} DESTINATION include${HDRSUBDIR})
+install(TARGETS dxfrw DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+set(HDRSUBDIR "/libdxfrw${PROJECT_VERSION_MAJOR}/")
+install(FILES ${installdxfrw_hdrs} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/${HDRSUBDIR}")
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libdxfrw${PROJECT_VERSION_MAJOR}.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
