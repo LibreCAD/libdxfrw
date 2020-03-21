@@ -2,6 +2,9 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.8.10)
 PROJECT (DXFRW)
 ADD_DEFINITIONS(-std=c++11)
 
+SET(LIBDXFRW_VERSION 1.0.0)
+SET(LIBDXFRW_SOVERSION 1)
+
 # SOURCE FILES
 set(libdxfrw_srcs
   src/intern/drw_dbg.cpp
@@ -67,6 +70,11 @@ foreach(dir ${dirs})
 endforeach()
 
 add_library(dxfrw SHARED ${libdxfrw_srcs} ${libdxfrw_hdrs})
+
+set_target_properties(dxfrw PROPERTIES
+  VERSION ${LIBDXFRW_VERSION}
+  SOVERSION ${LIBDXFRW_SOVERSION}
+)
 
 # INSTALLATION
 install(TARGETS dxfrw DESTINATION lib)
