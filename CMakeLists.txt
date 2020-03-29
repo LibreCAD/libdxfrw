@@ -83,7 +83,7 @@ foreach(dir ${dirs})
   message(STATUS "dir='${dir}'")
 endforeach()
 
-add_library(dxfrw SHARED ${libdxfrw_srcs} ${libdxfrw_hdrs})
+add_library(dxfrw ${libdxfrw_srcs} ${libdxfrw_hdrs})
 set_target_properties(dxfrw PROPERTIES VERSION "${PROJECT_VERSION}" SOVERSION "${PROJECT_VERSION_MAJOR}")
 
 
