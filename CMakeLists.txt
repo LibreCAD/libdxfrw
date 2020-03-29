@@ -3,9 +3,6 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
 cmake_policy(SET CMP0048 NEW)
 project(DXFRW VERSION 1.0.0)
 
-ADD_DEFINITIONS(-std=c++11)
-
-
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 include(GNUInstallDirs)
@@ -76,6 +73,7 @@ endforeach()
 
 add_library(dxfrw ${libdxfrw_srcs} ${libdxfrw_hdrs})
 set_target_properties(dxfrw PROPERTIES VERSION "${PROJECT_VERSION}" SOVERSION "${PROJECT_VERSION_MAJOR}")
+target_compile_features(dxfrw PRIVATE cxx_std_11)
 
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libdxfrw.pc.in libdxfrw${PROJECT_VERSION_MAJOR}.pc)
