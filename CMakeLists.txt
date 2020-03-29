@@ -64,13 +64,6 @@ set(installdxfrw_hdrs
   src/libdxfrw.h
 )
 
-  
-# DEBUGGING PATHS 
-get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
-foreach(dir ${dirs})
-  message(STATUS "dir='${dir}'")
-endforeach()
-
 add_library(dxfrw ${libdxfrw_srcs} ${libdxfrw_hdrs})
 set_target_properties(dxfrw PROPERTIES VERSION "${PROJECT_VERSION}" SOVERSION "${PROJECT_VERSION_MAJOR}")
 target_compile_features(dxfrw PRIVATE cxx_std_11)
