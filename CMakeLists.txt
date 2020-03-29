@@ -80,11 +80,6 @@ add_custom_target(doc
 
 add_subdirectory(dwg2dxf)
 
-set_target_properties(dxfrw PROPERTIES
-  VERSION ${LIBDXFRW_VERSION}
-  SOVERSION ${LIBDXFRW_SOVERSION}
-)
-
 # INSTALLATION
 install(TARGETS dxfrw DESTINATION "${CMAKE_INSTALL_LIBDIR}")
 set(HDRSUBDIR "/libdxfrw${PROJECT_VERSION_MAJOR}/")
