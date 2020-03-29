@@ -68,8 +68,7 @@ add_library(dxfrw ${libdxfrw_srcs} ${libdxfrw_hdrs})
 set_target_properties(dxfrw PROPERTIES VERSION "${PROJECT_VERSION}" SOVERSION "${PROJECT_VERSION_MAJOR}")
 target_compile_features(dxfrw PRIVATE cxx_std_11)
 
-
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libdxfrw.pc.in libdxfrw${PROJECT_VERSION_MAJOR}.pc)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libdxfrw.pc.in libdxfrw.pc)
 
 add_custom_command(OUTPUT doc/html/index.html
 	COMMAND doxygen ARGS ${CMAKE_CURRENT_SOURCE_DIR}/libdxfrw.dox
@@ -90,4 +89,4 @@ set_target_properties(dxfrw PROPERTIES
 install(TARGETS dxfrw DESTINATION "${CMAKE_INSTALL_LIBDIR}")
 set(HDRSUBDIR "/libdxfrw${PROJECT_VERSION_MAJOR}/")
 install(FILES ${installdxfrw_hdrs} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/${HDRSUBDIR}")
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libdxfrw${PROJECT_VERSION_MAJOR}.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libdxfrw.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
