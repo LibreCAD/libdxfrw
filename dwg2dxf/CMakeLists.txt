@@ -1,6 +1,8 @@
 add_definitions(-Wall)
 include_directories(../src)
 
+include(GNUInstallDirs)
+
 add_executable(dwg2dxf dx_iface.cpp main.cpp dx_iface.h dx_data.h)
 target_link_libraries(dwg2dxf dxfrw)
 
