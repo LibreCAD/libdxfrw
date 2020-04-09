@@ -5,6 +5,9 @@ project(DXFRW VERSION 1.0.0)
 
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 # SOURCE FILES
 set(libdxfrw_srcs
   src/intern/drw_dbg.cpp
@@ -66,7 +69,7 @@ set(LIBDXFRW_INSTALL_INCLUDEDIR ${CMAKE_INSTALL_INCLUDEDIR}/libdxfrw)
 
 add_library(dxfrw ${libdxfrw_srcs} ${libdxfrw_hdrs})
 set_target_properties(dxfrw PROPERTIES VERSION "${PROJECT_VERSION}" SOVERSION "${PROJECT_VERSION_MAJOR}")
-target_compile_features(dxfrw PRIVATE cxx_std_11)
+target_compile_features(dxfrw PUBLIC cxx_std_11)
 target_include_directories(dxfrw
 		PUBLIC
 			$<INSTALL_INTERFACE:${LIBDXFRW_INSTALL_INCLUDEDIR}>
