@@ -90,6 +90,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libdxfrw.pc.in libdxfrw.pc)
 
 install(TARGETS dxfrw
 		EXPORT dxfrw-targets
+		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 		LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
