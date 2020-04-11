@@ -68,7 +68,11 @@ set(installdxfrw_hdrs
 set(LIBDXFRW_INSTALL_INCLUDEDIR ${CMAKE_INSTALL_INCLUDEDIR}/libdxfrw)
 
 add_library(dxfrw ${libdxfrw_srcs} ${libdxfrw_hdrs})
-set_target_properties(dxfrw PROPERTIES VERSION "${PROJECT_VERSION}" SOVERSION "${PROJECT_VERSION_MAJOR}")
+set_target_properties(dxfrw PROPERTIES 
+	VERSION "${PROJECT_VERSION}" 
+	SOVERSION "${PROJECT_VERSION_MAJOR}"
+	EXPORT_NAME libdxfrw
+)
 target_compile_features(dxfrw PUBLIC cxx_std_11)
 target_include_directories(dxfrw
 		PUBLIC
@@ -87,29 +91,29 @@ add_subdirectory(dwg2dxf)
 
 # INSTALLATION
 include(GNUInstallDirs)
-set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/DXFRW)
+set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/libdxfrw)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libdxfrw.pc.in libdxfrw.pc)
 
 install(TARGETS dxfrw
-		EXPORT dxfrw-targets
+		EXPORT libdxfrw-targets
 		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 		LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
-install(EXPORT dxfrw-targets
-		FILE DXFRWTargets.cmake
-		NAMESPACE DXFRW::
+install(EXPORT libdxfrw-targets
+	FILE libdxfrwTargets.cmake
+		NAMESPACE libdxfrw::
 		DESTINATION ${INSTALL_CONFIGDIR}
 )
 
 include(CMakePackageConfigHelpers)
-configure_package_config_file(${CMAKE_CURRENT_LIST_DIR}/cmake/DXFRWConfig.cmake
-        ${CMAKE_CURRENT_BINARY_DIR}/DXFRWConfig.cmake
+configure_package_config_file(${CMAKE_CURRENT_LIST_DIR}/cmake/libdxfrwConfig.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/libdxfrwConfig.cmake
         INSTALL_DESTINATION ${INSTALL_CONFIGDIR}
 )
 write_basic_package_version_file(
-		${CMAKE_CURRENT_BINARY_DIR}/DXFRWConfigVersion.cmake
+		${CMAKE_CURRENT_BINARY_DIR}/libdxfrwConfigVersion.cmake
 		VERSION ${PROJECT_VERSION}
 		COMPATIBILITY AnyNewerVersion
 )
@@ -123,7 +127,7 @@ install(FILES
 		DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
 )
 install(FILES
-		${CMAKE_CURRENT_BINARY_DIR}/DXFRWConfig.cmake
-		${CMAKE_CURRENT_BINARY_DIR}/DXFRWConfigVersion.cmake
+		${CMAKE_CURRENT_BINARY_DIR}/libdxfrwConfig.cmake
+		${CMAKE_CURRENT_BINARY_DIR}/libdxfrwConfigVersion.cmake
 		DESTINATION ${INSTALL_CONFIGDIR}
 )
