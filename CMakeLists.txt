@@ -3,6 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
 cmake_policy(SET CMP0048 NEW)
 project(DXFRW VERSION 1.0.1)
 
+include(GNUInstallDirs)
+
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 set(CMAKE_CXX_STANDARD 11)
@@ -90,7 +92,6 @@ add_custom_target(doc
 add_subdirectory(dwg2dxf)
 
 # INSTALLATION
-include(GNUInstallDirs)
 set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/libdxfrw)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libdxfrw.pc.in libdxfrw.pc)
