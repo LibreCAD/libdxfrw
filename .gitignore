@@ -2,6 +2,7 @@
 obj/
 m4/
 autom4te.cache/
+dwg2dxf
 libdxfrw.pro*
 Makefile*
 *.o
@@ -13,6 +14,7 @@ Makefile*
 *.la
 *.o
 *.dll
+*.exe
 *~
 *bz2
 #vim files
