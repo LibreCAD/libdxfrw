@@ -83,7 +83,7 @@ BAD_NONE,             /*!< No error. */
 BAD_UNKNOWN,          /*!< UNKNOWN. */
 BAD_OPEN,             /*!< error opening file. */
 BAD_VERSION,          /*!< unsupported version. */
-BAD_READ_METADATA,    /*!< error reading matadata. */
+BAD_READ_METADATA,    /*!< error reading metadata. */
 BAD_READ_FILE_HEADER, /*!< error in file header read process. */
 BAD_READ_HEADER,      /*!< error in header vars read process. */
 BAD_READ_HANDLES,     /*!< error in object map read process. */
@@ -152,14 +152,10 @@ public:
     DRW_Coord():x(0), y(0),z(0) {}
     DRW_Coord(double ix, double iy, double iz): x(ix), y(iy),z(iz){}
 
-     DRW_Coord& operator = (const DRW_Coord& data) {
-        x = data.x;  y = data.y;  z = data.z;
-        return *this;
-    }
 /*!< convert to unitary vector */
     void unitize(){
         double dist;
-        dist = sqrt(x*x + y*y + z*z);
+        dist = hypot(hypot(x, y), z);
         if (dist > 0.0) {
             x= x/dist;
             y= y/dist;
@@ -284,7 +280,7 @@ public:
 //! Class to convert between line width and integer
 /*!
 *  Class to convert between line width and integer
-*  verifing valid values, if value is not valid
+*  verifying valid values, if value is not valid
 *  returns widthDefault.
 *  @author Rallaz
 */

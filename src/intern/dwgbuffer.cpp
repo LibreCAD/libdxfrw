@@ -144,22 +144,25 @@ bool dwgCharStream::read(duint8* s, duint64 n){
     return true;
 }
 
-dwgBuffer::dwgBuffer(duint8 *buf, int size, DRW_TextCodec *dc){
-    filestr = new dwgCharStream(buf, size);
+dwgBuffer::dwgBuffer(duint8 *buf, int size, DRW_TextCodec *dc) :
+    filestr( new dwgCharStream(buf, size))
+{
     decoder = dc;
     maxSize = size;
     bitPos = 0;
 }
 
-dwgBuffer::dwgBuffer(std::ifstream *stream, DRW_TextCodec *dc){
-    filestr = new dwgFileStream(stream);
+dwgBuffer::dwgBuffer(std::ifstream *stream, DRW_TextCodec *dc) :
+    filestr( new dwgFileStream(stream))
+{
     decoder = dc;
     maxSize = filestr->size();
     bitPos = 0;
 }
 
-dwgBuffer::dwgBuffer( const dwgBuffer& org ){
-    filestr = org.filestr->clone();
+dwgBuffer::dwgBuffer( const dwgBuffer& org ) :
+    filestr( org.filestr->clone())
+{
     decoder = org.decoder;
     maxSize = filestr->size();
     currByte = org.currByte;
@@ -167,16 +170,12 @@ dwgBuffer::dwgBuffer( const dwgBuffer& org ){
 }
 
 dwgBuffer& dwgBuffer::operator=( const dwgBuffer& org ){
-    filestr = org.filestr->clone();
+    filestr.reset( org.filestr->clone());
     decoder = org.decoder;
     maxSize = filestr->size();
     currByte = org.currByte;
     bitPos = org.bitPos;
     return *this;
-}
-
-dwgBuffer::~dwgBuffer(){
-    delete filestr;
 }
 
 /**Gets the current byte position in buffer **/
@@ -532,7 +531,7 @@ dint32 dwgBuffer::getModularShort(){
 }
 
 dwgHandle dwgBuffer::getHandle(){ //H
-    dwgHandle hl; 
+    dwgHandle hl;
     duint8 data = getRawChar8();
     hl.code = (data >> 4) & 0x0F;
     hl.size = data & 0x0F;

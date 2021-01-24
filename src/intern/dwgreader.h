@@ -120,8 +120,9 @@ public:
 class dwgReader {
     friend class dwgR;
 public:
-    dwgReader(std::ifstream *stream, dwgR *p){
-        fileBuf = new dwgBuffer(stream);
+    dwgReader(std::ifstream *stream, dwgR *p) :
+        fileBuf( new dwgBuffer(stream))
+    {
         parent = p;
         decoder.setVersion(DRW::AC1021, false);//default 2007 in utf8(no convert)
         decoder.setCodePage("UTF-16", false);
@@ -178,7 +179,7 @@ public:
     duint8 maintenanceVersion;
 
 protected:
-    dwgBuffer *fileBuf;
+    std::unique_ptr<dwgBuffer> fileBuf;
     dwgR *parent;
     DRW::Version version;
 

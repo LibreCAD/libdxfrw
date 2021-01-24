@@ -691,7 +691,7 @@ bool DRW_Block_Record::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs
         DRW_DBG(" xrefindex: "); DRW_DBG(xrefindex); DRW_DBG("\n");
     }
     flags |= buf->getBit() << 4;//is refx dependent, block code 70, bit 5 (16)
-    flags |= buf->getBit(); //if is anonimous block (*U) block code 70, bit 1 (1)
+    flags |= buf->getBit(); //if is anonymous block (*U) block code 70, bit 1 (1)
     flags |= buf->getBit() << 1; //if block contains attdefs, block code 70, bit 2 (2)
     bool blockIsXref = buf->getBit(); //if is a Xref, block code 70, bit 3 (4)
     bool xrefOverlaid = buf->getBit(); //if is a overlaid Xref, block code 70, bit 4 (8)
@@ -1191,6 +1191,37 @@ bool DRW_ImageDef::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
 
     DRW_DBG("Remaining bytes: "); DRW_DBG(buf->numRemainingBytes()); DRW_DBG("\n\n");
     //    RS crc;   //RS */
+    return buf->isGood();
+}
+
+void DRW_PlotSettings::parseCode(int code, dxfReader *reader){
+    switch (code) {
+    case 5:
+        handle = reader->getHandleString();
+        break;
+    case 6:
+        plotViewName = reader->getUtf8String();
+        break;
+    case 40:
+        marginLeft = reader->getDouble();
+        break;
+    case 41:
+        marginBottom = reader->getDouble();
+        break;
+    case 42:
+        marginRight = reader->getDouble();
+        break;
+    case 43:
+        marginTop = reader->getDouble();
+        break;
+    default:
+        break;
+    }
+}
+
+bool DRW_PlotSettings::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
+    (void) version;
+    DRW_DBG("\n********************** parsing Plot Settings not yet implemented **************************\n");
     return buf->isGood();
 }
 

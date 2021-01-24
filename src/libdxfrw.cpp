@@ -38,7 +38,7 @@ dxfRW::dxfRW(const char* name){
     reader = NULL;
     writer = NULL;
     applyExt = false;
-    elParts = 128; //parts munber when convert ellipse to polyline
+    elParts = 128; //parts number when convert ellipse to polyline
 }
 dxfRW::~dxfRW(){
     if (reader != NULL)
@@ -791,7 +791,7 @@ bool dxfRW::writeLWPolyline(DRW_LWPolyline *ent){
         if (ent->thickness != 0)
             writer->writeDouble(39, ent->thickness);
         for (int i = 0;  i< ent->vertexnum; i++){
-            auto v = ent->vertlist.at(i);
+            auto& v = ent->vertlist.at(i);
             writer->writeDouble(10, v->x);
             writer->writeDouble(20, v->y);
             if (v->stawidth != 0)
@@ -1810,6 +1810,8 @@ bool dxfRW::writeObjects() {
        imageDef.pop_back();
     }
 
+    iface->writeObjects();
+
     return true;
 }
 
@@ -1866,11 +1868,16 @@ bool dxfRW::processDxf() {
     bool more = true;
     std::string sectionstr;
 //    section = secUnknown;
+    reader->setIgnoreComments( false);
     while (reader->readRec(&code)) {
         DRW_DBG(code); DRW_DBG(" processDxf\n");
         if (code == 999) {
+            // when DXF was created by libdxfrw, first record is a comment with dxfrw version info
             header.addComment(reader->getString());
         } else if (code == 0) {
+            // ignore further comments, as libdxfrw doesn't support comments in sections
+            reader->setIgnoreComments( true);
+
             sectionstr = reader->getString();
             DRW_DBG(sectionstr); DRW_DBG(" processDxf\n");
             if (sectionstr == "EOF") {
@@ -1884,19 +1891,29 @@ bool dxfRW::processDxf() {
                 if (code == 2) {
                     sectionstr = reader->getString();
                     DRW_DBG(sectionstr); DRW_DBG("  processDxf\n");
-                //found section, process it
-                    if (sectionstr == "HEADER" && !processHeader()) {
-                        return false;
+                    //found section, process it
+                    if (sectionstr == "HEADER") {
+                        if (!processHeader()) {
+                            return false;
+                        }
                     } else if (sectionstr == "CLASSES") {
 //                        processClasses();
-                    } else if (sectionstr == "TABLES" && !processTables()) {
-                        return false;
-                    } else if (sectionstr == "BLOCKS" && !processBlocks()) {
-                        return false;
-                    } else if (sectionstr == "ENTITIES" && !processEntities(false)) {
-                        return false;
-                    } else if (sectionstr == "OBJECTS" && !processObjects()) {
-                        return false;
+                    } else if (sectionstr == "TABLES") {
+                        if (!processTables()) {
+                            return false;
+                        }
+                    } else if (sectionstr == "BLOCKS") {
+                        if (!processBlocks()) {
+                            return false;
+                        }
+                    } else if (sectionstr == "ENTITIES") {
+                        if (!processEntities(false)) {
+                            return false;
+                        }
+                    } else if (sectionstr == "OBJECTS") {
+                        if (!processObjects()) {
+                            return false;
+                        }
                     }
                 }
             }
@@ -1922,7 +1939,14 @@ bool dxfRW::processHeader() {
                 iface->addHeader(&header);
                 return true;  //found ENDSEC terminate
             }
-        } else header.parseCode(code, reader);
+            else {
+                DRW_DBG("unexpected 0 code in header!\n");
+                return false;
+            }
+        }
+        else {
+            header.parseCode(code, reader);
+        }
     }
     return false;
 }
@@ -1933,7 +1957,7 @@ bool dxfRW::processTables() {
     DRW_DBG("dxfRW::processTables\n");
     int code;
     std::string sectionstr;
-    bool more;
+    bool more = true;
     while (reader->readRec(&code)) {
         DRW_DBG(code); DRW_DBG("\n");
         if (code == 0) {
@@ -2191,7 +2215,7 @@ bool dxfRW::processEntities(bool isblock) {
             nextentity = reader->getString();
     } else if (!isblock) {
             return false;  //first record in entities is 0
-   }
+    }
     do {
         if (nextentity == "ENDSEC" || nextentity == "ENDBLK") {
             return true;  //found ENDSEC or ENDBLK terminate
@@ -2782,12 +2806,14 @@ bool dxfRW::processObjects() {
             nextentity = reader->getString();
     } else {
             return false;  //first record in objects is 0
-   }
+    }
     do {
         if (nextentity == "ENDSEC") {
             return true;  //found ENDSEC terminate
-        } else if (nextentity == "IMAGEDEF") {
-            processImageDef();
+        } else if (nextentity == "IMAGEDEF" && !processImageDef()) {
+            return false;
+        } else if (nextentity == "PLOTSETTINGS" && !processPlotSettings()) {
+            return false;
         } else {
             if (reader->readRec(&code)){
                 if (code == 0)
@@ -2819,6 +2845,39 @@ bool dxfRW::processImageDef() {
         }
     }
     return false;
+}
+
+bool dxfRW::processPlotSettings() {
+    DRW_DBG("dxfRW::processPlotSettings");
+    int code;
+    DRW_PlotSettings ps;
+    while (reader->readRec(&code)) {
+        DRW_DBG(code); DRW_DBG("\n");
+        switch (code) {
+        case 0: {
+            nextentity = reader->getString();
+            DRW_DBG(nextentity); DRW_DBG("\n");
+            iface->addPlotSettings(&ps);
+            return true;  //found new entity or ENDSEC, terminate
+        }
+        default:
+            ps.parseCode(code, reader);
+            break;
+        }
+    }
+    return false;
+}
+
+bool dxfRW::writePlotSettings(DRW_PlotSettings *ent) {
+    writer->writeString(0, "PLOTSETTINGS");
+    writer->writeString(5, toHexStr(++entCount));
+    writer->writeString(100, "AcDbPlotSettings");
+    writer->writeUtf8String(6, ent->plotViewName);
+    writer->writeDouble(40, ent->marginLeft);
+    writer->writeDouble(41, ent->marginBottom);
+    writer->writeDouble(42, ent->marginRight);
+    writer->writeDouble(43, ent->marginTop);
+    return true;
 }
 
 /** utility function
