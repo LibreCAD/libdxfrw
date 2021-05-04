@@ -94,7 +94,7 @@ add_subdirectory(dwg2dxf)
 # INSTALLATION
 set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/libdxfrw)
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libdxfrw.pc.in libdxfrw.pc)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libdxfrw.pc.in libdxfrw.pc @ONLY)
 
 install(TARGETS dxfrw
 		EXPORT libdxfrw-targets
