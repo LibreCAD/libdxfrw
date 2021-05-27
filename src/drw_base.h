@@ -247,7 +247,7 @@ public:
     void setCoordX(double d) { if (vType == COORD) vdata.x = d;}
     void setCoordY(double d) { if (vType == COORD) vdata.y = d;}
     void setCoordZ(double d) { if (vType == COORD) vdata.z = d;}
-    enum TYPE type() { return vType;}
+    enum TYPE type() const { return vType;}
     int code() { return vCode;}            /*!< returns dxf code of this value*/
 
 private:
