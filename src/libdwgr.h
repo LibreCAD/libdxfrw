@@ -14,6 +14,7 @@
 #define LIBDWGR_H
 
 #include <string>
+#include <memory>
 //#include <deque>
 #include "drw_entities.h"
 #include "drw_objects.h"
@@ -44,7 +45,7 @@ private:
     bool applyExt { false }; /*apply extrusion in entities to conv in 2D?*/
     std::string codePage;
     DRW_Interface *iface { nullptr };
-    dwgReader *reader { nullptr };
+    std::unique_ptr< dwgReader > reader;
 
 };
 

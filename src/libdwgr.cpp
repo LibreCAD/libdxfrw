@@ -41,11 +41,7 @@ dwgR::dwgR(const char* name)
     DRW_DBGSL(DRW_dbg::NONE);
 }
 
-dwgR::~dwgR(){
-    if (reader != NULL)
-        delete reader;
-
-}
+dwgR::~dwgR() = default;
 
 void dwgR::setDebug(DRW::DBG_LEVEL lvl){
     switch (lvl){
@@ -73,9 +69,8 @@ bool dwgR::getPreview(){
         error = DRW::BAD_READ_METADATA;
 
     filestr.close();
-    if (reader != NULL) {
-        delete reader;
-        reader = NULL;
+    if (reader) {
+        reader.reset();
     }
     return isOk;
 }
@@ -158,9 +153,8 @@ bool dwgR::read(DRW_Interface *interface_, bool ext){
         error = DRW::BAD_READ_METADATA;
 
     filestr.close();
-    if (reader != NULL) {
-        delete reader;
-        reader = NULL;
+    if (reader) {
+        reader.reset();
     }
 
     return isOk;
@@ -212,32 +206,32 @@ bool dwgR::openFile(std::ifstream *filestr){
 //        reader = new dwgReader09(&filestr, this);
     } else if (strcmp(line, "AC1012") == 0){
         version = DRW::AC1012;
-        reader = new dwgReader15(filestr, this);
+        reader.reset( new dwgReader15(filestr, this) );
     } else if (strcmp(line, "AC1014") == 0) {
         version = DRW::AC1014;
-        reader = new dwgReader15(filestr, this);
+        reader.reset( new dwgReader15(filestr, this) );
     } else if (strcmp(line, "AC1015") == 0) {
         version = DRW::AC1015;
-        reader = new dwgReader15(filestr, this);
+        reader.reset( new dwgReader15(filestr, this) );
     } else if (strcmp(line, "AC1018") == 0){
         version = DRW::AC1018;
-        reader = new dwgReader18(filestr, this);
+        reader.reset( new dwgReader18(filestr, this) );
     } else if (strcmp(line, "AC1021") == 0) {
         version = DRW::AC1021;
-        reader = new dwgReader21(filestr, this);
+        reader.reset( new dwgReader21(filestr, this) );
     } else if (strcmp(line, "AC1024") == 0) {
         version = DRW::AC1024;
-        reader = new dwgReader24(filestr, this);
+        reader.reset( new dwgReader24(filestr, this) );
     } else if (strcmp(line, "AC1027") == 0) {
         version = DRW::AC1027;
-        reader = new dwgReader27(filestr, this);
+        reader.reset( new dwgReader27(filestr, this) );
     } else if ( strcmp( line, "AC1032" ) == 0 ) {
         version = DRW::AC1032;
     } else {
         version = DRW::UNKNOWNV;
     }
 
-    if (reader == NULL) {
+    if (!reader) {
         error = DRW::BAD_VERSION;
         filestr->close();
     } else
