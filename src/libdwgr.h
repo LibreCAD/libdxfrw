@@ -38,13 +38,13 @@ private:
     bool openFile(std::ifstream *filestr);
     bool processDwg();
 private:
-    DRW::Version version;
-    DRW::error error;
+    DRW::Version version { DRW::UNKNOWNV };
+    DRW::error error { DRW::BAD_NONE };
     std::string fileName;
-    bool applyExt; /*apply extrusion in entities to conv in 2D?*/
+    bool applyExt { false }; /*apply extrusion in entities to conv in 2D?*/
     std::string codePage;
-    DRW_Interface *iface;
-    dwgReader *reader;
+    DRW_Interface *iface { nullptr };
+    dwgReader *reader { nullptr };
 
 };
 

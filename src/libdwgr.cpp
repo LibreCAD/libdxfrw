@@ -35,14 +35,10 @@
     secObjects
 };*/
 
-dwgR::dwgR(const char* name){
+dwgR::dwgR(const char* name)
+    : fileName{ name }
+{
     DRW_DBGSL(DRW_dbg::NONE);
-    fileName = name;
-    reader = NULL;
-//    writer = NULL;
-    applyExt = false;
-    version = DRW::UNKNOWNV;
-    error = DRW::BAD_NONE;
 }
 
 dwgR::~dwgR(){
