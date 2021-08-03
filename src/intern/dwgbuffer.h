@@ -56,12 +56,10 @@ private:
 
 class dwgCharStream: public dwgBasicStream{
 public:
-    dwgCharStream(duint8 *buf, int s){
-        stream =buf;
-        sz = s;
-        pos = 0;
-        isOk = true;
-    }
+    dwgCharStream(duint8 *buf, duint64 s)
+        :stream{buf}
+        ,sz{s}
+    {}
     virtual ~dwgCharStream(){}
     virtual bool read(duint8* s, duint64 n);
     virtual duint64 size(){return sz;}
@@ -78,8 +76,8 @@ private:
 
 class dwgBuffer {
 public:
-    dwgBuffer(std::ifstream *stream, DRW_TextCodec *decoder = NULL);
-    dwgBuffer(duint8 *buf, int size, DRW_TextCodec *decoder= NULL);
+    dwgBuffer(std::ifstream *stream, DRW_TextCodec *decoder = nullptr);
+    dwgBuffer(duint8 *buf, duint64 size, DRW_TextCodec *decoder= nullptr);
     dwgBuffer( const dwgBuffer& org );
     dwgBuffer& operator=( const dwgBuffer& org );
     ~dwgBuffer();
@@ -145,7 +143,7 @@ public:
 
 private:
     std::unique_ptr<dwgBasicStream> filestr;
-    int maxSize{0};
+    duint64 maxSize{0};
     duint8 currByte{0};
     duint8 bitPos{0};
 

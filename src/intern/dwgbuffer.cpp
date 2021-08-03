@@ -144,7 +144,7 @@ bool dwgCharStream::read(duint8* s, duint64 n){
     return true;
 }
 
-dwgBuffer::dwgBuffer(duint8 *buf, int size, DRW_TextCodec *dc)
+dwgBuffer::dwgBuffer(duint8 *buf, duint64 size, DRW_TextCodec *dc)
     :decoder{dc}
     ,filestr{new dwgCharStream(buf, size)}
     ,maxSize{size}
@@ -849,7 +849,7 @@ bool dwgBuffer::getBytes(unsigned char *buf, int size){
 }
 
 duint16 dwgBuffer::crc8(duint16 dx,dint32 start,dint32 end){
-    int pos = filestr->getPos();
+    duint64 pos = filestr->getPos();
     filestr->setPos(start);
     int n = end-start;
     duint8 *tmpBuf = new duint8[n];
@@ -872,7 +872,7 @@ duint16 dwgBuffer::crc8(duint16 dx,dint32 start,dint32 end){
 }
 
 duint32 dwgBuffer::crc32(duint32 seed,dint32 start,dint32 end){
-    int pos = filestr->getPos();
+    duint64 pos = filestr->getPos();
     filestr->setPos(start);
     int n = end-start;
     duint8 *tmpBuf = new duint8[n];
