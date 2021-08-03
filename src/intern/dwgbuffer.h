@@ -15,6 +15,7 @@
 
 #include <fstream>
 #include <sstream>
+#include <memory>
 #include "../drw_base.h"
 
 class DRW_Coord;
@@ -143,7 +144,7 @@ public:
     DRW_TextCodec *decoder;
 
 private:
-    dwgBasicStream *filestr;
+    std::unique_ptr<dwgBasicStream> filestr;
     int maxSize;
     duint8 currByte;
     duint8 bitPos;
