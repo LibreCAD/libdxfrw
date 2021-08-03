@@ -15,6 +15,7 @@
 
 #include <string>
 #include <memory>
+#include <unordered_map>
 //#include <deque>
 #include "drw_entities.h"
 #include "drw_objects.h"
@@ -38,6 +39,8 @@ bool testReader();
 private:
     bool openFile(std::ifstream *filestr);
     bool processDwg();
+    static std::unique_ptr< dwgReader > createReaderForVersion(DRW::Version version, std::ifstream *stream, dwgR *p);
+
 private:
     DRW::Version version { DRW::UNKNOWNV };
     DRW::error error { DRW::BAD_NONE };
@@ -46,6 +49,8 @@ private:
     std::string codePage;
     DRW_Interface *iface { nullptr };
     std::unique_ptr< dwgReader > reader;
+
+    static std::unordered_map< const char*, DRW::Version > DRW_dwgVersionStrings;
 
 };
 
