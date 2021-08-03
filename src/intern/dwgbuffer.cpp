@@ -311,9 +311,9 @@ duint16 dwgBuffer::getBitShort(){
 dint16 dwgBuffer::getSBitShort(){
     duint8 b = get2Bits();
     if (b == 0)
-        return (dint16)getRawShort16();
+        return static_cast<dint16>(getRawShort16());
     else if (b== 1)
-        return (dint16)getRawChar8();
+        return static_cast<dint16>(getRawChar8());
     else if (b == 2)
         return 0;
     else
@@ -611,7 +611,7 @@ std::string dwgBuffer::get16bitStr(duint16 textSize, bool nullTerm){
 std::string dwgBuffer::getCP8Text(){
     std::string strData;
     strData = get8bitStr();//RLZ correct these function
-    if (decoder == NULL)
+    if (!decoder)
         return strData;
 
     return decoder->toUtf8(strData);
@@ -626,7 +626,7 @@ std::string dwgBuffer::getUCSStr(duint16 ts){
     if (ts<4) //at least 1 char
         return std::string();
     strData = get16bitStr(ts/2, false);
-    if (decoder == NULL)
+    if (!decoder)
         return strData;
 
     return decoder->toUtf8(strData);
@@ -641,7 +641,7 @@ std::string dwgBuffer::getUCSText(bool nullTerm){
         return std::string();
 
     strData = get16bitStr(ts, nullTerm);
-    if (decoder == NULL)
+    if (!decoder)
         return strData;
 
     return decoder->toUtf8(strData);
@@ -769,16 +769,12 @@ duint32 dwgBuffer::getCmColor(DRW::Version v) {
     switch (type) {
     case 0xC0:
         return 256;//ByLayer
-        break;
     case 0xC1:
         return 0;//ByBlock
-        break;
     case 0xC2:
         return 256;//RGB RLZ TODO
-        break;
     case 0xC3:
         return rgb&0xFF;//ACIS
-        break;
     default:
         break;
     }
