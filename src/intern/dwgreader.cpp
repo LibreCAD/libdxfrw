@@ -38,12 +38,10 @@ dwgReader::~dwgReader(){
         delete(it->second);
     for (std::map<duint32, DRW_AppId*>::iterator it=appIdmap.begin(); it!=appIdmap.end(); ++it)
         delete(it->second);
-
-    delete fileBuf;
 }
 
 void dwgReader::parseAttribs(DRW_Entity* e){
-    if (e != NULL){
+    if (e){
         duint32 ltref =e->lTypeH.ref;
         duint32 lyref =e->layerH.ref;
         std::map<duint32, DRW_LType*>::iterator lt_it = ltypemap.find(ltref);
@@ -1245,7 +1243,7 @@ bool dwgReader::readDwgObject(dwgBuffer *dbuf, objHandle& obj, DRW_Interface& in
 
 bool DRW_ObjControl::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
 int unkData=0;
-    bool ret = DRW_TableEntry::parseDwg(version, buf, NULL, bs);
+    bool ret = DRW_TableEntry::parseDwg(version, buf, nullptr, bs);
     DRW_DBG("\n***************************** parsing object control entry *********************************************\n");
     if (!ret)
         return ret;
