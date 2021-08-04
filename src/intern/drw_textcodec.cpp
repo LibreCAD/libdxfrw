@@ -9,14 +9,13 @@
 #include "drw_cptable949.h"
 #include "drw_cptable950.h"
 
-DRW_TextCodec::DRW_TextCodec() {
-    version = DRW::AC1021;
-    conv = new DRW_Converter(NULL, 0);
+DRW_TextCodec::DRW_TextCodec()
+    : version{DRW::AC1021}
+    , conv( new DRW_Converter(nullptr, 0) )
+{
 }
 
-DRW_TextCodec::~DRW_TextCodec() {
-    delete conv;
-}
+DRW_TextCodec::~DRW_TextCodec() = default;
 
 void DRW_TextCodec::setVersion(int v, bool dxfFormat){
     if (v == DRW::AC1009 || v == DRW::AC1006) {
@@ -53,48 +52,48 @@ void DRW_TextCodec::setVersion(std::string *v, bool dxfFormat){
 
 void DRW_TextCodec::setCodePage(std::string *c, bool dxfFormat){
     cp = correctCodePage(*c);
-    delete conv;
+    conv.reset();
     if (version == DRW::AC1009 || version == DRW::AC1015) {
         if (cp == "ANSI_874")
-            conv = new DRW_ConvTable(DRW_Table874, CPLENGHTCOMMON);
+            conv.reset( new DRW_ConvTable(DRW_Table874, CPLENGTHCOMMON) );
         else if (cp == "ANSI_932")
-            conv = new DRW_Conv932Table(DRW_Table932, DRW_LeadTable932,
-                                         DRW_DoubleTable932, CPLENGHT932);
+            conv.reset( new DRW_Conv932Table(DRW_Table932, DRW_LeadTable932,
+                                         DRW_DoubleTable932, CPLENGTH932) );
         else if (cp == "ANSI_936")
-            conv = new DRW_ConvDBCSTable(DRW_Table936, DRW_LeadTable936,
-                                         DRW_DoubleTable936, CPLENGHT936);
+            conv.reset( new DRW_ConvDBCSTable(DRW_Table936, DRW_LeadTable936,
+                                         DRW_DoubleTable936, CPLENGTH936) );
         else if (cp == "ANSI_949")
-            conv = new DRW_ConvDBCSTable(DRW_Table949, DRW_LeadTable949,
-                                         DRW_DoubleTable949, CPLENGHT949);
+            conv.reset( new DRW_ConvDBCSTable(DRW_Table949, DRW_LeadTable949,
+                                         DRW_DoubleTable949, CPLENGTH949) );
         else if (cp == "ANSI_950")
-            conv = new DRW_ConvDBCSTable(DRW_Table950, DRW_LeadTable950,
-                                         DRW_DoubleTable950, CPLENGHT950);
+            conv.reset( new DRW_ConvDBCSTable(DRW_Table950, DRW_LeadTable950,
+                                         DRW_DoubleTable950, CPLENGTH950) );
         else if (cp == "ANSI_1250")
-            conv = new DRW_ConvTable(DRW_Table1250, CPLENGHTCOMMON);
+            conv.reset( new DRW_ConvTable(DRW_Table1250, CPLENGTHCOMMON) );
         else if (cp == "ANSI_1251")
-            conv = new DRW_ConvTable(DRW_Table1251, CPLENGHTCOMMON);
+            conv.reset( new DRW_ConvTable(DRW_Table1251, CPLENGTHCOMMON) );
         else if (cp == "ANSI_1253")
-            conv = new DRW_ConvTable(DRW_Table1253, CPLENGHTCOMMON);
+            conv.reset( new DRW_ConvTable(DRW_Table1253, CPLENGTHCOMMON) );
         else if (cp == "ANSI_1254")
-            conv = new DRW_ConvTable(DRW_Table1254, CPLENGHTCOMMON);
+            conv.reset( new DRW_ConvTable(DRW_Table1254, CPLENGTHCOMMON) );
         else if (cp == "ANSI_1255")
-            conv = new DRW_ConvTable(DRW_Table1255, CPLENGHTCOMMON);
+            conv.reset( new DRW_ConvTable(DRW_Table1255, CPLENGTHCOMMON) );
         else if (cp == "ANSI_1256")
-            conv = new DRW_ConvTable(DRW_Table1256, CPLENGHTCOMMON);
+            conv.reset( new DRW_ConvTable(DRW_Table1256, CPLENGTHCOMMON) );
         else if (cp == "ANSI_1257")
-            conv = new DRW_ConvTable(DRW_Table1257, CPLENGHTCOMMON);
+            conv.reset( new DRW_ConvTable(DRW_Table1257, CPLENGTHCOMMON) );
         else if (cp == "ANSI_1258")
-            conv = new DRW_ConvTable(DRW_Table1258, CPLENGHTCOMMON);
+            conv.reset( new DRW_ConvTable(DRW_Table1258, CPLENGTHCOMMON) );
         else if (cp == "UTF-8") { //DXF older than 2007 are write in win codepages
             cp = "ANSI_1252";
-            conv = new DRW_Converter(NULL, 0);
+            conv.reset( new DRW_Converter(nullptr, 0) );
         } else
-            conv = new DRW_ConvTable(DRW_Table1252, CPLENGHTCOMMON);
+            conv.reset( new DRW_ConvTable(DRW_Table1252, CPLENGTHCOMMON) );
     } else {
         if (dxfFormat)
-            conv = new DRW_Converter(NULL, 0);//utf16 to utf8
+            conv.reset( new DRW_Converter(nullptr, 0) );//utf16 to utf8
         else
-            conv = new DRW_ConvUTF16();//utf16 to utf8
+            conv.reset( new DRW_ConvUTF16() );//utf16 to utf8
     }
 }
 
@@ -148,7 +147,7 @@ std::string DRW_ConvTable::fromUtf8(std::string *s) {
             j = i+l;
             i = j - 1;
             notFound = true;
-            for (int k=0; k<cpLenght; k++){
+            for (int k=0; k<cpLength; k++){
                 if(table[k] == code) {
                     result += CPOFFSET + k; //translate from table
                     notFound = false;
@@ -284,7 +283,7 @@ std::string DRW_ConvDBCSTable::fromUtf8(std::string *s) {
             j = i+l;
             i = j - 1;
             notFound = true;
-                for (int k=0; k<cpLenght; k++){
+                for (int k=0; k<cpLength; k++){
                     if(doubleTable[k][1] == code) {
                         int data = doubleTable[k][0];
                         char d[3];
@@ -369,7 +368,7 @@ std::string DRW_Conv932Table::fromUtf8(std::string *s) {
             }
             if (notFound && ( code<0xF8 || (code>0x390 && code<0x542) ||
                     (code>0x200F && code<0x9FA1) || code>0xF928 )) {
-                for (int k=0; k<cpLenght; k++){
+                for (int k=0; k<cpLength; k++){
                     if(doubleTable[k][1] == code) {
                         int data = doubleTable[k][0];
                         char d[3];

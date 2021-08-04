@@ -2,6 +2,7 @@
 #define DRW_TEXTCODEC_H
 
 #include <string>
+#include <memory>
 
 class DRW_Converter;
 
@@ -25,14 +26,16 @@ private:
 private:
     int version;
     std::string cp;
-    DRW_Converter *conv;
+    std::unique_ptr< DRW_Converter> conv;
 };
 
 class DRW_Converter
 {
 public:
-    DRW_Converter(const int *t, int l){table = t;
-                               cpLenght = l;}
+    DRW_Converter(const int *t, int l)
+        :table{t }
+        ,cpLength{l}
+    {}
     virtual ~DRW_Converter(){}
     virtual std::string fromUtf8(std::string *s) {return *s;}
     virtual std::string toUtf8(std::string *s);
@@ -40,13 +43,13 @@ public:
     std::string decodeText(int c);
     std::string encodeNum(int c);
     int decodeNum(std::string s, int *b);
-    const int *table;
-    int cpLenght;
+    const int *table = nullptr;
+    int cpLength;
 };
 
 class DRW_ConvUTF16 : public DRW_Converter {
 public:
-    DRW_ConvUTF16():DRW_Converter(NULL, 0) {}
+    DRW_ConvUTF16():DRW_Converter(nullptr, 0) {}
     virtual std::string fromUtf8(std::string *s);
     virtual std::string toUtf8(std::string *s);
 };
@@ -60,10 +63,11 @@ public:
 
 class DRW_ConvDBCSTable : public DRW_Converter {
 public:
-    DRW_ConvDBCSTable(const int *t,  const int *lt, const int dt[][2], int l):DRW_Converter(t, l) {
-        leadTable = lt;
-        doubleTable = dt;
-    }
+    DRW_ConvDBCSTable(const int *t,  const int *lt, const int dt[][2], int l)
+        :DRW_Converter(t, l)
+        ,leadTable{lt}
+        ,doubleTable{dt}
+    {}
 
     virtual std::string fromUtf8(std::string *s);
     virtual std::string toUtf8(std::string *s);
@@ -75,10 +79,11 @@ private:
 
 class DRW_Conv932Table : public DRW_Converter {
 public:
-    DRW_Conv932Table(const int *t,  const int *lt, const int dt[][2], int l):DRW_Converter(t, l) {
-        leadTable = lt;
-        doubleTable = dt;
-    }
+    DRW_Conv932Table(const int *t,  const int *lt, const int dt[][2], int l)
+        :DRW_Converter(t, l)
+        ,leadTable{lt}
+        ,doubleTable{dt}
+    {}
 
     virtual std::string fromUtf8(std::string *s);
     virtual std::string toUtf8(std::string *s);
