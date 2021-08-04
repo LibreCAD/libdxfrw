@@ -420,6 +420,7 @@ void dwgCompressor::copyCompBytes21(duint8 *cbuf, duint8 *dbuf, duint32 l, duint
         for (int i = 1; i<5;i++)
             dbuf[dix++] = cbuf[six+i];
         dbuf[dix] = cbuf[six];
+        break;
     case 8: //Ok
         for (int i = 0; i<8;i++) //RLZ 4[0],4[4] or 4[4],4[0]
             dbuf[dix++] = cbuf[six++];
