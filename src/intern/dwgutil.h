@@ -21,16 +21,14 @@ std::string toHexStr(int n);
 
 class dwgRSCodec {
 public:
-    dwgRSCodec(){}
-    ~dwgRSCodec(){}
+    dwgRSCodec()=default;
     static void decode239I(duint8 *in, duint8 *out, duint32 blk);
     static void decode251I(duint8 *in, duint8 *out, duint32 blk);
 };
 
 class dwgCompressor {
 public:
-    dwgCompressor(){}
-    ~dwgCompressor(){}
+    dwgCompressor()=default;
 
     void decompress18(duint8 *cbuf, duint8 *dbuf, duint32 csize, duint32 dsize);
     static void decrypt18Hdr(duint8 *buf, duint32 size, duint32 offset);
@@ -47,12 +45,9 @@ private:
     duint32 long20CompressionOffset();
     duint32 twoByteOffset(duint32 *ll);
 
-    duint8 *bufC;
-    duint8 *bufD;
-    duint32 sizeC;
-    duint32 sizeD;
-    duint32 pos;
-    duint32 rpos;
+    duint8 *bufC{nullptr};
+    duint32 sizeC{0};
+    duint32 pos{0};
 
 };
 
@@ -81,9 +76,6 @@ public:
         EXTEDATA,      /*!< Extended Entity Data */
         PROXYGRAPHICS /*!< PROXY ENTITY GRAPHICS */
     };
-
-    secEnum(){}
-    ~secEnum(){}
 
     static DWGSection getEnum(std::string nameSec);
 };
