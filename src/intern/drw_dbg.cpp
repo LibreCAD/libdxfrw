@@ -14,12 +14,12 @@
 #include <iomanip>
 #include "drw_dbg.h"
 
-DRW_dbg *DRW_dbg::instance= NULL;
+DRW_dbg *DRW_dbg::instance{nullptr};
 
 /*********private clases*************/
 class print_none {
 public:
-    virtual void printS(std::string s){(void)s;}
+    virtual void printS(const std::string& s){(void)s;}
     virtual void printI(long long int i){(void)i;}
     virtual void printUI(long long unsigned int i){(void)i;}
     virtual void printD(double d){(void)d;}
@@ -27,49 +27,45 @@ public:
     virtual void printB(int i){(void)i;}
     virtual void printHL(int c, int s, int h){(void)c;(void)s;(void)h;}
     virtual void printPT(double x, double y, double z){(void)x;(void)y;(void)z;}
-    print_none(){}
-    virtual ~print_none(){}
+    print_none()=default;
+    virtual ~print_none()=default;
 };
 
 class print_debug : public print_none {
 public:
-    virtual void printS(std::string s);
-    virtual void printI(long long int i);
-    virtual void printUI(long long unsigned int i);
-    virtual void printD(double d);
-    virtual void printH(long long int i);
-    virtual void printB(int i);
-    virtual void printHL(int c, int s, int h);
-    virtual void printPT(double x, double y, double z);
-    print_debug();
-    virtual ~print_debug(){}
+    void printS(const std::string& s) override;
+    void printI(long long int i) override;
+    void printUI(long long unsigned int i) override;
+    void printD(double d) override;
+    void printH(long long int i) override;
+    void printB(int i) override;
+    void printHL(int c, int s, int h) override;
+    void printPT(double x, double y, double z) override;
+    print_debug()=default;
 private:
-    std::ios_base::fmtflags flags;
+    std::ios_base::fmtflags flags{std::cerr.flags()};
 };
 
 /********* debug class *************/
 DRW_dbg *DRW_dbg::getInstance(){
-    if (instance == NULL){
+    if (!instance){
         instance = new DRW_dbg;
     }
     return instance;
 }
 
 DRW_dbg::DRW_dbg(){
-    level = NONE;
-    prClass = new print_none;
-    flags = std::cerr.flags();
+    prClass.reset( new print_none );
 }
 
 void DRW_dbg::setLevel(LEVEL lvl){
     level = lvl;
-    delete prClass;
     switch (level){
     case DEBUG:
-        prClass = new print_debug;
+        prClass.reset(new print_debug);
         break;
     default:
-        prClass = new print_none;
+        prClass.reset(new print_none);
     }
 }
 
@@ -77,7 +73,7 @@ DRW_dbg::LEVEL DRW_dbg::getLevel(){
     return level;
 }
 
-void DRW_dbg::print(std::string s){
+void DRW_dbg::print(const std::string &s){
     prClass->printS(s);
 }
 
@@ -120,11 +116,7 @@ void DRW_dbg::printPT(double x, double y, double z){
     prClass->printPT(x, y, z);
 }
 
-print_debug::print_debug(){
-    flags = std::cerr.flags();
-}
-
-void print_debug::printS(std::string s){
+void print_debug::printS(const std::string& s){
     std::cerr << s;
 }
 
