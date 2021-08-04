@@ -1661,8 +1661,7 @@ void DRW_Header::write(dxfWriter *writer, DRW::Version ver){
     }
 
 #ifdef DRW_DBG
-    std::map<std::string,DRW_Variant *>::const_iterator it;
-    for ( it=vars.begin() ; it != vars.end(); ++it ){
+    for ( auto it=vars.begin() ; it != vars.end(); ++it ){
         DRW_DBG((*it).first); DRW_DBG("\n");
     }
 #endif
@@ -1690,8 +1689,7 @@ void DRW_Header::addCoord(std::string key, DRW_Coord value, int code){
 
 bool DRW_Header::getDouble(std::string key, double *varDouble){
     bool result = false;
-    std::map<std::string,DRW_Variant *>::iterator it;
-    it=vars.find( key);
+    auto it=vars.find( key);
     if (it != vars.end()) {
         DRW_Variant *var = (*it).second;
         if (var->type() == DRW_Variant::DOUBLE) {
@@ -1706,8 +1704,7 @@ bool DRW_Header::getDouble(std::string key, double *varDouble){
 
 bool DRW_Header::getInt(std::string key, int *varInt){
     bool result = false;
-    std::map<std::string,DRW_Variant *>::iterator it;
-    it=vars.find( key);
+    auto it=vars.find( key);
     if (it != vars.end()) {
         DRW_Variant *var = (*it).second;
         if (var->type() == DRW_Variant::INTEGER) {
@@ -1722,8 +1719,7 @@ bool DRW_Header::getInt(std::string key, int *varInt){
 
 bool DRW_Header::getStr(std::string key, std::string *varStr){
     bool result = false;
-    std::map<std::string,DRW_Variant *>::iterator it;
-    it=vars.find( key);
+    auto it=vars.find( key);
     if (it != vars.end()) {
         DRW_Variant *var = (*it).second;
         if (var->type() == DRW_Variant::STRING) {
@@ -1738,8 +1734,7 @@ bool DRW_Header::getStr(std::string key, std::string *varStr){
 
 bool DRW_Header::getCoord(std::string key, DRW_Coord *varCoord){
     bool result = false;
-    std::map<std::string,DRW_Variant *>::iterator it;
-    it=vars.find( key);
+    auto it=vars.find( key);
     if (it != vars.end()) {
         DRW_Variant *var = (*it).second;
         if (var->type() == DRW_Variant::COORD) {
@@ -2363,7 +2358,7 @@ bool DRW_Header::parseDwg(DRW::Version version, dwgBuffer *buf, dwgBuffer *hBbuf
     DRW_DBG("  string buf bit position: "); DRW_DBG(buf->getBitPos());
 
     if (DRW_DBGGL == DRW_dbg::DEBUG){
-        for (std::map<std::string,DRW_Variant*>::iterator it=vars.begin(); it!=vars.end(); ++it){
+        for (auto it=vars.begin(); it!=vars.end(); ++it){
             DRW_DBG("\n"); DRW_DBG(it->first); DRW_DBG(": ");
             switch (it->second->type()){
             case DRW_Variant::INTEGER:

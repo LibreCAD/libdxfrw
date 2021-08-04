@@ -20,23 +20,23 @@
 #include "drw_dbg.h"
 
 dwgReader::~dwgReader(){
-    for (std::map<duint32, DRW_LType*>::iterator it=ltypemap.begin(); it!=ltypemap.end(); ++it)
+    for (auto it=ltypemap.begin(); it!=ltypemap.end(); ++it)
         delete(it->second);
-    for (std::map<duint32, DRW_Layer*>::iterator it=layermap.begin(); it!=layermap.end(); ++it)
+    for (auto it=layermap.begin(); it!=layermap.end(); ++it)
         delete(it->second);
-    for (std::map<duint32, DRW_Block*>::iterator it=blockmap.begin(); it!=blockmap.end(); ++it)
+    for (auto  it=blockmap.begin(); it!=blockmap.end(); ++it)
         delete(it->second);
-    for (std::map<duint32, DRW_Textstyle*>::iterator it=stylemap.begin(); it!=stylemap.end(); ++it)
+    for (auto it=stylemap.begin(); it!=stylemap.end(); ++it)
         delete(it->second);
-    for (std::map<duint32, DRW_Dimstyle*>::iterator it=dimstylemap.begin(); it!=dimstylemap.end(); ++it)
+    for (auto it=dimstylemap.begin(); it!=dimstylemap.end(); ++it)
         delete(it->second);
-    for (std::map<duint32, DRW_Vport*>::iterator it=vportmap.begin(); it!=vportmap.end(); ++it)
+    for (auto it=vportmap.begin(); it!=vportmap.end(); ++it)
         delete(it->second);
-    for (std::map<duint32, DRW_Class*>::iterator it=classesmap.begin(); it!=classesmap.end(); ++it)
+    for (auto it=classesmap.begin(); it!=classesmap.end(); ++it)
         delete(it->second);
-    for (std::map<duint32, DRW_Block_Record*>::iterator it=blockRecordmap.begin(); it!=blockRecordmap.end(); ++it)
+    for (auto it=blockRecordmap.begin(); it!=blockRecordmap.end(); ++it)
         delete(it->second);
-    for (std::map<duint32, DRW_AppId*>::iterator it=appIdmap.begin(); it!=appIdmap.end(); ++it)
+    for (auto it=appIdmap.begin(); it!=appIdmap.end(); ++it)
         delete(it->second);
 
     delete fileBuf;
@@ -46,11 +46,11 @@ void dwgReader::parseAttribs(DRW_Entity* e){
     if (e != NULL){
         duint32 ltref =e->lTypeH.ref;
         duint32 lyref =e->layerH.ref;
-        std::map<duint32, DRW_LType*>::iterator lt_it = ltypemap.find(ltref);
+        auto lt_it = ltypemap.find(ltref);
         if (lt_it != ltypemap.end()){
             e->lineType = (lt_it->second)->name;
         }
-        std::map<duint32, DRW_Layer*>::iterator ly_it = layermap.find(lyref);
+        auto ly_it = layermap.find(lyref);
         if (ly_it != layermap.end()){
             e->layer = (ly_it->second)->name;
         }
@@ -61,34 +61,34 @@ std::string dwgReader::findTableName(DRW::TTYPE table, dint32 handle){
     std::string name;
     switch (table){
     case DRW::STYLE:{
-        std::map<duint32, DRW_Textstyle*>::iterator st_it = stylemap.find(handle);
+        auto st_it = stylemap.find(handle);
         if (st_it != stylemap.end())
             name = (st_it->second)->name;
         break;}
     case DRW::DIMSTYLE:{
-        std::map<duint32, DRW_Dimstyle*>::iterator ds_it = dimstylemap.find(handle);
+        auto ds_it = dimstylemap.find(handle);
         if (ds_it != dimstylemap.end())
             name = (ds_it->second)->name;
         break;}
     case DRW::BLOCK_RECORD:{ //use DRW_Block because name are more correct
-//        std::map<duint32, DRW_Block*>::iterator bk_it = blockmap.find(handle);
+//        auto bk_it = blockmap.find(handle);
 //        if (bk_it != blockmap.end())
-        std::map<duint32, DRW_Block_Record*>::iterator bk_it = blockRecordmap.find(handle);
+        auto bk_it = blockRecordmap.find(handle);
         if (bk_it != blockRecordmap.end())
             name = (bk_it->second)->name;
         break;}
 /*    case DRW::VPORT:{
-        std::map<duint32, DRW_Vport*>::iterator vp_it = vportmap.find(handle);
+        auto vp_it = vportmap.find(handle);
         if (vp_it != vportmap.end())
             name = (vp_it->second)->name;
         break;}*/
     case DRW::LAYER:{
-        std::map<duint32, DRW_Layer*>::iterator ly_it = layermap.find(handle);
+        auto ly_it = layermap.find(handle);
         if (ly_it != layermap.end())
             name = (ly_it->second)->name;
         break;}
     case DRW::LTYPE:{
-        std::map<duint32, DRW_LType*>::iterator lt_it = ltypemap.find(handle);
+        auto lt_it = ltypemap.find(handle);
         if (lt_it != ltypemap.end())
             name = (lt_it->second)->name;
         break;}
@@ -120,7 +120,7 @@ bool dwgReader::checkSentinel(dwgBuffer *buf, enum secEnum::DWGSection, bool sta
  *  2 bytes size + data bytes
  *  last section are 2 bytes size + 2 bytes crc (size value always 2)
 **/
-bool dwgReader::readDwgHandles(dwgBuffer *dbuf, duint32 offset, duint32 size) {
+bool dwgReader::readDwgHandles(dwgBuffer *dbuf, duint64 offset, duint64 size) {
     DRW_DBG("\ndwgReader::readDwgHandles\n");
     if (!dbuf->setPosition(offset))
         return false;
@@ -177,13 +177,12 @@ bool dwgReader::readDwgTables(DRW_Header& hdr, dwgBuffer *dbuf) {
     bool ret = true;
     bool ret2 = true;
     objHandle oc;
-    std::map<duint32, objHandle>::iterator mit;
     dint16 oType;
     duint32 bs = 0; //bit size of handle stream 2010+
     duint8 *tmpByteStr;
 
     //parse linetypes, start with linetype Control
-    mit = ObjectMap.find(hdr.linetypeCtrl);
+    auto mit = ObjectMap.find(hdr.linetypeCtrl);
     if (mit==ObjectMap.end()) {
         DRW_DBG("\nWARNING: LineType control not found\n");
         ret = false;
@@ -304,10 +303,10 @@ bool dwgReader::readDwgTables(DRW_Header& hdr, dwgBuffer *dbuf) {
     }
 
     //set linetype in layer
-    for (std::map<duint32, DRW_Layer*>::iterator it=layermap.begin(); it!=layermap.end(); ++it) {
+    for (auto it=layermap.begin(); it!=layermap.end(); ++it) {
         DRW_Layer *ly = it->second;
         duint32 ref =ly->lTypeH.ref;
-        std::map<duint32, DRW_LType*>::iterator lt_it = ltypemap.find(ref);
+        auto lt_it = ltypemap.find(ref);
         if (lt_it != ltypemap.end()){
             ly->lineType = (lt_it->second)->name;
         }
@@ -729,14 +728,13 @@ bool dwgReader::readDwgBlocks(DRW_Interface& intfa, dwgBuffer *dbuf){
     bool ret2 = true;
     duint32 bs =0;
     duint8 *tmpByteStr;
-    std::map<duint32, objHandle>::iterator mit;
     DRW_DBG("\nobject map total size= "); DRW_DBG(ObjectMap.size());
 
-    for (std::map<duint32, DRW_Block_Record*>::iterator it=blockRecordmap.begin(); it != blockRecordmap.end(); ++it){
+    for (auto it=blockRecordmap.begin(); it != blockRecordmap.end(); ++it){
         DRW_Block_Record* bkr= it->second;
         DRW_DBG("\nParsing Block, record handle= "); DRW_DBGH(it->first); DRW_DBG(" Name= "); DRW_DBG(bkr->name); DRW_DBG("\n");
         DRW_DBG("\nFinding Block, handle= "); DRW_DBGH(bkr->block); DRW_DBG("\n");
-        mit = ObjectMap.find(bkr->block);
+        auto mit = ObjectMap.find(bkr->block);
         if (mit==ObjectMap.end()) {
             DRW_DBG("\nWARNING: block entity not found\n");
             ret = false;
@@ -853,12 +851,11 @@ bool dwgReader::readPlineVertex(DRW_Polyline& pline, dwgBuffer *dbuf){
     bool ret2 = true;
     objHandle oc;
     duint32 bs = 0;
-    std::map<duint32, objHandle>::iterator mit;
 
     if (version < DRW::AC1018) { //pre 2004
         duint32 nextH = pline.firstEH;
         while (nextH != 0){
-            mit = ObjectMap.find(nextH);
+            auto mit = ObjectMap.find(nextH);
             if (mit==ObjectMap.end()) {
                 nextH = pline.lastEH;//end while if entity not foud
                 DRW_DBG("\nWARNING: pline vertex not found\n");
@@ -895,7 +892,7 @@ bool dwgReader::readPlineVertex(DRW_Polyline& pline, dwgBuffer *dbuf){
     } else {//2004+
         for (std::list<duint32>::iterator it = pline.hadlesList.begin() ; it != pline.hadlesList.end(); ++it){
             duint32 nextH = *it;
-            mit = ObjectMap.find(nextH);
+            auto mit = ObjectMap.find(nextH);
             if (mit==ObjectMap.end()) {
                 DRW_DBG("\nWARNING: Entity of block not found\n");
                 ret = false;
@@ -937,8 +934,8 @@ bool dwgReader::readDwgEntities(DRW_Interface& intfa, dwgBuffer *dbuf){
     bool ret2 = true;
 
     DRW_DBG("\nobject map total size= "); DRW_DBG(ObjectMap.size());
-    std::map<duint32, objHandle>::iterator itB=ObjectMap.begin();
-    std::map<duint32, objHandle>::iterator itE=ObjectMap.end();
+    auto itB=ObjectMap.begin();
+    auto itE=ObjectMap.end();
     while (itB != itE){
         ret2 = readDwgEntity(dbuf, itB->second, intfa);
         ObjectMap.erase(itB);
@@ -986,7 +983,7 @@ bool dwgReader::readDwgEntity(dwgBuffer *dbuf, objHandle& obj, DRW_Interface& in
         buff.resetPosition();
 
         if (oType > 499){
-            std::map<duint32, DRW_Class*>::iterator it = classesmap.find(oType);
+            auto it = classesmap.find(oType);
             if (it == classesmap.end()){//fail, not found in classes set error
                 DRW_DBG("Class "); DRW_DBG(oType);DRW_DBG("not found, handle: "); DRW_DBG(obj.handle); DRW_DBG("\n");
                 delete[]tmpByteStr;
@@ -1175,8 +1172,8 @@ bool dwgReader::readDwgObjects(DRW_Interface& intfa, dwgBuffer *dbuf){
     duint32 i=0;
     DRW_DBG("\nentities map total size= "); DRW_DBG(ObjectMap.size());
     DRW_DBG("\nobjects map total size= "); DRW_DBG(objObjectMap.size());
-    std::map<duint32, objHandle>::iterator itB=objObjectMap.begin();
-    std::map<duint32, objHandle>::iterator itE=objObjectMap.end();
+    auto itB=objObjectMap.begin();
+    auto itE=objObjectMap.end();
     while (itB != itE){
         ret2 = readDwgObject(dbuf, itB->second, intfa);
         objObjectMap.erase(itB);
@@ -1185,7 +1182,7 @@ bool dwgReader::readDwgObjects(DRW_Interface& intfa, dwgBuffer *dbuf){
             ret = ret2;
     }
     if (DRW_DBGGL == DRW_dbg::DEBUG) {
-        for (std::map<duint32, objHandle>::iterator it=remainingMap.begin(); it != remainingMap.end(); ++it){
+        for (auto it=remainingMap.begin(); it != remainingMap.end(); ++it){
             DRW_DBG("\nnum.# "); DRW_DBG(i++); DRW_DBG(" Remaining object Handle, loc, type= "); DRW_DBG(it->first);
             DRW_DBG(" "); DRW_DBG(it->second.loc); DRW_DBG(" "); DRW_DBG(it->second.type);
         }

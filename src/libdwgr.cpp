@@ -303,31 +303,31 @@ bool dwgR::processDwg() {
 
     iface->addHeader(&hdr);
 
-    for (std::map<duint32, DRW_LType*>::iterator it=reader->ltypemap.begin(); it!=reader->ltypemap.end(); ++it) {
+    for (auto it=reader->ltypemap.begin(); it!=reader->ltypemap.end(); ++it) {
         DRW_LType *lt = it->second;
         iface->addLType(const_cast<DRW_LType&>(*lt) );
     }
-    for (std::map<duint32, DRW_Layer*>::iterator it=reader->layermap.begin(); it!=reader->layermap.end(); ++it) {
+    for (auto it=reader->layermap.begin(); it!=reader->layermap.end(); ++it) {
         DRW_Layer *ly = it->second;
         iface->addLayer(const_cast<DRW_Layer&>(*ly));
     }
 
-    for (std::map<duint32, DRW_Textstyle*>::iterator it=reader->stylemap.begin(); it!=reader->stylemap.end(); ++it) {
+    for (auto it=reader->stylemap.begin(); it!=reader->stylemap.end(); ++it) {
         DRW_Textstyle *ly = it->second;
         iface->addTextStyle(const_cast<DRW_Textstyle&>(*ly));
     }
 
-    for (std::map<duint32, DRW_Dimstyle*>::iterator it=reader->dimstylemap.begin(); it!=reader->dimstylemap.end(); ++it) {
+    for (auto it=reader->dimstylemap.begin(); it!=reader->dimstylemap.end(); ++it) {
         DRW_Dimstyle *ly = it->second;
         iface->addDimStyle(const_cast<DRW_Dimstyle&>(*ly));
     }
 
-    for (std::map<duint32, DRW_Vport*>::iterator it=reader->vportmap.begin(); it!=reader->vportmap.end(); ++it) {
+    for (auto it=reader->vportmap.begin(); it!=reader->vportmap.end(); ++it) {
         DRW_Vport *ly = it->second;
         iface->addVport(const_cast<DRW_Vport&>(*ly));
     }
 
-    for (std::map<duint32, DRW_AppId*>::iterator it=reader->appIdmap.begin(); it!=reader->appIdmap.end(); ++it) {
+    for (auto it=reader->appIdmap.begin(); it!=reader->appIdmap.end(); ++it) {
         DRW_AppId *ly = it->second;
         iface->addAppId(const_cast<DRW_AppId&>(*ly));
     }

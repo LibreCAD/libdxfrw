@@ -171,7 +171,7 @@ public:
         //complete copy of header vars:
         data = cData->headerC;
         //or copy one by one:
-//        for (std::map<std::string,DRW_Variant*>::iterator it=cData->headerC.vars.begin(); it != cData->headerC.vars.end(); ++it)
+//        for (auto it=cData->headerC.vars.begin(); it != cData->headerC.vars.end(); ++it)
 //            data.vars[it->first] = new DRW_Variant( *(it->second) );
     }
 
