@@ -33,13 +33,13 @@ public:
         ret = dwgReader::readDwgBlocks(intfa, &dataBuf);
         return ret;
     }
-    virtual bool readDwgEntities(DRW_Interface& intfa) override {
+    bool readDwgEntities(DRW_Interface& intfa) override {
         bool ret = true;
         dwgBuffer dataBuf(objData.get(), uncompSize, &decoder);
         ret = dwgReader::readDwgEntities(intfa, &dataBuf);
         return ret;
     }
-    virtual bool readDwgObjects(DRW_Interface& intfa) override {
+    bool readDwgObjects(DRW_Interface& intfa) override {
         bool ret = true;
         dwgBuffer dataBuf(objData.get(), uncompSize, &decoder);
         ret = dwgReader::readDwgObjects(intfa, &dataBuf);

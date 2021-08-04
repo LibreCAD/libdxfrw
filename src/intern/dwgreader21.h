@@ -31,13 +31,13 @@ public:
     bool readDwgHandles() override;
     bool readDwgTables(DRW_Header& hdr) override;
     bool readDwgBlocks(DRW_Interface& intfa) override;
-    virtual bool readDwgEntities(DRW_Interface& intfa) override {
+    bool readDwgEntities(DRW_Interface& intfa) override {
         bool ret = true;
         dwgBuffer dataBuf(objData.get(), dataSize, &decoder);
         ret = dwgReader::readDwgEntities(intfa, &dataBuf);
         return ret;
     }
-    virtual bool readDwgObjects(DRW_Interface& intfa) override {
+    bool readDwgObjects(DRW_Interface& intfa) override {
         bool ret = true;
         dwgBuffer dataBuf(objData.get(), dataSize, &decoder);
         ret = dwgReader::readDwgObjects(intfa, &dataBuf);
