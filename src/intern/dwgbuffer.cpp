@@ -832,14 +832,14 @@ duint16 dwgBuffer::getBERawShort16(){
 }
 
 /* reads "size" bytes and stores in "buf" return false if fail */
-bool dwgBuffer::getBytes(unsigned char *buf, int size){
+bool dwgBuffer::getBytes(unsigned char *buf, duint64 size){
     duint8 tmp;
     filestr->read (buf,size);
     if (!filestr->good())
         return false;
 
     if (bitPos != 0){
-        for (int i=0; i<size;i++){
+        for (duint64 i=0; i<size;i++){
             tmp =  buf[i];
             buf[i] = (currByte << bitPos) | (tmp >> (8 - bitPos));
             currByte = tmp;

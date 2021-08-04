@@ -76,7 +76,7 @@ bool dwgReader21::parseSysPage(duint64 sizeCompressed, duint64 sizeUncompressed,
 
 bool dwgReader21::parseDataPage(dwgSectionInfo si, duint8 *dData){
     DRW_DBG("parseDataPage, section size: "); DRW_DBG(si.size);
-    for (std::map<duint32, dwgPageInfo>::iterator it=si.pages.begin(); it!=si.pages.end(); ++it){
+    for (auto it=si.pages.begin(); it!=si.pages.end(); ++it){
         dwgPageInfo pi = it->second;
         if (!fileBuf->setPosition(pi.address))
             return false;
@@ -238,7 +238,7 @@ bool dwgReader21::readFileHeader() {
     duint64 i = 0;
     dwgBuffer PagesMapBuf(PagesMapData, PagesMapSizeUncompressed, &decoder);
     //stores temporaly info of all pages:
-    std::map<duint32, dwgPageInfo >sectionPageMapTmp;
+    std::unordered_map<duint64, dwgPageInfo >sectionPageMapTmp;
 
 //    dwgPageInfo *m_pages= new dwgPageInfo[PagesMaxId+1];
     while (PagesMapSizeUncompressed > i ) {

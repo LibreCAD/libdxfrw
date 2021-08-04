@@ -14,6 +14,7 @@
 #define LIBDXFRW_H
 
 #include <string>
+#include <unordered_map>
 #include "drw_entities.h"
 #include "drw_objects.h"
 #include "drw_header.h"
@@ -141,7 +142,7 @@ private:
     bool applyExt;
     bool writingBlock;
     int elParts;  /*!< parts munber when convert ellipse to polyline */
-    std::map<std::string,int> blockMap;
+    std::unordered_map<std::string,int> blockMap;
     std::vector<DRW_ImageDef*> imageDef;  /*!< imageDef list */
 
     int currHandle;
