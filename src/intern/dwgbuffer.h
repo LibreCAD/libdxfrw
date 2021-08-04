@@ -15,6 +15,7 @@
 
 #include <fstream>
 #include <sstream>
+#include <memory>
 #include "../drw_base.h"
 
 class DRW_Coord;
@@ -49,18 +50,16 @@ public:
     virtual bool good(){return stream->good();}
     virtual dwgBasicStream* clone(){return new dwgFileStream(stream);}
 private:
-    std::ifstream *stream;
-    duint64 sz;
+    std::ifstream *stream{nullptr};
+    duint64 sz{0};
 };
 
 class dwgCharStream: public dwgBasicStream{
 public:
-    dwgCharStream(duint8 *buf, int s){
-        stream =buf;
-        sz = s;
-        pos = 0;
-        isOk = true;
-    }
+    dwgCharStream(duint8 *buf, duint64 s)
+        :stream{buf}
+        ,sz{s}
+    {}
     virtual ~dwgCharStream(){}
     virtual bool read(duint8* s, duint64 n);
     virtual duint64 size(){return sz;}
@@ -69,16 +68,16 @@ public:
     virtual bool good(){return isOk;}
     virtual dwgBasicStream* clone(){return new dwgCharStream(stream, sz);}
 private:
-    duint8 *stream;
-    duint64 sz;
-    duint64 pos;
-    bool isOk;
+    duint8 *stream{nullptr};
+    duint64 sz{0};
+    duint64 pos{0};
+    bool isOk{true};
 };
 
 class dwgBuffer {
 public:
-    dwgBuffer(std::ifstream *stream, DRW_TextCodec *decoder = NULL);
-    dwgBuffer(duint8 *buf, int size, DRW_TextCodec *decoder= NULL);
+    dwgBuffer(std::ifstream *stream, DRW_TextCodec *decoder = nullptr);
+    dwgBuffer(duint8 *buf, duint64 size, DRW_TextCodec *decoder= nullptr);
     dwgBuffer( const dwgBuffer& org );
     dwgBuffer& operator=( const dwgBuffer& org );
     ~dwgBuffer();
@@ -140,13 +139,13 @@ public:
     duint32 crc32(duint32 seed,dint32 start,dint32 end);
 
 //    duint8 getCurrByte(){return currByte;}
-    DRW_TextCodec *decoder;
+    DRW_TextCodec *decoder{nullptr};
 
 private:
-    dwgBasicStream *filestr;
-    int maxSize;
-    duint8 currByte;
-    duint8 bitPos;
+    std::unique_ptr<dwgBasicStream> filestr;
+    duint64 maxSize{0};
+    duint8 currByte{0};
+    duint8 bitPos{0};
 
     UTF8STRING get8bitStr();
     UTF8STRING get16bitStr(duint16 textSize, bool nullTerm = true);
