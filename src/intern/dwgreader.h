@@ -150,7 +150,7 @@ protected:
     void parseAttribs(DRW_Entity* e);
     std::string findTableName(DRW::TTYPE table, dint32 handle);
 
-    void setCodePage(std::string *c){decoder.setCodePage(c, false);}
+    void setCodePage(const std::string &c){decoder.setCodePage(c, false);}
     std::string getCodePage(){ return decoder.getCodePage();}
     bool readDwgHeader(DRW_Header& hdr, dwgBuffer *buf, dwgBuffer *hBuf);
     bool readDwgHandles(dwgBuffer *dbuf, duint32 offset, duint32 size);
