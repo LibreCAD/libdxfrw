@@ -35,21 +35,13 @@
     secObjects
 };*/
 
-dwgR::dwgR(const char* name){
+dwgR::dwgR(const char* name)
+    : fileName{ name }
+{
     DRW_DBGSL(DRW_dbg::NONE);
-    fileName = name;
-    reader = NULL;
-//    writer = NULL;
-    applyExt = false;
-    version = DRW::UNKNOWNV;
-    error = DRW::BAD_NONE;
 }
 
-dwgR::~dwgR(){
-    if (reader != NULL)
-        delete reader;
-
-}
+dwgR::~dwgR() = default;
 
 void dwgR::setDebug(DRW::DBG_LEVEL lvl){
     switch (lvl){
@@ -77,9 +69,8 @@ bool dwgR::getPreview(){
         error = DRW::BAD_READ_METADATA;
 
     filestr.close();
-    if (reader != NULL) {
-        delete reader;
-        reader = NULL;
+    if (reader) {
+        reader.reset();
     }
     return isOk;
 }
@@ -162,12 +153,78 @@ bool dwgR::read(DRW_Interface *interface_, bool ext){
         error = DRW::BAD_READ_METADATA;
 
     filestr.close();
-    if (reader != NULL) {
-        delete reader;
-        reader = NULL;
+    if (reader) {
+        reader.reset();
     }
 
     return isOk;
+}
+
+std::unordered_map< const char*, DRW::Version > dwgR::DRW_dwgVersionStrings = {
+    { "MC0.0", DRW::MC00 },
+    { "AC1.2", DRW::AC12 },
+    { "AC1.4", DRW::AC14 },
+    { "AC1.50", DRW::AC150 },
+    { "AC2.10", DRW::AC210 },
+    { "AC1002", DRW::AC1002 },
+    { "AC1003", DRW::AC1003 },
+    { "AC1004", DRW::AC1004 },
+    { "AC1006", DRW::AC1006 },
+    { "AC1009", DRW::AC1009 },
+    { "AC1012", DRW::AC1012 },
+    { "AC1014", DRW::AC1014 },
+    { "AC1015", DRW::AC1015 },
+    { "AC1018", DRW::AC1018 },
+    { "AC1021", DRW::AC1021 },
+    { "AC1024", DRW::AC1024 },
+    { "AC1027", DRW::AC1027 },
+    { "AC1032", DRW::AC1032 },
+};
+
+/**
+ * Factory method which creates a reader for the specified DWG version.
+ *
+ * \returns nullptr if version is not supported.
+*/
+std::unique_ptr<dwgReader> dwgR::createReaderForVersion(DRW::Version version, std::ifstream *stream, dwgR *p )
+{
+    switch ( version ) {
+       // unsupported
+       case DRW::UNKNOWNV:
+       case DRW::MC00:
+       case DRW::AC12:
+       case DRW::AC14:
+       case DRW::AC150:
+       case DRW::AC210:
+       case DRW::AC1002:
+       case DRW::AC1003:
+       case DRW::AC1004:
+       case DRW::AC1006:
+       case DRW::AC1009:
+           break;
+
+       case DRW::AC1012:
+       case DRW::AC1014:
+       case DRW::AC1015:
+           return std::unique_ptr< dwgReader >( new dwgReader15( stream, p) );
+
+       case DRW::AC1018:
+           return std::unique_ptr< dwgReader >( new dwgReader18( stream, p) );
+
+       case DRW::AC1021:
+           return std::unique_ptr< dwgReader >( new dwgReader21( stream, p) );
+
+       case DRW::AC1024:
+           return std::unique_ptr< dwgReader >( new dwgReader24( stream, p) );
+
+       case DRW::AC1027:
+           return std::unique_ptr< dwgReader >( new dwgReader27( stream, p) );
+
+       // unsupported
+       case DRW::AC1032:
+           break;
+    }
+    return nullptr;
 }
 
 /* Open the file and stores it in filestr, install the correct reader version.
@@ -193,36 +250,19 @@ bool dwgR::openFile(std::ifstream *filestr){
     DRW_DBG(line);
     DRW_DBG("\n");
 
-    if (strcmp(line, "AC1006") == 0)
-        version = DRW::AC1006;
-    else if (strcmp(line, "AC1009") == 0) {
-        version = DRW::AC1009;
-//        reader = new dwgReader09(&filestr, this);
-    }else if (strcmp(line, "AC1012") == 0){
-        version = DRW::AC1012;
-        reader = new dwgReader15(filestr, this);
-    } else if (strcmp(line, "AC1014") == 0) {
-        version = DRW::AC1014;
-        reader = new dwgReader15(filestr, this);
-    } else if (strcmp(line, "AC1015") == 0) {
-        version = DRW::AC1015;
-        reader = new dwgReader15(filestr, this);
-    } else if (strcmp(line, "AC1018") == 0){
-        version = DRW::AC1018;
-        reader = new dwgReader18(filestr, this);
-    } else if (strcmp(line, "AC1021") == 0) {
-        version = DRW::AC1021;
-        reader = new dwgReader21(filestr, this);
-    } else if (strcmp(line, "AC1024") == 0) {
-        version = DRW::AC1024;
-        reader = new dwgReader24(filestr, this);
-    } else if (strcmp(line, "AC1027") == 0) {
-        version = DRW::AC1027;
-        reader = new dwgReader27(filestr, this);
-    } else
-        version = DRW::UNKNOWNV;
+    // check version line against known version strings
+    version = DRW::UNKNOWNV;
+    for ( auto it = DRW_dwgVersionStrings.begin(); it != DRW_dwgVersionStrings.end(); ++it )
+    {
+        if ( strcmp( line, it->first ) == 0 ) {
+            version = it->second;
+            break;
+        }
+    }
 
-    if (reader == NULL) {
+    reader = createReaderForVersion( version, filestr, this );
+
+    if (!reader) {
         error = DRW::BAD_VERSION;
         filestr->close();
     } else
