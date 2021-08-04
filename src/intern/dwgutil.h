@@ -77,7 +77,7 @@ public:
         PROXYGRAPHICS /*!< PROXY ENTITY GRAPHICS */
     };
 
-    static DWGSection getEnum(std::string nameSec);
+    static DWGSection getEnum(const std::string &nameSec);
 };
 
 #endif // DWGUTIL_H
