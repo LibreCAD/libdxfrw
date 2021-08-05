@@ -25,6 +25,7 @@ set(libdxfrw_srcs
   src/intern/dxfreader.cpp
   src/intern/dxfwriter.cpp
   src/intern/rscodec.cpp
+  src/drw_base.cpp
   src/drw_classes.cpp
   src/drw_entities.cpp
   src/drw_header.cpp
