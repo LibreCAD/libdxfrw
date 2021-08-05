@@ -33,7 +33,7 @@
 };*/
 
 dxfRW::dxfRW(const char* name){
-    DRW_DBGSL(DRW_dbg::NONE);
+    DRW_DBGSL(DRW_dbg::Level::None);
     fileName = name;
     reader = NULL;
     writer = NULL;
@@ -51,13 +51,13 @@ dxfRW::~dxfRW(){
     imageDef.clear();
 }
 
-void dxfRW::setDebug(DRW::DBG_LEVEL lvl){
+void dxfRW::setDebug(DRW::DebugLevel lvl){
     switch (lvl){
-    case DRW::DEBUG:
-        DRW_DBGSL(DRW_dbg::DEBUG);
+    case DRW::DebugLevel::Debug:
+        DRW_DBGSL(DRW_dbg::Level::Debug);
         break;
-    default:
-        DRW_DBGSL(DRW_dbg::NONE);
+    case DRW::DebugLevel::None:
+        DRW_DBGSL(DRW_dbg::Level::None);
     }
 }
 

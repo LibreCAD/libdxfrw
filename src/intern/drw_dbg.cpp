@@ -56,24 +56,23 @@ DRW_dbg *DRW_dbg::getInstance(){
 }
 
 DRW_dbg::DRW_dbg(){
-    level = NONE;
     prClass = new print_none;
     flags = std::cerr.flags();
 }
 
-void DRW_dbg::setLevel(LEVEL lvl){
+void DRW_dbg::setLevel(Level lvl){
     level = lvl;
     delete prClass;
     switch (level){
-    case DEBUG:
+    case Level::Debug:
         prClass = new print_debug;
         break;
-    default:
+    case Level::None:
         prClass = new print_none;
     }
 }
 
-DRW_dbg::LEVEL DRW_dbg::getLevel(){
+DRW_dbg::Level DRW_dbg::getLevel(){
     return level;
 }
 

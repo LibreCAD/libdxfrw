@@ -615,7 +615,7 @@ bool dwgReader::readDwgTables(DRW_Header& hdr, dwgBuffer *dbuf) {
     }
 
     //RLZ: parse remaining object controls, TODO: implement all
-    if (DRW_DBGGL == DRW_dbg::DEBUG){
+    if (DRW_DBGGL == DRW_dbg::Level::Debug){
         mit = ObjectMap.find(hdr.viewCtrl);
         if (mit==ObjectMap.end()) {
             DRW_DBG("\nWARNING: View control not found\n");
@@ -1184,7 +1184,7 @@ bool dwgReader::readDwgObjects(DRW_Interface& intfa, dwgBuffer *dbuf){
         if (ret)
             ret = ret2;
     }
-    if (DRW_DBGGL == DRW_dbg::DEBUG) {
+    if (DRW_DBGGL == DRW_dbg::Level::Debug) {
         for (std::map<duint32, objHandle>::iterator it=remainingMap.begin(); it != remainingMap.end(); ++it){
             DRW_DBG("\nnum.# "); DRW_DBG(i++); DRW_DBG(" Remaining object Handle, loc, type= "); DRW_DBG(it->first);
             DRW_DBG(" "); DRW_DBG(it->second.loc); DRW_DBG(" "); DRW_DBG(it->second.type);

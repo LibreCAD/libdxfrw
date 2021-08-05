@@ -2362,7 +2362,7 @@ bool DRW_Header::parseDwg(DRW::Version version, dwgBuffer *buf, dwgBuffer *hBbuf
     DRW_DBG("\nstring buf position: "); DRW_DBG(buf->getPosition());
     DRW_DBG("  string buf bit position: "); DRW_DBG(buf->getBitPos());
 
-    if (DRW_DBGGL == DRW_dbg::DEBUG){
+    if (DRW_DBGGL == DRW_dbg::Level::Debug){
         for (std::map<std::string,DRW_Variant*>::iterator it=vars.begin(); it!=vars.end(); ++it){
             DRW_DBG("\n"); DRW_DBG(it->first); DRW_DBG(": ");
             switch (it->second->type()){
