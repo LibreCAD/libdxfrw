@@ -186,7 +186,7 @@ protected:
     duint32 previewImagePos;
 
 //sections map
-    std::unordered_map<secEnum::DWGSection, dwgSectionInfo >sections;
+    std::unordered_map<int, dwgSectionInfo >sections;
     std::unordered_map<duint32, DRW_Class*> classesmap;
 
 protected:
