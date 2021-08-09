@@ -199,17 +199,26 @@ void dwgCompressor::decompress18(duint8 *cbuf, duint8 *dbuf, duint32 csize, duin
             DRW_DBG(pos);DRW_DBG(", Dpos: ");DRW_DBG(rpos);DRW_DBG("\n");
             return; //fails, not valid
         }
-        //copy "compresed data", TODO Needed verify out of bounds
-        duint32 remaining = sizeD - (litCount+rpos);
-        if (remaining < compBytes){
-            compBytes = remaining;
-            DRW_DBG("WARNING dwgCompressor::decompress, bad compBytes size, Cpos: ");
-            DRW_DBG(pos);DRW_DBG(", Dpos: ");DRW_DBG(rpos);DRW_DBG("\n");
+        //copy "compressed data", if size allows
+        if (dsize<rpos+compBytes)
+        {
+            DRW_DBG("WARNING dwgCompressor::decompress18, bad compBytes size, Cpos: ");
+            DRW_DBG(pos);DRW_DBG(", Dpos: ");DRW_DBG(rpos);DRW_DBG(", need ");DRW_DBG(compBytes);DRW_DBG(", available ");DRW_DBG(dsize-rpos);DRW_DBG("\n");
+            // only copy what we can fit
+            compBytes=dsize-rpos;
         }
         for (duint32 i=0, j= rpos - compOffset -1; i < compBytes; i++) {
             bufD[rpos++] = bufD[j++];
         }
-        //copy "uncompresed data", TODO Needed verify out of bounds
+
+        //copy "uncompressed data", if size allows
+        if ( dsize < rpos + litCount )
+        {
+            DRW_DBG("WARNING dwgCompressor::decompress18, bad litCount size, Cpos: ");
+            DRW_DBG(pos);DRW_DBG(", Dpos: ");DRW_DBG(rpos);DRW_DBG(", need ");DRW_DBG(litCount);DRW_DBG(", available ");DRW_DBG(dsize-rpos);DRW_DBG("\n");
+            // only copy what we can fit
+            litCount = dsize - rpos;
+        }
         for (duint32 i=0; i < litCount; i++) {
             bufD[rpos++] = bufC[pos++];
         }
