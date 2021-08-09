@@ -149,7 +149,10 @@ bool dwgReader18::parseDataPage(dwgSectionInfo si/*, duint8 *dData*/){
         //get compresed data
         duint8 *cData = new duint8[pi.cSize];
         if (!fileBuf->setPosition(pi.address+32))
+        {
+            delete [] cData;
             return false;
+        }
         fileBuf->getBytes(cData, pi.cSize);
 
         //calculate checksum
