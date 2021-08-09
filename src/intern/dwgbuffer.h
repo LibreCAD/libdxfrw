@@ -36,7 +36,7 @@ public:
 
 class dwgFileStream: public dwgBasicStream{
 public:
-    dwgFileStream(std::ifstream *s)
+    explicit dwgFileStream(std::ifstream *s)
         :stream{s}
     {
         stream->seekg (0, std::ios::end);
