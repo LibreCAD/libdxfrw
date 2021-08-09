@@ -40,7 +40,7 @@ void DRW_Header::parseCode(int code, dxfReader *reader){
     case 1:
         curr->addString(code, reader->getUtf8String());
         if (name =="$ACADVER") {
-            reader->setVersion(curr->content.s, true);
+            reader->setVersion(*curr->content.s, true);
             version = reader->getVersion();
         }
         break;
@@ -141,7 +141,7 @@ void DRW_Header::write(dxfWriter *writer, DRW::Version ver){
         break;
     }
     writer->writeString(1, varStr);
-    writer->setVersion(&varStr, true);
+    writer->setVersion(varStr, true);
 
     getStr("$ACADVER", &varStr);
     getStr("$ACADMAINTVER", &varStr);
