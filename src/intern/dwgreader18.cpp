@@ -366,8 +366,8 @@ bool dwgReader18::readFileHeader() {
         secInfo.maxSize = buff3.getRawLong32();
         DRW_DBG("\nMax Decompressed Size= "); DRW_DBGH(secInfo.maxSize);
         DRW_DBG("\nunknown long= "); DRW_DBGH(buff3.getRawLong32());
-        secInfo.compresed = buff3.getRawLong32();
-        DRW_DBG("\nis Compressed? 1:no, 2:yes= "); DRW_DBGH(secInfo.compresed);
+        secInfo.compressed = buff3.getRawLong32();
+        DRW_DBG("\nis Compressed? 1:no, 2:yes= "); DRW_DBGH(secInfo.compressed);
         secInfo.Id = buff3.getRawLong32();
         DRW_DBG("\nSection Id= "); DRW_DBGH(secInfo.Id);
         secInfo.encrypted = buff3.getRawLong32();
