@@ -2391,7 +2391,7 @@ bool DRW_Header::parseDwg(DRW::Version version, dwgBuffer *buf, dwgBuffer *hBbuf
     if (version > DRW::AC1021 && mv > 3) { //2010+
         buf->getRawLong32();//advance 4 bytes (hisize)
     }
-    DRW_DBG("\nseting position to: "); DRW_DBG(buf->getPosition());
+    DRW_DBG("\nsetting position to: "); DRW_DBG(buf->getPosition());
     DRW_DBG("\nHeader CRC: "); DRW_DBGH(buf->getRawShort16());
     DRW_DBG("\nbuf position: "); DRW_DBG(buf->getPosition());
     DRW_DBG("\ndwg header end sentinel= ");
@@ -2404,7 +2404,7 @@ bool DRW_Header::parseDwg(DRW::Version version, dwgBuffer *buf, dwgBuffer *hBbuf
     if (version < DRW::AC1018) {//pre 2004
         sz= buf->size()-16;
         buf->setPosition(sz);
-        DRW_DBG("\nseting position to: "); DRW_DBG(buf->getPosition());
+        DRW_DBG("\nsetting position to: "); DRW_DBG(buf->getPosition());
         DRW_DBG("\ndwg header end sentinel= ");
         for (int i=0; i<16;i++) {
             DRW_DBGH(buf->getRawChar8()); DRW_DBG(" ");
@@ -2413,7 +2413,7 @@ bool DRW_Header::parseDwg(DRW::Version version, dwgBuffer *buf, dwgBuffer *hBbuf
 //        sz= buf->size()-132;
 //        buf->setPosition(sz);
         buf->moveBitPos(-128);
-        DRW_DBG("\nseting position to: "); DRW_DBG(buf->getPosition());
+        DRW_DBG("\nsetting position to: "); DRW_DBG(buf->getPosition());
         DRW_DBG("\ndwg header end sentinel= ");
         for (int i=0; i<16;i++) {
             DRW_DBGH(buf->getRawChar8()); DRW_DBG(" ");
@@ -2421,7 +2421,7 @@ bool DRW_Header::parseDwg(DRW::Version version, dwgBuffer *buf, dwgBuffer *hBbuf
     } else if (version == DRW::AC1021) {//2007
         sz= buf->size()-16;
         buf->setPosition(sz);
-        DRW_DBG("\nseting position to: "); DRW_DBG(buf->getPosition());
+        DRW_DBG("\nsetting position to: "); DRW_DBG(buf->getPosition());
         DRW_DBG("\ndwg header end sentinel= ");
         for (int i=0; i<16;i++) {
             DRW_DBGH(buf->getRawChar8()); DRW_DBG(" ");
@@ -2430,7 +2430,7 @@ bool DRW_Header::parseDwg(DRW::Version version, dwgBuffer *buf, dwgBuffer *hBbuf
 //        sz= buf->size()-93;
 //        buf->setPosition(sz);
         buf->moveBitPos(-128);
-        DRW_DBG("\nseting position to: "); DRW_DBG(buf->getPosition());
+        DRW_DBG("\nsetting position to: "); DRW_DBG(buf->getPosition());
         DRW_DBG("\ndwg header end sentinel= ");
         for (int i=0; i<16;i++) {
             DRW_DBGH(buf->getRawChar8()); DRW_DBG(" ");
@@ -2439,7 +2439,7 @@ bool DRW_Header::parseDwg(DRW::Version version, dwgBuffer *buf, dwgBuffer *hBbuf
 //        sz= buf->size()-76;
 //        buf->setPosition(sz);
         buf->moveBitPos(-128);
-        DRW_DBG("\nseting position to: "); DRW_DBG(buf->getPosition());
+        DRW_DBG("\nsetting position to: "); DRW_DBG(buf->getPosition());
         DRW_DBG("\ndwg header end sentinel= ");
         for (int i=0; i<16;i++) {
             DRW_DBGH(buf->getRawChar8()); DRW_DBG(" ");
