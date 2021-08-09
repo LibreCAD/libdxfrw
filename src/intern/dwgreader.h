@@ -44,14 +44,14 @@ public:
  *        address, address in file stream
  *        dataSize, data size for this page
  *        startOffset, start offset for this page
- *        cSize, compresed size of data
- *        uSize, uncompresed size of data
+ *        cSize, compressed size of data
+ *        uSize, uncompressed size of data
  * 2007: page Id, pageCount & pages
  *       size, size in file
  *       dataSize
- *       startOffset, start position in decompresed data stream
- *       cSize, compresed size of data
- *       uSize, uncompresed size of data
+ *       startOffset, start position in decompressed data stream
+ *       cSize, compressed size of data
+ *       uSize, uncompressed size of data
  *       address, address in file stream
  * */
 class dwgPageInfo {
@@ -65,27 +65,27 @@ public:
     duint64 size; //in file stream, for rd18, rd21
     duint64 dataSize; //for rd18, rd21
     duint32 startOffset; //for rd18, rd21
-    duint64 cSize; //compresed page size, for rd21
-    duint64 uSize; //uncompresed page size, for rd21
+    duint64 cSize; //compressed page size, for rd21
+    duint64 uSize; //uncompressed page size, for rd21
 };
 
 // sections of file
 /* 2000-: No pages, only section Id, size  & address in file
  * 2004+: Id, Section Id
- *        size, total size of uncompresed data
+ *        size, total size of uncompressed data
  *        pageCount & pages, number of pages in section
  *        maxSize, max decompressed Size per page
- *        compresed, (1 = no, 2 = yes, normally 2)
+ *        compressed, (1 = no, 2 = yes, normally 2)
  *        encrypted, (0 = no, 1 = yes, 2 = unknown)
  *        name, read & stored but not used
- * 2007: same as 2004+ except encoding, saved in compresed field
+ * 2007: same as 2004+ except encoding, saved in compressed field
  * */
 class dwgSectionInfo {
 public:
     dwgSectionInfo()=default;
     dint32 Id{-1}; //section Id, 2000-   rd15 rd18
     std::string name; //section name rd18
-    duint32 compresed{1};//is compresed? 1=no, 2=yes rd18, rd21(encoding)
+    duint32 compressed{1};//is compressed? 1=no, 2=yes rd18, rd21(encoding)
     duint32 encrypted{0};//encrypted (doc: 0=no, 1=yes, 2=unkn) on read: objects 0 and encrypted yes rd18
     std::map<duint32, dwgPageInfo >pages;//index, size, offset
     duint64 size;//size of section,  2000- rd15, rd18, rd21 (data size)
@@ -158,8 +158,8 @@ protected:
 
 public:
     std::map<duint32, objHandle>ObjectMap;
-    std::map<duint32, objHandle>objObjectMap; //stores the ojects & entities not read in readDwgEntities
-    std::map<duint32, objHandle>remainingMap; //stores the ojects & entities not read in all proces, for debug only
+    std::map<duint32, objHandle>objObjectMap; //stores the objects & entities not read in readDwgEntities
+    std::map<duint32, objHandle>remainingMap; //stores the objects & entities not read in all proces, for debug only
     std::map<duint32, DRW_LType*> ltypemap;
     std::map<duint32, DRW_Layer*> layermap;
     std::map<duint32, DRW_Block*> blockmap;

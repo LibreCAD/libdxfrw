@@ -281,8 +281,8 @@ bool dwgReader21::readFileHeader() {
         duint64 SectionNameLength = SectionsMapBuf.getRawLong64();
         DRW_DBG("\nSectionNameLength = "); DRW_DBG(SectionNameLength);
         DRW_DBG("\nUnknown = "); DRW_DBGH(SectionsMapBuf.getRawLong64());
-        secInfo.compresed = SectionsMapBuf.getRawLong64();
-        DRW_DBG("\nEncoding (compresed) = "); DRW_DBGH(secInfo.compresed);
+        secInfo.compressed = SectionsMapBuf.getRawLong64();
+        DRW_DBG("\nEncoding (compresed) = "); DRW_DBGH(secInfo.compressed);
         secInfo.pageCount = SectionsMapBuf.getRawLong64();
         DRW_DBG("\nPage count= "); DRW_DBGH(secInfo.pageCount);
         secInfo.name = SectionsMapBuf.getUCSStr(SectionNameLength);
