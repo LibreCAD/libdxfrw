@@ -146,7 +146,7 @@ bool dwgReader18::parseDataPage(const dwgSectionInfo &si/*, duint8 *dData*/){
         DRW_DBG("\n      header checksum= "); DRW_DBGH(bufHdr.getRawLong32());
         DRW_DBG("\n      data checksum= "); DRW_DBGH(bufHdr.getRawLong32()); DRW_DBG("\n");
 
-        //get compresed data
+        //get compressed data
         duint8 *cData = new duint8[pi.cSize];
         if (!fileBuf->setPosition(pi.address+32))
             return false;
@@ -209,7 +209,7 @@ bool dwgReader18::readFileHeader() {
         return false;
 
 //    genMagicNumber(); DBG("\n"); DBG("\n");
-    DRW_DBG("Encripted Header Data=\n");
+    DRW_DBG("Encrypted Header Data=\n");
     duint8 byteStr[0x6C];
     int size =0x6C;
     for (int i=0, j=0; i< 0x6C;i++) {
@@ -227,7 +227,7 @@ bool dwgReader18::readFileHeader() {
     DRW_DBG("\n");
 
 //    size =0x6C;
-    DRW_DBG("Decripted Header Data=\n");
+    DRW_DBG("Decrypted Header Data=\n");
     for (int i=0, j = 0; i< size;i++) {
         DRW_DBGH( static_cast<unsigned char>(byteStr[i]));
         if (j == 15) {
@@ -304,7 +304,7 @@ bool dwgReader18::readFileHeader() {
     duint8 *tmpDecompSec = new duint8[decompSize];
     parseSysPage(tmpDecompSec, decompSize);
 
-//parses "Section page map" decompresed data
+//parses "Section page map" decompressed data
     dwgBuffer buff2(tmpDecompSec, decompSize, &decoder);
     duint32 address = 0x100;
     //stores temporaly info of all pages:
