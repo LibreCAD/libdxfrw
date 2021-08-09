@@ -26,7 +26,7 @@ class dwgReader;
 
 class dwgR {
 public:
-    dwgR(const char* name);
+    explicit dwgR(const char* name);
     ~dwgR();
     //read: return true if all ok
     bool read(DRW_Interface *interface_, bool ext);
