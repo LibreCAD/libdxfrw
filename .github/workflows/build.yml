@@ -16,7 +16,7 @@ jobs:
         
       - name: Get deps
         run: |
-          sudo apt-get install cmake ninja clang
+          sudo apt-get install cmake ninja-build clang
           
       - name: Build
         run: |
