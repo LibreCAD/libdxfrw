@@ -260,8 +260,10 @@ bool dwgReader21::readFileHeader() {
     duint8 *SectionsMapData = new duint8[SectionsMapSizeUncompressed];
     dwgPageInfo sectionMap = sectionPageMapTmp[SectionsMapId];
     ret = parseSysPage(SectionsMapSizeCompressed, SectionsMapSizeUncompressed, SectionsMapCorrectionFactor, sectionMap.address, SectionsMapData);
-    if (!ret)
+    if (!ret) {
+        delete[]SectionsMapData;
         return false;
+    }
 
 //reads sections:
     //Note: compressed value are not stored in file then, commpresed field are use to store
