@@ -15,7 +15,7 @@ export CXXFLAGS="-Werror -O2"
 
 mkdir -p build
 cd build
-cmake ..
-make
+cmake -GNinja ..
+ninja
 
 ccache -s
