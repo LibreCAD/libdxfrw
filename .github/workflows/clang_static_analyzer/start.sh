@@ -12,6 +12,8 @@ wget -nv https://releases.llvm.org/9.0.0/$CLANG_LLVM.tar.xz
 tar xJf $CLANG_LLVM.tar.xz
 mv $CLANG_LLVM clang+llvm-9
 
+export PATH=$PWD/clang+llvm-9/bin:$PATH
+
 # prepare build files
 mkdir -p build
 cd build
@@ -20,7 +22,6 @@ NPROC=$(nproc)
 echo "NPROC=${NPROC}"
 export MAKEFLAGS="-j ${NPROC}"
 
-export PATH=$PWD/clang+llvm-9/bin:$PATH
 CXXFLAGS="-std=c++11" scan-build -o scanbuildoutput -plist -v cmake ..
 rm -rf scanbuildoutput
 TOPDIR=$PWD
