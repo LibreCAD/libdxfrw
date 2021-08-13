@@ -81,7 +81,10 @@ protected:
     duint64 uncompSize;
 
 private:
+#if 0
     void genMagicNumber();
+#endif
+
 //    dwgBuffer* bufObj;
     void parseSysPage(duint8 *decompSec, duint32 decompSize); //called: Section page map: 0x41630e3b
     bool parseDataPage(const dwgSectionInfo &si/*, duint8 *dData*/); //called ???: Section map: 0x4163003b
