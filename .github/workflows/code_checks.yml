@@ -8,8 +8,8 @@ on:
 
 jobs:
 
-  cppcheck_1604:
-    runs-on: ubuntu-16.04
+  cppcheck_18_04:
+    runs-on: ubuntu-18.04
     if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
     steps:
       - name: Checkout
@@ -38,3 +38,17 @@ jobs:
       - name: Run cppcheck test
         run: ./scripts/cppcheck.sh
 
+  cppcheck_latest:
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install Requirements
+        run: |
+          sudo apt update
+          sudo apt install -y cppcheck
+
+      - name: Run cppcheck test
+        run: ./scripts/cppcheck.sh
