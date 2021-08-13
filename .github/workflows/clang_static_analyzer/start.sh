@@ -5,14 +5,7 @@ set -e
 sudo apt update
 
 DEBIAN_FRONTEND=noninteractive sudo apt-get install -y --no-install-recommends \
-    autoconf automake libtool g++ make jq
-
-CLANG_LLVM=clang+llvm-9.0.0-x86_64-linux-gnu-ubuntu-18.04
-wget -nv https://releases.llvm.org/9.0.0/$CLANG_LLVM.tar.xz
-tar xJf $CLANG_LLVM.tar.xz
-mv $CLANG_LLVM clang+llvm-9
-
-export PATH=$PWD/clang+llvm-9/bin:$PATH
+    libtool g++ make jq clang-tools
 
 # prepare build files
 mkdir -p build
