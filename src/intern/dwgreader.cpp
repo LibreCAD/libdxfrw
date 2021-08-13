@@ -710,6 +710,7 @@ bool dwgReader::readDwgTables(DRW_Header& hdr, dwgBuffer *dbuf) {
                         ret = false;
                     } else { //reset position
                     buff.resetPosition();
+                    (void)bs;
 /* RLZ: writeme                   ret2 = vpEntHeader.parseDwg(version, &buff, bs);
                     if(ret)
                         ret = ret2;*/
