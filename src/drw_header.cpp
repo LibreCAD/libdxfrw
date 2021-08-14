@@ -1526,7 +1526,7 @@ void DRW_Header::write(dxfWriter *writer, DRW::Version ver){
         else
             writer->writeDouble(40, 50.0);
         writer->writeString(9, "$CAMERAHEIGHT");
-        if (getDouble("$CAMERAHEIGTH", &varDouble))
+        if (getDouble("$CAMERAHEIGHT", &varDouble))
             writer->writeDouble(40, varDouble);
         else
             writer->writeDouble(40, 0.0);
@@ -1755,8 +1755,8 @@ bool DRW_Header::parseDwg(DRW::Version version, dwgBuffer *buf, dwgBuffer *hBbuf
     DRW_DBG("\nbyte size of data: "); DRW_DBG(size);
     if (version > DRW::AC1021 && mv > 3) { //2010+
         duint32 hSize = buf->getRawLong32();
-        endBitPos += 32; //start bit: + 4 hight size
-        DRW_DBG("\n2010+ & MV> 3, higth 32b: "); DRW_DBG(hSize);
+        endBitPos += 32; //start bit: + 4 height size
+        DRW_DBG("\n2010+ & MV> 3, height 32b: "); DRW_DBG(hSize);
     }
 //RLZ TODO add $ACADVER var & $DWGCODEPAGE & $MEASUREMENT
 //RLZ TODO EN 2000 falta $CELWEIGHT, $ENDCAPS, $EXTNAMES $JOINSTYLE $LWDISPLAY $PSTYLEMODE $TDUCREATE  $TDUUPDATE $XEDIT
@@ -1937,7 +1937,7 @@ bool DRW_Header::parseDwg(DRW::Version version, dwgBuffer *buf, dwgBuffer *hBbuf
 //    vars["TDUSRTIMER"]=new DRW_Variant(40, buf->getBitLong());//RLZ: TODO convert to day.msec
 //    vars["TDUSRTIMER"]=new DRW_Variant(40, buf->getBitLong());//RLZ: TODO convert to day.msec
     vars["CECOLOR"]=new DRW_Variant(62, buf->getCmColor(version));//RLZ: TODO read CMC or EMC color
-    dwgHandle HANDSEED = buf->getHandle();//allways present in data stream
+    dwgHandle HANDSEED = buf->getHandle();//always present in data stream
     DRW_DBG("\nHANDSEED: "); DRW_DBGHL(HANDSEED.code, HANDSEED.size, HANDSEED.ref);
     dwgHandle CLAYER = hBbuf->getHandle();
     DRW_DBG("\nCLAYER: "); DRW_DBGHL(CLAYER.code, CLAYER.size, CLAYER.ref);
@@ -2382,11 +2382,11 @@ bool DRW_Header::parseDwg(DRW::Version version, dwgBuffer *buf, dwgBuffer *hBbuf
         }
     }
 
-    buf->setPosition(size+16+4); //readed size +16 start sentinel + 4 size
+    buf->setPosition(size+16+4); //read size +16 start sentinel + 4 size
     if (version > DRW::AC1021 && mv > 3) { //2010+
         buf->getRawLong32();//advance 4 bytes (hisize)
     }
-    DRW_DBG("\nseting position to: "); DRW_DBG(buf->getPosition());
+    DRW_DBG("\nsetting position to: "); DRW_DBG(buf->getPosition());
     DRW_DBG("\nHeader CRC: "); DRW_DBGH(buf->getRawShort16());
     DRW_DBG("\nbuf position: "); DRW_DBG(buf->getPosition());
     DRW_DBG("\ndwg header end sentinel= ");
@@ -2399,7 +2399,7 @@ bool DRW_Header::parseDwg(DRW::Version version, dwgBuffer *buf, dwgBuffer *hBbuf
     if (version < DRW::AC1018) {//pre 2004
         sz= buf->size()-16;
         buf->setPosition(sz);
-        DRW_DBG("\nseting position to: "); DRW_DBG(buf->getPosition());
+        DRW_DBG("\nsetting position to: "); DRW_DBG(buf->getPosition());
         DRW_DBG("\ndwg header end sentinel= ");
         for (int i=0; i<16;i++) {
             DRW_DBGH(buf->getRawChar8()); DRW_DBG(" ");
@@ -2408,7 +2408,7 @@ bool DRW_Header::parseDwg(DRW::Version version, dwgBuffer *buf, dwgBuffer *hBbuf
 //        sz= buf->size()-132;
 //        buf->setPosition(sz);
         buf->moveBitPos(-128);
-        DRW_DBG("\nseting position to: "); DRW_DBG(buf->getPosition());
+        DRW_DBG("\nsetting position to: "); DRW_DBG(buf->getPosition());
         DRW_DBG("\ndwg header end sentinel= ");
         for (int i=0; i<16;i++) {
             DRW_DBGH(buf->getRawChar8()); DRW_DBG(" ");
@@ -2416,7 +2416,7 @@ bool DRW_Header::parseDwg(DRW::Version version, dwgBuffer *buf, dwgBuffer *hBbuf
     } else if (version == DRW::AC1021) {//2007
         sz= buf->size()-16;
         buf->setPosition(sz);
-        DRW_DBG("\nseting position to: "); DRW_DBG(buf->getPosition());
+        DRW_DBG("\nsetting position to: "); DRW_DBG(buf->getPosition());
         DRW_DBG("\ndwg header end sentinel= ");
         for (int i=0; i<16;i++) {
             DRW_DBGH(buf->getRawChar8()); DRW_DBG(" ");
@@ -2425,7 +2425,7 @@ bool DRW_Header::parseDwg(DRW::Version version, dwgBuffer *buf, dwgBuffer *hBbuf
 //        sz= buf->size()-93;
 //        buf->setPosition(sz);
         buf->moveBitPos(-128);
-        DRW_DBG("\nseting position to: "); DRW_DBG(buf->getPosition());
+        DRW_DBG("\nsetting position to: "); DRW_DBG(buf->getPosition());
         DRW_DBG("\ndwg header end sentinel= ");
         for (int i=0; i<16;i++) {
             DRW_DBGH(buf->getRawChar8()); DRW_DBG(" ");
@@ -2434,7 +2434,7 @@ bool DRW_Header::parseDwg(DRW::Version version, dwgBuffer *buf, dwgBuffer *hBbuf
 //        sz= buf->size()-76;
 //        buf->setPosition(sz);
         buf->moveBitPos(-128);
-        DRW_DBG("\nseting position to: "); DRW_DBG(buf->getPosition());
+        DRW_DBG("\nsetting position to: "); DRW_DBG(buf->getPosition());
         DRW_DBG("\ndwg header end sentinel= ");
         for (int i=0; i<16;i++) {
             DRW_DBGH(buf->getRawChar8()); DRW_DBG(" ");

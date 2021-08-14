@@ -1331,10 +1331,10 @@ bool DRW_Text::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
         return ret;
     DRW_DBG("\n***************************** parsing text *********************************************\n");
 
- // DataFlags RC Used to determine presence of subsquent data, set to 0xFF for R14-
+ // DataFlags RC Used to determine presence of subsequent data, set to 0xFF for R14-
     duint8 data_flags = 0x00;
     if (version > DRW::AC1014) {//2000+
-        data_flags = buf->getRawChar8(); /* DataFlags RC Used to determine presence of subsquent data */
+        data_flags = buf->getRawChar8(); /* DataFlags RC Used to determine presence of subsequent data */
         DRW_DBG("data_flags: "); DRW_DBG(data_flags); DRW_DBG("\n");
         if ( !(data_flags & 0x01) ) { /* Elevation RD --- present if !(DataFlags & 0x01) */
             basePoint.z = buf->getRawDouble();
@@ -1469,7 +1469,7 @@ bool DRW_MText::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
     DRW_UNUSED(ext_ht);
     /* Extents wid BD Undocumented and not present in DXF or entget The extents
     rectangle, when rotated the same as the text, fits the actual text image on
-    the screen (altough we've seen it include an extra row of text in height). */
+    the screen (although we've seen it include an extra row of text in height). */
     double ext_wid = buf->getBitDouble();
     DRW_UNUSED(ext_wid);
     /* Text TV 1 All text in one long string (without '\n's 3 for line wrapping).
@@ -2941,7 +2941,7 @@ bool DRW_Viewport::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
         frozenLyCount = buf->getBitLong();
         DRW_DBG("Frozen Layer count?: "); DRW_DBG(frozenLyCount); DRW_DBG("\n");
         DRW_DBG("Status Flags?: "); DRW_DBG(buf->getBitLong()); DRW_DBG("\n");
-        //RLZ: Warning needed separate string bufer
+        //RLZ: Warning needed separate string buffer
         DRW_DBG("Style sheet?: "); DRW_DBG(sBuf->getVariableText(version, false)); DRW_DBG("\n");
         DRW_DBG("Render mode?: "); DRW_DBG(buf->getRawChar8()); DRW_DBG("\n");
         DRW_DBG("UCS OMore...: "); DRW_DBG(buf->getBit()); DRW_DBG("\n");
@@ -2956,8 +2956,8 @@ bool DRW_Viewport::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
         DRW_DBG("ShadePlot Mode...: "); DRW_DBG(buf->getBitShort()); DRW_DBG("\n");
     }
     if (version > DRW::AC1018) {//2007+
-        DRW_DBG("Use def Ligth...: "); DRW_DBG(buf->getBit()); DRW_DBG("\n");
-        DRW_DBG("Def ligth tipe?: "); DRW_DBG(buf->getRawChar8()); DRW_DBG("\n");
+        DRW_DBG("Use def Light...: "); DRW_DBG(buf->getBit()); DRW_DBG("\n");
+        DRW_DBG("Def light type?: "); DRW_DBG(buf->getRawChar8()); DRW_DBG("\n");
         DRW_DBG("Brightness: "); DRW_DBG(buf->getBitDouble()); DRW_DBG("\n");
         DRW_DBG("Contrast: "); DRW_DBG(buf->getBitDouble()); DRW_DBG("\n");
 //        DRW_DBG("Ambient Cmc or Enc: "); DRW_DBG(buf->getCmColor(version)); DRW_DBG("\n");
