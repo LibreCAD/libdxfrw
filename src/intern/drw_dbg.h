@@ -15,6 +15,7 @@
 
 #include <string>
 #include <iostream>
+#include <memory>
 //#include <iomanip>
 
 #define DRW_DBGSL(a) DRW_dbg::getInstance()->setLevel(a)
@@ -37,7 +38,7 @@ public:
     void setLevel(LEVEL lvl);
     LEVEL getLevel();
     static DRW_dbg *getInstance();
-    void print(std::string s);
+    void print(const std::string& s);
     void print(int i);
     void print(unsigned int i);
     void print(long long int i);
@@ -52,9 +53,9 @@ public:
 private:
     DRW_dbg();
     static DRW_dbg *instance;
-    LEVEL level;
-    std::ios_base::fmtflags flags;
-    print_none* prClass;
+    LEVEL level{NONE};
+    std::ios_base::fmtflags flags{std::cerr.flags()};
+    std::unique_ptr<print_none> prClass;
 };
 
 

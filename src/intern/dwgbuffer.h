@@ -25,30 +25,30 @@ class dwgBasicStream{
 protected:
     dwgBasicStream(){}
 public:
-    virtual ~dwgBasicStream(){}
+    virtual ~dwgBasicStream()=default;
     virtual bool read(duint8* s, duint64 n) = 0;
-    virtual duint64 size() = 0;
-    virtual duint64 getPos() = 0;
+    virtual duint64 size() const = 0;
+    virtual duint64 getPos() const = 0;
     virtual bool setPos(duint64 p) = 0;
-    virtual bool good() = 0;
-    virtual dwgBasicStream* clone() = 0;
+    virtual bool good() const = 0;
+    virtual dwgBasicStream* clone() const = 0;
 };
 
 class dwgFileStream: public dwgBasicStream{
 public:
-    dwgFileStream(std::ifstream *s){
-        stream =s;
+    dwgFileStream(std::ifstream *s)
+        :stream{s}
+    {
         stream->seekg (0, std::ios::end);
         sz = stream->tellg();
         stream->seekg(0, std::ios_base::beg);
     }
-    virtual ~dwgFileStream(){}
-    virtual bool read(duint8* s, duint64 n);
-    virtual duint64 size(){return sz;}
-    virtual duint64 getPos(){return stream->tellg();}
-    virtual bool setPos(duint64 p);
-    virtual bool good(){return stream->good();}
-    virtual dwgBasicStream* clone(){return new dwgFileStream(stream);}
+    bool read(duint8* s, duint64 n) override;
+    duint64 size() const override{return sz;}
+    duint64 getPos() const override{return stream->tellg();}
+    bool setPos(duint64 p) override;
+    bool good() const override{return stream->good();}
+    dwgBasicStream* clone() const override{return new dwgFileStream(stream);}
 private:
     std::ifstream *stream{nullptr};
     duint64 sz{0};
@@ -60,13 +60,12 @@ public:
         :stream{buf}
         ,sz{s}
     {}
-    virtual ~dwgCharStream(){}
-    virtual bool read(duint8* s, duint64 n);
-    virtual duint64 size(){return sz;}
-    virtual duint64 getPos(){return pos;}
-    virtual bool setPos(duint64 p);
-    virtual bool good(){return isOk;}
-    virtual dwgBasicStream* clone(){return new dwgCharStream(stream, sz);}
+    bool read(duint8* s, duint64 n) override;
+    duint64 size() const override {return sz;}
+    duint64 getPos() const override {return pos;}
+    bool setPos(duint64 p) override;
+    bool good() const override {return isOk;}
+    dwgBasicStream* clone() const override {return new dwgCharStream(stream, sz);}
 private:
     duint8 *stream{nullptr};
     duint64 sz{0};
@@ -81,12 +80,12 @@ public:
     dwgBuffer( const dwgBuffer& org );
     dwgBuffer& operator=( const dwgBuffer& org );
     ~dwgBuffer();
-    duint64 size(){return filestr->size();}
+    duint64 size() const {return filestr->size();}
     bool setPosition(duint64 pos);
-    duint64 getPosition();
+    duint64 getPosition() const;
     void resetPosition(){setPosition(0); setBitPos(0);}
     void setBitPos(duint8 pos);
-    duint8 getBitPos(){return bitPos;}
+    duint8 getBitPos() const {return bitPos;}
     bool moveBitPos(dint32 size);
 
     duint8 getBit();  //B
@@ -131,9 +130,9 @@ public:
 
     duint16 getBERawShort16();  //RS big-endian order
 
-    bool isGood(){return filestr->good();}
+    bool isGood() const {return filestr->good();}
     bool getBytes(duint8 *buf, int size);
-    int numRemainingBytes(){return (maxSize- filestr->getPos());}
+    int numRemainingBytes() const {return (maxSize- filestr->getPos());}
 
     duint16 crc8(duint16 dx,dint32 start,dint32 end);
     duint32 crc32(duint32 seed,dint32 start,dint32 end);

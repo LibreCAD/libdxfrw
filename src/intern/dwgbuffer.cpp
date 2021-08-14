@@ -176,7 +176,7 @@ dwgBuffer& dwgBuffer::operator=( const dwgBuffer& org ){
 dwgBuffer::~dwgBuffer() = default;
 
 /**Gets the current byte position in buffer **/
-duint64 dwgBuffer::getPosition(){
+duint64 dwgBuffer::getPosition() const{
      if (bitPos != 0)
          return filestr->getPos() -1;
      return filestr->getPos();

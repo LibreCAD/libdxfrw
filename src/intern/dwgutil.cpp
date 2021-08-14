@@ -140,9 +140,7 @@ duint32 dwgCompressor::litLength18(){
 
 void dwgCompressor::decompress18(duint8 *cbuf, duint8 *dbuf, duint32 csize, duint32 dsize){
     bufC = cbuf;
-    bufD = dbuf;
     sizeC = csize -2;
-    sizeD = dsize;
     DRW_DBG("dwgCompressor::decompress, last 2 bytes: ");
     DRW_DBGH(bufC[sizeC]);DRW_DBGH(bufC[sizeC+1]);DRW_DBG("\n");
     sizeC = csize;
@@ -152,11 +150,11 @@ void dwgCompressor::decompress18(duint8 *cbuf, duint8 *dbuf, duint32 csize, duin
     duint32 litCount;
 
     pos=0; //current position in compresed buffer
-    rpos=0; //current position in resulting decompresed buffer
+    duint32 rpos=0; //current position in resulting decompresed buffer
     litCount = litLength18();
     //copy first lileral lenght
     for (duint32 i=0; i < litCount; ++i) {
-        bufD[rpos++] = bufC[pos++];
+        dbuf[rpos++] = bufC[pos++];
     }
 
     while (pos < csize && (rpos < dsize+1)){//rpos < dsize to prevent crash more robust are needed
@@ -200,18 +198,18 @@ void dwgCompressor::decompress18(duint8 *cbuf, duint8 *dbuf, duint32 csize, duin
             return; //fails, not valid
         }
         //copy "compresed data", TODO Needed verify out of bounds
-        duint32 remaining = sizeD - (litCount+rpos);
+        duint32 remaining = dsize - (litCount+rpos);
         if (remaining < compBytes){
             compBytes = remaining;
             DRW_DBG("WARNING dwgCompressor::decompress, bad compBytes size, Cpos: ");
             DRW_DBG(pos);DRW_DBG(", Dpos: ");DRW_DBG(rpos);DRW_DBG("\n");
         }
         for (duint32 i=0, j= rpos - compOffset -1; i < compBytes; i++) {
-            bufD[rpos++] = bufD[j++];
+            dbuf[rpos++] = dbuf[j++];
         }
         //copy "uncompresed data", TODO Needed verify out of bounds
         for (duint32 i=0; i < litCount; i++) {
-            bufD[rpos++] = bufC[pos++];
+            dbuf[rpos++] = bufC[pos++];
         }
     }
     DRW_DBG("WARNING dwgCompressor::decompress, bad out, Cpos: ");DRW_DBG(pos);DRW_DBG(", Dpos: ");DRW_DBG(rpos);DRW_DBG("\n");
@@ -221,7 +219,7 @@ void dwgCompressor::decompress18(duint8 *cbuf, duint8 *dbuf, duint32 csize, duin
 void dwgCompressor::decrypt18Hdr(duint8 *buf, duint32 size, duint32 offset){
     duint8 max = size / 4;
     duint32 secMask = 0x4164536b ^ offset;
-    duint32* pHdr = (duint32*)buf;
+    duint32* pHdr = reinterpret_cast<duint32*>(buf);
     for (duint8 j = 0; j < max; j++)
         *pHdr++ ^= secMask;
 }
@@ -245,7 +243,7 @@ duint32 dwgCompressor::litLength21(duint8 *cbuf, duint8 oc, duint32 *si){
         if (n == 0xff) {
             do {
                 n = cbuf[srcIndex++];
-                n |= (duint32)(cbuf[srcIndex++] << 8);
+                n |= static_cast<duint32>(cbuf[srcIndex++] << 8);
                 length += n;
             } while (n == 0xffff);
         }
@@ -649,7 +647,7 @@ void dwgCompressor::copyCompBytes21(duint8 *cbuf, duint8 *dbuf, duint32 l, duint
 }
 
 
-secEnum::DWGSection secEnum::getEnum(std::string nameSec){
+secEnum::DWGSection secEnum::getEnum(const std::string &nameSec){
     //TODO: complete it
     if (nameSec=="AcDb:Header"){
         return HEADER;
