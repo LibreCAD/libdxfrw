@@ -78,17 +78,9 @@ private:
 
 class DRW_Conv932Table : public DRW_Converter {
 public:
-    DRW_Conv932Table(const int *t,  const int *lt, const int dt[][2], int l)
-        :DRW_Converter(t, l)
-        ,leadTable{lt}
-        ,doubleTable{dt}
-    {}
-
+    DRW_Conv932Table();
     std::string fromUtf8(const std::string &s) override;
     std::string toUtf8(const std::string &s) override;
-private:
-    const int *leadTable{nullptr};
-    const int (*doubleTable)[2];
 
 };
 
