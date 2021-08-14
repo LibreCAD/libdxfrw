@@ -1910,8 +1910,7 @@ bool DRW_Hatch::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
                     spline->ncontrol = buf->getBitLong();
                     spline->controllist.reserve(spline->ncontrol);
                     for (dint32 j = 0; j < spline->ncontrol;++j){
-						std::shared_ptr<DRW_Coord> crd = std::make_shared<DRW_Coord>(buf->get3BitDouble());
-                        spline->controllist.push_back(crd);
+                        std::shared_ptr<DRW_Coord> crd = std::make_shared<DRW_Coord>(buf->get3BitDouble());
                         if(isRational)
                             crd->z =  buf->getBitDouble(); //RLZ: investigate how store weight
                         spline->controllist.push_back(crd);
