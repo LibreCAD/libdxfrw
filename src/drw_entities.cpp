@@ -1875,7 +1875,7 @@ bool DRW_Hatch::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
         havePixelSize |= loop->type & 4;
         if (!(loop->type & 2)){ //Not polyline
             dint32 numPathSeg = buf->getBitLong();
-            for (dint32 j = 0; j<numPathSeg;++j){
+            for (dint32 j = 0; j<numPathSeg && buf->isGood();++j){
                 duint8 typePath = buf->getRawChar8();
                 if (typePath == 1){ //line
                     addLine();
@@ -1904,12 +1904,20 @@ bool DRW_Hatch::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
                     spline->flags |= (buf->getBit() << 1); //periodic
                     spline->nknots = buf->getBitLong();
                     spline->knotslist.reserve(spline->nknots);
-                    for (dint32 j = 0; j < spline->nknots;++j){
+                    for (dint32 j = 0; j < spline->nknots && buf->isGood();++j){
                         spline->knotslist.push_back (buf->getBitDouble());
                     }
                     spline->ncontrol = buf->getBitLong();
+
+                    if ( !buf->isGood() )
+                    {
+                      DRW_DBG( "NOT GOOD at ");DRW_DBG(j);DRW_DBG( "!  degree:");DRW_DBG(spline->degree);
+                      DRW_DBG(" flags:");DRW_DBGH(spline->flags);DRW_DBG(" nknots:");DRW_DBG(spline->nknots);
+                      DRW_DBG(" ncontrol:");DRW_DBG( spline->ncontrol ); DRW_DBG("\n" );
+                    }
+
                     spline->controllist.reserve(spline->ncontrol);
-                    for (dint32 j = 0; j < spline->ncontrol;++j){
+                    for (dint32 j = 0; j < spline->ncontrol && buf->isGood();++j){
 						std::shared_ptr<DRW_Coord> crd = std::make_shared<DRW_Coord>(buf->get3BitDouble());
                         spline->controllist.push_back(crd);
                         if(isRational)
@@ -1919,7 +1927,7 @@ bool DRW_Hatch::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
                     if (version > DRW::AC1021) { //2010+
                         spline->nfit = buf->getBitLong();
                         spline->fitlist.reserve(spline->nfit);
-                        for (dint32 j = 0; j < spline->nfit;++j){
+                        for (dint32 j = 0; j < spline->nfit && buf->isGood();++j){
 							std::shared_ptr<DRW_Coord> crd = std::make_shared<DRW_Coord>(buf->get3BitDouble());
 							spline->fitlist.push_back(crd);
                         }
@@ -1930,14 +1938,14 @@ bool DRW_Hatch::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
             }
         } else { //end not pline, start polyline
 			pline = std::make_shared<DRW_LWPolyline>();
-            bool asBulge = buf->getBit();
+            bool hasBulges = buf->getBit();
             pline->flags = buf->getBit();//closed bit
             dint32 numVert = buf->getBitLong();
-            for (dint32 j = 0; j<numVert;++j){
+            for (dint32 j = 0; j<numVert && buf->isGood();++j){
                 DRW_Vertex2D v;
                 v.x = buf->getRawDouble();
                 v.y = buf->getRawDouble();
-                if (asBulge)
+                if (hasBulges)
                     v.bulge = buf->getBitDouble();
                 pline->addVertex(v);
             }
@@ -1957,7 +1965,7 @@ bool DRW_Hatch::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
         scale = buf->getBitDouble();
         doubleflag = buf->getBit();
         deflines = buf->getBitShort();
-        for (dint32 i = 0 ; i < deflines; ++i){
+        for (dint32 i = 0 ; i < deflines && buf->isGood(); ++i){
             DRW_Coord ptL, offL;
             double angleL = buf->getBitDouble();
             ptL.x = buf->getBitDouble();
@@ -1982,7 +1990,7 @@ bool DRW_Hatch::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
     DRW_DBG("\nnum Seed Points  "); DRW_DBG(numSeedPoints);
     //read Seed Points
     DRW_Coord seedPt;
-    for (dint32 i = 0 ; i < numSeedPoints; ++i){
+    for (dint32 i = 0 ; i < numSeedPoints && buf->isGood(); ++i){
         seedPt.x = buf->getRawDouble();
         seedPt.y = buf->getRawDouble();
         DRW_DBG("\n  "); DRW_DBG(seedPt.x); DRW_DBG(","); DRW_DBG(seedPt.y);
@@ -1994,7 +2002,7 @@ bool DRW_Hatch::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
         return ret;
     DRW_DBG("Remaining bytes: "); DRW_DBG(buf->numRemainingBytes()); DRW_DBG("\n");
 
-    for (duint32 i = 0 ; i < totalBoundItems; ++i){
+    for (duint32 i = 0 ; i < totalBoundItems && buf->isGood(); ++i){
         dwgHandle biH = buf->getHandle();
         DRW_DBG("Boundary Items Handle: "); DRW_DBGHL(biH.code, biH.size, biH.ref);
     }
