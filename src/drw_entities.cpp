@@ -501,7 +501,7 @@ bool DRW_Point::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
     DRW_DBG("point: "); DRW_DBGPT(basePoint.x, basePoint.y, basePoint.z);
     thickness = buf->getThickness(version > DRW::AC1014);//BD
     DRW_DBG("\nthickness: "); DRW_DBG(thickness);
-    extPoint = buf->getExtrusion(version > DRW::AC1014);
+    extPoint = buf->getExtrusion( version > DRW::AC1014, haveExtrusion );
     DRW_DBG(", Extrusion: "); DRW_DBGPT(extPoint.x, extPoint.y, extPoint.z);
 
     double x_axis = buf->getBitDouble();//BD
@@ -560,7 +560,7 @@ bool DRW_Line::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
     DRW_DBG("\nend point: "); DRW_DBGPT(secPoint.x, secPoint.y, secPoint.z);
     thickness = buf->getThickness(version > DRW::AC1014);//BD
     DRW_DBG("\nthickness: "); DRW_DBG(thickness);
-    extPoint = buf->getExtrusion(version > DRW::AC1014);
+    extPoint = buf->getExtrusion( version > DRW::AC1014, haveExtrusion );
     DRW_DBG(", Extrusion: "); DRW_DBGPT(extPoint.x, extPoint.y, extPoint.z);DRW_DBG("\n");
     ret = DRW_Entity::parseDwgEntHandle(version, buf);
     if (!ret)
@@ -624,7 +624,7 @@ bool DRW_Circle::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
 
     thickness = buf->getThickness(version > DRW::AC1014);
     DRW_DBG(" thickness: "); DRW_DBG(thickness);
-    extPoint = buf->getExtrusion(version > DRW::AC1014);
+    extPoint = buf->getExtrusion( version > DRW::AC1014, haveExtrusion );
     DRW_DBG("\nextrusion: "); DRW_DBGPT(extPoint.x, extPoint.y, extPoint.z); DRW_DBG("\n");
 
     ret = DRW_Entity::parseDwgEntHandle(version, buf);
@@ -683,7 +683,7 @@ bool DRW_Arc::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
     DRW_DBG("\nradius: "); DRW_DBG(radious);
     thickness = buf->getThickness(version > DRW::AC1014);
     DRW_DBG(" thickness: "); DRW_DBG(thickness);
-    extPoint = buf->getExtrusion(version > DRW::AC1014);
+    extPoint = buf->getExtrusion( version > DRW::AC1014, haveExtrusion );
     DRW_DBG("\nextrusion: "); DRW_DBGPT(extPoint.x, extPoint.y, extPoint.z);
     staangle = buf->getBitDouble();
     DRW_DBG("\nstart angle: "); DRW_DBG(staangle);
@@ -866,7 +866,7 @@ bool DRW_Trace::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
     fourPoint.x = buf->getRawDouble();
     fourPoint.y = buf->getRawDouble();
     fourPoint.z = basePoint.z;
-    extPoint = buf->getExtrusion(version>DRW::AC1014);
+    extPoint = buf->getExtrusion(version>DRW::AC1014, haveExtrusion);
 
     DRW_DBG(" - base "); DRW_DBGPT(basePoint.x, basePoint.y, basePoint.z);
     DRW_DBG("\n - sec "); DRW_DBGPT(secPoint.x, secPoint.y, secPoint.z);
@@ -1068,7 +1068,7 @@ bool DRW_Insert::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
     }
     angle = buf->getBitDouble();
     DRW_DBG("scale : "); DRW_DBGPT(xscale, yscale, zscale); DRW_DBG(", angle: "); DRW_DBG(angle);
-    extPoint = buf->getExtrusion(false); //3BD R14 style
+    extPoint = buf->getExtrusion(false, haveExtrusion); //3BD R14 style
     DRW_DBG("\nextrusion: "); DRW_DBGPT(extPoint.x, extPoint.y, extPoint.z);
 
     bool hasAttrib = buf->getBit();
@@ -1198,7 +1198,7 @@ bool DRW_LWPolyline::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
     if (flags & 2)
         thickness = buf->getBitDouble();
     if (flags & 1)
-        extPoint = buf->getExtrusion(false);
+        extPoint = buf->getExtrusion(false, haveExtrusion);
     vertexnum = buf->getBitLong();
     vertlist.reserve(vertexnum);
     unsigned int bulgesnum = 0;
@@ -1358,7 +1358,7 @@ bool DRW_Text::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
     }
     secPoint.z = basePoint.z;
     DRW_DBG("Alignment: "); DRW_DBGPT(secPoint.x, secPoint.y, basePoint.z); DRW_DBG("\n");
-    extPoint = buf->getExtrusion(version > DRW::AC1014);
+    extPoint = buf->getExtrusion(version > DRW::AC1014, haveExtrusion);
     DRW_DBG("Extrusion: "); DRW_DBGPT(extPoint.x, extPoint.y, extPoint.z); DRW_DBG("\n");
     thickness = buf->getThickness(version > DRW::AC1014); /* Thickness BD 39 */
 
@@ -1569,7 +1569,7 @@ bool DRW_Polyline::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
         defendwidth = buf->getBitDouble();
         thickness = buf->getThickness(version > DRW::AC1014);
         basePoint = DRW_Coord(0,0,buf->getBitDouble());
-        extPoint = buf->getExtrusion(version > DRW::AC1014);
+        extPoint = buf->getExtrusion( version > DRW::AC1014, haveExtrusion );
     } else if (oType == 0x10) { //pline 3D
         duint8 tmpFlag = buf->getRawChar8();
         DRW_DBG("flags 1 value: "); DRW_DBG(tmpFlag);
@@ -2388,7 +2388,7 @@ bool DRW_Dimension::parseDwg(DRW::Version version, dwgBuffer *buf, dwgBuffer *sB
         duint8 dimVersion = buf->getRawChar8();
         DRW_DBG("\ndimVersion: "); DRW_DBG(dimVersion);
     }
-    extPoint = buf->getExtrusion(version > DRW::AC1014);
+    extPoint = buf->getExtrusion(version > DRW::AC1014, haveExtrusion);
     DRW_DBG("\nextPoint: "); DRW_DBGPT(extPoint.x, extPoint.y, extPoint.z);
     if (version > DRW::AC1014) { //2000+
         DRW_DBG("\nFive unknown bits: "); DRW_DBG(buf->getBit()); DRW_DBG(buf->getBit());
@@ -2801,7 +2801,7 @@ bool DRW_Leader::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
     }
     DRW_Coord Endptproj = buf->get3BitDouble();
     DRW_DBG("\nEndptproj "); DRW_DBGPT(Endptproj.x, Endptproj.y, Endptproj.z);
-    extrusionPoint = buf->getExtrusion(version > DRW::AC1014);
+    extrusionPoint = buf->getExtrusion(version > DRW::AC1014, haveExtrusion);
     DRW_DBG("\nextrusionPoint "); DRW_DBGPT(extrusionPoint.x, extrusionPoint.y, extrusionPoint.z);
     if (version > DRW::AC1014) { //2000+
         DRW_DBG("\nFive unknown bits: "); DRW_DBG(buf->getBit()); DRW_DBG(buf->getBit());
