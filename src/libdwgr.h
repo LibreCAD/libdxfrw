@@ -50,8 +50,6 @@ private:
     DRW_Interface *iface { nullptr };
     std::unique_ptr< dwgReader > reader;
 
-    static std::unordered_map< const char*, DRW::Version > DRW_dwgVersionStrings;
-
 };
 
 #endif // LIBDWGR_H
