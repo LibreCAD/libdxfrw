@@ -131,7 +131,7 @@ public:
     duint16 getBERawShort16();  //RS big-endian order
 
     bool isGood() const {return filestr->good();}
-    bool getBytes(duint8 *buf, int size);
+    bool getBytes(duint8 *buf, duint64 size);
     int numRemainingBytes() const {return (maxSize- filestr->getPos());}
 
     duint16 crc8(duint16 dx,dint32 start,dint32 end);

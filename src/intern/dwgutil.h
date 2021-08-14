@@ -30,10 +30,10 @@ class dwgCompressor {
 public:
     dwgCompressor()=default;
 
-    void decompress18(duint8 *cbuf, duint8 *dbuf, duint32 csize, duint32 dsize);
-    static void decrypt18Hdr(duint8 *buf, duint32 size, duint32 offset);
+    void decompress18(duint8 *cbuf, duint8 *dbuf, duint64 csize, duint64 dsize);
+    static void decrypt18Hdr(duint8 *buf, duint64 size, duint64 offset);
 //    static void decrypt18Data(duint8 *buf, duint32 size, duint32 offset);
-    static void decompress21(duint8 *cbuf, duint8 *dbuf, duint32 csize, duint32 dsize);
+    static void decompress21(duint8 *cbuf, duint8 *dbuf, duint64 csize, duint64 dsize);
 
 private:
     duint32 litLength18();

@@ -15,6 +15,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <unordered_map>
 #include "drw_dbg.h"
 #include "dwgreader18.h"
 #include "dwgutil.h"
@@ -46,15 +47,15 @@ void dwgReader18::genMagicNumber(){
     delete[]tmpMagicStr;
 }
 
-duint32 dwgReader18::checksum(duint32 seed, duint8* data, duint32 sz){
-    duint32 size = sz;
+duint32 dwgReader18::checksum(duint32 seed, duint8* data, duint64 sz){
+    duint64 size = sz;
     duint32 sum1 = seed & 0xffff;
     duint32 sum2 = seed >> 0x10;
     while (size != 0) {
 //        duint32 chunkSize = min(0x15b0, size);
-        duint32 chunkSize = 0x15b0 < size? 0x15b0:size;
+        duint64 chunkSize = 0x15b0 < size? 0x15b0:size;
         size -= chunkSize;
-        for (duint32 i = 0; i < chunkSize; i++) {
+        for (duint64 i = 0; i < chunkSize; i++) {
             sum1 += *data++;
             sum2 += sum1;
         }
@@ -308,7 +309,7 @@ bool dwgReader18::readFileHeader() {
     dwgBuffer buff2(tmpDecompSec, decompSize, &decoder);
     duint32 address = 0x100;
     //stores temporaly info of all pages:
-    std::map<duint32, dwgPageInfo >sectionPageMapTmp;
+    std::unordered_map<duint64, dwgPageInfo >sectionPageMapTmp;
 
     for (unsigned int i = 0; i < decompSize;) {
         dint32 id = buff2.getRawLong32();//RLZ bad can be +/-

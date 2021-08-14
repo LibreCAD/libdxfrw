@@ -13,7 +13,7 @@
 #ifndef DWGREADER_H
 #define DWGREADER_H
 
-#include <map>
+#include <unordered_map>
 #include <list>
 #include <memory>
 #include "drw_textcodec.h"
@@ -57,14 +57,14 @@ public:
 class dwgPageInfo {
 public:
     dwgPageInfo()=default;
-    dwgPageInfo(duint64 i, duint64 ad, duint32 sz){
+    dwgPageInfo(duint64 i, duint64 ad, duint64 sz){
         Id=i; address=ad; size=sz;
     }
     duint64 Id;
     duint64 address; //in file stream, for rd18, rd21
     duint64 size; //in file stream, for rd18, rd21
     duint64 dataSize; //for rd18, rd21
-    duint32 startOffset; //for rd18, rd21
+    duint64 startOffset; //for rd18, rd21
     duint64 cSize; //compresed page size, for rd21
     duint64 uSize; //uncompresed page size, for rd21
 };
@@ -87,7 +87,7 @@ public:
     std::string name; //section name rd18
     duint32 compresed{1};//is compresed? 1=no, 2=yes rd18, rd21(encoding)
     duint32 encrypted{0};//encrypted (doc: 0=no, 1=yes, 2=unkn) on read: objects 0 and encrypted yes rd18
-    std::map<duint32, dwgPageInfo >pages;//index, size, offset
+    std::unordered_map<duint32, dwgPageInfo >pages;//index, size, offset
     duint64 size;//size of section,  2000- rd15, rd18, rd21 (data size)
     duint64 pageCount{0}; //number of pages (dwgPageInfo) in section rd18, rd21
     duint64 maxSize; //max decompressed size (needed??) rd18 rd21
@@ -147,7 +147,7 @@ protected:
     void setCodePage(const std::string &c){decoder.setCodePage(c, false);}
     std::string getCodePage(){ return decoder.getCodePage();}
     bool readDwgHeader(DRW_Header& hdr, dwgBuffer *buf, dwgBuffer *hBuf);
-    bool readDwgHandles(dwgBuffer *dbuf, duint32 offset, duint32 size);
+    bool readDwgHandles(dwgBuffer *dbuf, duint64 offset, duint64 size);
     bool readDwgTables(DRW_Header& hdr, dwgBuffer *dbuf);
     bool checkSentinel(dwgBuffer *buf, enum secEnum::DWGSection, bool start);
 
@@ -157,17 +157,17 @@ protected:
     bool readPlineVertex(DRW_Polyline& pline, dwgBuffer *dbuf);
 
 public:
-    std::map<duint32, objHandle>ObjectMap;
-    std::map<duint32, objHandle>objObjectMap; //stores the ojects & entities not read in readDwgEntities
-    std::map<duint32, objHandle>remainingMap; //stores the ojects & entities not read in all proces, for debug only
-    std::map<duint32, DRW_LType*> ltypemap;
-    std::map<duint32, DRW_Layer*> layermap;
-    std::map<duint32, DRW_Block*> blockmap;
-    std::map<duint32, DRW_Textstyle*> stylemap;
-    std::map<duint32, DRW_Dimstyle*> dimstylemap;
-    std::map<duint32, DRW_Vport*> vportmap;
-    std::map<duint32, DRW_Block_Record*> blockRecordmap;
-    std::map<duint32, DRW_AppId*> appIdmap;
+    std::unordered_map<duint32, objHandle>ObjectMap;
+    std::unordered_map<duint32, objHandle>objObjectMap; //stores the ojects & entities not read in readDwgEntities
+    std::unordered_map<duint32, objHandle>remainingMap; //stores the ojects & entities not read in all proces, for debug only
+    std::unordered_map<duint32, DRW_LType*> ltypemap;
+    std::unordered_map<duint32, DRW_Layer*> layermap;
+    std::unordered_map<duint32, DRW_Block*> blockmap;
+    std::unordered_map<duint32, DRW_Textstyle*> stylemap;
+    std::unordered_map<duint32, DRW_Dimstyle*> dimstylemap;
+    std::unordered_map<duint32, DRW_Vport*> vportmap;
+    std::unordered_map<duint32, DRW_Block_Record*> blockRecordmap;
+    std::unordered_map<duint32, DRW_AppId*> appIdmap;
 //    duint32 currBlock;
     duint8 maintenanceVersion{0};
 
@@ -180,8 +180,8 @@ protected:
     duint32 previewImagePos;
 
 //sections map
-    std::map<enum secEnum::DWGSection, dwgSectionInfo >sections;
-    std::map<duint32, DRW_Class*> classesmap;
+    std::unordered_map<int, dwgSectionInfo >sections;
+    std::unordered_map<duint32, DRW_Class*> classesmap;
 
 protected:
     DRW_TextCodec decoder;

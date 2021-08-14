@@ -238,7 +238,7 @@ bool dwgReader21::readFileHeader() {
     duint64 i = 0;
     dwgBuffer PagesMapBuf(PagesMapData, PagesMapSizeUncompressed, &decoder);
     //stores temporaly info of all pages:
-    std::map<duint32, dwgPageInfo >sectionPageMapTmp;
+    std::unordered_map<duint64, dwgPageInfo >sectionPageMapTmp;
 
 //    dwgPageInfo *m_pages= new dwgPageInfo[PagesMaxId+1];
     while (PagesMapSizeUncompressed > i ) {

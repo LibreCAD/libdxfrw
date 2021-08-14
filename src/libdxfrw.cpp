@@ -1757,8 +1757,7 @@ bool dxfRW::writeObjects() {
 //write IMAGEDEF_REACTOR
     for (unsigned int i=0; i<imageDef.size(); i++) {
         DRW_ImageDef *id = imageDef.at(i);
-        std::map<std::string, std::string>::iterator it;
-        for ( it=id->reactors.begin() ; it != id->reactors.end(); ++it ) {
+        for (auto it=id->reactors.begin() ; it != id->reactors.end(); ++it ) {
             writer->writeString(0, "IMAGEDEF_REACTOR");
             writer->writeString(5, (*it).first);
             writer->writeString(330, (*it).second);
@@ -1790,8 +1789,7 @@ bool dxfRW::writeObjects() {
 //            writer->writeString(330, "0"); handle to DICTIONARY
         }
         writer->writeString(102, "{ACAD_REACTORS");
-        std::map<std::string, std::string>::iterator it;
-        for ( it=id->reactors.begin() ; it != id->reactors.end(); ++it ) {
+        for (auto it=id->reactors.begin() ; it != id->reactors.end(); ++it ) {
             writer->writeString(330, (*it).first);
         }
         writer->writeString(102, "}");
