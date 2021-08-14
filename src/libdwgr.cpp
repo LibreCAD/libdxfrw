@@ -38,18 +38,18 @@
 dwgR::dwgR(const char* name)
     : fileName{ name }
 {
-    DRW_DBGSL(DRW_dbg::NONE);
+    DRW_DBGSL(DRW_dbg::Level::None);
 }
 
 dwgR::~dwgR() = default;
 
-void dwgR::setDebug(DRW::DBG_LEVEL lvl){
+void dwgR::setDebug(DRW::DebugLevel lvl){
     switch (lvl){
-    case DRW::DEBUG:
-        DRW_DBGSL(DRW_dbg::DEBUG);
+    case DRW::DebugLevel::Debug:
+        DRW_DBGSL(DRW_dbg::Level::Debug);
         break;
-    default:
-        DRW_DBGSL(DRW_dbg::NONE);
+    case DRW::DebugLevel::None:
+        DRW_DBGSL(DRW_dbg::Level::None);
     }
 }
 

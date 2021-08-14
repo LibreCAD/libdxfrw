@@ -31,12 +31,12 @@ class print_none;
 
 class DRW_dbg {
 public:
-    enum LEVEL {
-        NONE,
-        DEBUG
+    enum class Level {
+        None,
+        Debug
     };
-    void setLevel(LEVEL lvl);
-    LEVEL getLevel();
+    void setLevel(Level lvl);
+    Level getLevel();
     static DRW_dbg *getInstance();
     void print(const std::string& s);
     void print(int i);
@@ -53,7 +53,7 @@ public:
 private:
     DRW_dbg();
     static DRW_dbg *instance;
-    LEVEL level{NONE};
+    Level level{Level::None};
     std::ios_base::fmtflags flags{std::cerr.flags()};
     std::unique_ptr<print_none> prClass;
 };

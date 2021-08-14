@@ -1267,7 +1267,7 @@ bool DRW_LWPolyline::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
             }
         }
     }
-    if (DRW_DBGGL == DRW_dbg::DEBUG){
+    if (DRW_DBGGL == DRW_dbg::Level::Debug){
         DRW_DBG("\nVertex list: ");
 		for (auto& pv: vertlist) {
             DRW_DBG("\n   x: "); DRW_DBG(pv->x); DRW_DBG(" y: "); DRW_DBG(pv->y); DRW_DBG(" bulge: "); DRW_DBG(pv->bulge);
@@ -2156,7 +2156,7 @@ bool DRW_Spline::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
 	for (dint32 i= 0; i<nfit; ++i)
 		fitlist.push_back(std::make_shared<DRW_Coord>(buf->get3BitDouble()));
 
-    if (DRW_DBGGL == DRW_dbg::DEBUG){
+    if (DRW_DBGGL == DRW_dbg::Level::Debug){
 		DRW_DBG("\nknots list: ");
 		for (auto const& v: knotslist) {
 			DRW_DBG("\n"); DRW_DBG(v);
