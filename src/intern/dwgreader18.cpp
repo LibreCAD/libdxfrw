@@ -450,7 +450,7 @@ bool dwgReader18::readDwgClasses(){
 
     duint32 size = dataBuf.getRawLong32();
     DRW_DBG("\ndata size in bytes "); DRW_DBG(size);
-    if (version > DRW::AC1021 && maintenanceVersion > 3) { //2010+
+    if (((version == DRW::AC1021 || version == DRW::AC1027 ) && maintenanceVersion > 3) || version >= DRW::AC1032 ) { //2010+
         duint32 hSize = dataBuf.getRawLong32();
         DRW_DBG("\n2010+ & MV> 3, height 32b: "); DRW_DBG(hSize);
     }

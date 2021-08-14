@@ -1747,13 +1747,13 @@ bool DRW_Header::getCoord(std::string key, DRW_Coord *varCoord){
     return result;
 }
 
-bool DRW_Header::parseDwg(DRW::Version version, dwgBuffer *buf, dwgBuffer *hBbuf, duint8 mv){
+bool DRW_Header::parseDwg(DRW::Version version, dwgBuffer *buf, dwgBuffer *hBbuf, duint8 maintenanceVersion){
     bool result = true;
     duint32 size = buf->getRawLong32();
     duint32 bitSize = 0;
     duint32 endBitPos = 160; //start bit: 16 sentinel + 4 size
     DRW_DBG("\nbyte size of data: "); DRW_DBG(size);
-    if (version > DRW::AC1021 && mv > 3) { //2010+
+    if (((version == DRW::AC1021 || version == DRW::AC1027 ) && maintenanceVersion > 3) || version >= DRW::AC1032 ) { //2010+
         duint32 hSize = buf->getRawLong32();
         endBitPos += 32; //start bit: + 4 height size
         DRW_DBG("\n2010+ & MV> 3, height 32b: "); DRW_DBG(hSize);
@@ -2383,7 +2383,7 @@ bool DRW_Header::parseDwg(DRW::Version version, dwgBuffer *buf, dwgBuffer *hBbuf
     }
 
     buf->setPosition(size+16+4); //read size +16 start sentinel + 4 size
-    if (version > DRW::AC1021 && mv > 3) { //2010+
+    if (((version == DRW::AC1021 || version == DRW::AC1027 ) && maintenanceVersion > 3) || version >= DRW::AC1032 ) { //2010+
         buf->getRawLong32();//advance 4 bytes (hisize)
     }
     DRW_DBG("\nsetting position to: "); DRW_DBG(buf->getPosition());
