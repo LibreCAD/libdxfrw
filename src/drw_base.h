@@ -108,6 +108,32 @@ enum class DebugLevel {
     Debug
 };
 
+/**
+ * Interface for debug printers.
+ *
+ * The base class is silent and ignores all debugging.
+ */
+class DebugPrinter {
+public:
+    virtual void printS(const std::string &s){(void)s;}
+    virtual void printI(long long int i){(void)i;}
+    virtual void printUI(long long unsigned int i){(void)i;}
+    virtual void printD(double d){(void)d;}
+    virtual void printH(long long int i){(void)i;}
+    virtual void printB(int i){(void)i;}
+    virtual void printHL(int c, int s, int h){(void)c;(void)s;(void)h;}
+    virtual void printPT(double x, double y, double z){(void)x;(void)y;(void)z;}
+    DebugPrinter()=default;
+    virtual ~DebugPrinter()=default;
+};
+
+/**
+ * Sets a custom debug printer to use when outputting debug messages.
+ *
+ * Ownership of `printer` is transferred.
+ */
+void setCustomDebugPrinter( DebugPrinter* printer );
+
 //! Special codes for colors
 enum ColorCodes {
     ColorByLayer = 256,
