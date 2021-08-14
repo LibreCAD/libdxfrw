@@ -397,7 +397,7 @@ void dwgCompressor::copyCompBytes21(duint8 *cbuf, duint8 *dbuf, duint32 l, duint
         dbuf[dix] = cbuf[six];
         break;
     case 4: //Ok
-        for (int i = 0; i<4;i++) //RLZ is OK, or are inverse?, OK
+        for (int i = 0; i<4;i++)
             dbuf[dix++] = cbuf[six++];
         break;
     case 5: //Ok
@@ -418,8 +418,9 @@ void dwgCompressor::copyCompBytes21(duint8 *cbuf, duint8 *dbuf, duint32 l, duint
         for (int i = 1; i<5;i++)
             dbuf[dix++] = cbuf[six+i];
         dbuf[dix] = cbuf[six];
+        break;
     case 8: //Ok
-        for (int i = 0; i<8;i++) //RLZ 4[0],4[4] or 4[4],4[0]
+        for (int i = 0; i<8;i++)
             dbuf[dix++] = cbuf[six++];
         break;
     case 9: //Ok
@@ -478,7 +479,7 @@ void dwgCompressor::copyCompBytes21(duint8 *cbuf, duint8 *dbuf, duint32 l, duint
         for (int i = 0; i<8;i++)
             dbuf[dix++] = cbuf[six++];
         break;
-    case 17: //Seems Ok
+    case 17: //Ok
         for (int i = 9; i<17;i++)
             dbuf[dix++] = cbuf[six+i];
         dbuf[dix++] = cbuf[six+8];
