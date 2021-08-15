@@ -1903,14 +1903,15 @@ bool DRW_Hatch::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
                     spline->flags |= (isRational << 2); //rational
                     spline->flags |= (buf->getBit() << 1); //periodic
                     spline->nknots = buf->getBitLong();
+                    spline->ncontrol = buf->getBitLong();
                     spline->knotslist.reserve(spline->nknots);
                     for (dint32 j = 0; j < spline->nknots;++j){
                         spline->knotslist.push_back (buf->getBitDouble());
                     }
-                    spline->ncontrol = buf->getBitLong();
+
                     spline->controllist.reserve(spline->ncontrol);
                     for (dint32 j = 0; j < spline->ncontrol;++j){
-						std::shared_ptr<DRW_Coord> crd = std::make_shared<DRW_Coord>(buf->get3BitDouble());
+                        std::shared_ptr<DRW_Coord> crd = std::make_shared<DRW_Coord>(buf->get2RawDouble());
                         spline->controllist.push_back(crd);
                         if(isRational)
                             crd->z =  buf->getBitDouble(); //RLZ: investigate how store weight
@@ -1920,7 +1921,7 @@ bool DRW_Hatch::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
                         spline->nfit = buf->getBitLong();
                         spline->fitlist.reserve(spline->nfit);
                         for (dint32 j = 0; j < spline->nfit;++j){
-							std::shared_ptr<DRW_Coord> crd = std::make_shared<DRW_Coord>(buf->get3BitDouble());
+                            std::shared_ptr<DRW_Coord> crd = std::make_shared<DRW_Coord>(buf->get2RawDouble());
 							spline->fitlist.push_back(crd);
                         }
                         spline->tgStart = buf->get2RawDouble();
