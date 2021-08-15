@@ -1482,7 +1482,7 @@ bool DRW_MText::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
     text = sBuf->getVariableText(version, false); /* Text value TV 1 */
     if (version > DRW::AC1014) {//2000+
         buf->getBitShort();/* Linespacing Style BS 73 */
-        buf->getBitDouble();/* Linespacing Factor BD 44 */
+        interlin = buf->getBitDouble();/* Linespacing Factor BD 44 */
         buf->getBit();/* Unknown bit B */
     }
     if (version > DRW::AC1015) {//2004+
