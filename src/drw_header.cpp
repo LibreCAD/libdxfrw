@@ -2400,9 +2400,8 @@ bool DRW_Header::parseDwg(DRW::Version version, dwgBuffer *buf, dwgBuffer *hBbuf
     }
 
     //temporary code to show header end sentinel
-    duint64 sz= buf->size()-1;
     if (version < DRW::AC1018) {//pre 2004
-        sz= buf->size()-16;
+        const duint64 sz= buf->size()-16;
         buf->setPosition(sz);
         DRW_DBG("\nseting position to: "); DRW_DBG(buf->getPosition());
         DRW_DBG("\ndwg header end sentinel= ");
@@ -2419,7 +2418,7 @@ bool DRW_Header::parseDwg(DRW::Version version, dwgBuffer *buf, dwgBuffer *hBbuf
             DRW_DBGH(buf->getRawChar8()); DRW_DBG(" ");
         }
     } else if (version == DRW::AC1021) {//2007
-        sz= buf->size()-16;
+        const duint64 sz= buf->size()-16;
         buf->setPosition(sz);
         DRW_DBG("\nseting position to: "); DRW_DBG(buf->getPosition());
         DRW_DBG("\ndwg header end sentinel= ");
