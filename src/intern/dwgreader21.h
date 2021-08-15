@@ -13,8 +13,7 @@
 #ifndef DWGREADER21_H
 #define DWGREADER21_H
 
-#include <map>
-#include <list>
+#include <vector>
 #include "drw_textcodec.h"
 #include "dwgbuffer.h"
 #include "dwgreader.h"
@@ -33,13 +32,13 @@ public:
     bool readDwgBlocks(DRW_Interface& intfa) override;
     bool readDwgEntities(DRW_Interface& intfa) override {
         bool ret = true;
-        dwgBuffer dataBuf(objData.get(), dataSize, &decoder);
+        dwgBuffer dataBuf( objData.get(), dataSize, &decoder);
         ret = dwgReader::readDwgEntities(intfa, &dataBuf);
         return ret;
     }
     bool readDwgObjects(DRW_Interface& intfa) override {
         bool ret = true;
-        dwgBuffer dataBuf(objData.get(), dataSize, &decoder);
+        dwgBuffer dataBuf( objData.get(), dataSize, &decoder);
         ret = dwgReader::readDwgObjects(intfa, &dataBuf);
         return ret;
     }
@@ -52,7 +51,7 @@ private:
     bool parseDataPage(const dwgSectionInfo &si, duint8 *dData);
 
     std::unique_ptr<duint8 []> objData;
-    duint64 dataSize{0};
+    duint64 dataSize {0};
 
 };
 

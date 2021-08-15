@@ -166,6 +166,9 @@ public:
 
 //writer part, send all in class dx_data to writer
     virtual void addComment(const char* /*comment*/){}
+    virtual void addPlotSettings(const DRW_PlotSettings *data) {
+        // default implementation for new DRW_Interface method
+    }
 
     virtual void writeHeader(DRW_Header& data){
         //complete copy of header vars:
@@ -214,6 +217,9 @@ public:
     virtual void writeDimstyles(){
         for (std::list<DRW_Dimstyle>::iterator it=cData->dimStyles.begin(); it != cData->dimStyles.end(); ++it)
             dxfW->writeDimstyle(&(*it));
+    }
+    virtual void writeObjects() {
+        // default implementation for new DRW_Interface method
     }
     virtual void writeAppId(){
         for (std::list<DRW_AppId>::iterator it=cData->appIds.begin(); it != cData->appIds.end(); ++it)

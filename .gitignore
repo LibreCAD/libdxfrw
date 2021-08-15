@@ -2,17 +2,17 @@
 obj/
 m4/
 autom4te.cache/
+dwg2dxf
 libdxfrw.pro*
-Makefile
+Makefile*
 *.o
 *.lo
 *.a
 *.la
 *so
 *lo
-*.la
-*.o
 *.dll
+*.exe
 *~
 *bz2
 #vim files
@@ -24,7 +24,19 @@ doc/
 config.log
 config.status
 libdxfrw*.pc
+# automake generated files
+.dirstamp
+aclocal.m4
+ar-lib
+compile
+config.guess
+config.sub
+configure
+depcomp
+install-sh
 libtool
+ltmain.sh
+missing
 /vs2013/libdxfrw.sdf
 /vs2013/libdxfrw.v12.suo
 /vs2013/Debug
@@ -39,6 +51,7 @@ libtool
 .idea
 build
 debug
+release
 cmake-build-*
 
 # Visual Studio

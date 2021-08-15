@@ -1,6 +1,7 @@
 /******************************************************************************
 **  libDXFrw - Library to read/write DXF files (ascii & binary)              **
 **                                                                           **
+**  Copyright (C) 2016-2021 A. Stebich (librecad@mail.lordofbikes.de)        **
 **  Copyright (C) 2011-2015 José F. Soriano, rallazz@gmail.com               **
 **                                                                           **
 **  This library is free software, licensed under the terms of the GNU       **
@@ -16,7 +17,6 @@
 #define DRW_VERSION "0.6.3"
 
 #include <string>
-#include <list>
 #include <cmath>
 #include <unordered_map>
 
@@ -114,7 +114,7 @@ BAD_NONE,             /*!< No error. */
 BAD_UNKNOWN,          /*!< UNKNOWN. */
 BAD_OPEN,             /*!< error opening file. */
 BAD_VERSION,          /*!< unsupported version. */
-BAD_READ_METADATA,    /*!< error reading matadata. */
+BAD_READ_METADATA,    /*!< error reading metadata. */
 BAD_READ_FILE_HEADER, /*!< error in file header read process. */
 BAD_READ_HEADER,      /*!< error in header vars read process. */
 BAD_READ_HANDLES,     /*!< error in object map read process. */
@@ -122,7 +122,8 @@ BAD_READ_CLASSES,     /*!< error in classes read process. */
 BAD_READ_TABLES,      /*!< error in tables read process. */
 BAD_READ_BLOCKS,      /*!< error in block read process. */
 BAD_READ_ENTITIES,    /*!< error in entities read process. */
-BAD_READ_OBJECTS      /*!< error in objects read process. */
+BAD_READ_OBJECTS,     /*!< error in objects read process. */
+BAD_READ_SECTION,     /*!< error in sections read process. */
 };
 
 enum class DebugLevel {
@@ -212,7 +213,7 @@ public:
 /*!< convert to unitary vector */
     void unitize(){
         double dist;
-        dist = sqrt(x*x + y*y + z*z);
+        dist = hypot(hypot(x, y), z);
         if (dist > 0.0) {
             x= x/dist;
             y= y/dist;
@@ -337,7 +338,7 @@ public:
 //! Class to convert between line width and integer
 /*!
 *  Class to convert between line width and integer
-*  verifing valid values, if value is not valid
+*  verifying valid values, if value is not valid
 *  returns widthDefault.
 *  @author Rallaz
 */

@@ -16,14 +16,12 @@
 #include "../drw_base.h"
 
 namespace DRW {
-std::string toHexStr(int n);
+    std::string toHexStr(int n);
 }
 
-class dwgRSCodec {
-public:
-    dwgRSCodec()=default;
-    static void decode239I(duint8 *in, duint8 *out, duint32 blk);
-    static void decode251I(duint8 *in, duint8 *out, duint32 blk);
+namespace dwgRSCodec {
+    void decode239I(duint8 *in, duint8 *out, duint32 blk);
+    void decode251I(duint8 *in, duint8 *out, duint32 blk);
 };
 
 class dwgCompressor {
@@ -51,8 +49,7 @@ private:
 
 };
 
-class secEnum {
-public:
+namespace secEnum {
     enum DWGSection {
         UNKNOWNS,      /*!< UNKNOWN section. */
         FILEHEADER,    /*!< File Header (in R3-R15*/
@@ -77,7 +74,7 @@ public:
         PROXYGRAPHICS /*!< PROXY ENTITY GRAPHICS */
     };
 
-    static DWGSection getEnum(const std::string &nameSec);
+    DWGSection getEnum(const std::string &nameSec);
 };
 
 #endif // DWGUTIL_H

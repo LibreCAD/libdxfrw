@@ -29,6 +29,13 @@ void DRW_Header::addComment(std::string c){
 }
 
 void DRW_Header::parseCode(int code, dxfReader *reader){
+    if (nullptr == curr && 9 != code) {
+        DRW_DBG("invalid header code: ");
+        DRW_DBG(code);
+        DRW_DBG("\n");
+        return;
+    }
+
     switch (code) {
     case 9:
         curr = new DRW_Variant();
@@ -475,9 +482,9 @@ void DRW_Header::write(dxfWriter *writer, DRW::Version ver){
         writer->writeInt16(70, 0);
     writer->writeString(9, "$DIMSAH");
     if (getInt("$DIMSAH", &varInt))
-	writer->writeInt16(70, varInt);
+        writer->writeInt16(70, varInt);
     else
-	writer->writeInt16(70, 0);
+        writer->writeInt16(70, 0);
     writer->writeString(9, "$DIMBLK1");
     if (getStr("$DIMBLK1", &varStr))
         if (ver == DRW::AC1009)

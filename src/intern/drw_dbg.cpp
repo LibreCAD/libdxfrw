@@ -73,6 +73,14 @@ void DRW_dbg::print(const std::string &s){
     currentPrinter->printS(s);
 }
 
+void DRW_dbg::print(signed char i){
+    currentPrinter->printI(i);
+}
+
+void DRW_dbg::print(unsigned char i){
+    currentPrinter->printUI(i);
+}
+
 void DRW_dbg::print(int i){
     currentPrinter->printI(i);
 }

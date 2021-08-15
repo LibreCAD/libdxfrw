@@ -1,6 +1,7 @@
 /******************************************************************************
 **  libDXFrw - Library to read/write DXF files (ascii & binary)              **
 **                                                                           **
+**  Copyright (C) 2016-2021 A. Stebich (librecad@mail.lordofbikes.de)        **
 **  Copyright (C) 2011-2015 José F. Soriano, rallazz@gmail.com               **
 **                                                                           **
 **  This library is free software, licensed under the terms of the GNU       **
@@ -70,9 +71,11 @@ public:
     DRW_ImageDef *writeImage(DRW_Image *ent, std::string name);
     bool writeLeader(DRW_Leader *ent);
     bool writeDimension(DRW_Dimension *ent);
-    void setEllipseParts(int parts){elParts = parts;} /*!< set parts munber when convert ellipse to polyline */
+    void setEllipseParts(int parts){elParts = parts;} /*!< set parts number when convert ellipse to polyline */
+    bool writePlotSettings(DRW_PlotSettings *ent);
 
     DRW::Version getVersion() const;
+    DRW::error getError() const;
 
 private:
     /// used by read() to parse the content of the file
@@ -114,6 +117,7 @@ private:
     bool processImageDef();
     bool processDimension();
     bool processLeader();
+    bool processPlotSettings();
 
 //    bool writeHeader();
     bool writeEntity(DRW_Entity *ent);
@@ -125,8 +129,11 @@ private:
     std::string toHexStr(int n);//RLZ removeme
     bool writeAppData(const std::list<std::list<DRW_Variant>> &appData);
 
+    bool setError(const DRW::error lastError);
+
 private:
     DRW::Version version;
+    DRW::error error {DRW::BAD_NONE};
     std::string fileName;
     std::string codePage;
     bool binFile;
@@ -141,7 +148,7 @@ private:
     bool dimstyleStd;
     bool applyExt;
     bool writingBlock;
-    int elParts;  /*!< parts munber when convert ellipse to polyline */
+    int elParts;  /*!< parts number when convert ellipse to polyline */
     std::unordered_map<std::string,int> blockMap;
     std::vector<DRW_ImageDef*> imageDef;  /*!< imageDef list */
 

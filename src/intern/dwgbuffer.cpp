@@ -165,15 +165,13 @@ dwgBuffer::dwgBuffer( const dwgBuffer& org )
 {}
 
 dwgBuffer& dwgBuffer::operator=( const dwgBuffer& org ){
-    filestr.reset(org.filestr->clone());
+    filestr.reset( org.filestr->clone());
     decoder = org.decoder;
     maxSize = filestr->size();
     currByte = org.currByte;
     bitPos = org.bitPos;
     return *this;
 }
-
-dwgBuffer::~dwgBuffer() = default;
 
 /**Gets the current byte position in buffer **/
 duint64 dwgBuffer::getPosition() const{
@@ -528,7 +526,7 @@ dint32 dwgBuffer::getModularShort(){
 }
 
 dwgHandle dwgBuffer::getHandle(){ //H
-    dwgHandle hl; 
+    dwgHandle hl;
     duint8 data = getRawChar8();
     hl.code = (data >> 4) & 0x0F;
     hl.size = data & 0x0F;

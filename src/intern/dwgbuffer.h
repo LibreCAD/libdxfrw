@@ -23,9 +23,9 @@ class DRW_TextCodec;
 
 class dwgBasicStream{
 protected:
-    dwgBasicStream(){}
+    dwgBasicStream() = default;
 public:
-    virtual ~dwgBasicStream()=default;
+    virtual ~dwgBasicStream() = default;
     virtual bool read(duint8* s, duint64 n) = 0;
     virtual duint64 size() const = 0;
     virtual duint64 getPos() const = 0;
@@ -79,7 +79,7 @@ public:
     dwgBuffer(duint8 *buf, duint64 size, DRW_TextCodec *decoder= nullptr);
     dwgBuffer( const dwgBuffer& org );
     dwgBuffer& operator=( const dwgBuffer& org );
-    ~dwgBuffer();
+    virtual ~dwgBuffer() = default;
     duint64 size() const {return filestr->size();}
     bool setPosition(duint64 pos);
     duint64 getPosition() const;
