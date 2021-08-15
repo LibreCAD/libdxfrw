@@ -1687,8 +1687,9 @@ bool DRW_Vertex::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs, doub
         else
             endwidth = buf->getBitDouble();
         bulge = buf->getBitDouble();
-        if (version > DRW::AC1021) //2010+
+        if (version > DRW::AC1021) { //2010+
             DRW_DBG("Vertex ID: "); DRW_DBG(buf->getBitLong());
+        }
         tgdir = buf->getBitDouble();
     } else if (oType == 0x0B || oType == 0x0C || oType == 0x0D) { //PFACE
         flags = buf->getRawChar8(); //RLZ: EC  unknown type
@@ -2149,8 +2150,9 @@ bool DRW_Spline::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
     controllist.reserve(ncontrol);
 	for (dint32 i= 0; i<ncontrol; ++i){
 		controllist.push_back(std::make_shared<DRW_Coord>(buf->get3BitDouble()));
-		if (weight)
+        if (weight) {
             DRW_DBG("\n w: "); DRW_DBG(buf->getBitDouble()); //RLZ Warning: D (BD or RD)
+        }
     }
     fitlist.reserve(nfit);
 	for (dint32 i= 0; i<nfit; ++i)
