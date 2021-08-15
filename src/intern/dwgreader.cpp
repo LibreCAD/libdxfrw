@@ -957,6 +957,7 @@ bool dwgReader::readDwgEntity(dwgBuffer *dbuf, objHandle& obj, DRW_Interface& in
 #define ENTRY_PARSE(e) \
     ret = e.parseDwg(version, &buff, bs); \
     parseAttribs(&e); \
+    e.applyExtrusion(); \
     nextEntLink = e.nextEntLink; \
     prevEntLink = e.prevEntLink;
 
