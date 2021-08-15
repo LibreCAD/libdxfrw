@@ -108,7 +108,7 @@ public:
     void reset(){
     }
     bool parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs=0) override;
-    std::list<duint32>hadlesList;
+    std::list<duint32>handlesList;
 };
 
 
