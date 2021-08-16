@@ -108,6 +108,19 @@ enum DBG_LEVEL {
     DEBUG
 };
 
+/**
+ * Exception raised when memory allocation fails.
+ */
+class MemoryAllocationException {
+public:
+    MemoryAllocationException(std::string what)
+    : mWhat{what}
+    {}
+    std::string message() const throw() {return mWhat;}
+  private:
+    std::string mWhat;
+};
+
 //! Special codes for colors
 enum ColorCodes {
     ColorByLayer = 256,
