@@ -97,6 +97,9 @@ bool DRW_Entity::parseCode(int code, dxfReader *reader){
     case 430:
         colorName = reader->getString();
         break;
+    case 440:
+        transparency = reader->getInt32();
+        break;
     case 67:
         space = static_cast<DRW::Space>(reader->getInt32());
         break;
@@ -316,7 +319,7 @@ bool DRW_Entity::parseDwg(DRW::Version version, dwgBuffer *buf, dwgBuffer* strBu
         DRW_DBG(", haveNextLinks (forced): "); DRW_DBG(haveNextLinks); DRW_DBG("\n");
     }
 //ENC color
-    color = buf->getEnColor(version); //BS or CMC //ok for R14 or negate
+    color = buf->getEnColor( version, color24, transparency ); //BS or CMC //OK for R14 or negate
     ltypeScale = buf->getBitDouble(); //BD
     DRW_DBG(" entity color: "); DRW_DBG(color);
     DRW_DBG(" ltScale: "); DRW_DBG(ltypeScale); DRW_DBG("\n");
@@ -2961,7 +2964,7 @@ bool DRW_Viewport::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
         DRW_DBG("Brightness: "); DRW_DBG(buf->getBitDouble()); DRW_DBG("\n");
         DRW_DBG("Contrast: "); DRW_DBG(buf->getBitDouble()); DRW_DBG("\n");
 //        DRW_DBG("Ambient Cmc or Enc: "); DRW_DBG(buf->getCmColor(version)); DRW_DBG("\n");
-        DRW_DBG("Ambient (Cmc or Enc?), Enc: "); DRW_DBG(buf->getEnColor(version)); DRW_DBG("\n");
+        DRW_DBG("Ambient (Cmc or Enc?), Enc: "); DRW_DBG(buf->getEnColor(version, color24, transparency)); DRW_DBG("\n");
     }
     ret = DRW_Entity::parseDwgEntHandle(version, buf);
 
