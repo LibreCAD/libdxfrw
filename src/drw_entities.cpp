@@ -1294,10 +1294,10 @@ void DRW_Text::parseCode(int code, dxfReader *reader){
         widthscale = reader->getDouble();
         break;
     case 50:
-        angle = reader->getDouble();
+        angle = reader->getDouble() / ARAD;
         break;
     case 51:
-        oblique = reader->getDouble();
+        oblique = reader->getDouble() / ARAD;
         break;
     case 71:
         textgen = reader->getInt32();
@@ -1379,7 +1379,6 @@ bool DRW_Text::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
         height = buf->getBitDouble(); /* Height BD 40 */
         widthscale = buf->getBitDouble(); /* Width factor BD 41 */
     }
-    angle *= ARAD;
     DRW_DBG("thickness: "); DRW_DBG(thickness); DRW_DBG(", Oblique ang: "); DRW_DBG(oblique); DRW_DBG(", Width: ");
     DRW_DBG(widthscale); DRW_DBG(", Rotation: "); DRW_DBG(angle); DRW_DBG(", height: "); DRW_DBG(height); DRW_DBG("\n");
     text = sBuf->getVariableText(version, false); /* Text value TV 1 */
@@ -1771,7 +1770,7 @@ void DRW_Hatch::parseCode(int code, dxfReader *reader){
         else if (ellipse) ellipse->endparam = reader->getDouble()/ARAD;
         break;
     case 52:
-        angle = reader->getDouble();
+        angle = reader->getDouble() / ARAD;
         break;
     case 73:
         if (arc) arc->isccw = reader->getInt32();
@@ -2365,10 +2364,10 @@ void DRW_Dimension::parseCode(int code, dxfReader *reader){
         rot = reader->getDouble();
         break;
     case 50:
-        angle = reader->getDouble();
+        angle = reader->getDouble() / ARAD;
         break;
     case 52:
-        oblique = reader->getDouble();
+        oblique = reader->getDouble() / ARAD;
         break;
     case 40:
         length = reader->getDouble();
