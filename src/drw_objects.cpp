@@ -19,6 +19,15 @@
 #include "intern/drw_dbg.h"
 #include "intern/dwgutil.h"
 
+#define RESERVE(vector,size,msg) try { \
+    vector.reserve(size); \
+  } catch(const std::exception &e) { \
+    std::stringstream s; \
+    s << msg << " size=" << size << "; error="; \
+    s << e.what(); \
+    throw DRW::MemoryAllocationException(s.str()); \
+  }
+
 //! Base class for tables entries
 /*!
 *  Base class for tables entries
@@ -429,7 +438,7 @@ void DRW_LType::parseCode(int code, dxfReader *reader){
     case 73:
         size = reader->getInt32();
         path.clear();
-        path.reserve(size);
+        RESERVE(path,size,"path")
         break;
     case 40:
         length = reader->getDouble();
@@ -703,7 +712,7 @@ bool DRW_Block_Record::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs
     DRW_DBG("flags: "); DRW_DBG(flags); DRW_DBG(", ");
     if (version > DRW::AC1015) {//2004+ fails in 2007
         objectCount = buf->getBitLong(); //Number of objects owned by this block
-        entMap.reserve(objectCount);
+        RESERVE(entMap,objectCount,"entity map")
     }
     basePoint.x = buf->getBitDouble();
     basePoint.y = buf->getBitDouble();
