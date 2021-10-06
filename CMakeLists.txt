@@ -3,6 +3,14 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
 cmake_policy(SET CMP0048 NEW)
 project(DXFRW VERSION 1.0.1)
 
+# set compiler warnings
+if (MSVC)
+    add_compile_options(/W4 /WX)
+else()
+    add_compile_options(-Wall -Wextra -pedantic -Werror)
+endif()
+
+
 include(GNUInstallDirs)
 
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
