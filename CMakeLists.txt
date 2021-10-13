@@ -9,6 +9,7 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # SOURCE FILES
 set(libdxfrw_srcs
@@ -75,7 +76,7 @@ set_target_properties(dxfrw PROPERTIES
 	SOVERSION "${PROJECT_VERSION_MAJOR}"
 	EXPORT_NAME libdxfrw
 )
-target_compile_features(dxfrw PUBLIC cxx_std_11)
+target_compile_features(dxfrw PUBLIC cxx_std_11 )
 target_include_directories(dxfrw
 		PUBLIC
 			$<INSTALL_INTERFACE:${LIBDXFRW_INSTALL_INCLUDEDIR}>
