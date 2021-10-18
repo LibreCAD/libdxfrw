@@ -14,8 +14,9 @@ If you are looking for historical information about the project, it's still ther
 http://sourceforge.net/projects/libdxfrw
 
 
-Please note: When you clone or download this project to build [LibreCAD_3](https://github.com/LibreCAD/LibreCAD_3) use the branch **LibreCAD_3**. The master or other branches may have incompatible interface definitions which are not yet implemented in LibreCAD_3!
+Please note:
 ==========
+When you clone or download this project to build [LibreCAD_3](https://github.com/LibreCAD/LibreCAD_3) use the branch **LibreCAD_3**. The master or other branches may have incompatible interface definitions which are not yet implemented in LibreCAD_3!
 
 Building and installing the library
 ==========
