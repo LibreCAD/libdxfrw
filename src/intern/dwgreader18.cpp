@@ -65,7 +65,7 @@ duint32 dwgReader18::checksum(duint32 seed, duint8* data, duint64 sz){
 }
 
 //called: Section page map: 0x41630e3b
-void dwgReader18::parseSysPage(duint8 *decompSec, duint32 decompSize){
+bool dwgReader18::parseSysPage(duint8 *decompSec, duint32 decompSize){
     DRW_DBG("\nparseSysPage:\n ");
     duint32 compSize = fileBuf->getRawLong32();
     DRW_DBG("Compressed size= "); DRW_DBG(compSize); DRW_DBG(", "); DRW_DBGH(compSize);
@@ -93,7 +93,10 @@ void dwgReader18::parseSysPage(duint8 *decompSec, duint32 decompSize){
 #endif
     DRW_DBG("decompressing "); DRW_DBG(compSize); DRW_DBG(" bytes in "); DRW_DBG(decompSize); DRW_DBG(" bytes\n");
     dwgCompressor comp;
-    comp.decompress18(tmpCompSec.data(), decompSec, compSize, decompSize);
+    if (!comp.decompress18(tmpCompSec.data(), decompSec, compSize, decompSize)) {
+        return false;
+    }
+
 #ifdef DRW_DBG_DUMP
     for (unsigned int i=0, j=0; i< decompSize;i++) {
         DRW_DBGH( decompSec[i]);
@@ -101,6 +104,8 @@ void dwgReader18::parseSysPage(duint8 *decompSec, duint32 decompSize){
         } else { DRW_DBG(", "); j++; }
     } DRW_DBG("\n");
 #endif
+
+    return true;
 }
 
  //called ???: Section map: 0x4163003b
@@ -164,7 +169,9 @@ bool dwgReader18::parseDataPage(const dwgSectionInfo &si/*, duint8 *dData*/){
         pi.uSize = si.maxSize;
         DRW_DBG("decompressing "); DRW_DBG(pi.cSize); DRW_DBG(" bytes in "); DRW_DBG(pi.uSize); DRW_DBG(" bytes\n");
         dwgCompressor comp;
-        comp.decompress18(cData.data(), oData, pi.cSize, pi.uSize);
+        if (!comp.decompress18(cData.data(), oData, pi.cSize, pi.uSize)) {
+            return false;
+        }
     }
     return true;
 }
@@ -301,7 +308,9 @@ bool dwgReader18::readFileHeader() {
         return false;
     }
     std::vector<duint8> tmpDecompSec(decompSize);
-    parseSysPage(tmpDecompSec.data(), decompSize);
+    if (!parseSysPage(tmpDecompSec.data(), decompSize)) {
+        return false;
+    }
 
 //parses "Section page map" decompressed data
     dwgBuffer buff2(tmpDecompSec.data(), decompSize, &decoder);
@@ -343,7 +352,9 @@ bool dwgReader18::readFileHeader() {
         return false;
     }
     tmpDecompSec.resize(decompSize);
-    parseSysPage(tmpDecompSec.data(), decompSize);
+    if (!parseSysPage(tmpDecompSec.data(), decompSize)) {
+        return false;
+    }
 
 //reads sections:
     DRW_DBG("\n*** dwgReader18: reads sections:");

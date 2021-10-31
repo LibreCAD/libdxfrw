@@ -28,7 +28,7 @@ class dwgCompressor {
 public:
     dwgCompressor()=default;
 
-    void decompress18(duint8 *cbuf, duint8 *dbuf, duint64 csize, duint64 dsize);
+    bool decompress18(duint8 *cbuf, duint8 *dbuf, duint64 csize, duint64 dsize);
     static void decrypt18Hdr(duint8 *buf, duint64 size, duint64 offset);
 //    static void decrypt18Data(duint8 *buf, duint32 size, duint32 offset);
     static void decompress21(duint8 *cbuf, duint8 *dbuf, duint64 csize, duint64 dsize);
@@ -43,10 +43,19 @@ private:
     duint32 long20CompressionOffset();
     duint32 twoByteOffset(duint32 *ll);
 
-    duint8 *bufC{nullptr};
-    duint32 sizeC{0};
-    duint32 pos{0};
+    duint32 compressedByte(void);
+    duint32 decompByte(const duint32 index);
+    void decompSet(const duint8 value);
+    bool buffersGood(void);
 
+    duint8 *compressedBuffer {nullptr};
+    duint32 compressedSize {0};
+    duint32 compressedPos {0};
+    bool    compressedGood {true};
+    duint8 *decompBuffer {nullptr};
+    duint32 decompSize {0};
+    duint32 decompPos {0};
+    bool    decompGood {true};
 };
 
 namespace secEnum {
