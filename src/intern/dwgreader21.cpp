@@ -69,8 +69,8 @@ bool dwgReader21::parseSysPage(duint64 sizeCompressed, duint64 sizeUncompressed,
     fileBuf->getBytes(&tmpDataRaw.front(), fpsize);
     std::vector<duint8> tmpDataRS(fpsize);
     dwgRSCodec::decode239I(&tmpDataRaw.front(), &tmpDataRS.front(), fpsize/255);
-    dwgCompressor::decompress21(&tmpDataRS.front(), decompData, sizeCompressed, sizeUncompressed);
-    return true;
+
+    return dwgCompressor::decompress21(&tmpDataRS.front(), decompData, sizeCompressed, sizeUncompressed);
 }
 
 bool dwgReader21::parseDataPage(const dwgSectionInfo &si, duint8 *dData){
@@ -107,7 +107,9 @@ bool dwgReader21::parseDataPage(const dwgSectionInfo &si, duint8 *dData){
         DRW_DBG("\npage uncomp size: "); DRW_DBG(pi.uSize); DRW_DBG(" comp size: "); DRW_DBG(pi.cSize);
         DRW_DBG("\noffset: "); DRW_DBG(pi.startOffset);
         duint8 *pageData = dData + pi.startOffset;
-        dwgCompressor::decompress21(&tmpPageRS.front(), pageData, pi.cSize, pi.uSize);
+        if (!dwgCompressor::decompress21(&tmpPageRS.front(), pageData, pi.cSize, pi.uSize)) {
+            return false;
+        }
 
     #ifdef DRW_DBG_DUMP
         DRW_DBG("\n\nSection OBJECTS decompressed data=\n");
@@ -164,8 +166,10 @@ bool dwgReader21::readFileHeader() {
         std::vector<duint8> compByteStr(fileHdrCompLength);
         fileHdrBuf.getBytes(compByteStr.data(), fileHdrCompLength);
         fileHdrData.resize(fileHdrDataLength);
-        dwgCompressor::decompress21(compByteStr.data(), &fileHdrData.front(),
-                                    fileHdrCompLength, fileHdrDataLength);
+        if (!dwgCompressor::decompress21(compByteStr.data(), &fileHdrData.front(),
+                                         fileHdrCompLength, fileHdrDataLength)) {
+            return false;
+        }
     }
 
 #ifdef DRW_DBG_DUMP
@@ -225,10 +229,9 @@ bool dwgReader21::readFileHeader() {
     DRW_DBG("\ndwgReader21::parse page map:\n");
     std::vector<duint8> PagesMapData(PagesMapSizeUncompressed);
 
-    bool ret = parseSysPage(PagesMapSizeCompressed, PagesMapSizeUncompressed,
-                            PagesMapCorrectionFactor, 0x480+PagesMapOffset,
-                            &PagesMapData.front());
-    if (!ret) {
+    if (!parseSysPage(PagesMapSizeCompressed, PagesMapSizeUncompressed,
+                      PagesMapCorrectionFactor, 0x480+PagesMapOffset,
+                      &PagesMapData.front())) {
         return false;
     }
 
@@ -256,10 +259,10 @@ bool dwgReader21::readFileHeader() {
     DRW_DBG("\n*** dwgReader21: Processing Section Map ***\n");
     std::vector<duint8> SectionsMapData( SectionsMapSizeUncompressed);
     dwgPageInfo sectionMap = sectionPageMapTmp[SectionsMapId];
-    ret = parseSysPage(SectionsMapSizeCompressed, SectionsMapSizeUncompressed,
-                       SectionsMapCorrectionFactor, sectionMap.address, &SectionsMapData.front());
-    if (!ret)
+    if (!parseSysPage( SectionsMapSizeCompressed, SectionsMapSizeUncompressed,
+                       SectionsMapCorrectionFactor, sectionMap.address, &SectionsMapData.front()) ) {
         return false;
+    }
 
 //reads sections:
     //Note: compressed value are not stored in file then, commpresed field are use to store
