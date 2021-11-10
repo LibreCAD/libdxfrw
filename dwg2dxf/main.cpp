@@ -73,9 +73,7 @@ bool convertFile(std::string inName, std::string outName, DRW::Version ver, bool
         if (!overwrite){
             std::cout << "File " << outName << " already exist, overwrite Y/N ?" << std::endl;
             int c = getchar();
-            if (c == 'Y' || c=='y')
-                ;
-            else {
+            if (! ('y' == c || 'Y' == c)) {
                 std::cout << "Cancelled.";
                 return false;
             }
@@ -149,10 +147,14 @@ int main(int argc, char *argv[]) {
 
     if (!batch){ //no batch mode, only one file
         bool ok = convertFile(fileName, outName, ver, binary, overwrite, debug);
-        if (ok)
+        if (ok) {
+            std::cout << "Success: converted " << fileName << " to " << outName << std::endl;
             return 0;
-        else
+        }
+        else {
+            std::cout << "\nConversion failed" << std::endl;
             return 1;
+        }
 
     }
 

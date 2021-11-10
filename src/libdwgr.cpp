@@ -147,10 +147,14 @@ bool dwgR::read(DRW_Interface *interface_, bool ext){
         isOk = reader->readFileHeader();
         if (isOk) {
             isOk = processDwg();
-        } else
+        }
+        else {
             error = DRW::BAD_READ_FILE_HEADER;
-    } else
+        }
+    }
+    else {
         error = DRW::BAD_READ_METADATA;
+    }
 
     filestr.close();
     if (reader) {

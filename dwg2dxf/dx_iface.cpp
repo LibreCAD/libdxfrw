@@ -31,6 +31,9 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug){
             dxf->setDebug(DRW::DebugLevel::Debug);
         }
         bool success = dxf->read(this, false);
+        if (!success) {
+            std::cout << "DXF file error: format " << dxf->getVersion() << " error " << dxf->getError() << std::endl;
+        }
         delete dxf;
         return success;
     } else if (fileExt == "DWG"){
@@ -40,6 +43,9 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug){
             dwg->setDebug(DRW::DebugLevel::Debug);
         }
         bool success = dwg->read(this, false);
+        if (!success) {
+            std::cout << "DWG file error: format " << dwg->getVersion() << " error " << dwg->getError() << std::endl;
+        }
         delete dwg;
         return success;
     }
