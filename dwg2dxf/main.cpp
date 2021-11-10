@@ -53,7 +53,7 @@ DRW::Version checkVersion(std::string param){
     return DRW::UNKNOWNV;
 }
 
-bool convertFile(std::string inName, std::string outName, DRW::Version ver, bool binary, bool overwrite){
+bool convertFile(std::string inName, std::string outName, DRW::Version ver, bool binary, bool overwrite, bool debug){
     bool badState = false;
     //verify if input file exist
     std::ifstream ifs;
@@ -86,7 +86,7 @@ bool convertFile(std::string inName, std::string outName, DRW::Version ver, bool
     dx_data fData;
     //First read a dwg or dxf file
     dx_iface *input = new dx_iface();
-    badState = input->fileImport( inName, &fData );
+    badState = input->fileImport( inName, &fData, debug);
     if (!badState) {
         std::cout << "Error reading file " << inName << std::endl;
         return false;
@@ -94,7 +94,7 @@ bool convertFile(std::string inName, std::string outName, DRW::Version ver, bool
 
     //And write a dxf file
     dx_iface *output = new dx_iface();
-    badState = output->fileExport(outName, ver, binary, &fData);
+    badState = output->fileExport(outName, ver, binary, &fData, debug);
     delete input;
     delete output;
 
@@ -106,6 +106,7 @@ int main(int argc, char *argv[]) {
     bool binary = false;
     bool overwrite = false;
     bool batch = false;
+    bool debug = false;
     std::string outName;
     DRW::Version ver = DRW::UNKNOWNV;
     if (argc < 3) {
@@ -127,6 +128,8 @@ int main(int argc, char *argv[]) {
                     overwrite = true;
                 else if (param.at(1) == 'B')
                     batch = true;
+                else if (tolower(param.at(1)) == 'd')
+                    debug = true;
                 else {
                     ver = checkVersion(param);
                     if (ver == DRW::UNKNOWNV) {
@@ -145,7 +148,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (!batch){ //no batch mode, only one file
-        bool ok = convertFile(fileName, outName, ver, binary, overwrite);
+        bool ok = convertFile(fileName, outName, ver, binary, overwrite, debug);
         if (ok)
             return 0;
         else
@@ -188,7 +191,7 @@ int main(int argc, char *argv[]) {
         unsigned found = input.find_last_of("/\\");
         std::string output = outName + input.substr(found+1);
         std::cout << "Converting file " << input << " to " << output << std::endl;
-        bool ok = convertFile(input, output, ver, binary, overwrite);
+        bool ok = convertFile(input, output, ver, binary, overwrite, debug);
         if (!ok)
             std::cout << "Failed" << std::endl;
     }
