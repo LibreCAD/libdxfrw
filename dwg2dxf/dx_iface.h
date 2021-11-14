@@ -97,7 +97,7 @@ public:
         currentBlock->ent.push_back(new DRW_Spline(*data));
     }
     // ¿para que se usa?
-    virtual void addKnot(const DRW_Entity& data){}
+    virtual void addKnot(const DRW_Entity& data){(void)data;}
 
     virtual void addInsert(const DRW_Insert& data){
         currentBlock->ent.push_back(new DRW_Insert(data));
@@ -167,6 +167,7 @@ public:
 //writer part, send all in class dx_data to writer
     virtual void addComment(const char* /*comment*/){}
     virtual void addPlotSettings(const DRW_PlotSettings *data) {
+        (void)data;
         // default implementation for new DRW_Interface method
     }
 
