@@ -2658,7 +2658,6 @@ bool dxfRW::processVertex(DRW_Polyline *pl) {
             if (nextentity == "VERTEX"){
                 v = std::make_shared<DRW_Vertex>(); //another vertex
             }
-
         }
         v->parseCode(code, reader); //the members of v are reinitialized here
     }
