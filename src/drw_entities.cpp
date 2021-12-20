@@ -1687,8 +1687,9 @@ bool DRW_Vertex::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs, doub
         else
             endwidth = buf->getBitDouble();
         bulge = buf->getBitDouble();
-        if (version > DRW::AC1021) //2010+
+        if (version > DRW::AC1021) { //2010+
             DRW_DBG("Vertex ID: "); DRW_DBG(buf->getBitLong());
+        }
         tgdir = buf->getBitDouble();
     } else if (oType == 0x0B || oType == 0x0C || oType == 0x0D) { //PFACE
         flags = buf->getRawChar8(); //RLZ: EC  unknown type
