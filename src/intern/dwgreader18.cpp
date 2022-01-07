@@ -470,6 +470,11 @@ bool dwgReader18::readDwgClasses(){
     DRW_DBG("\nRc 1 "); DRW_DBG(dataBuf.getRawChar8());
     DRW_DBG("\nRc 2 "); DRW_DBG(dataBuf.getRawChar8());
     DRW_DBG("\nBit "); DRW_DBG(dataBuf.getBit());
+    if (499 >= maxClassNum) {
+        // maxClassNum is later reduced by 499, so smaller values seem to be invalid
+        // no documentation about the value of 499 found yet
+        return false;
+    }
 
     /*******************************/
     dwgBuffer *strBuf = &dataBuf;
