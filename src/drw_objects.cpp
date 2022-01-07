@@ -1238,6 +1238,7 @@ void DRW_PlotSettings::parseCode(int code, dxfReader *reader){
 
 bool DRW_PlotSettings::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
     (void) version;
+    (void) bs;
     DRW_DBG("\n********************** parsing Plot Settings not yet implemented **************************\n");
     return buf->isGood();
 }
@@ -1253,7 +1254,7 @@ bool DRW_AppId::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
     if (!ret)
         return ret;
     name = sBuf->getVariableText(version, false);
-    DRW_DBG("appId name: "); DRW_DBG(name.c_str()); DRW_DBG("\n");
+    DRW_DBG("appId name: "); DRW_DBG(name); DRW_DBG("\n");
     flags |= buf->getBit()<< 6;// code 70, bit 7 (64)
     /*dint16 xrefindex =*/ buf->getBitShort();
     flags |= buf->getBit() << 4; //is refx dependent, style code 70, bit 5 (16)

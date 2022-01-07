@@ -2627,23 +2627,16 @@ bool dxfRW::processPolyline() {
     DRW_Polyline pl;
     while (reader->readRec(&code)) {
         DRW_DBG(code); DRW_DBG("\n");
-        switch (code) {
-        case 0: {
+        if(0 == code) {
             nextentity = reader->getString();
             DRW_DBG(nextentity); DRW_DBG("\n");
             if (nextentity != "VERTEX") {
                 iface->addPolyline(pl);
                 return true;  //found new entity or ENDSEC, terminate
             }
-            else {
-                processVertex(&pl);
-                //TODO LoB, check fall through
-            }
+            processVertex(&pl);
         }
-        default:
-            pl.parseCode(code, reader);
-            break;
-        }
+        pl.parseCode(code, reader); //parseCode just initialize the members of pl
     }
 
     return setError(DRW::BAD_READ_ENTITIES);
@@ -2655,22 +2648,18 @@ bool dxfRW::processVertex(DRW_Polyline *pl) {
     auto v = std::make_shared<DRW_Vertex>();
     while (reader->readRec(&code)) {
         DRW_DBG(code); DRW_DBG("\n");
-        switch (code) {
-        case 0: {
+        if(0 == code)  {
             pl->appendVertex(v);
             nextentity = reader->getString();
             DRW_DBG(nextentity); DRW_DBG("\n");
             if (nextentity == "SEQEND") {
                 return true;  //found SEQEND no more vertex, terminate
-            } else if (nextentity == "VERTEX"){
+            }
+            if (nextentity == "VERTEX"){
                 v = std::make_shared<DRW_Vertex>(); //another vertex
-                //TODO LoB, check fall through
             }
         }
-        default:
-            v->parseCode(code, reader);
-            break;
-        }
+        v->parseCode(code, reader); //the members of v are reinitialized here
     }
 
     return setError(DRW::BAD_READ_ENTITIES);
