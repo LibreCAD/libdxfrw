@@ -763,7 +763,7 @@ bool dwgReader::readDwgBlocks(DRW_Interface& intfa, dwgBuffer *dbuf){
                 while (nextH != 0){
                     mit = ObjectMap.find(nextH);
                     if (mit==ObjectMap.end()) {
-                        nextH = bkr->lastEH;//end while if entity not foud
+                        nextH = 0;//end while if entity not found
                         DRW_DBG("\nWARNING: Entity of block not found\n");
                         ret = false;
                         continue;
@@ -839,7 +839,7 @@ bool dwgReader::readPlineVertex(DRW_Polyline& pline, dwgBuffer *dbuf){
         while (nextH != 0){
             auto mit = ObjectMap.find(nextH);
             if (mit==ObjectMap.end()) {
-                nextH = pline.lastEH;//end while if entity not foud
+                nextH = 0;//end while if entity not found
                 DRW_DBG("\nWARNING: pline vertex not found\n");
                 ret = false;
                 continue;
