@@ -911,17 +911,17 @@ bool dwgReader::readPlineVertex(DRW_Polyline& pline, dwgBuffer *dbuf){
 
 bool dwgReader::readDwgEntities(DRW_Interface& intfa, dwgBuffer *dbuf){
     bool ret = true;
-    bool ret2 = true;
 
     DRW_DBG("\nobject map total size= "); DRW_DBG(ObjectMap.size());
     auto itB=ObjectMap.begin();
     auto itE=ObjectMap.end();
-    while (itB != itE){
-        ret2 = readDwgEntity(dbuf, itB->second, intfa);
-        ObjectMap.erase(itB);
-        itB=ObjectMap.begin();
-        if (ret)
-            ret = ret2;
+    while (itB != itE) {
+        if (ret) {
+            // once readDwgEntity() failed, just clear the ObjectMap
+            ret = readDwgEntity( dbuf, itB->second, intfa);
+        }
+        ObjectMap.erase( itB);
+        itB = ObjectMap.begin();
     }
     return ret;
 }
