@@ -1167,7 +1167,6 @@ bool dwgReader::readDwgEntity(dwgBuffer *dbuf, objHandle& obj, DRW_Interface& in
 
 bool dwgReader::readDwgObjects(DRW_Interface& intfa, dwgBuffer *dbuf){
     bool ret = true;
-    bool ret2 = true;
 
     duint32 i=0;
     DRW_DBG("\nentities map total size= "); DRW_DBG(ObjectMap.size());
@@ -1175,11 +1174,12 @@ bool dwgReader::readDwgObjects(DRW_Interface& intfa, dwgBuffer *dbuf){
     auto itB=objObjectMap.begin();
     auto itE=objObjectMap.end();
     while (itB != itE){
-        ret2 = readDwgObject(dbuf, itB->second, intfa);
+        if (ret) {
+            // once readDwgObject() failed, just clear the ObjectMap
+            ret = readDwgObject(dbuf, itB->second, intfa);
+        }
         objObjectMap.erase(itB);
         itB=objObjectMap.begin();
-        if (ret)
-            ret = ret2;
     }
     if (DRW_DBGGL == DRW_dbg::Level::Debug) {
         for (auto it=remainingMap.begin(); it != remainingMap.end(); ++it){
