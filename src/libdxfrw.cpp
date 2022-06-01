@@ -2449,7 +2449,6 @@ bool dxfRW::processViewport() {
         if (!vp.parseCode(code, reader)) {
             return setError( DRW::BAD_CODE_PARSED);
         }
-        break;
     }
 
     return setError(DRW::BAD_READ_ENTITIES);
