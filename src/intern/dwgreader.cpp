@@ -132,9 +132,15 @@ bool dwgReader::readDwgHandles(dwgBuffer *dbuf, duint64 offset, duint64 size) {
     DRW_DBG("\nSection HANDLES maxPos= "); DRW_DBG(maxPos);
 
     int startPos = offset;
+    bool end = false;
 
     std::vector<duint8> tmpByteStr;
-    while (maxPos > dbuf->getPosition()) {
+    /* According to Open Design Specification for .dwg files Version 5.4.1
+     * chapter 23.1 (page 251), section list is terminated by empty section
+     * (section consisting only of the checksum). When we find, we finish
+     * reading sections.
+     */
+    while (!end && (maxPos > dbuf->getPosition())) {
         DRW_DBG("\nstart handles section buf->curPosition()= "); DRW_DBG(dbuf->getPosition()); DRW_DBG("\n");
         duint16 size = dbuf->getBERawShort16();
         DRW_DBG("object map section size= "); DRW_DBG(size); DRW_DBG("\n");
@@ -154,7 +160,9 @@ bool dwgReader::readDwgHandles(dwgBuffer *dbuf, duint64 offset, duint64 size) {
                 DRW_DBG(" lastLoc= "); DRW_DBG(lastLoc); DRW_DBG("\n");
                 ObjectMap[lastHandle]= objHandle(0, lastHandle, lastLoc);
             }
-        }
+        } else {
+	    end = true;
+	}
         //verify crc
         duint16 crcCalc = buff.crc8(0xc0c1,0,size);
         duint16 crcRead = dbuf->getBERawShort16();
