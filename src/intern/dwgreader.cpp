@@ -287,7 +287,13 @@ bool dwgReader::readDwgTables(DRW_Header& hdr, dwgBuffer *dbuf) {
             mit = ObjectMap.find(*it);
             if (mit==ObjectMap.end()) {
                 DRW_DBG("\nWARNING: Layer not found\n");
-                ret = false;
+		if (version < DRW::AC1032) {
+		  /* Older than 2018 - treat as error
+		   * 2018 or newer - have seen files in the wild in which
+		   * layer control referes to non-existant handle.
+		   */
+		  ret = false;
+		}
             } else {
                 oc = mit->second;
                 ObjectMap.erase(mit);
