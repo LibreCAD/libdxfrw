@@ -23,6 +23,7 @@
 #include "intern/dwgreader21.h"
 #include "intern/dwgreader24.h"
 #include "intern/dwgreader27.h"
+#include "intern/dwgreader32.h"
 
 #define FIRSTHANDLE 48
 
@@ -203,8 +204,8 @@ std::unique_ptr<dwgReader> dwgR::createReaderForVersion(DRW::Version version, st
        case DRW::AC1027:
            return std::unique_ptr< dwgReader >( new dwgReader27( stream, p) );
 
-       // unsupported
        case DRW::AC1032:
+           return std::unique_ptr< dwgReader >( new dwgReader32( stream, p) );
            break;
     }
     return nullptr;
