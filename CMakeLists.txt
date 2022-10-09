@@ -3,6 +3,11 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
 cmake_policy(SET CMP0048 NEW)
 project(DXFRW VERSION 1.0.1)
 
+# set preferred cache variables
+set(LIBDXFRW_BUILD_DOC TRUE CACHE BOOL "Build the documentation")
+set(LIBDXFRW_BUILD_DWG2DXF TRUE CACHE BOOL "Build the dwg2dxf application")
+
+
 # set compiler warnings
 if (MSVC)
     add_compile_options(/W4 /WX)
@@ -90,15 +95,19 @@ target_include_directories(dxfrw
 			$<INSTALL_INTERFACE:${LIBDXFRW_INSTALL_INCLUDEDIR}>
 )
 
-add_custom_command(OUTPUT doc/html/index.html
-	COMMAND doxygen ARGS ${CMAKE_CURRENT_SOURCE_DIR}/libdxfrw.dox
-	MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/libdxfrw.dox
-	VERBATIM)
+if(LIBDXFRW_BUILD_DOC)
+    add_custom_command(OUTPUT doc/html/index.html
+	    COMMAND doxygen ARGS ${CMAKE_CURRENT_SOURCE_DIR}/libdxfrw.dox
+	    MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/libdxfrw.dox
+	    VERBATIM)
 
-add_custom_target(doc
-	DEPENDS doc/html/index.html)
+    add_custom_target(doc
+	    DEPENDS doc/html/index.html)
+endif()
 
-add_subdirectory(dwg2dxf)
+if(LIBDXFRW_BUILD_DWG2DXF)
+    add_subdirectory(dwg2dxf)
+endif()
 
 # INSTALLATION
 set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/libdxfrw)
