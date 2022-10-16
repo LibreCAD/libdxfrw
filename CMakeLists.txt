@@ -6,15 +6,16 @@ project(DXFRW VERSION 1.0.1)
 # set preferred cache variables
 set(LIBDXFRW_BUILD_DOC TRUE CACHE BOOL "Build the documentation")
 set(LIBDXFRW_BUILD_DWG2DXF TRUE CACHE BOOL "Build the dwg2dxf application")
-
+set(LIBDXFRW_BUILD_ENABLE_WARNINGS_AS_ERRORS TRUE CACHE BOOL "Treat compile warnings as errors")
 
 # set compiler warnings
-if (MSVC)
-    add_compile_options(/W4 /WX)
-else()
-    add_compile_options(-Wall -Wextra -pedantic -Werror)
+if(LIBDXFRW_BUILD_ENABLE_WARNINGS_AS_ERRORS)
+  if (MSVC)
+      add_compile_options(/W4 /WX)
+  else()
+      add_compile_options(-Wall -Wextra -pedantic -Werror)
+  endif()
 endif()
-
 
 include(GNUInstallDirs)
 
