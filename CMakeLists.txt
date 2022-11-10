@@ -10,7 +10,7 @@ set(LIBDXFRW_BUILD_DWG2DXF TRUE CACHE BOOL "Build the dwg2dxf application")
 
 # set compiler warnings
 if (MSVC)
-    add_compile_options(/W4 /WX)
+    add_compile_options(/W3)
 else()
     add_compile_options(-Wall -Wextra -pedantic -Werror)
 endif()
