@@ -158,7 +158,7 @@ public:
 
 protected:
     bool parseCode(int code, dxfReader *reader) override;
-    bool parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs=0);
+    bool parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs=0) override;
 
 public:
     //V12
