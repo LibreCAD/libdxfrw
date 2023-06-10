@@ -1,7 +1,10 @@
 # Generated directories and files
 obj/
 m4/
+CMakeFiles/
 autom4te.cache/
+CMakeCache.txt
+CMakeLists.txt.user
 dwg2dxf
 libdxfrw.pro*
 Makefile*
@@ -13,6 +16,8 @@ Makefile*
 *lo
 *.dll
 *.exe
+*.cmake
+*.patch
 *~
 *bz2
 #vim files
