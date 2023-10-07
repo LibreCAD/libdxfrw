@@ -14,6 +14,7 @@
 #ifndef LIBDXFRW_H
 #define LIBDXFRW_H
 
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include "drw_entities.h"
@@ -137,8 +138,8 @@ private:
     std::string fileName;
     std::string codePage;
     bool binFile;
-    dxfReader *reader;
-    dxfWriter *writer;
+    std::unique_ptr<dxfReader> reader;
+    std::unique_ptr<dxfWriter> writer;
     DRW_Interface *iface;
     DRW_Header header;
 //    int section;

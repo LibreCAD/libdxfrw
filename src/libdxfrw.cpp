@@ -37,16 +37,10 @@
 dxfRW::dxfRW(const char* name){
     DRW_DBGSL(DRW_dbg::Level::None);
     fileName = name;
-    reader = NULL;
-    writer = NULL;
     applyExt = false;
     elParts = 128; //parts number when convert ellipse to polyline
 }
 dxfRW::~dxfRW(){
-    if (reader != NULL)
-        delete reader;
-    if (writer != NULL)
-        delete writer;
     for (std::vector<DRW_ImageDef*>::iterator it=imageDef.begin(); it!=imageDef.end(); ++it)
         delete *it;
 
@@ -90,19 +84,18 @@ bool dxfRW::read(DRW_Interface *interface_, bool ext){
         binFile = true;
         //skip sentinel
         filestr.seekg (22, std::ios::beg);
-        reader = new dxfReaderBinary(&filestr);
+        reader = std::make_unique<dxfReaderBinary>(&filestr);
         DRW_DBG("dxfRW::read binary file\n");
     } else {
         binFile = false;
         filestr.open (fileName.c_str(), std::ios_base::in);
-        reader = new dxfReaderAscii(&filestr);
+        reader = std::make_unique<dxfReaderAscii>(&filestr);
     }
 
     bool isOk {processDxf()};
     filestr.close();
     version = (DRW::Version) reader->getVersion();
-    delete reader;
-    reader = nullptr;
+    reader.reset();
     return isOk;
 }
 
@@ -116,11 +109,11 @@ bool dxfRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin){
         filestr.open (fileName.c_str(), std::ios_base::out | std::ios::binary | std::ios::trunc);
         //write sentinel
         filestr << "AutoCAD Binary DXF\r\n" << (char)26 << '\0';
-        writer = new dxfWriterBinary(&filestr);
+        writer = std::make_unique<dxfWriterBinary>(&filestr);
         DRW_DBG("dxfRW::read binary file\n");
     } else {
         filestr.open (fileName.c_str(), std::ios_base::out | std::ios::trunc);
-        writer = new dxfWriterAscii(&filestr);
+        writer = std::make_unique<dxfWriterAscii>(&filestr);
         std::string comm = std::string("dxfrw ") + std::string(DRW_VERSION);
         writer->writeString(999, comm);
     }
@@ -159,8 +152,7 @@ bool dxfRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin){
     filestr.flush();
     filestr.close();
     isOk = true;
-    delete writer;
-    writer = NULL;
+    writer.reset();
     return isOk;
 }
 

@@ -16,6 +16,8 @@
 #include "intern/dxfwriter.h"
 #include "intern/drw_dbg.h"
 #include "intern/dwgbuffer.h"
+#include <iostream>
+#include <fstream>
 
 DRW_Header::DRW_Header() {
     linetypeCtrl = layerCtrl = styleCtrl = dimstyleCtrl = appidCtrl = 0;
@@ -29,7 +31,7 @@ void DRW_Header::addComment(std::string c){
     comments += c;
 }
 
-bool DRW_Header::parseCode(int code, dxfReader *reader){
+bool DRW_Header::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     if (nullptr == curr && 9 != code) {
         DRW_DBG("invalid header code: ");
         DRW_DBG(code);
@@ -114,7 +116,7 @@ bool DRW_Header::parseCode(int code, dxfReader *reader){
     return true;
 }
 
-void DRW_Header::write(dxfWriter *writer, DRW::Version ver){
+void DRW_Header::write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ver){
 /*RLZ: TODO complete all vars to AC1024*/
     double varDouble;
     int varInt;
@@ -1991,6 +1993,11 @@ bool DRW_Header::parseDwg(DRW::Version version, dwgBuffer *buf, dwgBuffer *hBbuf
     vars["INSBASE"]=new DRW_Variant(10, buf->get3BitDouble());
     vars["EXTMIN"]=new DRW_Variant(10, buf->get3BitDouble());
     vars["EXTMAX"]=new DRW_Variant(10, buf->get3BitDouble());
+std::cout<<__func__<<"(): extmax: "<<vars["EXTMAX"]->content.d<<std::endl;
+std::ofstream fs0("/tmp/extmax.txt");
+fs0<<__func__<<"(): extmax: "<<vars["EXTMAX"]->content.d<<std::endl;
+fs0.close();
+
     vars["LIMMIN"]=new DRW_Variant(10, buf->get2RawDouble());
     vars["LIMMAX"]=new DRW_Variant(10, buf->get2RawDouble());
     vars["ELEVATION"]=new DRW_Variant(40, buf->getBitDouble());

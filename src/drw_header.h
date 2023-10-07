@@ -14,7 +14,7 @@
 #ifndef DRW_HEADER_H
 #define DRW_HEADER_H
 
-
+#include <memory>
 #include <unordered_map>
 #include "drw_base.h"
 
@@ -95,11 +95,11 @@ public:
     void addStr(std::string key, std::string value, int code);
     void addCoord(std::string key, DRW_Coord value, int code);
     std::string getComments() const {return comments;}
-    void write(dxfWriter *writer, DRW::Version ver);
+    void write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ver);
     void addComment(std::string c);
 
 protected:
-    bool parseCode(int code, dxfReader *reader);
+    bool parseCode(int code, const std::unique_ptr<dxfReader>& reader);
     bool parseDwg(DRW::Version version, dwgBuffer *buf, dwgBuffer *hBbuf, duint8 mv=0);
 private:
     bool getDouble(std::string key, double *varDouble);

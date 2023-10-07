@@ -26,7 +26,7 @@
 *  Base class for tables entries
 *  @author Rallaz
 */
-bool DRW_TableEntry::parseCode(int code, dxfReader *reader){
+bool DRW_TableEntry::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     switch (code) {
     case 5:
         handle = reader->getHandleString();
@@ -199,7 +199,7 @@ DRW_DBG("\n***************************** parsing table entry *******************
 *  Class to handle ldim style symbol table entries
 *  @author Rallaz
 */
-bool DRW_Dimstyle::parseCode(int code, dxfReader *reader){
+bool DRW_Dimstyle::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     switch (code) {
     case 105:
         handle = reader->getHandleString();
@@ -443,7 +443,7 @@ bool DRW_Dimstyle::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
 *  Class to handle line type symbol table entries
 *  @author Rallaz
 */
-bool DRW_LType::parseCode(int code, dxfReader *reader){
+bool DRW_LType::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     switch (code) {
     case 3:
         desc = reader->getUtf8String();
@@ -594,7 +594,7 @@ bool DRW_LType::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
 *  Class to handle layer symbol table entries
 *  @author Rallaz
 */
-bool DRW_Layer::parseCode(int code, dxfReader *reader){
+bool DRW_Layer::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     switch (code) {
     case 6:
         lineType = reader->getUtf8String();
@@ -826,7 +826,7 @@ bool DRW_Block_Record::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs
 *  Class to handle text style symbol table entries
 *  @author Rallaz
 */
-bool DRW_Textstyle::parseCode(int code, dxfReader *reader){
+bool DRW_Textstyle::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     switch (code) {
     case 3:
         font = reader->getUtf8String();
@@ -909,7 +909,7 @@ bool DRW_Textstyle::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
 *  Class to handle vport symbol table entries
 *  @author Rallaz
 */
-bool DRW_Vport::parseCode(int code, dxfReader *reader){
+bool DRW_Vport::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     switch (code) {
     case 10:
         lowerLeft.x = reader->getDouble();
@@ -1151,7 +1151,7 @@ bool DRW_Vport::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
     return buf->isGood();
 }
 
-bool DRW_ImageDef::parseCode(int code, dxfReader *reader){
+bool DRW_ImageDef::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     switch (code) {
     case 1:
         name = reader->getUtf8String();
@@ -1226,7 +1226,7 @@ bool DRW_ImageDef::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
     return buf->isGood();
 }
 
-bool DRW_PlotSettings::parseCode(int code, dxfReader *reader){
+bool DRW_PlotSettings::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     switch (code) {
     case 5:
         handle = reader->getHandleString();
