@@ -63,6 +63,7 @@ set(libdxfrw_hdrs
   src/intern/dwgreader21.h
   src/intern/dwgreader24.h
   src/intern/dwgreader27.h
+  src/intern/dwgreader32.h
   src/intern/dwgutil.h
   src/intern/dxfreader.h
   src/intern/dxfwriter.h
