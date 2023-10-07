@@ -15,10 +15,10 @@
 #define DRW_ENTITIES_H
 
 
-#include <string>
-#include <vector>
 #include <list>
 #include <memory>
+#include <string>
+#include <vector>
 #include "drw_base.h"
 
 class dxfReader;
@@ -117,7 +117,7 @@ public:
 
 protected:
     //parses dxf pair to read entity
-    virtual bool parseCode(int code, dxfReader *reader);
+    virtual bool parseCode(int code, const std::unique_ptr<dxfReader>& reader);
     //calculates extrusion axis (normal vector)
     void calculateAxis(DRW_Coord extPoint);
     //apply extrusion to @extPoint and return data in @point
@@ -129,7 +129,7 @@ protected:
     bool parseDwgEntHandle(DRW::Version version, dwgBuffer *buf);
 
     //parses dxf 102 groups to read entity
-    bool parseDxfGroups(int code, dxfReader *reader);
+    bool parseDxfGroups(int code, const std::unique_ptr<dxfReader>& reader);
 
 public:
 	enum DRW::ETYPE eType = DRW::UNKNOWN;     /*!< enum: entity type, code 0 */
@@ -197,7 +197,7 @@ public:
     virtual void applyExtrusion() override {}
 
 protected:
-    bool parseCode(int code, dxfReader *reader) override;
+    bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) override;
     virtual bool parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs=0) override;
 
 public:
@@ -222,7 +222,7 @@ public:
     }
 
 protected:
-    bool parseCode(int code, dxfReader *reader) override;
+    bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) override;
     virtual bool parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs=0) override;
 
 public:
@@ -271,7 +271,7 @@ public:
     virtual void applyExtrusion() override;
 
 protected:
-    bool parseCode(int code, dxfReader *reader) override;
+    bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) override;
     virtual bool parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs=0) override;
 
 public:
@@ -308,7 +308,7 @@ public:
 
 protected:
     //! interpret code in dxf reading process or dispatch to inherited class
-    bool parseCode(int code, dxfReader *reader) override;
+    bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) override;
     //! interpret dwg data (was already determined to be part of this object)
     virtual bool parseDwg(DRW::Version v, dwgBuffer *buf, duint32 bs=0) override;
 
@@ -338,7 +338,7 @@ public:
 
 protected:
     //! interpret code in dxf reading process or dispatch to inherited class
-    bool parseCode(int code, dxfReader *reader) override;
+    bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) override;
     //! interpret dwg data (was already determined to be part of this object)
     virtual bool parseDwg(DRW::Version v, dwgBuffer *buf, duint32 bs=0) override;
 
@@ -369,7 +369,7 @@ public:
     virtual void applyExtrusion() override;
 
 protected:
-    bool parseCode(int code, dxfReader *reader) override;
+    bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) override;
     virtual bool parseDwg(DRW::Version v, dwgBuffer *buf, duint32 bs=0) override;
 
 public:
@@ -446,7 +446,7 @@ public:
 
 protected:
     //! interpret code in dxf reading process or dispatch to inherited class
-    bool parseCode(int code, dxfReader *reader) override;
+    bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) override;
     //! interpret dwg data (was already determined to be part of this object)
     virtual bool parseDwg(DRW::Version v, dwgBuffer *buf, duint32 bs=0) override;
 
@@ -472,7 +472,7 @@ public:
     }
 
 protected:
-    bool parseCode(int code, dxfReader *reader) override;
+    bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) override;
     virtual bool parseDwg(DRW::Version v, dwgBuffer *buf, duint32 bs=0) override;
 
 public:
@@ -504,7 +504,7 @@ public:
     }
 
 protected:
-    bool parseCode(int code, dxfReader *reader) override;
+    bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) override;
     virtual bool parseDwg(DRW::Version v, dwgBuffer *buf, duint32 bs=0) override;
 
 public:
@@ -567,7 +567,7 @@ public:
     }
 
 protected:
-    bool parseCode(int code, dxfReader *reader) override;
+    bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) override;
     virtual bool parseDwg(DRW::Version v, dwgBuffer *buf, duint32 bs=0) override;
 
 public:
@@ -621,7 +621,7 @@ public:
     virtual void applyExtrusion() override {} //RLZ TODO
 
 protected:
-    bool parseCode(int code, dxfReader *reader) override;
+    bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) override;
     virtual bool parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs=0) override;
 
 public:
@@ -667,7 +667,7 @@ public:
     }
 
 protected:
-    bool parseCode(int code, dxfReader *reader) override;
+    bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) override;
     void updateAngle();    // recalculate angle if 'hasXAxisVec' is true
     virtual bool parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs=0) override;
 
@@ -702,7 +702,7 @@ public:
     }
 
 protected:
-    bool parseCode(int code, dxfReader *reader) override;
+    bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) override;
     using DRW_Point::parseDwg;
     bool parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs=0, double el=0);
 
@@ -750,7 +750,7 @@ public:
     }
 
 protected:
-    bool parseCode(int code, dxfReader *reader) override;
+    bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) override;
     virtual bool parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs=0) override;
 
 public:
@@ -790,7 +790,7 @@ public:
     virtual void applyExtrusion() override {}
 
 protected:
-    bool parseCode(int code, dxfReader *reader) override;
+    bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) override;
     virtual bool parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs=0) override;
 
 public:
@@ -873,7 +873,7 @@ public:
     }
 
 protected:
-    bool parseCode(int code, dxfReader *reader) override;
+    bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) override;
     virtual bool parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs=0) override;
 
 public:
@@ -960,7 +960,7 @@ public:
     }
 
 protected:
-    bool parseCode(int code, dxfReader *reader) override;
+    bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) override;
     virtual bool parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs=0) override;
 
 public:
@@ -1024,12 +1024,12 @@ public:
         length = d.length;
         //RLZ needed a def value for this: hdir = ???
     }
-    virtual ~DRW_Dimension() {}
+    virtual ~DRW_Dimension() = default;
 
-    virtual void applyExtrusion() override {}
+    void applyExtrusion() override {}
 
 protected:
-    bool parseCode(int code, dxfReader *reader) override;
+    bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) override;
     virtual bool parseDwg(DRW::Version version, dwgBuffer *buf, dwgBuffer *sBuf, duint32 bs = 0) override;
     virtual bool parseDwg(DRW::Version version, dwgBuffer* buf, duint32 bs=0) override;
 
@@ -1312,7 +1312,7 @@ public:
     virtual void applyExtrusion() override {}
 
 protected:
-    bool parseCode(int code, dxfReader *reader) override;
+    bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) override;
     virtual bool parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs=0) override;
 
 public:
@@ -1358,7 +1358,7 @@ public:
     }
 
 protected:
-    bool parseCode(int code, dxfReader *reader) override;
+    bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) override;
     virtual bool parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs=0) override;
 
 public:

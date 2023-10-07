@@ -89,7 +89,7 @@ set_target_properties(dxfrw PROPERTIES
 	SOVERSION "${PROJECT_VERSION_MAJOR}"
 	EXPORT_NAME libdxfrw
 )
-target_compile_features(dxfrw PUBLIC cxx_std_11)
+target_compile_features(dxfrw PUBLIC cxx_std_14)
 target_include_directories(dxfrw
 		PUBLIC
 			$<INSTALL_INTERFACE:${LIBDXFRW_INSTALL_INCLUDEDIR}>
