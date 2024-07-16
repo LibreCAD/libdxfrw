@@ -2403,6 +2403,9 @@ bool DRW_Dimension::parseCode(int code, const std::unique_ptr<dxfReader>& reader
     case 51:
         hdir = reader->getDouble();
         break;
+    case 42:
+        measureValue = reader->getDouble();
+        break;
     default:
         return DRW_Entity::parseCode(code, reader);
     }
