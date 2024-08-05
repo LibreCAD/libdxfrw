@@ -909,9 +909,7 @@ bool dxfRW::writeSpline(DRW_Spline *ent){
     if (version > DRW::AC1009) {
         writer->writeString(0, "SPLINE");
         writeEntity(ent);
-        if (version > DRW::AC1009) {
-            writer->writeString(100, "AcDbSpline");
-        }
+        writer->writeString(100, "AcDbSpline");
         writer->writeDouble(210, ent->normalVec.x);
         writer->writeDouble(220, ent->normalVec.y);
         writer->writeDouble(230, ent->normalVec.z);
