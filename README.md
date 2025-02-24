@@ -2,6 +2,8 @@
 
 This is a WebAssembly version of libdxfrw. It can read/write DXF files (in both formats, ascii and binary form) and read DWG files from AutoCAD R14 to AutoCAD 2020 in browser and Node.js environment.
 
+You can play with it through this [live demo](https://mlight-lee.github.io/libdxfrw/).
+
 ## Build WebAssembly
 
 ```
@@ -23,7 +25,11 @@ emcc -gsource-map -lembind *.o intern/*.o -o libdxfrw.js --emit-tsd libdxfrw.d.t
 
 ## Usage
 
-Please refer to example code in [index.html](./dist/index.html).
+Please refer to example code in [index.html](./dist/index.html). You can use the following command to install it as one of your package dependencies. 
+
+```
+npm install @mlightcad/libdxfrw-web
+```
 
 ## How to Debug?
 
