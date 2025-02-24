@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Read File Content</title>
+</head>
+<body>
+    <h1>Select a DXF/DWG file</h1>
+    <input type="file" id="fileInput" accept=".dxf, .dwg;" />
+
+    <!-- Element to display Layer Names -->
+    <h2>Layer Names:</h2>
+    <ul id="layerNamesList"></ul>
+
+    <!-- Element to display Line Types -->
+    <h2>Line Types:</h2>
+    <ul id="lineTypesList"></ul>
+
+    <!-- Element to display Text Styles -->
+    <h2>Text Styles:</h2>
+    <ul id="textStylesList"></ul>
+
+    <!-- Element to display Dimensionn Styles -->
+    <h2>Dimension Styles:</h2>
+    <ul id="dimStylesList"></ul>
+
+    <!-- Element to display Viewports -->
+    <h2>Viewports:</h2>
+    <ul id="viewportsList"></ul>
+
+    <!-- Element to display Blocks -->
+    <h2>Blocks:</h2>
+    <ul id="blocksList"></ul>
+
+    <!-- Element to display Blocks -->
+    <h2>Images:</h2>
+    <ul id="imagesList"></ul>
+
+    <script>
+        // Create a flag to check if the module is initialized
+        let isModuleInitialized = false;
+
+        // Define the Module object
+        var Module = {
+            onRuntimeInitialized: function() {
+                isModuleInitialized = true;
+                console.log('WebAssembly module initialized');
+            }
+        };
+
+        var printItems = (id, items, itemName = 'name', subItemName = undefined) => {
+            // Clear previous item list
+            const listElement = document.getElementById(id);
+            listElement.innerHTML = '';
+
+            // Create list item for item
+            for (let index = 0, size = items.size(); index < size; ++index) {
+                const item = items.get(index);
+                const li = document.createElement('li');
+                if (subItemName) {
+                    li.textContent = `${item[itemName]}: ${item[subItemName].size()}`;
+                } else {
+                    li.textContent = item[itemName];
+                }
+                listElement.appendChild(li);
+            }
+        }
+
+        // Function to handle file input change event
+        document.getElementById('fileInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            
+            if (file) {
+                // Get file extension
+                const fileExtension = file.name.split('.').pop().toLowerCase();
+
+                // Create a FileReader to read the file
+                const reader = new FileReader();
+
+                // Define the callback function for when the file is read
+                reader.onload = function(e) {
+                    const fileContent = e.target.result;
+
+                    // Wait for the WebAssembly module to be initialized
+                    if (isModuleInitialized) {
+                        try {
+                            // Create an instance of Module.dxfRW with the file content
+                            const input = new Module.dx_iface();
+                            if (fileExtension == 'dxf') {
+                                const dxf = new Module.dxfRW(fileContent);
+
+                                // Uncomment out the following line if you want to show debug info
+                                // dxf.setDebug(Module.DRW_dbg_Level.Debug);
+
+                                const result = dxf.read(input, false);
+                            } else if (fileExtension == 'dwg') {
+                                const dwg = new Module.dwgR(fileContent);
+
+                                // Uncomment out the following line if you want to show debug info
+                                // dwg.setDebug(Module.DRW_dbg_Level.Debug);
+
+                                const result = dwg.read(input, false);
+                            }
+
+                            printItems('layerNamesList', input.cData.layers);
+                            printItems('lineTypesList', input.cData.lineTypes);
+                            printItems('textStylesList', input.cData.textStyles);
+                            printItems('dimStylesList', input.cData.dimStyles);
+                            printItems('viewportsList', input.cData.viewports);
+                            printItems('blocksList', input.cData.blocks, 'name', 'ent');
+                            printItems('imagesList', input.cData.images, 'path');
+                        } catch (error) {
+                            console.error('Error processing DXF/DWG file: ', error);
+                        }
+                    } else {
+                        console.log('WebAssembly module not yet initialized');
+                    }
+                };
+
+                // Read the file
+                if (fileExtension == 'dxf') {
+                    reader.readAsText(file);
+                } else if (fileExtension == 'dwg') {
+                    reader.readAsArrayBuffer(file);
+                }
+            } else {
+                console.log('No file selected');
+            }
+        });
+
+
+    </script>
+    <script src="libdxfrw.js"></script>
+</body>
+</html>

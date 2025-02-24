@@ -115,7 +115,7 @@ public:
 class dwgReader {
     friend class dwgR;
 public:
-    dwgReader(std::ifstream *stream, dwgR *p)
+    dwgReader(std::istringstream *stream, dwgR *p)
        :fileBuf{ new dwgBuffer(stream) }
        ,parent{p}
     {

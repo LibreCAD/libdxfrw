@@ -1,61 +1,31 @@
-libdxfrw ![Build status](https://api.travis-ci.org/LibreCAD/libdxfrw.svg?branch=master)
-==========
+# libdxfrw-web
 
-libdxfrw is a free C++ library to read and write DXF files in both formats, ascii and binary form.
-It also has rudimentary capabilities to read DWG files.
-It is licensed under the terms of the GNU General Public License version 2 (or at you option
-any later version).
+This is a WebAssembly version of libdxfrw. It can read/write DXF files (in both formats, ascii and binary form) and read DWG files from AutoCAD R14 to AutoCAD 2020 in browser and Node.js environment.
 
-
-libdxfrw was created by [LibreCAD](https://github.com/LibreCAD/LibreCAD) contributors in the process of making LibreCAD.
-As the original code at [SourceForge](https://sourceforge.net/projects/libdxfrw) was no longer supported by the orignal authors, this repo has become its successor.
-
-If you are looking for historical information about the project, it's still there:
-http://sourceforge.net/projects/libdxfrw
-
-
-Please note:
-----------
-When you clone or download this project to build [LibreCAD_3](https://github.com/LibreCAD/LibreCAD_3) use the branch **LibreCAD_3**. The master or other branches may have incompatible interface definitions which are not yet implemented in LibreCAD_3!
-
-Building and installing the library
-==========
-
-Debug version
-----------
+## Build WebAssembly
 
 ```
+autoconf
+automake --add-missing --force-missing
 mkdir build
 cd build
-cmake ..
-make 
-sudo make install
+emconfigure ../configure
+cd src
+emmake make
+emcc -O2 -lembind *.o intern/*.o -o libdxfrw.js --emit-tsd libdxfrw.d.ts
 ```
 
-Non-debug version
-----------
+If you want to debug WebAssembly in Chrome DevTools. Please compile your application with DWARF debug information included. Run the latest Emscripten compiler and pass it the -gsource-map flag. For example:
 
 ```
-mkdir release
-cd release
-cmake -DCMAKE_BUILD_TYPE=Release ..
-make 
-sudo make install
+emcc -gsource-map -lembind *.o intern/*.o -o libdxfrw.js --emit-tsd libdxfrw.d.ts
 ```
 
-Ubuntu/Mint Folks
-----------
+## Usage
 
-```
-mkdir release
-cd release
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=/usr .. && make all
-make 
-sudo make install
-```
+Please refer to example code in [index.html](./dist/index.html).
 
+## How to Debug?
 
-Example usage of the library
-==========
-
-See how we use it in LibreCAD V3 : https://github.com/LibreCAD/LibreCAD_3/tree/master/persistence/libdxfrw
+- [emscripten Debugging](https://emscripten.org/docs/porting/Debugging.html)
+- [Debugging WebAssembly with modern tools](https://developer.chrome.com/blog/wasm-debugging-2020/)

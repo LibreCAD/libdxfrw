@@ -20,7 +20,7 @@
 
 class dwgReader32 : public dwgReader27 {
 public:
-    dwgReader32(std::ifstream *stream, dwgR *p):dwgReader27(stream, p){ }
+    dwgReader32(std::istringstream *stream, dwgR *p):dwgReader27(stream, p){ }
 };
 
 #endif // DWGREADER32_H

@@ -150,7 +150,7 @@ dwgBuffer::dwgBuffer(duint8 *buf, duint64 size, DRW_TextCodec *dc)
     ,maxSize{size}
 {}
 
-dwgBuffer::dwgBuffer(std::ifstream *stream, DRW_TextCodec *dc)
+dwgBuffer::dwgBuffer(std::istringstream *stream, DRW_TextCodec *dc)
     :decoder{dc}
     ,filestr{new dwgFileStream(stream)}
     ,maxSize{filestr->size()}
