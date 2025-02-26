@@ -4,7 +4,7 @@ AM_CPPFLAGS = ${my_CPPFLAGS} -Wall -Woverloaded-virtual
 ACLOCAL_AMFLAGS = -I m4
 
 library_includedir=$(includedir)/libdxfrw$(LIBRARY_AGE)
-library_include_HEADERS = drw_base.h drw_entities.h drw_interface.h \
+library_include_HEADERS = drw_base.h drw_data.h drw_entities.h drw_interface.h \
 	drw_objects.h drw_header.h drw_classes.h libdxfrw.h libdwgr.h
 dist_noinst_HEADERS = intern/dxfreader.h intern/dxfwriter.h intern/drw_dbg.h \
 	intern/dwgutil.h intern/dwgreader.h intern/dwgreader15.h \
@@ -16,7 +16,7 @@ dist_noinst_HEADERS = intern/dxfreader.h intern/dxfwriter.h intern/drw_dbg.h \
 lib_LTLIBRARIES = libdxfrw.la
 
 libdxfrw_la_SOURCES = bindings.cpp drw_entities.cpp drw_objects.cpp drw_header.cpp intern/drw_dbg.cpp \
-		      drw_classes.cpp libdwgr.cpp libdxfrw.cpp intern/dwgutil.cpp \
+		      drw_classes.cpp drw_data.cpp libdwgr.cpp libdxfrw.cpp intern/dwgutil.cpp \
 		      intern/dxfreader.cpp intern/dwgreader15.cpp intern/dwgreader18.cpp intern/dwgreader21.cpp \
 		      intern/dwgreader24.cpp intern/dwgreader27.cpp intern/dxfwriter.cpp intern/dwgreader.cpp \
 		      intern/dwgbuffer.cpp intern/drw_textcodec.cpp intern/rscodec.cpp
