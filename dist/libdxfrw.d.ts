@@ -390,6 +390,38 @@ export type DRW_HatchLoopPtr = {
 
 };
 
+export interface DRW_VertexList extends ClassHandle {
+  size(): number;
+  get(_0: number): DRW_Vertex | undefined;
+  push_back(_0: DRW_Vertex | null): void;
+  resize(_0: number, _1: DRW_Vertex | null): void;
+  set(_0: number, _1: DRW_Vertex | null): boolean;
+}
+
+export interface DRW_Vertex2DList extends ClassHandle {
+  push_back(_0: DRW_Vertex2D | null): void;
+  resize(_0: number, _1: DRW_Vertex2D | null): void;
+  size(): number;
+  get(_0: number): DRW_Vertex2D | undefined;
+  set(_0: number, _1: DRW_Vertex2D | null): boolean;
+}
+
+export interface DRW_CoordList extends ClassHandle {
+  push_back(_0: DRW_Coord | null): void;
+  resize(_0: number, _1: DRW_Coord | null): void;
+  size(): number;
+  get(_0: number): DRW_Coord | undefined;
+  set(_0: number, _1: DRW_Coord | null): boolean;
+}
+
+export interface DRW_HatchLoopList extends ClassHandle {
+  size(): number;
+  get(_0: number): DRW_HatchLoop | undefined;
+  push_back(_0: DRW_HatchLoop | null): void;
+  resize(_0: number, _1: DRW_HatchLoop | null): void;
+  set(_0: number, _1: DRW_HatchLoop | null): boolean;
+}
+
 export interface DRW_ETYPEValue<T extends number> {
   value: T;
 }
@@ -427,7 +459,6 @@ export interface DRW_Point extends DRW_Entity {
   basePoint: DRW_Coord;
   thickness: number;
   extPoint: DRW_Coord;
-  applyExtrusion(): void;
   applyExtrusion(): void;
   applyExtrusion(): void;
   applyExtrusion(): void;
@@ -534,6 +565,8 @@ export interface DRW_LWPolyline extends DRW_Entity {
   vertex: DRW_Vertex2DPtr;
   applyExtrusion(): void;
   addVertex(_0: DRW_Vertex2D): void;
+  appendVertex(): DRW_Vertex2DPtr;
+  getVertexList(): DRW_Vertex2DList;
 }
 
 export interface VAlignValue<T extends number> {
@@ -595,6 +628,9 @@ export interface DRW_Polyline extends DRW_Point {
   curvetype: number;
   addVertex(_0: DRW_Vertex): void;
   appendVertex(_0: DRW_VertexPtr): void;
+  getVertexList(): DRW_VertexList;
+  addVertex(_0: DRW_Vertex): void;
+  appendVertex(_0: DRW_VertexPtr): void;
 }
 
 export interface DRW_Spline extends DRW_Entity {
@@ -611,6 +647,8 @@ export interface DRW_Spline extends DRW_Entity {
   tolfit: number;
   knotslist: DRW_DoubleList;
   applyExtrusion(): void;
+  getControlList(): DRW_CoordList;
+  getFitList(): DRW_CoordList;
 }
 
 export interface DRW_HatchLoop extends ClassHandle {
@@ -632,6 +670,7 @@ export interface DRW_Hatch extends DRW_Point {
   scale: number;
   deflines: number;
   appendLoop(_0: DRW_HatchLoopPtr): void;
+  getLoopList(): DRW_HatchLoopList;
 }
 
 export interface DRW_Image extends DRW_Line {
@@ -1104,6 +1143,18 @@ interface EmbindModule {
   };
   DRW_AppId: {
     new(): DRW_AppId;
+  };
+  DRW_VertexList: {
+    new(): DRW_VertexList;
+  };
+  DRW_Vertex2DList: {
+    new(): DRW_Vertex2DList;
+  };
+  DRW_CoordList: {
+    new(): DRW_CoordList;
+  };
+  DRW_HatchLoopList: {
+    new(): DRW_HatchLoopList;
   };
   DRW_ETYPE: {E3DFACE: DRW_ETYPEValue<0>, ARC: DRW_ETYPEValue<1>, BLOCK: DRW_ETYPEValue<2>, CIRCLE: DRW_ETYPEValue<3>, DIMENSION: DRW_ETYPEValue<4>, DIMALIGNED: DRW_ETYPEValue<5>, DIMLINEAR: DRW_ETYPEValue<6>, DIMRADIAL: DRW_ETYPEValue<7>, DIMDIAMETRIC: DRW_ETYPEValue<8>, DIMANGULAR: DRW_ETYPEValue<9>, DIMANGULAR3P: DRW_ETYPEValue<10>, DIMORDINATE: DRW_ETYPEValue<11>, ELLIPSE: DRW_ETYPEValue<12>, HATCH: DRW_ETYPEValue<13>, IMAGE: DRW_ETYPEValue<14>, INSERT: DRW_ETYPEValue<15>, LEADER: DRW_ETYPEValue<16>, LINE: DRW_ETYPEValue<17>, LWPOLYLINE: DRW_ETYPEValue<18>, MTEXT: DRW_ETYPEValue<19>, POINT: DRW_ETYPEValue<20>, POLYLINE: DRW_ETYPEValue<21>, RAY: DRW_ETYPEValue<22>, SOLID: DRW_ETYPEValue<23>, SPLINE: DRW_ETYPEValue<24>, TEXT: DRW_ETYPEValue<25>, TRACE: DRW_ETYPEValue<26>, UNDERLAY: DRW_ETYPEValue<27>, VERTEX: DRW_ETYPEValue<28>, VIEWPORT: DRW_ETYPEValue<29>, XLINE: DRW_ETYPEValue<30>, UNKNOWN: DRW_ETYPEValue<31>};
   DRW_Entity: {};

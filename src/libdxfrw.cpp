@@ -114,14 +114,14 @@ std::string dxfRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin){
         writer = std::make_unique<dxfWriterBinary>(&filestr);
         DRW_DBG("dxfRW::read binary file\n");
         this->writeContents();
-        return std::move(filestr.str());
+        return filestr.str();
     } else {
         std::ostringstream filestr;
         writer = std::make_unique<dxfWriterAscii>(&filestr);
         std::string comm = std::string("dxfrw ") + std::string(DRW_VERSION);
         writer->writeString(999, comm);
         this->writeContents();
-        return std::move(filestr.str());
+        return filestr.str();
     }
 }
 
@@ -1426,14 +1426,11 @@ bool dxfRW::writeTables() {
     writer->writeInt16(70, 1); //end table def
 /*** VPORT ***/
     dimstyleStd =false;
-    std::cerr << "dxfRW::writeTables start writeVports" << std::endl;
     iface->writeVports();
-    std::cerr << "dxfRW::writeTables writeVports" << std::endl;
     if (!dimstyleStd) {
         DRW_Vport portact;
         portact.name = "*ACTIVE";
         writeVport(&portact);
-        std::cerr << "dxfRW::writeTables writeVport" << std::endl;
     }
     writer->writeString(0, "ENDTAB");
 /*** LTYPE ***/

@@ -409,11 +409,10 @@ EMSCRIPTEN_BINDINGS(DRW_entities) {
   value_object<std::shared_ptr<DRW_Vertex>>("DRW_VertexPtr");
   value_object<std::shared_ptr<DRW_Vertex2D>>("DRW_Vertex2DPtr");
   value_object<std::shared_ptr<DRW_HatchLoop>>("DRW_HatchLoopPtr");
-  // register_vector<std::shared_ptr<DRW_Variant>>("DRW_SharedPtr_VariantList");
-  // register_vector<DRW_Vertex*>("DRW_VertexList");
-  // register_vector<DRW_Vertex2D*>("DRW_Vertex2DList");
-  // register_vector<DRW_Coord*>("DRW_CoordList");
-  // register_vector<DRW_HatchLoop*>("DRW_HatchLoopList");
+  register_vector<DRW_Vertex*>("DRW_VertexList");
+  register_vector<DRW_Vertex2D*>("DRW_Vertex2DList");
+  register_vector<DRW_Coord*>("DRW_CoordList");
+  register_vector<DRW_HatchLoop*>("DRW_HatchLoopList");
 
   enum_<DRW::ETYPE>("DRW_ETYPE")
     .value("E3DFACE", DRW::E3DFACE)
@@ -576,7 +575,9 @@ EMSCRIPTEN_BINDINGS(DRW_entities) {
   class_<DRW_LWPolyline, base<DRW_Entity>>("DRW_LWPolyline")
     .constructor<>()
     .function("applyExtrusion", &DRW_LWPolyline::applyExtrusion)
-    .function("addVertex", select_overload<void(DRW_Vertex2D)>(&DRW_LWPolyline::addVertex))
+    .function("addVertex", &DRW_LWPolyline::addVertex)
+    .function("appendVertex", &DRW_LWPolyline::appendVertex)
+    .function("getVertexList", &DRW_LWPolyline::getVertexList)
     .property("vertexnum", &DRW_LWPolyline::vertexnum)
     .property("flags", &DRW_LWPolyline::flags)
     .property("width", &DRW_LWPolyline::width)
@@ -645,6 +646,9 @@ EMSCRIPTEN_BINDINGS(DRW_entities) {
 
   class_<DRW_Polyline, base<DRW_Point>>("DRW_Polyline")
     .constructor<>()
+    .function("addVertex", &DRW_Polyline::addVertex)
+    .function("appendVertex", &DRW_Polyline::appendVertex)
+    .function("getVertexList", &DRW_Polyline::getVertexList)
     .property("defstawidth", &DRW_Polyline::defstawidth)
     .property("defendwidth", &DRW_Polyline::defendwidth)
     .property("flags", &DRW_Polyline::flags)
@@ -660,6 +664,8 @@ EMSCRIPTEN_BINDINGS(DRW_entities) {
   class_<DRW_Spline, base<DRW_Entity>>("DRW_Spline")
     .constructor<>()
     .function("applyExtrusion", &DRW_Spline::applyExtrusion)
+    .function("getControlList", &DRW_Spline::getControlList)
+    .function("getFitList", &DRW_Spline::getFitList)
     .property("normalVec", &DRW_Spline::normalVec)
     .property("tgStart", &DRW_Spline::tgStart)
     .property("tgEnd", &DRW_Spline::tgEnd)
@@ -685,7 +691,7 @@ EMSCRIPTEN_BINDINGS(DRW_entities) {
   class_<DRW_Hatch, base<DRW_Point>>("DRW_Hatch")
     .constructor<>()
     .function("appendLoop", &DRW_Hatch::appendLoop)
-    .function("applyExtrusion", &DRW_Hatch::applyExtrusion)
+    .function("getLoopList", &DRW_Hatch::getLoopList)
     .property("name", &DRW_Hatch::name)
     .property("solid", &DRW_Hatch::solid)
     .property("associative", &DRW_Hatch::associative)

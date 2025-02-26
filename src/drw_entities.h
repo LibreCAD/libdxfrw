@@ -557,13 +557,22 @@ public:
 		std::shared_ptr<DRW_Vertex2D> vert = std::make_shared<DRW_Vertex2D>(v);
         vertlist.push_back(vert);
     }
-	std::shared_ptr<DRW_Vertex2D> addVertex () {
+	std::shared_ptr<DRW_Vertex2D> appendVertex () {
 		std::shared_ptr<DRW_Vertex2D> vert = std::make_shared<DRW_Vertex2D>();
         vert->stawidth = 0;
         vert->endwidth = 0;
         vert->bulge = 0;
         vertlist.push_back(vert);
         return vert;
+    }
+    std::vector<DRW_Vertex2D*> getVertexList() {
+        std::vector<DRW_Vertex2D*> vertexList;
+        int vertexnum = vertlist.size();
+        for (int i = 0; i< vertexnum; i++){
+            DRW_Vertex2D *v = vertlist.at(i).get();
+            vertexList.push_back(v);
+        }
+        return vertexList;
     }
 
 protected:
@@ -748,6 +757,15 @@ public:
     void appendVertex (std::shared_ptr<DRW_Vertex> const& v) {
         vertlist.push_back(v);
     }
+    std::vector<DRW_Vertex*> getVertexList() {
+        std::vector<DRW_Vertex*> vertexList;
+        int vertexnum = vertlist.size();
+        for (int i = 0; i< vertexnum; i++){
+            DRW_Vertex *v = vertlist.at(i).get();
+            vertexList.push_back(v);
+        }
+        return vertexList;
+    }
 
 protected:
     bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) override;
@@ -788,6 +806,24 @@ public:
 
     }
     virtual void applyExtrusion() override {}
+    std::vector<DRW_Coord*> getControlList() {
+        std::vector<DRW_Coord*> controlList;
+        int controlnum = controllist.size();
+        for (int i = 0; i< controlnum; i++){
+            DRW_Coord* coord = controllist.at(i).get();
+            controlList.push_back(coord);
+        }
+        return controlList;
+    }
+    std::vector<DRW_Coord*> getFitList() {
+        std::vector<DRW_Coord*> fitList;
+        int fitnum = fitlist.size();
+        for (int i = 0; i< fitnum; i++){
+            DRW_Coord* coord = fitlist.at(i).get();
+            fitList.push_back(coord);
+        }
+        return fitList;
+    }
 
 protected:
     bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) override;
@@ -841,6 +877,16 @@ public:
         numedges = objlist.size();
     }
 
+    std::vector<DRW_Entity*> getObjList() {
+        std::vector<DRW_Entity*> objList;
+        int objnum = objlist.size();
+        for (int i = 0; i< objnum; i++){
+            DRW_Entity* entity = objlist.at(i).get();
+            objList.push_back(entity);
+        }
+        return objList;
+    }
+
 public:
     int type;               /*!< boundary path type, code 92, polyline=2, default=0 */
     int numedges;           /*!< number of edges (if not a polyline), code 93 */
@@ -870,6 +916,16 @@ public:
 
     void appendLoop (std::shared_ptr<DRW_HatchLoop> const& v) {
         looplist.push_back(v);
+    }
+
+    std::vector<DRW_HatchLoop*> getLoopList() {
+        std::vector<DRW_HatchLoop*> loopList;
+        int loopnum = looplist.size();
+        for (int i = 0; i< loopnum; i++){
+            DRW_HatchLoop* loop = looplist.at(i).get();
+            loopList.push_back(loop);
+        }
+        return loopList;
     }
 
 protected:

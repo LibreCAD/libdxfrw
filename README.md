@@ -22,13 +22,13 @@ cd build
 emconfigure ../configure
 cd src
 emmake make
-emcc -O2 -lembind *.o intern/*.o -o libdxfrw.js --emit-tsd libdxfrw.d.ts
+emcc -O2 -lembind *.o intern/*.o -o libdxfrw.js -s ALLOW_MEMORY_GROWTH=1 --emit-tsd libdxfrw.d.ts
 ```
 
 If you want to debug WebAssembly in Chrome DevTools. Please compile your application with DWARF debug information included. Run the latest Emscripten compiler and pass it the -gsource-map flag. For example:
 
 ```
-emcc -gsource-map -lembind *.o intern/*.o -o libdxfrw.js --emit-tsd libdxfrw.d.ts
+emcc -gsource-map -lembind *.o intern/*.o -o libdxfrw.js -s ALLOW_MEMORY_GROWTH=1 --emit-tsd libdxfrw.d.ts
 ```
 
 ### Use CMake
@@ -38,7 +38,7 @@ mkdir build
 cd build
 emcmake cmake .. -DCMAKE_BUILD_TYPE=Release
 emmake make
-emcc -O2 -lembind CMakeFiles/dxfrw.dir/src/*.o CMakeFiles/dxfrw.dir/src/intern/*.o -o libdxfrw.js --emit-tsd libdxfrw.d.ts
+emcc -O2 -lembind CMakeFiles/dxfrw.dir/src/*.o CMakeFiles/dxfrw.dir/src/intern/*.o -o libdxfrw.js -s ALLOW_MEMORY_GROWTH=1 --emit-tsd libdxfrw.d.ts
 ```
 
 ## Usage

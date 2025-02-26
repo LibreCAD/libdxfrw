@@ -1748,7 +1748,7 @@ bool DRW_Hatch::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     case 10:
         if (pt) pt->basePoint.x = reader->getDouble();
         else if (pline) {
-            plvert = pline->addVertex();
+            plvert = pline->appendVertex();
             plvert->x = reader->getDouble();
         }
         break;
