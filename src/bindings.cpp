@@ -3,9 +3,9 @@
 #include "intern/drw_dbg.h"
 #include "intern/dxfwriter.h"
 #include "drw_base.h"
+#include "drw_data.h"
 #include "drw_entities.h"
 #include "drw_header.h"
-#include "drw_reader.h"
 #include "libdxfrw.h"
 #include "libdwgr.h"
 
@@ -16,8 +16,8 @@ EMSCRIPTEN_BINDINGS(dxf_writer) {
     .function("writeUtf8String", &dxfWriter::writeUtf8String)
     .function("writeUtf8Caps", &dxfWriter::writeUtf8Caps)
     .function("fromUtf8String", &dxfWriter::fromUtf8String)
-    // .function("setVersion", &dxfWriter::setVersion, allow_raw_pointer<std::string*>())
-    // .function("setCodePage", &dxfWriter::setCodePage, allow_raw_pointer<std::string*>())
+    .function("setVersion", &dxfWriter::setVersion)
+    .function("setCodePage", &dxfWriter::setCodePage)
     .function("getCodePage", &dxfWriter::getCodePage)
     .function("writeString", &dxfWriter::writeString)
     .function("writeInt16", &dxfWriter::writeInt16)
@@ -992,6 +992,8 @@ EMSCRIPTEN_BINDINGS(DRW_reader) {
 
   class_<dx_iface, base<DRW_Interface>>("dx_iface")
     .constructor<>()
+    .function("fileImport", &dx_iface::fileImport, allow_raw_pointer<dx_data*>())
+    .function("fileExport", &dx_iface::fileExport, allow_raw_pointer<dx_data*>())
     .function("writeEntity", &dx_iface::writeEntity, allow_raw_pointer<DRW_Entity*>())
     .function("addHeader", &dx_iface::addHeader, allow_raw_pointer<DRW_Header*>())
     .function("addLType", &dx_iface::addLType)

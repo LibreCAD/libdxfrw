@@ -12,21 +12,19 @@
 
 #include <iostream>
 #include <algorithm>
-#include "dx_iface.h"
+#include "drw_data.h"
 #include "libdwgr.h"
 #include "libdxfrw.h"
+#include "intern/drw_dbg.h"
 
 
-bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug){
-    unsigned int found = fileI.find_last_of(".");
-    std::string fileExt = fileI.substr(found+1);
-    std::transform(fileExt.begin(), fileExt.end(),fileExt.begin(), ::toupper);
+bool dx_iface::fileImport(const std::string& data, dx_data *fData, bool debug, bool isDXF){
     cData = fData;
     currentBlock = cData->mBlock;
 
-    if (fileExt == "DXF"){
+    if (isDXF){
         //loads dxf
-        dxfRW* dxf = new dxfRW(fileI.c_str());
+        dxfRW* dxf = new dxfRW(data);
         if (debug) {
             dxf->setDebug(DRW::DebugLevel::Debug);
         }
@@ -36,9 +34,9 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug){
         }
         delete dxf;
         return success;
-    } else if (fileExt == "DWG"){
+    } else {
         //loads dwg
-        dwgR* dwg = new dwgR(fileI.c_str());
+        dwgR* dwg = new dwgR(data);
         if (debug) {
             dwg->setDebug(DRW::DebugLevel::Debug);
         }
@@ -49,7 +47,6 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug){
         delete dwg;
         return success;
     }
-    std::cout << "file extension can be dxf or dwg" << std::endl;
     return false;
 }
 

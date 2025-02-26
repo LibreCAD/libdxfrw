@@ -7,7 +7,8 @@
 </head>
 <body>
     <h1>Select a DXF/DWG file</h1>
-    <input type="file" id="fileInput" accept=".dxf, .dwg;" />
+    <input type="file" id="fileInput" accept=".dxf, .dwg" />
+    <button id="convertBtn" disabled>Convert DWG to DXF</button>
 
     <!-- Element to display Layer Names -->
     <h2>Layer Names:</h2>
@@ -67,8 +68,50 @@
             }
         }
 
+        const fileInput = document.getElementById('fileInput');
+        const convertButton = document.getElementById('convertBtn');
+
+        // Function to convert DWG to DXF after clicking the button
+        convertButton.addEventListener('click', function () {
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(event) {
+                const fileContent = event.target.result;
+
+                // Parse DWG file 
+                const data = new Module.dx_data();
+                const iface = new Module.dx_iface();
+                iface.cData = data;
+                if (!iface.fileImport(fileContent, data, false, false)) {
+                    console.error('Failed to parse the selected file!');
+                }
+
+                // Write as DXF string
+                const dxfContent = iface.fileExport(Module.DRW_Version.AC1021, false, data, true);
+
+                // Manually signal that a C++ object is no longer needed and can be deleted.
+                data.delete();
+                iface.delete();
+
+                // Create a new Blob with the file content
+                const blob = new Blob([dxfContent], { type: 'text/plain' });
+                
+                // Create a link element to trigger the download
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'converted.dxf'; // The name of the new file
+
+                // Trigger the file download
+                link.click();
+            };
+
+            // Read the selected file as an ArrayBuffer (binary data)
+            reader.readAsArrayBuffer(file);
+        });
+
         // Function to handle file input change event
-        document.getElementById('fileInput').addEventListener('change', function(event) {
+        fileInput.addEventListener('change', function(event) {
             const file = event.target.files[0];
             
             if (file) {
@@ -85,36 +128,50 @@
                     // Wait for the WebAssembly module to be initialized
                     if (isModuleInitialized) {
                         try {
-                            // Create an instance of Module.dxfRW with the file content
-                            const input = new Module.dx_iface();
+                            const data = new Module.dx_data();
+                            const iface = new Module.dx_iface();
+                            iface.cData = data;
+
                             if (fileExtension == 'dxf') {
                                 const dxf = new Module.dxfRW(fileContent);
 
                                 // Uncomment out the following line if you want to show debug info
                                 // dxf.setDebug(Module.DRW_dbg_Level.Debug);
 
-                                const result = dxf.read(input, false);
+                                const result = dxf.read(iface, false);
+
+                                // Manually signal that a C++ object is no longer needed and can be deleted.
+                                dxf.delete();
                             } else if (fileExtension == 'dwg') {
                                 const dwg = new Module.dwgR(fileContent);
 
                                 // Uncomment out the following line if you want to show debug info
                                 // dwg.setDebug(Module.DRW_dbg_Level.Debug);
 
-                                const result = dwg.read(input, false);
+                                const result = dwg.read(iface, false);
+
+                                // Manually signal that a C++ object is no longer needed and can be deleted.
+                                dwg.delete();
+
+                                convertButton.disabled = false;
                             }
 
-                            printItems('layerNamesList', input.cData.layers);
-                            printItems('lineTypesList', input.cData.lineTypes);
-                            printItems('textStylesList', input.cData.textStyles);
-                            printItems('dimStylesList', input.cData.dimStyles);
-                            printItems('viewportsList', input.cData.viewports);
-                            printItems('blocksList', input.cData.blocks, 'name', 'ent');
-                            printItems('imagesList', input.cData.images, 'path');
+                            printItems('layerNamesList', iface.cData.layers);
+                            printItems('lineTypesList', iface.cData.lineTypes);
+                            printItems('textStylesList', iface.cData.textStyles);
+                            printItems('dimStylesList', iface.cData.dimStyles);
+                            printItems('viewportsList', iface.cData.viewports);
+                            printItems('blocksList', iface.cData.blocks, 'name', 'ent');
+                            printItems('imagesList', iface.cData.images, 'path');
+
+                            // Manually signal that a C++ object is no longer needed and can be deleted.
+                            data.delete();
+                            iface.delete();
                         } catch (error) {
                             console.error('Error processing DXF/DWG file: ', error);
                         }
                     } else {
-                        console.log('WebAssembly module not yet initialized');
+                        console.error('WebAssembly module not yet initialized');
                     }
                 };
 
@@ -125,6 +182,7 @@
                     reader.readAsArrayBuffer(file);
                 }
             } else {
+                convertButton.disabled = true;
                 console.log('No file selected');
             }
         });

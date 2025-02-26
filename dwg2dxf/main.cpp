@@ -92,7 +92,27 @@ bool convertFile(std::string inName, std::string outName, DRW::Version ver, bool
 
     //And write a dxf file
     dx_iface *output = new dx_iface();
-    badState = output->fileExport(outName, ver, binary, &fData, debug);
+    std::string temp = output->fileExport(ver, binary, &fData, debug);
+
+    std::ofstream file;
+    if (binary) {
+        file.open (outName, std::ios_base::out | std::ios::binary | std::ios::trunc);
+    } else {
+        file.open (outName, std::ios_base::out | std::ios::trunc);
+    }
+    if (!file) {
+        std::cerr << "Failed to open file for writing: " << outName << std::endl;
+        return false;
+    }
+    // Write the content of the string to the file
+    file.write(temp.c_str(), temp.size());
+
+    if (!file) {
+        std::cerr << "Error occurred while writing to file: " << outName << std::endl;
+        return false;
+    }
+    file.close();
+
     delete input;
     delete output;
 

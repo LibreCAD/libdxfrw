@@ -27,6 +27,8 @@ export interface dxfWriter extends ClassHandle {
   writeUtf8String(_0: number, _1: EmbindString): boolean;
   writeUtf8Caps(_0: number, _1: EmbindString): boolean;
   fromUtf8String(_0: EmbindString): string;
+  setVersion(_0: EmbindString, _1: boolean): void;
+  setCodePage(_0: EmbindString): void;
   getCodePage(): string;
   writeString(_0: number, _1: EmbindString): boolean;
   writeInt16(_0: number, _1: number): boolean;
@@ -833,7 +835,7 @@ export interface dxfRW extends ClassHandle {
   setDebug(_0: DRW_DebugLevel): void;
   read(_0: DRW_Interface | null, _1: boolean): boolean;
   setBinary(_0: boolean): void;
-  write(_0: DRW_Interface | null, _1: DRW_Version, _2: boolean): boolean;
+  write(_0: DRW_Interface | null, _1: DRW_Version, _2: boolean): string;
   writeLineType(_0: DRW_LType | null): boolean;
   writeLayer(_0: DRW_Layer | null): boolean;
   writeDimstyle(_0: DRW_Dimstyle | null): boolean;
@@ -973,6 +975,8 @@ export interface dx_iface extends DRW_Interface {
   dxfW: dxfRW | null;
   cData: dx_data | null;
   currentBlock: dx_ifaceBlock | null;
+  fileImport(_0: EmbindString, _1: dx_data | null, _2: boolean, _3: boolean): boolean;
+  fileExport(_0: DRW_Version, _1: boolean, _2: dx_data | null, _3: boolean): string;
   writeEntity(_0: DRW_Entity | null): void;
   addHeader(_0: DRW_Header | null): void;
   addLType(_0: DRW_LType): void;

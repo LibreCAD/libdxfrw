@@ -28,6 +28,7 @@ class dxfWriter;
 
 class dxfRW {
 public:
+    dxfRW();
     dxfRW(const std::string& data);
     ~dxfRW();
     void setDebug(DRW::DebugLevel lvl);
@@ -42,7 +43,7 @@ public:
     bool read(DRW_Interface *interface_, bool ext);
     void setBinary(bool b) {binFile = b;}
 
-    bool write(DRW_Interface *interface_, DRW::Version ver, bool bin);
+    std::string write(DRW_Interface *interface_, DRW::Version ver, bool bin);
     bool writeLineType(DRW_LType *ent);
     bool writeLayer(DRW_Layer *ent);
     bool writeDimstyle(DRW_Dimstyle *ent);
@@ -120,6 +121,7 @@ private:
     bool processLeader();
     bool processPlotSettings();
 
+    void writeContents();
 //    bool writeHeader();
     bool writeEntity(DRW_Entity *ent);
     bool writeTables();

@@ -34,12 +34,20 @@
     secObjects
 };*/
 
+dxfRW::dxfRW(){
+    DRW_DBGSL(DRW_dbg::Level::None);
+    buffer = "";
+    applyExt = false;
+    elParts = 128; //parts number when convert ellipse to polyline
+}
+
 dxfRW::dxfRW(const std::string& data){
     DRW_DBGSL(DRW_dbg::Level::None);
     buffer = data;
     applyExt = false;
     elParts = 128; //parts number when convert ellipse to polyline
 }
+
 dxfRW::~dxfRW(){
     for (std::vector<DRW_ImageDef*>::iterator it=imageDef.begin(); it!=imageDef.end(); ++it)
         delete *it;
@@ -95,29 +103,36 @@ bool dxfRW::read(DRW_Interface *interface_, bool ext){
     return isOk;
 }
 
-bool dxfRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin){
-    bool isOk = false;
-    std::ostringstream filestr;
+std::string dxfRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin){
     version = ver;
     binFile = bin;
     iface = interface_;
     if (binFile) {
+        std::ostringstream filestr(std::ios::binary);
         //write sentinel
         filestr << "AutoCAD Binary DXF\r\n" << (char)26 << '\0';
         writer = std::make_unique<dxfWriterBinary>(&filestr);
         DRW_DBG("dxfRW::read binary file\n");
+        this->writeContents();
+        return std::move(filestr.str());
     } else {
+        std::ostringstream filestr;
         writer = std::make_unique<dxfWriterAscii>(&filestr);
         std::string comm = std::string("dxfrw ") + std::string(DRW_VERSION);
         writer->writeString(999, comm);
+        this->writeContents();
+        return std::move(filestr.str());
     }
+}
+
+void dxfRW::writeContents(){
     DRW_Header header;
     iface->writeHeader(header);
     writer->writeString(0, "SECTION");
     entCount =FIRSTHANDLE;
     header.write(writer, version);
     writer->writeString(0, "ENDSEC");
-    if (ver > DRW::AC1009) {
+    if (version > DRW::AC1009) {
         writer->writeString(0, "SECTION");
         writer->writeString(2, "CLASSES");
         writer->writeString(0, "ENDSEC");
@@ -143,11 +158,9 @@ bool dxfRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin){
         writer->writeString(0, "ENDSEC");
     }
     writer->writeString(0, "EOF");
-    filestr.flush();
+    // filestr.flush();
     // filestr.close();
-    isOk = true;
     writer.reset();
-    return isOk;
 }
 
 bool dxfRW::writeEntity(DRW_Entity *ent) {
@@ -1413,11 +1426,14 @@ bool dxfRW::writeTables() {
     writer->writeInt16(70, 1); //end table def
 /*** VPORT ***/
     dimstyleStd =false;
+    std::cerr << "dxfRW::writeTables start writeVports" << std::endl;
     iface->writeVports();
+    std::cerr << "dxfRW::writeTables writeVports" << std::endl;
     if (!dimstyleStd) {
         DRW_Vport portact;
         portact.name = "*ACTIVE";
         writeVport(&portact);
+        std::cerr << "dxfRW::writeTables writeVport" << std::endl;
     }
     writer->writeString(0, "ENDTAB");
 /*** LTYPE ***/

@@ -40,9 +40,11 @@ set(libdxfrw_srcs
   src/intern/rscodec.cpp
   src/drw_base.cpp
   src/drw_classes.cpp
+  src/drw_data.cpp
   src/drw_entities.cpp
   src/drw_header.cpp
   src/drw_objects.cpp
+  src/bindings.cpp
   src/libdwgr.cpp
   src/libdxfrw.cpp
 )
@@ -74,10 +76,12 @@ set(libdxfrw_hdrs
 set(installdxfrw_hdrs
   src/drw_base.h
   src/drw_classes.h
+  src/drw_data.h
   src/drw_entities.h
   src/drw_header.h
   src/drw_interface.h
   src/drw_objects.h
+  src/drw_reader.h
   src/libdwgr.h
   src/libdxfrw.h
 )
@@ -90,10 +94,15 @@ set_target_properties(dxfrw PROPERTIES
 	SOVERSION "${PROJECT_VERSION_MAJOR}"
 	EXPORT_NAME libdxfrw
 )
-target_compile_features(dxfrw PUBLIC cxx_std_14)
+target_compile_options(dxfrw 
+		PRIVATE
+			-Wno-error
+)
+target_compile_features(dxfrw PUBLIC cxx_std_20)
 target_include_directories(dxfrw
 		PUBLIC
 			$<INSTALL_INTERFACE:${LIBDXFRW_INSTALL_INCLUDEDIR}>
+      ${EMSDK}/upstream/emscripten/system/include
 )
 
 if(LIBDXFRW_BUILD_DOC)
