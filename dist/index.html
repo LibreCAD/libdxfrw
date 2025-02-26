@@ -57,6 +57,7 @@
                 console.log('WebAssembly module initialized');
             }
         };
+        var libdxfrw = Module;
 
         const printItems = (id, items, itemName = 'name', subItemName = undefined) => {
             // Clear previous item list
@@ -132,15 +133,15 @@
                 const fileContent = event.target.result;
 
                 // Parse DWG file 
-                const data = new Module.dx_data();
-                const iface = new Module.dx_iface();
+                const data = new libdxfrw.dx_data();
+                const iface = new libdxfrw.dx_iface();
                 iface.cData = data;
                 if (!iface.fileImport(fileContent, data, false, false)) {
                     console.error('Failed to parse the selected file!');
                 }
 
                 // Write as DXF string
-                const dxfContent = iface.fileExport(Module.DRW_Version.AC1021, false, data, false);
+                const dxfContent = iface.fileExport(libdxfrw.DRW_Version.AC1021, false, data, false);
 
                 // Manually signal that a C++ object is no longer needed and can be deleted.
                 data.delete();
@@ -180,25 +181,25 @@
                     // Wait for the WebAssembly module to be initialized
                     if (isModuleInitialized) {
                         try {
-                            const data = new Module.dx_data();
-                            const iface = new Module.dx_iface();
+                            const data = new libdxfrw.dx_data();
+                            const iface = new libdxfrw.dx_iface();
                             iface.cData = data;
 
                             if (fileExtension == 'dxf') {
-                                const dxf = new Module.dxfRW(fileContent);
+                                const dxf = new libdxfrw.dxfRW(fileContent);
 
                                 // Uncomment out the following line if you want to show debug info
-                                // dxf.setDebug(Module.DRW_dbg_Level.Debug);
+                                // dxf.setDebug(libdxfrw.DRW_dbg_Level.Debug);
 
                                 const result = dxf.read(iface, false);
 
                                 // Manually signal that a C++ object is no longer needed and can be deleted.
                                 dxf.delete();
                             } else if (fileExtension == 'dwg') {
-                                const dwg = new Module.dwgR(fileContent);
+                                const dwg = new libdxfrw.dwgR(fileContent);
 
                                 // Uncomment out the following line if you want to show debug info
-                                // dwg.setDebug(Module.DRW_dbg_Level.Debug);
+                                // dwg.setDebug(libdxfrw.DRW_dbg_Level.Debug);
 
                                 const result = dwg.read(iface, false);
 
