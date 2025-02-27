@@ -15,7 +15,9 @@
 #define DRW_HEADER_H
 
 #include <memory>
+#include <vector>
 #include <unordered_map>
+#include <algorithm> 
 #include "drw_base.h"
 
 class dxfReader;
@@ -97,6 +99,28 @@ public:
     std::string getComments() const {return comments;}
     void write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ver);
     void addComment(std::string c);
+    std::vector<std::string> getVarNames() const {
+        std::vector<std::string> names;
+        names.reserve(vars.size());
+        for (auto it=vars.begin(); it!=vars.end(); ++it){
+            names.push_back(it->first);
+        }
+        return names;
+    }
+    void clearVars(){
+        for (auto it=vars.begin(); it!=vars.end(); ++it)
+            delete it->second;
+
+        vars.clear();
+    }
+    DRW_Variant* getVar(std::string key){
+        auto it=vars.find( key);
+        if (it != vars.end()) {
+            DRW_Variant *var = (*it).second;
+            return var;
+        }
+        return nullptr;
+    }
 
 protected:
     bool parseCode(int code, const std::unique_ptr<dxfReader>& reader);
@@ -106,12 +130,6 @@ private:
     bool getInt(std::string key, int *varInt);
     bool getStr(std::string key, std::string *varStr);
     bool getCoord(std::string key, DRW_Coord *varStr);
-    void clearVars(){
-        for (auto it=vars.begin(); it!=vars.end(); ++it)
-            delete it->second;
-
-        vars.clear();
-    }
 
 public:
     std::unordered_map<std::string,DRW_Variant*> vars;

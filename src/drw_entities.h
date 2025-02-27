@@ -565,7 +565,7 @@ public:
         vertlist.push_back(vert);
         return vert;
     }
-    std::vector<DRW_Vertex2D*> getVertexList() {
+    std::vector<DRW_Vertex2D*> getVertexList() const {
         std::vector<DRW_Vertex2D*> vertexList;
         int vertexnum = vertlist.size();
         for (int i = 0; i< vertexnum; i++){
@@ -757,7 +757,7 @@ public:
     void appendVertex (std::shared_ptr<DRW_Vertex> const& v) {
         vertlist.push_back(v);
     }
-    std::vector<DRW_Vertex*> getVertexList() {
+    std::vector<DRW_Vertex*> getVertexList() const {
         std::vector<DRW_Vertex*> vertexList;
         int vertexnum = vertlist.size();
         for (int i = 0; i< vertexnum; i++){
@@ -806,7 +806,7 @@ public:
 
     }
     virtual void applyExtrusion() override {}
-    std::vector<DRW_Coord*> getControlList() {
+    std::vector<DRW_Coord*> getControlList() const {
         std::vector<DRW_Coord*> controlList;
         int controlnum = controllist.size();
         for (int i = 0; i< controlnum; i++){
@@ -815,7 +815,7 @@ public:
         }
         return controlList;
     }
-    std::vector<DRW_Coord*> getFitList() {
+    std::vector<DRW_Coord*> getFitList() const {
         std::vector<DRW_Coord*> fitList;
         int fitnum = fitlist.size();
         for (int i = 0; i< fitnum; i++){
@@ -877,7 +877,7 @@ public:
         numedges = objlist.size();
     }
 
-    std::vector<DRW_Entity*> getObjList() {
+    std::vector<DRW_Entity*> getObjList() const {
         std::vector<DRW_Entity*> objList;
         int objnum = objlist.size();
         for (int i = 0; i< objnum; i++){
@@ -918,7 +918,7 @@ public:
         looplist.push_back(v);
     }
 
-    std::vector<DRW_HatchLoop*> getLoopList() {
+    std::vector<DRW_HatchLoop*> getLoopList() const {
         std::vector<DRW_HatchLoop*> loopList;
         int loopnum = looplist.size();
         for (int i = 0; i< loopnum; i++){

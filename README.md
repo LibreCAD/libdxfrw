@@ -49,6 +49,64 @@ Please refer to example code in [index.html](./dist/index.html). You can use the
 npm install @mlightcad/libdxfrw-web
 ```
 
+### How to iterate data represented by std::vector?
+
+Emscripten doesn't convert std::vector to JavaScript array. So std::vector are converted to one seperated class. For example, std::vector<double> are converted to the following class.
+
+```TypeScript
+export interface DRW_DoubleList extends ClassHandle {
+  push_back(_0: number): void;
+  resize(_0: number, _1: number): void;
+  size(): number;
+  get(_0: number): number | undefined;
+  set(_0: number, _1: number): boolean;
+}
+```
+
+So it means you can't use JavaScript iterator to iterate them. For example, you need to iterate vertexes of one polyline as follows.
+
+```JavaScript
+const vertexes = polyline.getVertexList();
+for (let index = 0, size = vertexes.size(); index < size; ++index) {
+  const vertex = vertexes.get(index);
+  ......
+}
+```
+
+### Readonly list
+
+I can't find one good way to expose property defined by one std container with `std::shared_ptr`. So one new public method is added for expose data defined by those properties. Values returned by those methods is are the copy of property data instead of the referernce. So it means that data stored in the property will not change after you changed data returned by those methods. 
+
+```JavaScript
+class DRW_Hatch : public DRW_Point {
+  ......
+public
+  // Newly added method to expose data defined by property 'looplist'
+  std::vector<DRW_HatchLoop*> getLoopList() const {
+    std::vector<DRW_HatchLoop*> loopList;
+    int loopnum = looplist.size();
+    for (int i = 0; i< loopnum; i++){
+      DRW_HatchLoop* loop = looplist.at(i).get();
+      loopList.push_back(loop);
+    }
+    return loopList;
+  }
+  std::vector<std::shared_ptr<DRW_HatchLoop>> looplist;  /*!< polyline list */
+  ......
+}
+```
+
+The following methods use this pattern.
+
+```C++
+DRW_LWPolyline::getVertexList
+DRW_Polyline::getVertexList
+DRW_Spline::getControlList
+DRW_Spline::getFitList
+DRW_HatchLoop::getLoopList
+DRW_Hatch::getLoopList
+```
+
 ## How to Debug?
 
 - [emscripten Debugging](https://emscripten.org/docs/porting/Debugging.html)

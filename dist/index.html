@@ -42,8 +42,9 @@
     <h2>Entities:</h2>
     <ul id="entitiesList"></ul>
 
-    <!-- Element to display vertexes in the first polyline entity -->
-    <h2>Vertexes in the first polyline:</h2>
+    <!-- Element to display vertexes and other information in the first polyline entity -->
+    <h2>The First Polyline:</h2>
+    <ul id="entityInfoList"></ul>
     <ul id="vertexesList"></ul>
 
     <script>
@@ -77,6 +78,27 @@
             }
         }
 
+        const printEntityInfo = (id, entity) => {
+            // Clear previous item list
+            const listElement = document.getElementById(id);
+            listElement.innerHTML = '';
+
+            const propNames = ["handle", "layer", "lineType", "colorName", "proxyGraphics", "extPoint"];
+            propNames.forEach((name) => {
+                const li = document.createElement('li');
+                if (name == "extPoint") {
+                    const coord = entity[name]
+                    if (coord) {
+                        li.textContent = `${name}: (${coord.x}, ${coord.y}, ${coord.z})`;
+                        listElement.appendChild(li);
+                    }
+                } else {
+                    li.textContent = `${name}: ${entity[name]}`;
+                    listElement.appendChild(li);
+                }
+            });
+        }
+
         const printVertexesInTheFirstPolyline = (id, polyline) => {
             // Clear previous item list
             const listElement = document.getElementById(id);
@@ -106,6 +128,7 @@
                     group.set(typeName, 0);
                 }
                 if (!isFoundPolyline && (typeName == "DRW_ETYPE_LWPOLYLINE" || typeName == "DRW_ETYPE_POLYLINE")) {
+                    printEntityInfo("entityInfoList", entity);
                     printVertexesInTheFirstPolyline("vertexesList", entity);
                     isFoundPolyline = true;
                 }

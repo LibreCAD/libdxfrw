@@ -166,6 +166,14 @@ export interface DRW_dbg extends ClassHandle {
   printPT(_0: number, _1: number, _2: number): void;
 }
 
+export interface DRW_StringList extends ClassHandle {
+  push_back(_0: EmbindString): void;
+  resize(_0: number, _1: EmbindString): void;
+  size(): number;
+  get(_0: number): EmbindString | undefined;
+  set(_0: number, _1: EmbindString): boolean;
+}
+
 export interface DRW_Header extends ClassHandle {
   addDouble(_0: EmbindString, _1: number, _2: number): void;
   addInt(_0: EmbindString, _1: number, _2: number): void;
@@ -173,6 +181,9 @@ export interface DRW_Header extends ClassHandle {
   addCoord(_0: EmbindString, _1: DRW_Coord, _2: number): void;
   getComments(): string;
   addComment(_0: EmbindString): void;
+  getVarNames(): DRW_StringList;
+  getVar(_0: EmbindString): DRW_Variant | null;
+  clearVars(): void;
 }
 
 export interface DRW_VariantList extends ClassHandle {
@@ -646,6 +657,7 @@ export interface DRW_Spline extends DRW_Entity {
   tolcontrol: number;
   tolfit: number;
   knotslist: DRW_DoubleList;
+  weightlist: DRW_DoubleList;
   applyExtrusion(): void;
   getControlList(): DRW_CoordList;
   getFitList(): DRW_CoordList;
@@ -655,6 +667,7 @@ export interface DRW_HatchLoop extends ClassHandle {
   type: number;
   numedges: number;
   update(): void;
+  getObjList(): DRW_EntityList;
 }
 
 export interface DRW_Hatch extends DRW_Point {
@@ -1108,6 +1121,9 @@ interface EmbindModule {
   DRW_dbg_Level: {None: DRW_dbg_LevelValue<0>, Debug: DRW_dbg_LevelValue<1>};
   DRW_dbg: {
     getInstance(): DRW_dbg | null;
+  };
+  DRW_StringList: {
+    new(): DRW_StringList;
   };
   DRW_Header: {
     new(): DRW_Header;

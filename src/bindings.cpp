@@ -209,7 +209,8 @@ EMSCRIPTEN_BINDINGS(DRW_dbg) {
 }
 
 EMSCRIPTEN_BINDINGS(DRW_Header) {
-  // register_map<std::string, DRW_Variant*>("map<string, DRW_Variant>");
+  register_vector<std::string>("DRW_StringList");
+  // register_map<std::string, DRW_Variant*>("DRW_VarMap");
   // register_pointer<std::unique_ptr<dxfWriter>>("DRW_UniquePtr_dxfWriter");
 
   class_<DRW_Header>("DRW_Header")
@@ -220,8 +221,11 @@ EMSCRIPTEN_BINDINGS(DRW_Header) {
     .function("addCoord", &DRW_Header::addCoord)
     .function("getComments", &DRW_Header::getComments)
     // .function("write", &DRW_Header::write)
-    .function("addComment", &DRW_Header::addComment);
-    // .property("vars", &DRW_Header::vars);
+    .function("addComment", &DRW_Header::addComment)
+    .function("getVarNames", &DRW_Header::getVarNames)
+    .function("getVar", &DRW_Header::getVar, allow_raw_pointer<DRW_Variant*>())
+    .function("clearVars", &DRW_Header::clearVars);
+    //.property("vars", &DRW_Header::vars);
 }
 
 EMSCRIPTEN_BINDINGS(DRW_Objects) {
@@ -246,7 +250,7 @@ EMSCRIPTEN_BINDINGS(DRW_Objects) {
     .property("parentHandle", &DRW_TableEntry::parentHandle)
     .property("name", &DRW_TableEntry::name)
     .property("flags", &DRW_TableEntry::flags)
-    .property("extData", &DRW_TableEntry::extData);
+    .property("extData", &DRW_TableEntry::extData, return_value_policy::reference());
 
   class_<DRW_Dimstyle, base<DRW_TableEntry>>("DRW_Dimstyle")
     .constructor<>()
@@ -326,7 +330,7 @@ EMSCRIPTEN_BINDINGS(DRW_Objects) {
     .property("desc", &DRW_LType::desc)
     .property("size", &DRW_LType::size)
     .property("length", &DRW_LType::length)
-    .property("path", &DRW_LType::path);
+    .property("path", &DRW_LType::path, return_value_policy::reference());
 
   class_<DRW_Layer, base<DRW_TableEntry>>("DRW_Layer")
     .constructor<>()
@@ -336,15 +340,15 @@ EMSCRIPTEN_BINDINGS(DRW_Objects) {
     .property("color24", &DRW_Layer::color24)
     .property("plotF", &DRW_Layer::plotF)
     .property("lWeight", &DRW_Layer::lWeight)
-    .property("handlePlotS", &DRW_Layer::handlePlotS)
-    .property("handleMaterialS", &DRW_Layer::handleMaterialS)
-    .property("lTypeH", &DRW_Layer::lTypeH);
+    .property("handlePlotS", &DRW_Layer::handlePlotS, return_value_policy::reference())
+    .property("handleMaterialS", &DRW_Layer::handleMaterialS, return_value_policy::reference())
+    .property("lTypeH", &DRW_Layer::lTypeH, return_value_policy::reference());
 
   class_<DRW_Block_Record, base<DRW_TableEntry>>("DRW_Block_Record")
     .constructor<>()
     .function("reset", &DRW_Block_Record::reset)
     .property("insUnits", &DRW_Block_Record::insUnits)
-    .property("basePoint", &DRW_Block_Record::basePoint);
+    .property("basePoint", &DRW_Block_Record::basePoint, return_value_policy::reference());
 
   class_<DRW_Textstyle, base<DRW_TableEntry>>("DRW_Textstyle")  
     .constructor()
@@ -361,14 +365,14 @@ EMSCRIPTEN_BINDINGS(DRW_Objects) {
   class_<DRW_Vport, base<DRW_TableEntry>>("DRW_Vport")
     .constructor<>()
     .function("reset", &DRW_Vport::reset)
-    .property("lowerLeft", &DRW_Vport::lowerLeft)
-    .property("UpperRight", &DRW_Vport::UpperRight)
-    .property("center", &DRW_Vport::center)
-    .property("snapBase", &DRW_Vport::snapBase)
-    .property("snapSpacing", &DRW_Vport::snapSpacing)
-    .property("gridSpacing", &DRW_Vport::gridSpacing)
-    .property("viewDir", &DRW_Vport::viewDir)
-    .property("viewTarget", &DRW_Vport::viewTarget)
+    .property("lowerLeft", &DRW_Vport::lowerLeft, return_value_policy::reference())
+    .property("UpperRight", &DRW_Vport::UpperRight, return_value_policy::reference())
+    .property("center", &DRW_Vport::center, return_value_policy::reference())
+    .property("snapBase", &DRW_Vport::snapBase, return_value_policy::reference())
+    .property("snapSpacing", &DRW_Vport::snapSpacing, return_value_policy::reference())
+    .property("gridSpacing", &DRW_Vport::gridSpacing, return_value_policy::reference())
+    .property("viewDir", &DRW_Vport::viewDir, return_value_policy::reference())
+    .property("viewTarget", &DRW_Vport::viewTarget, return_value_policy::reference())
     .property("height", &DRW_Vport::height)
     .property("ratio", &DRW_Vport::ratio)
     .property("lensHeight", &DRW_Vport::lensHeight)
@@ -397,7 +401,7 @@ EMSCRIPTEN_BINDINGS(DRW_Objects) {
     .property("vp", &DRW_ImageDef::vp)
     .property("loaded", &DRW_ImageDef::loaded)
     .property("resolution", &DRW_ImageDef::resolution);
-    //.property("reactors", &DRW_ImageDef::reactors);
+    //.property("reactors", &DRW_ImageDef::reactors, return_value_policy::reference());
 
   class_<DRW_AppId, base<DRW_TableEntry>>("DRW_AppId")
     .constructor<>()
@@ -463,9 +467,9 @@ EMSCRIPTEN_BINDINGS(DRW_entities) {
     .property("ltypeScale", &DRW_Entity::ltypeScale)
     .property("visible", &DRW_Entity::visible)
     .property("numProxyGraph", &DRW_Entity::numProxyGraph)
-    .property("proxyGraphics", &DRW_Entity::proxyGraphics)
+    .property("proxyGraphics", &DRW_Entity::proxyGraphics, return_value_policy::reference())
     .property("color24", &DRW_Entity::color24)
-    .property("colorName", &DRW_Entity::colorName)
+    .property("colorName", &DRW_Entity::colorName, return_value_policy::reference())
     .property("transparency", &DRW_Entity::transparency)
     .property("plotStyle", &DRW_Entity::plotStyle)
     .property("shadow", &DRW_Entity::shadow)
@@ -475,14 +479,14 @@ EMSCRIPTEN_BINDINGS(DRW_entities) {
   class_<DRW_Point, emscripten::base<DRW_Entity>>("DRW_Point")
     .constructor<>()
     .function("applyExtrusion", &DRW_Point::applyExtrusion)
-    .property("basePoint", &DRW_Point::basePoint)
+    .property("basePoint", &DRW_Point::basePoint, return_value_policy::reference())
     .property("thickness", &DRW_Point::thickness)
-    .property("extPoint", &DRW_Point::extPoint);
+    .property("extPoint", &DRW_Point::extPoint, return_value_policy::reference());
 
   class_<DRW_Line, base<DRW_Point>>("DRW_Line")
     .constructor<>()
     .function("applyExtrusion", &DRW_Line::applyExtrusion)
-    .property("secPoint", &DRW_Line::secPoint);
+    .property("secPoint", &DRW_Line::secPoint, return_value_policy::reference());
 
   class_<DRW_Ray, base<DRW_Line>>("DRW_Ray")
     .constructor<>();
@@ -520,8 +524,8 @@ EMSCRIPTEN_BINDINGS(DRW_entities) {
   class_<DRW_Trace, base<DRW_Line>>("DRW_Trace")
     .constructor<>()
     .function("applyExtrusion", &DRW_Trace::applyExtrusion)
-    .property("thirdPoint", &DRW_Trace::thirdPoint)
-    .property("fourPoint", &DRW_Trace::fourPoint);
+    .property("thirdPoint", &DRW_Trace::thirdPoint, return_value_policy::reference())
+    .property("fourPoint", &DRW_Trace::fourPoint, return_value_policy::reference());
 
   class_<DRW_Solid, base<DRW_Trace>>("DRW_Solid")
     .constructor<>()
@@ -583,7 +587,7 @@ EMSCRIPTEN_BINDINGS(DRW_entities) {
     .property("width", &DRW_LWPolyline::width)
     .property("elevation", &DRW_LWPolyline::elevation)
     .property("thickness", &DRW_LWPolyline::thickness)
-    .property("extPoint", &DRW_LWPolyline::extPoint)
+    .property("extPoint", &DRW_LWPolyline::extPoint, return_value_policy::reference())
     .property("vertex", &DRW_LWPolyline::vertex);
     // .property("vertlist", &DRW_LWPolyline::vertlist);
 
@@ -612,7 +616,7 @@ EMSCRIPTEN_BINDINGS(DRW_entities) {
     .property("textgen", &DRW_Text::textgen)
     .property("alignH", &DRW_Text::alignH)
     .property("alignV", &DRW_Text::alignV)
-    .property("styleH", &DRW_Text::styleH)
+    .property("styleH", &DRW_Text::styleH, return_value_policy::reference())
     .function("applyExtrusion", &DRW_Text::applyExtrusion);
 
   enum_<DRW_MText::Attach>("Attach")
@@ -666,9 +670,9 @@ EMSCRIPTEN_BINDINGS(DRW_entities) {
     .function("applyExtrusion", &DRW_Spline::applyExtrusion)
     .function("getControlList", &DRW_Spline::getControlList)
     .function("getFitList", &DRW_Spline::getFitList)
-    .property("normalVec", &DRW_Spline::normalVec)
-    .property("tgStart", &DRW_Spline::tgStart)
-    .property("tgEnd", &DRW_Spline::tgEnd)
+    .property("normalVec", &DRW_Spline::normalVec, return_value_policy::reference())
+    .property("tgStart", &DRW_Spline::tgStart, return_value_policy::reference())
+    .property("tgEnd", &DRW_Spline::tgEnd, return_value_policy::reference())
     .property("flags", &DRW_Spline::flags)
     .property("degree", &DRW_Spline::degree)
     .property("nknots", &DRW_Spline::nknots)
@@ -677,13 +681,15 @@ EMSCRIPTEN_BINDINGS(DRW_entities) {
     .property("tolknot", &DRW_Spline::tolknot)
     .property("tolcontrol", &DRW_Spline::tolcontrol)
     .property("tolfit", &DRW_Spline::tolfit)
-    .property("knotslist", &DRW_Spline::knotslist);
+    .property("knotslist", &DRW_Spline::knotslist, return_value_policy::reference())
+    .property("weightlist", &DRW_Spline::weightlist, return_value_policy::reference());
     // .property("controllist", &DRW_Spline::controllist)
     // .property("fitlist", &DRW_Spline::fitlist);
 
   class_<DRW_HatchLoop>("DRW_HatchLoop")
     .constructor<int>()
     .function("update", &DRW_HatchLoop::update)
+    .function("getObjList", &DRW_HatchLoop::getObjList)
     .property("type", &DRW_HatchLoop::type)
     .property("numedges", &DRW_HatchLoop::numedges);
     // .property("objlist", &DRW_HatchLoop::objlist);
@@ -707,7 +713,7 @@ EMSCRIPTEN_BINDINGS(DRW_entities) {
   class_<DRW_Image, base<DRW_Line>>("DRW_Image")
     .constructor<>()
     .property("ref", &DRW_Image::ref)
-    .property("vVector", &DRW_Image::vVector)
+    .property("vVector", &DRW_Image::vVector, return_value_policy::reference())
     .property("sizeu", &DRW_Image::sizeu)
     .property("sizev", &DRW_Image::sizev)
     .property("dz", &DRW_Image::dz)
@@ -829,10 +835,10 @@ EMSCRIPTEN_BINDINGS(DRW_entities) {
     .property("vertnum", &DRW_Leader::vertnum)
     .property("coloruse", &DRW_Leader::coloruse)
     .property("annotHandle", &DRW_Leader::annotHandle)
-    .property("extrusionPoint", &DRW_Leader::extrusionPoint)
-    .property("horizdir", &DRW_Leader::horizdir)
-    .property("offsetblock", &DRW_Leader::offsetblock)
-    .property("offsettext", &DRW_Leader::offsettext);
+    .property("extrusionPoint", &DRW_Leader::extrusionPoint, return_value_policy::reference())
+    .property("horizdir", &DRW_Leader::horizdir, return_value_policy::reference())
+    .property("offsetblock", &DRW_Leader::offsetblock, return_value_policy::reference())
+    .property("offsettext", &DRW_Leader::offsettext, return_value_policy::reference());
     // .property("vertexList", &DRW_Leader::vertexlist);
 
   class_<DRW_Viewport, base<DRW_Point>>("DRW_Viewport")
@@ -848,8 +854,8 @@ EMSCRIPTEN_BINDINGS(DRW_entities) {
     .property("snapPY", &DRW_Viewport::snapPY)
     .property("snapSpPX", &DRW_Viewport::snapSpPX)
     .property("snapSpPY", &DRW_Viewport::snapSpPY)
-    .property("viewDir", &DRW_Viewport::viewDir)
-    .property("viewTarget", &DRW_Viewport::viewTarget)
+    .property("viewDir", &DRW_Viewport::viewDir, return_value_policy::reference())
+    .property("viewTarget", &DRW_Viewport::viewTarget, return_value_policy::reference())
     .property("viewLength", &DRW_Viewport::viewLength)
     .property("frontClip", &DRW_Viewport::frontClip)
     .property("backClip", &DRW_Viewport::backClip)
@@ -976,25 +982,25 @@ EMSCRIPTEN_BINDINGS(DRW_reader) {
   class_<dx_ifaceImg>("dx_ifaceImg")
     .constructor<>()
     .constructor<const DRW_Image&>()
-    .property("path", &dx_ifaceImg::path);
+    .property("path", &dx_ifaceImg::path, return_value_policy::reference());
 
   class_<dx_ifaceBlock, base<DRW_Block>>("dx_ifaceBlock")
     .constructor<>()
     .constructor<const DRW_Block&>()
-    .property("ent", &dx_ifaceBlock::ent);
+    .property("ent", &dx_ifaceBlock::ent, return_value_policy::reference());
 
   class_<dx_data>("dx_data")
     .constructor<>()
-    .property("headerC", &dx_data::headerC)
-    .property("lineTypes", &dx_data::lineTypes)
-    .property("layers", &dx_data::layers)
-    .property("dimStyles", &dx_data::dimStyles)
-    .property("viewports", &dx_data::viewports)
-    .property("textStyles", &dx_data::textStyles)
-    .property("appIds", &dx_data::appIds)
-    .property("blocks", &dx_data::blocks)
-    .property("images", &dx_data::images)
-    .property("mBlock", &dx_data::mBlock, allow_raw_pointer<dx_ifaceBlock*>());
+    .property("headerC", &dx_data::headerC, return_value_policy::reference())
+    .property("lineTypes", &dx_data::lineTypes, return_value_policy::reference())
+    .property("layers", &dx_data::layers, return_value_policy::reference())
+    .property("dimStyles", &dx_data::dimStyles, return_value_policy::reference())
+    .property("viewports", &dx_data::viewports, return_value_policy::reference())
+    .property("textStyles", &dx_data::textStyles, return_value_policy::reference())
+    .property("appIds", &dx_data::appIds, return_value_policy::reference())
+    .property("blocks", &dx_data::blocks, return_value_policy::reference())
+    .property("images", &dx_data::images, return_value_policy::reference())
+    .property("mBlock", &dx_data::mBlock, return_value_policy::reference(), allow_raw_pointer<dx_ifaceBlock*>());
 
   class_<dx_iface, base<DRW_Interface>>("dx_iface")
     .constructor<>()
