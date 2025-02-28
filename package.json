@@ -3,7 +3,7 @@
   "description": "a webassembly version of libdxfrw, which can read/write DXF files (in both formats, ascii and binary form) and read DWG files from AutoCAD R14 to AutoCAD 2020.",
   "license": "MIT",
   "private": false,
-  "version": "0.0.1",
+  "version": "0.0.3",
   "author": "MLight Lee <mlight.lee@outlook.com>",
   "repository": {
     "type": "git",
@@ -19,12 +19,11 @@
     "mlight",
     "mlightcad"
   ],
-  "type": "module",
   "files": [
     "dist",
     "README.md",
     "package.json"
   ],
-  "main": "./dist/libdxfrw.js",
+  "module": "./dist/libdxfrw.js",
   "types": "./dist/libdxfrw.d.ts"
 }
