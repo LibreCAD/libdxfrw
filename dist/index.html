@@ -47,18 +47,9 @@
     <ul id="entityInfoList"></ul>
     <ul id="vertexesList"></ul>
 
-    <script>
-        // Create a flag to check if the module is initialized
-        let isModuleInitialized = false;
-
-        // Define the Module object
-        var Module = {
-            onRuntimeInitialized: function() {
-                isModuleInitialized = true;
-                console.log('WebAssembly module initialized');
-            }
-        };
-        var libdxfrw = Module;
+    <script type="module">
+        // load libdxfrw webassembly module
+        const libdxfrw = await createModule();
 
         const printItems = (id, items, itemName = 'name', subItemName = undefined) => {
             // Clear previous item list
@@ -200,55 +191,49 @@
                 // Define the callback function for when the file is read
                 reader.onload = function(e) {
                     const fileContent = e.target.result;
+                    try {
+                        const data = new libdxfrw.dx_data();
+                        const iface = new libdxfrw.dx_iface();
+                        iface.cData = data;
 
-                    // Wait for the WebAssembly module to be initialized
-                    if (isModuleInitialized) {
-                        try {
-                            const data = new libdxfrw.dx_data();
-                            const iface = new libdxfrw.dx_iface();
-                            iface.cData = data;
+                        if (fileExtension == 'dxf') {
+                            const dxf = new libdxfrw.dxfRW(fileContent);
 
-                            if (fileExtension == 'dxf') {
-                                const dxf = new libdxfrw.dxfRW(fileContent);
+                            // Uncomment out the following line if you want to show debug info
+                            // dxf.setDebug(libdxfrw.DRW_dbg_Level.Debug);
 
-                                // Uncomment out the following line if you want to show debug info
-                                // dxf.setDebug(libdxfrw.DRW_dbg_Level.Debug);
-
-                                const result = dxf.read(iface, false);
-
-                                // Manually signal that a C++ object is no longer needed and can be deleted.
-                                dxf.delete();
-                            } else if (fileExtension == 'dwg') {
-                                const dwg = new libdxfrw.dwgR(fileContent);
-
-                                // Uncomment out the following line if you want to show debug info
-                                // dwg.setDebug(libdxfrw.DRW_dbg_Level.Debug);
-
-                                const result = dwg.read(iface, false);
-
-                                // Manually signal that a C++ object is no longer needed and can be deleted.
-                                dwg.delete();
-
-                                convertButton.disabled = false;
-                            }
-
-                            printItems('layerNamesList', iface.cData.layers);
-                            printItems('lineTypesList', iface.cData.lineTypes);
-                            printItems('textStylesList', iface.cData.textStyles);
-                            printItems('dimStylesList', iface.cData.dimStyles);
-                            printItems('viewportsList', iface.cData.viewports);
-                            printItems('blocksList', iface.cData.blocks, 'name', 'ent');
-                            printItems('imagesList', iface.cData.images, 'path');
-                            printEntityStats('entitiesList', iface.cData.mBlock.ent);
+                            const result = dxf.read(iface, false);
 
                             // Manually signal that a C++ object is no longer needed and can be deleted.
-                            data.delete();
-                            iface.delete();
-                        } catch (error) {
-                            console.error('Error processing DXF/DWG file: ', error);
+                            dxf.delete();
+                        } else if (fileExtension == 'dwg') {
+                            const dwg = new libdxfrw.dwgR(fileContent);
+
+                            // Uncomment out the following line if you want to show debug info
+                            // dwg.setDebug(libdxfrw.DRW_dbg_Level.Debug);
+
+                            const result = dwg.read(iface, false);
+
+                            // Manually signal that a C++ object is no longer needed and can be deleted.
+                            dwg.delete();
+
+                            convertButton.disabled = false;
                         }
-                    } else {
-                        console.error('WebAssembly module not yet initialized');
+
+                        printItems('layerNamesList', iface.cData.layers);
+                        printItems('lineTypesList', iface.cData.lineTypes);
+                        printItems('textStylesList', iface.cData.textStyles);
+                        printItems('dimStylesList', iface.cData.dimStyles);
+                        printItems('viewportsList', iface.cData.viewports);
+                        printItems('blocksList', iface.cData.blocks, 'name', 'ent');
+                        printItems('imagesList', iface.cData.images, 'path');
+                        printEntityStats('entitiesList', iface.cData.mBlock.ent);
+
+                        // Manually signal that a C++ object is no longer needed and can be deleted.
+                        data.delete();
+                        iface.delete();
+                    } catch (error) {
+                        console.error('Error processing DXF/DWG file: ', error);
                     }
                 };
 
@@ -263,8 +248,6 @@
                 console.log('No file selected');
             }
         });
-
-
     </script>
     <script src="libdxfrw.js"></script>
 </body>
