@@ -1,23 +1,27 @@
 {
   "name": "@mlightcad/libdxfrw-web",
   "description": "a webassembly version of libdxfrw, which can read/write DXF files (in both formats, ascii and binary form) and read DWG files from AutoCAD R14 to AutoCAD 2020.",
-  "license": "MIT",
+  "license": "GPL-2.0-only",
   "private": false,
-  "version": "0.0.6",
+  "version": "0.0.7",
   "author": "MLight Lee <mlight.lee@outlook.com>",
   "repository": {
     "type": "git",
     "url": "git://github.com/mlight-lee/libdxfrw"
   },
   "keywords": [
-    "libdxfrw",
-    "dxf",
-    "dwg",
     "AutoCAD",
     "cad",
-    "webassembly",
+    "dxf",
+    "dxf-reader",
+    "dxf-writer",
+    "dwg",
+    "dwg-reader",
+    "libdxfrw",
     "mlight",
-    "mlightcad"
+    "mlightcad",
+    "wasm",
+    "webassembly"
   ],
   "scripts": {
     "build": "cd build/src && emmake make && emcc -O2 -lembind *.o intern/*.o -o libdxfrw.js -s ALLOW_MEMORY_GROWTH=1 -s -s MODULARIZE=1 -s EXPORT_NAME=\"createModule\" --emit-tsd libdxfrw.d.ts",

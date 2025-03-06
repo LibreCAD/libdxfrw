@@ -121,8 +121,8 @@ EMSCRIPTEN_BINDINGS(DRW_base) {
     .constructor<double, double, double>()
     .property("x", &DRW_Vertex2D::x)
     .property("y", &DRW_Vertex2D::y)
-    .property("stawidth", &DRW_Vertex2D::stawidth)
-    .property("endwidth", &DRW_Vertex2D::endwidth)
+    .property("startWidth", &DRW_Vertex2D::stawidth)
+    .property("endWidth", &DRW_Vertex2D::endwidth)
     .property("bulge", &DRW_Vertex2D::bulge);
 
   enum_<DRW_Variant::TYPE>("DRW_VariantType")
@@ -991,7 +991,7 @@ EMSCRIPTEN_BINDINGS(DRW_reader) {
   class_<dx_ifaceBlock, base<DRW_Block>>("dx_ifaceBlock")
     .constructor<>()
     .constructor<const DRW_Block&>()
-    .property("ent", &dx_ifaceBlock::ent, return_value_policy::reference());
+    .property("entities", &dx_ifaceBlock::ent, return_value_policy::reference());
 
   class_<dx_data>("dx_data")
     .constructor<>()

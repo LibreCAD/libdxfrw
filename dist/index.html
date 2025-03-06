@@ -118,7 +118,7 @@
                 if (!group.has(typeName)) {
                     group.set(typeName, 0);
                 }
-                if (!isFoundPolyline && (typeName == "DRW_ETYPE_LWPOLYLINE" || typeName == "DRW_ETYPE_POLYLINE")) {
+                if (!isFoundPolyline && (entity.eType == libdxfrw.DRW_ETYPE.LWPOLYLINE || entity.eType == libdxfrw.DRW_ETYPE.POLYLINE)) {
                     printEntityInfo("entityInfoList", entity);
                     printVertexesInTheFirstPolyline("vertexesList", entity);
                     isFoundPolyline = true;

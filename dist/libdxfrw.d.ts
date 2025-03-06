@@ -109,8 +109,8 @@ export interface DRW_Coord extends ClassHandle {
 export interface DRW_Vertex2D extends ClassHandle {
   x: number;
   y: number;
-  stawidth: number;
-  endwidth: number;
+  startWidth: number;
+  endWidth: number;
   bulge: number;
 }
 
@@ -1011,7 +1011,7 @@ export interface dx_ifaceImg extends DRW_Image {
 }
 
 export interface dx_ifaceBlock extends DRW_Block {
-  ent: DRW_EntityList;
+  entities: DRW_EntityList;
 }
 
 export interface dx_data extends ClassHandle {
