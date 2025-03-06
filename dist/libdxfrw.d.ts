@@ -660,7 +660,7 @@ export interface DRW_Spline extends DRW_Entity {
   flags: number;
   degree: number;
   numberOfKnots: number;
-  numberOfControlPoints: number;
+  numberOfControls: number;
   numberOfFits: number;
   tolKnot: number;
   tolControl: number;
@@ -681,8 +681,8 @@ export interface DRW_HatchLoop extends ClassHandle {
 
 export type DRW_HatchPattenLine = {
   angle: number,
-  origin: DRW_Coord,
-  delta: DRW_Coord,
+  base: DRW_Coord,
+  offset: DRW_Coord,
   dashPattern: DRW_DoubleList
 };
 
@@ -691,8 +691,8 @@ export interface DRW_Hatch extends DRW_Point {
   set name(value: EmbindString);
   solid: number;
   associative: number;
-  hStyle: number;
-  hPattern: number;
+  hatchStyle: number;
+  patternType: number;
   doubleFlag: number;
   numberOfLoops: number;
   angle: number;

@@ -895,8 +895,8 @@ public:
 
 struct DRW_HatchPattenLine {
     double angle;
-    DRW_Coord origin;
-    DRW_Coord delta;
+    DRW_Coord base;
+    DRW_Coord offset;
     std::vector<double> dashPattern;
 };
 

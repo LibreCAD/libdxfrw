@@ -678,7 +678,7 @@ EMSCRIPTEN_BINDINGS(DRW_entities) {
     .property("flags", &DRW_Spline::flags)
     .property("degree", &DRW_Spline::degree)
     .property("numberOfKnots", &DRW_Spline::nknots)
-    .property("numberOfControlPoints", &DRW_Spline::ncontrol)
+    .property("numberOfControls", &DRW_Spline::ncontrol)
     .property("numberOfFits", &DRW_Spline::nfit)
     .property("tolKnot", &DRW_Spline::tolknot)
     .property("tolControl", &DRW_Spline::tolcontrol)
@@ -698,8 +698,8 @@ EMSCRIPTEN_BINDINGS(DRW_entities) {
 
   value_object<DRW_HatchPattenLine>("DRW_HatchPattenLine")
     .field("angle", &DRW_HatchPattenLine::angle)
-    .field("origin", &DRW_HatchPattenLine::origin)
-    .field("delta", &DRW_HatchPattenLine::delta)
+    .field("base", &DRW_HatchPattenLine::base)
+    .field("offset", &DRW_HatchPattenLine::offset)
     .field("dashPattern", &DRW_HatchPattenLine::dashPattern);
 
   class_<DRW_Hatch, base<DRW_Point>>("DRW_Hatch")
@@ -709,14 +709,14 @@ EMSCRIPTEN_BINDINGS(DRW_entities) {
     .property("name", &DRW_Hatch::name)
     .property("solid", &DRW_Hatch::solid)
     .property("associative", &DRW_Hatch::associative)
-    .property("hStyle", &DRW_Hatch::hstyle)
-    .property("hPattern", &DRW_Hatch::hpattern)
+    .property("hatchStyle", &DRW_Hatch::hstyle)
+    .property("patternType", &DRW_Hatch::hpattern)
     .property("doubleFlag", &DRW_Hatch::doubleflag)
     .property("numberOfLoops", &DRW_Hatch::loopsnum)
     .property("angle", &DRW_Hatch::angle)
     .property("scale", &DRW_Hatch::scale)
     .property("numberOfDefinitionLines", &DRW_Hatch::deflines)
-    .property("definitionLines", &DRW_Hatch::deflinelist);
+    .property("definitionLines", &DRW_Hatch::deflinelist, return_value_policy::reference());
     // .property("looplist", &DRW_Hatch::looplist);
 
   class_<DRW_Image, base<DRW_Line>>("DRW_Image")

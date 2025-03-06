@@ -1975,19 +1975,21 @@ bool DRW_Hatch::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
         doubleflag = buf->getBit();
         deflines = buf->getBitShort();
         for (dint32 i = 0 ; i < deflines; ++i){
-            DRW_Coord ptL, offL;
-            double angleL = buf->getBitDouble();
-            ptL.x = buf->getBitDouble();
-            ptL.y = buf->getBitDouble();
-            offL.x = buf->getBitDouble();
-            offL.y = buf->getBitDouble();
+            DRW_HatchPattenLine patternLine;
+            patternLine.angle = buf->getBitDouble();
+            patternLine.base.x = buf->getBitDouble();
+            patternLine.base.y = buf->getBitDouble();
+            patternLine.offset.x = buf->getBitDouble();
+            patternLine.offset.y = buf->getBitDouble();
             duint16 numDashL = buf->getBitShort();
-            DRW_DBG("\ndef line: "); DRW_DBG(angleL); DRW_DBG(","); DRW_DBG(ptL.x); DRW_DBG(","); DRW_DBG(ptL.y);
-            DRW_DBG(","); DRW_DBG(offL.x); DRW_DBG(","); DRW_DBG(offL.y); DRW_DBG(","); DRW_DBG(angleL);
+            DRW_DBG("\ndef line: "); DRW_DBG(patternLine.angle); DRW_DBG(","); DRW_DBG(patternLine.base.x); DRW_DBG(","); DRW_DBG(patternLine.base.y);
+            DRW_DBG(","); DRW_DBG(patternLine.offset.x); DRW_DBG(","); DRW_DBG(patternLine.offset.y); DRW_DBG(","); DRW_DBG(patternLine.angle);
             for (duint16 i = 0 ; i < numDashL; ++i){
                 double lengthL = buf->getBitDouble();
+                patternLine.dashPattern.push_back(lengthL);
                 DRW_DBG(","); DRW_DBG(lengthL);
             }
+            deflinelist.push_back(patternLine);
         }//end deflines
     } //end not solid
 
