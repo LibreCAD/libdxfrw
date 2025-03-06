@@ -12,40 +12,40 @@
 
     <!-- Element to display Layer Names -->
     <h2>Layer Names:</h2>
-    <ul id="layerNamesList"></ul>
+    <ul id="layerNameList"></ul>
 
     <!-- Element to display Line Types -->
     <h2>Line Types:</h2>
-    <ul id="lineTypesList"></ul>
+    <ul id="lineTypeList"></ul>
 
     <!-- Element to display Text Styles -->
     <h2>Text Styles:</h2>
-    <ul id="textStylesList"></ul>
+    <ul id="textStyleList"></ul>
 
     <!-- Element to display Dimensionn Styles -->
     <h2>Dimension Styles:</h2>
-    <ul id="dimStylesList"></ul>
+    <ul id="dimStyleList"></ul>
 
     <!-- Element to display Viewports -->
     <h2>Viewports:</h2>
-    <ul id="viewportsList"></ul>
+    <ul id="viewportList"></ul>
 
     <!-- Element to display Blocks -->
     <h2>Blocks:</h2>
-    <ul id="blocksList"></ul>
+    <ul id="blockList"></ul>
 
     <!-- Element to display Images -->
     <h2>Images:</h2>
-    <ul id="imagesList"></ul>
+    <ul id="imageList"></ul>
 
     <!-- Element to display Entity Stats -->
     <h2>Entities:</h2>
-    <ul id="entitiesList"></ul>
+    <ul id="entityList"></ul>
 
     <!-- Element to display vertexes and other information in the first polyline entity -->
     <h2>The First Polyline:</h2>
     <ul id="entityInfoList"></ul>
-    <ul id="vertexesList"></ul>
+    <ul id="vertexList"></ul>
 
     <script type="module">
         // load libdxfrw webassembly module
@@ -120,7 +120,7 @@
                 }
                 if (!isFoundPolyline && (entity.eType == libdxfrw.DRW_ETYPE.LWPOLYLINE || entity.eType == libdxfrw.DRW_ETYPE.POLYLINE)) {
                     printEntityInfo("entityInfoList", entity);
-                    printVertexesInTheFirstPolyline("vertexesList", entity);
+                    printVertexesInTheFirstPolyline("vertexList", entity);
                     isFoundPolyline = true;
                 }
                 // Increment the count for the current group
@@ -147,19 +147,19 @@
                 const fileContent = event.target.result;
 
                 // Parse DWG file 
-                const data = new libdxfrw.dx_data();
-                const iface = new libdxfrw.dx_iface();
-                iface.cData = data;
-                if (!iface.fileImport(fileContent, data, false, false)) {
+                const database = new libdxfrw.DRW_Database();
+                const fileHandler = new libdxfrw.DRW_FileHandler();
+                fileHandler.database = database;
+                if (!fileHandler.fileImport(fileContent, database, false, false)) {
                     console.error('Failed to parse the selected file!');
                 }
 
                 // Write as DXF string
-                const dxfContent = iface.fileExport(libdxfrw.DRW_Version.AC1021, false, data, false);
+                const dxfContent = fileHandler.fileExport(libdxfrw.DRW_Version.AC1021, false, database, false);
 
                 // Manually signal that a C++ object is no longer needed and can be deleted.
-                data.delete();
-                iface.delete();
+                database.delete();
+                fileHandler.delete();
 
                 // Create a new Blob with the file content
                 const blob = new Blob([dxfContent], { type: 'text/plain' });
@@ -192,9 +192,9 @@
                 reader.onload = function(e) {
                     const fileContent = e.target.result;
                     try {
-                        const data = new libdxfrw.dx_data();
-                        const iface = new libdxfrw.dx_iface();
-                        iface.cData = data;
+                        const database = new libdxfrw.DRW_Database();
+                        const fileHandler = new libdxfrw.DRW_FileHandler();
+                        fileHandler.database = database;
 
                         if (fileExtension == 'dxf') {
                             const dxf = new libdxfrw.DRW_DxfRW(fileContent);
@@ -202,7 +202,7 @@
                             // Uncomment out the following line if you want to show debug info
                             // dxf.setDebug(libdxfrw.DRW_Dbg_Level.Debug);
 
-                            const result = dxf.read(iface, false);
+                            const result = dxf.read(fileHandler, false);
 
                             // Manually signal that a C++ object is no longer needed and can be deleted.
                             dxf.delete();
@@ -212,7 +212,7 @@
                             // Uncomment out the following line if you want to show debug info
                             // dwg.setDebug(libdxfrw.DRW_Dbg_Level.Debug);
 
-                            const result = dwg.read(iface, false);
+                            const result = dwg.read(fileHandler, false);
 
                             // Manually signal that a C++ object is no longer needed and can be deleted.
                             dwg.delete();
@@ -220,18 +220,18 @@
                             convertButton.disabled = false;
                         }
 
-                        printItems('layerNamesList', iface.cData.layers);
-                        printItems('lineTypesList', iface.cData.lineTypes);
-                        printItems('textStylesList', iface.cData.textStyles);
-                        printItems('dimStylesList', iface.cData.dimStyles);
-                        printItems('viewportsList', iface.cData.viewports);
-                        printItems('blocksList', iface.cData.blocks, 'name', 'entities');
-                        printItems('imagesList', iface.cData.images, 'path');
-                        printEntityStats('entitiesList', iface.cData.mBlock.entities);
+                        printItems('layerNameList', fileHandler.database.layers);
+                        printItems('lineTypeList', fileHandler.database.lineTypes);
+                        printItems('textStyleList', fileHandler.database.textStyles);
+                        printItems('dimStyleList', fileHandler.database.dimStyles);
+                        printItems('viewportList', fileHandler.database.viewports);
+                        printItems('blockList', fileHandler.database.blocks, 'name', 'entities');
+                        printItems('imageList', fileHandler.database.images, 'path');
+                        printEntityStats('entityList', fileHandler.database.mBlock.entities);
 
                         // Manually signal that a C++ object is no longer needed and can be deleted.
-                        data.delete();
-                        iface.delete();
+                        database.delete();
+                        fileHandler.delete();
                     } catch (error) {
                         console.error('Error processing DXF/DWG file: ', error);
                     }

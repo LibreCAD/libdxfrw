@@ -986,19 +986,19 @@ EMSCRIPTEN_BINDINGS(DRW_reader) {
   register_vector<DRW_Textstyle>("DRW_TextstyleList");
   register_vector<DRW_AppId>("DRW_AppIdList");
   register_vector<dx_ifaceBlock*>("DRW_BlockList");
-  register_vector<dx_ifaceImg*>("DRW_ImgList");
+  register_vector<dx_ifaceImg*>("DRW_ImageList");
 
-  class_<dx_ifaceImg, base<DRW_Image>>("dx_ifaceImg")
+  class_<dx_ifaceImg, base<DRW_Image>>("DRW_ImageEx")
     .constructor<>()
     .constructor<const DRW_Image&>()
     .property("path", &dx_ifaceImg::path, return_value_policy::reference());
 
-  class_<dx_ifaceBlock, base<DRW_Block>>("dx_ifaceBlock")
+  class_<dx_ifaceBlock, base<DRW_Block>>("DRW_BlockEx")
     .constructor<>()
     .constructor<const DRW_Block&>()
     .property("entities", &dx_ifaceBlock::ent, return_value_policy::reference());
 
-  class_<dx_data>("dx_data")
+  class_<dx_data>("DRW_Database")
     .constructor<>()
     .property("header", &dx_data::headerC, return_value_policy::reference())
     .property("lineTypes", &dx_data::lineTypes, return_value_policy::reference())
@@ -1011,7 +1011,7 @@ EMSCRIPTEN_BINDINGS(DRW_reader) {
     .property("images", &dx_data::images, return_value_policy::reference())
     .property("mBlock", &dx_data::mBlock, return_value_policy::reference(), allow_raw_pointer<dx_ifaceBlock*>());
 
-  class_<dx_iface, base<DRW_Interface>>("dx_iface")
+  class_<dx_iface, base<DRW_Interface>>("DRW_FileHandler")
     .constructor<>()
     .function("fileImport", &dx_iface::fileImport, allow_raw_pointer<dx_data*>())
     .function("fileExport", &dx_iface::fileExport, allow_raw_pointer<dx_data*>())
@@ -1067,6 +1067,6 @@ EMSCRIPTEN_BINDINGS(DRW_reader) {
     .function("writeDimstyles", &dx_iface::writeDimstyles)
     .function("writeAppId", &dx_iface::writeAppId)
     .property("dxfW", &dx_iface::dxfW, allow_raw_pointer<dxfRW*>())
-    .property("cData", &dx_iface::cData, allow_raw_pointer<dx_data*>())
+    .property("database", &dx_iface::cData, allow_raw_pointer<dx_data*>())
     .property("currentBlock", &dx_iface::currentBlock, allow_raw_pointer<dx_ifaceBlock*>());
 }

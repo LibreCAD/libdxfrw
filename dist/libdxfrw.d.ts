@@ -1004,30 +1004,30 @@ export interface DRW_AppIdList extends ClassHandle {
 
 export interface DRW_BlockList extends ClassHandle {
   size(): number;
-  get(_0: number): dx_ifaceBlock | undefined;
-  push_back(_0: dx_ifaceBlock | null): void;
-  resize(_0: number, _1: dx_ifaceBlock | null): void;
-  set(_0: number, _1: dx_ifaceBlock | null): boolean;
+  get(_0: number): DRW_BlockEx | undefined;
+  push_back(_0: DRW_BlockEx | null): void;
+  resize(_0: number, _1: DRW_BlockEx | null): void;
+  set(_0: number, _1: DRW_BlockEx | null): boolean;
 }
 
-export interface DRW_ImgList extends ClassHandle {
+export interface DRW_ImageList extends ClassHandle {
   size(): number;
-  get(_0: number): dx_ifaceImg | undefined;
-  push_back(_0: dx_ifaceImg | null): void;
-  resize(_0: number, _1: dx_ifaceImg | null): void;
-  set(_0: number, _1: dx_ifaceImg | null): boolean;
+  get(_0: number): DRW_ImageEx | undefined;
+  push_back(_0: DRW_ImageEx | null): void;
+  resize(_0: number, _1: DRW_ImageEx | null): void;
+  set(_0: number, _1: DRW_ImageEx | null): boolean;
 }
 
-export interface dx_ifaceImg extends DRW_Image {
+export interface DRW_ImageEx extends DRW_Image {
   get path(): string;
   set path(value: EmbindString);
 }
 
-export interface dx_ifaceBlock extends DRW_Block {
+export interface DRW_BlockEx extends DRW_Block {
   entities: DRW_EntityList;
 }
 
-export interface dx_data extends ClassHandle {
+export interface DRW_Database extends ClassHandle {
   header: DRW_Header;
   lineTypes: DRW_LTypeList;
   layers: DRW_LayerList;
@@ -1036,16 +1036,16 @@ export interface dx_data extends ClassHandle {
   textStyles: DRW_TextstyleList;
   appIds: DRW_AppIdList;
   blocks: DRW_BlockList;
-  images: DRW_ImgList;
-  mBlock: dx_ifaceBlock | null;
+  images: DRW_ImageList;
+  mBlock: DRW_BlockEx | null;
 }
 
-export interface dx_iface extends DRW_Interface {
+export interface DRW_FileHandler extends DRW_Interface {
   dxfW: DRW_DxfRW | null;
-  cData: dx_data | null;
-  currentBlock: dx_ifaceBlock | null;
-  fileImport(_0: EmbindString, _1: dx_data | null, _2: boolean, _3: boolean): boolean;
-  fileExport(_0: DRW_Version, _1: boolean, _2: dx_data | null, _3: boolean): string;
+  database: DRW_Database | null;
+  currentBlock: DRW_BlockEx | null;
+  fileImport(_0: EmbindString, _1: DRW_Database | null, _2: boolean, _3: boolean): boolean;
+  fileExport(_0: DRW_Version, _1: boolean, _2: DRW_Database | null, _3: boolean): string;
   writeEntity(_0: DRW_Entity | null): void;
   addHeader(_0: DRW_Header | null): void;
   addLType(_0: DRW_LType): void;
@@ -1330,22 +1330,22 @@ interface EmbindModule {
   DRW_BlockList: {
     new(): DRW_BlockList;
   };
-  DRW_ImgList: {
-    new(): DRW_ImgList;
+  DRW_ImageList: {
+    new(): DRW_ImageList;
   };
-  dx_ifaceImg: {
-    new(): dx_ifaceImg;
-    new(_0: DRW_Image): dx_ifaceImg;
+  DRW_ImageEx: {
+    new(): DRW_ImageEx;
+    new(_0: DRW_Image): DRW_ImageEx;
   };
-  dx_ifaceBlock: {
-    new(): dx_ifaceBlock;
-    new(_0: DRW_Block): dx_ifaceBlock;
+  DRW_BlockEx: {
+    new(): DRW_BlockEx;
+    new(_0: DRW_Block): DRW_BlockEx;
   };
-  dx_data: {
-    new(): dx_data;
+  DRW_Database: {
+    new(): DRW_Database;
   };
-  dx_iface: {
-    new(): dx_iface;
+  DRW_FileHandler: {
+    new(): DRW_FileHandler;
   };
 }
 
