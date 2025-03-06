@@ -225,9 +225,9 @@
                         printItems('textStylesList', iface.cData.textStyles);
                         printItems('dimStylesList', iface.cData.dimStyles);
                         printItems('viewportsList', iface.cData.viewports);
-                        printItems('blocksList', iface.cData.blocks, 'name', 'ent');
+                        printItems('blocksList', iface.cData.blocks, 'name', 'entities');
                         printItems('imagesList', iface.cData.images, 'path');
-                        printEntityStats('entitiesList', iface.cData.mBlock.ent);
+                        printEntityStats('entitiesList', iface.cData.mBlock.entities);
 
                         // Manually signal that a C++ object is no longer needed and can be deleted.
                         data.delete();
