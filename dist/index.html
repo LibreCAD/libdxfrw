@@ -197,20 +197,20 @@
                         iface.cData = data;
 
                         if (fileExtension == 'dxf') {
-                            const dxf = new libdxfrw.dxfRW(fileContent);
+                            const dxf = new libdxfrw.DRW_DxfRW(fileContent);
 
                             // Uncomment out the following line if you want to show debug info
-                            // dxf.setDebug(libdxfrw.DRW_dbg_Level.Debug);
+                            // dxf.setDebug(libdxfrw.DRW_Dbg_Level.Debug);
 
                             const result = dxf.read(iface, false);
 
                             // Manually signal that a C++ object is no longer needed and can be deleted.
                             dxf.delete();
                         } else if (fileExtension == 'dwg') {
-                            const dwg = new libdxfrw.dwgR(fileContent);
+                            const dwg = new libdxfrw.DRW_DwgR(fileContent);
 
                             // Uncomment out the following line if you want to show debug info
-                            // dwg.setDebug(libdxfrw.DRW_dbg_Level.Debug);
+                            // dwg.setDebug(libdxfrw.DRW_Dbg_Level.Debug);
 
                             const result = dwg.read(iface, false);
 

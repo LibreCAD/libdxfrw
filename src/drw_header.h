@@ -132,7 +132,7 @@ private:
     bool getCoord(std::string key, DRW_Coord *varStr);
 
 public:
-    std::unordered_map<std::string,DRW_Variant*> vars;
+    std::unordered_map<std::string, DRW_Variant*> vars;
 private:
     std::string comments;
     std::string name;

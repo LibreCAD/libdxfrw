@@ -293,6 +293,10 @@ public:
     void setCoordX(double d) { if (vType == COORD) vdata.x = d;}
     void setCoordY(double d) { if (vType == COORD) vdata.y = d;}
     void setCoordZ(double d) { if (vType == COORD) vdata.z = d;}
+    UTF8STRING getString() const { return *content.s; }
+    dint32 getInt() const { return content.i; }
+    double getDouble() const { return content.d; }
+    DRW_Coord* getCoord() const { return content.v; }
     enum TYPE type() const { return vType;}
     int code() { return vCode;}            /*!< returns dxf code of this value*/
 

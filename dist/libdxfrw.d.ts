@@ -23,7 +23,7 @@ export interface ClassHandle {
   isDeleted(): boolean;
   clone(): this;
 }
-export interface dxfWriter extends ClassHandle {
+export interface DxfWriter extends ClassHandle {
   writeUtf8String(_0: number, _1: EmbindString): boolean;
   writeUtf8Caps(_0: number, _1: EmbindString): boolean;
   fromUtf8String(_0: EmbindString): string;
@@ -127,11 +127,15 @@ export interface DRW_Variant extends ClassHandle {
   setCoordX(_0: number): void;
   setCoordY(_0: number): void;
   setCoordZ(_0: number): void;
+  getString(): string;
+  getInt(): number;
+  getDouble(): number;
+  getCoord(): DRW_Coord | null;
   type(): DRW_VariantType;
   code(): number;
 }
 
-export interface DRW_dwgHandle extends ClassHandle {
+export interface DRW_Handle extends ClassHandle {
   code: number;
   size: number;
   ref: number;
@@ -145,14 +149,14 @@ export type DRW_LineWidth = DRW_LineWidthValue<0>|DRW_LineWidthValue<1>|DRW_Line
 export interface DRW_LW_Conv extends ClassHandle {
 }
 
-export interface DRW_dbg_LevelValue<T extends number> {
+export interface DRW_Dbg_LevelValue<T extends number> {
   value: T;
 }
-export type DRW_dbg_Level = DRW_dbg_LevelValue<0>|DRW_dbg_LevelValue<1>;
+export type DRW_Dbg_Level = DRW_Dbg_LevelValue<0>|DRW_Dbg_LevelValue<1>;
 
-export interface DRW_dbg extends ClassHandle {
-  setLevel(_0: DRW_dbg_Level): void;
-  getLevel(): DRW_dbg_Level;
+export interface DRW_Dbg extends ClassHandle {
+  setLevel(_0: DRW_Dbg_Level): void;
+  getLevel(): DRW_Dbg_Level;
   printString(_0: EmbindString): void;
   printInt(_0: number): void;
   printUnsignedInt(_0: number): void;
@@ -316,7 +320,7 @@ export interface DRW_Layer extends DRW_TableEntry {
   set handlePlotS(value: EmbindString);
   get handleMaterialS(): string;
   set handleMaterialS(value: EmbindString);
-  lTypeH: DRW_dwgHandle;
+  lTypeH: DRW_Handle;
   reset(): void;
 }
 
@@ -342,7 +346,7 @@ export interface DRW_Textstyle extends DRW_TableEntry {
 
 export interface DRW_Vport extends DRW_TableEntry {
   lowerLeft: DRW_Coord;
-  UpperRight: DRW_Coord;
+  upperRight: DRW_Coord;
   center: DRW_Coord;
   snapBase: DRW_Coord;
   snapSpacing: DRW_Coord;
@@ -562,8 +566,8 @@ export interface DRW_Insert extends DRW_Point {
   rowcount: number;
   colspace: number;
   rowspace: number;
-  blockRecH: DRW_dwgHandle;
-  seqendH: DRW_dwgHandle;
+  blockRecH: DRW_Handle;
+  seqendH: DRW_Handle;
 }
 
 export interface DRW_LWPolyline extends DRW_Entity {
@@ -602,7 +606,7 @@ export interface DRW_Text extends DRW_Entity {
   textgen: number;
   alignH: HAlign;
   alignV: VAlign;
-  styleH: DRW_dwgHandle;
+  styleH: DRW_Handle;
   applyExtrusion(): void;
 }
 
@@ -883,7 +887,7 @@ export interface DRW_Interface extends ClassHandle {
   writeAppId(): void;
 }
 
-export interface dxfRW extends ClassHandle {
+export interface DRW_DxfRW extends ClassHandle {
   setDebug(_0: DRW_DebugLevel): void;
   read(_0: DRW_Interface | null, _1: boolean): boolean;
   setBinary(_0: boolean): void;
@@ -920,7 +924,7 @@ export interface dxfRW extends ClassHandle {
   setEllipseParts(_0: number): void;
 }
 
-export interface dwgR extends ClassHandle {
+export interface DRW_DwgR extends ClassHandle {
   read(_0: DRW_Interface | null, _1: boolean): boolean;
   getPreview(): boolean;
   getVersion(): DRW_Version;
@@ -985,7 +989,7 @@ export interface DRW_AppIdList extends ClassHandle {
   set(_0: number, _1: DRW_AppId): boolean;
 }
 
-export interface DRW_ifaceBlockList extends ClassHandle {
+export interface DRW_BlockList extends ClassHandle {
   size(): number;
   get(_0: number): dx_ifaceBlock | undefined;
   push_back(_0: dx_ifaceBlock | null): void;
@@ -993,7 +997,7 @@ export interface DRW_ifaceBlockList extends ClassHandle {
   set(_0: number, _1: dx_ifaceBlock | null): boolean;
 }
 
-export interface DRW_ifaceImgList extends ClassHandle {
+export interface DRW_ImgList extends ClassHandle {
   size(): number;
   get(_0: number): dx_ifaceImg | undefined;
   push_back(_0: dx_ifaceImg | null): void;
@@ -1011,20 +1015,20 @@ export interface dx_ifaceBlock extends DRW_Block {
 }
 
 export interface dx_data extends ClassHandle {
-  headerC: DRW_Header;
+  header: DRW_Header;
   lineTypes: DRW_LTypeList;
   layers: DRW_LayerList;
   dimStyles: DRW_DimstyleList;
   viewports: DRW_VportList;
   textStyles: DRW_TextstyleList;
   appIds: DRW_AppIdList;
-  blocks: DRW_ifaceBlockList;
-  images: DRW_ifaceImgList;
+  blocks: DRW_BlockList;
+  images: DRW_ImgList;
   mBlock: dx_ifaceBlock | null;
 }
 
 export interface dx_iface extends DRW_Interface {
-  dxfW: dxfRW | null;
+  dxfW: DRW_DxfRW | null;
   cData: dx_data | null;
   currentBlock: dx_ifaceBlock | null;
   fileImport(_0: EmbindString, _1: dx_data | null, _2: boolean, _3: boolean): boolean;
@@ -1082,7 +1086,7 @@ export interface dx_iface extends DRW_Interface {
 }
 
 interface EmbindModule {
-  dxfWriter: {};
+  DxfWriter: {};
   DRW_Version: {UNKNOWNV: DRW_VersionValue<0>, MC00: DRW_VersionValue<1>, AC12: DRW_VersionValue<2>, AC14: DRW_VersionValue<3>, AC150: DRW_VersionValue<4>, AC210: DRW_VersionValue<5>, AC1002: DRW_VersionValue<6>, AC1003: DRW_VersionValue<7>, AC1004: DRW_VersionValue<8>, AC1006: DRW_VersionValue<9>, AC1009: DRW_VersionValue<10>, AC1012: DRW_VersionValue<11>, AC1014: DRW_VersionValue<12>, AC1015: DRW_VersionValue<13>, AC1018: DRW_VersionValue<14>, AC1021: DRW_VersionValue<15>, AC1024: DRW_VersionValue<16>, AC1027: DRW_VersionValue<17>, AC1032: DRW_VersionValue<18>};
   DWR_Error: {BAD_NONE: DWR_ErrorValue<0>, BAD_UNKNOWN: DWR_ErrorValue<1>, BAD_OPEN: DWR_ErrorValue<2>, BAD_VERSION: DWR_ErrorValue<3>, BAD_READ_METADATA: DWR_ErrorValue<4>, BAD_READ_FILE_HEADER: DWR_ErrorValue<5>, BAD_READ_HEADER: DWR_ErrorValue<6>, BAD_READ_HANDLES: DWR_ErrorValue<7>, BAD_READ_CLASSES: DWR_ErrorValue<8>, BAD_READ_TABLES: DWR_ErrorValue<9>, BAD_READ_BLOCKS: DWR_ErrorValue<10>, BAD_READ_ENTITIES: DWR_ErrorValue<11>, BAD_READ_OBJECTS: DWR_ErrorValue<12>, BAD_READ_SECTION: DWR_ErrorValue<13>, BAD_CODE_PARSED: DWR_ErrorValue<14>};
   DRW_DebugLevel: {None: DRW_DebugLevelValue<0>, Debug: DRW_DebugLevelValue<1>};
@@ -1108,8 +1112,8 @@ interface EmbindModule {
   DRW_Variant: {
     new(): DRW_Variant;
   };
-  DRW_dwgHandle: {
-    new(): DRW_dwgHandle;
+  DRW_Handle: {
+    new(): DRW_Handle;
   };
   DRW_LineWidth: {width00: DRW_LineWidthValue<0>, width01: DRW_LineWidthValue<1>, width02: DRW_LineWidthValue<2>, width03: DRW_LineWidthValue<3>, width04: DRW_LineWidthValue<4>, width05: DRW_LineWidthValue<5>, width06: DRW_LineWidthValue<6>, width07: DRW_LineWidthValue<7>, width08: DRW_LineWidthValue<8>, width09: DRW_LineWidthValue<9>, width10: DRW_LineWidthValue<10>, width11: DRW_LineWidthValue<11>, width12: DRW_LineWidthValue<12>, width13: DRW_LineWidthValue<13>, width14: DRW_LineWidthValue<14>, width15: DRW_LineWidthValue<15>, width16: DRW_LineWidthValue<16>, width17: DRW_LineWidthValue<17>, width18: DRW_LineWidthValue<18>, width19: DRW_LineWidthValue<19>, width20: DRW_LineWidthValue<20>, width21: DRW_LineWidthValue<21>, width22: DRW_LineWidthValue<22>, width23: DRW_LineWidthValue<23>, widthByLayer: DRW_LineWidthValue<29>, widthByBlock: DRW_LineWidthValue<30>, widthDefault: DRW_LineWidthValue<31>};
   DRW_LW_Conv: {
@@ -1118,9 +1122,9 @@ interface EmbindModule {
     dxfInt2lineWidth(_0: number): DRW_LineWidth;
     dwgInt2lineWidth(_0: number): DRW_LineWidth;
   };
-  DRW_dbg_Level: {None: DRW_dbg_LevelValue<0>, Debug: DRW_dbg_LevelValue<1>};
-  DRW_dbg: {
-    getInstance(): DRW_dbg | null;
+  DRW_Dbg_Level: {None: DRW_Dbg_LevelValue<0>, Debug: DRW_Dbg_LevelValue<1>};
+  DRW_Dbg: {
+    getInstance(): DRW_Dbg | null;
   };
   DRW_StringList: {
     new(): DRW_StringList;
@@ -1280,11 +1284,11 @@ interface EmbindModule {
     new(): DRW_Viewport;
   };
   DRW_Interface: {};
-  dxfRW: {
-    new(_0: EmbindString): dxfRW;
+  DRW_DxfRW: {
+    new(_0: EmbindString): DRW_DxfRW;
   };
-  dwgR: {
-    new(_0: EmbindString): dwgR;
+  DRW_DwgR: {
+    new(_0: EmbindString): DRW_DwgR;
   };
   DRW_EntityList: {
     new(): DRW_EntityList;
@@ -1307,11 +1311,11 @@ interface EmbindModule {
   DRW_AppIdList: {
     new(): DRW_AppIdList;
   };
-  DRW_ifaceBlockList: {
-    new(): DRW_ifaceBlockList;
+  DRW_BlockList: {
+    new(): DRW_BlockList;
   };
-  DRW_ifaceImgList: {
-    new(): DRW_ifaceImgList;
+  DRW_ImgList: {
+    new(): DRW_ImgList;
   };
   dx_ifaceImg: {
     new(): dx_ifaceImg;

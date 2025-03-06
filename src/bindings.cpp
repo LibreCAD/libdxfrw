@@ -12,7 +12,7 @@
 using namespace emscripten;
 
 EMSCRIPTEN_BINDINGS(dxf_writer) {
-  class_<dxfWriter>("dxfWriter")
+  class_<dxfWriter>("DxfWriter")
     .function("writeUtf8String", &dxfWriter::writeUtf8String)
     .function("writeUtf8Caps", &dxfWriter::writeUtf8Caps)
     .function("fromUtf8String", &dxfWriter::fromUtf8String)
@@ -141,10 +141,14 @@ EMSCRIPTEN_BINDINGS(DRW_base) {
     .function("setCoordX", &DRW_Variant::setCoordX)
     .function("setCoordY", &DRW_Variant::setCoordY)
     .function("setCoordZ", &DRW_Variant::setCoordZ)
+    .function("getString", &DRW_Variant::getString)
+    .function("getInt", &DRW_Variant::getInt)
+    .function("getDouble", &DRW_Variant::getDouble)
+    .function("getCoord", &DRW_Variant::getCoord, allow_raw_pointer<DRW_Coord*>())
     .function("type", &DRW_Variant::type)
     .function("code", &DRW_Variant::code);
 
-  class_<dwgHandle>("DRW_dwgHandle")
+  class_<dwgHandle>("DRW_Handle")
     .constructor<>()
     .property("code", &dwgHandle::code)
     .property("size", &dwgHandle::size)
@@ -187,11 +191,11 @@ EMSCRIPTEN_BINDINGS(DRW_base) {
 }
 
 EMSCRIPTEN_BINDINGS(DRW_dbg) {
-  enum_<DRW_dbg::Level>("DRW_dbg_Level")
+  enum_<DRW_dbg::Level>("DRW_Dbg_Level")
     .value("None", DRW_dbg::Level::None)
     .value("Debug", DRW_dbg::Level::Debug);
 
-  class_<DRW_dbg>("DRW_dbg")
+  class_<DRW_dbg>("DRW_Dbg")
     .class_function("getInstance", &DRW_dbg::getInstance, allow_raw_pointer<DRW_dbg*>())
     .function("setLevel", &DRW_dbg::setLevel)
     .function("getLevel", &DRW_dbg::getLevel)
@@ -366,7 +370,7 @@ EMSCRIPTEN_BINDINGS(DRW_Objects) {
     .constructor<>()
     .function("reset", &DRW_Vport::reset)
     .property("lowerLeft", &DRW_Vport::lowerLeft, return_value_policy::reference())
-    .property("UpperRight", &DRW_Vport::UpperRight, return_value_policy::reference())
+    .property("upperRight", &DRW_Vport::UpperRight, return_value_policy::reference())
     .property("center", &DRW_Vport::center, return_value_policy::reference())
     .property("snapBase", &DRW_Vport::snapBase, return_value_policy::reference())
     .property("snapSpacing", &DRW_Vport::snapSpacing, return_value_policy::reference())
@@ -919,7 +923,7 @@ EMSCRIPTEN_BINDINGS(DRW_Interface) {
 }
 
 EMSCRIPTEN_BINDINGS(dxfRW) {
-  class_<dxfRW>("dxfRW")
+  class_<dxfRW>("DRW_DxfRW")
     .constructor<const std::string&>()
     .function("setDebug", &dxfRW::setDebug)
     .function("read", &dxfRW::read, allow_raw_pointer<DRW_Interface*>())
@@ -958,7 +962,7 @@ EMSCRIPTEN_BINDINGS(dxfRW) {
 }
 
 EMSCRIPTEN_BINDINGS(dwgR) {
-  class_<dwgR>("dwgR")
+  class_<dwgR>("DRW_DwgR")
     .constructor<const std::string&>()
     .function("read", &dwgR::read, allow_raw_pointer<DRW_Interface*>())
     .function("getPreview", &dwgR::getPreview)
@@ -976,8 +980,8 @@ EMSCRIPTEN_BINDINGS(DRW_reader) {
   register_vector<DRW_Vport>("DRW_VportList");
   register_vector<DRW_Textstyle>("DRW_TextstyleList");
   register_vector<DRW_AppId>("DRW_AppIdList");
-  register_vector<dx_ifaceBlock*>("DRW_ifaceBlockList");
-  register_vector<dx_ifaceImg*>("DRW_ifaceImgList");
+  register_vector<dx_ifaceBlock*>("DRW_BlockList");
+  register_vector<dx_ifaceImg*>("DRW_ImgList");
 
   class_<dx_ifaceImg>("dx_ifaceImg")
     .constructor<>()
@@ -991,7 +995,7 @@ EMSCRIPTEN_BINDINGS(DRW_reader) {
 
   class_<dx_data>("dx_data")
     .constructor<>()
-    .property("headerC", &dx_data::headerC, return_value_policy::reference())
+    .property("header", &dx_data::headerC, return_value_policy::reference())
     .property("lineTypes", &dx_data::lineTypes, return_value_policy::reference())
     .property("layers", &dx_data::layers, return_value_policy::reference())
     .property("dimStyles", &dx_data::dimStyles, return_value_policy::reference())
