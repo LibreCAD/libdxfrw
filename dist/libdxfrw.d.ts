@@ -1005,7 +1005,7 @@ export interface DRW_ImgList extends ClassHandle {
   set(_0: number, _1: dx_ifaceImg | null): boolean;
 }
 
-export interface dx_ifaceImg extends ClassHandle {
+export interface dx_ifaceImg extends DRW_Image {
   get path(): string;
   set path(value: EmbindString);
 }

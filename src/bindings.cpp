@@ -983,7 +983,7 @@ EMSCRIPTEN_BINDINGS(DRW_reader) {
   register_vector<dx_ifaceBlock*>("DRW_BlockList");
   register_vector<dx_ifaceImg*>("DRW_ImgList");
 
-  class_<dx_ifaceImg>("dx_ifaceImg")
+  class_<dx_ifaceImg, base<DRW_Image>>("dx_ifaceImg")
     .constructor<>()
     .constructor<const DRW_Image&>()
     .property("path", &dx_ifaceImg::path, return_value_policy::reference());
