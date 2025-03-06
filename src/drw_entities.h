@@ -893,6 +893,13 @@ public:
     std::vector<std::shared_ptr<DRW_Entity>> objlist;      /*!< entities list */
 };
 
+struct DRW_HatchPattenLine {
+    double angle;
+    DRW_Coord origin;
+    DRW_Coord delta;
+    std::vector<double> dashPattern;
+};
+
 //! Class to handle hatch entity
 /*!
 *  Class to handle hatch entity
@@ -943,6 +950,7 @@ public:
     int deflines;              /*!< number of pattern definition lines, code 78 */
 
     std::vector<std::shared_ptr<DRW_HatchLoop>> looplist;  /*!< polyline list */
+    std::vector<DRW_HatchPattenLine> deflinelist;          /*!< pattern definition lines */
 
 private:
     void clearEntities(){

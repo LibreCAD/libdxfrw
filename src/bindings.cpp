@@ -421,6 +421,7 @@ EMSCRIPTEN_BINDINGS(DRW_entities) {
   register_vector<DRW_Vertex2D*>("DRW_Vertex2DList");
   register_vector<DRW_Coord*>("DRW_CoordList");
   register_vector<DRW_HatchLoop*>("DRW_HatchLoopList");
+  register_vector<DRW_HatchPattenLine>("DRW_HatchPattenLineList");
 
   enum_<DRW::ETYPE>("DRW_ETYPE")
     .value("E3DFACE", DRW::E3DFACE)
@@ -692,8 +693,14 @@ EMSCRIPTEN_BINDINGS(DRW_entities) {
     .function("update", &DRW_HatchLoop::update)
     .function("getObjList", &DRW_HatchLoop::getObjList)
     .property("type", &DRW_HatchLoop::type)
-    .property("numedges", &DRW_HatchLoop::numedges);
+    .property("numberOfEdges", &DRW_HatchLoop::numedges);
     // .property("objlist", &DRW_HatchLoop::objlist);
+
+  value_object<DRW_HatchPattenLine>("DRW_HatchPattenLine")
+    .field("angle", &DRW_HatchPattenLine::angle)
+    .field("origin", &DRW_HatchPattenLine::origin)
+    .field("delta", &DRW_HatchPattenLine::delta)
+    .field("dashPattern", &DRW_HatchPattenLine::dashPattern);
 
   class_<DRW_Hatch, base<DRW_Point>>("DRW_Hatch")
     .constructor<>()
@@ -702,13 +709,14 @@ EMSCRIPTEN_BINDINGS(DRW_entities) {
     .property("name", &DRW_Hatch::name)
     .property("solid", &DRW_Hatch::solid)
     .property("associative", &DRW_Hatch::associative)
-    .property("hstyle", &DRW_Hatch::hstyle)
-    .property("hpattern", &DRW_Hatch::hpattern)
-    .property("doubleflag", &DRW_Hatch::doubleflag)
-    .property("loopsnum", &DRW_Hatch::loopsnum)
+    .property("hStyle", &DRW_Hatch::hstyle)
+    .property("hPattern", &DRW_Hatch::hpattern)
+    .property("doubleFlag", &DRW_Hatch::doubleflag)
+    .property("numberOfLoops", &DRW_Hatch::loopsnum)
     .property("angle", &DRW_Hatch::angle)
     .property("scale", &DRW_Hatch::scale)
-    .property("deflines", &DRW_Hatch::deflines);
+    .property("numberOfDefinitionLines", &DRW_Hatch::deflines)
+    .property("definitionLines", &DRW_Hatch::deflinelist);
     // .property("looplist", &DRW_Hatch::looplist);
 
   class_<DRW_Image, base<DRW_Line>>("DRW_Image")

@@ -437,6 +437,14 @@ export interface DRW_HatchLoopList extends ClassHandle {
   set(_0: number, _1: DRW_HatchLoop | null): boolean;
 }
 
+export interface DRW_HatchPattenLineList extends ClassHandle {
+  size(): number;
+  get(_0: number): DRW_HatchPattenLine | undefined;
+  push_back(_0: DRW_HatchPattenLine): void;
+  resize(_0: number, _1: DRW_HatchPattenLine): void;
+  set(_0: number, _1: DRW_HatchPattenLine): boolean;
+}
+
 export interface DRW_ETYPEValue<T extends number> {
   value: T;
 }
@@ -508,9 +516,9 @@ export interface DRW_Arc extends DRW_Circle {
 
 export interface DRW_Ellipse extends DRW_Line {
   ratio: number;
-  staparam: number;
-  endparam: number;
-  isccw: number;
+  startAngle: number;
+  endAngle: number;
+  isCounterClockwise: number;
   applyExtrusion(): void;
   toPolyline(_0: DRW_Polyline | null, _1: number): void;
 }
@@ -555,20 +563,20 @@ export interface DRW_Block extends DRW_Point {
 export interface DRW_Insert extends DRW_Point {
   get name(): string;
   set name(value: EmbindString);
-  xscale: number;
-  yscale: number;
-  zscale: number;
+  xScale: number;
+  yScale: number;
+  zScale: number;
   angle: number;
-  colcount: number;
-  rowcount: number;
-  colspace: number;
-  rowspace: number;
+  colCount: number;
+  rowCount: number;
+  colSpace: number;
+  rowSpace: number;
   blockRecH: DRW_Handle;
   seqendH: DRW_Handle;
 }
 
 export interface DRW_LWPolyline extends DRW_Entity {
-  vertexnum: number;
+  vertexNum: number;
   flags: number;
   width: number;
   elevation: number;
@@ -651,9 +659,9 @@ export interface DRW_Spline extends DRW_Entity {
   tgEnd: DRW_Coord;
   flags: number;
   degree: number;
-  nKnots: number;
-  nControl: number;
-  nFit: number;
+  numberOfKnots: number;
+  numberOfControlPoints: number;
+  numberOfFits: number;
   tolKnot: number;
   tolControl: number;
   tolFit: number;
@@ -666,23 +674,31 @@ export interface DRW_Spline extends DRW_Entity {
 
 export interface DRW_HatchLoop extends ClassHandle {
   type: number;
-  numedges: number;
+  numberOfEdges: number;
   update(): void;
   getObjList(): DRW_EntityList;
 }
+
+export type DRW_HatchPattenLine = {
+  angle: number,
+  origin: DRW_Coord,
+  delta: DRW_Coord,
+  dashPattern: DRW_DoubleList
+};
 
 export interface DRW_Hatch extends DRW_Point {
   get name(): string;
   set name(value: EmbindString);
   solid: number;
   associative: number;
-  hstyle: number;
-  hpattern: number;
-  doubleflag: number;
-  loopsnum: number;
+  hStyle: number;
+  hPattern: number;
+  doubleFlag: number;
+  numberOfLoops: number;
   angle: number;
   scale: number;
-  deflines: number;
+  numberOfDefinitionLines: number;
+  definitionLines: DRW_HatchPattenLineList;
   appendLoop(_0: DRW_HatchLoopPtr): void;
   getLoopList(): DRW_HatchLoopList;
 }
@@ -1172,6 +1188,9 @@ interface EmbindModule {
   };
   DRW_HatchLoopList: {
     new(): DRW_HatchLoopList;
+  };
+  DRW_HatchPattenLineList: {
+    new(): DRW_HatchPattenLineList;
   };
   DRW_ETYPE: {E3DFACE: DRW_ETYPEValue<0>, ARC: DRW_ETYPEValue<1>, BLOCK: DRW_ETYPEValue<2>, CIRCLE: DRW_ETYPEValue<3>, DIMENSION: DRW_ETYPEValue<4>, DIMALIGNED: DRW_ETYPEValue<5>, DIMLINEAR: DRW_ETYPEValue<6>, DIMRADIAL: DRW_ETYPEValue<7>, DIMDIAMETRIC: DRW_ETYPEValue<8>, DIMANGULAR: DRW_ETYPEValue<9>, DIMANGULAR3P: DRW_ETYPEValue<10>, DIMORDINATE: DRW_ETYPEValue<11>, ELLIPSE: DRW_ETYPEValue<12>, HATCH: DRW_ETYPEValue<13>, IMAGE: DRW_ETYPEValue<14>, INSERT: DRW_ETYPEValue<15>, LEADER: DRW_ETYPEValue<16>, LINE: DRW_ETYPEValue<17>, LWPOLYLINE: DRW_ETYPEValue<18>, MTEXT: DRW_ETYPEValue<19>, POINT: DRW_ETYPEValue<20>, POLYLINE: DRW_ETYPEValue<21>, RAY: DRW_ETYPEValue<22>, SOLID: DRW_ETYPEValue<23>, SPLINE: DRW_ETYPEValue<24>, TEXT: DRW_ETYPEValue<25>, TRACE: DRW_ETYPEValue<26>, UNDERLAY: DRW_ETYPEValue<27>, VERTEX: DRW_ETYPEValue<28>, VIEWPORT: DRW_ETYPEValue<29>, XLINE: DRW_ETYPEValue<30>, UNKNOWN: DRW_ETYPEValue<31>};
   DRW_Entity: {};
