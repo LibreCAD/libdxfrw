@@ -492,19 +492,16 @@ export interface DRW_Xline extends DRW_Ray {
 }
 
 export interface DRW_Circle extends DRW_Point {
-  radious: number;
+  radius: number;
   applyExtrusion(): void;
 }
 
 export interface DRW_Arc extends DRW_Circle {
-  staangle: number;
-  endangle: number;
+  startAngle: number;
+  endAngle: number;
   isccw: number;
   applyExtrusion(): void;
   center(): DRW_Coord;
-  radius(): number;
-  startAngle(): number;
-  endAngle(): number;
   thick(): number;
   extrusion(): DRW_Coord;
 }
@@ -594,16 +591,16 @@ export interface HAlignValue<T extends number> {
 }
 export type HAlign = HAlignValue<0>|HAlignValue<1>|HAlignValue<2>|HAlignValue<3>|HAlignValue<4>|HAlignValue<5>;
 
-export interface DRW_Text extends DRW_Entity {
+export interface DRW_Text extends DRW_Line {
   height: number;
   get text(): string;
   set text(value: EmbindString);
   angle: number;
-  widthscale: number;
+  widthScale: number;
   oblique: number;
   get style(): string;
   set style(value: EmbindString);
-  textgen: number;
+  textGen: number;
   alignH: HAlign;
   alignV: VAlign;
   styleH: DRW_Handle;
@@ -654,14 +651,14 @@ export interface DRW_Spline extends DRW_Entity {
   tgEnd: DRW_Coord;
   flags: number;
   degree: number;
-  nknots: number;
-  ncontrol: number;
-  nfit: number;
-  tolknot: number;
-  tolcontrol: number;
-  tolfit: number;
-  knotslist: DRW_DoubleList;
-  weightlist: DRW_DoubleList;
+  nKnots: number;
+  nControl: number;
+  nFit: number;
+  tolKnot: number;
+  tolControl: number;
+  tolFit: number;
+  knots: DRW_DoubleList;
+  weights: DRW_DoubleList;
   applyExtrusion(): void;
   getControlList(): DRW_CoordList;
   getFitList(): DRW_CoordList;

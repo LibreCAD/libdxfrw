@@ -501,19 +501,16 @@ EMSCRIPTEN_BINDINGS(DRW_entities) {
   class_<DRW_Circle, base<DRW_Point>>("DRW_Circle")
     .constructor<>()
     .function("applyExtrusion", &DRW_Circle::applyExtrusion)
-    .property("radious", &DRW_Circle::radious);
+    .property("radius", &DRW_Circle::radius);
 
   class_<DRW_Arc, base<DRW_Circle>>("DRW_Arc")
     .constructor<>()
     .function("applyExtrusion", &DRW_Arc::applyExtrusion)
     .function("center", &DRW_Arc::center)
-    .function("radius", &DRW_Arc::radius)
-    .function("startAngle", &DRW_Arc::startAngle)
-    .function("endAngle", &DRW_Arc::endAngle)
     .function("thick", &DRW_Arc::thick)
     .function("extrusion", &DRW_Arc::extrusion)
-    .property("staangle", &DRW_Arc::staangle)
-    .property("endangle", &DRW_Arc::endangle)
+    .property("startAngle", &DRW_Arc::staangle)
+    .property("endAngle", &DRW_Arc::endangle)
     .property("isccw", &DRW_Arc::isccw);
 
   class_<DRW_Ellipse, base<DRW_Line>>("DRW_Ellipse")
@@ -609,15 +606,15 @@ EMSCRIPTEN_BINDINGS(DRW_entities) {
     .value("HMiddle", DRW_Text::HMiddle)
     .value("HFit", DRW_Text::HFit);
 
-  class_<DRW_Text, base<DRW_Entity>>("DRW_Text")
+  class_<DRW_Text, base<DRW_Line>>("DRW_Text")
     .constructor<>()
     .property("height", &DRW_Text::height)
     .property("text", &DRW_Text::text)
     .property("angle", &DRW_Text::angle)
-    .property("widthscale", &DRW_Text::widthscale)
+    .property("widthScale", &DRW_Text::widthscale)
     .property("oblique", &DRW_Text::oblique)
     .property("style", &DRW_Text::style)
-    .property("textgen", &DRW_Text::textgen)
+    .property("textGen", &DRW_Text::textgen)
     .property("alignH", &DRW_Text::alignH)
     .property("alignV", &DRW_Text::alignV)
     .property("styleH", &DRW_Text::styleH, return_value_policy::reference())
@@ -679,14 +676,14 @@ EMSCRIPTEN_BINDINGS(DRW_entities) {
     .property("tgEnd", &DRW_Spline::tgEnd, return_value_policy::reference())
     .property("flags", &DRW_Spline::flags)
     .property("degree", &DRW_Spline::degree)
-    .property("nknots", &DRW_Spline::nknots)
-    .property("ncontrol", &DRW_Spline::ncontrol)
-    .property("nfit", &DRW_Spline::nfit)
-    .property("tolknot", &DRW_Spline::tolknot)
-    .property("tolcontrol", &DRW_Spline::tolcontrol)
-    .property("tolfit", &DRW_Spline::tolfit)
-    .property("knotslist", &DRW_Spline::knotslist, return_value_policy::reference())
-    .property("weightlist", &DRW_Spline::weightlist, return_value_policy::reference());
+    .property("nKnots", &DRW_Spline::nknots)
+    .property("nControl", &DRW_Spline::ncontrol)
+    .property("nFit", &DRW_Spline::nfit)
+    .property("tolKnot", &DRW_Spline::tolknot)
+    .property("tolControl", &DRW_Spline::tolcontrol)
+    .property("tolFit", &DRW_Spline::tolfit)
+    .property("knots", &DRW_Spline::knotslist, return_value_policy::reference())
+    .property("weights", &DRW_Spline::weightlist, return_value_policy::reference());
     // .property("controllist", &DRW_Spline::controllist)
     // .property("fitlist", &DRW_Spline::fitlist);
 
