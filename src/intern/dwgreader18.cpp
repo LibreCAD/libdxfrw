@@ -22,6 +22,7 @@
 #include "drw_textcodec.h"
 #include "../libdwgr.h"
 
+#if 0
 void dwgReader18::genMagicNumber(){
     int size =0x114;
     std::vector<duint8> tmpMagicStr(size);
@@ -45,6 +46,7 @@ void dwgReader18::genMagicNumber(){
         }
     }
 }
+#endif
 
 duint32 dwgReader18::checksum(duint32 seed, duint8* data, duint64 sz){
     duint64 size = sz;
@@ -214,8 +216,10 @@ bool dwgReader18::readFileHeader() {
     if (! fileBuf->setPosition(0x80))
         return false;
 
-//    genMagicNumber(); DBG("\n"); DBG("\n");
-    DRW_DBG("Encrypted Header Data=\n");
+#if 0
+    genMagicNumber(); DBG("\n"); DBG("\n");
+#endif
+    DRW_DBG("Encripted Header Data=\n");
     duint8 byteStr[0x6C];
     int size =0x6C;
     for (int i=0, j=0; i< 0x6C;i++) {

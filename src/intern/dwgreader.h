@@ -60,13 +60,14 @@ public:
     dwgPageInfo(duint64 i, duint64 ad, duint64 sz){
         Id=i; address=ad; size=sz;
     }
-    duint64 Id;
-    duint64 address; //in file stream, for rd18, rd21
-    duint64 size; //in file stream, for rd18, rd21
-    duint64 dataSize; //for rd18, rd21
-    duint64 startOffset; //for rd18, rd21
-    duint64 cSize; //compressed page size, for rd21
-    duint64 uSize; //uncompressed page size, for rd21
+  
+    duint64 Id{0};
+    duint64 address{0}; //in file stream, for rd18, rd21
+    duint64 size{0}; //in file stream, for rd18, rd21
+    duint64 dataSize{0}; //for rd18, rd21
+    duint32 startOffset{0}; //for rd18, rd21
+    duint64 cSize{0}; //compressed page size, for rd21
+    duint64 uSize{0}; //uncompressed page size, for rd21
 };
 
 // sections of file
