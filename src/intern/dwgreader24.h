@@ -13,8 +13,6 @@
 #ifndef DWGREADER24_H
 #define DWGREADER24_H
 
-#include <map>
-#include <list>
 #include "drw_textcodec.h"
 #include "dwgbuffer.h"
 #include "dwgreader18.h"

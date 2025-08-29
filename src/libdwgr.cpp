@@ -23,6 +23,7 @@
 #include "intern/dwgreader21.h"
 #include "intern/dwgreader24.h"
 #include "intern/dwgreader27.h"
+#include "intern/dwgreader32.h"
 
 #define FIRSTHANDLE 48
 
@@ -38,18 +39,18 @@
 dwgR::dwgR(const char* name)
     : fileName{ name }
 {
-    DRW_DBGSL(DRW_dbg::NONE);
+    DRW_DBGSL(DRW_dbg::Level::None);
 }
 
 dwgR::~dwgR() = default;
 
-void dwgR::setDebug(DRW::DBG_LEVEL lvl){
+void dwgR::setDebug(DRW::DebugLevel lvl){
     switch (lvl){
-    case DRW::DEBUG:
-        DRW_DBGSL(DRW_dbg::DEBUG);
+    case DRW::DebugLevel::Debug:
+        DRW_DBGSL(DRW_dbg::Level::Debug);
         break;
-    default:
-        DRW_DBGSL(DRW_dbg::NONE);
+    case DRW::DebugLevel::None:
+        DRW_DBGSL(DRW_dbg::Level::None);
     }
 }
 
@@ -147,10 +148,14 @@ bool dwgR::read(DRW_Interface *interface_, bool ext){
         isOk = reader->readFileHeader();
         if (isOk) {
             isOk = processDwg();
-        } else
+        }
+        else {
             error = DRW::BAD_READ_FILE_HEADER;
-    } else
+        }
+    }
+    else {
         error = DRW::BAD_READ_METADATA;
+    }
 
     filestr.close();
     if (reader) {
@@ -159,27 +164,6 @@ bool dwgR::read(DRW_Interface *interface_, bool ext){
 
     return isOk;
 }
-
-std::unordered_map< const char*, DRW::Version > dwgR::DRW_dwgVersionStrings = {
-    { "MC0.0", DRW::MC00 },
-    { "AC1.2", DRW::AC12 },
-    { "AC1.4", DRW::AC14 },
-    { "AC1.50", DRW::AC150 },
-    { "AC2.10", DRW::AC210 },
-    { "AC1002", DRW::AC1002 },
-    { "AC1003", DRW::AC1003 },
-    { "AC1004", DRW::AC1004 },
-    { "AC1006", DRW::AC1006 },
-    { "AC1009", DRW::AC1009 },
-    { "AC1012", DRW::AC1012 },
-    { "AC1014", DRW::AC1014 },
-    { "AC1015", DRW::AC1015 },
-    { "AC1018", DRW::AC1018 },
-    { "AC1021", DRW::AC1021 },
-    { "AC1024", DRW::AC1024 },
-    { "AC1027", DRW::AC1027 },
-    { "AC1032", DRW::AC1032 },
-};
 
 /**
  * Factory method which creates a reader for the specified DWG version.
@@ -220,8 +204,8 @@ std::unique_ptr<dwgReader> dwgR::createReaderForVersion(DRW::Version version, st
        case DRW::AC1027:
            return std::unique_ptr< dwgReader >( new dwgReader27( stream, p) );
 
-       // unsupported
        case DRW::AC1032:
+           return std::unique_ptr< dwgReader >( new dwgReader32( stream, p) );
            break;
     }
     return nullptr;
@@ -252,7 +236,7 @@ bool dwgR::openFile(std::ifstream *filestr){
 
     // check version line against known version strings
     version = DRW::UNKNOWNV;
-    for ( auto it = DRW_dwgVersionStrings.begin(); it != DRW_dwgVersionStrings.end(); ++it )
+    for ( auto it = DRW::dwgVersionStrings.begin(); it != DRW::dwgVersionStrings.end(); ++it )
     {
         if ( strcmp( line, it->first ) == 0 ) {
             version = it->second;
@@ -303,31 +287,31 @@ bool dwgR::processDwg() {
 
     iface->addHeader(&hdr);
 
-    for (std::map<duint32, DRW_LType*>::iterator it=reader->ltypemap.begin(); it!=reader->ltypemap.end(); ++it) {
+    for (auto it=reader->ltypemap.begin(); it!=reader->ltypemap.end(); ++it) {
         DRW_LType *lt = it->second;
         iface->addLType(const_cast<DRW_LType&>(*lt) );
     }
-    for (std::map<duint32, DRW_Layer*>::iterator it=reader->layermap.begin(); it!=reader->layermap.end(); ++it) {
+    for (auto it=reader->layermap.begin(); it!=reader->layermap.end(); ++it) {
         DRW_Layer *ly = it->second;
         iface->addLayer(const_cast<DRW_Layer&>(*ly));
     }
 
-    for (std::map<duint32, DRW_Textstyle*>::iterator it=reader->stylemap.begin(); it!=reader->stylemap.end(); ++it) {
+    for (auto it=reader->stylemap.begin(); it!=reader->stylemap.end(); ++it) {
         DRW_Textstyle *ly = it->second;
         iface->addTextStyle(const_cast<DRW_Textstyle&>(*ly));
     }
 
-    for (std::map<duint32, DRW_Dimstyle*>::iterator it=reader->dimstylemap.begin(); it!=reader->dimstylemap.end(); ++it) {
+    for (auto it=reader->dimstylemap.begin(); it!=reader->dimstylemap.end(); ++it) {
         DRW_Dimstyle *ly = it->second;
         iface->addDimStyle(const_cast<DRW_Dimstyle&>(*ly));
     }
 
-    for (std::map<duint32, DRW_Vport*>::iterator it=reader->vportmap.begin(); it!=reader->vportmap.end(); ++it) {
+    for (auto it=reader->vportmap.begin(); it!=reader->vportmap.end(); ++it) {
         DRW_Vport *ly = it->second;
         iface->addVport(const_cast<DRW_Vport&>(*ly));
     }
 
-    for (std::map<duint32, DRW_AppId*>::iterator it=reader->appIdmap.begin(); it!=reader->appIdmap.end(); ++it) {
+    for (auto it=reader->appIdmap.begin(); it!=reader->appIdmap.end(); ++it) {
         DRW_AppId *ly = it->second;
         iface->addAppId(const_cast<DRW_AppId&>(*ly));
     }

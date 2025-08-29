@@ -3,6 +3,19 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
 cmake_policy(SET CMP0048 NEW)
 project(DXFRW VERSION 1.0.1)
 
+# set preferred cache variables
+set(LIBDXFRW_BUILD_DOC TRUE CACHE BOOL "Build the documentation")
+set(LIBDXFRW_BUILD_DWG2DXF TRUE CACHE BOOL "Build the dwg2dxf application")
+
+
+# set compiler warnings
+if (MSVC)
+    add_compile_options(/W3)
+else()
+    add_compile_options(-Wall -Wextra -pedantic -Werror)
+endif()
+
+
 include(GNUInstallDirs)
 
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
@@ -25,6 +38,7 @@ set(libdxfrw_srcs
   src/intern/dxfreader.cpp
   src/intern/dxfwriter.cpp
   src/intern/rscodec.cpp
+  src/drw_base.cpp
   src/drw_classes.cpp
   src/drw_entities.cpp
   src/drw_header.cpp
@@ -49,6 +63,7 @@ set(libdxfrw_hdrs
   src/intern/dwgreader21.h
   src/intern/dwgreader24.h
   src/intern/dwgreader27.h
+  src/intern/dwgreader32.h
   src/intern/dwgutil.h
   src/intern/dxfreader.h
   src/intern/dxfwriter.h
@@ -75,21 +90,25 @@ set_target_properties(dxfrw PROPERTIES
 	SOVERSION "${PROJECT_VERSION_MAJOR}"
 	EXPORT_NAME libdxfrw
 )
-target_compile_features(dxfrw PUBLIC cxx_std_11)
+target_compile_features(dxfrw PUBLIC cxx_std_14)
 target_include_directories(dxfrw
 		PUBLIC
 			$<INSTALL_INTERFACE:${LIBDXFRW_INSTALL_INCLUDEDIR}>
 )
 
-add_custom_command(OUTPUT doc/html/index.html
-	COMMAND doxygen ARGS ${CMAKE_CURRENT_SOURCE_DIR}/libdxfrw.dox
-	MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/libdxfrw.dox
-	VERBATIM)
+if(LIBDXFRW_BUILD_DOC)
+    add_custom_command(OUTPUT doc/html/index.html
+	    COMMAND doxygen ARGS ${CMAKE_CURRENT_SOURCE_DIR}/libdxfrw.dox
+	    MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/libdxfrw.dox
+	    VERBATIM)
 
-add_custom_target(doc
-	DEPENDS doc/html/index.html)
+    add_custom_target(doc
+	    DEPENDS doc/html/index.html)
+endif()
 
-add_subdirectory(dwg2dxf)
+if(LIBDXFRW_BUILD_DWG2DXF)
+    add_subdirectory(dwg2dxf)
+endif()
 
 # INSTALLATION
 set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/libdxfrw)

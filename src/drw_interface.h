@@ -20,7 +20,7 @@
 #include "drw_header.h"
 
 /**
- * Abstract class (interface) for comunicate dxfReader with the application.
+ * Abstract class (interface) for communicate dxfReader with the application.
  * Inherit your class which takes care of the entities in the 
  * processed DXF file from this interface. 
  *
@@ -185,6 +185,11 @@ public:
      */
     virtual void addComment(const char* comment) = 0;
 
+    /**
+     * Called for PLOTSETTINGS object definition.
+     */
+    virtual void addPlotSettings(const DRW_PlotSettings *data) = 0;
+
     virtual void writeHeader(DRW_Header& data) = 0;
     virtual void writeBlocks() = 0;
     virtual void writeBlockRecords() = 0;
@@ -194,6 +199,7 @@ public:
     virtual void writeTextstyles() = 0;
     virtual void writeVports() = 0;
     virtual void writeDimstyles() = 0;
+    virtual void writeObjects() = 0;
     virtual void writeAppId() = 0;
 };
 

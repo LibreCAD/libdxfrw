@@ -23,9 +23,9 @@ class DRW_TextCodec;
 
 class dwgBasicStream{
 protected:
-    dwgBasicStream(){}
+    dwgBasicStream() = default;
 public:
-    virtual ~dwgBasicStream()=default;
+    virtual ~dwgBasicStream() = default;
     virtual bool read(duint8* s, duint64 n) = 0;
     virtual duint64 size() const = 0;
     virtual duint64 getPos() const = 0;
@@ -36,7 +36,7 @@ public:
 
 class dwgFileStream: public dwgBasicStream{
 public:
-    dwgFileStream(std::ifstream *s)
+    explicit dwgFileStream(std::ifstream *s)
         :stream{s}
     {
         stream->seekg (0, std::ios::end);
@@ -79,7 +79,7 @@ public:
     dwgBuffer(duint8 *buf, duint64 size, DRW_TextCodec *decoder= nullptr);
     dwgBuffer( const dwgBuffer& org );
     dwgBuffer& operator=( const dwgBuffer& org );
-    ~dwgBuffer();
+    virtual ~dwgBuffer() = default;
     duint64 size() const {return filestr->size();}
     bool setPosition(duint64 pos);
     duint64 getPosition() const;
@@ -131,7 +131,7 @@ public:
     duint16 getBERawShort16();  //RS big-endian order
 
     bool isGood() const {return filestr->good();}
-    bool getBytes(duint8 *buf, int size);
+    bool getBytes(duint8 *buf, duint64 size);
     int numRemainingBytes() const {return (maxSize- filestr->getPos());}
 
     duint16 crc8(duint16 dx,dint32 start,dint32 end);

@@ -16,6 +16,7 @@
 #include <string>
 #include <iostream>
 #include <memory>
+#include "../drw_base.h"
 //#include <iomanip>
 
 #define DRW_DBGSL(a) DRW_dbg::getInstance()->setLevel(a)
@@ -26,19 +27,23 @@
 #define DRW_DBGHL(a, b, c) DRW_dbg::getInstance()->printHL(a, b ,c)
 #define DRW_DBGPT(a, b, c) DRW_dbg::getInstance()->printPT(a, b, c)
 
-
-class print_none;
-
 class DRW_dbg {
 public:
-    enum LEVEL {
-        NONE,
-        DEBUG
+    enum class Level {
+        None,
+        Debug
     };
-    void setLevel(LEVEL lvl);
-    LEVEL getLevel();
+    void setLevel(Level lvl);
+    /**
+     * Sets a custom debug printer to use when non-silent output
+     * is required.
+     */
+    void setCustomDebugPrinter(std::unique_ptr<DRW::DebugPrinter> printer);
+    Level getLevel();
     static DRW_dbg *getInstance();
-    void print(const std::string& s);
+    void print(const std::string &s);
+    void print(signed char i);
+    void print(unsigned char i);
     void print(int i);
     void print(unsigned int i);
     void print(long long int i);
@@ -53,9 +58,10 @@ public:
 private:
     DRW_dbg();
     static DRW_dbg *instance;
-    LEVEL level{NONE};
-    std::ios_base::fmtflags flags{std::cerr.flags()};
-    std::unique_ptr<print_none> prClass;
+    Level level{Level::None};
+    DRW::DebugPrinter silentDebug;
+    std::unique_ptr< DRW::DebugPrinter > debugPrinter;
+    DRW::DebugPrinter* currentPrinter{nullptr};
 };
 
 

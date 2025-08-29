@@ -26,7 +26,7 @@ class dwgReader;
 
 class dwgR {
 public:
-    dwgR(const char* name);
+    explicit dwgR(const char* name);
     ~dwgR();
     //read: return true if all ok
     bool read(DRW_Interface *interface_, bool ext);
@@ -34,7 +34,7 @@ public:
     DRW::Version getVersion(){return version;}
     DRW::error getError(){return error;}
 bool testReader();
-    void setDebug(DRW::DBG_LEVEL lvl);
+    void setDebug(DRW::DebugLevel lvl);
 
 private:
     bool openFile(std::ifstream *filestr);
@@ -49,8 +49,6 @@ private:
     std::string codePage;
     DRW_Interface *iface { nullptr };
     std::unique_ptr< dwgReader > reader;
-
-    static std::unordered_map< const char*, DRW::Version > DRW_dwgVersionStrings;
 
 };
 

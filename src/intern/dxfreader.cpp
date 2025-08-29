@@ -48,6 +48,10 @@ bool dxfReader::readRec(int *codeData) {
         readInt16();
     else if (code < 300) //TODO this is a boolean indicator, int in Binary?
         readBool();
+    else if (code < 310)
+        readString();
+    else if (code < 320)
+        readBinary();
     else if (code < 370)
         readString();
     else if (code < 390)
@@ -70,6 +74,12 @@ bool dxfReader::readRec(int *codeData) {
         readDouble();
     else if (code < 481)
         readString();
+    else if( 999 == code && m_bIgnoreComments) {
+        readString();
+        return readRec( codeData);
+    }
+    else if (code == 1004)
+        readBinary();
     else if (code > 998 && code < 1009) //skip not used at the v2012
         readString();
     else if (code < 1060) //TODO this is a floating point double precision??
@@ -130,6 +140,16 @@ bool dxfReaderBinary::readString(std::string *text) {
     type = STRING;
     std::getline(*filestr, *text, '\0');
     DRW_DBG(*text); DRW_DBG("\n");
+    return (filestr->good());
+}
+
+bool dxfReaderBinary::readBinary() {
+    unsigned char chunklen {0};
+
+    filestr->read( reinterpret_cast<char *>(&chunklen), 1);
+    filestr->seekg( chunklen, std::ios_base::cur);
+    DRW_DBG( chunklen); DRW_DBG( " byte(s) binary data bypassed\n");
+
     return (filestr->good());
 }
 
@@ -206,6 +226,10 @@ bool dxfReaderAscii::readString() {
         strData.erase(strData.size()-1);
     DRW_DBG(strData); DRW_DBG("\n");
     return (filestr->good());
+}
+
+bool dxfReaderAscii::readBinary() {
+    return readString();
 }
 
 bool dxfReaderAscii::readInt16() {

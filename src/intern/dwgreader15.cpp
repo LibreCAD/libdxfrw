@@ -15,6 +15,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <vector>
 #include "drw_dbg.h"
 #include "dwgreader15.h"
 #include "drw_textcodec.h"
@@ -122,13 +123,12 @@ bool dwgReader15::readDwgHeader(DRW_Header& hdr){
         return false;
     if (!fileBuf->setPosition(si.address))
         return false;
-    duint8 *tmpByteStr = new duint8[si.size];
-    fileBuf->getBytes(tmpByteStr, si.size);
-    dwgBuffer buff(tmpByteStr, si.size, &decoder);
+    std::vector<duint8> tmpByteStr(si.size);
+    fileBuf->getBytes(tmpByteStr.data(), si.size);
+    dwgBuffer buff(tmpByteStr.data(), si.size, &decoder);
     DRW_DBG("Header section sentinel= ");
     checkSentinel(&buff, secEnum::HEADER, true);
     bool ret = dwgReader::readDwgHeader(hdr, &buff, &buff);
-    delete[]tmpByteStr;
     return ret;
 }
 
@@ -149,9 +149,9 @@ bool dwgReader15::readDwgClasses(){
         DRW_DBG("\nWARNING dwgReader15::readDwgClasses size are "); DRW_DBG(size);
         DRW_DBG(" and secSize - 38 are "); DRW_DBG(si.size - 38); DRW_DBG("\n");
     }
-    duint8 *tmpByteStr = new duint8[size];
-    fileBuf->getBytes(tmpByteStr, size);
-    dwgBuffer buff(tmpByteStr, size, &decoder);
+    std::vector<duint8> tmpByteStr(size);
+    fileBuf->getBytes(tmpByteStr.data(), size);
+    dwgBuffer buff(tmpByteStr.data(), size, &decoder);
     size--; //reduce 1 byte instead of check pos + bitPos
     while (size > buff.getPosition()) {
         DRW_Class *cl = new DRW_Class();
@@ -162,7 +162,6 @@ bool dwgReader15::readDwgClasses(){
      DRW_DBG("\nclasses section end sentinel= ");
      checkSentinel(fileBuf.get(), secEnum::CLASSES, false);
      bool ret = buff.isGood();
-     delete[]tmpByteStr;
      return ret;
 }
 

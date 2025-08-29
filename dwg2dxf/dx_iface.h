@@ -21,8 +21,8 @@ class dx_iface : public DRW_Interface {
 public:
     dx_iface(){dxfW = NULL;}
     ~dx_iface(){}
-    bool fileImport(const std::string& fileI, dx_data *fData);
-    bool fileExport(const std::string& file, DRW::Version v, bool binary, dx_data *fData);
+    bool fileImport(const std::string& fileI, dx_data *fData, bool debug);
+    bool fileExport(const std::string& file, DRW::Version v, bool binary, dx_data *fData, bool debug);
     void writeEntity(DRW_Entity* e);
 
 //reimplement virtual DRW_Interface functions
@@ -97,7 +97,7 @@ public:
         currentBlock->ent.push_back(new DRW_Spline(*data));
     }
     // ¿para que se usa?
-    virtual void addKnot(const DRW_Entity& data){}
+    virtual void addKnot(const DRW_Entity& data){(void)data;}
 
     virtual void addInsert(const DRW_Insert& data){
         currentBlock->ent.push_back(new DRW_Insert(data));
@@ -166,12 +166,16 @@ public:
 
 //writer part, send all in class dx_data to writer
     virtual void addComment(const char* /*comment*/){}
+    virtual void addPlotSettings(const DRW_PlotSettings *data) {
+        (void)data;
+        // default implementation for new DRW_Interface method
+    }
 
     virtual void writeHeader(DRW_Header& data){
         //complete copy of header vars:
         data = cData->headerC;
         //or copy one by one:
-//        for (std::map<std::string,DRW_Variant*>::iterator it=cData->headerC.vars.begin(); it != cData->headerC.vars.end(); ++it)
+//        for (auto it=cData->headerC.vars.begin(); it != cData->headerC.vars.end(); ++it)
 //            data.vars[it->first] = new DRW_Variant( *(it->second) );
     }
 
@@ -214,6 +218,9 @@ public:
     virtual void writeDimstyles(){
         for (std::list<DRW_Dimstyle>::iterator it=cData->dimStyles.begin(); it != cData->dimStyles.end(); ++it)
             dxfW->writeDimstyle(&(*it));
+    }
+    virtual void writeObjects() {
+        // default implementation for new DRW_Interface method
     }
     virtual void writeAppId(){
         for (std::list<DRW_AppId>::iterator it=cData->appIds.begin(); it != cData->appIds.end(); ++it)

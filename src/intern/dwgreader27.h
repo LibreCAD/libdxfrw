@@ -13,8 +13,6 @@
 #ifndef DWGREADER27_H
 #define DWGREADER27_H
 
-#include <map>
-#include <list>
 #include "drw_textcodec.h"
 #include "dwgbuffer.h"
 #include "dwgreader18.h"
@@ -51,4 +49,4 @@ public:
 //        return false;}
 };
 
-#endif // DWGREADER21_H
+#endif // DWGREADER27_H

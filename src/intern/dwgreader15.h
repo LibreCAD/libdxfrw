@@ -13,15 +13,13 @@
 #ifndef DWGREADER15_H
 #define DWGREADER15_H
 
-#include <map>
-#include <list>
 #include "drw_textcodec.h"
 #include "dwgbuffer.h"
 #include "dwgreader.h"
 
 class dwgReader15 : public dwgReader {
 public:
-    dwgReader15(std::ifstream *stream, dwgR *p):dwgReader(stream, p){ }
+    dwgReader15(std::ifstream *stream, dwgR *p):dwgReader(stream, p){}
     bool readMetaData() override;
     bool readFileHeader() override;
     bool readDwgHeader(DRW_Header& hdr) override;

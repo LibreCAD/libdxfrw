@@ -1,6 +1,7 @@
 /******************************************************************************
 **  libDXFrw - Library to read/write DXF files (ascii & binary)              **
 **                                                                           **
+**  Copyright (C) 2016-2021 A. Stebich (librecad@mail.lordofbikes.de)        **
 **  Copyright (C) 2011-2015 José F. Soriano, rallazz@gmail.com               **
 **                                                                           **
 **  This library is free software, licensed under the terms of the GNU       **
@@ -16,8 +17,8 @@
 #define DRW_VERSION "0.6.3"
 
 #include <string>
-#include <list>
 #include <cmath>
+#include <unordered_map>
 
 #ifdef DRW_ASSERTS
 # define drw_assert(a) assert(a)
@@ -87,12 +88,33 @@ enum Version {
     AC1032,       //!< AutoCAD 2018/2019/2020
 };
 
+const std::unordered_map< const char*, DRW::Version > dwgVersionStrings {
+    { "MC0.0", DRW::MC00 },
+    { "AC1.2", DRW::AC12 },
+    { "AC1.4", DRW::AC14 },
+    { "AC1.50", DRW::AC150 },
+    { "AC2.10", DRW::AC210 },
+    { "AC1002", DRW::AC1002 },
+    { "AC1003", DRW::AC1003 },
+    { "AC1004", DRW::AC1004 },
+    { "AC1006", DRW::AC1006 },
+    { "AC1009", DRW::AC1009 },
+    { "AC1012", DRW::AC1012 },
+    { "AC1014", DRW::AC1014 },
+    { "AC1015", DRW::AC1015 },
+    { "AC1018", DRW::AC1018 },
+    { "AC1021", DRW::AC1021 },
+    { "AC1024", DRW::AC1024 },
+    { "AC1027", DRW::AC1027 },
+    { "AC1032", DRW::AC1032 },
+};
+
 enum error {
 BAD_NONE,             /*!< No error. */
 BAD_UNKNOWN,          /*!< UNKNOWN. */
 BAD_OPEN,             /*!< error opening file. */
 BAD_VERSION,          /*!< unsupported version. */
-BAD_READ_METADATA,    /*!< error reading matadata. */
+BAD_READ_METADATA,    /*!< error reading metadata. */
 BAD_READ_FILE_HEADER, /*!< error in file header read process. */
 BAD_READ_HEADER,      /*!< error in header vars read process. */
 BAD_READ_HANDLES,     /*!< error in object map read process. */
@@ -100,13 +122,41 @@ BAD_READ_CLASSES,     /*!< error in classes read process. */
 BAD_READ_TABLES,      /*!< error in tables read process. */
 BAD_READ_BLOCKS,      /*!< error in block read process. */
 BAD_READ_ENTITIES,    /*!< error in entities read process. */
-BAD_READ_OBJECTS      /*!< error in objects read process. */
+BAD_READ_OBJECTS,     /*!< error in objects read process. */
+BAD_READ_SECTION,     /*!< error in sections read process. */
+BAD_CODE_PARSED,      /*!< error in any parseCodes() method. */
 };
 
-enum DBG_LEVEL {
-    NONE,
-    DEBUG
+enum class DebugLevel {
+    None,
+    Debug
 };
+
+/**
+ * Interface for debug printers.
+ *
+ * The base class is silent and ignores all debugging.
+ */
+class DebugPrinter {
+public:
+    virtual void printS(const std::string &s){(void)s;}
+    virtual void printI(long long int i){(void)i;}
+    virtual void printUI(long long unsigned int i){(void)i;}
+    virtual void printD(double d){(void)d;}
+    virtual void printH(long long int i){(void)i;}
+    virtual void printB(int i){(void)i;}
+    virtual void printHL(int c, int s, int h){(void)c;(void)s;(void)h;}
+    virtual void printPT(double x, double y, double z){(void)x;(void)y;(void)z;}
+    DebugPrinter()=default;
+    virtual ~DebugPrinter()=default;
+};
+
+/**
+ * Sets a custom debug printer to use when outputting debug messages.
+ *
+ * Ownership of `printer` is transferred.
+ */
+void setCustomDebugPrinter( DebugPrinter* printer );
 
 //! Special codes for colors
 enum ColorCodes {
@@ -164,7 +214,7 @@ public:
 /*!< convert to unitary vector */
     void unitize(){
         double dist;
-        dist = sqrt(x*x + y*y + z*z);
+        dist = hypot(hypot(x, y), z);
         if (dist > 0.0) {
             x= x/dist;
             y= y/dist;
@@ -243,7 +293,7 @@ public:
     void setCoordX(double d) { if (vType == COORD) vdata.x = d;}
     void setCoordY(double d) { if (vType == COORD) vdata.y = d;}
     void setCoordZ(double d) { if (vType == COORD) vdata.z = d;}
-    enum TYPE type() { return vType;}
+    enum TYPE type() const { return vType;}
     int code() { return vCode;}            /*!< returns dxf code of this value*/
 
 private:
@@ -289,7 +339,7 @@ public:
 //! Class to convert between line width and integer
 /*!
 *  Class to convert between line width and integer
-*  verifing valid values, if value is not valid
+*  verifying valid values, if value is not valid
 *  returns widthDefault.
 *  @author Rallaz
 */

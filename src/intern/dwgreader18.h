@@ -13,8 +13,6 @@
 #ifndef DWGREADER18_H
 #define DWGREADER18_H
 
-#include <map>
-#include <list>
 #include "dwgreader.h"
 //#include "../drw_textcodec.h"
 #include "dwgbuffer.h"
@@ -86,12 +84,12 @@ private:
 #endif
 
 //    dwgBuffer* bufObj;
-    void parseSysPage(duint8 *decompSec, duint32 decompSize); //called: Section page map: 0x41630e3b
+    bool parseSysPage(duint8 *decompSec, duint32 decompSize); //called: Section page map: 0x41630e3b
     bool parseDataPage(const dwgSectionInfo &si/*, duint8 *dData*/); //called ???: Section map: 0x4163003b
-    duint32 checksum(duint32 seed, duint8* data, duint32 sz);
+    duint32 checksum(duint32 seed, duint8* data, duint64 sz);
 
 private:
-duint32 securityFlags;
+    duint32 securityFlags;
 };
 
 #endif // DWGREADER18_H

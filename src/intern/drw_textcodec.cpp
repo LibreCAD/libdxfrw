@@ -2,6 +2,7 @@
 #include <sstream>
 #include <iomanip>
 #include <algorithm>
+#include <cstring>
 #include "../drw_base.h"
 #include "drw_cptables.h"
 #include "drw_cptable932.h"
@@ -17,36 +18,69 @@ DRW_TextCodec::DRW_TextCodec()
 
 DRW_TextCodec::~DRW_TextCodec() = default;
 
-void DRW_TextCodec::setVersion(int v, bool dxfFormat){
-    if (v == DRW::AC1009 || v == DRW::AC1006) {
-        version = DRW::AC1009;
-        cp = "ANSI_1252";
-        setCodePage(cp, dxfFormat);
-    } else if (v == DRW::AC1012 || v == DRW::AC1014
-             || v == DRW::AC1015 || v == DRW::AC1018) {
-        version = DRW::AC1015;
-//        if (cp.empty()) { //codepage not set, initialize
+void DRW_TextCodec::setVersion(DRW::Version v, bool dxfFormat){
+    switch (v)
+    {
+        case DRW::UNKNOWNV:
+        case DRW::MC00:
+        case DRW::AC12:
+        case DRW::AC14:
+        case DRW::AC150:
+        case DRW::AC210:
+        case DRW::AC1002:
+        case DRW::AC1003:
+        case DRW::AC1004:
+            // unhandled?
+            break;
+
+        case DRW::AC1006:
+        case DRW::AC1009:
+        {
+            version = DRW::AC1009;
             cp = "ANSI_1252";
-            setCodePage(cp, dxfFormat);
-//        }
-    } else {
-        version = DRW::AC1021;
-        if (dxfFormat)
-            cp = "UTF-8";//RLZ: can be UCS2 or UTF-16 16bits per char
-        else
-            cp = "UTF-16";//RLZ: can be UCS2 or UTF-16 16bits per char
-        setCodePage(cp, dxfFormat);
+            setCodePage( cp, dxfFormat);
+            break;
+        }
+
+        case DRW::AC1012:
+        case DRW::AC1014:
+        case DRW::AC1015:
+        case DRW::AC1018:
+        {
+            version = DRW::AC1015;
+//            if (cp.empty()) { //codepage not set, initialize ??
+                cp = "ANSI_1252";
+                setCodePage( cp, dxfFormat);
+//          }
+            break;
+        }
+
+        case DRW::AC1021:
+        case DRW::AC1024:
+        case DRW::AC1027:
+        case DRW::AC1032:
+        {
+            version = DRW::AC1021;
+            if (dxfFormat)
+                cp = "UTF-8";//RLZ: can be UCS2 or UTF-16 16bits per char
+            else
+                cp = "UTF-16";//RLZ: can be UCS2 or UTF-16 16bits per char
+            setCodePage( cp, dxfFormat);
+            break;
+        }
     }
 }
 
-void DRW_TextCodec::setVersion(const std::string &versionStr, bool dxfFormat){
-    if (versionStr == "AC1009" || versionStr == "AC1006") {
-        setVersion(DRW::AC1009, dxfFormat);
-    } else if (versionStr == "AC1012" || versionStr == "AC1014"
-             || versionStr == "AC1015" || versionStr == "AC1018") {
-        setVersion(DRW::AC1015, dxfFormat);
+void DRW_TextCodec::setVersion(const std::string &v, bool dxfFormat){
+    version = DRW::UNKNOWNV;
+    for ( auto it = DRW::dwgVersionStrings.begin(); it != DRW::dwgVersionStrings.end(); ++it )
+    {
+        if ( std::strcmp( v.c_str(), it->first ) == 0 ) {
+            version = it->second;
+            setVersion( it->second, dxfFormat);
+            break;
+        }
     }
-    setVersion(DRW::AC1021, dxfFormat);
 }
 
 void DRW_TextCodec::setCodePage(const std::string &c, bool dxfFormat){
@@ -56,8 +90,7 @@ void DRW_TextCodec::setCodePage(const std::string &c, bool dxfFormat){
         if (cp == "ANSI_874")
             conv.reset( new DRW_ConvTable(DRW_Table874, CPLENGTHCOMMON) );
         else if (cp == "ANSI_932")
-            conv.reset( new DRW_Conv932Table(DRW_Table932, DRW_LeadTable932,
-                                         DRW_DoubleTable932, CPLENGTH932) );
+            conv.reset( new DRW_Conv932Table() );
         else if (cp == "ANSI_936")
             conv.reset( new DRW_ConvDBCSTable(DRW_Table936, DRW_LeadTable936,
                                          DRW_DoubleTable936, CPLENGTH936) );
@@ -169,7 +202,7 @@ std::string DRW_ConvTable::toUtf8(const std::string &s) {
         if (c < 0x80) {
             //check for \U+ encoded text
             if (c == '\\') {
-                if (it+6 < s.end() && *(it+1) == 'U' && *(it+2) == '+')  {
+                if (s.end()-it > 6 && *(it+1) == 'U' && *(it+2) == '+')  {
                     res += encodeText(std::string(it, it+7));
                     it +=6;
                 } else {
@@ -238,8 +271,8 @@ std::string DRW_Converter::encodeNum(int c){
     return std::string(reinterpret_cast<char*>(ret));
 }
 
-/** 's' is a string with at least 4 bytes lenght
-** returned 'b' is byte lenght of encoded char: 2,3 or 4
+/** 's' is a string with at least 4 bytes length
+** returned 'b' is byte length of encoded char: 2,3 or 4
 **/
 int DRW_Converter::decodeNum(const std::string &s, int *b){
     int code= 0;
@@ -311,7 +344,7 @@ std::string DRW_ConvDBCSTable::toUtf8(const std::string &s) {
             notFound = false;
             //check for \U+ encoded text
             if (c == '\\') {
-                if (it+6 < s.end() && *(it+1) == 'U' && *(it+2) == '+')  {
+                if (s.end()-it > 6 && *(it+1) == 'U' && *(it+2) == '+')  {
                     res += encodeText(std::string(it, it+7));
                     it +=6;
                 } else {
@@ -342,6 +375,10 @@ std::string DRW_ConvDBCSTable::toUtf8(const std::string &s) {
     return res;
 }
 
+DRW_Conv932Table::DRW_Conv932Table()
+    :DRW_Converter(DRW_Table932, CPLENGTH932) {
+}
+
 std::string DRW_Conv932Table::fromUtf8(const std::string &s) {
     std::string result;
     bool notFound;
@@ -366,8 +403,8 @@ std::string DRW_Conv932Table::fromUtf8(const std::string &s) {
             if (notFound && ( code<0xF8 || (code>0x390 && code<0x542) ||
                     (code>0x200F && code<0x9FA1) || code>0xF928 )) {
                 for (int k=0; k<cpLength; k++){
-                    if(doubleTable[k][1] == code) {
-                        int data = doubleTable[k][0];
+                    if(DRW_DoubleTable932[k][1] == code) {
+                        int data = DRW_DoubleTable932[k][0];
                         char d[3];
                         d[0] = data >> 8;
                         d[1] = data & 0xFF;
@@ -396,7 +433,7 @@ std::string DRW_Conv932Table::toUtf8(const std::string &s) {
             notFound = false;
             //check for \U+ encoded text
             if (c == '\\') {
-                if (it+6 < s.end() && *(it+1) == 'U' && *(it+2) == '+')  {
+                if (s.end()-it > 6 && *(it+1) == 'U' && *(it+2) == '+')  {
                     res += encodeText(std::string(it, it+7));
                     it +=6;
                 } else {
@@ -410,7 +447,7 @@ std::string DRW_Conv932Table::toUtf8(const std::string &s) {
         } else {//2 bytes
             ++it;
             int code = (c << 8) | static_cast<unsigned char>(*it);
-            int sta;
+            int sta=0;
             int end=0;
             if (c > 0x80 && c < 0xA0) {
                 sta = DRW_LeadTable932[c-0x81];
@@ -438,7 +475,7 @@ std::string DRW_Conv932Table::toUtf8(const std::string &s) {
 
 std::string DRW_ConvUTF16::fromUtf8(const std::string &s){
     DRW_UNUSED(s);
-    //RLZ: to be writen (only needed for write dwg 2007+)
+    //RLZ: to be written (only needed for write dwg 2007+)
     return std::string();
 }
 
@@ -474,13 +511,13 @@ std::string DRW_TextCodec::correctCodePage(const std::string& s) {
                cp=="ISO8859-1" || cp=="ISO8859-15" || cp=="ISO-IR-100" || cp=="L1" || cp=="IBM 850") {
         return "ANSI_1252";
         //Greek
-    } else if (cp=="ANSI_1253" || cp=="CP1253" || cp=="iso8859-7") {
+    } else if (cp=="ANSI_1253" || cp=="CP1253" || cp=="ISO8859-7") {
         return "ANSI_1253";
         //Turkish
-    } else if (cp=="ANSI_1254" || cp=="CP1254" || cp=="iso8859-9" || cp=="iso8859-3") {
+    } else if (cp=="ANSI_1254" || cp=="CP1254" || cp=="ISO8859-9" || cp=="ISO8859-3") {
         return "ANSI_1254";
         //Hebrew
-    } else if (cp=="ANSI_1255" || cp=="CP1255" || cp=="iso8859-8") {
+    } else if (cp=="ANSI_1255" || cp=="CP1255" || cp=="ISO8859-8") {
         return "ANSI_1255";
         //Arabic
     } else if (cp=="ANSI_1256" || cp=="CP1256" || cp=="ISO8859-6") {
