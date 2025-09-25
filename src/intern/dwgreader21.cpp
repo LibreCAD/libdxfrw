@@ -259,9 +259,8 @@ bool dwgReader21::readFileHeader() {
     DRW_DBG("\n*** dwgReader21: Processing Section Map ***\n");
     std::vector<duint8> SectionsMapData( SectionsMapSizeUncompressed);
     dwgPageInfo sectionMap = sectionPageMapTmp[SectionsMapId];
-    ret = parseSysPage(SectionsMapSizeCompressed, SectionsMapSizeUncompressed, SectionsMapCorrectionFactor, sectionMap.address, SectionsMapData);
-    if (!ret) {
-        delete[]SectionsMapData;
+    if (!parseSysPage( SectionsMapSizeCompressed, SectionsMapSizeUncompressed,
+                       SectionsMapCorrectionFactor, sectionMap.address, &SectionsMapData.front()) ) {
         return false;
     }
 
