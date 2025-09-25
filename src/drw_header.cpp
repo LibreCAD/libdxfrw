@@ -2411,8 +2411,9 @@ fs0.close();
     }
 
     //temporary code to show header end sentinel
+    duint64 sz= buf->size()-1;
     if (version < DRW::AC1018) {//pre 2004
-        const duint64 sz= buf->size()-16;
+        sz= buf->size()-16;
         buf->setPosition(sz);
         DRW_DBG("\nsetting position to: "); DRW_DBG(buf->getPosition());
         DRW_DBG("\ndwg header end sentinel= ");
@@ -2429,7 +2430,7 @@ fs0.close();
             DRW_DBGH(buf->getRawChar8()); DRW_DBG(" ");
         }
     } else if (version == DRW::AC1021) {//2007
-        const duint64 sz= buf->size()-16;
+        sz= buf->size()-16;
         buf->setPosition(sz);
         DRW_DBG("\nsetting position to: "); DRW_DBG(buf->getPosition());
         DRW_DBG("\ndwg header end sentinel= ");
