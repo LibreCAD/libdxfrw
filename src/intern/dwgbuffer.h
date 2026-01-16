@@ -125,7 +125,7 @@ public:
     double getThickness(bool b_R2000_style);//BT
     //3DD
     duint32 getCmColor(DRW::Version v); //CMC
-    duint32 getEnColor(DRW::Version v); //ENC
+    duint32 getEnColor( DRW::Version v, int &rgb, int &transparency ); //ENC
     //TC
 
     duint16 getBERawShort16();  //RS big-endian order
