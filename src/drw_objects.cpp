@@ -658,8 +658,8 @@ bool DRW_Layer::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
         plotF = ( f>> 4) & 0x0001;
         lWeight = DRW_LW_Conv::dwgInt2lineWidth( (f & 0x03E0) >> 5 );
     }
-    color = buf->getCmColor(version); //BS or CMC //ok for R14 or negate
-    DRW_DBG(", entity color: "); DRW_DBG(color); DRW_DBG("\n");
+    color = buf->getCmColor(version, &color24); //BS or CMC; color24 set for true-RGB
+    DRW_DBG(", entity color: "); DRW_DBG(color); DRW_DBG(", color24: "); DRW_DBG(color24); DRW_DBG("\n");
 
     if (version > DRW::AC1018) {//2007+ skip string area
         buf->setPosition(objSize >> 3);
@@ -1254,9 +1254,209 @@ bool DRW_PlotSettings::parseCode(int code, const std::unique_ptr<dxfReader>& rea
 }
 
 bool DRW_PlotSettings::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
-    (void) version;
-    (void) bs;
-    DRW_DBG("\n********************** parsing Plot Settings not yet implemented **************************\n");
+    dwgBuffer sBuff = *buf;
+    dwgBuffer *sBuf = buf;
+    if (version > DRW::AC1018) {//2007+
+        sBuf = &sBuff; //separate buffer for strings
+    }
+    bool ret = DRW_TableEntry::parseDwg(version, buf, sBuf, bs);
+    DRW_DBG("\n********************** parsing Plot Settings (base fields only) **************************\n");
+    if (!ret)
+        return ret;
+    //RLZ: PlotSettings-specific fields (margins, printer, plotViewName) not yet parsed
+    return buf->isGood();
+}
+
+bool DRW_UCS::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
+    switch (code) {
+    case 10:
+        origin.x = reader->getDouble();
+        break;
+    case 20:
+        origin.y = reader->getDouble();
+        break;
+    case 30:
+        origin.z = reader->getDouble();
+        break;
+    case 11:
+        xAxisDirection.x = reader->getDouble();
+        break;
+    case 21:
+        xAxisDirection.y = reader->getDouble();
+        break;
+    case 31:
+        xAxisDirection.z = reader->getDouble();
+        break;
+    case 12:
+        yAxisDirection.x = reader->getDouble();
+        break;
+    case 22:
+        yAxisDirection.y = reader->getDouble();
+        break;
+    case 32:
+        yAxisDirection.z = reader->getDouble();
+        break;
+    case 13:
+        orthoOrigin.x = reader->getDouble();
+        break;
+    case 23:
+        orthoOrigin.y = reader->getDouble();
+        break;
+    case 33:
+        orthoOrigin.z = reader->getDouble();
+        break;
+    case 71:
+        orthoType = reader->getInt32();
+        break;
+    case 79: //always 0 in DXF
+        break;
+    case 146:
+        elevation = reader->getDouble();
+        break;
+    case 346: //base UCS handle, optional, only when 79 != 0
+        break;
+    default:
+        return DRW_TableEntry::parseCode(code, reader);
+    }
+    return true;
+}
+
+bool DRW_UCS::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
+    //Minimal parseDwg: populate base table-entry fields (handle, name,
+    //parentHandle, reactors, extData) by delegating to DRW_TableEntry::parseDwg.
+    //UCS-specific fields (origin, axes, elevation, orthoType per ODA 19.4.62)
+    //stay at reset defaults until a sample-validated implementation lands.
+    dwgBuffer sBuff = *buf;
+    dwgBuffer *sBuf = buf;
+    if (version > DRW::AC1018) {//2007+
+        sBuf = &sBuff; //separate buffer for strings
+    }
+    bool ret = DRW_TableEntry::parseDwg(version, buf, sBuf, bs);
+    DRW_DBG("\n***************************** parsing UCS (base fields) **************************************\n");
+    if (!ret)
+        return ret;
+    name = sBuf->getVariableText(version, false);
+    DRW_DBG("ucs name: "); DRW_DBG(name); DRW_DBG("\n");
+    return buf->isGood();
+}
+
+bool DRW_View::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
+    switch (code) {
+    case 40:
+        size.y = reader->getDouble();
+        break;
+    case 41:
+        size.x = reader->getDouble();
+        break;
+    case 10:
+        center.x = reader->getDouble();
+        break;
+    case 20:
+        center.y = reader->getDouble();
+        break;
+    case 11:
+        viewDirectionFromTarget.x = reader->getDouble();
+        break;
+    case 21:
+        viewDirectionFromTarget.y = reader->getDouble();
+        break;
+    case 31:
+        viewDirectionFromTarget.z = reader->getDouble();
+        break;
+    case 12:
+        targetPoint.x = reader->getDouble();
+        break;
+    case 22:
+        targetPoint.y = reader->getDouble();
+        break;
+    case 32:
+        targetPoint.z = reader->getDouble();
+        break;
+    case 42:
+        lensLen = reader->getDouble();
+        break;
+    case 43:
+        frontClippingPlaneOffset = reader->getDouble();
+        break;
+    case 44:
+        backClippingPlaneOffset = reader->getDouble();
+        break;
+    case 50:
+        twistAngle = reader->getDouble();
+        break;
+    case 71:
+        viewMode = reader->getInt32();
+        break;
+    case 281:
+        renderMode = reader->getInt32();
+        break;
+    case 72:
+        hasUCS = reader->getBool();
+        break;
+    case 73:
+        cameraPlottable = reader->getBool();
+        break;
+    case 110:
+        ucsOrigin.x = reader->getDouble();
+        break;
+    case 120:
+        ucsOrigin.y = reader->getDouble();
+        break;
+    case 130:
+        ucsOrigin.z = reader->getDouble();
+        break;
+    case 111:
+        ucsXAxis.x = reader->getDouble();
+        break;
+    case 121:
+        ucsXAxis.y = reader->getDouble();
+        break;
+    case 131:
+        ucsXAxis.z = reader->getDouble();
+        break;
+    case 112:
+        ucsYAxis.x = reader->getDouble();
+        break;
+    case 122:
+        ucsYAxis.y = reader->getDouble();
+        break;
+    case 132:
+        ucsYAxis.z = reader->getDouble();
+        break;
+    case 79:
+        ucsOrthoType = reader->getInt32();
+        break;
+    case 146:
+        ucsElevation = reader->getDouble();
+        break;
+    case 345:
+        namedUCS_ID = static_cast<duint32>(reader->getHandleString());
+        break;
+    case 346:
+        baseUCS_ID = static_cast<duint32>(reader->getHandleString());
+        break;
+    default:
+        return DRW_TableEntry::parseCode(code, reader);
+    }
+    return true;
+}
+
+bool DRW_View::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
+    //Minimal parseDwg: same pattern as DRW_UCS — base fields + name.
+    //VIEW-specific fields (size, center, viewDirection, target, lensLen,
+    //clipping, twistAngle, viewMode, renderMode, hasUCS sub-record per
+    //ODA 19.4.63) stay at reset defaults until sample-validated.
+    dwgBuffer sBuff = *buf;
+    dwgBuffer *sBuf = buf;
+    if (version > DRW::AC1018) {//2007+
+        sBuf = &sBuff; //separate buffer for strings
+    }
+    bool ret = DRW_TableEntry::parseDwg(version, buf, sBuf, bs);
+    DRW_DBG("\n***************************** parsing VIEW (base fields) **************************************\n");
+    if (!ret)
+        return ret;
+    name = sBuf->getVariableText(version, false);
+    DRW_DBG("view name: "); DRW_DBG(name); DRW_DBG("\n");
     return buf->isGood();
 }
 
@@ -1295,5 +1495,56 @@ bool DRW_AppId::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
 
     DRW_DBG("Remaining bytes: "); DRW_DBG(buf->numRemainingBytes()); DRW_DBG("\n\n");
     //    RS crc;   //RS */
+    return buf->isGood();
+}
+
+//Minimal parseDwg for DRW_Dictionary / DRW_Layout / DRW_MLineStyle.
+//Each delegates to DRW_TableEntry::parseDwg for base fields (handle,
+//parentHandle, reactors, extData) + reads name. Class-specific fields
+//(Dictionary entries, Layout extents, MLineStyle dash defs) stay at
+//reset defaults until sample-validated implementations land.
+
+bool DRW_Dictionary::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
+    dwgBuffer sBuff = *buf;
+    dwgBuffer *sBuf = buf;
+    if (version > DRW::AC1018) {//2007+
+        sBuf = &sBuff;
+    }
+    bool ret = DRW_TableEntry::parseDwg(version, buf, sBuf, bs);
+    DRW_DBG("\n***************************** parsing Dictionary (base) ***************************************\n");
+    if (!ret)
+        return ret;
+    name = sBuf->getVariableText(version, false);
+    DRW_DBG("dictionary name: "); DRW_DBG(name); DRW_DBG("\n");
+    return buf->isGood();
+}
+
+bool DRW_Layout::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
+    dwgBuffer sBuff = *buf;
+    dwgBuffer *sBuf = buf;
+    if (version > DRW::AC1018) {//2007+
+        sBuf = &sBuff;
+    }
+    bool ret = DRW_TableEntry::parseDwg(version, buf, sBuf, bs);
+    DRW_DBG("\n***************************** parsing Layout (base) *******************************************\n");
+    if (!ret)
+        return ret;
+    name = sBuf->getVariableText(version, false);
+    DRW_DBG("layout name: "); DRW_DBG(name); DRW_DBG("\n");
+    return buf->isGood();
+}
+
+bool DRW_MLineStyle::parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs){
+    dwgBuffer sBuff = *buf;
+    dwgBuffer *sBuf = buf;
+    if (version > DRW::AC1018) {//2007+
+        sBuf = &sBuff;
+    }
+    bool ret = DRW_TableEntry::parseDwg(version, buf, sBuf, bs);
+    DRW_DBG("\n***************************** parsing MLineStyle (base) ***************************************\n");
+    if (!ret)
+        return ret;
+    name = sBuf->getVariableText(version, false);
+    DRW_DBG("mlinestyle name: "); DRW_DBG(name); DRW_DBG("\n");
     return buf->isGood();
 }

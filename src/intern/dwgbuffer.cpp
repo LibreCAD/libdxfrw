@@ -549,7 +549,7 @@ dwgHandle dwgBuffer::getOffsetHandle(duint32 href){ //H
         else if (hl.code == 0x06)
             hl.ref = href + 1;
 //all are soft pointer reference change to 7 (without offset)
-            hl.code = 7;
+        hl.code = 7;
     }
     return hl;
 }
@@ -745,7 +745,7 @@ double dwgBuffer::getThickness(bool b_R2000_style) {
 * For R2004+, can be CMC or ENC
 * RGB value, first 4bits 0xC0 => ByLayer, 0xC1 => ByBlock, 0xC2 => RGB,  0xC3 => last 4 are ACIS
 */
-duint32 dwgBuffer::getCmColor(DRW::Version v) {
+duint32 dwgBuffer::getCmColor(DRW::Version v, dint32* rgb24) {
     if (v < DRW::AC1018) //2000-
         return getSBitShort();
     duint16 idx = getBitShort();
@@ -770,7 +770,12 @@ duint32 dwgBuffer::getCmColor(DRW::Version v) {
     case 0xC1:
         return 0;//ByBlock
     case 0xC2:
-        return 256;//RGB RLZ TODO
+        //true RGB: expose the 24-bit color via out-param for callers that
+        //track DXF code 420 (DRW_Layer.color24, etc.); return ByLayer
+        //sentinel for the indexed-color slot.
+        if (rgb24)
+            *rgb24 = static_cast<dint32>(rgb & 0xFFFFFF);
+        return 256;
     case 0xC3:
         return rgb&0xFF;//ACIS
     default:

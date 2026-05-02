@@ -316,6 +316,16 @@ bool dwgR::processDwg() {
         iface->addAppId(const_cast<DRW_AppId&>(*ly));
     }
 
+    for (auto it=reader->viewmap.begin(); it!=reader->viewmap.end(); ++it) {
+        DRW_View *vw = it->second;
+        iface->addView(const_cast<DRW_View&>(*vw));
+    }
+
+    for (auto it=reader->ucsmap.begin(); it!=reader->ucsmap.end(); ++it) {
+        DRW_UCS *u = it->second;
+        iface->addUCS(const_cast<DRW_UCS&>(*u));
+    }
+
     ret2 = reader->readDwgBlocks(*iface);
     if (ret && !ret2) {
         error = DRW::BAD_READ_BLOCKS;

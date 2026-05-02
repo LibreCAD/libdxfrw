@@ -38,12 +38,17 @@ namespace DRW {
          BLOCK_RECORD,
          APPID,
          IMAGEDEF,
-         PLOTSETTINGS
+         PLOTSETTINGS,
+         VIEW,
+         UCS,
+         MLINESTYLE,
+         LAYOUT,
+         DICTIONARY
      };
 
-//pending VIEW, UCS, APPID, VP_ENT_HDR, GROUP, MLINESTYLE, LONG_TRANSACTION, XRECORD,
+//pending VP_ENT_HDR, GROUP, LONG_TRANSACTION, XRECORD,
 //ACDBPLACEHOLDER, VBA_PROJECT, ACAD_TABLE, CELLSTYLEMAP, DBCOLOR, DICTIONARYVAR,
-//DICTIONARYWDFLT, FIELD, IDBUFFER, IMAGEDEF, IMAGEDEFREACTOR, LAYER_INDEX, LAYOUT
+//DICTIONARYWDFLT, FIELD, IDBUFFER, IMAGEDEF, IMAGEDEFREACTOR, LAYER_INDEX,
 //MATERIAL, PLACEHOLDER, PLOTSETTINGS, RASTERVARIABLES, SCALE, SORTENTSTABLE,
 //SPATIAL_INDEX, SPATIAL_FILTER, TABLEGEOMETRY, TABLESTYLES,VISUALSTYLE,
 }
@@ -512,6 +517,98 @@ public:
     double marginTop;       /*!< Size, in millimeters, of unprintable margin on top side of paper, code 43 */
 };
 
+//! Class to handle UCS entries
+/*!
+*  Class to handle UCS symbol-table entries (named user coordinate systems).
+*/
+class DRW_UCS : public DRW_TableEntry {
+    SETOBJFRIENDS
+public:
+    DRW_UCS() { reset(); }
+
+    void reset(){
+        tType = DRW::UCS;
+        origin.x = origin.y = origin.z = 0.0;
+        xAxisDirection.x = xAxisDirection.y = xAxisDirection.z = 0.0;
+        yAxisDirection.x = yAxisDirection.y = yAxisDirection.z = 0.0;
+        orthoOrigin.x = orthoOrigin.y = orthoOrigin.z = 0.0;
+        elevation = 0.0;
+        orthoType = 0;
+        DRW_TableEntry::reset();
+    }
+
+protected:
+    bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) override;
+    bool parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs=0) override;
+
+public:
+    DRW_Coord origin;           /*!< UCS origin, codes 10/20/30 */
+    DRW_Coord xAxisDirection;   /*!< UCS X-axis direction, codes 11/21/31 */
+    DRW_Coord yAxisDirection;   /*!< UCS Y-axis direction, codes 12/22/32 */
+    DRW_Coord orthoOrigin;      /*!< Origin for orthographic UCS, codes 13/23/33 */
+    double elevation;           /*!< Elevation, code 146 */
+    int orthoType;              /*!< Orthographic type, code 71 (0 none, 1 Top, ...) */
+};
+
+//! Class to handle VIEW entries
+/*!
+*  Class to handle VIEW symbol-table entries (named views).
+*/
+class DRW_View : public DRW_TableEntry {
+    SETOBJFRIENDS
+public:
+    DRW_View() { reset(); }
+
+    void reset(){
+        tType = DRW::VIEW;
+        size.x = size.y = size.z = 0.0;
+        center.x = center.y = center.z = 0.0;
+        viewDirectionFromTarget.x = viewDirectionFromTarget.y = viewDirectionFromTarget.z = 0.0;
+        targetPoint.x = targetPoint.y = targetPoint.z = 0.0;
+        lensLen = 0.0;
+        frontClippingPlaneOffset = 0.0;
+        backClippingPlaneOffset = 0.0;
+        twistAngle = 0.0;
+        viewMode = 0;
+        renderMode = 0;
+        hasUCS = false;
+        cameraPlottable = false;
+        ucsOrigin.x = ucsOrigin.y = ucsOrigin.z = 0.0;
+        ucsXAxis.x = ucsXAxis.y = ucsXAxis.z = 0.0;
+        ucsYAxis.x = ucsYAxis.y = ucsYAxis.z = 0.0;
+        ucsOrthoType = 1;
+        ucsElevation = 0.0;
+        namedUCS_ID = 0;
+        baseUCS_ID = 0;
+        DRW_TableEntry::reset();
+    }
+
+protected:
+    bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) override;
+    bool parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs=0) override;
+
+public:
+    DRW_Coord size;                     /*!< View width/height in DCS, codes 40 & 41 */
+    DRW_Coord center;                   /*!< View center point in DCS, codes 10 & 20 */
+    DRW_Coord viewDirectionFromTarget;  /*!< View direction from target in WCS, codes 11/21/31 */
+    DRW_Coord targetPoint;              /*!< Target point in WCS, codes 12/22/32 */
+    double lensLen;                     /*!< Lens length, code 42 */
+    double frontClippingPlaneOffset;    /*!< Front clipping plane offset from target, code 43 */
+    double backClippingPlaneOffset;     /*!< Back clipping plane offset from target, code 44 */
+    double twistAngle;                  /*!< Twist angle, code 50 */
+    int viewMode;                       /*!< View mode, code 71 */
+    unsigned int renderMode;            /*!< Render mode, code 281 */
+    bool hasUCS;                        /*!< 1 if a UCS is associated, code 72 */
+    bool cameraPlottable;               /*!< 1 if camera is plottable, code 73 */
+    DRW_Coord ucsOrigin;                /*!< UCS origin, codes 110/120/130 */
+    DRW_Coord ucsXAxis;                 /*!< UCS X axis, codes 111/121/131 */
+    DRW_Coord ucsYAxis;                 /*!< UCS Y axis, codes 112/122/132 */
+    int ucsOrthoType;                   /*!< Orthographic type, code 79 */
+    double ucsElevation;                /*!< UCS elevation, code 146 */
+    duint32 namedUCS_ID;                /*!< Handle of named UCS table record, code 345 */
+    duint32 baseUCS_ID;                 /*!< Handle of base UCS table record, code 346 */
+};
+
 //! Class to handle AppId entries
 /*!
 *  Class to handle AppId symbol table entries
@@ -530,6 +627,74 @@ public:
 
 protected:
     bool parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs=0) override;
+};
+
+//! Class to handle Dictionary (ODA spec sec 19.4.30 fixed type 42)
+/*!
+*  Minimal carrier for named-object dictionaries; full entry-list parsing
+*  pending sample-validated implementation.
+*/
+class DRW_Dictionary : public DRW_TableEntry {
+    SETOBJFRIENDS
+public:
+    DRW_Dictionary() { reset(); }
+    void reset(){
+        tType = DRW::DICTIONARY;
+        cloning = 0;
+        hardOwner = 0;
+        name.clear();
+    }
+protected:
+    bool parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs=0) override;
+public:
+    int cloning;     /*!< duplicate-record handling (BS) */
+    int hardOwner;   /*!< hard-owner flag (RC, R2007+) */
+    //future: std::vector<std::pair<UTF8STRING, duint32>> entries; per ODA 19.4.30
+};
+
+//! Class to handle Layout (ODA spec sec 19.4.85 fixed type 82)
+/*!
+*  Minimal carrier for paperspace layouts; full field parsing pending.
+*/
+class DRW_Layout : public DRW_TableEntry {
+    SETOBJFRIENDS
+public:
+    DRW_Layout() { reset(); }
+    void reset(){
+        tType = DRW::LAYOUT;
+        layoutFlags = 0;
+        tabOrder = 0;
+        name.clear();
+    }
+protected:
+    bool parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs=0) override;
+public:
+    int layoutFlags;   /*!< layout flags (BS) */
+    int tabOrder;      /*!< tab order (BL) */
+    //future: minLim/maxLim, insertionBase, ucsOrigin, etc. per ODA 19.4.85
+};
+
+//! Class to handle MLineStyle (ODA spec sec 19.4.73 fixed type 73)
+/*!
+*  Minimal carrier for multiline styles; per-line parsing pending.
+*/
+class DRW_MLineStyle : public DRW_TableEntry {
+    SETOBJFRIENDS
+public:
+    DRW_MLineStyle() { reset(); }
+    void reset(){
+        tType = DRW::MLINESTYLE;
+        flags = 0;
+        startAngle = endAngle = 0.0;
+        name.clear();
+    }
+protected:
+    bool parseDwg(DRW::Version version, dwgBuffer *buf, duint32 bs=0) override;
+public:
+    int flags;          /*!< style flags (BS) */
+    double startAngle;  /*!< start angle (BD) */
+    double endAngle;    /*!< end angle (BD) */
+    //future: description, fillColor, lines vector per ODA 19.4.73
 };
 
 namespace DRW {

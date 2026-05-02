@@ -75,7 +75,7 @@ namespace DRW {
 //        SURFACE, //encrypted proprietary data can be four types
 //        TABLE,
         TEXT,
-//        TOLERANCE,
+        TOLERANCE,
         DXF_TRACE,
         UNDERLAY,
         VERTEX,
@@ -453,6 +453,34 @@ protected:
 public:
     int invisibleflag;       /*!< invisible edge flag, code 70 */
 
+};
+
+//! Class to handle TOLERANCE entries
+/*!
+*  Class to handle tolerance entities (geometric dimensioning tolerance).
+*/
+class DRW_Tolerance : public DRW_Entity {
+    SETENTFRIENDS
+public:
+    DRW_Tolerance() {
+        eType = DRW::TOLERANCE;
+        extPoint.x = 0;
+        extPoint.y = 0;
+        extPoint.z = 1;
+        dimStyleName = "STANDARD";
+    }
+    virtual void applyExtrusion() override {}
+
+protected:
+    bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) override;
+    virtual bool parseDwg(DRW::Version v, dwgBuffer *buf, duint32 bs=0) override;
+
+public:
+    UTF8STRING text;                  /*!< Visual representation of the tolerance, code 1 */
+    UTF8STRING dimStyleName;          /*!< Dim-style name, code 3 */
+    DRW_Coord insertionPoint;         /*!< Insertion point, codes 10/20/30 */
+    DRW_Coord xAxisDirectionVector;   /*!< X-axis direction in WCS, codes 11/21/31 */
+    DRW_Coord extPoint;               /*!< Extrusion direction, codes 210/220/230 */
 };
 
 //! Class to handle block entries

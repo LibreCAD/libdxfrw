@@ -48,6 +48,18 @@ public:
     virtual void addTextStyle(const DRW_Textstyle& data) = 0;
     /** Called for every AppId entry. */
     virtual void addAppId(const DRW_AppId& data) = 0;
+    /** Called for every named UCS table entry. */
+    virtual void addUCS(const DRW_UCS& data) { (void) data; }
+    /** Called for every VIEW table entry. */
+    virtual void addView(const DRW_View& data) { (void) data; }
+    /** Called for every TOLERANCE entity. */
+    virtual void addTolerance(const DRW_Tolerance& data) { (void) data; }
+    /** Called for every Dictionary (named-object container, ODA fixed type 42). */
+    virtual void addDictionary(const DRW_Dictionary& data) { (void) data; }
+    /** Called for every Layout (paperspace, ODA fixed type 82). */
+    virtual void addLayout(const DRW_Layout& data) { (void) data; }
+    /** Called for every MLineStyle (ODA fixed type 73). */
+    virtual void addMLineStyle(const DRW_MLineStyle& data) { (void) data; }
 
     /**
      * Called for every block. Note: all entities added after this
@@ -201,6 +213,13 @@ public:
     virtual void writeDimstyles() = 0;
     virtual void writeObjects() = 0;
     virtual void writeAppId() = 0;
+    /** Called when the writer wants the implementation to emit named VIEW
+     * records. Default-empty for ABI compatibility with consumers (LibreCAD_3,
+     * dx_iface) that don't carry View data. */
+    virtual void writeViews() {}
+    /** Called when the writer wants the implementation to emit named UCS
+     * records. Default-empty (same rationale as writeViews). */
+    virtual void writeUCSs() {}
 };
 
 #endif

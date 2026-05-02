@@ -168,6 +168,8 @@ public:
     std::unordered_map<duint32, DRW_Vport*> vportmap;
     std::unordered_map<duint32, DRW_Block_Record*> blockRecordmap;
     std::unordered_map<duint32, DRW_AppId*> appIdmap;
+    std::unordered_map<duint32, DRW_View*> viewmap;
+    std::unordered_map<duint32, DRW_UCS*> ucsmap;
 //    duint32 currBlock;
     duint8 maintenanceVersion{0};
 

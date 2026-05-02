@@ -920,6 +920,7 @@ bool dxfRW::writeSpline(DRW_Spline *ent){
         writer->writeInt16(74, ent->nfit);
         writer->writeDouble(42, ent->tolknot);
         writer->writeDouble(43, ent->tolcontrol);
+    writer->writeDouble(44, ent->tolfit);
         //RLZ: warning check if nknots are correct and ncontrol
         for (int i = 0;  i< ent->nknots; i++){
             writer->writeDouble(40, ent->knotslist.at(i));
@@ -932,6 +933,13 @@ bool dxfRW::writeSpline(DRW_Spline *ent){
             writer->writeDouble(10, crd->x);
             writer->writeDouble(20, crd->y);
             writer->writeDouble(30, crd->z);
+        }
+        //fit points: required for splinepoints / fit-point-driven splines
+        for (int i = 0;  i< ent->nfit; i++){
+            auto crd = ent->fitlist.at(i);
+            writer->writeDouble(11, crd->x);
+            writer->writeDouble(21, crd->y);
+            writer->writeDouble(31, crd->z);
         }
     } else {
         //RLZ: TODO convert spline in polyline (not exist in acad 12)
@@ -2019,9 +2027,9 @@ bool dxfRW::processTables() {
                     } else if (sectionstr == "VPORT") {
                         processVports();
                     } else if (sectionstr == "VIEW") {
-//                        processView();
+                        processView();
                     } else if (sectionstr == "UCS") {
-//                        processUCS();
+                        processUCS();
                     } else if (sectionstr == "APPID") {
                         processAppId();
                     } else if (sectionstr == "DIMSTYLE") {
@@ -2183,6 +2191,62 @@ bool dxfRW::processVports(){
         }
     }
 
+    return setError(DRW::BAD_READ_TABLES);
+}
+
+bool dxfRW::processView(){
+    DRW_DBG("dxfRW::processView");
+    int code;
+    std::string sectionstr;
+    bool reading = false;
+    DRW_View v;
+    while (reader->readRec(&code)) {
+        DRW_DBG(code); DRW_DBG("\n");
+        if (code == 0) {
+            if (reading)
+                iface->addView(v);
+            sectionstr = reader->getString();
+            DRW_DBG(sectionstr); DRW_DBG("\n");
+            if (sectionstr == "VIEW") {
+                reading = true;
+                v.reset();
+            } else if (sectionstr == "ENDTAB") {
+                return true;
+            }
+        } else if (reading) {
+            if (!v.parseCode(code, reader)) {
+                return setError(DRW::BAD_CODE_PARSED);
+            }
+        }
+    }
+    return setError(DRW::BAD_READ_TABLES);
+}
+
+bool dxfRW::processUCS(){
+    DRW_DBG("dxfRW::processUCS");
+    int code;
+    std::string sectionstr;
+    bool reading = false;
+    DRW_UCS u;
+    while (reader->readRec(&code)) {
+        DRW_DBG(code); DRW_DBG("\n");
+        if (code == 0) {
+            if (reading)
+                iface->addUCS(u);
+            sectionstr = reader->getString();
+            DRW_DBG(sectionstr); DRW_DBG("\n");
+            if (sectionstr == "UCS") {
+                reading = true;
+                u.reset();
+            } else if (sectionstr == "ENDTAB") {
+                return true;
+            }
+        } else if (reading) {
+            if (!u.parseCode(code, reader)) {
+                return setError(DRW::BAD_CODE_PARSED);
+            }
+        }
+    }
     return setError(DRW::BAD_READ_TABLES);
 }
 

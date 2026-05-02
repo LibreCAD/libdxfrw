@@ -94,6 +94,8 @@ private:
     bool processTextStyle();
     bool processVports();
     bool processAppId();
+    bool processView();
+    bool processUCS();
 
     bool processPoint();
     bool processLine();
