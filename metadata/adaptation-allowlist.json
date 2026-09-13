@@ -44,7 +44,7 @@
       "reason": "Provide a deprecated composition-based dwgR read façade instead of an unsafe alias to dwgRW.",
       "scope": "source compatibility",
       "targetBlob": "7d184f55c632599901f2072f42c80b0b9dd24c03",
-      "adaptedSha256": "5df3ccf66997907f623c01cea8262f4304258c79c41acbe3e2bc5923a09570a5"
+      "adaptedSha256": "98aa107d3a890bd524f441c2efda592575bf0d9f9f31ed8f503cd158f91ab963"
     },
     {
       "path": "src/libdwgr.cpp",

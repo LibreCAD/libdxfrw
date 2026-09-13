@@ -799,6 +799,15 @@ public:
     bool getPreview() { return implementation.getPreview(); }
     DRW::Version getVersion() const { return implementation.getVersion(); }
     DRW::error getError() const { return implementation.getError(); }
+    size_t getEntityParseFailures() const {
+        return implementation.getEntityParseFailures();
+    }
+    std::unordered_map<std::string, size_t> getSkippedCustomClasses() const {
+        return implementation.getSkippedCustomClasses();
+    }
+    std::unordered_map<std::string, size_t> getSkippedUnsupportedObjects() const {
+        return implementation.getSkippedUnsupportedObjects();
+    }
     bool testReader() { return implementation.testReader(); }
     void setDebug(DRW::DebugLevel lvl) { implementation.setDebug(lvl); }
 
