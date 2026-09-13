@@ -7,6 +7,7 @@ project(DXFRW VERSION 2.0.0)
 option(LIBDXFRW_BUILD_LIBRARY "Build the libdxfrw library" ON)
 option(LIBDXFRW_BUILD_DOC "Build the documentation" ON)
 option(LIBDXFRW_BUILD_DWG2DXF "Build the dwg2dxf application" ON)
+option(LIBDXFRW_BUILD_TESTS "Build dependency-free Wave 1 tests" OFF)
 
 if(LIBDXFRW_BUILD_DWG2DXF AND NOT LIBDXFRW_BUILD_LIBRARY)
     message(FATAL_ERROR "LIBDXFRW_BUILD_DWG2DXF requires LIBDXFRW_BUILD_LIBRARY")
@@ -73,6 +74,17 @@ endif()
 
 if(LIBDXFRW_BUILD_DWG2DXF)
     add_subdirectory(dwg2dxf)
+endif()
+
+if(LIBDXFRW_BUILD_TESTS)
+    enable_testing()
+    add_executable(libdxfrw_wave1_tests tests/wave1_tests.cpp)
+    target_compile_features(libdxfrw_wave1_tests PRIVATE cxx_std_17)
+    target_include_directories(libdxfrw_wave1_tests PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/intern)
+    target_link_libraries(libdxfrw_wave1_tests PRIVATE dxfrw)
+    add_test(NAME libdxfrw_wave1 COMMAND libdxfrw_wave1_tests)
 endif()
 
 # INSTALLATION

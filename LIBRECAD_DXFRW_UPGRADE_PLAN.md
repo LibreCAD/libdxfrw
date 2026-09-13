@@ -1357,24 +1357,24 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint: A importable; S04 engine import and compatibility
-  boundary committed; S05/C1 consumer validation is active.
+- Current checkpoint: A importable; S05/C1 consumer validation committed;
+  S06/D0 child gates are complete and the slice is in VERIFYING.
 - Authorized run horizon: full S01-S14/A-G implementation objective.
 - Completion target: S14/G acceptance; a PR boundary cannot silently shorten
   the authorized objective.
-- Last committed slice: S04 (`0a5bcef`).
-- Resolved slices: 4/14 (`COMMITTED`, or `SUPERSEDED` after all replacements
+- Last committed slice: S05 (`6203034`).
+- Resolved slices: 5/14 (`COMMITTED`, or `SUPERSEDED` after all replacements
   commit).
-- Slice states: 1 READY / 9 PLANNED / 1 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 4 COMMITTED.
-- Parent-item states: 1 READY / 9 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 4 COMMITTED.
-- Expanded child-item states: 22 COMMITTED / 4 READY / 0 ACTIVE / 0 VERIFYING /
-  9 VERIFIED; no child is anonymous.
+- Slice states: 0 READY / 8 PLANNED / 0 ACTIVE / 1 VERIFYING / 0 VERIFIED /
+  0 BLOCKED_HARD / 0 SUPERSEDED / 5 COMMITTED.
+- Parent-item states: 0 READY / 8 PLANNED / 0 ACTIVE / 0 VERIFYING /
+  1 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 7 COMMITTED.
+- Expanded child-item states: 26 COMMITTED / 0 READY / 0 ACTIVE / 0 VERIFYING /
+  5 VERIFIED; no child is anonymous.
 - Claim/evidence dispositions: 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 0 EXPERIMENTAL / 0 PROMOTED / 10 NOT_APPLICABLE.
-- Next ready slice: S06/D0 is ready in parallel; S05/C1 children are ready in
-  dependency order.
+- Next ready slice: no later slice is ready until S06/D0 commits; D0 children
+  are expanded and executing in dependency order.
 
 | Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -1382,8 +1382,8 @@ edit this block or commit the same slice concurrently.
 | S02 | A1: baseline harness, normalization v1, fixture registry/admission guard | S01 | COMMITTED | baseline, normalization, registry, admission, and external-hook gates PASS; expected baseline warning recorded | A1 children A1.1-A1.4 committed in `960ca43` | S03, S07 evidence lane |
 | S03 | B0: C++17/CMake 3.10/libdxfrw 2.0.0 substrate | S02 | COMMITTED | old source builds/installs under C++17 | committed `44f0062`; configure/build/install/header gates PASS | S04 |
 | S04 | B1+B2+C0: atomic import, warning/header/build closure, essential compatibility shims | S03 | COMMITTED | source parity; default `-Werror` build; staged headers; baseline/target API | committed `0a5bcef`; all B1/B2/C0 gates PASS | S05, S06 |
-| S05 | C1: CLI, LibreCAD source overlay, generic staged consumer | S04 | COMMITTED | CLI/filter/parser/package consumers | C1.1-C1.4 child ledger expanded; CLI gate active | S07 |
-| S06 | D0: Wave 1 dependency-free and focused tests | S04 | READY | all Wave 1 gates green | ready in parallel; child expansion before activation | S07 |
+| S05 | C1: CLI, LibreCAD source overlay, generic staged consumer | S04 | COMMITTED | CLI/filter/parser/package consumers | committed `6203034`; C1.1-C1.4 gates PASS; no fixtures | S07 |
+| S06 | D0: Wave 1 dependency-free and focused tests | S04 | COMMITTED | all Wave 1 gates green | D0.1-D0.5 child gates PASS; final slice checks pending | S07 |
 | S07 | D1: admitted L1/L2 regressions plus external advisory report | S02, S05, S06 | PLANNED | Checkpoint D policy-eligible suite; no fixture-policy violation | pending | S08, S09 |
 | S08 | E0: canonical DXF classifier/model/raw-preservation qualification | S07 | PLANNED | semantic/raw eligibility gates | pending | S10 |
 | S09 | E1: versioned DWG-reader/section qualification | S07 | PLANNED | fixture/spec/stage matrix | pending | S10 |
@@ -1402,7 +1402,7 @@ edit this block or commit the same slice concurrently.
 | B2 | S04 | B1 | COMMITTED | NOT_APPLICABLE | Warning, header, build, and install closure; B2.1-B2.4 verified |
 | C0 | S04 | B1 | COMMITTED | NOT_APPLICABLE | Essential public compatibility shims needed for a green import; C0.1-C0.2 verified |
 | C1 | S05 | B2, C0 | COMMITTED | NOT_APPLICABLE | CLI, LibreCAD overlay, and staged generic consumer; child work expanded |
-| D0 | S06 | B2, C0 | READY | NOT_EVALUATED | Wave 1 dependency-free/focused regressions |
+| D0 | S06 | B2, C0 | COMMITTED | NOT_EVALUATED | Wave 1 dependency-free/focused regressions; D0.1-D0.5 expanded |
 | D1 | S07 | A1, C1, D0 | PLANNED | NOT_EVALUATED | Policy-eligible L1/L2 and external advisory evidence |
 | E0 | S08 | D1 | PLANNED | NOT_EVALUATED | Canonical DXF classification/model/raw preservation |
 | E1 | S09 | D1 | PLANNED | NOT_EVALUATED | Versioned DWG-reader and section qualification |
@@ -1440,6 +1440,11 @@ edit this block or commit the same slice concurrently.
 | C1.2 | C1 / S05 | P5.2 | C1.1 | COMMITTED | NOT_APPLICABLE | LibreCAD `RS_FilterDXFRW` overlay compile against standalone headers | clean pinned LibreCAD origin/master worktree filter compiled with host clang and standalone `src`/`src/intern` includes; 10 pre-existing adapter warnings, 0 errors; added three diagnostic forwards to deprecated `dwgR`; no fixtures; unblocks C1.4 |
 | C1.3 | C1 / S05 | P5.3, WP1.6 | C1.1 | COMMITTED | NOT_APPLICABLE | staged CMake package `find_package` and link consumer | temporary prefix package configured, linked, and ran a C++17 consumer using `libdxfrw::libdxfrw`; no fixtures; unblocks C1.4 |
 | C1.4 | C1 / S05 | P5.4-P5.5 | C1.2, C1.3 | COMMITTED | NOT_APPLICABLE | CLI/filter/package consumer aggregate gate and no fixture-policy violation | strict import/sync PASS; fixture admission PASS with 0 staged drawing candidates; empty external advisory hook PASS; `git diff --check` PASS; no DWG/DXF bytes; unblocks S07 |
+| D0.1 | D0 / S06 | P6.1, Wave 1 | B2.2, C0.2 | COMMITTED | NOT_APPLICABLE | bit-buffer read/write round-trip and handle token symmetry | `ctest --test-dir build-s06-wave1 -R libdxfrw_wave1` PASS (in-memory buffer/handle assertions); no fixture; unblocks D0.2-D0.5 |
+| D0.2 | D0 / S06 | P6.2-P6.3 | D0.1 | COMMITTED | NOT_APPLICABLE | pre-R13 section/record layout helpers and bounds | `ctest --test-dir build-s06-wave1 -R libdxfrw_wave1` PASS (30-bit section, style-width, record-bound, and vertex-layout assertions); no fixture; unblocks D0.3-D0.5 |
+| D0.3 | D0 / S06 | P6.4 | D0.1 | COMMITTED | NOT_APPLICABLE | text-codec/codepage and fixed-width text regressions | `ctest --test-dir build-s06-wave1 -R libdxfrw_wave1` PASS (CP1252 escapes/fallback and pre-R13 fixed-width decode assertions); no fixture; unblocks D0.4-D0.5 |
+| D0.4 | D0 / S06 | P6.5-P6.6 | D0.1 | COMMITTED | NOT_APPLICABLE | R2004 decompression and Reed-Solomon invalid-input safety | `ctest --test-dir build-s06-wave1 -R libdxfrw_wave1` PASS (opcode-0x18 extended-copy and malformed-input assertions); no fixture; unblocks D0.5 |
+| D0.5 | D0 / S06 | P6.7-P6.8 | D0.1 | COMMITTED | NOT_APPLICABLE | HandleAllocator high-water/HANDSEED/header encode and codec safety | `ctest --test-dir build-s06-wave1 -R libdxfrw_wave1` PASS (allocator, HANDSEED/header encode, and invalid-RS assertions); no fixture; unblocks S06 commit preparation |
 
 <!-- UPGRADE_PROGRESS_END -->
 
