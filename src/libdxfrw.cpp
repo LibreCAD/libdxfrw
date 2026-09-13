@@ -45,6 +45,67 @@
 
 namespace {
 
+struct OperationErrorMapping {
+    DRW::OperationPhase phase;
+    DRW::OperationCause cause;
+    const char* code;
+    const char* message;
+};
+
+OperationErrorMapping mapOperationError(DRW::error value) {
+    switch (value) {
+    case DRW::BAD_UNKNOWN:
+        return {DRW::OperationPhase::Argument,
+                DRW::OperationCause::InvalidArgument,
+                "invalid-argument", "an operation argument is invalid"};
+    case DRW::BAD_OPEN:
+        return {DRW::OperationPhase::Open, DRW::OperationCause::OpenFailure,
+                "open-failure", "the input or output path could not be opened"};
+    case DRW::BAD_VERSION:
+        return {DRW::OperationPhase::Validation,
+                DRW::OperationCause::UnsupportedVersion,
+                "unsupported-version", "the requested or detected version is unsupported"};
+    case DRW::BAD_READ_METADATA:
+        return {DRW::OperationPhase::Metadata, DRW::OperationCause::ReadFailure,
+                "read-metadata", "DWG metadata could not be read"};
+    case DRW::BAD_READ_FILE_HEADER:
+        return {DRW::OperationPhase::FileHeader, DRW::OperationCause::ReadFailure,
+                "read-file-header", "the DWG file header could not be read"};
+    case DRW::BAD_READ_HEADER:
+        return {DRW::OperationPhase::Header, DRW::OperationCause::ReadFailure,
+                "read-header", "the drawing header could not be read"};
+    case DRW::BAD_READ_HANDLES:
+        return {DRW::OperationPhase::Handles, DRW::OperationCause::ReadFailure,
+                "read-handles", "the DWG handle map could not be read"};
+    case DRW::BAD_READ_CLASSES:
+        return {DRW::OperationPhase::Classes, DRW::OperationCause::ReadFailure,
+                "read-classes", "the DWG classes section could not be read"};
+    case DRW::BAD_READ_TABLES:
+        return {DRW::OperationPhase::Tables, DRW::OperationCause::ReadFailure,
+                "read-tables", "the drawing tables could not be read"};
+    case DRW::BAD_READ_BLOCKS:
+        return {DRW::OperationPhase::Blocks, DRW::OperationCause::ReadFailure,
+                "read-blocks", "the drawing blocks could not be read"};
+    case DRW::BAD_READ_ENTITIES:
+        return {DRW::OperationPhase::Entities, DRW::OperationCause::ReadFailure,
+                "read-entities", "the drawing entities could not be read"};
+    case DRW::BAD_READ_OBJECTS:
+        return {DRW::OperationPhase::Objects, DRW::OperationCause::ReadFailure,
+                "read-objects", "the drawing objects could not be read"};
+    case DRW::BAD_READ_SECTION:
+        return {DRW::OperationPhase::RawSection, DRW::OperationCause::ReadFailure,
+                "read-section", "a drawing section could not be read"};
+    case DRW::BAD_CODE_PARSED:
+        return {DRW::OperationPhase::Internal, DRW::OperationCause::ReadFailure,
+                "code-parsed", "a group-code parser rejected the input"};
+    case DRW::BAD_NONE:
+        break;
+    }
+    return {DRW::OperationPhase::Internal,
+            DRW::OperationCause::InternalFailure,
+            "internal-failure", "an internal operation failure occurred"};
+}
+
 bool updateRawDxfApplicationDepth(const DRW_Variant& value, int& depth);
 bool validateCapturedRawDxfObject(const DRW_RawDxfObject& object,
                                   bool binaryOutput);
@@ -1169,6 +1230,7 @@ void dxfRW::setDebug(DRW::DebugLevel lvl){
 }
 
 bool dxfRW::read(DRW_Interface *interface_, bool ext){
+    beginOperationDiagnostic(DRW::OperationKind::Read);
     drw_assert(fileName.empty() == false);
     version = DRW::UNKNOWNV;
     error = DRW::BAD_NONE;
@@ -1238,6 +1300,7 @@ bool dxfRW::read(DRW_Interface *interface_, bool ext){
 
 
 bool dxfRW::readAscii(DRW_Interface *interface_, bool ext, std::string& content) {
+    beginOperationDiagnostic(DRW::OperationKind::Read);
     if (nullptr == interface_) {
         return setError(DRW::BAD_UNKNOWN);
     }
@@ -1425,20 +1488,22 @@ void dxfRW::resetDxfWriteSession() {
 }
 
 bool dxfRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) try {
+    beginOperationDiagnostic(DRW::OperationKind::Write);
     if (!isSupportedDxfWriteVersion(ver)) {
-        error = DRW::BAD_VERSION;
-        return false;
+        return setError(DRW::BAD_VERSION);
     }
     if (interface_ == nullptr) {
-        error = DRW::BAD_UNKNOWN;
-        return false;
+        return setError(DRW::BAD_UNKNOWN);
     }
     if (m_reservationFailureGeneration
         != m_consumedReservationFailureGeneration) {
         m_consumedReservationFailureGeneration =
             m_reservationFailureGeneration;
-        error = DRW::BAD_OPEN;
-        return false;
+        recordOperationDiagnostic(
+            DRW::OperationPhase::Allocation,
+            DRW::OperationCause::ResourceLimit,
+            "handle-reservation", "a reserved DXF handle could not be allocated");
+        return setError(DRW::BAD_OPEN);
     }
     resetDxfWriteSession();
     version = ver;
@@ -1448,16 +1513,17 @@ bool dxfRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) try {
         fileName, binFile ? std::ios::binary : std::ios::openmode(0));
     if (!output.open()) {
         m_writeError = true;
-        error = DRW::BAD_OPEN;
-        return false;
+        return setError(DRW::BAD_OPEN);
     }
     std::ofstream& filestr = output.stream();
     const auto failWrite = [&]() {
         writer.reset();
         output.abort();
         m_writeError = true;
-        error = DRW::BAD_OPEN;
-        return false;
+        recordOperationDiagnostic(
+            DRW::OperationPhase::Emit, DRW::OperationCause::WriteFailure,
+            "emit-failure", "DXF output generation failed");
+        return setError(DRW::BAD_OPEN);
     };
     if (binFile) {
         //write sentinel
@@ -1591,20 +1657,34 @@ bool dxfRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) try {
     writer.reset();
     if (!isOk)
         return failWrite();
-    if (!output.commit())
-        return failWrite();
+    if (!output.commit()) {
+        recordOperationDiagnostic(
+            DRW::OperationPhase::Commit, DRW::OperationCause::CommitFailure,
+            "commit-failure", "DXF output could not be published");
+        output.abort();
+        m_writeError = true;
+        return setError(DRW::BAD_OPEN);
+    }
     return true;
 }
 catch (const std::exception&) {
     writer.reset();
     m_writeError = true;
-    error = DRW::BAD_OPEN;
+    recordOperationDiagnostic(DRW::OperationPhase::Callback,
+                              DRW::OperationCause::CallbackException,
+                              "callback-exception",
+                              "a consumer callback threw during DXF write");
+    setError(DRW::BAD_OPEN);
     return false;
 }
 catch (...) {
     writer.reset();
     m_writeError = true;
-    error = DRW::BAD_OPEN;
+    recordOperationDiagnostic(DRW::OperationPhase::Callback,
+                              DRW::OperationCause::CallbackException,
+                              "callback-exception",
+                              "a consumer callback threw during DXF write");
+    setError(DRW::BAD_OPEN);
     return false;
 }
 
@@ -15778,7 +15858,64 @@ DRW::error dxfRW::getError() const{
     return error;
 }
 
+void dxfRW::beginOperationDiagnostic(DRW::OperationKind kind) {
+    m_lastDiagnostic = {};
+    m_lastDiagnostic.operation = kind;
+}
+
+void dxfRW::recordOperationDiagnostic(
+    DRW::OperationPhase phase, DRW::OperationCause cause, const char* code,
+    const char* message, std::uint64_t offset, bool hasOffset,
+    std::uint32_t handle, bool hasHandle, bool secondary) {
+    DRW::OperationDiagnosticEntry entry;
+    entry.phase = phase;
+    entry.cause = cause;
+    entry.code = code == nullptr ? std::string{} : std::string{code};
+    entry.message = message == nullptr ? std::string{} : std::string{message};
+    entry.offset = offset;
+    entry.handle = handle;
+    entry.hasOffset = hasOffset;
+    entry.hasHandle = hasHandle;
+    if (secondary) {
+        if (m_lastDiagnostic.secondary.size()
+            < DRW::OperationDiagnostic::MaxSecondaryEntries)
+            m_lastDiagnostic.secondary.push_back(std::move(entry));
+        return;
+    }
+    if (m_lastDiagnostic.failed())
+        return;
+    m_lastDiagnostic.phase = phase;
+    m_lastDiagnostic.cause = cause;
+    m_lastDiagnostic.code = std::move(entry.code);
+    m_lastDiagnostic.message = std::move(entry.message);
+    m_lastDiagnostic.offset = offset;
+    m_lastDiagnostic.handle = handle;
+    m_lastDiagnostic.hasOffset = hasOffset;
+    m_lastDiagnostic.hasHandle = hasHandle;
+}
+
+void dxfRW::recordOperationDiagnosticForError(DRW::error value) {
+    if (value == DRW::BAD_NONE)
+        return;
+    const OperationErrorMapping mapped = mapOperationError(value);
+    recordOperationDiagnostic(mapped.phase, mapped.cause, mapped.code,
+                              mapped.message);
+}
+
+DRW_OperationDiagnostic dxfRW::getLastDiagnostic() const {
+    DRW_OperationDiagnostic result = m_lastDiagnostic;
+    if (!result.failed() && error != DRW::BAD_NONE) {
+        const OperationErrorMapping mapped = mapOperationError(error);
+        result.phase = mapped.phase;
+        result.cause = mapped.cause;
+        result.code = mapped.code;
+        result.message = mapped.message;
+    }
+    return result;
+}
+
 bool dxfRW::setError(const DRW::error lastError){
     error = lastError;
+    recordOperationDiagnosticForError(lastError);
     return (DRW::BAD_NONE == error);
 }

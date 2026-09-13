@@ -28,10 +28,10 @@
     },
     {
       "path": "src/drw_base.h",
-      "reason": "Restore the historical dint*/duint*/ddouble* public typedef names removed by the target C++17 conversion.",
+      "reason": "Restore the historical dint*/duint*/ddouble* public typedef names removed by the target C++17 conversion and expose the shared operation-diagnostic schema.",
       "scope": "source compatibility",
       "targetBlob": "7844a3ae6621056212430bb4f961bdfb242c39ce",
-      "adaptedSha256": "565279037731e10270fc23d5edd3ac58aa0725b5b66e8085bd2c9a3618c7800b"
+      "adaptedSha256": "78c2d09aafea36f7f66b80de3cd375dbf490b643e4f70662f01cbb5006fb394a"
     },
     {
       "path": "src/drw_interface.h",
@@ -42,17 +42,17 @@
     },
     {
       "path": "src/libdwgr.h",
-      "reason": "Provide a deprecated composition-based dwgR read façade instead of an unsafe alias to dwgRW.",
+      "reason": "Provide a deprecated composition-based dwgR read façade instead of an unsafe alias to dwgRW, and expose the diagnostic snapshot on both façade spellings.",
       "scope": "source compatibility",
       "targetBlob": "7d184f55c632599901f2072f42c80b0b9dd24c03",
-      "adaptedSha256": "98aa107d3a890bd524f441c2efda592575bf0d9f9f31ed8f503cd158f91ab963"
+      "adaptedSha256": "2711545557c979b06066016ecd367ccff0972b2d8508d2699b1ea7966a7703fc"
     },
     {
       "path": "src/libdwgr.cpp",
-      "reason": "Define the out-of-line dwgR forwarding façade required by the compatibility header and reject null DWG interface/buffer arguments as BAD_UNKNOWN while preserving BAD_OPEN for file I/O.",
+      "reason": "Define the out-of-line dwgR forwarding façade, preserve null DWG argument/error compatibility, and instrument stage-aware operation diagnostics.",
       "scope": "source compatibility",
       "targetBlob": "d1237b166b0ac0a03120c3b2eb6213e890832862",
-      "adaptedSha256": "f17d29b42744b3a00908be0f28c3a9054143abb36345152c12ab1180d1bb2c12"
+      "adaptedSha256": "2ddcfb4f00cd400379f838de192c34814d161aa6ab91f03dbcccf11bb3ffe08c"
     },
     {
       "path": "src/intern/dwgreader.cpp",
@@ -91,10 +91,17 @@
     },
     {
       "path": "src/libdxfrw.cpp",
-      "reason": "Route raw DXF capture through the canonical group-code table so typed and raw paths agree on code kinds, and make null filename construction safe while classifying null write interfaces as BAD_UNKNOWN.",
+      "reason": "Route raw DXF capture through the canonical group-code table, preserve null/error compatibility, and instrument stage-aware operation diagnostics.",
       "scope": "DXF classifier correctness",
       "targetBlob": "71851fcf8d5636080c83f2eb1af4a8ef5a80e0ef",
-      "adaptedSha256": "c75bca9f0ae13a821a9febbd5e1c4536be621f5c3d707c70b5d55a9385f999ce"
+      "adaptedSha256": "dfee2d04da7046f515422d1999f2f9998bd23e2886e4cf3a89a8ab6f91c0d9a6"
+    },
+    {
+      "path": "src/libdxfrw.h",
+      "reason": "Expose the structured operation-diagnostic snapshot while preserving the legacy dxfRW error and version API.",
+      "scope": "diagnostic compatibility",
+      "targetBlob": "8e2af88800c1af341a14982340a9648b07a5890f",
+      "adaptedSha256": "914671ecd3455ebac28bbe1836d45f9ee640b2be0438c1fdf06a11ef5897ba2b"
     },
     {
       "path": "src/intern/drw_dbg.cpp",

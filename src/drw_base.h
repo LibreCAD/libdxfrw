@@ -17,6 +17,7 @@
 #define DRW_VERSION "0.6.3"
 
 #include <array>
+#include <cstddef>
 #include <cstdint>
 #include <string>
 #include <cmath>
@@ -149,6 +150,92 @@ BAD_READ_ENTITIES,    /*!< error in entities read process. */
 BAD_READ_OBJECTS,     /*!< error in objects read process. */
 BAD_READ_SECTION,     /*!< error in sections read process. */
 BAD_CODE_PARSED,      /*!< error in any parseCodes() method. */
+};
+
+//! Which public operation produced an operation diagnostic.
+enum class OperationKind : std::uint8_t {
+    None,
+    Read,
+    Write
+};
+
+//! Coarse phase shared by the DXF and DWG public façades.  The legacy
+//! DRW::error value remains the compatibility channel; this phase identifies
+//! where its first failure occurred.
+enum class OperationPhase : std::uint8_t {
+    None,
+    Argument,
+    Open,
+    Metadata,
+    FileHeader,
+    Header,
+    Handles,
+    Classes,
+    Tables,
+    Blocks,
+    Entities,
+    Objects,
+    RawSection,
+    Validation,
+    Allocation,
+    Callback,
+    Emit,
+    Flush,
+    Close,
+    Commit,
+    Cleanup,
+    Internal
+};
+
+//! Structured cause for the first failure in one public operation.
+enum class OperationCause : std::uint8_t {
+    None,
+    InvalidArgument,
+    UnsupportedVersion,
+    CallbackException,
+    ValidationFailure,
+    ResourceLimit,
+    AllocationFailure,
+    OpenFailure,
+    ReadFailure,
+    WriteFailure,
+    FlushFailure,
+    CloseFailure,
+    CommitFailure,
+    CleanupFailure,
+    InternalFailure
+};
+
+//! One bounded secondary failure recorded while cleaning up an operation.
+struct OperationDiagnosticEntry {
+    OperationPhase phase {OperationPhase::None};
+    OperationCause cause {OperationCause::None};
+    std::string code;
+    std::string message;
+    std::uint64_t offset {0};
+    std::uint32_t handle {0};
+    bool hasOffset {false};
+    bool hasHandle {false};
+};
+
+//! Structured diagnostic paired with the legacy DRW::error channel.
+//!
+//! `secondary` is intentionally bounded by the façade implementation.  It is
+//! a value type so callers can retain a snapshot after the façade is reused.
+struct OperationDiagnostic {
+    static constexpr std::size_t MaxSecondaryEntries = 16;
+    OperationKind operation {OperationKind::None};
+    OperationPhase phase {OperationPhase::None};
+    OperationCause cause {OperationCause::None};
+    std::string code;
+    std::string message;
+    std::uint64_t offset {0};
+    std::uint32_t handle {0};
+    bool hasOffset {false};
+    bool hasHandle {false};
+    std::vector<OperationDiagnosticEntry> secondary;
+
+    bool failed() const noexcept { return cause != OperationCause::None; }
 };
 
 enum class DebugLevel {
@@ -385,6 +472,15 @@ enum TransparencyCodes {
 };
 
 } // namespace DRW
+
+// Global spellings are provided for consumers that follow the library's
+// DRW_* data-type convention; the canonical definitions remain in namespace
+// DRW alongside the legacy error/version enums.
+using DRW_OperationKind = DRW::OperationKind;
+using DRW_OperationPhase = DRW::OperationPhase;
+using DRW_OperationCause = DRW::OperationCause;
+using DRW_OperationDiagnosticEntry = DRW::OperationDiagnosticEntry;
+using DRW_OperationDiagnostic = DRW::OperationDiagnostic;
 
 //! Class to handle 3D coordinate point
 /*!

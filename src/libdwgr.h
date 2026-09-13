@@ -583,6 +583,10 @@ public:
     bool canWriteDwgDataStorageBinding(
         DwgDataStorageWriterBinding binding) const;
     DRW::error getError() const {return error;}
+    /// Snapshot the first failure and bounded cleanup evidence from the most
+    /// recent read/write operation.  The legacy getError() value remains the
+    /// compatibility channel.
+    DRW_OperationDiagnostic getLastDiagnostic() const;
     /// The resolved source codepage name (e.g. "ANSI_1252"), captured from the
     /// reader's DRW_TextCodec after a successful read. Empty before any read.
     std::string getCodePage() const { return codePage; }
@@ -682,6 +686,17 @@ private:
     void captureReaderDiagnostics();
     void resetReadDiagnostics();
     void resetWriteSkipCounters();
+    void beginOperationDiagnostic(DRW::OperationKind kind);
+    void recordOperationDiagnostic(DRW::OperationPhase phase,
+                                   DRW::OperationCause cause,
+                                   const char* code,
+                                   const char* message,
+                                   std::uint64_t offset = 0,
+                                   bool hasOffset = false,
+                                   std::uint32_t handle = 0,
+                                   bool hasHandle = false,
+                                   bool secondary = false);
+    void recordOperationDiagnosticForError(DRW::error value);
     [[nodiscard]] bool recordWriteResult(WriteSkipKind kind, bool ok);
     [[nodiscard]] bool writeObjectTransaction(
         WriteSkipKind kind, const std::function<bool()>& write);
@@ -783,6 +798,7 @@ private:
     bool m_failNextCompoundSeqEndForTest { false };
     bool m_failNextFieldClassRegistrationForTest { false };
     bool m_failAfterFirstBlockOwnedEntityForTest { false };
+    DRW_OperationDiagnostic m_lastDiagnostic;
 
 };
 
@@ -799,6 +815,9 @@ public:
     bool getPreview() { return implementation.getPreview(); }
     DRW::Version getVersion() const { return implementation.getVersion(); }
     DRW::error getError() const { return implementation.getError(); }
+    DRW_OperationDiagnostic getLastDiagnostic() const {
+        return implementation.getLastDiagnostic();
+    }
     size_t getEntityParseFailures() const {
         return implementation.getEntityParseFailures();
     }

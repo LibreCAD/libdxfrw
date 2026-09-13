@@ -33,6 +33,13 @@ fixture-policy checks. The standalone package handoff for LibreCAD is recorded
 in `metadata/librecad-system-package-handoff.md`; until that sibling CMake
 change lands, system-package mode remains an explicit external follow-up.
 
-Known limitations remain visible in the plan: structured operation diagnostics
-are not yet exposed, AC1032/R2018 remains a pass-through reader, and broad
-feature recognition exceeds independently qualified support.
+The public `dxfRW::getLastDiagnostic()` and `dwgRW::getLastDiagnostic()`
+snapshots retain the legacy `DRW::error` code while exposing the operation,
+first failing phase/cause, stable code/message, optional offset/handle, and a
+bounded list of secondary cleanup entries. Diagnostics reset at the start of
+each read/write operation; the first failure wins, and support claims still
+require independent evidence.
+
+Known limitations remain visible in the plan: AC1032/R2018 remains a
+pass-through reader, and broad feature recognition exceeds independently
+qualified support.

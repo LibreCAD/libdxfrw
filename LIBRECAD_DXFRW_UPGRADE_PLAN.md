@@ -594,7 +594,8 @@ are bounded secondary entries and cannot overwrite it. On success both return
 `BAD_NONE`/`None`. Read failures keep the first existing format-specific stage,
 including `BAD_CODE_PARSED` where applicable. Write failures use the exact
 coarse mapping in the table above. This behavioral/API addition is implemented
-in the checkpoints E-G hardening follow-up, not hidden in the snapshot import.
+in the dependency-closed S15/H0 hardening follow-up, not hidden in the
+snapshot import.
 
 ### Compatibility artifacts and gates
 
@@ -1276,6 +1277,50 @@ Exit tests:
   download, renamed payload, archive, embedded byte array, Save-As/conversion,
   mutation, and minimized derivative.
 
+### WP9: structured operation diagnostics and post-release audit closure
+
+This follow-up turns the selected diagnostic contract into a small, stable
+public API without changing the numeric `DRW::error` compatibility channel.
+It is intentionally dependency-closed after G0 and does not require drawing
+fixtures.
+
+Actions:
+
+1. Define one value-type diagnostic schema shared by DXF and DWG façades:
+   operation kind, phase, closed cause enum, stable code/message, optional
+   byte offset and object handle, and a bounded secondary-entry list. Keep
+   canonical names in `DRW` and provide the established `DRW_*` spelling for
+   consumers that use the library's global data-type convention.
+2. Reset the diagnostic at every public read/write/preview/test entrypoint and
+   preserve first-failure precedence. Map all legacy error values to a stable
+   phase/cause/code while retaining the original coarse enum and its numeric
+   ordering. A diagnostic read before any operation is empty.
+3. Instrument argument validation, file open, metadata/header, section,
+   callback, emission, flush/close, commit, cleanup, and resource-limit paths.
+   Callback exceptions must retain the legacy format-specific stage while the
+   structured cause reports `CallbackException`; write emission and final
+   publication must be distinguishable from open failures.
+4. Bound secondary cleanup evidence and ensure optional offset/handle fields are
+   explicit presence bits. Add focused tests for empty/reset semantics,
+   invalid arguments, unsupported versions, first-failure precedence, callback
+   cause precedence, stage-aware write failures, and the secondary bound.
+5. Document the API and migration behavior, compile both façade spellings in
+   installed-header consumers, and run the full policy/scope/sync/fixture,
+   sanitizer, plan, and diff gates before committing the slice. Do not add or
+   promote any DWG/DXF fixture bytes.
+
+Exit tests:
+
+- DXF and DWG invalid-argument/version paths expose identical structured
+  semantics and preserve their historical `DRW::error` values.
+- Read stage failures and callback exceptions are separately observable, with
+  first failure immutable and cleanup entries bounded.
+- Emission, flush/close, and commit failures report their distinct phases while
+  failed transactions leave the destination unchanged.
+- Installed public headers compile with both diagnostic type spellings, the
+  full CTest/sanitizer suite remains green, and the staged drawing scan finds
+  zero unadmitted DWG/DXF paths.
+
 ## Continuous execution, self-updating plan, and progress protocol
 
 This is a living execution plan. Once implementation is authorized, work
@@ -1308,7 +1353,7 @@ The coordinator must apply these rules to every implementation turn:
 4. Do not stop while an actionable `READY`, `ACTIVE`, or `VERIFYING` item or
    an evidence-only lane with a safe continuation exists. On failure, classify
    it, add the exact unblock condition, repair or route around it, and continue
-   the next dependency-ready lane. Stop only at S14/G acceptance or a genuine
+   the next dependency-ready lane. Stop only at S15/H0 acceptance or a genuine
    hard blocker after the recovery protocol has been committed.
 
 ### Work-item and slice state
@@ -1326,7 +1371,7 @@ passes solely when every gate in the checkpoint table is green.
 
 A slice is the smallest dependency-closed group of one or more tightly coupled
 items that can be independently verified and committed green. One slice maps
-to one local commit. S01-S14 are the minimum planned skeleton, not fixed-size
+to one local commit. S01-S15 are the minimum planned skeleton, not fixed-size
 commit promises: before activation, split an oversized or independently
 blocked slice into stable suffixes such as `S04a` and `S04b`, mark the original
 as superseded by those slices, update all dependency edges, and report the old
@@ -1385,26 +1430,25 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint: A importable; S05/C1 through S14/G1 committed
-  (prospective commit; resolve SHA after commit); standalone release prep is
-  complete and the LibreCAD system-mode handoff remains external.
-- Authorized run horizon: full S01-S14/A-G implementation objective.
-- Completion target: S14/G acceptance; a PR boundary cannot silently shorten
+- Current checkpoint: A importable; S05/C1 through S15/H0 committed
+  (prospective commit; resolve SHA after commit); standalone diagnostics are
+  closed and the LibreCAD system-mode handoff remains external.
+- Authorized run horizon: full S01-S15/A-H implementation objective.
+- Completion target: S15/H0 acceptance; a PR boundary cannot silently shorten
   the authorized objective.
-- Last committed slice: S14 (prospective commit; resolve SHA after commit).
-- Resolved slices: 14/14 (`COMMITTED`, or `SUPERSEDED` after all replacements
+- Last committed slice: S15 (prospective commit; resolve SHA after commit).
+- Resolved slices: 15/15 (`COMMITTED`, or `SUPERSEDED` after all replacements
   commit).
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 14 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 15 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 16 COMMITTED.
-- Expanded child-item states: 70 COMMITTED / 0 READY / 0 ACTIVE / 0 VERIFYING /
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 17 COMMITTED.
+- Expanded child-item states: 74 COMMITTED / 0 READY / 0 ACTIVE / 0 VERIFYING /
   0 VERIFIED; no child is anonymous.
-- Claim/evidence dispositions: 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 0 EXPERIMENTAL / 0 PROMOTED / 10 NOT_APPLICABLE.
-- Next ready work: apply the separately recorded LibreCAD CMake system-mode
-  handoff, then rerun G1.3’s no-bundled-path compile audit; no standalone
-  dependency-ready work remains in this branch.
+- Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
+  0 DEFERRED_EXTERNAL / 1 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Next ready work: the separately recorded LibreCAD CMake system-mode handoff
+  remains external; no standalone implementation item is left uncommitted.
 
 | Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -1439,7 +1483,7 @@ edit this block or commit the same slice concurrently.
 | E2 | S10 | E0, E1 | COMMITTED | NOT_EVALUATED | Graph accounting, raw replay, DataStorage, ACIS, and proxy paths; E2.1-E2.5 verified; aggregate gates PASS |
 | F0 | S11 | E2 | COMMITTED | NOT_EVALUATED | Writer primitives, framing, handles, and secure transaction; F0.1-F0.5 committed with focused and aggregate evidence |
 | F1 | S12 | F0 | COMMITTED | NOT_EVALUATED | Per-version/per-feature writer qualification; F1.1-F1.5 committed, with F1.1a explicitly DEFERRED_EXTERNAL |
-| G0 | S13 | E2, F0 | COMMITTED | NOT_EVALUATED | Diagnostics, budgets, ownership, fuzzing, and sanitizers; G0.1-G0.5 verified; structured diagnostics remain an explicit follow-up |
+| G0 | S13 | E2, F0 | COMMITTED | NOT_EVALUATED | Diagnostics, budgets, ownership, fuzzing, and sanitizers; G0.1-G0.5 verified; structured diagnostics are completed in the dependency-closed S15/H0 follow-up |
 | G1 | S14 | D1, F1, G0 | COMMITTED | NOT_EVALUATED | Installed LibreCAD mode, packaging, documentation, and release |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
@@ -1506,7 +1550,7 @@ edit this block or commit the same slice concurrently.
 | G0.1 | G0 / S13 | P9.1-P9.3, WP8.6 | F1.5 | COMMITTED | EXPERIMENTAL | checked arithmetic, size/range helpers, and aggregate budget vectors | `libdxfrw_hardening` passes checked add/multiply/range/alignment, reactor/owned-object ceilings, and section-capacity overflow vectors; all inputs bounded in memory; no fixture bytes; sanitizer remains an aggregate gate; unblocks G0.2 |
 | G0.2 | G0 / S13 | P9.4-P9.6 | G0.1 | COMMITTED | EXPERIMENTAL | null/error precedence and ownership/reset contract | `libdxfrw_hardening` plus updated reader/writer matrix pass null filename construction, BAD_UNKNOWN invalid-argument precedence, BAD_VERSION precedence, and owned debug-printer replacement/reset destructor accounting; no external files or fixture bytes; unblocks G0.3 |
 | G0.3 | G0 / S13 | P9.7-P9.9, WP8.6 | G0.1 | COMMITTED | EXPERIMENTAL | bounded malformed-input fuzz smoke across frame, proxy, SAB, and DataStorage parsers | `libdxfrw_hardening` executes 256 deterministic vectors through proxy inspection, SAB parsing, and DataStorage parsing with no throws and bounded consumption/diagnostics; null inputs fail closed; no generated drawing bytes; ASan/UBSan required; unblocks G0.4 |
-| G0.4 | G0 / S13 | P9.10-P9.12 | G0.2, G0.3 | COMMITTED | EXPERIMENTAL | diagnostics/resource-limit evidence and support-claim audit | source audit confirms existing coarse error/resource-limit paths and proxy stop reasons; no `DRW_OperationDiagnostic`/`getLastDiagnostic()` API exists yet, so structured diagnostics remain an explicit follow-up and no support claim is promoted; no fixture bytes; unblocks G0.5 |
+| G0.4 | G0 / S13 | P9.10-P9.12 | G0.2, G0.3 | COMMITTED | EXPERIMENTAL | diagnostics/resource-limit evidence and support-claim audit | source audit recorded the coarse error/resource-limit paths and proxy stop reasons; the structured diagnostic contract is now implemented as the S15/H0 follow-up, while no feature support claim is promoted without independent evidence; no fixture bytes; unblocks G0.5 and S15 |
 | G0.5 | G0 / S13 | WP8, WP7.10 | G0.1, G0.2, G0.3, G0.4 | COMMITTED | EXPERIMENTAL | G0 aggregate hardening, sanitizer, scope/sync, fixture, hook, plan, and diff gate | S13 aggregate was committed after standard and ASan/UBSan builds passed all six CTest tests; updater/normalizer self-tests, import scope, pinned sync/archive, fixture admission (0), external hook, diff check, and staged drawing scan (0) passed; no DWG/DXF paths staged |
 | G1.1 | G1 / S14 | WP8.1-WP8.3, P10.1-P10.3 | G0.5 | COMMITTED | EXPERIMENTAL | install/export closure and self-contained staged public headers | temporary clean install succeeds; `check_staged_package.py` compiles all ten public headers with only the staged include prefix; no fixture bytes; unblocks G1.2 |
 | G1.2 | G1 / S14 | WP8.4, P10.4-P10.6 | G1.1 | COMMITTED | EXPERIMENTAL | generic `find_package` and pkg-config staged consumer | `check_staged_package.py` passes all ten staged-header compiles plus temporary CMake `find_package(libdxfrw)` and pkg-config consumers against only `/private/tmp/libdxfrw-s14-g1-prefix`; no source-tree include paths or fixture bytes; unblocks G1.3 |
@@ -1514,6 +1558,12 @@ edit this block or commit the same slice concurrently.
 | G1.3 | G1 / S14 | P10.7-P10.9 | G1.3a | COMMITTED | DEFERRED_EXTERNAL | explicit LibreCAD system-package mode and bundled-path exclusion | implementation is a separate LibreCAD CMake change; this branch records the exact handoff and required no-bundled-path compile audit, but cannot modify the user’s dirty sibling checkout; no system-mode claim is promoted and no fixture bytes are added; unblocks G1.5 after deferral is recorded |
 | G1.4 | G1 / S14 | P10.10-P10.12, WP8.7 | G1.3a | COMMITTED | EXPERIMENTAL | documentation, notices, support ledger, and release metadata | `docs/UPGRADE_SUPPORT.md` and `metadata/librecad-system-package-handoff.md` cover C++17/ABI boundary, evidence-based support claims, no-downloaded-fixture policy, package-mode handoff, sanitizer/package gates, and known limitations; no fixture bytes; unblocks G1.5 |
 | G1.5 | G1 / S14 | WP8, WP7.10 | G1.1, G1.2, G1.3, G1.4 | COMMITTED | EXPERIMENTAL | G1 aggregate package, system-mode, docs, scope/sync, fixture, hook, plan, and diff gate | S14 committed in this slice; staged-header/CMake/pkg-config consumers pass; updater/normalizer, import scope, pinned sync/archive, fixture admission (0), external hook, Python syntax, and diff checks pass; LibreCAD system-package mode is explicitly deferred to the sibling CMake handoff; no DWG/DXF paths staged |
+| S15 | H0: structured operation diagnostics and stage-aware error evidence | S13 | COMMITTED | diagnostic API, first-failure mapping, callback/phase coverage, bounded secondary storage, focused tests, and all policy gates | S15 committed in this slice (prospective commit; resolve SHA after commit); full/sanitizer CTests, package consumer, scope/sync, fixture admission (0), external hook, plan, diff, and staged drawing scan pass; no fixture bytes | external system-mode handoff |
+| H0 | S15 | G0 | COMMITTED | EXPERIMENTAL | Structured operation diagnostics paired with legacy error compatibility; stage-aware write/read evidence and bounded secondary failures |
+| H0.1 | H0 / S15 | WP9.1-WP9.2 | G0.4 | COMMITTED | EXPERIMENTAL | public diagnostic schema, façade accessors, reset semantics, and legacy invalid-argument/version mapping | `/private/tmp/libdxfrw-s15-h0-final`: full configure/build and `ctest --test-dir /private/tmp/libdxfrw-s15-h0-final -R libdxfrw_diagnostic --output-on-failure` PASS; global and namespaced spellings compile; initial-operation state, BAD_UNKNOWN, and BAD_VERSION preserve the coarse channel; no fixture bytes; unblocks H0.2/H0.3 |
+| H0.2 | H0 / S15 | WP9.2-WP9.4 | H0.1 | COMMITTED | EXPERIMENTAL | phase-aware read/write mapping, callback exception precedence, and commit/emission distinction | `/private/tmp/libdxfrw-s15-h0-final`: full build and targeted diagnostic CTest PASS; DWG missing-file path reports Open/OpenFailure and write/read stage mapping is instrumented; callback precedence is preserved without overwriting the coarse stage; no fixture bytes; unblocks H0.4 |
+| H0.3 | H0 / S15 | WP9.3-WP9.5 | H0.1 | COMMITTED | EXPERIMENTAL | bounded secondary entries, offset/handle carriers, documentation, and compatibility surface | `/private/tmp/libdxfrw-s15-h0-asan`: ASan/UBSan full build and all seven CTests PASS; diagnostic value type carries explicit offset/handle presence bits, secondary storage is capped at 16, docs updated; no fixture bytes; unblocks H0.4 |
+| H0.4 | H0 / S15 | WP9, WP8.5 | H0.1, H0.2, H0.3 | COMMITTED | EXPERIMENTAL | H0 aggregate diagnostics, sanitizer, scope/sync, fixture, hook, plan, and diff gate | S15 aggregate gates pass: full and ASan/UBSan CTests, staged package, import scope, pinned sync/archive, fixture admission (0), external hook, updater, and diff checks; staged drawing scan finds 0 DWG/DXF paths; no fixture bytes |
 
 <!-- UPGRADE_PROGRESS_END -->
 
@@ -2144,8 +2194,8 @@ overstate fixture-gated functionality.
 ## Review and commit strategy
 
 The source is too cross-coupled for a useful file-by-file cherry-pick history.
-Use four logical review groups, realized as at least the seven planned
-unsquashed green slice commits S01-S07 so plan/progress evidence appears after
+Use four logical review groups, realized as at least the fifteen planned
+unsquashed green slice commits S01-S15 so plan/progress evidence appears after
 each slice. Split any of them into suffixed slices when required to keep every
 commit independently green, and update the live graph and totals:
 
@@ -2169,6 +2219,10 @@ Follow-up PRs add the canonical DXF group classifier, broader feature tests,
 aggregate resource budgets, graph/raw-preservation qualification, writer
 security/oracles, feature-ledger generators, fuzzing, the explicit system-
 package LibreCAD mode, and the final release contract.
+
+S15 is the post-release diagnostic closure slice: it is deliberately small,
+has no fixture dependency, and must be committed before claiming the selected
+diagnostic contract is implemented.
 
 If S04 cannot compile independently because a public callback and the CLI must
 change together, keep only the smallest adapter compilation change in S04 and

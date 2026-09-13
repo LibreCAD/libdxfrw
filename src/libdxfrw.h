@@ -336,6 +336,10 @@ public:
 
     DRW::Version getVersion() const;
     DRW::error getError() const;
+    /// Snapshot the first failure and bounded cleanup evidence from the most
+    /// recent read/write operation.  The legacy getError() value remains the
+    /// compatibility channel.
+    DRW_OperationDiagnostic getLastDiagnostic() const;
 
     std::uint32_t getBlockRecordHandleToWrite(const std::string& blockName) const;
     std::uint32_t getTextStyleHandle(const std::string& styleName) const;
@@ -595,6 +599,18 @@ private:
 
     bool setError(const DRW::error lastError);
 
+    void beginOperationDiagnostic(DRW::OperationKind kind);
+    void recordOperationDiagnostic(DRW::OperationPhase phase,
+                                   DRW::OperationCause cause,
+                                   const char* code,
+                                   const char* message,
+                                   std::uint64_t offset = 0,
+                                   bool hasOffset = false,
+                                   std::uint32_t handle = 0,
+                                   bool hasHandle = false,
+                                   bool secondary = false);
+    void recordOperationDiagnosticForError(DRW::error value);
+
 private:
     DRW::Version version { DRW::UNKNOWNV };
     DRW::error error {DRW::BAD_NONE};
@@ -625,6 +641,7 @@ private:
     // so a codec can be retried without silently hiding a fresh overflow.
     std::uint64_t m_reservationFailureGeneration {0};
     std::uint64_t m_consumedReservationFailureGeneration {0};
+    DRW_OperationDiagnostic m_lastDiagnostic;
     std::vector<DRW_Class> m_dxfClasses;
     bool m_dxfClassesFrozen {false};
     std::vector<DRW_RawDxfSection> m_rawDxfSections;

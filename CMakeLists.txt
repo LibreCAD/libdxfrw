@@ -135,6 +135,16 @@ if(LIBDXFRW_BUILD_TESTS)
     target_link_libraries(libdxfrw_writer_version_matrix_tests PRIVATE dxfrw)
     add_test(NAME libdxfrw_writer_version_matrix
         COMMAND libdxfrw_writer_version_matrix_tests)
+
+    add_executable(libdxfrw_diagnostic_tests
+        tests/diagnostic_tests.cpp)
+    target_compile_features(libdxfrw_diagnostic_tests PRIVATE cxx_std_17)
+    target_include_directories(libdxfrw_diagnostic_tests PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/intern)
+    target_link_libraries(libdxfrw_diagnostic_tests PRIVATE dxfrw)
+    add_test(NAME libdxfrw_diagnostic
+        COMMAND libdxfrw_diagnostic_tests)
 endif()
 
 # INSTALLATION

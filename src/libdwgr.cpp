@@ -50,6 +50,67 @@
 
 namespace {
 
+struct OperationErrorMapping {
+    DRW::OperationPhase phase;
+    DRW::OperationCause cause;
+    const char* code;
+    const char* message;
+};
+
+OperationErrorMapping mapOperationError(DRW::error value) {
+    switch (value) {
+    case DRW::BAD_UNKNOWN:
+        return {DRW::OperationPhase::Argument,
+                DRW::OperationCause::InvalidArgument,
+                "invalid-argument", "an operation argument is invalid"};
+    case DRW::BAD_OPEN:
+        return {DRW::OperationPhase::Open, DRW::OperationCause::OpenFailure,
+                "open-failure", "the input or output path could not be opened"};
+    case DRW::BAD_VERSION:
+        return {DRW::OperationPhase::Validation,
+                DRW::OperationCause::UnsupportedVersion,
+                "unsupported-version", "the requested or detected version is unsupported"};
+    case DRW::BAD_READ_METADATA:
+        return {DRW::OperationPhase::Metadata, DRW::OperationCause::ReadFailure,
+                "read-metadata", "DWG metadata could not be read"};
+    case DRW::BAD_READ_FILE_HEADER:
+        return {DRW::OperationPhase::FileHeader, DRW::OperationCause::ReadFailure,
+                "read-file-header", "the DWG file header could not be read"};
+    case DRW::BAD_READ_HEADER:
+        return {DRW::OperationPhase::Header, DRW::OperationCause::ReadFailure,
+                "read-header", "the drawing header could not be read"};
+    case DRW::BAD_READ_HANDLES:
+        return {DRW::OperationPhase::Handles, DRW::OperationCause::ReadFailure,
+                "read-handles", "the DWG handle map could not be read"};
+    case DRW::BAD_READ_CLASSES:
+        return {DRW::OperationPhase::Classes, DRW::OperationCause::ReadFailure,
+                "read-classes", "the DWG classes section could not be read"};
+    case DRW::BAD_READ_TABLES:
+        return {DRW::OperationPhase::Tables, DRW::OperationCause::ReadFailure,
+                "read-tables", "the drawing tables could not be read"};
+    case DRW::BAD_READ_BLOCKS:
+        return {DRW::OperationPhase::Blocks, DRW::OperationCause::ReadFailure,
+                "read-blocks", "the drawing blocks could not be read"};
+    case DRW::BAD_READ_ENTITIES:
+        return {DRW::OperationPhase::Entities, DRW::OperationCause::ReadFailure,
+                "read-entities", "the drawing entities could not be read"};
+    case DRW::BAD_READ_OBJECTS:
+        return {DRW::OperationPhase::Objects, DRW::OperationCause::ReadFailure,
+                "read-objects", "the drawing objects could not be read"};
+    case DRW::BAD_READ_SECTION:
+        return {DRW::OperationPhase::RawSection, DRW::OperationCause::ReadFailure,
+                "read-section", "a drawing section could not be read"};
+    case DRW::BAD_CODE_PARSED:
+        return {DRW::OperationPhase::Internal, DRW::OperationCause::ReadFailure,
+                "code-parsed", "a group-code parser rejected the input"};
+    case DRW::BAD_NONE:
+        break;
+    }
+    return {DRW::OperationPhase::Internal,
+            DRW::OperationCause::InternalFailure,
+            "internal-failure", "an internal operation failure occurred"};
+}
+
 using Binding = DwgDataStorageWriterBinding;
 using Capability = DwgDataStorageWriterCapability;
 using Operation = DwgDataStorageWriterOperation;
@@ -620,6 +681,7 @@ void dwgRW::setDebug(DRW::DebugLevel lvl){
 /*reads metadata and loads image preview*/
 bool dwgRW::getPreview(){
     bool isOk = false;
+    beginOperationDiagnostic(DRW::OperationKind::Read);
     error = DRW::BAD_NONE;
 
     std::ifstream filestr;
@@ -632,6 +694,12 @@ bool dwgRW::getPreview(){
         isOk = reader->readPreview();
     } else
         error = DRW::BAD_READ_METADATA;
+    if (!isOk && error == DRW::BAD_NONE) {
+        error = DRW::BAD_READ_METADATA;
+        recordOperationDiagnosticForError(error);
+    } else if (error != DRW::BAD_NONE) {
+        recordOperationDiagnosticForError(error);
+    }
 
     filestr.close();
     if (reader) {
@@ -642,11 +710,13 @@ bool dwgRW::getPreview(){
 
 bool dwgRW::testReader(){
     bool isOk = false;
+    beginOperationDiagnostic(DRW::OperationKind::Read);
 
     std::ifstream filestr;
     filestr.open (fileName.c_str(), std::ios_base::in | std::ios::binary);
     if (!filestr.is_open() || !filestr.good() ){
         error = DRW::BAD_OPEN;
+        recordOperationDiagnosticForError(error);
         return isOk;
     }
 
@@ -705,6 +775,7 @@ bool dwgRW::testReader(){
 /*start reading dwg file header and, if can read it, continue reading all*/
 bool dwgRW::read(DRW_Interface *interface_, bool ext){
     bool isOk = false;
+    beginOperationDiagnostic(DRW::OperationKind::Read);
     error = DRW::BAD_NONE;
     applyExt = ext;
     iface = interface_;
@@ -712,6 +783,7 @@ bool dwgRW::read(DRW_Interface *interface_, bool ext){
 
     if (interface_ == nullptr) {
         error = DRW::BAD_UNKNOWN;
+        recordOperationDiagnosticForError(error);
         return false;
     }
 
@@ -730,6 +802,7 @@ bool dwgRW::read(DRW_Interface *interface_, bool ext){
 
 bool dwgRW::readBuffer(const std::uint8_t *data, std::uint64_t size,
                        DRW_Interface *interface_, bool ext) {
+    beginOperationDiagnostic(DRW::OperationKind::Read);
     error = DRW::BAD_NONE;
     applyExt = ext;
     iface = interface_;
@@ -737,6 +810,7 @@ bool dwgRW::readBuffer(const std::uint8_t *data, std::uint64_t size,
 
     if (data == nullptr || size < 6 || interface_ == nullptr) {
         error = DRW::BAD_UNKNOWN;
+        recordOperationDiagnosticForError(error);
         return false;
     }
 
@@ -751,6 +825,7 @@ bool dwgRW::readBuffer(const std::uint8_t *data, std::uint64_t size,
 bool dwgRW::readInstalledReader() {
     if (!reader) {
         error = DRW::BAD_OPEN;
+        recordOperationDiagnosticForError(error);
         return false;
     }
 
@@ -761,9 +836,11 @@ bool dwgRW::readInstalledReader() {
             isOk = processDwg();
         } else {
             error = DRW::BAD_READ_FILE_HEADER;
+            recordOperationDiagnosticForError(error);
         }
     } else {
         error = DRW::BAD_READ_METADATA;
+        recordOperationDiagnosticForError(error);
     }
 
     captureReaderDiagnostics();
@@ -813,6 +890,62 @@ void dwgRW::resetReadDiagnostics() {
     m_decodedProxyPrimitives = 0;
     m_layerNameOrder.clear();
     m_ltypeNameOrder.clear();
+}
+
+void dwgRW::beginOperationDiagnostic(DRW::OperationKind kind) {
+    m_lastDiagnostic = {};
+    m_lastDiagnostic.operation = kind;
+}
+
+void dwgRW::recordOperationDiagnostic(
+    DRW::OperationPhase phase, DRW::OperationCause cause, const char* code,
+    const char* message, std::uint64_t offset, bool hasOffset,
+    std::uint32_t handle, bool hasHandle, bool secondary) {
+    DRW::OperationDiagnosticEntry entry;
+    entry.phase = phase;
+    entry.cause = cause;
+    entry.code = code == nullptr ? std::string{} : std::string{code};
+    entry.message = message == nullptr ? std::string{} : std::string{message};
+    entry.offset = offset;
+    entry.handle = handle;
+    entry.hasOffset = hasOffset;
+    entry.hasHandle = hasHandle;
+    if (secondary) {
+        if (m_lastDiagnostic.secondary.size()
+            < DRW::OperationDiagnostic::MaxSecondaryEntries)
+            m_lastDiagnostic.secondary.push_back(std::move(entry));
+        return;
+    }
+    if (m_lastDiagnostic.failed())
+        return;
+    m_lastDiagnostic.phase = phase;
+    m_lastDiagnostic.cause = cause;
+    m_lastDiagnostic.code = std::move(entry.code);
+    m_lastDiagnostic.message = std::move(entry.message);
+    m_lastDiagnostic.offset = offset;
+    m_lastDiagnostic.handle = handle;
+    m_lastDiagnostic.hasOffset = hasOffset;
+    m_lastDiagnostic.hasHandle = hasHandle;
+}
+
+void dwgRW::recordOperationDiagnosticForError(DRW::error value) {
+    if (value == DRW::BAD_NONE)
+        return;
+    const OperationErrorMapping mapped = mapOperationError(value);
+    recordOperationDiagnostic(mapped.phase, mapped.cause, mapped.code,
+                              mapped.message);
+}
+
+DRW_OperationDiagnostic dwgRW::getLastDiagnostic() const {
+    DRW_OperationDiagnostic result = m_lastDiagnostic;
+    if (!result.failed() && error != DRW::BAD_NONE) {
+        const OperationErrorMapping mapped = mapOperationError(error);
+        result.phase = mapped.phase;
+        result.cause = mapped.cause;
+        result.code = mapped.code;
+        result.message = mapped.message;
+    }
+    return result;
 }
 
 /**
@@ -1207,19 +1340,26 @@ bool dwgRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) try {
     // The 'bin' parameter is accepted only for signature symmetry with
     // dxfRW::write — DWG is always binary on disk.
     (void)bin;
+    beginOperationDiagnostic(DRW::OperationKind::Write);
     resetWriteSkipCounters();
     if (ver != DRW::AC1015 && ver != DRW::AC1018 && ver != DRW::AC1021 &&
         ver != DRW::AC1024 && ver != DRW::AC1027 &&
         ver != DRW::AC1032) {
         error = DRW::BAD_VERSION;
+        recordOperationDiagnosticForError(error);
         return false;
     }
     if (interface_ == nullptr) {
         error = DRW::BAD_UNKNOWN;
+        recordOperationDiagnosticForError(error);
         return false;
     }
     if (m_handleReservationFailed) {
         error = DRW::BAD_OPEN;
+        recordOperationDiagnostic(
+            DRW::OperationPhase::Argument,
+            DRW::OperationCause::ResourceLimit,
+            "handle-reservation", "a reserved DWG handle could not be allocated");
         return false;
     }
     iface = interface_;
@@ -1229,6 +1369,7 @@ bool dwgRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) try {
     DwgDxfOutputTransaction output(fileName, std::ios::binary);
     if (!output.open()) {
         error = DRW::BAD_OPEN;
+        recordOperationDiagnosticForError(error);
         return false;
     }
     std::ofstream& filestr = output.stream();
@@ -1240,6 +1381,9 @@ bool dwgRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) try {
     iface->writeHeader(header);
     if (m_requiredWriteFailure) {
         error = DRW::BAD_OPEN;
+        recordOperationDiagnostic(
+            DRW::OperationPhase::Callback, DRW::OperationCause::WriteFailure,
+            "header-callback-failure", "the header callback rejected DWG output");
         return false;
     }
 
@@ -1357,21 +1501,40 @@ bool dwgRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) try {
     const bool finalOk = secondHeaderOk && writer->finalize();
     ok = finalOk;
     writer.reset();
-    if (ok && !filestr.fail())
-        ok = output.commit();
-    else
+    if (ok && !filestr.fail()) {
+        if (!output.commit()) {
+            recordOperationDiagnostic(
+                DRW::OperationPhase::Commit,
+                DRW::OperationCause::CommitFailure,
+                "commit-failure", "DWG output could not be published");
+            ok = false;
+        }
+    } else {
         output.abort();
+    }
     if (!ok)
+    {
+        if (!m_lastDiagnostic.failed())
+            recordOperationDiagnostic(
+                DRW::OperationPhase::Emit, DRW::OperationCause::WriteFailure,
+                "emit-failure", "DWG output generation failed");
         error = DRW::BAD_OPEN;
+    }
     return ok;
 }
 catch (const std::exception&) {
     writer.reset();
+    recordOperationDiagnostic(
+        DRW::OperationPhase::Callback, DRW::OperationCause::CallbackException,
+        "callback-exception", "a consumer callback threw during DWG write");
     error = DRW::BAD_OPEN;
     return false;
 }
 catch (...) {
     writer.reset();
+    recordOperationDiagnostic(
+        DRW::OperationPhase::Callback, DRW::OperationCause::CallbackException,
+        "callback-exception", "a consumer callback threw during DWG write");
     error = DRW::BAD_OPEN;
     return false;
 }
@@ -3188,6 +3351,7 @@ bool dwgRW::openFile(std::ifstream *filestr){
     filestr->open (fileName.c_str(), std::ios_base::in | std::ios::binary);
     if (!filestr->is_open() || !filestr->good() ){
         error = DRW::BAD_OPEN;
+        recordOperationDiagnosticForError(error);
         return isOk;
     }
 
@@ -3203,6 +3367,7 @@ bool dwgRW::openBuffer(std::unique_ptr<dwgBuffer> buffer) {
     bool isOk = false;
     if (!buffer || buffer->size() < 6) {
         error = DRW::BAD_VERSION;
+        recordOperationDiagnosticForError(error);
         return false;
     }
 
@@ -3211,6 +3376,7 @@ bool dwgRW::openBuffer(std::unique_ptr<dwgBuffer> buffer) {
 
     if (!reader) {
         error = DRW::BAD_VERSION;
+        recordOperationDiagnosticForError(error);
     } else
         isOk = true;
 
@@ -3273,18 +3439,27 @@ bool dwgRW::processDwg() {
     reader->beginDwgClassCoverage();
     ret = reader->readDwgHeader(hdr);
     if (!ret) {
+        recordOperationDiagnostic(
+            DRW::OperationPhase::Header, DRW::OperationCause::ReadFailure,
+            "read-header", "the DWG header could not be read");
         error = DRW::BAD_READ_HEADER;
     }
 
     ret2 = reader->readDwgClasses();
     classReadCompleted = ret2;
     if (ret && !ret2) {
+        recordOperationDiagnostic(
+            DRW::OperationPhase::Classes, DRW::OperationCause::ReadFailure,
+            "read-classes", "the DWG classes section could not be read");
         error = DRW::BAD_READ_CLASSES;
         ret = ret2;
     }
 
     ret2 = reader->readDwgHandles();
     if (ret && !ret2) {
+        recordOperationDiagnostic(
+            DRW::OperationPhase::Handles, DRW::OperationCause::ReadFailure,
+            "read-handles", "the DWG handle map could not be read");
         error = DRW::BAD_READ_HANDLES;
         ret = ret2;
     }
@@ -3302,6 +3477,9 @@ bool dwgRW::processDwg() {
     // pattern below.
     ret2 = ret && reader->readDwgTables(hdr);
     if (ret && !ret2) {
+        recordOperationDiagnostic(
+            DRW::OperationPhase::Tables, DRW::OperationCause::ReadFailure,
+            "read-tables", "the drawing tables could not be read");
         error = DRW::BAD_READ_TABLES;
         ret = ret2;
     }
@@ -3310,6 +3488,10 @@ bool dwgRW::processDwg() {
     try {
     iface->addHeader(&hdr);
     } catch (...) {
+        recordOperationDiagnostic(
+            DRW::OperationPhase::Callback,
+            DRW::OperationCause::CallbackException,
+            "callback-exception", "a consumer callback threw while publishing the DWG header");
         error = DRW::BAD_READ_HEADER;
         ret = false;
     }
@@ -3356,10 +3538,17 @@ bool dwgRW::processDwg() {
         iface->addUCS(const_cast<DRW_UCS&>(*u));
     }
     } catch (...) {
+        recordOperationDiagnostic(
+            DRW::OperationPhase::Callback,
+            DRW::OperationCause::CallbackException,
+            "callback-exception", "a consumer callback threw while publishing DWG tables");
         error = DRW::BAD_READ_TABLES;
         ret = false;
     }
     if (ret && !reader->publishDeferredTableFramePublications(*iface)) {
+        recordOperationDiagnostic(
+            DRW::OperationPhase::Emit, DRW::OperationCause::ReadFailure,
+            "publish-tables", "deferred DWG table publication failed");
         error = DRW::BAD_READ_TABLES;
         ret = false;
     }
@@ -3369,11 +3558,18 @@ bool dwgRW::processDwg() {
         try {
             ret2 = reader->readDwgBlocks(*iface);
         } catch (...) {
+            recordOperationDiagnostic(
+                DRW::OperationPhase::Callback,
+                DRW::OperationCause::CallbackException,
+                "callback-exception", "a consumer callback threw while publishing DWG blocks");
             error = DRW::BAD_READ_BLOCKS;
             ret = false;
         }
     }
     if (ret && !ret2) {
+        recordOperationDiagnostic(
+            DRW::OperationPhase::Blocks, DRW::OperationCause::ReadFailure,
+            "read-blocks", "the DWG blocks could not be read");
         error = DRW::BAD_READ_BLOCKS;
         ret = ret2;
     }
@@ -3382,11 +3578,18 @@ bool dwgRW::processDwg() {
         try {
             ret2 = reader->readDwgEntities(*iface);
         } catch (...) {
+            recordOperationDiagnostic(
+                DRW::OperationPhase::Callback,
+                DRW::OperationCause::CallbackException,
+                "callback-exception", "a consumer callback threw while publishing DWG entities");
             error = DRW::BAD_READ_ENTITIES;
             ret = false;
         }
     }
     if (ret && !ret2) {
+        recordOperationDiagnostic(
+            DRW::OperationPhase::Entities, DRW::OperationCause::ReadFailure,
+            "read-entities", "the DWG entities could not be read");
         error = DRW::BAD_READ_ENTITIES;
         ret = ret2;
     }
@@ -3395,11 +3598,18 @@ bool dwgRW::processDwg() {
         try {
             ret2 = reader->readDwgObjects(*iface);
         } catch (...) {
+            recordOperationDiagnostic(
+                DRW::OperationPhase::Callback,
+                DRW::OperationCause::CallbackException,
+                "callback-exception", "a consumer callback threw while publishing DWG objects");
             error = DRW::BAD_READ_OBJECTS;
             ret = false;
         }
     }
     if (ret && !ret2) {
+        recordOperationDiagnostic(
+            DRW::OperationPhase::Objects, DRW::OperationCause::ReadFailure,
+            "read-objects", "the DWG objects could not be read");
         error = DRW::BAD_READ_OBJECTS;
         ret = ret2;
     }
@@ -3411,6 +3621,10 @@ bool dwgRW::processDwg() {
         for (const DRW_DataStorageSection& storage : reader->m_dataStorageSections)
             iface->addDataStorage(storage);
         } catch (...) {
+            recordOperationDiagnostic(
+                DRW::OperationPhase::Callback,
+                DRW::OperationCause::CallbackException,
+                "callback-exception", "a consumer callback threw while publishing raw DWG sections");
             error = DRW::BAD_READ_OBJECTS;
             ret = false;
         }
@@ -3420,6 +3634,9 @@ bool dwgRW::processDwg() {
     finalizeCoverage(ret);
     return ret;
     } catch (...) {
+        recordOperationDiagnostic(
+            DRW::OperationPhase::Internal, DRW::OperationCause::ReadFailure,
+            "read-section", "an exception escaped DWG section processing");
         if (error == DRW::BAD_NONE)
             error = DRW::BAD_READ_SECTION;
         finalizeClassCoverage();
