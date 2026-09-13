@@ -48,6 +48,24 @@ still evidence for the plan rather than an implicit floating dependency. The
 implementation must query both branch tips once more, record any delta, and
 then pin an immutable commit before importing source.
 
+### Target façades and parity boundary
+
+The parity target is both case-exact public implementations in LibreCAD's
+bundled master tree, not only the shared `DRW_*` model:
+
+| Format | Public façade | Target implementation boundary | Required parity |
+| --- | --- | --- | --- |
+| DWG | `dwgRW` in `src/libdwgr.{h,cpp}`; deprecated standalone compatibility spelling `dwgR` | All target reader and writer classes, version selection, section/container framing, entity/object/class dispatch, graph publication, raw replay, diagnostics, and error behavior | Read and write behavior for every target version/feature row, including identical unsupported/experimental dispositions |
+| DXF | `dxfRW` in `src/libdxfrw.{h,cpp}` | ASCII and binary readers/writers, group-code typing, header/tables/blocks/entities/objects/classes, raw sections and source-spelling preservation, callbacks, diagnostics, and errors | Read, write, round-trip, and preservation behavior for every target dialect/feature row |
+| Shared | `DRW_Interface`, `DRW_*` entities/objects/classes, codecs, buffers, handles, storage, ACIS/proxy, and output transaction helpers | Every shared type or route reachable from either façade | Equivalent public data, ownership/reference graph, callback carrier, bounds, and failure semantics |
+
+“At parity” therefore means that callers using either `dwgRW` or `dxfRW`
+observe the pinned LibreCAD capability set and behavior after the documented
+standalone compatibility adaptations. Completing one façade cannot compensate
+for an unmapped or unexplained row in the other. The final report and generated
+support matrix must publish separate DWG and DXF totals and a combined zero-
+unmapped result.
+
 ### Deep-review evidence
 
 This review repeated the source, build, inventory, and integration audit
@@ -1560,7 +1578,7 @@ edit this block or commit the same slice concurrently.
 | S14 | G1: system-package LibreCAD mode, packaging, docs, release | S07, S12, S13 | COMMITTED | full acceptance criteria | S14 committed in this slice (prospective commit; resolve SHA after commit); standalone package, docs, policy, and aggregate gates pass; LibreCAD system-package mode remains explicitly deferred-external | external system-mode handoff |
 | S16 | H1: installed-package transitive header closure | S15 | COMMITTED | package install, staged-header closure, and consumer compile gates | committed `e113c9f`; standalone package rebuild/install and system-mode filter prerequisite pass; no fixture bytes | S17 |
 | S17 | H2: LibreCAD system-package consumer integration | S16 | COMMITTED | system-mode configure/build, focused tests, bundled-path audit, and default-mode non-regression | target commit `6969e0a003414f9a7084349ac54bc2b32515e16b`; system `librecad_lib` 100% build, focused CTest, default filter compile, 1,245-command zero-bundled-path audit; no fixture bytes | release-review only |
-| S18 | I0: DWG/DXF parity closure against pinned LibreCAD `dwgRW`/`dxfRW` | S17 | READY | zero-unmapped target rows; differential behavior; per-version readers/writers; preservation; API/consumer; fixture and aggregate release gates | source/package integration is committed, but recognition and self-read evidence remain experimental; no fixture bytes may be added outside the admission registry | I0.1 inventory, then I0.2-I0.6 in dependency order |
+| S18 | I0: both-façade parity closure against pinned LibreCAD `dwgRW` and `dxfRW` | S17 | READY | separate zero-unmapped DWG and DXF reports; differential behavior; per-version readers/writers; preservation; API/consumer; fixture and aggregate release gates | source/package integration is committed, but recognition and self-read evidence remain experimental; neither façade can close the other; no fixture bytes may be added outside the admission registry | I0.1 inventory, then I0.2-I0.6 in dependency order |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -1670,12 +1688,12 @@ edit this block or commit the same slice concurrently.
 | H2.3 | H2 / S17 | P10.9, WP6 | H2.2 | COMMITTED | EXPERIMENTAL | public-only field/MLeader DXF tests through the installed package | `ctest --test-dir /private/tmp/librecad-system-s16-test-build -R libdxfrw_system_fast_tests --output-on-failure` PASS (1/1); tests use in-memory/temp DXF content and no committed drawing bytes; unblocks H2.4 |
 | H2.4 | H2 / S17 | P10.9, WP8.5 | H2.2, H2.3 | COMMITTED | EXPERIMENTAL | compile-command and link audit proves no bundled libdxfrw source/include path in system mode and default mode still compiles | 1,245 generated system-mode compile commands contain zero `libraries/libdxfrw/src` or `libdxfrw/src` hits; focused package include audit PASS; default bundled filter compile PASS; no fixture bytes; unblocks H2.5 |
 | H2.5 | H2 / S17 | WP8, WP7.10 | H2.1, H2.2, H2.3, H2.4 | COMMITTED | EXPERIMENTAL | H2 aggregate consumer, fixture, scope/sync, plan, and diff gate | target commit is clean; standalone handoff metadata, plan check, fixture admission (0), external hook, import/sync policy, and diff checks close the external handoff; no fixture bytes |
-| I0.1 | I0 / S18 | WP0, WP4, WP5, WP7, WP8; parity inventory | H2, G1 | READY | EXPERIMENTAL | target-to-standalone row map and zero-unmapped inventory | enumerate every pinned `dwgRW`/`dxfRW` version, entity, object, class, callback, writer route, section, and raw path; classify source/dispatch/decode/carrier/read/write/preserve status; no fixture bytes; unblocks I0.2 |
+| I0.1 | I0 / S18 | WP0, WP4, WP5, WP7, WP8; parity inventory | H2, G1 | READY | EXPERIMENTAL | target-to-standalone row map and separate zero-unmapped `dwgRW`/`dxfRW` inventories | enumerate every pinned `dwgRW` and `dxfRW` version/dialect, entity, object, class, callback, writer route, section, and raw path; classify source/dispatch/decode/carrier/read/write/preserve status; emit per-façade and combined totals; no fixture bytes; unblocks I0.2 |
 | I0.2 | I0 / S18 | WP4, WP5, WP6, WP7, WP8; differential harness | I0.1 | PLANNED | EXPERIMENTAL | same-input/options target-versus-standalone normalized differential | compare semantics, callbacks, preservation dispositions, and coarse error/stage results per version; compare bytes only under an exact-replay contract; use eligible repository or runtime local-from-scratch inputs and advisory external hashes only; unblocks I0.3-I0.5 |
 | I0.3 | I0 / S18 | WP4, WP6, WP8; DXF parity | I0.2 | PLANNED | EXPERIMENTAL | DXF typed/raw read, group-code, source-spelling, callback, and write/round-trip parity | close every target DXF entity/object/group/raw row; classify 260-269 and 482-998 explicitly; resolve or document every semantic/raw delta; no unadmitted fixture bytes; unblocks I0.6 |
 | I0.4 | I0 / S18 | WP5, WP6, WP8; DWG reader parity | I0.2 | PLANNED | EXPERIMENTAL | per-version DWG factory, framing, handles, classes, tables, entities, objects, graph, diagnostics, and unsupported-content parity | exercise each target-supported version with admitted or runtime-generated evidence; consult ODA/spec and traces; missing positives defer promotion but unexplained drops block; no fixture bytes; unblocks I0.6 |
 | I0.5 | I0 / S18 | WP6, WP7, WP8; DWG writer parity | I0.2 | PLANNED | EXPERIMENTAL | per-version writer pipeline, class/handle remap, framing, transaction, typed/raw route, self-read, and independent oracle | promote only rows with independent reader/auditor evidence; keep shared-self-reader-only rows experimental; emitted drawings remain runtime-only unless admitted; unblocks I0.6 |
-| I0.6 | I0 / S18 | WP3, WP4, WP5, WP6, WP7, WP8; parity sign-off | I0.3, I0.4, I0.5 | PLANNED | EXPERIMENTAL | aggregate parity, API/package/LibreCAD consumer, sanitizer, scope/sync, fixture, and release-claim gate | zero unmapped or unexplained deltas; generated support matrix marks only qualified rows supported and records every deferred unblock condition; staged drawing scan is zero unless registry-backed; closes S18/I0 |
+| I0.6 | I0 / S18 | WP3, WP4, WP5, WP6, WP7, WP8; parity sign-off | I0.3, I0.4, I0.5 | PLANNED | EXPERIMENTAL | aggregate both-façade parity, API/package/LibreCAD consumer, sanitizer, scope/sync, fixture, and release-claim gate | separate DWG and DXF reports each have zero unmapped or unexplained deltas; generated support matrix marks only qualified rows supported and records every deferred unblock condition; staged drawing scan is zero unless registry-backed; closes S18/I0 |
 
 <!-- UPGRADE_PROGRESS_END -->
 
@@ -2657,7 +2675,8 @@ The convergence is complete only when all of the following are true:
   documented reason.
 - The generated parity inventory contains one row for every target `dwgRW` and
   `dxfRW` version, entity, object, class, section, callback, writer entrypoint,
-  and raw route; the zero-unmapped report passes.
+  and raw route; the separate DWG and DXF zero-unmapped reports and their
+  combined report all pass.
 - For every applicable row, target and standalone behavior is compared with
   the same input/version/options: normalized semantics, callback publication,
   preservation disposition, and coarse error/stage are equivalent, or the
