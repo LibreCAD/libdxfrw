@@ -383,7 +383,7 @@ struct dwgRW::DwgWriteTransaction {
 };*/
 
 dwgRW::dwgRW(const char* name)
-    : fileName{ name }
+    : fileName{ name == nullptr ? std::string{} : std::string{name} }
 {
     DRW_DBGSL(DRW_dbg::Level::None);
 }
@@ -710,6 +710,11 @@ bool dwgRW::read(DRW_Interface *interface_, bool ext){
     iface = interface_;
     resetReadDiagnostics();
 
+    if (interface_ == nullptr) {
+        error = DRW::BAD_UNKNOWN;
+        return false;
+    }
+
 //testReader();return false;
 
     std::ifstream filestr;
@@ -730,8 +735,8 @@ bool dwgRW::readBuffer(const std::uint8_t *data, std::uint64_t size,
     iface = interface_;
     resetReadDiagnostics();
 
-    if (data == nullptr || size < 6) {
-        error = DRW::BAD_OPEN;
+    if (data == nullptr || size < 6 || interface_ == nullptr) {
+        error = DRW::BAD_UNKNOWN;
         return false;
     }
 
@@ -1210,7 +1215,7 @@ bool dwgRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) try {
         return false;
     }
     if (interface_ == nullptr) {
-        error = DRW::BAD_OPEN;
+        error = DRW::BAD_UNKNOWN;
         return false;
     }
     if (m_handleReservationFailed) {

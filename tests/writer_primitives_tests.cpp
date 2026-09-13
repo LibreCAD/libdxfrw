@@ -193,7 +193,7 @@ void testWriteRejectionDoesNotTouchDestination(TestContext& t) {
 
     dwgRW nullInterface(path.c_str());
     t.expect(!nullInterface.write(nullptr, DRW::AC1015, false)
-                 && nullInterface.getError() == DRW::BAD_OPEN,
+                 && nullInterface.getError() == DRW::BAD_UNKNOWN,
              "supported-version write rejects null interface");
     std::ifstream afterNull(path, std::ios::binary);
     const std::string nullContents((std::istreambuf_iterator<char>(afterNull)),

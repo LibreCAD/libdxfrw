@@ -1147,7 +1147,7 @@ private:
 
 dxfRW::dxfRW(const char* name){
     DRW_DBGSL(DRW_dbg::Level::None);
-    fileName = name;
+    fileName = name == nullptr ? std::string{} : std::string{name};
 }
 
 
@@ -1430,7 +1430,7 @@ bool dxfRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) try {
         return false;
     }
     if (interface_ == nullptr) {
-        error = DRW::BAD_OPEN;
+        error = DRW::BAD_UNKNOWN;
         return false;
     }
     if (m_reservationFailureGeneration

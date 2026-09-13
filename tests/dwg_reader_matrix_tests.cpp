@@ -121,15 +121,15 @@ void testReadBufferRejection(TestContext& t) {
         {'B', 'A', 'D', '0', '0', '0'}
     };
     t.expect(!owner.readBuffer(unknown.data(), unknown.size(), nullptr, false)
-                 && owner.getError() == DRW::BAD_VERSION,
-             "public readBuffer reports BAD_VERSION for unknown magic");
+                 && owner.getError() == DRW::BAD_UNKNOWN,
+             "public readBuffer rejects null interface before format parsing");
 
     std::array<std::uint8_t, 5> shortHeader {};
     t.expect(!owner.readBuffer(shortHeader.data(), shortHeader.size(), nullptr, false)
-                 && owner.getError() == DRW::BAD_OPEN,
-             "public readBuffer reports BAD_OPEN for short input");
+                 && owner.getError() == DRW::BAD_UNKNOWN,
+             "public readBuffer rejects null interface for short input");
     t.expect(!owner.readBuffer(nullptr, 6, nullptr, false)
-                 && owner.getError() == DRW::BAD_OPEN,
+                 && owner.getError() == DRW::BAD_UNKNOWN,
              "public readBuffer rejects null input without crashing");
 }
 

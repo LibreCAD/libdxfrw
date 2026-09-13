@@ -48,7 +48,13 @@ DRW_dbg::DRW_dbg(){
 
 void DRW_dbg::setCustomDebugPrinter(std::unique_ptr<DRW::DebugPrinter> printer)
 {
-    debugPrinter = std::move( printer );
+    // A null raw pointer is the documented reset operation. Keep an owned
+    // default printer available so a later debug-level transition can never
+    // dereference a null currentPrinter.
+    if (printer)
+        debugPrinter = std::move(printer);
+    else
+        debugPrinter.reset(new print_debug);
     if (level == Level::Debug){
         currentPrinter = debugPrinter.get();
     }

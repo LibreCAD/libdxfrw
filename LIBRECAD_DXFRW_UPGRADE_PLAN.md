@@ -1385,24 +1385,25 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint: A importable; S05/C1 through S12/F1 committed;
-  S13/G0 hardening is dependency-ready.
+- Current checkpoint: A importable; S05/C1 through S13/G0 committed
+  (prospective commit; resolve SHA after commit); S14/G1 remains next.
 - Authorized run horizon: full S01-S14/A-G implementation objective.
 - Completion target: S14/G acceptance; a PR boundary cannot silently shorten
   the authorized objective.
-- Last committed slice: S12 (prospective commit; resolve SHA after commit).
-- Resolved slices: 12/14 (`COMMITTED`, or `SUPERSEDED` after all replacements
+- Last committed slice: S13 (prospective commit; resolve SHA after commit).
+- Resolved slices: 13/14 (`COMMITTED`, or `SUPERSEDED` after all replacements
   commit).
-- Slice states: 1 READY / 1 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 12 COMMITTED.
-- Parent-item states: 1 READY / 1 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 13 COMMITTED.
-- Expanded child-item states: 58 COMMITTED / 0 READY / 0 ACTIVE / 0 VERIFYING /
+- Slice states: 0 READY / 1 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
+  0 BLOCKED_HARD / 0 SUPERSEDED / 13 COMMITTED.
+- Parent-item states: 0 READY / 1 PLANNED / 0 ACTIVE / 0 VERIFYING /
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 15 COMMITTED.
+- Expanded child-item states: 64 COMMITTED / 0 READY / 0 ACTIVE / 0 VERIFYING /
   0 VERIFIED; no child is anonymous.
 - Claim/evidence dispositions: 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 0 EXPERIMENTAL / 0 PROMOTED / 10 NOT_APPLICABLE.
-- Next ready work: S13/G0 hardening is ready because S10/E2 and S11/F0 are
-  committed; S14 remains held until S12/F1 and S13/G0 complete.
+- Next ready work: activate S14/G1 immediately after this S13 commit and
+  postcommit report; its package-mode, install, documentation, and release
+  gates are still pending.
 
 | Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -1418,7 +1419,7 @@ edit this block or commit the same slice concurrently.
 | S10 | E2: graph accounting, raw replay, DataStorage/ACIS/proxy | S08, S09 | COMMITTED | zero unexplained frames; eligibility negatives | E2.1-E2.5 PASS; aggregate three-test CTest, strict scope/sync, fixture, hook, plan, and diff gates PASS; no drawing bytes | S11, S13 |
 | S11 | F0: writer primitives, framing, handles, secure transaction | S10 | COMMITTED | golden vectors; failure injection | committed S11; F0.1-F0.5 complete; four-test aggregate and all policy gates PASS; no fixture bytes | S12, S13 |
 | S12 | F1: per-version/per-feature writer qualification | S11 | COMMITTED | self-read for implemented paths; independent oracle for each `PROMOTED` row; every unqualified row explicitly deferred/experimental | S12 committed with F1.1-F1.5 complete; F1.1a remains DEFERRED_EXTERNAL; no fixture bytes | S13, S14 |
-| S13 | G0: diagnostics, aggregate budgets, ownership, fuzz/sanitizers | S10, S11 | PLANNED | hardening matrix green | pending | S14 |
+| S13 | G0: diagnostics, aggregate budgets, ownership, fuzz/sanitizers | S10, S11 | COMMITTED | hardening matrix green | S13 committed in this slice (prospective commit; resolve SHA after commit); G0.1-G0.5 verified; standard and ASan/UBSan CTest suites pass; scope/sync/fixture/hook/plan/diff gates pass; no fixture bytes permitted | S14 |
 | S14 | G1: system-package LibreCAD mode, packaging, docs, release | S07, S12, S13 | PLANNED | full acceptance criteria | pending | release candidate |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
@@ -1437,7 +1438,7 @@ edit this block or commit the same slice concurrently.
 | E2 | S10 | E0, E1 | COMMITTED | NOT_EVALUATED | Graph accounting, raw replay, DataStorage, ACIS, and proxy paths; E2.1-E2.5 verified; aggregate gates PASS |
 | F0 | S11 | E2 | COMMITTED | NOT_EVALUATED | Writer primitives, framing, handles, and secure transaction; F0.1-F0.5 committed with focused and aggregate evidence |
 | F1 | S12 | F0 | COMMITTED | NOT_EVALUATED | Per-version/per-feature writer qualification; F1.1-F1.5 committed, with F1.1a explicitly DEFERRED_EXTERNAL |
-| G0 | S13 | E2, F0 | PLANNED | NOT_EVALUATED | Diagnostics, budgets, ownership, fuzzing, and sanitizers |
+| G0 | S13 | E2, F0 | COMMITTED | NOT_EVALUATED | Diagnostics, budgets, ownership, fuzzing, and sanitizers; G0.1-G0.5 verified; structured diagnostics remain an explicit follow-up |
 | G1 | S14 | D1, F1, G0 | PLANNED | NOT_EVALUATED | Installed LibreCAD mode, packaging, documentation, and release |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
@@ -1501,6 +1502,11 @@ edit this block or commit the same slice concurrently.
 | F1.3 | F1 / S12 | P7.7, WP7 | F1.1 | COMMITTED | EXPERIMENTAL | typed writer capability identity, operation, class, and version-range consistency | `ctest --test-dir build-s12-f1 -R libdxfrw_writer_version_matrix` PASS; all 38 executable bindings have non-empty identities, valid min/max ranges, stable binding lookup, and identity-to-binding resolution; no fixture bytes or support promotion; unblocks F1.4 |
 | F1.4 | F1 / S12 | P7.7-P7.8, WP7 | F1.2, F1.3 | COMMITTED | EXPERIMENTAL | promotion/defer policy: no `PROMOTED` writer row without independent oracle | policy scan PASS (`no F1 row is PROMOTED`); fixture admission PASS with 0 candidates; external/unadmitted corpus remains advisory and cannot promote claims; TU semantic gap remains F1.1a DEFERRED_EXTERNAL; unblocks F1.5 |
 | F1.5 | F1 / S12 | WP7, WP8.5 | F1.2, F1.3, F1.4 | COMMITTED | EXPERIMENTAL | F1 aggregate matrix, policy, fixture, scope, sync, plan, and diff gate | full S12 aggregate PASS: build-s12-f1, all five CTest tests, updater/normalizer self-tests, writer promotion scan, import scope, pinned sync/archive, fixture admission (0 candidates), external hook, and diff check; no DWG/DXF paths staged; ready for `--prepare-commit S12` |
+| G0.1 | G0 / S13 | P9.1-P9.3, WP8.6 | F1.5 | COMMITTED | EXPERIMENTAL | checked arithmetic, size/range helpers, and aggregate budget vectors | `libdxfrw_hardening` passes checked add/multiply/range/alignment, reactor/owned-object ceilings, and section-capacity overflow vectors; all inputs bounded in memory; no fixture bytes; sanitizer remains an aggregate gate; unblocks G0.2 |
+| G0.2 | G0 / S13 | P9.4-P9.6 | G0.1 | COMMITTED | EXPERIMENTAL | null/error precedence and ownership/reset contract | `libdxfrw_hardening` plus updated reader/writer matrix pass null filename construction, BAD_UNKNOWN invalid-argument precedence, BAD_VERSION precedence, and owned debug-printer replacement/reset destructor accounting; no external files or fixture bytes; unblocks G0.3 |
+| G0.3 | G0 / S13 | P9.7-P9.9, WP8.6 | G0.1 | COMMITTED | EXPERIMENTAL | bounded malformed-input fuzz smoke across frame, proxy, SAB, and DataStorage parsers | `libdxfrw_hardening` executes 256 deterministic vectors through proxy inspection, SAB parsing, and DataStorage parsing with no throws and bounded consumption/diagnostics; null inputs fail closed; no generated drawing bytes; ASan/UBSan required; unblocks G0.4 |
+| G0.4 | G0 / S13 | P9.10-P9.12 | G0.2, G0.3 | COMMITTED | EXPERIMENTAL | diagnostics/resource-limit evidence and support-claim audit | source audit confirms existing coarse error/resource-limit paths and proxy stop reasons; no `DRW_OperationDiagnostic`/`getLastDiagnostic()` API exists yet, so structured diagnostics remain an explicit follow-up and no support claim is promoted; no fixture bytes; unblocks G0.5 |
+| G0.5 | G0 / S13 | WP8, WP7.10 | G0.1, G0.2, G0.3, G0.4 | COMMITTED | EXPERIMENTAL | G0 aggregate hardening, sanitizer, scope/sync, fixture, hook, plan, and diff gate | standard and ASan/UBSan builds pass all six CTest tests; updater/normalizer self-tests, import scope, pinned sync/archive, fixture admission (0), external hook, diff check, and staged drawing scan (0) pass; no DWG/DXF paths staged; ready for `--prepare-commit S13` |
 
 <!-- UPGRADE_PROGRESS_END -->
 

@@ -49,10 +49,10 @@
     },
     {
       "path": "src/libdwgr.cpp",
-      "reason": "Define the out-of-line dwgR forwarding façade required by the compatibility header.",
+      "reason": "Define the out-of-line dwgR forwarding façade required by the compatibility header and reject null DWG interface/buffer arguments as BAD_UNKNOWN while preserving BAD_OPEN for file I/O.",
       "scope": "source compatibility",
       "targetBlob": "d1237b166b0ac0a03120c3b2eb6213e890832862",
-      "adaptedSha256": "db2017f0629beef0a71dfd410a54c4f71e805bd89b37bb1ac1a2cad049236c27"
+      "adaptedSha256": "f17d29b42744b3a00908be0f28c3a9054143abb36345152c12ab1180d1bb2c12"
     },
     {
       "path": "src/intern/dwgreader.cpp",
@@ -91,10 +91,17 @@
     },
     {
       "path": "src/libdxfrw.cpp",
-      "reason": "Route raw DXF capture through the canonical group-code table so typed and raw paths agree on code kinds.",
+      "reason": "Route raw DXF capture through the canonical group-code table so typed and raw paths agree on code kinds, and make null filename construction safe while classifying null write interfaces as BAD_UNKNOWN.",
       "scope": "DXF classifier correctness",
       "targetBlob": "71851fcf8d5636080c83f2eb1af4a8ef5a80e0ef",
-      "adaptedSha256": "e52fc152d54691a4dae86e69bdcc7be1b2dc5d346599ff4cc07df2a2eb1391fd"
+      "adaptedSha256": "c75bca9f0ae13a821a9febbd5e1c4536be621f5c3d707c70b5d55a9385f999ce"
+    },
+    {
+      "path": "src/intern/drw_dbg.cpp",
+      "reason": "Make the documented setCustomDebugPrinter(nullptr) reset restore an owned default printer so later debug-level transitions cannot dereference null.",
+      "scope": "debug ownership/reset hardening",
+      "targetBlob": "7f50f284fbc2c443c9b7863636a8bd630b01e3bb",
+      "adaptedSha256": "aa4f9d0e4e2395364e207410d58505b92e52d8d93562f800ee29f63b7cb6b240"
     }
   ]
 }
