@@ -6,9 +6,35 @@ This document plans an upgrade of the standalone `libdxfrw` repository from
 `origin/master` to the implementation maintained in
 `LibreCAD/LibreCAD:master/libraries/libdxfrw`.
 
-This is a migration plan, not a claim that the LibreCAD implementation is
-already production-qualified for every advertised DWG version. Source parity,
-standalone integration, and format-support qualification are separate gates.
+The end objective is not just source import or consumer compatibility. It is
+to qualify standalone DWG and DXF behavior at parity with LibreCAD's pinned
+`dwgRW`/`dxfRW` implementation: the same supported version routes, entities,
+objects, classes, callbacks, raw/preservation carriers, reader and writer
+contracts, and observable success/failure behavior. Source parity, standalone
+integration, and format-support qualification remain separate gates, and no
+parity claim is promoted from recognition counts or a successful self-read
+alone.
+
+For this plan, parity has four levels:
+
+1. **Source parity** — every target implementation unit and public surface is
+   present, with each standalone adaptation recorded.
+2. **Dispatch parity** — every target-recognized DXF/DWG version, entity,
+   object, class, section, and raw route is represented in the ledger, even if
+   its status is proxy, experimental, or explicitly deferred.
+3. **Behavior parity** — for the same eligible input, version, and options,
+   standalone and LibreCAD produce equivalent normalized semantics, callback
+   publication, preservation disposition, and coarse error/stage result.
+4. **Qualified format parity** — promoted read, write, and preservation rows
+   also pass per-version round trips and an independent reader/auditor where
+   the format contract requires one. Rows without that evidence remain
+   experimental or deferred and are not advertised as parity.
+
+The final completion gate is qualified format parity for every advertised
+target row, with zero unmapped rows and an explicit disposition for every
+unavailable fixture or oracle. The target is the immutable LibreCAD revision
+recorded below; a later `master` refresh is a new delta audit, not silent
+scope expansion.
 
 The target re-inspected for this review on 2026-09-13 was:
 
@@ -102,7 +128,10 @@ The implementation strategy is therefore:
 2. Import the implementation and its source manifest.
 3. Preserve and adapt this repository's standalone build, install rules,
    command-line tool, compatibility checks, and regression fixtures.
-4. Qualify readers, writers, and preservation features independently.
+4. Drive every target DWG/DXF row through the parity ledger. Qualify readers,
+   writers, preservation, callbacks, and diagnostics independently; only
+   promote a row after equivalent behavior and the required independent
+   evidence are present.
 
 ### Pre-decided defaults for the implementation team
 
@@ -138,6 +167,9 @@ without waiting for confirmation. Absence of an override is not a blocker:
   alone is not sufficient.
 - DWG writers and raw replay remain experimental per version/feature until
   their specific gates pass.
+- Parity is the completion criterion. A source or dispatch match is not a
+  release claim; every target row must reach qualified support or carry a
+  written experimental/deferred disposition with its exact unblock condition.
 - Output replacement promises atomic visibility only until crash durability is
   implemented and tested.
 - Once implementation starts, continue from one dependency-ready slice to the
@@ -241,6 +273,10 @@ error numbers 0 through 12 remain stable.
 - Port the useful Qt-free LibreCAD tests and fuzz targets.
 - Validate against the repository's real DWG fixtures and the authoritative
   ODA specification.
+- Reach documented DWG/DXF parity with the pinned LibreCAD `dwgRW`/`dxfRW`
+  behavior across version dispatch, entities/objects/classes, DXF group and
+  raw routes, reader/writer framing, preservation carriers, diagnostics,
+  callbacks, and package/consumer behavior, with evidence for each ledger row.
 - Record source provenance and make future refreshes reproducible.
 
 ### Out of scope for the convergence PR
@@ -255,6 +291,9 @@ error numbers 0 through 12 remain stable.
   the imported implementation usable.
 - Creating a new DWG-writing CLI. Writer qualification should initially use a
   test driver and the public API.
+- Treating source-copy completeness, recognition counts, or a shared
+  self-reader as proof of DWG/DXF parity; each such result is only an
+  intermediate source/dispatch gate.
 
 ## Source-of-truth policy
 
@@ -542,7 +581,33 @@ per feature and version:
 Generate documentation tables from this ledger so source dispatch, tests, and
 published claims cannot drift independently. Require a row for every public
 `DRW_*` type, interface callback, fixed type, and named class; generate a CI
-error for an unclassified addition.
+error for an unclassified addition. For the parity objective, a row is not
+complete when it merely exists or dispatches: its target-versus-standalone
+behavior, publication/preservation carrier, read/write status, and required
+oracle evidence must be recorded. A row may be `SOURCE_PARITY` or
+`DISPATCH_PARITY` while remaining `EXPERIMENTAL`; only `QUALIFIED_FORMAT_PARITY`
+may populate the advertised supported matrix.
+
+### Parity acceptance matrix
+
+The ledger and its generated reports must close these axes independently. A
+single green build, callback count, or self-read cannot satisfy another axis.
+
+| Axis | Required condition | Evidence | Blocking rule |
+| --- | --- | --- | --- |
+| Target inventory | Every target `dwgRW`/`dxfRW` version, entity, object, class, section, callback, writer entrypoint, and raw route has exactly one standalone row | Pinned-target manifest, generated dispatch/API inventory, zero-unmapped report | Any unmapped row blocks parity completion |
+| DXF read/model/raw | Group-code classification, typed parse, raw capture, source spelling, unknown fallback, and callback publication agree with the target for every applicable record | Differential normalized summaries plus boundary/round-trip tests for each row | Recognition without equivalent semantic/raw behavior is not parity |
+| DWG read | Version factory, page/section framing, classes, handles, table/object/entity dispatch, graph publication, diagnostics, and unsupported-record disposition agree | Per-version matrix using admitted or runtime-generated inputs; ODA/spec references; stage/error comparison | Missing positive evidence keeps the row experimental; silent drops block |
+| DWG write | Version container, handles, class ordinals, object framing, typed/raw route, transaction, and unsupported-content policy agree | Runtime local-from-scratch vectors, self-read, and named independent reader/auditor for every promoted row | Shared-reader self-read alone never promotes a row |
+| Preservation | Typed values, ASCII spelling, object payloads, opaque sections, ownership, and replay predicates retain the target's documented fidelity | Carrier/hash/normalization reports and negative cross-version/identity tests | Any unexplained loss or over-broad replay blocks |
+| Public/API/consumer | `dwgRW`, deprecated `dwgR`, `dxfRW`, callbacks, errors/diagnostics, CMake package, installed headers, and LibreCAD system mode have equivalent contracts | Compile/link consumers, static assertions, package and both-mode audits | ABI/source or bundled-path divergence blocks integration parity |
+| Differential behavior | Same input/options yield equivalent normalized semantics, callback events, preservation disposition, and coarse error/stage; byte equality is required only where the contract promises it | Target-vs-standalone harness with tool/version/schema/hashes and classified deltas | Every delta is repaired, accepted by a written normalization rule, or explicitly deferred |
+| Claim/release | Every advertised row is `QUALIFIED_FORMAT_PARITY`; unresolved rows state `EXPERIMENTAL`/`DEFERRED_EXTERNAL` and exact unblock condition | Generated support matrix and release review | No row may be advertised from source/dispatch parity alone |
+
+Fixture policy applies to every matrix row. External drawings may be mounted
+for advisory comparison, but no new DWG/DXF bytes may be committed unless they
+are an exact pre-lock repository blob or a locally authored from-scratch
+fixture with the required registry attestation.
 
 ## Correctness and compatibility decisions
 
@@ -1002,6 +1067,10 @@ Exit tests:
 - Unknown records are preserved or diagnosed according to policy.
 - Parser, raw-capture, validation, and re-emit paths agree on every DXF group
   code kind.
+- The pinned LibreCAD `dxfRW` and standalone `dxfRW` produce equivalent
+  normalized semantics, callback events, preservation carriers, and coarse
+  error/stage results for every completed ledger row; all deltas are repaired,
+  normalized by rule, or left explicitly experimental/deferred.
 
 ### WP5: DWG reader convergence
 
@@ -1059,6 +1128,10 @@ Exit tests:
 - Many individually valid records cannot evade the aggregate resource budget.
 - Each raw-section claim is backed by its exact admission matrix rather than a
   blanket “raw sections are preserved” statement.
+- The target and standalone reader matrices agree on version routing, stage
+  boundaries, publication/carrier disposition, and unsupported-content
+  behavior for every mapped row; no unexplained target-versus-standalone
+  reader delta remains.
 
 ### WP6: graph publication and preservation
 
@@ -1204,6 +1277,10 @@ Exit tests:
   tests preserve the destination according to the documented contract.
 - Writer support is promoted by version and feature, not inherited merely
   because one writer class derives from another.
+- For every promoted writer row, standalone output matches the pinned target's
+  normalized semantics and preservation policy under the same version/options,
+  passes libdxfrw self-read, and passes the named independent reader/auditor;
+  shared-self-reader-only rows remain experimental.
 
 ### WP8: testing, packaging, and documentation
 
@@ -1250,9 +1327,14 @@ Actions:
    hash alone is insufficient. Any rule change increments the schema version
    and revalidates admitted outputs or original external output retained only
    in protected/local storage.
-9. Test source-tree, `add_subdirectory`, and installed-tree consumers.
-10. Audit notices and contributors for all imported code and test data.
-11. Add a dependency-free staged-file admission guard for registered
+9. Add a target-versus-standalone differential harness. It must run the same
+   version/options/input through the pinned LibreCAD implementation and the
+   standalone library, emit schema-versioned normalized semantics, callback
+   and preservation events, coarse error/stage results, and classified byte
+   deltas, while never copying external drawing bytes into Git.
+10. Test source-tree, `add_subdirectory`, and installed-tree consumers.
+11. Audit notices and contributors for all imported code and test data.
+12. Add a dependency-free staged-file admission guard for registered
     extensions, DWG/DXF magic/content signatures, supported archives,
     generated headers, and obvious encoded/source literals that reconstruct a
     drawing. Reject every detected drawing payload unless the checked-in
@@ -1270,6 +1352,10 @@ Exit tests:
 - CI covers build, fast, fixture, sanitizer, installed-consumer, and LibreCAD
   integration lanes.
 - Package metadata and public claims are generated from verified inputs.
+- The differential harness is deterministic and records target/standalone
+  tool versions, input provenance, normalization schema, callback/carrier
+  events, coarse error/stage results, and every classified byte delta without
+  staging unadmitted drawing bytes.
 - Two runs of each normalizer produce the same schema/version and result, and
   deliberately changed counts, graph links, non-finite values, or raw payloads
   cannot normalize to a false match.
@@ -1353,8 +1439,9 @@ The coordinator must apply these rules to every implementation turn:
 4. Do not stop while an actionable `READY`, `ACTIVE`, or `VERIFYING` item or
    an evidence-only lane with a safe continuation exists. On failure, classify
    it, add the exact unblock condition, repair or route around it, and continue
-   the next dependency-ready lane. Stop only at S15/H0 acceptance or a genuine
-   hard blocker after the recovery protocol has been committed.
+   the next dependency-ready lane. Stop only at S18/I0 qualified-format
+   parity acceptance or a genuine hard blocker after the recovery protocol has
+   been committed.
 
 ### Work-item and slice state
 
@@ -1371,7 +1458,7 @@ passes solely when every gate in the checkpoint table is green.
 
 A slice is the smallest dependency-closed group of one or more tightly coupled
 items that can be independently verified and committed green. One slice maps
-to one local commit. S01-S15 are the minimum planned skeleton, not fixed-size
+to one local commit. S01-S18 are the minimum planned skeleton, not fixed-size
 commit promises: before activation, split an oversized or independently
 blocked slice into stable suffixes such as `S04a` and `S04b`, mark the original
 as superseded by those slices, update all dependency edges, and report the old
@@ -1432,24 +1519,28 @@ edit this block or commit the same slice concurrently.
 
 - Current checkpoint: A importable; S01-S17 are committed, including the H2
   LibreCAD system-package consumer integration in the clean target worktree.
-- Authorized run horizon: full S01-S17/A-H2 implementation objective.
-- Completion target: S17/H2 system-package handoff acceptance; a PR boundary
+  Source/package/consumer convergence is complete, but DWG/DXF parity with the
+  pinned LibreCAD `dwgRW`/`dxfRW` behavior is still an explicit follow-up and
+  no format-support claim is promoted solely from source parity.
+- Authorized run horizon: full S01-S18/A-I0 implementation objective.
+- Completion target: S18/I0 qualified-format parity acceptance; a PR boundary
   cannot silently shorten the authorized objective.
-- Last committed slice: S17 (standalone evidence closure is in this
-  prospective commit); target commit is
+- Last committed slice: S17 (standalone evidence closure is committed in
+  `e41f10e946335e89151302b2fa6327052fad5470`); target integration commit is
   `6969e0a003414f9a7084349ac54bc2b32515e16b`.
-- Resolved slices: 17/17 (`COMMITTED`, or `SUPERSEDED` after all replacements
+- Resolved slices: 17/18 (`COMMITTED`, or `SUPERSEDED` after all replacements
   commit).
-- Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
+- Slice states: 1 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
   0 BLOCKED_HARD / 0 SUPERSEDED / 17 COMMITTED.
-- Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
+- Parent-item states: 1 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
   0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 19 COMMITTED.
-- Expanded child-item states: 81 COMMITTED / 0 PLANNED / 0 READY / 0 ACTIVE /
+- Expanded child-item states: 81 COMMITTED / 5 PLANNED / 1 READY / 0 ACTIVE /
   0 VERIFYING / 0 VERIFIED; no child is anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 1 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Next ready work: release-review only; all implementation slices in the
-  authorized S01-S17 horizon are committed and their plan rows are closed.
+  0 DEFERRED_EXTERNAL / 4 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Next ready work: S18/I0 parity closure; its inventory child is ready after
+  the committed H2/G1 package and consumer foundations, and the remaining
+  children self-unblock in dependency order.
 
 | Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -1469,6 +1560,7 @@ edit this block or commit the same slice concurrently.
 | S14 | G1: system-package LibreCAD mode, packaging, docs, release | S07, S12, S13 | COMMITTED | full acceptance criteria | S14 committed in this slice (prospective commit; resolve SHA after commit); standalone package, docs, policy, and aggregate gates pass; LibreCAD system-package mode remains explicitly deferred-external | external system-mode handoff |
 | S16 | H1: installed-package transitive header closure | S15 | COMMITTED | package install, staged-header closure, and consumer compile gates | committed `e113c9f`; standalone package rebuild/install and system-mode filter prerequisite pass; no fixture bytes | S17 |
 | S17 | H2: LibreCAD system-package consumer integration | S16 | COMMITTED | system-mode configure/build, focused tests, bundled-path audit, and default-mode non-regression | target commit `6969e0a003414f9a7084349ac54bc2b32515e16b`; system `librecad_lib` 100% build, focused CTest, default filter compile, 1,245-command zero-bundled-path audit; no fixture bytes | release-review only |
+| S18 | I0: DWG/DXF parity closure against pinned LibreCAD `dwgRW`/`dxfRW` | S17 | READY | zero-unmapped target rows; differential behavior; per-version readers/writers; preservation; API/consumer; fixture and aggregate release gates | source/package integration is committed, but recognition and self-read evidence remain experimental; no fixture bytes may be added outside the admission registry | I0.1 inventory, then I0.2-I0.6 in dependency order |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -1490,6 +1582,7 @@ edit this block or commit the same slice concurrently.
 | G1 | S14 | D1, F1, G0 | COMMITTED | NOT_EVALUATED | Installed LibreCAD mode, packaging, documentation, and release |
 | H1 | S16 | H0, G1 | COMMITTED | EXPERIMENTAL | Installed-package transitive header closure required by the LibreCAD adapter; package-only consumer compiles without bundled paths |
 | H2 | S17 | H1, G1 | COMMITTED | EXPERIMENTAL | LibreCAD explicitly selects `libdxfrw::libdxfrw` in system mode while retaining the bundled default; target commit and both-mode evidence are recorded |
+| I0 | S18 | H2, G1 | READY | EXPERIMENTAL | Close target-level DWG/DXF behavior parity for `dwgRW`/`dxfRW`; every row reaches qualified support or an explicit experimental/deferred disposition |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -1577,6 +1670,12 @@ edit this block or commit the same slice concurrently.
 | H2.3 | H2 / S17 | P10.9, WP6 | H2.2 | COMMITTED | EXPERIMENTAL | public-only field/MLeader DXF tests through the installed package | `ctest --test-dir /private/tmp/librecad-system-s16-test-build -R libdxfrw_system_fast_tests --output-on-failure` PASS (1/1); tests use in-memory/temp DXF content and no committed drawing bytes; unblocks H2.4 |
 | H2.4 | H2 / S17 | P10.9, WP8.5 | H2.2, H2.3 | COMMITTED | EXPERIMENTAL | compile-command and link audit proves no bundled libdxfrw source/include path in system mode and default mode still compiles | 1,245 generated system-mode compile commands contain zero `libraries/libdxfrw/src` or `libdxfrw/src` hits; focused package include audit PASS; default bundled filter compile PASS; no fixture bytes; unblocks H2.5 |
 | H2.5 | H2 / S17 | WP8, WP7.10 | H2.1, H2.2, H2.3, H2.4 | COMMITTED | EXPERIMENTAL | H2 aggregate consumer, fixture, scope/sync, plan, and diff gate | target commit is clean; standalone handoff metadata, plan check, fixture admission (0), external hook, import/sync policy, and diff checks close the external handoff; no fixture bytes |
+| I0.1 | I0 / S18 | WP0, WP4, WP5, WP7, WP8; parity inventory | H2, G1 | READY | EXPERIMENTAL | target-to-standalone row map and zero-unmapped inventory | enumerate every pinned `dwgRW`/`dxfRW` version, entity, object, class, callback, writer route, section, and raw path; classify source/dispatch/decode/carrier/read/write/preserve status; no fixture bytes; unblocks I0.2 |
+| I0.2 | I0 / S18 | WP4, WP5, WP6, WP7, WP8; differential harness | I0.1 | PLANNED | EXPERIMENTAL | same-input/options target-versus-standalone normalized differential | compare semantics, callbacks, preservation dispositions, and coarse error/stage results per version; compare bytes only under an exact-replay contract; use eligible repository or runtime local-from-scratch inputs and advisory external hashes only; unblocks I0.3-I0.5 |
+| I0.3 | I0 / S18 | WP4, WP6, WP8; DXF parity | I0.2 | PLANNED | EXPERIMENTAL | DXF typed/raw read, group-code, source-spelling, callback, and write/round-trip parity | close every target DXF entity/object/group/raw row; classify 260-269 and 482-998 explicitly; resolve or document every semantic/raw delta; no unadmitted fixture bytes; unblocks I0.6 |
+| I0.4 | I0 / S18 | WP5, WP6, WP8; DWG reader parity | I0.2 | PLANNED | EXPERIMENTAL | per-version DWG factory, framing, handles, classes, tables, entities, objects, graph, diagnostics, and unsupported-content parity | exercise each target-supported version with admitted or runtime-generated evidence; consult ODA/spec and traces; missing positives defer promotion but unexplained drops block; no fixture bytes; unblocks I0.6 |
+| I0.5 | I0 / S18 | WP6, WP7, WP8; DWG writer parity | I0.2 | PLANNED | EXPERIMENTAL | per-version writer pipeline, class/handle remap, framing, transaction, typed/raw route, self-read, and independent oracle | promote only rows with independent reader/auditor evidence; keep shared-self-reader-only rows experimental; emitted drawings remain runtime-only unless admitted; unblocks I0.6 |
+| I0.6 | I0 / S18 | WP3, WP4, WP5, WP6, WP7, WP8; parity sign-off | I0.3, I0.4, I0.5 | PLANNED | EXPERIMENTAL | aggregate parity, API/package/LibreCAD consumer, sanitizer, scope/sync, fixture, and release-claim gate | zero unmapped or unexplained deltas; generated support matrix marks only qualified rows supported and records every deferred unblock condition; staged drawing scan is zero unless registry-backed; closes S18/I0 |
 
 <!-- UPGRADE_PROGRESS_END -->
 
@@ -1619,7 +1718,8 @@ A failed command or gate is diagnostic input, not a terminal condition:
 5. If evidence is unavailable, use a focused helper/byte-vector test, an
    admitted repository fixture, a valid local-from-scratch case, or an external
    advisory run. Record reduced confidence and keep the support claim
-   experimental.
+   experimental. This unblocks implementation work but never closes the
+   parity row.
 6. If only claim evidence is unavailable, finish and commit the safe
    implementation, set its claim disposition to `DEFERRED_EXTERNAL` or
    `EXPERIMENTAL`, and continue downstream code work while prohibiting support
@@ -1633,6 +1733,14 @@ Never self-unblock by weakening/deleting a gate, accepting an arbitrary
 failure, bypassing warnings or sanitizers, inventing a DWG layout, silently
 repinning the target, broadening public API changes, fabricating evidence, or
 committing a fixture-policy-ineligible file.
+
+For target-versus-standalone comparisons, use the same version, options, and
+input source. Compare normalized semantics, callback events, preservation
+dispositions, and coarse error/stage results separately from raw bytes. Require
+byte identity only for a documented exact-replay contract; otherwise classify
+every byte delta with a reviewed normalization rule. A mismatch must become a
+repair child, an explicit target-debt disposition, or a deferred external
+evidence row before the next dependent slice is started.
 
 ### Slice commit and progress-report protocol
 
@@ -2026,6 +2134,38 @@ Gate: each promoted writer row has fixture-policy-admitted or eligible local-
 from-scratch runtime evidence plus an independent oracle. Otherwise the
 implementation may ship, but the public support matrix must say experimental.
 
+#### 5F. Target differential and parity sign-off
+
+Run this closure only after the DXF, DWG-reader, graph/preservation, and writer
+lanes have produced their row evidence. It is the final S18/I0 work, not a
+source-import shortcut:
+
+1. Generate the pinned-target-to-standalone ledger and fail on any missing or
+   duplicate version/record/callback/writer/raw row.
+2. Execute the same eligible repository blobs, deterministic local-from-scratch
+   byte vectors, and in-memory models through both implementations with the
+   same version/options. Keep external corpus runs advisory and store hashes,
+   not drawing bytes.
+3. Compare normalized semantics, callback order/publication, carrier and
+   preservation disposition, unsupported-content handling, and coarse
+   error/stage results. Compare raw bytes only for rows whose contract promises
+   exact replay; classify every other byte delta with a schema-versioned rule.
+4. Reconcile each mismatch by a focused implementation/adaptation child, a
+   reviewed target-debt exception, or an explicit experimental/deferred row
+   with an exact unblock condition. Do not hide a mismatch in a count or a
+   broad normalization rule.
+5. Regenerate the support matrix. Only rows with `QUALIFIED_FORMAT_PARITY`
+   and the required positive/independent evidence are advertised as supported;
+   source/dispatch/behavior matches without the final evidence remain
+   experimental.
+6. Re-run package/header/LibreCAD consumer, sanitizer/fuzz, fixture-admission,
+   scope/sync, and plan checks, then record the parity report and target SHA in
+   the live ledger before the S18 commit.
+
+Gate: zero unmapped rows and zero unexplained target-versus-standalone
+divergences; every advertised DWG/DXF row is qualified, and every unavailable
+fixture/oracle is explicitly deferred without stopping independent work.
+
 ### Phase 6: test architecture
 
 Organize standalone tests into fast, fixture, compatibility, fuzz, and
@@ -2207,8 +2347,8 @@ overstate fixture-gated functionality.
 ## Review and commit strategy
 
 The source is too cross-coupled for a useful file-by-file cherry-pick history.
-Use four logical review groups, realized as at least the fifteen planned
-unsquashed green slice commits S01-S15 so plan/progress evidence appears after
+Use four logical review groups, realized as at least the eighteen planned
+unsquashed green slice commits S01-S18 so plan/progress evidence appears after
 each slice. Split any of them into suffixed slices when required to keep every
 commit independently green, and update the live graph and totals:
 
@@ -2231,7 +2371,8 @@ commit independently green, and update the live graph and totals:
 Follow-up PRs add the canonical DXF group classifier, broader feature tests,
 aggregate resource budgets, graph/raw-preservation qualification, writer
 security/oracles, feature-ledger generators, fuzzing, the explicit system-
-package LibreCAD mode, and the final release contract.
+package LibreCAD mode, the target differential harness, and the final parity
+release contract.
 
 S15 is the post-release diagnostic closure slice: it is deliberately small,
 has no fixture dependency, and must be committed before claiming the selected
@@ -2362,11 +2503,13 @@ boundaries rather than on every warning fix.
 | E: Preserving | Canonical group-code map, graph accounting and raw fallbacks | Zero unexplained frames; exact section/object eligibility negatives pass |
 | F: Writable | Secure transaction plus per-version/per-feature pipeline evidence | Independent oracle for each promoted row |
 | G: Releasable | CI, install, docs, notices | Full acceptance criteria |
+| H: Target-parity complete | Target-to-standalone differential, row closure, and support-claim reconciliation | Zero unmapped/unexplained rows; every advertised DWG/DXF row is `QUALIFIED_FORMAT_PARITY`; unavailable evidence is explicitly deferred |
 
 The first implementation PR should target checkpoints A through D. The full
 system-package LibreCAD mode, exhaustive behavioral API hardening, writer
-promotion, and broad feature qualification follow without delaying source
-convergence, provided experimental status is explicit.
+promotion, broad feature qualification, and the H target-parity closure follow
+without weakening the source-convergence boundary; experimental status remains
+explicit until the differential and oracle gates pass.
 
 ## Required CI matrix
 
@@ -2384,6 +2527,7 @@ requirements for the A-D source-convergence PR:
 | LibreCAD source overlay | C | Convergence checkpoints | Filter compile plus parser/library target with ported source/manifest |
 | Fixtures | D | L1 on ordinary PRs; L2 at checkpoints | Fixture-policy-eligible files only; staged-file admission/evasion guard; external-corpus report is advisory |
 | Byte differential | D when encoder/output adaptations exist; otherwise post-C/nightly | Conditional | Same-host/toolchain seven-format LibreCAD comparison; target blob parity when skipped |
+| Target behavior differential | H / S18 | Parity-closure and every feature/version promotion | Same eligible input/version/options through pinned LibreCAD `dwgRW`/`dxfRW` and standalone; normalized semantics, callbacks, carriers, error/stage, and classified bytes |
 | Feature ledger | E | Feature PRs | Pinned generators and seeds; machine ledger and generated support tables in `--check` mode |
 | Writer oracles | F | Writer promotion PRs | Self-read plus named independent reader/auditor and versioned normalization output |
 | Sanitizers/security | G | Security PRs and release | ASan + UBSan fast/malformed suites, bounded fuzz smoke, transaction failure injection |
@@ -2511,6 +2655,15 @@ The convergence is complete only when all of the following are true:
 - The target LibreCAD revision and bundled snapshot revision are recorded.
 - Every target implementation file is present or explicitly excluded with a
   documented reason.
+- The generated parity inventory contains one row for every target `dwgRW` and
+  `dxfRW` version, entity, object, class, section, callback, writer entrypoint,
+  and raw route; the zero-unmapped report passes.
+- For every applicable row, target and standalone behavior is compared with
+  the same input/version/options: normalized semantics, callback publication,
+  preservation disposition, and coarse error/stage are equivalent, or the
+  delta has a reviewed normalization or explicit experimental/deferred
+  disposition. Byte identity is required only where the row's contract says
+  exact replay.
 - The Git-derived inventory and all supported build lists agree; no tracked
   header is silently absent from the canonical manifest.
 - Every local divergence from the pinned target source is on the reviewed
@@ -2544,6 +2697,13 @@ The convergence is complete only when all of the following are true:
   admitted or runtime-generated malformed/negative coverage, or remain
   documented as experimental.
 - Promoted DWG writers pass self-read and independent-reader validation.
+- Every advertised DWG/DXF read, write, or preservation row reaches
+  `QUALIFIED_FORMAT_PARITY`; source-only and dispatch-only matches remain
+  explicitly experimental and are excluded from the supported matrix.
+- `dwgRW` and `dxfRW` version routing, typed/raw carriers, callbacks,
+  diagnostics, and unsupported-content behavior match the pinned LibreCAD
+  target in the differential harness; no unexplained target-versus-standalone
+  divergence remains.
 - Oracle results follow the checked-in normalization schema and include tool
   version, exit status, semantic counts, graph relationships, floating-point
   policy, and hashes for retained opaque payloads.
@@ -2578,10 +2738,13 @@ The convergence is complete only when all of the following are true:
   changes installed public headers and virtual interfaces.
 - Compile all imported reader/writer code by default to preserve implementation
   parity.
-- Advertise only readers backed by fixture-policy-admitted evidence as
-  supported.
-- Advertise DWG writers as experimental per version until each version clears
-  the independent-oracle gate.
+- Advertise only DWG/DXF rows whose ledger status is
+  `QUALIFIED_FORMAT_PARITY` and whose positive evidence satisfies the fixture
+  policy or an eligible runtime-from-scratch route.
+- Keep readers, writers, and preservation rows experimental per version and
+  feature until their target-versus-standalone differential and required
+  independent-oracle gates clear; a target recognition row is not a support
+  claim.
 - Keep raw replay explicitly constrained to compatible source/target versions
   and identities.
 - Advertise ACIS wireframe extraction and proxy-derived graphics separately
