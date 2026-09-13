@@ -3,6 +3,7 @@
   "purpose": "Standalone build, packaging, CLI, and compatibility adaptations required around the pinned LibreCAD source snapshot.",
   "allowedPaths": [
     "CMakeLists.txt",
+    "src/intern/dxfcode.h",
     "cmake/",
     "dwg2dxf/",
     "tests/",
@@ -80,6 +81,20 @@
       "scope": "warning hygiene",
       "targetBlob": "edb2bac15f330471355332524032e57b29a9ca58",
       "adaptedSha256": "3f5711337759aa21502173d89c41c740cb68eab6f3cb5720c0a34057d2a78ed3"
+    },
+    {
+      "path": "src/intern/dxfreader.cpp",
+      "reason": "Use the canonical DXF group-code table, preserve integer values in codes 260-269, and fail closed on the unassigned 482-998 span.",
+      "scope": "DXF classifier correctness",
+      "targetBlob": "6d65c2baa9e604720a01c5cb050497847634a71a",
+      "adaptedSha256": "d593ad4cd69b86dc7a4293a75462b658a51369ad11bdbec180499f471bafa55c"
+    },
+    {
+      "path": "src/libdxfrw.cpp",
+      "reason": "Route raw DXF capture through the canonical group-code table so typed and raw paths agree on code kinds.",
+      "scope": "DXF classifier correctness",
+      "targetBlob": "71851fcf8d5636080c83f2eb1af4a8ef5a80e0ef",
+      "adaptedSha256": "e52fc152d54691a4dae86e69bdcc7be1b2dc5d346599ff4cc07df2a2eb1391fd"
     }
   ]
 }

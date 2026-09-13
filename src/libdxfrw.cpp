@@ -32,6 +32,7 @@
 #include "intern/drw_textcodec.h"
 #include "intern/dxfparserlimits.h"
 #include "intern/dxfreader.h"
+#include "intern/dxfcode.h"
 #include "intern/dxfwriter.h"
 #include "intern/drw_dbg.h"
 #include "intern/drw_reserve.h"
@@ -12897,39 +12898,17 @@ enum class RawValType { Str, Int16, Int32, Int64, Dbl, Bool };
 //ALSO unreliable here: each numeric reader sets `type` then calls readString(&t)
 //which resets it to STRING — hence we classify by code range, not reader->type.
 RawValType classifyDxfCode(int code) {
-    if (code < 10) return RawValType::Str;
-    else if (code < 60) return RawValType::Dbl;
-    else if (code < 80) return RawValType::Int16;
-    else if (code < 90) return RawValType::Str;
-    else if (code < 100) return RawValType::Int32;
-    else if (code < 110) return RawValType::Str;
-    else if (code < 150) return RawValType::Dbl;
-    else if (code < 160) return RawValType::Str;
-    else if (code < 170) return RawValType::Int64;
-    else if (code < 180) return RawValType::Int16;
-    else if (code < 210) return RawValType::Str;
-    else if (code < 260) return RawValType::Dbl;
-    else if (code < 290) return RawValType::Int16;
-    else if (code < 300) return RawValType::Bool;
-    else if (code < 310) return RawValType::Str;
-    else if (code < 320) return RawValType::Str;            // readBinary -> string
-    else if (code < 370) return RawValType::Str;            // incl. 330/340/350/360
-    else if (code < 390) return RawValType::Int16;
-    else if (code < 400) return RawValType::Str;
-    else if (code < 410) return RawValType::Int16;
-    else if (code < 420) return RawValType::Str;
-    else if (code < 430) return RawValType::Int32;
-    else if (code < 440) return RawValType::Str;
-    else if (code < 450) return RawValType::Int32;
-    else if (code < 460) return RawValType::Int32;
-    else if (code < 470) return RawValType::Dbl;
-    else if (code <= 481) return RawValType::Str;
-    else if (code == 1004) return RawValType::Str;
-    else if (code > 998 && code < 1009) return RawValType::Str;
-    else if (code < 1060) return RawValType::Dbl;
-    else if (code < 1071) return RawValType::Int16;
-    else if (code == 1071) return RawValType::Int32;
-    return RawValType::Str;
+    switch (dxfValueKindForCode(code)) {
+    case DxfValueKind::Dbl: return RawValType::Dbl;
+    case DxfValueKind::I16: return RawValType::Int16;
+    case DxfValueKind::I32: return RawValType::Int32;
+    case DxfValueKind::I64: return RawValType::Int64;
+    case DxfValueKind::Bln: return RawValType::Bool;
+    case DxfValueKind::Bin:
+    case DxfValueKind::Str:
+    case DxfValueKind::Unknown:
+    default: return RawValType::Str;
+    }
 }
 
 bool isDxfHandleReferenceCode(int code) {

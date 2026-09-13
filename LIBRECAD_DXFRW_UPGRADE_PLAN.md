@@ -1357,24 +1357,24 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint: A importable; S05/C1 and S06/D0 committed;
-  S07/D1 child gates are complete and the slice is in VERIFYING.
+- Current checkpoint: A importable; S05/C1, S06/D0, and S07/D1 committed;
+  S08/E0 child gates are complete and the slice is in VERIFYING.
 - Authorized run horizon: full S01-S14/A-G implementation objective.
 - Completion target: S14/G acceptance; a PR boundary cannot silently shorten
   the authorized objective.
-- Last committed slice: S06 (`e00a03f`).
-- Resolved slices: 6/14 (`COMMITTED`, or `SUPERSEDED` after all replacements
+- Last committed slice: S07 (`69bfba9`).
+- Resolved slices: 7/14 (`COMMITTED`, or `SUPERSEDED` after all replacements
   commit).
-- Slice states: 0 READY / 7 PLANNED / 0 ACTIVE / 1 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 6 COMMITTED.
-- Parent-item states: 0 READY / 7 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  1 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 8 COMMITTED.
-- Expanded child-item states: 31 COMMITTED / 0 READY / 0 ACTIVE / 0 VERIFYING /
+- Slice states: 0 READY / 6 PLANNED / 0 ACTIVE / 1 VERIFYING / 0 VERIFIED /
+  0 BLOCKED_HARD / 0 SUPERSEDED / 7 COMMITTED.
+- Parent-item states: 0 READY / 5 PLANNED / 0 ACTIVE / 0 VERIFYING /
+  1 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 9 COMMITTED.
+- Expanded child-item states: 35 COMMITTED / 0 READY / 0 ACTIVE / 0 VERIFYING /
   4 VERIFIED; no child is anonymous.
 - Claim/evidence dispositions: 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 0 EXPERIMENTAL / 0 PROMOTED / 10 NOT_APPLICABLE.
-- Next ready slice: no later slice is ready until S07/D1 commits; D1 children
-  are expanded and executing in dependency order.
+- Next ready slice: no later slice is ready until S08/E0 commit verification;
+  S09 is fully expanded on the next transition.
 
 | Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -1384,8 +1384,8 @@ edit this block or commit the same slice concurrently.
 | S04 | B1+B2+C0: atomic import, warning/header/build closure, essential compatibility shims | S03 | COMMITTED | source parity; default `-Werror` build; staged headers; baseline/target API | committed `0a5bcef`; all B1/B2/C0 gates PASS | S05, S06 |
 | S05 | C1: CLI, LibreCAD source overlay, generic staged consumer | S04 | COMMITTED | CLI/filter/parser/package consumers | committed `6203034`; C1.1-C1.4 gates PASS; no fixtures | S07 |
 | S06 | D0: Wave 1 dependency-free and focused tests | S04 | COMMITTED | all Wave 1 gates green | committed `e00a03f`; D0.1-D0.5 PASS; no fixtures | S07 |
-| S07 | D1: admitted L1/L2 regressions plus external advisory report | S02, S05, S06 | COMMITTED | Checkpoint D policy-eligible suite; no fixture-policy violation | D1.1-D1.4 PASS; fresh external report is advisory-only; final commit checks pending | S08, S09 |
-| S08 | E0: canonical DXF classifier/model/raw-preservation qualification | S07 | PLANNED | semantic/raw eligibility gates | pending | S10 |
+| S07 | D1: admitted L1/L2 regressions plus external advisory report | S02, S05, S06 | COMMITTED | Checkpoint D policy-eligible suite; no fixture-policy violation | committed `69bfba9`; D1.1-D1.4 PASS; advisory-only report; no drawing bytes | S08, S09 |
+| S08 | E0: canonical DXF classifier/model/raw-preservation qualification | S07 | COMMITTED | semantic/raw eligibility gates | E0.1-E0.4 PASS; aggregate build, CTest, scope/sync, fixture, hook, plan, and diff gates PASS; no drawing bytes | S09, S10 |
 | S09 | E1: versioned DWG-reader/section qualification | S07 | PLANNED | fixture/spec/stage matrix | pending | S10 |
 | S10 | E2: graph accounting, raw replay, DataStorage/ACIS/proxy | S08, S09 | PLANNED | zero unexplained frames; eligibility negatives | pending | S11, S13 |
 | S11 | F0: writer primitives, framing, handles, secure transaction | S10 | PLANNED | golden vectors; failure injection | pending | S12, S13 |
@@ -1403,8 +1403,8 @@ edit this block or commit the same slice concurrently.
 | C0 | S04 | B1 | COMMITTED | NOT_APPLICABLE | Essential public compatibility shims needed for a green import; C0.1-C0.2 verified |
 | C1 | S05 | B2, C0 | COMMITTED | NOT_APPLICABLE | CLI, LibreCAD overlay, and staged generic consumer; child work expanded |
 | D0 | S06 | B2, C0 | COMMITTED | NOT_EVALUATED | Wave 1 dependency-free/focused regressions; D0.1-D0.5 committed |
-| D1 | S07 | A1, C1, D0 | COMMITTED | NOT_EVALUATED | Policy-eligible L1/L2 and external advisory evidence; D1.1-D1.4 expanded |
-| E0 | S08 | D1 | PLANNED | NOT_EVALUATED | Canonical DXF classification/model/raw preservation |
+| D1 | S07 | A1, C1, D0 | COMMITTED | NOT_EVALUATED | Policy-eligible L1/L2 and external advisory evidence; D1.1-D1.4 committed |
+| E0 | S08 | D1 | COMMITTED | NOT_EVALUATED | Canonical DXF classification/model/raw preservation; E0.1-E0.4 verified; aggregate gates PASS |
 | E1 | S09 | D1 | PLANNED | NOT_EVALUATED | Versioned DWG-reader and section qualification |
 | E2 | S10 | E0, E1 | PLANNED | NOT_EVALUATED | Graph accounting, raw replay, DataStorage, ACIS, and proxy paths |
 | F0 | S11 | E2 | PLANNED | NOT_EVALUATED | Writer primitives, framing, handles, and secure transaction |
@@ -1449,6 +1449,10 @@ edit this block or commit the same slice concurrently.
 | D1.2 | D1 / S07 | P7.2-P7.3 | D1.1 | COMMITTED | NOT_EVALUATED | registered policy-eligible L1/L2 suite and admission enforcement | fixture admission PASS (0 staged candidates); checker self-test PASS; empty registry is explicit and cannot promote support; no fixtures; unblocks D1.3-D1.4 |
 | D1.3 | D1 / S07 | P7.4, WP5 | D1.1 | COMMITTED | DEFERRED_EXTERNAL | external corpus advisory report with normalized non-reconstructive results | `run_external_advisory.py` self-test and fresh eight-input report parity PASS; 1/8 AC1027 converted, 7/8 remain advisory failures; metadata stores hashes/statuses only and no drawing bytes |
 | D1.4 | D1 / S07 | P7.5-P7.6 | D1.2, D1.3 | COMMITTED | NOT_EVALUATED | Checkpoint D aggregate gate and staged fixture-policy scan | fresh build/CTest, updater/normalizer/advisory self-tests, empty-registry hook, import scope, and diff checks PASS; no DWG/DXF staged; unblocks S07 commit preparation |
+| E0.1 | E0 / S08 | P8.1-P8.2, WP4 | D1 | COMMITTED | NOT_APPLICABLE | canonical DXF group-code classifier shared by reader and raw capture | canonical `dxfcode.h` is used by `dxfreader.cpp` and `libdxfrw.cpp`; adaptation hashes and strict scope checks PASS; implementation compiles; unblocks E0.2/E0.3 |
+| E0.2 | E0 / S08 | P8.3 | E0.1 | COMMITTED | NOT_APPLICABLE | boundary tests for 260-269, 482-998, 999, 1004, 1071 | `ctest --test-dir build-s08-e0 -R libdxfrw_wave1` PASS; direct ASCII reader asserts 260 INT32, unknown 482-998 STRING/raw spelling, 999 STRING, 1004 BINARY, and 1071 INT32; unblocks E0.3 |
+| E0.3 | E0 / S08 | P8.4-P8.5 | E0.1 | COMMITTED | NOT_APPLICABLE | ASCII raw-capture type/source-spelling alignment | Wave 1 raw-capture assertions PASS; code 260 is an integer variant, unknown 482-998 retains source spelling, and code 1004 remains string-backed binary text in parallel raw carriers; unblocks E0.4 |
+| E0.4 | E0 / S08 | P8.6, WP8 | E0.2, E0.3 | COMMITTED | NOT_APPLICABLE | E0 aggregate semantic/raw gate and fixture-policy scan | build/CTest, strict scope/sync, fixture admission, external hook, updater, and diff checks PASS; no staged DWG/DXF; corrected target-hash invocation; unblocks S08 commit preparation |
 
 <!-- UPGRADE_PROGRESS_END -->
 

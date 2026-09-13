@@ -1,18 +1,24 @@
 #include <cstdint>
 #include <initializer_list>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <vector>
 
 #include "drw_base.h"
 #include "drw_header.h"
 #include "handle_allocator.h"
+#define private public
+#include "libdxfrw.h"
+#undef private
 #include "intern/drw_textcodec.h"
 #include "intern/dwg_fixed_handles.h"
 #include "intern/dwgbuffer.h"
 #include "intern/dwgbufferw.h"
+#include "intern/dxfcode.h"
 #include "intern/dwgreaderR11.h"
 #include "intern/dwgutil.h"
+#include "intern/dxfreader.h"
 #include "intern/rscodec.h"
 
 // Keep access to the protected header codec limited to this test translation
@@ -94,6 +100,38 @@ void testBufferRoundTrip(TestContext& t) {
 }
 
 void testTextAndPreR13(TestContext& t) {
+    t.expect(dxfValueKindForCode(260) == DxfValueKind::I32,
+             "DXF code 260 uses a preserving integer kind");
+    t.expect(dxfValueKindForCode(269) == DxfValueKind::I32,
+             "DXF code 269 uses a preserving integer kind");
+    t.expect(dxfValueKindForCode(482) == DxfValueKind::Unknown
+                 && dxfValueKindForCode(998) == DxfValueKind::Unknown,
+             "DXF unassigned 482-998 span is unknown");
+    t.expect(dxfValueKindForCode(999) == DxfValueKind::Str
+                 && dxfValueKindForCode(1004) == DxfValueKind::Bin,
+             "DXF comment and binary chunk boundaries are explicit");
+    std::stringstream records("260\n2147483647\n482\n3.14\n999\ncomment\n1004\nAB\n1071\n-7\n");
+    dxfReaderAscii reader(&records);
+    int code = 0;
+    t.expect(reader.readRec(&code) && code == 260
+                 && reader.type == dxfReader::INT32
+                 && reader.getInt32() == 2147483647,
+             "DXF ASCII reader preserves code 260 as INT32");
+    t.expect(reader.readRec(&code) && code == 482
+                 && reader.type == dxfReader::STRING
+                 && reader.getString() == "3.14"
+                 && reader.getRawValue() == "3.14",
+             "DXF ASCII reader preserves unknown code source spelling");
+    t.expect(reader.readRec(&code) && code == 999
+                 && reader.type == dxfReader::STRING
+                 && reader.getString() == "comment",
+             "DXF ASCII reader retains comment records");
+    t.expect(reader.readRec(&code) && code == 1004
+                 && reader.type == dxfReader::BINARY,
+             "DXF ASCII reader recognizes binary chunk boundary");
+    t.expect(reader.readRec(&code) && code == 1071
+                 && reader.type == dxfReader::INT32 && reader.getInt32() == -7,
+             "DXF ASCII reader preserves code 1071 as INT32");
     DRW_TextCodec codec;
     codec.setCodePage("ANSI_1252", false);
     t.expect(codec.fromUtf8("\xE4\xB8\x80") == "\\U+4E00",
@@ -115,6 +153,34 @@ void testTextAndPreR13(TestContext& t) {
     const PreR13VertexLayout layout = preR13VertexLayout(0x0008);
     t.expect(layout.hasPoint && layout.hasFlag && !layout.hasBulge,
              "pre-R13 vertex layout");
+}
+
+void testRawCapture(TestContext& t) {
+    std::stringstream records("260\n2147483647\n482\n3.14\n1004\nAB\n");
+    dxfRW owner("");
+    owner.binFile = false;
+    owner.reader = std::make_unique<dxfReaderAscii>(&records);
+    DRW_RawDxfObject object;
+    int code = 0;
+    while (owner.reader->readRec(&code))
+        t.expect(owner.captureRawGroup(object, code),
+                 "raw DXF capture accepts canonical group kind");
+    t.expect(object.groups.size() == 3 && object.rawValues.size() == 3
+                 && object.hasRawValues,
+             "raw DXF capture retains parallel source spellings");
+    if (object.groups.size() == 3 && object.rawValues.size() == 3) {
+        t.expect(object.groups[0].type() == DRW_Variant::INTEGER
+                     && object.groups[0].i_val() == 2147483647,
+                 "raw DXF capture stores code 260 as an integer variant");
+        t.expect(object.groups[1].type() == DRW_Variant::STRING
+                     && object.groups[1].c_str() != nullptr
+                     && object.groups[1].c_str() == std::string("3.14")
+                     && object.rawValues[1] == "3.14",
+                 "raw DXF capture preserves unknown source spelling");
+        t.expect(object.groups[2].type() == DRW_Variant::STRING
+                     && object.rawValues[2] == "AB",
+                 "raw DXF capture preserves binary chunk text");
+    }
 }
 
 void testDecompressor(TestContext& t) {
@@ -176,6 +242,7 @@ int main() {
     TestContext context;
     testBufferRoundTrip(context);
     testTextAndPreR13(context);
+    testRawCapture(context);
     testDecompressor(context);
     testHandlesAndHeader(context);
     if (context.failures != 0) {

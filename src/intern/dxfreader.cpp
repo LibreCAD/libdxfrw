@@ -23,6 +23,7 @@
 #include <sstream>
 #include <locale>
 #include "dxfreader.h"
+#include "dxfcode.h"
 #include "drw_textcodec.h"
 #include "drw_dbg.h"
 #include "drw_reserve.h"
@@ -67,90 +68,6 @@ bool isUnambiguousDxfHandleCode(int code) {
            (code >= 480 && code <= 481);
 }
 
-
-// Group-code value types.
-//
-// This used to be a long if/else chain whose ranges overlapped by accident:
-// codes 260-269 fell through to the boolean branch written for 290-299, and
-// codes 482-998 fell through to the 1010-1059 double branch. Stating each
-// range once makes the assignments, and the unassigned spans, visible.
-//
-// This table reproduces the previous dispatch exactly; it is a restatement,
-// not a behaviour change. Order matters: the first matching row wins, so 1004
-// (binary chunk) precedes the 999-1008 string range, and that range precedes
-// the unassigned 482-998 span.
-//
-// Two things here are known to be unfinished, and both need a decision rather
-// than a quiet edit:
-//
-//  * 482-998 is unassigned, so decoding it as a double is a guess. Because
-//    every code in the span matches a row, the explicit unknown-code fallback
-//    at the end of readRec() is unreachable for it.
-//  * classifyDxfCode() in libdxfrw.cpp is a second copy of this map - its own
-//    comment describes it as mirroring this dispatch - and the two have
-//    already drifted: it classifies 260-269 as Int16 where this table says
-//    boolean. The two agree today only because captureRawGroup() funnels
-//    Int16, Int32 and Bool to the same getter. They are NOT interchangeable
-//    elsewhere: the raw re-emit path writes a Bool through writeBool(), which
-//    would turn a code-260 value other than 0 or 1 into a boolean, and
-//    isValidRawDxfNumericString() validates Int16 against the int16 range but
-//    Bool against the int32 range. Unifying the two maps therefore has to pick
-//    a kind for 260-269 deliberately.
-enum class DxfValueKind { Str, Dbl, I16, I32, I64, Bln, Bin, Unknown };
-
-struct DxfCodeRange {
-    int lo;
-    int hi;
-    DxfValueKind kind;
-};
-
-constexpr DxfCodeRange kDxfCodeRanges[] = {
-    {   0,    9, DxfValueKind::Str},
-    {  10,   59, DxfValueKind::Dbl},
-    {  60,   79, DxfValueKind::I16},
-    {  80,   89, DxfValueKind::Str},   // reserved
-    {  90,   99, DxfValueKind::I32},
-    { 100,  109, DxfValueKind::Str},   // subclass/control/embedded markers
-    { 110,  149, DxfValueKind::Dbl},
-    { 150,  159, DxfValueKind::Str},   // reserved
-    { 160,  169, DxfValueKind::I64},
-    { 170,  179, DxfValueKind::I16},
-    { 180,  209, DxfValueKind::Str},   // reserved
-    { 210,  259, DxfValueKind::Dbl},   // 3D point coordinates, incl. 240/242
-    { 260,  269, DxfValueKind::Bln},   // not in the published table, but the
-                                       // reader has always decoded these as a
-                                       // boolean/integer and dxf_object_tests
-                                       // pins code 260 as an INTEGER variant
-    { 270,  289, DxfValueKind::I16},
-    { 290,  299, DxfValueKind::Bln},
-    { 300,  309, DxfValueKind::Str},
-    { 310,  319, DxfValueKind::Bin},
-    { 320,  369, DxfValueKind::Str},   // handles
-    { 370,  389, DxfValueKind::I16},
-    { 390,  399, DxfValueKind::Str},   // handles
-    { 400,  409, DxfValueKind::I16},
-    { 410,  419, DxfValueKind::Str},
-    { 420,  429, DxfValueKind::I32},
-    { 430,  439, DxfValueKind::Str},
-    { 440,  449, DxfValueKind::I32},
-    { 450,  459, DxfValueKind::I32},
-    { 460,  469, DxfValueKind::Dbl},
-    { 470,  481, DxfValueKind::Str},
-    {1004, 1004, DxfValueKind::Bin},   // must precede the 999-1008 range
-    { 999, 1008, DxfValueKind::Str},
-    { 482,  998, DxfValueKind::Dbl},   // unassigned; see the note above
-    {1009, 1059, DxfValueKind::Dbl},
-    {1060, 1070, DxfValueKind::I16},
-    {1071, 1071, DxfValueKind::I32},
-};
-
-DxfValueKind dxfValueKindForCode(int code) {
-    for (const DxfCodeRange& range : kDxfCodeRanges) {
-        if (code >= range.lo && code <= range.hi)
-            return range.kind;
-    }
-    return DxfValueKind::Unknown;
-}
 
 }  // namespace
 
