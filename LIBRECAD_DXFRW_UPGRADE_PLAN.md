@@ -1357,24 +1357,24 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint: A importable; S05/C1, S06/D0, and S07/D1 committed;
-  S08/E0 child gates are complete and the slice is in VERIFYING.
+- Current checkpoint: A importable; S05/C1, S06/D0, S07/D1, and S08/E0
+  committed; S09/E1 child gates are complete and the slice is in VERIFYING.
 - Authorized run horizon: full S01-S14/A-G implementation objective.
 - Completion target: S14/G acceptance; a PR boundary cannot silently shorten
   the authorized objective.
-- Last committed slice: S07 (`69bfba9`).
-- Resolved slices: 7/14 (`COMMITTED`, or `SUPERSEDED` after all replacements
+- Last committed slice: S08 (`618814d`).
+- Resolved slices: 8/14 (`COMMITTED`, or `SUPERSEDED` after all replacements
   commit).
-- Slice states: 0 READY / 6 PLANNED / 0 ACTIVE / 1 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 7 COMMITTED.
+- Slice states: 0 READY / 5 PLANNED / 0 ACTIVE / 1 VERIFYING / 0 VERIFIED /
+  0 BLOCKED_HARD / 0 SUPERSEDED / 8 COMMITTED.
 - Parent-item states: 0 READY / 5 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  1 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 9 COMMITTED.
-- Expanded child-item states: 35 COMMITTED / 0 READY / 0 ACTIVE / 0 VERIFYING /
+  1 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 10 COMMITTED.
+- Expanded child-item states: 39 COMMITTED / 0 READY / 0 ACTIVE / 0 VERIFYING /
   4 VERIFIED; no child is anonymous.
 - Claim/evidence dispositions: 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 0 EXPERIMENTAL / 0 PROMOTED / 10 NOT_APPLICABLE.
-- Next ready slice: no later slice is ready until S08/E0 commit verification;
-  S09 is fully expanded on the next transition.
+- Next ready slice: no later slice is ready until S09/E1 commit verification;
+  S10 is expanded on the next transition.
 
 | Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -1385,8 +1385,8 @@ edit this block or commit the same slice concurrently.
 | S05 | C1: CLI, LibreCAD source overlay, generic staged consumer | S04 | COMMITTED | CLI/filter/parser/package consumers | committed `6203034`; C1.1-C1.4 gates PASS; no fixtures | S07 |
 | S06 | D0: Wave 1 dependency-free and focused tests | S04 | COMMITTED | all Wave 1 gates green | committed `e00a03f`; D0.1-D0.5 PASS; no fixtures | S07 |
 | S07 | D1: admitted L1/L2 regressions plus external advisory report | S02, S05, S06 | COMMITTED | Checkpoint D policy-eligible suite; no fixture-policy violation | committed `69bfba9`; D1.1-D1.4 PASS; advisory-only report; no drawing bytes | S08, S09 |
-| S08 | E0: canonical DXF classifier/model/raw-preservation qualification | S07 | COMMITTED | semantic/raw eligibility gates | E0.1-E0.4 PASS; aggregate build, CTest, scope/sync, fixture, hook, plan, and diff gates PASS; no drawing bytes | S09, S10 |
-| S09 | E1: versioned DWG-reader/section qualification | S07 | PLANNED | fixture/spec/stage matrix | pending | S10 |
+| S08 | E0: canonical DXF classifier/model/raw-preservation qualification | S07 | COMMITTED | semantic/raw eligibility gates | committed `618814d`; E0.1-E0.4 PASS; aggregate build, CTest, scope/sync, fixture, hook, plan, and diff gates PASS; no drawing bytes | S09, S10 |
+| S09 | E1: versioned DWG-reader/section qualification | S07 | COMMITTED | fixture/spec/stage matrix | E1.1-E1.4 PASS; in-memory dispatch, rejection, section matrix, and policy gates PASS; no support promotion or drawing bytes | S10 |
 | S10 | E2: graph accounting, raw replay, DataStorage/ACIS/proxy | S08, S09 | PLANNED | zero unexplained frames; eligibility negatives | pending | S11, S13 |
 | S11 | F0: writer primitives, framing, handles, secure transaction | S10 | PLANNED | golden vectors; failure injection | pending | S12, S13 |
 | S12 | F1: per-version/per-feature writer qualification | S11 | PLANNED | self-read for implemented paths; independent oracle for each `PROMOTED` row; every unqualified row explicitly deferred/experimental | pending | S14 |
@@ -1405,7 +1405,7 @@ edit this block or commit the same slice concurrently.
 | D0 | S06 | B2, C0 | COMMITTED | NOT_EVALUATED | Wave 1 dependency-free/focused regressions; D0.1-D0.5 committed |
 | D1 | S07 | A1, C1, D0 | COMMITTED | NOT_EVALUATED | Policy-eligible L1/L2 and external advisory evidence; D1.1-D1.4 committed |
 | E0 | S08 | D1 | COMMITTED | NOT_EVALUATED | Canonical DXF classification/model/raw preservation; E0.1-E0.4 verified; aggregate gates PASS |
-| E1 | S09 | D1 | PLANNED | NOT_EVALUATED | Versioned DWG-reader and section qualification |
+| E1 | S09 | D1 | COMMITTED | NOT_EVALUATED | Versioned DWG-reader and section qualification; E1.1-E1.4 verified; aggregate gates PASS; support claims remain experimental without admitted positives |
 | E2 | S10 | E0, E1 | PLANNED | NOT_EVALUATED | Graph accounting, raw replay, DataStorage, ACIS, and proxy paths |
 | F0 | S11 | E2 | PLANNED | NOT_EVALUATED | Writer primitives, framing, handles, and secure transaction |
 | F1 | S12 | F0 | PLANNED | NOT_EVALUATED | Per-version/per-feature writer qualification |
@@ -1453,6 +1453,10 @@ edit this block or commit the same slice concurrently.
 | E0.2 | E0 / S08 | P8.3 | E0.1 | COMMITTED | NOT_APPLICABLE | boundary tests for 260-269, 482-998, 999, 1004, 1071 | `ctest --test-dir build-s08-e0 -R libdxfrw_wave1` PASS; direct ASCII reader asserts 260 INT32, unknown 482-998 STRING/raw spelling, 999 STRING, 1004 BINARY, and 1071 INT32; unblocks E0.3 |
 | E0.3 | E0 / S08 | P8.4-P8.5 | E0.1 | COMMITTED | NOT_APPLICABLE | ASCII raw-capture type/source-spelling alignment | Wave 1 raw-capture assertions PASS; code 260 is an integer variant, unknown 482-998 retains source spelling, and code 1004 remains string-backed binary text in parallel raw carriers; unblocks E0.4 |
 | E0.4 | E0 / S08 | P8.6, WP8 | E0.2, E0.3 | COMMITTED | NOT_APPLICABLE | E0 aggregate semantic/raw gate and fixture-policy scan | build/CTest, strict scope/sync, fixture admission, external hook, updater, and diff checks PASS; no staged DWG/DXF; corrected target-hash invocation; unblocks S08 commit preparation |
+| E1.1 | E1 / S09 | P5B.1, P5C.1 | D1 | COMMITTED | EXPERIMENTAL | in-memory AC magic sniff and reader-factory dispatch matrix | `ctest --test-dir build-s09-e1 -R libdxfrw_dwg_reader_matrix` PASS; all supported AC14/AC210/AC1003/AC1004/AC1006/AC1009/AC1012/14/15/18/21/24/27/32 magics select the intended reader; unknown/truncated headers reject; no fixture bytes; support remains experimental |
+| E1.2 | E1 / S09 | P5B.3-P5B.5, P5C.6 | E1.1 | COMMITTED | EXPERIMENTAL | short/unknown input stage diagnostics and sticky BAD_VERSION contract | `ctest --test-dir build-s09-e1 -R libdxfrw_dwg_reader_matrix` PASS; public `readBuffer` rejects unknown magic, short input, and null input with BAD_VERSION/BAD_OPEN without entering parser stages; unblocks E1.3 |
+| E1.3 | E1 / S09 | P5B.8, P5D.6 | E1.1 | COMMITTED | EXPERIMENTAL | canonical R2004+ section-name mapping and unknown-section behavior | `ctest --test-dir build-s09-e1 -R libdxfrw_dwg_reader_matrix` PASS; matrix covers all 17 canonical `AcDb:*` names in `secEnum` plus unknown/empty, with no invented aliases; unblocks E1.4 |
+| E1.4 | E1 / S09 | P5B.1-P5B.11, WP5 | E1.2, E1.3 | COMMITTED | EXPERIMENTAL | E1 aggregate reader-policy gate and fixture admission scan | build/CTest, strict scope/sync, fixture admission, external hook, updater, and diff checks PASS; no support promotion without an admitted positive; external corpus remains advisory; no staged DWG/DXF |
 
 <!-- UPGRADE_PROGRESS_END -->
 

@@ -85,6 +85,16 @@ if(LIBDXFRW_BUILD_TESTS)
         ${CMAKE_CURRENT_SOURCE_DIR}/src/intern)
     target_link_libraries(libdxfrw_wave1_tests PRIVATE dxfrw)
     add_test(NAME libdxfrw_wave1 COMMAND libdxfrw_wave1_tests)
+
+    add_executable(libdxfrw_dwg_reader_matrix_tests
+        tests/dwg_reader_matrix_tests.cpp)
+    target_compile_features(libdxfrw_dwg_reader_matrix_tests PRIVATE cxx_std_17)
+    target_include_directories(libdxfrw_dwg_reader_matrix_tests PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/intern)
+    target_link_libraries(libdxfrw_dwg_reader_matrix_tests PRIVATE dxfrw)
+    add_test(NAME libdxfrw_dwg_reader_matrix
+        COMMAND libdxfrw_dwg_reader_matrix_tests)
 endif()
 
 # INSTALLATION
