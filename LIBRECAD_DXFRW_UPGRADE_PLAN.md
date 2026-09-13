@@ -1357,24 +1357,24 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint: A importable; S05/C1, S06/D0, S07/D1, and S08/E0
-  committed; S09/E1 child gates are complete and the slice is in VERIFYING.
+- Current checkpoint: A importable; S05/C1 through S09/E1 committed;
+  S10/E2 child gates are complete and the slice is in VERIFYING.
 - Authorized run horizon: full S01-S14/A-G implementation objective.
 - Completion target: S14/G acceptance; a PR boundary cannot silently shorten
   the authorized objective.
-- Last committed slice: S08 (`618814d`).
-- Resolved slices: 8/14 (`COMMITTED`, or `SUPERSEDED` after all replacements
+- Last committed slice: S09 (`d952f6c`).
+- Resolved slices: 9/14 (`COMMITTED`, or `SUPERSEDED` after all replacements
   commit).
-- Slice states: 0 READY / 5 PLANNED / 0 ACTIVE / 1 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 8 COMMITTED.
-- Parent-item states: 0 READY / 5 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  1 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 10 COMMITTED.
-- Expanded child-item states: 39 COMMITTED / 0 READY / 0 ACTIVE / 0 VERIFYING /
-  4 VERIFIED; no child is anonymous.
+- Slice states: 0 READY / 4 PLANNED / 0 ACTIVE / 1 VERIFYING / 0 VERIFIED /
+  0 BLOCKED_HARD / 0 SUPERSEDED / 9 COMMITTED.
+- Parent-item states: 0 READY / 4 PLANNED / 0 ACTIVE / 0 VERIFYING /
+  1 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 11 COMMITTED.
+- Expanded child-item states: 43 COMMITTED / 0 READY / 0 ACTIVE / 0 VERIFYING /
+  5 VERIFIED; no child is anonymous.
 - Claim/evidence dispositions: 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 0 EXPERIMENTAL / 0 PROMOTED / 10 NOT_APPLICABLE.
-- Next ready slice: no later slice is ready until S09/E1 commit verification;
-  S10 is expanded on the next transition.
+- Next ready slice: no later slice is ready until S10/E2 commit verification;
+  S11 is expanded on the next transition.
 
 | Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -1386,8 +1386,8 @@ edit this block or commit the same slice concurrently.
 | S06 | D0: Wave 1 dependency-free and focused tests | S04 | COMMITTED | all Wave 1 gates green | committed `e00a03f`; D0.1-D0.5 PASS; no fixtures | S07 |
 | S07 | D1: admitted L1/L2 regressions plus external advisory report | S02, S05, S06 | COMMITTED | Checkpoint D policy-eligible suite; no fixture-policy violation | committed `69bfba9`; D1.1-D1.4 PASS; advisory-only report; no drawing bytes | S08, S09 |
 | S08 | E0: canonical DXF classifier/model/raw-preservation qualification | S07 | COMMITTED | semantic/raw eligibility gates | committed `618814d`; E0.1-E0.4 PASS; aggregate build, CTest, scope/sync, fixture, hook, plan, and diff gates PASS; no drawing bytes | S09, S10 |
-| S09 | E1: versioned DWG-reader/section qualification | S07 | COMMITTED | fixture/spec/stage matrix | E1.1-E1.4 PASS; in-memory dispatch, rejection, section matrix, and policy gates PASS; no support promotion or drawing bytes | S10 |
-| S10 | E2: graph accounting, raw replay, DataStorage/ACIS/proxy | S08, S09 | PLANNED | zero unexplained frames; eligibility negatives | pending | S11, S13 |
+| S09 | E1: versioned DWG-reader/section qualification | S07 | COMMITTED | fixture/spec/stage matrix | committed `d952f6c`; E1.1-E1.4 PASS; in-memory dispatch, rejection, section matrix, and policy gates PASS; no support promotion or drawing bytes | S10 |
+| S10 | E2: graph accounting, raw replay, DataStorage/ACIS/proxy | S08, S09 | COMMITTED | zero unexplained frames; eligibility negatives | E2.1-E2.5 PASS; aggregate three-test CTest, strict scope/sync, fixture, hook, plan, and diff gates PASS; no drawing bytes | S11, S13 |
 | S11 | F0: writer primitives, framing, handles, secure transaction | S10 | PLANNED | golden vectors; failure injection | pending | S12, S13 |
 | S12 | F1: per-version/per-feature writer qualification | S11 | PLANNED | self-read for implemented paths; independent oracle for each `PROMOTED` row; every unqualified row explicitly deferred/experimental | pending | S14 |
 | S13 | G0: diagnostics, aggregate budgets, ownership, fuzz/sanitizers | S10, S11 | PLANNED | hardening matrix green | pending | S14 |
@@ -1405,8 +1405,8 @@ edit this block or commit the same slice concurrently.
 | D0 | S06 | B2, C0 | COMMITTED | NOT_EVALUATED | Wave 1 dependency-free/focused regressions; D0.1-D0.5 committed |
 | D1 | S07 | A1, C1, D0 | COMMITTED | NOT_EVALUATED | Policy-eligible L1/L2 and external advisory evidence; D1.1-D1.4 committed |
 | E0 | S08 | D1 | COMMITTED | NOT_EVALUATED | Canonical DXF classification/model/raw preservation; E0.1-E0.4 verified; aggregate gates PASS |
-| E1 | S09 | D1 | COMMITTED | NOT_EVALUATED | Versioned DWG-reader and section qualification; E1.1-E1.4 verified; aggregate gates PASS; support claims remain experimental without admitted positives |
-| E2 | S10 | E0, E1 | PLANNED | NOT_EVALUATED | Graph accounting, raw replay, DataStorage, ACIS, and proxy paths |
+| E1 | S09 | D1 | COMMITTED | NOT_EVALUATED | Versioned DWG-reader and section qualification; E1.1-E1.4 committed; aggregate gates PASS; support claims remain experimental without admitted positives |
+| E2 | S10 | E0, E1 | COMMITTED | NOT_EVALUATED | Graph accounting, raw replay, DataStorage, ACIS, and proxy paths; E2.1-E2.5 verified; aggregate gates PASS |
 | F0 | S11 | E2 | PLANNED | NOT_EVALUATED | Writer primitives, framing, handles, and secure transaction |
 | F1 | S12 | F0 | PLANNED | NOT_EVALUATED | Per-version/per-feature writer qualification |
 | G0 | S13 | E2, F0 | PLANNED | NOT_EVALUATED | Diagnostics, budgets, ownership, fuzzing, and sanitizers |
@@ -1457,6 +1457,11 @@ edit this block or commit the same slice concurrently.
 | E1.2 | E1 / S09 | P5B.3-P5B.5, P5C.6 | E1.1 | COMMITTED | EXPERIMENTAL | short/unknown input stage diagnostics and sticky BAD_VERSION contract | `ctest --test-dir build-s09-e1 -R libdxfrw_dwg_reader_matrix` PASS; public `readBuffer` rejects unknown magic, short input, and null input with BAD_VERSION/BAD_OPEN without entering parser stages; unblocks E1.3 |
 | E1.3 | E1 / S09 | P5B.8, P5D.6 | E1.1 | COMMITTED | EXPERIMENTAL | canonical R2004+ section-name mapping and unknown-section behavior | `ctest --test-dir build-s09-e1 -R libdxfrw_dwg_reader_matrix` PASS; matrix covers all 17 canonical `AcDb:*` names in `secEnum` plus unknown/empty, with no invented aliases; unblocks E1.4 |
 | E1.4 | E1 / S09 | P5B.1-P5B.11, WP5 | E1.2, E1.3 | COMMITTED | EXPERIMENTAL | E1 aggregate reader-policy gate and fixture admission scan | build/CTest, strict scope/sync, fixture admission, external hook, updater, and diff checks PASS; no support promotion without an admitted positive; external corpus remains advisory; no staged DWG/DXF |
+| E2.1 | E2 / S10 | P6.1-P6.2 | E1 | COMMITTED | EXPERIMENTAL | frame coverage terminal-state and one-carrier publication invariants | `ctest --test-dir build-s10-e2 -R libdxfrw_graph_preservation` PASS; terminal/transient disposition partition, source identity, one-publication, and four-carrier taxonomy assertions pass; no fixture bytes; unblocks E2.2-E2.4 |
+| E2.2 | E2 / S10 | P6.7-P6.8 | E2.1 | COMMITTED | EXPERIMENTAL | DataStorage bounds, structural diagnostics, retention/replay denial, and 38-binding inventory | `ctest --test-dir build-s10-e2 -R libdxfrw_graph_preservation` PASS; null/short/invalid sections fail closed, structural diagnostics deny replay, and all 38 writer bindings expose presence-bit metadata; no external payload; unblocks E2.3/E2.4 |
+| E2.3 | E2 / S10 | P6.7, P6.9 | E2.1 | COMMITTED | EXPERIMENTAL | ACIS SAB parse/build/graph malformed-input safety | `ctest --test-dir build-s10-e2 -R libdxfrw_graph_preservation` PASS; local terminal-record SAB parses into a bounded graph, truncation clears output, and wireframe decode fails closed; tessellation/SAT/NURBS remain out of scope; unblocks E2.4 |
+| E2.4 | E2 / S10 | P6.9 | E2.1 | COMMITTED | EXPERIMENTAL | proxy chunk framing, unsupported-chunk accounting, and resource limits | `ctest --test-dir build-s10-e2 -R libdxfrw_graph_preservation` PASS; short/invalid/truncated/unsupported chunks and max-chunk limits are explicit; raw carrier remains authoritative; unblocks E2.5 |
+| E2.5 | E2 / S10 | P6.3-P6.6, WP6 | E2.2, E2.3, E2.4 | COMMITTED | EXPERIMENTAL | E2 aggregate graph/preservation gate and fixture-policy scan | build/CTest, strict scope/sync, fixture admission, external hook, updater, and diff checks PASS; zero fixture bytes; unavailable corpus evidence remains advisory and cannot promote claims; unblocks S10 commit preparation |
 
 <!-- UPGRADE_PROGRESS_END -->
 
