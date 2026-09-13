@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "lockedAt": "2026-09-13",
+  "standalone": {
+    "repository": "git@github.com-librecad:LibreCAD/libdxfrw.git",
+    "ref": "origin/master",
+    "commit": "92d7466ed9146badcd4fb44c82d1dd8302b3c7db"
+  },
+  "libreCAD": {
+    "repository": "git@github.com-librecad:LibreCAD/LibreCAD.git",
+    "ref": "origin/master",
+    "commit": "3c7785ebbcbfc8f3c8f79dbba093aff09cdec753",
+    "snapshotRevision": "89b762bef636c90eb370cb1af3cec80fe759cb32",
+    "sourceRoot": "libraries/libdxfrw/src",
+    "sourceList": "libraries/libdxfrw/libdxfrw_sources.cmake"
+  },
+  "archive": {
+    "format": "tar",
+    "prefix": "libdxfrw/",
+    "sha256": "f99cb84c519e282fb5b2e7ebccbecb9a12526a0fd42b828249b1d3253ab9ae65"
+  },
+  "manifest": {
+    "path": "metadata/libdxfrw-target-source-manifest.txt",
+    "sha256": "8e9ed232e9646d5f7f0009d8c8494eac9e27e1d1881283c9a21883cebedd34d4",
+    "entries": 86
+  },
+  "policy": {
+    "fixtureAdmission": "lockedRepositoryBlob-or-localFromScratch",
+    "targetRefresh": "separate-locked-refresh-after-convergence"
+  }
+}

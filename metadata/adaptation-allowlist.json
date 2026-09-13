@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "purpose": "Standalone build, packaging, CLI, and compatibility adaptations required around the pinned LibreCAD source snapshot.",
+  "allowedPaths": [
+    "CMakeLists.txt",
+    "cmake/",
+    "dwg2dxf/",
+    "tests/",
+    "libdxfrw.pc.in",
+    "configure.ac",
+    "conanfile.py",
+    "makefile.mingw",
+    "LIBRECAD_SYNC.md",
+    "metadata/",
+    "tools/"
+  ],
+  "disallowed": [
+    "Unreviewed changes inside imported src/ files",
+    "Target repinning during checkpoints A-D",
+    "Fixture-policy-ineligible DWG/DXF payloads or derivatives"
+  ],
+  "entries": []
+}
