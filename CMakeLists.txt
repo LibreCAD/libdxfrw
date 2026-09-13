@@ -187,6 +187,7 @@ if(LIBDXFRW_BUILD_LIBRARY)
     install(FILES src/handle_allocator.h
             DESTINATION ${LIBDXFRW_INSTALL_INCLUDEDIR})
     install(FILES src/intern/dwgutil.h src/intern/dwg_fixed_handles.h
+                  src/intern/dwgbufferw.h src/intern/dwgsafety.h
             DESTINATION ${LIBDXFRW_INSTALL_INCLUDEDIR}/intern)
     install(FILES
             ${CMAKE_CURRENT_BINARY_DIR}/libdxfrw.pc

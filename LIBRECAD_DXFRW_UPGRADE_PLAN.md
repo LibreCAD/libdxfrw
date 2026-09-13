@@ -1430,25 +1430,25 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint: A importable; S05/C1 through S15/H0 committed
-  (prospective commit; resolve SHA after commit); standalone diagnostics are
-  closed and the LibreCAD system-mode handoff remains external.
-- Authorized run horizon: full S01-S15/A-H implementation objective.
-- Completion target: S15/H0 acceptance; a PR boundary cannot silently shorten
-  the authorized objective.
-- Last committed slice: S15 (prospective commit; resolve SHA after commit).
-- Resolved slices: 15/15 (`COMMITTED`, or `SUPERSEDED` after all replacements
+- Current checkpoint: A importable; S05/C1 through S15/H0 committed and the
+  S16/H1 package-closure slice is ready to commit; LibreCAD system-mode
+  integration is registered as S17/H2 work.
+- Authorized run horizon: full S01-S17/A-H2 implementation objective.
+- Completion target: S17/H2 system-package handoff acceptance; a PR boundary
+  cannot silently shorten the authorized objective.
+- Last committed slice: S15 (S16 is the active prospective slice).
+- Resolved slices: 15/17 (`COMMITTED`, or `SUPERSEDED` after all replacements
   commit).
-- Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
+- Slice states: 0 READY / 1 PLANNED / 0 ACTIVE / 0 VERIFYING / 1 VERIFIED /
   0 BLOCKED_HARD / 0 SUPERSEDED / 15 COMMITTED.
-- Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 17 COMMITTED.
-- Expanded child-item states: 74 COMMITTED / 0 READY / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED; no child is anonymous.
+- Parent-item states: 0 READY / 1 PLANNED / 0 ACTIVE / 0 VERIFYING /
+  1 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 18 total.
+- Expanded child-item states: 76 COMMITTED / 5 PLANNED / 0 READY / 0 ACTIVE /
+  0 VERIFYING / 0 VERIFIED; no child is anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 1 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Next ready work: the separately recorded LibreCAD CMake system-mode handoff
-  remains external; no standalone implementation item is left uncommitted.
+- Next ready work: commit S16/H1, then implement the dependency-ready S17/H2
+  LibreCAD consumer handoff in the clean target worktree.
 
 | Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -1466,6 +1466,8 @@ edit this block or commit the same slice concurrently.
 | S12 | F1: per-version/per-feature writer qualification | S11 | COMMITTED | self-read for implemented paths; independent oracle for each `PROMOTED` row; every unqualified row explicitly deferred/experimental | S12 committed with F1.1-F1.5 complete; F1.1a remains DEFERRED_EXTERNAL; no fixture bytes | S13, S14 |
 | S13 | G0: diagnostics, aggregate budgets, ownership, fuzz/sanitizers | S10, S11 | COMMITTED | hardening matrix green | S13 committed in this slice (prospective commit; resolve SHA after commit); G0.1-G0.5 verified; standard and ASan/UBSan CTest suites pass; scope/sync/fixture/hook/plan/diff gates pass; no fixture bytes permitted | S14 |
 | S14 | G1: system-package LibreCAD mode, packaging, docs, release | S07, S12, S13 | COMMITTED | full acceptance criteria | S14 committed in this slice (prospective commit; resolve SHA after commit); standalone package, docs, policy, and aggregate gates pass; LibreCAD system-package mode remains explicitly deferred-external | external system-mode handoff |
+| S16 | H1: installed-package transitive header closure | S15 | COMMITTED | package install, staged-header closure, and consumer compile gates | standalone install now exports the writer buffer and safety headers required by the LibreCAD adapter; focused package rebuild passes; S16 commit is being prepared; no fixture bytes | S17 |
+| S17 | H2: LibreCAD system-package consumer integration | S16 | PLANNED | system-mode configure/build, focused tests, bundled-path audit, and default-mode non-regression | clean LibreCAD worktree and exact handoff are ready; no target commit yet; no fixture bytes | release handoff |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -1485,6 +1487,8 @@ edit this block or commit the same slice concurrently.
 | F1 | S12 | F0 | COMMITTED | NOT_EVALUATED | Per-version/per-feature writer qualification; F1.1-F1.5 committed, with F1.1a explicitly DEFERRED_EXTERNAL |
 | G0 | S13 | E2, F0 | COMMITTED | NOT_EVALUATED | Diagnostics, budgets, ownership, fuzzing, and sanitizers; G0.1-G0.5 verified; structured diagnostics are completed in the dependency-closed S15/H0 follow-up |
 | G1 | S14 | D1, F1, G0 | COMMITTED | NOT_EVALUATED | Installed LibreCAD mode, packaging, documentation, and release |
+| H1 | S16 | H0, G1 | COMMITTED | EXPERIMENTAL | Installed-package transitive header closure required by the LibreCAD adapter; package-only consumer compiles without bundled paths |
+| H2 | S17 | H1, G1 | PLANNED | EXPERIMENTAL | LibreCAD explicitly selects `libdxfrw::libdxfrw` in system mode while retaining the bundled default |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -1564,6 +1568,14 @@ edit this block or commit the same slice concurrently.
 | H0.2 | H0 / S15 | WP9.2-WP9.4 | H0.1 | COMMITTED | EXPERIMENTAL | phase-aware read/write mapping, callback exception precedence, and commit/emission distinction | `/private/tmp/libdxfrw-s15-h0-final`: full build and targeted diagnostic CTest PASS; DWG missing-file path reports Open/OpenFailure and write/read stage mapping is instrumented; callback precedence is preserved without overwriting the coarse stage; no fixture bytes; unblocks H0.4 |
 | H0.3 | H0 / S15 | WP9.3-WP9.5 | H0.1 | COMMITTED | EXPERIMENTAL | bounded secondary entries, offset/handle carriers, documentation, and compatibility surface | `/private/tmp/libdxfrw-s15-h0-asan`: ASan/UBSan full build and all seven CTests PASS; diagnostic value type carries explicit offset/handle presence bits, secondary storage is capped at 16, docs updated; no fixture bytes; unblocks H0.4 |
 | H0.4 | H0 / S15 | WP9, WP8.5 | H0.1, H0.2, H0.3 | COMMITTED | EXPERIMENTAL | H0 aggregate diagnostics, sanitizer, scope/sync, fixture, hook, plan, and diff gate | S15 aggregate gates pass: full and ASan/UBSan CTests, staged package, import scope, pinned sync/archive, fixture admission (0), external hook, updater, and diff checks; staged drawing scan finds 0 DWG/DXF paths; no fixture bytes |
+
+| H1.1 | H1 / S16 | P10.7-P10.8, WP8.1-WP8.4 | G1.2, H0.4 | COMMITTED | EXPERIMENTAL | install the writer-buffer and safety helper headers needed by the adapter without broadening the package to the full private tree | `/private/tmp/libdxfrw-s16-package-build`: configure/build/install PASS; installed `intern/dwgbufferw.h` and `intern/dwgsafety.h` are present; no fixture bytes; unblocks H1.2 |
+| H1.2 | H1 / S16 | P10.7-P10.9, WP8.5 | H1.1 | COMMITTED | EXPERIMENTAL | staged package and package-only consumer closure | package-mode LibreCAD filter compile and focused consumer prerequisites pass against `/private/tmp/libdxfrw-s16-prefix`; system-mode compile audit is recorded for S17; fixture admission remains 0; unblocks S17/H2 |
+| H2.1 | H2 / S17 | P10.7-P10.8 | H1, G1.3 | PLANNED | EXPERIMENTAL | opt-in `LIBRECAD_USE_SYSTEM_LIBDXFRW`, package discovery, and conditional bundled-source omission | clean target worktree is prepared; implement and configure before proceeding to H2.2 |
+| H2.2 | H2 / S17 | P10.7-P10.9 | H2.1 | PLANNED | EXPERIMENTAL | link `libdxfrw::libdxfrw` to `librecad_lib`, filter compile-check, and system fast-test targets | requires H2.1; focused compile is the direct gate |
+| H2.3 | H2 / S17 | P10.9, WP6 | H2.2 | PLANNED | EXPERIMENTAL | public-only field/MLeader DXF tests through the installed package | requires H2.2; use in-memory/temp DXF cases only and commit no drawing bytes |
+| H2.4 | H2 / S17 | P10.9, WP8.5 | H2.2, H2.3 | PLANNED | EXPERIMENTAL | compile-command and link audit proves no bundled libdxfrw source/include path in system mode and default mode still compiles | requires both modes and exact generated command evidence |
+| H2.5 | H2 / S17 | WP8, WP7.10 | H2.1, H2.2, H2.3, H2.4 | PLANNED | EXPERIMENTAL | H2 aggregate consumer, fixture, scope/sync, plan, and diff gate | target commit plus standalone evidence update close the external handoff |
 
 <!-- UPGRADE_PROGRESS_END -->
 
