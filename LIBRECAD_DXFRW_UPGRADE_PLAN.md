@@ -1357,31 +1357,31 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint: A importable; S02 baseline evidence committed; S03/B0
-  substrate verified and ready to commit.
+- Current checkpoint: A importable; S03 substrate committed; S04/B1+B2+C0
+  verified and ready to commit.
 - Authorized run horizon: full S01-S14/A-G implementation objective.
 - Completion target: S14/G acceptance; a PR boundary cannot silently shorten
   the authorized objective.
-- Last committed slice: S02 (`960ca43`).
-- Resolved slices: 2/14 (`COMMITTED`, or `SUPERSEDED` after all replacements
+- Last committed slice: S03 (`44f0062`).
+- Resolved slices: 3/14 (`COMMITTED`, or `SUPERSEDED` after all replacements
   commit).
-- Slice states: 0 READY / 11 PLANNED / 1 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 2 COMMITTED.
-- Parent-item states: 0 READY / 13 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 2 COMMITTED.
-- Expanded child-item states: 4 COMMITTED / 0 READY / 0 ACTIVE / 0 VERIFYING /
-  5 VERIFIED; no child is anonymous.
+- Slice states: 0 READY / 10 PLANNED / 0 ACTIVE / 1 VERIFYING / 0 VERIFIED /
+  0 BLOCKED_HARD / 0 SUPERSEDED / 3 COMMITTED.
+- Parent-item states: 0 READY / 10 PLANNED / 0 ACTIVE / 3 VERIFIED /
+  0 BLOCKED_HARD / 0 SUPERSEDED / 3 COMMITTED.
+- Expanded child-item states: 13 COMMITTED / 0 READY / 0 ACTIVE / 0 VERIFYING /
+  9 VERIFIED; no child is anonymous.
 - Claim/evidence dispositions: 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 0 EXPERIMENTAL / 0 PROMOTED / 10 NOT_APPLICABLE.
-- Next ready slice: none until S03 commit preparation completes; S04 becomes
-  ready after the S03 commit.
+- Next ready slice: none until S04 commit preparation completes; S05 and S06
+  become ready after this commit.
 
 | Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |
 | --- | --- | --- | --- | --- | --- | --- |
 | S01 | A0: progress tooling, final target lock, Git path/blob/mode manifest | none | COMMITTED | updater, sync checker, lock/manifest, and archive gates PASS | S01 `2ae6354`; A0 children A0.1-A0.4 committed | S02 |
 | S02 | A1: baseline harness, normalization v1, fixture registry/admission guard | S01 | COMMITTED | baseline, normalization, registry, admission, and external-hook gates PASS; expected baseline warning recorded | A1 children A1.1-A1.4 committed in `960ca43` | S03, S07 evidence lane |
-| S03 | B0: C++17/CMake 3.10/libdxfrw 2.0.0 substrate | S02 | COMMITTED | old source builds/installs under C++17 | configure/build/install/header gates PASS; updater delimiter regression fixed; prepared commit pending | S04 |
-| S04 | B1+B2+C0: atomic import, warning/header/build closure, essential compatibility shims | S03 | PLANNED | source parity; default `-Werror` build; staged headers; baseline/target API | pending | S05, S06 |
+| S03 | B0: C++17/CMake 3.10/libdxfrw 2.0.0 substrate | S02 | COMMITTED | old source builds/installs under C++17 | committed `44f0062`; configure/build/install/header gates PASS | S04 |
+| S04 | B1+B2+C0: atomic import, warning/header/build closure, essential compatibility shims | S03 | COMMITTED | source parity; default `-Werror` build; staged headers; baseline/target API | all B1/B2/C0 gates PASS; prepared commit pending | S05, S06 |
 | S05 | C1: CLI, LibreCAD source overlay, generic staged consumer | S04 | PLANNED | CLI/filter/parser/package consumers | pending | S07 |
 | S06 | D0: Wave 1 dependency-free and focused tests | S04 | PLANNED | all Wave 1 gates green | pending | S07 |
 | S07 | D1: admitted L1/L2 regressions plus external advisory report | S02, S05, S06 | PLANNED | Checkpoint D policy-eligible suite; no fixture-policy violation | pending | S08, S09 |
@@ -1398,9 +1398,9 @@ edit this block or commit the same slice concurrently.
 | A0 | S01 | none | COMMITTED | NOT_APPLICABLE | Progress tooling, final lock, and source manifest; all four children committed |
 | A1 | S02 | A0 | COMMITTED | NOT_EVALUATED | Baseline, normalizer, fixture registry, and admission guard; all four children verified |
 | B0 | S03 | A1 | COMMITTED | NOT_APPLICABLE | C++17/CMake 3.10/2.0.0 substrate on baseline sources; all five children verified |
-| B1 | S04 | B0 | PLANNED | NOT_APPLICABLE | Atomic pinned source and manifest activation |
-| B2 | S04 | B1 | PLANNED | NOT_APPLICABLE | Warning, header, build, and install closure |
-| C0 | S04 | B1 | PLANNED | NOT_APPLICABLE | Essential public compatibility shims needed for a green import |
+| B1 | S04 | B0 | COMMITTED | NOT_APPLICABLE | Atomic pinned source and manifest activation; B1.1-B1.3 verified |
+| B2 | S04 | B1 | COMMITTED | NOT_APPLICABLE | Warning, header, build, and install closure; B2.1-B2.4 verified |
+| C0 | S04 | B1 | COMMITTED | NOT_APPLICABLE | Essential public compatibility shims needed for a green import; C0.1-C0.2 verified |
 | C1 | S05 | B2, C0 | PLANNED | NOT_APPLICABLE | CLI, LibreCAD overlay, and staged generic consumer |
 | D0 | S06 | B2, C0 | PLANNED | NOT_EVALUATED | Wave 1 dependency-free/focused regressions |
 | D1 | S07 | A1, C1, D0 | PLANNED | NOT_EVALUATED | Policy-eligible L1/L2 and external advisory evidence |
@@ -1427,6 +1427,15 @@ edit this block or commit the same slice concurrently.
 | B0.3 | B0 / S03 | P2.2, P2.7-P2.8 | B0.1 | COMMITTED | NOT_APPLICABLE | compiler/standard-library floor and declaration/enum/typedef/header report probes | C++17/filesystem link probe PASS; `metadata/toolchain-floor-v1.json`; target lexical API report (49 headers/12 public, 85 enums, 4 typedefs, 83 macros, 162 callbacks, 216 include edges); unblocks B0.4 |
 | B0.4 | B0 / S03 | Phase 2 gate | B0.2, B0.3 | COMMITTED | NOT_APPLICABLE | clean C++17 baseline library/CLI build and install tree | library and `dwg2dxf` build PASS; install PASS; all installed public headers compile and external consumer links; unblocks S04 |
 | B0.5 | B0 / S03 | S03 commit protocol | B0.4 | COMMITTED | NOT_APPLICABLE | updater self-test and C++17-containing slice-item parsing | updater self-test PASS; `C++17` description no longer creates phantom plan items; S03 prepare-commit unblocked |
+| B1.1 | B1 / S04 | P3.1-P3.2 | B0 | COMMITTED | NOT_APPLICABLE | exact target `src/` import and canonical source-list activation | 86/86 manifest Git-blob checks PASS; source list byte-identical; pinned sync/archive checker PASS; unblocks B1.2/B1.3 |
+| B1.2 | B1 / S04 | P3.3-P3.5 | B1.1 | COMMITTED | NOT_APPLICABLE | manifest path/mode/blob parity and adaptation-allowlist check | imported-blob scope checker and pinned sync/archive checker PASS; unblocks B2.1/C0.1 |
+| B1.3 | B1 / S04 | P3.3-P3.4 | B1.1 | COMMITTED | NOT_APPLICABLE | standalone-boundary check excludes target root metadata/generated inventories | changed-path audit PASS; only locked `src/`, source list, plan, and approved tooling present; unblocks B2.1 |
+| B2.1 | B2 / S04 | P3.2, P3.5 | B1.2, B1.3 | COMMITTED | NOT_APPLICABLE | target source list configures without absent sources | configure PASS; all target-list translation units enter compile; first target warnings recorded for B2.2; unblocks B2.2/B2.3/B2.4 |
+| B2.2 | B2 / S04 | P3.6 | B2.1 | COMMITTED | NOT_APPLICABLE | default `-Werror` library warning closure | imported library builds with default `-Werror` after minimal unused-variable/parameter/capture fixes; CLI API failures are recorded under C0.2; unblocks C0.2 |
+| B2.3 | B2 / S04 | P3.6 | B2.1 | COMMITTED | NOT_APPLICABLE | installed public-header closure and staged-header compile | narrow transitive install closure; every public header and external consumer compile/link PASS; unblocks C0.2 |
+| B2.4 | B2 / S04 | P3.7 | B2.1 | COMMITTED | NOT_APPLICABLE | MSVC `/bigobj` target property/configuration probe | target-local `/bigobj` branch and policy metadata PASS; native MSVC CI remains required; unblocks C0.2 |
+| C0.1 | C0 / S04 | P4.1-P4.2 | B1.2 | COMMITTED | NOT_APPLICABLE | historical public declaration/enum/typedef compatibility report comparison | baseline/target reports generated; 0 historical enums removed; compatibility decisions recorded; unblocks C0.2 |
+| C0.2 | C0 / S04 | P4.3-P4.4 | B2.2, B2.3, B2.4, C0.1 | COMMITTED | NOT_APPLICABLE | callback defaults, façade aliases, and legacy consumer compile contract | imported target consumer build PASS; strict adaptation hashes recorded; unblocks S05/S06 |
 
 <!-- UPGRADE_PROGRESS_END -->
 

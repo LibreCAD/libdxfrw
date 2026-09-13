@@ -1,7 +1,9 @@
 #ifndef DRW_TEXTCODEC_H
 #define DRW_TEXTCODEC_H
 
+#include <unordered_map>
 #include <string>
+#include <string_view>
 #include <memory>
 #include "../drw_base.h"
 
@@ -12,12 +14,19 @@ class DRW_TextCodec
 public:
     DRW_TextCodec();
     ~DRW_TextCodec();
-    std::string fromUtf8(const std::string& s);
-    std::string toUtf8(const std::string &s);
+    std::string fromUtf8(std::string_view s);
+    std::string toUtf8(std::string_view s);
+    /// Convert byte-oriented DWG TV fields using the file codepage while the
+    /// primary codec may remain UTF-16 for R2007+ fields.
+    std::string fromUtf8CP8(std::string_view s);
+    std::string toUtf8CP8(std::string_view s);
     int getVersion(){return version;}
+    DRW::Version getSourceVersion() const { return sourceVersion; }
+    bool hasSourceVersion() const { return m_sourceVersionSet; }
     void setVersion(const std::string &v, bool dxfFormat);
     void setVersion(DRW::Version v, bool dxfFormat);
     void setCodePage(const std::string &c, bool dxfFormat);
+    void setByteCodePage(const std::string &c);
     std::string getCodePage(){return cp;}
 
 private:
@@ -25,8 +34,18 @@ private:
 
 private:
     DRW::Version version{DRW::UNKNOWNV};
+    // Until $ACADVER is read the source version is genuinely unknown.  Every
+    // consumer of getSourceVersion() already treats UNKNOWNV as "do not apply
+    // post-R12 strictness" (see requiresDxfSelfHandle() and
+    // dxfTableEntryComplete() in libdxfrw.cpp), so defaulting to a concrete
+    // modern version made those guards unreachable and rejected any DXF that
+    // omits $ACADVER - including hand-written files and R12 output, whose
+    // table records legitimately carry no handle.
+    DRW::Version sourceVersion{DRW::UNKNOWNV};
+    bool m_sourceVersionSet { false };
     std::string cp;
     std::unique_ptr< DRW_Converter> conv;
+    std::unique_ptr< DRW_Converter> cp8Conv;
 };
 
 class DRW_Converter
@@ -37,28 +56,46 @@ public:
         ,cpLength{l}
     {}
     virtual ~DRW_Converter()=default;
-    virtual std::string fromUtf8(const std::string &s) {return s;}
-    virtual std::string toUtf8(const std::string &s);
+    virtual std::string fromUtf8(std::string_view s) {return std::string{s};}
+    virtual std::string toUtf8(std::string_view s);
     std::string encodeText(const std::string& stmp);
     std::string decodeText(int c);
     std::string encodeNum(int c);
+    /// Turn one double-table cell into UTF-8, expanding the packed pair the
+    /// four big5-hkscs two-code-point sequences use.
+    std::string decodeTableValue(int v);
     int decodeNum(const std::string& s, int *b);
+    /// Decode a `\M+cXXXX` MIF escape (8 chars; c=selector 1..5, XXXX=hex
+    /// of a 2-byte sequence in the selector's codepage) to UTF-8.
+    /// Selector mapping: 1→ANSI_932, 2→ANSI_950, 3→ANSI_949,
+    /// 4→Johab(fallback ANSI_1252), 5→ANSI_936. Returns empty on invalid.
+    std::string encodeMifText(const std::string& tok);
     const int *table{nullptr};
     int cpLength;
+
+protected:
+    /// Unicode -> DBCS, over the caller's cpLength-entry double table, built
+    /// once per converter. Filled in table order, so a repeated code point
+    /// keeps its first mapping - the one the linear scan this replaces
+    /// returned.
+    const std::unordered_map<int, int>& reverseIndex(const int (*doubles)[2]);
+
+private:
+    std::unordered_map<int, int> m_reverse;
 };
 
 class DRW_ConvUTF16 : public DRW_Converter {
 public:
     DRW_ConvUTF16():DRW_Converter(nullptr, 0) {}
-    std::string fromUtf8(const std::string &s) override;
-    std::string toUtf8(const std::string &s) override;
+    std::string fromUtf8(std::string_view s) override;
+    std::string toUtf8(std::string_view s) override;
 };
 
 class DRW_ConvTable : public DRW_Converter {
 public:
     DRW_ConvTable(const int *t, int l):DRW_Converter(t, l) {}
-    std::string fromUtf8(const std::string &s) override;
-    std::string toUtf8(const std::string &s) override;
+    std::string fromUtf8(std::string_view s) override;
+    std::string toUtf8(std::string_view s) override;
 };
 
 class DRW_ConvDBCSTable : public DRW_Converter {
@@ -69,19 +106,18 @@ public:
         ,doubleTable{dt}
     {}
 
-    std::string fromUtf8(const std::string &s) override;
-    std::string toUtf8(const std::string &s) override;
+    std::string fromUtf8(std::string_view s) override;
+    std::string toUtf8(std::string_view s) override;
 private:
     const int *leadTable{nullptr};
     const int (*doubleTable)[2];
-
 };
 
 class DRW_Conv932Table : public DRW_Converter {
 public:
     DRW_Conv932Table();
-    std::string fromUtf8(const std::string &s) override;
-    std::string toUtf8(const std::string &s) override;
+    std::string fromUtf8(std::string_view s) override;
+    std::string toUtf8(std::string_view s) override;
 
 };
 

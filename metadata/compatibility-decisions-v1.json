@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "baselineReport": "metadata/baseline-api-surface-v1.json",
+  "targetReport": "metadata/target-api-surface-v1.json",
+  "decisions": [
+    {
+      "surface": "scalar typedefs",
+      "decision": "restore exact historical dint8/dint16/dint32/dint64, duint8/duint16/duint32/duint64, dfloat32/ddouble64/ddouble80 names",
+      "verification": "legacy consumer compiles and links"
+    },
+    {
+      "surface": "DRW_Interface::addDimArc",
+      "decision": "new callback has an empty default and is not pure",
+      "verification": "existing dx_iface concrete consumer instantiates"
+    },
+    {
+      "surface": "dwgR",
+      "decision": "deprecated composition wrapper forwards the historical read methods to dwgRW",
+      "verification": "forward-declaration/pointer and link contract compiles"
+    },
+    {
+      "surface": "installed header closure",
+      "decision": "install only handle_allocator.h, intern/dwgutil.h, and intern/dwg_fixed_handles.h as transitive compatibility headers",
+      "verification": "every installed public header compiles standalone"
+    }
+  ],
+  "unresolved": [
+    "Hide HandleAllocator and the DataStorage writer operation enum in a later ABI-reviewed slice.",
+    "Exhaustive callback ownership and behavioral API hardening remains outside C0."
+  ]
+}

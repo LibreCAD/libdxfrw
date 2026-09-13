@@ -154,7 +154,7 @@ public:
     }
 
     virtual void linkImage(const DRW_ImageDef *data){
-        duint32 handle = data->handle;
+        std::uint32_t handle = data->handle;
         std::string path(data->name);
         for (std::list<dx_ifaceImg*>::iterator it=cData->images.begin(); it != cData->images.end(); ++it){
             if ((*it)->ref == handle){

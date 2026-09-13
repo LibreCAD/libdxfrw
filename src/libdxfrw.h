@@ -14,21 +14,86 @@
 #ifndef LIBDXFRW_H
 #define LIBDXFRW_H
 
+#include <functional>
+#include <list>
+#include <map>
 #include <memory>
+#include <set>
 #include <string>
 #include <unordered_map>
+#include <utility>
+#include <vector>
 #include "drw_entities.h"
 #include "drw_objects.h"
+#include "drw_classes.h"
 #include "drw_header.h"
 #include "drw_interface.h"
+#include "handle_allocator.h"
 
 
 class dxfReader;
 class dxfWriter;
 
+/** Holds per-read-session name-resolution tables populated during DXF/DWG parsing. */
+class DRW_ParsingContext {
+public:
+    struct BlockRecordInfo {
+        std::string name;
+        int insUnits = 0;
+        bool canExplode = true;
+        std::uint8_t blockScaling = 0;
+        std::uint32_t layoutHandle = DRW::NoHandle;
+        std::vector<std::uint8_t> previewData;
+        std::vector<std::uint32_t> insertHandles;
+    };
+
+    DRW_ParsingContext() = default;
+    /** Returns line-type name for a given DXF handle, or empty string if not found. */
+    std::string resolveLineTypeName(int handle) const {
+        auto it = lineTypeNameMap.find(static_cast<std::uint32_t>(handle));
+        return (it != lineTypeNameMap.end()) ? it->second : std::string();
+    }
+    /** Returns block-record name for a given DXF handle, or empty string if not found. */
+    std::string resolveBlockRecordName(std::uint32_t handle) const {
+        auto it = blockRecordMap.find(handle);
+        return (it != blockRecordMap.end()) ? it->second.name : std::string();
+    }
+    /** Returns block-record insertion units for a given DXF handle, or 0 if unknown. */
+    int resolveBlockRecordInsUnits(std::uint32_t handle) const {
+        auto it = blockRecordMap.find(handle);
+        return (it != blockRecordMap.end()) ? it->second.insUnits : 0;
+    }
+    /** Returns a copy of the BLOCK_RECORD preview image bytes, if present. */
+    std::vector<std::uint8_t> resolveBlockRecordPreview(
+        std::uint32_t handle) const {
+        auto it = blockRecordMap.find(handle);
+        return (it != blockRecordMap.end()) ? it->second.previewData
+                                            : std::vector<std::uint8_t>{};
+    }
+    /** Returns the INSERT handles from a BLOCK_RECORD BLKREFS group. */
+    std::vector<std::uint32_t> resolveBlockRecordInsertHandles(
+        std::uint32_t handle) const {
+        auto it = blockRecordMap.find(handle);
+        return (it != blockRecordMap.end()) ? it->second.insertHandles
+                                            : std::vector<std::uint32_t>{};
+    }
+    /** Returns the BLOCK_RECORD layout handle, or NoHandle if unknown. */
+    std::uint32_t resolveBlockRecordLayoutHandle(std::uint32_t handle) const {
+        auto it = blockRecordMap.find(handle);
+        return (it != blockRecordMap.end()) ? it->second.layoutHandle
+                                            : DRW::NoHandle;
+    }
+    std::unordered_map<std::uint32_t, std::string> lineTypeNameMap;
+    std::unordered_map<std::uint32_t, BlockRecordInfo> blockRecordMap;
+};
+
 class dxfRW {
 public:
     dxfRW(const char* name);
+    dxfRW(const dxfRW&) = delete;
+    dxfRW& operator=(const dxfRW&) = delete;
+    dxfRW(dxfRW&&) = delete;
+    dxfRW& operator=(dxfRW&&) = delete;
     ~dxfRW();
     void setDebug(DRW::DebugLevel lvl);
     /// reads the file specified in constructor
@@ -39,18 +104,22 @@ public:
      * @param ext should the extrusion be applied to convert in 2D?
      * @return true for success
      */
-    bool read(DRW_Interface *interface_, bool ext);
+    [[nodiscard]] bool read(DRW_Interface *interface_, bool ext);
+    [[nodiscard]] bool readAscii(DRW_Interface *interface_, bool ext, std::string& content);
     void setBinary(bool b) {binFile = b;}
 
-    bool write(DRW_Interface *interface_, DRW::Version ver, bool bin);
+    [[nodiscard]] bool write(DRW_Interface *interface_, DRW::Version ver, bool bin);
     bool writeLineType(DRW_LType *ent);
     bool writeLayer(DRW_Layer *ent);
     bool writeDimstyle(DRW_Dimstyle *ent);
     bool writeTextstyle(DRW_Textstyle *ent);
     bool writeVport(DRW_Vport *ent);
+    bool writeView(DRW_View *ent);
+    bool writeUCS(DRW_UCS *ent);
     bool writeAppId(DRW_AppId *ent);
     bool writePoint(DRW_Point *ent);
     bool writeLine(DRW_Line *ent);
+    bool write3DLine(DRW_3DLine *ent);
     bool writeRay(DRW_Ray *ent);
     bool writeXline(DRW_Xline *ent);
     bool writeCircle(DRW_Circle *ent);
@@ -62,31 +131,288 @@ public:
     bool writeLWPolyline(DRW_LWPolyline *ent);
     bool writePolyline(DRW_Polyline *ent);
     bool writeSpline(DRW_Spline *ent);
-    bool writeBlockRecord(std::string name);
+    bool writeHelix(DRW_Helix *ent);
+    bool writeBlockRecord(std::string name, int insUnits = 0);
+    bool writeBlockRecord(std::string name, int insUnits,
+                          const std::vector<std::uint8_t>& previewData);
+    bool writeBlockRecord(
+        std::string name, int insUnits,
+        const std::vector<std::uint8_t>& previewData,
+        const std::vector<std::uint32_t>& insertHandles);
     bool writeBlock(DRW_Block *ent);
     bool writeInsert(DRW_Insert *ent);
+    bool writeTable(DRW_Table *ent);
+    bool writeAttrib(DRW_Attrib *ent,
+                     std::uint32_t ownerOverride = DRW::NoHandle);
+    bool writeAttdef(DRW_Attdef *ent,
+                     std::uint32_t ownerOverride = DRW::NoHandle);
     bool writeMText(DRW_MText *ent);
+    bool writeMLine(DRW_MLine *ent);
+    bool writeUnderlay(DRW_Underlay *ent);
     bool writeText(DRW_Text *ent);
+    bool writeRText(DRW_RText *ent);
+    bool writeArcAlignedText(DRW_ArcAlignedText *ent);
+    bool writeTolerance(DRW_Tolerance *ent);
     bool writeHatch(DRW_Hatch *ent);
+    bool writeMPolygon(DRW_MPolygon *ent);
     bool writeViewport(DRW_Viewport *ent);
+    bool writeLight(DRW_Light *ent);
+    bool writeCamera(DRW_Camera *ent);
+    bool writeGeoPositionMarker(DRW_GeoPositionMarker *ent);
+    bool writeSectionObject(DRW_SectionObject *ent);
+    bool writeMesh(DRW_Mesh *ent);
+    bool writeShape(DRW_Shape *ent);
+    bool writeOle2Frame(DRW_Ole2Frame *ent);
+    bool writeOleFrame(DRW_OleFrame *ent);
     DRW_ImageDef *writeImage(DRW_Image *ent, std::string name);
+    bool writeWipeout(DRW_Wipeout *ent);
+    bool writePointCloud(DRW_PointCloud *ent);
+    bool writePointCloudEx(DRW_PointCloudEx *ent);
+    bool writeNavisworksModel(DRW_NavisworksModel *ent);
+    bool writePointCloudDef(DRW_PointCloudDef *ent);
+    bool writeNavisworksModelDef(DRW_NavisworksModelDef *ent);
+    bool writePointCloudColorMap(DRW_PointCloudColorMap *ent);
+    bool writeSurface(DRW_Surface *ent);
+    bool writeModelerGeometry(DRW_ModelerGeometry *ent);
+    bool writeMultiLeader(DRW_MLeader *ent);
     bool writeLeader(DRW_Leader *ent);
     bool writeDimension(DRW_Dimension *ent);
     void setEllipseParts(int parts){elParts = parts;} /*!< set parts number when convert ellipse to polyline */
     bool writePlotSettings(DRW_PlotSettings *ent);
+    bool writeLayout(DRW_Layout *ent);
+    /*!< F4 — typed DXF emitters for the routed data-only OBJECTS the DWG reader
+     * populates only into typed metadata (SUN/SCALE/DICTIONARYVAR/
+     * RASTERVARIABLES). The DXF group-code shape is the inverse of each type's
+     * parseCode, cross-checked against ezdxf 1.4.4. The filter pulls these from
+     * dwgAdvancedMetadata() on the DWG->DXF path (DXF->DXF preserves them via the
+     * raw net; the filter dedups by handle to avoid a double-emit). Each emits the
+     * verbatim code-5 handle and a 330 owner; a matching CLASS record must be
+     * registered (dxfClassForRecordName has SUN/SCALE/DICTIONARYVAR/
+     * RASTERVARIABLES). */
+    bool writeSun(DRW_Sun *ent);
+    bool writeScale(DRW_Scale *ent);
+    bool writeDictionaryVar(DRW_DictionaryVar *ent);
+    bool writeRasterVariables(DRW_RasterVariables *ent);
+    bool writeUnderlayDefinition(DRW_UnderlayDefinition *ent);
+    bool writeMLeaderStyle(DRW_MLeaderStyle *ent);
+    bool writeGeoData(DRW_GeoData *ent);
+    bool writeSpatialFilter(DRW_SpatialFilter *ent);
+    bool writeSortEntsTable(DRW_SortEntsTable *ent);
+    bool writeField(DRW_Field *ent);
+    bool writeFieldList(DRW_FieldList *ent);
+    /*!< MLINESTYLE is a FIXED built-in (no CLASS record); DWG read populates
+     * only typed metadata, so the filter emits it typed on DWG->DXF, deduped vs
+     * the raw net by handle. */
+    bool writeMLineStyle(DRW_MLineStyle *ent);
+    /*!< WIPEOUTVARIABLES (custom class — CLASS registered) DWG->DXF typed emit;
+     * deduped vs the raw net by handle like the other data-only OBJECTS. */
+    bool writeWipeoutVariables(DRW_WipeoutVariables *ent);
+    bool writeMaterial(DRW_Material *ent);
+    bool writeBackground(DRW_Background *ent, const char *recordName);
+    bool writeSunStudy(DRW_SunStudy *ent);
+    bool writeMotionPath(DRW_MotionPath *ent);
+    bool writeCurvePath(DRW_CurvePath *ent);
+    bool writePointPath(DRW_PointPath *ent);
+    bool writeObjectPtr(DRW_ObjectPtr *ent);
+    bool writePartialViewingIndex(DRW_PartialViewingIndex *ent);
+    bool writeRenderSettings(DRW_RenderSettings *ent, const char *recordName);
+    bool writeSection(DRW_Section *ent, const char *recordName);
+    bool writeDbColor(DRW_DbColor *ent, const char *recordName = "DBCOLOR");
+    bool writeDimensionAssociation(DRW_DimensionAssociation *ent);
+    bool writeEvaluationGraph(DRW_EvaluationGraph *ent,
+                              const char *recordName = "EVALUATION_GRAPH");
+    bool writeRawDxfObject(DRW_RawDxfObject *obj);
+    /*!< Mark a specific code-5 handle as in-use so the minted-handle stream
+     * (m_handleAllocator.next()) never re-issues it. Mirrors
+     * dwgWriter::reserveHandle. The filter calls this for every verbatim handle
+     * preserved in the raw-passthrough net (rawDxfObjects/rawDxfEntities) before
+     * write(), so a re-emitted raw OBJECT/ENTITY cannot collide with either a
+     * freshly-minted handle or a fixed-low structural handle. Returns false and
+     * latches the writer when the handle space is exhausted. */
+    bool reserveHandle(std::uint32_t h) {
+        try {
+            m_handleAllocator.reserve(h);
+            return true;
+        } catch (...) {
+            m_handleReservationFailed = true;
+            ++m_reservationFailureGeneration;
+            return false;
+        }
+    }
+    /*!< High-water mark of the handle allocator (one past the largest handle
+     * reserved or minted so far). Used to populate $HANDSEED. Mirrors
+     * dwgWriter::highWaterHandle. */
+    std::uint32_t highWaterHandle() const { return m_handleAllocator.current(); }
+    /*!< Register the CLASS records to emit in the DXF CLASSES section. The
+     * filter supplies source definitions and recomputes instance counts from
+     * raw and typed records selected for output. */
+    void setDxfClasses(const std::vector<DRW_Class> &classes) {
+        // Class metadata is immutable once a write has reached its CLASSES
+        // section. The writer is reset after each attempt, so callers can
+        // replace the persistent input before the next write.
+        if (writer != nullptr && m_dxfClassesFrozen) {
+            m_writeError = true;
+            return;
+        }
+        m_dxfClasses = classes;
+        m_dxfClassesFrozen = false;
+    }
+    /*!< Register unmodeled DXF sections for same-version raw replay. */
+    void setRawDxfSections(const std::vector<DRW_RawDxfSection> &sections) {
+        m_rawDxfSections = sections;
+    }
+    /*!< Canonical DXF CLASS metadata (recName/className/appName/proxyFlag/
+     * wasaProxyFlag/entityFlag, per ezdxf REQUIRED_CLASSES) for the known
+     * custom-class OBJECTS that the raw net round-trips. Returns false for
+     * fixed/built-in or unknown record names. instanceCount is left 0 for the
+     * caller to fill. */
+    static bool dxfClassForRecordName(const std::string &recName, DRW_Class &out);
+    /*!< Register extra (name, hex-handle) entries to splice into the regenerated
+     * root NamedObjectsDictionary (handle C) so raw-net-routed named dictionaries
+     * are reachable from the root and not pruned as orphans. The filter builds
+     * this from the source root dict before write(); empty by default. */
+    void setRootDictEntries(const std::vector<std::pair<std::string, std::string>> &entries) {
+        m_rootDictEntries = entries;
+    }
+    /*!< Register named-dictionary OBJECTS to emit verbatim in the regenerated
+     * OBJECTS section (DXF write path only). Each carries its source code-5
+     * handle, parent (330) owner, and entry (name -> child handle) list. The
+     * filter builds these from dwgAdvancedMetadata().dictionaries() on the
+     * DWG->DXF path so the named dictionaries that were previously only
+     * referenced from the root C dict (via setRootDictEntries) actually exist
+     * as reachable objects with a valid owner — clearing the INVALID_OWNER_HANDLE
+     * fixes ezdxf applies for the dangling 350 references. Empty by default. */
+    void setNamedDictObjects(const std::vector<DRW_Dictionary> &dicts) {
+        m_namedDictObjects = dicts;
+    }
+    /*!< Register GROUP objects to typed-emit in the regenerated OBJECTS section
+     * (DXF write path only). Each carries its name/description/flags and the
+     * member entity SOURCE handles (DRW_Group::m_entityHandles). The codec mints
+     * a fresh group handle, injects the (name, minted-handle) entry into the
+     * ACAD_GROUP D dict, and emits the GROUP with 340 references resolved through
+     * the writeEntity source->minted map (members absent from the map — consumed
+     * or filtered entities — are skipped, never emitted as a dangling 340).
+     * Empty by default. */
+    void setGroups(const std::vector<DRW_Group> &groups) {
+        m_groups = groups;
+    }
+    /*!< Allocate a fresh, collision-free code-5 handle from the codec's
+     * allocator. The filter uses this AFTER reserving every raw + fixed handle
+     * to remap the small minority of raw objects whose ORIGINAL handle coincides
+     * with one of the codec's fixed structural literals (LAYER 0x10, LTYPE
+     * 0x14-0x16, BLOCK/ENDBLK/BLOCK_RECORD 0x1C-0x21, ...). Those handles cannot
+     * be preserved verbatim because the codec emits its own table/block record at
+     * the same literal; remapping the raw object (and rewriting every reference
+     * to it via setHandleRemap) is the only collision-free resolution. */
+    std::uint32_t allocHandle();
+    /*!< Format a handle as the codec's canonical code-5 hex string (uppercase,
+     * no leading zeros), so a caller can build a 350/330 reference string that
+     * byte-matches the re-emitted handle (e.g. a remapped root-dict entry). */
+    std::string toHexStrHandle(std::uint32_t h) { return toHexStr(h); }
+    /*!< Register a handle-remap applied by writeRawDxfObject to every raw
+     * object/entity it emits: the object's own code-5/105 handle and every
+     * handle-reference group (codes 320-369, 1005, plus 102-group reactor 330s)
+     * whose value is a remapped handle is rewritten to the new handle. Empty by
+     * default (raw handles preserved verbatim). Keys/values are numeric handles. */
+    void setHandleRemap(const std::map<std::uint32_t, std::uint32_t> &remap) {
+        m_handleRemap = remap;
+    }
+    std::uint32_t remapHandle(std::uint32_t handle) const {
+        auto it = m_handleRemap.find(handle);
+        return it == m_handleRemap.end() ? handle : it->second;
+    }
+    //! Resolve a source entity handle after writeEntity() minted its DXF handle.
+    std::uint32_t remapEntityHandle(std::uint32_t sourceHandle) const;
+    //! Reserve the future code-5 handle for a source entity before table
+    //! records are emitted. Returns zero for a zero source handle.
+    std::uint32_t preallocateEntityHandle(std::uint32_t sourceHandle);
+    //! Bind a preserved raw record's source handle to the handle emitted for it.
+    //! The binding is rejected for null or ambiguous source identities.
+    bool bindSourceEntityHandle(std::uint32_t sourceHandle,
+                                std::uint32_t emittedHandle);
+    //! Mark a source handle as ambiguous before entity emission. Deferred
+    //! references must not guess which of multiple source entities it names.
+    void markSourceHandleAmbiguous(std::uint32_t sourceHandle);
 
     DRW::Version getVersion() const;
     DRW::error getError() const;
 
+    std::uint32_t getBlockRecordHandleToWrite(const std::string& blockName) const;
+    std::uint32_t getTextStyleHandle(const std::string& styleName) const;
+    DRW_ParsingContext* getReadingContext() { return &m_readingContext; }
+    DRW_WritingContext* getWritingContext() { return &m_writingContext; }
+
 private:
+    enum class DxfEntityBoundary {
+        NextEntity,
+        EndSection,
+        EndBlock,
+        Error
+    };
+
     /// used by read() to parse the content of the file
     bool processDxf();
+    bool processRawDxfSection(const std::string& sectionName);
     bool processHeader();
+    bool processClasses();
     bool processTables();
     bool processBlocks();
     bool processBlock();
     bool processEntities(bool isblock);
     bool processObjects();
+    bool processUnderlayDefinition();
+    bool processDetailViewStyle();
+    bool processSectionViewStyle();
+    bool processBreakData();
+    bool processBreakPointRef();
+    bool processMaterial();
+    /// Shared body of the raw-capture object readers: capture every group
+    /// into a DRW_RawDxfObject for lossless re-emit, parse it into the typed
+    /// payload, and hand both to the interface at the object boundary.  Only
+    /// the payload type, the debug label and the interface callback differ
+    /// between the readers that use it.  Defined in libdxfrw.cpp and
+    /// instantiated only there.
+    template <typename T, typename AddFn>
+    bool processRawCapturedObject(const char* debugName, AddFn addTyped);
+
+    bool processDbColor();
+    bool processEvaluationGraph();
+    bool processGeoData();
+    bool processVisualStyle();
+    bool processImageDefReactor();
+    bool processSpatialFilter();
+    bool processTableStyle();
+    bool processMLeaderStyle();
+    bool processSortEntsTable();
+    bool processDimAssoc();
+    bool processBackground();
+    bool processPointCloudDef();
+    bool processNavisworksModelDef();
+    bool processPointCloudColorMap();
+    bool processSunStudy();
+    bool processIndex();
+    bool processLayerIndex();
+    bool processSpatialIndex();
+    bool processIDBuffer();
+    bool processMotionPath();
+    bool processCurvePath();
+    bool processPointPath();
+    bool processTvDeviceProperties();
+    bool processCsacDocumentOptions();
+    bool processObjectPtr();
+    bool processPartialViewingIndex();
+    bool processRenderSettings();
+    bool processSection();
+    bool processAssociativeObject();
+    bool processDynamicBlockObject();
+    bool processAcShHistoryObject();
+
+    DxfEntityBoundary readEntityBoundary();
+    DxfEntityBoundary setEntityBoundary(int code);
+    DxfEntityBoundary classifyEntityBoundary() const;
+    bool acceptEntityCallbackBoundary() const;
+    bool acceptObjectBoundary(int code);
+    DxfEntityBoundary consumeEntityFooter();
 
     bool processLType();
     bool processLayer();
@@ -94,9 +420,13 @@ private:
     bool processTextStyle();
     bool processVports();
     bool processAppId();
+    bool processView();
+    bool processUCS();
+    bool processBlockRecord();
 
     bool processPoint();
     bool processLine();
+    bool process3DLine();
     bool processRay();
     bool processXline();
     bool processCircle();
@@ -104,58 +434,236 @@ private:
     bool processEllipse();
     bool processTrace();
     bool processSolid();
+    bool processShape();
+    bool processOle2Frame();
+    bool processOleFrame();
     bool processInsert();
+    bool processTable();
+    bool processAttrib(DRW_Insert* insert);
+    bool processAttdef();
     bool processLWPolyline();
     bool processPolyline();
     bool processVertex(DRW_Polyline* pl);
     bool processText();
+    bool processTolerance();
+    bool processCamera();
+    bool processGeoPositionMarker();
+    bool processSectionObject();
     bool processMText();
+    bool processRText();
+    bool processArcAlignedText();
+    bool processMLine();
+    bool processUnderlay(const std::string& kind);
     bool processHatch();
+    bool processMPolygon();
     bool processSpline();
+    bool processHelix();
     bool process3dface();
+    bool processMesh();
     bool processViewport();
     bool processImage();
     bool processImageDef();
+    bool processWipeout();
+    bool processPointCloud();
+    bool processPointCloudEx();
+    bool processNavisworksModel();
+    bool processSurface();
+    bool processModelerGeometry();
+    bool processMultiLeader();
     bool processDimension();
+    bool processArcDimension();
+    bool processLargeRadialDimension();
     bool processLeader();
     bool processPlotSettings();
+    bool processGroup();
+    bool processLightList();
+    bool processDataLink();
+    bool processGeoMapImage();
+    bool processLayerFilter();
+    bool processDictionary();
+    bool processScale();
+    bool processMLineStyle();
+    bool processDictionaryVar();
+    bool processXRecord();
+    bool processDictionaryWithDefault();
+    bool processRasterVariables();
+    bool processField();
+    bool processFieldList();
+    bool processSun();
+    bool processLayout();
+    bool processWipeoutVariables();
+    bool processProxyObject();
+    bool processProxyEntity();
+    bool processRawObject();
+    bool processRawEntity();
+    /*!< Append the current DXF record (already read by reader->readRec) to a
+     * raw-passthrough carrier as a correctly-TYPED DRW_Variant, classifying the
+     * value by DXF code range (numeric codes leave reader->strData stale AND
+     * clobber reader->type to STRING, so neither getString() nor type can be
+     * trusted for them — that was the A1/A4 capture bug). ASCII-DXF only. Also
+     * latches code 5 -> handle and code 330 -> parentHandle. */
+    bool captureRawGroup(DRW_RawDxfObject &obj, int code,
+                         bool validateHandles = false);
+    bool captureRawDxfApplicationGroup(DRW_RawDxfObject &obj,
+                                       std::list<std::list<DRW_Variant>> &appData,
+                                       std::vector<std::uint32_t> &reactorHandles,
+                                       std::uint32_t &xDictHandle);
+    bool captureRawDxfApplicationGroup(DRW_RawDxfObject &obj,
+                                       DRW_TableEntry &entry);
+    bool captureRawDxfApplicationGroup(DRW_RawDxfObject &obj,
+                                       DRW_Entity &entity);
+    bool captureAndParseRawDxfGroup(DRW_RawDxfObject &obj, int code,
+                                    DRW_TableEntry &entry);
+    bool captureAndParseRawDxfGroup(DRW_RawDxfObject &obj, int code,
+                                    DRW_Entity &entity);
 
 //    bool writeHeader();
-    bool writeEntity(DRW_Entity *ent);
+    /// Reserve the DXF codec's fixed structural code-5 literals (table heads,
+    /// mandatory table records, BLOCK_RECORDs, the *Model/*Paper BLOCK+ENDBLK,
+    /// and the root dict "C" / ACAD_GROUP "D") in m_handleAllocator before the
+    /// body is streamed. These DIFFER from the DWG seedReserved() set. After
+    /// this, the first next() yields FIRSTHANDLE (0x30) exactly as the legacy
+    /// ++entCount did, so a fresh write (empty raw net) is byte-identical.
+    void seedReservedDxf();
+    struct PendingDxfBlockRecord {
+        std::uint32_t handle {0};
+        std::string name;
+        int insUnits {0};
+        std::vector<std::uint8_t> previewData;
+        std::vector<std::uint32_t> insertHandles;
+    };
+    enum class DxfWriteMutationKind : std::uint8_t {
+        BlockMapInsert,
+        TextStyleMapSet,
+        SourceHandleInsert,
+        SourceHandleErase,
+        AmbiguousSourceHandleInsert,
+        ImageReactorInsert
+    };
+    struct DxfWriteMutation {
+        DxfWriteMutationKind kind;
+        std::string key;
+        std::uint32_t handle {0};
+        std::uint32_t previousHandle {0};
+        bool hadPrevious {false};
+        DRW_ImageDef *imageDef {nullptr};
+    };
+    bool emitBlockRecord(const PendingDxfBlockRecord& record);
+    // captureSourceHandle=false on the VERTEX/SEQEND parent re-entries
+    // (writePolyline/writeInsert) so they do not pollute the source->minted map.
+    bool rejectUnsupportedDxfWrite() noexcept;
+    bool failDxfWrite() noexcept;
+    bool writeRequiredString(int code, const std::string& value);
+    bool allocateDxfHandle(std::uint32_t& handle) noexcept;
+    void resetDxfWriteSession();
+    class RecordStateScope;
+    class EntityRecordScope;
+    bool preflightEntity(const DRW_Entity *ent);
+    bool preflightTableEntry(const DRW_TableEntry *ent);
+    bool preflightDxfClasses();
+    bool validateHatchPayload(const DRW_Hatch *ent) const;
+    bool writeEntity(DRW_Entity *ent, bool captureSourceHandle = true,
+                     std::uint32_t ownerOverride = DRW::NoHandle);
+    bool writeSequenceEnd(std::uint32_t ownerHandle);
+    bool writeArcDimension(DRW_DimArc *d);
+    bool writeLargeRadialDimension(DRW_DimLargeRadial *d);
     bool writeTables();
     bool writeBlocks();
     bool writeObjects();
     bool writeExtData(const std::vector<DRW_Variant*> &ed);
+    /* Entity-flavoured overload: entities own extData via shared_ptr, table
+     * records own raw pointers. Same DXF codes, different storage. */
+    bool writeExtData(const std::vector<std::shared_ptr<DRW_Variant>> &ed);
+    bool writeEmbeddedMText(DRW_MText *ent);
+    bool writeAttributeR2018Features(DRW_Attrib *ent);
+    /*!< F4 — emit a 330 owner handle for a typed data-only OBJECT (the record's
+     * parentHandle when nonzero, else root dict "C" so it is reachable and not
+     * pruned as an orphan); no-op pre-R2000 (DXF has no OBJECTS 330 then). */
+    void writeObjectOwner(std::uint32_t parentHandle);
+    bool writeRawDxfGroups(const std::vector<DRW_Variant> &groups,
+                           const std::vector<UTF8STRING> &rawValues,
+                           bool hasRawValues,
+                           DRW::Version sourceVersion,
+                           bool remapSourceHandles = true);
+    bool writeRawDxfSection(const DRW_RawDxfSection &section);
+    void writePlotSettingsFields(const DRW_PlotSettings *ent);
     /*use version from dwgutil.h*/
-    std::string toHexStr(int n);//RLZ removeme
+    std::string toHexStr(std::uint32_t n);
+    std::string toHexStr(int n);// compatibility overload for legacy callers
     bool writeAppData(const std::list<std::list<DRW_Variant>> &appData);
+    bool writeTableEntryAppData(const DRW_TableEntry& entry);
 
     bool setError(const DRW::error lastError);
 
 private:
-    DRW::Version version;
+    DRW::Version version { DRW::UNKNOWNV };
     DRW::error error {DRW::BAD_NONE};
+    bool m_writeError {false};
     std::string fileName;
     std::string codePage;
-    bool binFile;
+    bool binFile {false};
     std::unique_ptr<dxfReader> reader;
     std::unique_ptr<dxfWriter> writer;
-    DRW_Interface *iface;
+    DRW_Interface *iface {nullptr};
     DRW_Header header;
 //    int section;
     std::string nextentity;
-    int entCount;
-    bool wlayer0;
-    bool dimstyleStd;
-    bool applyExt;
-    bool writingBlock;
-    int elParts;  /*!< parts number when convert ellipse to polyline */
-    std::unordered_map<std::string,int> blockMap;
-    std::unordered_map<std::string,int> textStyleMap;
+    // A code-0 token may legitimately have an empty value. Keep cursor
+    // presence separate from the token text so an empty boundary is an error,
+    // not an implicit "no pending record" state.
+    bool m_hasPendingEntityBoundary {false};
+    bool m_readingBlockEntities {false};
+    /// Mints monotonic, collision-free code-5 handles for the DXF write path.
+    /// Seeded with the codec's fixed structural literals (seedReservedDxf) plus
+    /// every raw-net handle the filter reserves before write(); next() then
+    /// skips that whole set, so a minted handle can never duplicate a fixed-low
+    /// or preserved-raw handle. Replaces the old `int entCount` + handle floor.
+    HandleAllocator m_handleAllocator;
+    bool m_handleReservationFailed {false};
+    // A reservation may be requested before write().  Generations distinguish
+    // a new failure from the failure already consumed by an earlier attempt,
+    // so a codec can be retried without silently hiding a fresh overflow.
+    std::uint64_t m_reservationFailureGeneration {0};
+    std::uint64_t m_consumedReservationFailureGeneration {0};
+    std::vector<DRW_Class> m_dxfClasses;
+    bool m_dxfClassesFrozen {false};
+    std::vector<DRW_RawDxfSection> m_rawDxfSections;
+    std::vector<std::pair<std::string, std::string>> m_rootDictEntries;
+    /// Named-dictionary OBJECTS to emit verbatim in writeObjects (DXF path).
+    /// Populated via setNamedDictObjects; empty by default so a fresh write is
+    /// byte-identical.
+    std::vector<DRW_Dictionary> m_namedDictObjects;
+    /// GROUP objects to typed-emit in writeObjects (DXF path). Populated via
+    /// setGroups; empty by default so a fresh write is byte-identical.
+    std::vector<DRW_Group> m_groups;
+    /// Numeric handle -> replacement handle, applied by writeRawDxfObject to the
+    /// few raw objects whose original handle collides with a fixed structural
+    /// literal. Empty by default (raw handles emitted verbatim).
+    std::map<std::uint32_t, std::uint32_t> m_handleRemap;
+    bool wlayer0 {false};
+    bool dimstyleStd {false};
+    bool applyExt {false};
+    bool writingBlock {false};
+    bool m_collectingBlockRecords {false};
+    int elParts {128};  /*!< parts number when convert ellipse to polyline */
+    std::unordered_map<std::string,std::uint32_t> blockMap;
+    std::vector<PendingDxfBlockRecord> m_pendingBlockRecords;
+    std::unordered_map<std::string,std::uint32_t> textStyleMap;
     std::vector<DRW_ImageDef*> imageDef;  /*!< imageDef list */
 
-    int currHandle;
+    // Mutations made while a RecordStateScope is active. Entries are appended
+    // before a map/set mutation and removed in reverse order on rollback.
+    std::vector<DxfWriteMutation> m_dxfWriteMutations;
+    std::size_t m_recordStateScopeDepth {0};
 
+    std::uint32_t currHandle {DRW::NoHandle};
+
+    DRW_ParsingContext m_readingContext;
+    DRW_WritingContext m_writingContext;
+    // Raw carriers retain source code-5 lexemes up to DWG's 64-bit handle
+    // width; keep exact values for duplicate detection during one read.
+    std::set<std::uint64_t> m_readRawHandles;
 };
+
 
 #endif // LIBDXFRW_H
