@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "repository": "LibreCAD/libdxfrw",
+  "commit": "92d7466ed9146badcd4fb44c82d1dd8302b3c7db",
+  "host": "macOS AppleClang 21.0.0.21000101",
+  "configuration": {
+    "command": "cmake -S . -B build-baseline -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DLIBDXFRW_BUILD_DOC=OFF",
+    "status": "PASS",
+    "buildDirectory": "build-baseline"
+  },
+  "build": {
+    "command": "cmake --build build-baseline --parallel 4",
+    "status": "EXPECTED_GATE_FAILURE",
+    "firstFailure": {
+      "stage": "library compile",
+      "file": "src/intern/dwgbuffer.cpp",
+      "line": 552,
+      "diagnostic": "misleading indentation; statement is not part of the previous 'if'",
+      "flag": "-Werror,-Wmisleading-indentation"
+    }
+  },
+  "interpretation": "The pristine baseline configures; its first build is intentionally recorded as a pre-existing warning gate. No warning suppression or relaxed build is used. S03/B0 and S04/B2 must remove the warning while retaining the default -Werror policy.",
+  "fixtures": {
+    "ordinaryCi": [],
+    "externalAdvisories": [],
+    "note": "No DWG/DXF fixture bytes are introduced by this baseline record."
+  }
+}

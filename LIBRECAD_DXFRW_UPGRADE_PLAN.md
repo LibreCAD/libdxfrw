@@ -1357,28 +1357,27 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint: A gates verifying; S01 implementation active.
+- Current checkpoint: A importable; S02 baseline evidence verified.
 - Authorized run horizon: full S01-S14/A-G implementation objective.
 - Completion target: S14/G acceptance; a PR boundary cannot silently shorten
   the authorized objective.
-- Last committed slice: none.
-- Resolved slices: 0/14 (`COMMITTED`, or `SUPERSEDED` after all replacements
+- Last committed slice: S01 (`2ae6354`).
+- Resolved slices: 1/14 (`COMMITTED`, or `SUPERSEDED` after all replacements
   commit).
-- Slice states: 0 READY / 13 PLANNED / 0 ACTIVE / 0 VERIFYING / 1 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 0 COMMITTED.
-- Parent-item states: 0 READY / 15 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  1 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 0 COMMITTED.
-- Expanded child-item states: 4 VERIFIED / 0 ACTIVE / 0 VERIFYING / 0
-  COMMITTED; no child is anonymous.
+- Slice states: 0 READY / 12 PLANNED / 0 ACTIVE / 0 VERIFYING / 1 VERIFIED /
+  0 BLOCKED_HARD / 0 SUPERSEDED / 1 COMMITTED.
+- Parent-item states: 0 READY / 14 PLANNED / 0 ACTIVE / 0 VERIFYING /
+  1 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 1 COMMITTED.
+- Expanded child-item states: 4 COMMITTED / 0 ACTIVE / 0 VERIFYING / 4
+  VERIFIED; no child is anonymous.
 - Claim/evidence dispositions: 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 0 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Next ready slice: none until S01 commit preparation succeeds; S02 becomes
-  ready after the S01 commit is validated.
+- Next ready slice: none until S02 commit preparation succeeds.
 
 | Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |
 | --- | --- | --- | --- | --- | --- | --- |
-| S01 | A0: progress tooling, final target lock, Git path/blob/mode manifest | none | COMMITTED | updater, sync checker, lock/manifest, and archive gates PASS | A0 children A0.1-A0.4 verified; prepare-commit pending | S02 |
-| S02 | A1: baseline harness, normalization v1, fixture registry/admission guard | S01 | PLANNED | pristine baseline; fixture guard positive/negative tests | pending | S03, S07 evidence lane |
+| S01 | A0: progress tooling, final target lock, Git path/blob/mode manifest | none | COMMITTED | updater, sync checker, lock/manifest, and archive gates PASS | S01 `2ae6354`; A0 children A0.1-A0.4 committed | S02 |
+| S02 | A1: baseline harness, normalization v1, fixture registry/admission guard | S01 | COMMITTED | baseline, normalization, registry, admission, and external-hook gates PASS; expected baseline warning recorded | A1 children A1.1-A1.4 verified; prepare-commit pending | S03, S07 evidence lane |
 | S03 | B0: C++17/CMake 3.10/libdxfrw 2.0.0 substrate | S02 | PLANNED | old source builds/installs under C++17 | pending | S04 |
 | S04 | B1+B2+C0: atomic import, warning/header/build closure, essential compatibility shims | S03 | PLANNED | source parity; default `-Werror` build; staged headers; baseline/target API | pending | S05, S06 |
 | S05 | C1: CLI, LibreCAD source overlay, generic staged consumer | S04 | PLANNED | CLI/filter/parser/package consumers | pending | S07 |
@@ -1394,8 +1393,8 @@ edit this block or commit the same slice concurrently.
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
-| A0 | S01 | none | COMMITTED | NOT_APPLICABLE | Progress tooling, final lock, and source manifest; all four children verified |
-| A1 | S02 | A0 | PLANNED | NOT_EVALUATED | Baseline, normalizer, fixture registry, and admission guard |
+| A0 | S01 | none | COMMITTED | NOT_APPLICABLE | Progress tooling, final lock, and source manifest; all four children committed |
+| A1 | S02 | A0 | COMMITTED | NOT_EVALUATED | Baseline, normalizer, fixture registry, and admission guard; all four children verified |
 | B0 | S03 | A1 | PLANNED | NOT_APPLICABLE | C++17/CMake 3.10/2.0.0 substrate on baseline sources |
 | B1 | S04 | B0 | PLANNED | NOT_APPLICABLE | Atomic pinned source and manifest activation |
 | B2 | S04 | B1 | PLANNED | NOT_APPLICABLE | Warning, header, build, and install closure |
@@ -1417,6 +1416,10 @@ edit this block or commit the same slice concurrently.
 | A0.2 | A0 / S01 | WP0.3, WP0.5, P0.8-P0.9 | A0.1 | COMMITTED | NOT_APPLICABLE | manifest/archive parity | 86 Git entries; source/header classifications; archive SHA verified |
 | A0.3 | A0 / S01 | WP0.6-WP0.8, P0.7 | A0.1 | COMMITTED | NOT_APPLICABLE | sync metadata and allowlist checks | `LIBRECAD_SYNC.md`, lock, allowlist, and manifest committed as metadata |
 | A0.4 | A0 / S01 | WP0.9, P0.10 | A0.2, A0.3 | COMMITTED | NOT_APPLICABLE | updater self-test and plan `--check` | updater self-test PASS; plan state/dependency validation PASS |
+| A1.1 | A1 / S02 | P1.3-P1.5 | A0 | COMMITTED | NOT_APPLICABLE | pristine baseline configure/build/read checks | configure PASS; build expected `-Werror` warning at `dwgbuffer.cpp:552` recorded in `metadata/baseline-origin-master.json` |
+| A1.2 | A1 / S02 | P1.7-P1.8 | A1.1 | COMMITTED | NOT_APPLICABLE | normalization v1 schema and deterministic summaries | schema and normalizer self-test PASS |
+| A1.3 | A1 / S02 | WP8.5, WP8.11, P1.9 | A1.2 | COMMITTED | NOT_APPLICABLE | registry/admission positive and negative checks | empty registry, guard self-test, staged admission PASS; no drawing bytes added |
+| A1.4 | A1 / S02 | P1.1, P1.4 | A1.1, A1.3 | COMMITTED | NOT_APPLICABLE | external SHA-pinned hook and baseline harness | external hook self-test PASS; empty advisory manifest reports cleanly |
 
 <!-- UPGRADE_PROGRESS_END -->
 

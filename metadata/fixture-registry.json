@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "policy": "lockedRepositoryBlob-or-localFromScratch",
+  "fixtures": [],
+  "externalAdvisories": [],
+  "fields": {
+    "originKind": ["lockedRepositoryBlob", "localFromScratch"],
+    "required": ["path", "sha256", "size", "format", "version", "features", "expectedFirstStage", "semanticCounts", "license"],
+    "lockedRepositoryBlob": ["sourceRepository", "sourceCommit", "sourcePath", "sourceBlob"],
+    "localFromScratch": ["creator", "creationMethod", "toolVersion", "recipe", "seed", "noExternalInputAttestation"]
+  },
+  "externalRule": "External and derived DWG/DXF files are never registry fixtures; record only non-sensitive, non-reconstructive evidence IDs in externalAdvisories."
+}
