@@ -546,10 +546,11 @@ dwgHandle dwgBuffer::getOffsetHandle(duint32 href){ //H
             hl.ref = href + hl.ref;
         else if (hl.code == 0x08)
             hl.ref = href - 1;
-        else if (hl.code == 0x06)
+        else if (hl.code == 0x06) {
             hl.ref = href + 1;
-//all are soft pointer reference change to 7 (without offset)
-            hl.code = 7;
+        }
+        // all are soft pointer reference change to 7 (without offset)
+        hl.code = 7;
     }
     return hl;
 }
@@ -911,4 +912,3 @@ duint32 dwgBuffer::crc32(duint32 seed,dint32 start,dint32 end){
     return st;
 //    return std::string(buffer);
 }*/
-

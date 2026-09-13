@@ -1357,28 +1357,30 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint: A importable; S02 baseline evidence verified.
+- Current checkpoint: A importable; S02 baseline evidence committed; S03/B0
+  substrate verified and ready to commit.
 - Authorized run horizon: full S01-S14/A-G implementation objective.
 - Completion target: S14/G acceptance; a PR boundary cannot silently shorten
   the authorized objective.
-- Last committed slice: S01 (`2ae6354`).
-- Resolved slices: 1/14 (`COMMITTED`, or `SUPERSEDED` after all replacements
+- Last committed slice: S02 (`960ca43`).
+- Resolved slices: 2/14 (`COMMITTED`, or `SUPERSEDED` after all replacements
   commit).
-- Slice states: 0 READY / 12 PLANNED / 0 ACTIVE / 0 VERIFYING / 1 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 1 COMMITTED.
-- Parent-item states: 0 READY / 14 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  1 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 1 COMMITTED.
-- Expanded child-item states: 4 COMMITTED / 0 ACTIVE / 0 VERIFYING / 4
-  VERIFIED; no child is anonymous.
+- Slice states: 0 READY / 11 PLANNED / 1 ACTIVE / 0 VERIFYING / 0 VERIFIED /
+  0 BLOCKED_HARD / 0 SUPERSEDED / 2 COMMITTED.
+- Parent-item states: 0 READY / 13 PLANNED / 1 ACTIVE / 0 VERIFYING /
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 2 COMMITTED.
+- Expanded child-item states: 4 COMMITTED / 0 READY / 0 ACTIVE / 0 VERIFYING /
+  5 VERIFIED; no child is anonymous.
 - Claim/evidence dispositions: 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 0 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Next ready slice: none until S02 commit preparation succeeds.
+  0 DEFERRED_EXTERNAL / 0 EXPERIMENTAL / 0 PROMOTED / 10 NOT_APPLICABLE.
+- Next ready slice: none until S03 commit preparation completes; S04 becomes
+  ready after the S03 commit.
 
 | Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |
 | --- | --- | --- | --- | --- | --- | --- |
 | S01 | A0: progress tooling, final target lock, Git path/blob/mode manifest | none | COMMITTED | updater, sync checker, lock/manifest, and archive gates PASS | S01 `2ae6354`; A0 children A0.1-A0.4 committed | S02 |
-| S02 | A1: baseline harness, normalization v1, fixture registry/admission guard | S01 | COMMITTED | baseline, normalization, registry, admission, and external-hook gates PASS; expected baseline warning recorded | A1 children A1.1-A1.4 verified; prepare-commit pending | S03, S07 evidence lane |
-| S03 | B0: C++17/CMake 3.10/libdxfrw 2.0.0 substrate | S02 | PLANNED | old source builds/installs under C++17 | pending | S04 |
+| S02 | A1: baseline harness, normalization v1, fixture registry/admission guard | S01 | COMMITTED | baseline, normalization, registry, admission, and external-hook gates PASS; expected baseline warning recorded | A1 children A1.1-A1.4 committed in `960ca43` | S03, S07 evidence lane |
+| S03 | B0: C++17/CMake 3.10/libdxfrw 2.0.0 substrate | S02 | COMMITTED | old source builds/installs under C++17 | configure/build/install/header gates PASS; updater delimiter regression fixed; prepared commit pending | S04 |
 | S04 | B1+B2+C0: atomic import, warning/header/build closure, essential compatibility shims | S03 | PLANNED | source parity; default `-Werror` build; staged headers; baseline/target API | pending | S05, S06 |
 | S05 | C1: CLI, LibreCAD source overlay, generic staged consumer | S04 | PLANNED | CLI/filter/parser/package consumers | pending | S07 |
 | S06 | D0: Wave 1 dependency-free and focused tests | S04 | PLANNED | all Wave 1 gates green | pending | S07 |
@@ -1395,7 +1397,7 @@ edit this block or commit the same slice concurrently.
 | --- | --- | --- | --- | --- | --- |
 | A0 | S01 | none | COMMITTED | NOT_APPLICABLE | Progress tooling, final lock, and source manifest; all four children committed |
 | A1 | S02 | A0 | COMMITTED | NOT_EVALUATED | Baseline, normalizer, fixture registry, and admission guard; all four children verified |
-| B0 | S03 | A1 | PLANNED | NOT_APPLICABLE | C++17/CMake 3.10/2.0.0 substrate on baseline sources |
+| B0 | S03 | A1 | COMMITTED | NOT_APPLICABLE | C++17/CMake 3.10/2.0.0 substrate on baseline sources; all five children verified |
 | B1 | S04 | B0 | PLANNED | NOT_APPLICABLE | Atomic pinned source and manifest activation |
 | B2 | S04 | B1 | PLANNED | NOT_APPLICABLE | Warning, header, build, and install closure |
 | C0 | S04 | B1 | PLANNED | NOT_APPLICABLE | Essential public compatibility shims needed for a green import |
@@ -1420,6 +1422,11 @@ edit this block or commit the same slice concurrently.
 | A1.2 | A1 / S02 | P1.7-P1.8 | A1.1 | COMMITTED | NOT_APPLICABLE | normalization v1 schema and deterministic summaries | schema and normalizer self-test PASS |
 | A1.3 | A1 / S02 | WP8.5, WP8.11, P1.9 | A1.2 | COMMITTED | NOT_APPLICABLE | registry/admission positive and negative checks | empty registry, guard self-test, staged admission PASS; no drawing bytes added |
 | A1.4 | A1 / S02 | P1.1, P1.4 | A1.1, A1.3 | COMMITTED | NOT_APPLICABLE | external SHA-pinned hook and baseline harness | external hook self-test PASS; empty advisory manifest reports cleanly |
+| B0.1 | B0 / S03 | P2.1-P2.2 | A1 | COMMITTED | NOT_APPLICABLE | CMake 3.10 floor, project 2.0.0, and C++17 target feature configure check | configure PASS; compile probe reaches the known `dwgbuffer.cpp:552` baseline warning; unblocks B0.2 and B0.3 |
+| B0.2 | B0 / S03 | P2.3-P2.6 | B0.1 | COMMITTED | NOT_APPLICABLE | baseline source-list build interface, install/export, pkg-config, and library-only configure checks | configure PASS; build-interface and target-local flags present; pkg-config `libdir` repaired; `SameMajorVersion`; library-off configure PASS; unblocks B0.4 |
+| B0.3 | B0 / S03 | P2.2, P2.7-P2.8 | B0.1 | COMMITTED | NOT_APPLICABLE | compiler/standard-library floor and declaration/enum/typedef/header report probes | C++17/filesystem link probe PASS; `metadata/toolchain-floor-v1.json`; target lexical API report (49 headers/12 public, 85 enums, 4 typedefs, 83 macros, 162 callbacks, 216 include edges); unblocks B0.4 |
+| B0.4 | B0 / S03 | Phase 2 gate | B0.2, B0.3 | COMMITTED | NOT_APPLICABLE | clean C++17 baseline library/CLI build and install tree | library and `dwg2dxf` build PASS; install PASS; all installed public headers compile and external consumer links; unblocks S04 |
+| B0.5 | B0 / S03 | S03 commit protocol | B0.4 | COMMITTED | NOT_APPLICABLE | updater self-test and C++17-containing slice-item parsing | updater self-test PASS; `C++17` description no longer creates phantom plan items; S03 prepare-commit unblocked |
 
 <!-- UPGRADE_PROGRESS_END -->
 
@@ -1496,12 +1503,12 @@ Before committing, validate the proposed message and trailers against the
 prepared state. Immediately after every successful slice commit, run the
 updater's `--check` and `--report HEAD`, verify the actual SHA and matching
 trailers, show this user-visible report, and then continue automatically
-without waiting for acknowledgment. If only report rendering fails, emit every
-field manually, add a repair child item, and continue other ready work. If
-integrity, state, evidence, or trailer validation fails, the slice is not yet
-successful: do not report it as complete or start another slice; repair the
-local commit metadata/state once before it is shared, rerun `--check`, and then
-report the final SHA.
+without waiting for acknowledgment. If only report rendering fails after the
+integrity and trailer checks pass, emit every field manually, add a repair child
+item, and continue other ready work. If integrity, state, evidence, or trailer
+validation fails, the slice is not yet successful: do not report it as complete
+or start another slice; repair the local commit metadata/state once before it is
+shared, rerun `--check`, and then report the final SHA.
 
 ```text
 Slice S03 committed: <short-sha> — <subject>

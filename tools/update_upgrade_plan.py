@@ -39,6 +39,7 @@ SLICE_RE = re.compile(r"^\|\s*(S\d+[a-z]?)\s*\|")
 PARENT_RE = re.compile(r"^\|\s*([A-Z]\d+)\s*\|")
 CHILD_RE = re.compile(r"^\|\s*([A-Z]\d+\.\d+[a-z]?)\s*\|")
 TRAILER_RE = re.compile(r"(?m)^Plan-Slice:\s*(S\d+[a-z]?)\s*$")
+SLICE_ITEM_RE = re.compile(r"\+(?=[A-Z]\d+(?:\+|:))")
 
 
 class PlanError(RuntimeError):
@@ -212,11 +213,22 @@ def write_plan(path, text):
     path.write_text(text, encoding="utf-8")
 
 
+def slice_item_ids(value):
+    """Return parent IDs without splitting plus signs in prose (for example C++17)."""
+    tokens = [token.strip() for token in SLICE_ITEM_RE.split(value)]
+    result = []
+    for token in tokens:
+        item_id = token.split(":", 1)[0].strip()
+        if item_id:
+            result.append(item_id)
+    return result
+
+
 def prepare_commit(text, slice_id):
     slices, parents, children = validate(text)
     if slice_id not in slices:
         raise PlanError("unknown slice: %s" % slice_id)
-    member_ids = [token.split(":", 1)[0].strip() for token in slices[slice_id]["items"].split("+")]
+    member_ids = slice_item_ids(slices[slice_id]["items"])
     if not member_ids:
         raise PlanError("slice %s has no plan items" % slice_id)
     for item_id in member_ids:
@@ -241,7 +253,7 @@ def abort_commit(text, slice_id):
     if slice_id not in slices:
         raise PlanError("unknown slice: %s" % slice_id)
     result = text
-    member_ids = [token.split(":", 1)[0].strip() for token in slices[slice_id]["items"].split("+")]
+    member_ids = slice_item_ids(slices[slice_id]["items"])
     for item_id in member_ids:
         if item_id in parents and parents[item_id]["state"] == "COMMITTED":
             result = replace_state(result, item_id, "VERIFIED")
@@ -280,6 +292,8 @@ def report(plan_path, revision):
 
 
 def self_test():
+    assert slice_item_ids("B0: C++17 substrate") == ["B0"]
+    assert slice_item_ids("B1+B2+C0: import and compatibility") == ["B1", "B2", "C0"]
     sample = chr(10).join([
         "prefix", START, "Current checkpoint: pre-A",
         "| Slice | Plan items | Dependencies | State | Gates | Evidence | Next |",

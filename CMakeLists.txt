@@ -1,18 +1,23 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.10)
 
 cmake_policy(SET CMP0048 NEW)
-project(DXFRW VERSION 1.0.1)
+project(DXFRW VERSION 2.0.0)
 
 # set preferred cache variables
-set(LIBDXFRW_BUILD_DOC TRUE CACHE BOOL "Build the documentation")
-set(LIBDXFRW_BUILD_DWG2DXF TRUE CACHE BOOL "Build the dwg2dxf application")
+option(LIBDXFRW_BUILD_LIBRARY "Build the libdxfrw library" ON)
+option(LIBDXFRW_BUILD_DOC "Build the documentation" ON)
+option(LIBDXFRW_BUILD_DWG2DXF "Build the dwg2dxf application" ON)
 
+if(LIBDXFRW_BUILD_DWG2DXF AND NOT LIBDXFRW_BUILD_LIBRARY)
+    message(FATAL_ERROR "LIBDXFRW_BUILD_DWG2DXF requires LIBDXFRW_BUILD_LIBRARY")
+endif()
 
-# set compiler warnings
+# Keep warnings target-local so consumers are not forced to inherit the
+# library's maintainer diagnostics policy.
 if (MSVC)
-    add_compile_options(/W3)
+    set(LIBDXFRW_WARNING_FLAGS /W3)
 else()
-    add_compile_options(-Wall -Wextra -pedantic -Werror)
+    set(LIBDXFRW_WARNING_FLAGS -Wall -Wextra -pedantic -Werror)
 endif()
 
 
@@ -20,7 +25,7 @@ include(GNUInstallDirs)
 
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # SOURCE FILES
@@ -84,17 +89,21 @@ set(installdxfrw_hdrs
 
 set(LIBDXFRW_INSTALL_INCLUDEDIR ${CMAKE_INSTALL_INCLUDEDIR}/libdxfrw)
 
-add_library(dxfrw ${libdxfrw_srcs} ${libdxfrw_hdrs})
-set_target_properties(dxfrw PROPERTIES 
-	VERSION "${PROJECT_VERSION}" 
-	SOVERSION "${PROJECT_VERSION_MAJOR}"
-	EXPORT_NAME libdxfrw
-)
-target_compile_features(dxfrw PUBLIC cxx_std_14)
-target_include_directories(dxfrw
-		PUBLIC
-			$<INSTALL_INTERFACE:${LIBDXFRW_INSTALL_INCLUDEDIR}>
-)
+if(LIBDXFRW_BUILD_LIBRARY)
+    add_library(dxfrw ${libdxfrw_srcs} ${libdxfrw_hdrs})
+    set_target_properties(dxfrw PROPERTIES
+        VERSION "${PROJECT_VERSION}"
+        SOVERSION "${PROJECT_VERSION_MAJOR}"
+        EXPORT_NAME libdxfrw
+    )
+    target_compile_features(dxfrw PUBLIC cxx_std_17)
+    target_compile_options(dxfrw PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+    target_include_directories(dxfrw
+        PUBLIC
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+            $<INSTALL_INTERFACE:${LIBDXFRW_INSTALL_INCLUDEDIR}>
+    )
+endif()
 
 if(LIBDXFRW_BUILD_DOC)
     add_custom_command(OUTPUT doc/html/index.html
@@ -115,40 +124,42 @@ set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/libdxfrw)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libdxfrw.pc.in libdxfrw.pc @ONLY)
 
-install(TARGETS dxfrw
-		EXPORT libdxfrw-targets
-		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-		LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-		RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
+if(LIBDXFRW_BUILD_LIBRARY)
+    install(TARGETS dxfrw
+        EXPORT libdxfrw-targets
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    )
 
-install(EXPORT libdxfrw-targets
-	FILE libdxfrwTargets.cmake
-		NAMESPACE libdxfrw::
-		DESTINATION ${INSTALL_CONFIGDIR}
-)
+    install(EXPORT libdxfrw-targets
+        FILE libdxfrwTargets.cmake
+        NAMESPACE libdxfrw::
+        DESTINATION ${INSTALL_CONFIGDIR}
+    )
 
-include(CMakePackageConfigHelpers)
-configure_package_config_file(${CMAKE_CURRENT_LIST_DIR}/cmake/libdxfrwConfig.cmake
-        ${CMAKE_CURRENT_BINARY_DIR}/libdxfrwConfig.cmake
-        INSTALL_DESTINATION ${INSTALL_CONFIGDIR}
-)
-write_basic_package_version_file(
-		${CMAKE_CURRENT_BINARY_DIR}/libdxfrwConfigVersion.cmake
-		VERSION ${PROJECT_VERSION}
-		COMPATIBILITY AnyNewerVersion
-)
+    include(CMakePackageConfigHelpers)
+    configure_package_config_file(${CMAKE_CURRENT_LIST_DIR}/cmake/libdxfrwConfig.cmake
+            ${CMAKE_CURRENT_BINARY_DIR}/libdxfrwConfig.cmake
+            INSTALL_DESTINATION ${INSTALL_CONFIGDIR}
+    )
+    write_basic_package_version_file(
+            ${CMAKE_CURRENT_BINARY_DIR}/libdxfrwConfigVersion.cmake
+            VERSION ${PROJECT_VERSION}
+            COMPATIBILITY SameMajorVersion
+    )
 
-install(FILES
-		${installdxfrw_hdrs}
-		DESTINATION ${LIBDXFRW_INSTALL_INCLUDEDIR}
-)
-install(FILES
-		${CMAKE_CURRENT_BINARY_DIR}/libdxfrw.pc
-		DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
-)
-install(FILES
-		${CMAKE_CURRENT_BINARY_DIR}/libdxfrwConfig.cmake
-		${CMAKE_CURRENT_BINARY_DIR}/libdxfrwConfigVersion.cmake
-		DESTINATION ${INSTALL_CONFIGDIR}
-)
+    install(FILES
+            ${installdxfrw_hdrs}
+            DESTINATION ${LIBDXFRW_INSTALL_INCLUDEDIR}
+    )
+    install(FILES
+            ${CMAKE_CURRENT_BINARY_DIR}/libdxfrw.pc
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
+    )
+    install(FILES
+            ${CMAKE_CURRENT_BINARY_DIR}/libdxfrwConfig.cmake
+            ${CMAKE_CURRENT_BINARY_DIR}/libdxfrwConfigVersion.cmake
+            DESTINATION ${INSTALL_CONFIGDIR}
+    )
+endif()

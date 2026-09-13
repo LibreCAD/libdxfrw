@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "language": "C++17",
+  "cmakeMinimum": "3.10",
+  "requiredFloors": {
+    "gcc": "9 with libstdc++ 9",
+    "clang": "10 with libstdc++ 9 or libc++ 10",
+    "appleClang": "12",
+    "msvc": "19.28"
+  },
+  "filesystemFallback": {
+    "gcc8": "not enabled; no stdc++fs linkage is inferred from compiler name"
+  },
+  "observedHost": {
+    "compiler": "Apple clang version 21.0.0 (clang-2100.1.1.101)",
+    "cmake": "4.4.3",
+    "cxx17FilesystemLinkProbe": "PASS"
+  },
+  "scope": "toolchain floor and probe evidence only; CI matrix remains required"
+}
