@@ -1385,25 +1385,26 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint: A importable; S05/C1 through S13/G0 committed
-  (prospective commit; resolve SHA after commit); S14/G1 remains next.
+- Current checkpoint: A importable; S05/C1 through S14/G1 committed
+  (prospective commit; resolve SHA after commit); standalone release prep is
+  complete and the LibreCAD system-mode handoff remains external.
 - Authorized run horizon: full S01-S14/A-G implementation objective.
 - Completion target: S14/G acceptance; a PR boundary cannot silently shorten
   the authorized objective.
-- Last committed slice: S13 (prospective commit; resolve SHA after commit).
-- Resolved slices: 13/14 (`COMMITTED`, or `SUPERSEDED` after all replacements
+- Last committed slice: S14 (prospective commit; resolve SHA after commit).
+- Resolved slices: 14/14 (`COMMITTED`, or `SUPERSEDED` after all replacements
   commit).
-- Slice states: 0 READY / 1 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 13 COMMITTED.
-- Parent-item states: 0 READY / 1 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 15 COMMITTED.
-- Expanded child-item states: 64 COMMITTED / 0 READY / 0 ACTIVE / 0 VERIFYING /
+- Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
+  0 BLOCKED_HARD / 0 SUPERSEDED / 14 COMMITTED.
+- Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 16 COMMITTED.
+- Expanded child-item states: 70 COMMITTED / 0 READY / 0 ACTIVE / 0 VERIFYING /
   0 VERIFIED; no child is anonymous.
 - Claim/evidence dispositions: 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 0 EXPERIMENTAL / 0 PROMOTED / 10 NOT_APPLICABLE.
-- Next ready work: activate S14/G1 immediately after this S13 commit and
-  postcommit report; its package-mode, install, documentation, and release
-  gates are still pending.
+- Next ready work: apply the separately recorded LibreCAD CMake system-mode
+  handoff, then rerun G1.3’s no-bundled-path compile audit; no standalone
+  dependency-ready work remains in this branch.
 
 | Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -1420,7 +1421,7 @@ edit this block or commit the same slice concurrently.
 | S11 | F0: writer primitives, framing, handles, secure transaction | S10 | COMMITTED | golden vectors; failure injection | committed S11; F0.1-F0.5 complete; four-test aggregate and all policy gates PASS; no fixture bytes | S12, S13 |
 | S12 | F1: per-version/per-feature writer qualification | S11 | COMMITTED | self-read for implemented paths; independent oracle for each `PROMOTED` row; every unqualified row explicitly deferred/experimental | S12 committed with F1.1-F1.5 complete; F1.1a remains DEFERRED_EXTERNAL; no fixture bytes | S13, S14 |
 | S13 | G0: diagnostics, aggregate budgets, ownership, fuzz/sanitizers | S10, S11 | COMMITTED | hardening matrix green | S13 committed in this slice (prospective commit; resolve SHA after commit); G0.1-G0.5 verified; standard and ASan/UBSan CTest suites pass; scope/sync/fixture/hook/plan/diff gates pass; no fixture bytes permitted | S14 |
-| S14 | G1: system-package LibreCAD mode, packaging, docs, release | S07, S12, S13 | PLANNED | full acceptance criteria | pending | release candidate |
+| S14 | G1: system-package LibreCAD mode, packaging, docs, release | S07, S12, S13 | COMMITTED | full acceptance criteria | S14 committed in this slice (prospective commit; resolve SHA after commit); standalone package, docs, policy, and aggregate gates pass; LibreCAD system-package mode remains explicitly deferred-external | external system-mode handoff |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -1439,7 +1440,7 @@ edit this block or commit the same slice concurrently.
 | F0 | S11 | E2 | COMMITTED | NOT_EVALUATED | Writer primitives, framing, handles, and secure transaction; F0.1-F0.5 committed with focused and aggregate evidence |
 | F1 | S12 | F0 | COMMITTED | NOT_EVALUATED | Per-version/per-feature writer qualification; F1.1-F1.5 committed, with F1.1a explicitly DEFERRED_EXTERNAL |
 | G0 | S13 | E2, F0 | COMMITTED | NOT_EVALUATED | Diagnostics, budgets, ownership, fuzzing, and sanitizers; G0.1-G0.5 verified; structured diagnostics remain an explicit follow-up |
-| G1 | S14 | D1, F1, G0 | PLANNED | NOT_EVALUATED | Installed LibreCAD mode, packaging, documentation, and release |
+| G1 | S14 | D1, F1, G0 | COMMITTED | NOT_EVALUATED | Installed LibreCAD mode, packaging, documentation, and release |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -1494,19 +1495,25 @@ edit this block or commit the same slice concurrently.
 | F0.1 | F0 / S11 | P7.1-P7.2, WP7 | E2 | COMMITTED | EXPERIMENTAL | `dwgBufferW` bit/byte/modular/handle primitives and deterministic HandleAllocator vectors | `ctest --test-dir build-s11-f0 -R libdxfrw_writer_primitives` PASS after correcting the high-reservation hypothesis; overflow now asserts fail-closed; all vectors are in-memory and no DWG/DXF fixture bytes changed; unblocks F0.2 |
 | F0.2 | F0 / S11 | P7.2-P7.3 | F0.1 | COMMITTED | EXPERIMENTAL | fixed-handle reservation, high-water, and source-to-output remap contract | writer-primitives vectors now exercise `dwgWriter15` seeded handles, explicit reservations, collision avoidance, and high-water advancement; focused gate is running; no fixture bytes; unblocks F0.3 |
 | F0.3 | F0 / S11 | P7.3, P7.6 | F0.1 | COMMITTED | EXPERIMENTAL | object-frame receipt/provenance and rollback invariants | `ctest --test-dir build-s11-f0 -R libdxfrw_writer_primitives` PASS; in-memory `dwgWriter15` frame publishes one provenance-bound receipt/token and rollback removes bytes plus invalidates the receipt; no fixture bytes; unblocks F0.4 |
-| F0.4 | F0 / S11 | P7.9-P7.10 | F0.2, F0.3 | COMMITTED | EXPERIMENTAL | unsupported-version/invalid-argument rejection and destination non-touch | `ctest --test-dir build-s11-f0 -R libdxfrw_writer_primitives` PASS; supported-version/null-interface and UNKNOWNV writes reject with BAD_OPEN/BAD_VERSION while a sentinel destination remains unchanged; temporary path is removed; no fixture bytes; unblocks F0.5 |
-| F0.5 | F0 / S11 | P7.4-P7.8, WP7 | F0.2, F0.3, F0.4 | COMMITTED | EXPERIMENTAL | F0 aggregate build/test/scope/sync/fixture/hook/plan/diff gate | complete S11 aggregate PASS: build-s11-f0, all four CTest tests, updater/normalizer self-tests, import scope, pinned sync/archive, fixture admission (0 candidates), external hook, diff check, and staged drawing scan (0 DWG/DXF); no fixture bytes; ready for `--prepare-commit S11` |
+| F0.4 | F0 / S11 | P7.9-P7.10 | F0.2, F0.3 | COMMITTED | EXPERIMENTAL | unsupported-version/invalid-argument rejection and destination non-touch | `ctest --test-dir build-s11-f0 -R libdxfrw_writer_primitives` PASS; supported-version/null-interface and UNKNOWNV writes reject with BAD_UNKNOWN/BAD_VERSION while a sentinel destination remains unchanged; temporary path is removed; no fixture bytes; unblocks F0.5 |
+| F0.5 | F0 / S11 | P7.4-P7.8, WP7 | F0.2, F0.3, F0.4 | COMMITTED | EXPERIMENTAL | F0 aggregate build/test/scope/sync/fixture/hook/plan/diff gate | S11 aggregate was committed after build-s11-f0, all four CTest tests, updater/normalizer self-tests, import scope, pinned sync, fixture admission (0 candidates), external hook, diff check, and staged drawing scan (0 DWG/DXF); no fixture bytes |
 | F1.1 | F1 / S12 | P7.5, WP7 | F0 | COMMITTED | EXPERIMENTAL | per-version OT/text encoding vectors for AC1015/AC1018/AC1021/AC1024/AC1027/AC1032 | `ctest --test-dir build-s12-f1 -R libdxfrw_writer_version_matrix` PASS for all six OT matrices, legacy TV, modern TU raw framing, and overflow fail-closed behavior; default TU semantic mode is recorded as a deferred compatibility follow-up F1.1a; all inputs are in-memory and no fixture bytes; unblocks F1.1a/F1.2 |
 | F1.1a | F1 / S12 | P7.5, WP5 | F1.1 | COMMITTED | DEFERRED_EXTERNAL | TU terminator length contract between writer and reader | authoritative ODA PDF is unavailable at the configured local path; F1.1 raw vector is the reproducible evidence, and no production edit is justified without the missing spec/sample; defer is explicit, semantic writer promotion remains prohibited, and safe matrix work continues; unblocks F1.4 |
 | F1.2 | F1 / S12 | P7.5, WP7 | F1.1 | COMMITTED | EXPERIMENTAL | writer inheritance/version-gate matrix and constructor target selection | `ctest --test-dir build-s12-f1 -R libdxfrw_writer_version_matrix` PASS; compile-time checks confirm `dwgWriter15→18→24→27→32` and the separate `dwgWriter24→21` branch, with chronological version ordering; no fixture bytes and no support promotion; unblocks F1.3 |
 | F1.3 | F1 / S12 | P7.7, WP7 | F1.1 | COMMITTED | EXPERIMENTAL | typed writer capability identity, operation, class, and version-range consistency | `ctest --test-dir build-s12-f1 -R libdxfrw_writer_version_matrix` PASS; all 38 executable bindings have non-empty identities, valid min/max ranges, stable binding lookup, and identity-to-binding resolution; no fixture bytes or support promotion; unblocks F1.4 |
 | F1.4 | F1 / S12 | P7.7-P7.8, WP7 | F1.2, F1.3 | COMMITTED | EXPERIMENTAL | promotion/defer policy: no `PROMOTED` writer row without independent oracle | policy scan PASS (`no F1 row is PROMOTED`); fixture admission PASS with 0 candidates; external/unadmitted corpus remains advisory and cannot promote claims; TU semantic gap remains F1.1a DEFERRED_EXTERNAL; unblocks F1.5 |
-| F1.5 | F1 / S12 | WP7, WP8.5 | F1.2, F1.3, F1.4 | COMMITTED | EXPERIMENTAL | F1 aggregate matrix, policy, fixture, scope, sync, plan, and diff gate | full S12 aggregate PASS: build-s12-f1, all five CTest tests, updater/normalizer self-tests, writer promotion scan, import scope, pinned sync/archive, fixture admission (0 candidates), external hook, and diff check; no DWG/DXF paths staged; ready for `--prepare-commit S12` |
+| F1.5 | F1 / S12 | WP7, WP8.5 | F1.2, F1.3, F1.4 | COMMITTED | EXPERIMENTAL | F1 aggregate matrix, policy, fixture, scope, sync, plan, and diff gate | S12 aggregate was committed after build-s12-f1, all five CTest tests, updater/normalizer self-tests, writer promotion scan, import scope, pinned sync/archive, fixture admission (0 candidates), external hook, and diff check; no DWG/DXF paths staged |
 | G0.1 | G0 / S13 | P9.1-P9.3, WP8.6 | F1.5 | COMMITTED | EXPERIMENTAL | checked arithmetic, size/range helpers, and aggregate budget vectors | `libdxfrw_hardening` passes checked add/multiply/range/alignment, reactor/owned-object ceilings, and section-capacity overflow vectors; all inputs bounded in memory; no fixture bytes; sanitizer remains an aggregate gate; unblocks G0.2 |
 | G0.2 | G0 / S13 | P9.4-P9.6 | G0.1 | COMMITTED | EXPERIMENTAL | null/error precedence and ownership/reset contract | `libdxfrw_hardening` plus updated reader/writer matrix pass null filename construction, BAD_UNKNOWN invalid-argument precedence, BAD_VERSION precedence, and owned debug-printer replacement/reset destructor accounting; no external files or fixture bytes; unblocks G0.3 |
 | G0.3 | G0 / S13 | P9.7-P9.9, WP8.6 | G0.1 | COMMITTED | EXPERIMENTAL | bounded malformed-input fuzz smoke across frame, proxy, SAB, and DataStorage parsers | `libdxfrw_hardening` executes 256 deterministic vectors through proxy inspection, SAB parsing, and DataStorage parsing with no throws and bounded consumption/diagnostics; null inputs fail closed; no generated drawing bytes; ASan/UBSan required; unblocks G0.4 |
 | G0.4 | G0 / S13 | P9.10-P9.12 | G0.2, G0.3 | COMMITTED | EXPERIMENTAL | diagnostics/resource-limit evidence and support-claim audit | source audit confirms existing coarse error/resource-limit paths and proxy stop reasons; no `DRW_OperationDiagnostic`/`getLastDiagnostic()` API exists yet, so structured diagnostics remain an explicit follow-up and no support claim is promoted; no fixture bytes; unblocks G0.5 |
-| G0.5 | G0 / S13 | WP8, WP7.10 | G0.1, G0.2, G0.3, G0.4 | COMMITTED | EXPERIMENTAL | G0 aggregate hardening, sanitizer, scope/sync, fixture, hook, plan, and diff gate | standard and ASan/UBSan builds pass all six CTest tests; updater/normalizer self-tests, import scope, pinned sync/archive, fixture admission (0), external hook, diff check, and staged drawing scan (0) pass; no DWG/DXF paths staged; ready for `--prepare-commit S13` |
+| G0.5 | G0 / S13 | WP8, WP7.10 | G0.1, G0.2, G0.3, G0.4 | COMMITTED | EXPERIMENTAL | G0 aggregate hardening, sanitizer, scope/sync, fixture, hook, plan, and diff gate | S13 aggregate was committed after standard and ASan/UBSan builds passed all six CTest tests; updater/normalizer self-tests, import scope, pinned sync/archive, fixture admission (0), external hook, diff check, and staged drawing scan (0) passed; no DWG/DXF paths staged |
+| G1.1 | G1 / S14 | WP8.1-WP8.3, P10.1-P10.3 | G0.5 | COMMITTED | EXPERIMENTAL | install/export closure and self-contained staged public headers | temporary clean install succeeds; `check_staged_package.py` compiles all ten public headers with only the staged include prefix; no fixture bytes; unblocks G1.2 |
+| G1.2 | G1 / S14 | WP8.4, P10.4-P10.6 | G1.1 | COMMITTED | EXPERIMENTAL | generic `find_package` and pkg-config staged consumer | `check_staged_package.py` passes all ten staged-header compiles plus temporary CMake `find_package(libdxfrw)` and pkg-config consumers against only `/private/tmp/libdxfrw-s14-g1-prefix`; no source-tree include paths or fixture bytes; unblocks G1.3 |
+| G1.3a | G1 / S14 | P10.7-P10.8 | G1.2 | COMMITTED | DEFERRED_EXTERNAL | LibreCAD CMake handoff for system-package mode | read-only audit confirms the pinned LibreCAD CMake hardcodes bundled `SHARED_SOURCES`/`SHARED_INCLUDES`; exact opt-in change and compile-command audit are recorded in `metadata/librecad-system-package-handoff.md`; sibling checkout is dirty and is not modified here; no fixture bytes; unblocks G1.3 |
+| G1.3 | G1 / S14 | P10.7-P10.9 | G1.3a | COMMITTED | DEFERRED_EXTERNAL | explicit LibreCAD system-package mode and bundled-path exclusion | implementation is a separate LibreCAD CMake change; this branch records the exact handoff and required no-bundled-path compile audit, but cannot modify the user’s dirty sibling checkout; no system-mode claim is promoted and no fixture bytes are added; unblocks G1.5 after deferral is recorded |
+| G1.4 | G1 / S14 | P10.10-P10.12, WP8.7 | G1.3a | COMMITTED | EXPERIMENTAL | documentation, notices, support ledger, and release metadata | `docs/UPGRADE_SUPPORT.md` and `metadata/librecad-system-package-handoff.md` cover C++17/ABI boundary, evidence-based support claims, no-downloaded-fixture policy, package-mode handoff, sanitizer/package gates, and known limitations; no fixture bytes; unblocks G1.5 |
+| G1.5 | G1 / S14 | WP8, WP7.10 | G1.1, G1.2, G1.3, G1.4 | COMMITTED | EXPERIMENTAL | G1 aggregate package, system-mode, docs, scope/sync, fixture, hook, plan, and diff gate | S14 committed in this slice; staged-header/CMake/pkg-config consumers pass; updater/normalizer, import scope, pinned sync/archive, fixture admission (0), external hook, Python syntax, and diff checks pass; LibreCAD system-package mode is explicitly deferred to the sibling CMake handoff; no DWG/DXF paths staged |
 
 <!-- UPGRADE_PROGRESS_END -->
 
