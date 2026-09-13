@@ -1385,25 +1385,24 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint: A importable; S05/C1 through S11/F0 committed;
-  S12/F1 and S13/G0 are dependency-ready.
+- Current checkpoint: A importable; S05/C1 through S12/F1 committed;
+  S13/G0 hardening is dependency-ready.
 - Authorized run horizon: full S01-S14/A-G implementation objective.
 - Completion target: S14/G acceptance; a PR boundary cannot silently shorten
   the authorized objective.
-- Last committed slice: S11 (prospective commit; resolve SHA after commit).
-- Resolved slices: 11/14 (`COMMITTED`, or `SUPERSEDED` after all replacements
+- Last committed slice: S12 (prospective commit; resolve SHA after commit).
+- Resolved slices: 12/14 (`COMMITTED`, or `SUPERSEDED` after all replacements
   commit).
-- Slice states: 2 READY / 1 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 11 COMMITTED.
-- Parent-item states: 2 READY / 1 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 12 COMMITTED.
-- Expanded child-item states: 53 COMMITTED / 0 READY / 0 ACTIVE / 0 VERIFYING /
+- Slice states: 1 READY / 1 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
+  0 BLOCKED_HARD / 0 SUPERSEDED / 12 COMMITTED.
+- Parent-item states: 1 READY / 1 PLANNED / 0 ACTIVE / 0 VERIFYING /
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 13 COMMITTED.
+- Expanded child-item states: 58 COMMITTED / 0 READY / 0 ACTIVE / 0 VERIFYING /
   0 VERIFIED; no child is anonymous.
 - Claim/evidence dispositions: 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 0 EXPERIMENTAL / 0 PROMOTED / 10 NOT_APPLICABLE.
-- Next ready slices: S12/F1 and S13/G0 are ready because S11/F0 is committed;
-  activate the narrower S12 writer-qualification lane first, while S13 remains
-  an independent hardening lane.
+- Next ready work: S13/G0 hardening is ready because S10/E2 and S11/F0 are
+  committed; S14 remains held until S12/F1 and S13/G0 complete.
 
 | Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -1418,7 +1417,7 @@ edit this block or commit the same slice concurrently.
 | S09 | E1: versioned DWG-reader/section qualification | S07 | COMMITTED | fixture/spec/stage matrix | committed `d952f6c`; E1.1-E1.4 PASS; in-memory dispatch, rejection, section matrix, and policy gates PASS; no support promotion or drawing bytes | S10 |
 | S10 | E2: graph accounting, raw replay, DataStorage/ACIS/proxy | S08, S09 | COMMITTED | zero unexplained frames; eligibility negatives | E2.1-E2.5 PASS; aggregate three-test CTest, strict scope/sync, fixture, hook, plan, and diff gates PASS; no drawing bytes | S11, S13 |
 | S11 | F0: writer primitives, framing, handles, secure transaction | S10 | COMMITTED | golden vectors; failure injection | committed S11; F0.1-F0.5 complete; four-test aggregate and all policy gates PASS; no fixture bytes | S12, S13 |
-| S12 | F1: per-version/per-feature writer qualification | S11 | PLANNED | self-read for implemented paths; independent oracle for each `PROMOTED` row; every unqualified row explicitly deferred/experimental | pending | S14 |
+| S12 | F1: per-version/per-feature writer qualification | S11 | COMMITTED | self-read for implemented paths; independent oracle for each `PROMOTED` row; every unqualified row explicitly deferred/experimental | S12 committed with F1.1-F1.5 complete; F1.1a remains DEFERRED_EXTERNAL; no fixture bytes | S13, S14 |
 | S13 | G0: diagnostics, aggregate budgets, ownership, fuzz/sanitizers | S10, S11 | PLANNED | hardening matrix green | pending | S14 |
 | S14 | G1: system-package LibreCAD mode, packaging, docs, release | S07, S12, S13 | PLANNED | full acceptance criteria | pending | release candidate |
 
@@ -1437,7 +1436,7 @@ edit this block or commit the same slice concurrently.
 | E1 | S09 | D1 | COMMITTED | NOT_EVALUATED | Versioned DWG-reader and section qualification; E1.1-E1.4 committed; aggregate gates PASS; support claims remain experimental without admitted positives |
 | E2 | S10 | E0, E1 | COMMITTED | NOT_EVALUATED | Graph accounting, raw replay, DataStorage, ACIS, and proxy paths; E2.1-E2.5 verified; aggregate gates PASS |
 | F0 | S11 | E2 | COMMITTED | NOT_EVALUATED | Writer primitives, framing, handles, and secure transaction; F0.1-F0.5 committed with focused and aggregate evidence |
-| F1 | S12 | F0 | PLANNED | NOT_EVALUATED | Per-version/per-feature writer qualification |
+| F1 | S12 | F0 | COMMITTED | NOT_EVALUATED | Per-version/per-feature writer qualification; F1.1-F1.5 committed, with F1.1a explicitly DEFERRED_EXTERNAL |
 | G0 | S13 | E2, F0 | PLANNED | NOT_EVALUATED | Diagnostics, budgets, ownership, fuzzing, and sanitizers |
 | G1 | S14 | D1, F1, G0 | PLANNED | NOT_EVALUATED | Installed LibreCAD mode, packaging, documentation, and release |
 
@@ -1496,6 +1495,12 @@ edit this block or commit the same slice concurrently.
 | F0.3 | F0 / S11 | P7.3, P7.6 | F0.1 | COMMITTED | EXPERIMENTAL | object-frame receipt/provenance and rollback invariants | `ctest --test-dir build-s11-f0 -R libdxfrw_writer_primitives` PASS; in-memory `dwgWriter15` frame publishes one provenance-bound receipt/token and rollback removes bytes plus invalidates the receipt; no fixture bytes; unblocks F0.4 |
 | F0.4 | F0 / S11 | P7.9-P7.10 | F0.2, F0.3 | COMMITTED | EXPERIMENTAL | unsupported-version/invalid-argument rejection and destination non-touch | `ctest --test-dir build-s11-f0 -R libdxfrw_writer_primitives` PASS; supported-version/null-interface and UNKNOWNV writes reject with BAD_OPEN/BAD_VERSION while a sentinel destination remains unchanged; temporary path is removed; no fixture bytes; unblocks F0.5 |
 | F0.5 | F0 / S11 | P7.4-P7.8, WP7 | F0.2, F0.3, F0.4 | COMMITTED | EXPERIMENTAL | F0 aggregate build/test/scope/sync/fixture/hook/plan/diff gate | complete S11 aggregate PASS: build-s11-f0, all four CTest tests, updater/normalizer self-tests, import scope, pinned sync/archive, fixture admission (0 candidates), external hook, diff check, and staged drawing scan (0 DWG/DXF); no fixture bytes; ready for `--prepare-commit S11` |
+| F1.1 | F1 / S12 | P7.5, WP7 | F0 | COMMITTED | EXPERIMENTAL | per-version OT/text encoding vectors for AC1015/AC1018/AC1021/AC1024/AC1027/AC1032 | `ctest --test-dir build-s12-f1 -R libdxfrw_writer_version_matrix` PASS for all six OT matrices, legacy TV, modern TU raw framing, and overflow fail-closed behavior; default TU semantic mode is recorded as a deferred compatibility follow-up F1.1a; all inputs are in-memory and no fixture bytes; unblocks F1.1a/F1.2 |
+| F1.1a | F1 / S12 | P7.5, WP5 | F1.1 | COMMITTED | DEFERRED_EXTERNAL | TU terminator length contract between writer and reader | authoritative ODA PDF is unavailable at the configured local path; F1.1 raw vector is the reproducible evidence, and no production edit is justified without the missing spec/sample; defer is explicit, semantic writer promotion remains prohibited, and safe matrix work continues; unblocks F1.4 |
+| F1.2 | F1 / S12 | P7.5, WP7 | F1.1 | COMMITTED | EXPERIMENTAL | writer inheritance/version-gate matrix and constructor target selection | `ctest --test-dir build-s12-f1 -R libdxfrw_writer_version_matrix` PASS; compile-time checks confirm `dwgWriter15→18→24→27→32` and the separate `dwgWriter24→21` branch, with chronological version ordering; no fixture bytes and no support promotion; unblocks F1.3 |
+| F1.3 | F1 / S12 | P7.7, WP7 | F1.1 | COMMITTED | EXPERIMENTAL | typed writer capability identity, operation, class, and version-range consistency | `ctest --test-dir build-s12-f1 -R libdxfrw_writer_version_matrix` PASS; all 38 executable bindings have non-empty identities, valid min/max ranges, stable binding lookup, and identity-to-binding resolution; no fixture bytes or support promotion; unblocks F1.4 |
+| F1.4 | F1 / S12 | P7.7-P7.8, WP7 | F1.2, F1.3 | COMMITTED | EXPERIMENTAL | promotion/defer policy: no `PROMOTED` writer row without independent oracle | policy scan PASS (`no F1 row is PROMOTED`); fixture admission PASS with 0 candidates; external/unadmitted corpus remains advisory and cannot promote claims; TU semantic gap remains F1.1a DEFERRED_EXTERNAL; unblocks F1.5 |
+| F1.5 | F1 / S12 | WP7, WP8.5 | F1.2, F1.3, F1.4 | COMMITTED | EXPERIMENTAL | F1 aggregate matrix, policy, fixture, scope, sync, plan, and diff gate | full S12 aggregate PASS: build-s12-f1, all five CTest tests, updater/normalizer self-tests, writer promotion scan, import scope, pinned sync/archive, fixture admission (0 candidates), external hook, and diff check; no DWG/DXF paths staged; ready for `--prepare-commit S12` |
 
 <!-- UPGRADE_PROGRESS_END -->
 
