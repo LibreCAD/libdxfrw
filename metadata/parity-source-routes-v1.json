@@ -835,7 +835,8 @@
     "shared": {
       "semanticMismatches": [
         "shared/callback/addDimArc-001",
-        "shared/interface-method/addDimArc-001"
+        "shared/interface-method/addDimArc-001",
+        "shared/source-unit-coverage/src_intern_dxfreader.cpp"
       ],
       "standaloneOnly": [
         "shared/pipeline-unit/src_intern_dxfcode.h",
@@ -874,6 +875,7 @@
         "shared/public-method/src_drw_interface.h_DRW_Interface_6190e2e1ac4584b071d2809572602df0a20c74f7111d9b63326fbba607e14bb1",
         "shared/public-type/src_drw_base.h_definition_DRW_OperationDiagnostic",
         "shared/public-type/src_drw_base.h_definition_DRW_OperationDiagnosticEntry",
+        "shared/source-unit-coverage/src_intern_dxfcode.h",
         "shared/source-unit/src_intern_dxfcode.h"
       ],
       "targetOnly": [
@@ -1901,8 +1903,8 @@
     {
       "facade": "shared",
       "path": "parity-source-routes-v1/target-shared.json",
-      "routeCount": 2767,
-      "sha256": "ccabf71a7ff7d674247f42a51d9c260a631485c5b9de855c09cb124f09c25a80",
+      "routeCount": 2849,
+      "sha256": "141178517860ea4f9b93da431c9e85262abee180ea12b0ad74bbd56cb6b7fb0f",
       "side": "target"
     },
     {
@@ -1922,8 +1924,8 @@
     {
       "facade": "shared",
       "path": "parity-source-routes-v1/standalone-shared.json",
-      "routeCount": 2794,
-      "sha256": "ce2518e2701273d6a422a559e3f50a8c7bed104127bb037ef094ddb4064d9524",
+      "routeCount": 2877,
+      "sha256": "5131a59593f4af1abc1e1df531ef7a773911512d3868f81b9cd35737d68f8df5",
       "side": "standalone"
     }
   ],
@@ -1940,8 +1942,8 @@
         "targetOnly": 36
       },
       "shared": {
-        "semanticMismatches": 2,
-        "standaloneOnly": 37,
+        "semanticMismatches": 3,
+        "standaloneOnly": 38,
         "targetOnly": 10
       }
     },
@@ -1969,6 +1971,7 @@
         "group-code-raw-rule": 9,
         "group-code-reader-range": 34,
         "helper-subsystem": 18,
+        "implementation-anchor": 2,
         "interface-method": 171,
         "internal-model-codec": 1,
         "legacy-dwgr-facade": 1,
@@ -2000,6 +2003,7 @@
         "section-declaration": 21,
         "section-fallback": 1,
         "source-unit": 86,
+        "source-unit-coverage": 81,
         "table-descriptor": 9,
         "version": 19,
         "writer-binding": 38,
@@ -2007,7 +2011,7 @@
         "writer-pipeline": 7,
         "writer-version": 14
       },
-      "routeCount": 5622
+      "routeCount": 5705
     },
     "target": {
       "categoryCounts": {
@@ -2033,6 +2037,7 @@
         "group-code-raw-rule": 33,
         "group-code-reader-range": 34,
         "helper-subsystem": 18,
+        "implementation-anchor": 2,
         "interface-method": 171,
         "internal-model-codec": 1,
         "legacy-dwgr-facade": 1,
@@ -2064,6 +2069,7 @@
         "section-declaration": 21,
         "section-fallback": 1,
         "source-unit": 85,
+        "source-unit-coverage": 80,
         "table-descriptor": 9,
         "version": 19,
         "writer-binding": 38,
@@ -2071,7 +2077,7 @@
         "writer-pipeline": 7,
         "writer-version": 14
       },
-      "routeCount": 5587
+      "routeCount": 5669
     }
   }
 }

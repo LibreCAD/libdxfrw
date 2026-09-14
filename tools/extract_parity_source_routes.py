@@ -114,7 +114,9 @@ TARGET_ROUTE_COUNTS = {
         "public-model": 259,
         "public-type": 303,
         "publication-stage": 24,
+        "implementation-anchor": 2,
         "source-unit": 85,
+        "source-unit-coverage": 80,
         "version": 19,
     },
 }
@@ -126,6 +128,15 @@ TARGET_ROUTE_COUNTS = {
 # method/pipeline edges in I0.2b; the two narrow supporting classes below are
 # not allowed to hide an arbitrary implementation file behind a content hash.
 SOURCE_UNIT_ROLES: dict[str, str] = {}
+
+# Two transport implementation units intentionally have no existing dispatch
+# or helper route.  These concrete method anchors close that source-path gap;
+# they are not format-support claims and remain subject to the normal feature
+# ledger/oracle gates.
+IMPLEMENTATION_UNIT_ANCHORS = {
+    "src/intern/dxfreader.cpp": "dxfReader::readRec",
+    "src/intern/dxfwriter.cpp": "dxfWriter::writeUtf8String",
+}
 
 
 def _register_source_unit_role(role: str, *paths: str) -> None:
@@ -2996,6 +3007,69 @@ def add_helper_subsystem_routes(collector: RouteCollector, tree: SourceTree) -> 
                 directions=["pipeline-helper"],
                 line=1,
             )
+
+
+def add_source_unit_coverage_routes(collector: RouteCollector, tree: SourceTree) -> None:
+    """Bind each functional source unit to concrete same-path routes.
+
+    ``source-unit`` and ``pipeline-unit`` rows classify ownership, but neither
+    is execution evidence.  Reuse the already-emitted concrete route IDs and
+    add one narrow implementation anchor for the sole target/standalone
+    translation unit that otherwise has only unclassified writer helpers.
+    """
+    roles = source_unit_roles_for(tree)
+    concrete_categories = {"source-unit", "pipeline-unit", "source-unit-coverage"}
+    candidate_by_path: dict[str, list[str]] = {path: [] for path, role in roles.items() if role not in SUPPORTING_SOURCE_UNIT_ROLES}
+    for route in collector._routes.values():
+        if route["category"] in concrete_categories:
+            continue
+        for location in route["evidence"]:
+            if location["path"] in candidate_by_path:
+                candidate_by_path[location["path"]].append(route["id"])
+    missing = [path for path, route_ids in candidate_by_path.items() if not route_ids]
+    if any(path not in IMPLEMENTATION_UNIT_ANCHORS for path in missing):
+        raise RouteError("functional source units lack concrete routes: %s" % missing)
+    for path, symbol in sorted(IMPLEMENTATION_UNIT_ANCHORS.items()):
+        source = tree.require(path)
+        body = function_body(source, symbol)
+        identifier = normalized_identifier(symbol.replace("::", "-"))
+        collector.add(
+            "shared",
+            "implementation-anchor",
+            {
+                "kind": "concrete-unit-anchor",
+                "path": source.path,
+                "symbol": body.symbol,
+                "signatureFingerprint": signature_fingerprint(body),
+            },
+            body,
+            identifier=identifier,
+            directions=["pipeline"],
+        )
+        candidate_by_path[source.path].append("shared/implementation-anchor/" + identifier)
+    for path, route_ids in sorted(candidate_by_path.items()):
+        route_ids = sorted(set(route_ids))
+        if not route_ids:
+            raise RouteError("source-unit coverage is empty: %s" % path)
+        # One deterministic, concrete route is sufficient to establish
+        # same-path ownership; the complete route inventory remains available
+        # for the later cardinality mapping.  Keeping this list minimal makes
+        # regeneration and review proportional to source units, not to the
+        # hundreds of model/header routes emitted from a large file.
+        route_ids = route_ids[:1]
+        collector.add(
+            "shared",
+            "source-unit-coverage",
+            {
+                "kind": "source-unit-coverage",
+                "path": path,
+                "coveredBy": route_ids,
+            },
+            source_unit_body(tree.require(path)),
+            identifier=path,
+            directions=["pipeline-coverage"],
+            line=1,
+        )
 
 
 def transport_branch_contains(
@@ -7384,6 +7458,7 @@ def inventory_tree(tree: SourceTree, public_headers: tuple[str, ...]) -> dict[st
     add_publication_stage_routes(collector, tree)
     add_raw_flow_routes(collector, tree)
     add_helper_subsystem_routes(collector, tree)
+    add_source_unit_coverage_routes(collector, tree)
     all_routes = collector.routes()
     return {
         facade: [route for route in all_routes if route["facade"] == facade]
@@ -7414,6 +7489,36 @@ def validate_pipeline_closure(tree: SourceTree, inventory: dict[str, list[dict]]
         expected_source = "shared/source-unit/" + normalized_identifier(path)
         if selector.get("sourceUnit") != expected_source:
             raise RouteError("pipeline unit lacks its source-unit edge: %s" % path)
+
+    coverage_routes = inventory_category_routes(inventory, "shared", "source-unit-coverage")
+    coverage_by_path = {route["selector"].get("path"): route for route in coverage_routes}
+    if len(coverage_routes) != len(coverage_by_path) or set(coverage_by_path) != set(functional):
+        raise RouteError("functional source-unit coverage closure is incomplete")
+    all_routes_by_id = {
+        route["id"]: route
+        for routes in inventory.values()
+        for route in routes
+    }
+    for path in sorted(functional):
+        selector = coverage_by_path[path]["selector"]
+        covered_by = selector.get("coveredBy")
+        if not isinstance(covered_by, list) or covered_by != sorted(set(covered_by)) or not covered_by:
+            raise RouteError("source-unit coverage is empty or non-deterministic: %s" % path)
+        for route_id in covered_by:
+            route = all_routes_by_id.get(route_id)
+            if route is None or route["category"] in {"source-unit", "pipeline-unit", "source-unit-coverage"}:
+                raise RouteError("source-unit coverage has a non-concrete route: %s" % route_id)
+            if not any(location["path"] == path for location in route["evidence"]):
+                raise RouteError("source-unit coverage crosses source paths: %s" % route_id)
+    implementation_anchors = inventory_category_routes(inventory, "shared", "implementation-anchor")
+    if len(implementation_anchors) != len(IMPLEMENTATION_UNIT_ANCHORS):
+        raise RouteError("implementation-anchor closure changed without review")
+    observed_anchors = {
+        route["selector"].get("path"): route["selector"].get("symbol")
+        for route in implementation_anchors
+    }
+    if observed_anchors != IMPLEMENTATION_UNIT_ANCHORS:
+        raise RouteError("implementation-anchor paths changed without review")
 
     helper_routes = inventory_category_routes(inventory, "shared", "helper-subsystem")
     helpers = {route["selector"].get("name"): route for route in helper_routes}

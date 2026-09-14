@@ -4898,6 +4898,52 @@
       "sourceDisposition": "source-route-only"
     },
     {
+      "category": "implementation-anchor",
+      "directions": [
+        "pipeline"
+      ],
+      "evidence": [
+        {
+          "line": 157,
+          "path": "src/intern/dxfreader.cpp",
+          "spanSha256": "12a1e676ad81ac3f10fe27d437991e682bac21e60ba3deffb43592967b1def4c",
+          "symbol": "dxfReader::readRec"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/implementation-anchor/dxfReader-readRec",
+      "selector": {
+        "kind": "concrete-unit-anchor",
+        "path": "src/intern/dxfreader.cpp",
+        "signatureFingerprint": "a0efc0ad726eca2c0c6b04c613d4780014b6e585a81c6e86e9d962799f40270e",
+        "symbol": "dxfReader::readRec"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "implementation-anchor",
+      "directions": [
+        "pipeline"
+      ],
+      "evidence": [
+        {
+          "line": 174,
+          "path": "src/intern/dxfwriter.cpp",
+          "spanSha256": "19f23660edfca6f144f24e8b9fa7e76600544f01d2f38cdd5124868d9f95a682",
+          "symbol": "dxfWriter::writeUtf8String"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/implementation-anchor/dxfWriter-writeUtf8String",
+      "selector": {
+        "kind": "concrete-unit-anchor",
+        "path": "src/intern/dxfwriter.cpp",
+        "signatureFingerprint": "0dcafdff829bdb82cb4bd4b05d7e6952f4bd169cd317a2fbf087edeeeeb39705",
+        "symbol": "dxfWriter::writeUtf8String"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
       "category": "interface-method",
       "directions": [
         "publish"
@@ -71524,6 +71570,1926 @@
         "name": "immediate-entity-output",
         "sourcePath": "src/intern/dwgreader.cpp",
         "symbol": "dwgReader::DwgImmediateEntityOutput"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/drw_acis.cpp",
+          "spanSha256": "8138ab332d82bb785b2c78986c4faa69a91cbd338538533af5e3acd0ecd1b919",
+          "symbol": "src/drw_acis.cpp"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_drw_acis.cpp",
+      "selector": {
+        "coveredBy": [
+          "shared/helper-subsystem/acis"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/drw_acis.cpp"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/drw_acis.h",
+          "spanSha256": "93947c33950c7242b308cda62f2fa46748d31d57fcb04562ed387fdcd7df6dcb",
+          "symbol": "src/drw_acis.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_drw_acis.h",
+      "selector": {
+        "coveredBy": [
+          "shared/helper-subsystem/acis"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/drw_acis.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/drw_base.cpp",
+          "spanSha256": "c97b1b3d3c6c4fc7b7b8b85b34b92bd780baec53c3e6e7cecd996ac25d777cb1",
+          "symbol": "src/drw_base.cpp"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_drw_base.cpp",
+      "selector": {
+        "coveredBy": [
+          "shared/helper-subsystem/diagnostic-hook"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/drw_base.cpp"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/drw_base.h",
+          "spanSha256": "dd7e17a9d392ecc8700c52ce2e7112ee3629300a29a868a8ead558c3ce7bc7ea",
+          "symbol": "src/drw_base.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_drw_base.h",
+      "selector": {
+        "coveredBy": [
+          "shared/dwg-version-magic/AC1.2"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/drw_base.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/drw_classes.cpp",
+          "spanSha256": "f240440405bdd6ec6ff2469108886849deb879551cb321fb31e719042e57b709",
+          "symbol": "src/drw_classes.cpp"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_drw_classes.cpp",
+      "selector": {
+        "coveredBy": [
+          "shared/model-codec/DRW_Class"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/drw_classes.cpp"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/drw_classes.h",
+          "spanSha256": "a49a41256c70fbbbafcc553ffe7f7abb9d98cf5da6f329b58fac873c79eba932",
+          "symbol": "src/drw_classes.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_drw_classes.h",
+      "selector": {
+        "coveredBy": [
+          "shared/model-codec/DRW_Class"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/drw_classes.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/drw_datastorage.cpp",
+          "spanSha256": "b84ab48b1dab646015ac91c714334f812f970aa88ca525b6875c62eb30267c63",
+          "symbol": "src/drw_datastorage.cpp"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_drw_datastorage.cpp",
+      "selector": {
+        "coveredBy": [
+          "shared/helper-subsystem/datastorage"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/drw_datastorage.cpp"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/drw_datastorage.h",
+          "spanSha256": "7a49427a9b6ace22299dec7b098e0be2a9f9a5ff46ccc7a3ed9e646216bf4a47",
+          "symbol": "src/drw_datastorage.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_drw_datastorage.h",
+      "selector": {
+        "coveredBy": [
+          "shared/helper-subsystem/datastorage"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/drw_datastorage.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/drw_entities.cpp",
+          "spanSha256": "416e5fd0bc91925a86c8c05227d11455e5f4cebbfdb3194276d50e2fb792fe60",
+          "symbol": "src/drw_entities.cpp"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_drw_entities.cpp",
+      "selector": {
+        "coveredBy": [
+          "shared/model-codec/DRW_3DLine"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/drw_entities.cpp"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/drw_entities.h",
+          "spanSha256": "801021d8b391af217c307001febbb481c4bf96ab9dd46412d7689e5e5189db4d",
+          "symbol": "src/drw_entities.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_drw_entities.h",
+      "selector": {
+        "coveredBy": [
+          "shared/model-codec/DRW_3DLine"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/drw_entities.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/drw_header.cpp",
+          "spanSha256": "f6650d8b216d545555e96e5907eea6aa25021ac5998cbd88ea9d3245f20e1644",
+          "symbol": "src/drw_header.cpp"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_drw_header.cpp",
+      "selector": {
+        "coveredBy": [
+          "shared/model-codec/DRW_Header"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/drw_header.cpp"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/drw_header.h",
+          "spanSha256": "35c264eeecddab8e3596f3f81fc2d2258e86911be5990c5d754349cfe2ad1ca1",
+          "symbol": "src/drw_header.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_drw_header.h",
+      "selector": {
+        "coveredBy": [
+          "shared/model-codec/DRW_Header"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/drw_header.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/drw_interface.h",
+          "spanSha256": "2d6500844b47a6cf9a16b959039f34442cf53fb2707109017129f5995c6eac33",
+          "symbol": "src/drw_interface.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_drw_interface.h",
+      "selector": {
+        "coveredBy": [
+          "shared/callback/add3DLine-001"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/drw_interface.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/drw_objects.cpp",
+          "spanSha256": "314c77ada19bb871e583ad1ae1990723793d1bda7cf7a6ce6aae5395238b62d5",
+          "symbol": "src/drw_objects.cpp"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_drw_objects.cpp",
+      "selector": {
+        "coveredBy": [
+          "shared/model-codec/DRW_AcDbPlaceholder"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/drw_objects.cpp"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/drw_objects.h",
+          "spanSha256": "3fe18a3496311bc76ddc096a0b79ec83f351e82d168fcf4e64b68956dd8a3d32",
+          "symbol": "src/drw_objects.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_drw_objects.h",
+      "selector": {
+        "coveredBy": [
+          "dwgRW/raw-entity-shell/1127-AEC_WALL"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/drw_objects.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/handle_allocator.h",
+          "spanSha256": "2b2de1b2c918793362284a243ef32dfc6e23c3377679489a069c8008bbe64b57",
+          "symbol": "src/handle_allocator.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_handle_allocator.h",
+      "selector": {
+        "coveredBy": [
+          "shared/helper-subsystem/handle-allocation"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/handle_allocator.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/drw_cptables.h",
+          "spanSha256": "76cbf82944d5a33a5e770dc8f469a1a2e360348f80c8fa5732ef66fb1a5c10a0",
+          "symbol": "src/intern/drw_cptables.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_drw_cptables.h",
+      "selector": {
+        "coveredBy": [
+          "shared/helper-subsystem/codepage"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/drw_cptables.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/drw_dbg.cpp",
+          "spanSha256": "121cead91b987295f5795e7b2c42dbad9f058fd84cdb3a2bf512f6e6b9b5fb5b",
+          "symbol": "src/intern/drw_dbg.cpp"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_drw_dbg.cpp",
+      "selector": {
+        "coveredBy": [
+          "shared/helper-subsystem/diagnostic-hook"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/drw_dbg.cpp"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/drw_dbg.h",
+          "spanSha256": "e2d221e52a1a00179011f27a41c3a1a6a1721a77459739be4d8c97b5008466f8",
+          "symbol": "src/intern/drw_dbg.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_drw_dbg.h",
+      "selector": {
+        "coveredBy": [
+          "shared/helper-subsystem/diagnostic-hook"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/drw_dbg.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/drw_reserve.h",
+          "spanSha256": "706da2d482c744348bb343c27d7363da7a431d07c802bef7359da61cdd8b7815",
+          "symbol": "src/intern/drw_reserve.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_drw_reserve.h",
+      "selector": {
+        "coveredBy": [
+          "shared/helper-subsystem/reserve-bounds"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/drw_reserve.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/drw_textcodec.cpp",
+          "spanSha256": "8533fd10827fe95258193297143b20697b9c1be1079311ff0b17d91bcee60b89",
+          "symbol": "src/intern/drw_textcodec.cpp"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_drw_textcodec.cpp",
+      "selector": {
+        "coveredBy": [
+          "shared/helper-subsystem/text-codec"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/drw_textcodec.cpp"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/drw_textcodec.h",
+          "spanSha256": "19a5cdedded2c9bbcd6773fec4fa97ddb38c96c81fc729b1571c84230dde348e",
+          "symbol": "src/intern/drw_textcodec.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_drw_textcodec.h",
+      "selector": {
+        "coveredBy": [
+          "shared/helper-subsystem/text-codec"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/drw_textcodec.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwg_dxf_output_transaction.cpp",
+          "spanSha256": "d526b2f6d707d9a88dc5ddbeb1abf85cab5efed28cfe931fa0728c8adba05964",
+          "symbol": "src/intern/dwg_dxf_output_transaction.cpp"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwg_dxf_output_transaction.cpp",
+      "selector": {
+        "coveredBy": [
+          "shared/helper-subsystem/output-transaction"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwg_dxf_output_transaction.cpp"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwg_dxf_output_transaction.h",
+          "spanSha256": "1c7e352395b637215de351676ae053e46cd2d6c0f380a6322932fe021a8c7aa0",
+          "symbol": "src/intern/dwg_dxf_output_transaction.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwg_dxf_output_transaction.h",
+      "selector": {
+        "coveredBy": [
+          "shared/helper-subsystem/output-transaction"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwg_dxf_output_transaction.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwg_fixed_handles.h",
+          "spanSha256": "40fc75b207b13af26324dd174bf607b63d12601880c828025de86525eb8859fb",
+          "symbol": "src/intern/dwg_fixed_handles.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwg_fixed_handles.h",
+      "selector": {
+        "coveredBy": [
+          "shared/helper-subsystem/fixed-handles"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwg_fixed_handles.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgbuffer.cpp",
+          "spanSha256": "950ebb88201faf1826952f7c8a7499c521ec4004f4edf0e03b36ed5799329f3d",
+          "symbol": "src/intern/dwgbuffer.cpp"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgbuffer.cpp",
+      "selector": {
+        "coveredBy": [
+          "shared/helper-subsystem/dwg-buffer-read"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgbuffer.cpp"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgbuffer.h",
+          "spanSha256": "cf8cb4820a22b3d34090e0ee6a0e1d149f2f9f802f4838e0d47eb0e97338327d",
+          "symbol": "src/intern/dwgbuffer.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgbuffer.h",
+      "selector": {
+        "coveredBy": [
+          "shared/helper-subsystem/dwg-buffer-read"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgbuffer.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgbufferw.cpp",
+          "spanSha256": "2f755b542884eb735406b149cb89d818c79c195b4a66445eaa9690c123947e0c",
+          "symbol": "src/intern/dwgbufferw.cpp"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgbufferw.cpp",
+      "selector": {
+        "coveredBy": [
+          "shared/helper-subsystem/dwg-buffer-write"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgbufferw.cpp"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgbufferw.h",
+          "spanSha256": "3e7995b8cc84c4ab8dd8e9c6f09b6ec7185b6c6b52ed270cadebe39358262441",
+          "symbol": "src/intern/dwgbufferw.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgbufferw.h",
+      "selector": {
+        "coveredBy": [
+          "shared/helper-subsystem/dwg-buffer-write"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgbufferw.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgobjectframe.cpp",
+          "spanSha256": "559baa3976fb01ada91208d193c817ab50899117951309d0e1b2fa76beb2aba6",
+          "symbol": "src/intern/dwgobjectframe.cpp"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgobjectframe.cpp",
+      "selector": {
+        "coveredBy": [
+          "shared/helper-subsystem/dwg-object-frame"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgobjectframe.cpp"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgobjectframe.h",
+          "spanSha256": "b1bb3fd02e32757b05252a38e69b31c7890ce135ec874f49e669cc88a18d89af",
+          "symbol": "src/intern/dwgobjectframe.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgobjectframe.h",
+      "selector": {
+        "coveredBy": [
+          "shared/helper-subsystem/dwg-object-frame"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgobjectframe.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgreader.cpp",
+          "spanSha256": "58407dfa35691ac0f1094493ed72e2a15a111eb0e51efa587bebaede7b1bfd73",
+          "symbol": "src/intern/dwgreader.cpp"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgreader.cpp",
+      "selector": {
+        "coveredBy": [
+          "dwgRW/fixed-entity/1-TEXT"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgreader.cpp"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgreader.h",
+          "spanSha256": "20244687203522df12e1791971f4cfd7ae9da60f0a3bb82e33dc1ac0fb303cb8",
+          "symbol": "src/intern/dwgreader.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgreader.h",
+      "selector": {
+        "coveredBy": [
+          "dwgRW/reader-pipeline/base"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgreader.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgreader15.cpp",
+          "spanSha256": "53b83832bce18ae95a909333a5e12793fb7485744e3c2ecb0d2e4f64dad3534c",
+          "symbol": "src/intern/dwgreader15.cpp"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgreader15.cpp",
+      "selector": {
+        "coveredBy": [
+          "dwgRW/reader-pipeline/15"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgreader15.cpp"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgreader15.h",
+          "spanSha256": "3861862f10e587f885ac71a4031c7ca6b924cffd2d18fe768c9ded712c86c692",
+          "symbol": "src/intern/dwgreader15.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgreader15.h",
+      "selector": {
+        "coveredBy": [
+          "dwgRW/reader-pipeline/15"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgreader15.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgreader18.cpp",
+          "spanSha256": "0a5105ea43fb169836ba638e9d49d394860ad7c306f534f7a2e9cb47997b1831",
+          "symbol": "src/intern/dwgreader18.cpp"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgreader18.cpp",
+      "selector": {
+        "coveredBy": [
+          "dwgRW/raw-flow/dwg-capture-datastorage-r2004"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgreader18.cpp"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgreader18.h",
+          "spanSha256": "08a2bf08d237bbaecdce83a59f3c2948669222bf4dd133461a84ebd3f2603855",
+          "symbol": "src/intern/dwgreader18.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgreader18.h",
+      "selector": {
+        "coveredBy": [
+          "dwgRW/reader-pipeline/18"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgreader18.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgreader21.cpp",
+          "spanSha256": "02caf3da295c2057ebf7f98067b87a1745fe5be8b7d1170bb2c052d7b684c8f5",
+          "symbol": "src/intern/dwgreader21.cpp"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgreader21.cpp",
+      "selector": {
+        "coveredBy": [
+          "dwgRW/raw-flow/dwg-capture-datastorage-r2007"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgreader21.cpp"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgreader21.h",
+          "spanSha256": "a67df90fe6d517e305f397a36b6aa3a0f05d2604637e70088aa6b966988bc580",
+          "symbol": "src/intern/dwgreader21.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgreader21.h",
+      "selector": {
+        "coveredBy": [
+          "dwgRW/reader-pipeline/21"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgreader21.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgreader24.cpp",
+          "spanSha256": "7a2e01a1737ae0bba7da7fdd326a27783cd48bd83ebba1f39500be3fa446025f",
+          "symbol": "src/intern/dwgreader24.cpp"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgreader24.cpp",
+      "selector": {
+        "coveredBy": [
+          "dwgRW/reader-pipeline/24"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgreader24.cpp"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgreader24.h",
+          "spanSha256": "86f0346badb5dcac299bb03b4f6a604a3d03a41ddbade6607b8f2f518875dcbd",
+          "symbol": "src/intern/dwgreader24.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgreader24.h",
+      "selector": {
+        "coveredBy": [
+          "dwgRW/reader-pipeline/24"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgreader24.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgreader27.cpp",
+          "spanSha256": "514934ba0a94d0ba54d9ae0d55db28954825106b179af42ae8fd1eb29251dc5f",
+          "symbol": "src/intern/dwgreader27.cpp"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgreader27.cpp",
+      "selector": {
+        "coveredBy": [
+          "dwgRW/reader-pipeline/27"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgreader27.cpp"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgreader27.h",
+          "spanSha256": "63fc7b3b54a03a06685d29be01c5443ed8cb0c898f303a4af6aeaab2eaa69d64",
+          "symbol": "src/intern/dwgreader27.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgreader27.h",
+      "selector": {
+        "coveredBy": [
+          "dwgRW/reader-pipeline/27"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgreader27.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgreader32.cpp",
+          "spanSha256": "52d1442192d160c909657286ad594afe9b9b72e794bb4dfa401ab95cb48b1daa",
+          "symbol": "src/intern/dwgreader32.cpp"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgreader32.cpp",
+      "selector": {
+        "coveredBy": [
+          "dwgRW/reader-pipeline/32"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgreader32.cpp"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgreader32.h",
+          "spanSha256": "90d911a25b0ce9918b74823e34f047b822cfcae22b55c60e6c572c8b298547ed",
+          "symbol": "src/intern/dwgreader32.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgreader32.h",
+      "selector": {
+        "coveredBy": [
+          "dwgRW/reader-pipeline/32"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgreader32.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgreaderR11.cpp",
+          "spanSha256": "66e12797a0ee5628d14995de1269b0e0023da5b7f62e95859ed35e9169efbd07",
+          "symbol": "src/intern/dwgreaderR11.cpp"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgreaderR11.cpp",
+      "selector": {
+        "coveredBy": [
+          "dwgRW/reader-pipeline/r11"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgreaderR11.cpp"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgreaderR11.h",
+          "spanSha256": "97f46b7b8bf4be61afdd8b68ae2754a9aaba3cd219c47cc8c9fec4db7176d9e8",
+          "symbol": "src/intern/dwgreaderR11.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgreaderR11.h",
+      "selector": {
+        "coveredBy": [
+          "dwgRW/reader-pipeline/r11"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgreaderR11.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgreaderR1_40.cpp",
+          "spanSha256": "75016657d91b4db00392d42e1612572cb293257c92cb27ea46620108145d394f",
+          "symbol": "src/intern/dwgreaderR1_40.cpp"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgreaderR1_40.cpp",
+      "selector": {
+        "coveredBy": [
+          "dwgRW/reader-pipeline/r1_40"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgreaderR1_40.cpp"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgreaderR1_40.h",
+          "spanSha256": "e19f73436517ac2487d982827e2ccdcc1e3ad444f028d8886f5c1d6d68d51c12",
+          "symbol": "src/intern/dwgreaderR1_40.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgreaderR1_40.h",
+      "selector": {
+        "coveredBy": [
+          "dwgRW/reader-pipeline/r1_40"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgreaderR1_40.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgsafety.h",
+          "spanSha256": "82f5393b5b20d524bf1822b674d5a6678d72a2217dce4ec7fa7737ca75e36d7f",
+          "symbol": "src/intern/dwgsafety.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgsafety.h",
+      "selector": {
+        "coveredBy": [
+          "shared/helper-subsystem/dwg-safety"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgsafety.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgutil.cpp",
+          "spanSha256": "8eba40664d244bd886dd17590e7a6de4b4be4f815d7c228fa45fb5632619d385",
+          "symbol": "src/intern/dwgutil.cpp"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgutil.cpp",
+      "selector": {
+        "coveredBy": [
+          "dwgRW/section-fallback/UNKNOWNS"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgutil.cpp"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgutil.h",
+          "spanSha256": "fba50c53a6a7d8595bfa4645461fe3ba67c42a6f115cad52dec672c33fca7526",
+          "symbol": "src/intern/dwgutil.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgutil.h",
+      "selector": {
+        "coveredBy": [
+          "dwgRW/section-declaration/APPINFO"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgutil.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgwriter.h",
+          "spanSha256": "aff932d233602cc5472acfbda4e583287a85cd995e36efc4937b47a79e33a90d",
+          "symbol": "src/intern/dwgwriter.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgwriter.h",
+      "selector": {
+        "coveredBy": [
+          "dwgRW/raw-flow/dwg-replay-class-registration"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgwriter.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgwriter15.cpp",
+          "spanSha256": "bafaac548489434f1ec07591be00157cf30aa1ad47ac55effca7255e13a91356",
+          "symbol": "src/intern/dwgwriter15.cpp"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgwriter15.cpp",
+      "selector": {
+        "coveredBy": [
+          "dwgRW/raw-flow/dwg-eligibility-block-owner"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgwriter15.cpp"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgwriter15.h",
+          "spanSha256": "faa88ce8f8af5ed695d032a83bf79e6821eae6842ab4e024bc4a939434546429",
+          "symbol": "src/intern/dwgwriter15.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgwriter15.h",
+      "selector": {
+        "coveredBy": [
+          "dwgRW/writer-pipeline/15"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgwriter15.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgwriter18.cpp",
+          "spanSha256": "3d40301b028bd9f798eee36dc75743df1b3856d1def074801ecb347b6d48c082",
+          "symbol": "src/intern/dwgwriter18.cpp"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgwriter18.cpp",
+      "selector": {
+        "coveredBy": [
+          "dwgRW/raw-flow/dwg-replay-section"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgwriter18.cpp"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgwriter18.h",
+          "spanSha256": "c0302211675ddc034fd4f57f13bbdc9e63704a31be2dc1f63766f44047a37f8b",
+          "symbol": "src/intern/dwgwriter18.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgwriter18.h",
+      "selector": {
+        "coveredBy": [
+          "dwgRW/writer-pipeline/18"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgwriter18.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgwriter21.cpp",
+          "spanSha256": "9e9eddf9f7d54ac97faa5a075969225b7ec96e2f18e492abaecc8d152070dc67",
+          "symbol": "src/intern/dwgwriter21.cpp"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgwriter21.cpp",
+      "selector": {
+        "coveredBy": [
+          "dwgRW/raw-flow/dwg-replay-section"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgwriter21.cpp"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgwriter21.h",
+          "spanSha256": "91159ae6467a51b48207f175f52a4bdb9c4b125cb0f37fa82f1ea6b2759b2b3e",
+          "symbol": "src/intern/dwgwriter21.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgwriter21.h",
+      "selector": {
+        "coveredBy": [
+          "dwgRW/writer-pipeline/21"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgwriter21.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgwriter24.cpp",
+          "spanSha256": "fb788518a30e4fb48449c5fe0a7997f9d6d8604bd70d1d05ae7776bd59984bdb",
+          "symbol": "src/intern/dwgwriter24.cpp"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgwriter24.cpp",
+      "selector": {
+        "coveredBy": [
+          "dwgRW/writer-pipeline/24"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgwriter24.cpp"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgwriter24.h",
+          "spanSha256": "52655faf5407d8945419684e53fcf4daebf714defb9f1230dd10cb8bc8503bf3",
+          "symbol": "src/intern/dwgwriter24.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgwriter24.h",
+      "selector": {
+        "coveredBy": [
+          "dwgRW/writer-pipeline/24"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgwriter24.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgwriter27.cpp",
+          "spanSha256": "a323e456dadd087a4d38447cb7616578636c0af4cf05261a5e2b30366f9708eb",
+          "symbol": "src/intern/dwgwriter27.cpp"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgwriter27.cpp",
+      "selector": {
+        "coveredBy": [
+          "dwgRW/writer-pipeline/27"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgwriter27.cpp"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgwriter27.h",
+          "spanSha256": "6ad872d3f6f240b78097e921f7a941d9bae56faf3010b686ee7b41b8e18000b4",
+          "symbol": "src/intern/dwgwriter27.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgwriter27.h",
+      "selector": {
+        "coveredBy": [
+          "dwgRW/writer-pipeline/27"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgwriter27.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgwriter32.cpp",
+          "spanSha256": "d8b121f0f7b86fa0e0683bffa7b5a0a32fc1bb0b5f4320458405ed8a541b604e",
+          "symbol": "src/intern/dwgwriter32.cpp"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgwriter32.cpp",
+      "selector": {
+        "coveredBy": [
+          "dwgRW/writer-pipeline/32"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgwriter32.cpp"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgwriter32.h",
+          "spanSha256": "4bbbba4790e2beaed515bd92d917fdd58ee9508f201543c6c942c38bafc6794c",
+          "symbol": "src/intern/dwgwriter32.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgwriter32.h",
+      "selector": {
+        "coveredBy": [
+          "dwgRW/writer-pipeline/32"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgwriter32.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgwriterlayoutvalidation.cpp",
+          "spanSha256": "20553f9c2f62fb46e82ecf4fd6dc798f0b7e08d60f7ed86cf515c4f43924a661",
+          "symbol": "src/intern/dwgwriterlayoutvalidation.cpp"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgwriterlayoutvalidation.cpp",
+      "selector": {
+        "coveredBy": [
+          "shared/helper-subsystem/writer-layout-validation"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgwriterlayoutvalidation.cpp"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dwgwriterlayoutvalidation.h",
+          "spanSha256": "a14f79c542a592b2d6c102795c9f36c1b3bc1971382efa3cda256eee80804f0d",
+          "symbol": "src/intern/dwgwriterlayoutvalidation.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dwgwriterlayoutvalidation.h",
+      "selector": {
+        "coveredBy": [
+          "shared/helper-subsystem/writer-layout-validation"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dwgwriterlayoutvalidation.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dxfparserlimits.h",
+          "spanSha256": "e59f96cc162fd1279b96244a984f8d5693207c750008e1b661baa58a7c52c721",
+          "symbol": "src/intern/dxfparserlimits.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dxfparserlimits.h",
+      "selector": {
+        "coveredBy": [
+          "shared/helper-subsystem/dxf-parser-limits"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dxfparserlimits.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dxfreader.cpp",
+          "spanSha256": "e7fc690834d1015c525fe80e60f6efc0de95b968404dee345eac1b3d6f7f2492",
+          "symbol": "src/intern/dxfreader.cpp"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dxfreader.cpp",
+      "selector": {
+        "coveredBy": [
+          "dxfRW/group-code-reader-range/0-9"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dxfreader.cpp"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dxfreader.h",
+          "spanSha256": "87b13e521a3a3e0a5c193ef119383aa642de72e36111fc09df9ab9d8c0d63160",
+          "symbol": "src/intern/dxfreader.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dxfreader.h",
+      "selector": {
+        "coveredBy": [
+          "dxfRW/dxf-transport-node/reader-ascii"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dxfreader.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dxfwriter.cpp",
+          "spanSha256": "fecd8d9f3e7247efa171ff7d951e46313fbd54818cb6b71fafcdc597f7e61c9d",
+          "symbol": "src/intern/dxfwriter.cpp"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dxfwriter.cpp",
+      "selector": {
+        "coveredBy": [
+          "shared/implementation-anchor/dxfWriter-writeUtf8String"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dxfwriter.cpp"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/dxfwriter.h",
+          "spanSha256": "3a5e389879b133ef2f62031a0a5abef16eceae18ca56065cb9b03f69ee13d554",
+          "symbol": "src/intern/dxfwriter.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_dxfwriter.h",
+      "selector": {
+        "coveredBy": [
+          "dxfRW/dxf-transport-node/writer-ascii"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/dxfwriter.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/proxygraphicdecoder.cpp",
+          "spanSha256": "9256c9f844210342929487ba35a863dad61f65f01b17d18b6034479eac28bb4c",
+          "symbol": "src/intern/proxygraphicdecoder.cpp"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_proxygraphicdecoder.cpp",
+      "selector": {
+        "coveredBy": [
+          "shared/helper-subsystem/proxy-graphics"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/proxygraphicdecoder.cpp"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/proxygraphicdecoder.h",
+          "spanSha256": "a8237e9ee8a32df099ce81d8793369e4eb11f923a298912f00bdbdf75bbd9efc",
+          "symbol": "src/intern/proxygraphicdecoder.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_proxygraphicdecoder.h",
+      "selector": {
+        "coveredBy": [
+          "shared/helper-subsystem/proxy-graphics"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/proxygraphicdecoder.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/rscodec.cpp",
+          "spanSha256": "5f841c3bf14993b156bad8d3eea9117b72585a73e976ca3b891af7cdad45aef4",
+          "symbol": "src/intern/rscodec.cpp"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_rscodec.cpp",
+      "selector": {
+        "coveredBy": [
+          "shared/helper-subsystem/reeds-solomon"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/rscodec.cpp"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/intern/rscodec.h",
+          "spanSha256": "4b74485421fac2b5520e5f3b87292fe1c8aadaff3517b4e261a91bdf67082147",
+          "symbol": "src/intern/rscodec.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_intern_rscodec.h",
+      "selector": {
+        "coveredBy": [
+          "shared/helper-subsystem/reeds-solomon"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/intern/rscodec.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/libdwgr.cpp",
+          "spanSha256": "6597fcac2c3df6f5bd95327ee2e482e731bd9e2b5b3bcb6a3c91a17e53edced1",
+          "symbol": "src/libdwgr.cpp"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_libdwgr.cpp",
+      "selector": {
+        "coveredBy": [
+          "dwgRW/facade-method/addAppId-001"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/libdwgr.cpp"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/libdwgr.h",
+          "spanSha256": "e06f2d410eaef55401b1d7d1ca4fcff97337ee2da88b502f9bcbe3a6f3ac705a",
+          "symbol": "src/libdwgr.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_libdwgr.h",
+      "selector": {
+        "coveredBy": [
+          "dwgRW/legacy-dwgr-facade/dwgR"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/libdwgr.h"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/libdxfrw.cpp",
+          "spanSha256": "d6a5b86ab4d9274c5329db055364f5aeae00c9f4e82f56fb2e8c2ee597063c61",
+          "symbol": "src/libdxfrw.cpp"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_libdxfrw.cpp",
+      "selector": {
+        "coveredBy": [
+          "dxfRW/dxf-block/BLOCK"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/libdxfrw.cpp"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "source-unit-coverage",
+      "directions": [
+        "pipeline-coverage"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/libdxfrw.h",
+          "spanSha256": "35f51a8675b8dadc71e1a74821856843e8d994b30eef8c51a74be8fa9ae1b864",
+          "symbol": "src/libdxfrw.h"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/source-unit-coverage/src_libdxfrw.h",
+      "selector": {
+        "coveredBy": [
+          "dxfRW/public-header/src_libdxfrw.h"
+        ],
+        "kind": "source-unit-coverage",
+        "path": "src/libdxfrw.h"
       },
       "sourceDisposition": "source-route-only"
     },
