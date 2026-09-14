@@ -65,6 +65,24 @@ public:
         polyline.addVertex(DRW_Vertex2D(18.0, 19.0, 0.0));
         wrotePolyline_ = writer_->writeLWPolyline(&polyline)
             && polyline.handle != 0;
+
+        DRW_Text text;
+        text.basePoint = DRW_Coord(20.0, 21.0, 22.0);
+        text.height = 1.5;
+        text.text = "TEXT";
+        wroteText_ = writer_->writeText(&text) && text.handle != 0;
+
+        DRW_MText mtext;
+        mtext.basePoint = DRW_Coord(23.0, 24.0, 25.0);
+        mtext.height = 1.5;
+        mtext.text = "MTEXT";
+        wroteMText_ = writer_->writeMText(&mtext) && mtext.handle != 0;
+
+        DRW_Ellipse ellipse;
+        ellipse.basePoint = DRW_Coord(26.0, 27.0, 28.0);
+        ellipse.secPoint = DRW_Coord(2.0, 0.0, 0.0);
+        ellipse.ratio = 0.5;
+        wroteEllipse_ = writer_->writeEllipse(&ellipse) && ellipse.handle != 0;
     }
 
     void addLine(const DRW_Line& data) override {
@@ -77,15 +95,20 @@ public:
     void addLWPolyline(const DRW_LWPolyline&) override {
         readPolylineSeen_ = true;
     }
+    void addText(const DRW_Text&) override { readTextSeen_ = true; }
+    void addMText(const DRW_MText&) override { readMTextSeen_ = true; }
+    void addEllipse(const DRW_Ellipse&) override { readEllipseSeen_ = true; }
 
     bool wroteLine() const { return wroteLine_; }
     bool wroteSimpleEntities() const {
-        return wrotePoint_ && wroteCircle_ && wroteArc_ && wrotePolyline_;
+        return wrotePoint_ && wroteCircle_ && wroteArc_ && wrotePolyline_
+            && wroteText_ && wroteMText_ && wroteEllipse_;
     }
     bool readLineSeen() const { return readLineSeen_; }
     bool readSimpleEntitiesSeen() const {
         return readPointSeen_ && readCircleSeen_ && readArcSeen_
-            && readPolylineSeen_;
+            && readPolylineSeen_ && readTextSeen_ && readMTextSeen_
+            && readEllipseSeen_;
     }
     const DRW_Line& readLine() const { return readLine_; }
 
@@ -96,11 +119,17 @@ private:
     bool wroteCircle_ {false};
     bool wroteArc_ {false};
     bool wrotePolyline_ {false};
+    bool wroteText_ {false};
+    bool wroteMText_ {false};
+    bool wroteEllipse_ {false};
     bool readLineSeen_ {false};
     bool readPointSeen_ {false};
     bool readCircleSeen_ {false};
     bool readArcSeen_ {false};
     bool readPolylineSeen_ {false};
+    bool readTextSeen_ {false};
+    bool readMTextSeen_ {false};
+    bool readEllipseSeen_ {false};
     DRW_Line readLine_;
     dx_data data_;
 };
