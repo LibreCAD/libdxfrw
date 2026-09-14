@@ -130,6 +130,12 @@ public:
             spatialIndexRegistration.handle = 0xCE00u;
             registeredSpatialIndex_ = writer_->registerSpatialIndexObjectClass(
                 &spatialIndexRegistration);
+            if (writer_->getVersion() <= DRW::AC1021) {
+                DRW_TableStyle tableStyleRegistration;
+                tableStyleRegistration.handle = 0xCF00u;
+                registeredTableStyle_ = writer_->registerTableStyleObjectClass(
+                    &tableStyleRegistration);
+            }
         }
     }
 
@@ -197,6 +203,7 @@ public:
             {"LOCAL_IDBUFFER", 0xCC00u},
             {"LOCAL_LAYER_INDEX", 0xCD00u},
             {"LOCAL_SPATIAL_INDEX", 0xCE00u},
+            {"LOCAL_TABLESTYLE", 0xCF00u},
         };
         wroteDictionary_ = registeredDictionary_
             && writer_->writeDictionary(&dictionary)
@@ -748,6 +755,51 @@ public:
         rejectedMalformedSpatialIndex_ =
             !writer_->writeSpatialIndex(&invalidSpatialIndex);
 
+        DRW_TableStyle tableStyle;
+        tableStyle.handle = 0xCF00u;
+        tableStyle.parentHandle = dictionary.handle;
+        tableStyle.m_name = "LOCAL_TABLESTYLE";
+        tableStyle.m_flowDirection = 0;
+        tableStyle.m_flags = 0;
+        tableStyle.m_horizontalCellMargin = 0.1;
+        tableStyle.m_verticalCellMargin = 0.2;
+        tableStyle.m_titleSuppressed = false;
+        tableStyle.m_headerSuppressed = false;
+        for (int rowIndex = 0; rowIndex < 3; ++rowIndex) {
+            DRW_TableStyleRowStyle row;
+            row.m_textHeight = 1.0 + rowIndex;
+            row.m_textAlignment = rowIndex;
+            row.m_textColor = 0;
+            row.m_fillColor = 0;
+            row.m_hasBackgroundColor = false;
+            row.m_valueDataType = rowIndex;
+            row.m_valueUnitType = rowIndex + 1;
+            row.m_valueFormatString = "LOCAL_FORMAT";
+            for (int borderIndex = 0; borderIndex < 6; ++borderIndex) {
+                DRW_TableStyleBorder border;
+                border.m_edgeFlags = 1 << borderIndex;
+                border.m_lineWeight = borderIndex;
+                border.m_color = 0;
+                border.m_visible = 1;
+                row.m_borders.push_back(border);
+            }
+            tableStyle.m_rowStyles.push_back(row);
+        }
+        const bool tableStyleSupported = writer_->getVersion() <= DRW::AC1021;
+        if (tableStyleSupported) {
+            wroteTableStyle_ = registeredTableStyle_
+                && writer_->writeTableStyle(&tableStyle)
+                && tableStyle.handle != 0;
+            DRW_TableStyle invalidTableStyle = tableStyle;
+            invalidTableStyle.handle = 0xCF01u;
+            invalidTableStyle.m_rowStyles.pop_back();
+            rejectedMalformedTableStyle_ =
+                !writer_->writeTableStyle(&invalidTableStyle);
+        } else {
+            rejectedUnsupportedTableStyle_ =
+                !writer_->writeTableStyle(&tableStyle);
+        }
+
         DRW_Group group;
         group.handle = 0xA600u;
         group.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
@@ -946,7 +998,7 @@ public:
         if (data.handle == 0xA601u) {
             readDictionarySeen_ = data.parentHandle
                     == DRW::DwgNamedObjectsDictionaryHandle
-                && data.m_entries.size() == 26
+                && data.m_entries.size() == 27
                 && data.m_entries[0].m_name == "LOCAL_XRECORD"
                 && data.m_entries[0].m_handle == 0xA602u
                 && data.m_entries[1].m_name == "LOCAL_PLOTSETTINGS"
@@ -998,7 +1050,9 @@ public:
                 && data.m_entries[24].m_name == "LOCAL_LAYER_INDEX"
                 && data.m_entries[24].m_handle == 0xCD00u
                 && data.m_entries[25].m_name == "LOCAL_SPATIAL_INDEX"
-                && data.m_entries[25].m_handle == 0xCE00u;
+                && data.m_entries[25].m_handle == 0xCE00u
+                && data.m_entries[26].m_name == "LOCAL_TABLESTYLE"
+                && data.m_entries[26].m_handle == 0xCF00u;
         }
     }
     void addXRecord(const DRW_XRecord& data) override {
@@ -1265,6 +1319,16 @@ public:
         if (data.handle == 0xCE01u)
             readMalformedSpatialIndexSeen_ = true;
     }
+    void addTableStyle(const DRW_TableStyle& data) override {
+        if (data.handle == 0xCF00u)
+            readTableStyleSeen_ = data.parentHandle == 0xA601u
+                && data.m_name == "LOCAL_TABLESTYLE"
+                && data.m_rowStyles.size() == 3
+                && data.m_rowStyles.front().m_borders.size() == 6
+                && data.m_rowStyles.back().m_borders.size() == 6;
+        if (data.handle == 0xCF01u)
+            readMalformedTableStyleSeen_ = true;
+    }
     void addInsert(const DRW_Insert& data) override {
         readInsertSeen_ = true;
         readAttribSeen_ = data.attlist.size() == 1
@@ -1310,6 +1374,7 @@ public:
             && wroteIDBuffer_
             && wroteLayerIndex_
             && wroteSpatialIndex_
+            && (wroteTableStyle_ || rejectedUnsupportedTableStyle_)
             && wroteGroup_;
     }
     bool rejectedMalformedObject() const { return rejectedMalformedObject_; }
@@ -1364,6 +1429,9 @@ public:
     bool rejectedMalformedIDBuffer() const { return rejectedMalformedIDBuffer_; }
     bool rejectedMalformedLayerIndex() const { return rejectedMalformedLayerIndex_; }
     bool rejectedMalformedSpatialIndex() const { return rejectedMalformedSpatialIndex_; }
+    bool wroteTableStyle() const { return wroteTableStyle_; }
+    bool rejectedMalformedTableStyle() const { return rejectedMalformedTableStyle_; }
+    bool rejectedUnsupportedTableStyle() const { return rejectedUnsupportedTableStyle_; }
     bool readLineSeen() const { return readLineSeen_; }
     bool readSimpleEntitiesSeen() const {
         return readPointSeen_ && readCircleSeen_ && readArcSeen_
@@ -1394,6 +1462,7 @@ public:
             && readRenderRapidSeen_ && readRenderMentalSeen_
             && readMaterialSeen_ && readLightListSeen_ && readScaleSeen_
             && readIDBufferSeen_ && readLayerIndexSeen_ && readSpatialIndexSeen_
+            && (readTableStyleSeen_ || !tableStyleExpected_)
             && readGroupSeen_;
     }
     bool readMalformedObjectSeen() const { return readMalformedObjectSeen_; }
@@ -1460,6 +1529,9 @@ public:
     bool readMalformedLayerIndexSeen() const { return readMalformedLayerIndexSeen_; }
     bool readSpatialIndexSeen() const { return readSpatialIndexSeen_; }
     bool readMalformedSpatialIndexSeen() const { return readMalformedSpatialIndexSeen_; }
+    bool readTableStyleSeen() const { return readTableStyleSeen_; }
+    bool readMalformedTableStyleSeen() const { return readMalformedTableStyleSeen_; }
+    void setTableStyleExpected(bool expected) { tableStyleExpected_ = expected; }
     const DRW_Line& readLine() const { return readLine_; }
 
 private:
@@ -1517,6 +1589,7 @@ private:
     bool wroteIDBuffer_ {false};
     bool wroteLayerIndex_ {false};
     bool wroteSpatialIndex_ {false};
+    bool wroteTableStyle_ {false};
     bool rejectedMalformedObject_ {false};
     bool rejectedMalformedStyle_ {false};
     bool rejectedMalformedMLeaderStyle_ {false};
@@ -1542,6 +1615,8 @@ private:
     bool rejectedMalformedIDBuffer_ {false};
     bool rejectedMalformedLayerIndex_ {false};
     bool rejectedMalformedSpatialIndex_ {false};
+    bool rejectedMalformedTableStyle_ {false};
+    bool rejectedUnsupportedTableStyle_ {false};
     bool registeredDictionary_ {false};
     bool registeredMLeaderStyle_ {false};
     bool registeredDictionaryVar_ {false};
@@ -1565,6 +1640,7 @@ private:
     bool registeredIDBuffer_ {false};
     bool registeredLayerIndex_ {false};
     bool registeredSpatialIndex_ {false};
+    bool registeredTableStyle_ {false};
     bool registeredPlotSettings_ {false};
     bool readLineSeen_ {false};
     bool readPointSeen_ {false};
@@ -1614,6 +1690,8 @@ private:
     bool readIDBufferSeen_ {false};
     bool readLayerIndexSeen_ {false};
     bool readSpatialIndexSeen_ {false};
+    bool readTableStyleSeen_ {false};
+    bool tableStyleExpected_ {false};
     bool readMalformedObjectSeen_ {false};
     bool readMalformedStyleSeen_ {false};
     bool readMalformedMLeaderStyleSeen_ {false};
@@ -1638,6 +1716,7 @@ private:
     bool readMalformedIDBufferSeen_ {false};
     bool readMalformedLayerIndexSeen_ {false};
     bool readMalformedSpatialIndexSeen_ {false};
+    bool readMalformedTableStyleSeen_ {false};
     DRW_Line readLine_;
     dx_data data_;
 };
@@ -1780,11 +1859,21 @@ int main(int argc, char** argv) {
         expect(writeIface.rejectedMalformedSpatialIndex(),
                ("local DWG writer rejected malformed SPATIAL_INDEX transaction" + suffix).c_str(),
                failures);
+        expect(version <= DRW::AC1021
+                   ? writeIface.wroteTableStyle()
+                   : writeIface.rejectedUnsupportedTableStyle(),
+               ("local DWG TABLESTYLE capability gate" + suffix).c_str(), failures);
+        expect(version <= DRW::AC1021
+                   ? writeIface.rejectedMalformedTableStyle()
+                   : true,
+               ("local DWG writer rejected malformed TABLESTYLE transaction" + suffix).c_str(),
+               failures);
         expect(std::filesystem::exists(output),
                ("local DWG output is published" + suffix).c_str(), failures);
 
         dwgRW reader(output.string().c_str());
         LocalDwgInterface readIface;
+        readIface.setTableStyleExpected(version <= DRW::AC1021);
         const bool readOk = reader.read(&readIface, false);
         expect(readOk, ("local DWG reader self-read succeeds" + suffix).c_str(),
                failures);
@@ -1856,6 +1945,11 @@ int main(int argc, char** argv) {
         expect(readIface.readSpatialIndexSeen(),
                ("local DWG self-read publishes SPATIAL_INDEX" + suffix).c_str(),
                failures);
+        expect(version <= DRW::AC1021
+                   ? readIface.readTableStyleSeen()
+                   : !readIface.readTableStyleSeen(),
+               ("local DWG TABLESTYLE capability-gated self-read" + suffix).c_str(),
+               failures);
         expect(!readIface.readMalformedObjectSeen(),
                ("local DWG self-read omits rolled-back malformed object" + suffix).c_str(),
                failures);
@@ -1924,6 +2018,9 @@ int main(int argc, char** argv) {
                failures);
         expect(!readIface.readMalformedSpatialIndexSeen(),
                ("local DWG self-read omits rolled-back malformed SPATIAL_INDEX" + suffix).c_str(),
+               failures);
+        expect(!readIface.readMalformedTableStyleSeen(),
+               ("local DWG self-read omits rolled-back malformed TABLESTYLE" + suffix).c_str(),
                failures);
         if (readIface.readLineSeen()) {
             const DRW_Line& line = readIface.readLine();

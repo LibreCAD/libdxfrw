@@ -78,6 +78,8 @@ LAYER_INDEX_HANDLE = 0xCD00
 MALFORMED_LAYER_INDEX_HANDLE = 0xCD01
 SPATIAL_INDEX_HANDLE = 0xCE00
 MALFORMED_SPATIAL_INDEX_HANDLE = 0xCE01
+TABLESTYLE_HANDLE = 0xCF00
+MALFORMED_TABLESTYLE_HANDLE = 0xCF01
 
 RENDER_SETTINGS_KINDS = {
     "Settings": ("RENDERSETTINGS", RENDERSETTINGS_HANDLE, 556),
@@ -163,7 +165,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         raise ValueError("GROUP name, owner, or member stream mismatch")
 
     dictionary = find_record(records, "DICTIONARY", DICTIONARY_HANDLE)
-    if (dictionary.get("numitems") != 26
+    if (dictionary.get("numitems") != 27
             or dictionary.get("is_hardowner") != 1
             or owner_handle(dictionary) != 0x0C):
         raise ValueError("custom DICTIONARY count, owner, or cloning mismatch")
@@ -571,6 +573,30 @@ def check_objects(payload: dict, version_name: str) -> dict:
         "SPATIAL_INDEX opaque spatial payload is intentionally empty in local fixture"
     ]
 
+    table_style_discrepancies = []
+    if version_name in {"AC1015", "AC1018", "AC1021"}:
+        table_style = find_record(records, "TABLESTYLE", TABLESTYLE_HANDLE)
+        row_styles = table_style.get("rowstyles")
+        if (owner_handle(table_style) != DICTIONARY_HANDLE
+                or table_style.get("type") != 526
+                or table_style.get("name") != "LOCAL_TABLESTYLE"
+                or not isinstance(row_styles, list)
+                or len(row_styles) != 3
+                or any(not isinstance(row, dict)
+                       or not isinstance(row.get("borders"), list)
+                       or len(row["borders"]) != 6 for row in row_styles)):
+            raise ValueError("TABLESTYLE owner, identity, or row payload mismatch")
+        if version_name == "AC1021":
+            table_style_discrepancies.append(
+                "LibreDWG 0.14 misdecodes TABLESTYLE AC1021 row scalar fields")
+    else:
+        if any(record.get("object") == "TABLESTYLE"
+               and record_handle(record) == TABLESTYLE_HANDLE
+               for record in records if isinstance(record, dict)):
+            raise ValueError("unsupported TABLESTYLE was published")
+        table_style_discrepancies.append(
+            "TABLESTYLE is intentionally unsupported after AC1021")
+
     dictionary_default = find_record(
         records, "DICTIONARYWDFLT", DICTIONARYWDFLT_HANDLE)
     if (owner_handle(dictionary_default) != DICTIONARY_HANDLE
@@ -622,6 +648,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         MALFORMED_IDBUFFER_HANDLE: "IDBUFFER",
         MALFORMED_LAYER_INDEX_HANDLE: "LAYER_INDEX",
         MALFORMED_SPATIAL_INDEX_HANDLE: "SPATIAL_INDEX",
+        MALFORMED_TABLESTYLE_HANDLE: "TABLESTYLE",
     }
     if any(record_handle(record) in malformed_handles
            and record.get("object") == malformed_handles[record_handle(record)]
@@ -659,6 +686,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "IDBUFFER": IDBUFFER_HANDLE,
             "LAYER_INDEX": LAYER_INDEX_HANDLE,
             "SPATIAL_INDEX": SPATIAL_INDEX_HANDLE,
+            "TABLESTYLE": TABLESTYLE_HANDLE,
             "DICTIONARYWDFLT": DICTIONARYWDFLT_HANDLE,
         },
         "objectStatus": "qualified",
@@ -666,7 +694,8 @@ def check_objects(payload: dict, version_name: str) -> dict:
                                  + material_discrepancies
                                  + dbcolor_discrepancies
                                  + light_list_discrepancies
-                                 + spatial_index_discrepancies),
+                                 + spatial_index_discrepancies
+                                 + table_style_discrepancies),
     }
 
 
@@ -737,7 +766,7 @@ def self_test() -> None:
              "ownerhandle": [4, 1, 0x0C, 0x0C], "name": "LOCAL_GROUP",
              "groups": [[5, 1, 0x1234]]},
             {"object": "DICTIONARY", "handle": [0, 1, DICTIONARY_HANDLE],
-             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 26,
+             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 27,
              "is_hardowner": 1},
             {"object": "XRECORD", "handle": [0, 1, XRECORD_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
