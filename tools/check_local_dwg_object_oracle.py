@@ -58,6 +58,8 @@ RENDERENVIRONMENT_HANDLE = 0xC200
 MALFORMED_RENDERENVIRONMENT_HANDLE = 0xC201
 RENDERGLOBAL_HANDLE = 0xC300
 MALFORMED_RENDERGLOBAL_HANDLE = 0xC301
+RENDERENTRY_HANDLE = 0xC400
+MALFORMED_RENDERENTRY_HANDLE = 0xC401
 
 
 def parse_json_output(text: str) -> dict:
@@ -121,7 +123,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         raise ValueError("GROUP name, owner, or member stream mismatch")
 
     dictionary = find_record(records, "DICTIONARY", DICTIONARY_HANDLE)
-    if (dictionary.get("numitems") != 16
+    if (dictionary.get("numitems") != 17
             or dictionary.get("is_hardowner") != 1
             or owner_handle(dictionary) != 0x0C):
         raise ValueError("custom DICTIONARY count, owner, or cloning mismatch")
@@ -314,6 +316,27 @@ def check_objects(payload: dict, version_name: str) -> dict:
             or global_settings.get("save_filename") != "LOCAL_RENDER_GLOBAL"):
         raise ValueError("RENDERGLOBAL owner or bounded fields mismatch")
 
+    entry = find_record(records, "RENDERENTRY", RENDERENTRY_HANDLE)
+    if (owner_handle(entry) != DICTIONARY_HANDLE
+            or entry.get("type") != 549
+            or entry.get("class_version") != 1
+            or entry.get("image_file_name") != "LOCAL_RENDER_ENTRY"
+            or entry.get("dimension_x") != 11
+            or entry.get("dimension_y") != 12
+            or entry.get("start_year") != 1
+            or entry.get("start_month") != 2
+            or entry.get("start_day") != 3
+            or entry.get("start_minute") != 4
+            or entry.get("start_second") != 5
+            or entry.get("start_msec") != 6
+            or entry.get("render_time") != 1.5
+            or entry.get("memory_amount") != 13
+            or entry.get("material_count") != 14
+            or entry.get("light_count") != 15
+            or entry.get("triangle_count") != 16
+            or entry.get("display_index") != 17):
+        raise ValueError("RENDERENTRY owner or bounded fields mismatch")
+
     dictionary_default = find_record(
         records, "DICTIONARYWDFLT", DICTIONARYWDFLT_HANDLE)
     if (owner_handle(dictionary_default) != DICTIONARY_HANDLE
@@ -355,6 +378,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         MALFORMED_RENDERSETTINGS_HANDLE: "RENDERSETTINGS",
         MALFORMED_RENDERENVIRONMENT_HANDLE: "RENDERENVIRONMENT",
         MALFORMED_RENDERGLOBAL_HANDLE: "RENDERGLOBAL",
+        MALFORMED_RENDERENTRY_HANDLE: "RENDERENTRY",
     }
     if any(record_handle(record) in malformed_handles
            and record.get("object") == malformed_handles[record_handle(record)]
@@ -381,6 +405,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "RENDERSETTINGS": RENDERSETTINGS_HANDLE,
             "RENDERENVIRONMENT": RENDERENVIRONMENT_HANDLE,
             "RENDERGLOBAL": RENDERGLOBAL_HANDLE,
+            "RENDERENTRY": RENDERENTRY_HANDLE,
             "DICTIONARYWDFLT": DICTIONARYWDFLT_HANDLE,
         },
         "objectStatus": "qualified",
@@ -455,7 +480,7 @@ def self_test() -> None:
              "ownerhandle": [4, 1, 0x0C, 0x0C], "name": "LOCAL_GROUP",
              "groups": [[5, 1, 0x1234]]},
             {"object": "DICTIONARY", "handle": [0, 1, DICTIONARY_HANDLE],
-             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 16,
+             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 17,
              "is_hardowner": 1},
             {"object": "XRECORD", "handle": [0, 1, XRECORD_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
@@ -548,6 +573,17 @@ def self_test() -> None:
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
              "type": 551, "class_version": 1, "procedure": 7,
              "destination": 8, "save_filename": "LOCAL_RENDER_GLOBAL"},
+            {"object": "RENDERENTRY",
+             "handle": [0, 1, RENDERENTRY_HANDLE],
+             "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "type": 549, "class_version": 1,
+             "image_file_name": "LOCAL_RENDER_ENTRY",
+             "dimension_x": 11, "dimension_y": 12, "start_year": 1,
+             "start_month": 2, "start_day": 3, "start_minute": 4,
+             "start_second": 5, "start_msec": 6, "render_time": 1.5,
+             "memory_amount": 13, "material_count": 14,
+             "light_count": 15, "triangle_count": 16,
+             "display_index": 17},
         ],
     }
     check_objects(payload, "AC1024")
@@ -684,6 +720,16 @@ def self_test() -> None:
         pass
     else:
         raise AssertionError("malformed RENDERGLOBAL was not rejected")
+    try:
+        bad = json.loads(json.dumps(payload))
+        bad["OBJECTS"].append({"object": "RENDERENTRY",
+                                "handle": [0, 1,
+                                            MALFORMED_RENDERENTRY_HANDLE]})
+        check_objects(bad, "AC1024")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("malformed RENDERENTRY was not rejected")
     print("local DWG object oracle: PASS")
 
 
