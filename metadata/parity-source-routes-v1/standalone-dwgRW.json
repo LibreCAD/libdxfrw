@@ -6322,6 +6322,534 @@
       "facade": "dwgRW",
       "id": "dwgRW/fixed-entity/7-INSERT",
       "selector": {
+        "compoundDeliveryEvidence": [
+          {
+            "bodySymbol": "dwgReader::readMappedDwgEntity",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 8290,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "15ffeb569924388da1eb5546fd5d2bccee782cc8a794bfc5711f30df35a830db",
+                  "symbol": "dwgReader::readMappedDwgEntity"
+                },
+                "callee": "DwgMappedEntityCompletion::Journal",
+                "calleeOverload": "journal-output-contract",
+                "edge": "journal-contract-guard",
+                "guardFingerprint": "8e20663aaf8f25b594299304378785ee263a77c213495aa380c2eabbc4e5d6cb",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "journal-gate",
+                "sourceOffset": 9
+              },
+              {
+                "callEvidence": {
+                  "line": 8294,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "15ffeb569924388da1eb5546fd5d2bccee782cc8a794bfc5711f30df35a830db",
+                  "symbol": "dwgReader::readMappedDwgEntity"
+                },
+                "callee": "DwgMappedEntityCompletion::Immediate",
+                "calleeOverload": "immediate-output-contract",
+                "edge": "immediate-contract-guard",
+                "guardFingerprint": "2d1452dfd3de191e67dd78b4ecde759bfb160874ac077fecac0186b8082e98f1",
+                "order": 2,
+                "predecessorEdges": [
+                  "journal-contract-guard"
+                ],
+                "relation": "direct-gate",
+                "sourceOffset": 214
+              },
+              {
+                "callEvidence": {
+                  "line": 8389,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "15ffeb569924388da1eb5546fd5d2bccee782cc8a794bfc5711f30df35a830db",
+                  "symbol": "dwgReader::readMappedDwgEntity"
+                },
+                "callee": "ActiveBlockJournalScope",
+                "calleeOverload": "journal-scope-lifetime",
+                "edge": "journal-scope-binding",
+                "guardFingerprint": "d323fdf7188fc03daeb9e70d73ff884971a42601350ac3f643b56a01d133d3e7",
+                "order": 3,
+                "predecessorEdges": [
+                  "journal-contract-guard",
+                  "immediate-contract-guard"
+                ],
+                "relation": "journal-scope",
+                "sourceOffset": 3850
+              },
+              {
+                "callEvidence": {
+                  "line": 8392,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "15ffeb569924388da1eb5546fd5d2bccee782cc8a794bfc5711f30df35a830db",
+                  "symbol": "dwgReader::readMappedDwgEntity"
+                },
+                "callee": "DwgEntityOutput",
+                "calleeOverload": "immediate-or-journal-output-selection",
+                "edge": "entity-output-selection",
+                "guardFingerprint": "6a8d018df78e6b009abbd331d34f3e18f70e6835e3558d1ba51ff6e796138319",
+                "order": 4,
+                "predecessorEdges": [
+                  "journal-contract-guard",
+                  "immediate-contract-guard",
+                  "journal-scope-binding"
+                ],
+                "relation": "output-selection",
+                "sourceOffset": 4034
+              },
+              {
+                "callEvidence": {
+                  "line": 8399,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "15ffeb569924388da1eb5546fd5d2bccee782cc8a794bfc5711f30df35a830db",
+                  "symbol": "dwgReader::readMappedDwgEntity"
+                },
+                "callee": "readDwgEntityWithOutput",
+                "calleeOverload": "readDwgEntityWithOutput(...,DwgEntityOutput&,...)",
+                "edge": "typed-read-dispatch",
+                "guardFingerprint": "0ca62faba7436eb0574d07be2d95394f34216b095385574bee70a54ec08e1749",
+                "order": 5,
+                "predecessorEdges": [
+                  "journal-contract-guard",
+                  "immediate-contract-guard",
+                  "journal-scope-binding",
+                  "entity-output-selection"
+                ],
+                "relation": "typed-dispatch",
+                "sourceOffset": 4309
+              },
+              {
+                "callEvidence": {
+                  "line": 8408,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "15ffeb569924388da1eb5546fd5d2bccee782cc8a794bfc5711f30df35a830db",
+                  "symbol": "dwgReader::readMappedDwgEntity"
+                },
+                "callee": "DwgMappedEntityCompletion::Journal",
+                "calleeOverload": "journal-stage-predicate",
+                "edge": "journal-stage",
+                "guardFingerprint": "240a4c08a9d801808248156986e2e1ff46806aac88a13c7d524b2e1c5c4f9570",
+                "order": 6,
+                "predecessorEdges": [
+                  "journal-contract-guard",
+                  "immediate-contract-guard",
+                  "journal-scope-binding",
+                  "entity-output-selection",
+                  "typed-read-dispatch"
+                ],
+                "relation": "journal-stage",
+                "sourceOffset": 4607
+              },
+              {
+                "callEvidence": {
+                  "line": 8415,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "15ffeb569924388da1eb5546fd5d2bccee782cc8a794bfc5711f30df35a830db",
+                  "symbol": "dwgReader::readMappedDwgEntity"
+                },
+                "callee": "DwgMappedEntityOutcome::JournalledSimple",
+                "calleeOverload": "journal-outcome",
+                "edge": "journal-outcome",
+                "guardFingerprint": "956e902ad9015de95a849690f6d5b51b4d6d0d7b09bff2522803251ee7c12bb5",
+                "order": 7,
+                "predecessorEdges": [
+                  "journal-contract-guard",
+                  "immediate-contract-guard",
+                  "journal-scope-binding",
+                  "entity-output-selection",
+                  "typed-read-dispatch",
+                  "journal-stage"
+                ],
+                "relation": "journal-stage",
+                "sourceOffset": 4914
+              },
+              {
+                "callEvidence": {
+                  "line": 8476,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "15ffeb569924388da1eb5546fd5d2bccee782cc8a794bfc5711f30df35a830db",
+                  "symbol": "dwgReader::readMappedDwgEntity"
+                },
+                "callee": "DwgMappedEntityOutcome::JournalledSimple",
+                "calleeOverload": "journal-delivery-case",
+                "edge": "journal-case",
+                "guardFingerprint": "60d31dd71eb9f3833f0befa18cf2896aab548fa6535f54ddf3adb67cd41ea789",
+                "order": 8,
+                "predecessorEdges": [
+                  "journal-contract-guard",
+                  "immediate-contract-guard",
+                  "journal-scope-binding",
+                  "entity-output-selection",
+                  "typed-read-dispatch",
+                  "journal-stage",
+                  "journal-outcome"
+                ],
+                "relation": "journal-delivery",
+                "sourceOffset": 7350
+              },
+              {
+                "callEvidence": {
+                  "line": 8499,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "15ffeb569924388da1eb5546fd5d2bccee782cc8a794bfc5711f30df35a830db",
+                  "symbol": "dwgReader::readMappedDwgEntity"
+                },
+                "callee": "DwgMappedEntityOutcome::StagedCompound/CommittedCompound/DeferredObject",
+                "calleeOverload": "compound-disposition-case",
+                "edge": "compound-case",
+                "guardFingerprint": "e785fe4c8e05415d320788e236826da8a7851d66bfd2eb0f584714b13012bc46",
+                "order": 9,
+                "predecessorEdges": [
+                  "journal-contract-guard",
+                  "immediate-contract-guard",
+                  "journal-scope-binding",
+                  "entity-output-selection",
+                  "typed-read-dispatch",
+                  "journal-stage",
+                  "journal-outcome",
+                  "journal-case"
+                ],
+                "relation": "compound-disposition",
+                "sourceOffset": 8345
+              }
+            ],
+            "sourcePath": "src/intern/dwgreader.cpp"
+          },
+          {
+            "bodySymbol": "dwgReader::DwgBlockJournalOutput::replay",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 271,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "facc57b30315b6fbe8885e57a991f1a685686e074bded48f92290202485f5954",
+                  "symbol": "dwgReader::DwgBlockJournalOutput::replay"
+                },
+                "callee": "m_events",
+                "calleeOverload": "journal-event-sequence",
+                "edge": "journal-event-loop",
+                "guardFingerprint": "5b42fcba3e2f5dfcf489a6abff73ff21909f32e70966e30b1aac1fcdd3fe9904",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "journal-loop",
+                "sourceOffset": 4
+              },
+              {
+                "callEvidence": {
+                  "line": 272,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "facc57b30315b6fbe8885e57a991f1a685686e074bded48f92290202485f5954",
+                  "symbol": "dwgReader::DwgBlockJournalOutput::replay"
+                },
+                "callee": "replayEvent",
+                "calleeOverload": "replayEvent(index,target,activeSource,completesSource)",
+                "edge": "journal-event-replay",
+                "guardFingerprint": "972fb02d21d1b8f97ddea01e3210041fd945a78ad609c5813e58bdc5c9900811",
+                "order": 2,
+                "predecessorEdges": [
+                  "journal-event-loop"
+                ],
+                "relation": "journal-delivery",
+                "sourceOffset": 77
+              },
+              {
+                "callEvidence": {
+                  "line": 275,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "facc57b30315b6fbe8885e57a991f1a685686e074bded48f92290202485f5954",
+                  "symbol": "dwgReader::DwgBlockJournalOutput::replay"
+                },
+                "callee": "true",
+                "calleeOverload": "journal-replay-result",
+                "edge": "journal-replay-success",
+                "guardFingerprint": "7e4fe8351c22e2182278317a8998f400007540eea7aa5b52c3e50f9d4b0bb799",
+                "order": 3,
+                "predecessorEdges": [
+                  "journal-event-loop",
+                  "journal-event-replay"
+                ],
+                "relation": "journal-delivery",
+                "sourceOffset": 154
+              }
+            ],
+            "sourcePath": "src/intern/dwgreader.cpp"
+          },
+          {
+            "bodySymbol": "dwgReader::DwgBlockScopeTransaction::replay",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 417,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "e2a0f5dbfc8d1a2216426ece2b7b2288a60d34ce91818d3634a77b69e73142cf",
+                  "symbol": "dwgReader::DwgBlockScopeTransaction::replay"
+                },
+                "callee": "m_finished",
+                "calleeOverload": "transaction-state-guard",
+                "edge": "transaction-finished-guard",
+                "guardFingerprint": "0208387a1ade3cfd940da539dd58f7c60fc95311edaf566b7513fc6529b4e0da",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "reject",
+                "sourceOffset": 4
+              },
+              {
+                "callEvidence": {
+                  "line": 426,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "e2a0f5dbfc8d1a2216426ece2b7b2288a60d34ce91818d3634a77b69e73142cf",
+                  "symbol": "dwgReader::DwgBlockScopeTransaction::replay"
+                },
+                "callee": "m_output.replayEvent",
+                "calleeOverload": "replayEvent(index,target,activeSource,completesSource)",
+                "edge": "transaction-event-replay",
+                "guardFingerprint": "896e5c185abca1a3fd6414121e51144f704299a5496808a3e35c0327b8cb6eae",
+                "order": 2,
+                "predecessorEdges": [
+                  "transaction-finished-guard"
+                ],
+                "relation": "journal-delivery",
+                "sourceOffset": 238
+              },
+              {
+                "callEvidence": {
+                  "line": 437,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "e2a0f5dbfc8d1a2216426ece2b7b2288a60d34ce91818d3634a77b69e73142cf",
+                  "symbol": "dwgReader::DwgBlockScopeTransaction::replay"
+                },
+                "callee": "retireLease",
+                "calleeOverload": "retireLease(const DwgSourceFrameId&)",
+                "edge": "transaction-lease-retire",
+                "guardFingerprint": "b8d42c8bb22da89796149e83004fac0f504516dbf9050bf2a19c590dabf89eaf",
+                "order": 3,
+                "predecessorEdges": [
+                  "transaction-finished-guard",
+                  "transaction-event-replay"
+                ],
+                "relation": "source-lifecycle",
+                "sourceOffset": 594
+              },
+              {
+                "callEvidence": {
+                  "line": 449,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "e2a0f5dbfc8d1a2216426ece2b7b2288a60d34ce91818d3634a77b69e73142cf",
+                  "symbol": "dwgReader::DwgBlockScopeTransaction::replay"
+                },
+                "callee": "m_finished",
+                "calleeOverload": "transaction-state-commit",
+                "edge": "transaction-finish",
+                "guardFingerprint": "b7fb50dacae2398ef537de0d39273d3a3b8dddfe647fe8bb5f4d4a8d265811f2",
+                "order": 4,
+                "predecessorEdges": [
+                  "transaction-finished-guard",
+                  "transaction-event-replay",
+                  "transaction-lease-retire"
+                ],
+                "relation": "journal-commit",
+                "sourceOffset": 809
+              }
+            ],
+            "sourcePath": "src/intern/dwgreader.cpp"
+          },
+          {
+            "bodySymbol": "dwgReader::readDwgBlocks",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 7457,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "e6a1d4f3ce44cbe8217441a069a266cf7885fcc967115676b6feb247a14075b6",
+                  "symbol": "dwgReader::readDwgBlocks"
+                },
+                "callee": "journalEligible",
+                "calleeOverload": "versioned-journal-selection",
+                "edge": "journal-eligibility",
+                "guardFingerprint": "a59718cce7f8e4cfac58b8bb91019a180b8e2d3de3c5f623dac46bc339d10df3",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "journal-gate",
+                "sourceOffset": 13842
+              },
+              {
+                "callEvidence": {
+                  "line": 7471,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "e6a1d4f3ce44cbe8217441a069a266cf7885fcc967115676b6feb247a14075b6",
+                  "symbol": "dwgReader::readDwgBlocks"
+                },
+                "callee": "DwgBlockScopeTransaction",
+                "calleeOverload": "block-scope-transaction",
+                "edge": "journal-transaction",
+                "guardFingerprint": "b057debf8063c8d62286977b82c17d9fc8f8500640bf32ec4e25b3b4258802ef",
+                "order": 2,
+                "predecessorEdges": [
+                  "journal-eligibility"
+                ],
+                "relation": "journal-scope",
+                "sourceOffset": 14392
+              },
+              {
+                "callEvidence": {
+                  "line": 7516,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "e6a1d4f3ce44cbe8217441a069a266cf7885fcc967115676b6feb247a14075b6",
+                  "symbol": "dwgReader::readDwgBlocks"
+                },
+                "callee": "DRW_Interface::addBlock",
+                "calleeOverload": "appendValue(DRW_Block,addBlock)",
+                "edge": "journal-block-callback",
+                "guardFingerprint": "01a7b0e88881ca903703d2c1c9dd9ea28ff70c9e8d65d017b766fe3c1c1834e9",
+                "order": 3,
+                "predecessorEdges": [
+                  "journal-eligibility",
+                  "journal-transaction"
+                ],
+                "relation": "journal-publication",
+                "sourceOffset": 16331
+              },
+              {
+                "callEvidence": {
+                  "line": 7524,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "e6a1d4f3ce44cbe8217441a069a266cf7885fcc967115676b6feb247a14075b6",
+                  "symbol": "dwgReader::readDwgBlocks"
+                },
+                "callee": "walkJournalledBlockRecordEntities",
+                "calleeOverload": "walkJournalledBlockRecordEntities(...,DwgBlockScopeTransaction&,...)",
+                "edge": "journal-entity-walk",
+                "guardFingerprint": "aa8e2a3cdf708f119921446f4e1eb8b2f358a244f51d5b50be21fba2bfd89089",
+                "order": 4,
+                "predecessorEdges": [
+                  "journal-eligibility",
+                  "journal-transaction",
+                  "journal-block-callback"
+                ],
+                "relation": "journal-delivery",
+                "sourceOffset": 16708
+              },
+              {
+                "callEvidence": {
+                  "line": 7612,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "e6a1d4f3ce44cbe8217441a069a266cf7885fcc967115676b6feb247a14075b6",
+                  "symbol": "dwgReader::readDwgBlocks"
+                },
+                "callee": "DwgBlockScopeTransaction::replay",
+                "calleeOverload": "replay(DRW_Interface&)",
+                "edge": "journal-replay",
+                "guardFingerprint": "5f00594ce8f2c40e8343bc3443cddb542c62fff59e6a75e0a129fc5e2519a7f6",
+                "order": 5,
+                "predecessorEdges": [
+                  "journal-eligibility",
+                  "journal-transaction",
+                  "journal-block-callback",
+                  "journal-entity-walk"
+                ],
+                "relation": "journal-delivery",
+                "sourceOffset": 21019
+              },
+              {
+                "callEvidence": {
+                  "line": 7651,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "e6a1d4f3ce44cbe8217441a069a266cf7885fcc967115676b6feb247a14075b6",
+                  "symbol": "dwgReader::readDwgBlocks"
+                },
+                "callee": "DRW_Interface::addBlock",
+                "calleeOverload": "addBlock(DRW_Block&)",
+                "edge": "direct-block-callback",
+                "guardFingerprint": "423810f092c578d72d34e3c333cc81f2e9b9f4b2cbb348b913d474c253ac2290",
+                "order": 6,
+                "predecessorEdges": [
+                  "journal-eligibility",
+                  "journal-transaction",
+                  "journal-block-callback",
+                  "journal-entity-walk",
+                  "journal-replay"
+                ],
+                "relation": "direct-publication",
+                "sourceOffset": 22463
+              },
+              {
+                "callEvidence": {
+                  "line": 7656,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "e6a1d4f3ce44cbe8217441a069a266cf7885fcc967115676b6feb247a14075b6",
+                  "symbol": "dwgReader::readDwgBlocks"
+                },
+                "callee": "walkBlockRecordEntities",
+                "calleeOverload": "walkBlockRecordEntities(...,DRW_Interface&,...)",
+                "edge": "nondeferred-entity-walk",
+                "guardFingerprint": "f1f6a4a339861387b12e87635677a6e4c3346021a9485f4f9158fdb7c139d110",
+                "order": 7,
+                "predecessorEdges": [
+                  "journal-eligibility",
+                  "journal-transaction",
+                  "journal-block-callback",
+                  "journal-entity-walk",
+                  "journal-replay",
+                  "direct-block-callback"
+                ],
+                "relation": "direct-delivery",
+                "sourceOffset": 22586
+              },
+              {
+                "callEvidence": {
+                  "line": 7673,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "e6a1d4f3ce44cbe8217441a069a266cf7885fcc967115676b6feb247a14075b6",
+                  "symbol": "dwgReader::readDwgBlocks"
+                },
+                "callee": "DRW_Interface::endBlock",
+                "calleeOverload": "endBlock()",
+                "edge": "direct-end-block",
+                "guardFingerprint": "4451d9290dd3b909b163028518fcf5f6aa68b6457dd4ae5131b29109225717ed",
+                "order": 8,
+                "predecessorEdges": [
+                  "journal-eligibility",
+                  "journal-transaction",
+                  "journal-block-callback",
+                  "journal-entity-walk",
+                  "journal-replay",
+                  "direct-block-callback",
+                  "nondeferred-entity-walk"
+                ],
+                "relation": "direct-finalize",
+                "sourceOffset": 23211
+              },
+              {
+                "callEvidence": {
+                  "line": 7680,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "e6a1d4f3ce44cbe8217441a069a266cf7885fcc967115676b6feb247a14075b6",
+                  "symbol": "dwgReader::readDwgBlocks"
+                },
+                "callee": "walkBlockRecordEntities",
+                "calleeOverload": "walkBlockRecordEntities(...,DRW_Interface&,...)",
+                "edge": "deferred-entity-walk",
+                "guardFingerprint": "263d612e41dee8e5e424534d716226bd5f1dfd2618410fd152ee1e8ec013a1d6",
+                "order": 9,
+                "predecessorEdges": [
+                  "journal-eligibility",
+                  "journal-transaction",
+                  "journal-block-callback",
+                  "journal-entity-walk",
+                  "journal-replay",
+                  "direct-block-callback",
+                  "nondeferred-entity-walk",
+                  "direct-end-block"
+                ],
+                "relation": "direct-delivery",
+                "sourceOffset": 23325
+              }
+            ],
+            "sourcePath": "src/intern/dwgreader.cpp"
+          }
+        ],
         "compoundTransitionEvidence": [
           {
             "bodySymbol": "dwgReader::readDwgEntityWithOutput",

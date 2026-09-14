@@ -1166,6 +1166,42 @@ for _polyline_symbol in (
         )),
     )
 
+DWG_COMPOUND_DELIVERY_ANCHORS = (
+    ("src/intern/dwgreader.cpp", "dwgReader::readMappedDwgEntity", (
+        {"name": "journal-contract-guard", "pattern": r"completion\s*==\s*DwgMappedEntityCompletion::Journal\s*&&\s*\(\s*output\s*==\s*nullptr", "callee": "DwgMappedEntityCompletion::Journal", "calleeOverload": "journal-output-contract", "relation": "journal-gate"},
+        {"name": "immediate-contract-guard", "pattern": r"completion\s*==\s*DwgMappedEntityCompletion::Immediate\s*&&\s*\(\s*output\s*!=\s*nullptr", "callee": "DwgMappedEntityCompletion::Immediate", "calleeOverload": "immediate-output-contract", "relation": "direct-gate"},
+        {"name": "journal-scope-binding", "pattern": r"ActiveBlockJournalScope\s+activeBlockJournalScope", "callee": "ActiveBlockJournalScope", "calleeOverload": "journal-scope-lifetime", "relation": "journal-scope"},
+        {"name": "entity-output-selection", "pattern": r"DwgEntityOutput\s*&\s*entityOutput\s*=", "callee": "DwgEntityOutput", "calleeOverload": "immediate-or-journal-output-selection", "relation": "output-selection"},
+        {"name": "typed-read-dispatch", "pattern": r"readDwgEntityWithOutput\s*\(\s*dbuf\s*,\s*lease\.object\s*,\s*intfa\s*,\s*entityOutput", "callee": "readDwgEntityWithOutput", "calleeOverload": "readDwgEntityWithOutput(...,DwgEntityOutput&,...)", "relation": "typed-dispatch"},
+        {"name": "journal-stage", "pattern": r"else\s+if\s*\(\s*completion\s*==\s*DwgMappedEntityCompletion::Journal\s*&&\s*outcome\s*==\s*DwgMappedEntityOutcome::PublishedSimple", "callee": "DwgMappedEntityCompletion::Journal", "calleeOverload": "journal-stage-predicate", "relation": "journal-stage"},
+        {"name": "journal-outcome", "pattern": r"outcome\s*=\s*DwgMappedEntityOutcome::JournalledSimple", "callee": "DwgMappedEntityOutcome::JournalledSimple", "calleeOverload": "journal-outcome", "relation": "journal-stage"},
+        {"name": "journal-case", "pattern": r"case\s+DwgMappedEntityOutcome::JournalledSimple\s*:", "callee": "DwgMappedEntityOutcome::JournalledSimple", "calleeOverload": "journal-delivery-case", "relation": "journal-delivery"},
+        {"name": "compound-case", "pattern": r"case\s+DwgMappedEntityOutcome::StagedCompound\s*:\s*case\s+DwgMappedEntityOutcome::CommittedCompound\s*:\s*case\s+DwgMappedEntityOutcome::DeferredObject\s*:", "callee": "DwgMappedEntityOutcome::StagedCompound/CommittedCompound/DeferredObject", "calleeOverload": "compound-disposition-case", "relation": "compound-disposition"},
+    )),
+    ("src/intern/dwgreader.cpp", "dwgReader::DwgBlockJournalOutput::replay", (
+        {"name": "journal-event-loop", "pattern": r"for\s*\(\s*std::size_t\s+index\s*=\s*0\s*;\s*index\s*<\s*m_events\.size\s*\(\s*\)\s*;\s*\+\+index\s*\)", "callee": "m_events", "calleeOverload": "journal-event-sequence", "relation": "journal-loop"},
+        {"name": "journal-event-replay", "pattern": r"replayEvent\s*\(\s*index\s*,\s*target\s*,\s*activeSource\s*,\s*nullptr\s*\)", "callee": "replayEvent", "calleeOverload": "replayEvent(index,target,activeSource,completesSource)", "relation": "journal-delivery"},
+        {"name": "journal-replay-success", "pattern": r"return\s+true", "callee": "true", "calleeOverload": "journal-replay-result", "relation": "journal-delivery"},
+    )),
+    ("src/intern/dwgreader.cpp", "dwgReader::DwgBlockScopeTransaction::replay", (
+        {"name": "transaction-finished-guard", "pattern": r"if\s*\(\s*m_finished\s*\)\s*return\s+false", "callee": "m_finished", "calleeOverload": "transaction-state-guard", "relation": "reject"},
+        {"name": "transaction-event-replay", "pattern": r"m_output\.replayEvent\s*\(\s*index\s*,\s*target\s*,\s*&activeSource\s*,\s*&completesSource\s*\)", "callee": "m_output.replayEvent", "calleeOverload": "replayEvent(index,target,activeSource,completesSource)", "relation": "journal-delivery"},
+        {"name": "transaction-lease-retire", "pattern": r"retireLease\s*\(\s*activeSource\s*\)", "callee": "retireLease", "calleeOverload": "retireLease(const DwgSourceFrameId&)", "relation": "source-lifecycle"},
+        {"name": "transaction-finish", "pattern": r"m_finished\s*=\s*true", "callee": "m_finished", "calleeOverload": "transaction-state-commit", "relation": "journal-commit"},
+    )),
+    ("src/intern/dwgreader.cpp", "dwgReader::readDwgBlocks", (
+        {"name": "journal-eligibility", "pattern": r"bool\s+journalEligible\s*=\s*version\s*>=\s*DRW::AC1018", "callee": "journalEligible", "calleeOverload": "versioned-journal-selection", "relation": "journal-gate"},
+        {"name": "journal-transaction", "pattern": r"DwgBlockScopeTransaction\s+transaction\s*\(\s*\*this\s*\)", "callee": "DwgBlockScopeTransaction", "calleeOverload": "block-scope-transaction", "relation": "journal-scope"},
+        {"name": "journal-block-callback", "pattern": r"transaction\.output\(\)\.appendValue\s*\(\s*deliveryBlock\s*,\s*&DRW_Interface::addBlock", "callee": "DRW_Interface::addBlock", "calleeOverload": "appendValue(DRW_Block,addBlock)", "relation": "journal-publication"},
+        {"name": "journal-entity-walk", "pattern": r"walkJournalledBlockRecordEntities\s*\(\s*bkr\s*,\s*dbuf\s*,\s*intfa\s*,\s*transaction", "callee": "walkJournalledBlockRecordEntities", "calleeOverload": "walkJournalledBlockRecordEntities(...,DwgBlockScopeTransaction&,...)", "relation": "journal-delivery"},
+        {"name": "journal-replay", "pattern": r"transaction\.replay\s*\(\s*intfa\s*\)", "callee": "DwgBlockScopeTransaction::replay", "calleeOverload": "replay(DRW_Interface&)", "relation": "journal-delivery"},
+        {"name": "direct-block-callback", "pattern": r"intfa\.addBlock\s*\(\s*bk\s*\)", "callee": "DRW_Interface::addBlock", "calleeOverload": "addBlock(DRW_Block&)", "relation": "direct-publication"},
+        {"name": "nondeferred-entity-walk", "pattern": r"if\s*\(\s*!deferredEntityWalk\s*\)\s*\{\s*const\s+bool\s+walked\s*=\s*walkBlockRecordEntities", "callee": "walkBlockRecordEntities", "calleeOverload": "walkBlockRecordEntities(...,DRW_Interface&,...)", "relation": "direct-delivery"},
+        {"name": "direct-end-block", "pattern": r"intfa\.endBlock\s*\(\s*\)", "callee": "DRW_Interface::endBlock", "calleeOverload": "endBlock()", "relation": "direct-finalize"},
+        {"name": "deferred-entity-walk", "pattern": r"if\s*\(\s*deferredEntityWalk\s*&&\s*!blockScopeFailure\s*\)\s*\{\s*try\s*\{\s*const\s+bool\s+walked\s*=\s*walkBlockRecordEntities", "callee": "walkBlockRecordEntities", "calleeOverload": "walkBlockRecordEntities(...,DRW_Interface&,...)", "relation": "direct-delivery"},
+    )),
+)
+
 # These route nodes cover the deliberate deferred/publication machinery that
 # cannot truthfully be reduced to one local parser-function → callback call.
 # A staged parser row must point to at least one of these exact anchors.
@@ -3421,6 +3457,21 @@ def dwg_compound_transition_metadata(
         return []
     rows: list[dict] = []
     for path, symbol, edge_specs in anchors:
+        body = function_body(tree.require(path), symbol)
+        rows.append(
+            {
+                "sourcePath": path,
+                "bodySymbol": symbol,
+                "edges": raw_eligibility_edge_rows(body, edge_specs),
+            }
+        )
+    return rows
+
+
+def dwg_compound_delivery_metadata(tree: SourceTree) -> list[dict]:
+    """Extract the common immediate/journal block delivery lifecycle."""
+    rows: list[dict] = []
+    for path, symbol, edge_specs in DWG_COMPOUND_DELIVERY_ANCHORS:
         body = function_body(tree.require(path), symbol)
         rows.append(
             {
@@ -6726,6 +6777,10 @@ def add_dwg_routes(collector: RouteCollector, tree: SourceTree) -> None:
                 )
                 if compound_evidence:
                     route_selector["compoundTransitionEvidence"] = compound_evidence
+                    if token == "dwgType::INSERT":
+                        route_selector["compoundDeliveryEvidence"] = dwg_compound_delivery_metadata(
+                            tree
+                        )
             collector.add(
                 "dwgRW",
                 category,
@@ -7414,6 +7469,12 @@ def validate_pipeline_closure(tree: SourceTree, inventory: dict[str, list[dict]]
         expected_evidence = dwg_compound_transition_metadata(tree, enum_symbol)
         if route["selector"].get("compoundTransitionEvidence", []) != expected_evidence:
             raise RouteError("DWG compound transition evidence changed: %s" % route["id"])
+        expected_delivery = (
+            dwg_compound_delivery_metadata(tree)
+            if enum_symbol == "dwgType::INSERT" else []
+        )
+        if route["selector"].get("compoundDeliveryEvidence", []) != expected_delivery:
+            raise RouteError("DWG compound delivery evidence changed: %s" % route["id"])
 
     raw_expected = {node["name"]: node for node in RAW_FLOW_NODES}
     if set(RAW_NODE_DIRECTIONS) != set(raw_expected):
@@ -9129,6 +9190,53 @@ bool dwgReader::readDwgTables(DRW_Header&) {
         pass
     else:
         raise AssertionError("DWG table delivery order inversion was accepted")
+    dwg_delivery_specs = DWG_COMPOUND_DELIVERY_ANCHORS[0][2]
+    dwg_delivery_source = SourceFile(
+        "src/intern/dwgreader.cpp",
+        """
+bool dwgReader::readMappedDwgEntity() {
+    if (completion == DwgMappedEntityCompletion::Journal && (output == nullptr)) return false;
+    if (completion == DwgMappedEntityCompletion::Immediate && (output != nullptr)) return false;
+    ActiveBlockJournalScope activeBlockJournalScope;
+    DwgEntityOutput &entityOutput = output != nullptr ? *output : immediate;
+    readDwgEntityWithOutput(dbuf, lease.object, intfa, entityOutput, frameFailure, offsetSpace);
+    else if (completion == DwgMappedEntityCompletion::Journal && outcome == DwgMappedEntityOutcome::PublishedSimple) return false;
+    outcome = DwgMappedEntityOutcome::JournalledSimple;
+    case DwgMappedEntityOutcome::JournalledSimple:
+    case DwgMappedEntityOutcome::StagedCompound:
+    case DwgMappedEntityOutcome::CommittedCompound:
+    case DwgMappedEntityOutcome::DeferredObject:
+    return true;
+}
+""",
+        "g" * 64,
+    )
+    dwg_delivery_body = function_body(
+        dwg_delivery_source, "dwgReader::readMappedDwgEntity"
+    )
+    dwg_delivery_rows = raw_eligibility_edge_rows(
+        dwg_delivery_body, dwg_delivery_specs
+    )
+    assert [row["edge"] for row in dwg_delivery_rows] == [
+        spec["name"] for spec in dwg_delivery_specs
+    ]
+    reversed_dwg_delivery = SourceFile(
+        dwg_delivery_source.path,
+        dwg_delivery_source.text.replace(
+            "ActiveBlockJournalScope activeBlockJournalScope;\n    DwgEntityOutput",
+            "DwgEntityOutput &entityOutput = output != nullptr ? *output : immediate;\n    ActiveBlockJournalScope activeBlockJournalScope;\n    DwgEntityOutput",
+        ),
+        dwg_delivery_source.git_blob,
+    )
+    try:
+        raw_eligibility_edge_rows(
+            function_body(reversed_dwg_delivery, "dwgReader::readMappedDwgEntity"),
+            dwg_delivery_specs,
+        )
+    except RouteError:
+        pass
+    else:
+        raise AssertionError("DWG direct/journal delivery order inversion was accepted")
     transport_source = SourceFile(
         "src/transport.cpp",
         """
