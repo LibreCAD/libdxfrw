@@ -8455,6 +8455,53 @@ def build_route_mapping(
     """
     rows: list[dict] = []
     standalone_ids: set[str] = set()
+
+    def reviewed_alias(
+        facade: str,
+        target_route: dict,
+        target_routes: dict[str, dict],
+        standalone_routes: dict[str, dict],
+    ) -> tuple[list[str], str, str] | None:
+        category = target_route["category"]
+        selector = target_route["selector"]
+        if facade == "dxfRW" and category == "group-code-reader-range":
+            aliases = {
+                "440-449": ["dxfRW/group-code-reader-range/440-459"],
+                "450-459": ["dxfRW/group-code-reader-range/440-459"],
+                "999-1008": [
+                    "dxfRW/group-code-reader-range/999-1003",
+                    "dxfRW/group-code-reader-range/1005-1008",
+                ],
+            }
+            name = target_route["id"].rsplit("/", 1)[-1]
+            candidate_ids = aliases.get(name)
+            if candidate_ids and all(candidate in standalone_routes for candidate in candidate_ids):
+                candidate_ids = sorted(candidate_ids)
+                cardinality = "1:N" if len(candidate_ids) > 1 else "N:1"
+                return candidate_ids, cardinality, "reviewed-group-code-domain"
+        if category in {"public-method", "public-inline-method"}:
+            qualified = selector.get("qualifiedName")
+            candidates = sorted(
+                route_id
+                for route_id, route in standalone_routes.items()
+                if route["category"] == category
+                and route["selector"].get("qualifiedName") == qualified
+                and route_id not in target_routes
+            )
+            if len(candidates) == 1:
+                return candidates, "1:1", "signature-adaptation"
+        if category == "public-alias" and selector.get("qualifiedName") == "dwgR":
+            candidates = sorted(
+                route_id
+                for route_id, route in standalone_routes.items()
+                if route["category"] == "public-type"
+                and route["selector"].get("qualifiedName") == "dwgR"
+                and route_id not in target_routes
+            )
+            if len(candidates) == 1:
+                return candidates, "1:1", "deprecated-facade-composition"
+        return None
+
     for facade in ("dxfRW", "dwgRW", "shared"):
         target_routes = {route["id"]: route for route in inventories["target"][facade]}
         standalone_routes = {route["id"]: route for route in inventories["standalone"][facade]}
@@ -8467,6 +8514,28 @@ def build_route_mapping(
             target_route = target_routes[route_id]
             standalone_route = standalone_routes.get(route_id)
             if standalone_route is None:
+                alias = reviewed_alias(facade, target_route, target_routes, standalone_routes)
+                if alias is not None:
+                    standalone_route_ids, cardinality, alias_kind = alias
+                    rows.append(
+                        {
+                            "targetRouteId": route_id,
+                            "standaloneRouteIds": standalone_route_ids,
+                            "facade": facade,
+                            "category": target_route["category"],
+                            "cardinality": cardinality,
+                            "mappingKind": "derived-alias",
+                            "deltaClasses": ["route-identity"],
+                            "ownerPaths": sorted({item["path"] for item in target_route["evidence"]}),
+                            "implementationState": "signature-adapted" if alias_kind == "signature-adaptation" else "compatibility-adapted",
+                            "disposition": "compatibility-extension",
+                            "dependencies": standalone_route_ids,
+                            "smallestGate": "extract_parity_source_routes.py --check",
+                            "fixtureDisposition": "no-drawing-fixture",
+                            "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion",
+                        }
+                    )
+                    continue
                 rows.append(
                     {
                         "targetRouteId": route_id,
@@ -8541,6 +8610,11 @@ def validate_route_mapping(
         for facade in ("dxfRW", "dwgRW", "shared")
         for route in inventories["target"][facade]
     }
+    target_by_id = {
+        route["id"]: route
+        for facade in ("dxfRW", "dwgRW", "shared")
+        for route in inventories["target"][facade]
+    }
     standalone_ids = {
         route["id"]
         for facade in ("dxfRW", "dwgRW", "shared")
@@ -8561,6 +8635,11 @@ def validate_route_mapping(
         standalone = row["standaloneRouteIds"]
         if target_id not in target_ids or target_id in seen_target:
             raise RouteError("route mapping has a missing or duplicate target route")
+        if (
+            row["facade"] != target_by_id[target_id]["facade"]
+            or row["category"] != target_by_id[target_id]["category"]
+        ):
+            raise RouteError("route mapping ownership disagrees with target route")
         if not isinstance(standalone, list) or standalone != sorted(set(standalone)):
             raise RouteError("route mapping standalone IDs are non-deterministic")
         if not set(standalone) <= standalone_ids:
@@ -8569,6 +8648,10 @@ def validate_route_mapping(
         seen_standalone.extend(standalone)
         if row["cardinality"] == "1:1" and len(standalone) != 1:
             raise RouteError("1:1 route mapping has the wrong endpoint count")
+        if row["cardinality"] == "1:N" and len(standalone) < 2:
+            raise RouteError("1:N route mapping has the wrong endpoint count")
+        if row["cardinality"] == "N:1" and len(standalone) != 1:
+            raise RouteError("N:1 route mapping has the wrong endpoint count")
         if row["cardinality"] == "1:0" and standalone:
             raise RouteError("1:0 route mapping unexpectedly has a standalone endpoint")
         if row["cardinality"] not in mapping["cardinalityContract"]:
@@ -8577,6 +8660,8 @@ def validate_route_mapping(
             raise RouteError("target-only mapping has the wrong cardinality")
         if row["mappingKind"] == "exact-route-id" and row["cardinality"] != "1:1":
             raise RouteError("exact route mapping has the wrong cardinality")
+        if row["mappingKind"] == "derived-alias" and row["cardinality"] not in {"1:1", "1:N", "N:1", "N:M"}:
+            raise RouteError("derived alias mapping has the wrong cardinality")
         if not isinstance(row["ownerPaths"], list) or not row["ownerPaths"]:
             raise RouteError("route mapping lacks source ownership")
         if not isinstance(row["smallestGate"], str) or not row["smallestGate"]:
@@ -8585,8 +8670,13 @@ def validate_route_mapping(
             raise RouteError("route mapping lacks an unblock condition")
     if seen_target != sorted(target_ids):
         raise RouteError("route mapping does not cover every target route exactly once")
-    if seen_standalone != sorted(set(seen_standalone)):
-        raise RouteError("route mapping reuses a standalone route without an N:* review")
+    standalone_use_counts: dict[str, int] = {}
+    for route_id in seen_standalone:
+        standalone_use_counts[route_id] = standalone_use_counts.get(route_id, 0) + 1
+    for row in rows:
+        for route_id in row["standaloneRouteIds"]:
+            if standalone_use_counts[route_id] > 1 and row["cardinality"] not in {"N:1", "N:M"}:
+                raise RouteError("route mapping reuses a standalone route without an N:* review")
     expected_unmapped = sorted(standalone_ids - set(seen_standalone))
     if mapping.get("standaloneUnmappedRouteIds") != expected_unmapped:
         raise RouteError("route mapping standalone-unmapped set is stale")
@@ -10446,6 +10536,33 @@ private:
         pass
     else:
         raise AssertionError("duplicate target mapping row was accepted")
+
+    range_target = {
+        "dxfRW": [
+            synthetic_route("dxfRW/group-code-reader-range/440-449", {"lower": 440, "upper": 449}),
+            synthetic_route("dxfRW/group-code-reader-range/450-459", {"lower": 450, "upper": 459}),
+            synthetic_route("dxfRW/group-code-reader-range/999-1008", {"lower": 999, "upper": 1008}),
+        ],
+        "dwgRW": [],
+        "shared": [],
+    }
+    range_standalone = {
+        "dxfRW": [
+            synthetic_route("dxfRW/group-code-reader-range/440-459", {"lower": 440, "upper": 459}),
+            synthetic_route("dxfRW/group-code-reader-range/999-1003", {"lower": 999, "upper": 1003}),
+            synthetic_route("dxfRW/group-code-reader-range/1005-1008", {"lower": 1005, "upper": 1008}),
+        ],
+        "dwgRW": [],
+        "shared": [],
+    }
+    range_comparison = compare_inventories(range_target, range_standalone)
+    range_mapping = build_route_mapping(
+        {"target": range_target, "standalone": range_standalone}, range_comparison
+    )
+    validate_route_mapping(
+        {"target": range_target, "standalone": range_standalone}, range_mapping
+    )
+    assert [row["cardinality"] for row in range_mapping["rows"]] == ["N:1", "N:1", "1:N"]
 
     artifact_generated = {
         "schema": SCHEMA,

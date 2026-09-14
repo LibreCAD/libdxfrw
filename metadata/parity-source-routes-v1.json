@@ -24293,24 +24293,28 @@
         "unblockCondition": "none"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "1:1",
         "category": "public-alias",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "dwgRW/public-type/src_libdwgr.h_definition_dwgR"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "dwgRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "compatibility-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/libdwgr.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "dwgRW/public-type/src_libdwgr.h_definition_dwgR"
+        ],
         "targetRouteId": "dwgRW/public-alias/src_libdwgr.h_dwgR",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -53637,44 +53641,52 @@
         "unblockCondition": "none"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "N:1",
         "category": "group-code-reader-range",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "dxfRW/group-code-reader-range/440-459"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "dxfRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "compatibility-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/intern/dxfreader.cpp"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "dxfRW/group-code-reader-range/440-459"
+        ],
         "targetRouteId": "dxfRW/group-code-reader-range/440-449",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "N:1",
         "category": "group-code-reader-range",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "dxfRW/group-code-reader-range/440-459"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "dxfRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "compatibility-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/intern/dxfreader.cpp"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "dxfRW/group-code-reader-range/440-459"
+        ],
         "targetRouteId": "dxfRW/group-code-reader-range/450-459",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -53800,24 +53812,30 @@
         "unblockCondition": "none"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "1:N",
         "category": "group-code-reader-range",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "dxfRW/group-code-reader-range/1005-1008",
+          "dxfRW/group-code-reader-range/999-1003"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "dxfRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "compatibility-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/intern/dxfreader.cpp"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "dxfRW/group-code-reader-range/1005-1008",
+          "dxfRW/group-code-reader-range/999-1003"
+        ],
         "targetRouteId": "dxfRW/group-code-reader-range/999-1008",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -80324,24 +80342,28 @@
         "unblockCondition": "none"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "1:1",
         "category": "public-inline-method",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "shared/public-inline-method/src_drw_base.h_DRW_Coord_5b1483a1b8e1638061c73b3dcc29b9513d452dd283ea2895dfbd3b6257dc0002"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_base.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "shared/public-inline-method/src_drw_base.h_DRW_Coord_5b1483a1b8e1638061c73b3dcc29b9513d452dd283ea2895dfbd3b6257dc0002"
+        ],
         "targetRouteId": "shared/public-inline-method/src_drw_base.h_DRW_Coord_134b397610b3bb4c923582bb28129bb39f2ed0425ba5bf2357ff84fe46ff36e6",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -80584,24 +80606,28 @@
         "unblockCondition": "none"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "1:1",
         "category": "public-inline-method",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "shared/public-inline-method/src_drw_base.h_DRW_DebugPrinter_04409dbb316a3bf23c37b98647e0eaddf984822a001178c7b8547a093870adbf"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_base.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "shared/public-inline-method/src_drw_base.h_DRW_DebugPrinter_04409dbb316a3bf23c37b98647e0eaddf984822a001178c7b8547a093870adbf"
+        ],
         "targetRouteId": "shared/public-inline-method/src_drw_base.h_DRW_DebugPrinter_c674ff5f088150cc1c049e1040d5e11ac2f029e7f908b5f06b37d6f5bb64d436",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -80704,24 +80730,28 @@
         "unblockCondition": "none"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "1:1",
         "category": "public-inline-method",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "shared/public-inline-method/src_drw_base.h_DRW_ParseableEntity_455c9f6161f1cf3aa729aade029a2e218c28667bd34fd9c136dac22421ae5ca0"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_base.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "shared/public-inline-method/src_drw_base.h_DRW_ParseableEntity_455c9f6161f1cf3aa729aade029a2e218c28667bd34fd9c136dac22421ae5ca0"
+        ],
         "targetRouteId": "shared/public-inline-method/src_drw_base.h_DRW_ParseableEntity_725ece067472b142d09ac97d696de7d79a2228439231d34a59e3cc5187f4efed",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -81464,24 +81494,28 @@
         "unblockCondition": "none"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "1:1",
         "category": "public-inline-method",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "shared/public-inline-method/src_drw_base.h_DRW_Vertex2D_a5aab284a27812b372c66207a2c038293f9167b471cbddbbd248c32719f4c274"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_base.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "shared/public-inline-method/src_drw_base.h_DRW_Vertex2D_a5aab284a27812b372c66207a2c038293f9167b471cbddbbd248c32719f4c274"
+        ],
         "targetRouteId": "shared/public-inline-method/src_drw_base.h_DRW_Vertex2D_2a22b8a5dcaa8e5331c978d4a9da6971217e108ad75dba9038e650bd177b1896",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -81524,24 +81558,28 @@
         "unblockCondition": "none"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "1:1",
         "category": "public-inline-method",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "shared/public-inline-method/src_drw_base.h_dwgHandle_59b11841dbe1ef350cdd77e879e3cd650049b6b265c60ed97ff7b5ce92e6604f"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_base.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "shared/public-inline-method/src_drw_base.h_dwgHandle_59b11841dbe1ef350cdd77e879e3cd650049b6b265c60ed97ff7b5ce92e6604f"
+        ],
         "targetRouteId": "shared/public-inline-method/src_drw_base.h_dwgHandle_e0b56f2f9f7c09fb584f9aae182c3bcb88c1159ca94b4f46260016c3bbe8e1e5",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -92544,24 +92582,28 @@
         "unblockCondition": "none"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "1:1",
         "category": "public-method",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "shared/public-method/src_drw_base.h_DRW_Coord_5b1483a1b8e1638061c73b3dcc29b9513d452dd283ea2895dfbd3b6257dc0002"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_base.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "shared/public-method/src_drw_base.h_DRW_Coord_5b1483a1b8e1638061c73b3dcc29b9513d452dd283ea2895dfbd3b6257dc0002"
+        ],
         "targetRouteId": "shared/public-method/src_drw_base.h_DRW_Coord_134b397610b3bb4c923582bb28129bb39f2ed0425ba5bf2357ff84fe46ff36e6",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -92804,24 +92846,28 @@
         "unblockCondition": "none"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "1:1",
         "category": "public-method",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "shared/public-method/src_drw_base.h_DRW_DebugPrinter_04409dbb316a3bf23c37b98647e0eaddf984822a001178c7b8547a093870adbf"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_base.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "shared/public-method/src_drw_base.h_DRW_DebugPrinter_04409dbb316a3bf23c37b98647e0eaddf984822a001178c7b8547a093870adbf"
+        ],
         "targetRouteId": "shared/public-method/src_drw_base.h_DRW_DebugPrinter_c674ff5f088150cc1c049e1040d5e11ac2f029e7f908b5f06b37d6f5bb64d436",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -92924,24 +92970,28 @@
         "unblockCondition": "none"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "1:1",
         "category": "public-method",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "shared/public-method/src_drw_base.h_DRW_ParseableEntity_455c9f6161f1cf3aa729aade029a2e218c28667bd34fd9c136dac22421ae5ca0"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_base.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "shared/public-method/src_drw_base.h_DRW_ParseableEntity_455c9f6161f1cf3aa729aade029a2e218c28667bd34fd9c136dac22421ae5ca0"
+        ],
         "targetRouteId": "shared/public-method/src_drw_base.h_DRW_ParseableEntity_725ece067472b142d09ac97d696de7d79a2228439231d34a59e3cc5187f4efed",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -93684,24 +93734,28 @@
         "unblockCondition": "none"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "1:1",
         "category": "public-method",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "shared/public-method/src_drw_base.h_DRW_Vertex2D_a5aab284a27812b372c66207a2c038293f9167b471cbddbbd248c32719f4c274"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_base.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "shared/public-method/src_drw_base.h_DRW_Vertex2D_a5aab284a27812b372c66207a2c038293f9167b471cbddbbd248c32719f4c274"
+        ],
         "targetRouteId": "shared/public-method/src_drw_base.h_DRW_Vertex2D_2a22b8a5dcaa8e5331c978d4a9da6971217e108ad75dba9038e650bd177b1896",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -93744,24 +93798,28 @@
         "unblockCondition": "none"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "1:1",
         "category": "public-method",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "shared/public-method/src_drw_base.h_dwgHandle_59b11841dbe1ef350cdd77e879e3cd650049b6b265c60ed97ff7b5ce92e6604f"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_base.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "shared/public-method/src_drw_base.h_dwgHandle_59b11841dbe1ef350cdd77e879e3cd650049b6b265c60ed97ff7b5ce92e6604f"
+        ],
         "targetRouteId": "shared/public-method/src_drw_base.h_dwgHandle_e0b56f2f9f7c09fb584f9aae182c3bcb88c1159ca94b4f46260016c3bbe8e1e5",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -121977,7 +122035,6 @@
       "dwgRW/public-method/src_libdwgr.h_dwgR_e5d170fca4c606e40323578e834a7688afe027d3a1ba1126d7e9c6cc0176a808",
       "dwgRW/public-method/src_libdwgr.h_dwgR_e5fb576b6f30e37b4dfa25cc35a70fbf6c672384ee33d337065311f44877d845",
       "dwgRW/public-method/src_libdwgr.h_dwgR_f2badd9251cea8ef4839f1f45de61ff9daaf927b328106a533a511af6c5e5dec",
-      "dwgRW/public-type/src_libdwgr.h_definition_dwgR",
       "dxfRW/dxf-transport-node/group-code-range-source",
       "dxfRW/facade-method/beginOperationDiagnostic-001",
       "dxfRW/facade-method/getLastDiagnostic-001",
@@ -121992,9 +122049,6 @@
       "dxfRW/group-code-raw-rule/DxfValueKind_Str",
       "dxfRW/group-code-raw-rule/DxfValueKind_Unknown",
       "dxfRW/group-code-raw-rule/default",
-      "dxfRW/group-code-reader-range/1005-1008",
-      "dxfRW/group-code-reader-range/440-459",
-      "dxfRW/group-code-reader-range/999-1003",
       "dxfRW/public-method/src_libdxfrw.h_dxfRW_1d63d75bbe4cf516ae735bb0afe00a248d974310967ecd166eba0629ce755268",
       "shared/pipeline-unit/src_intern_dxfcode.h",
       "shared/public-alias/src_drw_base.h_DRW_OperationCause",
@@ -122016,19 +122070,9 @@
       "shared/public-enum/src_drw_base.h_DRW_OperationCause",
       "shared/public-enum/src_drw_base.h_DRW_OperationKind",
       "shared/public-enum/src_drw_base.h_DRW_OperationPhase",
-      "shared/public-inline-method/src_drw_base.h_DRW_Coord_5b1483a1b8e1638061c73b3dcc29b9513d452dd283ea2895dfbd3b6257dc0002",
-      "shared/public-inline-method/src_drw_base.h_DRW_DebugPrinter_04409dbb316a3bf23c37b98647e0eaddf984822a001178c7b8547a093870adbf",
       "shared/public-inline-method/src_drw_base.h_DRW_OperationDiagnostic_dec0631ead756075020c274434191cb34a8d6d7ad212c42058489b77cb2cb459",
-      "shared/public-inline-method/src_drw_base.h_DRW_ParseableEntity_455c9f6161f1cf3aa729aade029a2e218c28667bd34fd9c136dac22421ae5ca0",
-      "shared/public-inline-method/src_drw_base.h_DRW_Vertex2D_a5aab284a27812b372c66207a2c038293f9167b471cbddbbd248c32719f4c274",
-      "shared/public-inline-method/src_drw_base.h_dwgHandle_59b11841dbe1ef350cdd77e879e3cd650049b6b265c60ed97ff7b5ce92e6604f",
       "shared/public-inline-method/src_drw_interface.h_DRW_Interface_6190e2e1ac4584b071d2809572602df0a20c74f7111d9b63326fbba607e14bb1",
-      "shared/public-method/src_drw_base.h_DRW_Coord_5b1483a1b8e1638061c73b3dcc29b9513d452dd283ea2895dfbd3b6257dc0002",
-      "shared/public-method/src_drw_base.h_DRW_DebugPrinter_04409dbb316a3bf23c37b98647e0eaddf984822a001178c7b8547a093870adbf",
       "shared/public-method/src_drw_base.h_DRW_OperationDiagnostic_dec0631ead756075020c274434191cb34a8d6d7ad212c42058489b77cb2cb459",
-      "shared/public-method/src_drw_base.h_DRW_ParseableEntity_455c9f6161f1cf3aa729aade029a2e218c28667bd34fd9c136dac22421ae5ca0",
-      "shared/public-method/src_drw_base.h_DRW_Vertex2D_a5aab284a27812b372c66207a2c038293f9167b471cbddbbd248c32719f4c274",
-      "shared/public-method/src_drw_base.h_dwgHandle_59b11841dbe1ef350cdd77e879e3cd650049b6b265c60ed97ff7b5ce92e6604f",
       "shared/public-method/src_drw_interface.h_DRW_Interface_6190e2e1ac4584b071d2809572602df0a20c74f7111d9b63326fbba607e14bb1",
       "shared/public-type/src_drw_base.h_definition_DRW_OperationDiagnostic",
       "shared/public-type/src_drw_base.h_definition_DRW_OperationDiagnosticEntry",
@@ -122036,10 +122080,10 @@
       "shared/source-unit/src_intern_dxfcode.h"
     ],
     "summary": {
-      "deltaOneToOne": 737,
+      "deltaOneToOne": 748,
       "exactOneToOne": 4885,
-      "standaloneOnly": 83,
-      "targetOnly": 47,
+      "standaloneOnly": 69,
+      "targetOnly": 33,
       "targetRows": 5669
     }
   },
@@ -122174,10 +122218,10 @@
       }
     },
     "mapping": {
-      "deltaOneToOne": 737,
+      "deltaOneToOne": 748,
       "exactOneToOne": 4885,
-      "standaloneOnly": 83,
-      "targetOnly": 47,
+      "standaloneOnly": 69,
+      "targetOnly": 33,
       "targetRows": 5669
     },
     "standalone": {
