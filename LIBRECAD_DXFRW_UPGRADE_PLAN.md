@@ -1596,9 +1596,10 @@ Actions:
    invalid arguments, unsupported versions, first-failure precedence, callback
    cause precedence, stage-aware write failures, and the secondary bound.
 5. Document the API and migration behavior, compile both façade spellings in
-   installed-header consumers, and run the full policy/scope/sync/fixture,
-   sanitizer, plan, and diff gates before committing the slice. Do not add or
-   promote any DWG/DXF fixture bytes.
+   installed-header consumers, and run the affected fast policy/scope/sync/
+   fixture, plan, and diff gates before committing the slice. Run the full
+   policy, sanitizer, and consumer aggregate at its declared checkpoint or
+   release cadence; do not add or promote any DWG/DXF fixture bytes.
 
 Exit tests:
 
@@ -1608,9 +1609,77 @@ Exit tests:
   first failure immutable and cleanup entries bounded.
 - Emission, flush/close, and commit failures report their distinct phases while
   failed transactions leave the destination unchanged.
-- Installed public headers compile with both diagnostic type spellings, the
-  full CTest/sanitizer suite remains green, and the staged drawing scan finds
-  zero unadmitted DWG/DXF paths.
+- Installed public headers compile with both diagnostic type spellings; the
+  affected fast suite is green for the slice, and the scheduled full
+  CTest/sanitizer aggregate remains green when its checkpoint runs. The staged
+  drawing scan finds zero unadmitted DWG/DXF paths.
+
+### WP10: implementation-acceleration research and validation budget
+
+This work package is a bounded engineering study, not a reason to pause the
+port.  It makes the fastest safe feedback path an explicit deliverable and
+replaces repeated broad runs with measured, dependency-aware checks.
+
+Inputs:
+
+- The pinned source manifest, live plan dependency graph, current CMake/CTest
+  targets, and the last recorded build/test timings.
+- A clean local build cache (Ninja plus compiler cache where available) and the
+  existing source-only/self-test fixtures; no drawing payloads are required.
+
+Research actions (time-box each to 30–60 minutes and record the decision):
+
+1. Measure configure, changed-translation-unit, fast-test, fixture, full CTest,
+   sanitizer, and LibreCAD-consumer durations on the implementation host. Use
+   `/usr/bin/time -p` or an equivalent monotonic timer and store only command,
+   toolchain, target, and duration metadata.
+2. Build a changed-path → target/test selector map from CMake target graphs and
+   the source-unit roles. Prefer one changed translation unit and its direct
+   fast tests; invalidate the broader selector only for public headers,
+   generator/build files, parser dispatch, or shared safety/transaction code.
+3. Compare Ninja parallelism, compiler-cache reuse, persistent build trees,
+   and separate library/CLI/test targets. Select settings by measured wall
+   time and memory, not by an assumed job count; keep reproducibility and
+   warnings-as-errors unchanged.
+4. Reuse target tests through a small standalone adapter or in-memory byte
+   builder before porting large suites. Classify each test as fast, affected
+   fixture, checkpoint, nightly, or release-only; do not copy a monolithic
+   GUI-dependent harness into the inner loop.
+5. Prototype one schema-versioned differential smoke that compares normalized
+   semantics/events/errors without retaining external drawing bytes. Reuse it
+   across DXF, DWG-read, and DWG-write lanes instead of creating three bespoke
+   comparators.
+6. Identify independent source-only lanes and safe parallel workers. Schedule
+   DXF, DWG-reader, writer, packaging, and ledger work concurrently once their
+   explicit prerequisites are committed; serialize only shared-generator or
+   shared-plan edits.
+
+Outputs:
+
+- `metadata/implementation-speed-baseline-v1.json` with reproducible timing
+  commands, tool versions, cache settings, and selected fast-test selectors.
+- A dependency-aware fast-gate selector (script or CMake target) that explains
+  why a changed path selects each test and fails closed when the mapping is
+  unknown.
+- A test-cadence matrix and a short decision log naming the selected parallel
+  build/cache settings, reusable adapters, and any measured non-benefit.
+- A recovery note for any unavailable accelerator; implementation continues
+  with the last known-safe selector and records the reduced confidence.
+
+Exit tests:
+
+- Two runs with identical source/toolchain/options produce the same selector
+  and schema-shaped timing fields (wall time may vary within the recorded
+  measurement policy).
+- A changed private `.cpp` selects its focused compile/tests, a changed public
+  header selects its dependent consumer checks, and a changed parser/build or
+  safety file escalates to the affected aggregate; unknown paths never select
+  less validation than the safe default.
+- The selected fast gate is materially shorter than the full suite on the
+  implementation host, while the full suite remains available at its defined
+  cadence and no gate is deleted or weakened.
+- The study adds no DWG/DXF fixture bytes and does not block a dependency-ready
+  implementation slice.
 
 ## Continuous execution, self-updating plan, and progress protocol
 
@@ -1731,19 +1800,17 @@ edit this block or commit the same slice concurrently.
   verified as an anchor-inventory scaffold; review inserted source-surface,
   public-header, pipeline-edge, and cardinality-mapping children before any
   completeness claim may advance.
-- Latest implementation slice: S18/I0.2e-D DWG reader lifecycle roll-up now
-  binds `dwgRW::processDwg`’s ordered class/header/handle/table/block/entity/
-  object stages, table callback publication, sticky first-error gates, raw
-  section/DataStorage publication, and normal/exception coverage finalizers.
-  It extends the preceding direct/journal compound delivery identity, so
-  receipt, staging, journal replay, direct delivery, compound dispositions,
-  façade sequencing, and finalization remain distinct instead of collapsing
-  into `entryParse`. The source-only extractor has a representative lifecycle
-  contract (not duplicated across all four stage rows), a synthetic inversion
-  test, and deterministic target/standalone evidence; no drawing fixtures are
-  involved. Remaining work is detailed BLOCK/ENDBLK ownership/reachability
-  closure, cardinality mapping, and format qualification. The slice is
-  fail-closed and self-checked before commit.
+- Latest implementation slice: S18/I0.2e-E DWG BLOCK/ENDBLK ownership and
+  reachability now binds BLOCK_RECORD delimiter claims, entMap handle/type
+  validation, BLOCK and ENDBLK frame/type/parse/identity checks, owner rules
+  for named versus model/paper-space blocks, direct/deferred entity walks,
+  delimiter frame commit/publication, and failed-scope quarantine. Together
+  with I0.2e-D, the source-only extractor now proves both `processDwg`
+  sequencing/finalizers and the block graph that sequencing delivers. Common
+  ownership evidence is represented once on `kBlockTable`; a synthetic order
+  inversion and deterministic target/standalone regeneration pass, with no
+  drawing fixtures. Remaining work is cardinality mapping and format
+  qualification; the slice is fail-closed and self-checked before commit.
 - Authorized run horizon: full S01-S23/A-I5 implementation objective.
 - Completion target: S23/I5 qualified-format parity acceptance; a PR boundary
   cannot silently shorten the authorized objective.
@@ -1769,11 +1836,14 @@ edit this block or commit the same slice concurrently.
   versioned acceptance/buffering → R2004/R2007 finalizer flush and all-nine
   table receipt/parse/map chains with an explicit block-table boundary;
   I0.2e-B binds compound entity case arms to versioned staging helpers;
-  I0.2e-C binds direct/journal delivery and block-scope replay ownership; and
+  I0.2e-C binds direct/journal delivery and block-scope replay ownership;
   I0.2e-D binds the ordered `processDwg` reader lifecycle, sticky error gates,
-  publication loops, and both coverage-finalizer exits. I0.2e’s remaining
-  narrow obligation is BLOCK/ENDBLK owner reachability; all common lifecycle
-  evidence is represented once to keep generation and review fast.
+  publication loops, and both coverage-finalizer exits; and I0.2e-E binds
+  BLOCK/ENDBLK ownership/reachability, delimiter commit/publication, and
+  failure quarantine. I0.2e’s detailed DWG delivery obligation is now closed;
+  all common lifecycle/ownership evidence is represented once to keep
+  generation and review fast. I0.2g concrete source-unit closure and I0.2c
+  provenance/mapping remain before the inventory can become a parity claim.
   I0.2d (DXF transport/raw eligibility), I0.2e (DWG lifecycle/table/compound
   delivery), I0.2f (writer bridge/lifecycle), and I0.2g (concrete source-unit
   closure) remain separate implementation slices so false generic source
@@ -1803,7 +1873,7 @@ edit this block or commit the same slice concurrently.
 | S14 | G1: system-package LibreCAD mode, packaging, docs, release | S07, S12, S13 | COMMITTED | full acceptance criteria | S14 committed in this slice (prospective commit; resolve SHA after commit); standalone package, docs, policy, and aggregate gates pass; LibreCAD system-package mode remains explicitly deferred-external | external system-mode handoff |
 | S16 | H1: installed-package transitive header closure | S15 | COMMITTED | package install, staged-header closure, and consumer compile gates | committed `e113c9f`; standalone package rebuild/install and system-mode filter prerequisite pass; no fixture bytes | S17 |
 | S17 | H2: LibreCAD system-package consumer integration | S16 | COMMITTED | system-mode configure/build, focused tests, bundled-path audit, and default-mode non-regression | target commit `6969e0a003414f9a7084349ac54bc2b32515e16b`; system `librecad_lib` 100% build, focused CTest, default filter compile, 1,245-command zero-bundled-path audit; no fixture bytes | S18 parity inventory |
-| S18 | I0: deterministic both-façade parity inventory | S17 | ACTIVE | pinned generator inputs, source/public-surface and pipeline-edge extraction, cardinality-aware mapping, zero-unmapped/duplicate checks, deterministic `--check` | source/package integration, raw-publication terminal proof, read-side raw eligibility, DXF ASCII/binary/R12 transport selection, DXF raw writer/replay transforms, DWG raw replay ingress/preflight/internal-registration/owner-bookkeeping identity, DWG raw section ingress/buffer/finalizer identity, all-nine-descriptor table receipt/parse/map identity, compound ATTRIB/SEQEND/INSERT/MINSERT/VERTEX/POLYLINE transition identity, direct/journal block delivery identity, and ordered `dwgRW::processDwg` lifecycle/finalizer identity are committed; target and standalone routes include exact carrier/callback/guard/branch/predecessor metadata plus ordered DWG replay/table/compound/delivery/lifecycle edges, while detailed DWG BLOCK/ENDBLK ownership/reachability and mapping remain before this becomes a parity claim; no drawing payloads | S19 |
+| S18 | I0: deterministic both-façade parity inventory | S17 | ACTIVE | pinned generator inputs, source/public-surface and pipeline-edge extraction, cardinality-aware mapping, zero-unmapped/duplicate checks, deterministic `--check` | source/package integration, raw-publication terminal proof, read-side raw eligibility, DXF ASCII/binary/R12 transport selection, DXF raw writer/replay transforms, DWG raw replay ingress/preflight/internal-registration/owner-bookkeeping identity, DWG raw section ingress/buffer/finalizer identity, all-nine-descriptor table receipt/parse/map identity, compound ATTRIB/SEQEND/INSERT/MINSERT/VERTEX/POLYLINE transition identity, direct/journal block delivery identity, ordered `dwgRW::processDwg` lifecycle/finalizer identity, and BLOCK/ENDBLK ownership/reachability/commit/quarantine identity are committed; target and standalone routes include exact carrier/callback/guard/branch/predecessor metadata plus ordered DWG replay/table/compound/delivery/lifecycle/ownership edges; I0.2g concrete source-unit closure, I0.2c provenance, and cardinality mapping remain before this becomes a parity claim; no drawing payloads | S19 |
 | S19 | I1: target-versus-standalone differential harness | S18 | PLANNED | schema, target/standalone runners, semantic/callback/carrier/error comparison, deterministic self-tests | use the same options/input provenance; store normalized output and hashes only for external drawings | S20, S21, S22 |
 | S20 | I2: `dxfRW` parity closure | S19 | PLANNED | DXF group/model/callback/raw/write round-trip rows and aggregate differential | ASCII/binary and source-spelling behavior close independently of DWG lanes; no unadmitted fixtures | S23 |
 | S21 | I3: `dwgRW` reader parity closure | S19 | PLANNED | version/container/dispatch/graph/diagnostic rows and aggregate differential | missing eligible positive evidence keeps only that row experimental; ODA/spec and trace required for wire changes | S23; I4 oracle reads |
@@ -1928,7 +1998,7 @@ edit this block or commit the same slice concurrently.
 | I0.2a | I0 / S18 | WP0, WP4-WP7; source/public-surface closure | I0.2 | VERIFIED | EXPERIMENTAL | exactly one classified source-unit row for every pinned `src` file plus public-header class/struct/enum/alias/inline and deprecated-`dwgR` routes | pinned CMake `LIBDXFRW_PUBLIC_HEADERS` contract (10 headers), 85/85 target source-unit roles, explicit standalone `src/intern/dxfcode.h` adaptation, public scanner and route self-tests, two byte-identical full generations, pinned target/repository checks, import/sync/fixture gates, `git diff --check`, and CMake/CTest (9/9) PASS; no drawing payloads; unblocks I0.3a and contributes the required source/public input to I0.2c/I0.3 |
 | I0.2b | I0 / S18 | WP4-WP7; exact parser publication/callback proof | I0.2 | ACTIVE | EXPERIMENTAL | physical typed/raw callback pairs, template/helper adaptation proof, ordered branch ancestry, non-self staged publication routes, and source-owned raw-route terminal metadata | current target/source synthetic tests reject Cartesian callback inference, unproved helper/nested lambdas, incompatible pointer/reference adaptation, scope-leaked guards, unreachable deferred-object dispatch, branch-cardinality promotion, generic self fallback, missing raw callback/carrier/binding, reversed proxy typed-to-raw order, and dangling raw-flow predecessors. Exact metadata now covers the five raw publication bodies and their standalone counterparts; ordered eligibility predicates remain an explicit I0.2d-A gate rather than a support claim; contributes the required prerequisite to I0.2g/I0.2c |
 | I0.2d | I0 / S18 | WP4; DXF transport and raw eligibility graph | I0.2 | PLANNED | EXPERIMENTAL | source-proven ASCII/binary/R12 transport selection, virtual provider closure, record-scope transaction classification, and ordered raw boundary/depth/payload/handle/limit gates; read-side eligibility, transport branches, and DXF raw writer/replay transforms are landed, while broader writer-provider/finalizer closure remains | target-only/synthetic checks mutate every read/readAscii/write selection and raw eligibility predicate; reject transport construction without its guard, inherited virtual operation gaps, and record-scope-as-transport; no fixtures; unblocks I0.2g/I0.2c |
-| I0.2e | I0 / S18 | WP5-WP6; DWG lifecycle/table/compound/block delivery | I0.2 | PLANNED | EXPERIMENTAL | separate table receipt, map/block transition, direct/journal callback delivery, versioned compound aggregation, ordered reader lifecycle gates, sticky errors, and finalizers | target-only/synthetic checks reject `entryParse`-only compound bridges, `kBlockTable` facade-table delivery, omitted journal/direct path, collapsed `ret`/finalizer flow, and reordered `processDwg` stages; common lifecycle evidence is represented once for speed, while all four reader stage anchors remain independently checked; field-wire qualification stays in I3; remaining narrow obligation is BLOCK/ENDBLK ownership/reachability; unblocks I0.2g/I0.2c |
+| I0.2e | I0 / S18 | WP5-WP6; DWG lifecycle/table/compound/block delivery | I0.2 | PLANNED | EXPERIMENTAL | separate table receipt, map/block transition, direct/journal callback delivery, versioned compound aggregation, ordered reader lifecycle gates, sticky errors, BLOCK/ENDBLK owner reachability, delimiter commit/publication, and finalizers | target-only/synthetic checks reject `entryParse`-only compound bridges, `kBlockTable` facade-table delivery, omitted journal/direct path, collapsed `ret`/finalizer flow, reordered `processDwg` stages, missing delimiter identity/owner gates, and publication after failed ownership; common lifecycle/ownership evidence is represented once for speed, while all four reader stage anchors remain independently checked; field-wire qualification stays in I3; detailed DWG delivery is source-closed, with I0.2g/I0.2c still required for aggregate mapping/provenance; unblocks I0.2g/I0.2c |
 | I0.2f | I0 / S18 | WP4, WP7; writer entrypoint/model/lifecycle bridge | I0.2 | PLANNED | EXPERIMENTAL | typed/compound/raw/structural writer disposition, parameter contracts, version guards, session pipeline IDs, provider inheritance, and DXF/DWG lifecycle-to-finalize routes; raw DXF writer/replay and DWG raw replay identity are landed as narrow I0.2d-B/I0.2f-A slices, with the rest of the writer surface open | target-only/synthetic checks reject an unclassified `DRW_*` parameter, guardless version selection, writer API without provider/finalizer path, fabricated raw read→write edges, or a replay call misclassified as standalone class-registration ingress; no fixtures; unblocks I0.2g/I0.2c |
 | I0.2g | I0 / S18 | WP0, WP4-WP7; concrete functional source-unit coverage | I0.2b, I0.2d, I0.2e, I0.2f | PLANNED | EXPERIMENTAL | every functional locked source unit names same-path non-self concrete `coveredBy` routes or a narrow reviewed supporting disposition; deterministic aggregate route closure | reject generic-only/self coverage, foreign/missing evidence, dangling stage/predicate/provider references, stale target pin, and non-identical double generation; run focused scripts before broader build/CTest; unblocks I0.2c |
 | I0.2c | I0 / S18 | WP8; provenance, route-identity, and artifact-integrity closure | I0.2a, I0.2b, I0.2d, I0.2e, I0.2f, I0.2g | PLANNED | EXPERIMENTAL | stable signature-derived IDs, standalone provenance/adaptation verification, selector-vs-body/condition delta classes, and synthetic artifact failure tests | reject missing/tampered/extra shards, unowned routes, stale pins, unbound callbacks, omitted raw predicates, omitted version paths, invented cross-session edges, and changed lifecycle/table/compound contracts; run a recorded full pinned-target `--check`; unblocks I0.3 |
@@ -1963,7 +2033,9 @@ edit this block or commit the same slice concurrently.
 
 After every individual item is implemented and before starting another item:
 
-1. Run the smallest relevant compile, test, or deterministic check.
+1. Run the smallest relevant fast compile, test, or deterministic check. Use
+   the impact map and cadence table below; do not run a full suite merely
+   because an item boundary was reached.
 2. Update this plan immediately with state, evidence, decisions, newly exposed
    risks, support-ledger effects, and the next action.
 3. Add any newly discovered prerequisite or follow-up as a stable child item
@@ -2440,13 +2512,47 @@ source-import shortcut:
    and the required positive/independent evidence are advertised as supported;
    source/dispatch/behavior matches without the final evidence remain
    experimental.
-6. Re-run package/header/LibreCAD consumer, sanitizer/fuzz, fixture-admission,
-   scope/sync, and plan checks, then record the parity report and target SHA in
-   the live ledger before the S23 commit.
+6. Re-run package/header/LibreCAD consumer, fixture-admission, scope/sync, and
+   plan checks according to the changed-path impact map. Keep sanitizer/fuzz
+   and the full consumer/fixture aggregate at their declared checkpoint or
+   nightly cadence; before the S23 commit, run the complete final set and
+   record the parity report and target SHA in the live ledger.
 
 Gate: zero unmapped rows and zero unexplained target-versus-standalone
 divergences; every advertised DWG/DXF row is qualified, and every unavailable
 fixture/oracle is explicitly deferred without stopping independent work.
+
+### Validation cadence and time budget
+
+The following cadence is the default for implementation slices and supersedes
+any generic wording that could be read as “run the full suite after every
+edit.”  Full validation remains mandatory at its checkpoints; it is simply not
+part of the inner loop.
+
+| Scope | Default validation | Full-suite policy | Target budget |
+| --- | --- | --- | --- |
+| Changed private `.cpp` or extractor rule | compile the changed translation unit or script; run the directly affected fast CTest target and the relevant self-test | do not run full CTest | seconds to ~1 minute |
+| Changed public header, interface, CMake source list, parser dispatch, safety, or transaction code | fast compile plus dependent header/API/consumer checks and affected fast tests | escalate to the next medium/checkpoint run; do not repeat a full suite for every edit | ~1–3 minutes |
+| Child item | smallest focused gate, fixture-admission, `git diff --check`, and plan/inventory checks needed by that item | full suite only when the item is a declared checkpoint aggregate or changes a release gate | <5 minutes where no external process is involved |
+| Green slice | fast aggregate for the changed lane, deterministic source/sync/scope/fixture checks, and the plan report | no automatic full CTest/sanitizer run | <10 minutes |
+| Medium wave / lane aggregate | affected fast targets plus L1 canaries or consumer smoke, selected by the impact map | run at the end of a logical wave, not after each child | measured in WP10 |
+| Checkpoint aggregate (`S04`, `S07`, `S14`, `S18` closure, `S23`) | full CTest and all gates required by that checkpoint | the normal full validation points; rerun early only after a failed or materially invalidating change | measured and recorded |
+| Security/release or changed low-level parser/transaction policy | focused ASan/UBSan/fuzz/fixture subset first | full sanitizer/fuzz/L2/L3 runs at `S13`/`S23`, release, or a security-triggered run | bounded by configured budgets |
+| Nightly/external corpus | protected L3 corpus, long fuzz, independent oracles | never a per-edit or ordinary fast-slice requirement; advisory unless explicitly promoted | scheduled/nightly |
+
+Fast gates are the normal proof mechanism: source-only extractor tests,
+compile probes, in-memory byte builders, API/header checks, focused CTest
+labels, and targeted consumer objects.  They must fail closed and retain the
+same semantic assertions as the broader suite.  A fast pass is not permission
+to claim format support; it only unblocks implementation and keeps a row
+experimental until its checkpoint/oracle evidence passes.
+
+Every full run records its triggering checkpoint, changed-path impact reason,
+command, toolchain, duration, and result in the plan/metadata.  A skipped full
+run is valid only when the cadence table says it is out of scope; a failed or
+stale fast selector escalates to the safe affected aggregate rather than being
+silently ignored.  WP10 owns the initial timings and updates the budgets when
+the build/test topology changes.
 
 ### Phase 6: test architecture
 
@@ -2724,6 +2830,14 @@ required progress report and immediately take the next ready slice.
 15. **Aggregate sign-off** — reconcile public/package/LibreCAD consumers,
     regenerate support claims, and run full/sanitizer/fuzz/policy gates only
     after all three lane aggregates commit.
+16. **Measured fast loop** — before widening a lane, run WP10's time-boxed
+    profiling and impact-map research, then keep each implementation slice on
+    the shortest affected compile/self-test path. Record the selected command
+    and duration so later slices reuse the result.
+17. **Scheduled broad validation** — reserve full CTest, L2/L3 fixtures,
+    sanitizer, fuzz, and heavyweight consumer runs for the checkpoint/cadence
+    table or a changed-path escalation. A fast green result unblocks the next
+    slice; it does not silently promote support claims.
 
 No broad feature test port should block steps 1 through 7. Conversely, no
 reader/writer support claim should merge based only on the compile milestone.
@@ -2786,6 +2900,14 @@ boundaries rather than on every warning fix.
   compile target in the inner loop.
 - Keep imported source blobs unchanged; isolate compatibility edits so parity
   review is a small diff.
+- Generate the changed-path impact map once per slice and cache its selected
+  fast-test set; do not rediscover the dependency closure in every command.
+- Keep one persistent Ninja build per toolchain/configuration and use compiler
+  cache hits for unchanged translation units; invalidate deliberately for
+  public headers, generated lists, parser dispatch, safety, and transaction
+  changes.
+- Emit compact timing/selector metadata from WP10 so a slower fast gate is
+  visible and can be optimized without weakening its assertion.
 
 ### Implementation checkpoints
 
@@ -2814,14 +2936,14 @@ requirements for the A-D source-convergence PR:
 | Lane | First required checkpoint | Cadence | Required coverage |
 | --- | --- | --- | --- |
 | Source provenance and execution ledger | A | Every convergence PR | Target lock, Git path/blob/mode versus source-list closure, header classification, adaptation hashes, updater `--check`, valid state/dependencies/evidence, and slice-trailer resolution |
-| Linux GCC | B | Every PR | Minimum GCC/libstdc++ 9 plus a current compiler; Debug and Release; warnings as errors |
-| Linux Clang | B | Every PR | Minimum Clang 10 with libstdc++ 9 or libc++ 10 plus a current compiler; Debug or RelWithDebInfo; warnings as errors |
-| macOS Clang | B/C | Every PR or protected merge | Minimum Apple Clang 12 plus current; library, CLI, install/export, fixture smoke |
-| Windows MSVC | B/C | Every PR or protected merge | Minimum MSVC 19.28 plus current; `/bigobj` library, CLI, install/export, fast tests, major-versioned DLL identity |
-| Header/package consumers | C | Every PR | One-header closure, `add_subdirectory`, `find_package(libdxfrw)`, pkg-config, same-major rejection, generic staged consumer |
+| Linux GCC | B | Every PR: changed-target fast build; full at checkpoints | Minimum GCC/libstdc++ 9 plus a current compiler; Debug and Release; warnings as errors; full matrix at the cadence table's checkpoint rows |
+| Linux Clang | B | Every PR: changed-target fast build; full at checkpoints | Minimum Clang 10 with libstdc++ 9 or libc++ 10 plus a current compiler; Debug or RelWithDebInfo; warnings as errors; full matrix at the cadence table's checkpoint rows |
+| macOS Clang | B/C | Every PR: fast library/API smoke; full at protected merge/checkpoint | Minimum Apple Clang 12 plus current; library, CLI, install/export, and affected fixture smoke |
+| Windows MSVC | B/C | Fast compile on affected changes; full at protected merge/checkpoint | Minimum MSVC 19.28 plus current; `/bigobj` library, CLI, install/export, fast tests, major-versioned DLL identity |
+| Header/package consumers | C | Every public/build change: fast closure; full at C/C/G checkpoints | One-header closure, `add_subdirectory`, `find_package(libdxfrw)`, pkg-config, same-major rejection, generic staged consumer |
 | LibreCAD source overlay | C | Convergence checkpoints | Filter compile plus parser/library target with ported source/manifest |
-| Fixtures | D | L1 on ordinary PRs; L2 at checkpoints | Fixture-policy-eligible files only; staged-file admission/evasion guard; external-corpus report is advisory |
-| Byte differential | D when encoder/output adaptations exist; otherwise post-C/nightly | Conditional | Same-host/toolchain seven-format LibreCAD comparison; target blob parity when skipped |
+| Fixtures | D | Affected L1 canary only on ordinary PRs; full L1/L2 at checkpoints | Fixture-policy-eligible files only; staged-file admission/evasion guard; external-corpus report is advisory |
+| Byte differential | D when encoder/output adaptations exist; otherwise post-C/nightly | Only when encoder/output paths change or at post-C/nightly checkpoint | Same-host/toolchain seven-format LibreCAD comparison; target blob parity when skipped |
 | Target behavior differential | H / S19 | Parity-closure and every feature/version promotion | Same eligible input/version/options through pinned LibreCAD `dwgRW`/`dxfRW` and standalone; normalized semantics, callbacks, carriers, error/stage, and classified bytes |
 | Feature ledger | E | Feature PRs | Pinned generators and seeds; machine ledger and generated support tables in `--check` mode |
 | Writer oracles | F | Writer promotion PRs | Self-read plus named independent reader/auditor and versioned normalization output |

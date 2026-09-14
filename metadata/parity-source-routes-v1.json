@@ -1895,7 +1895,7 @@
       "facade": "dwgRW",
       "path": "parity-source-routes-v1/target-dwgRW.json",
       "routeCount": 1345,
-      "sha256": "ad91490701a3e049342daea0dbb1a4e223c168e746d842bc09e393e86d3d140c",
+      "sha256": "8cbe66141ed139dcff1668d87fc71b22aa565af2ac8cceb542fbc39807932d4a",
       "side": "target"
     },
     {
@@ -1916,7 +1916,7 @@
       "facade": "dwgRW",
       "path": "parity-source-routes-v1/standalone-dwgRW.json",
       "routeCount": 1371,
-      "sha256": "bfab6f710f766490d2e8d6c0a75de19717a9e800617e5f38ce35801a39fbac7c",
+      "sha256": "53e532f708825ef394da932740db0a84b6e49d59fa1833c25fd0f713708d1b75",
       "side": "standalone"
     },
     {

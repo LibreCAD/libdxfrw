@@ -1242,6 +1242,45 @@ DWG_READER_LIFECYCLE_RULES = (
     {"name": "exception-finalizers", "pattern": r"finalizeClassCoverage\s*\(\s*\)\s*;\s*finalizeCoverage\s*\(\s*false\s*\)", "callee": "finalizeClassCoverage/finalizeCoverage", "calleeOverload": "exception-finalizer-pair", "relation": "finalize-exception"},
 )
 
+# The BLOCK_RECORD map is the ownership root for BLOCK/ENDBLK delimiters and
+# modern entMap children.  This source-only contract proves the guard and
+# publication order around that root without pretending to qualify the DWG
+# wire fields.  It is represented once on the kBlockTable descriptor; the
+# compound/direct-journal contracts remain separate evidence for delivery.
+DWG_BLOCK_OWNERSHIP_RULES = (
+    {"name": "compound-state-reset", "pattern": r"m_consumedCompoundChildHandles\.clear\s*\(\s*\)", "callee": "m_consumedCompoundChildHandles", "calleeOverload": "compound-state-reset", "relation": "ownership-begin"},
+    {"name": "claim-block-delimiter", "pattern": r"claimHandle\s*\(\s*record\s*,\s*record->block\s*\)\s*;", "callee": "claimHandle(block)", "calleeOverload": "BLOCK handle claim", "relation": "ownership-claim"},
+    {"name": "claim-endblock-delimiter", "pattern": r"claimHandle\s*\(\s*record\s*,\s*record->endBlock\s*\)\s*;", "callee": "claimHandle(endBlock)", "calleeOverload": "ENDBLK handle claim", "relation": "ownership-claim"},
+    {"name": "claim-entmap-handles", "pattern": r"for\s*\(\s*const\s+std::uint32_t\s+handle\s*:\s*record->entMap\s*\)\s*claimHandle\s*\(\s*record\s*,\s*handle\s*\)", "callee": "claimHandle(entMap)", "calleeOverload": "owned-entity handle claims", "relation": "ownership-claim"},
+    {"name": "ownership-quarantine", "pattern": r"if\s*\(\s*!invalidOwnershipRecords\.empty\s*\(\s*\)\s*\)", "callee": "invalidOwnershipRecords", "calleeOverload": "ownership-quarantine-gate", "relation": "reject"},
+    {"name": "polyline-ownership-preflight", "pattern": r"preflightMappedPolylineOwnership\s*\(\s*records\s*,\s*dbuf\s*\)", "callee": "preflightMappedPolylineOwnership", "calleeOverload": "preflightMappedPolylineOwnership(records,dwgBuffer*)", "relation": "ownership-preflight"},
+    {"name": "block-record-walk", "pattern": r"for\s*\(\s*auto\s+it\s*=\s*blockRecordmap\.begin\s*\(\s*\)\s*;\s*it\s*!?=\s*blockRecordmap\.end\s*\(\s*\)\s*;\s*\+\+it\s*\)", "callee": "blockRecordmap", "calleeOverload": "BLOCK_RECORD ownership walk", "relation": "ownership-walk"},
+    {"name": "block-lookup", "pattern": r"auto\s+mit\s*=\s*ObjectMap\.find\s*\(\s*bkr->block\s*\)", "callee": "ObjectMap.find(block)", "calleeOverload": "BLOCK source lookup", "relation": "delimiter-lookup"},
+    {"name": "block-frame-read", "pattern": r"!frame\.readAt\s*\(\s*\*dbuf\s*,\s*version\s*,\s*oc\.loc\s*\)", "callee": "DwgObjectFrame::readAt", "calleeOverload": "BLOCK frame read", "relation": "frame-validate"},
+    {"name": "block-type-check", "pattern": r"typeBuffer\.getObjType\s*\(\s*version\s*\)\s*!=\s*dwgType::BLOCK", "callee": "dwgType::BLOCK", "calleeOverload": "BLOCK type guard", "relation": "typed-validate"},
+    {"name": "block-body-parse", "pattern": r"!parseBlock\s*\(\s*bk\s*,\s*buff\s*,\s*frame\.bodyBitSize\s*\(\s*\)\s*\)", "callee": "parseBlock(BLOCK)", "calleeOverload": "BLOCK body parse", "relation": "typed-parse"},
+    {"name": "block-handle-identity", "pattern": r"bk\.handle\s*!=\s*oc\.handle\s*\|\|\s*bk\.handle\s*!=\s*bkr->block", "callee": "bk.handle", "calleeOverload": "BLOCK handle identity", "relation": "identity-reject"},
+    {"name": "entmap-shape-check", "pattern": r"bkr->entMap\.size\s*\(\s*\)\s*>\s*static_cast<std::size_t>\s*\(\s*std::numeric_limits<int>::max\s*\(\s*\)\s*\)", "callee": "bkr->entMap", "calleeOverload": "owned-entity list bound", "relation": "ownership-validate"},
+    {"name": "entmap-entity-type-check", "pattern": r"if\s*\(\s*classification\.route\s*!=\s*DwgFrameClassification::Route::Entity\s*\)\s*\{\s*validOwnership", "callee": "DwgFrameClassification::Route::Entity", "calleeOverload": "owned-entity frame classification", "relation": "ownership-validate"},
+    {"name": "endblock-lookup", "pattern": r"auto\s+endIt\s*=\s*ObjectMap\.find\s*\(\s*bkr->endBlock\s*\)", "callee": "ObjectMap.find(endBlock)", "calleeOverload": "ENDBLK source lookup", "relation": "delimiter-lookup"},
+    {"name": "endblock-frame-read", "pattern": r"!endFrame\.readAt\s*\(\s*\*dbuf\s*,\s*version\s*,\s*oc\.loc\s*\)", "callee": "DwgObjectFrame::readAt", "calleeOverload": "ENDBLK frame read", "relation": "frame-validate"},
+    {"name": "endblock-type-check", "pattern": r"endTypeBuffer\.getObjType\s*\(\s*version\s*\)\s*!=\s*dwgType::ENDBLK", "callee": "dwgType::ENDBLK", "calleeOverload": "ENDBLK type guard", "relation": "typed-validate"},
+    {"name": "endblock-body-parse", "pattern": r"!parseBlock\s*\(\s*end\s*,\s*buff1\s*,\s*endFrame\.bodyBitSize\s*\(\s*\)\s*\)", "callee": "parseBlock(ENDBLK)", "calleeOverload": "ENDBLK body parse", "relation": "typed-parse"},
+    {"name": "endblock-handle-identity", "pattern": r"end\.handle\s*!=\s*oc\.handle\s*\|\|\s*end\.handle\s*!=\s*bkr->endBlock", "callee": "end.handle", "calleeOverload": "ENDBLK handle identity", "relation": "identity-reject"},
+    {"name": "delimiter-parent-match", "pattern": r"bk\.parentHandle\s*!=\s*end\.parentHandle", "callee": "parentHandle", "calleeOverload": "BLOCK/ENDBLK owner equality", "relation": "owner-validate"},
+    {"name": "space-owner-classification", "pattern": r"const\s+bool\s+isSpaceBlockRecord\s*=\s*isSpaceBlockRecordName\s*\(\s*bk\.name\s*\)", "callee": "isSpaceBlockRecordName", "calleeOverload": "modelspace-paperspace owner rule", "relation": "owner-validate"},
+    {"name": "delimiter-owner-gate", "pattern": r"const\s+bool\s+validDelimiterOwner\s*=", "callee": "validDelimiterOwner", "calleeOverload": "BLOCK/ENDBLK owner gate", "relation": "owner-validate"},
+    {"name": "delimiter-publication-build", "pattern": r"makeTypedEntityFramePublication\s*\(\s*version\s*,\s*blockObject\s*,\s*dwgType::BLOCK", "callee": "makeTypedEntityFramePublication(BLOCK)", "calleeOverload": "BLOCK frame publication", "relation": "publication-build"},
+    {"name": "journal-selection", "pattern": r"bool\s+journalEligible\s*=\s*version\s*>=\s*DRW::AC1018", "callee": "journalEligible", "calleeOverload": "versioned-journal-selection", "relation": "delivery-select"},
+    {"name": "direct-block-publication", "pattern": r"intfa\.addBlock\s*\(\s*bk\s*\)", "callee": "DRW_Interface::addBlock", "calleeOverload": "addBlock(DRW_Block&)", "relation": "direct-publication"},
+    {"name": "direct-owned-entity-walk", "pattern": r"walkBlockRecordEntities\s*\(\s*bkr\s*,\s*dbuf\s*,\s*intfa\s*,\s*bk\.parentHandle", "callee": "walkBlockRecordEntities", "calleeOverload": "owned-entity walk", "relation": "direct-delivery"},
+    {"name": "direct-endblock-publication", "pattern": r"intfa\.endBlock\s*\(\s*\)", "callee": "DRW_Interface::endBlock", "calleeOverload": "endBlock()", "relation": "direct-finalize"},
+    {"name": "space-owned-entity-walk", "pattern": r"walkBlockRecordEntities\s*\(\s*bkr\s*,\s*dbuf\s*,\s*intfa\s*,\s*DRW::NoHandle", "callee": "walkBlockRecordEntities", "calleeOverload": "deferred space-owned entity walk", "relation": "direct-delivery"},
+    {"name": "delimiter-frame-commit", "pattern": r"commitDelimiter\s*\(\s*blockObject\.handle\s*,\s*blockLease\s*\)", "callee": "commitDelimiter(BLOCK)", "calleeOverload": "delimiter frame commit", "relation": "frame-commit"},
+    {"name": "delimiter-frame-publication", "pattern": r"publishDwgFramePublication\s*\(\s*intfa\s*,\s*blockPublication\s*\)\s*\|\|\s*!?\s*publishDwgFramePublication\s*\(\s*intfa\s*,\s*endBlockPublication\s*\)", "callee": "publishDwgFramePublication(BLOCK,ENDBLK)", "calleeOverload": "delimiter frame publication", "relation": "publication-finalize"},
+    {"name": "block-scope-quarantine", "pattern": r"if\s*\(\s*blockScopeFailure\s*\)\s*\{[\s\S]*?quarantineOwnedEntities\s*\(\s*\*bkr\s*\)", "callee": "quarantineOwnedEntities", "calleeOverload": "failed block ownership quarantine", "relation": "failure-cleanup"},
+)
+
 # These route nodes cover the deliberate deferred/publication machinery that
 # cannot truthfully be reduced to one local parser-function → callback call.
 # A staged parser row must point to at least one of these exact anchors.
@@ -3530,6 +3569,18 @@ def dwg_reader_lifecycle_metadata(tree: SourceTree) -> list[dict]:
         "sourcePath": body.source.path,
         "bodySymbol": body.symbol,
         "edges": raw_eligibility_edge_rows(body, DWG_READER_LIFECYCLE_RULES),
+    }]
+
+
+def dwg_block_ownership_metadata(tree: SourceTree) -> list[dict]:
+    """Extract BLOCK/ENDBLK owner, reachability, and publication ordering."""
+    body = function_body(
+        tree.require("src/intern/dwgreader.cpp"), "dwgReader::readDwgBlocks"
+    )
+    return [{
+        "sourcePath": body.source.path,
+        "bodySymbol": body.symbol,
+        "edges": raw_eligibility_edge_rows(body, DWG_BLOCK_OWNERSHIP_RULES),
     }]
 
 
@@ -6911,17 +6962,20 @@ def add_dwg_routes(collector: RouteCollector, tree: SourceTree) -> None:
     for match in table_descriptors:
         name, control_type, record_type, receipt_name = match.groups()
         delivery_evidence = dwg_table_delivery_metadata(tree, name)
+        selector = {
+            "kind": "table",
+            "name": name,
+            "controlType": control_type,
+            "recordType": record_type,
+            "controlReceiptName": cpp_unquote(receipt_name),
+            "deliveryEvidence": delivery_evidence,
+        }
+        if name == "kBlockTable":
+            selector["blockOwnershipEvidence"] = dwg_block_ownership_metadata(tree)
         collector.add(
             "dwgRW",
             "table-descriptor",
-            {
-                "kind": "table",
-                "name": name,
-                "controlType": control_type,
-                "recordType": record_type,
-                "controlReceiptName": cpp_unquote(receipt_name),
-                "deliveryEvidence": delivery_evidence,
-            },
+            selector,
             FunctionBody(source, name, match.start(), match.start(), match.end() - 1),
             identifier=name,
             directions=["read", "publish"],
@@ -7516,6 +7570,11 @@ def validate_pipeline_closure(tree: SourceTree, inventory: dict[str, list[dict]]
         expected_evidence = dwg_table_delivery_metadata(tree, descriptor)
         if selector.get("deliveryEvidence") != expected_evidence:
             raise RouteError("DWG table delivery evidence changed: %s" % descriptor)
+        expected_ownership = (
+            dwg_block_ownership_metadata(tree) if descriptor == "kBlockTable" else []
+        )
+        if selector.get("blockOwnershipEvidence", []) != expected_ownership:
+            raise RouteError("DWG BLOCK/ENDBLK ownership evidence changed: %s" % descriptor)
 
     reader_stage_routes = inventory_category_routes(inventory, "dwgRW", "reader-stage")
     reader_stages = {route["selector"].get("symbol"): route for route in reader_stage_routes}
@@ -9390,6 +9449,80 @@ try {
         pass
     else:
         raise AssertionError("DWG reader lifecycle order inversion was accepted")
+    dwg_ownership_source = SourceFile(
+        "src/intern/dwgreader.cpp",
+        """
+bool dwgReader::readDwgBlocks(DRW_Interface &intfa, dwgBuffer *dbuf) {
+    m_consumedCompoundChildHandles.clear();
+    for (const auto &item : blockRecordmap) {
+        const DRW_Block_Record *record = item.second;
+        claimHandle(record, record->block);
+        claimHandle(record, record->endBlock);
+        for (const std::uint32_t handle : record->entMap)
+            claimHandle(record, handle);
+    }
+    if (!invalidOwnershipRecords.empty()) {
+        quarantineOwnedEntities(*record);
+    }
+    if (version >= DRW::AC1018) {
+        if (!preflightMappedPolylineOwnership(records, dbuf)) return false;
+    }
+    for (auto it = blockRecordmap.begin(); it != blockRecordmap.end(); ++it) {
+        auto mit = ObjectMap.find(bkr->block);
+        if (!frame.readAt(*dbuf, version, oc.loc)) return false;
+        if (typeBuffer.getObjType(version) != dwgType::BLOCK || !typeBuffer.isGood()) return false;
+        if (!parseBlock(bk, buff, frame.bodyBitSize())) return false;
+        if (bk.handle != oc.handle || bk.handle != bkr->block) return false;
+        if (bkr->entMap.size() > static_cast<std::size_t>(std::numeric_limits<int>::max())) return false;
+        if (classification.route != DwgFrameClassification::Route::Entity) { validOwnership = false; }
+        auto endIt = ObjectMap.find(bkr->endBlock);
+        if (!endFrame.readAt(*dbuf, version, oc.loc)) return false;
+        if (endTypeBuffer.getObjType(version) != dwgType::ENDBLK || !endTypeBuffer.isGood()) return false;
+        if (!parseBlock(end, buff1, endFrame.bodyBitSize())) return false;
+        if (end.handle != oc.handle || end.handle != bkr->endBlock) return false;
+        if (bk.parentHandle != end.parentHandle) return false;
+        const bool isSpaceBlockRecord = isSpaceBlockRecordName(bk.name);
+        const bool validDelimiterOwner = isSpaceBlockRecord ? bk.parentHandle == DRW::NoHandle : bk.parentHandle == bkr->handle;
+        makeTypedEntityFramePublication(version, blockObject, dwgType::BLOCK, bk);
+        bool journalEligible = version >= DRW::AC1018;
+        intfa.addBlock(bk);
+        walkBlockRecordEntities(bkr, dbuf, intfa, bk.parentHandle, bkr->handle);
+        intfa.endBlock();
+        walkBlockRecordEntities(bkr, dbuf, intfa, DRW::NoHandle, bkr->handle);
+        if (!commitDelimiter(blockObject.handle, blockLease) || !commitDelimiter(endBlockObject.handle, endBlockLease)) return false;
+        if (!publishDwgFramePublication(intfa, blockPublication) || !publishDwgFramePublication(intfa, endBlockPublication)) return false;
+        if (blockScopeFailure) {
+            quarantineOwnedEntities(*bkr);
+        }
+    }
+    return ret;
+}
+""",
+        "i" * 64,
+    )
+    ownership_tree = SourceTree(
+        "target", {dwg_ownership_source.path: dwg_ownership_source}, {}
+    )
+    ownership_evidence = dwg_block_ownership_metadata(ownership_tree)
+    assert [row["edge"] for row in ownership_evidence[0]["edges"]] == [
+        spec["name"] for spec in DWG_BLOCK_OWNERSHIP_RULES
+    ]
+    reversed_ownership_source = SourceFile(
+        dwg_ownership_source.path,
+        dwg_ownership_source.text.replace(
+            "claimHandle(record, record->block);\n        claimHandle(record, record->endBlock);",
+            "claimHandle(record, record->endBlock);\n        claimHandle(record, record->block);",
+        ),
+        dwg_ownership_source.sha256,
+    )
+    try:
+        dwg_block_ownership_metadata(
+            SourceTree("target", {reversed_ownership_source.path: reversed_ownership_source}, {})
+        )
+    except RouteError:
+        pass
+    else:
+        raise AssertionError("DWG BLOCK/ENDBLK ownership order inversion was accepted")
     transport_source = SourceFile(
         "src/transport.cpp",
         """
