@@ -64,6 +64,8 @@ RAPIDRTRENDERSETTINGS_HANDLE = 0xC600
 MALFORMED_RAPIDRTRENDERSETTINGS_HANDLE = 0xC601
 MENTALRAYRENDERSETTINGS_HANDLE = 0xC700
 MALFORMED_MENTALRAYRENDERSETTINGS_HANDLE = 0xC701
+MATERIAL_HANDLE = 0xC800
+MALFORMED_MATERIAL_HANDLE = 0xC801
 
 RENDER_SETTINGS_KINDS = {
     "Settings": ("RENDERSETTINGS", RENDERSETTINGS_HANDLE, 556),
@@ -149,7 +151,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         raise ValueError("GROUP name, owner, or member stream mismatch")
 
     dictionary = find_record(records, "DICTIONARY", DICTIONARY_HANDLE)
-    if (dictionary.get("numitems") != 19
+    if (dictionary.get("numitems") != 20
             or dictionary.get("is_hardowner") != 1
             or owner_handle(dictionary) != 0x0C):
         raise ValueError("custom DICTIONARY count, owner, or cloning mismatch")
@@ -460,6 +462,16 @@ def check_objects(payload: dict, version_name: str) -> dict:
                 raise ValueError(
                     "MENTALRAYRENDERSETTINGS field mismatch: " + key)
 
+    material = find_record(records, "MATERIAL", MATERIAL_HANDLE)
+    if (owner_handle(material) != DICTIONARY_HANDLE
+            or material.get("type") != 507
+            or material.get("name") != "LOCAL_MATERIAL"
+            or material.get("description") != "LOCAL_MATERIAL_DESC"):
+        raise ValueError("MATERIAL owner or identity fields mismatch")
+    material_discrepancies = [
+        "MATERIAL visual-property fields are intentionally identity-only in libdxfrw"
+    ]
+
     dictionary_default = find_record(
         records, "DICTIONARYWDFLT", DICTIONARYWDFLT_HANDLE)
     if (owner_handle(dictionary_default) != DICTIONARY_HANDLE
@@ -504,6 +516,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         MALFORMED_RENDERENTRY_HANDLE: "RENDERENTRY",
         MALFORMED_RAPIDRTRENDERSETTINGS_HANDLE: "RAPIDRTRENDERSETTINGS",
         MALFORMED_MENTALRAYRENDERSETTINGS_HANDLE: "MENTALRAYRENDERSETTINGS",
+        MALFORMED_MATERIAL_HANDLE: "MATERIAL",
     }
     if any(record_handle(record) in malformed_handles
            and record.get("object") == malformed_handles[record_handle(record)]
@@ -534,10 +547,12 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "RENDERENTRY": RENDERENTRY_HANDLE,
             "RAPIDRTRENDERSETTINGS": RAPIDRTRENDERSETTINGS_HANDLE,
             "MENTALRAYRENDERSETTINGS": MENTALRAYRENDERSETTINGS_HANDLE,
+            "MATERIAL": MATERIAL_HANDLE,
             "DICTIONARYWDFLT": DICTIONARYWDFLT_HANDLE,
         },
         "objectStatus": "qualified",
-        "oracleDiscrepancies": oracle_discrepancies + mental_discrepancies,
+        "oracleDiscrepancies": (oracle_discrepancies + mental_discrepancies
+                                 + material_discrepancies),
     }
 
 
@@ -608,7 +623,7 @@ def self_test() -> None:
              "ownerhandle": [4, 1, 0x0C, 0x0C], "name": "LOCAL_GROUP",
              "groups": [[5, 1, 0x1234]]},
             {"object": "DICTIONARY", "handle": [0, 1, DICTIONARY_HANDLE],
-             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 19,
+             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 20,
              "is_hardowner": 1},
             {"object": "XRECORD", "handle": [0, 1, XRECORD_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
@@ -748,6 +763,10 @@ def self_test() -> None:
              "diagnostics_mode": 3, "diagnostics_grid_mode": 4,
              "diagnostics_grid_float": 1.1, "diagnostics_photon_mode": 5,
              "diagnostics_bsp_mode": 6, "energy_multiplier": 1.2},
+            {"object": "MATERIAL", "handle": [0, 1, MATERIAL_HANDLE],
+             "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "type": 507, "name": "LOCAL_MATERIAL",
+             "description": "LOCAL_MATERIAL_DESC"},
         ],
     }
     summary = check_objects(payload, "AC1024")
@@ -916,6 +935,15 @@ def self_test() -> None:
         pass
     else:
         raise AssertionError("malformed MENTALRAYRENDERSETTINGS was not rejected")
+    try:
+        bad = json.loads(json.dumps(payload))
+        bad["OBJECTS"].append({"object": "MATERIAL",
+                                "handle": [0, 1, MALFORMED_MATERIAL_HANDLE]})
+        check_objects(bad, "AC1024")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("malformed MATERIAL was not rejected")
     print("local DWG object oracle: PASS")
 
 

@@ -101,6 +101,10 @@ public:
             renderMentalRegistration.m_kind = DRW_RenderSettings::MentalRay;
             registeredRenderMental_ = writer_->registerRenderSettingsObjectClass(
                 &renderMentalRegistration);
+            DRW_Material materialRegistration;
+            materialRegistration.handle = 0xC800u;
+            registeredMaterial_ = writer_->registerMaterialObjectClass(
+                &materialRegistration);
         }
     }
 
@@ -161,6 +165,7 @@ public:
             {"LOCAL_RENDER_ENTRY", 0xC400u},
             {"LOCAL_RENDER_RAPIDRT", 0xC600u},
             {"LOCAL_RENDER_MENTALRAY", 0xC700u},
+            {"LOCAL_MATERIAL", 0xC800u},
         };
         wroteDictionary_ = registeredDictionary_
             && writer_->writeDictionary(&dictionary)
@@ -453,6 +458,14 @@ public:
             && writer_->writeRenderSettings(&renderMental)
             && renderMental.handle != 0;
 
+        DRW_Material material;
+        material.handle = 0xC800u;
+        material.parentHandle = dictionary.handle;
+        material.m_name = "LOCAL_MATERIAL";
+        material.m_description = "LOCAL_MATERIAL_DESC";
+        wroteMaterial_ = registeredMaterial_ && writer_->writeMaterial(&material)
+            && material.handle != 0;
+
         // A failed object write must not poison the following valid frames or
         // publish a partial object.  The writer's public transaction wrapper
         // owns the rollback boundary; this assertion keeps that contract in
@@ -593,6 +606,13 @@ public:
             std::numeric_limits<double>::quiet_NaN()};
         rejectedMalformedRenderMental_ =
             !writer_->writeRenderSettings(&invalidRenderMental);
+
+        DRW_Material invalidMaterial;
+        invalidMaterial.handle = 0xC801u;
+        invalidMaterial.parentHandle = dictionary.handle;
+        invalidMaterial.m_name = "LOCAL_BAD_MATERIAL";
+        invalidMaterial.setDwgCommonObjectState(0, 2, false);
+        rejectedMalformedMaterial_ = !writer_->writeMaterial(&invalidMaterial);
 
         DRW_Group group;
         group.handle = 0xA600u;
@@ -792,7 +812,7 @@ public:
         if (data.handle == 0xA601u) {
             readDictionarySeen_ = data.parentHandle
                     == DRW::DwgNamedObjectsDictionaryHandle
-                && data.m_entries.size() == 19
+                && data.m_entries.size() == 20
                 && data.m_entries[0].m_name == "LOCAL_XRECORD"
                 && data.m_entries[0].m_handle == 0xA602u
                 && data.m_entries[1].m_name == "LOCAL_PLOTSETTINGS"
@@ -830,7 +850,9 @@ public:
                 && data.m_entries[17].m_name == "LOCAL_RENDER_RAPIDRT"
                 && data.m_entries[17].m_handle == 0xC600u
                 && data.m_entries[18].m_name == "LOCAL_RENDER_MENTALRAY"
-                && data.m_entries[18].m_handle == 0xC700u;
+                && data.m_entries[18].m_handle == 0xC700u
+                && data.m_entries[19].m_name == "LOCAL_MATERIAL"
+                && data.m_entries[19].m_handle == 0xC800u;
         }
     }
     void addXRecord(const DRW_XRecord& data) override {
@@ -1028,6 +1050,14 @@ public:
         if (data.handle == 0xC701u)
             readMalformedRenderMentalSeen_ = true;
     }
+    void addMaterial(const DRW_Material& data) override {
+        if (data.handle == 0xC800u)
+            readMaterialSeen_ = data.parentHandle == 0xA601u
+                && data.m_name == "LOCAL_MATERIAL"
+                && data.m_description == "LOCAL_MATERIAL_DESC";
+        if (data.handle == 0xC801u)
+            readMalformedMaterialSeen_ = true;
+    }
     void addInsert(const DRW_Insert& data) override {
         readInsertSeen_ = true;
         readAttribSeen_ = data.attlist.size() == 1
@@ -1066,7 +1096,7 @@ public:
             && wroteVisualStyle_ && wroteRenderSettings_
             && wroteRenderEnvironment_ && wroteRenderGlobal_
             && wroteRenderEntry_ && wroteRenderRapid_ && wroteRenderMental_
-            && wroteGroup_;
+            && wroteMaterial_ && wroteGroup_;
     }
     bool rejectedMalformedObject() const { return rejectedMalformedObject_; }
     bool rejectedMalformedStyle() const { return rejectedMalformedStyle_; }
@@ -1111,6 +1141,7 @@ public:
     bool rejectedMalformedRenderMental() const {
         return rejectedMalformedRenderMental_;
     }
+    bool rejectedMalformedMaterial() const { return rejectedMalformedMaterial_; }
     bool readLineSeen() const { return readLineSeen_; }
     bool readSimpleEntitiesSeen() const {
         return readPointSeen_ && readCircleSeen_ && readArcSeen_
@@ -1138,7 +1169,8 @@ public:
             && readWipeoutVariablesSeen_ && readVisualStyleSeen_
             && readRenderSettingsSeen_ && readRenderEnvironmentSeen_
             && readRenderGlobalSeen_ && readRenderEntrySeen_
-            && readRenderRapidSeen_ && readRenderMentalSeen_ && readGroupSeen_;
+            && readRenderRapidSeen_ && readRenderMentalSeen_
+            && readMaterialSeen_ && readGroupSeen_;
     }
     bool readMalformedObjectSeen() const { return readMalformedObjectSeen_; }
     bool readMalformedStyleSeen() const { return readMalformedStyleSeen_; }
@@ -1190,6 +1222,8 @@ public:
     bool readMalformedRenderMentalSeen() const {
         return readMalformedRenderMentalSeen_;
     }
+    bool readMaterialSeen() const { return readMaterialSeen_; }
+    bool readMalformedMaterialSeen() const { return readMalformedMaterialSeen_; }
     const DRW_Line& readLine() const { return readLine_; }
 
 private:
@@ -1240,6 +1274,7 @@ private:
     bool wroteRenderEntry_ {false};
     bool wroteRenderRapid_ {false};
     bool wroteRenderMental_ {false};
+    bool wroteMaterial_ {false};
     bool rejectedMalformedObject_ {false};
     bool rejectedMalformedStyle_ {false};
     bool rejectedMalformedMLeaderStyle_ {false};
@@ -1257,6 +1292,7 @@ private:
     bool rejectedMalformedRenderEntry_ {false};
     bool rejectedMalformedRenderRapid_ {false};
     bool rejectedMalformedRenderMental_ {false};
+    bool rejectedMalformedMaterial_ {false};
     bool registeredDictionary_ {false};
     bool registeredMLeaderStyle_ {false};
     bool registeredDictionaryVar_ {false};
@@ -1273,6 +1309,7 @@ private:
     bool registeredRenderEntry_ {false};
     bool registeredRenderRapid_ {false};
     bool registeredRenderMental_ {false};
+    bool registeredMaterial_ {false};
     bool registeredPlotSettings_ {false};
     bool readLineSeen_ {false};
     bool readPointSeen_ {false};
@@ -1315,6 +1352,7 @@ private:
     bool readRenderEntrySeen_ {false};
     bool readRenderRapidSeen_ {false};
     bool readRenderMentalSeen_ {false};
+    bool readMaterialSeen_ {false};
     bool readMalformedObjectSeen_ {false};
     bool readMalformedStyleSeen_ {false};
     bool readMalformedMLeaderStyleSeen_ {false};
@@ -1332,6 +1370,7 @@ private:
     bool readMalformedRenderEntrySeen_ {false};
     bool readMalformedRenderRapidSeen_ {false};
     bool readMalformedRenderMentalSeen_ {false};
+    bool readMalformedMaterialSeen_ {false};
     DRW_Line readLine_;
     dx_data data_;
 };
@@ -1449,6 +1488,9 @@ int main(int argc, char** argv) {
         expect(writeIface.rejectedMalformedRenderRapid(),
                ("local DWG writer rejected malformed RapidRT RENDERSETTINGS transaction" + suffix).c_str(),
                failures);
+        expect(writeIface.rejectedMalformedMaterial(),
+               ("local DWG writer rejected malformed MATERIAL transaction" + suffix).c_str(),
+               failures);
         expect(std::filesystem::exists(output),
                ("local DWG output is published" + suffix).c_str(), failures);
 
@@ -1502,6 +1544,9 @@ int main(int argc, char** argv) {
         expect(readIface.readRenderRapidSeen(),
                ("local DWG self-read publishes RapidRT RENDERSETTINGS" + suffix).c_str(),
                failures);
+        expect(readIface.readMaterialSeen(),
+               ("local DWG self-read publishes MATERIAL" + suffix).c_str(),
+               failures);
         expect(!readIface.readMalformedObjectSeen(),
                ("local DWG self-read omits rolled-back malformed object" + suffix).c_str(),
                failures);
@@ -1549,6 +1594,9 @@ int main(int argc, char** argv) {
                failures);
         expect(!readIface.readMalformedRenderRapidSeen(),
                ("local DWG self-read omits rolled-back malformed RapidRT RENDERSETTINGS" + suffix).c_str(),
+               failures);
+        expect(!readIface.readMalformedMaterialSeen(),
+               ("local DWG self-read omits rolled-back malformed MATERIAL" + suffix).c_str(),
                failures);
         if (readIface.readLineSeen()) {
             const DRW_Line& line = readIface.readLine();
