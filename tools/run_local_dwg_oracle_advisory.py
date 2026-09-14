@@ -84,7 +84,8 @@ def validate_oracle_output(path: Path, expected_version: str) -> dict[str, objec
     simple_entities_ok = all(
         entity_counts.get(name, 0) == 1
         for name in ("LINE", "POINT", "CIRCLE", "ARC", "LWPOLYLINE",
-                     "TEXT", "MTEXT", "ELLIPSE")
+                     "TEXT", "MTEXT", "ELLIPSE", "TRACE", "SOLID",
+                     "3DFACE", "RAY", "XLINE", "3DLINE")
     )
     return {
         "version": expected_version,
@@ -115,6 +116,7 @@ def self_test() -> None:
             "10\n1.0\n20\n2.0\n30\n3.0\n11\n4.0\n21\n5.0\n31\n6.0\n"
             "0\nPOINT\n0\nCIRCLE\n0\nARC\n0\nLWPOLYLINE\n"
             "0\nTEXT\n0\nMTEXT\n0\nELLIPSE\n"
+            "0\nTRACE\n0\nSOLID\n0\n3DFACE\n0\nRAY\n0\nXLINE\n0\n3DLINE\n"
             "0\nENDSEC\n0\nEOF\n",
             encoding="utf-8",
         )

@@ -83,6 +83,42 @@ public:
         ellipse.secPoint = DRW_Coord(2.0, 0.0, 0.0);
         ellipse.ratio = 0.5;
         wroteEllipse_ = writer_->writeEllipse(&ellipse) && ellipse.handle != 0;
+
+        DRW_Trace trace;
+        trace.basePoint = DRW_Coord(29.0, 30.0, 0.0);
+        trace.secPoint = DRW_Coord(31.0, 30.0, 0.0);
+        trace.thirdPoint = DRW_Coord(31.0, 32.0, 0.0);
+        trace.fourPoint = DRW_Coord(29.0, 32.0, 0.0);
+        wroteTrace_ = writer_->writeTrace(&trace) && trace.handle != 0;
+
+        DRW_Solid solid;
+        solid.basePoint = DRW_Coord(33.0, 34.0, 0.0);
+        solid.secPoint = DRW_Coord(35.0, 34.0, 0.0);
+        solid.thirdPoint = DRW_Coord(35.0, 36.0, 0.0);
+        solid.fourPoint = DRW_Coord(33.0, 36.0, 0.0);
+        wroteSolid_ = writer_->writeSolid(&solid) && solid.handle != 0;
+
+        DRW_3Dface face;
+        face.basePoint = DRW_Coord(37.0, 38.0, 0.0);
+        face.secPoint = DRW_Coord(39.0, 38.0, 0.0);
+        face.thirdPoint = DRW_Coord(39.0, 40.0, 0.0);
+        face.fourPoint = DRW_Coord(37.0, 40.0, 0.0);
+        wrote3dFace_ = writer_->write3dface(&face) && face.handle != 0;
+
+        DRW_Ray ray;
+        ray.basePoint = DRW_Coord(41.0, 42.0, 0.0);
+        ray.secPoint = DRW_Coord(43.0, 44.0, 0.0);
+        wroteRay_ = writer_->writeRay(&ray) && ray.handle != 0;
+
+        DRW_Xline xline;
+        xline.basePoint = DRW_Coord(45.0, 46.0, 0.0);
+        xline.secPoint = DRW_Coord(47.0, 48.0, 0.0);
+        wroteXline_ = writer_->writeXline(&xline) && xline.handle != 0;
+
+        DRW_3DLine line3d;
+        line3d.basePoint = DRW_Coord(49.0, 50.0, 51.0);
+        line3d.secPoint = DRW_Coord(52.0, 53.0, 54.0);
+        wrote3dLine_ = writer_->write3DLine(&line3d) && line3d.handle != 0;
     }
 
     void addLine(const DRW_Line& data) override {
@@ -98,17 +134,27 @@ public:
     void addText(const DRW_Text&) override { readTextSeen_ = true; }
     void addMText(const DRW_MText&) override { readMTextSeen_ = true; }
     void addEllipse(const DRW_Ellipse&) override { readEllipseSeen_ = true; }
+    void addTrace(const DRW_Trace&) override { readTraceSeen_ = true; }
+    void addSolid(const DRW_Solid&) override { readSolidSeen_ = true; }
+    void add3dFace(const DRW_3Dface&) override { read3dFaceSeen_ = true; }
+    void addRay(const DRW_Ray&) override { readRaySeen_ = true; }
+    void addXline(const DRW_Xline&) override { readXlineSeen_ = true; }
+    void add3DLine(const DRW_3DLine&) override { read3dLineSeen_ = true; }
 
     bool wroteLine() const { return wroteLine_; }
     bool wroteSimpleEntities() const {
         return wrotePoint_ && wroteCircle_ && wroteArc_ && wrotePolyline_
-            && wroteText_ && wroteMText_ && wroteEllipse_;
+            && wroteText_ && wroteMText_ && wroteEllipse_ && wroteTrace_
+            && wroteSolid_ && wrote3dFace_ && wroteRay_ && wroteXline_
+            && wrote3dLine_;
     }
     bool readLineSeen() const { return readLineSeen_; }
     bool readSimpleEntitiesSeen() const {
         return readPointSeen_ && readCircleSeen_ && readArcSeen_
             && readPolylineSeen_ && readTextSeen_ && readMTextSeen_
-            && readEllipseSeen_;
+            && readEllipseSeen_ && readTraceSeen_ && readSolidSeen_
+            && read3dFaceSeen_ && readRaySeen_ && readXlineSeen_
+            && read3dLineSeen_;
     }
     const DRW_Line& readLine() const { return readLine_; }
 
@@ -122,6 +168,12 @@ private:
     bool wroteText_ {false};
     bool wroteMText_ {false};
     bool wroteEllipse_ {false};
+    bool wroteTrace_ {false};
+    bool wroteSolid_ {false};
+    bool wrote3dFace_ {false};
+    bool wroteRay_ {false};
+    bool wroteXline_ {false};
+    bool wrote3dLine_ {false};
     bool readLineSeen_ {false};
     bool readPointSeen_ {false};
     bool readCircleSeen_ {false};
@@ -130,6 +182,12 @@ private:
     bool readTextSeen_ {false};
     bool readMTextSeen_ {false};
     bool readEllipseSeen_ {false};
+    bool readTraceSeen_ {false};
+    bool readSolidSeen_ {false};
+    bool read3dFaceSeen_ {false};
+    bool readRaySeen_ {false};
+    bool readXlineSeen_ {false};
+    bool read3dLineSeen_ {false};
     DRW_Line readLine_;
     dx_data data_;
 };
