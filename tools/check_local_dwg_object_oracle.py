@@ -52,6 +52,8 @@ WIPEOUTVARIABLES_HANDLE = 0xB600
 MALFORMED_WIPEOUTVARIABLES_HANDLE = 0xB601
 VISUALSTYLE_HANDLE = 0xC000
 MALFORMED_VISUALSTYLE_HANDLE = 0xC001
+RENDERSETTINGS_HANDLE = 0xC100
+MALFORMED_RENDERSETTINGS_HANDLE = 0xC101
 
 
 def parse_json_output(text: str) -> dict:
@@ -115,7 +117,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         raise ValueError("GROUP name, owner, or member stream mismatch")
 
     dictionary = find_record(records, "DICTIONARY", DICTIONARY_HANDLE)
-    if (dictionary.get("numitems") != 13
+    if (dictionary.get("numitems") != 14
             or dictionary.get("is_hardowner") != 1
             or owner_handle(dictionary) != 0x0C):
         raise ValueError("custom DICTIONARY count, owner, or cloning mismatch")
@@ -256,6 +258,30 @@ def check_objects(payload: dict, version_name: str) -> dict:
                 or visual.get("bd_prop39") != 5.5):
             raise ValueError("VISUALSTYLE R2013b fields mismatch")
 
+    render = find_record(records, "RENDERSETTINGS", RENDERSETTINGS_HANDLE)
+    if (owner_handle(render) != DICTIONARY_HANDLE
+            or render.get("type") != 556
+            or render.get("name") != "LOCAL_RENDERSETTINGS"
+            or render.get("description") != "LOCAL_RENDER_DESC"
+            or render.get("fog_enabled") != 1
+            or render.get("fog_background_enabled") != 0
+            or render.get("backfaces_enabled") != 1
+            or render.get("environ_image_enabled") != 0
+            or render.get("display_index") != 2):
+        raise ValueError("RENDERSETTINGS owner or bounded base fields mismatch")
+    if version_name in {"AC1015", "AC1018", "AC1021", "AC1024"}:
+        if render.get("class_version") != 1:
+            raise ValueError("RENDERSETTINGS class version mismatch")
+    render_discrepancies = []
+    if version_name == "AC1027":
+        if render.get("has_predefined") != 0:
+            raise ValueError("RENDERSETTINGS predefined flag mismatch")
+    elif version_name == "AC1032" and "has_predefined" not in render:
+        render_discrepancies.append(
+            "LibreDWG 0.14 omits RENDERSETTINGS has_predefined for AC1032")
+    elif version_name == "AC1032" and render.get("has_predefined") != 0:
+        raise ValueError("RENDERSETTINGS predefined flag mismatch")
+
     dictionary_default = find_record(
         records, "DICTIONARYWDFLT", DICTIONARYWDFLT_HANDLE)
     if (owner_handle(dictionary_default) != DICTIONARY_HANDLE
@@ -275,12 +301,12 @@ def check_objects(payload: dict, version_name: str) -> dict:
         # this carrier as empty/zero while retaining its type/header/owner.
         # Keep the bounded frame qualification, but surface the independent
         # reader discrepancy instead of silently treating it as parity.
-        oracle_discrepancies = [
+        oracle_discrepancies = render_discrepancies + [
             "LibreDWG 0.14 omits DICTIONARYWDFLT item/default handles for "
             + version_name
         ]
     else:
-        oracle_discrepancies = []
+        oracle_discrepancies = render_discrepancies
 
     malformed_handles = {
         MALFORMED_HANDLE: "XRECORD",
@@ -294,6 +320,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         MALFORMED_RASTERVARIABLES_HANDLE: "RASTERVARIABLES",
         MALFORMED_WIPEOUTVARIABLES_HANDLE: "WIPEOUTVARIABLES",
         MALFORMED_VISUALSTYLE_HANDLE: "VISUALSTYLE",
+        MALFORMED_RENDERSETTINGS_HANDLE: "RENDERSETTINGS",
     }
     if any(record_handle(record) in malformed_handles
            and record.get("object") == malformed_handles[record_handle(record)]
@@ -317,6 +344,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "RASTERVARIABLES": RASTERVARIABLES_HANDLE,
             "WIPEOUTVARIABLES": WIPEOUTVARIABLES_HANDLE,
             "VISUALSTYLE": VISUALSTYLE_HANDLE,
+            "RENDERSETTINGS": RENDERSETTINGS_HANDLE,
             "DICTIONARYWDFLT": DICTIONARYWDFLT_HANDLE,
         },
         "objectStatus": "qualified",
@@ -391,7 +419,7 @@ def self_test() -> None:
              "ownerhandle": [4, 1, 0x0C, 0x0C], "name": "LOCAL_GROUP",
              "groups": [[5, 1, 0x1234]]},
             {"object": "DICTIONARY", "handle": [0, 1, DICTIONARY_HANDLE],
-             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 13,
+             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 14,
              "is_hardowner": 1},
             {"object": "XRECORD", "handle": [0, 1, XRECORD_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
@@ -461,6 +489,14 @@ def self_test() -> None:
              "c_prop29": {"rgb": "c3000007"}, "bd_prop34": 3.5,
              "bd_prop38": 4.5,
              "bd_prop39": 5.5},
+            {"object": "RENDERSETTINGS",
+             "handle": [0, 1, RENDERSETTINGS_HANDLE],
+             "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "type": 556, "class_version": 1,
+             "name": "LOCAL_RENDERSETTINGS",
+             "description": "LOCAL_RENDER_DESC", "fog_enabled": 1,
+             "fog_background_enabled": 0, "backfaces_enabled": 1,
+             "environ_image_enabled": 0, "display_index": 2},
         ],
     }
     check_objects(payload, "AC1024")
@@ -567,6 +603,16 @@ def self_test() -> None:
         pass
     else:
         raise AssertionError("malformed VISUALSTYLE was not rejected")
+    try:
+        bad = json.loads(json.dumps(payload))
+        bad["OBJECTS"].append({"object": "RENDERSETTINGS",
+                                "handle": [0, 1,
+                                            MALFORMED_RENDERSETTINGS_HANDLE]})
+        check_objects(bad, "AC1024")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("malformed RENDERSETTINGS was not rejected")
     print("local DWG object oracle: PASS")
 
 
