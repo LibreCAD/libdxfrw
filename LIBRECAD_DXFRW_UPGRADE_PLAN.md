@@ -1792,12 +1792,13 @@ edit this block or commit the same slice concurrently.
 <!-- UPGRADE_PROGRESS_START -->
 
 - Current checkpoint: S23/I5 aggregate parity and release sign-off is
-  prepared for commit; S01-S23 implementation slices are complete, including
-  the clean LibreCAD target worktree change. Format-support claims remain
-  limited to rows with eligible runtime/oracle evidence.
-  Source/package/consumer convergence is complete, but DWG/DXF parity with the
-  pinned LibreCAD `dwgRW`/`dxfRW` behavior is still an explicit follow-up and
-  no format-support claim is promoted solely from source parity. I0.2 is
+  committed; S01-S23 implementation slices are complete, including the clean
+  LibreCAD target worktree change. Format-support claims remain limited to
+  rows with eligible runtime/oracle evidence. Source/package/consumer
+  convergence and source-level DWG/DXF parity with the pinned LibreCAD
+  `dwgRW`/`dxfRW` behavior are complete; runtime/wire-format parity remains an
+  explicit evidence follow-up and no format-support claim is promoted solely
+  from source parity. I0.2 is
   verified as an anchor-inventory scaffold; review inserted source-surface,
   public-header, pipeline-edge, and cardinality-mapping children before any
   completeness claim may advance.
@@ -1892,7 +1893,7 @@ edit this block or commit the same slice concurrently.
   linked without fabricating reader edges; extractor, aggregate, registry,
   and policy fast gates pass with no drawing fixtures.
 - Latest implementation slice: S19/I1 differential harness closure is now
-  prepared from a schema-validated, shell-free runner contract. The fast path
+  committed from a schema-validated, shell-free runner contract. The fast path
   normalizes target/standalone JSON envelopes, compares semantic, callback,
   carrier, graph, error-stage, tool-version, and exact-replay fields, and
   reports only hashes for normalized identity. Its self-test runs local
@@ -1901,7 +1902,7 @@ edit this block or commit the same slice concurrently.
   support claim. The two differential CTest entries pass in 0.14 seconds;
   no drawing fixtures or full suites are involved.
 - Latest implementation slice: S20/I2 DXF source-only parity lane is now
-  prepared. `check_dxf_lane.py` validates 1,475 target and 1,457 standalone
+  committed. `check_dxf_lane.py` validates 1,475 target and 1,457 standalone
   DXF routes, required ASCII/binary/R12 transport anchors, group-code/raw
   eligibility, typed entity/object/class/table/section publication, writer
   provider/finalizer contracts, and one non-fixture mapping row per target
@@ -1909,14 +1910,14 @@ edit this block or commit the same slice concurrently.
   runtime corpus/oracle qualification remains experimental and no drawing
   payload is committed.
 - Latest implementation slice: S21/I3 DWG-reader source-only parity lane is
-  now prepared. `check_dwg_lane.py --mode reader` validates 1,345 target and
+  now committed. `check_dwg_lane.py --mode reader` validates 1,345 target and
   1,371 standalone DWG routes, all six versioned reader pipelines, section
   declarations/fallbacks, table/object/entity dispatch, raw/publication
   routes, and complete no-fixture mapping. Its focused reader CTest entry is
   build-directory safe; wire-layout and sample/spec qualification remain
   experimental and checkpoint-gated.
 - Latest implementation slice: S22/I4 DWG-writer/preservation source-only
-  parity lane is now prepared. `check_dwg_lane.py --mode writer` validates
+  parity lane is now committed. `check_dwg_lane.py --mode writer` validates
   1,345 target and 1,371 standalone DWG routes, six versioned writer
   pipelines, 38 writer bindings, 101 writer entrypoints, raw replay routes,
   provider/finalizer ownership, and complete no-fixture mapping. Its focused
@@ -1929,11 +1930,24 @@ edit this block or commit the same slice concurrently.
   environment limitation, not a code failure. Fast release-readiness,
   separate DXF/DWG lane, source/aggregate, fixture, import, sync, and plan
   checks are green; no drawing payloads were added.
+- Post-S23 advisory audit: a temporary standalone `dwg2dxf` build was exercised
+  against 20 existing external samples under `/Users/dli/doc/dwg`; both
+  successful conversions and rejected/failed reads were observed. All output
+  files were temporary and no DWG/DXF bytes entered Git. This evidence is
+  deliberately non-promoting because the pinned LibreCAD target reports
+  AC1015/18/21/24/27/32 as fixture/oracle-blocked. A direct target-side
+  `dwg2dxf` cross-build was also unavailable: the pinned LibreCAD snapshot
+  lacks the `libraries/libdxfrw/dwg2dxf` and `cmake/libdxfrwConfig.cmake`
+  inputs referenced by its top-level build. No target repin or sibling
+  worktree mutation was made; future runtime qualification still requires an
+  admitted or locally-from-scratch fixture plus an independent oracle.
 - Authorized run horizon: full S01-S23/A-I5 implementation objective.
-- Completion target: S23/I5 qualified-format parity acceptance; a PR boundary
-  cannot silently shorten the authorized objective.
+- Completion target: S23/I5 source-parity and release-readiness acceptance is
+  committed. Qualified-format parity acceptance remains a separate,
+  evidence-gated follow-up and cannot be inferred from source parity or a PR
+  boundary.
 - Last fully resolved slice: S23 (aggregate parity/release checkpoint is
-  prepared in the current slice); target integration commit is
+  committed as `28a0b45b896098b7cb31976e2356a9746e933b3a`); target integration commit is
   `6969e0a003414f9a7084349ac54bc2b32515e16b`. All in-horizon lanes are
   terminal and every future evidence expansion must be separately authorized.
 - Resolved slices: 23/23 (`COMMITTED`, or `SUPERSEDED` after all replacements
@@ -1966,8 +1980,9 @@ edit this block or commit the same slice concurrently.
 | S10 | E2: graph accounting, raw replay, DataStorage/ACIS/proxy | S08, S09 | COMMITTED | zero unexplained frames; eligibility negatives | E2.1-E2.5 PASS; aggregate three-test CTest, strict scope/sync, fixture, hook, plan, and diff gates PASS; no drawing bytes | S11, S13 |
 | S11 | F0: writer primitives, framing, handles, secure transaction | S10 | COMMITTED | golden vectors; failure injection | committed S11; F0.1-F0.5 complete; four-test aggregate and all policy gates PASS; no fixture bytes | S12, S13 |
 | S12 | F1: per-version/per-feature writer qualification | S11 | COMMITTED | self-read for implemented paths; independent oracle for each `PROMOTED` row; every unqualified row explicitly deferred/experimental | S12 committed with F1.1-F1.5 complete; F1.1a remains DEFERRED_EXTERNAL; no fixture bytes | S13, S14 |
-| S13 | G0: diagnostics, aggregate budgets, ownership, fuzz/sanitizers | S10, S11 | COMMITTED | hardening matrix green | S13 committed in this slice (prospective commit; resolve SHA after commit); G0.1-G0.5 verified; standard and ASan/UBSan CTest suites pass; scope/sync/fixture/hook/plan/diff gates pass; no fixture bytes permitted | S14 |
-| S14 | G1: system-package LibreCAD mode, packaging, docs, release | S07, S12, S13 | COMMITTED | full acceptance criteria | S14 committed in this slice (prospective commit; resolve SHA after commit); standalone package, docs, policy, and aggregate gates pass; LibreCAD system-package mode remains explicitly deferred-external | external system-mode handoff |
+| S13 | G0: diagnostics, aggregate budgets, ownership, fuzz/sanitizers | S10, S11 | COMMITTED | hardening matrix green | committed `e61a51f`; G0.1-G0.5 verified; standard and ASan/UBSan CTest suites pass; scope/sync/fixture/hook/plan/diff gates pass; no fixture bytes permitted | S14 |
+| S14 | G1: system-package LibreCAD mode, packaging, docs, release | S07, S12, S13 | COMMITTED | full acceptance criteria | committed `a60991e`; standalone package, docs, policy, and aggregate gates pass; LibreCAD system-package mode remains explicitly deferred-external | S15 |
+| S15 | H0: structured operation diagnostics and stage-aware error evidence | S13 | COMMITTED | diagnostic API, first-failure mapping, callback/phase coverage, bounded secondary storage, focused tests, and all policy gates | committed `39c25cb`; full/sanitizer CTests, package consumer, scope/sync, fixture admission (0), external hook, plan, diff, and staged drawing scan pass; no fixture bytes | S16 |
 | S16 | H1: installed-package transitive header closure | S15 | COMMITTED | package install, staged-header closure, and consumer compile gates | committed `e113c9f`; standalone package rebuild/install and system-mode filter prerequisite pass; no fixture bytes | S17 |
 | S17 | H2: LibreCAD system-package consumer integration | S16 | COMMITTED | system-mode configure/build, focused tests, bundled-path audit, and default-mode non-regression | target commit `6969e0a003414f9a7084349ac54bc2b32515e16b`; system `librecad_lib` 100% build, focused CTest, default filter compile, 1,245-command zero-bundled-path audit; no fixture bytes | S18 parity inventory |
 | S18 | I0: deterministic both-façade parity inventory | S17 | COMMITTED | pinned generator inputs, source/public-surface and pipeline-edge extraction, cardinality-aware mapping, zero-unmapped/duplicate checks, deterministic `--check` | source/package integration, raw-publication terminal proof, read-side raw eligibility, DXF ASCII/binary/R12 transport selection, DXF raw writer/replay transforms, DWG raw replay ingress/preflight/internal-registration/owner-bookkeeping identity, DWG raw section ingress/buffer/finalizer identity, all-nine-descriptor table receipt/parse/map identity, compound ATTRIB/SEQEND/INSERT/MINSERT/VERTEX/POLYLINE transition identity, direct/journal block delivery identity, ordered `dwgRW::processDwg` lifecycle/finalizer identity, BLOCK/ENDBLK ownership/reachability/commit/quarantine identity, and 80/80 functional source-unit same-path coverage are committed; target and standalone routes include exact carrier/callback/guard/branch/predecessor metadata plus ordered DWG replay/table/compound/delivery/lifecycle/ownership edges and two explicit DXF transport implementation anchors; I0.2c now records adaptation provenance, canonical route-identity digests, selector/condition/body delta classes, and tamper/extra-shard rejection; I0.3-A/B now emits and validates all 5,669 target-centric mapping rows: 5,634 `1:1`, 31 reviewed `N:1`, four reviewed `1:N`, zero target-unmapped rows, and 68 standalone-only compatibility extensions with per-row dispositions/readiness; I0.3a locks 86 target test/oracle sources and 76 selector links without copying testdata; I0.2g, I0.2b, I0.2d, I0.2e, I0.2f, and I0.4 source/aggregate closures are committed; parent I0 reconciliation is complete and S19 is dependency-ready; no drawing payloads | S19 |
@@ -2076,7 +2091,6 @@ edit this block or commit the same slice concurrently.
 | G1.3 | G1 / S14 | P10.7-P10.9 | G1.3a | COMMITTED | DEFERRED_EXTERNAL | explicit LibreCAD system-package mode and bundled-path exclusion | implementation is a separate LibreCAD CMake change; this branch records the exact handoff and required no-bundled-path compile audit, but cannot modify the user’s dirty sibling checkout; no system-mode claim is promoted and no fixture bytes are added; unblocks G1.5 after deferral is recorded |
 | G1.4 | G1 / S14 | P10.10-P10.12, WP8.7 | G1.3a | COMMITTED | EXPERIMENTAL | documentation, notices, support ledger, and release metadata | `docs/UPGRADE_SUPPORT.md` and `metadata/librecad-system-package-handoff.md` cover C++17/ABI boundary, evidence-based support claims, no-downloaded-fixture policy, package-mode handoff, sanitizer/package gates, and known limitations; no fixture bytes; unblocks G1.5 |
 | G1.5 | G1 / S14 | WP8, WP7.10 | G1.1, G1.2, G1.3, G1.4 | COMMITTED | EXPERIMENTAL | G1 aggregate package, system-mode, docs, scope/sync, fixture, hook, plan, and diff gate | S14 committed in this slice; staged-header/CMake/pkg-config consumers pass; updater/normalizer, import scope, pinned sync/archive, fixture admission (0), external hook, Python syntax, and diff checks pass; LibreCAD system-package mode is explicitly deferred to the sibling CMake handoff; no DWG/DXF paths staged |
-| S15 | H0: structured operation diagnostics and stage-aware error evidence | S13 | COMMITTED | diagnostic API, first-failure mapping, callback/phase coverage, bounded secondary storage, focused tests, and all policy gates | S15 committed in this slice (prospective commit; resolve SHA after commit); full/sanitizer CTests, package consumer, scope/sync, fixture admission (0), external hook, plan, diff, and staged drawing scan pass; no fixture bytes | external system-mode handoff |
 | H0 | S15 | G0 | COMMITTED | EXPERIMENTAL | Structured operation diagnostics paired with legacy error compatibility; stage-aware write/read evidence and bounded secondary failures |
 | H0.1 | H0 / S15 | WP9.1-WP9.2 | G0.4 | COMMITTED | EXPERIMENTAL | public diagnostic schema, façade accessors, reset semantics, and legacy invalid-argument/version mapping | `/private/tmp/libdxfrw-s15-h0-final`: full configure/build and `ctest --test-dir /private/tmp/libdxfrw-s15-h0-final -R libdxfrw_diagnostic --output-on-failure` PASS; global and namespaced spellings compile; initial-operation state, BAD_UNKNOWN, and BAD_VERSION preserve the coarse channel; no fixture bytes; unblocks H0.2/H0.3 |
 | H0.2 | H0 / S15 | WP9.2-WP9.4 | H0.1 | COMMITTED | EXPERIMENTAL | phase-aware read/write mapping, callback exception precedence, and commit/emission distinction | `/private/tmp/libdxfrw-s15-h0-final`: full build and targeted diagnostic CTest PASS; DWG missing-file path reports Open/OpenFailure and write/read stage mapping is instrumented; callback precedence is preserved without overwriting the coarse stage; no fixture bytes; unblocks H0.4 |
