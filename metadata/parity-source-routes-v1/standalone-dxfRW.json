@@ -15356,7 +15356,22 @@
         "implementation": "dxfReaderAscii",
         "kind": "transport-selection",
         "selection": "read-ascii-memory",
-        "signatureFingerprint": "907776eeff11874422f1fbbca5fcebb011a2d73b9611239906a40229c5dd8427"
+        "signatureFingerprint": "907776eeff11874422f1fbbca5fcebb011a2d73b9611239906a40229c5dd8427",
+        "transportSelectionEvidence": {
+          "branch": "unconditional-entrypoint",
+          "construction": {
+            "sourceEvidence": {
+              "line": 1318,
+              "path": "src/libdxfrw.cpp",
+              "spanSha256": "953ea476dbf3f377c0f29a09ab3e2fb16b13e2a85df6c892338b7c9da02b0b41",
+              "symbol": "dxfRW::readAscii"
+            },
+            "sourceOffset": 517
+          },
+          "guardPredicates": [],
+          "implementation": "dxfReaderAscii",
+          "selection": "read-ascii-memory"
+        }
       },
       "sourceDisposition": "source-route-only"
     },
@@ -15380,7 +15395,34 @@
         "implementation": "dxfReaderAscii",
         "kind": "transport-selection",
         "selection": "read-file-ascii",
-        "signatureFingerprint": "8ffe35377dc139442f61a8f4045a771b4b46ae2638d899b987e14f137685913a"
+        "signatureFingerprint": "8ffe35377dc139442f61a8f4045a771b4b46ae2638d899b987e14f137685913a",
+        "transportSelectionEvidence": {
+          "branch": "else",
+          "construction": {
+            "sourceEvidence": {
+              "line": 1291,
+              "path": "src/libdxfrw.cpp",
+              "spanSha256": "2c00cd79a8c4d9698e8acb5e617259bb9cc5d609b12b6b94aa306776453a942d",
+              "symbol": "dxfRW::read"
+            },
+            "sourceOffset": 2394
+          },
+          "guardPredicates": [
+            {
+              "order": 1,
+              "predicateFingerprint": "f84fabc5e3f0291e9f9b164605d999e65d9b3ed2320c472057e7ab46f80adbab",
+              "sourceEvidence": {
+                "line": 1268,
+                "path": "src/libdxfrw.cpp",
+                "spanSha256": "2c00cd79a8c4d9698e8acb5e617259bb9cc5d609b12b6b94aa306776453a942d",
+                "symbol": "dxfRW::read"
+              },
+              "sourceOffset": 1298
+            }
+          ],
+          "implementation": "dxfReaderAscii",
+          "selection": "read-file-ascii"
+        }
       },
       "sourceDisposition": "source-route-only"
     },
@@ -15404,7 +15446,45 @@
         "implementation": "dxfReaderBinary",
         "kind": "transport-selection",
         "selection": "read-file-binary",
-        "signatureFingerprint": "8ffe35377dc139442f61a8f4045a771b4b46ae2638d899b987e14f137685913a"
+        "signatureFingerprint": "8ffe35377dc139442f61a8f4045a771b4b46ae2638d899b987e14f137685913a",
+        "transportSelectionEvidence": {
+          "branch": "else",
+          "construction": {
+            "sourceEvidence": {
+              "line": 1284,
+              "path": "src/libdxfrw.cpp",
+              "spanSha256": "2c00cd79a8c4d9698e8acb5e617259bb9cc5d609b12b6b94aa306776453a942d",
+              "symbol": "dxfRW::read"
+            },
+            "sourceOffset": 2093
+          },
+          "guardPredicates": [
+            {
+              "order": 1,
+              "predicateFingerprint": "f84fabc5e3f0291e9f9b164605d999e65d9b3ed2320c472057e7ab46f80adbab",
+              "sourceEvidence": {
+                "line": 1268,
+                "path": "src/libdxfrw.cpp",
+                "spanSha256": "2c00cd79a8c4d9698e8acb5e617259bb9cc5d609b12b6b94aa306776453a942d",
+                "symbol": "dxfRW::read"
+              },
+              "sourceOffset": 1298
+            },
+            {
+              "order": 2,
+              "predicateFingerprint": "c7d72b10cd0aeb89430fa9528ce16267607d49204f5c8e4f826459f8b61b8f7f",
+              "sourceEvidence": {
+                "line": 1281,
+                "path": "src/libdxfrw.cpp",
+                "spanSha256": "2c00cd79a8c4d9698e8acb5e617259bb9cc5d609b12b6b94aa306776453a942d",
+                "symbol": "dxfRW::read"
+              },
+              "sourceOffset": 1947
+            }
+          ],
+          "implementation": "dxfReaderBinary",
+          "selection": "read-file-binary"
+        }
       },
       "sourceDisposition": "source-route-only"
     },
@@ -15428,7 +15508,45 @@
         "implementation": "dxfReaderBinaryR12",
         "kind": "transport-selection",
         "selection": "read-file-binary-r12",
-        "signatureFingerprint": "8ffe35377dc139442f61a8f4045a771b4b46ae2638d899b987e14f137685913a"
+        "signatureFingerprint": "8ffe35377dc139442f61a8f4045a771b4b46ae2638d899b987e14f137685913a",
+        "transportSelectionEvidence": {
+          "branch": "then",
+          "construction": {
+            "sourceEvidence": {
+              "line": 1282,
+              "path": "src/libdxfrw.cpp",
+              "spanSha256": "2c00cd79a8c4d9698e8acb5e617259bb9cc5d609b12b6b94aa306776453a942d",
+              "symbol": "dxfRW::read"
+            },
+            "sourceOffset": 2011
+          },
+          "guardPredicates": [
+            {
+              "order": 1,
+              "predicateFingerprint": "f84fabc5e3f0291e9f9b164605d999e65d9b3ed2320c472057e7ab46f80adbab",
+              "sourceEvidence": {
+                "line": 1268,
+                "path": "src/libdxfrw.cpp",
+                "spanSha256": "2c00cd79a8c4d9698e8acb5e617259bb9cc5d609b12b6b94aa306776453a942d",
+                "symbol": "dxfRW::read"
+              },
+              "sourceOffset": 1298
+            },
+            {
+              "order": 2,
+              "predicateFingerprint": "c7d72b10cd0aeb89430fa9528ce16267607d49204f5c8e4f826459f8b61b8f7f",
+              "sourceEvidence": {
+                "line": 1281,
+                "path": "src/libdxfrw.cpp",
+                "spanSha256": "2c00cd79a8c4d9698e8acb5e617259bb9cc5d609b12b6b94aa306776453a942d",
+                "symbol": "dxfRW::read"
+              },
+              "sourceOffset": 1947
+            }
+          ],
+          "implementation": "dxfReaderBinaryR12",
+          "selection": "read-file-binary-r12"
+        }
       },
       "sourceDisposition": "source-route-only"
     },
@@ -15544,7 +15662,34 @@
         "implementation": "dxfWriterAscii",
         "kind": "transport-selection",
         "selection": "write-ascii",
-        "signatureFingerprint": "76846ba0cd10afe92a635ef5e0f64fa163427e31a5ffbe1cedf3d44dbb47e178"
+        "signatureFingerprint": "76846ba0cd10afe92a635ef5e0f64fa163427e31a5ffbe1cedf3d44dbb47e178",
+        "transportSelectionEvidence": {
+          "branch": "else",
+          "construction": {
+            "sourceEvidence": {
+              "line": 1539,
+              "path": "src/libdxfrw.cpp",
+              "spanSha256": "9f7b095a9223315da108456af1f30ea66d20d038060dcdb44385ab2336325e19",
+              "symbol": "dxfRW::write"
+            },
+            "sourceOffset": 1775
+          },
+          "guardPredicates": [
+            {
+              "order": 1,
+              "predicateFingerprint": "6026da778aae5581e0f546a7922042b6ccac8db32a20ff5c05cf77bf5874539c",
+              "sourceEvidence": {
+                "line": 1528,
+                "path": "src/libdxfrw.cpp",
+                "spanSha256": "9f7b095a9223315da108456af1f30ea66d20d038060dcdb44385ab2336325e19",
+                "symbol": "dxfRW::write"
+              },
+              "sourceOffset": 1353
+            }
+          ],
+          "implementation": "dxfWriterAscii",
+          "selection": "write-ascii"
+        }
       },
       "sourceDisposition": "source-route-only"
     },
@@ -15568,7 +15713,45 @@
         "implementation": "dxfWriterBinary",
         "kind": "transport-selection",
         "selection": "write-binary",
-        "signatureFingerprint": "76846ba0cd10afe92a635ef5e0f64fa163427e31a5ffbe1cedf3d44dbb47e178"
+        "signatureFingerprint": "76846ba0cd10afe92a635ef5e0f64fa163427e31a5ffbe1cedf3d44dbb47e178",
+        "transportSelectionEvidence": {
+          "branch": "else",
+          "construction": {
+            "sourceEvidence": {
+              "line": 1536,
+              "path": "src/libdxfrw.cpp",
+              "spanSha256": "9f7b095a9223315da108456af1f30ea66d20d038060dcdb44385ab2336325e19",
+              "symbol": "dxfRW::write"
+            },
+            "sourceOffset": 1654
+          },
+          "guardPredicates": [
+            {
+              "order": 1,
+              "predicateFingerprint": "6026da778aae5581e0f546a7922042b6ccac8db32a20ff5c05cf77bf5874539c",
+              "sourceEvidence": {
+                "line": 1528,
+                "path": "src/libdxfrw.cpp",
+                "spanSha256": "9f7b095a9223315da108456af1f30ea66d20d038060dcdb44385ab2336325e19",
+                "symbol": "dxfRW::write"
+              },
+              "sourceOffset": 1353
+            },
+            {
+              "order": 2,
+              "predicateFingerprint": "aa33a86b0cc35f26549098db927cf611e2c748dc4ba1a35486c547c35b5f9a3d",
+              "sourceEvidence": {
+                "line": 1533,
+                "path": "src/libdxfrw.cpp",
+                "spanSha256": "9f7b095a9223315da108456af1f30ea66d20d038060dcdb44385ab2336325e19",
+                "symbol": "dxfRW::write"
+              },
+              "sourceOffset": 1531
+            }
+          ],
+          "implementation": "dxfWriterBinary",
+          "selection": "write-binary"
+        }
       },
       "sourceDisposition": "source-route-only"
     },
@@ -15592,7 +15775,45 @@
         "implementation": "dxfWriterBinaryR12",
         "kind": "transport-selection",
         "selection": "write-binary-r12",
-        "signatureFingerprint": "76846ba0cd10afe92a635ef5e0f64fa163427e31a5ffbe1cedf3d44dbb47e178"
+        "signatureFingerprint": "76846ba0cd10afe92a635ef5e0f64fa163427e31a5ffbe1cedf3d44dbb47e178",
+        "transportSelectionEvidence": {
+          "branch": "then",
+          "construction": {
+            "sourceEvidence": {
+              "line": 1534,
+              "path": "src/libdxfrw.cpp",
+              "spanSha256": "9f7b095a9223315da108456af1f30ea66d20d038060dcdb44385ab2336325e19",
+              "symbol": "dxfRW::write"
+            },
+            "sourceOffset": 1576
+          },
+          "guardPredicates": [
+            {
+              "order": 1,
+              "predicateFingerprint": "6026da778aae5581e0f546a7922042b6ccac8db32a20ff5c05cf77bf5874539c",
+              "sourceEvidence": {
+                "line": 1528,
+                "path": "src/libdxfrw.cpp",
+                "spanSha256": "9f7b095a9223315da108456af1f30ea66d20d038060dcdb44385ab2336325e19",
+                "symbol": "dxfRW::write"
+              },
+              "sourceOffset": 1353
+            },
+            {
+              "order": 2,
+              "predicateFingerprint": "aa33a86b0cc35f26549098db927cf611e2c748dc4ba1a35486c547c35b5f9a3d",
+              "sourceEvidence": {
+                "line": 1533,
+                "path": "src/libdxfrw.cpp",
+                "spanSha256": "9f7b095a9223315da108456af1f30ea66d20d038060dcdb44385ab2336325e19",
+                "symbol": "dxfRW::write"
+              },
+              "sourceOffset": 1531
+            }
+          ],
+          "implementation": "dxfWriterBinaryR12",
+          "selection": "write-binary-r12"
+        }
       },
       "sourceDisposition": "source-route-only"
     },

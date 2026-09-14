@@ -519,6 +519,13 @@
     },
     "dxfRW": {
       "semanticMismatches": [
+        "dxfRW/dxf-transport-node/read-ascii-memory",
+        "dxfRW/dxf-transport-node/read-file-ascii",
+        "dxfRW/dxf-transport-node/read-file-binary",
+        "dxfRW/dxf-transport-node/read-file-binary-r12",
+        "dxfRW/dxf-transport-node/write-ascii",
+        "dxfRW/dxf-transport-node/write-binary",
+        "dxfRW/dxf-transport-node/write-binary-r12",
         "dxfRW/group-code-reader-range/260-269",
         "dxfRW/group-code-reader-range/482-998",
         "dxfRW/parser-publication/dxfRW_dxf-block_BLOCK",
@@ -1860,7 +1867,7 @@
       "facade": "dxfRW",
       "path": "parity-source-routes-v1/target-dxfRW.json",
       "routeCount": 1475,
-      "sha256": "ed1ac31a6f42b817bdc1a896f698acdc68a4fe071f747d03c522bf3035d1740f",
+      "sha256": "5290d0ed722436e677e63815dcca2ac5027ab7f1e5fac81761df1ff34a8c886d",
       "side": "target"
     },
     {
@@ -1881,7 +1888,7 @@
       "facade": "dxfRW",
       "path": "parity-source-routes-v1/standalone-dxfRW.json",
       "routeCount": 1457,
-      "sha256": "43625d63307c9fee761b5b15be7da116caf79d8f47671ba5f5610cf339660e4a",
+      "sha256": "b715b32778cc3e1dff6fbc3a1e5102bfd5514d3cb4f6ee10bcaf9e85771515c7",
       "side": "standalone"
     },
     {
@@ -1907,7 +1914,7 @@
         "targetOnly": 1
       },
       "dxfRW": {
-        "semanticMismatches": 225,
+        "semanticMismatches": 232,
         "standaloneOnly": 18,
         "targetOnly": 36
       },

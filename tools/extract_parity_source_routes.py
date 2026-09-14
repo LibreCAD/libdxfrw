@@ -295,6 +295,48 @@ DXF_TRANSPORT_SELECTIONS = (
     ("write-binary", "dxfRW::write", "dxfWriterBinary", ("write",)),
 )
 
+# Each transport row carries its concrete branch predicate and constructor
+# evidence.  ``branch`` records whether the constructor is selected by the
+# predicate itself or by its direct ``else`` arm; this prevents a constructor
+# name from being mistaken for a version/format decision.
+DXF_TRANSPORT_SELECTION_RULES = {
+    "read-file-ascii": {
+        "guardPatterns": (r"std::memcmp\s*\(\s*line\s*,\s*line2\s*,\s*22\s*\)\s*==\s*0",),
+        "construction": r"std::make_unique\s*<\s*dxfReaderAscii\s*>\s*\(\s*&filestr\s*\)",
+        "branch": "else",
+    },
+    "read-file-binary-r12": {
+        "guardPatterns": (r"std::memcmp\s*\(\s*line\s*,\s*line2\s*,\s*22\s*\)\s*==\s*0", r"static_cast<unsigned char>\s*\(\s*line\[23\]\s*\)\s*!=\s*0"),
+        "construction": r"std::make_unique\s*<\s*dxfReaderBinaryR12\s*>\s*\(\s*&filestr\s*\)",
+        "branch": "then",
+    },
+    "read-file-binary": {
+        "guardPatterns": (r"std::memcmp\s*\(\s*line\s*,\s*line2\s*,\s*22\s*\)\s*==\s*0", r"static_cast<unsigned char>\s*\(\s*line\[23\]\s*\)\s*!=\s*0"),
+        "construction": r"std::make_unique\s*<\s*dxfReaderBinary\s*>\s*\(\s*&filestr\s*\)",
+        "branch": "else",
+    },
+    "read-ascii-memory": {
+        "guardPatterns": (),
+        "construction": r"std::make_unique\s*<\s*dxfReaderAscii\s*>\s*\(\s*&strstream\s*\)",
+        "branch": "unconditional-entrypoint",
+    },
+    "write-ascii": {
+        "guardPatterns": (r"\bif\s*\(\s*binFile\s*\)",),
+        "construction": r"std::make_unique\s*<\s*dxfWriterAscii\s*>\s*\(&filestr\)",
+        "branch": "else",
+    },
+    "write-binary-r12": {
+        "guardPatterns": (r"\bif\s*\(\s*binFile\s*\)", r"version\s*<=\s*DRW::AC1009"),
+        "construction": r"std::make_unique\s*<\s*dxfWriterBinaryR12\s*>\s*\(&filestr\)",
+        "branch": "then",
+    },
+    "write-binary": {
+        "guardPatterns": (r"\bif\s*\(\s*binFile\s*\)", r"version\s*<=\s*DRW::AC1009"),
+        "construction": r"std::make_unique\s*<\s*dxfWriterBinary\s*>\s*\(&filestr\)",
+        "branch": "else",
+    },
+}
+
 DWG_READER_PIPELINES = {
     "base": {
         "reader": "dwgReader",
@@ -2641,8 +2683,102 @@ def add_helper_subsystem_routes(collector: RouteCollector, tree: SourceTree) -> 
                 source_unit_body(tree.require(path)),
                 identifier=subsystem,
                 directions=["pipeline-helper"],
-            line=1,
+                line=1,
+            )
+
+
+def transport_branch_contains(
+    source: str, guard_offset: int, construction_offset: int, branch: str
+) -> bool:
+    """Check that a constructor lies in the selected direct if/else arm."""
+    if branch == "unconditional-entrypoint":
+        return True
+    candidates = []
+    for match in re.finditer(r"\bif\s*\(", source):
+        opening = source.find("(", match.start(), match.end())
+        closing = matching_delimiter(source, opening, "(", ")")
+        if match.start() <= guard_offset < closing:
+            candidates.append((opening, closing))
+    if len(candidates) != 1:
+        return False
+    _opening, closing = candidates[0]
+    then_start, then_end = statement_span(source, closing + 1)
+    if branch == "then":
+        return then_start <= construction_offset <= then_end
+    if branch != "else":
+        return False
+    else_match = re.match(r"\s*else\b", source[then_end + 1 :])
+    if else_match is None:
+        return False
+    else_start = then_end + 1 + else_match.end()
+    else_body_start, else_body_end = statement_span(source, else_start)
+    return else_body_start <= construction_offset <= else_body_end
+
+
+def transport_selection_metadata(
+    body: FunctionBody, selection: str, implementation: str
+) -> dict:
+    """Prove one transport constructor and its exact branch predicates."""
+    try:
+        rule = DXF_TRANSPORT_SELECTION_RULES[selection]
+    except KeyError as exc:
+        raise RouteError("transport selection lacks a reviewed rule: %s" % selection) from exc
+    source = body.comment_text
+    guards: list[dict] = []
+    previous_offset = -1
+    for order, pattern in enumerate(rule["guardPatterns"], 1):
+        matches = list(re.finditer(pattern, source))
+        if len(matches) != 1:
+            raise RouteError(
+                "transport guard is missing or ambiguous in %s: %s"
+                % (body.symbol, selection)
+            )
+        match = matches[0]
+        if match.start() <= previous_offset:
+            raise RouteError("transport guard order changed: %s" % selection)
+        previous_offset = match.start()
+        guards.append(
+            {
+                "order": order,
+                "sourceOffset": match.start(),
+                "predicateFingerprint": sha256_text(
+                    " ".join(source[match.start() : match.end()].split())
+                ),
+                "sourceEvidence": _source_location(
+                    body,
+                    line_number(body.source.text, body.body_start + match.start()),
+                ),
+            }
         )
+    constructions = list(re.finditer(rule["construction"], source))
+    if len(constructions) != 1:
+        raise RouteError(
+            "transport constructor is missing or ambiguous in %s: %s"
+            % (body.symbol, implementation)
+        )
+    construction = constructions[0]
+    if guards and construction.start() <= guards[-1]["sourceOffset"]:
+        raise RouteError("transport constructor precedes its guard: %s" % selection)
+    if not transport_branch_contains(
+        source,
+        guards[-1]["sourceOffset"] if guards else construction.start(),
+        construction.start(),
+        rule["branch"],
+    ):
+        raise RouteError("transport constructor is outside its selected branch: %s" % selection)
+    return {
+        "selection": selection,
+        "implementation": implementation,
+        "branch": rule["branch"],
+        "guardPredicates": guards,
+        "construction": {
+            "sourceOffset": construction.start(),
+            "sourceEvidence": _source_location(
+                body,
+                line_number(body.source.text, body.body_start + construction.start()),
+            ),
+        },
+    }
 
 
 def add_dxf_transport_routes(collector: RouteCollector, tree: SourceTree) -> None:
@@ -2684,6 +2820,9 @@ def add_dxf_transport_routes(collector: RouteCollector, tree: SourceTree) -> Non
                 "entrypoint": symbol,
                 "implementation": implementation,
                 "signatureFingerprint": signature_fingerprint(body),
+                "transportSelectionEvidence": transport_selection_metadata(
+                    body, selection, implementation
+                ),
             },
             body,
             identifier=selection,
@@ -4933,6 +5072,61 @@ def validate_raw_eligibility_metadata(tree: SourceTree, route: dict) -> None:
             )
 
 
+def validate_transport_selection_metadata(
+    tree: SourceTree, route: dict
+) -> None:
+    selector = route["selector"]
+    selection = selector.get("selection")
+    implementation = selector.get("implementation")
+    try:
+        rule = DXF_TRANSPORT_SELECTION_RULES[selection]
+    except (KeyError, TypeError) as exc:
+        raise RouteError("unknown DXF transport selection evidence: %s" % route["id"]) from exc
+    evidence = selector.get("transportSelectionEvidence")
+    if not isinstance(evidence, dict):
+        raise RouteError("DXF transport selection evidence is absent: %s" % route["id"])
+    if (
+        evidence.get("selection") != selection
+        or evidence.get("implementation") != implementation
+        or evidence.get("branch") != rule["branch"]
+    ):
+        raise RouteError("DXF transport selection evidence changed: %s" % route["id"])
+    guards = evidence.get("guardPredicates")
+    patterns = rule["guardPatterns"]
+    if not isinstance(guards, list) or len(guards) != len(patterns):
+        raise RouteError("DXF transport guard evidence changed: %s" % route["id"])
+    previous_offset = -1
+    for order, guard in enumerate(guards, 1):
+        if (
+            not isinstance(guard, dict)
+            or guard.get("order") != order
+            or not isinstance(guard.get("sourceOffset"), int)
+            or guard["sourceOffset"] <= previous_offset
+            or not isinstance(guard.get("predicateFingerprint"), str)
+        ):
+            raise RouteError("DXF transport guard evidence is malformed: %s" % route["id"])
+        previous_offset = guard["sourceOffset"]
+        location = _validate_raw_publication_location(
+            guard.get("sourceEvidence"), tree, {selector["entrypoint"]},
+            "transport-guard", route["id"],
+        )
+        if location["path"] != "src/libdxfrw.cpp":
+            raise RouteError("DXF transport guard path changed: %s" % route["id"])
+    construction = evidence.get("construction")
+    if (
+        not isinstance(construction, dict)
+        or not isinstance(construction.get("sourceOffset"), int)
+        or construction["sourceOffset"] <= previous_offset
+    ):
+        raise RouteError("DXF transport constructor evidence is malformed: %s" % route["id"])
+    location = _validate_raw_publication_location(
+        construction.get("sourceEvidence"), tree, {selector["entrypoint"]},
+        "transport-constructor", route["id"],
+    )
+    if location["path"] != "src/libdxfrw.cpp":
+        raise RouteError("DXF transport constructor path changed: %s" % route["id"])
+
+
 def validate_named_publication_selector(
     source_route: dict, ancestry: object, parser_route: str
 ) -> None:
@@ -6748,6 +6942,7 @@ def validate_pipeline_closure(tree: SourceTree, inventory: dict[str, list[dict]]
         selector = selection_routes[selection]["selector"]
         if selector.get("entrypoint") != entrypoint or selector.get("implementation") != implementation:
             raise RouteError("DXF transport selection is malformed: %s" % selection)
+        validate_transport_selection_metadata(tree, selection_routes[selection])
     standalone_range_routes = [
         route
         for route in transport_routes
@@ -8379,6 +8574,49 @@ bool dxfRW::probe() {
         pass
     else:
         raise AssertionError("raw eligibility order inversion was accepted")
+    transport_source = SourceFile(
+        "src/transport.cpp",
+        """
+bool dxfRW::write() {
+    if (binFile) {
+        if (version <= DRW::AC1009)
+            writer = std::make_unique<dxfWriterBinaryR12>(&filestr);
+        else
+            writer = std::make_unique<dxfWriterBinary>(&filestr);
+    } else {
+        writer = std::make_unique<dxfWriterAscii>(&filestr);
+    }
+}
+""",
+        "c" * 64,
+    )
+    transport_body = function_body(transport_source, "dxfRW::write")
+    for selection, implementation in (
+        ("write-ascii", "dxfWriterAscii"),
+        ("write-binary-r12", "dxfWriterBinaryR12"),
+        ("write-binary", "dxfWriterBinary"),
+    ):
+        evidence = transport_selection_metadata(
+            transport_body, selection, implementation
+        )
+        assert evidence["implementation"] == implementation
+    swapped_transport = SourceFile(
+        transport_source.path,
+        transport_source.text.replace(
+            "writer = std::make_unique<dxfWriterBinaryR12>(&filestr);\n        else\n            writer = std::make_unique<dxfWriterBinary>(&filestr);",
+            "writer = std::make_unique<dxfWriterBinary>(&filestr);\n        else\n            writer = std::make_unique<dxfWriterBinaryR12>(&filestr);",
+        ),
+        transport_source.git_blob,
+    )
+    try:
+        transport_selection_metadata(
+            function_body(swapped_transport, "dxfRW::write"),
+            "write-binary-r12", "dxfWriterBinaryR12",
+        )
+    except RouteError:
+        pass
+    else:
+        raise AssertionError("transport branch inversion was accepted")
     proxy_rows = raw_route_publication_metadata(
         "dxf-publish-proxy",
         [
