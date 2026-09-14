@@ -72,6 +72,8 @@ LIGHTLIST_HANDLE = 0xCA00
 MALFORMED_LIGHTLIST_HANDLE = 0xCA01
 SCALE_HANDLE = 0xCB00
 MALFORMED_SCALE_HANDLE = 0xCB01
+IDBUFFER_HANDLE = 0xCC00
+MALFORMED_IDBUFFER_HANDLE = 0xCC01
 
 RENDER_SETTINGS_KINDS = {
     "Settings": ("RENDERSETTINGS", RENDERSETTINGS_HANDLE, 556),
@@ -157,7 +159,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         raise ValueError("GROUP name, owner, or member stream mismatch")
 
     dictionary = find_record(records, "DICTIONARY", DICTIONARY_HANDLE)
-    if (dictionary.get("numitems") != 23
+    if (dictionary.get("numitems") != 24
             or dictionary.get("is_hardowner") != 1
             or owner_handle(dictionary) != 0x0C):
         raise ValueError("custom DICTIONARY count, owner, or cloning mismatch")
@@ -529,6 +531,18 @@ def check_objects(payload: dict, version_name: str) -> dict:
             or scale.get("is_unit_scale") != 0):
         raise ValueError("SCALE owner or bounded ratio fields mismatch")
 
+    id_buffer = find_record(records, "IDBUFFER", IDBUFFER_HANDLE)
+    object_ids = id_buffer.get("obj_ids")
+    if (owner_handle(id_buffer) != DICTIONARY_HANDLE
+            or id_buffer.get("type") != 510
+            or id_buffer.get("unknown") != 0
+            or not isinstance(object_ids, list)
+            or len(object_ids) != 1
+            or not isinstance(object_ids[0], list)
+            or len(object_ids[0]) < 3
+            or object_ids[0][2] <= 0):
+        raise ValueError("IDBUFFER owner, count, or handle mismatch")
+
     dictionary_default = find_record(
         records, "DICTIONARYWDFLT", DICTIONARYWDFLT_HANDLE)
     if (owner_handle(dictionary_default) != DICTIONARY_HANDLE
@@ -577,6 +591,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         MALFORMED_DBCOLOR_HANDLE: "DBCOLOR",
         MALFORMED_LIGHTLIST_HANDLE: "LIGHTLIST",
         MALFORMED_SCALE_HANDLE: "SCALE",
+        MALFORMED_IDBUFFER_HANDLE: "IDBUFFER",
     }
     if any(record_handle(record) in malformed_handles
            and record.get("object") == malformed_handles[record_handle(record)]
@@ -611,6 +626,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "DBCOLOR": DBCOLOR_HANDLE,
             "LIGHTLIST": LIGHTLIST_HANDLE,
             "SCALE": SCALE_HANDLE,
+            "IDBUFFER": IDBUFFER_HANDLE,
             "DICTIONARYWDFLT": DICTIONARYWDFLT_HANDLE,
         },
         "objectStatus": "qualified",
@@ -688,7 +704,7 @@ def self_test() -> None:
              "ownerhandle": [4, 1, 0x0C, 0x0C], "name": "LOCAL_GROUP",
              "groups": [[5, 1, 0x1234]]},
             {"object": "DICTIONARY", "handle": [0, 1, DICTIONARY_HANDLE],
-             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 23,
+             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 24,
              "is_hardowner": 1},
             {"object": "XRECORD", "handle": [0, 1, XRECORD_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
@@ -846,6 +862,10 @@ def self_test() -> None:
              "type": 509, "flag": 0, "name": "LOCAL_SCALE",
              "paper_units": 1.0, "drawing_units": 48.0,
              "is_unit_scale": 0},
+            {"object": "IDBUFFER", "handle": [0, 1, IDBUFFER_HANDLE],
+             "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "type": 510, "unknown": 0,
+             "obj_ids": [[4, 2, 0x1234, 0x1234]]},
         ],
     }
     summary = check_objects(payload, "AC1024")
@@ -1050,6 +1070,15 @@ def self_test() -> None:
         pass
     else:
         raise AssertionError("malformed SCALE was not rejected")
+    try:
+        bad = json.loads(json.dumps(payload))
+        bad["OBJECTS"].append({"object": "IDBUFFER",
+                                "handle": [0, 1, MALFORMED_IDBUFFER_HANDLE]})
+        check_objects(bad, "AC1024")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("malformed IDBUFFER was not rejected")
     print("local DWG object oracle: PASS")
 
 

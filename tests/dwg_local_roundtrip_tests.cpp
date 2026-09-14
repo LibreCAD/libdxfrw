@@ -118,6 +118,10 @@ public:
             DRW_Scale scaleRegistration;
             scaleRegistration.handle = 0xCB00u;
             registeredScale_ = writer_->registerScaleObjectClass(&scaleRegistration);
+            DRW_IDBuffer idBufferRegistration;
+            idBufferRegistration.handle = 0xCC00u;
+            registeredIDBuffer_ = writer_->registerIDBufferObjectClass(
+                &idBufferRegistration);
         }
     }
 
@@ -182,6 +186,7 @@ public:
             {"LOCAL_DBCOLOR", 0xC900u},
             {"LOCAL_LIGHTLIST", 0xCA00u},
             {"LOCAL_SCALE", 0xCB00u},
+            {"LOCAL_IDBUFFER", 0xCC00u},
         };
         wroteDictionary_ = registeredDictionary_
             && writer_->writeDictionary(&dictionary)
@@ -686,6 +691,20 @@ public:
         invalidScale.paperUnits = std::numeric_limits<double>::quiet_NaN();
         rejectedMalformedScale_ = !writer_->writeScale(&invalidScale);
 
+        DRW_IDBuffer idBuffer;
+        idBuffer.handle = 0xCC00u;
+        idBuffer.parentHandle = dictionary.handle;
+        idBuffer.classVersion = 0;
+        idBuffer.objIds = {modelSpaceLineHandle_};
+        wroteIDBuffer_ = registeredIDBuffer_ && writer_->writeIDBuffer(&idBuffer)
+            && idBuffer.handle != 0;
+
+        DRW_IDBuffer invalidIDBuffer;
+        invalidIDBuffer.handle = 0xCC01u;
+        invalidIDBuffer.parentHandle = dictionary.handle;
+        invalidIDBuffer.objIds.assign(DRW_IDBuffer::kMaxObjectIds + 1, 0u);
+        rejectedMalformedIDBuffer_ = !writer_->writeIDBuffer(&invalidIDBuffer);
+
         DRW_Group group;
         group.handle = 0xA600u;
         group.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
@@ -884,7 +903,7 @@ public:
         if (data.handle == 0xA601u) {
             readDictionarySeen_ = data.parentHandle
                     == DRW::DwgNamedObjectsDictionaryHandle
-                && data.m_entries.size() == 23
+                && data.m_entries.size() == 24
                 && data.m_entries[0].m_name == "LOCAL_XRECORD"
                 && data.m_entries[0].m_handle == 0xA602u
                 && data.m_entries[1].m_name == "LOCAL_PLOTSETTINGS"
@@ -930,7 +949,9 @@ public:
                 && data.m_entries[21].m_name == "LOCAL_LIGHTLIST"
                 && data.m_entries[21].m_handle == 0xCA00u
                 && data.m_entries[22].m_name == "LOCAL_SCALE"
-                && data.m_entries[22].m_handle == 0xCB00u;
+                && data.m_entries[22].m_handle == 0xCB00u
+                && data.m_entries[23].m_name == "LOCAL_IDBUFFER"
+                && data.m_entries[23].m_handle == 0xCC00u;
         }
     }
     void addXRecord(const DRW_XRecord& data) override {
@@ -1168,6 +1189,15 @@ public:
         if (data.handle == 0xCB01u)
             readMalformedScaleSeen_ = true;
     }
+    void addIDBuffer(const DRW_IDBuffer& data) override {
+        if (data.handle == 0xCC00u)
+            readIDBufferSeen_ = data.parentHandle == 0xA601u
+                && data.classVersion == 0
+                && data.objIds.size() == 1
+                && data.objIds.front() != DRW::NoHandle;
+        if (data.handle == 0xCC01u)
+            readMalformedIDBufferSeen_ = true;
+    }
     void addInsert(const DRW_Insert& data) override {
         readInsertSeen_ = true;
         readAttribSeen_ = data.attlist.size() == 1
@@ -1210,6 +1240,7 @@ public:
             && (wroteDbColor_ || rejectedUnsupportedDbColor_)
             && wroteLightList_
             && wroteScale_
+            && wroteIDBuffer_
             && wroteGroup_;
     }
     bool rejectedMalformedObject() const { return rejectedMalformedObject_; }
@@ -1261,6 +1292,7 @@ public:
     bool wroteDbColor() const { return wroteDbColor_; }
     bool rejectedMalformedLightList() const { return rejectedMalformedLightList_; }
     bool rejectedMalformedScale() const { return rejectedMalformedScale_; }
+    bool rejectedMalformedIDBuffer() const { return rejectedMalformedIDBuffer_; }
     bool readLineSeen() const { return readLineSeen_; }
     bool readSimpleEntitiesSeen() const {
         return readPointSeen_ && readCircleSeen_ && readArcSeen_
@@ -1290,7 +1322,7 @@ public:
             && readRenderGlobalSeen_ && readRenderEntrySeen_
             && readRenderRapidSeen_ && readRenderMentalSeen_
             && readMaterialSeen_ && readLightListSeen_ && readScaleSeen_
-            && readGroupSeen_;
+            && readIDBufferSeen_ && readGroupSeen_;
     }
     bool readMalformedObjectSeen() const { return readMalformedObjectSeen_; }
     bool readMalformedStyleSeen() const { return readMalformedStyleSeen_; }
@@ -1350,6 +1382,8 @@ public:
     bool readMalformedLightListSeen() const { return readMalformedLightListSeen_; }
     bool readScaleSeen() const { return readScaleSeen_; }
     bool readMalformedScaleSeen() const { return readMalformedScaleSeen_; }
+    bool readIDBufferSeen() const { return readIDBufferSeen_; }
+    bool readMalformedIDBufferSeen() const { return readMalformedIDBufferSeen_; }
     const DRW_Line& readLine() const { return readLine_; }
 
 private:
@@ -1404,6 +1438,7 @@ private:
     bool wroteDbColor_ {false};
     bool wroteLightList_ {false};
     bool wroteScale_ {false};
+    bool wroteIDBuffer_ {false};
     bool rejectedMalformedObject_ {false};
     bool rejectedMalformedStyle_ {false};
     bool rejectedMalformedMLeaderStyle_ {false};
@@ -1426,6 +1461,7 @@ private:
     bool rejectedMalformedDbColor_ {false};
     bool rejectedMalformedLightList_ {false};
     bool rejectedMalformedScale_ {false};
+    bool rejectedMalformedIDBuffer_ {false};
     bool registeredDictionary_ {false};
     bool registeredMLeaderStyle_ {false};
     bool registeredDictionaryVar_ {false};
@@ -1446,6 +1482,7 @@ private:
     bool registeredDbColor_ {false};
     bool registeredLightList_ {false};
     bool registeredScale_ {false};
+    bool registeredIDBuffer_ {false};
     bool registeredPlotSettings_ {false};
     bool readLineSeen_ {false};
     bool readPointSeen_ {false};
@@ -1492,6 +1529,7 @@ private:
     bool readDbColorSeen_ {false};
     bool readLightListSeen_ {false};
     bool readScaleSeen_ {false};
+    bool readIDBufferSeen_ {false};
     bool readMalformedObjectSeen_ {false};
     bool readMalformedStyleSeen_ {false};
     bool readMalformedMLeaderStyleSeen_ {false};
@@ -1513,6 +1551,7 @@ private:
     bool readMalformedDbColorSeen_ {false};
     bool readMalformedLightListSeen_ {false};
     bool readMalformedScaleSeen_ {false};
+    bool readMalformedIDBufferSeen_ {false};
     DRW_Line readLine_;
     dx_data data_;
 };
@@ -1646,6 +1685,9 @@ int main(int argc, char** argv) {
         expect(writeIface.rejectedMalformedScale(),
                ("local DWG writer rejected malformed SCALE transaction" + suffix).c_str(),
                failures);
+        expect(writeIface.rejectedMalformedIDBuffer(),
+               ("local DWG writer rejected malformed IDBUFFER transaction" + suffix).c_str(),
+               failures);
         expect(std::filesystem::exists(output),
                ("local DWG output is published" + suffix).c_str(), failures);
 
@@ -1713,6 +1755,9 @@ int main(int argc, char** argv) {
         expect(readIface.readScaleSeen(),
                ("local DWG self-read publishes SCALE" + suffix).c_str(),
                failures);
+        expect(readIface.readIDBufferSeen(),
+               ("local DWG self-read publishes IDBUFFER" + suffix).c_str(),
+               failures);
         expect(!readIface.readMalformedObjectSeen(),
                ("local DWG self-read omits rolled-back malformed object" + suffix).c_str(),
                failures);
@@ -1772,6 +1817,9 @@ int main(int argc, char** argv) {
                failures);
         expect(!readIface.readMalformedScaleSeen(),
                ("local DWG self-read omits rolled-back malformed SCALE" + suffix).c_str(),
+               failures);
+        expect(!readIface.readMalformedIDBufferSeen(),
+               ("local DWG self-read omits rolled-back malformed IDBUFFER" + suffix).c_str(),
                failures);
         if (readIface.readLineSeen()) {
             const DRW_Line& line = readIface.readLine();
