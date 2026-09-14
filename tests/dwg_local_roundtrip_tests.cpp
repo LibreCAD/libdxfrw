@@ -52,6 +52,14 @@ public:
             sortEntsRegistration.handle = 0xB200u;
             registeredSortEntsTable_ = writer_->registerSortEntsTableObjectClass(
                 &sortEntsRegistration);
+            DRW_FieldList fieldListRegistration;
+            fieldListRegistration.handle = 0xB300u;
+            registeredFieldList_ = writer_->registerFieldListObjectClass(
+                &fieldListRegistration);
+            DRW_Field fieldRegistration;
+            fieldRegistration.handle = 0xB400u;
+            registeredField_ = writer_->registerFieldObjectClass(
+                &fieldRegistration);
         }
     }
 
@@ -101,6 +109,8 @@ public:
             {"LOCAL_DICTIONARYVAR", 0xB000u},
             {"LOCAL_DICTIONARYWDFLT", 0xB100u},
             {"LOCAL_SORTENTSTABLE", 0xB200u},
+            {"LOCAL_FIELDLIST", 0xB300u},
+            {"LOCAL_FIELD", 0xB400u},
         };
         wroteDictionary_ = registeredDictionary_
             && writer_->writeDictionary(&dictionary)
@@ -236,6 +246,28 @@ public:
             && writer_->writeSortEntsTable(&sortEnts)
             && sortEnts.handle != 0;
 
+        DRW_FieldList fieldList;
+        fieldList.handle = 0xB300u;
+        fieldList.parentHandle = dictionary.handle;
+        fieldList.m_unknown = 0;
+        fieldList.m_fieldHandles = {0xB400u};
+        wroteFieldList_ = registeredFieldList_
+            && writer_->writeFieldList(&fieldList)
+            && fieldList.handle != 0;
+
+        DRW_Field field;
+        field.handle = 0xB400u;
+        field.parentHandle = dictionary.handle;
+        field.m_evaluatorId = "ACAD";
+        field.m_fieldCode = "LOCAL_FIELD_CODE";
+        field.m_value.m_dataType = 1;
+        field.m_value.m_value = DRW_Variant(0, 42);
+        field.m_value.m_unitType = 12;
+        field.m_valueString = "42";
+        field.m_valueStringLength = 2;
+        wroteField_ = registeredField_ && writer_->writeField(&field)
+            && field.handle != 0;
+
         // A failed object write must not poison the following valid frames or
         // publish a partial object.  The writer's public transaction wrapper
         // owns the rollback boundary; this assertion keeps that contract in
@@ -288,6 +320,20 @@ public:
         invalidSortEnts.m_blockOwnerHandle = DRW::DwgModelSpaceBlockRecordHandle;
         invalidSortEnts.m_entityHandles = {modelSpaceLineHandle_};
         rejectedMalformedSortEntsTable_ = !writer_->writeSortEntsTable(&invalidSortEnts);
+
+        DRW_FieldList invalidFieldList;
+        invalidFieldList.handle = 0xB301u;
+        invalidFieldList.parentHandle = dictionary.handle;
+        invalidFieldList.m_unknown = 2;
+        rejectedMalformedFieldList_ = !writer_->writeFieldList(&invalidFieldList);
+
+        DRW_Field invalidField;
+        invalidField.handle = 0xB401u;
+        invalidField.parentHandle = dictionary.handle;
+        invalidField.m_evaluatorId = "ACAD";
+        invalidField.m_fieldCode = "LOCAL_BAD_FIELD";
+        invalidField.m_value.m_dataType = 99;
+        rejectedMalformedField_ = !writer_->writeField(&invalidField);
 
         DRW_Group group;
         group.handle = 0xA600u;
@@ -487,7 +533,7 @@ public:
         if (data.handle == 0xA601u) {
             readDictionarySeen_ = data.parentHandle
                     == DRW::DwgNamedObjectsDictionaryHandle
-                && data.m_entries.size() == 8
+                && data.m_entries.size() == 10
                 && data.m_entries[0].m_name == "LOCAL_XRECORD"
                 && data.m_entries[0].m_handle == 0xA602u
                 && data.m_entries[1].m_name == "LOCAL_PLOTSETTINGS"
@@ -503,7 +549,11 @@ public:
                 && data.m_entries[6].m_name == "LOCAL_DICTIONARYWDFLT"
                 && data.m_entries[6].m_handle == 0xB100u
                 && data.m_entries[7].m_name == "LOCAL_SORTENTSTABLE"
-                && data.m_entries[7].m_handle == 0xB200u;
+                && data.m_entries[7].m_handle == 0xB200u
+                && data.m_entries[8].m_name == "LOCAL_FIELDLIST"
+                && data.m_entries[8].m_handle == 0xB300u
+                && data.m_entries[9].m_name == "LOCAL_FIELD"
+                && data.m_entries[9].m_handle == 0xB400u;
         }
     }
     void addXRecord(const DRW_XRecord& data) override {
@@ -574,6 +624,25 @@ public:
         if (data.handle == 0xB201u)
             readMalformedSortEntsTableSeen_ = true;
     }
+    void addFieldList(const DRW_FieldList& data) override {
+        if (data.handle == 0xB300u)
+            readFieldListSeen_ = data.parentHandle == 0xA601u
+                && data.m_unknown == 0 && data.m_fieldHandles.size() == 1
+                && data.m_fieldHandles.front() == 0xB400u;
+        if (data.handle == 0xB301u)
+            readMalformedFieldListSeen_ = true;
+    }
+    void addField(const DRW_Field& data) override {
+        if (data.handle == 0xB400u)
+            readFieldSeen_ = data.parentHandle == 0xA601u
+                && data.m_evaluatorId == "ACAD"
+                && data.m_fieldCode == "LOCAL_FIELD_CODE"
+                && data.m_value.m_dataType == 1
+                && data.m_value.m_value.type() == DRW_Variant::INTEGER
+                && data.m_value.m_value.i_val() == 42;
+        if (data.handle == 0xB401u)
+            readMalformedFieldSeen_ = true;
+    }
     void addInsert(const DRW_Insert& data) override {
         readInsertSeen_ = true;
         readAttribSeen_ = data.attlist.size() == 1
@@ -607,7 +676,8 @@ public:
         return wroteDictionary_ && wroteXRecord_ && wrotePlotSettings_
             && wroteLayout_ && wroteMLineStyle_ && wroteMLeaderStyle_
             && wroteDictionaryVar_ && wroteDictionaryWithDefault_
-            && wroteSortEntsTable_ && wroteGroup_;
+            && wroteSortEntsTable_ && wroteFieldList_ && wroteField_
+            && wroteGroup_;
     }
     bool rejectedMalformedObject() const { return rejectedMalformedObject_; }
     bool rejectedMalformedStyle() const { return rejectedMalformedStyle_; }
@@ -623,6 +693,8 @@ public:
     bool rejectedMalformedSortEntsTable() const {
         return rejectedMalformedSortEntsTable_;
     }
+    bool rejectedMalformedFieldList() const { return rejectedMalformedFieldList_; }
+    bool rejectedMalformedField() const { return rejectedMalformedField_; }
     bool readLineSeen() const { return readLineSeen_; }
     bool readSimpleEntitiesSeen() const {
         return readPointSeen_ && readCircleSeen_ && readArcSeen_
@@ -646,7 +718,7 @@ public:
             && readPlotSettingsSeen_ && readLayoutSeen_ && readMLineStyleSeen_
             && readMLeaderStyleSeen_ && readDictionaryVarSeen_
             && readDictionaryWithDefaultSeen_ && readSortEntsTableSeen_
-            && readGroupSeen_;
+            && readFieldListSeen_ && readFieldSeen_ && readGroupSeen_;
     }
     bool readMalformedObjectSeen() const { return readMalformedObjectSeen_; }
     bool readMalformedStyleSeen() const { return readMalformedStyleSeen_; }
@@ -662,6 +734,8 @@ public:
     bool readMalformedSortEntsTableSeen() const {
         return readMalformedSortEntsTableSeen_;
     }
+    bool readMalformedFieldListSeen() const { return readMalformedFieldListSeen_; }
+    bool readMalformedFieldSeen() const { return readMalformedFieldSeen_; }
     const DRW_Line& readLine() const { return readLine_; }
 
 private:
@@ -701,17 +775,23 @@ private:
     bool wroteDictionaryVar_ {false};
     bool wroteDictionaryWithDefault_ {false};
     bool wroteSortEntsTable_ {false};
+    bool wroteFieldList_ {false};
+    bool wroteField_ {false};
     bool rejectedMalformedObject_ {false};
     bool rejectedMalformedStyle_ {false};
     bool rejectedMalformedMLeaderStyle_ {false};
     bool rejectedMalformedDictionaryVar_ {false};
     bool rejectedMalformedDictionaryWithDefault_ {false};
     bool rejectedMalformedSortEntsTable_ {false};
+    bool rejectedMalformedFieldList_ {false};
+    bool rejectedMalformedField_ {false};
     bool registeredDictionary_ {false};
     bool registeredMLeaderStyle_ {false};
     bool registeredDictionaryVar_ {false};
     bool registeredDictionaryWithDefault_ {false};
     bool registeredSortEntsTable_ {false};
+    bool registeredFieldList_ {false};
+    bool registeredField_ {false};
     bool registeredPlotSettings_ {false};
     bool readLineSeen_ {false};
     bool readPointSeen_ {false};
@@ -743,12 +823,16 @@ private:
     bool readDictionaryVarSeen_ {false};
     bool readDictionaryWithDefaultSeen_ {false};
     bool readSortEntsTableSeen_ {false};
+    bool readFieldListSeen_ {false};
+    bool readFieldSeen_ {false};
     bool readMalformedObjectSeen_ {false};
     bool readMalformedStyleSeen_ {false};
     bool readMalformedMLeaderStyleSeen_ {false};
     bool readMalformedDictionaryVarSeen_ {false};
     bool readMalformedDictionaryWithDefaultSeen_ {false};
     bool readMalformedSortEntsTableSeen_ {false};
+    bool readMalformedFieldListSeen_ {false};
+    bool readMalformedFieldSeen_ {false};
     DRW_Line readLine_;
     dx_data data_;
 };
@@ -836,6 +920,12 @@ int main(int argc, char** argv) {
         expect(writeIface.rejectedMalformedSortEntsTable(),
                ("local DWG writer rejected malformed SORTENTSTABLE transaction" + suffix).c_str(),
                failures);
+        expect(writeIface.rejectedMalformedFieldList(),
+               ("local DWG writer rejected malformed FIELDLIST transaction" + suffix).c_str(),
+               failures);
+        expect(writeIface.rejectedMalformedField(),
+               ("local DWG writer rejected malformed FIELD transaction" + suffix).c_str(),
+               failures);
         expect(std::filesystem::exists(output),
                ("local DWG output is published" + suffix).c_str(), failures);
 
@@ -888,6 +978,12 @@ int main(int argc, char** argv) {
                failures);
         expect(!readIface.readMalformedSortEntsTableSeen(),
                ("local DWG self-read omits rolled-back malformed SORTENTSTABLE" + suffix).c_str(),
+               failures);
+        expect(!readIface.readMalformedFieldListSeen(),
+               ("local DWG self-read omits rolled-back malformed FIELDLIST" + suffix).c_str(),
+               failures);
+        expect(!readIface.readMalformedFieldSeen(),
+               ("local DWG self-read omits rolled-back malformed FIELD" + suffix).c_str(),
                failures);
         if (readIface.readLineSeen()) {
             const DRW_Line& line = readIface.readLine();

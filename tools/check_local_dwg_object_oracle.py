@@ -42,6 +42,10 @@ DICTIONARYWDFLT_HANDLE = 0xB100
 MALFORMED_DICTIONARYWDFLT_HANDLE = 0xB101
 SORTENTSTABLE_HANDLE = 0xB200
 MALFORMED_SORTENTSTABLE_HANDLE = 0xB201
+FIELDLIST_HANDLE = 0xB300
+MALFORMED_FIELDLIST_HANDLE = 0xB301
+FIELD_HANDLE = 0xB400
+MALFORMED_FIELD_HANDLE = 0xB401
 
 
 def parse_json_output(text: str) -> dict:
@@ -105,7 +109,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         raise ValueError("GROUP name, owner, or member stream mismatch")
 
     dictionary = find_record(records, "DICTIONARY", DICTIONARY_HANDLE)
-    if (dictionary.get("numitems") != 8
+    if (dictionary.get("numitems") != 10
             or dictionary.get("is_hardowner") != 1
             or owner_handle(dictionary) != 0x0C):
         raise ValueError("custom DICTIONARY count, owner, or cloning mismatch")
@@ -184,6 +188,27 @@ def check_objects(payload: dict, version_name: str) -> dict:
             or sort_entries[0][2] != entity_entries[0][2]):
         raise ValueError("SORTENTSTABLE owner or handle stream mismatch")
 
+    field_list = find_record(records, "FIELDLIST", FIELDLIST_HANDLE)
+    fields = field_list.get("fields")
+    if (owner_handle(field_list) != DICTIONARY_HANDLE
+            or field_list.get("unknown") != 0
+            or not isinstance(fields, list)
+            or len(fields) != 1
+            or not isinstance(fields[0], list)
+            or len(fields[0]) < 3
+            or fields[0][2] != FIELD_HANDLE):
+        raise ValueError("FIELDLIST owner or flag mismatch")
+
+    field = find_record(records, "FIELD", FIELD_HANDLE)
+    if (owner_handle(field) != DICTIONARY_HANDLE
+            or field.get("id") != "ACAD"
+            or field.get("code") != "LOCAL_FIELD_CODE"
+            or field.get("value.data_type") != 1
+            or field.get("value.data_long") != 42
+            or field.get("value_string") != "42"
+            or field.get("value_string_length") != 2):
+        raise ValueError("FIELD owner or bounded payload mismatch")
+
     dictionary_default = find_record(
         records, "DICTIONARYWDFLT", DICTIONARYWDFLT_HANDLE)
     if (owner_handle(dictionary_default) != DICTIONARY_HANDLE
@@ -217,6 +242,8 @@ def check_objects(payload: dict, version_name: str) -> dict:
         MALFORMED_DICTIONARYVAR_HANDLE: "DICTIONARYVAR",
         MALFORMED_DICTIONARYWDFLT_HANDLE: "DICTIONARYWDFLT",
         MALFORMED_SORTENTSTABLE_HANDLE: "SORTENTSTABLE",
+        MALFORMED_FIELDLIST_HANDLE: "FIELDLIST",
+        MALFORMED_FIELD_HANDLE: "FIELD",
     }
     if any(record_handle(record) in malformed_handles
            and record.get("object") == malformed_handles[record_handle(record)]
@@ -235,6 +262,8 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "MLEADERSTYLE": MLEADERSTYLE_HANDLE,
             "DICTIONARYVAR": DICTIONARYVAR_HANDLE,
             "SORTENTSTABLE": SORTENTSTABLE_HANDLE,
+            "FIELDLIST": FIELDLIST_HANDLE,
+            "FIELD": FIELD_HANDLE,
             "DICTIONARYWDFLT": DICTIONARYWDFLT_HANDLE,
         },
         "objectStatus": "qualified",
@@ -309,7 +338,7 @@ def self_test() -> None:
              "ownerhandle": [4, 1, 0x0C, 0x0C], "name": "LOCAL_GROUP",
              "groups": [[5, 1, 0x1234]]},
             {"object": "DICTIONARY", "handle": [0, 1, DICTIONARY_HANDLE],
-             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 8,
+             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 10,
              "is_hardowner": 1},
             {"object": "XRECORD", "handle": [0, 1, XRECORD_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
@@ -350,6 +379,14 @@ def self_test() -> None:
              "sort_ents": [[0, 2, 0x1234, 0x1234]],
              "block_owner": [4, 1, 0x17, 0x17],
              "ents": [[4, 2, 0x1234, 0x1234]]},
+            {"object": "FIELDLIST", "handle": [0, 1, FIELDLIST_HANDLE],
+             "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "unknown": 0, "fields": [[4, 2, FIELD_HANDLE, FIELD_HANDLE]]},
+            {"object": "FIELD", "handle": [0, 1, FIELD_HANDLE],
+             "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "id": "ACAD", "code": "LOCAL_FIELD_CODE",
+             "value.data_type": 1, "value.data_long": 42,
+             "value_string": "42", "value_string_length": 2},
         ],
     }
     check_objects(payload, "AC1024")
@@ -408,6 +445,24 @@ def self_test() -> None:
         pass
     else:
         raise AssertionError("malformed SORTENTSTABLE was not rejected")
+    try:
+        bad = json.loads(json.dumps(payload))
+        bad["OBJECTS"].append({"object": "FIELDLIST",
+                                "handle": [0, 1, MALFORMED_FIELDLIST_HANDLE]})
+        check_objects(bad, "AC1024")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("malformed FIELDLIST was not rejected")
+    try:
+        bad = json.loads(json.dumps(payload))
+        bad["OBJECTS"].append({"object": "FIELD",
+                                "handle": [0, 1, MALFORMED_FIELD_HANDLE]})
+        check_objects(bad, "AC1024")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("malformed FIELD was not rejected")
     print("local DWG object oracle: PASS")
 
 
