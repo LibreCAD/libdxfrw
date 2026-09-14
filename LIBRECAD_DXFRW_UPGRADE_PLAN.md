@@ -1859,8 +1859,15 @@ edit this block or commit the same slice concurrently.
   `check_parity_aggregate.py --self-test` plus the pinned registry and policy
   checks pass without invoking full CTest, sanitizer, fuzz, or external
   corpus lanes; those remain checkpoint/nightly validation. The aggregate
-  gate is committed, while the remaining I0.2b/d/e/f source-flow children keep
+  gate is committed, while the remaining I0.2b/d/f source-flow children keep
   S18 ACTIVE.
+- Latest implementation slice: S18/I0.2e DWG delivery closure is now promoted
+  from staged evidence to a committed source-flow item. The target/standalone
+  ledgers independently retain raw-section ingress and versioned finalizers,
+  all nine table receipt/parse/map chains, compound entity transitions,
+  direct/journal block delivery, ordered reader lifecycle/error gates, and
+  BLOCK/ENDBLK ownership/quarantine. Its proof remains source-only and does
+  not qualify wire-format support without the later fixture/spec/oracle lane.
 - Authorized run horizon: full S01-S23/A-I5 implementation objective.
 - Completion target: S23/I5 qualified-format parity acceptance; a PR boundary
   cannot silently shorten the authorized objective.
@@ -1874,7 +1881,7 @@ edit this block or commit the same slice concurrently.
   0 BLOCKED_HARD / 0 SUPERSEDED / 17 COMMITTED.
 - Parent-item states: 0 READY / 5 PLANNED / 1 ACTIVE / 0 VERIFYING /
   0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 19 COMMITTED.
-- Expanded child-item states: 85 COMMITTED / 25 PLANNED / 0 READY / 1 ACTIVE /
+- Expanded child-item states: 86 COMMITTED / 24 PLANNED / 0 READY / 1 ACTIVE /
   0 VERIFYING / 3 VERIFIED; no child is anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 9 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
@@ -1890,7 +1897,8 @@ edit this block or commit the same slice concurrently.
   I0.2e-D binds the ordered `processDwg` reader lifecycle, sticky error gates,
   publication loops, and both coverage-finalizer exits; and I0.2e-E binds
   BLOCK/ENDBLK ownership/reachability, delimiter commit/publication, and
-  failure quarantine. I0.2e’s detailed DWG delivery obligation is now closed;
+  failure quarantine. I0.2e’s detailed DWG delivery obligation is now
+  committed as a source-flow item;
   all common lifecycle/ownership evidence is represented once to keep
   generation and review fast. I0.2g-A now closes concrete same-path coverage
   for all 80 functional units (including the two explicit transport anchors);
@@ -2053,7 +2061,7 @@ edit this block or commit the same slice concurrently.
 | I0.2a | I0 / S18 | WP0, WP4-WP7; source/public-surface closure | I0.2 | VERIFIED | EXPERIMENTAL | exactly one classified source-unit row for every pinned `src` file plus public-header class/struct/enum/alias/inline and deprecated-`dwgR` routes | pinned CMake `LIBDXFRW_PUBLIC_HEADERS` contract (10 headers), 85/85 target source-unit roles, explicit standalone `src/intern/dxfcode.h` adaptation, public scanner and route self-tests, two byte-identical full generations, pinned target/repository checks, import/sync/fixture gates, `git diff --check`, and CMake/CTest (9/9) PASS; no drawing payloads; unblocks I0.3a and contributes the required source/public input to I0.2c/I0.3 |
 | I0.2b | I0 / S18 | WP4-WP7; exact parser publication/callback proof | I0.2 | ACTIVE | EXPERIMENTAL | physical typed/raw callback pairs, template/helper adaptation proof, ordered branch ancestry, non-self staged publication routes, and source-owned raw-route terminal metadata | current target/source synthetic tests reject Cartesian callback inference, unproved helper/nested lambdas, incompatible pointer/reference adaptation, scope-leaked guards, unreachable deferred-object dispatch, branch-cardinality promotion, generic self fallback, missing raw callback/carrier/binding, reversed proxy typed-to-raw order, and dangling raw-flow predecessors. Exact metadata now covers the five raw publication bodies and their standalone counterparts; ordered eligibility predicates remain an explicit I0.2d-A gate rather than a support claim; contributes the required prerequisite to I0.2g/I0.2c |
 | I0.2d | I0 / S18 | WP4; DXF transport and raw eligibility graph | I0.2 | PLANNED | EXPERIMENTAL | source-proven ASCII/binary/R12 transport selection, virtual provider closure, record-scope transaction classification, and ordered raw boundary/depth/payload/handle/limit gates; read-side eligibility, transport branches, and DXF raw writer/replay transforms are landed, while broader writer-provider/finalizer closure remains | target-only/synthetic checks mutate every read/readAscii/write selection and raw eligibility predicate; reject transport construction without its guard, inherited virtual operation gaps, and record-scope-as-transport; no fixtures; unblocks I0.2g/I0.2c |
-| I0.2e | I0 / S18 | WP5-WP6; DWG lifecycle/table/compound/block delivery | I0.2 | PLANNED | EXPERIMENTAL | separate table receipt, map/block transition, direct/journal callback delivery, versioned compound aggregation, ordered reader lifecycle gates, sticky errors, BLOCK/ENDBLK owner reachability, delimiter commit/publication, and finalizers | target-only/synthetic checks reject `entryParse`-only compound bridges, `kBlockTable` facade-table delivery, omitted journal/direct path, collapsed `ret`/finalizer flow, reordered `processDwg` stages, missing delimiter identity/owner gates, and publication after failed ownership; common lifecycle/ownership evidence is represented once for speed, while all four reader stage anchors remain independently checked; field-wire qualification stays in I3; detailed DWG delivery is source-closed, with I0.2g/I0.2c still required for aggregate mapping/provenance; unblocks I0.2g/I0.2c |
+| I0.2e | I0 / S18 | WP5-WP6; DWG lifecycle/table/compound/block delivery | I0.2 | COMMITTED | EXPERIMENTAL | separate table receipt, map/block transition, direct/journal callback delivery, versioned compound aggregation, ordered reader lifecycle gates, sticky errors, BLOCK/ENDBLK owner reachability, delimiter commit/publication, and finalizers | S18 source slices and the fast aggregate gate prove raw-section ingress/finalizers, all nine table descriptors, compound transitions, direct/journal delivery, ordered `processDwg` stages, and BLOCK/ENDBLK owner quarantine; synthetic/source checks reject `entryParse`-only bridges, `kBlockTable` facade-table delivery, omitted journal/direct paths, collapsed `ret`/finalizers, reordered stages, missing delimiter/owner gates, and publication after failed ownership; field-wire qualification remains I3; no fixtures; unblocks the remaining I0.2b/d/f source-flow work |
 | I0.2f | I0 / S18 | WP4, WP7; writer entrypoint/model/lifecycle bridge | I0.2 | PLANNED | EXPERIMENTAL | typed/compound/raw/structural writer disposition, parameter contracts, version guards, session pipeline IDs, provider inheritance, and DXF/DWG lifecycle-to-finalize routes; raw DXF writer/replay and DWG raw replay identity are landed as narrow I0.2d-B/I0.2f-A slices, with the rest of the writer surface open | target-only/synthetic checks reject an unclassified `DRW_*` parameter, guardless version selection, writer API without provider/finalizer path, fabricated raw read→write edges, or a replay call misclassified as standalone class-registration ingress; no fixtures; unblocks I0.2g/I0.2c |
 | I0.2g | I0 / S18 | WP0, WP4-WP7; concrete functional source-unit coverage | I0.2b, I0.2d, I0.2e, I0.2f | COMMITTED | EXPERIMENTAL | every functional locked source unit names same-path non-self concrete `coveredBy` routes or a narrow reviewed supporting disposition; deterministic aggregate route closure | S18/I0.4 aggregate gate validates 85/85 source-unit roles, 80/80 concrete same-path coverage plus the two transport anchors, no generic/self/foreign evidence, and byte-stable shards; `check_parity_aggregate.py --self-test` and the pinned metadata checks pass; no drawing payloads; remaining parser/writer source-flow items stay independent |
 | I0.2c | I0 / S18 | WP8; provenance, route-identity, and artifact-integrity closure | I0.2a, I0.2b, I0.2d, I0.2e, I0.2f, I0.2g | COMMITTED | EXPERIMENTAL | stable signature-derived IDs, standalone provenance/adaptation verification, selector-vs-body/condition delta classes, and synthetic artifact failure tests | `5811907` follow-up source-only slice: every adapted source path is checked against the locked target blob and standalone SHA-256; artifact provenance records target/standalone/allowlist identity and route digests; common-route deltas are classified; shard metadata/hash/cardinality and exact-set checks reject tampered/missing/extra artifacts; extractor self-test, pinned `--check`, input/scope/sync/fixture/plan/diff gates pass; no drawing payloads; unblocks I0.3 |
