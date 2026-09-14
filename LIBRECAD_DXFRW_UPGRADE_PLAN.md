@@ -1793,14 +1793,14 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint: S24/J0 runtime compatibility hardening is
-  committed; S01-S24 implementation slices are complete, including the clean
+- Current checkpoint: S25/J2 runtime-advisory acceleration is ready to commit;
+  S01-S24 implementation slices are complete, including the clean
   LibreCAD target worktree change. Format-support claims remain limited to
   rows with eligible runtime/oracle evidence. Source/package/consumer
   convergence and source-level DWG/DXF parity with the pinned LibreCAD
   `dwgRW`/`dxfRW` behavior are complete; runtime/wire-format parity remains an
   explicit evidence follow-up and no format-support claim is promoted solely
-  from source parity. J1/S25 is the next dependency-ready DWG-reader defect
+  from source parity. J1/S26 is the next dependency-ready DWG-reader defect
   lane; its evidence-gated rows do not block independent source/spec work.
 - Latest implementation slice: S18/I0.2g-A concrete source-unit coverage now
   binds all 80 functional locked `src` units to sorted, same-path, non-generic
@@ -1941,35 +1941,36 @@ edit this block or commit the same slice concurrently.
   inputs referenced by its top-level build. No target repin or sibling
   worktree mutation was made; future runtime qualification still requires an
   admitted or locally-from-scratch fixture plus an independent oracle.
-- Authorized run horizon: S01-S25/A-I5 plus J0-J1 runtime-qualification
+- Authorized run horizon: S01-S26/A-I5 plus J0-J2 runtime-qualification
   implementation; unavailable fixtures/oracles remain evidence-only and do not
   stop ready source/spec lanes.
 - Completion target: qualified-format parity for every advertised DWG/DXF row,
   with explicit experimental/deferred dispositions for unavailable evidence.
-  S24 closes implementation hardening, while S25/J1 begins the next
+  S24 closes implementation hardening, while S25/J2 accelerates bounded
+  advisory triage and S26/J1 begins the next
   evidence-gated runtime defect lane; parity cannot be inferred from source
   parity or a PR boundary.
-- Last fully resolved slice: S24 (runtime compatibility hardening is
-  committed by the matching `Plan-Slice: S24` trailer; the post-commit report
-  resolves its SHA); target integration commit remains
+- Last fully resolved slice: S25 (runtime-advisory acceleration is committed by
+  the matching `Plan-Slice: S25` trailer; the post-commit report resolves its
+  SHA); target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`. All in-horizon lanes are
-  terminal only when their recorded gates pass; J1/S25 is planned next and
+  terminal only when their recorded gates pass; J1/S26 is planned next and
   requires no new target pin.
-- Resolved slices: 24/25 (`COMMITTED`, or `SUPERSEDED` after all replacements
+- Resolved slices: 25/26 (`COMMITTED`, or `SUPERSEDED` after all replacements
   commit).
 - Slice states: 0 READY / 1 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 24 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 25 COMMITTED.
 - Parent-item states: 0 READY / 1 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 26 COMMITTED.
-- Expanded child-item states: 119 COMMITTED / 4 PLANNED / 0 READY / 0 ACTIVE /
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 27 COMMITTED.
+- Expanded child-item states: 121 COMMITTED / 4 PLANNED / 0 READY / 0 ACTIVE /
   0 VERIFYING / 0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED; no child is anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 9 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: J1/S25 is the next planned implementation lane after S24. S23/I5
+- Active work: J1/S26 is the next planned implementation lane after S25. S23/I5
   reconciled separate DXF/DWG reports, public/package/LibreCAD consumers, the
   scheduled full and ASan/UBSan checkpoints, bounded fuzz smoke, and explicit
-  support/defer claims; J0 adds runtime adapter/validation regressions without
-  promoting format support. Any later oracle expansion still requires an
+  support/defer claims; J0 adds runtime adapter/validation regressions and J2
+  adds bounded advisory acceleration without promoting format support. Any later oracle expansion still requires an
   explicit ledger row and cannot silently promote current claims.
 
 | Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |
@@ -1998,7 +1999,8 @@ edit this block or commit the same slice concurrently.
 | S22 | I4: `dwgRW` writer and preservation parity closure | S19 | COMMITTED | shared/versioned writer pipeline, typed/raw preservation, transactions, self-read, independent-oracle policy | `check_dwg_lane.py --mode writer` validates 1,345 target/1,371 standalone routes, six writer pipelines, 38 bindings, 101 entrypoints, raw replay/provider/finalizer contracts, and complete no-fixture mapping; focused writer CTest is build-directory safe; self-read/oracle evidence remains experimental | S23 |
 | S23 | I5: aggregate parity and release sign-off | S20, S21, S22 | COMMITTED | separate zero-unmapped/unexplained DWG and DXF reports, API/package/LibreCAD consumer, sanitizer/fuzz, fixture/scope/sync, support claims | checkpoint evidence is green: full dependency-free build plus 15/15 CTest (3.04s), ASan/UBSan build plus 15/15 CTest (1.57s with macOS leak detection disabled), fast release-readiness and separate DXF/DWG aggregate reports pass; source-only rows remain experimental and no drawing payloads were added | S24 runtime compatibility hardening |
 | S24 | J0: runtime compatibility hardening and advisory triage | S23 | COMMITTED | focused Wave 1 regression, clean CLI build, bounded canaries, fixture/scope/sync/plan gates | fixed-space BLOCK replay and inactive HATCH gradient validation are covered by in-memory assertions; ET-Drawing-with-Border and Pool_Detail canaries convert successfully; external bytes remain advisory and untracked | S25 |
-| S25 | J1: DWG reader defect closure and empirical route triage | S24 | PLANNED | ODA/spec review, focused source tests, bounded external traces, and no-fixture policy | AC1024 class high-bit parsing, R2010+ spline bit alignment, sparse object dispatch, and block transaction failures each receive an owner, evidence packet, and explicit experimental/deferred outcome | qualified-format parity follow-up |
+| S25 | J2: bounded runtime advisory acceleration | S24 | COMMITTED | timeout-bounded external runner, fast canary report, plan/scope/sync/fixture gates | `run_external_advisory.py` accepts a per-input timeout and records explicit timeout status without retaining payloads; self-test and 51-input AC1024 advisory scan pass; no fixture bytes | S26 |
+| S26 | J1: DWG reader defect closure and empirical route triage | S25 | PLANNED | ODA/spec review, focused source tests, bounded external traces, and no-fixture policy | AC1024 class high-bit parsing, R2010+ spline bit alignment, sparse object dispatch, and block transaction failures each receive an owner, evidence packet, and explicit experimental/deferred outcome | qualified-format parity follow-up |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -2027,7 +2029,8 @@ edit this block or commit the same slice concurrently.
 | I4 | S22 | I1 | COMMITTED | EXPERIMENTAL | Close all target `dwgRW` writer/preservation rows, with independent-oracle promotion and transaction safety |
 | I5 | S23 | I2, I3, I4 | COMMITTED | EXPERIMENTAL | Reconcile both façades, compatibility/package consumers, support claims, and aggregate release evidence |
 | J0 | S24 | I5 | COMMITTED | EXPERIMENTAL | Runtime adapter/validation hardening with focused regressions; external canaries remain advisory |
-| J1 | S25 | J0 | PLANNED | EXPERIMENTAL | Close known DWG reader/runtime defects with ODA/spec and empirical evidence while preserving fixture policy |
+| J1 | S26 | J2 | PLANNED | EXPERIMENTAL | Close known DWG reader/runtime defects with ODA/spec and empirical evidence while preserving fixture policy |
+| J2 | S25 | J0 | COMMITTED | EXPERIMENTAL | Bound external advisory execution and preserve fast triage without fixture or support-claim promotion |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -2152,10 +2155,12 @@ edit this block or commit the same slice concurrently.
 | J0.1 | J0 / S24 | WP10; adapter runtime compatibility | I5 | COMMITTED | EXPERIMENTAL | fixed-space BLOCK replay does not duplicate dxfRW-reserved records | `dwg2dxf` skips only `*Model_Space` and `*Paper_Space` in BLOCK/BLOCK_RECORD replay; clean CLI build and ET-Drawing-with-Border/Pool_Detail bounded canaries pass; no fixture bytes; unblocks J0.3 |
 | J0.2 | J0 / S24 | WP4, WP6; DXF HATCH validation | I5 | COMMITTED | EXPERIMENTAL | inactive gradient carriers do not reject solid HATCH while active gradients remain bounded | Wave 1 in-memory assertion passes for stale inactive gradient name/RGB and rejects the same carrier when `isGradient=1`; no fixture bytes; unblocks J0.3 |
 | J0.3 | J0 / S24 | WP10; advisory runtime triage and fixture disposition | J0.1, J0.2 | COMMITTED | DEFERRED_EXTERNAL | bounded external canaries and environment diagnosis recorded without support promotion | fresh temporary CLI build, bounded 20-sample advisory run, and temporary-output cleanup pass; external successes/failures/timeouts are hash/status evidence only; unwritable repository build tree is an environment note; unblocks S25/J1 |
-| J1.1 | J1 / S25 | WP5.6, WP10; AC1024 classes | J0 | PLANNED | DEFERRED_EXTERNAL | verify `strDataSize` high-bit extension against ODA and an eligible/runtime-generated AC1024 case | inspect `dwgreader18.cpp` class framing, build an in-memory boundary vector, trace external AC1024 samples only for advisory diagnosis, and promote only with an admitted or local-from-scratch positive plus independent reader; no fixture bytes |
-| J1.2 | J1 / S25 | WP5.7, WP10; R2010+ spline alignment | J0 | PLANNED | DEFERRED_EXTERNAL | resolve `splFlag1` bit-versus-bit-long alignment only after spec/sample agreement | read the ODA spline layout, construct a bounded bit vector, and compare AC1027/AC1032 traces; if evidence is unavailable, retain experimental status and continue J1.3/J1.4; no fixture bytes |
-| J1.3 | J1 / S25 | WP5.8, WP10; object dispatch | J0 | PLANNED | DEFERRED_EXTERNAL | empirically map sparse DWG object type codes without hardcoding third-party guesses | capture `Remaining object Handle, loc, type=` from external/admitted traces, add typed/raw route rows and negative unknown-object tests, and keep unobserved codes deferred; no fixture bytes |
-| J1.4 | J1 / S25 | WP5.5-WP5.7, WP10; block transaction triage | J0 | PLANNED | EXPERIMENTAL | classify `BAD_READ_BLOCKS` transaction failures by ownership, delimiter, or malformed-input cause | instrument a bounded diagnostic path, reduce to a local-from-scratch or in-memory block graph where possible, and preserve warn/continue semantics; external `blocks_and_tables` files remain advisory and untracked |
+| J1.1 | J1 / S26 | WP5.6, WP10; AC1024 classes | J2 | PLANNED | DEFERRED_EXTERNAL | verify `strDataSize` high-bit extension against ODA and an eligible/runtime-generated AC1024 case | inspect `dwgreader18.cpp` class framing, build an in-memory boundary vector, trace external AC1024 samples only for advisory diagnosis, and promote only with an admitted or local-from-scratch positive plus independent reader; no fixture bytes |
+| J1.2 | J1 / S26 | WP5.7, WP10; R2010+ spline alignment | J2 | PLANNED | DEFERRED_EXTERNAL | resolve `splFlag1` bit-versus-bit-long alignment only after spec/sample agreement | read the ODA spline layout, construct a bounded bit vector, and compare AC1027/AC1032 traces; if evidence is unavailable, retain experimental status and continue J1.3/J1.4; no fixture bytes |
+| J1.3 | J1 / S26 | WP5.8, WP10; object dispatch | J2 | PLANNED | DEFERRED_EXTERNAL | empirically map sparse DWG object type codes without hardcoding third-party guesses | capture `Remaining object Handle, loc, type=` from external/admitted traces, add typed/raw route rows and negative unknown-object tests, and keep unobserved codes deferred; no fixture bytes |
+| J1.4 | J1 / S26 | WP5.5-WP5.7, WP10; block transaction triage | J2 | PLANNED | EXPERIMENTAL | classify `BAD_READ_BLOCKS` transaction failures by ownership, delimiter, or malformed-input cause | instrument a bounded diagnostic path, reduce to a local-from-scratch or in-memory block graph where possible, and preserve warn/continue semantics; external `blocks_and_tables` files remain advisory and untracked |
+| J2.1 | J2 / S25 | WP10; bounded advisory runner | J0 | COMMITTED | NOT_APPLICABLE | external converter timeout is explicit and non-reconstructive | `run_external_advisory.py` supports `--timeout`, reports `timeout`/`diagnosticCode` without output hashes, and self-test passes; no fixture bytes; unblocks J2.2 |
+| J2.2 | J2 / S25 | WP10; measured canary loop | J2.1 | COMMITTED | DEFERRED_EXTERNAL | bounded corpus triage feeds implementation without full-suite repetition | 51 AC1024 external inputs were scanned with a 2-second bound: 45 converted, 3 timed out, 2 error-9, 1 nonzero failure; ET/Pool canaries pass after J0; hashes/statuses only and no fixture bytes; unblocks S26/J1 |
 
 <!-- UPGRADE_PROGRESS_END -->
 

@@ -35,7 +35,8 @@ def digest(path: Path) -> str:
     return hasher.hexdigest()
 
 
-def summarize(root: Path, converter: Path | None, limit: int) -> dict:
+def summarize(root: Path, converter: Path | None, limit: int,
+              timeout_seconds: float = 0.0) -> dict:
     files = sorted(root.rglob("*.dwg"))
     if limit >= 0:
         files = files[:limit]
@@ -51,21 +52,28 @@ def summarize(root: Path, converter: Path | None, limit: int) -> dict:
             }
             if converter is not None:
                 output = output_root / (str(index) + ".dxf")
-                result = subprocess.run(
-                    [str(converter), str(path), "-y", "-v2010", str(output)],
-                    capture_output=True,
-                    text=True,
-                    check=False,
-                )
-                row["exitStatus"] = result.returncode
-                row["status"] = "converted" if result.returncode == 0 else "failed"
+                command = [str(converter), str(path), "-y", "-v2010", str(output)]
+                try:
+                    result = subprocess.run(
+                        command,
+                        capture_output=True,
+                        text=True,
+                        check=False,
+                        timeout=timeout_seconds if timeout_seconds > 0 else None,
+                    )
+                    row["exitStatus"] = result.returncode
+                    row["status"] = "converted" if result.returncode == 0 else "failed"
+                except subprocess.TimeoutExpired:
+                    row["status"] = "timeout"
+                    row["diagnosticCode"] = "timeout"
                 if output.is_file():
                     row["outputSha256"] = digest(output)
                     row["outputSize"] = output.stat().st_size
                 # Do not retain paths, temporary names, or tool prose in the
                 # committed/advisory summary; only a stable category belongs
                 # in this non-reconstructive evidence.
-                row["diagnosticCode"] = "success" if result.returncode == 0 else "conversion-failed"
+                if row["status"] != "timeout":
+                    row["diagnosticCode"] = "success" if row["exitStatus"] == 0 else "conversion-failed"
             rows.append(row)
     rows.sort(key=lambda item: (item["inputVersion"], item["sourceSha256"]))
     statuses = Counter(row["status"] for row in rows)
@@ -90,6 +98,15 @@ def self_test() -> None:
         assert result["inputCount"] == 1
         assert result["rows"][0]["inputVersion"] == "AC1021"
         assert result["rows"][0]["status"] == "inventoried"
+        converter = root / "slow-converter.py"
+        converter.write_text(
+            "#!/usr/bin/env python3\nimport time\ntime.sleep(1)\n",
+            encoding="utf-8",
+        )
+        converter.chmod(0o755)
+        timed = summarize(root, converter, -1, timeout_seconds=0.01)
+        assert timed["rows"][0]["status"] == "timeout"
+        assert timed["rows"][0]["diagnosticCode"] == "timeout"
     print("run_external_advisory self-test: PASS")
 
 
@@ -99,6 +116,8 @@ def main(argv=None) -> int:
     parser.add_argument("--root", type=Path)
     parser.add_argument("--converter", type=Path)
     parser.add_argument("--limit", type=int, default=8)
+    parser.add_argument("--timeout", type=float, default=0.0,
+                        help="per-input converter timeout in seconds (0 disables)")
     parser.add_argument("--output", type=Path)
     args = parser.parse_args(argv)
     try:
@@ -107,7 +126,9 @@ def main(argv=None) -> int:
             return 0
         if args.root is None:
             parser.error("--root is required unless --self-test is used")
-        report = summarize(args.root, args.converter, args.limit)
+        if args.timeout < 0:
+            parser.error("--timeout must be non-negative")
+        report = summarize(args.root, args.converter, args.limit, args.timeout)
         encoded = json.dumps(report, sort_keys=True, indent=2) + "\n"
         if args.output:
             args.output.write_text(encoded, encoding="utf-8")
