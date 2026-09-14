@@ -46,6 +46,10 @@ FIELDLIST_HANDLE = 0xB300
 MALFORMED_FIELDLIST_HANDLE = 0xB301
 FIELD_HANDLE = 0xB400
 MALFORMED_FIELD_HANDLE = 0xB401
+RASTERVARIABLES_HANDLE = 0xB500
+MALFORMED_RASTERVARIABLES_HANDLE = 0xB501
+WIPEOUTVARIABLES_HANDLE = 0xB600
+MALFORMED_WIPEOUTVARIABLES_HANDLE = 0xB601
 
 
 def parse_json_output(text: str) -> dict:
@@ -109,7 +113,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         raise ValueError("GROUP name, owner, or member stream mismatch")
 
     dictionary = find_record(records, "DICTIONARY", DICTIONARY_HANDLE)
-    if (dictionary.get("numitems") != 10
+    if (dictionary.get("numitems") != 12
             or dictionary.get("is_hardowner") != 1
             or owner_handle(dictionary) != 0x0C):
         raise ValueError("custom DICTIONARY count, owner, or cloning mismatch")
@@ -209,6 +213,20 @@ def check_objects(payload: dict, version_name: str) -> dict:
             or field.get("value_string_length") != 2):
         raise ValueError("FIELD owner or bounded payload mismatch")
 
+    raster = find_record(records, "RASTERVARIABLES", RASTERVARIABLES_HANDLE)
+    if (owner_handle(raster) != DICTIONARY_HANDLE
+            or raster.get("class_version") != 1
+            or raster.get("image_frame") != 1
+            or raster.get("image_quality") != 2
+            or raster.get("units") != 3):
+        raise ValueError("RASTERVARIABLES owner or scalar mismatch")
+
+    wipeout = find_record(
+        records, "WIPEOUTVARIABLES", WIPEOUTVARIABLES_HANDLE)
+    if (owner_handle(wipeout) != DICTIONARY_HANDLE
+            or wipeout.get("display_frame") != 1):
+        raise ValueError("WIPEOUTVARIABLES owner or scalar mismatch")
+
     dictionary_default = find_record(
         records, "DICTIONARYWDFLT", DICTIONARYWDFLT_HANDLE)
     if (owner_handle(dictionary_default) != DICTIONARY_HANDLE
@@ -244,6 +262,8 @@ def check_objects(payload: dict, version_name: str) -> dict:
         MALFORMED_SORTENTSTABLE_HANDLE: "SORTENTSTABLE",
         MALFORMED_FIELDLIST_HANDLE: "FIELDLIST",
         MALFORMED_FIELD_HANDLE: "FIELD",
+        MALFORMED_RASTERVARIABLES_HANDLE: "RASTERVARIABLES",
+        MALFORMED_WIPEOUTVARIABLES_HANDLE: "WIPEOUTVARIABLES",
     }
     if any(record_handle(record) in malformed_handles
            and record.get("object") == malformed_handles[record_handle(record)]
@@ -264,6 +284,8 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "SORTENTSTABLE": SORTENTSTABLE_HANDLE,
             "FIELDLIST": FIELDLIST_HANDLE,
             "FIELD": FIELD_HANDLE,
+            "RASTERVARIABLES": RASTERVARIABLES_HANDLE,
+            "WIPEOUTVARIABLES": WIPEOUTVARIABLES_HANDLE,
             "DICTIONARYWDFLT": DICTIONARYWDFLT_HANDLE,
         },
         "objectStatus": "qualified",
@@ -338,7 +360,7 @@ def self_test() -> None:
              "ownerhandle": [4, 1, 0x0C, 0x0C], "name": "LOCAL_GROUP",
              "groups": [[5, 1, 0x1234]]},
             {"object": "DICTIONARY", "handle": [0, 1, DICTIONARY_HANDLE],
-             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 10,
+             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 12,
              "is_hardowner": 1},
             {"object": "XRECORD", "handle": [0, 1, XRECORD_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
@@ -387,6 +409,15 @@ def self_test() -> None:
              "id": "ACAD", "code": "LOCAL_FIELD_CODE",
              "value.data_type": 1, "value.data_long": 42,
              "value_string": "42", "value_string_length": 2},
+            {"object": "RASTERVARIABLES",
+             "handle": [0, 1, RASTERVARIABLES_HANDLE],
+             "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "class_version": 1, "image_frame": 1, "image_quality": 2,
+             "units": 3},
+            {"object": "WIPEOUTVARIABLES",
+             "handle": [0, 1, WIPEOUTVARIABLES_HANDLE],
+             "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "display_frame": 1},
         ],
     }
     check_objects(payload, "AC1024")
@@ -463,6 +494,26 @@ def self_test() -> None:
         pass
     else:
         raise AssertionError("malformed FIELD was not rejected")
+    try:
+        bad = json.loads(json.dumps(payload))
+        bad["OBJECTS"].append({"object": "RASTERVARIABLES",
+                                "handle": [0, 1,
+                                            MALFORMED_RASTERVARIABLES_HANDLE]})
+        check_objects(bad, "AC1024")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("malformed RASTERVARIABLES was not rejected")
+    try:
+        bad = json.loads(json.dumps(payload))
+        bad["OBJECTS"].append({"object": "WIPEOUTVARIABLES",
+                                "handle": [0, 1,
+                                            MALFORMED_WIPEOUTVARIABLES_HANDLE]})
+        check_objects(bad, "AC1024")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("malformed WIPEOUTVARIABLES was not rejected")
     print("local DWG object oracle: PASS")
 
 

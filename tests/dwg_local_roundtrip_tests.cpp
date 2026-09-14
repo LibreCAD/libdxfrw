@@ -60,6 +60,14 @@ public:
             fieldRegistration.handle = 0xB400u;
             registeredField_ = writer_->registerFieldObjectClass(
                 &fieldRegistration);
+            DRW_RasterVariables rasterRegistration;
+            rasterRegistration.handle = 0xB500u;
+            registeredRasterVariables_ = writer_->registerRasterVariablesObjectClass(
+                &rasterRegistration);
+            DRW_WipeoutVariables wipeoutRegistration;
+            wipeoutRegistration.handle = 0xB600u;
+            registeredWipeoutVariables_ = writer_->registerWipeoutVariablesObjectClass(
+                &wipeoutRegistration);
         }
     }
 
@@ -111,6 +119,8 @@ public:
             {"LOCAL_SORTENTSTABLE", 0xB200u},
             {"LOCAL_FIELDLIST", 0xB300u},
             {"LOCAL_FIELD", 0xB400u},
+            {"LOCAL_RASTERVARIABLES", 0xB500u},
+            {"LOCAL_WIPEOUTVARIABLES", 0xB600u},
         };
         wroteDictionary_ = registeredDictionary_
             && writer_->writeDictionary(&dictionary)
@@ -268,6 +278,25 @@ public:
         wroteField_ = registeredField_ && writer_->writeField(&field)
             && field.handle != 0;
 
+        DRW_RasterVariables rasterVariables;
+        rasterVariables.handle = 0xB500u;
+        rasterVariables.parentHandle = dictionary.handle;
+        rasterVariables.m_classVersion = 1;
+        rasterVariables.m_imageFrame = 1;
+        rasterVariables.m_imageQuality = 2;
+        rasterVariables.m_units = 3;
+        wroteRasterVariables_ = registeredRasterVariables_
+            && writer_->writeRasterVariables(&rasterVariables)
+            && rasterVariables.handle != 0;
+
+        DRW_WipeoutVariables wipeoutVariables;
+        wipeoutVariables.handle = 0xB600u;
+        wipeoutVariables.parentHandle = dictionary.handle;
+        wipeoutVariables.m_displayFrame = 1;
+        wroteWipeoutVariables_ = registeredWipeoutVariables_
+            && writer_->writeWipeoutVariables(&wipeoutVariables)
+            && wipeoutVariables.handle != 0;
+
         // A failed object write must not poison the following valid frames or
         // publish a partial object.  The writer's public transaction wrapper
         // owns the rollback boundary; this assertion keeps that contract in
@@ -334,6 +363,20 @@ public:
         invalidField.m_fieldCode = "LOCAL_BAD_FIELD";
         invalidField.m_value.m_dataType = 99;
         rejectedMalformedField_ = !writer_->writeField(&invalidField);
+
+        DRW_RasterVariables invalidRasterVariables;
+        invalidRasterVariables.handle = 0xB501u;
+        invalidRasterVariables.parentHandle = dictionary.handle;
+        invalidRasterVariables.m_classVersion = 11;
+        rejectedMalformedRasterVariables_ =
+            !writer_->writeRasterVariables(&invalidRasterVariables);
+
+        DRW_WipeoutVariables invalidWipeoutVariables;
+        invalidWipeoutVariables.handle = 0xB601u;
+        invalidWipeoutVariables.parentHandle = dictionary.handle;
+        invalidWipeoutVariables.setDwgCommonObjectState(0, 2, false);
+        rejectedMalformedWipeoutVariables_ =
+            !writer_->writeWipeoutVariables(&invalidWipeoutVariables);
 
         DRW_Group group;
         group.handle = 0xA600u;
@@ -533,7 +576,7 @@ public:
         if (data.handle == 0xA601u) {
             readDictionarySeen_ = data.parentHandle
                     == DRW::DwgNamedObjectsDictionaryHandle
-                && data.m_entries.size() == 10
+                && data.m_entries.size() == 12
                 && data.m_entries[0].m_name == "LOCAL_XRECORD"
                 && data.m_entries[0].m_handle == 0xA602u
                 && data.m_entries[1].m_name == "LOCAL_PLOTSETTINGS"
@@ -553,7 +596,11 @@ public:
                 && data.m_entries[8].m_name == "LOCAL_FIELDLIST"
                 && data.m_entries[8].m_handle == 0xB300u
                 && data.m_entries[9].m_name == "LOCAL_FIELD"
-                && data.m_entries[9].m_handle == 0xB400u;
+                && data.m_entries[9].m_handle == 0xB400u
+                && data.m_entries[10].m_name == "LOCAL_RASTERVARIABLES"
+                && data.m_entries[10].m_handle == 0xB500u
+                && data.m_entries[11].m_name == "LOCAL_WIPEOUTVARIABLES"
+                && data.m_entries[11].m_handle == 0xB600u;
         }
     }
     void addXRecord(const DRW_XRecord& data) override {
@@ -643,6 +690,23 @@ public:
         if (data.handle == 0xB401u)
             readMalformedFieldSeen_ = true;
     }
+    void addRasterVariables(const DRW_RasterVariables& data) override {
+        if (data.handle == 0xB500u)
+            readRasterVariablesSeen_ = data.parentHandle == 0xA601u
+                && data.m_classVersion == 1
+                && data.m_imageFrame == 1
+                && data.m_imageQuality == 2
+                && data.m_units == 3;
+        if (data.handle == 0xB501u)
+            readMalformedRasterVariablesSeen_ = true;
+    }
+    void addWipeoutVariables(const DRW_WipeoutVariables& data) override {
+        if (data.handle == 0xB600u)
+            readWipeoutVariablesSeen_ = data.parentHandle == 0xA601u
+                && data.m_displayFrame == 1;
+        if (data.handle == 0xB601u)
+            readMalformedWipeoutVariablesSeen_ = true;
+    }
     void addInsert(const DRW_Insert& data) override {
         readInsertSeen_ = true;
         readAttribSeen_ = data.attlist.size() == 1
@@ -677,7 +741,7 @@ public:
             && wroteLayout_ && wroteMLineStyle_ && wroteMLeaderStyle_
             && wroteDictionaryVar_ && wroteDictionaryWithDefault_
             && wroteSortEntsTable_ && wroteFieldList_ && wroteField_
-            && wroteGroup_;
+            && wroteRasterVariables_ && wroteWipeoutVariables_ && wroteGroup_;
     }
     bool rejectedMalformedObject() const { return rejectedMalformedObject_; }
     bool rejectedMalformedStyle() const { return rejectedMalformedStyle_; }
@@ -695,6 +759,12 @@ public:
     }
     bool rejectedMalformedFieldList() const { return rejectedMalformedFieldList_; }
     bool rejectedMalformedField() const { return rejectedMalformedField_; }
+    bool rejectedMalformedRasterVariables() const {
+        return rejectedMalformedRasterVariables_;
+    }
+    bool rejectedMalformedWipeoutVariables() const {
+        return rejectedMalformedWipeoutVariables_;
+    }
     bool readLineSeen() const { return readLineSeen_; }
     bool readSimpleEntitiesSeen() const {
         return readPointSeen_ && readCircleSeen_ && readArcSeen_
@@ -718,7 +788,8 @@ public:
             && readPlotSettingsSeen_ && readLayoutSeen_ && readMLineStyleSeen_
             && readMLeaderStyleSeen_ && readDictionaryVarSeen_
             && readDictionaryWithDefaultSeen_ && readSortEntsTableSeen_
-            && readFieldListSeen_ && readFieldSeen_ && readGroupSeen_;
+            && readFieldListSeen_ && readFieldSeen_ && readRasterVariablesSeen_
+            && readWipeoutVariablesSeen_ && readGroupSeen_;
     }
     bool readMalformedObjectSeen() const { return readMalformedObjectSeen_; }
     bool readMalformedStyleSeen() const { return readMalformedStyleSeen_; }
@@ -736,6 +807,12 @@ public:
     }
     bool readMalformedFieldListSeen() const { return readMalformedFieldListSeen_; }
     bool readMalformedFieldSeen() const { return readMalformedFieldSeen_; }
+    bool readMalformedRasterVariablesSeen() const {
+        return readMalformedRasterVariablesSeen_;
+    }
+    bool readMalformedWipeoutVariablesSeen() const {
+        return readMalformedWipeoutVariablesSeen_;
+    }
     const DRW_Line& readLine() const { return readLine_; }
 
 private:
@@ -777,6 +854,8 @@ private:
     bool wroteSortEntsTable_ {false};
     bool wroteFieldList_ {false};
     bool wroteField_ {false};
+    bool wroteRasterVariables_ {false};
+    bool wroteWipeoutVariables_ {false};
     bool rejectedMalformedObject_ {false};
     bool rejectedMalformedStyle_ {false};
     bool rejectedMalformedMLeaderStyle_ {false};
@@ -785,6 +864,8 @@ private:
     bool rejectedMalformedSortEntsTable_ {false};
     bool rejectedMalformedFieldList_ {false};
     bool rejectedMalformedField_ {false};
+    bool rejectedMalformedRasterVariables_ {false};
+    bool rejectedMalformedWipeoutVariables_ {false};
     bool registeredDictionary_ {false};
     bool registeredMLeaderStyle_ {false};
     bool registeredDictionaryVar_ {false};
@@ -792,6 +873,8 @@ private:
     bool registeredSortEntsTable_ {false};
     bool registeredFieldList_ {false};
     bool registeredField_ {false};
+    bool registeredRasterVariables_ {false};
+    bool registeredWipeoutVariables_ {false};
     bool registeredPlotSettings_ {false};
     bool readLineSeen_ {false};
     bool readPointSeen_ {false};
@@ -825,6 +908,8 @@ private:
     bool readSortEntsTableSeen_ {false};
     bool readFieldListSeen_ {false};
     bool readFieldSeen_ {false};
+    bool readRasterVariablesSeen_ {false};
+    bool readWipeoutVariablesSeen_ {false};
     bool readMalformedObjectSeen_ {false};
     bool readMalformedStyleSeen_ {false};
     bool readMalformedMLeaderStyleSeen_ {false};
@@ -833,6 +918,8 @@ private:
     bool readMalformedSortEntsTableSeen_ {false};
     bool readMalformedFieldListSeen_ {false};
     bool readMalformedFieldSeen_ {false};
+    bool readMalformedRasterVariablesSeen_ {false};
+    bool readMalformedWipeoutVariablesSeen_ {false};
     DRW_Line readLine_;
     dx_data data_;
 };
@@ -926,6 +1013,12 @@ int main(int argc, char** argv) {
         expect(writeIface.rejectedMalformedField(),
                ("local DWG writer rejected malformed FIELD transaction" + suffix).c_str(),
                failures);
+        expect(writeIface.rejectedMalformedRasterVariables(),
+               ("local DWG writer rejected malformed RASTERVARIABLES transaction" + suffix).c_str(),
+               failures);
+        expect(writeIface.rejectedMalformedWipeoutVariables(),
+               ("local DWG writer rejected malformed WIPEOUTVARIABLES transaction" + suffix).c_str(),
+               failures);
         expect(std::filesystem::exists(output),
                ("local DWG output is published" + suffix).c_str(), failures);
 
@@ -984,6 +1077,12 @@ int main(int argc, char** argv) {
                failures);
         expect(!readIface.readMalformedFieldSeen(),
                ("local DWG self-read omits rolled-back malformed FIELD" + suffix).c_str(),
+               failures);
+        expect(!readIface.readMalformedRasterVariablesSeen(),
+               ("local DWG self-read omits rolled-back malformed RASTERVARIABLES" + suffix).c_str(),
+               failures);
+        expect(!readIface.readMalformedWipeoutVariablesSeen(),
+               ("local DWG self-read omits rolled-back malformed WIPEOUTVARIABLES" + suffix).c_str(),
                failures);
         if (readIface.readLineSeen()) {
             const DRW_Line& line = readIface.readLine();
