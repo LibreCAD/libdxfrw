@@ -127,6 +127,13 @@ if(LIBDXFRW_BUILD_TESTS)
             --mapping ${CMAKE_CURRENT_SOURCE_DIR}/metadata/parity-source-routes-v1.json
             --target ${CMAKE_CURRENT_SOURCE_DIR}/metadata/parity-source-routes-v1/target-dwgRW.json
             --standalone ${CMAKE_CURRENT_SOURCE_DIR}/metadata/parity-source-routes-v1/standalone-dwgRW.json)
+    add_test(NAME libdxfrw_release_readiness
+        COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE}
+            ${CMAKE_CURRENT_SOURCE_DIR}/tools/check_release_readiness.py
+            --plan ${CMAKE_CURRENT_SOURCE_DIR}/LIBRECAD_DXFRW_UPGRADE_PLAN.md
+            --mapping ${CMAKE_CURRENT_SOURCE_DIR}/metadata/parity-source-routes-v1.json
+            --registry ${CMAKE_CURRENT_SOURCE_DIR}/metadata/parity-test-oracles-v1.json
+            --manifest ${CMAKE_CURRENT_SOURCE_DIR}/metadata/parity-differential-runners-v1.json)
 
     add_executable(libdxfrw_wave1_tests tests/wave1_tests.cpp)
     target_compile_features(libdxfrw_wave1_tests PRIVATE cxx_std_17)

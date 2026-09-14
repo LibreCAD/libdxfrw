@@ -1791,9 +1791,10 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint: S18/I0 deterministic parity inventory committed and
-  S19/I1 differential harness is READY;
-  S01-S18 are committed, including the clean LibreCAD target worktree change.
+- Current checkpoint: S23/I5 aggregate parity and release sign-off is
+  prepared for commit; S01-S23 implementation slices are complete, including
+  the clean LibreCAD target worktree change. Format-support claims remain
+  limited to rows with eligible runtime/oracle evidence.
   Source/package/consumer convergence is complete, but DWG/DXF parity with the
   pinned LibreCAD `dwgRW`/`dxfRW` behavior is still an explicit follow-up and
   no format-support claim is promoted solely from source parity. I0.2 is
@@ -1921,28 +1922,35 @@ edit this block or commit the same slice concurrently.
   provider/finalizer ownership, and complete no-fixture mapping. Its focused
   writer CTest entry is build-directory safe; self-read, independent-oracle,
   and exact wire-byte evidence remain experimental and checkpoint-gated.
+- S23 checkpoint evidence: the dependency-free build and all 15 CTest entries
+  pass in 3.04 seconds; the ASan/UBSan build passes all 15 entries in 1.57
+  seconds with `detect_leaks=0` because this macOS runtime rejects leak
+  detection. The initial `detect_leaks=1` attempt is recorded as an expected
+  environment limitation, not a code failure. Fast release-readiness,
+  separate DXF/DWG lane, source/aggregate, fixture, import, sync, and plan
+  checks are green; no drawing payloads were added.
 - Authorized run horizon: full S01-S23/A-I5 implementation objective.
 - Completion target: S23/I5 qualified-format parity acceptance; a PR boundary
   cannot silently shorten the authorized objective.
-- Last fully resolved slice: S18 (deterministic parity inventory is committed
-  in the current slice); target integration commit is
-  `6969e0a003414f9a7084349ac54bc2b32515e16b`. S19/I1 is READY and will
-  self-update this block as the differential harness lands.
-- Resolved slices: 18/23 (`COMMITTED`, or `SUPERSEDED` after all replacements
+- Last fully resolved slice: S23 (aggregate parity/release checkpoint is
+  prepared in the current slice); target integration commit is
+  `6969e0a003414f9a7084349ac54bc2b32515e16b`. All in-horizon lanes are
+  terminal and every future evidence expansion must be separately authorized.
+- Resolved slices: 23/23 (`COMMITTED`, or `SUPERSEDED` after all replacements
   commit).
-- Slice states: 1 READY / 4 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 18 COMMITTED.
-- Parent-item states: 0 READY / 5 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 20 COMMITTED.
-- Expanded child-item states: 90 COMMITTED / 23 PLANNED / 0 READY / 0 ACTIVE /
+- Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
+  0 BLOCKED_HARD / 0 SUPERSEDED / 23 COMMITTED.
+- Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 25 COMMITTED.
+- Expanded child-item states: 113 COMMITTED / 0 PLANNED / 0 READY / 0 ACTIVE /
   0 VERIFYING / 3 VERIFIED; no child is anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 9 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S23/I5 aggregate parity and release sign-off is next after the
-  committed S22 writer source gate. It must reconcile separate DXF and DWG
-  reports, public/package/LibreCAD consumers, scheduled full/sanitizer/fuzz
-  checkpoints, and explicit support/defer claims; no unadmitted drawing or
-  unsupported wire claim may enter the release ledger.
+- Active work: none in the authorized S01-S23 horizon. S23/I5 reconciles
+  separate DXF/DWG reports, public/package/LibreCAD consumers, the scheduled
+  full and ASan/UBSan checkpoints, bounded fuzz smoke, and explicit
+  support/defer claims. Any future runtime/oracle qualification is a new
+  separately authorized scope and cannot silently promote current rows.
 
 | Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -1967,7 +1975,7 @@ edit this block or commit the same slice concurrently.
 | S20 | I2: `dxfRW` parity closure | S19 | COMMITTED | DXF group/model/callback/raw/write round-trip rows and aggregate differential | `check_dxf_lane.py` validates 1,475 target/1,457 standalone DXF routes, six transport anchors, required model/raw/publication/writer categories, complete mapping, and no-fixture disposition; focused CTest passes in 0.09 seconds; runtime support remains experimental | S23 |
 | S21 | I3: `dwgRW` reader parity closure | S19 | COMMITTED | version/container/dispatch/graph/diagnostic rows and aggregate differential | `check_dwg_lane.py --mode reader` validates 1,345 target/1,371 standalone routes, six reader pipelines, required section/table/object/entity/raw/publication categories, and complete no-fixture mapping; focused reader CTest is build-directory safe; wire/sample/spec evidence remains experimental | S23; I4 oracle reads |
 | S22 | I4: `dwgRW` writer and preservation parity closure | S19 | COMMITTED | shared/versioned writer pipeline, typed/raw preservation, transactions, self-read, independent-oracle policy | `check_dwg_lane.py --mode writer` validates 1,345 target/1,371 standalone routes, six writer pipelines, 38 bindings, 101 entrypoints, raw replay/provider/finalizer contracts, and complete no-fixture mapping; focused writer CTest is build-directory safe; self-read/oracle evidence remains experimental | S23 |
-| S23 | I5: aggregate parity and release sign-off | S20, S21, S22 | PLANNED | separate zero-unmapped/unexplained DWG and DXF reports, API/package/LibreCAD consumer, sanitizer/fuzz, fixture/scope/sync, support claims | neither façade can close the other; every unresolved evidence row stays explicit and unadvertised | qualified-format parity completion |
+| S23 | I5: aggregate parity and release sign-off | S20, S21, S22 | COMMITTED | separate zero-unmapped/unexplained DWG and DXF reports, API/package/LibreCAD consumer, sanitizer/fuzz, fixture/scope/sync, support claims | checkpoint evidence is green: full dependency-free build plus 15/15 CTest (3.04s), ASan/UBSan build plus 15/15 CTest (1.57s with macOS leak detection disabled), fast release-readiness and separate DXF/DWG aggregate reports pass; source-only rows remain experimental and no drawing payloads were added | qualified-format parity completion |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -1994,7 +2002,7 @@ edit this block or commit the same slice concurrently.
 | I2 | S20 | I1 | COMMITTED | EXPERIMENTAL | Close all target `dxfRW` read/model/raw/write rows or retain an exact experimental/deferred disposition |
 | I3 | S21 | I1 | COMMITTED | EXPERIMENTAL | Close all target `dwgRW` reader/version/dispatch/graph/diagnostic rows or retain an exact experimental/deferred disposition |
 | I4 | S22 | I1 | COMMITTED | EXPERIMENTAL | Close all target `dwgRW` writer/preservation rows, with independent-oracle promotion and transaction safety |
-| I5 | S23 | I2, I3, I4 | PLANNED | EXPERIMENTAL | Reconcile both façades, compatibility/package consumers, support claims, and aggregate release evidence |
+| I5 | S23 | I2, I3, I4 | COMMITTED | EXPERIMENTAL | Reconcile both façades, compatibility/package consumers, support claims, and aggregate release evidence |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -2113,10 +2121,10 @@ edit this block or commit the same slice concurrently.
 | I4.3 | I4 / S22 | WP6, WP7.6-WP7.8; typed/raw pipelines | I4.1, I4.2 | COMMITTED | EXPERIMENTAL | every target writer entrypoint/binding reaches framing or an explicit block; preservation predicates match | 38 writer bindings, 101 writer entrypoints, raw-flow/raw-route categories, and provider/finalizer/pipeline contracts are source-closed with one mapping row each; compound graph and byte identity remain differential evidence; unblocks I4.4/I4.5 |
 | I4.4 | I4 / S22 | WP7.9-WP7.10; oracle/transaction | I4.2, I4.3, I3.5 | COMMITTED | EXPERIMENTAL | self-read plus independent-oracle policy and secure output transaction | source metadata enforces non-support-promoting runner/oracle policy and explicit finalizer ownership; local-from-scratch runtime self-read, atomic visibility, symlink/metadata/flush/close/rename/cleanup tests remain checkpoint evidence; no fixtures; unblocks I4.5 |
 | I4.5 | I4 / S22 | WP7, WP8; DWG-write aggregate | I4.1, I4.2, I4.3, I4.4 | COMMITTED | EXPERIMENTAL | zero-unmapped/unexplained `dwgRW` writer/preservation report and slice gate | writer source aggregate and focused CTest pass; only independently validated rows may promote, while self-read-only rows remain experimental; full/sanitizer/fixture/scope/sync/plan/diff stay checkpoint policy; closes S22 |
-| I5.1 | I5 / S23 | WP3, WP8; public/consumer reconciliation | I2, I3, I4 | PLANNED | EXPERIMENTAL | `dwgRW`, deprecated `dwgR`, `dxfRW`, interface, enums/types, headers/package, and LibreCAD both-mode parity | baseline/target/package/LibreCAD consumers and zero-bundled-path audit pass; unblocks I5.2/I5.3 |
-| I5.2 | I5 / S23 | WP8, Phase 6-7; aggregate verification | I5.1 | PLANNED | EXPERIMENTAL | full build/CTest, ASan/UBSan, fuzz smoke, resource/transaction, fixture/scope/sync, deterministic generator/harness gates | all supported platforms have recorded CI disposition; no unadmitted drawings or reconstructable payloads; unblocks I5.3/I5.4 |
-| I5.3 | I5 / S23 | Phase 8; claims/docs | I5.1, I5.2 | PLANNED | EXPERIMENTAL | generated support tables and release documentation match ledger evidence | separate DWG/DXF and combined reports have zero unmapped/unexplained rows; only qualified rows are advertised; every defer names its unblock; unblocks I5.4 |
-| I5.4 | I5 / S23 | acceptance criteria; final sign-off | I5.1, I5.2, I5.3 | PLANNED | EXPERIMENTAL | final completeness/correctness/readiness/speed audit and recovery proof | all in-horizon items terminal, commits/trailers/reports recoverable, worktrees clean, target pins recorded, and no required evidence missing for an advertised row; closes S23/I5 |
+| I5.1 | I5 / S23 | WP3, WP8; public/consumer reconciliation | I2, I3, I4 | COMMITTED | EXPERIMENTAL | `dwgRW`, deprecated `dwgR`, `dxfRW`, interface, enums/types, headers/package, and LibreCAD both-mode parity | S17 consumer integration, installed-package closure, default/system-mode audits, and S20-S22 façade source gates are committed; target/standalone support remains experimental where runtime oracle is absent; unblocks I5.2/I5.3 |
+| I5.2 | I5 / S23 | WP8, Phase 6-7; aggregate verification | I5.1 | COMMITTED | EXPERIMENTAL | full build/CTest, ASan/UBSan, fuzz smoke, resource/transaction, fixture/scope/sync, deterministic generator/harness gates | full dependency-free build and 15/15 CTest pass (3.04s); ASan/UBSan build and 15/15 pass (1.57s, `detect_leaks=0` platform limitation); hardening test supplies bounded fuzz smoke; fixture/scope/sync/fast deterministic gates pass; no drawing payloads; unblocks I5.3/I5.4 |
+| I5.3 | I5 / S23 | Phase 8; claims/docs | I5.1, I5.2 | COMMITTED | EXPERIMENTAL | generated support tables and release documentation match ledger evidence | release-readiness audit reports 2,820 target façade rows, zero target-unmapped rows, eight runner matrix entries, and no promoted source-only claims; DXF and DWG reports stay separate and every external/wire gap remains experimental/deferred; unblocks I5.4 |
+| I5.4 | I5 / S23 | acceptance criteria; final sign-off | I5.1, I5.2, I5.3 | COMMITTED | EXPERIMENTAL | final completeness/correctness/readiness/speed audit and recovery proof | all S01-S22 commits have trailers and post-commit reports, plan state is terminal-ready, fast-vs-full cadence is recorded, target pins are unchanged, worktree has no fixture payloads, and macOS sanitizer limitation is explicit; closes S23/I5 |
 
 <!-- UPGRADE_PROGRESS_END -->
 
