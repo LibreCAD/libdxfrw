@@ -1916,8 +1916,8 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint: S56/J32 RENDERSETTINGS Environment-kind parity is committed;
-  S01-S56 implementation slices are committed with a
+- Current checkpoint: S57/J33 RENDERSETTINGS Global-kind parity is committed;
+  S01-S57 implementation slices are committed with a
   version-specific oracle discrepancy recorded,
   including the clean
   LibreCAD target worktree change. Format-support claims remain limited to
@@ -1973,6 +1973,14 @@ edit this block or commit the same slice concurrently.
   colors, and distances in all six outputs. The result remains experimental
   until the remaining derived kinds are covered, and no drawing bytes are
   retained.
+- Next implementation slice: S57/J33 RENDERSETTINGS Global-kind parity is
+  committed. The local-from-scratch production writer registers the Global
+  class before CLASSES, emits bounded procedure/destination fields for all six
+  versions, and rejects invalid common-object state transactionally; LibreDWG
+  0.14 independently qualifies type 551, owner A601, class version/name,
+  procedure, destination, and save filename in all six outputs. The result
+  remains experimental until the remaining derived kinds are covered, and no
+  drawing bytes are retained.
 - Latest committed slice: S52/J28 FIELD/FIELDLIST member parity is
   committed. The local-from-scratch production writer registers FIELD and
   FIELDLIST classes before CLASSES, emits one valid field referenced by the
@@ -2337,24 +2345,24 @@ edit this block or commit the same slice concurrently.
   evidence. S53/J29 adds fixed RASTERVARIABLES/WIPEOUTVARIABLES scalar
   evidence with transactional invalid-value checks and no fixture bytes.
   parity or a PR boundary.
-- Last fully resolved slice: S56 (the RENDERSETTINGS Environment-kind parity
-  slice is committed by the matching `Plan-Slice: S56` trailer; broader fixed
+- Last fully resolved slice: S57 (the RENDERSETTINGS Global-kind parity slice
+  is committed by the matching `Plan-Slice: S57` trailer; broader fixed
   object families remain experimental follow-up).
   target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`. All in-horizon lanes are
   terminal only when their recorded gates pass; the next runtime qualification
   lane requires no new target pin.
-- Resolved slices: 56/56 (`COMMITTED`, or `SUPERSEDED` after all replacements
+- Resolved slices: 57/57 (`COMMITTED`, or `SUPERSEDED` after all replacements
   commit).
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 56 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 57 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 57 COMMITTED.
-- Expanded child-item states: 153 COMMITTED / 0 PLANNED / 0 READY / 0 ACTIVE /
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 58 COMMITTED.
+- Expanded child-item states: 154 COMMITTED / 0 PLANNED / 0 READY / 0 ACTIVE /
   0 VERIFYING / 0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED; no child is anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 29 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S56 are committed. S23/I5
+- Active work: S01-S57 are committed. S23/I5
   reconciled separate DXF/DWG reports, public/package/LibreCAD consumers, the
   scheduled full and ASan/UBSan checkpoints, bounded fuzz smoke, and explicit
   support/defer claims; J0 adds runtime adapter/validation regressions, J2
@@ -2448,6 +2456,7 @@ edit this block or commit the same slice concurrently.
 | S54 | J30: VISUALSTYLE object-family parity | S53 | COMMITTED | focused six-version local writer/self-read; class-registration/owner closure; independent JSON object oracle; malformed-field rejection; plan/scope/sync/fixture gates | local writer/self-read and malformed non-finite-field rollback pass for AC1015/18/21/24/27/32; LibreDWG 0.14 independently qualifies type 560, owner A601, description, legacy fields, R2010b fields, and selected R2013b expansion fields in all six outputs; generated drawings remain temporary and evidence remains experimental | next fixed-object or version-discrepancy lane; do not block on unavailable visual-style variants |
 | S55 | J31: RENDERSETTINGS Settings-kind parity | S54 | COMMITTED | focused six-version local writer/self-read; class-registration/owner closure; independent JSON object oracle; malformed-common-state rejection; plan/scope/sync/fixture gates | local writer/self-read and malformed common-state rollback pass for AC1015/18/21/24/27/32; LibreDWG 0.14 independently qualifies type 556, owner A601, class/name/base fields in all six outputs, with an explicit AC1032 `has_predefined` omission; generated drawings remain temporary and evidence remains experimental | next render-settings kind or version-discrepancy lane; do not block on unavailable derived kinds |
 | S56 | J32: RENDERSETTINGS Environment-kind parity | S55 | COMMITTED | focused six-version local writer/self-read; class-registration/owner closure; independent JSON object oracle; malformed-nonfinite-distance rejection; plan/scope/sync/fixture gates | local writer/self-read and malformed non-finite-distance rollback pass for AC1015/18/21/24/27/32; LibreDWG 0.14 independently qualifies type 550, owner A601, class/name, fog flags, colors, and distances in all six outputs; generated drawings remain temporary and evidence remains experimental | next render-settings kind or version-discrepancy lane; do not block on unavailable derived kinds |
+| S57 | J33: RENDERSETTINGS Global-kind parity | S56 | COMMITTED | focused six-version local writer/self-read; class-registration/owner closure; independent JSON object oracle; malformed-common-state rejection; plan/scope/sync/fixture gates | local writer/self-read and malformed common-state rollback pass for AC1015/18/21/24/27/32; LibreDWG 0.14 independently qualifies type 551, owner A601, class version/name, procedure, destination, and save filename in all six outputs; generated drawings remain temporary and evidence remains experimental | next render-settings kind or version-discrepancy lane; do not block on unavailable derived kinds |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -2508,6 +2517,7 @@ edit this block or commit the same slice concurrently.
 | J30 | S54 | J29 | COMMITTED | EXPERIMENTAL | Extend the local object graph and independent JSON oracle to VISUALSTYLE, including class registration, fixed type/header, owner, description, bounded legacy/R2010b/R2013b fields, six-version self-read, and transaction-safe invalid-field handling; broader visual-style variants remain experimental |
 | J31 | S55 | J30 | COMMITTED | EXPERIMENTAL | Extend the local object graph and independent JSON oracle to the Settings-kind RENDERSETTINGS object, including class registration, fixed type/header, owner, class version, name/base fields, six-version self-read, and transaction-safe invalid common-object handling; derived render-settings kinds remain experimental |
 | J32 | S56 | J31 | COMMITTED | EXPERIMENTAL | Extend the local object graph and independent JSON oracle to the Environment-kind RENDERSETTINGS object, including class registration, fixed type/header, owner, class version/name, fog flags/colors/distances, six-version self-read, and transaction-safe invalid non-finite handling; remaining derived kinds remain experimental |
+| J33 | S57 | J32 | COMMITTED | EXPERIMENTAL | Extend the local object graph and independent JSON oracle to the Global-kind RENDERSETTINGS object, including class registration, fixed type/header, owner, class version/name, procedure/destination fields, six-version self-read, and transaction-safe invalid common-object handling; remaining derived kinds remain experimental |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -2671,6 +2681,8 @@ edit this block or commit the same slice concurrently.
 | J31.1 | J31 / S55 | WP5, WP7, WP8, WP10; RENDERSETTINGS Settings kind | J30 | COMMITTED | EXPERIMENTAL | emit and self-read one bounded Settings-kind RENDERSETTINGS object for AC1015/18/21/24/27/32, register its class before CLASSES, independently verify fixed type/owner/class-version/name/base fields, and reject invalid common-object state without publishing a frame | focused local self-read, oracle self-test/live run, and policy gates; generated drawings remain temporary, no fixture bytes are staged, and derived render-settings kinds remain explicit follow-ups |
 
 | J32.1 | J32 / S56 | WP5, WP7, WP8, WP10; RENDERSETTINGS Environment kind | J31 | COMMITTED | EXPERIMENTAL | emit and self-read one bounded Environment-kind RENDERSETTINGS object for AC1015/18/21/24/27/32, register its class before CLASSES, independently verify fixed type/owner/class-version/name, fog flags/colors/distances, and reject a non-finite distance without publishing a frame | focused local self-read, oracle self-test/live run, and policy gates; generated drawings remain temporary, no fixture bytes are staged, and remaining derived render-settings kinds remain explicit follow-ups |
+
+| J33.1 | J33 / S57 | WP5, WP7, WP8, WP10; RENDERSETTINGS Global kind | J32 | COMMITTED | EXPERIMENTAL | emit and self-read one bounded Global-kind RENDERSETTINGS object for AC1015/18/21/24/27/32, register its class before CLASSES, independently verify fixed type/owner/class-version/name/procedure/destination fields, and reject invalid common-object state without publishing a frame | focused local self-read, oracle self-test/live run, and policy gates; generated drawings remain temporary, no fixture bytes are staged, and remaining derived render-settings kinds remain explicit follow-ups |
 
 <!-- UPGRADE_PROGRESS_END -->
 

@@ -81,6 +81,11 @@ public:
             renderEnvironmentRegistration.m_kind = DRW_RenderSettings::Environment;
             registeredRenderEnvironment_ = writer_->registerRenderSettingsObjectClass(
                 &renderEnvironmentRegistration);
+            DRW_RenderSettings renderGlobalRegistration;
+            renderGlobalRegistration.handle = 0xC300u;
+            renderGlobalRegistration.m_kind = DRW_RenderSettings::Global;
+            registeredRenderGlobal_ = writer_->registerRenderSettingsObjectClass(
+                &renderGlobalRegistration);
         }
     }
 
@@ -137,6 +142,7 @@ public:
             {"LOCAL_VISUALSTYLE", 0xC000u},
             {"LOCAL_RENDERSETTINGS", 0xC100u},
             {"LOCAL_RENDER_ENVIRONMENT", 0xC200u},
+            {"LOCAL_RENDER_GLOBAL", 0xC300u},
         };
         wroteDictionary_ = registeredDictionary_
             && writer_->writeDictionary(&dictionary)
@@ -370,6 +376,18 @@ public:
             && writer_->writeRenderSettings(&renderEnvironment)
             && renderEnvironment.handle != 0;
 
+        DRW_RenderSettings renderGlobal;
+        renderGlobal.handle = 0xC300u;
+        renderGlobal.parentHandle = dictionary.handle;
+        renderGlobal.m_kind = DRW_RenderSettings::Global;
+        renderGlobal.m_classVersion = 1;
+        renderGlobal.m_name = "LOCAL_RENDER_GLOBAL";
+        renderGlobal.m_strings = {"LOCAL_RENDER_GLOBAL"};
+        renderGlobal.m_longs = {1, 7, 8};
+        wroteRenderGlobal_ = registeredRenderGlobal_
+            && writer_->writeRenderSettings(&renderGlobal)
+            && renderGlobal.handle != 0;
+
         // A failed object write must not poison the following valid frames or
         // publish a partial object.  The writer's public transaction wrapper
         // owns the rollback boundary; this assertion keeps that contract in
@@ -476,6 +494,14 @@ public:
             std::numeric_limits<double>::quiet_NaN()};
         rejectedMalformedRenderEnvironment_ =
             !writer_->writeRenderSettings(&invalidRenderEnvironment);
+
+        DRW_RenderSettings invalidRenderGlobal;
+        invalidRenderGlobal.handle = 0xC301u;
+        invalidRenderGlobal.parentHandle = dictionary.handle;
+        invalidRenderGlobal.m_kind = DRW_RenderSettings::Global;
+        invalidRenderGlobal.setDwgCommonObjectState(0, 2, false);
+        rejectedMalformedRenderGlobal_ =
+            !writer_->writeRenderSettings(&invalidRenderGlobal);
 
         DRW_Group group;
         group.handle = 0xA600u;
@@ -675,7 +701,7 @@ public:
         if (data.handle == 0xA601u) {
             readDictionarySeen_ = data.parentHandle
                     == DRW::DwgNamedObjectsDictionaryHandle
-                && data.m_entries.size() == 15
+                && data.m_entries.size() == 16
                 && data.m_entries[0].m_name == "LOCAL_XRECORD"
                 && data.m_entries[0].m_handle == 0xA602u
                 && data.m_entries[1].m_name == "LOCAL_PLOTSETTINGS"
@@ -705,7 +731,9 @@ public:
                 && data.m_entries[13].m_name == "LOCAL_RENDERSETTINGS"
                 && data.m_entries[13].m_handle == 0xC100u
                 && data.m_entries[14].m_name == "LOCAL_RENDER_ENVIRONMENT"
-                && data.m_entries[14].m_handle == 0xC200u;
+                && data.m_entries[14].m_handle == 0xC200u
+                && data.m_entries[15].m_name == "LOCAL_RENDER_GLOBAL"
+                && data.m_entries[15].m_handle == 0xC300u;
         }
     }
     void addXRecord(const DRW_XRecord& data) override {
@@ -852,6 +880,15 @@ public:
                 && data.m_fogDistanceFar == 3.0;
         if (data.handle == 0xC201u)
             readMalformedRenderEnvironmentSeen_ = true;
+        if (data.handle == 0xC300u)
+            readRenderGlobalSeen_ = data.parentHandle == 0xA601u
+                && data.m_kind == DRW_RenderSettings::Global
+                && data.m_classVersion == 1
+                && data.m_name == "LOCAL_RENDER_GLOBAL"
+                && data.m_procedure == 7
+                && data.m_destination == 8;
+        if (data.handle == 0xC301u)
+            readMalformedRenderGlobalSeen_ = true;
     }
     void addInsert(const DRW_Insert& data) override {
         readInsertSeen_ = true;
@@ -889,7 +926,7 @@ public:
             && wroteSortEntsTable_ && wroteFieldList_ && wroteField_
             && wroteRasterVariables_ && wroteWipeoutVariables_
             && wroteVisualStyle_ && wroteRenderSettings_
-            && wroteRenderEnvironment_ && wroteGroup_;
+            && wroteRenderEnvironment_ && wroteRenderGlobal_ && wroteGroup_;
     }
     bool rejectedMalformedObject() const { return rejectedMalformedObject_; }
     bool rejectedMalformedStyle() const { return rejectedMalformedStyle_; }
@@ -922,6 +959,9 @@ public:
     bool rejectedMalformedRenderEnvironment() const {
         return rejectedMalformedRenderEnvironment_;
     }
+    bool rejectedMalformedRenderGlobal() const {
+        return rejectedMalformedRenderGlobal_;
+    }
     bool readLineSeen() const { return readLineSeen_; }
     bool readSimpleEntitiesSeen() const {
         return readPointSeen_ && readCircleSeen_ && readArcSeen_
@@ -948,7 +988,7 @@ public:
             && readFieldListSeen_ && readFieldSeen_ && readRasterVariablesSeen_
             && readWipeoutVariablesSeen_ && readVisualStyleSeen_
             && readRenderSettingsSeen_ && readRenderEnvironmentSeen_
-            && readGroupSeen_;
+            && readRenderGlobalSeen_ && readGroupSeen_;
     }
     bool readMalformedObjectSeen() const { return readMalformedObjectSeen_; }
     bool readMalformedStyleSeen() const { return readMalformedStyleSeen_; }
@@ -983,6 +1023,10 @@ public:
     bool readRenderEnvironmentSeen() const { return readRenderEnvironmentSeen_; }
     bool readMalformedRenderEnvironmentSeen() const {
         return readMalformedRenderEnvironmentSeen_;
+    }
+    bool readRenderGlobalSeen() const { return readRenderGlobalSeen_; }
+    bool readMalformedRenderGlobalSeen() const {
+        return readMalformedRenderGlobalSeen_;
     }
     const DRW_Line& readLine() const { return readLine_; }
 
@@ -1030,6 +1074,7 @@ private:
     bool wroteVisualStyle_ {false};
     bool wroteRenderSettings_ {false};
     bool wroteRenderEnvironment_ {false};
+    bool wroteRenderGlobal_ {false};
     bool rejectedMalformedObject_ {false};
     bool rejectedMalformedStyle_ {false};
     bool rejectedMalformedMLeaderStyle_ {false};
@@ -1043,6 +1088,7 @@ private:
     bool rejectedMalformedVisualStyle_ {false};
     bool rejectedMalformedRenderSettings_ {false};
     bool rejectedMalformedRenderEnvironment_ {false};
+    bool rejectedMalformedRenderGlobal_ {false};
     bool registeredDictionary_ {false};
     bool registeredMLeaderStyle_ {false};
     bool registeredDictionaryVar_ {false};
@@ -1055,6 +1101,7 @@ private:
     bool registeredVisualStyle_ {false};
     bool registeredRenderSettings_ {false};
     bool registeredRenderEnvironment_ {false};
+    bool registeredRenderGlobal_ {false};
     bool registeredPlotSettings_ {false};
     bool readLineSeen_ {false};
     bool readPointSeen_ {false};
@@ -1093,6 +1140,7 @@ private:
     bool readVisualStyleSeen_ {false};
     bool readRenderSettingsSeen_ {false};
     bool readRenderEnvironmentSeen_ {false};
+    bool readRenderGlobalSeen_ {false};
     bool readMalformedObjectSeen_ {false};
     bool readMalformedStyleSeen_ {false};
     bool readMalformedMLeaderStyleSeen_ {false};
@@ -1106,6 +1154,7 @@ private:
     bool readMalformedVisualStyleSeen_ {false};
     bool readMalformedRenderSettingsSeen_ {false};
     bool readMalformedRenderEnvironmentSeen_ {false};
+    bool readMalformedRenderGlobalSeen_ {false};
     DRW_Line readLine_;
     dx_data data_;
 };
@@ -1214,6 +1263,9 @@ int main(int argc, char** argv) {
         expect(writeIface.rejectedMalformedRenderEnvironment(),
                ("local DWG writer rejected malformed Environment RENDERSETTINGS transaction" + suffix).c_str(),
                failures);
+        expect(writeIface.rejectedMalformedRenderGlobal(),
+               ("local DWG writer rejected malformed Global RENDERSETTINGS transaction" + suffix).c_str(),
+               failures);
         expect(std::filesystem::exists(output),
                ("local DWG output is published" + suffix).c_str(), failures);
 
@@ -1258,6 +1310,9 @@ int main(int argc, char** argv) {
         expect(readIface.readRenderEnvironmentSeen(),
                ("local DWG self-read publishes Environment RENDERSETTINGS" + suffix).c_str(),
                failures);
+        expect(readIface.readRenderGlobalSeen(),
+               ("local DWG self-read publishes Global RENDERSETTINGS" + suffix).c_str(),
+               failures);
         expect(!readIface.readMalformedObjectSeen(),
                ("local DWG self-read omits rolled-back malformed object" + suffix).c_str(),
                failures);
@@ -1296,6 +1351,9 @@ int main(int argc, char** argv) {
                failures);
         expect(!readIface.readMalformedRenderEnvironmentSeen(),
                ("local DWG self-read omits rolled-back malformed Environment RENDERSETTINGS" + suffix).c_str(),
+               failures);
+        expect(!readIface.readMalformedRenderGlobalSeen(),
+               ("local DWG self-read omits rolled-back malformed Global RENDERSETTINGS" + suffix).c_str(),
                failures);
         if (readIface.readLineSeen()) {
             const DRW_Line& line = readIface.readLine();

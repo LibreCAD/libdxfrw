@@ -56,6 +56,8 @@ RENDERSETTINGS_HANDLE = 0xC100
 MALFORMED_RENDERSETTINGS_HANDLE = 0xC101
 RENDERENVIRONMENT_HANDLE = 0xC200
 MALFORMED_RENDERENVIRONMENT_HANDLE = 0xC201
+RENDERGLOBAL_HANDLE = 0xC300
+MALFORMED_RENDERGLOBAL_HANDLE = 0xC301
 
 
 def parse_json_output(text: str) -> dict:
@@ -119,7 +121,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         raise ValueError("GROUP name, owner, or member stream mismatch")
 
     dictionary = find_record(records, "DICTIONARY", DICTIONARY_HANDLE)
-    if (dictionary.get("numitems") != 15
+    if (dictionary.get("numitems") != 16
             or dictionary.get("is_hardowner") != 1
             or owner_handle(dictionary) != 0x0C):
         raise ValueError("custom DICTIONARY count, owner, or cloning mismatch")
@@ -303,6 +305,15 @@ def check_objects(payload: dict, version_name: str) -> dict:
                 != "LOCAL_RENDER_ENVIRONMENT"):
         raise ValueError("RENDERENVIRONMENT owner or bounded fields mismatch")
 
+    global_settings = find_record(records, "RENDERGLOBAL", RENDERGLOBAL_HANDLE)
+    if (owner_handle(global_settings) != DICTIONARY_HANDLE
+            or global_settings.get("type") != 551
+            or global_settings.get("class_version") != 1
+            or global_settings.get("procedure") != 7
+            or global_settings.get("destination") != 8
+            or global_settings.get("save_filename") != "LOCAL_RENDER_GLOBAL"):
+        raise ValueError("RENDERGLOBAL owner or bounded fields mismatch")
+
     dictionary_default = find_record(
         records, "DICTIONARYWDFLT", DICTIONARYWDFLT_HANDLE)
     if (owner_handle(dictionary_default) != DICTIONARY_HANDLE
@@ -343,6 +354,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         MALFORMED_VISUALSTYLE_HANDLE: "VISUALSTYLE",
         MALFORMED_RENDERSETTINGS_HANDLE: "RENDERSETTINGS",
         MALFORMED_RENDERENVIRONMENT_HANDLE: "RENDERENVIRONMENT",
+        MALFORMED_RENDERGLOBAL_HANDLE: "RENDERGLOBAL",
     }
     if any(record_handle(record) in malformed_handles
            and record.get("object") == malformed_handles[record_handle(record)]
@@ -368,6 +380,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "VISUALSTYLE": VISUALSTYLE_HANDLE,
             "RENDERSETTINGS": RENDERSETTINGS_HANDLE,
             "RENDERENVIRONMENT": RENDERENVIRONMENT_HANDLE,
+            "RENDERGLOBAL": RENDERGLOBAL_HANDLE,
             "DICTIONARYWDFLT": DICTIONARYWDFLT_HANDLE,
         },
         "objectStatus": "qualified",
@@ -442,7 +455,7 @@ def self_test() -> None:
              "ownerhandle": [4, 1, 0x0C, 0x0C], "name": "LOCAL_GROUP",
              "groups": [[5, 1, 0x1234]]},
             {"object": "DICTIONARY", "handle": [0, 1, DICTIONARY_HANDLE],
-             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 15,
+             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 16,
              "is_hardowner": 1},
             {"object": "XRECORD", "handle": [0, 1, XRECORD_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
@@ -530,6 +543,11 @@ def self_test() -> None:
              "fog_distance_near": 2.0, "fog_distance_far": 3.0,
              "environ_image_enabled": 1,
              "environ_image_filename": "LOCAL_RENDER_ENVIRONMENT"},
+            {"object": "RENDERGLOBAL",
+             "handle": [0, 1, RENDERGLOBAL_HANDLE],
+             "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "type": 551, "class_version": 1, "procedure": 7,
+             "destination": 8, "save_filename": "LOCAL_RENDER_GLOBAL"},
         ],
     }
     check_objects(payload, "AC1024")
@@ -656,6 +674,16 @@ def self_test() -> None:
         pass
     else:
         raise AssertionError("malformed RENDERENVIRONMENT was not rejected")
+    try:
+        bad = json.loads(json.dumps(payload))
+        bad["OBJECTS"].append({"object": "RENDERGLOBAL",
+                                "handle": [0, 1,
+                                            MALFORMED_RENDERGLOBAL_HANDLE]})
+        check_objects(bad, "AC1024")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("malformed RENDERGLOBAL was not rejected")
     print("local DWG object oracle: PASS")
 
 
