@@ -393,6 +393,14 @@ probe change.
    currently omits the item/default payload on AC1021/24/27/32; record that
    bounded external-reader discrepancy instead of promoting full semantic
    parity, then continue to the next ready object-family or discrepancy lane.
+11. **S50/J26 — SORTENTSTABLE object-family parity slice (COMMITTED).** Add a
+   locally generated draw-order table owned by model space, register its named
+   class before CLASSES, and verify block-owner/entity/sort-handle closure in
+   the production reader and independent JSON oracle for all six versions.
+   Reject mismatched entity/sort vectors transactionally. Keep generated
+   drawings temporary and treat any external-reader field loss as explicit
+   experimental evidence; proceed to the next independent ready lane after
+   the focused gates.
 
 The post-S43 runtime lane is intentionally staged: S44 proves production
 object-stream registration and callback delivery; a later slice may add an
@@ -400,7 +408,7 @@ independent object-aware oracle or additional object families only after its
 own plan row is ready.  A passing self-read is evidence of internal closure,
 not a format-support promotion.
 
-For S40-S49, the inner loop is: touched-TU/script check → focused CTest →
+For S40-S50, the inner loop is: touched-TU/script check → focused CTest →
 oracle-matrix/policy checks → plan report.  Full CTest is reserved for S43 or
 for a materially invalidating change.  Each item updates this live block,
 recomputes the ready queue, records the exact discrepancy/unblock condition,
@@ -1888,8 +1896,8 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint: S49/J25 DICTIONARYWDFLT object-family parity is
-  committed; S01-S49 implementation slices are committed with a
+- Current checkpoint: S50/J26 SORTENTSTABLE object-family parity is committed;
+  S01-S50 implementation slices are committed with a
   version-specific oracle discrepancy recorded,
   including the clean
   LibreCAD target worktree change. Format-support claims remain limited to
@@ -1914,7 +1922,14 @@ edit this block or commit the same slice concurrently.
   six versions; a non-finite style value is rejected transactionally. J1.1 closes the locally reproducible R2007+ string-footer
   boundary lane; J1.2-J1.4 retain evidence-gated DWG reader outcomes without
   blocking the next independent source/spec lane.
-- Latest implementation slice: S49/J25 DICTIONARYWDFLT object-family parity is
+- Latest implementation slice: S50/J26 SORTENTSTABLE object-family parity is
+  committed. The local-from-scratch production writer registers the
+  custom class before CLASSES, emit model-space draw-order ownership plus
+  entity/sort-handle vectors for AC1015/18/21/24/27/32, and rejects a mismatched
+  vector transactionally; LibreDWG 0.14 independently qualifies type 514,
+  model-space owner, block owner, and matching entity/sort handles in all six
+  versions. The result remains experimental and no drawing bytes are retained.
+- Latest committed slice: S49/J25 DICTIONARYWDFLT object-family parity is
   committed. The local-from-scratch production writer registers the custom class
   before CLASSES, emits a dictionary-owned DICTIONARYWDFLT with one named item
   and a default handle for AC1015/18/21/24/27/32, and self-reads both fields;
@@ -2215,7 +2230,7 @@ edit this block or commit the same slice concurrently.
   inputs referenced by its top-level build. No target repin or sibling
   worktree mutation was made; future runtime qualification still requires an
   admitted or locally-from-scratch fixture plus an independent oracle.
-- Authorized run horizon: S01-S49/A-I5 plus J0-J25 runtime-qualification
+- Authorized run horizon: S01-S50/A-I5 plus J0-J26 runtime-qualification
   implementation; unavailable fixtures/oracles remain evidence-only and do not
   stop ready source/spec lanes.
 - Completion target: qualified-format parity for every advertised DWG/DXF row,
@@ -2246,26 +2261,28 @@ edit this block or commit the same slice concurrently.
   S49/J25 adds DICTIONARYWDFLT registration, dictionary-item/default handle
   checks, six-version self-read, malformed-default rollback, and a bounded
   LibreDWG R2007+ item/default discrepancy report; all generated drawings
-  remain temporary and parity claims stay experimental.
+  remain temporary and parity claims stay experimental. S50/J26 adds the
+  SORTENTSTABLE draw-order lane with transactional vector validation and an
+  independent-object evidence disposition.
   parity or a PR boundary.
-- Last fully resolved slice: S49 (the DICTIONARYWDFLT object-family parity
-  slice is committed by the matching `Plan-Slice: S49` trailer; its bounded
-  R2007+ external-reader discrepancy remains experimental follow-up).
+- Last fully resolved slice: S50 (the SORTENTSTABLE object-family parity slice
+  is committed by the matching `Plan-Slice: S50` trailer; its bounded evidence
+  remains experimental until broader format rows are independently qualified).
   target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`. All in-horizon lanes are
   terminal only when their recorded gates pass; the next runtime qualification
   lane requires no new target pin.
-- Resolved slices: 49/49 (`COMMITTED`, or `SUPERSEDED` after all replacements
+- Resolved slices: 50/50 (`COMMITTED`, or `SUPERSEDED` after all replacements
   commit).
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 49 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 50 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 50 COMMITTED.
-- Expanded child-item states: 146 COMMITTED / 0 PLANNED / 0 READY / 0 ACTIVE /
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 51 COMMITTED.
+- Expanded child-item states: 147 COMMITTED / 0 PLANNED / 0 READY / 0 ACTIVE /
   0 VERIFYING / 0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED; no child is anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 29 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S49 are committed. S23/I5
+- Active work: S01-S50 are committed. S23/I5
   reconciled separate DXF/DWG reports, public/package/LibreCAD consumers, the
   scheduled full and ASan/UBSan checkpoints, bounded fuzz smoke, and explicit
   support/defer claims; J0 adds runtime adapter/validation regressions, J2
@@ -2285,7 +2302,8 @@ edit this block or commit the same slice concurrently.
   explicit independent wire evidence before any claim promotion. S49/J25
   completes the WDFLT bounded-frame lane; AC1021/24/27/32 item/default
   discrepancies are a named external-reader follow-up and do not block the
-  next independent ready lane.
+  next independent ready lane. S50/J26 completes SORTENTSTABLE vector and
+  draw-order evidence with the same fast-test-first and temporary-only policy.
 
 | Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -2338,6 +2356,7 @@ edit this block or commit the same slice concurrently.
 | S47 | J23: MLEADERSTYLE object-family parity | S46 | COMMITTED | focused six-version local writer/self-read; class-registration/owner closure; independent JSON object oracle; malformed-style rejection; plan/scope/sync/fixture gates | local writer/self-read passes after recording the dictionary-key/name distinction; bounded LibreDWG JSON checks cover type 505, owner, class/content fields, text fields, and four null handle slots; malformed non-finite angle rolls back; generated drawings remain temporary and no drawing bytes are staged | next object-family parity lane |
 | S48 | J24: DICTIONARYVAR object-family parity | S47 | COMMITTED | focused six-version local writer/self-read; class-registration/owner closure; independent JSON object oracle; malformed-schema rejection; plan/scope/sync/fixture gates | local writer/self-read and malformed-schema rollback pass for AC1015/18/21/24/27/32; LibreDWG 0.14 JSON independently qualifies type 512, owner A601, schema 7, and bounded value text in all six outputs; dictionary-key/name ownership is explicit and no drawing bytes are staged | next object-family parity lane |
 | S49 | J25: DICTIONARYWDFLT object-family parity | S48 | COMMITTED | focused six-version local writer/self-read; class-registration/owner closure; independent JSON object oracle; malformed-default rejection; plan/scope/sync/fixture gates | local writer/self-read and malformed-default rollback pass for AC1015/18/21/24/27/32; LibreDWG 0.14 JSON qualifies fixed type/header/owner in all six and exact item/default payload in AC1015/18, but reports empty/zero item/default payload for AC1021/24/27/32; discrepancy is explicit, bounded, and non-promoting; no drawing bytes are staged | next object-family or discrepancy lane; do not block on external-reader mismatch |
+| S50 | J26: SORTENTSTABLE object-family parity | S49 | COMMITTED | focused six-version local writer/self-read; class-registration/owner closure; independent JSON object oracle; malformed-vector rejection; plan/scope/sync/fixture gates | local writer will emit a model-space SORTENTSTABLE with one entity/sort pair and reject mismatched vectors; independent JSON checks fixed type/header/owner and bounded handle membership; generated drawings remain temporary and any reader field loss is explicit/non-promoting | next object-family or discrepancy lane; do not block on an external field mismatch |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -2391,6 +2410,7 @@ edit this block or commit the same slice concurrently.
 | J23 | S47 | J22 | COMMITTED | EXPERIMENTAL | Extend the local object graph and independent JSON oracle to MLEADERSTYLE, including class registration, fixed type, owner, bounded style fields, handle streams, and version-gated fields |
 | J24 | S48 | J23 | COMMITTED | EXPERIMENTAL | Extend the local object graph and independent JSON oracle to DICTIONARYVAR, including class registration, fixed type, owner, schema/value fields, and transaction-safe malformed handling |
 | J25 | S49 | J24 | COMMITTED | EXPERIMENTAL | Extend the local object graph and independent JSON oracle to DICTIONARYWDFLT, including class registration, fixed type/header, owner, named item/default handles, six-version self-read, and transaction-safe malformed handling; retain the LibreDWG R2007+ item/default discrepancy as explicit external evidence |
+| J26 | S50 | J25 | COMMITTED | EXPERIMENTAL | Extend the local object graph and independent JSON oracle to SORTENTSTABLE, including class registration, fixed type/header, model-space block owner, entity/sort handle vectors, six-version self-read, and transaction-safe mismatched-vector handling |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -2545,6 +2565,7 @@ edit this block or commit the same slice concurrently.
 | J23.1 | J23 / S47 | WP5, WP7, WP8, WP10; MLEADERSTYLE object family | J22 | COMMITTED | EXPERIMENTAL | emit and self-read a local MLEADERSTYLE with bounded scalar fields and explicit handle slots for AC1015/18/21/24/27/32, independently verify its JSON OBJECTS frame, and reject one non-finite field without publishing a frame | focused local round-trip and CTest oracle test pass; shell-free LibreDWG 0.14 JSON run reports 6/6 qualified (AC1015/18/21/24/27/32), including type 505, owner A601, class/content values, description/text, landing gap/text height, and null line/arrow/text-style/block handles; dictionary key carries the style name; malformed handles A701/A801/A901 are absent as typed records; no generated drawing bytes are staged |
 | J24.1 | J24 / S48 | WP5, WP7, WP8, WP10; DICTIONARYVAR object family | J23 | COMMITTED | EXPERIMENTAL | emit and self-read a local DICTIONARYVAR with schema/value fields for AC1015/18/21/24/27/32 and independently verify its JSON OBJECTS frame; reject an out-of-range schema without publishing a frame | focused local round-trip, object-oracle self-test/live run, and policy gates; all generated drawings remain temporary and no fixture bytes are staged |
 | J25.1 | J25 / S49 | WP5, WP7, WP8, WP10; DICTIONARYWDFLT object family | J24 | COMMITTED | EXPERIMENTAL | emit and self-read a local DICTIONARYWDFLT with one named item and a default handle for AC1015/18/21/24/27/32, register its class before CLASSES, independently verify fixed type/header/owner and bounded payload, and reject a missing default handle without publishing a frame | focused local round-trip and oracle self-test/live run pass; LibreDWG 0.14 reports exact payload for AC1015/18 and a named R2007+ empty/zero payload discrepancy for AC1021/24/27/32; no drawing bytes are retained or staged; update the ledger and continue the next ready lane |
+| J26.1 | J26 / S50 | WP5, WP7, WP8, WP10; SORTENTSTABLE object family | J25 | COMMITTED | EXPERIMENTAL | emit and self-read a local SORTENTSTABLE with model-space block ownership and one entity/sort-handle pair for AC1015/18/21/24/27/32, register its class before CLASSES, independently verify fixed type/header/owner and bounded handle membership, and reject mismatched vectors without publishing a frame | focused local round-trip and oracle self-test/live run; all generated drawings remain temporary, no fixture bytes are staged, and any external field mismatch is recorded as a bounded discrepancy |
 
 <!-- UPGRADE_PROGRESS_END -->
 

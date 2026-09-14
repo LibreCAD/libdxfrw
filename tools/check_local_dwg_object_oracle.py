@@ -40,6 +40,8 @@ DICTIONARYVAR_HANDLE = 0xB000
 MALFORMED_DICTIONARYVAR_HANDLE = 0xB001
 DICTIONARYWDFLT_HANDLE = 0xB100
 MALFORMED_DICTIONARYWDFLT_HANDLE = 0xB101
+SORTENTSTABLE_HANDLE = 0xB200
+MALFORMED_SORTENTSTABLE_HANDLE = 0xB201
 
 
 def parse_json_output(text: str) -> dict:
@@ -103,7 +105,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         raise ValueError("GROUP name, owner, or member stream mismatch")
 
     dictionary = find_record(records, "DICTIONARY", DICTIONARY_HANDLE)
-    if (dictionary.get("numitems") != 7
+    if (dictionary.get("numitems") != 8
             or dictionary.get("is_hardowner") != 1
             or owner_handle(dictionary) != 0x0C):
         raise ValueError("custom DICTIONARY count, owner, or cloning mismatch")
@@ -164,6 +166,24 @@ def check_objects(payload: dict, version_name: str) -> dict:
             or dictionary_var.get("strvalue") != "LOCAL_DICTIONARYVAR_VALUE"):
         raise ValueError("DICTIONARYVAR owner or bounded payload mismatch")
 
+    sortents = find_record(records, "SORTENTSTABLE", SORTENTSTABLE_HANDLE)
+    sort_entries = sortents.get("sort_ents")
+    entity_entries = sortents.get("ents")
+    block_owner = sortents.get("block_owner")
+    if (owner_handle(sortents) != 0x17
+            or block_owner != [4, 1, 0x17, 0x17]
+            or not isinstance(sort_entries, list)
+            or len(sort_entries) != 1
+            or not isinstance(sort_entries[0], list)
+            or len(sort_entries[0]) < 3
+            or not isinstance(entity_entries, list)
+            or len(entity_entries) != 1
+            or not isinstance(entity_entries[0], list)
+            or len(entity_entries[0]) < 3
+            or sort_entries[0][2] <= 0
+            or sort_entries[0][2] != entity_entries[0][2]):
+        raise ValueError("SORTENTSTABLE owner or handle stream mismatch")
+
     dictionary_default = find_record(
         records, "DICTIONARYWDFLT", DICTIONARYWDFLT_HANDLE)
     if (owner_handle(dictionary_default) != DICTIONARY_HANDLE
@@ -196,6 +216,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         MALFORMED_MLEADERSTYLE_HANDLE: "MLEADERSTYLE",
         MALFORMED_DICTIONARYVAR_HANDLE: "DICTIONARYVAR",
         MALFORMED_DICTIONARYWDFLT_HANDLE: "DICTIONARYWDFLT",
+        MALFORMED_SORTENTSTABLE_HANDLE: "SORTENTSTABLE",
     }
     if any(record_handle(record) in malformed_handles
            and record.get("object") == malformed_handles[record_handle(record)]
@@ -213,6 +234,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "MLINESTYLE": MLINESTYLE_HANDLE,
             "MLEADERSTYLE": MLEADERSTYLE_HANDLE,
             "DICTIONARYVAR": DICTIONARYVAR_HANDLE,
+            "SORTENTSTABLE": SORTENTSTABLE_HANDLE,
             "DICTIONARYWDFLT": DICTIONARYWDFLT_HANDLE,
         },
         "objectStatus": "qualified",
@@ -287,7 +309,7 @@ def self_test() -> None:
              "ownerhandle": [4, 1, 0x0C, 0x0C], "name": "LOCAL_GROUP",
              "groups": [[5, 1, 0x1234]]},
             {"object": "DICTIONARY", "handle": [0, 1, DICTIONARY_HANDLE],
-             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 7,
+             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 8,
              "is_hardowner": 1},
             {"object": "XRECORD", "handle": [0, 1, XRECORD_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
@@ -322,6 +344,12 @@ def self_test() -> None:
              "items": {"LOCAL_DEFAULT": [3, 2, DICTIONARYVAR_HANDLE,
                                            DICTIONARYVAR_HANDLE]},
              "defaultid": [5, 2, DICTIONARYVAR_HANDLE, DICTIONARYVAR_HANDLE]},
+            {"object": "SORTENTSTABLE",
+             "handle": [0, 1, SORTENTSTABLE_HANDLE],
+             "ownerhandle": [4, 1, 0x17, 0x17],
+             "sort_ents": [[0, 2, 0x1234, 0x1234]],
+             "block_owner": [4, 1, 0x17, 0x17],
+             "ents": [[4, 2, 0x1234, 0x1234]]},
         ],
     }
     check_objects(payload, "AC1024")
@@ -370,6 +398,16 @@ def self_test() -> None:
         pass
     else:
         raise AssertionError("malformed DICTIONARYWDFLT was not rejected")
+    try:
+        bad = json.loads(json.dumps(payload))
+        bad["OBJECTS"].append({"object": "SORTENTSTABLE",
+                                "handle": [0, 1,
+                                            MALFORMED_SORTENTSTABLE_HANDLE]})
+        check_objects(bad, "AC1024")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("malformed SORTENTSTABLE was not rejected")
     print("local DWG object oracle: PASS")
 
 
