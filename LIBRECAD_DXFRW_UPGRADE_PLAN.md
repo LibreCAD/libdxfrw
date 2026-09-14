@@ -1840,8 +1840,8 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint: S42/J18 direct object/carrier slice is committed;
-  S01-S42 implementation slices are complete with a
+- Current checkpoint: S43/J19 aggregate qualification checkpoint is committed;
+  S01-S43 implementation slices are complete with a
   version-specific oracle discrepancy recorded,
   including the clean
   LibreCAD target worktree change. Format-support claims remain limited to
@@ -1858,6 +1858,14 @@ edit this block or commit the same slice concurrently.
   remains explicitly deferred. J1.1 closes the locally reproducible R2007+ string-footer
   boundary lane; J1.2-J1.4 retain evidence-gated DWG reader outcomes without
   blocking the next independent source/spec lane.
+- Latest implementation slice: S43/J19 aggregate qualification is committed.
+  A fresh dependency-free build passed all 21 CTest entries in 6.52 seconds;
+  a separate ASan+UBSan build passed the same 21 entries in 7.97 seconds with
+  `detect_leaks=0` for the known macOS leak-detector limitation. The checkpoint
+  includes the six-version local DWG round-trip/oracle paths, direct object
+  vectors, policy/metadata checks, hardening, diagnostics, and writer-version
+  matrix. No DWG/DXF payloads were staged or committed, and the run promotes
+  no format-support claim without an eligible independent wire oracle.
 - Latest implementation slice: S42/J18 direct object/carrier qualification is
   committed. `libdxfrw_dwg_object_vectors` encodes valid GROUP, DICTIONARY,
   XRECORD, PLOTSETTINGS, and LAYOUT payloads for AC1015/18/21/24/27/32 into
@@ -2152,24 +2160,23 @@ edit this block or commit the same slice concurrently.
   centralizes the local oracle contract; S41/J17 and S42/J18 are independent
   compound/object lanes; S43/J19 is the next scheduled aggregate checkpoint.
   parity or a PR boundary.
-- Last fully resolved slice: S42 (the direct object/carrier slice is committed
-  by the matching `Plan-Slice: S42` trailer; the post-commit report resolves
-  its SHA).
+- Last fully resolved slice: S43 (the aggregate checkpoint is committed by the
+  matching `Plan-Slice: S43` trailer; the post-commit report resolves its SHA).
   target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`. All in-horizon lanes are
   terminal only when their recorded gates pass; the next runtime qualification
   lane requires no new target pin.
-- Resolved slices: 42/43 (`COMMITTED`, or `SUPERSEDED` after all replacements
+- Resolved slices: 43/43 (`COMMITTED`, or `SUPERSEDED` after all replacements
   commit).
-- Slice states: 0 READY / 1 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 42 COMMITTED.
-- Parent-item states: 0 READY / 1 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 44 COMMITTED.
-- Expanded child-item states: 139 COMMITTED / 1 PLANNED / 0 READY / 0 ACTIVE /
+- Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
+  0 BLOCKED_HARD / 0 SUPERSEDED / 43 COMMITTED.
+- Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 45 COMMITTED.
+- Expanded child-item states: 140 COMMITTED / 0 PLANNED / 0 READY / 0 ACTIVE /
   0 VERIFYING / 0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED; no child is anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 29 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S42 are committed. S23/I5
+- Active work: S01-S43 are committed. S23/I5
   reconciled separate DXF/DWG reports, public/package/LibreCAD consumers, the
   scheduled full and ASan/UBSan checkpoints, bounded fuzz smoke, and explicit
   support/defer claims; J0 adds runtime adapter/validation regressions, J2
@@ -2181,8 +2188,9 @@ edit this block or commit the same slice concurrently.
   adds dual-format JSON/DXF diagnostics, and J13 adds solid HATCH boundary
   coverage, and J14 adds LEADER coverage without promoting format support. Any
   later oracle expansion still requires an explicit ledger row and cannot
-  silently promote current claims. S41/J17 and S42/J18 are committed;
-  S43/J19 is the next broad validation checkpoint.
+  silently promote current claims. S41/J17, S42/J18, and S43/J19 are
+  complete; the next work must be a newly scoped parity lane with explicit
+  independent wire evidence rather than a claim promotion.
 
 | Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -2228,7 +2236,7 @@ edit this block or commit the same slice concurrently.
 | S40 | J16: local DWG oracle contract and discrepancy metadata | S39 | COMMITTED | focused matrix/runner self-tests, plan/scope/sync/fixture gates | one metadata-only six-version/18-entity contract is consumed by the local oracle runner and checked independently; AC1015 DXF-vs-JSON discrepancy is explicit, fail-closed, and temporary-only; no drawing payloads added | S41, S42 |
 | S41 | J17: compound-entity runtime qualification | S40 | COMMITTED | focused local writer/self-read and dual-format oracle checks; no full suite | INSERT/ATTRIB/SEQEND and owned POLYLINE transitions are split into independently unblocking children; owner/handle/callback evidence remains experimental until an independent oracle agrees | S42 |
 | S42 | J18: object/carrier runtime qualification | S40 | COMMITTED | direct object encoder vectors and bounded frame/handle checks; no full suite | direct in-memory vectors pass across AC1015/18/21/24/27/32 for DICTIONARY/XRECORD/GROUP/LAYOUT/PLOTSETTINGS; malformed owner/handle/field vectors fail closed without bytes; raw fallback and NOD/object-stream integration remain experimental | S43 |
-| S43 | J19: post-wave aggregate qualification checkpoint | S41, S42 | PLANNED | fresh build, complete dependency-free CTest, sanitizer/security checkpoint, policy gates | run broad validation once after the compound/object wave; promote no row without eligible input plus independent oracle | next parity lane |
+| S43 | J19: post-wave aggregate qualification checkpoint | S41, S42 | COMMITTED | fresh build, complete dependency-free CTest, sanitizer/security checkpoint, policy gates | fresh dependency-free build and all 21 CTest entries pass in 6.52s; ASan+UBSan build and all 21 entries pass in 7.97s with macOS leak detection disabled; fixture admission/import scope/pinned sync/plan checks remain green and no drawing bytes are staged | next parity lane |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -2275,7 +2283,7 @@ edit this block or commit the same slice concurrently.
 | J16 | S40 | J15 | COMMITTED | EXPERIMENTAL | Centralize the six-version/18-entity local oracle contract and preserve the observed AC1015 DXF-export versus JSON-reader discrepancy as fail-closed metadata |
 | J17 | S41 | J16 | COMMITTED | EXPERIMENTAL | Qualify compound INSERT/ATTRIB/SEQEND/POLYLINE runtime paths with owner/handle and dual-format evidence |
 | J18 | S42 | J16 | COMMITTED | EXPERIMENTAL | Qualify direct DWG object/carrier encoders and owner/reactor/raw fallback semantics before object-stream integration |
-| J19 | S43 | J17, J18 | PLANNED | EXPERIMENTAL | Run the next full dependency-free and sanitizer checkpoint only after the independent compound/object lanes settle |
+| J19 | S43 | J17, J18 | COMMITTED | EXPERIMENTAL | Run the next full dependency-free and sanitizer checkpoint only after the independent compound/object lanes settle |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -2423,7 +2431,7 @@ edit this block or commit the same slice concurrently.
 | J16.1 | J16 / S40 | WP5, WP7, WP8, WP10; local oracle contract | J15.1 | COMMITTED | EXPERIMENTAL | centralize the six-version/18-entity local oracle matrix, consume it from the DXF/JSON runner, and reject drift or duplicate entities with a dependency-free checker | `check_local_dwg_oracle_matrix.py --self-test` and `run_local_dwg_oracle_advisory.py --self-test` pass; CTest adds the matrix check; AC1015 missing HATCH/LEADER/SPLINE remains explicit metadata; no drawing bytes or support promotion |
 | J17.1 | J17 / S41 | WP5, WP7, WP8, WP10; compound entity runtime | J16.1 | COMMITTED | EXPERIMENTAL | add local-from-scratch INSERT/ATTRIB/SEQEND and owned POLYLINE scenarios, assert owner/handle/callback closure, and compare through both LibreDWG oracles | temporary-only generator changes, focused self-read/oracle checks, and a fail-closed discrepancy report; no full suite or fixture bytes until the compound lane settles |
 | J18.1 | J18 / S42 | WP5, WP7, WP8, WP10; object/carrier runtime | J16.1 | COMMITTED | EXPERIMENTAL | exercise direct object encoders for DICTIONARY/XRECORD/GROUP/LAYOUT/PLOTSETTINGS with frame/handle/owner vectors before full object-stream registration | `libdxfrw_dwg_object_vectors` passes all six writer versions plus malformed-payload checks; companion writer/oracle-metadata checks pass in 0.42s; object-stream integration remains deferred until registration/NOD ownership is proven; no fixture bytes |
-| J19.1 | J19 / S43 | WP8, WP10; aggregate checkpoint | J17.1, J18.1 | PLANNED | EXPERIMENTAL | run the complete dependency-free CTest suite and sanitizer/security checkpoint once after the compound/object wave | full validation is checkpoint-only, all policy/sync/fixture/plan gates pass, and no support row is promoted without independent oracle evidence |
+| J19.1 | J19 / S43 | WP8, WP10; aggregate checkpoint | J17.1, J18.1 | COMMITTED | EXPERIMENTAL | run the complete dependency-free CTest suite and sanitizer/security checkpoint once after the compound/object wave | 21/21 dependency-free CTest entries pass in 6.52s and 21/21 ASan+UBSan entries pass in 7.97s (`detect_leaks=0` on macOS); all policy/sync/fixture/plan gates pass and no support row is promoted without independent oracle evidence |
 
 <!-- UPGRADE_PROGRESS_END -->
 
