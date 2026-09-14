@@ -215,6 +215,80 @@ void testFixedSpaceBlockClassification(TestContext& t) {
              "adapter classifies only canonical fixed-space blocks");
 }
 
+struct R2007FooterVector {
+    std::vector<std::uint8_t> bytes;
+    std::uint64_t endBit {0};
+};
+
+R2007FooterVector r2007StringFooter(std::size_t stringSize,
+                                    bool extendedSize) {
+    dwgBufferW writer;
+    std::vector<std::uint8_t> strings(stringSize, 0);
+    for (std::size_t i = 0; i < stringSize; ++i)
+        strings[i] = static_cast<std::uint8_t>(0x40u + (i & 0x3Fu));
+    writer.putBytes(strings.data(), strings.size());
+    for (int bit = 0; bit < 7; ++bit)
+        writer.putBit(0);
+    const std::uint64_t stringBitSize =
+        static_cast<std::uint64_t>(stringSize) * 8u + 7u;
+    if (extendedSize) {
+        const std::uint16_t high = static_cast<std::uint16_t>(stringBitSize >> 15u);
+        writer.putRawShort16(high);
+    }
+    writer.putRawShort16(static_cast<std::uint16_t>(
+        (stringBitSize & 0x7FFFu) | (extendedSize ? 0x8000u : 0u)));
+    writer.putBit(1);
+    return {writer.data(), writer.bitCount()};
+}
+
+void testR2007StringFooterBounds(TestContext& t) {
+    const auto ordinary = r2007StringFooter(7u, false);
+    dwgBuffer ordinaryBuffer(const_cast<std::uint8_t*>(ordinary.bytes.data()),
+                             ordinary.bytes.size());
+    std::uint64_t startBit = 0;
+    std::uint64_t endBit = 0;
+    const bool ordinaryOk = ordinaryBuffer.getR2007StringStreamBounds(
+        ordinary.endBit, startBit, endBit);
+    t.expect(ordinaryOk
+                 && startBit == 0u && endBit == 7u * 8u + 7u,
+             "R2007 string footer ordinary bounds");
+
+    const auto extended = r2007StringFooter(32768u, true);
+    dwgBuffer extendedBuffer(const_cast<std::uint8_t*>(extended.bytes.data()),
+                             extended.bytes.size());
+    const bool extendedOk = extendedBuffer.getR2007StringStreamBounds(
+        extended.endBit, startBit, endBit);
+    t.expect(extendedOk
+                 && startBit == 0u && endBit == 32768u * 8u + 7u,
+             "R2007 string footer high-bit bounds");
+    t.expect(extendedBuffer.seekR2007StringStream(extended.endBit)
+                 && extendedBuffer.getPosition() == 0u
+                 && extendedBuffer.getBitPos() == 0u
+                 && extendedBuffer.getRawChar8() == 0x40u,
+             "R2007 string footer seeks to stream start");
+
+    dwgBufferW absentWriter;
+    for (int bit = 0; bit < 7; ++bit)
+        absentWriter.putBit(0);
+    absentWriter.putRawShort16(0);
+    absentWriter.putBit(0);
+    const R2007FooterVector absent{absentWriter.data(), absentWriter.bitCount()};
+    dwgBuffer absentBuffer(const_cast<std::uint8_t*>(absent.bytes.data()),
+                           absent.bytes.size());
+    const bool absentOk = absentBuffer.getR2007StringStreamBounds(
+        absent.endBit, startBit, endBit);
+    t.expect(absentOk
+                 && startBit == absent.endBit && endBit == absent.endBit,
+             "R2007 string footer absent stream");
+
+    const auto truncated = std::vector<std::uint8_t>{0x80u, 0x80u};
+    dwgBuffer truncatedBuffer(const_cast<std::uint8_t*>(truncated.data()),
+                              truncated.size());
+    t.expect(!truncatedBuffer.getR2007StringStreamBounds(
+                  16u, startBit, endBit),
+             "R2007 string footer rejects truncated extension");
+}
+
 void testDecompressor(TestContext& t) {
     constexpr std::uint32_t literalCount = 0x8000u;
     std::vector<std::uint8_t> compressed = literalRunHeader(literalCount);
@@ -277,6 +351,7 @@ int main() {
     testRawCapture(context);
     testHatchValidationIgnoresInactiveGradient(context);
     testFixedSpaceBlockClassification(context);
+    testR2007StringFooterBounds(context);
     testDecompressor(context);
     testHandlesAndHeader(context);
     if (context.failures != 0) {
