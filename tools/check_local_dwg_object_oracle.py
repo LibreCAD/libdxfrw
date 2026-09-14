@@ -60,6 +60,8 @@ RENDERGLOBAL_HANDLE = 0xC300
 MALFORMED_RENDERGLOBAL_HANDLE = 0xC301
 RENDERENTRY_HANDLE = 0xC400
 MALFORMED_RENDERENTRY_HANDLE = 0xC401
+RAPIDRTRENDERSETTINGS_HANDLE = 0xC600
+MALFORMED_RAPIDRTRENDERSETTINGS_HANDLE = 0xC601
 
 
 def parse_json_output(text: str) -> dict:
@@ -123,7 +125,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         raise ValueError("GROUP name, owner, or member stream mismatch")
 
     dictionary = find_record(records, "DICTIONARY", DICTIONARY_HANDLE)
-    if (dictionary.get("numitems") != 17
+    if (dictionary.get("numitems") != 18
             or dictionary.get("is_hardowner") != 1
             or owner_handle(dictionary) != 0x0C):
         raise ValueError("custom DICTIONARY count, owner, or cloning mismatch")
@@ -337,6 +339,33 @@ def check_objects(payload: dict, version_name: str) -> dict:
             or entry.get("display_index") != 17):
         raise ValueError("RENDERENTRY owner or bounded fields mismatch")
 
+    rapid = find_record(
+        records, "RAPIDRTRENDERSETTINGS", RAPIDRTRENDERSETTINGS_HANDLE)
+    if (owner_handle(rapid) != DICTIONARY_HANDLE
+            or rapid.get("type") != 558
+            or rapid.get("name") != "LOCAL_RENDER_RAPIDRT"
+            or rapid.get("fog_enabled") != 1
+            or rapid.get("fog_background_enabled") != 0
+            or rapid.get("backfaces_enabled") != 1
+            or rapid.get("display_index") != 9):
+        raise ValueError("RAPIDRTRENDERSETTINGS owner or base fields mismatch")
+    rapid_discrepancies = []
+    if version_name in {"AC1015", "AC1018", "AC1032"}:
+        expected_class_version = 2 if version_name == "AC1032" else 1
+        if (rapid.get("class_version") != expected_class_version
+                or rapid.get("rapidrt_version") != 2
+                or rapid.get("render_target") != 3
+                or rapid.get("render_level") != 4
+                or rapid.get("render_time") != 5
+                or rapid.get("lighting_model") != 6
+                or rapid.get("filter_type") != 7
+                or rapid.get("filter_width") != 0.25
+                or rapid.get("filter_height") != 0.75):
+            raise ValueError("RAPIDRTRENDERSETTINGS bounded fields mismatch")
+    else:
+        rapid_discrepancies.append(
+            "LibreDWG 0.14 misdecodes RapidRT render fields for " + version_name)
+
     dictionary_default = find_record(
         records, "DICTIONARYWDFLT", DICTIONARYWDFLT_HANDLE)
     if (owner_handle(dictionary_default) != DICTIONARY_HANDLE
@@ -356,12 +385,12 @@ def check_objects(payload: dict, version_name: str) -> dict:
         # this carrier as empty/zero while retaining its type/header/owner.
         # Keep the bounded frame qualification, but surface the independent
         # reader discrepancy instead of silently treating it as parity.
-        oracle_discrepancies = render_discrepancies + [
+        oracle_discrepancies = render_discrepancies + rapid_discrepancies + [
             "LibreDWG 0.14 omits DICTIONARYWDFLT item/default handles for "
             + version_name
         ]
     else:
-        oracle_discrepancies = render_discrepancies
+        oracle_discrepancies = render_discrepancies + rapid_discrepancies
 
     malformed_handles = {
         MALFORMED_HANDLE: "XRECORD",
@@ -379,6 +408,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         MALFORMED_RENDERENVIRONMENT_HANDLE: "RENDERENVIRONMENT",
         MALFORMED_RENDERGLOBAL_HANDLE: "RENDERGLOBAL",
         MALFORMED_RENDERENTRY_HANDLE: "RENDERENTRY",
+        MALFORMED_RAPIDRTRENDERSETTINGS_HANDLE: "RAPIDRTRENDERSETTINGS",
     }
     if any(record_handle(record) in malformed_handles
            and record.get("object") == malformed_handles[record_handle(record)]
@@ -406,6 +436,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "RENDERENVIRONMENT": RENDERENVIRONMENT_HANDLE,
             "RENDERGLOBAL": RENDERGLOBAL_HANDLE,
             "RENDERENTRY": RENDERENTRY_HANDLE,
+            "RAPIDRTRENDERSETTINGS": RAPIDRTRENDERSETTINGS_HANDLE,
             "DICTIONARYWDFLT": DICTIONARYWDFLT_HANDLE,
         },
         "objectStatus": "qualified",
@@ -480,7 +511,7 @@ def self_test() -> None:
              "ownerhandle": [4, 1, 0x0C, 0x0C], "name": "LOCAL_GROUP",
              "groups": [[5, 1, 0x1234]]},
             {"object": "DICTIONARY", "handle": [0, 1, DICTIONARY_HANDLE],
-             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 17,
+             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 18,
              "is_hardowner": 1},
             {"object": "XRECORD", "handle": [0, 1, XRECORD_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
@@ -584,6 +615,16 @@ def self_test() -> None:
              "memory_amount": 13, "material_count": 14,
              "light_count": 15, "triangle_count": 16,
              "display_index": 17},
+            {"object": "RAPIDRTRENDERSETTINGS",
+             "handle": [0, 1, RAPIDRTRENDERSETTINGS_HANDLE],
+             "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "type": 558, "class_version": 1,
+             "name": "LOCAL_RENDER_RAPIDRT", "fog_enabled": 1,
+             "fog_background_enabled": 0, "backfaces_enabled": 1,
+             "display_index": 9, "rapidrt_version": 2,
+             "render_target": 3, "render_level": 4, "render_time": 5,
+             "lighting_model": 6, "filter_type": 7,
+             "filter_width": 0.25, "filter_height": 0.75},
         ],
     }
     check_objects(payload, "AC1024")
@@ -730,6 +771,16 @@ def self_test() -> None:
         pass
     else:
         raise AssertionError("malformed RENDERENTRY was not rejected")
+    try:
+        bad = json.loads(json.dumps(payload))
+        bad["OBJECTS"].append({"object": "RAPIDRTRENDERSETTINGS",
+                                "handle": [0, 1,
+                                            MALFORMED_RAPIDRTRENDERSETTINGS_HANDLE]})
+        check_objects(bad, "AC1024")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("malformed RAPIDRTRENDERSETTINGS was not rejected")
     print("local DWG object oracle: PASS")
 
 

@@ -91,6 +91,11 @@ public:
             renderEntryRegistration.m_kind = DRW_RenderSettings::Entry;
             registeredRenderEntry_ = writer_->registerRenderSettingsObjectClass(
                 &renderEntryRegistration);
+            DRW_RenderSettings renderRapidRegistration;
+            renderRapidRegistration.handle = 0xC600u;
+            renderRapidRegistration.m_kind = DRW_RenderSettings::RapidRT;
+            registeredRenderRapid_ = writer_->registerRenderSettingsObjectClass(
+                &renderRapidRegistration);
         }
     }
 
@@ -149,6 +154,7 @@ public:
             {"LOCAL_RENDER_ENVIRONMENT", 0xC200u},
             {"LOCAL_RENDER_GLOBAL", 0xC300u},
             {"LOCAL_RENDER_ENTRY", 0xC400u},
+            {"LOCAL_RENDER_RAPIDRT", 0xC600u},
         };
         wroteDictionary_ = registeredDictionary_
             && writer_->writeDictionary(&dictionary)
@@ -408,6 +414,21 @@ public:
             && writer_->writeRenderSettings(&renderEntry)
             && renderEntry.handle != 0;
 
+        DRW_RenderSettings renderRapid;
+        renderRapid.handle = 0xC600u;
+        renderRapid.parentHandle = dictionary.handle;
+        renderRapid.m_kind = DRW_RenderSettings::RapidRT;
+        renderRapid.m_classVersion = 1;
+        renderRapid.m_name = "LOCAL_RENDER_RAPIDRT";
+        renderRapid.m_strings = {"LOCAL_RENDER_RAPIDRT", "", "LOCAL_RAPID_DESC"};
+        renderRapid.m_longs = {1, 9, 2, 3, 4, 5, 6, 7};
+        renderRapid.m_bools = {true, false, true, false};
+        renderRapid.m_doubles = {0.25, 0.75};
+        renderRapid.m_hasPredefined = true;
+        wroteRenderRapid_ = registeredRenderRapid_
+            && writer_->writeRenderSettings(&renderRapid)
+            && renderRapid.handle != 0;
+
         // A failed object write must not poison the following valid frames or
         // publish a partial object.  The writer's public transaction wrapper
         // owns the rollback boundary; this assertion keeps that contract in
@@ -530,6 +551,15 @@ public:
         invalidRenderEntry.m_shorts = {70000};
         rejectedMalformedRenderEntry_ =
             !writer_->writeRenderSettings(&invalidRenderEntry);
+
+        DRW_RenderSettings invalidRenderRapid;
+        invalidRenderRapid.handle = 0xC601u;
+        invalidRenderRapid.parentHandle = dictionary.handle;
+        invalidRenderRapid.m_kind = DRW_RenderSettings::RapidRT;
+        invalidRenderRapid.m_doubles = {
+            std::numeric_limits<double>::quiet_NaN()};
+        rejectedMalformedRenderRapid_ =
+            !writer_->writeRenderSettings(&invalidRenderRapid);
 
         DRW_Group group;
         group.handle = 0xA600u;
@@ -729,7 +759,7 @@ public:
         if (data.handle == 0xA601u) {
             readDictionarySeen_ = data.parentHandle
                     == DRW::DwgNamedObjectsDictionaryHandle
-                && data.m_entries.size() == 17
+                && data.m_entries.size() == 18
                 && data.m_entries[0].m_name == "LOCAL_XRECORD"
                 && data.m_entries[0].m_handle == 0xA602u
                 && data.m_entries[1].m_name == "LOCAL_PLOTSETTINGS"
@@ -763,7 +793,9 @@ public:
                 && data.m_entries[15].m_name == "LOCAL_RENDER_GLOBAL"
                 && data.m_entries[15].m_handle == 0xC300u
                 && data.m_entries[16].m_name == "LOCAL_RENDER_ENTRY"
-                && data.m_entries[16].m_handle == 0xC400u;
+                && data.m_entries[16].m_handle == 0xC400u
+                && data.m_entries[17].m_name == "LOCAL_RENDER_RAPIDRT"
+                && data.m_entries[17].m_handle == 0xC600u;
         }
     }
     void addXRecord(const DRW_XRecord& data) override {
@@ -934,6 +966,19 @@ public:
                 && data.m_doubles.front() == 1.5;
         if (data.handle == 0xC401u)
             readMalformedRenderEntrySeen_ = true;
+        if (data.handle == 0xC600u)
+            readRenderRapidSeen_ = data.parentHandle == 0xA601u
+                && data.m_kind == DRW_RenderSettings::RapidRT
+                && data.m_classVersion == 1
+                && data.m_name == "LOCAL_RENDER_RAPIDRT"
+                && data.m_longs.size() >= 8
+                && data.m_longs[1] == 9
+                && data.m_longs[7] == 7
+                && data.m_doubles.size() == 2
+                && data.m_doubles[0] == 0.25
+                && data.m_doubles[1] == 0.75;
+        if (data.handle == 0xC601u)
+            readMalformedRenderRapidSeen_ = true;
     }
     void addInsert(const DRW_Insert& data) override {
         readInsertSeen_ = true;
@@ -972,7 +1017,7 @@ public:
             && wroteRasterVariables_ && wroteWipeoutVariables_
             && wroteVisualStyle_ && wroteRenderSettings_
             && wroteRenderEnvironment_ && wroteRenderGlobal_
-            && wroteRenderEntry_ && wroteGroup_;
+            && wroteRenderEntry_ && wroteRenderRapid_ && wroteGroup_;
     }
     bool rejectedMalformedObject() const { return rejectedMalformedObject_; }
     bool rejectedMalformedStyle() const { return rejectedMalformedStyle_; }
@@ -1011,6 +1056,9 @@ public:
     bool rejectedMalformedRenderEntry() const {
         return rejectedMalformedRenderEntry_;
     }
+    bool rejectedMalformedRenderRapid() const {
+        return rejectedMalformedRenderRapid_;
+    }
     bool readLineSeen() const { return readLineSeen_; }
     bool readSimpleEntitiesSeen() const {
         return readPointSeen_ && readCircleSeen_ && readArcSeen_
@@ -1037,7 +1085,8 @@ public:
             && readFieldListSeen_ && readFieldSeen_ && readRasterVariablesSeen_
             && readWipeoutVariablesSeen_ && readVisualStyleSeen_
             && readRenderSettingsSeen_ && readRenderEnvironmentSeen_
-            && readRenderGlobalSeen_ && readRenderEntrySeen_ && readGroupSeen_;
+            && readRenderGlobalSeen_ && readRenderEntrySeen_
+            && readRenderRapidSeen_ && readGroupSeen_;
     }
     bool readMalformedObjectSeen() const { return readMalformedObjectSeen_; }
     bool readMalformedStyleSeen() const { return readMalformedStyleSeen_; }
@@ -1080,6 +1129,10 @@ public:
     bool readRenderEntrySeen() const { return readRenderEntrySeen_; }
     bool readMalformedRenderEntrySeen() const {
         return readMalformedRenderEntrySeen_;
+    }
+    bool readRenderRapidSeen() const { return readRenderRapidSeen_; }
+    bool readMalformedRenderRapidSeen() const {
+        return readMalformedRenderRapidSeen_;
     }
     const DRW_Line& readLine() const { return readLine_; }
 
@@ -1129,6 +1182,7 @@ private:
     bool wroteRenderEnvironment_ {false};
     bool wroteRenderGlobal_ {false};
     bool wroteRenderEntry_ {false};
+    bool wroteRenderRapid_ {false};
     bool rejectedMalformedObject_ {false};
     bool rejectedMalformedStyle_ {false};
     bool rejectedMalformedMLeaderStyle_ {false};
@@ -1144,6 +1198,7 @@ private:
     bool rejectedMalformedRenderEnvironment_ {false};
     bool rejectedMalformedRenderGlobal_ {false};
     bool rejectedMalformedRenderEntry_ {false};
+    bool rejectedMalformedRenderRapid_ {false};
     bool registeredDictionary_ {false};
     bool registeredMLeaderStyle_ {false};
     bool registeredDictionaryVar_ {false};
@@ -1158,6 +1213,7 @@ private:
     bool registeredRenderEnvironment_ {false};
     bool registeredRenderGlobal_ {false};
     bool registeredRenderEntry_ {false};
+    bool registeredRenderRapid_ {false};
     bool registeredPlotSettings_ {false};
     bool readLineSeen_ {false};
     bool readPointSeen_ {false};
@@ -1198,6 +1254,7 @@ private:
     bool readRenderEnvironmentSeen_ {false};
     bool readRenderGlobalSeen_ {false};
     bool readRenderEntrySeen_ {false};
+    bool readRenderRapidSeen_ {false};
     bool readMalformedObjectSeen_ {false};
     bool readMalformedStyleSeen_ {false};
     bool readMalformedMLeaderStyleSeen_ {false};
@@ -1213,6 +1270,7 @@ private:
     bool readMalformedRenderEnvironmentSeen_ {false};
     bool readMalformedRenderGlobalSeen_ {false};
     bool readMalformedRenderEntrySeen_ {false};
+    bool readMalformedRenderRapidSeen_ {false};
     DRW_Line readLine_;
     dx_data data_;
 };
@@ -1327,6 +1385,9 @@ int main(int argc, char** argv) {
         expect(writeIface.rejectedMalformedRenderEntry(),
                ("local DWG writer rejected malformed Entry RENDERSETTINGS transaction" + suffix).c_str(),
                failures);
+        expect(writeIface.rejectedMalformedRenderRapid(),
+               ("local DWG writer rejected malformed RapidRT RENDERSETTINGS transaction" + suffix).c_str(),
+               failures);
         expect(std::filesystem::exists(output),
                ("local DWG output is published" + suffix).c_str(), failures);
 
@@ -1377,6 +1438,9 @@ int main(int argc, char** argv) {
         expect(readIface.readRenderEntrySeen(),
                ("local DWG self-read publishes Entry RENDERSETTINGS" + suffix).c_str(),
                failures);
+        expect(readIface.readRenderRapidSeen(),
+               ("local DWG self-read publishes RapidRT RENDERSETTINGS" + suffix).c_str(),
+               failures);
         expect(!readIface.readMalformedObjectSeen(),
                ("local DWG self-read omits rolled-back malformed object" + suffix).c_str(),
                failures);
@@ -1421,6 +1485,9 @@ int main(int argc, char** argv) {
                failures);
         expect(!readIface.readMalformedRenderEntrySeen(),
                ("local DWG self-read omits rolled-back malformed Entry RENDERSETTINGS" + suffix).c_str(),
+               failures);
+        expect(!readIface.readMalformedRenderRapidSeen(),
+               ("local DWG self-read omits rolled-back malformed RapidRT RENDERSETTINGS" + suffix).c_str(),
                failures);
         if (readIface.readLineSeen()) {
             const DRW_Line& line = readIface.readLine();
