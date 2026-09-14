@@ -30,7 +30,7 @@ VERSIONS = {
 EXPECTED_ENTITIES = (
     "LINE", "POINT", "CIRCLE", "ARC", "LWPOLYLINE", "TEXT", "MTEXT",
     "ELLIPSE", "TRACE", "SOLID", "3DFACE", "RAY", "XLINE", "3DLINE",
-    "POLYLINE", "SPLINE",
+    "POLYLINE", "SPLINE", "HATCH",
 )
 
 
@@ -156,7 +156,7 @@ def self_test() -> None:
             "0\nPOINT\n0\nCIRCLE\n0\nARC\n0\nLWPOLYLINE\n"
             "0\nTEXT\n0\nMTEXT\n0\nELLIPSE\n"
             "0\nTRACE\n0\nSOLID\n0\n3DFACE\n0\nRAY\n0\nXLINE\n0\n3DLINE\n"
-            "0\nPOLYLINE\n0\nSPLINE\n"
+            "0\nPOLYLINE\n0\nSPLINE\n0\nHATCH\n"
             "0\nENDSEC\n0\nEOF\n",
             encoding="utf-8",
         )
