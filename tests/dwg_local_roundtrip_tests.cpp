@@ -1,6 +1,8 @@
 #include <cstdio>
+#include <cstdint>
 #include <filesystem>
 #include <iostream>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -23,6 +25,17 @@ public:
         // Keep the locally generated case independent of external files while
         // still exercising the production header encoder.
         data.vars.clear();
+    }
+
+    void writeDwgClasses() override {
+        if (writer_ != nullptr) {
+            registeredGroup_ = writer_->registerDwgNamedObjectDictionaryEntry(
+                "LOCAL_GROUP", 0xA600u);
+            registeredDictionary_ = writer_->registerDwgNamedObjectDictionaryEntry(
+                "LOCAL_DICTIONARY", 0xA601u);
+            registeredPlotSettings_ = writer_->registerPlotSettingsObjectClass(
+                0xA603u);
+        }
     }
 
     void writeBlocks() override {
@@ -50,7 +63,114 @@ public:
     void writeTextstyles() override {}
     void writeVports() override {}
     void writeDimstyles() override {}
-    void writeObjects() override {}
+    void writeObjects() override {
+        if (writer_ == nullptr || modelSpaceLineHandle_ == 0)
+            return;
+
+        // Exercise the full production OBJECT stream.  The custom dictionary
+        // is a named-object child and owns the remaining carriers; this keeps
+        // the object graph explicit instead of relying on an untracked frame.
+        DRW_Dictionary dictionary;
+        dictionary.handle = 0xA601u;
+        dictionary.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
+        dictionary.cloning = 1;
+        dictionary.hardOwner = 1;
+        dictionary.m_entries = {
+            {"LOCAL_XRECORD", 0xA602u},
+            {"LOCAL_PLOTSETTINGS", 0xA603u},
+            {"LOCAL_LAYOUT", 0xA700u},
+        };
+        wroteDictionary_ = registeredDictionary_
+            && writer_->writeDictionary(&dictionary)
+            && dictionary.handle != 0;
+
+        DRW_XRecord xrecord;
+        xrecord.handle = 0xA602u;
+        xrecord.parentHandle = dictionary.handle;
+        xrecord.m_values.emplace_back(40, 1.25);
+        xrecord.m_values.emplace_back(1, UTF8STRING("LOCAL_XRECORD"));
+        xrecord.m_values.emplace_back(
+            310, std::vector<std::uint8_t>{0x01, 0x02, 0x03});
+        xrecord.m_handleValues.emplace_back(0, modelSpaceLineHandle_);
+        wroteXRecord_ = writer_->writeXRecord(&xrecord)
+            && xrecord.handle != 0;
+
+        DRW_PlotSettings plotSettings;
+        plotSettings.handle = 0xA603u;
+        plotSettings.parentHandle = dictionary.handle;
+        plotSettings.pageSetupName = "LOCAL_PAGE";
+        plotSettings.printerConfig = "LOCAL_PRINTER";
+        plotSettings.plotLayoutFlags = 1;
+        plotSettings.marginLeft = 1.0;
+        plotSettings.marginBottom = 2.0;
+        plotSettings.marginRight = 3.0;
+        plotSettings.marginTop = 4.0;
+        plotSettings.paperWidth = 210.0;
+        plotSettings.paperHeight = 297.0;
+        plotSettings.paperSize = "A4";
+        plotSettings.plotOriginX = 0.0;
+        plotSettings.plotOriginY = 0.0;
+        plotSettings.paperUnits = 1;
+        plotSettings.plotRotation = 0;
+        plotSettings.plotType = 0;
+        plotSettings.windowMinX = -10.0;
+        plotSettings.windowMinY = -20.0;
+        plotSettings.windowMaxX = 10.0;
+        plotSettings.windowMaxY = 20.0;
+        plotSettings.plotViewName = "LOCAL_VIEW";
+        plotSettings.realWorldUnits = 1.0;
+        plotSettings.drawingUnits = 1.0;
+        plotSettings.currentStyleSheet = "LOCAL_STYLE";
+        plotSettings.scaleType = 1;
+        plotSettings.scaleFactor = 1.0;
+        plotSettings.shadePlotMode = 1;
+        plotSettings.shadePlotResLevel = 2;
+        plotSettings.shadePlotCustomDPI = 300;
+        wrotePlotSettings_ = registeredPlotSettings_
+            && writer_->writePlotSettings(&plotSettings)
+            && plotSettings.handle != 0;
+
+        DRW_Layout layout;
+        layout.handle = 0xA700u;
+        layout.parentHandle = dictionary.handle;
+        layout.pageSetupName = "LOCAL_LAYOUT_PAGE";
+        layout.printerConfig = "LOCAL_LAYOUT_PRINTER";
+        layout.paperSize = "A4";
+        layout.marginLeft = 1.0;
+        layout.marginBottom = 2.0;
+        layout.marginRight = 3.0;
+        layout.marginTop = 4.0;
+        layout.paperWidth = 210.0;
+        layout.paperHeight = 297.0;
+        layout.name = "LOCAL_LAYOUT";
+        layout.tabOrder = 1;
+        layout.layoutFlags = 1;
+        layout.ucsXAxis = DRW_Coord(1.0, 0.0, 0.0);
+        layout.ucsYAxis = DRW_Coord(0.0, 1.0, 0.0);
+        layout.extMax = DRW_Coord(100.0, 100.0, 0.0);
+        layout.viewportCount = 0;
+        wroteLayout_ = writer_->writeLayout(&layout)
+            && layout.handle != 0;
+
+        // A failed object write must not poison the following valid frames or
+        // publish a partial object.  The writer's public transaction wrapper
+        // owns the rollback boundary; this assertion keeps that contract in
+        // the runtime lane without retaining a malformed drawing.
+        DRW_XRecord invalidXRecord;
+        invalidXRecord.handle = 0xA701u;
+        invalidXRecord.parentHandle = dictionary.handle;
+        invalidXRecord.m_values.emplace_back(
+            40, std::numeric_limits<double>::quiet_NaN());
+        rejectedMalformedObject_ = !writer_->writeXRecord(&invalidXRecord);
+
+        DRW_Group group;
+        group.handle = 0xA600u;
+        group.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
+        group.m_description = "LOCAL_GROUP";
+        group.m_entityHandles = {modelSpaceLineHandle_};
+        wroteGroup_ = registeredGroup_ && writer_->writeGroup(&group)
+            && group.handle != 0;
+    }
     void writeAppId() override {}
 
     void writeEntities() override {
@@ -60,6 +180,7 @@ public:
         line.basePoint = DRW_Coord(1.0, 2.0, 3.0);
         line.secPoint = DRW_Coord(4.0, 5.0, 6.0);
         wroteLine_ = writer_->writeLine(&line) && line.handle != 0;
+        modelSpaceLineHandle_ = line.handle;
 
         DRW_Point point;
         point.basePoint = DRW_Coord(7.0, 8.0, 9.0);
@@ -232,6 +353,39 @@ public:
     void addSpline(const DRW_Spline*) override { readSplineSeen_ = true; }
     void addHatch(const DRW_Hatch*) override { readHatchSeen_ = true; }
     void addLeader(const DRW_Leader*) override { readLeaderSeen_ = true; }
+    void addGroup(const DRW_Group& data) override {
+        readGroupSeen_ = data.m_entityHandles.size() == 1
+            && data.m_description == "LOCAL_GROUP";
+    }
+    void addDictionary(const DRW_Dictionary& data) override {
+        if (data.handle == 0xA601u) {
+            readDictionarySeen_ = data.parentHandle
+                    == DRW::DwgNamedObjectsDictionaryHandle
+                && data.m_entries.size() == 3
+                && data.m_entries[0].m_name == "LOCAL_XRECORD"
+                && data.m_entries[0].m_handle == 0xA602u
+                && data.m_entries[1].m_name == "LOCAL_PLOTSETTINGS"
+                && data.m_entries[1].m_handle == 0xA603u
+                && data.m_entries[2].m_name == "LOCAL_LAYOUT"
+                && data.m_entries[2].m_handle == 0xA700u;
+        }
+    }
+    void addXRecord(const DRW_XRecord& data) override {
+        if (data.handle == 0xA602u)
+            readXRecordSeen_ = !data.m_values.empty()
+                && data.parentHandle == 0xA601u;
+        if (data.handle == 0xA701u)
+            readMalformedObjectSeen_ = true;
+    }
+    void addPlotSettings(const DRW_PlotSettings* data) override {
+        if (data != nullptr && data->handle == 0xA603u)
+            readPlotSettingsSeen_ = data->parentHandle == 0xA601u;
+    }
+    void addLayout(const DRW_Layout& data) override {
+        if (data.handle == 0xA700u)
+            readLayoutSeen_ = data.name == "LOCAL_LAYOUT"
+                && data.parentHandle == 0xA601u;
+    }
     void addInsert(const DRW_Insert& data) override {
         readInsertSeen_ = true;
         readAttribSeen_ = data.attlist.size() == 1
@@ -260,6 +414,12 @@ public:
     }
     bool wroteInsert() const { return wroteInsert_; }
     bool wroteAttrib() const { return wroteAttrib_; }
+    bool wroteGroup() const { return wroteGroup_; }
+    bool wroteObjectSet() const {
+        return wroteDictionary_ && wroteXRecord_ && wrotePlotSettings_
+            && wroteLayout_ && wroteGroup_;
+    }
+    bool rejectedMalformedObject() const { return rejectedMalformedObject_; }
     bool readLineSeen() const { return readLineSeen_; }
     bool readSimpleEntitiesSeen() const {
         return readPointSeen_ && readCircleSeen_ && readArcSeen_
@@ -277,11 +437,18 @@ public:
     bool readLeaderSeen() const { return readLeaderSeen_; }
     bool readInsertSeen() const { return readInsertSeen_; }
     bool readAttribSeen() const { return readAttribSeen_; }
+    bool readGroupSeen() const { return readGroupSeen_; }
+    bool readObjectSetSeen() const {
+        return readDictionarySeen_ && readXRecordSeen_
+            && readPlotSettingsSeen_ && readLayoutSeen_ && readGroupSeen_;
+    }
+    bool readMalformedObjectSeen() const { return readMalformedObjectSeen_; }
     const DRW_Line& readLine() const { return readLine_; }
 
 private:
     dwgRW* writer_ {nullptr};
     bool wroteLine_ {false};
+    std::uint32_t modelSpaceLineHandle_ {0};
     bool wrotePoint_ {false};
     bool wroteCircle_ {false};
     bool wroteArc_ {false};
@@ -304,6 +471,15 @@ private:
     bool wroteBlockContent_ {false};
     bool wroteInsert_ {false};
     bool wroteAttrib_ {false};
+    bool wroteGroup_ {false};
+    bool registeredGroup_ {false};
+    bool wroteDictionary_ {false};
+    bool wroteXRecord_ {false};
+    bool wrotePlotSettings_ {false};
+    bool wroteLayout_ {false};
+    bool rejectedMalformedObject_ {false};
+    bool registeredDictionary_ {false};
+    bool registeredPlotSettings_ {false};
     bool readLineSeen_ {false};
     bool readPointSeen_ {false};
     bool readCircleSeen_ {false};
@@ -324,6 +500,12 @@ private:
     bool readLeaderSeen_ {false};
     bool readInsertSeen_ {false};
     bool readAttribSeen_ {false};
+    bool readGroupSeen_ {false};
+    bool readDictionarySeen_ {false};
+    bool readXRecordSeen_ {false};
+    bool readPlotSettingsSeen_ {false};
+    bool readLayoutSeen_ {false};
+    bool readMalformedObjectSeen_ {false};
     DRW_Line readLine_;
     dx_data data_;
 };
@@ -388,6 +570,14 @@ int main(int argc, char** argv) {
                ("local DWG writer emitted INSERT" + suffix).c_str(), failures);
         expect(writeIface.wroteAttrib(),
                ("local DWG writer emitted ATTRIB/SEQEND" + suffix).c_str(), failures);
+        expect(writeIface.wroteGroup(),
+               ("local DWG writer emitted GROUP object" + suffix).c_str(), failures);
+        expect(writeIface.wroteObjectSet(),
+               ("local DWG writer emitted object carrier set" + suffix).c_str(),
+               failures);
+        expect(writeIface.rejectedMalformedObject(),
+               ("local DWG writer rejected malformed object transaction" + suffix).c_str(),
+               failures);
         expect(std::filesystem::exists(output),
                ("local DWG output is published" + suffix).c_str(), failures);
 
@@ -418,6 +608,14 @@ int main(int argc, char** argv) {
                ("local DWG self-read publishes INSERT" + suffix).c_str(), failures);
         expect(readIface.readAttribSeen(),
                ("local DWG self-read publishes ATTRIB" + suffix).c_str(), failures);
+        expect(readIface.readGroupSeen(),
+               ("local DWG self-read publishes GROUP" + suffix).c_str(), failures);
+        expect(readIface.readObjectSetSeen(),
+               ("local DWG self-read publishes object carrier set" + suffix).c_str(),
+               failures);
+        expect(!readIface.readMalformedObjectSeen(),
+               ("local DWG self-read omits rolled-back malformed object" + suffix).c_str(),
+               failures);
         if (readIface.readLineSeen()) {
             const DRW_Line& line = readIface.readLine();
             expect(line.basePoint.x == 1.0 && line.basePoint.y == 2.0

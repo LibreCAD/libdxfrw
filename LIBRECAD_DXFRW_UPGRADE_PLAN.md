@@ -331,13 +331,13 @@ probe change.
    ODA/spec-backed byte trace identifies a libdxfrw defect.  Otherwise record
    the result as exporter/version-specific target debt and leave support
    experimental.
-2. **S41/J17 — compound-entity runtime lane (READY).**  Extend the
+2. **S41/J17 — compound-entity runtime lane (COMMITTED).**  Extend the
    local-from-scratch generator in this order: `INSERT` with a user block,
    `ATTRIB`/`SEQEND` association, then legacy `POLYLINE` ownership and
    rollback.  Compare typed callbacks, owner/handle relationships, and both
    LibreDWG JSON/DXF representations.  Keep each entity family as a separate
    child so one malformed compound case cannot stall independent lanes.
-3. **S42/J18 — object/carrier runtime lane (PLANNED).**  Build a direct,
+3. **S42/J18 — object/carrier runtime lane (COMMITTED).**  Build a direct,
    in-memory object encoder harness for `DICTIONARY`, `XRECORD`, `GROUP`,
    `LAYOUT`, and `PLOTSETTINGS` before attempting a complete `dwgRW::write`
    object stream.  Validate handles, owner/reactor edges, frame sizes, and
@@ -345,14 +345,31 @@ probe change.
    entity probe until registration/NOD ownership is proven; the earlier
    PlotSettings whole-stream experiment failed at finalization and was
    intentionally reverted.
-4. **S43/J19 — aggregate qualification checkpoint (PLANNED).**  Run the
+4. **S43/J19 — aggregate qualification checkpoint (COMMITTED).**  Run the
    complete dependency-free CTest suite only after S41 and S42 (or their
    explicitly recorded deferrals), then run sanitizer/security lanes at the
    checkpoint cadence.  Promote no row from self-read or JSON recognition
    alone; every promotion still needs the target differential, an eligible
    local-from-scratch or locked blob input, and the named independent oracle.
+5. **S44/J20 — full object-stream integration (COMMITTED).**  Convert the
+   successful GROUP experiment into a local-from-scratch `dwgRW::write`
+   object-stream lane.  Register named-object entries before the CLASSES/table
+   boundary, emit a custom DICTIONARY that owns XRECORD, PLOTSETTINGS, and
+   LAYOUT children, then emit GROUP with an entity reference.  Assert NOD and
+   child frame uniqueness, owner/handle closure, typed callbacks, and
+   fail-closed rollback for one malformed object.  Keep all six writer
+   versions in scope, use only temporary outputs, and retain the result as
+   experimental until an independent reader/oracle can inspect object
+   semantics.  If a carrier is version-blocked, split it into a child with an
+   explicit disposition and immediately continue an independent ready child.
 
-For S40-S43, the inner loop is: touched-TU/script check → focused CTest →
+The post-S43 runtime lane is intentionally staged: S44 proves production
+object-stream registration and callback delivery; a later slice may add an
+independent object-aware oracle or additional object families only after its
+own plan row is ready.  A passing self-read is evidence of internal closure,
+not a format-support promotion.
+
+For S40-S44, the inner loop is: touched-TU/script check → focused CTest →
 oracle-matrix/policy checks → plan report.  Full CTest is reserved for S43 or
 for a materially invalidating change.  Each item updates this live block,
 recomputes the ready queue, records the exact discrepancy/unblock condition,
@@ -1840,8 +1857,8 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint: S43/J19 aggregate qualification checkpoint is committed;
-  S01-S43 implementation slices are complete with a
+- Current checkpoint: S44/J20 full object-stream integration is verified;
+  S01-S43 implementation slices are committed and S44 is verified with a
   version-specific oracle discrepancy recorded,
   including the clean
   LibreCAD target worktree change. Format-support claims remain limited to
@@ -1854,11 +1871,21 @@ edit this block or commit the same slice concurrently.
   promoting support. S42/J18 adds direct in-memory object/carrier vectors
   for GROUP, DICTIONARY, XRECORD, PLOTSETTINGS, and LAYOUT across AC1015-
   AC1032, including owner/reactor/xdictionary and version-gated string/handle
-  streams plus fail-closed malformed payloads; object-stream/NOD registration
-  remains explicitly deferred. J1.1 closes the locally reproducible R2007+ string-footer
+  streams plus fail-closed malformed payloads. S44/J20 now proves production
+  object-stream registration for GROUP and a custom DICTIONARY owning
+  XRECORD/PLOTSETTINGS/LAYOUT, exact owner/handle callback closure, and
+  fail-closed malformed-object rollback across all six writer versions; an
+  independent object-aware oracle remains required for promotion. J1.1 closes the locally reproducible R2007+ string-footer
   boundary lane; J1.2-J1.4 retain evidence-gated DWG reader outcomes without
   blocking the next independent source/spec lane.
-- Latest implementation slice: S43/J19 aggregate qualification is committed.
+- Latest implementation slice: S44/J20 full object-stream integration is
+  verified. The local-from-scratch production writer registers named-object
+  children before CLASSES, emits GROUP plus DICTIONARY/XRECORD/PLOTSETTINGS/
+  LAYOUT, and self-reads the exact graph for AC1015/18/21/24/27/32; a malformed
+  XRECORD is rejected without partial publication. LibreDWG DXF/JSON remains
+  entity/container-only evidence, so format claims stay experimental and no
+  drawing bytes are retained.
+- Latest committed checkpoint: S43/J19 aggregate qualification is committed.
   A fresh dependency-free build passed all 21 CTest entries in 6.52 seconds;
   a separate ASan+UBSan build passed the same 21 entries in 7.97 seconds with
   `detect_leaks=0` for the known macOS leak-detector limitation. The checkpoint
@@ -2158,7 +2185,7 @@ edit this block or commit the same slice concurrently.
   and S37/J13 adds solid HATCH boundary coverage, S38/J14 adds LEADER
   coverage, and S39/J15 records the scheduled full-suite checkpoint. S40/J16
   centralizes the local oracle contract; S41/J17 and S42/J18 are independent
-  compound/object lanes; S43/J19 is the next scheduled aggregate checkpoint.
+  compound/object lanes; S44/J20 is the next scheduled object-stream lane.
   parity or a PR boundary.
 - Last fully resolved slice: S43 (the aggregate checkpoint is committed by the
   matching `Plan-Slice: S43` trailer; the post-commit report resolves its SHA).
@@ -2166,13 +2193,13 @@ edit this block or commit the same slice concurrently.
   `6969e0a003414f9a7084349ac54bc2b32515e16b`. All in-horizon lanes are
   terminal only when their recorded gates pass; the next runtime qualification
   lane requires no new target pin.
-- Resolved slices: 43/43 (`COMMITTED`, or `SUPERSEDED` after all replacements
+- Resolved slices: 44/44 (`COMMITTED`, or `SUPERSEDED` after all replacements
   commit).
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 43 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 44 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 45 COMMITTED.
-- Expanded child-item states: 140 COMMITTED / 0 PLANNED / 0 READY / 0 ACTIVE /
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 46 COMMITTED.
+- Expanded child-item states: 141 COMMITTED / 0 PLANNED / 0 READY / 0 ACTIVE /
   0 VERIFYING / 0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED; no child is anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 29 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
@@ -2189,8 +2216,8 @@ edit this block or commit the same slice concurrently.
   coverage, and J14 adds LEADER coverage without promoting format support. Any
   later oracle expansion still requires an explicit ledger row and cannot
   silently promote current claims. S41/J17, S42/J18, and S43/J19 are
-  complete; the next work must be a newly scoped parity lane with explicit
-  independent wire evidence rather than a claim promotion.
+  complete; S44/J20 is committed as the newly scoped object-stream lane and
+  requires explicit independent wire evidence before any claim promotion.
 
 | Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -2237,6 +2264,7 @@ edit this block or commit the same slice concurrently.
 | S41 | J17: compound-entity runtime qualification | S40 | COMMITTED | focused local writer/self-read and dual-format oracle checks; no full suite | INSERT/ATTRIB/SEQEND and owned POLYLINE transitions are split into independently unblocking children; owner/handle/callback evidence remains experimental until an independent oracle agrees | S42 |
 | S42 | J18: object/carrier runtime qualification | S40 | COMMITTED | direct object encoder vectors and bounded frame/handle checks; no full suite | direct in-memory vectors pass across AC1015/18/21/24/27/32 for DICTIONARY/XRECORD/GROUP/LAYOUT/PLOTSETTINGS; malformed owner/handle/field vectors fail closed without bytes; raw fallback and NOD/object-stream integration remain experimental | S43 |
 | S43 | J19: post-wave aggregate qualification checkpoint | S41, S42 | COMMITTED | fresh build, complete dependency-free CTest, sanitizer/security checkpoint, policy gates | fresh dependency-free build and all 21 CTest entries pass in 6.52s; ASan+UBSan build and all 21 entries pass in 7.97s with macOS leak detection disabled; fixture admission/import scope/pinned sync/plan checks remain green and no drawing bytes are staged | next parity lane |
+| S44 | J20: full object-stream integration | S43 | COMMITTED | focused six-version local writer/self-read; NOD registration/owner/handle closure; malformed-object rollback; plan/scope/sync/fixture gates | local-from-scratch production object stream now emits a pre-CLASSES-registered GROUP and DICTIONARY owning XRECORD/PLOTSETTINGS/LAYOUT; explicit handle-range collision with auto block records was corrected; self-read and malformed-object rollback pass for AC1015/18/21/24/27/32; independent LibreDWG remains entity/container evidence only | independent object-aware oracle / next parity lane |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -2284,6 +2312,7 @@ edit this block or commit the same slice concurrently.
 | J17 | S41 | J16 | COMMITTED | EXPERIMENTAL | Qualify compound INSERT/ATTRIB/SEQEND/POLYLINE runtime paths with owner/handle and dual-format evidence |
 | J18 | S42 | J16 | COMMITTED | EXPERIMENTAL | Qualify direct DWG object/carrier encoders and owner/reactor/raw fallback semantics before object-stream integration |
 | J19 | S43 | J17, J18 | COMMITTED | EXPERIMENTAL | Run the next full dependency-free and sanitizer checkpoint only after the independent compound/object lanes settle |
+| J20 | S44 | J19 | COMMITTED | EXPERIMENTAL | Integrate the direct object carriers into the production DWG object stream with pre-CLASSES NOD registration, owner/handle closure, six-version self-read, and fail-closed malformed-object rollback |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -2432,6 +2461,7 @@ edit this block or commit the same slice concurrently.
 | J17.1 | J17 / S41 | WP5, WP7, WP8, WP10; compound entity runtime | J16.1 | COMMITTED | EXPERIMENTAL | add local-from-scratch INSERT/ATTRIB/SEQEND and owned POLYLINE scenarios, assert owner/handle/callback closure, and compare through both LibreDWG oracles | temporary-only generator changes, focused self-read/oracle checks, and a fail-closed discrepancy report; no full suite or fixture bytes until the compound lane settles |
 | J18.1 | J18 / S42 | WP5, WP7, WP8, WP10; object/carrier runtime | J16.1 | COMMITTED | EXPERIMENTAL | exercise direct object encoders for DICTIONARY/XRECORD/GROUP/LAYOUT/PLOTSETTINGS with frame/handle/owner vectors before full object-stream registration | `libdxfrw_dwg_object_vectors` passes all six writer versions plus malformed-payload checks; companion writer/oracle-metadata checks pass in 0.42s; object-stream integration remains deferred until registration/NOD ownership is proven; no fixture bytes |
 | J19.1 | J19 / S43 | WP8, WP10; aggregate checkpoint | J17.1, J18.1 | COMMITTED | EXPERIMENTAL | run the complete dependency-free CTest suite and sanitizer/security checkpoint once after the compound/object wave | 21/21 dependency-free CTest entries pass in 6.52s and 21/21 ASan+UBSan entries pass in 7.97s (`detect_leaks=0` on macOS); all policy/sync/fixture/plan gates pass and no support row is promoted without independent oracle evidence |
+| J20.1 | J20 / S44 | WP5, WP7, WP8, WP10; production object stream | J19 | COMMITTED | EXPERIMENTAL | emit and self-read a local-from-scratch DICTIONARY/XRECORD/PLOTSETTINGS/LAYOUT/GROUP object graph for AC1015/18/21/24/27/32, assert NOD registration and owner/handle/callback closure, and reject one malformed object without publishing partial output | focused local round-trip passes all six versions; object callbacks verify exact custom dictionary names/handles and owner handles; malformed XRECORD is rejected transactionally and no rolled-back handle is published on self-read; LibreDWG DXF/JSON advisory run remains entity/container-only (AC1015 exporter discrepancy retained); all DWG outputs are temporary and no fixture bytes are staged |
 
 <!-- UPGRADE_PROGRESS_END -->
 
