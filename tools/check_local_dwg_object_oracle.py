@@ -50,6 +50,8 @@ RASTERVARIABLES_HANDLE = 0xB500
 MALFORMED_RASTERVARIABLES_HANDLE = 0xB501
 WIPEOUTVARIABLES_HANDLE = 0xB600
 MALFORMED_WIPEOUTVARIABLES_HANDLE = 0xB601
+VISUALSTYLE_HANDLE = 0xC000
+MALFORMED_VISUALSTYLE_HANDLE = 0xC001
 
 
 def parse_json_output(text: str) -> dict:
@@ -113,7 +115,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         raise ValueError("GROUP name, owner, or member stream mismatch")
 
     dictionary = find_record(records, "DICTIONARY", DICTIONARY_HANDLE)
-    if (dictionary.get("numitems") != 12
+    if (dictionary.get("numitems") != 13
             or dictionary.get("is_hardowner") != 1
             or owner_handle(dictionary) != 0x0C):
         raise ValueError("custom DICTIONARY count, owner, or cloning mismatch")
@@ -227,6 +229,33 @@ def check_objects(payload: dict, version_name: str) -> dict:
             or wipeout.get("display_frame") != 1):
         raise ValueError("WIPEOUTVARIABLES owner or scalar mismatch")
 
+    visual = find_record(records, "VISUALSTYLE", VISUALSTYLE_HANDLE)
+    if (owner_handle(visual) != DICTIONARY_HANDLE
+            or visual.get("type") != 560
+            or visual.get("description") != "LOCAL_VISUALSTYLE_DESC"
+            or visual.get("style_type") != 1
+            or visual.get("face_lighting_model") != 2
+            or visual.get("face_opacity") != 0.75
+            or visual.get("edge_model") != 1
+            or visual.get("edge_isolines") != 3
+            or visual.get("display_settings") != 4):
+        raise ValueError("VISUALSTYLE owner or bounded legacy fields mismatch")
+    if version_name in {"AC1024", "AC1027", "AC1032"}:
+        if (visual.get("ext_lighting_model") != 1
+                or visual.get("display_brightness") != 0.8):
+            raise ValueError("VISUALSTYLE R2010b fields mismatch")
+    if version_name in {"AC1027", "AC1032"}:
+        if (visual.get("b_prop1c") != 1
+                or visual.get("bl_prop25") != 5
+                or visual.get("bd_prop26") != 1.25
+                or visual.get("bd_prop27") != 2.5
+                or not isinstance(visual.get("c_prop29"), dict)
+                or visual["c_prop29"].get("rgb") != "c3000007"
+                or visual.get("bd_prop34") != 3.5
+                or visual.get("bd_prop38") != 4.5
+                or visual.get("bd_prop39") != 5.5):
+            raise ValueError("VISUALSTYLE R2013b fields mismatch")
+
     dictionary_default = find_record(
         records, "DICTIONARYWDFLT", DICTIONARYWDFLT_HANDLE)
     if (owner_handle(dictionary_default) != DICTIONARY_HANDLE
@@ -264,6 +293,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         MALFORMED_FIELD_HANDLE: "FIELD",
         MALFORMED_RASTERVARIABLES_HANDLE: "RASTERVARIABLES",
         MALFORMED_WIPEOUTVARIABLES_HANDLE: "WIPEOUTVARIABLES",
+        MALFORMED_VISUALSTYLE_HANDLE: "VISUALSTYLE",
     }
     if any(record_handle(record) in malformed_handles
            and record.get("object") == malformed_handles[record_handle(record)]
@@ -286,6 +316,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "FIELD": FIELD_HANDLE,
             "RASTERVARIABLES": RASTERVARIABLES_HANDLE,
             "WIPEOUTVARIABLES": WIPEOUTVARIABLES_HANDLE,
+            "VISUALSTYLE": VISUALSTYLE_HANDLE,
             "DICTIONARYWDFLT": DICTIONARYWDFLT_HANDLE,
         },
         "objectStatus": "qualified",
@@ -360,7 +391,7 @@ def self_test() -> None:
              "ownerhandle": [4, 1, 0x0C, 0x0C], "name": "LOCAL_GROUP",
              "groups": [[5, 1, 0x1234]]},
             {"object": "DICTIONARY", "handle": [0, 1, DICTIONARY_HANDLE],
-             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 12,
+             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 13,
              "is_hardowner": 1},
             {"object": "XRECORD", "handle": [0, 1, XRECORD_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
@@ -418,6 +449,18 @@ def self_test() -> None:
              "handle": [0, 1, WIPEOUTVARIABLES_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
              "display_frame": 1},
+            {"object": "VISUALSTYLE",
+             "handle": [0, 1, VISUALSTYLE_HANDLE],
+             "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "type": 560, "description": "LOCAL_VISUALSTYLE_DESC",
+             "style_type": 1, "face_lighting_model": 2,
+             "face_opacity": 0.75, "edge_model": 1, "edge_isolines": 3,
+             "display_settings": 4, "ext_lighting_model": 1,
+             "display_brightness": 0.8, "b_prop1c": 1,
+             "bl_prop25": 5, "bd_prop26": 1.25, "bd_prop27": 2.5,
+             "c_prop29": {"rgb": "c3000007"}, "bd_prop34": 3.5,
+             "bd_prop38": 4.5,
+             "bd_prop39": 5.5},
         ],
     }
     check_objects(payload, "AC1024")
@@ -514,6 +557,16 @@ def self_test() -> None:
         pass
     else:
         raise AssertionError("malformed WIPEOUTVARIABLES was not rejected")
+    try:
+        bad = json.loads(json.dumps(payload))
+        bad["OBJECTS"].append({"object": "VISUALSTYLE",
+                                "handle": [0, 1,
+                                            MALFORMED_VISUALSTYLE_HANDLE]})
+        check_objects(bad, "AC1024")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("malformed VISUALSTYLE was not rejected")
     print("local DWG object oracle: PASS")
 
 

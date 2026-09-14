@@ -68,6 +68,10 @@ public:
             wipeoutRegistration.handle = 0xB600u;
             registeredWipeoutVariables_ = writer_->registerWipeoutVariablesObjectClass(
                 &wipeoutRegistration);
+            DRW_VisualStyle visualStyleRegistration;
+            visualStyleRegistration.handle = 0xC000u;
+            registeredVisualStyle_ = writer_->registerVisualStyleObjectClass(
+                &visualStyleRegistration);
         }
     }
 
@@ -121,6 +125,7 @@ public:
             {"LOCAL_FIELD", 0xB400u},
             {"LOCAL_RASTERVARIABLES", 0xB500u},
             {"LOCAL_WIPEOUTVARIABLES", 0xB600u},
+            {"LOCAL_VISUALSTYLE", 0xC000u},
         };
         wroteDictionary_ = registeredDictionary_
             && writer_->writeDictionary(&dictionary)
@@ -297,6 +302,35 @@ public:
             && writer_->writeWipeoutVariables(&wipeoutVariables)
             && wipeoutVariables.handle != 0;
 
+        DRW_VisualStyle visualStyle;
+        visualStyle.handle = 0xC000u;
+        visualStyle.parentHandle = dictionary.handle;
+        visualStyle.desc = "LOCAL_VISUALSTYLE_DESC";
+        visualStyle.type = 1;
+        visualStyle.m_body.faceLightingModel = 2;
+        visualStyle.m_body.faceOpacity = 0.75;
+        visualStyle.m_body.faceSpecular = 0.25;
+        visualStyle.m_body.edgeModel = 1;
+        visualStyle.m_body.edgeStyle = 2;
+        visualStyle.m_body.edgeOpacity = 0.5;
+        visualStyle.m_body.edgeIsolines = 3;
+        visualStyle.m_body.displaySettings = 4;
+        visualStyle.m_body.displayBrightness = 0.8;
+        visualStyle.m_body.extLightingModel = 1;
+        visualStyle.m_body.hasR2013bExpansion = true;
+        visualStyle.m_body.bProp1c = true;
+        visualStyle.m_body.blProp25 = 5;
+        visualStyle.m_body.bdProp26 = 1.25;
+        visualStyle.m_body.bdProp27 = 2.5;
+        visualStyle.m_body.blProp28 = 6;
+        visualStyle.m_body.cProp29 = 7;
+        visualStyle.m_body.bdProp34 = 3.5;
+        visualStyle.m_body.bdProp38 = 4.5;
+        visualStyle.m_body.bdProp39 = 5.5;
+        wroteVisualStyle_ = registeredVisualStyle_
+            && writer_->writeVisualStyle(&visualStyle)
+            && visualStyle.handle != 0;
+
         // A failed object write must not poison the following valid frames or
         // publish a partial object.  The writer's public transaction wrapper
         // owns the rollback boundary; this assertion keeps that contract in
@@ -377,6 +411,15 @@ public:
         invalidWipeoutVariables.setDwgCommonObjectState(0, 2, false);
         rejectedMalformedWipeoutVariables_ =
             !writer_->writeWipeoutVariables(&invalidWipeoutVariables);
+
+        DRW_VisualStyle invalidVisualStyle;
+        invalidVisualStyle.handle = 0xC001u;
+        invalidVisualStyle.parentHandle = dictionary.handle;
+        invalidVisualStyle.desc = "LOCAL_BAD_VISUALSTYLE";
+        invalidVisualStyle.m_body.faceOpacity =
+            std::numeric_limits<double>::quiet_NaN();
+        rejectedMalformedVisualStyle_ =
+            !writer_->writeVisualStyle(&invalidVisualStyle);
 
         DRW_Group group;
         group.handle = 0xA600u;
@@ -576,7 +619,7 @@ public:
         if (data.handle == 0xA601u) {
             readDictionarySeen_ = data.parentHandle
                     == DRW::DwgNamedObjectsDictionaryHandle
-                && data.m_entries.size() == 12
+                && data.m_entries.size() == 13
                 && data.m_entries[0].m_name == "LOCAL_XRECORD"
                 && data.m_entries[0].m_handle == 0xA602u
                 && data.m_entries[1].m_name == "LOCAL_PLOTSETTINGS"
@@ -600,7 +643,9 @@ public:
                 && data.m_entries[10].m_name == "LOCAL_RASTERVARIABLES"
                 && data.m_entries[10].m_handle == 0xB500u
                 && data.m_entries[11].m_name == "LOCAL_WIPEOUTVARIABLES"
-                && data.m_entries[11].m_handle == 0xB600u;
+                && data.m_entries[11].m_handle == 0xB600u
+                && data.m_entries[12].m_name == "LOCAL_VISUALSTYLE"
+                && data.m_entries[12].m_handle == 0xC000u;
         }
     }
     void addXRecord(const DRW_XRecord& data) override {
@@ -707,6 +752,20 @@ public:
         if (data.handle == 0xB601u)
             readMalformedWipeoutVariablesSeen_ = true;
     }
+    void addVisualStyle(const DRW_VisualStyle& data) override {
+        if (data.handle == 0xC000u)
+            readVisualStyleSeen_ = data.parentHandle == 0xA601u
+                && data.desc == "LOCAL_VISUALSTYLE_DESC"
+                && data.type == 1
+                && data.m_body.faceLightingModel == 2
+                && data.m_body.faceOpacity == 0.75
+                && data.m_body.edgeModel == 1
+                && data.m_body.edgeIsolines == 3
+                && data.m_body.displaySettings == 4
+                && data.m_bodyDecoded;
+        if (data.handle == 0xC001u)
+            readMalformedVisualStyleSeen_ = true;
+    }
     void addInsert(const DRW_Insert& data) override {
         readInsertSeen_ = true;
         readAttribSeen_ = data.attlist.size() == 1
@@ -741,7 +800,8 @@ public:
             && wroteLayout_ && wroteMLineStyle_ && wroteMLeaderStyle_
             && wroteDictionaryVar_ && wroteDictionaryWithDefault_
             && wroteSortEntsTable_ && wroteFieldList_ && wroteField_
-            && wroteRasterVariables_ && wroteWipeoutVariables_ && wroteGroup_;
+            && wroteRasterVariables_ && wroteWipeoutVariables_
+            && wroteVisualStyle_ && wroteGroup_;
     }
     bool rejectedMalformedObject() const { return rejectedMalformedObject_; }
     bool rejectedMalformedStyle() const { return rejectedMalformedStyle_; }
@@ -764,6 +824,9 @@ public:
     }
     bool rejectedMalformedWipeoutVariables() const {
         return rejectedMalformedWipeoutVariables_;
+    }
+    bool rejectedMalformedVisualStyle() const {
+        return rejectedMalformedVisualStyle_;
     }
     bool readLineSeen() const { return readLineSeen_; }
     bool readSimpleEntitiesSeen() const {
@@ -789,7 +852,8 @@ public:
             && readMLeaderStyleSeen_ && readDictionaryVarSeen_
             && readDictionaryWithDefaultSeen_ && readSortEntsTableSeen_
             && readFieldListSeen_ && readFieldSeen_ && readRasterVariablesSeen_
-            && readWipeoutVariablesSeen_ && readGroupSeen_;
+            && readWipeoutVariablesSeen_ && readVisualStyleSeen_
+            && readGroupSeen_;
     }
     bool readMalformedObjectSeen() const { return readMalformedObjectSeen_; }
     bool readMalformedStyleSeen() const { return readMalformedStyleSeen_; }
@@ -812,6 +876,10 @@ public:
     }
     bool readMalformedWipeoutVariablesSeen() const {
         return readMalformedWipeoutVariablesSeen_;
+    }
+    bool readVisualStyleSeen() const { return readVisualStyleSeen_; }
+    bool readMalformedVisualStyleSeen() const {
+        return readMalformedVisualStyleSeen_;
     }
     const DRW_Line& readLine() const { return readLine_; }
 
@@ -856,6 +924,7 @@ private:
     bool wroteField_ {false};
     bool wroteRasterVariables_ {false};
     bool wroteWipeoutVariables_ {false};
+    bool wroteVisualStyle_ {false};
     bool rejectedMalformedObject_ {false};
     bool rejectedMalformedStyle_ {false};
     bool rejectedMalformedMLeaderStyle_ {false};
@@ -866,6 +935,7 @@ private:
     bool rejectedMalformedField_ {false};
     bool rejectedMalformedRasterVariables_ {false};
     bool rejectedMalformedWipeoutVariables_ {false};
+    bool rejectedMalformedVisualStyle_ {false};
     bool registeredDictionary_ {false};
     bool registeredMLeaderStyle_ {false};
     bool registeredDictionaryVar_ {false};
@@ -875,6 +945,7 @@ private:
     bool registeredField_ {false};
     bool registeredRasterVariables_ {false};
     bool registeredWipeoutVariables_ {false};
+    bool registeredVisualStyle_ {false};
     bool registeredPlotSettings_ {false};
     bool readLineSeen_ {false};
     bool readPointSeen_ {false};
@@ -910,6 +981,7 @@ private:
     bool readFieldSeen_ {false};
     bool readRasterVariablesSeen_ {false};
     bool readWipeoutVariablesSeen_ {false};
+    bool readVisualStyleSeen_ {false};
     bool readMalformedObjectSeen_ {false};
     bool readMalformedStyleSeen_ {false};
     bool readMalformedMLeaderStyleSeen_ {false};
@@ -920,6 +992,7 @@ private:
     bool readMalformedFieldSeen_ {false};
     bool readMalformedRasterVariablesSeen_ {false};
     bool readMalformedWipeoutVariablesSeen_ {false};
+    bool readMalformedVisualStyleSeen_ {false};
     DRW_Line readLine_;
     dx_data data_;
 };
@@ -1019,6 +1092,9 @@ int main(int argc, char** argv) {
         expect(writeIface.rejectedMalformedWipeoutVariables(),
                ("local DWG writer rejected malformed WIPEOUTVARIABLES transaction" + suffix).c_str(),
                failures);
+        expect(writeIface.rejectedMalformedVisualStyle(),
+               ("local DWG writer rejected malformed VISUALSTYLE transaction" + suffix).c_str(),
+               failures);
         expect(std::filesystem::exists(output),
                ("local DWG output is published" + suffix).c_str(), failures);
 
@@ -1054,6 +1130,9 @@ int main(int argc, char** argv) {
         expect(readIface.readObjectSetSeen(),
                ("local DWG self-read publishes object carrier set" + suffix).c_str(),
                failures);
+        expect(readIface.readVisualStyleSeen(),
+               ("local DWG self-read publishes VISUALSTYLE" + suffix).c_str(),
+               failures);
         expect(!readIface.readMalformedObjectSeen(),
                ("local DWG self-read omits rolled-back malformed object" + suffix).c_str(),
                failures);
@@ -1083,6 +1162,9 @@ int main(int argc, char** argv) {
                failures);
         expect(!readIface.readMalformedWipeoutVariablesSeen(),
                ("local DWG self-read omits rolled-back malformed WIPEOUTVARIABLES" + suffix).c_str(),
+               failures);
+        expect(!readIface.readMalformedVisualStyleSeen(),
+               ("local DWG self-read omits rolled-back malformed VISUALSTYLE" + suffix).c_str(),
                failures);
         if (readIface.readLineSeen()) {
             const DRW_Line& line = readIface.readLine();

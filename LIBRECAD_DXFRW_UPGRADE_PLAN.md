@@ -1916,8 +1916,8 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint: S53/J29 RASTERVARIABLES/WIPEOUTVARIABLES parity is
-  committed; S01-S53 implementation slices are committed with a
+- Current checkpoint: S54/J30 VISUALSTYLE object-family parity is committed;
+  S01-S54 implementation slices are committed with a
   version-specific oracle discrepancy recorded,
   including the clean
   LibreCAD target worktree change. Format-support claims remain limited to
@@ -1949,6 +1949,14 @@ edit this block or commit the same slice concurrently.
   independently qualifies type 506/529, owner A601, and bounded scalar fields
   in all six versions. The result remains experimental and no drawing bytes
   are retained.
+- Latest implementation slice: S54/J30 VISUALSTYLE object-family parity is
+  committed. The local-from-scratch production writer registers the custom
+  class before CLASSES, emits bounded visual-style payloads for all six
+  versions, and rejects a non-finite field transactionally; the independent
+  LibreDWG 0.14 JSON oracle qualifies type 560, owner A601, description,
+  legacy fields, R2010b fields, and selected R2013b expansion fields in all
+  six outputs. The result remains experimental pending broader visual-style
+  variants, and no drawing bytes are retained.
 - Latest committed slice: S52/J28 FIELD/FIELDLIST member parity is
   committed. The local-from-scratch production writer registers FIELD and
   FIELDLIST classes before CLASSES, emits one valid field referenced by the
@@ -2313,24 +2321,24 @@ edit this block or commit the same slice concurrently.
   evidence. S53/J29 adds fixed RASTERVARIABLES/WIPEOUTVARIABLES scalar
   evidence with transactional invalid-value checks and no fixture bytes.
   parity or a PR boundary.
-- Last fully resolved slice: S53 (the RASTERVARIABLES/WIPEOUTVARIABLES parity
+- Last fully resolved slice: S54 (the VISUALSTYLE object-family parity
   slice is committed by the matching `Plan-Slice: S53` trailer; broader fixed
   object families remain experimental follow-up).
   target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`. All in-horizon lanes are
   terminal only when their recorded gates pass; the next runtime qualification
   lane requires no new target pin.
-- Resolved slices: 53/53 (`COMMITTED`, or `SUPERSEDED` after all replacements
+- Resolved slices: 54/54 (`COMMITTED`, or `SUPERSEDED` after all replacements
   commit).
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 53 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 54 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 54 COMMITTED.
-- Expanded child-item states: 150 COMMITTED / 0 PLANNED / 0 READY / 0 ACTIVE /
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 55 COMMITTED.
+- Expanded child-item states: 151 COMMITTED / 0 PLANNED / 0 READY / 0 ACTIVE /
   0 VERIFYING / 0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED; no child is anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 29 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S53 are committed. S23/I5
+- Active work: S01-S54 are committed. S23/I5
   reconciled separate DXF/DWG reports, public/package/LibreCAD consumers, the
   scheduled full and ASan/UBSan checkpoints, bounded fuzz smoke, and explicit
   support/defer claims; J0 adds runtime adapter/validation regressions, J2
@@ -2358,7 +2366,10 @@ edit this block or commit the same slice concurrently.
   fast-test-first and temporary-only policy. S52/J28 completes the non-empty
   FIELD/FIELDLIST member edge; broader FIELD variants remain a named follow-up.
   S53/J29 completes fixed RASTERVARIABLES/WIPEOUTVARIABLES scalar evidence
-  with the same fast-test-first and temporary-only policy.
+  with the same fast-test-first and temporary-only policy. S54/J30 completes
+  VISUALSTYLE object-family evidence with fixed type/owner/description and
+  selected version-gated fields, under the same fast-test-first and
+  temporary-only policy; broader visual-style variants remain experimental.
 
 | Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -2415,6 +2426,7 @@ edit this block or commit the same slice concurrently.
 | S51 | J27: FIELDLIST object-family parity | S50 | COMMITTED | focused six-version local writer/self-read; class-registration/owner closure; independent JSON object oracle; malformed-flag rejection; plan/scope/sync/fixture gates | local writer/self-read and malformed-flag rollback pass for AC1015/18/21/24/27/32; LibreDWG 0.14 independently qualifies type 515, owner A601, and zero-member closure in all six outputs; generated drawings remain temporary and non-empty FIELD semantics stay a separate follow-up | next FIELD or object-family lane; do not block on unavailable non-empty FIELD evidence |
 | S52 | J28: FIELD/FIELDLIST member parity | S51 | COMMITTED | focused six-version local writer/self-read; class-registration/owner/member closure; independent JSON object oracle; malformed-CadValue rejection; plan/scope/sync/fixture gates | local writer/self-read and malformed-CadValue rollback pass for AC1015/18/21/24/27/32; LibreDWG 0.14 independently qualifies type 515/516, bounded evaluator/code/value fields, owner A601, and FIELDLIST member handle B400 in all six outputs; generated drawings remain temporary and broader FIELD variants stay non-promoting | next object-family or version-discrepancy lane; do not block on unavailable variants |
 | S53 | J29: RASTERVARIABLES/WIPEOUTVARIABLES parity | S52 | COMMITTED | focused six-version local writer/self-read; class-registration/owner closure; independent JSON object oracle; malformed-field/common-link rejection; plan/scope/sync/fixture gates | local writer/self-read and malformed raster/common-link rollback pass for AC1015/18/21/24/27/32; LibreDWG 0.14 independently qualifies type 506/529, owner A601, and bounded scalar fields in all six outputs; generated drawings remain temporary and evidence remains experimental | next fixed-object or version-discrepancy lane; do not block on external field loss |
+| S54 | J30: VISUALSTYLE object-family parity | S53 | COMMITTED | focused six-version local writer/self-read; class-registration/owner closure; independent JSON object oracle; malformed-field rejection; plan/scope/sync/fixture gates | local writer/self-read and malformed non-finite-field rollback pass for AC1015/18/21/24/27/32; LibreDWG 0.14 independently qualifies type 560, owner A601, description, legacy fields, R2010b fields, and selected R2013b expansion fields in all six outputs; generated drawings remain temporary and evidence remains experimental | next fixed-object or version-discrepancy lane; do not block on unavailable visual-style variants |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -2472,6 +2484,7 @@ edit this block or commit the same slice concurrently.
 | J27 | S51 | J26 | COMMITTED | EXPERIMENTAL | Extend the local object graph and independent JSON oracle to FIELDLIST, including class registration, fixed type/header, owner, zero-member handle closure, six-version self-read, and transaction-safe invalid-flag handling; keep non-empty FIELD semantics separate |
 | J28 | S52 | J27 | COMMITTED | EXPERIMENTAL | Extend the local object graph and independent JSON oracle to FIELD/FIELDLIST member semantics, including class registration, fixed type/header, owner/member handles, minimal evaluator/code/value fields, six-version self-read, and transaction-safe invalid-CadValue handling |
 | J29 | S53 | J28 | COMMITTED | EXPERIMENTAL | Extend the local object graph and independent JSON oracle to RASTERVARIABLES/WIPEOUTVARIABLES, including class registration, fixed type/header, owner, bounded scalar fields, six-version self-read, and transaction-safe invalid-field/common-link handling |
+| J30 | S54 | J29 | COMMITTED | EXPERIMENTAL | Extend the local object graph and independent JSON oracle to VISUALSTYLE, including class registration, fixed type/header, owner, description, bounded legacy/R2010b/R2013b fields, six-version self-read, and transaction-safe invalid-field handling; broader visual-style variants remain experimental |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -2630,6 +2643,7 @@ edit this block or commit the same slice concurrently.
 | J27.1 | J27 / S51 | WP5, WP7, WP8, WP10; FIELDLIST object family | J26 | COMMITTED | EXPERIMENTAL | emit and self-read a local zero-member FIELDLIST for AC1015/18/21/24/27/32, register its class before CLASSES, independently verify fixed type/header/owner and zero-member closure, and reject an invalid flag without publishing a frame | focused local round-trip and oracle self-test/live run pass; LibreDWG 0.14 reports type 515, owner A601, and unknown=0 in all six outputs; all generated drawings remain temporary, no fixture bytes are staged, and non-empty FIELD semantics are a named follow-up |
 | J28.1 | J28 / S52 | WP5, WP7, WP8, WP10; FIELD/FIELDLIST member | J27 | COMMITTED | EXPERIMENTAL | emit and self-read one minimal FIELD referenced by FIELDLIST for AC1015/18/21/24/27/32, register both classes before CLASSES, independently verify bounded payload and member/owner handles, and reject an invalid CadValue without publishing a frame | focused local round-trip and oracle self-test/live run pass; LibreDWG 0.14 reports type 515/516, evaluator/code/value fields, and member/owner handles in all six outputs; all generated drawings remain temporary, no fixture bytes are staged, and broader FIELD variants remain a named follow-up |
 | J29.1 | J29 / S53 | WP5, WP7, WP8, WP10; RASTERVARIABLES/WIPEOUTVARIABLES | J28 | COMMITTED | EXPERIMENTAL | emit and self-read fixed RASTERVARIABLES and WIPEOUTVARIABLES objects for AC1015/18/21/24/27/32, register both classes before CLASSES, independently verify scalar payload and owner handles, and reject invalid values without publishing frames | focused local round-trip and oracle self-test/live run pass; LibreDWG 0.14 reports type 506/529, owner A601, and scalar fields in all six outputs; all generated drawings remain temporary, no fixture bytes are staged, and any external-reader field mismatch is recorded as a bounded discrepancy |
+| J30.1 | J30 / S54 | WP5, WP7, WP8, WP10; VISUALSTYLE | J29 | COMMITTED | EXPERIMENTAL | emit and self-read one bounded VISUALSTYLE object for AC1015/18/21/24/27/32, register its class before CLASSES, independently verify fixed type/owner/description plus version-gated body fields, and reject non-finite/invalid values without publishing a frame | focused local self-read, oracle self-test/live run, and policy gates; generated drawings remain temporary, no fixture bytes are staged, and unsupported visual-style variants remain explicit follow-ups |
 
 <!-- UPGRADE_PROGRESS_END -->
 
