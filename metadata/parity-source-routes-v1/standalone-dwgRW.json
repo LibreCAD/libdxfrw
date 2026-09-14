@@ -79165,6 +79165,630 @@
       "selector": {
         "carrier": "raw-dwg-object",
         "companionRawCarrierRouteIds": [],
+        "dwgRawReplayEvidence": [
+          {
+            "bodySymbol": "dwgWriter15::recordRawBlockOwnedEntity",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 4440,
+                  "path": "src/intern/dwgwriter15.cpp",
+                  "spanSha256": "73b318f03edbe9ecd2efbd6d6d269a7691f54d33fec7774c0eccfeced95bb6d9",
+                  "symbol": "dwgWriter15::recordRawBlockOwnedEntity"
+                },
+                "callee": "canRecordRawBlockOwnedEntity",
+                "calleeOverload": "canRecordRawBlockOwnedEntity(const DRW_UnsupportedObject&)",
+                "edge": "block-owner-preflight",
+                "guardFingerprint": "4e6fb2fa8c1bbd4c277e9e464916e2c3c6ace9709841c5fab685a03841c46448",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "conditional-reject",
+                "sourceOffset": 11
+              },
+              {
+                "callEvidence": {
+                  "line": 4448,
+                  "path": "src/intern/dwgwriter15.cpp",
+                  "spanSha256": "73b318f03edbe9ecd2efbd6d6d269a7691f54d33fec7774c0eccfeced95bb6d9",
+                  "symbol": "dwgWriter15::recordRawBlockOwnedEntity"
+                },
+                "callee": "entityHandles",
+                "calleeOverload": "owned-entity-handle-vector",
+                "edge": "space-owner-append",
+                "guardFingerprint": "46ad125af8e0aa4254bb870dbefc2775d1bb35538a094685f8d6fac0d5613f4f",
+                "order": 2,
+                "predecessorEdges": [
+                  "block-owner-preflight"
+                ],
+                "relation": "commit-owner-bookkeeping",
+                "sourceOffset": 473
+              },
+              {
+                "callEvidence": {
+                  "line": 4451,
+                  "path": "src/intern/dwgwriter15.cpp",
+                  "spanSha256": "73b318f03edbe9ecd2efbd6d6d269a7691f54d33fec7774c0eccfeced95bb6d9",
+                  "symbol": "dwgWriter15::recordRawBlockOwnedEntity"
+                },
+                "callee": "m_userBlocks",
+                "calleeOverload": "pending-user-block-lookup",
+                "edge": "user-block-owner-lookup",
+                "guardFingerprint": "ce7f6cdff2105c42a6b3d048d71cdfcfbaa0896749e04ec85d10a1db8d8789c3",
+                "order": 3,
+                "predecessorEdges": [
+                  "block-owner-preflight",
+                  "space-owner-append"
+                ],
+                "relation": "owner-selection",
+                "sourceOffset": 559
+              },
+              {
+                "callEvidence": {
+                  "line": 4458,
+                  "path": "src/intern/dwgwriter15.cpp",
+                  "spanSha256": "73b318f03edbe9ecd2efbd6d6d269a7691f54d33fec7774c0eccfeced95bb6d9",
+                  "symbol": "dwgWriter15::recordRawBlockOwnedEntity"
+                },
+                "callee": "PendingUserBlock::entityHandles",
+                "calleeOverload": "owned-entity-handle-vector",
+                "edge": "user-block-owner-append",
+                "guardFingerprint": "2ca55994936bcd75e652aad2a912e28e8d827f3fba0ac64d28c0eb3952cbc29e",
+                "order": 4,
+                "predecessorEdges": [
+                  "block-owner-preflight",
+                  "space-owner-append",
+                  "user-block-owner-lookup"
+                ],
+                "relation": "commit-owner-bookkeeping",
+                "sourceOffset": 816
+              }
+            ],
+            "sourcePath": "src/intern/dwgwriter15.cpp"
+          },
+          {
+            "bodySymbol": "dwgWriter15::replayRawObject",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 5139,
+                  "path": "src/intern/dwgwriter15.cpp",
+                  "spanSha256": "0ef9c7a5ac8debe89141377f0c117506554a4d1c7d9fddebdaf5bb07616fb6a9",
+                  "symbol": "dwgWriter15::replayRawObject"
+                },
+                "callee": "blockControlEmitted",
+                "calleeOverload": "blockControlEmitted()",
+                "edge": "block-control-entity-reject",
+                "guardFingerprint": "20fa450fed32aee429090e2151266f9be27c2842e0da150f707d39e0b3e6c08e",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "reject",
+                "sourceOffset": 208
+              },
+              {
+                "callEvidence": {
+                  "line": 5140,
+                  "path": "src/intern/dwgwriter15.cpp",
+                  "spanSha256": "0ef9c7a5ac8debe89141377f0c117506554a4d1c7d9fddebdaf5bb07616fb6a9",
+                  "symbol": "dwgWriter15::replayRawObject"
+                },
+                "callee": "object.m_version != m_version",
+                "calleeOverload": "version-compatibility-predicate",
+                "edge": "version-match-reject",
+                "guardFingerprint": "9b6173fb3dcaac4ee0eefe158fa3482f3175ff7821e8adc406296f05bbb9f5c3",
+                "order": 2,
+                "predecessorEdges": [
+                  "block-control-entity-reject"
+                ],
+                "relation": "reject",
+                "sourceOffset": 263
+              },
+              {
+                "callEvidence": {
+                  "line": 5141,
+                  "path": "src/intern/dwgwriter15.cpp",
+                  "spanSha256": "0ef9c7a5ac8debe89141377f0c117506554a4d1c7d9fddebdaf5bb07616fb6a9",
+                  "symbol": "dwgWriter15::replayRawObject"
+                },
+                "callee": "isReplayableFixedModelerRawEntity",
+                "calleeOverload": "isReplayableFixedModelerRawEntity(const DRW_UnsupportedObject&)",
+                "edge": "fixed-modeler-eligibility",
+                "guardFingerprint": "6b8f9d8075470c072971c0f70c82657456e075121e3b3ef8c9e4ac794e170b4a",
+                "order": 3,
+                "predecessorEdges": [
+                  "block-control-entity-reject",
+                  "version-match-reject"
+                ],
+                "relation": "eligibility",
+                "sourceOffset": 326
+              },
+              {
+                "callEvidence": {
+                  "line": 5142,
+                  "path": "src/intern/dwgwriter15.cpp",
+                  "spanSha256": "0ef9c7a5ac8debe89141377f0c117506554a4d1c7d9fddebdaf5bb07616fb6a9",
+                  "symbol": "dwgWriter15::replayRawObject"
+                },
+                "callee": "isReplayableFixedEntityShellRawEntity",
+                "calleeOverload": "isReplayableFixedEntityShellRawEntity(const DRW_UnsupportedObject&)",
+                "edge": "fixed-shell-eligibility",
+                "guardFingerprint": "c249513d4563e9b401dc460429af22923d197c90703888d5a77bdabe1cdbc704",
+                "order": 4,
+                "predecessorEdges": [
+                  "block-control-entity-reject",
+                  "version-match-reject",
+                  "fixed-modeler-eligibility"
+                ],
+                "relation": "eligibility",
+                "sourceOffset": 384
+              },
+              {
+                "callEvidence": {
+                  "line": 5143,
+                  "path": "src/intern/dwgwriter15.cpp",
+                  "spanSha256": "0ef9c7a5ac8debe89141377f0c117506554a4d1c7d9fddebdaf5bb07616fb6a9",
+                  "symbol": "dwgWriter15::replayRawObject"
+                },
+                "callee": "isReplayableSurfaceRawEntity",
+                "calleeOverload": "isReplayableSurfaceRawEntity(const DRW_UnsupportedObject&)",
+                "edge": "surface-eligibility",
+                "guardFingerprint": "f3a380fbb92961bb02babd9d0ae548658d64b51714306eff8459ac24fc650fff",
+                "order": 5,
+                "predecessorEdges": [
+                  "block-control-entity-reject",
+                  "version-match-reject",
+                  "fixed-modeler-eligibility",
+                  "fixed-shell-eligibility"
+                ],
+                "relation": "eligibility",
+                "sourceOffset": 446
+              },
+              {
+                "callEvidence": {
+                  "line": 5144,
+                  "path": "src/intern/dwgwriter15.cpp",
+                  "spanSha256": "0ef9c7a5ac8debe89141377f0c117506554a4d1c7d9fddebdaf5bb07616fb6a9",
+                  "symbol": "dwgWriter15::replayRawObject"
+                },
+                "callee": "isReplayableCustomRawEntity",
+                "calleeOverload": "isReplayableCustomRawEntity(const DRW_UnsupportedObject&)",
+                "edge": "custom-eligibility",
+                "guardFingerprint": "66727ba714e861326e374a56f838e6126716becdf4ea28768327de2b9fddbdcc",
+                "order": 6,
+                "predecessorEdges": [
+                  "block-control-entity-reject",
+                  "version-match-reject",
+                  "fixed-modeler-eligibility",
+                  "fixed-shell-eligibility",
+                  "surface-eligibility"
+                ],
+                "relation": "eligibility",
+                "sourceOffset": 499
+              },
+              {
+                "callEvidence": {
+                  "line": 5145,
+                  "path": "src/intern/dwgwriter15.cpp",
+                  "spanSha256": "0ef9c7a5ac8debe89141377f0c117506554a4d1c7d9fddebdaf5bb07616fb6a9",
+                  "symbol": "dwgWriter15::replayRawObject"
+                },
+                "callee": "object.m_handle == 0",
+                "calleeOverload": "handle-presence-predicate",
+                "edge": "zero-handle-reject",
+                "guardFingerprint": "534daa71a273cab442ba891be5ffc97b861a69c9a1c90680013bbe7b0b1ad2ba",
+                "order": 7,
+                "predecessorEdges": [
+                  "block-control-entity-reject",
+                  "version-match-reject",
+                  "fixed-modeler-eligibility",
+                  "fixed-shell-eligibility",
+                  "surface-eligibility",
+                  "custom-eligibility"
+                ],
+                "relation": "reject",
+                "sourceOffset": 548
+              },
+              {
+                "callEvidence": {
+                  "line": 5145,
+                  "path": "src/intern/dwgwriter15.cpp",
+                  "spanSha256": "0ef9c7a5ac8debe89141377f0c117506554a4d1c7d9fddebdaf5bb07616fb6a9",
+                  "symbol": "dwgWriter15::replayRawObject"
+                },
+                "callee": "object.m_rawBytes.empty",
+                "calleeOverload": "vector::empty()",
+                "edge": "empty-raw-bytes-reject",
+                "guardFingerprint": "c80b4027a7cfc4b3184aefa84e7254639363ede90befaeffcc2c22ca6ff4a094",
+                "order": 8,
+                "predecessorEdges": [
+                  "block-control-entity-reject",
+                  "version-match-reject",
+                  "fixed-modeler-eligibility",
+                  "fixed-shell-eligibility",
+                  "surface-eligibility",
+                  "custom-eligibility",
+                  "zero-handle-reject"
+                ],
+                "relation": "reject",
+                "sourceOffset": 572
+              },
+              {
+                "callEvidence": {
+                  "line": 5151,
+                  "path": "src/intern/dwgwriter15.cpp",
+                  "spanSha256": "0ef9c7a5ac8debe89141377f0c117506554a4d1c7d9fddebdaf5bb07616fb6a9",
+                  "symbol": "dwgWriter15::replayRawObject"
+                },
+                "callee": "object.m_bodyBitSize",
+                "calleeOverload": "raw-body-bit-size-bound",
+                "edge": "body-bit-size-bound",
+                "guardFingerprint": "b7c2e3bad60c9934eab204029b02a11810c0bd6cfce4109330631e674d6632a9",
+                "order": 9,
+                "predecessorEdges": [
+                  "block-control-entity-reject",
+                  "version-match-reject",
+                  "fixed-modeler-eligibility",
+                  "fixed-shell-eligibility",
+                  "surface-eligibility",
+                  "custom-eligibility",
+                  "zero-handle-reject",
+                  "empty-raw-bytes-reject"
+                ],
+                "relation": "reject",
+                "sourceOffset": 777
+              },
+              {
+                "callEvidence": {
+                  "line": 5156,
+                  "path": "src/intern/dwgwriter15.cpp",
+                  "spanSha256": "0ef9c7a5ac8debe89141377f0c117506554a4d1c7d9fddebdaf5bb07616fb6a9",
+                  "symbol": "dwgWriter15::replayRawObject"
+                },
+                "callee": "object.m_objectSize",
+                "calleeOverload": "raw-object-size-compatibility",
+                "edge": "object-size-match",
+                "guardFingerprint": "e6e4c16efe8c5abd176d2bf4eceb46d32862f93fe53862e9e0ae6b1d95193e75",
+                "order": 10,
+                "predecessorEdges": [
+                  "block-control-entity-reject",
+                  "version-match-reject",
+                  "fixed-modeler-eligibility",
+                  "fixed-shell-eligibility",
+                  "surface-eligibility",
+                  "custom-eligibility",
+                  "zero-handle-reject",
+                  "empty-raw-bytes-reject",
+                  "body-bit-size-bound"
+                ],
+                "relation": "reject",
+                "sourceOffset": 955
+              },
+              {
+                "callEvidence": {
+                  "line": 5163,
+                  "path": "src/intern/dwgwriter15.cpp",
+                  "spanSha256": "0ef9c7a5ac8debe89141377f0c117506554a4d1c7d9fddebdaf5bb07616fb6a9",
+                  "symbol": "dwgWriter15::replayRawObject"
+                },
+                "callee": "m_objectMap",
+                "calleeOverload": "object-handle-uniqueness",
+                "edge": "duplicate-handle-reject",
+                "guardFingerprint": "4a4a427d159959179fcb7182130ce894c6805a9bb83b4ae9f69c191ca13f5616",
+                "order": 11,
+                "predecessorEdges": [
+                  "block-control-entity-reject",
+                  "version-match-reject",
+                  "fixed-modeler-eligibility",
+                  "fixed-shell-eligibility",
+                  "surface-eligibility",
+                  "custom-eligibility",
+                  "zero-handle-reject",
+                  "empty-raw-bytes-reject",
+                  "body-bit-size-bound",
+                  "object-size-match"
+                ],
+                "relation": "reject",
+                "sourceOffset": 1282
+              },
+              {
+                "callEvidence": {
+                  "line": 5170,
+                  "path": "src/intern/dwgwriter15.cpp",
+                  "spanSha256": "0ef9c7a5ac8debe89141377f0c117506554a4d1c7d9fddebdaf5bb07616fb6a9",
+                  "symbol": "dwgWriter15::replayRawObject"
+                },
+                "callee": "raw block-owner relationship",
+                "calleeOverload": "custom-entity-owner-compatibility",
+                "edge": "custom-owner-reject",
+                "guardFingerprint": "8262211aa5e64af72f33f6f4ff193992e83d1ed7d9be3954ae170d5adb44d430",
+                "order": 12,
+                "predecessorEdges": [
+                  "block-control-entity-reject",
+                  "version-match-reject",
+                  "fixed-modeler-eligibility",
+                  "fixed-shell-eligibility",
+                  "surface-eligibility",
+                  "custom-eligibility",
+                  "zero-handle-reject",
+                  "empty-raw-bytes-reject",
+                  "body-bit-size-bound",
+                  "object-size-match",
+                  "duplicate-handle-reject"
+                ],
+                "relation": "reject",
+                "sourceOffset": 1488
+              },
+              {
+                "callEvidence": {
+                  "line": 5175,
+                  "path": "src/intern/dwgwriter15.cpp",
+                  "spanSha256": "0ef9c7a5ac8debe89141377f0c117506554a4d1c7d9fddebdaf5bb07616fb6a9",
+                  "symbol": "dwgWriter15::replayRawObject"
+                },
+                "callee": "canRecordRawBlockOwnedEntity",
+                "calleeOverload": "canRecordRawBlockOwnedEntity(const DRW_UnsupportedObject&)",
+                "edge": "block-owner-preflight",
+                "guardFingerprint": "4e6fb2fa8c1bbd4c277e9e464916e2c3c6ace9709841c5fab685a03841c46448",
+                "order": 13,
+                "predecessorEdges": [
+                  "block-control-entity-reject",
+                  "version-match-reject",
+                  "fixed-modeler-eligibility",
+                  "fixed-shell-eligibility",
+                  "surface-eligibility",
+                  "custom-eligibility",
+                  "zero-handle-reject",
+                  "empty-raw-bytes-reject",
+                  "body-bit-size-bound",
+                  "object-size-match",
+                  "duplicate-handle-reject",
+                  "custom-owner-reject"
+                ],
+                "relation": "conditional-reject",
+                "sourceOffset": 1787
+              },
+              {
+                "callEvidence": {
+                  "line": 5217,
+                  "path": "src/intern/dwgwriter15.cpp",
+                  "spanSha256": "0ef9c7a5ac8debe89141377f0c117506554a4d1c7d9fddebdaf5bb07616fb6a9",
+                  "symbol": "dwgWriter15::replayRawObject"
+                },
+                "callee": "registerRawObjectClass",
+                "calleeOverload": "registerRawObjectClass(const DRW_UnsupportedObject&)",
+                "edge": "class-registration",
+                "guardFingerprint": "6a8f74e8d350b2f77757c156448e167e94334683caf39ad1ffdc3716acb73805",
+                "order": 14,
+                "predecessorEdges": [
+                  "block-control-entity-reject",
+                  "version-match-reject",
+                  "fixed-modeler-eligibility",
+                  "fixed-shell-eligibility",
+                  "surface-eligibility",
+                  "custom-eligibility",
+                  "zero-handle-reject",
+                  "empty-raw-bytes-reject",
+                  "body-bit-size-bound",
+                  "object-size-match",
+                  "duplicate-handle-reject",
+                  "custom-owner-reject",
+                  "block-owner-preflight"
+                ],
+                "relation": "transaction-begin",
+                "sourceOffset": 3617
+              },
+              {
+                "callEvidence": {
+                  "line": 5224,
+                  "path": "src/intern/dwgwriter15.cpp",
+                  "spanSha256": "0ef9c7a5ac8debe89141377f0c117506554a4d1c7d9fddebdaf5bb07616fb6a9",
+                  "symbol": "dwgWriter15::replayRawObject"
+                },
+                "callee": "m_currentDwgObjectFrameProvenance.classNumber",
+                "calleeOverload": "raw-frame-provenance",
+                "edge": "class-provenance-match",
+                "guardFingerprint": "0d0bb453eb6209aa6ed6710f82ae94979d502f9b600094635c7a8f790bd94472",
+                "order": 15,
+                "predecessorEdges": [
+                  "block-control-entity-reject",
+                  "version-match-reject",
+                  "fixed-modeler-eligibility",
+                  "fixed-shell-eligibility",
+                  "surface-eligibility",
+                  "custom-eligibility",
+                  "zero-handle-reject",
+                  "empty-raw-bytes-reject",
+                  "body-bit-size-bound",
+                  "object-size-match",
+                  "duplicate-handle-reject",
+                  "custom-owner-reject",
+                  "block-owner-preflight",
+                  "class-registration"
+                ],
+                "relation": "reject",
+                "sourceOffset": 3903
+              },
+              {
+                "callEvidence": {
+                  "line": 5242,
+                  "path": "src/intern/dwgwriter15.cpp",
+                  "spanSha256": "0ef9c7a5ac8debe89141377f0c117506554a4d1c7d9fddebdaf5bb07616fb6a9",
+                  "symbol": "dwgWriter15::replayRawObject"
+                },
+                "callee": "readRawObjectHandle",
+                "calleeOverload": "readRawObjectHandle(const vector<uint8_t>&,DRW::Version,dwgHandle&)",
+                "edge": "raw-handle-decode",
+                "guardFingerprint": "e37a261906b5eff3716d1f480b30b35daf92725231be39e5a0f487115c82e6a6",
+                "order": 16,
+                "predecessorEdges": [
+                  "block-control-entity-reject",
+                  "version-match-reject",
+                  "fixed-modeler-eligibility",
+                  "fixed-shell-eligibility",
+                  "surface-eligibility",
+                  "custom-eligibility",
+                  "zero-handle-reject",
+                  "empty-raw-bytes-reject",
+                  "body-bit-size-bound",
+                  "object-size-match",
+                  "duplicate-handle-reject",
+                  "custom-owner-reject",
+                  "block-owner-preflight",
+                  "class-registration",
+                  "class-provenance-match"
+                ],
+                "relation": "raw-frame-parse",
+                "sourceOffset": 4712
+              },
+              {
+                "callEvidence": {
+                  "line": 5273,
+                  "path": "src/intern/dwgwriter15.cpp",
+                  "spanSha256": "0ef9c7a5ac8debe89141377f0c117506554a4d1c7d9fddebdaf5bb07616fb6a9",
+                  "symbol": "dwgWriter15::replayRawObject"
+                },
+                "callee": "dwgBuffer::getObjType",
+                "calleeOverload": "getObjType(DRW::Version)",
+                "edge": "body-type-match",
+                "guardFingerprint": "cef8e56d018f8bac04aa7f3a45911d71e5d5dfda9f140259bedb6bd1c9dfabf4",
+                "order": 17,
+                "predecessorEdges": [
+                  "block-control-entity-reject",
+                  "version-match-reject",
+                  "fixed-modeler-eligibility",
+                  "fixed-shell-eligibility",
+                  "surface-eligibility",
+                  "custom-eligibility",
+                  "zero-handle-reject",
+                  "empty-raw-bytes-reject",
+                  "body-bit-size-bound",
+                  "object-size-match",
+                  "duplicate-handle-reject",
+                  "custom-owner-reject",
+                  "block-owner-preflight",
+                  "class-registration",
+                  "class-provenance-match",
+                  "raw-handle-decode"
+                ],
+                "relation": "reject",
+                "sourceOffset": 6140
+              },
+              {
+                "callEvidence": {
+                  "line": 5305,
+                  "path": "src/intern/dwgwriter15.cpp",
+                  "spanSha256": "0ef9c7a5ac8debe89141377f0c117506554a4d1c7d9fddebdaf5bb07616fb6a9",
+                  "symbol": "dwgWriter15::replayRawObject"
+                },
+                "callee": "recordRawBlockOwnedEntity",
+                "calleeOverload": "recordRawBlockOwnedEntity(const DRW_UnsupportedObject&)",
+                "edge": "block-owner-record",
+                "guardFingerprint": "bb209f7a4c8cfd33f6659df6cf9167439975c2d7c221d8c75e147c941c481d11",
+                "order": 18,
+                "predecessorEdges": [
+                  "block-control-entity-reject",
+                  "version-match-reject",
+                  "fixed-modeler-eligibility",
+                  "fixed-shell-eligibility",
+                  "surface-eligibility",
+                  "custom-eligibility",
+                  "zero-handle-reject",
+                  "empty-raw-bytes-reject",
+                  "body-bit-size-bound",
+                  "object-size-match",
+                  "duplicate-handle-reject",
+                  "custom-owner-reject",
+                  "block-owner-preflight",
+                  "class-registration",
+                  "class-provenance-match",
+                  "raw-handle-decode",
+                  "body-type-match"
+                ],
+                "relation": "commit-owner-bookkeeping",
+                "sourceOffset": 7328
+              }
+            ],
+            "sourcePath": "src/intern/dwgwriter15.cpp"
+          },
+          {
+            "bodySymbol": "dwgRW::writeRawDwgObject",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 3191,
+                  "path": "src/libdwgr.cpp",
+                  "spanSha256": "ac31a2d802602df43ebfc01de4c1d1f9f50abb3c3e06adf787c4e9235439dc3d",
+                  "symbol": "dwgRW::writeRawDwgObject"
+                },
+                "callee": "object == nullptr",
+                "calleeOverload": "null-check",
+                "edge": "null-object-guard",
+                "guardFingerprint": "4d47cb9fb382af52b6fad7af02400de8123fbbe1d152a9a70cb5928dcc9efde7",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "reject",
+                "sourceOffset": 6
+              },
+              {
+                "callEvidence": {
+                  "line": 3193,
+                  "path": "src/libdwgr.cpp",
+                  "spanSha256": "ac31a2d802602df43ebfc01de4c1d1f9f50abb3c3e06adf787c4e9235439dc3d",
+                  "symbol": "dwgRW::writeRawDwgObject"
+                },
+                "callee": "asWriter15",
+                "calleeOverload": "asWriter15(dwgWriter*)",
+                "edge": "writer-type-guard",
+                "guardFingerprint": "e212d11d701e9537577d9e75ba5359fba3cd93b9a24dd2a5d5f8a733ef5b561e",
+                "order": 2,
+                "predecessorEdges": [
+                  "null-object-guard"
+                ],
+                "relation": "writer-selection",
+                "sourceOffset": 100
+              },
+              {
+                "callEvidence": {
+                  "line": 3196,
+                  "path": "src/libdwgr.cpp",
+                  "spanSha256": "ac31a2d802602df43ebfc01de4c1d1f9f50abb3c3e06adf787c4e9235439dc3d",
+                  "symbol": "dwgRW::writeRawDwgObject"
+                },
+                "callee": "dwgWriter15::replayRawObject",
+                "calleeOverload": "replayRawObject(const DRW_UnsupportedObject&)",
+                "edge": "replay-call",
+                "guardFingerprint": "a1d27fd3aa7ea3504f00652bf8ad1551854377f7a71c75004e9981b814f7260c",
+                "order": 3,
+                "predecessorEdges": [
+                  "null-object-guard",
+                  "writer-type-guard"
+                ],
+                "relation": "raw-object-to-writer",
+                "sourceOffset": 244
+              },
+              {
+                "callEvidence": {
+                  "line": 3198,
+                  "path": "src/libdwgr.cpp",
+                  "spanSha256": "ac31a2d802602df43ebfc01de4c1d1f9f50abb3c3e06adf787c4e9235439dc3d",
+                  "symbol": "dwgRW::writeRawDwgObject"
+                },
+                "callee": "dwgWriter15::rollbackRawObjectClassInstance",
+                "calleeOverload": "rollbackRawObjectClassInstance(const DRW_UnsupportedObject&)",
+                "edge": "rollback-on-failure",
+                "guardFingerprint": "9dfac2a07888b75485a095fc5e2998b00b5410204b5bc8fbee7980c3cad0e68b",
+                "order": 4,
+                "predecessorEdges": [
+                  "null-object-guard",
+                  "writer-type-guard",
+                  "replay-call"
+                ],
+                "relation": "failure-rollback",
+                "sourceOffset": 299
+              }
+            ],
+            "sourcePath": "src/libdwgr.cpp"
+          }
+        ],
         "flow": "dwg",
         "handoffSemantics": "carrier-relationship-not-direct-call",
         "inputRouteIds": [

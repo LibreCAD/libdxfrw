@@ -999,6 +999,53 @@ RAW_DXF_WRITER_EVIDENCE_RULES = {
     },
 }
 
+# DWG raw replay is deliberately a separate contract from the DXF writer
+# guards above.  The target implementation has a façade ingress, a writer15
+# replay gate, an internal class-registration transaction, and a custom
+# block-owned entity bookkeeping branch.  Keep these edges ordered so a
+# seemingly harmless guard move cannot silently change which raw objects are
+# accepted or how their class/owner state is committed.
+DWG_RAW_REPLAY_EVIDENCE_RULES = {
+    "dwg-replay-object": {
+        "src/libdwgr.cpp": {
+            "dwgRW::writeRawDwgObject": (
+                {"name": "null-object-guard", "pattern": r"if\s*\(\s*object\s*==\s*nullptr\s*\)", "callee": "object == nullptr", "calleeOverload": "null-check", "relation": "reject"},
+                {"name": "writer-type-guard", "pattern": r"auto\s*\*w\s*=\s*asWriter15\s*\(\s*writer\s*\)", "callee": "asWriter15", "calleeOverload": "asWriter15(dwgWriter*)", "relation": "writer-selection"},
+                {"name": "replay-call", "pattern": r"\bw->replayRawObject\s*\(\s*\*object\s*\)", "callee": "dwgWriter15::replayRawObject", "calleeOverload": "replayRawObject(const DRW_UnsupportedObject&)", "relation": "raw-object-to-writer"},
+                {"name": "rollback-on-failure", "pattern": r"\bw->rollbackRawObjectClassInstance\s*\(\s*\*object\s*\)", "callee": "dwgWriter15::rollbackRawObjectClassInstance", "calleeOverload": "rollbackRawObjectClassInstance(const DRW_UnsupportedObject&)", "relation": "failure-rollback"},
+            ),
+        },
+        "src/intern/dwgwriter15.cpp": {
+            "dwgWriter15::replayRawObject": (
+                {"name": "block-control-entity-reject", "pattern": r"blockControlEmitted\s*\(\s*\)\s*&&\s*object\.m_isEntity", "callee": "blockControlEmitted", "calleeOverload": "blockControlEmitted()", "relation": "reject"},
+                {"name": "version-match-reject", "pattern": r"object\.m_version\s*!=\s*m_version", "callee": "object.m_version != m_version", "calleeOverload": "version-compatibility-predicate", "relation": "reject"},
+                {"name": "fixed-modeler-eligibility", "pattern": r"!isReplayableFixedModelerRawEntity\s*\(\s*object\s*\)", "callee": "isReplayableFixedModelerRawEntity", "calleeOverload": "isReplayableFixedModelerRawEntity(const DRW_UnsupportedObject&)", "relation": "eligibility"},
+                {"name": "fixed-shell-eligibility", "pattern": r"!isReplayableFixedEntityShellRawEntity\s*\(\s*object\s*\)", "callee": "isReplayableFixedEntityShellRawEntity", "calleeOverload": "isReplayableFixedEntityShellRawEntity(const DRW_UnsupportedObject&)", "relation": "eligibility"},
+                {"name": "surface-eligibility", "pattern": r"!isReplayableSurfaceRawEntity\s*\(\s*object\s*\)", "callee": "isReplayableSurfaceRawEntity", "calleeOverload": "isReplayableSurfaceRawEntity(const DRW_UnsupportedObject&)", "relation": "eligibility"},
+                {"name": "custom-eligibility", "pattern": r"!isReplayableCustomRawEntity\s*\(\s*object\s*\)", "callee": "isReplayableCustomRawEntity", "calleeOverload": "isReplayableCustomRawEntity(const DRW_UnsupportedObject&)", "relation": "eligibility"},
+                {"name": "zero-handle-reject", "pattern": r"object\.m_handle\s*==\s*0", "callee": "object.m_handle == 0", "calleeOverload": "handle-presence-predicate", "relation": "reject"},
+                {"name": "empty-raw-bytes-reject", "pattern": r"object\.m_rawBytes\.empty\s*\(\s*\)", "callee": "object.m_rawBytes.empty", "calleeOverload": "vector::empty()", "relation": "reject"},
+                {"name": "body-bit-size-bound", "pattern": r"static_cast<std::uint64_t>\(object\.m_bodyBitSize\)\s*>\s*static_cast<std::uint64_t>\(object\.m_rawBytes\.size\s*\(\)\s*\)\s*\*\s*8u", "callee": "object.m_bodyBitSize", "calleeOverload": "raw-body-bit-size-bound", "relation": "reject"},
+                {"name": "object-size-match", "pattern": r"object\.m_objectSize\s*!=\s*0", "callee": "object.m_objectSize", "calleeOverload": "raw-object-size-compatibility", "relation": "reject"},
+                {"name": "duplicate-handle-reject", "pattern": r"entry\.first\s*==\s*object\.m_handle", "callee": "m_objectMap", "calleeOverload": "object-handle-uniqueness", "relation": "reject"},
+                {"name": "custom-owner-reject", "pattern": r"object\.m_blockOwnerHandle\s*!=\s*DRW::NoHandle\s*&&\s*object\.m_parentHandle\s*==\s*DRW::NoHandle", "callee": "raw block-owner relationship", "calleeOverload": "custom-entity-owner-compatibility", "relation": "reject"},
+                {"name": "block-owner-preflight", "pattern": r"canRecordRawBlockOwnedEntity\s*\(\s*object\s*\)", "callee": "canRecordRawBlockOwnedEntity", "calleeOverload": "canRecordRawBlockOwnedEntity(const DRW_UnsupportedObject&)", "relation": "conditional-reject"},
+                {"name": "class-registration", "pattern": r"registerRawObjectClass\s*\(\s*object\s*\)", "callee": "registerRawObjectClass", "calleeOverload": "registerRawObjectClass(const DRW_UnsupportedObject&)", "relation": "transaction-begin"},
+                {"name": "class-provenance-match", "pattern": r"m_currentDwgObjectFrameProvenance\.classNumber\s*!=\s*writerType", "callee": "m_currentDwgObjectFrameProvenance.classNumber", "calleeOverload": "raw-frame-provenance", "relation": "reject"},
+                {"name": "raw-handle-decode", "pattern": r"readRawObjectHandle\s*\(\s*\*bodyBytes\s*,\s*m_version\s*,\s*encodedHandle\s*\)", "callee": "readRawObjectHandle", "calleeOverload": "readRawObjectHandle(const vector<uint8_t>&,DRW::Version,dwgHandle&)", "relation": "raw-frame-parse"},
+                {"name": "body-type-match", "pattern": r"actualType\s*!=\s*writerType", "callee": "dwgBuffer::getObjType", "calleeOverload": "getObjType(DRW::Version)", "relation": "reject"},
+                {"name": "block-owner-record", "pattern": r"recordRawBlockOwnedEntity\s*\(\s*object\s*\)", "callee": "recordRawBlockOwnedEntity", "calleeOverload": "recordRawBlockOwnedEntity(const DRW_UnsupportedObject&)", "relation": "commit-owner-bookkeeping"},
+            ),
+            "dwgWriter15::recordRawBlockOwnedEntity": (
+                {"name": "block-owner-preflight", "pattern": r"canRecordRawBlockOwnedEntity\s*\(\s*object\s*\)", "callee": "canRecordRawBlockOwnedEntity", "calleeOverload": "canRecordRawBlockOwnedEntity(const DRW_UnsupportedObject&)", "relation": "conditional-reject"},
+                {"name": "space-owner-append", "pattern": r"handles\.push_back\s*\(\s*object\.m_handle\s*\)", "callee": "entityHandles", "calleeOverload": "owned-entity-handle-vector", "relation": "commit-owner-bookkeeping"},
+                {"name": "user-block-owner-lookup", "pattern": r"std::find_if\s*\(\s*m_userBlocks\.begin", "callee": "m_userBlocks", "calleeOverload": "pending-user-block-lookup", "relation": "owner-selection"},
+                {"name": "user-block-owner-append", "pattern": r"owner->entityHandles\.push_back\s*\(\s*object\.m_handle\s*\)", "callee": "PendingUserBlock::entityHandles", "calleeOverload": "owned-entity-handle-vector", "relation": "commit-owner-bookkeeping"},
+            ),
+        },
+    },
+}
+
 # These route nodes cover the deliberate deferred/publication machinery that
 # cannot truthfully be reduced to one local parser-function → callback call.
 # A staged parser row must point to at least one of these exact anchors.
@@ -3190,6 +3237,42 @@ def raw_writer_metadata(node_name: str, tree: SourceTree, bodies: list[FunctionB
     return rows
 
 
+def dwg_raw_replay_metadata(
+    node_name: str, tree: SourceTree, bodies: list[FunctionBody]
+) -> list[dict]:
+    """Attach exact DWG raw replay ingress, guards, and commit edges."""
+    rules = DWG_RAW_REPLAY_EVIDENCE_RULES.get(node_name)
+    if rules is None:
+        return []
+    body_by_symbol = {body.symbol: body for body in bodies}
+    rows: list[dict] = []
+    for path, path_rules in sorted(rules.items()):
+        source = tree.require(path)
+        for symbol, edge_specs in sorted(path_rules.items()):
+            body = body_by_symbol.get(symbol)
+            if body is None:
+                found = function_bodies(source, symbol)
+                if len(found) != 1:
+                    raise RouteError(
+                        "DWG raw replay call-site anchor is not unique: %s" % symbol
+                    )
+                body = found[0]
+            if body.source.path != path:
+                raise RouteError("DWG raw replay body path changed: %s" % symbol)
+            rows.append(
+                {
+                    "sourcePath": path,
+                    "bodySymbol": symbol,
+                    "edges": raw_eligibility_edge_rows(body, edge_specs),
+                }
+            )
+    expected = {(path, symbol) for path, path_rules in rules.items() for symbol in path_rules}
+    observed = {(row["sourcePath"], row["bodySymbol"]) for row in rows}
+    if observed != expected:
+        raise RouteError("DWG raw replay body coverage changed: %s" % node_name)
+    return rows
+
+
 def add_raw_flow_routes(collector: RouteCollector, tree: SourceTree) -> None:
     """Close raw carriers, guards, handoffs, and replay phases explicitly."""
     inputs = raw_flow_inputs_by_name()
@@ -3259,6 +3342,10 @@ def add_raw_flow_routes(collector: RouteCollector, tree: SourceTree) -> None:
             )
         if name in RAW_DXF_WRITER_EVIDENCE_RULES:
             selector["rawWriterEvidence"] = raw_writer_metadata(
+                name, tree, evidence_bodies
+            )
+        if name in DWG_RAW_REPLAY_EVIDENCE_RULES:
+            selector["dwgRawReplayEvidence"] = dwg_raw_replay_metadata(
                 name, tree, evidence_bodies
             )
         if phase == "publication":
@@ -5219,6 +5306,59 @@ def validate_raw_writer_metadata(tree: SourceTree, route: dict) -> None:
             _validate_raw_publication_location(
                 edge.get("callEvidence"), tree, {symbol}, "raw-writer", route["id"]
             )
+
+
+def validate_dwg_raw_replay_metadata(tree: SourceTree, route: dict) -> None:
+    """Fail closed on DWG raw replay identity and ordered writer edges."""
+    name = route["selector"].get("name")
+    rules = DWG_RAW_REPLAY_EVIDENCE_RULES.get(name)
+    if rules is None:
+        if route["selector"].get("dwgRawReplayEvidence", []) not in ([], None):
+            raise RouteError("unexpected DWG raw replay evidence: %s" % route["id"])
+        return
+    rows = route["selector"].get("dwgRawReplayEvidence")
+    expected = {(path, symbol) for path, path_rules in rules.items() for symbol in path_rules}
+    if not isinstance(rows, list) or {
+        (row.get("sourcePath"), row.get("bodySymbol"))
+        for row in rows if isinstance(row, dict)
+    } != expected:
+        raise RouteError("DWG raw replay body coverage changed: %s" % route["id"])
+    seen: set[tuple[str, str]] = set()
+    for row in rows:
+        if not isinstance(row, dict):
+            raise RouteError("DWG raw replay row is malformed: %s" % route["id"])
+        path = row.get("sourcePath")
+        symbol = row.get("bodySymbol")
+        key = (path, symbol)
+        if key not in expected or key in seen:
+            raise RouteError("DWG raw replay row is duplicated or unexpected: %s" % route["id"])
+        seen.add(key)
+        edge_specs = rules[path][symbol]
+        names = tuple(spec["name"] for spec in edge_specs)
+        edges = row.get("edges")
+        if not isinstance(edges, list) or len(edges) != len(names):
+            raise RouteError("DWG raw replay edge count changed: %s" % route["id"])
+        previous_offset = -1
+        for order, edge in enumerate(edges, 1):
+            if (
+                not isinstance(edge, dict)
+                or edge.get("edge") != names[order - 1]
+                or edge.get("order") != order
+                or edge.get("predecessorEdges") != list(names[: order - 1])
+                or not isinstance(edge.get("callee"), str)
+                or not isinstance(edge.get("calleeOverload"), str)
+                or not isinstance(edge.get("relation"), str)
+                or not isinstance(edge.get("sourceOffset"), int)
+                or edge["sourceOffset"] <= previous_offset
+                or not isinstance(edge.get("guardFingerprint"), str)
+            ):
+                raise RouteError("DWG raw replay edge contract changed: %s" % route["id"])
+            previous_offset = edge["sourceOffset"]
+            _validate_raw_publication_location(
+                edge.get("callEvidence"), tree, {symbol}, "dwg-raw-replay", route["id"]
+            )
+            if edge["callEvidence"]["path"] != path:
+                raise RouteError("DWG raw replay edge path changed: %s" % route["id"])
 
 
 def validate_named_publication_selector(
@@ -7200,6 +7340,7 @@ def validate_pipeline_closure(tree: SourceTree, inventory: dict[str, list[dict]]
             raise RouteError("raw-flow node has incorrect reviewed directions: %s" % name)
         validate_raw_eligibility_metadata(tree, raw_by_name[name])
         validate_raw_writer_metadata(tree, raw_by_name[name])
+        validate_dwg_raw_replay_metadata(tree, raw_by_name[name])
         validate_raw_route_publication_metadata(
             tree, raw_by_name[name], raw_ids, model_route_ids, callback_route_ids
         )
@@ -8669,6 +8810,61 @@ bool dxfRW::probe() {
         pass
     else:
         raise AssertionError("raw eligibility order inversion was accepted")
+    dwg_replay_specs = DWG_RAW_REPLAY_EVIDENCE_RULES["dwg-replay-object"][
+        "src/intern/dwgwriter15.cpp"
+    ]["dwgWriter15::replayRawObject"]
+    dwg_replay_source = SourceFile(
+        "src/intern/dwgwriter15.cpp",
+        """
+bool dwgWriter15::replayRawObject(const DRW_UnsupportedObject& object) {
+    if (blockControlEmitted() && object.m_isEntity) return false;
+    if (object.m_version != m_version) return false;
+    if (object.m_isEntity && !isReplayableFixedModelerRawEntity(object)
+        && !isReplayableFixedEntityShellRawEntity(object)
+        && !isReplayableSurfaceRawEntity(object)
+        && !isReplayableCustomRawEntity(object)) return false;
+    if (object.m_handle == 0 || object.m_rawBytes.empty()) return false;
+    if (static_cast<std::uint64_t>(object.m_bodyBitSize)
+        > static_cast<std::uint64_t>(object.m_rawBytes.size()) * 8u) return false;
+    if (object.m_objectSize != 0) return false;
+    if (entry.first == object.m_handle) return false;
+    if (object.m_blockOwnerHandle != DRW::NoHandle
+        && object.m_parentHandle == DRW::NoHandle) return false;
+    if (replayableCustomEntity && !canRecordRawBlockOwnedEntity(object)) return false;
+    if (!registerRawObjectClass(object)) return false;
+    if (m_currentDwgObjectFrameProvenance.classNumber != writerType) return false;
+    if (!readRawObjectHandle(*bodyBytes, m_version, encodedHandle)) return false;
+    if (!typeReader.isGood() || actualType != writerType) return false;
+    if (replayableCustomEntity && !recordRawBlockOwnedEntity(object)) return false;
+    return true;
+}
+""",
+        "d" * 64,
+    )
+    dwg_replay_body = function_body(
+        dwg_replay_source, "dwgWriter15::replayRawObject"
+    )
+    dwg_replay_rows = raw_eligibility_edge_rows(dwg_replay_body, dwg_replay_specs)
+    assert [row["edge"] for row in dwg_replay_rows] == [
+        spec["name"] for spec in dwg_replay_specs
+    ]
+    reversed_dwg_replay = SourceFile(
+        dwg_replay_source.path,
+        dwg_replay_source.text.replace(
+            "if (blockControlEmitted() && object.m_isEntity) return false;\n    if (object.m_version != m_version)",
+            "if (object.m_version != m_version) return false;\n    if (blockControlEmitted() && object.m_isEntity)",
+        ),
+        dwg_replay_source.git_blob,
+    )
+    try:
+        raw_eligibility_edge_rows(
+            function_body(reversed_dwg_replay, "dwgWriter15::replayRawObject"),
+            dwg_replay_specs,
+        )
+    except RouteError:
+        pass
+    else:
+        raise AssertionError("DWG raw replay guard order inversion was accepted")
     transport_source = SourceFile(
         "src/transport.cpp",
         """
