@@ -52478,664 +52478,1197 @@
         "unblockCondition": "none"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "N:1",
         "category": "group-code-raw-rule",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "dxfRW/group-code-reader-range/0-9"
+        ],
+        "disposition": "compatibility-extension",
+        "domainEvidence": {
+          "sourceCodeDomain": [
+            [
+              0,
+              9
+            ]
+          ],
+          "sourceValue": "RawValType::Str",
+          "standaloneRangeIds": [
+            "dxfRW/group-code-reader-range/0-9"
+          ]
+        },
         "facade": "dxfRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "compatibility-adapted",
+        "mappingKind": "domain-alias",
         "ownerPaths": [
           "src/libdxfrw.cpp"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "dxfRW/group-code-reader-range/0-9"
+        ],
         "targetRouteId": "dxfRW/group-code-raw-rule/condition-001",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "N:1",
         "category": "group-code-raw-rule",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "dxfRW/group-code-reader-range/10-59"
+        ],
+        "disposition": "compatibility-extension",
+        "domainEvidence": {
+          "sourceCodeDomain": [
+            [
+              10,
+              59
+            ]
+          ],
+          "sourceValue": "RawValType::Dbl",
+          "standaloneRangeIds": [
+            "dxfRW/group-code-reader-range/10-59"
+          ]
+        },
         "facade": "dxfRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "compatibility-adapted",
+        "mappingKind": "domain-alias",
         "ownerPaths": [
           "src/libdxfrw.cpp"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "dxfRW/group-code-reader-range/10-59"
+        ],
         "targetRouteId": "dxfRW/group-code-raw-rule/condition-002",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "N:1",
         "category": "group-code-raw-rule",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "dxfRW/group-code-reader-range/60-79"
+        ],
+        "disposition": "compatibility-extension",
+        "domainEvidence": {
+          "sourceCodeDomain": [
+            [
+              60,
+              79
+            ]
+          ],
+          "sourceValue": "RawValType::Int16",
+          "standaloneRangeIds": [
+            "dxfRW/group-code-reader-range/60-79"
+          ]
+        },
         "facade": "dxfRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "compatibility-adapted",
+        "mappingKind": "domain-alias",
         "ownerPaths": [
           "src/libdxfrw.cpp"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "dxfRW/group-code-reader-range/60-79"
+        ],
         "targetRouteId": "dxfRW/group-code-raw-rule/condition-003",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "N:1",
         "category": "group-code-raw-rule",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "dxfRW/group-code-reader-range/80-89"
+        ],
+        "disposition": "compatibility-extension",
+        "domainEvidence": {
+          "sourceCodeDomain": [
+            [
+              80,
+              89
+            ]
+          ],
+          "sourceValue": "RawValType::Str",
+          "standaloneRangeIds": [
+            "dxfRW/group-code-reader-range/80-89"
+          ]
+        },
         "facade": "dxfRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "compatibility-adapted",
+        "mappingKind": "domain-alias",
         "ownerPaths": [
           "src/libdxfrw.cpp"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "dxfRW/group-code-reader-range/80-89"
+        ],
         "targetRouteId": "dxfRW/group-code-raw-rule/condition-004",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "N:1",
         "category": "group-code-raw-rule",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "dxfRW/group-code-reader-range/90-99"
+        ],
+        "disposition": "compatibility-extension",
+        "domainEvidence": {
+          "sourceCodeDomain": [
+            [
+              90,
+              99
+            ]
+          ],
+          "sourceValue": "RawValType::Int32",
+          "standaloneRangeIds": [
+            "dxfRW/group-code-reader-range/90-99"
+          ]
+        },
         "facade": "dxfRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "compatibility-adapted",
+        "mappingKind": "domain-alias",
         "ownerPaths": [
           "src/libdxfrw.cpp"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "dxfRW/group-code-reader-range/90-99"
+        ],
         "targetRouteId": "dxfRW/group-code-raw-rule/condition-005",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "N:1",
         "category": "group-code-raw-rule",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "dxfRW/group-code-reader-range/100-109"
+        ],
+        "disposition": "compatibility-extension",
+        "domainEvidence": {
+          "sourceCodeDomain": [
+            [
+              100,
+              109
+            ]
+          ],
+          "sourceValue": "RawValType::Str",
+          "standaloneRangeIds": [
+            "dxfRW/group-code-reader-range/100-109"
+          ]
+        },
         "facade": "dxfRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "compatibility-adapted",
+        "mappingKind": "domain-alias",
         "ownerPaths": [
           "src/libdxfrw.cpp"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "dxfRW/group-code-reader-range/100-109"
+        ],
         "targetRouteId": "dxfRW/group-code-raw-rule/condition-006",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "N:1",
         "category": "group-code-raw-rule",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "dxfRW/group-code-reader-range/110-149"
+        ],
+        "disposition": "compatibility-extension",
+        "domainEvidence": {
+          "sourceCodeDomain": [
+            [
+              110,
+              149
+            ]
+          ],
+          "sourceValue": "RawValType::Dbl",
+          "standaloneRangeIds": [
+            "dxfRW/group-code-reader-range/110-149"
+          ]
+        },
         "facade": "dxfRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "compatibility-adapted",
+        "mappingKind": "domain-alias",
         "ownerPaths": [
           "src/libdxfrw.cpp"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "dxfRW/group-code-reader-range/110-149"
+        ],
         "targetRouteId": "dxfRW/group-code-raw-rule/condition-007",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "N:1",
         "category": "group-code-raw-rule",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "dxfRW/group-code-reader-range/150-159"
+        ],
+        "disposition": "compatibility-extension",
+        "domainEvidence": {
+          "sourceCodeDomain": [
+            [
+              150,
+              159
+            ]
+          ],
+          "sourceValue": "RawValType::Str",
+          "standaloneRangeIds": [
+            "dxfRW/group-code-reader-range/150-159"
+          ]
+        },
         "facade": "dxfRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "compatibility-adapted",
+        "mappingKind": "domain-alias",
         "ownerPaths": [
           "src/libdxfrw.cpp"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "dxfRW/group-code-reader-range/150-159"
+        ],
         "targetRouteId": "dxfRW/group-code-raw-rule/condition-008",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "N:1",
         "category": "group-code-raw-rule",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "dxfRW/group-code-reader-range/160-169"
+        ],
+        "disposition": "compatibility-extension",
+        "domainEvidence": {
+          "sourceCodeDomain": [
+            [
+              160,
+              169
+            ]
+          ],
+          "sourceValue": "RawValType::Int64",
+          "standaloneRangeIds": [
+            "dxfRW/group-code-reader-range/160-169"
+          ]
+        },
         "facade": "dxfRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "compatibility-adapted",
+        "mappingKind": "domain-alias",
         "ownerPaths": [
           "src/libdxfrw.cpp"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "dxfRW/group-code-reader-range/160-169"
+        ],
         "targetRouteId": "dxfRW/group-code-raw-rule/condition-009",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "N:1",
         "category": "group-code-raw-rule",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "dxfRW/group-code-reader-range/170-179"
+        ],
+        "disposition": "compatibility-extension",
+        "domainEvidence": {
+          "sourceCodeDomain": [
+            [
+              170,
+              179
+            ]
+          ],
+          "sourceValue": "RawValType::Int16",
+          "standaloneRangeIds": [
+            "dxfRW/group-code-reader-range/170-179"
+          ]
+        },
         "facade": "dxfRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "compatibility-adapted",
+        "mappingKind": "domain-alias",
         "ownerPaths": [
           "src/libdxfrw.cpp"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "dxfRW/group-code-reader-range/170-179"
+        ],
         "targetRouteId": "dxfRW/group-code-raw-rule/condition-010",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "N:1",
         "category": "group-code-raw-rule",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "dxfRW/group-code-reader-range/180-209"
+        ],
+        "disposition": "compatibility-extension",
+        "domainEvidence": {
+          "sourceCodeDomain": [
+            [
+              180,
+              209
+            ]
+          ],
+          "sourceValue": "RawValType::Str",
+          "standaloneRangeIds": [
+            "dxfRW/group-code-reader-range/180-209"
+          ]
+        },
         "facade": "dxfRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "compatibility-adapted",
+        "mappingKind": "domain-alias",
         "ownerPaths": [
           "src/libdxfrw.cpp"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "dxfRW/group-code-reader-range/180-209"
+        ],
         "targetRouteId": "dxfRW/group-code-raw-rule/condition-011",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "N:1",
         "category": "group-code-raw-rule",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "dxfRW/group-code-reader-range/210-259"
+        ],
+        "disposition": "compatibility-extension",
+        "domainEvidence": {
+          "sourceCodeDomain": [
+            [
+              210,
+              259
+            ]
+          ],
+          "sourceValue": "RawValType::Dbl",
+          "standaloneRangeIds": [
+            "dxfRW/group-code-reader-range/210-259"
+          ]
+        },
         "facade": "dxfRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "compatibility-adapted",
+        "mappingKind": "domain-alias",
         "ownerPaths": [
           "src/libdxfrw.cpp"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "dxfRW/group-code-reader-range/210-259"
+        ],
         "targetRouteId": "dxfRW/group-code-raw-rule/condition-012",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "1:N",
         "category": "group-code-raw-rule",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "dxfRW/group-code-reader-range/260-269",
+          "dxfRW/group-code-reader-range/270-289"
+        ],
+        "disposition": "compatibility-extension",
+        "domainEvidence": {
+          "sourceCodeDomain": [
+            [
+              260,
+              289
+            ]
+          ],
+          "sourceValue": "RawValType::Int16",
+          "standaloneRangeIds": [
+            "dxfRW/group-code-reader-range/260-269",
+            "dxfRW/group-code-reader-range/270-289"
+          ]
+        },
         "facade": "dxfRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "compatibility-adapted",
+        "mappingKind": "domain-alias",
         "ownerPaths": [
           "src/libdxfrw.cpp"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "dxfRW/group-code-reader-range/260-269",
+          "dxfRW/group-code-reader-range/270-289"
+        ],
         "targetRouteId": "dxfRW/group-code-raw-rule/condition-013",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "N:1",
         "category": "group-code-raw-rule",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "dxfRW/group-code-reader-range/290-299"
+        ],
+        "disposition": "compatibility-extension",
+        "domainEvidence": {
+          "sourceCodeDomain": [
+            [
+              290,
+              299
+            ]
+          ],
+          "sourceValue": "RawValType::Bool",
+          "standaloneRangeIds": [
+            "dxfRW/group-code-reader-range/290-299"
+          ]
+        },
         "facade": "dxfRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "compatibility-adapted",
+        "mappingKind": "domain-alias",
         "ownerPaths": [
           "src/libdxfrw.cpp"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "dxfRW/group-code-reader-range/290-299"
+        ],
         "targetRouteId": "dxfRW/group-code-raw-rule/condition-014",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "N:1",
         "category": "group-code-raw-rule",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "dxfRW/group-code-reader-range/300-309"
+        ],
+        "disposition": "compatibility-extension",
+        "domainEvidence": {
+          "sourceCodeDomain": [
+            [
+              300,
+              309
+            ]
+          ],
+          "sourceValue": "RawValType::Str",
+          "standaloneRangeIds": [
+            "dxfRW/group-code-reader-range/300-309"
+          ]
+        },
         "facade": "dxfRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "compatibility-adapted",
+        "mappingKind": "domain-alias",
         "ownerPaths": [
           "src/libdxfrw.cpp"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "dxfRW/group-code-reader-range/300-309"
+        ],
         "targetRouteId": "dxfRW/group-code-raw-rule/condition-015",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "N:1",
         "category": "group-code-raw-rule",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "dxfRW/group-code-reader-range/310-319"
+        ],
+        "disposition": "compatibility-extension",
+        "domainEvidence": {
+          "sourceCodeDomain": [
+            [
+              310,
+              319
+            ]
+          ],
+          "sourceValue": "RawValType::Str",
+          "standaloneRangeIds": [
+            "dxfRW/group-code-reader-range/310-319"
+          ]
+        },
         "facade": "dxfRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "compatibility-adapted",
+        "mappingKind": "domain-alias",
         "ownerPaths": [
           "src/libdxfrw.cpp"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "dxfRW/group-code-reader-range/310-319"
+        ],
         "targetRouteId": "dxfRW/group-code-raw-rule/condition-016",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "N:1",
         "category": "group-code-raw-rule",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "dxfRW/group-code-reader-range/320-369"
+        ],
+        "disposition": "compatibility-extension",
+        "domainEvidence": {
+          "sourceCodeDomain": [
+            [
+              320,
+              369
+            ]
+          ],
+          "sourceValue": "RawValType::Str",
+          "standaloneRangeIds": [
+            "dxfRW/group-code-reader-range/320-369"
+          ]
+        },
         "facade": "dxfRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "compatibility-adapted",
+        "mappingKind": "domain-alias",
         "ownerPaths": [
           "src/libdxfrw.cpp"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "dxfRW/group-code-reader-range/320-369"
+        ],
         "targetRouteId": "dxfRW/group-code-raw-rule/condition-017",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "N:1",
         "category": "group-code-raw-rule",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "dxfRW/group-code-reader-range/370-389"
+        ],
+        "disposition": "compatibility-extension",
+        "domainEvidence": {
+          "sourceCodeDomain": [
+            [
+              370,
+              389
+            ]
+          ],
+          "sourceValue": "RawValType::Int16",
+          "standaloneRangeIds": [
+            "dxfRW/group-code-reader-range/370-389"
+          ]
+        },
         "facade": "dxfRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "compatibility-adapted",
+        "mappingKind": "domain-alias",
         "ownerPaths": [
           "src/libdxfrw.cpp"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "dxfRW/group-code-reader-range/370-389"
+        ],
         "targetRouteId": "dxfRW/group-code-raw-rule/condition-018",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "N:1",
         "category": "group-code-raw-rule",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "dxfRW/group-code-reader-range/390-399"
+        ],
+        "disposition": "compatibility-extension",
+        "domainEvidence": {
+          "sourceCodeDomain": [
+            [
+              390,
+              399
+            ]
+          ],
+          "sourceValue": "RawValType::Str",
+          "standaloneRangeIds": [
+            "dxfRW/group-code-reader-range/390-399"
+          ]
+        },
         "facade": "dxfRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "compatibility-adapted",
+        "mappingKind": "domain-alias",
         "ownerPaths": [
           "src/libdxfrw.cpp"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "dxfRW/group-code-reader-range/390-399"
+        ],
         "targetRouteId": "dxfRW/group-code-raw-rule/condition-019",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "N:1",
         "category": "group-code-raw-rule",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "dxfRW/group-code-reader-range/400-409"
+        ],
+        "disposition": "compatibility-extension",
+        "domainEvidence": {
+          "sourceCodeDomain": [
+            [
+              400,
+              409
+            ]
+          ],
+          "sourceValue": "RawValType::Int16",
+          "standaloneRangeIds": [
+            "dxfRW/group-code-reader-range/400-409"
+          ]
+        },
         "facade": "dxfRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "compatibility-adapted",
+        "mappingKind": "domain-alias",
         "ownerPaths": [
           "src/libdxfrw.cpp"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "dxfRW/group-code-reader-range/400-409"
+        ],
         "targetRouteId": "dxfRW/group-code-raw-rule/condition-020",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "N:1",
         "category": "group-code-raw-rule",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "dxfRW/group-code-reader-range/410-419"
+        ],
+        "disposition": "compatibility-extension",
+        "domainEvidence": {
+          "sourceCodeDomain": [
+            [
+              410,
+              419
+            ]
+          ],
+          "sourceValue": "RawValType::Str",
+          "standaloneRangeIds": [
+            "dxfRW/group-code-reader-range/410-419"
+          ]
+        },
         "facade": "dxfRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "compatibility-adapted",
+        "mappingKind": "domain-alias",
         "ownerPaths": [
           "src/libdxfrw.cpp"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "dxfRW/group-code-reader-range/410-419"
+        ],
         "targetRouteId": "dxfRW/group-code-raw-rule/condition-021",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "N:1",
         "category": "group-code-raw-rule",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "dxfRW/group-code-reader-range/420-429"
+        ],
+        "disposition": "compatibility-extension",
+        "domainEvidence": {
+          "sourceCodeDomain": [
+            [
+              420,
+              429
+            ]
+          ],
+          "sourceValue": "RawValType::Int32",
+          "standaloneRangeIds": [
+            "dxfRW/group-code-reader-range/420-429"
+          ]
+        },
         "facade": "dxfRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "compatibility-adapted",
+        "mappingKind": "domain-alias",
         "ownerPaths": [
           "src/libdxfrw.cpp"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "dxfRW/group-code-reader-range/420-429"
+        ],
         "targetRouteId": "dxfRW/group-code-raw-rule/condition-022",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "N:1",
         "category": "group-code-raw-rule",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "dxfRW/group-code-reader-range/430-439"
+        ],
+        "disposition": "compatibility-extension",
+        "domainEvidence": {
+          "sourceCodeDomain": [
+            [
+              430,
+              439
+            ]
+          ],
+          "sourceValue": "RawValType::Str",
+          "standaloneRangeIds": [
+            "dxfRW/group-code-reader-range/430-439"
+          ]
+        },
         "facade": "dxfRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "compatibility-adapted",
+        "mappingKind": "domain-alias",
         "ownerPaths": [
           "src/libdxfrw.cpp"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "dxfRW/group-code-reader-range/430-439"
+        ],
         "targetRouteId": "dxfRW/group-code-raw-rule/condition-023",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "N:1",
         "category": "group-code-raw-rule",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "dxfRW/group-code-reader-range/440-459"
+        ],
+        "disposition": "compatibility-extension",
+        "domainEvidence": {
+          "sourceCodeDomain": [
+            [
+              440,
+              449
+            ]
+          ],
+          "sourceValue": "RawValType::Int32",
+          "standaloneRangeIds": [
+            "dxfRW/group-code-reader-range/440-459"
+          ]
+        },
         "facade": "dxfRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "compatibility-adapted",
+        "mappingKind": "domain-alias",
         "ownerPaths": [
           "src/libdxfrw.cpp"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "dxfRW/group-code-reader-range/440-459"
+        ],
         "targetRouteId": "dxfRW/group-code-raw-rule/condition-024",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "N:1",
         "category": "group-code-raw-rule",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "dxfRW/group-code-reader-range/440-459"
+        ],
+        "disposition": "compatibility-extension",
+        "domainEvidence": {
+          "sourceCodeDomain": [
+            [
+              450,
+              459
+            ]
+          ],
+          "sourceValue": "RawValType::Int32",
+          "standaloneRangeIds": [
+            "dxfRW/group-code-reader-range/440-459"
+          ]
+        },
         "facade": "dxfRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "compatibility-adapted",
+        "mappingKind": "domain-alias",
         "ownerPaths": [
           "src/libdxfrw.cpp"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "dxfRW/group-code-reader-range/440-459"
+        ],
         "targetRouteId": "dxfRW/group-code-raw-rule/condition-025",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "N:1",
         "category": "group-code-raw-rule",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "dxfRW/group-code-reader-range/460-469"
+        ],
+        "disposition": "compatibility-extension",
+        "domainEvidence": {
+          "sourceCodeDomain": [
+            [
+              460,
+              469
+            ]
+          ],
+          "sourceValue": "RawValType::Dbl",
+          "standaloneRangeIds": [
+            "dxfRW/group-code-reader-range/460-469"
+          ]
+        },
         "facade": "dxfRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "compatibility-adapted",
+        "mappingKind": "domain-alias",
         "ownerPaths": [
           "src/libdxfrw.cpp"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "dxfRW/group-code-reader-range/460-469"
+        ],
         "targetRouteId": "dxfRW/group-code-raw-rule/condition-026",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "N:1",
         "category": "group-code-raw-rule",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "dxfRW/group-code-reader-range/470-481"
+        ],
+        "disposition": "compatibility-extension",
+        "domainEvidence": {
+          "sourceCodeDomain": [
+            [
+              470,
+              481
+            ]
+          ],
+          "sourceValue": "RawValType::Str",
+          "standaloneRangeIds": [
+            "dxfRW/group-code-reader-range/470-481"
+          ]
+        },
         "facade": "dxfRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "compatibility-adapted",
+        "mappingKind": "domain-alias",
         "ownerPaths": [
           "src/libdxfrw.cpp"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "dxfRW/group-code-reader-range/470-481"
+        ],
         "targetRouteId": "dxfRW/group-code-raw-rule/condition-027",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "N:1",
         "category": "group-code-raw-rule",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "dxfRW/group-code-reader-range/1004-1004"
+        ],
+        "disposition": "compatibility-extension",
+        "domainEvidence": {
+          "sourceCodeDomain": [
+            [
+              1004,
+              1004
+            ]
+          ],
+          "sourceValue": "RawValType::Str",
+          "standaloneRangeIds": [
+            "dxfRW/group-code-reader-range/1004-1004"
+          ]
+        },
         "facade": "dxfRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "compatibility-adapted",
+        "mappingKind": "domain-alias",
         "ownerPaths": [
           "src/libdxfrw.cpp"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "dxfRW/group-code-reader-range/1004-1004"
+        ],
         "targetRouteId": "dxfRW/group-code-raw-rule/condition-028",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "1:N",
         "category": "group-code-raw-rule",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "dxfRW/group-code-reader-range/1005-1008",
+          "dxfRW/group-code-reader-range/999-1003"
+        ],
+        "disposition": "compatibility-extension",
+        "domainEvidence": {
+          "sourceCodeDomain": [
+            [
+              999,
+              1003
+            ],
+            [
+              1005,
+              1008
+            ]
+          ],
+          "sourceValue": "RawValType::Str",
+          "standaloneRangeIds": [
+            "dxfRW/group-code-reader-range/1005-1008",
+            "dxfRW/group-code-reader-range/999-1003"
+          ]
+        },
         "facade": "dxfRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "compatibility-adapted",
+        "mappingKind": "domain-alias",
         "ownerPaths": [
           "src/libdxfrw.cpp"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "dxfRW/group-code-reader-range/1005-1008",
+          "dxfRW/group-code-reader-range/999-1003"
+        ],
         "targetRouteId": "dxfRW/group-code-raw-rule/condition-029",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "1:N",
         "category": "group-code-raw-rule",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "dxfRW/group-code-reader-range/1009-1059",
+          "dxfRW/group-code-reader-range/482-998"
+        ],
+        "disposition": "compatibility-extension",
+        "domainEvidence": {
+          "sourceCodeDomain": [
+            [
+              482,
+              998
+            ],
+            [
+              1009,
+              1059
+            ]
+          ],
+          "sourceValue": "RawValType::Dbl",
+          "standaloneRangeIds": [
+            "dxfRW/group-code-reader-range/1009-1059",
+            "dxfRW/group-code-reader-range/482-998"
+          ]
+        },
         "facade": "dxfRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "compatibility-adapted",
+        "mappingKind": "domain-alias",
         "ownerPaths": [
           "src/libdxfrw.cpp"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "dxfRW/group-code-reader-range/1009-1059",
+          "dxfRW/group-code-reader-range/482-998"
+        ],
         "targetRouteId": "dxfRW/group-code-raw-rule/condition-030",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "N:1",
         "category": "group-code-raw-rule",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "dxfRW/group-code-reader-range/1060-1070"
+        ],
+        "disposition": "compatibility-extension",
+        "domainEvidence": {
+          "sourceCodeDomain": [
+            [
+              1060,
+              1070
+            ]
+          ],
+          "sourceValue": "RawValType::Int16",
+          "standaloneRangeIds": [
+            "dxfRW/group-code-reader-range/1060-1070"
+          ]
+        },
         "facade": "dxfRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "compatibility-adapted",
+        "mappingKind": "domain-alias",
         "ownerPaths": [
           "src/libdxfrw.cpp"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "dxfRW/group-code-reader-range/1060-1070"
+        ],
         "targetRouteId": "dxfRW/group-code-raw-rule/condition-031",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "N:1",
         "category": "group-code-raw-rule",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "dxfRW/group-code-reader-range/1071-1071"
+        ],
+        "disposition": "compatibility-extension",
+        "domainEvidence": {
+          "sourceCodeDomain": [
+            [
+              1071,
+              1071
+            ]
+          ],
+          "sourceValue": "RawValType::Int32",
+          "standaloneRangeIds": [
+            "dxfRW/group-code-reader-range/1071-1071"
+          ]
+        },
         "facade": "dxfRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "compatibility-adapted",
+        "mappingKind": "domain-alias",
         "ownerPaths": [
           "src/libdxfrw.cpp"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "dxfRW/group-code-reader-range/1071-1071"
+        ],
         "targetRouteId": "dxfRW/group-code-raw-rule/condition-032",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
-        "cardinality": "1:0",
+        "cardinality": "1:1",
         "category": "group-code-raw-rule",
         "deltaClasses": [
-          "route-presence"
+          "route-identity"
         ],
-        "dependencies": [],
-        "disposition": "target-debt",
+        "dependencies": [
+          "dxfRW/group-code-raw-rule/default"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "dxfRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "target-only",
-        "mappingKind": "target-only",
+        "implementationState": "compatibility-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/libdxfrw.cpp"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
-        "standaloneRouteIds": [],
+        "standaloneRouteIds": [
+          "dxfRW/group-code-raw-rule/default"
+        ],
         "targetRouteId": "dxfRW/group-code-raw-rule/fallback",
-        "unblockCondition": "review a non-overlapping standalone alias or implement the target route"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -122048,7 +122581,6 @@
       "dxfRW/group-code-raw-rule/DxfValueKind_I64",
       "dxfRW/group-code-raw-rule/DxfValueKind_Str",
       "dxfRW/group-code-raw-rule/DxfValueKind_Unknown",
-      "dxfRW/group-code-raw-rule/default",
       "dxfRW/public-method/src_libdxfrw.h_dxfRW_1d63d75bbe4cf516ae735bb0afe00a248d974310967ecd166eba0629ce755268",
       "shared/pipeline-unit/src_intern_dxfcode.h",
       "shared/public-alias/src_drw_base.h_DRW_OperationCause",
@@ -122080,10 +122612,10 @@
       "shared/source-unit/src_intern_dxfcode.h"
     ],
     "summary": {
-      "deltaOneToOne": 748,
+      "deltaOneToOne": 749,
       "exactOneToOne": 4885,
-      "standaloneOnly": 69,
-      "targetOnly": 33,
+      "standaloneOnly": 68,
+      "targetOnly": 0,
       "targetRows": 5669
     }
   },
@@ -122218,10 +122750,10 @@
       }
     },
     "mapping": {
-      "deltaOneToOne": 748,
+      "deltaOneToOne": 749,
       "exactOneToOne": 4885,
-      "standaloneOnly": 69,
-      "targetOnly": 33,
+      "standaloneOnly": 68,
+      "targetOnly": 0,
       "targetRows": 5669
     },
     "standalone": {

@@ -8441,6 +8441,70 @@ def inventory_identity_digest(inventory: dict[str, list[dict]]) -> str:
     return sha256_text(canonical_json(rows))
 
 
+def dxf_condition_domain(condition: str, previously_covered: set[int]) -> set[int]:
+    """Resolve one ordered raw-classifier predicate over the DXF code domain."""
+    domain = set(range(0, 1072))
+    match = re.fullmatch(r"code\s*<\s*(-?\d+)", condition)
+    if match:
+        domain = {value for value in domain if value < int(match.group(1))}
+    else:
+        match = re.fullmatch(r"code\s*<=\s*(-?\d+)", condition)
+        if match:
+            domain = {value for value in domain if value <= int(match.group(1))}
+        else:
+            match = re.fullmatch(r"code\s*==\s*(-?\d+)", condition)
+            if match:
+                domain = {int(match.group(1))} & domain
+            else:
+                match = re.fullmatch(
+                    r"code\s*>\s*(-?\d+)\s*&&\s*code\s*<\s*(-?\d+)", condition
+                )
+                if match:
+                    lower, upper = (int(value) for value in match.groups())
+                    domain = {value for value in domain if lower < value < upper}
+                else:
+                    raise RouteError("unsupported DXF raw-classifier predicate: %s" % condition)
+    return domain - previously_covered
+
+
+def dxf_raw_rule_domains(routes: Iterable[dict]) -> dict[str, set[int]]:
+    """Compute first-match domains for target ``classifyDxfCode`` branches."""
+    ordered = sorted(
+        routes,
+        key=lambda route: route["selector"].get("ordinal", 1 << 30),
+    )
+    domains: dict[str, set[int]] = {}
+    covered: set[int] = set()
+    for route in ordered:
+        selector = route["selector"]
+        if selector.get("kind") == "fallback":
+            domain = set(range(0, 1072)) - covered
+        else:
+            condition = selector.get("condition")
+            if not isinstance(condition, str):
+                raise RouteError("DXF raw-classifier route lacks a condition")
+            domain = dxf_condition_domain(condition, covered)
+        domains[route["id"]] = domain
+        covered |= domain
+    return domains
+
+
+def dxf_domain_intervals(values: set[int]) -> list[list[int]]:
+    """Compress a finite DXF-code set without hiding holes in its domain."""
+    if not values:
+        return []
+    ordered = sorted(values)
+    intervals: list[list[int]] = []
+    start = previous = ordered[0]
+    for value in ordered[1:]:
+        if value != previous + 1:
+            intervals.append([start, previous])
+            start = value
+        previous = value
+    intervals.append([start, previous])
+    return intervals
+
+
 def build_route_mapping(
     inventories: dict[str, dict[str, list[dict]]], comparison: dict
 ) -> dict:
@@ -8461,9 +8525,54 @@ def build_route_mapping(
         target_route: dict,
         target_routes: dict[str, dict],
         standalone_routes: dict[str, dict],
-    ) -> tuple[list[str], str, str] | None:
+    ) -> tuple[list[str], str, str, dict | None] | None:
         category = target_route["category"]
         selector = target_route["selector"]
+        if facade == "dxfRW" and category == "group-code-raw-rule":
+            if selector.get("kind") == "fallback":
+                candidates = sorted(
+                    route_id
+                    for route_id, route in standalone_routes.items()
+                    if route["category"] == "group-code-raw-rule"
+                    and route["selector"].get("kind") == "fallback"
+                )
+                if len(candidates) == 1:
+                    return candidates, "1:1", "dxf-raw-fallback", None
+            raw_routes = [
+                route
+                for route in target_routes.values()
+                if route["category"] == "group-code-raw-rule"
+            ]
+            domains = dxf_raw_rule_domains(raw_routes)
+            source_domain = domains.get(target_route["id"], set())
+            range_routes = [
+                route
+                for route in standalone_routes.values()
+                if route["category"] == "group-code-reader-range"
+            ]
+            candidates = [
+                route["id"]
+                for route in range_routes
+                if source_domain
+                & set(range(route["selector"]["lower"], route["selector"]["upper"] + 1))
+            ]
+            if candidates:
+                unique_candidates = sorted(set(candidates))
+                cardinality = (
+                    "1:N"
+                    if len(unique_candidates) > 1
+                    else "N:1" if unique_candidates[0] in target_routes else "1:1"
+                )
+                return (
+                    unique_candidates,
+                    cardinality,
+                    "dxf-raw-domain",
+                    {
+                        "sourceCodeDomain": dxf_domain_intervals(source_domain),
+                        "sourceValue": selector.get("value"),
+                        "standaloneRangeIds": sorted(candidates),
+                    },
+                )
         if facade == "dxfRW" and category == "group-code-reader-range":
             aliases = {
                 "440-449": ["dxfRW/group-code-reader-range/440-459"],
@@ -8478,7 +8587,7 @@ def build_route_mapping(
             if candidate_ids and all(candidate in standalone_routes for candidate in candidate_ids):
                 candidate_ids = sorted(candidate_ids)
                 cardinality = "1:N" if len(candidate_ids) > 1 else "N:1"
-                return candidate_ids, cardinality, "reviewed-group-code-domain"
+                return candidate_ids, cardinality, "reviewed-group-code-domain", None
         if category in {"public-method", "public-inline-method"}:
             qualified = selector.get("qualifiedName")
             candidates = sorted(
@@ -8489,7 +8598,7 @@ def build_route_mapping(
                 and route_id not in target_routes
             )
             if len(candidates) == 1:
-                return candidates, "1:1", "signature-adaptation"
+                return candidates, "1:1", "signature-adaptation", None
         if category == "public-alias" and selector.get("qualifiedName") == "dwgR":
             candidates = sorted(
                 route_id
@@ -8499,7 +8608,7 @@ def build_route_mapping(
                 and route_id not in target_routes
             )
             if len(candidates) == 1:
-                return candidates, "1:1", "deprecated-facade-composition"
+                return candidates, "1:1", "deprecated-facade-composition", None
         return None
 
     for facade in ("dxfRW", "dwgRW", "shared"):
@@ -8516,15 +8625,14 @@ def build_route_mapping(
             if standalone_route is None:
                 alias = reviewed_alias(facade, target_route, target_routes, standalone_routes)
                 if alias is not None:
-                    standalone_route_ids, cardinality, alias_kind = alias
-                    rows.append(
-                        {
+                    standalone_route_ids, cardinality, alias_kind, domain_evidence = alias
+                    row = {
                             "targetRouteId": route_id,
                             "standaloneRouteIds": standalone_route_ids,
                             "facade": facade,
                             "category": target_route["category"],
                             "cardinality": cardinality,
-                            "mappingKind": "derived-alias",
+                            "mappingKind": "domain-alias" if domain_evidence is not None else "derived-alias",
                             "deltaClasses": ["route-identity"],
                             "ownerPaths": sorted({item["path"] for item in target_route["evidence"]}),
                             "implementationState": "signature-adapted" if alias_kind == "signature-adaptation" else "compatibility-adapted",
@@ -8534,7 +8642,9 @@ def build_route_mapping(
                             "fixtureDisposition": "no-drawing-fixture",
                             "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion",
                         }
-                    )
+                    if domain_evidence is not None:
+                        row["domainEvidence"] = domain_evidence
+                    rows.append(row)
                     continue
                 rows.append(
                     {
@@ -8574,6 +8684,16 @@ def build_route_mapping(
                     "unblockCondition": "resolve every listed delta before support promotion" if classes else "none",
                 }
             )
+    endpoint_uses: dict[str, list[dict]] = {}
+    for row in rows:
+        for endpoint in row["standaloneRouteIds"]:
+            endpoint_uses.setdefault(endpoint, []).append(row)
+    for uses in endpoint_uses.values():
+        if len(uses) < 2:
+            continue
+        for row in uses:
+            if row["mappingKind"] == "domain-alias" and len(row["standaloneRouteIds"]) == 1:
+                row["cardinality"] = "N:1"
     rows.sort(key=lambda row: row["targetRouteId"])
     mapped_standalone = {
         route_id
@@ -8629,8 +8749,11 @@ def validate_route_mapping(
             "disposition", "dependencies", "smallestGate", "fixtureDisposition",
             "unblockCondition",
         }
-        if not isinstance(row, dict) or set(row) != required:
+        if not isinstance(row, dict) or not required <= set(row):
             raise RouteError("route mapping row is malformed")
+        optional_keys = {"domainEvidence"}
+        if set(row) - required - optional_keys:
+            raise RouteError("route mapping row has unknown fields")
         target_id = row["targetRouteId"]
         standalone = row["standaloneRouteIds"]
         if target_id not in target_ids or target_id in seen_target:
@@ -8662,6 +8785,30 @@ def validate_route_mapping(
             raise RouteError("exact route mapping has the wrong cardinality")
         if row["mappingKind"] == "derived-alias" and row["cardinality"] not in {"1:1", "1:N", "N:1", "N:M"}:
             raise RouteError("derived alias mapping has the wrong cardinality")
+        if row["mappingKind"] == "domain-alias":
+            domain = row.get("domainEvidence")
+            if (
+                not isinstance(domain, dict)
+                or set(domain) != {"sourceCodeDomain", "sourceValue", "standaloneRangeIds"}
+                or not isinstance(domain["sourceCodeDomain"], list)
+                or not domain["sourceCodeDomain"]
+                or any(
+                    not isinstance(interval, list)
+                    or len(interval) != 2
+                    or not all(isinstance(value, int) for value in interval)
+                    or interval != sorted(interval)
+                    for interval in domain["sourceCodeDomain"]
+                )
+                or domain["sourceCodeDomain"] != sorted(domain["sourceCodeDomain"])
+                or any(
+                    left[1] >= right[0]
+                    for left, right in zip(domain["sourceCodeDomain"], domain["sourceCodeDomain"][1:])
+                )
+                or domain["standaloneRangeIds"] != standalone
+            ):
+                raise RouteError("DXF raw domain mapping evidence is malformed")
+        elif "domainEvidence" in row:
+            raise RouteError("non-domain mapping unexpectedly carries DXF domain evidence")
         if not isinstance(row["ownerPaths"], list) or not row["ownerPaths"]:
             raise RouteError("route mapping lacks source ownership")
         if not isinstance(row["smallestGate"], str) or not row["smallestGate"]:
@@ -8675,8 +8822,21 @@ def validate_route_mapping(
         standalone_use_counts[route_id] = standalone_use_counts.get(route_id, 0) + 1
     for row in rows:
         for route_id in row["standaloneRouteIds"]:
-            if standalone_use_counts[route_id] > 1 and row["cardinality"] not in {"N:1", "N:M"}:
-                raise RouteError("route mapping reuses a standalone route without an N:* review")
+            if standalone_use_counts[route_id] > 1:
+                uses = [
+                    candidate
+                    for candidate in rows
+                    if route_id in candidate["standaloneRouteIds"]
+                ]
+                if not any(
+                    candidate["cardinality"] in {"N:1", "N:M"}
+                    or candidate["mappingKind"] == "domain-alias"
+                    for candidate in uses
+                ):
+                    raise RouteError(
+                        "route mapping reuses a standalone route without an N:* review: %s"
+                        % route_id
+                    )
     expected_unmapped = sorted(standalone_ids - set(seen_standalone))
     if mapping.get("standaloneUnmappedRouteIds") != expected_unmapped:
         raise RouteError("route mapping standalone-unmapped set is stale")
