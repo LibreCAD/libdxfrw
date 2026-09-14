@@ -1087,6 +1087,21 @@ DWG_RAW_REPLAY_EVIDENCE_RULES = {
     },
 }
 
+# One ordered receipt/parse/map chain per table descriptor.  The block table
+# intentionally remains a separate descriptor row: its map feeds the later
+# BLOCK/ENDBLK ownership walk rather than a normal façade table callback.
+DWG_TABLE_DELIVERY_FIELDS = {
+    "kLTypeTable": ("ltControl", "lt", "ltypemap", "linetype"),
+    "kLayerTable": ("layControl", "la", "layermap", "layer"),
+    "kStyleTable": ("styControl", "sty", "stylemap", "text style"),
+    "kDimStyleTable": ("dimstyControl", "sty", "dimstylemap", "dimension style"),
+    "kVPortTable": ("vportControl", "vp", "vportmap", "viewport"),
+    "kBlockTable": ("blockControl", "br", "blockRecordmap", "block record"),
+    "kAppIdTable": ("appIdControl", "ai", "appIdmap", "AppId"),
+    "kViewTable": ("viewControl", "vw", "viewmap", "view"),
+    "kUcsTable": ("ucsControl", "u", "ucsmap", "UCS"),
+}
+
 # These route nodes cover the deliberate deferred/publication machinery that
 # cannot truthfully be reduced to one local parser-function → callback call.
 # A staged parser row must point to at least one of these exact anchors.
@@ -3312,6 +3327,25 @@ def dwg_raw_replay_metadata(
     if observed != expected:
         raise RouteError("DWG raw replay body coverage changed: %s" % node_name)
     return rows
+
+
+def dwg_table_delivery_metadata(
+    tree: SourceTree, descriptor: str
+) -> list[dict]:
+    """Extract one concrete control-receipt/record-map chain."""
+    try:
+        control, record, table_map, record_name = DWG_TABLE_DELIVERY_FIELDS[descriptor]
+    except KeyError as exc:
+        raise RouteError("unknown DWG table descriptor: %s" % descriptor) from exc
+    body = function_body(tree.require("src/intern/dwgreader.cpp"), "dwgReader::readDwgTables")
+    specs = (
+        {"name": "control-parse", "pattern": rf"parseControl\s*\(\s*oc\s*,\s*{re.escape(descriptor)}\s*,\s*{re.escape(control)}\s*\)", "callee": "parseControl", "calleeOverload": "table-control-parser", "relation": "receipt"},
+        {"name": "control-handle-claim", "pattern": rf"claimControlHandles\s*\(\s*{re.escape(control)}\s*\)", "callee": "claimControlHandles", "calleeOverload": "claimControlHandles(const DRW_ObjControl&)", "relation": "eligibility"},
+        {"name": "control-receipt-stage", "pattern": rf"stageControlReceipt\s*\(\s*oc\s*,\s*{re.escape(descriptor)}\s*,\s*{re.escape(control)}\s*\)", "callee": "stageControlReceipt", "calleeOverload": "stageControlReceipt(const objHandle&,const DwgTableDescriptor&,const DRW_ObjControl&)", "relation": "deferred-receipt"},
+        {"name": "record-parse", "pattern": rf"parseTableRecord\s*\(\s*oc\s*,\s*{re.escape(descriptor)}\s*,\s*{re.escape(record)}\s*\)", "callee": "parseTableRecord", "calleeOverload": "parseTableRecord(const objHandle&,const DwgTableDescriptor&,record)", "relation": "typed-record"},
+        {"name": "typed-map-insert", "pattern": rf"insertTableRecord\s*\(\s*{re.escape(table_map)}\s*,\s*std::move\s*\(\s*{re.escape(record)}\s*\)", "callee": "insertTableRecord", "calleeOverload": "insertTableRecord(map,record,recordName,handle,type)", "relation": "map-and-publication"},
+    )
+    return [{"bodySymbol": body.symbol, "edges": raw_eligibility_edge_rows(body, specs), "recordName": record_name}]
 
 
 def add_raw_flow_routes(collector: RouteCollector, tree: SourceTree) -> None:
@@ -6681,6 +6715,7 @@ def add_dwg_routes(collector: RouteCollector, tree: SourceTree) -> None:
         raise RouteError("DWG table descriptor inventory is empty")
     for match in table_descriptors:
         name, control_type, record_type, receipt_name = match.groups()
+        delivery_evidence = dwg_table_delivery_metadata(tree, name)
         collector.add(
             "dwgRW",
             "table-descriptor",
@@ -6690,6 +6725,7 @@ def add_dwg_routes(collector: RouteCollector, tree: SourceTree) -> None:
                 "controlType": control_type,
                 "recordType": record_type,
                 "controlReceiptName": cpp_unquote(receipt_name),
+                "deliveryEvidence": delivery_evidence,
             },
             FunctionBody(source, name, match.start(), match.start(), match.end() - 1),
             identifier=name,
@@ -7272,6 +7308,16 @@ def validate_pipeline_closure(tree: SourceTree, inventory: dict[str, list[dict]]
             or set(observed_factory_route_entries) != expected_factory_routes
         ):
             raise RouteError("%s does not close every supported version route" % pipeline_category)
+
+    table_routes = inventory_category_routes(inventory, "dwgRW", "table-descriptor")
+    table_by_name = {route["selector"].get("name"): route for route in table_routes}
+    if len(table_routes) != len(table_by_name) or set(table_by_name) != set(DWG_TABLE_DELIVERY_FIELDS):
+        raise RouteError("DWG table descriptor closure changed without review")
+    for descriptor, route in table_by_name.items():
+        selector = route["selector"]
+        expected_evidence = dwg_table_delivery_metadata(tree, descriptor)
+        if selector.get("deliveryEvidence") != expected_evidence:
+            raise RouteError("DWG table delivery evidence changed: %s" % descriptor)
 
     raw_expected = {node["name"]: node for node in RAW_FLOW_NODES}
     if set(RAW_NODE_DIRECTIONS) != set(raw_expected):
@@ -8944,6 +8990,49 @@ bool dwgWriter18::finalize() {
         pass
     else:
         raise AssertionError("DWG raw section finalizer order inversion was accepted")
+    dwg_table_source = SourceFile(
+        "src/intern/dwgreader.cpp",
+        """
+bool dwgReader::readDwgTables(DRW_Header&) {
+    parseControl(oc, kBlockTable, blockControl);
+    claimControlHandles(blockControl);
+    stageControlReceipt(oc, kBlockTable, blockControl);
+    parseTableRecord(oc, kBlockTable, br);
+    insertTableRecord(blockRecordmap, std::move(br), "block record", oc.handle,
+                      kBlockTable.recordType);
+    return true;
+}
+""",
+        "f" * 64,
+    )
+    dwg_table_tree = SourceTree(
+        "target", {dwg_table_source.path: dwg_table_source}, {}
+    )
+    table_evidence = dwg_table_delivery_metadata(dwg_table_tree, "kBlockTable")
+    assert [row["edge"] for row in table_evidence[0]["edges"]] == [
+        "control-parse", "control-handle-claim", "control-receipt-stage",
+        "record-parse", "typed-map-insert",
+    ]
+    reversed_table_source = SourceFile(
+        dwg_table_source.path,
+        dwg_table_source.text.replace(
+            "claimControlHandles(blockControl);\n    stageControlReceipt",
+            "stageControlReceipt(oc, kBlockTable, blockControl);\n    claimControlHandles(blockControl);\n    stageControlReceipt",
+        ).replace(
+            "stageControlReceipt(oc, kBlockTable, blockControl);\n    parseTableRecord",
+            "parseTableRecord(oc, kBlockTable, br);\n    stageControlReceipt(oc, kBlockTable, blockControl);\n    parseTableRecord",
+        ),
+        dwg_table_source.git_blob,
+    )
+    try:
+        dwg_table_delivery_metadata(
+            SourceTree("target", {reversed_table_source.path: reversed_table_source}, {}),
+            "kBlockTable",
+        )
+    except RouteError:
+        pass
+    else:
+        raise AssertionError("DWG table delivery order inversion was accepted")
     transport_source = SourceFile(
         "src/transport.cpp",
         """

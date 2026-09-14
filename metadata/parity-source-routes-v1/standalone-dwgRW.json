@@ -82506,6 +82506,108 @@
       "selector": {
         "controlReceiptName": "APPID_CONTROL",
         "controlType": "DRW::DwgAppIdControlObjectType",
+        "deliveryEvidence": [
+          {
+            "bodySymbol": "dwgReader::readDwgTables",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 6874,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "parseControl",
+                "calleeOverload": "table-control-parser",
+                "edge": "control-parse",
+                "guardFingerprint": "a3b512e3ae8f9812725a6e30b70e45e58164edc39ad8da35c0d25e58061719bb",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "receipt",
+                "sourceOffset": 24456
+              },
+              {
+                "callEvidence": {
+                  "line": 6875,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "claimControlHandles",
+                "calleeOverload": "claimControlHandles(const DRW_ObjControl&)",
+                "edge": "control-handle-claim",
+                "guardFingerprint": "1ace7c712f61819aa4848446720956f75e03626d5658e7b20a43d0db4af57d34",
+                "order": 2,
+                "predecessorEdges": [
+                  "control-parse"
+                ],
+                "relation": "eligibility",
+                "sourceOffset": 24520
+              },
+              {
+                "callEvidence": {
+                  "line": 6876,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "stageControlReceipt",
+                "calleeOverload": "stageControlReceipt(const objHandle&,const DwgTableDescriptor&,const DRW_ObjControl&)",
+                "edge": "control-receipt-stage",
+                "guardFingerprint": "6cc4c0761e293a1e927b376bee88d8a8f0440a3cc4cda820175b0df189afbeee",
+                "order": 3,
+                "predecessorEdges": [
+                  "control-parse",
+                  "control-handle-claim"
+                ],
+                "relation": "deferred-receipt",
+                "sourceOffset": 24574
+              },
+              {
+                "callEvidence": {
+                  "line": 6897,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "parseTableRecord",
+                "calleeOverload": "parseTableRecord(const objHandle&,const DwgTableDescriptor&,record)",
+                "edge": "record-parse",
+                "guardFingerprint": "62e12247e324f5b4678bfb96979a8f694f542753beec1eccd4814cdc9c9a0196",
+                "order": 4,
+                "predecessorEdges": [
+                  "control-parse",
+                  "control-handle-claim",
+                  "control-receipt-stage"
+                ],
+                "relation": "typed-record",
+                "sourceOffset": 25286
+              },
+              {
+                "callEvidence": {
+                  "line": 6900,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "insertTableRecord",
+                "calleeOverload": "insertTableRecord(map,record,recordName,handle,type)",
+                "edge": "typed-map-insert",
+                "guardFingerprint": "79a8469bb9a1ae18090edae6ecab89339b8d28f045f4fd1fd7751dd76680ad0c",
+                "order": 5,
+                "predecessorEdges": [
+                  "control-parse",
+                  "control-handle-claim",
+                  "control-receipt-stage",
+                  "record-parse"
+                ],
+                "relation": "map-and-publication",
+                "sourceOffset": 25382
+              }
+            ],
+            "recordName": "AppId"
+          }
+        ],
         "kind": "table",
         "name": "kAppIdTable",
         "recordType": "DRW::DwgAppIdObjectType"
@@ -82531,6 +82633,108 @@
       "selector": {
         "controlReceiptName": "BLOCK_CONTROL",
         "controlType": "DRW::DwgBlockControlObjectType",
+        "deliveryEvidence": [
+          {
+            "bodySymbol": "dwgReader::readDwgTables",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 6820,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "parseControl",
+                "calleeOverload": "table-control-parser",
+                "edge": "control-parse",
+                "guardFingerprint": "1631767ec59c3a679ec234dd76a376223229538d41f9ec4711e5eed2d927286f",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "receipt",
+                "sourceOffset": 22706
+              },
+              {
+                "callEvidence": {
+                  "line": 6821,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "claimControlHandles",
+                "calleeOverload": "claimControlHandles(const DRW_ObjControl&)",
+                "edge": "control-handle-claim",
+                "guardFingerprint": "faf8b3fd8dd2b424332a04c336c3b69f1ab7085a82f5af6b4a48f9266c603a16",
+                "order": 2,
+                "predecessorEdges": [
+                  "control-parse"
+                ],
+                "relation": "eligibility",
+                "sourceOffset": 22770
+              },
+              {
+                "callEvidence": {
+                  "line": 6822,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "stageControlReceipt",
+                "calleeOverload": "stageControlReceipt(const objHandle&,const DwgTableDescriptor&,const DRW_ObjControl&)",
+                "edge": "control-receipt-stage",
+                "guardFingerprint": "9dbc9741c1e0ca8c63b164704090309b5146f89c00dac7745bf377f64c14c31b",
+                "order": 3,
+                "predecessorEdges": [
+                  "control-parse",
+                  "control-handle-claim"
+                ],
+                "relation": "deferred-receipt",
+                "sourceOffset": 22824
+              },
+              {
+                "callEvidence": {
+                  "line": 6843,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "parseTableRecord",
+                "calleeOverload": "parseTableRecord(const objHandle&,const DwgTableDescriptor&,record)",
+                "edge": "record-parse",
+                "guardFingerprint": "5efdaf87cf035db981a665e36472ec8912359d643320842d9c4548e7714578ec",
+                "order": 4,
+                "predecessorEdges": [
+                  "control-parse",
+                  "control-handle-claim",
+                  "control-receipt-stage"
+                ],
+                "relation": "typed-record",
+                "sourceOffset": 23564
+              },
+              {
+                "callEvidence": {
+                  "line": 6846,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "insertTableRecord",
+                "calleeOverload": "insertTableRecord(map,record,recordName,handle,type)",
+                "edge": "typed-map-insert",
+                "guardFingerprint": "a011cea922d3c5cb6e80ee22f424c6a319f2d7863332f33d9bde39d84089c49a",
+                "order": 5,
+                "predecessorEdges": [
+                  "control-parse",
+                  "control-handle-claim",
+                  "control-receipt-stage",
+                  "record-parse"
+                ],
+                "relation": "map-and-publication",
+                "sourceOffset": 23660
+              }
+            ],
+            "recordName": "block record"
+          }
+        ],
         "kind": "table",
         "name": "kBlockTable",
         "recordType": "DRW::DwgBlockRecordObjectType"
@@ -82556,6 +82760,108 @@
       "selector": {
         "controlReceiptName": "DIMSTYLE_CONTROL",
         "controlType": "DRW::DwgDimStyleControlObjectType",
+        "deliveryEvidence": [
+          {
+            "bodySymbol": "dwgReader::readDwgTables",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 6723,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "parseControl",
+                "calleeOverload": "table-control-parser",
+                "edge": "control-parse",
+                "guardFingerprint": "bbf8e3af3f9db0c808d6509165008791178a7eed48c2102e780a453d4bff52b1",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "receipt",
+                "sourceOffset": 19469
+              },
+              {
+                "callEvidence": {
+                  "line": 6724,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "claimControlHandles",
+                "calleeOverload": "claimControlHandles(const DRW_ObjControl&)",
+                "edge": "control-handle-claim",
+                "guardFingerprint": "387a58522b0e5281adc9c7e498b6487ce14d6340a544d13d7834553f8a330aeb",
+                "order": 2,
+                "predecessorEdges": [
+                  "control-parse"
+                ],
+                "relation": "eligibility",
+                "sourceOffset": 19537
+              },
+              {
+                "callEvidence": {
+                  "line": 6725,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "stageControlReceipt",
+                "calleeOverload": "stageControlReceipt(const objHandle&,const DwgTableDescriptor&,const DRW_ObjControl&)",
+                "edge": "control-receipt-stage",
+                "guardFingerprint": "7bfb77a3864fb50fc812ec480fa0e688d6f7a99cce2e78a8edca52000eb84b94",
+                "order": 3,
+                "predecessorEdges": [
+                  "control-parse",
+                  "control-handle-claim"
+                ],
+                "relation": "deferred-receipt",
+                "sourceOffset": 19592
+              },
+              {
+                "callEvidence": {
+                  "line": 6746,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "parseTableRecord",
+                "calleeOverload": "parseTableRecord(const objHandle&,const DwgTableDescriptor&,record)",
+                "edge": "record-parse",
+                "guardFingerprint": "bf0a4cd05b1a10fd03a6765c7d3b18af686f40c00deb38b5c380e4c3c5e90e71",
+                "order": 4,
+                "predecessorEdges": [
+                  "control-parse",
+                  "control-handle-claim",
+                  "control-receipt-stage"
+                ],
+                "relation": "typed-record",
+                "sourceOffset": 20338
+              },
+              {
+                "callEvidence": {
+                  "line": 6749,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "insertTableRecord",
+                "calleeOverload": "insertTableRecord(map,record,recordName,handle,type)",
+                "edge": "typed-map-insert",
+                "guardFingerprint": "95d39035556ad8533f60196e3984beeb2f33fd19a37a745494295f419750cd0e",
+                "order": 5,
+                "predecessorEdges": [
+                  "control-parse",
+                  "control-handle-claim",
+                  "control-receipt-stage",
+                  "record-parse"
+                ],
+                "relation": "map-and-publication",
+                "sourceOffset": 20438
+              }
+            ],
+            "recordName": "dimension style"
+          }
+        ],
         "kind": "table",
         "name": "kDimStyleTable",
         "recordType": "DRW::DwgDimStyleObjectType"
@@ -82581,6 +82887,108 @@
       "selector": {
         "controlReceiptName": "LTYPE_CONTROL",
         "controlType": "DRW::DwgLTypeControlObjectType",
+        "deliveryEvidence": [
+          {
+            "bodySymbol": "dwgReader::readDwgTables",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 6556,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "parseControl",
+                "calleeOverload": "table-control-parser",
+                "edge": "control-parse",
+                "guardFingerprint": "2e3d5eb5d8138fb051f631457f9098543408287236f8dade7f2676e8cdd175e1",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "receipt",
+                "sourceOffset": 13807
+              },
+              {
+                "callEvidence": {
+                  "line": 6557,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "claimControlHandles",
+                "calleeOverload": "claimControlHandles(const DRW_ObjControl&)",
+                "edge": "control-handle-claim",
+                "guardFingerprint": "10944b909465d6b675b7f6a0a1c138d488c539e9aa8aaf33c0f1b1e0d460f05e",
+                "order": 2,
+                "predecessorEdges": [
+                  "control-parse"
+                ],
+                "relation": "eligibility",
+                "sourceOffset": 13868
+              },
+              {
+                "callEvidence": {
+                  "line": 6558,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "stageControlReceipt",
+                "calleeOverload": "stageControlReceipt(const objHandle&,const DwgTableDescriptor&,const DRW_ObjControl&)",
+                "edge": "control-receipt-stage",
+                "guardFingerprint": "bd6bea0f00a8c7b967ebc8e2a21b550ac4ac839050c844c1d68d4b7fa94668e3",
+                "order": 3,
+                "predecessorEdges": [
+                  "control-parse",
+                  "control-handle-claim"
+                ],
+                "relation": "deferred-receipt",
+                "sourceOffset": 13919
+              },
+              {
+                "callEvidence": {
+                  "line": 6580,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "parseTableRecord",
+                "calleeOverload": "parseTableRecord(const objHandle&,const DwgTableDescriptor&,record)",
+                "edge": "record-parse",
+                "guardFingerprint": "16f3b946a0d13d6db6eb7b2d34bee4f71e1d12341b126507b1ed9211caa896ea",
+                "order": 4,
+                "predecessorEdges": [
+                  "control-parse",
+                  "control-handle-claim",
+                  "control-receipt-stage"
+                ],
+                "relation": "typed-record",
+                "sourceOffset": 14690
+              },
+              {
+                "callEvidence": {
+                  "line": 6584,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "insertTableRecord",
+                "calleeOverload": "insertTableRecord(map,record,recordName,handle,type)",
+                "edge": "typed-map-insert",
+                "guardFingerprint": "4c1eb38566e645c9a38c3ab254644adb1487c7943e4583e87d2e11a34d2fd980",
+                "order": 5,
+                "predecessorEdges": [
+                  "control-parse",
+                  "control-handle-claim",
+                  "control-receipt-stage",
+                  "record-parse"
+                ],
+                "relation": "map-and-publication",
+                "sourceOffset": 14840
+              }
+            ],
+            "recordName": "linetype"
+          }
+        ],
         "kind": "table",
         "name": "kLTypeTable",
         "recordType": "DRW::DwgLTypeObjectType"
@@ -82606,6 +83014,108 @@
       "selector": {
         "controlReceiptName": "LAYER_CONTROL",
         "controlType": "DRW::DwgLayerControlObjectType",
+        "deliveryEvidence": [
+          {
+            "bodySymbol": "dwgReader::readDwgTables",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 6611,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "parseControl",
+                "calleeOverload": "table-control-parser",
+                "edge": "control-parse",
+                "guardFingerprint": "0ed0e14bdf2bd8bdcff8497378c21153deaf4e60a07d7eb0f2df69b2c17ece8d",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "receipt",
+                "sourceOffset": 15702
+              },
+              {
+                "callEvidence": {
+                  "line": 6612,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "claimControlHandles",
+                "calleeOverload": "claimControlHandles(const DRW_ObjControl&)",
+                "edge": "control-handle-claim",
+                "guardFingerprint": "ee35f0d116795f4b58397bc4a331346cc7af7341cedcc1c7462636b188e8fa69",
+                "order": 2,
+                "predecessorEdges": [
+                  "control-parse"
+                ],
+                "relation": "eligibility",
+                "sourceOffset": 15764
+              },
+              {
+                "callEvidence": {
+                  "line": 6613,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "stageControlReceipt",
+                "calleeOverload": "stageControlReceipt(const objHandle&,const DwgTableDescriptor&,const DRW_ObjControl&)",
+                "edge": "control-receipt-stage",
+                "guardFingerprint": "d52347e91569b48cd262427a43ee9190942ee5919bec63f3e06adc5c47f6d0df",
+                "order": 3,
+                "predecessorEdges": [
+                  "control-parse",
+                  "control-handle-claim"
+                ],
+                "relation": "deferred-receipt",
+                "sourceOffset": 15816
+              },
+              {
+                "callEvidence": {
+                  "line": 6635,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "parseTableRecord",
+                "calleeOverload": "parseTableRecord(const objHandle&,const DwgTableDescriptor&,record)",
+                "edge": "record-parse",
+                "guardFingerprint": "df29ad20cce800c78e1114a8b18fda3b2df4b5c76c4bf02ad654a7fdb02625f8",
+                "order": 4,
+                "predecessorEdges": [
+                  "control-parse",
+                  "control-handle-claim",
+                  "control-receipt-stage"
+                ],
+                "relation": "typed-record",
+                "sourceOffset": 16591
+              },
+              {
+                "callEvidence": {
+                  "line": 6639,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "insertTableRecord",
+                "calleeOverload": "insertTableRecord(map,record,recordName,handle,type)",
+                "edge": "typed-map-insert",
+                "guardFingerprint": "10c99a2f54ba935a801f9d5e73a3114c11f1c6adf68387f131ef8746fc90f116",
+                "order": 5,
+                "predecessorEdges": [
+                  "control-parse",
+                  "control-handle-claim",
+                  "control-receipt-stage",
+                  "record-parse"
+                ],
+                "relation": "map-and-publication",
+                "sourceOffset": 16741
+              }
+            ],
+            "recordName": "layer"
+          }
+        ],
         "kind": "table",
         "name": "kLayerTable",
         "recordType": "DRW::DwgLayerObjectType"
@@ -82631,6 +83141,108 @@
       "selector": {
         "controlReceiptName": "STYLE_CONTROL",
         "controlType": "DRW::DwgStyleControlObjectType",
+        "deliveryEvidence": [
+          {
+            "bodySymbol": "dwgReader::readDwgTables",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 6675,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "parseControl",
+                "calleeOverload": "table-control-parser",
+                "edge": "control-parse",
+                "guardFingerprint": "bd862fa00b0d1da434b571eb3543156cd72ffc3c97a59e0156cdef1981d37a06",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "receipt",
+                "sourceOffset": 17878
+              },
+              {
+                "callEvidence": {
+                  "line": 6676,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "claimControlHandles",
+                "calleeOverload": "claimControlHandles(const DRW_ObjControl&)",
+                "edge": "control-handle-claim",
+                "guardFingerprint": "708471c9a3b74b5fddb58bef7acb45e41bae6a767d329b8a99519f06f1c05376",
+                "order": 2,
+                "predecessorEdges": [
+                  "control-parse"
+                ],
+                "relation": "eligibility",
+                "sourceOffset": 17940
+              },
+              {
+                "callEvidence": {
+                  "line": 6677,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "stageControlReceipt",
+                "calleeOverload": "stageControlReceipt(const objHandle&,const DwgTableDescriptor&,const DRW_ObjControl&)",
+                "edge": "control-receipt-stage",
+                "guardFingerprint": "e848b45f61017c160a2408705f415f6446669ee9367737ea30c3bdc85836e8cc",
+                "order": 3,
+                "predecessorEdges": [
+                  "control-parse",
+                  "control-handle-claim"
+                ],
+                "relation": "deferred-receipt",
+                "sourceOffset": 17992
+              },
+              {
+                "callEvidence": {
+                  "line": 6698,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "parseTableRecord",
+                "calleeOverload": "parseTableRecord(const objHandle&,const DwgTableDescriptor&,record)",
+                "edge": "record-parse",
+                "guardFingerprint": "8071447d6e0b71867fd0de810cb623b9272eeb28977161c8286ee206526b97ec",
+                "order": 4,
+                "predecessorEdges": [
+                  "control-parse",
+                  "control-handle-claim",
+                  "control-receipt-stage"
+                ],
+                "relation": "typed-record",
+                "sourceOffset": 18706
+              },
+              {
+                "callEvidence": {
+                  "line": 6701,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "insertTableRecord",
+                "calleeOverload": "insertTableRecord(map,record,recordName,handle,type)",
+                "edge": "typed-map-insert",
+                "guardFingerprint": "ceea398bdab6098bf4148171a63212f9fe20c68ebd02e450d34fa8ea68219e14",
+                "order": 5,
+                "predecessorEdges": [
+                  "control-parse",
+                  "control-handle-claim",
+                  "control-receipt-stage",
+                  "record-parse"
+                ],
+                "relation": "map-and-publication",
+                "sourceOffset": 18803
+              }
+            ],
+            "recordName": "text style"
+          }
+        ],
         "kind": "table",
         "name": "kStyleTable",
         "recordType": "DRW::DwgStyleObjectType"
@@ -82656,6 +83268,108 @@
       "selector": {
         "controlReceiptName": "UCS_CONTROL",
         "controlType": "DRW::DwgUcsControlObjectType",
+        "deliveryEvidence": [
+          {
+            "bodySymbol": "dwgReader::readDwgTables",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 6981,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "parseControl",
+                "calleeOverload": "table-control-parser",
+                "edge": "control-parse",
+                "guardFingerprint": "f019d30c1896e658867c3e5ee7c10e07806dd5212f32664165c16a313ff4ebd2",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "receipt",
+                "sourceOffset": 28055
+              },
+              {
+                "callEvidence": {
+                  "line": 6982,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "claimControlHandles",
+                "calleeOverload": "claimControlHandles(const DRW_ObjControl&)",
+                "edge": "control-handle-claim",
+                "guardFingerprint": "c5626b8772628a8569e74e472ef6d3c60b0d3fe5933ba9b201f7ffaf41ed3ead",
+                "order": 2,
+                "predecessorEdges": [
+                  "control-parse"
+                ],
+                "relation": "eligibility",
+                "sourceOffset": 28131
+              },
+              {
+                "callEvidence": {
+                  "line": 6984,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "stageControlReceipt",
+                "calleeOverload": "stageControlReceipt(const objHandle&,const DwgTableDescriptor&,const DRW_ObjControl&)",
+                "edge": "control-receipt-stage",
+                "guardFingerprint": "7218d22c0cc9c0faa6ffe2860d884ae75c2cd9a43c9dd8986b7d55709bfcda8a",
+                "order": 3,
+                "predecessorEdges": [
+                  "control-parse",
+                  "control-handle-claim"
+                ],
+                "relation": "deferred-receipt",
+                "sourceOffset": 28207
+              },
+              {
+                "callEvidence": {
+                  "line": 7005,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "parseTableRecord",
+                "calleeOverload": "parseTableRecord(const objHandle&,const DwgTableDescriptor&,record)",
+                "edge": "record-parse",
+                "guardFingerprint": "125d419f8159a8b2233904ffcb46d9f3e64feb6cbced1e1930bfaf8654820a21",
+                "order": 4,
+                "predecessorEdges": [
+                  "control-parse",
+                  "control-handle-claim",
+                  "control-receipt-stage"
+                ],
+                "relation": "typed-record",
+                "sourceOffset": 29010
+              },
+              {
+                "callEvidence": {
+                  "line": 7009,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "insertTableRecord",
+                "calleeOverload": "insertTableRecord(map,record,recordName,handle,type)",
+                "edge": "typed-map-insert",
+                "guardFingerprint": "94d77a8834cbd407035dce90afe31957fe53729df2425d72e5bc95674543395b",
+                "order": 5,
+                "predecessorEdges": [
+                  "control-parse",
+                  "control-handle-claim",
+                  "control-receipt-stage",
+                  "record-parse"
+                ],
+                "relation": "map-and-publication",
+                "sourceOffset": 29185
+              }
+            ],
+            "recordName": "UCS"
+          }
+        ],
         "kind": "table",
         "name": "kUcsTable",
         "recordType": "DRW::DwgUcsObjectType"
@@ -82681,6 +83395,108 @@
       "selector": {
         "controlReceiptName": "VPORT_CONTROL",
         "controlType": "DRW::DwgVPortControlObjectType",
+        "deliveryEvidence": [
+          {
+            "bodySymbol": "dwgReader::readDwgTables",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 6772,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "parseControl",
+                "calleeOverload": "table-control-parser",
+                "edge": "control-parse",
+                "guardFingerprint": "cf3af0341e20debd8f4e7a627cafa6b17e4e7eb2d6f1bd56d06733b2ecec98e6",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "receipt",
+                "sourceOffset": 21118
+              },
+              {
+                "callEvidence": {
+                  "line": 6773,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "claimControlHandles",
+                "calleeOverload": "claimControlHandles(const DRW_ObjControl&)",
+                "edge": "control-handle-claim",
+                "guardFingerprint": "d40f18556554fe56f13c6848fa7fa2b0ad627988ce61bbe1e6ac597a8711d3fc",
+                "order": 2,
+                "predecessorEdges": [
+                  "control-parse"
+                ],
+                "relation": "eligibility",
+                "sourceOffset": 21182
+              },
+              {
+                "callEvidence": {
+                  "line": 6774,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "stageControlReceipt",
+                "calleeOverload": "stageControlReceipt(const objHandle&,const DwgTableDescriptor&,const DRW_ObjControl&)",
+                "edge": "control-receipt-stage",
+                "guardFingerprint": "58b41b29d570e7fd0ec16c704f75e3a4092bb14dac0aa901f04fdbee52e19b7d",
+                "order": 3,
+                "predecessorEdges": [
+                  "control-parse",
+                  "control-handle-claim"
+                ],
+                "relation": "deferred-receipt",
+                "sourceOffset": 21236
+              },
+              {
+                "callEvidence": {
+                  "line": 6795,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "parseTableRecord",
+                "calleeOverload": "parseTableRecord(const objHandle&,const DwgTableDescriptor&,record)",
+                "edge": "record-parse",
+                "guardFingerprint": "13efc9d8c3ac87265ceb623a8d80ea2e7bdc8da87bcf5b963e6aae41e03c3410",
+                "order": 4,
+                "predecessorEdges": [
+                  "control-parse",
+                  "control-handle-claim",
+                  "control-receipt-stage"
+                ],
+                "relation": "typed-record",
+                "sourceOffset": 21949
+              },
+              {
+                "callEvidence": {
+                  "line": 6798,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "insertTableRecord",
+                "calleeOverload": "insertTableRecord(map,record,recordName,handle,type)",
+                "edge": "typed-map-insert",
+                "guardFingerprint": "bfe8b4e77fb57af3e0efe9838a1bc887a9fa238b9795ca92bb68c48e46f86766",
+                "order": 5,
+                "predecessorEdges": [
+                  "control-parse",
+                  "control-handle-claim",
+                  "control-receipt-stage",
+                  "record-parse"
+                ],
+                "relation": "map-and-publication",
+                "sourceOffset": 22045
+              }
+            ],
+            "recordName": "viewport"
+          }
+        ],
         "kind": "table",
         "name": "kVPortTable",
         "recordType": "DRW::DwgVPortObjectType"
@@ -82706,6 +83522,108 @@
       "selector": {
         "controlReceiptName": "VIEW_CONTROL",
         "controlType": "DRW::DwgViewControlObjectType",
+        "deliveryEvidence": [
+          {
+            "bodySymbol": "dwgReader::readDwgTables",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 6928,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "parseControl",
+                "calleeOverload": "table-control-parser",
+                "edge": "control-parse",
+                "guardFingerprint": "66b9f951844d521d016bf4a9f302bc82950eda13f069fc8abdebe52c63691270",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "receipt",
+                "sourceOffset": 26280
+              },
+              {
+                "callEvidence": {
+                  "line": 6929,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "claimControlHandles",
+                "calleeOverload": "claimControlHandles(const DRW_ObjControl&)",
+                "edge": "control-handle-claim",
+                "guardFingerprint": "db068d47572ff0e76a544c3424c8f08fd1705fa6c1b566bdf5da5845eb8d1fb5",
+                "order": 2,
+                "predecessorEdges": [
+                  "control-parse"
+                ],
+                "relation": "eligibility",
+                "sourceOffset": 26358
+              },
+              {
+                "callEvidence": {
+                  "line": 6931,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "stageControlReceipt",
+                "calleeOverload": "stageControlReceipt(const objHandle&,const DwgTableDescriptor&,const DRW_ObjControl&)",
+                "edge": "control-receipt-stage",
+                "guardFingerprint": "6ceeea6712af5bcb99f50e38e9360645de6b79ccf4b0ba2500421f70874b3048",
+                "order": 3,
+                "predecessorEdges": [
+                  "control-parse",
+                  "control-handle-claim"
+                ],
+                "relation": "deferred-receipt",
+                "sourceOffset": 26435
+              },
+              {
+                "callEvidence": {
+                  "line": 6952,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "parseTableRecord",
+                "calleeOverload": "parseTableRecord(const objHandle&,const DwgTableDescriptor&,record)",
+                "edge": "record-parse",
+                "guardFingerprint": "fb3066a254b579648dec80f2e88f0db11ec9208b17fbf519a337fac4dc1bfb80",
+                "order": 4,
+                "predecessorEdges": [
+                  "control-parse",
+                  "control-handle-claim",
+                  "control-receipt-stage"
+                ],
+                "relation": "typed-record",
+                "sourceOffset": 27250
+              },
+              {
+                "callEvidence": {
+                  "line": 6957,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
+                  "symbol": "dwgReader::readDwgTables"
+                },
+                "callee": "insertTableRecord",
+                "calleeOverload": "insertTableRecord(map,record,recordName,handle,type)",
+                "edge": "typed-map-insert",
+                "guardFingerprint": "1cd88df97a446cc60417178d277ccbf8bffc6e5005cb8bc947e29618e3806f71",
+                "order": 5,
+                "predecessorEdges": [
+                  "control-parse",
+                  "control-handle-claim",
+                  "control-receipt-stage",
+                  "record-parse"
+                ],
+                "relation": "map-and-publication",
+                "sourceOffset": 27445
+              }
+            ],
+            "recordName": "view"
+          }
+        ],
         "kind": "table",
         "name": "kViewTable",
         "recordType": "DRW::DwgViewObjectType"
