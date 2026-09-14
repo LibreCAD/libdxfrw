@@ -8369,23 +8369,76 @@ def comparable_route(route: dict) -> dict:
     }
 
 
+def route_delta_classes(target: dict, standalone: dict) -> list[str]:
+    """Classify a common route delta without treating all changes as semantic.
+
+    Selector differences describe the reviewed branch/guard/model contract;
+    condition differences are called out separately because they change
+    eligibility or delivery; source-body fingerprints identify implementation
+    adaptations; and direction/disposition changes are compatibility metadata.
+    This keeps the parity ledger actionable without embedding source text.
+    """
+    classes: set[str] = set()
+    if target.get("selector") != standalone.get("selector"):
+        classes.add("selector")
+        for field in (
+            "conditionAncestry", "conditionFingerprint", "conditionSelectors",
+            "branchContext", "alternativeBranchGroup", "guard",
+        ):
+            if target.get("selector", {}).get(field) != standalone.get("selector", {}).get(field):
+                classes.add("condition")
+                break
+    if target.get("directions") != standalone.get("directions"):
+        classes.add("direction")
+    if target.get("sourceDisposition") != standalone.get("sourceDisposition"):
+        classes.add("source-disposition")
+    target_evidence = {
+        (item.get("path"), item.get("symbol"), item.get("spanSha256"))
+        for item in target.get("evidence", [])
+    }
+    standalone_evidence = {
+        (item.get("path"), item.get("symbol"), item.get("spanSha256"))
+        for item in standalone.get("evidence", [])
+    }
+    if target_evidence != standalone_evidence:
+        classes.add("body")
+    return sorted(classes or {"unclassified"})
+
+
 def compare_inventories(target: dict[str, list[dict]], standalone: dict[str, list[dict]]) -> dict:
     result: dict[str, dict] = {}
     for facade in ("dxfRW", "dwgRW", "shared"):
         target_by_id = {route["id"]: route for route in target[facade]}
         standalone_by_id = {route["id"]: route for route in standalone[facade]}
         common = sorted(set(target_by_id) & set(standalone_by_id))
-        mismatches = [
-            route_id
-            for route_id in common
-            if comparable_route(target_by_id[route_id]) != comparable_route(standalone_by_id[route_id])
-        ]
+        mismatches = []
+        delta_classes = []
+        for route_id in common:
+            target_route = target_by_id[route_id]
+            standalone_route = standalone_by_id[route_id]
+            if comparable_route(target_route) == comparable_route(standalone_route):
+                continue
+            mismatches.append(route_id)
+            delta_classes.append(
+                {"routeId": route_id, "classes": route_delta_classes(target_route, standalone_route)}
+            )
         result[facade] = {
             "targetOnly": sorted(set(target_by_id) - set(standalone_by_id)),
             "standaloneOnly": sorted(set(standalone_by_id) - set(target_by_id)),
             "semanticMismatches": mismatches,
+            "deltaClasses": delta_classes,
         }
     return result
+
+
+def inventory_identity_digest(inventory: dict[str, list[dict]]) -> str:
+    """Return a deterministic digest of route IDs and signature-bearing selectors."""
+    rows = [
+        comparable_route(route)
+        for facade in ("dxfRW", "dwgRW", "shared")
+        for route in inventory[facade]
+    ]
+    return sha256_text(canonical_json(rows))
 
 
 def summarize(inventories: dict[str, dict[str, list[dict]]], comparison: dict) -> dict:
@@ -8400,6 +8453,23 @@ def summarize(inventories: dict[str, dict[str, list[dict]]], comparison: dict) -
         facade: {
             key: len(value)
             for key, value in comparison[facade].items()
+            if key != "deltaClasses"
+        }
+        for facade in ("dxfRW", "dwgRW", "shared")
+    }
+    result["comparison"]["deltaClassCounts"] = {
+        facade: {
+            delta_class: sum(
+                delta_class in row["classes"]
+                for row in comparison[facade]["deltaClasses"]
+            )
+            for delta_class in sorted(
+                {
+                    delta_class
+                    for row in comparison[facade]["deltaClasses"]
+                    for delta_class in row["classes"]
+                }
+            )
         }
         for facade in ("dxfRW", "dwgRW", "shared")
     }
@@ -8419,6 +8489,91 @@ def verify_public_surface_metadata(root: Path) -> None:
         raise RouteError("compatibility decisions omit the deprecated dwgR surface")
 
 
+def verify_adaptation_metadata(
+    root: Path,
+    source_lock: dict,
+    target_tree: SourceTree,
+    standalone_tree: SourceTree,
+) -> dict:
+    """Verify every imported-source adaptation against both source trees.
+
+    The source manifest and import-scope checker protect the target snapshot,
+    but they do not prove that a standalone edit is the reviewed adaptation of
+    that exact blob.  Keep this check in the generator so a route artifact
+    cannot be refreshed from an unreviewed source delta or stale allowlist.
+    """
+    allowlist_path = root / "metadata/adaptation-allowlist.json"
+    allowlist = read_json(allowlist_path)
+    if allowlist.get("schema") != 1:
+        raise RouteError("adaptation allowlist schema changed without review")
+    target_meta = allowlist.get("target")
+    if not isinstance(target_meta, dict):
+        # The lock is the canonical target provenance for the existing
+        # allowlist format; newer allowlists may repeat it for readability.
+        target_meta = source_lock["libreCAD"]
+    if (
+        target_meta.get("commit") != source_lock["libreCAD"].get("commit")
+        or target_meta.get("repository") != source_lock["libreCAD"].get("repository")
+    ):
+        raise RouteError("adaptation allowlist target provenance disagrees with lock")
+    values = allowlist.get("entries")
+    if not isinstance(values, list):
+        raise RouteError("adaptation allowlist entries are not a list")
+    entries: dict[str, dict] = {}
+    for entry in values:
+        if not isinstance(entry, dict) or not isinstance(entry.get("path"), str):
+            raise RouteError("adaptation allowlist has a malformed entry")
+        path = entry["path"]
+        if path in entries:
+            raise RouteError("adaptation allowlist repeats %s" % path)
+        entries[path] = entry
+
+    source_entries: set[str] = set()
+    changed_paths: set[str] = set()
+    for path, target in sorted(target_tree.files.items()):
+        standalone = standalone_tree.files.get(path)
+        if standalone is None:
+            raise RouteError("adaptation check lost standalone source path: %s" % path)
+        if target.sha256 == standalone.sha256:
+            continue
+        changed_paths.add(path)
+        entry = entries.get(path)
+        if entry is None:
+            raise RouteError("standalone source delta lacks adaptation provenance: %s" % path)
+        source_entries.add(path)
+        if entry.get("targetBlob") != target.git_blob:
+            raise RouteError("adaptation target blob disagrees with target source: %s" % path)
+        if entry.get("adaptedSha256") != standalone.sha256:
+            raise RouteError("adaptation SHA-256 disagrees with standalone source: %s" % path)
+        if not isinstance(entry.get("reason"), str) or not entry["reason"]:
+            raise RouteError("adaptation entry lacks a review reason: %s" % path)
+
+    declared_source_entries = {
+        path
+        for path, entry in entries.items()
+        if isinstance(entry.get("targetBlob"), str) or isinstance(entry.get("adaptedSha256"), str)
+    }
+    if declared_source_entries != changed_paths:
+        raise RouteError(
+            "adaptation provenance set disagrees with source deltas: declared=%s changed=%s"
+            % (sorted(declared_source_entries), sorted(changed_paths))
+        )
+    for path in entries:
+        if path in target_tree.files:
+            continue
+        local = root / path
+        if not local.is_file():
+            raise RouteError("adaptation metadata names a missing standalone path: %s" % path)
+    return {
+        "schema": 1,
+        "allowlistPath": "metadata/adaptation-allowlist.json",
+        "allowlistSha256": sha256_bytes(allowlist_path.read_bytes()),
+        "targetCommit": target_meta["commit"],
+        "targetRepository": target_meta["repository"],
+        "adaptedSourcePaths": sorted(source_entries),
+    }
+
+
 def generate(root: Path, target_repo: Path) -> dict:
     source_lock = read_json(root / "metadata/libdxfrw-target-lock.json")
     if source_lock.get("schema") != 1 or not isinstance(source_lock.get("libreCAD"), dict):
@@ -8434,8 +8589,15 @@ def generate(root: Path, target_repo: Path) -> dict:
     standalone_inventory = inventory_tree(standalone_tree, public_headers)
     validate_inventory(target_tree, target_inventory)
     validate_inventory(standalone_tree, standalone_inventory)
+    adaptation = verify_adaptation_metadata(
+        root, source_lock, target_tree, standalone_tree
+    )
     comparison = compare_inventories(target_inventory, standalone_inventory)
     inventories = {"target": target_inventory, "standalone": standalone_inventory}
+    identity_digests = {
+        side: inventory_identity_digest(inventories[side])
+        for side in ("target", "standalone")
+    }
     return {
         "schema": SCHEMA,
         "kind": "libdxfrw-source-route-inventory",
@@ -8443,6 +8605,30 @@ def generate(root: Path, target_repo: Path) -> dict:
         "generator": {
             "path": "tools/extract_parity_source_routes.py",
             "parserSchema": PARSER_SCHEMA,
+        },
+        "provenance": {
+            "schema": 1,
+            "target": {
+                "repository": source_lock["libreCAD"].get("repository"),
+                "commit": source_lock["libreCAD"].get("commit"),
+                "snapshotRevision": source_lock["libreCAD"].get("snapshotRevision"),
+                "sourceRoot": source_lock["libreCAD"].get("sourceRoot"),
+            },
+            "standalone": {
+                "repository": source_lock["standalone"].get("repository"),
+                "baselineRef": source_lock["standalone"].get("ref"),
+                "baselineCommit": source_lock["standalone"].get("commit"),
+                "contentTreeSha256": standalone_tree.metadata["contentTreeSha256"],
+            },
+            "adaptation": adaptation,
+            "routeIdentity": {
+                "algorithm": "sha256-canonical-json-v1",
+                "stableFields": [
+                    "id", "facade", "category", "selector", "directions", "sourceDisposition",
+                ],
+                "bodyEvidenceExcluded": True,
+                "inventoryDigests": identity_digests,
+            },
         },
         "inputs": {
             "target": {
@@ -8496,8 +8682,51 @@ def artifact_payloads(generated: dict, output: Path) -> tuple[str, list[tuple[Pa
     return canonical_json(index), shards
 
 
+def validate_artifact_payloads(index_text: str, shards: list[tuple[Path, str]], output: Path) -> None:
+    """Validate shard metadata before writing or checking on-disk artifacts."""
+    try:
+        index = json.loads(index_text)
+    except json.JSONDecodeError as exc:
+        raise RouteError("generated artifact index is not JSON") from exc
+    rows = index.get("shards") if isinstance(index, dict) else None
+    if not isinstance(rows, list) or len(rows) != len(shards):
+        raise RouteError("generated artifact shard index is incomplete")
+    seen: set[str] = set()
+    expected: dict[str, tuple[str, str, int, str]] = {}
+    for path, rendered in shards:
+        relative = path.relative_to(output.parent).as_posix()
+        stem = path.stem
+        if "-" not in stem:
+            raise RouteError("generated artifact shard filename is malformed: %s" % path)
+        side, facade = stem.split("-", 1)
+        expected[relative] = (
+            side,
+            facade,
+            len(json.loads(rendered).get("routes", [])),
+            sha256_text(rendered),
+        )
+    for row in rows:
+        if not isinstance(row, dict) or set(row) != {"path", "side", "facade", "routeCount", "sha256"}:
+            raise RouteError("generated artifact shard metadata is malformed")
+        path = row["path"]
+        if not isinstance(path, str) or path in seen or path not in expected:
+            raise RouteError("generated artifact shard path is duplicate or unknown")
+        seen.add(path)
+        expected_side, expected_facade, expected_count, expected_hash = expected[path]
+        if (
+            row["side"] != expected_side
+            or row["facade"] != expected_facade
+            or row["routeCount"] != expected_count
+            or row["sha256"] != expected_hash
+        ):
+            raise RouteError("generated artifact shard metadata disagrees with payload: %s" % path)
+    if seen != set(expected):
+        raise RouteError("generated artifact shard index has missing entries")
+
+
 def write_or_check_artifacts(generated: dict, output: Path, check: bool) -> None:
     index, shards = artifact_payloads(generated, output)
+    validate_artifact_payloads(index, shards, output)
     expected_paths = {path for path, _text in shards}
     if check:
         payloads = [(output, index), *shards]
@@ -9992,6 +10221,58 @@ private:
         pass
     else:
         raise AssertionError("broken dwgR forwarding surface was accepted")
+
+    delta_target = {
+        "selector": {"conditionFingerprint": "target"},
+        "directions": ["read"],
+        "sourceDisposition": "source-route-only",
+        "evidence": [{"path": "src/example.cpp", "symbol": "f", "spanSha256": "a"}],
+    }
+    delta_standalone = {
+        "selector": {"conditionFingerprint": "standalone"},
+        "directions": ["write"],
+        "sourceDisposition": "source-route-only",
+        "evidence": [{"path": "src/example.cpp", "symbol": "f", "spanSha256": "b"}],
+    }
+    assert route_delta_classes(delta_target, delta_standalone) == [
+        "body", "condition", "direction", "selector"
+    ]
+
+    artifact_generated = {
+        "schema": SCHEMA,
+        "kind": "libdxfrw-source-route-inventory",
+        "fixturePolicy": "no-drawing-payloads; source-and-metadata-only",
+        "generator": {"path": "synthetic", "parserSchema": PARSER_SCHEMA},
+        "provenance": {"schema": 1},
+        "inputs": {},
+        "comparison": {"dxfRW": {}, "dwgRW": {}, "shared": {}},
+        "summary": {},
+        "inventories": {
+            "target": {"dxfRW": [], "dwgRW": [], "shared": []},
+            "standalone": {"dxfRW": [], "dwgRW": [], "shared": []},
+        },
+    }
+    with tempfile.TemporaryDirectory() as directory:
+        output = Path(directory) / "inventory.json"
+        write_or_check_artifacts(artifact_generated, output, False)
+        write_or_check_artifacts(artifact_generated, output, True)
+        shard = output.parent / output.stem / "target-dxfRW.json"
+        shard.write_text(shard.read_text(encoding="utf-8") + "tampered", encoding="utf-8")
+        try:
+            write_or_check_artifacts(artifact_generated, output, True)
+        except RouteError:
+            pass
+        else:
+            raise AssertionError("tampered artifact shard was accepted")
+        write_or_check_artifacts(artifact_generated, output, False)
+        extra = output.parent / output.stem / "extra.json"
+        extra.write_text("{}\n", encoding="utf-8")
+        try:
+            write_or_check_artifacts(artifact_generated, output, True)
+        except RouteError:
+            pass
+        else:
+            raise AssertionError("extra artifact shard was accepted")
     print("extract_parity_source_routes self-test: PASS")
 
 

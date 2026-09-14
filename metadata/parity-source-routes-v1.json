@@ -1,6 +1,3266 @@
 {
   "comparison": {
     "dwgRW": {
+      "deltaClasses": [
+        {
+          "classes": [
+            "body",
+            "selector"
+          ],
+          "routeId": "dwgRW/fixed-entity/10-VERTEX_2D"
+        },
+        {
+          "classes": [
+            "body",
+            "selector"
+          ],
+          "routeId": "dwgRW/fixed-entity/11-VERTEX_3D"
+        },
+        {
+          "classes": [
+            "body",
+            "selector"
+          ],
+          "routeId": "dwgRW/fixed-entity/12-VERTEX_MESH"
+        },
+        {
+          "classes": [
+            "body",
+            "selector"
+          ],
+          "routeId": "dwgRW/fixed-entity/13-VERTEX_PFACE"
+        },
+        {
+          "classes": [
+            "body",
+            "selector"
+          ],
+          "routeId": "dwgRW/fixed-entity/14-VERTEX_PFACE_FACE"
+        },
+        {
+          "classes": [
+            "body",
+            "selector"
+          ],
+          "routeId": "dwgRW/fixed-entity/15-POLYLINE_2D"
+        },
+        {
+          "classes": [
+            "body",
+            "selector"
+          ],
+          "routeId": "dwgRW/fixed-entity/16-POLYLINE_3D"
+        },
+        {
+          "classes": [
+            "body",
+            "selector"
+          ],
+          "routeId": "dwgRW/fixed-entity/2-ATTRIB"
+        },
+        {
+          "classes": [
+            "body",
+            "selector"
+          ],
+          "routeId": "dwgRW/fixed-entity/29-POLYLINE_PFACE"
+        },
+        {
+          "classes": [
+            "body",
+            "selector"
+          ],
+          "routeId": "dwgRW/fixed-entity/30-POLYLINE_MESH"
+        },
+        {
+          "classes": [
+            "body",
+            "selector"
+          ],
+          "routeId": "dwgRW/fixed-entity/6-SEQEND"
+        },
+        {
+          "classes": [
+            "body",
+            "selector"
+          ],
+          "routeId": "dwgRW/fixed-entity/7-INSERT"
+        },
+        {
+          "classes": [
+            "body",
+            "selector"
+          ],
+          "routeId": "dwgRW/fixed-entity/8-MINSERT"
+        },
+        {
+          "classes": [
+            "body",
+            "selector"
+          ],
+          "routeId": "dwgRW/legacy-dwgr-facade/dwgR"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/ACAD_TABLE"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/ARCALIGNEDTEXT"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/ARC_ALIGNED_TEXT"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/ARC_DIMENSION"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/AcDbArcAlignedText"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/AcDbArcDimension"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/AcDbCamera"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/AcDbDgnReference"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/AcDbDwfReference"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/AcDbGeoPositionMarker"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/AcDbHelix"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/AcDbLight"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/AcDbMPolygon"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/AcDbNavisworksModel"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/AcDbPdfReference"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/AcDbRText"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/AcDbRadialDimensionLarge"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/AcDbSection"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/AcDbSubDMesh"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/AcDbTable"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/CAMERA"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/DGNUNDERLAY"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/DWFUNDERLAY"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/EXTRUDEDSURFACE"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/GEOPOSITIONMARKER"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/HELIX"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/LARGE_RADIAL_DIMENSION"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/LIGHT"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/LOFTEDSURFACE"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/MESH"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/MPOLYGON"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/MULTILEADER"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/NAVISWORKSMODEL"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/NURBSURFACE"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/PDFUNDERLAY"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/PLANESURFACE"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/POINTCLOUD"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/POINTCLOUDEX"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/POSITIONMARKER"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/REVOLVEDSURFACE"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/RTEXT"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/RText"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/SECTIONOBJECT"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/SWEPTSURFACE"
+        },
+        {
+          "classes": [
+            "body",
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-entity-class/WIPEOUT"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/ACAD_EVALUATION_GRAPH"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/ACDBCOLOR"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/ACDBCURVEPATH"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/ACDBDETAILVIEWSTYLE"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/ACDBDICTIONARYWDFLT"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/ACDBGEOMAPIMAGE"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/ACDBLIGHTLIST"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/ACDBMENTALRAYRENDERSETTINGS"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/ACDBMOTIONPATH"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/ACDBOBJECTPTR"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/ACDBPARTIALVIEWINGINDEX"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/ACDBPERSSUBENTMANAGER"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/ACDBPOINTPATH"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/ACDBRAPIDRTRENDERSETTINGS"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/ACDBRENDERSETTINGS"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/ACDBSECTIONVIEWSTYLE"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/ACDBSUNSTUDY"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/ACDB_VISUALSTYLE_CLASS"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbBreakData"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbBreakPointRef"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbCellStyleMap"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbColor"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbContextDataManager"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbCurvePath"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbDataLink"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbDataTable"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbDetailViewStyle"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbDgnDefinition"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbDictionaryVar"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbDictionaryWithDefault"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbDimAssoc"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbDwfDefinition"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbEvalGraph"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbField"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbFieldList"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbGeoData"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbGeomapImage"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbGradientBackground"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbGroundPlaneBackground"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbIBLBackground"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbIdBuffer"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbImageBackground"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbIndex"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbLayerFilter"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbLayerIndex"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbLightList"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbMaterial"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbMentalRayRenderSettings"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbMotionPath"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbNavisworksModelDef"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbObjectPtr"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbPartialViewingIndex"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbPdfDefinition"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbPlotSettings"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbPointCloudColorMap"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbPointCloudDef"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbPointCloudDefEx"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbPointCloudDefReactor"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbPointCloudDefReactorEx"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbPointPath"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbRapidRTRenderSettings"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbRasterImageDefReactor"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbRasterVariables"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbRenderEntry"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbRenderEnvironment"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbRenderGlobal"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbRenderSettings"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbScale"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbSectionManager"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbSectionSettings"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbSectionViewStyle"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbSkyBackground"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbSolidBackground"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbSortentsTable"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbSpatialFilter"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbSpatialIndex"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbSun"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbSunStudy"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbTableContent"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbTableGeometry"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbTableStyle"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbTvDeviceProperties"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbVisualStyle"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbVxControl"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbVxTableRecord"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbWipeoutVariables"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/AcDbXrecord"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/BREAKDATA"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/BREAKPOINTREF"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/CELLSTYLEMAP"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/CONTEXTDATAMANAGER"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/CSACDOCUMENTOPTIONS"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/CURVEPATH"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/DATALINK"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/DATATABLE"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/DBCOLOR"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/DETAILVIEWSTYLE"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/DGNDEFINITION"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/DICTIONARYVAR"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/DICTIONARYWDFLT"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/DIMASSOC"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/DWFDEFINITION"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/FIELD"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/FIELDLIST"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/GEODATA"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/GEOMAPIMAGE"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/GRADIENTBACKGROUND"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/GRADIENT_BACKGROUND"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/GROUNDPLANEBACKGROUND"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/GROUND_PLANE_BACKGROUND"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/IBLBACKGROUND"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/IBL_BACKGROUND"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/IDBUFFER"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/IMAGEBACKGROUND"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/IMAGEDEF_REACTOR"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/IMAGE_BACKGROUND"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/INDEX"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/LAYERFILTER"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/LAYER_INDEX"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/LIGHTLIST"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/MATERIAL"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/MENTALRAYRENDERSETTINGS"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/MLEADERSTYLE"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/MOTIONPATH"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/NAVISWORKSMODELDEF"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/OBJECTPTR"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/OBJECT_PTR"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/PARTIALVIEWINGINDEX"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/PARTIAL_VIEWING_INDEX"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/PDFDEFINITION"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/PLOTSETTINGS"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/POINTCLOUDCOLORMAP"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/POINTCLOUDDEFINITION"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/POINTCLOUDDEFINITIONEX"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/POINTCLOUDDEFREACTOR"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/POINTCLOUDDEFREACTOREX"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/POINTPATH"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/RAPIDRTRENDERENVIRONMENT"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/RAPIDRTRENDERSETTINGS"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/RASTERVARIABLES"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/RENDERENTRY"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/RENDERENVIRONMENT"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/RENDERGLOBAL"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/RENDERSETTINGS"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/SCALE"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/SECTIONMANAGER"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/SECTIONSETTINGS"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/SECTIONVIEWSTYLE"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/SECTION_MANAGER"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/SECTION_SETTINGS"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/SKYLIGHTBACKGROUND"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/SKYLIGHT_BACKGROUND"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/SOLIDBACKGROUND"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/SOLID_BACKGROUND"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/SORTENTSTABLE"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/SPATIAL_FILTER"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/SPATIAL_INDEX"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/SUN"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/SUNSTUDY"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/TABLECONTENT"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/TABLEGEOMETRY"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/TABLESTYLE"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/TVDEVICEPROPERTIES"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/VXCONTROL"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/VXTABLERECORD"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/VX_CONTROL"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/VX_TABLE_RECORD"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/WIPEOUTVARIABLES"
+        },
+        {
+          "classes": [
+            "condition",
+            "selector"
+          ],
+          "routeId": "dwgRW/named-object-class/XRECORD"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-entity_1-TEXT"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-entity_101-IMAGE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-entity_1109-WIPEOUT"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-entity_1150-NAVISWORKSMODEL"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-entity_1162-THREEDLINE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-entity_17-ARC"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-entity_18-CIRCLE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-entity_19-LINE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-entity_20-DIM_ORDINATE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-entity_21-DIM_LINEAR"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-entity_22-DIM_ALIGNED"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-entity_23-DIM_ANGULAR3P"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-entity_24-DIM_ANGULAR"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-entity_25-DIM_RADIAL"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-entity_26-DIM_DIAMETRIC"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-entity_27-POINT"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-entity_28-FACE3D"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-entity_31-SOLID"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-entity_32-TRACE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-entity_33-SHAPE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-entity_34-VIEWPORT"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-entity_35-ELLIPSE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-entity_36-SPLINE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-entity_37-REGION"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-entity_38-SOLID3D"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-entity_39-BODY"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-entity_40-RAY"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-entity_41-XLINE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-entity_43-OLEFRAME"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-entity_44-MTEXT"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-entity_45-LEADER"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-entity_46-TOLERANCE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-entity_47-MLINE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-entity_498-PROXY_ENTITY"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-entity_74-OLE2FRAME"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-entity_77-LWPOLYLINE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-entity_78-HATCH"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-object_1004-DBCOLOR"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-object_102-IMAGEDEF"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-object_1120-BLOCKREPRESENTATION"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-object_42-DICTIONARY"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-object_499-PROXY_OBJECT"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-object_54-UNKNOWN_36"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-object_55-UNKNOWN_37"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-object_58-UNKNOWN_3A"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-object_59-UNKNOWN_3B"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-object_71-VPORT_ENTITY_HEADER"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-object_72-GROUP"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-object_73-MLINESTYLE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-object_75-DUMMY"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-object_76-LONG_TRANSACTION"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-object_79-XRECORD"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-object_80-ACDBPLACEHOLDER"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-object_81-VBA_PROJECT"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-object_82-LAYOUT"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_fixed-object_9-UNKNOWN_9"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_ACAD_TABLE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_ARCALIGNEDTEXT"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_ARC_ALIGNED_TEXT"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_ARC_DIMENSION"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_AcDbArcAlignedText"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_AcDbArcDimension"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_AcDbCamera"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_AcDbDgnReference"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_AcDbDwfReference"
+        },
+        {
+          "classes": [
+            "body",
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_AcDbGeoPositionMarker"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_AcDbHelix"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_AcDbLight"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_AcDbMPolygon"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_AcDbNavisworksModel"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_AcDbPdfReference"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_AcDbRText"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_AcDbRadialDimensionLarge"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_AcDbSection"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_AcDbSubDMesh"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_AcDbTable"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_CAMERA"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_DGNUNDERLAY"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_DWFUNDERLAY"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_EXTRUDEDSURFACE"
+        },
+        {
+          "classes": [
+            "body",
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_GEOPOSITIONMARKER"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_HELIX"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_LARGE_RADIAL_DIMENSION"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_LIGHT"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_LOFTEDSURFACE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_MESH"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_MPOLYGON"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_MULTILEADER"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_NAVISWORKSMODEL"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_NURBSURFACE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_PDFUNDERLAY"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_PLANESURFACE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_POINTCLOUD"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_POINTCLOUDEX"
+        },
+        {
+          "classes": [
+            "body",
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_POSITIONMARKER"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_REVOLVEDSURFACE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_RTEXT"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_RText"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_SECTIONOBJECT"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_SWEPTSURFACE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_WIPEOUT"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_ACAD_EVALUATION_GRAPH"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_ACDBCOLOR"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_ACDBCURVEPATH"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_ACDBDETAILVIEWSTYLE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_ACDBDICTIONARYWDFLT"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_ACDBGEOMAPIMAGE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_ACDBLIGHTLIST"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_ACDBMENTALRAYRENDERSETTINGS"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_ACDBMOTIONPATH"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_ACDBOBJECTPTR"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_ACDBPARTIALVIEWINGINDEX"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_ACDBPERSSUBENTMANAGER"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_ACDBPOINTPATH"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_ACDBRAPIDRTRENDERSETTINGS"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_ACDBRENDERSETTINGS"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_ACDBSECTIONVIEWSTYLE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_ACDBSUNSTUDY"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_ACDB_VISUALSTYLE_CLASS"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbBreakData"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbBreakPointRef"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbCellStyleMap"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbColor"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbContextDataManager"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbCurvePath"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbDataLink"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbDataTable"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbDetailViewStyle"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbDgnDefinition"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbDictionaryVar"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbDictionaryWithDefault"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbDimAssoc"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbDwfDefinition"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbEvalGraph"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbGeoData"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbGeomapImage"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbGradientBackground"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbGroundPlaneBackground"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbIBLBackground"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbIdBuffer"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbImageBackground"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbIndex"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbLayerFilter"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbLayerIndex"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbLightList"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbMaterial"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbMentalRayRenderSettings"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbMotionPath"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbNavisworksModelDef"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbObjectPtr"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbPartialViewingIndex"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbPdfDefinition"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbPlotSettings"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbPointCloudColorMap"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbPointCloudDef"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbPointCloudDefEx"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbPointCloudDefReactor"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbPointCloudDefReactorEx"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbPointPath"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbRapidRTRenderSettings"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbRasterImageDefReactor"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbRasterVariables"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbRenderEntry"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbRenderEnvironment"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbRenderGlobal"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbRenderSettings"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbScale"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbSectionManager"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbSectionSettings"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbSectionViewStyle"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbSkyBackground"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbSolidBackground"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbSortentsTable"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbSpatialFilter"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbSpatialIndex"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbSun"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbSunStudy"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbTableContent"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbTableGeometry"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbTableStyle"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbTvDeviceProperties"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbVisualStyle"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbVxControl"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbVxTableRecord"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbWipeoutVariables"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_AcDbXrecord"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_BREAKDATA"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_BREAKPOINTREF"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_CELLSTYLEMAP"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_CONTEXTDATAMANAGER"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_CSACDOCUMENTOPTIONS"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_CURVEPATH"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_DATALINK"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_DATATABLE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_DBCOLOR"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_DETAILVIEWSTYLE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_DGNDEFINITION"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_DICTIONARYVAR"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_DICTIONARYWDFLT"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_DIMASSOC"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_DWFDEFINITION"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_GEODATA"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_GEOMAPIMAGE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_GRADIENTBACKGROUND"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_GRADIENT_BACKGROUND"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_GROUNDPLANEBACKGROUND"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_GROUND_PLANE_BACKGROUND"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_IBLBACKGROUND"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_IBL_BACKGROUND"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_IDBUFFER"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_IMAGEBACKGROUND"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_IMAGEDEF_REACTOR"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_IMAGE_BACKGROUND"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_INDEX"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_LAYERFILTER"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_LAYER_INDEX"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_LIGHTLIST"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_MATERIAL"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_MENTALRAYRENDERSETTINGS"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_MLEADERSTYLE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_MOTIONPATH"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_NAVISWORKSMODELDEF"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_OBJECTPTR"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_OBJECT_PTR"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_PARTIALVIEWINGINDEX"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_PARTIAL_VIEWING_INDEX"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_PDFDEFINITION"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_PLOTSETTINGS"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_POINTCLOUDCOLORMAP"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_POINTCLOUDDEFINITION"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_POINTCLOUDDEFINITIONEX"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_POINTCLOUDDEFREACTOR"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_POINTCLOUDDEFREACTOREX"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_POINTPATH"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_RAPIDRTRENDERENVIRONMENT"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_RAPIDRTRENDERSETTINGS"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_RASTERVARIABLES"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_RENDERENTRY"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_RENDERENVIRONMENT"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_RENDERGLOBAL"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_RENDERSETTINGS"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_SCALE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_SECTIONMANAGER"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_SECTIONSETTINGS"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_SECTIONVIEWSTYLE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_SECTION_MANAGER"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_SECTION_SETTINGS"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_SKYLIGHTBACKGROUND"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_SKYLIGHT_BACKGROUND"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_SOLIDBACKGROUND"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_SOLID_BACKGROUND"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_SORTENTSTABLE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_SPATIAL_FILTER"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_SPATIAL_INDEX"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_SUN"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_SUNSTUDY"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_TABLECONTENT"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_TABLEGEOMETRY"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_TABLESTYLE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_TVDEVICEPROPERTIES"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_VXCONTROL"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_VXTABLERECORD"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_VX_CONTROL"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_VX_TABLE_RECORD"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_WIPEOUTVARIABLES"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/parser-publication/dwgRW_named-object-class_XRECORD"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/raw-flow/dwg-replay-object"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/raw-flow/dwg-replay-section"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/reader-stage/readDwgTables"
+        }
+      ],
       "semanticMismatches": [
         "dwgRW/fixed-entity/10-VERTEX_2D",
         "dwgRW/fixed-entity/11-VERTEX_3D",
@@ -534,6 +3794,1439 @@
       ]
     },
     "dxfRW": {
+      "deltaClasses": [
+        {
+          "classes": [
+            "body",
+            "selector"
+          ],
+          "routeId": "dxfRW/dxf-transport-node/read-ascii-memory"
+        },
+        {
+          "classes": [
+            "body",
+            "selector"
+          ],
+          "routeId": "dxfRW/dxf-transport-node/read-file-ascii"
+        },
+        {
+          "classes": [
+            "body",
+            "selector"
+          ],
+          "routeId": "dxfRW/dxf-transport-node/read-file-binary"
+        },
+        {
+          "classes": [
+            "body",
+            "selector"
+          ],
+          "routeId": "dxfRW/dxf-transport-node/read-file-binary-r12"
+        },
+        {
+          "classes": [
+            "body",
+            "selector"
+          ],
+          "routeId": "dxfRW/dxf-transport-node/write-ascii"
+        },
+        {
+          "classes": [
+            "body",
+            "selector"
+          ],
+          "routeId": "dxfRW/dxf-transport-node/write-binary"
+        },
+        {
+          "classes": [
+            "body",
+            "selector"
+          ],
+          "routeId": "dxfRW/dxf-transport-node/write-binary-r12"
+        },
+        {
+          "classes": [
+            "body",
+            "selector"
+          ],
+          "routeId": "dxfRW/group-code-reader-range/260-269"
+        },
+        {
+          "classes": [
+            "body",
+            "selector"
+          ],
+          "routeId": "dxfRW/group-code-reader-range/482-998"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-block_BLOCK"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_3DFACE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_3DLINE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_3DSOLID"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_ACAD_PROXY_ENTITY"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_ACAD_TABLE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_ARC"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_ARCALIGNEDTEXT"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_ARC_ALIGNED_TEXT"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_ARC_DIMENSION"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_ATTDEF"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_BODY"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_CAMERA"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_CIRCLE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_DGNUNDERLAY"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_DIMENSION"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_DWFUNDERLAY"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_ELLIPSE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_EXTRUDEDSURFACE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_GEOPOSITIONMARKER"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_HATCH"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_HELIX"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_IMAGE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_INSERT"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_LARGE_RADIAL_DIMENSION"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_LEADER"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_LINE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_LOFTEDSURFACE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_LWPOLYLINE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_MESH"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_MINSERT"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_MLINE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_MPOLYGON"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_MTEXT"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_MULTILEADER"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_NAVISWORKSMODEL"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_NURBSSURFACE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_OLE2FRAME"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_OLEFRAME"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_PDFREFERENCE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_PDFUNDERLAY"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_PLANESURFACE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_POINT"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_POINTCLOUD"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_POINTCLOUDEX"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_POLYLINE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_POSITIONMARKER"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_RAY"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_REGION"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_REVOLVEDSURFACE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_RTEXT"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_SECTIONOBJECT"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_SECTION_OBJECT"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_SHAPE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_SOLID"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_SPLINE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_SWEPTSURFACE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_TEXT"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_TOLERANCE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_TRACE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_VIEWPORT"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_WIPEOUT"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_XLINE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACAD_EVALUATION_GRAPH"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACAD_PROXY_OBJECT"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBCOLOR"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBCURVEPATH"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBDETAILVIEWSTYLE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBDGNDEFINITION"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBDICTIONARYWDFLT"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBDWFDEFINITION"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBEVALGRAPH"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBFIELD"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBFIELDLIST"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBGEODATA"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBGEOMAPIMAGE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBHISTORYITEM"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBIDBUFFER"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBINDEX"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBLAYERINDEX"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBLIGHTLIST"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBMENTALRAYRENDERSETTINGS"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBMOTIONPATH"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBOBJECTPTR"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBPARTIALVIEWINGINDEX"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBPDFDEFINITION"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBPERSSUBENTMANAGER"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBPOINTCLOUDCOLORMAP"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBPOINTCLOUDDEF"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBPOINTCLOUDDEFEX"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBPOINTCLOUDDEFREACTOR"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBPOINTCLOUDDEFREACTOREX"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBPOINTPATH"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBRAPIDRTRENDERSETTINGS"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBRASTERVARIABLES"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBRENDERENTRY"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBRENDERENVIRONMENT"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBRENDERGLOBAL"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBRENDERSETTINGS"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBSECTIONMANAGER"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBSECTIONSETTINGS"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBSECTIONVIEWSTYLE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBSPATIALINDEX"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBSUN"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBSUNSTUDY"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBTVDEVICEPROPERTIES"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBVISUALSTYLE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBWIPEOUTVARIABLES"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDB_VISUALSTYLE_CLASS"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_BREAKDATA"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_BREAKPOINTREF"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_CSACDOCUMENTOPTIONS"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_CURVEPATH"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_DATALINK"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_DBCOLOR"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_DETAILVIEWSTYLE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_DGNDEFINITION"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_DICTIONARY"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_DICTIONARYVAR"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_DICTIONARYWDFLT"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_DIMASSOC"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_DWFDEFINITION"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_EVALUATIONGRAPH"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_EVALUATION_GRAPH"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_FIELD"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_FIELDLIST"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_GEODATA"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_GEOMAPIMAGE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_GRADIENTBACKGROUND"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_GRADIENT_BACKGROUND"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_GROUNDPLANEBACKGROUND"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_GROUND_PLANE_BACKGROUND"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_GROUP"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_HISTORYNODE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_IBLBACKGROUND"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_IBL_BACKGROUND"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_IDBUFFER"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_IMAGEBACKGROUND"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_IMAGEDEF"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_IMAGEDEF_REACTOR"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_IMAGE_BACKGROUND"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_INDEX"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_LAYERFILTER"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_LAYERINDEX"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_LAYER_FILTER"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_LAYER_INDEX"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_LAYOUT"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_LIGHTLIST"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_MATERIAL"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_MENTALRAYRENDERSETTINGS"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_MLEADERSTYLE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_MLINESTYLE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_MOTIONPATH"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_NAVISWORKSMODELDEF"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_OBJECTPTR"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_OBJECT_PTR"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_PARTIALVIEWINGINDEX"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_PARTIAL_VIEWING_INDEX"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_PDFDEFINITION"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_PERSISTENTSUBENTITYMANAGER"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_PERSUBENTMGR"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_PLOTSETTINGS"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_POINTCLOUDCOLORMAP"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_POINTCLOUDDEFINITION"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_POINTCLOUDDEFINITIONEX"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_POINTCLOUDDEFREACTOR"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_POINTCLOUDDEFREACTOREX"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_POINTPATH"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_RAPIDRTRENDERSETTINGS"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_RASTERVARIABLES"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_RENDERENTRY"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_RENDERENVIRONMENT"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_RENDERGLOBAL"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_RENDERSETTINGS"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_SCALE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_SECTIONMANAGER"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_SECTIONSETTINGS"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_SECTIONVIEWSTYLE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_SECTION_MANAGER"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_SECTION_SETTINGS"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_SKYLIGHTBACKGROUND"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_SKYLIGHT_BACKGROUND"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_SOLIDBACKGROUND"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_SOLID_BACKGROUND"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_SORTENTSTABLE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_SPATIALFILTER"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_SPATIALINDEX"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_SPATIAL_FILTER"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_SPATIAL_INDEX"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_SUN"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_SUNSTUDY"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_TABLESTYLE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_TVDEVICEPROPERTIES"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_VISUALSTYLE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_WIPEOUTVARIABLES"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_XRECORD"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-section_CLASSES"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-section_HEADER"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-table_APPID"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-table_DIMSTYLE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-table_LAYER"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-table_LTYPE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-table_STYLE"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-table_UCS"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-table_VIEW"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/parser-publication/dxfRW_dxf-table_VPORT"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/raw-flow/dxf-publish-entity"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/raw-flow/dxf-publish-object"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/raw-flow/dxf-publish-proxy"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/raw-flow/dxf-publish-section"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/raw-flow/dxf-publish-typed-raw-carrier"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/raw-flow/dxf-read-entity-raw-self-handle-gate"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/raw-flow/dxf-read-entity-self-handle-gate"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/raw-flow/dxf-read-object-raw-self-handle-gate"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/raw-flow/dxf-read-object-self-handle-gate"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/raw-flow/dxf-read-proxy-boundary"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/raw-flow/dxf-read-proxy-payload-gate"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/raw-flow/dxf-read-proxy-raw-self-handle-gate"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/raw-flow/dxf-read-proxy-self-handle-gate"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/raw-flow/dxf-read-raw-entity-boundary"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/raw-flow/dxf-read-raw-object-boundary"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/raw-flow/dxf-read-raw-section-boundary"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/raw-flow/dxf-read-typed-raw-template"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/raw-flow/dxf-replay-object"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/raw-flow/dxf-replay-section"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/raw-flow/dxf-write-object-groups-gate"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/raw-flow/dxf-write-object-self-handle-gate"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dxfRW/raw-flow/dxf-write-section-groups-gate"
+        }
+      ],
       "semanticMismatches": [
         "dxfRW/dxf-transport-node/read-ascii-memory",
         "dxfRW/dxf-transport-node/read-file-ascii",
@@ -833,6 +5526,27 @@
       ]
     },
     "shared": {
+      "deltaClasses": [
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "shared/callback/addDimArc-001"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "shared/interface-method/addDimArc-001"
+        },
+        {
+          "classes": [
+            "body",
+            "selector"
+          ],
+          "routeId": "shared/source-unit-coverage/src_intern_dxfreader.cpp"
+        }
+      ],
       "semanticMismatches": [
         "shared/callback/addDimArc-001",
         "shared/interface-method/addDimArc-001",
@@ -1884,6 +6598,58 @@
     }
   },
   "kind": "libdxfrw-source-route-inventory",
+  "provenance": {
+    "adaptation": {
+      "adaptedSourcePaths": [
+        "src/drw_base.h",
+        "src/drw_datastorage.cpp",
+        "src/drw_entities.cpp",
+        "src/drw_interface.h",
+        "src/drw_objects.cpp",
+        "src/intern/drw_dbg.cpp",
+        "src/intern/dwgreader.cpp",
+        "src/intern/dxfreader.cpp",
+        "src/libdwgr.cpp",
+        "src/libdwgr.h",
+        "src/libdxfrw.cpp",
+        "src/libdxfrw.h"
+      ],
+      "allowlistPath": "metadata/adaptation-allowlist.json",
+      "allowlistSha256": "f42594695bda126a1fe12d8c5551d4ca468bc71304fd815b33755bbb1511e05c",
+      "schema": 1,
+      "targetCommit": "3c7785ebbcbfc8f3c8f79dbba093aff09cdec753",
+      "targetRepository": "git@github.com-librecad:LibreCAD/LibreCAD.git"
+    },
+    "routeIdentity": {
+      "algorithm": "sha256-canonical-json-v1",
+      "bodyEvidenceExcluded": true,
+      "inventoryDigests": {
+        "standalone": "bca40680ac90523b9948c50bea2a0a0ca2fc3a47b34b5de60ca99dc38c4b97a2",
+        "target": "8d29d63e35bb6661d2aad6faa1c36ddeaa5f0e04e9d99cdcb31ecc0a6d77aa69"
+      },
+      "stableFields": [
+        "id",
+        "facade",
+        "category",
+        "selector",
+        "directions",
+        "sourceDisposition"
+      ]
+    },
+    "schema": 1,
+    "standalone": {
+      "baselineCommit": "92d7466ed9146badcd4fb44c82d1dd8302b3c7db",
+      "baselineRef": "origin/master",
+      "contentTreeSha256": "421862b31345c6a65de0e7339727f9910c946341a74282755a5f6ca424ab8f27",
+      "repository": "git@github.com-librecad:LibreCAD/libdxfrw.git"
+    },
+    "target": {
+      "commit": "3c7785ebbcbfc8f3c8f79dbba093aff09cdec753",
+      "repository": "git@github.com-librecad:LibreCAD/LibreCAD.git",
+      "snapshotRevision": "89b762bef636c90eb370cb1af3cec80fe759cb32",
+      "sourceRoot": "libraries/libdxfrw/src"
+    }
+  },
   "schema": 1,
   "shards": [
     {
@@ -1931,6 +6697,21 @@
   ],
   "summary": {
     "comparison": {
+      "deltaClassCounts": {
+        "dwgRW": {
+          "body": 62,
+          "condition": 214,
+          "selector": 497
+        },
+        "dxfRW": {
+          "body": 9,
+          "selector": 237
+        },
+        "shared": {
+          "body": 1,
+          "selector": 3
+        }
+      },
       "dwgRW": {
         "semanticMismatches": 497,
         "standaloneOnly": 27,
