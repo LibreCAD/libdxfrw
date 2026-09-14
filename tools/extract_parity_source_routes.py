@@ -1044,6 +1044,47 @@ DWG_RAW_REPLAY_EVIDENCE_RULES = {
             ),
         },
     },
+    "dwg-replay-section": {
+        "src/libdwgr.cpp": {
+            "dwgRW::writeRawDwgSection": (
+                {"name": "null-section-or-writer-guard", "pattern": r"section\s*==\s*nullptr\s*\|\|\s*writer\s*==\s*nullptr", "callee": "section/writer null checks", "calleeOverload": "raw-section-ingress-guard", "relation": "reject"},
+                {"name": "section-buffer-call", "pattern": r"writer->addRawDwgSection\s*\(\s*\*section\s*\)", "callee": "dwgWriter::addRawDwgSection", "calleeOverload": "addRawDwgSection(const DRW_RawDwgSection&)", "relation": "raw-section-to-writer"},
+            ),
+        },
+        "src/intern/dwgwriter.h": {
+            "dwgWriter::addRawDwgSection": (
+                {"name": "base-section-discard", "pattern": r"\(void\)section", "callee": "section", "calleeOverload": "base-writer-default-hook", "relation": "unsupported-default"},
+                {"name": "base-section-reject", "pattern": r"return\s+false", "callee": "false", "calleeOverload": "base-writer-default-hook", "relation": "unsupported-default"},
+            ),
+        },
+        "src/intern/dwgwriter18.cpp": {
+            "dwgWriter18::addRawDwgSection": (
+                {"name": "supported-name-classification", "pattern": r"const\s+bool\s+supportedName\s*=", "callee": "supportedName", "calleeOverload": "raw-section-name-classification", "relation": "eligibility"},
+                {"name": "standard-name-classification", "pattern": r"const\s+bool\s+standardName\s*=", "callee": "standardName", "calleeOverload": "raw-section-name-classification", "relation": "eligibility"},
+                {"name": "opaque-name-classification", "pattern": r"const\s+bool\s+opaqueName\s*=", "callee": "opaqueName", "calleeOverload": "raw-section-name-classification", "relation": "eligibility"},
+                {"name": "prototype-version-gate", "pattern": r"const\s+bool\s+prototypeAllowed\s*=", "callee": "prototypeAllowed", "calleeOverload": "raw-section-version-gate", "relation": "conditional-reject"},
+                {"name": "vba-version-gate", "pattern": r"const\s+bool\s+vbaAllowed\s*=", "callee": "vbaAllowed", "calleeOverload": "raw-section-version-gate", "relation": "conditional-reject"},
+                {"name": "name-version-reject", "pattern": r"if\s*\(\s*\(!supportedName\s*&&\s*!opaqueName\s*\)\s*\|\|\s*section\.m_version\s*!=\s*m_version", "callee": "supportedName/opaqueName/m_version", "calleeOverload": "raw-section-name-version-gate", "relation": "reject"},
+                {"name": "encoding-reject", "pattern": r"section\.m_encoding\s*!=\s*1\s*&&\s*section\.m_encoding\s*!=\s*2\s*&&\s*section\.m_encoding\s*!=\s*4", "callee": "section.m_encoding", "calleeOverload": "raw-section-encoding-gate", "relation": "reject"},
+                {"name": "encryption-reject", "pattern": r"section\.m_encrypted\s*!=\s*0", "callee": "section.m_encrypted", "calleeOverload": "raw-section-encryption-gate", "relation": "reject"},
+                {"name": "payload-size-reject", "pattern": r"section\.m_data\.size\s*\(\)\s*>\s*UINT32_MAX", "callee": "section.m_data.size", "calleeOverload": "raw-section-size-gate", "relation": "reject"},
+                {"name": "duplicate-section-reject", "pattern": r"existing\.m_name\s*==\s*section\.m_name", "callee": "m_rawDwgSections", "calleeOverload": "raw-section-name-uniqueness", "relation": "reject"},
+                {"name": "section-buffer-append", "pattern": r"m_rawDwgSections\.push_back\s*\(\s*section\s*\)", "callee": "m_rawDwgSections", "calleeOverload": "raw-section-buffer", "relation": "commit-buffer"},
+            ),
+            "dwgWriter18::finalize": (
+                {"name": "finalizer-entry-guard", "pattern": r"objectWriteFailed\s*\(\s*\)\s*\|\|\s*m_stream\s*==\s*nullptr\s*\|\|\s*!m_stream->good\s*\(\s*\)", "callee": "objectWriteFailed/m_stream", "calleeOverload": "finalizer-entry-guard", "relation": "reject"},
+                {"name": "raw-section-finalize-loop", "pattern": r"for\s*\(\s*const\s+DRW_RawDwgSection&\s+section\s+:\s*m_rawDwgSections\s*\)", "callee": "m_rawDwgSections", "calleeOverload": "raw-section-finalizer-loop", "relation": "flush"},
+                {"name": "raw-section-page-append", "pattern": r"appendDataSection\s*\(\s*section\.m_name", "callee": "appendDataSection", "calleeOverload": "appendDataSection(string,bytes,uint32_t,...)", "relation": "flush"},
+            ),
+        },
+        "src/intern/dwgwriter21.cpp": {
+            "dwgWriter21::finalize": (
+                {"name": "finalizer-entry-guard", "pattern": r"m_writeError\s*\|\|\s*m_stream\s*==\s*nullptr\s*\|\|\s*!m_stream->good\s*\(\s*\)", "callee": "m_writeError/m_stream", "calleeOverload": "finalizer-entry-guard", "relation": "reject"},
+                {"name": "raw-section-finalize-loop", "pattern": r"for\s*\(const\s+DRW_RawDwgSection&\s+section\s+:\s*m_rawDwgSections\s*\)", "callee": "m_rawDwgSections", "calleeOverload": "raw-section-finalizer-loop", "relation": "flush"},
+                {"name": "raw-section-page-append", "pattern": r"appendSection\s*\(\s*section\.m_name\.c_str", "callee": "appendSection", "calleeOverload": "appendSection(const char*,bytes,uint32_t,...)", "relation": "flush"},
+            ),
+        },
+    },
 }
 
 # These route nodes cover the deliberate deferred/publication machinery that
@@ -8865,6 +8906,44 @@ bool dwgWriter15::replayRawObject(const DRW_UnsupportedObject& object) {
         pass
     else:
         raise AssertionError("DWG raw replay guard order inversion was accepted")
+    dwg_section_specs = DWG_RAW_REPLAY_EVIDENCE_RULES["dwg-replay-section"][
+        "src/intern/dwgwriter18.cpp"
+    ]["dwgWriter18::finalize"]
+    dwg_section_source = SourceFile(
+        "src/intern/dwgwriter18.cpp",
+        """
+bool dwgWriter18::finalize() {
+    if (objectWriteFailed() || m_stream == nullptr || !m_stream->good()) return false;
+    for (const DRW_RawDwgSection& section : m_rawDwgSections) {
+        appendDataSection(section.m_name, nullptr, 0);
+    }
+    return true;
+}
+""",
+        "e" * 64,
+    )
+    dwg_section_body = function_body(dwg_section_source, "dwgWriter18::finalize")
+    dwg_section_rows = raw_eligibility_edge_rows(dwg_section_body, dwg_section_specs)
+    assert [row["edge"] for row in dwg_section_rows] == [
+        spec["name"] for spec in dwg_section_specs
+    ]
+    reversed_dwg_section = SourceFile(
+        dwg_section_source.path,
+        dwg_section_source.text.replace(
+            "for (const DRW_RawDwgSection& section : m_rawDwgSections) {\n        appendDataSection(section.m_name, nullptr, 0);",
+            "appendDataSection(section.m_name, nullptr, 0);\n    for (const DRW_RawDwgSection& section : m_rawDwgSections) {",
+        ),
+        dwg_section_source.git_blob,
+    )
+    try:
+        raw_eligibility_edge_rows(
+            function_body(reversed_dwg_section, "dwgWriter18::finalize"),
+            dwg_section_specs,
+        )
+    except RouteError:
+        pass
+    else:
+        raise AssertionError("DWG raw section finalizer order inversion was accepted")
     transport_source = SourceFile(
         "src/transport.cpp",
         """

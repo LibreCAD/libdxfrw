@@ -240,7 +240,7 @@ implementation lane or tempts the work to import a drawing fixture.
 | **I0.2b-B — template typed/raw pairing** | A raw-captured template bridge is eligible only when the bound lambda is the direct second `AddFn` argument, its verified `code == 0` branch orders boundary → typed callback → raw callback → return, and exactly one unconditional typed callback executes directly in that AddFn body.  Then, and only then, one typed and one raw row share invocation evidence, ancestry, and delivery bundle. | Add negative tests for a debug-name lambda, nested/deferred lambda, conditional/multiple AddFn callbacks, missing bridge, missing typed half, missing raw half, and a changed raw bundle.  Validate `processRawCapturedObject` bridge evidence and all target wrapper pairs. | Lets all simple target wrappers close in one mechanical scan; ambiguous wrappers fall back to an explicit staged disposition rather than stalling or inventing co-delivery. |
 | **I0.2b-C / I0.2d-A — raw-route callback omission** | `raw-route` is outside the current parser-publication category, so generic raw-flow terminals must not be treated as publication proof.  The proxy paths physically publish typed proxy callbacks and then `addRawDxfEntity`/`addRawDxfObject`; each physical raw callback needs callback route, carrier binding/form, source location, ordered condition ancestry, and raw-flow predecessor edge. | **Landed in two S18 source-only slices:** validated terminal-call metadata covers `addRawDxfObject`, `addRawDxfEntity`, and `addRawDxfSection` across the five target/standalone raw publication bodies; proxy rows independently prove typed-callback-before-raw-carrier order and branch compatibility. Ordered call-site metadata now covers record loops, boundary classification, proxy payload/depth checks, self-handle predicates, application-group depth, pair limits, and the typed/raw template bridge. Synthetic mutations reject missing callbacks/carriers, ambiguous bindings, incompatible callback routes, reversed proxy order, dangling predecessors, and eligibility-order inversion. The remaining I0.2d/f work is broader writer lifecycle and DWG/typed publication coverage. | Separates completed DXF read-side publication and eligibility evidence from the still-open lifecycle/coverage graph; I0.2b remains ACTIVE until its broader typed/DWG obligations close, while the next narrow slice is DWG lifecycle/table/compound proof. |
 | **I0.2d-B / I0.2f-A — raw transport/replay identity** | Helper-name anchoring cannot conflate `requiresDxfSelfHandle(Version)` with `requiresDxfSelfHandle(dxfReader)`. `writeRawDxfObject` is not terminal: it calls `writeRawDxfGroups`. Internal `registerRawObjectClass` during DWG replay is not external writer ingress; it is a post-acceptance lifecycle edge owned by `dwgWriter15::replayRawObject`. | **Landed in S18:** DXF reader/writer ASCII/binary/R12 selection rows carry exact predicate, branch-arm, and constructor evidence; `validateRawDxfGroups`, writer self-handle overloads, and `writeRawDxfObject`/`writeRawDxfSection` → `writeRawDxfGroups` transforms carry concrete call-site IDs and predecessor order. The DWG portion now binds `dwgRW::writeRawDwgObject` null/writer/replay/rollback edges, the ordered replay preflight (block-control/version/fixed-modeler/fixed-shell/surface/custom/handle/byte-size/object-size/duplicate-handle/owner gates), internal class registration, frame parse/type checks, custom block-owner preflight, and post-write owner bookkeeping. Synthetic reversal rejects changed guard order. Remaining work is broader writer API/provider/finalizer closure and lifecycle coverage; no drawing fixtures are needed. | These are fast, fail-closed source gates that isolate transport, replay, and lifecycle ownership. DXF and DWG writer identity can proceed independently of compound/table implementation, while the exact edge rows give the next slices ready-to-run source anchors. |
-| **I0.2e-A / I0.2g-A — receipt is not delivery / role is not coverage** | Table receipt, deferred frame, journal, or a functional file role cannot close a capability on its own.  The eight table maps, block-record path, compound queues, direct/journal delivery, lifecycle finalizers, and every functional source unit require non-self concrete evidence. | Land table/block/compound/lifecycle evidence first; then make I0.2g reject a generic stage-only or foreign-path `coveredBy` link.  Double-generate before artifact refresh. | Keeps broad coverage as one cached aggregate check after focused source slices, rather than serializing all 85 units. |
+| **I0.2e-A / I0.2g-A — receipt is not delivery / role is not coverage** | Table receipt, deferred frame, journal, or a functional file role cannot close a capability on its own.  The eight table maps, block-record path, compound queues, direct/journal delivery, lifecycle finalizers, and every functional source unit require non-self concrete evidence. | **Raw-section lifecycle portion landed in S18:** `dwgRW::writeRawDwgSection`, the base unsupported hook, R2004+ acceptance/buffer checks, and R2004/R2007 finalizer flush loops now have ordered source evidence. Remaining work is table/block/compound receipt-vs-delivery and reader lifecycle closure; then make I0.2g reject a generic stage-only or foreign-path `coveredBy` link. Double-generate before each artifact refresh. | Keeps broad coverage as one cached aggregate check after focused source slices, rather than serializing all 85 units; raw-section finalizer ownership is now an independent fast gate. |
 
 ## Four-axis implementation quality bar
 
@@ -1731,14 +1731,15 @@ edit this block or commit the same slice concurrently.
   verified as an anchor-inventory scaffold; review inserted source-surface,
   public-header, pipeline-edge, and cardinality-mapping children before any
   completeness claim may advance.
-- Latest implementation slice: S18/I0.2f-A DWG raw replay identity now binds
-  `dwgRW::writeRawDwgObject` ingress, the ordered `dwgWriter15::replayRawObject`
-  acceptance/preflight predicates, internal `registerRawObjectClass` transaction
-  ownership, and custom block-owned entity bookkeeping at concrete source
-  locations. It builds on the landed DXF publication/eligibility/transport/
-  writer proof; broader DWG lifecycle, table/compound coverage, mapping, and
-  format qualification remain later work. The slice includes synthetic order
-  inversion rejection and is self-checked before commit.
+- Latest implementation slice: S18/I0.2e-A DWG raw section lifecycle identity
+  now binds `dwgRW::writeRawDwgSection` ingress, the base writer's deliberate
+  unsupported default, R2004+ section-name/version/encoding/size/uniqueness
+  gates, the buffered section append, and both R2004/R2007 finalizer loops that
+  flush raw sections into page sections. It builds on the landed DXF
+  publication/eligibility/transport/writer proof and DWG raw object replay
+  identity; broader DWG table/compound delivery, mapping, and format
+  qualification remain later work. The slice is source-only, fail-closed, and
+  self-checked before commit.
 - Authorized run horizon: full S01-S23/A-I5 implementation objective.
 - Completion target: S23/I5 qualified-format parity acceptance; a PR boundary
   cannot silently shorten the authorized objective.
@@ -1758,13 +1759,14 @@ edit this block or commit the same slice concurrently.
   0 DEFERRED_EXTERNAL / 9 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
 - Active work: I0.2b exact parser-publication/callback proof, with its raw
   callback terminal metadata slice landed; I0.2d read-side eligibility,
-  transport selection, and DXF raw writer/replay proof are landed; and
-  I0.2f-A now proves the DWG raw replay ingress → ordered preflight → internal
-  class-registration/owner-bookkeeping identity. I0.2d (DXF transport/raw
-  eligibility), I0.2e (DWG lifecycle/table/compound delivery), I0.2f (writer
-  bridge/lifecycle), and I0.2g (concrete source-unit closure) remain separate
-  implementation slices so false generic source edges cannot survive as a
-  claim of feature parity. I0.2a now proves the exact 85-unit pinned source
+  transport selection, and DXF raw writer/replay proof are landed; I0.2f-A
+  proves DWG raw object replay ingress → ordered preflight → internal
+  class-registration/owner-bookkeeping; and I0.2e-A now proves raw section
+  ingress → versioned acceptance/buffering → R2004/R2007 finalizer flush. I0.2d
+  (DXF transport/raw eligibility), I0.2e (DWG lifecycle/table/compound
+  delivery), I0.2f (writer bridge/lifecycle), and I0.2g (concrete source-unit
+  closure) remain separate implementation slices so false generic source edges
+  cannot survive as a claim of feature parity. I0.2a now proves the exact 85-unit pinned source
   surface, all ten CMake-installed public headers, and the explicit standalone
   `dxfcode.h` adaptation; it does not promote a format-support claim. I0.3a
   target-test/oracle metadata is independently READY. I0.2b-g and I0.2c must
@@ -1790,7 +1792,7 @@ edit this block or commit the same slice concurrently.
 | S14 | G1: system-package LibreCAD mode, packaging, docs, release | S07, S12, S13 | COMMITTED | full acceptance criteria | S14 committed in this slice (prospective commit; resolve SHA after commit); standalone package, docs, policy, and aggregate gates pass; LibreCAD system-package mode remains explicitly deferred-external | external system-mode handoff |
 | S16 | H1: installed-package transitive header closure | S15 | COMMITTED | package install, staged-header closure, and consumer compile gates | committed `e113c9f`; standalone package rebuild/install and system-mode filter prerequisite pass; no fixture bytes | S17 |
 | S17 | H2: LibreCAD system-package consumer integration | S16 | COMMITTED | system-mode configure/build, focused tests, bundled-path audit, and default-mode non-regression | target commit `6969e0a003414f9a7084349ac54bc2b32515e16b`; system `librecad_lib` 100% build, focused CTest, default filter compile, 1,245-command zero-bundled-path audit; no fixture bytes | S18 parity inventory |
-| S18 | I0: deterministic both-façade parity inventory | S17 | ACTIVE | pinned generator inputs, source/public-surface and pipeline-edge extraction, cardinality-aware mapping, zero-unmapped/duplicate checks, deterministic `--check` | source/package integration, raw-publication terminal proof, read-side raw eligibility, DXF ASCII/binary/R12 transport selection, DXF raw writer/replay transforms, and DWG raw replay ingress/preflight/internal-registration/owner-bookkeeping identity are committed; target and standalone routes include exact carrier/callback/guard/branch/predecessor metadata plus ordered DWG replay edges, while broader DWG lifecycle/table/compound coverage and mapping remain before this becomes a parity claim; no drawing payloads | S19 |
+| S18 | I0: deterministic both-façade parity inventory | S17 | ACTIVE | pinned generator inputs, source/public-surface and pipeline-edge extraction, cardinality-aware mapping, zero-unmapped/duplicate checks, deterministic `--check` | source/package integration, raw-publication terminal proof, read-side raw eligibility, DXF ASCII/binary/R12 transport selection, DXF raw writer/replay transforms, DWG raw replay ingress/preflight/internal-registration/owner-bookkeeping identity, and DWG raw section ingress/buffer/finalizer identity are committed; target and standalone routes include exact carrier/callback/guard/branch/predecessor metadata plus ordered DWG replay edges, while broader DWG table/compound delivery, reader lifecycle coverage, and mapping remain before this becomes a parity claim; no drawing payloads | S19 |
 | S19 | I1: target-versus-standalone differential harness | S18 | PLANNED | schema, target/standalone runners, semantic/callback/carrier/error comparison, deterministic self-tests | use the same options/input provenance; store normalized output and hashes only for external drawings | S20, S21, S22 |
 | S20 | I2: `dxfRW` parity closure | S19 | PLANNED | DXF group/model/callback/raw/write round-trip rows and aggregate differential | ASCII/binary and source-spelling behavior close independently of DWG lanes; no unadmitted fixtures | S23 |
 | S21 | I3: `dwgRW` reader parity closure | S19 | PLANNED | version/container/dispatch/graph/diagnostic rows and aggregate differential | missing eligible positive evidence keeps only that row experimental; ODA/spec and trace required for wire changes | S23; I4 oracle reads |

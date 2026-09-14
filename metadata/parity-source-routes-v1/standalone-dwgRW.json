@@ -79866,6 +79866,453 @@
       "selector": {
         "carrier": "raw-dwg-section",
         "companionRawCarrierRouteIds": [],
+        "dwgRawReplayEvidence": [
+          {
+            "bodySymbol": "dwgWriter::addRawDwgSection",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 647,
+                  "path": "src/intern/dwgwriter.h",
+                  "spanSha256": "9c68d01e07dc8ffefff8fd7a57dd803d2a472ca1bfcc5e93c11464ae1b6af5dd",
+                  "symbol": "dwgWriter::addRawDwgSection"
+                },
+                "callee": "section",
+                "calleeOverload": "base-writer-default-hook",
+                "edge": "base-section-discard",
+                "guardFingerprint": "75bfb5abb38806d70f6f4e656f303e8949b7969521e870d6e93e8b20e42c27bf",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "unsupported-default",
+                "sourceOffset": 10
+              },
+              {
+                "callEvidence": {
+                  "line": 648,
+                  "path": "src/intern/dwgwriter.h",
+                  "spanSha256": "9c68d01e07dc8ffefff8fd7a57dd803d2a472ca1bfcc5e93c11464ae1b6af5dd",
+                  "symbol": "dwgWriter::addRawDwgSection"
+                },
+                "callee": "false",
+                "calleeOverload": "base-writer-default-hook",
+                "edge": "base-section-reject",
+                "guardFingerprint": "19921ccfad14c1deb04f7bda6247bf6ad4abe774de85b6003dea4e6b7774dd5c",
+                "order": 2,
+                "predecessorEdges": [
+                  "base-section-discard"
+                ],
+                "relation": "unsupported-default",
+                "sourceOffset": 33
+              }
+            ],
+            "sourcePath": "src/intern/dwgwriter.h"
+          },
+          {
+            "bodySymbol": "dwgWriter18::addRawDwgSection",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 561,
+                  "path": "src/intern/dwgwriter18.cpp",
+                  "spanSha256": "b4307460d6687e07f7ca78dfd3f3534422108ed68a48894bd059019551cad19b",
+                  "symbol": "dwgWriter18::addRawDwgSection"
+                },
+                "callee": "supportedName",
+                "calleeOverload": "raw-section-name-classification",
+                "edge": "supported-name-classification",
+                "guardFingerprint": "0bc37d0c79ecadd5932877ee4e86c28ccf99149e57f79ea365f74db6f6313a68",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "eligibility",
+                "sourceOffset": 229
+              },
+              {
+                "callEvidence": {
+                  "line": 563,
+                  "path": "src/intern/dwgwriter18.cpp",
+                  "spanSha256": "b4307460d6687e07f7ca78dfd3f3534422108ed68a48894bd059019551cad19b",
+                  "symbol": "dwgWriter18::addRawDwgSection"
+                },
+                "callee": "standardName",
+                "calleeOverload": "raw-section-name-classification",
+                "edge": "standard-name-classification",
+                "guardFingerprint": "67934388e77585c7ead7c85cbcd8a8eb9554f6dc2f4616f9430276a510968e12",
+                "order": 2,
+                "predecessorEdges": [
+                  "supported-name-classification"
+                ],
+                "relation": "eligibility",
+                "sourceOffset": 350
+              },
+              {
+                "callEvidence": {
+                  "line": 565,
+                  "path": "src/intern/dwgwriter18.cpp",
+                  "spanSha256": "b4307460d6687e07f7ca78dfd3f3534422108ed68a48894bd059019551cad19b",
+                  "symbol": "dwgWriter18::addRawDwgSection"
+                },
+                "callee": "opaqueName",
+                "calleeOverload": "raw-section-name-classification",
+                "edge": "opaque-name-classification",
+                "guardFingerprint": "c9367babfd40048c58e74f94c9bd84f6f00ae8f7629d9df756ef65d79d884ff4",
+                "order": 3,
+                "predecessorEdges": [
+                  "supported-name-classification",
+                  "standard-name-classification"
+                ],
+                "relation": "eligibility",
+                "sourceOffset": 477
+              },
+              {
+                "callEvidence": {
+                  "line": 566,
+                  "path": "src/intern/dwgwriter18.cpp",
+                  "spanSha256": "b4307460d6687e07f7ca78dfd3f3534422108ed68a48894bd059019551cad19b",
+                  "symbol": "dwgWriter18::addRawDwgSection"
+                },
+                "callee": "prototypeAllowed",
+                "calleeOverload": "raw-section-version-gate",
+                "edge": "prototype-version-gate",
+                "guardFingerprint": "7b041db727d96eb5f59a5a0f01bd115f775a13f7a6d4023b011c72e5ab776021",
+                "order": 4,
+                "predecessorEdges": [
+                  "supported-name-classification",
+                  "standard-name-classification",
+                  "opaque-name-classification"
+                ],
+                "relation": "conditional-reject",
+                "sourceOffset": 547
+              },
+              {
+                "callEvidence": {
+                  "line": 568,
+                  "path": "src/intern/dwgwriter18.cpp",
+                  "spanSha256": "b4307460d6687e07f7ca78dfd3f3534422108ed68a48894bd059019551cad19b",
+                  "symbol": "dwgWriter18::addRawDwgSection"
+                },
+                "callee": "vbaAllowed",
+                "calleeOverload": "raw-section-version-gate",
+                "edge": "vba-version-gate",
+                "guardFingerprint": "3dd0e0fd0635ba19fd1201072c5101035766bebbfd9f3112c1d21cb43aa6e8c1",
+                "order": 5,
+                "predecessorEdges": [
+                  "supported-name-classification",
+                  "standard-name-classification",
+                  "opaque-name-classification",
+                  "prototype-version-gate"
+                ],
+                "relation": "conditional-reject",
+                "sourceOffset": 660
+              },
+              {
+                "callEvidence": {
+                  "line": 570,
+                  "path": "src/intern/dwgwriter18.cpp",
+                  "spanSha256": "b4307460d6687e07f7ca78dfd3f3534422108ed68a48894bd059019551cad19b",
+                  "symbol": "dwgWriter18::addRawDwgSection"
+                },
+                "callee": "supportedName/opaqueName/m_version",
+                "calleeOverload": "raw-section-name-version-gate",
+                "edge": "name-version-reject",
+                "guardFingerprint": "ba266ed827c25bdcc077b81fbf094cb6ea03271b595c057cd8b05d47b4504ced",
+                "order": 6,
+                "predecessorEdges": [
+                  "supported-name-classification",
+                  "standard-name-classification",
+                  "opaque-name-classification",
+                  "prototype-version-gate",
+                  "vba-version-gate"
+                ],
+                "relation": "reject",
+                "sourceOffset": 761
+              },
+              {
+                "callEvidence": {
+                  "line": 574,
+                  "path": "src/intern/dwgwriter18.cpp",
+                  "spanSha256": "b4307460d6687e07f7ca78dfd3f3534422108ed68a48894bd059019551cad19b",
+                  "symbol": "dwgWriter18::addRawDwgSection"
+                },
+                "callee": "section.m_encoding",
+                "calleeOverload": "raw-section-encoding-gate",
+                "edge": "encoding-reject",
+                "guardFingerprint": "8030ad2b353f0bc6c8ad7ef5b427615fc1c6a6ec0d9c4339cfd3e9ff067d77ea",
+                "order": 7,
+                "predecessorEdges": [
+                  "supported-name-classification",
+                  "standard-name-classification",
+                  "opaque-name-classification",
+                  "prototype-version-gate",
+                  "vba-version-gate",
+                  "name-version-reject"
+                ],
+                "relation": "reject",
+                "sourceOffset": 991
+              },
+              {
+                "callEvidence": {
+                  "line": 576,
+                  "path": "src/intern/dwgwriter18.cpp",
+                  "spanSha256": "b4307460d6687e07f7ca78dfd3f3534422108ed68a48894bd059019551cad19b",
+                  "symbol": "dwgWriter18::addRawDwgSection"
+                },
+                "callee": "section.m_encrypted",
+                "calleeOverload": "raw-section-encryption-gate",
+                "edge": "encryption-reject",
+                "guardFingerprint": "7ddde7a7aad52908efc905b5498f3682383da2d4e6af3b7bd913229b6d6c8afb",
+                "order": 8,
+                "predecessorEdges": [
+                  "supported-name-classification",
+                  "standard-name-classification",
+                  "opaque-name-classification",
+                  "prototype-version-gate",
+                  "vba-version-gate",
+                  "name-version-reject",
+                  "encoding-reject"
+                ],
+                "relation": "reject",
+                "sourceOffset": 1090
+              },
+              {
+                "callEvidence": {
+                  "line": 581,
+                  "path": "src/intern/dwgwriter18.cpp",
+                  "spanSha256": "b4307460d6687e07f7ca78dfd3f3534422108ed68a48894bd059019551cad19b",
+                  "symbol": "dwgWriter18::addRawDwgSection"
+                },
+                "callee": "section.m_data.size",
+                "calleeOverload": "raw-section-size-gate",
+                "edge": "payload-size-reject",
+                "guardFingerprint": "2ef9957d69af62d932ceeb9df43d0d0352ba45108339dfd8a638f0ebc9e988ab",
+                "order": 9,
+                "predecessorEdges": [
+                  "supported-name-classification",
+                  "standard-name-classification",
+                  "opaque-name-classification",
+                  "prototype-version-gate",
+                  "vba-version-gate",
+                  "name-version-reject",
+                  "encoding-reject",
+                  "encryption-reject"
+                ],
+                "relation": "reject",
+                "sourceOffset": 1295
+              },
+              {
+                "callEvidence": {
+                  "line": 584,
+                  "path": "src/intern/dwgwriter18.cpp",
+                  "spanSha256": "b4307460d6687e07f7ca78dfd3f3534422108ed68a48894bd059019551cad19b",
+                  "symbol": "dwgWriter18::addRawDwgSection"
+                },
+                "callee": "m_rawDwgSections",
+                "calleeOverload": "raw-section-name-uniqueness",
+                "edge": "duplicate-section-reject",
+                "guardFingerprint": "4a68affc5ec5319f122ab39e20c2e91a0efc81ca4dffe41e9b5c269ceed0339c",
+                "order": 10,
+                "predecessorEdges": [
+                  "supported-name-classification",
+                  "standard-name-classification",
+                  "opaque-name-classification",
+                  "prototype-version-gate",
+                  "vba-version-gate",
+                  "name-version-reject",
+                  "encoding-reject",
+                  "encryption-reject",
+                  "payload-size-reject"
+                ],
+                "relation": "reject",
+                "sourceOffset": 1430
+              },
+              {
+                "callEvidence": {
+                  "line": 587,
+                  "path": "src/intern/dwgwriter18.cpp",
+                  "spanSha256": "b4307460d6687e07f7ca78dfd3f3534422108ed68a48894bd059019551cad19b",
+                  "symbol": "dwgWriter18::addRawDwgSection"
+                },
+                "callee": "m_rawDwgSections",
+                "calleeOverload": "raw-section-buffer",
+                "edge": "section-buffer-append",
+                "guardFingerprint": "df33781fad5b7ac2f238c1fe9229ba8cf7c359bd6649df7b6ca0a842ffa5766a",
+                "order": 11,
+                "predecessorEdges": [
+                  "supported-name-classification",
+                  "standard-name-classification",
+                  "opaque-name-classification",
+                  "prototype-version-gate",
+                  "vba-version-gate",
+                  "name-version-reject",
+                  "encoding-reject",
+                  "encryption-reject",
+                  "payload-size-reject",
+                  "duplicate-section-reject"
+                ],
+                "relation": "commit-buffer",
+                "sourceOffset": 1501
+              }
+            ],
+            "sourcePath": "src/intern/dwgwriter18.cpp"
+          },
+          {
+            "bodySymbol": "dwgWriter18::finalize",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 683,
+                  "path": "src/intern/dwgwriter18.cpp",
+                  "spanSha256": "b4f532cd54fcc8017ea8b83b9be566104abcb249ea9b4cd4efeadbdf4910f177",
+                  "symbol": "dwgWriter18::finalize"
+                },
+                "callee": "objectWriteFailed/m_stream",
+                "calleeOverload": "finalizer-entry-guard",
+                "edge": "finalizer-entry-guard",
+                "guardFingerprint": "b2c6bdb9533e3ff3d59e05d80cfcbf3b545fd1646615ac54bc4be149e4240c36",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "reject",
+                "sourceOffset": 10
+              },
+              {
+                "callEvidence": {
+                  "line": 793,
+                  "path": "src/intern/dwgwriter18.cpp",
+                  "spanSha256": "b4f532cd54fcc8017ea8b83b9be566104abcb249ea9b4cd4efeadbdf4910f177",
+                  "symbol": "dwgWriter18::finalize"
+                },
+                "callee": "m_rawDwgSections",
+                "calleeOverload": "raw-section-finalizer-loop",
+                "edge": "raw-section-finalize-loop",
+                "guardFingerprint": "ac19191bd47e567dcd983a528744671f882ace013947d71cb8463cfd858776d7",
+                "order": 2,
+                "predecessorEdges": [
+                  "finalizer-entry-guard"
+                ],
+                "relation": "flush",
+                "sourceOffset": 4529
+              },
+              {
+                "callEvidence": {
+                  "line": 808,
+                  "path": "src/intern/dwgwriter18.cpp",
+                  "spanSha256": "b4f532cd54fcc8017ea8b83b9be566104abcb249ea9b4cd4efeadbdf4910f177",
+                  "symbol": "dwgWriter18::finalize"
+                },
+                "callee": "appendDataSection",
+                "calleeOverload": "appendDataSection(string,bytes,uint32_t,...)",
+                "edge": "raw-section-page-append",
+                "guardFingerprint": "57fe18aeb02c905345cb079f35bfa1181608bd7e8acc571a510bd06e44e4e959",
+                "order": 3,
+                "predecessorEdges": [
+                  "finalizer-entry-guard",
+                  "raw-section-finalize-loop"
+                ],
+                "relation": "flush",
+                "sourceOffset": 5412
+              }
+            ],
+            "sourcePath": "src/intern/dwgwriter18.cpp"
+          },
+          {
+            "bodySymbol": "dwgWriter21::finalize",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 958,
+                  "path": "src/intern/dwgwriter21.cpp",
+                  "spanSha256": "d4d7059ac7d708b91a145291ad45ea3f91d30ce894eda80b5e19ee17c441bdce",
+                  "symbol": "dwgWriter21::finalize"
+                },
+                "callee": "m_writeError/m_stream",
+                "calleeOverload": "finalizer-entry-guard",
+                "edge": "finalizer-entry-guard",
+                "guardFingerprint": "0937dc1a4d01a9d846089a43d5d26ee6bacacd13d396ea2cfebb45deb035611f",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "reject",
+                "sourceOffset": 10
+              },
+              {
+                "callEvidence": {
+                  "line": 1089,
+                  "path": "src/intern/dwgwriter21.cpp",
+                  "spanSha256": "d4d7059ac7d708b91a145291ad45ea3f91d30ce894eda80b5e19ee17c441bdce",
+                  "symbol": "dwgWriter21::finalize"
+                },
+                "callee": "m_rawDwgSections",
+                "calleeOverload": "raw-section-finalizer-loop",
+                "edge": "raw-section-finalize-loop",
+                "guardFingerprint": "ac19191bd47e567dcd983a528744671f882ace013947d71cb8463cfd858776d7",
+                "order": 2,
+                "predecessorEdges": [
+                  "finalizer-entry-guard"
+                ],
+                "relation": "flush",
+                "sourceOffset": 6285
+              },
+              {
+                "callEvidence": {
+                  "line": 1097,
+                  "path": "src/intern/dwgwriter21.cpp",
+                  "spanSha256": "d4d7059ac7d708b91a145291ad45ea3f91d30ce894eda80b5e19ee17c441bdce",
+                  "symbol": "dwgWriter21::finalize"
+                },
+                "callee": "appendSection",
+                "calleeOverload": "appendSection(const char*,bytes,uint32_t,...)",
+                "edge": "raw-section-page-append",
+                "guardFingerprint": "e91e6816f994297a4d724912fc20f887d459b1b056e3dacef1754cdd63079663",
+                "order": 3,
+                "predecessorEdges": [
+                  "finalizer-entry-guard",
+                  "raw-section-finalize-loop"
+                ],
+                "relation": "flush",
+                "sourceOffset": 6770
+              }
+            ],
+            "sourcePath": "src/intern/dwgwriter21.cpp"
+          },
+          {
+            "bodySymbol": "dwgRW::writeRawDwgSection",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 3203,
+                  "path": "src/libdwgr.cpp",
+                  "spanSha256": "23655227f9b8ef1a3a82d94c22caf172ad3342d0000bba359b0677dc780e0763",
+                  "symbol": "dwgRW::writeRawDwgSection"
+                },
+                "callee": "section/writer null checks",
+                "calleeOverload": "raw-section-ingress-guard",
+                "edge": "null-section-or-writer-guard",
+                "guardFingerprint": "cffd922c3ad233fe9be5534d60573e50299418f4a13bc7891e41c674ea9d3ba6",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "reject",
+                "sourceOffset": 10
+              },
+              {
+                "callEvidence": {
+                  "line": 3206,
+                  "path": "src/libdwgr.cpp",
+                  "spanSha256": "23655227f9b8ef1a3a82d94c22caf172ad3342d0000bba359b0677dc780e0763",
+                  "symbol": "dwgRW::writeRawDwgSection"
+                },
+                "callee": "dwgWriter::addRawDwgSection",
+                "calleeOverload": "addRawDwgSection(const DRW_RawDwgSection&)",
+                "edge": "section-buffer-call",
+                "guardFingerprint": "9976642de155e57b1b6112286cc870437914cea1e4bd9281a6f6efdb13454644",
+                "order": 2,
+                "predecessorEdges": [
+                  "null-section-or-writer-guard"
+                ],
+                "relation": "raw-section-to-writer",
+                "sourceOffset": 204
+              }
+            ],
+            "sourcePath": "src/libdwgr.cpp"
+          }
+        ],
         "flow": "dwg",
         "handoffSemantics": "carrier-relationship-not-direct-call",
         "inputRouteIds": [

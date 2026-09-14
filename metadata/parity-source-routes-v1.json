@@ -483,7 +483,8 @@
         "dwgRW/parser-publication/dwgRW_named-object-class_VX_TABLE_RECORD",
         "dwgRW/parser-publication/dwgRW_named-object-class_WIPEOUTVARIABLES",
         "dwgRW/parser-publication/dwgRW_named-object-class_XRECORD",
-        "dwgRW/raw-flow/dwg-replay-object"
+        "dwgRW/raw-flow/dwg-replay-object",
+        "dwgRW/raw-flow/dwg-replay-section"
       ],
       "standaloneOnly": [
         "dwgRW/facade-method/beginOperationDiagnostic-001",
@@ -1880,7 +1881,7 @@
       "facade": "dwgRW",
       "path": "parity-source-routes-v1/target-dwgRW.json",
       "routeCount": 1345,
-      "sha256": "44ad814cc1dd33cf447199c9eaa922ea350dd528b326a9a792501c8a909de3d4",
+      "sha256": "8211734909cf9fc3b8cdc818b2045afe0c1407620ad279cdeb00abd9b401c4b7",
       "side": "target"
     },
     {
@@ -1901,7 +1902,7 @@
       "facade": "dwgRW",
       "path": "parity-source-routes-v1/standalone-dwgRW.json",
       "routeCount": 1371,
-      "sha256": "5217a19e9e0868a6b19d40f96b0ff681776544c4f18ab21aae63395fe166d386",
+      "sha256": "384d070e7460b5ffbcd64f266eb2f1234806d689f69e202a2a9495d6a2f6634e",
       "side": "standalone"
     },
     {
@@ -1915,7 +1916,7 @@
   "summary": {
     "comparison": {
       "dwgRW": {
-        "semanticMismatches": 482,
+        "semanticMismatches": 483,
         "standaloneOnly": 27,
         "targetOnly": 1
       },
