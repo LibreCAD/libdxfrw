@@ -103,6 +103,39 @@ def validate_oracle_output(path: Path, expected_version: str) -> dict[str, objec
     }
 
 
+def _json_entity_names(value: object) -> list[str]:
+    names: list[str] = []
+    if isinstance(value, dict):
+        entity = value.get("entity")
+        if isinstance(entity, str):
+            # LibreDWG uses a subtype-qualified name for legacy polylines;
+            # normalize it to the DXF entity name used by the other oracle.
+            names.append("POLYLINE" if entity == "POLYLINE_2D" else entity)
+        for child in value.values():
+            names.extend(_json_entity_names(child))
+    elif isinstance(value, list):
+        for child in value:
+            names.extend(_json_entity_names(child))
+    return names
+
+
+def validate_json_oracle_output(path: Path, expected_version: str) -> dict[str, object]:
+    document = json.loads(path.read_text(encoding="utf-8"))
+    fileheader = document.get("FILEHEADER", {})
+    oracle_version = fileheader.get("version", "") if isinstance(fileheader, dict) else ""
+    entity_counts = Counter(_json_entity_names(document))
+    missing_entities = [
+        name for name in EXPECTED_ENTITIES if entity_counts.get(name, 0) != 1
+    ]
+    return {
+        "jsonOracleVersion": oracle_version,
+        "jsonVersionMatch": oracle_version == expected_version,
+        "jsonEntitySetMatch": not missing_entities,
+        "jsonMissingEntities": missing_entities,
+        "jsonEntityCounts": dict(sorted(entity_counts.items())),
+    }
+
+
 def run(command: list[str], timeout: float) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         command,
@@ -130,6 +163,17 @@ def self_test() -> None:
         result = validate_oracle_output(path, "AC1015")
         if not result["qualified"]:
             raise AssertionError("synthetic oracle output was not recognized")
+        json_path = Path(directory) / "sample.json"
+        json_path.write_text(
+            json.dumps({
+                "FILEHEADER": {"version": "AC1015"},
+                "OBJECTS": [{"entity": name} for name in EXPECTED_ENTITIES],
+            }),
+            encoding="utf-8",
+        )
+        json_result = validate_json_oracle_output(json_path, "AC1015")
+        if not json_result["jsonVersionMatch"] or not json_result["jsonEntitySetMatch"]:
+            raise AssertionError("synthetic JSON oracle output was not recognized")
     print("local DWG oracle advisory self-test: PASS")
 
 
@@ -137,6 +181,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--writer")
     parser.add_argument("--oracle")
+    parser.add_argument("--json-oracle")
     parser.add_argument("--timeout", type=float, default=20.0)
     parser.add_argument("--output", type=Path)
     parser.add_argument("--self-test", action="store_true")
@@ -188,6 +233,24 @@ def main() -> int:
                         else:
                             record.update(validate_oracle_output(output, expected))
                             record["outputDigest"] = digest(output)
+                            if args.json_oracle:
+                                json_output = root / (drawing.stem + ".json")
+                                try:
+                                    json_oracle = run(
+                                        [args.json_oracle, "-O", "JSON", "-o",
+                                         str(json_output), str(drawing)],
+                                        args.timeout,
+                                    )
+                                except subprocess.TimeoutExpired:
+                                    record["jsonOracleStatus"] = "timeout"
+                                else:
+                                    if (json_oracle.returncode != 0
+                                            or not json_output.exists()):
+                                        record["jsonOracleStatus"] = "failed"
+                                    else:
+                                        record.update(validate_json_oracle_output(
+                                            json_output, expected))
+                                        record["jsonOracleStatus"] = "qualified"
                             record["status"] = (
                                 "qualified" if record["qualified"] else "mismatch"
                             )
