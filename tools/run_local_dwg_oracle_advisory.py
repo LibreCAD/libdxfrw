@@ -18,20 +18,14 @@ import tempfile
 from pathlib import Path
 
 
-VERSIONS = {
-    "13": "AC1015",
-    "14": "AC1018",
-    "15": "AC1021",
-    "16": "AC1024",
-    "17": "AC1027",
-    "18": "AC1032",
-}
-
-EXPECTED_ENTITIES = (
-    "LINE", "POINT", "CIRCLE", "ARC", "LWPOLYLINE", "TEXT", "MTEXT",
-    "ELLIPSE", "TRACE", "SOLID", "3DFACE", "RAY", "XLINE", "3DLINE",
-    "POLYLINE", "SPLINE", "HATCH", "LEADER",
+MATRIX_PATH = Path(__file__).resolve().parents[1] / (
+    "metadata/local-dwg-oracle-matrix-v1.json"
 )
+_MATRIX = json.loads(MATRIX_PATH.read_text(encoding="utf-8"))
+VERSIONS = {
+    entry["marker"]: entry["acadver"] for entry in _MATRIX["versions"]
+}
+EXPECTED_ENTITIES = tuple(_MATRIX["expectedEntities"])
 
 
 def digest(path: Path) -> dict[str, object]:
@@ -149,15 +143,14 @@ def run(command: list[str], timeout: float) -> subprocess.CompletedProcess[str]:
 def self_test() -> None:
     with tempfile.TemporaryDirectory(prefix="libdxfrw-oracle-selftest-") as directory:
         path = Path(directory) / "sample.dxf"
+        entity_pairs = "".join(
+            "0\n%s\n" % name for name in EXPECTED_ENTITIES if name != "LINE"
+        )
         path.write_text(
             "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1015\n"
             "0\nENDSEC\n0\nSECTION\n2\nENTITIES\n0\nLINE\n"
             "10\n1.0\n20\n2.0\n30\n3.0\n11\n4.0\n21\n5.0\n31\n6.0\n"
-            "0\nPOINT\n0\nCIRCLE\n0\nARC\n0\nLWPOLYLINE\n"
-            "0\nTEXT\n0\nMTEXT\n0\nELLIPSE\n"
-            "0\nTRACE\n0\nSOLID\n0\n3DFACE\n0\nRAY\n0\nXLINE\n0\n3DLINE\n"
-            "0\nPOLYLINE\n0\nSPLINE\n0\nHATCH\n0\nLEADER\n"
-            "0\nENDSEC\n0\nEOF\n",
+            + entity_pairs + "0\nENDSEC\n0\nEOF\n",
             encoding="utf-8",
         )
         result = validate_oracle_output(path, "AC1015")

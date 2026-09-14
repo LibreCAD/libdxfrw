@@ -147,6 +147,10 @@ if(LIBDXFRW_BUILD_TESTS)
         COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE}
             ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_local_dwg_oracle_advisory.py
             --self-test)
+    add_test(NAME libdxfrw_local_dwg_oracle_matrix
+        COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE}
+            ${CMAKE_CURRENT_SOURCE_DIR}/tools/check_local_dwg_oracle_matrix.py
+            --self-test)
 
     add_executable(libdxfrw_wave1_tests tests/wave1_tests.cpp)
     target_compile_features(libdxfrw_wave1_tests PRIVATE cxx_std_17)

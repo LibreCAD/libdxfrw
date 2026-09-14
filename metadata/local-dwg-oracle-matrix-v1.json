@@ -1,0 +1,73 @@
+{
+  "schema": "local-dwg-oracle-matrix-v1",
+  "fixturePolicy": "localFromScratchRuntimeOnly",
+  "oracle": {
+    "dxfExporter": "LibreDWG dwg2dxf 0.14",
+    "jsonReader": "LibreDWG dwgread 0.14",
+    "qualification": "advisory"
+  },
+  "versions": [
+    {
+      "marker": "13",
+      "acadver": "AC1015",
+      "dxfStatus": "mismatch",
+      "dxfMissingEntities": ["HATCH", "LEADER", "SPLINE"],
+      "jsonStatus": "qualified"
+    },
+    {
+      "marker": "14",
+      "acadver": "AC1018",
+      "dxfStatus": "qualified",
+      "dxfMissingEntities": [],
+      "jsonStatus": "qualified"
+    },
+    {
+      "marker": "15",
+      "acadver": "AC1021",
+      "dxfStatus": "qualified",
+      "dxfMissingEntities": [],
+      "jsonStatus": "qualified"
+    },
+    {
+      "marker": "16",
+      "acadver": "AC1024",
+      "dxfStatus": "qualified",
+      "dxfMissingEntities": [],
+      "jsonStatus": "qualified"
+    },
+    {
+      "marker": "17",
+      "acadver": "AC1027",
+      "dxfStatus": "qualified",
+      "dxfMissingEntities": [],
+      "jsonStatus": "qualified"
+    },
+    {
+      "marker": "18",
+      "acadver": "AC1032",
+      "dxfStatus": "qualified",
+      "dxfMissingEntities": [],
+      "jsonStatus": "qualified"
+    }
+  ],
+  "expectedEntities": [
+    "LINE",
+    "POINT",
+    "CIRCLE",
+    "ARC",
+    "LWPOLYLINE",
+    "TEXT",
+    "MTEXT",
+    "ELLIPSE",
+    "TRACE",
+    "SOLID",
+    "3DFACE",
+    "RAY",
+    "XLINE",
+    "3DLINE",
+    "POLYLINE",
+    "SPLINE",
+    "HATCH",
+    "LEADER"
+  ]
+}
