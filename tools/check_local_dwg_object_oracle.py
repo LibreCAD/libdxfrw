@@ -70,6 +70,8 @@ DBCOLOR_HANDLE = 0xC900
 MALFORMED_DBCOLOR_HANDLE = 0xC901
 LIGHTLIST_HANDLE = 0xCA00
 MALFORMED_LIGHTLIST_HANDLE = 0xCA01
+SCALE_HANDLE = 0xCB00
+MALFORMED_SCALE_HANDLE = 0xCB01
 
 RENDER_SETTINGS_KINDS = {
     "Settings": ("RENDERSETTINGS", RENDERSETTINGS_HANDLE, 556),
@@ -155,7 +157,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         raise ValueError("GROUP name, owner, or member stream mismatch")
 
     dictionary = find_record(records, "DICTIONARY", DICTIONARY_HANDLE)
-    if (dictionary.get("numitems") != 22
+    if (dictionary.get("numitems") != 23
             or dictionary.get("is_hardowner") != 1
             or owner_handle(dictionary) != 0x0C):
         raise ValueError("custom DICTIONARY count, owner, or cloning mismatch")
@@ -517,6 +519,16 @@ def check_objects(payload: dict, version_name: str) -> dict:
         light_list_discrepancies.append(
             "LibreDWG 0.14 omits LIGHTLIST member handle for " + version_name)
 
+    scale = find_record(records, "SCALE", SCALE_HANDLE)
+    if (owner_handle(scale) != DICTIONARY_HANDLE
+            or scale.get("type") != 509
+            or scale.get("flag") != 0
+            or scale.get("name") != "LOCAL_SCALE"
+            or scale.get("paper_units") != 1.0
+            or scale.get("drawing_units") != 48.0
+            or scale.get("is_unit_scale") != 0):
+        raise ValueError("SCALE owner or bounded ratio fields mismatch")
+
     dictionary_default = find_record(
         records, "DICTIONARYWDFLT", DICTIONARYWDFLT_HANDLE)
     if (owner_handle(dictionary_default) != DICTIONARY_HANDLE
@@ -564,6 +576,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         MALFORMED_MATERIAL_HANDLE: "MATERIAL",
         MALFORMED_DBCOLOR_HANDLE: "DBCOLOR",
         MALFORMED_LIGHTLIST_HANDLE: "LIGHTLIST",
+        MALFORMED_SCALE_HANDLE: "SCALE",
     }
     if any(record_handle(record) in malformed_handles
            and record.get("object") == malformed_handles[record_handle(record)]
@@ -597,6 +610,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "MATERIAL": MATERIAL_HANDLE,
             "DBCOLOR": DBCOLOR_HANDLE,
             "LIGHTLIST": LIGHTLIST_HANDLE,
+            "SCALE": SCALE_HANDLE,
             "DICTIONARYWDFLT": DICTIONARYWDFLT_HANDLE,
         },
         "objectStatus": "qualified",
@@ -674,7 +688,7 @@ def self_test() -> None:
              "ownerhandle": [4, 1, 0x0C, 0x0C], "name": "LOCAL_GROUP",
              "groups": [[5, 1, 0x1234]]},
             {"object": "DICTIONARY", "handle": [0, 1, DICTIONARY_HANDLE],
-             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 22,
+             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 23,
              "is_hardowner": 1},
             {"object": "XRECORD", "handle": [0, 1, XRECORD_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
@@ -827,6 +841,11 @@ def self_test() -> None:
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
              "type": 508, "class_version": 1,
              "lights": [{"handle": [0, 0], "name": "LOCAL_LIGHT"}]},
+            {"object": "SCALE", "handle": [0, 1, SCALE_HANDLE],
+             "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "type": 509, "flag": 0, "name": "LOCAL_SCALE",
+             "paper_units": 1.0, "drawing_units": 48.0,
+             "is_unit_scale": 0},
         ],
     }
     summary = check_objects(payload, "AC1024")
@@ -1022,6 +1041,15 @@ def self_test() -> None:
         pass
     else:
         raise AssertionError("malformed LIGHTLIST was not rejected")
+    try:
+        bad = json.loads(json.dumps(payload))
+        bad["OBJECTS"].append({"object": "SCALE",
+                                "handle": [0, 1, MALFORMED_SCALE_HANDLE]})
+        check_objects(bad, "AC1024")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("malformed SCALE was not rejected")
     print("local DWG object oracle: PASS")
 
 
