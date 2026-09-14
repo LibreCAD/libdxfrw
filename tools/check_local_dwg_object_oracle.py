@@ -38,6 +38,8 @@ MLEADERSTYLE_HANDLE = 0xA900
 MALFORMED_MLEADERSTYLE_HANDLE = 0xA901
 DICTIONARYVAR_HANDLE = 0xB000
 MALFORMED_DICTIONARYVAR_HANDLE = 0xB001
+DICTIONARYWDFLT_HANDLE = 0xB100
+MALFORMED_DICTIONARYWDFLT_HANDLE = 0xB101
 
 
 def parse_json_output(text: str) -> dict:
@@ -101,7 +103,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         raise ValueError("GROUP name, owner, or member stream mismatch")
 
     dictionary = find_record(records, "DICTIONARY", DICTIONARY_HANDLE)
-    if (dictionary.get("numitems") != 6
+    if (dictionary.get("numitems") != 7
             or dictionary.get("is_hardowner") != 1
             or owner_handle(dictionary) != 0x0C):
         raise ValueError("custom DICTIONARY count, owner, or cloning mismatch")
@@ -162,11 +164,38 @@ def check_objects(payload: dict, version_name: str) -> dict:
             or dictionary_var.get("strvalue") != "LOCAL_DICTIONARYVAR_VALUE"):
         raise ValueError("DICTIONARYVAR owner or bounded payload mismatch")
 
+    dictionary_default = find_record(
+        records, "DICTIONARYWDFLT", DICTIONARYWDFLT_HANDLE)
+    if (owner_handle(dictionary_default) != DICTIONARY_HANDLE
+            or dictionary_default.get("numitems") != 1
+            or dictionary_default.get("cloning") != 1
+            or dictionary_default.get("is_hardowner") != 1):
+        raise ValueError("DICTIONARYWDFLT owner or header mismatch")
+    expected_items = {
+        "LOCAL_DEFAULT": [3, 2, DICTIONARYVAR_HANDLE, DICTIONARYVAR_HANDLE]
+    }
+    expected_default = [5, 2, DICTIONARYVAR_HANDLE, DICTIONARYVAR_HANDLE]
+    if (dictionary_default.get("items") != expected_items
+            or dictionary_default.get("defaultid") != expected_default):
+        if version_name in {"AC1015", "AC1018"}:
+            raise ValueError("DICTIONARYWDFLT item/default payload mismatch")
+        # LibreDWG 0.14 currently reports the R2007+ string/handle members of
+        # this carrier as empty/zero while retaining its type/header/owner.
+        # Keep the bounded frame qualification, but surface the independent
+        # reader discrepancy instead of silently treating it as parity.
+        oracle_discrepancies = [
+            "LibreDWG 0.14 omits DICTIONARYWDFLT item/default handles for "
+            + version_name
+        ]
+    else:
+        oracle_discrepancies = []
+
     malformed_handles = {
         MALFORMED_HANDLE: "XRECORD",
         MALFORMED_STYLE_HANDLE: "MLINESTYLE",
         MALFORMED_MLEADERSTYLE_HANDLE: "MLEADERSTYLE",
         MALFORMED_DICTIONARYVAR_HANDLE: "DICTIONARYVAR",
+        MALFORMED_DICTIONARYWDFLT_HANDLE: "DICTIONARYWDFLT",
     }
     if any(record_handle(record) in malformed_handles
            and record.get("object") == malformed_handles[record_handle(record)]
@@ -184,8 +213,10 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "MLINESTYLE": MLINESTYLE_HANDLE,
             "MLEADERSTYLE": MLEADERSTYLE_HANDLE,
             "DICTIONARYVAR": DICTIONARYVAR_HANDLE,
+            "DICTIONARYWDFLT": DICTIONARYWDFLT_HANDLE,
         },
         "objectStatus": "qualified",
+        "oracleDiscrepancies": oracle_discrepancies,
     }
 
 
@@ -256,7 +287,7 @@ def self_test() -> None:
              "ownerhandle": [4, 1, 0x0C, 0x0C], "name": "LOCAL_GROUP",
              "groups": [[5, 1, 0x1234]]},
             {"object": "DICTIONARY", "handle": [0, 1, DICTIONARY_HANDLE],
-             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 6,
+             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 7,
              "is_hardowner": 1},
             {"object": "XRECORD", "handle": [0, 1, XRECORD_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
@@ -284,6 +315,13 @@ def self_test() -> None:
             {"object": "DICTIONARYVAR", "handle": [0, 1, DICTIONARYVAR_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
              "schema": 7, "strvalue": "LOCAL_DICTIONARYVAR_VALUE"},
+            {"object": "DICTIONARYWDFLT",
+             "handle": [0, 1, DICTIONARYWDFLT_HANDLE],
+             "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "numitems": 1, "cloning": 1, "is_hardowner": 1,
+             "items": {"LOCAL_DEFAULT": [3, 2, DICTIONARYVAR_HANDLE,
+                                           DICTIONARYVAR_HANDLE]},
+             "defaultid": [5, 2, DICTIONARYVAR_HANDLE, DICTIONARYVAR_HANDLE]},
         ],
     }
     check_objects(payload, "AC1024")
@@ -322,6 +360,16 @@ def self_test() -> None:
         pass
     else:
         raise AssertionError("malformed DICTIONARYVAR was not rejected")
+    try:
+        bad = json.loads(json.dumps(payload))
+        bad["OBJECTS"].append({"object": "DICTIONARYWDFLT",
+                                "handle": [0, 1,
+                                            MALFORMED_DICTIONARYWDFLT_HANDLE]})
+        check_objects(bad, "AC1024")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("malformed DICTIONARYWDFLT was not rejected")
     print("local DWG object oracle: PASS")
 
 

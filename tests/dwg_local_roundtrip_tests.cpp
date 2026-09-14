@@ -43,6 +43,11 @@ public:
             dictionaryVarRegistration.handle = 0xB000u;
             registeredDictionaryVar_ = writer_->registerDictionaryVarObjectClass(
                 &dictionaryVarRegistration);
+            DRW_DictionaryWithDefault dictionaryWithDefaultRegistration;
+            dictionaryWithDefaultRegistration.handle = 0xB100u;
+            registeredDictionaryWithDefault_ =
+                writer_->registerDictionaryWithDefaultObjectClass(
+                    &dictionaryWithDefaultRegistration);
         }
     }
 
@@ -90,6 +95,7 @@ public:
             {"LOCAL_MLINESTYLE", 0xA800u},
             {"LOCAL_MLEADERSTYLE", 0xA900u},
             {"LOCAL_DICTIONARYVAR", 0xB000u},
+            {"LOCAL_DICTIONARYWDFLT", 0xB100u},
         };
         wroteDictionary_ = registeredDictionary_
             && writer_->writeDictionary(&dictionary)
@@ -204,6 +210,17 @@ public:
             && writer_->writeDictionaryVar(&dictionaryVar)
             && dictionaryVar.handle != 0;
 
+        DRW_DictionaryWithDefault dictionaryWithDefault;
+        dictionaryWithDefault.handle = 0xB100u;
+        dictionaryWithDefault.parentHandle = dictionary.handle;
+        dictionaryWithDefault.cloning = 1;
+        dictionaryWithDefault.hardOwner = 1;
+        dictionaryWithDefault.m_entries = {{"LOCAL_DEFAULT", 0xB000u}};
+        dictionaryWithDefault.m_defaultEntryHandle = 0xB000u;
+        wroteDictionaryWithDefault_ = registeredDictionaryWithDefault_
+            && writer_->writeDictionaryWithDefault(&dictionaryWithDefault)
+            && dictionaryWithDefault.handle != 0;
+
         // A failed object write must not poison the following valid frames or
         // publish a partial object.  The writer's public transaction wrapper
         // owns the rollback boundary; this assertion keeps that contract in
@@ -240,6 +257,15 @@ public:
         invalidDictionaryVar.m_schema = 256;
         rejectedMalformedDictionaryVar_ =
             !writer_->writeDictionaryVar(&invalidDictionaryVar);
+
+        DRW_DictionaryWithDefault invalidDictionaryWithDefault;
+        invalidDictionaryWithDefault.handle = 0xB101u;
+        invalidDictionaryWithDefault.parentHandle = dictionary.handle;
+        invalidDictionaryWithDefault.cloning = 1;
+        invalidDictionaryWithDefault.hardOwner = 1;
+        invalidDictionaryWithDefault.m_defaultEntryHandle = 0;
+        rejectedMalformedDictionaryWithDefault_ =
+            !writer_->writeDictionaryWithDefault(&invalidDictionaryWithDefault);
 
         DRW_Group group;
         group.handle = 0xA600u;
@@ -439,7 +465,7 @@ public:
         if (data.handle == 0xA601u) {
             readDictionarySeen_ = data.parentHandle
                     == DRW::DwgNamedObjectsDictionaryHandle
-                && data.m_entries.size() == 6
+                && data.m_entries.size() == 7
                 && data.m_entries[0].m_name == "LOCAL_XRECORD"
                 && data.m_entries[0].m_handle == 0xA602u
                 && data.m_entries[1].m_name == "LOCAL_PLOTSETTINGS"
@@ -451,7 +477,9 @@ public:
                 && data.m_entries[4].m_name == "LOCAL_MLEADERSTYLE"
                 && data.m_entries[4].m_handle == 0xA900u
                 && data.m_entries[5].m_name == "LOCAL_DICTIONARYVAR"
-                && data.m_entries[5].m_handle == 0xB000u;
+                && data.m_entries[5].m_handle == 0xB000u
+                && data.m_entries[6].m_name == "LOCAL_DICTIONARYWDFLT"
+                && data.m_entries[6].m_handle == 0xB100u;
         }
     }
     void addXRecord(const DRW_XRecord& data) override {
@@ -498,6 +526,17 @@ public:
         if (data.handle == 0xB001u)
             readMalformedDictionaryVarSeen_ = true;
     }
+    void addDictionaryWithDefault(
+        const DRW_DictionaryWithDefault& data) override {
+        if (data.handle == 0xB100u)
+            readDictionaryWithDefaultSeen_ = data.parentHandle == 0xA601u
+                && data.m_entries.size() == 1
+                && data.m_entries.front().m_name == "LOCAL_DEFAULT"
+                && data.m_entries.front().m_handle == 0xB000u
+                && data.m_defaultEntryHandle == 0xB000u;
+        if (data.handle == 0xB101u)
+            readMalformedDictionaryWithDefaultSeen_ = true;
+    }
     void addInsert(const DRW_Insert& data) override {
         readInsertSeen_ = true;
         readAttribSeen_ = data.attlist.size() == 1
@@ -530,7 +569,7 @@ public:
     bool wroteObjectSet() const {
         return wroteDictionary_ && wroteXRecord_ && wrotePlotSettings_
             && wroteLayout_ && wroteMLineStyle_ && wroteMLeaderStyle_
-            && wroteDictionaryVar_ && wroteGroup_;
+            && wroteDictionaryVar_ && wroteDictionaryWithDefault_ && wroteGroup_;
     }
     bool rejectedMalformedObject() const { return rejectedMalformedObject_; }
     bool rejectedMalformedStyle() const { return rejectedMalformedStyle_; }
@@ -539,6 +578,9 @@ public:
     }
     bool rejectedMalformedDictionaryVar() const {
         return rejectedMalformedDictionaryVar_;
+    }
+    bool rejectedMalformedDictionaryWithDefault() const {
+        return rejectedMalformedDictionaryWithDefault_;
     }
     bool readLineSeen() const { return readLineSeen_; }
     bool readSimpleEntitiesSeen() const {
@@ -561,7 +603,8 @@ public:
     bool readObjectSetSeen() const {
         return readDictionarySeen_ && readXRecordSeen_
             && readPlotSettingsSeen_ && readLayoutSeen_ && readMLineStyleSeen_
-            && readMLeaderStyleSeen_ && readDictionaryVarSeen_ && readGroupSeen_;
+            && readMLeaderStyleSeen_ && readDictionaryVarSeen_
+            && readDictionaryWithDefaultSeen_ && readGroupSeen_;
     }
     bool readMalformedObjectSeen() const { return readMalformedObjectSeen_; }
     bool readMalformedStyleSeen() const { return readMalformedStyleSeen_; }
@@ -570,6 +613,9 @@ public:
     }
     bool readMalformedDictionaryVarSeen() const {
         return readMalformedDictionaryVarSeen_;
+    }
+    bool readMalformedDictionaryWithDefaultSeen() const {
+        return readMalformedDictionaryWithDefaultSeen_;
     }
     const DRW_Line& readLine() const { return readLine_; }
 
@@ -608,13 +654,16 @@ private:
     bool wroteMLineStyle_ {false};
     bool wroteMLeaderStyle_ {false};
     bool wroteDictionaryVar_ {false};
+    bool wroteDictionaryWithDefault_ {false};
     bool rejectedMalformedObject_ {false};
     bool rejectedMalformedStyle_ {false};
     bool rejectedMalformedMLeaderStyle_ {false};
     bool rejectedMalformedDictionaryVar_ {false};
+    bool rejectedMalformedDictionaryWithDefault_ {false};
     bool registeredDictionary_ {false};
     bool registeredMLeaderStyle_ {false};
     bool registeredDictionaryVar_ {false};
+    bool registeredDictionaryWithDefault_ {false};
     bool registeredPlotSettings_ {false};
     bool readLineSeen_ {false};
     bool readPointSeen_ {false};
@@ -644,10 +693,12 @@ private:
     bool readMLineStyleSeen_ {false};
     bool readMLeaderStyleSeen_ {false};
     bool readDictionaryVarSeen_ {false};
+    bool readDictionaryWithDefaultSeen_ {false};
     bool readMalformedObjectSeen_ {false};
     bool readMalformedStyleSeen_ {false};
     bool readMalformedMLeaderStyleSeen_ {false};
     bool readMalformedDictionaryVarSeen_ {false};
+    bool readMalformedDictionaryWithDefaultSeen_ {false};
     DRW_Line readLine_;
     dx_data data_;
 };
@@ -729,6 +780,9 @@ int main(int argc, char** argv) {
         expect(writeIface.rejectedMalformedDictionaryVar(),
                ("local DWG writer rejected malformed DICTIONARYVAR transaction" + suffix).c_str(),
                failures);
+        expect(writeIface.rejectedMalformedDictionaryWithDefault(),
+               ("local DWG writer rejected malformed DICTIONARYWDFLT transaction" + suffix).c_str(),
+               failures);
         expect(std::filesystem::exists(output),
                ("local DWG output is published" + suffix).c_str(), failures);
 
@@ -775,6 +829,9 @@ int main(int argc, char** argv) {
                failures);
         expect(!readIface.readMalformedDictionaryVarSeen(),
                ("local DWG self-read omits rolled-back malformed DICTIONARYVAR" + suffix).c_str(),
+               failures);
+        expect(!readIface.readMalformedDictionaryWithDefaultSeen(),
+               ("local DWG self-read omits rolled-back malformed DICTIONARYWDFLT" + suffix).c_str(),
                failures);
         if (readIface.readLineSeen()) {
             const DRW_Line& line = readIface.readLine();
