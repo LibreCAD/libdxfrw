@@ -2,6 +2,19 @@
   "comparison": {
     "dwgRW": {
       "semanticMismatches": [
+        "dwgRW/fixed-entity/10-VERTEX_2D",
+        "dwgRW/fixed-entity/11-VERTEX_3D",
+        "dwgRW/fixed-entity/12-VERTEX_MESH",
+        "dwgRW/fixed-entity/13-VERTEX_PFACE",
+        "dwgRW/fixed-entity/14-VERTEX_PFACE_FACE",
+        "dwgRW/fixed-entity/15-POLYLINE_2D",
+        "dwgRW/fixed-entity/16-POLYLINE_3D",
+        "dwgRW/fixed-entity/2-ATTRIB",
+        "dwgRW/fixed-entity/29-POLYLINE_PFACE",
+        "dwgRW/fixed-entity/30-POLYLINE_MESH",
+        "dwgRW/fixed-entity/6-SEQEND",
+        "dwgRW/fixed-entity/7-INSERT",
+        "dwgRW/fixed-entity/8-MINSERT",
         "dwgRW/legacy-dwgr-facade/dwgR",
         "dwgRW/named-entity-class/ACAD_TABLE",
         "dwgRW/named-entity-class/ARCALIGNEDTEXT",
@@ -1881,7 +1894,7 @@
       "facade": "dwgRW",
       "path": "parity-source-routes-v1/target-dwgRW.json",
       "routeCount": 1345,
-      "sha256": "d0820bde031cfddc6b873519dbb74d85c29126510bf4371267e7638930e2b19d",
+      "sha256": "14269a4391e3c48cb8a13cb36e0f15ec7a99583992f3bc6b6929a266961e5f3f",
       "side": "target"
     },
     {
@@ -1902,7 +1915,7 @@
       "facade": "dwgRW",
       "path": "parity-source-routes-v1/standalone-dwgRW.json",
       "routeCount": 1371,
-      "sha256": "d6ea380e917e7a8e1b7b91899550da91a04549a77a154790ef3c949b0807999d",
+      "sha256": "e5532a7c12c0eb1a28aa8a0bec5ac30e03bbe216a0f1f224e773496a9999b180",
       "side": "standalone"
     },
     {
@@ -1916,7 +1929,7 @@
   "summary": {
     "comparison": {
       "dwgRW": {
-        "semanticMismatches": 483,
+        "semanticMismatches": 496,
         "standaloneOnly": 27,
         "targetOnly": 1
       },

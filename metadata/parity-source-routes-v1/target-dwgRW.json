@@ -4838,6 +4838,30 @@
       "facade": "dwgRW",
       "id": "dwgRW/fixed-entity/10-VERTEX_2D",
       "selector": {
+        "compoundTransitionEvidence": [
+          {
+            "bodySymbol": "dwgReader::readDwgEntityWithOutput",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 9453,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "6e76a68b9e8902b60f294ec5f1dd3717d65239beaf6a3f0ef2877af8b0269fdf",
+                  "symbol": "dwgReader::readDwgEntityWithOutput"
+                },
+                "callee": "stagePendingPolylineVertex",
+                "calleeOverload": "stagePendingPolylineVertex(DRW_Vertex&&,publication,interface)",
+                "edge": "vertex-stage",
+                "guardFingerprint": "96133e83dca66a0f203a2e1474b22be7efe43f72756b06bef4d4098ec36164aa",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "compound-stage",
+                "sourceOffset": 26287
+              }
+            ],
+            "sourcePath": "src/intern/dwgreader.cpp"
+          }
+        ],
         "enumSymbol": "dwgType::VERTEX_2D",
         "kind": "numeric",
         "value": 10
@@ -4909,6 +4933,30 @@
       "facade": "dwgRW",
       "id": "dwgRW/fixed-entity/11-VERTEX_3D",
       "selector": {
+        "compoundTransitionEvidence": [
+          {
+            "bodySymbol": "dwgReader::readDwgEntityWithOutput",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 9453,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "6e76a68b9e8902b60f294ec5f1dd3717d65239beaf6a3f0ef2877af8b0269fdf",
+                  "symbol": "dwgReader::readDwgEntityWithOutput"
+                },
+                "callee": "stagePendingPolylineVertex",
+                "calleeOverload": "stagePendingPolylineVertex(DRW_Vertex&&,publication,interface)",
+                "edge": "vertex-stage",
+                "guardFingerprint": "96133e83dca66a0f203a2e1474b22be7efe43f72756b06bef4d4098ec36164aa",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "compound-stage",
+                "sourceOffset": 26287
+              }
+            ],
+            "sourcePath": "src/intern/dwgreader.cpp"
+          }
+        ],
         "enumSymbol": "dwgType::VERTEX_3D",
         "kind": "numeric",
         "value": 11
@@ -5001,6 +5049,30 @@
       "facade": "dwgRW",
       "id": "dwgRW/fixed-entity/12-VERTEX_MESH",
       "selector": {
+        "compoundTransitionEvidence": [
+          {
+            "bodySymbol": "dwgReader::readDwgEntityWithOutput",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 9453,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "6e76a68b9e8902b60f294ec5f1dd3717d65239beaf6a3f0ef2877af8b0269fdf",
+                  "symbol": "dwgReader::readDwgEntityWithOutput"
+                },
+                "callee": "stagePendingPolylineVertex",
+                "calleeOverload": "stagePendingPolylineVertex(DRW_Vertex&&,publication,interface)",
+                "edge": "vertex-stage",
+                "guardFingerprint": "96133e83dca66a0f203a2e1474b22be7efe43f72756b06bef4d4098ec36164aa",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "compound-stage",
+                "sourceOffset": 26287
+              }
+            ],
+            "sourcePath": "src/intern/dwgreader.cpp"
+          }
+        ],
         "enumSymbol": "dwgType::VERTEX_MESH",
         "kind": "numeric",
         "value": 12
@@ -5024,6 +5096,30 @@
       "facade": "dwgRW",
       "id": "dwgRW/fixed-entity/13-VERTEX_PFACE",
       "selector": {
+        "compoundTransitionEvidence": [
+          {
+            "bodySymbol": "dwgReader::readDwgEntityWithOutput",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 9453,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "6e76a68b9e8902b60f294ec5f1dd3717d65239beaf6a3f0ef2877af8b0269fdf",
+                  "symbol": "dwgReader::readDwgEntityWithOutput"
+                },
+                "callee": "stagePendingPolylineVertex",
+                "calleeOverload": "stagePendingPolylineVertex(DRW_Vertex&&,publication,interface)",
+                "edge": "vertex-stage",
+                "guardFingerprint": "96133e83dca66a0f203a2e1474b22be7efe43f72756b06bef4d4098ec36164aa",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "compound-stage",
+                "sourceOffset": 26287
+              }
+            ],
+            "sourcePath": "src/intern/dwgreader.cpp"
+          }
+        ],
         "enumSymbol": "dwgType::VERTEX_PFACE",
         "kind": "numeric",
         "value": 13
@@ -5047,6 +5143,30 @@
       "facade": "dwgRW",
       "id": "dwgRW/fixed-entity/14-VERTEX_PFACE_FACE",
       "selector": {
+        "compoundTransitionEvidence": [
+          {
+            "bodySymbol": "dwgReader::readDwgEntityWithOutput",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 9453,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "6e76a68b9e8902b60f294ec5f1dd3717d65239beaf6a3f0ef2877af8b0269fdf",
+                  "symbol": "dwgReader::readDwgEntityWithOutput"
+                },
+                "callee": "stagePendingPolylineVertex",
+                "calleeOverload": "stagePendingPolylineVertex(DRW_Vertex&&,publication,interface)",
+                "edge": "vertex-stage",
+                "guardFingerprint": "96133e83dca66a0f203a2e1474b22be7efe43f72756b06bef4d4098ec36164aa",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "compound-stage",
+                "sourceOffset": 26287
+              }
+            ],
+            "sourcePath": "src/intern/dwgreader.cpp"
+          }
+        ],
         "enumSymbol": "dwgType::VERTEX_PFACE_FACE",
         "kind": "numeric",
         "value": 14
@@ -5070,6 +5190,48 @@
       "facade": "dwgRW",
       "id": "dwgRW/fixed-entity/15-POLYLINE_2D",
       "selector": {
+        "compoundTransitionEvidence": [
+          {
+            "bodySymbol": "dwgReader::readDwgEntityWithOutput",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 9486,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "6e76a68b9e8902b60f294ec5f1dd3717d65239beaf6a3f0ef2877af8b0269fdf",
+                  "symbol": "dwgReader::readDwgEntityWithOutput"
+                },
+                "callee": "stageMappedPolylineAggregate",
+                "calleeOverload": "stageMappedPolylineAggregate(DRW_Polyline&&,publication,...)",
+                "edge": "mapped-polyline-stage",
+                "guardFingerprint": "ec75a8229a3dce09cb9399e16d927bb3cf8d55510f78d6455fa0a1467a8f76e3",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "versioned-compound-stage",
+                "sourceOffset": 27506
+              },
+              {
+                "callEvidence": {
+                  "line": 9489,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "6e76a68b9e8902b60f294ec5f1dd3717d65239beaf6a3f0ef2877af8b0269fdf",
+                  "symbol": "dwgReader::readDwgEntityWithOutput"
+                },
+                "callee": "stageLegacyPolylineChain",
+                "calleeOverload": "stageLegacyPolylineChain(DRW_Polyline&&,publication,...)",
+                "edge": "legacy-polyline-stage",
+                "guardFingerprint": "b645b48d35eb6c2904ccb8658839a0258ee52fd72638b9c127946d8063a044c8",
+                "order": 2,
+                "predecessorEdges": [
+                  "mapped-polyline-stage"
+                ],
+                "relation": "versioned-compound-stage",
+                "sourceOffset": 27708
+              }
+            ],
+            "sourcePath": "src/intern/dwgreader.cpp"
+          }
+        ],
         "enumSymbol": "dwgType::POLYLINE_2D",
         "kind": "numeric",
         "value": 15
@@ -5093,6 +5255,48 @@
       "facade": "dwgRW",
       "id": "dwgRW/fixed-entity/16-POLYLINE_3D",
       "selector": {
+        "compoundTransitionEvidence": [
+          {
+            "bodySymbol": "dwgReader::readDwgEntityWithOutput",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 9486,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "6e76a68b9e8902b60f294ec5f1dd3717d65239beaf6a3f0ef2877af8b0269fdf",
+                  "symbol": "dwgReader::readDwgEntityWithOutput"
+                },
+                "callee": "stageMappedPolylineAggregate",
+                "calleeOverload": "stageMappedPolylineAggregate(DRW_Polyline&&,publication,...)",
+                "edge": "mapped-polyline-stage",
+                "guardFingerprint": "ec75a8229a3dce09cb9399e16d927bb3cf8d55510f78d6455fa0a1467a8f76e3",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "versioned-compound-stage",
+                "sourceOffset": 27506
+              },
+              {
+                "callEvidence": {
+                  "line": 9489,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "6e76a68b9e8902b60f294ec5f1dd3717d65239beaf6a3f0ef2877af8b0269fdf",
+                  "symbol": "dwgReader::readDwgEntityWithOutput"
+                },
+                "callee": "stageLegacyPolylineChain",
+                "calleeOverload": "stageLegacyPolylineChain(DRW_Polyline&&,publication,...)",
+                "edge": "legacy-polyline-stage",
+                "guardFingerprint": "b645b48d35eb6c2904ccb8658839a0258ee52fd72638b9c127946d8063a044c8",
+                "order": 2,
+                "predecessorEdges": [
+                  "mapped-polyline-stage"
+                ],
+                "relation": "versioned-compound-stage",
+                "sourceOffset": 27708
+              }
+            ],
+            "sourcePath": "src/intern/dwgreader.cpp"
+          }
+        ],
         "enumSymbol": "dwgType::POLYLINE_3D",
         "kind": "numeric",
         "value": 16
@@ -5185,6 +5389,30 @@
       "facade": "dwgRW",
       "id": "dwgRW/fixed-entity/2-ATTRIB",
       "selector": {
+        "compoundTransitionEvidence": [
+          {
+            "bodySymbol": "dwgReader::readDwgEntityWithOutput",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 9302,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "6e76a68b9e8902b60f294ec5f1dd3717d65239beaf6a3f0ef2877af8b0269fdf",
+                  "symbol": "dwgReader::readDwgEntityWithOutput"
+                },
+                "callee": "stagePendingAttribute",
+                "calleeOverload": "stagePendingAttribute(shared_ptr<DRW_Attrib>,publication,interface)",
+                "edge": "attrib-stage",
+                "guardFingerprint": "fb9c256dfd6a4db4f148b274c03cdb11a7310fe137c406cc92e94dff857f8700",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "compound-stage",
+                "sourceOffset": 19921
+              }
+            ],
+            "sourcePath": "src/intern/dwgreader.cpp"
+          }
+        ],
         "enumSymbol": "dwgType::ATTRIB",
         "kind": "numeric",
         "value": 2
@@ -5415,6 +5643,48 @@
       "facade": "dwgRW",
       "id": "dwgRW/fixed-entity/29-POLYLINE_PFACE",
       "selector": {
+        "compoundTransitionEvidence": [
+          {
+            "bodySymbol": "dwgReader::readDwgEntityWithOutput",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 9486,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "6e76a68b9e8902b60f294ec5f1dd3717d65239beaf6a3f0ef2877af8b0269fdf",
+                  "symbol": "dwgReader::readDwgEntityWithOutput"
+                },
+                "callee": "stageMappedPolylineAggregate",
+                "calleeOverload": "stageMappedPolylineAggregate(DRW_Polyline&&,publication,...)",
+                "edge": "mapped-polyline-stage",
+                "guardFingerprint": "ec75a8229a3dce09cb9399e16d927bb3cf8d55510f78d6455fa0a1467a8f76e3",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "versioned-compound-stage",
+                "sourceOffset": 27506
+              },
+              {
+                "callEvidence": {
+                  "line": 9489,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "6e76a68b9e8902b60f294ec5f1dd3717d65239beaf6a3f0ef2877af8b0269fdf",
+                  "symbol": "dwgReader::readDwgEntityWithOutput"
+                },
+                "callee": "stageLegacyPolylineChain",
+                "calleeOverload": "stageLegacyPolylineChain(DRW_Polyline&&,publication,...)",
+                "edge": "legacy-polyline-stage",
+                "guardFingerprint": "b645b48d35eb6c2904ccb8658839a0258ee52fd72638b9c127946d8063a044c8",
+                "order": 2,
+                "predecessorEdges": [
+                  "mapped-polyline-stage"
+                ],
+                "relation": "versioned-compound-stage",
+                "sourceOffset": 27708
+              }
+            ],
+            "sourcePath": "src/intern/dwgreader.cpp"
+          }
+        ],
         "enumSymbol": "dwgType::POLYLINE_PFACE",
         "kind": "numeric",
         "value": 29
@@ -5461,6 +5731,48 @@
       "facade": "dwgRW",
       "id": "dwgRW/fixed-entity/30-POLYLINE_MESH",
       "selector": {
+        "compoundTransitionEvidence": [
+          {
+            "bodySymbol": "dwgReader::readDwgEntityWithOutput",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 9486,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "6e76a68b9e8902b60f294ec5f1dd3717d65239beaf6a3f0ef2877af8b0269fdf",
+                  "symbol": "dwgReader::readDwgEntityWithOutput"
+                },
+                "callee": "stageMappedPolylineAggregate",
+                "calleeOverload": "stageMappedPolylineAggregate(DRW_Polyline&&,publication,...)",
+                "edge": "mapped-polyline-stage",
+                "guardFingerprint": "ec75a8229a3dce09cb9399e16d927bb3cf8d55510f78d6455fa0a1467a8f76e3",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "versioned-compound-stage",
+                "sourceOffset": 27506
+              },
+              {
+                "callEvidence": {
+                  "line": 9489,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "6e76a68b9e8902b60f294ec5f1dd3717d65239beaf6a3f0ef2877af8b0269fdf",
+                  "symbol": "dwgReader::readDwgEntityWithOutput"
+                },
+                "callee": "stageLegacyPolylineChain",
+                "calleeOverload": "stageLegacyPolylineChain(DRW_Polyline&&,publication,...)",
+                "edge": "legacy-polyline-stage",
+                "guardFingerprint": "b645b48d35eb6c2904ccb8658839a0258ee52fd72638b9c127946d8063a044c8",
+                "order": 2,
+                "predecessorEdges": [
+                  "mapped-polyline-stage"
+                ],
+                "relation": "versioned-compound-stage",
+                "sourceOffset": 27708
+              }
+            ],
+            "sourcePath": "src/intern/dwgreader.cpp"
+          }
+        ],
         "enumSymbol": "dwgType::POLYLINE_MESH",
         "kind": "numeric",
         "value": 30
@@ -5875,6 +6187,30 @@
       "facade": "dwgRW",
       "id": "dwgRW/fixed-entity/6-SEQEND",
       "selector": {
+        "compoundTransitionEvidence": [
+          {
+            "bodySymbol": "dwgReader::readDwgEntityWithOutput",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 9351,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "6e76a68b9e8902b60f294ec5f1dd3717d65239beaf6a3f0ef2877af8b0269fdf",
+                  "symbol": "dwgReader::readDwgEntityWithOutput"
+                },
+                "callee": "stagePendingSeqEnd",
+                "calleeOverload": "stagePendingSeqEnd(handle,owner,publication,interface)",
+                "edge": "seqend-stage",
+                "guardFingerprint": "5c9a20d883028b58d84182a499936ac2653d5330b722ec2a89d6bdd6aa7cb21f",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "compound-stage",
+                "sourceOffset": 21926
+              }
+            ],
+            "sourcePath": "src/intern/dwgreader.cpp"
+          }
+        ],
         "enumSymbol": "dwgType::SEQEND",
         "kind": "numeric",
         "value": 6
@@ -5898,6 +6234,48 @@
       "facade": "dwgRW",
       "id": "dwgRW/fixed-entity/7-INSERT",
       "selector": {
+        "compoundTransitionEvidence": [
+          {
+            "bodySymbol": "dwgReader::readDwgEntityWithOutput",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 9392,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "6e76a68b9e8902b60f294ec5f1dd3717d65239beaf6a3f0ef2877af8b0269fdf",
+                  "symbol": "dwgReader::readDwgEntityWithOutput"
+                },
+                "callee": "stageMappedInsertAggregate",
+                "calleeOverload": "stageMappedInsertAggregate(DRW_Insert&&,publication,...)",
+                "edge": "mapped-insert-stage",
+                "guardFingerprint": "86d3f21f349964456e28c4cc32def7323c91e773bc1813035caf0a6990e2ff1e",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "versioned-compound-stage",
+                "sourceOffset": 23496
+              },
+              {
+                "callEvidence": {
+                  "line": 9394,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "6e76a68b9e8902b60f294ec5f1dd3717d65239beaf6a3f0ef2877af8b0269fdf",
+                  "symbol": "dwgReader::readDwgEntityWithOutput"
+                },
+                "callee": "stageLegacyInsertAggregate",
+                "calleeOverload": "stageLegacyInsertAggregate(DRW_Insert&&,publication,...)",
+                "edge": "legacy-insert-stage",
+                "guardFingerprint": "70559c442325b5da97d5db9ef9a89ca5b92bf76b0b3ac5fb98336e3aaa490b12",
+                "order": 2,
+                "predecessorEdges": [
+                  "mapped-insert-stage"
+                ],
+                "relation": "versioned-compound-stage",
+                "sourceOffset": 23649
+              }
+            ],
+            "sourcePath": "src/intern/dwgreader.cpp"
+          }
+        ],
         "enumSymbol": "dwgType::INSERT",
         "kind": "numeric",
         "value": 7
@@ -5990,6 +6368,48 @@
       "facade": "dwgRW",
       "id": "dwgRW/fixed-entity/8-MINSERT",
       "selector": {
+        "compoundTransitionEvidence": [
+          {
+            "bodySymbol": "dwgReader::readDwgEntityWithOutput",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 9392,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "6e76a68b9e8902b60f294ec5f1dd3717d65239beaf6a3f0ef2877af8b0269fdf",
+                  "symbol": "dwgReader::readDwgEntityWithOutput"
+                },
+                "callee": "stageMappedInsertAggregate",
+                "calleeOverload": "stageMappedInsertAggregate(DRW_Insert&&,publication,...)",
+                "edge": "mapped-insert-stage",
+                "guardFingerprint": "86d3f21f349964456e28c4cc32def7323c91e773bc1813035caf0a6990e2ff1e",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "versioned-compound-stage",
+                "sourceOffset": 23496
+              },
+              {
+                "callEvidence": {
+                  "line": 9394,
+                  "path": "src/intern/dwgreader.cpp",
+                  "spanSha256": "6e76a68b9e8902b60f294ec5f1dd3717d65239beaf6a3f0ef2877af8b0269fdf",
+                  "symbol": "dwgReader::readDwgEntityWithOutput"
+                },
+                "callee": "stageLegacyInsertAggregate",
+                "calleeOverload": "stageLegacyInsertAggregate(DRW_Insert&&,publication,...)",
+                "edge": "legacy-insert-stage",
+                "guardFingerprint": "70559c442325b5da97d5db9ef9a89ca5b92bf76b0b3ac5fb98336e3aaa490b12",
+                "order": 2,
+                "predecessorEdges": [
+                  "mapped-insert-stage"
+                ],
+                "relation": "versioned-compound-stage",
+                "sourceOffset": 23649
+              }
+            ],
+            "sourcePath": "src/intern/dwgreader.cpp"
+          }
+        ],
         "enumSymbol": "dwgType::MINSERT",
         "kind": "numeric",
         "value": 8

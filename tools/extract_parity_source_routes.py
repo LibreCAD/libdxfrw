@@ -1102,6 +1102,70 @@ DWG_TABLE_DELIVERY_FIELDS = {
     "kUcsTable": ("ucsControl", "u", "ucsmap", "UCS"),
 }
 
+# Compound entity case arms are source-owned transitions, not ordinary
+# `entryParse` publications.  Each route retains the concrete helper call(s)
+# selected by the ATTRIB/SEQEND, INSERT/MINSERT, VERTEX, and POLYLINE cases;
+# the deeper helper state machines remain independently reviewable.
+DWG_COMPOUND_TRANSITION_ANCHORS = {
+    "dwgType::ATTRIB": (
+        ("src/intern/dwgreader.cpp", "dwgReader::readDwgEntityWithOutput", (
+            {"name": "attrib-stage", "pattern": r"stagePendingAttribute\s*\(\s*std::move\s*\(a\)\s*,\s*attribPublication\s*,\s*intfa\s*\)", "callee": "stagePendingAttribute", "calleeOverload": "stagePendingAttribute(shared_ptr<DRW_Attrib>,publication,interface)", "relation": "compound-stage"},
+        )),
+    ),
+    "dwgType::SEQEND": (
+        ("src/intern/dwgreader.cpp", "dwgReader::readDwgEntityWithOutput", (
+            {"name": "seqend-stage", "pattern": r"stagePendingSeqEnd\s*\(\s*obj\.handle\s*,\s*sequenceEnd\.parentHandle", "callee": "stagePendingSeqEnd", "calleeOverload": "stagePendingSeqEnd(handle,owner,publication,interface)", "relation": "compound-stage"},
+        )),
+    ),
+    "dwgType::INSERT": (
+        ("src/intern/dwgreader.cpp", "dwgReader::readDwgEntityWithOutput", (
+            {"name": "mapped-insert-stage", "pattern": r"stageMappedInsertAggregate\s*\(\s*std::move\s*\(e\)\s*,\s*insertPublication", "callee": "stageMappedInsertAggregate", "calleeOverload": "stageMappedInsertAggregate(DRW_Insert&&,publication,...)", "relation": "versioned-compound-stage"},
+            {"name": "legacy-insert-stage", "pattern": r"stageLegacyInsertAggregate\s*\(\s*std::move\s*\(e\)\s*,\s*insertPublication", "callee": "stageLegacyInsertAggregate", "calleeOverload": "stageLegacyInsertAggregate(DRW_Insert&&,publication,...)", "relation": "versioned-compound-stage"},
+        )),
+    ),
+    "dwgType::MINSERT": (
+        ("src/intern/dwgreader.cpp", "dwgReader::readDwgEntityWithOutput", (
+            {"name": "mapped-insert-stage", "pattern": r"stageMappedInsertAggregate\s*\(\s*std::move\s*\(e\)\s*,\s*insertPublication", "callee": "stageMappedInsertAggregate", "calleeOverload": "stageMappedInsertAggregate(DRW_Insert&&,publication,...)", "relation": "versioned-compound-stage"},
+            {"name": "legacy-insert-stage", "pattern": r"stageLegacyInsertAggregate\s*\(\s*std::move\s*\(e\)\s*,\s*insertPublication", "callee": "stageLegacyInsertAggregate", "calleeOverload": "stageLegacyInsertAggregate(DRW_Insert&&,publication,...)", "relation": "versioned-compound-stage"},
+        )),
+    ),
+    "dwgType::VERTEX_2D": (
+        ("src/intern/dwgreader.cpp", "dwgReader::readDwgEntityWithOutput", (
+            {"name": "vertex-stage", "pattern": r"stagePendingPolylineVertex\s*\(\s*std::move\s*\(vertex\)\s*,\s*vertexPublication\s*,\s*intfa\s*\)", "callee": "stagePendingPolylineVertex", "calleeOverload": "stagePendingPolylineVertex(DRW_Vertex&&,publication,interface)", "relation": "compound-stage"},
+        )),
+    ),
+    "dwgType::VERTEX_3D": (
+        ("src/intern/dwgreader.cpp", "dwgReader::readDwgEntityWithOutput", (
+            {"name": "vertex-stage", "pattern": r"stagePendingPolylineVertex\s*\(\s*std::move\s*\(vertex\)\s*,\s*vertexPublication\s*,\s*intfa\s*\)", "callee": "stagePendingPolylineVertex", "calleeOverload": "stagePendingPolylineVertex(DRW_Vertex&&,publication,interface)", "relation": "compound-stage"},
+        )),
+    ),
+    "dwgType::VERTEX_MESH": (
+        ("src/intern/dwgreader.cpp", "dwgReader::readDwgEntityWithOutput", (
+            {"name": "vertex-stage", "pattern": r"stagePendingPolylineVertex\s*\(\s*std::move\s*\(vertex\)\s*,\s*vertexPublication\s*,\s*intfa\s*\)", "callee": "stagePendingPolylineVertex", "calleeOverload": "stagePendingPolylineVertex(DRW_Vertex&&,publication,interface)", "relation": "compound-stage"},
+        )),
+    ),
+    "dwgType::VERTEX_PFACE": (
+        ("src/intern/dwgreader.cpp", "dwgReader::readDwgEntityWithOutput", (
+            {"name": "vertex-stage", "pattern": r"stagePendingPolylineVertex\s*\(\s*std::move\s*\(vertex\)\s*,\s*vertexPublication\s*,\s*intfa\s*\)", "callee": "stagePendingPolylineVertex", "calleeOverload": "stagePendingPolylineVertex(DRW_Vertex&&,publication,interface)", "relation": "compound-stage"},
+        )),
+    ),
+    "dwgType::VERTEX_PFACE_FACE": (
+        ("src/intern/dwgreader.cpp", "dwgReader::readDwgEntityWithOutput", (
+            {"name": "vertex-stage", "pattern": r"stagePendingPolylineVertex\s*\(\s*std::move\s*\(vertex\)\s*,\s*vertexPublication\s*,\s*intfa\s*\)", "callee": "stagePendingPolylineVertex", "calleeOverload": "stagePendingPolylineVertex(DRW_Vertex&&,publication,interface)", "relation": "compound-stage"},
+        )),
+    ),
+}
+for _polyline_symbol in (
+    "dwgType::POLYLINE_2D", "dwgType::POLYLINE_3D",
+    "dwgType::POLYLINE_PFACE", "dwgType::POLYLINE_MESH",
+):
+    DWG_COMPOUND_TRANSITION_ANCHORS[_polyline_symbol] = (
+        ("src/intern/dwgreader.cpp", "dwgReader::readDwgEntityWithOutput", (
+            {"name": "mapped-polyline-stage", "pattern": r"stageMappedPolylineAggregate\s*\(\s*std::move\s*\(e\)\s*,\s*polylinePublication", "callee": "stageMappedPolylineAggregate", "calleeOverload": "stageMappedPolylineAggregate(DRW_Polyline&&,publication,...)", "relation": "versioned-compound-stage"},
+            {"name": "legacy-polyline-stage", "pattern": r"stageLegacyPolylineChain\s*\(\s*std::move\s*\(e\)\s*,\s*polylinePublication", "callee": "stageLegacyPolylineChain", "calleeOverload": "stageLegacyPolylineChain(DRW_Polyline&&,publication,...)", "relation": "versioned-compound-stage"},
+        )),
+    )
+
 # These route nodes cover the deliberate deferred/publication machinery that
 # cannot truthfully be reduced to one local parser-function → callback call.
 # A staged parser row must point to at least one of these exact anchors.
@@ -3346,6 +3410,26 @@ def dwg_table_delivery_metadata(
         {"name": "typed-map-insert", "pattern": rf"insertTableRecord\s*\(\s*{re.escape(table_map)}\s*,\s*std::move\s*\(\s*{re.escape(record)}\s*\)", "callee": "insertTableRecord", "calleeOverload": "insertTableRecord(map,record,recordName,handle,type)", "relation": "map-and-publication"},
     )
     return [{"bodySymbol": body.symbol, "edges": raw_eligibility_edge_rows(body, specs), "recordName": record_name}]
+
+
+def dwg_compound_transition_metadata(
+    tree: SourceTree, enum_symbol: str
+) -> list[dict]:
+    """Extract the concrete helper transition selected by a compound case."""
+    anchors = DWG_COMPOUND_TRANSITION_ANCHORS.get(enum_symbol)
+    if anchors is None:
+        return []
+    rows: list[dict] = []
+    for path, symbol, edge_specs in anchors:
+        body = function_body(tree.require(path), symbol)
+        rows.append(
+            {
+                "sourcePath": path,
+                "bodySymbol": symbol,
+                "edges": raw_eligibility_edge_rows(body, edge_specs),
+            }
+        )
+    return rows
 
 
 def add_raw_flow_routes(collector: RouteCollector, tree: SourceTree) -> None:
@@ -6636,6 +6720,12 @@ def add_dwg_routes(collector: RouteCollector, tree: SourceTree) -> None:
                         "objectPassRoute": "dwgRW/fixed-object/1004-DBCOLOR",
                     }
                 )
+            if category == "fixed-entity":
+                compound_evidence = dwg_compound_transition_metadata(
+                    tree, token
+                )
+                if compound_evidence:
+                    route_selector["compoundTransitionEvidence"] = compound_evidence
             collector.add(
                 "dwgRW",
                 category,
@@ -7318,6 +7408,12 @@ def validate_pipeline_closure(tree: SourceTree, inventory: dict[str, list[dict]]
         expected_evidence = dwg_table_delivery_metadata(tree, descriptor)
         if selector.get("deliveryEvidence") != expected_evidence:
             raise RouteError("DWG table delivery evidence changed: %s" % descriptor)
+
+    for route in inventory_category_routes(inventory, "dwgRW", "fixed-entity"):
+        enum_symbol = route["selector"].get("enumSymbol")
+        expected_evidence = dwg_compound_transition_metadata(tree, enum_symbol)
+        if route["selector"].get("compoundTransitionEvidence", []) != expected_evidence:
+            raise RouteError("DWG compound transition evidence changed: %s" % route["id"])
 
     raw_expected = {node["name"]: node for node in RAW_FLOW_NODES}
     if set(RAW_NODE_DIRECTIONS) != set(raw_expected):
