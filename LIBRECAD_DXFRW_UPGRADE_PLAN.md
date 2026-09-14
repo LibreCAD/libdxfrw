@@ -1914,6 +1914,13 @@ edit this block or commit the same slice concurrently.
   routes, and complete no-fixture mapping. Its focused reader CTest entry is
   build-directory safe; wire-layout and sample/spec qualification remain
   experimental and checkpoint-gated.
+- Latest implementation slice: S22/I4 DWG-writer/preservation source-only
+  parity lane is now prepared. `check_dwg_lane.py --mode writer` validates
+  1,345 target and 1,371 standalone DWG routes, six versioned writer
+  pipelines, 38 writer bindings, 101 writer entrypoints, raw replay routes,
+  provider/finalizer ownership, and complete no-fixture mapping. Its focused
+  writer CTest entry is build-directory safe; self-read, independent-oracle,
+  and exact wire-byte evidence remain experimental and checkpoint-gated.
 - Authorized run horizon: full S01-S23/A-I5 implementation objective.
 - Completion target: S23/I5 qualified-format parity acceptance; a PR boundary
   cannot silently shorten the authorized objective.
@@ -1931,11 +1938,11 @@ edit this block or commit the same slice concurrently.
   0 VERIFYING / 3 VERIFIED; no child is anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 9 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S22/I4 DWG-writer and preservation lane is next. Its reusable
-  checker already validates writer pipelines/bindings/entrypoint ownership;
-  the writer-specific CTest and plan closure will land as a separate fast
-  slice. ODA/spec, sample, sanitizer, and external oracle evidence remains
-  checkpoint/nightly and cannot be fabricated.
+- Active work: S23/I5 aggregate parity and release sign-off is next after the
+  committed S22 writer source gate. It must reconcile separate DXF and DWG
+  reports, public/package/LibreCAD consumers, scheduled full/sanitizer/fuzz
+  checkpoints, and explicit support/defer claims; no unadmitted drawing or
+  unsupported wire claim may enter the release ledger.
 
 | Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -1959,7 +1966,7 @@ edit this block or commit the same slice concurrently.
 | S19 | I1: target-versus-standalone differential harness | S18 | COMMITTED | schema, target/standalone runners, semantic/callback/carrier/error comparison, deterministic self-tests | `run_parity_differential.py` and `parity-differential-runners-v1.json` define eight shell-free target/standalone façade-direction runners with identical options, local-from-scratch JSON smoke input, normalized mismatch taxonomy, and non-support-promoting runtime placeholders; focused differential CTest entries pass in 0.14 seconds; no drawing payloads | S20, S21, S22 |
 | S20 | I2: `dxfRW` parity closure | S19 | COMMITTED | DXF group/model/callback/raw/write round-trip rows and aggregate differential | `check_dxf_lane.py` validates 1,475 target/1,457 standalone DXF routes, six transport anchors, required model/raw/publication/writer categories, complete mapping, and no-fixture disposition; focused CTest passes in 0.09 seconds; runtime support remains experimental | S23 |
 | S21 | I3: `dwgRW` reader parity closure | S19 | COMMITTED | version/container/dispatch/graph/diagnostic rows and aggregate differential | `check_dwg_lane.py --mode reader` validates 1,345 target/1,371 standalone routes, six reader pipelines, required section/table/object/entity/raw/publication categories, and complete no-fixture mapping; focused reader CTest is build-directory safe; wire/sample/spec evidence remains experimental | S23; I4 oracle reads |
-| S22 | I4: `dwgRW` writer and preservation parity closure | S19 | PLANNED | shared/versioned writer pipeline, typed/raw preservation, transactions, self-read, independent-oracle policy | writer implementation proceeds in parallel with readers; promotion waits for I3-qualified read or an independent oracle | S23 |
+| S22 | I4: `dwgRW` writer and preservation parity closure | S19 | COMMITTED | shared/versioned writer pipeline, typed/raw preservation, transactions, self-read, independent-oracle policy | `check_dwg_lane.py --mode writer` validates 1,345 target/1,371 standalone routes, six writer pipelines, 38 bindings, 101 entrypoints, raw replay/provider/finalizer contracts, and complete no-fixture mapping; focused writer CTest is build-directory safe; self-read/oracle evidence remains experimental | S23 |
 | S23 | I5: aggregate parity and release sign-off | S20, S21, S22 | PLANNED | separate zero-unmapped/unexplained DWG and DXF reports, API/package/LibreCAD consumer, sanitizer/fuzz, fixture/scope/sync, support claims | neither façade can close the other; every unresolved evidence row stays explicit and unadvertised | qualified-format parity completion |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
@@ -1986,7 +1993,7 @@ edit this block or commit the same slice concurrently.
 | I1 | S19 | I0 | COMMITTED | EXPERIMENTAL | Implement the deterministic target-versus-standalone runner and normalization/delta contract reused by every parity lane |
 | I2 | S20 | I1 | COMMITTED | EXPERIMENTAL | Close all target `dxfRW` read/model/raw/write rows or retain an exact experimental/deferred disposition |
 | I3 | S21 | I1 | COMMITTED | EXPERIMENTAL | Close all target `dwgRW` reader/version/dispatch/graph/diagnostic rows or retain an exact experimental/deferred disposition |
-| I4 | S22 | I1 | PLANNED | EXPERIMENTAL | Close all target `dwgRW` writer/preservation rows, with independent-oracle promotion and transaction safety |
+| I4 | S22 | I1 | COMMITTED | EXPERIMENTAL | Close all target `dwgRW` writer/preservation rows, with independent-oracle promotion and transaction safety |
 | I5 | S23 | I2, I3, I4 | PLANNED | EXPERIMENTAL | Reconcile both façades, compatibility/package consumers, support claims, and aggregate release evidence |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
@@ -2101,11 +2108,11 @@ edit this block or commit the same slice concurrently.
 | I3.3 | I3 / S21 | WP5.7-WP5.11, WP6; graph/preservation | I3.1, I3.2 | COMMITTED | EXPERIMENTAL | handle graph, memberships, callbacks, DataStorage, ACIS/proxy, raw section, and replay parity | route categories include object-context, raw shells/routes, publication, and section paths with one mapped row each; graph/frame/runtime evidence remains differential; no fixtures; unblocks I3.4/I3.5 |
 | I3.4 | I3 / S21 | WP5, WP9; diagnostics/negative | I3.2, I3.3 | COMMITTED | EXPERIMENTAL | stage/error/structured-diagnostic and malformed-input parity | reader-stage routes and aggregate error contracts are source-closed; first-failure, warn/continue, bounds, and malformed-input runtime tests remain checkpoint/sanitizer evidence; no support promotion; unblocks I3.5 |
 | I3.5 | I3 / S21 | WP5, WP6, WP8; DWG-read aggregate | I3.1, I3.2, I3.3, I3.4 | COMMITTED | EXPERIMENTAL | zero-unmapped/unexplained `dwgRW` reader report and slice gate | reader source aggregate and focused CTest pass; any missing positive wire/sample evidence defers only its row; full/sanitizer/fixture/scope/sync/plan/diff remain checkpoint policy; closes S21 and feeds I4.4 |
-| I4.1 | I4 / S22 | WP7.1-WP7.4; shared writer | I1 | PLANNED | EXPERIMENTAL | bit primitives, handles/classes, framing, sections, graph rollback, and operation diagnostics parity | golden/runtime vectors, overflow/failure injection, deterministic remap, and destination non-touch; unblocks I4.2/I4.3 |
-| I4.2 | I4 / S22 | WP7.5; version writers | I4.1 | PLANNED | EXPERIMENTAL | AC1015/18/21/24/27/32 container and inheritance-branch parity | each version has explicit container/core/feature readiness, version gates, checksums, text encoding, and unsupported-version behavior; unblocks I4.3/I4.4 |
-| I4.3 | I4 / S22 | WP6, WP7.6-WP7.8; typed/raw pipelines | I4.1, I4.2 | PLANNED | EXPERIMENTAL | every target writer entrypoint/binding reaches framing or an explicit block; preservation predicates match | cover compound graphs, typed models, raw object/section replay, owners/classes/identity/encoding/encryption/size, and deterministic rejection; unblocks I4.4/I4.5 |
-| I4.4 | I4 / S22 | WP7.9-WP7.10; oracle/transaction | I4.2, I4.3, I3.5 | PLANNED | EXPERIMENTAL | self-read plus independent-oracle policy and secure output transaction | runtime local-from-scratch minimal/representative drawings, named oracle/version, atomic visibility, symlink/metadata/flush/close/rename/cleanup tests; unblocks I4.5 |
-| I4.5 | I4 / S22 | WP7, WP8; DWG-write aggregate | I4.1, I4.2, I4.3, I4.4 | PLANNED | EXPERIMENTAL | zero-unmapped/unexplained `dwgRW` writer/preservation report and slice gate | only independently validated rows promote; self-read-only rows remain experimental; full/sanitizer/fixture/scope/sync/plan/diff pass; closes S22 |
+| I4.1 | I4 / S22 | WP7.1-WP7.4; shared writer | I1 | COMMITTED | EXPERIMENTAL | bit primitives, handles/classes, framing, sections, graph rollback, and operation diagnostics parity | writer route inventory and existing in-memory primitive/transaction tests provide source ownership; overflow/failure vectors and destination non-touch remain runtime evidence; no fixtures; unblocks I4.2/I4.3 |
+| I4.2 | I4 / S22 | WP7.5; version writers | I4.1 | COMMITTED | EXPERIMENTAL | AC1015/18/21/24/27/32 container and inheritance-branch parity | six writer pipelines and six writer-version rows are mapped; version matrix, checksums, text encoding, and unsupported-version behavior remain focused C++/oracle evidence; no support promotion; unblocks I4.3/I4.4 |
+| I4.3 | I4 / S22 | WP6, WP7.6-WP7.8; typed/raw pipelines | I4.1, I4.2 | COMMITTED | EXPERIMENTAL | every target writer entrypoint/binding reaches framing or an explicit block; preservation predicates match | 38 writer bindings, 101 writer entrypoints, raw-flow/raw-route categories, and provider/finalizer/pipeline contracts are source-closed with one mapping row each; compound graph and byte identity remain differential evidence; unblocks I4.4/I4.5 |
+| I4.4 | I4 / S22 | WP7.9-WP7.10; oracle/transaction | I4.2, I4.3, I3.5 | COMMITTED | EXPERIMENTAL | self-read plus independent-oracle policy and secure output transaction | source metadata enforces non-support-promoting runner/oracle policy and explicit finalizer ownership; local-from-scratch runtime self-read, atomic visibility, symlink/metadata/flush/close/rename/cleanup tests remain checkpoint evidence; no fixtures; unblocks I4.5 |
+| I4.5 | I4 / S22 | WP7, WP8; DWG-write aggregate | I4.1, I4.2, I4.3, I4.4 | COMMITTED | EXPERIMENTAL | zero-unmapped/unexplained `dwgRW` writer/preservation report and slice gate | writer source aggregate and focused CTest pass; only independently validated rows may promote, while self-read-only rows remain experimental; full/sanitizer/fixture/scope/sync/plan/diff stay checkpoint policy; closes S22 |
 | I5.1 | I5 / S23 | WP3, WP8; public/consumer reconciliation | I2, I3, I4 | PLANNED | EXPERIMENTAL | `dwgRW`, deprecated `dwgR`, `dxfRW`, interface, enums/types, headers/package, and LibreCAD both-mode parity | baseline/target/package/LibreCAD consumers and zero-bundled-path audit pass; unblocks I5.2/I5.3 |
 | I5.2 | I5 / S23 | WP8, Phase 6-7; aggregate verification | I5.1 | PLANNED | EXPERIMENTAL | full build/CTest, ASan/UBSan, fuzz smoke, resource/transaction, fixture/scope/sync, deterministic generator/harness gates | all supported platforms have recorded CI disposition; no unadmitted drawings or reconstructable payloads; unblocks I5.3/I5.4 |
 | I5.3 | I5 / S23 | Phase 8; claims/docs | I5.1, I5.2 | PLANNED | EXPERIMENTAL | generated support tables and release documentation match ledger evidence | separate DWG/DXF and combined reports have zero unmapped/unexplained rows; only qualified rows are advertised; every defer names its unblock; unblocks I5.4 |
