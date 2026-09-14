@@ -71,13 +71,21 @@ bool expect(bool value, const char* label, int& failures) {
 
 } // namespace
 
-int main() {
+int main(int argc, char** argv) {
     int failures = 0;
     const std::vector<DRW::Version> versions {
         DRW::AC1015, DRW::AC1018, DRW::AC1021,
         DRW::AC1024, DRW::AC1027, DRW::AC1032};
-    const std::filesystem::path directory =
-        std::filesystem::temp_directory_path();
+    std::filesystem::path directory = std::filesystem::temp_directory_path();
+    bool keepOutputs = false;
+    if (argc == 3 && std::string(argv[1]) == "--keep-dir") {
+        directory = argv[2];
+        std::filesystem::create_directories(directory);
+        keepOutputs = true;
+    } else if (argc != 1) {
+        std::cerr << "usage: " << argv[0] << " [--keep-dir DIRECTORY]\n";
+        return 2;
+    }
     std::error_code ec;
     for (const DRW::Version version : versions) {
         const std::filesystem::path output = directory /
@@ -116,7 +124,8 @@ int main() {
                    ("local DWG self-read preserves line end" + suffix).c_str(),
                    failures);
         }
-        std::filesystem::remove(output, ec);
+        if (!keepOutputs)
+            std::filesystem::remove(output, ec);
     }
     if (failures != 0) {
         std::cerr << failures << " local DWG round-trip assertion(s) failed\n";
