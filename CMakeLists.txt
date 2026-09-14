@@ -78,6 +78,27 @@ endif()
 
 if(LIBDXFRW_BUILD_TESTS)
     enable_testing()
+    find_program(LIBDXFRW_PYTHON_EXECUTABLE NAMES python3)
+    if(NOT LIBDXFRW_PYTHON_EXECUTABLE)
+        message(FATAL_ERROR "LIBDXFRW_BUILD_TESTS requires a Python 3 interpreter")
+    endif()
+    execute_process(
+        COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -c
+            "import sys; raise SystemExit(0 if sys.version_info >= (3, 10) else 1)"
+        RESULT_VARIABLE LIBDXFRW_PYTHON_VERSION_OK
+    )
+    if(NOT "${LIBDXFRW_PYTHON_VERSION_OK}" STREQUAL "0")
+        message(FATAL_ERROR "LIBDXFRW_BUILD_TESTS requires Python 3.10 or newer")
+    endif()
+    add_test(NAME libdxfrw_parity_inventory_inputs
+        COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE}
+            ${CMAKE_CURRENT_SOURCE_DIR}/tools/check_parity_inventory_inputs.py
+            --self-test)
+    add_test(NAME libdxfrw_parity_source_routes
+        COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE}
+            ${CMAKE_CURRENT_SOURCE_DIR}/tools/extract_parity_source_routes.py
+            --self-test)
+
     add_executable(libdxfrw_wave1_tests tests/wave1_tests.cpp)
     target_compile_features(libdxfrw_wave1_tests PRIVATE cxx_std_17)
     target_include_directories(libdxfrw_wave1_tests PRIVATE

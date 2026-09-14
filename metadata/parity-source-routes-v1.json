@@ -1,0 +1,2032 @@
+{
+  "comparison": {
+    "dwgRW": {
+      "semanticMismatches": [
+        "dwgRW/legacy-dwgr-facade/dwgR",
+        "dwgRW/named-entity-class/ACAD_TABLE",
+        "dwgRW/named-entity-class/ARCALIGNEDTEXT",
+        "dwgRW/named-entity-class/ARC_ALIGNED_TEXT",
+        "dwgRW/named-entity-class/ARC_DIMENSION",
+        "dwgRW/named-entity-class/AcDbArcAlignedText",
+        "dwgRW/named-entity-class/AcDbArcDimension",
+        "dwgRW/named-entity-class/AcDbCamera",
+        "dwgRW/named-entity-class/AcDbDgnReference",
+        "dwgRW/named-entity-class/AcDbDwfReference",
+        "dwgRW/named-entity-class/AcDbGeoPositionMarker",
+        "dwgRW/named-entity-class/AcDbHelix",
+        "dwgRW/named-entity-class/AcDbLight",
+        "dwgRW/named-entity-class/AcDbMPolygon",
+        "dwgRW/named-entity-class/AcDbNavisworksModel",
+        "dwgRW/named-entity-class/AcDbPdfReference",
+        "dwgRW/named-entity-class/AcDbRText",
+        "dwgRW/named-entity-class/AcDbRadialDimensionLarge",
+        "dwgRW/named-entity-class/AcDbSection",
+        "dwgRW/named-entity-class/AcDbSubDMesh",
+        "dwgRW/named-entity-class/AcDbTable",
+        "dwgRW/named-entity-class/CAMERA",
+        "dwgRW/named-entity-class/DGNUNDERLAY",
+        "dwgRW/named-entity-class/DWFUNDERLAY",
+        "dwgRW/named-entity-class/EXTRUDEDSURFACE",
+        "dwgRW/named-entity-class/GEOPOSITIONMARKER",
+        "dwgRW/named-entity-class/HELIX",
+        "dwgRW/named-entity-class/LARGE_RADIAL_DIMENSION",
+        "dwgRW/named-entity-class/LIGHT",
+        "dwgRW/named-entity-class/LOFTEDSURFACE",
+        "dwgRW/named-entity-class/MESH",
+        "dwgRW/named-entity-class/MPOLYGON",
+        "dwgRW/named-entity-class/MULTILEADER",
+        "dwgRW/named-entity-class/NAVISWORKSMODEL",
+        "dwgRW/named-entity-class/NURBSURFACE",
+        "dwgRW/named-entity-class/PDFUNDERLAY",
+        "dwgRW/named-entity-class/PLANESURFACE",
+        "dwgRW/named-entity-class/POINTCLOUD",
+        "dwgRW/named-entity-class/POINTCLOUDEX",
+        "dwgRW/named-entity-class/POSITIONMARKER",
+        "dwgRW/named-entity-class/REVOLVEDSURFACE",
+        "dwgRW/named-entity-class/RTEXT",
+        "dwgRW/named-entity-class/RText",
+        "dwgRW/named-entity-class/SECTIONOBJECT",
+        "dwgRW/named-entity-class/SWEPTSURFACE",
+        "dwgRW/named-entity-class/WIPEOUT",
+        "dwgRW/named-object-class/ACAD_EVALUATION_GRAPH",
+        "dwgRW/named-object-class/ACDBCOLOR",
+        "dwgRW/named-object-class/ACDBCURVEPATH",
+        "dwgRW/named-object-class/ACDBDETAILVIEWSTYLE",
+        "dwgRW/named-object-class/ACDBDICTIONARYWDFLT",
+        "dwgRW/named-object-class/ACDBGEOMAPIMAGE",
+        "dwgRW/named-object-class/ACDBLIGHTLIST",
+        "dwgRW/named-object-class/ACDBMENTALRAYRENDERSETTINGS",
+        "dwgRW/named-object-class/ACDBMOTIONPATH",
+        "dwgRW/named-object-class/ACDBOBJECTPTR",
+        "dwgRW/named-object-class/ACDBPARTIALVIEWINGINDEX",
+        "dwgRW/named-object-class/ACDBPERSSUBENTMANAGER",
+        "dwgRW/named-object-class/ACDBPOINTPATH",
+        "dwgRW/named-object-class/ACDBRAPIDRTRENDERSETTINGS",
+        "dwgRW/named-object-class/ACDBRENDERSETTINGS",
+        "dwgRW/named-object-class/ACDBSECTIONVIEWSTYLE",
+        "dwgRW/named-object-class/ACDBSUNSTUDY",
+        "dwgRW/named-object-class/ACDB_VISUALSTYLE_CLASS",
+        "dwgRW/named-object-class/AcDbBreakData",
+        "dwgRW/named-object-class/AcDbBreakPointRef",
+        "dwgRW/named-object-class/AcDbCellStyleMap",
+        "dwgRW/named-object-class/AcDbColor",
+        "dwgRW/named-object-class/AcDbContextDataManager",
+        "dwgRW/named-object-class/AcDbCurvePath",
+        "dwgRW/named-object-class/AcDbDataLink",
+        "dwgRW/named-object-class/AcDbDataTable",
+        "dwgRW/named-object-class/AcDbDetailViewStyle",
+        "dwgRW/named-object-class/AcDbDgnDefinition",
+        "dwgRW/named-object-class/AcDbDictionaryVar",
+        "dwgRW/named-object-class/AcDbDictionaryWithDefault",
+        "dwgRW/named-object-class/AcDbDimAssoc",
+        "dwgRW/named-object-class/AcDbDwfDefinition",
+        "dwgRW/named-object-class/AcDbEvalGraph",
+        "dwgRW/named-object-class/AcDbField",
+        "dwgRW/named-object-class/AcDbFieldList",
+        "dwgRW/named-object-class/AcDbGeoData",
+        "dwgRW/named-object-class/AcDbGeomapImage",
+        "dwgRW/named-object-class/AcDbGradientBackground",
+        "dwgRW/named-object-class/AcDbGroundPlaneBackground",
+        "dwgRW/named-object-class/AcDbIBLBackground",
+        "dwgRW/named-object-class/AcDbIdBuffer",
+        "dwgRW/named-object-class/AcDbImageBackground",
+        "dwgRW/named-object-class/AcDbIndex",
+        "dwgRW/named-object-class/AcDbLayerFilter",
+        "dwgRW/named-object-class/AcDbLayerIndex",
+        "dwgRW/named-object-class/AcDbLightList",
+        "dwgRW/named-object-class/AcDbMaterial",
+        "dwgRW/named-object-class/AcDbMentalRayRenderSettings",
+        "dwgRW/named-object-class/AcDbMotionPath",
+        "dwgRW/named-object-class/AcDbNavisworksModelDef",
+        "dwgRW/named-object-class/AcDbObjectPtr",
+        "dwgRW/named-object-class/AcDbPartialViewingIndex",
+        "dwgRW/named-object-class/AcDbPdfDefinition",
+        "dwgRW/named-object-class/AcDbPlotSettings",
+        "dwgRW/named-object-class/AcDbPointCloudColorMap",
+        "dwgRW/named-object-class/AcDbPointCloudDef",
+        "dwgRW/named-object-class/AcDbPointCloudDefEx",
+        "dwgRW/named-object-class/AcDbPointCloudDefReactor",
+        "dwgRW/named-object-class/AcDbPointCloudDefReactorEx",
+        "dwgRW/named-object-class/AcDbPointPath",
+        "dwgRW/named-object-class/AcDbRapidRTRenderSettings",
+        "dwgRW/named-object-class/AcDbRasterImageDefReactor",
+        "dwgRW/named-object-class/AcDbRasterVariables",
+        "dwgRW/named-object-class/AcDbRenderEntry",
+        "dwgRW/named-object-class/AcDbRenderEnvironment",
+        "dwgRW/named-object-class/AcDbRenderGlobal",
+        "dwgRW/named-object-class/AcDbRenderSettings",
+        "dwgRW/named-object-class/AcDbScale",
+        "dwgRW/named-object-class/AcDbSectionManager",
+        "dwgRW/named-object-class/AcDbSectionSettings",
+        "dwgRW/named-object-class/AcDbSectionViewStyle",
+        "dwgRW/named-object-class/AcDbSkyBackground",
+        "dwgRW/named-object-class/AcDbSolidBackground",
+        "dwgRW/named-object-class/AcDbSortentsTable",
+        "dwgRW/named-object-class/AcDbSpatialFilter",
+        "dwgRW/named-object-class/AcDbSpatialIndex",
+        "dwgRW/named-object-class/AcDbSun",
+        "dwgRW/named-object-class/AcDbSunStudy",
+        "dwgRW/named-object-class/AcDbTableContent",
+        "dwgRW/named-object-class/AcDbTableGeometry",
+        "dwgRW/named-object-class/AcDbTableStyle",
+        "dwgRW/named-object-class/AcDbTvDeviceProperties",
+        "dwgRW/named-object-class/AcDbVisualStyle",
+        "dwgRW/named-object-class/AcDbVxControl",
+        "dwgRW/named-object-class/AcDbVxTableRecord",
+        "dwgRW/named-object-class/AcDbWipeoutVariables",
+        "dwgRW/named-object-class/AcDbXrecord",
+        "dwgRW/named-object-class/BREAKDATA",
+        "dwgRW/named-object-class/BREAKPOINTREF",
+        "dwgRW/named-object-class/CELLSTYLEMAP",
+        "dwgRW/named-object-class/CONTEXTDATAMANAGER",
+        "dwgRW/named-object-class/CSACDOCUMENTOPTIONS",
+        "dwgRW/named-object-class/CURVEPATH",
+        "dwgRW/named-object-class/DATALINK",
+        "dwgRW/named-object-class/DATATABLE",
+        "dwgRW/named-object-class/DBCOLOR",
+        "dwgRW/named-object-class/DETAILVIEWSTYLE",
+        "dwgRW/named-object-class/DGNDEFINITION",
+        "dwgRW/named-object-class/DICTIONARYVAR",
+        "dwgRW/named-object-class/DICTIONARYWDFLT",
+        "dwgRW/named-object-class/DIMASSOC",
+        "dwgRW/named-object-class/DWFDEFINITION",
+        "dwgRW/named-object-class/FIELD",
+        "dwgRW/named-object-class/FIELDLIST",
+        "dwgRW/named-object-class/GEODATA",
+        "dwgRW/named-object-class/GEOMAPIMAGE",
+        "dwgRW/named-object-class/GRADIENTBACKGROUND",
+        "dwgRW/named-object-class/GRADIENT_BACKGROUND",
+        "dwgRW/named-object-class/GROUNDPLANEBACKGROUND",
+        "dwgRW/named-object-class/GROUND_PLANE_BACKGROUND",
+        "dwgRW/named-object-class/IBLBACKGROUND",
+        "dwgRW/named-object-class/IBL_BACKGROUND",
+        "dwgRW/named-object-class/IDBUFFER",
+        "dwgRW/named-object-class/IMAGEBACKGROUND",
+        "dwgRW/named-object-class/IMAGEDEF_REACTOR",
+        "dwgRW/named-object-class/IMAGE_BACKGROUND",
+        "dwgRW/named-object-class/INDEX",
+        "dwgRW/named-object-class/LAYERFILTER",
+        "dwgRW/named-object-class/LAYER_INDEX",
+        "dwgRW/named-object-class/LIGHTLIST",
+        "dwgRW/named-object-class/MATERIAL",
+        "dwgRW/named-object-class/MENTALRAYRENDERSETTINGS",
+        "dwgRW/named-object-class/MLEADERSTYLE",
+        "dwgRW/named-object-class/MOTIONPATH",
+        "dwgRW/named-object-class/NAVISWORKSMODELDEF",
+        "dwgRW/named-object-class/OBJECTPTR",
+        "dwgRW/named-object-class/OBJECT_PTR",
+        "dwgRW/named-object-class/PARTIALVIEWINGINDEX",
+        "dwgRW/named-object-class/PARTIAL_VIEWING_INDEX",
+        "dwgRW/named-object-class/PDFDEFINITION",
+        "dwgRW/named-object-class/PLOTSETTINGS",
+        "dwgRW/named-object-class/POINTCLOUDCOLORMAP",
+        "dwgRW/named-object-class/POINTCLOUDDEFINITION",
+        "dwgRW/named-object-class/POINTCLOUDDEFINITIONEX",
+        "dwgRW/named-object-class/POINTCLOUDDEFREACTOR",
+        "dwgRW/named-object-class/POINTCLOUDDEFREACTOREX",
+        "dwgRW/named-object-class/POINTPATH",
+        "dwgRW/named-object-class/RAPIDRTRENDERENVIRONMENT",
+        "dwgRW/named-object-class/RAPIDRTRENDERSETTINGS",
+        "dwgRW/named-object-class/RASTERVARIABLES",
+        "dwgRW/named-object-class/RENDERENTRY",
+        "dwgRW/named-object-class/RENDERENVIRONMENT",
+        "dwgRW/named-object-class/RENDERGLOBAL",
+        "dwgRW/named-object-class/RENDERSETTINGS",
+        "dwgRW/named-object-class/SCALE",
+        "dwgRW/named-object-class/SECTIONMANAGER",
+        "dwgRW/named-object-class/SECTIONSETTINGS",
+        "dwgRW/named-object-class/SECTIONVIEWSTYLE",
+        "dwgRW/named-object-class/SECTION_MANAGER",
+        "dwgRW/named-object-class/SECTION_SETTINGS",
+        "dwgRW/named-object-class/SKYLIGHTBACKGROUND",
+        "dwgRW/named-object-class/SKYLIGHT_BACKGROUND",
+        "dwgRW/named-object-class/SOLIDBACKGROUND",
+        "dwgRW/named-object-class/SOLID_BACKGROUND",
+        "dwgRW/named-object-class/SORTENTSTABLE",
+        "dwgRW/named-object-class/SPATIAL_FILTER",
+        "dwgRW/named-object-class/SPATIAL_INDEX",
+        "dwgRW/named-object-class/SUN",
+        "dwgRW/named-object-class/SUNSTUDY",
+        "dwgRW/named-object-class/TABLECONTENT",
+        "dwgRW/named-object-class/TABLEGEOMETRY",
+        "dwgRW/named-object-class/TABLESTYLE",
+        "dwgRW/named-object-class/TVDEVICEPROPERTIES",
+        "dwgRW/named-object-class/VXCONTROL",
+        "dwgRW/named-object-class/VXTABLERECORD",
+        "dwgRW/named-object-class/VX_CONTROL",
+        "dwgRW/named-object-class/VX_TABLE_RECORD",
+        "dwgRW/named-object-class/WIPEOUTVARIABLES",
+        "dwgRW/named-object-class/XRECORD",
+        "dwgRW/parser-publication/dwgRW_fixed-entity_1-TEXT",
+        "dwgRW/parser-publication/dwgRW_fixed-entity_101-IMAGE",
+        "dwgRW/parser-publication/dwgRW_fixed-entity_1109-WIPEOUT",
+        "dwgRW/parser-publication/dwgRW_fixed-entity_1150-NAVISWORKSMODEL",
+        "dwgRW/parser-publication/dwgRW_fixed-entity_1162-THREEDLINE",
+        "dwgRW/parser-publication/dwgRW_fixed-entity_17-ARC",
+        "dwgRW/parser-publication/dwgRW_fixed-entity_18-CIRCLE",
+        "dwgRW/parser-publication/dwgRW_fixed-entity_19-LINE",
+        "dwgRW/parser-publication/dwgRW_fixed-entity_20-DIM_ORDINATE",
+        "dwgRW/parser-publication/dwgRW_fixed-entity_21-DIM_LINEAR",
+        "dwgRW/parser-publication/dwgRW_fixed-entity_22-DIM_ALIGNED",
+        "dwgRW/parser-publication/dwgRW_fixed-entity_23-DIM_ANGULAR3P",
+        "dwgRW/parser-publication/dwgRW_fixed-entity_24-DIM_ANGULAR",
+        "dwgRW/parser-publication/dwgRW_fixed-entity_25-DIM_RADIAL",
+        "dwgRW/parser-publication/dwgRW_fixed-entity_26-DIM_DIAMETRIC",
+        "dwgRW/parser-publication/dwgRW_fixed-entity_27-POINT",
+        "dwgRW/parser-publication/dwgRW_fixed-entity_28-FACE3D",
+        "dwgRW/parser-publication/dwgRW_fixed-entity_31-SOLID",
+        "dwgRW/parser-publication/dwgRW_fixed-entity_32-TRACE",
+        "dwgRW/parser-publication/dwgRW_fixed-entity_33-SHAPE",
+        "dwgRW/parser-publication/dwgRW_fixed-entity_34-VIEWPORT",
+        "dwgRW/parser-publication/dwgRW_fixed-entity_35-ELLIPSE",
+        "dwgRW/parser-publication/dwgRW_fixed-entity_36-SPLINE",
+        "dwgRW/parser-publication/dwgRW_fixed-entity_37-REGION",
+        "dwgRW/parser-publication/dwgRW_fixed-entity_38-SOLID3D",
+        "dwgRW/parser-publication/dwgRW_fixed-entity_39-BODY",
+        "dwgRW/parser-publication/dwgRW_fixed-entity_40-RAY",
+        "dwgRW/parser-publication/dwgRW_fixed-entity_41-XLINE",
+        "dwgRW/parser-publication/dwgRW_fixed-entity_43-OLEFRAME",
+        "dwgRW/parser-publication/dwgRW_fixed-entity_44-MTEXT",
+        "dwgRW/parser-publication/dwgRW_fixed-entity_45-LEADER",
+        "dwgRW/parser-publication/dwgRW_fixed-entity_46-TOLERANCE",
+        "dwgRW/parser-publication/dwgRW_fixed-entity_47-MLINE",
+        "dwgRW/parser-publication/dwgRW_fixed-entity_498-PROXY_ENTITY",
+        "dwgRW/parser-publication/dwgRW_fixed-entity_74-OLE2FRAME",
+        "dwgRW/parser-publication/dwgRW_fixed-entity_77-LWPOLYLINE",
+        "dwgRW/parser-publication/dwgRW_fixed-entity_78-HATCH",
+        "dwgRW/parser-publication/dwgRW_fixed-object_1004-DBCOLOR",
+        "dwgRW/parser-publication/dwgRW_fixed-object_102-IMAGEDEF",
+        "dwgRW/parser-publication/dwgRW_fixed-object_1120-BLOCKREPRESENTATION",
+        "dwgRW/parser-publication/dwgRW_fixed-object_42-DICTIONARY",
+        "dwgRW/parser-publication/dwgRW_fixed-object_499-PROXY_OBJECT",
+        "dwgRW/parser-publication/dwgRW_fixed-object_54-UNKNOWN_36",
+        "dwgRW/parser-publication/dwgRW_fixed-object_55-UNKNOWN_37",
+        "dwgRW/parser-publication/dwgRW_fixed-object_58-UNKNOWN_3A",
+        "dwgRW/parser-publication/dwgRW_fixed-object_59-UNKNOWN_3B",
+        "dwgRW/parser-publication/dwgRW_fixed-object_71-VPORT_ENTITY_HEADER",
+        "dwgRW/parser-publication/dwgRW_fixed-object_72-GROUP",
+        "dwgRW/parser-publication/dwgRW_fixed-object_73-MLINESTYLE",
+        "dwgRW/parser-publication/dwgRW_fixed-object_75-DUMMY",
+        "dwgRW/parser-publication/dwgRW_fixed-object_76-LONG_TRANSACTION",
+        "dwgRW/parser-publication/dwgRW_fixed-object_79-XRECORD",
+        "dwgRW/parser-publication/dwgRW_fixed-object_80-ACDBPLACEHOLDER",
+        "dwgRW/parser-publication/dwgRW_fixed-object_81-VBA_PROJECT",
+        "dwgRW/parser-publication/dwgRW_fixed-object_82-LAYOUT",
+        "dwgRW/parser-publication/dwgRW_fixed-object_9-UNKNOWN_9",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_ACAD_TABLE",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_ARCALIGNEDTEXT",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_ARC_ALIGNED_TEXT",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_ARC_DIMENSION",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_AcDbArcAlignedText",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_AcDbArcDimension",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_AcDbCamera",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_AcDbDgnReference",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_AcDbDwfReference",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_AcDbGeoPositionMarker",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_AcDbHelix",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_AcDbLight",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_AcDbMPolygon",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_AcDbNavisworksModel",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_AcDbPdfReference",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_AcDbRText",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_AcDbRadialDimensionLarge",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_AcDbSection",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_AcDbSubDMesh",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_AcDbTable",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_CAMERA",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_DGNUNDERLAY",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_DWFUNDERLAY",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_EXTRUDEDSURFACE",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_GEOPOSITIONMARKER",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_HELIX",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_LARGE_RADIAL_DIMENSION",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_LIGHT",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_LOFTEDSURFACE",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_MESH",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_MPOLYGON",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_MULTILEADER",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_NAVISWORKSMODEL",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_NURBSURFACE",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_PDFUNDERLAY",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_PLANESURFACE",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_POINTCLOUD",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_POINTCLOUDEX",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_POSITIONMARKER",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_REVOLVEDSURFACE",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_RTEXT",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_RText",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_SECTIONOBJECT",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_SWEPTSURFACE",
+        "dwgRW/parser-publication/dwgRW_named-entity-class_WIPEOUT",
+        "dwgRW/parser-publication/dwgRW_named-object-class_ACAD_EVALUATION_GRAPH",
+        "dwgRW/parser-publication/dwgRW_named-object-class_ACDBCOLOR",
+        "dwgRW/parser-publication/dwgRW_named-object-class_ACDBCURVEPATH",
+        "dwgRW/parser-publication/dwgRW_named-object-class_ACDBDETAILVIEWSTYLE",
+        "dwgRW/parser-publication/dwgRW_named-object-class_ACDBDICTIONARYWDFLT",
+        "dwgRW/parser-publication/dwgRW_named-object-class_ACDBGEOMAPIMAGE",
+        "dwgRW/parser-publication/dwgRW_named-object-class_ACDBLIGHTLIST",
+        "dwgRW/parser-publication/dwgRW_named-object-class_ACDBMENTALRAYRENDERSETTINGS",
+        "dwgRW/parser-publication/dwgRW_named-object-class_ACDBMOTIONPATH",
+        "dwgRW/parser-publication/dwgRW_named-object-class_ACDBOBJECTPTR",
+        "dwgRW/parser-publication/dwgRW_named-object-class_ACDBPARTIALVIEWINGINDEX",
+        "dwgRW/parser-publication/dwgRW_named-object-class_ACDBPERSSUBENTMANAGER",
+        "dwgRW/parser-publication/dwgRW_named-object-class_ACDBPOINTPATH",
+        "dwgRW/parser-publication/dwgRW_named-object-class_ACDBRAPIDRTRENDERSETTINGS",
+        "dwgRW/parser-publication/dwgRW_named-object-class_ACDBRENDERSETTINGS",
+        "dwgRW/parser-publication/dwgRW_named-object-class_ACDBSECTIONVIEWSTYLE",
+        "dwgRW/parser-publication/dwgRW_named-object-class_ACDBSUNSTUDY",
+        "dwgRW/parser-publication/dwgRW_named-object-class_ACDB_VISUALSTYLE_CLASS",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbBreakData",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbBreakPointRef",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbCellStyleMap",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbColor",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbContextDataManager",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbCurvePath",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbDataLink",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbDataTable",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbDetailViewStyle",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbDgnDefinition",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbDictionaryVar",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbDictionaryWithDefault",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbDimAssoc",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbDwfDefinition",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbEvalGraph",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbGeoData",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbGeomapImage",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbGradientBackground",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbGroundPlaneBackground",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbIBLBackground",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbIdBuffer",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbImageBackground",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbIndex",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbLayerFilter",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbLayerIndex",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbLightList",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbMaterial",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbMentalRayRenderSettings",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbMotionPath",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbNavisworksModelDef",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbObjectPtr",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbPartialViewingIndex",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbPdfDefinition",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbPlotSettings",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbPointCloudColorMap",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbPointCloudDef",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbPointCloudDefEx",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbPointCloudDefReactor",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbPointCloudDefReactorEx",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbPointPath",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbRapidRTRenderSettings",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbRasterImageDefReactor",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbRasterVariables",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbRenderEntry",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbRenderEnvironment",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbRenderGlobal",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbRenderSettings",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbScale",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbSectionManager",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbSectionSettings",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbSectionViewStyle",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbSkyBackground",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbSolidBackground",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbSortentsTable",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbSpatialFilter",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbSpatialIndex",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbSun",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbSunStudy",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbTableContent",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbTableGeometry",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbTableStyle",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbTvDeviceProperties",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbVisualStyle",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbVxControl",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbVxTableRecord",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbWipeoutVariables",
+        "dwgRW/parser-publication/dwgRW_named-object-class_AcDbXrecord",
+        "dwgRW/parser-publication/dwgRW_named-object-class_BREAKDATA",
+        "dwgRW/parser-publication/dwgRW_named-object-class_BREAKPOINTREF",
+        "dwgRW/parser-publication/dwgRW_named-object-class_CELLSTYLEMAP",
+        "dwgRW/parser-publication/dwgRW_named-object-class_CONTEXTDATAMANAGER",
+        "dwgRW/parser-publication/dwgRW_named-object-class_CSACDOCUMENTOPTIONS",
+        "dwgRW/parser-publication/dwgRW_named-object-class_CURVEPATH",
+        "dwgRW/parser-publication/dwgRW_named-object-class_DATALINK",
+        "dwgRW/parser-publication/dwgRW_named-object-class_DATATABLE",
+        "dwgRW/parser-publication/dwgRW_named-object-class_DBCOLOR",
+        "dwgRW/parser-publication/dwgRW_named-object-class_DETAILVIEWSTYLE",
+        "dwgRW/parser-publication/dwgRW_named-object-class_DGNDEFINITION",
+        "dwgRW/parser-publication/dwgRW_named-object-class_DICTIONARYVAR",
+        "dwgRW/parser-publication/dwgRW_named-object-class_DICTIONARYWDFLT",
+        "dwgRW/parser-publication/dwgRW_named-object-class_DIMASSOC",
+        "dwgRW/parser-publication/dwgRW_named-object-class_DWFDEFINITION",
+        "dwgRW/parser-publication/dwgRW_named-object-class_GEODATA",
+        "dwgRW/parser-publication/dwgRW_named-object-class_GEOMAPIMAGE",
+        "dwgRW/parser-publication/dwgRW_named-object-class_GRADIENTBACKGROUND",
+        "dwgRW/parser-publication/dwgRW_named-object-class_GRADIENT_BACKGROUND",
+        "dwgRW/parser-publication/dwgRW_named-object-class_GROUNDPLANEBACKGROUND",
+        "dwgRW/parser-publication/dwgRW_named-object-class_GROUND_PLANE_BACKGROUND",
+        "dwgRW/parser-publication/dwgRW_named-object-class_IBLBACKGROUND",
+        "dwgRW/parser-publication/dwgRW_named-object-class_IBL_BACKGROUND",
+        "dwgRW/parser-publication/dwgRW_named-object-class_IDBUFFER",
+        "dwgRW/parser-publication/dwgRW_named-object-class_IMAGEBACKGROUND",
+        "dwgRW/parser-publication/dwgRW_named-object-class_IMAGEDEF_REACTOR",
+        "dwgRW/parser-publication/dwgRW_named-object-class_IMAGE_BACKGROUND",
+        "dwgRW/parser-publication/dwgRW_named-object-class_INDEX",
+        "dwgRW/parser-publication/dwgRW_named-object-class_LAYERFILTER",
+        "dwgRW/parser-publication/dwgRW_named-object-class_LAYER_INDEX",
+        "dwgRW/parser-publication/dwgRW_named-object-class_LIGHTLIST",
+        "dwgRW/parser-publication/dwgRW_named-object-class_MATERIAL",
+        "dwgRW/parser-publication/dwgRW_named-object-class_MENTALRAYRENDERSETTINGS",
+        "dwgRW/parser-publication/dwgRW_named-object-class_MLEADERSTYLE",
+        "dwgRW/parser-publication/dwgRW_named-object-class_MOTIONPATH",
+        "dwgRW/parser-publication/dwgRW_named-object-class_NAVISWORKSMODELDEF",
+        "dwgRW/parser-publication/dwgRW_named-object-class_OBJECTPTR",
+        "dwgRW/parser-publication/dwgRW_named-object-class_OBJECT_PTR",
+        "dwgRW/parser-publication/dwgRW_named-object-class_PARTIALVIEWINGINDEX",
+        "dwgRW/parser-publication/dwgRW_named-object-class_PARTIAL_VIEWING_INDEX",
+        "dwgRW/parser-publication/dwgRW_named-object-class_PDFDEFINITION",
+        "dwgRW/parser-publication/dwgRW_named-object-class_PLOTSETTINGS",
+        "dwgRW/parser-publication/dwgRW_named-object-class_POINTCLOUDCOLORMAP",
+        "dwgRW/parser-publication/dwgRW_named-object-class_POINTCLOUDDEFINITION",
+        "dwgRW/parser-publication/dwgRW_named-object-class_POINTCLOUDDEFINITIONEX",
+        "dwgRW/parser-publication/dwgRW_named-object-class_POINTCLOUDDEFREACTOR",
+        "dwgRW/parser-publication/dwgRW_named-object-class_POINTCLOUDDEFREACTOREX",
+        "dwgRW/parser-publication/dwgRW_named-object-class_POINTPATH",
+        "dwgRW/parser-publication/dwgRW_named-object-class_RAPIDRTRENDERENVIRONMENT",
+        "dwgRW/parser-publication/dwgRW_named-object-class_RAPIDRTRENDERSETTINGS",
+        "dwgRW/parser-publication/dwgRW_named-object-class_RASTERVARIABLES",
+        "dwgRW/parser-publication/dwgRW_named-object-class_RENDERENTRY",
+        "dwgRW/parser-publication/dwgRW_named-object-class_RENDERENVIRONMENT",
+        "dwgRW/parser-publication/dwgRW_named-object-class_RENDERGLOBAL",
+        "dwgRW/parser-publication/dwgRW_named-object-class_RENDERSETTINGS",
+        "dwgRW/parser-publication/dwgRW_named-object-class_SCALE",
+        "dwgRW/parser-publication/dwgRW_named-object-class_SECTIONMANAGER",
+        "dwgRW/parser-publication/dwgRW_named-object-class_SECTIONSETTINGS",
+        "dwgRW/parser-publication/dwgRW_named-object-class_SECTIONVIEWSTYLE",
+        "dwgRW/parser-publication/dwgRW_named-object-class_SECTION_MANAGER",
+        "dwgRW/parser-publication/dwgRW_named-object-class_SECTION_SETTINGS",
+        "dwgRW/parser-publication/dwgRW_named-object-class_SKYLIGHTBACKGROUND",
+        "dwgRW/parser-publication/dwgRW_named-object-class_SKYLIGHT_BACKGROUND",
+        "dwgRW/parser-publication/dwgRW_named-object-class_SOLIDBACKGROUND",
+        "dwgRW/parser-publication/dwgRW_named-object-class_SOLID_BACKGROUND",
+        "dwgRW/parser-publication/dwgRW_named-object-class_SORTENTSTABLE",
+        "dwgRW/parser-publication/dwgRW_named-object-class_SPATIAL_FILTER",
+        "dwgRW/parser-publication/dwgRW_named-object-class_SPATIAL_INDEX",
+        "dwgRW/parser-publication/dwgRW_named-object-class_SUN",
+        "dwgRW/parser-publication/dwgRW_named-object-class_SUNSTUDY",
+        "dwgRW/parser-publication/dwgRW_named-object-class_TABLECONTENT",
+        "dwgRW/parser-publication/dwgRW_named-object-class_TABLEGEOMETRY",
+        "dwgRW/parser-publication/dwgRW_named-object-class_TABLESTYLE",
+        "dwgRW/parser-publication/dwgRW_named-object-class_TVDEVICEPROPERTIES",
+        "dwgRW/parser-publication/dwgRW_named-object-class_VXCONTROL",
+        "dwgRW/parser-publication/dwgRW_named-object-class_VXTABLERECORD",
+        "dwgRW/parser-publication/dwgRW_named-object-class_VX_CONTROL",
+        "dwgRW/parser-publication/dwgRW_named-object-class_VX_TABLE_RECORD",
+        "dwgRW/parser-publication/dwgRW_named-object-class_WIPEOUTVARIABLES",
+        "dwgRW/parser-publication/dwgRW_named-object-class_XRECORD"
+      ],
+      "standaloneOnly": [
+        "dwgRW/facade-method/beginOperationDiagnostic-001",
+        "dwgRW/facade-method/getLastDiagnostic-001",
+        "dwgRW/facade-method/recordOperationDiagnostic-001",
+        "dwgRW/facade-method/recordOperationDiagnosticForError-001",
+        "dwgRW/public-inline-method/src_libdwgr.h_dwgR_1d63d75bbe4cf516ae735bb0afe00a248d974310967ecd166eba0629ce755268",
+        "dwgRW/public-inline-method/src_libdwgr.h_dwgR_2ccf0b4c47c1b5a4c2b8dc013c3a621b11ddb5a46e4cf3e226f4bcf5cb8766c8",
+        "dwgRW/public-inline-method/src_libdwgr.h_dwgR_3b8cc629932234c4eaa6774660e79b801f34edd2b10e5dc0e36855868732c106",
+        "dwgRW/public-inline-method/src_libdwgr.h_dwgR_5f5b3a69c525d1a7409b92417792f8514ce669cca0a42dae7b494259fd56b8c8",
+        "dwgRW/public-inline-method/src_libdwgr.h_dwgR_6e6b3be46366cc9f979388cfccef7f14c31ab6d5bed3ec69c31e09abf2c756ac",
+        "dwgRW/public-inline-method/src_libdwgr.h_dwgR_6f220ce0c9633169803a883c295b0d2c02c51c4a65a5960ff9318195e8927363",
+        "dwgRW/public-inline-method/src_libdwgr.h_dwgR_c7308c7d4193f94385b50223460bcc430d7c0aa028df81eb47cada4aca7c515f",
+        "dwgRW/public-inline-method/src_libdwgr.h_dwgR_cf06df83c1b62f9793814264c2d5f524de013317013f9b0a6de31d2dfb151ce4",
+        "dwgRW/public-inline-method/src_libdwgr.h_dwgR_e5d170fca4c606e40323578e834a7688afe027d3a1ba1126d7e9c6cc0176a808",
+        "dwgRW/public-inline-method/src_libdwgr.h_dwgR_e5fb576b6f30e37b4dfa25cc35a70fbf6c672384ee33d337065311f44877d845",
+        "dwgRW/public-method/src_libdwgr.h_dwgRW_1d63d75bbe4cf516ae735bb0afe00a248d974310967ecd166eba0629ce755268",
+        "dwgRW/public-method/src_libdwgr.h_dwgR_1d63d75bbe4cf516ae735bb0afe00a248d974310967ecd166eba0629ce755268",
+        "dwgRW/public-method/src_libdwgr.h_dwgR_2ccf0b4c47c1b5a4c2b8dc013c3a621b11ddb5a46e4cf3e226f4bcf5cb8766c8",
+        "dwgRW/public-method/src_libdwgr.h_dwgR_3b8cc629932234c4eaa6774660e79b801f34edd2b10e5dc0e36855868732c106",
+        "dwgRW/public-method/src_libdwgr.h_dwgR_5f5b3a69c525d1a7409b92417792f8514ce669cca0a42dae7b494259fd56b8c8",
+        "dwgRW/public-method/src_libdwgr.h_dwgR_6e6b3be46366cc9f979388cfccef7f14c31ab6d5bed3ec69c31e09abf2c756ac",
+        "dwgRW/public-method/src_libdwgr.h_dwgR_6f220ce0c9633169803a883c295b0d2c02c51c4a65a5960ff9318195e8927363",
+        "dwgRW/public-method/src_libdwgr.h_dwgR_c7308c7d4193f94385b50223460bcc430d7c0aa028df81eb47cada4aca7c515f",
+        "dwgRW/public-method/src_libdwgr.h_dwgR_cf06df83c1b62f9793814264c2d5f524de013317013f9b0a6de31d2dfb151ce4",
+        "dwgRW/public-method/src_libdwgr.h_dwgR_e5d170fca4c606e40323578e834a7688afe027d3a1ba1126d7e9c6cc0176a808",
+        "dwgRW/public-method/src_libdwgr.h_dwgR_e5fb576b6f30e37b4dfa25cc35a70fbf6c672384ee33d337065311f44877d845",
+        "dwgRW/public-method/src_libdwgr.h_dwgR_f2badd9251cea8ef4839f1f45de61ff9daaf927b328106a533a511af6c5e5dec",
+        "dwgRW/public-type/src_libdwgr.h_definition_dwgR"
+      ],
+      "targetOnly": [
+        "dwgRW/public-alias/src_libdwgr.h_dwgR"
+      ]
+    },
+    "dxfRW": {
+      "semanticMismatches": [
+        "dxfRW/group-code-reader-range/260-269",
+        "dxfRW/group-code-reader-range/482-998",
+        "dxfRW/parser-publication/dxfRW_dxf-block_BLOCK",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_3DFACE",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_3DLINE",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_3DSOLID",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_ACAD_PROXY_ENTITY",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_ACAD_TABLE",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_ARC",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_ARCALIGNEDTEXT",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_ARC_ALIGNED_TEXT",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_ARC_DIMENSION",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_ATTDEF",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_BODY",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_CAMERA",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_CIRCLE",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_DGNUNDERLAY",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_DIMENSION",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_DWFUNDERLAY",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_ELLIPSE",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_EXTRUDEDSURFACE",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_GEOPOSITIONMARKER",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_HATCH",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_HELIX",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_IMAGE",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_INSERT",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_LARGE_RADIAL_DIMENSION",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_LEADER",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_LINE",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_LOFTEDSURFACE",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_LWPOLYLINE",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_MESH",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_MINSERT",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_MLINE",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_MPOLYGON",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_MTEXT",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_MULTILEADER",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_NAVISWORKSMODEL",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_NURBSSURFACE",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_OLE2FRAME",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_OLEFRAME",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_PDFREFERENCE",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_PDFUNDERLAY",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_PLANESURFACE",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_POINT",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_POINTCLOUD",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_POINTCLOUDEX",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_POLYLINE",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_POSITIONMARKER",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_RAY",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_REGION",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_REVOLVEDSURFACE",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_RTEXT",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_SECTIONOBJECT",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_SECTION_OBJECT",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_SHAPE",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_SOLID",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_SPLINE",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_SWEPTSURFACE",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_TEXT",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_TOLERANCE",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_TRACE",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_VIEWPORT",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_WIPEOUT",
+        "dxfRW/parser-publication/dxfRW_dxf-entity_XLINE",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACAD_EVALUATION_GRAPH",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACAD_PROXY_OBJECT",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBCOLOR",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBCURVEPATH",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBDETAILVIEWSTYLE",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBDGNDEFINITION",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBDICTIONARYWDFLT",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBDWFDEFINITION",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBEVALGRAPH",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBFIELD",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBFIELDLIST",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBGEODATA",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBGEOMAPIMAGE",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBHISTORYITEM",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBIDBUFFER",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBINDEX",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBLAYERINDEX",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBLIGHTLIST",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBMENTALRAYRENDERSETTINGS",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBMOTIONPATH",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBOBJECTPTR",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBPARTIALVIEWINGINDEX",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBPDFDEFINITION",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBPERSSUBENTMANAGER",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBPOINTCLOUDCOLORMAP",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBPOINTCLOUDDEF",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBPOINTCLOUDDEFEX",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBPOINTCLOUDDEFREACTOR",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBPOINTCLOUDDEFREACTOREX",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBPOINTPATH",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBRAPIDRTRENDERSETTINGS",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBRASTERVARIABLES",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBRENDERENTRY",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBRENDERENVIRONMENT",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBRENDERGLOBAL",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBRENDERSETTINGS",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBSECTIONMANAGER",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBSECTIONSETTINGS",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBSECTIONVIEWSTYLE",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBSPATIALINDEX",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBSUN",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBSUNSTUDY",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBTVDEVICEPROPERTIES",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBVISUALSTYLE",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDBWIPEOUTVARIABLES",
+        "dxfRW/parser-publication/dxfRW_dxf-object_ACDB_VISUALSTYLE_CLASS",
+        "dxfRW/parser-publication/dxfRW_dxf-object_BREAKDATA",
+        "dxfRW/parser-publication/dxfRW_dxf-object_BREAKPOINTREF",
+        "dxfRW/parser-publication/dxfRW_dxf-object_CSACDOCUMENTOPTIONS",
+        "dxfRW/parser-publication/dxfRW_dxf-object_CURVEPATH",
+        "dxfRW/parser-publication/dxfRW_dxf-object_DATALINK",
+        "dxfRW/parser-publication/dxfRW_dxf-object_DBCOLOR",
+        "dxfRW/parser-publication/dxfRW_dxf-object_DETAILVIEWSTYLE",
+        "dxfRW/parser-publication/dxfRW_dxf-object_DGNDEFINITION",
+        "dxfRW/parser-publication/dxfRW_dxf-object_DICTIONARY",
+        "dxfRW/parser-publication/dxfRW_dxf-object_DICTIONARYVAR",
+        "dxfRW/parser-publication/dxfRW_dxf-object_DICTIONARYWDFLT",
+        "dxfRW/parser-publication/dxfRW_dxf-object_DIMASSOC",
+        "dxfRW/parser-publication/dxfRW_dxf-object_DWFDEFINITION",
+        "dxfRW/parser-publication/dxfRW_dxf-object_EVALUATIONGRAPH",
+        "dxfRW/parser-publication/dxfRW_dxf-object_EVALUATION_GRAPH",
+        "dxfRW/parser-publication/dxfRW_dxf-object_FIELD",
+        "dxfRW/parser-publication/dxfRW_dxf-object_FIELDLIST",
+        "dxfRW/parser-publication/dxfRW_dxf-object_GEODATA",
+        "dxfRW/parser-publication/dxfRW_dxf-object_GEOMAPIMAGE",
+        "dxfRW/parser-publication/dxfRW_dxf-object_GRADIENTBACKGROUND",
+        "dxfRW/parser-publication/dxfRW_dxf-object_GRADIENT_BACKGROUND",
+        "dxfRW/parser-publication/dxfRW_dxf-object_GROUNDPLANEBACKGROUND",
+        "dxfRW/parser-publication/dxfRW_dxf-object_GROUND_PLANE_BACKGROUND",
+        "dxfRW/parser-publication/dxfRW_dxf-object_GROUP",
+        "dxfRW/parser-publication/dxfRW_dxf-object_HISTORYNODE",
+        "dxfRW/parser-publication/dxfRW_dxf-object_IBLBACKGROUND",
+        "dxfRW/parser-publication/dxfRW_dxf-object_IBL_BACKGROUND",
+        "dxfRW/parser-publication/dxfRW_dxf-object_IDBUFFER",
+        "dxfRW/parser-publication/dxfRW_dxf-object_IMAGEBACKGROUND",
+        "dxfRW/parser-publication/dxfRW_dxf-object_IMAGEDEF",
+        "dxfRW/parser-publication/dxfRW_dxf-object_IMAGEDEF_REACTOR",
+        "dxfRW/parser-publication/dxfRW_dxf-object_IMAGE_BACKGROUND",
+        "dxfRW/parser-publication/dxfRW_dxf-object_INDEX",
+        "dxfRW/parser-publication/dxfRW_dxf-object_LAYERFILTER",
+        "dxfRW/parser-publication/dxfRW_dxf-object_LAYERINDEX",
+        "dxfRW/parser-publication/dxfRW_dxf-object_LAYER_FILTER",
+        "dxfRW/parser-publication/dxfRW_dxf-object_LAYER_INDEX",
+        "dxfRW/parser-publication/dxfRW_dxf-object_LAYOUT",
+        "dxfRW/parser-publication/dxfRW_dxf-object_LIGHTLIST",
+        "dxfRW/parser-publication/dxfRW_dxf-object_MATERIAL",
+        "dxfRW/parser-publication/dxfRW_dxf-object_MENTALRAYRENDERSETTINGS",
+        "dxfRW/parser-publication/dxfRW_dxf-object_MLEADERSTYLE",
+        "dxfRW/parser-publication/dxfRW_dxf-object_MLINESTYLE",
+        "dxfRW/parser-publication/dxfRW_dxf-object_MOTIONPATH",
+        "dxfRW/parser-publication/dxfRW_dxf-object_NAVISWORKSMODELDEF",
+        "dxfRW/parser-publication/dxfRW_dxf-object_OBJECTPTR",
+        "dxfRW/parser-publication/dxfRW_dxf-object_OBJECT_PTR",
+        "dxfRW/parser-publication/dxfRW_dxf-object_PARTIALVIEWINGINDEX",
+        "dxfRW/parser-publication/dxfRW_dxf-object_PARTIAL_VIEWING_INDEX",
+        "dxfRW/parser-publication/dxfRW_dxf-object_PDFDEFINITION",
+        "dxfRW/parser-publication/dxfRW_dxf-object_PERSISTENTSUBENTITYMANAGER",
+        "dxfRW/parser-publication/dxfRW_dxf-object_PERSUBENTMGR",
+        "dxfRW/parser-publication/dxfRW_dxf-object_PLOTSETTINGS",
+        "dxfRW/parser-publication/dxfRW_dxf-object_POINTCLOUDCOLORMAP",
+        "dxfRW/parser-publication/dxfRW_dxf-object_POINTCLOUDDEFINITION",
+        "dxfRW/parser-publication/dxfRW_dxf-object_POINTCLOUDDEFINITIONEX",
+        "dxfRW/parser-publication/dxfRW_dxf-object_POINTCLOUDDEFREACTOR",
+        "dxfRW/parser-publication/dxfRW_dxf-object_POINTCLOUDDEFREACTOREX",
+        "dxfRW/parser-publication/dxfRW_dxf-object_POINTPATH",
+        "dxfRW/parser-publication/dxfRW_dxf-object_RAPIDRTRENDERSETTINGS",
+        "dxfRW/parser-publication/dxfRW_dxf-object_RASTERVARIABLES",
+        "dxfRW/parser-publication/dxfRW_dxf-object_RENDERENTRY",
+        "dxfRW/parser-publication/dxfRW_dxf-object_RENDERENVIRONMENT",
+        "dxfRW/parser-publication/dxfRW_dxf-object_RENDERGLOBAL",
+        "dxfRW/parser-publication/dxfRW_dxf-object_RENDERSETTINGS",
+        "dxfRW/parser-publication/dxfRW_dxf-object_SCALE",
+        "dxfRW/parser-publication/dxfRW_dxf-object_SECTIONMANAGER",
+        "dxfRW/parser-publication/dxfRW_dxf-object_SECTIONSETTINGS",
+        "dxfRW/parser-publication/dxfRW_dxf-object_SECTIONVIEWSTYLE",
+        "dxfRW/parser-publication/dxfRW_dxf-object_SECTION_MANAGER",
+        "dxfRW/parser-publication/dxfRW_dxf-object_SECTION_SETTINGS",
+        "dxfRW/parser-publication/dxfRW_dxf-object_SKYLIGHTBACKGROUND",
+        "dxfRW/parser-publication/dxfRW_dxf-object_SKYLIGHT_BACKGROUND",
+        "dxfRW/parser-publication/dxfRW_dxf-object_SOLIDBACKGROUND",
+        "dxfRW/parser-publication/dxfRW_dxf-object_SOLID_BACKGROUND",
+        "dxfRW/parser-publication/dxfRW_dxf-object_SORTENTSTABLE",
+        "dxfRW/parser-publication/dxfRW_dxf-object_SPATIALFILTER",
+        "dxfRW/parser-publication/dxfRW_dxf-object_SPATIALINDEX",
+        "dxfRW/parser-publication/dxfRW_dxf-object_SPATIAL_FILTER",
+        "dxfRW/parser-publication/dxfRW_dxf-object_SPATIAL_INDEX",
+        "dxfRW/parser-publication/dxfRW_dxf-object_SUN",
+        "dxfRW/parser-publication/dxfRW_dxf-object_SUNSTUDY",
+        "dxfRW/parser-publication/dxfRW_dxf-object_TABLESTYLE",
+        "dxfRW/parser-publication/dxfRW_dxf-object_TVDEVICEPROPERTIES",
+        "dxfRW/parser-publication/dxfRW_dxf-object_VISUALSTYLE",
+        "dxfRW/parser-publication/dxfRW_dxf-object_WIPEOUTVARIABLES",
+        "dxfRW/parser-publication/dxfRW_dxf-object_XRECORD",
+        "dxfRW/parser-publication/dxfRW_dxf-section_CLASSES",
+        "dxfRW/parser-publication/dxfRW_dxf-section_HEADER",
+        "dxfRW/parser-publication/dxfRW_dxf-table_APPID",
+        "dxfRW/parser-publication/dxfRW_dxf-table_DIMSTYLE",
+        "dxfRW/parser-publication/dxfRW_dxf-table_LAYER",
+        "dxfRW/parser-publication/dxfRW_dxf-table_LTYPE",
+        "dxfRW/parser-publication/dxfRW_dxf-table_STYLE",
+        "dxfRW/parser-publication/dxfRW_dxf-table_UCS",
+        "dxfRW/parser-publication/dxfRW_dxf-table_VIEW",
+        "dxfRW/parser-publication/dxfRW_dxf-table_VPORT"
+      ],
+      "standaloneOnly": [
+        "dxfRW/dxf-transport-node/group-code-range-source",
+        "dxfRW/facade-method/beginOperationDiagnostic-001",
+        "dxfRW/facade-method/getLastDiagnostic-001",
+        "dxfRW/facade-method/recordOperationDiagnostic-001",
+        "dxfRW/facade-method/recordOperationDiagnosticForError-001",
+        "dxfRW/group-code-raw-rule/DxfValueKind_Bin",
+        "dxfRW/group-code-raw-rule/DxfValueKind_Bln",
+        "dxfRW/group-code-raw-rule/DxfValueKind_Dbl",
+        "dxfRW/group-code-raw-rule/DxfValueKind_I16",
+        "dxfRW/group-code-raw-rule/DxfValueKind_I32",
+        "dxfRW/group-code-raw-rule/DxfValueKind_I64",
+        "dxfRW/group-code-raw-rule/DxfValueKind_Str",
+        "dxfRW/group-code-raw-rule/DxfValueKind_Unknown",
+        "dxfRW/group-code-raw-rule/default",
+        "dxfRW/group-code-reader-range/1005-1008",
+        "dxfRW/group-code-reader-range/440-459",
+        "dxfRW/group-code-reader-range/999-1003",
+        "dxfRW/public-method/src_libdxfrw.h_dxfRW_1d63d75bbe4cf516ae735bb0afe00a248d974310967ecd166eba0629ce755268"
+      ],
+      "targetOnly": [
+        "dxfRW/group-code-raw-rule/condition-001",
+        "dxfRW/group-code-raw-rule/condition-002",
+        "dxfRW/group-code-raw-rule/condition-003",
+        "dxfRW/group-code-raw-rule/condition-004",
+        "dxfRW/group-code-raw-rule/condition-005",
+        "dxfRW/group-code-raw-rule/condition-006",
+        "dxfRW/group-code-raw-rule/condition-007",
+        "dxfRW/group-code-raw-rule/condition-008",
+        "dxfRW/group-code-raw-rule/condition-009",
+        "dxfRW/group-code-raw-rule/condition-010",
+        "dxfRW/group-code-raw-rule/condition-011",
+        "dxfRW/group-code-raw-rule/condition-012",
+        "dxfRW/group-code-raw-rule/condition-013",
+        "dxfRW/group-code-raw-rule/condition-014",
+        "dxfRW/group-code-raw-rule/condition-015",
+        "dxfRW/group-code-raw-rule/condition-016",
+        "dxfRW/group-code-raw-rule/condition-017",
+        "dxfRW/group-code-raw-rule/condition-018",
+        "dxfRW/group-code-raw-rule/condition-019",
+        "dxfRW/group-code-raw-rule/condition-020",
+        "dxfRW/group-code-raw-rule/condition-021",
+        "dxfRW/group-code-raw-rule/condition-022",
+        "dxfRW/group-code-raw-rule/condition-023",
+        "dxfRW/group-code-raw-rule/condition-024",
+        "dxfRW/group-code-raw-rule/condition-025",
+        "dxfRW/group-code-raw-rule/condition-026",
+        "dxfRW/group-code-raw-rule/condition-027",
+        "dxfRW/group-code-raw-rule/condition-028",
+        "dxfRW/group-code-raw-rule/condition-029",
+        "dxfRW/group-code-raw-rule/condition-030",
+        "dxfRW/group-code-raw-rule/condition-031",
+        "dxfRW/group-code-raw-rule/condition-032",
+        "dxfRW/group-code-raw-rule/fallback",
+        "dxfRW/group-code-reader-range/440-449",
+        "dxfRW/group-code-reader-range/450-459",
+        "dxfRW/group-code-reader-range/999-1008"
+      ]
+    },
+    "shared": {
+      "semanticMismatches": [
+        "shared/callback/addDimArc-001",
+        "shared/interface-method/addDimArc-001"
+      ],
+      "standaloneOnly": [
+        "shared/pipeline-unit/src_intern_dxfcode.h",
+        "shared/public-alias/src_drw_base.h_DRW_OperationCause",
+        "shared/public-alias/src_drw_base.h_DRW_OperationDiagnostic",
+        "shared/public-alias/src_drw_base.h_DRW_OperationDiagnosticEntry",
+        "shared/public-alias/src_drw_base.h_DRW_OperationKind",
+        "shared/public-alias/src_drw_base.h_DRW_OperationPhase",
+        "shared/public-alias/src_drw_base.h_ddouble64",
+        "shared/public-alias/src_drw_base.h_ddouble80",
+        "shared/public-alias/src_drw_base.h_dfloat32",
+        "shared/public-alias/src_drw_base.h_dint16",
+        "shared/public-alias/src_drw_base.h_dint32",
+        "shared/public-alias/src_drw_base.h_dint64",
+        "shared/public-alias/src_drw_base.h_dint8",
+        "shared/public-alias/src_drw_base.h_duint16",
+        "shared/public-alias/src_drw_base.h_duint32",
+        "shared/public-alias/src_drw_base.h_duint64",
+        "shared/public-alias/src_drw_base.h_duint8",
+        "shared/public-enum/src_drw_base.h_DRW_OperationCause",
+        "shared/public-enum/src_drw_base.h_DRW_OperationKind",
+        "shared/public-enum/src_drw_base.h_DRW_OperationPhase",
+        "shared/public-inline-method/src_drw_base.h_DRW_Coord_5b1483a1b8e1638061c73b3dcc29b9513d452dd283ea2895dfbd3b6257dc0002",
+        "shared/public-inline-method/src_drw_base.h_DRW_DebugPrinter_04409dbb316a3bf23c37b98647e0eaddf984822a001178c7b8547a093870adbf",
+        "shared/public-inline-method/src_drw_base.h_DRW_OperationDiagnostic_dec0631ead756075020c274434191cb34a8d6d7ad212c42058489b77cb2cb459",
+        "shared/public-inline-method/src_drw_base.h_DRW_ParseableEntity_455c9f6161f1cf3aa729aade029a2e218c28667bd34fd9c136dac22421ae5ca0",
+        "shared/public-inline-method/src_drw_base.h_DRW_Vertex2D_a5aab284a27812b372c66207a2c038293f9167b471cbddbbd248c32719f4c274",
+        "shared/public-inline-method/src_drw_base.h_dwgHandle_59b11841dbe1ef350cdd77e879e3cd650049b6b265c60ed97ff7b5ce92e6604f",
+        "shared/public-inline-method/src_drw_interface.h_DRW_Interface_6190e2e1ac4584b071d2809572602df0a20c74f7111d9b63326fbba607e14bb1",
+        "shared/public-method/src_drw_base.h_DRW_Coord_5b1483a1b8e1638061c73b3dcc29b9513d452dd283ea2895dfbd3b6257dc0002",
+        "shared/public-method/src_drw_base.h_DRW_DebugPrinter_04409dbb316a3bf23c37b98647e0eaddf984822a001178c7b8547a093870adbf",
+        "shared/public-method/src_drw_base.h_DRW_OperationDiagnostic_dec0631ead756075020c274434191cb34a8d6d7ad212c42058489b77cb2cb459",
+        "shared/public-method/src_drw_base.h_DRW_ParseableEntity_455c9f6161f1cf3aa729aade029a2e218c28667bd34fd9c136dac22421ae5ca0",
+        "shared/public-method/src_drw_base.h_DRW_Vertex2D_a5aab284a27812b372c66207a2c038293f9167b471cbddbbd248c32719f4c274",
+        "shared/public-method/src_drw_base.h_dwgHandle_59b11841dbe1ef350cdd77e879e3cd650049b6b265c60ed97ff7b5ce92e6604f",
+        "shared/public-method/src_drw_interface.h_DRW_Interface_6190e2e1ac4584b071d2809572602df0a20c74f7111d9b63326fbba607e14bb1",
+        "shared/public-type/src_drw_base.h_definition_DRW_OperationDiagnostic",
+        "shared/public-type/src_drw_base.h_definition_DRW_OperationDiagnosticEntry",
+        "shared/source-unit/src_intern_dxfcode.h"
+      ],
+      "targetOnly": [
+        "shared/public-inline-method/src_drw_base.h_DRW_Coord_134b397610b3bb4c923582bb28129bb39f2ed0425ba5bf2357ff84fe46ff36e6",
+        "shared/public-inline-method/src_drw_base.h_DRW_DebugPrinter_c674ff5f088150cc1c049e1040d5e11ac2f029e7f908b5f06b37d6f5bb64d436",
+        "shared/public-inline-method/src_drw_base.h_DRW_ParseableEntity_725ece067472b142d09ac97d696de7d79a2228439231d34a59e3cc5187f4efed",
+        "shared/public-inline-method/src_drw_base.h_DRW_Vertex2D_2a22b8a5dcaa8e5331c978d4a9da6971217e108ad75dba9038e650bd177b1896",
+        "shared/public-inline-method/src_drw_base.h_dwgHandle_e0b56f2f9f7c09fb584f9aae182c3bcb88c1159ca94b4f46260016c3bbe8e1e5",
+        "shared/public-method/src_drw_base.h_DRW_Coord_134b397610b3bb4c923582bb28129bb39f2ed0425ba5bf2357ff84fe46ff36e6",
+        "shared/public-method/src_drw_base.h_DRW_DebugPrinter_c674ff5f088150cc1c049e1040d5e11ac2f029e7f908b5f06b37d6f5bb64d436",
+        "shared/public-method/src_drw_base.h_DRW_ParseableEntity_725ece067472b142d09ac97d696de7d79a2228439231d34a59e3cc5187f4efed",
+        "shared/public-method/src_drw_base.h_DRW_Vertex2D_2a22b8a5dcaa8e5331c978d4a9da6971217e108ad75dba9038e650bd177b1896",
+        "shared/public-method/src_drw_base.h_dwgHandle_e0b56f2f9f7c09fb584f9aae182c3bcb88c1159ca94b4f46260016c3bbe8e1e5"
+      ]
+    }
+  },
+  "fixturePolicy": "no-drawing-payloads; source-and-metadata-only",
+  "generator": {
+    "parserSchema": 7,
+    "path": "tools/extract_parity_source_routes.py"
+  },
+  "inputs": {
+    "standalone": {
+      "contentTreeSha256": "421862b31345c6a65de0e7339727f9910c946341a74282755a5f6ca424ab8f27",
+      "files": [
+        {
+          "mode": "100644",
+          "path": "src/drw_acis.cpp",
+          "sha256": "8138ab332d82bb785b2c78986c4faa69a91cbd338538533af5e3acd0ecd1b919"
+        },
+        {
+          "mode": "100644",
+          "path": "src/drw_acis.h",
+          "sha256": "93947c33950c7242b308cda62f2fa46748d31d57fcb04562ed387fdcd7df6dcb"
+        },
+        {
+          "mode": "100644",
+          "path": "src/drw_base.cpp",
+          "sha256": "c97b1b3d3c6c4fc7b7b8b85b34b92bd780baec53c3e6e7cecd996ac25d777cb1"
+        },
+        {
+          "mode": "100644",
+          "path": "src/drw_base.h",
+          "sha256": "78c2d09aafea36f7f66b80de3cd375dbf490b643e4f70662f01cbb5006fb394a"
+        },
+        {
+          "mode": "100644",
+          "path": "src/drw_classes.cpp",
+          "sha256": "f240440405bdd6ec6ff2469108886849deb879551cb321fb31e719042e57b709"
+        },
+        {
+          "mode": "100644",
+          "path": "src/drw_classes.h",
+          "sha256": "a49a41256c70fbbbafcc553ffe7f7abb9d98cf5da6f329b58fac873c79eba932"
+        },
+        {
+          "mode": "100644",
+          "path": "src/drw_datastorage.cpp",
+          "sha256": "0c4d4705cc76dae4420e751dd38fc3f83b4704cfa3f0626c9f3dc21cce7b9175"
+        },
+        {
+          "mode": "100644",
+          "path": "src/drw_datastorage.h",
+          "sha256": "7a49427a9b6ace22299dec7b098e0be2a9f9a5ff46ccc7a3ed9e646216bf4a47"
+        },
+        {
+          "mode": "100644",
+          "path": "src/drw_entities.cpp",
+          "sha256": "574cbae469896786e72921acb3218166a0f8f64e6264a14cc478dfa519ad8923"
+        },
+        {
+          "mode": "100644",
+          "path": "src/drw_entities.h",
+          "sha256": "801021d8b391af217c307001febbb481c4bf96ab9dd46412d7689e5e5189db4d"
+        },
+        {
+          "mode": "100644",
+          "path": "src/drw_header.cpp",
+          "sha256": "f6650d8b216d545555e96e5907eea6aa25021ac5998cbd88ea9d3245f20e1644"
+        },
+        {
+          "mode": "100644",
+          "path": "src/drw_header.h",
+          "sha256": "35c264eeecddab8e3596f3f81fc2d2258e86911be5990c5d754349cfe2ad1ca1"
+        },
+        {
+          "mode": "100644",
+          "path": "src/drw_interface.h",
+          "sha256": "92ad0f44ec4b42e8b47e6197ea8a935325cb7c8df78c3a7e933e0d58493a37ac"
+        },
+        {
+          "mode": "100644",
+          "path": "src/drw_objects.cpp",
+          "sha256": "3f5711337759aa21502173d89c41c740cb68eab6f3cb5720c0a34057d2a78ed3"
+        },
+        {
+          "mode": "100644",
+          "path": "src/drw_objects.h",
+          "sha256": "3fe18a3496311bc76ddc096a0b79ec83f351e82d168fcf4e64b68956dd8a3d32"
+        },
+        {
+          "mode": "100644",
+          "path": "src/handle_allocator.h",
+          "sha256": "2b2de1b2c918793362284a243ef32dfc6e23c3377679489a069c8008bbe64b57"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/drw_cptable932.h",
+          "sha256": "3e51e2fc41a81cbdeebae79336d3a09fbcbc1e8db00406942f3f48921b268118"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/drw_cptable936.h",
+          "sha256": "01049223b0a592a420990c112991249573c44732684130ac81f6732b7fa8cb30"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/drw_cptable949.h",
+          "sha256": "422e5f2665cd60c90e111b436dbec4e96c423081016aab618eef5920601fabe5"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/drw_cptable950.h",
+          "sha256": "92a64407ebaf7f0ed9d18c420ccab1ab32608ffd057499a35e8884a6938eb470"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/drw_cptables.h",
+          "sha256": "76cbf82944d5a33a5e770dc8f469a1a2e360348f80c8fa5732ef66fb1a5c10a0"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/drw_dbg.cpp",
+          "sha256": "aa4f9d0e4e2395364e207410d58505b92e52d8d93562f800ee29f63b7cb6b240"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/drw_dbg.h",
+          "sha256": "e2d221e52a1a00179011f27a41c3a1a6a1721a77459739be4d8c97b5008466f8"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/drw_reserve.h",
+          "sha256": "706da2d482c744348bb343c27d7363da7a431d07c802bef7359da61cdd8b7815"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/drw_textcodec.cpp",
+          "sha256": "8533fd10827fe95258193297143b20697b9c1be1079311ff0b17d91bcee60b89"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/drw_textcodec.h",
+          "sha256": "19a5cdedded2c9bbcd6773fec4fa97ddb38c96c81fc729b1571c84230dde348e"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwg_dxf_output_transaction.cpp",
+          "sha256": "d526b2f6d707d9a88dc5ddbeb1abf85cab5efed28cfe931fa0728c8adba05964"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwg_dxf_output_transaction.h",
+          "sha256": "1c7e352395b637215de351676ae053e46cd2d6c0f380a6322932fe021a8c7aa0"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwg_fixed_handles.h",
+          "sha256": "40fc75b207b13af26324dd174bf607b63d12601880c828025de86525eb8859fb"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgbuffer.cpp",
+          "sha256": "950ebb88201faf1826952f7c8a7499c521ec4004f4edf0e03b36ed5799329f3d"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgbuffer.h",
+          "sha256": "cf8cb4820a22b3d34090e0ee6a0e1d149f2f9f802f4838e0d47eb0e97338327d"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgbufferw.cpp",
+          "sha256": "2f755b542884eb735406b149cb89d818c79c195b4a66445eaa9690c123947e0c"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgbufferw.h",
+          "sha256": "3e7995b8cc84c4ab8dd8e9c6f09b6ec7185b6c6b52ed270cadebe39358262441"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgobjectframe.cpp",
+          "sha256": "559baa3976fb01ada91208d193c817ab50899117951309d0e1b2fa76beb2aba6"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgobjectframe.h",
+          "sha256": "b1bb3fd02e32757b05252a38e69b31c7890ce135ec874f49e669cc88a18d89af"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgreader.cpp",
+          "sha256": "e7e766d2aa3a490cf242f9fdb8ce0ea1f0adacd288640b3184924cee6996feef"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgreader.h",
+          "sha256": "20244687203522df12e1791971f4cfd7ae9da60f0a3bb82e33dc1ac0fb303cb8"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgreader15.cpp",
+          "sha256": "53b83832bce18ae95a909333a5e12793fb7485744e3c2ecb0d2e4f64dad3534c"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgreader15.h",
+          "sha256": "3861862f10e587f885ac71a4031c7ca6b924cffd2d18fe768c9ded712c86c692"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgreader18.cpp",
+          "sha256": "0a5105ea43fb169836ba638e9d49d394860ad7c306f534f7a2e9cb47997b1831"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgreader18.h",
+          "sha256": "08a2bf08d237bbaecdce83a59f3c2948669222bf4dd133461a84ebd3f2603855"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgreader21.cpp",
+          "sha256": "02caf3da295c2057ebf7f98067b87a1745fe5be8b7d1170bb2c052d7b684c8f5"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgreader21.h",
+          "sha256": "a67df90fe6d517e305f397a36b6aa3a0f05d2604637e70088aa6b966988bc580"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgreader24.cpp",
+          "sha256": "7a2e01a1737ae0bba7da7fdd326a27783cd48bd83ebba1f39500be3fa446025f"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgreader24.h",
+          "sha256": "86f0346badb5dcac299bb03b4f6a604a3d03a41ddbade6607b8f2f518875dcbd"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgreader27.cpp",
+          "sha256": "514934ba0a94d0ba54d9ae0d55db28954825106b179af42ae8fd1eb29251dc5f"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgreader27.h",
+          "sha256": "63fc7b3b54a03a06685d29be01c5443ed8cb0c898f303a4af6aeaab2eaa69d64"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgreader32.cpp",
+          "sha256": "52d1442192d160c909657286ad594afe9b9b72e794bb4dfa401ab95cb48b1daa"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgreader32.h",
+          "sha256": "90d911a25b0ce9918b74823e34f047b822cfcae22b55c60e6c572c8b298547ed"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgreaderR11.cpp",
+          "sha256": "66e12797a0ee5628d14995de1269b0e0023da5b7f62e95859ed35e9169efbd07"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgreaderR11.h",
+          "sha256": "97f46b7b8bf4be61afdd8b68ae2754a9aaba3cd219c47cc8c9fec4db7176d9e8"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgreaderR1_40.cpp",
+          "sha256": "75016657d91b4db00392d42e1612572cb293257c92cb27ea46620108145d394f"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgreaderR1_40.h",
+          "sha256": "e19f73436517ac2487d982827e2ccdcc1e3ad444f028d8886f5c1d6d68d51c12"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgsafety.h",
+          "sha256": "82f5393b5b20d524bf1822b674d5a6678d72a2217dce4ec7fa7737ca75e36d7f"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgutil.cpp",
+          "sha256": "8eba40664d244bd886dd17590e7a6de4b4be4f815d7c228fa45fb5632619d385"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgutil.h",
+          "sha256": "fba50c53a6a7d8595bfa4645461fe3ba67c42a6f115cad52dec672c33fca7526"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgwriter.h",
+          "sha256": "aff932d233602cc5472acfbda4e583287a85cd995e36efc4937b47a79e33a90d"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgwriter15.cpp",
+          "sha256": "bafaac548489434f1ec07591be00157cf30aa1ad47ac55effca7255e13a91356"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgwriter15.h",
+          "sha256": "faa88ce8f8af5ed695d032a83bf79e6821eae6842ab4e024bc4a939434546429"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgwriter18.cpp",
+          "sha256": "3d40301b028bd9f798eee36dc75743df1b3856d1def074801ecb347b6d48c082"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgwriter18.h",
+          "sha256": "c0302211675ddc034fd4f57f13bbdc9e63704a31be2dc1f63766f44047a37f8b"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgwriter21.cpp",
+          "sha256": "9e9eddf9f7d54ac97faa5a075969225b7ec96e2f18e492abaecc8d152070dc67"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgwriter21.h",
+          "sha256": "91159ae6467a51b48207f175f52a4bdb9c4b125cb0f37fa82f1ea6b2759b2b3e"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgwriter24.cpp",
+          "sha256": "fb788518a30e4fb48449c5fe0a7997f9d6d8604bd70d1d05ae7776bd59984bdb"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgwriter24.h",
+          "sha256": "52655faf5407d8945419684e53fcf4daebf714defb9f1230dd10cb8bc8503bf3"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgwriter27.cpp",
+          "sha256": "a323e456dadd087a4d38447cb7616578636c0af4cf05261a5e2b30366f9708eb"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgwriter27.h",
+          "sha256": "6ad872d3f6f240b78097e921f7a941d9bae56faf3010b686ee7b41b8e18000b4"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgwriter32.cpp",
+          "sha256": "d8b121f0f7b86fa0e0683bffa7b5a0a32fc1bb0b5f4320458405ed8a541b604e"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgwriter32.h",
+          "sha256": "4bbbba4790e2beaed515bd92d917fdd58ee9508f201543c6c942c38bafc6794c"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgwriterlayoutvalidation.cpp",
+          "sha256": "20553f9c2f62fb46e82ecf4fd6dc798f0b7e08d60f7ed86cf515c4f43924a661"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dwgwriterlayoutvalidation.h",
+          "sha256": "a14f79c542a592b2d6c102795c9f36c1b3bc1971382efa3cda256eee80804f0d"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dxfcode.h",
+          "sha256": "4d4d15d4a50e82df421289d70e26f26c9219ebe5de466bf8bdfce146799fc1fe"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dxfparserlimits.h",
+          "sha256": "e59f96cc162fd1279b96244a984f8d5693207c750008e1b661baa58a7c52c721"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dxfreader.cpp",
+          "sha256": "d593ad4cd69b86dc7a4293a75462b658a51369ad11bdbec180499f471bafa55c"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dxfreader.h",
+          "sha256": "87b13e521a3a3e0a5c193ef119383aa642de72e36111fc09df9ab9d8c0d63160"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dxfwriter.cpp",
+          "sha256": "fecd8d9f3e7247efa171ff7d951e46313fbd54818cb6b71fafcdc597f7e61c9d"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/dxfwriter.h",
+          "sha256": "3a5e389879b133ef2f62031a0a5abef16eceae18ca56065cb9b03f69ee13d554"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/proxygraphicdecoder.cpp",
+          "sha256": "9256c9f844210342929487ba35a863dad61f65f01b17d18b6034479eac28bb4c"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/proxygraphicdecoder.h",
+          "sha256": "a8237e9ee8a32df099ce81d8793369e4eb11f923a298912f00bdbdf75bbd9efc"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/rscodec.cpp",
+          "sha256": "5f841c3bf14993b156bad8d3eea9117b72585a73e976ca3b891af7cdad45aef4"
+        },
+        {
+          "mode": "100644",
+          "path": "src/intern/rscodec.h",
+          "sha256": "4b74485421fac2b5520e5f3b87292fe1c8aadaff3517b4e261a91bdf67082147"
+        },
+        {
+          "mode": "100644",
+          "path": "src/libdwgr.cpp",
+          "sha256": "2ddcfb4f00cd400379f838de192c34814d161aa6ab91f03dbcccf11bb3ffe08c"
+        },
+        {
+          "mode": "100644",
+          "path": "src/libdwgr.h",
+          "sha256": "2711545557c979b06066016ecd367ccff0972b2d8508d2699b1ea7966a7703fc"
+        },
+        {
+          "mode": "100644",
+          "path": "src/libdxfrw.cpp",
+          "sha256": "dfee2d04da7046f515422d1999f2f9998bd23e2886e4cf3a89a8ab6f91c0d9a6"
+        },
+        {
+          "mode": "100644",
+          "path": "src/libdxfrw.h",
+          "sha256": "914671ecd3455ebac28bbe1836d45f9ee640b2be0438c1fdf06a11ef5897ba2b"
+        },
+        {
+          "mode": "100644",
+          "path": "src/main_doc.h",
+          "sha256": "ec310b5f933e4377564e4a61b607c05d706b944bdd0d97389825ca92a0ae95ca"
+        }
+      ],
+      "mode": "working-tree-content",
+      "sourceRoot": "src",
+      "standaloneOnlySourcePaths": [
+        "src/intern/dxfcode.h"
+      ],
+      "targetOnlySourcePaths": [],
+      "targetPublicHeaders": [
+        "src/drw_acis.h",
+        "src/drw_base.h",
+        "src/drw_classes.h",
+        "src/drw_datastorage.h",
+        "src/drw_entities.h",
+        "src/drw_header.h",
+        "src/drw_interface.h",
+        "src/drw_objects.h",
+        "src/libdwgr.h",
+        "src/libdxfrw.h"
+      ]
+    },
+    "target": {
+      "commit": "3c7785ebbcbfc8f3c8f79dbba093aff09cdec753",
+      "files": [
+        {
+          "gitBlob": "1dfaa070ec897c632b144229cbbba2f789fa21d7",
+          "mode": "100644",
+          "path": "src/drw_acis.cpp",
+          "sha256": "8138ab332d82bb785b2c78986c4faa69a91cbd338538533af5e3acd0ecd1b919"
+        },
+        {
+          "gitBlob": "5fe638fa253ace561af94408942a5d0220a8726f",
+          "mode": "100644",
+          "path": "src/drw_acis.h",
+          "sha256": "93947c33950c7242b308cda62f2fa46748d31d57fcb04562ed387fdcd7df6dcb"
+        },
+        {
+          "gitBlob": "219c1b643e47e2b8317dc7fb6dfcedb796ae567a",
+          "mode": "100644",
+          "path": "src/drw_base.cpp",
+          "sha256": "c97b1b3d3c6c4fc7b7b8b85b34b92bd780baec53c3e6e7cecd996ac25d777cb1"
+        },
+        {
+          "gitBlob": "7844a3ae6621056212430bb4f961bdfb242c39ce",
+          "mode": "100644",
+          "path": "src/drw_base.h",
+          "sha256": "dd7e17a9d392ecc8700c52ce2e7112ee3629300a29a868a8ead558c3ce7bc7ea"
+        },
+        {
+          "gitBlob": "af3095933dd2ea8c7300903c3f6db0ea026189b0",
+          "mode": "100644",
+          "path": "src/drw_classes.cpp",
+          "sha256": "f240440405bdd6ec6ff2469108886849deb879551cb321fb31e719042e57b709"
+        },
+        {
+          "gitBlob": "835bc615c7b3bbb55af7a33e68168c5634bbda09",
+          "mode": "100644",
+          "path": "src/drw_classes.h",
+          "sha256": "a49a41256c70fbbbafcc553ffe7f7abb9d98cf5da6f329b58fac873c79eba932"
+        },
+        {
+          "gitBlob": "66a2bddca9bebe01c00879c14151d51019e8a866",
+          "mode": "100644",
+          "path": "src/drw_datastorage.cpp",
+          "sha256": "b84ab48b1dab646015ac91c714334f812f970aa88ca525b6875c62eb30267c63"
+        },
+        {
+          "gitBlob": "58219c2779291c00c1beb44b51576736a7e5f0a8",
+          "mode": "100644",
+          "path": "src/drw_datastorage.h",
+          "sha256": "7a49427a9b6ace22299dec7b098e0be2a9f9a5ff46ccc7a3ed9e646216bf4a47"
+        },
+        {
+          "gitBlob": "890ea64e07010339cac96e5d580ecacef7f0f39e",
+          "mode": "100644",
+          "path": "src/drw_entities.cpp",
+          "sha256": "416e5fd0bc91925a86c8c05227d11455e5f4cebbfdb3194276d50e2fb792fe60"
+        },
+        {
+          "gitBlob": "3ea21c8481ef299757916dc1a5bea5d5bc048476",
+          "mode": "100644",
+          "path": "src/drw_entities.h",
+          "sha256": "801021d8b391af217c307001febbb481c4bf96ab9dd46412d7689e5e5189db4d"
+        },
+        {
+          "gitBlob": "74625fc34f9d7fedcc754bdc68fe11d4c0b53b42",
+          "mode": "100644",
+          "path": "src/drw_header.cpp",
+          "sha256": "f6650d8b216d545555e96e5907eea6aa25021ac5998cbd88ea9d3245f20e1644"
+        },
+        {
+          "gitBlob": "59ad442cc371e378b5297e24a7ac2774dac309e8",
+          "mode": "100644",
+          "path": "src/drw_header.h",
+          "sha256": "35c264eeecddab8e3596f3f81fc2d2258e86911be5990c5d754349cfe2ad1ca1"
+        },
+        {
+          "gitBlob": "cea88281e86cddda28c8c1d4a7d2bf1ee245e552",
+          "mode": "100644",
+          "path": "src/drw_interface.h",
+          "sha256": "2d6500844b47a6cf9a16b959039f34442cf53fb2707109017129f5995c6eac33"
+        },
+        {
+          "gitBlob": "edb2bac15f330471355332524032e57b29a9ca58",
+          "mode": "100644",
+          "path": "src/drw_objects.cpp",
+          "sha256": "314c77ada19bb871e583ad1ae1990723793d1bda7cf7a6ce6aae5395238b62d5"
+        },
+        {
+          "gitBlob": "41d58d78e0706509ee22232fb70e187baaf0ec34",
+          "mode": "100644",
+          "path": "src/drw_objects.h",
+          "sha256": "3fe18a3496311bc76ddc096a0b79ec83f351e82d168fcf4e64b68956dd8a3d32"
+        },
+        {
+          "gitBlob": "8efbe309374d004543d366457a1b70eee863dcfb",
+          "mode": "100644",
+          "path": "src/handle_allocator.h",
+          "sha256": "2b2de1b2c918793362284a243ef32dfc6e23c3377679489a069c8008bbe64b57"
+        },
+        {
+          "gitBlob": "fb49499207f6c92cd5663619a8831e6bf9aeeb26",
+          "mode": "100644",
+          "path": "src/intern/drw_cptable932.h",
+          "sha256": "3e51e2fc41a81cbdeebae79336d3a09fbcbc1e8db00406942f3f48921b268118"
+        },
+        {
+          "gitBlob": "00ea3d5beb99efe70d9d16006efcafbe30aa1f7c",
+          "mode": "100644",
+          "path": "src/intern/drw_cptable936.h",
+          "sha256": "01049223b0a592a420990c112991249573c44732684130ac81f6732b7fa8cb30"
+        },
+        {
+          "gitBlob": "45a739d8d7b27022698e2694880fcb98e5dfa92c",
+          "mode": "100644",
+          "path": "src/intern/drw_cptable949.h",
+          "sha256": "422e5f2665cd60c90e111b436dbec4e96c423081016aab618eef5920601fabe5"
+        },
+        {
+          "gitBlob": "fd916dd000ea0d6d7de0eff028adb460255c1d43",
+          "mode": "100644",
+          "path": "src/intern/drw_cptable950.h",
+          "sha256": "92a64407ebaf7f0ed9d18c420ccab1ab32608ffd057499a35e8884a6938eb470"
+        },
+        {
+          "gitBlob": "d79f08bbc3dc2e24ef44a7593d36f7f633294f67",
+          "mode": "100644",
+          "path": "src/intern/drw_cptables.h",
+          "sha256": "76cbf82944d5a33a5e770dc8f469a1a2e360348f80c8fa5732ef66fb1a5c10a0"
+        },
+        {
+          "gitBlob": "7f50f284fbc2c443c9b7863636a8bd630b01e3bb",
+          "mode": "100644",
+          "path": "src/intern/drw_dbg.cpp",
+          "sha256": "121cead91b987295f5795e7b2c42dbad9f058fd84cdb3a2bf512f6e6b9b5fb5b"
+        },
+        {
+          "gitBlob": "b975d6a340b5daea9b8c6887bff1c97c6ec43581",
+          "mode": "100644",
+          "path": "src/intern/drw_dbg.h",
+          "sha256": "e2d221e52a1a00179011f27a41c3a1a6a1721a77459739be4d8c97b5008466f8"
+        },
+        {
+          "gitBlob": "ae0ee8956aac8889abf1c460bbece640472fd475",
+          "mode": "100644",
+          "path": "src/intern/drw_reserve.h",
+          "sha256": "706da2d482c744348bb343c27d7363da7a431d07c802bef7359da61cdd8b7815"
+        },
+        {
+          "gitBlob": "edb717da0452ac1ab5e4cf7b7ee8de3d121d12eb",
+          "mode": "100644",
+          "path": "src/intern/drw_textcodec.cpp",
+          "sha256": "8533fd10827fe95258193297143b20697b9c1be1079311ff0b17d91bcee60b89"
+        },
+        {
+          "gitBlob": "91348b7ceacbca66c2f33f30674fed0e2cfd31c0",
+          "mode": "100644",
+          "path": "src/intern/drw_textcodec.h",
+          "sha256": "19a5cdedded2c9bbcd6773fec4fa97ddb38c96c81fc729b1571c84230dde348e"
+        },
+        {
+          "gitBlob": "ab60082b5a27c7c876c95aeaab8c8eaf30b39200",
+          "mode": "100644",
+          "path": "src/intern/dwg_dxf_output_transaction.cpp",
+          "sha256": "d526b2f6d707d9a88dc5ddbeb1abf85cab5efed28cfe931fa0728c8adba05964"
+        },
+        {
+          "gitBlob": "c3ab578d52761c4cdfddb1288376a03bd44db86d",
+          "mode": "100644",
+          "path": "src/intern/dwg_dxf_output_transaction.h",
+          "sha256": "1c7e352395b637215de351676ae053e46cd2d6c0f380a6322932fe021a8c7aa0"
+        },
+        {
+          "gitBlob": "09a935d8b50863a8339458e759cd64e5fa8f5919",
+          "mode": "100644",
+          "path": "src/intern/dwg_fixed_handles.h",
+          "sha256": "40fc75b207b13af26324dd174bf607b63d12601880c828025de86525eb8859fb"
+        },
+        {
+          "gitBlob": "e70e5fdbef6bc187850c1eb02689c39f254d4f96",
+          "mode": "100644",
+          "path": "src/intern/dwgbuffer.cpp",
+          "sha256": "950ebb88201faf1826952f7c8a7499c521ec4004f4edf0e03b36ed5799329f3d"
+        },
+        {
+          "gitBlob": "48ba2f9e83424bb72b001d8e6116f6dc21c0b06e",
+          "mode": "100644",
+          "path": "src/intern/dwgbuffer.h",
+          "sha256": "cf8cb4820a22b3d34090e0ee6a0e1d149f2f9f802f4838e0d47eb0e97338327d"
+        },
+        {
+          "gitBlob": "2f90106fcfcb2ad83cb29bbf5c484a337f2eb730",
+          "mode": "100644",
+          "path": "src/intern/dwgbufferw.cpp",
+          "sha256": "2f755b542884eb735406b149cb89d818c79c195b4a66445eaa9690c123947e0c"
+        },
+        {
+          "gitBlob": "9137e06c717b0780226bc91ad09d34253e9a0339",
+          "mode": "100644",
+          "path": "src/intern/dwgbufferw.h",
+          "sha256": "3e7995b8cc84c4ab8dd8e9c6f09b6ec7185b6c6b52ed270cadebe39358262441"
+        },
+        {
+          "gitBlob": "43bac9c100d22764e079d295fe2334d9c21964c9",
+          "mode": "100644",
+          "path": "src/intern/dwgobjectframe.cpp",
+          "sha256": "559baa3976fb01ada91208d193c817ab50899117951309d0e1b2fa76beb2aba6"
+        },
+        {
+          "gitBlob": "d02714480c702d899e05da8d0e914a084efbcb67",
+          "mode": "100644",
+          "path": "src/intern/dwgobjectframe.h",
+          "sha256": "b1bb3fd02e32757b05252a38e69b31c7890ce135ec874f49e669cc88a18d89af"
+        },
+        {
+          "gitBlob": "ae471df1928269fb8b81009bcd1821d304a003de",
+          "mode": "100644",
+          "path": "src/intern/dwgreader.cpp",
+          "sha256": "58407dfa35691ac0f1094493ed72e2a15a111eb0e51efa587bebaede7b1bfd73"
+        },
+        {
+          "gitBlob": "fdf48bb242fac317e82addd7fbcf066e439fc3ad",
+          "mode": "100644",
+          "path": "src/intern/dwgreader.h",
+          "sha256": "20244687203522df12e1791971f4cfd7ae9da60f0a3bb82e33dc1ac0fb303cb8"
+        },
+        {
+          "gitBlob": "79d95745c1f49a0609acbecce8d3feebfd421a44",
+          "mode": "100644",
+          "path": "src/intern/dwgreader15.cpp",
+          "sha256": "53b83832bce18ae95a909333a5e12793fb7485744e3c2ecb0d2e4f64dad3534c"
+        },
+        {
+          "gitBlob": "1b07736a5d58f97fde38ef96effa1cd4e006b610",
+          "mode": "100644",
+          "path": "src/intern/dwgreader15.h",
+          "sha256": "3861862f10e587f885ac71a4031c7ca6b924cffd2d18fe768c9ded712c86c692"
+        },
+        {
+          "gitBlob": "b34a851d8462172b0f481949573d6c067c9897bb",
+          "mode": "100644",
+          "path": "src/intern/dwgreader18.cpp",
+          "sha256": "0a5105ea43fb169836ba638e9d49d394860ad7c306f534f7a2e9cb47997b1831"
+        },
+        {
+          "gitBlob": "10461c8c3034f3203295dd259f4fb3ea5efefb5e",
+          "mode": "100644",
+          "path": "src/intern/dwgreader18.h",
+          "sha256": "08a2bf08d237bbaecdce83a59f3c2948669222bf4dd133461a84ebd3f2603855"
+        },
+        {
+          "gitBlob": "10d47f1c0313731fc6695b0dda8d7247dc492f88",
+          "mode": "100644",
+          "path": "src/intern/dwgreader21.cpp",
+          "sha256": "02caf3da295c2057ebf7f98067b87a1745fe5be8b7d1170bb2c052d7b684c8f5"
+        },
+        {
+          "gitBlob": "8168da4e043f954e557d14053a31e4bb97bba0e7",
+          "mode": "100644",
+          "path": "src/intern/dwgreader21.h",
+          "sha256": "a67df90fe6d517e305f397a36b6aa3a0f05d2604637e70088aa6b966988bc580"
+        },
+        {
+          "gitBlob": "295032c20635be529dc1901d8e716bc948dbb578",
+          "mode": "100644",
+          "path": "src/intern/dwgreader24.cpp",
+          "sha256": "7a2e01a1737ae0bba7da7fdd326a27783cd48bd83ebba1f39500be3fa446025f"
+        },
+        {
+          "gitBlob": "bc73d21ac6f5cee7a00b7f90b56ca2ac8359d638",
+          "mode": "100644",
+          "path": "src/intern/dwgreader24.h",
+          "sha256": "86f0346badb5dcac299bb03b4f6a604a3d03a41ddbade6607b8f2f518875dcbd"
+        },
+        {
+          "gitBlob": "259b08037c82d928bd08f6227bdc3f02582bdc68",
+          "mode": "100644",
+          "path": "src/intern/dwgreader27.cpp",
+          "sha256": "514934ba0a94d0ba54d9ae0d55db28954825106b179af42ae8fd1eb29251dc5f"
+        },
+        {
+          "gitBlob": "150824d0efa89877a5fe41910309a7f082d3ba9f",
+          "mode": "100644",
+          "path": "src/intern/dwgreader27.h",
+          "sha256": "63fc7b3b54a03a06685d29be01c5443ed8cb0c898f303a4af6aeaab2eaa69d64"
+        },
+        {
+          "gitBlob": "048b263b65d631b9316e9f92490508afe85a6e54",
+          "mode": "100644",
+          "path": "src/intern/dwgreader32.cpp",
+          "sha256": "52d1442192d160c909657286ad594afe9b9b72e794bb4dfa401ab95cb48b1daa"
+        },
+        {
+          "gitBlob": "a81db191da3806ee6bfecb39661da1c0ff966bf8",
+          "mode": "100644",
+          "path": "src/intern/dwgreader32.h",
+          "sha256": "90d911a25b0ce9918b74823e34f047b822cfcae22b55c60e6c572c8b298547ed"
+        },
+        {
+          "gitBlob": "b402551dd6f73c3da1bbf9d72dd80a61f05c6f74",
+          "mode": "100644",
+          "path": "src/intern/dwgreaderR11.cpp",
+          "sha256": "66e12797a0ee5628d14995de1269b0e0023da5b7f62e95859ed35e9169efbd07"
+        },
+        {
+          "gitBlob": "285bec0f636f098f1e306c54c2dc68693c1e45cb",
+          "mode": "100644",
+          "path": "src/intern/dwgreaderR11.h",
+          "sha256": "97f46b7b8bf4be61afdd8b68ae2754a9aaba3cd219c47cc8c9fec4db7176d9e8"
+        },
+        {
+          "gitBlob": "203f1f110f65f9a99cc458d33638201b07f72ccc",
+          "mode": "100644",
+          "path": "src/intern/dwgreaderR1_40.cpp",
+          "sha256": "75016657d91b4db00392d42e1612572cb293257c92cb27ea46620108145d394f"
+        },
+        {
+          "gitBlob": "cdb04e614b87a13482be016910d014d3f2336b4a",
+          "mode": "100644",
+          "path": "src/intern/dwgreaderR1_40.h",
+          "sha256": "e19f73436517ac2487d982827e2ccdcc1e3ad444f028d8886f5c1d6d68d51c12"
+        },
+        {
+          "gitBlob": "d8cdf63eb2ed081be2fad8363665d51f431fbcf0",
+          "mode": "100644",
+          "path": "src/intern/dwgsafety.h",
+          "sha256": "82f5393b5b20d524bf1822b674d5a6678d72a2217dce4ec7fa7737ca75e36d7f"
+        },
+        {
+          "gitBlob": "58c49fe261b9a897c848258f21ace4d68f6dd9c3",
+          "mode": "100644",
+          "path": "src/intern/dwgutil.cpp",
+          "sha256": "8eba40664d244bd886dd17590e7a6de4b4be4f815d7c228fa45fb5632619d385"
+        },
+        {
+          "gitBlob": "e33363bf4d3e814a67c875ecb89e70c9fe154bed",
+          "mode": "100644",
+          "path": "src/intern/dwgutil.h",
+          "sha256": "fba50c53a6a7d8595bfa4645461fe3ba67c42a6f115cad52dec672c33fca7526"
+        },
+        {
+          "gitBlob": "ce0087fb791558ca1afab7082b0f2164e99c457c",
+          "mode": "100644",
+          "path": "src/intern/dwgwriter.h",
+          "sha256": "aff932d233602cc5472acfbda4e583287a85cd995e36efc4937b47a79e33a90d"
+        },
+        {
+          "gitBlob": "7c52152889fcb7da812493324003cdcbf629eb59",
+          "mode": "100644",
+          "path": "src/intern/dwgwriter15.cpp",
+          "sha256": "bafaac548489434f1ec07591be00157cf30aa1ad47ac55effca7255e13a91356"
+        },
+        {
+          "gitBlob": "21f051c80586f10e69bb1f8f791ee2d9141a1c60",
+          "mode": "100644",
+          "path": "src/intern/dwgwriter15.h",
+          "sha256": "faa88ce8f8af5ed695d032a83bf79e6821eae6842ab4e024bc4a939434546429"
+        },
+        {
+          "gitBlob": "6ffc7631c97fdbebdadc0b5d73c0bbdd8aabb963",
+          "mode": "100644",
+          "path": "src/intern/dwgwriter18.cpp",
+          "sha256": "3d40301b028bd9f798eee36dc75743df1b3856d1def074801ecb347b6d48c082"
+        },
+        {
+          "gitBlob": "824a48cc0ab570852464638c6a3e687c5e6f0f04",
+          "mode": "100644",
+          "path": "src/intern/dwgwriter18.h",
+          "sha256": "c0302211675ddc034fd4f57f13bbdc9e63704a31be2dc1f63766f44047a37f8b"
+        },
+        {
+          "gitBlob": "d53c4654792271ccb30433b9ce5e27b576271f21",
+          "mode": "100644",
+          "path": "src/intern/dwgwriter21.cpp",
+          "sha256": "9e9eddf9f7d54ac97faa5a075969225b7ec96e2f18e492abaecc8d152070dc67"
+        },
+        {
+          "gitBlob": "768e917609a5a000a367e3ad9ffcfdec01545c76",
+          "mode": "100644",
+          "path": "src/intern/dwgwriter21.h",
+          "sha256": "91159ae6467a51b48207f175f52a4bdb9c4b125cb0f37fa82f1ea6b2759b2b3e"
+        },
+        {
+          "gitBlob": "851837e1cc26558975431671a4b4cb109dd2c82d",
+          "mode": "100644",
+          "path": "src/intern/dwgwriter24.cpp",
+          "sha256": "fb788518a30e4fb48449c5fe0a7997f9d6d8604bd70d1d05ae7776bd59984bdb"
+        },
+        {
+          "gitBlob": "ade35783b9b570ee008efd8698fc68543f1ac006",
+          "mode": "100644",
+          "path": "src/intern/dwgwriter24.h",
+          "sha256": "52655faf5407d8945419684e53fcf4daebf714defb9f1230dd10cb8bc8503bf3"
+        },
+        {
+          "gitBlob": "b3022bac556b1a21063b4ed40225ec5ca7443fca",
+          "mode": "100644",
+          "path": "src/intern/dwgwriter27.cpp",
+          "sha256": "a323e456dadd087a4d38447cb7616578636c0af4cf05261a5e2b30366f9708eb"
+        },
+        {
+          "gitBlob": "4319e931efe511e0457794d8997ec952d4a65769",
+          "mode": "100644",
+          "path": "src/intern/dwgwriter27.h",
+          "sha256": "6ad872d3f6f240b78097e921f7a941d9bae56faf3010b686ee7b41b8e18000b4"
+        },
+        {
+          "gitBlob": "5769931a2b35483a1eaf1327b3e5df6480693617",
+          "mode": "100644",
+          "path": "src/intern/dwgwriter32.cpp",
+          "sha256": "d8b121f0f7b86fa0e0683bffa7b5a0a32fc1bb0b5f4320458405ed8a541b604e"
+        },
+        {
+          "gitBlob": "2f03299e050d645eec8c3df580f00ad6c57f6d98",
+          "mode": "100644",
+          "path": "src/intern/dwgwriter32.h",
+          "sha256": "4bbbba4790e2beaed515bd92d917fdd58ee9508f201543c6c942c38bafc6794c"
+        },
+        {
+          "gitBlob": "3feaf1655f09806a3f773ef14740fbbb0a376d9d",
+          "mode": "100644",
+          "path": "src/intern/dwgwriterlayoutvalidation.cpp",
+          "sha256": "20553f9c2f62fb46e82ecf4fd6dc798f0b7e08d60f7ed86cf515c4f43924a661"
+        },
+        {
+          "gitBlob": "3745138ff9e265d6f350bf0f4cf83373fd398353",
+          "mode": "100644",
+          "path": "src/intern/dwgwriterlayoutvalidation.h",
+          "sha256": "a14f79c542a592b2d6c102795c9f36c1b3bc1971382efa3cda256eee80804f0d"
+        },
+        {
+          "gitBlob": "716307e131dc5fec27eb7bc54b5a782b63f1d08c",
+          "mode": "100644",
+          "path": "src/intern/dxfparserlimits.h",
+          "sha256": "e59f96cc162fd1279b96244a984f8d5693207c750008e1b661baa58a7c52c721"
+        },
+        {
+          "gitBlob": "6d65c2baa9e604720a01c5cb050497847634a71a",
+          "mode": "100644",
+          "path": "src/intern/dxfreader.cpp",
+          "sha256": "e7fc690834d1015c525fe80e60f6efc0de95b968404dee345eac1b3d6f7f2492"
+        },
+        {
+          "gitBlob": "ba66915b247af5a397caf04cd62eadbf6ed03f8c",
+          "mode": "100644",
+          "path": "src/intern/dxfreader.h",
+          "sha256": "87b13e521a3a3e0a5c193ef119383aa642de72e36111fc09df9ab9d8c0d63160"
+        },
+        {
+          "gitBlob": "1c9fbb0d331d32d0423e1ccd9a982c9aec34bf88",
+          "mode": "100644",
+          "path": "src/intern/dxfwriter.cpp",
+          "sha256": "fecd8d9f3e7247efa171ff7d951e46313fbd54818cb6b71fafcdc597f7e61c9d"
+        },
+        {
+          "gitBlob": "95820f22609395ab6366cada657d32d716a67a27",
+          "mode": "100644",
+          "path": "src/intern/dxfwriter.h",
+          "sha256": "3a5e389879b133ef2f62031a0a5abef16eceae18ca56065cb9b03f69ee13d554"
+        },
+        {
+          "gitBlob": "4ed9e0cb7d188c4e4cd052ca835e00611cd2db28",
+          "mode": "100644",
+          "path": "src/intern/proxygraphicdecoder.cpp",
+          "sha256": "9256c9f844210342929487ba35a863dad61f65f01b17d18b6034479eac28bb4c"
+        },
+        {
+          "gitBlob": "5c32e7a428bcc3727ae3a1c7a8d35e6570451efa",
+          "mode": "100644",
+          "path": "src/intern/proxygraphicdecoder.h",
+          "sha256": "a8237e9ee8a32df099ce81d8793369e4eb11f923a298912f00bdbdf75bbd9efc"
+        },
+        {
+          "gitBlob": "671813f0f8de9310b9689fd4330068d5c7db9594",
+          "mode": "100644",
+          "path": "src/intern/rscodec.cpp",
+          "sha256": "5f841c3bf14993b156bad8d3eea9117b72585a73e976ca3b891af7cdad45aef4"
+        },
+        {
+          "gitBlob": "26be36c219f044cf7186b26e15acd085c6048800",
+          "mode": "100644",
+          "path": "src/intern/rscodec.h",
+          "sha256": "4b74485421fac2b5520e5f3b87292fe1c8aadaff3517b4e261a91bdf67082147"
+        },
+        {
+          "gitBlob": "d1237b166b0ac0a03120c3b2eb6213e890832862",
+          "mode": "100644",
+          "path": "src/libdwgr.cpp",
+          "sha256": "6597fcac2c3df6f5bd95327ee2e482e731bd9e2b5b3bcb6a3c91a17e53edced1"
+        },
+        {
+          "gitBlob": "7d184f55c632599901f2072f42c80b0b9dd24c03",
+          "mode": "100644",
+          "path": "src/libdwgr.h",
+          "sha256": "e06f2d410eaef55401b1d7d1ca4fcff97337ee2da88b502f9bcbe3a6f3ac705a"
+        },
+        {
+          "gitBlob": "71851fcf8d5636080c83f2eb1af4a8ef5a80e0ef",
+          "mode": "100644",
+          "path": "src/libdxfrw.cpp",
+          "sha256": "d6a5b86ab4d9274c5329db055364f5aeae00c9f4e82f56fb2e8c2ee597063c61"
+        },
+        {
+          "gitBlob": "8e2af88800c1af341a14982340a9648b07a5890f",
+          "mode": "100644",
+          "path": "src/libdxfrw.h",
+          "sha256": "35f51a8675b8dadc71e1a74821856843e8d994b30eef8c51a74be8fa9ae1b864"
+        },
+        {
+          "gitBlob": "2b525a236de56fda2a8613f6ff5d453e9b28568a",
+          "mode": "100644",
+          "path": "src/main_doc.h",
+          "sha256": "ec310b5f933e4377564e4a61b607c05d706b944bdd0d97389825ca92a0ae95ca"
+        }
+      ],
+      "publicHeaderCMake": "libraries/libdxfrw/libdxfrw_sources.cmake",
+      "publicHeaders": [
+        "src/drw_acis.h",
+        "src/drw_base.h",
+        "src/drw_classes.h",
+        "src/drw_datastorage.h",
+        "src/drw_entities.h",
+        "src/drw_header.h",
+        "src/drw_interface.h",
+        "src/drw_objects.h",
+        "src/libdwgr.h",
+        "src/libdxfrw.h"
+      ],
+      "repository": "git@github.com-librecad:LibreCAD/LibreCAD.git",
+      "snapshotRevision": "89b762bef636c90eb370cb1af3cec80fe759cb32",
+      "sourceRoot": "libraries/libdxfrw/src"
+    }
+  },
+  "kind": "libdxfrw-source-route-inventory",
+  "schema": 1,
+  "shards": [
+    {
+      "facade": "dxfRW",
+      "path": "parity-source-routes-v1/target-dxfRW.json",
+      "routeCount": 1475,
+      "sha256": "783530d71b1c01e48e638cb5a4d17a0a78d7fdc799001b29a113ff7b66bb5821",
+      "side": "target"
+    },
+    {
+      "facade": "dwgRW",
+      "path": "parity-source-routes-v1/target-dwgRW.json",
+      "routeCount": 1345,
+      "sha256": "b61ec842734845058bd175ce35ead3a58dd8460659775d3cb6ca8483c101f50d",
+      "side": "target"
+    },
+    {
+      "facade": "shared",
+      "path": "parity-source-routes-v1/target-shared.json",
+      "routeCount": 2767,
+      "sha256": "ccabf71a7ff7d674247f42a51d9c260a631485c5b9de855c09cb124f09c25a80",
+      "side": "target"
+    },
+    {
+      "facade": "dxfRW",
+      "path": "parity-source-routes-v1/standalone-dxfRW.json",
+      "routeCount": 1457,
+      "sha256": "94e490c5172187305816983ad2bd6539216aea9fb6d429b8157989b500f58738",
+      "side": "standalone"
+    },
+    {
+      "facade": "dwgRW",
+      "path": "parity-source-routes-v1/standalone-dwgRW.json",
+      "routeCount": 1371,
+      "sha256": "d2ad09b70da74a3713f8f9a82d3bf53786f410462dd896762f86f7aaef32b8fd",
+      "side": "standalone"
+    },
+    {
+      "facade": "shared",
+      "path": "parity-source-routes-v1/standalone-shared.json",
+      "routeCount": 2794,
+      "sha256": "ce2518e2701273d6a422a559e3f50a8c7bed104127bb037ef094ddb4064d9524",
+      "side": "standalone"
+    }
+  ],
+  "summary": {
+    "comparison": {
+      "dwgRW": {
+        "semanticMismatches": 481,
+        "standaloneOnly": 27,
+        "targetOnly": 1
+      },
+      "dxfRW": {
+        "semanticMismatches": 208,
+        "standaloneOnly": 18,
+        "targetOnly": 36
+      },
+      "shared": {
+        "semanticMismatches": 2,
+        "standaloneOnly": 37,
+        "targetOnly": 10
+      }
+    },
+    "standalone": {
+      "categoryCounts": {
+        "callback": 151,
+        "dwg-version-magic": 19,
+        "dxf-block": 1,
+        "dxf-class": 244,
+        "dxf-class-required-group": 7,
+        "dxf-entity": 62,
+        "dxf-entity-dispatch-branch": 49,
+        "dxf-object": 133,
+        "dxf-object-dispatch-branch": 58,
+        "dxf-object-predicate": 3,
+        "dxf-section": 6,
+        "dxf-section-dispatch-branch": 7,
+        "dxf-table": 9,
+        "dxf-table-dispatch-branch": 9,
+        "dxf-transport-node": 17,
+        "facade-method": 503,
+        "fixed-entity": 52,
+        "fixed-object": 19,
+        "group-code-raw-classifier": 1,
+        "group-code-raw-rule": 9,
+        "group-code-reader-range": 34,
+        "helper-subsystem": 18,
+        "interface-method": 171,
+        "internal-model-codec": 1,
+        "legacy-dwgr-facade": 1,
+        "model-codec": 259,
+        "named-class-predicate": 2,
+        "named-entity-class": 45,
+        "named-object-class": 169,
+        "object-context-class": 22,
+        "parser-publication": 504,
+        "pipeline-unit": 81,
+        "public-alias": 16,
+        "public-enum": 64,
+        "public-header": 10,
+        "public-inline-function": 3,
+        "public-inline-method": 660,
+        "public-method": 1056,
+        "public-model": 259,
+        "public-type": 320,
+        "publication-stage": 24,
+        "raw-custom-shell": 3,
+        "raw-entity-shell": 20,
+        "raw-flow": 50,
+        "raw-object-shell": 6,
+        "raw-route": 10,
+        "reader-pipeline": 9,
+        "reader-stage": 4,
+        "reader-version": 19,
+        "section": 17,
+        "section-declaration": 21,
+        "section-fallback": 1,
+        "source-unit": 86,
+        "table-descriptor": 9,
+        "version": 19,
+        "writer-binding": 38,
+        "writer-entrypoint": 211,
+        "writer-pipeline": 7,
+        "writer-version": 14
+      },
+      "routeCount": 5622
+    },
+    "target": {
+      "categoryCounts": {
+        "callback": 151,
+        "dwg-version-magic": 19,
+        "dxf-block": 1,
+        "dxf-class": 244,
+        "dxf-class-required-group": 7,
+        "dxf-entity": 62,
+        "dxf-entity-dispatch-branch": 49,
+        "dxf-object": 133,
+        "dxf-object-dispatch-branch": 58,
+        "dxf-object-predicate": 3,
+        "dxf-section": 6,
+        "dxf-section-dispatch-branch": 7,
+        "dxf-table": 9,
+        "dxf-table-dispatch-branch": 9,
+        "dxf-transport-node": 16,
+        "facade-method": 495,
+        "fixed-entity": 52,
+        "fixed-object": 19,
+        "group-code-raw-classifier": 1,
+        "group-code-raw-rule": 33,
+        "group-code-reader-range": 34,
+        "helper-subsystem": 18,
+        "interface-method": 171,
+        "internal-model-codec": 1,
+        "legacy-dwgr-facade": 1,
+        "model-codec": 259,
+        "named-class-predicate": 2,
+        "named-entity-class": 45,
+        "named-object-class": 169,
+        "object-context-class": 22,
+        "parser-publication": 504,
+        "pipeline-unit": 80,
+        "public-alias": 1,
+        "public-enum": 61,
+        "public-header": 10,
+        "public-inline-function": 3,
+        "public-inline-method": 648,
+        "public-method": 1041,
+        "public-model": 259,
+        "public-type": 317,
+        "publication-stage": 24,
+        "raw-custom-shell": 3,
+        "raw-entity-shell": 20,
+        "raw-flow": 50,
+        "raw-object-shell": 6,
+        "raw-route": 10,
+        "reader-pipeline": 9,
+        "reader-stage": 4,
+        "reader-version": 19,
+        "section": 17,
+        "section-declaration": 21,
+        "section-fallback": 1,
+        "source-unit": 85,
+        "table-descriptor": 9,
+        "version": 19,
+        "writer-binding": 38,
+        "writer-entrypoint": 211,
+        "writer-pipeline": 7,
+        "writer-version": 14
+      },
+      "routeCount": 5587
+    }
+  }
+}
