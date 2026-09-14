@@ -1820,6 +1820,14 @@ edit this block or commit the same slice concurrently.
   delimiter or ownership defect is inferred. Focused Wave 1 tests pass in
   0.32 seconds, no drawing bytes were added, and all runtime claims remain
   experimental/deferred pending an eligible fixture plus independent oracle.
+- Latest implementation slice: S27/J3 metadata-only runtime evidence queue is
+  committed. `check_runtime_evidence_queue.py` validates that every queued
+  fixture/oracle route is non-promoting, every advisory row has a source hash
+  and size, and all route entry IDs resolve without opening payload bytes. Its
+  self-test and focused CTest pass (0.13s); the live registry reports 10
+  fixture/oracle-blocked entries and 8 advisory rows. This keeps later runtime
+  qualification incremental and fast while leaving support claims
+  experimental until an eligible fixture and independent oracle are available.
 - Latest implementation slice: S18/I0.2g-A concrete source-unit coverage now
   binds all 80 functional locked `src` units to sorted, same-path, non-generic
   route IDs. The two transport implementation units that had no dispatch or
@@ -1959,32 +1967,34 @@ edit this block or commit the same slice concurrently.
   inputs referenced by its top-level build. No target repin or sibling
   worktree mutation was made; future runtime qualification still requires an
   admitted or locally-from-scratch fixture plus an independent oracle.
-- Authorized run horizon: S01-S26/A-I5 plus J0-J2 runtime-qualification
+- Authorized run horizon: S01-S27/A-I5 plus J0-J3 runtime-qualification
   implementation; unavailable fixtures/oracles remain evidence-only and do not
   stop ready source/spec lanes.
 - Completion target: qualified-format parity for every advertised DWG/DXF row,
   with explicit experimental/deferred dispositions for unavailable evidence.
-  S24 closes implementation hardening, while S25/J2 accelerates bounded
-  advisory triage and S26/J1 begins the next
+  S24 closes implementation hardening, S25/J2 accelerates bounded advisory
+  triage, S26/J1 closes the current source/spec defect audit, and S27/J3 adds
+  the metadata-only evidence queue for the next
   evidence-gated runtime defect lane; parity cannot be inferred from source
   parity or a PR boundary.
-- Last fully resolved slice: S26 (DWG-reader defect closure is committed by the
-  matching `Plan-Slice: S26` trailer; the post-commit report resolves its SHA);
+- Last fully resolved slice: S27 (the metadata-only runtime evidence queue is
+  committed by the matching `Plan-Slice: S27` trailer; the post-commit report
+  resolves its SHA);
   target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`. All in-horizon lanes are
-  terminal only when their recorded gates pass; J1/S26 is planned next and
-  requires no new target pin.
-- Resolved slices: 26/26 (`COMMITTED`, or `SUPERSEDED` after all replacements
+  terminal only when their recorded gates pass; the next runtime qualification
+  lane requires no new target pin.
+- Resolved slices: 27/27 (`COMMITTED`, or `SUPERSEDED` after all replacements
   commit).
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 26 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 27 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 28 COMMITTED.
-- Expanded child-item states: 125 COMMITTED / 0 PLANNED / 0 READY / 0 ACTIVE /
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 29 COMMITTED.
+- Expanded child-item states: 126 COMMITTED / 0 PLANNED / 0 READY / 0 ACTIVE /
   0 VERIFYING / 0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED; no child is anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 9 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S26 are committed. S23/I5
+- Active work: S01-S27 are committed. S23/I5
   reconciled separate DXF/DWG reports, public/package/LibreCAD consumers, the
   scheduled full and ASan/UBSan checkpoints, bounded fuzz smoke, and explicit
   support/defer claims; J0 adds runtime adapter/validation regressions and J2
@@ -2019,6 +2029,7 @@ edit this block or commit the same slice concurrently.
 | S24 | J0: runtime compatibility hardening and advisory triage | S23 | COMMITTED | focused Wave 1 regression, clean CLI build, bounded canaries, fixture/scope/sync/plan gates | fixed-space BLOCK replay and inactive HATCH gradient validation are covered by in-memory assertions; ET-Drawing-with-Border and Pool_Detail canaries convert successfully; external bytes remain advisory and untracked | S25 |
 | S25 | J2: bounded runtime advisory acceleration | S24 | COMMITTED | timeout-bounded external runner, fast canary report, plan/scope/sync/fixture gates | `run_external_advisory.py` accepts a per-input timeout and records explicit timeout status without retaining payloads; self-test and 51-input AC1024 advisory scan pass; no fixture bytes | S26 |
 | S26 | J1: DWG reader defect closure and empirical route triage | S25 | COMMITTED | ODA/spec review, focused source tests, bounded external traces, and no-fixture policy | Wave 1 bit-writer vectors pass for ordinary/extended/absent/truncated class-string footers; ODA confirms `strDataSize` is the padded bit count; spline fields remain `BL` as implemented; fixed/custom object dispatch is source-closed with unknown codes deferred; the external block failure is isolated to custom entity type 506 and preserves transaction quarantine semantics; no drawing bytes | qualified-format parity follow-up |
+| S27 | J3: metadata-only runtime evidence queue | S26 | COMMITTED | queue self-test, registry/advisory validation, fast CTest, plan/scope/sync/fixture gates | blocked/oracle routes are enumerated from hashes/statuses only; no payload is opened or copied; queue output feeds the next independent qualification lane without repeating full suites | runtime qualification |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -2049,6 +2060,7 @@ edit this block or commit the same slice concurrently.
 | J0 | S24 | I5 | COMMITTED | EXPERIMENTAL | Runtime adapter/validation hardening with focused regressions; external canaries remain advisory |
 | J1 | S26 | J2 | COMMITTED | EXPERIMENTAL | Close known DWG reader/runtime defects with ODA/spec and empirical evidence while preserving fixture policy | J1.1-J1.4 focused gates pass; no source wire change is justified beyond the local footer regression, and all unavailable independent-oracle rows remain experimental |
 | J2 | S25 | J0 | COMMITTED | EXPERIMENTAL | Bound external advisory execution and preserve fast triage without fixture or support-claim promotion |
+| J3 | S27 | J1 | COMMITTED | EXPERIMENTAL | Maintain a metadata-only queue for fixture/oracle-blocked runtime rows and advisory outcomes so later qualification work can run incrementally |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -2179,6 +2191,7 @@ edit this block or commit the same slice concurrently.
 | J1.4 | J1 / S26 | WP5.5-WP5.7, WP10; block transaction triage | J2 | COMMITTED | EXPERIMENTAL | classify `BAD_READ_BLOCKS` transaction failures by ownership, delimiter, or malformed-input cause | bounded `blocks_and_tables_-_metric.dwg` trace reaches custom entity type 506 body failure after valid BLOCK/ENDBLK parsing; the journal aborts, quarantines owned frames, records diagnostics, and preserves warn/continue. No ownership or delimiter defect is inferred; the external file remains advisory and untracked |
 | J2.1 | J2 / S25 | WP10; bounded advisory runner | J0 | COMMITTED | NOT_APPLICABLE | external converter timeout is explicit and non-reconstructive | `run_external_advisory.py` supports `--timeout`, reports `timeout`/`diagnosticCode` without output hashes, and self-test passes; no fixture bytes; unblocks J2.2 |
 | J2.2 | J2 / S25 | WP10; measured canary loop | J2.1 | COMMITTED | DEFERRED_EXTERNAL | bounded corpus triage feeds implementation without full-suite repetition | 51 AC1024 external inputs were scanned with a 2-second bound: 45 converted, 3 timed out, 2 error-9, 1 nonzero failure; ET/Pool canaries pass after J0; hashes/statuses only and no fixture bytes; unblocks S26/J1 |
+| J3.1 | J3 / S27 | WP10; runtime evidence intake | J1 | COMMITTED | EXPERIMENTAL | metadata-only queue identifies fixture/oracle-blocked rows and advisory outcomes without reading payload bytes | `check_runtime_evidence_queue.py` validates non-promoting registry routes and advisory status/hash rows; self-test and focused CTest are the smallest gate; no fixture bytes; unblocks the next independent runtime qualification slice |
 
 <!-- UPGRADE_PROGRESS_END -->
 
