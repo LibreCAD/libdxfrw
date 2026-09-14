@@ -1842,6 +1842,16 @@ edit this block or commit the same slice concurrently.
   68 standalone-only rows are explicit compatibility extensions. Mapping,
   provenance, pinned-generation, and fast policy gates pass; no drawing
   fixtures are added.
+- Latest implementation slice: S18/I0.3a target test/oracle registry now
+  locks 86 pinned LibreCAD source/manifest/oracle entries by Git path, mode,
+  and blob, classifies them as `portable`, `LibreCAD-only`,
+  `fixture-blocked`, or `external-advisory`, and records five explicit
+  non-support-promoting oracle routes. The registry links every one of the
+  76 observed façade/category feature selectors to an eligible fast,
+  source-only, or advisory route while keeping all target `testdata` drawing
+  bytes out of this repository. Registry self-tests, pinned target/blob
+  checks, mapping-selector coverage, and the normal fast policy gates pass;
+  I0.4 remains the aggregate deterministic closure.
 - Authorized run horizon: full S01-S23/A-I5 implementation objective.
 - Completion target: S23/I5 qualified-format parity acceptance; a PR boundary
   cannot silently shorten the authorized objective.
@@ -1855,7 +1865,7 @@ edit this block or commit the same slice concurrently.
   0 BLOCKED_HARD / 0 SUPERSEDED / 17 COMMITTED.
 - Parent-item states: 0 READY / 5 PLANNED / 1 ACTIVE / 0 VERIFYING /
   0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 19 COMMITTED.
-- Expanded child-item states: 83 COMMITTED / 27 PLANNED / 1 READY / 1 ACTIVE /
+- Expanded child-item states: 84 COMMITTED / 27 PLANNED / 0 READY / 1 ACTIVE /
   0 VERIFYING / 3 VERIFIED; no child is anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 9 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
@@ -1885,7 +1895,7 @@ edit this block or commit the same slice concurrently.
   edges cannot survive as a claim of feature parity. I0.2a now proves the exact 85-unit pinned source
   surface, all ten CMake-installed public headers, and the explicit standalone
   `dxfcode.h` adaptation; it does not promote a format-support claim. I0.3a
-  target-test/oracle metadata is independently READY. I0.2b-g and I0.2c must
+  target-test/oracle metadata is now source-closed and committed. I0.2b-g and I0.2c must
   close source flow, provenance, and artifact integrity before cardinality-aware
   I0.3 mapping. S19 still enables the independent S20 DXF, S21 DWG-read, and
   S22 DWG-write lanes only after the strengthened I0 gate.
@@ -2038,7 +2048,7 @@ edit this block or commit the same slice concurrently.
 | I0.2g | I0 / S18 | WP0, WP4-WP7; concrete functional source-unit coverage | I0.2b, I0.2d, I0.2e, I0.2f | PLANNED | EXPERIMENTAL | every functional locked source unit names same-path non-self concrete `coveredBy` routes or a narrow reviewed supporting disposition; deterministic aggregate route closure | I0.2g-A lands 80/80 same-path coverage plus explicit `dxfReader::readRec`/`dxfWriter::writeUtf8String` anchors; target/standalone checks reject generic-only/self coverage, foreign/missing evidence, dangling stage/predicate/provider references, stale target pin, and non-identical double generation; the remaining aggregate disposition/provenance checks run as fast source-only gates before broader CMake/CTest; unblocks I0.2c |
 | I0.2c | I0 / S18 | WP8; provenance, route-identity, and artifact-integrity closure | I0.2a, I0.2b, I0.2d, I0.2e, I0.2f, I0.2g | COMMITTED | EXPERIMENTAL | stable signature-derived IDs, standalone provenance/adaptation verification, selector-vs-body/condition delta classes, and synthetic artifact failure tests | `5811907` follow-up source-only slice: every adapted source path is checked against the locked target blob and standalone SHA-256; artifact provenance records target/standalone/allowlist identity and route digests; common-route deltas are classified; shard metadata/hash/cardinality and exact-set checks reject tampered/missing/extra artifacts; extractor self-test, pinned `--check`, input/scope/sync/fixture/plan/diff gates pass; no drawing payloads; unblocks I0.3 |
 | I0.3 | I0 / S18 | WP8; cardinality-aware mapping and disposition | I0.2a, I0.2c | COMMITTED | EXPERIMENTAL | total `1:1`/`1:N`/`N:1`/`N:M` target-to-standalone ledger with route references and readiness fields | I0.3-A/B source-only slices emit and validate every target route exactly once: 4,885 equivalent `1:1`, 749 delta-review `1:1` (including 14 compatibility/signature aliases), 31 reviewed `N:1` domain reductions, four reviewed `1:N` splits, zero `1:0` target debt, and 68 standalone-only compatibility extensions. Ordered DXF raw-classifier domains retain exact interval holes and source values; the fallback maps to the standalone fallback; no N:M alias is invented without a reviewed non-overlap proof. Every row has owner paths, implementation/disposition, dependencies, smallest fast gate, fixture policy, and unblock condition. Mapping self-test, pinned `--check`, provenance, source/policy gates pass; no drawing payloads; unblocks I0.4 |
-| I0.3a | I0 / S18 | WP8; target test/oracle metadata registry | I0.2a | READY | EXPERIMENTAL | locked path/blob/target metadata for target CMake/filter test sources, classified portable/LibreCAD-only/fixture-blocked/external-advisory | exclude all DXF/DWG testdata bytes; link each feature row to its eligible runtime or oracle route without treating tests as support proof; unblocks I0.4 |
+| I0.3a | I0 / S18 | WP8; target test/oracle metadata registry | I0.2a | COMMITTED | EXPERIMENTAL | locked path/blob/target metadata for target CMake/filter test sources, classified portable/LibreCAD-only/fixture-blocked/external-advisory | `metadata/parity-test-oracles-v1.json` locks 86 source/manifest/oracle entries at `3c7785e`; five routes are explicitly non-support-promoting, 76 façade/category selectors are covered, fixture-blocked and external entries remain named without copying target drawing bytes, and `check_parity_test_oracles.py --self-test` plus pinned registry/mapping checks pass; no drawing payloads; unblocks I0.4 |
 | I0.4 | I0 / S18 | WP8, parity inventory gate | I0.3, I0.3a | PLANNED | EXPERIMENTAL | deterministic generator/checker and aggregate inventory gate | two clean runs are byte-identical; require 85/85 source-unit classifications, no unowned/dangling dispatch-callback-writer-raw edge, no unmapped/duplicate target route after alias reconciliation, and deterministic rejection tests; build/scope/sync/fixture/plan/diff gates pass; no drawing bytes; closes S18 and unblocks S19 |
 | I1.1 | I1 / S19 | WP8.8-WP8.9; comparison schema | I0 | PLANNED | EXPERIMENTAL | versioned normalized semantic/callback/carrier/error/byte-delta schema | define order, handles/graphs, floats, text/codepages, diagnostics, opaque hashes, exact-replay bytes, provenance, tool versions, and classification rules; unblocks I1.2/I1.3 |
 | I1.2 | I1 / S19 | WP4, WP5, WP7; runners | I1.1 | PLANNED | EXPERIMENTAL | pinned-target and standalone façade runners with identical options | provide `dwgRW` read/write and `dxfRW` read/write adapters using in-memory/local-from-scratch inputs; external paths remain runtime-only and outputs are non-reconstructive; unblocks I1.4 |

@@ -1,0 +1,1991 @@
+{
+  "schema": 1,
+  "kind": "librecad-parity-test-oracle-registry",
+  "target": {
+    "repository": "git@github.com-librecad:LibreCAD/LibreCAD.git",
+    "commit": "3c7785ebbcbfc8f3c8f79dbba093aff09cdec753"
+  },
+  "fixturePolicy": "no-drawing-payloads; source-and-metadata-only",
+  "routes": [
+    {
+      "id": "oracle:dwg-fast",
+      "kind": "fast-runtime",
+      "testTargets": [
+        "libdxfrw_dwg_fast_tests"
+      ],
+      "entryIds": [
+        "source-0003",
+        "source-0016",
+        "source-0017",
+        "source-0018",
+        "source-0019",
+        "source-0022",
+        "source-0024",
+        "source-0026",
+        "source-0027",
+        "source-0029",
+        "source-0030"
+      ],
+      "promotesSupport": false
+    },
+    {
+      "id": "oracle:dxf-fast",
+      "kind": "fast-runtime",
+      "testTargets": [
+        "libdxfrw_dxf_fast_tests"
+      ],
+      "entryIds": [
+        "source-0004",
+        "source-0006",
+        "source-0007",
+        "source-0012",
+        "source-0015",
+        "source-0020",
+        "source-0021",
+        "source-0023",
+        "source-0025",
+        "source-0028",
+        "source-0035",
+        "source-0036",
+        "source-0038",
+        "source-0040",
+        "source-0041",
+        "source-0042",
+        "source-0043",
+        "source-0045",
+        "source-0046",
+        "source-0048",
+        "source-0051",
+        "source-0052",
+        "source-0053",
+        "source-0054",
+        "source-0055",
+        "source-0056",
+        "source-0058",
+        "source-0059",
+        "source-0060",
+        "source-0061",
+        "source-0062",
+        "source-0063",
+        "source-0064",
+        "source-0066",
+        "source-0068",
+        "source-0070",
+        "source-0073",
+        "source-0075"
+      ],
+      "promotesSupport": false
+    },
+    {
+      "id": "oracle:external-advisory",
+      "kind": "external-advisory",
+      "testTargets": [],
+      "entryIds": [
+        "source-0078",
+        "source-0079",
+        "source-0080",
+        "source-0081",
+        "source-0082",
+        "source-0083",
+        "source-0084",
+        "source-0085",
+        "source-0086"
+      ],
+      "promotesSupport": false
+    },
+    {
+      "id": "oracle:shared-fast",
+      "kind": "fast-runtime",
+      "testTargets": [
+        "libdxfrw_fast_tests"
+      ],
+      "entryIds": [
+        "source-0005",
+        "source-0011",
+        "source-0065",
+        "source-0074",
+        "source-0076"
+      ],
+      "promotesSupport": false
+    },
+    {
+      "id": "oracle:source-lexical",
+      "kind": "source-only",
+      "testTargets": [],
+      "entryIds": [
+        "source-0001",
+        "source-0002"
+      ],
+      "promotesSupport": false
+    }
+  ],
+  "entries": [
+    {
+      "id": "source-0001",
+      "path": "CMakeLists.txt",
+      "mode": "100644",
+      "blob": "d962512c81f1927490c54174c10d12090795c7aa",
+      "classification": "portable",
+      "role": "test-manifest",
+      "registeredTargets": [
+        "libdxfrw_dwg_fast_tests",
+        "libdxfrw_dxf_fast_tests",
+        "libdxfrw_fast_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0002",
+      "path": "libraries/libdxfrw/CMakeLists.txt",
+      "mode": "100644",
+      "blob": "37b17fe08d2b1f14b3f5eec9d161f7eb5357381c",
+      "classification": "portable",
+      "role": "test-manifest",
+      "registeredTargets": [
+        "libdxfrw_dwg_fast_tests",
+        "libdxfrw_dxf_fast_tests",
+        "libdxfrw_fast_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0003",
+      "path": "libraries/libdxfrw/tests/fuzz/fuzz_dwg_read.cpp",
+      "mode": "100644",
+      "blob": "881987e52327a29d309d6c476b7f8ab1628f3ab6",
+      "classification": "external-advisory",
+      "role": "dwg-runtime-oracle",
+      "registeredTargets": [],
+      "fixtureDisposition": "external-only"
+    },
+    {
+      "id": "source-0004",
+      "path": "libraries/libdxfrw/tests/fuzz/fuzz_dxf_read.cpp",
+      "mode": "100644",
+      "blob": "19639f2ea69ba8a1a322f031c95524c6ef08cd60",
+      "classification": "portable",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0005",
+      "path": "libraries/libdxfrw/tests/fuzz/fuzz_null_interface.h",
+      "mode": "100644",
+      "blob": "879027e8a9b4140b8a4198cfa3ff6fb685d60b63",
+      "classification": "portable",
+      "role": "shared-runtime-oracle",
+      "registeredTargets": [],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0006",
+      "path": "librecad/src/lib/filters/tests/acad_table_tests.cpp",
+      "mode": "100644",
+      "blob": "3470bf57c35f54017b8581d86212c9e5e4f27de1",
+      "classification": "LibreCAD-only",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0007",
+      "path": "librecad/src/lib/filters/tests/acis_wireframe_tests.cpp",
+      "mode": "100644",
+      "blob": "a2dc71dbd8894979a3c6aaaa58d8abd979356ef1",
+      "classification": "LibreCAD-only",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0008",
+      "path": "librecad/src/lib/filters/tests/acsh_shapes_tests.cpp",
+      "mode": "100644",
+      "blob": "a2d223a2fec7bf48bf9b9de578fa3f03ce778378",
+      "classification": "fixture-blocked",
+      "role": "dwg-runtime-oracle",
+      "registeredTargets": [
+        "libdxfrw_acsh_shapes_tests",
+        "libdxfrw_dwg_fast_tests"
+      ],
+      "fixtureDisposition": "requires-admitted-fixture"
+    },
+    {
+      "id": "source-0009",
+      "path": "librecad/src/lib/filters/tests/acsh_tests.cpp",
+      "mode": "100644",
+      "blob": "b3d943dc92ceb2f0cd15bab00848c5fd99186b19",
+      "classification": "fixture-blocked",
+      "role": "dwg-runtime-oracle",
+      "registeredTargets": [
+        "libdxfrw_acsh_tests",
+        "libdxfrw_dwg_fast_tests"
+      ],
+      "fixtureDisposition": "requires-admitted-fixture"
+    },
+    {
+      "id": "source-0010",
+      "path": "librecad/src/lib/filters/tests/assoc_tests.cpp",
+      "mode": "100644",
+      "blob": "60f7eca0c73fde770e79839718711e58193284c7",
+      "classification": "fixture-blocked",
+      "role": "dwg-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "requires-admitted-fixture"
+    },
+    {
+      "id": "source-0011",
+      "path": "librecad/src/lib/filters/tests/block_insert_wipeout_tests.cpp",
+      "mode": "100644",
+      "blob": "e51e3d8772ee6b8db257012954e93af44eb03d37",
+      "classification": "LibreCAD-only",
+      "role": "shared-runtime-oracle",
+      "registeredTargets": [
+        "libdxfrw_fast_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0012",
+      "path": "librecad/src/lib/filters/tests/byte_identity_harness.cpp",
+      "mode": "100644",
+      "blob": "c63be38d09372c0e41319f95d926cb29fc2427a7",
+      "classification": "LibreCAD-only",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0013",
+      "path": "librecad/src/lib/filters/tests/datastorage_tests.cpp",
+      "mode": "100644",
+      "blob": "1e0ad63b8f2a5db31e557474708cbbf5df41cfe4",
+      "classification": "fixture-blocked",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "requires-admitted-fixture"
+    },
+    {
+      "id": "source-0014",
+      "path": "librecad/src/lib/filters/tests/datatable_tests.cpp",
+      "mode": "100644",
+      "blob": "dbea4b284281ca48ac6ec2b26a00f8b67c7b4367",
+      "classification": "fixture-blocked",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "requires-admitted-fixture"
+    },
+    {
+      "id": "source-0015",
+      "path": "librecad/src/lib/filters/tests/dbcolor_tests.cpp",
+      "mode": "100644",
+      "blob": "05f97867edf5c8debcb1c58046dbe6e4dc32f600",
+      "classification": "LibreCAD-only",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0016",
+      "path": "librecad/src/lib/filters/tests/dwg_buffer_round_trip_tests.cpp",
+      "mode": "100644",
+      "blob": "cf3bff7242f3cf570525f5f901cb9be77e846919",
+      "classification": "portable",
+      "role": "dwg-runtime-oracle",
+      "registeredTargets": [
+        "libdxfrw_dwg_buffer_round_trip_tests",
+        "libdxfrw_dwg_fast_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0017",
+      "path": "librecad/src/lib/filters/tests/dwg_class_table_tests.cpp",
+      "mode": "100644",
+      "blob": "547c7da590fbd8b4ba2c75516aba5df43b9d484e",
+      "classification": "LibreCAD-only",
+      "role": "dwg-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0018",
+      "path": "librecad/src/lib/filters/tests/dwg_decompress18_tests.cpp",
+      "mode": "100644",
+      "blob": "0794014f717736a1f243d8480bb66d0fc3d5c429",
+      "classification": "portable",
+      "role": "dwg-runtime-oracle",
+      "registeredTargets": [
+        "libdxfrw_dwg_decompress18_tests",
+        "libdxfrw_dwg_fast_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0019",
+      "path": "librecad/src/lib/filters/tests/dwg_entity_encode_round_trip_tests.cpp",
+      "mode": "100644",
+      "blob": "32a5b1c6f5f3861f6c7fc0ef3d4d43250b42f25b",
+      "classification": "portable",
+      "role": "dwg-runtime-oracle",
+      "registeredTargets": [
+        "libdxfrw_dwg_entity_encode_round_trip_tests",
+        "libdxfrw_dwg_fast_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0020",
+      "path": "librecad/src/lib/filters/tests/dwg_gui_import_repro_tests.cpp",
+      "mode": "100644",
+      "blob": "5f84b81a17204face40e92036f50c6eb8457368c",
+      "classification": "LibreCAD-only",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0021",
+      "path": "librecad/src/lib/filters/tests/dwg_handle_stream_tests.cpp",
+      "mode": "100644",
+      "blob": "34bb9c5c039cf73e4a1367942cc7a27377a5da69",
+      "classification": "LibreCAD-only",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0022",
+      "path": "librecad/src/lib/filters/tests/dwg_handseed_tests.cpp",
+      "mode": "100644",
+      "blob": "bd77882b96add96c54fcad434a82c58ea3464d1b",
+      "classification": "portable",
+      "role": "dwg-runtime-oracle",
+      "registeredTargets": [
+        "libdxfrw_dwg_fast_tests",
+        "libdxfrw_dwg_handseed_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0023",
+      "path": "librecad/src/lib/filters/tests/dwg_header_app_vars_tests.cpp",
+      "mode": "100644",
+      "blob": "aafbc41a925f1d4967eb7d3f5546b06245533754",
+      "classification": "LibreCAD-only",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0024",
+      "path": "librecad/src/lib/filters/tests/dwg_header_encode_round_trip_tests.cpp",
+      "mode": "100644",
+      "blob": "f4e01e16823a11da000c796163e862be0ef604c5",
+      "classification": "portable",
+      "role": "dwg-runtime-oracle",
+      "registeredTargets": [
+        "libdxfrw_dwg_fast_tests",
+        "libdxfrw_dwg_header_encode_round_trip_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0025",
+      "path": "librecad/src/lib/filters/tests/dwg_layout_validation_tests.cpp",
+      "mode": "100644",
+      "blob": "71a706b2f2466593c23f936862fd09787dacf3db",
+      "classification": "LibreCAD-only",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0026",
+      "path": "librecad/src/lib/filters/tests/dwg_object_encode_round_trip_tests.cpp",
+      "mode": "100644",
+      "blob": "6ca5aea6281a2799d6301d3e6dedfcbec1ff3b6e",
+      "classification": "portable",
+      "role": "dwg-runtime-oracle",
+      "registeredTargets": [
+        "libdxfrw_dwg_fast_tests",
+        "libdxfrw_dwg_object_encode_round_trip_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0027",
+      "path": "librecad/src/lib/filters/tests/dwg_object_frame_tests.cpp",
+      "mode": "100644",
+      "blob": "bcf50019fb8193fb11da7d6db3e60f1029b0946e",
+      "classification": "portable",
+      "role": "dwg-runtime-oracle",
+      "registeredTargets": [
+        "libdxfrw_dwg_fast_tests",
+        "libdxfrw_dwg_object_frame_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0028",
+      "path": "librecad/src/lib/filters/tests/dwg_pre_r13_codepage_tests.cpp",
+      "mode": "100644",
+      "blob": "39942341203c4fe5199bb779481f5ca1ece26a56",
+      "classification": "LibreCAD-only",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0029",
+      "path": "librecad/src/lib/filters/tests/dwg_pre_r13_record_layout_tests.cpp",
+      "mode": "100644",
+      "blob": "9ddca3e31768784a45a5cbe039d2c27a606964e3",
+      "classification": "LibreCAD-only",
+      "role": "dwg-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0030",
+      "path": "librecad/src/lib/filters/tests/dwg_pre_r13_section_size_tests.cpp",
+      "mode": "100644",
+      "blob": "b6780f5770dc792a7381ab7c544c93fb3f662b92",
+      "classification": "LibreCAD-only",
+      "role": "dwg-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0031",
+      "path": "librecad/src/lib/filters/tests/dwg_safety_tests.cpp",
+      "mode": "100644",
+      "blob": "3cd4775acded9d64f2b9ad241bbbd384a4063e95",
+      "classification": "fixture-blocked",
+      "role": "dwg-runtime-oracle",
+      "registeredTargets": [
+        "libdxfrw_dwg_fast_tests",
+        "libdxfrw_dwg_safety_tests"
+      ],
+      "fixtureDisposition": "requires-admitted-fixture"
+    },
+    {
+      "id": "source-0032",
+      "path": "librecad/src/lib/filters/tests/dwg_smoke_tests.cpp",
+      "mode": "100644",
+      "blob": "d1ebb9e1d354a500d94357e98a17122efc90aaca",
+      "classification": "fixture-blocked",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "requires-admitted-fixture"
+    },
+    {
+      "id": "source-0033",
+      "path": "librecad/src/lib/filters/tests/dwg_tarch_standalone.cpp",
+      "mode": "100644",
+      "blob": "f80914257e1ada9440d2c3769196f62b38774e3d",
+      "classification": "fixture-blocked",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "requires-admitted-fixture"
+    },
+    {
+      "id": "source-0034",
+      "path": "librecad/src/lib/filters/tests/dwg_tarch_tests.cpp",
+      "mode": "100644",
+      "blob": "60c830a6571ee0bfcbbb6e9e2fd599dc436aa0e8",
+      "classification": "fixture-blocked",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "requires-admitted-fixture"
+    },
+    {
+      "id": "source-0035",
+      "path": "librecad/src/lib/filters/tests/dwg_textcodec_tables_tests.cpp",
+      "mode": "100644",
+      "blob": "08962a210bdd033de235bcbf71be929a4693d933",
+      "classification": "LibreCAD-only",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0036",
+      "path": "librecad/src/lib/filters/tests/dwg_visibility_read_tests.cpp",
+      "mode": "100644",
+      "blob": "e736e1b1219c1d30c09783c7c3216891afa33ec1",
+      "classification": "LibreCAD-only",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0037",
+      "path": "librecad/src/lib/filters/tests/dwg_write_smoke_tests.cpp",
+      "mode": "100644",
+      "blob": "6dd4289d7acee4e70c17f0954fa54dc043997e8a",
+      "classification": "fixture-blocked",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "requires-admitted-fixture"
+    },
+    {
+      "id": "source-0038",
+      "path": "librecad/src/lib/filters/tests/dxf_attribute_tests.cpp",
+      "mode": "100644",
+      "blob": "fa6b146ab9e351077524a7bfe77651ec1c0c80ff",
+      "classification": "portable",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "libdxfrw_dxf_attribute_tests",
+        "libdxfrw_dxf_fast_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0039",
+      "path": "librecad/src/lib/filters/tests/dxf_cjk_codepage_tests.cpp",
+      "mode": "100644",
+      "blob": "b25eb9d550af6f80b469dd975ef0624209f7d731",
+      "classification": "fixture-blocked",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "requires-admitted-fixture"
+    },
+    {
+      "id": "source-0040",
+      "path": "librecad/src/lib/filters/tests/dxf_corpus_tests.cpp",
+      "mode": "100644",
+      "blob": "d425fffe3d01918b153243e211d92046c5f0a5b4",
+      "classification": "LibreCAD-only",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0041",
+      "path": "librecad/src/lib/filters/tests/dxf_layer0_declared_tests.cpp",
+      "mode": "100644",
+      "blob": "afd55425074a3f9e52d0a38fabecfad344757364",
+      "classification": "LibreCAD-only",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0042",
+      "path": "librecad/src/lib/filters/tests/dxf_line_width_mapping_tests.cpp",
+      "mode": "100644",
+      "blob": "c7f9a7881768c3f37645d066c818e88505629ed3",
+      "classification": "LibreCAD-only",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0043",
+      "path": "librecad/src/lib/filters/tests/dxf_object_tests.cpp",
+      "mode": "100644",
+      "blob": "44f30c2f746ea0186f611b2dbf8d5e6cd0b9019f",
+      "classification": "portable",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "libdxfrw_dxf_fast_tests",
+        "libdxfrw_dxf_object_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0044",
+      "path": "librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp",
+      "mode": "100644",
+      "blob": "83bc8f73bf167e3bc2532181f9fbe53d12a1998c",
+      "classification": "fixture-blocked",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "requires-admitted-fixture"
+    },
+    {
+      "id": "source-0045",
+      "path": "librecad/src/lib/filters/tests/dxf_string_codec_tests.cpp",
+      "mode": "100644",
+      "blob": "942a62c2d89cb181bd0a7c6e7b5490291f30e790",
+      "classification": "LibreCAD-only",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0046",
+      "path": "librecad/src/lib/filters/tests/dxf_unknown_version_tests.cpp",
+      "mode": "100644",
+      "blob": "7d79ce7b3dec9ac89e8c50bca7eb6e2759780a68",
+      "classification": "LibreCAD-only",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0047",
+      "path": "librecad/src/lib/filters/tests/dynblock_tests.cpp",
+      "mode": "100644",
+      "blob": "74b322c075b0b7f12cdffc68068e2a77183956dc",
+      "classification": "fixture-blocked",
+      "role": "dwg-runtime-oracle",
+      "registeredTargets": [
+        "libdxfrw_dwg_fast_tests",
+        "libdxfrw_dynblock_tests"
+      ],
+      "fixtureDisposition": "requires-admitted-fixture"
+    },
+    {
+      "id": "source-0048",
+      "path": "librecad/src/lib/filters/tests/eed_tests.cpp",
+      "mode": "100644",
+      "blob": "8e3dd16b6c3f198715e5f2efff77415ed859aaf2",
+      "classification": "LibreCAD-only",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0049",
+      "path": "librecad/src/lib/filters/tests/entity_metadata_tests.cpp",
+      "mode": "100644",
+      "blob": "ea824b5bf98d25423df72c0218e92b3f7d821527",
+      "classification": "fixture-blocked",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "requires-admitted-fixture"
+    },
+    {
+      "id": "source-0050",
+      "path": "librecad/src/lib/filters/tests/evalgraph_tests.cpp",
+      "mode": "100644",
+      "blob": "acd58c40b8e205e7c8ca1912c5c626932a53d3ee",
+      "classification": "fixture-blocked",
+      "role": "dwg-runtime-oracle",
+      "registeredTargets": [
+        "libdxfrw_dwg_fast_tests",
+        "libdxfrw_evalgraph_tests"
+      ],
+      "fixtureDisposition": "requires-admitted-fixture"
+    },
+    {
+      "id": "source-0051",
+      "path": "librecad/src/lib/filters/tests/family_exposure_tests.cpp",
+      "mode": "100644",
+      "blob": "f86a4e42a7d9d4337cdfa6b07880b9aff4a17f07",
+      "classification": "LibreCAD-only",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0052",
+      "path": "librecad/src/lib/filters/tests/field_dxf_tests.cpp",
+      "mode": "100644",
+      "blob": "f482f357a9953a954c3a3a85548e3711f62123f7",
+      "classification": "portable",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "libdxfrw_dxf_fast_tests",
+        "libdxfrw_field_dxf_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0053",
+      "path": "librecad/src/lib/filters/tests/helix_tests.cpp",
+      "mode": "100644",
+      "blob": "45ddadfd5aa6cf9f8d535a2b23e4256105043267",
+      "classification": "LibreCAD-only",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0054",
+      "path": "librecad/src/lib/filters/tests/i18n_caret_nfc_tests.cpp",
+      "mode": "100644",
+      "blob": "1d6ac33b646964d407b3ba7de1a5c4e779530057",
+      "classification": "LibreCAD-only",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0055",
+      "path": "librecad/src/lib/filters/tests/i18n_codec_tests.cpp",
+      "mode": "100644",
+      "blob": "741ab840fb73351bad4027d9f6709bcfe8a5dd79",
+      "classification": "LibreCAD-only",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0056",
+      "path": "librecad/src/lib/filters/tests/insert_zscale_tests.cpp",
+      "mode": "100644",
+      "blob": "f7e9ef9defee86676fb5c8e88e320e4c9b01d96a",
+      "classification": "LibreCAD-only",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0057",
+      "path": "librecad/src/lib/filters/tests/large_radial_dim_dwg_tests.cpp",
+      "mode": "100644",
+      "blob": "e2da04489e9d156221fc35b3c131267bf2d92c45",
+      "classification": "fixture-blocked",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "requires-admitted-fixture"
+    },
+    {
+      "id": "source-0058",
+      "path": "librecad/src/lib/filters/tests/large_radial_dim_dxf_tests.cpp",
+      "mode": "100644",
+      "blob": "2e532f519527ca2456208b045cb430539b4c941a",
+      "classification": "LibreCAD-only",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0059",
+      "path": "librecad/src/lib/filters/tests/libdxfrw_debug_tests.cpp",
+      "mode": "100644",
+      "blob": "146cb463e9f6f240915340c4edcd47588a2aeb15",
+      "classification": "LibreCAD-only",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0060",
+      "path": "librecad/src/lib/filters/tests/libdxfrw_json_dump.cpp",
+      "mode": "100644",
+      "blob": "d9ab8af1fed579c70ddebf9e030a56d1a2a04f46",
+      "classification": "LibreCAD-only",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0061",
+      "path": "librecad/src/lib/filters/tests/libdxfrw_json_dump.h",
+      "mode": "100644",
+      "blob": "85418af8a188e7d15f593c46fc927f2a9396c099",
+      "classification": "LibreCAD-only",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0062",
+      "path": "librecad/src/lib/filters/tests/libdxfrw_qt_free_tests.cpp",
+      "mode": "100644",
+      "blob": "3e86a22d29ee7a6df1713587b60fac04247ab558",
+      "classification": "LibreCAD-only",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0063",
+      "path": "librecad/src/lib/filters/tests/mesh_tests.cpp",
+      "mode": "100644",
+      "blob": "36ce818fbd1fefc6027414bb26927861b8bd8199",
+      "classification": "portable",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "libdxfrw_dxf_fast_tests",
+        "libdxfrw_mesh_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0064",
+      "path": "librecad/src/lib/filters/tests/mleader_dxf_context_tests.cpp",
+      "mode": "100644",
+      "blob": "fe2317db8fccb3a922f81f4895fdd709c69abae2",
+      "classification": "portable",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "libdxfrw_dxf_fast_tests",
+        "libdxfrw_mleader_dxf_context_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0065",
+      "path": "librecad/src/lib/filters/tests/mleader_text_tests.cpp",
+      "mode": "100644",
+      "blob": "acbd65f265f5e77125cdab2ddad278859d1e41d4",
+      "classification": "LibreCAD-only",
+      "role": "shared-runtime-oracle",
+      "registeredTargets": [
+        "libdxfrw_fast_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0066",
+      "path": "librecad/src/lib/filters/tests/mline_tests.cpp",
+      "mode": "100644",
+      "blob": "7c8f91c7a32ac80080cb8e76e816dd6f70060cf3",
+      "classification": "LibreCAD-only",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0067",
+      "path": "librecad/src/lib/filters/tests/mpolygon_dwg_tests.cpp",
+      "mode": "100644",
+      "blob": "a7b8607520abc590ad54208bfa597b0362169a2e",
+      "classification": "fixture-blocked",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "requires-admitted-fixture"
+    },
+    {
+      "id": "source-0068",
+      "path": "librecad/src/lib/filters/tests/mpolygon_tests.cpp",
+      "mode": "100644",
+      "blob": "de1ef3d677865202fc5397ff55b79b3880d286c6",
+      "classification": "LibreCAD-only",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0069",
+      "path": "librecad/src/lib/filters/tests/objectcontext_leader_tests.cpp",
+      "mode": "100644",
+      "blob": "bcc6e7bd61a0c84aabfe058de7b0c4ba21c166f7",
+      "classification": "fixture-blocked",
+      "role": "dwg-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "requires-admitted-fixture"
+    },
+    {
+      "id": "source-0070",
+      "path": "librecad/src/lib/filters/tests/rs_graphic_layouts_tests.cpp",
+      "mode": "100644",
+      "blob": "2d212be0e8cf89e2117da009a14b3c2998950b73",
+      "classification": "LibreCAD-only",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0071",
+      "path": "librecad/src/lib/filters/tests/rtext_arctext_tests.cpp",
+      "mode": "100644",
+      "blob": "48c3368ff031fbab9f57d3eb9b055ad017461dce",
+      "classification": "fixture-blocked",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "requires-admitted-fixture"
+    },
+    {
+      "id": "source-0072",
+      "path": "librecad/src/lib/filters/tests/section_object_tests.cpp",
+      "mode": "100644",
+      "blob": "58e8f4f2cca4e779e7e48b5f74a67d8bbc29df75",
+      "classification": "fixture-blocked",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "requires-admitted-fixture"
+    },
+    {
+      "id": "source-0073",
+      "path": "librecad/src/lib/filters/tests/shp_import_filter_tests.cpp",
+      "mode": "100644",
+      "blob": "8fb3561c3dda4594d6a7d28f8010fe7fb387c4c1",
+      "classification": "LibreCAD-only",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0074",
+      "path": "librecad/src/lib/filters/tests/shp_shapelib_tests.cpp",
+      "mode": "100644",
+      "blob": "6b6be4319949ae6ce3f2199e840b2bf88c730b8e",
+      "classification": "LibreCAD-only",
+      "role": "shared-runtime-oracle",
+      "registeredTargets": [
+        "libdxfrw_fast_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0075",
+      "path": "librecad/src/lib/filters/tests/underlay_tests.cpp",
+      "mode": "100644",
+      "blob": "29f97f7a05cca1f4d033324f51338d3e699b0154",
+      "classification": "LibreCAD-only",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0076",
+      "path": "librecad/src/lib/filters/tests/verify_phase_c_tags.cmake",
+      "mode": "100644",
+      "blob": "30cc49162d9e5e413b506cf80b49a0a0a3e92b34",
+      "classification": "LibreCAD-only",
+      "role": "shared-runtime-oracle",
+      "registeredTargets": [
+        "libdxfrw_fast_tests"
+      ],
+      "fixtureDisposition": "no-drawing-fixture"
+    },
+    {
+      "id": "source-0077",
+      "path": "librecad/src/lib/filters/tests/visualstyle_dwg_tests.cpp",
+      "mode": "100644",
+      "blob": "d4609763d16eac492ddc271934e0d15c96f91ddc",
+      "classification": "fixture-blocked",
+      "role": "dxf-runtime-oracle",
+      "registeredTargets": [
+        "librecad_tests"
+      ],
+      "fixtureDisposition": "requires-admitted-fixture"
+    },
+    {
+      "id": "source-0078",
+      "path": "scripts/oracle_receipts.py",
+      "mode": "100644",
+      "blob": "461caf775697d2582a9ae95cdc678bc33ba09363",
+      "classification": "external-advisory",
+      "role": "external-oracle-receipt",
+      "registeredTargets": [],
+      "fixtureDisposition": "external-only"
+    },
+    {
+      "id": "source-0079",
+      "path": "scripts/test_external_oracle_receipts.py",
+      "mode": "100644",
+      "blob": "7e78b280a659caaf5a923f4108880ef64f07df81",
+      "classification": "external-advisory",
+      "role": "external-oracle-receipt",
+      "registeredTargets": [],
+      "fixtureDisposition": "external-only"
+    },
+    {
+      "id": "source-0080",
+      "path": "tests/fixtures/fixture_manifest.json",
+      "mode": "100644",
+      "blob": "e293c50ace488e12737e56c9b1ab3f3645a87e28",
+      "classification": "fixture-blocked",
+      "role": "external-oracle-receipt",
+      "registeredTargets": [],
+      "fixtureDisposition": "requires-admitted-fixture"
+    },
+    {
+      "id": "source-0081",
+      "path": "tests/fixtures/oracles.json",
+      "mode": "100644",
+      "blob": "6a616cd808419cf6288baff6564d4e5e7680e5b0",
+      "classification": "external-advisory",
+      "role": "external-oracle-receipt",
+      "registeredTargets": [],
+      "fixtureDisposition": "external-only"
+    },
+    {
+      "id": "source-0082",
+      "path": "tests/fixtures/schemas/audit.schema.json",
+      "mode": "100644",
+      "blob": "2a7c54f8837ab676d8e8638048a874ac474c18e2",
+      "classification": "external-advisory",
+      "role": "external-oracle-receipt",
+      "registeredTargets": [],
+      "fixtureDisposition": "external-only"
+    },
+    {
+      "id": "source-0083",
+      "path": "tests/fixtures/schemas/audit_diff.schema.json",
+      "mode": "100644",
+      "blob": "096bbf7354f045270eee1f4c87d826161375fbef",
+      "classification": "external-advisory",
+      "role": "external-oracle-receipt",
+      "registeredTargets": [],
+      "fixtureDisposition": "external-only"
+    },
+    {
+      "id": "source-0084",
+      "path": "tests/fixtures/schemas/fixture_manifest.schema.json",
+      "mode": "100644",
+      "blob": "fa3793b395456d153a6405b51082309f2aee1a6c",
+      "classification": "external-advisory",
+      "role": "external-oracle-receipt",
+      "registeredTargets": [],
+      "fixtureDisposition": "external-only"
+    },
+    {
+      "id": "source-0085",
+      "path": "tests/fixtures/schemas/oracle_receipt.schema.json",
+      "mode": "100644",
+      "blob": "53b785ae505d2f1d2e7cc088bd8719ba5f150877",
+      "classification": "external-advisory",
+      "role": "external-oracle-receipt",
+      "registeredTargets": [],
+      "fixtureDisposition": "external-only"
+    },
+    {
+      "id": "source-0086",
+      "path": "tests/fixtures/schemas/oracles.schema.json",
+      "mode": "100644",
+      "blob": "022492786b037c7fea680616d703c2fc7e880347",
+      "classification": "external-advisory",
+      "role": "external-oracle-receipt",
+      "registeredTargets": [],
+      "fixtureDisposition": "external-only"
+    }
+  ],
+  "featureLinks": [
+    {
+      "selector": {
+        "facade": "dwgRW",
+        "category": "facade-method"
+      },
+      "oracleRouteIds": [
+        "oracle:dwg-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dwgRW",
+        "category": "fixed-entity"
+      },
+      "oracleRouteIds": [
+        "oracle:dwg-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dwgRW",
+        "category": "fixed-object"
+      },
+      "oracleRouteIds": [
+        "oracle:dwg-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dwgRW",
+        "category": "legacy-dwgr-facade"
+      },
+      "oracleRouteIds": [
+        "oracle:dwg-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dwgRW",
+        "category": "named-class-predicate"
+      },
+      "oracleRouteIds": [
+        "oracle:dwg-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dwgRW",
+        "category": "named-entity-class"
+      },
+      "oracleRouteIds": [
+        "oracle:dwg-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dwgRW",
+        "category": "named-object-class"
+      },
+      "oracleRouteIds": [
+        "oracle:dwg-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dwgRW",
+        "category": "object-context-class"
+      },
+      "oracleRouteIds": [
+        "oracle:dwg-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dwgRW",
+        "category": "parser-publication"
+      },
+      "oracleRouteIds": [
+        "oracle:dwg-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dwgRW",
+        "category": "public-alias"
+      },
+      "oracleRouteIds": [
+        "oracle:dwg-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dwgRW",
+        "category": "public-enum"
+      },
+      "oracleRouteIds": [
+        "oracle:dwg-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dwgRW",
+        "category": "public-header"
+      },
+      "oracleRouteIds": [
+        "oracle:dwg-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dwgRW",
+        "category": "public-inline-method"
+      },
+      "oracleRouteIds": [
+        "oracle:dwg-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dwgRW",
+        "category": "public-method"
+      },
+      "oracleRouteIds": [
+        "oracle:dwg-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dwgRW",
+        "category": "public-type"
+      },
+      "oracleRouteIds": [
+        "oracle:dwg-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dwgRW",
+        "category": "raw-custom-shell"
+      },
+      "oracleRouteIds": [
+        "oracle:dwg-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dwgRW",
+        "category": "raw-entity-shell"
+      },
+      "oracleRouteIds": [
+        "oracle:dwg-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dwgRW",
+        "category": "raw-flow"
+      },
+      "oracleRouteIds": [
+        "oracle:dwg-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dwgRW",
+        "category": "raw-object-shell"
+      },
+      "oracleRouteIds": [
+        "oracle:dwg-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dwgRW",
+        "category": "raw-route"
+      },
+      "oracleRouteIds": [
+        "oracle:dwg-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dwgRW",
+        "category": "reader-pipeline"
+      },
+      "oracleRouteIds": [
+        "oracle:dwg-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dwgRW",
+        "category": "reader-stage"
+      },
+      "oracleRouteIds": [
+        "oracle:dwg-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dwgRW",
+        "category": "reader-version"
+      },
+      "oracleRouteIds": [
+        "oracle:dwg-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dwgRW",
+        "category": "section"
+      },
+      "oracleRouteIds": [
+        "oracle:dwg-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dwgRW",
+        "category": "section-declaration"
+      },
+      "oracleRouteIds": [
+        "oracle:dwg-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dwgRW",
+        "category": "section-fallback"
+      },
+      "oracleRouteIds": [
+        "oracle:dwg-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dwgRW",
+        "category": "table-descriptor"
+      },
+      "oracleRouteIds": [
+        "oracle:dwg-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dwgRW",
+        "category": "writer-binding"
+      },
+      "oracleRouteIds": [
+        "oracle:dwg-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dwgRW",
+        "category": "writer-entrypoint"
+      },
+      "oracleRouteIds": [
+        "oracle:dwg-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dwgRW",
+        "category": "writer-pipeline"
+      },
+      "oracleRouteIds": [
+        "oracle:dwg-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dwgRW",
+        "category": "writer-version"
+      },
+      "oracleRouteIds": [
+        "oracle:dwg-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dxfRW",
+        "category": "dxf-block"
+      },
+      "oracleRouteIds": [
+        "oracle:dxf-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dxfRW",
+        "category": "dxf-class"
+      },
+      "oracleRouteIds": [
+        "oracle:dxf-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dxfRW",
+        "category": "dxf-class-required-group"
+      },
+      "oracleRouteIds": [
+        "oracle:dxf-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dxfRW",
+        "category": "dxf-entity"
+      },
+      "oracleRouteIds": [
+        "oracle:dxf-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dxfRW",
+        "category": "dxf-entity-dispatch-branch"
+      },
+      "oracleRouteIds": [
+        "oracle:dxf-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dxfRW",
+        "category": "dxf-object"
+      },
+      "oracleRouteIds": [
+        "oracle:dxf-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dxfRW",
+        "category": "dxf-object-dispatch-branch"
+      },
+      "oracleRouteIds": [
+        "oracle:dxf-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dxfRW",
+        "category": "dxf-object-predicate"
+      },
+      "oracleRouteIds": [
+        "oracle:dxf-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dxfRW",
+        "category": "dxf-section"
+      },
+      "oracleRouteIds": [
+        "oracle:dxf-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dxfRW",
+        "category": "dxf-section-dispatch-branch"
+      },
+      "oracleRouteIds": [
+        "oracle:dxf-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dxfRW",
+        "category": "dxf-table"
+      },
+      "oracleRouteIds": [
+        "oracle:dxf-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dxfRW",
+        "category": "dxf-table-dispatch-branch"
+      },
+      "oracleRouteIds": [
+        "oracle:dxf-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dxfRW",
+        "category": "dxf-transport-node"
+      },
+      "oracleRouteIds": [
+        "oracle:dxf-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dxfRW",
+        "category": "facade-method"
+      },
+      "oracleRouteIds": [
+        "oracle:dxf-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dxfRW",
+        "category": "group-code-raw-classifier"
+      },
+      "oracleRouteIds": [
+        "oracle:dxf-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dxfRW",
+        "category": "group-code-raw-rule"
+      },
+      "oracleRouteIds": [
+        "oracle:dxf-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dxfRW",
+        "category": "group-code-reader-range"
+      },
+      "oracleRouteIds": [
+        "oracle:dxf-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dxfRW",
+        "category": "parser-publication"
+      },
+      "oracleRouteIds": [
+        "oracle:dxf-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dxfRW",
+        "category": "public-header"
+      },
+      "oracleRouteIds": [
+        "oracle:dxf-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dxfRW",
+        "category": "public-inline-method"
+      },
+      "oracleRouteIds": [
+        "oracle:dxf-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dxfRW",
+        "category": "public-method"
+      },
+      "oracleRouteIds": [
+        "oracle:dxf-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dxfRW",
+        "category": "public-type"
+      },
+      "oracleRouteIds": [
+        "oracle:dxf-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dxfRW",
+        "category": "raw-flow"
+      },
+      "oracleRouteIds": [
+        "oracle:dxf-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dxfRW",
+        "category": "raw-route"
+      },
+      "oracleRouteIds": [
+        "oracle:dxf-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dxfRW",
+        "category": "writer-entrypoint"
+      },
+      "oracleRouteIds": [
+        "oracle:dxf-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "dxfRW",
+        "category": "writer-version"
+      },
+      "oracleRouteIds": [
+        "oracle:dxf-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "shared",
+        "category": "callback"
+      },
+      "oracleRouteIds": [
+        "oracle:shared-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "shared",
+        "category": "dwg-version-magic"
+      },
+      "oracleRouteIds": [
+        "oracle:external-advisory"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "shared",
+        "category": "helper-subsystem"
+      },
+      "oracleRouteIds": [
+        "oracle:external-advisory"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "shared",
+        "category": "implementation-anchor"
+      },
+      "oracleRouteIds": [
+        "oracle:source-lexical"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "shared",
+        "category": "interface-method"
+      },
+      "oracleRouteIds": [
+        "oracle:shared-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "shared",
+        "category": "internal-model-codec"
+      },
+      "oracleRouteIds": [
+        "oracle:shared-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "shared",
+        "category": "model-codec"
+      },
+      "oracleRouteIds": [
+        "oracle:shared-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "shared",
+        "category": "pipeline-unit"
+      },
+      "oracleRouteIds": [
+        "oracle:source-lexical"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "shared",
+        "category": "public-enum"
+      },
+      "oracleRouteIds": [
+        "oracle:shared-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "shared",
+        "category": "public-header"
+      },
+      "oracleRouteIds": [
+        "oracle:shared-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "shared",
+        "category": "public-inline-function"
+      },
+      "oracleRouteIds": [
+        "oracle:shared-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "shared",
+        "category": "public-inline-method"
+      },
+      "oracleRouteIds": [
+        "oracle:shared-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "shared",
+        "category": "public-method"
+      },
+      "oracleRouteIds": [
+        "oracle:shared-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "shared",
+        "category": "public-model"
+      },
+      "oracleRouteIds": [
+        "oracle:shared-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "shared",
+        "category": "public-type"
+      },
+      "oracleRouteIds": [
+        "oracle:shared-fast"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "shared",
+        "category": "publication-stage"
+      },
+      "oracleRouteIds": [
+        "oracle:external-advisory"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "shared",
+        "category": "source-unit"
+      },
+      "oracleRouteIds": [
+        "oracle:source-lexical"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "shared",
+        "category": "source-unit-coverage"
+      },
+      "oracleRouteIds": [
+        "oracle:source-lexical"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    },
+    {
+      "selector": {
+        "facade": "shared",
+        "category": "version"
+      },
+      "oracleRouteIds": [
+        "oracle:external-advisory"
+      ],
+      "evidenceRole": "execution-oracle-candidate",
+      "promotesSupport": false
+    }
+  ]
+}
