@@ -1202,6 +1202,46 @@ DWG_COMPOUND_DELIVERY_ANCHORS = (
     )),
 )
 
+# ``processDwg`` is the reader's public lifecycle boundary.  Stage anchors
+# alone do not prove that the façade invokes them in the required order, that
+# the first failing stage owns the sticky error, or that coverage finalizers
+# run on both normal and exceptional exits.  Keep one ordered, source-bound
+# contract on the representative ``readDwgTables`` stage; the table/block/
+# entity/object stage rows remain individually visible and this common row is
+# deliberately not duplicated across them.
+DWG_READER_LIFECYCLE_RULES = (
+    {"name": "class-coverage-begin", "pattern": r"reader->beginDwgClassCoverage\s*\(\s*\)", "callee": "beginDwgClassCoverage", "calleeOverload": "dwgReader::beginDwgClassCoverage()", "relation": "lifecycle-begin"},
+    {"name": "header-read", "pattern": r"ret\s*=\s*reader->readDwgHeader\s*\(\s*hdr\s*\)", "callee": "readDwgHeader", "calleeOverload": "dwgReader::readDwgHeader(DRW_Header&) const", "relation": "stage-read"},
+    {"name": "header-error-gate", "pattern": r"if\s*\(\s*!ret\s*\)\s*\{[^}]*?error\s*=\s*DRW::BAD_READ_HEADER\s*;", "callee": "BAD_READ_HEADER", "calleeOverload": "sticky-error-gate", "relation": "first-failure"},
+    {"name": "classes-read", "pattern": r"ret2\s*=\s*reader->readDwgClasses\s*\(\s*\)", "callee": "readDwgClasses", "calleeOverload": "dwgReader::readDwgClasses()", "relation": "stage-read"},
+    {"name": "classes-error-gate", "pattern": r"if\s*\(\s*ret\s*&&\s*!ret2\s*\)\s*\{[^}]*?error\s*=\s*DRW::BAD_READ_CLASSES\s*;\s*ret\s*=\s*ret2\s*;", "callee": "BAD_READ_CLASSES", "calleeOverload": "sticky-error-gate", "relation": "first-failure"},
+    {"name": "handles-read", "pattern": r"ret2\s*=\s*reader->readDwgHandles\s*\(\s*\)", "callee": "readDwgHandles", "calleeOverload": "dwgReader::readDwgHandles()", "relation": "stage-read"},
+    {"name": "handles-error-gate", "pattern": r"if\s*\(\s*ret\s*&&\s*!ret2\s*\)\s*\{[^}]*?error\s*=\s*DRW::BAD_READ_HANDLES\s*;\s*ret\s*=\s*ret2\s*;", "callee": "BAD_READ_HANDLES", "calleeOverload": "sticky-error-gate", "relation": "first-failure"},
+    {"name": "tables-read", "pattern": r"ret2\s*=\s*ret\s*&&\s*reader->readDwgTables\s*\(\s*hdr\s*\)", "callee": "readDwgTables", "calleeOverload": "dwgReader::readDwgTables(DRW_Header&)", "relation": "stage-read"},
+    {"name": "tables-error-gate", "pattern": r"if\s*\(\s*ret\s*&&\s*!ret2\s*\)\s*\{[^}]*?error\s*=\s*DRW::BAD_READ_TABLES\s*;\s*ret\s*=\s*ret2\s*;", "callee": "BAD_READ_TABLES", "calleeOverload": "sticky-error-gate", "relation": "first-failure"},
+    {"name": "header-publication", "pattern": r"iface->addHeader\s*\(\s*&hdr\s*\)", "callee": "addHeader", "calleeOverload": "DRW_Interface::addHeader(DRW_Header*)", "relation": "publish"},
+    {"name": "linetype-publication", "pattern": r"iface->addLType\s*\(\s*const_cast<DRW_LType&>\(\*lt\)\s*\)", "callee": "addLType", "calleeOverload": "DRW_Interface::addLType(DRW_LType&)", "relation": "publish"},
+    {"name": "layer-publication", "pattern": r"iface->addLayer\s*\(\s*const_cast<DRW_Layer&>\(\*ly\)\s*\)", "callee": "addLayer", "calleeOverload": "DRW_Interface::addLayer(DRW_Layer&)", "relation": "publish"},
+    {"name": "text-style-publication", "pattern": r"iface->addTextStyle\s*\(\s*const_cast<DRW_Textstyle&>\(\*ly\)\s*\)", "callee": "addTextStyle", "calleeOverload": "DRW_Interface::addTextStyle(DRW_Textstyle&)", "relation": "publish"},
+    {"name": "dimension-style-publication", "pattern": r"iface->addDimStyle\s*\(\s*const_cast<DRW_Dimstyle&>\(\*ly\)\s*\)", "callee": "addDimStyle", "calleeOverload": "DRW_Interface::addDimStyle(DRW_Dimstyle&)", "relation": "publish"},
+    {"name": "viewport-publication", "pattern": r"iface->addVport\s*\(\s*const_cast<DRW_Vport&>\(\*ly\)\s*\)", "callee": "addVport", "calleeOverload": "DRW_Interface::addVport(DRW_Vport&)", "relation": "publish"},
+    {"name": "appid-publication", "pattern": r"iface->addAppId\s*\(\s*const_cast<DRW_AppId&>\(\*ly\)\s*\)", "callee": "addAppId", "calleeOverload": "DRW_Interface::addAppId(DRW_AppId&)", "relation": "publish"},
+    {"name": "view-publication", "pattern": r"iface->addView\s*\(\s*const_cast<DRW_View&>\(\*vw\)\s*\)", "callee": "addView", "calleeOverload": "DRW_Interface::addView(DRW_View&)", "relation": "publish"},
+    {"name": "ucs-publication", "pattern": r"iface->addUCS\s*\(\s*const_cast<DRW_UCS&>\(\*u\)\s*\)", "callee": "addUCS", "calleeOverload": "DRW_Interface::addUCS(DRW_UCS&)", "relation": "publish"},
+    {"name": "deferred-table-publication", "pattern": r"reader->publishDeferredTableFramePublications\s*\(\s*\*iface\s*\)", "callee": "publishDeferredTableFramePublications", "calleeOverload": "dwgReader::publishDeferredTableFramePublications(DRW_Interface&)", "relation": "publish-finalize"},
+    {"name": "blocks-read", "pattern": r"ret2\s*=\s*reader->readDwgBlocks\s*\(\s*\*iface\s*\)", "callee": "readDwgBlocks", "calleeOverload": "dwgReader::readDwgBlocks(DRW_Interface&)", "relation": "stage-read"},
+    {"name": "blocks-error-gate", "pattern": r"if\s*\(\s*ret\s*&&\s*!ret2\s*\)\s*\{[^}]*?error\s*=\s*DRW::BAD_READ_BLOCKS\s*;\s*ret\s*=\s*ret2\s*;", "callee": "BAD_READ_BLOCKS", "calleeOverload": "sticky-error-gate", "relation": "first-failure"},
+    {"name": "entities-read", "pattern": r"ret2\s*=\s*reader->readDwgEntities\s*\(\s*\*iface\s*\)", "callee": "readDwgEntities", "calleeOverload": "dwgReader::readDwgEntities(DRW_Interface&)", "relation": "stage-read"},
+    {"name": "entities-error-gate", "pattern": r"if\s*\(\s*ret\s*&&\s*!ret2\s*\)\s*\{[^}]*?error\s*=\s*DRW::BAD_READ_ENTITIES\s*;\s*ret\s*=\s*ret2\s*;", "callee": "BAD_READ_ENTITIES", "calleeOverload": "sticky-error-gate", "relation": "first-failure"},
+    {"name": "objects-read", "pattern": r"ret2\s*=\s*reader->readDwgObjects\s*\(\s*\*iface\s*\)", "callee": "readDwgObjects", "calleeOverload": "dwgReader::readDwgObjects(DRW_Interface&)", "relation": "stage-read"},
+    {"name": "objects-error-gate", "pattern": r"if\s*\(\s*ret\s*&&\s*!ret2\s*\)\s*\{[^}]*?error\s*=\s*DRW::BAD_READ_OBJECTS\s*;\s*ret\s*=\s*ret2\s*;", "callee": "BAD_READ_OBJECTS", "calleeOverload": "sticky-error-gate", "relation": "first-failure"},
+    {"name": "raw-section-publication", "pattern": r"iface->addRawDwgSection\s*\(\s*section\s*\)", "callee": "addRawDwgSection", "calleeOverload": "DRW_Interface::addRawDwgSection(const DRW_RawDwgSection&)", "relation": "publish"},
+    {"name": "datastorage-publication", "pattern": r"iface->addDataStorage\s*\(\s*storage\s*\)", "callee": "addDataStorage", "calleeOverload": "DRW_Interface::addDataStorage(const DRW_DataStorageSection&)", "relation": "publish"},
+    {"name": "normal-finalizers", "pattern": r"finalizeClassCoverage\s*\(\s*\)\s*;\s*finalizeCoverage\s*\(\s*ret\s*\)", "callee": "finalizeClassCoverage/finalizeCoverage", "calleeOverload": "normal-finalizer-pair", "relation": "finalize-success"},
+    {"name": "success-return", "pattern": r"return\s+ret\s*;", "callee": "ret", "calleeOverload": "lifecycle-result", "relation": "return"},
+    {"name": "exception-finalizers", "pattern": r"finalizeClassCoverage\s*\(\s*\)\s*;\s*finalizeCoverage\s*\(\s*false\s*\)", "callee": "finalizeClassCoverage/finalizeCoverage", "calleeOverload": "exception-finalizer-pair", "relation": "finalize-exception"},
+)
+
 # These route nodes cover the deliberate deferred/publication machinery that
 # cannot truthfully be reduced to one local parser-function → callback call.
 # A staged parser row must point to at least one of these exact anchors.
@@ -3481,6 +3521,16 @@ def dwg_compound_delivery_metadata(tree: SourceTree) -> list[dict]:
             }
         )
     return rows
+
+
+def dwg_reader_lifecycle_metadata(tree: SourceTree) -> list[dict]:
+    """Extract the ordered public DWG reader lifecycle and sticky error gates."""
+    body = function_body(tree.require("src/libdwgr.cpp"), "dwgRW::processDwg")
+    return [{
+        "sourcePath": body.source.path,
+        "bodySymbol": body.symbol,
+        "edges": raw_eligibility_edge_rows(body, DWG_READER_LIFECYCLE_RULES),
+    }]
 
 
 def add_raw_flow_routes(collector: RouteCollector, tree: SourceTree) -> None:
@@ -6954,10 +7004,13 @@ def add_dwg_routes(collector: RouteCollector, tree: SourceTree) -> None:
     )
     for symbol in reader_stages:
         body = function_body(source, symbol)
+        selector = {"kind": "anchor", "symbol": symbol}
+        if symbol == "dwgReader::readDwgTables":
+            selector["readerLifecycleEvidence"] = dwg_reader_lifecycle_metadata(tree)
         collector.add(
             "dwgRW",
             "reader-stage",
-            {"kind": "anchor", "symbol": symbol},
+            selector,
             body,
             identifier=symbol.rsplit("::", 1)[1],
             directions=["read", "publish"],
@@ -7463,6 +7516,23 @@ def validate_pipeline_closure(tree: SourceTree, inventory: dict[str, list[dict]]
         expected_evidence = dwg_table_delivery_metadata(tree, descriptor)
         if selector.get("deliveryEvidence") != expected_evidence:
             raise RouteError("DWG table delivery evidence changed: %s" % descriptor)
+
+    reader_stage_routes = inventory_category_routes(inventory, "dwgRW", "reader-stage")
+    reader_stages = {route["selector"].get("symbol"): route for route in reader_stage_routes}
+    expected_reader_stages = {
+        "dwgReader::readDwgTables",
+        "dwgReader::readDwgBlocks",
+        "dwgReader::readDwgEntities",
+        "dwgReader::readDwgObjects",
+    }
+    if len(reader_stage_routes) != len(reader_stages) or set(reader_stages) != expected_reader_stages:
+        raise RouteError("DWG reader-stage closure changed without review")
+    lifecycle_route = reader_stages["dwgReader::readDwgTables"]
+    if lifecycle_route["selector"].get("readerLifecycleEvidence") != dwg_reader_lifecycle_metadata(tree):
+        raise RouteError("DWG reader lifecycle evidence changed")
+    for symbol, route in reader_stages.items():
+        if symbol != "dwgReader::readDwgTables" and route["selector"].get("readerLifecycleEvidence", []) != []:
+            raise RouteError("DWG reader lifecycle evidence must be represented once")
 
     for route in inventory_category_routes(inventory, "dwgRW", "fixed-entity"):
         enum_symbol = route["selector"].get("enumSymbol")
@@ -9237,6 +9307,89 @@ bool dwgReader::readMappedDwgEntity() {
         pass
     else:
         raise AssertionError("DWG direct/journal delivery order inversion was accepted")
+    dwg_lifecycle_source = SourceFile(
+        "src/libdwgr.cpp",
+        """
+bool dwgRW::processDwg() {
+try {
+    reader->beginDwgClassCoverage();
+    ret = reader->readDwgHeader(hdr);
+    if (!ret) { error = DRW::BAD_READ_HEADER; }
+    ret2 = reader->readDwgClasses();
+    if (ret && !ret2) { error = DRW::BAD_READ_CLASSES; ret = ret2; }
+    ret2 = reader->readDwgHandles();
+    if (ret && !ret2) { error = DRW::BAD_READ_HANDLES; ret = ret2; }
+    ret2 = ret && reader->readDwgTables(hdr);
+    if (ret && !ret2) { error = DRW::BAD_READ_TABLES; ret = ret2; }
+    iface->addHeader(&hdr);
+    for (auto it=reader->ltypemap.begin(); it!=reader->ltypemap.end(); ++it) {
+        DRW_LType *lt = it->second; iface->addLType(const_cast<DRW_LType&>(*lt));
+    }
+    for (auto it=reader->layermap.begin(); it!=reader->layermap.end(); ++it) {
+        DRW_Layer *ly = it->second; iface->addLayer(const_cast<DRW_Layer&>(*ly));
+    }
+    for (auto it=reader->stylemap.begin(); it!=reader->stylemap.end(); ++it) {
+        DRW_Textstyle *ly = it->second; iface->addTextStyle(const_cast<DRW_Textstyle&>(*ly));
+    }
+    for (auto it=reader->dimstylemap.begin(); it!=reader->dimstylemap.end(); ++it) {
+        DRW_Dimstyle *ly = it->second; iface->addDimStyle(const_cast<DRW_Dimstyle&>(*ly));
+    }
+    for (auto it=reader->vportmap.begin(); it!=reader->vportmap.end(); ++it) {
+        DRW_Vport *ly = it->second; iface->addVport(const_cast<DRW_Vport&>(*ly));
+    }
+    for (auto it=reader->appIdmap.begin(); it!=reader->appIdmap.end(); ++it) {
+        DRW_AppId *ly = it->second; iface->addAppId(const_cast<DRW_AppId&>(*ly));
+    }
+    for (auto it=reader->viewmap.begin(); it!=reader->viewmap.end(); ++it) {
+        DRW_View *vw = it->second; iface->addView(const_cast<DRW_View&>(*vw));
+    }
+    for (auto it=reader->ucsmap.begin(); it!=reader->ucsmap.end(); ++it) {
+        DRW_UCS *u = it->second; iface->addUCS(const_cast<DRW_UCS&>(*u));
+    }
+    reader->publishDeferredTableFramePublications(*iface);
+    ret2 = reader->readDwgBlocks(*iface);
+    if (ret && !ret2) { error = DRW::BAD_READ_BLOCKS; ret = ret2; }
+    ret2 = reader->readDwgEntities(*iface);
+    if (ret && !ret2) { error = DRW::BAD_READ_ENTITIES; ret = ret2; }
+    ret2 = reader->readDwgObjects(*iface);
+    if (ret && !ret2) { error = DRW::BAD_READ_OBJECTS; ret = ret2; }
+    for (const DRW_RawDwgSection& section : reader->m_rawDwgSections)
+        iface->addRawDwgSection(section);
+    for (const DRW_DataStorageSection& storage : reader->m_dataStorageSections)
+        iface->addDataStorage(storage);
+    finalizeClassCoverage(); finalizeCoverage(ret);
+    return ret;
+} catch (...) {
+    finalizeClassCoverage(); finalizeCoverage(false);
+    return false;
+}
+}
+""",
+        "h" * 64,
+    )
+    lifecycle_tree = SourceTree(
+        "target", {dwg_lifecycle_source.path: dwg_lifecycle_source}, {}
+    )
+    lifecycle_evidence = dwg_reader_lifecycle_metadata(lifecycle_tree)
+    assert [row["edge"] for row in lifecycle_evidence[0]["edges"]] == [
+        spec["name"] for spec in DWG_READER_LIFECYCLE_RULES
+    ]
+    reversed_lifecycle_source = SourceFile(
+        dwg_lifecycle_source.path,
+        dwg_lifecycle_source.text.replace(
+            "ret2 = reader->readDwgClasses();\n    if (ret && !ret2) { error = DRW::BAD_READ_CLASSES; ret = ret2; }\n    ret2 = reader->readDwgHandles();",
+            "ret2 = reader->readDwgHandles();\n    if (ret && !ret2) { error = DRW::BAD_READ_HANDLES; ret = ret2; }\n    ret2 = reader->readDwgClasses();",
+        ),
+        dwg_lifecycle_source.sha256,
+    )
+    try:
+        dwg_reader_lifecycle_metadata(
+            SourceTree("target", {reversed_lifecycle_source.path: reversed_lifecycle_source}, {})
+        )
+    except RouteError:
+        pass
+    else:
+        raise AssertionError("DWG reader lifecycle order inversion was accepted")
     transport_source = SourceFile(
         "src/transport.cpp",
         """
