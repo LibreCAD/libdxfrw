@@ -119,6 +119,27 @@ public:
         line3d.basePoint = DRW_Coord(49.0, 50.0, 51.0);
         line3d.secPoint = DRW_Coord(52.0, 53.0, 54.0);
         wrote3dLine_ = writer_->write3DLine(&line3d) && line3d.handle != 0;
+
+        DRW_Polyline oldPolyline;
+        oldPolyline.vertexcount = 2;
+        oldPolyline.addVertex(DRW_Vertex(55.0, 56.0, 0.0, 0.0));
+        oldPolyline.addVertex(DRW_Vertex(57.0, 58.0, 0.0, 0.0));
+        wroteOldPolyline_ = writer_->writePolyline(&oldPolyline)
+            && oldPolyline.handle != 0;
+
+        DRW_Spline spline;
+        spline.m_scenario = 1;
+        spline.degree = 2;
+        spline.ncontrol = 3;
+        spline.knotslist = {0.0, 0.0, 0.0, 1.0, 1.0, 1.0};
+        spline.normalVec = DRW_Coord(0.0, 0.0, 1.0);
+        spline.controllist.push_back(
+            std::make_shared<DRW_Coord>(59.0, 60.0, 0.0));
+        spline.controllist.push_back(
+            std::make_shared<DRW_Coord>(61.0, 62.0, 0.0));
+        spline.controllist.push_back(
+            std::make_shared<DRW_Coord>(63.0, 64.0, 0.0));
+        wroteSpline_ = writer_->writeSpline(&spline) && spline.handle != 0;
     }
 
     void addLine(const DRW_Line& data) override {
@@ -140,6 +161,10 @@ public:
     void addRay(const DRW_Ray&) override { readRaySeen_ = true; }
     void addXline(const DRW_Xline&) override { readXlineSeen_ = true; }
     void add3DLine(const DRW_3DLine&) override { read3dLineSeen_ = true; }
+    void addPolyline(const DRW_Polyline&) override {
+        readOldPolylineSeen_ = true;
+    }
+    void addSpline(const DRW_Spline*) override { readSplineSeen_ = true; }
 
     bool wroteLine() const { return wroteLine_; }
     bool wroteSimpleEntities() const {
@@ -148,6 +173,11 @@ public:
             && wroteSolid_ && wrote3dFace_ && wroteRay_ && wroteXline_
             && wrote3dLine_;
     }
+    bool wroteAdvancedEntities() const {
+        return wroteOldPolyline_ && wroteSpline_;
+    }
+    bool wroteOldPolyline() const { return wroteOldPolyline_; }
+    bool wroteSpline() const { return wroteSpline_; }
     bool readLineSeen() const { return readLineSeen_; }
     bool readSimpleEntitiesSeen() const {
         return readPointSeen_ && readCircleSeen_ && readArcSeen_
@@ -156,6 +186,11 @@ public:
             && read3dFaceSeen_ && readRaySeen_ && readXlineSeen_
             && read3dLineSeen_;
     }
+    bool readAdvancedEntitiesSeen() const {
+        return readOldPolylineSeen_ && readSplineSeen_;
+    }
+    bool readOldPolylineSeen() const { return readOldPolylineSeen_; }
+    bool readSplineSeen() const { return readSplineSeen_; }
     const DRW_Line& readLine() const { return readLine_; }
 
 private:
@@ -174,6 +209,8 @@ private:
     bool wroteRay_ {false};
     bool wroteXline_ {false};
     bool wrote3dLine_ {false};
+    bool wroteOldPolyline_ {false};
+    bool wroteSpline_ {false};
     bool readLineSeen_ {false};
     bool readPointSeen_ {false};
     bool readCircleSeen_ {false};
@@ -188,6 +225,8 @@ private:
     bool readRaySeen_ {false};
     bool readXlineSeen_ {false};
     bool read3dLineSeen_ {false};
+    bool readOldPolylineSeen_ {false};
+    bool readSplineSeen_ {false};
     DRW_Line readLine_;
     dx_data data_;
 };
@@ -235,6 +274,13 @@ int main(int argc, char** argv) {
         expect(writeIface.wroteSimpleEntities(),
                ("local DWG writer emitted simple entity set" + suffix).c_str(),
                failures);
+        expect(writeIface.wroteAdvancedEntities(),
+               ("local DWG writer emitted advanced entity set" + suffix).c_str(),
+               failures);
+        expect(writeIface.wroteOldPolyline(),
+               ("local DWG writer emitted POLYLINE" + suffix).c_str(), failures);
+        expect(writeIface.wroteSpline(),
+               ("local DWG writer emitted SPLINE" + suffix).c_str(), failures);
         expect(std::filesystem::exists(output),
                ("local DWG output is published" + suffix).c_str(), failures);
 
@@ -250,6 +296,13 @@ int main(int argc, char** argv) {
         expect(readIface.readSimpleEntitiesSeen(),
                ("local DWG self-read publishes simple entity set" + suffix).c_str(),
                failures);
+        expect(readIface.readAdvancedEntitiesSeen(),
+               ("local DWG self-read publishes advanced entity set" + suffix).c_str(),
+               failures);
+        expect(readIface.readOldPolylineSeen(),
+               ("local DWG self-read publishes POLYLINE" + suffix).c_str(), failures);
+        expect(readIface.readSplineSeen(),
+               ("local DWG self-read publishes SPLINE" + suffix).c_str(), failures);
         if (readIface.readLineSeen()) {
             const DRW_Line& line = readIface.readLine();
             expect(line.basePoint.x == 1.0 && line.basePoint.y == 2.0

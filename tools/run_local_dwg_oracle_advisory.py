@@ -27,6 +27,12 @@ VERSIONS = {
     "18": "AC1032",
 }
 
+EXPECTED_ENTITIES = (
+    "LINE", "POINT", "CIRCLE", "ARC", "LWPOLYLINE", "TEXT", "MTEXT",
+    "ELLIPSE", "TRACE", "SOLID", "3DFACE", "RAY", "XLINE", "3DLINE",
+    "POLYLINE", "SPLINE",
+)
+
 
 def digest(path: Path) -> dict[str, object]:
     hasher = hashlib.sha256()
@@ -81,18 +87,18 @@ def validate_oracle_output(path: Path, expected_version: str) -> dict[str, objec
         line_end.get(code) == value for code, value in expected.items()
     )
     entity_counts = Counter(value for code, value in pairs if code == "0")
-    simple_entities_ok = all(
-        entity_counts.get(name, 0) == 1
-        for name in ("LINE", "POINT", "CIRCLE", "ARC", "LWPOLYLINE",
-                     "TEXT", "MTEXT", "ELLIPSE", "TRACE", "SOLID",
-                     "3DFACE", "RAY", "XLINE", "3DLINE")
-    )
+    missing_entities = [
+        name for name in EXPECTED_ENTITIES if entity_counts.get(name, 0) != 1
+    ]
+    simple_entities_ok = not missing_entities
     return {
         "version": expected_version,
         "oracleVersion": acadver,
         "versionMatch": acadver == expected_version,
         "lineGeometryMatch": geometry_ok,
         "simpleEntitySetMatch": simple_entities_ok,
+        "missingEntities": missing_entities,
+        "entityCounts": dict(sorted(entity_counts.items())),
         "qualified": acadver == expected_version and geometry_ok and simple_entities_ok,
     }
 
@@ -117,6 +123,7 @@ def self_test() -> None:
             "0\nPOINT\n0\nCIRCLE\n0\nARC\n0\nLWPOLYLINE\n"
             "0\nTEXT\n0\nMTEXT\n0\nELLIPSE\n"
             "0\nTRACE\n0\nSOLID\n0\n3DFACE\n0\nRAY\n0\nXLINE\n0\n3DLINE\n"
+            "0\nPOLYLINE\n0\nSPLINE\n"
             "0\nENDSEC\n0\nEOF\n",
             encoding="utf-8",
         )

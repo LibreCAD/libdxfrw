@@ -1793,8 +1793,9 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint: S34/J10 primitive-geometry local DWG oracle coverage is
-  committed; S01-S34 implementation slices are complete,
+- Current checkpoint: S35/J11 advanced-entity local DWG oracle coverage is
+  committed; S01-S35 implementation slices are complete with a
+  version-specific oracle discrepancy recorded,
   including the clean
   LibreCAD target worktree change. Format-support claims remain limited to
   rows with eligible runtime/oracle evidence. Source/package/consumer
@@ -1874,6 +1875,17 @@ edit this block or commit the same slice concurrently.
   SOLID, 3DFACE, RAY, XLINE, and 3DLINE for AC1015/18/21/24/27/32. LibreDWG
   0.14 independently recognizes the complete fourteen-entity set for all six
   versions; output remains temporary and broader support stays experimental.
+- Latest implementation slice: S35/J11 advanced-entity local DWG oracle
+  coverage is committed. The local model now also emits and
+  self-reads legacy POLYLINE and control-point SPLINE for AC1015/18/21/24/27/32;
+  the production self-read passes all six versions. LibreDWG 0.14 recognizes
+  the complete sixteen-entity set for AC1018/21/24/27/32, but its AC1015 DXF
+  export omits SPLINE even though `dwgread -O JSON` parses the same AC1015
+  object as scenario 1 with six knots and three control points. The oracle
+  comparator now reports `missingEntities` and `entityCounts` and remains
+  fail-closed, so this is recorded as an AC1015 independent-oracle limitation
+  or writer-compatibility issue pending spec/third-party confirmation; no
+  format-support row is promoted and no drawing payload is retained.
 - Latest implementation slice: S18/I0.2g-A concrete source-unit coverage now
   binds all 80 functional locked `src` units to sorted, same-path, non-generic
   route IDs. The two transport implementation units that had no dispatch or
@@ -2013,7 +2025,7 @@ edit this block or commit the same slice concurrently.
   inputs referenced by its top-level build. No target repin or sibling
   worktree mutation was made; future runtime qualification still requires an
   admitted or locally-from-scratch fixture plus an independent oracle.
-- Authorized run horizon: S01-S34/A-I5 plus J0-J10 runtime-qualification
+- Authorized run horizon: S01-S35/A-I5 plus J0-J11 runtime-qualification
   implementation; unavailable fixtures/oracles remain evidence-only and do not
   stop ready source/spec lanes.
 - Completion target: qualified-format parity for every advertised DWG/DXF row,
@@ -2026,34 +2038,37 @@ edit this block or commit the same slice concurrently.
   writer-return/version assertions, and S31/J7 adds an independent local
   oracle check, and S32/J8 expands the local entity-set oracle coverage;
   parity cannot be inferred from source; S33/J9 extends the local oracle set
-  to text and ellipse entities, and S34/J10 adds primitive geometry coverage.
+  to text and ellipse entities, S34/J10 adds primitive geometry coverage, and
+  S35/J11 adds legacy POLYLINE/SPLINE coverage plus explicit AC1015 oracle
+  discrepancy diagnostics.
   parity or a PR boundary.
-- Last fully resolved slice: S34 (the primitive-geometry local DWG oracle
-  coverage lane is committed by the matching `Plan-Slice: S34` trailer;
+- Last fully resolved slice: S35 (the advanced-entity local DWG oracle
+  coverage lane is committed by the matching `Plan-Slice: S35` trailer;
   the post-commit report resolves its SHA).
   target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`. All in-horizon lanes are
   terminal only when their recorded gates pass; the next runtime qualification
   lane requires no new target pin.
-- Resolved slices: 34/34 (`COMMITTED`, or `SUPERSEDED` after all replacements
+- Resolved slices: 35/35 (`COMMITTED`, or `SUPERSEDED` after all replacements
   commit).
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 34 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 35 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 36 COMMITTED.
-- Expanded child-item states: 133 COMMITTED / 0 PLANNED / 0 READY / 0 ACTIVE /
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 37 COMMITTED.
+- Expanded child-item states: 135 COMMITTED / 0 PLANNED / 0 READY / 0 ACTIVE /
   0 VERIFYING / 0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED; no child is anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 19 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S34 are committed. S23/I5
+- Active work: S01-S35 are committed. S23/I5
   reconciled separate DXF/DWG reports, public/package/LibreCAD consumers, the
   scheduled full and ASan/UBSan checkpoints, bounded fuzz smoke, and explicit
   support/defer claims; J0 adds runtime adapter/validation regressions, J2
   adds bounded advisory acceleration, J5 adds local self-read evidence, and J6
   tightens its return/version assertions, and J7 adds the independent local
   oracle advisory bridge, J8 expands the local entity-set comparator, and J9
-  adds text/ellipse coverage, and J10 adds primitive-geometry coverage
-  without promoting format support. Any later oracle expansion still requires an
+  adds text/ellipse coverage, J10 adds primitive-geometry coverage, and J11
+  adds POLYLINE/SPLINE coverage plus AC1015 discrepancy diagnostics without
+  promoting format support. Any later oracle expansion still requires an
   explicit ledger row and cannot silently promote current claims.
 
 | Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |
@@ -2092,6 +2107,7 @@ edit this block or commit the same slice concurrently.
 | S32 | J8: multi-entity local DWG oracle coverage | S31 | COMMITTED | focused self-read CTest, shell-free oracle self-test, six-version oracle run, plan/scope/sync/fixture gates | local writer emits LINE/POINT/CIRCLE/ARC/LWPOLYLINE for AC1015/18/21/24/27/32; comparator stops at each entity boundary and LibreDWG 0.14 reports 6/6 qualified; no payloads are retained | qualified-format parity follow-up |
 | S33 | J9: text-and-curve local DWG oracle coverage | S32 | COMMITTED | focused self-read CTest, shell-free oracle self-test, six-version oracle run, plan/scope/sync/fixture gates | local writer adds TEXT/MTEXT/ELLIPSE; comparator validates the eight-entity set and LINE geometry; LibreDWG 0.14 reports 6/6 qualified with temporary outputs only | qualified-format parity follow-up |
 | S34 | J10: primitive-geometry local DWG oracle coverage | S33 | COMMITTED | focused self-read CTest, shell-free oracle self-test, six-version oracle run, plan/scope/sync/fixture gates | local writer adds TRACE/SOLID/3DFACE/RAY/XLINE/3DLINE; comparator validates the fourteen-entity set and LINE geometry; LibreDWG 0.14 reports 6/6 qualified with temporary outputs only | qualified-format parity follow-up |
+| S35 | J11: advanced-entity local DWG oracle coverage and discrepancy diagnostics | S34 | COMMITTED | focused self-read CTest, shell-free oracle self-test, six-version oracle run, plan/scope/sync/fixture gates | local writer adds legacy POLYLINE and control-point SPLINE; self-read passes 6/6; LibreDWG 0.14 reports 5/6 qualified because AC1015 DXF export omits SPLINE while `dwgread -O JSON` parses it; comparator records missing entities and remains fail-closed | AC1015 spline spec/third-party compatibility follow-up |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -2130,6 +2146,7 @@ edit this block or commit the same slice concurrently.
 | J8 | S32 | J7 | COMMITTED | EXPERIMENTAL | Expand local DWG oracle coverage to a simple multi-entity set and fix comparator record-boundary handling; keep support claims narrow until broader feature rows have equivalent evidence |
 | J9 | S33 | J8 | COMMITTED | EXPERIMENTAL | Expand the local DWG oracle set to text and ellipse entities for all six versions; retain narrow evidence until corresponding broader feature rows are qualified |
 | J10 | S34 | J9 | COMMITTED | EXPERIMENTAL | Expand the local DWG oracle set to primitive geometry entities for all six versions; retain narrow evidence until corresponding broader feature rows are qualified |
+| J11 | S35 | J10 | COMMITTED | EXPERIMENTAL | Expand the local DWG oracle set to legacy POLYLINE and control-point SPLINE, then record any version-specific independent-oracle discrepancy without weakening the fail-closed qualification gate |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -2268,6 +2285,8 @@ edit this block or commit the same slice concurrently.
 | J8.1 | J8 / S32 | WP5, WP7, WP8, WP10; multi-entity local oracle | J7.1 | COMMITTED | EXPERIMENTAL | emit and self-read LINE/POINT/CIRCLE/ARC/LWPOLYLINE for six versions and validate bounded oracle records without cross-entity group-code bleed | focused CTest self-read/oracle checks pass; the live LibreDWG 0.14 run reports 6/6 qualified after the parser boundary fix, with all DWG/DXF outputs temporary and untracked |
 | J9.1 | J9 / S33 | WP5, WP7, WP8, WP10; text-and-curve local oracle | J8.1 | COMMITTED | EXPERIMENTAL | emit and self-read TEXT/MTEXT/ELLIPSE for six versions and validate the complete eight-entity oracle set | focused local CTest and oracle self-test pass; the live LibreDWG 0.14 run reports 6/6 qualified with matching ACADVER/LINE geometry and no retained drawing payloads |
 | J10.1 | J10 / S34 | WP5, WP7, WP8, WP10; primitive-geometry local oracle | J9.1 | COMMITTED | EXPERIMENTAL | emit and self-read TRACE/SOLID/3DFACE/RAY/XLINE/3DLINE for six versions and validate the complete fourteen-entity oracle set | focused local CTest and oracle self-test pass; the live LibreDWG 0.14 run reports 6/6 qualified with matching ACADVER/LINE geometry and no retained drawing payloads |
+| J11.1 | J11 / S35 | WP5, WP7, WP8, WP10; advanced-entity local oracle | J10.1 | COMMITTED | EXPERIMENTAL | emit and self-read legacy POLYLINE and control-point SPLINE for six versions and validate the complete sixteen-entity oracle set | focused local CTest passes for all six versions; LibreDWG 0.14 independently recognizes all sixteen entities for AC1018/21/24/27/32 and temporary outputs are removed |
+| J11.2 | J11 / S35 | WP5, WP7, WP8, WP10; AC1015 discrepancy disposition | J11.1 | COMMITTED | EXPERIMENTAL | distinguish an AC1015 writer-layout defect from an independent-oracle DXF-export limitation before any support promotion | AC1015 LibreDWG JSON contains scenario-1 SPLINE with six knots and three controls while LibreDWG DXF output omits it; comparator reports `missingEntities=[SPLINE]`, retains fail-closed status, and records the next spec/third-party confirmation step; no fixture bytes |
 
 <!-- UPGRADE_PROGRESS_END -->
 
