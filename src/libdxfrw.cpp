@@ -1799,7 +1799,8 @@ bool dxfRW::validateHatchPayload(const DRW_Hatch *ent) const {
     };
     if (ent == nullptr || !ent->validateDxf()
         || !isSafeDxfRecordText(ent->name)
-        || !isSafeDxfRecordText(ent->gradName)
+        || ent->isGradient < 0 || ent->isGradient > 1
+        || (ent->isGradient != 0 && !isSafeDxfRecordText(ent->gradName))
         || !isFiniteDxfCoord(ent->basePoint)
         || !isFiniteDxfCoord(ent->extPoint)
         || ent->solid < 0 || ent->solid > 1
@@ -1880,13 +1881,15 @@ bool dxfRW::validateHatchPayload(const DRW_Hatch *ent) const {
         if (!isFiniteDxfCoord(point))
             return false;
     }
-    for (const auto& stop : ent->gradColors) {
-        if (!std::isfinite(stop.value) || stop.rgb < -1
-            || stop.rgb > 0xFFFFFF || stop.aciColor < 0
-            || stop.aciColor > std::numeric_limits<std::uint16_t>::max()
-            || !isSafeDxfRecordText(stop.colorName)
-            || !isSafeDxfRecordText(stop.colorBookName))
-            return false;
+    if (ent->isGradient != 0) {
+        for (const auto& stop : ent->gradColors) {
+            if (!std::isfinite(stop.value) || stop.rgb < -1
+                || stop.rgb > 0xFFFFFF || stop.aciColor < 0
+                || stop.aciColor > std::numeric_limits<std::uint16_t>::max()
+                || !isSafeDxfRecordText(stop.colorName)
+                || !isSafeDxfRecordText(stop.colorBookName))
+                return false;
+        }
     }
 
     if (const auto *polygon = dynamic_cast<const DRW_MPolygon*>(ent)) {

@@ -1713,9 +1713,11 @@ The coordinator must apply these rules to every implementation turn:
 4. Do not stop while an actionable `READY`, `ACTIVE`, or `VERIFYING` item or
    an evidence-only lane with a safe continuation exists. On failure, classify
    it, add the exact unblock condition, repair or route around it, and continue
-   the next dependency-ready lane. Stop only at S23/I5 qualified-format
+   the next dependency-ready lane. Stop only at qualified-format parity
    parity acceptance or a genuine hard blocker after the recovery protocol has
-   been committed.
+   been committed. The active horizon now continues beyond S23: runtime
+   compatibility fixes land as narrow slices, while unavailable
+   fixtures/oracles defer only their claims and never stop source/spec work.
 
 ### Work-item and slice state
 
@@ -1791,17 +1793,15 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint: S23/I5 aggregate parity and release sign-off is
-  committed; S01-S23 implementation slices are complete, including the clean
+- Current checkpoint: S24/J0 runtime compatibility hardening is
+  committed; S01-S24 implementation slices are complete, including the clean
   LibreCAD target worktree change. Format-support claims remain limited to
   rows with eligible runtime/oracle evidence. Source/package/consumer
   convergence and source-level DWG/DXF parity with the pinned LibreCAD
   `dwgRW`/`dxfRW` behavior are complete; runtime/wire-format parity remains an
   explicit evidence follow-up and no format-support claim is promoted solely
-  from source parity. I0.2 is
-  verified as an anchor-inventory scaffold; review inserted source-surface,
-  public-header, pipeline-edge, and cardinality-mapping children before any
-  completeness claim may advance.
+  from source parity. J1/S25 is the next dependency-ready DWG-reader defect
+  lane; its evidence-gated rows do not block independent source/spec work.
 - Latest implementation slice: S18/I0.2g-A concrete source-unit coverage now
   binds all 80 functional locked `src` units to sorted, same-path, non-generic
   route IDs. The two transport implementation units that had no dispatch or
@@ -1941,30 +1941,36 @@ edit this block or commit the same slice concurrently.
   inputs referenced by its top-level build. No target repin or sibling
   worktree mutation was made; future runtime qualification still requires an
   admitted or locally-from-scratch fixture plus an independent oracle.
-- Authorized run horizon: full S01-S23/A-I5 implementation objective.
-- Completion target: S23/I5 source-parity and release-readiness acceptance is
-  committed. Qualified-format parity acceptance remains a separate,
-  evidence-gated follow-up and cannot be inferred from source parity or a PR
-  boundary.
-- Last fully resolved slice: S23 (aggregate parity/release checkpoint is
-  committed as `28a0b45b896098b7cb31976e2356a9746e933b3a`); target integration commit is
+- Authorized run horizon: S01-S25/A-I5 plus J0-J1 runtime-qualification
+  implementation; unavailable fixtures/oracles remain evidence-only and do not
+  stop ready source/spec lanes.
+- Completion target: qualified-format parity for every advertised DWG/DXF row,
+  with explicit experimental/deferred dispositions for unavailable evidence.
+  S24 closes implementation hardening, while S25/J1 begins the next
+  evidence-gated runtime defect lane; parity cannot be inferred from source
+  parity or a PR boundary.
+- Last fully resolved slice: S24 (runtime compatibility hardening is
+  committed by the matching `Plan-Slice: S24` trailer; the post-commit report
+  resolves its SHA); target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`. All in-horizon lanes are
-  terminal and every future evidence expansion must be separately authorized.
-- Resolved slices: 23/23 (`COMMITTED`, or `SUPERSEDED` after all replacements
+  terminal only when their recorded gates pass; J1/S25 is planned next and
+  requires no new target pin.
+- Resolved slices: 24/25 (`COMMITTED`, or `SUPERSEDED` after all replacements
   commit).
-- Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 23 COMMITTED.
-- Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 25 COMMITTED.
-- Expanded child-item states: 113 COMMITTED / 0 PLANNED / 0 READY / 0 ACTIVE /
-  0 VERIFYING / 3 VERIFIED; no child is anonymous.
+- Slice states: 0 READY / 1 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
+  0 BLOCKED_HARD / 0 SUPERSEDED / 24 COMMITTED.
+- Parent-item states: 0 READY / 1 PLANNED / 0 ACTIVE / 0 VERIFYING /
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 26 COMMITTED.
+- Expanded child-item states: 119 COMMITTED / 4 PLANNED / 0 READY / 0 ACTIVE /
+  0 VERIFYING / 0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED; no child is anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 9 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: none in the authorized S01-S23 horizon. S23/I5 reconciles
-  separate DXF/DWG reports, public/package/LibreCAD consumers, the scheduled
-  full and ASan/UBSan checkpoints, bounded fuzz smoke, and explicit
-  support/defer claims. Any future runtime/oracle qualification is a new
-  separately authorized scope and cannot silently promote current rows.
+- Active work: J1/S25 is the next planned implementation lane after S24. S23/I5
+  reconciled separate DXF/DWG reports, public/package/LibreCAD consumers, the
+  scheduled full and ASan/UBSan checkpoints, bounded fuzz smoke, and explicit
+  support/defer claims; J0 adds runtime adapter/validation regressions without
+  promoting format support. Any later oracle expansion still requires an
+  explicit ledger row and cannot silently promote current claims.
 
 | Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -1990,7 +1996,9 @@ edit this block or commit the same slice concurrently.
 | S20 | I2: `dxfRW` parity closure | S19 | COMMITTED | DXF group/model/callback/raw/write round-trip rows and aggregate differential | `check_dxf_lane.py` validates 1,475 target/1,457 standalone DXF routes, six transport anchors, required model/raw/publication/writer categories, complete mapping, and no-fixture disposition; focused CTest passes in 0.09 seconds; runtime support remains experimental | S23 |
 | S21 | I3: `dwgRW` reader parity closure | S19 | COMMITTED | version/container/dispatch/graph/diagnostic rows and aggregate differential | `check_dwg_lane.py --mode reader` validates 1,345 target/1,371 standalone routes, six reader pipelines, required section/table/object/entity/raw/publication categories, and complete no-fixture mapping; focused reader CTest is build-directory safe; wire/sample/spec evidence remains experimental | S23; I4 oracle reads |
 | S22 | I4: `dwgRW` writer and preservation parity closure | S19 | COMMITTED | shared/versioned writer pipeline, typed/raw preservation, transactions, self-read, independent-oracle policy | `check_dwg_lane.py --mode writer` validates 1,345 target/1,371 standalone routes, six writer pipelines, 38 bindings, 101 entrypoints, raw replay/provider/finalizer contracts, and complete no-fixture mapping; focused writer CTest is build-directory safe; self-read/oracle evidence remains experimental | S23 |
-| S23 | I5: aggregate parity and release sign-off | S20, S21, S22 | COMMITTED | separate zero-unmapped/unexplained DWG and DXF reports, API/package/LibreCAD consumer, sanitizer/fuzz, fixture/scope/sync, support claims | checkpoint evidence is green: full dependency-free build plus 15/15 CTest (3.04s), ASan/UBSan build plus 15/15 CTest (1.57s with macOS leak detection disabled), fast release-readiness and separate DXF/DWG aggregate reports pass; source-only rows remain experimental and no drawing payloads were added | qualified-format parity completion |
+| S23 | I5: aggregate parity and release sign-off | S20, S21, S22 | COMMITTED | separate zero-unmapped/unexplained DWG and DXF reports, API/package/LibreCAD consumer, sanitizer/fuzz, fixture/scope/sync, support claims | checkpoint evidence is green: full dependency-free build plus 15/15 CTest (3.04s), ASan/UBSan build plus 15/15 CTest (1.57s with macOS leak detection disabled), fast release-readiness and separate DXF/DWG aggregate reports pass; source-only rows remain experimental and no drawing payloads were added | S24 runtime compatibility hardening |
+| S24 | J0: runtime compatibility hardening and advisory triage | S23 | COMMITTED | focused Wave 1 regression, clean CLI build, bounded canaries, fixture/scope/sync/plan gates | fixed-space BLOCK replay and inactive HATCH gradient validation are covered by in-memory assertions; ET-Drawing-with-Border and Pool_Detail canaries convert successfully; external bytes remain advisory and untracked | S25 |
+| S25 | J1: DWG reader defect closure and empirical route triage | S24 | PLANNED | ODA/spec review, focused source tests, bounded external traces, and no-fixture policy | AC1024 class high-bit parsing, R2010+ spline bit alignment, sparse object dispatch, and block transaction failures each receive an owner, evidence packet, and explicit experimental/deferred outcome | qualified-format parity follow-up |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -2018,6 +2026,8 @@ edit this block or commit the same slice concurrently.
 | I3 | S21 | I1 | COMMITTED | EXPERIMENTAL | Close all target `dwgRW` reader/version/dispatch/graph/diagnostic rows or retain an exact experimental/deferred disposition |
 | I4 | S22 | I1 | COMMITTED | EXPERIMENTAL | Close all target `dwgRW` writer/preservation rows, with independent-oracle promotion and transaction safety |
 | I5 | S23 | I2, I3, I4 | COMMITTED | EXPERIMENTAL | Reconcile both façades, compatibility/package consumers, support claims, and aggregate release evidence |
+| J0 | S24 | I5 | COMMITTED | EXPERIMENTAL | Runtime adapter/validation hardening with focused regressions; external canaries remain advisory |
+| J1 | S25 | J0 | PLANNED | EXPERIMENTAL | Close known DWG reader/runtime defects with ODA/spec and empirical evidence while preserving fixture policy |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -2139,6 +2149,13 @@ edit this block or commit the same slice concurrently.
 | I5.2 | I5 / S23 | WP8, Phase 6-7; aggregate verification | I5.1 | COMMITTED | EXPERIMENTAL | full build/CTest, ASan/UBSan, fuzz smoke, resource/transaction, fixture/scope/sync, deterministic generator/harness gates | full dependency-free build and 15/15 CTest pass (3.04s); ASan/UBSan build and 15/15 pass (1.57s, `detect_leaks=0` platform limitation); hardening test supplies bounded fuzz smoke; fixture/scope/sync/fast deterministic gates pass; no drawing payloads; unblocks I5.3/I5.4 |
 | I5.3 | I5 / S23 | Phase 8; claims/docs | I5.1, I5.2 | COMMITTED | EXPERIMENTAL | generated support tables and release documentation match ledger evidence | release-readiness audit reports 2,820 target façade rows, zero target-unmapped rows, eight runner matrix entries, and no promoted source-only claims; DXF and DWG reports stay separate and every external/wire gap remains experimental/deferred; unblocks I5.4 |
 | I5.4 | I5 / S23 | acceptance criteria; final sign-off | I5.1, I5.2, I5.3 | COMMITTED | EXPERIMENTAL | final completeness/correctness/readiness/speed audit and recovery proof | all S01-S22 commits have trailers and post-commit reports, plan state is terminal-ready, fast-vs-full cadence is recorded, target pins are unchanged, worktree has no fixture payloads, and macOS sanitizer limitation is explicit; closes S23/I5 |
+| J0.1 | J0 / S24 | WP10; adapter runtime compatibility | I5 | COMMITTED | EXPERIMENTAL | fixed-space BLOCK replay does not duplicate dxfRW-reserved records | `dwg2dxf` skips only `*Model_Space` and `*Paper_Space` in BLOCK/BLOCK_RECORD replay; clean CLI build and ET-Drawing-with-Border/Pool_Detail bounded canaries pass; no fixture bytes; unblocks J0.3 |
+| J0.2 | J0 / S24 | WP4, WP6; DXF HATCH validation | I5 | COMMITTED | EXPERIMENTAL | inactive gradient carriers do not reject solid HATCH while active gradients remain bounded | Wave 1 in-memory assertion passes for stale inactive gradient name/RGB and rejects the same carrier when `isGradient=1`; no fixture bytes; unblocks J0.3 |
+| J0.3 | J0 / S24 | WP10; advisory runtime triage and fixture disposition | J0.1, J0.2 | COMMITTED | DEFERRED_EXTERNAL | bounded external canaries and environment diagnosis recorded without support promotion | fresh temporary CLI build, bounded 20-sample advisory run, and temporary-output cleanup pass; external successes/failures/timeouts are hash/status evidence only; unwritable repository build tree is an environment note; unblocks S25/J1 |
+| J1.1 | J1 / S25 | WP5.6, WP10; AC1024 classes | J0 | PLANNED | DEFERRED_EXTERNAL | verify `strDataSize` high-bit extension against ODA and an eligible/runtime-generated AC1024 case | inspect `dwgreader18.cpp` class framing, build an in-memory boundary vector, trace external AC1024 samples only for advisory diagnosis, and promote only with an admitted or local-from-scratch positive plus independent reader; no fixture bytes |
+| J1.2 | J1 / S25 | WP5.7, WP10; R2010+ spline alignment | J0 | PLANNED | DEFERRED_EXTERNAL | resolve `splFlag1` bit-versus-bit-long alignment only after spec/sample agreement | read the ODA spline layout, construct a bounded bit vector, and compare AC1027/AC1032 traces; if evidence is unavailable, retain experimental status and continue J1.3/J1.4; no fixture bytes |
+| J1.3 | J1 / S25 | WP5.8, WP10; object dispatch | J0 | PLANNED | DEFERRED_EXTERNAL | empirically map sparse DWG object type codes without hardcoding third-party guesses | capture `Remaining object Handle, loc, type=` from external/admitted traces, add typed/raw route rows and negative unknown-object tests, and keep unobserved codes deferred; no fixture bytes |
+| J1.4 | J1 / S25 | WP5.5-WP5.7, WP10; block transaction triage | J0 | PLANNED | EXPERIMENTAL | classify `BAD_READ_BLOCKS` transaction failures by ownership, delimiter, or malformed-input cause | instrument a bounded diagnostic path, reduce to a local-from-scratch or in-memory block graph where possible, and preserve warn/continue semantics; external `blocks_and_tables` files remain advisory and untracked |
 
 <!-- UPGRADE_PROGRESS_END -->
 
@@ -2664,6 +2681,40 @@ run is valid only when the cadence table says it is out of scope; a failed or
 stale fast selector escalates to the safe affected aggregate rather than being
 silently ignored.  WP10 owns the initial timings and updates the budgets when
 the build/test topology changes.
+
+### Post-S23 runtime-qualification acceleration research
+
+The first runtime pass after the source-only checkpoint measured a faster,
+safer implementation loop that is now part of the active plan:
+
+1. Build the library and `dwg2dxf` in a fresh temporary tree when a stale or
+   unwritable checkout build directory prevents CMake regeneration. Record the
+   environment failure, but do not broaden permissions or mutate the source
+   tree to make the old tree usable.
+2. Use a bounded per-input advisory runner (short alarm, temporary DXF output,
+   exit code, first stage/error, byte count, and hash only). This makes a large
+   external corpus useful for triage without importing or committing its
+   payloads; timeouts are explicit `DEFERRED_EXTERNAL` evidence rather than
+   silent failures.
+3. Convert a discovered runtime failure into a smallest in-memory or
+   local-from-scratch regression first. The current examples are fixed-space
+   BLOCK replay and inactive HATCH gradient carriers; their fast assertions
+   run in the existing Wave 1 target and avoid a full corpus rerun.
+4. Re-run only the affected CLI samples after the focused fix, then defer the
+   full/sanitizer corpus to the declared checkpoint/nightly cadence. A sample
+   that still fails is classified by reader stage (for example classes,
+   blocks, or file header) and becomes a source/spec investigation child.
+5. Keep independent source/spec work moving while fixtures or an external
+   oracle are unavailable. Runtime success on an external drawing confirms a
+   useful diagnostic path but never promotes a support row; promotion still
+   requires an admitted fixture or a deterministic local-from-scratch case
+   plus an independent reader/auditor.
+
+The measured fast path is therefore: touched-TU build -> focused CTest ->
+bounded CLI canary -> plan/inventory/fixture checks. Full CTest and sanitizer
+gates run only at the checkpoint or when the impact map escalates them. This
+research is implementation guidance, not a relaxation of correctness,
+compatibility, fixture, or oracle gates.
 
 ### Phase 6: test architecture
 

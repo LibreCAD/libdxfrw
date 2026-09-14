@@ -91,10 +91,10 @@
     },
     {
       "path": "src/libdxfrw.cpp",
-      "reason": "Route raw DXF capture through the canonical group-code table, preserve null/error compatibility, and instrument stage-aware operation diagnostics.",
+      "reason": "Route raw DXF capture through the canonical group-code table, preserve null/error compatibility, instrument stage-aware operation diagnostics, and ignore inactive HATCH gradient carriers while retaining active-gradient validation.",
       "scope": "DXF classifier correctness",
       "targetBlob": "71851fcf8d5636080c83f2eb1af4a8ef5a80e0ef",
-      "adaptedSha256": "dfee2d04da7046f515422d1999f2f9998bd23e2886e4cf3a89a8ab6f91c0d9a6"
+      "adaptedSha256": "89e1873f5b475e0cc516f9adc3897734a256c19441eaf8240ae61c97575dc17c"
     },
     {
       "path": "src/libdxfrw.h",

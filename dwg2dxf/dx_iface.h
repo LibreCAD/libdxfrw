@@ -183,6 +183,12 @@ public:
         //write each block
         for (std::list<dx_ifaceBlock*>::iterator it=cData->blocks.begin(); it != cData->blocks.end(); ++it){
             dx_ifaceBlock* bk = *it;
+            // dxfRW emits the canonical Model_Space and Paper_Space BLOCK
+            // records itself.  The DWG reader also reports those fixed blocks
+            // through addBlock(); replaying them here would collide with the
+            // codec's reserved handles and abort the whole DXF transaction.
+            if (isFixedSpaceBlock(bk))
+                continue;
             dxfW->writeBlock(bk);
             //and write each entity in block
             for (std::list<DRW_Entity*>::const_iterator it=bk->ent.begin(); it!=bk->ent.end(); ++it)
@@ -191,8 +197,11 @@ public:
     }
     //only send the name, needed by the reader to prepare handles of blocks & blockRecords
     virtual void writeBlockRecords(){
-        for (std::list<dx_ifaceBlock*>::iterator it=cData->blocks.begin(); it != cData->blocks.end(); ++it)
+        for (std::list<dx_ifaceBlock*>::iterator it=cData->blocks.begin(); it != cData->blocks.end(); ++it) {
+            if (isFixedSpaceBlock(*it))
+                continue;
             dxfW->writeBlockRecord((*it)->name);
+        }
     }
     //write entities of model space and first paper_space
     virtual void writeEntities(){
@@ -230,6 +239,13 @@ public:
     dxfRW* dxfW; //pointer to writer, needed to send data
     dx_data* cData; // class to store or read data
     dx_ifaceBlock* currentBlock;
+
+private:
+    static bool isFixedSpaceBlock(const dx_ifaceBlock* block) {
+        return block != nullptr
+            && (block->name == "*Model_Space"
+                || block->name == "*Paper_Space");
+    }
 };
 
 #endif // DX_IFACE_H

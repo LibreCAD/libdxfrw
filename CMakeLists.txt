@@ -139,7 +139,8 @@ if(LIBDXFRW_BUILD_TESTS)
     target_compile_features(libdxfrw_wave1_tests PRIVATE cxx_std_17)
     target_include_directories(libdxfrw_wave1_tests PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/intern)
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/intern
+        ${CMAKE_CURRENT_SOURCE_DIR}/dwg2dxf)
     target_link_libraries(libdxfrw_wave1_tests PRIVATE dxfrw)
     add_test(NAME libdxfrw_wave1 COMMAND libdxfrw_wave1_tests)
 

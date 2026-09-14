@@ -10,6 +10,7 @@
 #include "handle_allocator.h"
 #define private public
 #include "libdxfrw.h"
+#include "dx_iface.h"
 #undef private
 #include "intern/drw_textcodec.h"
 #include "intern/dwg_fixed_handles.h"
@@ -183,6 +184,37 @@ void testRawCapture(TestContext& t) {
     }
 }
 
+void testHatchValidationIgnoresInactiveGradient(TestContext& t) {
+    dxfRW owner("");
+    DRW_Hatch hatch;
+    hatch.name = "SOLID";
+    hatch.gradName = "\x01stale-gradient";
+    DRW_Hatch::GradientStop stale;
+    stale.rgb = -1039906145;
+    stale.colorName = "\x02stale";
+    hatch.gradColors.push_back(stale);
+    t.expect(owner.validateHatchPayload(&hatch),
+             "solid hatch ignores stale inactive gradient carriers");
+
+    hatch.isGradient = 1;
+    t.expect(!owner.validateHatchPayload(&hatch),
+             "active gradient still validates gradient carriers");
+}
+
+void testFixedSpaceBlockClassification(TestContext& t) {
+    dx_ifaceBlock model;
+    model.name = "*Model_Space";
+    dx_ifaceBlock paper;
+    paper.name = "*Paper_Space";
+    dx_ifaceBlock custom;
+    custom.name = "CUSTOM_BLOCK";
+    t.expect(dx_iface::isFixedSpaceBlock(&model)
+                 && dx_iface::isFixedSpaceBlock(&paper)
+                 && !dx_iface::isFixedSpaceBlock(&custom)
+                 && !dx_iface::isFixedSpaceBlock(nullptr),
+             "adapter classifies only canonical fixed-space blocks");
+}
+
 void testDecompressor(TestContext& t) {
     constexpr std::uint32_t literalCount = 0x8000u;
     std::vector<std::uint8_t> compressed = literalRunHeader(literalCount);
@@ -243,6 +275,8 @@ int main() {
     testBufferRoundTrip(context);
     testTextAndPreR13(context);
     testRawCapture(context);
+    testHatchValidationIgnoresInactiveGradient(context);
+    testFixedSpaceBlockClassification(context);
     testDecompressor(context);
     testHandlesAndHeader(context);
     if (context.failures != 0) {
