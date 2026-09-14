@@ -105,6 +105,12 @@ public:
             materialRegistration.handle = 0xC800u;
             registeredMaterial_ = writer_->registerMaterialObjectClass(
                 &materialRegistration);
+            if (writer_->getVersion() >= DRW::AC1018) {
+                DRW_DbColor dbColorRegistration;
+                dbColorRegistration.handle = 0xC900u;
+                registeredDbColor_ = writer_->registerDbColorObjectClass(
+                    &dbColorRegistration);
+            }
         }
     }
 
@@ -166,6 +172,7 @@ public:
             {"LOCAL_RENDER_RAPIDRT", 0xC600u},
             {"LOCAL_RENDER_MENTALRAY", 0xC700u},
             {"LOCAL_MATERIAL", 0xC800u},
+            {"LOCAL_DBCOLOR", 0xC900u},
         };
         wroteDictionary_ = registeredDictionary_
             && writer_->writeDictionary(&dictionary)
@@ -466,6 +473,20 @@ public:
         wroteMaterial_ = registeredMaterial_ && writer_->writeMaterial(&material)
             && material.handle != 0;
 
+        DRW_DbColor dbColor;
+        dbColor.handle = 0xC900u;
+        dbColor.parentHandle = dictionary.handle;
+        dbColor.rgb = 0x123456;
+        dbColor.colorMethod = dwgColor::RGB;
+        dbColor.name = "LOCAL_COLOR";
+        dbColor.bookName = "LOCAL_BOOK";
+        const bool dbColorWrite = writer_->writeDbColor(&dbColor);
+        wroteDbColor_ = writer_->getVersion() < DRW::AC1018
+            ? false : registeredDbColor_ && dbColorWrite
+                && dbColor.handle != 0;
+        rejectedUnsupportedDbColor_ = writer_->getVersion() < DRW::AC1018
+            && !dbColorWrite;
+
         // A failed object write must not poison the following valid frames or
         // publish a partial object.  The writer's public transaction wrapper
         // owns the rollback boundary; this assertion keeps that contract in
@@ -613,6 +634,14 @@ public:
         invalidMaterial.m_name = "LOCAL_BAD_MATERIAL";
         invalidMaterial.setDwgCommonObjectState(0, 2, false);
         rejectedMalformedMaterial_ = !writer_->writeMaterial(&invalidMaterial);
+
+        DRW_DbColor invalidDbColor;
+        invalidDbColor.handle = 0xC901u;
+        invalidDbColor.parentHandle = dictionary.handle;
+        invalidDbColor.rgb = 0x123456;
+        invalidDbColor.colorMethod = dwgColor::RGB;
+        invalidDbColor.setDwgCommonObjectState(0, 2, false);
+        rejectedMalformedDbColor_ = !writer_->writeDbColor(&invalidDbColor);
 
         DRW_Group group;
         group.handle = 0xA600u;
@@ -812,7 +841,7 @@ public:
         if (data.handle == 0xA601u) {
             readDictionarySeen_ = data.parentHandle
                     == DRW::DwgNamedObjectsDictionaryHandle
-                && data.m_entries.size() == 20
+                && data.m_entries.size() == 21
                 && data.m_entries[0].m_name == "LOCAL_XRECORD"
                 && data.m_entries[0].m_handle == 0xA602u
                 && data.m_entries[1].m_name == "LOCAL_PLOTSETTINGS"
@@ -852,7 +881,9 @@ public:
                 && data.m_entries[18].m_name == "LOCAL_RENDER_MENTALRAY"
                 && data.m_entries[18].m_handle == 0xC700u
                 && data.m_entries[19].m_name == "LOCAL_MATERIAL"
-                && data.m_entries[19].m_handle == 0xC800u;
+                && data.m_entries[19].m_handle == 0xC800u
+                && data.m_entries[20].m_name == "LOCAL_DBCOLOR"
+                && data.m_entries[20].m_handle == 0xC900u;
         }
     }
     void addXRecord(const DRW_XRecord& data) override {
@@ -1058,6 +1089,16 @@ public:
         if (data.handle == 0xC801u)
             readMalformedMaterialSeen_ = true;
     }
+    void addDbColor(const DRW_DbColor& data) override {
+        if (data.handle == 0xC900u)
+            readDbColorSeen_ = data.parentHandle == 0xA601u
+                && data.rgb == 0x123456
+                && data.colorMethod == dwgColor::RGB
+                && data.name == "LOCAL_COLOR"
+                && data.bookName == "LOCAL_BOOK";
+        if (data.handle == 0xC901u)
+            readMalformedDbColorSeen_ = true;
+    }
     void addInsert(const DRW_Insert& data) override {
         readInsertSeen_ = true;
         readAttribSeen_ = data.attlist.size() == 1
@@ -1096,7 +1137,9 @@ public:
             && wroteVisualStyle_ && wroteRenderSettings_
             && wroteRenderEnvironment_ && wroteRenderGlobal_
             && wroteRenderEntry_ && wroteRenderRapid_ && wroteRenderMental_
-            && wroteMaterial_ && wroteGroup_;
+            && wroteMaterial_
+            && (wroteDbColor_ || rejectedUnsupportedDbColor_)
+            && wroteGroup_;
     }
     bool rejectedMalformedObject() const { return rejectedMalformedObject_; }
     bool rejectedMalformedStyle() const { return rejectedMalformedStyle_; }
@@ -1142,6 +1185,9 @@ public:
         return rejectedMalformedRenderMental_;
     }
     bool rejectedMalformedMaterial() const { return rejectedMalformedMaterial_; }
+    bool rejectedUnsupportedDbColor() const { return rejectedUnsupportedDbColor_; }
+    bool rejectedMalformedDbColor() const { return rejectedMalformedDbColor_; }
+    bool wroteDbColor() const { return wroteDbColor_; }
     bool readLineSeen() const { return readLineSeen_; }
     bool readSimpleEntitiesSeen() const {
         return readPointSeen_ && readCircleSeen_ && readArcSeen_
@@ -1224,6 +1270,8 @@ public:
     }
     bool readMaterialSeen() const { return readMaterialSeen_; }
     bool readMalformedMaterialSeen() const { return readMalformedMaterialSeen_; }
+    bool readDbColorSeen() const { return readDbColorSeen_; }
+    bool readMalformedDbColorSeen() const { return readMalformedDbColorSeen_; }
     const DRW_Line& readLine() const { return readLine_; }
 
 private:
@@ -1275,6 +1323,7 @@ private:
     bool wroteRenderRapid_ {false};
     bool wroteRenderMental_ {false};
     bool wroteMaterial_ {false};
+    bool wroteDbColor_ {false};
     bool rejectedMalformedObject_ {false};
     bool rejectedMalformedStyle_ {false};
     bool rejectedMalformedMLeaderStyle_ {false};
@@ -1293,6 +1342,8 @@ private:
     bool rejectedMalformedRenderRapid_ {false};
     bool rejectedMalformedRenderMental_ {false};
     bool rejectedMalformedMaterial_ {false};
+    bool rejectedUnsupportedDbColor_ {false};
+    bool rejectedMalformedDbColor_ {false};
     bool registeredDictionary_ {false};
     bool registeredMLeaderStyle_ {false};
     bool registeredDictionaryVar_ {false};
@@ -1310,6 +1361,7 @@ private:
     bool registeredRenderRapid_ {false};
     bool registeredRenderMental_ {false};
     bool registeredMaterial_ {false};
+    bool registeredDbColor_ {false};
     bool registeredPlotSettings_ {false};
     bool readLineSeen_ {false};
     bool readPointSeen_ {false};
@@ -1353,6 +1405,7 @@ private:
     bool readRenderRapidSeen_ {false};
     bool readRenderMentalSeen_ {false};
     bool readMaterialSeen_ {false};
+    bool readDbColorSeen_ {false};
     bool readMalformedObjectSeen_ {false};
     bool readMalformedStyleSeen_ {false};
     bool readMalformedMLeaderStyleSeen_ {false};
@@ -1371,6 +1424,7 @@ private:
     bool readMalformedRenderRapidSeen_ {false};
     bool readMalformedRenderMentalSeen_ {false};
     bool readMalformedMaterialSeen_ {false};
+    bool readMalformedDbColorSeen_ {false};
     DRW_Line readLine_;
     dx_data data_;
 };
@@ -1491,6 +1545,13 @@ int main(int argc, char** argv) {
         expect(writeIface.rejectedMalformedMaterial(),
                ("local DWG writer rejected malformed MATERIAL transaction" + suffix).c_str(),
                failures);
+        expect(version == DRW::AC1015
+                   ? writeIface.rejectedUnsupportedDbColor()
+                   : writeIface.wroteDbColor(),
+               ("local DWG DBCOLOR version gate" + suffix).c_str(), failures);
+        expect(writeIface.rejectedMalformedDbColor(),
+               ("local DWG writer rejected malformed DBCOLOR transaction" + suffix).c_str(),
+               failures);
         expect(std::filesystem::exists(output),
                ("local DWG output is published" + suffix).c_str(), failures);
 
@@ -1547,6 +1608,11 @@ int main(int argc, char** argv) {
         expect(readIface.readMaterialSeen(),
                ("local DWG self-read publishes MATERIAL" + suffix).c_str(),
                failures);
+        expect(version == DRW::AC1015
+                   ? !readIface.readDbColorSeen()
+                   : readIface.readDbColorSeen(),
+               ("local DWG DBCOLOR version-gated self-read" + suffix).c_str(),
+               failures);
         expect(!readIface.readMalformedObjectSeen(),
                ("local DWG self-read omits rolled-back malformed object" + suffix).c_str(),
                failures);
@@ -1597,6 +1663,9 @@ int main(int argc, char** argv) {
                failures);
         expect(!readIface.readMalformedMaterialSeen(),
                ("local DWG self-read omits rolled-back malformed MATERIAL" + suffix).c_str(),
+               failures);
+        expect(!readIface.readMalformedDbColorSeen(),
+               ("local DWG self-read omits rolled-back malformed DBCOLOR" + suffix).c_str(),
                failures);
         if (readIface.readLineSeen()) {
             const DRW_Line& line = readIface.readLine();

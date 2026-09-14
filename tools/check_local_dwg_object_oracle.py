@@ -66,6 +66,8 @@ MENTALRAYRENDERSETTINGS_HANDLE = 0xC700
 MALFORMED_MENTALRAYRENDERSETTINGS_HANDLE = 0xC701
 MATERIAL_HANDLE = 0xC800
 MALFORMED_MATERIAL_HANDLE = 0xC801
+DBCOLOR_HANDLE = 0xC900
+MALFORMED_DBCOLOR_HANDLE = 0xC901
 
 RENDER_SETTINGS_KINDS = {
     "Settings": ("RENDERSETTINGS", RENDERSETTINGS_HANDLE, 556),
@@ -151,7 +153,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         raise ValueError("GROUP name, owner, or member stream mismatch")
 
     dictionary = find_record(records, "DICTIONARY", DICTIONARY_HANDLE)
-    if (dictionary.get("numitems") != 20
+    if (dictionary.get("numitems") != 21
             or dictionary.get("is_hardowner") != 1
             or owner_handle(dictionary) != 0x0C):
         raise ValueError("custom DICTIONARY count, owner, or cloning mismatch")
@@ -471,6 +473,28 @@ def check_objects(payload: dict, version_name: str) -> dict:
     material_discrepancies = [
         "MATERIAL visual-property fields are intentionally identity-only in libdxfrw"
     ]
+    dbcolor_discrepancies = []
+    if version_name == "AC1015":
+        dbcolor_discrepancies.append(
+            "DBCOLOR is intentionally unsupported before AC1018")
+    else:
+        dbcolor = find_record(records, "DBCOLOR", DBCOLOR_HANDLE)
+        color = dbcolor.get("color")
+        if (owner_handle(dbcolor) != DICTIONARY_HANDLE
+                or dbcolor.get("type") != 563
+                or not isinstance(color, dict)
+                or color.get("index") != 256
+                or color.get("rgb") != "c2123456"
+                or color.get("flag") != 3):
+            raise ValueError("DBCOLOR owner or bounded color fields mismatch")
+        if version_name == "AC1018":
+            if (color.get("name") != "LOCAL_COLOR"
+                    or color.get("book_name") != "LOCAL_BOOK"):
+                raise ValueError("DBCOLOR color-book fields mismatch")
+        else:
+            dbcolor_discrepancies.append(
+                "LibreDWG 0.14 truncates DBCOLOR color-book names for "
+                + version_name)
 
     dictionary_default = find_record(
         records, "DICTIONARYWDFLT", DICTIONARYWDFLT_HANDLE)
@@ -517,6 +541,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         MALFORMED_RAPIDRTRENDERSETTINGS_HANDLE: "RAPIDRTRENDERSETTINGS",
         MALFORMED_MENTALRAYRENDERSETTINGS_HANDLE: "MENTALRAYRENDERSETTINGS",
         MALFORMED_MATERIAL_HANDLE: "MATERIAL",
+        MALFORMED_DBCOLOR_HANDLE: "DBCOLOR",
     }
     if any(record_handle(record) in malformed_handles
            and record.get("object") == malformed_handles[record_handle(record)]
@@ -548,11 +573,13 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "RAPIDRTRENDERSETTINGS": RAPIDRTRENDERSETTINGS_HANDLE,
             "MENTALRAYRENDERSETTINGS": MENTALRAYRENDERSETTINGS_HANDLE,
             "MATERIAL": MATERIAL_HANDLE,
+            "DBCOLOR": DBCOLOR_HANDLE,
             "DICTIONARYWDFLT": DICTIONARYWDFLT_HANDLE,
         },
         "objectStatus": "qualified",
         "oracleDiscrepancies": (oracle_discrepancies + mental_discrepancies
-                                 + material_discrepancies),
+                                 + material_discrepancies
+                                 + dbcolor_discrepancies),
     }
 
 
@@ -623,7 +650,7 @@ def self_test() -> None:
              "ownerhandle": [4, 1, 0x0C, 0x0C], "name": "LOCAL_GROUP",
              "groups": [[5, 1, 0x1234]]},
             {"object": "DICTIONARY", "handle": [0, 1, DICTIONARY_HANDLE],
-             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 20,
+             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 21,
              "is_hardowner": 1},
             {"object": "XRECORD", "handle": [0, 1, XRECORD_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
@@ -767,6 +794,11 @@ def self_test() -> None:
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
              "type": 507, "name": "LOCAL_MATERIAL",
              "description": "LOCAL_MATERIAL_DESC"},
+            {"object": "DBCOLOR", "handle": [0, 1, DBCOLOR_HANDLE],
+             "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "type": 563,
+             "color": {"index": 256, "rgb": "c2123456", "flag": 3,
+                       "name": "LOCAL_COLOR", "book_name": "LOCAL_BOOK"}},
         ],
     }
     summary = check_objects(payload, "AC1024")
@@ -944,6 +976,15 @@ def self_test() -> None:
         pass
     else:
         raise AssertionError("malformed MATERIAL was not rejected")
+    try:
+        bad = json.loads(json.dumps(payload))
+        bad["OBJECTS"].append({"object": "DBCOLOR",
+                                "handle": [0, 1, MALFORMED_DBCOLOR_HANDLE]})
+        check_objects(bad, "AC1024")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("malformed DBCOLOR was not rejected")
     print("local DWG object oracle: PASS")
 
 
