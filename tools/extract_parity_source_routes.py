@@ -8441,6 +8441,157 @@ def inventory_identity_digest(inventory: dict[str, list[dict]]) -> str:
     return sha256_text(canonical_json(rows))
 
 
+def build_route_mapping(
+    inventories: dict[str, dict[str, list[dict]]], comparison: dict
+) -> dict:
+    """Build a conservative target-centric cardinality/disposition ledger.
+
+    Exact route IDs are the only automatic equivalence.  A common ID with a
+    selector/body delta stays a reviewed ``1:1`` mapping with an explicit
+    delta disposition; a target-only route is deliberately ``1:0`` debt until
+    a later mapping review supplies a non-overlapping alias.  This avoids
+    inventing N:M relationships from similar names while still making every
+    target row implementation-ready.
+    """
+    rows: list[dict] = []
+    standalone_ids: set[str] = set()
+    for facade in ("dxfRW", "dwgRW", "shared"):
+        target_routes = {route["id"]: route for route in inventories["target"][facade]}
+        standalone_routes = {route["id"]: route for route in inventories["standalone"][facade]}
+        standalone_ids.update(standalone_routes)
+        delta_by_id = {
+            row["routeId"]: row["classes"]
+            for row in comparison[facade].get("deltaClasses", [])
+        }
+        for route_id in sorted(target_routes):
+            target_route = target_routes[route_id]
+            standalone_route = standalone_routes.get(route_id)
+            if standalone_route is None:
+                rows.append(
+                    {
+                        "targetRouteId": route_id,
+                        "standaloneRouteIds": [],
+                        "facade": facade,
+                        "category": target_route["category"],
+                        "cardinality": "1:0",
+                        "mappingKind": "target-only",
+                        "deltaClasses": ["route-presence"],
+                        "ownerPaths": sorted({item["path"] for item in target_route["evidence"]}),
+                        "implementationState": "target-only",
+                        "disposition": "target-debt",
+                        "dependencies": [],
+                        "smallestGate": "extract_parity_source_routes.py --check",
+                        "fixtureDisposition": "no-drawing-fixture",
+                        "unblockCondition": "review a non-overlapping standalone alias or implement the target route",
+                    }
+                )
+                continue
+            classes = delta_by_id.get(route_id, [])
+            rows.append(
+                {
+                    "targetRouteId": route_id,
+                    "standaloneRouteIds": [route_id],
+                    "facade": facade,
+                    "category": target_route["category"],
+                    "cardinality": "1:1",
+                    "mappingKind": "exact-route-id",
+                    "deltaClasses": classes,
+                    "ownerPaths": sorted({item["path"] for item in target_route["evidence"]}),
+                    "implementationState": "selector-delta" if classes else "same-selector",
+                    "disposition": "delta-review" if classes else "equivalent",
+                    "dependencies": [],
+                    "smallestGate": "extract_parity_source_routes.py --check",
+                    "fixtureDisposition": "no-drawing-fixture",
+                    "unblockCondition": "resolve every listed delta before support promotion" if classes else "none",
+                }
+            )
+    rows.sort(key=lambda row: row["targetRouteId"])
+    mapped_standalone = {
+        route_id
+        for row in rows
+        for route_id in row["standaloneRouteIds"]
+    }
+    return {
+        "schema": 1,
+        "kind": "libdxfrw-target-route-mapping",
+        "cardinalityContract": ["1:1", "1:N", "N:1", "N:M", "1:0"],
+        "rows": rows,
+        "standaloneUnmappedRouteIds": sorted(standalone_ids - mapped_standalone),
+        "summary": {
+            "targetRows": len(rows),
+            "exactOneToOne": sum(row["cardinality"] == "1:1" and not row["deltaClasses"] for row in rows),
+            "deltaOneToOne": sum(row["cardinality"] == "1:1" and bool(row["deltaClasses"]) for row in rows),
+            "targetOnly": sum(row["cardinality"] == "1:0" for row in rows),
+            "standaloneOnly": len(standalone_ids - mapped_standalone),
+        },
+    }
+
+
+def validate_route_mapping(
+    inventories: dict[str, dict[str, list[dict]]], mapping: dict
+) -> None:
+    """Fail closed on duplicate, dangling, or under-specified mapping rows."""
+    rows = mapping.get("rows")
+    if mapping.get("cardinalityContract") != ["1:1", "1:N", "N:1", "N:M", "1:0"]:
+        raise RouteError("route mapping cardinality contract changed without review")
+    if not isinstance(rows, list):
+        raise RouteError("route mapping rows are not a list")
+    target_ids = {
+        route["id"]
+        for facade in ("dxfRW", "dwgRW", "shared")
+        for route in inventories["target"][facade]
+    }
+    standalone_ids = {
+        route["id"]
+        for facade in ("dxfRW", "dwgRW", "shared")
+        for route in inventories["standalone"][facade]
+    }
+    seen_target: list[str] = []
+    seen_standalone: list[str] = []
+    for row in rows:
+        required = {
+            "targetRouteId", "standaloneRouteIds", "facade", "category", "cardinality",
+            "mappingKind", "deltaClasses", "ownerPaths", "implementationState",
+            "disposition", "dependencies", "smallestGate", "fixtureDisposition",
+            "unblockCondition",
+        }
+        if not isinstance(row, dict) or set(row) != required:
+            raise RouteError("route mapping row is malformed")
+        target_id = row["targetRouteId"]
+        standalone = row["standaloneRouteIds"]
+        if target_id not in target_ids or target_id in seen_target:
+            raise RouteError("route mapping has a missing or duplicate target route")
+        if not isinstance(standalone, list) or standalone != sorted(set(standalone)):
+            raise RouteError("route mapping standalone IDs are non-deterministic")
+        if not set(standalone) <= standalone_ids:
+            raise RouteError("route mapping references an unknown standalone route")
+        seen_target.append(target_id)
+        seen_standalone.extend(standalone)
+        if row["cardinality"] == "1:1" and len(standalone) != 1:
+            raise RouteError("1:1 route mapping has the wrong endpoint count")
+        if row["cardinality"] == "1:0" and standalone:
+            raise RouteError("1:0 route mapping unexpectedly has a standalone endpoint")
+        if row["cardinality"] not in mapping["cardinalityContract"]:
+            raise RouteError("route mapping uses an unknown cardinality")
+        if row["mappingKind"] == "target-only" and row["cardinality"] != "1:0":
+            raise RouteError("target-only mapping has the wrong cardinality")
+        if row["mappingKind"] == "exact-route-id" and row["cardinality"] != "1:1":
+            raise RouteError("exact route mapping has the wrong cardinality")
+        if not isinstance(row["ownerPaths"], list) or not row["ownerPaths"]:
+            raise RouteError("route mapping lacks source ownership")
+        if not isinstance(row["smallestGate"], str) or not row["smallestGate"]:
+            raise RouteError("route mapping lacks a smallest gate")
+        if not isinstance(row["unblockCondition"], str) or not row["unblockCondition"]:
+            raise RouteError("route mapping lacks an unblock condition")
+    if seen_target != sorted(target_ids):
+        raise RouteError("route mapping does not cover every target route exactly once")
+    if seen_standalone != sorted(set(seen_standalone)):
+        raise RouteError("route mapping reuses a standalone route without an N:* review")
+    expected_unmapped = sorted(standalone_ids - set(seen_standalone))
+    if mapping.get("standaloneUnmappedRouteIds") != expected_unmapped:
+        raise RouteError("route mapping standalone-unmapped set is stale")
+
+
 def summarize(inventories: dict[str, dict[str, list[dict]]], comparison: dict) -> dict:
     result: dict[str, dict] = {}
     for side in ("target", "standalone"):
@@ -8594,6 +8745,10 @@ def generate(root: Path, target_repo: Path) -> dict:
     )
     comparison = compare_inventories(target_inventory, standalone_inventory)
     inventories = {"target": target_inventory, "standalone": standalone_inventory}
+    mapping = build_route_mapping(inventories, comparison)
+    validate_route_mapping(inventories, mapping)
+    summary = summarize(inventories, comparison)
+    summary["mapping"] = mapping["summary"]
     identity_digests = {
         side: inventory_identity_digest(inventories[side])
         for side in ("target", "standalone")
@@ -8645,7 +8800,8 @@ def generate(root: Path, target_repo: Path) -> dict:
         },
         "inventories": inventories,
         "comparison": comparison,
-        "summary": summarize(inventories, comparison),
+        "mapping": mapping,
+        "summary": summary,
     }
 
 
@@ -10237,6 +10393,59 @@ private:
     assert route_delta_classes(delta_target, delta_standalone) == [
         "body", "condition", "direction", "selector"
     ]
+
+    def synthetic_route(route_id: str, selector: dict) -> dict:
+        facade, category, _name = route_id.split("/", 2)
+        return {
+            "id": route_id,
+            "facade": facade,
+            "category": category,
+            "selector": selector,
+            "directions": ["read"],
+            "sourceDisposition": "source-route-only",
+            "evidence": [{"path": "src/example.cpp", "line": 1, "symbol": "f", "spanSha256": "a"}],
+        }
+
+    mapping_target = {
+        "dxfRW": [
+            synthetic_route("dxfRW/dxf-entity/LINE", {"name": "LINE"}),
+            synthetic_route("dxfRW/dxf-entity/CIRCLE", {"name": "CIRCLE"}),
+        ],
+        "dwgRW": [],
+        "shared": [],
+    }
+    mapping_standalone = {
+        "dxfRW": [
+            synthetic_route("dxfRW/dxf-entity/LINE", {"name": "LINE", "condition": "adapted"}),
+            synthetic_route("dxfRW/dxf-entity/ARC", {"name": "ARC"}),
+        ],
+        "dwgRW": [],
+        "shared": [],
+    }
+    mapping_comparison = compare_inventories(mapping_target, mapping_standalone)
+    mapping = build_route_mapping(
+        {"target": mapping_target, "standalone": mapping_standalone}, mapping_comparison
+    )
+    validate_route_mapping(
+        {"target": mapping_target, "standalone": mapping_standalone}, mapping
+    )
+    assert mapping["summary"] == {
+        "targetRows": 2,
+        "exactOneToOne": 0,
+        "deltaOneToOne": 1,
+        "targetOnly": 1,
+        "standaloneOnly": 1,
+    }
+    broken_mapping = dict(mapping)
+    broken_mapping["rows"] = list(mapping["rows"]) + [dict(mapping["rows"][0])]
+    try:
+        validate_route_mapping(
+            {"target": mapping_target, "standalone": mapping_standalone}, broken_mapping
+        )
+    except RouteError:
+        pass
+    else:
+        raise AssertionError("duplicate target mapping row was accepted")
 
     artifact_generated = {
         "schema": SCHEMA,
