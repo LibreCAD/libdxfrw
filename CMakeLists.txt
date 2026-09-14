@@ -107,6 +107,12 @@ if(LIBDXFRW_BUILD_TESTS)
             ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_parity_differential.py
             --manifest
             ${CMAKE_CURRENT_SOURCE_DIR}/metadata/parity-differential-runners-v1.json)
+    add_test(NAME libdxfrw_dxf_parity_lane
+        COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE}
+            ${CMAKE_CURRENT_SOURCE_DIR}/tools/check_dxf_lane.py
+            --mapping ${CMAKE_CURRENT_SOURCE_DIR}/metadata/parity-source-routes-v1.json
+            --target ${CMAKE_CURRENT_SOURCE_DIR}/metadata/parity-source-routes-v1/target-dxfRW.json
+            --standalone ${CMAKE_CURRENT_SOURCE_DIR}/metadata/parity-source-routes-v1/standalone-dxfRW.json)
 
     add_executable(libdxfrw_wave1_tests tests/wave1_tests.cpp)
     target_compile_features(libdxfrw_wave1_tests PRIVATE cxx_std_17)
