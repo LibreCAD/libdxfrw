@@ -87761,9 +87761,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/write-001",
       "selector": {
+        "finalizerDisposition": "output-transaction-commit",
         "kind": "symbol",
         "name": "dwgRW::write",
-        "signatureFingerprint": "abbeca4db862bfbf5e3868b444c328305e156f9167705b5cad3bfb7b249bdecd"
+        "operationDisposition": "typed-helper",
+        "parameterModels": [
+          {
+            "model": "DRW_Interface",
+            "name": "interface_",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "abbeca4db862bfbf5e3868b444c328305e156f9167705b5cad3bfb7b249bdecd",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -87783,9 +87802,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/write3DLine-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dwgRW::write3DLine",
-        "signatureFingerprint": "505b597645aeb26adea149f5c63e7de78f8b9dbc276bc3409d801abfcb6aee17"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_3DLine",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "505b597645aeb26adea149f5c63e7de78f8b9dbc276bc3409d801abfcb6aee17",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -87805,9 +87843,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/write3dface-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dwgRW::write3dface",
-        "signatureFingerprint": "e9e0a21c01fcc23e6bd903b5c20f03952d70cb2bd8a82849f4d65f883a512972"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_3Dface",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "e9e0a21c01fcc23e6bd903b5c20f03952d70cb2bd8a82849f4d65f883a512972",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -87827,9 +87884,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeAcDbPlaceholder-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeAcDbPlaceholder",
-        "signatureFingerprint": "8da6aeda90c5cea2cb35b63e3e926869855df8cd8e71224c647d19fe46c815aa"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_AcDbPlaceholder",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "8da6aeda90c5cea2cb35b63e3e926869855df8cd8e71224c647d19fe46c815aa",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -87849,9 +87925,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeArc-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dwgRW::writeArc",
-        "signatureFingerprint": "8167df39d1c6e12b37c5c14403d16a7ca4f1d748240a4db68be7a7a5412785d7"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Arc",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "8167df39d1c6e12b37c5c14403d16a7ca4f1d748240a4db68be7a7a5412785d7",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -87871,9 +87966,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeArcAlignedText-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dwgRW::writeArcAlignedText",
-        "signatureFingerprint": "d9bb6fafebf773c26ac4edeb30987ae96dc4ef9748ebf6c5c95d3faf592bc0be"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_ArcAlignedText",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "d9bb6fafebf773c26ac4edeb30987ae96dc4ef9748ebf6c5c95d3faf592bc0be",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -87893,9 +88007,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeAttdef-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeAttdef",
-        "signatureFingerprint": "0bf1b9c17b7dc9ebf9b67ee74789963c2874bf5793473aaf28d72bd08ac00152"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Attdef",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "0bf1b9c17b7dc9ebf9b67ee74789963c2874bf5793473aaf28d72bd08ac00152",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -87915,9 +88048,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeAttrib-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeAttrib",
-        "signatureFingerprint": "8a4317e909d70845c6bdf7e2ed28d113272cdcbb529504bcbdb71c0530d86202"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Attrib",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "8a4317e909d70845c6bdf7e2ed28d113272cdcbb529504bcbdb71c0530d86202",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -87937,9 +88089,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeBackground-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeBackground",
-        "signatureFingerprint": "06eb49cb05eb5249d17a6e9bc596863fdc8d3dc44089131ee469cf3db692794c"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Background",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "06eb49cb05eb5249d17a6e9bc596863fdc8d3dc44089131ee469cf3db692794c",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -87959,9 +88130,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeBlockRepresentationData-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeBlockRepresentationData",
-        "signatureFingerprint": "cf5c97d5435a2df24001f1544656661a1c5fd52ded412297f09aee6acbaf93a2"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_BlockRepresentationData",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "cf5c97d5435a2df24001f1544656661a1c5fd52ded412297f09aee6acbaf93a2",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -87981,9 +88171,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeCamera-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dwgRW::writeCamera",
-        "signatureFingerprint": "462003c293b95eca721f4f26cd6d55f3ac16b78e169133266331862079d746ce"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Camera",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "462003c293b95eca721f4f26cd6d55f3ac16b78e169133266331862079d746ce",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88003,9 +88212,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeCircle-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dwgRW::writeCircle",
-        "signatureFingerprint": "7df2def7389e77d254f56855b6d2482f6ab19a39135d035da65518cd4de090ff"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Circle",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "7df2def7389e77d254f56855b6d2482f6ab19a39135d035da65518cd4de090ff",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88025,9 +88253,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeCurvePath-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeCurvePath",
-        "signatureFingerprint": "e816b9a9063490c09bb9f1c922de0bb54ab1f651358318f810830c0aea393b04"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_CurvePath",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "e816b9a9063490c09bb9f1c922de0bb54ab1f651358318f810830c0aea393b04",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88047,9 +88294,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeDbColor-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeDbColor",
-        "signatureFingerprint": "79ddcbb0200daab939fdf266b996312fd3830167b2ad5ef72107eeaeadefa9da"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_DbColor",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "79ddcbb0200daab939fdf266b996312fd3830167b2ad5ef72107eeaeadefa9da",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88069,9 +88335,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeDictionary-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeDictionary",
-        "signatureFingerprint": "ac04cb85211cf6b594e2746afeceb6c4cb177bc88b623a2ae7c339554d436fcf"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Dictionary",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "ac04cb85211cf6b594e2746afeceb6c4cb177bc88b623a2ae7c339554d436fcf",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88091,9 +88376,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeDictionaryVar-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeDictionaryVar",
-        "signatureFingerprint": "5aee0bd57aa81325b7a5dcf141d7d8766b681cb1afe6498e5a15e76c3674f0c8"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_DictionaryVar",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "5aee0bd57aa81325b7a5dcf141d7d8766b681cb1afe6498e5a15e76c3674f0c8",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88113,9 +88417,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeDictionaryWithDefault-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeDictionaryWithDefault",
-        "signatureFingerprint": "acb6e778fa14af7b986520a8e5999d935c9bbcecba681806363ebf03736d070e"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_DictionaryWithDefault",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "acb6e778fa14af7b986520a8e5999d935c9bbcecba681806363ebf03736d070e",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88135,9 +88458,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeDimension-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dwgRW::writeDimension",
-        "signatureFingerprint": "d5442abedb6127faddf2e785e3bccfcb3720ec70d3d9c6616f122e3d165c7c17"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Dimension",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "d5442abedb6127faddf2e785e3bccfcb3720ec70d3d9c6616f122e3d165c7c17",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88157,9 +88499,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeDimensionAssociation-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeDimensionAssociation",
-        "signatureFingerprint": "589a5593ba2da8499e74b925af3c0afbfee0ae85ce2532fff6239387159ab310"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_DimensionAssociation",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "589a5593ba2da8499e74b925af3c0afbfee0ae85ce2532fff6239387159ab310",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88179,9 +88540,22 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeDwgObjectsForTest-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dwgRW::writeDwgObjectsForTest",
-        "signatureFingerprint": "e077cb25bc141a38f7696c29ad6c7fc0f8cf4c71c3a71b974d169f0c3079e41a"
+        "operationDisposition": "structural",
+        "parameterModels": [],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "e077cb25bc141a38f7696c29ad6c7fc0f8cf4c71c3a71b974d169f0c3079e41a",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88201,9 +88575,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeEllipse-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dwgRW::writeEllipse",
-        "signatureFingerprint": "bb714e236162fc917e817a702de6c5d5e6e85e7e5104a9ae4980769a9d6b6326"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Ellipse",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "bb714e236162fc917e817a702de6c5d5e6e85e7e5104a9ae4980769a9d6b6326",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88223,9 +88616,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeEvaluationGraph-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeEvaluationGraph",
-        "signatureFingerprint": "90a00bf184686378b92dc312d435e3444dfc36fc0951121e831f7769ea67334e"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_EvaluationGraph",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "90a00bf184686378b92dc312d435e3444dfc36fc0951121e831f7769ea67334e",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88245,9 +88657,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeField-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeField",
-        "signatureFingerprint": "0072ee95856134546b577a12ef60265ef066d13fb8ba490a8798d8ba2643e20c"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Field",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "0072ee95856134546b577a12ef60265ef066d13fb8ba490a8798d8ba2643e20c",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88267,9 +88698,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeFieldList-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeFieldList",
-        "signatureFingerprint": "cbfccde23431fe7aa53f172f32b171b5ccf4a4eb58a195c4f66c6863d4d701b8"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_FieldList",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "cbfccde23431fe7aa53f172f32b171b5ccf4a4eb58a195c4f66c6863d4d701b8",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88289,9 +88739,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeGeoData-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeGeoData",
-        "signatureFingerprint": "fded95e189e78746241446cf6155de7bb5e6bee494d28c4c60854396a495b18b"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_GeoData",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "fded95e189e78746241446cf6155de7bb5e6bee494d28c4c60854396a495b18b",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88311,9 +88780,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeGeoPositionMarker-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dwgRW::writeGeoPositionMarker",
-        "signatureFingerprint": "aa4c722719ba85b67db50b452303a5b89dc5274464b2942d411e78deb32c4991"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_GeoPositionMarker",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "aa4c722719ba85b67db50b452303a5b89dc5274464b2942d411e78deb32c4991",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88333,9 +88821,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeGroup-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeGroup",
-        "signatureFingerprint": "d026ee87cb9e7d94116d78df53ac034df84136bf8734cdc286e07eda2e432892"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Group",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "d026ee87cb9e7d94116d78df53ac034df84136bf8734cdc286e07eda2e432892",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88355,9 +88862,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeHatch-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dwgRW::writeHatch",
-        "signatureFingerprint": "e4a8e850b0f14771a840144069563604945dfcdf8764e6abeca4491828f0a36f"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Hatch",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "e4a8e850b0f14771a840144069563604945dfcdf8764e6abeca4491828f0a36f",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88377,9 +88903,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeHelix-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dwgRW::writeHelix",
-        "signatureFingerprint": "d443562910337dd411eab47cb5a46b084d0a240a7c0e596f615749bddad24e15"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Helix",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "d443562910337dd411eab47cb5a46b084d0a240a7c0e596f615749bddad24e15",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88399,9 +88944,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeIDBuffer-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeIDBuffer",
-        "signatureFingerprint": "a758aac323074e6694c261b32ad269f912bb27798829fce4f4207e072158ca7a"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_IDBuffer",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "a758aac323074e6694c261b32ad269f912bb27798829fce4f4207e072158ca7a",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88421,9 +88985,38 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeImage-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeImage",
-        "signatureFingerprint": "fcf202524349f6a50626d93c1fac09dff8fbe1c967d5f06805d5962d14d5ebc7"
+        "operationDisposition": "typed-helper",
+        "parameterModels": [
+          {
+            "model": "DRW_Image",
+            "name": "ent",
+            "passing": "pointer"
+          },
+          {
+            "model": "DRW_ImageDef",
+            "name": "definition",
+            "passing": "pointer"
+          },
+          {
+            "model": "DRW_ImageDefinitionReactor",
+            "name": "reactorDefinition",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "fcf202524349f6a50626d93c1fac09dff8fbe1c967d5f06805d5962d14d5ebc7",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88443,9 +89036,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeImageDef-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeImageDef",
-        "signatureFingerprint": "6e2d37e4d6c743f83810d157988507b4f2576dea2f1d6017b4b2fdf34d3a14e9"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_ImageDef",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "6e2d37e4d6c743f83810d157988507b4f2576dea2f1d6017b4b2fdf34d3a14e9",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88465,9 +89077,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeImageDefinitionReactor-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeImageDefinitionReactor",
-        "signatureFingerprint": "fe977e86a96142ff28c04ccfb1646803352f02e8370deb2cb9f5a428ca237550"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_ImageDefinitionReactor",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "fe977e86a96142ff28c04ccfb1646803352f02e8370deb2cb9f5a428ca237550",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88487,9 +89118,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeInsert-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeInsert",
-        "signatureFingerprint": "eb0e755d7c6c438bfbda332fe2eb688af38502a221f173d3d536b6a21ce2c5d1"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Insert",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "eb0e755d7c6c438bfbda332fe2eb688af38502a221f173d3d536b6a21ce2c5d1",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88509,9 +89159,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeLWPolyline-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dwgRW::writeLWPolyline",
-        "signatureFingerprint": "a94064b4d28d8368feb655644a32499db112c733d90931355cecbd76c8171c95"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_LWPolyline",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "a94064b4d28d8368feb655644a32499db112c733d90931355cecbd76c8171c95",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88531,9 +89200,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeLayerIndex-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeLayerIndex",
-        "signatureFingerprint": "5fc63226e985679c6627e58a8d10f41cd8be4967408ad92d00579a5a50c10fda"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_LayerIndex",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "5fc63226e985679c6627e58a8d10f41cd8be4967408ad92d00579a5a50c10fda",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88553,9 +89241,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeLayout-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeLayout",
-        "signatureFingerprint": "67ee1686ec04542e2b443542ec5b76bab88a8a44694d665b59a03266282d5242"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Layout",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "67ee1686ec04542e2b443542ec5b76bab88a8a44694d665b59a03266282d5242",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88575,9 +89282,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeLeader-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dwgRW::writeLeader",
-        "signatureFingerprint": "894a294051f13f642fd3b14eab51b6c5d4172f6881c7d542013cc120a27c25c3"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Leader",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "894a294051f13f642fd3b14eab51b6c5d4172f6881c7d542013cc120a27c25c3",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88597,9 +89323,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeLight-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dwgRW::writeLight",
-        "signatureFingerprint": "b866e91505ca333333871ce4d23a54806b2ceed9bcac7ca3213292aad1bfb08c"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Light",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "b866e91505ca333333871ce4d23a54806b2ceed9bcac7ca3213292aad1bfb08c",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88619,9 +89364,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeLightList-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeLightList",
-        "signatureFingerprint": "550b44ae3d6877f9aa8bc6a171407031d82913800ba17479a68942c5ddff9383"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_LightList",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "550b44ae3d6877f9aa8bc6a171407031d82913800ba17479a68942c5ddff9383",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88641,9 +89405,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeLine-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dwgRW::writeLine",
-        "signatureFingerprint": "4539aa0e32cd9c8c168287d9bb7aeb0f24968844ab4afe5222c878012c0823d5"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Line",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "4539aa0e32cd9c8c168287d9bb7aeb0f24968844ab4afe5222c878012c0823d5",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88663,9 +89446,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeMLeader-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dwgRW::writeMLeader",
-        "signatureFingerprint": "6f6a7e666e61acfedc7cd48fb74e5569d63bab46bdfe4abf16307f87242c8b02"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_MLeader",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "6f6a7e666e61acfedc7cd48fb74e5569d63bab46bdfe4abf16307f87242c8b02",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88685,9 +89487,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeMLeaderStyle-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeMLeaderStyle",
-        "signatureFingerprint": "d3987e75a593a4349416ade0b8b9ed5fc4d8ad15a0ef63b2bfbe97d766165a4a"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_MLeaderStyle",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "d3987e75a593a4349416ade0b8b9ed5fc4d8ad15a0ef63b2bfbe97d766165a4a",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88707,9 +89528,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeMLine-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dwgRW::writeMLine",
-        "signatureFingerprint": "900d28d6412b8584ab45bbdd707c438370871cc7cd02000ef2606324f6edf838"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_MLine",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "900d28d6412b8584ab45bbdd707c438370871cc7cd02000ef2606324f6edf838",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88729,9 +89569,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeMLineStyle-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeMLineStyle",
-        "signatureFingerprint": "ab60ca835a9edc4f48f2874a3e91a19e4c59edf7d3e88aaff6869e902d22222a"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_MLineStyle",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "ab60ca835a9edc4f48f2874a3e91a19e4c59edf7d3e88aaff6869e902d22222a",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88751,9 +89610,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeMPolygon-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dwgRW::writeMPolygon",
-        "signatureFingerprint": "21fa6992a6c75a8c95e24aa833a05375c7ae5c8213ee11c256d0d87d4d04f0d4"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_MPolygon",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "21fa6992a6c75a8c95e24aa833a05375c7ae5c8213ee11c256d0d87d4d04f0d4",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88773,9 +89651,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeMText-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dwgRW::writeMText",
-        "signatureFingerprint": "a592acf58e52843653eeba42312e6a7feb423c5fecfbb4795acc074d05f7cfe5"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_MText",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "a592acf58e52843653eeba42312e6a7feb423c5fecfbb4795acc074d05f7cfe5",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88795,9 +89692,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeMaterial-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeMaterial",
-        "signatureFingerprint": "472870b7a8e9646e9671307bb0dd3c55b91cf2866bda2eaa197afb221f4a1c9b"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Material",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "472870b7a8e9646e9671307bb0dd3c55b91cf2866bda2eaa197afb221f4a1c9b",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88817,9 +89733,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeMesh-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dwgRW::writeMesh",
-        "signatureFingerprint": "12eee4acebb776710f1053636f2c72c4e6fcc0bcf29afadd8b67accd6b3e0597"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Mesh",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "12eee4acebb776710f1053636f2c72c4e6fcc0bcf29afadd8b67accd6b3e0597",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88839,9 +89774,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeMotionPath-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeMotionPath",
-        "signatureFingerprint": "32223f3a452b2ac47c0a7bfe1de763e6e19d350a4f70eb4c7345c8aa34f63258"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_MotionPath",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "32223f3a452b2ac47c0a7bfe1de763e6e19d350a4f70eb4c7345c8aa34f63258",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88861,9 +89815,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeNavisworksModel-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeNavisworksModel",
-        "signatureFingerprint": "b875fd66482a27fb6316fc2b6a84248cd21407ac3d90e10b17e7a36ae4a2a2e3"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_NavisworksModel",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "b875fd66482a27fb6316fc2b6a84248cd21407ac3d90e10b17e7a36ae4a2a2e3",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88883,9 +89856,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeNavisworksModelDef-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeNavisworksModelDef",
-        "signatureFingerprint": "e07dfdcc0352aa8857e1c349624aaff4b7d8ecda47e605469d74595cdaa96603"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_NavisworksModelDef",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "e07dfdcc0352aa8857e1c349624aaff4b7d8ecda47e605469d74595cdaa96603",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88905,9 +89897,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeObjectPtr-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeObjectPtr",
-        "signatureFingerprint": "e2c093d73f1aa759d2667d530b4965364c694ae6127f2c95e2c8b7a8c8a05c1f"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_ObjectPtr",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "e2c093d73f1aa759d2667d530b4965364c694ae6127f2c95e2c8b7a8c8a05c1f",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88927,9 +89938,22 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeObjectTransaction-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeObjectTransaction",
-        "signatureFingerprint": "c5d4f38f6475bed8d48422de17f830b494e7064b915cac7474e8cebe12612697"
+        "operationDisposition": "structural",
+        "parameterModels": [],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "c5d4f38f6475bed8d48422de17f830b494e7064b915cac7474e8cebe12612697",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88949,9 +89973,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeObjectTransaction-002",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeObjectTransaction",
-        "signatureFingerprint": "3435bb600d7b9b2ebd3e5264286ac46fc6ee6ba38cf657a447166bcccb60d715"
+        "operationDisposition": "typed-helper",
+        "parameterModels": [
+          {
+            "model": "DRW_TableEntry",
+            "name": "mutationTarget",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "3435bb600d7b9b2ebd3e5264286ac46fc6ee6ba38cf657a447166bcccb60d715",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88971,9 +90014,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeOle2Frame-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dwgRW::writeOle2Frame",
-        "signatureFingerprint": "1cec95027e5e730e8e3ec2283a913e810cf4c17fc46ef57b3a02b59c085f3d64"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Ole2Frame",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "1cec95027e5e730e8e3ec2283a913e810cf4c17fc46ef57b3a02b59c085f3d64",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -88993,9 +90055,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeOleFrame-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dwgRW::writeOleFrame",
-        "signatureFingerprint": "3d7ebee41de2e03bf9583ed6e2cff5783905d22b988110842bfe98a808828ec4"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_OleFrame",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "3d7ebee41de2e03bf9583ed6e2cff5783905d22b988110842bfe98a808828ec4",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89015,9 +90096,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writePartialViewingIndex-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writePartialViewingIndex",
-        "signatureFingerprint": "e705f01f8b1d52affbf4f12a84fea00e8a6a1af0289d27ca131a59958a8b6982"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_PartialViewingIndex",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "e705f01f8b1d52affbf4f12a84fea00e8a6a1af0289d27ca131a59958a8b6982",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89037,9 +90137,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writePlotSettings-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writePlotSettings",
-        "signatureFingerprint": "607113278412cf570585741cce4e51a00020d0791ba2e47c416f3ff6543023c4"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_PlotSettings",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "607113278412cf570585741cce4e51a00020d0791ba2e47c416f3ff6543023c4",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89059,9 +90178,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writePoint-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dwgRW::writePoint",
-        "signatureFingerprint": "6c110547965e5c8385ae3298bb905a0256e3800fd7d9430b62afdc46006753a6"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Point",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "6c110547965e5c8385ae3298bb905a0256e3800fd7d9430b62afdc46006753a6",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89081,9 +90219,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writePointCloud-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dwgRW::writePointCloud",
-        "signatureFingerprint": "dd2764d670176bccb2092d44108f55c4322c9b21ac0e174d36cbcba2e3c9c5cf"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_PointCloud",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "dd2764d670176bccb2092d44108f55c4322c9b21ac0e174d36cbcba2e3c9c5cf",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89103,9 +90260,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writePointCloudColorMap-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writePointCloudColorMap",
-        "signatureFingerprint": "33a7e0ac1e41052694822480cc52124ba349c1daeb7e62334deac7415ff2273a"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_PointCloudColorMap",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "33a7e0ac1e41052694822480cc52124ba349c1daeb7e62334deac7415ff2273a",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89125,9 +90301,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writePointCloudDef-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writePointCloudDef",
-        "signatureFingerprint": "d67c7f653c4771e1f531be1259807e9b29e31839a00313776ee0806fe069e3e0"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_PointCloudDef",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "d67c7f653c4771e1f531be1259807e9b29e31839a00313776ee0806fe069e3e0",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89147,9 +90342,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writePointCloudEx-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dwgRW::writePointCloudEx",
-        "signatureFingerprint": "139a315690f8adde1d3c1f2f5f6b0cabeecf8af7f24c2daabce00ba30067a2c8"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_PointCloudEx",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "139a315690f8adde1d3c1f2f5f6b0cabeecf8af7f24c2daabce00ba30067a2c8",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89169,9 +90383,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writePointPath-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writePointPath",
-        "signatureFingerprint": "eb1ea6be5794aa40f5ce99393989aef3a94737215a7d1c98e14aa44ff663a35c"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_PointPath",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "eb1ea6be5794aa40f5ce99393989aef3a94737215a7d1c98e14aa44ff663a35c",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89191,9 +90424,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writePolyline-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writePolyline",
-        "signatureFingerprint": "d01ae9b92bcf82f0e438b6e44de767e6bb92fa40243f52aaa091c2b1061e1f23"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Polyline",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "d01ae9b92bcf82f0e438b6e44de767e6bb92fa40243f52aaa091c2b1061e1f23",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89213,9 +90465,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeRText-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dwgRW::writeRText",
-        "signatureFingerprint": "4188f023d5aa5b8c12cabf7659556b0a877ebe55508433c29507f8958dce5e9c"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_RText",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "4188f023d5aa5b8c12cabf7659556b0a877ebe55508433c29507f8958dce5e9c",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89235,9 +90506,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeRasterVariables-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeRasterVariables",
-        "signatureFingerprint": "3bdf579f8cf944ee63e3cc422c38a64dcede1348b1154eb53af5b5115af99eae"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_RasterVariables",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "3bdf579f8cf944ee63e3cc422c38a64dcede1348b1154eb53af5b5115af99eae",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89257,9 +90547,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeRawDwgObject-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeRawDwgObject",
-        "signatureFingerprint": "f43a68ef9cb697106620156f78ab6bc125b047184b14496ab91b60748d144af8"
+        "operationDisposition": "raw-carrier",
+        "parameterModels": [
+          {
+            "model": "DRW_UnsupportedObject",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "f43a68ef9cb697106620156f78ab6bc125b047184b14496ab91b60748d144af8",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89279,9 +90588,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeRawDwgSection-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeRawDwgSection",
-        "signatureFingerprint": "e1913d5270f772e54eff8804a78417f557e237e47eeb1f2c4e3bb02811c543ae"
+        "operationDisposition": "raw-carrier",
+        "parameterModels": [
+          {
+            "model": "DRW_RawDwgSection",
+            "name": "section",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "e1913d5270f772e54eff8804a78417f557e237e47eeb1f2c4e3bb02811c543ae",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89301,9 +90629,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeRay-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dwgRW::writeRay",
-        "signatureFingerprint": "4413919a2d4a4e6108599f35e96b7b19a108a3668a288efebe5034b9b031a7f3"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Ray",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "4413919a2d4a4e6108599f35e96b7b19a108a3668a288efebe5034b9b031a7f3",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89323,9 +90670,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeRenderSettings-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeRenderSettings",
-        "signatureFingerprint": "3fcdeb7fc2d389564c595a2ad0fcf8310299a8717b87758f83c17e807975f166"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_RenderSettings",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "3fcdeb7fc2d389564c595a2ad0fcf8310299a8717b87758f83c17e807975f166",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89345,9 +90711,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeScale-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeScale",
-        "signatureFingerprint": "6a9826e183ebe40e29d12dd7ff478b9194f8c227a4c2ef33dd01da64517cc894"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Scale",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "6a9826e183ebe40e29d12dd7ff478b9194f8c227a4c2ef33dd01da64517cc894",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89367,9 +90752,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeSection-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeSection",
-        "signatureFingerprint": "13a86ad381ac567509f7a7e273348c078afb7f6a403bf38e0f7aa139f9bce8d5"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Section",
+            "name": "section",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "13a86ad381ac567509f7a7e273348c078afb7f6a403bf38e0f7aa139f9bce8d5",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89389,9 +90793,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeSectionObject-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dwgRW::writeSectionObject",
-        "signatureFingerprint": "a7fc99d9d1b2ed137bb367229212fdd6610f5e2c2dbbc403888a6ccff1b0ee69"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_SectionObject",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "a7fc99d9d1b2ed137bb367229212fdd6610f5e2c2dbbc403888a6ccff1b0ee69",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89411,9 +90834,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeShape-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dwgRW::writeShape",
-        "signatureFingerprint": "545b63fea03343f77c0e020d3fd749e00bd3ae7de941af6c901f4e6e46f0ae82"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Shape",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "545b63fea03343f77c0e020d3fd749e00bd3ae7de941af6c901f4e6e46f0ae82",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89433,9 +90875,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeSolid-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dwgRW::writeSolid",
-        "signatureFingerprint": "a53277a0984d965503f46aaf38443bc596595e11efa9590dd63c0b0999d39908"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Solid",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "a53277a0984d965503f46aaf38443bc596595e11efa9590dd63c0b0999d39908",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89455,9 +90916,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeSortEntsTable-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeSortEntsTable",
-        "signatureFingerprint": "903ded30f2e31c2c386b760d4634247302c1fbd508f655177379b478a3b30e71"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_SortEntsTable",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "903ded30f2e31c2c386b760d4634247302c1fbd508f655177379b478a3b30e71",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89477,9 +90957,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeSpatialFilter-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeSpatialFilter",
-        "signatureFingerprint": "ee1d76c2996f89224159bdb6660ec90ddc60e278d04f249d40f8a87cb015b61b"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_SpatialFilter",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "ee1d76c2996f89224159bdb6660ec90ddc60e278d04f249d40f8a87cb015b61b",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89499,9 +90998,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeSpatialIndex-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeSpatialIndex",
-        "signatureFingerprint": "1109642a087739755fe37b70f6e0b89e710cb031047e5c5c18d5f40f26e81fdc"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_SpatialIndex",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "1109642a087739755fe37b70f6e0b89e710cb031047e5c5c18d5f40f26e81fdc",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89521,9 +91039,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeSpline-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dwgRW::writeSpline",
-        "signatureFingerprint": "2e8cca2425720feaf0fea35576694aa2a6c4d0484812f1ec86e201bc49a8bcbc"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Spline",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "2e8cca2425720feaf0fea35576694aa2a6c4d0484812f1ec86e201bc49a8bcbc",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89543,9 +91080,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeSun-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeSun",
-        "signatureFingerprint": "8904cf59f1ffa89bca5295e4ded782b66a8840fe220e93ced6e9f1e5b0c69a40"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Sun",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "8904cf59f1ffa89bca5295e4ded782b66a8840fe220e93ced6e9f1e5b0c69a40",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89565,9 +91121,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeSunStudy-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeSunStudy",
-        "signatureFingerprint": "889cbbc44c168bd8b668428c7a0be072a7ddc8d6c140bfb1effbf22679bc9871"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_SunStudy",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "889cbbc44c168bd8b668428c7a0be072a7ddc8d6c140bfb1effbf22679bc9871",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89587,9 +91162,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeSurface-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeSurface",
-        "signatureFingerprint": "98a8a349fbf3ec3b99d4416817eb043fecab251866a7d34a1e8d162b9dad70e5"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Surface",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "98a8a349fbf3ec3b99d4416817eb043fecab251866a7d34a1e8d162b9dad70e5",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89609,9 +91203,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeTable-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dwgRW::writeTable",
-        "signatureFingerprint": "0a789d439e0b511389a140e14beaa1c4526d52db42ce3d45045c0e6e954f8725"
+        "operationDisposition": "typed-helper",
+        "parameterModels": [
+          {
+            "model": "DRW_Table",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "0a789d439e0b511389a140e14beaa1c4526d52db42ce3d45045c0e6e954f8725",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89631,9 +91244,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeTableStyle-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeTableStyle",
-        "signatureFingerprint": "eab26571e0620b706e351a009ac1c18535b03a5dcc3ba0031701c4febd6414a7"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_TableStyle",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "eab26571e0620b706e351a009ac1c18535b03a5dcc3ba0031701c4febd6414a7",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89653,9 +91285,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeText-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dwgRW::writeText",
-        "signatureFingerprint": "82b85661cac7eeb0e52d93e5e579dce986c267c45d94d81f72f43fb60a1db60a"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Text",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "82b85661cac7eeb0e52d93e5e579dce986c267c45d94d81f72f43fb60a1db60a",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89675,9 +91326,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeTolerance-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dwgRW::writeTolerance",
-        "signatureFingerprint": "196c2a9f60dad9d49a8516c986bcad4850fc5d1a1ba605d32f9851d9e95a6d05"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Tolerance",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "196c2a9f60dad9d49a8516c986bcad4850fc5d1a1ba605d32f9851d9e95a6d05",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89697,9 +91367,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeTrace-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dwgRW::writeTrace",
-        "signatureFingerprint": "f3ea4e1bb8fc4d1f847f9749f9c1cf7b74b584a8b8ebf330f2cadf5e5ae97980"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Trace",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "f3ea4e1bb8fc4d1f847f9749f9c1cf7b74b584a8b8ebf330f2cadf5e5ae97980",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89719,9 +91408,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeTvDeviceProperties-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeTvDeviceProperties",
-        "signatureFingerprint": "8707608d94521cf46029006a7cda824a6323b1cba8df56ee61887050c0876ce2"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_TvDeviceProperties",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "8707608d94521cf46029006a7cda824a6323b1cba8df56ee61887050c0876ce2",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89741,9 +91449,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeUnderlay-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeUnderlay",
-        "signatureFingerprint": "7ae78319f071a515275fd69d012764f9f89b59ed92c29352aa89e76694b7e733"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Underlay",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "7ae78319f071a515275fd69d012764f9f89b59ed92c29352aa89e76694b7e733",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89763,9 +91490,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeUnderlayDefinition-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeUnderlayDefinition",
-        "signatureFingerprint": "cd194a50cd85b2c7918b904a839356f6765a16f823e77428e8bf12d8ef95176a"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_UnderlayDefinition",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "cd194a50cd85b2c7918b904a839356f6765a16f823e77428e8bf12d8ef95176a",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89785,9 +91531,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeVbaProject-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeVbaProject",
-        "signatureFingerprint": "588a71bb97c24d64c81023b933cb0858a0b434fa91d29017cc7240eae0076049"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_VbaProject",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "588a71bb97c24d64c81023b933cb0858a0b434fa91d29017cc7240eae0076049",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89807,9 +91572,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeViewport-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dwgRW::writeViewport",
-        "signatureFingerprint": "ee6ceb8af5eff3637cae9f90c952d78601ce5149e0cda1eaf222a56b8cf04545"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Viewport",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "ee6ceb8af5eff3637cae9f90c952d78601ce5149e0cda1eaf222a56b8cf04545",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89829,9 +91613,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeVisualStyle-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeVisualStyle",
-        "signatureFingerprint": "1d18ae6059855bf99a1c91896958dc263b36fed3f5a101ec34f5911559f2942f"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_VisualStyle",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "1d18ae6059855bf99a1c91896958dc263b36fed3f5a101ec34f5911559f2942f",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89851,9 +91654,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeVxControl-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeVxControl",
-        "signatureFingerprint": "50af07b785fb43bfe75aa3d534db4d3b3180fda5f478cbc97f45e98d919b4bb8"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_VxControl",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "50af07b785fb43bfe75aa3d534db4d3b3180fda5f478cbc97f45e98d919b4bb8",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89873,9 +91695,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeVxTableRecord-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeVxTableRecord",
-        "signatureFingerprint": "2261b2f9a0d59ee1e81a2f80285f6b30d3813da6c894074b2eb96bef4be04ad3"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_VxTableRecord",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "2261b2f9a0d59ee1e81a2f80285f6b30d3813da6c894074b2eb96bef4be04ad3",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89895,9 +91736,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeWipeout-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeWipeout",
-        "signatureFingerprint": "d731ee5f4fa38fef736996c2c0a670368c5f5f3e9cdb9e2f2bd6ad78f4535fc7"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Wipeout",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "d731ee5f4fa38fef736996c2c0a670368c5f5f3e9cdb9e2f2bd6ad78f4535fc7",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89917,9 +91777,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeWipeoutVariables-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeWipeoutVariables",
-        "signatureFingerprint": "fd220f4307770a76b35d389d5c64696bdd7bd27424803f2797ff2cbfb1b1a920"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_WipeoutVariables",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "fd220f4307770a76b35d389d5c64696bdd7bd27424803f2797ff2cbfb1b1a920",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89939,9 +91818,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeXRecord-001",
       "selector": {
+        "finalizerDisposition": "operation-result-transaction",
         "kind": "symbol",
         "name": "dwgRW::writeXRecord",
-        "signatureFingerprint": "f7fce0edc35e1d67f61ca970d10bd904274ff800590caf848abb15fd8c50a54e"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_XRecord",
+            "name": "object",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "f7fce0edc35e1d67f61ca970d10bd904274ff800590caf848abb15fd8c50a54e",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -89961,9 +91859,28 @@
       "facade": "dwgRW",
       "id": "dwgRW/writer-entrypoint/writeXline-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dwgRW::writeXline",
-        "signatureFingerprint": "df97364e597273862464d7f71aa610cedc6934654cac1120c31de7c87644f2c4"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Xline",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dwgWriter-hierarchy",
+        "signatureFingerprint": "df97364e597273862464d7f71aa610cedc6934654cac1120c31de7c87644f2c4",
+        "writerPipelineIds": [
+          "dwgRW/writer-pipeline/15",
+          "dwgRW/writer-pipeline/18",
+          "dwgRW/writer-pipeline/21",
+          "dwgRW/writer-pipeline/24",
+          "dwgRW/writer-pipeline/27",
+          "dwgRW/writer-pipeline/32"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },

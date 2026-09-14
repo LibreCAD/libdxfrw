@@ -1706,6 +1706,75 @@ def callback_parameter_contract(signature: str) -> dict[str, object]:
     }
 
 
+WRITER_PIPELINE_IDS = {
+    "dxfRW": [
+        "dxfRW/dxf-transport-node/writer-ascii",
+        "dxfRW/dxf-transport-node/writer-binary",
+        "dxfRW/dxf-transport-node/writer-binary-r12",
+    ],
+    "dwgRW": [
+        "dwgRW/writer-pipeline/15",
+        "dwgRW/writer-pipeline/18",
+        "dwgRW/writer-pipeline/21",
+        "dwgRW/writer-pipeline/24",
+        "dwgRW/writer-pipeline/27",
+        "dwgRW/writer-pipeline/32",
+    ],
+}
+
+
+def writer_entrypoint_contract(body: FunctionBody, facade: str) -> dict[str, object]:
+    """Classify a writer definition without inferring runtime support."""
+    signature = " ".join(body.source.code[body.symbol_start : body.body_start].split())
+    opening = signature.find("(")
+    closing = signature.rfind(")")
+    if opening < 0 or closing <= opening:
+        raise RouteError("writer entrypoint has no parameter list: %s" % body.symbol)
+    parameters = signature[opening + 1 : closing]
+    models = []
+    for match in re.finditer(
+        r"\b(?:const\s+)?(DRW_[A-Za-z0-9_]+)\s*([*&]?)\s*([A-Za-z_][A-Za-z0-9_]*)?",
+        parameters,
+    ):
+        model, modifier, name = match.groups()
+        models.append(
+            {
+                "model": model,
+                "passing": {"*": "pointer", "&": "reference"}.get(modifier, "value"),
+                "name": name or None,
+            }
+        )
+    models.sort(key=lambda item: (item["model"], item["name"] or "", item["passing"]))
+    name = body.symbol.rsplit("::", 1)[1]
+    normalized_name = re.sub(r"[^a-z0-9]", "", name.lower().removeprefix("write"))
+    if not models:
+        disposition = "structural"
+    elif any("Raw" in item["model"] or "Unsupported" in item["model"] for item in models):
+        disposition = "raw-carrier"
+    elif name in {"writeEntity", "writeTable", "writeObjectTransaction", "write"} or len(models) > 1:
+        disposition = "typed-helper"
+    elif normalized_name in {re.sub(r"[^a-z0-9]", "", item["model"][4:].lower()) for item in models}:
+        disposition = "typed-leaf"
+    elif name in {"writeInsert", "writeAttrib", "writeAttdef", "writePolyline", "writeMText", "writeDimension", "writeMLeader", "writeHatch", "writeMPolygon"}:
+        disposition = "compound"
+    else:
+        disposition = "typed-helper"
+    if "output.commit" in body.code or "output.commit()" in body.code:
+        finalizer = "output-transaction-commit"
+    elif "writeObjectTransaction" in body.code or "recordWriteResult" in body.code:
+        finalizer = "operation-result-transaction"
+    else:
+        finalizer = "delegated-provider-return"
+    return {
+        "operationDisposition": disposition,
+        "parameterModels": models,
+        "providerKind": "dxfWriter-hierarchy" if facade == "dxfRW" else "dwgWriter-hierarchy",
+        "finalizerDisposition": finalizer,
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "writerPipelineIds": list(WRITER_PIPELINE_IDS[facade]),
+    }
+
+
 def virtual_method_signature_end(source: SourceFile, name_end: int) -> tuple[int, bool]:
     """Return the signature terminator for one virtual declaration/definition.
 
@@ -6845,7 +6914,12 @@ def add_dxf_routes(collector: RouteCollector, tree: SourceTree) -> None:
         collector.add(
             "dxfRW",
             "writer-entrypoint",
-            {"kind": "symbol", "name": body.symbol, "signatureFingerprint": signature},
+            {
+                "kind": "symbol",
+                "name": body.symbol,
+                "signatureFingerprint": signature,
+                **writer_entrypoint_contract(body, "dxfRW"),
+            },
             body,
             identifier="%s-%03d" % (name, writer_ordinals[name]),
             directions=["write"],
@@ -7231,7 +7305,12 @@ def add_dwg_routes(collector: RouteCollector, tree: SourceTree) -> None:
         collector.add(
             "dwgRW",
             "writer-entrypoint",
-            {"kind": "symbol", "name": body.symbol, "signatureFingerprint": signature},
+            {
+                "kind": "symbol",
+                "name": body.symbol,
+                "signatureFingerprint": signature,
+                **writer_entrypoint_contract(body, "dwgRW"),
+            },
             body,
             identifier="%s-%03d" % (name, writer_ordinals[name]),
             directions=["write"],
@@ -8299,6 +8378,37 @@ def validate_pipeline_closure(tree: SourceTree, inventory: dict[str, list[dict]]
             raise RouteError("staged parser-publication route is unbound or overclaimed: %s" % parser_route)
 
 
+def validate_writer_entrypoints(inventory: dict[str, list[dict]]) -> None:
+    for facade in ("dxfRW", "dwgRW"):
+        routes = inventory_category_routes(inventory, facade, "writer-entrypoint")
+        if not routes:
+            raise RouteError("writer-entrypoint closure is empty: %s" % facade)
+        for route in routes:
+            selector = route.get("selector", {})
+            if selector.get("operationDisposition") not in {
+                "structural", "typed-leaf", "typed-helper", "compound", "raw-carrier"
+            }:
+                raise RouteError("writer entrypoint lacks a reviewed disposition: %s" % route["id"])
+            if selector.get("providerKind") != ("dxfWriter-hierarchy" if facade == "dxfRW" else "dwgWriter-hierarchy"):
+                raise RouteError("writer entrypoint lacks provider ownership: %s" % route["id"])
+            if selector.get("finalizerDisposition") not in {
+                "output-transaction-commit", "operation-result-transaction", "delegated-provider-return"
+            }:
+                raise RouteError("writer entrypoint lacks finalizer disposition: %s" % route["id"])
+            models = selector.get("parameterModels")
+            if not isinstance(models, list) or models != sorted(models, key=lambda item: (item.get("model", ""), item.get("name") or "", item.get("passing", ""))):
+                raise RouteError("writer entrypoint parameter model order is non-deterministic: %s" % route["id"])
+            for model in models:
+                if not isinstance(model, dict) or set(model) != {"model", "passing", "name"}:
+                    raise RouteError("writer entrypoint parameter contract is malformed: %s" % route["id"])
+                if not re.fullmatch(r"DRW_[A-Za-z0-9_]+", str(model.get("model"))) or model.get("passing") not in {"pointer", "reference", "value"}:
+                    raise RouteError("writer entrypoint parameter model is malformed: %s" % route["id"])
+            if selector.get("pipelineSelection") != "runtime-version-or-dialect-selected":
+                raise RouteError("writer entrypoint lacks runtime pipeline selection: %s" % route["id"])
+            if selector.get("writerPipelineIds") != WRITER_PIPELINE_IDS[facade]:
+                raise RouteError("writer entrypoint pipeline closure changed: %s" % route["id"])
+
+
 def validate_inventory(tree: SourceTree, inventory: dict[str, list[dict]]) -> None:
     """Check stable route identities and the pinned target's anchor shape."""
     for facade, routes in inventory.items():
@@ -8328,6 +8438,7 @@ def validate_inventory(tree: SourceTree, inventory: dict[str, list[dict]]) -> No
         if selector.get("classification") == "functional" and not selector.get("requiresPipelineEdges"):
             raise RouteError("functional source-unit omits pipeline-edge requirement: %s" % path)
     validate_pipeline_closure(tree, inventory)
+    validate_writer_entrypoints(inventory)
     if tree.label != "target":
         return
     public_categories = {

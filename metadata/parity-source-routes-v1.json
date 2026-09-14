@@ -122645,8 +122645,8 @@
       "algorithm": "sha256-canonical-json-v1",
       "bodyEvidenceExcluded": true,
       "inventoryDigests": {
-        "standalone": "bca40680ac90523b9948c50bea2a0a0ca2fc3a47b34b5de60ca99dc38c4b97a2",
-        "target": "8d29d63e35bb6661d2aad6faa1c36ddeaa5f0e04e9d99cdcb31ecc0a6d77aa69"
+        "standalone": "5948b5ec4e526a76687e1f52c996551356b21511d865d38c3f839f5df7e36181",
+        "target": "5d5e58ff03fb0f677365ac2db73295cdc6f0b6df9150d99cae6f6b77ad16566a"
       },
       "stableFields": [
         "id",
@@ -122677,14 +122677,14 @@
       "facade": "dxfRW",
       "path": "parity-source-routes-v1/target-dxfRW.json",
       "routeCount": 1475,
-      "sha256": "8f133218c9e8deb60f753c6c42daf6d63402218139a53dc22bb8431f59bf5f35",
+      "sha256": "a70ba6d68d05f2c576eb3d00369b0b3cc34119d20d275e03315021e4a0411d82",
       "side": "target"
     },
     {
       "facade": "dwgRW",
       "path": "parity-source-routes-v1/target-dwgRW.json",
       "routeCount": 1345,
-      "sha256": "8cbe66141ed139dcff1668d87fc71b22aa565af2ac8cceb542fbc39807932d4a",
+      "sha256": "9234cc0d95a7a62c6c1fca602c70ab8ce8bc32ff7bfe13a718f9978477ae37cd",
       "side": "target"
     },
     {
@@ -122698,14 +122698,14 @@
       "facade": "dxfRW",
       "path": "parity-source-routes-v1/standalone-dxfRW.json",
       "routeCount": 1457,
-      "sha256": "e7593b9b8c7429ab5196455c1b9c220ff11275ca0ab0b6ff4ad5090a945d5f73",
+      "sha256": "6375b1b9eb0ecdf584b016bce69a6ab79dccebea374ed698e748f89dc5232db7",
       "side": "standalone"
     },
     {
       "facade": "dwgRW",
       "path": "parity-source-routes-v1/standalone-dwgRW.json",
       "routeCount": 1371,
-      "sha256": "53e532f708825ef394da932740db0a84b6e49d59fa1833c25fd0f713708d1b75",
+      "sha256": "e071bf7888e36a3df0ebeef43a0f4a0094b271693e0c72eeea345d75e5d59e88",
       "side": "standalone"
     },
     {

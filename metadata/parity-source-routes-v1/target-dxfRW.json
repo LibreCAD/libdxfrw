@@ -63664,9 +63664,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/write-001",
       "selector": {
+        "finalizerDisposition": "output-transaction-commit",
         "kind": "symbol",
         "name": "dxfRW::write",
-        "signatureFingerprint": "76846ba0cd10afe92a635ef5e0f64fa163427e31a5ffbe1cedf3d44dbb47e178"
+        "operationDisposition": "typed-helper",
+        "parameterModels": [
+          {
+            "model": "DRW_Interface",
+            "name": "interface_",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "76846ba0cd10afe92a635ef5e0f64fa163427e31a5ffbe1cedf3d44dbb47e178",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -63686,9 +63702,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/write3DLine-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::write3DLine",
-        "signatureFingerprint": "cbef94cbbfb8b8964428ff1aa272cae468b0ab1d38ab763b3318d825437047f0"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_3DLine",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "cbef94cbbfb8b8964428ff1aa272cae468b0ab1d38ab763b3318d825437047f0",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -63708,9 +63740,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/write3dface-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::write3dface",
-        "signatureFingerprint": "69969ba77e25219b5268949891c5bf9dd393bfe9bc0d72e12e8cb80dea2de6a3"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_3Dface",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "69969ba77e25219b5268949891c5bf9dd393bfe9bc0d72e12e8cb80dea2de6a3",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -63730,9 +63778,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeAppData-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeAppData",
-        "signatureFingerprint": "05f22d28e105cdbfd6296254ce5d368ffd3c4916746756988a2c517b67d1781d"
+        "operationDisposition": "typed-helper",
+        "parameterModels": [
+          {
+            "model": "DRW_Variant",
+            "name": null,
+            "passing": "value"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "05f22d28e105cdbfd6296254ce5d368ffd3c4916746756988a2c517b67d1781d",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -63752,9 +63816,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeAppId-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeAppId",
-        "signatureFingerprint": "d4e4ab5ab0d502d0b78f5ddbb7258a6487236930c002420e6b11788076d5df94"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_AppId",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "d4e4ab5ab0d502d0b78f5ddbb7258a6487236930c002420e6b11788076d5df94",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -63774,9 +63854,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeArc-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeArc",
-        "signatureFingerprint": "794a839db10ddaa5f7855788ad29000dfb384c2d69919073d79b5cae5a9c4a03"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Arc",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "794a839db10ddaa5f7855788ad29000dfb384c2d69919073d79b5cae5a9c4a03",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -63796,9 +63892,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeArcAlignedText-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeArcAlignedText",
-        "signatureFingerprint": "edd8dfbeeb96e66c2766dedb9781a352df18c70eb3cd9b469227b3403541bce8"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_ArcAlignedText",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "edd8dfbeeb96e66c2766dedb9781a352df18c70eb3cd9b469227b3403541bce8",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -63818,9 +63930,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeArcDimension-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeArcDimension",
-        "signatureFingerprint": "25d91db6c1ad7bd15d47dd72420bbfe6615a8100d37a6213ae73df950972c228"
+        "operationDisposition": "typed-helper",
+        "parameterModels": [
+          {
+            "model": "DRW_DimArc",
+            "name": "d",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "25d91db6c1ad7bd15d47dd72420bbfe6615a8100d37a6213ae73df950972c228",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -63840,9 +63968,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeAttdef-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeAttdef",
-        "signatureFingerprint": "03672ee5f187bdb67aad540ccb38a724eda9a24fb0813ff17c1c2805af068466"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Attdef",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "03672ee5f187bdb67aad540ccb38a724eda9a24fb0813ff17c1c2805af068466",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -63862,9 +64006,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeAttrib-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeAttrib",
-        "signatureFingerprint": "234f31363ba4b94f78073184057097a61a9e1f45f227432faf8bf019b4b0b4aa"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Attrib",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "234f31363ba4b94f78073184057097a61a9e1f45f227432faf8bf019b4b0b4aa",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -63884,9 +64044,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeAttributeR2018Features-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeAttributeR2018Features",
-        "signatureFingerprint": "86a2262b405fe92ac7f04409301a1d3f76574098cda8e4181100f8e53e5c89db"
+        "operationDisposition": "typed-helper",
+        "parameterModels": [
+          {
+            "model": "DRW_Attrib",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "86a2262b405fe92ac7f04409301a1d3f76574098cda8e4181100f8e53e5c89db",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -63906,9 +64082,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeBackground-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeBackground",
-        "signatureFingerprint": "e2d1532392a178452327d505cea9595e3716879e11c0d04c98fccbfefd9ee0a6"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Background",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "e2d1532392a178452327d505cea9595e3716879e11c0d04c98fccbfefd9ee0a6",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -63928,9 +64120,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeBlock-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeBlock",
-        "signatureFingerprint": "2939136beb04a87785ac255ca73ebaa91aeeef5d281c4e52514399d1ba16b584"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Block",
+            "name": "bk",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "2939136beb04a87785ac255ca73ebaa91aeeef5d281c4e52514399d1ba16b584",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -63950,9 +64158,19 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeBlockRecord-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeBlockRecord",
-        "signatureFingerprint": "75d27ed87237066b51ddec557be64e493fd10355555264f4c4019325b0cd89d8"
+        "operationDisposition": "structural",
+        "parameterModels": [],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "75d27ed87237066b51ddec557be64e493fd10355555264f4c4019325b0cd89d8",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -63972,9 +64190,19 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeBlockRecord-002",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeBlockRecord",
-        "signatureFingerprint": "56973e3cba24f2e4f503bee6e6ba08eaa0f653b330b5c877a33721824274b038"
+        "operationDisposition": "structural",
+        "parameterModels": [],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "56973e3cba24f2e4f503bee6e6ba08eaa0f653b330b5c877a33721824274b038",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -63994,9 +64222,19 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeBlockRecord-003",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeBlockRecord",
-        "signatureFingerprint": "663b707de6b8ab07018d325502ef70e6957df7b81d2557a820415af188a48de0"
+        "operationDisposition": "structural",
+        "parameterModels": [],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "663b707de6b8ab07018d325502ef70e6957df7b81d2557a820415af188a48de0",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64016,9 +64254,19 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeBlocks-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeBlocks",
-        "signatureFingerprint": "9a32312d136c2437c7d0df0e39732b094a6eb5fbda115b287f750b557c03061f"
+        "operationDisposition": "structural",
+        "parameterModels": [],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "9a32312d136c2437c7d0df0e39732b094a6eb5fbda115b287f750b557c03061f",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64038,9 +64286,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeCamera-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeCamera",
-        "signatureFingerprint": "f634e46588b2dc86c131411c2d5e64110c795f417cabb879ae4503ecebd2b498"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Camera",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "f634e46588b2dc86c131411c2d5e64110c795f417cabb879ae4503ecebd2b498",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64060,9 +64324,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeCircle-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeCircle",
-        "signatureFingerprint": "2995cb17ce5804a0f9cee5af3c0d2f52063fe0b062f4a27ee44fdb5c1b9e0bae"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Circle",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "2995cb17ce5804a0f9cee5af3c0d2f52063fe0b062f4a27ee44fdb5c1b9e0bae",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64082,9 +64362,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeCurvePath-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeCurvePath",
-        "signatureFingerprint": "c760cde3e4b17c56f105c41df2afa3c43445aa5d2943d72c8bcb0312e34c1b5d"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_CurvePath",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "c760cde3e4b17c56f105c41df2afa3c43445aa5d2943d72c8bcb0312e34c1b5d",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64104,9 +64400,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeDbColor-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeDbColor",
-        "signatureFingerprint": "eefa216d85da8fe463ebe14d2ce151f3fff633b9731f04f8690f0c6af5212974"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_DbColor",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "eefa216d85da8fe463ebe14d2ce151f3fff633b9731f04f8690f0c6af5212974",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64126,9 +64438,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeDictionaryVar-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeDictionaryVar",
-        "signatureFingerprint": "6392d6fb26e55c6511369e02f2e4efaf56bc0120507eb8db57f574f57dbacabc"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_DictionaryVar",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "6392d6fb26e55c6511369e02f2e4efaf56bc0120507eb8db57f574f57dbacabc",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64148,9 +64476,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeDimension-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeDimension",
-        "signatureFingerprint": "a460f3fd5a8c4f82960b80071ce52289d811d30d29d791c9c9495cccc9357dd9"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Dimension",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "a460f3fd5a8c4f82960b80071ce52289d811d30d29d791c9c9495cccc9357dd9",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64170,9 +64514,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeDimensionAssociation-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeDimensionAssociation",
-        "signatureFingerprint": "80fa0a3177c100a1b0a527c42c7d347c25fea820cb08ac5dc0d4f524b1182d13"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_DimensionAssociation",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "80fa0a3177c100a1b0a527c42c7d347c25fea820cb08ac5dc0d4f524b1182d13",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64192,9 +64552,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeDimstyle-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeDimstyle",
-        "signatureFingerprint": "0029a3ecc102aa76e07b440a5a521bcb8ac967497eb6e4a79fae26b474ffe699"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Dimstyle",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "0029a3ecc102aa76e07b440a5a521bcb8ac967497eb6e4a79fae26b474ffe699",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64214,9 +64590,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeEllipse-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeEllipse",
-        "signatureFingerprint": "5e807d923a7b7a1506d4586cc6d9391c8ee456340ccc84bddd1d3e862003640c"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Ellipse",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "5e807d923a7b7a1506d4586cc6d9391c8ee456340ccc84bddd1d3e862003640c",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64236,9 +64628,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeEmbeddedMText-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeEmbeddedMText",
-        "signatureFingerprint": "bc32f9a0e19780fa03268d9afedf8031e294e86f99e34e624552e13383b61206"
+        "operationDisposition": "typed-helper",
+        "parameterModels": [
+          {
+            "model": "DRW_MText",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "bc32f9a0e19780fa03268d9afedf8031e294e86f99e34e624552e13383b61206",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64258,9 +64666,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeEntity-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeEntity",
-        "signatureFingerprint": "e4ecf291dad3b9965451bd6709538498d5c261d4c4e0225a32160982c47b5cd6"
+        "operationDisposition": "typed-helper",
+        "parameterModels": [
+          {
+            "model": "DRW_Entity",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "e4ecf291dad3b9965451bd6709538498d5c261d4c4e0225a32160982c47b5cd6",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64280,9 +64704,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeEvaluationGraph-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeEvaluationGraph",
-        "signatureFingerprint": "dda2d548265b8df49f4f1514a783e6be387d6d9d6d3bc848d7ae49037e5b1085"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_EvaluationGraph",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "dda2d548265b8df49f4f1514a783e6be387d6d9d6d3bc848d7ae49037e5b1085",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64302,9 +64742,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeExtData-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeExtData",
-        "signatureFingerprint": "c674acdb98c73da258d6fe77ce9d7f655cd7e3b634c5d44fa1916597b4b41d90"
+        "operationDisposition": "typed-helper",
+        "parameterModels": [
+          {
+            "model": "DRW_Variant",
+            "name": null,
+            "passing": "value"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "c674acdb98c73da258d6fe77ce9d7f655cd7e3b634c5d44fa1916597b4b41d90",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64324,9 +64780,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeExtData-002",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeExtData",
-        "signatureFingerprint": "52147dd82d3eb7e7d241e525ec553c4a3c8870b62667610383621acabe1927fe"
+        "operationDisposition": "typed-helper",
+        "parameterModels": [
+          {
+            "model": "DRW_Variant",
+            "name": null,
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "52147dd82d3eb7e7d241e525ec553c4a3c8870b62667610383621acabe1927fe",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64346,9 +64818,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeField-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeField",
-        "signatureFingerprint": "2f7e1fb63e0c5d832c4ecbde75579ec45f1b92181a8d55497bc8fb2e40204ce6"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Field",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "2f7e1fb63e0c5d832c4ecbde75579ec45f1b92181a8d55497bc8fb2e40204ce6",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64368,9 +64856,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeFieldList-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeFieldList",
-        "signatureFingerprint": "a80caac21d4b83ca8a9968fbca5c69463cb7879ebad78e07935f12bd3ef756ea"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_FieldList",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "a80caac21d4b83ca8a9968fbca5c69463cb7879ebad78e07935f12bd3ef756ea",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64390,9 +64894,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeGeoData-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeGeoData",
-        "signatureFingerprint": "35262942e9e75a3ea1acfdb4516cf06daa83184fc37996b200e50d7070283271"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_GeoData",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "35262942e9e75a3ea1acfdb4516cf06daa83184fc37996b200e50d7070283271",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64412,9 +64932,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeGeoPositionMarker-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeGeoPositionMarker",
-        "signatureFingerprint": "619d63b799ee294ac120d01c8e88b5d4a307e0d1dd29e6c2b186c8dc319814a1"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_GeoPositionMarker",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "619d63b799ee294ac120d01c8e88b5d4a307e0d1dd29e6c2b186c8dc319814a1",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64434,9 +64970,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeHatch-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeHatch",
-        "signatureFingerprint": "9beee9dd1e7dfe4d12622079c0cd3ed450a670a43635c996cb94bc66516d4bae"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Hatch",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "9beee9dd1e7dfe4d12622079c0cd3ed450a670a43635c996cb94bc66516d4bae",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64456,9 +65008,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeHelix-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeHelix",
-        "signatureFingerprint": "f5289843ae123d068b1c0f3ae2802f14bfee65105bcb48e53171a6d4429a6fbb"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Helix",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "f5289843ae123d068b1c0f3ae2802f14bfee65105bcb48e53171a6d4429a6fbb",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64478,9 +65046,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeImage-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeImage",
-        "signatureFingerprint": "9f24c534aee0d0f77a186f2ad5df1bbc2cb135a16d9f27591132bab91c5a357d"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Image",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "9f24c534aee0d0f77a186f2ad5df1bbc2cb135a16d9f27591132bab91c5a357d",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64500,9 +65084,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeInsert-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeInsert",
-        "signatureFingerprint": "8c8e7f6f42aa7c66d92a8682c379f6b65373179347509507a70e7d155e8dbf63"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Insert",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "8c8e7f6f42aa7c66d92a8682c379f6b65373179347509507a70e7d155e8dbf63",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64522,9 +65122,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeLWPolyline-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeLWPolyline",
-        "signatureFingerprint": "ca48343209c382a470dcb86eea117e01e3c8a367beb7abd5f01b3525b227da90"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_LWPolyline",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "ca48343209c382a470dcb86eea117e01e3c8a367beb7abd5f01b3525b227da90",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64544,9 +65160,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeLargeRadialDimension-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeLargeRadialDimension",
-        "signatureFingerprint": "9af992dfab0cf3f19e18b682dfcf15355edd271e9aae327d8efa4ba8d6c8318f"
+        "operationDisposition": "typed-helper",
+        "parameterModels": [
+          {
+            "model": "DRW_DimLargeRadial",
+            "name": "d",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "9af992dfab0cf3f19e18b682dfcf15355edd271e9aae327d8efa4ba8d6c8318f",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64566,9 +65198,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeLayer-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeLayer",
-        "signatureFingerprint": "9fa9d006f9385fc10f81cf7d8fa326de7ae1b878d1d2f026691aec3bc1c172d1"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Layer",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "9fa9d006f9385fc10f81cf7d8fa326de7ae1b878d1d2f026691aec3bc1c172d1",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64588,9 +65236,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeLayout-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeLayout",
-        "signatureFingerprint": "958c89b6acbe163ea883f16632800e7f7e349096ec2f20ecd89224b38fe0f9a9"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Layout",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "958c89b6acbe163ea883f16632800e7f7e349096ec2f20ecd89224b38fe0f9a9",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64610,9 +65274,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeLeader-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeLeader",
-        "signatureFingerprint": "01a114b943a9cc4917fea81ea78698c971156f8cc66f1be7e1d356c2327fca5f"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Leader",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "01a114b943a9cc4917fea81ea78698c971156f8cc66f1be7e1d356c2327fca5f",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64632,9 +65312,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeLight-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeLight",
-        "signatureFingerprint": "022d69570c752836bce8e3c0b6e85b815d0c27132ec440f2575828671de00220"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Light",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "022d69570c752836bce8e3c0b6e85b815d0c27132ec440f2575828671de00220",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64654,9 +65350,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeLine-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeLine",
-        "signatureFingerprint": "241d7923883b458bbe9d076ffb06880799ab45e2ba6da1275bd6bcf31275f8e8"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Line",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "241d7923883b458bbe9d076ffb06880799ab45e2ba6da1275bd6bcf31275f8e8",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64676,9 +65388,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeLineType-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeLineType",
-        "signatureFingerprint": "7a7e5a9c588e5dc44b4fc06a3689704efe12651bf5aaedb8b7fbc8e0dd2be471"
+        "operationDisposition": "typed-helper",
+        "parameterModels": [
+          {
+            "model": "DRW_LType",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "7a7e5a9c588e5dc44b4fc06a3689704efe12651bf5aaedb8b7fbc8e0dd2be471",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64698,9 +65426,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeMLeaderStyle-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeMLeaderStyle",
-        "signatureFingerprint": "968e119dec194735205a748ea19a42f85afae52bffe6b9438d6034d8e0d97281"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_MLeaderStyle",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "968e119dec194735205a748ea19a42f85afae52bffe6b9438d6034d8e0d97281",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64720,9 +65464,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeMLine-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeMLine",
-        "signatureFingerprint": "e9c18a4216c0e9b5ff9706e263149df73d588c14dc37d138bdddf8814c8d800e"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_MLine",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "e9c18a4216c0e9b5ff9706e263149df73d588c14dc37d138bdddf8814c8d800e",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64742,9 +65502,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeMLineStyle-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeMLineStyle",
-        "signatureFingerprint": "b9a9ac602927ec85c63ce55bc12b6837b78ba017eef6a683db1db84db95aa6fc"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_MLineStyle",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "b9a9ac602927ec85c63ce55bc12b6837b78ba017eef6a683db1db84db95aa6fc",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64764,9 +65540,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeMPolygon-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeMPolygon",
-        "signatureFingerprint": "0f8591143b9282b473821ac22b15f25ef00dd117bf39f653075a2bb3155e8d9d"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_MPolygon",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "0f8591143b9282b473821ac22b15f25ef00dd117bf39f653075a2bb3155e8d9d",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64786,9 +65578,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeMText-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeMText",
-        "signatureFingerprint": "3cf7af4161be26b36dcd38506c442fbc633b026037651f1d59860f1a96d256b9"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_MText",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "3cf7af4161be26b36dcd38506c442fbc633b026037651f1d59860f1a96d256b9",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64808,9 +65616,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeMaterial-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeMaterial",
-        "signatureFingerprint": "beb17b2225b52dfeb0c52ee0fe8fa03e621e7c11a4f4f3cf4242d995ee783d5d"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Material",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "beb17b2225b52dfeb0c52ee0fe8fa03e621e7c11a4f4f3cf4242d995ee783d5d",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64830,9 +65654,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeMesh-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeMesh",
-        "signatureFingerprint": "8a237176a34f27d4766fcc5b00d311ce3e8d4fd08d765d6aa4f7d5f1b190bc33"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Mesh",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "8a237176a34f27d4766fcc5b00d311ce3e8d4fd08d765d6aa4f7d5f1b190bc33",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64852,9 +65692,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeModelerGeometry-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeModelerGeometry",
-        "signatureFingerprint": "f5139cd12585cedb4839b341cc374df1823c683c3861ae084af1d0c063a337d9"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_ModelerGeometry",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "f5139cd12585cedb4839b341cc374df1823c683c3861ae084af1d0c063a337d9",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64874,9 +65730,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeMotionPath-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeMotionPath",
-        "signatureFingerprint": "9a633073e6c50449f05c7481f31d8007afbd70d415c7dc8e3c080ffe588e4c7a"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_MotionPath",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "9a633073e6c50449f05c7481f31d8007afbd70d415c7dc8e3c080ffe588e4c7a",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64896,9 +65768,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeMultiLeader-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeMultiLeader",
-        "signatureFingerprint": "cf836acafa5f8da13dbb382c7e90dbce683f16c54672e19a4bc5b76b1b679ef1"
+        "operationDisposition": "typed-helper",
+        "parameterModels": [
+          {
+            "model": "DRW_MLeader",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "cf836acafa5f8da13dbb382c7e90dbce683f16c54672e19a4bc5b76b1b679ef1",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64918,9 +65806,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeNavisworksModel-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeNavisworksModel",
-        "signatureFingerprint": "e3276add81caf788a5b31c13c2c1a352fbbfe18a256850c6d58fad2c1719997c"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_NavisworksModel",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "e3276add81caf788a5b31c13c2c1a352fbbfe18a256850c6d58fad2c1719997c",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64940,9 +65844,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeNavisworksModelDef-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeNavisworksModelDef",
-        "signatureFingerprint": "e5022c4c98d04b6de83e91580f6ddf6f8da4e64d37a905f112c0d78024a4c900"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_NavisworksModelDef",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "e5022c4c98d04b6de83e91580f6ddf6f8da4e64d37a905f112c0d78024a4c900",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64962,9 +65882,19 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeObjectOwner-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeObjectOwner",
-        "signatureFingerprint": "65c14ab14d53dc5ebb01304e3ffa2de6552b943f51c33c4a77f24d37697fc485"
+        "operationDisposition": "structural",
+        "parameterModels": [],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "65c14ab14d53dc5ebb01304e3ffa2de6552b943f51c33c4a77f24d37697fc485",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -64984,9 +65914,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeObjectPtr-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeObjectPtr",
-        "signatureFingerprint": "45451779dbb5e220bfda18da064b43b28b1b61dac8a182810264401fde8b9de5"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_ObjectPtr",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "45451779dbb5e220bfda18da064b43b28b1b61dac8a182810264401fde8b9de5",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65006,9 +65952,19 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeObjects-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeObjects",
-        "signatureFingerprint": "88eb9d0eb57a1a6b2953a4a69902081a67d30da2ddcc6c9180e8ac83e3a94395"
+        "operationDisposition": "structural",
+        "parameterModels": [],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "88eb9d0eb57a1a6b2953a4a69902081a67d30da2ddcc6c9180e8ac83e3a94395",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65028,9 +65984,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeOle2Frame-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeOle2Frame",
-        "signatureFingerprint": "785f50c8f874ad447ad4c4375a689c638404db89dc924808432dab14e9eb7db1"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Ole2Frame",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "785f50c8f874ad447ad4c4375a689c638404db89dc924808432dab14e9eb7db1",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65050,9 +66022,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeOleFrame-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeOleFrame",
-        "signatureFingerprint": "75837d7556f943e7ff45e5fbcfa28245e82437c145c580fd11a7fcac62704b52"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_OleFrame",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "75837d7556f943e7ff45e5fbcfa28245e82437c145c580fd11a7fcac62704b52",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65072,9 +66060,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writePartialViewingIndex-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writePartialViewingIndex",
-        "signatureFingerprint": "711771feb9de8419abb4819948d458cef0ebdad55d812e6652b237a38be1c8fb"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_PartialViewingIndex",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "711771feb9de8419abb4819948d458cef0ebdad55d812e6652b237a38be1c8fb",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65094,9 +66098,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writePlotSettings-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writePlotSettings",
-        "signatureFingerprint": "9f4438542a3273f25aaa20f1a6830ec4b9435cdd6880bae108e3675ee7ee5388"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_PlotSettings",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "9f4438542a3273f25aaa20f1a6830ec4b9435cdd6880bae108e3675ee7ee5388",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65116,9 +66136,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writePlotSettingsFields-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writePlotSettingsFields",
-        "signatureFingerprint": "2f6ba11470ed80664851b3a4805f74b3b95850f8293e96ad4d855fe5384f8dd9"
+        "operationDisposition": "typed-helper",
+        "parameterModels": [
+          {
+            "model": "DRW_PlotSettings",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "2f6ba11470ed80664851b3a4805f74b3b95850f8293e96ad4d855fe5384f8dd9",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65138,9 +66174,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writePoint-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writePoint",
-        "signatureFingerprint": "031282660c8edba6d701fafd1d229716a42e56684cc2e0ee982fbc9f204ac3ab"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Point",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "031282660c8edba6d701fafd1d229716a42e56684cc2e0ee982fbc9f204ac3ab",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65160,9 +66212,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writePointCloud-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writePointCloud",
-        "signatureFingerprint": "2a00cb3a26759cd0924aabd3e8d3cfa0bf0bfcb12a5ff43f9eceb241dafa3ccc"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_PointCloud",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "2a00cb3a26759cd0924aabd3e8d3cfa0bf0bfcb12a5ff43f9eceb241dafa3ccc",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65182,9 +66250,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writePointCloudColorMap-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writePointCloudColorMap",
-        "signatureFingerprint": "21bdff68f5502dd9864f13af64f6a421149056c5d9e9be37e7c807c1ebaa6de7"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_PointCloudColorMap",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "21bdff68f5502dd9864f13af64f6a421149056c5d9e9be37e7c807c1ebaa6de7",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65204,9 +66288,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writePointCloudDef-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writePointCloudDef",
-        "signatureFingerprint": "ae3e2f1fbf95168b0cb2a4c62a716155dbef1c6457699f81f9baf7fb80fc07eb"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_PointCloudDef",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "ae3e2f1fbf95168b0cb2a4c62a716155dbef1c6457699f81f9baf7fb80fc07eb",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65226,9 +66326,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writePointCloudEx-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writePointCloudEx",
-        "signatureFingerprint": "4457b30302bb2a8682c24824b79acbfb80d852a8434a331d83da04363969fdb1"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_PointCloudEx",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "4457b30302bb2a8682c24824b79acbfb80d852a8434a331d83da04363969fdb1",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65248,9 +66364,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writePointPath-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writePointPath",
-        "signatureFingerprint": "8c5495a019ce6fd128af0d63ffbb40b3a56d6ae3b602fab91746e1498d86b354"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_PointPath",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "8c5495a019ce6fd128af0d63ffbb40b3a56d6ae3b602fab91746e1498d86b354",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65270,9 +66402,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writePolyline-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writePolyline",
-        "signatureFingerprint": "f77cc4972dd3e9dafe2d69693ab0b475938a911ac9c0672c537d9130e7248485"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Polyline",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "f77cc4972dd3e9dafe2d69693ab0b475938a911ac9c0672c537d9130e7248485",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65292,9 +66440,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeRText-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeRText",
-        "signatureFingerprint": "ddcc778b752ebe426a5c3df6d49c61d1f8c7ae2187c7bb2ef10846b10fd3df75"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_RText",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "ddcc778b752ebe426a5c3df6d49c61d1f8c7ae2187c7bb2ef10846b10fd3df75",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65314,9 +66478,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeRasterVariables-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeRasterVariables",
-        "signatureFingerprint": "dfe1a17175ca34b9a3968a4fd160359726adf3affa3f2e9bcd28db3e91f2d55b"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_RasterVariables",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "dfe1a17175ca34b9a3968a4fd160359726adf3affa3f2e9bcd28db3e91f2d55b",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65336,9 +66516,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeRawDxfGroups-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeRawDxfGroups",
-        "signatureFingerprint": "18463829634bbccf4bb6f4199764276aa38fd7624d780cc8d1751f961d8dd3eb"
+        "operationDisposition": "typed-helper",
+        "parameterModels": [
+          {
+            "model": "DRW_Variant",
+            "name": null,
+            "passing": "value"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "18463829634bbccf4bb6f4199764276aa38fd7624d780cc8d1751f961d8dd3eb",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65358,9 +66554,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeRawDxfObject-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeRawDxfObject",
-        "signatureFingerprint": "57e4f4fdcbc5282f7b7cee8761e8ba804a05111fda120083bcc97e72db4f33f3"
+        "operationDisposition": "raw-carrier",
+        "parameterModels": [
+          {
+            "model": "DRW_RawDxfObject",
+            "name": "obj",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "57e4f4fdcbc5282f7b7cee8761e8ba804a05111fda120083bcc97e72db4f33f3",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65380,9 +66592,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeRawDxfSection-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeRawDxfSection",
-        "signatureFingerprint": "d3b51f41a62fe03d0b02f4a4489b3e1a308dd2912a9a1f8d36e28850f7ac30a1"
+        "operationDisposition": "raw-carrier",
+        "parameterModels": [
+          {
+            "model": "DRW_RawDxfSection",
+            "name": "section",
+            "passing": "reference"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "d3b51f41a62fe03d0b02f4a4489b3e1a308dd2912a9a1f8d36e28850f7ac30a1",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65402,9 +66630,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeRay-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeRay",
-        "signatureFingerprint": "65bda89f50495d6d2bfed8dc0dd835cf6c4a1d098f67a4bf308773ed6b030fb2"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Ray",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "65bda89f50495d6d2bfed8dc0dd835cf6c4a1d098f67a4bf308773ed6b030fb2",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65424,9 +66668,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeRenderSettings-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeRenderSettings",
-        "signatureFingerprint": "1dd3439940a66e8e593959d2baf95e60363ace2f272485ddd5783a39f8858e8e"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_RenderSettings",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "1dd3439940a66e8e593959d2baf95e60363ace2f272485ddd5783a39f8858e8e",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65446,9 +66706,19 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeRequiredString-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeRequiredString",
-        "signatureFingerprint": "8887e690d0f88f3d58fa78dc96d3ac85cb3fce58650729fbec49195d053dc1cb"
+        "operationDisposition": "structural",
+        "parameterModels": [],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "8887e690d0f88f3d58fa78dc96d3ac85cb3fce58650729fbec49195d053dc1cb",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65468,9 +66738,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeScale-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeScale",
-        "signatureFingerprint": "4f5a7e28756b849584f534233bf7d018d3eb18a392c6b3dad164936526ee603b"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Scale",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "4f5a7e28756b849584f534233bf7d018d3eb18a392c6b3dad164936526ee603b",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65490,9 +66776,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeSection-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeSection",
-        "signatureFingerprint": "cdcd61d4a39cd7275e94e6c837e0e3512f76e92630a5412052034dd88b7682b8"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Section",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "cdcd61d4a39cd7275e94e6c837e0e3512f76e92630a5412052034dd88b7682b8",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65512,9 +66814,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeSectionObject-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeSectionObject",
-        "signatureFingerprint": "be9627f9dd43689c0e048bd8de9295b94b78d1394865039c0d651a36bfac4010"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_SectionObject",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "be9627f9dd43689c0e048bd8de9295b94b78d1394865039c0d651a36bfac4010",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65534,9 +66852,19 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeSequenceEnd-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeSequenceEnd",
-        "signatureFingerprint": "6f1840be46da12d2a2ea4a1891e365f1a14b1b1dfe04fe8f34221ca89ef15141"
+        "operationDisposition": "structural",
+        "parameterModels": [],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "6f1840be46da12d2a2ea4a1891e365f1a14b1b1dfe04fe8f34221ca89ef15141",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65556,9 +66884,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeShape-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeShape",
-        "signatureFingerprint": "ba4866d899f0749a71807488383029c82c60bbe4d100b8a83322c49553f45975"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Shape",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "ba4866d899f0749a71807488383029c82c60bbe4d100b8a83322c49553f45975",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65578,9 +66922,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeSolid-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeSolid",
-        "signatureFingerprint": "78d8b78267c8ce63de7a47c5f43844562d352410652d3452ccc8bb3809226693"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Solid",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "78d8b78267c8ce63de7a47c5f43844562d352410652d3452ccc8bb3809226693",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65600,9 +66960,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeSortEntsTable-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeSortEntsTable",
-        "signatureFingerprint": "ae1bc14dbc3bbe74b1ab386e15724a9e588c64df54a80a21a3e6d7b8436ef99a"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_SortEntsTable",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "ae1bc14dbc3bbe74b1ab386e15724a9e588c64df54a80a21a3e6d7b8436ef99a",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65622,9 +66998,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeSpatialFilter-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeSpatialFilter",
-        "signatureFingerprint": "5fa7f88cbbca3b7be813e3dd05c38bae6d5497fa476f857e8eae6cddcb3cccde"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_SpatialFilter",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "5fa7f88cbbca3b7be813e3dd05c38bae6d5497fa476f857e8eae6cddcb3cccde",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65644,9 +67036,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeSpline-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeSpline",
-        "signatureFingerprint": "30b318577a887aa6d9ff8ca2d5c48dabb1aaa733cdf2c389a6c8fd41dcf6f14e"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Spline",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "30b318577a887aa6d9ff8ca2d5c48dabb1aaa733cdf2c389a6c8fd41dcf6f14e",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65666,9 +67074,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeSun-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeSun",
-        "signatureFingerprint": "e396878b422c0935265f77ab2860a1155b771f56b9874fd0f053a52a64725039"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Sun",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "e396878b422c0935265f77ab2860a1155b771f56b9874fd0f053a52a64725039",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65688,9 +67112,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeSunStudy-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeSunStudy",
-        "signatureFingerprint": "c770df634d35667d038559a5209071733490f570fff6e86ad4667963f597a4b8"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_SunStudy",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "c770df634d35667d038559a5209071733490f570fff6e86ad4667963f597a4b8",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65710,9 +67150,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeSurface-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeSurface",
-        "signatureFingerprint": "b13809a3a38563b057c7023a830d59f54083fba437b4b7fef37bb8525d832bfa"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Surface",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "b13809a3a38563b057c7023a830d59f54083fba437b4b7fef37bb8525d832bfa",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65732,9 +67188,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeTable-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeTable",
-        "signatureFingerprint": "b3bca96eeecc81be32811a01a988f649a3408908e731c5da3cc35f122370968d"
+        "operationDisposition": "typed-helper",
+        "parameterModels": [
+          {
+            "model": "DRW_Table",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "b3bca96eeecc81be32811a01a988f649a3408908e731c5da3cc35f122370968d",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65754,9 +67226,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeTableEntryAppData-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeTableEntryAppData",
-        "signatureFingerprint": "60e739b5061096537b2a964b27955e31073dcc1e05a67f63f84794ec14b56727"
+        "operationDisposition": "typed-helper",
+        "parameterModels": [
+          {
+            "model": "DRW_TableEntry",
+            "name": "entry",
+            "passing": "reference"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "60e739b5061096537b2a964b27955e31073dcc1e05a67f63f84794ec14b56727",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65776,9 +67264,19 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeTables-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeTables",
-        "signatureFingerprint": "04b3af0ecafc4b6202d5044d0e441ad9425bd910a6252378c3474364123bf3f1"
+        "operationDisposition": "structural",
+        "parameterModels": [],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "04b3af0ecafc4b6202d5044d0e441ad9425bd910a6252378c3474364123bf3f1",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65798,9 +67296,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeText-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeText",
-        "signatureFingerprint": "51343521ce799afe510db2a237154ec98163a96f172780ec300fd923c6fb1d46"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Text",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "51343521ce799afe510db2a237154ec98163a96f172780ec300fd923c6fb1d46",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65820,9 +67334,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeTextstyle-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeTextstyle",
-        "signatureFingerprint": "ecdbef8f6f9d72803f330cdbf3bbb6492f7c96f25154e0e0243bc8e9328708dd"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Textstyle",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "ecdbef8f6f9d72803f330cdbf3bbb6492f7c96f25154e0e0243bc8e9328708dd",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65842,9 +67372,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeTolerance-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeTolerance",
-        "signatureFingerprint": "dd8c914dbeb342eb7b41eac832661f901b86f95142a9b383c1ca40028d51ef79"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Tolerance",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "dd8c914dbeb342eb7b41eac832661f901b86f95142a9b383c1ca40028d51ef79",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65864,9 +67410,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeTrace-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeTrace",
-        "signatureFingerprint": "61ec71a0795d32a552422ab5a12a3cdc152ad8a567c10cbcf1700b65cee74a3b"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Trace",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "61ec71a0795d32a552422ab5a12a3cdc152ad8a567c10cbcf1700b65cee74a3b",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65886,9 +67448,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeUCS-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeUCS",
-        "signatureFingerprint": "83cb1d194c1f16f31c4eab7ca6b2dd7352d9f13e7d62577f5cdca1722d66c8ab"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_UCS",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "83cb1d194c1f16f31c4eab7ca6b2dd7352d9f13e7d62577f5cdca1722d66c8ab",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65908,9 +67486,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeUnderlay-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeUnderlay",
-        "signatureFingerprint": "f444d4fbc9897b11d943d7a978d3345fc5d5ef5f786a28de0e7d98fca6cab0c7"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Underlay",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "f444d4fbc9897b11d943d7a978d3345fc5d5ef5f786a28de0e7d98fca6cab0c7",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65930,9 +67524,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeUnderlayDefinition-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeUnderlayDefinition",
-        "signatureFingerprint": "697cfed6e566cfb9d688368556f9dbbe7d7165759ffeff1a191dd692a17e3fdf"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_UnderlayDefinition",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "697cfed6e566cfb9d688368556f9dbbe7d7165759ffeff1a191dd692a17e3fdf",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65952,9 +67562,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeView-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeView",
-        "signatureFingerprint": "efcc54e5408a403304fb7804a82f6d1374d159edf2692610e6247a47f84a68c7"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_View",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "efcc54e5408a403304fb7804a82f6d1374d159edf2692610e6247a47f84a68c7",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65974,9 +67600,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeViewport-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeViewport",
-        "signatureFingerprint": "db130dfc9c3d9555d8a41201b980cd0cdbc1862ab9c66cab4481ec2621e1e58d"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Viewport",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "db130dfc9c3d9555d8a41201b980cd0cdbc1862ab9c66cab4481ec2621e1e58d",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -65996,9 +67638,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeVport-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeVport",
-        "signatureFingerprint": "3d3ea7590c2f7824ce454743182744c0eb0b620905e4bce59c59fc175adc2d47"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Vport",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "3d3ea7590c2f7824ce454743182744c0eb0b620905e4bce59c59fc175adc2d47",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -66018,9 +67676,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeWipeout-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeWipeout",
-        "signatureFingerprint": "4f3255fcd87f82fe6ca2e98720cffd040cf9c3247a7eb80d64ad9d96eef04e39"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Wipeout",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "4f3255fcd87f82fe6ca2e98720cffd040cf9c3247a7eb80d64ad9d96eef04e39",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -66040,9 +67714,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeWipeoutVariables-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeWipeoutVariables",
-        "signatureFingerprint": "b3830ac03705ecc7f37a406aa8f5f158edb7e85378b39965d0227da75782591a"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_WipeoutVariables",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "b3830ac03705ecc7f37a406aa8f5f158edb7e85378b39965d0227da75782591a",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
@@ -66062,9 +67752,25 @@
       "facade": "dxfRW",
       "id": "dxfRW/writer-entrypoint/writeXline-001",
       "selector": {
+        "finalizerDisposition": "delegated-provider-return",
         "kind": "symbol",
         "name": "dxfRW::writeXline",
-        "signatureFingerprint": "44daf74aed4af779eb713de266581101397f49634e37274f289bcbd28039a5e6"
+        "operationDisposition": "typed-leaf",
+        "parameterModels": [
+          {
+            "model": "DRW_Xline",
+            "name": "ent",
+            "passing": "pointer"
+          }
+        ],
+        "pipelineSelection": "runtime-version-or-dialect-selected",
+        "providerKind": "dxfWriter-hierarchy",
+        "signatureFingerprint": "44daf74aed4af779eb713de266581101397f49634e37274f289bcbd28039a5e6",
+        "writerPipelineIds": [
+          "dxfRW/dxf-transport-node/writer-ascii",
+          "dxfRW/dxf-transport-node/writer-binary",
+          "dxfRW/dxf-transport-node/writer-binary-r12"
+        ]
       },
       "sourceDisposition": "source-route-only"
     },
