@@ -25,7 +25,7 @@ from typing import Iterable
 
 
 SCHEMA = 1
-PARSER_SCHEMA = 8
+PARSER_SCHEMA = 9
 MANIFEST_FIELDS = 4
 SOURCE_PREFIX = "libraries/libdxfrw/"
 SOURCE_ROOT = "libraries/libdxfrw/src"
@@ -814,6 +814,118 @@ RAW_DXF_PROXY_PUBLICATION_RULES = {
     "dxfRW::processProxyObject": (
         "DRW_ProxyObject", "object", "addProxyObject", "DRW_RawDxfObject", "raw", "addRawDxfObject"
     ),
+}
+
+# Read-side raw eligibility is a separate source-flow contract.  Every edge
+# below is anchored at the concrete record function that executes it; the
+# helper definition alone is never treated as a call-site proof.  Patterns are
+# applied to masked C++ so comments and string literals cannot satisfy a gate.
+RAW_DXF_ELIGIBILITY_RULES = {
+    "dxf-read-raw-object-boundary": {
+        "dxfRW::processRawObject": (
+            {"name": "record-loop", "pattern": r"\bwhile\s*\(\s*reader\s*->\s*readRec\s*\(\s*&code\s*\)\s*\)", "callee": "reader->readRec", "calleeOverload": "dxfReader::readRec(int*)", "relation": "capture-loop"},
+            {"name": "boundary-probe", "pattern": r"\bif\s*\(\s*0\s*==\s*code\s*\)", "callee": "dxfRW::setEntityBoundary", "calleeOverload": "dxfRW::setEntityBoundary(int)", "relation": "boundary-probe"},
+            {"name": "boundary-classifier", "pattern": r"\bsetEntityBoundary\s*\(\s*code\s*\)", "callee": "dxfRW::setEntityBoundary", "calleeOverload": "dxfRW::setEntityBoundary(int)", "relation": "boundary-classify"},
+            {"name": "boundary-error-reject", "pattern": r"boundary\s*==\s*DxfEntityBoundary::Error", "callee": "DxfEntityBoundary::Error", "calleeOverload": "enum-value", "relation": "reject"},
+            {"name": "pair-limit", "pattern": r"\+\+\s*pairCount\s*>\s*DRW::kMaxDxfApplicationGroupPairs", "callee": "DRW::kMaxDxfApplicationGroupPairs", "calleeOverload": "constant-limit", "relation": "reject"},
+            {"name": "raw-capture", "pattern": r"\bcaptureRawGroup\s*\(\s*obj\s*,\s*code\s*,\s*true\s*\)", "callee": "dxfRW::captureRawGroup", "calleeOverload": "captureRawGroup(DRW_RawDxfObject&,int,bool)", "relation": "capture"},
+            {"name": "application-depth", "pattern": r"\bupdateRawDxfApplicationDepth\s*\(\s*obj\.groups\.back\s*\(\s*\)\s*,\s*applicationDepth\s*\)", "callee": "updateRawDxfApplicationDepth", "calleeOverload": "updateRawDxfApplicationDepth(const DRW_Variant&,int&)", "relation": "reject"},
+        ),
+    },
+    "dxf-read-raw-entity-boundary": {
+        "dxfRW::processRawEntity": (
+            {"name": "record-loop", "pattern": r"\bwhile\s*\(\s*reader\s*->\s*readRec\s*\(\s*&code\s*\)\s*\)", "callee": "reader->readRec", "calleeOverload": "dxfReader::readRec(int*)", "relation": "capture-loop"},
+            {"name": "boundary-probe", "pattern": r"\bif\s*\(\s*0\s*==\s*code\s*\)", "callee": "dxfRW::setEntityBoundary", "calleeOverload": "dxfRW::setEntityBoundary(int)", "relation": "boundary-probe"},
+            {"name": "boundary-classifier", "pattern": r"\bsetEntityBoundary\s*\(\s*code\s*\)", "callee": "dxfRW::setEntityBoundary", "calleeOverload": "dxfRW::setEntityBoundary(int)", "relation": "boundary-classify"},
+            {"name": "boundary-error-reject", "pattern": r"boundary\s*==\s*DxfEntityBoundary::Error", "callee": "DxfEntityBoundary::Error", "calleeOverload": "enum-value", "relation": "reject"},
+            {"name": "entity-callback-boundary", "pattern": r"!\s*acceptEntityCallbackBoundary\s*\(\s*\)", "callee": "dxfRW::acceptEntityCallbackBoundary", "calleeOverload": "dxfRW::acceptEntityCallbackBoundary()", "relation": "reject"},
+            {"name": "pair-limit", "pattern": r"\+\+\s*pairCount\s*>\s*DRW::kMaxDxfApplicationGroupPairs", "callee": "DRW::kMaxDxfApplicationGroupPairs", "calleeOverload": "constant-limit", "relation": "reject"},
+            {"name": "raw-capture", "pattern": r"\bcaptureRawGroup\s*\(\s*ent\s*,\s*code\s*,\s*true\s*\)", "callee": "dxfRW::captureRawGroup", "calleeOverload": "captureRawGroup(DRW_RawDxfObject&,int,bool)", "relation": "capture"},
+            {"name": "application-depth", "pattern": r"\bupdateRawDxfApplicationDepth\s*\(\s*ent\.groups\.back\s*\(\s*\)\s*,\s*applicationDepth\s*\)", "callee": "updateRawDxfApplicationDepth", "calleeOverload": "updateRawDxfApplicationDepth(const DRW_Variant&,int&)", "relation": "reject"},
+        ),
+    },
+    "dxf-read-proxy-boundary": {
+        "dxfRW::processProxyEntity": (
+            {"name": "record-loop", "pattern": r"\bwhile\s*\(\s*reader\s*->\s*readRec\s*\(\s*&code\s*\)\s*\)", "callee": "reader->readRec", "calleeOverload": "dxfReader::readRec(int*)", "relation": "capture-loop"},
+            {"name": "boundary-probe", "pattern": r"\bif\s*\(\s*code\s*==\s*0\s*\)", "callee": "dxfRW::setEntityBoundary", "calleeOverload": "dxfRW::setEntityBoundary(int)", "relation": "boundary-probe"},
+            {"name": "boundary-classifier", "pattern": r"\bsetEntityBoundary\s*\(\s*code\s*\)", "callee": "dxfRW::setEntityBoundary", "calleeOverload": "dxfRW::setEntityBoundary(int)", "relation": "boundary-classify"},
+            {"name": "boundary-error-reject", "pattern": r"boundary\s*==\s*DxfEntityBoundary::Error", "callee": "DxfEntityBoundary::Error", "calleeOverload": "enum-value", "relation": "reject"},
+            {"name": "entity-callback-boundary", "pattern": r"!\s*acceptEntityCallbackBoundary\s*\(\s*\)", "callee": "dxfRW::acceptEntityCallbackBoundary", "calleeOverload": "dxfRW::acceptEntityCallbackBoundary()", "relation": "reject"},
+            {"name": "application-depth", "pattern": r"capture\.applicationDepth\s*!=\s*0", "callee": "DxfProxyCapture::applicationDepth", "calleeOverload": "depth-state", "relation": "reject"},
+            {"name": "payload-validation", "pattern": r"\bvalidateProxyDxfPayloads\s*\(\s*capture\s*\)", "callee": "validateProxyDxfPayloads", "calleeOverload": "validateProxyDxfPayloads(const DxfProxyCapture&)", "relation": "reject"},
+            {"name": "self-handle-required", "pattern": r"\brequiresDxfSelfHandle\s*\(\s*\*reader\s*\)", "callee": "requiresDxfSelfHandle", "calleeOverload": "requiresDxfSelfHandle(const dxfReader&)", "relation": "conditional-reject"},
+            {"name": "pair-limit", "pattern": r"\+\+\s*pairCount\s*>\s*DRW::kMaxDxfApplicationGroupPairs", "callee": "DRW::kMaxDxfApplicationGroupPairs", "calleeOverload": "constant-limit", "relation": "reject"},
+            {"name": "raw-capture", "pattern": r"\bcaptureRawGroup\s*\(\s*raw\s*,\s*code\s*,\s*true\s*\)", "callee": "dxfRW::captureRawGroup", "calleeOverload": "captureRawGroup(DRW_RawDxfObject&,int,bool)", "relation": "capture"},
+            {"name": "proxy-payload-capture", "pattern": r"\bcollectProxyDxfGroup\s*\(\s*capture\s*,\s*raw\.groups\.back\s*\(\s*\)\s*,\s*true\s*\)", "callee": "collectProxyDxfGroup", "calleeOverload": "collectProxyDxfGroup(DxfProxyCapture&,const DRW_Variant&,bool)", "relation": "capture"},
+        ),
+        "dxfRW::processProxyObject": (
+            {"name": "record-loop", "pattern": r"\bwhile\s*\(\s*reader\s*->\s*readRec\s*\(\s*&code\s*\)\s*\)", "callee": "reader->readRec", "calleeOverload": "dxfReader::readRec(int*)", "relation": "capture-loop"},
+            {"name": "boundary-probe", "pattern": r"\bif\s*\(\s*code\s*==\s*0\s*\)", "callee": "dxfRW::setEntityBoundary", "calleeOverload": "dxfRW::setEntityBoundary(int)", "relation": "boundary-probe"},
+            {"name": "boundary-classifier", "pattern": r"\bsetEntityBoundary\s*\(\s*code\s*\)", "callee": "dxfRW::setEntityBoundary", "calleeOverload": "dxfRW::setEntityBoundary(int)", "relation": "boundary-classify"},
+            {"name": "boundary-error-reject", "pattern": r"boundary\s*==\s*DxfEntityBoundary::Error", "callee": "DxfEntityBoundary::Error", "calleeOverload": "enum-value", "relation": "reject"},
+            {"name": "end-block-reject", "pattern": r"boundary\s*==\s*DxfEntityBoundary::EndBlock", "callee": "DxfEntityBoundary::EndBlock", "calleeOverload": "enum-value", "relation": "reject"},
+            {"name": "application-depth", "pattern": r"capture\.applicationDepth\s*!=\s*0", "callee": "DxfProxyCapture::applicationDepth", "calleeOverload": "depth-state", "relation": "reject"},
+            {"name": "payload-validation", "pattern": r"\bvalidateProxyDxfPayloads\s*\(\s*capture\s*\)", "callee": "validateProxyDxfPayloads", "calleeOverload": "validateProxyDxfPayloads(const DxfProxyCapture&)", "relation": "reject"},
+            {"name": "self-handle-required", "pattern": r"\brequiresDxfSelfHandle\s*\(\s*\*reader\s*\)", "callee": "requiresDxfSelfHandle", "calleeOverload": "requiresDxfSelfHandle(const dxfReader&)", "relation": "conditional-reject"},
+            {"name": "pair-limit", "pattern": r"\+\+\s*pairCount\s*>\s*DRW::kMaxDxfApplicationGroupPairs", "callee": "DRW::kMaxDxfApplicationGroupPairs", "calleeOverload": "constant-limit", "relation": "reject"},
+            {"name": "raw-capture", "pattern": r"\bcaptureRawGroup\s*\(\s*raw\s*,\s*code\s*,\s*true\s*\)", "callee": "dxfRW::captureRawGroup", "calleeOverload": "captureRawGroup(DRW_RawDxfObject&,int,bool)", "relation": "capture"},
+            {"name": "proxy-payload-capture", "pattern": r"\bcollectProxyDxfGroup\s*\(\s*capture\s*,\s*raw\.groups\.back\s*\(\s*\)\s*,\s*false\s*\)", "callee": "collectProxyDxfGroup", "calleeOverload": "collectProxyDxfGroup(DxfProxyCapture&,const DRW_Variant&,bool)", "relation": "capture"},
+        ),
+    },
+    "dxf-read-object-self-handle-gate": {
+        "dxfRW::processRawObject": (
+            {"name": "self-handle-required", "pattern": r"\brequiresDxfSelfHandle\s*\(\s*\*reader\s*\)", "callee": "requiresDxfSelfHandle", "calleeOverload": "requiresDxfSelfHandle(const dxfReader&)", "relation": "conditional-reject"},
+        ),
+    },
+    "dxf-read-object-raw-self-handle-gate": {
+        "dxfRW::processRawObject": (
+            {"name": "raw-self-handle-present", "pattern": r"\bhasRawDxfSelfHandle\s*\(\s*obj\s*\)", "callee": "hasRawDxfSelfHandle", "calleeOverload": "hasRawDxfSelfHandle(const DRW_RawDxfObject&)", "relation": "conditional-reject"},
+        ),
+    },
+    "dxf-read-entity-self-handle-gate": {
+        "dxfRW::processRawEntity": (
+            {"name": "self-handle-required", "pattern": r"\brequiresDxfSelfHandle\s*\(\s*\*reader\s*\)", "callee": "requiresDxfSelfHandle", "calleeOverload": "requiresDxfSelfHandle(const dxfReader&)", "relation": "conditional-reject"},
+        ),
+    },
+    "dxf-read-entity-raw-self-handle-gate": {
+        "dxfRW::processRawEntity": (
+            {"name": "raw-self-handle-present", "pattern": r"\bhasRawDxfSelfHandle\s*\(\s*ent\s*\)", "callee": "hasRawDxfSelfHandle", "calleeOverload": "hasRawDxfSelfHandle(const DRW_RawDxfObject&)", "relation": "conditional-reject"},
+        ),
+    },
+    "dxf-read-proxy-payload-gate": {
+        "dxfRW::processProxyEntity": (
+            {"name": "payload-validation", "pattern": r"\bvalidateProxyDxfPayloads\s*\(\s*capture\s*\)", "callee": "validateProxyDxfPayloads", "calleeOverload": "validateProxyDxfPayloads(const DxfProxyCapture&)", "relation": "reject"},
+        ),
+        "dxfRW::processProxyObject": (
+            {"name": "payload-validation", "pattern": r"\bvalidateProxyDxfPayloads\s*\(\s*capture\s*\)", "callee": "validateProxyDxfPayloads", "calleeOverload": "validateProxyDxfPayloads(const DxfProxyCapture&)", "relation": "reject"},
+        ),
+    },
+    "dxf-read-proxy-self-handle-gate": {
+        "dxfRW::processProxyEntity": (
+            {"name": "self-handle-required", "pattern": r"\brequiresDxfSelfHandle\s*\(\s*\*reader\s*\)", "callee": "requiresDxfSelfHandle", "calleeOverload": "requiresDxfSelfHandle(const dxfReader&)", "relation": "conditional-reject"},
+        ),
+        "dxfRW::processProxyObject": (
+            {"name": "self-handle-required", "pattern": r"\brequiresDxfSelfHandle\s*\(\s*\*reader\s*\)", "callee": "requiresDxfSelfHandle", "calleeOverload": "requiresDxfSelfHandle(const dxfReader&)", "relation": "conditional-reject"},
+        ),
+    },
+    "dxf-read-proxy-raw-self-handle-gate": {
+        "dxfRW::processProxyEntity": (
+            {"name": "raw-self-handle-present", "pattern": r"\bhasRawDxfSelfHandle\s*\(\s*raw\s*\)", "callee": "hasRawDxfSelfHandle", "calleeOverload": "hasRawDxfSelfHandle(const DRW_RawDxfObject&)", "relation": "conditional-reject"},
+        ),
+        "dxfRW::processProxyObject": (
+            {"name": "raw-self-handle-present", "pattern": r"\bhasRawDxfSelfHandle\s*\(\s*raw\s*\)", "callee": "hasRawDxfSelfHandle", "calleeOverload": "hasRawDxfSelfHandle(const DRW_RawDxfObject&)", "relation": "conditional-reject"},
+        ),
+    },
+    "dxf-read-raw-section-boundary": {
+        "dxfRW::processRawDxfSection": (
+            {"name": "section-name-required", "pattern": r"\bsectionName\.empty\s*\(\s*\)", "callee": "std::string::empty", "calleeOverload": "std::string::empty()", "relation": "reject"},
+            {"name": "record-loop", "pattern": r"\bwhile\s*\(\s*reader\s*->\s*readRec\s*\(\s*&code\s*\)\s*\)", "callee": "reader->readRec", "calleeOverload": "dxfReader::readRec(int*)", "relation": "capture-loop"},
+            {"name": "pair-limit", "pattern": r"\+\+\s*pairCount\s*>\s*DRW::kMaxDxfApplicationGroupPairs", "callee": "DRW::kMaxDxfApplicationGroupPairs", "calleeOverload": "constant-limit", "relation": "reject"},
+            {"name": "end-section-boundary", "pattern": r"\bcode\s*==\s*0\s*&&\s*dxfKeywordEquals\s*\(\s*reader->getString\s*\(\s*\)\s*,\s*\"ENDSEC\"\s*\)", "callee": "dxfKeywordEquals", "calleeOverload": "dxfKeywordEquals(const std::string&,const char*)", "relation": "boundary-probe"},
+            {"name": "raw-capture", "pattern": r"\bcaptureRawGroup\s*\(\s*group\s*,\s*code\s*,\s*true\s*\)", "callee": "dxfRW::captureRawGroup", "calleeOverload": "captureRawGroup(DRW_RawDxfObject&,int,bool)", "relation": "capture"},
+            {"name": "application-depth", "pattern": r"\bupdateRawDxfApplicationDepth\s*\(\s*group\.groups\.back\s*\(\s*\)\s*,\s*applicationDepth\s*\)", "callee": "updateRawDxfApplicationDepth", "calleeOverload": "updateRawDxfApplicationDepth(const DRW_Variant&,int&)", "relation": "reject"},
+        ),
+    },
 }
 
 # These route nodes cover the deliberate deferred/publication machinery that
@@ -2792,6 +2904,102 @@ def raw_flow_bodies(tree: SourceTree, anchors: tuple[tuple[str, str], ...]) -> l
     return bodies
 
 
+def raw_eligibility_edge_rows(
+    body: FunctionBody, edge_specs: tuple[dict, ...]
+) -> list[dict]:
+    """Extract one exact ordered raw eligibility edge per reviewed pattern."""
+    source = body.comment_text
+    rows: list[dict] = []
+    previous_offset = -1
+    for order, spec in enumerate(edge_specs, 1):
+        matches = list(re.finditer(spec["pattern"], source))
+        if len(matches) != 1:
+            raise RouteError(
+                "raw eligibility edge %s is missing or ambiguous in %s"
+                % (spec["name"], body.symbol)
+            )
+        match = matches[0]
+        if match.start() <= previous_offset:
+            raise RouteError(
+                "raw eligibility edge order changed in %s: %s"
+                % (body.symbol, spec["name"])
+            )
+        previous_offset = match.start()
+        rows.append(
+            {
+                "edge": spec["name"],
+                "order": order,
+                "predecessorEdges": [item["name"] for item in edge_specs[: order - 1]],
+                "callee": spec["callee"],
+                "calleeOverload": spec["calleeOverload"],
+                "relation": spec["relation"],
+                "sourceOffset": match.start(),
+                "guardFingerprint": sha256_text(
+                    " ".join(source[match.start() : match.end()].split())
+                ),
+                "callEvidence": _source_location(
+                    body,
+                    line_number(
+                        body.source.text, body.body_start + match.start()
+                    ),
+                ),
+            }
+        )
+    return rows
+
+
+def raw_eligibility_metadata(
+    node_name: str, bodies: list[FunctionBody]
+) -> list[dict]:
+    """Attach concrete read-side raw eligibility edges to flow nodes."""
+    if node_name == "dxf-read-typed-raw-template":
+        if len(bodies) != 1:
+            raise RouteError("raw template eligibility anchor shape changed")
+        body = bodies[0]
+        if body.symbol != "dxfRW::processRawCapturedObject":
+            raise RouteError("raw template eligibility symbol changed")
+        # The bridge verifier below is the canonical source-of-truth for this
+        # templated lambda.  Reuse its exact branch locations rather than
+        # approximating a lambda body with a generic callback scan.
+        bridge = verify_dxf_raw_captured_template_bridge(
+            SourceTree(body.source.path, {body.source.path: body.source}, {})
+        )
+        if bridge is None or not bridge.get("orderedEdges"):
+            raise RouteError("raw template eligibility bridge is unproved")
+        return [{"bodySymbol": body.symbol, "edges": bridge["orderedEdges"]}]
+    rules = RAW_DXF_ELIGIBILITY_RULES.get(node_name)
+    if rules is None:
+        return []
+    source = bodies[0].source
+    call_bodies: dict[str, FunctionBody] = {}
+    for symbol in rules:
+        found = function_bodies(source, symbol)
+        if len(found) != 1:
+            raise RouteError(
+                "raw eligibility call-site anchor is not unique: %s" % symbol
+            )
+        call_bodies[symbol] = found[0]
+    rows: list[dict] = []
+    for symbol in sorted(rules):
+        body = call_bodies[symbol]
+        try:
+            edge_specs = rules[body.symbol]
+        except KeyError as exc:
+            raise RouteError(
+                "raw eligibility anchor is unexpected for %s: %s"
+                % (node_name, body.symbol)
+            ) from exc
+        rows.append(
+            {
+                "bodySymbol": body.symbol,
+                "edges": raw_eligibility_edge_rows(body, edge_specs),
+            }
+        )
+    if {row["bodySymbol"] for row in rows} != set(rules):
+        raise RouteError("raw eligibility body coverage changed: %s" % node_name)
+    return rows
+
+
 def add_raw_flow_routes(collector: RouteCollector, tree: SourceTree) -> None:
     """Close raw carriers, guards, handoffs, and replay phases explicitly."""
     inputs = raw_flow_inputs_by_name()
@@ -2855,6 +3063,10 @@ def add_raw_flow_routes(collector: RouteCollector, tree: SourceTree) -> None:
             selector["terminalDisposition"] = node["terminalDisposition"]
         if "externalIngress" in node:
             selector["externalIngress"] = node["externalIngress"]
+        if name in RAW_DXF_ELIGIBILITY_RULES or name == "dxf-read-typed-raw-template":
+            selector["rawEligibilityEvidence"] = raw_eligibility_metadata(
+                name, evidence_bodies
+            )
         if phase == "publication":
             predecessor_route_ids = [
                 raw_flow_route_id(facade, input_name)
@@ -4663,6 +4875,64 @@ def validate_raw_route_publication_metadata(
         raise RouteError("unexpected DXF raw-flow publication evidence: %s" % route["id"])
 
 
+def validate_raw_eligibility_metadata(tree: SourceTree, route: dict) -> None:
+    """Validate shape and ordering of concrete DXF raw eligibility edges."""
+    selector = route["selector"]
+    name = selector.get("name")
+    expected_rules = RAW_DXF_ELIGIBILITY_RULES.get(name)
+    if name == "dxf-read-typed-raw-template":
+        expected_symbols = {"dxfRW::processRawCapturedObject"}
+        expected_edges = {
+            "dxfRW::processRawCapturedObject":
+            ("boundary-acceptance", "typed-callback", "raw-callback", "return")
+        }
+    elif expected_rules is not None:
+        expected_symbols = set(expected_rules)
+        expected_edges = {
+            symbol: tuple(spec["name"] for spec in specs)
+            for symbol, specs in expected_rules.items()
+        }
+    else:
+        if selector.get("rawEligibilityEvidence", []) not in ([], None):
+            raise RouteError("unexpected raw eligibility evidence: %s" % route["id"])
+        return
+    rows = selector.get("rawEligibilityEvidence")
+    if not isinstance(rows, list) or {row.get("bodySymbol") for row in rows if isinstance(row, dict)} != expected_symbols:
+        raise RouteError("raw eligibility body coverage changed: %s" % route["id"])
+    seen_symbols: set[str] = set()
+    for row in rows:
+        if not isinstance(row, dict):
+            raise RouteError("raw eligibility row is malformed: %s" % route["id"])
+        symbol = row.get("bodySymbol")
+        if symbol not in expected_symbols or symbol in seen_symbols:
+            raise RouteError("raw eligibility body is duplicated or unexpected: %s" % route["id"])
+        seen_symbols.add(symbol)
+        edges = row.get("edges")
+        names = expected_edges[symbol]
+        if not isinstance(edges, list) or len(edges) != len(names):
+            raise RouteError("raw eligibility edge count changed: %s" % route["id"])
+        previous_offset = -1
+        for order, edge in enumerate(edges, 1):
+            if not isinstance(edge, dict):
+                raise RouteError("raw eligibility edge is malformed: %s" % route["id"])
+            if (
+                edge.get("edge") != names[order - 1]
+                or edge.get("order") != order
+                or edge.get("predecessorEdges") != list(names[: order - 1])
+                or not isinstance(edge.get("callee"), str)
+                or not isinstance(edge.get("calleeOverload"), str)
+                or not isinstance(edge.get("relation"), str)
+                or not isinstance(edge.get("sourceOffset"), int)
+                or edge["sourceOffset"] <= previous_offset
+                or not isinstance(edge.get("guardFingerprint"), str)
+            ):
+                raise RouteError("raw eligibility edge contract changed: %s" % route["id"])
+            previous_offset = edge["sourceOffset"]
+            _validate_raw_publication_location(
+                edge.get("callEvidence"), tree, {symbol}, "eligibility", route["id"]
+            )
+
+
 def validate_named_publication_selector(
     source_route: dict, ancestry: object, parser_route: str
 ) -> None:
@@ -4774,7 +5044,7 @@ def verify_dxf_raw_captured_template_bridge(tree: SourceTree) -> dict | None:
     )
     if any(fragment not in body.code for fragment in required_fragments):
         raise RouteError("DXF raw-captured template bridge changed without review")
-    ordered_branch: tuple[int, int, int, int] | None = None
+    ordered_branch: tuple[int, int, int, int, int] | None = None
     for match in re.finditer(r"\bif\s*\(", body.code):
         opening = body.code.find("(", match.start(), match.end())
         closing = matching_delimiter(body.code, opening, "(", ")")
@@ -4787,22 +5057,51 @@ def verify_dxf_raw_captured_template_bridge(tree: SourceTree) -> dict | None:
         typed = branch_code.find("addTyped(data)")
         raw = branch_code.find("iface->addRawDxfObject(raw)")
         returns = [item.start() for item in re.finditer(r"\breturn\b", branch_code)]
-        if boundary >= 0 and typed > boundary and raw > typed and any(
-            position > raw for position in returns
-        ):
-            ordered_branch = (branch_start, boundary, typed, raw)
+        return_offset = next((position for position in returns if position > raw), -1)
+        if boundary >= 0 and typed > boundary and raw > typed and return_offset >= 0:
+            ordered_branch = (branch_start, boundary, typed, raw, return_offset)
             break
     if ordered_branch is None:
         raise RouteError(
             "DXF raw-captured template lacks ordered boundary/typed/raw/return branch"
         )
-    branch_start, _boundary, _typed, raw_offset = ordered_branch
+    branch_start, boundary_offset, typed_offset, raw_offset, return_offset = ordered_branch
     raw_call_offset = branch_start + raw_offset
     raw_call = re.search(r"\biface\s*->\s*addRawDxfObject\s*\(\s*raw\s*\)", body.code)
     raw_binding = re.search(r"\bDRW_RawDxfObject\s+raw\s*;", body.code)
     if raw_call is None or raw_binding is None or raw_call.start() != raw_call_offset:
         raise RouteError("DXF raw-captured template lacks physical raw carrier evidence")
+    ordered_specs = (
+        ("boundary-acceptance", boundary_offset, "acceptObjectBoundary", "acceptObjectBoundary(int)", "eligibility-reject"),
+        ("typed-callback", typed_offset, "AddFn(data)", "bound AddFn(data)", "typed-publication"),
+        ("raw-callback", raw_offset, "iface->addRawDxfObject", "DRW_Interface::addRawDxfObject(DRW_RawDxfObject&)", "raw-publication"),
+        ("return", return_offset, "return", "bool-return", "terminal"),
+    )
+    ordered_edges = []
+    template_text = body.comment_text
+    for order, (name, offset, callee, overload, relation) in enumerate(ordered_specs, 1):
+        ordered_edges.append(
+            {
+                "edge": name,
+                "order": order,
+                "predecessorEdges": [item[0] for item in ordered_specs[: order - 1]],
+                "callee": callee,
+                "calleeOverload": overload,
+                "relation": relation,
+                "sourceOffset": branch_start + offset,
+                "guardFingerprint": sha256_text(
+                    " ".join(template_text[branch_start + offset : branch_start + offset + len(callee)].split())
+                ),
+                "callEvidence": _source_location(
+                    body,
+                    line_number(
+                        body.source.text, body.body_start + branch_start + offset
+                    ),
+                ),
+            }
+        )
     return {
+        "orderedEdges": ordered_edges,
         "templateEvidence": _source_location(body, body.line),
         "rawCallbackEvidence": _source_location(
             body, line_number(body.source.text, body.body_start + raw_call.start())
@@ -6610,6 +6909,7 @@ def validate_pipeline_closure(tree: SourceTree, inventory: dict[str, list[dict]]
             raise RouteError("raw-flow node references a missing writer pipeline: %s" % name)
         if raw_by_name[name]["directions"] != sorted(set(RAW_NODE_DIRECTIONS[name])):
             raise RouteError("raw-flow node has incorrect reviewed directions: %s" % name)
+        validate_raw_eligibility_metadata(tree, raw_by_name[name])
         validate_raw_route_publication_metadata(
             tree, raw_by_name[name], raw_ids, model_route_ids, callback_route_ids
         )
@@ -8037,6 +8337,48 @@ bool dxfRW::processProxyObject() {
         pass
     else:
         raise AssertionError("raw carrier omission was accepted")
+    eligibility_source = SourceFile(
+        "src/raw-eligibility.cpp",
+        """
+bool dxfRW::probe() {
+    while (reader->readRec(&code)) {
+        captureRawGroup(obj, code, true);
+    }
+}
+""",
+        "b" * 64,
+    )
+    eligibility_body = function_body(eligibility_source, "dxfRW::probe")
+    eligibility_specs = (
+        {
+            "name": "record-loop", "pattern": r"\bwhile\s*\(\s*reader\s*->\s*readRec",
+            "callee": "reader->readRec", "calleeOverload": "dxfReader::readRec(int*)",
+            "relation": "capture-loop",
+        },
+        {
+            "name": "raw-capture", "pattern": r"\bcaptureRawGroup\s*\(",
+            "callee": "dxfRW::captureRawGroup", "calleeOverload": "captureRawGroup(DRW_RawDxfObject&,int,bool)",
+            "relation": "capture",
+        },
+    )
+    eligibility_rows = raw_eligibility_edge_rows(eligibility_body, eligibility_specs)
+    assert [row["edge"] for row in eligibility_rows] == ["record-loop", "raw-capture"]
+    reversed_eligibility = SourceFile(
+        eligibility_source.path,
+        eligibility_source.text.replace(
+            "while (reader->readRec(&code)) {\n        captureRawGroup(obj, code, true);",
+            "captureRawGroup(obj, code, true);\n    while (reader->readRec(&code)) {",
+        ),
+        eligibility_source.git_blob,
+    )
+    try:
+        raw_eligibility_edge_rows(
+            function_body(reversed_eligibility, "dxfRW::probe"), eligibility_specs
+        )
+    except RouteError:
+        pass
+    else:
+        raise AssertionError("raw eligibility order inversion was accepted")
     proxy_rows = raw_route_publication_metadata(
         "dxf-publish-proxy",
         [

@@ -731,7 +731,19 @@
         "dxfRW/raw-flow/dxf-publish-object",
         "dxfRW/raw-flow/dxf-publish-proxy",
         "dxfRW/raw-flow/dxf-publish-section",
-        "dxfRW/raw-flow/dxf-publish-typed-raw-carrier"
+        "dxfRW/raw-flow/dxf-publish-typed-raw-carrier",
+        "dxfRW/raw-flow/dxf-read-entity-raw-self-handle-gate",
+        "dxfRW/raw-flow/dxf-read-entity-self-handle-gate",
+        "dxfRW/raw-flow/dxf-read-object-raw-self-handle-gate",
+        "dxfRW/raw-flow/dxf-read-object-self-handle-gate",
+        "dxfRW/raw-flow/dxf-read-proxy-boundary",
+        "dxfRW/raw-flow/dxf-read-proxy-payload-gate",
+        "dxfRW/raw-flow/dxf-read-proxy-raw-self-handle-gate",
+        "dxfRW/raw-flow/dxf-read-proxy-self-handle-gate",
+        "dxfRW/raw-flow/dxf-read-raw-entity-boundary",
+        "dxfRW/raw-flow/dxf-read-raw-object-boundary",
+        "dxfRW/raw-flow/dxf-read-raw-section-boundary",
+        "dxfRW/raw-flow/dxf-read-typed-raw-template"
       ],
       "standaloneOnly": [
         "dxfRW/dxf-transport-node/group-code-range-source",
@@ -852,7 +864,7 @@
   },
   "fixturePolicy": "no-drawing-payloads; source-and-metadata-only",
   "generator": {
-    "parserSchema": 8,
+    "parserSchema": 9,
     "path": "tools/extract_parity_source_routes.py"
   },
   "inputs": {
@@ -1848,7 +1860,7 @@
       "facade": "dxfRW",
       "path": "parity-source-routes-v1/target-dxfRW.json",
       "routeCount": 1475,
-      "sha256": "cd7053ffc9528bc3c328270792b7f88c167ae2e6122545f334171fd7998c65a6",
+      "sha256": "ed1ac31a6f42b817bdc1a896f698acdc68a4fe071f747d03c522bf3035d1740f",
       "side": "target"
     },
     {
@@ -1869,7 +1881,7 @@
       "facade": "dxfRW",
       "path": "parity-source-routes-v1/standalone-dxfRW.json",
       "routeCount": 1457,
-      "sha256": "c1a3c4d7fe9806cf2aaabb0eaf356ded7a2c51057c20d575f027a4ca73c5c4de",
+      "sha256": "43625d63307c9fee761b5b15be7da116caf79d8f47671ba5f5610cf339660e4a",
       "side": "standalone"
     },
     {
@@ -1895,7 +1907,7 @@
         "targetOnly": 1
       },
       "dxfRW": {
-        "semanticMismatches": 213,
+        "semanticMismatches": 225,
         "standaloneOnly": 18,
         "targetOnly": 36
       },

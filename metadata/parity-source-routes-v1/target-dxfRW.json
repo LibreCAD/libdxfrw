@@ -61011,6 +61011,29 @@
           "dxfRW/raw-flow/dxf-publish-entity"
         ],
         "phase": "eligibility",
+        "rawEligibilityEvidence": [
+          {
+            "bodySymbol": "dxfRW::processRawEntity",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 13875,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "9a808ed2f78315ea17a59b0e15df68185663e130b19af1e51d38ef3167339b71",
+                  "symbol": "dxfRW::processRawEntity"
+                },
+                "callee": "hasRawDxfSelfHandle",
+                "calleeOverload": "hasRawDxfSelfHandle(const DRW_RawDxfObject&)",
+                "edge": "raw-self-handle-present",
+                "guardFingerprint": "52f425146526c4683286d836b60fa8e8e51e08aa7324fdbcfc907614c8012d4d",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "conditional-reject",
+                "sourceOffset": 956
+              }
+            ]
+          }
+        ],
         "readerPipelineIds": [],
         "symbols": [
           "hasRawDxfSelfHandle"
@@ -61063,6 +61086,29 @@
           "dxfRW/raw-flow/dxf-read-entity-raw-self-handle-gate"
         ],
         "phase": "eligibility",
+        "rawEligibilityEvidence": [
+          {
+            "bodySymbol": "dxfRW::processRawEntity",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 13875,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "9a808ed2f78315ea17a59b0e15df68185663e130b19af1e51d38ef3167339b71",
+                  "symbol": "dxfRW::processRawEntity"
+                },
+                "callee": "requiresDxfSelfHandle",
+                "calleeOverload": "requiresDxfSelfHandle(const dxfReader&)",
+                "edge": "self-handle-required",
+                "guardFingerprint": "1ebc20e95871aabdc12efaabef31cbbaadebc029b3fc46dd8c9b724705e330bd",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "conditional-reject",
+                "sourceOffset": 921
+              }
+            ]
+          }
+        ],
         "readerPipelineIds": [],
         "symbols": [
           "requiresDxfSelfHandle"
@@ -61109,6 +61155,29 @@
           "dxfRW/raw-flow/dxf-publish-object"
         ],
         "phase": "eligibility",
+        "rawEligibilityEvidence": [
+          {
+            "bodySymbol": "dxfRW::processRawObject",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 13833,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "2f5f01b67a50a29834ccca9d7ded1245c7553a315d16ef8ca683e3b158a4c971",
+                  "symbol": "dxfRW::processRawObject"
+                },
+                "callee": "hasRawDxfSelfHandle",
+                "calleeOverload": "hasRawDxfSelfHandle(const DRW_RawDxfObject&)",
+                "edge": "raw-self-handle-present",
+                "guardFingerprint": "71e349d7680a03f6370bbf7a9ed478f0a11e7cff00220b4d0debf116bfce2fec",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "conditional-reject",
+                "sourceOffset": 655
+              }
+            ]
+          }
+        ],
         "readerPipelineIds": [],
         "symbols": [
           "hasRawDxfSelfHandle"
@@ -61161,6 +61230,29 @@
           "dxfRW/raw-flow/dxf-read-object-raw-self-handle-gate"
         ],
         "phase": "eligibility",
+        "rawEligibilityEvidence": [
+          {
+            "bodySymbol": "dxfRW::processRawObject",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 13833,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "2f5f01b67a50a29834ccca9d7ded1245c7553a315d16ef8ca683e3b158a4c971",
+                  "symbol": "dxfRW::processRawObject"
+                },
+                "callee": "requiresDxfSelfHandle",
+                "calleeOverload": "requiresDxfSelfHandle(const dxfReader&)",
+                "edge": "self-handle-required",
+                "guardFingerprint": "1ebc20e95871aabdc12efaabef31cbbaadebc029b3fc46dd8c9b724705e330bd",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "conditional-reject",
+                "sourceOffset": 620
+              }
+            ]
+          }
+        ],
         "readerPipelineIds": [],
         "symbols": [
           "requiresDxfSelfHandle"
@@ -61212,6 +61304,500 @@
           "dxfRW/raw-flow/dxf-read-proxy-payload-gate"
         ],
         "phase": "capture",
+        "rawEligibilityEvidence": [
+          {
+            "bodySymbol": "dxfRW::processProxyEntity",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 13940,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "129b12ff9d147f6f31bb80c81dfee620f07548f414f47c38c7e1bf6c81928fe5",
+                  "symbol": "dxfRW::processProxyEntity"
+                },
+                "callee": "reader->readRec",
+                "calleeOverload": "dxfReader::readRec(int*)",
+                "edge": "record-loop",
+                "guardFingerprint": "b184375e42354a580bbf31fe0d087a17d0f9e461781327a107255492e4d25b16",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "capture-loop",
+                "sourceOffset": 407
+              },
+              {
+                "callEvidence": {
+                  "line": 13941,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "129b12ff9d147f6f31bb80c81dfee620f07548f414f47c38c7e1bf6c81928fe5",
+                  "symbol": "dxfRW::processProxyEntity"
+                },
+                "callee": "dxfRW::setEntityBoundary",
+                "calleeOverload": "dxfRW::setEntityBoundary(int)",
+                "edge": "boundary-probe",
+                "guardFingerprint": "5b3a964849d2d0260a2aa1ea0a1dae4a786d04e3c15a8c792869b7809fad6da4",
+                "order": 2,
+                "predecessorEdges": [
+                  "record-loop"
+                ],
+                "relation": "boundary-probe",
+                "sourceOffset": 448
+              },
+              {
+                "callEvidence": {
+                  "line": 13942,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "129b12ff9d147f6f31bb80c81dfee620f07548f414f47c38c7e1bf6c81928fe5",
+                  "symbol": "dxfRW::processProxyEntity"
+                },
+                "callee": "dxfRW::setEntityBoundary",
+                "calleeOverload": "dxfRW::setEntityBoundary(int)",
+                "edge": "boundary-classifier",
+                "guardFingerprint": "3ba455952eff8265b8f0d92574bdadf3829c85c44603d0b9c65477bc89e7bbd2",
+                "order": 3,
+                "predecessorEdges": [
+                  "record-loop",
+                  "boundary-probe"
+                ],
+                "relation": "boundary-classify",
+                "sourceOffset": 512
+              },
+              {
+                "callEvidence": {
+                  "line": 13943,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "129b12ff9d147f6f31bb80c81dfee620f07548f414f47c38c7e1bf6c81928fe5",
+                  "symbol": "dxfRW::processProxyEntity"
+                },
+                "callee": "DxfEntityBoundary::Error",
+                "calleeOverload": "enum-value",
+                "edge": "boundary-error-reject",
+                "guardFingerprint": "dc9497e32afb33e61d33b86905729fd701f16a9311321675556ae1e8138015d9",
+                "order": 4,
+                "predecessorEdges": [
+                  "record-loop",
+                  "boundary-probe",
+                  "boundary-classifier"
+                ],
+                "relation": "reject",
+                "sourceOffset": 553
+              },
+              {
+                "callEvidence": {
+                  "line": 13944,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "129b12ff9d147f6f31bb80c81dfee620f07548f414f47c38c7e1bf6c81928fe5",
+                  "symbol": "dxfRW::processProxyEntity"
+                },
+                "callee": "dxfRW::acceptEntityCallbackBoundary",
+                "calleeOverload": "dxfRW::acceptEntityCallbackBoundary()",
+                "edge": "entity-callback-boundary",
+                "guardFingerprint": "fa3e1b0901ef87d517ab6745b8a4bbf48531a19f6f2b517196c31e6ded0e5370",
+                "order": 5,
+                "predecessorEdges": [
+                  "record-loop",
+                  "boundary-probe",
+                  "boundary-classifier",
+                  "boundary-error-reject"
+                ],
+                "relation": "reject",
+                "sourceOffset": 609
+              },
+              {
+                "callEvidence": {
+                  "line": 13946,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "129b12ff9d147f6f31bb80c81dfee620f07548f414f47c38c7e1bf6c81928fe5",
+                  "symbol": "dxfRW::processProxyEntity"
+                },
+                "callee": "DxfProxyCapture::applicationDepth",
+                "calleeOverload": "depth-state",
+                "edge": "application-depth",
+                "guardFingerprint": "db5de441597000b22f92a0a6b4263b3503fb40fcd71de302ad1e2c04a07c2949",
+                "order": 6,
+                "predecessorEdges": [
+                  "record-loop",
+                  "boundary-probe",
+                  "boundary-classifier",
+                  "boundary-error-reject",
+                  "entity-callback-boundary"
+                ],
+                "relation": "reject",
+                "sourceOffset": 715
+              },
+              {
+                "callEvidence": {
+                  "line": 13948,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "129b12ff9d147f6f31bb80c81dfee620f07548f414f47c38c7e1bf6c81928fe5",
+                  "symbol": "dxfRW::processProxyEntity"
+                },
+                "callee": "validateProxyDxfPayloads",
+                "calleeOverload": "validateProxyDxfPayloads(const DxfProxyCapture&)",
+                "edge": "payload-validation",
+                "guardFingerprint": "bc95bed68f4778d13263488e406ccca8f3f22167984dd604fcad63a2f9a55868",
+                "order": 7,
+                "predecessorEdges": [
+                  "record-loop",
+                  "boundary-probe",
+                  "boundary-classifier",
+                  "boundary-error-reject",
+                  "entity-callback-boundary",
+                  "application-depth"
+                ],
+                "relation": "reject",
+                "sourceOffset": 818
+              },
+              {
+                "callEvidence": {
+                  "line": 13950,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "129b12ff9d147f6f31bb80c81dfee620f07548f414f47c38c7e1bf6c81928fe5",
+                  "symbol": "dxfRW::processProxyEntity"
+                },
+                "callee": "requiresDxfSelfHandle",
+                "calleeOverload": "requiresDxfSelfHandle(const dxfReader&)",
+                "edge": "self-handle-required",
+                "guardFingerprint": "1ebc20e95871aabdc12efaabef31cbbaadebc029b3fc46dd8c9b724705e330bd",
+                "order": 8,
+                "predecessorEdges": [
+                  "record-loop",
+                  "boundary-probe",
+                  "boundary-classifier",
+                  "boundary-error-reject",
+                  "entity-callback-boundary",
+                  "application-depth",
+                  "payload-validation"
+                ],
+                "relation": "conditional-reject",
+                "sourceOffset": 924
+              },
+              {
+                "callEvidence": {
+                  "line": 13967,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "129b12ff9d147f6f31bb80c81dfee620f07548f414f47c38c7e1bf6c81928fe5",
+                  "symbol": "dxfRW::processProxyEntity"
+                },
+                "callee": "DRW::kMaxDxfApplicationGroupPairs",
+                "calleeOverload": "constant-limit",
+                "edge": "pair-limit",
+                "guardFingerprint": "f460a65f5e8f16b208d2e3adfb306414d14897001b5f9aca457e55776e566951",
+                "order": 9,
+                "predecessorEdges": [
+                  "record-loop",
+                  "boundary-probe",
+                  "boundary-classifier",
+                  "boundary-error-reject",
+                  "entity-callback-boundary",
+                  "application-depth",
+                  "payload-validation",
+                  "self-handle-required"
+                ],
+                "relation": "reject",
+                "sourceOffset": 1738
+              },
+              {
+                "callEvidence": {
+                  "line": 13970,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "129b12ff9d147f6f31bb80c81dfee620f07548f414f47c38c7e1bf6c81928fe5",
+                  "symbol": "dxfRW::processProxyEntity"
+                },
+                "callee": "dxfRW::captureRawGroup",
+                "calleeOverload": "captureRawGroup(DRW_RawDxfObject&,int,bool)",
+                "edge": "raw-capture",
+                "guardFingerprint": "1d5ca8fbb6ba05499d2e54b345daebc808505fe090b0d96b56a60a2eb78e9ab9",
+                "order": 10,
+                "predecessorEdges": [
+                  "record-loop",
+                  "boundary-probe",
+                  "boundary-classifier",
+                  "boundary-error-reject",
+                  "entity-callback-boundary",
+                  "application-depth",
+                  "payload-validation",
+                  "self-handle-required",
+                  "pair-limit"
+                ],
+                "relation": "capture",
+                "sourceOffset": 1852
+              },
+              {
+                "callEvidence": {
+                  "line": 13973,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "129b12ff9d147f6f31bb80c81dfee620f07548f414f47c38c7e1bf6c81928fe5",
+                  "symbol": "dxfRW::processProxyEntity"
+                },
+                "callee": "collectProxyDxfGroup",
+                "calleeOverload": "collectProxyDxfGroup(DxfProxyCapture&,const DRW_Variant&,bool)",
+                "edge": "proxy-payload-capture",
+                "guardFingerprint": "23993d2591ad334aa6647a95f48afd14ebb31e04fd05f41c1f0e521cfc11f8fa",
+                "order": 11,
+                "predecessorEdges": [
+                  "record-loop",
+                  "boundary-probe",
+                  "boundary-classifier",
+                  "boundary-error-reject",
+                  "entity-callback-boundary",
+                  "application-depth",
+                  "payload-validation",
+                  "self-handle-required",
+                  "pair-limit",
+                  "raw-capture"
+                ],
+                "relation": "capture",
+                "sourceOffset": 2004
+              }
+            ]
+          },
+          {
+            "bodySymbol": "dxfRW::processProxyObject",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 13995,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "fa0a4f22829ab39df103a120c96540bca691193f97f5c0146678f38ec01c8fb4",
+                  "symbol": "dxfRW::processProxyObject"
+                },
+                "callee": "reader->readRec",
+                "calleeOverload": "dxfReader::readRec(int*)",
+                "edge": "record-loop",
+                "guardFingerprint": "b184375e42354a580bbf31fe0d087a17d0f9e461781327a107255492e4d25b16",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "capture-loop",
+                "sourceOffset": 407
+              },
+              {
+                "callEvidence": {
+                  "line": 13996,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "fa0a4f22829ab39df103a120c96540bca691193f97f5c0146678f38ec01c8fb4",
+                  "symbol": "dxfRW::processProxyObject"
+                },
+                "callee": "dxfRW::setEntityBoundary",
+                "calleeOverload": "dxfRW::setEntityBoundary(int)",
+                "edge": "boundary-probe",
+                "guardFingerprint": "5b3a964849d2d0260a2aa1ea0a1dae4a786d04e3c15a8c792869b7809fad6da4",
+                "order": 2,
+                "predecessorEdges": [
+                  "record-loop"
+                ],
+                "relation": "boundary-probe",
+                "sourceOffset": 448
+              },
+              {
+                "callEvidence": {
+                  "line": 13997,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "fa0a4f22829ab39df103a120c96540bca691193f97f5c0146678f38ec01c8fb4",
+                  "symbol": "dxfRW::processProxyObject"
+                },
+                "callee": "dxfRW::setEntityBoundary",
+                "calleeOverload": "dxfRW::setEntityBoundary(int)",
+                "edge": "boundary-classifier",
+                "guardFingerprint": "3ba455952eff8265b8f0d92574bdadf3829c85c44603d0b9c65477bc89e7bbd2",
+                "order": 3,
+                "predecessorEdges": [
+                  "record-loop",
+                  "boundary-probe"
+                ],
+                "relation": "boundary-classify",
+                "sourceOffset": 512
+              },
+              {
+                "callEvidence": {
+                  "line": 13998,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "fa0a4f22829ab39df103a120c96540bca691193f97f5c0146678f38ec01c8fb4",
+                  "symbol": "dxfRW::processProxyObject"
+                },
+                "callee": "DxfEntityBoundary::Error",
+                "calleeOverload": "enum-value",
+                "edge": "boundary-error-reject",
+                "guardFingerprint": "dc9497e32afb33e61d33b86905729fd701f16a9311321675556ae1e8138015d9",
+                "order": 4,
+                "predecessorEdges": [
+                  "record-loop",
+                  "boundary-probe",
+                  "boundary-classifier"
+                ],
+                "relation": "reject",
+                "sourceOffset": 553
+              },
+              {
+                "callEvidence": {
+                  "line": 13999,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "fa0a4f22829ab39df103a120c96540bca691193f97f5c0146678f38ec01c8fb4",
+                  "symbol": "dxfRW::processProxyObject"
+                },
+                "callee": "DxfEntityBoundary::EndBlock",
+                "calleeOverload": "enum-value",
+                "edge": "end-block-reject",
+                "guardFingerprint": "36a10d7f06dc238ff206aaae677ee0766a484b533e0a2270e2e016dc5c2af4fd",
+                "order": 5,
+                "predecessorEdges": [
+                  "record-loop",
+                  "boundary-probe",
+                  "boundary-classifier",
+                  "boundary-error-reject"
+                ],
+                "relation": "reject",
+                "sourceOffset": 609
+              },
+              {
+                "callEvidence": {
+                  "line": 14001,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "fa0a4f22829ab39df103a120c96540bca691193f97f5c0146678f38ec01c8fb4",
+                  "symbol": "dxfRW::processProxyObject"
+                },
+                "callee": "DxfProxyCapture::applicationDepth",
+                "calleeOverload": "depth-state",
+                "edge": "application-depth",
+                "guardFingerprint": "db5de441597000b22f92a0a6b4263b3503fb40fcd71de302ad1e2c04a07c2949",
+                "order": 6,
+                "predecessorEdges": [
+                  "record-loop",
+                  "boundary-probe",
+                  "boundary-classifier",
+                  "boundary-error-reject",
+                  "end-block-reject"
+                ],
+                "relation": "reject",
+                "sourceOffset": 722
+              },
+              {
+                "callEvidence": {
+                  "line": 14003,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "fa0a4f22829ab39df103a120c96540bca691193f97f5c0146678f38ec01c8fb4",
+                  "symbol": "dxfRW::processProxyObject"
+                },
+                "callee": "validateProxyDxfPayloads",
+                "calleeOverload": "validateProxyDxfPayloads(const DxfProxyCapture&)",
+                "edge": "payload-validation",
+                "guardFingerprint": "bc95bed68f4778d13263488e406ccca8f3f22167984dd604fcad63a2f9a55868",
+                "order": 7,
+                "predecessorEdges": [
+                  "record-loop",
+                  "boundary-probe",
+                  "boundary-classifier",
+                  "boundary-error-reject",
+                  "end-block-reject",
+                  "application-depth"
+                ],
+                "relation": "reject",
+                "sourceOffset": 825
+              },
+              {
+                "callEvidence": {
+                  "line": 14005,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "fa0a4f22829ab39df103a120c96540bca691193f97f5c0146678f38ec01c8fb4",
+                  "symbol": "dxfRW::processProxyObject"
+                },
+                "callee": "requiresDxfSelfHandle",
+                "calleeOverload": "requiresDxfSelfHandle(const dxfReader&)",
+                "edge": "self-handle-required",
+                "guardFingerprint": "1ebc20e95871aabdc12efaabef31cbbaadebc029b3fc46dd8c9b724705e330bd",
+                "order": 8,
+                "predecessorEdges": [
+                  "record-loop",
+                  "boundary-probe",
+                  "boundary-classifier",
+                  "boundary-error-reject",
+                  "end-block-reject",
+                  "application-depth",
+                  "payload-validation"
+                ],
+                "relation": "conditional-reject",
+                "sourceOffset": 931
+              },
+              {
+                "callEvidence": {
+                  "line": 14017,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "fa0a4f22829ab39df103a120c96540bca691193f97f5c0146678f38ec01c8fb4",
+                  "symbol": "dxfRW::processProxyObject"
+                },
+                "callee": "DRW::kMaxDxfApplicationGroupPairs",
+                "calleeOverload": "constant-limit",
+                "edge": "pair-limit",
+                "guardFingerprint": "f460a65f5e8f16b208d2e3adfb306414d14897001b5f9aca457e55776e566951",
+                "order": 9,
+                "predecessorEdges": [
+                  "record-loop",
+                  "boundary-probe",
+                  "boundary-classifier",
+                  "boundary-error-reject",
+                  "end-block-reject",
+                  "application-depth",
+                  "payload-validation",
+                  "self-handle-required"
+                ],
+                "relation": "reject",
+                "sourceOffset": 1475
+              },
+              {
+                "callEvidence": {
+                  "line": 14020,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "fa0a4f22829ab39df103a120c96540bca691193f97f5c0146678f38ec01c8fb4",
+                  "symbol": "dxfRW::processProxyObject"
+                },
+                "callee": "dxfRW::captureRawGroup",
+                "calleeOverload": "captureRawGroup(DRW_RawDxfObject&,int,bool)",
+                "edge": "raw-capture",
+                "guardFingerprint": "1d5ca8fbb6ba05499d2e54b345daebc808505fe090b0d96b56a60a2eb78e9ab9",
+                "order": 10,
+                "predecessorEdges": [
+                  "record-loop",
+                  "boundary-probe",
+                  "boundary-classifier",
+                  "boundary-error-reject",
+                  "end-block-reject",
+                  "application-depth",
+                  "payload-validation",
+                  "self-handle-required",
+                  "pair-limit"
+                ],
+                "relation": "capture",
+                "sourceOffset": 1589
+              },
+              {
+                "callEvidence": {
+                  "line": 14023,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "fa0a4f22829ab39df103a120c96540bca691193f97f5c0146678f38ec01c8fb4",
+                  "symbol": "dxfRW::processProxyObject"
+                },
+                "callee": "collectProxyDxfGroup",
+                "calleeOverload": "collectProxyDxfGroup(DxfProxyCapture&,const DRW_Variant&,bool)",
+                "edge": "proxy-payload-capture",
+                "guardFingerprint": "22d25e86fea23ee268bd494343c6db25dd5ee9cedbcfd182ccae106d486d579a",
+                "order": 11,
+                "predecessorEdges": [
+                  "record-loop",
+                  "boundary-probe",
+                  "boundary-classifier",
+                  "boundary-error-reject",
+                  "end-block-reject",
+                  "application-depth",
+                  "payload-validation",
+                  "self-handle-required",
+                  "pair-limit",
+                  "raw-capture"
+                ],
+                "relation": "capture",
+                "sourceOffset": 1741
+              }
+            ]
+          }
+        ],
         "readerPipelineIds": [],
         "symbols": [
           "dxfRW::processProxyEntity",
@@ -61259,6 +61845,50 @@
           "dxfRW/raw-flow/dxf-read-proxy-self-handle-gate"
         ],
         "phase": "eligibility",
+        "rawEligibilityEvidence": [
+          {
+            "bodySymbol": "dxfRW::processProxyEntity",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 13948,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "129b12ff9d147f6f31bb80c81dfee620f07548f414f47c38c7e1bf6c81928fe5",
+                  "symbol": "dxfRW::processProxyEntity"
+                },
+                "callee": "validateProxyDxfPayloads",
+                "calleeOverload": "validateProxyDxfPayloads(const DxfProxyCapture&)",
+                "edge": "payload-validation",
+                "guardFingerprint": "bc95bed68f4778d13263488e406ccca8f3f22167984dd604fcad63a2f9a55868",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "reject",
+                "sourceOffset": 818
+              }
+            ]
+          },
+          {
+            "bodySymbol": "dxfRW::processProxyObject",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 14003,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "fa0a4f22829ab39df103a120c96540bca691193f97f5c0146678f38ec01c8fb4",
+                  "symbol": "dxfRW::processProxyObject"
+                },
+                "callee": "validateProxyDxfPayloads",
+                "calleeOverload": "validateProxyDxfPayloads(const DxfProxyCapture&)",
+                "edge": "payload-validation",
+                "guardFingerprint": "bc95bed68f4778d13263488e406ccca8f3f22167984dd604fcad63a2f9a55868",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "reject",
+                "sourceOffset": 825
+              }
+            ]
+          }
+        ],
         "readerPipelineIds": [],
         "symbols": [
           "validateProxyDxfPayloads"
@@ -61305,6 +61935,50 @@
           "dxfRW/raw-flow/dxf-publish-proxy"
         ],
         "phase": "eligibility",
+        "rawEligibilityEvidence": [
+          {
+            "bodySymbol": "dxfRW::processProxyEntity",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 13950,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "129b12ff9d147f6f31bb80c81dfee620f07548f414f47c38c7e1bf6c81928fe5",
+                  "symbol": "dxfRW::processProxyEntity"
+                },
+                "callee": "hasRawDxfSelfHandle",
+                "calleeOverload": "hasRawDxfSelfHandle(const DRW_RawDxfObject&)",
+                "edge": "raw-self-handle-present",
+                "guardFingerprint": "54b3c7ab6d1caa9f2ec0d0f1bdd1ab7ddc49466ff050f0362638cfa5a102bd66",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "conditional-reject",
+                "sourceOffset": 959
+              }
+            ]
+          },
+          {
+            "bodySymbol": "dxfRW::processProxyObject",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 14005,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "fa0a4f22829ab39df103a120c96540bca691193f97f5c0146678f38ec01c8fb4",
+                  "symbol": "dxfRW::processProxyObject"
+                },
+                "callee": "hasRawDxfSelfHandle",
+                "calleeOverload": "hasRawDxfSelfHandle(const DRW_RawDxfObject&)",
+                "edge": "raw-self-handle-present",
+                "guardFingerprint": "54b3c7ab6d1caa9f2ec0d0f1bdd1ab7ddc49466ff050f0362638cfa5a102bd66",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "conditional-reject",
+                "sourceOffset": 966
+              }
+            ]
+          }
+        ],
         "readerPipelineIds": [],
         "symbols": [
           "hasRawDxfSelfHandle"
@@ -61357,6 +62031,50 @@
           "dxfRW/raw-flow/dxf-read-proxy-raw-self-handle-gate"
         ],
         "phase": "eligibility",
+        "rawEligibilityEvidence": [
+          {
+            "bodySymbol": "dxfRW::processProxyEntity",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 13950,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "129b12ff9d147f6f31bb80c81dfee620f07548f414f47c38c7e1bf6c81928fe5",
+                  "symbol": "dxfRW::processProxyEntity"
+                },
+                "callee": "requiresDxfSelfHandle",
+                "calleeOverload": "requiresDxfSelfHandle(const dxfReader&)",
+                "edge": "self-handle-required",
+                "guardFingerprint": "1ebc20e95871aabdc12efaabef31cbbaadebc029b3fc46dd8c9b724705e330bd",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "conditional-reject",
+                "sourceOffset": 924
+              }
+            ]
+          },
+          {
+            "bodySymbol": "dxfRW::processProxyObject",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 14005,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "fa0a4f22829ab39df103a120c96540bca691193f97f5c0146678f38ec01c8fb4",
+                  "symbol": "dxfRW::processProxyObject"
+                },
+                "callee": "requiresDxfSelfHandle",
+                "calleeOverload": "requiresDxfSelfHandle(const dxfReader&)",
+                "edge": "self-handle-required",
+                "guardFingerprint": "1ebc20e95871aabdc12efaabef31cbbaadebc029b3fc46dd8c9b724705e330bd",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "conditional-reject",
+                "sourceOffset": 931
+              }
+            ]
+          }
+        ],
         "readerPipelineIds": [],
         "symbols": [
           "requiresDxfSelfHandle"
@@ -61402,6 +62120,176 @@
           "dxfRW/raw-flow/dxf-read-entity-self-handle-gate"
         ],
         "phase": "capture",
+        "rawEligibilityEvidence": [
+          {
+            "bodySymbol": "dxfRW::processRawEntity",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 13867,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "9a808ed2f78315ea17a59b0e15df68185663e130b19af1e51d38ef3167339b71",
+                  "symbol": "dxfRW::processRawEntity"
+                },
+                "callee": "reader->readRec",
+                "calleeOverload": "dxfReader::readRec(int*)",
+                "edge": "record-loop",
+                "guardFingerprint": "b184375e42354a580bbf31fe0d087a17d0f9e461781327a107255492e4d25b16",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "capture-loop",
+                "sourceOffset": 534
+              },
+              {
+                "callEvidence": {
+                  "line": 13869,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "9a808ed2f78315ea17a59b0e15df68185663e130b19af1e51d38ef3167339b71",
+                  "symbol": "dxfRW::processRawEntity"
+                },
+                "callee": "dxfRW::setEntityBoundary",
+                "calleeOverload": "dxfRW::setEntityBoundary(int)",
+                "edge": "boundary-probe",
+                "guardFingerprint": "e48a00d6d430eaaf8f42bf647d38efe956bed0417a0128dd417b08db5d67f921",
+                "order": 2,
+                "predecessorEdges": [
+                  "record-loop"
+                ],
+                "relation": "boundary-probe",
+                "sourceOffset": 613
+              },
+              {
+                "callEvidence": {
+                  "line": 13870,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "9a808ed2f78315ea17a59b0e15df68185663e130b19af1e51d38ef3167339b71",
+                  "symbol": "dxfRW::processRawEntity"
+                },
+                "callee": "dxfRW::setEntityBoundary",
+                "calleeOverload": "dxfRW::setEntityBoundary(int)",
+                "edge": "boundary-classifier",
+                "guardFingerprint": "3ba455952eff8265b8f0d92574bdadf3829c85c44603d0b9c65477bc89e7bbd2",
+                "order": 3,
+                "predecessorEdges": [
+                  "record-loop",
+                  "boundary-probe"
+                ],
+                "relation": "boundary-classify",
+                "sourceOffset": 677
+              },
+              {
+                "callEvidence": {
+                  "line": 13871,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "9a808ed2f78315ea17a59b0e15df68185663e130b19af1e51d38ef3167339b71",
+                  "symbol": "dxfRW::processRawEntity"
+                },
+                "callee": "DxfEntityBoundary::Error",
+                "calleeOverload": "enum-value",
+                "edge": "boundary-error-reject",
+                "guardFingerprint": "dc9497e32afb33e61d33b86905729fd701f16a9311321675556ae1e8138015d9",
+                "order": 4,
+                "predecessorEdges": [
+                  "record-loop",
+                  "boundary-probe",
+                  "boundary-classifier"
+                ],
+                "relation": "reject",
+                "sourceOffset": 718
+              },
+              {
+                "callEvidence": {
+                  "line": 13872,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "9a808ed2f78315ea17a59b0e15df68185663e130b19af1e51d38ef3167339b71",
+                  "symbol": "dxfRW::processRawEntity"
+                },
+                "callee": "dxfRW::acceptEntityCallbackBoundary",
+                "calleeOverload": "dxfRW::acceptEntityCallbackBoundary()",
+                "edge": "entity-callback-boundary",
+                "guardFingerprint": "fa3e1b0901ef87d517ab6745b8a4bbf48531a19f6f2b517196c31e6ded0e5370",
+                "order": 5,
+                "predecessorEdges": [
+                  "record-loop",
+                  "boundary-probe",
+                  "boundary-classifier",
+                  "boundary-error-reject"
+                ],
+                "relation": "reject",
+                "sourceOffset": 774
+              },
+              {
+                "callEvidence": {
+                  "line": 13884,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "9a808ed2f78315ea17a59b0e15df68185663e130b19af1e51d38ef3167339b71",
+                  "symbol": "dxfRW::processRawEntity"
+                },
+                "callee": "DRW::kMaxDxfApplicationGroupPairs",
+                "calleeOverload": "constant-limit",
+                "edge": "pair-limit",
+                "guardFingerprint": "f460a65f5e8f16b208d2e3adfb306414d14897001b5f9aca457e55776e566951",
+                "order": 6,
+                "predecessorEdges": [
+                  "record-loop",
+                  "boundary-probe",
+                  "boundary-classifier",
+                  "boundary-error-reject",
+                  "entity-callback-boundary"
+                ],
+                "relation": "reject",
+                "sourceOffset": 1392
+              },
+              {
+                "callEvidence": {
+                  "line": 13914,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "9a808ed2f78315ea17a59b0e15df68185663e130b19af1e51d38ef3167339b71",
+                  "symbol": "dxfRW::processRawEntity"
+                },
+                "callee": "dxfRW::captureRawGroup",
+                "calleeOverload": "captureRawGroup(DRW_RawDxfObject&,int,bool)",
+                "edge": "raw-capture",
+                "guardFingerprint": "d3a47287a884b31157191f564f8c54a41fa30166df8be05f079840c4b14c415f",
+                "order": 7,
+                "predecessorEdges": [
+                  "record-loop",
+                  "boundary-probe",
+                  "boundary-classifier",
+                  "boundary-error-reject",
+                  "entity-callback-boundary",
+                  "pair-limit"
+                ],
+                "relation": "capture",
+                "sourceOffset": 2648
+              },
+              {
+                "callEvidence": {
+                  "line": 13917,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "9a808ed2f78315ea17a59b0e15df68185663e130b19af1e51d38ef3167339b71",
+                  "symbol": "dxfRW::processRawEntity"
+                },
+                "callee": "updateRawDxfApplicationDepth",
+                "calleeOverload": "updateRawDxfApplicationDepth(const DRW_Variant&,int&)",
+                "edge": "application-depth",
+                "guardFingerprint": "14dcdabee1effc3ee0a01a519f701387de0f6ed402fd7960268e57c41ab1072a",
+                "order": 8,
+                "predecessorEdges": [
+                  "record-loop",
+                  "boundary-probe",
+                  "boundary-classifier",
+                  "boundary-error-reject",
+                  "entity-callback-boundary",
+                  "pair-limit",
+                  "raw-capture"
+                ],
+                "relation": "reject",
+                "sourceOffset": 2800
+              }
+            ]
+          }
+        ],
         "readerPipelineIds": [],
         "symbols": [
           "dxfRW::processRawEntity"
@@ -61447,6 +62335,152 @@
           "dxfRW/raw-flow/dxf-read-object-self-handle-gate"
         ],
         "phase": "capture",
+        "rawEligibilityEvidence": [
+          {
+            "bodySymbol": "dxfRW::processRawObject",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 13825,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "2f5f01b67a50a29834ccca9d7ded1245c7553a315d16ef8ca683e3b158a4c971",
+                  "symbol": "dxfRW::processRawObject"
+                },
+                "callee": "reader->readRec",
+                "calleeOverload": "dxfReader::readRec(int*)",
+                "edge": "record-loop",
+                "guardFingerprint": "b184375e42354a580bbf31fe0d087a17d0f9e461781327a107255492e4d25b16",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "capture-loop",
+                "sourceOffset": 226
+              },
+              {
+                "callEvidence": {
+                  "line": 13827,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "2f5f01b67a50a29834ccca9d7ded1245c7553a315d16ef8ca683e3b158a4c971",
+                  "symbol": "dxfRW::processRawObject"
+                },
+                "callee": "dxfRW::setEntityBoundary",
+                "calleeOverload": "dxfRW::setEntityBoundary(int)",
+                "edge": "boundary-probe",
+                "guardFingerprint": "e48a00d6d430eaaf8f42bf647d38efe956bed0417a0128dd417b08db5d67f921",
+                "order": 2,
+                "predecessorEdges": [
+                  "record-loop"
+                ],
+                "relation": "boundary-probe",
+                "sourceOffset": 305
+              },
+              {
+                "callEvidence": {
+                  "line": 13828,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "2f5f01b67a50a29834ccca9d7ded1245c7553a315d16ef8ca683e3b158a4c971",
+                  "symbol": "dxfRW::processRawObject"
+                },
+                "callee": "dxfRW::setEntityBoundary",
+                "calleeOverload": "dxfRW::setEntityBoundary(int)",
+                "edge": "boundary-classifier",
+                "guardFingerprint": "3ba455952eff8265b8f0d92574bdadf3829c85c44603d0b9c65477bc89e7bbd2",
+                "order": 3,
+                "predecessorEdges": [
+                  "record-loop",
+                  "boundary-probe"
+                ],
+                "relation": "boundary-classify",
+                "sourceOffset": 369
+              },
+              {
+                "callEvidence": {
+                  "line": 13829,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "2f5f01b67a50a29834ccca9d7ded1245c7553a315d16ef8ca683e3b158a4c971",
+                  "symbol": "dxfRW::processRawObject"
+                },
+                "callee": "DxfEntityBoundary::Error",
+                "calleeOverload": "enum-value",
+                "edge": "boundary-error-reject",
+                "guardFingerprint": "dc9497e32afb33e61d33b86905729fd701f16a9311321675556ae1e8138015d9",
+                "order": 4,
+                "predecessorEdges": [
+                  "record-loop",
+                  "boundary-probe",
+                  "boundary-classifier"
+                ],
+                "relation": "reject",
+                "sourceOffset": 410
+              },
+              {
+                "callEvidence": {
+                  "line": 13838,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "2f5f01b67a50a29834ccca9d7ded1245c7553a315d16ef8ca683e3b158a4c971",
+                  "symbol": "dxfRW::processRawObject"
+                },
+                "callee": "DRW::kMaxDxfApplicationGroupPairs",
+                "calleeOverload": "constant-limit",
+                "edge": "pair-limit",
+                "guardFingerprint": "f460a65f5e8f16b208d2e3adfb306414d14897001b5f9aca457e55776e566951",
+                "order": 5,
+                "predecessorEdges": [
+                  "record-loop",
+                  "boundary-probe",
+                  "boundary-classifier",
+                  "boundary-error-reject"
+                ],
+                "relation": "reject",
+                "sourceOffset": 866
+              },
+              {
+                "callEvidence": {
+                  "line": 13840,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "2f5f01b67a50a29834ccca9d7ded1245c7553a315d16ef8ca683e3b158a4c971",
+                  "symbol": "dxfRW::processRawObject"
+                },
+                "callee": "dxfRW::captureRawGroup",
+                "calleeOverload": "captureRawGroup(DRW_RawDxfObject&,int,bool)",
+                "edge": "raw-capture",
+                "guardFingerprint": "7c6bad0098cee7c9775f57e9528fef85e427770dccdece33025e003e68951402",
+                "order": 6,
+                "predecessorEdges": [
+                  "record-loop",
+                  "boundary-probe",
+                  "boundary-classifier",
+                  "boundary-error-reject",
+                  "pair-limit"
+                ],
+                "relation": "capture",
+                "sourceOffset": 979
+              },
+              {
+                "callEvidence": {
+                  "line": 13843,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "2f5f01b67a50a29834ccca9d7ded1245c7553a315d16ef8ca683e3b158a4c971",
+                  "symbol": "dxfRW::processRawObject"
+                },
+                "callee": "updateRawDxfApplicationDepth",
+                "calleeOverload": "updateRawDxfApplicationDepth(const DRW_Variant&,int&)",
+                "edge": "application-depth",
+                "guardFingerprint": "99e6132ee0a9f321fcfe5c2917d00c8676e1741cf83bd9180b992ef8a2ba29c7",
+                "order": 7,
+                "predecessorEdges": [
+                  "record-loop",
+                  "boundary-probe",
+                  "boundary-classifier",
+                  "boundary-error-reject",
+                  "pair-limit",
+                  "raw-capture"
+                ],
+                "relation": "reject",
+                "sourceOffset": 1131
+              }
+            ]
+          }
+        ],
         "readerPipelineIds": [],
         "symbols": [
           "dxfRW::processRawObject"
@@ -61492,6 +62526,129 @@
           "dxfRW/raw-flow/dxf-publish-section"
         ],
         "phase": "capture",
+        "rawEligibilityEvidence": [
+          {
+            "bodySymbol": "dxfRW::processRawDxfSection",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 7919,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "d0197937e1cc9f6ca4c7f51b4c9e7642fd61bd28b93eae6b870cd135ffa747f2",
+                  "symbol": "dxfRW::processRawDxfSection"
+                },
+                "callee": "std::string::empty",
+                "calleeOverload": "std::string::empty()",
+                "edge": "section-name-required",
+                "guardFingerprint": "3efd363bad6c50966e3981cbb311a3013c126c8a886e6e8b006384ef20e07544",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "reject",
+                "sourceOffset": 10
+              },
+              {
+                "callEvidence": {
+                  "line": 7929,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "d0197937e1cc9f6ca4c7f51b4c9e7642fd61bd28b93eae6b870cd135ffa747f2",
+                  "symbol": "dxfRW::processRawDxfSection"
+                },
+                "callee": "reader->readRec",
+                "calleeOverload": "dxfReader::readRec(int*)",
+                "edge": "record-loop",
+                "guardFingerprint": "b184375e42354a580bbf31fe0d087a17d0f9e461781327a107255492e4d25b16",
+                "order": 2,
+                "predecessorEdges": [
+                  "section-name-required"
+                ],
+                "relation": "capture-loop",
+                "sourceOffset": 319
+              },
+              {
+                "callEvidence": {
+                  "line": 7930,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "d0197937e1cc9f6ca4c7f51b4c9e7642fd61bd28b93eae6b870cd135ffa747f2",
+                  "symbol": "dxfRW::processRawDxfSection"
+                },
+                "callee": "DRW::kMaxDxfApplicationGroupPairs",
+                "calleeOverload": "constant-limit",
+                "edge": "pair-limit",
+                "guardFingerprint": "f460a65f5e8f16b208d2e3adfb306414d14897001b5f9aca457e55776e566951",
+                "order": 3,
+                "predecessorEdges": [
+                  "section-name-required",
+                  "record-loop"
+                ],
+                "relation": "reject",
+                "sourceOffset": 364
+              },
+              {
+                "callEvidence": {
+                  "line": 7932,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "d0197937e1cc9f6ca4c7f51b4c9e7642fd61bd28b93eae6b870cd135ffa747f2",
+                  "symbol": "dxfRW::processRawDxfSection"
+                },
+                "callee": "dxfKeywordEquals",
+                "calleeOverload": "dxfKeywordEquals(const std::string&,const char*)",
+                "edge": "end-section-boundary",
+                "guardFingerprint": "1b9021ffcfacabce839657cba33f25d5f45b60e118cf36fa840b1e36da6562c5",
+                "order": 4,
+                "predecessorEdges": [
+                  "section-name-required",
+                  "record-loop",
+                  "pair-limit"
+                ],
+                "relation": "boundary-probe",
+                "sourceOffset": 476
+              },
+              {
+                "callEvidence": {
+                  "line": 7941,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "d0197937e1cc9f6ca4c7f51b4c9e7642fd61bd28b93eae6b870cd135ffa747f2",
+                  "symbol": "dxfRW::processRawDxfSection"
+                },
+                "callee": "dxfRW::captureRawGroup",
+                "calleeOverload": "captureRawGroup(DRW_RawDxfObject&,int,bool)",
+                "edge": "raw-capture",
+                "guardFingerprint": "ba839c3e42017ee0b15b48d329e699d0100b39c1ebbba8838705748a16d82d3c",
+                "order": 5,
+                "predecessorEdges": [
+                  "section-name-required",
+                  "record-loop",
+                  "pair-limit",
+                  "end-section-boundary"
+                ],
+                "relation": "capture",
+                "sourceOffset": 821
+              },
+              {
+                "callEvidence": {
+                  "line": 7943,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "d0197937e1cc9f6ca4c7f51b4c9e7642fd61bd28b93eae6b870cd135ffa747f2",
+                  "symbol": "dxfRW::processRawDxfSection"
+                },
+                "callee": "updateRawDxfApplicationDepth",
+                "calleeOverload": "updateRawDxfApplicationDepth(const DRW_Variant&,int&)",
+                "edge": "application-depth",
+                "guardFingerprint": "7d85be0a2bef31b65fe4019ed829f0be3a6c5d7b970b18985be514562b70bc30",
+                "order": 6,
+                "predecessorEdges": [
+                  "section-name-required",
+                  "record-loop",
+                  "pair-limit",
+                  "end-section-boundary",
+                  "raw-capture"
+                ],
+                "relation": "reject",
+                "sourceOffset": 928
+              }
+            ]
+          }
+        ],
         "readerPipelineIds": [],
         "symbols": [
           "dxfRW::processRawDxfSection"
@@ -61537,6 +62694,86 @@
           "dxfRW/raw-flow/dxf-publish-typed-raw-carrier"
         ],
         "phase": "capture",
+        "rawEligibilityEvidence": [
+          {
+            "bodySymbol": "dxfRW::processRawCapturedObject",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 11359,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "2031d67921383b4b4942b456e1b2f7df8c8eb96f59002a8eaa2fc90f57cd356c",
+                  "symbol": "dxfRW::processRawCapturedObject"
+                },
+                "callee": "acceptObjectBoundary",
+                "calleeOverload": "acceptObjectBoundary(int)",
+                "edge": "boundary-acceptance",
+                "guardFingerprint": "6d1c424e4473e5346b722522c9c9bf888d4e3cb59cc5e10bad262769fcf0f4e9",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "eligibility-reject",
+                "sourceOffset": 184
+              },
+              {
+                "callEvidence": {
+                  "line": 11361,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "2031d67921383b4b4942b456e1b2f7df8c8eb96f59002a8eaa2fc90f57cd356c",
+                  "symbol": "dxfRW::processRawCapturedObject"
+                },
+                "callee": "AddFn(data)",
+                "calleeOverload": "bound AddFn(data)",
+                "edge": "typed-callback",
+                "guardFingerprint": "1da253dec50ed873bd957e6c8fe612d6f3f46fc50ec68f0c299f11b4b65d71b4",
+                "order": 2,
+                "predecessorEdges": [
+                  "boundary-acceptance"
+                ],
+                "relation": "typed-publication",
+                "sourceOffset": 280
+              },
+              {
+                "callEvidence": {
+                  "line": 11362,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "2031d67921383b4b4942b456e1b2f7df8c8eb96f59002a8eaa2fc90f57cd356c",
+                  "symbol": "dxfRW::processRawCapturedObject"
+                },
+                "callee": "iface->addRawDxfObject",
+                "calleeOverload": "DRW_Interface::addRawDxfObject(DRW_RawDxfObject&)",
+                "edge": "raw-callback",
+                "guardFingerprint": "afc27af5c18d0c4d6b54254bcb5838c2eca90014ff096fbd0dd3f1661820624a",
+                "order": 3,
+                "predecessorEdges": [
+                  "boundary-acceptance",
+                  "typed-callback"
+                ],
+                "relation": "raw-publication",
+                "sourceOffset": 308
+              },
+              {
+                "callEvidence": {
+                  "line": 11363,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "2031d67921383b4b4942b456e1b2f7df8c8eb96f59002a8eaa2fc90f57cd356c",
+                  "symbol": "dxfRW::processRawCapturedObject"
+                },
+                "callee": "return",
+                "calleeOverload": "bool-return",
+                "edge": "return",
+                "guardFingerprint": "7187f0675eb3827939741acf7342ba78836ecec21a31ecf3f34a55309d3bee8a",
+                "order": 4,
+                "predecessorEdges": [
+                  "boundary-acceptance",
+                  "typed-callback",
+                  "raw-callback"
+                ],
+                "relation": "terminal",
+                "sourceOffset": 349
+              }
+            ]
+          }
+        ],
         "readerPipelineIds": [],
         "symbols": [
           "dxfRW::processRawCapturedObject"
