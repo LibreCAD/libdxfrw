@@ -54,6 +54,8 @@ VISUALSTYLE_HANDLE = 0xC000
 MALFORMED_VISUALSTYLE_HANDLE = 0xC001
 RENDERSETTINGS_HANDLE = 0xC100
 MALFORMED_RENDERSETTINGS_HANDLE = 0xC101
+RENDERENVIRONMENT_HANDLE = 0xC200
+MALFORMED_RENDERENVIRONMENT_HANDLE = 0xC201
 
 
 def parse_json_output(text: str) -> dict:
@@ -117,7 +119,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         raise ValueError("GROUP name, owner, or member stream mismatch")
 
     dictionary = find_record(records, "DICTIONARY", DICTIONARY_HANDLE)
-    if (dictionary.get("numitems") != 14
+    if (dictionary.get("numitems") != 15
             or dictionary.get("is_hardowner") != 1
             or owner_handle(dictionary) != 0x0C):
         raise ValueError("custom DICTIONARY count, owner, or cloning mismatch")
@@ -282,6 +284,25 @@ def check_objects(payload: dict, version_name: str) -> dict:
     elif version_name == "AC1032" and render.get("has_predefined") != 0:
         raise ValueError("RENDERSETTINGS predefined flag mismatch")
 
+    environment = find_record(
+        records, "RENDERENVIRONMENT", RENDERENVIRONMENT_HANDLE)
+    if (owner_handle(environment) != DICTIONARY_HANDLE
+            or environment.get("type") != 550
+            or environment.get("class_version") != 1
+            or environment.get("fog_enabled") != 1
+            or environment.get("fog_background_enabled") != 0
+            or environment.get("fog_color_r") != 10
+            or environment.get("fog_color_g") != 20
+            or environment.get("fog_color_b") != 30
+            or environment.get("fog_density_near") != 0.1
+            or environment.get("fog_density_far") != 0.9
+            or environment.get("fog_distance_near") != 2.0
+            or environment.get("fog_distance_far") != 3.0
+            or environment.get("environ_image_enabled") != 1
+            or environment.get("environ_image_filename")
+                != "LOCAL_RENDER_ENVIRONMENT"):
+        raise ValueError("RENDERENVIRONMENT owner or bounded fields mismatch")
+
     dictionary_default = find_record(
         records, "DICTIONARYWDFLT", DICTIONARYWDFLT_HANDLE)
     if (owner_handle(dictionary_default) != DICTIONARY_HANDLE
@@ -321,6 +342,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         MALFORMED_WIPEOUTVARIABLES_HANDLE: "WIPEOUTVARIABLES",
         MALFORMED_VISUALSTYLE_HANDLE: "VISUALSTYLE",
         MALFORMED_RENDERSETTINGS_HANDLE: "RENDERSETTINGS",
+        MALFORMED_RENDERENVIRONMENT_HANDLE: "RENDERENVIRONMENT",
     }
     if any(record_handle(record) in malformed_handles
            and record.get("object") == malformed_handles[record_handle(record)]
@@ -345,6 +367,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "WIPEOUTVARIABLES": WIPEOUTVARIABLES_HANDLE,
             "VISUALSTYLE": VISUALSTYLE_HANDLE,
             "RENDERSETTINGS": RENDERSETTINGS_HANDLE,
+            "RENDERENVIRONMENT": RENDERENVIRONMENT_HANDLE,
             "DICTIONARYWDFLT": DICTIONARYWDFLT_HANDLE,
         },
         "objectStatus": "qualified",
@@ -419,7 +442,7 @@ def self_test() -> None:
              "ownerhandle": [4, 1, 0x0C, 0x0C], "name": "LOCAL_GROUP",
              "groups": [[5, 1, 0x1234]]},
             {"object": "DICTIONARY", "handle": [0, 1, DICTIONARY_HANDLE],
-             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 14,
+             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 15,
              "is_hardowner": 1},
             {"object": "XRECORD", "handle": [0, 1, XRECORD_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
@@ -497,6 +520,16 @@ def self_test() -> None:
              "description": "LOCAL_RENDER_DESC", "fog_enabled": 1,
              "fog_background_enabled": 0, "backfaces_enabled": 1,
              "environ_image_enabled": 0, "display_index": 2},
+            {"object": "RENDERENVIRONMENT",
+             "handle": [0, 1, RENDERENVIRONMENT_HANDLE],
+             "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "type": 550, "class_version": 1, "fog_enabled": 1,
+             "fog_background_enabled": 0, "fog_color_r": 10,
+             "fog_color_g": 20, "fog_color_b": 30,
+             "fog_density_near": 0.1, "fog_density_far": 0.9,
+             "fog_distance_near": 2.0, "fog_distance_far": 3.0,
+             "environ_image_enabled": 1,
+             "environ_image_filename": "LOCAL_RENDER_ENVIRONMENT"},
         ],
     }
     check_objects(payload, "AC1024")
@@ -613,6 +646,16 @@ def self_test() -> None:
         pass
     else:
         raise AssertionError("malformed RENDERSETTINGS was not rejected")
+    try:
+        bad = json.loads(json.dumps(payload))
+        bad["OBJECTS"].append({"object": "RENDERENVIRONMENT",
+                                "handle": [0, 1,
+                                            MALFORMED_RENDERENVIRONMENT_HANDLE]})
+        check_objects(bad, "AC1024")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("malformed RENDERENVIRONMENT was not rejected")
     print("local DWG object oracle: PASS")
 
 
