@@ -65,6 +65,16 @@ MALFORMED_RAPIDRTRENDERSETTINGS_HANDLE = 0xC601
 MENTALRAYRENDERSETTINGS_HANDLE = 0xC700
 MALFORMED_MENTALRAYRENDERSETTINGS_HANDLE = 0xC701
 
+RENDER_SETTINGS_KINDS = {
+    "Settings": ("RENDERSETTINGS", RENDERSETTINGS_HANDLE, 556),
+    "Environment": ("RENDERENVIRONMENT", RENDERENVIRONMENT_HANDLE, 550),
+    "Global": ("RENDERGLOBAL", RENDERGLOBAL_HANDLE, 551),
+    "Entry": ("RENDERENTRY", RENDERENTRY_HANDLE, 549),
+    "RapidRT": ("RAPIDRTRENDERSETTINGS", RAPIDRTRENDERSETTINGS_HANDLE, 558),
+    "MentalRay": ("MENTALRAYRENDERSETTINGS",
+                   MENTALRAYRENDERSETTINGS_HANDLE, 557),
+}
+
 
 def parse_json_output(text: str) -> dict:
     start = text.find("{")
@@ -118,6 +128,18 @@ def check_objects(payload: dict, version_name: str) -> dict:
     records = payload.get("OBJECTS")
     if not isinstance(records, list):
         raise ValueError("oracle JSON has no OBJECTS list")
+
+    render_matrix = {}
+    for kind, (object_name, handle, object_type) in RENDER_SETTINGS_KINDS.items():
+        record = find_record(records, object_name, handle)
+        if record.get("type") != object_type:
+            raise ValueError(
+                f"{kind} RENDERSETTINGS type is not {object_type}")
+        render_matrix[kind] = {
+            "object": object_name,
+            "handle": handle,
+            "type": object_type,
+        }
 
     group = find_record(records, "GROUP", GROUP_HANDLE)
     if (group.get("name") != "LOCAL_GROUP"
@@ -490,6 +512,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
 
     return {
         "version": version_name,
+        "renderSettingsKinds": render_matrix,
         "objectHandles": {
             "GROUP": GROUP_HANDLE,
             "DICTIONARY": DICTIONARY_HANDLE,
@@ -727,7 +750,9 @@ def self_test() -> None:
              "diagnostics_bsp_mode": 6, "energy_multiplier": 1.2},
         ],
     }
-    check_objects(payload, "AC1024")
+    summary = check_objects(payload, "AC1024")
+    if set(summary.get("renderSettingsKinds", {})) != set(RENDER_SETTINGS_KINDS):
+        raise AssertionError("aggregate RENDERSETTINGS kind matrix is incomplete")
     try:
         bad = json.loads(json.dumps(payload))
         bad["OBJECTS"].append({"object": "XRECORD", "handle": [0, 1, MALFORMED_HANDLE]})
