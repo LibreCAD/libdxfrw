@@ -380,6 +380,11 @@ probe change.
    named class before CLASSES, and extend the independent OBJECTS oracle with
    bounded style-field and handle-stream checks. Keep all six writer versions,
    malformed-value rollback, fast validation, and temporary-only drawings.
+9. **S48/J24 — DICTIONARYVAR object-family parity slice (COMMITTED).** Add a
+   locally generated DICTIONARYVAR child with explicit schema/value fields,
+   class registration, owner closure, and independent JSON verification.
+   Preserve malformed-schema rollback, six-version coverage, fast gates, and
+   the temporary-only drawing policy.
 
 The post-S43 runtime lane is intentionally staged: S44 proves production
 object-stream registration and callback delivery; a later slice may add an
@@ -387,7 +392,7 @@ independent object-aware oracle or additional object families only after its
 own plan row is ready.  A passing self-read is evidence of internal closure,
 not a format-support promotion.
 
-For S40-S47, the inner loop is: touched-TU/script check → focused CTest →
+For S40-S48, the inner loop is: touched-TU/script check → focused CTest →
 oracle-matrix/policy checks → plan report.  Full CTest is reserved for S43 or
 for a materially invalidating change.  Each item updates this live block,
 recomputes the ready queue, records the exact discrepancy/unblock condition,
@@ -1875,8 +1880,8 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint: S47/J23 MLEADERSTYLE object-family parity is committed;
-  S01-S47 implementation slices are committed with a
+- Current checkpoint: S48/J24 DICTIONARYVAR object-family parity is committed;
+  S01-S48 implementation slices are committed with a
   version-specific oracle discrepancy recorded,
   including the clean
   LibreCAD target worktree change. Format-support claims remain limited to
@@ -1901,18 +1906,18 @@ edit this block or commit the same slice concurrently.
   six versions; a non-finite style value is rejected transactionally. J1.1 closes the locally reproducible R2007+ string-footer
   boundary lane; J1.2-J1.4 retain evidence-gated DWG reader outcomes without
   blocking the next independent source/spec lane.
-- Latest implementation slice: S47/J23 MLEADERSTYLE object-family parity is
+- Latest implementation slice: S48/J24 DICTIONARYVAR object-family parity is
   committed. The local-from-scratch production writer registers the custom
-  class before CLASSES, emits a dictionary-owned MLEADERSTYLE for
-  AC1015/18/21/24/27/32, and self-reads its bounded scalar and handle fields;
-  LibreDWG 0.14 independently qualifies the type 505 object in all six
-  versions. The result remains experimental (it does not promote broader
-  support), and no drawing bytes are retained.
-- Latest committed slice: S47/J23 MLEADERSTYLE object-family parity is
+  class before CLASSES, emits a dictionary-owned DICTIONARYVAR for
+  AC1015/18/21/24/27/32, and self-reads its schema/value fields; LibreDWG 0.14
+  independently qualifies type 512 in all six versions. The result remains
+  experimental (it does not promote broader support), and no drawing bytes are
+  retained.
+- Latest committed slice: S48/J24 DICTIONARYVAR object-family parity is
   committed. The independent JSON OBJECTS checker now covers
-  GROUP/DICTIONARY/XRECORD/PLOTSETTINGS/LAYOUT/MLINESTYLE/MLEADERSTYLE;
-  dictionary-key ownership and null handle slots are explicit, and malformed
-  object transactions remain absent as typed records.
+  GROUP/DICTIONARY/XRECORD/PLOTSETTINGS/LAYOUT/MLINESTYLE/MLEADERSTYLE/
+  DICTIONARYVAR; dictionary-key ownership and malformed schema rollback are
+  explicit, and malformed object transactions remain absent as typed records.
 - Latest committed checkpoint: S43/J19 aggregate qualification is committed.
   A fresh dependency-free build passed all 21 CTest entries in 6.52 seconds;
   a separate ASan+UBSan build passed the same 21 entries in 7.97 seconds with
@@ -2193,7 +2198,7 @@ edit this block or commit the same slice concurrently.
   inputs referenced by its top-level build. No target repin or sibling
   worktree mutation was made; future runtime qualification still requires an
   admitted or locally-from-scratch fixture plus an independent oracle.
-- Authorized run horizon: S01-S47/A-I5 plus J0-J23 runtime-qualification
+- Authorized run horizon: S01-S48/A-I5 plus J0-J24 runtime-qualification
   implementation; unavailable fixtures/oracles remain evidence-only and do not
   stop ready source/spec lanes.
 - Completion target: qualified-format parity for every advertised DWG/DXF row,
@@ -2218,26 +2223,28 @@ edit this block or commit the same slice concurrently.
   bridge to MLINESTYLE. S47/J23 adds MLEADERSTYLE with pre-CLASSES class
   registration, dictionary-key/name ownership, bounded scalar/handle fields,
   six-version self-read, and an independent JSON object oracle; a non-finite
-  angle is rejected transactionally.
+  angle is rejected transactionally. S48/J24 adds DICTIONARYVAR with
+  pre-CLASSES class registration, dictionary-key/name ownership, bounded
+  schema/value fields, six-version self-read, and malformed-schema rollback.
   parity or a PR boundary.
-- Last fully resolved slice: S47 (the MLEADERSTYLE object-family parity slice is
-  committed by the matching `Plan-Slice: S47` trailer; the next lane needs a
+- Last fully resolved slice: S48 (the DICTIONARYVAR object-family parity slice
+  is committed by the matching `Plan-Slice: S48` trailer; the next lane needs a
   new plan row).
   target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`. All in-horizon lanes are
   terminal only when their recorded gates pass; the next runtime qualification
   lane requires no new target pin.
-- Resolved slices: 47/47 (`COMMITTED`, or `SUPERSEDED` after all replacements
+- Resolved slices: 48/48 (`COMMITTED`, or `SUPERSEDED` after all replacements
   commit).
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 47 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 48 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 48 COMMITTED.
-- Expanded child-item states: 144 COMMITTED / 0 PLANNED / 0 READY / 0 ACTIVE /
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 49 COMMITTED.
+- Expanded child-item states: 145 COMMITTED / 0 PLANNED / 0 READY / 0 ACTIVE /
   0 VERIFYING / 0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED; no child is anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 29 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S47 are committed. S23/I5
+- Active work: S01-S48 are committed. S23/I5
   reconciled separate DXF/DWG reports, public/package/LibreCAD consumers, the
   scheduled full and ASan/UBSan checkpoints, bounded fuzz smoke, and explicit
   support/defer claims; J0 adds runtime adapter/validation regressions, J2
@@ -2253,8 +2260,8 @@ edit this block or commit the same slice concurrently.
   complete; S44/J20 is committed as the object-stream lane, S45/J21 is the
   committed independent object-aware oracle bridge, and S46/J22 adds
   MLINESTYLE object-family evidence, and S47/J23 adds MLEADERSTYLE object
-  evidence; all require explicit independent wire evidence before any claim
-  promotion.
+  evidence, and S48/J24 adds DICTIONARYVAR object evidence; all require
+  explicit independent wire evidence before any claim promotion.
 
 | Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -2305,6 +2312,7 @@ edit this block or commit the same slice concurrently.
 | S45 | J21: independent object-aware oracle bridge | S44 | COMMITTED | bounded LibreDWG JSON object normalizer/checker; six-version local writer; fast self-test; plan/scope/sync/fixture gates | shell-free checker now parses LibreDWG `dwgread -O JSON` and independently qualifies GROUP/DICTIONARY/XRECORD/PLOTSETTINGS/LAYOUT type, handle, owner, and bounded fields for AC1015/18/21/24/27/32; generated drawings remain temporary and this evidence does not promote broader format support | S46 |
 | S46 | J22: MLINESTYLE object-family parity | S45 | COMMITTED | focused six-version local writer/self-read; independent JSON object oracle; malformed-style rejection; plan/scope/sync/fixture gates | local writer/self-read and malformed-style rollback pass for AC1015/18/21/24/27/32; LibreDWG 0.14 JSON independently qualifies the MLINESTYLE type, owner, style names/angles, and one line element in all six outputs; generated drawings stay temporary and all evidence remains experimental | next object-family parity lane |
 | S47 | J23: MLEADERSTYLE object-family parity | S46 | COMMITTED | focused six-version local writer/self-read; class-registration/owner closure; independent JSON object oracle; malformed-style rejection; plan/scope/sync/fixture gates | local writer/self-read passes after recording the dictionary-key/name distinction; bounded LibreDWG JSON checks cover type 505, owner, class/content fields, text fields, and four null handle slots; malformed non-finite angle rolls back; generated drawings remain temporary and no drawing bytes are staged | next object-family parity lane |
+| S48 | J24: DICTIONARYVAR object-family parity | S47 | COMMITTED | focused six-version local writer/self-read; class-registration/owner closure; independent JSON object oracle; malformed-schema rejection; plan/scope/sync/fixture gates | local writer/self-read and malformed-schema rollback pass for AC1015/18/21/24/27/32; LibreDWG 0.14 JSON independently qualifies type 512, owner A601, schema 7, and bounded value text in all six outputs; dictionary-key/name ownership is explicit and no drawing bytes are staged | next object-family parity lane |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -2356,6 +2364,7 @@ edit this block or commit the same slice concurrently.
 | J21 | S45 | J20 | COMMITTED | EXPERIMENTAL | Add an independent LibreDWG JSON OBJECTS normalizer/checker for the six-version local-from-scratch object stream, with bounded subprocesses and explicit entity-only/unavailable dispositions |
 | J22 | S46 | J21 | COMMITTED | EXPERIMENTAL | Extend the local object graph and independent JSON oracle to MLINESTYLE, including fixed type, owner, style fields, per-element payload, and version-gated handle semantics |
 | J23 | S47 | J22 | COMMITTED | EXPERIMENTAL | Extend the local object graph and independent JSON oracle to MLEADERSTYLE, including class registration, fixed type, owner, bounded style fields, handle streams, and version-gated fields |
+| J24 | S48 | J23 | COMMITTED | EXPERIMENTAL | Extend the local object graph and independent JSON oracle to DICTIONARYVAR, including class registration, fixed type, owner, schema/value fields, and transaction-safe malformed handling |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -2508,6 +2517,7 @@ edit this block or commit the same slice concurrently.
 | J21.1 | J21 / S45 | WP5, WP7, WP8, WP10; independent object-aware oracle | J20 | COMMITTED | EXPERIMENTAL | run a local six-version writer and parse LibreDWG `dwgread -O JSON` OBJECTS records, checking GROUP/DICTIONARY/XRECORD/PLOTSETTINGS/LAYOUT type, handle, owner, and bounded payload fields with timeout and cleanup | checker self-test passes; live LibreDWG 0.14 run independently qualifies all five object carriers for AC1015/18/21/24/27/32; timeout/failure/entity-only dispositions are explicit and no malformed handle is present; no generated drawing bytes are retained or staged |
 | J22.1 | J22 / S46 | WP5, WP7, WP8, WP10; MLINESTYLE object family | J21 | COMMITTED | EXPERIMENTAL | emit and self-read a local MLINESTYLE with one element for AC1015/18/21/24/27/32 and independently verify its JSON OBJECTS frame and bounded style fields; reject one non-finite style value without publishing a frame | focused local round-trip and CTest oracle test pass; shell-free LibreDWG 0.14 JSON run reports 6/6 qualified (AC1015/18/21/24/27/32), accepting version-specific `lt_index`/`lt_ltype` representations while checking the bounded element payload; malformed handles A701/A801 are absent; plan/scope/sync/fixture gates pass and no generated drawing bytes are staged |
 | J23.1 | J23 / S47 | WP5, WP7, WP8, WP10; MLEADERSTYLE object family | J22 | COMMITTED | EXPERIMENTAL | emit and self-read a local MLEADERSTYLE with bounded scalar fields and explicit handle slots for AC1015/18/21/24/27/32, independently verify its JSON OBJECTS frame, and reject one non-finite field without publishing a frame | focused local round-trip and CTest oracle test pass; shell-free LibreDWG 0.14 JSON run reports 6/6 qualified (AC1015/18/21/24/27/32), including type 505, owner A601, class/content values, description/text, landing gap/text height, and null line/arrow/text-style/block handles; dictionary key carries the style name; malformed handles A701/A801/A901 are absent as typed records; no generated drawing bytes are staged |
+| J24.1 | J24 / S48 | WP5, WP7, WP8, WP10; DICTIONARYVAR object family | J23 | COMMITTED | EXPERIMENTAL | emit and self-read a local DICTIONARYVAR with schema/value fields for AC1015/18/21/24/27/32 and independently verify its JSON OBJECTS frame; reject an out-of-range schema without publishing a frame | focused local round-trip, object-oracle self-test/live run, and policy gates; all generated drawings remain temporary and no fixture bytes are staged |
 
 <!-- UPGRADE_PROGRESS_END -->
 

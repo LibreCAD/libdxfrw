@@ -36,6 +36,8 @@ MLINESTYLE_HANDLE = 0xA800
 MALFORMED_STYLE_HANDLE = 0xA801
 MLEADERSTYLE_HANDLE = 0xA900
 MALFORMED_MLEADERSTYLE_HANDLE = 0xA901
+DICTIONARYVAR_HANDLE = 0xB000
+MALFORMED_DICTIONARYVAR_HANDLE = 0xB001
 
 
 def parse_json_output(text: str) -> dict:
@@ -99,7 +101,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         raise ValueError("GROUP name, owner, or member stream mismatch")
 
     dictionary = find_record(records, "DICTIONARY", DICTIONARY_HANDLE)
-    if (dictionary.get("numitems") != 5
+    if (dictionary.get("numitems") != 6
             or dictionary.get("is_hardowner") != 1
             or owner_handle(dictionary) != 0x0C):
         raise ValueError("custom DICTIONARY count, owner, or cloning mismatch")
@@ -154,10 +156,17 @@ def check_objects(payload: dict, version_name: str) -> dict:
             or mleader.get("block") != [0, 0, 0, 0]):
         raise ValueError("MLEADERSTYLE owner, style, or handle-stream mismatch")
 
+    dictionary_var = find_record(records, "DICTIONARYVAR", DICTIONARYVAR_HANDLE)
+    if (owner_handle(dictionary_var) != DICTIONARY_HANDLE
+            or dictionary_var.get("schema") != 7
+            or dictionary_var.get("strvalue") != "LOCAL_DICTIONARYVAR_VALUE"):
+        raise ValueError("DICTIONARYVAR owner or bounded payload mismatch")
+
     malformed_handles = {
         MALFORMED_HANDLE: "XRECORD",
         MALFORMED_STYLE_HANDLE: "MLINESTYLE",
         MALFORMED_MLEADERSTYLE_HANDLE: "MLEADERSTYLE",
+        MALFORMED_DICTIONARYVAR_HANDLE: "DICTIONARYVAR",
     }
     if any(record_handle(record) in malformed_handles
            and record.get("object") == malformed_handles[record_handle(record)]
@@ -174,6 +183,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "LAYOUT": LAYOUT_HANDLE,
             "MLINESTYLE": MLINESTYLE_HANDLE,
             "MLEADERSTYLE": MLEADERSTYLE_HANDLE,
+            "DICTIONARYVAR": DICTIONARYVAR_HANDLE,
         },
         "objectStatus": "qualified",
     }
@@ -246,7 +256,7 @@ def self_test() -> None:
              "ownerhandle": [4, 1, 0x0C, 0x0C], "name": "LOCAL_GROUP",
              "groups": [[5, 1, 0x1234]]},
             {"object": "DICTIONARY", "handle": [0, 1, DICTIONARY_HANDLE],
-             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 5,
+             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 6,
              "is_hardowner": 1},
             {"object": "XRECORD", "handle": [0, 1, XRECORD_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
@@ -271,6 +281,9 @@ def self_test() -> None:
              "text_default": "LOCAL_MLEADER_TEXT", "text_height": 2.5,
              "line_type": [0, 0, 0, 0], "arrow_head": [0, 0, 0, 0],
              "text_style": [0, 0, 0, 0], "block": [0, 0, 0, 0]},
+            {"object": "DICTIONARYVAR", "handle": [0, 1, DICTIONARYVAR_HANDLE],
+             "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "schema": 7, "strvalue": "LOCAL_DICTIONARYVAR_VALUE"},
         ],
     }
     check_objects(payload, "AC1024")
@@ -300,6 +313,15 @@ def self_test() -> None:
         pass
     else:
         raise AssertionError("malformed MLEADERSTYLE was not rejected")
+    try:
+        bad = json.loads(json.dumps(payload))
+        bad["OBJECTS"].append({"object": "DICTIONARYVAR",
+                                "handle": [0, 1, MALFORMED_DICTIONARYVAR_HANDLE]})
+        check_objects(bad, "AC1024")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("malformed DICTIONARYVAR was not rejected")
     print("local DWG object oracle: PASS")
 
 
