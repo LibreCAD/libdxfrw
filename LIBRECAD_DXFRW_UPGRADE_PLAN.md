@@ -1916,8 +1916,8 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint: S63/J39 DBCOLOR object-family parity is committed;
-  S01-S63 implementation slices are committed with a
+- Current checkpoint: S64/J40 LIGHTLIST object-family parity is committed;
+  S01-S64 implementation slices are committed with a
   version-specific oracle discrepancy recorded,
   including the clean
   LibreCAD target worktree change. Format-support claims remain limited to
@@ -1989,6 +1989,14 @@ edit this block or commit the same slice concurrently.
   selected entry fields in all six outputs. The result remains experimental
   until the remaining derived kinds are covered, and no drawing bytes are
   retained.
+- Latest implementation slice: S64/J40 LIGHTLIST object-family parity is
+  committed. The local-from-scratch production writer registers LIGHTLIST
+  before CLASSES, emits one counted light reference for all six versions, and
+  rejects mismatched-count state transactionally; LibreDWG 0.14 independently
+  qualifies type 508, owner A601, class version, and member count in all six
+  outputs, with AC1015/18 names and all-version member handles recorded as
+  bounded decoder discrepancies. Generated drawings remain temporary and the
+  result is experimental.
 - Latest implementation slice: S63/J39 DBCOLOR object-family parity is
   committed. The local-from-scratch production writer registers DBCOLOR before
   CLASSES for AC1018+, emits bounded ACI/true-color/book-entry fields owned by
@@ -2028,11 +2036,11 @@ edit this block or commit the same slice concurrently.
   RapidRT values for AC1015/18/1024/1032, while recording bounded field
   misdecodes for AC1021/1027. The result remains experimental pending the
   final MentalRay kind, and no drawing bytes are retained.
-- Next implementation slice: S64/J40 LIGHTLIST object-family parity is ready.
-  It will register and emit one bounded LIGHTLIST object through the production
-  object stream, self-read its counted light references across AC1015/18/21/
-  24/27/32, independently qualify fixed type/owner/count/name fields, and
-  reject mismatched-count state using the same fast, temporary-only lane.
+- Next implementation slice: S65/J41 SCALE object-family parity is ready. It
+  will register and emit one bounded annotation SCALE object through the
+  production object stream, self-read its name/units across AC1015/18/21/24/
+  27/32, independently qualify fixed type/owner/name/ratio fields, and reject
+  invalid zero/negative scale state using the same fast temporary-only lane.
 - Latest committed slice: S52/J28 FIELD/FIELDLIST member parity is
   committed. The local-from-scratch production writer registers FIELD and
   FIELDLIST classes before CLASSES, emits one valid field referenced by the
@@ -2397,25 +2405,25 @@ edit this block or commit the same slice concurrently.
   evidence. S53/J29 adds fixed RASTERVARIABLES/WIPEOUTVARIABLES scalar
   evidence with transactional invalid-value checks and no fixture bytes.
   parity or a PR boundary.
-- Last fully resolved slice: S63 (the DBCOLOR object-family parity slice is
-  committed by the matching `Plan-Slice: S63` trailer; broader fixed
+- Last fully resolved slice: S64 (the LIGHTLIST object-family parity slice is
+  committed by the matching `Plan-Slice: S64` trailer; broader fixed
   object families remain experimental follow-up).
   target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`. All in-horizon lanes are
   terminal only when their recorded gates pass; the next runtime qualification
   lane requires no new target pin.
-- Resolved slices: 63/64 (`COMMITTED`, or `SUPERSEDED` after all replacements
+- Resolved slices: 64/65 (`COMMITTED`, or `SUPERSEDED` after all replacements
   commit).
 - Slice states: 1 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 63 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 64 COMMITTED.
 - Parent-item states: 1 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 64 COMMITTED.
-- Expanded child-item states: 160 COMMITTED / 0 PLANNED / 1 READY / 0 ACTIVE /
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 65 COMMITTED.
+- Expanded child-item states: 161 COMMITTED / 0 PLANNED / 1 READY / 0 ACTIVE /
   0 VERIFYING / 0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED; no child is anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 29 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S63 are committed; S64/J40 LIGHTLIST object-family parity
-  is ready. S23/I5
+- Active work: S01-S64 are committed; S65/J41 SCALE object-family parity is
+  ready. S23/I5
   qualification is ready. S23/I5
   reconciled separate DXF/DWG reports, public/package/LibreCAD consumers, the
   scheduled full and ASan/UBSan checkpoints, bounded fuzz smoke, and explicit
@@ -2517,7 +2525,8 @@ edit this block or commit the same slice concurrently.
 | S61 | J37: aggregate RENDERSETTINGS qualification | S60 | COMMITTED | fast six-version aggregate oracle matrix; discrepancy reconciliation; plan/scope/sync/fixture gates | aggregate checker now requires Settings, Environment, Global, Entry, RapidRT, and MentalRay type/handle identity in all six versions; focused self-test and live oracle pass, with bounded per-version discrepancies preserved; no drawing bytes are retained and evidence remains experimental | next fixed-object lane; do not block on unavailable variants |
 | S62 | J38: MATERIAL object-family parity | S61 | COMMITTED | focused six-version local writer/self-read; class-registration/owner closure; independent JSON object oracle; malformed-state rejection; plan/scope/sync/fixture gates | local writer/self-read and malformed common-state rollback pass for AC1015/18/21/24/27/32; LibreDWG 0.14 independently qualifies type 507, owner A601, name, and description in all six outputs; visual-property fields remain explicitly identity-only and generated drawings stay temporary | next fixed-object or version-discrepancy lane; do not block on unmodeled visual fields |
 | S63 | J39: DBCOLOR object-family parity | S62 | COMMITTED | focused versioned local writer/self-read; class-registration/owner closure; independent JSON object oracle; malformed-color rejection; plan/scope/sync/fixture gates | local writer/self-read and malformed common-state rollback pass; AC1015 rejects unsupported DBCOLOR explicitly; AC1018/21/24/27/32 LibreDWG JSON qualifies type 563, owner A601, and bounded color identity, with R2007+ name truncation recorded; generated drawings remain temporary and evidence remains experimental | next fixed-object or version-discrepancy lane; do not block on external name decoding |
-| S64 | J40: LIGHTLIST object-family parity | S63 | READY | focused six-version local writer/self-read; class-registration/owner closure; independent JSON object oracle; malformed-count rejection; plan/scope/sync/fixture gates | ready to extend the production object graph with one counted LIGHTLIST reference and fast independent checks; generated drawings remain temporary and no new fixture bytes are permitted | focused local self-read and object oracle; no full suite unless a release checkpoint declares it |
+| S64 | J40: LIGHTLIST object-family parity | S63 | COMMITTED | focused six-version local writer/self-read; class-registration/owner closure; independent JSON object oracle; malformed-count rejection; plan/scope/sync/fixture gates | local writer/self-read and malformed mismatched-count rollback pass for AC1015/18/21/24/27/32; LibreDWG 0.14 qualifies type 508, owner A601, class version, and one-member count in all six, with AC1015/18 name loss and all-version member-handle loss explicit; generated drawings remain temporary and evidence remains experimental | next fixed-object or version-discrepancy lane; do not block on reader handle loss |
+| S65 | J41: SCALE object-family parity | S64 | READY | focused six-version local writer/self-read; class-registration/owner closure; independent JSON object oracle; malformed-scale rejection; plan/scope/sync/fixture gates | ready to extend the production object graph with one bounded annotation SCALE object and temporary-only independent checks; no new fixture bytes are permitted | focused local self-read and object oracle; no full suite unless a release checkpoint declares it |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -2585,7 +2594,8 @@ edit this block or commit the same slice concurrently.
 | J37 | S61 | J36 | COMMITTED | EXPERIMENTAL | Reconcile all six derived RENDERSETTINGS kinds into a single fast six-version oracle matrix, preserve bounded LibreDWG discrepancies, and keep aggregate evidence non-promoting until broader format-support prerequisites are satisfied |
 | J38 | S62 | J37 | COMMITTED | EXPERIMENTAL | Extend the local object graph and independent JSON oracle to MATERIAL, including class registration, fixed type/header, owner, bounded name/description/material fields, six-version self-read, and transaction-safe malformed-state handling |
 | J39 | S63 | J38 | COMMITTED | EXPERIMENTAL | Extend the local object graph and independent JSON oracle to DBCOLOR, including version-gated class registration, fixed type/header, owner, bounded ACI/true-color/book-entry fields, self-read over supported versions, and transaction-safe invalid-color handling |
-| J40 | S64 | J39 | READY | EXPERIMENTAL | Extend the local object graph and independent JSON oracle to LIGHTLIST, including class registration, fixed type/header, owner, class/count fields, bounded light-name/handle members, six-version self-read, and transaction-safe mismatched-count handling |
+| J40 | S64 | J39 | COMMITTED | EXPERIMENTAL | Extend the local object graph and independent JSON oracle to LIGHTLIST, including class registration, fixed type/header, owner, class/count fields, bounded light-name/handle members, six-version self-read, and transaction-safe mismatched-count handling |
+| J41 | S65 | J40 | READY | EXPERIMENTAL | Extend the local object graph and independent JSON oracle to SCALE, including class registration, fixed type/header, owner, bounded name/paper/drawing units and unit-scale flag, six-version self-read, and transaction-safe invalid-scale handling |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -2760,7 +2770,8 @@ edit this block or commit the same slice concurrently.
 | J37.1 | J37 / S61 | WP5, WP7, WP8, WP10; aggregate RENDERSETTINGS | J36 | COMMITTED | EXPERIMENTAL | assert the six-kind object set, six-version coverage, bounded field evidence, and explicit discrepancy taxonomy in one fast aggregate gate without retaining generated drawings or promoting format support | checker self-test plus focused six-version live oracle, plan/scope/sync/fixture gates; self-updating/unblocking state transition is required after each gate |
 | J38.1 | J38 / S62 | WP5, WP7, WP8, WP10; MATERIAL | J37 | COMMITTED | EXPERIMENTAL | emit and self-read one bounded MATERIAL object for AC1015/18/21/24/27/32, register its class before CLASSES, independently verify fixed type/owner/name/description and selected material fields, and reject malformed non-finite state without publishing a frame | focused local self-read, oracle self-test/live run, and policy gates; generated drawings remain temporary, no fixture bytes are staged, and aggregate object-family evidence remains explicit |
 | J39.1 | J39 / S63 | WP5, WP7, WP8, WP10; DBCOLOR | J38 | COMMITTED | EXPERIMENTAL | emit and self-read one bounded DBCOLOR object for AC1018/21/24/27/32, register its class before CLASSES, independently verify fixed type/owner/ACI/true-color fields, and reject invalid color/book-entry state without publishing a frame | focused version matrix, object-oracle self-test/live run, and policy gates; generated drawings remain temporary, no fixture bytes are staged, and unsupported AC1015 behavior is recorded explicitly |
-| J40.1 | J40 / S64 | WP5, WP7, WP8, WP10; LIGHTLIST | J39 | READY | EXPERIMENTAL | emit and self-read one counted LIGHTLIST object for AC1015/18/21/24/27/32, register its class before CLASSES, independently verify fixed type/owner/count and one light name/handle, and reject mismatched-count state without publishing a frame | focused six-version local self-read, object-oracle self-test/live run, and policy gates; generated drawings remain temporary, no fixture bytes are staged, and count/handle edge cases stay explicit |
+| J40.1 | J40 / S64 | WP5, WP7, WP8, WP10; LIGHTLIST | J39 | COMMITTED | EXPERIMENTAL | emit and self-read one counted LIGHTLIST object for AC1015/18/21/24/27/32, register its class before CLASSES, independently verify fixed type/owner/count and one light name/handle, and reject mismatched-count state without publishing a frame | focused six-version local self-read, object-oracle self-test/live run, and policy gates; generated drawings remain temporary, no fixture bytes are staged, and count/handle edge cases stay explicit |
+| J41.1 | J41 / S65 | WP5, WP7, WP8, WP10; SCALE | J40 | READY | EXPERIMENTAL | emit and self-read one bounded SCALE object for AC1015/18/21/24/27/32, register its class before CLASSES, independently verify fixed type/owner/name/units/ratio fields, and reject zero/negative units without publishing a frame | focused six-version local self-read, object-oracle self-test/live run, and policy gates; generated drawings remain temporary, no fixture bytes are staged, and unit-ratio edge cases stay explicit |
 
 <!-- UPGRADE_PROGRESS_END -->
 

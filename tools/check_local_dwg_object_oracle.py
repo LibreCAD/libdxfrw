@@ -68,6 +68,8 @@ MATERIAL_HANDLE = 0xC800
 MALFORMED_MATERIAL_HANDLE = 0xC801
 DBCOLOR_HANDLE = 0xC900
 MALFORMED_DBCOLOR_HANDLE = 0xC901
+LIGHTLIST_HANDLE = 0xCA00
+MALFORMED_LIGHTLIST_HANDLE = 0xCA01
 
 RENDER_SETTINGS_KINDS = {
     "Settings": ("RENDERSETTINGS", RENDERSETTINGS_HANDLE, 556),
@@ -153,7 +155,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         raise ValueError("GROUP name, owner, or member stream mismatch")
 
     dictionary = find_record(records, "DICTIONARY", DICTIONARY_HANDLE)
-    if (dictionary.get("numitems") != 21
+    if (dictionary.get("numitems") != 22
             or dictionary.get("is_hardowner") != 1
             or owner_handle(dictionary) != 0x0C):
         raise ValueError("custom DICTIONARY count, owner, or cloning mismatch")
@@ -496,6 +498,25 @@ def check_objects(payload: dict, version_name: str) -> dict:
                 "LibreDWG 0.14 truncates DBCOLOR color-book names for "
                 + version_name)
 
+    light_list = find_record(records, "LIGHTLIST", LIGHTLIST_HANDLE)
+    lights = light_list.get("lights")
+    if (owner_handle(light_list) != DICTIONARY_HANDLE
+            or light_list.get("type") != 508
+            or light_list.get("class_version") != 1
+            or not isinstance(lights, list)
+            or len(lights) != 1):
+        raise ValueError("LIGHTLIST owner, header, or count mismatch")
+    light_list_discrepancies = []
+    if version_name in {"AC1015", "AC1018"}:
+        light_list_discrepancies.append(
+            "LibreDWG 0.14 omits LIGHTLIST member name/handle for "
+            + version_name)
+    else:
+        if lights[0].get("name") != "LOCAL_LIGHT":
+            raise ValueError("LIGHTLIST member name mismatch")
+        light_list_discrepancies.append(
+            "LibreDWG 0.14 omits LIGHTLIST member handle for " + version_name)
+
     dictionary_default = find_record(
         records, "DICTIONARYWDFLT", DICTIONARYWDFLT_HANDLE)
     if (owner_handle(dictionary_default) != DICTIONARY_HANDLE
@@ -542,6 +563,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         MALFORMED_MENTALRAYRENDERSETTINGS_HANDLE: "MENTALRAYRENDERSETTINGS",
         MALFORMED_MATERIAL_HANDLE: "MATERIAL",
         MALFORMED_DBCOLOR_HANDLE: "DBCOLOR",
+        MALFORMED_LIGHTLIST_HANDLE: "LIGHTLIST",
     }
     if any(record_handle(record) in malformed_handles
            and record.get("object") == malformed_handles[record_handle(record)]
@@ -574,12 +596,14 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "MENTALRAYRENDERSETTINGS": MENTALRAYRENDERSETTINGS_HANDLE,
             "MATERIAL": MATERIAL_HANDLE,
             "DBCOLOR": DBCOLOR_HANDLE,
+            "LIGHTLIST": LIGHTLIST_HANDLE,
             "DICTIONARYWDFLT": DICTIONARYWDFLT_HANDLE,
         },
         "objectStatus": "qualified",
         "oracleDiscrepancies": (oracle_discrepancies + mental_discrepancies
                                  + material_discrepancies
-                                 + dbcolor_discrepancies),
+                                 + dbcolor_discrepancies
+                                 + light_list_discrepancies),
     }
 
 
@@ -650,7 +674,7 @@ def self_test() -> None:
              "ownerhandle": [4, 1, 0x0C, 0x0C], "name": "LOCAL_GROUP",
              "groups": [[5, 1, 0x1234]]},
             {"object": "DICTIONARY", "handle": [0, 1, DICTIONARY_HANDLE],
-             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 21,
+             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 22,
              "is_hardowner": 1},
             {"object": "XRECORD", "handle": [0, 1, XRECORD_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
@@ -799,6 +823,10 @@ def self_test() -> None:
              "type": 563,
              "color": {"index": 256, "rgb": "c2123456", "flag": 3,
                        "name": "LOCAL_COLOR", "book_name": "LOCAL_BOOK"}},
+            {"object": "LIGHTLIST", "handle": [0, 1, LIGHTLIST_HANDLE],
+             "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "type": 508, "class_version": 1,
+             "lights": [{"handle": [0, 0], "name": "LOCAL_LIGHT"}]},
         ],
     }
     summary = check_objects(payload, "AC1024")
@@ -985,6 +1013,15 @@ def self_test() -> None:
         pass
     else:
         raise AssertionError("malformed DBCOLOR was not rejected")
+    try:
+        bad = json.loads(json.dumps(payload))
+        bad["OBJECTS"].append({"object": "LIGHTLIST",
+                                "handle": [0, 1, MALFORMED_LIGHTLIST_HANDLE]})
+        check_objects(bad, "AC1024")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("malformed LIGHTLIST was not rejected")
     print("local DWG object oracle: PASS")
 
 

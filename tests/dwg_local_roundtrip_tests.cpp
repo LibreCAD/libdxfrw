@@ -111,6 +111,10 @@ public:
                 registeredDbColor_ = writer_->registerDbColorObjectClass(
                     &dbColorRegistration);
             }
+            DRW_LightList lightListRegistration;
+            lightListRegistration.handle = 0xCA00u;
+            registeredLightList_ = writer_->registerLightListObjectClass(
+                &lightListRegistration);
         }
     }
 
@@ -173,6 +177,7 @@ public:
             {"LOCAL_RENDER_MENTALRAY", 0xC700u},
             {"LOCAL_MATERIAL", 0xC800u},
             {"LOCAL_DBCOLOR", 0xC900u},
+            {"LOCAL_LIGHTLIST", 0xCA00u},
         };
         wroteDictionary_ = registeredDictionary_
             && writer_->writeDictionary(&dictionary)
@@ -643,6 +648,22 @@ public:
         invalidDbColor.setDwgCommonObjectState(0, 2, false);
         rejectedMalformedDbColor_ = !writer_->writeDbColor(&invalidDbColor);
 
+        DRW_LightList lightList;
+        lightList.handle = 0xCA00u;
+        lightList.parentHandle = dictionary.handle;
+        lightList.m_classVersion = 1;
+        lightList.m_lightCount = 1;
+        lightList.m_lights.push_back({modelSpaceLineHandle_, "LOCAL_LIGHT"});
+        wroteLightList_ = registeredLightList_ && writer_->writeLightList(&lightList)
+            && lightList.handle != 0;
+
+        DRW_LightList invalidLightList;
+        invalidLightList.handle = 0xCA01u;
+        invalidLightList.parentHandle = dictionary.handle;
+        invalidLightList.m_lightCount = 2;
+        invalidLightList.m_lights.push_back({modelSpaceLineHandle_, "LOCAL_LIGHT"});
+        rejectedMalformedLightList_ = !writer_->writeLightList(&invalidLightList);
+
         DRW_Group group;
         group.handle = 0xA600u;
         group.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
@@ -841,7 +862,7 @@ public:
         if (data.handle == 0xA601u) {
             readDictionarySeen_ = data.parentHandle
                     == DRW::DwgNamedObjectsDictionaryHandle
-                && data.m_entries.size() == 21
+                && data.m_entries.size() == 22
                 && data.m_entries[0].m_name == "LOCAL_XRECORD"
                 && data.m_entries[0].m_handle == 0xA602u
                 && data.m_entries[1].m_name == "LOCAL_PLOTSETTINGS"
@@ -883,7 +904,9 @@ public:
                 && data.m_entries[19].m_name == "LOCAL_MATERIAL"
                 && data.m_entries[19].m_handle == 0xC800u
                 && data.m_entries[20].m_name == "LOCAL_DBCOLOR"
-                && data.m_entries[20].m_handle == 0xC900u;
+                && data.m_entries[20].m_handle == 0xC900u
+                && data.m_entries[21].m_name == "LOCAL_LIGHTLIST"
+                && data.m_entries[21].m_handle == 0xCA00u;
         }
     }
     void addXRecord(const DRW_XRecord& data) override {
@@ -1099,6 +1122,17 @@ public:
         if (data.handle == 0xC901u)
             readMalformedDbColorSeen_ = true;
     }
+    void addLightList(const DRW_LightList& data) override {
+        if (data.handle == 0xCA00u)
+            readLightListSeen_ = data.parentHandle == 0xA601u
+                && data.m_classVersion == 1
+                && data.m_lightCount == 1
+                && data.m_lights.size() == 1
+                && data.m_lights.front().m_handle != DRW::NoHandle
+                && data.m_lights.front().m_name == "LOCAL_LIGHT";
+        if (data.handle == 0xCA01u)
+            readMalformedLightListSeen_ = true;
+    }
     void addInsert(const DRW_Insert& data) override {
         readInsertSeen_ = true;
         readAttribSeen_ = data.attlist.size() == 1
@@ -1139,6 +1173,7 @@ public:
             && wroteRenderEntry_ && wroteRenderRapid_ && wroteRenderMental_
             && wroteMaterial_
             && (wroteDbColor_ || rejectedUnsupportedDbColor_)
+            && wroteLightList_
             && wroteGroup_;
     }
     bool rejectedMalformedObject() const { return rejectedMalformedObject_; }
@@ -1188,6 +1223,7 @@ public:
     bool rejectedUnsupportedDbColor() const { return rejectedUnsupportedDbColor_; }
     bool rejectedMalformedDbColor() const { return rejectedMalformedDbColor_; }
     bool wroteDbColor() const { return wroteDbColor_; }
+    bool rejectedMalformedLightList() const { return rejectedMalformedLightList_; }
     bool readLineSeen() const { return readLineSeen_; }
     bool readSimpleEntitiesSeen() const {
         return readPointSeen_ && readCircleSeen_ && readArcSeen_
@@ -1216,7 +1252,7 @@ public:
             && readRenderSettingsSeen_ && readRenderEnvironmentSeen_
             && readRenderGlobalSeen_ && readRenderEntrySeen_
             && readRenderRapidSeen_ && readRenderMentalSeen_
-            && readMaterialSeen_ && readGroupSeen_;
+            && readMaterialSeen_ && readLightListSeen_ && readGroupSeen_;
     }
     bool readMalformedObjectSeen() const { return readMalformedObjectSeen_; }
     bool readMalformedStyleSeen() const { return readMalformedStyleSeen_; }
@@ -1272,6 +1308,8 @@ public:
     bool readMalformedMaterialSeen() const { return readMalformedMaterialSeen_; }
     bool readDbColorSeen() const { return readDbColorSeen_; }
     bool readMalformedDbColorSeen() const { return readMalformedDbColorSeen_; }
+    bool readLightListSeen() const { return readLightListSeen_; }
+    bool readMalformedLightListSeen() const { return readMalformedLightListSeen_; }
     const DRW_Line& readLine() const { return readLine_; }
 
 private:
@@ -1324,6 +1362,7 @@ private:
     bool wroteRenderMental_ {false};
     bool wroteMaterial_ {false};
     bool wroteDbColor_ {false};
+    bool wroteLightList_ {false};
     bool rejectedMalformedObject_ {false};
     bool rejectedMalformedStyle_ {false};
     bool rejectedMalformedMLeaderStyle_ {false};
@@ -1344,6 +1383,7 @@ private:
     bool rejectedMalformedMaterial_ {false};
     bool rejectedUnsupportedDbColor_ {false};
     bool rejectedMalformedDbColor_ {false};
+    bool rejectedMalformedLightList_ {false};
     bool registeredDictionary_ {false};
     bool registeredMLeaderStyle_ {false};
     bool registeredDictionaryVar_ {false};
@@ -1362,6 +1402,7 @@ private:
     bool registeredRenderMental_ {false};
     bool registeredMaterial_ {false};
     bool registeredDbColor_ {false};
+    bool registeredLightList_ {false};
     bool registeredPlotSettings_ {false};
     bool readLineSeen_ {false};
     bool readPointSeen_ {false};
@@ -1406,6 +1447,7 @@ private:
     bool readRenderMentalSeen_ {false};
     bool readMaterialSeen_ {false};
     bool readDbColorSeen_ {false};
+    bool readLightListSeen_ {false};
     bool readMalformedObjectSeen_ {false};
     bool readMalformedStyleSeen_ {false};
     bool readMalformedMLeaderStyleSeen_ {false};
@@ -1425,6 +1467,7 @@ private:
     bool readMalformedRenderMentalSeen_ {false};
     bool readMalformedMaterialSeen_ {false};
     bool readMalformedDbColorSeen_ {false};
+    bool readMalformedLightListSeen_ {false};
     DRW_Line readLine_;
     dx_data data_;
 };
@@ -1552,6 +1595,9 @@ int main(int argc, char** argv) {
         expect(writeIface.rejectedMalformedDbColor(),
                ("local DWG writer rejected malformed DBCOLOR transaction" + suffix).c_str(),
                failures);
+        expect(writeIface.rejectedMalformedLightList(),
+               ("local DWG writer rejected malformed LIGHTLIST transaction" + suffix).c_str(),
+               failures);
         expect(std::filesystem::exists(output),
                ("local DWG output is published" + suffix).c_str(), failures);
 
@@ -1613,6 +1659,9 @@ int main(int argc, char** argv) {
                    : readIface.readDbColorSeen(),
                ("local DWG DBCOLOR version-gated self-read" + suffix).c_str(),
                failures);
+        expect(readIface.readLightListSeen(),
+               ("local DWG self-read publishes LIGHTLIST" + suffix).c_str(),
+               failures);
         expect(!readIface.readMalformedObjectSeen(),
                ("local DWG self-read omits rolled-back malformed object" + suffix).c_str(),
                failures);
@@ -1666,6 +1715,9 @@ int main(int argc, char** argv) {
                failures);
         expect(!readIface.readMalformedDbColorSeen(),
                ("local DWG self-read omits rolled-back malformed DBCOLOR" + suffix).c_str(),
+               failures);
+        expect(!readIface.readMalformedLightListSeen(),
+               ("local DWG self-read omits rolled-back malformed LIGHTLIST" + suffix).c_str(),
                failures);
         if (readIface.readLineSeen()) {
             const DRW_Line& line = readIface.readLine();
