@@ -32,6 +32,8 @@ XRECORD_HANDLE = 0xA602
 PLOTSETTINGS_HANDLE = 0xA603
 LAYOUT_HANDLE = 0xA700
 MALFORMED_HANDLE = 0xA701
+MLINESTYLE_HANDLE = 0xA800
+MALFORMED_STYLE_HANDLE = 0xA801
 
 
 def parse_json_output(text: str) -> dict:
@@ -95,7 +97,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         raise ValueError("GROUP name, owner, or member stream mismatch")
 
     dictionary = find_record(records, "DICTIONARY", DICTIONARY_HANDLE)
-    if (dictionary.get("numitems") != 3
+    if (dictionary.get("numitems") != 4
             or dictionary.get("is_hardowner") != 1
             or owner_handle(dictionary) != 0x0C):
         raise ValueError("custom DICTIONARY count, owner, or cloning mismatch")
@@ -121,7 +123,23 @@ def check_objects(payload: dict, version_name: str) -> dict:
             or layout.get("layout_name") != "LOCAL_LAYOUT"):
         raise ValueError("LAYOUT owner or name mismatch")
 
-    if any(record_handle(record) == MALFORMED_HANDLE for record in records):
+    mline = find_record(records, "MLINESTYLE", MLINESTYLE_HANDLE)
+    lines = mline.get("lines")
+    if (owner_handle(mline) != DICTIONARY_HANDLE
+            or mline.get("name") != "LOCAL_MLINESTYLE"
+            or mline.get("description") != "LOCAL_MLINESTYLE_DESC"
+            or mline.get("start_angle") != 0.0
+            or mline.get("end_angle") != 1.5707963267949
+            or not isinstance(lines, list)
+            or len(lines) != 1
+            or not isinstance(lines[0], dict)
+            or lines[0].get("offset") != 0.5
+            or (lines[0].get("lt_index") != 0
+                and lines[0].get("lt_ltype") != [0, 0, 0, 0])):
+        raise ValueError("MLINESTYLE owner, style, or element payload mismatch")
+
+    if any(record_handle(record) in (MALFORMED_HANDLE, MALFORMED_STYLE_HANDLE)
+           for record in records):
         raise ValueError("rolled-back malformed object was published")
 
     return {
@@ -132,6 +150,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "XRECORD": XRECORD_HANDLE,
             "PLOTSETTINGS": PLOTSETTINGS_HANDLE,
             "LAYOUT": LAYOUT_HANDLE,
+            "MLINESTYLE": MLINESTYLE_HANDLE,
         },
         "objectStatus": "qualified",
     }
@@ -204,7 +223,7 @@ def self_test() -> None:
              "ownerhandle": [4, 1, 0x0C, 0x0C], "name": "LOCAL_GROUP",
              "groups": [[5, 1, 0x1234]]},
             {"object": "DICTIONARY", "handle": [0, 1, DICTIONARY_HANDLE],
-             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 3,
+             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 4,
              "is_hardowner": 1},
             {"object": "XRECORD", "handle": [0, 1, XRECORD_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
@@ -216,6 +235,12 @@ def self_test() -> None:
             {"object": "LAYOUT", "handle": [0, 1, LAYOUT_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
              "layout_name": "LOCAL_LAYOUT"},
+            {"object": "MLINESTYLE", "handle": [0, 1, MLINESTYLE_HANDLE],
+             "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "name": "LOCAL_MLINESTYLE",
+             "description": "LOCAL_MLINESTYLE_DESC",
+             "start_angle": 0.0, "end_angle": 1.5707963267949,
+             "lines": [{"offset": 0.5, "lt_index": 0}]},
         ],
     }
     check_objects(payload, "AC1024")
@@ -227,6 +252,15 @@ def self_test() -> None:
         pass
     else:
         raise AssertionError("malformed object was not rejected")
+    try:
+        bad = json.loads(json.dumps(payload))
+        bad["OBJECTS"].append({"object": "MLINESTYLE",
+                                "handle": [0, 1, MALFORMED_STYLE_HANDLE]})
+        check_objects(bad, "AC1024")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("malformed MLINESTYLE was not rejected")
     print("local DWG object oracle: PASS")
 
 

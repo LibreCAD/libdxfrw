@@ -79,6 +79,7 @@ public:
             {"LOCAL_XRECORD", 0xA602u},
             {"LOCAL_PLOTSETTINGS", 0xA603u},
             {"LOCAL_LAYOUT", 0xA700u},
+            {"LOCAL_MLINESTYLE", 0xA800u},
         };
         wroteDictionary_ = registeredDictionary_
             && writer_->writeDictionary(&dictionary)
@@ -152,6 +153,22 @@ public:
         wroteLayout_ = writer_->writeLayout(&layout)
             && layout.handle != 0;
 
+        DRW_MLineStyle mlineStyle;
+        mlineStyle.handle = 0xA800u;
+        mlineStyle.parentHandle = dictionary.handle;
+        mlineStyle.name = "LOCAL_MLINESTYLE";
+        mlineStyle.description = "LOCAL_MLINESTYLE_DESC";
+        mlineStyle.startAngle = 0.0;
+        mlineStyle.endAngle = 1.5707963267948966;
+        DRW_MLineElement mlineElement;
+        mlineElement.offset = 0.5;
+        mlineElement.color = 256;
+        mlineElement.color24 = -1;
+        mlineElement.linetypeIndex = 0;
+        mlineStyle.elements.push_back(mlineElement);
+        wroteMLineStyle_ = writer_->writeMLineStyle(&mlineStyle)
+            && mlineStyle.handle != 0;
+
         // A failed object write must not poison the following valid frames or
         // publish a partial object.  The writer's public transaction wrapper
         // owns the rollback boundary; this assertion keeps that contract in
@@ -162,6 +179,15 @@ public:
         invalidXRecord.m_values.emplace_back(
             40, std::numeric_limits<double>::quiet_NaN());
         rejectedMalformedObject_ = !writer_->writeXRecord(&invalidXRecord);
+
+        DRW_MLineStyle invalidMLineStyle;
+        invalidMLineStyle.handle = 0xA801u;
+        invalidMLineStyle.parentHandle = dictionary.handle;
+        invalidMLineStyle.name = "LOCAL_BAD_MLINESTYLE";
+        DRW_MLineElement invalidMLineElement;
+        invalidMLineElement.offset = std::numeric_limits<double>::quiet_NaN();
+        invalidMLineStyle.elements.push_back(invalidMLineElement);
+        rejectedMalformedStyle_ = !writer_->writeMLineStyle(&invalidMLineStyle);
 
         DRW_Group group;
         group.handle = 0xA600u;
@@ -361,13 +387,15 @@ public:
         if (data.handle == 0xA601u) {
             readDictionarySeen_ = data.parentHandle
                     == DRW::DwgNamedObjectsDictionaryHandle
-                && data.m_entries.size() == 3
+                && data.m_entries.size() == 4
                 && data.m_entries[0].m_name == "LOCAL_XRECORD"
                 && data.m_entries[0].m_handle == 0xA602u
                 && data.m_entries[1].m_name == "LOCAL_PLOTSETTINGS"
                 && data.m_entries[1].m_handle == 0xA603u
                 && data.m_entries[2].m_name == "LOCAL_LAYOUT"
-                && data.m_entries[2].m_handle == 0xA700u;
+                && data.m_entries[2].m_handle == 0xA700u
+                && data.m_entries[3].m_name == "LOCAL_MLINESTYLE"
+                && data.m_entries[3].m_handle == 0xA800u;
         }
     }
     void addXRecord(const DRW_XRecord& data) override {
@@ -385,6 +413,15 @@ public:
         if (data.handle == 0xA700u)
             readLayoutSeen_ = data.name == "LOCAL_LAYOUT"
                 && data.parentHandle == 0xA601u;
+    }
+    void addMLineStyle(const DRW_MLineStyle& data) override {
+        if (data.handle == 0xA800u)
+            readMLineStyleSeen_ = data.name == "LOCAL_MLINESTYLE"
+                && data.parentHandle == 0xA601u
+                && data.elements.size() == 1
+                && data.elements.front().offset == 0.5;
+        if (data.handle == 0xA801u)
+            readMalformedStyleSeen_ = true;
     }
     void addInsert(const DRW_Insert& data) override {
         readInsertSeen_ = true;
@@ -417,9 +454,10 @@ public:
     bool wroteGroup() const { return wroteGroup_; }
     bool wroteObjectSet() const {
         return wroteDictionary_ && wroteXRecord_ && wrotePlotSettings_
-            && wroteLayout_ && wroteGroup_;
+            && wroteLayout_ && wroteMLineStyle_ && wroteGroup_;
     }
     bool rejectedMalformedObject() const { return rejectedMalformedObject_; }
+    bool rejectedMalformedStyle() const { return rejectedMalformedStyle_; }
     bool readLineSeen() const { return readLineSeen_; }
     bool readSimpleEntitiesSeen() const {
         return readPointSeen_ && readCircleSeen_ && readArcSeen_
@@ -440,9 +478,11 @@ public:
     bool readGroupSeen() const { return readGroupSeen_; }
     bool readObjectSetSeen() const {
         return readDictionarySeen_ && readXRecordSeen_
-            && readPlotSettingsSeen_ && readLayoutSeen_ && readGroupSeen_;
+            && readPlotSettingsSeen_ && readLayoutSeen_ && readMLineStyleSeen_
+            && readGroupSeen_;
     }
     bool readMalformedObjectSeen() const { return readMalformedObjectSeen_; }
+    bool readMalformedStyleSeen() const { return readMalformedStyleSeen_; }
     const DRW_Line& readLine() const { return readLine_; }
 
 private:
@@ -477,7 +517,9 @@ private:
     bool wroteXRecord_ {false};
     bool wrotePlotSettings_ {false};
     bool wroteLayout_ {false};
+    bool wroteMLineStyle_ {false};
     bool rejectedMalformedObject_ {false};
+    bool rejectedMalformedStyle_ {false};
     bool registeredDictionary_ {false};
     bool registeredPlotSettings_ {false};
     bool readLineSeen_ {false};
@@ -505,7 +547,9 @@ private:
     bool readXRecordSeen_ {false};
     bool readPlotSettingsSeen_ {false};
     bool readLayoutSeen_ {false};
+    bool readMLineStyleSeen_ {false};
     bool readMalformedObjectSeen_ {false};
+    bool readMalformedStyleSeen_ {false};
     DRW_Line readLine_;
     dx_data data_;
 };
@@ -578,6 +622,9 @@ int main(int argc, char** argv) {
         expect(writeIface.rejectedMalformedObject(),
                ("local DWG writer rejected malformed object transaction" + suffix).c_str(),
                failures);
+        expect(writeIface.rejectedMalformedStyle(),
+               ("local DWG writer rejected malformed MLINESTYLE transaction" + suffix).c_str(),
+               failures);
         expect(std::filesystem::exists(output),
                ("local DWG output is published" + suffix).c_str(), failures);
 
@@ -615,6 +662,9 @@ int main(int argc, char** argv) {
                failures);
         expect(!readIface.readMalformedObjectSeen(),
                ("local DWG self-read omits rolled-back malformed object" + suffix).c_str(),
+               failures);
+        expect(!readIface.readMalformedStyleSeen(),
+               ("local DWG self-read omits rolled-back malformed MLINESTYLE" + suffix).c_str(),
                failures);
         if (readIface.readLineSeen()) {
             const DRW_Line& line = readIface.readLine();
