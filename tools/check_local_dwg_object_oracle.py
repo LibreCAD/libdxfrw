@@ -34,6 +34,8 @@ LAYOUT_HANDLE = 0xA700
 MALFORMED_HANDLE = 0xA701
 MLINESTYLE_HANDLE = 0xA800
 MALFORMED_STYLE_HANDLE = 0xA801
+MLEADERSTYLE_HANDLE = 0xA900
+MALFORMED_MLEADERSTYLE_HANDLE = 0xA901
 
 
 def parse_json_output(text: str) -> dict:
@@ -97,7 +99,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         raise ValueError("GROUP name, owner, or member stream mismatch")
 
     dictionary = find_record(records, "DICTIONARY", DICTIONARY_HANDLE)
-    if (dictionary.get("numitems") != 4
+    if (dictionary.get("numitems") != 5
             or dictionary.get("is_hardowner") != 1
             or owner_handle(dictionary) != 0x0C):
         raise ValueError("custom DICTIONARY count, owner, or cloning mismatch")
@@ -138,8 +140,28 @@ def check_objects(payload: dict, version_name: str) -> dict:
                 and lines[0].get("lt_ltype") != [0, 0, 0, 0])):
         raise ValueError("MLINESTYLE owner, style, or element payload mismatch")
 
-    if any(record_handle(record) in (MALFORMED_HANDLE, MALFORMED_STYLE_HANDLE)
-           for record in records):
+    mleader = find_record(records, "MLEADERSTYLE", MLEADERSTYLE_HANDLE)
+    if (owner_handle(mleader) != DICTIONARY_HANDLE
+            or mleader.get("class_version") != 2
+            or mleader.get("content_type") != 2
+            or mleader.get("description") != "LOCAL_MLEADERSTYLE_DESC"
+            or mleader.get("landing_gap") != 0.25
+            or mleader.get("text_default") != "LOCAL_MLEADER_TEXT"
+            or mleader.get("text_height") != 2.5
+            or mleader.get("line_type") != [0, 0, 0, 0]
+            or mleader.get("arrow_head") != [0, 0, 0, 0]
+            or mleader.get("text_style") != [0, 0, 0, 0]
+            or mleader.get("block") != [0, 0, 0, 0]):
+        raise ValueError("MLEADERSTYLE owner, style, or handle-stream mismatch")
+
+    malformed_handles = {
+        MALFORMED_HANDLE: "XRECORD",
+        MALFORMED_STYLE_HANDLE: "MLINESTYLE",
+        MALFORMED_MLEADERSTYLE_HANDLE: "MLEADERSTYLE",
+    }
+    if any(record_handle(record) in malformed_handles
+           and record.get("object") == malformed_handles[record_handle(record)]
+           for record in records if isinstance(record, dict)):
         raise ValueError("rolled-back malformed object was published")
 
     return {
@@ -151,6 +173,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "PLOTSETTINGS": PLOTSETTINGS_HANDLE,
             "LAYOUT": LAYOUT_HANDLE,
             "MLINESTYLE": MLINESTYLE_HANDLE,
+            "MLEADERSTYLE": MLEADERSTYLE_HANDLE,
         },
         "objectStatus": "qualified",
     }
@@ -223,7 +246,7 @@ def self_test() -> None:
              "ownerhandle": [4, 1, 0x0C, 0x0C], "name": "LOCAL_GROUP",
              "groups": [[5, 1, 0x1234]]},
             {"object": "DICTIONARY", "handle": [0, 1, DICTIONARY_HANDLE],
-             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 4,
+             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 5,
              "is_hardowner": 1},
             {"object": "XRECORD", "handle": [0, 1, XRECORD_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
@@ -241,6 +264,13 @@ def self_test() -> None:
              "description": "LOCAL_MLINESTYLE_DESC",
              "start_angle": 0.0, "end_angle": 1.5707963267949,
              "lines": [{"offset": 0.5, "lt_index": 0}]},
+            {"object": "MLEADERSTYLE", "handle": [0, 1, MLEADERSTYLE_HANDLE],
+             "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "class_version": 2, "content_type": 2,
+             "description": "LOCAL_MLEADERSTYLE_DESC", "landing_gap": 0.25,
+             "text_default": "LOCAL_MLEADER_TEXT", "text_height": 2.5,
+             "line_type": [0, 0, 0, 0], "arrow_head": [0, 0, 0, 0],
+             "text_style": [0, 0, 0, 0], "block": [0, 0, 0, 0]},
         ],
     }
     check_objects(payload, "AC1024")
@@ -261,6 +291,15 @@ def self_test() -> None:
         pass
     else:
         raise AssertionError("malformed MLINESTYLE was not rejected")
+    try:
+        bad = json.loads(json.dumps(payload))
+        bad["OBJECTS"].append({"object": "MLEADERSTYLE",
+                                "handle": [0, 1, MALFORMED_MLEADERSTYLE_HANDLE]})
+        check_objects(bad, "AC1024")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("malformed MLEADERSTYLE was not rejected")
     print("local DWG object oracle: PASS")
 
 

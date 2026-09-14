@@ -35,6 +35,10 @@ public:
                 "LOCAL_DICTIONARY", 0xA601u);
             registeredPlotSettings_ = writer_->registerPlotSettingsObjectClass(
                 0xA603u);
+            DRW_MLeaderStyle mleaderRegistration;
+            mleaderRegistration.handle = 0xA900u;
+            registeredMLeaderStyle_ = writer_->registerMLeaderStyleObjectClass(
+                &mleaderRegistration);
         }
     }
 
@@ -80,6 +84,7 @@ public:
             {"LOCAL_PLOTSETTINGS", 0xA603u},
             {"LOCAL_LAYOUT", 0xA700u},
             {"LOCAL_MLINESTYLE", 0xA800u},
+            {"LOCAL_MLEADERSTYLE", 0xA900u},
         };
         wroteDictionary_ = registeredDictionary_
             && writer_->writeDictionary(&dictionary)
@@ -169,6 +174,21 @@ public:
         wroteMLineStyle_ = writer_->writeMLineStyle(&mlineStyle)
             && mlineStyle.handle != 0;
 
+        DRW_MLeaderStyle mleaderStyle;
+        mleaderStyle.handle = 0xA900u;
+        mleaderStyle.parentHandle = dictionary.handle;
+        mleaderStyle.name = "LOCAL_MLEADERSTYLE";
+        mleaderStyle.description = "LOCAL_MLEADERSTYLE_DESC";
+        mleaderStyle.contentType = 2;
+        mleaderStyle.leaderType = 1;
+        mleaderStyle.landingGap = 0.25;
+        mleaderStyle.textDefault = "LOCAL_MLEADER_TEXT";
+        mleaderStyle.textHeight = 2.5;
+        mleaderStyle.scaleFactor = 1.0;
+        wroteMLeaderStyle_ = registeredMLeaderStyle_
+            && writer_->writeMLeaderStyle(&mleaderStyle)
+            && mleaderStyle.handle != 0;
+
         // A failed object write must not poison the following valid frames or
         // publish a partial object.  The writer's public transaction wrapper
         // owns the rollback boundary; this assertion keeps that contract in
@@ -188,6 +208,15 @@ public:
         invalidMLineElement.offset = std::numeric_limits<double>::quiet_NaN();
         invalidMLineStyle.elements.push_back(invalidMLineElement);
         rejectedMalformedStyle_ = !writer_->writeMLineStyle(&invalidMLineStyle);
+
+        DRW_MLeaderStyle invalidMLeaderStyle;
+        invalidMLeaderStyle.handle = 0xA901u;
+        invalidMLeaderStyle.parentHandle = dictionary.handle;
+        invalidMLeaderStyle.name = "LOCAL_BAD_MLEADERSTYLE";
+        invalidMLeaderStyle.firstSegmentAngle =
+            std::numeric_limits<double>::quiet_NaN();
+        rejectedMalformedMLeaderStyle_ =
+            !writer_->writeMLeaderStyle(&invalidMLeaderStyle);
 
         DRW_Group group;
         group.handle = 0xA600u;
@@ -387,7 +416,7 @@ public:
         if (data.handle == 0xA601u) {
             readDictionarySeen_ = data.parentHandle
                     == DRW::DwgNamedObjectsDictionaryHandle
-                && data.m_entries.size() == 4
+                && data.m_entries.size() == 5
                 && data.m_entries[0].m_name == "LOCAL_XRECORD"
                 && data.m_entries[0].m_handle == 0xA602u
                 && data.m_entries[1].m_name == "LOCAL_PLOTSETTINGS"
@@ -395,7 +424,9 @@ public:
                 && data.m_entries[2].m_name == "LOCAL_LAYOUT"
                 && data.m_entries[2].m_handle == 0xA700u
                 && data.m_entries[3].m_name == "LOCAL_MLINESTYLE"
-                && data.m_entries[3].m_handle == 0xA800u;
+                && data.m_entries[3].m_handle == 0xA800u
+                && data.m_entries[4].m_name == "LOCAL_MLEADERSTYLE"
+                && data.m_entries[4].m_handle == 0xA900u;
         }
     }
     void addXRecord(const DRW_XRecord& data) override {
@@ -422,6 +453,17 @@ public:
                 && data.elements.front().offset == 0.5;
         if (data.handle == 0xA801u)
             readMalformedStyleSeen_ = true;
+    }
+    void addMLeaderStyle(const DRW_MLeaderStyle* data) override {
+        if (data != nullptr && data->handle == 0xA900u)
+            readMLeaderStyleSeen_ = data->parentHandle == 0xA601u
+                && data->description == "LOCAL_MLEADERSTYLE_DESC"
+                && data->contentType == 2
+                && data->landingGap == 0.25
+                && data->textDefault == "LOCAL_MLEADER_TEXT"
+                && data->textHeight == 2.5;
+        if (data != nullptr && data->handle == 0xA901u)
+            readMalformedMLeaderStyleSeen_ = true;
     }
     void addInsert(const DRW_Insert& data) override {
         readInsertSeen_ = true;
@@ -454,10 +496,14 @@ public:
     bool wroteGroup() const { return wroteGroup_; }
     bool wroteObjectSet() const {
         return wroteDictionary_ && wroteXRecord_ && wrotePlotSettings_
-            && wroteLayout_ && wroteMLineStyle_ && wroteGroup_;
+            && wroteLayout_ && wroteMLineStyle_ && wroteMLeaderStyle_
+            && wroteGroup_;
     }
     bool rejectedMalformedObject() const { return rejectedMalformedObject_; }
     bool rejectedMalformedStyle() const { return rejectedMalformedStyle_; }
+    bool rejectedMalformedMLeaderStyle() const {
+        return rejectedMalformedMLeaderStyle_;
+    }
     bool readLineSeen() const { return readLineSeen_; }
     bool readSimpleEntitiesSeen() const {
         return readPointSeen_ && readCircleSeen_ && readArcSeen_
@@ -479,10 +525,13 @@ public:
     bool readObjectSetSeen() const {
         return readDictionarySeen_ && readXRecordSeen_
             && readPlotSettingsSeen_ && readLayoutSeen_ && readMLineStyleSeen_
-            && readGroupSeen_;
+            && readMLeaderStyleSeen_ && readGroupSeen_;
     }
     bool readMalformedObjectSeen() const { return readMalformedObjectSeen_; }
     bool readMalformedStyleSeen() const { return readMalformedStyleSeen_; }
+    bool readMalformedMLeaderStyleSeen() const {
+        return readMalformedMLeaderStyleSeen_;
+    }
     const DRW_Line& readLine() const { return readLine_; }
 
 private:
@@ -518,9 +567,12 @@ private:
     bool wrotePlotSettings_ {false};
     bool wroteLayout_ {false};
     bool wroteMLineStyle_ {false};
+    bool wroteMLeaderStyle_ {false};
     bool rejectedMalformedObject_ {false};
     bool rejectedMalformedStyle_ {false};
+    bool rejectedMalformedMLeaderStyle_ {false};
     bool registeredDictionary_ {false};
+    bool registeredMLeaderStyle_ {false};
     bool registeredPlotSettings_ {false};
     bool readLineSeen_ {false};
     bool readPointSeen_ {false};
@@ -548,8 +600,10 @@ private:
     bool readPlotSettingsSeen_ {false};
     bool readLayoutSeen_ {false};
     bool readMLineStyleSeen_ {false};
+    bool readMLeaderStyleSeen_ {false};
     bool readMalformedObjectSeen_ {false};
     bool readMalformedStyleSeen_ {false};
+    bool readMalformedMLeaderStyleSeen_ {false};
     DRW_Line readLine_;
     dx_data data_;
 };
@@ -625,6 +679,9 @@ int main(int argc, char** argv) {
         expect(writeIface.rejectedMalformedStyle(),
                ("local DWG writer rejected malformed MLINESTYLE transaction" + suffix).c_str(),
                failures);
+        expect(writeIface.rejectedMalformedMLeaderStyle(),
+               ("local DWG writer rejected malformed MLEADERSTYLE transaction" + suffix).c_str(),
+               failures);
         expect(std::filesystem::exists(output),
                ("local DWG output is published" + suffix).c_str(), failures);
 
@@ -665,6 +722,9 @@ int main(int argc, char** argv) {
                failures);
         expect(!readIface.readMalformedStyleSeen(),
                ("local DWG self-read omits rolled-back malformed MLINESTYLE" + suffix).c_str(),
+               failures);
+        expect(!readIface.readMalformedMLeaderStyleSeen(),
+               ("local DWG self-read omits rolled-back malformed MLEADERSTYLE" + suffix).c_str(),
                failures);
         if (readIface.readLineSeen()) {
             const DRW_Line& line = readIface.readLine();
