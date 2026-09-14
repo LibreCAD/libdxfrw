@@ -96,6 +96,11 @@ public:
             renderRapidRegistration.m_kind = DRW_RenderSettings::RapidRT;
             registeredRenderRapid_ = writer_->registerRenderSettingsObjectClass(
                 &renderRapidRegistration);
+            DRW_RenderSettings renderMentalRegistration;
+            renderMentalRegistration.handle = 0xC700u;
+            renderMentalRegistration.m_kind = DRW_RenderSettings::MentalRay;
+            registeredRenderMental_ = writer_->registerRenderSettingsObjectClass(
+                &renderMentalRegistration);
         }
     }
 
@@ -155,6 +160,7 @@ public:
             {"LOCAL_RENDER_GLOBAL", 0xC300u},
             {"LOCAL_RENDER_ENTRY", 0xC400u},
             {"LOCAL_RENDER_RAPIDRT", 0xC600u},
+            {"LOCAL_RENDER_MENTALRAY", 0xC700u},
         };
         wroteDictionary_ = registeredDictionary_
             && writer_->writeDictionary(&dictionary)
@@ -429,6 +435,24 @@ public:
             && writer_->writeRenderSettings(&renderRapid)
             && renderRapid.handle != 0;
 
+        DRW_RenderSettings renderMental;
+        renderMental.handle = 0xC700u;
+        renderMental.parentHandle = dictionary.handle;
+        renderMental.m_kind = DRW_RenderSettings::MentalRay;
+        renderMental.m_classVersion = 1;
+        renderMental.m_name = "LOCAL_RENDER_MENTALRAY";
+        renderMental.m_strings = {"LOCAL_RENDER_MENTALRAY", "", "LOCAL_MENTAL_DESC"};
+        renderMental.m_longs = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14};
+        renderMental.m_shorts = {1, 2, 3, 4, 5, 6, 7};
+        renderMental.m_bools = {true, false, true, false, true, false, true, false};
+        renderMental.m_doubles = {
+            0.1, 0.2, 0.3, 0.4, 0.5, 0.6,
+            0.7, 0.8, 0.9, 1.0, 1.1, 1.2};
+        renderMental.m_hasPredefined = true;
+        wroteRenderMental_ = registeredRenderMental_
+            && writer_->writeRenderSettings(&renderMental)
+            && renderMental.handle != 0;
+
         // A failed object write must not poison the following valid frames or
         // publish a partial object.  The writer's public transaction wrapper
         // owns the rollback boundary; this assertion keeps that contract in
@@ -560,6 +584,15 @@ public:
             std::numeric_limits<double>::quiet_NaN()};
         rejectedMalformedRenderRapid_ =
             !writer_->writeRenderSettings(&invalidRenderRapid);
+
+        DRW_RenderSettings invalidRenderMental;
+        invalidRenderMental.handle = 0xC701u;
+        invalidRenderMental.parentHandle = dictionary.handle;
+        invalidRenderMental.m_kind = DRW_RenderSettings::MentalRay;
+        invalidRenderMental.m_doubles = {
+            std::numeric_limits<double>::quiet_NaN()};
+        rejectedMalformedRenderMental_ =
+            !writer_->writeRenderSettings(&invalidRenderMental);
 
         DRW_Group group;
         group.handle = 0xA600u;
@@ -759,7 +792,7 @@ public:
         if (data.handle == 0xA601u) {
             readDictionarySeen_ = data.parentHandle
                     == DRW::DwgNamedObjectsDictionaryHandle
-                && data.m_entries.size() == 18
+                && data.m_entries.size() == 19
                 && data.m_entries[0].m_name == "LOCAL_XRECORD"
                 && data.m_entries[0].m_handle == 0xA602u
                 && data.m_entries[1].m_name == "LOCAL_PLOTSETTINGS"
@@ -795,7 +828,9 @@ public:
                 && data.m_entries[16].m_name == "LOCAL_RENDER_ENTRY"
                 && data.m_entries[16].m_handle == 0xC400u
                 && data.m_entries[17].m_name == "LOCAL_RENDER_RAPIDRT"
-                && data.m_entries[17].m_handle == 0xC600u;
+                && data.m_entries[17].m_handle == 0xC600u
+                && data.m_entries[18].m_name == "LOCAL_RENDER_MENTALRAY"
+                && data.m_entries[18].m_handle == 0xC700u;
         }
     }
     void addXRecord(const DRW_XRecord& data) override {
@@ -979,6 +1014,19 @@ public:
                 && data.m_doubles[1] == 0.75;
         if (data.handle == 0xC601u)
             readMalformedRenderRapidSeen_ = true;
+        if (data.handle == 0xC700u)
+            readRenderMentalSeen_ = data.parentHandle == 0xA601u
+                && data.m_kind == DRW_RenderSettings::MentalRay
+                && data.m_classVersion == 1
+                && data.m_name == "LOCAL_RENDER_MENTALRAY"
+                && data.m_shorts.size() >= 7
+                && data.m_shorts[0] == 1
+                && data.m_shorts[6] == 7
+                && data.m_doubles.size() == 12
+                && data.m_doubles[0] == 0.1
+                && data.m_doubles[11] == 1.2;
+        if (data.handle == 0xC701u)
+            readMalformedRenderMentalSeen_ = true;
     }
     void addInsert(const DRW_Insert& data) override {
         readInsertSeen_ = true;
@@ -1017,7 +1065,8 @@ public:
             && wroteRasterVariables_ && wroteWipeoutVariables_
             && wroteVisualStyle_ && wroteRenderSettings_
             && wroteRenderEnvironment_ && wroteRenderGlobal_
-            && wroteRenderEntry_ && wroteRenderRapid_ && wroteGroup_;
+            && wroteRenderEntry_ && wroteRenderRapid_ && wroteRenderMental_
+            && wroteGroup_;
     }
     bool rejectedMalformedObject() const { return rejectedMalformedObject_; }
     bool rejectedMalformedStyle() const { return rejectedMalformedStyle_; }
@@ -1059,6 +1108,9 @@ public:
     bool rejectedMalformedRenderRapid() const {
         return rejectedMalformedRenderRapid_;
     }
+    bool rejectedMalformedRenderMental() const {
+        return rejectedMalformedRenderMental_;
+    }
     bool readLineSeen() const { return readLineSeen_; }
     bool readSimpleEntitiesSeen() const {
         return readPointSeen_ && readCircleSeen_ && readArcSeen_
@@ -1086,7 +1138,7 @@ public:
             && readWipeoutVariablesSeen_ && readVisualStyleSeen_
             && readRenderSettingsSeen_ && readRenderEnvironmentSeen_
             && readRenderGlobalSeen_ && readRenderEntrySeen_
-            && readRenderRapidSeen_ && readGroupSeen_;
+            && readRenderRapidSeen_ && readRenderMentalSeen_ && readGroupSeen_;
     }
     bool readMalformedObjectSeen() const { return readMalformedObjectSeen_; }
     bool readMalformedStyleSeen() const { return readMalformedStyleSeen_; }
@@ -1133,6 +1185,10 @@ public:
     bool readRenderRapidSeen() const { return readRenderRapidSeen_; }
     bool readMalformedRenderRapidSeen() const {
         return readMalformedRenderRapidSeen_;
+    }
+    bool readRenderMentalSeen() const { return readRenderMentalSeen_; }
+    bool readMalformedRenderMentalSeen() const {
+        return readMalformedRenderMentalSeen_;
     }
     const DRW_Line& readLine() const { return readLine_; }
 
@@ -1183,6 +1239,7 @@ private:
     bool wroteRenderGlobal_ {false};
     bool wroteRenderEntry_ {false};
     bool wroteRenderRapid_ {false};
+    bool wroteRenderMental_ {false};
     bool rejectedMalformedObject_ {false};
     bool rejectedMalformedStyle_ {false};
     bool rejectedMalformedMLeaderStyle_ {false};
@@ -1199,6 +1256,7 @@ private:
     bool rejectedMalformedRenderGlobal_ {false};
     bool rejectedMalformedRenderEntry_ {false};
     bool rejectedMalformedRenderRapid_ {false};
+    bool rejectedMalformedRenderMental_ {false};
     bool registeredDictionary_ {false};
     bool registeredMLeaderStyle_ {false};
     bool registeredDictionaryVar_ {false};
@@ -1214,6 +1272,7 @@ private:
     bool registeredRenderGlobal_ {false};
     bool registeredRenderEntry_ {false};
     bool registeredRenderRapid_ {false};
+    bool registeredRenderMental_ {false};
     bool registeredPlotSettings_ {false};
     bool readLineSeen_ {false};
     bool readPointSeen_ {false};
@@ -1255,6 +1314,7 @@ private:
     bool readRenderGlobalSeen_ {false};
     bool readRenderEntrySeen_ {false};
     bool readRenderRapidSeen_ {false};
+    bool readRenderMentalSeen_ {false};
     bool readMalformedObjectSeen_ {false};
     bool readMalformedStyleSeen_ {false};
     bool readMalformedMLeaderStyleSeen_ {false};
@@ -1271,6 +1331,7 @@ private:
     bool readMalformedRenderGlobalSeen_ {false};
     bool readMalformedRenderEntrySeen_ {false};
     bool readMalformedRenderRapidSeen_ {false};
+    bool readMalformedRenderMentalSeen_ {false};
     DRW_Line readLine_;
     dx_data data_;
 };

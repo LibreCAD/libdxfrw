@@ -62,6 +62,8 @@ RENDERENTRY_HANDLE = 0xC400
 MALFORMED_RENDERENTRY_HANDLE = 0xC401
 RAPIDRTRENDERSETTINGS_HANDLE = 0xC600
 MALFORMED_RAPIDRTRENDERSETTINGS_HANDLE = 0xC601
+MENTALRAYRENDERSETTINGS_HANDLE = 0xC700
+MALFORMED_MENTALRAYRENDERSETTINGS_HANDLE = 0xC701
 
 
 def parse_json_output(text: str) -> dict:
@@ -125,7 +127,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         raise ValueError("GROUP name, owner, or member stream mismatch")
 
     dictionary = find_record(records, "DICTIONARY", DICTIONARY_HANDLE)
-    if (dictionary.get("numitems") != 18
+    if (dictionary.get("numitems") != 19
             or dictionary.get("is_hardowner") != 1
             or owner_handle(dictionary) != 0x0C):
         raise ValueError("custom DICTIONARY count, owner, or cloning mismatch")
@@ -366,6 +368,76 @@ def check_objects(payload: dict, version_name: str) -> dict:
         rapid_discrepancies.append(
             "LibreDWG 0.14 misdecodes RapidRT render fields for " + version_name)
 
+    mental = find_record(
+        records, "MENTALRAYRENDERSETTINGS", MENTALRAYRENDERSETTINGS_HANDLE)
+    if (owner_handle(mental) != DICTIONARY_HANDLE
+            or mental.get("type") != 557
+            or mental.get("name") != "LOCAL_RENDER_MENTALRAY"
+            or mental.get("description") != "LOCAL_MENTAL_DESC"
+            or mental.get("fog_enabled") != 1
+            or mental.get("fog_background_enabled") != 0
+            or mental.get("backfaces_enabled") != 1
+            or mental.get("environ_image_enabled") != 0
+            or mental.get("display_index") != 2):
+        raise ValueError("MENTALRAYRENDERSETTINGS owner or base fields mismatch")
+    mental_discrepancies = []
+    mental_expected = {
+        "mr_version": 3,
+        "sampling1": 4,
+        "sampling2": 5,
+        "sampling_mr_filter": 1,
+        "sampling_filter1": 0.1,
+        "sampling_filter2": 0.2,
+        "sampling_contrast_color1": 0.3,
+        "sampling_contrast_color2": 0.4,
+        "sampling_contrast_color3": 0.5,
+        "sampling_contrast_color4": 0.6,
+        "shadow_mode": 2,
+        "ray_trace_depth1": 6,
+        "ray_trace_depth2": 7,
+        "ray_trace_depth3": 8,
+        "gi_sample_count": 9,
+        "gi_sample_radius": 0.7,
+        "gi_photons_per_light": 10,
+        "photon_trace_depth1": 11,
+        "photon_trace_depth2": 12,
+        "photon_trace_depth3": 13,
+        "fg_ray_count": 14,
+        "fg_sample_radius1": 0.8,
+        "fg_sample_radius2": 0.9,
+        "light_luminance_scale": 1.0,
+        "diagnostics_mode": 3,
+        "diagnostics_grid_mode": 4,
+        "diagnostics_grid_float": 1.1,
+        "diagnostics_photon_mode": 5,
+        "diagnostics_bsp_mode": 6,
+        "energy_multiplier": 1.2,
+    }
+    if version_name in {"AC1015", "AC1018", "AC1021", "AC1024"}:
+        mental_expected["class_version"] = 1
+        mental_expected.update({
+            "shadow_maps_enabled": 1,
+            "ray_tracing_enabled": 0,
+            "global_illumination_enabled": 1,
+        })
+    elif version_name == "AC1027":
+        # LibreDWG 0.14 omits the class version and inverts these three
+        # legacy flags while decoding the otherwise stable payload.
+        mental_discrepancies.extend([
+            "LibreDWG 0.14 omits MENTALRAYRENDERSETTINGS class_version for AC1027",
+            "LibreDWG 0.14 inverts MENTALRAYRENDERSETTINGS shadow/ray/global flags for AC1027",
+        ])
+    else:
+        # The R2018 reader currently loses alignment after the common header;
+        # retain the bounded frame qualification and report the discrepancy.
+        mental_discrepancies.append(
+            "LibreDWG 0.14 misdecodes MENTALRAYRENDERSETTINGS payload for AC1032")
+    if version_name != "AC1032":
+        for key, expected in mental_expected.items():
+            if mental.get(key) != expected:
+                raise ValueError(
+                    "MENTALRAYRENDERSETTINGS field mismatch: " + key)
+
     dictionary_default = find_record(
         records, "DICTIONARYWDFLT", DICTIONARYWDFLT_HANDLE)
     if (owner_handle(dictionary_default) != DICTIONARY_HANDLE
@@ -409,6 +481,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         MALFORMED_RENDERGLOBAL_HANDLE: "RENDERGLOBAL",
         MALFORMED_RENDERENTRY_HANDLE: "RENDERENTRY",
         MALFORMED_RAPIDRTRENDERSETTINGS_HANDLE: "RAPIDRTRENDERSETTINGS",
+        MALFORMED_MENTALRAYRENDERSETTINGS_HANDLE: "MENTALRAYRENDERSETTINGS",
     }
     if any(record_handle(record) in malformed_handles
            and record.get("object") == malformed_handles[record_handle(record)]
@@ -437,10 +510,11 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "RENDERGLOBAL": RENDERGLOBAL_HANDLE,
             "RENDERENTRY": RENDERENTRY_HANDLE,
             "RAPIDRTRENDERSETTINGS": RAPIDRTRENDERSETTINGS_HANDLE,
+            "MENTALRAYRENDERSETTINGS": MENTALRAYRENDERSETTINGS_HANDLE,
             "DICTIONARYWDFLT": DICTIONARYWDFLT_HANDLE,
         },
         "objectStatus": "qualified",
-        "oracleDiscrepancies": oracle_discrepancies,
+        "oracleDiscrepancies": oracle_discrepancies + mental_discrepancies,
     }
 
 
@@ -511,7 +585,7 @@ def self_test() -> None:
              "ownerhandle": [4, 1, 0x0C, 0x0C], "name": "LOCAL_GROUP",
              "groups": [[5, 1, 0x1234]]},
             {"object": "DICTIONARY", "handle": [0, 1, DICTIONARY_HANDLE],
-             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 18,
+             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 19,
              "is_hardowner": 1},
             {"object": "XRECORD", "handle": [0, 1, XRECORD_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
@@ -625,6 +699,32 @@ def self_test() -> None:
              "render_target": 3, "render_level": 4, "render_time": 5,
              "lighting_model": 6, "filter_type": 7,
              "filter_width": 0.25, "filter_height": 0.75},
+            {"object": "MENTALRAYRENDERSETTINGS",
+             "handle": [0, 1, MENTALRAYRENDERSETTINGS_HANDLE],
+             "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "type": 557, "class_version": 1,
+             "name": "LOCAL_RENDER_MENTALRAY",
+             "description": "LOCAL_MENTAL_DESC", "fog_enabled": 1,
+             "fog_background_enabled": 0, "backfaces_enabled": 1,
+             "environ_image_enabled": 0, "display_index": 2,
+             "mr_version": 3, "sampling1": 4, "sampling2": 5,
+             "sampling_mr_filter": 1, "sampling_filter1": 0.1,
+             "sampling_filter2": 0.2,
+             "sampling_contrast_color1": 0.3,
+             "sampling_contrast_color2": 0.4,
+             "sampling_contrast_color3": 0.5,
+             "sampling_contrast_color4": 0.6, "shadow_mode": 2,
+             "shadow_maps_enabled": 1, "ray_tracing_enabled": 0,
+             "ray_trace_depth1": 6, "ray_trace_depth2": 7,
+             "ray_trace_depth3": 8, "global_illumination_enabled": 1,
+             "gi_sample_count": 9, "gi_sample_radius": 0.7,
+             "gi_photons_per_light": 10, "photon_trace_depth1": 11,
+             "photon_trace_depth2": 12, "photon_trace_depth3": 13,
+             "fg_ray_count": 14, "fg_sample_radius1": 0.8,
+             "fg_sample_radius2": 0.9, "light_luminance_scale": 1.0,
+             "diagnostics_mode": 3, "diagnostics_grid_mode": 4,
+             "diagnostics_grid_float": 1.1, "diagnostics_photon_mode": 5,
+             "diagnostics_bsp_mode": 6, "energy_multiplier": 1.2},
         ],
     }
     check_objects(payload, "AC1024")
@@ -781,6 +881,16 @@ def self_test() -> None:
         pass
     else:
         raise AssertionError("malformed RAPIDRTRENDERSETTINGS was not rejected")
+    try:
+        bad = json.loads(json.dumps(payload))
+        bad["OBJECTS"].append({"object": "MENTALRAYRENDERSETTINGS",
+                                "handle": [0, 1,
+                                            MALFORMED_MENTALRAYRENDERSETTINGS_HANDLE]})
+        check_objects(bad, "AC1024")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("malformed MENTALRAYRENDERSETTINGS was not rejected")
     print("local DWG object oracle: PASS")
 
 
