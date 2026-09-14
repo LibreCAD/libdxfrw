@@ -156,6 +156,19 @@ public:
         hatchLoop->update();
         hatch.appendLoop(hatchLoop);
         wroteHatch_ = writer_->writeHatch(&hatch) && hatch.handle != 0;
+
+        DRW_Leader leader;
+        leader.style = "STANDARD";
+        leader.leadertype = 0;
+        leader.flag = 3;
+        leader.hookline = 1;
+        leader.arrow = 1;
+        leader.vertnum = 2;
+        leader.vertexlist.push_back(
+            std::make_shared<DRW_Coord>(69.0, 70.0, 0.0));
+        leader.vertexlist.push_back(
+            std::make_shared<DRW_Coord>(71.0, 72.0, 0.0));
+        wroteLeader_ = writer_->writeLeader(&leader) && leader.handle != 0;
     }
 
     void addLine(const DRW_Line& data) override {
@@ -182,6 +195,7 @@ public:
     }
     void addSpline(const DRW_Spline*) override { readSplineSeen_ = true; }
     void addHatch(const DRW_Hatch*) override { readHatchSeen_ = true; }
+    void addLeader(const DRW_Leader*) override { readLeaderSeen_ = true; }
 
     bool wroteLine() const { return wroteLine_; }
     bool wroteSimpleEntities() const {
@@ -196,6 +210,7 @@ public:
     bool wroteOldPolyline() const { return wroteOldPolyline_; }
     bool wroteSpline() const { return wroteSpline_; }
     bool wroteHatch() const { return wroteHatch_; }
+    bool wroteLeader() const { return wroteLeader_; }
     bool readLineSeen() const { return readLineSeen_; }
     bool readSimpleEntitiesSeen() const {
         return readPointSeen_ && readCircleSeen_ && readArcSeen_
@@ -210,6 +225,7 @@ public:
     bool readOldPolylineSeen() const { return readOldPolylineSeen_; }
     bool readSplineSeen() const { return readSplineSeen_; }
     bool readHatchSeen() const { return readHatchSeen_; }
+    bool readLeaderSeen() const { return readLeaderSeen_; }
     const DRW_Line& readLine() const { return readLine_; }
 
 private:
@@ -231,6 +247,7 @@ private:
     bool wroteOldPolyline_ {false};
     bool wroteSpline_ {false};
     bool wroteHatch_ {false};
+    bool wroteLeader_ {false};
     bool readLineSeen_ {false};
     bool readPointSeen_ {false};
     bool readCircleSeen_ {false};
@@ -248,6 +265,7 @@ private:
     bool readOldPolylineSeen_ {false};
     bool readSplineSeen_ {false};
     bool readHatchSeen_ {false};
+    bool readLeaderSeen_ {false};
     DRW_Line readLine_;
     dx_data data_;
 };
@@ -304,6 +322,8 @@ int main(int argc, char** argv) {
                ("local DWG writer emitted SPLINE" + suffix).c_str(), failures);
         expect(writeIface.wroteHatch(),
                ("local DWG writer emitted HATCH" + suffix).c_str(), failures);
+        expect(writeIface.wroteLeader(),
+               ("local DWG writer emitted LEADER" + suffix).c_str(), failures);
         expect(std::filesystem::exists(output),
                ("local DWG output is published" + suffix).c_str(), failures);
 
@@ -328,6 +348,8 @@ int main(int argc, char** argv) {
                ("local DWG self-read publishes SPLINE" + suffix).c_str(), failures);
         expect(readIface.readHatchSeen(),
                ("local DWG self-read publishes HATCH" + suffix).c_str(), failures);
+        expect(readIface.readLeaderSeen(),
+               ("local DWG self-read publishes LEADER" + suffix).c_str(), failures);
         if (readIface.readLineSeen()) {
             const DRW_Line& line = readIface.readLine();
             expect(line.basePoint.x == 1.0 && line.basePoint.y == 2.0
