@@ -122,6 +122,14 @@ public:
             idBufferRegistration.handle = 0xCC00u;
             registeredIDBuffer_ = writer_->registerIDBufferObjectClass(
                 &idBufferRegistration);
+            DRW_LayerIndex layerIndexRegistration;
+            layerIndexRegistration.handle = 0xCD00u;
+            registeredLayerIndex_ = writer_->registerLayerIndexObjectClass(
+                &layerIndexRegistration);
+            DRW_SpatialIndex spatialIndexRegistration;
+            spatialIndexRegistration.handle = 0xCE00u;
+            registeredSpatialIndex_ = writer_->registerSpatialIndexObjectClass(
+                &spatialIndexRegistration);
         }
     }
 
@@ -187,6 +195,8 @@ public:
             {"LOCAL_LIGHTLIST", 0xCA00u},
             {"LOCAL_SCALE", 0xCB00u},
             {"LOCAL_IDBUFFER", 0xCC00u},
+            {"LOCAL_LAYER_INDEX", 0xCD00u},
+            {"LOCAL_SPATIAL_INDEX", 0xCE00u},
         };
         wroteDictionary_ = registeredDictionary_
             && writer_->writeDictionary(&dictionary)
@@ -705,6 +715,39 @@ public:
         invalidIDBuffer.objIds.assign(DRW_IDBuffer::kMaxObjectIds + 1, 0u);
         rejectedMalformedIDBuffer_ = !writer_->writeIDBuffer(&invalidIDBuffer);
 
+        DRW_LayerIndex layerIndex;
+        layerIndex.handle = 0xCD00u;
+        layerIndex.parentHandle = dictionary.handle;
+        layerIndex.timestamp1 = 100;
+        layerIndex.timestamp2 = 200;
+        layerIndex.entries.push_back({1, "LOCAL_LAYER", idBuffer.handle});
+        wroteLayerIndex_ = registeredLayerIndex_
+            && writer_->writeLayerIndex(&layerIndex)
+            && layerIndex.handle != 0;
+
+        DRW_LayerIndex invalidLayerIndex;
+        invalidLayerIndex.handle = 0xCD01u;
+        invalidLayerIndex.parentHandle = dictionary.handle;
+        invalidLayerIndex.entries.push_back({1, "LOCAL_BAD_LAYER", 0});
+        invalidLayerIndex.setDwgCommonObjectState(0, 2, false);
+        rejectedMalformedLayerIndex_ = !writer_->writeLayerIndex(&invalidLayerIndex);
+
+        DRW_SpatialIndex spatialIndex;
+        spatialIndex.handle = 0xCE00u;
+        spatialIndex.parentHandle = dictionary.handle;
+        spatialIndex.timestamp1 = 300;
+        spatialIndex.timestamp2 = 400;
+        wroteSpatialIndex_ = registeredSpatialIndex_
+            && writer_->writeSpatialIndex(&spatialIndex)
+            && spatialIndex.handle != 0;
+
+        DRW_SpatialIndex invalidSpatialIndex;
+        invalidSpatialIndex.handle = 0xCE01u;
+        invalidSpatialIndex.parentHandle = dictionary.handle;
+        invalidSpatialIndex.setDwgCommonObjectState(0, 2, false);
+        rejectedMalformedSpatialIndex_ =
+            !writer_->writeSpatialIndex(&invalidSpatialIndex);
+
         DRW_Group group;
         group.handle = 0xA600u;
         group.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
@@ -903,7 +946,7 @@ public:
         if (data.handle == 0xA601u) {
             readDictionarySeen_ = data.parentHandle
                     == DRW::DwgNamedObjectsDictionaryHandle
-                && data.m_entries.size() == 24
+                && data.m_entries.size() == 26
                 && data.m_entries[0].m_name == "LOCAL_XRECORD"
                 && data.m_entries[0].m_handle == 0xA602u
                 && data.m_entries[1].m_name == "LOCAL_PLOTSETTINGS"
@@ -951,7 +994,11 @@ public:
                 && data.m_entries[22].m_name == "LOCAL_SCALE"
                 && data.m_entries[22].m_handle == 0xCB00u
                 && data.m_entries[23].m_name == "LOCAL_IDBUFFER"
-                && data.m_entries[23].m_handle == 0xCC00u;
+                && data.m_entries[23].m_handle == 0xCC00u
+                && data.m_entries[24].m_name == "LOCAL_LAYER_INDEX"
+                && data.m_entries[24].m_handle == 0xCD00u
+                && data.m_entries[25].m_name == "LOCAL_SPATIAL_INDEX"
+                && data.m_entries[25].m_handle == 0xCE00u;
         }
     }
     void addXRecord(const DRW_XRecord& data) override {
@@ -1198,6 +1245,26 @@ public:
         if (data.handle == 0xCC01u)
             readMalformedIDBufferSeen_ = true;
     }
+    void addLayerIndex(const DRW_LayerIndex& data) override {
+        if (data.handle == 0xCD00u)
+            readLayerIndexSeen_ = data.parentHandle == 0xA601u
+                && data.timestamp1 == 100
+                && data.timestamp2 == 200
+                && data.entries.size() == 1
+                && data.entries.front().indexLong == 1
+                && data.entries.front().name == "LOCAL_LAYER"
+                && data.entries.front().entryHandle != DRW::NoHandle;
+        if (data.handle == 0xCD01u)
+            readMalformedLayerIndexSeen_ = true;
+    }
+    void addSpatialIndex(const DRW_SpatialIndex& data) override {
+        if (data.handle == 0xCE00u)
+            readSpatialIndexSeen_ = data.parentHandle == 0xA601u
+                && data.timestamp1 == 300
+                && data.timestamp2 == 400;
+        if (data.handle == 0xCE01u)
+            readMalformedSpatialIndexSeen_ = true;
+    }
     void addInsert(const DRW_Insert& data) override {
         readInsertSeen_ = true;
         readAttribSeen_ = data.attlist.size() == 1
@@ -1241,6 +1308,8 @@ public:
             && wroteLightList_
             && wroteScale_
             && wroteIDBuffer_
+            && wroteLayerIndex_
+            && wroteSpatialIndex_
             && wroteGroup_;
     }
     bool rejectedMalformedObject() const { return rejectedMalformedObject_; }
@@ -1293,6 +1362,8 @@ public:
     bool rejectedMalformedLightList() const { return rejectedMalformedLightList_; }
     bool rejectedMalformedScale() const { return rejectedMalformedScale_; }
     bool rejectedMalformedIDBuffer() const { return rejectedMalformedIDBuffer_; }
+    bool rejectedMalformedLayerIndex() const { return rejectedMalformedLayerIndex_; }
+    bool rejectedMalformedSpatialIndex() const { return rejectedMalformedSpatialIndex_; }
     bool readLineSeen() const { return readLineSeen_; }
     bool readSimpleEntitiesSeen() const {
         return readPointSeen_ && readCircleSeen_ && readArcSeen_
@@ -1322,7 +1393,8 @@ public:
             && readRenderGlobalSeen_ && readRenderEntrySeen_
             && readRenderRapidSeen_ && readRenderMentalSeen_
             && readMaterialSeen_ && readLightListSeen_ && readScaleSeen_
-            && readIDBufferSeen_ && readGroupSeen_;
+            && readIDBufferSeen_ && readLayerIndexSeen_ && readSpatialIndexSeen_
+            && readGroupSeen_;
     }
     bool readMalformedObjectSeen() const { return readMalformedObjectSeen_; }
     bool readMalformedStyleSeen() const { return readMalformedStyleSeen_; }
@@ -1384,6 +1456,10 @@ public:
     bool readMalformedScaleSeen() const { return readMalformedScaleSeen_; }
     bool readIDBufferSeen() const { return readIDBufferSeen_; }
     bool readMalformedIDBufferSeen() const { return readMalformedIDBufferSeen_; }
+    bool readLayerIndexSeen() const { return readLayerIndexSeen_; }
+    bool readMalformedLayerIndexSeen() const { return readMalformedLayerIndexSeen_; }
+    bool readSpatialIndexSeen() const { return readSpatialIndexSeen_; }
+    bool readMalformedSpatialIndexSeen() const { return readMalformedSpatialIndexSeen_; }
     const DRW_Line& readLine() const { return readLine_; }
 
 private:
@@ -1439,6 +1515,8 @@ private:
     bool wroteLightList_ {false};
     bool wroteScale_ {false};
     bool wroteIDBuffer_ {false};
+    bool wroteLayerIndex_ {false};
+    bool wroteSpatialIndex_ {false};
     bool rejectedMalformedObject_ {false};
     bool rejectedMalformedStyle_ {false};
     bool rejectedMalformedMLeaderStyle_ {false};
@@ -1462,6 +1540,8 @@ private:
     bool rejectedMalformedLightList_ {false};
     bool rejectedMalformedScale_ {false};
     bool rejectedMalformedIDBuffer_ {false};
+    bool rejectedMalformedLayerIndex_ {false};
+    bool rejectedMalformedSpatialIndex_ {false};
     bool registeredDictionary_ {false};
     bool registeredMLeaderStyle_ {false};
     bool registeredDictionaryVar_ {false};
@@ -1483,6 +1563,8 @@ private:
     bool registeredLightList_ {false};
     bool registeredScale_ {false};
     bool registeredIDBuffer_ {false};
+    bool registeredLayerIndex_ {false};
+    bool registeredSpatialIndex_ {false};
     bool registeredPlotSettings_ {false};
     bool readLineSeen_ {false};
     bool readPointSeen_ {false};
@@ -1530,6 +1612,8 @@ private:
     bool readLightListSeen_ {false};
     bool readScaleSeen_ {false};
     bool readIDBufferSeen_ {false};
+    bool readLayerIndexSeen_ {false};
+    bool readSpatialIndexSeen_ {false};
     bool readMalformedObjectSeen_ {false};
     bool readMalformedStyleSeen_ {false};
     bool readMalformedMLeaderStyleSeen_ {false};
@@ -1552,6 +1636,8 @@ private:
     bool readMalformedLightListSeen_ {false};
     bool readMalformedScaleSeen_ {false};
     bool readMalformedIDBufferSeen_ {false};
+    bool readMalformedLayerIndexSeen_ {false};
+    bool readMalformedSpatialIndexSeen_ {false};
     DRW_Line readLine_;
     dx_data data_;
 };
@@ -1688,6 +1774,12 @@ int main(int argc, char** argv) {
         expect(writeIface.rejectedMalformedIDBuffer(),
                ("local DWG writer rejected malformed IDBUFFER transaction" + suffix).c_str(),
                failures);
+        expect(writeIface.rejectedMalformedLayerIndex(),
+               ("local DWG writer rejected malformed LAYER_INDEX transaction" + suffix).c_str(),
+               failures);
+        expect(writeIface.rejectedMalformedSpatialIndex(),
+               ("local DWG writer rejected malformed SPATIAL_INDEX transaction" + suffix).c_str(),
+               failures);
         expect(std::filesystem::exists(output),
                ("local DWG output is published" + suffix).c_str(), failures);
 
@@ -1758,6 +1850,12 @@ int main(int argc, char** argv) {
         expect(readIface.readIDBufferSeen(),
                ("local DWG self-read publishes IDBUFFER" + suffix).c_str(),
                failures);
+        expect(readIface.readLayerIndexSeen(),
+               ("local DWG self-read publishes LAYER_INDEX" + suffix).c_str(),
+               failures);
+        expect(readIface.readSpatialIndexSeen(),
+               ("local DWG self-read publishes SPATIAL_INDEX" + suffix).c_str(),
+               failures);
         expect(!readIface.readMalformedObjectSeen(),
                ("local DWG self-read omits rolled-back malformed object" + suffix).c_str(),
                failures);
@@ -1820,6 +1918,12 @@ int main(int argc, char** argv) {
                failures);
         expect(!readIface.readMalformedIDBufferSeen(),
                ("local DWG self-read omits rolled-back malformed IDBUFFER" + suffix).c_str(),
+               failures);
+        expect(!readIface.readMalformedLayerIndexSeen(),
+               ("local DWG self-read omits rolled-back malformed LAYER_INDEX" + suffix).c_str(),
+               failures);
+        expect(!readIface.readMalformedSpatialIndexSeen(),
+               ("local DWG self-read omits rolled-back malformed SPATIAL_INDEX" + suffix).c_str(),
                failures);
         if (readIface.readLineSeen()) {
             const DRW_Line& line = readIface.readLine();

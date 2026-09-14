@@ -74,6 +74,10 @@ SCALE_HANDLE = 0xCB00
 MALFORMED_SCALE_HANDLE = 0xCB01
 IDBUFFER_HANDLE = 0xCC00
 MALFORMED_IDBUFFER_HANDLE = 0xCC01
+LAYER_INDEX_HANDLE = 0xCD00
+MALFORMED_LAYER_INDEX_HANDLE = 0xCD01
+SPATIAL_INDEX_HANDLE = 0xCE00
+MALFORMED_SPATIAL_INDEX_HANDLE = 0xCE01
 
 RENDER_SETTINGS_KINDS = {
     "Settings": ("RENDERSETTINGS", RENDERSETTINGS_HANDLE, 556),
@@ -159,7 +163,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         raise ValueError("GROUP name, owner, or member stream mismatch")
 
     dictionary = find_record(records, "DICTIONARY", DICTIONARY_HANDLE)
-    if (dictionary.get("numitems") != 24
+    if (dictionary.get("numitems") != 26
             or dictionary.get("is_hardowner") != 1
             or owner_handle(dictionary) != 0x0C):
         raise ValueError("custom DICTIONARY count, owner, or cloning mismatch")
@@ -543,6 +547,30 @@ def check_objects(payload: dict, version_name: str) -> dict:
             or object_ids[0][2] <= 0):
         raise ValueError("IDBUFFER owner, count, or handle mismatch")
 
+    layer_index = find_record(records, "LAYER_INDEX", LAYER_INDEX_HANDLE)
+    layer_entries = layer_index.get("entries")
+    if (owner_handle(layer_index) != DICTIONARY_HANDLE
+            or layer_index.get("type") != 511
+            or layer_index.get("last_updated") != [100, 200]
+            or not isinstance(layer_entries, list)
+            or len(layer_entries) != 1
+            or not isinstance(layer_entries[0], dict)
+            or layer_entries[0].get("numlayers") != 1
+            or layer_entries[0].get("name") != "LOCAL_LAYER"
+            or not isinstance(layer_entries[0].get("handle"), list)
+            or len(layer_entries[0]["handle"]) < 3
+            or layer_entries[0]["handle"][2] <= 0):
+        raise ValueError("LAYER_INDEX owner, count, name, or handle mismatch")
+
+    spatial_index = find_record(records, "SPATIAL_INDEX", SPATIAL_INDEX_HANDLE)
+    if (owner_handle(spatial_index) != DICTIONARY_HANDLE
+            or spatial_index.get("type") != 517
+            or spatial_index.get("last_updated") != [300, 400]):
+        raise ValueError("SPATIAL_INDEX owner or timestamp mismatch")
+    spatial_index_discrepancies = [
+        "SPATIAL_INDEX opaque spatial payload is intentionally empty in local fixture"
+    ]
+
     dictionary_default = find_record(
         records, "DICTIONARYWDFLT", DICTIONARYWDFLT_HANDLE)
     if (owner_handle(dictionary_default) != DICTIONARY_HANDLE
@@ -592,6 +620,8 @@ def check_objects(payload: dict, version_name: str) -> dict:
         MALFORMED_LIGHTLIST_HANDLE: "LIGHTLIST",
         MALFORMED_SCALE_HANDLE: "SCALE",
         MALFORMED_IDBUFFER_HANDLE: "IDBUFFER",
+        MALFORMED_LAYER_INDEX_HANDLE: "LAYER_INDEX",
+        MALFORMED_SPATIAL_INDEX_HANDLE: "SPATIAL_INDEX",
     }
     if any(record_handle(record) in malformed_handles
            and record.get("object") == malformed_handles[record_handle(record)]
@@ -627,13 +657,16 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "LIGHTLIST": LIGHTLIST_HANDLE,
             "SCALE": SCALE_HANDLE,
             "IDBUFFER": IDBUFFER_HANDLE,
+            "LAYER_INDEX": LAYER_INDEX_HANDLE,
+            "SPATIAL_INDEX": SPATIAL_INDEX_HANDLE,
             "DICTIONARYWDFLT": DICTIONARYWDFLT_HANDLE,
         },
         "objectStatus": "qualified",
         "oracleDiscrepancies": (oracle_discrepancies + mental_discrepancies
                                  + material_discrepancies
                                  + dbcolor_discrepancies
-                                 + light_list_discrepancies),
+                                 + light_list_discrepancies
+                                 + spatial_index_discrepancies),
     }
 
 
@@ -704,7 +737,7 @@ def self_test() -> None:
              "ownerhandle": [4, 1, 0x0C, 0x0C], "name": "LOCAL_GROUP",
              "groups": [[5, 1, 0x1234]]},
             {"object": "DICTIONARY", "handle": [0, 1, DICTIONARY_HANDLE],
-             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 24,
+             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 26,
              "is_hardowner": 1},
             {"object": "XRECORD", "handle": [0, 1, XRECORD_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
@@ -866,6 +899,15 @@ def self_test() -> None:
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
              "type": 510, "unknown": 0,
              "obj_ids": [[4, 2, 0x1234, 0x1234]]},
+            {"object": "LAYER_INDEX", "handle": [0, 1, LAYER_INDEX_HANDLE],
+             "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "type": 511, "last_updated": [100, 200],
+             "entries": [{"numlayers": 1, "name": "LOCAL_LAYER",
+                          "handle": [5, 2, 0xCC00, 0xCC00]}]},
+            {"object": "SPATIAL_INDEX",
+             "handle": [0, 1, SPATIAL_INDEX_HANDLE],
+             "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "type": 517, "last_updated": [300, 400]},
         ],
     }
     summary = check_objects(payload, "AC1024")
@@ -1079,6 +1121,24 @@ def self_test() -> None:
         pass
     else:
         raise AssertionError("malformed IDBUFFER was not rejected")
+    try:
+        bad = json.loads(json.dumps(payload))
+        bad["OBJECTS"].append({"object": "LAYER_INDEX",
+                                "handle": [0, 1, MALFORMED_LAYER_INDEX_HANDLE]})
+        check_objects(bad, "AC1024")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("malformed LAYER_INDEX was not rejected")
+    try:
+        bad = json.loads(json.dumps(payload))
+        bad["OBJECTS"].append({"object": "SPATIAL_INDEX",
+                                "handle": [0, 1, MALFORMED_SPATIAL_INDEX_HANDLE]})
+        check_objects(bad, "AC1024")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("malformed SPATIAL_INDEX was not rejected")
     print("local DWG object oracle: PASS")
 
 
