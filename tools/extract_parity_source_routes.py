@@ -25,7 +25,7 @@ from typing import Iterable
 
 
 SCHEMA = 1
-PARSER_SCHEMA = 7
+PARSER_SCHEMA = 8
 MANIFEST_FIELDS = 4
 SOURCE_PREFIX = "libraries/libdxfrw/"
 SOURCE_ROOT = "libraries/libdxfrw/src"
@@ -791,6 +791,29 @@ RAW_CARRIER_TRANSFORMS = {
 PARSER_PUBLICATION_CATEGORIES = {
     "dxfRW": {"dxf-block", "dxf-entity", "dxf-object", "dxf-section", "dxf-table"},
     "dwgRW": {"fixed-entity", "fixed-object", "named-entity-class", "named-object-class", "table-descriptor"},
+}
+
+# ``raw-route`` is intentionally broader than parser-publication: it also
+# contains caller-facing write/replay anchors.  These read-side rules identify
+# the five DXF carrier publication functions whose terminal callbacks must be
+# proven separately from the structural raw-flow graph.  Keep the binding and
+# callback names exact so a target refresh cannot silently turn a generic raw
+# anchor into a publication claim.
+RAW_DXF_SINGLE_PUBLICATION_RULES = {
+    "dxf-publish-object": ("dxfRW::processRawObject", "DRW_RawDxfObject", "obj", "addRawDxfObject"),
+    "dxf-publish-entity": ("dxfRW::processRawEntity", "DRW_RawDxfObject", "ent", "addRawDxfEntity"),
+    "dxf-publish-section": ("dxfRW::processRawDxfSection", "DRW_RawDxfSection", "section", "addRawDxfSection"),
+    "dxf-publish-typed-raw-carrier": (
+        "dxfRW::processRawCapturedObject", "DRW_RawDxfObject", "raw", "addRawDxfObject"
+    ),
+}
+RAW_DXF_PROXY_PUBLICATION_RULES = {
+    "dxfRW::processProxyEntity": (
+        "DRW_ProxyEntity", "entity", "addProxyEntity", "DRW_RawDxfObject", "raw", "addRawDxfEntity"
+    ),
+    "dxfRW::processProxyObject": (
+        "DRW_ProxyObject", "object", "addProxyObject", "DRW_RawDxfObject", "raw", "addRawDxfObject"
+    ),
 }
 
 # These route nodes cover the deliberate deferred/publication machinery that
@@ -2772,6 +2795,9 @@ def raw_flow_bodies(tree: SourceTree, anchors: tuple[tuple[str, str], ...]) -> l
 def add_raw_flow_routes(collector: RouteCollector, tree: SourceTree) -> None:
     """Close raw carriers, guards, handoffs, and replay phases explicitly."""
     inputs = raw_flow_inputs_by_name()
+    publication_models = _publication_model_routes(collector)
+    publication_callbacks = _publication_callback_routes(collector)
+    publication_parents = publication_model_parents(tree, set(publication_models))
     for node in RAW_FLOW_NODES:
         flow = node["flow"]
         name = node["name"]
@@ -2829,6 +2855,19 @@ def add_raw_flow_routes(collector: RouteCollector, tree: SourceTree) -> None:
             selector["terminalDisposition"] = node["terminalDisposition"]
         if "externalIngress" in node:
             selector["externalIngress"] = node["externalIngress"]
+        if phase == "publication":
+            predecessor_route_ids = [
+                raw_flow_route_id(facade, input_name)
+                for input_name in inputs[name]
+            ]
+            selector["rawPublicationEvidence"] = raw_route_publication_metadata(
+                name,
+                evidence_bodies,
+                publication_callbacks,
+                publication_models,
+                publication_parents,
+                predecessor_route_ids,
+            )
         collector.add(
             facade,
             "raw-flow",
@@ -3490,6 +3529,157 @@ def _interface_publications(body: FunctionBody, callbacks: dict[str, dict]) -> l
             }
         )
     return result
+
+
+def _same_publication_branch(left: list[dict], right: list[dict]) -> bool:
+    """Compare branch predicates while ignoring per-call unconditional markers."""
+    return [item for item in left if item.get("branchKind") != "unconditional"] == [
+        item for item in right if item.get("branchKind") != "unconditional"
+    ]
+
+
+def _raw_binding_evidence(body: FunctionBody, model: str, binding: str) -> dict:
+    """Resolve one exact local raw-carrier declaration in a route body."""
+    pattern = re.compile(
+        r"\b(?:const\s+)?" + re.escape(model) + r"\s+"
+        + re.escape(binding) + r"\s*;"
+    )
+    matches = list(pattern.finditer(body.code))
+    if len(matches) != 1:
+        raise RouteError(
+            "raw publication binding is missing or ambiguous in %s: %s %s"
+            % (body.symbol, model, binding)
+        )
+    match = matches[0]
+    return _source_location(
+        body, line_number(body.source.text, body.body_start + match.start())
+    )
+
+
+def _raw_route_publication_row(
+    body: FunctionBody,
+    invocation: dict,
+    model: str,
+    binding: str,
+    callback: str,
+    callbacks: dict[str, dict],
+    models: dict[str, dict],
+    parents: dict[str, str | None],
+    predecessor_route_ids: list[str],
+) -> dict:
+    """Build a source-owned raw callback row from one physical invocation."""
+    if callback not in callbacks:
+        raise RouteError("raw publication callback is not registered: %s" % callback)
+    resolved = _direct_binding_name(invocation["argument"])
+    if resolved != (binding, "object"):
+        raise RouteError(
+            "raw publication callback has an unproved argument in %s: %s(%s)"
+            % (body.symbol, callback, invocation["argument"])
+        )
+    if model not in models:
+        raise RouteError("raw publication carrier is not a public model: %s" % model)
+    compatible, compatibility = callback_accepts_model(
+        callbacks[callback], model, parents, "object"
+    )
+    if not compatible:
+        raise RouteError(
+            "raw publication callback/carrier mismatch in %s: %s -> %s (%s)"
+            % (body.symbol, model, callback, compatibility)
+        )
+    condition_ancestry = publication_condition_ancestry(body, invocation["offset"])
+    return {
+        "carrier": model,
+        "carrierRoute": models[model]["id"],
+        "binding": binding,
+        "bindingKind": "local",
+        "argumentPassing": "object",
+        "callbackPassingVia": "direct",
+        "callStyle": "interface-call",
+        "branchContext": condition_ancestry[-1],
+        "conditionAncestry": condition_ancestry,
+        "callback": callback,
+        "callbackRoute": callbacks[callback]["id"],
+        "callbackCompatibility": compatibility,
+        "callEvidence": _source_location(body, invocation["line"]),
+        "bindingEvidence": _raw_binding_evidence(body, model, binding),
+        "rawFlowPredecessorRouteIds": list(predecessor_route_ids),
+    }
+
+
+def raw_route_publication_metadata(
+    node_name: str,
+    bodies: list[FunctionBody],
+    callbacks: dict[str, dict],
+    models: dict[str, dict],
+    parents: dict[str, str | None],
+    predecessor_route_ids: list[str],
+) -> list[dict]:
+    """Prove terminal DXF raw callbacks and proxy typed-to-raw ordering.
+
+    The structural raw-flow node proves that a publication phase exists.  This
+    companion metadata proves the actual interface call, local carrier, and,
+    for proxy records, the typed callback that immediately precedes the raw
+    carrier.  Missing or reordered calls fail closed instead of leaving a
+    generic terminal that could be mistaken for delivery.
+    """
+    if node_name in RAW_DXF_SINGLE_PUBLICATION_RULES:
+        expected_symbol, model, binding, callback = RAW_DXF_SINGLE_PUBLICATION_RULES[node_name]
+        if len(bodies) != 1 or bodies[0].symbol != expected_symbol:
+            raise RouteError("raw publication anchor shape changed: %s" % node_name)
+        body = bodies[0]
+        invocations = [
+            item for item in _interface_publications(body, callbacks)
+            if item["callback"] == callback
+        ]
+        if len(invocations) != 1:
+            raise RouteError(
+                "raw publication callback count changed in %s: %s"
+                % (body.symbol, callback)
+            )
+        return [
+            _raw_route_publication_row(
+                body, invocations[0], model, binding, callback, callbacks,
+                models, parents, predecessor_route_ids,
+            )
+        ]
+
+    if node_name != "dxf-publish-proxy":
+        # DWG raw publication and DXF replay terminals are intentionally kept
+        # structural until their own source-flow children land.
+        return []
+
+    rows: list[dict] = []
+    for body in bodies:
+        try:
+            (
+                typed_model, typed_binding, typed_callback,
+                raw_model, raw_binding, raw_callback,
+            ) = RAW_DXF_PROXY_PUBLICATION_RULES[body.symbol]
+        except KeyError as exc:
+            raise RouteError("unexpected proxy raw publication body: %s" % body.symbol) from exc
+        invocations = _interface_publications(body, callbacks)
+        typed_invocations = [item for item in invocations if item["callback"] == typed_callback]
+        raw_invocations = [item for item in invocations if item["callback"] == raw_callback]
+        if len(typed_invocations) != 1 or len(raw_invocations) != 1:
+            raise RouteError("proxy typed/raw callback count changed in %s" % body.symbol)
+        typed = _raw_route_publication_row(
+            body, typed_invocations[0], typed_model, typed_binding, typed_callback,
+            callbacks, models, parents, predecessor_route_ids,
+        )
+        raw = _raw_route_publication_row(
+            body, raw_invocations[0], raw_model, raw_binding, raw_callback,
+            callbacks, models, parents, predecessor_route_ids,
+        )
+        if typed["callEvidence"]["line"] >= raw["callEvidence"]["line"]:
+            raise RouteError("proxy typed callback does not precede raw carrier: %s" % body.symbol)
+        if not _same_publication_branch(
+            typed["conditionAncestry"], raw["conditionAncestry"]
+        ):
+            raise RouteError("proxy typed/raw callbacks do not share a branch: %s" % body.symbol)
+        raw["typedToRawRelation"] = "typed-callback-before-raw-carrier"
+        raw["typedPredecessor"] = typed
+        rows.append(raw)
+    return rows
 
 
 def raw_captured_template_invocation(
@@ -4333,6 +4523,144 @@ def validate_publication_condition_ancestry(
         previous_line = location["line"]
     if branch_context != value[-1]:
         raise RouteError("parser-publication branch context is not ancestry tail: %s" % parser_route)
+
+
+def _validate_raw_publication_location(
+    value: object, tree: SourceTree, symbols: set[str], field: str, route_id: str
+) -> dict:
+    if (
+        not isinstance(value, dict)
+        or set(value) != {"path", "symbol", "line", "spanSha256"}
+        or value.get("path") not in tree.files
+        or value.get("symbol") not in symbols
+        or not isinstance(value.get("line"), int)
+        or value["line"] < 1
+        or not isinstance(value.get("spanSha256"), str)
+        or not value["spanSha256"]
+    ):
+        raise RouteError("raw publication %s evidence is malformed: %s" % (field, route_id))
+    return value
+
+
+def _validate_raw_publication_row(
+    row: object,
+    tree: SourceTree,
+    symbols: set[str],
+    predecessor_route_ids: list[str],
+    model: str,
+    model_route_id: str,
+    binding: str,
+    callback: str,
+    callback_route_id: str,
+    route_id: str,
+) -> None:
+    if not isinstance(row, dict):
+        raise RouteError("raw publication evidence row is malformed: %s" % route_id)
+    if (
+        row.get("carrier") != model
+        or row.get("carrierRoute") != model_route_id
+        or row.get("binding") != binding
+        or row.get("bindingKind") != "local"
+        or row.get("argumentPassing") != "object"
+        or row.get("callbackPassingVia") != "direct"
+        or row.get("callStyle") != "interface-call"
+        or row.get("callback") != callback
+        or row.get("callbackRoute") != callback_route_id
+        or row.get("callbackCompatibility") not in {"exact", "declared-ancestor"}
+        or row.get("rawFlowPredecessorRouteIds") != predecessor_route_ids
+    ):
+        raise RouteError("raw publication binding/route contract changed: %s" % route_id)
+    call = _validate_raw_publication_location(
+        row.get("callEvidence"), tree, symbols, "call", route_id
+    )
+    binding_evidence = _validate_raw_publication_location(
+        row.get("bindingEvidence"), tree, symbols, "binding", route_id
+    )
+    if call["symbol"] != binding_evidence["symbol"] or call["path"] != binding_evidence["path"]:
+        raise RouteError("raw publication call/binding ownership changed: %s" % route_id)
+    validate_publication_condition_ancestry(
+        row.get("conditionAncestry"), row.get("branchContext"), tree, route_id
+    )
+
+
+def validate_raw_route_publication_metadata(
+    tree: SourceTree,
+    route: dict,
+    raw_ids: set[str],
+    model_route_ids: dict[str, str],
+    callback_route_ids: dict[str, str],
+) -> None:
+    """Validate exact DXF raw callback rows attached to raw-flow terminals."""
+    selector = route["selector"]
+    name = selector.get("name")
+    if route["facade"] != "dxfRW" or selector.get("phase") != "publication":
+        if "rawPublicationEvidence" in selector and selector.get("rawPublicationEvidence") != []:
+            raise RouteError("non-DXF raw-flow publication has callback evidence: %s" % route["id"])
+        return
+    rows = selector.get("rawPublicationEvidence")
+    if not isinstance(rows, list):
+        raise RouteError("DXF raw-flow publication evidence is absent: %s" % route["id"])
+    predecessor_route_ids = [
+        route_id for route_id in selector.get("inputRouteIds", [])
+        if isinstance(route_id, str)
+    ]
+    if predecessor_route_ids != sorted(predecessor_route_ids) or not predecessor_route_ids:
+        raise RouteError("DXF raw-flow publication predecessors are malformed: %s" % route["id"])
+    if not set(predecessor_route_ids) <= raw_ids:
+        raise RouteError("DXF raw-flow publication has a dangling predecessor: %s" % route["id"])
+
+    if name in RAW_DXF_SINGLE_PUBLICATION_RULES:
+        expected_symbol, model, binding, callback = RAW_DXF_SINGLE_PUBLICATION_RULES[name]
+        if len(rows) != 1:
+            raise RouteError("DXF raw publication row count changed: %s" % route["id"])
+        _validate_raw_publication_row(
+            rows[0], tree, {expected_symbol}, predecessor_route_ids,
+            model, model_route_ids.get(model, ""), binding, callback,
+            callback_route_ids.get(callback, ""), route["id"],
+        )
+        return
+
+    if name == "dxf-publish-proxy":
+        if len(rows) != len(RAW_DXF_PROXY_PUBLICATION_RULES):
+            raise RouteError("DXF proxy raw publication row count changed: %s" % route["id"])
+        seen_symbols: set[str] = set()
+        for row in rows:
+            if not isinstance(row, dict):
+                raise RouteError("DXF proxy raw publication row is malformed: %s" % route["id"])
+            call = row.get("callEvidence")
+            symbol = call.get("symbol") if isinstance(call, dict) else None
+            if symbol not in RAW_DXF_PROXY_PUBLICATION_RULES or symbol in seen_symbols:
+                raise RouteError("DXF proxy raw publication symbol changed: %s" % route["id"])
+            seen_symbols.add(symbol)
+            (
+                typed_model, typed_binding, typed_callback,
+                raw_model, raw_binding, raw_callback,
+            ) = RAW_DXF_PROXY_PUBLICATION_RULES[symbol]
+            _validate_raw_publication_row(
+                row, tree, {symbol}, predecessor_route_ids,
+                raw_model, model_route_ids.get(raw_model, ""), raw_binding,
+                raw_callback, callback_route_ids.get(raw_callback, ""), route["id"],
+            )
+            if row.get("typedToRawRelation") != "typed-callback-before-raw-carrier":
+                raise RouteError("DXF proxy typed/raw relation changed: %s" % route["id"])
+            typed = row.get("typedPredecessor")
+            _validate_raw_publication_row(
+                typed, tree, {symbol}, predecessor_route_ids,
+                typed_model, model_route_ids.get(typed_model, ""), typed_binding,
+                typed_callback, callback_route_ids.get(typed_callback, ""), route["id"],
+            )
+            raw_line = row["callEvidence"]["line"]
+            typed_line = typed["callEvidence"]["line"]
+            if typed_line >= raw_line or not _same_publication_branch(
+                typed.get("conditionAncestry", []), row.get("conditionAncestry", [])
+            ):
+                raise RouteError("DXF proxy typed/raw order or branch changed: %s" % route["id"])
+        if seen_symbols != set(RAW_DXF_PROXY_PUBLICATION_RULES):
+            raise RouteError("DXF proxy raw publication coverage is incomplete: %s" % route["id"])
+        return
+
+    if rows:
+        raise RouteError("unexpected DXF raw-flow publication evidence: %s" % route["id"])
 
 
 def validate_named_publication_selector(
@@ -6043,10 +6371,18 @@ def validate_pipeline_closure(tree: SourceTree, inventory: dict[str, list[dict]]
         if evidence_paths != set(paths):
             raise RouteError("helper subsystem evidence is incomplete: %s" % name)
 
-    public_models = {
-        route["selector"].get("name")
-        for route in inventory_category_routes(inventory, "shared", "public-model")
+    public_model_rows = inventory_category_routes(inventory, "shared", "public-model")
+    public_models = {route["selector"].get("name") for route in public_model_rows}
+    model_route_ids = {
+        route["selector"].get("name"): route["id"] for route in public_model_rows
     }
+    callback_rows = inventory_category_routes(inventory, "shared", "callback")
+    callback_route_ids: dict[str, str] = {}
+    for callback_route in callback_rows:
+        callback_name = callback_route["selector"].get("name")
+        if not isinstance(callback_name, str) or callback_name in callback_route_ids:
+            raise RouteError("callback route registry is ambiguous during raw closure")
+        callback_route_ids[callback_name] = callback_route["id"]
     model_routes = inventory_category_routes(inventory, "shared", "model-codec")
     codecs = {route["selector"].get("model"): route for route in model_routes}
     if len(model_routes) != len(codecs) or set(codecs) != public_models:
@@ -6274,6 +6610,9 @@ def validate_pipeline_closure(tree: SourceTree, inventory: dict[str, list[dict]]
             raise RouteError("raw-flow node references a missing writer pipeline: %s" % name)
         if raw_by_name[name]["directions"] != sorted(set(RAW_NODE_DIRECTIONS[name])):
             raise RouteError("raw-flow node has incorrect reviewed directions: %s" % name)
+        validate_raw_route_publication_metadata(
+            tree, raw_by_name[name], raw_ids, model_route_ids, callback_route_ids
+        )
         observed_phases[flow].add(phase)
     for flow, phases in observed_phases.items():
         if phases != {"capture", "eligibility", "publication", "replay"}:
@@ -7572,6 +7911,196 @@ bool dxfRW::incompatiblePair() {
         pass
     else:
         raise AssertionError("incompatible direct callback pair was accepted")
+
+    raw_route_source = SourceFile(
+        "src/raw-routes.cpp",
+        """
+bool dxfRW::processRawObject() {
+    DRW_RawDxfObject obj;
+    iface->addRawDxfObject(obj);
+    return true;
+}
+bool dxfRW::processRawEntity() {
+    DRW_RawDxfObject ent;
+    iface->addRawDxfEntity(ent);
+    return true;
+}
+bool dxfRW::processRawDxfSection() {
+    DRW_RawDxfSection section;
+    iface->addRawDxfSection(section);
+    return true;
+}
+bool dxfRW::processRawCapturedObject() {
+    DRW_RawDxfObject raw;
+    iface->addRawDxfObject(raw);
+    return true;
+}
+bool dxfRW::processProxyEntity() {
+    DRW_ProxyEntity entity;
+    DRW_RawDxfObject raw;
+    iface->addProxyEntity(entity);
+    iface->addRawDxfEntity(raw);
+    return true;
+}
+bool dxfRW::processProxyObject() {
+    DRW_ProxyObject object;
+    DRW_RawDxfObject raw;
+    iface->addProxyObject(object);
+    iface->addRawDxfObject(raw);
+    return true;
+}
+""",
+        "a" * 64,
+    )
+    raw_models = {
+        name: {"id": "shared/public-model/" + name}
+        for name in (
+            "DRW_RawDxfObject", "DRW_RawDxfSection", "DRW_ProxyEntity", "DRW_ProxyObject",
+        )
+    }
+    raw_callbacks = {
+        name: {
+            "id": "shared/callback/" + name,
+            "selector": {
+                "parameterModel": model,
+                "parameterPassing": "reference",
+            },
+        }
+        for name, model in (
+            ("addRawDxfObject", "DRW_RawDxfObject"),
+            ("addRawDxfEntity", "DRW_RawDxfObject"),
+            ("addRawDxfSection", "DRW_RawDxfSection"),
+            ("addProxyEntity", "DRW_ProxyEntity"),
+            ("addProxyObject", "DRW_ProxyObject"),
+        )
+    }
+    raw_parents = {name: None for name in raw_models}
+    raw_predecessors = ["dxfRW/raw-flow/synthetic-predecessor"]
+    raw_route_source_tree = SourceTree(
+        "target", {raw_route_source.path: raw_route_source}, {}
+    )
+    for node_name, rule in RAW_DXF_SINGLE_PUBLICATION_RULES.items():
+        body = function_body(raw_route_source, rule[0])
+        rows = raw_route_publication_metadata(
+            node_name, [body], raw_callbacks, raw_models, raw_parents, raw_predecessors
+        )
+        assert len(rows) == 1 and rows[0]["callback"] == rule[3]
+        assert rows[0]["rawFlowPredecessorRouteIds"] == raw_predecessors
+    raw_object_body = function_body(raw_route_source, "dxfRW::processRawObject")
+    raw_object_route = {
+        "id": "dxfRW/raw-flow/dxf-publish-object",
+        "facade": "dxfRW",
+        "selector": {
+            "name": "dxf-publish-object",
+            "phase": "publication",
+            "inputRouteIds": list(raw_predecessors),
+            "rawPublicationEvidence": raw_route_publication_metadata(
+                "dxf-publish-object", [raw_object_body], raw_callbacks, raw_models,
+                raw_parents, raw_predecessors,
+            ),
+        },
+    }
+    raw_model_ids = {name: row["id"] for name, row in raw_models.items()}
+    raw_callback_ids = {name: row["id"] for name, row in raw_callbacks.items()}
+    validate_raw_route_publication_metadata(
+        raw_route_source_tree, raw_object_route, set(raw_predecessors),
+        raw_model_ids, raw_callback_ids,
+    )
+    bad_predecessor_route = {
+        **raw_object_route,
+        "selector": {
+            **raw_object_route["selector"],
+            "inputRouteIds": [],
+        },
+    }
+    try:
+        validate_raw_route_publication_metadata(
+            raw_route_source_tree, bad_predecessor_route, set(raw_predecessors),
+            raw_model_ids, raw_callback_ids,
+        )
+    except RouteError:
+        pass
+    else:
+        raise AssertionError("raw-flow predecessor omission was accepted")
+    missing_carrier_source = SourceFile(
+        raw_route_source.path,
+        raw_route_source.text.replace("DRW_RawDxfObject obj;", "DRW_RawDxfObject omitted;"),
+        raw_route_source.git_blob,
+    )
+    try:
+        raw_route_publication_metadata(
+            "dxf-publish-object",
+            [function_body(missing_carrier_source, "dxfRW::processRawObject")],
+            raw_callbacks, raw_models, raw_parents, raw_predecessors,
+        )
+    except RouteError:
+        pass
+    else:
+        raise AssertionError("raw carrier omission was accepted")
+    proxy_rows = raw_route_publication_metadata(
+        "dxf-publish-proxy",
+        [
+            function_body(raw_route_source, "dxfRW::processProxyEntity"),
+            function_body(raw_route_source, "dxfRW::processProxyObject"),
+        ],
+        raw_callbacks,
+        raw_models,
+        raw_parents,
+        raw_predecessors,
+    )
+    assert {
+        row["callEvidence"]["symbol"] for row in proxy_rows
+    } == set(RAW_DXF_PROXY_PUBLICATION_RULES)
+    assert all(
+        row["typedToRawRelation"] == "typed-callback-before-raw-carrier"
+        and row["typedPredecessor"]["callEvidence"]["line"] < row["callEvidence"]["line"]
+        for row in proxy_rows
+    )
+    bad_proxy_source = SourceFile(
+        raw_route_source.path,
+        raw_route_source.text.replace("iface->addRawDxfEntity(raw);", ""),
+        raw_route_source.git_blob,
+    )
+    try:
+        raw_route_publication_metadata(
+            "dxf-publish-proxy",
+            [
+                function_body(bad_proxy_source, "dxfRW::processProxyEntity"),
+                function_body(bad_proxy_source, "dxfRW::processProxyObject"),
+            ],
+            raw_callbacks,
+            raw_models,
+            raw_parents,
+            raw_predecessors,
+        )
+    except RouteError:
+        pass
+    else:
+        raise AssertionError("proxy raw carrier omission was accepted")
+    reversed_proxy_source = SourceFile(
+        raw_route_source.path,
+        raw_route_source.text.replace(
+            "iface->addProxyEntity(entity);\n    iface->addRawDxfEntity(raw);",
+            "iface->addRawDxfEntity(raw);\n    iface->addProxyEntity(entity);",
+        ),
+        raw_route_source.git_blob,
+    )
+    try:
+        raw_route_publication_metadata(
+            "dxf-publish-proxy",
+            [
+                function_body(reversed_proxy_source, "dxfRW::processProxyEntity"),
+                function_body(reversed_proxy_source, "dxfRW::processProxyObject"),
+            ],
+            raw_callbacks,
+            raw_models,
+            raw_parents,
+            raw_predecessors,
+        )
+    except RouteError:
+        pass
+    else:
+        raise AssertionError("proxy typed/raw order inversion was accepted")
 
     dwg_pair_source = SourceFile(
         "src/dwg-pairs.cpp",

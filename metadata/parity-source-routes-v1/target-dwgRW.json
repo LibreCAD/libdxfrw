@@ -78258,6 +78258,7 @@
         "outputCarrierTransforms": [],
         "outputRouteIds": [],
         "phase": "publication",
+        "rawPublicationEvidence": [],
         "readerPipelineIds": [],
         "symbols": [
           "dwgReader::publishDeferredRawObjects",
@@ -78304,6 +78305,7 @@
         "outputCarrierTransforms": [],
         "outputRouteIds": [],
         "phase": "publication",
+        "rawPublicationEvidence": [],
         "readerPipelineIds": [],
         "symbols": [
           "dwgRW::processDwg"
@@ -78352,6 +78354,7 @@
         "outputCarrierTransforms": [],
         "outputRouteIds": [],
         "phase": "publication",
+        "rawPublicationEvidence": [],
         "readerPipelineIds": [],
         "symbols": [
           "dwgReader::readDwgObject"
@@ -78401,6 +78404,7 @@
         "outputCarrierTransforms": [],
         "outputRouteIds": [],
         "phase": "publication",
+        "rawPublicationEvidence": [],
         "readerPipelineIds": [],
         "symbols": [
           "dwgRW::processDwg"

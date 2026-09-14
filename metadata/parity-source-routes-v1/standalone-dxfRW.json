@@ -59612,6 +59612,81 @@
         "outputCarrierTransforms": [],
         "outputRouteIds": [],
         "phase": "publication",
+        "rawPublicationEvidence": [
+          {
+            "argumentPassing": "object",
+            "binding": "ent",
+            "bindingEvidence": {
+              "line": 13916,
+              "path": "src/libdxfrw.cpp",
+              "spanSha256": "9a808ed2f78315ea17a59b0e15df68185663e130b19af1e51d38ef3167339b71",
+              "symbol": "dxfRW::processRawEntity"
+            },
+            "bindingKind": "local",
+            "branchContext": {
+              "branchGroupFingerprint": "5b77e24594f42303846bbd50ca007b7c13545f4def251a26aae4850e1ca94dab",
+              "branchKind": "fallthrough-after-then-return",
+              "conditionFingerprint": "56248a7cf704e94966e2bc0f1c9bba87fd32e63066215b83fe34911c651033a9",
+              "sourceEvidence": {
+                "line": 13934,
+                "path": "src/libdxfrw.cpp",
+                "spanSha256": "9a808ed2f78315ea17a59b0e15df68185663e130b19af1e51d38ef3167339b71",
+                "symbol": "dxfRW::processRawEntity"
+              }
+            },
+            "callEvidence": {
+              "line": 13940,
+              "path": "src/libdxfrw.cpp",
+              "spanSha256": "9a808ed2f78315ea17a59b0e15df68185663e130b19af1e51d38ef3167339b71",
+              "symbol": "dxfRW::processRawEntity"
+            },
+            "callStyle": "interface-call",
+            "callback": "addRawDxfEntity",
+            "callbackCompatibility": "exact",
+            "callbackPassingVia": "direct",
+            "callbackRoute": "shared/callback/addRawDxfEntity-001",
+            "carrier": "DRW_RawDxfObject",
+            "carrierRoute": "shared/public-model/DRW_RawDxfObject",
+            "conditionAncestry": [
+              {
+                "branchGroupFingerprint": "5b7a15d76f61f04d52702f61865e5b2e999d62aca6cffeecbbfa29ccccd9ba0c",
+                "branchKind": "then",
+                "conditionFingerprint": "8fada7c1663940e7848fb8f5f846b2f2654bbf833f411116a018b8d9aa907f37",
+                "sourceEvidence": {
+                  "line": 13928,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "9a808ed2f78315ea17a59b0e15df68185663e130b19af1e51d38ef3167339b71",
+                  "symbol": "dxfRW::processRawEntity"
+                }
+              },
+              {
+                "branchGroupFingerprint": "b6cc67402f619f5f77f16d6e5a54697922dcf2dabff1e9c4a14522345b692d03",
+                "branchKind": "fallthrough-after-then-return",
+                "conditionFingerprint": "7e40a696c0f4194fd767b2b30ef9a07cc7dfe64f1eb8bc25928a67105e5b52e8",
+                "sourceEvidence": {
+                  "line": 13930,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "9a808ed2f78315ea17a59b0e15df68185663e130b19af1e51d38ef3167339b71",
+                  "symbol": "dxfRW::processRawEntity"
+                }
+              },
+              {
+                "branchGroupFingerprint": "5b77e24594f42303846bbd50ca007b7c13545f4def251a26aae4850e1ca94dab",
+                "branchKind": "fallthrough-after-then-return",
+                "conditionFingerprint": "56248a7cf704e94966e2bc0f1c9bba87fd32e63066215b83fe34911c651033a9",
+                "sourceEvidence": {
+                  "line": 13934,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "9a808ed2f78315ea17a59b0e15df68185663e130b19af1e51d38ef3167339b71",
+                  "symbol": "dxfRW::processRawEntity"
+                }
+              }
+            ],
+            "rawFlowPredecessorRouteIds": [
+              "dxfRW/raw-flow/dxf-read-entity-raw-self-handle-gate"
+            ]
+          }
+        ],
         "readerPipelineIds": [],
         "symbols": [
           "dxfRW::processRawEntity"
@@ -59660,6 +59735,81 @@
         "outputCarrierTransforms": [],
         "outputRouteIds": [],
         "phase": "publication",
+        "rawPublicationEvidence": [
+          {
+            "argumentPassing": "object",
+            "binding": "obj",
+            "bindingEvidence": {
+              "line": 13879,
+              "path": "src/libdxfrw.cpp",
+              "spanSha256": "2f5f01b67a50a29834ccca9d7ded1245c7553a315d16ef8ca683e3b158a4c971",
+              "symbol": "dxfRW::processRawObject"
+            },
+            "bindingKind": "local",
+            "branchContext": {
+              "branchGroupFingerprint": "4cf4a6554ab67b70c96a7b519d1e06a0af990d78f799a03b70e809338f562766",
+              "branchKind": "fallthrough-after-then-return",
+              "conditionFingerprint": "131077295f2995301f81e9ebf83e06d9ec0ad3f5a6acff5a0d331c6f25e3429a",
+              "sourceEvidence": {
+                "line": 13892,
+                "path": "src/libdxfrw.cpp",
+                "spanSha256": "2f5f01b67a50a29834ccca9d7ded1245c7553a315d16ef8ca683e3b158a4c971",
+                "symbol": "dxfRW::processRawObject"
+              }
+            },
+            "callEvidence": {
+              "line": 13894,
+              "path": "src/libdxfrw.cpp",
+              "spanSha256": "2f5f01b67a50a29834ccca9d7ded1245c7553a315d16ef8ca683e3b158a4c971",
+              "symbol": "dxfRW::processRawObject"
+            },
+            "callStyle": "interface-call",
+            "callback": "addRawDxfObject",
+            "callbackCompatibility": "exact",
+            "callbackPassingVia": "direct",
+            "callbackRoute": "shared/callback/addRawDxfObject-001",
+            "carrier": "DRW_RawDxfObject",
+            "carrierRoute": "shared/public-model/DRW_RawDxfObject",
+            "conditionAncestry": [
+              {
+                "branchGroupFingerprint": "fdf6d040174e270ffc220329e89a68e0e58365a10d92890ed15e175617eda60f",
+                "branchKind": "then",
+                "conditionFingerprint": "8fada7c1663940e7848fb8f5f846b2f2654bbf833f411116a018b8d9aa907f37",
+                "sourceEvidence": {
+                  "line": 13886,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "2f5f01b67a50a29834ccca9d7ded1245c7553a315d16ef8ca683e3b158a4c971",
+                  "symbol": "dxfRW::processRawObject"
+                }
+              },
+              {
+                "branchGroupFingerprint": "e2583666986be5aecd67f411848634decef03aca5df23f6cf05714140facdce5",
+                "branchKind": "fallthrough-after-then-return",
+                "conditionFingerprint": "ad3c80ba2a11581fc83197d96eb051568f5b2cbd9633232b2ce1d65406c07444",
+                "sourceEvidence": {
+                  "line": 13888,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "2f5f01b67a50a29834ccca9d7ded1245c7553a315d16ef8ca683e3b158a4c971",
+                  "symbol": "dxfRW::processRawObject"
+                }
+              },
+              {
+                "branchGroupFingerprint": "4cf4a6554ab67b70c96a7b519d1e06a0af990d78f799a03b70e809338f562766",
+                "branchKind": "fallthrough-after-then-return",
+                "conditionFingerprint": "131077295f2995301f81e9ebf83e06d9ec0ad3f5a6acff5a0d331c6f25e3429a",
+                "sourceEvidence": {
+                  "line": 13892,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "2f5f01b67a50a29834ccca9d7ded1245c7553a315d16ef8ca683e3b158a4c971",
+                  "symbol": "dxfRW::processRawObject"
+                }
+              }
+            ],
+            "rawFlowPredecessorRouteIds": [
+              "dxfRW/raw-flow/dxf-read-object-raw-self-handle-gate"
+            ]
+          }
+        ],
         "readerPipelineIds": [],
         "symbols": [
           "dxfRW::processRawObject"
@@ -59714,6 +59864,412 @@
         "outputCarrierTransforms": [],
         "outputRouteIds": [],
         "phase": "publication",
+        "rawPublicationEvidence": [
+          {
+            "argumentPassing": "object",
+            "binding": "raw",
+            "bindingEvidence": {
+              "line": 13991,
+              "path": "src/libdxfrw.cpp",
+              "spanSha256": "129b12ff9d147f6f31bb80c81dfee620f07548f414f47c38c7e1bf6c81928fe5",
+              "symbol": "dxfRW::processProxyEntity"
+            },
+            "bindingKind": "local",
+            "branchContext": {
+              "branchGroupFingerprint": "31c0db99f43729b99341b02e0f79e182eb8a92ad856af8ec9a3433368bb092b6",
+              "branchKind": "fallthrough-after-then-return",
+              "conditionFingerprint": "8204208c173428fb3c2188d168089a4474ee7dafdbc087c09132822d195730bb",
+              "sourceEvidence": {
+                "line": 14016,
+                "path": "src/libdxfrw.cpp",
+                "spanSha256": "129b12ff9d147f6f31bb80c81dfee620f07548f414f47c38c7e1bf6c81928fe5",
+                "symbol": "dxfRW::processProxyEntity"
+              }
+            },
+            "callEvidence": {
+              "line": 14023,
+              "path": "src/libdxfrw.cpp",
+              "spanSha256": "129b12ff9d147f6f31bb80c81dfee620f07548f414f47c38c7e1bf6c81928fe5",
+              "symbol": "dxfRW::processProxyEntity"
+            },
+            "callStyle": "interface-call",
+            "callback": "addRawDxfEntity",
+            "callbackCompatibility": "exact",
+            "callbackPassingVia": "direct",
+            "callbackRoute": "shared/callback/addRawDxfEntity-001",
+            "carrier": "DRW_RawDxfObject",
+            "carrierRoute": "shared/public-model/DRW_RawDxfObject",
+            "conditionAncestry": [
+              {
+                "branchGroupFingerprint": "be794efe18907dfdacb051aa20d6f36ef48621e5bda253c6d14218e90ee5d5de",
+                "branchKind": "then",
+                "conditionFingerprint": "9bb26468ad555e88747baad233bcb9127022a69530a5f09b1e6dcdac5a6d84ee",
+                "sourceEvidence": {
+                  "line": 14000,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "129b12ff9d147f6f31bb80c81dfee620f07548f414f47c38c7e1bf6c81928fe5",
+                  "symbol": "dxfRW::processProxyEntity"
+                }
+              },
+              {
+                "branchGroupFingerprint": "9c1ad60987f219657f5dc571746ac80d9f1a03f36851de41da4506f962e5a6a8",
+                "branchKind": "fallthrough-after-then-return",
+                "conditionFingerprint": "925c426860a3aff89e39907064e6bc82978a6ebe94cdcc0634babdcbdd057b41",
+                "sourceEvidence": {
+                  "line": 14002,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "129b12ff9d147f6f31bb80c81dfee620f07548f414f47c38c7e1bf6c81928fe5",
+                  "symbol": "dxfRW::processProxyEntity"
+                }
+              },
+              {
+                "branchGroupFingerprint": "7763e820819a3c4bfdc7393eb4814a2c8ed66abb2cf8f31bb2b9167d539ff83c",
+                "branchKind": "fallthrough-after-then-return",
+                "conditionFingerprint": "db5de441597000b22f92a0a6b4263b3503fb40fcd71de302ad1e2c04a07c2949",
+                "sourceEvidence": {
+                  "line": 14005,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "129b12ff9d147f6f31bb80c81dfee620f07548f414f47c38c7e1bf6c81928fe5",
+                  "symbol": "dxfRW::processProxyEntity"
+                }
+              },
+              {
+                "branchGroupFingerprint": "60ef38d90feeba47dd219d049fe4dbef16791dfb99d77d4ed3e92b676436a238",
+                "branchKind": "fallthrough-after-then-return",
+                "conditionFingerprint": "1e5050cc8bcbc5b6a05035966940b39b5bf5b41eb87a77ffd8e19f8cfcd0b124",
+                "sourceEvidence": {
+                  "line": 14007,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "129b12ff9d147f6f31bb80c81dfee620f07548f414f47c38c7e1bf6c81928fe5",
+                  "symbol": "dxfRW::processProxyEntity"
+                }
+              },
+              {
+                "branchGroupFingerprint": "3ccdda3690f862cc5f0137f24691ac99ba46b8f5e51337e615bbaaf8cffbf3bd",
+                "branchKind": "fallthrough-after-then-return",
+                "conditionFingerprint": "96bb947068ac1523b41a80045a6ee9770400525435039126ef28f701d1a6ed72",
+                "sourceEvidence": {
+                  "line": 14009,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "129b12ff9d147f6f31bb80c81dfee620f07548f414f47c38c7e1bf6c81928fe5",
+                  "symbol": "dxfRW::processProxyEntity"
+                }
+              },
+              {
+                "branchGroupFingerprint": "31c0db99f43729b99341b02e0f79e182eb8a92ad856af8ec9a3433368bb092b6",
+                "branchKind": "fallthrough-after-then-return",
+                "conditionFingerprint": "8204208c173428fb3c2188d168089a4474ee7dafdbc087c09132822d195730bb",
+                "sourceEvidence": {
+                  "line": 14016,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "129b12ff9d147f6f31bb80c81dfee620f07548f414f47c38c7e1bf6c81928fe5",
+                  "symbol": "dxfRW::processProxyEntity"
+                }
+              }
+            ],
+            "rawFlowPredecessorRouteIds": [
+              "dxfRW/raw-flow/dxf-read-proxy-raw-self-handle-gate"
+            ],
+            "typedPredecessor": {
+              "argumentPassing": "object",
+              "binding": "entity",
+              "bindingEvidence": {
+                "line": 13990,
+                "path": "src/libdxfrw.cpp",
+                "spanSha256": "129b12ff9d147f6f31bb80c81dfee620f07548f414f47c38c7e1bf6c81928fe5",
+                "symbol": "dxfRW::processProxyEntity"
+              },
+              "bindingKind": "local",
+              "branchContext": {
+                "branchGroupFingerprint": "31c0db99f43729b99341b02e0f79e182eb8a92ad856af8ec9a3433368bb092b6",
+                "branchKind": "fallthrough-after-then-return",
+                "conditionFingerprint": "8204208c173428fb3c2188d168089a4474ee7dafdbc087c09132822d195730bb",
+                "sourceEvidence": {
+                  "line": 14016,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "129b12ff9d147f6f31bb80c81dfee620f07548f414f47c38c7e1bf6c81928fe5",
+                  "symbol": "dxfRW::processProxyEntity"
+                }
+              },
+              "callEvidence": {
+                "line": 14022,
+                "path": "src/libdxfrw.cpp",
+                "spanSha256": "129b12ff9d147f6f31bb80c81dfee620f07548f414f47c38c7e1bf6c81928fe5",
+                "symbol": "dxfRW::processProxyEntity"
+              },
+              "callStyle": "interface-call",
+              "callback": "addProxyEntity",
+              "callbackCompatibility": "exact",
+              "callbackPassingVia": "direct",
+              "callbackRoute": "shared/callback/addProxyEntity-001",
+              "carrier": "DRW_ProxyEntity",
+              "carrierRoute": "shared/public-model/DRW_ProxyEntity",
+              "conditionAncestry": [
+                {
+                  "branchGroupFingerprint": "be794efe18907dfdacb051aa20d6f36ef48621e5bda253c6d14218e90ee5d5de",
+                  "branchKind": "then",
+                  "conditionFingerprint": "9bb26468ad555e88747baad233bcb9127022a69530a5f09b1e6dcdac5a6d84ee",
+                  "sourceEvidence": {
+                    "line": 14000,
+                    "path": "src/libdxfrw.cpp",
+                    "spanSha256": "129b12ff9d147f6f31bb80c81dfee620f07548f414f47c38c7e1bf6c81928fe5",
+                    "symbol": "dxfRW::processProxyEntity"
+                  }
+                },
+                {
+                  "branchGroupFingerprint": "9c1ad60987f219657f5dc571746ac80d9f1a03f36851de41da4506f962e5a6a8",
+                  "branchKind": "fallthrough-after-then-return",
+                  "conditionFingerprint": "925c426860a3aff89e39907064e6bc82978a6ebe94cdcc0634babdcbdd057b41",
+                  "sourceEvidence": {
+                    "line": 14002,
+                    "path": "src/libdxfrw.cpp",
+                    "spanSha256": "129b12ff9d147f6f31bb80c81dfee620f07548f414f47c38c7e1bf6c81928fe5",
+                    "symbol": "dxfRW::processProxyEntity"
+                  }
+                },
+                {
+                  "branchGroupFingerprint": "7763e820819a3c4bfdc7393eb4814a2c8ed66abb2cf8f31bb2b9167d539ff83c",
+                  "branchKind": "fallthrough-after-then-return",
+                  "conditionFingerprint": "db5de441597000b22f92a0a6b4263b3503fb40fcd71de302ad1e2c04a07c2949",
+                  "sourceEvidence": {
+                    "line": 14005,
+                    "path": "src/libdxfrw.cpp",
+                    "spanSha256": "129b12ff9d147f6f31bb80c81dfee620f07548f414f47c38c7e1bf6c81928fe5",
+                    "symbol": "dxfRW::processProxyEntity"
+                  }
+                },
+                {
+                  "branchGroupFingerprint": "60ef38d90feeba47dd219d049fe4dbef16791dfb99d77d4ed3e92b676436a238",
+                  "branchKind": "fallthrough-after-then-return",
+                  "conditionFingerprint": "1e5050cc8bcbc5b6a05035966940b39b5bf5b41eb87a77ffd8e19f8cfcd0b124",
+                  "sourceEvidence": {
+                    "line": 14007,
+                    "path": "src/libdxfrw.cpp",
+                    "spanSha256": "129b12ff9d147f6f31bb80c81dfee620f07548f414f47c38c7e1bf6c81928fe5",
+                    "symbol": "dxfRW::processProxyEntity"
+                  }
+                },
+                {
+                  "branchGroupFingerprint": "3ccdda3690f862cc5f0137f24691ac99ba46b8f5e51337e615bbaaf8cffbf3bd",
+                  "branchKind": "fallthrough-after-then-return",
+                  "conditionFingerprint": "96bb947068ac1523b41a80045a6ee9770400525435039126ef28f701d1a6ed72",
+                  "sourceEvidence": {
+                    "line": 14009,
+                    "path": "src/libdxfrw.cpp",
+                    "spanSha256": "129b12ff9d147f6f31bb80c81dfee620f07548f414f47c38c7e1bf6c81928fe5",
+                    "symbol": "dxfRW::processProxyEntity"
+                  }
+                },
+                {
+                  "branchGroupFingerprint": "31c0db99f43729b99341b02e0f79e182eb8a92ad856af8ec9a3433368bb092b6",
+                  "branchKind": "fallthrough-after-then-return",
+                  "conditionFingerprint": "8204208c173428fb3c2188d168089a4474ee7dafdbc087c09132822d195730bb",
+                  "sourceEvidence": {
+                    "line": 14016,
+                    "path": "src/libdxfrw.cpp",
+                    "spanSha256": "129b12ff9d147f6f31bb80c81dfee620f07548f414f47c38c7e1bf6c81928fe5",
+                    "symbol": "dxfRW::processProxyEntity"
+                  }
+                }
+              ],
+              "rawFlowPredecessorRouteIds": [
+                "dxfRW/raw-flow/dxf-read-proxy-raw-self-handle-gate"
+              ]
+            },
+            "typedToRawRelation": "typed-callback-before-raw-carrier"
+          },
+          {
+            "argumentPassing": "object",
+            "binding": "raw",
+            "bindingEvidence": {
+              "line": 14046,
+              "path": "src/libdxfrw.cpp",
+              "spanSha256": "fa0a4f22829ab39df103a120c96540bca691193f97f5c0146678f38ec01c8fb4",
+              "symbol": "dxfRW::processProxyObject"
+            },
+            "bindingKind": "local",
+            "branchContext": {
+              "branchGroupFingerprint": "649d179d328c5fb58f71bcc4965b9dce8cd2d40be2cb6df594554e29d1cd4b30",
+              "branchKind": "fallthrough-after-then-return",
+              "conditionFingerprint": "96bb947068ac1523b41a80045a6ee9770400525435039126ef28f701d1a6ed72",
+              "sourceEvidence": {
+                "line": 14064,
+                "path": "src/libdxfrw.cpp",
+                "spanSha256": "fa0a4f22829ab39df103a120c96540bca691193f97f5c0146678f38ec01c8fb4",
+                "symbol": "dxfRW::processProxyObject"
+              }
+            },
+            "callEvidence": {
+              "line": 14073,
+              "path": "src/libdxfrw.cpp",
+              "spanSha256": "fa0a4f22829ab39df103a120c96540bca691193f97f5c0146678f38ec01c8fb4",
+              "symbol": "dxfRW::processProxyObject"
+            },
+            "callStyle": "interface-call",
+            "callback": "addRawDxfObject",
+            "callbackCompatibility": "exact",
+            "callbackPassingVia": "direct",
+            "callbackRoute": "shared/callback/addRawDxfObject-001",
+            "carrier": "DRW_RawDxfObject",
+            "carrierRoute": "shared/public-model/DRW_RawDxfObject",
+            "conditionAncestry": [
+              {
+                "branchGroupFingerprint": "7172eb41b32cbd576292da48c6004413efcb8d7740cf29f4d76bc990ef614fe9",
+                "branchKind": "then",
+                "conditionFingerprint": "9bb26468ad555e88747baad233bcb9127022a69530a5f09b1e6dcdac5a6d84ee",
+                "sourceEvidence": {
+                  "line": 14055,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "fa0a4f22829ab39df103a120c96540bca691193f97f5c0146678f38ec01c8fb4",
+                  "symbol": "dxfRW::processProxyObject"
+                }
+              },
+              {
+                "branchGroupFingerprint": "444ba7db87ea42f6be3dd4e4019be6d5bf8639b73528a4d80079b013fa50c893",
+                "branchKind": "fallthrough-after-then-return",
+                "conditionFingerprint": "d4c2ce573dd9f1bb342c7697bd9833b5f078c1883b15328b00d0b96d19eaa67e",
+                "sourceEvidence": {
+                  "line": 14057,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "fa0a4f22829ab39df103a120c96540bca691193f97f5c0146678f38ec01c8fb4",
+                  "symbol": "dxfRW::processProxyObject"
+                }
+              },
+              {
+                "branchGroupFingerprint": "e31b83dfced28cf5ada79b634ca3c52af6080f63729a1727fce67d50729a5bd5",
+                "branchKind": "fallthrough-after-then-return",
+                "conditionFingerprint": "db5de441597000b22f92a0a6b4263b3503fb40fcd71de302ad1e2c04a07c2949",
+                "sourceEvidence": {
+                  "line": 14060,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "fa0a4f22829ab39df103a120c96540bca691193f97f5c0146678f38ec01c8fb4",
+                  "symbol": "dxfRW::processProxyObject"
+                }
+              },
+              {
+                "branchGroupFingerprint": "89dc51c54a8766a027a42475ed51c3b84f22a7506680f426885e975fcef634a2",
+                "branchKind": "fallthrough-after-then-return",
+                "conditionFingerprint": "1e5050cc8bcbc5b6a05035966940b39b5bf5b41eb87a77ffd8e19f8cfcd0b124",
+                "sourceEvidence": {
+                  "line": 14062,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "fa0a4f22829ab39df103a120c96540bca691193f97f5c0146678f38ec01c8fb4",
+                  "symbol": "dxfRW::processProxyObject"
+                }
+              },
+              {
+                "branchGroupFingerprint": "649d179d328c5fb58f71bcc4965b9dce8cd2d40be2cb6df594554e29d1cd4b30",
+                "branchKind": "fallthrough-after-then-return",
+                "conditionFingerprint": "96bb947068ac1523b41a80045a6ee9770400525435039126ef28f701d1a6ed72",
+                "sourceEvidence": {
+                  "line": 14064,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "fa0a4f22829ab39df103a120c96540bca691193f97f5c0146678f38ec01c8fb4",
+                  "symbol": "dxfRW::processProxyObject"
+                }
+              }
+            ],
+            "rawFlowPredecessorRouteIds": [
+              "dxfRW/raw-flow/dxf-read-proxy-raw-self-handle-gate"
+            ],
+            "typedPredecessor": {
+              "argumentPassing": "object",
+              "binding": "object",
+              "bindingEvidence": {
+                "line": 14045,
+                "path": "src/libdxfrw.cpp",
+                "spanSha256": "fa0a4f22829ab39df103a120c96540bca691193f97f5c0146678f38ec01c8fb4",
+                "symbol": "dxfRW::processProxyObject"
+              },
+              "bindingKind": "local",
+              "branchContext": {
+                "branchGroupFingerprint": "649d179d328c5fb58f71bcc4965b9dce8cd2d40be2cb6df594554e29d1cd4b30",
+                "branchKind": "fallthrough-after-then-return",
+                "conditionFingerprint": "96bb947068ac1523b41a80045a6ee9770400525435039126ef28f701d1a6ed72",
+                "sourceEvidence": {
+                  "line": 14064,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "fa0a4f22829ab39df103a120c96540bca691193f97f5c0146678f38ec01c8fb4",
+                  "symbol": "dxfRW::processProxyObject"
+                }
+              },
+              "callEvidence": {
+                "line": 14072,
+                "path": "src/libdxfrw.cpp",
+                "spanSha256": "fa0a4f22829ab39df103a120c96540bca691193f97f5c0146678f38ec01c8fb4",
+                "symbol": "dxfRW::processProxyObject"
+              },
+              "callStyle": "interface-call",
+              "callback": "addProxyObject",
+              "callbackCompatibility": "exact",
+              "callbackPassingVia": "direct",
+              "callbackRoute": "shared/callback/addProxyObject-001",
+              "carrier": "DRW_ProxyObject",
+              "carrierRoute": "shared/public-model/DRW_ProxyObject",
+              "conditionAncestry": [
+                {
+                  "branchGroupFingerprint": "7172eb41b32cbd576292da48c6004413efcb8d7740cf29f4d76bc990ef614fe9",
+                  "branchKind": "then",
+                  "conditionFingerprint": "9bb26468ad555e88747baad233bcb9127022a69530a5f09b1e6dcdac5a6d84ee",
+                  "sourceEvidence": {
+                    "line": 14055,
+                    "path": "src/libdxfrw.cpp",
+                    "spanSha256": "fa0a4f22829ab39df103a120c96540bca691193f97f5c0146678f38ec01c8fb4",
+                    "symbol": "dxfRW::processProxyObject"
+                  }
+                },
+                {
+                  "branchGroupFingerprint": "444ba7db87ea42f6be3dd4e4019be6d5bf8639b73528a4d80079b013fa50c893",
+                  "branchKind": "fallthrough-after-then-return",
+                  "conditionFingerprint": "d4c2ce573dd9f1bb342c7697bd9833b5f078c1883b15328b00d0b96d19eaa67e",
+                  "sourceEvidence": {
+                    "line": 14057,
+                    "path": "src/libdxfrw.cpp",
+                    "spanSha256": "fa0a4f22829ab39df103a120c96540bca691193f97f5c0146678f38ec01c8fb4",
+                    "symbol": "dxfRW::processProxyObject"
+                  }
+                },
+                {
+                  "branchGroupFingerprint": "e31b83dfced28cf5ada79b634ca3c52af6080f63729a1727fce67d50729a5bd5",
+                  "branchKind": "fallthrough-after-then-return",
+                  "conditionFingerprint": "db5de441597000b22f92a0a6b4263b3503fb40fcd71de302ad1e2c04a07c2949",
+                  "sourceEvidence": {
+                    "line": 14060,
+                    "path": "src/libdxfrw.cpp",
+                    "spanSha256": "fa0a4f22829ab39df103a120c96540bca691193f97f5c0146678f38ec01c8fb4",
+                    "symbol": "dxfRW::processProxyObject"
+                  }
+                },
+                {
+                  "branchGroupFingerprint": "89dc51c54a8766a027a42475ed51c3b84f22a7506680f426885e975fcef634a2",
+                  "branchKind": "fallthrough-after-then-return",
+                  "conditionFingerprint": "1e5050cc8bcbc5b6a05035966940b39b5bf5b41eb87a77ffd8e19f8cfcd0b124",
+                  "sourceEvidence": {
+                    "line": 14062,
+                    "path": "src/libdxfrw.cpp",
+                    "spanSha256": "fa0a4f22829ab39df103a120c96540bca691193f97f5c0146678f38ec01c8fb4",
+                    "symbol": "dxfRW::processProxyObject"
+                  }
+                },
+                {
+                  "branchGroupFingerprint": "649d179d328c5fb58f71bcc4965b9dce8cd2d40be2cb6df594554e29d1cd4b30",
+                  "branchKind": "fallthrough-after-then-return",
+                  "conditionFingerprint": "96bb947068ac1523b41a80045a6ee9770400525435039126ef28f701d1a6ed72",
+                  "sourceEvidence": {
+                    "line": 14064,
+                    "path": "src/libdxfrw.cpp",
+                    "spanSha256": "fa0a4f22829ab39df103a120c96540bca691193f97f5c0146678f38ec01c8fb4",
+                    "symbol": "dxfRW::processProxyObject"
+                  }
+                }
+              ],
+              "rawFlowPredecessorRouteIds": [
+                "dxfRW/raw-flow/dxf-read-proxy-raw-self-handle-gate"
+              ]
+            },
+            "typedToRawRelation": "typed-callback-before-raw-carrier"
+          }
+        ],
         "readerPipelineIds": [],
         "symbols": [
           "dxfRW::processProxyEntity",
@@ -59763,6 +60319,92 @@
         "outputCarrierTransforms": [],
         "outputRouteIds": [],
         "phase": "publication",
+        "rawPublicationEvidence": [
+          {
+            "argumentPassing": "object",
+            "binding": "section",
+            "bindingEvidence": {
+              "line": 8003,
+              "path": "src/libdxfrw.cpp",
+              "spanSha256": "d0197937e1cc9f6ca4c7f51b4c9e7642fd61bd28b93eae6b870cd135ffa747f2",
+              "symbol": "dxfRW::processRawDxfSection"
+            },
+            "bindingKind": "local",
+            "branchContext": {
+              "branchGroupFingerprint": "3f648a65695a5c688dceeefb394b3b07995270fc0f64040ae2211307a36ac6ee",
+              "branchKind": "fallthrough-after-then-return",
+              "conditionFingerprint": "37340459fea63d2f7182179ab4f99699f65baf5a3165904513748e2f633ac202",
+              "sourceEvidence": {
+                "line": 8014,
+                "path": "src/libdxfrw.cpp",
+                "spanSha256": "d0197937e1cc9f6ca4c7f51b4c9e7642fd61bd28b93eae6b870cd135ffa747f2",
+                "symbol": "dxfRW::processRawDxfSection"
+              }
+            },
+            "callEvidence": {
+              "line": 8017,
+              "path": "src/libdxfrw.cpp",
+              "spanSha256": "d0197937e1cc9f6ca4c7f51b4c9e7642fd61bd28b93eae6b870cd135ffa747f2",
+              "symbol": "dxfRW::processRawDxfSection"
+            },
+            "callStyle": "interface-call",
+            "callback": "addRawDxfSection",
+            "callbackCompatibility": "exact",
+            "callbackPassingVia": "direct",
+            "callbackRoute": "shared/callback/addRawDxfSection-001",
+            "carrier": "DRW_RawDxfSection",
+            "carrierRoute": "shared/public-model/DRW_RawDxfSection",
+            "conditionAncestry": [
+              {
+                "branchGroupFingerprint": "f91a72e40f2b965e78b72bb4fbd1890827cfced98b3031419300aca404aadefb",
+                "branchKind": "fallthrough-after-then-return",
+                "conditionFingerprint": "3efd363bad6c50966e3981cbb311a3013c126c8a886e6e8b006384ef20e07544",
+                "sourceEvidence": {
+                  "line": 8000,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "d0197937e1cc9f6ca4c7f51b4c9e7642fd61bd28b93eae6b870cd135ffa747f2",
+                  "symbol": "dxfRW::processRawDxfSection"
+                }
+              },
+              {
+                "branchGroupFingerprint": "2b31e715ea208898cb46b1306e866af6002054e9500bc9e97ed9a384ecde56d5",
+                "branchKind": "fallthrough-after-then-return",
+                "conditionFingerprint": "f460a65f5e8f16b208d2e3adfb306414d14897001b5f9aca457e55776e566951",
+                "sourceEvidence": {
+                  "line": 8011,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "d0197937e1cc9f6ca4c7f51b4c9e7642fd61bd28b93eae6b870cd135ffa747f2",
+                  "symbol": "dxfRW::processRawDxfSection"
+                }
+              },
+              {
+                "branchGroupFingerprint": "77c40a17d22a5f8fae8453d0afb73413d0a87cce185eedd6b10faaf52659bfaa",
+                "branchKind": "then",
+                "conditionFingerprint": "1b9021ffcfacabce839657cba33f25d5f45b60e118cf36fa840b1e36da6562c5",
+                "sourceEvidence": {
+                  "line": 8013,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "d0197937e1cc9f6ca4c7f51b4c9e7642fd61bd28b93eae6b870cd135ffa747f2",
+                  "symbol": "dxfRW::processRawDxfSection"
+                }
+              },
+              {
+                "branchGroupFingerprint": "3f648a65695a5c688dceeefb394b3b07995270fc0f64040ae2211307a36ac6ee",
+                "branchKind": "fallthrough-after-then-return",
+                "conditionFingerprint": "37340459fea63d2f7182179ab4f99699f65baf5a3165904513748e2f633ac202",
+                "sourceEvidence": {
+                  "line": 8014,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "d0197937e1cc9f6ca4c7f51b4c9e7642fd61bd28b93eae6b870cd135ffa747f2",
+                  "symbol": "dxfRW::processRawDxfSection"
+                }
+              }
+            ],
+            "rawFlowPredecessorRouteIds": [
+              "dxfRW/raw-flow/dxf-read-raw-section-boundary"
+            ]
+          }
+        ],
         "readerPipelineIds": [],
         "symbols": [
           "dxfRW::processRawDxfSection"
@@ -59811,6 +60453,70 @@
         "outputCarrierTransforms": [],
         "outputRouteIds": [],
         "phase": "publication",
+        "rawPublicationEvidence": [
+          {
+            "argumentPassing": "object",
+            "binding": "raw",
+            "bindingEvidence": {
+              "line": 11436,
+              "path": "src/libdxfrw.cpp",
+              "spanSha256": "2031d67921383b4b4942b456e1b2f7df8c8eb96f59002a8eaa2fc90f57cd356c",
+              "symbol": "dxfRW::processRawCapturedObject"
+            },
+            "bindingKind": "local",
+            "branchContext": {
+              "branchGroupFingerprint": "6f40f788ad8c20c8f882ebd21af83a498aa2a5f4ec78ef722ad85f75d5f8c047",
+              "branchKind": "fallthrough-after-then-return",
+              "conditionFingerprint": "d5e0fac605fe707a0112f5e06c44af1f4014dd9718453aa7253ed4b17e78bb43",
+              "sourceEvidence": {
+                "line": 11440,
+                "path": "src/libdxfrw.cpp",
+                "spanSha256": "2031d67921383b4b4942b456e1b2f7df8c8eb96f59002a8eaa2fc90f57cd356c",
+                "symbol": "dxfRW::processRawCapturedObject"
+              }
+            },
+            "callEvidence": {
+              "line": 11443,
+              "path": "src/libdxfrw.cpp",
+              "spanSha256": "2031d67921383b4b4942b456e1b2f7df8c8eb96f59002a8eaa2fc90f57cd356c",
+              "symbol": "dxfRW::processRawCapturedObject"
+            },
+            "callStyle": "interface-call",
+            "callback": "addRawDxfObject",
+            "callbackCompatibility": "exact",
+            "callbackPassingVia": "direct",
+            "callbackRoute": "shared/callback/addRawDxfObject-001",
+            "carrier": "DRW_RawDxfObject",
+            "carrierRoute": "shared/public-model/DRW_RawDxfObject",
+            "conditionAncestry": [
+              {
+                "branchGroupFingerprint": "8d05c0bb8bb9d57cd8fc80fa48215b44ea22fe6ebc010b2fc21e336d8bdc4df1",
+                "branchKind": "then",
+                "conditionFingerprint": "9bb26468ad555e88747baad233bcb9127022a69530a5f09b1e6dcdac5a6d84ee",
+                "sourceEvidence": {
+                  "line": 11439,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "2031d67921383b4b4942b456e1b2f7df8c8eb96f59002a8eaa2fc90f57cd356c",
+                  "symbol": "dxfRW::processRawCapturedObject"
+                }
+              },
+              {
+                "branchGroupFingerprint": "6f40f788ad8c20c8f882ebd21af83a498aa2a5f4ec78ef722ad85f75d5f8c047",
+                "branchKind": "fallthrough-after-then-return",
+                "conditionFingerprint": "d5e0fac605fe707a0112f5e06c44af1f4014dd9718453aa7253ed4b17e78bb43",
+                "sourceEvidence": {
+                  "line": 11440,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "2031d67921383b4b4942b456e1b2f7df8c8eb96f59002a8eaa2fc90f57cd356c",
+                  "symbol": "dxfRW::processRawCapturedObject"
+                }
+              }
+            ],
+            "rawFlowPredecessorRouteIds": [
+              "dxfRW/raw-flow/dxf-read-typed-raw-template"
+            ]
+          }
+        ],
         "readerPipelineIds": [],
         "symbols": [
           "dxfRW::processRawCapturedObject"

@@ -726,7 +726,12 @@
         "dxfRW/parser-publication/dxfRW_dxf-table_STYLE",
         "dxfRW/parser-publication/dxfRW_dxf-table_UCS",
         "dxfRW/parser-publication/dxfRW_dxf-table_VIEW",
-        "dxfRW/parser-publication/dxfRW_dxf-table_VPORT"
+        "dxfRW/parser-publication/dxfRW_dxf-table_VPORT",
+        "dxfRW/raw-flow/dxf-publish-entity",
+        "dxfRW/raw-flow/dxf-publish-object",
+        "dxfRW/raw-flow/dxf-publish-proxy",
+        "dxfRW/raw-flow/dxf-publish-section",
+        "dxfRW/raw-flow/dxf-publish-typed-raw-carrier"
       ],
       "standaloneOnly": [
         "dxfRW/dxf-transport-node/group-code-range-source",
@@ -847,7 +852,7 @@
   },
   "fixturePolicy": "no-drawing-payloads; source-and-metadata-only",
   "generator": {
-    "parserSchema": 7,
+    "parserSchema": 8,
     "path": "tools/extract_parity_source_routes.py"
   },
   "inputs": {
@@ -1843,14 +1848,14 @@
       "facade": "dxfRW",
       "path": "parity-source-routes-v1/target-dxfRW.json",
       "routeCount": 1475,
-      "sha256": "783530d71b1c01e48e638cb5a4d17a0a78d7fdc799001b29a113ff7b66bb5821",
+      "sha256": "cd7053ffc9528bc3c328270792b7f88c167ae2e6122545f334171fd7998c65a6",
       "side": "target"
     },
     {
       "facade": "dwgRW",
       "path": "parity-source-routes-v1/target-dwgRW.json",
       "routeCount": 1345,
-      "sha256": "b61ec842734845058bd175ce35ead3a58dd8460659775d3cb6ca8483c101f50d",
+      "sha256": "d70d9d9f9b1f6d6d7a8724151f32bdd09ef0e0ab5e1d4911127800908beae2f1",
       "side": "target"
     },
     {
@@ -1864,14 +1869,14 @@
       "facade": "dxfRW",
       "path": "parity-source-routes-v1/standalone-dxfRW.json",
       "routeCount": 1457,
-      "sha256": "94e490c5172187305816983ad2bd6539216aea9fb6d429b8157989b500f58738",
+      "sha256": "c1a3c4d7fe9806cf2aaabb0eaf356ded7a2c51057c20d575f027a4ca73c5c4de",
       "side": "standalone"
     },
     {
       "facade": "dwgRW",
       "path": "parity-source-routes-v1/standalone-dwgRW.json",
       "routeCount": 1371,
-      "sha256": "d2ad09b70da74a3713f8f9a82d3bf53786f410462dd896762f86f7aaef32b8fd",
+      "sha256": "42a7b93e272126a87028492bc5af94aec2001fc5509a5ce5f6e446ce2f884986",
       "side": "standalone"
     },
     {
@@ -1890,7 +1895,7 @@
         "targetOnly": 1
       },
       "dxfRW": {
-        "semanticMismatches": 208,
+        "semanticMismatches": 213,
         "standaloneOnly": 18,
         "targetOnly": 36
       },
