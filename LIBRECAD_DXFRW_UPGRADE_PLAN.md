@@ -323,7 +323,7 @@ implementation lane, not a release claim.  The amendment below keeps the
 remaining work executable and avoids spending a full-suite run on every small
 probe change.
 
-1. **S40/J16 — oracle contract and discrepancy triage (READY).**  Keep the
+1. **S40/J16 — oracle contract and discrepancy triage (COMMITTED).**  Keep the
    six-version/18-entity local probe contract in one metadata file consumed by
    both the runner and a dependency-free checker.  Reproduce the AC1015
    exporter discrepancy through the existing DXF and JSON paths, and only make
@@ -331,7 +331,7 @@ probe change.
    ODA/spec-backed byte trace identifies a libdxfrw defect.  Otherwise record
    the result as exporter/version-specific target debt and leave support
    experimental.
-2. **S41/J17 — compound-entity runtime lane (PLANNED).**  Extend the
+2. **S41/J17 — compound-entity runtime lane (READY).**  Extend the
    local-from-scratch generator in this order: `INSERT` with a user block,
    `ATTRIB`/`SEQEND` association, then legacy `POLYLINE` ownership and
    rollback.  Compare typed callbacks, owner/handle relationships, and both
@@ -1840,8 +1840,8 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint: S40/J16 oracle-contract slice is committed;
-  S01-S40 implementation slices are complete with a
+- Current checkpoint: S41/J17 compound-entity slice is committed;
+  S01-S41 implementation slices are complete with a
   version-specific oracle discrepancy recorded,
   including the clean
   LibreCAD target worktree change. Format-support claims remain limited to
@@ -1964,6 +1964,20 @@ edit this block or commit the same slice concurrently.
   local DWG probes, the six-version reader matrix, graph/writer hardening,
   diagnostics, and policy checks. This is the scheduled full-suite checkpoint;
   the inner loop remains focused-test-first and no drawing payloads were added.
+- Latest implementation slice: S40/J16 oracle-contract closure is committed.
+  `metadata/local-dwg-oracle-matrix-v1.json` is the single six-version,
+  18-entity contract consumed by `run_local_dwg_oracle_advisory.py`; the
+  dependency-free checker rejects schema drift, duplicate entities, and
+  invalid count bounds. The AC1015 DXF exporter omission of
+  `SPLINE`/`HATCH`/`LEADER` remains explicit while LibreDWG JSON evidence is
+  retained separately; no drawing payloads or support promotion are involved.
+- Latest implementation slice: S41/J17 compound-entity runtime coverage is
+  committed. The local-from-scratch probe now
+  defines and populates a user block, emits an owned legacy `POLYLINE`, and
+  writes an `INSERT` with `ATTRIB`/`SEQEND`; libdxfrw self-read and LibreDWG
+  JSON/DXF checks pass for all six versions under the matrix's explicit
+  `LINE`/`POLYLINE` count bounds. AC1015's existing exporter discrepancy is
+  unchanged and remains fail-closed; no drawing payloads are retained.
 - Latest implementation slice: S18/I0.2g-A concrete source-unit coverage now
   binds all 80 functional locked `src` units to sorted, same-path, non-generic
   route IDs. The two transport implementation units that had no dispatch or
@@ -2125,24 +2139,24 @@ edit this block or commit the same slice concurrently.
   centralizes the local oracle contract; S41/J17 and S42/J18 are independent
   compound/object lanes; S43/J19 is the next scheduled aggregate checkpoint.
   parity or a PR boundary.
-- Last fully resolved slice: S40 (the oracle-contract slice is committed by
-  the matching `Plan-Slice: S40` trailer; the post-commit report resolves its
+- Last fully resolved slice: S41 (the compound-entity slice is committed by
+  the matching `Plan-Slice: S41` trailer; the post-commit report resolves its
   SHA).
   target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`. All in-horizon lanes are
   terminal only when their recorded gates pass; the next runtime qualification
   lane requires no new target pin.
-- Resolved slices: 40/43 (`COMMITTED`, or `SUPERSEDED` after all replacements
+- Resolved slices: 41/43 (`COMMITTED`, or `SUPERSEDED` after all replacements
   commit).
-- Slice states: 2 READY / 1 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 40 COMMITTED.
-- Parent-item states: 2 READY / 1 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 42 COMMITTED.
-- Expanded child-item states: 137 COMMITTED / 1 PLANNED / 2 READY / 0 ACTIVE /
+- Slice states: 1 READY / 1 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
+  0 BLOCKED_HARD / 0 SUPERSEDED / 41 COMMITTED.
+- Parent-item states: 1 READY / 1 PLANNED / 0 ACTIVE / 0 VERIFYING /
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 43 COMMITTED.
+- Expanded child-item states: 138 COMMITTED / 1 PLANNED / 1 READY / 0 ACTIVE /
   0 VERIFYING / 0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED; no child is anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 29 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S40 are committed. S23/I5
+- Active work: S01-S41 are committed. S23/I5
   reconciled separate DXF/DWG reports, public/package/LibreCAD consumers, the
   scheduled full and ASan/UBSan checkpoints, bounded fuzz smoke, and explicit
   support/defer claims; J0 adds runtime adapter/validation regressions, J2
@@ -2199,7 +2213,7 @@ edit this block or commit the same slice concurrently.
 | S38 | J14: LEADER local DWG oracle coverage | S37 | COMMITTED | focused self-read CTest, dual-format oracle self-test/run, plan/scope/sync/fixture gates | local writer adds a two-vertex straight LEADER; self-read and JSON object evidence pass for all six versions; AC1015 DXF export omits LEADER/HATCH/SPLINE while AC1018+ export all eighteen entities; no payloads retained | AC1015 DXF exporter disposition |
 | S39 | J15: post-S38 full-suite validation checkpoint | S38 | COMMITTED | fresh build, complete dependency-free CTest, plan/scope/sync/fixture gates | all 19 dependency-free CTest entries pass in 3.72 seconds, including source/aggregate, local DWG, reader matrix, graph, writer, hardening, diagnostics, and policy checks; no drawing payloads added | S40 |
 | S40 | J16: local DWG oracle contract and discrepancy metadata | S39 | COMMITTED | focused matrix/runner self-tests, plan/scope/sync/fixture gates | one metadata-only six-version/18-entity contract is consumed by the local oracle runner and checked independently; AC1015 DXF-vs-JSON discrepancy is explicit, fail-closed, and temporary-only; no drawing payloads added | S41, S42 |
-| S41 | J17: compound-entity runtime qualification | S40 | READY | focused local writer/self-read and dual-format oracle checks; no full suite | INSERT/ATTRIB/SEQEND and owned POLYLINE transitions are split into independently unblocking children; owner/handle/callback evidence remains experimental until an independent oracle agrees | S43 |
+| S41 | J17: compound-entity runtime qualification | S40 | COMMITTED | focused local writer/self-read and dual-format oracle checks; no full suite | INSERT/ATTRIB/SEQEND and owned POLYLINE transitions are split into independently unblocking children; owner/handle/callback evidence remains experimental until an independent oracle agrees | S42 |
 | S42 | J18: object/carrier runtime qualification | S40 | READY | direct object encoder vectors and bounded frame/handle checks; no full suite | DICTIONARY/XRECORD/GROUP/LAYOUT/PLOTSETTINGS use a direct harness before NOD/object-stream integration; raw fallback and owner/reactor edges remain experimental | S43 |
 | S43 | J19: post-wave aggregate qualification checkpoint | S41, S42 | PLANNED | fresh build, complete dependency-free CTest, sanitizer/security checkpoint, policy gates | run broad validation once after the compound/object wave; promote no row without eligible input plus independent oracle | next parity lane |
 
@@ -2246,7 +2260,7 @@ edit this block or commit the same slice concurrently.
 | J14 | S38 | J13 | COMMITTED | EXPERIMENTAL | Add a two-vertex straight LEADER to the local six-version DWG probe and preserve separate JSON-reader versus DXF-export evidence |
 | J15 | S39 | J14 | COMMITTED | EXPERIMENTAL | Record the scheduled full-suite checkpoint after the runtime probe expansion while keeping the focused-test-first cadence |
 | J16 | S40 | J15 | COMMITTED | EXPERIMENTAL | Centralize the six-version/18-entity local oracle contract and preserve the observed AC1015 DXF-export versus JSON-reader discrepancy as fail-closed metadata |
-| J17 | S41 | J16 | READY | EXPERIMENTAL | Qualify compound INSERT/ATTRIB/SEQEND/POLYLINE runtime paths with owner/handle and dual-format evidence |
+| J17 | S41 | J16 | COMMITTED | EXPERIMENTAL | Qualify compound INSERT/ATTRIB/SEQEND/POLYLINE runtime paths with owner/handle and dual-format evidence |
 | J18 | S42 | J16 | READY | EXPERIMENTAL | Qualify direct DWG object/carrier encoders and owner/reactor/raw fallback semantics before object-stream integration |
 | J19 | S43 | J17, J18 | PLANNED | EXPERIMENTAL | Run the next full dependency-free and sanitizer checkpoint only after the independent compound/object lanes settle |
 
@@ -2394,7 +2408,7 @@ edit this block or commit the same slice concurrently.
 | J14.1 | J14 / S38 | WP5, WP7, WP8, WP10; LEADER local oracle | J13.1 | COMMITTED | EXPERIMENTAL | emit and self-read a two-vertex straight LEADER for six versions and validate LEADER in both oracle representations | focused local CTest passes; LibreDWG JSON reports LEADER for all six versions, while DXF export reports the full eighteen-entity set for AC1018/21/24/27/32 and AC1015 missing LEADER/HATCH/SPLINE; no fixture bytes |
 | J15.1 | J15 / S39 | WP8, WP10; scheduled full-suite checkpoint | J14.1 | COMMITTED | EXPERIMENTAL | rebuild the current branch and run the complete dependency-free CTest checkpoint after the runtime probe expansion | fresh build and all 19 CTest entries pass in 3.72 seconds; the inner loop remains fast-test-first and no drawing fixtures are staged |
 | J16.1 | J16 / S40 | WP5, WP7, WP8, WP10; local oracle contract | J15.1 | COMMITTED | EXPERIMENTAL | centralize the six-version/18-entity local oracle matrix, consume it from the DXF/JSON runner, and reject drift or duplicate entities with a dependency-free checker | `check_local_dwg_oracle_matrix.py --self-test` and `run_local_dwg_oracle_advisory.py --self-test` pass; CTest adds the matrix check; AC1015 missing HATCH/LEADER/SPLINE remains explicit metadata; no drawing bytes or support promotion |
-| J17.1 | J17 / S41 | WP5, WP7, WP8, WP10; compound entity runtime | J16.1 | READY | EXPERIMENTAL | add local-from-scratch INSERT/ATTRIB/SEQEND and owned POLYLINE scenarios, assert owner/handle/callback closure, and compare through both LibreDWG oracles | temporary-only generator changes, focused self-read/oracle checks, and a fail-closed discrepancy report; no full suite or fixture bytes until the compound lane settles |
+| J17.1 | J17 / S41 | WP5, WP7, WP8, WP10; compound entity runtime | J16.1 | COMMITTED | EXPERIMENTAL | add local-from-scratch INSERT/ATTRIB/SEQEND and owned POLYLINE scenarios, assert owner/handle/callback closure, and compare through both LibreDWG oracles | temporary-only generator changes, focused self-read/oracle checks, and a fail-closed discrepancy report; no full suite or fixture bytes until the compound lane settles |
 | J18.1 | J18 / S42 | WP5, WP7, WP8, WP10; object/carrier runtime | J16.1 | READY | EXPERIMENTAL | exercise direct object encoders for DICTIONARY/XRECORD/GROUP/LAYOUT/PLOTSETTINGS with frame/handle/owner vectors before full object-stream registration | in-memory writer vectors and bounded frame checks; object-stream integration remains deferred until registration/NOD ownership is proven; no fixture bytes |
 | J19.1 | J19 / S43 | WP8, WP10; aggregate checkpoint | J17.1, J18.1 | PLANNED | EXPERIMENTAL | run the complete dependency-free CTest suite and sanitizer/security checkpoint once after the compound/object wave | full validation is checkpoint-only, all policy/sync/fixture/plan gates pass, and no support row is promoted without independent oracle evidence |
 

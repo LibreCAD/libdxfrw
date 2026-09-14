@@ -26,6 +26,10 @@ VERSIONS = {
     entry["marker"]: entry["acadver"] for entry in _MATRIX["versions"]
 }
 EXPECTED_ENTITIES = tuple(_MATRIX["expectedEntities"])
+ENTITY_COUNT_BOUNDS = {
+    name: (bound["min"], bound["max"])
+    for name, bound in _MATRIX.get("entityCountBounds", {}).items()
+}
 
 
 def digest(path: Path) -> dict[str, object]:
@@ -82,9 +86,18 @@ def validate_oracle_output(path: Path, expected_version: str) -> dict[str, objec
     )
     entity_counts = Counter(value for code, value in pairs if code == "0")
     missing_entities = [
-        name for name in EXPECTED_ENTITIES if entity_counts.get(name, 0) != 1
+        name for name in EXPECTED_ENTITIES
+        if entity_counts.get(name, 0) < ENTITY_COUNT_BOUNDS.get(name, (1, 1))[0]
     ]
-    simple_entities_ok = not missing_entities
+    count_violations = [
+        name for name in EXPECTED_ENTITIES
+        if not (
+            ENTITY_COUNT_BOUNDS.get(name, (1, 1))[0]
+            <= entity_counts.get(name, 0)
+            <= ENTITY_COUNT_BOUNDS.get(name, (1, 1))[1]
+        )
+    ]
+    simple_entities_ok = not missing_entities and not count_violations
     return {
         "version": expected_version,
         "oracleVersion": acadver,
@@ -92,6 +105,7 @@ def validate_oracle_output(path: Path, expected_version: str) -> dict[str, objec
         "lineGeometryMatch": geometry_ok,
         "simpleEntitySetMatch": simple_entities_ok,
         "missingEntities": missing_entities,
+        "entityCountViolations": count_violations,
         "entityCounts": dict(sorted(entity_counts.items())),
         "qualified": acadver == expected_version and geometry_ok and simple_entities_ok,
     }
@@ -119,13 +133,23 @@ def validate_json_oracle_output(path: Path, expected_version: str) -> dict[str, 
     oracle_version = fileheader.get("version", "") if isinstance(fileheader, dict) else ""
     entity_counts = Counter(_json_entity_names(document))
     missing_entities = [
-        name for name in EXPECTED_ENTITIES if entity_counts.get(name, 0) != 1
+        name for name in EXPECTED_ENTITIES
+        if entity_counts.get(name, 0) < ENTITY_COUNT_BOUNDS.get(name, (1, 1))[0]
+    ]
+    count_violations = [
+        name for name in EXPECTED_ENTITIES
+        if not (
+            ENTITY_COUNT_BOUNDS.get(name, (1, 1))[0]
+            <= entity_counts.get(name, 0)
+            <= ENTITY_COUNT_BOUNDS.get(name, (1, 1))[1]
+        )
     ]
     return {
         "jsonOracleVersion": oracle_version,
         "jsonVersionMatch": oracle_version == expected_version,
         "jsonEntitySetMatch": not missing_entities,
         "jsonMissingEntities": missing_entities,
+        "jsonEntityCountViolations": count_violations,
         "jsonEntityCounts": dict(sorted(entity_counts.items())),
     }
 
@@ -156,6 +180,17 @@ def self_test() -> None:
         result = validate_oracle_output(path, "AC1015")
         if not result["qualified"]:
             raise AssertionError("synthetic oracle output was not recognized")
+        duplicate_path = Path(directory) / "duplicate.dxf"
+        duplicate_path.write_text(
+            path.read_text(encoding="utf-8").replace(
+                "0\nENDSEC\n0\nEOF\n",
+                "0\nPOLYLINE\n0\nPOLYLINE\n0\nENDSEC\n0\nEOF\n",
+            ),
+            encoding="utf-8",
+        )
+        duplicate_result = validate_oracle_output(duplicate_path, "AC1015")
+        if "POLYLINE" not in duplicate_result["entityCountViolations"]:
+            raise AssertionError("entity count bound violation was not detected")
         json_path = Path(directory) / "sample.json"
         json_path.write_text(
             json.dumps({

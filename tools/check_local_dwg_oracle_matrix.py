@@ -85,6 +85,18 @@ def validate(document: dict[str, object]) -> None:
         raise ValueError("expected entity set drifted")
     if len(set(entities)) != len(entities):
         raise ValueError("expected entity set contains duplicates")
+    bounds = document.get("entityCountBounds")
+    if not isinstance(bounds, dict):
+        raise ValueError("entity count bounds are missing")
+    if set(bounds) - set(EXPECTED_ENTITIES):
+        raise ValueError("entity count bounds contain an unknown entity")
+    for name, bound in bounds.items():
+        if (not isinstance(bound, dict)
+                or not isinstance(bound.get("min"), int)
+                or not isinstance(bound.get("max"), int)
+                or bound["min"] < 1
+                or bound["min"] > bound["max"]):
+            raise ValueError("invalid entity count bound for %s" % name)
 
 
 def self_test() -> None:

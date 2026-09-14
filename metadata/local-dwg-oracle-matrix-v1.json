@@ -69,5 +69,9 @@
     "SPLINE",
     "HATCH",
     "LEADER"
-  ]
+  ],
+  "entityCountBounds": {
+    "LINE": {"min": 1, "max": 2},
+    "POLYLINE": {"min": 1, "max": 2}
+  }
 }

@@ -25,7 +25,25 @@ public:
         data.vars.clear();
     }
 
-    void writeBlocks() override {}
+    void writeBlocks() override {
+        if (writer_ == nullptr)
+            return;
+        const std::uint32_t blockHandle = writer_->defineBlock(
+            "LOCAL_BLOCK", DRW_Coord(0.0, 0.0, 0.0));
+        if (blockHandle == 0 || !writer_->beginBlockContent(blockHandle))
+            return;
+        DRW_Line blockLine;
+        blockLine.basePoint = DRW_Coord(80.0, 81.0, 0.0);
+        blockLine.secPoint = DRW_Coord(82.0, 83.0, 0.0);
+        wroteBlock_ = writer_->writeLine(&blockLine) && blockLine.handle != 0;
+        DRW_Polyline blockPolyline;
+        blockPolyline.vertexcount = 2;
+        blockPolyline.addVertex(DRW_Vertex(86.0, 87.0, 0.0, 0.0));
+        blockPolyline.addVertex(DRW_Vertex(88.0, 89.0, 0.0, 0.0));
+        wroteBlockPolyline_ = writer_->writePolyline(&blockPolyline)
+            && blockPolyline.handle != 0;
+        wroteBlockContent_ = writer_->endBlockContent();
+    }
     void writeBlockRecords() override {}
     void writeLTypes() override {}
     void writeLayers() override {}
@@ -169,11 +187,29 @@ public:
         leader.vertexlist.push_back(
             std::make_shared<DRW_Coord>(71.0, 72.0, 0.0));
         wroteLeader_ = writer_->writeLeader(&leader) && leader.handle != 0;
+
+        DRW_Insert insert;
+        insert.name = "LOCAL_BLOCK";
+        insert.basePoint = DRW_Coord(84.0, 85.0, 0.0);
+        auto attribute = std::make_shared<DRW_Attrib>();
+        attribute->tag = "LOCAL_TAG";
+        attribute->text = "LOCAL_VALUE";
+        attribute->basePoint = DRW_Coord(84.0, 85.0, 0.0);
+        attribute->height = 1.0;
+        insert.attlist.push_back(attribute);
+        wroteInsert_ = writer_->writeInsert(&insert) && insert.handle != 0;
+        wroteAttrib_ = wroteInsert_ && insert.attlist.size() == 1
+            && insert.attlist.front()->handle != 0
+            && insert.seqendH.ref != DRW::NoHandle;
     }
 
     void addLine(const DRW_Line& data) override {
-        readLine_ = data;
         readLineSeen_ = true;
+        // The user block is read before model space, so retain the canonical
+        // model-space line used by the existing geometry assertion.
+        if (data.basePoint.x == 1.0 && data.basePoint.y == 2.0
+            && data.basePoint.z == 3.0)
+            readLine_ = data;
     }
     void addPoint(const DRW_Point&) override { readPointSeen_ = true; }
     void addCircle(const DRW_Circle&) override { readCircleSeen_ = true; }
@@ -196,6 +232,14 @@ public:
     void addSpline(const DRW_Spline*) override { readSplineSeen_ = true; }
     void addHatch(const DRW_Hatch*) override { readHatchSeen_ = true; }
     void addLeader(const DRW_Leader*) override { readLeaderSeen_ = true; }
+    void addInsert(const DRW_Insert& data) override {
+        readInsertSeen_ = true;
+        readAttribSeen_ = data.attlist.size() == 1
+            && data.attlist.front() != nullptr
+            && data.attlist.front()->tag == "LOCAL_TAG"
+            && data.attlist.front()->text == "LOCAL_VALUE";
+        dx_iface::addInsert(data);
+    }
 
     bool wroteLine() const { return wroteLine_; }
     bool wroteSimpleEntities() const {
@@ -211,6 +255,11 @@ public:
     bool wroteSpline() const { return wroteSpline_; }
     bool wroteHatch() const { return wroteHatch_; }
     bool wroteLeader() const { return wroteLeader_; }
+    bool wroteBlock() const {
+        return wroteBlock_ && wroteBlockPolyline_ && wroteBlockContent_;
+    }
+    bool wroteInsert() const { return wroteInsert_; }
+    bool wroteAttrib() const { return wroteAttrib_; }
     bool readLineSeen() const { return readLineSeen_; }
     bool readSimpleEntitiesSeen() const {
         return readPointSeen_ && readCircleSeen_ && readArcSeen_
@@ -226,6 +275,8 @@ public:
     bool readSplineSeen() const { return readSplineSeen_; }
     bool readHatchSeen() const { return readHatchSeen_; }
     bool readLeaderSeen() const { return readLeaderSeen_; }
+    bool readInsertSeen() const { return readInsertSeen_; }
+    bool readAttribSeen() const { return readAttribSeen_; }
     const DRW_Line& readLine() const { return readLine_; }
 
 private:
@@ -248,6 +299,11 @@ private:
     bool wroteSpline_ {false};
     bool wroteHatch_ {false};
     bool wroteLeader_ {false};
+    bool wroteBlock_ {false};
+    bool wroteBlockPolyline_ {false};
+    bool wroteBlockContent_ {false};
+    bool wroteInsert_ {false};
+    bool wroteAttrib_ {false};
     bool readLineSeen_ {false};
     bool readPointSeen_ {false};
     bool readCircleSeen_ {false};
@@ -266,6 +322,8 @@ private:
     bool readSplineSeen_ {false};
     bool readHatchSeen_ {false};
     bool readLeaderSeen_ {false};
+    bool readInsertSeen_ {false};
+    bool readAttribSeen_ {false};
     DRW_Line readLine_;
     dx_data data_;
 };
@@ -324,6 +382,12 @@ int main(int argc, char** argv) {
                ("local DWG writer emitted HATCH" + suffix).c_str(), failures);
         expect(writeIface.wroteLeader(),
                ("local DWG writer emitted LEADER" + suffix).c_str(), failures);
+        expect(writeIface.wroteBlock(),
+               ("local DWG writer emitted user block" + suffix).c_str(), failures);
+        expect(writeIface.wroteInsert(),
+               ("local DWG writer emitted INSERT" + suffix).c_str(), failures);
+        expect(writeIface.wroteAttrib(),
+               ("local DWG writer emitted ATTRIB/SEQEND" + suffix).c_str(), failures);
         expect(std::filesystem::exists(output),
                ("local DWG output is published" + suffix).c_str(), failures);
 
@@ -350,6 +414,10 @@ int main(int argc, char** argv) {
                ("local DWG self-read publishes HATCH" + suffix).c_str(), failures);
         expect(readIface.readLeaderSeen(),
                ("local DWG self-read publishes LEADER" + suffix).c_str(), failures);
+        expect(readIface.readInsertSeen(),
+               ("local DWG self-read publishes INSERT" + suffix).c_str(), failures);
+        expect(readIface.readAttribSeen(),
+               ("local DWG self-read publishes ATTRIB" + suffix).c_str(), failures);
         if (readIface.readLineSeen()) {
             const DRW_Line& line = readIface.readLine();
             expect(line.basePoint.x == 1.0 && line.basePoint.y == 2.0
