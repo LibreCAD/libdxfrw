@@ -10,6 +10,7 @@ without adding drawing payloads to the repository.
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 import hashlib
 import json
 import subprocess
@@ -67,7 +68,11 @@ def validate_oracle_output(path: Path, expected_version: str) -> dict[str, objec
             line_start = index
             break
     if line_start is not None:
-        tail = pairs[line_start + 1 :]
+        tail = []
+        for code, value in pairs[line_start + 1 :]:
+            if code == "0":
+                break
+            tail.append((code, value))
         values = {code: value for code, value in tail}
         line_end = values
     expected = {"10": "1.0", "20": "2.0", "30": "3.0",
@@ -75,12 +80,18 @@ def validate_oracle_output(path: Path, expected_version: str) -> dict[str, objec
     geometry_ok = line_end is not None and all(
         line_end.get(code) == value for code, value in expected.items()
     )
+    entity_counts = Counter(value for code, value in pairs if code == "0")
+    simple_entities_ok = all(
+        entity_counts.get(name, 0) == 1
+        for name in ("LINE", "POINT", "CIRCLE", "ARC", "LWPOLYLINE")
+    )
     return {
         "version": expected_version,
         "oracleVersion": acadver,
         "versionMatch": acadver == expected_version,
         "lineGeometryMatch": geometry_ok,
-        "qualified": acadver == expected_version and geometry_ok,
+        "simpleEntitySetMatch": simple_entities_ok,
+        "qualified": acadver == expected_version and geometry_ok and simple_entities_ok,
     }
 
 
@@ -101,6 +112,7 @@ def self_test() -> None:
             "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1015\n"
             "0\nENDSEC\n0\nSECTION\n2\nENTITIES\n0\nLINE\n"
             "10\n1.0\n20\n2.0\n30\n3.0\n11\n4.0\n21\n5.0\n31\n6.0\n"
+            "0\nPOINT\n0\nCIRCLE\n0\nARC\n0\nLWPOLYLINE\n"
             "0\nENDSEC\n0\nEOF\n",
             encoding="utf-8",
         )

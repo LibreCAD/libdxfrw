@@ -1793,8 +1793,8 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint: S31/J7 independent local DWG oracle qualification is
-  committed; S01-S31 implementation slices are complete,
+- Current checkpoint: S32/J8 multi-entity local DWG oracle coverage is
+  committed; S01-S32 implementation slices are complete,
   including the clean
   LibreCAD target worktree change. Format-support claims remain limited to
   rows with eligible runtime/oracle evidence. Source/package/consumer
@@ -1857,6 +1857,13 @@ edit this block or commit the same slice concurrently.
   DXF output. All six local drawings are independently readable and match; the
   self-test, AST check, and focused CTest are green. Inputs/outputs are removed
   after the run and no support row is promoted beyond this narrow local case.
+- Latest implementation slice: S32/J8 multi-entity local DWG oracle coverage
+  is committed. The local model now emits and self-reads LINE, POINT, CIRCLE,
+  ARC, and LWPOLYLINE entities for all six DWG versions. The independent
+  LibreDWG comparator now respects entity-record boundaries and verifies the
+  complete simple-entity set; all six oracle runs qualify. No drawing payloads
+  are retained or committed, and this narrow evidence does not promote broad
+  format support.
 - Latest implementation slice: S18/I0.2g-A concrete source-unit coverage now
   binds all 80 functional locked `src` units to sorted, same-path, non-generic
   route IDs. The two transport implementation units that had no dispatch or
@@ -1996,7 +2003,7 @@ edit this block or commit the same slice concurrently.
   inputs referenced by its top-level build. No target repin or sibling
   worktree mutation was made; future runtime qualification still requires an
   admitted or locally-from-scratch fixture plus an independent oracle.
-- Authorized run horizon: S01-S31/A-I5 plus J0-J7 runtime-qualification
+- Authorized run horizon: S01-S32/A-I5 plus J0-J8 runtime-qualification
   implementation; unavailable fixtures/oracles remain evidence-only and do not
   stop ready source/spec lanes.
 - Completion target: qualified-format parity for every advertised DWG/DXF row,
@@ -2007,32 +2014,33 @@ edit this block or commit the same slice concurrently.
   advisory differential lane, and S29/J5 adds a local-from-scratch self-read
   lane for all six DWG writer/reader versions, and S30/J6 tightens the
   writer-return/version assertions, and S31/J7 adds an independent local
-  oracle check; parity cannot be inferred from source
+  oracle check, and S32/J8 expands the local entity-set oracle coverage;
+  parity cannot be inferred from source
   parity or a PR boundary.
-- Last fully resolved slice: S31 (the independent local DWG oracle
-  qualification lane is committed by the matching `Plan-Slice: S31` trailer;
+- Last fully resolved slice: S32 (the multi-entity local DWG oracle coverage
+  lane is committed by the matching `Plan-Slice: S32` trailer;
   the post-commit report resolves its SHA).
   target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`. All in-horizon lanes are
   terminal only when their recorded gates pass; the next runtime qualification
   lane requires no new target pin.
-- Resolved slices: 31/31 (`COMMITTED`, or `SUPERSEDED` after all replacements
+- Resolved slices: 32/32 (`COMMITTED`, or `SUPERSEDED` after all replacements
   commit).
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 31 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 32 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 33 COMMITTED.
-- Expanded child-item states: 130 COMMITTED / 0 PLANNED / 0 READY / 0 ACTIVE /
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 34 COMMITTED.
+- Expanded child-item states: 131 COMMITTED / 0 PLANNED / 0 READY / 0 ACTIVE /
   0 VERIFYING / 0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED; no child is anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 16 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S31 are committed. S23/I5
+  0 DEFERRED_EXTERNAL / 17 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S32 are committed. S23/I5
   reconciled separate DXF/DWG reports, public/package/LibreCAD consumers, the
   scheduled full and ASan/UBSan checkpoints, bounded fuzz smoke, and explicit
   support/defer claims; J0 adds runtime adapter/validation regressions, J2
   adds bounded advisory acceleration, J5 adds local self-read evidence, and J6
   tightens its return/version assertions, and J7 adds the independent local
-  oracle advisory bridge
+  oracle advisory bridge, and J8 expands the local entity-set comparator
   without promoting format support. Any later oracle expansion still requires an
   explicit ledger row and cannot silently promote current claims.
 
@@ -2069,6 +2077,7 @@ edit this block or commit the same slice concurrently.
 | S29 | J5: local-from-scratch DWG runtime qualification | S28 | COMMITTED | six-version temporary writer/self-read test, focused CTest, plan/scope/sync/fixture gates | production `dwgRW::write` and `dwgRW::read` self-read a locally generated line for AC1015/18/21/24/27/32; temporary outputs are removed, no fixture bytes are committed, and independent-oracle promotion remains deferred | independent-oracle qualification |
 | S30 | J6: local DWG qualification assertion hardening | S29 | COMMITTED | focused local round-trip CTest, plan/scope/sync/fixture gates | writer return values and reader version recognition are asserted for all six locally generated DWGs; temporary outputs are removed and independent-oracle promotion remains deferred | independent-oracle qualification |
 | S31 | J7: independent local DWG oracle qualification | S30 | COMMITTED | shell-free oracle runner self-test, six-version local run, plan/scope/sync/fixture gates | LibreDWG `dwg2dxf 0.14` independently reads all six locally generated DWGs; ACADVER and LINE geometry match, temporary files are removed, and no broad format-support row is promoted | qualified-format parity follow-up |
+| S32 | J8: multi-entity local DWG oracle coverage | S31 | COMMITTED | focused self-read CTest, shell-free oracle self-test, six-version oracle run, plan/scope/sync/fixture gates | local writer emits LINE/POINT/CIRCLE/ARC/LWPOLYLINE for AC1015/18/21/24/27/32; comparator stops at each entity boundary and LibreDWG 0.14 reports 6/6 qualified; no payloads are retained | qualified-format parity follow-up |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -2104,6 +2113,7 @@ edit this block or commit the same slice concurrently.
 | J5 | S29 | J4 | COMMITTED | EXPERIMENTAL | Generate local-from-scratch DWG outputs for every writer version and self-read them through the production reader; self-read evidence is non-promoting until an independent oracle also agrees |
 | J6 | S30 | J5 | COMMITTED | EXPERIMENTAL | Tighten the local DWG qualification probe so writer success and reader version recognition are explicit for every version; self-read evidence remains non-promoting until an independent oracle also agrees |
 | J7 | S31 | J6 | COMMITTED | EXPERIMENTAL | Run the locally generated six-version DWG set through an independent LibreDWG oracle and compare version plus typed LINE geometry; keep the result narrow and non-promoting for broader format support |
+| J8 | S32 | J7 | COMMITTED | EXPERIMENTAL | Expand local DWG oracle coverage to a simple multi-entity set and fix comparator record-boundary handling; keep support claims narrow until broader feature rows have equivalent evidence |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -2239,6 +2249,7 @@ edit this block or commit the same slice concurrently.
 | J5.1 | J5 / S29 | WP5, WP7, WP8, WP10; local-from-scratch runtime qualification | J4.1 | COMMITTED | EXPERIMENTAL | six DWG versions write a temporary local model, self-read it, and verify typed geometry plus cleanup | `libdxfrw_dwg_local_roundtrip` passes for AC1015/18/21/24/27/32; all files are created under the system temporary directory and removed before exit, no external drawing is read, and no support claim is promoted without an independent reader |
 | J6.1 | J6 / S30 | WP5, WP7, WP8, WP10; local qualification assertion hardening | J5.1 | COMMITTED | EXPERIMENTAL | require `dwgRW::write` success and `dwgRW::getVersion()` equality in the six-version local round-trip test | focused `libdxfrw_dwg_local_roundtrip` passes after asserting writer return status and AC version recognition; no drawing bytes are committed and no support claim is promoted without an independent reader |
 | J7.1 | J7 / S31 | WP5, WP7, WP8, WP10; independent local oracle | J6.1 | COMMITTED | EXPERIMENTAL | invoke a shell-free LibreDWG oracle for each local DWG and verify ACADVER plus LINE endpoints from temporary DXF output | `run_local_dwg_oracle_advisory.py --self-test` and AST checks pass; the live run with LibreDWG `dwg2dxf 0.14` reports 6/6 `qualified`; no payloads are retained or committed and broader support remains experimental |
+| J8.1 | J8 / S32 | WP5, WP7, WP8, WP10; multi-entity local oracle | J7.1 | COMMITTED | EXPERIMENTAL | emit and self-read LINE/POINT/CIRCLE/ARC/LWPOLYLINE for six versions and validate bounded oracle records without cross-entity group-code bleed | focused CTest self-read/oracle checks pass; the live LibreDWG 0.14 run reports 6/6 qualified after the parser boundary fix, with all DWG/DXF outputs temporary and untracked |
 
 <!-- UPGRADE_PROGRESS_END -->
 
