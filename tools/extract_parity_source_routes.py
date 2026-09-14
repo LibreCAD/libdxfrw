@@ -970,6 +970,35 @@ RAW_DXF_ELIGIBILITY_RULES = {
     },
 }
 
+RAW_DXF_WRITER_EVIDENCE_RULES = {
+    "dxf-write-object-groups-gate": {
+        "dxfRW::writeRawDxfObject": (
+            {"name": "group-validation", "pattern": r"\bvalidateRawDxfGroups\s*\(\s*obj->groups\s*,\s*obj->rawValues", "callee": "validateRawDxfGroups", "calleeOverload": "validateRawDxfGroups(const vector<DRW_Variant>&,const vector<UTF8STRING>&,bool,bool,bool)", "relation": "reject"},
+        ),
+    },
+    "dxf-write-object-self-handle-gate": {
+        "dxfRW::writeRawDxfObject": (
+            {"name": "self-handle-required", "pattern": r"\brequiresDxfSelfHandle\s*\(\s*version\s*\)", "callee": "requiresDxfSelfHandle", "calleeOverload": "requiresDxfSelfHandle(DRW::Version)", "relation": "conditional-reject"},
+            {"name": "raw-self-handle-present", "pattern": r"\bhasRawDxfSelfHandle\s*\(\s*\*obj\s*\)", "callee": "hasRawDxfSelfHandle", "calleeOverload": "hasRawDxfSelfHandle(const DRW_RawDxfObject&)", "relation": "conditional-reject"},
+        ),
+    },
+    "dxf-replay-object": {
+        "dxfRW::writeRawDxfObject": (
+            {"name": "group-replay", "pattern": r"\bwriteRawDxfGroups\s*\(\s*obj->groups\s*,\s*obj->rawValues", "callee": "dxfRW::writeRawDxfGroups", "calleeOverload": "writeRawDxfGroups(const vector<DRW_Variant>&,const vector<UTF8STRING>&,bool,DRW::Version,bool)", "relation": "raw-object-to-groups"},
+        ),
+    },
+    "dxf-write-section-groups-gate": {
+        "dxfRW::writeRawDxfSection": (
+            {"name": "group-validation", "pattern": r"\bvalidateRawDxfGroups\s*\(\s*section\.m_groups\s*,\s*section\.m_rawValues", "callee": "validateRawDxfGroups", "calleeOverload": "validateRawDxfGroups(const vector<DRW_Variant>&,const vector<UTF8STRING>&,bool,bool,bool)", "relation": "reject"},
+        ),
+    },
+    "dxf-replay-section": {
+        "dxfRW::writeRawDxfSection": (
+            {"name": "group-replay", "pattern": r"\bwriteRawDxfGroups\s*\(\s*section\.m_groups\s*,\s*section\.m_rawValues", "callee": "dxfRW::writeRawDxfGroups", "calleeOverload": "writeRawDxfGroups(const vector<DRW_Variant>&,const vector<UTF8STRING>&,bool,DRW::Version,bool)", "relation": "raw-section-to-groups"},
+        ),
+    },
+}
+
 # These route nodes cover the deliberate deferred/publication machinery that
 # cannot truthfully be reduced to one local parser-function → callback call.
 # A staged parser row must point to at least one of these exact anchors.
@@ -3139,6 +3168,28 @@ def raw_eligibility_metadata(
     return rows
 
 
+def raw_writer_metadata(node_name: str, tree: SourceTree, bodies: list[FunctionBody]) -> list[dict]:
+    """Attach exact DXF raw writer guard/replay calls to flow nodes."""
+    rules = RAW_DXF_WRITER_EVIDENCE_RULES.get(node_name)
+    if rules is None:
+        return []
+    source = tree.require("src/libdxfrw.cpp")
+    rows: list[dict] = []
+    for symbol, edge_specs in sorted(rules.items()):
+        found = function_bodies(source, symbol)
+        if len(found) != 1:
+            raise RouteError("raw writer call-site anchor is not unique: %s" % symbol)
+        rows.append(
+            {
+                "bodySymbol": symbol,
+                "edges": raw_eligibility_edge_rows(found[0], edge_specs),
+            }
+        )
+    if {row["bodySymbol"] for row in rows} != set(rules):
+        raise RouteError("raw writer body coverage changed: %s" % node_name)
+    return rows
+
+
 def add_raw_flow_routes(collector: RouteCollector, tree: SourceTree) -> None:
     """Close raw carriers, guards, handoffs, and replay phases explicitly."""
     inputs = raw_flow_inputs_by_name()
@@ -3205,6 +3256,10 @@ def add_raw_flow_routes(collector: RouteCollector, tree: SourceTree) -> None:
         if name in RAW_DXF_ELIGIBILITY_RULES or name == "dxf-read-typed-raw-template":
             selector["rawEligibilityEvidence"] = raw_eligibility_metadata(
                 name, evidence_bodies
+            )
+        if name in RAW_DXF_WRITER_EVIDENCE_RULES:
+            selector["rawWriterEvidence"] = raw_writer_metadata(
+                name, tree, evidence_bodies
             )
         if phase == "publication":
             predecessor_route_ids = [
@@ -5125,6 +5180,45 @@ def validate_transport_selection_metadata(
     )
     if location["path"] != "src/libdxfrw.cpp":
         raise RouteError("DXF transport constructor path changed: %s" % route["id"])
+
+
+def validate_raw_writer_metadata(tree: SourceTree, route: dict) -> None:
+    name = route["selector"].get("name")
+    rules = RAW_DXF_WRITER_EVIDENCE_RULES.get(name)
+    if rules is None:
+        if route["selector"].get("rawWriterEvidence", []) not in ([], None):
+            raise RouteError("unexpected raw writer evidence: %s" % route["id"])
+        return
+    rows = route["selector"].get("rawWriterEvidence")
+    if not isinstance(rows, list) or {row.get("bodySymbol") for row in rows if isinstance(row, dict)} != set(rules):
+        raise RouteError("raw writer body coverage changed: %s" % route["id"])
+    for row in rows:
+        symbol = row.get("bodySymbol")
+        if not isinstance(row, dict) or symbol not in rules:
+            raise RouteError("raw writer row is malformed: %s" % route["id"])
+        names = tuple(spec["name"] for spec in rules[symbol])
+        edges = row.get("edges")
+        if not isinstance(edges, list) or len(edges) != len(names):
+            raise RouteError("raw writer edge count changed: %s" % route["id"])
+        previous_offset = -1
+        for order, edge in enumerate(edges, 1):
+            if (
+                not isinstance(edge, dict)
+                or edge.get("edge") != names[order - 1]
+                or edge.get("order") != order
+                or edge.get("predecessorEdges") != list(names[: order - 1])
+                or not isinstance(edge.get("sourceOffset"), int)
+                or edge["sourceOffset"] <= previous_offset
+                or not isinstance(edge.get("callee"), str)
+                or not isinstance(edge.get("calleeOverload"), str)
+                or not isinstance(edge.get("relation"), str)
+                or not isinstance(edge.get("guardFingerprint"), str)
+            ):
+                raise RouteError("raw writer edge contract changed: %s" % route["id"])
+            previous_offset = edge["sourceOffset"]
+            _validate_raw_publication_location(
+                edge.get("callEvidence"), tree, {symbol}, "raw-writer", route["id"]
+            )
 
 
 def validate_named_publication_selector(
@@ -7105,6 +7199,7 @@ def validate_pipeline_closure(tree: SourceTree, inventory: dict[str, list[dict]]
         if raw_by_name[name]["directions"] != sorted(set(RAW_NODE_DIRECTIONS[name])):
             raise RouteError("raw-flow node has incorrect reviewed directions: %s" % name)
         validate_raw_eligibility_metadata(tree, raw_by_name[name])
+        validate_raw_writer_metadata(tree, raw_by_name[name])
         validate_raw_route_publication_metadata(
             tree, raw_by_name[name], raw_ids, model_route_ids, callback_route_ids
         )

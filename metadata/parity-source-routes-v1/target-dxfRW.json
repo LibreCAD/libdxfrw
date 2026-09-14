@@ -63073,6 +63073,29 @@
         "outputCarrierTransforms": [],
         "outputRouteIds": [],
         "phase": "replay",
+        "rawWriterEvidence": [
+          {
+            "bodySymbol": "dxfRW::writeRawDxfObject",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 14200,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "804a8d77cb2df6d60271aef75b3d10dcb27b1428b625a6e57e13e40761d203c6",
+                  "symbol": "dxfRW::writeRawDxfObject"
+                },
+                "callee": "dxfRW::writeRawDxfGroups",
+                "calleeOverload": "writeRawDxfGroups(const vector<DRW_Variant>&,const vector<UTF8STRING>&,bool,DRW::Version,bool)",
+                "edge": "group-replay",
+                "guardFingerprint": "1fdb60e00a2bc193c25a84a005b1922aba7d7c86b39a1a0820f0c57362c80437",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "raw-object-to-groups",
+                "sourceOffset": 852
+              }
+            ]
+          }
+        ],
         "readerPipelineIds": [],
         "symbols": [
           "dxfRW::writeRawDxfObject"
@@ -63119,6 +63142,29 @@
           "dxfRW/raw-flow/dxf-write-section-groups-gate"
         ],
         "phase": "replay",
+        "rawWriterEvidence": [
+          {
+            "bodySymbol": "dxfRW::writeRawDxfSection",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 14232,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "0139a0e42aad0075454a55729e1477f75d043323029da3d0659f60ccc751b318",
+                  "symbol": "dxfRW::writeRawDxfSection"
+                },
+                "callee": "dxfRW::writeRawDxfGroups",
+                "calleeOverload": "writeRawDxfGroups(const vector<DRW_Variant>&,const vector<UTF8STRING>&,bool,DRW::Version,bool)",
+                "edge": "group-replay",
+                "guardFingerprint": "8f47166b9712a3988bbfca01bb48dda38e2030b38ef71419c4d72982b26f964c",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "raw-section-to-groups",
+                "sourceOffset": 936
+              }
+            ]
+          }
+        ],
         "readerPipelineIds": [],
         "symbols": [
           "dxfRW::writeRawDxfSection"
@@ -63211,6 +63257,29 @@
           "dxfRW/raw-flow/dxf-write-object-self-handle-gate"
         ],
         "phase": "eligibility",
+        "rawWriterEvidence": [
+          {
+            "bodySymbol": "dxfRW::writeRawDxfObject",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 14183,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "804a8d77cb2df6d60271aef75b3d10dcb27b1428b625a6e57e13e40761d203c6",
+                  "symbol": "dxfRW::writeRawDxfObject"
+                },
+                "callee": "validateRawDxfGroups",
+                "calleeOverload": "validateRawDxfGroups(const vector<DRW_Variant>&,const vector<UTF8STRING>&,bool,bool,bool)",
+                "edge": "group-validation",
+                "guardFingerprint": "25a398a0a77bf5b3df381ca36ebd80cb967567c474aad667b56f428ea88c3a7e",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "reject",
+                "sourceOffset": 218
+              }
+            ]
+          }
+        ],
         "readerPipelineIds": [],
         "symbols": [
           "validateRawDxfGroups"
@@ -63309,6 +63378,47 @@
           "dxfRW/raw-flow/dxf-write-object-raw-self-handle-gate"
         ],
         "phase": "eligibility",
+        "rawWriterEvidence": [
+          {
+            "bodySymbol": "dxfRW::writeRawDxfObject",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 14186,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "804a8d77cb2df6d60271aef75b3d10dcb27b1428b625a6e57e13e40761d203c6",
+                  "symbol": "dxfRW::writeRawDxfObject"
+                },
+                "callee": "requiresDxfSelfHandle",
+                "calleeOverload": "requiresDxfSelfHandle(DRW::Version)",
+                "edge": "self-handle-required",
+                "guardFingerprint": "e34405235d968cb451673c6ec6e542f9c337524f6124cc412479525c2b284bbe",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "conditional-reject",
+                "sourceOffset": 407
+              },
+              {
+                "callEvidence": {
+                  "line": 14186,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "804a8d77cb2df6d60271aef75b3d10dcb27b1428b625a6e57e13e40761d203c6",
+                  "symbol": "dxfRW::writeRawDxfObject"
+                },
+                "callee": "hasRawDxfSelfHandle",
+                "calleeOverload": "hasRawDxfSelfHandle(const DRW_RawDxfObject&)",
+                "edge": "raw-self-handle-present",
+                "guardFingerprint": "f6ab1f22e7991f1c64bcead041e14c41b45a907d71405d5b3f425aa2c029d019",
+                "order": 2,
+                "predecessorEdges": [
+                  "self-handle-required"
+                ],
+                "relation": "conditional-reject",
+                "sourceOffset": 442
+              }
+            ]
+          }
+        ],
         "readerPipelineIds": [],
         "symbols": [
           "requiresDxfSelfHandle"
@@ -63355,6 +63465,29 @@
           "dxfRW/raw-flow/dxf-replay-groups"
         ],
         "phase": "eligibility",
+        "rawWriterEvidence": [
+          {
+            "bodySymbol": "dxfRW::writeRawDxfSection",
+            "edges": [
+              {
+                "callEvidence": {
+                  "line": 14223,
+                  "path": "src/libdxfrw.cpp",
+                  "spanSha256": "0139a0e42aad0075454a55729e1477f75d043323029da3d0659f60ccc751b318",
+                  "symbol": "dxfRW::writeRawDxfSection"
+                },
+                "callee": "validateRawDxfGroups",
+                "calleeOverload": "validateRawDxfGroups(const vector<DRW_Variant>&,const vector<UTF8STRING>&,bool,bool,bool)",
+                "edge": "group-validation",
+                "guardFingerprint": "747682e41f60b5f82d2b363d4222d5a2505ed067b6f68bd9a81f9dbd84d02eac",
+                "order": 1,
+                "predecessorEdges": [],
+                "relation": "reject",
+                "sourceOffset": 543
+              }
+            ]
+          }
+        ],
         "readerPipelineIds": [],
         "symbols": [
           "validateRawDxfGroups"
