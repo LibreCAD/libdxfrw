@@ -1793,8 +1793,8 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint: S29/J5 local-from-scratch DWG runtime qualification is
-  committed; S01-S29 implementation slices are complete,
+- Current checkpoint: S30/J6 local DWG qualification assertion hardening is
+  committed; S01-S30 implementation slices are complete,
   including the clean
   LibreCAD target worktree change. Format-support claims remain limited to
   rows with eligible runtime/oracle evidence. Source/package/consumer
@@ -1844,6 +1844,12 @@ edit this block or commit the same slice concurrently.
   self-reads pass and temporary files are removed. This is eligible local
   positive evidence for the writer/reader path, but it is not an independent
   oracle, so no format-support row is promoted.
+- Latest implementation slice: S30/J6 local DWG qualification assertion
+  hardening is committed. The local probe now requires the production writer
+  call itself to return success and verifies that each self-read recognizes the
+  requested AC1015/18/21/24/27/32 version in addition to checking line geometry.
+  The gate remains temporary-file-only and non-promoting without an independent
+  reader.
 - Latest implementation slice: S18/I0.2g-A concrete source-unit coverage now
   binds all 80 functional locked `src` units to sorted, same-path, non-generic
   route IDs. The two transport implementation units that had no dispatch or
@@ -1983,7 +1989,7 @@ edit this block or commit the same slice concurrently.
   inputs referenced by its top-level build. No target repin or sibling
   worktree mutation was made; future runtime qualification still requires an
   admitted or locally-from-scratch fixture plus an independent oracle.
-- Authorized run horizon: S01-S29/A-I5 plus J0-J5 runtime-qualification
+- Authorized run horizon: S01-S30/A-I5 plus J0-J6 runtime-qualification
   implementation; unavailable fixtures/oracles remain evidence-only and do not
   stop ready source/spec lanes.
 - Completion target: qualified-format parity for every advertised DWG/DXF row,
@@ -1992,30 +1998,32 @@ edit this block or commit the same slice concurrently.
   triage, S26/J1 closes the current source/spec defect audit, S27/J3 adds
   the metadata-only evidence queue, S28/J4 adds the target-versus-standalone
   advisory differential lane, and S29/J5 adds a local-from-scratch self-read
-  lane for all six DWG writer/reader versions; parity cannot be inferred from source
+  lane for all six DWG writer/reader versions, and S30/J6 tightens the
+  writer-return/version assertions; parity cannot be inferred from source
   parity or a PR boundary.
-- Last fully resolved slice: S29 (the local-from-scratch DWG runtime
-  qualification lane is committed by the matching `Plan-Slice: S29` trailer;
+- Last fully resolved slice: S30 (the local DWG qualification assertion
+  hardening lane is committed by the matching `Plan-Slice: S30` trailer;
   the post-commit report resolves its SHA).
   target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`. All in-horizon lanes are
   terminal only when their recorded gates pass; the next runtime qualification
   lane requires no new target pin.
-- Resolved slices: 29/29 (`COMMITTED`, or `SUPERSEDED` after all replacements
+- Resolved slices: 30/30 (`COMMITTED`, or `SUPERSEDED` after all replacements
   commit).
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 29 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 30 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 31 COMMITTED.
-- Expanded child-item states: 128 COMMITTED / 0 PLANNED / 0 READY / 0 ACTIVE /
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 32 COMMITTED.
+- Expanded child-item states: 129 COMMITTED / 0 PLANNED / 0 READY / 0 ACTIVE /
   0 VERIFYING / 0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED; no child is anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 15 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S29 are committed. S23/I5
+- Active work: S01-S30 are committed. S23/I5
   reconciled separate DXF/DWG reports, public/package/LibreCAD consumers, the
   scheduled full and ASan/UBSan checkpoints, bounded fuzz smoke, and explicit
   support/defer claims; J0 adds runtime adapter/validation regressions, J2
-  adds bounded advisory acceleration, and J5 adds local self-read evidence
+  adds bounded advisory acceleration, J5 adds local self-read evidence, and J6
+  tightens its return/version assertions
   without promoting format support. Any later oracle expansion still requires an
   explicit ledger row and cannot silently promote current claims.
 
@@ -2050,6 +2058,7 @@ edit this block or commit the same slice concurrently.
 | S27 | J3: metadata-only runtime evidence queue | S26 | COMMITTED | queue self-test, registry/advisory validation, fast CTest, plan/scope/sync/fixture gates | blocked/oracle routes are enumerated from hashes/statuses only; no payload is opened or copied; queue output feeds the next independent qualification lane without repeating full suites | runtime qualification |
 | S28 | J4: target-versus-standalone advisory differential lane | S27 | COMMITTED | shell-free runner self-test, bounded external scan, hash-only report, plan/scope/sync/fixture gates | target library build succeeds in an isolated temporary copy; 30 bounded AC1024/AC1027/AC1032 comparisons produce 23 exact matches, 4 shared timeouts, and 3 shared failures; no payloads are retained and no support claim is promoted | runtime qualification |
 | S29 | J5: local-from-scratch DWG runtime qualification | S28 | COMMITTED | six-version temporary writer/self-read test, focused CTest, plan/scope/sync/fixture gates | production `dwgRW::write` and `dwgRW::read` self-read a locally generated line for AC1015/18/21/24/27/32; temporary outputs are removed, no fixture bytes are committed, and independent-oracle promotion remains deferred | independent-oracle qualification |
+| S30 | J6: local DWG qualification assertion hardening | S29 | COMMITTED | focused local round-trip CTest, plan/scope/sync/fixture gates | writer return values and reader version recognition are asserted for all six locally generated DWGs; temporary outputs are removed and independent-oracle promotion remains deferred | independent-oracle qualification |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -2083,6 +2092,7 @@ edit this block or commit the same slice concurrently.
 | J3 | S27 | J1 | COMMITTED | EXPERIMENTAL | Maintain a metadata-only queue for fixture/oracle-blocked runtime rows and advisory outcomes so later qualification work can run incrementally |
 | J4 | S28 | J3 | COMMITTED | EXPERIMENTAL | Compare the pinned target library and standalone adapter with bounded, hash-only external differential evidence; no result can promote support without an eligible fixture and independent oracle |
 | J5 | S29 | J4 | COMMITTED | EXPERIMENTAL | Generate local-from-scratch DWG outputs for every writer version and self-read them through the production reader; self-read evidence is non-promoting until an independent oracle also agrees |
+| J6 | S30 | J5 | COMMITTED | EXPERIMENTAL | Tighten the local DWG qualification probe so writer success and reader version recognition are explicit for every version; self-read evidence remains non-promoting until an independent oracle also agrees |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -2216,6 +2226,7 @@ edit this block or commit the same slice concurrently.
 | J3.1 | J3 / S27 | WP10; runtime evidence intake | J1 | COMMITTED | EXPERIMENTAL | metadata-only queue identifies fixture/oracle-blocked rows and advisory outcomes without reading payload bytes | `check_runtime_evidence_queue.py` validates non-promoting registry routes and advisory status/hash rows; self-test and focused CTest are the smallest gate; no fixture bytes; unblocks the next independent runtime qualification slice |
 | J4.1 | J4 / S28 | WP8, WP10; target differential adapter | J3 | COMMITTED | EXPERIMENTAL | target and standalone runner outputs compare by normalized relation under a per-runner timeout | `run_target_differential_advisory.py` uses shell-free argument lists, temporary outputs, source/output hashes, and equal/delta/failure/timeout relations; self-test passes, the isolated target build and 30-input advisory scan pass, and no fixture bytes are added |
 | J5.1 | J5 / S29 | WP5, WP7, WP8, WP10; local-from-scratch runtime qualification | J4.1 | COMMITTED | EXPERIMENTAL | six DWG versions write a temporary local model, self-read it, and verify typed geometry plus cleanup | `libdxfrw_dwg_local_roundtrip` passes for AC1015/18/21/24/27/32; all files are created under the system temporary directory and removed before exit, no external drawing is read, and no support claim is promoted without an independent reader |
+| J6.1 | J6 / S30 | WP5, WP7, WP8, WP10; local qualification assertion hardening | J5.1 | COMMITTED | EXPERIMENTAL | require `dwgRW::write` success and `dwgRW::getVersion()` equality in the six-version local round-trip test | focused `libdxfrw_dwg_local_roundtrip` passes after asserting writer return status and AC version recognition; no drawing bytes are committed and no support claim is promoted without an independent reader |
 
 <!-- UPGRADE_PROGRESS_END -->
 

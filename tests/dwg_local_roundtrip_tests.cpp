@@ -41,8 +41,7 @@ public:
         DRW_Line line;
         line.basePoint = DRW_Coord(1.0, 2.0, 3.0);
         line.secPoint = DRW_Coord(4.0, 5.0, 6.0);
-        writer_->writeLine(&line);
-        wroteLine_ = line.handle != 0;
+        wroteLine_ = writer_->writeLine(&line) && line.handle != 0;
     }
 
     void addLine(const DRW_Line& data) override {
@@ -102,6 +101,8 @@ int main() {
         const bool readOk = reader.read(&readIface, false);
         expect(readOk, ("local DWG reader self-read succeeds" + suffix).c_str(),
                failures);
+        expect(reader.getVersion() == version,
+               ("local DWG self-read preserves version" + suffix).c_str(), failures);
         expect(readIface.readLineSeen(),
                ("local DWG self-read publishes a line" + suffix).c_str(), failures);
         if (readIface.readLineSeen()) {
