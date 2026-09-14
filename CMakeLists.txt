@@ -98,6 +98,15 @@ if(LIBDXFRW_BUILD_TESTS)
         COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE}
             ${CMAKE_CURRENT_SOURCE_DIR}/tools/extract_parity_source_routes.py
             --self-test)
+    add_test(NAME libdxfrw_parity_differential
+        COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE}
+            ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_parity_differential.py
+            --self-test)
+    add_test(NAME libdxfrw_parity_differential_manifest
+        COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE}
+            ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_parity_differential.py
+            --manifest
+            ${CMAKE_CURRENT_SOURCE_DIR}/metadata/parity-differential-runners-v1.json)
 
     add_executable(libdxfrw_wave1_tests tests/wave1_tests.cpp)
     target_compile_features(libdxfrw_wave1_tests PRIVATE cxx_std_17)

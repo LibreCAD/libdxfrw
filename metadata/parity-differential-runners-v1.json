@@ -1,0 +1,96 @@
+{
+  "schema": 1,
+  "kind": "libdxfrw-parity-differential",
+  "fixturePolicy": "no-drawing-payloads; source-and-metadata-only",
+  "comparisonSchema": "oracle-normalization-v1",
+  "runners": [
+    {
+      "id": "standalone-dwg-read",
+      "side": "standalone",
+      "facade": "dwgRW",
+      "direction": "read",
+      "command": ["<standalone-adapter>", "--input", "{input}", "--json"],
+      "inputMode": "runtime-external-path",
+      "outputMode": "json-stdout",
+      "options": ["deterministic", "same-version-and-dialect"],
+      "promotesSupport": false
+    },
+    {
+      "id": "standalone-dwg-write",
+      "side": "standalone",
+      "facade": "dwgRW",
+      "direction": "write",
+      "command": ["<standalone-adapter>", "--input", "{input}", "--json"],
+      "inputMode": "runtime-external-path",
+      "outputMode": "json-stdout",
+      "options": ["deterministic", "same-version-and-dialect"],
+      "promotesSupport": false
+    },
+    {
+      "id": "standalone-dxf-read",
+      "side": "standalone",
+      "facade": "dxfRW",
+      "direction": "read",
+      "command": ["<standalone-adapter>", "--input", "{input}", "--json"],
+      "inputMode": "runtime-external-path",
+      "outputMode": "json-stdout",
+      "options": ["deterministic", "same-version-and-dialect"],
+      "promotesSupport": false
+    },
+    {
+      "id": "standalone-dxf-write",
+      "side": "standalone",
+      "facade": "dxfRW",
+      "direction": "write",
+      "command": ["<standalone-adapter>", "--input", "{input}", "--json"],
+      "inputMode": "runtime-external-path",
+      "outputMode": "json-stdout",
+      "options": ["deterministic", "same-version-and-dialect"],
+      "promotesSupport": false
+    },
+    {
+      "id": "target-dwg-read",
+      "side": "target",
+      "facade": "dwgRW",
+      "direction": "read",
+      "command": ["<target-adapter>", "--input", "{input}", "--json"],
+      "inputMode": "runtime-external-path",
+      "outputMode": "json-stdout",
+      "options": ["deterministic", "same-version-and-dialect"],
+      "promotesSupport": false
+    },
+    {
+      "id": "target-dwg-write",
+      "side": "target",
+      "facade": "dwgRW",
+      "direction": "write",
+      "command": ["<target-adapter>", "--input", "{input}", "--json"],
+      "inputMode": "runtime-external-path",
+      "outputMode": "json-stdout",
+      "options": ["deterministic", "same-version-and-dialect"],
+      "promotesSupport": false
+    },
+    {
+      "id": "target-dxf-read",
+      "side": "target",
+      "facade": "dxfRW",
+      "direction": "read",
+      "command": ["<target-adapter>", "--input", "{input}", "--json"],
+      "inputMode": "runtime-external-path",
+      "outputMode": "json-stdout",
+      "options": ["deterministic", "same-version-and-dialect"],
+      "promotesSupport": false
+    },
+    {
+      "id": "target-dxf-write",
+      "side": "target",
+      "facade": "dxfRW",
+      "direction": "write",
+      "command": ["<target-adapter>", "--input", "{input}", "--json"],
+      "inputMode": "runtime-external-path",
+      "outputMode": "json-stdout",
+      "options": ["deterministic", "same-version-and-dialect"],
+      "promotesSupport": false
+    }
+  ]
+}

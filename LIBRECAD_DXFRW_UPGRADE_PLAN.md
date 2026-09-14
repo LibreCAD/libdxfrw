@@ -1890,6 +1890,15 @@ edit this block or commit the same slice concurrently.
   disposition. The six DWG writer pipelines and three DXF writer dialects are
   linked without fabricating reader edges; extractor, aggregate, registry,
   and policy fast gates pass with no drawing fixtures.
+- Latest implementation slice: S19/I1 differential harness closure is now
+  prepared from a schema-validated, shell-free runner contract. The fast path
+  normalizes target/standalone JSON envelopes, compares semantic, callback,
+  carrier, graph, error-stage, tool-version, and exact-replay fields, and
+  reports only hashes for normalized identity. Its self-test runs local
+  from-scratch temporary-input runners and deliberate mismatch cases;
+  target/standalone adapter commands remain runtime-only and cannot promote a
+  support claim. The two differential CTest entries pass in 0.14 seconds;
+  no drawing fixtures or full suites are involved.
 - Authorized run horizon: full S01-S23/A-I5 implementation objective.
 - Completion target: S23/I5 qualified-format parity acceptance; a PR boundary
   cannot silently shorten the authorized objective.
@@ -1907,40 +1916,12 @@ edit this block or commit the same slice concurrently.
   0 VERIFYING / 3 VERIFIED; no child is anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 9 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: I0.2b exact parser-publication/callback proof is committed,
-  with its raw callback terminal metadata slice landed; I0.2d read-side eligibility,
-  transport selection, and DXF raw writer/replay proof are landed; I0.2f-A
-  proves DWG raw object replay ingress → ordered preflight → internal
-  class-registration/owner-bookkeeping; I0.2e-A proves raw section ingress →
-  versioned acceptance/buffering → R2004/R2007 finalizer flush and all-nine
-  table receipt/parse/map chains with an explicit block-table boundary;
-  I0.2e-B binds compound entity case arms to versioned staging helpers;
-  I0.2e-C binds direct/journal delivery and block-scope replay ownership;
-  I0.2e-D binds the ordered `processDwg` reader lifecycle, sticky error gates,
-  publication loops, and both coverage-finalizer exits; and I0.2e-E binds
-  BLOCK/ENDBLK ownership/reachability, delimiter commit/publication, and
-  failure quarantine. I0.2e’s detailed DWG delivery obligation is now
-  committed as a source-flow item;
-  all common lifecycle/ownership evidence is represented once to keep
-  generation and review fast. I0.2g-A now closes concrete same-path coverage
-  for all 80 functional units (including the two explicit transport anchors);
-  I0.2g’s concrete source-unit closure and I0.4’s aggregate zero-unmapped,
-  duplicate, hash, and selector checks are now committed as fast metadata
-  gates; I0.2c provenance/artifact integrity and I0.3 cardinality/domain
-  mapping are source-closed. I0.2b exact publication and I0.2d DXF
-  transport/raw eligibility and I0.2f writer provider/finalizer closure are
-  committed. S18’s remaining gate is the parent-level reconciliation before
-  the differential harness.
-  I0.2d (DXF transport/raw eligibility), I0.2e (DWG lifecycle/table/compound
-  delivery), I0.2f (writer bridge/lifecycle), and I0.2g (concrete source-unit
-  closure) remain separate implementation slices so false generic source
-  edges cannot survive as a claim of feature parity. I0.2a now proves the exact 85-unit pinned source
-  surface, all ten CMake-installed public headers, and the explicit standalone
-  `dxfcode.h` adaptation; it does not promote a format-support claim. I0.3a
-  target-test/oracle metadata is now source-closed and committed. I0.2b-g and I0.2c must
-  close source flow, provenance, and artifact integrity before cardinality-aware
-  I0.3 mapping. S19 still enables the independent S20 DXF, S21 DWG-read, and
-  S22 DWG-write lanes only after the strengthened I0 gate.
+- Active work: S19/I1 is the current differential lane. Its schema, runner
+  contract, normalization/comparison taxonomy, deterministic self-tests, and
+  fast CTest entries are prepared; real target/standalone adapters and
+  external drawings remain runtime-only evidence and cannot block source-only
+  implementation or promote support. The next independent lanes are S20 DXF,
+  S21 DWG-read, and S22 DWG-write, all gated on this harness commit.
 
 | Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -1961,7 +1942,7 @@ edit this block or commit the same slice concurrently.
 | S16 | H1: installed-package transitive header closure | S15 | COMMITTED | package install, staged-header closure, and consumer compile gates | committed `e113c9f`; standalone package rebuild/install and system-mode filter prerequisite pass; no fixture bytes | S17 |
 | S17 | H2: LibreCAD system-package consumer integration | S16 | COMMITTED | system-mode configure/build, focused tests, bundled-path audit, and default-mode non-regression | target commit `6969e0a003414f9a7084349ac54bc2b32515e16b`; system `librecad_lib` 100% build, focused CTest, default filter compile, 1,245-command zero-bundled-path audit; no fixture bytes | S18 parity inventory |
 | S18 | I0: deterministic both-façade parity inventory | S17 | COMMITTED | pinned generator inputs, source/public-surface and pipeline-edge extraction, cardinality-aware mapping, zero-unmapped/duplicate checks, deterministic `--check` | source/package integration, raw-publication terminal proof, read-side raw eligibility, DXF ASCII/binary/R12 transport selection, DXF raw writer/replay transforms, DWG raw replay ingress/preflight/internal-registration/owner-bookkeeping identity, DWG raw section ingress/buffer/finalizer identity, all-nine-descriptor table receipt/parse/map identity, compound ATTRIB/SEQEND/INSERT/MINSERT/VERTEX/POLYLINE transition identity, direct/journal block delivery identity, ordered `dwgRW::processDwg` lifecycle/finalizer identity, BLOCK/ENDBLK ownership/reachability/commit/quarantine identity, and 80/80 functional source-unit same-path coverage are committed; target and standalone routes include exact carrier/callback/guard/branch/predecessor metadata plus ordered DWG replay/table/compound/delivery/lifecycle/ownership edges and two explicit DXF transport implementation anchors; I0.2c now records adaptation provenance, canonical route-identity digests, selector/condition/body delta classes, and tamper/extra-shard rejection; I0.3-A/B now emits and validates all 5,669 target-centric mapping rows: 5,634 `1:1`, 31 reviewed `N:1`, four reviewed `1:N`, zero target-unmapped rows, and 68 standalone-only compatibility extensions with per-row dispositions/readiness; I0.3a locks 86 target test/oracle sources and 76 selector links without copying testdata; I0.2g, I0.2b, I0.2d, I0.2e, I0.2f, and I0.4 source/aggregate closures are committed; parent I0 reconciliation is complete and S19 is dependency-ready; no drawing payloads | S19 |
-| S19 | I1: target-versus-standalone differential harness | S18 | READY | schema, target/standalone runners, semantic/callback/carrier/error comparison, deterministic self-tests | use the same options/input provenance; store normalized output and hashes only for external drawings | S20, S21, S22 |
+| S19 | I1: target-versus-standalone differential harness | S18 | COMMITTED | schema, target/standalone runners, semantic/callback/carrier/error comparison, deterministic self-tests | `run_parity_differential.py` and `parity-differential-runners-v1.json` define eight shell-free target/standalone façade-direction runners with identical options, local-from-scratch JSON smoke input, normalized mismatch taxonomy, and non-support-promoting runtime placeholders; focused differential CTest entries pass in 0.14 seconds; no drawing payloads | S20, S21, S22 |
 | S20 | I2: `dxfRW` parity closure | S19 | PLANNED | DXF group/model/callback/raw/write round-trip rows and aggregate differential | ASCII/binary and source-spelling behavior close independently of DWG lanes; no unadmitted fixtures | S23 |
 | S21 | I3: `dwgRW` reader parity closure | S19 | PLANNED | version/container/dispatch/graph/diagnostic rows and aggregate differential | missing eligible positive evidence keeps only that row experimental; ODA/spec and trace required for wire changes | S23; I4 oracle reads |
 | S22 | I4: `dwgRW` writer and preservation parity closure | S19 | PLANNED | shared/versioned writer pipeline, typed/raw preservation, transactions, self-read, independent-oracle policy | writer implementation proceeds in parallel with readers; promotion waits for I3-qualified read or an independent oracle | S23 |
@@ -1988,7 +1969,7 @@ edit this block or commit the same slice concurrently.
 | H1 | S16 | H0, G1 | COMMITTED | EXPERIMENTAL | Installed-package transitive header closure required by the LibreCAD adapter; package-only consumer compiles without bundled paths |
 | H2 | S17 | H1, G1 | COMMITTED | EXPERIMENTAL | LibreCAD explicitly selects `libdxfrw::libdxfrw` in system mode while retaining the bundled default; target commit and both-mode evidence are recorded |
 | I0 | S18 | H2, G1 | COMMITTED | EXPERIMENTAL | Generate the canonical pinned-target and standalone route inventory, then close source/public surface, pipeline edges, provenance, cardinality mapping, and oracle metadata before any zero-unmapped claim |
-| I1 | S19 | I0 | PLANNED | EXPERIMENTAL | Implement the deterministic target-versus-standalone runner and normalization/delta contract reused by every parity lane |
+| I1 | S19 | I0 | COMMITTED | EXPERIMENTAL | Implement the deterministic target-versus-standalone runner and normalization/delta contract reused by every parity lane |
 | I2 | S20 | I1 | PLANNED | EXPERIMENTAL | Close all target `dxfRW` read/model/raw/write rows or retain an exact experimental/deferred disposition |
 | I3 | S21 | I1 | PLANNED | EXPERIMENTAL | Close all target `dwgRW` reader/version/dispatch/graph/diagnostic rows or retain an exact experimental/deferred disposition |
 | I4 | S22 | I1 | PLANNED | EXPERIMENTAL | Close all target `dwgRW` writer/preservation rows, with independent-oracle promotion and transaction safety |
@@ -2092,10 +2073,10 @@ edit this block or commit the same slice concurrently.
 | I0.3 | I0 / S18 | WP8; cardinality-aware mapping and disposition | I0.2a, I0.2c | COMMITTED | EXPERIMENTAL | total `1:1`/`1:N`/`N:1`/`N:M` target-to-standalone ledger with route references and readiness fields | I0.3-A/B source-only slices emit and validate every target route exactly once: 4,885 equivalent `1:1`, 749 delta-review `1:1` (including 14 compatibility/signature aliases), 31 reviewed `N:1` domain reductions, four reviewed `1:N` splits, zero `1:0` target debt, and 68 standalone-only compatibility extensions. Ordered DXF raw-classifier domains retain exact interval holes and source values; the fallback maps to the standalone fallback; no N:M alias is invented without a reviewed non-overlap proof. Every row has owner paths, implementation/disposition, dependencies, smallest fast gate, fixture policy, and unblock condition. Mapping self-test, pinned `--check`, provenance, source/policy gates pass; no drawing payloads; unblocks I0.4 |
 | I0.3a | I0 / S18 | WP8; target test/oracle metadata registry | I0.2a | COMMITTED | EXPERIMENTAL | locked path/blob/target metadata for target CMake/filter test sources, classified portable/LibreCAD-only/fixture-blocked/external-advisory | `metadata/parity-test-oracles-v1.json` locks 86 source/manifest/oracle entries at `3c7785e`; five routes are explicitly non-support-promoting, 76 façade/category selectors are covered, fixture-blocked and external entries remain named without copying target drawing bytes, and `check_parity_test_oracles.py --self-test` plus pinned registry/mapping checks pass; no drawing payloads; unblocks I0.4 |
 | I0.4 | I0 / S18 | WP8, parity inventory gate | I0.3, I0.3a | COMMITTED | EXPERIMENTAL | deterministic generator/checker and aggregate inventory gate | `tools/check_parity_aggregate.py` validates six shard identities/hashes, 5,669 target-to-standalone mapping coverage, cardinality endpoint counts, 68 explicit standalone-unmapped routes, 85/85 source units, 80/80 concrete same-path coverage, and all 76 test/oracle selectors; self-test and pinned registry/source/policy gates pass in the fast metadata-only loop; no drawing bytes; closes the aggregate gate while S18’s remaining source-flow children continue |
-| I1.1 | I1 / S19 | WP8.8-WP8.9; comparison schema | I0 | PLANNED | EXPERIMENTAL | versioned normalized semantic/callback/carrier/error/byte-delta schema | define order, handles/graphs, floats, text/codepages, diagnostics, opaque hashes, exact-replay bytes, provenance, tool versions, and classification rules; unblocks I1.2/I1.3 |
-| I1.2 | I1 / S19 | WP4, WP5, WP7; runners | I1.1 | PLANNED | EXPERIMENTAL | pinned-target and standalone façade runners with identical options | provide `dwgRW` read/write and `dxfRW` read/write adapters using in-memory/local-from-scratch inputs; external paths remain runtime-only and outputs are non-reconstructive; unblocks I1.4 |
-| I1.3 | I1 / S19 | WP8; comparator/self-tests | I1.1 | PLANNED | EXPERIMENTAL | deterministic comparator with narrow normalization and mismatch taxonomy | self-tests detect semantic, callback-order, carrier, graph, error/stage, and exact-byte mismatches and reject schema/target drift; unblocks I1.4 |
-| I1.4 | I1 / S19 | WP8, differential aggregate | I1.2, I1.3 | PLANNED | EXPERIMENTAL | harness smoke and policy gate | target/standalone no-op and focused DXF/DWG runtime cases compare deterministically; no external bytes or paths enter artifacts; build/fixture/scope/sync/plan/diff gates pass; closes S19 and unblocks S20-S22 |
+| I1.1 | I1 / S19 | WP8.8-WP8.9; comparison schema | I0 | COMMITTED | EXPERIMENTAL | versioned normalized semantic/callback/carrier/error/byte-delta schema | `run_parity_differential.py` consumes the existing normalization-v1 envelope, enforces required fields, canonical ordering, hash-only opaque carriers, exact-replay opt-in, and sorted mismatch taxonomy; self-test covers match plus semantic and callback deltas; no drawing payloads; unblocks I1.2/I1.3 |
+| I1.2 | I1 / S19 | WP4, WP5, WP7; runners | I1.1 | COMMITTED | EXPERIMENTAL | pinned-target and standalone façade runners with identical options | `parity-differential-runners-v1.json` registers all eight target/standalone × DXF/DWG × read/write combinations, requires one `{input}` token, JSON stdout, identical deterministic/version options per pair, and explicit runtime-only placeholders; local-from-scratch runner smoke proves temporary-input execution; no external bytes enter artifacts; unblocks I1.4 |
+| I1.3 | I1 / S19 | WP8; comparator/self-tests | I1.1 | COMMITTED | EXPERIMENTAL | deterministic comparator with narrow normalization and mismatch taxonomy | comparator reports semantic, callback-order, carrier, graph, error-stage, tool-version, and exact-byte differences with normalized SHA-256 identities; self-tests reject malformed envelopes, missing fields, option drift, and deliberate mismatches; no support promotion; unblocks I1.4 |
+| I1.4 | I1 / S19 | WP8, differential aggregate | I1.2, I1.3 | COMMITTED | EXPERIMENTAL | harness smoke and policy gate | two focused CTest entries pass (`libdxfrw_parity_differential`, manifest) in 0.14 seconds; manifest validation is metadata-only, smoke uses an in-memory/local-from-scratch JSON envelope and temporary path, no drawing fixtures/full suites are run, and target/standalone adapter execution remains an external evidence lane; closes S19 and unblocks S20-S22 |
 | I2.1 | I2 / S20 | WP4.1-WP4.4; DXF classification/container | I1 | PLANNED | EXPERIMENTAL | ASCII/binary version/header/section/group-code parity | cover missing/declared `$ACADVER`, assigned ranges, 260-269, 482-998, tables/blocks/classes, limits, and error stages; unblocks I2.2/I2.3 |
 | I2.2 | I2 / S20 | WP4.5-WP4.7; typed model/callbacks | I2.1 | PLANNED | EXPERIMENTAL | every target typed entity/object/class route maps to model, parser, callback, and writer/read-only disposition | family-focused runtime cases and comparator rows cover reset/copy, handles/owners, extension data, and neighboring unknown types; unblocks I2.4/I2.5 |
 | I2.3 | I2 / S20 | WP4.8, WP6; raw/preservation | I2.1 | PLANNED | EXPERIMENTAL | raw entity/object/class/section and source-spelling fidelity parity | distinguish ASCII lexemes, binary typed values, comments/exclusions, duplicate/order behavior, and replay predicates; negative cross-dialect tests; unblocks I2.4/I2.5 |
