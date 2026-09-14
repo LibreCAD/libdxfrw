@@ -139,6 +139,10 @@ if(LIBDXFRW_BUILD_TESTS)
             ${CMAKE_CURRENT_SOURCE_DIR}/tools/check_runtime_evidence_queue.py
             --registry ${CMAKE_CURRENT_SOURCE_DIR}/metadata/parity-test-oracles-v1.json
             --advisory ${CMAKE_CURRENT_SOURCE_DIR}/metadata/external-advisory-report.json)
+    add_test(NAME libdxfrw_target_differential_advisory
+        COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE}
+            ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_target_differential_advisory.py
+            --self-test)
 
     add_executable(libdxfrw_wave1_tests tests/wave1_tests.cpp)
     target_compile_features(libdxfrw_wave1_tests PRIVATE cxx_std_17)
