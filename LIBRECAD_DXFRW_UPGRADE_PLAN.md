@@ -1868,6 +1868,13 @@ edit this block or commit the same slice concurrently.
   direct/journal block delivery, ordered reader lifecycle/error gates, and
   BLOCK/ENDBLK ownership/quarantine. Its proof remains source-only and does
   not qualify wire-format support without the later fixture/spec/oracle lane.
+- Latest implementation slice: S18/I0.2b parser-publication/callback proof is
+  now committed. The source ledger retains each physical typed/raw callback,
+  template/helper bridge, ordered branch ancestry, selector/case evidence,
+  delivery bundle, and raw-carrier predecessor; ambiguous cardinality remains
+  explicitly `conditional-or-repeated-unresolved` until a terminal proof is
+  available. Focused extractor mutations and aggregate metadata gates pass,
+  with no fixtures or format-support promotion.
 - Authorized run horizon: full S01-S23/A-I5 implementation objective.
 - Completion target: S23/I5 qualified-format parity acceptance; a PR boundary
   cannot silently shorten the authorized objective.
@@ -1881,12 +1888,12 @@ edit this block or commit the same slice concurrently.
   0 BLOCKED_HARD / 0 SUPERSEDED / 17 COMMITTED.
 - Parent-item states: 0 READY / 5 PLANNED / 1 ACTIVE / 0 VERIFYING /
   0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 19 COMMITTED.
-- Expanded child-item states: 86 COMMITTED / 24 PLANNED / 0 READY / 1 ACTIVE /
+- Expanded child-item states: 87 COMMITTED / 23 PLANNED / 0 READY / 0 ACTIVE /
   0 VERIFYING / 3 VERIFIED; no child is anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 9 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: I0.2b exact parser-publication/callback proof, with its raw
-  callback terminal metadata slice landed; I0.2d read-side eligibility,
+- Active work: I0.2b exact parser-publication/callback proof is committed,
+  with its raw callback terminal metadata slice landed; I0.2d read-side eligibility,
   transport selection, and DXF raw writer/replay proof are landed; I0.2f-A
   proves DWG raw object replay ingress → ordered preflight → internal
   class-registration/owner-bookkeeping; I0.2e-A proves raw section ingress →
@@ -1905,8 +1912,8 @@ edit this block or commit the same slice concurrently.
   I0.2g’s concrete source-unit closure and I0.4’s aggregate zero-unmapped,
   duplicate, hash, and selector checks are now committed as fast metadata
   gates; I0.2c provenance/artifact integrity and I0.3 cardinality/domain
-  mapping are source-closed. I0.2b exact publication and the remaining
-  I0.2d/e/f source-flow obligations still keep S18 ACTIVE.
+  mapping are source-closed. I0.2b exact publication is committed; the
+  remaining I0.2d/f source-flow obligations still keep S18 ACTIVE.
   I0.2d (DXF transport/raw eligibility), I0.2e (DWG lifecycle/table/compound
   delivery), I0.2f (writer bridge/lifecycle), and I0.2g (concrete source-unit
   closure) remain separate implementation slices so false generic source
@@ -2059,7 +2066,7 @@ edit this block or commit the same slice concurrently.
 | I0.1 | I0 / S18 | WP0, WP8; target inputs | H2, G1 | VERIFIED | EXPERIMENTAL | Python 3.10+ self-test/CTest and pinned-target blob/mode/text/snapshot check | `metadata/librecad-parity-inventory-inputs-v1.json` locks 19 UTF-8 source/metadata inputs at `3c7785e`; self-test exercises Git blob/mode/snapshot and text/drawing rejection; direct target check PASS (4 canonical generators, 13 advisory inputs); reports, cross-read/DWGTS/reference scripts, seed, roadmap aggregator, and generator tests are advisory/context only; `DWG_ROADMAP.md` has no facts; no drawing payloads; unblocks I0.2 |
 | I0.2 | I0 / S18 | WP4, WP5, WP6, WP7; anchor route extraction | I0.1 | VERIFIED | EXPERIMENTAL | source-only anchor extractor, pinned contracts, stable sharded artifact, and focused lexical/self-test gate | `extract_parity_source_routes.py --self-test`, two clean pinned-target generations, repository `--check`, input lock/sync checks, and CMake/CTest (9/9) PASS; `metadata/parity-source-routes-v1.json` plus six logical shards contain selectors/symbols/hashes only and no drawing bytes; it is explicitly an anchor inventory, not complete source coverage; unblocks I0.2a/I0.2b |
 | I0.2a | I0 / S18 | WP0, WP4-WP7; source/public-surface closure | I0.2 | VERIFIED | EXPERIMENTAL | exactly one classified source-unit row for every pinned `src` file plus public-header class/struct/enum/alias/inline and deprecated-`dwgR` routes | pinned CMake `LIBDXFRW_PUBLIC_HEADERS` contract (10 headers), 85/85 target source-unit roles, explicit standalone `src/intern/dxfcode.h` adaptation, public scanner and route self-tests, two byte-identical full generations, pinned target/repository checks, import/sync/fixture gates, `git diff --check`, and CMake/CTest (9/9) PASS; no drawing payloads; unblocks I0.3a and contributes the required source/public input to I0.2c/I0.3 |
-| I0.2b | I0 / S18 | WP4-WP7; exact parser publication/callback proof | I0.2 | ACTIVE | EXPERIMENTAL | physical typed/raw callback pairs, template/helper adaptation proof, ordered branch ancestry, non-self staged publication routes, and source-owned raw-route terminal metadata | current target/source synthetic tests reject Cartesian callback inference, unproved helper/nested lambdas, incompatible pointer/reference adaptation, scope-leaked guards, unreachable deferred-object dispatch, branch-cardinality promotion, generic self fallback, missing raw callback/carrier/binding, reversed proxy typed-to-raw order, and dangling raw-flow predecessors. Exact metadata now covers the five raw publication bodies and their standalone counterparts; ordered eligibility predicates remain an explicit I0.2d-A gate rather than a support claim; contributes the required prerequisite to I0.2g/I0.2c |
+| I0.2b | I0 / S18 | WP4-WP7; exact parser publication/callback proof | I0.2 | COMMITTED | EXPERIMENTAL | physical typed/raw callback pairs, template/helper adaptation proof, ordered branch ancestry, non-self staged publication routes, and source-owned raw-route terminal metadata | target/source synthetic tests reject Cartesian callback inference, unproved helper/nested lambdas, incompatible pointer/reference adaptation, scope-leaked guards, unreachable deferred-object dispatch, branch-cardinality promotion, generic self fallback, missing raw callback/carrier/binding, reversed proxy typed-to-raw order, and dangling raw-flow predecessors. Exact metadata covers the five raw publication bodies and their standalone counterparts; ordered eligibility predicates remain the separate I0.2d gate rather than a support claim; no fixtures; unblocks I0.2d/f |
 | I0.2d | I0 / S18 | WP4; DXF transport and raw eligibility graph | I0.2 | PLANNED | EXPERIMENTAL | source-proven ASCII/binary/R12 transport selection, virtual provider closure, record-scope transaction classification, and ordered raw boundary/depth/payload/handle/limit gates; read-side eligibility, transport branches, and DXF raw writer/replay transforms are landed, while broader writer-provider/finalizer closure remains | target-only/synthetic checks mutate every read/readAscii/write selection and raw eligibility predicate; reject transport construction without its guard, inherited virtual operation gaps, and record-scope-as-transport; no fixtures; unblocks I0.2g/I0.2c |
 | I0.2e | I0 / S18 | WP5-WP6; DWG lifecycle/table/compound/block delivery | I0.2 | COMMITTED | EXPERIMENTAL | separate table receipt, map/block transition, direct/journal callback delivery, versioned compound aggregation, ordered reader lifecycle gates, sticky errors, BLOCK/ENDBLK owner reachability, delimiter commit/publication, and finalizers | S18 source slices and the fast aggregate gate prove raw-section ingress/finalizers, all nine table descriptors, compound transitions, direct/journal delivery, ordered `processDwg` stages, and BLOCK/ENDBLK owner quarantine; synthetic/source checks reject `entryParse`-only bridges, `kBlockTable` facade-table delivery, omitted journal/direct paths, collapsed `ret`/finalizers, reordered stages, missing delimiter/owner gates, and publication after failed ownership; field-wire qualification remains I3; no fixtures; unblocks the remaining I0.2b/d/f source-flow work |
 | I0.2f | I0 / S18 | WP4, WP7; writer entrypoint/model/lifecycle bridge | I0.2 | PLANNED | EXPERIMENTAL | typed/compound/raw/structural writer disposition, parameter contracts, version guards, session pipeline IDs, provider inheritance, and DXF/DWG lifecycle-to-finalize routes; raw DXF writer/replay and DWG raw replay identity are landed as narrow I0.2d-B/I0.2f-A slices, with the rest of the writer surface open | target-only/synthetic checks reject an unclassified `DRW_*` parameter, guardless version selection, writer API without provider/finalizer path, fabricated raw read→write edges, or a replay call misclassified as standalone class-registration ingress; no fixtures; unblocks I0.2g/I0.2c |
