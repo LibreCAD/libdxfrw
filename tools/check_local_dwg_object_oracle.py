@@ -96,6 +96,8 @@ POINTCLOUD_REACTOR_EX_HANDLE = 0xD603
 MALFORMED_POINTCLOUD_HANDLE = 0xD604
 POINTCLOUD_COLORMAP_HANDLE = 0xD800
 MALFORMED_POINTCLOUD_COLORMAP_HANDLE = 0xD801
+NAVISWORKS_MODEL_DEF_HANDLE = 0xD900
+MALFORMED_NAVISWORKS_MODEL_DEF_HANDLE = 0xD901
 IMAGE_HANDLE = 0xD700
 MALFORMED_IMAGE_HANDLE = 0xD710
 
@@ -183,7 +185,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         raise ValueError("GROUP name, owner, or member stream mismatch")
 
     dictionary = find_record(records, "DICTIONARY", DICTIONARY_HANDLE)
-    if (dictionary.get("numitems") != 36
+    if (dictionary.get("numitems") != 37
             or dictionary.get("is_hardowner") != 1
             or owner_handle(dictionary) != 0x0C):
         raise ValueError("custom DICTIONARY count, owner, or cloning mismatch")
@@ -260,6 +262,16 @@ def check_objects(payload: dict, version_name: str) -> dict:
         raise ValueError("POINTCLOUDCOLORMAP identity or owner mismatch")
     pointcloud_discrepancies.append(
         "LibreDWG 0.14 exposes local POINTCLOUDCOLORMAP as UNKNOWN_OBJ; type/handle/owner identity is qualified")
+    navisworks_matches = [
+        record for record in records
+        if isinstance(record, dict)
+        and record_handle(record) == NAVISWORKS_MODEL_DEF_HANDLE
+        and record.get("type") == 539
+    ]
+    if len(navisworks_matches) != 1 or owner_handle(navisworks_matches[0]) != DICTIONARY_HANDLE:
+        raise ValueError("NAVISWORKSMODELDEF identity or owner mismatch")
+    pointcloud_discrepancies.append(
+        "LibreDWG 0.14 exposes local NAVISWORKSMODELDEF as UNKNOWN_OBJ; type/handle/owner identity is qualified")
     image_discrepancies = [
         "LibreDWG 0.14 does not expose the local IMAGE/IMAGEDEF entity and "
         "fixed-object frames in JSON; local self-read remains the authoritative "
@@ -848,6 +860,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         MALFORMED_UNDERLAY_HANDLE: "PDFDEFINITION",
         MALFORMED_POINTCLOUD_HANDLE: "POINTCLOUDDEFINITION",
         MALFORMED_POINTCLOUD_COLORMAP_HANDLE: "POINTCLOUDCOLORMAP",
+        MALFORMED_NAVISWORKS_MODEL_DEF_HANDLE: "NAVISWORKSMODELDEF",
         MALFORMED_IMAGE_HANDLE: "IMAGE",
     }
     if any(record_handle(record) in malformed_handles
@@ -898,6 +911,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "POINTCLOUDDEFREACTOR": POINTCLOUD_REACTOR_HANDLE,
             "POINTCLOUDDEFREACTOREX": POINTCLOUD_REACTOR_EX_HANDLE,
             "POINTCLOUDCOLORMAP": POINTCLOUD_COLORMAP_HANDLE,
+            "NAVISWORKSMODELDEF": NAVISWORKS_MODEL_DEF_HANDLE,
             "IMAGE": IMAGE_HANDLE,
             "IMAGEDEF_REACTOR": IMAGE_HANDLE + 1,
             "DICTIONARYWDFLT": DICTIONARYWDFLT_HANDLE,
@@ -984,7 +998,7 @@ def self_test() -> None:
              "ownerhandle": [4, 1, 0x0C, 0x0C], "name": "LOCAL_GROUP",
              "groups": [[5, 1, 0x1234]]},
             {"object": "DICTIONARY", "handle": [0, 1, DICTIONARY_HANDLE],
-             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 36,
+             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 37,
              "is_hardowner": 1},
             {"object": "XRECORD", "handle": [0, 1, XRECORD_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
@@ -1227,6 +1241,10 @@ def self_test() -> None:
              "handle": [0, 1, POINTCLOUD_COLORMAP_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
              "type": 540},
+            {"object": "UNKNOWN_OBJ",
+             "handle": [0, 1, NAVISWORKS_MODEL_DEF_HANDLE],
+             "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "type": 539},
         ],
     }
     summary = check_objects(payload, "AC1024")
@@ -1486,6 +1504,16 @@ def self_test() -> None:
         pass
     else:
         raise AssertionError("malformed POINTCLOUDCOLORMAP was not rejected")
+    try:
+        bad = json.loads(json.dumps(payload))
+        bad["OBJECTS"].append({"object": "NAVISWORKSMODELDEF",
+                                "handle": [0, 1,
+                                            MALFORMED_NAVISWORKS_MODEL_DEF_HANDLE]})
+        check_objects(bad, "AC1024")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("malformed NAVISWORKSMODELDEF was not rejected")
     print("local DWG object oracle: PASS")
 
 

@@ -195,6 +195,11 @@ public:
             registeredPointCloudColorMap_ =
                 writer_->registerPointCloudColorMapObjectClass(
                     &colorMapRegistration);
+            DRW_NavisworksModelDef navisworksRegistration;
+            navisworksRegistration.handle = 0xD900u;
+            registeredNavisworksModelDef_ =
+                writer_->registerNavisworksModelDefObjectClass(
+                    &navisworksRegistration);
         }
     }
 
@@ -272,6 +277,7 @@ public:
             {"LOCAL_POINTCLOUDDEFINITION", 0xD600u},
             {"LOCAL_POINTCLOUDDEFINITIONEX", 0xD601u},
             {"LOCAL_POINTCLOUDCOLORMAP", 0xD800u},
+            {"LOCAL_NAVISWORKSMODELDEF", 0xD900u},
         };
         wroteDictionary_ = registeredDictionary_
             && writer_->writeDictionary(&dictionary)
@@ -1065,6 +1071,26 @@ public:
         rejectedMalformedPointCloudColorMap_ =
             !writer_->writePointCloudColorMap(&invalidColorMap);
 
+        DRW_NavisworksModelDef navisworksDefinition;
+        navisworksDefinition.handle = 0xD900u;
+        navisworksDefinition.parentHandle = dictionary.handle;
+        navisworksDefinition.m_flags = 3;
+        navisworksDefinition.m_path = "LOCAL_NAVISWORKS.nwd";
+        navisworksDefinition.m_status = true;
+        navisworksDefinition.m_minExtent = DRW_Coord{-4.0, -5.0, -6.0};
+        navisworksDefinition.m_maxExtent = DRW_Coord{40.0, 50.0, 60.0};
+        navisworksDefinition.m_hostDrawingVisibility = true;
+        wroteNavisworksModelDef_ = registeredNavisworksModelDef_
+            && writer_->writeNavisworksModelDef(&navisworksDefinition)
+            && navisworksDefinition.handle != 0;
+
+        DRW_NavisworksModelDef invalidNavisworks = navisworksDefinition;
+        invalidNavisworks.handle = 0xD901u;
+        invalidNavisworks.m_maxExtent.x =
+            std::numeric_limits<double>::quiet_NaN();
+        rejectedMalformedNavisworksModelDef_ =
+            !writer_->writeNavisworksModelDef(&invalidNavisworks);
+
         DRW_Group group;
         group.handle = 0xA600u;
         group.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
@@ -1324,7 +1350,7 @@ public:
         if (data.handle == 0xA601u) {
             readDictionarySeen_ = data.parentHandle
                     == DRW::DwgNamedObjectsDictionaryHandle
-                && data.m_entries.size() == 36
+                && data.m_entries.size() == 37
                 && data.m_entries[0].m_name == "LOCAL_XRECORD"
                 && data.m_entries[0].m_handle == 0xA602u
                 && data.m_entries[1].m_name == "LOCAL_PLOTSETTINGS"
@@ -1396,7 +1422,9 @@ public:
                 && data.m_entries[34].m_name == "LOCAL_POINTCLOUDDEFINITIONEX"
                 && data.m_entries[34].m_handle == 0xD601u
                 && data.m_entries[35].m_name == "LOCAL_POINTCLOUDCOLORMAP"
-                && data.m_entries[35].m_handle == 0xD800u;
+                && data.m_entries[35].m_handle == 0xD800u
+                && data.m_entries[36].m_name == "LOCAL_NAVISWORKSMODELDEF"
+                && data.m_entries[36].m_handle == 0xD900u;
         }
     }
     void addXRecord(const DRW_XRecord& data) override {
@@ -1803,6 +1831,19 @@ public:
         if (data.handle == 0xD801u)
             readMalformedPointCloudColorMapSeen_ = true;
     }
+    void addNavisworksModelDef(const DRW_NavisworksModelDef& data) override {
+        if (data.handle == 0xD900u)
+            readNavisworksModelDefSeen_ =
+                data.parentHandle == 0xA601u
+                && data.m_flags == 3
+                && data.m_path == "LOCAL_NAVISWORKS.nwd"
+                && data.m_status
+                && data.m_minExtent.x == -4.0
+                && data.m_maxExtent.z == 60.0
+                && data.m_hostDrawingVisibility;
+        if (data.handle == 0xD901u)
+            readMalformedNavisworksModelDefSeen_ = true;
+    }
     void addInsert(const DRW_Insert& data) override {
         readInsertSeen_ = true;
         readAttribSeen_ = data.attlist.size() == 1
@@ -1860,6 +1901,7 @@ public:
             && wrotePointCloudReactor_
             && wrotePointCloudReactorEx_
             && wrotePointCloudColorMap_
+            && wroteNavisworksModelDef_
             && wroteGroup_;
     }
     bool rejectedMalformedObject() const { return rejectedMalformedObject_; }
@@ -1938,6 +1980,10 @@ public:
     bool rejectedMalformedPointCloudColorMap() const {
         return rejectedMalformedPointCloudColorMap_;
     }
+    bool wroteNavisworksModelDef() const { return wroteNavisworksModelDef_; }
+    bool rejectedMalformedNavisworksModelDef() const {
+        return rejectedMalformedNavisworksModelDef_;
+    }
     bool wroteImage() const { return wroteImage_; }
     bool rejectedMalformedImage() const { return rejectedMalformedImage_; }
     bool readLineSeen() const { return readLineSeen_; }
@@ -1982,6 +2028,7 @@ public:
             && readPointCloudReactorSeen_
             && readPointCloudReactorExSeen_
             && readPointCloudColorMapSeen_
+            && readNavisworksModelDefSeen_
             && readGroupSeen_;
     }
     bool readMalformedObjectSeen() const { return readMalformedObjectSeen_; }
@@ -2076,6 +2123,12 @@ public:
     }
     bool readMalformedPointCloudColorMapSeen() const {
         return readMalformedPointCloudColorMapSeen_;
+    }
+    bool readNavisworksModelDefSeen() const {
+        return readNavisworksModelDefSeen_;
+    }
+    bool readMalformedNavisworksModelDefSeen() const {
+        return readMalformedNavisworksModelDefSeen_;
     }
     bool readImageSeen() const { return readImageSeen_; }
     bool readImageDefSeen() const { return readImageDefSeen_; }
@@ -2182,6 +2235,8 @@ private:
     bool rejectedMalformedPointCloud_ {false};
     bool wrotePointCloudColorMap_ {false};
     bool rejectedMalformedPointCloudColorMap_ {false};
+    bool wroteNavisworksModelDef_ {false};
+    bool rejectedMalformedNavisworksModelDef_ {false};
     bool wroteImage_ {false};
     bool rejectedMalformedImage_ {false};
     bool registeredDictionary_ {false};
@@ -2219,6 +2274,7 @@ private:
     bool registeredPointCloudReactor_ {false};
     bool registeredPointCloudReactorEx_ {false};
     bool registeredPointCloudColorMap_ {false};
+    bool registeredNavisworksModelDef_ {false};
     bool registeredPlotSettings_ {false};
     bool readLineSeen_ {false};
     bool readPointSeen_ {false};
@@ -2310,6 +2366,8 @@ private:
     bool readMalformedPointCloudSeen_ {false};
     bool readPointCloudColorMapSeen_ {false};
     bool readMalformedPointCloudColorMapSeen_ {false};
+    bool readNavisworksModelDefSeen_ {false};
+    bool readMalformedNavisworksModelDefSeen_ {false};
     bool readImageSeen_ {false};
     bool readImageDefSeen_ {false};
     bool readImageReactorSeen_ {false};
@@ -2505,6 +2563,12 @@ int main(int argc, char** argv) {
         expect(writeIface.rejectedMalformedPointCloudColorMap(),
                ("local DWG writer rejected malformed POINTCLOUDCOLORMAP transaction" + suffix).c_str(),
                failures);
+        expect(writeIface.wroteNavisworksModelDef(),
+               ("local DWG writer emitted NAVISWORKSMODELDEF" + suffix).c_str(),
+               failures);
+        expect(writeIface.rejectedMalformedNavisworksModelDef(),
+               ("local DWG writer rejected malformed NAVISWORKSMODELDEF transaction" + suffix).c_str(),
+               failures);
         expect(version < DRW::AC1018
                    ? !writeIface.wroteImage()
                    : writeIface.wroteImage(),
@@ -2622,6 +2686,9 @@ int main(int argc, char** argv) {
         expect(readIface.readPointCloudColorMapSeen(),
                ("local DWG self-read publishes POINTCLOUDCOLORMAP" + suffix).c_str(),
                failures);
+        expect(readIface.readNavisworksModelDefSeen(),
+               ("local DWG self-read publishes NAVISWORKSMODELDEF" + suffix).c_str(),
+               failures);
         expect(version < DRW::AC1018 || readIface.readImageSeen(),
                ("local DWG self-read publishes IMAGE" + suffix).c_str(), failures);
         expect(version < DRW::AC1018 || readIface.readImageDefSeen(),
@@ -2711,6 +2778,9 @@ int main(int argc, char** argv) {
                failures);
         expect(!readIface.readMalformedPointCloudColorMapSeen(),
                ("local DWG self-read omits rolled-back malformed POINTCLOUDCOLORMAP" + suffix).c_str(),
+               failures);
+        expect(!readIface.readMalformedNavisworksModelDefSeen(),
+               ("local DWG self-read omits rolled-back malformed NAVISWORKSMODELDEF" + suffix).c_str(),
                failures);
         if (readIface.readLineSeen()) {
             const DRW_Line& line = readIface.readLine();
