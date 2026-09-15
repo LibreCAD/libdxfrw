@@ -51,6 +51,10 @@ public:
     // Admit one code-5 self handle for this read session. References use
     // other group codes and are intentionally not registered here.
     bool registerSelfHandle();
+    // When readRec() rejects an otherwise decoded handle/reference lexeme,
+    // expose the group code so a façade can retain the legacy stage result
+    // while adding structured context to its operation diagnostic.
+    int lastInvalidHandleCode() const { return m_lastInvalidHandleCode; }
     void setAllowWideHandleLexemes(bool allow) {
         m_allowWideHandleLexemes = allow;
     }
@@ -110,6 +114,7 @@ private:
     std::unordered_set<std::uint64_t> m_selfHandles;
     std::uint64_t m_currentSelfHandle {0};
     bool m_currentSelfHandleRegistered {false};
+    int m_lastInvalidHandleCode {0};
 };
 
 class dxfReaderBinary : public dxfReader {

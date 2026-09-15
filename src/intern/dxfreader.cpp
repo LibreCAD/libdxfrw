@@ -88,6 +88,7 @@ bool dxfReader::readRec(int *codeData) {
         m_currentSelfHandle = 0;
         m_currentSelfHandleRegistered = false;
     };
+    m_lastInvalidHandleCode = 0;
     invalidateRecord();
 
     // Comments are ignored only after the first SECTION marker. Skip a run
@@ -140,6 +141,7 @@ bool dxfReader::readRec(int *codeData) {
         ? isValidHandleLexeme()
         : isValidHandleString();
     if (isUnambiguousDxfHandleCode(code) && !validHandle) {
+        m_lastInvalidHandleCode = code;
         invalidateRecord();
         return false;
     }

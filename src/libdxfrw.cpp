@@ -13734,7 +13734,9 @@ bool dxfRW::captureRawGroup(DRW_RawDxfObject &obj, int code,
                 DRW::OperationPhase::Validation,
                 DRW::OperationCause::ValidationFailure,
                 "invalid-handle",
-                "a DXF raw record contains an invalid self handle");
+                code == DRW::dxfCode::HANDLE
+                    ? "a DXF raw record contains an invalid self handle"
+                    : "a DXF raw record contains an invalid handle reference");
             return false;
         }
     }
@@ -13960,6 +13962,16 @@ bool dxfRW::processRawObject() {
             return setError(DRW::BAD_CODE_PARSED);
     }
 
+    const int invalidHandleCode = reader->lastInvalidHandleCode();
+    if (invalidHandleCode != 0) {
+        recordOperationDiagnostic(
+            DRW::OperationPhase::Validation,
+            DRW::OperationCause::ValidationFailure,
+            "invalid-handle",
+            invalidHandleCode == DRW::dxfCode::HANDLE
+                ? "a DXF raw record contains an invalid self handle"
+                : "a DXF raw record contains an invalid handle reference");
+    }
     return setError(DRW::BAD_READ_OBJECTS);
 }
 

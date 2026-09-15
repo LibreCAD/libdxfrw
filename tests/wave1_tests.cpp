@@ -1421,6 +1421,53 @@ void testDxfRawObjectMalformedHandleDiagnostics(TestContext& t) {
                  && binaryDiagnostic.code == "invalid-handle"
                  && !binaryDiagnostic.hasHandle,
              "binary overlength handle records invalid-handle diagnostic");
+
+    const std::string malformedOwnerRecords =
+        "0\nSECTION\n2\nOBJECTS\n0\nLOCAL_BAD_OWNER\n5\n3A\n"
+        "330\nnot-owner\n0\nENDSEC\n0\nEOF\n";
+    ProfileProbeInterface ownerInterface;
+    dxfRW ownerReader("");
+    std::string ownerInput = malformedOwnerRecords;
+    t.expect(!ownerReader.readAscii(&ownerInterface, false, ownerInput)
+                 && ownerReader.getError() == DRW::BAD_READ_OBJECTS
+                 && ownerInterface.objects.empty(),
+             "DXF malformed owner handle suppresses the raw callback");
+    const DRW_OperationDiagnostic ownerDiagnostic =
+        ownerReader.getLastDiagnostic();
+    t.expect(ownerDiagnostic.code == "invalid-handle"
+                 && ownerDiagnostic.message.find("handle reference")
+                        != std::string::npos,
+             "DXF owner handle diagnostic identifies reference context");
+
+    std::ostringstream binaryOwnerSource;
+    dxfWriterBinary binaryOwnerWriter(&binaryOwnerSource);
+    binaryOwnerWriter.writeString(0, "SECTION");
+    binaryOwnerWriter.writeString(2, "OBJECTS");
+    binaryOwnerWriter.writeString(0, "LOCAL_BINARY_BAD_OWNER");
+    binaryOwnerWriter.writeString(5, "3A");
+    binaryOwnerWriter.writeString(330, "not-owner");
+    binaryOwnerWriter.writeString(0, "ENDSEC");
+    binaryOwnerWriter.writeString(0, "EOF");
+    std::stringstream binaryOwnerInput(binaryOwnerSource.str());
+    ProfileProbeInterface binaryOwnerInterface;
+    dxfRW binaryOwnerReader("");
+    binaryOwnerReader.binFile = true;
+    binaryOwnerReader.reader =
+        std::make_unique<dxfReaderBinary>(&binaryOwnerInput);
+    binaryOwnerReader.reader->setClassifierProfile(
+        DxfClassifierProfile::StandaloneSafe);
+    binaryOwnerReader.iface = &binaryOwnerInterface;
+    binaryOwnerReader.beginOperationDiagnostic(DRW::OperationKind::Read);
+    t.expect(!binaryOwnerReader.processDxf()
+                 && binaryOwnerReader.getError() == DRW::BAD_READ_OBJECTS
+                 && binaryOwnerInterface.objects.empty(),
+             "binary malformed owner handle preserves callback policy");
+    const DRW_OperationDiagnostic binaryOwnerDiagnostic =
+        binaryOwnerReader.getLastDiagnostic();
+    t.expect(binaryOwnerDiagnostic.code == "invalid-handle"
+                 && binaryOwnerDiagnostic.message.find("handle reference")
+                        != std::string::npos,
+             "binary owner handle diagnostic identifies reference context");
 }
 
 void testRawCapture(TestContext& t) {

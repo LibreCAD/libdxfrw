@@ -105,24 +105,24 @@
     },
     {
       "path": "src/intern/dxfreader.h",
-      "reason": "Expose the explicit standalone-safe versus LibreCAD-master legacy classifier profile to the internal DXF reader probe without changing the public façade.",
+      "reason": "Expose the explicit standalone-safe versus LibreCAD-master legacy classifier profile and the last rejected handle-reference group code to the façade's diagnostic path without changing the public API.",
       "scope": "DXF classifier compatibility probing",
       "targetBlob": "ba66915b247af5a397caf04cd62eadbf6ed03f8c",
-      "adaptedSha256": "846a38ec0798c43eaf382c7709078735f0f1c943308780ef2ecbc5f76718833a"
+      "adaptedSha256": "fe662a985fb91a3453e68a64a46945467035cb6428301fb108bc9ca798d0d4cd"
     },
     {
       "path": "src/intern/dxfreader.cpp",
-      "reason": "Use the canonical DXF group-code table, preserve integer values in codes 260-269, fail closed on the unassigned 482-998 span, and carry an explicit opt-in legacy classifier profile for compatibility probes.",
+      "reason": "Use the canonical DXF group-code table, preserve integer values in codes 260-269, fail closed on the unassigned 482-998 span, carry an explicit opt-in legacy classifier profile for compatibility probes, and retain the rejected handle-reference group code for façade diagnostics.",
       "scope": "DXF classifier correctness",
       "targetBlob": "6d65c2baa9e604720a01c5cb050497847634a71a",
-      "adaptedSha256": "a9ed919b84065249e52e76ed0c0c20e5794a6c473f876bd3bb85d46219b3dffb"
+      "adaptedSha256": "e18e99f0a0c3bf422cda90cf30c8b5e3e31cd72289f5d46e6cdb3fbfacefa194"
     },
     {
       "path": "src/libdxfrw.cpp",
-      "reason": "Route raw DXF capture and replay through canonical or explicitly selected classifier profiles, expose an additive public compatibility-profile opt-in, preserve null/error compatibility, instrument stage-aware operation diagnostics including duplicate and malformed raw-handle context, and ignore inactive HATCH gradient carriers while retaining active-gradient validation.",
+      "reason": "Route raw DXF capture and replay through canonical or explicitly selected classifier profiles, expose an additive public compatibility-profile opt-in, preserve null/error compatibility, instrument stage-aware operation diagnostics including duplicate, malformed, and field-context raw-handle context, and ignore inactive HATCH gradient carriers while retaining active-gradient validation.",
       "scope": "DXF classifier correctness",
       "targetBlob": "71851fcf8d5636080c83f2eb1af4a8ef5a80e0ef",
-      "adaptedSha256": "d54dd4ef3b15e60d89fb268d9ff285aa8755960bbdc61fecfd0008c30db744e1"
+      "adaptedSha256": "21db6286778b901cf2f6eaabba6a742ab712bd88544af5c12a4cb5e82d0d2888"
     },
     {
       "path": "src/libdxfrw.h",
