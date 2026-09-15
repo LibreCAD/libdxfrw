@@ -52,9 +52,9 @@ then pin an immutable commit before importing source.
 ### Execution refresh (2026-09-15)
 
 The implementation worktree is rebased on `origin/master` and is currently
-183 commits ahead with no commits behind it. The latest green slice is
-S156/J132, including the live-plan update and its required policy gates.
-S157/J133 is the active slice; its AC1032 reader capability boundary is the
+184 commits ahead with no commits behind it. The latest green slice is
+S157/J133, including the live-plan update and its required policy gates.
+S158/J134 is the active slice; its DWG object-dispatch ledger audit is the
 next commit boundary.
 The worktree is clean at the last committed boundary; any subsequent active-
 slice edits are intentionally uncommitted until their narrow gate and
@@ -1935,21 +1935,20 @@ edit this block or commit the same slice concurrently.
 <!-- UPGRADE_PROGRESS_START -->
 
 - Current checkpoint (2026-09-15): S156/J132 R2010+ spline bit-stream audit is
-  committed; S157/J133 AC1032 reader capability boundary is active.
+  committed; S158/J134 DWG object-dispatch ledger audit is active.
   The
   branch is rebased on `origin/master`, and
   the pinned source/package/consumer convergence remains complete while
   runtime and wire-format parity stay evidence-gated. The AC1015 IMAGE legacy
   boundary remains fail-closed, and all format-support claims remain limited
   to rows with eligible runtime/oracle evidence. The next dependency-ready
-  sequence is S157 AC1032 reader capability boundary; it is a separate commit
+  sequence is S158 DWG object-dispatch ledger audit; it is a separate commit
   with no external or derived DWG/DXF bytes.
-- Latest implementation slice: S156/J132 R2010+ spline bit-stream audit is
-  committed. Six-version local writer/self-read now asserts that AC1027/AC1032
-  `splFlag1` and `knotParam` remain cursor-aligned; no available AC1027/AC1032
-  sample contains a SPLINE trace, and the ODA PDF is unavailable in this
-  workspace, so no speculative width change was made. No drawing bytes are
-  retained.
+- Latest implementation slice: S157/J133 AC1032 reader capability boundary is
+  committed. The reader matrix now asserts the concrete `dwgReader32` route
+  and its documented `dwgReader27` compatibility inheritance; this proves
+  dispatch without promoting unqualified R2018 wire-format parity. No drawing
+  bytes are retained.
 - Latest implementation slice: S54/J30 VISUALSTYLE object-family parity is
   committed. The local-from-scratch production writer registers the custom
   class before CLASSES, emits bounded visual-style payloads for all six
@@ -2785,10 +2784,10 @@ edit this block or commit the same slice concurrently.
   names TVDEVICEPROPERTIES and the two VX frames as UNKNOWN_OBJ, while local
   self-read remains authoritative for VX payload fields; no generated drawings
   or external assets are retained.
-- Last fully resolved slice: S156 (the R2010+ spline audit slice is committed
-  by the matching `Plan-Slice: S156` trailer; the commit carries six-version
-  cursor-alignment evidence and the missing ODA/sample condition explicitly
-  recorded and
+- Last fully resolved slice: S157 (the AC1032 reader-boundary slice is committed
+  by the matching `Plan-Slice: S157` trailer; the commit carries concrete
+  reader-dispatch and inheritance evidence, with unqualified R2018 wire-format
+  parity explicitly deferred and
   all required policy gates). The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
@@ -2810,18 +2809,18 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 156 (`COMMITTED`); S157 is active.
+- Resolved slices: 157 (`COMMITTED`); S158 is active.
 - Slice states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 156 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 157 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 158 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 159 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 254 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 255 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 141 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S156 are committed; S157/J133 is active with a ready packet
-  naming the AC1032 reader capability boundary and focused fast gates.
+  0 DEFERRED_EXTERNAL / 142 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S157 are committed; S158/J134 is active with a ready packet
+  naming the DWG object-dispatch ledger audit and focused fast gates.
   Keep validation fast and
   self-updating: run source/plan/policy checks and the focused carrier target
   after each implementation item, commit only after the narrow gate is green,
@@ -3026,7 +3025,8 @@ edit this block or commit the same slice concurrently.
 | S154 | J130: fast-test command coverage guard | S153 | COMMITTED | fast validation command coverage; no accidental full-suite escalation; package self-test; plan/scope/sync/fixture gates | package self-test rejects CTest, network fetchers, and dependency installers before execution, preserving the reduced-validation inner loop; no external DXF bytes | fast-command self-test, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S155 is active |
 | S155 | J131: AC1024 class-parser qualification | S154 | COMMITTED | DWG R2007/R2010 class metadata; high-bit string-size extension; RTM compatibility; focused DWG gate; plan/scope/sync/fixture gates | synthetic high-bit footer and overlength vectors pass; all nine available temporary AC1024 samples convert successfully; no error-8 reproduction is present, so the external-corpus failure remains explicitly unresolved and non-promoting; no drawing bytes committed | DWG matrix test, nine-sample temporary conversion matrix, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S156 is active |
 | S156 | J132: R2010+ spline bit-stream audit | S155 | COMMITTED | AC1027/AC1032 SPLINE flags; ODA bit-width contract; cursor alignment; focused entity gate; plan/scope/sync/fixture gates | six-version local writer/self-read asserts AC1027/AC1032 `splFlag1` and `knotParam` cursor alignment; no available AC1027/AC1032 sample contains a SPLINE trace and the ODA PDF is unavailable in this workspace, so no speculative width change was made; no drawing bytes committed | DWG local-roundtrip and reader-matrix tests, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S157 is active |
-| S157 | J133: AC1032 reader capability boundary | S156 | ACTIVE | AC1032 dispatch; reader32 wrapper behavior; fail-closed capability reporting; six-version local self-read; focused DWG gate; plan/scope/sync/fixture gates | audit `dwgReader32` dispatch and wrapper markers against the pinned target and standalone source; add a narrow capability-boundary assertion that AC1032 selects the explicit reader path and does not imply unqualified R2018 wire-format parity; no drawing bytes committed | active after S156 commit; use source/dispatch audit, local AC1032 self-read, focused reader-matrix and local-roundtrip tests, fixture admission, import scope, pinned sync, and diff gates |
+| S157 | J133: AC1032 reader capability boundary | S156 | COMMITTED | AC1032 dispatch; reader32 wrapper behavior; fail-closed capability reporting; six-version local self-read; focused DWG gate; plan/scope/sync/fixture gates | reader matrix asserts the concrete `dwgReader32` route and its documented `dwgReader27` compatibility inheritance; local AC1032 self-read remains green, while unqualified R2018 wire-format parity stays deferred; no drawing bytes committed | DWG reader-matrix and local-roundtrip tests, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S158 is active |
+| S158 | J134: DWG object-dispatch ledger audit | S157 | ACTIVE | fixed object types; custom-class routes; typed/raw carrier disposition; target/source dispatch inventory; focused DWG gate; plan/scope/sync/fixture gates | compare the pinned target object switch, standalone object switch, fixed-type helper, and raw fallback paths; enumerate every target-recognized object route and record typed, raw, unknown, or deferred disposition before changing code; no drawing bytes committed | active after S157 commit; use source-only dispatch audit, existing object-vector/local-roundtrip tests, focused reader-matrix test, fixture admission, import scope, pinned sync, and diff gates |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3187,7 +3187,8 @@ edit this block or commit the same slice concurrently.
 | J130 | S154 | J129 | COMMITTED | EXPERIMENTAL | Prove the documented fast validation command covers staged-package rejection branches without full-suite or network escalation | forbidden-command guard evidence, fast package self-test, and no-fixture evidence |
 | J131 | S155 | J130 | COMMITTED | EXPERIMENTAL | Qualify AC1024 RTM class-string high-bit parsing and retain an explicit disposition when the available corpus cannot reproduce the reported error-8 failure | synthetic footer regression, nine-sample temporary conversion matrix, unresolved external-corpus condition, and no-fixture evidence |
 | J132 | S156 | J131 | COMMITTED | EXPERIMENTAL | Audit and, only if evidence requires, correct the R2010+ SPLINE `splFlag1` bit width without disturbing other entity fields | six-version local writer/self-read cursor-alignment evidence; unavailable ODA/sample condition recorded; no speculative correction and no-fixture evidence |
-| J133 | S157 | J132 | ACTIVE | EXPERIMENTAL | Establish the AC1032 reader capability boundary: explicit dispatch and wrapper execution are covered, while unqualified R2018 wire-format parity remains deferred until a real AC1032 sample and authoritative layout evidence exist | active packet names source/dispatch audit, local AC1032 self-read, capability assertion, and no-fixture evidence |
+| J133 | S157 | J132 | COMMITTED | EXPERIMENTAL | Establish the AC1032 reader capability boundary: explicit dispatch and wrapper execution are covered, while unqualified R2018 wire-format parity remains deferred until a real AC1032 sample and authoritative layout evidence exist | reader-matrix concrete-route/inheritance assertions, local AC1032 self-read, explicit deferral, and no-fixture evidence |
+| J134 | S158 | J133 | ACTIVE | EXPERIMENTAL | Build a complete DWG OBJECTS dispatch ledger from the pinned target and standalone source, preserving raw fallback and deferred dispositions where typed parity is not qualified | active packet names target/source switch comparison, fixed-object helper audit, existing object-vector/local-roundtrip evidence, and no-fixture evidence |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -3455,7 +3456,8 @@ edit this block or commit the same slice concurrently.
 | J130.1 | J130 / S154 | WP4, WP5, WP6, WP8, WP10; fast-test command coverage guard | J129 | COMMITTED | EXPERIMENTAL | trace the fast package self-test and assert it performs no full CTest or network dependency work without external drawing bytes | focused fast-command target and policy gates pass; no external or derived DXF bytes are retained |
 | J131.1 | J131 / S155 | WP3, WP5, WP7, WP8, WP10; AC1024 class-parser qualification | J130 | COMMITTED | EXPERIMENTAL | qualify high-bit class-string footer arithmetic with a local vector and nine temporary AC1024 conversions, retaining the external-corpus failure as unresolved without external drawing bytes | focused DWG class/read target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 | J132.1 | J132 / S156 | WP3, WP5, WP7, WP8, WP10; R2010+ spline bit-stream audit | J131 | COMMITTED | EXPERIMENTAL | verify `splFlag1` bit width and downstream cursor alignment with a local bit-vector and available AC1027/AC1032 evidence without external drawing bytes | six-version local writer/self-read target and policy gates pass; no external or derived DWG/DXF bytes are retained |
-| J133.1 | J133 / S157 | WP3, WP5, WP7, WP8, WP10; AC1032 reader capability boundary | J132 | ACTIVE | EXPERIMENTAL | verify AC1032 dispatch selects `dwgReader32`, wrapper markers execute, and capability reporting remains fail-closed for unqualified R2018 wire-format parity without external drawing bytes | focused reader-matrix/local-roundtrip target and policy gates pass; no external or derived DWG/DXF bytes are retained |
+| J133.1 | J133 / S157 | WP3, WP5, WP7, WP8, WP10; AC1032 reader capability boundary | J132 | COMMITTED | EXPERIMENTAL | verify AC1032 dispatch selects `dwgReader32`, wrapper markers execute, and capability reporting remains fail-closed for unqualified R2018 wire-format parity without external drawing bytes | focused reader-matrix/local-roundtrip target and policy gates pass; no external or derived DWG/DXF bytes are retained |
+| J134.1 | J134 / S158 | WP3, WP5, WP7, WP8, WP10; DWG object-dispatch ledger audit | J133 | ACTIVE | EXPERIMENTAL | enumerate target-recognized OBJECTS types and reconcile standalone typed/raw/unknown/deferred routes without external drawing bytes | source-only dispatch audit plus focused object-vector/reader-matrix/local-roundtrip target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 
 <!-- UPGRADE_PROGRESS_END -->
 

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -99,6 +100,18 @@ void testVersionDispatch(TestContext& t) {
         t.expect(owner.version == test.version, label + " sniffs expected version");
         t.expect(opened && matchesReader(owner.reader.get(), test.version),
                  label + " selects expected reader class");
+        if (test.version == DRW::AC1032) {
+            t.expect(opened
+                         && dynamic_cast<const dwgReader32*>(owner.reader.get())
+                                != nullptr,
+                     label + " selects the concrete R2018 reader boundary");
+            t.expect(opened
+                         && dynamic_cast<const dwgReader27*>(owner.reader.get())
+                                != nullptr,
+                     label + " retains the explicit R2013 compatibility wrapper");
+            t.expect(std::is_base_of<dwgReader27, dwgReader32>::value,
+                     label + " keeps the documented reader inheritance boundary");
+        }
     }
 
     std::array<std::uint8_t, 6> unsupported {
