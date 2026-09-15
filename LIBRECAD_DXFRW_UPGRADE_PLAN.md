@@ -1997,6 +1997,11 @@ edit this block or commit the same slice concurrently.
   transactionally before any record is published. Release and ASan/UBSan
   hardening plus Wave 1 and fixture regressions pass; no drawing bytes were
   added.
+- Latest MULTILEADER scalar-parity slice (2026-09-15): S269/J245 wires the
+  modeled entity-level block-scale triplet and R2010b class-version field into
+  the DXF parser/writer. The in-memory regression now round-trips non-default
+  scale values and class version 7 in addition to nested context geometry and
+  handles; release and ASan/UBSan hardening pass with no drawing bytes added.
 - Previous checkpoint (2026-09-15): S257/J233 post-hardening validation
   checkpoint is committed. A fresh C++17 build and all 26 dependency-free
   CTest entries pass in 6.26 seconds, including source-route and release
@@ -3292,17 +3297,17 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 268 (`COMMITTED`); no slice is active.
+- Resolved slices: 269 (`COMMITTED`); no slice is active.
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 268 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 269 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 270 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 271 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 2 VERIFIED / 366 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 2 VERIFIED / 367 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 245 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S268 are committed; no local implementation slice is active.
+  0 DEFERRED_EXTERNAL / 246 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S269 are committed; no local implementation slice is active.
   Remaining work is evidence-gated runtime/oracle and release closure; keep
   the fast inner loop and do not promote support claims from self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -3625,6 +3630,7 @@ edit this block or commit the same slice concurrently.
 | S266 | J242: aggregate DWG object-map budget hardening | S265 | COMMITTED | configurable per-operation aggregate object-map ceiling; budget-capped preallocation; structured resource diagnostic; synthetic HANDLE-map boundary/retry; focused hardening and policy gates | `dwgRW` propagates a configurable ceiling to each reader, caps HANDLE-map staging/reservation, fails closed with `dwg-object-budget`/`ResourceLimit` when exhausted, and synthetic one-entry maps prove zero-budget rejection plus bounded success; release and ASan/UBSan hardening pass; no drawing fixtures or derived payloads | native Windows, longer fuzz, package, and parity-promotion evidence remain scheduled |
 | S267 | J243: MULTILEADER DXF context geometry and handle parity | S266 | COMMITTED | nested CONTEXT_DATA root/leader-line breaks; transformation matrix; context/line/entity hard-pointer handles; fixture-free in-memory round-trip; focused hardening and policy gates | modern MULTILEADER DXF write/read preserves nested break pairs, content transform values, context and line handles, and entity-level style/arrow handles through a direct ASCII round-trip; release and ASan/UBSan hardening pass; no drawing fixtures or derived payloads | pre-R2010 array variants, native Windows, longer fuzz, package, and parity-promotion evidence remain scheduled |
 | S268 | J244: MULTILEADER DXF context validation hardening | S267 | COMMITTED | bounded roots/lines/points/breaks; finite numeric and transform validation; transactional oversized/non-finite rejection; focused hardening and policy gates | `DRW_MLeader::validateDxf` rejects oversized or non-finite modern context payloads before publication, while valid nested geometry remains writable; release and ASan/UBSan hardening, Wave 1, and fixture regressions pass; no drawing fixtures or derived payloads | pre-R2010 array variants, native Windows, longer fuzz, package, and parity-promotion evidence remain scheduled |
+| S269 | J245: MULTILEADER DXF scalar field parity | S268 | COMMITTED | entity-level block-scale triplet; R2010b class-version field; fixture-free in-memory round-trip; focused hardening and policy gates | modeled `styleBlockScale` and `classVersion` values are emitted and parsed for modern MULTILEADER records, with non-default scale and version-7 regression coverage; release and ASan/UBSan hardening pass; no drawing fixtures or derived payloads | pre-R2010 array variants, native Windows, longer fuzz, package, and parity-promotion evidence remain scheduled |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3897,6 +3903,7 @@ edit this block or commit the same slice concurrently.
 | J242 | S266 | J241 | COMMITTED | EXPERIMENTAL | Qualify aggregate DWG object-map budget hardening | Add a configurable per-operation object-map ceiling, cap staging/preallocation, fail closed with a structured resource-limit diagnostic while preserving the legacy handles-stage error channel, and prove a valid bounded synthetic map plus fresh owner configuration without drawing fixtures |
 | J243 | S267 | J242 | COMMITTED | EXPERIMENTAL | Qualify MULTILEADER DXF context geometry and handle parity | Emit and parse modern `MULTILEADER` `CONTEXT_DATA{}` roots and leader lines with break pairs, all sixteen block-transform values, context/line hard-pointer handles, and entity-level style/arrow handles; preserve transactional writer behavior and leave pre-R2010 array variants explicitly outside this bounded route |
 | J244 | S268 | J243 | COMMITTED | EXPERIMENTAL | Qualify MULTILEADER DXF context validation hardening | Add writer-side bounds and finite-value validation for modern MULTILEADER roots, leader lines, points, breaks, context fields, and block transformation values; reject oversized or non-finite payloads transactionally while preserving valid context output |
+| J245 | S269 | J244 | COMMITTED | EXPERIMENTAL | Qualify MULTILEADER DXF scalar field parity | Emit and parse the modeled entity-level `styleBlockScale` triplet and R2010b `classVersion` for modern MULTILEADER records, preserving non-default scalar values through the existing transactional ASCII route |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4276,6 +4283,7 @@ edit this block or commit the same slice concurrently.
 | J242.1 | J242 / S266 | WP8, WP10; aggregate resource budget hardening | J241 | COMMITTED | EXPERIMENTAL | set a per-operation DWG object-map ceiling, cap HANDLE-map reservation and entries, reject exhaustion with `ResourceLimit`/`dwg-object-budget`, and verify a bounded valid map through an independent reader harness without drawing fixtures | release and ASan/UBSan `libdxfrw_hardening_tests` pass; plan check, fixture admission, import scope, pinned sync, and diff gates pass; no drawing fixtures or derived payloads |
 | J243.1 | J243 / S267 | WP4, WP8, WP10; MULTILEADER DXF context parity | J242 | COMMITTED | EXPERIMENTAL | round-trip a modern `MULTILEADER` through the ASCII writer/parser, preserving nested break geometry, content transform values, context/line/entity hard-pointer handles, and closed marker state without drawing fixtures | release and ASan/UBSan `libdxfrw_hardening_tests` pass; Wave 1, plan check, fixture admission, import scope, pinned sync, and diff gates pass; no drawing fixtures or derived payloads |
 | J244.1 | J244 / S268 | WP4, WP8, WP10; MULTILEADER DXF validation hardening | J243 | COMMITTED | EXPERIMENTAL | reject oversized root/line/point/break collections and non-finite context/entity values before writing, leave zero output on failure, and retain valid nested-context output without drawing fixtures | release and ASan/UBSan `libdxfrw_hardening_tests` pass; Wave 1, DXF/DWG fixture regressions, plan check, fixture admission, import scope, pinned sync, and diff gates pass; no drawing fixtures or derived payloads |
+| J245.1 | J245 / S269 | WP4, WP8, WP10; MULTILEADER DXF scalar parity | J244 | COMMITTED | EXPERIMENTAL | round-trip non-default entity-level block scale and R2010b class version through the ASCII writer/parser while preserving nested context state and transactional behavior without drawing fixtures | release and ASan/UBSan `libdxfrw_hardening_tests` pass; Wave 1, plan check, fixture admission, import scope, pinned sync, and diff gates pass; no drawing fixtures or derived payloads |
 
 <!-- UPGRADE_PROGRESS_END -->
 

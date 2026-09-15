@@ -94,7 +94,7 @@
       "reason": "Mark one intentionally unused helper, remove two unused locals exposed by standalone -Werror compilation, reject non-finite GEOPOSITIONMARKER and LIGHT entity-body values plus bounded LIGHT strings/color before encoding, and preserve nested MULTILEADER DXF context breaks, transforms, and hard-pointer handles on parse.",
       "scope": "warning hygiene and DXF MULTILEADER parity",
       "targetBlob": "890ea64e07010339cac96e5d580ecacef7f0f39e",
-      "adaptedSha256": "e4db887dc63fe8cb24684b0d3f4bfe1381facc515e0bc9467fb7f59df86fe0f2"
+      "adaptedSha256": "8478b9273d27bef0b3b3c5bc0d9719b2a4b79e176581090532db3775304d84d0"
     },
     {
       "path": "src/drw_entities.h",
@@ -157,7 +157,7 @@
       "reason": "Route raw DXF capture and replay through canonical or explicitly selected classifier profiles, expose an additive public compatibility-profile opt-in, preserve null/error compatibility, instrument stage-aware operation diagnostics including duplicate, malformed, and field-context raw-handle context across raw object, entity, and unknown-section paths, keep code-5 identity metadata out of proxy-host registration so raw replay remains authoritative, ignore inactive HATCH gradient carriers while retaining active-gradient validation, and emit complete modern MULTILEADER DXF context geometry, transforms, and hard-pointer handles.",
       "scope": "DXF classifier correctness and MULTILEADER parity",
       "targetBlob": "71851fcf8d5636080c83f2eb1af4a8ef5a80e0ef",
-      "adaptedSha256": "7ff163cbe3693bc11f85009ec0618363c29cfc2d9f502f707fe09f021ca5f330"
+      "adaptedSha256": "3bbeb60a54adb372f05a1ce6debb63d6839328f09069a7fbe3631aec266bc80e"
     },
     {
       "path": "src/libdxfrw.h",

@@ -474,6 +474,9 @@ void testMLeaderDxfContextRoundTrip(TestContext& t) {
     source.arrowHeadHandle.ref = 0xA103u;
     source.styleTextStyleHandle.ref = 0xA104u;
     source.styleBlockHandle.ref = 0xA105u;
+    source.styleContentType = 1;
+    source.styleBlockScale = DRW_Coord{2.0, 3.0, 4.0};
+    source.classVersion = 7;
     source.context.hasTextContents = true;
     source.context.textLabel = "context text";
     source.context.textStyleHandle.ref = 0xA106u;
@@ -508,7 +511,9 @@ void testMLeaderDxfContextRoundTrip(TestContext& t) {
                  && encoded.find("304\nLEADER_LINE{\n") != std::string::npos
                  && encoded.find(" 12\n4\n") != std::string::npos
                  && encoded.find("340\nA106\n") != std::string::npos
-                 && encoded.find(" 47\n1\n") != std::string::npos,
+                 && encoded.find(" 47\n1\n") != std::string::npos
+                 && encoded.find(" 10\n2\n") != std::string::npos
+                 && encoded.find("270\n") != std::string::npos,
              "MULTILEADER DXF writer emits nested breaks handles and transform");
 
     std::stringstream records(encoded);
@@ -541,7 +546,10 @@ void testMLeaderDxfContextRoundTrip(TestContext& t) {
                      && parsed.context.textStyleHandle.ref == 0xA106u
                      && parsed.context.blockTableRecordHandle.ref == 0xA107u
                      && parsed.context.blockTransform[15] == 16.0
-                     && parsed.styleHandle.ref == 0xA101u,
+                     && parsed.styleHandle.ref == 0xA101u
+                     && parsed.styleBlockScale.x == 2.0
+                     && parsed.styleBlockScale.z == 4.0
+                     && parsed.classVersion == 7,
                      "MULTILEADER DXF round-trip preserves geometry handles and matrix");
     }
 

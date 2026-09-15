@@ -6053,6 +6053,12 @@ bool dxfRW::writeMultiLeader(DRW_MLeader *ent){
     writer->writeInt32(92, ent->styleTextColor);
     writer->writeBool(292, ent->styleTextFrameEnabled);
     writer->writeInt32(93, ent->styleBlockColor);
+    if (ent->styleContentType == 1 || ent->styleBlockScale.x != 1.0 ||
+        ent->styleBlockScale.y != 1.0 || ent->styleBlockScale.z != 1.0) {
+        writer->writeDouble(10, ent->styleBlockScale.x);
+        writer->writeDouble(20, ent->styleBlockScale.y);
+        writer->writeDouble(30, ent->styleBlockScale.z);
+    }
     writer->writeDouble(43, ent->styleBlockRotation);
     writer->writeInt16(176, ent->styleAttachmentType);
     writer->writeBool(293, ent->isAnnotative);
@@ -6064,8 +6070,10 @@ bool dxfRW::writeMultiLeader(DRW_MLeader *ent){
     writer->writeInt16(273, ent->styleTopAttach);
     writer->writeInt16(272, ent->styleBottomAttach);
     writer->writeBool(295, ent->leaderExtendedToText);
-        if (!ent->extData.empty() && !writeExtData(ent->extData))
-            return false;
+    if (version >= DRW::AC1024)
+        writer->writeInt16(270, ent->classVersion);
+    if (!ent->extData.empty() && !writeExtData(ent->extData))
+        return false;
     return !writer->hasWriteError();
 }
 

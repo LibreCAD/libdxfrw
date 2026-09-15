@@ -20561,6 +20561,18 @@ bool DRW_MLeader::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         styleBlockHandle.ref = reader->getHandleString();
         styleBlockHandle.ref64 = styleBlockHandle.ref;
         break;
+    case 10:
+        styleBlockScale.x = reader->getDouble();
+        break;
+    case 20:
+        styleBlockScale.y = reader->getDouble();
+        break;
+    case 30:
+        styleBlockScale.z = reader->getDouble();
+        break;
+    case 270:
+        classVersion = reader->getInt32();
+        break;
     default:
         return DRW_Entity::parseCode(code, reader);
     }
