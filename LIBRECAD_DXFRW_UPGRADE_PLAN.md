@@ -52,10 +52,10 @@ then pin an immutable commit before importing source.
 ### Execution refresh (2026-09-15)
 
 The implementation worktree is rebased on `origin/master` and is currently
-249 commits ahead with no commits behind it. The latest green slice is
-S223/J199, including the live-plan update and its required policy gates.
-S224/J200 is the active slice; its DXF raw-section application-group marker
-lexeme parity is the next commit boundary.
+251 commits ahead with no commits behind it. The latest green slice is
+S224/J200, including the live-plan update and its required policy gates.
+S225/J201 is the active slice; its DXF raw-section writer preflight parity is
+the next commit boundary.
 The worktree is clean at the last committed boundary; any subsequent active-
 slice edits are intentionally uncommitted until their narrow gate and
 status-bearing plan transition are green.
@@ -1934,16 +1934,16 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint (2026-09-15): S223/J199 DXF raw-section application-group
-  nesting depth parity is committed; S224/J200 DXF raw-section application-group
-  marker lexeme parity is active.
+- Current checkpoint (2026-09-15): S224/J200 DXF raw-section application-group
+  marker lexeme parity is committed; S225/J201 DXF raw-section writer preflight
+  parity is active.
   The
   branch is rebased on `origin/master`, and
   the pinned source/package/consumer convergence remains complete while
   runtime and wire-format parity stay evidence-gated. The AC1015 IMAGE legacy
   boundary remains fail-closed, and all format-support claims remain limited
   to rows with eligible runtime/oracle evidence. The next dependency-ready
-  sequence is S224 DXF raw-section application-group marker lexeme parity;
+  sequence is S225 DXF raw-section writer preflight parity;
   it is a separate commit with no external or derived DWG/DXF bytes.
 - Latest implementation slice: S171/J147 DXF raw-object handle-scope and
   cross-record uniqueness qualification is committed. Local ASCII and binary
@@ -2151,6 +2151,10 @@ edit this block or commit the same slice concurrently.
   nesting depth parity is committed. Local ASCII and binary sections accept the
   maximum nested 102 depth and reject one level over transactionally; no
   drawing bytes are retained.
+- Latest implementation slice: S224/J200 DXF raw-section application-group
+  marker lexeme parity is committed. Local ASCII and binary sections accept
+  valid 102 opening/closing markers and reject malformed marker lexemes
+  transactionally; no drawing bytes are retained.
 - Latest implementation slice: S172/J148 DXF raw-object duplicate-handle
   diagnostic and error-precedence qualification is committed. Local ASCII and
   binary duplicate streams preserve the legacy `BAD_CODE_PARSED` result and
@@ -3073,18 +3077,18 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 223 (`COMMITTED`); S224 is active.
+- Resolved slices: 224 (`COMMITTED`); S225 is active.
 - Slice states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 223 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 224 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 225 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 226 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 321 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 322 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 208 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S223 are committed; S224/J200 is active with a ready packet
-  naming DXF raw-section application-group marker lexeme parity and focused fast gates.
+  0 DEFERRED_EXTERNAL / 209 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S224 are committed; S225/J201 is active with a ready packet
+  naming DXF raw-section writer preflight parity and focused fast gates.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
   S174/J150, S175/J151, S176/J152, S177/J153, S178/J154, and S179/J155 added
   malformed, field-context, raw-entity propagation, duplicate-entity,
@@ -3360,7 +3364,8 @@ edit this block or commit the same slice concurrently.
 | S221 | J197: DXF raw-section group-code bounds parity | S220 | COMMITTED | negative group codes; codes above 1071; validation bounds; ASCII/binary symmetry; transactional rejection; focused DXF gate; plan/scope/sync/fixture gates | committed `S221`; local ASCII and binary writers reject negative and above-1071 group codes transactionally with zero output; no drawing bytes committed | Wave 1 raw-section bounds tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S222 is active |
 | S222 | J198: DXF raw-section aggregate-pair limit parity | S221 | COMMITTED | aggregate pair count; 65,536 boundary; over-limit rejection; ASCII/binary symmetry; transactional output; focused DXF gate; plan/scope/sync/fixture gates | committed `S222`; local ASCII and binary sections accept the 65,536-pair boundary and reject one pair over transactionally with zero output; no drawing bytes committed | Wave 1 raw-section aggregate-limit tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S223 is active |
 | S223 | J199: DXF raw-section application-group nesting depth parity | S222 | COMMITTED | nested 102 application groups; maximum depth; over-depth rejection; ASCII/binary symmetry; transactional output; focused DXF gate; plan/scope/sync/fixture gates | committed `S223`; local ASCII and binary sections accept the maximum nested 102 depth and reject one level over transactionally with zero output; no drawing bytes committed | Wave 1 raw-section depth-limit tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S224 is active |
-| S224 | J200: DXF raw-section application-group marker lexeme parity | S223 | ACTIVE | valid opening marker; valid closing marker; malformed marker rejection; ASCII/binary symmetry; transactional output; focused DXF gate; plan/scope/sync/fixture gates | use local sections with valid `{GROUP`/`}` markers and malformed `{`/`GROUP` lexemes; assert valid replay and malformed zero-output rejection in ASCII and binary, with no drawing bytes committed | active after S223 commit; use Wave 1 raw-section marker tests, focused CTest selector, fast source/policy gates, fixture admission, import scope, pinned sync, and diff gates |
+| S224 | J200: DXF raw-section application-group marker lexeme parity | S223 | COMMITTED | valid opening marker; valid closing marker; malformed marker rejection; ASCII/binary symmetry; transactional output; focused DXF gate; plan/scope/sync/fixture gates | committed `S224`; local ASCII and binary sections accept valid 102 opening/closing markers and reject malformed marker lexemes transactionally with zero output; no drawing bytes committed | Wave 1 raw-section marker tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S225 is active |
+| S225 | J201: DXF raw-section writer preflight parity | S224 | ACTIVE | null writer preflight; ASCII/binary symmetry; zero-output rejection; focused DXF gate; plan/scope/sync/fixture gates | use a valid custom section with no writer attached; assert ASCII and binary façade preflight rejects safely with no output or callback side effects, with no drawing bytes committed | active after S224 commit; use Wave 1 raw-section preflight tests, focused CTest selector, fast source/policy gates, fixture admission, import scope, pinned sync, and diff gates |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3588,7 +3593,8 @@ edit this block or commit the same slice concurrently.
 | J197 | S221 | J196 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-section group-code bounds parity | local ASCII and binary writers reject negative and above-1071 group codes transactionally with zero output; no-fixture evidence |
 | J198 | S222 | J197 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-section aggregate-pair limit parity | local ASCII and binary sections accept the 65,536-pair boundary and reject one pair over transactionally; no-fixture evidence |
 | J199 | S223 | J198 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-section application-group nesting depth parity | local ASCII and binary sections accept the maximum nested 102 depth and reject one level over transactionally; no-fixture evidence |
-| J200 | S224 | J199 | ACTIVE | EXPERIMENTAL | Qualify DXF raw-section application-group marker lexeme parity | active packet names valid 102 marker replay and malformed marker rejection in ASCII/binary; no-fixture evidence |
+| J200 | S224 | J199 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-section application-group marker lexeme parity | local ASCII and binary sections accept valid 102 opening/closing markers and reject malformed marker lexemes transactionally; no-fixture evidence |
+| J201 | S225 | J200 | ACTIVE | EXPERIMENTAL | Qualify DXF raw-section writer preflight parity | active packet names null-writer preflight rejection in ASCII/binary with zero output and no side effects; no-fixture evidence |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -3923,7 +3929,8 @@ edit this block or commit the same slice concurrently.
 | J197.1 | J197 / S221 | WP4, WP5, WP6, WP8, WP10; DXF raw-section group-code bounds parity | J196 | COMMITTED | EXPERIMENTAL | assert negative and above-1071 raw section group codes reject transactionally with zero ASCII/binary output, without external drawing bytes | focused Wave 1 raw-section bounds target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 | J198.1 | J198 / S222 | WP4, WP5, WP6, WP8, WP10; DXF raw-section aggregate-pair limit parity | J197 | COMMITTED | EXPERIMENTAL | assert a raw section at kMaxDxfApplicationGroupPairs is accepted while one above rejects transactionally in ASCII/binary, without external drawing bytes | focused Wave 1 raw-section aggregate-limit target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 | J199.1 | J199 / S223 | WP4, WP5, WP6, WP8, WP10; DXF raw-section application-group nesting depth parity | J198 | COMMITTED | EXPERIMENTAL | assert a raw section at kMaxDxfApplicationGroupNesting is accepted while one over rejects transactionally in ASCII/binary, without external drawing bytes | focused Wave 1 raw-section depth-limit target and policy gates pass; no external or derived DWG/DXF bytes are retained |
-| J200.1 | J200 / S224 | WP4, WP5, WP6, WP8, WP10; DXF raw-section application-group marker lexeme parity | J199 | ACTIVE | EXPERIMENTAL | assert valid 102 opening/closing markers replay while malformed marker lexemes reject transactionally with zero ASCII/binary output, without external drawing bytes | focused Wave 1 raw-section marker target and policy gates pass; no external or derived DWG/DXF bytes are retained |
+| J200.1 | J200 / S224 | WP4, WP5, WP6, WP8, WP10; DXF raw-section application-group marker lexeme parity | J199 | COMMITTED | EXPERIMENTAL | assert valid 102 opening/closing markers replay while malformed marker lexemes reject transactionally with zero ASCII/binary output, without external drawing bytes | focused Wave 1 raw-section marker target and policy gates pass; no external or derived DWG/DXF bytes are retained |
+| J201.1 | J201 / S225 | WP4, WP5, WP6, WP8, WP10; DXF raw-section writer preflight parity | J200 | ACTIVE | EXPERIMENTAL | assert a valid custom section rejects safely when no writer is attached in ASCII/binary, leaving zero output and no callback side effects, without external drawing bytes | focused Wave 1 raw-section preflight target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 
 <!-- UPGRADE_PROGRESS_END -->
 
