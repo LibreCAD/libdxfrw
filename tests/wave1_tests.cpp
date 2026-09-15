@@ -4077,6 +4077,58 @@ void testDxfRawSectionRecordBoundaries(TestContext& t) {
     }
 }
 
+void testDxfRawSectionRecordBoundaryReplay(TestContext& t) {
+    DRW_RawDxfSection section;
+    section.m_name = "LOCAL_BOUNDARY_REPLAY";
+    section.m_version = DRW::AC1027;
+    section.m_hasRawValues = true;
+    section.m_groups = {DRW_Variant(0, std::string("REC_A")),
+                        DRW_Variant(1000, std::string("payload A")),
+                        DRW_Variant(0, std::string("REC_B")),
+                        DRW_Variant(1000, std::string("payload B"))};
+    section.m_rawValues = {"REC_A", "payload A", "REC_B", "payload B"};
+    const std::vector<std::pair<int, std::string>> expected = {
+        {0, "SECTION"}, {2, section.m_name}, {0, "REC_A"},
+        {1000, "payload A"}, {0, "REC_B"}, {1000, "payload B"},
+        {0, "ENDSEC"}};
+
+    std::ostringstream asciiOutput;
+    dxfRW asciiWriter("");
+    asciiWriter.version = DRW::AC1027;
+    asciiWriter.binFile = false;
+    asciiWriter.writer = std::make_unique<dxfWriterAscii>(&asciiOutput);
+    t.expect(asciiWriter.writeRawDxfSection(section),
+             "DXF ASCII raw section replays record boundaries");
+    std::stringstream asciiRecords(asciiOutput.str());
+    dxfReaderAscii asciiReader(&asciiRecords);
+    std::vector<std::pair<int, std::string>> asciiActual;
+    int asciiCode = 0;
+    while (asciiReader.readRec(&asciiCode))
+        asciiActual.emplace_back(asciiCode, asciiReader.getString());
+    t.expect(asciiActual == expected,
+             "DXF ASCII raw section boundary replay preserves exact framing");
+
+    DRW_RawDxfSection binarySection = section;
+    binarySection.m_hasRawValues = false;
+    binarySection.m_rawValues.clear();
+    std::ostringstream binaryOutput;
+    dxfRW binaryWriter("");
+    binaryWriter.version = DRW::AC1027;
+    binaryWriter.binFile = true;
+    binaryWriter.writer = std::make_unique<dxfWriterBinary>(&binaryOutput);
+    t.expect(binaryWriter.writeRawDxfSection(binarySection),
+             "DXF binary raw section replays record boundaries");
+    std::stringstream binaryRecords(binaryOutput.str());
+    dxfReaderBinary binaryReader(&binaryRecords);
+    binaryReader.setClassifierProfile(DxfClassifierProfile::StandaloneSafe);
+    std::vector<std::pair<int, std::string>> binaryActual;
+    int binaryCode = 0;
+    while (binaryReader.readRec(&binaryCode))
+        binaryActual.emplace_back(binaryCode, binaryReader.getString());
+    t.expect(binaryActual == expected,
+             "DXF binary raw section boundary replay preserves exact framing");
+}
+
 void testDxfRawSectionApplicationGroupMarker(TestContext& t) {
     const std::vector<std::string> invalidMarkers = {"{", "NOT_A_MARKER"};
     for (const std::string& marker : invalidMarkers) {
@@ -4441,6 +4493,7 @@ int main() {
     testDxfRawSectionMissingEndsec(context);
     testDxfRawSectionEmptyNameRead(context);
     testDxfRawSectionRecordBoundaries(context);
+    testDxfRawSectionRecordBoundaryReplay(context);
     testDxfRawSectionApplicationGroupMarker(context);
     testDxfRawSectionApplicationGroupReferenceMatrix(context);
     testRawCapture(context);
