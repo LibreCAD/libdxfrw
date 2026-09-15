@@ -261,6 +261,18 @@ public:
             registeredSkylightBackground_ =
                 writer_->registerBackgroundObjectClass(
                     &skylightBackgroundRegistration);
+            if (expectedVersion_ >= DRW::AC1021) {
+                DRW_Section sectionManagerRegistration;
+                sectionManagerRegistration.handle = 0xE700u;
+                sectionManagerRegistration.m_kind = DRW_Section::Manager;
+                registeredSectionManager_ = writer_->registerSectionObjectClass(
+                    &sectionManagerRegistration);
+                DRW_Section sectionSettingsRegistration;
+                sectionSettingsRegistration.handle = 0xE800u;
+                sectionSettingsRegistration.m_kind = DRW_Section::Settings;
+                registeredSectionSettings_ = writer_->registerSectionObjectClass(
+                    &sectionSettingsRegistration);
+            }
         }
     }
 
@@ -352,6 +364,12 @@ public:
             {"LOCAL_IBL_BACKGROUND", 0xE400u},
             {"LOCAL_SKYLIGHT_BACKGROUND", 0xE500u},
         };
+        if (expectedVersion_ >= DRW::AC1021) {
+            dictionary.m_entries.push_back(
+                DRW_Dictionary::Entry{"LOCAL_SECTION_MANAGER", 0xE700u});
+            dictionary.m_entries.push_back(
+                DRW_Dictionary::Entry{"LOCAL_SECTION_SETTINGS", 0xE800u});
+        }
         wroteDictionary_ = registeredDictionary_
             && writer_->writeDictionary(&dictionary)
             && dictionary.handle != 0;
@@ -1367,6 +1385,67 @@ public:
         rejectedMalformedBackground_ =
             !writer_->writeBackground(&invalidGradientBackground);
 
+        if (expectedVersion_ >= DRW::AC1021) {
+            DRW_Section sectionManager;
+            sectionManager.handle = 0xE700u;
+            sectionManager.parentHandle = dictionary.handle;
+            sectionManager.m_kind = DRW_Section::Manager;
+            sectionManager.m_isLive = true;
+            sectionManager.m_sectionHandles = {0xE800u};
+            wroteSectionManager_ = registeredSectionManager_
+                && writer_->writeSection(&sectionManager)
+                && sectionManager.handle != 0;
+
+            DRW_Section sectionSettings;
+            sectionSettings.handle = 0xE800u;
+            sectionSettings.parentHandle = dictionary.handle;
+            sectionSettings.m_kind = DRW_Section::Settings;
+            sectionSettings.m_currentType = 1;
+            DRW_SectionTypeSettings sectionType;
+            sectionType.m_type = 2;
+            sectionType.m_generation = 3;
+            sectionType.m_sourceHandles = {modelSpaceLineHandle_};
+            sectionType.m_destinationBlockHandle = 0x17u;
+            sectionType.m_destinationFile = "LOCAL_SECTION.dwg";
+            DRW_SectionGeometrySettings sectionGeometry;
+            sectionGeometry.m_numGeometries = 1;
+            sectionGeometry.m_hexIndex = 4;
+            sectionGeometry.m_flags = 5;
+            sectionGeometry.m_color = 6;
+            sectionGeometry.m_layer = "LOCAL_LAYER";
+            sectionGeometry.m_lineType = "CONTINUOUS";
+            sectionGeometry.m_lineTypeScale = 0.5;
+            sectionGeometry.m_plotStyle = "LOCAL_STYLE";
+            sectionGeometry.m_lineWeight = 7;
+            sectionGeometry.m_faceTransparency = 8;
+            sectionGeometry.m_edgeTransparency = 9;
+            sectionGeometry.m_hatchType = 1;
+            sectionGeometry.m_hatchPattern = "SOLID";
+            sectionGeometry.m_hatchAngle = 0.25;
+            sectionGeometry.m_hatchSpacing = 0.75;
+            sectionGeometry.m_hatchScale = 1.25;
+            sectionType.m_geometry.push_back(sectionGeometry);
+            sectionSettings.m_types.push_back(sectionType);
+            wroteSectionSettings_ = registeredSectionSettings_
+                && writer_->writeSection(&sectionSettings)
+                && sectionSettings.handle != 0;
+
+            DRW_Section invalidSection = sectionSettings;
+            invalidSection.handle = 0xE900u;
+            invalidSection.m_types.resize(
+                static_cast<std::size_t>(DRW_Section::kMaxSectionTypeCount) + 1u);
+            rejectedMalformedSection_ = !writer_->writeSection(&invalidSection);
+        } else {
+            DRW_Section unsupportedManager;
+            unsupportedManager.handle = 0xE700u;
+            unsupportedManager.m_kind = DRW_Section::Manager;
+            DRW_Section unsupportedSettings;
+            unsupportedSettings.handle = 0xE800u;
+            unsupportedSettings.m_kind = DRW_Section::Settings;
+            rejectedUnsupportedSection_ = !writer_->writeSection(&unsupportedManager)
+                && !writer_->writeSection(&unsupportedSettings);
+        }
+
         DRW_Group group;
         group.handle = 0xA600u;
         group.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
@@ -1727,7 +1806,8 @@ public:
         if (data.handle == 0xA601u) {
             readDictionarySeen_ = data.parentHandle
                     == DRW::DwgNamedObjectsDictionaryHandle
-                && data.m_entries.size() == 49
+                && data.m_entries.size()
+                    == (expectedVersion_ >= DRW::AC1021 ? 51u : 49u)
                 && data.m_entries[0].m_name == "LOCAL_XRECORD"
                 && data.m_entries[0].m_handle == 0xA602u
                 && data.m_entries[1].m_name == "LOCAL_PLOTSETTINGS"
@@ -1825,7 +1905,12 @@ public:
                 && data.m_entries[47].m_name == "LOCAL_IBL_BACKGROUND"
                 && data.m_entries[47].m_handle == 0xE400u
                 && data.m_entries[48].m_name == "LOCAL_SKYLIGHT_BACKGROUND"
-                && data.m_entries[48].m_handle == 0xE500u;
+                && data.m_entries[48].m_handle == 0xE500u
+                && (expectedVersion_ < DRW::AC1021
+                    || (data.m_entries[49].m_name == "LOCAL_SECTION_MANAGER"
+                        && data.m_entries[49].m_handle == 0xE700u
+                        && data.m_entries[50].m_name == "LOCAL_SECTION_SETTINGS"
+                        && data.m_entries[50].m_handle == 0xE800u));
         }
     }
     void addXRecord(const DRW_XRecord& data) override {
@@ -2376,6 +2461,32 @@ public:
         if (data.handle == 0xE600u)
             readMalformedBackgroundSeen_ = true;
     }
+    void addSection(const DRW_Section& data) override {
+        if (data.handle == 0xE700u)
+            readSectionManagerSeen_ = data.parentHandle == 0xA601u
+                && data.m_kind == DRW_Section::Manager
+                && data.m_isLive
+                && data.m_sectionHandles.size() == 1
+                && data.m_sectionHandles.front() == 0xE800u;
+        if (data.handle == 0xE800u)
+            readSectionSettingsSeen_ = data.parentHandle == 0xA601u
+                && data.m_kind == DRW_Section::Settings
+                && data.m_currentType == 1
+                && data.m_types.size() == 1
+                && data.m_types.front().m_type == 2
+                && data.m_types.front().m_generation == 3
+                && data.m_types.front().m_sourceHandles.size() == 1
+                && data.m_types.front().m_sourceHandles.front() != 0
+                && data.m_types.front().m_destinationBlockHandle == 0x17u
+                && data.m_types.front().m_destinationFile == "LOCAL_SECTION.dwg"
+                && data.m_types.front().m_geometry.size() == 1
+                && data.m_types.front().m_geometry.front().m_numGeometries == 1
+                && data.m_types.front().m_geometry.front().m_color == 6
+                && data.m_types.front().m_geometry.front().m_layer == "LOCAL_LAYER"
+                && data.m_types.front().m_geometry.front().m_hatchScale == 1.25;
+        if (data.handle == 0xE900u)
+            readMalformedSectionSeen_ = true;
+    }
     void addInsert(const DRW_Insert& data) override {
         readInsertSeen_ = true;
         readAttribSeen_ = data.attlist.size() == 1
@@ -2454,6 +2565,8 @@ public:
             && wroteImageBackground_
             && wroteIblBackground_
             && wroteSkylightBackground_
+            && (wroteSectionManager_ || rejectedUnsupportedSection_)
+            && (wroteSectionSettings_ || rejectedUnsupportedSection_)
             && wroteGroup_;
     }
     bool rejectedMalformedObject() const { return rejectedMalformedObject_; }
@@ -2566,6 +2679,10 @@ public:
             && wroteGroundPlaneBackground_ && wroteImageBackground_
             && wroteIblBackground_ && wroteSkylightBackground_;
     }
+    bool wroteSectionManager() const { return wroteSectionManager_; }
+    bool wroteSectionSettings() const { return wroteSectionSettings_; }
+    bool rejectedUnsupportedSection() const { return rejectedUnsupportedSection_; }
+    bool rejectedMalformedSection() const { return rejectedMalformedSection_; }
     bool wroteImage() const { return wroteImage_; }
     bool rejectedMalformedImage() const { return rejectedMalformedImage_; }
     bool readLineSeen() const { return readLineSeen_; }
@@ -2589,7 +2706,7 @@ public:
     bool readAttribSeen() const { return readAttribSeen_; }
     bool readGroupSeen() const { return readGroupSeen_; }
     bool readObjectSetSeen() const {
-        return readDictionarySeen_ && readXRecordSeen_
+        const bool result = readDictionarySeen_ && readXRecordSeen_
             && readPlotSettingsSeen_ && readLayoutSeen_ && readMLineStyleSeen_
             && readMLeaderStyleSeen_ && readDictionaryVarSeen_
             && readDictionaryWithDefaultSeen_ && readSortEntsTableSeen_
@@ -2625,7 +2742,9 @@ public:
             && readImageBackgroundSeen_
             && readIblBackgroundSeen_
             && readSkylightBackgroundSeen_
+            && (expectedVersion_ < DRW::AC1021 || readSectionSetSeen())
             && readGroupSeen_;
+        return result;
     }
     bool readMalformedObjectSeen() const { return readMalformedObjectSeen_; }
     bool readMalformedStyleSeen() const { return readMalformedStyleSeen_; }
@@ -2752,9 +2871,15 @@ public:
             && readGroundPlaneBackgroundSeen_ && readImageBackgroundSeen_
             && readIblBackgroundSeen_ && readSkylightBackgroundSeen_;
     }
+    bool readSectionManagerSeen() const { return readSectionManagerSeen_; }
+    bool readSectionSettingsSeen() const { return readSectionSettingsSeen_; }
+    bool readSectionSetSeen() const {
+        return readSectionManagerSeen_ && readSectionSettingsSeen_;
+    }
     bool readMalformedBackgroundSeen() const {
         return readMalformedBackgroundSeen_;
     }
+    bool readMalformedSectionSeen() const { return readMalformedSectionSeen_; }
     bool readMalformedNavisworksModelDefSeen() const {
         return readMalformedNavisworksModelDefSeen_;
     }
@@ -2889,6 +3014,10 @@ private:
     bool wroteIblBackground_ {false};
     bool wroteSkylightBackground_ {false};
     bool rejectedMalformedBackground_ {false};
+    bool wroteSectionManager_ {false};
+    bool wroteSectionSettings_ {false};
+    bool rejectedUnsupportedSection_ {false};
+    bool rejectedMalformedSection_ {false};
     bool wroteImage_ {false};
     bool rejectedMalformedImage_ {false};
     bool registeredDictionary_ {false};
@@ -2939,6 +3068,8 @@ private:
     bool registeredImageBackground_ {false};
     bool registeredIblBackground_ {false};
     bool registeredSkylightBackground_ {false};
+    bool registeredSectionManager_ {false};
+    bool registeredSectionSettings_ {false};
     bool registeredPlotSettings_ {false};
     bool readLineSeen_ {false};
     bool readPointSeen_ {false};
@@ -3053,6 +3184,9 @@ private:
     bool readIblBackgroundSeen_ {false};
     bool readSkylightBackgroundSeen_ {false};
     bool readMalformedBackgroundSeen_ {false};
+    bool readSectionManagerSeen_ {false};
+    bool readSectionSettingsSeen_ {false};
+    bool readMalformedSectionSeen_ {false};
     bool readImageSeen_ {false};
     bool readImageDefSeen_ {false};
     bool readImageReactorSeen_ {false};
@@ -3094,7 +3228,7 @@ int main(int argc, char** argv) {
         std::filesystem::remove(output, ec);
 
         dwgRW writer(output.string().c_str());
-        LocalDwgInterface writeIface(&writer);
+        LocalDwgInterface writeIface(&writer, version);
         const bool writeOk = writer.write(&writeIface, version, true);
         const std::string suffix =
             " version " + std::to_string(static_cast<int>(version));
@@ -3312,6 +3446,21 @@ int main(int argc, char** argv) {
         expect(writeIface.rejectedMalformedBackground(),
                ("local DWG writer rejected malformed BACKGROUND transaction" + suffix).c_str(),
                failures);
+        expect(version >= DRW::AC1021
+                   ? writeIface.wroteSectionManager()
+                   : writeIface.rejectedUnsupportedSection(),
+               ("local DWG SECTION_MANAGER capability gate" + suffix).c_str(),
+               failures);
+        expect(version >= DRW::AC1021
+                   ? writeIface.wroteSectionSettings()
+                   : writeIface.rejectedUnsupportedSection(),
+               ("local DWG SECTION_SETTINGS capability gate" + suffix).c_str(),
+               failures);
+        expect(version >= DRW::AC1021
+                   ? writeIface.rejectedMalformedSection()
+                   : true,
+               ("local DWG writer rejected malformed SECTION transaction" + suffix).c_str(),
+               failures);
         expect(version < DRW::AC1018
                    ? !writeIface.wroteImage()
                    : writeIface.wroteImage(),
@@ -3463,6 +3612,12 @@ int main(int argc, char** argv) {
         expect(readIface.readBackgroundsSeen(),
                ("local DWG self-read publishes all BACKGROUND kinds" + suffix).c_str(),
                failures);
+        expect(version >= DRW::AC1021
+                   ? readIface.readSectionSetSeen()
+                   : !readIface.readSectionManagerSeen()
+                       && !readIface.readSectionSettingsSeen(),
+               ("local DWG SECTION capability-gated self-read" + suffix).c_str(),
+               failures);
         expect(version < DRW::AC1018 || readIface.readImageSeen(),
                ("local DWG self-read publishes IMAGE" + suffix).c_str(), failures);
         expect(version < DRW::AC1018 || readIface.readImageDefSeen(),
@@ -3576,6 +3731,9 @@ int main(int argc, char** argv) {
                failures);
         expect(!readIface.readMalformedBackgroundSeen(),
                ("local DWG self-read omits rolled-back malformed BACKGROUND" + suffix).c_str(),
+               failures);
+        expect(!readIface.readMalformedSectionSeen(),
+               ("local DWG self-read omits rolled-back malformed SECTION" + suffix).c_str(),
                failures);
         if (readIface.readLineSeen()) {
             const DRW_Line& line = readIface.readLine();

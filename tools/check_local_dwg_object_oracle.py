@@ -117,6 +117,9 @@ IMAGE_BACKGROUND_HANDLE = 0xE300
 IBL_BACKGROUND_HANDLE = 0xE400
 SKYLIGHT_BACKGROUND_HANDLE = 0xE500
 MALFORMED_BACKGROUND_HANDLE = 0xE600
+SECTION_MANAGER_HANDLE = 0xE700
+SECTION_SETTINGS_HANDLE = 0xE800
+MALFORMED_SECTION_HANDLE = 0xE900
 IMAGE_HANDLE = 0xD700
 MALFORMED_IMAGE_HANDLE = 0xD710
 
@@ -245,7 +248,9 @@ def check_objects(payload: dict, version_name: str) -> dict:
         raise ValueError("GROUP name, owner, or member stream mismatch")
 
     dictionary = find_record(records, "DICTIONARY", DICTIONARY_HANDLE)
-    if (dictionary.get("numitems") != 49
+    expected_dictionary_items = 51 if version_name in {
+        "AC1021", "AC1024", "AC1027", "AC1032"} else 49
+    if (dictionary.get("numitems") != expected_dictionary_items
             or dictionary.get("is_hardowner") != 1
             or owner_handle(dictionary) != 0x0C):
         raise ValueError("custom DICTIONARY count, owner, or cloning mismatch")
@@ -458,6 +463,60 @@ def check_objects(payload: dict, version_name: str) -> dict:
         "version-specific type/handle/owner identity is qualified while "
         "kind payload fields remain local-self-read authoritative"
     ]
+    sections = {}
+    section_discrepancies = []
+    if version_name in {"AC1021", "AC1024", "AC1027", "AC1032"}:
+        section_manager = find_record(
+            records, "SECTION_MANAGER", SECTION_MANAGER_HANDLE)
+        section_links = section_manager.get("sections")
+        if (section_manager.get("type") != 1321
+                or owner_handle(section_manager) != DICTIONARY_HANDLE
+                or section_manager.get("is_live") != 1
+                or not isinstance(section_links, list)
+                or len(section_links) != 1
+                or section_links[0] != [5, 2,
+                                         SECTION_SETTINGS_HANDLE,
+                                         SECTION_SETTINGS_HANDLE]):
+            raise ValueError("SECTION_MANAGER type, owner, or link mismatch")
+        section_settings = find_record(
+            records, "SECTION_SETTINGS", SECTION_SETTINGS_HANDLE)
+        section_types = section_settings.get("types")
+        if (section_settings.get("type") != 1322
+                or owner_handle(section_settings) != DICTIONARY_HANDLE
+                or section_settings.get("curr_type") != 1
+                or not isinstance(section_types, list)
+                or len(section_types) != 1
+                or not isinstance(section_types[0], dict)
+                or section_types[0].get("type") != 2
+                or section_types[0].get("generation") != 3
+                or section_types[0].get("destfile") != "LOCAL_SECTION.dwg"
+                or section_types[0].get("destblock") != [4, 1, 0x17, 0x17]
+                or not isinstance(section_types[0].get("sources"), list)
+                or len(section_types[0]["sources"]) != 1
+                or not isinstance(section_types[0].get("geom"), list)
+                or len(section_types[0]["geom"]) != 1
+                or section_types[0]["geom"][0].get("hexindex") != 4
+                or section_types[0]["geom"][0].get("flags") != 5
+                or section_types[0]["geom"][0].get("layer") != "LOCAL_LAYER"
+                or section_types[0]["geom"][0].get("hatch_scale") != 1.25):
+            raise ValueError("SECTION_SETTINGS type or bounded payload mismatch")
+        sections = {
+            "manager": {"object": "SECTION_MANAGER",
+                        "handle": SECTION_MANAGER_HANDLE, "type": 1321},
+            "settings": {"object": "SECTION_SETTINGS",
+                          "handle": SECTION_SETTINGS_HANDLE, "type": 1322},
+        }
+        section_discrepancies.append(
+            "LibreDWG 0.14 preserves SECTION_MANAGER/SECTION_SETTINGS "
+            "identity and bounded settings while retaining opaque trailing bits")
+    else:
+        if any(record.get("object") in {"SECTION_MANAGER", "SECTION_SETTINGS"}
+               and record_handle(record) in {
+                   SECTION_MANAGER_HANDLE, SECTION_SETTINGS_HANDLE}
+               for record in records if isinstance(record, dict)):
+            raise ValueError("unsupported SECTION objects were published")
+        section_discrepancies.append(
+            "SECTION_MANAGER/SECTION_SETTINGS are intentionally gated off before AC1021")
     image_discrepancies = [
         "LibreDWG 0.14 does not expose the local IMAGE/IMAGEDEF entity and "
         "fixed-object frames in JSON; local self-read remains the authoritative "
@@ -1054,6 +1113,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         MALFORMED_OBJECT_PTR_HANDLE: "OBJECT_PTR",
         MALFORMED_PARTIAL_VIEWING_INDEX_HANDLE: "PARTIAL_VIEWING_INDEX",
         MALFORMED_BACKGROUND_HANDLE: "UNKNOWN_OBJ",
+        MALFORMED_SECTION_HANDLE: "SECTION_SETTINGS",
         MALFORMED_IMAGE_HANDLE: "IMAGE",
     }
     if any(record_handle(record) in malformed_handles
@@ -1117,6 +1177,8 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "IMAGEBACKGROUND": IMAGE_BACKGROUND_HANDLE,
             "IBLBACKGROUND": IBL_BACKGROUND_HANDLE,
             "SKYLIGHTBACKGROUND": SKYLIGHT_BACKGROUND_HANDLE,
+            "SECTION_MANAGER": SECTION_MANAGER_HANDLE,
+            "SECTION_SETTINGS": SECTION_SETTINGS_HANDLE,
             "IMAGE": IMAGE_HANDLE,
             "IMAGEDEF_REACTOR": IMAGE_HANDLE + 1,
             "DICTIONARYWDFLT": DICTIONARYWDFLT_HANDLE,
@@ -1138,6 +1200,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "entryCount": len(partial_entries),
         },
         "backgrounds": backgrounds,
+        "sections": sections,
         "objectStatus": "qualified",
         "oracleDiscrepancies": (oracle_discrepancies + mental_discrepancies
                                  + material_discrepancies
@@ -1152,6 +1215,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
                                  + path_discrepancies
                                  + partial_viewing_index_discrepancies
                                  + background_discrepancies
+                                 + section_discrepancies
                                  + image_discrepancies),
     }
 
@@ -1223,8 +1287,28 @@ def self_test() -> None:
              "ownerhandle": [4, 1, 0x0C, 0x0C], "name": "LOCAL_GROUP",
              "groups": [[5, 1, 0x1234]]},
             {"object": "DICTIONARY", "handle": [0, 1, DICTIONARY_HANDLE],
-             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 49,
+             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 51,
              "is_hardowner": 1},
+            {"object": "SECTION_MANAGER",
+             "handle": [0, 1, SECTION_MANAGER_HANDLE],
+             "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "type": 1321, "is_live": 1,
+             "sections": [[5, 2, SECTION_SETTINGS_HANDLE,
+                           SECTION_SETTINGS_HANDLE]]},
+            {"object": "SECTION_SETTINGS",
+             "handle": [0, 1, SECTION_SETTINGS_HANDLE],
+             "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "type": 1322, "curr_type": 1,
+             "types": [{
+                 "type": 2, "generation": 3,
+                 "sources": [[5, 1, 0x1234, 0x1234]],
+                 "destblock": [4, 1, 0x17, 0x17],
+                 "destfile": "LOCAL_SECTION.dwg",
+                 "geom": [{
+                     "hexindex": 4, "flags": 5,
+                     "layer": "LOCAL_LAYER", "hatch_scale": 1.25,
+                 }],
+             }]},
             {"object": "XRECORD", "handle": [0, 1, XRECORD_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
              "xdata": [[40, 1.25], [1, "LOCAL_XRECORD"], [310, "010203"]]},
@@ -1550,6 +1634,16 @@ def self_test() -> None:
     }
     if actual_backgrounds != expected_backgrounds:
         raise AssertionError("BACKGROUND identity was not qualified")
+    expected_sections = {
+        "manager": (SECTION_MANAGER_HANDLE, 1321),
+        "settings": (SECTION_SETTINGS_HANDLE, 1322),
+    }
+    actual_sections = {
+        name: (frame["handle"], frame["type"])
+        for name, frame in summary.get("sections", {}).items()
+    }
+    if actual_sections != expected_sections:
+        raise AssertionError("SECTION identity was not qualified")
     try:
         bad = json.loads(json.dumps(payload))
         bad["OBJECTS"].append({"object": "XRECORD", "handle": [0, 1, MALFORMED_HANDLE]})

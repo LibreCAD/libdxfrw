@@ -2532,19 +2532,19 @@ edit this block or commit the same slice concurrently.
   identity and stable SUNSTUDY scalar/date/hour fields, while recording the
   known owner/reference and MOTIONPATH payload decode discrepancies; no
   generated drawings or external assets are retained.
-- Latest implementation slice: S84/J60 BACKGROUND object-family parity is
-  verified and ready to commit. Local self-read covers SOLID, GRADIENT,
-  GROUNDPLANE, IMAGE, IBL, and SKYLIGHT background carriers across
-  AC1015/18/21/24/27/32, with transaction-safe non-finite gradient rejection.
-  LibreDWG 0.14 qualifies version-specific type/handle/owner identity for
-  all six frames but exposes them as UNKNOWN_OBJ, so kind payload fields stay
-  local-self-read authoritative and no generated image assets are retained.
-- Next implementation slice: S85/J61 SECTION object-family parity is ready.
-  It will cover the section manager/settings pair plus bounded detail/section
-  view-style and break-reference linkage, with pre-CLASSES registration,
-  dictionary ownership, explicit version gates, and transaction-safe
-  malformed-reference rejection; independent oracle fields remain
-  non-promoting until stable.
+- Latest implementation slice: S85/J61 SECTION manager/settings parity is
+  committed. Local self-read covers SECTION_MANAGER and
+  SECTION_SETTINGS from AC1021/24/27/32, with pre-CLASSES registration,
+  dictionary ownership, bounded type/geometry/source fields, and
+  transaction-safe malformed-vector rejection; AC1015/18 are explicitly
+  rejected by the capability gate. LibreDWG 0.14 independently qualifies
+  type/handle/owner and bounded settings while retaining opaque trailing bits;
+  no generated drawings or external assets are retained.
+- Next implementation slice: S86/J62 SECTION view-style/break writer gap is
+  ready. DETAILVIEWSTYLE, SECTIONVIEWSTYLE, BREAKDATA, and BREAKPOINTREF have
+  readers/DXF paths but no production DWG writer entry points; use a fast
+  target/source API inventory and ODA-backed decision, preserving an explicit
+  unsupported disposition until a safe encoder contract is evidenced.
 - Last fully resolved slice: S83 (the PARTIAL_VIEWING_INDEX bounded-entry
   slice is committed by the matching `Plan-Slice: S83` trailer;
   broader
@@ -2560,18 +2560,17 @@ edit this block or commit the same slice concurrently.
   `6969e0a003414f9a7084349ac54bc2b32515e16b`. All in-horizon lanes are
   terminal only when their recorded gates pass; the next runtime qualification
   lane requires no new target pin.
-- Resolved slices: 84/85 (`COMMITTED`, or `SUPERSEDED` after all replacements
-  commit).
-- Slice states: 1 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 1 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 83 COMMITTED.
+- Resolved slices: 85 (`COMMITTED`).
+- Slice states: 1 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
+  0 BLOCKED_HARD / 0 SUPERSEDED / 85 COMMITTED.
 - Parent-item states: 1 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  1 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 85 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 86 COMMITTED.
 - Expanded child-item states: 1 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 4 VERIFIED / 180 COMMITTED; no child is anonymous.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 4 VERIFIED / 181 COMMITTED; no child is anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 29 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S83 are committed; S84/J60 BACKGROUND is
-  verified and ready to commit; S85/J61 SECTION is the next ready lane.
+- Active work: S01-S85 are committed; S86/J62 SECTION view-style/break
+  inventory is the next ready lane.
   S76 records the explicit AC1015 image capability
   boundary and leaves newer image versions locally qualified; S77 keeps
   point-cloud payload evidence identity-only where LibreDWG is opaque.
@@ -2698,7 +2697,8 @@ edit this block or commit the same slice concurrently.
 | S82 | J58: CURVEPATH/POINTPATH/OBJECT_PTR linkage | S81 | COMMITTED | focused six-version local writer/self-read; pre-CLASSES registration and dictionary ownership; bounded path/reference fields; independent JSON object oracle; capability/error gates; plan/scope/sync/fixture gates | local self-read covers bounded CURVEPATH/POINTPATH/OBJECT_PTR owner/reference frames across AC1015/18/21/24/27/32, with non-finite point and invalid common-link states rejected transactionally. LibreDWG 0.14 qualifies type/handle/owner identity (553/0xDC00, 554/0xDD00, 555/0xDE00) while exposing path frames as UNKNOWN_OBJ; path payload fields remain local-self-read authoritative and no generated drawings are retained | focused self-test, six-version round-trip, independent object oracle, and policy gates pass; full suite remains checkpoint-only and payload parity stays experimental |
 | S83 | J59: PARTIAL_VIEWING_INDEX bounded entries | S82 | COMMITTED | focused six-version local writer/self-read; pre-CLASSES registration and dictionary ownership; bounded extent/reference entries; independent JSON object oracle where decodable; capability/error gates; plan/scope/sync/fixture gates | local self-read covers a bounded two-entry extent/reference index across AC1015/18/21/24/27/32, with transaction-safe non-finite extent rejection; LibreDWG 0.14 qualifies type 559, handle 0xDF00, dictionary ownership, entry count, and the first extent pair, while object references and later-entry fields remain explicitly local-self-read authoritative; generated drawings remain temporary and no external assets are needed | focused self-test, six-version round-trip, independent object oracle, and policy gates pass; full suite remains checkpoint-only and payload parity stays experimental |
 | S84 | J60: BACKGROUND object-family parity | S83 | COMMITTED | focused six-version local writer/self-read; pre-CLASSES registration for all six kinds; dictionary ownership; bounded color/image/reference fields; independent JSON object oracle where decodable; capability/error gates; plan/scope/sync/fixture gates | local self-read covers SOLID, GRADIENT, GROUNDPLANE, IMAGE, IBL, and SKYLIGHT background carriers across AC1015/18/21/24/27/32, with transaction-safe non-finite gradient rejection; LibreDWG 0.14 qualifies version-specific type/handle/owner identity for all six frames but exposes them as UNKNOWN_OBJ, so kind payload fields remain local-self-read authoritative and no generated image assets are retained | focused self-test, six-version round-trip, independent object oracle, and policy gates pass; full suite remains checkpoint-only and payload parity stays experimental |
-| S85 | J61: SECTION object-family parity | S84 | READY | focused six-version local writer/self-read; pre-CLASSES registration for manager/settings and view-style/break carriers; dictionary ownership; bounded reference fields; independent JSON object oracle where decodable; capability/error gates; plan/scope/sync/fixture gates | ready to cover SECTION_MANAGER, SECTION_SETTINGS, DETAILVIEWSTYLE, SECTIONVIEWSTYLE, BREAKDATA, and BREAKPOINTREF linkage with explicit version gates and transaction-safe malformed-reference rejection; generated drawings remain temporary and no external assets are needed | focused six-version self-test first; qualify only stable LibreDWG type/handle/owner/kind fields and retain opaque payloads as experimental; full suites remain checkpoint-only |
+| S85 | J61: SECTION manager/settings parity | S84 | COMMITTED | focused six-version local writer/self-read; pre-CLASSES registration for manager/settings; dictionary ownership; bounded type/geometry vectors; independent JSON object oracle where decodable; capability/error gates; plan/scope/sync/fixture gates | local self-read covers SECTION_MANAGER and SECTION_SETTINGS from AC1021/24/27/32, explicitly rejects AC1015/18, verifies bounded type/geometry/source fields, and rejects malformed type vectors transactionally; LibreDWG 0.14 qualifies type/handle/owner and bounded settings while retaining opaque trailing bits; generated drawings remain temporary and no external assets are needed | focused six-version self-test, CTest, independent JSON oracle, plan/scope/sync/fixture gates pass; no full suite is required before the slice commit |
+| S86 | J62: SECTION view-style/break writer gap | S85 | READY | target/source API inventory; DXF-vs-DWG capability matrix; explicit unsupported disposition or bounded writer/API design; plan/scope/sync/fixture gates | ready to close the DETAILVIEWSTYLE, SECTIONVIEWSTYLE, BREAKDATA, and BREAKPOINTREF DWG writer gap without inventing wire layouts; preserve existing readers/DXF paths and add a follow-up only when ODA/target evidence identifies a safe encoder contract | fast source/API inventory first; no generated fixtures; do not block S85 on unavailable DWG writer entry points |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -2787,7 +2787,8 @@ edit this block or commit the same slice concurrently.
 | J58 | S82 | J57 | COMMITTED | EXPERIMENTAL | Extend the local object graph and independent JSON object evidence to CURVEPATH, POINTPATH, and OBJECT_PTR, including pre-CLASSES registration, bounded entity/object references, six-version capability gates, and transaction-safe malformed-reference rejection without external assets |
 | J59 | S83 | J58 | COMMITTED | EXPERIMENTAL | Extend the local object graph and independent JSON object evidence to PARTIAL_VIEWING_INDEX, including pre-CLASSES registration, bounded extent/reference entries, six-version capability gates, and transaction-safe malformed-entry rejection without external assets |
 | J60 | S84 | J59 | COMMITTED | EXPERIMENTAL | Extend the local object graph and independent JSON object evidence to BACKGROUND, covering solid, gradient, ground-plane, image, IBL, and skylight kinds with pre-CLASSES registration, bounded fields, six-version capability gates, and transaction-safe malformed-state rejection without external assets |
-| J61 | S85 | J60 | READY | EXPERIMENTAL | Extend the local object graph and independent JSON object evidence to SECTION, covering section manager/settings, detail/section view styles, break data, and break-point references with pre-CLASSES registration, bounded fields, six-version capability gates, and transaction-safe malformed-reference rejection without external assets |
+| J61 | S85 | J60 | COMMITTED | EXPERIMENTAL | Extend the local object graph and independent JSON object evidence to SECTION_MANAGER and SECTION_SETTINGS from AC1021 onward, with pre-CLASSES registration, bounded type/geometry vectors, explicit AC1015/18 capability gates, and transaction-safe malformed-vector rejection without external assets |
+| J62 | S86 | J61 | READY | EXPERIMENTAL | Close the DWG writer/API gap for DETAILVIEWSTYLE, SECTIONVIEWSTYLE, BREAKDATA, and BREAKPOINTREF using target/source inventory and ODA-backed evidence, retaining explicit unsupported dispositions until a safe encoder contract exists |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -2983,7 +2984,8 @@ edit this block or commit the same slice concurrently.
 | J58.1 | J58 / S82 | WP5, WP7, WP8, WP10; CURVEPATH/POINTPATH/OBJECT_PTR | J57 | COMMITTED | EXPERIMENTAL | emit and self-read one bounded CURVEPATH, POINTPATH, and OBJECT_PTR linkage graph across AC1015/18/21/24/27/32, register each class before CLASSES, verify owner/reference fields and capability gates, and reject malformed references without publishing a frame | focused self-test, six-version local round-trip, LibreDWG JSON identity oracle, and policy gates pass; path payload fields remain local-self-read authoritative and no generated drawings are staged |
 | J59.1 | J59 / S83 | WP5, WP7, WP8, WP10; PARTIAL_VIEWING_INDEX | J58 | COMMITTED | EXPERIMENTAL | emit and self-read one bounded PARTIAL_VIEWING_INDEX entry list across AC1015/18/21/24/27/32, register the class before CLASSES, verify owner/extents/reference/count fields through local callbacks and an independent oracle where decodable, and reject non-finite or over-limit entries without publishing a frame | focused self-test and six-version local round-trip first; qualify independent JSON fields only where LibreDWG is stable, keep external assets absent, and do not stage generated drawings |
 | J60.1 | J60 / S84 | WP5, WP7, WP8, WP10; BACKGROUND | J59 | COMMITTED | EXPERIMENTAL | emit and self-read one bounded instance of each BACKGROUND kind across AC1015/18/21/24/27/32, register all six classes before CLASSES, verify dictionary ownership and kind-specific color/image/reference fields through local callbacks and an independent oracle where decodable, and reject malformed color/image/reference state without publishing a frame | focused six-version local round-trip and object-oracle identity check first; use local-from-scratch values only, keep external image assets absent, and defer full suites to a release checkpoint |
-| J61.1 | J61 / S85 | WP5, WP7, WP8, WP10; SECTION | J60 | READY | EXPERIMENTAL | emit and self-read the smallest bounded SECTION manager/settings, DETAILVIEWSTYLE, SECTIONVIEWSTYLE, BREAKDATA, and BREAKPOINTREF graph across AC1015/18/21/24/27/32, register each class before CLASSES, verify dictionary ownership and reference fields through local callbacks and an independent oracle where decodable, and reject malformed references without publishing a frame | focused six-version local round-trip first; use local-from-scratch metadata only, retain opaque style payloads as experimental, and defer full suites to a release checkpoint |
+| J61.1 | J61 / S85 | WP5, WP7, WP8, WP10; SECTION manager/settings | J60 | COMMITTED | EXPERIMENTAL | emit and self-read the smallest bounded SECTION_MANAGER and SECTION_SETTINGS graph from AC1021 onward, explicitly gate AC1015/18, register both classes before CLASSES, verify dictionary ownership and bounded type/geometry vectors through local callbacks and an independent oracle where decodable, and reject malformed vectors without publishing a frame | six-version local round-trip, focused CTest, LibreDWG JSON oracle, and policy gates pass; local-from-scratch metadata only, opaque tails remain experimental, and no fixture bytes are staged |
+| J62.1 | J62 / S86 | WP5, WP7, WP8, WP10; SECTION view styles/breaks | J61 | READY | EXPERIMENTAL | inventory the missing DWG writer entry points for DETAILVIEWSTYLE, SECTIONVIEWSTYLE, BREAKDATA, and BREAKPOINTREF against the pinned target and ODA, then record a safe bounded API/wire-layout follow-up or explicit unsupported disposition without staging fixtures | fast source/API inventory and plan evidence first; preserve existing reader/DXF behavior and do not invent type codes or encoders from third-party guesses |
 
 <!-- UPGRADE_PROGRESS_END -->
 
