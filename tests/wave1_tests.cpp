@@ -371,6 +371,127 @@ void testDxfRawSectionBoundaryReplay(TestContext& t) {
              "DXF raw section rejects non-string opaque boundary");
 }
 
+DRW_RawDxfObject rawBinaryBoundaryObject() {
+    DRW_RawDxfObject object;
+    object.name = "RAW_BINARY_BOUNDARY";
+    object.handle = 0x2Au;
+    object.m_version = DRW::AC1027;
+    object.groups = {
+        DRW_Variant(5, std::string("2A")),
+        DRW_Variant(260, static_cast<std::int32_t>(2147483647)),
+        DRW_Variant(269, static_cast<std::int32_t>(-7)),
+        DRW_Variant(1004, std::string("ABCD"))};
+    return object;
+}
+
+bool writeRawBinaryBoundaryObject(const DRW_RawDxfObject& source,
+                                  std::string& output) {
+    std::ostringstream stream;
+    dxfRW owner("");
+    owner.version = DRW::AC1027;
+    owner.binFile = true;
+    owner.writer = std::make_unique<dxfWriterBinary>(&stream);
+    DRW_RawDxfObject object = source;
+    const bool written = owner.writeRawDxfObject(&object);
+    output = stream.str();
+    return written;
+}
+
+DRW_RawDxfSection rawBinaryBoundarySection() {
+    DRW_RawDxfSection section;
+    section.m_name = "LOCAL_RAW_BINARY";
+    section.m_version = DRW::AC1027;
+    section.m_groups = {
+        DRW_Variant(260, static_cast<std::int32_t>(2147483647)),
+        DRW_Variant(269, static_cast<std::int32_t>(-7)),
+        DRW_Variant(1004, std::string("ABCD"))};
+    return section;
+}
+
+bool writeRawBinaryBoundarySection(const DRW_RawDxfSection& source,
+                                   std::string& output) {
+    std::ostringstream stream;
+    dxfRW owner("");
+    owner.version = DRW::AC1027;
+    owner.binFile = true;
+    owner.writer = std::make_unique<dxfWriterBinary>(&stream);
+    const bool written = owner.writeRawDxfSection(source);
+    output = stream.str();
+    return written;
+}
+
+void testDxfBinaryRawBoundaryReplay(TestContext& t) {
+    const DRW_RawDxfObject object = rawBinaryBoundaryObject();
+    std::string output;
+    t.expect(writeRawBinaryBoundaryObject(object, output),
+             "binary DXF raw boundary object writes");
+    t.expect(!output.empty(), "binary DXF raw boundary object commits bytes");
+
+    std::stringstream records(output);
+    dxfReaderBinary reader(&records);
+    const std::vector<int> expectedCodes {0, 5, 260, 269, 1004};
+    const std::vector<dxfReader::TYPE> expectedTypes {
+        dxfReader::STRING, dxfReader::STRING, dxfReader::INT32,
+        dxfReader::INT32, dxfReader::BINARY};
+    int code = 0;
+    std::size_t index = 0;
+    while (reader.readRec(&code)) {
+        t.expect(index < expectedCodes.size() && code == expectedCodes[index],
+                 "binary DXF raw replay code order matches source");
+        t.expect(index < expectedTypes.size() && reader.type == expectedTypes[index],
+                 "binary DXF raw replay type matches classifier");
+        if (index == 0)
+            t.expect(reader.getString() == "RAW_BINARY_BOUNDARY",
+                     "binary DXF raw replay preserves object name");
+        if (index == 1)
+            t.expect(reader.getString() == "2A",
+                     "binary DXF raw replay preserves handle spelling");
+        if (index == 2)
+            t.expect(reader.getInt32() == 2147483647,
+                     "binary DXF raw replay preserves code 260 value");
+        if (index == 3)
+            t.expect(reader.getInt32() == -7,
+                     "binary DXF raw replay preserves code 269 value");
+        if (index == 4)
+            t.expect(reader.getString() == "ABCD",
+                     "binary DXF raw replay preserves code 1004 bytes");
+        ++index;
+    }
+    t.expect(index == expectedCodes.size(),
+             "binary DXF raw replay parser consumes complete object");
+
+    const DRW_RawDxfSection section = rawBinaryBoundarySection();
+    output.clear();
+    t.expect(writeRawBinaryBoundarySection(section, output),
+             "binary DXF raw boundary section writes");
+    std::stringstream sectionRecords(output);
+    dxfReaderBinary sectionReader(&sectionRecords);
+    const std::vector<int> expectedSectionCodes {0, 2, 260, 269, 1004, 0};
+    index = 0;
+    while (sectionReader.readRec(&code)) {
+        t.expect(index < expectedSectionCodes.size()
+                     && code == expectedSectionCodes[index],
+                 "binary DXF raw section framing matches source");
+        ++index;
+    }
+    t.expect(index == expectedSectionCodes.size(),
+             "binary DXF raw section parser consumes SECTION and ENDSEC");
+
+    DRW_RawDxfObject badNumeric = object;
+    badNumeric.groups[1] = DRW_Variant(260, std::string("2147483647"));
+    output.clear();
+    t.expect(!writeRawBinaryBoundaryObject(badNumeric, output)
+                 && output.empty(),
+             "binary DXF raw replay rejects string for typed numeric boundary");
+
+    DRW_RawDxfObject badBinary = object;
+    badBinary.groups[3] = DRW_Variant(1004, std::string("ABC"));
+    output.clear();
+    t.expect(!writeRawBinaryBoundaryObject(badBinary, output)
+                 && output.empty(),
+             "binary DXF raw replay rejects odd binary chunk");
+}
+
 void testRawCapture(TestContext& t) {
     std::stringstream records("260\n2147483647\n482\n3.14\n1004\nAB\n");
     dxfRW owner("");
@@ -566,6 +687,7 @@ int main() {
     testDxfClassifierBoundaryMatrix(context);
     testDxfRawBoundaryReplay(context);
     testDxfRawSectionBoundaryReplay(context);
+    testDxfBinaryRawBoundaryReplay(context);
     testRawCapture(context);
     testHatchValidationIgnoresInactiveGradient(context);
     testFixedSpaceBlockClassification(context);

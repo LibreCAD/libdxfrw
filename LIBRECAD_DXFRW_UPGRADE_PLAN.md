@@ -53,8 +53,8 @@ then pin an immutable commit before importing source.
 
 The implementation worktree is rebased on `origin/master` and is currently
 140 commits ahead with no commits behind it. The latest green slice is
-S120/J96, including the live-plan update and its required policy gates.
-S121/J97 is the active slice; its focused binary DXF raw-boundary replay
+S121/J97, including the live-plan update and its required policy gates.
+S122/J98 is the active slice; its focused binary unknown-range disposition
 checks are the next commit boundary.
 The worktree is clean at the last committed boundary; any subsequent active-
 slice edits are intentionally uncommitted until their narrow gate and
@@ -1934,14 +1934,14 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint (2026-09-15): S120/J96 DXF raw-section boundary replay
-  is committed; S121/J97 binary DXF raw-boundary replay is active. The
+- Current checkpoint (2026-09-15): S121/J97 binary DXF raw-boundary replay
+  is committed; S122/J98 binary unknown-range disposition is active. The
   branch is rebased on `origin/master`, and
   the pinned source/package/consumer convergence remains complete while
   runtime and wire-format parity stay evidence-gated. The AC1015 IMAGE legacy
   boundary remains fail-closed, and all format-support claims remain limited
   to rows with eligible runtime/oracle evidence. The next dependency-ready
-  sequence is S121 binary DXF raw-boundary replay; it is a separate commit
+  sequence is S122 binary unknown-range disposition; it is a separate commit
   with no external or derived DWG/DXF bytes.
 - Latest implementation slice: S53/J29 RASTERVARIABLES/WIPEOUTVARIABLES parity
   is committed. The local-from-scratch production writer registers both custom
@@ -2785,9 +2785,9 @@ edit this block or commit the same slice concurrently.
   names TVDEVICEPROPERTIES and the two VX frames as UNKNOWN_OBJ, while local
   self-read remains authoritative for VX payload fields; no generated drawings
   or external assets are retained.
-- Last fully resolved slice: S120 (the DXF raw-section boundary replay
-  slice is committed by the matching `Plan-Slice: S120` trailer; the commit
-  carries SECTION framing, typed/opaque replay, and malformed-variant evidence, the live-plan update, and
+- Last fully resolved slice: S121 (the binary DXF raw-boundary replay
+  slice is committed by the matching `Plan-Slice: S121` trailer; the commit
+  carries typed/binary framing, parse-back type agreement, and malformed-variant evidence, the live-plan update, and
   all required policy gates). The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
@@ -2809,18 +2809,18 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 120 (`COMMITTED`); S121 is active.
+- Resolved slices: 121 (`COMMITTED`); S122 is active.
 - Slice states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 120 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 121 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 122 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 123 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 217 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 218 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 105 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S120 are committed; S121/J97 is active with a ready packet
-  naming binary DXF raw-boundary replay and focused fast gates.
+  0 DEFERRED_EXTERNAL / 106 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S121 are committed; S122/J98 is active with a ready packet
+  naming binary unknown-range disposition and focused fast gates.
   Keep validation fast and
   self-updating: run source/plan/policy checks and the focused carrier target
   after each implementation item, commit only after the narrow gate is green,
@@ -2989,7 +2989,8 @@ edit this block or commit the same slice concurrently.
 | S118 | J94: DXF raw-classifier boundary parity | S117 | COMMITTED | canonical group-code classifier; 260-269 and 482-998 boundary vectors; parser/capture/replay agreement; malformed rejection; fast DXF gate; plan/scope/sync/fixture gates | canonical range table now has a compile-time contiguity/completeness invariant; focused parser and raw-capture vectors cover 259/260/269/270, 481/482/998/999, and 1003/1004/1005/1071 boundaries with typed/opaque agreement; no external DXF bytes | wave1 executable, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S119 is active |
 | S119 | J95: DXF raw-boundary replay qualification | S118 | COMMITTED | raw-object replay for typed and opaque boundary groups; source-spelling retention; malformed typed/unknown rejection; transactional record scope; fast DXF gate; plan/scope/sync/fixture gates | local ASCII raw-object replay preserves 260/269 typed integer spellings, 482/998 opaque spellings, and 1004 binary text while parsing back through the canonical classifier; malformed numeric and opaque variants fail with empty output on fresh writers; no external DXF bytes | wave1 executable, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S120 is active |
 | S120 | J96: DXF raw-section boundary replay | S119 | COMMITTED | raw-section replay for typed and opaque boundary groups; section framing; source-spelling retention; malformed group rejection; transactional record scope; fast DXF gate; plan/scope/sync/fixture gates | local ASCII raw-section replay preserves SECTION/ENDSEC framing, 260/269 typed integer spellings, 482/998 opaque spellings, and 1004 binary text; malformed numeric and opaque variants fail with empty output on fresh writers; no external DXF bytes | wave1 executable, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S121 is active |
-| S121 | J97: binary DXF raw-boundary replay | S120 | ACTIVE | binary raw-object and raw-section replay; typed integer/opaque/binary encoding; parse-back type agreement; malformed variant rejection; transactional record scope; fast DXF gate; plan/scope/sync/fixture gates | replay local in-memory groups at 260-269, 482-998, and 1004 through binary writers, parse the binary stream, and prove incompatible variants fail without poisoning a fresh writer; no external DXF bytes | active after S120 commit; use fresh in-memory streams per negative case and keep unresolved ranges experimental |
+| S121 | J97: binary DXF raw-boundary replay | S120 | COMMITTED | binary raw-object and raw-section replay; typed integer/binary encoding; parse-back type agreement; malformed variant rejection; transactional record scope; fast DXF gate; plan/scope/sync/fixture gates | local binary object/section replay preserves code 5, typed 260/269 values, and 1004 bytes through binary writers/readers; malformed numeric and odd binary variants fail with empty output on fresh writers; binary reader's unknown 482-998 behavior is explicitly left to S122; no external DXF bytes | wave1 executable, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S122 is active |
+| S122 | J98: binary unknown-range disposition | S121 | ACTIVE | binary reader behavior for unknown 482-998 codes; raw-capture compatibility; fail-closed versus opaque preservation decision; target/source comparison; fast DXF gate; plan/scope/sync/fixture gates | determine whether the pinned target also fails closed for unknown binary codes, then either implement bounded opaque binary capture/replay or record an exact unsupported/deferred disposition with a follow-up condition; no external DXF bytes | active after S121 commit; use locally generated byte streams only and keep any unsupported range explicit |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3114,7 +3115,8 @@ edit this block or commit the same slice concurrently.
 | J94 | S118 | J93 | COMMITTED | EXPERIMENTAL | Reconcile the pinned DXF raw-capture/replay group-code classifier for 260-269 and 482-998, preserving non-overlap and parser/capture/replay agreement | canonical table invariant and focused parser/capture boundary vectors pass; no external DXF bytes |
 | J95 | S119 | J94 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-object replay across typed 260-269 and opaque 482-998 boundaries, preserving source spellings and rejecting incompatible variants transactionally | local ASCII write/parse vectors pass for valid groups; fresh-writer negative cases reject malformed numeric and non-string opaque variants with empty output; no external DXF bytes |
 | J96 | S120 | J95 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-section replay across typed 260-269 and opaque 482-998 boundaries, preserving SECTION framing and source spellings while rejecting incompatible variants transactionally | local ASCII SECTION/ENDSEC write/parse vectors pass with typed/opaque boundary agreement and fresh-writer malformed rejection; no external DXF bytes |
-| J97 | S121 | J96 | ACTIVE | EXPERIMENTAL | Qualify binary DXF raw-object and raw-section replay across typed 260-269, opaque 482-998, and binary 1004 boundaries while preserving typed parse-back and rejecting incompatible variants transactionally | active packet names binary framing, type agreement, malformed boundaries, and no-fixture evidence |
+| J97 | S121 | J96 | COMMITTED | EXPERIMENTAL | Qualify binary DXF raw-object and raw-section replay across typed 260-269 and binary 1004 boundaries while preserving typed parse-back and rejecting incompatible variants transactionally | local binary object/section framing and typed/binary parse-back pass; malformed variants fail closed; unknown 482-998 binary behavior is explicitly queued for J98; no external DXF bytes |
+| J98 | S122 | J97 | ACTIVE | EXPERIMENTAL | Reconcile binary-reader handling of unknown 482-998 raw codes against the pinned target and standalone capture/replay contracts, implementing bounded opaque support only where evidence permits | active packet names target/source comparison, local byte vectors, and explicit unsupported/deferred outcome |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -3346,7 +3348,8 @@ edit this block or commit the same slice concurrently.
 | J94.1 | J94 / S118 | WP4, WP5, WP6, WP8, WP10; DXF raw-classifier boundary parity | J93 | COMMITTED | EXPERIMENTAL | define one canonical group-code domain table for 260-269 and 482-998, exercise parser/capture/replay vectors at each boundary, and reject unknown overlap or inconsistent typed/raw handling | wave1 boundary matrix passes canonical invariant, parser typing, and raw-capture preservation; no external or derived DXF bytes are retained |
 | J95.1 | J95 / S119 | WP4, WP5, WP6, WP8, WP10; DXF raw-boundary replay qualification | J94 | COMMITTED | EXPERIMENTAL | construct local raw objects with typed 260-269 and opaque 482-998 groups, replay them through `writeRawDxfObject`, parse the emitted stream, preserve source spellings, and reject incompatible variants with a fresh-writer negative check | focused wave1/replay target and policy gates pass; no external or derived DXF bytes are retained |
 | J96.1 | J96 / S120 | WP4, WP5, WP6, WP8, WP10; DXF raw-section boundary replay | J95 | COMMITTED | EXPERIMENTAL | construct a local raw section with typed 260-269 and opaque 482-998 groups, replay it through `writeRawDxfSection`, parse SECTION/ENDSEC framing, preserve source spellings, and reject incompatible variants with fresh-writer negative checks | focused wave1/replay target and policy gates pass; no external or derived DXF bytes are retained |
-| J97.1 | J97 / S121 | WP4, WP5, WP6, WP8, WP10; binary DXF raw-boundary replay | J96 | ACTIVE | EXPERIMENTAL | construct local raw objects and sections with typed 260-269, opaque 482-998, and binary 1004 groups, replay through binary writers, parse the byte stream, and reject incompatible variants with fresh-writer negative checks | focused wave1/replay target and policy gates pass; no external or derived DXF bytes are retained |
+| J97.1 | J97 / S121 | WP4, WP5, WP6, WP8, WP10; binary DXF raw-boundary replay | J96 | COMMITTED | EXPERIMENTAL | construct local raw objects and sections with typed 260-269 and binary 1004 groups, replay through binary writers, parse the byte stream, and reject incompatible variants with fresh-writer negative checks; leave unknown 482-998 behavior explicit | focused wave1/replay target and policy gates pass; no external or derived DXF bytes are retained |
+| J98.1 | J98 / S122 | WP4, WP5, WP6, WP8, WP10; binary unknown-range disposition | J97 | ACTIVE | EXPERIMENTAL | generate a local binary stream containing an unknown 482-998 code, compare standalone reader behavior with the pinned target route where available, and either add bounded opaque capture/replay or document an exact unsupported/deferred condition | focused binary reader/capture target and policy gates pass; no external or derived DXF bytes are retained |
 
 <!-- UPGRADE_PROGRESS_END -->
 
