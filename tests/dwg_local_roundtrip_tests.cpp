@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <iterator>
 #include <limits>
 #include <string>
 #include <vector>
@@ -4911,9 +4912,57 @@ bool runRawDwgReplayContract() {
         && readIface.readSections_.front().m_data == writeIface.section_.m_data
         && first->m_handle == 0x700u && second->m_handle == 0x702u
         && first->m_className == "AcDbLocalRawReplay"
-        && second->m_className == "AcDbLocalRawReplay";
+        && second->m_className == "AcDbLocalRawReplay"
+        && third->m_className == "AcDbLocalRawReplayAlt";
+    bool rejectedMutation = false;
+    std::ifstream encoded(output, std::ios::binary);
+    std::vector<std::uint8_t> encodedBytes(
+        (std::istreambuf_iterator<char>(encoded)),
+        std::istreambuf_iterator<char>());
+    constexpr std::array<std::uint8_t, 4> payloadMarker {
+        0x78u, 0x56u, 0x34u, 0x12u};
+    const auto marker = std::search(encodedBytes.begin(), encodedBytes.end(),
+                                    payloadMarker.begin(), payloadMarker.end());
+    bool validBufferRead = false;
+    if (marker != encodedBytes.end()) {
+        dwgRW bufferReader(output.string().c_str());
+        LocalRawReplayInterface bufferIface;
+        const auto hasBufferHandle = [&bufferIface](std::uint32_t handle) {
+            return std::any_of(bufferIface.readObjects_.begin(),
+                               bufferIface.readObjects_.end(),
+                               [handle](const DRW_UnsupportedObject& object) {
+                                   return object.m_handle == handle;
+                               });
+        };
+        validBufferRead = bufferReader.readBuffer(
+            encodedBytes.data(), encodedBytes.size(), &bufferIface, true)
+            && hasBufferHandle(0x700u) && hasBufferHandle(0x702u)
+            && hasBufferHandle(0x706u)
+            && bufferIface.readSections_.size() == 1;
+        *marker ^= 0x01u;
+        dwgRW corruptedReader(output.string().c_str());
+        LocalRawReplayInterface corruptedIface;
+        const bool rejectedBufferMutation = !corruptedReader.readBuffer(
+            encodedBytes.data(), encodedBytes.size(), &corruptedIface, true)
+            && corruptedIface.readObjects_.empty();
+        const std::filesystem::path corruptedPath =
+            std::filesystem::temp_directory_path()
+            / "libdxfrw-s116-corrupted-replay.dwg";
+        std::ofstream corruptedOutput(corruptedPath, std::ios::binary);
+        corruptedOutput.write(
+            reinterpret_cast<const char*>(encodedBytes.data()),
+            static_cast<std::streamsize>(encodedBytes.size()));
+        corruptedOutput.close();
+        dwgRW corruptedFileReader(corruptedPath.string().c_str());
+        LocalRawReplayInterface corruptedFileIface;
+        const bool rejectedFileMutation = !corruptedFileReader.read(
+            &corruptedFileIface, true) && corruptedFileIface.readObjects_.empty();
+        std::filesystem::remove(corruptedPath, ec);
+        rejectedMutation = rejectedBufferMutation && rejectedFileMutation;
+    }
     std::filesystem::remove(output, ec);
-    const bool result = readContract && writeIface.capturedFirstFrame_
+    const bool result = readContract && validBufferRead && rejectedMutation
+        && writeIface.capturedFirstFrame_
         && writeIface.firstFrame_.objectHandle == 0x700u
         && writeIface.firstFrame_.classNumber >= 500
         && writeIface.capturedSecondFrame_
