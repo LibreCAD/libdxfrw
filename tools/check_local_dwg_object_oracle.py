@@ -94,6 +94,8 @@ POINTCLOUD_DEFINITION_EX_HANDLE = 0xD601
 POINTCLOUD_REACTOR_HANDLE = 0xD602
 POINTCLOUD_REACTOR_EX_HANDLE = 0xD603
 MALFORMED_POINTCLOUD_HANDLE = 0xD604
+POINTCLOUD_COLORMAP_HANDLE = 0xD800
+MALFORMED_POINTCLOUD_COLORMAP_HANDLE = 0xD801
 IMAGE_HANDLE = 0xD700
 MALFORMED_IMAGE_HANDLE = 0xD710
 
@@ -181,7 +183,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         raise ValueError("GROUP name, owner, or member stream mismatch")
 
     dictionary = find_record(records, "DICTIONARY", DICTIONARY_HANDLE)
-    if (dictionary.get("numitems") != 35
+    if (dictionary.get("numitems") != 36
             or dictionary.get("is_hardowner") != 1
             or owner_handle(dictionary) != 0x0C):
         raise ValueError("custom DICTIONARY count, owner, or cloning mismatch")
@@ -248,6 +250,16 @@ def check_objects(payload: dict, version_name: str) -> dict:
         "LibreDWG 0.14 exposes local POINTCLOUDDEFINITION frames as UNKNOWN_OBJ; type/handle/owner identity is qualified",
         "POINTCLOUDDEFINITION payload fields remain local-self-read authoritative while external point-cloud resources are absent",
     ]
+    color_map_matches = [
+        record for record in records
+        if isinstance(record, dict)
+        and record_handle(record) == POINTCLOUD_COLORMAP_HANDLE
+        and record.get("type") == 540
+    ]
+    if len(color_map_matches) != 1 or owner_handle(color_map_matches[0]) != DICTIONARY_HANDLE:
+        raise ValueError("POINTCLOUDCOLORMAP identity or owner mismatch")
+    pointcloud_discrepancies.append(
+        "LibreDWG 0.14 exposes local POINTCLOUDCOLORMAP as UNKNOWN_OBJ; type/handle/owner identity is qualified")
     image_discrepancies = [
         "LibreDWG 0.14 does not expose the local IMAGE/IMAGEDEF entity and "
         "fixed-object frames in JSON; local self-read remains the authoritative "
@@ -835,6 +847,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         MALFORMED_GEODATA_HANDLE: "GEODATA",
         MALFORMED_UNDERLAY_HANDLE: "PDFDEFINITION",
         MALFORMED_POINTCLOUD_HANDLE: "POINTCLOUDDEFINITION",
+        MALFORMED_POINTCLOUD_COLORMAP_HANDLE: "POINTCLOUDCOLORMAP",
         MALFORMED_IMAGE_HANDLE: "IMAGE",
     }
     if any(record_handle(record) in malformed_handles
@@ -884,6 +897,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "POINTCLOUDDEFINITIONEX": POINTCLOUD_DEFINITION_EX_HANDLE,
             "POINTCLOUDDEFREACTOR": POINTCLOUD_REACTOR_HANDLE,
             "POINTCLOUDDEFREACTOREX": POINTCLOUD_REACTOR_EX_HANDLE,
+            "POINTCLOUDCOLORMAP": POINTCLOUD_COLORMAP_HANDLE,
             "IMAGE": IMAGE_HANDLE,
             "IMAGEDEF_REACTOR": IMAGE_HANDLE + 1,
             "DICTIONARYWDFLT": DICTIONARYWDFLT_HANDLE,
@@ -970,7 +984,7 @@ def self_test() -> None:
              "ownerhandle": [4, 1, 0x0C, 0x0C], "name": "LOCAL_GROUP",
              "groups": [[5, 1, 0x1234]]},
             {"object": "DICTIONARY", "handle": [0, 1, DICTIONARY_HANDLE],
-             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 35,
+             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 36,
              "is_hardowner": 1},
             {"object": "XRECORD", "handle": [0, 1, XRECORD_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
@@ -1209,6 +1223,10 @@ def self_test() -> None:
              "ownerhandle": [4, 1, POINTCLOUD_DEFINITION_EX_HANDLE,
                              POINTCLOUD_DEFINITION_EX_HANDLE],
              "type": 538},
+            {"object": "UNKNOWN_OBJ",
+             "handle": [0, 1, POINTCLOUD_COLORMAP_HANDLE],
+             "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "type": 540},
         ],
     }
     summary = check_objects(payload, "AC1024")
@@ -1458,6 +1476,16 @@ def self_test() -> None:
         pass
     else:
         raise AssertionError("malformed POINTCLOUDDEFINITION was not rejected")
+    try:
+        bad = json.loads(json.dumps(payload))
+        bad["OBJECTS"].append({"object": "POINTCLOUDCOLORMAP",
+                                "handle": [0, 1,
+                                            MALFORMED_POINTCLOUD_COLORMAP_HANDLE]})
+        check_objects(bad, "AC1024")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("malformed POINTCLOUDCOLORMAP was not rejected")
     print("local DWG object oracle: PASS")
 
 

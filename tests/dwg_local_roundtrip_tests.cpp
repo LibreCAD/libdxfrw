@@ -190,6 +190,11 @@ public:
             registeredPointCloudReactorEx_ =
                 writer_->registerPointCloudDefObjectClass(
                     &pointCloudReactorExRegistration);
+            DRW_PointCloudColorMap colorMapRegistration;
+            colorMapRegistration.handle = 0xD800u;
+            registeredPointCloudColorMap_ =
+                writer_->registerPointCloudColorMapObjectClass(
+                    &colorMapRegistration);
         }
     }
 
@@ -266,6 +271,7 @@ public:
             {"LOCAL_DWFDEFINITION", 0xD500u},
             {"LOCAL_POINTCLOUDDEFINITION", 0xD600u},
             {"LOCAL_POINTCLOUDDEFINITIONEX", 0xD601u},
+            {"LOCAL_POINTCLOUDCOLORMAP", 0xD800u},
         };
         wroteDictionary_ = registeredDictionary_
             && writer_->writeDictionary(&dictionary)
@@ -1030,6 +1036,35 @@ public:
         rejectedMalformedPointCloud_ =
             !writer_->writePointCloudDef(&invalidPointCloud);
 
+        DRW_PointCloudColorMap colorMap;
+        colorMap.handle = 0xD800u;
+        colorMap.parentHandle = dictionary.handle;
+        colorMap.m_classVersion = 1;
+        colorMap.m_defaultIntensityColorScheme = "LOCAL_INTENSITY";
+        colorMap.m_defaultElevationColorScheme = "LOCAL_ELEVATION";
+        colorMap.m_defaultClassificationColorScheme = "LOCAL_CLASSIFICATION";
+        colorMap.m_colorRampCount = 1;
+        DRW_PointCloudColorMapRamp colorRamp;
+        colorRamp.m_classVersion = 2;
+        colorRamp.m_rampCount = 2;
+        colorRamp.m_colorSchemes = {"LOCAL_RAMP_LOW", "LOCAL_RAMP_HIGH"};
+        colorMap.m_colorRamps.push_back(colorRamp);
+        colorMap.m_classificationColorRampCount = 1;
+        DRW_PointCloudColorMapRamp classificationRamp;
+        classificationRamp.m_classVersion = 3;
+        classificationRamp.m_rampCount = 1;
+        classificationRamp.m_colorSchemes = {"LOCAL_CLASS_A"};
+        colorMap.m_classificationColorRamps.push_back(classificationRamp);
+        wrotePointCloudColorMap_ = registeredPointCloudColorMap_
+            && writer_->writePointCloudColorMap(&colorMap)
+            && colorMap.handle != 0;
+
+        DRW_PointCloudColorMap invalidColorMap = colorMap;
+        invalidColorMap.handle = 0xD801u;
+        invalidColorMap.m_colorRampCount = 2;
+        rejectedMalformedPointCloudColorMap_ =
+            !writer_->writePointCloudColorMap(&invalidColorMap);
+
         DRW_Group group;
         group.handle = 0xA600u;
         group.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
@@ -1289,7 +1324,7 @@ public:
         if (data.handle == 0xA601u) {
             readDictionarySeen_ = data.parentHandle
                     == DRW::DwgNamedObjectsDictionaryHandle
-                && data.m_entries.size() == 35
+                && data.m_entries.size() == 36
                 && data.m_entries[0].m_name == "LOCAL_XRECORD"
                 && data.m_entries[0].m_handle == 0xA602u
                 && data.m_entries[1].m_name == "LOCAL_PLOTSETTINGS"
@@ -1359,7 +1394,9 @@ public:
                 && data.m_entries[33].m_name == "LOCAL_POINTCLOUDDEFINITION"
                 && data.m_entries[33].m_handle == 0xD600u
                 && data.m_entries[34].m_name == "LOCAL_POINTCLOUDDEFINITIONEX"
-                && data.m_entries[34].m_handle == 0xD601u;
+                && data.m_entries[34].m_handle == 0xD601u
+                && data.m_entries[35].m_name == "LOCAL_POINTCLOUDCOLORMAP"
+                && data.m_entries[35].m_handle == 0xD800u;
         }
     }
     void addXRecord(const DRW_XRecord& data) override {
@@ -1742,6 +1779,30 @@ public:
         if (data.handle == 0xD604u)
             readMalformedPointCloudSeen_ = true;
     }
+    void addPointCloudColorMap(const DRW_PointCloudColorMap& data) override {
+        if (data.handle == 0xD800u)
+            readPointCloudColorMapSeen_ =
+                data.parentHandle == 0xA601u
+                && data.m_classVersion == 1
+                && data.m_defaultIntensityColorScheme == "LOCAL_INTENSITY"
+                && data.m_defaultElevationColorScheme == "LOCAL_ELEVATION"
+                && data.m_defaultClassificationColorScheme
+                    == "LOCAL_CLASSIFICATION"
+                && data.m_colorRampCount == 1
+                && data.m_colorRamps.size() == 1
+                && data.m_colorRamps.front().m_classVersion == 2
+                && data.m_colorRamps.front().m_rampCount == 2
+                && data.m_colorRamps.front().m_colorSchemes.size() == 2
+                && data.m_colorRamps.front().m_colorSchemes[0]
+                    == "LOCAL_RAMP_LOW"
+                && data.m_classificationColorRampCount == 1
+                && data.m_classificationColorRamps.size() == 1
+                && data.m_classificationColorRamps.front().m_rampCount == 1
+                && data.m_classificationColorRamps.front().m_colorSchemes[0]
+                    == "LOCAL_CLASS_A";
+        if (data.handle == 0xD801u)
+            readMalformedPointCloudColorMapSeen_ = true;
+    }
     void addInsert(const DRW_Insert& data) override {
         readInsertSeen_ = true;
         readAttribSeen_ = data.attlist.size() == 1
@@ -1798,6 +1859,7 @@ public:
             && wrotePointCloudDefinitionEx_
             && wrotePointCloudReactor_
             && wrotePointCloudReactorEx_
+            && wrotePointCloudColorMap_
             && wroteGroup_;
     }
     bool rejectedMalformedObject() const { return rejectedMalformedObject_; }
@@ -1872,6 +1934,10 @@ public:
     bool rejectedMalformedPointCloud() const {
         return rejectedMalformedPointCloud_;
     }
+    bool wrotePointCloudColorMap() const { return wrotePointCloudColorMap_; }
+    bool rejectedMalformedPointCloudColorMap() const {
+        return rejectedMalformedPointCloudColorMap_;
+    }
     bool wroteImage() const { return wroteImage_; }
     bool rejectedMalformedImage() const { return rejectedMalformedImage_; }
     bool readLineSeen() const { return readLineSeen_; }
@@ -1915,6 +1981,7 @@ public:
             && readPointCloudDefinitionExSeen_
             && readPointCloudReactorSeen_
             && readPointCloudReactorExSeen_
+            && readPointCloudColorMapSeen_
             && readGroupSeen_;
     }
     bool readMalformedObjectSeen() const { return readMalformedObjectSeen_; }
@@ -2003,6 +2070,12 @@ public:
     }
     bool readMalformedPointCloudSeen() const {
         return readMalformedPointCloudSeen_;
+    }
+    bool readPointCloudColorMapSeen() const {
+        return readPointCloudColorMapSeen_;
+    }
+    bool readMalformedPointCloudColorMapSeen() const {
+        return readMalformedPointCloudColorMapSeen_;
     }
     bool readImageSeen() const { return readImageSeen_; }
     bool readImageDefSeen() const { return readImageDefSeen_; }
@@ -2107,6 +2180,8 @@ private:
     bool wrotePointCloudReactor_ {false};
     bool wrotePointCloudReactorEx_ {false};
     bool rejectedMalformedPointCloud_ {false};
+    bool wrotePointCloudColorMap_ {false};
+    bool rejectedMalformedPointCloudColorMap_ {false};
     bool wroteImage_ {false};
     bool rejectedMalformedImage_ {false};
     bool registeredDictionary_ {false};
@@ -2143,6 +2218,7 @@ private:
     bool registeredPointCloudDefinitionEx_ {false};
     bool registeredPointCloudReactor_ {false};
     bool registeredPointCloudReactorEx_ {false};
+    bool registeredPointCloudColorMap_ {false};
     bool registeredPlotSettings_ {false};
     bool readLineSeen_ {false};
     bool readPointSeen_ {false};
@@ -2232,6 +2308,8 @@ private:
     bool readPointCloudReactorSeen_ {false};
     bool readPointCloudReactorExSeen_ {false};
     bool readMalformedPointCloudSeen_ {false};
+    bool readPointCloudColorMapSeen_ {false};
+    bool readMalformedPointCloudColorMapSeen_ {false};
     bool readImageSeen_ {false};
     bool readImageDefSeen_ {false};
     bool readImageReactorSeen_ {false};
@@ -2421,6 +2499,12 @@ int main(int argc, char** argv) {
         expect(writeIface.rejectedMalformedPointCloud(),
                ("local DWG writer rejected malformed POINTCLOUDDEFINITION transaction" + suffix).c_str(),
                failures);
+        expect(writeIface.wrotePointCloudColorMap(),
+               ("local DWG writer emitted POINTCLOUDCOLORMAP" + suffix).c_str(),
+               failures);
+        expect(writeIface.rejectedMalformedPointCloudColorMap(),
+               ("local DWG writer rejected malformed POINTCLOUDCOLORMAP transaction" + suffix).c_str(),
+               failures);
         expect(version < DRW::AC1018
                    ? !writeIface.wroteImage()
                    : writeIface.wroteImage(),
@@ -2535,6 +2619,9 @@ int main(int argc, char** argv) {
         expect(readIface.readPointCloudReactorExSeen(),
                ("local DWG self-read publishes POINTCLOUDDEFREACTOREX" + suffix).c_str(),
                failures);
+        expect(readIface.readPointCloudColorMapSeen(),
+               ("local DWG self-read publishes POINTCLOUDCOLORMAP" + suffix).c_str(),
+               failures);
         expect(version < DRW::AC1018 || readIface.readImageSeen(),
                ("local DWG self-read publishes IMAGE" + suffix).c_str(), failures);
         expect(version < DRW::AC1018 || readIface.readImageDefSeen(),
@@ -2621,6 +2708,9 @@ int main(int argc, char** argv) {
                failures);
         expect(!readIface.readMalformedPointCloudSeen(),
                ("local DWG self-read omits rolled-back malformed POINTCLOUDDEFINITION" + suffix).c_str(),
+               failures);
+        expect(!readIface.readMalformedPointCloudColorMapSeen(),
+               ("local DWG self-read omits rolled-back malformed POINTCLOUDCOLORMAP" + suffix).c_str(),
                failures);
         if (readIface.readLineSeen()) {
             const DRW_Line& line = readIface.readLine();
