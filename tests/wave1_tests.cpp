@@ -648,6 +648,53 @@ void testDxfFacadeProfileReplayAgreement(TestContext& t) {
              "legacy façade rejects safe opaque raw object transactionally");
 }
 
+void testDxfProfileDiagnostics(TestContext& t) {
+    struct FailureCase {
+        dxfRW::DxfCompatibilityProfile facadeProfile;
+        const char *value;
+    };
+    const FailureCase cases[] = {
+        {dxfRW::DxfCompatibilityProfile::StandaloneSafe, "not-an-int"},
+        {dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy, "opaque"}};
+    for (const FailureCase &failureCase : cases) {
+        const bool legacy = failureCase.facadeProfile
+            == dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy;
+        const std::string content = legacy
+            ? "0\nSECTION\n2\nPROFILE_FAILURE\n482\nopaque\n"
+              "0\nENDSEC\n0\nEOF\n"
+            : "0\nSECTION\n2\nPROFILE_FAILURE\n260\nnot-an-int\n"
+              "0\nENDSEC\n0\nEOF\n";
+        ProfileProbeInterface interface_;
+        dxfRW reader("");
+        reader.setDxfCompatibilityProfile(failureCase.facadeProfile);
+        std::string input = content;
+        t.expect(!reader.readAscii(&interface_, false, input)
+                     && reader.getError() == DRW::BAD_READ_SECTION,
+                 "profile malformed ASCII keeps section error precedence");
+        const DRW_OperationDiagnostic diagnostic = reader.getLastDiagnostic();
+        t.expect(diagnostic.operation == DRW::OperationKind::Read
+                     && diagnostic.phase == DRW::OperationPhase::RawSection
+                     && diagnostic.cause == DRW::OperationCause::ReadFailure
+                     && diagnostic.code == "read-section",
+                 "profile malformed ASCII preserves structured section diagnostic");
+        t.expect(interface_.sections.empty() && interface_.objects.empty(),
+                 "profile malformed ASCII publishes no callbacks");
+    }
+
+    std::ostringstream malformedBytes;
+    dxfWriterBinary malformedWriter(&malformedBytes);
+    t.expect(malformedWriter.writeInt32(482, 7),
+             "profile malformed binary vector is created locally");
+    std::stringstream malformedRecords(malformedBytes.str());
+    dxfReaderBinary malformedReader(&malformedRecords);
+    malformedReader.setClassifierProfile(
+        DxfClassifierProfile::LibreCadMasterLegacy);
+    int code = 0;
+    t.expect(!malformedReader.readRec(&code) && code == 482
+                 && malformedReader.type == dxfReader::INVALID,
+             "legacy profile rejects malformed binary double width");
+}
+
 DRW_RawDxfObject rawBoundaryObject() {
     DRW_RawDxfObject object;
     object.name = "RAW_BOUNDARY";
@@ -1123,6 +1170,7 @@ int main() {
     testDxfProfilePromotionPolicy(context);
     testDxfProfileMatrix(context);
     testDxfFacadeProfileReplayAgreement(context);
+    testDxfProfileDiagnostics(context);
     testDxfRawBoundaryReplay(context);
     testDxfRawSectionBoundaryReplay(context);
     testDxfBinaryRawBoundaryReplay(context);
