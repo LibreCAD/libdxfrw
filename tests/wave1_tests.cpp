@@ -2506,6 +2506,76 @@ void testDxfRawEntityApplicationGroupRawValueCardinality(TestContext& t) {
              "DXF binary empty raw-value placeholders remain valid");
 }
 
+void testDxfRawEntityApplicationGroupSourceSpelling(TestContext& t) {
+    DRW_RawDxfObject object;
+    object.name = "LOCAL_SPELLING_ENTITY";
+    object.handle = 0x1Au;
+    object.m_version = DRW::AC1027;
+    object.hasRawValues = true;
+    object.groups = {DRW_Variant(5, std::string("1a")),
+                     DRW_Variant(102, std::string("{Mixed_Group")),
+                     DRW_Variant(330, std::string("2b")),
+                     DRW_Variant(340, std::string("3c")),
+                     DRW_Variant(102, std::string("}"))};
+    object.rawValues = {"1a", "{Mixed_Group", "2b", "3c", "}"};
+    const std::map<std::uint32_t, std::uint32_t> remap = {{0x1Au, 0x3Au},
+                                                           {0x3Cu, 0x4Cu}};
+    const std::vector<std::pair<int, std::string>> expected = {
+        {0, "LOCAL_SPELLING_ENTITY"},
+        {5, "3A"},
+        {102, "{Mixed_Group"},
+        {330, "2b"},
+        {340, "4C"},
+        {102, "}"}};
+
+    std::ostringstream asciiOutput;
+    dxfRW asciiWriter("");
+    asciiWriter.version = DRW::AC1027;
+    asciiWriter.binFile = false;
+    asciiWriter.writer = std::make_unique<dxfWriterAscii>(&asciiOutput);
+    asciiWriter.setHandleRemap(remap);
+    t.expect(asciiWriter.writeRawDxfObject(&object),
+             "DXF ASCII remap canonicalizes only mapped handle spellings");
+    int code = 0;
+    std::stringstream asciiRecords(asciiOutput.str());
+    dxfReaderAscii asciiReader(&asciiRecords);
+    bool asciiShape = true;
+    for (const auto& item : expected) {
+        if (!asciiReader.readRec(&code) || code != item.first
+            || asciiReader.getString() != item.second) {
+            asciiShape = false;
+            break;
+        }
+    }
+    t.expect(asciiShape,
+             "DXF ASCII replay preserves untouched application-group source spelling");
+
+    DRW_RawDxfObject binaryObject = object;
+    binaryObject.hasRawValues = false;
+    binaryObject.rawValues.clear();
+    std::ostringstream binaryOutput;
+    dxfRW binaryWriter("");
+    binaryWriter.version = DRW::AC1027;
+    binaryWriter.binFile = true;
+    binaryWriter.writer = std::make_unique<dxfWriterBinary>(&binaryOutput);
+    binaryWriter.setHandleRemap(remap);
+    t.expect(binaryWriter.writeRawDxfObject(&binaryObject),
+             "DXF binary remap canonicalizes only mapped handle spellings");
+    std::stringstream binaryRecords(binaryOutput.str());
+    dxfReaderBinary binaryReader(&binaryRecords);
+    binaryReader.setClassifierProfile(DxfClassifierProfile::StandaloneSafe);
+    bool binaryShape = true;
+    for (const auto& item : expected) {
+        if (!binaryReader.readRec(&code) || code != item.first
+            || binaryReader.getString() != item.second) {
+            binaryShape = false;
+            break;
+        }
+    }
+    t.expect(binaryShape,
+             "DXF binary replay preserves untouched application-group source spelling");
+}
+
 void testRawCapture(TestContext& t) {
     std::stringstream records("260\n2147483647\n482\n3.14\n1004\nAB\n");
     dxfRW owner("");
@@ -2727,6 +2797,7 @@ int main() {
     testDxfRawEntityApplicationGroupChunkSize(context);
     testDxfRawEntityApplicationGroupChunkCodeMatrix(context);
     testDxfRawEntityApplicationGroupRawValueCardinality(context);
+    testDxfRawEntityApplicationGroupSourceSpelling(context);
     testRawCapture(context);
     testHatchValidationIgnoresInactiveGradient(context);
     testFixedSpaceBlockClassification(context);
