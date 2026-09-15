@@ -2059,6 +2059,12 @@ edit this block or commit the same slice concurrently.
   a same-type field change is a semantic delta while formatting-only changes
   remain byte-only deltas. The locked 15-fixture rerun remains `14 equal / 1
   delta` (AC1021 target debt), with hashes/summaries only.
+- Latest differential-aggregate slice (2026-09-15): S278/J254 adds
+  deterministic top-level byte, semantic, and coarse-status relation counts
+  to the schema-2 report. The locked 15-fixture run records 14 equal and one
+  byte/semantic delta, with all 15 status relations explicitly
+  `not-reported`; the fast self-test and CTest remain green without retaining
+  drawing bytes.
 - Previous checkpoint (2026-09-15): S257/J233 post-hardening validation
   checkpoint is committed. A fresh C++17 build and all 26 dependency-free
   CTest entries pass in 6.26 seconds, including source-route and release
@@ -3696,6 +3702,7 @@ edit this block or commit the same slice concurrently.
 | S275 | J251: differential byte/semantic/status relation schema | S274 | COMMITTED | independent byte, semantic, and optional coarse status/error-stage relations; formatting-only self-test; bounded report contract | `run_json_target_package_differential.py --self-test` covers equal, semantic mismatch, and byte-only formatting delta; existing locked-fixture invocation remains fail-closed at 14 equal / 1 reviewed AC1021 target-debt delta; no drawing fixtures or derived payloads | continue with target-debt review, broader eligible differential/oracle evidence, and release closure |
 | S276 | J252: six-version local DWG target/package differential | S275 | COMMITTED | local-from-scratch AC1015/18/21/24/27/32 outputs; byte/semantic/status relations; explicit target-debt classification; temporary-only evidence | four versions are byte/semantic identical; AC1027 and AC1032 are bounded target deltas (target 2 entities/0 objects versus standalone 29 entities/75 raw objects); report is temporary and no support row is promoted | continue with target-debt review, independent oracle qualification, and release closure |
 | S277 | J253: bounded semantic record fingerprints | S276 | COMMITTED | schema-2 canonical record hashes; order-sensitive sequence digests; 16 MiB output bound; same-type semantic-delta self-test; no payload retention | differential self-test and CTest pass; locked 15-fixture rerun remains 14 equal / 1 reviewed AC1021 target-debt delta with semantic fingerprints; no drawing fixtures or derived payloads | continue with target-debt review, independent oracle qualification, and release closure |
+| S278 | J254: differential relation aggregate counts | S277 | COMMITTED | top-level byte/semantic/status relation counters; deterministic schema-2 report; explicit not-reported status accounting; no payload retention | self-test and CTest pass; locked 15-fixture run reports 14 equal/1 delta, byte and semantic counts match, and status counts are 15 not-reported; no drawing fixtures or derived payloads | continue with target-debt review, independent oracle qualification, and release closure |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3977,6 +3984,7 @@ edit this block or commit the same slice concurrently.
 | J251 | S275 | J250 | COMMITTED | EXPERIMENTAL | Qualify differential byte/semantic/status relation schema | Extend the reproducible target/package harness with independent byte and normalized-semantic relations plus optional coarse status/error-stage comparison; keep formatting-only deltas visible without treating them as semantic equality, and preserve fail-closed behavior for unresolved mismatches |
 | J252 | S276 | J251 | COMMITTED | EXPERIMENTAL | Qualify six-version local DWG target/package differential | Run all six eligible local-from-scratch DWG outputs through the pinned target and standalone package, classify byte/semantic/status relations, and retain AC1027/AC1032 target deltas as explicit non-promoting evidence |
 | J253 | S277 | J252 | COMMITTED | EXPERIMENTAL | Qualify bounded semantic record fingerprints | Extend the differential summary with canonical per-record and order-sensitive sequence hashes, enforce a bounded dumper-output size, and prove same-type field changes cannot be hidden by count/type-only normalization |
+| J254 | S278 | J253 | COMMITTED | EXPERIMENTAL | Qualify differential relation aggregate counts | Add deterministic top-level counters for output, byte, normalized-semantic, and optional coarse status/error-stage relations so release review can consume bounded totals without row-by-row parsing |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4365,6 +4373,7 @@ edit this block or commit the same slice concurrently.
 | J251.1 | J251 / S275 | WP8, WP10; differential relation schema | J250 | COMMITTED | EXPERIMENTAL | self-test byte, semantic, and optional status/error-stage relations for equal outputs, formatting-only byte deltas, and true semantic mismatches; retain only bounded hashes/summaries and preserve nonzero exit for any unresolved output delta | `run_json_target_package_differential.py --self-test` passes; formatting-only output reports `byteRelation=delta` with `semanticRelation=equal`, semantic mismatch reports both deltas, and absent coarse status remains `not-reported`; no drawing bytes are retained |
 | J252.1 | J252 / S276 | WP5, WP8, WP10; six-version local DWG differential | J251 | COMMITTED | EXPERIMENTAL | run the six local-from-scratch AC1015/18/21/24/27/32 outputs through both dumpers with identical options, require bounded hash/semantic reports, and classify the AC1027/AC1032 target short-read deltas without weakening standalone compatibility | temporary differential report records 4 equal and 2 reviewed deltas; AC1027/1032 target summaries contain 2 entities/0 objects while standalone contains 29 entities/75 raw objects; no drawing bytes or derived fixtures are retained |
 | J253.1 | J253 / S277 | WP8, WP10; bounded semantic differential | J252 | COMMITTED | EXPERIMENTAL | hash canonical entity/object records and their callback-order sequence, cap parsed dumper output at 16 MiB, and self-test formatting-only versus same-type semantic changes while retaining only hashes and bounded summaries | schema-2 self-test and CTest pass; locked fixture rerun reports 14 equal and 1 reviewed AC1021 delta; no drawing bytes are retained |
+| J254.1 | J254 / S278 | WP8, WP10; differential aggregate reporting | J253 | COMMITTED | EXPERIMENTAL | count overall, byte, semantic, and status relations in the schema-2 report and self-test equal, mismatch, formatting-only, and absent-status cases without storing drawing payloads | self-test and CTest pass; locked report records relation counts `14 equal/1 delta`, byte and semantic counts `14 equal/1 delta`, and status `15 not-reported`; no drawing bytes are retained |
 
 <!-- UPGRADE_PROGRESS_END -->
 

@@ -295,6 +295,9 @@ def compare(root: Path, registry: Path, target: Path, standalone: Path,
             })
     rows.sort(key=lambda row: (row["inputVersion"], row["sourceSha256"]))
     counts = Counter(row["relation"] for row in rows)
+    byte_counts = Counter(row["byteRelation"] for row in rows)
+    semantic_counts = Counter(row["semanticRelation"] for row in rows)
+    status_counts = Counter(row["statusRelation"] for row in rows)
     report: dict[str, Any] = {
         "schema": SCHEMA,
         "kind": KIND,
@@ -302,6 +305,9 @@ def compare(root: Path, registry: Path, target: Path, standalone: Path,
         "fixturePolicy": FIXTURE_POLICY,
         "inputCount": len(rows),
         "relationCounts": dict(sorted(counts.items())),
+        "byteRelationCounts": dict(sorted(byte_counts.items())),
+        "semanticRelationCounts": dict(sorted(semantic_counts.items())),
+        "statusRelationCounts": dict(sorted(status_counts.items())),
         "rows": rows,
     }
     if target_commit:
@@ -336,6 +342,9 @@ def self_test() -> None:
         }]}), encoding="utf-8")
         report = compare(root, registry, runner, runner, -1, 2.0)
         assert report["relationCounts"] == {"equal": 1}
+        assert report["byteRelationCounts"] == {"equal": 1}
+        assert report["semanticRelationCounts"] == {"equal": 1}
+        assert report["statusRelationCounts"] == {"not-reported": 1}
         bad = root / "bad.py"
         bad.write_text(
             "#!/usr/bin/env python3\n"
@@ -347,6 +356,8 @@ def self_test() -> None:
         bad.chmod(0o755)
         mismatch = compare(root, registry, runner, bad, -1, 2.0)
         assert mismatch["relationCounts"] == {"delta": 1}
+        assert mismatch["byteRelationCounts"] == {"delta": 1}
+        assert mismatch["semanticRelationCounts"] == {"delta": 1}
         assert mismatch["rows"][0]["byteRelation"] == "delta"
         assert mismatch["rows"][0]["semanticRelation"] == "delta"
         pretty = root / "pretty.py"
