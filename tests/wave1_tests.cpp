@@ -485,6 +485,69 @@ void testDxfProfilePromotionPolicy(TestContext& t) {
              "adapter can restore standalone-safe DXF profile explicitly");
 }
 
+void testDxfProfileMatrix(TestContext& t) {
+    struct ProfileCase {
+        DxfClassifierProfile profile;
+        dxfRW::DxfCompatibilityProfile facadeProfile;
+        dxfReader::TYPE code260Type;
+        dxfReader::TYPE code482Type;
+        bool legacy;
+    };
+    const ProfileCase cases[] = {
+        {DxfClassifierProfile::StandaloneSafe,
+         dxfRW::DxfCompatibilityProfile::StandaloneSafe,
+         dxfReader::INT32, dxfReader::STRING, false},
+        {DxfClassifierProfile::LibreCadMasterLegacy,
+         dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy,
+         dxfReader::BOOL, dxfReader::DOUBLE, true}};
+
+    for (const ProfileCase &profileCase : cases) {
+        std::stringstream asciiRecords("260\n7\n482\n3.5\n");
+        dxfReaderAscii asciiReader(&asciiRecords);
+        asciiReader.setClassifierProfile(profileCase.profile);
+        int code = 0;
+        const bool code260Read = asciiReader.readRec(&code);
+        t.expect(code260Read && code == 260
+                     && asciiReader.type == profileCase.code260Type,
+                 "DXF profile matrix agrees on ASCII code 260");
+        const bool code482Read = asciiReader.readRec(&code);
+        t.expect(code482Read && code == 482
+                     && asciiReader.type == profileCase.code482Type,
+                 "DXF profile matrix agrees on ASCII code 482");
+
+        std::ostringstream binaryBytes;
+        dxfWriterBinary binaryWriter(&binaryBytes);
+        const bool wrote260 = profileCase.legacy
+            ? binaryWriter.writeBool(260, true)
+            : binaryWriter.writeInt32(260, 7);
+        t.expect(wrote260 && binaryWriter.writeDouble(482, 3.5),
+                 "DXF profile matrix creates local binary vector");
+        std::stringstream binaryRecords(binaryBytes.str());
+        dxfReaderBinary binaryReader(&binaryRecords);
+        binaryReader.setClassifierProfile(profileCase.profile);
+        const bool binary260Read = binaryReader.readRec(&code);
+        t.expect(binary260Read && code == 260
+                     && binaryReader.type == profileCase.code260Type,
+                 "DXF profile matrix agrees on binary code 260");
+        const bool binary482Read = binaryReader.readRec(&code);
+        if (profileCase.legacy) {
+            t.expect(binary482Read && code == 482
+                         && binaryReader.type == profileCase.code482Type,
+                     "DXF profile matrix agrees on legacy binary code 482");
+        } else {
+            t.expect(!binary482Read && code == 482
+                         && binaryReader.type == dxfReader::INVALID,
+                     "DXF profile matrix rejects safe binary unknown code 482");
+        }
+
+        dxfRW facade("");
+        facade.setDxfCompatibilityProfile(profileCase.facadeProfile);
+        t.expect(facade.dxfCompatibilityProfile()
+                     == profileCase.facadeProfile,
+                 "DXF profile matrix preserves façade selection");
+    }
+}
+
 DRW_RawDxfObject rawBoundaryObject() {
     DRW_RawDxfObject object;
     object.name = "RAW_BOUNDARY";
@@ -958,6 +1021,7 @@ int main() {
     testDxfBinaryLegacyProfileReplay(context);
     testDxfFacadeClassifierProfile(context);
     testDxfProfilePromotionPolicy(context);
+    testDxfProfileMatrix(context);
     testDxfRawBoundaryReplay(context);
     testDxfRawSectionBoundaryReplay(context);
     testDxfBinaryRawBoundaryReplay(context);
