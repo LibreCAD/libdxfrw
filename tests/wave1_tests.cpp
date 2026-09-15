@@ -4129,6 +4129,59 @@ void testDxfRawSectionRecordBoundaryReplay(TestContext& t) {
              "DXF binary raw section boundary replay preserves exact framing");
 }
 
+void testDxfRawSectionEndsecTerminator(TestContext& t) {
+    const std::string asciiSource =
+        "0\nSECTION\n2\nLOCAL_ENDSEC_BOUNDARY\n"
+        "0\nREC_A\n1000\npayload A\n0\nENDSEC\n0\nEOF\n";
+    ProfileProbeInterface asciiInterface;
+    dxfRW asciiReader("");
+    asciiReader.binFile = false;
+    std::stringstream asciiInput(asciiSource);
+    asciiReader.reader = std::make_unique<dxfReaderAscii>(&asciiInput);
+    asciiReader.reader->setClassifierProfile(DxfClassifierProfile::StandaloneSafe);
+    asciiReader.iface = &asciiInterface;
+    asciiReader.beginOperationDiagnostic(DRW::OperationKind::Read);
+    t.expect(asciiReader.processDxf()
+                 && asciiInterface.sections.size() == 1,
+             "DXF ASCII raw section terminates on ENDSEC");
+    if (asciiInterface.sections.size() == 1) {
+        const DRW_RawDxfSection& section = asciiInterface.sections.front();
+        t.expect(section.m_groups.size() == 2
+                     && section.m_groups[0].code() == 0
+                     && std::string(section.m_groups[0].c_str()) == "REC_A"
+                     && section.m_groups[1].code() == 1000,
+                 "DXF ASCII raw section excludes structural ENDSEC");
+    }
+
+    std::ostringstream binarySource;
+    dxfWriterBinary binarySourceWriter(&binarySource);
+    binarySourceWriter.writeString(0, "SECTION");
+    binarySourceWriter.writeString(2, "LOCAL_ENDSEC_BOUNDARY");
+    binarySourceWriter.writeString(0, "REC_A");
+    binarySourceWriter.writeString(1000, "payload A");
+    binarySourceWriter.writeString(0, "ENDSEC");
+    binarySourceWriter.writeString(0, "EOF");
+    std::stringstream binaryInput(binarySource.str());
+    ProfileProbeInterface binaryInterface;
+    dxfRW binaryReader("");
+    binaryReader.binFile = true;
+    binaryReader.reader = std::make_unique<dxfReaderBinary>(&binaryInput);
+    binaryReader.reader->setClassifierProfile(DxfClassifierProfile::StandaloneSafe);
+    binaryReader.iface = &binaryInterface;
+    binaryReader.beginOperationDiagnostic(DRW::OperationKind::Read);
+    t.expect(binaryReader.processDxf()
+                 && binaryInterface.sections.size() == 1,
+             "DXF binary raw section terminates on ENDSEC");
+    if (binaryInterface.sections.size() == 1) {
+        const DRW_RawDxfSection& section = binaryInterface.sections.front();
+        t.expect(section.m_groups.size() == 2
+                     && section.m_groups[0].code() == 0
+                     && std::string(section.m_groups[0].c_str()) == "REC_A"
+                     && section.m_groups[1].code() == 1000,
+                 "DXF binary raw section excludes structural ENDSEC");
+    }
+}
+
 void testDxfRawSectionApplicationGroupMarker(TestContext& t) {
     const std::vector<std::string> invalidMarkers = {"{", "NOT_A_MARKER"};
     for (const std::string& marker : invalidMarkers) {
@@ -4494,6 +4547,7 @@ int main() {
     testDxfRawSectionEmptyNameRead(context);
     testDxfRawSectionRecordBoundaries(context);
     testDxfRawSectionRecordBoundaryReplay(context);
+    testDxfRawSectionEndsecTerminator(context);
     testDxfRawSectionApplicationGroupMarker(context);
     testDxfRawSectionApplicationGroupReferenceMatrix(context);
     testRawCapture(context);
