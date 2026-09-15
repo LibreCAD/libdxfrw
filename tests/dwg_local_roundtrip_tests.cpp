@@ -2065,6 +2065,59 @@ public:
             && invalidNavisworks.handle == 0xF901u;
         }
 
+        if (expectedVersion_ < DRW::AC1018) {
+            wroteUnderlay_ = false;
+            rejectedMalformedUnderlay_ = true;
+        } else {
+            DRW_Underlay underlay;
+            underlay.handle = 0xFA00u;
+            underlay.kind = DRW_Underlay::PDF;
+            underlay.position = DRW_Coord(141.0, 142.0, 143.0);
+            underlay.scale = DRW_Coord(2.0, 3.0, 1.0);
+            underlay.rotation = 0.25;
+            underlay.extPoint = DRW_Coord(0.0, 0.0, 1.0);
+            underlay.flags = 2;
+            underlay.contrast = 80;
+            underlay.fade = 5;
+            underlay.definitionHandle = 0xD300u;
+            underlay.clipBoundary = {
+                DRW_Coord(0.0, 0.0, 0.0), DRW_Coord(64.0, 0.0, 0.0),
+                DRW_Coord(64.0, 48.0, 0.0), DRW_Coord(0.0, 48.0, 0.0),
+            };
+            wroteUnderlay_ = writer_->writeUnderlay(&underlay)
+                && underlay.handle == 0xFA00u;
+            DRW_Underlay invalidUnderlay = underlay;
+            invalidUnderlay.handle = 0xFA01u;
+            invalidUnderlay.scale.x =
+                std::numeric_limits<double>::quiet_NaN();
+            rejectedMalformedUnderlay_ = !writer_->writeUnderlay(&invalidUnderlay)
+                && invalidUnderlay.handle == 0xFA01u;
+
+            DRW_Underlay dgnUnderlay = underlay;
+            dgnUnderlay.handle = 0xFA02u;
+            dgnUnderlay.kind = DRW_Underlay::DGN;
+            dgnUnderlay.definitionHandle = 0xD400u;
+            wroteDgnUnderlayEntity_ = writer_->writeUnderlay(&dgnUnderlay)
+                && dgnUnderlay.handle == 0xFA02u;
+
+            DRW_Underlay dwfUnderlay = underlay;
+            dwfUnderlay.handle = 0xFA04u;
+            dwfUnderlay.kind = DRW_Underlay::DWF;
+            dwfUnderlay.definitionHandle = 0xD500u;
+            wroteDwfUnderlayEntity_ = writer_->writeUnderlay(&dwfUnderlay)
+                && dwfUnderlay.handle == 0xFA04u;
+
+            DRW_Underlay invalidDgnUnderlay = dgnUnderlay;
+            invalidDgnUnderlay.handle = 0xFA03u;
+            invalidDgnUnderlay.scale.x =
+                std::numeric_limits<double>::quiet_NaN();
+            const bool rejectedInvalidClip =
+                !writer_->writeUnderlay(&invalidDgnUnderlay)
+                && invalidDgnUnderlay.handle == 0xFA03u;
+            rejectedMalformedUnderlay_ =
+                rejectedMalformedUnderlay_ && rejectedInvalidClip;
+        }
+
         DRW_Hatch hatch;
         hatch.name = "SOLID";
         hatch.solid = 1;
@@ -2519,6 +2572,36 @@ public:
             && data->transform[11] == 30.0
             && data->transform[15] == 1.0
             && data->unitFactor == 2.5;
+    }
+    void addUnderlay(const DRW_Underlay* data) override {
+        if (data == nullptr)
+            return;
+        if (data->handle == 0xFA00u)
+            readUnderlaySeen_ = expectedVersion_ >= DRW::AC1018
+            && data->kind == DRW_Underlay::PDF
+            && data->position.x == 141.0
+            && data->position.y == 142.0
+            && data->position.z == 143.0
+            && data->scale.x == 2.0
+            && data->scale.y == 3.0
+            && data->scale.z == 1.0
+            && data->rotation == 0.25
+            && data->extPoint.z == 1.0
+            && data->flags == 2
+            && data->contrast == 80
+            && data->fade == 5
+            && data->definitionHandle == 0xD300u
+            && data->clipBoundary.size() == 4
+            && data->clipBoundary[2].x == 64.0
+            && data->clipBoundary[2].y == 48.0;
+        if (data->handle == 0xFA02u)
+            readDgnUnderlayEntitySeen_ = data->kind == DRW_Underlay::DGN
+                && data->definitionHandle == 0xD400u
+                && data->clipBoundary.size() == 4;
+        if (data->handle == 0xFA04u)
+            readDwfUnderlayEntitySeen_ = data->kind == DRW_Underlay::DWF
+                && data->definitionHandle == 0xD500u
+                && data->clipBoundary.size() == 4;
     }
     void addHatch(const DRW_Hatch*) override { readHatchSeen_ = true; }
     void addLeader(const DRW_Leader*) override { readLeaderSeen_ = true; }
@@ -3586,6 +3669,16 @@ public:
         return rejectedMalformedNavisworksModel_;
     }
     bool readNavisworksModelSeen() const { return readNavisworksModelSeen_; }
+    bool wroteUnderlay() const { return wroteUnderlay_; }
+    bool readUnderlaySeen() const { return readUnderlaySeen_; }
+    bool wroteDgnUnderlayEntity() const { return wroteDgnUnderlayEntity_; }
+    bool wroteDwfUnderlayEntity() const { return wroteDwfUnderlayEntity_; }
+    bool readDgnUnderlayEntitySeen() const {
+        return readDgnUnderlayEntitySeen_;
+    }
+    bool readDwfUnderlayEntitySeen() const {
+        return readDwfUnderlayEntitySeen_;
+    }
     bool readPointCloudSeen() const { return readPointCloudSeen_; }
     bool readPointCloudExSeen() const { return readPointCloudExSeen_; }
     bool readHatchSeen() const { return readHatchSeen_; }
@@ -3847,6 +3940,9 @@ private:
     bool rejectedMalformedWipeout_ {false};
     bool wroteNavisworksModel_ {false};
     bool rejectedMalformedNavisworksModel_ {false};
+    bool wroteUnderlay_ {false};
+    bool wroteDgnUnderlayEntity_ {false};
+    bool wroteDwfUnderlayEntity_ {false};
     bool wrotePointCloud_ {false};
     bool wrotePointCloudEx_ {false};
     bool rejectedMalformedPointCloudEntity_ {false};
@@ -4061,6 +4157,9 @@ private:
     bool readMeshSeen_ {false};
     bool readWipeoutSeen_ {false};
     bool readNavisworksModelSeen_ {false};
+    bool readUnderlaySeen_ {false};
+    bool readDgnUnderlayEntitySeen_ {false};
+    bool readDwfUnderlayEntitySeen_ {false};
     bool readPointCloudSeen_ {false};
     bool readPointCloudExSeen_ {false};
     bool readHatchSeen_ {false};
@@ -4293,6 +4392,23 @@ int main(int argc, char** argv) {
                 + suffix).c_str(), failures);
         expect(writeIface.rejectedMalformedNavisworksModel(),
                ("local DWG writer rejected malformed NAVISWORKSMODEL transaction"
+                + suffix).c_str(), failures);
+        expect(version >= DRW::AC1018
+                   ? writeIface.wroteUnderlay()
+                   : !writeIface.wroteUnderlay(),
+               ("local DWG UNDERLAY capability gate" + suffix).c_str(), failures);
+        expect(version >= DRW::AC1018
+                   ? writeIface.wroteDgnUnderlayEntity()
+                   : !writeIface.wroteDgnUnderlayEntity(),
+               ("local DWG DGNUNDERLAY capability gate" + suffix).c_str(),
+               failures);
+        expect(version >= DRW::AC1018
+                   ? writeIface.wroteDwfUnderlayEntity()
+                   : !writeIface.wroteDwfUnderlayEntity(),
+               ("local DWG DWFUNDERLAY capability gate" + suffix).c_str(),
+               failures);
+        expect(writeIface.rejectedMalformedUnderlay(),
+               ("local DWG writer rejected malformed UNDERLAY transaction"
                 + suffix).c_str(), failures);
         expect(version > DRW::AC1018
                    ? writeIface.wrotePointCloud()
@@ -4640,6 +4756,21 @@ int main(int argc, char** argv) {
                    ? readIface.readNavisworksModelSeen()
                    : !readIface.readNavisworksModelSeen(),
                ("local DWG self-read NAVISWORKSMODEL capability gate"
+                + suffix).c_str(), failures);
+        expect(version >= DRW::AC1018
+                   ? readIface.readUnderlaySeen()
+                   : !readIface.readUnderlaySeen(),
+               ("local DWG self-read UNDERLAY capability gate"
+                + suffix).c_str(), failures);
+        expect(version >= DRW::AC1018
+                   ? readIface.readDgnUnderlayEntitySeen()
+                   : !readIface.readDgnUnderlayEntitySeen(),
+               ("local DWG self-read DGNUNDERLAY capability gate"
+                + suffix).c_str(), failures);
+        expect(version >= DRW::AC1018
+                   ? readIface.readDwfUnderlayEntitySeen()
+                   : !readIface.readDwfUnderlayEntitySeen(),
+               ("local DWG self-read DWFUNDERLAY capability gate"
                 + suffix).c_str(), failures);
         expect(version > DRW::AC1018
                    ? readIface.readPointCloudSeen()

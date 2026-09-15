@@ -139,6 +139,12 @@ LIGHT_HANDLE = 0xF600
 MESH_HANDLE = 0xF700
 WIPEOUT_HANDLE = 0xF800
 NAVISWORKS_MODEL_HANDLE = 0xF900
+UNDERLAY_HANDLE = 0xFA00
+UNDERLAY_DEFINITION_HANDLE = 0xD300
+DGN_UNDERLAY_HANDLE = 0xFA02
+DGN_UNDERLAY_DEFINITION_HANDLE = 0xD400
+DWF_UNDERLAY_HANDLE = 0xFA04
+DWF_UNDERLAY_DEFINITION_HANDLE = 0xD500
 DIMASSOC_HANDLE = 0xF000
 EVALUATION_GRAPH_HANDLE = 0xF100
 BLOCKREPRESENTATIONDATA_HANDLE = 0xF200
@@ -521,6 +527,73 @@ def check_navisworks_model_entity(records: list[dict], version_name: str) -> dic
     }
 
 
+def check_underlay_entity(records: list[dict], version_name: str) -> dict:
+    """Qualify one PDFUNDERLAY frame and its stable metadata payload."""
+    if version_name == "AC1015":
+        return {"supported": False}
+    matches = [
+        record for record in records
+        if isinstance(record, dict)
+        and record.get("entity") == "PDFUNDERLAY"
+        and record.get("type") == 523
+    ]
+    if len(matches) != 1:
+        raise ValueError("UNDERLAY entity frame count mismatch")
+    underlay = matches[0]
+    if (record_handle(underlay) != UNDERLAY_HANDLE
+            or underlay.get("definition_id", [0, 0, 0])[-1]
+                != UNDERLAY_DEFINITION_HANDLE
+            or underlay.get("ins_pt") != [141.0, 142.0, 143.0]
+            or underlay.get("angle") != 0.25
+            or underlay.get("scale") != [2.0, 3.0, 1.0]
+            or underlay.get("flag") != 2
+            or underlay.get("contrast") != 80
+            or underlay.get("fade") != 5
+            or underlay.get("clip_verts") != [
+                [0.0, 0.0], [64.0, 0.0], [64.0, 48.0], [0.0, 48.0]]):
+        raise ValueError("UNDERLAY identity or bounded payload mismatch")
+    return {
+        "supported": True, "entity": "PDFUNDERLAY", "type": 523,
+        "handle": UNDERLAY_HANDLE, "definition": UNDERLAY_DEFINITION_HANDLE,
+        "payloadQualified": True,
+    }
+
+
+def check_underlay_flavor_entities(records: list[dict], version_name: str) -> list[dict]:
+    """Qualify DGNUNDERLAY and DWFUNDERLAY metadata/clip payloads."""
+    if version_name == "AC1015":
+        return []
+    expected = [
+        ("DGNUNDERLAY", 524, DGN_UNDERLAY_HANDLE,
+         DGN_UNDERLAY_DEFINITION_HANDLE),
+        ("DWFUNDERLAY", 525, DWF_UNDERLAY_HANDLE,
+         DWF_UNDERLAY_DEFINITION_HANDLE),
+    ]
+    frames = []
+    for entity, object_type, handle, definition in expected:
+        matches = [
+            record for record in records
+            if isinstance(record, dict)
+            and record.get("entity") == entity
+            and record.get("type") == object_type
+        ]
+        if len(matches) != 1:
+            raise ValueError(f"{entity} entity frame count mismatch")
+        underlay = matches[0]
+        if (record_handle(underlay) != handle
+                or underlay.get("definition_id", [0, 0, 0])[-1] != definition
+                or underlay.get("ins_pt") != [141.0, 142.0, 143.0]
+                or underlay.get("scale") != [2.0, 3.0, 1.0]
+                or underlay.get("clip_verts") != [
+                    [0.0, 0.0], [64.0, 0.0], [64.0, 48.0], [0.0, 48.0]]):
+            raise ValueError(f"{entity} identity or bounded payload mismatch")
+        frames.append({
+            "entity": entity, "type": object_type, "handle": handle,
+            "definition": definition, "payloadQualified": True,
+        })
+    return frames
+
+
 def check_express_text_entities(records: list[dict], version_name: str) -> dict:
     """Qualify RTEXT/ARCALIGNEDTEXT identity and bounded oracle payload.
 
@@ -654,6 +727,8 @@ def check_objects(payload: dict, version_name: str) -> dict:
     mesh_entity = check_mesh_entity(records, version_name)
     wipeout_entity = check_wipeout_entity(records, version_name)
     navisworks_model_entity = check_navisworks_model_entity(records, version_name)
+    underlay_entity = check_underlay_entity(records, version_name)
+    underlay_flavors = check_underlay_flavor_entities(records, version_name)
     express_text_entities = check_express_text_entities(records, version_name)
     associative_objects = check_associative_objects(records, version_name)
     block_representation = check_block_representation(records, version_name)
@@ -761,6 +836,17 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "LibreDWG 0.14 qualifies NAVISWORKSMODEL type/handle identity but "
             "does not preserve the local transform/unit/definition payload "
             "reliably; local self-read remains authoritative")
+    underlay_discrepancies = []
+    if not underlay_entity.get("supported"):
+        underlay_discrepancies.append(
+            "UNDERLAY emission is intentionally gated off for AC1015 because "
+            "the custom class frame is not safe in the legacy contiguous "
+            "entity chain")
+    else:
+        underlay_discrepancies.append(
+            "External underlay file contents are intentionally absent; the "
+            "PDF/DGN/DWF UNDERLAY metadata and clip payloads are independently "
+            "qualified")
 
     render_matrix = {}
     for kind, (object_name, handle, object_type) in RENDER_SETTINGS_KINDS.items():
@@ -1825,6 +1911,8 @@ def check_objects(payload: dict, version_name: str) -> dict:
         "meshEntity": mesh_entity,
         "wipeoutEntity": wipeout_entity,
         "navisworksModelEntity": navisworks_model_entity,
+        "underlayEntity": underlay_entity,
+        "underlayFlavorEntities": underlay_flavors,
         "expressTextEntities": express_text_entities,
         "associativeObjects": associative_objects,
         "blockRepresentationData": block_representation,
@@ -1866,7 +1954,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         + camera_discrepancies + geo_position_marker_discrepancies
         + shape_discrepancies + mline_discrepancies + light_discrepancies
         + mesh_discrepancies + wipeout_discrepancies
-        + navisworks_model_discrepancies),
+        + navisworks_model_discrepancies + underlay_discrepancies),
     }
 
 
@@ -2331,6 +2419,25 @@ def self_test() -> None:
              "type": 1109},
             {"entity": "UNKNOWN_ENT", "handle": [0, 2,
              NAVISWORKS_MODEL_HANDLE], "type": 541},
+            {"entity": "PDFUNDERLAY", "handle": [0, 2, UNDERLAY_HANDLE],
+             "type": 523, "definition_id": [5, 2, UNDERLAY_DEFINITION_HANDLE,
+             UNDERLAY_DEFINITION_HANDLE], "ins_pt": [141.0, 142.0, 143.0],
+             "angle": 0.25, "scale": [2.0, 3.0, 1.0], "flag": 2,
+             "contrast": 80, "fade": 5,
+             "clip_verts": [[0.0, 0.0], [64.0, 0.0],
+                            [64.0, 48.0], [0.0, 48.0]]},
+            {"entity": "DGNUNDERLAY", "handle": [0, 2, DGN_UNDERLAY_HANDLE],
+             "type": 524, "definition_id": [5, 2,
+             DGN_UNDERLAY_DEFINITION_HANDLE, DGN_UNDERLAY_DEFINITION_HANDLE],
+             "ins_pt": [141.0, 142.0, 143.0], "scale": [2.0, 3.0, 1.0],
+             "clip_verts": [[0.0, 0.0], [64.0, 0.0],
+                            [64.0, 48.0], [0.0, 48.0]]},
+            {"entity": "DWFUNDERLAY", "handle": [0, 2, DWF_UNDERLAY_HANDLE],
+             "type": 525, "definition_id": [5, 2,
+             DWF_UNDERLAY_DEFINITION_HANDLE, DWF_UNDERLAY_DEFINITION_HANDLE],
+             "ins_pt": [141.0, 142.0, 143.0], "scale": [2.0, 3.0, 1.0],
+             "clip_verts": [[0.0, 0.0], [64.0, 0.0],
+                            [64.0, 48.0], [0.0, 48.0]]},
             {"entity": "RTEXT", "handle": [0, 2, RTEXT_HANDLE],
              "type": 521, "text_value": "LOCAL_RTEXT",
              "pt": [90.0, 91.0, 0.0],
@@ -2406,6 +2513,22 @@ def self_test() -> None:
             "handle": NAVISWORKS_MODEL_HANDLE,
             "oracleEntity": "UNKNOWN_ENT", "payloadQualified": False}:
         raise AssertionError("NAVISWORKSMODEL entity identity was not qualified")
+    if summary.get("underlayEntity") != {
+            "supported": True, "entity": "PDFUNDERLAY", "type": 523,
+            "handle": UNDERLAY_HANDLE,
+            "definition": UNDERLAY_DEFINITION_HANDLE,
+            "payloadQualified": True}:
+        raise AssertionError("UNDERLAY entity identity was not qualified")
+    if summary.get("underlayFlavorEntities") != [
+            {"entity": "DGNUNDERLAY", "type": 524,
+             "handle": DGN_UNDERLAY_HANDLE,
+             "definition": DGN_UNDERLAY_DEFINITION_HANDLE,
+             "payloadQualified": True},
+            {"entity": "DWFUNDERLAY", "type": 525,
+             "handle": DWF_UNDERLAY_HANDLE,
+             "definition": DWF_UNDERLAY_DEFINITION_HANDLE,
+             "payloadQualified": True}]:
+        raise AssertionError("DGN/DWF UNDERLAY identity was not qualified")
     if summary.get("expressTextEntities") != {
             "rtext": {"entity": "RTEXT", "type": 521,
                       "handle": RTEXT_HANDLE, "text": "LOCAL_RTEXT"},
