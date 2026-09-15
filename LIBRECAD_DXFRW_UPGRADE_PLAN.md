@@ -52,9 +52,9 @@ then pin an immutable commit before importing source.
 ### Execution refresh (2026-09-15)
 
 The implementation worktree is rebased on `origin/master` and is currently
-160 commits ahead with no commits behind it. The latest green slice is
-S133/J109, including the live-plan update and its required policy gates.
-S134/J110 is the active slice; its focused DXF profile callback/replay checks
+161 commits ahead with no commits behind it. The latest green slice is
+S134/J110, including the live-plan update and its required policy gates.
+S135/J111 is the active slice; its focused DXF profile error/diagnostic checks
 are the next commit boundary.
 The worktree is clean at the last committed boundary; any subsequent active-
 slice edits are intentionally uncommitted until their narrow gate and
@@ -1934,15 +1934,16 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint (2026-09-15): S133/J109 DXF profile matrix is committed;
-  S134/J110 DXF profile callback/replay agreement is active.
+- Current checkpoint (2026-09-15): S134/J110 DXF profile callback/replay
+  agreement is committed; S135/J111 DXF profile error/diagnostic behavior is
+  active.
   The
   branch is rebased on `origin/master`, and
   the pinned source/package/consumer convergence remains complete while
   runtime and wire-format parity stay evidence-gated. The AC1015 IMAGE legacy
   boundary remains fail-closed, and all format-support claims remain limited
   to rows with eligible runtime/oracle evidence. The next dependency-ready
-  sequence is S134 DXF profile callback/replay agreement; it is a separate commit
+  sequence is S135 DXF profile error/diagnostic behavior; it is a separate commit
   with no external or derived DWG/DXF bytes.
 - Latest implementation slice: S53/J29 RASTERVARIABLES/WIPEOUTVARIABLES parity
   is committed. The local-from-scratch production writer registers both custom
@@ -2786,10 +2787,10 @@ edit this block or commit the same slice concurrently.
   names TVDEVICEPROPERTIES and the two VX frames as UNKNOWN_OBJ, while local
   self-read remains authoritative for VX payload fields; no generated drawings
   or external assets are retained.
-- Last fully resolved slice: S133 (the DXF profile matrix slice is committed by
-  the matching `Plan-Slice: S133` trailer; the commit carries safe/legacy
-  ASCII/binary classifier vectors, safe unknown-range rejection, and façade
-  selection assertions, and
+- Last fully resolved slice: S134 (the DXF profile callback/replay agreement
+  slice is committed by the matching `Plan-Slice: S134` trailer; the commit
+  carries façade object/section round trips and transactional cross-profile
+  mismatch rejection, and
   all required policy gates). The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
@@ -2811,18 +2812,18 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 133 (`COMMITTED`); S134 is active.
+- Resolved slices: 134 (`COMMITTED`); S135 is active.
 - Slice states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 133 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 134 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 135 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 136 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 231 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 232 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 118 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S133 are committed; S134/J110 is active with a ready packet
-  naming DXF profile callback/replay agreement and focused fast gates.
+  0 DEFERRED_EXTERNAL / 119 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S134 are committed; S135/J111 is active with a ready packet
+  naming DXF profile error/diagnostic behavior and focused fast gates.
   Keep validation fast and
   self-updating: run source/plan/policy checks and the focused carrier target
   after each implementation item, commit only after the narrow gate is green,
@@ -3004,7 +3005,8 @@ edit this block or commit the same slice concurrently.
 | S131 | J107: LibreCAD adapter migration contract | S130 | COMMITTED | adapter call-site contract; profile propagation on read/write; source compatibility; no silent default; focused migration probe; fast DXF gate; plan/scope/sync/fixture gates | staged consumer probe compiles the exact `setDxfCompatibilityProfile(LibreCadMasterLegacy)` call before the adapter's read/readAscii/write entry points, while safe-default assertions remain green; external LibreCAD sources and drawing bytes remain untouched | staged package check, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S132 is active |
 | S132 | J108: DXF profile promotion decision | S131 | COMMITTED | target parity disposition; default-profile policy; binary width safety; LibreCAD migration completeness; independent evidence; fast DXF gate; plan/scope/sync/fixture gates | compatibility decision records adapter-selected `LibreCadMasterLegacy` as the only target-parity route, preserves standalone-safe defaults, and forbids version/format auto-promotion; Wave 1 asserts the policy across binary/ASCII mode changes; no external DXF bytes | wave1 executable, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S133 is active |
 | S133 | J109: DXF profile matrix gate | S132 | COMMITTED | ASCII/binary profile matrix; read/write/capture/replay agreement; safe-default isolation; adapter-selected legacy parity; fast DXF gate; plan/scope/sync/fixture gates | compact in-memory matrix covers safe and legacy profiles across ASCII and binary reader/writer paths; code 482 safe binary rejection, typed code-260 agreement, and façade profile selection all pass; no external DXF bytes | wave1 executable, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S134 is active |
-| S134 | J110: DXF profile callback/replay agreement | S133 | ACTIVE | façade callback carriers; raw object/section replay; profile symmetry; malformed rollback; adapter-selected legacy parity; fast DXF gate; plan/scope/sync/fixture gates | extend the matrix through full façade raw callbacks and object/section replay for both profiles, prove malformed profile/type mismatches publish nothing, and retain safe-default isolation; no external DXF bytes | active after S133 commit; use Wave 1/profile target and policy gates, escalating only if callback or replay semantics diverge from the classifier matrix |
+| S134 | J110: DXF profile callback/replay agreement | S133 | COMMITTED | façade callback carriers; raw object/section replay; profile symmetry; malformed rollback; adapter-selected legacy parity; fast DXF gate; plan/scope/sync/fixture gates | façade raw objects and sections round-trip under safe and legacy profiles; opposite-profile object values are rejected transactionally with empty output; no external DXF bytes | wave1 executable, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S135 is active |
+| S135 | J111: DXF profile error/diagnostic behavior | S134 | ACTIVE | error code/stage parity; structured diagnostics; profile mismatch causes; callback suppression; fast DXF gate; plan/scope/sync/fixture gates | compare safe and legacy profile failures through `readAscii`, raw replay, and malformed binary paths, assert stable legacy error/stage/diagnostic causes and zero callback publication; no external DXF bytes | active after S134 commit; use focused Wave 1/diagnostic targets, escalating only if profile failures alter established error precedence or diagnostics |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3142,7 +3144,8 @@ edit this block or commit the same slice concurrently.
 | J107 | S131 | J106 | COMMITTED | EXPERIMENTAL | Prove the LibreCAD adapter migration contract can select the legacy profile on every DXF read/write entry while preserving the standalone-safe default | staged package consumer compiles the explicit legacy selection before read/readAscii/write entry-point references and retains the safe-default check; no external DXF bytes |
 | J108 | S132 | J107 | COMMITTED | EXPERIMENTAL | Decide whether the explicit legacy profile remains adapter-selected or is promoted for a LibreCAD build mode, preserving safe standalone defaults and binary-width safety | compatibility decision record and Wave 1 policy assertions select adapter-only legacy promotion; no external DXF bytes |
 | J109 | S133 | J108 | COMMITTED | EXPERIMENTAL | Prove the selected DXF profile policy across the complete ASCII/binary classifier, capture, replay, and callback matrix | Wave 1 matrix proves safe/legacy ASCII and binary classifier agreement, safe unknown-range rejection, and façade selection; no external DXF bytes |
-| J110 | S134 | J109 | ACTIVE | EXPERIMENTAL | Prove profile symmetry through façade callbacks and raw object/section replay, with transactional malformed mismatch rejection | active packet names callback/replay vectors, publication-empty negatives, and no-fixture evidence |
+| J110 | S134 | J109 | COMMITTED | EXPERIMENTAL | Prove profile symmetry through façade callbacks and raw object/section replay, with transactional malformed mismatch rejection | façade object/section replay vectors pass for safe and legacy profiles; cross-profile malformed values publish no bytes; no external DXF bytes |
+| J111 | S135 | J110 | ACTIVE | EXPERIMENTAL | Prove profile-specific error and diagnostic behavior remains stable and callback publication stays empty on malformed input | active packet names read/replay/binary failure vectors, diagnostic assertions, and no-fixture evidence |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -3387,7 +3390,8 @@ edit this block or commit the same slice concurrently.
 | J107.1 | J107 / S131 | WP4, WP5, WP6, WP8, WP10; LibreCAD adapter migration contract | J106 | COMMITTED | EXPERIMENTAL | compile a source-only adapter-pattern probe showing explicit legacy selection on read/readAscii/write and safe-default isolation; retain no external drawing bytes | staged migration/package target and policy gates pass; no external or derived DXF bytes are retained |
 | J108.1 | J108 / S132 | WP4, WP5, WP6, WP8, WP10; DXF profile promotion decision | J107 | COMMITTED | EXPERIMENTAL | audit target/source semantics and choose a narrow promotion or defer disposition with explicit default/binary-safety evidence; retain no external drawing bytes | focused profile decision target and policy gates pass; no external or derived DXF bytes are retained |
 | J109.1 | J109 / S133 | WP4, WP5, WP6, WP8, WP10; DXF profile matrix gate | J108 | COMMITTED | EXPERIMENTAL | exercise safe/legacy profiles over ASCII/binary parser, capture, replay, and callback paths, with malformed unknown-range rejection and no external drawing bytes | focused profile matrix target and policy gates pass; no external or derived DXF bytes are retained |
-| J110.1 | J110 / S134 | WP4, WP5, WP6, WP8, WP10; DXF profile callback/replay agreement | J109 | ACTIVE | EXPERIMENTAL | extend profile vectors through façade callback carriers and raw object/section replay, reject mismatches transactionally, and retain no external drawing bytes | focused callback/replay target and policy gates pass; no external or derived DXF bytes are retained |
+| J110.1 | J110 / S134 | WP4, WP5, WP6, WP8, WP10; DXF profile callback/replay agreement | J109 | COMMITTED | EXPERIMENTAL | extend profile vectors through façade callback carriers and raw object/section replay, reject mismatches transactionally, and retain no external drawing bytes | focused callback/replay target and policy gates pass; no external or derived DXF bytes are retained |
+| J111.1 | J111 / S135 | WP4, WP5, WP6, WP8, WP10; DXF profile error/diagnostic behavior | J110 | ACTIVE | EXPERIMENTAL | compare profile-specific failures, error precedence, structured diagnostics, and callback suppression without external drawing bytes | focused profile diagnostic target and policy gates pass; no external or derived DXF bytes are retained |
 
 <!-- UPGRADE_PROGRESS_END -->
 

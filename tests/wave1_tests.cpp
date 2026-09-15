@@ -548,6 +548,106 @@ void testDxfProfileMatrix(TestContext& t) {
     }
 }
 
+void testDxfFacadeProfileReplayAgreement(TestContext& t) {
+    struct ReplayCase {
+        dxfRW::DxfCompatibilityProfile facadeProfile;
+        DxfClassifierProfile readerProfile;
+        DRW_Variant code482;
+        dxfReader::TYPE code260Type;
+        dxfReader::TYPE code482Type;
+    };
+    const ReplayCase cases[] = {
+        {dxfRW::DxfCompatibilityProfile::StandaloneSafe,
+         DxfClassifierProfile::StandaloneSafe,
+         DRW_Variant(482, std::string("3.5")), dxfReader::INT32,
+         dxfReader::STRING},
+        {dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy,
+         DxfClassifierProfile::LibreCadMasterLegacy,
+         DRW_Variant(482, 3.5), dxfReader::BOOL, dxfReader::DOUBLE}};
+
+    for (const ReplayCase &replayCase : cases) {
+        DRW_RawDxfObject object;
+        object.name = "PROFILE_REPLAY";
+        object.m_version = DRW::AC1027;
+        object.groups = {DRW_Variant(5, std::string("2A")),
+                         DRW_Variant(260, static_cast<std::int32_t>(7)),
+                         replayCase.code482};
+        std::ostringstream objectBytes;
+        dxfRW objectWriter("");
+        objectWriter.setDxfCompatibilityProfile(replayCase.facadeProfile);
+        objectWriter.version = DRW::AC1027;
+        objectWriter.binFile = false;
+        objectWriter.writer = std::make_unique<dxfWriterAscii>(&objectBytes);
+        t.expect(objectWriter.writeRawDxfObject(&object),
+                 "profile façade writes matching raw object");
+        std::stringstream objectRecords(objectBytes.str());
+        dxfReaderAscii objectReader(&objectRecords);
+        objectReader.setClassifierProfile(replayCase.readerProfile);
+        int code = 0;
+        t.expect(objectReader.readRec(&code) && code == 0
+                     && objectReader.readRec(&code) && code == 5
+                     && objectReader.readRec(&code) && code == 260
+                     && objectReader.type == replayCase.code260Type,
+                 "profile façade raw object framing and code 260 agree");
+        t.expect(objectReader.readRec(&code) && code == 482
+                     && objectReader.type == replayCase.code482Type,
+                 "profile façade raw object code 482 agrees");
+
+        DRW_RawDxfSection section;
+        section.m_name = "PROFILE_REPLAY_SECTION";
+        section.m_version = DRW::AC1027;
+        section.m_groups = {DRW_Variant(260, static_cast<std::int32_t>(7)),
+                            replayCase.code482};
+        std::ostringstream sectionBytes;
+        dxfRW sectionWriter("");
+        sectionWriter.setDxfCompatibilityProfile(replayCase.facadeProfile);
+        sectionWriter.version = DRW::AC1027;
+        sectionWriter.binFile = false;
+        sectionWriter.writer = std::make_unique<dxfWriterAscii>(&sectionBytes);
+        t.expect(sectionWriter.writeRawDxfSection(section),
+                 "profile façade writes matching raw section");
+        std::stringstream sectionRecords(sectionBytes.str());
+        dxfReaderAscii sectionReader(&sectionRecords);
+        sectionReader.setClassifierProfile(replayCase.readerProfile);
+        t.expect(sectionReader.readRec(&code) && code == 0
+                     && sectionReader.readRec(&code) && code == 2
+                     && sectionReader.readRec(&code) && code == 260
+                     && sectionReader.type == replayCase.code260Type
+                     && sectionReader.readRec(&code) && code == 482
+                     && sectionReader.type == replayCase.code482Type
+                     && sectionReader.readRec(&code) && code == 0,
+                 "profile façade raw section framing and types agree");
+    }
+
+    DRW_RawDxfObject legacyOnly;
+    legacyOnly.name = "PROFILE_MISMATCH";
+    legacyOnly.m_version = DRW::AC1027;
+    legacyOnly.groups = {DRW_Variant(5, std::string("2A")),
+                         DRW_Variant(260, static_cast<std::int32_t>(7)),
+                         DRW_Variant(482, 3.5)};
+    std::ostringstream safeBytes;
+    dxfRW safeWriter("");
+    safeWriter.version = DRW::AC1027;
+    safeWriter.binFile = false;
+    safeWriter.writer = std::make_unique<dxfWriterAscii>(&safeBytes);
+    t.expect(!safeWriter.writeRawDxfObject(&legacyOnly)
+                 && safeBytes.str().empty(),
+             "safe façade rejects legacy double raw object transactionally");
+
+    DRW_RawDxfObject safeOnly = legacyOnly;
+    safeOnly.groups.back() = DRW_Variant(482, std::string("opaque"));
+    std::ostringstream legacyBytes;
+    dxfRW legacyWriter("");
+    legacyWriter.setDxfCompatibilityProfile(
+        dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy);
+    legacyWriter.version = DRW::AC1027;
+    legacyWriter.binFile = false;
+    legacyWriter.writer = std::make_unique<dxfWriterAscii>(&legacyBytes);
+    t.expect(!legacyWriter.writeRawDxfObject(&safeOnly)
+                 && legacyBytes.str().empty(),
+             "legacy façade rejects safe opaque raw object transactionally");
+}
+
 DRW_RawDxfObject rawBoundaryObject() {
     DRW_RawDxfObject object;
     object.name = "RAW_BOUNDARY";
@@ -1022,6 +1122,7 @@ int main() {
     testDxfFacadeClassifierProfile(context);
     testDxfProfilePromotionPolicy(context);
     testDxfProfileMatrix(context);
+    testDxfFacadeProfileReplayAgreement(context);
     testDxfRawBoundaryReplay(context);
     testDxfRawSectionBoundaryReplay(context);
     testDxfBinaryRawBoundaryReplay(context);
