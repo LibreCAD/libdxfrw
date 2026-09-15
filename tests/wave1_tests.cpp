@@ -850,6 +850,58 @@ void testDxfRawSectionBoundaryReplay(TestContext& t) {
              "DXF raw section rejects non-string opaque boundary");
 }
 
+void testDxfRawSectionCaptureReplay(TestContext& t) {
+    const std::string content =
+        "0\nSECTION\n2\nLOCAL_CAPTURE\n260\n2147483647\n"
+        "269\n-7\n482\n3.5\n1004\nAB\n"
+        "0\nENDSEC\n0\nEOF\n";
+    const dxfRW::DxfCompatibilityProfile profiles[] = {
+        dxfRW::DxfCompatibilityProfile::StandaloneSafe,
+        dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy};
+    for (const dxfRW::DxfCompatibilityProfile profile : profiles) {
+        ProfileProbeInterface interface_;
+        dxfRW reader("");
+        reader.setDxfCompatibilityProfile(profile);
+        std::string input = content;
+        t.expect(reader.readAscii(&interface_, false, input)
+                     && interface_.sections.size() == 1,
+                 "DXF raw section capture publishes one section");
+        if (interface_.sections.size() != 1)
+            continue;
+        const DRW_RawDxfSection& captured = interface_.sections.front();
+        t.expect(captured.m_hasRawValues && captured.m_groups.size() == 4
+                     && captured.m_rawValues.size() == 4
+                     && captured.m_rawValues[0] == "2147483647"
+                     && captured.m_rawValues[1] == "-7"
+                     && captured.m_rawValues[2] == "3.5"
+                     && captured.m_rawValues[3] == "AB",
+                 "DXF raw section capture retains source spellings");
+        if (captured.m_groups.size() == 4) {
+            const bool legacy = profile
+                == dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy;
+            t.expect(captured.m_groups[2].type()
+                         == (legacy ? DRW_Variant::DOUBLE
+                                    : DRW_Variant::STRING),
+                     "DXF profile capture retains canonical code-482 type");
+        }
+
+        std::ostringstream output;
+        dxfRW writer("");
+        writer.setDxfCompatibilityProfile(profile);
+        writer.version = DRW::AC1027;
+        writer.binFile = false;
+        writer.writer = std::make_unique<dxfWriterAscii>(&output);
+        t.expect(writer.writeRawDxfSection(captured),
+                 "DXF captured raw section replays through matching profile");
+        const std::string replay = output.str();
+        t.expect(replay.find("260\n2147483647\n") != std::string::npos
+                     && replay.find("269\n-7\n") != std::string::npos
+                     && replay.find("482\n3.5\n") != std::string::npos
+                     && replay.find("1004\nAB\n") != std::string::npos,
+                 "DXF captured raw section replay preserves source text");
+    }
+}
+
 DRW_RawDxfObject rawBinaryBoundaryObject() {
     DRW_RawDxfObject object;
     object.name = "RAW_BINARY_BOUNDARY";
@@ -1173,6 +1225,7 @@ int main() {
     testDxfProfileDiagnostics(context);
     testDxfRawBoundaryReplay(context);
     testDxfRawSectionBoundaryReplay(context);
+    testDxfRawSectionCaptureReplay(context);
     testDxfBinaryRawBoundaryReplay(context);
     testRawCapture(context);
     testHatchValidationIgnoresInactiveGradient(context);
