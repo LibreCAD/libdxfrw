@@ -140,6 +140,10 @@ public:
             spatialFilterRegistration.handle = 0xD000u;
             registeredSpatialFilter_ = writer_->registerSpatialFilterObjectClass(
                 &spatialFilterRegistration);
+            DRW_GeoData geoDataRegistration;
+            geoDataRegistration.handle = 0xD100u;
+            registeredGeoData_ = writer_->registerGeoDataObjectClass(
+                &geoDataRegistration);
         }
     }
 
@@ -209,6 +213,7 @@ public:
             {"LOCAL_SPATIAL_INDEX", 0xCE00u},
             {"LOCAL_TABLESTYLE", 0xCF00u},
             {"LOCAL_SPATIAL_FILTER", 0xD000u},
+            {"LOCAL_GEODATA", 0xD100u},
         };
         wroteDictionary_ = registeredDictionary_
             && writer_->writeDictionary(&dictionary)
@@ -835,6 +840,31 @@ public:
         rejectedMalformedSpatialFilter_ =
             !writer_->writeSpatialFilter(&invalidSpatialFilter);
 
+        DRW_GeoData geoData;
+        geoData.handle = 0xD100u;
+        geoData.parentHandle = dictionary.handle;
+        geoData.m_version = 1;
+        geoData.m_hostBlockHandle = 0x17u;
+        geoData.m_coordinatesType = 1;
+        geoData.m_designPoint = DRW_Coord{100.0, 200.0, 300.0};
+        geoData.m_referencePoint = DRW_Coord{10.0, 20.0, 30.0};
+        geoData.m_upDirection = DRW_Coord{0.0, 0.0, 1.0};
+        geoData.m_northDirection = DRW_Coord{0.0, 1.0, 0.0};
+        geoData.m_horizontalUnitScale = 1.5;
+        geoData.m_horizontalUnits = 2;
+        geoData.m_coordinateSystemDefinition = "LOCAL_COORD_SYS";
+        geoData.m_geoRssTag = "LOCAL_GEO_TAG";
+        geoData.m_observationFromTag = "LOCAL_FROM";
+        geoData.m_observationToTag = "LOCAL_TO";
+        geoData.m_observationCoverageTag = "LOCAL_COVERAGE";
+        wroteGeoData_ = registeredGeoData_ && writer_->writeGeoData(&geoData)
+            && geoData.handle != 0;
+
+        DRW_GeoData invalidGeoData = geoData;
+        invalidGeoData.handle = 0xD101u;
+        invalidGeoData.m_designPoint.x = std::numeric_limits<double>::quiet_NaN();
+        rejectedMalformedGeoData_ = !writer_->writeGeoData(&invalidGeoData);
+
         DRW_Group group;
         group.handle = 0xA600u;
         group.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
@@ -1033,7 +1063,7 @@ public:
         if (data.handle == 0xA601u) {
             readDictionarySeen_ = data.parentHandle
                     == DRW::DwgNamedObjectsDictionaryHandle
-                && data.m_entries.size() == 28
+                && data.m_entries.size() == 29
                 && data.m_entries[0].m_name == "LOCAL_XRECORD"
                 && data.m_entries[0].m_handle == 0xA602u
                 && data.m_entries[1].m_name == "LOCAL_PLOTSETTINGS"
@@ -1089,7 +1119,9 @@ public:
                 && data.m_entries[26].m_name == "LOCAL_TABLESTYLE"
                 && data.m_entries[26].m_handle == 0xCF00u
                 && data.m_entries[27].m_name == "LOCAL_SPATIAL_FILTER"
-                && data.m_entries[27].m_handle == 0xD000u;
+                && data.m_entries[27].m_handle == 0xD000u
+                && data.m_entries[28].m_name == "LOCAL_GEODATA"
+                && data.m_entries[28].m_handle == 0xD100u;
         }
     }
     void addXRecord(const DRW_XRecord& data) override {
@@ -1380,6 +1412,25 @@ public:
         if (data.handle == 0xD001u)
             readMalformedSpatialFilterSeen_ = true;
     }
+    void addGeoData(const DRW_GeoData& data) override {
+        if (data.handle == 0xD100u)
+            readGeoDataSeen_ = data.parentHandle == 0xA601u
+                && data.m_version == 1
+                && data.m_hostBlockHandle == 0x17u
+                && data.m_coordinatesType == 1
+                && data.m_designPoint.x == 100.0
+                && data.m_referencePoint.y == 20.0
+                && data.m_horizontalUnitScale == 1.5
+                && data.m_horizontalUnits == 2
+                && data.m_coordinateSystemDefinition == "LOCAL_COORD_SYS"
+                && data.m_geoRssTag == "LOCAL_GEO_TAG"
+                && data.m_observationFromTag == "LOCAL_FROM"
+                && data.m_observationToTag == "LOCAL_TO"
+                && data.m_observationCoverageTag == "LOCAL_COVERAGE"
+                && data.m_points.empty() && data.m_faces.empty();
+        if (data.handle == 0xD101u)
+            readMalformedGeoDataSeen_ = true;
+    }
     void addInsert(const DRW_Insert& data) override {
         readInsertSeen_ = true;
         readAttribSeen_ = data.attlist.size() == 1
@@ -1427,6 +1478,7 @@ public:
             && wroteSpatialIndex_
             && (wroteTableStyle_ || rejectedUnsupportedTableStyle_)
             && wroteSpatialFilter_
+            && wroteGeoData_
             && wroteGroup_;
     }
     bool rejectedMalformedObject() const { return rejectedMalformedObject_; }
@@ -1485,6 +1537,8 @@ public:
     bool rejectedMalformedTableStyle() const { return rejectedMalformedTableStyle_; }
     bool rejectedUnsupportedTableStyle() const { return rejectedUnsupportedTableStyle_; }
     bool rejectedMalformedSpatialFilter() const { return rejectedMalformedSpatialFilter_; }
+    bool wroteGeoData() const { return wroteGeoData_; }
+    bool rejectedMalformedGeoData() const { return rejectedMalformedGeoData_; }
     bool readLineSeen() const { return readLineSeen_; }
     bool readSimpleEntitiesSeen() const {
         return readPointSeen_ && readCircleSeen_ && readArcSeen_
@@ -1517,6 +1571,7 @@ public:
             && readIDBufferSeen_ && readLayerIndexSeen_ && readSpatialIndexSeen_
             && (readTableStyleSeen_ || !tableStyleExpected_)
             && readSpatialFilterSeen_
+            && readGeoDataSeen_
             && readGroupSeen_;
     }
     bool readMalformedObjectSeen() const { return readMalformedObjectSeen_; }
@@ -1587,6 +1642,8 @@ public:
     bool readMalformedTableStyleSeen() const { return readMalformedTableStyleSeen_; }
     bool readSpatialFilterSeen() const { return readSpatialFilterSeen_; }
     bool readMalformedSpatialFilterSeen() const { return readMalformedSpatialFilterSeen_; }
+    bool readGeoDataSeen() const { return readGeoDataSeen_; }
+    bool readMalformedGeoDataSeen() const { return readMalformedGeoDataSeen_; }
     void setTableStyleExpected(bool expected) { tableStyleExpected_ = expected; }
     const DRW_Line& readLine() const { return readLine_; }
 
@@ -1647,6 +1704,7 @@ private:
     bool wroteSpatialIndex_ {false};
     bool wroteTableStyle_ {false};
     bool wroteSpatialFilter_ {false};
+    bool wroteGeoData_ {false};
     bool rejectedMalformedObject_ {false};
     bool rejectedMalformedStyle_ {false};
     bool rejectedMalformedMLeaderStyle_ {false};
@@ -1675,6 +1733,7 @@ private:
     bool rejectedMalformedTableStyle_ {false};
     bool rejectedUnsupportedTableStyle_ {false};
     bool rejectedMalformedSpatialFilter_ {false};
+    bool rejectedMalformedGeoData_ {false};
     bool registeredDictionary_ {false};
     bool registeredMLeaderStyle_ {false};
     bool registeredDictionaryVar_ {false};
@@ -1700,6 +1759,7 @@ private:
     bool registeredSpatialIndex_ {false};
     bool registeredTableStyle_ {false};
     bool registeredSpatialFilter_ {false};
+    bool registeredGeoData_ {false};
     bool registeredPlotSettings_ {false};
     bool readLineSeen_ {false};
     bool readPointSeen_ {false};
@@ -1751,6 +1811,7 @@ private:
     bool readSpatialIndexSeen_ {false};
     bool readTableStyleSeen_ {false};
     bool readSpatialFilterSeen_ {false};
+    bool readGeoDataSeen_ {false};
     bool tableStyleExpected_ {false};
     bool readMalformedObjectSeen_ {false};
     bool readMalformedStyleSeen_ {false};
@@ -1778,6 +1839,7 @@ private:
     bool readMalformedSpatialIndexSeen_ {false};
     bool readMalformedTableStyleSeen_ {false};
     bool readMalformedSpatialFilterSeen_ {false};
+    bool readMalformedGeoDataSeen_ {false};
     DRW_Line readLine_;
     dx_data data_;
 };
@@ -1932,6 +1994,11 @@ int main(int argc, char** argv) {
         expect(writeIface.rejectedMalformedSpatialFilter(),
                ("local DWG writer rejected malformed SPATIAL_FILTER transaction" + suffix).c_str(),
                failures);
+        expect(writeIface.wroteGeoData(),
+               ("local DWG writer emitted GEODATA object" + suffix).c_str(), failures);
+        expect(writeIface.rejectedMalformedGeoData(),
+               ("local DWG writer rejected malformed GEODATA transaction" + suffix).c_str(),
+               failures);
         expect(std::filesystem::exists(output),
                ("local DWG output is published" + suffix).c_str(), failures);
 
@@ -2017,6 +2084,8 @@ int main(int argc, char** argv) {
         expect(readIface.readSpatialFilterSeen(),
                ("local DWG self-read publishes SPATIAL_FILTER" + suffix).c_str(),
                failures);
+        expect(readIface.readGeoDataSeen(),
+               ("local DWG self-read publishes GEODATA" + suffix).c_str(), failures);
         expect(!readIface.readMalformedObjectSeen(),
                ("local DWG self-read omits rolled-back malformed object" + suffix).c_str(),
                failures);
@@ -2091,6 +2160,9 @@ int main(int argc, char** argv) {
                failures);
         expect(!readIface.readMalformedSpatialFilterSeen(),
                ("local DWG self-read omits rolled-back malformed SPATIAL_FILTER" + suffix).c_str(),
+               failures);
+        expect(!readIface.readMalformedGeoDataSeen(),
+               ("local DWG self-read omits rolled-back malformed GEODATA" + suffix).c_str(),
                failures);
         if (readIface.readLineSeen()) {
             const DRW_Line& line = readIface.readLine();

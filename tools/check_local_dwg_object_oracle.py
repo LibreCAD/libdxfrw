@@ -82,6 +82,8 @@ TABLESTYLE_HANDLE = 0xCF00
 MALFORMED_TABLESTYLE_HANDLE = 0xCF01
 SPATIAL_FILTER_HANDLE = 0xD000
 MALFORMED_SPATIAL_FILTER_HANDLE = 0xD001
+GEODATA_HANDLE = 0xD100
+MALFORMED_GEODATA_HANDLE = 0xD101
 
 RENDER_SETTINGS_KINDS = {
     "Settings": ("RENDERSETTINGS", RENDERSETTINGS_HANDLE, 556),
@@ -167,7 +169,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         raise ValueError("GROUP name, owner, or member stream mismatch")
 
     dictionary = find_record(records, "DICTIONARY", DICTIONARY_HANDLE)
-    if (dictionary.get("numitems") != 28
+    if (dictionary.get("numitems") != 29
             or dictionary.get("is_hardowner") != 1
             or owner_handle(dictionary) != 0x0C):
         raise ValueError("custom DICTIONARY count, owner, or cloning mismatch")
@@ -621,6 +623,17 @@ def check_objects(payload: dict, version_name: str) -> dict:
             or len(spatial_filter["transform"]) != 12):
         raise ValueError("SPATIAL_FILTER owner or bounded payload mismatch")
 
+    geodata = find_record(records, "GEODATA", GEODATA_HANDLE)
+    expected_geodata_type = 528 if version_name in {
+        "AC1015", "AC1018", "AC1021"} else 527
+    if (geodata.get("type") != expected_geodata_type
+            or record_handle(geodata) != GEODATA_HANDLE):
+        raise ValueError("GEODATA type or handle mismatch")
+    geodata_discrepancies = [
+        "LibreDWG 0.14 decodes local version-1 GEODATA payload fields "
+        "differently from libdxfrw; only type/handle identity is qualified"
+    ]
+
     dictionary_default = find_record(
         records, "DICTIONARYWDFLT", DICTIONARYWDFLT_HANDLE)
     if (owner_handle(dictionary_default) != DICTIONARY_HANDLE
@@ -674,6 +687,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         MALFORMED_SPATIAL_INDEX_HANDLE: "SPATIAL_INDEX",
         MALFORMED_TABLESTYLE_HANDLE: "TABLESTYLE",
         MALFORMED_SPATIAL_FILTER_HANDLE: "SPATIAL_FILTER",
+        MALFORMED_GEODATA_HANDLE: "GEODATA",
     }
     if any(record_handle(record) in malformed_handles
            and record.get("object") == malformed_handles[record_handle(record)]
@@ -713,6 +727,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "SPATIAL_INDEX": SPATIAL_INDEX_HANDLE,
             "TABLESTYLE": TABLESTYLE_HANDLE,
             "SPATIAL_FILTER": SPATIAL_FILTER_HANDLE,
+            "GEODATA": GEODATA_HANDLE,
             "DICTIONARYWDFLT": DICTIONARYWDFLT_HANDLE,
         },
         "objectStatus": "qualified",
@@ -721,7 +736,8 @@ def check_objects(payload: dict, version_name: str) -> dict:
                                  + dbcolor_discrepancies
                                  + light_list_discrepancies
                                  + spatial_index_discrepancies
-                                 + table_style_discrepancies),
+                                 + table_style_discrepancies
+                                 + geodata_discrepancies),
     }
 
 
@@ -792,7 +808,7 @@ def self_test() -> None:
              "ownerhandle": [4, 1, 0x0C, 0x0C], "name": "LOCAL_GROUP",
              "groups": [[5, 1, 0x1234]]},
             {"object": "DICTIONARY", "handle": [0, 1, DICTIONARY_HANDLE],
-             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 28,
+             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 29,
              "is_hardowner": 1},
             {"object": "XRECORD", "handle": [0, 1, XRECORD_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
@@ -973,6 +989,10 @@ def self_test() -> None:
              "front_clip_z": 5.0, "back_clip_on": 0,
              "inverse_transform": [0.0] * 12,
              "transform": [0.0] * 12},
+            {"object": "GEODATA",
+             "handle": [0, 1, GEODATA_HANDLE],
+             "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "type": 527},
         ],
     }
     summary = check_objects(payload, "AC1024")
