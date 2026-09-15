@@ -201,7 +201,8 @@ def check(prefix: Path, cxx: str) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--prefix", type=Path)
+    parser.add_argument("--prefix", type=Path, action="append",
+                        help="staged install prefix (repeat for isolation checks)")
     parser.add_argument("--self-test", action="store_true",
                         help="exercise staged-path acceptance and rejection")
     parser.add_argument("--cxx", default=os.environ.get("CXX", "c++"))
@@ -209,17 +210,22 @@ def main() -> int:
     if args.self_test:
         self_test_staged_flags()
         print("staged package checker self-test: PASS")
-        if args.prefix is None:
+        if not args.prefix:
             return 0
-    if args.prefix is None:
+    if not args.prefix:
         parser.error("--prefix is required unless --self-test is used alone")
+    prefixes = [prefix.resolve() for prefix in args.prefix]
+    if len(prefixes) != len(set(prefixes)):
+        parser.error("--prefix values must identify distinct staged roots")
     try:
-        check(args.prefix, args.cxx)
+        for prefix in prefixes:
+            check(prefix, args.cxx)
     except subprocess.CalledProcessError as error:
         if error.output:
             print(error.output, end="")
         raise
-    print("staged package check: PASS")
+    print("staged package check: PASS (%d prefix%s)" %
+          (len(prefixes), "es" if len(prefixes) != 1 else ""))
     return 0
 
 
