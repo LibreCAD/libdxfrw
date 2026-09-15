@@ -1370,6 +1370,59 @@ void testDxfRawObjectHandleDiagnostics(TestContext& t) {
              "binary DXF duplicate handle records offending handle");
 }
 
+void testDxfRawObjectMalformedHandleDiagnostics(TestContext& t) {
+    const std::string malformedRecords =
+        "0\nSECTION\n2\nOBJECTS\n0\nLOCAL_BAD_HANDLE\n"
+        "5\nnot-hex\n0\nENDSEC\n0\nEOF\n";
+    ProfileProbeInterface interface_;
+    dxfRW reader("");
+    std::string input = malformedRecords;
+    t.expect(!reader.readAscii(&interface_, false, input)
+                 && reader.getError() == DRW::BAD_CODE_PARSED
+                 && interface_.objects.empty(),
+             "DXF malformed handle keeps parse error and suppresses callback");
+    const DRW_OperationDiagnostic diagnostic = reader.getLastDiagnostic();
+    t.expect(diagnostic.operation == DRW::OperationKind::Read
+                 && diagnostic.phase == DRW::OperationPhase::Validation
+                 && diagnostic.cause == DRW::OperationCause::ValidationFailure
+                 && diagnostic.code == "invalid-handle"
+                 && !diagnostic.hasHandle
+                 && diagnostic.message.find("invalid self handle")
+                        != std::string::npos,
+             "DXF malformed handle records bounded validation context");
+
+    std::ostringstream binarySource;
+    dxfWriterBinary binaryWriter(&binarySource);
+    binaryWriter.writeString(0, "SECTION");
+    binaryWriter.writeString(2, "OBJECTS");
+    binaryWriter.writeString(0, "LOCAL_BINARY_BAD_HANDLE");
+    binaryWriter.writeString(5, "123456789ABCDEF01");
+    binaryWriter.writeString(0, "ENDSEC");
+    binaryWriter.writeString(0, "EOF");
+    std::stringstream binaryInput(binarySource.str());
+    ProfileProbeInterface binaryInterface;
+    dxfRW binaryReader("");
+    binaryReader.binFile = true;
+    binaryReader.reader = std::make_unique<dxfReaderBinary>(&binaryInput);
+    binaryReader.reader->setClassifierProfile(
+        DxfClassifierProfile::StandaloneSafe);
+    binaryReader.iface = &binaryInterface;
+    binaryReader.beginOperationDiagnostic(DRW::OperationKind::Read);
+    t.expect(!binaryReader.processDxf()
+                 && binaryReader.getError() == DRW::BAD_CODE_PARSED
+                 && binaryInterface.objects.empty(),
+             "binary overlength handle keeps parse error and callback policy");
+    const DRW_OperationDiagnostic binaryDiagnostic =
+        binaryReader.getLastDiagnostic();
+    t.expect(binaryDiagnostic.operation == DRW::OperationKind::Read
+                 && binaryDiagnostic.phase == DRW::OperationPhase::Validation
+                 && binaryDiagnostic.cause
+                        == DRW::OperationCause::ValidationFailure
+                 && binaryDiagnostic.code == "invalid-handle"
+                 && !binaryDiagnostic.hasHandle,
+             "binary overlength handle records invalid-handle diagnostic");
+}
+
 void testRawCapture(TestContext& t) {
     std::stringstream records("260\n2147483647\n482\n3.14\n1004\nAB\n");
     dxfRW owner("");
@@ -1578,6 +1631,7 @@ int main() {
     testDxfBinaryRawObjectCaptureReplay(context);
     testDxfRawObjectHandleScope(context);
     testDxfRawObjectHandleDiagnostics(context);
+    testDxfRawObjectMalformedHandleDiagnostics(context);
     testRawCapture(context);
     testHatchValidationIgnoresInactiveGradient(context);
     testFixedSpaceBlockClassification(context);

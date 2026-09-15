@@ -13729,13 +13729,25 @@ bool dxfRW::captureRawGroup(DRW_RawDxfObject &obj, int code,
         const bool validHandle = reader->allowsWideHandleLexemes()
             ? reader->isValidHandleLexeme()
             : reader->isValidHandleString();
-        if (!validHandle)
+        if (!validHandle) {
+            recordOperationDiagnostic(
+                DRW::OperationPhase::Validation,
+                DRW::OperationCause::ValidationFailure,
+                "invalid-handle",
+                "a DXF raw record contains an invalid self handle");
             return false;
+        }
     }
     if (code == DRW::dxfCode::HANDLE) {
         std::uint64_t rawHandle = 0;
-        if (!parseRawDxfHandleLexeme(reader->getString(), rawHandle))
+        if (!parseRawDxfHandleLexeme(reader->getString(), rawHandle)) {
+            recordOperationDiagnostic(
+                DRW::OperationPhase::Validation,
+                DRW::OperationCause::ValidationFailure,
+                "invalid-handle",
+                "a DXF raw record contains an invalid self handle");
             return false;
+        }
         if (rawHandle != 0 && m_readRawHandles.count(rawHandle) != 0) {
             const bool hasDiagnosticHandle =
                 rawHandle <= std::numeric_limits<std::uint32_t>::max();
