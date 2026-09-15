@@ -21,6 +21,7 @@
 #include "intern/dwgreader32.h"
 #include "intern/dwgreaderR11.h"
 #include "intern/dwgreaderR1_40.h"
+#include "intern/dwgreader.h"
 #include "intern/dwgutil.h"
 
 namespace {
@@ -167,6 +168,41 @@ void testSectionNameMatrix(TestContext& t) {
              "section matrix keeps empty names unsupported");
 }
 
+void testR2007ClassStringFooter(TestContext& t) {
+    // The AC1024 RTM class footer uses the high-bit extension when the UTF-16
+    // string stream exceeds 0x7fff bits. Keep this vector local and synthetic:
+    // it exercises the wire arithmetic without retaining a drawing fixture.
+    constexpr std::uint64_t footerEndBit = 40800;
+    constexpr std::uint64_t highSize = 1;
+    constexpr std::uint64_t lowSize = 0x8001;
+    constexpr std::uint64_t expectedSize = (highSize << 15) | 1;
+    constexpr std::uint64_t expectedStart = footerEndBit - 32 - expectedSize;
+    std::vector<std::uint8_t> bytes(5200, 0);
+    bytes[footerEndBit / 8 - 4] = static_cast<std::uint8_t>(highSize);
+    bytes[footerEndBit / 8 - 3] = 0;
+    bytes[footerEndBit / 8 - 2] = static_cast<std::uint8_t>(lowSize & 0xff);
+    bytes[footerEndBit / 8 - 1] = static_cast<std::uint8_t>(lowSize >> 8);
+    dwgBuffer buffer(bytes.data(), bytes.size());
+    std::uint64_t start = 0;
+    std::uint64_t size = 0;
+    t.expect(readDwgClassStringFooter(buffer, footerEndBit, start, size),
+             "AC1024 class footer accepts high-bit string-size extension");
+    t.expect(start == expectedStart && size == expectedSize,
+             "AC1024 class footer reconstructs extended string bounds");
+    t.expect(buffer.getPosition() == expectedStart / 8
+                 && buffer.getBitPos() == expectedStart % 8,
+             "AC1024 class footer leaves cursor at string start");
+
+    std::vector<std::uint8_t> malformed(5200, 0);
+    malformed[footerEndBit / 8 - 4] = 0xff;
+    malformed[footerEndBit / 8 - 3] = 0xff;
+    malformed[footerEndBit / 8 - 2] = 0xff;
+    malformed[footerEndBit / 8 - 1] = 0xff;
+    dwgBuffer bad(malformed.data(), malformed.size());
+    t.expect(!readDwgClassStringFooter(bad, footerEndBit, start, size),
+             "AC1024 class footer rejects an overlong string-size extension");
+}
+
 }  // namespace
 
 int main() {
@@ -174,6 +210,7 @@ int main() {
     testVersionDispatch(context);
     testReadBufferRejection(context);
     testSectionNameMatrix(context);
+    testR2007ClassStringFooter(context);
     if (context.failures != 0) {
         std::cerr << context.failures << " DWG reader matrix assertion(s) failed\n";
         return 1;

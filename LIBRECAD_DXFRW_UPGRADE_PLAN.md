@@ -52,9 +52,9 @@ then pin an immutable commit before importing source.
 ### Execution refresh (2026-09-15)
 
 The implementation worktree is rebased on `origin/master` and is currently
-181 commits ahead with no commits behind it. The latest green slice is
-S154/J130, including the live-plan update and its required policy gates.
-S155/J131 is the active slice; its AC1024 class-parser correction is the next
+182 commits ahead with no commits behind it. The latest green slice is
+S155/J131, including the live-plan update and its required policy gates.
+S156/J132 is the active slice; its R2010+ spline bit-stream audit is the next
 commit boundary.
 The worktree is clean at the last committed boundary; any subsequent active-
 slice edits are intentionally uncommitted until their narrow gate and
@@ -1934,20 +1934,22 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint (2026-09-15): S154/J130 fast-test command coverage guards
-  are committed; S155/J131 AC1024 class-parser correction is active.
+- Current checkpoint (2026-09-15): S155/J131 AC1024 class-parser qualification
+  is committed; S156/J132 R2010+ spline bit-stream audit is active.
   The
   branch is rebased on `origin/master`, and
   the pinned source/package/consumer convergence remains complete while
   runtime and wire-format parity stay evidence-gated. The AC1015 IMAGE legacy
   boundary remains fail-closed, and all format-support claims remain limited
   to rows with eligible runtime/oracle evidence. The next dependency-ready
-  sequence is S155 AC1024 class-parser correction; it is a separate commit
+  sequence is S156 R2010+ spline bit-stream audit; it is a separate commit
   with no external or derived DWG/DXF bytes.
-- Latest implementation slice: S154/J130 fast-test command coverage guards are
-  committed. The package self-test rejects CTest, network fetchers, and
-  dependency installers before they can run, preserving the reduced-validation
-  inner loop. No external or derived drawing bytes are retained.
+- Latest implementation slice: S155/J131 AC1024 class-parser qualification is
+  committed. A synthetic high-bit footer vector and overlength negative case
+  pass, and all nine available temporary AC1024 samples convert successfully;
+  no reported error-8 reproduction is present in this corpus, so the known
+  failure remains an explicit external-corpus follow-up. No drawing bytes are
+  retained.
 - Latest implementation slice: S54/J30 VISUALSTYLE object-family parity is
   committed. The local-from-scratch production writer registers the custom
   class before CLASSES, emits bounded visual-style payloads for all six
@@ -2783,9 +2785,10 @@ edit this block or commit the same slice concurrently.
   names TVDEVICEPROPERTIES and the two VX frames as UNKNOWN_OBJ, while local
   self-read remains authoritative for VX payload fields; no generated drawings
   or external assets are retained.
-- Last fully resolved slice: S154 (the fast-test command coverage slice is
-  committed by the matching `Plan-Slice: S154` trailer; the commit carries
-  forbidden-command guard evidence and
+- Last fully resolved slice: S155 (the AC1024 class-parser qualification slice
+  is committed by the matching `Plan-Slice: S155` trailer; the commit carries
+  high-bit footer regression and nine-sample temporary matrix evidence, with
+  the unresolved external-corpus condition explicitly recorded and
   all required policy gates). The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
@@ -2807,18 +2810,18 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 154 (`COMMITTED`); S155 is active.
+- Resolved slices: 155 (`COMMITTED`); S156 is active.
 - Slice states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 154 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 155 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 156 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 157 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 252 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 253 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 139 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S154 are committed; S155/J131 is active with a ready packet
-  naming AC1024 class-parser correction and focused fast gates.
+  0 DEFERRED_EXTERNAL / 140 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S155 are committed; S156/J132 is active with a ready packet
+  naming the R2010+ spline bit-stream audit and focused fast gates.
   Keep validation fast and
   self-updating: run source/plan/policy checks and the focused carrier target
   after each implementation item, commit only after the narrow gate is green,
@@ -3021,7 +3024,8 @@ edit this block or commit the same slice concurrently.
 | S152 | J128: package-prefix diagnostic guard | S151 | COMMITTED | actionable root-mismatch diagnostics; error specificity; fast package self-test; plan/scope/sync/fixture gates | negative self-tests require diagnostics to include the exact offending path or flag for mixed roots, stale prefixes, source-tree paths, and system paths; no external DXF bytes | diagnostic self-test, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S153 is active |
 | S153 | J129: checker self-test coverage guard | S152 | COMMITTED | fail-closed self-test breadth; clean-path coverage; fast package self-test; plan/scope/sync/fixture gates | synthetic coverage pairs clean acceptance with stable negative diagnostics for missing exports/config targets, absolute include/library paths, stale roots, source-tree paths, and system paths; no external DXF bytes | self-test coverage, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S154 is active |
 | S154 | J130: fast-test command coverage guard | S153 | COMMITTED | fast validation command coverage; no accidental full-suite escalation; package self-test; plan/scope/sync/fixture gates | package self-test rejects CTest, network fetchers, and dependency installers before execution, preserving the reduced-validation inner loop; no external DXF bytes | fast-command self-test, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S155 is active |
-| S155 | J131: AC1024 class-parser correction | S154 | ACTIVE | DWG R2007/R2010 class metadata; high-bit string-size extension; RTM compatibility; focused DWG gate; plan/scope/sync/fixture gates | reproduce the known AC1024 RTM `readDwgClasses` error-8 failure from temporary samples, trace the high-bit `strDataSize` extension against the ODA layout, and apply the smallest version-gated correction; no drawing bytes committed | active after S154 repair; use temporary samples, ODA/spec trace, focused DWG gate, fixture admission, import scope, pinned sync, and diff gates |
+| S155 | J131: AC1024 class-parser qualification | S154 | COMMITTED | DWG R2007/R2010 class metadata; high-bit string-size extension; RTM compatibility; focused DWG gate; plan/scope/sync/fixture gates | synthetic high-bit footer and overlength vectors pass; all nine available temporary AC1024 samples convert successfully; no error-8 reproduction is present, so the external-corpus failure remains explicitly unresolved and non-promoting; no drawing bytes committed | DWG matrix test, nine-sample temporary conversion matrix, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S156 is active |
+| S156 | J132: R2010+ spline bit-stream audit | S155 | ACTIVE | AC1027/AC1032 SPLINE flags; ODA bit-width contract; cursor alignment; focused entity gate; plan/scope/sync/fixture gates | trace `DRW_Spline::parseDwg` on a local bit-vector and any available temporary AC1027/AC1032 samples; verify `splFlag1` width against the ODA layout, then apply the smallest correction only if alignment evidence requires it; no drawing bytes committed | active after S155 commit; use local bit-vector, temporary sample traces, focused entity gate, fixture admission, import scope, pinned sync, and diff gates |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3180,7 +3184,8 @@ edit this block or commit the same slice concurrently.
 | J128 | S152 | J127 | COMMITTED | EXPERIMENTAL | Prove root-mismatch failures identify the offending path or flag with a stable automation-friendly diagnostic | diagnostic assertions for mixed roots, stale prefixes, source-tree paths, and system paths plus clean-path self-test; no-fixture evidence |
 | J129 | S153 | J128 | COMMITTED | EXPERIMENTAL | Prove every staged-path rejection branch has a clean acceptance and negative diagnostic assertion | paired clean/negative export-branch self-tests and no-fixture evidence |
 | J130 | S154 | J129 | COMMITTED | EXPERIMENTAL | Prove the documented fast validation command covers staged-package rejection branches without full-suite or network escalation | forbidden-command guard evidence, fast package self-test, and no-fixture evidence |
-| J131 | S155 | J130 | ACTIVE | EXPERIMENTAL | Correct the known AC1024 RTM `readDwgClasses` high-bit `strDataSize` parsing failure without altering other version routes | active packet names temporary-sample reproduction, ODA-backed trace, narrow correction, and no-fixture evidence |
+| J131 | S155 | J130 | COMMITTED | EXPERIMENTAL | Qualify AC1024 RTM class-string high-bit parsing and retain an explicit disposition when the available corpus cannot reproduce the reported error-8 failure | synthetic footer regression, nine-sample temporary conversion matrix, unresolved external-corpus condition, and no-fixture evidence |
+| J132 | S156 | J131 | ACTIVE | EXPERIMENTAL | Audit and, only if evidence requires, correct the R2010+ SPLINE `splFlag1` bit width without disturbing other entity fields | active packet names local bit-vector, available AC1027/AC1032 traces, narrow correction condition, and no-fixture evidence |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -3446,7 +3451,8 @@ edit this block or commit the same slice concurrently.
 | J128.1 | J128 / S152 | WP4, WP5, WP6, WP8, WP10; package-prefix diagnostic guard | J127 | COMMITTED | EXPERIMENTAL | assert root-mismatch diagnostics contain stable offending-path/flag context without external drawing bytes | focused diagnostic target and policy gates pass; no external or derived DXF bytes are retained |
 | J129.1 | J129 / S153 | WP4, WP5, WP6, WP8, WP10; checker self-test coverage guard | J128 | COMMITTED | EXPERIMENTAL | exercise every staged-path rejection branch with paired clean/negative assertions without external drawing bytes | focused self-test-coverage target and policy gates pass; no external or derived DXF bytes are retained |
 | J130.1 | J130 / S154 | WP4, WP5, WP6, WP8, WP10; fast-test command coverage guard | J129 | COMMITTED | EXPERIMENTAL | trace the fast package self-test and assert it performs no full CTest or network dependency work without external drawing bytes | focused fast-command target and policy gates pass; no external or derived DXF bytes are retained |
-| J131.1 | J131 / S155 | WP3, WP5, WP7, WP8, WP10; AC1024 class-parser correction | J130 | ACTIVE | EXPERIMENTAL | reproduce AC1024 RTM class parsing on temporary samples, trace high-bit string-size extension against ODA, and apply a version-gated fix without external drawing bytes | focused DWG class/read target and policy gates pass; no external or derived DWG/DXF bytes are retained |
+| J131.1 | J131 / S155 | WP3, WP5, WP7, WP8, WP10; AC1024 class-parser qualification | J130 | COMMITTED | EXPERIMENTAL | qualify high-bit class-string footer arithmetic with a local vector and nine temporary AC1024 conversions, retaining the external-corpus failure as unresolved without external drawing bytes | focused DWG class/read target and policy gates pass; no external or derived DWG/DXF bytes are retained |
+| J132.1 | J132 / S156 | WP3, WP5, WP7, WP8, WP10; R2010+ spline bit-stream audit | J131 | ACTIVE | EXPERIMENTAL | verify `splFlag1` bit width and downstream cursor alignment with a local bit-vector and available AC1027/AC1032 evidence without external drawing bytes | focused spline/entity target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 
 <!-- UPGRADE_PROGRESS_END -->
 
