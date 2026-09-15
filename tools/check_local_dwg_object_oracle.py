@@ -224,6 +224,32 @@ def check_pointcloud_entities(records: list[dict], version_name: str) -> list[di
     return frames
 
 
+def check_tolerance_entity(records: list[dict]) -> dict:
+    """Qualify the bounded TOLERANCE entity emitted by the local writer."""
+    matches = [
+        record for record in records
+        if isinstance(record, dict)
+        and record.get("entity") == "TOLERANCE"
+        and record.get("type") == 46
+    ]
+    if len(matches) != 1:
+        raise ValueError("TOLERANCE entity frame count mismatch")
+    tolerance = matches[0]
+    if (record_handle(tolerance) is None
+            or tolerance.get("text_value") != "LOCAL_TOLERANCE"
+            or tolerance.get("ins_pt") != [73.0, 74.0, 0.0]
+            or tolerance.get("x_direction") != [1.0, 0.0, 0.0]
+            or tolerance.get("extrusion") != [0.0, 0.0, 1.0]
+            or tolerance.get("dimstyle") != [5, 1, 21, 21]):
+        raise ValueError("TOLERANCE bounded identity or payload mismatch")
+    return {
+        "entity": "TOLERANCE",
+        "type": 46,
+        "handle": record_handle(tolerance),
+        "text": "LOCAL_TOLERANCE",
+    }
+
+
 def check_objects(payload: dict, version_name: str) -> dict:
     header = payload.get("FILEHEADER")
     if not isinstance(header, dict) or header.get("version") != version_name:
@@ -233,6 +259,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         raise ValueError("oracle JSON has no OBJECTS list")
 
     pointcloud_entities = check_pointcloud_entities(records, version_name)
+    tolerance_entity = check_tolerance_entity(records)
 
     render_matrix = {}
     for kind, (object_name, handle, object_type) in RENDER_SETTINGS_KINDS.items():
@@ -1287,6 +1314,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         "underlayDefinitions": underlays,
         "pointCloudDefinitions": pointcloud_frames,
         "pointCloudEntities": pointcloud_entities,
+        "toleranceEntity": tolerance_entity,
         "sunStudy": {
             "object": "SUNSTUDY", "handle": SUNSTUDY_HANDLE, "type": 548,
         },
@@ -1720,6 +1748,12 @@ def self_test() -> None:
              "type": 561},
             {"entity": "UNKNOWN_ENT", "handle": [0, 2, 0xD925],
              "type": 533},
+            {"entity": "TOLERANCE", "handle": [0, 2, 0xEC20],
+             "type": 46, "text_value": "LOCAL_TOLERANCE",
+             "ins_pt": [73.0, 74.0, 0.0],
+             "x_direction": [1.0, 0.0, 0.0],
+             "extrusion": [0.0, 0.0, 1.0],
+             "dimstyle": [5, 1, 21, 21]},
         ],
     }
     summary = check_objects(payload, "AC1024")
@@ -1729,6 +1763,10 @@ def self_test() -> None:
             "entity": "POINTCLOUD", "type": 533, "handle": 0xD925,
             "oracleEntity": "UNKNOWN_ENT"}]:
         raise AssertionError("POINTCLOUD entity identity was not qualified")
+    if summary.get("toleranceEntity") != {
+            "entity": "TOLERANCE", "type": 46, "handle": 0xEC20,
+            "text": "LOCAL_TOLERANCE"}:
+        raise AssertionError("TOLERANCE entity identity was not qualified")
     if [frame["object"] for frame in summary.get("pathObjects", [])] != [
             "CURVEPATH", "POINTPATH", "OBJECT_PTR"]:
         raise AssertionError("path-object identity was not qualified")

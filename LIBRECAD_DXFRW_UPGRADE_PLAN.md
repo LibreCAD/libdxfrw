@@ -2547,7 +2547,14 @@ edit this block or commit the same slice concurrently.
   rejected by the capability gate. LibreDWG 0.14 independently qualifies
   type/handle/owner and bounded settings while retaining opaque trailing bits;
   no generated drawings or external assets are retained.
-- Latest implementation slice: S87/J63 TVDEVICEPROPERTIES/VXCONTROL/VXTABLERECORD
+- Latest implementation slice: S88/J64 TOLERANCE entity parity is committed.
+  The slice qualifies the existing `DRW_Tolerance` DWG writer/reader path across
+  AC1015/18/21/24/27/32, publishes bounded text/style/coordinate fields through
+  `addTolerance`, and rejects an over-limit reactor vector transactionally.
+  LibreDWG 0.14 independently decodes one type-46 TOLERANCE frame per version
+  with the expected text, coordinates, and STANDARD dimstyle handle; no drawing
+  fixtures or external assets are retained.
+- Previous implementation slice: S87/J63 TVDEVICEPROPERTIES/VXCONTROL/VXTABLERECORD
   parity is committed. The slice exercises the existing typed register/write
   APIs across AC1015/18/21/24/27/32, with dictionary ownership, bounded scalar,
   handle, and name fields, and transactional malformed-state rejection. Legacy
@@ -2557,29 +2564,29 @@ edit this block or commit the same slice concurrently.
   names TVDEVICEPROPERTIES and the two VX frames as UNKNOWN_OBJ, while local
   self-read remains authoritative for VX payload fields; no generated drawings
   or external assets are retained.
-- Last fully resolved slice: S87 (the TVDEVICEPROPERTIES/VXCONTROL/
+- Last fully resolved slice: S88 (the TOLERANCE entity parity slice is
+  committed by the matching `Plan-Slice: S88` trailer in `5e02424`; the
+  commit carries the implementation, oracle evidence, and live-plan state).
+  The target integration commit remains
+  `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
+  terminal only when their recorded gates pass.
+- Previous fully resolved slice: S87 (the TVDEVICEPROPERTIES/VXCONTROL/
   VXTABLERECORD parity slice is committed by the matching `Plan-Slice: S87`
   trailers in `36d01e6` and `6843771`; the first commit carries the
   implementation/evidence and the second reconciles the plan summary).
   The target integration commit remains
-  `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
-  terminal only when their recorded gates pass.
-- Previous fully resolved slice: S86 (the SECTION view-style/break writer-gap
-  inventory is committed by the matching `Plan-Slice: S86` trailer, with an
-  explicit unsupported DWG-write boundary and no speculative wire layout).
-  The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; the next lane must be selected
   from fresh target/source evidence rather than assumed from stale ordering.
-- Resolved slices: 87 (`COMMITTED`).
+- Resolved slices: 88 (`COMMITTED`).
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 87 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 88 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 87 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 88 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 4 VERIFIED / 182 COMMITTED; no child is anonymous.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 4 VERIFIED / 184 COMMITTED; no child is anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 29 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S87 are committed; no slice is currently active.
+  0 DEFERRED_EXTERNAL / 30 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S88 are committed; no slice is currently active.
   The next lane must be selected from a fresh target/source inventory and
   activated only after its completeness, compatibility, implementation-speed,
   and readiness evidence is recorded.
@@ -2712,6 +2719,7 @@ edit this block or commit the same slice concurrently.
 | S85 | J61: SECTION manager/settings parity | S84 | COMMITTED | focused six-version local writer/self-read; pre-CLASSES registration for manager/settings; dictionary ownership; bounded type/geometry vectors; independent JSON object oracle where decodable; capability/error gates; plan/scope/sync/fixture gates | local self-read covers SECTION_MANAGER and SECTION_SETTINGS from AC1021/24/27/32, explicitly rejects AC1015/18, verifies bounded type/geometry/source fields, and rejects malformed type vectors transactionally; LibreDWG 0.14 qualifies type/handle/owner and bounded settings while retaining opaque trailing bits; generated drawings remain temporary and no external assets are needed | focused six-version self-test, CTest, independent JSON oracle, plan/scope/sync/fixture gates pass; no full suite is required before the slice commit |
 | S86 | J62: SECTION view-style/break writer gap | S85 | COMMITTED | target/source API inventory; DXF-vs-DWG capability matrix; explicit unsupported disposition or bounded writer/API design; plan/scope/sync/fixture gates | inventory confirms `DRW_DetailViewStyle`, `DRW_SectionViewStyle`, `DRW_BreakData`, and `DRW_BreakPointRef` models plus DWG reader/DXF callback paths, while the pinned target and standalone `dwgRW`/`dwgWriter15` have no typed register/write methods. Record the safe disposition as DWG-write unsupported for all four; preserve DWG read and DXF paths, and define a future evidence gate requiring a real versioned sample, ODA trace, empirical class/type mapping, bounded API, and round-trip/oracle proof | fast source/API inventory and plan evidence pass; no generated fixtures; no speculative type codes or wire layouts; the explicit unsupported disposition unblocks the next independently evidenced feature lane |
 | S87 | J63: TVDEVICEPROPERTIES/VXCONTROL/VXTABLERECORD parity | S86 | COMMITTED | focused six-version local writer/self-read; pre-CLASSES registration; dictionary ownership; bounded scalar/handle/name fields; independent JSON object oracle where decodable; malformed rollback; plan/scope/sync/fixture gates | implemented one bounded TVDEVICEPROPERTIES, VXCONTROL, and VXTABLERECORD object across AC1015/18/21/24/27/32 using the existing typed register/write APIs, with legacy body-field gates for AC1015/18, compact file-local remapping of high legacy class ordinals, bounded record-handle vectors, and transactional malformed-state rejection; generated drawings remain temporary and no external assets are needed | local round-trip PASS; focused CTest and independent LibreDWG JSON oracle qualify all six versions; AC1015/18 report remapped custom types 566/567/568, AC1021+ report 1326/1327/1328, VX names remain UNKNOWN_OBJ externally, and no fixture bytes are staged |
+| S88 | J64: TOLERANCE entity parity | S87 | COMMITTED | target/source API inventory; focused six-version local writer/self-read; callback publication; bounded scalar/text/coordinate fields; malformed rollback; independent oracle where decodable; plan/scope/sync/fixture gates | implemented and verified one bounded `DRW_Tolerance` entity across AC1015/18/21/24/27/32 using the existing writer/reader paths, callback publication, version-aware text/handle framing, and transaction-safe oversized-reactor rejection; local-generated drawings remain temporary | local round-trip PASS; focused CTest and independent LibreDWG JSON oracle qualify all six versions with type 46 and bounded text/coordinates/dimstyle fields; fixture admission, import scope, target sync, and plan checks PASS; no fixture bytes staged; full suites remain checkpoint-only |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -2803,6 +2811,7 @@ edit this block or commit the same slice concurrently.
 | J61 | S85 | J60 | COMMITTED | EXPERIMENTAL | Extend the local object graph and independent JSON object evidence to SECTION_MANAGER and SECTION_SETTINGS from AC1021 onward, with pre-CLASSES registration, bounded type/geometry vectors, explicit AC1015/18 capability gates, and transaction-safe malformed-vector rejection without external assets |
 | J62 | S86 | J61 | COMMITTED | EXPERIMENTAL | Close the DWG writer/API gap for DETAILVIEWSTYLE, SECTIONVIEWSTYLE, BREAKDATA, and BREAKPOINTREF using target/source inventory and ODA-backed evidence. Current inventory finds reader/DXF support but no typed DWG register/write API in either pinned target or standalone writer; retain an explicit DWG-write unsupported disposition until a real sample, ODA layout, empirical type mapping, and bounded encoder contract exist |
 | J63 | S87 | J62 | COMMITTED | EXPERIMENTAL | Extend the local object graph and independent JSON object evidence to TVDEVICEPROPERTIES, VXCONTROL, and VXTABLERECORD using their existing typed DWG writer APIs from AC1015 onward, with pre-CLASSES registration, dictionary ownership, bounded scalar/handle/name fields, legacy body-field gates, compact file-local legacy class remapping, and transaction-safe malformed-state rejection |
+| J64 | S88 | J63 | COMMITTED | EXPERIMENTAL | Qualify the existing TOLERANCE entity writer and reader across AC1015/18/21/24/27/32, with callback publication, bounded geometric-dimensioning fields, version-aware string/handle framing, and transaction-safe malformed-state rejection | six-version local writer/self-read and independent LibreDWG JSON identity/payload checks pass; no external fixture bytes are retained and support remains experimental |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -3001,6 +3010,7 @@ edit this block or commit the same slice concurrently.
 | J61.1 | J61 / S85 | WP5, WP7, WP8, WP10; SECTION manager/settings | J60 | COMMITTED | EXPERIMENTAL | emit and self-read the smallest bounded SECTION_MANAGER and SECTION_SETTINGS graph from AC1021 onward, explicitly gate AC1015/18, register both classes before CLASSES, verify dictionary ownership and bounded type/geometry vectors through local callbacks and an independent oracle where decodable, and reject malformed vectors without publishing a frame | six-version local round-trip, focused CTest, LibreDWG JSON oracle, and policy gates pass; local-from-scratch metadata only, opaque tails remain experimental, and no fixture bytes are staged |
 | J62.1 | J62 / S86 | WP5, WP7, WP8, WP10; SECTION view styles/breaks | J61 | COMMITTED | EXPERIMENTAL | inventory the missing DWG writer entry points for DETAILVIEWSTYLE, SECTIONVIEWSTYLE, BREAKDATA, and BREAKPOINTREF against the pinned target and ODA, then record a safe bounded API/wire-layout follow-up or explicit unsupported disposition without staging fixtures | source inventory confirms models at `src/drw_objects.h:5378-5527`, DWG dispatch at `src/intern/dwgreader.cpp:11565-11605`, and callbacks at `src/drw_interface.h:499-510`; no typed writer/register methods exist in `src/libdwgr.h` or `src/intern/dwgwriter15.h`. Preserve reader/DXF behavior; require a real sample plus ODA trace before any encoder and do not invent type codes |
 | J63.1 | J63 / S87 | WP5, WP7, WP8, WP10; TVDEVICEPROPERTIES/VXCONTROL/VXTABLERECORD | J62 | COMMITTED | EXPERIMENTAL | emit and self-read one bounded TVDEVICEPROPERTIES, VXCONTROL, and VXTABLERECORD object from AC1015 onward, register all classes before CLASSES, compact high legacy ordinals into file-local slots for AC1015/18, verify dictionary ownership and legacy/modern body fields through local callbacks and an independent oracle, and reject malformed scalar/vector/name state without publishing a frame | local round-trip, focused CTest, and LibreDWG JSON oracle pass across all six versions; AC1015/18 type identity is qualified through remapped custom ordinals, AC1021+ retains target ordinals, opaque VX payload tails remain local-self-read authoritative, local-from-scratch metadata only, no fixture bytes staged, and full suites remain checkpoint-only |
+| J64.1 | J64 / S88 | WP5, WP7, WP8, WP10; TOLERANCE | J63 | COMMITTED | EXPERIMENTAL | emit and self-read one bounded TOLERANCE entity from AC1015 onward, verify text/style/coordinate fields through `addTolerance`, exercise version-aware body/string/handle framing, and reject malformed bounded state transactionally without publishing a frame | local round-trip PASS; independent LibreDWG JSON oracle reports one type-46 TOLERANCE per version with expected bounded fields; malformed reactor-count rejection, fixture admission, import scope, target sync, and plan checks PASS; local-from-scratch values only and no generated fixtures |
 
 <!-- UPGRADE_PROGRESS_END -->
 

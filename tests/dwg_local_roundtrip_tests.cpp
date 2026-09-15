@@ -1703,6 +1703,21 @@ public:
             std::make_shared<DRW_Coord>(71.0, 72.0, 0.0));
         wroteLeader_ = writer_->writeLeader(&leader) && leader.handle != 0;
 
+        DRW_Tolerance tolerance;
+        tolerance.text = "LOCAL_TOLERANCE";
+        tolerance.dimStyleName = "STANDARD";
+        tolerance.insertionPoint = DRW_Coord(73.0, 74.0, 0.0);
+        tolerance.xAxisDirectionVector = DRW_Coord(1.0, 0.0, 0.0);
+        tolerance.extPoint = DRW_Coord(0.0, 0.0, 1.0);
+        wroteTolerance_ = writer_->writeTolerance(&tolerance)
+            && tolerance.handle != 0;
+        DRW_Tolerance invalidTolerance = tolerance;
+        invalidTolerance.handle = 0xD920u;
+        invalidTolerance.reactorHandles.resize(1000001u);
+        rejectedMalformedTolerance_ =
+            !writer_->writeTolerance(&invalidTolerance)
+            && invalidTolerance.handle == 0xD920u;
+
         DRW_Insert insert;
         insert.name = "LOCAL_BLOCK";
         insert.basePoint = DRW_Coord(84.0, 85.0, 0.0);
@@ -1869,6 +1884,14 @@ public:
     void addSpline(const DRW_Spline*) override { readSplineSeen_ = true; }
     void addHatch(const DRW_Hatch*) override { readHatchSeen_ = true; }
     void addLeader(const DRW_Leader*) override { readLeaderSeen_ = true; }
+    void addTolerance(const DRW_Tolerance& data) override {
+        if (data.text == "LOCAL_TOLERANCE")
+            readToleranceSeen_ = data.dimStyleH.ref != 0
+                && data.insertionPoint.x == 73.0
+                && data.insertionPoint.y == 74.0
+                && data.extPoint.z == 1.0
+                && data.xAxisDirectionVector.x == 1.0;
+    }
     void addGroup(const DRW_Group& data) override {
         readGroupSeen_ = data.m_entityHandles.size() == 1
             && data.m_description == "LOCAL_GROUP";
@@ -2633,6 +2656,10 @@ public:
     }
     bool wroteHatch() const { return wroteHatch_; }
     bool wroteLeader() const { return wroteLeader_; }
+    bool wroteTolerance() const { return wroteTolerance_; }
+    bool rejectedMalformedTolerance() const {
+        return rejectedMalformedTolerance_;
+    }
     bool wroteBlock() const {
         return wroteBlock_ && wroteBlockPolyline_ && wroteBlockContent_;
     }
@@ -2832,6 +2859,7 @@ public:
     bool readPointCloudExSeen() const { return readPointCloudExSeen_; }
     bool readHatchSeen() const { return readHatchSeen_; }
     bool readLeaderSeen() const { return readLeaderSeen_; }
+    bool readToleranceSeen() const { return readToleranceSeen_; }
     bool readInsertSeen() const { return readInsertSeen_; }
     bool readAttribSeen() const { return readAttribSeen_; }
     bool readGroupSeen() const { return readGroupSeen_; }
@@ -3062,6 +3090,8 @@ private:
     bool rejectedMalformedPointCloudEx_ {false};
     bool wroteHatch_ {false};
     bool wroteLeader_ {false};
+    bool wroteTolerance_ {false};
+    bool rejectedMalformedTolerance_ {false};
     bool wroteBlock_ {false};
     bool wroteBlockPolyline_ {false};
     bool wroteBlockContent_ {false};
@@ -3247,6 +3277,7 @@ private:
     bool readPointCloudExSeen_ {false};
     bool readHatchSeen_ {false};
     bool readLeaderSeen_ {false};
+    bool readToleranceSeen_ {false};
     bool readInsertSeen_ {false};
     bool readAttribSeen_ {false};
     bool readGroupSeen_ {false};
@@ -3427,6 +3458,11 @@ int main(int argc, char** argv) {
                ("local DWG writer emitted HATCH" + suffix).c_str(), failures);
         expect(writeIface.wroteLeader(),
                ("local DWG writer emitted LEADER" + suffix).c_str(), failures);
+        expect(writeIface.wroteTolerance(),
+               ("local DWG writer emitted TOLERANCE" + suffix).c_str(), failures);
+        expect(writeIface.rejectedMalformedTolerance(),
+               ("local DWG writer rejected malformed TOLERANCE transaction" + suffix).c_str(),
+               failures);
         expect(writeIface.wroteBlock(),
                ("local DWG writer emitted user block" + suffix).c_str(), failures);
         expect(writeIface.wroteInsert(),
@@ -3685,6 +3721,8 @@ int main(int argc, char** argv) {
                ("local DWG self-read publishes HATCH" + suffix).c_str(), failures);
         expect(readIface.readLeaderSeen(),
                ("local DWG self-read publishes LEADER" + suffix).c_str(), failures);
+        expect(readIface.readToleranceSeen(),
+               ("local DWG self-read publishes TOLERANCE" + suffix).c_str(), failures);
         expect(readIface.readInsertSeen(),
                ("local DWG self-read publishes INSERT" + suffix).c_str(), failures);
         expect(readIface.readAttribSeen(),
