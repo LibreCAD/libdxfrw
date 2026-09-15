@@ -21,10 +21,12 @@ from pathlib import Path
 from typing import Any
 
 
-SCHEMA = 1
+SCHEMA = 2
 KIND = "libdxfrw-json-target-package-differential"
 ALLOWED_ORIGINS = {"lockedRepositoryBlob", "localFromScratch"}
 FIXTURE_POLICY = "lockedRepositoryBlob/localFromScratch; hashes-and-summaries-only"
+MAX_OUTPUT_BYTES = 16 * 1024 * 1024
+MAX_RECORD_HASHES = 256
 
 
 class DifferentialError(ValueError):
@@ -73,6 +75,25 @@ def _status_summary(document: dict[str, Any]) -> dict[str, Any]:
     return status
 
 
+def _record_hashes(records: list[object]) -> tuple[list[str], str]:
+    """Hash canonical records while retaining only bounded evidence."""
+    hashes: list[str] = []
+    sequence = hashlib.sha256()
+    for record in records:
+        if not isinstance(record, dict):
+            canonical = json.dumps(record, sort_keys=True, separators=(",", ":"))
+        else:
+            canonical = json.dumps(
+                record, sort_keys=True, separators=(",", ":"),
+                ensure_ascii=False,
+            )
+        digest = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+        sequence.update(digest.encode("ascii"))
+        if len(hashes) < MAX_RECORD_HASHES:
+            hashes.append(digest)
+    return hashes, sequence.hexdigest()
+
+
 def summary(document: object) -> dict[str, Any]:
     if not isinstance(document, dict):
         raise DifferentialError("dumper output root is not a JSON object")
@@ -83,6 +104,8 @@ def summary(document: object) -> dict[str, Any]:
         raise DifferentialError("dumper output has no entity/object arrays")
     if not isinstance(diagnostics, dict):
         raise DifferentialError("dumper output has no diagnostics object")
+    entity_hashes, entity_sequence_hash = _record_hashes(entities)
+    object_hashes, object_sequence_hash = _record_hashes(objects)
     entity_types = sorted(
         str(item.get("type", ""))
         for item in entities
@@ -103,6 +126,10 @@ def summary(document: object) -> dict[str, Any]:
         "objectCount": len(objects),
         "entityTypes": entity_types,
         "objectTypes": object_types,
+        "entityRecordSha256": entity_hashes,
+        "entityRecordSequenceSha256": entity_sequence_hash,
+        "objectRecordSha256": object_hashes,
+        "objectRecordSequenceSha256": object_sequence_hash,
         "status": _status_summary(document),
     }
 
@@ -154,6 +181,8 @@ def run_dumper(executable: Path, source: Path, output: Path,
 
     if output.is_file():
         try:
+            if output.stat().st_size > MAX_OUTPUT_BYTES:
+                raise DifferentialError("dumper output exceeds bounded size")
             encoded = output.read_bytes()
             result["outputSha256"] = hashlib.sha256(encoded).hexdigest()
             result["outputSize"] = len(encoded)
@@ -311,7 +340,7 @@ def self_test() -> None:
         bad.write_text(
             "#!/usr/bin/env python3\n"
             "import json, pathlib, sys\n"
-            f"payload = {json.dumps({**payload, 'entities': [{'type': 'CIRCLE'}]})!r}\n"
+            f"payload = {json.dumps({**payload, 'entities': [{'type': 'LINE', 'x': 99}]})!r}\n"
             "pathlib.Path(sys.argv[sys.argv.index('-o') + 1]).write_text(payload)\n",
             encoding="utf-8",
         )
