@@ -4571,6 +4571,33 @@ void testDxfRawObjectAppendFailure(TestContext& t) {
              "DXF binary raw object rolls back a failed append");
 }
 
+void testDxfRawObjectWriterPreflight(TestContext& t) {
+    DRW_RawDxfObject object;
+    object.name = "LOCAL_RAW_PREFLIGHT";
+    object.m_version = DRW::AC1027;
+    object.hasRawValues = true;
+    object.groups = {DRW_Variant(5, std::string("1A")),
+                     DRW_Variant(1000, std::string("payload"))};
+    object.rawValues = {"1A", "payload"};
+
+    dxfRW asciiWriter("");
+    asciiWriter.version = DRW::AC1027;
+    asciiWriter.binFile = false;
+    t.expect(!asciiWriter.writeRawDxfObject(&object)
+                 && asciiWriter.m_writeError && asciiWriter.writer == nullptr,
+             "DXF ASCII raw object rejects a missing writer during preflight");
+
+    DRW_RawDxfObject binaryObject = object;
+    binaryObject.hasRawValues = false;
+    binaryObject.rawValues.clear();
+    dxfRW binaryWriter("");
+    binaryWriter.version = DRW::AC1027;
+    binaryWriter.binFile = true;
+    t.expect(!binaryWriter.writeRawDxfObject(&binaryObject)
+                 && binaryWriter.m_writeError && binaryWriter.writer == nullptr,
+             "DXF binary raw object rejects a missing writer during preflight");
+}
+
 void testDxfRawSectionApplicationGroupReferenceMatrix(TestContext& t) {
     DRW_RawDxfSection section;
     section.m_name = "LOCAL_SECTION_REFERENCE_MATRIX";
@@ -4913,6 +4940,7 @@ int main() {
     testDxfRawSectionWriterStickyError(context);
     testDxfRawSectionAppendFailure(context);
     testDxfRawObjectAppendFailure(context);
+    testDxfRawObjectWriterPreflight(context);
     testDxfRawSectionApplicationGroupReferenceMatrix(context);
     testRawCapture(context);
     testHatchValidationIgnoresInactiveGradient(context);
