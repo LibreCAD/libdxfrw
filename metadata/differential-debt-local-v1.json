@@ -12,11 +12,11 @@
       "reason": "Pinned target reads the baseline LINE/POLYLINE portion of the local-from-scratch AC1027 output but omits the standalone writer's extended entity/object carriers; the target short-read is retained as target debt pending target implementation review.",
       "target": {
         "outputSha256": "b31e715380e4ca434b4c413fe36f6d1ad4e0f2c7451bed3f43b5a7b056e6e48a",
-        "summarySha256": "19978a04aec3caafe933822132aa44a7ca2a3a7b5d198ac006dfafa9dbd5bc6f"
+        "summarySha256": "6216972d35996d5f93bbdde52fb08b7af016330f5dcd0e82752860b3a172e946"
       },
       "standalone": {
         "outputSha256": "56334dec1656c82921c80d8c30ac96f19fb6d5da7d41dd857c66d14368eb0d5e",
-        "summarySha256": "c126d70cccf6362220346fbae0b8707b87d44f88c116a1f44de9272966debceb"
+        "summarySha256": "3a0b1278d0e265b404218a6b884ff492fad791328ee201e2c1f2955b8b6a4b4a"
       }
     },
     {
@@ -27,11 +27,11 @@
       "reason": "Pinned target reads the baseline LINE/POLYLINE portion of the local-from-scratch AC1032 output but omits the standalone writer's extended entity/object carriers; the target short-read is retained as target debt pending R2018 reader/object-stream review.",
       "target": {
         "outputSha256": "cce479f960993ea038f36e96d1cd972498646160fa798ee375921ad83c4a72c4",
-        "summarySha256": "fe488ac243d27f84ee709b60edc748f0fddc61511d1a185d6f92b251a30ce507"
+        "summarySha256": "05912f518bd46d5ff2b131b7a92cbdf05074e23ad85dfa221eab4e213a084544"
       },
       "standalone": {
         "outputSha256": "6f34ef6967cc6d9305512d49927a090a2c62f9c9b0e5995e6f5cf43dc8de6a4e",
-        "summarySha256": "644b9e5e4fbd87862d21824b2ae8a3415dd552d58d2c2bc464e35f1d88e5f948"
+        "summarySha256": "4fd214ad4de4d837caa84de3c22c95ace0d906cdde051f63c654201c94cfa753"
       }
     }
   ]
