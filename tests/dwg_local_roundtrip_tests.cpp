@@ -290,6 +290,10 @@ public:
             // CLASSES so the entity object map and class identity agree.
             registeredHelix_ = writer_->registerDwgEntityClassInstance(
                 DRW_Helix::kDwgClassNum, 0xEE00u);
+            if (expectedVersion_ >= DRW::AC1018) {
+                registeredCamera_ = writer_->registerDwgEntityClassInstance(
+                    DRW_Camera::kDwgClassNum, 0xEF00u);
+            }
             if (expectedVersion_ >= DRW::AC1021) {
                 DRW_DimensionAssociation dimAssocRegistration;
                 dimAssocRegistration.handle = 0xF000u;
@@ -1812,6 +1816,22 @@ public:
         rejectedMalformedHelix_ = !writer_->writeHelix(&invalidHelix)
             && invalidHelix.handle == 0xEE01u;
 
+        if (expectedVersion_ < DRW::AC1018) {
+            wroteCamera_ = false;
+            rejectedMalformedCamera_ = true;
+        } else {
+            DRW_Camera camera;
+            camera.handle = 0xEF00u;
+            camera.m_viewHandle = 0;
+            wroteCamera_ = registeredCamera_ && writer_->writeCamera(&camera)
+                && camera.handle == 0xEF00u;
+            DRW_Camera invalidCamera = camera;
+            invalidCamera.handle = 0xEF01u;
+            invalidCamera.reactorHandles.resize(1000001u);
+            rejectedMalformedCamera_ = !writer_->writeCamera(&invalidCamera)
+                && invalidCamera.handle == 0xEF01u;
+        }
+
         DRW_Hatch hatch;
         hatch.name = "SOLID";
         hatch.solid = 1;
@@ -2111,6 +2131,10 @@ public:
             && data->handedness
             && data->constraintType == 2
             && data->controllist.size() == 3;
+    }
+    void addCamera(const DRW_Camera& data) override {
+        if (data.handle == 0xEF00u && data.m_viewHandle == 0)
+            readCameraSeen_ = true;
     }
     void addHatch(const DRW_Hatch*) override { readHatchSeen_ = true; }
     void addLeader(const DRW_Leader*) override { readLeaderSeen_ = true; }
@@ -2914,6 +2938,8 @@ public:
     bool wroteSpline() const { return wroteSpline_; }
     bool wroteHelix() const { return wroteHelix_; }
     bool rejectedMalformedHelix() const { return rejectedMalformedHelix_; }
+    bool wroteCamera() const { return wroteCamera_; }
+    bool rejectedMalformedCamera() const { return rejectedMalformedCamera_; }
     bool wrotePointCloud() const { return wrotePointCloud_; }
     bool wrotePointCloudEx() const { return wrotePointCloudEx_; }
     bool rejectedMalformedPointCloudEntity() const {
@@ -3150,6 +3176,7 @@ public:
     bool readOldPolylineSeen() const { return readOldPolylineSeen_; }
     bool readSplineSeen() const { return readSplineSeen_; }
     bool readHelixSeen() const { return readHelixSeen_; }
+    bool readCameraSeen() const { return readCameraSeen_; }
     bool readPointCloudSeen() const { return readPointCloudSeen_; }
     bool readPointCloudExSeen() const { return readPointCloudExSeen_; }
     bool readHatchSeen() const { return readHatchSeen_; }
@@ -3393,6 +3420,8 @@ private:
     bool wroteSpline_ {false};
     bool wroteHelix_ {false};
     bool rejectedMalformedHelix_ {false};
+    bool wroteCamera_ {false};
+    bool rejectedMalformedCamera_ {false};
     bool wrotePointCloud_ {false};
     bool wrotePointCloudEx_ {false};
     bool rejectedMalformedPointCloudEntity_ {false};
@@ -3408,6 +3437,7 @@ private:
     bool registeredRText_ {false};
     bool registeredArcAlignedText_ {false};
     bool registeredHelix_ {false};
+    bool registeredCamera_ {false};
     bool wroteDimensionAssociation_ {false};
     bool wroteEvaluationGraph_ {false};
     bool rejectedMalformedDimensionAssociation_ {false};
@@ -3598,6 +3628,7 @@ private:
     bool readOldPolylineSeen_ {false};
     bool readSplineSeen_ {false};
     bool readHelixSeen_ {false};
+    bool readCameraSeen_ {false};
     bool readPointCloudSeen_ {false};
     bool readPointCloudExSeen_ {false};
     bool readHatchSeen_ {false};
@@ -3772,6 +3803,13 @@ int main(int argc, char** argv) {
                ("local DWG writer emitted HELIX" + suffix).c_str(), failures);
         expect(writeIface.rejectedMalformedHelix(),
                ("local DWG writer rejected malformed HELIX transaction" + suffix).c_str(),
+               failures);
+        expect(version >= DRW::AC1018
+                   ? writeIface.wroteCamera()
+                   : !writeIface.wroteCamera(),
+               ("local DWG CAMERA capability gate" + suffix).c_str(), failures);
+        expect(writeIface.rejectedMalformedCamera(),
+               ("local DWG writer rejected malformed CAMERA transaction" + suffix).c_str(),
                failures);
         expect(version > DRW::AC1018
                    ? writeIface.wrotePointCloud()
@@ -4081,6 +4119,10 @@ int main(int argc, char** argv) {
                ("local DWG self-read publishes SPLINE" + suffix).c_str(), failures);
         expect(readIface.readHelixSeen(),
                ("local DWG self-read publishes HELIX" + suffix).c_str(), failures);
+        expect(version >= DRW::AC1018
+                   ? readIface.readCameraSeen()
+                   : !readIface.readCameraSeen(),
+               ("local DWG self-read CAMERA capability gate" + suffix).c_str(), failures);
         expect(version > DRW::AC1018
                    ? readIface.readPointCloudSeen()
                    : !readIface.readPointCloudSeen(),

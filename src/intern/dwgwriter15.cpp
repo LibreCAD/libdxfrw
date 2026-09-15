@@ -970,7 +970,8 @@ bool dwgWriter15::emitDeferredBlockControl() {
             return definition != nullptr
                 && (definition->m_className == "AcDbRText"
                     || definition->m_className == "AcDbArcAlignedText"
-                    || definition->m_className == "AcDbHelix");
+                    || definition->m_className == "AcDbHelix"
+                    || definition->m_className == "AcDbCamera");
         };
         const auto isContiguousChain = [](const std::vector<std::uint32_t>& handles) {
             for (std::size_t index = 1; index < handles.size(); ++index) {

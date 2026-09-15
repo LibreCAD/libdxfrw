@@ -131,6 +131,7 @@ MALFORMED_IMAGE_HANDLE = 0xD710
 RTEXT_HANDLE = 0xED00
 ARCALIGNEDTEXT_HANDLE = 0xED01
 HELIX_HANDLE = 0xEE00
+CAMERA_HANDLE = 0xEF00
 DIMASSOC_HANDLE = 0xF000
 EVALUATION_GRAPH_HANDLE = 0xF100
 BLOCKREPRESENTATIONDATA_HANDLE = 0xF200
@@ -293,6 +294,28 @@ def check_helix_entity(records: list[dict]) -> dict:
     }
 
 
+def check_camera_entity(records: list[dict], version_name: str) -> dict:
+    """Qualify CAMERA identity and its null optional VIEW reference."""
+    if version_name == "AC1015":
+        return {"supported": False}
+    matches = [
+        record for record in records
+        if isinstance(record, dict)
+        and record.get("entity") == "CAMERA"
+        and record.get("type") == 542
+    ]
+    if len(matches) != 1:
+        raise ValueError("CAMERA entity frame count mismatch")
+    camera = matches[0]
+    if (record_handle(camera) != CAMERA_HANDLE
+            or camera.get("view") != [5, 0, 0, 0]):
+        raise ValueError("CAMERA identity or VIEW reference mismatch")
+    return {
+        "supported": True, "entity": "CAMERA", "type": 542,
+        "handle": CAMERA_HANDLE, "view": 0,
+    }
+
+
 def check_express_text_entities(records: list[dict], version_name: str) -> dict:
     """Qualify RTEXT/ARCALIGNEDTEXT identity and bounded oracle payload.
 
@@ -418,6 +441,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
     pointcloud_entities = check_pointcloud_entities(records, version_name)
     tolerance_entity = check_tolerance_entity(records)
     helix_entity = check_helix_entity(records)
+    camera_entity = check_camera_entity(records, version_name)
     express_text_entities = check_express_text_entities(records, version_name)
     associative_objects = check_associative_objects(records, version_name)
     block_representation = check_block_representation(records, version_name)
@@ -438,6 +462,12 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "LibreDWG 0.14 exposes BLOCKREPRESENTATIONDATA as UNKNOWN_OBJ; "
             "type/handle/owner identity is qualified while flag/block payload "
             "remains local-self-read authoritative")
+    camera_discrepancies = []
+    if not camera_entity.get("supported"):
+        camera_discrepancies.append(
+            "CAMERA emission is intentionally gated off for AC1015 because "
+            "the legacy implicit next-entity chain cannot safely carry its "
+            "class-542 frame; AC1018+ identity is independently qualified")
 
     render_matrix = {}
     for kind, (object_name, handle, object_type) in RENDER_SETTINGS_KINDS.items():
@@ -1494,6 +1524,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         "pointCloudEntities": pointcloud_entities,
         "toleranceEntity": tolerance_entity,
         "helixEntity": helix_entity,
+        "cameraEntity": camera_entity,
         "expressTextEntities": express_text_entities,
         "associativeObjects": associative_objects,
         "blockRepresentationData": block_representation,
@@ -1530,8 +1561,9 @@ def check_objects(payload: dict, version_name: str) -> dict:
                                  + section_discrepancies
                                  + tv_vx_discrepancies
                                  + image_discrepancies
-                                 + associative_discrepancies
-                                 + block_representation_discrepancies),
+        + associative_discrepancies
+        + block_representation_discrepancies
+        + camera_discrepancies),
     }
 
 
@@ -1949,8 +1981,10 @@ def self_test() -> None:
              "axis_base_pt": [70.0, 71.0, 0.0],
              "start_pt": [72.0, 73.0, 0.0],
              "axis_vector": [0.0, 0.0, 1.0],
-             "radius": 4.5, "turns": 3.25, "turn_height": 2.75,
-             "handedness": 1, "constraint_type": 2},
+            "radius": 4.5, "turns": 3.25, "turn_height": 2.75,
+            "handedness": 1, "constraint_type": 2},
+            {"entity": "CAMERA", "handle": [0, 2, CAMERA_HANDLE],
+             "type": 542, "view": [5, 0, 0, 0]},
             {"entity": "RTEXT", "handle": [0, 2, RTEXT_HANDLE],
              "type": 521, "text_value": "LOCAL_RTEXT",
              "pt": [90.0, 91.0, 0.0],
@@ -1988,6 +2022,10 @@ def self_test() -> None:
             "entity": "HELIX", "type": 503, "handle": HELIX_HANDLE,
             "radius": 4.5, "turns": 3.25, "turnHeight": 2.75}:
         raise AssertionError("HELIX entity identity was not qualified")
+    if summary.get("cameraEntity") != {
+            "supported": True, "entity": "CAMERA", "type": 542,
+            "handle": CAMERA_HANDLE, "view": 0}:
+        raise AssertionError("CAMERA entity identity was not qualified")
     if summary.get("expressTextEntities") != {
             "rtext": {"entity": "RTEXT", "type": 521,
                       "handle": RTEXT_HANDLE, "text": "LOCAL_RTEXT"},
