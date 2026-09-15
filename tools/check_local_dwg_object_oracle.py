@@ -138,6 +138,7 @@ MLINE_HANDLE = 0xF500
 LIGHT_HANDLE = 0xF600
 MESH_HANDLE = 0xF700
 WIPEOUT_HANDLE = 0xF800
+NAVISWORKS_MODEL_HANDLE = 0xF900
 DIMASSOC_HANDLE = 0xF000
 EVALUATION_GRAPH_HANDLE = 0xF100
 BLOCKREPRESENTATIONDATA_HANDLE = 0xF200
@@ -499,6 +500,27 @@ def check_wipeout_entity(records: list[dict], version_name: str) -> dict:
     }
 
 
+def check_navisworks_model_entity(records: list[dict], version_name: str) -> dict:
+    """Qualify class-541 NAVISWORKSMODEL identity and base frame."""
+    if version_name == "AC1015":
+        return {"supported": False}
+    matches = [
+        record for record in records
+        if isinstance(record, dict)
+        and record.get("type") == 541
+        and record_handle(record) == NAVISWORKS_MODEL_HANDLE
+        and record.get("entity") in {"NAVISWORKSMODEL", "UNKNOWN_ENT"}
+    ]
+    if len(matches) != 1:
+        raise ValueError("NAVISWORKSMODEL entity frame count mismatch")
+    return {
+        "supported": True, "entity": "NAVISWORKSMODEL", "type": 541,
+        "handle": NAVISWORKS_MODEL_HANDLE,
+        "oracleEntity": matches[0].get("entity"),
+        "payloadQualified": False,
+    }
+
+
 def check_express_text_entities(records: list[dict], version_name: str) -> dict:
     """Qualify RTEXT/ARCALIGNEDTEXT identity and bounded oracle payload.
 
@@ -631,6 +653,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
     light_entity = check_light_entity(records, version_name)
     mesh_entity = check_mesh_entity(records, version_name)
     wipeout_entity = check_wipeout_entity(records, version_name)
+    navisworks_model_entity = check_navisworks_model_entity(records, version_name)
     express_text_entities = check_express_text_entities(records, version_name)
     associative_objects = check_associative_objects(records, version_name)
     block_representation = check_block_representation(records, version_name)
@@ -727,6 +750,17 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "LibreDWG 0.14 retains WIPEOUT type/handle only as UNKNOWN_OBJ; "
             "clip-boundary and image-derived scalar fields remain local-self-read "
             "authoritative")
+    navisworks_model_discrepancies = []
+    if not navisworks_model_entity.get("supported"):
+        navisworks_model_discrepancies.append(
+            "NAVISWORKSMODEL emission is intentionally gated off for AC1015 "
+            "because the class-541 frame is not safe in the legacy contiguous "
+            "entity chain")
+    else:
+        navisworks_model_discrepancies.append(
+            "LibreDWG 0.14 qualifies NAVISWORKSMODEL type/handle identity but "
+            "does not preserve the local transform/unit/definition payload "
+            "reliably; local self-read remains authoritative")
 
     render_matrix = {}
     for kind, (object_name, handle, object_type) in RENDER_SETTINGS_KINDS.items():
@@ -1790,6 +1824,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         "lightEntity": light_entity,
         "meshEntity": mesh_entity,
         "wipeoutEntity": wipeout_entity,
+        "navisworksModelEntity": navisworks_model_entity,
         "expressTextEntities": express_text_entities,
         "associativeObjects": associative_objects,
         "blockRepresentationData": block_representation,
@@ -1830,7 +1865,8 @@ def check_objects(payload: dict, version_name: str) -> dict:
         + block_representation_discrepancies
         + camera_discrepancies + geo_position_marker_discrepancies
         + shape_discrepancies + mline_discrepancies + light_discrepancies
-        + mesh_discrepancies + wipeout_discrepancies),
+        + mesh_discrepancies + wipeout_discrepancies
+        + navisworks_model_discrepancies),
     }
 
 
@@ -2293,6 +2329,8 @@ def self_test() -> None:
              "faces": [], "crease": []},
             {"object": "UNKNOWN_OBJ", "handle": [0, 2, WIPEOUT_HANDLE],
              "type": 1109},
+            {"entity": "UNKNOWN_ENT", "handle": [0, 2,
+             NAVISWORKS_MODEL_HANDLE], "type": 541},
             {"entity": "RTEXT", "handle": [0, 2, RTEXT_HANDLE],
              "type": 521, "text_value": "LOCAL_RTEXT",
              "pt": [90.0, 91.0, 0.0],
@@ -2363,6 +2401,11 @@ def self_test() -> None:
             "handle": WIPEOUT_HANDLE, "oracleEntity": "UNKNOWN_OBJ",
             "payloadQualified": False}:
         raise AssertionError("WIPEOUT entity identity was not qualified")
+    if summary.get("navisworksModelEntity") != {
+            "supported": True, "entity": "NAVISWORKSMODEL", "type": 541,
+            "handle": NAVISWORKS_MODEL_HANDLE,
+            "oracleEntity": "UNKNOWN_ENT", "payloadQualified": False}:
+        raise AssertionError("NAVISWORKSMODEL entity identity was not qualified")
     if summary.get("expressTextEntities") != {
             "rtext": {"entity": "RTEXT", "type": 521,
                       "handle": RTEXT_HANDLE, "text": "LOCAL_RTEXT"},

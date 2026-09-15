@@ -2645,12 +2645,30 @@ edit this block or commit the same slice concurrently.
   the local vertices/faces/edges/creases reliably, so local self-read remains
   authoritative for topology; no external mesh asset or drawing fixture bytes
   are retained.
-- Active implementation slice: S99/J75 WIPEOUT entity parity is selected from
-  fresh target/source evidence. Both trees expose `DRW_Wipeout`, fixed type
-  1109, `writeWipeout`, `addWipeout`, and bounded clip-boundary fields. The
-  fast slice will exercise one local polygon WIPEOUT across AC1015/18/21/24/27/32,
-  reject malformed clip/scalar state, and qualify independent type/handle/base
-  identity without external image or drawing fixture bytes.
+- Previous implementation slice: S99/J75 WIPEOUT entity parity is committed.
+  Both trees expose `DRW_Wipeout`, fixed type 1109, `writeWipeout`, `addWipeout`,
+  and image-derived clip-boundary framing. One local polygon WIPEOUT
+  round-trips on AC1018/21/24/27/32 with deterministic AC1015 omission;
+  malformed clip/scalar state is rejected transactionally. LibreDWG 0.14
+  independently qualifies type/handle as UNKNOWN_OBJ from AC1021 onward,
+  omits the AC1018 frame, and does not preserve clip payload; local self-read
+  remains authoritative, with no external image asset or drawing fixture bytes.
+- Previous implementation slice: S100/J76 NAVISWORKSMODEL entity parity is
+  committed. Both trees expose `DRW_NavisworksModel`, class 541,
+  `writeNavisworksModel`, `addNavisworksModel`, and the version-aware
+  transform/definition body. One local metadata-only model round-trips on
+  AC1018/21/24/27/32 with deterministic AC1015 omission; malformed
+  transform/unit state is rejected transactionally. LibreDWG 0.14 qualifies
+  type/handle identity (named on AC1018, UNKNOWN_ENT on newer versions) while
+  payload remains local-self-read authoritative; no external NWD asset or
+  drawing fixture bytes are retained.
+- Active implementation slice: S101/J77 UNDERLAY entity parity is selected
+  from fresh target/source evidence. Both trees expose `DRW_Underlay`, classes
+  523/524/525, `writeUnderlay`, `addUnderlay`, and version-aware clip/transform
+  framing. The fast slice will exercise one local PDFUNDERLAY linked to the
+  existing metadata-only definition across AC1018/21/24/27/32, gate unsafe
+  AC1015 legacy handling explicitly, reject malformed clip/transform state,
+  and qualify independent type/handle identity without external PDF bytes.
 - Previous implementation slice: S90/J66 DIMASSOC/EVALUATION_GRAPH object parity
   is committed. The AC1021+ lane registers the target's typed classes before
   CLASSES, writes one bounded DIMASSOC with a soft dimension/reference link and
@@ -2691,33 +2709,33 @@ edit this block or commit the same slice concurrently.
   names TVDEVICEPROPERTIES and the two VX frames as UNKNOWN_OBJ, while local
   self-read remains authoritative for VX payload fields; no generated drawings
   or external assets are retained.
-- Last fully resolved slice: S98 (the MESH entity parity slice is committed
-  by the matching `Plan-Slice: S98` trailer; the
+- Last fully resolved slice: S100 (the NAVISWORKSMODEL entity parity slice is committed
+  by the matching `Plan-Slice: S100` trailer; the
   commit carries implementation, oracle evidence, and live-plan state).
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Previous fully resolved slice: S97 (the LIGHT entity parity slice is committed
-  by the matching `Plan-Slice: S97` trailer; the
+- Previous fully resolved slice: S99 (the WIPEOUT entity parity slice is committed
+  by the matching `Plan-Slice: S99` trailer; the
   commit carries implementation, oracle evidence, and live-plan state).
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 98 (`COMMITTED`); S99 is active.
+- Resolved slices: 100 (`COMMITTED`); S101 is active.
 - Slice states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 98 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 100 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 98 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 100 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 4 VERIFIED / 195 COMMITTED; 1 child is active; no child is anonymous.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 4 VERIFIED / 197 COMMITTED; 1 child is active; no child is anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 34 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S98 are committed; S99/J75 is active with a ready packet
-  naming the fixed type-1109 WIPEOUT route, all-version capability window,
-  local-from-scratch clip-boundary vector, bounded-geometry rollback, focused
-  self-read, and independent JSON identity oracle. Keep validation fast and
-  self-updating; after S99 commits, record its gates and immediately select the
-  next dependency-ready target/source lane.
+- Active work: S01-S100 are committed; S101/J77 is active with a ready packet
+  naming the class-523/524/525 UNDERLAY route, AC1018+ capability window,
+  local-from-scratch clip/transform vector linked to existing definitions,
+  bounded-state rollback, focused self-read, and independent JSON identity
+  oracle. Keep validation fast and self-updating; after S101 commits, record
+  its gates and immediately select the next dependency-ready target/source lane.
   S76 records the explicit AC1015 image capability
   boundary and leaves newer image versions locally qualified; S77 keeps
   point-cloud payload evidence identity-only where LibreDWG is opaque.
@@ -2858,7 +2876,9 @@ edit this block or commit the same slice concurrently.
 | S96 | J72: MLINE entity parity | S95 | COMMITTED | fresh target/source API inventory; fixed type-47 dispatch; focused six-version local writer/self-read; mapped `addMLine` publication; bounded style/vertex/segment fields; malformed rollback; independent oracle identity; plan/scope/sync/fixture gates | pinned target and standalone expose `DRW_MLine`, fixed type 47, `writeMLine`, `addMLine`, and the per-vertex/per-line parameter encoder/parser; one local two-vertex, one-line MLINE references the existing local MLINESTYLE handle `0xA800`; AC1015 is an explicit fixed-high-handle gate, with no external style or drawing fixture | focused six-version local round-trip and CTest pass for AC1018/21/24/27/32 plus deterministic AC1015 omission; callback qualifies scalar geometry, style handle, vertices, segment/area-fill arrays, and malformed non-finite/count-mismatch rollback; LibreDWG JSON independently qualifies type 47/handle `0xF500`, style handle `0xA800`, and bounded payload; style name remains local-self-read authoritative because entities publish before OBJECTS; fixture admission, import scope, target sync, plan check, and diff gates pass |
 | S97 | J73: LIGHT entity parity | S96 | COMMITTED | fresh target/source API inventory; built-in class-502 dispatch; AC1021+ capability gate; focused six-version local writer/self-read; mapped `addLight` publication; bounded scalar/photometric fields; malformed rollback; independent oracle identity; plan/scope/sync/fixture gates | pinned target and standalone expose `DRW_Light`, class 502, `writeLight`, `addLight`, and the version-gated photometric body; one local point LIGHT round-trips on AC1021/24/27/32 with deterministic pre-AC1021 omission; finite-value rollback, callback scalar/position/attenuation/photometric publication, and independent LibreDWG base identity pass; no external light/IES asset or drawing fixture | focused six-version capability matrix, local self-read, CTest, live LibreDWG JSON oracle (base payload), fixture admission, import scope, target sync, plan check, and diff gates pass; photometric/web fields remain local-self-read authoritative because LibreDWG omits them |
 | S98 | J74: MESH entity parity | S97 | COMMITTED | fresh target/source API inventory; built-in class-520 dispatch; AC1018+ capability gate; focused five-version local writer/self-read; mapped `addMesh` publication; bounded topology; malformed rollback; independent oracle identity; plan/scope/sync/fixture gates | pinned target and standalone expose `DRW_Mesh`, class 520, `writeMesh`, `addMesh`, and the bounded `AcDbSubDMesh` body; one local four-vertex/one-face mesh with one edge and crease round-trips on AC1018/21/24/27/32 with deterministic AC1015 omission; malformed non-finite topology rolls back; no external mesh asset or drawing fixture | focused five-version capability matrix, local self-read, CTest, live LibreDWG JSON identity oracle, fixture admission, import scope, target sync, plan check, and diff gates pass; LibreDWG topology fields remain non-promoting due decoder loss |
-| S99 | J75: WIPEOUT entity parity | S98 | ACTIVE | target/source API inventory; fixed type-1109 dispatch; focused AC1018+ local writer/self-read; explicit AC1015 capability gate; mapped `addWipeout` publication; bounded clip/scalar fields; malformed rollback; independent oracle identity where decodable; plan/scope/sync/fixture gates | pinned target and standalone expose `DRW_Wipeout`, fixed type 1109, `writeWipeout`, `addWipeout`, and image-derived clip-boundary framing; one local polygon WIPEOUT round-trips on AC1018/21/24/27/32 with AC1015 deterministic omission and no image definition/file dependency; stage no drawing fixture | active implementation must prove fixed-type dispatch, legacy capability boundary, callback clip/scalar publication, malformed clip rejection, independent type/handle identity on AC1021+, and policy gates before commit |
+| S99 | J75: WIPEOUT entity parity | S98 | COMMITTED | target/source API inventory; fixed type-1109 dispatch; focused AC1018+ local writer/self-read; explicit AC1015 capability gate; mapped `addWipeout` publication; bounded clip/scalar fields; malformed rollback; independent oracle identity where decodable; plan/scope/sync/fixture gates | pinned target and standalone expose `DRW_Wipeout`, fixed type 1109, `writeWipeout`, `addWipeout`, and image-derived clip-boundary framing; one local polygon WIPEOUT round-trips on AC1018/21/24/27/32 with AC1015 deterministic omission and no image definition/file dependency; malformed clip-boundary rejection is transactional; no drawing fixture | focused five-version capability matrix, local self-read, CTest, live LibreDWG JSON identity on AC1021+, fixture admission, import scope, target sync, plan check, and diff gates pass; AC1018 external omission remains explicit |
+| S100 | J76: NAVISWORKSMODEL entity parity | S99 | COMMITTED | target/source API inventory; class-541 registration; focused six-version local writer/self-read; mapped `addNavisworksModel` publication; bounded transform/definition fields; malformed rollback; independent oracle identity; plan/scope/sync/fixture gates | pinned target and standalone expose `DRW_NavisworksModel`, class 541, `writeNavisworksModel`, `addNavisworksModel`, and version-aware definition-handle placement; one metadata-only local model round-trips on AC1018/21/24/27/32 with deterministic AC1015 omission; malformed transform/unit rollback and version-specific handle ordering pass; no external NWD asset or drawing fixture | focused five-version capability matrix, local self-read, CTest, live LibreDWG JSON identity, fixture admission, import scope, target sync, plan check, and diff gates pass; LibreDWG transform/unit/definition payload remains non-promoting |
+| S101 | J77: UNDERLAY entity parity | S100 | ACTIVE | target/source API inventory; class-523/524/525 registration; focused AC1018+ local writer/self-read; explicit AC1015 capability gate; mapped `addUnderlay` publication; bounded clip/transform fields; malformed rollback; independent oracle identity; plan/scope/sync/fixture gates | pinned target and standalone expose `DRW_Underlay`, PDF/DGN/DWF classes 523/524/525, `writeUnderlay`, `addUnderlay`, and version-aware definition/clip framing; use one local PDFUNDERLAY linked to existing definition handle `0xD300` on AC1018/21/24/27/32, gate AC1015 explicitly, and stage no external PDF bytes | active implementation must prove class/instance registration, definition-handle placement, callback clip/transform publication, malformed clip/transform rejection, independent type/handle identity, and policy gates before commit |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -2961,7 +2981,9 @@ edit this block or commit the same slice concurrently.
 | J72 | S96 | J71 | COMMITTED | EXPERIMENTAL | Qualify the existing MLINE entity writer and reader across AC1015/18/21/24/27/32, including fixed type-47 framing, MLINESTYLE hard-pointer publication, bounded vertex/segment/area-fill arrays, mapped `addMLine` publication, and transaction-safe malformed-state rejection; retain the optional style-name resolution limitation caused by entity-before-OBJECTS publication order |
 | J73 | S97 | J72 | COMMITTED | EXPERIMENTAL | Qualify the existing LIGHT entity writer and reader on AC1021/24/27/32, including built-in class-502 identity/instance bookkeeping, version-gated photometric fields, mapped `addLight` publication, bounded geometry/intensity/attenuation/shadow metadata, and transaction-safe malformed-state rejection; keep pre-AC1021 omission explicit | six-version capability matrix, local self-read and CTest pass; live LibreDWG qualifies class/type/handle and stable base fields, while photometric/web fields remain local-self-read authoritative; no fixture bytes or external IES asset |
 | J74 | S98 | J73 | COMMITTED | EXPERIMENTAL | Qualify the existing MESH entity writer and reader on AC1018/21/24/27/32, including built-in class-520 identity/instance bookkeeping, version-gated legacy-chain handling, mapped `addMesh` publication, bounded vertex/face/edge/crease topology, and transaction-safe malformed-state rejection; keep AC1015 omission explicit | five-version local self-read and CTest pass; live LibreDWG qualifies class/type/handle identity while topology remains local-self-read authoritative; no fixture bytes or external mesh asset |
-| J75 | S99 | J74 | ACTIVE | EXPERIMENTAL | Qualify the existing WIPEOUT entity writer and reader on AC1018/21/24/27/32, including fixed type-1109 dispatch, image-derived clip-boundary framing, mapped `addWipeout` publication, bounded clip/scalar fields, and transaction-safe malformed-state rejection without image-definition dependencies; retain an explicit AC1015 omission until the legacy fixed-type chain is proven safe |
+| J75 | S99 | J74 | COMMITTED | EXPERIMENTAL | Qualify the existing WIPEOUT entity writer and reader on AC1018/21/24/27/32, including fixed type-1109 dispatch, image-derived clip-boundary framing, mapped `addWipeout` publication, bounded clip/scalar fields, and transaction-safe malformed-state rejection without image-definition dependencies; retain an explicit AC1015 omission until the legacy fixed-type chain is proven safe | five-version local self-read and CTest pass; LibreDWG qualifies type/handle as UNKNOWN_OBJ from AC1021+, omits AC1018, and does not preserve clip payload; no fixture bytes or external image asset |
+| J76 | S100 | J75 | COMMITTED | EXPERIMENTAL | Qualify the existing NAVISWORKSMODEL entity writer and reader across AC1015/18/21/24/27/32, including class-541 identity/instance bookkeeping, version-aware definition-handle placement, mapped `addNavisworksModel` publication, bounded transform/unit metadata, and transaction-safe malformed-state rejection without loading external NWD content | five-version local self-read and CTest pass; LibreDWG qualifies type/handle identity (named AC1018, UNKNOWN_ENT newer) while payload remains local-self-read authoritative; no fixture bytes or external NWD asset |
+| J77 | S101 | J76 | ACTIVE | EXPERIMENTAL | Qualify the existing UNDERLAY entity writer and reader on AC1018/21/24/27/32, including PDF/DGN/DWF class registration, version-aware definition-handle placement, mapped `addUnderlay` publication, bounded clip/transform metadata, and transaction-safe malformed-state rejection without loading external underlay files; retain explicit AC1015 omission |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -3171,7 +3193,9 @@ edit this block or commit the same slice concurrently.
 | J72.1 | J72 / S96 | WP5, WP7, WP8, WP10; MLINE | J71 | COMMITTED | EXPERIMENTAL | emit and self-read one bounded two-vertex MLINE with one local MLINESTYLE reference across AC1015/18/21/24/27/32, verify callback style-handle/vertex/parameter identity plus independent type/handle evidence, and reject non-finite or count-mismatched state without publishing a frame; accept an unresolved optional style name during the entity pass | focused six-version local round-trip and oracle probe pass; AC1015 omission is explicit, AC1018+ identity uses local MLINESTYLE handle `0xA800`, no external style/drawing fixture is committed, and fixture/import-scope/sync/plan/diff gates pass |
 | J73.1 | J73 / S97 | WP5, WP7, WP8, WP10; LIGHT | J72 | COMMITTED | EXPERIMENTAL | emit and self-read one bounded LIGHT with class 502 on AC1021/24/27/32, explicitly gate AC1015/18, verify callback class/name/type/color/intensity/position/target/attenuation/shadow and photometric fields plus independent JSON identity, and reject non-finite intensity/geometry transactionally without publishing a frame | focused six-version capability matrix, local-from-scratch values only, independent LibreDWG JSON base-payload check, fixture/import-scope/sync/plan/diff gates pass; photometric/web fields are locally qualified because LibreDWG omits them, no external light/IES asset and no generated drawing bytes committed |
 | J74.1 | J74 / S98 | WP5, WP7, WP8, WP10; MESH | J73 | COMMITTED | EXPERIMENTAL | emit and self-read one bounded MESH with class 520 on AC1018/21/24/27/32, explicitly gate AC1015, verify callback vertices/faces/edges/creases plus independent JSON identity, and reject non-finite vertices, invalid indices, and over-limit topology transactionally without publishing a frame | focused five-version capability matrix, local-from-scratch values only, independent LibreDWG JSON identity check, fixture/import-scope/sync/plan/diff gates pass; LibreDWG topology is explicitly non-promoting and no external mesh asset or generated drawing bytes are committed |
-| J75.1 | J75 / S99 | WP5, WP7, WP8, WP10; WIPEOUT | J74 | ACTIVE | EXPERIMENTAL | emit and self-read one bounded polygon WIPEOUT with fixed type 1109 on AC1018/21/24/27/32, explicitly gate AC1015, verify callback clip/scalar fields plus independent JSON identity where available, and reject non-finite geometry, invalid boundary mode, and over-limit vertices transactionally without publishing a frame | focused five-version capability matrix, local-from-scratch values only, independent LibreDWG JSON identity on AC1021+, fixture/import-scope/sync/plan/diff gates; AC1018 external omission is explicit and local self-read remains authoritative; no external image/file asset and no generated drawing bytes committed |
+| J75.1 | J75 / S99 | WP5, WP7, WP8, WP10; WIPEOUT | J74 | COMMITTED | EXPERIMENTAL | emit and self-read one bounded polygon WIPEOUT with fixed type 1109 on AC1018/21/24/27/32, explicitly gate AC1015, verify callback clip/scalar fields plus independent JSON identity where available, and reject non-finite geometry, invalid boundary mode, and over-limit vertices transactionally without publishing a frame | focused five-version capability matrix, local-from-scratch values only, independent LibreDWG JSON identity on AC1021+, fixture/import-scope/sync/plan/diff gates pass; AC1018 external omission is explicit and local self-read remains authoritative; no external image/file asset and no generated drawing bytes committed |
+| J76.1 | J76 / S100 | WP5, WP7, WP8, WP10; NAVISWORKSMODEL | J75 | COMMITTED | EXPERIMENTAL | emit and self-read one bounded metadata-only NAVISWORKSMODEL with class 541 across AC1015/18/21/24/27/32, register the class before CLASSES, verify callback transform/unit/definition fields plus independent JSON identity, and reject non-finite transform or unit state transactionally without publishing a frame | focused six-version capability matrix, local-from-scratch values only, independent LibreDWG JSON identity check, fixture-import-scope/sync/plan/diff gates pass; no external NWD asset and no generated drawing bytes committed |
+| J77.1 | J77 / S101 | WP5, WP7, WP8, WP10; UNDERLAY | J76 | ACTIVE | EXPERIMENTAL | emit and self-read one bounded PDFUNDERLAY entity linked to an existing definition on AC1018/21/24/27/32, explicitly gate AC1015, register its class before CLASSES, verify callback clip/transform/definition fields plus independent JSON identity, and reject non-finite or over-limit clip state transactionally without publishing a frame | focused five-version capability matrix, local-from-scratch values only, independent LibreDWG JSON identity check, fixture-import-scope/sync/plan/diff gates; no external PDF bytes or generated drawing bytes committed |
 
 <!-- UPGRADE_PROGRESS_END -->
 

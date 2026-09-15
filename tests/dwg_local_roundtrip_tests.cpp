@@ -2039,6 +2039,32 @@ public:
             && invalidWipeout.handle == 0xF801u;
         }
 
+        if (expectedVersion_ < DRW::AC1018) {
+            wroteNavisworksModel_ = false;
+            rejectedMalformedNavisworksModel_ = true;
+        } else {
+        DRW_NavisworksModel navisworks;
+        navisworks.handle = 0xF900u;
+        navisworks.flags = 7;
+        navisworks.definitionHandle = 0xD900u;
+        navisworks.transform = {
+            1.0, 0.0, 0.0, 10.0,
+            0.0, 1.0, 0.0, 20.0,
+            0.0, 0.0, 1.0, 30.0,
+            0.0, 0.0, 0.0, 1.0,
+        };
+        navisworks.unitFactor = 2.5;
+        wroteNavisworksModel_ = writer_->writeNavisworksModel(&navisworks)
+            && navisworks.handle == 0xF900u;
+        DRW_NavisworksModel invalidNavisworks = navisworks;
+        invalidNavisworks.handle = 0xF901u;
+        invalidNavisworks.unitFactor =
+            std::numeric_limits<double>::quiet_NaN();
+        rejectedMalformedNavisworksModel_ =
+            !writer_->writeNavisworksModel(&invalidNavisworks)
+            && invalidNavisworks.handle == 0xF901u;
+        }
+
         DRW_Hatch hatch;
         hatch.name = "SOLID";
         hatch.solid = 1;
@@ -2480,6 +2506,19 @@ public:
             && data->clipPath[2].x == 64.0
             && data->clipPath[2].y == 48.0
             && data->clipMode == (expectedVersion_ > DRW::AC1021);
+    }
+    void addNavisworksModel(const DRW_NavisworksModel* data) override {
+        if (data == nullptr || data->handle != 0xF900u)
+            return;
+        readNavisworksModelSeen_ = expectedVersion_ >= DRW::AC1018
+            && data->flags == 7
+            && data->definitionHandle == 0xD900u
+            && data->transform[0] == 1.0
+            && data->transform[3] == 10.0
+            && data->transform[7] == 20.0
+            && data->transform[11] == 30.0
+            && data->transform[15] == 1.0
+            && data->unitFactor == 2.5;
     }
     void addHatch(const DRW_Hatch*) override { readHatchSeen_ = true; }
     void addLeader(const DRW_Leader*) override { readLeaderSeen_ = true; }
@@ -3542,6 +3581,11 @@ public:
     bool wroteWipeout() const { return wroteWipeout_; }
     bool rejectedMalformedWipeout() const { return rejectedMalformedWipeout_; }
     bool readWipeoutSeen() const { return readWipeoutSeen_; }
+    bool wroteNavisworksModel() const { return wroteNavisworksModel_; }
+    bool rejectedMalformedNavisworksModel() const {
+        return rejectedMalformedNavisworksModel_;
+    }
+    bool readNavisworksModelSeen() const { return readNavisworksModelSeen_; }
     bool readPointCloudSeen() const { return readPointCloudSeen_; }
     bool readPointCloudExSeen() const { return readPointCloudExSeen_; }
     bool readHatchSeen() const { return readHatchSeen_; }
@@ -3801,6 +3845,8 @@ private:
     bool rejectedMalformedMesh_ {false};
     bool wroteWipeout_ {false};
     bool rejectedMalformedWipeout_ {false};
+    bool wroteNavisworksModel_ {false};
+    bool rejectedMalformedNavisworksModel_ {false};
     bool wrotePointCloud_ {false};
     bool wrotePointCloudEx_ {false};
     bool rejectedMalformedPointCloudEntity_ {false};
@@ -4014,6 +4060,7 @@ private:
     bool readLightSeen_ {false};
     bool readMeshSeen_ {false};
     bool readWipeoutSeen_ {false};
+    bool readNavisworksModelSeen_ {false};
     bool readPointCloudSeen_ {false};
     bool readPointCloudExSeen_ {false};
     bool readHatchSeen_ {false};
@@ -4238,6 +4285,14 @@ int main(int argc, char** argv) {
                ("local DWG WIPEOUT capability gate" + suffix).c_str(), failures);
         expect(writeIface.rejectedMalformedWipeout(),
                ("local DWG writer rejected malformed WIPEOUT transaction"
+                + suffix).c_str(), failures);
+        expect(version >= DRW::AC1018
+                   ? writeIface.wroteNavisworksModel()
+                   : !writeIface.wroteNavisworksModel(),
+               ("local DWG NAVISWORKSMODEL capability gate"
+                + suffix).c_str(), failures);
+        expect(writeIface.rejectedMalformedNavisworksModel(),
+               ("local DWG writer rejected malformed NAVISWORKSMODEL transaction"
                 + suffix).c_str(), failures);
         expect(version > DRW::AC1018
                    ? writeIface.wrotePointCloud()
@@ -4581,6 +4636,11 @@ int main(int argc, char** argv) {
                    : !readIface.readWipeoutSeen(),
                ("local DWG self-read WIPEOUT capability gate" + suffix).c_str(),
                failures);
+        expect(version >= DRW::AC1018
+                   ? readIface.readNavisworksModelSeen()
+                   : !readIface.readNavisworksModelSeen(),
+               ("local DWG self-read NAVISWORKSMODEL capability gate"
+                + suffix).c_str(), failures);
         expect(version > DRW::AC1018
                    ? readIface.readPointCloudSeen()
                    : !readIface.readPointCloudSeen(),
