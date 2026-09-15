@@ -772,6 +772,40 @@ void testDxfRawBoundaryReplay(TestContext& t) {
     t.expect(!writeRawBoundaryObject(badOpaque, output)
                  && output.empty(),
              "DXF raw replay rejects non-string opaque boundary");
+
+    DRW_RawDxfObject missingHandle = object;
+    missingHandle.groups.erase(missingHandle.groups.begin());
+    missingHandle.rawValues.erase(missingHandle.rawValues.begin());
+    output.clear();
+    t.expect(!writeRawBoundaryObject(missingHandle, output)
+                 && output.empty(),
+             "DXF raw replay rejects a missing self handle");
+
+    DRW_RawDxfObject zeroHandle = object;
+    zeroHandle.groups[0] = DRW_Variant(5, std::string("0"));
+    zeroHandle.rawValues[0] = "0";
+    output.clear();
+    t.expect(!writeRawBoundaryObject(zeroHandle, output)
+                 && output.empty(),
+             "DXF raw replay rejects a zero self handle");
+
+    DRW_RawDxfObject wideHandle = object;
+    wideHandle.groups[0] = DRW_Variant(5, std::string("123456789ABCDEF0"));
+    wideHandle.rawValues[0] = "123456789ABCDEF0";
+    output.clear();
+    t.expect(writeRawBoundaryObject(wideHandle, output)
+                 && !output.empty(),
+             "DXF raw replay accepts a bounded wide self handle");
+
+    ProfileProbeInterface duplicateInterface;
+    std::string duplicateContent =
+        "0\nSECTION\n2\nOBJECTS\n0\nLOCAL_DUPLICATE\n"
+        "5\n1A\n5\n1A\n0\nENDSEC\n0\nEOF\n";
+    dxfRW duplicateReader("");
+    t.expect(!duplicateReader.readAscii(
+                  &duplicateInterface, false, duplicateContent)
+                 && duplicateInterface.objects.empty(),
+             "DXF raw object capture rejects duplicate self handles");
 }
 
 DRW_RawDxfSection rawBoundarySection() {
