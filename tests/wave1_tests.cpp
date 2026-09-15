@@ -4017,6 +4017,66 @@ void testDxfRawSectionEmptyNameRead(TestContext& t) {
              "DXF binary raw section rejects an empty section name");
 }
 
+void testDxfRawSectionRecordBoundaries(TestContext& t) {
+    const std::string asciiSource =
+        "0\nSECTION\n2\nLOCAL_RECORD_BOUNDARIES\n"
+        "0\nREC_A\n1000\npayload A\n0\nREC_B\n1000\npayload B\n"
+        "0\nENDSEC\n0\nEOF\n";
+    const std::vector<std::pair<int, std::string>> expected = {
+        {0, "REC_A"}, {1000, "payload A"}, {0, "REC_B"},
+        {1000, "payload B"}};
+    ProfileProbeInterface asciiInterface;
+    dxfRW asciiReader("");
+    asciiReader.binFile = false;
+    std::stringstream asciiInput(asciiSource);
+    asciiReader.reader = std::make_unique<dxfReaderAscii>(&asciiInput);
+    asciiReader.reader->setClassifierProfile(DxfClassifierProfile::StandaloneSafe);
+    asciiReader.iface = &asciiInterface;
+    asciiReader.beginOperationDiagnostic(DRW::OperationKind::Read);
+    t.expect(asciiReader.processDxf()
+                 && asciiInterface.sections.size() == 1,
+             "DXF ASCII raw section reads code-0 record boundaries");
+    if (asciiInterface.sections.size() == 1) {
+        const DRW_RawDxfSection& section = asciiInterface.sections.front();
+        std::vector<std::pair<int, std::string>> actual;
+        for (std::size_t i = 0; i < section.m_groups.size(); ++i)
+            actual.emplace_back(section.m_groups[i].code(),
+                                section.m_groups[i].c_str());
+        t.expect(actual == expected,
+                 "DXF ASCII raw section preserves record-boundary order");
+    }
+
+    std::ostringstream binarySource;
+    dxfWriterBinary binarySourceWriter(&binarySource);
+    binarySourceWriter.writeString(0, "SECTION");
+    binarySourceWriter.writeString(2, "LOCAL_RECORD_BOUNDARIES");
+    binarySourceWriter.writeString(0, "REC_A");
+    binarySourceWriter.writeString(1000, "payload A");
+    binarySourceWriter.writeString(0, "REC_B");
+    binarySourceWriter.writeString(1000, "payload B");
+    binarySourceWriter.writeString(0, "ENDSEC");
+    binarySourceWriter.writeString(0, "EOF");
+    std::stringstream binaryInput(binarySource.str());
+    ProfileProbeInterface binaryInterface;
+    dxfRW binaryReader("");
+    binaryReader.binFile = true;
+    binaryReader.reader = std::make_unique<dxfReaderBinary>(&binaryInput);
+    binaryReader.reader->setClassifierProfile(DxfClassifierProfile::StandaloneSafe);
+    binaryReader.iface = &binaryInterface;
+    binaryReader.beginOperationDiagnostic(DRW::OperationKind::Read);
+    t.expect(binaryReader.processDxf()
+                 && binaryInterface.sections.size() == 1,
+             "DXF binary raw section reads code-0 record boundaries");
+    if (binaryInterface.sections.size() == 1) {
+        const DRW_RawDxfSection& section = binaryInterface.sections.front();
+        std::vector<std::pair<int, std::string>> actual;
+        for (const DRW_Variant& group : section.m_groups)
+            actual.emplace_back(group.code(), group.c_str());
+        t.expect(actual == expected,
+                 "DXF binary raw section preserves record-boundary order");
+    }
+}
+
 void testDxfRawSectionApplicationGroupMarker(TestContext& t) {
     const std::vector<std::string> invalidMarkers = {"{", "NOT_A_MARKER"};
     for (const std::string& marker : invalidMarkers) {
@@ -4380,6 +4440,7 @@ int main() {
     testDxfRawSectionMissingEof(context);
     testDxfRawSectionMissingEndsec(context);
     testDxfRawSectionEmptyNameRead(context);
+    testDxfRawSectionRecordBoundaries(context);
     testDxfRawSectionApplicationGroupMarker(context);
     testDxfRawSectionApplicationGroupReferenceMatrix(context);
     testRawCapture(context);
