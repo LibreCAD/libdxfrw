@@ -140,17 +140,17 @@
     },
     {
       "path": "src/intern/dwg_dxf_output_transaction.cpp",
-      "reason": "Replace timestamp-plus-counter temporary names with OS-backed mkstemp creation on POSIX and randomized exclusive names on Windows; stream-reopen identity and durability remain explicit follow-up work.",
-      "scope": "output transaction temporary-name hardening",
+      "reason": "Replace timestamp-plus-counter temporary names with OS-backed mkstemp creation on POSIX and randomized exclusive names on Windows; retain descriptor/path identity checks, flush the file before publication, and synchronize the containing directory before and after rename where POSIX permits.",
+      "scope": "output transaction temporary-name, identity, and durability hardening",
       "targetBlob": "ab60082b5a27c7c876c95aeaab8c8eaf30b39200",
-      "adaptedSha256": "08ae0b8673ac46961e0d52a1b9e690109eccff69dd5ccc253301d293f993aff2"
+      "adaptedSha256": "8f7ba0678579b05adeb6b67c194852dc3d616cc8452538be6e4c2800ce2226ce"
     },
     {
       "path": "src/intern/dwg_dxf_output_transaction.h",
-      "reason": "Retain the exclusive temporary descriptor through stream open and commit/abort identity checks, preventing a substituted pathname from being published or removed as if it were owned.",
-      "scope": "output transaction identity hardening",
+      "reason": "Retain the exclusive temporary descriptor through stream open and commit/abort identity checks, preventing a substituted pathname from being published or removed as if it were owned; expose the parent-directory durability helper without changing the public API.",
+      "scope": "output transaction identity and durability hardening",
       "targetBlob": "c3ab578d52761c4cdfddb1288376a03bd44db86d",
-      "adaptedSha256": "a7bcaa1cbb68759e5ee96de854474805c8ce132f64006f720684d90ff45ada09"
+      "adaptedSha256": "cbf7c7da18b6d8889de14f7a1c4c7ebf623d8da7884a3aecea6cae31441a75e3"
     },
     {
       "path": "src/intern/drw_dbg.cpp",

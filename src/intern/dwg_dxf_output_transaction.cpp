@@ -139,6 +139,32 @@ bool DwgDxfOutputTransaction::flushFileToStorage() const noexcept {
 #endif
 }
 
+bool DwgDxfOutputTransaction::flushParentDirectoryToStorage() const noexcept {
+#if defined(_WIN32)
+    // MoveFileExW(..., MOVEFILE_WRITE_THROUGH) is the native Windows
+    // equivalent used by publish(); Windows does not provide a portable
+    // directory descriptor that can be flushed like a POSIX directory.
+    return true;
+#else
+    const std::filesystem::path directory =
+        m_target.parent_path().empty() ? std::filesystem::path(".")
+                                       : m_target.parent_path();
+    int flags = O_RDONLY;
+#  if defined(O_DIRECTORY)
+    flags |= O_DIRECTORY;
+#  endif
+#  if defined(O_CLOEXEC)
+    flags |= O_CLOEXEC;
+#  endif
+    const int descriptor = ::open(directory.c_str(), flags);
+    if (descriptor < 0)
+        return false;
+    const bool flushed = ::fsync(descriptor) == 0;
+    ::close(descriptor);
+    return flushed;
+#endif
+}
+
 bool DwgDxfOutputTransaction::open() {
     if (m_stream.is_open() || !createExclusiveTemporary())
         return false;
@@ -181,6 +207,14 @@ bool DwgDxfOutputTransaction::commit() {
         abort();
         return false;
     }
+    // Verify that the containing directory can be synchronized before the
+    // pathname publication.  The post-rename sync below is best effort: the
+    // replacement is already atomically visible and cannot be rolled back if
+    // a platform reports a late durability failure.
+    if (!flushParentDirectoryToStorage()) {
+        abort();
+        return false;
+    }
     m_stream.close();
     if (m_stream.fail() || !temporaryIdentityMatches() || !publish()) {
         abort();
@@ -189,6 +223,7 @@ bool DwgDxfOutputTransaction::commit() {
     m_committed = true;
     closeExclusiveDescriptor();
     m_temporary.clear();
+    (void)flushParentDirectoryToStorage();
     return true;
 }
 

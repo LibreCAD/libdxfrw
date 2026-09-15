@@ -52,6 +52,7 @@ private:
     bool createExclusiveTemporary();
     bool temporaryIdentityMatches() const noexcept;
     bool flushFileToStorage() const noexcept;
+    bool flushParentDirectoryToStorage() const noexcept;
     void closeExclusiveDescriptor() noexcept;
     bool publish();
 
