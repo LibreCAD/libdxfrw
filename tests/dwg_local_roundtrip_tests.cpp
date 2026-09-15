@@ -977,7 +977,6 @@ public:
         modelSpaceLineHandle_ = line.handle;
 
         DRW_Image image;
-        image.handle = 0xD700u;
         image.basePoint = DRW_Coord(50.0, 60.0, 0.0);
         image.secPoint = DRW_Coord(114.0, 60.0, 0.0);
         image.vVector = DRW_Coord(0.0, 1.0, 0.0);
@@ -989,13 +988,25 @@ public:
         image.fade = 10;
         image.m_classVersion = 2;
         const std::string imageFileName = "LOCAL_IMAGE.png";
+        DRW_ImageDef imageDefinition;
+        imageDefinition.handle = 0xD700u;
+        imageDefinition.imgVersion = 2;
+        imageDefinition.u = 64.0;
+        imageDefinition.v = 48.0;
+        imageDefinition.up = 1.0;
+        imageDefinition.vp = 1.0;
+        imageDefinition.loaded = 1;
+        imageDefinition.resolution = 0;
+        DRW_ImageDefinitionReactor imageReactor;
+        imageReactor.handle = 0xD701u;
+        imageReactor.m_classVersion = 2;
         if (writer_->getVersion() < DRW::AC1018) {
-            rejectedUnsupportedImage_ = true;
             wroteImage_ = false;
             rejectedMalformedImage_ = true;
         } else {
-            wroteImage_ = writer_->writeImage(&image, &imageFileName)
-                && image.handle == 0xD700u
+            wroteImage_ = writer_->writeImage(
+                    &image, &imageFileName, &imageDefinition, &imageReactor)
+                && image.handle != 0
                 && image.ref != 0
                 && image.m_imageDefReactorHandle != 0;
             DRW_Image invalidImage = image;
@@ -1171,12 +1182,14 @@ public:
     void addXline(const DRW_Xline&) override { readXlineSeen_ = true; }
     void add3DLine(const DRW_3DLine&) override { read3dLineSeen_ = true; }
     void addImage(const DRW_Image* data) override {
-        if (data != nullptr && data->handle == 0xD700u)
+        if (data != nullptr && data->sizeu == 64.0 && data->sizev == 48.0)
             readImageSeen_ = data->ref != 0
                 && data->m_imageDefReactorHandle != 0
                 && data->sizeu == 64.0 && data->sizev == 48.0
                 && data->brightness == 60 && data->contrast == 70
                 && data->fade == 10;
+        if (readImageSeen_ && data != nullptr)
+            readImageHandle_ = data->handle;
     }
     void linkImage(const DRW_ImageDef* data) override {
         if (data != nullptr && data->name == "LOCAL_IMAGE.png")
@@ -1186,7 +1199,7 @@ public:
     }
     void addImageDefinitionReactor(
         const DRW_ImageDefinitionReactor& data) override {
-        if (data.parentHandle == 0xD700u)
+        if (data.parentHandle == readImageHandle_ && readImageHandle_ != 0)
             readImageReactorSeen_ = data.m_classVersion == 2;
     }
     void addPolyline(const DRW_Polyline&) override {
@@ -1740,7 +1753,6 @@ public:
     bool wroteDwfUnderlay() const { return wroteDwfUnderlay_; }
     bool wroteImage() const { return wroteImage_; }
     bool rejectedMalformedImage() const { return rejectedMalformedImage_; }
-    bool rejectedUnsupportedImage() const { return rejectedUnsupportedImage_; }
     bool readLineSeen() const { return readLineSeen_; }
     bool readSimpleEntitiesSeen() const {
         return readPointSeen_ && readCircleSeen_ && readArcSeen_
@@ -1954,7 +1966,6 @@ private:
     bool rejectedMalformedUnderlay_ {false};
     bool wroteImage_ {false};
     bool rejectedMalformedImage_ {false};
-    bool rejectedUnsupportedImage_ {false};
     bool registeredDictionary_ {false};
     bool registeredMLeaderStyle_ {false};
     bool registeredDictionaryVar_ {false};
@@ -2072,6 +2083,7 @@ private:
     bool readImageSeen_ {false};
     bool readImageDefSeen_ {false};
     bool readImageReactorSeen_ {false};
+    std::uint32_t readImageHandle_ {0};
     DRW_Line readLine_;
     dx_data data_;
 };
@@ -2243,7 +2255,7 @@ int main(int argc, char** argv) {
                ("local DWG writer rejected malformed UNDERLAYDEFINITION transaction" + suffix).c_str(),
                failures);
         expect(version < DRW::AC1018
-                   ? writeIface.rejectedUnsupportedImage()
+                   ? !writeIface.wroteImage()
                    : writeIface.wroteImage(),
                ("local DWG IMAGE capability gate" + suffix).c_str(), failures);
         expect(writeIface.rejectedMalformedImage(),
