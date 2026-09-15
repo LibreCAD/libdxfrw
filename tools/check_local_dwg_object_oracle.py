@@ -628,12 +628,29 @@ def check_objects(payload: dict, version_name: str) -> dict:
     expected_geodata_type = 528 if version_name in {
         "AC1015", "AC1018", "AC1021"} else 527
     if (geodata.get("type") != expected_geodata_type
-            or record_handle(geodata) != GEODATA_HANDLE):
-        raise ValueError("GEODATA type or handle mismatch")
-    geodata_discrepancies = [
-        "LibreDWG 0.14 decodes local version-1 GEODATA payload fields "
-        "differently from libdxfrw; only type/handle identity is qualified"
-    ]
+            or record_handle(geodata) != GEODATA_HANDLE
+            or owner_handle(geodata) != 0x17
+            or geodata.get("xdicobjhandle") != [3, 2,
+                                                   DICTIONARY_HANDLE,
+                                                   DICTIONARY_HANDLE]):
+        raise ValueError("GEODATA type, handle, owner, or xDictionary mismatch")
+    geodata_discrepancies = []
+    if version_name in {"AC1015", "AC1018"}:
+        geodata_discrepancies.append(
+            "LibreDWG 0.14 does not preserve the local version-1 GEODATA "
+            "host/body fields for AC1015/AC1018; type, handle, owner, and "
+            "xDictionary identity are qualified")
+    else:
+        if geodata.get("host_block") != [4, 1, 0x17, 0x17]:
+            raise ValueError("GEODATA host-block handle mismatch")
+        geodata_discrepancies.append(
+            "LibreDWG 0.14 decodes local version-1 GEODATA body fields "
+            "differently from libdxfrw; type/handle/owner/xDictionary "
+            "identity is qualified")
+        if version_name == "AC1021":
+            geodata_discrepancies.append(
+                "LibreDWG 0.14 omits the local version-1 GEODATA north "
+                "direction field for AC1021")
 
     geodata_v2 = find_record(records, "GEODATA", GEODATA_V2_HANDLE)
     if (geodata_v2.get("type") != expected_geodata_type
@@ -1030,8 +1047,9 @@ def self_test() -> None:
              "transform": [0.0] * 12},
             {"object": "GEODATA",
              "handle": [0, 1, GEODATA_HANDLE],
-             "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
-             "type": 527},
+             "ownerhandle": [4, 1, 0x17, 0x17],
+             "xdicobjhandle": [3, 2, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "host_block": [4, 1, 0x17, 0x17], "type": 527},
             {"object": "GEODATA", "handle": [0, 1, GEODATA_V2_HANDLE],
              "ownerhandle": [4, 1, 0x17, 0x17],
              "xdicobjhandle": [3, 2, DICTIONARY_HANDLE, DICTIONARY_HANDLE],

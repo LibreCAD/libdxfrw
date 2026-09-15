@@ -1916,8 +1916,8 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint: S71/J47 GEODATA handle/order compatibility is committed;
-  S01-S71 implementation slices are committed with a
+- Current checkpoint: S72/J48 GEODATA version-1 compatibility is committed;
+  S01-S72 implementation slices are committed with a
   version-specific oracle discrepancy recorded,
   including the clean
   LibreCAD target worktree change. Format-support claims remain limited to
@@ -2466,7 +2466,7 @@ edit this block or commit the same slice concurrently.
   evidence. S53/J29 adds fixed RASTERVARIABLES/WIPEOUTVARIABLES scalar
   evidence with transactional invalid-value checks and no fixture bytes.
   parity or a PR boundary.
-- Last fully resolved slice: S71 (the GEODATA handle/order compatibility slice is
+- Last fully resolved slice: S72 (the GEODATA version-1 compatibility slice is
   committed by the matching `Plan-Slice: S71` trailer; broader
   fixed object families remain experimental follow-up).
   target integration commit remains
@@ -2481,17 +2481,17 @@ edit this block or commit the same slice concurrently.
   `6969e0a003414f9a7084349ac54bc2b32515e16b`. All in-horizon lanes are
   terminal only when their recorded gates pass; the next runtime qualification
   lane requires no new target pin.
-- Resolved slices: 71/72 (`COMMITTED`, or `SUPERSEDED` after all replacements
+- Resolved slices: 72/73 (`COMMITTED`, or `SUPERSEDED` after all replacements
   commit).
 - Slice states: 1 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 71 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 72 COMMITTED.
 - Parent-item states: 1 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 71 COMMITTED.
-- Expanded child-item states: 168 COMMITTED / 0 PLANNED / 1 READY / 0 ACTIVE /
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 72 COMMITTED.
+- Expanded child-item states: 169 COMMITTED / 0 PLANNED / 1 READY / 0 ACTIVE /
   0 VERIFYING / 0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED; no child is anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 29 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S71 are committed; S72/J48 GEODATA version-1
+- Active work: S01-S72 are committed; S73/J49 GEODATA civil-data/version-window
   compatibility is ready.
   S23/I5
   qualification is ready. S23/I5
@@ -2603,7 +2603,8 @@ edit this block or commit the same slice concurrently.
 | S69 | J45: SPATIAL_FILTER object-family parity | S68 | COMMITTED | focused six-version local writer/self-read; class-registration/owner closure; independent JSON object oracle; malformed-boundary rejection; plan/scope/sync/fixture gates | local writer/self-read and malformed over-limit-boundary rollback pass for AC1015/18/21/24/27/32; LibreDWG 0.14 qualifies owner A601, exact boundary/plane/transform fields, and type 527 through AC1021 versus 526 for AC1024+; generated drawings remain temporary and evidence remains experimental | next fixed-object lane; retain the version-dependent type split explicitly |
 | S70 | J46: GEODATA object-family parity | S69 | COMMITTED | focused six-version local writer/self-read; class-registration/owner closure; independent JSON object oracle; malformed-coordinate/mesh rejection; plan/scope/sync/fixture gates | local writer/self-read and malformed non-finite-coordinate rollback pass for AC1015/18/21/24/27/32; LibreDWG 0.14 qualifies only type/handle identity (528 through AC1021; 527 for AC1024+) and records coordinate/owner/string decode differences; generated drawings remain temporary and evidence remains experimental | next compatibility lane; do not promote GEODATA coordinate parity until handle/order probe resolves the discrepancy |
 | S71 | J47: GEODATA handle/order compatibility | S70 | COMMITTED | ODA/spec trace probe; focused version-2 local writer/self-read; independent JSON oracle; bounded correction or identity-only disposition; plan/scope/sync/fixture gates | production encoder/reader now uses inline host handle for AC1015/18 and common-prefix-then-host ordering for R2007+; local six-version self-read passes; LibreDWG 0.14 qualifies exact v2 owner/host/xdic/payload fields for AC1024/27/32, with explicit pre-AC1024 v2 and all-version v1 field discrepancies; no generated fixture bytes retained | focused self-read/oracle and policy gates pass; next version-1 compatibility lane is unblocked |
-| S72 | J48: GEODATA version-1 compatibility | S71 | READY | ODA/spec trace; legacy version-1 body/string-order probe; bounded version-gated correction or identity-only disposition; plan/scope/sync/fixture gates | ready to reconcile the remaining version-1 coordinate/string decoding discrepancy without widening fixture scope or blocking unrelated object lanes | focused legacy-version self-read/oracle checks; no full suite unless a release checkpoint declares it |
+| S72 | J48: GEODATA version-1 compatibility | S71 | COMMITTED | ODA/spec trace; legacy version-1 body/string-order probe; bounded version-gated correction or identity-only disposition; plan/scope/sync/fixture gates | ODA §20.4.78 confirms the legacy body order; local six-version self-read and LibreDWG 0.14 oracle pass with stable type/handle/owner/xDictionary and AC1021+ host identity qualified, while pre-R2007 host/body, AC1021 north-angle, and R2010+ legacy-body decoder differences remain explicit identity-only dispositions; no generated fixture bytes retained | focused legacy-version self-read/oracle and policy gates pass; S73 civil-data/version-window lane is unblocked |
+| S73 | J49: GEODATA civil-data/version-window compatibility | S72 | READY | ODA/spec trace for R21-and-earlier civil-data tail; bounded optional-carrier or version-gated unsupported disposition; plan/scope/sync/fixture gates | ready to determine whether civil-data tail preservation is required for AC1015/18/21 without widening the public model or fixture scope | focused AC1015/18/21 self-read/oracle checks; no full suite unless a release checkpoint declares it |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -2679,7 +2680,8 @@ edit this block or commit the same slice concurrently.
 | J45 | S69 | J44 | COMMITTED | EXPERIMENTAL | Extend the local object graph and independent JSON oracle to SPATIAL_FILTER, including class registration, fixed type/header, owner, bounded boundary/normal/origin/plane fields, six-version self-read, and transaction-safe over-limit or non-finite rejection |
 | J46 | S70 | J45 | COMMITTED | EXPERIMENTAL | Extend the local object graph and independent JSON oracle to GEODATA, including class registration, fixed type/header, owner/host-block handle, version-1 coordinate metadata, bounded strings/vectors, six-version self-read, and transaction-safe non-finite or over-limit rejection |
 | J47 | S71 | J46 | COMMITTED | EXPERIMENTAL | Resolve GEODATA handle-stream ordering and version-2 payload compatibility against ODA §20.4.78 and LibreDWG, correcting the production path where justified or recording a version-gated identity-only disposition with trace evidence |
-| J48 | S72 | J47 | READY | EXPERIMENTAL | Reconcile GEODATA version-1 body and string/coordinate ordering against ODA §20.4.78 and LibreDWG, applying only a bounded version-correct fix or retaining an explicit identity-only fallback with trace evidence |
+| J48 | S72 | J47 | COMMITTED | EXPERIMENTAL | Reconcile GEODATA version-1 body and string/coordinate ordering against ODA §20.4.78 and LibreDWG, applying only a bounded version-correct fix or retaining an explicit identity-only fallback with trace evidence |
+| J49 | S73 | J48 | READY | EXPERIMENTAL | Decide the GEODATA R21-and-earlier civil-data tail and version-window behavior, adding only a bounded optional carrier or an explicit unsupported disposition with trace evidence |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -2862,7 +2864,8 @@ edit this block or commit the same slice concurrently.
 | J45.1 | J45 / S69 | WP5, WP7, WP8, WP10; SPATIAL_FILTER | J44 | COMMITTED | EXPERIMENTAL | emit and self-read one bounded two-point SPATIAL_FILTER for AC1015/18/21/24/27/32, register its class before CLASSES, independently verify fixed type/owner/boundary/normal/plane fields, and reject an over-limit or non-finite boundary without publishing a frame | focused six-version local self-read, object-oracle self-test/live run, and policy gates; generated drawings remain temporary, no fixture bytes are staged, and boundary/transform edge cases stay explicit |
 | J46.1 | J46 / S70 | WP5, WP7, WP8, WP10; GEODATA | J45 | COMMITTED | EXPERIMENTAL | emit and self-read one bounded version-1 GEODATA payload with host-block handle for AC1015/18/21/24/27/32, register its class before CLASSES, independently verify type/handle identity while recording coordinate/owner/string decoder differences, and reject non-finite coordinates or over-limit mesh vectors without publishing a frame | focused six-version local self-read, object-oracle self-test/live run, and policy gates; generated drawings remain temporary, no fixture bytes are staged, and geodata discrepancies remain explicit |
 | J47.1 | J47 / S71 | WP5, WP7, WP8, WP10; GEODATA compatibility | J46 | COMMITTED | EXPERIMENTAL | probe handle ordering and version-2 GEODATA fields against ODA and LibreDWG, run the smallest correction that preserves local self-read, and either qualify corrected fields or retain an explicit identity-only fallback without staging fixtures | focused trace/self-read/oracle checks and policy gates; generated drawings remain temporary, no fixture bytes are staged, and unresolved differences stay bounded |
-| J48.1 | J48 / S72 | WP5, WP7, WP8, WP10; GEODATA legacy compatibility | J47 | READY | EXPERIMENTAL | trace version-1 GEODATA body/string/coordinate ordering, compare LibreDWG field output by version, and either apply a bounded compatibility correction or document identity-only fallback without staging fixtures | focused legacy-version self-read/oracle checks and policy gates; generated drawings remain temporary, no fixture bytes are staged, and unresolved decoder differences stay bounded |
+| J48.1 | J48 / S72 | WP5, WP7, WP8, WP10; GEODATA legacy compatibility | J47 | COMMITTED | EXPERIMENTAL | trace version-1 GEODATA body/string/coordinate ordering, compare LibreDWG field output by version, and either apply a bounded compatibility correction or document identity-only fallback without staging fixtures | focused legacy-version self-read/oracle checks and policy gates; generated drawings remain temporary, no fixture bytes are staged, and unresolved decoder differences stay bounded |
+| J49.1 | J49 / S73 | WP5, WP7, WP8, WP10; GEODATA civil-data/version window | J48 | READY | EXPERIMENTAL | trace the ODA R21-and-earlier civil-data tail and decide optional bounded preservation versus version-gated unsupported behavior without staging fixtures | focused AC1015/18/21 self-read/oracle checks and policy gates; generated drawings remain temporary, no fixture bytes are staged, and unresolved civil-tail behavior stays bounded |
 
 <!-- UPGRADE_PROGRESS_END -->
 
