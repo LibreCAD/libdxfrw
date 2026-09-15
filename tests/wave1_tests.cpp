@@ -322,6 +322,79 @@ void testDxfClassifierProfileProbe(TestContext& t) {
              "legacy profile raw replay preserves code 482 value");
 }
 
+void testDxfBinaryLegacyProfileReplay(TestContext& t) {
+    DRW_RawDxfObject object;
+    object.name = "RAW_LEGACY_BINARY";
+    object.m_version = DRW::AC1027;
+    object.groups = {
+        DRW_Variant(5, std::string("2A")),
+        DRW_Variant(260, static_cast<std::int32_t>(1)),
+        DRW_Variant(482, 3.5)};
+
+    std::ostringstream legacyBytes;
+    dxfRW legacyOwner("");
+    legacyOwner.m_useTargetLegacyClassifier = true;
+    legacyOwner.version = DRW::AC1027;
+    legacyOwner.binFile = true;
+    legacyOwner.writer = std::make_unique<dxfWriterBinary>(&legacyBytes);
+    t.expect(legacyOwner.writeRawDxfObject(&object),
+             "legacy profile binary raw object writes");
+    std::stringstream legacyRecords(legacyBytes.str());
+    dxfReaderBinary legacyReader(&legacyRecords);
+    legacyReader.setClassifierProfile(
+        DxfClassifierProfile::LibreCadMasterLegacy);
+    int code = 0;
+    t.expect(legacyReader.readRec(&code) && code == 0
+                 && legacyReader.getString() == "RAW_LEGACY_BINARY"
+                 && legacyReader.readRec(&code) && code == 5,
+             "legacy profile binary object framing round-trips");
+    t.expect(legacyReader.readRec(&code) && code == 260
+                 && legacyReader.type == dxfReader::BOOL
+                 && legacyReader.getBool(),
+             "legacy profile binary object preserves one-byte code 260");
+    t.expect(legacyReader.readRec(&code) && code == 482
+                 && legacyReader.type == dxfReader::DOUBLE
+                 && legacyReader.getDouble() == 3.5,
+             "legacy profile binary object preserves eight-byte code 482");
+
+    DRW_RawDxfSection section;
+    section.m_name = "LOCAL_LEGACY_BINARY";
+    section.m_version = DRW::AC1027;
+    section.m_groups = {
+        DRW_Variant(260, static_cast<std::int32_t>(1)),
+        DRW_Variant(482, 3.5)};
+    std::ostringstream sectionBytes;
+    dxfRW sectionOwner("");
+    sectionOwner.m_useTargetLegacyClassifier = true;
+    sectionOwner.version = DRW::AC1027;
+    sectionOwner.binFile = true;
+    sectionOwner.writer = std::make_unique<dxfWriterBinary>(&sectionBytes);
+    t.expect(sectionOwner.writeRawDxfSection(section),
+             "legacy profile binary raw section writes");
+    std::stringstream sectionRecords(sectionBytes.str());
+    dxfReaderBinary sectionReader(&sectionRecords);
+    sectionReader.setClassifierProfile(
+        DxfClassifierProfile::LibreCadMasterLegacy);
+    const std::vector<int> expectedCodes {0, 2, 260, 482, 0};
+    std::size_t index = 0;
+    while (sectionReader.readRec(&code)) {
+        t.expect(index < expectedCodes.size()
+                     && code == expectedCodes[index],
+                 "legacy profile binary section framing round-trips");
+        ++index;
+    }
+    t.expect(index == expectedCodes.size(),
+             "legacy profile binary section consumes complete frame");
+
+    std::ostringstream safeBytes;
+    dxfRW safeOwner("");
+    safeOwner.version = DRW::AC1027;
+    safeOwner.binFile = true;
+    safeOwner.writer = std::make_unique<dxfWriterBinary>(&safeBytes);
+    t.expect(!safeOwner.writeRawDxfObject(&object) && safeBytes.str().empty(),
+             "standalone-safe binary writer rejects legacy-only double route");
+}
+
 DRW_RawDxfObject rawBoundaryObject() {
     DRW_RawDxfObject object;
     object.name = "RAW_BOUNDARY";
@@ -792,6 +865,7 @@ int main() {
     testTextAndPreR13(context);
     testDxfClassifierBoundaryMatrix(context);
     testDxfClassifierProfileProbe(context);
+    testDxfBinaryLegacyProfileReplay(context);
     testDxfRawBoundaryReplay(context);
     testDxfRawSectionBoundaryReplay(context);
     testDxfBinaryRawBoundaryReplay(context);
