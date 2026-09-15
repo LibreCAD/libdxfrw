@@ -2083,6 +2083,12 @@ edit this block or commit the same slice concurrently.
   stale/unreviewed mismatches; its self-test, CTest entry, and the current
   locked report all pass with one reviewed AC1021 target-debt delta. No drawing
   bytes are stored.
+- Latest local debt-ledger slice (2026-09-15): S282/J258 adds the scoped
+  `metadata/differential-debt-local-v1.json` registry for the two local-
+  from-scratch target short-read deltas. The checker validates the S276 report
+  with two exact reviewed entries (AC1027 and AC1032) and zero unreviewed or
+  stale rows; the locked AC1021 registry remains independent. No drawing bytes
+  are committed.
 - Previous checkpoint (2026-09-15): S257/J233 post-hardening validation
   checkpoint is committed. A fresh C++17 build and all 26 dependency-free
   CTest entries pass in 6.26 seconds, including source-route and release
@@ -3724,6 +3730,7 @@ edit this block or commit the same slice concurrently.
 | S279 | J255: optional status extraction correctness | S278 | COMMITTED | fail-closed nested status-key handling; equal/mismatched coarse status self-tests; explicit not-reported absence; no payload retention | differential self-test and CTest pass; absent status remains not-reported while matching and differing recognized status fields classify equal/delta; no drawing fixtures or derived payloads | continue with target-debt review, independent oracle qualification, and release closure |
 | S280 | J256: bounded external advisory refresh | S279 | COMMITTED | 20-file external corpus rerun; hash/status-only metadata; timeout bound; explicit non-promoting disposition; no fixture admission | current `dwg2dxf` reports 10 converted, 9 failed, and 1 timeout with stable version distribution; report is temporary and no external or derived drawing bytes are committed | continue with target-debt review, independent oracle qualification, and release closure |
 | S281 | J257: reviewed differential-debt checker | S280 | COMMITTED | metadata-only reviewed-delta registry; target/source/output/semantic hash matching; stale/unreviewed fail-closed checks; self-test/CTest; no payload retention | checker passes the current locked report with one reviewed AC1021 delta and zero unreviewed mismatches; changed-hash self-test fails closed; no drawing fixtures or derived payloads | continue with target-debt review, independent oracle qualification, and release closure |
+| S282 | J258: scoped local differential-debt registry | S281 | COMMITTED | local-from-scratch AC1027/AC1032 reviewed-debt hashes; independent registry scope; exact target/source/output/semantic matching; no payload retention | checker passes the S276 six-version report with two reviewed target short-reads and zero unreviewed/stale rows; locked registry remains one-entry scoped; no drawing fixtures or derived payloads | continue with target-debt review, independent oracle qualification, and release closure |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -4009,6 +4016,7 @@ edit this block or commit the same slice concurrently.
 | J255 | S279 | J254 | COMMITTED | EXPERIMENTAL | Qualify optional status extraction correctness | Preserve only recognized nested/top-level coarse status fields, avoid synthesizing absent keys, and self-test equal/mismatched status relations while retaining explicit not-reported behavior when status is unavailable |
 | J256 | S280 | J255 | COMMITTED | DEFERRED_EXTERNAL | Qualify bounded external advisory refresh | Rerun the 20-file external corpus with a two-second per-input timeout, retain only source/output hashes, versions, sizes, and status categories, and preserve failures/timeouts as advisory evidence without support promotion |
 | J257 | S281 | J256 | COMMITTED | EXPERIMENTAL | Qualify reviewed differential-debt checker | Add a metadata-only registry and checker that accepts only exact target/source/output/semantic hashes for reviewed deltas, rejects stale or unreviewed mismatches, and preserves non-promoting release semantics |
+| J258 | S282 | J257 | COMMITTED | EXPERIMENTAL | Qualify scoped local differential-debt registry | Add a separate metadata-only registry for the local-from-scratch AC1027/AC1032 target short-reads so exact local evidence is reviewable without making the locked-fixture registry stale |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4401,6 +4409,7 @@ edit this block or commit the same slice concurrently.
 | J255.1 | J255 / S279 | WP8, WP10; optional status/error-stage relation | J254 | COMMITTED | EXPERIMENTAL | ignore absent nested status keys, compare recognized equal and mismatched `ok`/error/stage fields, and preserve `not-reported` when neither side provides status | differential self-test and CTest pass; equal/mismatched status counters are deterministic and no arbitrary dumper fields or drawing bytes are retained |
 | J256.1 | J256 / S280 | WP5, WP8, WP10; external advisory corpus | J255 | COMMITTED | DEFERRED_EXTERNAL | execute the bounded 20-input external advisory run, classify conversion/timeout outcomes by version, and keep all corpus files and generated DXF outputs outside the repository | temporary report records 10 converted, 9 failed, and 1 timeout; no external bytes or derived outputs are committed and no support row is promoted |
 | J257.1 | J257 / S281 | WP8, WP10; reviewed differential debt | J256 | COMMITTED | EXPERIMENTAL | validate the current locked differential report against `metadata/differential-debt-v1.json`, require target-commit and exact source/output/semantic hashes, and fail closed on changed, stale, or unreviewed mismatches | `check_differential_debt.py --self-test`, CTest, and the current report check pass with one reviewed delta and zero unreviewed mismatches; no drawing bytes are retained |
+| J258.1 | J258 / S282 | WP5, WP8, WP10; local reviewed differential debt | J257 | COMMITTED | EXPERIMENTAL | validate the six-version local differential report against `metadata/differential-debt-local-v1.json`, require both AC1027/AC1032 target/source/output/semantic hashes, and fail closed on stale or unexpected rows | checker passes the temporary S276 report with two reviewed target short-reads and zero unreviewed/stale mismatches; no drawing bytes are retained |
 
 <!-- UPGRADE_PROGRESS_END -->
 
