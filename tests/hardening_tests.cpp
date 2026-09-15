@@ -1,3 +1,5 @@
+#include <array>
+#include <algorithm>
 #include <cstdint>
 #include <iostream>
 #include <limits>
@@ -255,6 +257,47 @@ void testDxfReadFuzzSmoke(TestContext& t) {
     }
 }
 
+void testDwgReadFuzzSmoke(TestContext& t) {
+    // Exercise the public in-memory DWG entry point as well.  Each vector is
+    // discarded immediately; the lane is deliberately bounded so it remains
+    // suitable for the fast inner loop and sanitizer jobs.
+    constexpr std::size_t iterations = 512;
+    constexpr std::size_t maxLength = 256;
+    constexpr std::array<std::array<std::uint8_t, 6>, 6> magics {{
+        {{'A', 'C', '1', '0', '1', '5'}},
+        {{'A', 'C', '1', '0', '1', '8'}},
+        {{'A', 'C', '1', '0', '2', '1'}},
+        {{'A', 'C', '1', '0', '2', '4'}},
+        {{'A', 'C', '1', '0', '2', '7'}},
+        {{'A', 'C', '1', '0', '3', '2'}},
+    }};
+    std::uint32_t state = 0xD06F00D5u;
+    for (std::size_t iteration = 0; iteration < iterations; ++iteration) {
+        const std::size_t length = 6u + ((iteration * 29u) % (maxLength - 5u));
+        std::vector<std::uint8_t> bytes(length);
+        const auto& magic = magics[iteration % magics.size()];
+        std::copy(magic.begin(), magic.end(), bytes.begin());
+        for (std::size_t index = 6; index < bytes.size(); ++index) {
+            state = state * 1664525u + 1013904223u;
+            bytes[index] = static_cast<std::uint8_t>(state >> 24);
+        }
+        // A few vectors retain a valid header but contain an all-zero tail;
+        // this reaches different short-page and offset checks than arbitrary
+        // bytes while remaining independent of any real drawing.
+        if ((iteration % 8u) == 0u)
+            std::fill(bytes.begin() + 6, bytes.end(), 0u);
+
+        FuzzInterface interface_;
+        dwgRW reader(nullptr);
+        try {
+            (void)reader.readBuffer(bytes.data(), bytes.size(), &interface_,
+                                    false);
+        } catch (...) {
+            t.expect(false, "DWG parser fuzz input does not throw");
+        }
+    }
+}
+
 } // namespace
 
 int main() {
@@ -263,6 +306,7 @@ int main() {
     testNullAndOwnershipContracts(context);
     testMalformedInMemoryInputs(context);
     testDxfReadFuzzSmoke(context);
+    testDwgReadFuzzSmoke(context);
     if (context.failures != 0) {
         std::cerr << context.failures << " hardening assertion(s) failed\n";
         return 1;
