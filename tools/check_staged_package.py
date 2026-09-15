@@ -78,7 +78,12 @@ def self_test_staged_flags() -> None:
     ):
         try:
             assert_staged_flags(stale_flags, prefix)
-        except RuntimeError:
+        except RuntimeError as error:
+            offending = next(flag for flag in stale_flags if flag.startswith(("-I", "-L")))
+            if offending not in str(error):
+                raise RuntimeError(
+                    "staged path diagnostic omitted offending flag: %s"
+                    % offending) from error
             continue
         raise RuntimeError(
             "staged pkg-config path guard accepted non-staged paths: %s"
@@ -99,7 +104,12 @@ def self_test_package_root_identity() -> None:
             ):
                 try:
                     assert_staged_flags(mixed_flags, first)
-                except RuntimeError:
+                except RuntimeError as error:
+                    offending = str(second)
+                    if offending not in str(error):
+                        raise RuntimeError(
+                            "root diagnostic omitted offending path: %s"
+                            % offending) from error
                     continue
                 raise RuntimeError(
                     "pkg-config root guard accepted mixed roots: %s"
@@ -108,7 +118,11 @@ def self_test_package_root_identity() -> None:
             for stale_prefix in (str(second), "relative-prefix"):
                 try:
                     assert_reported_prefix(stale_prefix, first)
-                except RuntimeError:
+                except RuntimeError as error:
+                    if stale_prefix not in str(error):
+                        raise RuntimeError(
+                            "prefix diagnostic omitted offending value: %s"
+                            % stale_prefix) from error
                     continue
                 raise RuntimeError(
                     "pkg-config prefix guard accepted stale value: %s"
@@ -192,13 +206,17 @@ def self_test_relocatable_cmake_export() -> None:
             "set(PACKAGE_VERSION \"2.0.0\")\n", encoding="utf-8")
         assert_relocatable_cmake_export(prefix)
         source_root = str(Path(__file__).resolve().parents[1])
-        for stale_path in ("/usr/local/libdxfrw", str(prefix), source_root):
+        for stale_path in ("/usr/local", str(prefix), source_root):
             (config_root / "libdxfrwConfigVersion.cmake").write_text(
                 "set(PACKAGE_VERSION \"%s\")\n" % stale_path,
                 encoding="utf-8")
             try:
                 assert_relocatable_cmake_export(prefix)
-            except RuntimeError:
+            except RuntimeError as error:
+                if stale_path not in str(error):
+                    raise RuntimeError(
+                        "CMake diagnostic omitted offending path: %s"
+                        % stale_path) from error
                 continue
             raise RuntimeError(
                 "CMake export self-test accepted stale path: %s" % stale_path)
