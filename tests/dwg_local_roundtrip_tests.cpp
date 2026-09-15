@@ -286,6 +286,18 @@ public:
                 writer_->registerDwgEntityClassInstance(
                     DRW_ArcAlignedText::kDwgClassNum, 0xED01u);
             if (expectedVersion_ >= DRW::AC1021) {
+                DRW_DimensionAssociation dimAssocRegistration;
+                dimAssocRegistration.handle = 0xF000u;
+                registeredDimensionAssociation_ =
+                    writer_->registerDimensionAssociationObjectClass(
+                        &dimAssocRegistration);
+                DRW_EvaluationGraph evaluationGraphRegistration;
+                evaluationGraphRegistration.handle = 0xF100u;
+                registeredEvaluationGraph_ =
+                    writer_->registerEvaluationGraphObjectClass(
+                        &evaluationGraphRegistration);
+            }
+            if (expectedVersion_ >= DRW::AC1021) {
                 DRW_Section sectionManagerRegistration;
                 sectionManagerRegistration.handle = 0xE700u;
                 sectionManagerRegistration.m_kind = DRW_Section::Manager;
@@ -446,6 +458,68 @@ public:
         wrotePlotSettings_ = registeredPlotSettings_
             && writer_->writePlotSettings(&plotSettings)
             && plotSettings.handle != 0;
+
+        if (expectedVersion_ >= DRW::AC1021) {
+            DRW_DimensionAssociation dimAssoc;
+            dimAssoc.handle = 0xF000u;
+            dimAssoc.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
+            dimAssoc.m_dimensionHandle = modelSpaceLineHandle_;
+            dimAssoc.m_associativityFlags = 1;
+            dimAssoc.m_isTransSpace = false;
+            dimAssoc.m_rotatedDimensionType = 2;
+            dimAssoc.m_osnapRefs.push_back({"AcDbLine", 0,
+                                             modelSpaceLineHandle_});
+            wroteDimensionAssociation_ = registeredDimensionAssociation_
+                && writer_->writeDimensionAssociation(&dimAssoc)
+                && dimAssoc.handle == 0xF000u;
+
+            DRW_DimensionAssociation invalidDimAssoc = dimAssoc;
+            invalidDimAssoc.handle = 0xF001u;
+            invalidDimAssoc.m_associativityFlags = 2;
+            invalidDimAssoc.m_osnapRefs.clear();
+            rejectedMalformedDimensionAssociation_ =
+                !writer_->writeDimensionAssociation(&invalidDimAssoc)
+                && invalidDimAssoc.handle == 0xF001u;
+
+            DRW_EvaluationGraph evaluationGraph;
+            evaluationGraph.handle = 0xF100u;
+            evaluationGraph.parentHandle =
+                DRW::DwgNamedObjectsDictionaryHandle;
+            evaluationGraph.m_value96 = 96;
+            evaluationGraph.m_value97 = 97;
+            DRW_EvaluationGraphNode node;
+            node.m_index = 1;
+            node.m_flags = 2;
+            node.m_nextNodeIndex = 0;
+            node.m_expressionHandle = modelSpaceLineHandle_;
+            node.m_data1 = 11;
+            node.m_data2 = 12;
+            node.m_data3 = 13;
+            node.m_data4 = 14;
+            evaluationGraph.m_nodes.push_back(node);
+            DRW_EvaluationGraphEdge edge;
+            edge.m_value92 = 92;
+            edge.m_value93 = 93;
+            edge.m_value94 = 94;
+            edge.m_value91a = 91;
+            edge.m_value91b = 910;
+            edge.m_value92a = 921;
+            edge.m_value92b = 922;
+            edge.m_value92c = 923;
+            edge.m_value92d = 924;
+            edge.m_value92e = 925;
+            evaluationGraph.m_edges.push_back(edge);
+            wroteEvaluationGraph_ = registeredEvaluationGraph_
+                && writer_->writeEvaluationGraph(&evaluationGraph)
+                && evaluationGraph.handle == 0xF100u;
+
+            DRW_EvaluationGraph invalidEvaluationGraph = evaluationGraph;
+            invalidEvaluationGraph.handle = 0xF101u;
+            invalidEvaluationGraph.reactorHandles.resize(1000001u);
+            rejectedMalformedEvaluationGraph_ =
+                !writer_->writeEvaluationGraph(&invalidEvaluationGraph)
+                && invalidEvaluationGraph.handle == 0xF101u;
+        }
 
         DRW_Layout layout;
         layout.handle = 0xA700u;
@@ -1863,8 +1937,10 @@ public:
         // The user block is read before model space, so retain the canonical
         // model-space line used by the existing geometry assertion.
         if (data.basePoint.x == 1.0 && data.basePoint.y == 2.0
-            && data.basePoint.z == 3.0)
+            && data.basePoint.z == 3.0) {
             readLine_ = data;
+            modelSpaceLineHandle_ = data.handle;
+        }
     }
     void addPoint(const DRW_Point&) override { readPointSeen_ = true; }
     void addCircle(const DRW_Circle&) override { readCircleSeen_ = true; }
@@ -1976,6 +2052,34 @@ public:
                 && data.insertionPoint.y == 74.0
                 && data.extPoint.z == 1.0
                 && data.xAxisDirectionVector.x == 1.0;
+    }
+    void addDimensionAssociation(
+        const DRW_DimensionAssociation& data) override {
+        if (data.handle == 0xF000u)
+            readDimensionAssociationSeen_ =
+                expectedVersion_ >= DRW::AC1021
+                && data.parentHandle == DRW::DwgNamedObjectsDictionaryHandle
+                && data.m_dimensionHandle == modelSpaceLineHandle_
+                && data.m_associativityFlags == 1
+                && data.m_osnapRefs.size() == 1
+                && data.m_osnapRefs.front().m_className == "AcDbLine"
+                && data.m_osnapRefs.front().m_objectHandle
+                    == modelSpaceLineHandle_
+                && !data.m_hasUnrepresentableDetail;
+    }
+    void addEvaluationGraph(const DRW_EvaluationGraph& data) override {
+        if (data.handle == 0xF100u)
+            readEvaluationGraphSeen_ =
+                expectedVersion_ >= DRW::AC1021
+                && data.parentHandle == DRW::DwgNamedObjectsDictionaryHandle
+                && data.m_value96 == 96 && data.m_value97 == 97
+                && data.m_nodes.size() == 1
+                && data.m_nodes.front().m_index == 1
+                && data.m_nodes.front().m_expressionHandle
+                    == modelSpaceLineHandle_
+                && data.m_edges.size() == 1
+                && data.m_edges.front().m_value92 == 92
+                && data.m_edges.front().m_value92e == 925;
     }
     void addGroup(const DRW_Group& data) override {
         readGroupSeen_ = data.m_entityHandles.size() == 1
@@ -2751,6 +2855,16 @@ public:
     bool rejectedMalformedArcAlignedText() const {
         return rejectedMalformedArcAlignedText_;
     }
+    bool wroteDimensionAssociation() const {
+        return wroteDimensionAssociation_;
+    }
+    bool wroteEvaluationGraph() const { return wroteEvaluationGraph_; }
+    bool rejectedMalformedDimensionAssociation() const {
+        return rejectedMalformedDimensionAssociation_;
+    }
+    bool rejectedMalformedEvaluationGraph() const {
+        return rejectedMalformedEvaluationGraph_;
+    }
     bool wroteBlock() const {
         return wroteBlock_ && wroteBlockPolyline_ && wroteBlockContent_;
     }
@@ -2800,6 +2914,9 @@ public:
             && wroteSkylightBackground_
             && (wroteSectionManager_ || rejectedUnsupportedSection_)
             && (wroteSectionSettings_ || rejectedUnsupportedSection_)
+            && (wroteDimensionAssociation_
+                || expectedVersion_ < DRW::AC1021)
+            && (wroteEvaluationGraph_ || expectedVersion_ < DRW::AC1021)
             && wroteTvDeviceProperties_
             && wroteVxControl_
             && wroteVxTableRecord_
@@ -2953,6 +3070,10 @@ public:
     bool readToleranceSeen() const { return readToleranceSeen_; }
     bool readRTextSeen() const { return readRTextSeen_; }
     bool readArcAlignedTextSeen() const { return readArcAlignedTextSeen_; }
+    bool readDimensionAssociationSeen() const {
+        return readDimensionAssociationSeen_;
+    }
+    bool readEvaluationGraphSeen() const { return readEvaluationGraphSeen_; }
     bool readInsertSeen() const { return readInsertSeen_; }
     bool readAttribSeen() const { return readAttribSeen_; }
     bool readGroupSeen() const { return readGroupSeen_; }
@@ -2994,6 +3115,8 @@ public:
             && readIblBackgroundSeen_
             && readSkylightBackgroundSeen_
             && (expectedVersion_ < DRW::AC1021 || readSectionSetSeen())
+            && (expectedVersion_ < DRW::AC1021 || readDimensionAssociationSeen_)
+            && (expectedVersion_ < DRW::AC1021 || readEvaluationGraphSeen_)
             && readTvDevicePropertiesSeen_
             && readVxControlSeen_
             && readVxTableRecordSeen_
@@ -3191,6 +3314,10 @@ private:
     bool rejectedMalformedArcAlignedText_ {false};
     bool registeredRText_ {false};
     bool registeredArcAlignedText_ {false};
+    bool wroteDimensionAssociation_ {false};
+    bool wroteEvaluationGraph_ {false};
+    bool rejectedMalformedDimensionAssociation_ {false};
+    bool rejectedMalformedEvaluationGraph_ {false};
     bool wroteBlock_ {false};
     bool wroteBlockPolyline_ {false};
     bool wroteBlockContent_ {false};
@@ -3356,6 +3483,8 @@ private:
     bool registeredVxControl_ {false};
     bool registeredVxTableRecord_ {false};
     bool registeredPlotSettings_ {false};
+    bool registeredDimensionAssociation_ {false};
+    bool registeredEvaluationGraph_ {false};
     bool readLineSeen_ {false};
     bool readPointSeen_ {false};
     bool readCircleSeen_ {false};
@@ -3379,6 +3508,8 @@ private:
     bool readToleranceSeen_ {false};
     bool readRTextSeen_ {false};
     bool readArcAlignedTextSeen_ {false};
+    bool readDimensionAssociationSeen_ {false};
+    bool readEvaluationGraphSeen_ {false};
     bool readInsertSeen_ {false};
     bool readAttribSeen_ {false};
     bool readGroupSeen_ {false};
@@ -3574,6 +3705,26 @@ int main(int argc, char** argv) {
                failures);
         expect(writeIface.rejectedMalformedArcAlignedText(),
                ("local DWG writer rejected malformed ARCALIGNEDTEXT transaction" + suffix).c_str(),
+               failures);
+        expect(version >= DRW::AC1021
+                   ? writeIface.wroteDimensionAssociation()
+                   : !writeIface.wroteDimensionAssociation(),
+               ("local DWG DIMASSOC capability gate" + suffix).c_str(),
+               failures);
+        expect(version >= DRW::AC1021
+                   ? writeIface.wroteEvaluationGraph()
+                   : !writeIface.wroteEvaluationGraph(),
+               ("local DWG EVALUATION_GRAPH capability gate" + suffix).c_str(),
+               failures);
+        expect(version >= DRW::AC1021
+                   ? writeIface.rejectedMalformedDimensionAssociation()
+                   : true,
+               ("local DWG writer rejected malformed DIMASSOC transaction" + suffix).c_str(),
+               failures);
+        expect(version >= DRW::AC1021
+                   ? writeIface.rejectedMalformedEvaluationGraph()
+                   : true,
+               ("local DWG writer rejected malformed EVALUATION_GRAPH transaction" + suffix).c_str(),
                failures);
         expect(writeIface.wroteBlock(),
                ("local DWG writer emitted user block" + suffix).c_str(), failures);
@@ -3839,6 +3990,16 @@ int main(int argc, char** argv) {
                ("local DWG self-read publishes RTEXT" + suffix).c_str(), failures);
         expect(readIface.readArcAlignedTextSeen(),
                ("local DWG self-read publishes ARCALIGNEDTEXT" + suffix).c_str(),
+               failures);
+        expect(version >= DRW::AC1021
+                   ? readIface.readDimensionAssociationSeen()
+                   : !readIface.readDimensionAssociationSeen(),
+               ("local DWG self-read publishes DIMASSOC" + suffix).c_str(),
+               failures);
+        expect(version >= DRW::AC1021
+                   ? readIface.readEvaluationGraphSeen()
+                   : !readIface.readEvaluationGraphSeen(),
+               ("local DWG self-read publishes EVALUATION_GRAPH" + suffix).c_str(),
                failures);
         expect(readIface.readInsertSeen(),
                ("local DWG self-read publishes INSERT" + suffix).c_str(), failures);

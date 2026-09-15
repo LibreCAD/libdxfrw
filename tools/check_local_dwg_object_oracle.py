@@ -130,6 +130,8 @@ IMAGE_HANDLE = 0xD700
 MALFORMED_IMAGE_HANDLE = 0xD710
 RTEXT_HANDLE = 0xED00
 ARCALIGNEDTEXT_HANDLE = 0xED01
+DIMASSOC_HANDLE = 0xF000
+EVALUATION_GRAPH_HANDLE = 0xF100
 
 RENDER_SETTINGS_KINDS = {
     "Settings": ("RENDERSETTINGS", RENDERSETTINGS_HANDLE, 556),
@@ -311,6 +313,40 @@ def check_express_text_entities(records: list[dict], version_name: str) -> dict:
     }
 
 
+def check_associative_objects(records: list[dict], version_name: str) -> dict:
+    """Qualify the AC1021+ DIMASSOC/EVALUATION_GRAPH object identities."""
+    if version_name in {"AC1015", "AC1018"}:
+        return {"supported": False}
+    type_map = {
+        "AC1021": (566, 567),
+        "AC1024": (565, 566),
+        "AC1027": (565, 566),
+        "AC1032": (565, 566),
+    }
+    dim_type, graph_type = type_map[version_name]
+    dim = find_record(records, "DIMASSOC", DIMASSOC_HANDLE)
+    graph = find_record(records, "EVALUATION_GRAPH", EVALUATION_GRAPH_HANDLE)
+    if (dim.get("type") != dim_type
+            or owner_handle(dim) != 0x0C
+            or dim.get("associativity") != 1
+            or graph.get("type") != graph_type
+            or owner_handle(graph) != 0x0C
+            or graph.get("first_nodeid") != 96
+            or graph.get("first_nodeid_copy") != 97):
+        raise ValueError("DIMASSOC/EVALUATION_GRAPH identity mismatch")
+    return {
+        "supported": True,
+        "dimensionAssociation": {
+            "object": "DIMASSOC", "handle": DIMASSOC_HANDLE,
+            "type": dim_type, "associativity": 1,
+        },
+        "evaluationGraph": {
+            "object": "EVALUATION_GRAPH", "handle": EVALUATION_GRAPH_HANDLE,
+            "type": graph_type, "firstNodeId": 96, "firstNodeIdCopy": 97,
+        },
+    }
+
+
 def check_objects(payload: dict, version_name: str) -> dict:
     header = payload.get("FILEHEADER")
     if not isinstance(header, dict) or header.get("version") != version_name:
@@ -322,6 +358,14 @@ def check_objects(payload: dict, version_name: str) -> dict:
     pointcloud_entities = check_pointcloud_entities(records, version_name)
     tolerance_entity = check_tolerance_entity(records)
     express_text_entities = check_express_text_entities(records, version_name)
+    associative_objects = check_associative_objects(records, version_name)
+    associative_discrepancies = []
+    if associative_objects.get("supported"):
+        associative_discrepancies.append(
+            "LibreDWG 0.14 qualifies DIMASSOC/EVALUATION_GRAPH type/handle/owner "
+            "identity and DIMASSOC associativity, but does not retain the local "
+            "evaluation-graph node/edge arrays; those payloads remain local-self-read "
+            "authoritative")
 
     render_matrix = {}
     for kind, (object_name, handle, object_type) in RENDER_SETTINGS_KINDS.items():
@@ -1378,6 +1422,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         "pointCloudEntities": pointcloud_entities,
         "toleranceEntity": tolerance_entity,
         "expressTextEntities": express_text_entities,
+        "associativeObjects": associative_objects,
         "sunStudy": {
             "object": "SUNSTUDY", "handle": SUNSTUDY_HANDLE, "type": 548,
         },
@@ -1410,7 +1455,8 @@ def check_objects(payload: dict, version_name: str) -> dict:
                                  + background_discrepancies
                                  + section_discrepancies
                                  + tv_vx_discrepancies
-                                 + image_discrepancies),
+                                 + image_discrepancies
+                                 + associative_discrepancies),
     }
 
 
@@ -1827,6 +1873,13 @@ def self_test() -> None:
              "center": [100.0, 100.0, 0.0], "radius": 10.0,
              "start_angle": 0.25, "end_angle": 1.25,
              "text_size": "2", "xscale": "1", "char_spacing": "1"},
+            {"object": "DIMASSOC",
+             "handle": [0, 2, DIMASSOC_HANDLE], "type": 565,
+             "ownerhandle": [4, 1, 0x0C, 0x0C], "associativity": 1},
+            {"object": "EVALUATION_GRAPH",
+             "handle": [0, 2, EVALUATION_GRAPH_HANDLE], "type": 566,
+             "ownerhandle": [4, 1, 0x0C, 0x0C],
+             "first_nodeid": 96, "first_nodeid_copy": 97},
         ],
     }
     summary = check_objects(payload, "AC1024")
@@ -1848,6 +1901,15 @@ def self_test() -> None:
                                "text": None,
                                "payloadQualified": False}}:
         raise AssertionError("RTEXT/ARCALIGNEDTEXT identity was not qualified")
+    if summary.get("associativeObjects") != {
+            "supported": True,
+            "dimensionAssociation": {
+                "object": "DIMASSOC", "handle": DIMASSOC_HANDLE,
+                "type": 565, "associativity": 1},
+            "evaluationGraph": {
+                "object": "EVALUATION_GRAPH", "handle": EVALUATION_GRAPH_HANDLE,
+                "type": 566, "firstNodeId": 96, "firstNodeIdCopy": 97}}:
+        raise AssertionError("DIMASSOC/EVALUATION_GRAPH identity was not qualified")
     if [frame["object"] for frame in summary.get("pathObjects", [])] != [
             "CURVEPATH", "POINTPATH", "OBJECT_PTR"]:
         raise AssertionError("path-object identity was not qualified")
