@@ -3909,6 +3909,43 @@ void testDxfRawSectionFinalEofWithoutNewline(TestContext& t) {
              "DXF ASCII raw section accepts EOF without trailing newline");
 }
 
+void testDxfRawSectionMissingEof(TestContext& t) {
+    const std::string asciiSource =
+        "0\nSECTION\n2\nLOCAL_MISSING_EOF\n1000\npayload\n"
+        "0\nENDSEC\n";
+    ProfileProbeInterface asciiInterface;
+    dxfRW asciiReader("");
+    asciiReader.binFile = false;
+    std::stringstream asciiInput(asciiSource);
+    asciiReader.reader = std::make_unique<dxfReaderAscii>(&asciiInput);
+    asciiReader.reader->setClassifierProfile(DxfClassifierProfile::StandaloneSafe);
+    asciiReader.iface = &asciiInterface;
+    asciiReader.beginOperationDiagnostic(DRW::OperationKind::Read);
+    t.expect(!asciiReader.processDxf()
+                 && asciiReader.getError() == DRW::BAD_UNKNOWN
+                 && asciiInterface.sections.size() == 1,
+             "DXF ASCII raw section rejects a missing EOF marker");
+
+    std::ostringstream binarySource;
+    dxfWriterBinary binarySourceWriter(&binarySource);
+    binarySourceWriter.writeString(0, "SECTION");
+    binarySourceWriter.writeString(2, "LOCAL_MISSING_EOF");
+    binarySourceWriter.writeString(1000, "payload");
+    binarySourceWriter.writeString(0, "ENDSEC");
+    std::stringstream binaryInput(binarySource.str());
+    ProfileProbeInterface binaryInterface;
+    dxfRW binaryReader("");
+    binaryReader.binFile = true;
+    binaryReader.reader = std::make_unique<dxfReaderBinary>(&binaryInput);
+    binaryReader.reader->setClassifierProfile(DxfClassifierProfile::StandaloneSafe);
+    binaryReader.iface = &binaryInterface;
+    binaryReader.beginOperationDiagnostic(DRW::OperationKind::Read);
+    t.expect(!binaryReader.processDxf()
+                 && binaryReader.getError() == DRW::BAD_UNKNOWN
+                 && binaryInterface.sections.size() == 1,
+             "DXF binary raw section rejects a missing EOF marker");
+}
+
 void testDxfRawSectionApplicationGroupMarker(TestContext& t) {
     const std::vector<std::string> invalidMarkers = {"{", "NOT_A_MARKER"};
     for (const std::string& marker : invalidMarkers) {
@@ -4269,6 +4306,7 @@ int main() {
     testDxfRawSectionCaseInsensitiveSection(context);
     testDxfRawSectionCaseInsensitiveEof(context);
     testDxfRawSectionFinalEofWithoutNewline(context);
+    testDxfRawSectionMissingEof(context);
     testDxfRawSectionApplicationGroupMarker(context);
     testDxfRawSectionApplicationGroupReferenceMatrix(context);
     testRawCapture(context);
