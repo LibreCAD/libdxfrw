@@ -1934,13 +1934,13 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint (2026-09-15): S258/J234 sanitizer/security validation
-  checkpoint is committed. A fresh ASan+UBSan C++17 build and all 26
-  dependency-free CTest entries pass in 6.58 seconds with macOS leak
-  detection disabled; transaction race/descriptor tests, both façade lanes,
-  local DWG/oracle probes, fixture policy, support matrix, and release
-  readiness remain green. No drawing bytes were added; native Windows and
-  longer fuzz/package lanes remain scheduled evidence.
+- Current checkpoint (2026-09-15): S259/J235 bounded DXF parser fuzz smoke is
+  committed. A deterministic 2,048-input in-memory corpus (structured DXF
+  skeletons plus arbitrary bytes, maximum 384 bytes) passes through the public
+  `dxfRW::readAscii` path without exceptions under both release and
+  ASan/UBSan hardening binaries. No drawing bytes were added; native Windows,
+  longer external fuzz, package, and parity-promotion lanes remain scheduled
+  evidence.
 - Previous checkpoint (2026-09-15): S257/J233 post-hardening validation
   checkpoint is committed. A fresh C++17 build and all 26 dependency-free
   CTest entries pass in 6.26 seconds, including source-route and release
@@ -3236,17 +3236,17 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 258 (`COMMITTED`); no slice is active.
+- Resolved slices: 259 (`COMMITTED`); no slice is active.
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 258 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 259 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 260 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 261 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 2 VERIFIED / 356 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 2 VERIFIED / 357 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 236 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S258 are committed; no local implementation slice is active.
+  0 DEFERRED_EXTERNAL / 237 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S259 are committed; no local implementation slice is active.
   Remaining work is evidence-gated runtime/oracle and release closure; keep
   the fast inner loop and do not promote support claims from self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -3559,6 +3559,7 @@ edit this block or commit the same slice concurrently.
 | S256 | J232: output-transaction final-rename race hardening | S255 | COMMITTED | retained POSIX parent-directory descriptor; directory-relative `renameat`; parent-path swap regression; Windows native write-through boundary; focused writer-primitives gate; plan/scope/sync/fixture gates | POSIX publication uses the retained directory descriptor and fails closed when the original parent path is moved, preventing redirected output; no drawing fixtures or derived payloads; native Windows race/durability validation remains a release-platform follow-up | `libdxfrw_writer_primitives_tests`, plan check, fixture admission, import scope, pinned sync, and diff gates pass; no active slice |
 | S257 | J233: post-hardening full-suite validation checkpoint | S256 | COMMITTED | fresh C++17 build; complete dependency-free CTest; plan/scope/sync/fixture gates | fresh build and all 26 dependency-free CTest entries pass in 6.26 seconds, including façade lanes, local DWG/oracle probes, graph/object checks, writer/transaction hardening, fixture tests, release readiness, support matrix, and speed policy; no drawing fixtures or derived payloads | full suite is checkpoint evidence; sanitizer/package/native-Windows/external-corpus lanes remain scheduled |
 | S258 | J234: post-hardening sanitizer/security checkpoint | S257 | COMMITTED | fresh ASan+UBSan build; complete dependency-free CTest; leak-policy note; plan/scope/sync/fixture gates | fresh sanitizer build and all 26 dependency-free CTest entries pass in 6.58 seconds with macOS leak detection disabled; transaction race/descriptor tests, façade lanes, local DWG/oracle probes, fixtures, support matrix, and release readiness pass; no drawing fixtures or derived payloads | native Windows, longer fuzz, package, and external-corpus evidence remain scheduled |
+| S259 | J235: bounded DXF parser fuzz smoke | S258 | COMMITTED | deterministic in-memory malformed ASCII corpus; no-throw callback sink; focused hardening gate; plan/scope/sync/fixture gates | 2,048 deterministic parser inputs (structured DXF skeletons plus arbitrary bytes, maximum 384 bytes) pass through `dxfRW::readAscii` without exceptions under release and ASan/UBSan builds; no drawing fixtures or payloads retained | longer external fuzz, native Windows, package, and parity-promotion evidence remain scheduled |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3821,6 +3822,7 @@ edit this block or commit the same slice concurrently.
 | J232 | S256 | J231 | COMMITTED | EXPERIMENTAL | Qualify output-transaction final-rename race boundary | Retain a POSIX parent-directory descriptor and use descriptor-relative `renameat` publication, prove a moved-parent path fails closed without redirected output, and retain Windows `MoveFileExW` write-through semantics without overclaiming native parity |
 | J233 | S257 | J232 | COMMITTED | EXPERIMENTAL | Qualify post-hardening full-suite checkpoint | Rebuild the implementation and run all dependency-free CTest entries after the transaction race hardening; retain the measured 6.26-second result and keep broader sanitizer/package/platform evidence scheduled |
 | J234 | S258 | J233 | COMMITTED | EXPERIMENTAL | Qualify post-hardening sanitizer/security checkpoint | Run a fresh ASan+UBSan build and all dependency-free CTest entries after transaction hardening, record the macOS leak-detection limitation, and keep native Windows/fuzz/package evidence scheduled |
+| J235 | S259 | J234 | COMMITTED | EXPERIMENTAL | Qualify bounded DXF parser fuzz smoke | Exercise the public in-memory DXF parser with deterministic malformed and structured inputs through a no-op callback sink; require no exceptions, bounded execution, and no retained drawing payloads while leaving long external fuzz evidence scheduled |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4190,6 +4192,7 @@ edit this block or commit the same slice concurrently.
 | J232.1 | J232 / S256 | WP7.2, WP7.5, WP8.12; output-transaction final-rename race | J231 | COMMITTED | EXPERIMENTAL | publish through the retained POSIX directory descriptor with `renameat`, reject a swapped parent path without creating output in either location, and preserve the documented Windows write-through boundary | `libdxfrw_writer_primitives_tests` plus plan check, fixture admission, import scope, pinned sync, and diff gates pass; no drawing fixtures or derived payloads are retained; native Windows validation remains a release-platform follow-up |
 | J233.1 | J233 / S257 | WP8, WP10; post-hardening full-suite checkpoint | J232 | COMMITTED | EXPERIMENTAL | run a fresh build and all dependency-free CTest entries after transaction hardening, preserving the fast implementation-speed cadence and no-fixture policy | all 26 CTest entries pass in 6.26 seconds; plan check, fixture admission, import scope, pinned sync, and diff gates pass; sanitizer/package/native-Windows/external-corpus evidence remains scheduled |
 | J234.1 | J234 / S258 | WP8, WP10; post-hardening sanitizer/security checkpoint | J233 | COMMITTED | EXPERIMENTAL | run a fresh ASan+UBSan build and all dependency-free CTest entries, preserve the macOS leak-detection limitation, and retain the no-fixture policy | all 26 sanitizer CTest entries pass in 6.58 seconds with leak detection disabled; plan check, fixture admission, import scope, pinned sync, and diff gates pass; native Windows, longer fuzz, package, and external-corpus evidence remains scheduled |
+| J235.1 | J235 / S259 | WP8, WP10; bounded DXF parser fuzz smoke | J234 | COMMITTED | EXPERIMENTAL | run 2,048 deterministic in-memory malformed/structured ASCII inputs through `dxfRW::readAscii` with a no-op callback sink, assert no exception, and retain no drawing payloads | release and ASan/UBSan hardening binaries pass the parser fuzz smoke; focused hardening and policy gates pass; longer fuzz and external-corpus evidence remain scheduled |
 
 <!-- UPGRADE_PROGRESS_END -->
 

@@ -25,6 +25,65 @@ struct TestContext {
     }
 };
 
+// A callback sink for parser-fuzz inputs.  Keeping the sink dependency-free
+// makes this lane exercise the public dxfRW::readAscii path without coupling
+// hardening coverage to the dwg2dxf adapter's storage policy.
+class FuzzInterface final : public DRW_Interface {
+public:
+    void addHeader(const DRW_Header*) override {}
+    void addLType(const DRW_LType&) override {}
+    void addLayer(const DRW_Layer&) override {}
+    void addDimStyle(const DRW_Dimstyle&) override {}
+    void addVport(const DRW_Vport&) override {}
+    void addTextStyle(const DRW_Textstyle&) override {}
+    void addAppId(const DRW_AppId&) override {}
+    void addBlock(const DRW_Block&) override {}
+    void setBlock(int) override {}
+    void endBlock() override {}
+    void addPoint(const DRW_Point&) override {}
+    void addLine(const DRW_Line&) override {}
+    void addRay(const DRW_Ray&) override {}
+    void addXline(const DRW_Xline&) override {}
+    void addArc(const DRW_Arc&) override {}
+    void addCircle(const DRW_Circle&) override {}
+    void addEllipse(const DRW_Ellipse&) override {}
+    void addLWPolyline(const DRW_LWPolyline&) override {}
+    void addPolyline(const DRW_Polyline&) override {}
+    void addSpline(const DRW_Spline*) override {}
+    void addKnot(const DRW_Entity&) override {}
+    void addInsert(const DRW_Insert&) override {}
+    void addTrace(const DRW_Trace&) override {}
+    void add3dFace(const DRW_3Dface&) override {}
+    void addSolid(const DRW_Solid&) override {}
+    void addMText(const DRW_MText&) override {}
+    void addText(const DRW_Text&) override {}
+    void addDimAlign(const DRW_DimAligned*) override {}
+    void addDimLinear(const DRW_DimLinear*) override {}
+    void addDimRadial(const DRW_DimRadial*) override {}
+    void addDimDiametric(const DRW_DimDiametric*) override {}
+    void addDimAngular(const DRW_DimAngular*) override {}
+    void addDimAngular3P(const DRW_DimAngular3p*) override {}
+    void addDimOrdinate(const DRW_DimOrdinate*) override {}
+    void addLeader(const DRW_Leader*) override {}
+    void addHatch(const DRW_Hatch*) override {}
+    void addViewport(const DRW_Viewport&) override {}
+    void addImage(const DRW_Image*) override {}
+    void linkImage(const DRW_ImageDef*) override {}
+    void addComment(const char*) override {}
+    void addPlotSettings(const DRW_PlotSettings*) override {}
+    void writeHeader(DRW_Header&) override {}
+    void writeBlocks() override {}
+    void writeBlockRecords() override {}
+    void writeEntities() override {}
+    void writeLTypes() override {}
+    void writeLayers() override {}
+    void writeTextstyles() override {}
+    void writeVports() override {}
+    void writeDimstyles() override {}
+    void writeObjects() override {}
+    void writeAppId() override {}
+};
+
 void testCheckedArithmetic(TestContext& t) {
     std::uint64_t result = 0;
     t.expect(dwgSafety::add(1, 2, result) && result == 3,
@@ -151,6 +210,51 @@ void testMalformedInMemoryInputs(TestContext& t) {
              "null DataStorage input yields a bounded diagnostic");
 }
 
+void testDxfReadFuzzSmoke(TestContext& t) {
+    // Keep this deterministic and bounded: it is an inner-loop safety lane,
+    // not a substitute for the scheduled long external fuzz campaign.
+    constexpr std::size_t iterations = 2048;
+    constexpr std::size_t maxLength = 384;
+    const std::string skeleton =
+        "0\nSECTION\n2\nHEADER\n0\nENDSEC\n0\nSECTION\n"
+        "2\nENTITIES\n0\nENDSEC\n0\nEOF\n";
+    std::uint32_t state = 0xC001D00Du;
+    for (std::size_t iteration = 0; iteration < iterations; ++iteration) {
+        std::string content;
+        if (iteration % 4 == 0) {
+            content = skeleton;
+            const std::size_t extra = iteration % 97;
+            content.reserve(content.size() + extra);
+            for (std::size_t index = 0; index < extra; ++index) {
+                state = state * 1664525u + 1013904223u;
+                content.push_back(static_cast<char>(' ' + (state % 95u)));
+                if ((index % 7u) == 6u)
+                    content.push_back('\n');
+            }
+        } else {
+            const std::size_t length = (iteration * 37u) % maxLength;
+            content.reserve(length);
+            for (std::size_t index = 0; index < length; ++index) {
+                state = state * 1664525u + 1013904223u;
+                const std::uint8_t byte = static_cast<std::uint8_t>(state >> 24);
+                // Mix arbitrary bytes with line-oriented delimiters so both
+                // lexical and group-code recovery paths are exercised.
+                content.push_back((index % 11u == 0u)
+                                      ? '\n'
+                                      : static_cast<char>(byte));
+            }
+        }
+
+        FuzzInterface interface_;
+        dxfRW reader(nullptr);
+        try {
+            (void)reader.readAscii(&interface_, false, content);
+        } catch (...) {
+            t.expect(false, "DXF parser fuzz input does not throw");
+        }
+    }
+}
+
 } // namespace
 
 int main() {
@@ -158,6 +262,7 @@ int main() {
     testCheckedArithmetic(context);
     testNullAndOwnershipContracts(context);
     testMalformedInMemoryInputs(context);
+    testDxfReadFuzzSmoke(context);
     if (context.failures != 0) {
         std::cerr << context.failures << " hardening assertion(s) failed\n";
         return 1;
