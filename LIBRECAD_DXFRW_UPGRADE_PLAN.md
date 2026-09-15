@@ -52,10 +52,10 @@ then pin an immutable commit before importing source.
 ### Execution refresh (2026-09-15)
 
 The implementation worktree is rebased on `origin/master` and is currently
-171 commits ahead with no commits behind it. The latest green slice is
-S144/J120, including the live-plan update and its required policy gates.
-S145/J121 is the active slice; its focused CMake/pkg-config package matrix
-checks are the next commit boundary.
+172 commits ahead with no commits behind it. The latest green slice is
+S145/J121, including the live-plan update and its required policy gates.
+S146/J122 is the active slice; its focused CMake export relocation checks are
+the next commit boundary.
 The worktree is clean at the last committed boundary; any subsequent active-
 slice edits are intentionally uncommitted until their narrow gate and
 status-bearing plan transition are green.
@@ -1934,15 +1934,15 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint (2026-09-15): S144/J120 package-prefix consumer checks
-  are committed; S145/J121 CMake/pkg-config package matrix is active.
+- Current checkpoint (2026-09-15): S145/J121 CMake/pkg-config package matrix
+  is committed; S146/J122 CMake export relocation checks are active.
   The
   branch is rebased on `origin/master`, and
   the pinned source/package/consumer convergence remains complete while
   runtime and wire-format parity stay evidence-gated. The AC1015 IMAGE legacy
   boundary remains fail-closed, and all format-support claims remain limited
   to rows with eligible runtime/oracle evidence. The next dependency-ready
-  sequence is S145 CMake/pkg-config package matrix; it is a separate commit
+  sequence is S146 CMake export relocation checks; it is a separate commit
   with no external or derived DWG/DXF bytes.
 - Latest implementation slice: S53/J29 RASTERVARIABLES/WIPEOUTVARIABLES parity
   is committed. The local-from-scratch production writer registers both custom
@@ -2786,9 +2786,9 @@ edit this block or commit the same slice concurrently.
   names TVDEVICEPROPERTIES and the two VX frames as UNKNOWN_OBJ, while local
   self-read remains authoritative for VX payload fields; no generated drawings
   or external assets are retained.
-- Last fully resolved slice: S144 (the package-prefix consumer checks slice is
-  committed by the matching `Plan-Slice: S144` trailer; the commit carries
-  multi-prefix staged consumer validation and duplicate-root rejection, and
+- Last fully resolved slice: S145 (the CMake/pkg-config package matrix slice is
+  committed by the matching `Plan-Slice: S145` trailer; the commit carries
+  multi-prefix CMake/pkg-config/profile checks and export-root comparison, and
   all required policy gates). The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
@@ -2810,18 +2810,18 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 144 (`COMMITTED`); S145 is active.
+- Resolved slices: 145 (`COMMITTED`); S146 is active.
 - Slice states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 144 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 145 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 146 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 147 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 242 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 243 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 129 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S144 are committed; S145/J121 is active with a ready packet
-  naming the CMake/pkg-config package matrix and focused fast gates.
+  0 DEFERRED_EXTERNAL / 130 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S145 are committed; S146/J122 is active with a ready packet
+  naming CMake export relocation checks and focused fast gates.
   Keep validation fast and
   self-updating: run source/plan/policy checks and the focused carrier target
   after each implementation item, commit only after the narrow gate is green,
@@ -3014,7 +3014,8 @@ edit this block or commit the same slice concurrently.
 | S142 | J118: profile API documentation | S141 | COMMITTED | public API discoverability; safe-default/legacy semantics; adapter migration guidance; source compatibility; fast documentation gate; plan/scope/sync/fixture gates | installed-facing header documents operation scope, safe default, explicit `LibreCadMasterLegacy` opt-in, and no implicit version/format selection; package checker scans all markers and passes consumers; no external DXF bytes | staged documentation/package check, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S143 is active |
 | S143 | J119: public-API documentation/install checks | S142 | COMMITTED | installed header comments; package export; profile migration discoverability; source/API consistency; fast package gate; plan/scope/sync/fixture gates | fresh installed header documentation scan passes; pkg-config `prefix` and all include/library flags resolve to the staged root; CMake and pkg-config profile consumers remain source-tree independent; no external DXF bytes | staged documentation/package check, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S144 is active |
 | S144 | J120: package-prefix consumer checks | S143 | COMMITTED | pkg-config prefix relocation; CMake package root; consumer include/link isolation; profile API documentation; fast package gate; plan/scope/sync/fixture gates | checker validates two distinct fresh prefixes and rejects duplicate-root invocations; each reported pkg-config prefix, include path, library path, and documentation resolves to its own root; no external DXF bytes | two-prefix staged package check, duplicate-root negative check, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S145 is active |
-| S145 | J121: CMake/pkg-config package matrix | S144 | ACTIVE | CMake config/pkg-config parity; multi-prefix isolation; profile API link behavior; documentation retention; fast package gate; plan/scope/sync/fixture gates | run a matrix over two prefixes × CMake and pkg-config consumer modes, compare resolved include/library roots and profile symbol links, and retain no external DXF bytes | active after S144 commit; use multi-prefix staged checker matrix, escalating only if CMake and pkg-config resolve different roots |
+| S145 | J121: CMake/pkg-config package matrix | S144 | COMMITTED | CMake config/pkg-config parity; multi-prefix isolation; profile API link behavior; documentation retention; fast package gate; plan/scope/sync/fixture gates | two-prefix checker matrix runs CMake and pkg-config consumers, compares staged roots and profile symbols, and retains documentation/API evidence; no external DXF bytes | two-prefix staged package matrix, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S146 is active |
+| S146 | J122: CMake export relocation checks | S145 | ACTIVE | relocatable CMake export; source-tree absence; installed include root; pkg-config parity; fast package gate; plan/scope/sync/fixture gates | verify fresh CMake exports use `_IMPORT_PREFIX` only, contain no source-tree path, and resolve the same installed include root as pkg-config; no external DXF bytes | active after S145 commit; use fresh staged package export scan and consumer check, escalating only if export metadata embeds build paths |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3163,7 +3164,8 @@ edit this block or commit the same slice concurrently.
 | J118 | S142 | J117 | COMMITTED | EXPERIMENTAL | Prove installed-facing API documentation states the safe default, explicit legacy opt-in, and adapter migration contract consistently | installed header documentation scan and staged consumer checks pass; no external DXF bytes |
 | J119 | S143 | J118 | COMMITTED | EXPERIMENTAL | Prove profile API documentation survives fresh installation and is visible to CMake/pkg-config consumers without source-tree fallback | fresh staged install checks pkg-config prefix relocation, documentation markers, and CMake/pkg-config consumers; no external DXF bytes |
 | J120 | S144 | J119 | COMMITTED | EXPERIMENTAL | Prove two distinct staged package roots remain isolated and reproducible for profile API documentation and consumer resolution | two-prefix staged checker matrix passes and duplicate-root invocation fails closed; no external DXF bytes |
-| J121 | S145 | J120 | ACTIVE | EXPERIMENTAL | Prove CMake and pkg-config resolve identical roots and profile symbols across both staged prefixes | active packet names two-prefix/two-mode matrix and no-fixture evidence |
+| J121 | S145 | J120 | COMMITTED | EXPERIMENTAL | Prove CMake and pkg-config resolve identical roots and profile symbols across both staged prefixes | two-prefix/two-mode package matrix and export-root comparison pass; no external DXF bytes |
+| J122 | S146 | J121 | ACTIVE | EXPERIMENTAL | Prove CMake exports are relocatable and source-tree independent while matching pkg-config installed roots | active packet names export scan, staged consumer check, and no-fixture evidence |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -3419,7 +3421,8 @@ edit this block or commit the same slice concurrently.
 | J118.1 | J118 / S142 | WP4, WP5, WP6, WP8, WP10; profile API documentation | J117 | COMMITTED | EXPERIMENTAL | scan installed-facing comments and plan text for consistent safe-default/legacy-opt-in semantics, retaining no external drawing bytes | focused documentation/source target and policy gates pass; no external or derived DXF bytes are retained |
 | J119.1 | J119 / S143 | WP4, WP5, WP6, WP8, WP10; public-API documentation/install checks | J118 | COMMITTED | EXPERIMENTAL | verify documentation markers in fresh installed headers and consumer compilation contexts without external drawing bytes | focused documentation/install target and policy gates pass; no external or derived DXF bytes are retained |
 | J120.1 | J120 / S144 | WP4, WP5, WP6, WP8, WP10; package-prefix consumer checks | J119 | COMMITTED | EXPERIMENTAL | verify two distinct staged package roots independently resolve profile documentation, pkg-config prefix/flags, and CMake consumers | focused package-prefix target and policy gates pass; no external or derived DXF bytes are retained |
-| J121.1 | J121 / S145 | WP4, WP5, WP6, WP8, WP10; CMake/pkg-config package matrix | J120 | ACTIVE | EXPERIMENTAL | compare CMake/pkg-config resolved roots and profile symbol links across two staged prefixes without external drawing bytes | focused package-matrix target and policy gates pass; no external or derived DXF bytes are retained |
+| J121.1 | J121 / S145 | WP4, WP5, WP6, WP8, WP10; CMake/pkg-config package matrix | J120 | COMMITTED | EXPERIMENTAL | compare CMake/pkg-config resolved roots and profile symbol links across two staged prefixes without external drawing bytes | focused package-matrix target and policy gates pass; no external or derived DXF bytes are retained |
+| J122.1 | J122 / S146 | WP4, WP5, WP6, WP8, WP10; CMake export relocation checks | J121 | ACTIVE | EXPERIMENTAL | scan fresh CMake exports for relocatable `_IMPORT_PREFIX` paths and source-tree absence, matching pkg-config roots without external drawing bytes | focused export-relocation target and policy gates pass; no external or derived DXF bytes are retained |
 
 <!-- UPGRADE_PROGRESS_END -->
 

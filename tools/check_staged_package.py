@@ -98,6 +98,16 @@ def assert_profile_symbols(prefix: Path) -> None:
             + ", ".join(missing))
 
 
+def assert_relocatable_cmake_export(prefix: Path) -> None:
+    export = prefix / "lib" / "cmake" / "libdxfrw" / "libdxfrwTargets.cmake"
+    text = export.read_text(encoding="utf-8")
+    if '"${_IMPORT_PREFIX}/include/libdxfrw"' not in text:
+        raise RuntimeError("CMake export does not use a relocatable include root")
+    source_root = str(Path(__file__).resolve().parents[1])
+    if source_root in text:
+        raise RuntimeError("CMake export contains a source-tree path")
+
+
 def check(prefix: Path, cxx: str) -> None:
     prefix = prefix.resolve()
     include_root = prefix / "include" / "libdxfrw"
@@ -119,6 +129,7 @@ def check(prefix: Path, cxx: str) -> None:
             "installed libdxfrw.h is missing profile documentation: "
             + ", ".join(missing_docs))
     assert_profile_symbols(prefix)
+    assert_relocatable_cmake_export(prefix)
 
     with tempfile.TemporaryDirectory(prefix="libdxfrw-package-") as directory:
         root = Path(directory)
