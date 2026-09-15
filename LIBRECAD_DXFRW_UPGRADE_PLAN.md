@@ -53,9 +53,9 @@ then pin an immutable commit before importing source.
 
 The implementation worktree is rebased on `origin/master` and is currently
 140 commits ahead with no commits behind it. The latest green slice is
-S127/J103, including the live-plan update and its required policy gates.
-S128/J104 is the active slice; its focused façade-level profile integration
-checks are the next commit boundary.
+S128/J104, including the live-plan update and its required policy gates.
+S129/J105 is the active slice; its focused consumer-facing profile
+disposition checks are the next commit boundary.
 The worktree is clean at the last committed boundary; any subsequent active-
 slice edits are intentionally uncommitted until their narrow gate and
 status-bearing plan transition are green.
@@ -1934,14 +1934,14 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint (2026-09-15): S127/J103 binary legacy-profile raw replay
-  is committed; S128/J104 façade-level profile integration is active. The
+- Current checkpoint (2026-09-15): S128/J104 façade-level profile integration
+  is committed; S129/J105 consumer-facing profile disposition is active. The
   branch is rebased on `origin/master`, and
   the pinned source/package/consumer convergence remains complete while
   runtime and wire-format parity stay evidence-gated. The AC1015 IMAGE legacy
   boundary remains fail-closed, and all format-support claims remain limited
   to rows with eligible runtime/oracle evidence. The next dependency-ready
-  sequence is S128 façade-level profile integration; it is a separate commit
+  sequence is S129 consumer-facing profile disposition; it is a separate commit
   with no external or derived DWG/DXF bytes.
 - Latest implementation slice: S53/J29 RASTERVARIABLES/WIPEOUTVARIABLES parity
   is committed. The local-from-scratch production writer registers both custom
@@ -2785,9 +2785,9 @@ edit this block or commit the same slice concurrently.
   names TVDEVICEPROPERTIES and the two VX frames as UNKNOWN_OBJ, while local
   self-read remains authoritative for VX payload fields; no generated drawings
   or external assets are retained.
-- Last fully resolved slice: S127 (the binary legacy-profile raw replay
-  slice is committed by the matching `Plan-Slice: S127` trailer; the commit
-  carries exact legacy-width object/section evidence and safe-default isolation, and
+- Last fully resolved slice: S128 (the façade-level classifier profile integration
+  slice is committed by the matching `Plan-Slice: S128` trailer; the commit
+  carries full readAscii callback-carrier evidence and safe/legacy isolation, and
   all required policy gates). The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
@@ -2809,18 +2809,18 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 127 (`COMMITTED`); S128 is active.
+- Resolved slices: 128 (`COMMITTED`); S129 is active.
 - Slice states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 127 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 128 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 129 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 130 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 225 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 226 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 112 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S127 are committed; S128/J104 is active with a ready packet
-  naming façade-level profile integration and focused fast gates.
+  0 DEFERRED_EXTERNAL / 113 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S128 are committed; S129/J105 is active with a ready packet
+  naming consumer-facing profile disposition and focused fast gates.
   Keep validation fast and
   self-updating: run source/plan/policy checks and the focused carrier target
   after each implementation item, commit only after the narrow gate is green,
@@ -2996,7 +2996,8 @@ edit this block or commit the same slice concurrently.
 | S125 | J101: compatibility-profile integration | S124 | COMMITTED | explicit profile plumbing boundary; no silent default changes; reader/capture/replay call-site audit; focused vectors; fast DXF gate; plan/scope/sync/fixture gates | `dxfReader` now carries an explicit classifier profile; safe default remains unchanged, while local ASCII/binary probes reproduce target legacy 260/482 routes; no public façade silently selects legacy behavior and no external DXF bytes | wave1 executable, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S126 is active |
 | S126 | J102: profile-aware raw capture/replay alignment | S125 | COMMITTED | reader profile propagation into raw capture; typed/raw variant agreement; binary/ASCII preservation; malformed rejection; safe-default regression; fast DXF gate; plan/scope/sync/fixture gates | capture validation now uses the reader's explicit profile and raw-object/section replay uses the codec's profile switch; legacy 260/482 capture/replay and safe-default regressions pass; no profile mismatch silently poisons a carrier and no external DXF bytes | wave1 executable, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S127 is active |
 | S127 | J103: binary legacy-profile raw replay parity | S126 | COMMITTED | target-legacy binary 260-269 boolean width; 482-998 double width; raw object/section framing; independent parse-back; malformed rollback; fast DXF gate; plan/scope/sync/fixture gates | explicit legacy profile round-trips local binary raw objects and sections with one-byte code 260 and eight-byte code 482 routes; safe-default writer rejects the legacy-only double route; no external DXF bytes | wave1 executable, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S128 is active |
-| S128 | J104: façade-level classifier profile integration | S127 | ACTIVE | dxfRW profile selection boundary; read/readAscii propagation; raw callback carrier alignment; safe-default API compatibility; focused façade vectors; fast DXF gate; plan/scope/sync/fixture gates | prove the profile switch reaches full `dxfRW` read/capture/replay flows without silent legacy selection, and retain explicit behavior when façade-level consumers remain safe-default only; no external DXF bytes | active after S127 commit; use local in-memory DXF content and callback probes, escalating only if public API changes |
+| S128 | J104: façade-level classifier profile integration | S127 | COMMITTED | dxfRW profile selection boundary; read/readAscii propagation; raw callback carrier alignment; safe-default API compatibility; focused façade vectors; fast DXF gate; plan/scope/sync/fixture gates | full `dxfRW::readAscii` probes publish safe-profile integer/opaque and legacy-profile integer/double raw-section carriers; profile selection is internal and no public caller silently changes defaults; no external DXF bytes | wave1 executable, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S129 is active |
+| S129 | J105: consumer-facing classifier profile disposition | S128 | ACTIVE | LibreCAD adapter compatibility; profile visibility; ABI/source compatibility; safe default; explicit opt-in boundary; fast DXF gate; plan/scope/sync/fixture gates | audit whether downstream consumers need the legacy profile, then expose only a deliberate internal/adapter opt-in or record an exact compatibility-extension disposition; no external DXF bytes | active after S128 commit; use source/API audit and local consumer probes, escalating only if public ABI must change |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3128,7 +3129,8 @@ edit this block or commit the same slice concurrently.
 | J101 | S125 | J100 | COMMITTED | EXPERIMENTAL | Integrate the explicit classifier profile only at a deliberate internal probe/diagnostic boundary, preventing silent target-legacy selection in production readers and replay | `dxfReader` profile plumbing is explicit; focused ASCII/binary probes pass and safe default remains unchanged; no external DXF bytes |
 | J102 | S126 | J101 | COMMITTED | EXPERIMENTAL | Align raw capture and replay with explicit classifier profiles, preserving safe-default carriers and rejecting profile/type mismatches transactionally | capture validation follows reader profile; raw replay follows codec profile; focused legacy and safe-default vectors pass with no external DXF bytes |
 | J103 | S127 | J102 | COMMITTED | EXPERIMENTAL | Qualify binary raw-object and raw-section replay under the explicit LibreCAD-master legacy classifier profile, preserving exact legacy widths and safe-default isolation | local binary object/section replay proves one-byte code 260 and eight-byte code 482 routes; safe-default isolation passes; no external DXF bytes |
-| J104 | S128 | J103 | ACTIVE | EXPERIMENTAL | Qualify façade-level dxfRW profile selection and propagation through read/capture/replay without silently changing production defaults | active packet names full façade callback evidence, safe-default compatibility, and no-fixture policy |
+| J104 | S128 | J103 | COMMITTED | EXPERIMENTAL | Qualify façade-level dxfRW profile selection and propagation through read/capture/replay without silently changing production defaults | full readAscii callback probes pass for safe and legacy profile carriers; no external DXF bytes |
+| J105 | S129 | J104 | ACTIVE | EXPERIMENTAL | Reconcile downstream LibreCAD adapter needs with the internal classifier profile while preserving ABI/source compatibility and safe defaults | active packet names consumer/API audit, opt-in boundary, and no-fixture evidence |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -3367,7 +3369,8 @@ edit this block or commit the same slice concurrently.
 | J101.1 | J101 / S125 | WP4, WP5, WP6, WP8, WP10; compatibility-profile integration | J100 | COMMITTED | EXPERIMENTAL | audit profile call sites and integrate only through an internal probe/diagnostic boundary, proving production readers and replay retain the safe default | focused classifier/replay target and policy gates pass; no external or derived DXF bytes are retained |
 | J102.1 | J102 / S126 | WP4, WP5, WP6, WP8, WP10; profile-aware raw capture/replay alignment | J101 | COMMITTED | EXPERIMENTAL | propagate the explicit profile into raw capture/replay or document a deliberate safe-default split, then prove typed/raw agreement and transactional mismatch rejection | focused classifier/replay target and policy gates pass; no external or derived DXF bytes are retained |
 | J103.1 | J103 / S127 | WP4, WP5, WP6, WP8, WP10; binary legacy-profile raw replay parity | J102 | COMMITTED | EXPERIMENTAL | replay local binary raw objects and sections under the explicit legacy profile, assert code-260 one-byte and code-482 eight-byte decoding, and prove malformed rollback plus safe-default isolation | focused binary classifier/replay target and policy gates pass; no external or derived DXF bytes are retained |
-| J104.1 | J104 / S128 | WP4, WP5, WP6, WP8, WP10; façade-level classifier profile integration | J103 | ACTIVE | EXPERIMENTAL | drive full dxfRW read/capture/replay probes under safe and legacy profile selections, verify callback carrier types and no silent default changes | focused façade/profile target and policy gates pass; no external or derived DXF bytes are retained |
+| J104.1 | J104 / S128 | WP4, WP5, WP6, WP8, WP10; façade-level classifier profile integration | J103 | COMMITTED | EXPERIMENTAL | drive full dxfRW read/capture/replay probes under safe and legacy profile selections, verify callback carrier types and no silent default changes | focused façade/profile target and policy gates pass; no external or derived DXF bytes are retained |
+| J105.1 | J105 / S129 | WP4, WP5, WP6, WP8, WP10; consumer-facing classifier profile disposition | J104 | ACTIVE | EXPERIMENTAL | audit LibreCAD adapter/source consumers, keep the profile internal or add a deliberate opt-in boundary, and prove ABI/source compatibility plus safe defaults | focused consumer/profile target and policy gates pass; no external or derived DXF bytes are retained |
 
 <!-- UPGRADE_PROGRESS_END -->
 

@@ -23,6 +23,11 @@
 #include "intern/dxfwriter.h"
 #include "intern/rscodec.h"
 
+// The façade probe only exercises read callbacks. Keep the test target
+// independent from the dwg2dxf adapter translation unit, whose writeEntity
+// implementation is not needed here.
+void dx_iface::writeEntity(DRW_Entity*) {}
+
 // Keep access to the protected header codec limited to this test translation
 // unit. The production API remains unchanged.
 class DwgHandseedTestAccess {
@@ -44,6 +49,26 @@ struct TestContext {
             std::cerr << "FAIL: " << label << '\n';
         }
     }
+};
+
+class ProfileProbeInterface final : public dx_iface {
+public:
+    ProfileProbeInterface() {
+        cData = &storage;
+        currentBlock = storage.mBlock;
+    }
+
+    void addRawDxfObject(const DRW_RawDxfObject& data) override {
+        objects.push_back(data);
+    }
+
+    void addRawDxfSection(const DRW_RawDxfSection& data) override {
+        sections.push_back(data);
+    }
+
+    dx_data storage;
+    std::vector<DRW_RawDxfObject> objects;
+    std::vector<DRW_RawDxfSection> sections;
 };
 
 std::vector<std::uint8_t> literalRunHeader(std::uint32_t count) {
@@ -393,6 +418,39 @@ void testDxfBinaryLegacyProfileReplay(TestContext& t) {
     safeOwner.writer = std::make_unique<dxfWriterBinary>(&safeBytes);
     t.expect(!safeOwner.writeRawDxfObject(&object) && safeBytes.str().empty(),
              "standalone-safe binary writer rejects legacy-only double route");
+}
+
+void testDxfFacadeClassifierProfile(TestContext& t) {
+    const std::string content =
+        "0\nSECTION\n2\nCUSTOM_PROFILE\n5\n1A\n260\n7\n"
+        "482\n3.5\n0\nENDSEC\n0\nEOF\n";
+
+    ProfileProbeInterface safeInterface;
+    dxfRW safeOwner("");
+    std::string safeContent = content;
+    t.expect(safeOwner.readAscii(&safeInterface, false, safeContent),
+             "safe profile reaches DXF facade raw section");
+    t.expect(safeInterface.sections.size() == 1
+                 && safeInterface.sections.front().m_groups.size() == 3
+                 && safeInterface.sections.front().m_groups[1].type()
+                        == DRW_Variant::INTEGER
+                 && safeInterface.sections.front().m_groups[2].type()
+                        == DRW_Variant::STRING,
+             "safe facade profile publishes safe raw carrier types");
+
+    ProfileProbeInterface legacyInterface;
+    dxfRW legacyOwner("");
+    legacyOwner.m_useTargetLegacyClassifier = true;
+    std::string legacyContent = content;
+    t.expect(legacyOwner.readAscii(&legacyInterface, false, legacyContent),
+             "legacy profile reaches DXF facade raw section");
+    t.expect(legacyInterface.sections.size() == 1
+                 && legacyInterface.sections.front().m_groups.size() == 3
+                 && legacyInterface.sections.front().m_groups[1].type()
+                        == DRW_Variant::INTEGER
+                 && legacyInterface.sections.front().m_groups[2].type()
+                        == DRW_Variant::DOUBLE,
+             "legacy facade profile publishes matching raw carrier types");
 }
 
 DRW_RawDxfObject rawBoundaryObject() {
@@ -866,6 +924,7 @@ int main() {
     testDxfClassifierBoundaryMatrix(context);
     testDxfClassifierProfileProbe(context);
     testDxfBinaryLegacyProfileReplay(context);
+    testDxfFacadeClassifierProfile(context);
     testDxfRawBoundaryReplay(context);
     testDxfRawSectionBoundaryReplay(context);
     testDxfBinaryRawBoundaryReplay(context);
