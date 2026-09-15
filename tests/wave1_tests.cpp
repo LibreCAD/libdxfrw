@@ -4534,6 +4534,43 @@ void testDxfRawSectionAppendFailure(TestContext& t) {
              "DXF binary raw section rolls back a failed append");
 }
 
+void testDxfRawObjectAppendFailure(TestContext& t) {
+    DRW_RawDxfObject object;
+    object.name = "LOCAL_RAW_APPEND_FAILURE";
+    object.m_version = DRW::AC1027;
+    object.hasRawValues = true;
+    object.groups = {DRW_Variant(5, std::string("1A")),
+                     DRW_Variant(1000, std::string("payload"))};
+    object.rawValues = {"1A", "payload"};
+
+    RejectingStreambuf asciiBuffer;
+    std::ostream asciiSink(&asciiBuffer);
+    dxfRW asciiWriter("");
+    asciiWriter.version = DRW::AC1027;
+    asciiWriter.binFile = false;
+    asciiWriter.writer = std::make_unique<dxfWriterAscii>(&asciiSink);
+    t.expect(!asciiWriter.writeRawDxfObject(&object)
+                 && asciiWriter.m_writeError
+                 && asciiWriter.writer->hasWriteError()
+                 && asciiBuffer.acceptedBytes() == 0,
+             "DXF ASCII raw object rolls back a failed append");
+
+    DRW_RawDxfObject binaryObject = object;
+    binaryObject.hasRawValues = false;
+    binaryObject.rawValues.clear();
+    RejectingStreambuf binaryBuffer;
+    std::ostream binarySink(&binaryBuffer);
+    dxfRW binaryWriter("");
+    binaryWriter.version = DRW::AC1027;
+    binaryWriter.binFile = true;
+    binaryWriter.writer = std::make_unique<dxfWriterBinary>(&binarySink);
+    t.expect(!binaryWriter.writeRawDxfObject(&binaryObject)
+                 && binaryWriter.m_writeError
+                 && binaryWriter.writer->hasWriteError()
+                 && binaryBuffer.acceptedBytes() == 0,
+             "DXF binary raw object rolls back a failed append");
+}
+
 void testDxfRawSectionApplicationGroupReferenceMatrix(TestContext& t) {
     DRW_RawDxfSection section;
     section.m_name = "LOCAL_SECTION_REFERENCE_MATRIX";
@@ -4875,6 +4912,7 @@ int main() {
     testDxfRawSectionWriterPreflight(context);
     testDxfRawSectionWriterStickyError(context);
     testDxfRawSectionAppendFailure(context);
+    testDxfRawObjectAppendFailure(context);
     testDxfRawSectionApplicationGroupReferenceMatrix(context);
     testRawCapture(context);
     testHatchValidationIgnoresInactiveGradient(context);
