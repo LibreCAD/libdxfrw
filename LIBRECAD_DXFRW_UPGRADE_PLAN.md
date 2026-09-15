@@ -52,8 +52,8 @@ then pin an immutable commit before importing source.
 ### Execution refresh (2026-09-15)
 
 The implementation worktree is rebased on `origin/master` and is currently
-300 commits ahead with no commits behind it. The latest green slice is
-S272/J248, including the live-plan update and its required policy gates.
+301 commits ahead with no commits behind it. The latest green slice is
+S273/J249, including the live-plan update and its required policy gates.
 There is no uncommitted local implementation slice; the next parity work is
 the evidence-gated external/runtime and release closure listed below.
 The worktree is clean at the last committed boundary; any subsequent active-
@@ -2019,6 +2019,17 @@ edit this block or commit the same slice concurrently.
   relocation check, `librecad_filter_compile_check`, and full `librecad_lib`
   static-library build pass; no bundled libdxfrw include/source path is used
   by the system-mode filter, and no drawing bytes were added.
+- Latest target/package differential evidence (2026-09-15): S273/J249 runs
+  the pinned bundled-target JSON dumper and the staged standalone-package
+  dumper over all 15 locked repository fixtures using identical input paths.
+  Fourteen fixtures are byte/JSON identical. The only delta is
+  `ordinary_enc_AC1021.dwg`: the pinned target publishes zero entities while
+  standalone publishes the fixture's expected three `LINE` records. The
+  standalone result is retained because its AC1021 page-map compatibility
+  fix is spec- and fixture-backed; this is recorded as target debt rather than
+  weakening the reader or promoting support. The hash/semantic report is
+  temporary at `/private/tmp/libdxfrw-s273-target-package-differential.json`;
+  no drawing bytes were added.
 - Previous checkpoint (2026-09-15): S257/J233 post-hardening validation
   checkpoint is committed. A fresh C++17 build and all 26 dependency-free
   CTest entries pass in 6.26 seconds, including source-route and release
@@ -3314,17 +3325,17 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 272 (`COMMITTED`); no slice is active.
+- Resolved slices: 273 (`COMMITTED`); no slice is active.
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 272 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 273 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 274 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 275 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 369 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 370 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 258 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S272 are committed; no local implementation slice is active.
+  0 DEFERRED_EXTERNAL / 259 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S273 are committed; no local implementation slice is active.
   Remaining work is evidence-gated runtime/oracle and release closure; keep
   the fast inner loop and do not promote support claims from self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -3651,6 +3662,7 @@ edit this block or commit the same slice concurrently.
 | S270 | J246: AC1021 MULTILEADER legacy arrays | S269 | COMMITTED | bounded arrowhead overrides and block-label arrays; legacy ASCII round-trip; focused hardening and policy gates | AC1021 DXF write/read preserves modeled arrowhead default/handle and block-label handle/text/index/width arrays with bounded counts; release and ASan/UBSan hardening pass; no drawing fixtures or derived payloads | native Windows, longer fuzz, package, and parity-promotion evidence remain scheduled |
 | S271 | J247: MULTILEADER string-boundary hardening | S270 | COMMITTED | shared table-string ceiling for context and legacy block-label text; transactional rejection; focused hardening and policy gates | oversized context text and AC1021 block-label text are rejected before DXF publication; release and ASan/UBSan hardening pass; no drawing fixtures or derived payloads | native Windows, longer fuzz, package, and parity-promotion evidence remain scheduled |
 | S272 | J248: installed-package LibreCAD consumer validation | S271 | COMMITTED | staged package relocation/header closure; system-mode filter compile; full `librecad_lib` consumer build; package/scope/fixture gates | fresh staged-package validation, `librecad_filter_compile_check`, and full LibreCAD `librecad_lib` build pass against the pinned target; no drawing fixtures or derived payloads | native Windows, longer fuzz, external differential, and parity-promotion evidence remain scheduled |
+| S273 | J249: bundled-target versus installed-package JSON differential | S272 | COMMITTED | identical target/package dumper inputs over all 15 locked fixtures; normalized JSON/hash comparison; target-debt classification; no-fixture policy and differential evidence | 14/15 fixtures are byte/JSON identical; AC1021 ordinary ENC is the sole delta (target zero entities, standalone expected three LINEs) and is retained as target debt; report is hash/summary-only in `/private/tmp`; no drawing fixtures or derived payloads | continue with target-debt review, broader eligible differential/oracle evidence, and release closure |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3927,6 +3939,7 @@ edit this block or commit the same slice concurrently.
 | J246 | S270 | J245 | COMMITTED | EXPERIMENTAL | Qualify AC1021 MULTILEADER legacy arrays | Emit and parse bounded AC1021-era arrowhead override and block-label arrays, retaining their hard-pointer handles, label text, UI index, and width while preserving modern context and transactional writer behavior |
 | J247 | S271 | J246 | COMMITTED | EXPERIMENTAL | Qualify MULTILEADER string-boundary hardening | Bound context text and pre-R2010 block-label strings by the shared table-string ceiling, rejecting oversized values transactionally before any DXF record is emitted |
 | J248 | S272 | J247 | COMMITTED | EXPERIMENTAL | Qualify installed-package LibreCAD consumer validation | Validate the staged install with relocation/header checks and compile the pinned LibreCAD system-package consumer, including the filter and full `librecad_lib` static-library target, without bundled libdxfrw paths |
+| J249 | S273 | J248 | COMMITTED | EXPERIMENTAL | Qualify bundled-target versus installed-package JSON differential | Run identical locked fixtures through the pinned bundled LibreCAD JSON dumper and the installed standalone-package dumper, compare byte/JSON and normalized semantic summaries, and classify the AC1021 page-map divergence as target debt without weakening the standalone compatibility fix |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4310,6 +4323,7 @@ edit this block or commit the same slice concurrently.
 | J246.1 | J246 / S270 | WP4, WP8, WP10; AC1021 MULTILEADER legacy arrays | J245 | COMMITTED | EXPERIMENTAL | round-trip one bounded arrowhead override and block-label entry through the AC1021 ASCII writer/parser, preserving handles/text/index/width and rejecting over-limit arrays without drawing fixtures | release and ASan/UBSan `libdxfrw_hardening_tests` pass; Wave 1, DXF/DWG fixture regressions, plan check, fixture admission, import scope, pinned sync, and diff gates pass; no drawing fixtures or derived payloads |
 | J247.1 | J247 / S271 | WP4, WP8, WP10; MULTILEADER string-boundary hardening | J246 | COMMITTED | EXPERIMENTAL | reject context and AC1021 block-label strings larger than the shared 16 MiB table-string ceiling before writer publication, preserving zero-output transaction semantics without drawing fixtures | release and ASan/UBSan `libdxfrw_hardening_tests` pass; Wave 1, DXF/DWG fixture regressions, plan check, fixture admission, import scope, pinned sync, parity aggregate, release readiness, speed, and diff gates pass; no drawing fixtures or derived payloads |
 | J248.1 | J248 / S272 | WP8, WP10; installed-package consumer validation | J247 | COMMITTED | EXPERIMENTAL | validate staged package relocation/header closure, compile the LibreCAD system-mode filter, and build full `librecad_lib` against the installed target without bundled include/source paths | `check_staged_package.py --prefix /private/tmp/libdxfrw-package-34aHLc --relocation-smoke`, fresh system-mode CMake configure, `librecad_filter_compile_check`, and `librecad_lib` all pass; fixture admission, import scope, plan check, and diff gates pass; no drawing fixtures or derived payloads |
+| J249.1 | J249 / S273 | WP8, WP10; bundled-target versus installed-package JSON differential | J248 | COMMITTED | EXPERIMENTAL | run both dumpers on all 15 locked repository fixtures, require identical byte/JSON output or a reviewed target-debt disposition, and retain only hashes/summaries | bundled target and installed package both exit successfully on all 15 inputs; 14 outputs are byte/JSON identical; `ordinary_enc_AC1021.dwg` is the sole reviewed target-debt delta (target zero entities versus standalone three LINEs); temporary report records source/output hashes and semantic counts; no drawing bytes are retained |
 
 <!-- UPGRADE_PROGRESS_END -->
 
