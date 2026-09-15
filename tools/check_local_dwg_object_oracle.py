@@ -136,6 +136,7 @@ GEOPOSITIONMARKER_HANDLE = 0xF300
 SHAPE_HANDLE = 0xF400
 MLINE_HANDLE = 0xF500
 LIGHT_HANDLE = 0xF600
+MESH_HANDLE = 0xF700
 DIMASSOC_HANDLE = 0xF000
 EVALUATION_GRAPH_HANDLE = 0xF100
 BLOCKREPRESENTATIONDATA_HANDLE = 0xF200
@@ -456,6 +457,28 @@ def check_light_entity(records: list[dict], version_name: str) -> dict:
     }
 
 
+def check_mesh_entity(records: list[dict], version_name: str) -> dict:
+    """Qualify the class-520 MESH identity and bounded base frame."""
+    if version_name == "AC1015":
+        return {"supported": False}
+    matches = [
+        record for record in records
+        if isinstance(record, dict)
+        and record.get("entity") == "MESH"
+        and record.get("type") == 520
+    ]
+    if len(matches) != 1:
+        raise ValueError("MESH entity frame count mismatch")
+    mesh = matches[0]
+    if (record_handle(mesh) != MESH_HANDLE
+            or mesh.get("_subclass") != "AcDbSubDMesh"):
+        raise ValueError("MESH identity mismatch")
+    return {
+        "supported": True, "entity": "MESH", "type": 520,
+        "handle": MESH_HANDLE, "payloadQualified": False,
+    }
+
+
 def check_express_text_entities(records: list[dict], version_name: str) -> dict:
     """Qualify RTEXT/ARCALIGNEDTEXT identity and bounded oracle payload.
 
@@ -586,6 +609,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
     shape_entity = check_shape_entity(records, version_name)
     mline_entity = check_mline_entity(records, version_name)
     light_entity = check_light_entity(records, version_name)
+    mesh_entity = check_mesh_entity(records, version_name)
     express_text_entities = check_express_text_entities(records, version_name)
     associative_objects = check_associative_objects(records, version_name)
     block_representation = check_block_representation(records, version_name)
@@ -655,6 +679,17 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "name, color, intensity, geometry, attenuation, and shadow fields; "
             "photometric/web fields are not exposed in its JSON record and "
             "remain local-self-read authoritative")
+    mesh_discrepancies = []
+    if not mesh_entity.get("supported"):
+        mesh_discrepancies.append(
+            "MESH emission is intentionally gated off for AC1015 because "
+            "the fixed high local handle cannot satisfy its legacy contiguous "
+            "entity-chain contract")
+    else:
+        mesh_discrepancies.append(
+            "LibreDWG 0.14 qualifies MESH type/handle/class identity but "
+            "does not preserve the local topology payload reliably; vertices, "
+            "faces, edges, and creases remain local-self-read authoritative")
 
     render_matrix = {}
     for kind, (object_name, handle, object_type) in RENDER_SETTINGS_KINDS.items():
@@ -1716,6 +1751,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         "shapeEntity": shape_entity,
         "mlineEntity": mline_entity,
         "lightEntity": light_entity,
+        "meshEntity": mesh_entity,
         "expressTextEntities": express_text_entities,
         "associativeObjects": associative_objects,
         "blockRepresentationData": block_representation,
@@ -1755,7 +1791,8 @@ def check_objects(payload: dict, version_name: str) -> dict:
         + associative_discrepancies
         + block_representation_discrepancies
         + camera_discrepancies + geo_position_marker_discrepancies
-        + shape_discrepancies + mline_discrepancies + light_discrepancies),
+        + shape_discrepancies + mline_discrepancies + light_discrepancies
+        + mesh_discrepancies),
     }
 
 
@@ -2212,6 +2249,10 @@ def self_test() -> None:
              "hotspot_angle": 0.25, "falloff_angle": 0.75,
              "cast_shadows": 1, "shadow_type": 1,
              "shadow_map_size": 1024, "shadow_map_softness": 3},
+            {"entity": "MESH", "handle": [0, 2, MESH_HANDLE],
+             "type": 520, "_subclass": "AcDbSubDMesh",
+             "subdiv_vertex": [[121.0, 122.0, 123.0]],
+             "faces": [], "crease": []},
             {"entity": "RTEXT", "handle": [0, 2, RTEXT_HANDLE],
              "type": 521, "text_value": "LOCAL_RTEXT",
              "pt": [90.0, 91.0, 0.0],
@@ -2273,6 +2314,10 @@ def self_test() -> None:
             "handle": LIGHT_HANDLE, "name": "LOCAL_LIGHT", "lightType": 1,
             "intensity": 2.5, "photometricPayloadQualified": False}:
         raise AssertionError("LIGHT entity identity was not qualified")
+    if summary.get("meshEntity") != {
+            "supported": True, "entity": "MESH", "type": 520,
+            "handle": MESH_HANDLE, "payloadQualified": False}:
+        raise AssertionError("MESH entity identity was not qualified")
     if summary.get("expressTextEntities") != {
             "rtext": {"entity": "RTEXT", "type": 521,
                       "handle": RTEXT_HANDLE, "text": "LOCAL_RTEXT"},

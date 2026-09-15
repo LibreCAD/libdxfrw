@@ -298,6 +298,10 @@ public:
                 registeredLight_ = writer_->registerDwgEntityClassInstance(
                     DRW_Light::kDwgClassNum, 0xF600u);
             }
+            if (expectedVersion_ >= DRW::AC1018) {
+                registeredMesh_ = writer_->registerDwgEntityClassInstance(
+                    DRW_Mesh::kDwgClassNum, 0xF700u);
+            }
             if (expectedVersion_ >= DRW::AC1021) {
                 DRW_DimensionAssociation dimAssocRegistration;
                 dimAssocRegistration.handle = 0xF000u;
@@ -1975,6 +1979,35 @@ public:
                 && invalidLight.handle == 0xF601u;
         }
 
+        if (expectedVersion_ < DRW::AC1018) {
+            wroteMesh_ = false;
+            rejectedMalformedMesh_ = true;
+        } else {
+            DRW_Mesh mesh;
+            mesh.handle = 0xF700u;
+            mesh.version = 2;
+            mesh.blendCrease = true;
+            mesh.subdivisionLevel = 1;
+            mesh.vertices = {
+                DRW_Coord(121.0, 122.0, 123.0),
+                DRW_Coord(124.0, 122.0, 123.0),
+                DRW_Coord(124.0, 125.0, 123.0),
+                DRW_Coord(121.0, 125.0, 123.0),
+            };
+            mesh.faces = {{0, 1, 2, 3}};
+            mesh.edges = {{0, 1}};
+            mesh.creases = {0.5};
+            mesh.unknown = 0;
+            wroteMesh_ = registeredMesh_ && writer_->writeMesh(&mesh)
+                && mesh.handle == 0xF700u;
+            DRW_Mesh invalidMesh = mesh;
+            invalidMesh.handle = 0xF701u;
+            invalidMesh.vertices[0].x =
+                std::numeric_limits<double>::quiet_NaN();
+            rejectedMalformedMesh_ = !writer_->writeMesh(&invalidMesh)
+                && invalidMesh.handle == 0xF701u;
+        }
+
         DRW_Hatch hatch;
         hatch.name = "SOLID";
         hatch.solid = 1;
@@ -2376,6 +2409,24 @@ public:
             && data.m_extendedLightLength == 1.25
             && data.m_extendedLightWidth == 2.25
             && data.m_extendedLightRadius == 3.25;
+    }
+    void addMesh(const DRW_Mesh& data) override {
+        if (data.handle != 0xF700u)
+            return;
+        readMeshSeen_ = expectedVersion_ >= DRW::AC1018
+            && data.version == 2
+            && data.blendCrease
+            && data.subdivisionLevel == 1
+            && data.vertices.size() == 4
+            && data.vertices[0].x == 121.0
+            && data.vertices[3].y == 125.0
+            && data.faces.size() == 1
+            && data.faces.front() == std::vector<std::int32_t>({0, 1, 2, 3})
+            && data.edges.size() == 1
+            && data.edges.front() == std::make_pair<std::int32_t, std::int32_t>(0, 1)
+            && data.creases.size() == 1
+            && data.creases.front() == 0.5
+            && data.unknown == 0;
     }
     void addHatch(const DRW_Hatch*) override { readHatchSeen_ = true; }
     void addLeader(const DRW_Leader*) override { readLeaderSeen_ = true; }
@@ -3432,6 +3483,9 @@ public:
     bool wroteLight() const { return wroteLight_; }
     bool rejectedMalformedLight() const { return rejectedMalformedLight_; }
     bool readLightSeen() const { return readLightSeen_; }
+    bool wroteMesh() const { return wroteMesh_; }
+    bool rejectedMalformedMesh() const { return rejectedMalformedMesh_; }
+    bool readMeshSeen() const { return readMeshSeen_; }
     bool readPointCloudSeen() const { return readPointCloudSeen_; }
     bool readPointCloudExSeen() const { return readPointCloudExSeen_; }
     bool readHatchSeen() const { return readHatchSeen_; }
@@ -3686,6 +3740,9 @@ private:
     bool registeredLight_ {false};
     bool wroteLight_ {false};
     bool rejectedMalformedLight_ {false};
+    bool registeredMesh_ {false};
+    bool wroteMesh_ {false};
+    bool rejectedMalformedMesh_ {false};
     bool wrotePointCloud_ {false};
     bool wrotePointCloudEx_ {false};
     bool rejectedMalformedPointCloudEntity_ {false};
@@ -3897,6 +3954,7 @@ private:
     bool readShapeSeen_ {false};
     bool readMLineSeen_ {false};
     bool readLightSeen_ {false};
+    bool readMeshSeen_ {false};
     bool readPointCloudSeen_ {false};
     bool readPointCloudExSeen_ {false};
     bool readHatchSeen_ {false};
@@ -4107,6 +4165,13 @@ int main(int argc, char** argv) {
                ("local DWG LIGHT capability gate" + suffix).c_str(), failures);
         expect(writeIface.rejectedMalformedLight(),
                ("local DWG writer rejected malformed LIGHT transaction"
+                + suffix).c_str(), failures);
+        expect(version >= DRW::AC1018
+                   ? writeIface.wroteMesh()
+                   : !writeIface.wroteMesh(),
+               ("local DWG MESH capability gate" + suffix).c_str(), failures);
+        expect(writeIface.rejectedMalformedMesh(),
+               ("local DWG writer rejected malformed MESH transaction"
                 + suffix).c_str(), failures);
         expect(version > DRW::AC1018
                    ? writeIface.wrotePointCloud()
@@ -4439,6 +4504,11 @@ int main(int argc, char** argv) {
                    ? readIface.readLightSeen()
                    : !readIface.readLightSeen(),
                ("local DWG self-read LIGHT capability gate" + suffix).c_str(),
+               failures);
+        expect(version >= DRW::AC1018
+                   ? readIface.readMeshSeen()
+                   : !readIface.readMeshSeen(),
+               ("local DWG self-read MESH capability gate" + suffix).c_str(),
                failures);
         expect(version > DRW::AC1018
                    ? readIface.readPointCloudSeen()
