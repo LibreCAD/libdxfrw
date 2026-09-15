@@ -2646,6 +2646,102 @@ void testDxfRawEntityApplicationGroupRemapChain(TestContext& t) {
              "DXF binary application-group remap does not cascade destinations");
 }
 
+void testDxfRawSectionApplicationGroupRemap(TestContext& t) {
+    DRW_RawDxfSection section;
+    section.m_name = "LOCAL_REMAP_SECTION";
+    section.m_version = DRW::AC1027;
+    section.m_hasRawValues = true;
+    section.m_groups = {DRW_Variant(102, std::string("{SECTION_REFS")),
+                        DRW_Variant(330, std::string("2A")),
+                        DRW_Variant(340, std::string("3A")),
+                        DRW_Variant(102, std::string("}"))};
+    section.m_rawValues = {"{SECTION_REFS", "2A", "3A", "}"};
+    const std::map<std::uint32_t, std::uint32_t> remap = {{0x2Au, 0x4Au},
+                                                           {0x3Au, 0x5Au}};
+    const std::vector<std::pair<int, std::string>> expected = {
+        {0, "SECTION"},
+        {2, "LOCAL_REMAP_SECTION"},
+        {102, "{SECTION_REFS"},
+        {330, "4A"},
+        {340, "5A"},
+        {102, "}"},
+        {0, "ENDSEC"}};
+
+    std::ostringstream asciiOutput;
+    dxfRW asciiWriter("");
+    asciiWriter.version = DRW::AC1027;
+    asciiWriter.binFile = false;
+    asciiWriter.writer = std::make_unique<dxfWriterAscii>(&asciiOutput);
+    asciiWriter.setHandleRemap(remap);
+    t.expect(asciiWriter.writeRawDxfSection(section),
+             "DXF ASCII raw section remaps nested application-group references");
+    int code = 0;
+    std::stringstream asciiRecords(asciiOutput.str());
+    dxfReaderAscii asciiReader(&asciiRecords);
+    bool asciiShape = true;
+    for (const auto& item : expected) {
+        if (!asciiReader.readRec(&code) || code != item.first
+            || asciiReader.getString() != item.second) {
+            asciiShape = false;
+            break;
+        }
+    }
+    t.expect(asciiShape,
+             "DXF ASCII raw section preserves remapped application-group framing");
+
+    DRW_RawDxfSection binarySection = section;
+    binarySection.m_hasRawValues = false;
+    binarySection.m_rawValues.clear();
+    std::ostringstream binaryOutput;
+    dxfRW binaryWriter("");
+    binaryWriter.version = DRW::AC1027;
+    binaryWriter.binFile = true;
+    binaryWriter.writer = std::make_unique<dxfWriterBinary>(&binaryOutput);
+    binaryWriter.setHandleRemap(remap);
+    t.expect(binaryWriter.writeRawDxfSection(binarySection),
+             "DXF binary raw section remaps nested application-group references");
+    std::stringstream binaryRecords(binaryOutput.str());
+    dxfReaderBinary binaryReader(&binaryRecords);
+    binaryReader.setClassifierProfile(DxfClassifierProfile::StandaloneSafe);
+    bool binaryShape = true;
+    for (const auto& item : expected) {
+        if (!binaryReader.readRec(&code) || code != item.first
+            || binaryReader.getString() != item.second) {
+            binaryShape = false;
+            break;
+        }
+    }
+    t.expect(binaryShape,
+             "DXF binary raw section preserves remapped application-group framing");
+
+    DRW_RawDxfSection malformed = section;
+    malformed.m_groups.pop_back();
+    malformed.m_rawValues.pop_back();
+    std::ostringstream rejectedAsciiOutput;
+    dxfRW rejectingAsciiWriter("");
+    rejectingAsciiWriter.version = DRW::AC1027;
+    rejectingAsciiWriter.binFile = false;
+    rejectingAsciiWriter.writer = std::make_unique<dxfWriterAscii>(
+        &rejectedAsciiOutput);
+    rejectingAsciiWriter.setHandleRemap(remap);
+    t.expect(!rejectingAsciiWriter.writeRawDxfSection(malformed)
+                 && rejectedAsciiOutput.str().empty(),
+             "DXF ASCII malformed section application group rejects transactionally");
+
+    malformed.m_hasRawValues = false;
+    malformed.m_rawValues.clear();
+    std::ostringstream rejectedBinaryOutput;
+    dxfRW rejectingBinaryWriter("");
+    rejectingBinaryWriter.version = DRW::AC1027;
+    rejectingBinaryWriter.binFile = true;
+    rejectingBinaryWriter.writer = std::make_unique<dxfWriterBinary>(
+        &rejectedBinaryOutput);
+    rejectingBinaryWriter.setHandleRemap(remap);
+    t.expect(!rejectingBinaryWriter.writeRawDxfSection(malformed)
+                 && rejectedBinaryOutput.str().empty(),
+             "DXF binary malformed section application group rejects transactionally");
+}
+
 void testRawCapture(TestContext& t) {
     std::stringstream records("260\n2147483647\n482\n3.14\n1004\nAB\n");
     dxfRW owner("");
@@ -2869,6 +2965,7 @@ int main() {
     testDxfRawEntityApplicationGroupRawValueCardinality(context);
     testDxfRawEntityApplicationGroupSourceSpelling(context);
     testDxfRawEntityApplicationGroupRemapChain(context);
+    testDxfRawSectionApplicationGroupRemap(context);
     testRawCapture(context);
     testHatchValidationIgnoresInactiveGradient(context);
     testFixedSpaceBlockClassification(context);
