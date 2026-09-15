@@ -5132,6 +5132,59 @@ void testDxfRawObjectApplicationGroupChunkSize(TestContext& t) {
              "DXF binary raw object rejects a 128-byte chunk transactionally");
 }
 
+void testDxfRawObjectRawValueCardinality(TestContext& t) {
+    DRW_RawDxfObject object;
+    object.name = "LOCAL_RAW_VALUES";
+    object.m_version = DRW::AC1027;
+    object.hasRawValues = true;
+    object.groups = {DRW_Variant(5, std::string("1A")),
+                     DRW_Variant(1000, std::string("payload"))};
+    object.rawValues = {"1A", "payload"};
+
+    std::ostringstream asciiOutput;
+    dxfRW asciiWriter("");
+    asciiWriter.version = DRW::AC1027;
+    asciiWriter.binFile = false;
+    asciiWriter.writer = std::make_unique<dxfWriterAscii>(&asciiOutput);
+    t.expect(asciiWriter.writeRawDxfObject(&object)
+                 && !asciiOutput.str().empty(),
+             "DXF ASCII raw object accepts matching raw-value cardinality");
+
+    DRW_RawDxfObject missing = object;
+    missing.rawValues.pop_back();
+    std::ostringstream missingOutput;
+    dxfRW missingWriter("");
+    missingWriter.version = DRW::AC1027;
+    missingWriter.binFile = false;
+    missingWriter.writer = std::make_unique<dxfWriterAscii>(&missingOutput);
+    t.expect(!missingWriter.writeRawDxfObject(&missing)
+                 && missingOutput.str().empty(),
+             "DXF ASCII raw object rejects missing raw-value spelling");
+
+    DRW_RawDxfObject extra = object;
+    extra.rawValues.emplace_back("EXTRA");
+    std::ostringstream extraOutput;
+    dxfRW extraWriter("");
+    extraWriter.version = DRW::AC1027;
+    extraWriter.binFile = false;
+    extraWriter.writer = std::make_unique<dxfWriterAscii>(&extraOutput);
+    t.expect(!extraWriter.writeRawDxfObject(&extra)
+                 && extraOutput.str().empty(),
+             "DXF ASCII raw object rejects extra raw-value spelling");
+
+    DRW_RawDxfObject binaryObject = object;
+    binaryObject.hasRawValues = false;
+    binaryObject.rawValues.assign(binaryObject.groups.size(), UTF8STRING());
+    std::ostringstream binaryOutput;
+    dxfRW binaryWriter("");
+    binaryWriter.version = DRW::AC1027;
+    binaryWriter.binFile = true;
+    binaryWriter.writer = std::make_unique<dxfWriterBinary>(&binaryOutput);
+    t.expect(binaryWriter.writeRawDxfObject(&binaryObject)
+                 && !binaryOutput.str().empty(),
+             "DXF binary raw object accepts empty raw-value placeholders");
+}
+
 void testDxfRawSectionApplicationGroupReferenceMatrix(TestContext& t) {
     DRW_RawDxfSection section;
     section.m_name = "LOCAL_SECTION_REFERENCE_MATRIX";
@@ -5483,6 +5536,7 @@ int main() {
     testDxfRawObjectApplicationGroupReferenceMatrix(context);
     testDxfRawObjectApplicationGroupChunkCodeMatrix(context);
     testDxfRawObjectApplicationGroupChunkSize(context);
+    testDxfRawObjectRawValueCardinality(context);
     testDxfRawSectionApplicationGroupReferenceMatrix(context);
     testRawCapture(context);
     testHatchValidationIgnoresInactiveGradient(context);
