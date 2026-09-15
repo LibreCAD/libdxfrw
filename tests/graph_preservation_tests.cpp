@@ -44,6 +44,21 @@ void appendSabString(std::vector<std::uint8_t>& bytes, const std::string& value)
     bytes.insert(bytes.end(), value.begin(), value.end());
 }
 
+void appendSabEntityType(std::vector<std::uint8_t>& bytes,
+                         const std::string& value) {
+    bytes.push_back(static_cast<std::uint8_t>(DRW_SabTag::EntityType));
+    bytes.push_back(static_cast<std::uint8_t>(value.size()));
+    bytes.insert(bytes.end(), value.begin(), value.end());
+}
+
+void appendSabLocation(std::vector<std::uint8_t>& bytes,
+                       double x, double y, double z) {
+    bytes.push_back(static_cast<std::uint8_t>(DRW_SabTag::LocationVec));
+    appendDouble(bytes, x);
+    appendDouble(bytes, y);
+    appendDouble(bytes, z);
+}
+
 std::vector<std::uint8_t> minimalSab() {
     const std::string signature = "ACIS BinaryFile";
     const std::string marker = "End-of-ACIS-data";
@@ -64,6 +79,35 @@ std::vector<std::uint8_t> minimalSab() {
     bytes.push_back(static_cast<std::uint8_t>(DRW_SabTag::EntityType));
     bytes.push_back(static_cast<std::uint8_t>(marker.size()));
     bytes.insert(bytes.end(), marker.begin(), marker.end());
+    bytes.push_back(static_cast<std::uint8_t>(DRW_SabTag::RecordEnd));
+    return bytes;
+}
+
+std::vector<std::uint8_t> vertexSab() {
+    const std::string signature = "ACIS BinaryFile";
+    const std::string terminal = "End-of-ACIS-data";
+    std::vector<std::uint8_t> bytes(signature.begin(), signature.end());
+    appendU32(bytes, 1); // SAB version
+    appendU32(bytes, 3); // point, vertex, and terminal records
+    appendU32(bytes, 2); // entity count
+    appendU32(bytes, 0); // flags
+    appendSabString(bytes, "LOCAL_PRODUCT");
+    appendSabString(bytes, "LOCAL_ACIS");
+    appendSabString(bytes, "LOCAL_DATE");
+    bytes.push_back(static_cast<std::uint8_t>(DRW_SabTag::Double));
+    appendDouble(bytes, 1.0);
+    bytes.push_back(static_cast<std::uint8_t>(DRW_SabTag::Double));
+    appendDouble(bytes, 1.0e-6);
+    bytes.push_back(static_cast<std::uint8_t>(DRW_SabTag::Double));
+    appendDouble(bytes, 1.0e-6);
+    appendSabEntityType(bytes, "point");
+    appendSabLocation(bytes, 1.0, 2.0, 3.0);
+    bytes.push_back(static_cast<std::uint8_t>(DRW_SabTag::RecordEnd));
+    appendSabEntityType(bytes, "vertex");
+    bytes.push_back(static_cast<std::uint8_t>(DRW_SabTag::Pointer));
+    appendU32(bytes, 0);
+    bytes.push_back(static_cast<std::uint8_t>(DRW_SabTag::RecordEnd));
+    appendSabEntityType(bytes, terminal);
     bytes.push_back(static_cast<std::uint8_t>(DRW_SabTag::RecordEnd));
     return bytes;
 }
@@ -243,6 +287,38 @@ void testAcisWireframeGraph(TestContext& t) {
              "ACIS empty graph fails closed without stale output");
 }
 
+void testModelerLazyDecode(TestContext& t) {
+    const std::vector<std::uint8_t> bytes = vertexSab();
+    DRW_ModelerGeometry modeler(DRW::E3DSOLID);
+    modeler.m_rawBytes = bytes;
+    const bool modelerDecoded = modeler.decodeWireframe();
+    t.expect(modelerDecoded
+                 && modeler.m_wireframeDecoded
+                 && modeler.m_wireframe.vertices.size() == 1
+                 && modeler.m_wireframe.vertices.front().valid
+                 && acisCoordNear(modeler.m_wireframe.vertices.front().point,
+                                  1, 2, 3),
+             "modeler lazy decode resolves a local SAB vertex");
+    const DRW_AcisBrep first = modeler.m_wireframe;
+    t.expect(modeler.decodeWireframe()
+                 && modeler.m_wireframe.vertices.size() == first.vertices.size()
+                 && acisCoordNear(modeler.m_wireframe.vertices.front().point,
+                                  1, 2, 3),
+             "modeler lazy decode is idempotent");
+
+    DRW_ModelerGeometry garbage(DRW::E3DSOLID);
+    garbage.m_rawBytes = {'n', 'o', 't', ' ', 'S', 'A', 'B'};
+    t.expect(!garbage.decodeWireframe() && garbage.m_wireframeDecoded
+                 && garbage.m_wireframe.empty(),
+             "modeler non-SAB payload fails closed with empty output");
+    std::vector<std::uint8_t> truncated = bytes;
+    truncated.resize(truncated.size() - 3);
+    DRW_ModelerGeometry malformed(DRW::E3DSOLID);
+    malformed.m_rawBytes = std::move(truncated);
+    t.expect(!malformed.decodeWireframe() && malformed.m_wireframe.empty(),
+             "modeler truncated SAB payload clears output");
+}
+
 void testDataStorageBounds(TestContext& t) {
     const DRW_DataStorageSection empty =
         DRW_parseDataStorage(nullptr, 0, DRW::AC1027);
@@ -409,6 +485,7 @@ int main() {
     testDataStorageBounds(context);
     testAcisBoundaries(context);
     testAcisWireframeGraph(context);
+    testModelerLazyDecode(context);
     testProxyBounds(context);
     testDataStorageCapabilities(context);
     if (context.failures != 0) {

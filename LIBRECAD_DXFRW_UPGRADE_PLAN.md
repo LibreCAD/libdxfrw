@@ -2697,12 +2697,16 @@ edit this block or commit the same slice concurrently.
   finite bounds, leading-pointer tolerance, intcurve control points, and
   empty-graph safety. All values are local-from-scratch records; no external
   ACIS/SAB or drawing fixtures are retained.
-- Active implementation slice: S105/J81 modeler lazy-decode qualification is
-  the next dependency-ready lane. Exercise `DRW_ModelerGeometry::decodeWireframe`
-  with a bounded local SAB carrier, verify idempotent success and stale-output
-  clearing, and keep non-SAB/truncated payloads fail-closed. If a payload-range
-  or lazy-cache route cannot be proven, record its exact unblock condition and
-  continue to the next ready child.
+- Previous implementation slice: S105/J81 modeler lazy-decode qualification is
+  committed. `DRW_ModelerGeometry::decodeWireframe` now has a focused local SAB
+  success/idempotence check plus non-SAB and truncated-carrier fail-closed
+  checks; no external ACIS/SAB or drawing bytes are retained.
+- Active implementation slice: S106/J82 binary DXF modeler-carrier fidelity is
+  the next dependency-ready lane. Exercise the production `dx_iface`/`dxfRW`
+  binary-file writer and reader with a bounded local SAB payload, verify the
+  310-hex chunk path preserves bytes and modeler version, and keep text-DXF
+  behavior green. If a binary framing edge cannot be proven, record its exact
+  fallback and continue to the next ready child.
 - Previous implementation slice: S90/J66 DIMASSOC/EVALUATION_GRAPH object parity
   is committed. The AC1021+ lane registers the target's typed classes before
   CLASSES, writes one bounded DIMASSOC with a soft dimension/reference link and
@@ -2743,9 +2747,9 @@ edit this block or commit the same slice concurrently.
   names TVDEVICEPROPERTIES and the two VX frames as UNKNOWN_OBJ, while local
   self-read remains authoritative for VX payload fields; no generated drawings
   or external assets are retained.
-- Last fully resolved slice: S104 (the ACIS derived-wireframe slice is
-  committed by the matching `Plan-Slice: S104` trailer; the commit carries
-  synthetic graph evidence and live-plan state).
+- Last fully resolved slice: S105 (the modeler lazy-decode slice is committed
+  by the matching `Plan-Slice: S105` trailer; the commit carries local SAB
+  cache/failure evidence and live-plan state).
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
@@ -2761,18 +2765,18 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 104 (`COMMITTED`); S105 is active.
+- Resolved slices: 105 (`COMMITTED`); S106 is active.
 - Slice states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 104 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 105 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 104 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 105 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 4 VERIFIED / 201 COMMITTED; 1 child is active; no child is anonymous.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 4 VERIFIED / 202 COMMITTED; 1 child is active; no child is anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 34 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S104 are committed; S105/J81 is active with a ready packet
-  naming `DRW_ModelerGeometry::decodeWireframe`, the bounded SAB carrier,
-  idempotence/stale-output assertions, and focused timing/policy checks. Keep validation fast and
+- Active work: S01-S105 are committed; S106/J82 is active with a ready packet
+  naming the binary `dx_iface`/`dxfRW` carrier route, 310-hex framing, bounded
+  SAB payload, text-path regression, and focused timing/policy checks. Keep validation fast and
   self-updating: run source/plan/policy checks and the focused carrier target
   after each implementation item, commit only after the narrow gate is green,
   show the commit progress, and immediately re-run the ready-queue/unblock
@@ -2924,7 +2928,8 @@ edit this block or commit the same slice concurrently.
 | S102 | J78: SURFACE family parity | S101 | COMMITTED | fresh target/source API inventory; six variant registration/dispatch rows; focused DXF/DWG local writer/self-read; version gates; mapped `addSurface` publication; ACIS/modeler raw carrier; bounded payload/count/transform checks; malformed rollback; independent oracle identity; plan/scope/sync/fixture gates | pinned target and standalone expose `DRW_Surface` plus PLANESURFACE, EXTRUDEDSURFACE, REVOLVEDSURFACE, SWEPTSURFACE, LOFTEDSURFACE, and NURBSSURFACE; all six variants now pass the metadata-only local DWG writer/self-read on AC1021/24/27/32 with deterministic AC1015/AC1018 omissions, and the production `dx_iface` stores/re-emits all six through DXF; callback dynamic types, class-instance registration, bounded fields, and malformed rollback are covered; stage no external ACIS or drawing bytes | focused DXF/DWG local round-trip, CTest, live LibreDWG JSON class/type/handle oracle (all six variants; modeler/raw ACIS payload remains non-promoting), fixture admission, import scope, target sync, plan check, and diff gates pass |
 | S103 | J79: SURFACE ACIS/raw-carrier fidelity | S102 | COMMITTED | target/source ACIS/modeler inventory; bounded text/binary carrier vectors; DXF adapter preservation; derived-wireframe isolation; malformed rollback; plan/scope/sync/fixture gates | `dx_iface` now stores and re-emits `DRW_ModelerGeometry` through typed DXF writes; local text/binary carrier round-trips and SAB decode pass, with truncated SAB rejection. The pinned target exposes no typed DWG modeler writer entry point, so DWG raw-carrier write parity is explicitly deferred while DWG reader capture/generic raw replay remain ledgered; no external ACIS/SAB or generated drawing bytes | focused carrier self-check, local round-trip, plan/scope/sync/fixture gates pass; full CTest remains checkpoint-only and the DWG writer boundary has an exact follow-up condition |
 | S104 | J80: ACIS derived-wireframe qualification | S103 | COMMITTED | synthetic SAB record graph; vertex/edge/face/loop extraction; finite bounds; leading-pointer tolerance; intcurve control polygon; null/malformed safety; fast graph gate; plan/scope/sync/fixture gates | `drw_acis` graph/extractor now passes a local synthetic graph covering all listed analytic routes, cardinalities, bounds, pointer ordering, control points, and empty-graph safety; no external ACIS/SAB or drawing bytes | focused graph/extractor target, combined fast CTest, and policy gates pass; full CTest remains checkpoint-only |
-| S105 | J81: modeler lazy-decode qualification | S104 | ACTIVE | bounded local SAB carrier; `DRW_ModelerGeometry::decodeWireframe`; idempotence; stale-output clearing; malformed/non-SAB failure; fast graph/carrier gate; plan/scope/sync/fixture gates | qualify lazy modeler decode independently from DXF/DWG I/O with local-from-scratch bytes only; retain explicit failure behavior for malformed or unsupported carriers | focused modeler decode test first, then the combined fast target and policy gates; full CTest remains checkpoint-only |
+| S105 | J81: modeler lazy-decode qualification | S104 | COMMITTED | bounded local SAB carrier; `DRW_ModelerGeometry::decodeWireframe`; idempotence; stale-output clearing; malformed/non-SAB failure; fast graph/carrier gate; plan/scope/sync/fixture gates | focused local SAB modeler object resolves one vertex and remains idempotent; non-SAB and truncated vectors fail closed with empty output; no external ACIS/SAB or drawing bytes | graph/preservation, hardening, local round-trip, and policy gates pass; full CTest remains checkpoint-only |
+| S106 | J82: binary DXF modeler-carrier fidelity | S105 | ACTIVE | binary DXF file writer/reader; 310-hex chunk framing; local SAB payload; modeler version/handle; text-path regression; fast carrier gate; plan/scope/sync/fixture gates | qualify the production `dx_iface`/`dxfRW` binary-file route independently from ASCII output using local-from-scratch bytes only; preserve explicit text-DXF behavior and reject malformed chunk state | focused binary carrier round-trip first, then the combined fast target and policy gates; full CTest remains checkpoint-only |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3033,7 +3038,8 @@ edit this block or commit the same slice concurrently.
 | J78 | S102 | J77 | COMMITTED | EXPERIMENTAL | Qualify the six SURFACE variant writers/readers on AC1021/24/27/32, beginning with an evidence-backed raw ACIS/modeler payload contract and preserving unsupported AC1015/AC1018 routes explicitly; inventory class/instance registration, DXF/DWG framing, callback publication, version gates, bounded payload/count/transform validation, and transaction-safe malformed-state rejection without external ACIS files; retain explicit AC1015/AC1018 DXF omissions where required | all six variants pass focused DXF/DWG local round-trip and malformed rollback; `dx_iface` now maps typed surface callbacks into the DXF writer; LibreDWG independently qualifies class/type/handle identities and the raw/modeler payload remains non-promoting; no external ACIS or drawing fixture |
 | J79 | S103 | J78 | COMMITTED | EXPERIMENTAL | Prove the SURFACE raw ACIS/modeler carrier and preservation routes independently of typed metadata, with bounded text/binary local vectors, derived-wireframe isolation, and explicit per-version fallback dispositions | `dx_iface` modeler callback/storage and typed DXF writer dispatch are covered by local text/binary round-trips; SAB parser/wireframe and truncation checks pass. The target has no typed DWG modeler writer entry point, so that route remains explicitly deferred; no external ACIS/SAB or drawing bytes |
 | J80 | S104 | J79 | COMMITTED | EXPERIMENTAL | Qualify the `drw_acis` graph/extractor independently of carrier I/O with a synthetic record graph covering analytic edges/faces, loops, bounds, pointer ordering, intcurve control points, and malformed/null safety | `libdxfrw_graph_preservation_tests` now passes the full synthetic graph/extractor oracle and keeps all inputs local-from-scratch; no external ACIS/SAB or drawing bytes |
-| J81 | S105 | J80 | ACTIVE | EXPERIMENTAL | Qualify `DRW_ModelerGeometry::decodeWireframe` lazy caching and stale-output behavior against bounded local SAB, non-SAB, and truncated carriers | ready packet names the modeler entity method, local SAB builder, idempotence/failure assertions, smallest fast target, and policy gates; no external ACIS/SAB or drawing bytes |
+| J81 | S105 | J80 | COMMITTED | EXPERIMENTAL | Qualify `DRW_ModelerGeometry::decodeWireframe` lazy caching and stale-output behavior against bounded local SAB, non-SAB, and truncated carriers | graph/preservation fast target passes local SAB success/idempotence plus malformed/non-SAB empty-output checks; no external ACIS/SAB or drawing bytes |
+| J82 | S106 | J81 | ACTIVE | EXPERIMENTAL | Qualify binary DXF modeler-carrier emission/parse through `dx_iface` and `dxfRW`, including 310-hex chunks and text-path regression | ready packet names the binary file round-trip, local SAB bytes, modeler version/handle assertions, smallest carrier target, and policy gates; no external ACIS/SAB or drawing bytes |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -3249,7 +3255,8 @@ edit this block or commit the same slice concurrently.
 | J78.1 | J78 / S102 | WP5, WP7, WP8, WP10; SURFACE/ACIS | J77 | COMMITTED | EXPERIMENTAL | inventory and then implement the smallest bounded local-from-scratch payload for each PLANESURFACE, EXTRUDEDSURFACE, REVOLVEDSURFACE, SWEPTSURFACE, LOFTEDSURFACE, and NURBSSURFACE route through `dxfRW::writeSurface`/`DRW_*::parseCode` and `dwgRW::writeSurface`/`DRW_Surface::parseDwg`; register the exact target class before CLASSES, verify AC1021/24/27/32 DXF/DWG gates plus explicit AC1015/AC1018 omissions, verify `addSurface` callback fields, raw ACIS-byte identity, and independent class/type/handle identity, and reject non-finite payload/count/transform state transactionally; mark any unproved variant unsupported/deferred with an exact unblock condition | focused six-version DWG self-read, focused DXF self-read through `dx_iface`, live LibreDWG class/type/handle oracle, and policy gates pass; modeler/raw ACIS payload remains non-promoting, no external ACIS or generated drawing bytes committed |
 | J79.1 | J79 / S103 | WP5, WP7, WP8, WP10; SURFACE/ACIS raw carrier | J78 | COMMITTED | EXPERIMENTAL | inventory `DRW_ModelerGeometry` and ACIS text/binary chunk framing, then emit and self-read bounded local text and binary carriers through the production `dx_iface`/`dxfRW` route; verify raw-byte retention is independent from derived-wireframe decoding and record the explicit DWG-writer fallback where the target has no typed entry point | focused carrier tests and one combined preservation check pass; no full suite in the inner loop, no external ACIS/SAB or generated drawing bytes committed |
 | J80.1 | J80 / S104 | WP5, WP7, WP8, WP10; ACIS wireframe | J79 | COMMITTED | EXPERIMENTAL | build a local synthetic `DRW_SabData` graph and assert vertex coordinates/bounds, straight and ellipse parameters, intcurve control points, plane/cone/torus surfaces, loop counts, leading-pointer skip, and null/malformed failure behavior | focused graph/extractor target, combined fast CTest, and policy gates pass; local-from-scratch records only |
-| J81.1 | J81 / S105 | WP5, WP7, WP8, WP10; modeler lazy decode | J80 | ACTIVE | EXPERIMENTAL | attach a bounded local SAB vector to `DRW_ModelerGeometry`, assert lazy decode success and idempotence, then assert non-SAB/truncated vectors clear output and fail closed without exceptions | focused modeler decode target first; update the plan after the gate and continue to the next ready child without a full-suite stop |
+| J81.1 | J81 / S105 | WP5, WP7, WP8, WP10; modeler lazy decode | J80 | COMMITTED | EXPERIMENTAL | attach a bounded local SAB vector to `DRW_ModelerGeometry`, assert lazy decode success and idempotence, then assert non-SAB/truncated vectors clear output and fail closed without exceptions | focused graph/preservation target and policy gates pass; local-from-scratch bytes only |
+| J82.1 | J82 / S106 | WP5, WP7, WP8, WP10; binary DXF modeler carrier | J81 | ACTIVE | EXPERIMENTAL | run `dx_iface::fileExport(..., binary=true)` and `fileImport` for a local SAB modeler payload, assert byte identity/version/handle, and retain the existing ASCII text-carrier check | focused binary carrier target first; update the plan after the gate and continue to the next ready child without a full-suite stop |
 
 <!-- UPGRADE_PROGRESS_END -->
 
