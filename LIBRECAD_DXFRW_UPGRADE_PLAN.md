@@ -54,11 +54,11 @@ then pin an immutable commit before importing source.
 The implementation worktree is rebased on `origin/master` and is currently
 140 commits ahead with no commits behind it. The latest green slice is
 S117/J93, including the live-plan update and its required policy gates.
-S118/J94 is now the active slice; its focused DXF raw-classifier boundary
-checks are the next commit boundary.
-The worktree also contains intentional, uncommitted follow-on test work for
-the S114-S116 safety sequence; it is not evidence of a committed slice and
-must be staged/committed one slice at a time.
+S118/J94 is the active slice; its focused DXF raw-classifier boundary checks
+are the next commit boundary, after which S119/J95 will qualify raw replay.
+The worktree is clean at the last committed boundary; any subsequent active-
+slice edits are intentionally uncommitted until their narrow gate and
+status-bearing plan transition are green.
 
 The execution cadence remains fast-test-first: touched-translation-unit or
 source-policy checks, the focused local target, and the three-test CTest
@@ -1934,14 +1934,14 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint (2026-09-15): S117/J93 raw-DWG receipt/callback-order
-  alignment is committed; S118/J94 DXF raw-classifier boundary parity is
-  active. The branch is rebased on `origin/master`, and
+- Current checkpoint (2026-09-15): S118/J94 DXF raw-classifier boundary parity
+  is committed; S119/J95 DXF raw-boundary replay qualification is active. The
+  branch is rebased on `origin/master`, and
   the pinned source/package/consumer convergence remains complete while
   runtime and wire-format parity stay evidence-gated. The AC1015 IMAGE legacy
   boundary remains fail-closed, and all format-support claims remain limited
   to rows with eligible runtime/oracle evidence. The next dependency-ready
-  sequence is S118 DXF raw-classifier boundary parity; it is a separate commit
+  sequence is S119 DXF raw-boundary replay qualification; it is a separate commit
   with no external or derived DWG/DXF bytes.
 - Latest implementation slice: S53/J29 RASTERVARIABLES/WIPEOUTVARIABLES parity
   is committed. The local-from-scratch production writer registers both custom
@@ -2785,9 +2785,9 @@ edit this block or commit the same slice concurrently.
   names TVDEVICEPROPERTIES and the two VX frames as UNKNOWN_OBJ, while local
   self-read remains authoritative for VX payload fields; no generated drawings
   or external assets are retained.
-- Last fully resolved slice: S117 (the raw-DWG receipt/callback-order alignment
-  slice is committed by the matching `Plan-Slice: S117` trailer; the commit
-  carries normalized writer/reader event evidence, the live-plan update, and
+- Last fully resolved slice: S118 (the DXF raw-classifier boundary parity
+  slice is committed by the matching `Plan-Slice: S118` trailer; the commit
+  carries canonical range-invariant and parser/capture boundary evidence, the live-plan update, and
   all required policy gates). The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
@@ -2809,18 +2809,18 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 117 (`COMMITTED`); S118 is active.
+- Resolved slices: 118 (`COMMITTED`); S119 is active.
 - Slice states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 117 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 118 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 119 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 120 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 214 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 215 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 102 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S117 are committed; S118/J94 is active with a ready packet
-  naming DXF raw-classifier boundary parity and focused fast gates.
+  0 DEFERRED_EXTERNAL / 103 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S118 are committed; S119/J95 is active with a ready packet
+  naming DXF raw-boundary replay qualification and focused fast gates.
   Keep validation fast and
   self-updating: run source/plan/policy checks and the focused carrier target
   after each implementation item, commit only after the narrow gate is green,
@@ -2986,7 +2986,8 @@ edit this block or commit the same slice concurrently.
 | S115 | J91: raw replay frame-integrity mutation safety | S114 | COMMITTED | deterministic in-memory frame mutation; bounded `readBuffer` rejection; no callback publication; valid-frame regression; fast replay gate; plan/scope/sync/fixture gates | one byte mutated inside a locally generated raw-object body is rejected without raw-object publication; valid replay remains green and no external or derived DWG/DXF bytes are retained | focused replay target and policy gates pass; S116 is active |
 | S116 | J92: file/readBuffer raw replay parity | S115 | COMMITTED | valid file-backed `read`; valid in-memory `readBuffer`; identical corrupted-frame rejection; no callback publication; equivalent error/stage/diagnostic; fast replay gate; plan/scope/sync/fixture gates | both public reader entry points accept the valid local replay and reject the same locally corrupted bytes with equivalent legacy error, structured diagnostic, and empty publication | focused replay target and policy gates pass; S117 is active |
 | S117 | J93: raw replay receipt/callback-order alignment | S116 | COMMITTED | normalized frame receipts; callback publication order; section/object ordering; live-oracle trace comparison; no external payload; fast replay gate; plan/scope/sync/fixture gates | local writer receipts and reader callback events normalize to the expected raw-object/section sequence, including built-in-object filtering; no drawing bytes are retained or promoted | focused replay target, live oracle advisory run, and policy gates pass; S118 is active |
-| S118 | J94: DXF raw-classifier boundary parity | S117 | ACTIVE | canonical group-code classifier; 260-269 and 482-998 boundary vectors; parser/capture/replay agreement; malformed rejection; fast DXF gate; plan/scope/sync/fixture gates | reconcile the pinned target's read/raw-replay classifier for disputed ranges with a single non-overlapping domain table and focused in-memory vectors; no external DXF bytes | active after S117 commit; use local group vectors and escalate only if parser/output code is touched |
+| S118 | J94: DXF raw-classifier boundary parity | S117 | COMMITTED | canonical group-code classifier; 260-269 and 482-998 boundary vectors; parser/capture/replay agreement; malformed rejection; fast DXF gate; plan/scope/sync/fixture gates | canonical range table now has a compile-time contiguity/completeness invariant; focused parser and raw-capture vectors cover 259/260/269/270, 481/482/998/999, and 1003/1004/1005/1071 boundaries with typed/opaque agreement; no external DXF bytes | wave1 executable, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S119 is active |
+| S119 | J95: DXF raw-boundary replay qualification | S118 | ACTIVE | raw-object replay for typed and opaque boundary groups; source-spelling retention; malformed typed/unknown rejection; transactional record scope; fast DXF gate; plan/scope/sync/fixture gates | replay local in-memory groups at 260-269 and 482-998 through `writeRawDxfObject`, parse them back with the canonical classifier, and prove incompatible typed/raw combinations fail without poisoning a fresh writer; no external DXF bytes | active after S118 commit; use fresh in-memory streams per negative case and keep any unresolved target range explicitly experimental |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3108,7 +3109,8 @@ edit this block or commit the same slice concurrently.
 | J91 | S115 | J90 | COMMITTED | EXPERIMENTAL | Qualify fail-closed raw-DWG frame-integrity handling by mutating one byte in a locally generated raw-object body and proving `readBuffer` rejects it without publishing a raw object | local-only mutation, bounded rejection, empty callback publication, and policy gates pass; no external or derived DWG bytes |
 | J92 | S116 | J91 | COMMITTED | EXPERIMENTAL | Qualify parity between file-backed `read` and in-memory `readBuffer` for valid and corrupted local raw-DWG replay frames | valid and corrupted local replay paths have equivalent legacy error, structured diagnostic, and callback-publication outcomes; no external bytes |
 | J93 | S117 | J92 | COMMITTED | EXPERIMENTAL | Qualify normalized raw-DWG frame receipts and reader callback order against the local writer contract and an optional live `dwg2dxf` trace without retaining drawing bytes | local writer/reader event contract passes with normalized raw-object/section order and built-in-object filtering; no drawing bytes retained |
-| J94 | S118 | J93 | ACTIVE | EXPERIMENTAL | Reconcile the pinned DXF raw-capture/replay group-code classifier for 260-269 and 482-998, preserving non-overlap and parser/capture/replay agreement | active packet names canonical domains, focused vectors, malformed boundaries, and no-fixture evidence |
+| J94 | S118 | J93 | COMMITTED | EXPERIMENTAL | Reconcile the pinned DXF raw-capture/replay group-code classifier for 260-269 and 482-998, preserving non-overlap and parser/capture/replay agreement | canonical table invariant and focused parser/capture boundary vectors pass; no external DXF bytes |
+| J95 | S119 | J94 | ACTIVE | EXPERIMENTAL | Qualify DXF raw-object replay across typed 260-269 and opaque 482-998 boundaries, preserving source spellings and rejecting incompatible variants transactionally | local in-memory write/parse vectors pass for valid groups; fresh-writer negative cases prove malformed typed/unknown values fail closed without retaining bytes; no external DXF bytes |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -3337,7 +3339,8 @@ edit this block or commit the same slice concurrently.
 | J91.1 | J91 / S115 | WP5, WP7, WP8, WP10; raw-DWG frame-integrity mutation safety | J90 | COMMITTED | EXPERIMENTAL | mutate one byte inside a locally generated raw-object body, assert bounded `readBuffer` rejection and zero raw-object callback publication, and keep all bytes local-from-scratch | focused replay target and policy gates pass; no external or derived DWG bytes |
 | J92.1 | J92 / S116 | WP5, WP7, WP8, WP10; file/readBuffer parity | J91 | COMMITTED | EXPERIMENTAL | read valid local replay through file-backed `read` and in-memory `readBuffer`, feed the same local corruption through both, and compare error/stage, structured diagnostic, and callback-publication results | focused replay target plus three-test CTest selector pass; temporary files are removed and full CTest remains checkpoint-only |
 | J93.1 | J93 / S117 | WP5, WP7, WP8, WP10; raw replay receipt/callback-order alignment | J92 | COMMITTED | EXPERIMENTAL | capture stable writer receipt IDs and reader callback order for the three local raw objects and one raw section, normalize them, and compare optional live `dwg2dxf` trace labels without retaining payload bytes | focused replay target and advisory oracle run pass; built-in callback noise is filtered, no payload bytes are retained, and no format-support claim is promoted |
-| J94.1 | J94 / S118 | WP4, WP5, WP6, WP8, WP10; DXF raw-classifier boundary parity | J93 | ACTIVE | EXPERIMENTAL | define one canonical group-code domain table for 260-269 and 482-998, exercise parser/capture/replay vectors at each boundary, and reject unknown overlap or inconsistent typed/raw handling | focused DXF classifier target first; if the target leaves a range unresolved, retain an explicit unresolved row and continue another ready lane without importing fixtures |
+| J94.1 | J94 / S118 | WP4, WP5, WP6, WP8, WP10; DXF raw-classifier boundary parity | J93 | COMMITTED | EXPERIMENTAL | define one canonical group-code domain table for 260-269 and 482-998, exercise parser/capture/replay vectors at each boundary, and reject unknown overlap or inconsistent typed/raw handling | wave1 boundary matrix passes canonical invariant, parser typing, and raw-capture preservation; no external or derived DXF bytes are retained |
+| J95.1 | J95 / S119 | WP4, WP5, WP6, WP8, WP10; DXF raw-boundary replay qualification | J94 | ACTIVE | EXPERIMENTAL | construct local raw objects with typed 260-269 and opaque 482-998 groups, replay them through `writeRawDxfObject`, parse the emitted stream, preserve source spellings, and reject incompatible variants with a fresh-writer negative check | focused wave1/replay target and policy gates pass; no external or derived DXF bytes are retained |
 
 <!-- UPGRADE_PROGRESS_END -->
 

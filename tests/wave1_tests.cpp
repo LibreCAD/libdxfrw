@@ -156,6 +156,65 @@ void testTextAndPreR13(TestContext& t) {
              "pre-R13 vertex layout");
 }
 
+void testDxfClassifierBoundaryMatrix(TestContext& t) {
+    t.expect(dxfCodeRangesAreCanonical(),
+             "DXF classifier ranges are contiguous and complete");
+    t.expect(dxfValueKindForCode(259) == DxfValueKind::Dbl
+                 && dxfValueKindForCode(260) == DxfValueKind::I32
+                 && dxfValueKindForCode(269) == DxfValueKind::I32
+                 && dxfValueKindForCode(270) == DxfValueKind::I16,
+             "DXF 259-270 boundary kinds are explicit");
+    t.expect(dxfValueKindForCode(481) == DxfValueKind::Str
+                 && dxfValueKindForCode(482) == DxfValueKind::Unknown
+                 && dxfValueKindForCode(998) == DxfValueKind::Unknown
+                 && dxfValueKindForCode(999) == DxfValueKind::Str,
+             "DXF 481-999 unknown span is non-overlapping");
+    t.expect(dxfValueKindForCode(1003) == DxfValueKind::Str
+                 && dxfValueKindForCode(1004) == DxfValueKind::Bin
+                 && dxfValueKindForCode(1005) == DxfValueKind::Str
+                 && dxfValueKindForCode(1071) == DxfValueKind::I32
+                 && dxfValueKindForCode(1072) == DxfValueKind::Unknown,
+             "DXF binary/XDATA boundaries are explicit");
+
+    std::stringstream records(
+        "259\n1.25\n260\n2147483647\n269\n-7\n270\n7\n"
+        "481\nABCD\n482\n3.14\n998\nopaque-after\n"
+        "999\ncomment\n1004\nAB\n1005\nABC\n1071\n9\n");
+    dxfReaderAscii reader(&records);
+    int code = 0;
+    const std::vector<dxfReader::TYPE> expectedTypes {
+        dxfReader::DOUBLE, dxfReader::INT32, dxfReader::INT32,
+        dxfReader::INT32, dxfReader::STRING, dxfReader::STRING,
+        dxfReader::STRING, dxfReader::STRING, dxfReader::BINARY,
+        dxfReader::STRING, dxfReader::INT32};
+    std::size_t index = 0;
+    while (reader.readRec(&code)) {
+        t.expect(index < expectedTypes.size() && reader.type == expectedTypes[index],
+                 "DXF parser boundary type agrees with classifier");
+        ++index;
+    }
+    t.expect(index == expectedTypes.size(),
+             "DXF parser consumes every boundary vector");
+
+    std::stringstream capturedRecords("260\n2147483647\n482\n3.14\n998\nopaque\n");
+    dxfRW owner("");
+    owner.binFile = false;
+    owner.reader = std::make_unique<dxfReaderAscii>(&capturedRecords);
+    DRW_RawDxfObject object;
+    index = 0;
+    while (owner.reader->readRec(&code)) {
+        t.expect(owner.captureRawGroup(object, code),
+                 "raw capture accepts classifier boundary vector");
+        ++index;
+    }
+    t.expect(index == 3 && object.groups.size() == 3
+                 && object.groups[0].type() == DRW_Variant::INTEGER
+                 && object.groups[1].type() == DRW_Variant::STRING
+                 && object.groups[2].type() == DRW_Variant::STRING
+                 && object.rawValues.size() == object.groups.size(),
+             "raw capture preserves typed/opaque boundary values");
+}
+
 void testRawCapture(TestContext& t) {
     std::stringstream records("260\n2147483647\n482\n3.14\n1004\nAB\n");
     dxfRW owner("");
@@ -348,6 +407,7 @@ int main() {
     TestContext context;
     testBufferRoundTrip(context);
     testTextAndPreR13(context);
+    testDxfClassifierBoundaryMatrix(context);
     testRawCapture(context);
     testHatchValidationIgnoresInactiveGradient(context);
     testFixedSpaceBlockClassification(context);

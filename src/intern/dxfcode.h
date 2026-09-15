@@ -61,6 +61,31 @@ inline constexpr DxfValueKind dxfValueKindForCode(int code) {
     return DxfValueKind::Unknown;
 }
 
+// Keep the table a complete, ordered description of the DXF group-code
+// domain.  The 482-998 span is intentionally present as Unknown; it must not
+// disappear from one reader/capture/replay path merely because its values are
+// opaque.  A compile-time invariant catches accidental gaps or overlaps when
+// a range is edited.
+inline constexpr bool dxfCodeRangesAreCanonical() {
+    constexpr unsigned count =
+        static_cast<unsigned>(sizeof(kDxfCodeRanges)
+                              / sizeof(kDxfCodeRanges[0]));
+    if (count == 0 || kDxfCodeRanges[0].lo != 0
+        || kDxfCodeRanges[count - 1].hi != 1071) {
+        return false;
+    }
+    for (unsigned index = 1; index < count; ++index) {
+        if (kDxfCodeRanges[index - 1].hi + 1
+            != kDxfCodeRanges[index].lo) {
+            return false;
+        }
+    }
+    return true;
+}
+
+static_assert(dxfCodeRangesAreCanonical(),
+              "DXF group-code classifier ranges must be contiguous");
+
 inline constexpr bool isDxfBinaryChunkCode(int code) {
     return (code >= 310 && code <= 319) || code == 1004;
 }
