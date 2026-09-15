@@ -20,6 +20,7 @@
 #include "intern/dwgreaderR11.h"
 #include "intern/dwgutil.h"
 #include "intern/dxfreader.h"
+#include "intern/dxfwriter.h"
 #include "intern/rscodec.h"
 
 // Keep access to the protected header codec limited to this test translation
@@ -215,6 +216,85 @@ void testDxfClassifierBoundaryMatrix(TestContext& t) {
              "raw capture preserves typed/opaque boundary values");
 }
 
+DRW_RawDxfObject rawBoundaryObject() {
+    DRW_RawDxfObject object;
+    object.name = "RAW_BOUNDARY";
+    object.handle = 0x1Au;
+    object.m_version = DRW::AC1027;
+    object.hasRawValues = true;
+    object.groups = {
+        DRW_Variant(5, std::string("1A")),
+        DRW_Variant(260, static_cast<std::int32_t>(2147483647)),
+        DRW_Variant(269, static_cast<std::int32_t>(-7)),
+        DRW_Variant(482, std::string("3.14")),
+        DRW_Variant(998, std::string("opaque-after")),
+        DRW_Variant(1004, std::string("AB"))};
+    object.rawValues = {"1A", "2147483647", "-7", "3.14",
+                        "opaque-after", "AB"};
+    return object;
+}
+
+bool writeRawBoundaryObject(const DRW_RawDxfObject& source,
+                            std::string& output) {
+    std::ostringstream stream;
+    dxfRW owner("");
+    owner.version = DRW::AC1027;
+    owner.binFile = false;
+    owner.writer = std::make_unique<dxfWriterAscii>(&stream);
+    DRW_RawDxfObject object = source;
+    const bool written = owner.writeRawDxfObject(&object);
+    output = stream.str();
+    return written;
+}
+
+void testDxfRawBoundaryReplay(TestContext& t) {
+    const DRW_RawDxfObject object = rawBoundaryObject();
+    std::string output;
+    t.expect(writeRawBoundaryObject(object, output),
+             "DXF raw boundary object writes through ASCII replay");
+    t.expect(!output.empty(), "DXF raw boundary replay commits a record");
+
+    std::stringstream records(output);
+    dxfReaderAscii reader(&records);
+    const std::vector<int> expectedCodes {0, 5, 260, 269, 482, 998, 1004};
+    const std::vector<dxfReader::TYPE> expectedTypes {
+        dxfReader::STRING, dxfReader::STRING, dxfReader::INT32,
+        dxfReader::INT32, dxfReader::STRING, dxfReader::STRING,
+        dxfReader::BINARY};
+    const std::vector<std::string> expectedRaw {
+        "RAW_BOUNDARY", "1A", "2147483647", "-7", "3.14",
+        "opaque-after", "AB"};
+    int code = 0;
+    std::size_t index = 0;
+    while (reader.readRec(&code)) {
+        t.expect(index < expectedCodes.size() && code == expectedCodes[index],
+                 "DXF raw replay code order matches source");
+        t.expect(index < expectedTypes.size() && reader.type == expectedTypes[index],
+                 "DXF raw replay type matches canonical classifier");
+        t.expect(index < expectedRaw.size() && reader.getRawValue() == expectedRaw[index],
+                 "DXF raw replay preserves source spelling");
+        ++index;
+    }
+    t.expect(index == expectedCodes.size(),
+             "DXF raw replay parser consumes complete record");
+
+    DRW_RawDxfObject badNumeric = object;
+    badNumeric.groups[1] = DRW_Variant(260, std::string("not-an-int"));
+    badNumeric.rawValues[1] = "not-an-int";
+    output.clear();
+    t.expect(!writeRawBoundaryObject(badNumeric, output)
+                 && output.empty(),
+             "DXF raw replay rejects malformed typed numeric boundary");
+
+    DRW_RawDxfObject badOpaque = object;
+    badOpaque.groups[3] = DRW_Variant(482, static_cast<std::int32_t>(7));
+    badOpaque.rawValues[3] = "7";
+    output.clear();
+    t.expect(!writeRawBoundaryObject(badOpaque, output)
+                 && output.empty(),
+             "DXF raw replay rejects non-string opaque boundary");
+}
+
 void testRawCapture(TestContext& t) {
     std::stringstream records("260\n2147483647\n482\n3.14\n1004\nAB\n");
     dxfRW owner("");
@@ -408,6 +488,7 @@ int main() {
     testBufferRoundTrip(context);
     testTextAndPreR13(context);
     testDxfClassifierBoundaryMatrix(context);
+    testDxfRawBoundaryReplay(context);
     testRawCapture(context);
     testHatchValidationIgnoresInactiveGradient(context);
     testFixedSpaceBlockClassification(context);
