@@ -84,10 +84,10 @@
     },
     {
       "path": "src/intern/dwgwriter15.cpp",
-      "reason": "Keep AC1015 entity-chain validation strict for built-in entities while allowing the target's RTEXT/ARCALIGNEDTEXT custom Express Tools frames to use preserved high handles; their object-map and class-instance ledgers remain validated separately.",
+      "reason": "Keep AC1015 entity-chain validation strict for built-in entities while allowing the target's RTEXT/ARCALIGNEDTEXT/HELIX custom frames to use preserved high handles; their object-map and class-instance ledgers remain validated separately.",
       "scope": "DWG writer compatibility",
       "targetBlob": "7c52152889fcb7da812493324003cdcbf629eb59",
-      "adaptedSha256": "7b02d3bf346393bd84ac1d1196a269faa5813a30379fed4c8c8f111b7aa20c49"
+      "adaptedSha256": "aede2e017ca86319c0031449fee25b1a140142a365a17d0b8a71040551af77ac"
     },
     {
       "path": "src/drw_objects.cpp",

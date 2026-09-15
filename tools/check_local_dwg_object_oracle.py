@@ -130,6 +130,7 @@ IMAGE_HANDLE = 0xD700
 MALFORMED_IMAGE_HANDLE = 0xD710
 RTEXT_HANDLE = 0xED00
 ARCALIGNEDTEXT_HANDLE = 0xED01
+HELIX_HANDLE = 0xEE00
 DIMASSOC_HANDLE = 0xF000
 EVALUATION_GRAPH_HANDLE = 0xF100
 BLOCKREPRESENTATIONDATA_HANDLE = 0xF200
@@ -252,6 +253,43 @@ def check_tolerance_entity(records: list[dict]) -> dict:
         "type": 46,
         "handle": record_handle(tolerance),
         "text": "LOCAL_TOLERANCE",
+    }
+
+
+def check_helix_entity(records: list[dict]) -> dict:
+    """Qualify the bounded HELIX spline/trailer entity emitted locally."""
+    matches = [
+        record for record in records
+        if isinstance(record, dict)
+        and record.get("entity") == "HELIX"
+        and record.get("type") == 503
+    ]
+    if len(matches) != 1:
+        raise ValueError("HELIX entity frame count mismatch")
+    helix = matches[0]
+    if (record_handle(helix) != HELIX_HANDLE
+            or helix.get("scenario") != 1
+            or helix.get("degree") != 2
+            or helix.get("knots") != [0.0, 0.0, 0.0, 1.0, 1.0, 1.0]
+            or helix.get("ctrl_pts") != [
+                {"x": 73.0, "y": 74.0, "z": 0.0},
+                {"x": 75.0, "y": 76.0, "z": 0.0},
+                {"x": 77.0, "y": 78.0, "z": 0.0},
+            ]
+            or helix.get("major_version") != 1
+            or helix.get("maint_version") != 2
+            or helix.get("axis_base_pt") != [70.0, 71.0, 0.0]
+            or helix.get("start_pt") != [72.0, 73.0, 0.0]
+            or helix.get("axis_vector") != [0.0, 0.0, 1.0]
+            or helix.get("radius") != 4.5
+            or helix.get("turns") != 3.25
+            or helix.get("turn_height") != 2.75
+            or helix.get("handedness") != 1
+            or helix.get("constraint_type") != 2):
+        raise ValueError("HELIX identity or bounded payload mismatch")
+    return {
+        "entity": "HELIX", "type": 503, "handle": HELIX_HANDLE,
+        "radius": 4.5, "turns": 3.25, "turnHeight": 2.75,
     }
 
 
@@ -379,6 +417,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
 
     pointcloud_entities = check_pointcloud_entities(records, version_name)
     tolerance_entity = check_tolerance_entity(records)
+    helix_entity = check_helix_entity(records)
     express_text_entities = check_express_text_entities(records, version_name)
     associative_objects = check_associative_objects(records, version_name)
     block_representation = check_block_representation(records, version_name)
@@ -1454,6 +1493,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         "pointCloudDefinitions": pointcloud_frames,
         "pointCloudEntities": pointcloud_entities,
         "toleranceEntity": tolerance_entity,
+        "helixEntity": helix_entity,
         "expressTextEntities": express_text_entities,
         "associativeObjects": associative_objects,
         "blockRepresentationData": block_representation,
@@ -1898,6 +1938,19 @@ def self_test() -> None:
              "x_direction": [1.0, 0.0, 0.0],
              "extrusion": [0.0, 0.0, 1.0],
              "dimstyle": [5, 1, 21, 21]},
+            {"entity": "HELIX", "handle": [0, 2, HELIX_HANDLE],
+             "type": 503, "scenario": 1, "degree": 2,
+             "knots": [0.0, 0.0, 0.0, 1.0, 1.0, 1.0],
+             "ctrl_pts": [
+                 {"x": 73.0, "y": 74.0, "z": 0.0},
+                 {"x": 75.0, "y": 76.0, "z": 0.0},
+                 {"x": 77.0, "y": 78.0, "z": 0.0}],
+             "major_version": 1, "maint_version": 2,
+             "axis_base_pt": [70.0, 71.0, 0.0],
+             "start_pt": [72.0, 73.0, 0.0],
+             "axis_vector": [0.0, 0.0, 1.0],
+             "radius": 4.5, "turns": 3.25, "turn_height": 2.75,
+             "handedness": 1, "constraint_type": 2},
             {"entity": "RTEXT", "handle": [0, 2, RTEXT_HANDLE],
              "type": 521, "text_value": "LOCAL_RTEXT",
              "pt": [90.0, 91.0, 0.0],
@@ -1931,6 +1984,10 @@ def self_test() -> None:
             "entity": "TOLERANCE", "type": 46, "handle": 0xEC20,
             "text": "LOCAL_TOLERANCE"}:
         raise AssertionError("TOLERANCE entity identity was not qualified")
+    if summary.get("helixEntity") != {
+            "entity": "HELIX", "type": 503, "handle": HELIX_HANDLE,
+            "radius": 4.5, "turns": 3.25, "turnHeight": 2.75}:
+        raise AssertionError("HELIX entity identity was not qualified")
     if summary.get("expressTextEntities") != {
             "rtext": {"entity": "RTEXT", "type": 521,
                       "handle": RTEXT_HANDLE, "text": "LOCAL_RTEXT"},

@@ -285,6 +285,11 @@ public:
             registeredArcAlignedText_ =
                 writer_->registerDwgEntityClassInstance(
                     DRW_ArcAlignedText::kDwgClassNum, 0xED01u);
+            // HELIX is a typed custom entity (class 503) already present in
+            // the writer's class manifest. Stage its fixed instance before
+            // CLASSES so the entity object map and class identity agree.
+            registeredHelix_ = writer_->registerDwgEntityClassInstance(
+                DRW_Helix::kDwgClassNum, 0xEE00u);
             if (expectedVersion_ >= DRW::AC1021) {
                 DRW_DimensionAssociation dimAssocRegistration;
                 dimAssocRegistration.handle = 0xF000u;
@@ -1776,6 +1781,37 @@ public:
             std::make_shared<DRW_Coord>(63.0, 64.0, 0.0));
         wroteSpline_ = writer_->writeSpline(&spline) && spline.handle != 0;
 
+        DRW_Helix helix;
+        helix.handle = 0xEE00u;
+        helix.m_scenario = 1;
+        helix.degree = 2;
+        helix.ncontrol = 3;
+        helix.knotslist = {0.0, 0.0, 0.0, 1.0, 1.0, 1.0};
+        helix.normalVec = DRW_Coord(0.0, 0.0, 1.0);
+        helix.controllist.push_back(
+            std::make_shared<DRW_Coord>(73.0, 74.0, 0.0));
+        helix.controllist.push_back(
+            std::make_shared<DRW_Coord>(75.0, 76.0, 0.0));
+        helix.controllist.push_back(
+            std::make_shared<DRW_Coord>(77.0, 78.0, 0.0));
+        helix.m_majorVersion = 1;
+        helix.m_maintVersion = 2;
+        helix.axisBasePt = DRW_Coord(70.0, 71.0, 0.0);
+        helix.startPt = DRW_Coord(72.0, 73.0, 0.0);
+        helix.axisVector = DRW_Coord(0.0, 0.0, 1.0);
+        helix.radius = 4.5;
+        helix.turns = 3.25;
+        helix.turnHeight = 2.75;
+        helix.handedness = true;
+        helix.constraintType = 2;
+        wroteHelix_ = registeredHelix_ && writer_->writeHelix(&helix)
+            && helix.handle == 0xEE00u;
+        DRW_Helix invalidHelix = helix;
+        invalidHelix.handle = 0xEE01u;
+        invalidHelix.radius = std::numeric_limits<double>::quiet_NaN();
+        rejectedMalformedHelix_ = !writer_->writeHelix(&invalidHelix)
+            && invalidHelix.handle == 0xEE01u;
+
         DRW_Hatch hatch;
         hatch.name = "SOLID";
         hatch.solid = 1;
@@ -2061,6 +2097,21 @@ public:
         readOldPolylineSeen_ = true;
     }
     void addSpline(const DRW_Spline*) override { readSplineSeen_ = true; }
+    void addHelix(const DRW_Helix* data) override {
+        if (data == nullptr || data->handle != 0xEE00u)
+            return;
+        readHelixSeen_ = data->m_majorVersion == 1
+            && data->m_maintVersion == 2
+            && data->axisBasePt.x == 70.0
+            && data->startPt.y == 73.0
+            && data->axisVector.z == 1.0
+            && data->radius == 4.5
+            && data->turns == 3.25
+            && data->turnHeight == 2.75
+            && data->handedness
+            && data->constraintType == 2
+            && data->controllist.size() == 3;
+    }
     void addHatch(const DRW_Hatch*) override { readHatchSeen_ = true; }
     void addLeader(const DRW_Leader*) override { readLeaderSeen_ = true; }
     void addTolerance(const DRW_Tolerance& data) override {
@@ -2857,10 +2908,12 @@ public:
             && wrote3dLine_;
     }
     bool wroteAdvancedEntities() const {
-        return wroteOldPolyline_ && wroteSpline_;
+        return wroteOldPolyline_ && wroteSpline_ && wroteHelix_;
     }
     bool wroteOldPolyline() const { return wroteOldPolyline_; }
     bool wroteSpline() const { return wroteSpline_; }
+    bool wroteHelix() const { return wroteHelix_; }
+    bool rejectedMalformedHelix() const { return rejectedMalformedHelix_; }
     bool wrotePointCloud() const { return wrotePointCloud_; }
     bool wrotePointCloudEx() const { return wrotePointCloudEx_; }
     bool rejectedMalformedPointCloudEntity() const {
@@ -3092,10 +3145,11 @@ public:
             && read3dLineSeen_;
     }
     bool readAdvancedEntitiesSeen() const {
-        return readOldPolylineSeen_ && readSplineSeen_;
+        return readOldPolylineSeen_ && readSplineSeen_ && readHelixSeen_;
     }
     bool readOldPolylineSeen() const { return readOldPolylineSeen_; }
     bool readSplineSeen() const { return readSplineSeen_; }
+    bool readHelixSeen() const { return readHelixSeen_; }
     bool readPointCloudSeen() const { return readPointCloudSeen_; }
     bool readPointCloudExSeen() const { return readPointCloudExSeen_; }
     bool readHatchSeen() const { return readHatchSeen_; }
@@ -3337,6 +3391,8 @@ private:
     bool wrote3dLine_ {false};
     bool wroteOldPolyline_ {false};
     bool wroteSpline_ {false};
+    bool wroteHelix_ {false};
+    bool rejectedMalformedHelix_ {false};
     bool wrotePointCloud_ {false};
     bool wrotePointCloudEx_ {false};
     bool rejectedMalformedPointCloudEntity_ {false};
@@ -3351,6 +3407,7 @@ private:
     bool rejectedMalformedArcAlignedText_ {false};
     bool registeredRText_ {false};
     bool registeredArcAlignedText_ {false};
+    bool registeredHelix_ {false};
     bool wroteDimensionAssociation_ {false};
     bool wroteEvaluationGraph_ {false};
     bool rejectedMalformedDimensionAssociation_ {false};
@@ -3540,6 +3597,7 @@ private:
     bool read3dLineSeen_ {false};
     bool readOldPolylineSeen_ {false};
     bool readSplineSeen_ {false};
+    bool readHelixSeen_ {false};
     bool readPointCloudSeen_ {false};
     bool readPointCloudExSeen_ {false};
     bool readHatchSeen_ {false};
@@ -3710,6 +3768,11 @@ int main(int argc, char** argv) {
                ("local DWG writer emitted POLYLINE" + suffix).c_str(), failures);
         expect(writeIface.wroteSpline(),
                ("local DWG writer emitted SPLINE" + suffix).c_str(), failures);
+        expect(writeIface.wroteHelix(),
+               ("local DWG writer emitted HELIX" + suffix).c_str(), failures);
+        expect(writeIface.rejectedMalformedHelix(),
+               ("local DWG writer rejected malformed HELIX transaction" + suffix).c_str(),
+               failures);
         expect(version > DRW::AC1018
                    ? writeIface.wrotePointCloud()
                    : !writeIface.wrotePointCloud(),
@@ -4016,6 +4079,8 @@ int main(int argc, char** argv) {
                ("local DWG self-read publishes POLYLINE" + suffix).c_str(), failures);
         expect(readIface.readSplineSeen(),
                ("local DWG self-read publishes SPLINE" + suffix).c_str(), failures);
+        expect(readIface.readHelixSeen(),
+               ("local DWG self-read publishes HELIX" + suffix).c_str(), failures);
         expect(version > DRW::AC1018
                    ? readIface.readPointCloudSeen()
                    : !readIface.readPointCloudSeen(),
