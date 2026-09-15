@@ -3488,6 +3488,69 @@ void testDxfRawSectionRemapRollback(TestContext& t) {
              "DXF binary raw section remap rolls back malformed typed groups");
 }
 
+void testDxfRawSectionReservedNames(TestContext& t) {
+    const std::vector<std::string> reservedNames = {
+        "", "HEADER", "header", "CLASSES", "classes", "TABLES",
+        "tables", "BLOCKS", "blocks", "ENTITIES", "entities",
+        "OBJECTS", "objects"};
+    for (const std::string& name : reservedNames) {
+        DRW_RawDxfSection section;
+        section.m_name = name;
+        section.m_version = DRW::AC1027;
+        section.m_hasRawValues = true;
+        section.m_groups = {DRW_Variant(1000, std::string("payload"))};
+        section.m_rawValues = {"payload"};
+
+        std::ostringstream asciiOutput;
+        dxfRW asciiWriter("");
+        asciiWriter.version = DRW::AC1027;
+        asciiWriter.binFile = false;
+        asciiWriter.writer = std::make_unique<dxfWriterAscii>(&asciiOutput);
+        t.expect(!asciiWriter.writeRawDxfSection(section)
+                     && asciiOutput.str().empty(),
+                 "DXF ASCII raw section rejects reserved or empty names");
+
+        DRW_RawDxfSection binarySection = section;
+        binarySection.m_hasRawValues = false;
+        binarySection.m_rawValues.clear();
+        std::ostringstream binaryOutput;
+        dxfRW binaryWriter("");
+        binaryWriter.version = DRW::AC1027;
+        binaryWriter.binFile = true;
+        binaryWriter.writer = std::make_unique<dxfWriterBinary>(&binaryOutput);
+        t.expect(!binaryWriter.writeRawDxfSection(binarySection)
+                     && binaryOutput.str().empty(),
+                 "DXF binary raw section rejects reserved or empty names");
+    }
+
+    DRW_RawDxfSection custom;
+    custom.m_name = "LOCAL_RESERVED_NAME_CONTROL";
+    custom.m_version = DRW::AC1027;
+    custom.m_hasRawValues = true;
+    custom.m_groups = {DRW_Variant(1000, std::string("payload"))};
+    custom.m_rawValues = {"payload"};
+    std::ostringstream asciiOutput;
+    dxfRW asciiWriter("");
+    asciiWriter.version = DRW::AC1027;
+    asciiWriter.binFile = false;
+    asciiWriter.writer = std::make_unique<dxfWriterAscii>(&asciiOutput);
+    t.expect(asciiWriter.writeRawDxfSection(custom)
+                 && !asciiOutput.str().empty(),
+             "DXF ASCII raw section accepts a custom name");
+
+    DRW_RawDxfSection binarySection = custom;
+    binarySection.m_hasRawValues = false;
+    binarySection.m_rawValues.clear();
+    std::ostringstream binaryOutput;
+    dxfRW binaryWriter("");
+    binaryWriter.version = DRW::AC1027;
+    binaryWriter.binFile = true;
+    binaryWriter.writer = std::make_unique<dxfWriterBinary>(&binaryOutput);
+    t.expect(binaryWriter.writeRawDxfSection(binarySection)
+                 && !binaryOutput.str().empty(),
+             "DXF binary raw section accepts a custom name");
+}
+
 void testDxfRawSectionApplicationGroupMarker(TestContext& t) {
     const std::vector<std::string> invalidMarkers = {"{", "NOT_A_MARKER"};
     for (const std::string& marker : invalidMarkers) {
@@ -3838,6 +3901,7 @@ int main() {
     testDxfRawSectionWideHandleReplay(context);
     testDxfRawSectionWideHandleRemap(context);
     testDxfRawSectionRemapRollback(context);
+    testDxfRawSectionReservedNames(context);
     testDxfRawSectionApplicationGroupMarker(context);
     testDxfRawSectionApplicationGroupReferenceMatrix(context);
     testRawCapture(context);
