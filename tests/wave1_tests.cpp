@@ -3770,6 +3770,48 @@ void testDxfRawSectionCommentReadPolicy(TestContext& t) {
     }
 }
 
+void testDxfRawSectionCaseInsensitiveEndsec(TestContext& t) {
+    const std::string asciiSource =
+        "0\nSECTION\n2\nLOCAL_ENDSEC_CASE\n1000\npayload\n"
+        "0\neNdSeC\n0\nEOF\n";
+    ProfileProbeInterface asciiInterface;
+    dxfRW asciiReader("");
+    asciiReader.binFile = false;
+    std::stringstream asciiInput(asciiSource);
+    asciiReader.reader = std::make_unique<dxfReaderAscii>(&asciiInput);
+    asciiReader.reader->setClassifierProfile(DxfClassifierProfile::StandaloneSafe);
+    asciiReader.iface = &asciiInterface;
+    asciiReader.beginOperationDiagnostic(DRW::OperationKind::Read);
+    t.expect(asciiReader.processDxf()
+                 && asciiInterface.sections.size() == 1
+                 && asciiInterface.sections.front().m_name == "LOCAL_ENDSEC_CASE"
+                 && asciiInterface.sections.front().m_groups.size() == 1
+                 && asciiInterface.sections.front().m_groups.front().code() == 1000,
+             "DXF ASCII raw section accepts mixed-case ENDSEC");
+
+    std::ostringstream binarySource;
+    dxfWriterBinary binarySourceWriter(&binarySource);
+    binarySourceWriter.writeString(0, "SECTION");
+    binarySourceWriter.writeString(2, "LOCAL_ENDSEC_CASE");
+    binarySourceWriter.writeString(1000, "payload");
+    binarySourceWriter.writeString(0, "eNdSeC");
+    binarySourceWriter.writeString(0, "EOF");
+    std::stringstream binaryInput(binarySource.str());
+    ProfileProbeInterface binaryInterface;
+    dxfRW binaryReader("");
+    binaryReader.binFile = true;
+    binaryReader.reader = std::make_unique<dxfReaderBinary>(&binaryInput);
+    binaryReader.reader->setClassifierProfile(DxfClassifierProfile::StandaloneSafe);
+    binaryReader.iface = &binaryInterface;
+    binaryReader.beginOperationDiagnostic(DRW::OperationKind::Read);
+    t.expect(binaryReader.processDxf()
+                 && binaryInterface.sections.size() == 1
+                 && binaryInterface.sections.front().m_name == "LOCAL_ENDSEC_CASE"
+                 && binaryInterface.sections.front().m_groups.size() == 1
+                 && binaryInterface.sections.front().m_groups.front().code() == 1000,
+             "DXF binary raw section accepts mixed-case ENDSEC");
+}
+
 void testDxfRawSectionApplicationGroupMarker(TestContext& t) {
     const std::vector<std::string> invalidMarkers = {"{", "NOT_A_MARKER"};
     for (const std::string& marker : invalidMarkers) {
@@ -4126,6 +4168,7 @@ int main() {
     testDxfRawSectionEmptyPayload(context);
     testDxfRawSectionCommentPreservation(context);
     testDxfRawSectionCommentReadPolicy(context);
+    testDxfRawSectionCaseInsensitiveEndsec(context);
     testDxfRawSectionApplicationGroupMarker(context);
     testDxfRawSectionApplicationGroupReferenceMatrix(context);
     testRawCapture(context);
