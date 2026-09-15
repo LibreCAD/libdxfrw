@@ -234,6 +234,33 @@ void testPlotSettingsVectors(TestContext& t) {
     dwgBufferW handles;
     t.expect(!invalid.encodeDwg(DRW::AC1024, &body, &strings, &handles),
              "PLOTSETTINGS rejects a non-finite margin");
+
+    PlotSettingsEncodeProbe legacyOmitted;
+    populatePlotSettings(legacyOmitted);
+    legacyOmitted.shadePlotMode = 65536;
+    legacyOmitted.shadePlotResLevel = -1;
+    legacyOmitted.shadePlotCustomDPI = 65536;
+    body.reset();
+    strings.reset();
+    handles.reset();
+    t.expect(legacyOmitted.encodeDwg(DRW::AC1015, &body, &strings, &handles),
+             "PLOTSETTINGS omits legacy shade fields without rejecting them");
+    t.expect(!body.data().empty() && strings.data().empty()
+                 && !handles.data().empty(),
+             "PLOTSETTINGS legacy omission still emits the object");
+
+    PlotSettingsEncodeProbe newerEmitted;
+    populatePlotSettings(newerEmitted);
+    newerEmitted.shadePlotCustomDPI = 65536;
+    body.reset();
+    strings.reset();
+    handles.reset();
+    t.expect(!newerEmitted.encodeDwg(DRW::AC1018, &body, &strings, &handles),
+             "PLOTSETTINGS rejects an invalid emitted shade field");
+    t.expect(newerEmitted.shadePlotCustomDPI == 65536
+                 && body.data().empty() && strings.data().empty()
+                 && handles.data().empty(),
+             "PLOTSETTINGS emitted-shade rejection is transactional");
 }
 
 void testLayoutVectors(TestContext& t) {
