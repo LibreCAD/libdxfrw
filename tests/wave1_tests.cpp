@@ -4598,6 +4598,72 @@ void testDxfRawObjectWriterPreflight(TestContext& t) {
              "DXF binary raw object rejects a missing writer during preflight");
 }
 
+void testDxfRawObjectVersionCompatibility(TestContext& t) {
+    const std::vector<DRW::Version> accepted = {
+        DRW::AC1027, DRW::UNKNOWNV};
+    for (const DRW::Version taggedVersion : accepted) {
+        DRW_RawDxfObject object;
+        object.name = "LOCAL_RAW_VERSION_ACCEPTED";
+        object.m_version = taggedVersion;
+        object.hasRawValues = true;
+        object.groups = {DRW_Variant(5, std::string("1A")),
+                         DRW_Variant(1000, std::string("payload"))};
+        object.rawValues = {"1A", "payload"};
+
+        std::ostringstream asciiOutput;
+        dxfRW asciiWriter("");
+        asciiWriter.version = DRW::AC1027;
+        asciiWriter.binFile = false;
+        asciiWriter.writer = std::make_unique<dxfWriterAscii>(&asciiOutput);
+        t.expect(asciiWriter.writeRawDxfObject(&object)
+                     && !asciiOutput.str().empty(),
+                 "DXF ASCII raw object accepts matching and unknown versions");
+
+        DRW_RawDxfObject binaryObject = object;
+        binaryObject.hasRawValues = false;
+        binaryObject.rawValues.clear();
+        std::ostringstream binaryOutput;
+        dxfRW binaryWriter("");
+        binaryWriter.version = DRW::AC1027;
+        binaryWriter.binFile = true;
+        binaryWriter.writer = std::make_unique<dxfWriterBinary>(&binaryOutput);
+        t.expect(binaryWriter.writeRawDxfObject(&binaryObject)
+                     && !binaryOutput.str().empty(),
+                 "DXF binary raw object accepts matching and unknown versions");
+    }
+
+    DRW_RawDxfObject mismatched;
+    mismatched.name = "LOCAL_RAW_VERSION_MISMATCH";
+    mismatched.m_version = DRW::AC1024;
+    mismatched.hasRawValues = true;
+    mismatched.groups = {DRW_Variant(5, std::string("1A")),
+                         DRW_Variant(1000, std::string("payload"))};
+    mismatched.rawValues = {"1A", "payload"};
+
+    std::ostringstream rejectedAsciiOutput;
+    dxfRW rejectingAsciiWriter("");
+    rejectingAsciiWriter.version = DRW::AC1027;
+    rejectingAsciiWriter.binFile = false;
+    rejectingAsciiWriter.writer = std::make_unique<dxfWriterAscii>(
+        &rejectedAsciiOutput);
+    t.expect(!rejectingAsciiWriter.writeRawDxfObject(&mismatched)
+                 && rejectedAsciiOutput.str().empty(),
+             "DXF ASCII raw object rejects a mismatched version transactionally");
+
+    DRW_RawDxfObject mismatchedBinary = mismatched;
+    mismatchedBinary.hasRawValues = false;
+    mismatchedBinary.rawValues.clear();
+    std::ostringstream rejectedBinaryOutput;
+    dxfRW rejectingBinaryWriter("");
+    rejectingBinaryWriter.version = DRW::AC1027;
+    rejectingBinaryWriter.binFile = true;
+    rejectingBinaryWriter.writer = std::make_unique<dxfWriterBinary>(
+        &rejectedBinaryOutput);
+    t.expect(!rejectingBinaryWriter.writeRawDxfObject(&mismatchedBinary)
+                 && rejectedBinaryOutput.str().empty(),
+             "DXF binary raw object rejects a mismatched version transactionally");
+}
+
 void testDxfRawSectionApplicationGroupReferenceMatrix(TestContext& t) {
     DRW_RawDxfSection section;
     section.m_name = "LOCAL_SECTION_REFERENCE_MATRIX";
@@ -4941,6 +5007,7 @@ int main() {
     testDxfRawSectionAppendFailure(context);
     testDxfRawObjectAppendFailure(context);
     testDxfRawObjectWriterPreflight(context);
+    testDxfRawObjectVersionCompatibility(context);
     testDxfRawSectionApplicationGroupReferenceMatrix(context);
     testRawCapture(context);
     testHatchValidationIgnoresInactiveGradient(context);

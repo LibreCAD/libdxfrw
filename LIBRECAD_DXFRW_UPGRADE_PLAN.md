@@ -52,9 +52,9 @@ then pin an immutable commit before importing source.
 ### Execution refresh (2026-09-15)
 
 The implementation worktree is rebased on `origin/master` and is currently
-257 commits ahead with no commits behind it. The latest green slice is
-S230/J206, including the live-plan update and its required policy gates.
-S231/J207 is the active slice; its DXF raw-object version-guard parity is the
+258 commits ahead with no commits behind it. The latest green slice is
+S231/J207, including the live-plan update and its required policy gates.
+S232/J208 is the active slice; its DXF raw-object empty-payload parity is the
 next commit boundary.
 The worktree is clean at the last committed boundary; any subsequent active-
 slice edits are intentionally uncommitted until their narrow gate and
@@ -1934,16 +1934,15 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint (2026-09-15): S230/J206 DXF raw-object writer error-state
-  preservation parity is committed; S231/J207 DXF raw-object version-guard
-  parity is active.
+- Current checkpoint (2026-09-15): S231/J207 DXF raw-object version-guard parity
+  is committed; S232/J208 DXF raw-object empty-payload parity is active.
   The
   branch is rebased on `origin/master`, and
   the pinned source/package/consumer convergence remains complete while
   runtime and wire-format parity stay evidence-gated. The AC1015 IMAGE legacy
   boundary remains fail-closed, and all format-support claims remain limited
   to rows with eligible runtime/oracle evidence. The next dependency-ready
-  sequence is S231 DXF raw-object version-guard parity;
+  sequence is S232 DXF raw-object empty-payload parity;
   it is a separate commit with no external or derived DWG/DXF bytes.
 - Latest implementation slice: S171/J147 DXF raw-object handle-scope and
   cross-record uniqueness qualification is committed. Local ASCII and binary
@@ -2178,6 +2177,9 @@ edit this block or commit the same slice concurrently.
   preservation parity is committed. Local ASCII and binary writers preserve a
   pre-existing writer error while committing staged raw-object bytes; no
   drawing bytes are retained.
+- Latest implementation slice: S231/J207 DXF raw-object version-guard parity
+  is committed. Local ASCII and binary raw objects accept matching/UNKNOWNV
+  versions and reject mismatches transactionally; no drawing bytes are retained.
 - Latest implementation slice: S172/J148 DXF raw-object duplicate-handle
   diagnostic and error-precedence qualification is committed. Local ASCII and
   binary duplicate streams preserve the legacy `BAD_CODE_PARSED` result and
@@ -3102,16 +3104,16 @@ edit this block or commit the same slice concurrently.
   terminal only when their recorded gates pass.
 - Resolved slices: 230 (`COMMITTED`); S231 is active.
 - Slice states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 230 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 231 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 232 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 233 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 328 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 329 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 215 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S230 are committed; S231/J207 is active with a ready packet
-  naming DXF raw-object version-guard parity and focused fast gates.
+  0 DEFERRED_EXTERNAL / 216 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S231 are committed; S232/J208 is active with a ready packet
+  naming DXF raw-object empty-payload parity and focused fast gates.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
   S174/J150, S175/J151, S176/J152, S177/J153, S178/J154, and S179/J155 added
   malformed, field-context, raw-entity propagation, duplicate-entity,
@@ -3394,7 +3396,8 @@ edit this block or commit the same slice concurrently.
 | S228 | J204: DXF raw-object append-failure transaction parity | S227 | COMMITTED | failing output stream; raw-object record scope; zero-output rollback; ASCII/binary symmetry; focused DXF gate; plan/scope/sync/fixture gates | committed `S228`; local ASCII and binary raw-object writes fail on a rejecting sink with sticky diagnostics and zero sink bytes; no drawing bytes committed | Wave 1 raw-object append-failure tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S229 is active |
 | S229 | J205: DXF raw-object writer preflight parity | S228 | COMMITTED | null writer preflight; name/version guard; ASCII/binary symmetry; zero-output rejection; focused DXF gate; plan/scope/sync/fixture gates | committed `S229`; local ASCII and binary façades reject a missing writer for self-handle-bearing objects with sticky diagnostics and no output; no drawing bytes committed | Wave 1 raw-object preflight tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S230 is active |
 | S230 | J206: DXF raw-object writer error-state preservation parity | S229 | COMMITTED | pre-existing writer error; scoped reset/restore; ASCII/binary symmetry; output commit; focused DXF gate; plan/scope/sync/fixture gates | committed `S230`; local ASCII and binary writers preserve a pre-existing writer error while committing staged raw-object bytes; no drawing bytes committed | Wave 1 raw-object writer-state tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S231 is active |
-| S231 | J207: DXF raw-object version-guard parity | S230 | ACTIVE | matching-version acceptance; UNKNOWNV acceptance; mismatched-version rejection; ASCII/binary symmetry; zero-output rejection; focused DXF gate; plan/scope/sync/fixture gates | use self-handle-bearing raw objects tagged with matching, UNKNOWNV, and mismatched versions; assert only the first two write and the mismatch fails transactionally in ASCII and binary, with no drawing bytes committed | active after S230 commit; use Wave 1 raw-object version-guard tests, focused CTest selector, fast source/policy gates, fixture admission, import scope, pinned sync, and diff gates |
+| S231 | J207: DXF raw-object version-guard parity | S230 | COMMITTED | matching-version acceptance; UNKNOWNV acceptance; mismatched-version rejection; ASCII/binary symmetry; zero-output rejection; focused DXF gate; plan/scope/sync/fixture gates | committed `S231`; local ASCII and binary raw objects accept matching/UNKNOWNV versions and reject mismatches transactionally with zero output; no drawing bytes committed | Wave 1 raw-object version-guard tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S232 is active |
+| S232 | J208: DXF raw-object empty-payload parity | S231 | ACTIVE | self-handle-only object; empty payload framing; ASCII/binary symmetry; transactional output; focused DXF gate; plan/scope/sync/fixture gates | use a self-handle-bearing raw object with no payload groups; assert ASCII and binary writers emit only the object name and handle framing, with no drawing bytes committed | active after S231 commit; use Wave 1 raw-object empty-payload tests, focused CTest selector, fast source/policy gates, fixture admission, import scope, pinned sync, and diff gates |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3629,7 +3632,8 @@ edit this block or commit the same slice concurrently.
 | J204 | S228 | J203 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-object append-failure transaction parity | local ASCII and binary raw-object writes fail on a rejecting sink with sticky diagnostics and zero sink bytes; no-fixture evidence |
 | J205 | S229 | J204 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-object writer preflight parity | local ASCII and binary façades reject a missing writer for self-handle-bearing objects with sticky diagnostics and no output; no-fixture evidence |
 | J206 | S230 | J205 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-object writer error-state preservation parity | local ASCII and binary writers preserve a pre-existing writer error while valid raw-object bytes commit; no-fixture evidence |
-| J207 | S231 | J206 | ACTIVE | EXPERIMENTAL | Qualify DXF raw-object version-guard parity | active packet names matching/UNKNOWNV acceptance and mismatched-version transactional rejection for raw objects in ASCII/binary; no-fixture evidence |
+| J207 | S231 | J206 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-object version-guard parity | local ASCII and binary raw objects accept matching/UNKNOWNV versions and reject mismatches transactionally; no-fixture evidence |
+| J208 | S232 | J207 | ACTIVE | EXPERIMENTAL | Qualify DXF raw-object empty-payload parity | active packet names self-handle-only object framing in ASCII/binary with no payload groups; no-fixture evidence |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -3971,7 +3975,8 @@ edit this block or commit the same slice concurrently.
 | J204.1 | J204 / S228 | WP4, WP5, WP6, WP8, WP10; DXF raw-object append-failure transaction parity | J203 | COMMITTED | EXPERIMENTAL | assert a failing output stream rejects a valid raw object transactionally with sticky diagnostics and zero sink bytes, without external drawing bytes | focused Wave 1 raw-object append-failure target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 | J205.1 | J205 / S229 | WP4, WP5, WP6, WP8, WP10; DXF raw-object writer preflight parity | J204 | COMMITTED | EXPERIMENTAL | assert a self-handle-bearing raw object rejects safely when no writer is attached in ASCII/binary, leaving sticky diagnostics and no output, without external drawing bytes | focused Wave 1 raw-object preflight target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 | J206.1 | J206 / S230 | WP4, WP5, WP6, WP8, WP10; DXF raw-object writer error-state preservation parity | J205 | COMMITTED | EXPERIMENTAL | assert a pre-existing writer error remains sticky while a valid raw object commits staged ASCII/binary bytes, without external drawing bytes | focused Wave 1 raw-object writer-state target and policy gates pass; no external or derived DWG/DXF bytes are retained |
-| J207.1 | J207 / S231 | WP4, WP5, WP6, WP8, WP10; DXF raw-object version-guard parity | J206 | ACTIVE | EXPERIMENTAL | assert matching and UNKNOWNV raw-object versions write while a mismatched version rejects transactionally in ASCII/binary, without external drawing bytes | focused Wave 1 raw-object version-guard target and policy gates pass; no external or derived DWG/DXF bytes are retained |
+| J207.1 | J207 / S231 | WP4, WP5, WP6, WP8, WP10; DXF raw-object version-guard parity | J206 | COMMITTED | EXPERIMENTAL | assert matching and UNKNOWNV raw-object versions write while a mismatched version rejects transactionally in ASCII/binary, without external drawing bytes | focused Wave 1 raw-object version-guard target and policy gates pass; no external or derived DWG/DXF bytes are retained |
+| J208.1 | J208 / S232 | WP4, WP5, WP6, WP8, WP10; DXF raw-object empty-payload parity | J207 | ACTIVE | EXPERIMENTAL | assert a self-handle-only raw object emits valid ASCII/binary framing with no payload groups, without external drawing bytes | focused Wave 1 raw-object empty-payload target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 
 <!-- UPGRADE_PROGRESS_END -->
 
