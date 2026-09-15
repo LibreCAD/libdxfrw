@@ -52,10 +52,10 @@ then pin an immutable commit before importing source.
 ### Execution refresh (2026-09-15)
 
 The implementation worktree is rebased on `origin/master` and is currently
-209 commits ahead with no commits behind it. The latest green slice is
-S183/J159, including the live-plan update and its required policy gates.
-S184/J160 is the active slice; its DXF raw-entity application-group reference
-code matrix parity is the next commit boundary.
+210 commits ahead with no commits behind it. The latest green slice is
+S184/J160, including the live-plan update and its required policy gates.
+S185/J161 is the active slice; its DXF raw-entity application-group binary
+chunk coexistence is the next commit boundary.
 The worktree is clean at the last committed boundary; any subsequent active-
 slice edits are intentionally uncommitted until their narrow gate and
 status-bearing plan transition are green.
@@ -1934,16 +1934,16 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint (2026-09-15): S183/J159 DXF raw-entity application-group
-  marker-lexeme parity is committed; S184/J160 DXF raw-entity application-group
-  reference-code matrix parity is active.
+- Current checkpoint (2026-09-15): S184/J160 DXF raw-entity application-group
+  reference-code matrix parity is committed; S185/J161 DXF raw-entity
+  application-group binary chunk coexistence is active.
   The
   branch is rebased on `origin/master`, and
   the pinned source/package/consumer convergence remains complete while
   runtime and wire-format parity stay evidence-gated. The AC1015 IMAGE legacy
   boundary remains fail-closed, and all format-support claims remain limited
   to rows with eligible runtime/oracle evidence. The next dependency-ready
-  sequence is S184 DXF raw-entity application-group reference-code matrix parity;
+  sequence is S185 DXF raw-entity application-group binary chunk coexistence;
   it is a separate commit with no external or derived DWG/DXF bytes.
 - Latest implementation slice: S171/J147 DXF raw-object handle-scope and
   cross-record uniqueness qualification is committed. Local ASCII and binary
@@ -1998,6 +1998,10 @@ edit this block or commit the same slice concurrently.
   marker-lexeme parity is committed. Local ASCII and binary vectors reject
   malformed opening/closing marker lexemes transactionally; no drawing bytes
   are retained.
+- Latest implementation slice: S184/J160 DXF raw-entity application-group
+  reference-code matrix parity is committed. Local ASCII and binary vectors
+  remap all handle-reference code families inside nested groups while preserving
+  structure; no drawing bytes are retained.
 - Latest implementation slice: S172/J148 DXF raw-object duplicate-handle
   diagnostic and error-precedence qualification is committed. Local ASCII and
   binary duplicate streams preserve the legacy `BAD_CODE_PARSED` result and
@@ -2920,18 +2924,18 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 183 (`COMMITTED`); S184 is active.
+- Resolved slices: 184 (`COMMITTED`); S185 is active.
 - Slice states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 183 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 184 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 185 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 186 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 281 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 282 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 168 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S183 are committed; S184/J160 is active with a ready packet
-  naming DXF raw-entity application-group reference-code matrix parity and focused fast gates.
+  0 DEFERRED_EXTERNAL / 169 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S184 are committed; S185/J161 is active with a ready packet
+  naming DXF raw-entity application-group binary chunk coexistence and focused fast gates.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
   S174/J150, S175/J151, S176/J152, S177/J153, S178/J154, and S179/J155 added
   malformed, field-context, raw-entity propagation, duplicate-entity,
@@ -3167,7 +3171,8 @@ edit this block or commit the same slice concurrently.
 | S181 | J157: DXF raw-entity application-group depth-limit parity | S180 | COMMITTED | maximum nested 102 depth; ASCII/binary rejection symmetry; boundary acceptance; transactional output; focused DXF gate; plan/scope/sync/fixture gates | committed `S181`; local ASCII and binary vectors accept the supported maximum nesting and reject one level beyond it transactionally; no drawing bytes committed | Wave 1 application-group depth tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S182 is active |
 | S182 | J158: DXF raw-entity application-group aggregate-limit parity | S181 | COMMITTED | maximum application-group pair count; ASCII/binary rejection symmetry; boundary acceptance; transactional output; focused DXF gate; plan/scope/sync/fixture gates | committed `S182`; local generated ASCII and binary vectors accept the supported 65,536-pair boundary and reject one pair beyond it with zero output; no drawing bytes committed | Wave 1 application-group aggregate tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S183 is active |
 | S183 | J159: DXF raw-entity application-group marker-lexeme parity | S182 | COMMITTED | opening/closing marker lexemes; ASCII/binary rejection symmetry; transactional output; focused DXF gate; plan/scope/sync/fixture gates | committed `S183`; local ASCII and binary vectors reject malformed opening/closing marker lexemes transactionally; no drawing bytes committed | Wave 1 application-group marker tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S184 is active |
-| S184 | J160: DXF raw-entity application-group reference-code matrix parity | S183 | ACTIVE | all handle-reference code families; nested 102 remaps; ASCII/binary replay; transactional output; focused DXF gate; plan/scope/sync/fixture gates | use local nested-group vectors covering 320-369, 390-399, and 480-481 references; assert mapped narrow values and preserved group structure in both encodings; no drawing bytes committed | active after S183 commit; use Wave 1 application-group reference-matrix tests, focused CTest selector, fast source/policy gates, fixture admission, import scope, pinned sync, and diff gates |
+| S184 | J160: DXF raw-entity application-group reference-code matrix parity | S183 | COMMITTED | all handle-reference code families; nested 102 remaps; ASCII/binary replay; transactional output; focused DXF gate; plan/scope/sync/fixture gates | committed `S184`; local ASCII and binary vectors remap all handle-reference code families inside nested groups while preserving structure; no drawing bytes committed | Wave 1 application-group reference-matrix tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S185 is active |
+| S185 | J161: DXF raw-entity application-group binary chunk coexistence | S184 | ACTIVE | binary chunk codes 310-319/1004; nested 102 groups; ASCII/binary replay; malformed hex rollback; focused DXF gate; plan/scope/sync/fixture gates | use local groups containing valid and malformed binary chunks alongside remapped references; assert valid replay and zero output on malformed chunks in both encodings; no drawing bytes committed | active after S184 commit; use Wave 1 application-group binary-chunk tests, focused CTest selector, fast source/policy gates, fixture admission, import scope, pinned sync, and diff gates |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3355,7 +3360,8 @@ edit this block or commit the same slice concurrently.
 | J157 | S181 | J156 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-entity application-group depth-limit parity | local ASCII/binary vectors accept supported maximum nesting and reject one level beyond it transactionally; no-fixture evidence |
 | J158 | S182 | J157 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-entity application-group aggregate-limit parity | local generated ASCII/binary vectors accept the supported 65,536-pair boundary and reject one pair beyond it transactionally; no-fixture evidence |
 | J159 | S183 | J158 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-entity application-group marker-lexeme parity | local ASCII/binary vectors reject malformed opening/closing marker lexemes transactionally; no-fixture evidence |
-| J160 | S184 | J159 | ACTIVE | EXPERIMENTAL | Qualify DXF raw-entity application-group reference-code matrix parity | active packet names all handle-reference code families, nested remaps, ASCII/binary symmetry, transactional output, and no-fixture evidence |
+| J160 | S184 | J159 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-entity application-group reference-code matrix parity | local ASCII/binary nested-group vectors remap all handle-reference code families while preserving structure; no-fixture evidence |
+| J161 | S185 | J160 | ACTIVE | EXPERIMENTAL | Qualify DXF raw-entity application-group binary chunk coexistence | active packet names valid/malformed binary chunks beside remapped references, ASCII/binary symmetry, transactional output, and no-fixture evidence |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -3650,7 +3656,8 @@ edit this block or commit the same slice concurrently.
 | J157.1 | J157 / S181 | WP4, WP5, WP6, WP8, WP10; DXF raw-entity application-group depth-limit parity | J156 | COMMITTED | EXPERIMENTAL | assert supported maximum 102 nesting is accepted and one-level-over-limit input rejects symmetrically with zero ASCII/binary output, without external drawing bytes | focused Wave 1 application-group depth target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 | J158.1 | J158 / S182 | WP4, WP5, WP6, WP8, WP10; DXF raw-entity application-group aggregate-limit parity | J157 | COMMITTED | EXPERIMENTAL | assert supported maximum application-group pair count is accepted and one pair beyond the limit rejects symmetrically with zero ASCII/binary output, without external drawing bytes | focused Wave 1 application-group aggregate target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 | J159.1 | J159 / S183 | WP4, WP5, WP6, WP8, WP10; DXF raw-entity application-group marker-lexeme parity | J158 | COMMITTED | EXPERIMENTAL | assert invalid 102 marker lexemes reject symmetrically with zero ASCII/binary output, without external drawing bytes | focused Wave 1 application-group marker target and policy gates pass; no external or derived DWG/DXF bytes are retained |
-| J160.1 | J160 / S184 | WP4, WP5, WP6, WP8, WP10; DXF raw-entity application-group reference-code matrix parity | J159 | ACTIVE | EXPERIMENTAL | assert handle-reference code families 320-369, 390-399, and 480-481 remap inside nested 102 groups in ASCII/binary while preserving structure, without external drawing bytes | focused Wave 1 application-group reference-matrix target and policy gates pass; no external or derived DWG/DXF bytes are retained |
+| J160.1 | J160 / S184 | WP4, WP5, WP6, WP8, WP10; DXF raw-entity application-group reference-code matrix parity | J159 | COMMITTED | EXPERIMENTAL | assert handle-reference code families 320-369, 390-399, and 480-481 remap inside nested 102 groups in ASCII/binary while preserving structure, without external drawing bytes | focused Wave 1 application-group reference-matrix target and policy gates pass; no external or derived DWG/DXF bytes are retained |
+| J161.1 | J161 / S185 | WP4, WP5, WP6, WP8, WP10; DXF raw-entity application-group binary chunk coexistence | J160 | ACTIVE | EXPERIMENTAL | assert valid binary chunks coexist with nested 102 remapped references and malformed chunks reject symmetrically with zero ASCII/binary output, without external drawing bytes | focused Wave 1 application-group binary-chunk target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 
 <!-- UPGRADE_PROGRESS_END -->
 
