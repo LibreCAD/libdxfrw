@@ -2232,6 +2232,11 @@ edit this block or commit the same slice concurrently.
   rejected by the production adapter with no partial entity publication, while
   the positive AC1032 advanced callbacks retain RTEXT/ARCALIGNEDTEXT,
   MPOLYGON, and LARGE_RADIAL_DIMENSION fields; all mutations remain temporary.
+- Latest implementation slice: S248/J224 output-transaction publication and
+  rollback coverage is committed. Local temporary-only vectors prove flushed
+  content is published, abort removes the temporary, an existing destination is
+  preserved on rollback, and a missing parent fails without creating output.
+  No drawing fixtures or derived payloads were added.
 - Latest implementation slice: S172/J148 DXF raw-object duplicate-handle
   diagnostic and error-precedence qualification is committed. Local ASCII and
   binary duplicate streams preserve the legacy `BAD_CODE_PARSED` result and
@@ -3154,17 +3159,17 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 247 (`COMMITTED`); no slice is active.
+- Resolved slices: 248 (`COMMITTED`); no slice is active.
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 247 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 248 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 249 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 250 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 2 VERIFIED / 345 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 2 VERIFIED / 346 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 231 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S247 are committed; no local implementation slice is active.
+- Active work: S01-S248 are committed; no local implementation slice is active.
   Remaining work is evidence-gated runtime/oracle and release closure; keep
   the fast inner loop and do not promote support claims from self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -3466,6 +3471,7 @@ edit this block or commit the same slice concurrently.
 | S245 | J221: target-fixture DWG runtime parity and AC1021 page compatibility | S244 | COMMITTED | exact pinned target DWG blobs; AC1015/18/21/27 ordinary encoded records; color-book/reactor/CJK metadata; AC1021 compressed-page and legacy section-map compatibility; focused DWG fixture gate; plan/scope/sync/fixture gates | committed `S245`; five exact LibreCAD target DWG blobs pass the production `dx_iface` import harness; AC1021 accepts valid compressed-page expansion and legacy map/file-size conventions; no derived or unadmitted bytes | `libdxfrw_dwg_fixture_tests` plus focused wave/hardening/DXF gates pass; fixture admission, plan check, import scope, pinned sync, and diff gates pass; no active slice |
 | S246 | J222: AC1032 advanced target-fixture runtime parity | S245 | COMMITTED | exact pinned target AC1032 DWG blobs; RTEXT/ARCALIGNEDTEXT; MPOLYGON; LARGE_RADIAL_DIMENSION; dynamic callback publication; focused DWG fixture gate; plan/scope/sync/fixture gates | committed `S246`; three exact LibreCAD AC1032 blobs pass production `dx_iface` publication with text/radius, solid/fill, and jog/center/chord assertions; no derived or unadmitted bytes | `libdxfrw_dwg_fixture_tests` plus focused wave/hardening/DXF gates pass; fixture admission, plan check, import scope, pinned sync, and diff gates pass; no active slice |
 | S247 | J223: target-fixture DWG corruption rejection parity | S246 | COMMITTED | runtime-generated truncation of exact target DWG blobs; fail-closed file import; no partial publication; focused DWG fixture gate; plan/scope/sync/fixture gates | committed `S247`; truncated AC1021/AC1027/AC1032 target copies are rejected through `dx_iface` without partial entities; positive advanced callbacks remain green and no mutated bytes are committed | `libdxfrw_dwg_fixture_tests` plus focused wave/hardening/DXF gates pass; fixture admission, plan check, import scope, pinned sync, and diff gates pass; no active slice |
+| S248 | J224: output-transaction publication and rollback parity | S247 | COMMITTED | temporary-only publication, flush/commit, abort cleanup, destination preservation, missing-parent rejection; focused writer-primitives gate; plan/scope/sync/fixture gates | committed `S248`; local vectors prove committed content publication, temporary cleanup, rollback preservation, and fail-closed missing-parent handling; no drawing fixtures or derived payloads | `libdxfrw_writer_primitives_tests` plus plan check, fixture admission, import scope, pinned sync, and diff gates pass; no active slice |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3717,6 +3723,7 @@ edit this block or commit the same slice concurrently.
 | J221 | S245 | J220 | COMMITTED | EXPERIMENTAL | Qualify target-fixture DWG runtime parity and AC1021 page compatibility | five exact pinned LibreCAD DWG blobs qualify AC1015/18/21/27 ordinary encoded LINE import, color-book/reactor/CJK metadata, and production publication; AC1021 compressed-page expansion and legacy section-map/file-size conventions are accepted; no derived or unadmitted bytes |
 | J222 | S246 | J221 | COMMITTED | EXPERIMENTAL | Qualify AC1032 advanced target-fixture runtime parity | three exact pinned LibreCAD AC1032 DWG blobs qualify RTEXT/ARCALIGNEDTEXT, MPOLYGON, and LARGE_RADIAL_DIMENSION dynamic callbacks and bounded fields through production publication; no derived or unadmitted bytes |
 | J223 | S247 | J222 | COMMITTED | EXPERIMENTAL | Qualify target-fixture DWG corruption rejection parity | runtime-truncated copies of exact AC1021/AC1027/AC1032 target blobs are rejected through `dx_iface` without partial entity publication; positive advanced callbacks remain qualified and mutated bytes remain temporary |
+| J224 | S248 | J223 | COMMITTED | EXPERIMENTAL | Qualify output-transaction publication and rollback parity | local temporary-only vectors prove flushed publication, abort cleanup, existing-destination preservation, and missing-parent rejection; no drawing fixtures or derived payloads |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4075,6 +4082,7 @@ edit this block or commit the same slice concurrently.
 | J221.1 | J221 / S245 | WP4, WP5, WP6, WP8, WP10; target-fixture DWG runtime parity and AC1021 page compatibility | J220 | COMMITTED | EXPERIMENTAL | import five exact pinned LibreCAD DWG blobs through `dx_iface`, assert three LINE records plus version-specific color-book/reactor/CJK metadata, and exercise AC1021 compressed-page expansion and legacy section-map/file-size compatibility without derived or unadmitted drawing bytes | `libdxfrw_dwg_fixture_tests` passes; fixture admission, plan check, import scope, pinned sync, and diff gates pass; target blob IDs and hashes are recorded in `metadata/fixture-registry.json` |
 | J222.1 | J222 / S246 | WP5, WP6, WP8, WP10; AC1032 advanced target-fixture runtime parity | J221 | COMMITTED | EXPERIMENTAL | import three exact pinned LibreCAD AC1032 DWG blobs through `dx_iface`, assert dynamic RTEXT/ARCALIGNEDTEXT text/radius, MPOLYGON solid/fill, and LARGE_RADIAL_DIMENSION jog/center/chord fields, without derived or unadmitted drawing bytes | `libdxfrw_dwg_fixture_tests` passes; fixture admission, plan check, import scope, pinned sync, and diff gates pass; target blob IDs and hashes are recorded in `metadata/fixture-registry.json` |
 | J223.1 | J223 / S247 | WP5, WP6, WP8, WP10; target-fixture DWG corruption rejection parity | J222 | COMMITTED | EXPERIMENTAL | create runtime-truncated copies of exact AC1021/AC1027/AC1032 target blobs, assert `dx_iface` rejects each with no partial entities, and remove every mutation before test exit | `libdxfrw_dwg_fixture_tests` plus focused wave/hardening/DXF gates pass; fixture admission, plan check, import scope, pinned sync, and diff gates pass; no mutated DWG bytes are retained |
+| J224.1 | J224 / S248 | WP7.5, WP8.12; output-transaction publication and rollback parity | J223 | COMMITTED | EXPERIMENTAL | exercise `DwgDxfOutputTransaction` commit/abort/failure behavior using temporary-only paths, preserving destination bytes and removing temporary output | `libdxfrw_writer_primitives_tests` plus plan check, fixture admission, import scope, pinned sync, and diff gates pass; no drawing fixtures or derived payloads are retained |
 
 <!-- UPGRADE_PROGRESS_END -->
 

@@ -1,5 +1,7 @@
 #include <cstdint>
 #include <cstdio>
+#include <chrono>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <limits>
@@ -9,6 +11,7 @@
 #include "handle_allocator.h"
 #include "intern/dwgbuffer.h"
 #include "intern/dwgbufferw.h"
+#include "intern/dwg_dxf_output_transaction.h"
 #include "intern/dwgwriter15.h"
 #include "libdwgr.h"
 
@@ -215,6 +218,91 @@ void testWriteRejectionDoesNotTouchDestination(TestContext& t) {
     std::remove(path.c_str());
 }
 
+std::filesystem::path transactionTestPath(const char* suffix) {
+    const auto stamp = std::chrono::steady_clock::now()
+                           .time_since_epoch().count();
+    return std::filesystem::temp_directory_path()
+           / (std::string("libdxfrw-s248-") + suffix + "-"
+              + std::to_string(stamp) + ".dwg");
+}
+
+std::size_t transactionTemporaryCount(const std::filesystem::path& target) {
+    const std::filesystem::path directory =
+        target.parent_path().empty() ? std::filesystem::path(".")
+                                     : target.parent_path();
+    const std::string prefix = target.filename().string() + ".libdxfrw-";
+    std::size_t count = 0;
+    std::error_code error;
+    for (const std::filesystem::directory_entry& entry :
+         std::filesystem::directory_iterator(directory, error)) {
+        if (error)
+            break;
+        const std::string name = entry.path().filename().string();
+        if (name.rfind(prefix, 0) == 0)
+            ++count;
+    }
+    return count;
+}
+
+void testOutputTransactionPublicationAndRollback(TestContext& t) {
+    const std::filesystem::path target = transactionTestPath("publish");
+    std::error_code ignored;
+    std::filesystem::remove(target, ignored);
+
+    {
+        DwgDxfOutputTransaction transaction(target.string(), std::ios::binary);
+        t.expect(transaction.open(),
+                 "output transaction opens an exclusive temporary");
+        transaction.stream() << "published";
+        t.expect(transaction.commit(),
+                 "output transaction commits a flushed temporary");
+        t.expect(!transaction.isOpen(),
+                 "committed output transaction closes its stream");
+    }
+
+    std::ifstream published(target, std::ios::binary);
+    const std::string contents((std::istreambuf_iterator<char>(published)),
+                               std::istreambuf_iterator<char>());
+    t.expect(contents == "published",
+             "committed output transaction atomically publishes content");
+    t.expect(transactionTemporaryCount(target) == 0,
+             "committed output transaction leaves no temporary file");
+
+    {
+        std::ofstream seed(target, std::ios::binary | std::ios::trunc);
+        seed << "original";
+    }
+    const std::size_t before = transactionTemporaryCount(target);
+    {
+        DwgDxfOutputTransaction transaction(target.string(), std::ios::binary);
+        t.expect(transaction.open(),
+                 "rollback transaction opens an exclusive temporary");
+        transaction.stream() << "discarded";
+        transaction.abort();
+        t.expect(!transaction.isOpen(),
+                 "aborted output transaction closes its stream");
+        t.expect(transactionTemporaryCount(target) == before,
+                 "aborted output transaction removes its temporary file");
+    }
+
+    std::ifstream preserved(target, std::ios::binary);
+    const std::string preservedContents(
+        (std::istreambuf_iterator<char>(preserved)),
+        std::istreambuf_iterator<char>());
+    t.expect(preservedContents == "original",
+             "aborted output transaction preserves the destination");
+
+    const std::filesystem::path missing =
+        target.parent_path() / "libdxfrw-s248-missing-parent" / "out.dwg";
+    DwgDxfOutputTransaction failed(missing.string(), std::ios::binary);
+    t.expect(!failed.open(),
+             "output transaction rejects a missing parent directory");
+    t.expect(!std::filesystem::exists(missing),
+             "failed output transaction does not create a destination");
+
+    std::filesystem::remove(target, ignored);
+}
+
 } // namespace
 
 int main() {
@@ -226,6 +314,7 @@ int main() {
     testWriterReservationVectors(context);
     testFrameReceiptAndRollback(context);
     testWriteRejectionDoesNotTouchDestination(context);
+    testOutputTransactionPublicationAndRollback(context);
     if (context.failures != 0) {
         std::cerr << context.failures << " writer primitive assertion(s) failed\n";
         return 1;
