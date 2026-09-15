@@ -52,10 +52,10 @@ then pin an immutable commit before importing source.
 ### Execution refresh (2026-09-15)
 
 The implementation worktree is rebased on `origin/master` and is currently
-233 commits ahead with no commits behind it. The latest green slice is
-S207/J183, including the live-plan update and its required policy gates.
-S208/J184 is the active slice; its DXF raw-section empty-payload parity is the
-next commit boundary.
+234 commits ahead with no commits behind it. The latest green slice is
+S208/J184, including the live-plan update and its required policy gates.
+S209/J185 is the active slice; its DXF raw-section comment preservation parity
+is the next commit boundary.
 The worktree is clean at the last committed boundary; any subsequent active-
 slice edits are intentionally uncommitted until their narrow gate and
 status-bearing plan transition are green.
@@ -1934,16 +1934,16 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint (2026-09-15): S207/J183 DXF raw-section version
-  compatibility parity is committed; S208/J184 DXF raw-section empty-payload
-  parity is active.
+- Current checkpoint (2026-09-15): S208/J184 DXF raw-section empty-payload
+  parity is committed; S209/J185 DXF raw-section comment preservation parity
+  is active.
   The
   branch is rebased on `origin/master`, and
   the pinned source/package/consumer convergence remains complete while
   runtime and wire-format parity stay evidence-gated. The AC1015 IMAGE legacy
   boundary remains fail-closed, and all format-support claims remain limited
   to rows with eligible runtime/oracle evidence. The next dependency-ready
-  sequence is S208 DXF raw-section empty-payload parity;
+  sequence is S209 DXF raw-section comment preservation parity;
   it is a separate commit with no external or derived DWG/DXF bytes.
 - Latest implementation slice: S171/J147 DXF raw-object handle-scope and
   cross-record uniqueness qualification is committed. Local ASCII and binary
@@ -2092,6 +2092,9 @@ edit this block or commit the same slice concurrently.
   parity is committed. Local ASCII and binary writers accept matching and
   `UNKNOWNV` section versions and reject mismatches transactionally; no drawing
   bytes are retained.
+- Latest implementation slice: S208/J184 DXF raw-section empty-payload parity
+  is committed. Local ASCII and binary writers emit only SECTION/name/ENDSEC
+  for a valid zero-payload custom section; no drawing bytes are retained.
 - Latest implementation slice: S172/J148 DXF raw-object duplicate-handle
   diagnostic and error-precedence qualification is committed. Local ASCII and
   binary duplicate streams preserve the legacy `BAD_CODE_PARSED` result and
@@ -3014,18 +3017,18 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 207 (`COMMITTED`); S208 is active.
+- Resolved slices: 208 (`COMMITTED`); S209 is active.
 - Slice states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 207 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 208 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 209 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 210 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 305 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 306 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 192 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S207 are committed; S208/J184 is active with a ready packet
-  naming DXF raw-section empty-payload parity and focused fast gates.
+  0 DEFERRED_EXTERNAL / 193 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S208 are committed; S209/J185 is active with a ready packet
+  naming DXF raw-section comment preservation parity and focused fast gates.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
   S174/J150, S175/J151, S176/J152, S177/J153, S178/J154, and S179/J155 added
   malformed, field-context, raw-entity propagation, duplicate-entity,
@@ -3285,7 +3288,8 @@ edit this block or commit the same slice concurrently.
 | S205 | J181: DXF raw-section reserved-name guard parity | S204 | COMMITTED | reserved built-in section names; empty-name rejection; ASCII/binary symmetry; transactional output; focused DXF gate; plan/scope/sync/fixture gates | committed `S205`; local ASCII and binary writers reject empty and built-in section names case-insensitively with zero output, while a custom name remains writable; no drawing bytes committed | Wave 1 section-name guard tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S206 is active |
 | S206 | J182: DXF raw-section custom-name framing parity | S205 | COMMITTED | custom section name framing; SECTION/name/ENDSEC ordering; ASCII/binary symmetry; transactional output; focused DXF gate; plan/scope/sync/fixture gates | committed `S206`; local ASCII and binary writers emit exact SECTION/name/payload/ENDSEC framing for a valid custom section; no drawing bytes committed | Wave 1 custom-section framing tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S207 is active |
 | S207 | J183: DXF raw-section version compatibility parity | S206 | COMMITTED | matching-version acceptance; UNKNOWNV acceptance; mismatched-version rejection; ASCII/binary symmetry; transactional output; focused DXF gate; plan/scope/sync/fixture gates | committed `S207`; local custom sections tagged AC1027 and UNKNOWNV write successfully while AC1024 mismatches fail with zero output in both encodings; no drawing bytes committed | Wave 1 section-version tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S208 is active |
-| S208 | J184: DXF raw-section empty-payload parity | S207 | ACTIVE | empty group vector; empty raw-value vector; SECTION/name/ENDSEC framing; ASCII/binary symmetry; transactional output; focused DXF gate; plan/scope/sync/fixture gates | use a local custom section with no payload groups and empty raw values; assert successful zero-payload framing in both encodings, with no drawing bytes committed | active after S207 commit; use Wave 1 empty-section tests, focused CTest selector, fast source/policy gates, fixture admission, import scope, pinned sync, and diff gates |
+| S208 | J184: DXF raw-section empty-payload parity | S207 | COMMITTED | empty group vector; empty raw-value vector; SECTION/name/ENDSEC framing; ASCII/binary symmetry; transactional output; focused DXF gate; plan/scope/sync/fixture gates | committed `S208`; local ASCII and binary writers emit only SECTION/name/ENDSEC for a valid zero-payload custom section; no drawing bytes committed | Wave 1 empty-section tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S209 is active |
+| S209 | J185: DXF raw-section comment preservation parity | S208 | ACTIVE | code-999 comments; raw source spelling; SECTION framing; ASCII/binary symmetry; transactional output; focused DXF gate; plan/scope/sync/fixture gates | use a local custom section containing code-999 comments before and after a typed payload; assert comments and payload replay in both encodings, with no drawing bytes committed | active after S208 commit; use Wave 1 raw-section comment tests, focused CTest selector, fast source/policy gates, fixture admission, import scope, pinned sync, and diff gates |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3497,7 +3501,8 @@ edit this block or commit the same slice concurrently.
 | J181 | S205 | J180 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-section reserved-name guard parity | local ASCII and binary writers reject empty and built-in section names case-insensitively with zero output while accepting a custom name; no-fixture evidence |
 | J182 | S206 | J181 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-section custom-name framing parity | local ASCII and binary writers emit exact SECTION/name/payload/ENDSEC framing for a valid custom section; no-fixture evidence |
 | J183 | S207 | J182 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-section version compatibility parity | local custom sections accept matching and UNKNOWNV versions and reject mismatches transactionally in ASCII/binary; no-fixture evidence |
-| J184 | S208 | J183 | ACTIVE | EXPERIMENTAL | Qualify DXF raw-section empty-payload parity | active packet names zero-payload SECTION/name/ENDSEC framing in ASCII/binary; no-fixture evidence |
+| J184 | S208 | J183 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-section empty-payload parity | local custom sections with no payload groups emit only SECTION/name/ENDSEC framing in ASCII/binary; no-fixture evidence |
+| J185 | S209 | J184 | ACTIVE | EXPERIMENTAL | Qualify DXF raw-section comment preservation parity | active packet names code-999 comment and typed-payload replay in ASCII/binary; no-fixture evidence |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -3816,7 +3821,8 @@ edit this block or commit the same slice concurrently.
 | J181.1 | J181 / S205 | WP4, WP5, WP6, WP8, WP10; DXF raw-section reserved-name guard parity | J180 | COMMITTED | EXPERIMENTAL | assert built-in section names and empty names are rejected symmetrically with zero ASCII/binary output while a custom name remains accepted, without external drawing bytes | focused Wave 1 section-name guard target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 | J182.1 | J182 / S206 | WP4, WP5, WP6, WP8, WP10; DXF raw-section custom-name framing parity | J181 | COMMITTED | EXPERIMENTAL | assert a valid custom section emits exact SECTION/name/ENDSEC framing and its typed payload in ASCII/binary, without external drawing bytes | focused Wave 1 custom-section framing target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 | J183.1 | J183 / S207 | WP4, WP5, WP6, WP8, WP10; DXF raw-section version compatibility parity | J182 | COMMITTED | EXPERIMENTAL | assert matching-version and UNKNOWNV sections write successfully while a mismatched-version section rejects transactionally in ASCII/binary, without external drawing bytes | focused Wave 1 section-version target and policy gates pass; no external or derived DWG/DXF bytes are retained |
-| J184.1 | J184 / S208 | WP4, WP5, WP6, WP8, WP10; DXF raw-section empty-payload parity | J183 | ACTIVE | EXPERIMENTAL | assert a valid custom section with no payload groups emits only SECTION/name/ENDSEC framing in ASCII/binary, without external drawing bytes | focused Wave 1 empty-section target and policy gates pass; no external or derived DWG/DXF bytes are retained |
+| J184.1 | J184 / S208 | WP4, WP5, WP6, WP8, WP10; DXF raw-section empty-payload parity | J183 | COMMITTED | EXPERIMENTAL | assert a valid custom section with no payload groups emits only SECTION/name/ENDSEC framing in ASCII/binary, without external drawing bytes | focused Wave 1 empty-section target and policy gates pass; no external or derived DWG/DXF bytes are retained |
+| J185.1 | J185 / S209 | WP4, WP5, WP6, WP8, WP10; DXF raw-section comment preservation parity | J184 | ACTIVE | EXPERIMENTAL | assert code-999 comments before and after a typed payload replay in ASCII/binary while preserving SECTION framing, without external drawing bytes | focused Wave 1 raw-section comment target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 
 <!-- UPGRADE_PROGRESS_END -->
 
