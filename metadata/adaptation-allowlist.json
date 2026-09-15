@@ -83,6 +83,13 @@
       "adaptedSha256": "9d8c8e158b29244e1f080ca5591907366718c3048987c1956dcdc56e585db89b"
     },
     {
+      "path": "src/intern/dwgwriter15.cpp",
+      "reason": "Keep AC1015 entity-chain validation strict for built-in entities while allowing the target's RTEXT/ARCALIGNEDTEXT custom Express Tools frames to use preserved high handles; their object-map and class-instance ledgers remain validated separately.",
+      "scope": "DWG writer compatibility",
+      "targetBlob": "7c52152889fcb7da812493324003cdcbf629eb59",
+      "adaptedSha256": "7b02d3bf346393bd84ac1d1196a269faa5813a30379fed4c8c8f111b7aa20c49"
+    },
+    {
       "path": "src/drw_objects.cpp",
       "reason": "Retain the imported warning-hygiene fixes and correct GEODATA AC1015/AC1018 inline versus R2007+ deferred host-block handle ordering per ODA §20.4.78, with bounded version-2 parity evidence.",
       "scope": "warning hygiene and DWG object compatibility",

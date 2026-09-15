@@ -128,6 +128,8 @@ MALFORMED_VXCONTROL_HANDLE = 0xEB01
 MALFORMED_VXTABLERECORD_HANDLE = 0xEC01
 IMAGE_HANDLE = 0xD700
 MALFORMED_IMAGE_HANDLE = 0xD710
+RTEXT_HANDLE = 0xED00
+ARCALIGNEDTEXT_HANDLE = 0xED01
 
 RENDER_SETTINGS_KINDS = {
     "Settings": ("RENDERSETTINGS", RENDERSETTINGS_HANDLE, 556),
@@ -250,6 +252,65 @@ def check_tolerance_entity(records: list[dict]) -> dict:
     }
 
 
+def check_express_text_entities(records: list[dict], version_name: str) -> dict:
+    """Qualify RTEXT/ARCALIGNEDTEXT identity and bounded oracle payload.
+
+    LibreDWG decodes the RTEXT stream consistently.  Its ARCALIGNEDTEXT
+    decoder follows a different versioned string-stream layout after AC1018,
+    so only the AC1015/AC1018 payload is asserted; newer versions retain
+    independent type/handle identity evidence while local self-read remains
+    authoritative for the full arc payload.
+    """
+    rtext_matches = [
+        record for record in records
+        if isinstance(record, dict)
+        and record.get("entity") == "RTEXT"
+        and record.get("type") == 521
+    ]
+    arc_matches = [
+        record for record in records
+        if isinstance(record, dict)
+        and record.get("entity") == "ARCALIGNEDTEXT"
+        and record.get("type") == 522
+    ]
+    if len(rtext_matches) != 1 or len(arc_matches) != 1:
+        raise ValueError("RTEXT/ARCALIGNEDTEXT entity frame count mismatch")
+    rtext = rtext_matches[0]
+    arc = arc_matches[0]
+    if (record_handle(rtext) != RTEXT_HANDLE
+            or rtext.get("text_value") != "LOCAL_RTEXT"
+            or rtext.get("pt") != [90.0, 91.0, 0.0]
+            or rtext.get("extrusion") != [0.0, 0.0, 1.0]
+            or rtext.get("height") != 2.0
+            or rtext.get("flags") != 1):
+        raise ValueError("RTEXT identity or bounded payload mismatch")
+    if record_handle(arc) != ARCALIGNEDTEXT_HANDLE:
+        raise ValueError("ARCALIGNEDTEXT identity mismatch")
+    arc_payload_qualified = version_name in {"AC1015", "AC1018"}
+    if arc_payload_qualified and (
+            arc.get("text_value") != "LOCAL_ARC_TEXT"
+            or arc.get("center") != [100.0, 100.0, 0.0]
+            or arc.get("radius") != 10.0
+            or arc.get("start_angle") != 0.25
+            or arc.get("end_angle") != 1.25
+            or arc.get("text_size") != "2"
+            or arc.get("xscale") != "1"
+            or arc.get("char_spacing") != "1"):
+        raise ValueError("ARCALIGNEDTEXT bounded payload mismatch")
+    return {
+        "rtext": {
+            "entity": "RTEXT", "type": 521,
+            "handle": RTEXT_HANDLE, "text": "LOCAL_RTEXT",
+        },
+        "arcAlignedText": {
+            "entity": "ARCALIGNEDTEXT", "type": 522,
+            "handle": ARCALIGNEDTEXT_HANDLE,
+            "text": arc.get("text_value") if arc_payload_qualified else None,
+            "payloadQualified": arc_payload_qualified,
+        },
+    }
+
+
 def check_objects(payload: dict, version_name: str) -> dict:
     header = payload.get("FILEHEADER")
     if not isinstance(header, dict) or header.get("version") != version_name:
@@ -260,6 +321,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
 
     pointcloud_entities = check_pointcloud_entities(records, version_name)
     tolerance_entity = check_tolerance_entity(records)
+    express_text_entities = check_express_text_entities(records, version_name)
 
     render_matrix = {}
     for kind, (object_name, handle, object_type) in RENDER_SETTINGS_KINDS.items():
@@ -1315,6 +1377,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         "pointCloudDefinitions": pointcloud_frames,
         "pointCloudEntities": pointcloud_entities,
         "toleranceEntity": tolerance_entity,
+        "expressTextEntities": express_text_entities,
         "sunStudy": {
             "object": "SUNSTUDY", "handle": SUNSTUDY_HANDLE, "type": 548,
         },
@@ -1754,6 +1817,16 @@ def self_test() -> None:
              "x_direction": [1.0, 0.0, 0.0],
              "extrusion": [0.0, 0.0, 1.0],
              "dimstyle": [5, 1, 21, 21]},
+            {"entity": "RTEXT", "handle": [0, 2, RTEXT_HANDLE],
+             "type": 521, "text_value": "LOCAL_RTEXT",
+             "pt": [90.0, 91.0, 0.0],
+             "extrusion": [0.0, 0.0, 1.0], "height": 2.0, "flags": 1},
+            {"entity": "ARCALIGNEDTEXT",
+             "handle": [0, 2, ARCALIGNEDTEXT_HANDLE], "type": 522,
+             "text_value": "LOCAL_ARC_TEXT",
+             "center": [100.0, 100.0, 0.0], "radius": 10.0,
+             "start_angle": 0.25, "end_angle": 1.25,
+             "text_size": "2", "xscale": "1", "char_spacing": "1"},
         ],
     }
     summary = check_objects(payload, "AC1024")
@@ -1767,6 +1840,14 @@ def self_test() -> None:
             "entity": "TOLERANCE", "type": 46, "handle": 0xEC20,
             "text": "LOCAL_TOLERANCE"}:
         raise AssertionError("TOLERANCE entity identity was not qualified")
+    if summary.get("expressTextEntities") != {
+            "rtext": {"entity": "RTEXT", "type": 521,
+                      "handle": RTEXT_HANDLE, "text": "LOCAL_RTEXT"},
+            "arcAlignedText": {"entity": "ARCALIGNEDTEXT", "type": 522,
+                               "handle": ARCALIGNEDTEXT_HANDLE,
+                               "text": None,
+                               "payloadQualified": False}}:
+        raise AssertionError("RTEXT/ARCALIGNEDTEXT identity was not qualified")
     if [frame["object"] for frame in summary.get("pathObjects", [])] != [
             "CURVEPATH", "POINTPATH", "OBJECT_PTR"]:
         raise AssertionError("path-object identity was not qualified")

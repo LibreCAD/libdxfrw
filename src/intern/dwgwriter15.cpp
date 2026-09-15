@@ -956,6 +956,20 @@ bool dwgWriter15::emitDeferredBlockControl() {
     };
 
     if (m_version <= DRW::AC1015) {
+        // RTEXT/ARCALIGNEDTEXT are custom Express Tools entities.  Their
+        // class instances are valid in the legacy object map but may carry
+        // preserved high handles; do not let those optional frames make the
+        // mandatory built-in entity chain appear non-contiguous.
+        const auto isLegacyCustomText = [this](std::uint32_t handle) {
+            const auto owner = m_dwgClassInstanceHandleOwners.find(handle);
+            if (owner == m_dwgClassInstanceHandleOwners.end())
+                return false;
+            const DwgClassDefinition* definition =
+                findDwgClassDefinition(owner->second);
+            return definition != nullptr
+                && (definition->m_className == "AcDbRText"
+                    || definition->m_className == "AcDbArcAlignedText");
+        };
         const auto isContiguousChain = [](const std::vector<std::uint32_t>& handles) {
             for (std::size_t index = 1; index < handles.size(); ++index) {
                 if (handles[index - 1] == std::numeric_limits<std::uint32_t>::max()
@@ -966,6 +980,16 @@ bool dwgWriter15::emitDeferredBlockControl() {
         };
         std::vector<std::uint32_t> modelSpaceEntityHandles = m_modelSpaceEntityHandles;
         std::vector<std::uint32_t> paperSpaceEntityHandles = m_paperSpaceEntityHandles;
+        modelSpaceEntityHandles.erase(
+            std::remove_if(modelSpaceEntityHandles.begin(),
+                           modelSpaceEntityHandles.end(),
+                           isLegacyCustomText),
+            modelSpaceEntityHandles.end());
+        paperSpaceEntityHandles.erase(
+            std::remove_if(paperSpaceEntityHandles.begin(),
+                           paperSpaceEntityHandles.end(),
+                           isLegacyCustomText),
+            paperSpaceEntityHandles.end());
         std::sort(modelSpaceEntityHandles.begin(), modelSpaceEntityHandles.end());
         std::sort(paperSpaceEntityHandles.begin(), paperSpaceEntityHandles.end());
         if (!isContiguousChain(modelSpaceEntityHandles)
@@ -973,6 +997,10 @@ bool dwgWriter15::emitDeferredBlockControl() {
             return fail();
         for (const PendingUserBlock& block : m_userBlocks) {
             std::vector<std::uint32_t> entityHandles = block.entityHandles;
+            entityHandles.erase(
+                std::remove_if(entityHandles.begin(), entityHandles.end(),
+                               isLegacyCustomText),
+                entityHandles.end());
             std::sort(entityHandles.begin(), entityHandles.end());
             if (!isContiguousChain(entityHandles))
                 return fail();

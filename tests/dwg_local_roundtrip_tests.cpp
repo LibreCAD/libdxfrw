@@ -275,6 +275,16 @@ public:
             registeredVxTableRecord_ =
                 writer_->registerVxTableRecordObjectClass(
                     &vxTableRecordRegistration);
+            // RTEXT and ARCALIGNEDTEXT are already part of the writer's
+            // typed class manifest.  Stage their fixed entity handles with
+            // the entity-instance ledger before CLASSES is serialized; raw
+            // class registration here would create a second identity and
+            // remap the wire class number.
+            registeredRText_ = writer_->registerDwgEntityClassInstance(
+                DRW_RText::kDwgClassNum, 0xED00u);
+            registeredArcAlignedText_ =
+                writer_->registerDwgEntityClassInstance(
+                    DRW_ArcAlignedText::kDwgClassNum, 0xED01u);
             if (expectedVersion_ >= DRW::AC1021) {
                 DRW_Section sectionManagerRegistration;
                 sectionManagerRegistration.handle = 0xE700u;
@@ -1718,6 +1728,61 @@ public:
             !writer_->writeTolerance(&invalidTolerance)
             && invalidTolerance.handle == 0xD920u;
 
+        DRW_RText rtext;
+        rtext.handle = 0xED00u;
+        rtext.text = "LOCAL_RTEXT";
+        rtext.basePoint = DRW_Coord(90.0, 91.0, 0.0);
+        rtext.extPoint = DRW_Coord(0.0, 0.0, 1.0);
+        rtext.angle = 15.0;
+        rtext.height = 2.0;
+        rtext.m_rTextFlags = 1;
+        wroteRText_ = registeredRText_ && writer_->writeRText(&rtext)
+            && rtext.handle == 0xED00u;
+        DRW_RText invalidRText = rtext;
+        invalidRText.handle = 0xED02u;
+        invalidRText.reactorHandles.resize(1000001u);
+        rejectedMalformedRText_ =
+            !writer_->writeRText(&invalidRText)
+            && invalidRText.handle == 0xED02u;
+
+        DRW_ArcAlignedText arcAlignedText;
+        arcAlignedText.handle = 0xED01u;
+        arcAlignedText.text = "LOCAL_ARC_TEXT";
+        arcAlignedText.style = "STANDARD";
+        arcAlignedText.m_center = DRW_Coord(100.0, 100.0, 0.0);
+        arcAlignedText.m_radius = 10.0;
+        arcAlignedText.m_startAngle = 0.25;
+        arcAlignedText.m_endAngle = 1.25;
+        arcAlignedText.m_textSize = "2";
+        arcAlignedText.m_xScale = "1";
+        arcAlignedText.m_charSpacing = "1";
+        arcAlignedText.m_offsetFromArc = "0";
+        arcAlignedText.m_rightOffset = "0";
+        arcAlignedText.m_leftOffset = "0";
+        arcAlignedText.m_fontName = "TXT";
+        arcAlignedText.m_bigFontName = "";
+        arcAlignedText.m_rawColor = 256;
+        arcAlignedText.m_characterSet = 0;
+        arcAlignedText.m_pitchAndFamily = 0;
+        arcAlignedText.m_isShx = 0;
+        arcAlignedText.m_isBold = 0;
+        arcAlignedText.m_isItalic = 0;
+        arcAlignedText.m_isUnderlined = 0;
+        arcAlignedText.m_alignment = 0;
+        arcAlignedText.m_isReverse = 0;
+        arcAlignedText.m_wizardFlag = 0;
+        arcAlignedText.m_textPosition = 0;
+        arcAlignedText.m_textDirection = 0;
+        wroteArcAlignedText_ = registeredArcAlignedText_
+            && writer_->writeArcAlignedText(&arcAlignedText)
+            && arcAlignedText.handle == 0xED01u;
+        DRW_ArcAlignedText invalidArcAlignedText = arcAlignedText;
+        invalidArcAlignedText.handle = 0xED03u;
+        invalidArcAlignedText.reactorHandles.resize(1000001u);
+        rejectedMalformedArcAlignedText_ =
+            !writer_->writeArcAlignedText(&invalidArcAlignedText)
+            && invalidArcAlignedText.handle == 0xED03u;
+
         DRW_Insert insert;
         insert.name = "LOCAL_BLOCK";
         insert.basePoint = DRW_Coord(84.0, 85.0, 0.0);
@@ -1807,7 +1872,27 @@ public:
     void addLWPolyline(const DRW_LWPolyline&) override {
         readPolylineSeen_ = true;
     }
-    void addText(const DRW_Text&) override { readTextSeen_ = true; }
+    void addText(const DRW_Text& data) override {
+        readTextSeen_ = true;
+        if (data.text == "LOCAL_RTEXT") {
+            const auto* rtext = dynamic_cast<const DRW_RText*>(&data);
+            readRTextSeen_ = rtext != nullptr
+                && rtext->m_rTextFlags == 1
+                && data.basePoint.x == 90.0
+                && data.basePoint.y == 91.0
+                && data.height == 2.0;
+        }
+        if (data.text == "LOCAL_ARC_TEXT") {
+            const auto* arcAligned =
+                dynamic_cast<const DRW_ArcAlignedText*>(&data);
+            readArcAlignedTextSeen_ = arcAligned != nullptr
+                && arcAligned->m_center.x == 100.0
+                && arcAligned->m_center.y == 100.0
+                && arcAligned->m_radius == 10.0
+                && arcAligned->m_textSize == "2"
+                && data.height == 2.0;
+        }
+    }
     void addMText(const DRW_MText&) override { readMTextSeen_ = true; }
     void addEllipse(const DRW_Ellipse&) override { readEllipseSeen_ = true; }
     void addTrace(const DRW_Trace&) override { readTraceSeen_ = true; }
@@ -2660,6 +2745,12 @@ public:
     bool rejectedMalformedTolerance() const {
         return rejectedMalformedTolerance_;
     }
+    bool wroteRText() const { return wroteRText_; }
+    bool wroteArcAlignedText() const { return wroteArcAlignedText_; }
+    bool rejectedMalformedRText() const { return rejectedMalformedRText_; }
+    bool rejectedMalformedArcAlignedText() const {
+        return rejectedMalformedArcAlignedText_;
+    }
     bool wroteBlock() const {
         return wroteBlock_ && wroteBlockPolyline_ && wroteBlockContent_;
     }
@@ -2860,6 +2951,8 @@ public:
     bool readHatchSeen() const { return readHatchSeen_; }
     bool readLeaderSeen() const { return readLeaderSeen_; }
     bool readToleranceSeen() const { return readToleranceSeen_; }
+    bool readRTextSeen() const { return readRTextSeen_; }
+    bool readArcAlignedTextSeen() const { return readArcAlignedTextSeen_; }
     bool readInsertSeen() const { return readInsertSeen_; }
     bool readAttribSeen() const { return readAttribSeen_; }
     bool readGroupSeen() const { return readGroupSeen_; }
@@ -3092,6 +3185,12 @@ private:
     bool wroteLeader_ {false};
     bool wroteTolerance_ {false};
     bool rejectedMalformedTolerance_ {false};
+    bool wroteRText_ {false};
+    bool wroteArcAlignedText_ {false};
+    bool rejectedMalformedRText_ {false};
+    bool rejectedMalformedArcAlignedText_ {false};
+    bool registeredRText_ {false};
+    bool registeredArcAlignedText_ {false};
     bool wroteBlock_ {false};
     bool wroteBlockPolyline_ {false};
     bool wroteBlockContent_ {false};
@@ -3278,6 +3377,8 @@ private:
     bool readHatchSeen_ {false};
     bool readLeaderSeen_ {false};
     bool readToleranceSeen_ {false};
+    bool readRTextSeen_ {false};
+    bool readArcAlignedTextSeen_ {false};
     bool readInsertSeen_ {false};
     bool readAttribSeen_ {false};
     bool readGroupSeen_ {false};
@@ -3462,6 +3563,17 @@ int main(int argc, char** argv) {
                ("local DWG writer emitted TOLERANCE" + suffix).c_str(), failures);
         expect(writeIface.rejectedMalformedTolerance(),
                ("local DWG writer rejected malformed TOLERANCE transaction" + suffix).c_str(),
+               failures);
+        expect(writeIface.wroteRText(),
+               ("local DWG writer emitted RTEXT" + suffix).c_str(), failures);
+        expect(writeIface.wroteArcAlignedText(),
+               ("local DWG writer emitted ARCALIGNEDTEXT" + suffix).c_str(),
+               failures);
+        expect(writeIface.rejectedMalformedRText(),
+               ("local DWG writer rejected malformed RTEXT transaction" + suffix).c_str(),
+               failures);
+        expect(writeIface.rejectedMalformedArcAlignedText(),
+               ("local DWG writer rejected malformed ARCALIGNEDTEXT transaction" + suffix).c_str(),
                failures);
         expect(writeIface.wroteBlock(),
                ("local DWG writer emitted user block" + suffix).c_str(), failures);
@@ -3723,6 +3835,11 @@ int main(int argc, char** argv) {
                ("local DWG self-read publishes LEADER" + suffix).c_str(), failures);
         expect(readIface.readToleranceSeen(),
                ("local DWG self-read publishes TOLERANCE" + suffix).c_str(), failures);
+        expect(readIface.readRTextSeen(),
+               ("local DWG self-read publishes RTEXT" + suffix).c_str(), failures);
+        expect(readIface.readArcAlignedTextSeen(),
+               ("local DWG self-read publishes ARCALIGNEDTEXT" + suffix).c_str(),
+               failures);
         expect(readIface.readInsertSeen(),
                ("local DWG self-read publishes INSERT" + suffix).c_str(), failures);
         expect(readIface.readAttribSeen(),
