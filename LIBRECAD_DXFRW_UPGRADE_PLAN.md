@@ -52,10 +52,10 @@ then pin an immutable commit before importing source.
 ### Execution refresh (2026-09-15)
 
 The implementation worktree is rebased on `origin/master` and is currently
-224 commits ahead with no commits behind it. The latest green slice is
-S198/J174, including the live-plan update and its required policy gates.
-S199/J175 is the active slice; its DXF raw-section application-group reference
-code matrix parity is the next commit boundary.
+225 commits ahead with no commits behind it. The latest green slice is
+S199/J175, including the live-plan update and its required policy gates.
+S200/J176 is the active slice; its DXF raw-section application-group malformed
+reference diagnostics parity is the next commit boundary.
 The worktree is clean at the last committed boundary; any subsequent active-
 slice edits are intentionally uncommitted until their narrow gate and
 status-bearing plan transition are green.
@@ -1934,16 +1934,16 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint (2026-09-15): S198/J174 DXF raw-section application-group
-  marker-lexeme parity is committed; S199/J175 DXF raw-section application-group
-  reference-code matrix parity is active.
+- Current checkpoint (2026-09-15): S199/J175 DXF raw-section application-group
+  reference-code matrix parity is committed; S200/J176 DXF raw-section
+  application-group malformed reference diagnostics parity is active.
   The
   branch is rebased on `origin/master`, and
   the pinned source/package/consumer convergence remains complete while
   runtime and wire-format parity stay evidence-gated. The AC1015 IMAGE legacy
   boundary remains fail-closed, and all format-support claims remain limited
   to rows with eligible runtime/oracle evidence. The next dependency-ready
-  sequence is S199 DXF raw-section application-group reference-code matrix parity;
+  sequence is S200 DXF raw-section application-group malformed reference diagnostics parity;
   it is a separate commit with no external or derived DWG/DXF bytes.
 - Latest implementation slice: S171/J147 DXF raw-object handle-scope and
   cross-record uniqueness qualification is committed. Local ASCII and binary
@@ -2057,6 +2057,10 @@ edit this block or commit the same slice concurrently.
   marker-lexeme parity is committed. Local ASCII and binary sections reject
   malformed opening/closing marker lexemes transactionally; no drawing bytes
   are retained.
+- Latest implementation slice: S199/J175 DXF raw-section application-group
+  reference-code matrix parity is committed. Local ASCII and binary sections
+  remap all handle-reference code families while preserving framing; no drawing
+  bytes are retained.
 - Latest implementation slice: S172/J148 DXF raw-object duplicate-handle
   diagnostic and error-precedence qualification is committed. Local ASCII and
   binary duplicate streams preserve the legacy `BAD_CODE_PARSED` result and
@@ -2979,18 +2983,18 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 198 (`COMMITTED`); S199 is active.
+- Resolved slices: 199 (`COMMITTED`); S200 is active.
 - Slice states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 198 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 199 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 200 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 201 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 296 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 297 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 183 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S198 are committed; S199/J175 is active with a ready packet
-  naming DXF raw-section application-group reference-code matrix parity and focused fast gates.
+  0 DEFERRED_EXTERNAL / 184 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S199 are committed; S200/J176 is active with a ready packet
+  naming DXF raw-section application-group malformed reference diagnostics parity and focused fast gates.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
   S174/J150, S175/J151, S176/J152, S177/J153, S178/J154, and S179/J155 added
   malformed, field-context, raw-entity propagation, duplicate-entity,
@@ -3241,7 +3245,8 @@ edit this block or commit the same slice concurrently.
 | S196 | J172: DXF raw-section application-group binary chunk-code matrix parity | S195 | COMMITTED | binary chunk codes 310-319/1004; nested section groups; ASCII/binary replay; malformed-code rollback; focused DXF gate; plan/scope/sync/fixture gates | committed `S196`; local ASCII and binary section vectors replay every 310–319/1004 code and reject malformed values transactionally; no drawing bytes committed | Wave 1 raw-section chunk-code tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S197 is active |
 | S197 | J173: DXF raw-section application-group per-record binary-chunk-size parity | S196 | COMMITTED | binary chunk per-record size limit; ASCII/binary rejection symmetry; transactional output; focused DXF gate; plan/scope/sync/fixture gates | committed `S197`; local ASCII and binary section vectors accept the 127-byte boundary and reject 128-byte chunks with zero output; no drawing bytes committed | Wave 1 raw-section chunk-size tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S198 is active |
 | S198 | J174: DXF raw-section application-group marker-lexeme parity | S197 | COMMITTED | opening/closing marker lexemes; ASCII/binary rejection symmetry; transactional output; focused DXF gate; plan/scope/sync/fixture gates | committed `S198`; local ASCII and binary sections reject malformed opening/closing marker lexemes transactionally; no drawing bytes committed | Wave 1 raw-section marker tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S199 is active |
-| S199 | J175: DXF raw-section application-group reference-code matrix parity | S198 | ACTIVE | all handle-reference code families; nested section remaps; ASCII/binary replay; transactional output; focused DXF gate; plan/scope/sync/fixture gates | use local section vectors covering 320-369, 390-399, and 480-481 references; assert mapped narrow values and preserved section structure in both encodings; no drawing bytes committed | active after S198 commit; use Wave 1 raw-section reference-matrix tests, focused CTest selector, fast source/policy gates, fixture admission, import scope, pinned sync, and diff gates |
+| S199 | J175: DXF raw-section application-group reference-code matrix parity | S198 | COMMITTED | all handle-reference code families; nested section remaps; ASCII/binary replay; transactional output; focused DXF gate; plan/scope/sync/fixture gates | committed `S199`; local ASCII and binary sections remap all handle-reference code families while preserving framing; no drawing bytes committed | Wave 1 raw-section reference-matrix tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S200 is active |
+| S200 | J176: DXF raw-section application-group malformed reference diagnostics parity | S199 | ACTIVE | malformed self/owner/reference lexemes; structured diagnostics; ASCII/binary stage preservation; callback suppression; focused DXF gate; plan/scope/sync/fixture gates | use local malformed code-5 and code-330 section streams; assert `invalid-handle` context, legacy error precedence, and no malformed callback in both encodings; no drawing bytes committed | active after S199 commit; use Wave 1 raw-section diagnostic tests, focused CTest selector, fast source/policy gates, fixture admission, import scope, pinned sync, and diff gates |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3444,7 +3449,8 @@ edit this block or commit the same slice concurrently.
 | J172 | S196 | J171 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-section application-group binary chunk-code matrix parity | local ASCII/binary section vectors replay every 310-319/1004 code and reject malformed values transactionally; no-fixture evidence |
 | J173 | S197 | J172 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-section application-group per-record binary-chunk-size parity | local ASCII/binary section vectors accept the 127-byte boundary and reject 128-byte chunks transactionally; no-fixture evidence |
 | J174 | S198 | J173 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-section application-group marker-lexeme parity | local ASCII/binary sections reject malformed opening/closing marker lexemes transactionally; no-fixture evidence |
-| J175 | S199 | J174 | ACTIVE | EXPERIMENTAL | Qualify DXF raw-section application-group reference-code matrix parity | active packet names all handle-reference code families, nested section remaps, ASCII/binary symmetry, and no-fixture evidence |
+| J175 | S199 | J174 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-section application-group reference-code matrix parity | local ASCII/binary sections remap all handle-reference code families while preserving framing; no-fixture evidence |
+| J176 | S200 | J175 | ACTIVE | EXPERIMENTAL | Qualify DXF raw-section application-group malformed reference diagnostics parity | active packet names malformed self/owner/reference lexemes, structured diagnostics, error precedence, callback suppression, and no-fixture evidence |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -3754,7 +3760,8 @@ edit this block or commit the same slice concurrently.
 | J172.1 | J172 / S196 | WP4, WP5, WP6, WP8, WP10; DXF raw-section application-group binary chunk-code matrix parity | J171 | COMMITTED | EXPERIMENTAL | assert every binary chunk code 310-319 and 1004 replays inside nested 102 section groups and malformed values reject symmetrically, without external drawing bytes | focused Wave 1 raw-section chunk-code target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 | J173.1 | J173 / S197 | WP4, WP5, WP6, WP8, WP10; DXF raw-section application-group per-record binary-chunk-size parity | J172 | COMMITTED | EXPERIMENTAL | assert a 127-byte section binary chunk is accepted and a 128-byte chunk rejects symmetrically with zero ASCII/binary output, without external drawing bytes | focused Wave 1 raw-section chunk-size target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 | J174.1 | J174 / S198 | WP4, WP5, WP6, WP8, WP10; DXF raw-section application-group marker-lexeme parity | J173 | COMMITTED | EXPERIMENTAL | assert invalid 102 marker lexemes reject symmetrically with zero ASCII/binary output, without external drawing bytes | focused Wave 1 raw-section marker target and policy gates pass; no external or derived DWG/DXF bytes are retained |
-| J175.1 | J175 / S199 | WP4, WP5, WP6, WP8, WP10; DXF raw-section application-group reference-code matrix parity | J174 | ACTIVE | EXPERIMENTAL | assert handle-reference code families 320-369, 390-399, and 480-481 remap inside nested 102 sections in ASCII/binary while preserving structure, without external drawing bytes | focused Wave 1 raw-section reference-matrix target and policy gates pass; no external or derived DWG/DXF bytes are retained |
+| J175.1 | J175 / S199 | WP4, WP5, WP6, WP8, WP10; DXF raw-section application-group reference-code matrix parity | J174 | COMMITTED | EXPERIMENTAL | assert handle-reference code families 320-369, 390-399, and 480-481 remap inside nested 102 sections in ASCII/binary while preserving structure, without external drawing bytes | focused Wave 1 raw-section reference-matrix target and policy gates pass; no external or derived DWG/DXF bytes are retained |
+| J176.1 | J176 / S200 | WP4, WP5, WP6, WP8, WP10; DXF raw-section application-group malformed reference diagnostics parity | J175 | ACTIVE | EXPERIMENTAL | assert malformed section self/owner/reference handles preserve `invalid-handle` context, legacy error precedence, and callback suppression in ASCII/binary, without external drawing bytes | focused Wave 1 raw-section diagnostic target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 
 <!-- UPGRADE_PROGRESS_END -->
 
