@@ -2576,6 +2576,76 @@ void testDxfRawEntityApplicationGroupSourceSpelling(TestContext& t) {
              "DXF binary replay preserves untouched application-group source spelling");
 }
 
+void testDxfRawEntityApplicationGroupRemapChain(TestContext& t) {
+    DRW_RawDxfObject object;
+    object.name = "LOCAL_REMAP_CHAIN_ENTITY";
+    object.handle = 0x1Au;
+    object.m_version = DRW::AC1027;
+    object.hasRawValues = true;
+    object.groups = {DRW_Variant(5, std::string("1A")),
+                     DRW_Variant(102, std::string("{REMAP_CHAIN")),
+                     DRW_Variant(330, std::string("2A")),
+                     DRW_Variant(340, std::string("1A")),
+                     DRW_Variant(102, std::string("}"))};
+    object.rawValues = {"1A", "{REMAP_CHAIN", "2A", "1A", "}"};
+    const std::map<std::uint32_t, std::uint32_t> remap = {
+        {0x1Au, 0x2Au}, {0x2Au, 0x3Au}};
+    const std::vector<std::pair<int, std::string>> expected = {
+        {0, "LOCAL_REMAP_CHAIN_ENTITY"},
+        {5, "2A"},
+        {102, "{REMAP_CHAIN"},
+        {330, "3A"},
+        {340, "2A"},
+        {102, "}"}};
+
+    std::ostringstream asciiOutput;
+    dxfRW asciiWriter("");
+    asciiWriter.version = DRW::AC1027;
+    asciiWriter.binFile = false;
+    asciiWriter.writer = std::make_unique<dxfWriterAscii>(&asciiOutput);
+    asciiWriter.setHandleRemap(remap);
+    t.expect(asciiWriter.writeRawDxfObject(&object),
+             "DXF ASCII application-group remap uses one-step lookup");
+    int code = 0;
+    std::stringstream asciiRecords(asciiOutput.str());
+    dxfReaderAscii asciiReader(&asciiRecords);
+    bool asciiShape = true;
+    for (const auto& item : expected) {
+        if (!asciiReader.readRec(&code) || code != item.first
+            || asciiReader.getString() != item.second) {
+            asciiShape = false;
+            break;
+        }
+    }
+    t.expect(asciiShape,
+             "DXF ASCII application-group remap does not cascade destinations");
+
+    DRW_RawDxfObject binaryObject = object;
+    binaryObject.hasRawValues = false;
+    binaryObject.rawValues.clear();
+    std::ostringstream binaryOutput;
+    dxfRW binaryWriter("");
+    binaryWriter.version = DRW::AC1027;
+    binaryWriter.binFile = true;
+    binaryWriter.writer = std::make_unique<dxfWriterBinary>(&binaryOutput);
+    binaryWriter.setHandleRemap(remap);
+    t.expect(binaryWriter.writeRawDxfObject(&binaryObject),
+             "DXF binary application-group remap uses one-step lookup");
+    std::stringstream binaryRecords(binaryOutput.str());
+    dxfReaderBinary binaryReader(&binaryRecords);
+    binaryReader.setClassifierProfile(DxfClassifierProfile::StandaloneSafe);
+    bool binaryShape = true;
+    for (const auto& item : expected) {
+        if (!binaryReader.readRec(&code) || code != item.first
+            || binaryReader.getString() != item.second) {
+            binaryShape = false;
+            break;
+        }
+    }
+    t.expect(binaryShape,
+             "DXF binary application-group remap does not cascade destinations");
+}
+
 void testRawCapture(TestContext& t) {
     std::stringstream records("260\n2147483647\n482\n3.14\n1004\nAB\n");
     dxfRW owner("");
@@ -2798,6 +2868,7 @@ int main() {
     testDxfRawEntityApplicationGroupChunkCodeMatrix(context);
     testDxfRawEntityApplicationGroupRawValueCardinality(context);
     testDxfRawEntityApplicationGroupSourceSpelling(context);
+    testDxfRawEntityApplicationGroupRemapChain(context);
     testRawCapture(context);
     testHatchValidationIgnoresInactiveGradient(context);
     testFixedSpaceBlockClassification(context);
