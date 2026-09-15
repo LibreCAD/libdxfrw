@@ -1607,6 +1607,97 @@ void testDxfRawEntityHandleDiagnostics(TestContext& t) {
              "binary raw entity duplicate records handle context");
 }
 
+void testDxfRawEntityWideHandleReplay(TestContext& t) {
+    const std::string wideHandle = "123456789ABCDEF0";
+    const std::string content =
+        "0\nSECTION\n2\nENTITIES\n0\nLOCAL_WIDE_ENTITY\n5\n"
+        + wideHandle + "\n0\nENDSEC\n0\nEOF\n";
+    ProfileProbeInterface interface_;
+    dxfRW reader("");
+    std::string input = content;
+    t.expect(reader.readAscii(&interface_, false, input)
+                 && interface_.entities.size() == 1,
+             "DXF raw entity captures a wide self handle");
+    if (interface_.entities.size() != 1)
+        return;
+    const DRW_RawDxfObject& captured = interface_.entities.front();
+    t.expect(captured.groups.size() == 1
+                 && captured.groups.front().code() == 5
+                 && captured.groups.front().type() == DRW_Variant::STRING
+                 && std::string(captured.groups.front().c_str()) == wideHandle
+                 && captured.rawValues.size() == 1
+                 && captured.rawValues.front() == wideHandle
+                 && captured.handle == 0,
+             "DXF raw entity preserves wide lexeme without narrowing");
+
+    std::ostringstream asciiReplay;
+    dxfRW asciiWriter("");
+    asciiWriter.version = DRW::AC1027;
+    asciiWriter.binFile = false;
+    asciiWriter.writer = std::make_unique<dxfWriterAscii>(&asciiReplay);
+    DRW_RawDxfObject asciiCopy = captured;
+    asciiCopy.m_version = DRW::AC1027;
+    t.expect(asciiWriter.writeRawDxfObject(&asciiCopy),
+             "DXF raw entity wide handle replays through ASCII");
+    std::stringstream asciiRecords(asciiReplay.str());
+    dxfReaderAscii asciiReader(&asciiRecords);
+    int code = 0;
+    t.expect(asciiReader.readRec(&code) && code == 0
+                 && asciiReader.getString() == "LOCAL_WIDE_ENTITY"
+                 && asciiReader.readRec(&code) && code == 5
+                 && asciiReader.getString() == wideHandle,
+             "DXF ASCII replay retains the wide self-handle spelling");
+
+    std::ostringstream binarySource;
+    dxfWriterBinary binarySourceWriter(&binarySource);
+    binarySourceWriter.writeString(0, "SECTION");
+    binarySourceWriter.writeString(2, "ENTITIES");
+    binarySourceWriter.writeString(0, "LOCAL_WIDE_ENTITY");
+    binarySourceWriter.writeString(5, wideHandle);
+    binarySourceWriter.writeString(0, "ENDSEC");
+    binarySourceWriter.writeString(0, "EOF");
+    std::stringstream binaryInput(binarySource.str());
+    ProfileProbeInterface binaryInterface;
+    dxfRW binaryReader("");
+    binaryReader.binFile = true;
+    binaryReader.reader = std::make_unique<dxfReaderBinary>(&binaryInput);
+    binaryReader.reader->setClassifierProfile(
+        DxfClassifierProfile::StandaloneSafe);
+    binaryReader.iface = &binaryInterface;
+    binaryReader.beginOperationDiagnostic(DRW::OperationKind::Read);
+    t.expect(binaryReader.processDxf()
+                 && binaryInterface.entities.size() == 1,
+             "binary DXF raw entity captures a wide self handle");
+    if (binaryInterface.entities.size() == 1) {
+        const DRW_RawDxfObject& binaryCaptured = binaryInterface.entities.front();
+        t.expect(binaryCaptured.groups.size() == 1
+                     && binaryCaptured.groups.front().code() == 5
+                     && std::string(binaryCaptured.groups.front().c_str())
+                            == wideHandle
+                     && binaryCaptured.handle == 0,
+                 "binary DXF raw entity keeps wide handle un-narrowed");
+
+        std::ostringstream binaryReplay;
+        dxfRW binaryWriter("");
+        binaryWriter.version = DRW::AC1027;
+        binaryWriter.binFile = true;
+        binaryWriter.writer = std::make_unique<dxfWriterBinary>(&binaryReplay);
+        DRW_RawDxfObject binaryCopy = binaryCaptured;
+        binaryCopy.m_version = DRW::AC1027;
+        t.expect(binaryWriter.writeRawDxfObject(&binaryCopy),
+                 "DXF raw entity wide handle replays through binary");
+        std::stringstream binaryReplayInput(binaryReplay.str());
+        dxfReaderBinary binaryReplayReader(&binaryReplayInput);
+        binaryReplayReader.setClassifierProfile(
+            DxfClassifierProfile::StandaloneSafe);
+        t.expect(binaryReplayReader.readRec(&code) && code == 0
+                     && binaryReplayReader.getString() == "LOCAL_WIDE_ENTITY"
+                     && binaryReplayReader.readRec(&code) && code == 5
+                     && binaryReplayReader.getString() == wideHandle,
+                 "DXF binary replay retains the wide self-handle spelling");
+    }
+}
+
 void testRawCapture(TestContext& t) {
     std::stringstream records("260\n2147483647\n482\n3.14\n1004\nAB\n");
     dxfRW owner("");
@@ -1817,6 +1908,7 @@ int main() {
     testDxfRawObjectHandleDiagnostics(context);
     testDxfRawObjectMalformedHandleDiagnostics(context);
     testDxfRawEntityHandleDiagnostics(context);
+    testDxfRawEntityWideHandleReplay(context);
     testRawCapture(context);
     testHatchValidationIgnoresInactiveGradient(context);
     testFixedSpaceBlockClassification(context);
