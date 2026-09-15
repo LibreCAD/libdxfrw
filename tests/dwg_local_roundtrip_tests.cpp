@@ -4776,6 +4776,12 @@ public:
         malformed.m_objectSize = 1;
         malformed.m_bodyBitSize = 0;
         rejectedMalformed_ = !writer_->writeRawDwgObject(&malformed);
+        rejectedNullObject_ = !writer_->writeRawDwgObject(nullptr);
+        DRW_UnsupportedObject emptyObject = second_;
+        emptyObject.m_handle = 0x705u;
+        emptyObject.m_rawBytes.clear();
+        emptyObject.m_objectSize = 0;
+        rejectedEmptyObject_ = !writer_->writeRawDwgObject(&emptyObject);
 
         DRW_UnsupportedObject wrongVersion = second_;
         wrongVersion.m_handle = 0x704u;
@@ -4797,6 +4803,9 @@ public:
         oversized.m_name = "LocalRawS112Oversized";
         oversized.m_maxSize = 0xFFFFFFFFu;
         rejectedOversized_ = !writer_->writeRawDwgSection(&oversized);
+        DRW_RawDwgSection emptyName = section_;
+        emptyName.m_name.clear();
+        rejectedEmptySectionName_ = !writer_->writeRawDwgSection(&emptyName);
 
         replayedSecond_ = writer_->writeRawDwgObject(&second_);
         capturedSecondFrame_ = writer_->getLastDwgObjectFrame(secondFrame_);
@@ -4833,11 +4842,14 @@ public:
     bool replayedFirst_ {false};
     bool capturedFirstFrame_ {false};
     bool rejectedMalformed_ {false};
+    bool rejectedNullObject_ {false};
+    bool rejectedEmptyObject_ {false};
     bool rejectedWrongVersion_ {false};
     bool rejectedWrongSectionVersion_ {false};
     bool rejectedInvalidEncoding_ {false};
     bool rejectedEncrypted_ {false};
     bool rejectedOversized_ {false};
+    bool rejectedEmptySectionName_ {false};
     bool replayedSecond_ {false};
     bool capturedSecondFrame_ {false};
     bool rejectedDuplicateHandle_ {false};
@@ -4857,15 +4869,24 @@ bool runRawDwgReplayContract() {
     dwgRW writer(output.string().c_str());
     LocalRawReplayInterface writeIface(&writer);
     const bool writeOk = writer.write(&writeIface, DRW::AC1027, true);
+    const dwgRW::WriteSkipCounters skips = writer.getWriteSkipCounters();
     if (!writeOk
         || !writeIface.registeredFirst_ || !writeIface.registeredSecond_
         || !writeIface.registeredThird_
         || !writeIface.rejectedNullClass_ || !writeIface.replayedFirst_
-        || !writeIface.rejectedMalformed_ || !writeIface.rejectedWrongVersion_
+        || !writeIface.rejectedMalformed_ || !writeIface.rejectedNullObject_
+        || !writeIface.rejectedEmptyObject_ || !writeIface.rejectedWrongVersion_
         || !writeIface.rejectedWrongSectionVersion_
         || !writeIface.rejectedInvalidEncoding_ || !writeIface.rejectedEncrypted_
-        || !writeIface.rejectedOversized_ || !writeIface.replayedSecond_
+        || !writeIface.rejectedOversized_ || !writeIface.rejectedEmptySectionName_
+        || !writeIface.replayedSecond_
+        || !writeIface.rejectedDuplicateHandle_ || !writeIface.replayedThird_
         || !writeIface.replayedSection_ || !writeIface.rejectedDuplicateSection_) {
+        std::filesystem::remove(output, ec);
+        return false;
+    }
+    if (skips.rawObjectWrites < 5 || skips.rawSectionWrites < 6
+        || skips.classRegistrations < 1) {
         std::filesystem::remove(output, ec);
         return false;
     }
