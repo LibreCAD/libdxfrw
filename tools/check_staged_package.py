@@ -185,6 +185,13 @@ def check(prefix: Path, cxx: str) -> None:
 
         pkgconfig = os.environ.copy()
         pkgconfig["PKG_CONFIG_PATH"] = str(prefix / "lib" / "pkgconfig")
+        reported_prefix = run(
+            ["pkg-config", "--define-prefix", "--variable=prefix", "libdxfrw"],
+            env=pkgconfig).stdout.strip()
+        if Path(reported_prefix).resolve() != prefix:
+            raise RuntimeError(
+                "pkg-config prefix does not resolve to staged prefix: %s"
+                % reported_prefix)
         flags = shlex.split(run(["pkg-config", "--define-prefix", "--cflags", "--libs",
                                  "libdxfrw"], env=pkgconfig).stdout)
         assert_staged_flags(flags, prefix)
