@@ -13,6 +13,7 @@ import argparse
 import hashlib
 import json
 import tempfile
+from collections import Counter
 from pathlib import Path
 from typing import Any
 
@@ -101,8 +102,10 @@ def load_registry(path: Path) -> dict[str, Any]:
 def check(report_path: Path, registry_path: Path) -> dict[str, int]:
     registry = load_registry(registry_path)
     report = load_json(report_path)
-    if not isinstance(report, dict) or report.get("kind") != REPORT_KIND:
-        raise DebtError("report is not a JSON target/package differential")
+    if (not isinstance(report, dict)
+            or report.get("kind") != REPORT_KIND
+            or report.get("schema") != 2):
+        raise DebtError("report must be schema-2 JSON target/package differential")
     if not isinstance(report.get("targetCommit"), str):
         raise DebtError("differential report has no targetCommit")
     if report["targetCommit"] != registry["targetCommit"]:
@@ -110,6 +113,25 @@ def check(report_path: Path, registry_path: Path) -> dict[str, int]:
     rows = report.get("rows")
     if not isinstance(rows, list):
         raise DebtError("differential report has no rows")
+    relation_counts = Counter()
+    byte_counts = Counter()
+    semantic_counts = Counter()
+    status_counts = Counter()
+    for row in rows:
+        if isinstance(row, dict):
+            relation_counts[row.get("relation")] += 1
+            byte_counts[row.get("byteRelation")] += 1
+            semantic_counts[row.get("semanticRelation")] += 1
+            status_counts[row.get("statusRelation")] += 1
+    expected_counts = {
+        "relationCounts": dict(sorted(relation_counts.items())),
+        "byteRelationCounts": dict(sorted(byte_counts.items())),
+        "semanticRelationCounts": dict(sorted(semantic_counts.items())),
+        "statusRelationCounts": dict(sorted(status_counts.items())),
+    }
+    for key, expected in expected_counts.items():
+        if report.get(key) != expected:
+            raise DebtError(f"differential {key} do not match rows")
     seen: set[str] = set()
     reviewed = 0
     unreviewed = 0
@@ -176,9 +198,16 @@ def self_test() -> None:
         registry = {"schema": SCHEMA, "kind": KIND,
                     "targetCommit": "3c7785e", "entries": [entry]}
         report = {"schema": 2, "kind": REPORT_KIND,
-                  "targetCommit": "3c7785e", "rows": [{
+                  "targetCommit": "3c7785e",
+                  "relationCounts": {"delta": 1},
+                  "byteRelationCounts": {"delta": 1},
+                  "semanticRelationCounts": {"delta": 1},
+                  "statusRelationCounts": {"not-reported": 1},
+                  "rows": [{
                       "sourceSha256": source, "inputVersion": "AC1021",
-                      "relation": "delta",
+                      "relation": "delta", "byteRelation": "delta",
+                      "semanticRelation": "delta",
+                      "statusRelation": "not-reported",
                       "target": {"outputSha256": target_output,
                                   "summary": summary},
                       "standalone": {"outputSha256": standalone_output,
@@ -189,6 +218,24 @@ def self_test() -> None:
         registry_path.write_text(json.dumps(registry), encoding="utf-8")
         report_path.write_text(json.dumps(report), encoding="utf-8")
         assert check(report_path, registry_path) == {"reviewed": 1, "unreviewed": 0}
+        report["schema"] = 1
+        report_path.write_text(json.dumps(report), encoding="utf-8")
+        try:
+            check(report_path, registry_path)
+        except DebtError as exc:
+            assert "schema-2" in str(exc)
+        else:
+            raise AssertionError("schema-1 differential report was accepted")
+        report["schema"] = 2
+        report["byteRelationCounts"] = {"equal": 9}
+        report_path.write_text(json.dumps(report), encoding="utf-8")
+        try:
+            check(report_path, registry_path)
+        except DebtError as exc:
+            assert "byteRelationCounts" in str(exc)
+        else:
+            raise AssertionError("tampered relation counts were accepted")
+        report["byteRelationCounts"] = {"delta": 1}
         report["rows"][0]["target"]["outputSha256"] = "d" * 64
         report_path.write_text(json.dumps(report), encoding="utf-8")
         try:
