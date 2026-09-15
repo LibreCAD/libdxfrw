@@ -2554,7 +2554,12 @@ public:
     void addPolyline(const DRW_Polyline&) override {
         readOldPolylineSeen_ = true;
     }
-    void addSpline(const DRW_Spline*) override { readSplineSeen_ = true; }
+    void addSpline(const DRW_Spline* data) override {
+        readSplineSeen_ = data != nullptr;
+        if (readSplineSeen_ && expectedVersion_ > DRW::AC1024)
+            readSplineR2013Fields_ = data->m_splineFlags1 == 0
+                && data->m_knotParam == 15;
+    }
     void addHelix(const DRW_Helix* data) override {
         if (data == nullptr || data->handle != 0xEE00u)
             return;
@@ -3623,6 +3628,7 @@ public:
     bool wroteOldPolyline() const { return wroteOldPolyline_; }
     bool wroteSpline() const { return wroteSpline_; }
     bool wroteHelix() const { return wroteHelix_; }
+    bool readSplineR2013Fields() const { return readSplineR2013Fields_; }
     bool rejectedMalformedHelix() const { return rejectedMalformedHelix_; }
     bool wroteCamera() const { return wroteCamera_; }
     bool rejectedMalformedCamera() const { return rejectedMalformedCamera_; }
@@ -4387,6 +4393,7 @@ private:
     bool read3dLineSeen_ {false};
     bool readOldPolylineSeen_ {false};
     bool readSplineSeen_ {false};
+    bool readSplineR2013Fields_ {false};
     bool readHelixSeen_ {false};
     bool readCameraSeen_ {false};
     bool readGeoPositionMarkerSeen_ {false};
@@ -5541,6 +5548,11 @@ int main(int argc, char** argv) {
                ("local DWG self-read publishes POLYLINE" + suffix).c_str(), failures);
         expect(readIface.readSplineSeen(),
                ("local DWG self-read publishes SPLINE" + suffix).c_str(), failures);
+        expect(version > DRW::AC1024
+                   ? readIface.readSplineR2013Fields()
+                   : true,
+               ("local DWG R2013+ SPLINE fields stay cursor-aligned" + suffix).c_str(),
+               failures);
         expect(readIface.readHelixSeen(),
                ("local DWG self-read publishes HELIX" + suffix).c_str(), failures);
         expect(version >= DRW::AC1018
