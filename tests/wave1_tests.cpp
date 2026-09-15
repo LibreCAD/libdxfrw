@@ -4344,6 +4344,56 @@ void testDxfRawSectionDepthLimit(TestContext& t) {
              "DXF binary raw section over-depth rejects transactionally");
 }
 
+void testDxfRawSectionApplicationGroupValidMarker(TestContext& t) {
+    DRW_RawDxfSection section;
+    section.m_name = "LOCAL_SECTION_VALID_MARKER";
+    section.m_version = DRW::AC1027;
+    section.m_hasRawValues = true;
+    section.m_groups = {DRW_Variant(102, std::string("{VALID_GROUP")),
+                        DRW_Variant(1000, std::string("payload")),
+                        DRW_Variant(102, std::string("}"))};
+    section.m_rawValues = {"{VALID_GROUP", "payload", "}"};
+    const std::vector<std::pair<int, std::string>> expected = {
+        {0, "SECTION"}, {2, section.m_name}, {102, "{VALID_GROUP"},
+        {1000, "payload"}, {102, "}"}, {0, "ENDSEC"}};
+
+    std::ostringstream asciiOutput;
+    dxfRW asciiWriter("");
+    asciiWriter.version = DRW::AC1027;
+    asciiWriter.binFile = false;
+    asciiWriter.writer = std::make_unique<dxfWriterAscii>(&asciiOutput);
+    t.expect(asciiWriter.writeRawDxfSection(section),
+             "DXF ASCII raw section accepts valid application-group markers");
+    std::stringstream asciiRecords(asciiOutput.str());
+    dxfReaderAscii asciiReader(&asciiRecords);
+    std::vector<std::pair<int, std::string>> asciiActual;
+    int asciiCode = 0;
+    while (asciiReader.readRec(&asciiCode))
+        asciiActual.emplace_back(asciiCode, asciiReader.getString());
+    t.expect(asciiActual == expected,
+             "DXF ASCII raw section replays valid application-group markers");
+
+    DRW_RawDxfSection binarySection = section;
+    binarySection.m_hasRawValues = false;
+    binarySection.m_rawValues.clear();
+    std::ostringstream binaryOutput;
+    dxfRW binaryWriter("");
+    binaryWriter.version = DRW::AC1027;
+    binaryWriter.binFile = true;
+    binaryWriter.writer = std::make_unique<dxfWriterBinary>(&binaryOutput);
+    t.expect(binaryWriter.writeRawDxfSection(binarySection),
+             "DXF binary raw section accepts valid application-group markers");
+    std::stringstream binaryRecords(binaryOutput.str());
+    dxfReaderBinary binaryReader(&binaryRecords);
+    binaryReader.setClassifierProfile(DxfClassifierProfile::StandaloneSafe);
+    std::vector<std::pair<int, std::string>> binaryActual;
+    int binaryCode = 0;
+    while (binaryReader.readRec(&binaryCode))
+        binaryActual.emplace_back(binaryCode, binaryReader.getString());
+    t.expect(binaryActual == expected,
+             "DXF binary raw section replays valid application-group markers");
+}
+
 void testDxfRawSectionApplicationGroupMarker(TestContext& t) {
     const std::vector<std::string> invalidMarkers = {"{", "NOT_A_MARKER"};
     for (const std::string& marker : invalidMarkers) {
@@ -4713,6 +4763,7 @@ int main() {
     testDxfRawSectionGroupCodeBounds(context);
     testDxfRawSectionAggregateLimit(context);
     testDxfRawSectionDepthLimit(context);
+    testDxfRawSectionApplicationGroupValidMarker(context);
     testDxfRawSectionApplicationGroupMarker(context);
     testDxfRawSectionApplicationGroupReferenceMatrix(context);
     testRawCapture(context);
