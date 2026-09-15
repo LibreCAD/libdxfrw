@@ -52,9 +52,9 @@ then pin an immutable commit before importing source.
 ### Execution refresh (2026-09-15)
 
 The implementation worktree is rebased on `origin/master` and is currently
-179 commits ahead with no commits behind it. The latest green slice is
-S152/J128, including the live-plan update and its required policy gates.
-S153/J129 is the active slice; its checker self-test coverage guard is the next
+180 commits ahead with no commits behind it. The latest green slice is
+S153/J129, including the live-plan update and its required policy gates.
+S154/J130 is the active slice; its fast-test command coverage guard is the next
 commit boundary.
 The worktree is clean at the last committed boundary; any subsequent active-
 slice edits are intentionally uncommitted until their narrow gate and
@@ -1934,20 +1934,21 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint (2026-09-15): S152/J128 package-prefix diagnostic guards
-  are committed; S153/J129 checker self-test coverage guards are active.
+- Current checkpoint (2026-09-15): S153/J129 checker self-test coverage guards
+  are committed; S154/J130 fast-test command coverage guards are active.
   The
   branch is rebased on `origin/master`, and
   the pinned source/package/consumer convergence remains complete while
   runtime and wire-format parity stay evidence-gated. The AC1015 IMAGE legacy
   boundary remains fail-closed, and all format-support claims remain limited
   to rows with eligible runtime/oracle evidence. The next dependency-ready
-  sequence is S153 checker self-test coverage guards; it is a separate commit
+  sequence is S154 fast-test command coverage guards; it is a separate commit
   with no external or derived DWG/DXF bytes.
-- Latest implementation slice: S152/J128 package-prefix diagnostic guards are
-  committed. Negative self-tests now require diagnostics to include the exact
-  offending path or flag for mixed roots, stale prefixes, source-tree paths,
-  and system paths. No external or derived drawing bytes are retained.
+- Latest implementation slice: S153/J129 checker self-test coverage guards are
+  committed. Synthetic coverage now pairs clean acceptance with stable negative
+  diagnostics for missing exports, missing config targets, absolute include and
+  library paths, stale roots, source-tree paths, and system paths. No external
+  or derived drawing bytes are retained.
 - Latest implementation slice: S54/J30 VISUALSTYLE object-family parity is
   committed. The local-from-scratch production writer registers the custom
   class before CLASSES, emits bounded visual-style payloads for all six
@@ -2783,9 +2784,9 @@ edit this block or commit the same slice concurrently.
   names TVDEVICEPROPERTIES and the two VX frames as UNKNOWN_OBJ, while local
   self-read remains authoritative for VX payload fields; no generated drawings
   or external assets are retained.
-- Last fully resolved slice: S152 (the package-prefix diagnostic slice is
-  committed by the matching `Plan-Slice: S152` trailer; the commit carries
-  stable offending-path/flag diagnostics and
+- Last fully resolved slice: S153 (the checker self-test coverage slice is
+  committed by the matching `Plan-Slice: S153` trailer; the commit carries
+  paired clean/negative export-branch evidence and
   all required policy gates). The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
@@ -2807,18 +2808,18 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 152 (`COMMITTED`); S153 is active.
+- Resolved slices: 153 (`COMMITTED`); S154 is active.
 - Slice states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 152 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 153 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 154 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 155 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 250 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 251 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 137 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S152 are committed; S153/J129 is active with a ready packet
-  naming checker self-test coverage guards and focused fast gates.
+  0 DEFERRED_EXTERNAL / 138 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S153 are committed; S154/J130 is active with a ready packet
+  naming fast-test command coverage guards and focused fast gates.
   Keep validation fast and
   self-updating: run source/plan/policy checks and the focused carrier target
   after each implementation item, commit only after the narrow gate is green,
@@ -3019,7 +3020,8 @@ edit this block or commit the same slice concurrently.
 | S150 | J126: package-root identity guard | S149 | COMMITTED | pkg-config prefix/flag identity; alternate-root rejection; fast package self-test; plan/scope/sync/fixture gates | self-tests accept one clean staged include/library root and reject both mixed-root permutations, proving package flags identify one root; no external DXF bytes | root-identity self-test, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S151 is active |
 | S151 | J127: package-prefix reporting guard | S150 | COMMITTED | pkg-config reported-prefix equality; relocated prefix truth; fast package consumer gate; plan/scope/sync/fixture gates | shared assertion requires an absolute reported prefix equal to the resolved staged root in original and copied-prefix consumers; alternate and relative values fail closed; no external DXF bytes | one-prefix self-test/relocation check, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S152 is active |
 | S152 | J128: package-prefix diagnostic guard | S151 | COMMITTED | actionable root-mismatch diagnostics; error specificity; fast package self-test; plan/scope/sync/fixture gates | negative self-tests require diagnostics to include the exact offending path or flag for mixed roots, stale prefixes, source-tree paths, and system paths; no external DXF bytes | diagnostic self-test, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S153 is active |
-| S153 | J129: checker self-test coverage guard | S152 | ACTIVE | fail-closed self-test breadth; clean-path coverage; fast package self-test; plan/scope/sync/fixture gates | verify every path-rejection branch has a clean acceptance and negative diagnostic assertion, without external DXF bytes | active after S152 commit; use one fast self-test invocation plus policy gates, escalating only if a rejection branch lacks coverage |
+| S153 | J129: checker self-test coverage guard | S152 | COMMITTED | fail-closed self-test breadth; clean-path coverage; fast package self-test; plan/scope/sync/fixture gates | synthetic coverage pairs clean acceptance with stable negative diagnostics for missing exports/config targets, absolute include/library paths, stale roots, source-tree paths, and system paths; no external DXF bytes | self-test coverage, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S154 is active |
+| S154 | J130: fast-test command coverage guard | S153 | ACTIVE | fast validation command coverage; no accidental full-suite escalation; package self-test; plan/scope/sync/fixture gates | verify the documented fast command exercises all staged-package rejection branches and does not invoke full CTest or network dependency resolution; no external DXF bytes | active after S153 commit; use command-trace self-test and policy gates, escalating only if the fast path silently broadens scope |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3176,7 +3178,8 @@ edit this block or commit the same slice concurrently.
 | J126 | S150 | J125 | COMMITTED | EXPERIMENTAL | Prove pkg-config include/library flags and reported prefix identify one staged root, rejecting alternate roots | synthetic clean/mixed-root self-tests, clean-path check, and no-fixture evidence |
 | J127 | S151 | J126 | COMMITTED | EXPERIMENTAL | Prove pkg-config reported prefix equals the resolved staged root in original and copied-prefix consumer contexts | reported-prefix equality checks in original/copied consumers, relocation smoke, and no-fixture evidence |
 | J128 | S152 | J127 | COMMITTED | EXPERIMENTAL | Prove root-mismatch failures identify the offending path or flag with a stable automation-friendly diagnostic | diagnostic assertions for mixed roots, stale prefixes, source-tree paths, and system paths plus clean-path self-test; no-fixture evidence |
-| J129 | S153 | J128 | ACTIVE | EXPERIMENTAL | Prove every staged-path rejection branch has a clean acceptance and negative diagnostic assertion | active packet names checker self-test coverage, clean-path checks, and no-fixture evidence |
+| J129 | S153 | J128 | COMMITTED | EXPERIMENTAL | Prove every staged-path rejection branch has a clean acceptance and negative diagnostic assertion | paired clean/negative export-branch self-tests and no-fixture evidence |
+| J130 | S154 | J129 | ACTIVE | EXPERIMENTAL | Prove the documented fast validation command covers staged-package rejection branches without full-suite or network escalation | active packet names command-trace self-test, fast package check, and no-fixture evidence |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -3440,7 +3443,8 @@ edit this block or commit the same slice concurrently.
 | J126.1 | J126 / S150 | WP4, WP5, WP6, WP8, WP10; package-root identity guard | J125 | COMMITTED | EXPERIMENTAL | construct clean and mismatched synthetic pkg-config flag sets and prove alternate roots are rejected without external drawing bytes | focused root-identity target and policy gates pass; no external or derived DXF bytes are retained |
 | J127.1 | J127 / S151 | WP4, WP5, WP6, WP8, WP10; package-prefix reporting guard | J126 | COMMITTED | EXPERIMENTAL | compare pkg-config reported prefix with the resolved staged root before and after relocation without external drawing bytes | focused prefix-reporting target and policy gates pass; no external or derived DXF bytes are retained |
 | J128.1 | J128 / S152 | WP4, WP5, WP6, WP8, WP10; package-prefix diagnostic guard | J127 | COMMITTED | EXPERIMENTAL | assert root-mismatch diagnostics contain stable offending-path/flag context without external drawing bytes | focused diagnostic target and policy gates pass; no external or derived DXF bytes are retained |
-| J129.1 | J129 / S153 | WP4, WP5, WP6, WP8, WP10; checker self-test coverage guard | J128 | ACTIVE | EXPERIMENTAL | exercise every staged-path rejection branch with paired clean/negative assertions without external drawing bytes | focused self-test-coverage target and policy gates pass; no external or derived DXF bytes are retained |
+| J129.1 | J129 / S153 | WP4, WP5, WP6, WP8, WP10; checker self-test coverage guard | J128 | COMMITTED | EXPERIMENTAL | exercise every staged-path rejection branch with paired clean/negative assertions without external drawing bytes | focused self-test-coverage target and policy gates pass; no external or derived DXF bytes are retained |
+| J130.1 | J130 / S154 | WP4, WP5, WP6, WP8, WP10; fast-test command coverage guard | J129 | ACTIVE | EXPERIMENTAL | trace the fast package self-test and assert it performs no full CTest or network dependency work without external drawing bytes | focused fast-command target and policy gates pass; no external or derived DXF bytes are retained |
 
 <!-- UPGRADE_PROGRESS_END -->
 

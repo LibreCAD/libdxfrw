@@ -205,6 +205,58 @@ def self_test_relocatable_cmake_export() -> None:
         (config_root / "libdxfrwConfigVersion.cmake").write_text(
             "set(PACKAGE_VERSION \"2.0.0\")\n", encoding="utf-8")
         assert_relocatable_cmake_export(prefix)
+        (config_root / "libdxfrwTargets.cmake").unlink()
+        try:
+            assert_relocatable_cmake_export(prefix)
+        except RuntimeError as error:
+            if "missing libdxfrwTargets.cmake" not in str(error):
+                raise RuntimeError(
+                    "missing-target diagnostic is not stable: %s" % error) from error
+        else:
+            raise RuntimeError("CMake export self-test accepted a missing target")
+        (config_root / "libdxfrwTargets.cmake").write_text(
+            'INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include/libdxfrw"\n',
+            encoding="utf-8")
+        (config_root / "libdxfrwTargets-noconfig.cmake").unlink()
+        try:
+            assert_relocatable_cmake_export(prefix)
+        except RuntimeError as error:
+            if "missing configuration-specific targets" not in str(error):
+                raise RuntimeError(
+                    "missing-config-target diagnostic is not stable: %s" % error) from error
+        else:
+            raise RuntimeError("CMake export self-test accepted missing config targets")
+        (config_root / "libdxfrwTargets-noconfig.cmake").write_text(
+            'IMPORTED_LOCATION_NOCONFIG "${_IMPORT_PREFIX}/lib/libdxfrw.a"\n',
+            encoding="utf-8")
+        (config_root / "libdxfrwTargets.cmake").write_text(
+            'INTERFACE_INCLUDE_DIRECTORIES "/tmp/include/libdxfrw"\n',
+            encoding="utf-8")
+        try:
+            assert_relocatable_cmake_export(prefix)
+        except RuntimeError as error:
+            if "does not use a relocatable include root" not in str(error):
+                raise RuntimeError(
+                    "include-root diagnostic is not stable: %s" % error) from error
+        else:
+            raise RuntimeError("CMake export self-test accepted an absolute include root")
+        (config_root / "libdxfrwTargets.cmake").write_text(
+            'INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include/libdxfrw"\n',
+            encoding="utf-8")
+        (config_root / "libdxfrwTargets-noconfig.cmake").write_text(
+            'IMPORTED_LOCATION_NOCONFIG "/tmp/lib/libdxfrw.a"\n',
+            encoding="utf-8")
+        try:
+            assert_relocatable_cmake_export(prefix)
+        except RuntimeError as error:
+            if "does not use _IMPORT_PREFIX" not in str(error):
+                raise RuntimeError(
+                    "config-path diagnostic is not stable: %s" % error) from error
+        else:
+            raise RuntimeError("CMake export self-test accepted an absolute library path")
+        (config_root / "libdxfrwTargets-noconfig.cmake").write_text(
+            'IMPORTED_LOCATION_NOCONFIG "${_IMPORT_PREFIX}/lib/libdxfrw.a"\n',
+            encoding="utf-8")
         source_root = str(Path(__file__).resolve().parents[1])
         for stale_path in ("/usr/local", str(prefix), source_root):
             (config_root / "libdxfrwConfigVersion.cmake").write_text(
