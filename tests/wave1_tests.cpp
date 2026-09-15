@@ -2060,6 +2060,40 @@ void testDxfRawEntityApplicationGroupAggregate(TestContext& t) {
              "DXF binary over-limit application-group aggregate rejects transactionally");
 }
 
+void testDxfRawEntityApplicationGroupMarker(TestContext& t) {
+    const std::vector<std::string> invalidMarkers = {"{", "NOT_A_MARKER"};
+    for (const std::string& marker : invalidMarkers) {
+        DRW_RawDxfObject asciiObject;
+        asciiObject.name = "LOCAL_MARKER_ENTITY";
+        asciiObject.handle = 0x1Au;
+        asciiObject.m_version = DRW::AC1027;
+        asciiObject.hasRawValues = true;
+        asciiObject.groups = {DRW_Variant(5, std::string("1A")),
+                              DRW_Variant(102, marker)};
+        asciiObject.rawValues = {"1A", marker};
+        std::ostringstream asciiOutput;
+        dxfRW asciiWriter("");
+        asciiWriter.version = DRW::AC1027;
+        asciiWriter.binFile = false;
+        asciiWriter.writer = std::make_unique<dxfWriterAscii>(&asciiOutput);
+        t.expect(!asciiWriter.writeRawDxfObject(&asciiObject)
+                     && asciiOutput.str().empty(),
+                 "DXF ASCII invalid application-group marker rejects transactionally");
+
+        DRW_RawDxfObject binaryObject = asciiObject;
+        binaryObject.hasRawValues = false;
+        binaryObject.rawValues.clear();
+        std::ostringstream binaryOutput;
+        dxfRW binaryWriter("");
+        binaryWriter.version = DRW::AC1027;
+        binaryWriter.binFile = true;
+        binaryWriter.writer = std::make_unique<dxfWriterBinary>(&binaryOutput);
+        t.expect(!binaryWriter.writeRawDxfObject(&binaryObject)
+                     && binaryOutput.str().empty(),
+                 "DXF binary invalid application-group marker rejects transactionally");
+    }
+}
+
 void testRawCapture(TestContext& t) {
     std::stringstream records("260\n2147483647\n482\n3.14\n1004\nAB\n");
     dxfRW owner("");
@@ -2275,6 +2309,7 @@ int main() {
     testDxfRawEntityApplicationGroupRemap(context);
     testDxfRawEntityApplicationGroupDepth(context);
     testDxfRawEntityApplicationGroupAggregate(context);
+    testDxfRawEntityApplicationGroupMarker(context);
     testRawCapture(context);
     testHatchValidationIgnoresInactiveGradient(context);
     testFixedSpaceBlockClassification(context);
