@@ -362,6 +362,39 @@ void testDwgReadResetsVersionState(TestContext& t) {
              "invalid DWG read does not expose stale version or code page");
 }
 
+void testDxfAggregateRecordBudget(TestContext& t) {
+    std::string content =
+        "0\nSECTION\n2\nLOCAL_BUDGET\n0\nENDSEC\n0\nEOF\n";
+    FuzzInterface interface_;
+    dxfRW reader(nullptr);
+    reader.setDxfReadRecordBudget(3u);
+    t.expect(!reader.readAscii(&interface_, false, content)
+                 && reader.getError() == DRW::BAD_CODE_PARSED,
+             "DXF aggregate record budget rejects an exhausted stream");
+    const DRW_OperationDiagnostic diagnostic = reader.getLastDiagnostic();
+    t.expect(diagnostic.cause == DRW::OperationCause::ResourceLimit
+                 && diagnostic.code == "dxf-record-budget",
+             "DXF budget exhaustion exposes a resource diagnostic");
+
+    std::string commentContent =
+        "0\nSECTION\n2\nLOCAL_BUDGET\n0\nENDSEC\n"
+        "999\nignored-after-section\n0\nEOF\n";
+    dxfRW commentReader(nullptr);
+    commentReader.setDxfReadRecordBudget(4u);
+    FuzzInterface commentInterface;
+    t.expect(!commentReader.readAscii(&commentInterface, false, commentContent)
+                 && commentReader.getLastDiagnostic().cause
+                        == DRW::OperationCause::ResourceLimit,
+             "ignored DXF comments consume the aggregate record budget");
+
+    std::string retry = content;
+    reader.setDxfReadRecordBudget(16u);
+    FuzzInterface retryInterface;
+    t.expect(reader.readAscii(&retryInterface, false, retry)
+                 && retryInterface.rawSectionCount == 1u,
+             "raising the DXF budget permits a fresh read session");
+}
+
 } // namespace
 
 int main() {
@@ -374,6 +407,7 @@ int main() {
     testDxfReadAsciiResetsFormatState(context);
     testDxfReadResetsHeaderState(context);
     testDwgReadResetsVersionState(context);
+    testDxfAggregateRecordBudget(context);
     if (context.failures != 0) {
         std::cerr << context.failures << " hardening assertion(s) failed\n";
         return 1;

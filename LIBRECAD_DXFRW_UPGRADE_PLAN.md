@@ -1968,6 +1968,13 @@ edit this block or commit the same slice concurrently.
   in 5.92s and 12.62s respectively (macOS leak detection disabled). The
   checkpoint includes the parser fuzz lanes and DXF/DWG state-isolation fixes;
   no drawing bytes were added.
+- Latest resource-hardening slice (2026-09-15): S265/J241 adds a configurable
+  aggregate DXF read-record budget. Every physical record, including ignored
+  comments, consumes the per-session ceiling; exhaustion fails closed with a
+  structured `ResourceLimit` diagnostic while preserving the legacy
+  `BAD_CODE_PARSED` channel. A focused regression proves exhaustion and a
+  raised budget on a fresh read session; release and ASan/UBSan hardening
+  binaries pass, with no drawing bytes added.
 - Previous checkpoint (2026-09-15): S257/J233 post-hardening validation
   checkpoint is committed. A fresh C++17 build and all 26 dependency-free
   CTest entries pass in 6.26 seconds, including source-route and release
@@ -3263,17 +3270,17 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 264 (`COMMITTED`); no slice is active.
+- Resolved slices: 265 (`COMMITTED`); no slice is active.
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 264 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 265 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 266 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 267 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 2 VERIFIED / 362 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 2 VERIFIED / 363 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 242 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S264 are committed; no local implementation slice is active.
+- Active work: S01-S265 are committed; no local implementation slice is active.
   Remaining work is evidence-gated runtime/oracle and release closure; keep
   the fast inner loop and do not promote support claims from self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -3592,6 +3599,7 @@ edit this block or commit the same slice concurrently.
 | S262 | J238: DXF header state isolation | S261 | COMMITTED | fresh header per read session; two-read regression; focused hardening gate; plan/scope/sync/fixture gates | file-backed and in-memory read entry points reset `DRW_Header`; a two-read regression prevents prior comments/variables from leaking; release and ASan/UBSan hardening binaries pass; no drawing fixtures or payloads retained | longer external fuzz, native Windows, package, and parity-promotion evidence remain scheduled |
 | S263 | J239: DWG version/code-page state isolation | S262 | COMMITTED | fresh DWG operation state; failure-to-failure regression; focused hardening gate; plan/scope/sync/fixture gates | file-backed and in-memory read entry points reset version and code page; recognized-but-corrupt followed by too-short input reports `UNKNOWNV` with an empty code page under release and ASan/UBSan hardening binaries; no drawing fixtures or payloads retained | longer external fuzz, native Windows, package, and parity-promotion evidence remain scheduled |
 | S264 | J240: cumulative full validation checkpoint | S263 | COMMITTED | fresh normal and ASan/UBSan builds; all 26 dependency-free CTest entries; leak-policy note; plan/scope/sync/fixture gates | fresh normal C++17 CTest passes 26/26 in 5.92s and fresh ASan/UBSan CTest passes 26/26 in 12.62s with leak detection disabled; parser fuzz/state-isolation lanes and all façade/fixture/policy checks remain green; no drawing fixtures or payloads retained | native Windows, longer external fuzz, package, and parity-promotion evidence remain scheduled |
+| S265 | J241: aggregate DXF read-record budget hardening | S264 | COMMITTED | configurable per-operation aggregate record ceiling; ignored-comment accounting; structured resource diagnostic; fresh-session retry; focused hardening and policy gates | `dxfRW` applies the configured ceiling to every physical ASCII/binary record, fails closed with `dxf-record-budget`/`ResourceLimit` when exhausted, and a focused regression proves a raised budget works on a fresh session; release and ASan/UBSan hardening pass; no drawing fixtures or derived payloads | longer fuzz, native Windows, package, and parity-promotion evidence remain scheduled |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3860,6 +3868,7 @@ edit this block or commit the same slice concurrently.
 | J238 | S262 | J237 | COMMITTED | EXPERIMENTAL | Qualify DXF header state isolation | Reset the per-document `DRW_Header` before both file-backed and in-memory reads so comments, variables, and control handles cannot leak across reusable `dxfRW` sessions; preserve existing error and classifier behavior |
 | J239 | S263 | J238 | COMMITTED | EXPERIMENTAL | Qualify DWG version/code-page state isolation | Reset version and code page at the beginning of each `dwgRW` read operation so failed reads cannot expose stale metadata from a prior document; preserve recognized-version behavior until the current operation fails |
 | J240 | S264 | J239 | COMMITTED | EXPERIMENTAL | Qualify cumulative full validation checkpoint | Rebuild from fresh normal and sanitizer configurations after the state-isolation and fuzz slices, run all dependency-free CTest entries, preserve the macOS leak-detection limitation, and retain the no-fixture policy |
+| J241 | S265 | J240 | COMMITTED | EXPERIMENTAL | Qualify aggregate DXF read-record budget hardening | Add a configurable per-operation record ceiling that accounts for ignored comments, fails closed with a structured resource-limit diagnostic while preserving the legacy error channel, and proves fresh-session retry without drawing fixtures |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4235,6 +4244,7 @@ edit this block or commit the same slice concurrently.
 | J238.1 | J238 / S262 | WP4, WP8, WP10; DXF header state isolation | J237 | COMMITTED | EXPERIMENTAL | reuse one `dxfRW` instance for two in-memory reads, capture both headers, and assert the second header has no first-document comments while both reads succeed; keep the regression fixture-free | release and ASan/UBSan hardening binaries pass the header-reset regression; focused hardening and policy gates pass; no drawing fixtures or derived payloads |
 | J239.1 | J239 / S263 | WP5, WP8, WP10; DWG version/code-page state isolation | J238 | COMMITTED | EXPERIMENTAL | feed a recognized six-byte DWG magic with a corrupt/truncated body, then a too-short buffer to one `dwgRW` instance and assert the final failure exposes `UNKNOWNV` and an empty code page; keep the regression fixture-free | release and ASan/UBSan hardening binaries pass the failure-to-failure state-reset regression; focused hardening and policy gates pass; no drawing fixtures or derived payloads |
 | J240.1 | J240 / S264 | WP8, WP10; cumulative full validation checkpoint | J239 | COMMITTED | EXPERIMENTAL | run fresh normal and ASan/UBSan C++17 builds with `LIBDXFRW_BUILD_TESTS=ON`, execute all 26 dependency-free CTest entries, and record timing/leak policy without retaining drawing payloads | normal 26/26 CTest passes in 5.92s; ASan/UBSan 26/26 passes in 12.62s with `detect_leaks=0`; no drawing fixtures or derived payloads |
+| J241.1 | J241 / S265 | WP8, WP10; aggregate resource budget hardening | J240 | COMMITTED | EXPERIMENTAL | set a per-operation DXF record ceiling, count ignored comments, reject exhaustion with `ResourceLimit`/`dxf-record-budget`, and verify a raised ceiling permits a fresh read without drawing fixtures | release and ASan/UBSan `libdxfrw_hardening_tests` pass; plan check, fixture admission, import scope, pinned sync, and diff gates pass; no drawing fixtures or derived payloads |
 
 <!-- UPGRADE_PROGRESS_END -->
 

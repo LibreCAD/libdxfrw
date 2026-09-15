@@ -29,6 +29,11 @@
 
 namespace DRW {
 
+//! Default aggregate number of DXF records admitted by one read operation.
+//! This is a resource ceiling, not a format maximum; callers handling larger
+//! documents may raise it explicitly through dxfRW::setDxfReadRecordBudget().
+constexpr std::size_t kDefaultDxfReadRecordBudget = 4u * 1024u * 1024u;
+
 //! Maximum number of DXF 102 application-group pairs staged per record.
 constexpr std::size_t kMaxDxfApplicationGroupPairs = 65536;
 //! Maximum nesting depth accepted inside one DXF 102 application group.

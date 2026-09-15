@@ -1299,6 +1299,7 @@ bool dxfRW::read(DRW_Interface *interface_, bool ext){
             reader = std::make_unique<dxfReaderBinaryR12>(&filestr);
         else
             reader = std::make_unique<dxfReaderBinary>(&filestr);
+        reader->setRecordBudget(m_dxfReadRecordBudget);
         DRW_DBG("dxfRW::read binary file\n");
     } else {
         binFile = false;
@@ -1306,6 +1307,7 @@ bool dxfRW::read(DRW_Interface *interface_, bool ext){
         if (!filestr.is_open() || !filestr.good())
             return setError(DRW::BAD_OPEN);
         reader = std::make_unique<dxfReaderAscii>(&filestr);
+        reader->setRecordBudget(m_dxfReadRecordBudget);
     }
     reader->setClassifierProfile(
         m_useTargetLegacyClassifier
@@ -1345,6 +1347,7 @@ bool dxfRW::readAscii(DRW_Interface *interface_, bool ext, std::string& content)
     iface = interface_;
     std::istringstream strstream(content);
     reader = std::make_unique<dxfReaderAscii>(&strstream);
+    reader->setRecordBudget(m_dxfReadRecordBudget);
     reader->setClassifierProfile(
         m_useTargetLegacyClassifier
             ? DxfClassifierProfile::LibreCadMasterLegacy
@@ -8004,6 +8007,8 @@ bool dxfRW::processDxf() {
 
                     if (!processed) {
                         DRW_DBG("  failed\n");
+                        if (failDxfReadBudget())
+                            return false;
                         // Keep the specific section error (for example
                         // BAD_VERSION from an invalid $ACADVER) instead of
                         // replacing it with the generic section failure.
@@ -8022,6 +8027,9 @@ bool dxfRW::processDxf() {
                 break;
         }
     }
+
+    if (failDxfReadBudget())
+        return false;
 
     if (0 == code && "EOF" == reader->getString()) {
         // in case the final EOF has no newline we end up here!
@@ -16017,4 +16025,16 @@ bool dxfRW::setError(const DRW::error lastError){
     error = lastError;
     recordOperationDiagnosticForError(lastError);
     return (DRW::BAD_NONE == error);
+}
+
+bool dxfRW::failDxfReadBudget() {
+    if (reader == nullptr || !reader->recordBudgetExceeded())
+        return false;
+    recordOperationDiagnostic(
+        DRW::OperationPhase::Validation,
+        DRW::OperationCause::ResourceLimit,
+        "dxf-record-budget",
+        "the aggregate DXF read-record budget was exhausted");
+    setError(DRW::BAD_CODE_PARSED);
+    return true;
 }

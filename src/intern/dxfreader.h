@@ -13,10 +13,12 @@
 #ifndef DXFREADER_H
 #define DXFREADER_H
 
+#include <cstddef>
 #include <cstdint>
 #include <unordered_set>
 
 #include "dxfcode.h"
+#include "dxfparserlimits.h"
 #include "drw_textcodec.h"
 
 class dxfReader {
@@ -38,6 +40,18 @@ public:
     }
     virtual ~dxfReader() = default;
     bool readRec(int *code);
+
+    /// Bound the aggregate number of physical records consumed by this
+    /// reader. The budget is reset by constructing a reader for each public
+    /// operation; zero rejects the first record. This is a resource ceiling,
+    /// not a DXF semantic limit.
+    void setRecordBudget(std::size_t budget) noexcept {
+        m_recordBudget = budget;
+    }
+    std::size_t recordCount() const noexcept { return m_recordCount; }
+    bool recordBudgetExceeded() const noexcept {
+        return m_recordBudgetExceeded;
+    }
 
     std::string getString() {return strData;}
     const std::string& getRawValue() const { return rawData; }
@@ -115,6 +129,9 @@ private:
     std::uint64_t m_currentSelfHandle {0};
     bool m_currentSelfHandleRegistered {false};
     int m_lastInvalidHandleCode {0};
+    std::size_t m_recordBudget {DRW::kDefaultDxfReadRecordBudget};
+    std::size_t m_recordCount {0};
+    bool m_recordBudgetExceeded {false};
 };
 
 class dxfReaderBinary : public dxfReader {

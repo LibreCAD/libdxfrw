@@ -92,8 +92,20 @@ bool dxfReader::readRec(int *codeData) {
     invalidateRecord();
 
     // Comments are ignored only after the first SECTION marker. Skip a run
-    // iteratively so hostile input cannot grow the call stack.
+    // iteratively so hostile input cannot grow the call stack. Count each
+    // physical record before decoding its value so ignored comments cannot
+    // evade the aggregate work ceiling.
+    const auto consumeRecordBudget = [this]() {
+        if (m_recordCount >= m_recordBudget) {
+            m_recordBudgetExceeded = true;
+            return false;
+        }
+        ++m_recordCount;
+        return true;
+    };
     do {
+        if (!consumeRecordBudget())
+            return false;
         if (!readCode(&code))
             return false;
         if (code != 999 || !m_bIgnoreComments)

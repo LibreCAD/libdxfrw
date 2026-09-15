@@ -115,6 +115,21 @@ public:
     void setDxfCompatibilityProfile(DxfCompatibilityProfile profile) noexcept;
     /** Return the currently selected DXF compatibility profile. */
     DxfCompatibilityProfile dxfCompatibilityProfile() const noexcept;
+    /**
+     * Set the aggregate record ceiling for each subsequent DXF read.
+     *
+     * The default is a resource limit of four million physical records, not a
+     * DXF semantic maximum. Set zero to reject the first record; callers that
+     * intentionally process larger inputs may raise the limit. The setting is
+     * applied independently to each file-backed or in-memory read session.
+     */
+    void setDxfReadRecordBudget(std::size_t maxRecords) noexcept {
+        m_dxfReadRecordBudget = maxRecords;
+    }
+    /** Return the aggregate record ceiling used by subsequent DXF reads. */
+    std::size_t dxfReadRecordBudget() const noexcept {
+        return m_dxfReadRecordBudget;
+    }
     /// reads the file specified in constructor
     /*!
      * An interface must be provided. It is used by the class to signal various
@@ -618,6 +633,7 @@ private:
     bool writeTableEntryAppData(const DRW_TableEntry& entry);
 
     bool setError(const DRW::error lastError);
+    bool failDxfReadBudget();
 
     void beginOperationDiagnostic(DRW::OperationKind kind);
     void recordOperationDiagnostic(DRW::OperationPhase phase,
@@ -642,6 +658,8 @@ private:
     std::string fileName;
     std::string codePage;
     bool binFile {false};
+    std::size_t m_dxfReadRecordBudget {
+        4u * 1024u * 1024u};
     std::unique_ptr<dxfReader> reader;
     std::unique_ptr<dxfWriter> writer;
     DRW_Interface *iface {nullptr};
