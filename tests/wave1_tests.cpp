@@ -307,7 +307,8 @@ void testDxfClassifierProfileProbe(TestContext& t) {
     std::stringstream captureRecords("5\n1A\n260\n7\n482\n3.5\n");
     std::ostringstream replayBytes;
     dxfRW owner("");
-    owner.m_useTargetLegacyClassifier = true;
+    owner.setDxfCompatibilityProfile(
+        dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy);
     owner.version = DRW::AC1027;
     owner.binFile = false;
     owner.reader = std::make_unique<dxfReaderAscii>(&captureRecords);
@@ -358,7 +359,8 @@ void testDxfBinaryLegacyProfileReplay(TestContext& t) {
 
     std::ostringstream legacyBytes;
     dxfRW legacyOwner("");
-    legacyOwner.m_useTargetLegacyClassifier = true;
+    legacyOwner.setDxfCompatibilityProfile(
+        dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy);
     legacyOwner.version = DRW::AC1027;
     legacyOwner.binFile = true;
     legacyOwner.writer = std::make_unique<dxfWriterBinary>(&legacyBytes);
@@ -390,7 +392,8 @@ void testDxfBinaryLegacyProfileReplay(TestContext& t) {
         DRW_Variant(482, 3.5)};
     std::ostringstream sectionBytes;
     dxfRW sectionOwner("");
-    sectionOwner.m_useTargetLegacyClassifier = true;
+    sectionOwner.setDxfCompatibilityProfile(
+        dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy);
     sectionOwner.version = DRW::AC1027;
     sectionOwner.binFile = true;
     sectionOwner.writer = std::make_unique<dxfWriterBinary>(&sectionBytes);
@@ -427,6 +430,9 @@ void testDxfFacadeClassifierProfile(TestContext& t) {
 
     ProfileProbeInterface safeInterface;
     dxfRW safeOwner("");
+    t.expect(safeOwner.dxfCompatibilityProfile()
+                 == dxfRW::DxfCompatibilityProfile::StandaloneSafe,
+             "DXF facade defaults to standalone-safe compatibility profile");
     std::string safeContent = content;
     t.expect(safeOwner.readAscii(&safeInterface, false, safeContent),
              "safe profile reaches DXF facade raw section");
@@ -440,7 +446,11 @@ void testDxfFacadeClassifierProfile(TestContext& t) {
 
     ProfileProbeInterface legacyInterface;
     dxfRW legacyOwner("");
-    legacyOwner.m_useTargetLegacyClassifier = true;
+    legacyOwner.setDxfCompatibilityProfile(
+        dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy);
+    t.expect(legacyOwner.dxfCompatibilityProfile()
+                 == dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy,
+             "DXF facade legacy profile is explicit and observable");
     std::string legacyContent = content;
     t.expect(legacyOwner.readAscii(&legacyInterface, false, legacyContent),
              "legacy profile reaches DXF facade raw section");

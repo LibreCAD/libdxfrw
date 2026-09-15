@@ -119,17 +119,17 @@
     },
     {
       "path": "src/libdxfrw.cpp",
-      "reason": "Route raw DXF capture and replay through canonical or explicitly selected classifier profiles, preserve null/error compatibility, instrument stage-aware operation diagnostics, and ignore inactive HATCH gradient carriers while retaining active-gradient validation.",
+      "reason": "Route raw DXF capture and replay through canonical or explicitly selected classifier profiles, expose an additive public compatibility-profile opt-in, preserve null/error compatibility, instrument stage-aware operation diagnostics, and ignore inactive HATCH gradient carriers while retaining active-gradient validation.",
       "scope": "DXF classifier correctness",
       "targetBlob": "71851fcf8d5636080c83f2eb1af4a8ef5a80e0ef",
-      "adaptedSha256": "01526a14dd8ddca3121ab2b5dabe5679b9fb702a8c0ff6b2c3055950fa833d16"
+      "adaptedSha256": "2dab0dd49ca8b8d8c3a72dd6efb6a0b0825f0ea8ae1f562957dddc237012546c"
     },
     {
       "path": "src/libdxfrw.h",
-      "reason": "Expose the structured operation-diagnostic snapshot while preserving the legacy dxfRW error and version API, and retain an internal classifier-profile switch for raw replay probes.",
+      "reason": "Expose the structured operation-diagnostic snapshot while preserving the legacy dxfRW error and version API, and add an explicit public DXF compatibility-profile opt-in while retaining a safe default.",
       "scope": "diagnostic compatibility",
       "targetBlob": "8e2af88800c1af341a14982340a9648b07a5890f",
-      "adaptedSha256": "b08bfb2bec4f0e7cfd7872dea673ad62d0e0c3c277b76961528ff860e26e72d5"
+      "adaptedSha256": "9372e2b61261f755eefe0549a839f66d3e6c3f83f1c17ffd82dee00244c75691"
     },
     {
       "path": "src/intern/drw_dbg.cpp",

@@ -1231,6 +1231,18 @@ void dxfRW::setDebug(DRW::DebugLevel lvl){
     }
 }
 
+void dxfRW::setDxfCompatibilityProfile(
+    DxfCompatibilityProfile profile) noexcept {
+    m_useTargetLegacyClassifier =
+        profile == DxfCompatibilityProfile::LibreCadMasterLegacy;
+}
+
+dxfRW::DxfCompatibilityProfile dxfRW::dxfCompatibilityProfile() const noexcept {
+    return m_useTargetLegacyClassifier
+        ? DxfCompatibilityProfile::LibreCadMasterLegacy
+        : DxfCompatibilityProfile::StandaloneSafe;
+}
+
 bool dxfRW::read(DRW_Interface *interface_, bool ext){
     beginOperationDiagnostic(DRW::OperationKind::Read);
     drw_assert(fileName.empty() == false);

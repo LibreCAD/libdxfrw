@@ -89,6 +89,15 @@ public:
 
 class dxfRW {
 public:
+    // The standalone-safe classifier is the default. LibreCAD's pinned
+    // bundled fork uses legacy widths for the disputed 260-269 and 482-998
+    // ranges; downstream adapters migrating from that fork may opt in
+    // explicitly without changing existing callers' behavior.
+    enum class DxfCompatibilityProfile : std::uint8_t {
+        StandaloneSafe,
+        LibreCadMasterLegacy
+    };
+
     dxfRW(const char* name);
     dxfRW(const dxfRW&) = delete;
     dxfRW& operator=(const dxfRW&) = delete;
@@ -96,6 +105,8 @@ public:
     dxfRW& operator=(dxfRW&&) = delete;
     ~dxfRW();
     void setDebug(DRW::DebugLevel lvl);
+    void setDxfCompatibilityProfile(DxfCompatibilityProfile profile) noexcept;
+    DxfCompatibilityProfile dxfCompatibilityProfile() const noexcept;
     /// reads the file specified in constructor
     /*!
      * An interface must be provided. It is used by the class to signal various
