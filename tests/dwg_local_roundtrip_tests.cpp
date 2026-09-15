@@ -3021,12 +3021,99 @@ public:
     }
     void addPlotSettings(const DRW_PlotSettings* data) override {
         if (data != nullptr && data->handle == 0xA603u)
-            readPlotSettingsSeen_ = data->parentHandle == 0xA601u;
+            readPlotSettingsSeen_ = data->parentHandle == 0xA601u
+                && data->pageSetupName == "LOCAL_PAGE"
+                && data->printerConfig == "LOCAL_PRINTER"
+                && data->plotLayoutFlags == 1
+                && data->marginLeft == 1.0
+                && data->marginBottom == 2.0
+                && data->marginRight == 3.0
+                && data->marginTop == 4.0
+                && data->paperWidth == 210.0
+                && data->paperHeight == 297.0
+                && data->paperSize == "A4"
+                && data->plotOriginX == 0.0
+                && data->plotOriginY == 0.0
+                && data->paperUnits == 1
+                && data->plotRotation == 0
+                && data->plotType == 0
+                && data->windowMinX == -10.0
+                && data->windowMinY == -20.0
+                && data->windowMaxX == 10.0
+                && data->windowMaxY == 20.0
+                && (expectedVersion_ >= DRW::AC1012
+                        && expectedVersion_ <= DRW::AC1015
+                    ? data->plotViewName == "LOCAL_VIEW"
+                    : data->plotViewName.empty())
+                && data->realWorldUnits == 1.0
+                && data->drawingUnits == 1.0
+                && data->currentStyleSheet == "LOCAL_STYLE"
+                && data->scaleType == 1
+                && data->scaleFactor == 1.0
+                && data->paperImageOriginX == 0.0
+                && data->paperImageOriginY == 0.0
+                && data->shadePlotMode == (expectedVersion_ >= DRW::AC1018
+                    ? 1 : 0)
+                && data->shadePlotResLevel == (expectedVersion_ >= DRW::AC1018
+                    ? 2 : 0)
+                && data->shadePlotCustomDPI == (expectedVersion_ >= DRW::AC1018
+                    ? 300 : 0);
     }
     void addLayout(const DRW_Layout& data) override {
         if (data.handle == 0xA700u)
             readLayoutSeen_ = data.name == "LOCAL_LAYOUT"
-                && data.parentHandle == 0xA601u;
+                && data.parentHandle == 0xA601u
+                && data.pageSetupName == "LOCAL_LAYOUT_PAGE"
+                && data.printerConfig == "LOCAL_LAYOUT_PRINTER"
+                && data.plotLayoutFlags == 0
+                && data.marginLeft == 1.0
+                && data.marginBottom == 2.0
+                && data.marginRight == 3.0
+                && data.marginTop == 4.0
+                && data.paperWidth == 210.0
+                && data.paperHeight == 297.0
+                && data.paperSize == "A4"
+                && data.plotOriginX == 0.0
+                && data.plotOriginY == 0.0
+                && data.paperUnits == 0
+                && data.plotRotation == 0
+                && data.plotType == 0
+                && data.windowMinX == 0.0
+                && data.windowMinY == 0.0
+                && data.windowMaxX == 0.0
+                && data.windowMaxY == 0.0
+                // The local LAYOUT writer leaves the legacy plot-view name
+                // unset; newer versions omit it from the body altogether.
+                && data.plotViewName.empty()
+                && data.realWorldUnits == 1.0
+                && data.drawingUnits == 1.0
+                && data.currentStyleSheet.empty()
+                && data.scaleType == 0
+                && data.scaleFactor == 1.0
+                && data.paperImageOriginX == 0.0
+                && data.paperImageOriginY == 0.0
+                && data.shadePlotMode == 0
+                && data.shadePlotResLevel == 0
+                && data.shadePlotCustomDPI == 0
+                && data.tabOrder == 1
+                && data.layoutFlags == 1
+                && data.ucsOrigin.x == 0.0 && data.ucsOrigin.y == 0.0
+                && data.ucsOrigin.z == 0.0
+                && data.limMinX == 0.0 && data.limMinY == 0.0
+                && data.limMaxX == 0.0 && data.limMaxY == 0.0
+                && data.insPoint.x == 0.0 && data.insPoint.y == 0.0
+                && data.insPoint.z == 0.0
+                && data.ucsXAxis.x == 1.0 && data.ucsXAxis.y == 0.0
+                && data.ucsXAxis.z == 0.0
+                && data.ucsYAxis.x == 0.0 && data.ucsYAxis.y == 1.0
+                && data.ucsYAxis.z == 0.0
+                && data.elevation == 0.0
+                && data.orthoViewType == 0
+                && data.extMin.x == 0.0 && data.extMin.y == 0.0
+                && data.extMin.z == 0.0
+                && data.extMax.x == 100.0 && data.extMax.y == 100.0
+                && data.extMax.z == 0.0
+                && data.viewportCount == 0;
     }
     void addMLineStyle(const DRW_MLineStyle& data) override {
         if (data.handle == 0xA800u)
