@@ -52,10 +52,10 @@ then pin an immutable commit before importing source.
 ### Execution refresh (2026-09-15)
 
 The implementation worktree is rebased on `origin/master` and is currently
-175 commits ahead with no commits behind it. The latest green slice is
-S148/J124, including the live-plan update and its required policy gates.
-S149/J125 is the active slice; its source-tree path guard is the next commit
-boundary.
+176 commits ahead with no commits behind it. The latest green slice is
+S149/J125, including the live-plan update and its required policy gates.
+S150/J126 is the active slice; its package-root identity guard is the next
+commit boundary.
 The worktree is clean at the last committed boundary; any subsequent active-
 slice edits are intentionally uncommitted until their narrow gate and
 status-bearing plan transition are green.
@@ -1934,21 +1934,21 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint (2026-09-15): S148/J124 negative relocation-path guards
-  are committed; S149/J125 source-tree path guards are active.
+- Current checkpoint (2026-09-15): S149/J125 source-tree path guards are
+  committed; S150/J126 package-root identity guards are active.
   The
   branch is rebased on `origin/master`, and
   the pinned source/package/consumer convergence remains complete while
   runtime and wire-format parity stay evidence-gated. The AC1015 IMAGE legacy
   boundary remains fail-closed, and all format-support claims remain limited
   to rows with eligible runtime/oracle evidence. The next dependency-ready
-  sequence is S149 source-tree path guards; it is a separate commit
+  sequence is S150 package-root identity guards; it is a separate commit
   with no external or derived DWG/DXF bytes.
-- Latest implementation slice: S148/J124 negative relocation-path guards are
-  committed. Text-only self-tests inject both `/usr/local` and the original
-  staged prefix into synthetic CMake metadata; the export checker rejects each
-  stale path while the clean `_IMPORT_PREFIX` case remains green. No external
-  or derived drawing bytes are retained.
+- Latest implementation slice: S149/J125 source-tree path guards are
+  committed. Fast self-tests inject the repository source path into synthetic
+  CMake metadata and compiler flags; staged-path checks reject each fallback
+  while clean paths remain green. No external or derived drawing bytes are
+  retained.
 - Latest implementation slice: S54/J30 VISUALSTYLE object-family parity is
   committed. The local-from-scratch production writer registers the custom
   class before CLASSES, emits bounded visual-style payloads for all six
@@ -2784,9 +2784,9 @@ edit this block or commit the same slice concurrently.
   names TVDEVICEPROPERTIES and the two VX frames as UNKNOWN_OBJ, while local
   self-read remains authoritative for VX payload fields; no generated drawings
   or external assets are retained.
-- Last fully resolved slice: S148 (the negative relocation-path slice is
-  committed by the matching `Plan-Slice: S148` trailer; the commit carries
-  fail-closed synthetic metadata evidence and
+- Last fully resolved slice: S149 (the source-tree path slice is committed by
+  the matching `Plan-Slice: S149` trailer; the commit carries fail-closed
+  metadata/flag evidence and
   all required policy gates). The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
@@ -2808,18 +2808,18 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 148 (`COMMITTED`); S149 is active.
+- Resolved slices: 149 (`COMMITTED`); S150 is active.
 - Slice states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 148 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 149 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 150 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 151 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 246 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 247 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 133 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S148 are committed; S149/J125 is active with a ready packet
-  naming source-tree path guards and focused fast gates.
+  0 DEFERRED_EXTERNAL / 134 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S149 are committed; S150/J126 is active with a ready packet
+  naming package-root identity guards and focused fast gates.
   Keep validation fast and
   self-updating: run source/plan/policy checks and the focused carrier target
   after each implementation item, commit only after the narrow gate is green,
@@ -3016,7 +3016,8 @@ edit this block or commit the same slice concurrently.
 | S146 | J122: CMake export relocation checks | S145 | COMMITTED | relocatable CMake export; source-tree absence; installed include root; pkg-config parity; fast package gate; plan/scope/sync/fixture gates | checker scans every installed target/config file, requires `_IMPORT_PREFIX`-relative include/library paths, rejects source-tree, staged-prefix, and `/usr/local` leakage, and self-tests fail-closed behavior; no external DXF bytes | two-prefix staged export scan and consumer check, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S147 is active |
 | S147 | J123: relocated staged-consumer smoke | S146 | COMMITTED | relocated CMake/pkg-config consumer; copied-prefix independence; profile API link behavior; fast package gate; plan/scope/sync/fixture gates | checker copies a clean staged install to a distinct temporary root and compiles/links minimal CMake/pkg-config profile consumers there, proving no original prefix or source-tree fallback; no external DXF bytes | one-prefix relocation smoke, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S148 is active |
 | S148 | J124: negative relocation-path guard | S147 | COMMITTED | fail-closed copied-prefix metadata; stale-root rejection; fast package self-test; plan/scope/sync/fixture gates | text-only self-tests inject an original-prefix/system path into synthetic copied-install metadata and prove the relocation checker rejects both while the clean path remains green; no external DXF bytes | relocation-negative self-test, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S149 is active |
-| S149 | J125: source-tree path guard | S148 | ACTIVE | fail-closed source-tree rejection; staged flag isolation; fast package self-test; plan/scope/sync/fixture gates | inject the repository source path into synthetic CMake/pkg-config metadata and compiler flags and prove the checker rejects it without external DXF bytes | active after S148 commit; use text-only path-guard self-tests and policy gates, escalating only if source-tree fallback is accepted |
+| S149 | J125: source-tree path guard | S148 | COMMITTED | fail-closed source-tree rejection; staged flag isolation; fast package self-test; plan/scope/sync/fixture gates | fast self-tests inject the repository source path into synthetic CMake metadata and compiler flags and prove the checker rejects each fallback; no external DXF bytes | source-tree-negative self-test, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S150 is active |
+| S150 | J126: package-root identity guard | S149 | ACTIVE | pkg-config prefix/flag identity; alternate-root rejection; fast package self-test; plan/scope/sync/fixture gates | construct clean and mismatched synthetic pkg-config flag sets and prove include/library paths always resolve to the declared staged root; no external DXF bytes | active after S149 commit; use text-only root-identity self-tests and policy gates, escalating only if mismatched roots are accepted |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3169,7 +3170,8 @@ edit this block or commit the same slice concurrently.
 | J122 | S146 | J121 | COMMITTED | EXPERIMENTAL | Prove CMake exports are relocatable and source-tree independent while matching pkg-config installed roots | complete target/config export scan, staged consumer check, fail-closed self-test, and no-fixture evidence |
 | J123 | S147 | J122 | COMMITTED | EXPERIMENTAL | Prove copied-prefix CMake/pkg-config consumers remain independent of the original install and source tree | one relocated-prefix CMake/pkg-config smoke run, profile link check, and no-fixture evidence |
 | J124 | S148 | J123 | COMMITTED | EXPERIMENTAL | Prove copied-install metadata rejects stale original-prefix and system paths while retaining a clean relocation pass | synthetic metadata negative tests, clean-path self-test, and no-fixture evidence |
-| J125 | S149 | J124 | ACTIVE | EXPERIMENTAL | Prove source-tree paths cannot re-enter staged CMake/pkg-config metadata or compiler flags | active packet names source-tree metadata/flag negative tests, clean-path self-test, and no-fixture evidence |
+| J125 | S149 | J124 | COMMITTED | EXPERIMENTAL | Prove source-tree paths cannot re-enter staged CMake/pkg-config metadata or compiler flags | source-tree metadata/flag negative tests, clean-path self-test, and no-fixture evidence |
+| J126 | S150 | J125 | ACTIVE | EXPERIMENTAL | Prove pkg-config include/library flags and reported prefix identify one staged root, rejecting alternate roots | active packet names synthetic root-identity tests, clean-path self-test, and no-fixture evidence |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -3429,7 +3431,8 @@ edit this block or commit the same slice concurrently.
 | J122.1 | J122 / S146 | WP4, WP5, WP6, WP8, WP10; CMake export relocation checks | J121 | COMMITTED | EXPERIMENTAL | scan every installed CMake target/config file for relocatable `_IMPORT_PREFIX` paths and source-tree/prefix/system leakage without external drawing bytes | focused export-relocation target and policy gates pass; no external or derived DXF bytes are retained |
 | J123.1 | J123 / S147 | WP4, WP5, WP6, WP8, WP10; relocated staged-consumer smoke | J122 | COMMITTED | EXPERIMENTAL | copy a clean staged install to a distinct temporary root and compile/link the minimal CMake/pkg-config profile consumer without external drawing bytes | focused relocated-consumer target and policy gates pass; no external or derived DXF bytes are retained |
 | J124.1 | J124 / S148 | WP4, WP5, WP6, WP8, WP10; negative relocation-path guard | J123 | COMMITTED | EXPERIMENTAL | inject original-prefix/system paths into synthetic CMake metadata and prove the checker fails closed without external drawing bytes | focused relocation-negative target and policy gates pass; no external or derived DXF bytes are retained |
-| J125.1 | J125 / S149 | WP4, WP5, WP6, WP8, WP10; source-tree path guard | J124 | ACTIVE | EXPERIMENTAL | inject source-tree paths into synthetic package metadata and compiler flags and prove the checker fails closed without external drawing bytes | focused source-tree-negative target and policy gates pass; no external or derived DXF bytes are retained |
+| J125.1 | J125 / S149 | WP4, WP5, WP6, WP8, WP10; source-tree path guard | J124 | COMMITTED | EXPERIMENTAL | inject source-tree paths into synthetic package metadata and compiler flags and prove the checker fails closed without external drawing bytes | focused source-tree-negative target and policy gates pass; no external or derived DXF bytes are retained |
+| J126.1 | J126 / S150 | WP4, WP5, WP6, WP8, WP10; package-root identity guard | J125 | ACTIVE | EXPERIMENTAL | construct clean and mismatched synthetic pkg-config flag sets and prove alternate roots are rejected without external drawing bytes | focused root-identity target and policy gates pass; no external or derived DXF bytes are retained |
 
 <!-- UPGRADE_PROGRESS_END -->
 

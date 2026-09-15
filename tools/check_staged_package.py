@@ -63,12 +63,18 @@ def self_test_staged_flags() -> None:
     assert_staged_flags(
         ["-I" + str(prefix / "include"), "-L" + str(prefix / "lib"),
          "-ldxfrw"], prefix)
-    try:
-        assert_staged_flags(["-I/usr/local/include", "-L/usr/local/lib"],
-                            prefix)
-    except RuntimeError:
-        return
-    raise RuntimeError("staged pkg-config path guard accepted system paths")
+    source_root = Path(__file__).resolve().parents[1]
+    for stale_flags in (
+        ["-I/usr/local/include", "-L/usr/local/lib"],
+        ["-I" + str(source_root / "src"), "-L" + str(source_root / "build")],
+    ):
+        try:
+            assert_staged_flags(stale_flags, prefix)
+        except RuntimeError:
+            continue
+        raise RuntimeError(
+            "staged pkg-config path guard accepted non-staged paths: %s"
+            % stale_flags)
 
 
 def assert_profile_symbols(prefix: Path) -> None:
@@ -147,7 +153,8 @@ def self_test_relocatable_cmake_export() -> None:
         (config_root / "libdxfrwConfigVersion.cmake").write_text(
             "set(PACKAGE_VERSION \"2.0.0\")\n", encoding="utf-8")
         assert_relocatable_cmake_export(prefix)
-        for stale_path in ("/usr/local/libdxfrw", str(prefix)):
+        source_root = str(Path(__file__).resolve().parents[1])
+        for stale_path in ("/usr/local/libdxfrw", str(prefix), source_root):
             (config_root / "libdxfrwConfigVersion.cmake").write_text(
                 "set(PACKAGE_VERSION \"%s\")\n" % stale_path,
                 encoding="utf-8")
