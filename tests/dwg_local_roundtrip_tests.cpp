@@ -1881,6 +1881,47 @@ public:
                 && invalidShape.handle == 0xF401u;
         }
 
+        if (expectedVersion_ < DRW::AC1018) {
+            wroteMLine_ = false;
+            rejectedMalformedMLine_ = true;
+        } else {
+            DRW_MLine mline;
+            mline.handle = 0xF500u;
+            mline.scale = 1.5;
+            mline.justification = 1;
+            mline.basePoint = DRW_Coord(101.0, 102.0, 103.0);
+            mline.extPoint = DRW_Coord(0.0, 0.0, 1.0);
+            mline.openClosed = 1;
+            mline.numLines = 1;
+            mline.numVerts = 2;
+            mline.styleHandle = 0xA800u;
+            mline.styleName = "LOCAL_MLINESTYLE";
+            DRW_MLineVertex first;
+            first.position = DRW_Coord(104.0, 105.0, 106.0);
+            first.vertexDir = DRW_Coord(1.0, 0.0, 0.0);
+            first.miterDir = DRW_Coord(0.0, 1.0, 0.0);
+            first.segParms = {{0.5}};
+            first.areaFillParms = {{0.25}};
+            mline.vertlist.push_back(first);
+            DRW_MLineVertex second = first;
+            second.position = DRW_Coord(107.0, 108.0, 109.0);
+            mline.vertlist.push_back(second);
+            wroteMLine_ = writer_->writeMLine(&mline)
+                && mline.handle == 0xF500u;
+            DRW_MLine invalidMLine = mline;
+            invalidMLine.handle = 0xF501u;
+            invalidMLine.scale = std::numeric_limits<double>::quiet_NaN();
+            const bool rejectedNonFinite = !writer_->writeMLine(&invalidMLine)
+                && invalidMLine.handle == 0xF501u;
+            DRW_MLine countMismatchMLine = mline;
+            countMismatchMLine.handle = 0xF502u;
+            countMismatchMLine.numVerts = 1;
+            const bool rejectedCountMismatch =
+                !writer_->writeMLine(&countMismatchMLine)
+                && countMismatchMLine.handle == 0xF502u;
+            rejectedMalformedMLine_ = rejectedNonFinite && rejectedCountMismatch;
+        }
+
         DRW_Hatch hatch;
         hatch.name = "SOLID";
         hatch.solid = 1;
@@ -2215,6 +2256,31 @@ public:
                 && data.m_extrusion.z == 1.0
                 && data.m_shapeFileHandle == DRW::DwgStandardTextStyleHandle
                 && data.m_styleName == "STANDARD";
+    }
+    void addMLine(const DRW_MLine* data) override {
+        if (data == nullptr || data->handle != 0xF500u)
+            return;
+        readMLineSeen_ = expectedVersion_ >= DRW::AC1018
+            && data->scale == 1.5
+            && data->justification == 1
+            && data->basePoint.x == 101.0
+            && data->basePoint.y == 102.0
+            && data->basePoint.z == 103.0
+            && data->numLines == 1
+            && data->numVerts == 2
+            && data->styleHandle == 0xA800u
+            // Entities are published before OBJECTS, so the optional style
+            // name lookup is unavailable during the normal DWG read pass.
+            // Accept the unresolved name while requiring the stable handle.
+            && (data->styleName.empty()
+                || data->styleName == "LOCAL_MLINESTYLE")
+            && data->vertlist.size() == 2
+            && data->vertlist[0].position.x == 104.0
+            && data->vertlist[1].position.z == 109.0
+            && data->vertlist[0].segParms.size() == 1
+            && data->vertlist[0].segParms[0].size() == 1
+            && data->vertlist[0].segParms[0][0] == 0.5
+            && data->vertlist[0].areaFillParms[0][0] == 0.25;
     }
     void addHatch(const DRW_Hatch*) override { readHatchSeen_ = true; }
     void addLeader(const DRW_Leader*) override { readLeaderSeen_ = true; }
@@ -3265,6 +3331,9 @@ public:
     bool wroteShape() const { return wroteShape_; }
     bool rejectedMalformedShape() const { return rejectedMalformedShape_; }
     bool readShapeSeen() const { return readShapeSeen_; }
+    bool wroteMLine() const { return wroteMLine_; }
+    bool rejectedMalformedMLine() const { return rejectedMalformedMLine_; }
+    bool readMLineSeen() const { return readMLineSeen_; }
     bool readPointCloudSeen() const { return readPointCloudSeen_; }
     bool readPointCloudExSeen() const { return readPointCloudExSeen_; }
     bool readHatchSeen() const { return readHatchSeen_; }
@@ -3514,6 +3583,8 @@ private:
     bool rejectedMalformedGeoPositionMarker_ {false};
     bool wroteShape_ {false};
     bool rejectedMalformedShape_ {false};
+    bool wroteMLine_ {false};
+    bool rejectedMalformedMLine_ {false};
     bool wrotePointCloud_ {false};
     bool wrotePointCloudEx_ {false};
     bool rejectedMalformedPointCloudEntity_ {false};
@@ -3723,6 +3794,7 @@ private:
     bool readCameraSeen_ {false};
     bool readGeoPositionMarkerSeen_ {false};
     bool readShapeSeen_ {false};
+    bool readMLineSeen_ {false};
     bool readPointCloudSeen_ {false};
     bool readPointCloudExSeen_ {false};
     bool readHatchSeen_ {false};
@@ -3919,6 +3991,13 @@ int main(int argc, char** argv) {
                ("local DWG SHAPE capability gate" + suffix).c_str(), failures);
         expect(writeIface.rejectedMalformedShape(),
                ("local DWG writer rejected malformed SHAPE transaction"
+                + suffix).c_str(), failures);
+        expect(version >= DRW::AC1018
+                   ? writeIface.wroteMLine()
+                   : !writeIface.wroteMLine(),
+               ("local DWG MLINE capability gate" + suffix).c_str(), failures);
+        expect(writeIface.rejectedMalformedMLine(),
+               ("local DWG writer rejected malformed MLINE transaction"
                 + suffix).c_str(), failures);
         expect(version > DRW::AC1018
                    ? writeIface.wrotePointCloud()
@@ -4241,6 +4320,11 @@ int main(int argc, char** argv) {
                    ? readIface.readShapeSeen()
                    : !readIface.readShapeSeen(),
                ("local DWG self-read SHAPE capability gate" + suffix).c_str(),
+               failures);
+        expect(version >= DRW::AC1018
+                   ? readIface.readMLineSeen()
+                   : !readIface.readMLineSeen(),
+               ("local DWG self-read MLINE capability gate" + suffix).c_str(),
                failures);
         expect(version > DRW::AC1018
                    ? readIface.readPointCloudSeen()

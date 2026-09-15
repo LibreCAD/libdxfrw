@@ -2586,7 +2586,7 @@ edit this block or commit the same slice concurrently.
   its pre-AC1021 omission is recorded as an explicit oracle limitation while
   local self-read remains authoritative. No dictionary cardinality change,
   external block asset, or generated drawing is retained.
-- Latest implementation slice: S92/J68 HELIX entity parity is committed. The
+- Earlier implementation slice: S92/J68 HELIX entity parity is committed. The
   pinned target and standalone expose the typed `DRW_Helix` model, `writeHelix`,
   `addHelix`, class 503, and the bounded SPLINE-body plus `AcDbHelix` trailer
   contract. A local-from-scratch six-version probe now publishes and
@@ -2595,7 +2595,7 @@ edit this block or commit the same slice concurrently.
   AC1015 chain exception is limited to the already-manifested optional custom
   entity classes; no external helix fixture or speculative type mapping was
   added.
-- Previous implementation slice: S93/J69 CAMERA entity parity is committed.
+- Earlier implementation slice: S93/J69 CAMERA entity parity is committed.
   Both trees expose `DRW_Camera`, class 542, `writeCamera`, `addCamera`, and
   the bounded common-entity plus optional VIEW hard-pointer contract. A fixed
   local-from-scratch camera instance now publishes through the callback and
@@ -2604,13 +2604,7 @@ edit this block or commit the same slice concurrently.
   capability gate: its legacy implicit entity chain cannot safely carry the
   class-542 frame, so no CAMERA bytes are emitted there until a compatible
   legacy layout is proven. No camera/view fixture bytes were added.
-- Active implementation slice: S94/J70 GEOPOSITIONMARKER entity parity is
-  selected from the pinned target/source inventory. Both trees expose the
-  typed marker model, `writeGeoPositionMarker`, `addGeoPositionMarker`, and a
-  version-gated AC1027+ body with an optional embedded MText payload. The
-  first slice is bounded to the non-embedded marker body and malformed rollback
-  using local-from-scratch values; no marker or MText fixture bytes are added.
-- Previous implementation slice: S95/J71 SHAPE entity parity is committed.
+- Previous implementation slice: S95/J71 SHAPE entity parity is committed. The
   The typed SHAPE model, fixed DWG type 33, writer, reader dispatch, and
   `addShape` callback now round-trip one local-from-scratch standard STYLE
   reference on AC1018/AC1021/AC1024/AC1027/AC1032, with insertion/scale/
@@ -2618,6 +2612,21 @@ edit this block or commit the same slice concurrently.
   capability gate because the fixed high local handle cannot satisfy its
   legacy contiguous entity-chain contract. SHX glyph bytes remain opaque; no
   SHX or drawing fixture was added.
+- Previous implementation slice: S94/J70 GEOPOSITIONMARKER entity parity is
+  committed. The typed marker model and version-gated AC1027+ body now
+  round-trip one non-embedded local marker, with a fixed type-1164 reader route
+  for the target's unused CLASSES ordinal and a finite-value writer guard. The
+  pre-AC1027 omission is explicit; no marker or MText fixture bytes were added.
+- Latest implementation slice: S96/J72 MLINE entity parity is committed. Both
+  trees expose `DRW_MLine`, fixed DWG type 47, `writeMLine`, `addMLine`, and
+  the bounded per-vertex/per-line parameter wire contract. A local two-vertex,
+  one-line MLINE with the existing local MLINESTYLE handle now round-trips on
+  AC1018/21/24/27/32; AC1015 is an explicit fixed-high-handle capability gate.
+  The callback and independent LibreDWG oracle qualify scalar geometry,
+  per-vertex segment/area-fill arrays, and the style handle. DWG publishes
+  entities before OBJECTS, so the optional style name remains local-self-read
+  authoritative; no external style or drawing fixture is added, and malformed
+  numeric/count state rolls back transactionally.
 - Previous implementation slice: S90/J66 DIMASSOC/EVALUATION_GRAPH object parity
   is committed. The AC1021+ lane registers the target's typed classes before
   CLASSES, writes one bounded DIMASSOC with a soft dimension/reference link and
@@ -2658,33 +2667,33 @@ edit this block or commit the same slice concurrently.
   names TVDEVICEPROPERTIES and the two VX frames as UNKNOWN_OBJ, while local
   self-read remains authoritative for VX payload fields; no generated drawings
   or external assets are retained.
-- Last fully resolved slice: S94 (the GEOPOSITIONMARKER entity parity slice is committed
-  by the matching `Plan-Slice: S92` trailer; the
+- Last fully resolved slice: S96 (the MLINE entity parity slice is committed
+  by the matching `Plan-Slice: S96` trailer; the
   commit carries implementation, oracle evidence, and live-plan state).
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Previous fully resolved slice: S93 (the CAMERA entity parity slice is committed
-  parity slice is committed by the matching `Plan-Slice: S91` trailer; the
-  commit carries implementation and independent object-oracle evidence).
+- Previous fully resolved slice: S95 (the SHAPE entity parity slice is committed
+  by the matching `Plan-Slice: S95` trailer; the
+  commit carries implementation, oracle evidence, and live-plan state).
   The target integration commit remains
-  `6969e0a003414f9a7084349ac54bc2b32515e16b`; the next lane must be selected
-  from fresh target/source evidence rather than assumed from stale ordering.
-- Resolved slices: 95 (`COMMITTED`).
+  `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
+  terminal only when their recorded gates pass.
+- Resolved slices: 96 (`COMMITTED`); no slice is active.
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 95 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 96 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 95 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 96 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 4 VERIFIED / 192 COMMITTED; no child is anonymous.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 4 VERIFIED / 193 COMMITTED; no child is anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 34 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S95 are committed; no slice is currently active. S95's
-  gates self-unblocked the next lane: select it from fresh target/source
-  evidence before activation, and keep the fast-test cadence plus fixture,
-  import-scope, sync, and plan gates attached to its commit. The AC1015 SHAPE
-  boundary is explicit; revisit it only with a safe low-handle route or an
-  authoritative legacy sample.
+- Active work: S01-S96 are committed and no slice is active. S96/J72 is
+  self-unblocked by its focused six-version round-trip, live LibreDWG oracle,
+  fixture/import-scope/sync/plan/diff gates, and explicit AC1015 capability
+  disposition. The next lane must be selected from fresh target/source
+  evidence; continue the same self-updating state transition after each
+  implementation item and commit.
   S76 records the explicit AC1015 image capability
   boundary and leaves newer image versions locally qualified; S77 keeps
   point-cloud payload evidence identity-only where LibreDWG is opaque.
@@ -2822,6 +2831,7 @@ edit this block or commit the same slice concurrently.
 | S93 | J69: CAMERA entity parity | S92 | COMMITTED | target/source API inventory; class-542 registration/instance bookkeeping; focused six-version local writer/self-read; mapped `addCamera` publication; bounded common-entity/view-reference fields; malformed rollback; independent oracle identity; plan/scope/sync/fixture gates | pinned target and standalone expose `DRW_Camera`, class 542, `writeCamera`, `addCamera`, and the common-entity plus optional VIEW hard-pointer encoder/parser; a fixed local instance with a null VIEW reference round-trips on AC1018/21/24/27/32, while AC1015 is explicitly gated because its legacy implicit chain cannot safely carry the class-542 frame; no VIEW table or camera fixture was added | focused six-version local writer/self-read and independent LibreDWG identity qualify callback, type 542, handle `0xEF00`, and null VIEW on AC1018+; malformed common state is rejected transactionally; AC1015 omission is reported as a capability boundary; fixture admission, import scope, target sync, plan check, and diff gates pass |
 | S94 | J70: GEOPOSITIONMARKER entity parity | S93 | COMMITTED | fresh target/source API inventory; AC1027+ capability gate; focused six-version local writer/self-read; mapped `addGeoPositionMarker` publication; bounded marker body fields; malformed rollback; independent oracle identity; plan/scope/sync/fixture gates | pinned target and standalone expose `DRW_GeoPositionMarker`, `writeGeoPositionMarker`, `addGeoPositionMarker`, and the version-gated marker encoder/parser; one fixed non-embedded marker with local position/radius/notes/alignment values now round-trips on AC1027/AC1032, while pre-AC1027 emission is explicitly gated; the fixed type-1164 reader route is adapted for the target's unused CLASSES ordinal; no embedded MText or fixture bytes | focused six-version capability matrix and oracle probe pass; callback and type/handle identity qualify on AC1027+ (LibreDWG exposes it as UNKNOWN_OBJ); malformed non-finite marker state is rejected transactionally; pre-AC1027 omission is deterministic and documented; fixture admission, import scope, target sync, plan check, and diff gates pass |
 | S95 | J71: SHAPE entity parity | S94 | COMMITTED | target/source API inventory; fixed type-33 dispatch; focused six-version local writer/self-read; mapped `addShape` publication; bounded scalar/style-reference fields; malformed rollback; independent oracle identity; plan/scope/sync/fixture gates | pinned target and standalone expose `DRW_Shape`, fixed type 33, `writeShape`, and `addShape`; one local-from-scratch SHAPE with the standard STYLE handle round-trips on AC1018/21/24/27/32, while AC1015 is explicitly gated by its legacy contiguous-chain limitation; no SHX payload/fixture | focused six-version capability matrix and independent LibreDWG oracle qualify callback scalar/insertion/extrusion/style identity and type 33/handle `0xF400`; malformed missing-style state is rejected transactionally; SHX remains opaque; fixture admission, import scope, target sync, plan check, and diff gates pass |
+| S96 | J72: MLINE entity parity | S95 | COMMITTED | fresh target/source API inventory; fixed type-47 dispatch; focused six-version local writer/self-read; mapped `addMLine` publication; bounded style/vertex/segment fields; malformed rollback; independent oracle identity; plan/scope/sync/fixture gates | pinned target and standalone expose `DRW_MLine`, fixed type 47, `writeMLine`, `addMLine`, and the per-vertex/per-line parameter encoder/parser; one local two-vertex, one-line MLINE references the existing local MLINESTYLE handle `0xA800`; AC1015 is an explicit fixed-high-handle gate, with no external style or drawing fixture | focused six-version local round-trip and CTest pass for AC1018/21/24/27/32 plus deterministic AC1015 omission; callback qualifies scalar geometry, style handle, vertices, segment/area-fill arrays, and malformed non-finite/count-mismatch rollback; LibreDWG JSON independently qualifies type 47/handle `0xF500`, style handle `0xA800`, and bounded payload; style name remains local-self-read authoritative because entities publish before OBJECTS; fixture admission, import scope, target sync, plan check, and diff gates pass |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -2921,6 +2931,7 @@ edit this block or commit the same slice concurrently.
 | J69 | S93 | J68 | COMMITTED | EXPERIMENTAL | Qualify the existing CAMERA entity writer and reader on AC1018/21/24/27/32, including class-542 identity/instance bookkeeping, common-entity framing, optional VIEW hard-pointer handling, mapped `addCamera` publication, and transaction-safe malformed-state rejection; retain an explicit AC1015 capability gate until its legacy implicit entity chain can safely carry the class-542 frame |
 | J70 | S94 | J69 | COMMITTED | EXPERIMENTAL | Qualify the existing GEOPOSITIONMARKER entity writer and reader on AC1027/32, including version-gated marker-body framing, mapped `addGeoPositionMarker` publication, bounded position/radius/notes/alignment fields, and transaction-safe malformed-state rejection; retain explicit pre-AC1027 capability gates and leave embedded MText for a follow-up |
 | J71 | S95 | J70 | COMMITTED | EXPERIMENTAL | Qualify the existing SHAPE entity writer and reader on AC1018/21/24/27/32, including fixed type-33 framing, mapped `addShape` publication, bounded scalar/insertion/extrusion fields, standard STYLE hard-pointer resolution, and transaction-safe malformed-state rejection; retain the SHX glyph stream as opaque and keep AC1015 explicitly gated by its contiguous-chain limitation |
+| J72 | S96 | J71 | COMMITTED | EXPERIMENTAL | Qualify the existing MLINE entity writer and reader across AC1015/18/21/24/27/32, including fixed type-47 framing, MLINESTYLE hard-pointer publication, bounded vertex/segment/area-fill arrays, mapped `addMLine` publication, and transaction-safe malformed-state rejection; retain the optional style-name resolution limitation caused by entity-before-OBJECTS publication order |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -3127,6 +3138,7 @@ edit this block or commit the same slice concurrently.
 | J69.1 | J69 / S93 | WP5, WP7, WP8, WP10; CAMERA | J68 | COMMITTED | EXPERIMENTAL | emit and self-read one bounded class-542 CAMERA with a null VIEW reference on AC1018/21/24/27/32, register its fixed entity instance before CLASSES, verify callback handle/reference publication plus independent type/handle identity, and reject malformed common state without publishing a frame; gate AC1015 explicitly because the legacy implicit entity chain is not safe for this frame | focused six-version capability matrix and oracle probe pass; callback and type/handle/view identity qualify on AC1018+; AC1015 omission is deterministic and documented; use no external VIEW/camera asset, keep the narrow optional-entity chain allowlist, and stage no fixture bytes |
 | J70.1 | J70 / S94 | WP5, WP7, WP8, WP10; GEOPOSITIONMARKER | J69 | COMMITTED | EXPERIMENTAL | emit and self-read one bounded non-embedded GEOPOSITIONMARKER on AC1027/32, verify callback identity and marker-body fields plus independent type/handle identity, and reject non-finite/over-limit state without publishing a frame; gate AC1015/18/21 explicitly until the versioned body is supported | focused six-version capability matrix (write/read only AC1027+), local-from-scratch values, live oracle identity where stable, no embedded MText asset and no fixture bytes; fixed type-1164 classification/dispatch and writer finite-value guard are covered, and plan, fixture, import-scope, sync, and diff gates pass |
 | J71.1 | J71 / S95 | WP5, WP7, WP8, WP10; SHAPE | J70 | COMMITTED | EXPERIMENTAL | emit and self-read one bounded SHAPE with a standard STYLE reference on AC1018/21/24/27/32, verify callback scalar/insertion/extrusion/style identity plus independent type/handle evidence, and reject non-finite or missing-style state without publishing a frame; gate AC1015 explicitly until a safe legacy handle route is proven; retain the SHX glyph stream as opaque | focused six-version capability matrix (write/read only AC1018+), LibreDWG identity, local-from-scratch values, no external SHX or drawing fixture, and fixture/import-scope/sync/plan gates pass |
+| J72.1 | J72 / S96 | WP5, WP7, WP8, WP10; MLINE | J71 | COMMITTED | EXPERIMENTAL | emit and self-read one bounded two-vertex MLINE with one local MLINESTYLE reference across AC1015/18/21/24/27/32, verify callback style-handle/vertex/parameter identity plus independent type/handle evidence, and reject non-finite or count-mismatched state without publishing a frame; accept an unresolved optional style name during the entity pass | focused six-version local round-trip and oracle probe pass; AC1015 omission is explicit, AC1018+ identity uses local MLINESTYLE handle `0xA800`, no external style/drawing fixture is committed, and fixture/import-scope/sync/plan/diff gates pass |
 
 <!-- UPGRADE_PROGRESS_END -->
 

@@ -134,6 +134,7 @@ HELIX_HANDLE = 0xEE00
 CAMERA_HANDLE = 0xEF00
 GEOPOSITIONMARKER_HANDLE = 0xF300
 SHAPE_HANDLE = 0xF400
+MLINE_HANDLE = 0xF500
 DIMASSOC_HANDLE = 0xF000
 EVALUATION_GRAPH_HANDLE = 0xF100
 BLOCKREPRESENTATIONDATA_HANDLE = 0xF200
@@ -368,6 +369,48 @@ def check_shape_entity(records: list[dict], version_name: str) -> dict:
     }
 
 
+def check_mline_entity(records: list[dict], version_name: str) -> dict:
+    """Qualify the fixed-type MLINE entity and bounded style/vertex payload."""
+    if version_name == "AC1015":
+        return {"supported": False}
+    matches = [
+        record for record in records
+        if isinstance(record, dict)
+        and record.get("entity") == "MLINE"
+        and record.get("type") == 47
+    ]
+    if len(matches) != 1:
+        raise ValueError("MLINE entity frame count mismatch")
+    mline = matches[0]
+    vertices = mline.get("verts")
+    if (record_handle(mline) != MLINE_HANDLE
+            or mline.get("scale") != 1.5
+            or mline.get("justification") != 1
+            or mline.get("base_point") != [101.0, 102.0, 103.0]
+            or mline.get("extrusion") != [0.0, 0.0, 1.0]
+            or mline.get("flags") != 1
+            or mline.get("mlinestyle") != [5, 2,
+                                             MLINESTYLE_HANDLE,
+                                             MLINESTYLE_HANDLE]
+            or not isinstance(vertices, list)
+            or len(vertices) != 2):
+        raise ValueError("MLINE identity or bounded payload mismatch")
+    for expected_position, vertex in zip(
+            ([104.0, 105.0, 106.0], [107.0, 108.0, 109.0]), vertices):
+        if (not isinstance(vertex, dict)
+                or vertex.get("vertex") != expected_position
+                or vertex.get("vertex_direction") != [1.0, 0.0, 0.0]
+                or vertex.get("miter_direction") != [0.0, 1.0, 0.0]
+                or vertex.get("lines") != [{
+                    "segparms": [0.5], "areafillparms": [0.25]}]):
+            raise ValueError("MLINE vertex or parameter payload mismatch")
+    return {
+        "supported": True, "entity": "MLINE", "type": 47,
+        "handle": MLINE_HANDLE, "style": MLINESTYLE_HANDLE,
+        "vertices": 2, "lines": 1,
+    }
+
+
 def check_express_text_entities(records: list[dict], version_name: str) -> dict:
     """Qualify RTEXT/ARCALIGNEDTEXT identity and bounded oracle payload.
 
@@ -496,6 +539,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
     camera_entity = check_camera_entity(records, version_name)
     geo_position_marker = check_geo_position_marker(records, version_name)
     shape_entity = check_shape_entity(records, version_name)
+    mline_entity = check_mline_entity(records, version_name)
     express_text_entities = check_express_text_entities(records, version_name)
     associative_objects = check_associative_objects(records, version_name)
     block_representation = check_block_representation(records, version_name)
@@ -542,6 +586,18 @@ def check_objects(payload: dict, version_name: str) -> dict:
         shape_discrepancies.append(
             "SHX glyph bytes remain opaque; SHAPE type/handle/scalar/style "
             "identity is independently qualified")
+    mline_discrepancies = []
+    if not mline_entity.get("supported"):
+        mline_discrepancies.append(
+            "MLINE emission is intentionally gated off for AC1015 because "
+            "the fixed high local handle cannot satisfy its legacy contiguous "
+            "entity-chain contract")
+    else:
+        mline_discrepancies.append(
+            "LibreDWG 0.14 qualifies MLINE type/handle, scalar geometry, "
+            "per-vertex segment/area-fill arrays, and MLINESTYLE handle; "
+            "the optional style name remains local-self-read authoritative "
+            "because DWG entities are published before OBJECTS table records")
 
     render_matrix = {}
     for kind, (object_name, handle, object_type) in RENDER_SETTINGS_KINDS.items():
@@ -1601,6 +1657,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         "cameraEntity": camera_entity,
         "geoPositionMarker": geo_position_marker,
         "shapeEntity": shape_entity,
+        "mlineEntity": mline_entity,
         "expressTextEntities": express_text_entities,
         "associativeObjects": associative_objects,
         "blockRepresentationData": block_representation,
@@ -1640,7 +1697,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         + associative_discrepancies
         + block_representation_discrepancies
         + camera_discrepancies + geo_position_marker_discrepancies
-        + shape_discrepancies),
+        + shape_discrepancies + mline_discrepancies),
     }
 
 
@@ -2069,6 +2126,22 @@ def self_test() -> None:
              "rotation": 0.25, "width_factor": 0.8,
              "oblique_angle": 0.1, "thickness": 0.2, "style_id": 7,
              "extrusion": [0.0, 0.0, 1.0], "style": [5, 1, 19, 19]},
+            {"entity": "MLINE", "handle": [0, 2, MLINE_HANDLE],
+             "type": 47, "scale": 1.5, "justification": 1,
+             "base_point": [101.0, 102.0, 103.0],
+             "extrusion": [0.0, 0.0, 1.0], "flags": 1,
+             "mlinestyle": [5, 2, MLINESTYLE_HANDLE, MLINESTYLE_HANDLE],
+             "verts": [
+                 {"vertex": [104.0, 105.0, 106.0],
+                  "vertex_direction": [1.0, 0.0, 0.0],
+                  "miter_direction": [0.0, 1.0, 0.0],
+                  "lines": [{"segparms": [0.5],
+                              "areafillparms": [0.25]}]},
+                 {"vertex": [107.0, 108.0, 109.0],
+                  "vertex_direction": [1.0, 0.0, 0.0],
+                  "miter_direction": [0.0, 1.0, 0.0],
+                  "lines": [{"segparms": [0.5],
+                              "areafillparms": [0.25]}]}]},
             {"entity": "RTEXT", "handle": [0, 2, RTEXT_HANDLE],
              "type": 521, "text_value": "LOCAL_RTEXT",
              "pt": [90.0, 91.0, 0.0],
@@ -2120,6 +2193,11 @@ def self_test() -> None:
             "supported": True, "entity": "SHAPE", "type": 33,
             "handle": SHAPE_HANDLE, "style": 0x13}:
         raise AssertionError("SHAPE entity identity was not qualified")
+    if summary.get("mlineEntity") != {
+            "supported": True, "entity": "MLINE", "type": 47,
+            "handle": MLINE_HANDLE, "style": MLINESTYLE_HANDLE,
+            "vertices": 2, "lines": 1}:
+        raise AssertionError("MLINE entity identity was not qualified")
     if summary.get("expressTextEntities") != {
             "rtext": {"entity": "RTEXT", "type": 521,
                       "handle": RTEXT_HANDLE, "text": "LOCAL_RTEXT"},
