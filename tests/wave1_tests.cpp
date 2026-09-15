@@ -4278,6 +4278,72 @@ void testDxfRawSectionAggregateLimit(TestContext& t) {
              "DXF binary raw section over-limit aggregate rejects transactionally");
 }
 
+void testDxfRawSectionDepthLimit(TestContext& t) {
+    const auto makeSection = [](std::size_t depth, bool hasRawValues) {
+        DRW_RawDxfSection section;
+        section.m_name = "LOCAL_SECTION_DEPTH";
+        section.m_version = DRW::AC1027;
+        section.m_hasRawValues = hasRawValues;
+        section.m_groups.reserve(depth * 2u);
+        if (hasRawValues)
+            section.m_rawValues.reserve(depth * 2u);
+        for (std::size_t i = 0; i < depth; ++i) {
+            section.m_groups.emplace_back(102, std::string("{DEPTH"));
+            if (hasRawValues)
+                section.m_rawValues.emplace_back("{DEPTH");
+        }
+        for (std::size_t i = 0; i < depth; ++i) {
+            section.m_groups.emplace_back(102, std::string("}"));
+            if (hasRawValues)
+                section.m_rawValues.emplace_back("}");
+        }
+        return section;
+    };
+    constexpr std::size_t maxDepth = DRW::kMaxDxfApplicationGroupNesting;
+
+    DRW_RawDxfSection asciiBoundary = makeSection(maxDepth, true);
+    std::ostringstream asciiOutput;
+    dxfRW asciiWriter("");
+    asciiWriter.version = DRW::AC1027;
+    asciiWriter.binFile = false;
+    asciiWriter.writer = std::make_unique<dxfWriterAscii>(&asciiOutput);
+    t.expect(asciiWriter.writeRawDxfSection(asciiBoundary)
+                 && !asciiOutput.str().empty(),
+             "DXF ASCII raw section maximum application-group depth is accepted");
+
+    DRW_RawDxfSection binaryBoundary = makeSection(maxDepth, false);
+    std::ostringstream binaryOutput;
+    dxfRW binaryWriter("");
+    binaryWriter.version = DRW::AC1027;
+    binaryWriter.binFile = true;
+    binaryWriter.writer = std::make_unique<dxfWriterBinary>(&binaryOutput);
+    t.expect(binaryWriter.writeRawDxfSection(binaryBoundary)
+                 && !binaryOutput.str().empty(),
+             "DXF binary raw section maximum application-group depth is accepted");
+
+    DRW_RawDxfSection asciiOver = makeSection(maxDepth + 1u, true);
+    std::ostringstream rejectedAsciiOutput;
+    dxfRW rejectingAsciiWriter("");
+    rejectingAsciiWriter.version = DRW::AC1027;
+    rejectingAsciiWriter.binFile = false;
+    rejectingAsciiWriter.writer = std::make_unique<dxfWriterAscii>(
+        &rejectedAsciiOutput);
+    t.expect(!rejectingAsciiWriter.writeRawDxfSection(asciiOver)
+                 && rejectedAsciiOutput.str().empty(),
+             "DXF ASCII raw section over-depth rejects transactionally");
+
+    DRW_RawDxfSection binaryOver = makeSection(maxDepth + 1u, false);
+    std::ostringstream rejectedBinaryOutput;
+    dxfRW rejectingBinaryWriter("");
+    rejectingBinaryWriter.version = DRW::AC1027;
+    rejectingBinaryWriter.binFile = true;
+    rejectingBinaryWriter.writer = std::make_unique<dxfWriterBinary>(
+        &rejectedBinaryOutput);
+    t.expect(!rejectingBinaryWriter.writeRawDxfSection(binaryOver)
+                 && rejectedBinaryOutput.str().empty(),
+             "DXF binary raw section over-depth rejects transactionally");
+}
+
 void testDxfRawSectionApplicationGroupMarker(TestContext& t) {
     const std::vector<std::string> invalidMarkers = {"{", "NOT_A_MARKER"};
     for (const std::string& marker : invalidMarkers) {
@@ -4646,6 +4712,7 @@ int main() {
     testDxfRawSectionEndsecTerminator(context);
     testDxfRawSectionGroupCodeBounds(context);
     testDxfRawSectionAggregateLimit(context);
+    testDxfRawSectionDepthLimit(context);
     testDxfRawSectionApplicationGroupMarker(context);
     testDxfRawSectionApplicationGroupReferenceMatrix(context);
     testRawCapture(context);
