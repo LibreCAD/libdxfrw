@@ -52,10 +52,10 @@ then pin an immutable commit before importing source.
 ### Execution refresh (2026-09-15)
 
 The implementation worktree is rebased on `origin/master` and is currently
-187 commits ahead with no commits behind it. The latest green slice is
-S160/J136, including the live-plan update and its required policy gates.
-S161/J137 is the active slice; its DWG LAYOUT handle-tail and viewport-linkage
-qualification is the next commit boundary.
+188 commits ahead with no commits behind it. The latest green slice is
+S161/J137, including the live-plan update and its required policy gates.
+S162/J138 is the active slice; its DWG LAYOUT malformed-tail and transactional
+rejection qualification is the next commit boundary.
 The worktree is clean at the last committed boundary; any subsequent active-
 slice edits are intentionally uncommitted until their narrow gate and
 status-bearing plan transition are green.
@@ -1934,17 +1934,23 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint (2026-09-15): S160/J136 DWG PLOTSETTINGS and LAYOUT body
-  field qualification is committed; S161/J137 DWG LAYOUT handle-tail and
-  viewport-linkage qualification is active.
+- Current checkpoint (2026-09-15): S161/J137 DWG LAYOUT handle-tail and
+  viewport-linkage qualification is committed; S162/J138 DWG LAYOUT
+  malformed-tail and transactional rejection qualification is active.
   The
   branch is rebased on `origin/master`, and
   the pinned source/package/consumer convergence remains complete while
   runtime and wire-format parity stay evidence-gated. The AC1015 IMAGE legacy
   boundary remains fail-closed, and all format-support claims remain limited
   to rows with eligible runtime/oracle evidence. The next dependency-ready
-  sequence is S161 DWG LAYOUT handle-tail and viewport-linkage qualification;
+  sequence is S162 DWG LAYOUT malformed-tail and transactional rejection
+  qualification;
   it is a separate commit with no external or derived DWG/DXF bytes.
+- Latest implementation slice: S161/J137 DWG LAYOUT handle-tail and
+  viewport-linkage qualification is committed. The local-from-scratch
+  writer/self-read now checks non-zero plot/shade/space-paper/active-viewport/
+  UCS handles and one viewport link with explicit AC1015/AC1018+/AC1021+
+  omissions; no drawing bytes are retained.
 - Latest implementation slice: S160/J136 DWG PLOTSETTINGS and LAYOUT body-field
   qualification is committed. The local-from-scratch writer/self-read now
   checks page setup, margins, paper, plot window, version-gated view-name and
@@ -2815,19 +2821,19 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 160 (`COMMITTED`); S161 is active.
+- Resolved slices: 161 (`COMMITTED`); S162 is active.
 - Slice states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 160 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 161 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 162 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 163 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 258 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 259 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 145 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S160 are committed; S161/J137 is active with a ready packet
-  naming DWG LAYOUT handle-tail and viewport-linkage qualification and focused
-  fast gates.
+  0 DEFERRED_EXTERNAL / 146 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S161 are committed; S162/J138 is active with a ready packet
+  naming DWG LAYOUT malformed-tail and transactional rejection qualification
+  and focused fast gates.
   Keep validation fast and
   self-updating: run source/plan/policy checks and the focused carrier target
   after each implementation item, commit only after the narrow gate is green,
@@ -3036,7 +3042,8 @@ edit this block or commit the same slice concurrently.
 | S158 | J134: DWG object-dispatch ledger audit | S157 | COMMITTED | fixed object types; custom-class routes; typed/raw carrier disposition; target/source dispatch inventory; focused DWG gate; plan/scope/sync/fixture gates | pinned target and standalone OBJECTS switch bodies match; regenerated route inventory records the nine target table-descriptor edges and the reviewed standalone GEOPOSITIONMARKER/raw-route deltas; aggregate, DWG, DXF, plan, fixture, scope, sync, and diff gates pass; no drawing bytes committed | source-route inventory check, parity aggregate, DWG/DXF source-only lanes, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S159 is active |
 | S159 | J135: DWG OBJECTS typed/raw preservation qualification | S158 | COMMITTED | typed object callbacks; raw-carrier publication; object-vector coverage; malformed-frame rollback; focused DWG gate; plan/scope/sync/fixture gates | six-version local writer/self-read checks every expected local OBJECTS raw carrier for version provenance, body-size/bounds validity, and duplicate suppression; version-gated counts cover AC1015/AC1018, AC1021, and AC1024+; no drawing bytes committed | DWG local-roundtrip test, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S160 is active |
 | S160 | J136: DWG PLOTSETTINGS and LAYOUT body-field qualification | S159 | COMMITTED | plot-settings margins; paper/page setup; plot window; plot-view name; versioned DWG body; LAYOUT body fields; typed/raw carrier pairing; focused DWG gate; plan/scope/sync/fixture gates | committed `S160`; local-from-scratch writer/self-read checks every emitted PLOTSETTINGS field and the complete local LAYOUT body field set across AC1015 through AC1032, retaining explicit version-gated omissions; no drawing bytes committed | DWG local-roundtrip and reader-matrix tests, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S161 is active |
-| S161 | J137: DWG LAYOUT handle-tail and viewport-linkage qualification | S160 | ACTIVE | LAYOUT plot/shade/space-paper/active-viewport/base/named UCS handles; viewport count and handles; version guards; typed/raw carrier pairing; focused DWG gate; plan/scope/sync/fixture gates | use a local-from-scratch writer/self-read vector with non-zero handle-tail values and one viewport handle; assert version-gated emission/omission and duplicate-free callback publication before changing parser/writer code; no drawing bytes committed | active after S160 commit; use local-roundtrip test, object-vector test, focused reader-matrix test, fast source/policy gates, fixture admission, import scope, pinned sync, and diff gates |
+| S161 | J137: DWG LAYOUT handle-tail and viewport-linkage qualification | S160 | COMMITTED | LAYOUT plot/shade/space-paper/active-viewport/base/named UCS handles; viewport count and handles; version guards; typed/raw carrier pairing; focused DWG gate; plan/scope/sync/fixture gates | committed `S161`; local-from-scratch writer/self-read checks non-zero handle-tail values and one viewport link, with explicit AC1015/AC1018+/AC1021+ emission/omission and duplicate-free callback publication; no drawing bytes committed | DWG local-roundtrip and reader-matrix tests, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S162 is active |
+| S162 | J138: DWG LAYOUT malformed-tail and transactional rejection qualification | S161 | ACTIVE | negative viewport-count bounds; viewport-list cardinality; malformed handle-tail rejection; rollback/no-callback behavior; focused DWG gate; plan/scope/sync/fixture gates | use in-memory writer vectors with negative/over-limit viewport counts, mismatched handle-list sizes, and invalid handle references; assert rejection leaves the caller state intact and publishes no partial layout callback; no drawing bytes committed | active after S161 commit; use object-vector/local-roundtrip negative tests, focused reader-matrix test, fast source/policy gates, fixture admission, import scope, pinned sync, and diff gates |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3201,7 +3208,8 @@ edit this block or commit the same slice concurrently.
 | J134 | S158 | J133 | COMMITTED | EXPERIMENTAL | Build a complete DWG OBJECTS dispatch ledger from the pinned target and standalone source, preserving raw fallback and deferred dispositions where typed parity is not qualified | target/standalone OBJECTS switch comparison, regenerated route inventory, fixed-object helper audit, aggregate/DWG/DXF lanes, and no-fixture evidence |
 | J135 | S159 | J134 | COMMITTED | EXPERIMENTAL | Qualify paired typed callback and raw-carrier publication for representative DWG OBJECTS routes, with transactional rejection of malformed records | six-version local raw-carrier count/provenance/bounds checks, malformed callback suppression, and no-fixture evidence |
 | J136 | S160 | J135 | COMMITTED | EXPERIMENTAL | Qualify PLOTSETTINGS page, margin, plot-window, paper, view-name, shade fields, and the emitted LAYOUT body across all locally generated DWG versions | six-version local writer/self-read field assertions, explicit version-specific disposition, and no-fixture evidence |
-| J137 | S161 | J136 | ACTIVE | EXPERIMENTAL | Qualify LAYOUT handle-tail fields, viewport count, and viewport-handle linkage across all locally generated DWG versions | active packet names non-zero local handle-tail/viewport self-read assertions, version-specific disposition, and no-fixture evidence |
+| J137 | S161 | J136 | COMMITTED | EXPERIMENTAL | Qualify LAYOUT handle-tail fields, viewport count, and viewport-handle linkage across all locally generated DWG versions | six-version local writer/self-read handle-tail/viewport assertions, explicit version-specific disposition, and no-fixture evidence |
+| J138 | S162 | J137 | ACTIVE | EXPERIMENTAL | Qualify LAYOUT malformed-tail bounds and transactional rejection across all locally generated DWG versions | active packet names negative viewport-count/list/handle vectors, caller-state preservation, no-callback behavior, and no-fixture evidence |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -3473,7 +3481,8 @@ edit this block or commit the same slice concurrently.
 | J134.1 | J134 / S158 | WP3, WP5, WP7, WP8, WP10; DWG object-dispatch ledger audit | J133 | COMMITTED | EXPERIMENTAL | enumerate target-recognized OBJECTS types and reconcile standalone typed/raw/unknown/deferred routes without external drawing bytes | source-route inventory, aggregate, DWG/DXF lane, and focused object-vector/reader-matrix policy gates pass; no external or derived DWG/DXF bytes are retained |
 | J135.1 | J135 / S159 | WP3, WP5, WP7, WP8, WP10; DWG OBJECTS typed/raw preservation qualification | J134 | COMMITTED | EXPERIMENTAL | exercise representative fixed/custom OBJECTS self-read paths and prove typed callback/raw carrier pairing plus malformed rollback without external drawing bytes | focused object-vector/local-roundtrip target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 | J136.1 | J136 / S160 | WP3, WP5, WP7, WP8, WP10; DWG PLOTSETTINGS and LAYOUT body-field qualification | J135 | COMMITTED | EXPERIMENTAL | assert local PLOTSETTINGS and LAYOUT body fields survive writer/self-reader round trips for AC1015 through AC1032, preserving explicit version-gated omissions without external drawing bytes | focused local-roundtrip/object-vector/reader-matrix target and policy gates pass; no external or derived DWG/DXF bytes are retained |
-| J137.1 | J137 / S161 | WP3, WP5, WP7, WP8, WP10; DWG LAYOUT handle-tail and viewport-linkage qualification | J136 | ACTIVE | EXPERIMENTAL | assert non-zero LAYOUT handle-tail fields, viewport count, and viewport-handle linkage survive local writer/self-reader round trips for AC1015 through AC1032, preserving explicit version-gated omissions without external drawing bytes | focused local-roundtrip/object-vector/reader-matrix target and policy gates pass; no external or derived DWG/DXF bytes are retained |
+| J137.1 | J137 / S161 | WP3, WP5, WP7, WP8, WP10; DWG LAYOUT handle-tail and viewport-linkage qualification | J136 | COMMITTED | EXPERIMENTAL | assert non-zero LAYOUT handle-tail fields, viewport count, and viewport-handle linkage survive local writer/self-reader round trips for AC1015 through AC1032, preserving explicit version-gated omissions without external drawing bytes | focused local-roundtrip/object-vector/reader-matrix target and policy gates pass; no external or derived DWG/DXF bytes are retained |
+| J138.1 | J138 / S162 | WP3, WP5, WP7, WP8, WP10; DWG LAYOUT malformed-tail and transactional rejection qualification | J137 | ACTIVE | EXPERIMENTAL | assert malformed viewport counts, list cardinality, and handle-tail vectors reject transactionally without partial callback publication or caller-state mutation, without external drawing bytes | focused object-vector/local-roundtrip negative target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 
 <!-- UPGRADE_PROGRESS_END -->
 

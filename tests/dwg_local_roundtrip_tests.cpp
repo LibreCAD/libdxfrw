@@ -626,7 +626,14 @@ public:
         layout.ucsXAxis = DRW_Coord(1.0, 0.0, 0.0);
         layout.ucsYAxis = DRW_Coord(0.0, 1.0, 0.0);
         layout.extMax = DRW_Coord(100.0, 100.0, 0.0);
-        layout.viewportCount = 0;
+        layout.plotViewHandle.ref = 0xA710u;
+        layout.shadePlotHandle.ref = 0xA711u;
+        layout.paperSpaceBlockRecordHandle.ref = 0xA712u;
+        layout.lastActiveViewportHandle.ref = 0xA713u;
+        layout.baseUcsHandle.ref = 0xA714u;
+        layout.namedUcsHandle.ref = 0xA715u;
+        layout.viewportCount = 1;
+        layout.viewportHandles = {0xA716u};
         wroteLayout_ = writer_->writeLayout(&layout)
             && layout.handle != 0;
 
@@ -3113,7 +3120,19 @@ public:
                 && data.extMin.z == 0.0
                 && data.extMax.x == 100.0 && data.extMax.y == 100.0
                 && data.extMax.z == 0.0
-                && data.viewportCount == 0;
+                && data.viewportCount == (expectedVersion_ >= DRW::AC1018 ? 1 : 0)
+                && data.plotViewHandle.ref == (expectedVersion_ >= DRW::AC1018
+                    ? 0xA710u : 0u)
+                && data.shadePlotHandle.ref == (expectedVersion_ > DRW::AC1018
+                    ? 0xA711u : 0u)
+                && data.paperSpaceBlockRecordHandle.ref == 0xA712u
+                && data.lastActiveViewportHandle.ref == 0xA713u
+                && data.baseUcsHandle.ref == 0xA714u
+                && data.namedUcsHandle.ref == 0xA715u
+                && (expectedVersion_ >= DRW::AC1018
+                    ? data.viewportHandles.size() == 1
+                        && data.viewportHandles.front() == 0xA716u
+                    : data.viewportHandles.empty());
     }
     void addMLineStyle(const DRW_MLineStyle& data) override {
         if (data.handle == 0xA800u)
