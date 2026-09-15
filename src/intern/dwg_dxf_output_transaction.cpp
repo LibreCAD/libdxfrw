@@ -126,6 +126,19 @@ void DwgDxfOutputTransaction::closeExclusiveDescriptor() noexcept {
     m_exclusiveDescriptor = -1;
 }
 
+bool DwgDxfOutputTransaction::flushFileToStorage() const noexcept {
+    if (m_exclusiveDescriptor < 0)
+        return false;
+#if defined(_WIN32)
+    const intptr_t nativeHandle = _get_osfhandle(m_exclusiveDescriptor);
+    if (nativeHandle == static_cast<intptr_t>(-1))
+        return false;
+    return FlushFileBuffers(reinterpret_cast<HANDLE>(nativeHandle)) != 0;
+#else
+    return ::fsync(m_exclusiveDescriptor) == 0;
+#endif
+}
+
 bool DwgDxfOutputTransaction::open() {
     if (m_stream.is_open() || !createExclusiveTemporary())
         return false;
@@ -161,6 +174,10 @@ bool DwgDxfOutputTransaction::commit() {
         return false;
     }
     if (!temporaryIdentityMatches()) {
+        abort();
+        return false;
+    }
+    if (!flushFileToStorage()) {
         abort();
         return false;
     }
