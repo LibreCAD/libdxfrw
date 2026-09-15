@@ -52,9 +52,9 @@ then pin an immutable commit before importing source.
 ### Execution refresh (2026-09-15)
 
 The implementation worktree is rebased on `origin/master` and is currently
-263 commits ahead with no commits behind it. The latest green slice is
-S235/J211, including the live-plan update and its required policy gates.
-S236/J212 is the active slice; its DXF raw-object handle-reference code-family
+264 commits ahead with no commits behind it. The latest green slice is
+S236/J212, including the live-plan update and its required policy gates.
+S237/J213 is the active slice; its DXF raw-object binary-chunk code-family
 matrix parity is the next commit boundary.
 The worktree is clean at the last committed boundary; any subsequent active-
 slice edits are intentionally uncommitted until their narrow gate and
@@ -1934,8 +1934,8 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint (2026-09-15): S235/J211 DXF raw-object application-group
-  marker lexeme parity is committed; S236/J212 DXF raw-object handle-reference
+- Current checkpoint (2026-09-15): S236/J212 DXF raw-object handle-reference
+  code-family matrix parity is committed; S237/J213 DXF raw-object binary-chunk
   code-family matrix parity is active.
   The
   branch is rebased on `origin/master`, and
@@ -1943,7 +1943,7 @@ edit this block or commit the same slice concurrently.
   runtime and wire-format parity stay evidence-gated. The AC1015 IMAGE legacy
   boundary remains fail-closed, and all format-support claims remain limited
   to rows with eligible runtime/oracle evidence. The next dependency-ready
-  sequence is S236 DXF raw-object handle-reference code-family matrix parity;
+  sequence is S237 DXF raw-object binary-chunk code-family matrix parity;
   it is a separate commit with no external or derived DWG/DXF bytes.
 - Latest implementation slice: S171/J147 DXF raw-object handle-scope and
   cross-record uniqueness qualification is committed. Local ASCII and binary
@@ -2194,6 +2194,10 @@ edit this block or commit the same slice concurrently.
   lexeme parity is committed. Local ASCII and binary raw objects accept valid
   102 opening/closing markers and reject malformed marker lexemes transactionally;
   no drawing bytes are retained.
+- Latest implementation slice: S236/J212 DXF raw-object handle-reference code-family
+  matrix parity is committed. Local ASCII and binary raw objects remap all
+  320-369, 390-399, and 480-481 families while preserving framing; no drawing
+  bytes are retained.
 - Latest implementation slice: S172/J148 DXF raw-object duplicate-handle
   diagnostic and error-precedence qualification is committed. Local ASCII and
   binary duplicate streams preserve the legacy `BAD_CODE_PARSED` result and
@@ -3118,16 +3122,16 @@ edit this block or commit the same slice concurrently.
   terminal only when their recorded gates pass.
 - Resolved slices: 235 (`COMMITTED`); S236 is active.
 - Slice states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 235 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 236 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 237 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 238 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 333 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 334 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 220 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S235 are committed; S236/J212 is active with a ready packet
-  naming DXF raw-object handle-reference code-family matrix parity and focused fast gates.
+  0 DEFERRED_EXTERNAL / 221 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S236 are committed; S237/J213 is active with a ready packet
+  naming DXF raw-object binary-chunk code-family matrix parity and focused fast gates.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
   S174/J150, S175/J151, S176/J152, S177/J153, S178/J154, and S179/J155 added
   malformed, field-context, raw-entity propagation, duplicate-entity,
@@ -3415,7 +3419,8 @@ edit this block or commit the same slice concurrently.
 | S233 | J209: DXF raw-object aggregate-limit parity | S232 | COMMITTED | aggregate pair count; 65,536 boundary; over-limit rejection; ASCII/binary symmetry; transactional output; focused DXF gate; plan/scope/sync/fixture gates | committed `S233`; local ASCII and binary raw objects accept the 65,536-pair boundary and reject one pair over transactionally with zero output; no drawing bytes committed | Wave 1 raw-object aggregate-limit tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S234 is active |
 | S234 | J210: DXF raw-object application-group depth parity | S233 | COMMITTED | nested 102 application groups; maximum depth; over-depth rejection; ASCII/binary symmetry; transactional output; focused DXF gate; plan/scope/fixture gates | committed `S234`; local ASCII and binary raw objects accept maximum nested 102 depth and reject one level over transactionally with zero output; no drawing bytes committed | Wave 1 raw-object depth-limit tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S235 is active |
 | S235 | J211: DXF raw-object application-group marker lexeme parity | S234 | COMMITTED | valid opening marker; valid closing marker; malformed marker rejection; ASCII/binary symmetry; transactional output; focused DXF gate; plan/scope/fixture gates | committed `S235`; local ASCII and binary raw objects accept valid 102 opening/closing markers and reject malformed marker lexemes transactionally with zero output; no drawing bytes committed | Wave 1 raw-object marker tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S236 is active |
-| S236 | J212: DXF raw-object handle-reference code-family matrix parity | S235 | ACTIVE | handle-reference code families; nested application-group remaps; ASCII/binary replay; framing; focused DXF gate; plan/scope/fixture gates | use self-handle-bearing raw objects containing codes 320-369, 390-399, and 480-481; assert explicit remaps apply in ASCII and binary while structure remains intact, with no drawing bytes committed | active after S235 commit; use Wave 1 raw-object reference-matrix tests, focused CTest selector, fast source/policy gates, fixture admission, import scope, pinned sync, and diff gates |
+| S236 | J212: DXF raw-object handle-reference code-family matrix parity | S235 | COMMITTED | handle-reference code families; nested application-group remaps; ASCII/binary replay; framing; focused DXF gate; plan/scope/fixture gates | committed `S236`; local ASCII and binary raw objects remap all 320-369, 390-399, and 480-481 families while preserving framing; no drawing bytes committed | Wave 1 raw-object reference-matrix tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S237 is active |
+| S237 | J213: DXF raw-object binary-chunk code-family matrix parity | S236 | ACTIVE | binary chunk codes 310-319 and 1004; ASCII/binary replay; malformed chunk rejection; transactional output; focused DXF gate; plan/scope/fixture gates | use self-handle-bearing raw objects containing every chunk code family; assert valid chunks replay and malformed hex chunks reject transactionally in ASCII and binary, with no drawing bytes committed | active after S236 commit; use Wave 1 raw-object chunk-code tests, focused CTest selector, fast source/policy gates, fixture admission, import scope, pinned sync, and diff gates |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3655,7 +3660,8 @@ edit this block or commit the same slice concurrently.
 | J209 | S233 | J208 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-object aggregate-limit parity | local ASCII and binary raw objects accept the 65,536-pair boundary and reject one pair over transactionally; no-fixture evidence |
 | J210 | S234 | J209 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-object application-group depth parity | local ASCII and binary raw objects accept maximum nested 102 depth and reject one level over transactionally; no-fixture evidence |
 | J211 | S235 | J210 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-object application-group marker lexeme parity | local ASCII and binary raw objects accept valid 102 opening/closing markers and reject malformed marker lexemes transactionally; no-fixture evidence |
-| J212 | S236 | J211 | ACTIVE | EXPERIMENTAL | Qualify DXF raw-object handle-reference code-family matrix parity | active packet names remap coverage for 320-369, 390-399, and 480-481 in ASCII/binary raw-object replay; no-fixture evidence |
+| J212 | S236 | J211 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-object handle-reference code-family matrix parity | local ASCII and binary raw objects remap all 320-369, 390-399, and 480-481 families while preserving framing; no-fixture evidence |
+| J213 | S237 | J212 | ACTIVE | EXPERIMENTAL | Qualify DXF raw-object binary-chunk code-family matrix parity | active packet names valid 310-319/1004 chunk replay and malformed hex rejection in ASCII/binary; no-fixture evidence |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4002,7 +4008,8 @@ edit this block or commit the same slice concurrently.
 | J209.1 | J209 / S233 | WP4, WP5, WP6, WP8, WP10; DXF raw-object aggregate-limit parity | J208 | COMMITTED | EXPERIMENTAL | assert a raw object at kMaxDxfApplicationGroupPairs writes while one above rejects transactionally in ASCII/binary, without external drawing bytes | focused Wave 1 raw-object aggregate-limit target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 | J210.1 | J210 / S234 | WP4, WP5, WP6, WP8, WP10; DXF raw-object application-group depth parity | J209 | COMMITTED | EXPERIMENTAL | assert a raw object at kMaxDxfApplicationGroupNesting accepts while one over rejects transactionally in ASCII/binary, without external drawing bytes | focused Wave 1 raw-object depth-limit target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 | J211.1 | J211 / S235 | WP4, WP5, WP6, WP8, WP10; DXF raw-object application-group marker lexeme parity | J210 | COMMITTED | EXPERIMENTAL | assert valid 102 opening/closing markers replay while malformed marker lexemes reject transactionally with zero ASCII/binary output, without external drawing bytes | focused Wave 1 raw-object marker target and policy gates pass; no external or derived DWG/DXF bytes are retained |
-| J212.1 | J212 / S236 | WP4, WP5, WP6, WP8, WP10; DXF raw-object handle-reference code-family matrix parity | J211 | ACTIVE | EXPERIMENTAL | assert explicit remaps apply to raw-object code families 320-369, 390-399, and 480-481 in ASCII/binary while framing remains intact, without external drawing bytes | focused Wave 1 raw-object reference-matrix target and policy gates pass; no external or derived DWG/DXF bytes are retained |
+| J212.1 | J212 / S236 | WP4, WP5, WP6, WP8, WP10; DXF raw-object handle-reference code-family matrix parity | J211 | COMMITTED | EXPERIMENTAL | assert explicit remaps apply to raw-object code families 320-369, 390-399, and 480-481 in ASCII/binary while framing remains intact, without external drawing bytes | focused Wave 1 raw-object reference-matrix target and policy gates pass; no external or derived DWG/DXF bytes are retained |
+| J213.1 | J213 / S237 | WP4, WP5, WP6, WP8, WP10; DXF raw-object binary-chunk code-family matrix parity | J212 | ACTIVE | EXPERIMENTAL | assert raw-object chunk codes 310-319 and 1004 replay valid hex payloads and reject malformed hex transactionally in ASCII/binary, without external drawing bytes | focused Wave 1 raw-object chunk-code target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 
 <!-- UPGRADE_PROGRESS_END -->
 

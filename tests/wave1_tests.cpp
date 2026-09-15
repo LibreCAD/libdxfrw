@@ -4924,6 +4924,71 @@ void testDxfRawObjectApplicationGroupMarker(TestContext& t) {
     }
 }
 
+void testDxfRawObjectApplicationGroupReferenceMatrix(TestContext& t) {
+    DRW_RawDxfObject object;
+    object.name = "LOCAL_RAW_REFERENCE_MATRIX";
+    object.m_version = DRW::AC1027;
+    object.hasRawValues = true;
+    object.groups = {
+        DRW_Variant(5, std::string("1A")),
+        DRW_Variant(102, std::string("{REFERENCE_MATRIX")),
+        DRW_Variant(320, std::string("2A")),
+        DRW_Variant(330, std::string("3A")),
+        DRW_Variant(350, std::string("4A")),
+        DRW_Variant(390, std::string("5A")),
+        DRW_Variant(399, std::string("6A")),
+        DRW_Variant(480, std::string("1A")),
+        DRW_Variant(481, std::string("2A")),
+        DRW_Variant(102, std::string("}"))};
+    object.rawValues = {"1A", "{REFERENCE_MATRIX", "2A", "3A", "4A",
+                        "5A", "6A", "1A", "2A", "}"};
+    const std::map<std::uint32_t, std::uint32_t> remap = {
+        {0x1Au, 0x3Au}, {0x2Au, 0x4Au}, {0x3Au, 0x5Au},
+        {0x4Au, 0x6Au}, {0x5Au, 0x7Au}, {0x6Au, 0x8Au}};
+    const std::vector<std::pair<int, std::string>> expected = {
+        {0, object.name}, {5, "3A"}, {102, "{REFERENCE_MATRIX"},
+        {320, "4A"}, {330, "5A"}, {350, "6A"}, {390, "7A"},
+        {399, "8A"}, {480, "3A"}, {481, "4A"}, {102, "}"}};
+
+    std::ostringstream asciiOutput;
+    dxfRW asciiWriter("");
+    asciiWriter.version = DRW::AC1027;
+    asciiWriter.binFile = false;
+    asciiWriter.writer = std::make_unique<dxfWriterAscii>(&asciiOutput);
+    asciiWriter.setHandleRemap(remap);
+    t.expect(asciiWriter.writeRawDxfObject(&object),
+             "DXF ASCII raw object remaps every handle-reference code family");
+    std::stringstream asciiRecords(asciiOutput.str());
+    dxfReaderAscii asciiReader(&asciiRecords);
+    std::vector<std::pair<int, std::string>> asciiActual;
+    int asciiCode = 0;
+    while (asciiReader.readRec(&asciiCode))
+        asciiActual.emplace_back(asciiCode, asciiReader.getString());
+    t.expect(asciiActual == expected,
+             "DXF ASCII raw object reference-code matrix preserves framing");
+
+    DRW_RawDxfObject binaryObject = object;
+    binaryObject.hasRawValues = false;
+    binaryObject.rawValues.clear();
+    std::ostringstream binaryOutput;
+    dxfRW binaryWriter("");
+    binaryWriter.version = DRW::AC1027;
+    binaryWriter.binFile = true;
+    binaryWriter.writer = std::make_unique<dxfWriterBinary>(&binaryOutput);
+    binaryWriter.setHandleRemap(remap);
+    t.expect(binaryWriter.writeRawDxfObject(&binaryObject),
+             "DXF binary raw object remaps every handle-reference code family");
+    std::stringstream binaryRecords(binaryOutput.str());
+    dxfReaderBinary binaryReader(&binaryRecords);
+    binaryReader.setClassifierProfile(DxfClassifierProfile::StandaloneSafe);
+    std::vector<std::pair<int, std::string>> binaryActual;
+    int binaryCode = 0;
+    while (binaryReader.readRec(&binaryCode))
+        binaryActual.emplace_back(binaryCode, binaryReader.getString());
+    t.expect(binaryActual == expected,
+             "DXF binary raw object reference-code matrix preserves framing");
+}
+
 void testDxfRawSectionApplicationGroupReferenceMatrix(TestContext& t) {
     DRW_RawDxfSection section;
     section.m_name = "LOCAL_SECTION_REFERENCE_MATRIX";
@@ -5272,6 +5337,7 @@ int main() {
     testDxfRawObjectAggregateLimit(context);
     testDxfRawObjectApplicationGroupDepth(context);
     testDxfRawObjectApplicationGroupMarker(context);
+    testDxfRawObjectApplicationGroupReferenceMatrix(context);
     testDxfRawSectionApplicationGroupReferenceMatrix(context);
     testRawCapture(context);
     testHatchValidationIgnoresInactiveGradient(context);
