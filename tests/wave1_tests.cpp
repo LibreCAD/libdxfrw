@@ -3030,6 +3030,116 @@ void testDxfRawSectionApplicationGroupBinaryChunks(TestContext& t) {
              "DXF binary malformed section binary chunk rejects transactionally");
 }
 
+void testDxfRawSectionApplicationGroupChunkCodeMatrix(TestContext& t) {
+    DRW_RawDxfSection section;
+    section.m_name = "LOCAL_SECTION_CHUNK_CODES";
+    section.m_version = DRW::AC1027;
+    section.m_hasRawValues = true;
+    section.m_groups.emplace_back(102, std::string("{SECTION_CHUNKS"));
+    section.m_rawValues.emplace_back("{SECTION_CHUNKS");
+    for (int code = 310; code <= 319; ++code) {
+        const std::string value = (code & 1) == 0 ? "A1B2" : "C3D4";
+        section.m_groups.emplace_back(code, value);
+        section.m_rawValues.emplace_back(value);
+    }
+    section.m_groups.emplace_back(1004, std::string("01020304"));
+    section.m_rawValues.emplace_back("01020304");
+    section.m_groups.emplace_back(102, std::string("}"));
+    section.m_rawValues.emplace_back("}");
+
+    std::ostringstream asciiOutput;
+    dxfRW asciiWriter("");
+    asciiWriter.version = DRW::AC1027;
+    asciiWriter.binFile = false;
+    asciiWriter.writer = std::make_unique<dxfWriterAscii>(&asciiOutput);
+    t.expect(asciiWriter.writeRawDxfSection(section),
+             "DXF ASCII raw section replays every binary chunk code");
+    int code = 0;
+    std::stringstream asciiRecords(asciiOutput.str());
+    dxfReaderAscii asciiReader(&asciiRecords);
+    bool asciiShape = asciiReader.readRec(&code) && code == 0
+        && asciiReader.getString() == "SECTION"
+        && asciiReader.readRec(&code) && code == 2
+        && asciiReader.getString() == section.m_name
+        && asciiReader.readRec(&code) && code == 102
+        && asciiReader.getString() == "{SECTION_CHUNKS";
+    for (int expectedCode = 310; expectedCode <= 319 && asciiShape;
+         ++expectedCode) {
+        const std::string expectedValue = (expectedCode & 1) == 0
+            ? "A1B2" : "C3D4";
+        asciiShape = asciiReader.readRec(&code) && code == expectedCode
+            && asciiReader.getString() == expectedValue;
+    }
+    asciiShape = asciiShape && asciiReader.readRec(&code) && code == 1004
+        && asciiReader.getString() == "01020304"
+        && asciiReader.readRec(&code) && code == 102
+        && asciiReader.getString() == "}"
+        && asciiReader.readRec(&code) && code == 0
+        && asciiReader.getString() == "ENDSEC";
+    t.expect(asciiShape,
+             "DXF ASCII raw section binary chunk-code matrix preserves order");
+
+    DRW_RawDxfSection binarySection = section;
+    binarySection.m_hasRawValues = false;
+    binarySection.m_rawValues.clear();
+    std::ostringstream binaryOutput;
+    dxfRW binaryWriter("");
+    binaryWriter.version = DRW::AC1027;
+    binaryWriter.binFile = true;
+    binaryWriter.writer = std::make_unique<dxfWriterBinary>(&binaryOutput);
+    t.expect(binaryWriter.writeRawDxfSection(binarySection),
+             "DXF binary raw section replays every binary chunk code");
+    std::stringstream binaryRecords(binaryOutput.str());
+    dxfReaderBinary binaryReader(&binaryRecords);
+    binaryReader.setClassifierProfile(DxfClassifierProfile::StandaloneSafe);
+    bool binaryShape = binaryReader.readRec(&code) && code == 0
+        && binaryReader.getString() == "SECTION"
+        && binaryReader.readRec(&code) && code == 2
+        && binaryReader.getString() == section.m_name
+        && binaryReader.readRec(&code) && code == 102
+        && binaryReader.getString() == "{SECTION_CHUNKS";
+    for (int expectedCode = 310; expectedCode <= 319 && binaryShape;
+         ++expectedCode) {
+        const std::string expectedValue = (expectedCode & 1) == 0
+            ? "A1B2" : "C3D4";
+        binaryShape = binaryReader.readRec(&code) && code == expectedCode
+            && binaryReader.getString() == expectedValue;
+    }
+    binaryShape = binaryShape && binaryReader.readRec(&code) && code == 1004
+        && binaryReader.getString() == "01020304"
+        && binaryReader.readRec(&code) && code == 102
+        && binaryReader.getString() == "}"
+        && binaryReader.readRec(&code) && code == 0
+        && binaryReader.getString() == "ENDSEC";
+    t.expect(binaryShape,
+             "DXF binary raw section binary chunk-code matrix preserves order");
+
+    DRW_RawDxfSection malformedAscii = section;
+    malformedAscii.m_groups[5] = DRW_Variant(313, std::string("ABC"));
+    malformedAscii.m_rawValues[5] = "ABC";
+    std::ostringstream rejectedAsciiOutput;
+    dxfRW rejectingAsciiWriter("");
+    rejectingAsciiWriter.version = DRW::AC1027;
+    rejectingAsciiWriter.binFile = false;
+    rejectingAsciiWriter.writer = std::make_unique<dxfWriterAscii>(
+        &rejectedAsciiOutput);
+    t.expect(!rejectingAsciiWriter.writeRawDxfSection(malformedAscii)
+                 && rejectedAsciiOutput.str().empty(),
+             "DXF ASCII malformed section chunk-code matrix rejects transactionally");
+
+    DRW_RawDxfSection malformedBinary = binarySection;
+    malformedBinary.m_groups[5] = DRW_Variant(313, std::string("GG"));
+    std::ostringstream rejectedBinaryOutput;
+    dxfRW rejectingBinaryWriter("");
+    rejectingBinaryWriter.version = DRW::AC1027;
+    rejectingBinaryWriter.binFile = true;
+    rejectingBinaryWriter.writer = std::make_unique<dxfWriterBinary>(
+        &rejectedBinaryOutput);
+    t.expect(!rejectingBinaryWriter.writeRawDxfSection(malformedBinary)
+                 && rejectedBinaryOutput.str().empty(),
+             "DXF binary malformed section chunk-code matrix rejects transactionally");
+}
+
 void testRawCapture(TestContext& t) {
     std::stringstream records("260\n2147483647\n482\n3.14\n1004\nAB\n");
     dxfRW owner("");
@@ -3258,6 +3368,7 @@ int main() {
     testDxfRawSectionApplicationGroupRawValueCardinality(context);
     testDxfRawSectionApplicationGroupRemapChain(context);
     testDxfRawSectionApplicationGroupBinaryChunks(context);
+    testDxfRawSectionApplicationGroupChunkCodeMatrix(context);
     testRawCapture(context);
     testHatchValidationIgnoresInactiveGradient(context);
     testFixedSpaceBlockClassification(context);
