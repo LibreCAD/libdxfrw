@@ -3718,6 +3718,7 @@ protected:
        Returns true when the code belongs to the context block (consumed);
        false when at entity level so parseCode falls through to its own switch. */
     bool parseDxfContextCode(int code, const std::unique_ptr<dxfReader>& reader);
+    [[nodiscard]] bool validateDxf() const;
     virtual bool parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs=0) override;
     [[nodiscard]] virtual bool encodeDwg(DRW::Version version, dwgBufferW *buf, std::uint32_t bs=0,
                            dwgBufferW *strBuf=nullptr, dwgBufferW *handleBuf=nullptr) override;

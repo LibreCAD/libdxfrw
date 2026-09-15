@@ -94,14 +94,14 @@
       "reason": "Mark one intentionally unused helper, remove two unused locals exposed by standalone -Werror compilation, reject non-finite GEOPOSITIONMARKER and LIGHT entity-body values plus bounded LIGHT strings/color before encoding, and preserve nested MULTILEADER DXF context breaks, transforms, and hard-pointer handles on parse.",
       "scope": "warning hygiene and DXF MULTILEADER parity",
       "targetBlob": "890ea64e07010339cac96e5d580ecacef7f0f39e",
-      "adaptedSha256": "73435ec0bfe0611c2d1076cd905566cc1d51869d5ba197aa0f9589bc4b4b0972"
+      "adaptedSha256": "e4db887dc63fe8cb24684b0d3f4bfe1381facc515e0bc9467fb7f59df86fe0f2"
     },
     {
       "path": "src/drw_entities.h",
       "reason": "Retain a transient DXF MULTILEADER transformation-matrix cursor so repeated code-47 values are bounded and reset between documents.",
       "scope": "DXF MULTILEADER parity",
       "targetBlob": "3ea21c8481ef299757916dc1a5bea5d5bc048476",
-      "adaptedSha256": "83fadd5984df5ad3229fcf36e4ac271ec9d09515a2435b6cb165bcc1a56aa71f"
+      "adaptedSha256": "f3b985abf0e59d4d302081d6a7c82469b6b2de598e366a8f4ab0a15e70b16a27"
     },
     {
       "path": "src/intern/dwgutil.h",
@@ -157,7 +157,7 @@
       "reason": "Route raw DXF capture and replay through canonical or explicitly selected classifier profiles, expose an additive public compatibility-profile opt-in, preserve null/error compatibility, instrument stage-aware operation diagnostics including duplicate, malformed, and field-context raw-handle context across raw object, entity, and unknown-section paths, keep code-5 identity metadata out of proxy-host registration so raw replay remains authoritative, ignore inactive HATCH gradient carriers while retaining active-gradient validation, and emit complete modern MULTILEADER DXF context geometry, transforms, and hard-pointer handles.",
       "scope": "DXF classifier correctness and MULTILEADER parity",
       "targetBlob": "71851fcf8d5636080c83f2eb1af4a8ef5a80e0ef",
-      "adaptedSha256": "1c5ad5a526b5be3b85ee54e3b8b6f63a5005dde66257b0cff6ce6981c76e9a2e"
+      "adaptedSha256": "7ff163cbe3693bc11f85009ec0618363c29cfc2d9f502f707fe09f021ca5f330"
     },
     {
       "path": "src/libdxfrw.h",

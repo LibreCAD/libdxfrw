@@ -18,6 +18,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <cmath>
 #include <cstring>
 #include <limits>
 #include <vector>
@@ -21010,6 +21011,75 @@ void DRW_MLeader::resetDwgState() {
     leaderExtendedToText = false;
     m_dxfCtxState = 0;
     m_dxfBlockTransformIndex = 0;
+}
+
+bool DRW_MLeader::validateDxf() const {
+    const auto finiteCoord = [](const DRW_Coord &value) {
+        return std::isfinite(value.x) && std::isfinite(value.y) &&
+               std::isfinite(value.z);
+    };
+    const auto finiteBreaks = [&finiteCoord](
+                                  const auto &breaks) {
+        if (breaks.size() > static_cast<std::size_t>(kMaxLeaderPoints))
+            return false;
+        return std::all_of(
+            breaks.cbegin(), breaks.cend(),
+            [&finiteCoord](const auto &pair) {
+                return finiteCoord(pair.first) && finiteCoord(pair.second);
+            });
+    };
+    if (context.roots.size() > kMaxRoots ||
+        !std::isfinite(context.overallScale) ||
+        !finiteCoord(context.contentBasePoint) ||
+        !std::isfinite(context.textHeight) ||
+        !std::isfinite(context.arrowHeadSize) ||
+        !std::isfinite(context.landingGap) ||
+        !finiteCoord(context.textNormal) ||
+        !finiteCoord(context.textLocation) ||
+        !finiteCoord(context.textDirection) ||
+        !std::isfinite(context.textRotation) ||
+        !std::isfinite(context.boundaryWidth) ||
+        !std::isfinite(context.boundaryHeight) ||
+        !std::isfinite(context.lineSpacingFactor) ||
+        !std::isfinite(context.bgScaleFactor) ||
+        !std::isfinite(context.columnWidth) ||
+        !std::isfinite(context.columnGutter) ||
+        context.columnSizes.size() > kMaxLeaderPoints ||
+        !std::all_of(context.columnSizes.cbegin(), context.columnSizes.cend(),
+                     [](double value) { return std::isfinite(value); }) ||
+        !finiteCoord(context.blockNormal) ||
+        !finiteCoord(context.blockLocation) ||
+        !finiteCoord(context.blockScale) ||
+        !std::isfinite(context.blockRotation) ||
+        !std::all_of(context.blockTransform.cbegin(),
+                     context.blockTransform.cend(),
+                     [](double value) { return std::isfinite(value); }) ||
+        !finiteCoord(context.basePoint) || !finiteCoord(context.baseDirection) ||
+        !finiteCoord(context.baseVertical) || !std::isfinite(landingDistance) ||
+        !std::isfinite(defaultArrowHeadSize) ||
+        !std::isfinite(styleBlockRotation) || !std::isfinite(scaleFactor) ||
+        !finiteCoord(styleBlockScale)) {
+        return false;
+    }
+    for (const DRW_MLeaderRoot &root : context.roots) {
+        if (!finiteCoord(root.connectionPoint) ||
+            !finiteCoord(root.direction) || !finiteBreaks(root.breaks) ||
+            root.leaderLines.size() > kMaxLeaderLines ||
+            !std::isfinite(root.landingDistance)) {
+            return false;
+        }
+        for (const DRW_MLeaderLeaderLine &line : root.leaderLines) {
+            if (line.points.size() > kMaxLeaderPoints ||
+                !std::all_of(line.points.cbegin(), line.points.cend(),
+                             [&finiteCoord](const DRW_Coord &point) {
+                                 return finiteCoord(point);
+                             }) ||
+                !finiteBreaks(line.breaks) || !std::isfinite(line.arrowSize)) {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 bool DRW_MLeader::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs){

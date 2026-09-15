@@ -5905,8 +5905,10 @@ DRW_ImageDef* dxfRW::writeImage(DRW_Image *ent, std::string name){
 // handles. Unsupported pre-R2010 array variants remain outside this bounded
 // modern-context route and are retained by the raw carrier when present.
 bool dxfRW::writeMultiLeader(DRW_MLeader *ent){
-    if (!preflightEntity(ent))
+    if (!preflightEntity(ent) || !ent->validateDxf()) {
+        m_writeError = true;
         return false;
+    }
     if (version <= DRW::AC1009)
         return rejectUnsupportedDxfWrite();
     EntityRecordScope scope(*this, ent);

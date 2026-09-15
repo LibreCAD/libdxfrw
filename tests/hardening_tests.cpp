@@ -542,8 +542,19 @@ void testMLeaderDxfContextRoundTrip(TestContext& t) {
                      && parsed.context.blockTableRecordHandle.ref == 0xA107u
                      && parsed.context.blockTransform[15] == 16.0
                      && parsed.styleHandle.ref == 0xA101u,
-                 "MULTILEADER DXF round-trip preserves geometry handles and matrix");
+                     "MULTILEADER DXF round-trip preserves geometry handles and matrix");
     }
+
+    DRW_MLeader invalid = source;
+    invalid.context.roots.resize(DRW_MLeader::kMaxRoots + 1u);
+    std::ostringstream rejectedOutput;
+    dxfRW rejectingOwner("");
+    rejectingOwner.version = DRW::AC1027;
+    rejectingOwner.binFile = false;
+    rejectingOwner.writer = std::make_unique<dxfWriterAscii>(&rejectedOutput);
+    t.expect(!rejectingOwner.writeMultiLeader(&invalid)
+                 && rejectedOutput.str().empty(),
+             "MULTILEADER DXF writer rejects oversized context transactionally");
 }
 
 } // namespace
