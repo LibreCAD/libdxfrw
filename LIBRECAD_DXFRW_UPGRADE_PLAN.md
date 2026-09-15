@@ -2725,11 +2725,21 @@ edit this block or commit the same slice concurrently.
   encode a typed modeler entity body. The exact unblock is a target/API change
   or a versioned raw-entity replay contract backed by a real ACIS modeler DWG
   body plus ODA/spec trace. No speculative encoder was added.
-- Active implementation slice: S110/J86 generic raw-DWG replay contract is the
-  next dependency-ready lane. Qualify the existing unsupported-object and raw-
-  section registration/replay APIs with local-from-scratch metadata, explicit
-  owner/handle/class invariants, and malformed rollback; keep modeler typed
-  writing deferred until S109's unblock condition is met.
+- Previous implementation slice: S110/J86 generic raw-DWG replay contract is
+  committed. A local AC1027 writer contract now registers two class-remapped
+  unsupported objects, patches an encoded handle to the metadata handle,
+  preserves local class/owner evidence, rejects a malformed fixed-object body
+  without poisoning the following frame, accepts one opaque raw section, and
+  rejects a duplicate section. No external DWG/DXF bytes were added. An
+  exploratory self-read of that locally generated raw output exposed a reader
+  safety boundary before round-trip parity could be claimed; S111 records and
+  resolves that boundary.
+- Active implementation slice: S111/J87 raw-DWG replay self-read safety is the
+  next dependency-ready lane. Diagnose the locally generated replay output
+  with bounded frame/section traces, make the reader fail closed on malformed
+  raw frames or sections, and only promote same-version reader round-trip when
+  the local writer contract is proven safe; keep typed modeler writing deferred
+  until S109's exact unblock condition is met.
 - Previous implementation slice: S90/J66 DIMASSOC/EVALUATION_GRAPH object parity
   is committed. The AC1021+ lane registers the target's typed classes before
   CLASSES, writes one bounded DIMASSOC with a soft dimension/reference link and
@@ -2770,7 +2780,13 @@ edit this block or commit the same slice concurrently.
   names TVDEVICEPROPERTIES and the two VX frames as UNKNOWN_OBJ, while local
   self-read remains authoritative for VX payload fields; no generated drawings
   or external assets are retained.
-- Last fully resolved slice: S109 (the DWG modeler-writer boundary slice is
+- Last fully resolved slice: S110 (the generic raw-DWG replay contract slice is
+  committed by the matching `Plan-Slice: S110` trailer; the commit carries
+  local metadata, owner/handle/class, malformed rollback, and raw-section
+  evidence). The target integration commit remains
+  `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
+  terminal only when their recorded gates pass.
+- Previous fully resolved slice: S109 (the DWG modeler-writer boundary slice is
   committed by the matching `Plan-Slice: S109` trailer; the commit carries
   target/source API evidence, the exact defer condition, and live-plan state).
   The target integration commit remains
@@ -2788,18 +2804,18 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 109 (`COMMITTED`); S110 is active.
+- Resolved slices: 110 (`COMMITTED`); S111 is active.
 - Slice states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 109 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 110 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 109 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 110 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 4 VERIFIED / 206 COMMITTED; 1 child is active; no child is anonymous.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 4 VERIFIED / 207 COMMITTED; 1 child is active; no child is anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 34 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S109 are committed; S110/J86 is active with a ready packet
-  naming unsupported-object/raw-section registration and replay, local metadata,
-  owner/handle/class invariants, malformed rollback, and focused fast gates. Keep validation fast and
+- Active work: S01-S110 are committed; S111/J87 is active with a ready packet
+  naming bounded raw-DWG replay self-read safety, malformed-frame/section
+  fail-closed behavior, and focused fast gates. Keep validation fast and
   self-updating: run source/plan/policy checks and the focused carrier target
   after each implementation item, commit only after the narrow gate is green,
   show the commit progress, and immediately re-run the ready-queue/unblock
@@ -2956,7 +2972,8 @@ edit this block or commit the same slice concurrently.
 | S107 | J83: malformed DXF modeler-carrier safety | S106 | COMMITTED | odd/non-hex 310 chunk; transactional reader rejection; no callback publication; valid-carrier regressions; fast carrier gate; plan/scope/sync/fixture gates | temporary local ASCII inputs with odd/non-hex 310 chunks fail closed and publish no entity; valid text/binary carrier checks remain green; malformed files are removed | focused malformed-carrier, CTest, live oracle, fixture/import/sync/plan gates pass; no fixture bytes retained |
 | S108 | J84: DWG modeler-reader preservation audit | S107 | COMMITTED | `DRW_ModelerGeometry::parseDwg`; raw body capture; `addModelerGeometry` callback; local sample availability; no-invented-writer boundary; fast reader gate; plan/scope/sync/fixture gates | AC1024 local corpus trace yields 15 `3DSOLID` history handles; temporary DXF output yields 15 modeler entities and 1,519 310 chunks through the production adapter; no bytes staged and no typed DWG writer invented | focused reader/adapter audit, local round-trip, live oracle, and policy gates pass; typed DWG modeler writer remains deferred |
 | S109 | J85: DWG modeler-writer boundary disposition | S108 | COMMITTED | target/source writer API comparison; generic raw-DWG replay; exact deferred claim/unblock condition; no-invented-encoder gate; plan/scope/sync/fixture gates | both trees expose only surface/raw-object/raw-section writer APIs; neither exposes a typed modeler writer; exact unblock requires a target/API change or versioned raw-entity replay contract plus real sample/spec evidence | focused source/API audit and policy gates pass; typed DWG modeler writing remains explicitly deferred |
-| S110 | J86: generic raw-DWG replay contract | S109 | ACTIVE | unsupported-object/raw-section registration; owner/handle/class invariants; malformed rollback; local metadata; fast replay gate; plan/scope/sync/fixture gates | qualify existing generic replay paths with local-from-scratch metadata while keeping typed modeler writing deferred | focused replay contract first, then the combined fast target and policy gates; full CTest remains checkpoint-only |
+| S110 | J86: generic raw-DWG replay contract | S109 | COMMITTED | unsupported-object/raw-section registration; owner/handle/class invariants; malformed rollback; local metadata; fast replay gate; plan/scope/sync/fixture gates | local AC1027 writer contract registers two class-remapped unsupported objects, patches an encoded handle to its metadata handle, preserves local class/owner evidence, rejects a malformed fixed-object body without poisoning the following frame, accepts one opaque raw section, and rejects a duplicate section; exploratory self-read exposed a reader safety boundary for S111; no external DWG/DXF bytes | focused replay target and policy gates pass; typed modeler writing remains deferred; reader round-trip is not promoted until S111 resolves the safety boundary |
+| S111 | J87: raw-DWG replay self-read safety | S110 | ACTIVE | bounded local writer-output trace; malformed raw-frame/section fail-closed behavior; same-version reader compatibility; no fixture admission; fast replay-reader gate; plan/scope/sync/fixture gates | diagnose the local AC1027 raw replay self-read boundary, harden or precisely defer malformed-frame/section paths, and promote same-version reader round-trip only after a local-from-scratch proof | focused raw replay reader target first, then the combined fast target and policy gates; full CTest remains checkpoint-only |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3070,7 +3087,8 @@ edit this block or commit the same slice concurrently.
 | J83 | S107 | J82 | COMMITTED | EXPERIMENTAL | Qualify malformed modeler-carrier 310-chunk rejection in the ASCII reader with transactional no-publication behavior | local odd/non-hex 310 checks fail closed with no callback publication; no external or retained fixture bytes |
 | J84 | S108 | J83 | COMMITTED | EXPERIMENTAL | Audit DWG modeler raw-body reader capture and callback publication against target flow and available local samples, preserving the explicit no-typed-writer boundary | AC1024 local sample trace/output counts qualify reader → callback → DXF raw-carrier delivery; no DWG/DXF bytes staged and no invented writer |
 | J85 | S109 | J84 | COMMITTED | EXPERIMENTAL | Reconcile the absent typed DWG modeler writer with generic raw-DWG replay routes and record the exact deferred/unblock condition | both APIs lack `writeModelerGeometry`; generic raw routes cannot encode its typed body; exact target/API/sample/spec unblock recorded; no external DWG bytes |
-| J86 | S110 | J85 | ACTIVE | EXPERIMENTAL | Qualify generic unsupported-object/raw-section replay with local metadata, owner/handle/class invariants, and malformed rollback while preserving the typed-writer defer boundary | ready packet names existing replay APIs, local metadata, smallest fast target, and policy gates; no external DWG bytes |
+| J86 | S110 | J85 | COMMITTED | EXPERIMENTAL | Qualify generic unsupported-object/raw-section replay with local metadata, owner/handle/class invariants, and malformed rollback while preserving the typed-writer defer boundary | local AC1027 writer contract passes class registration, encoded-handle patching, class/owner evidence, malformed fixed-object rejection, raw-section admission, and duplicate-section rejection; no external DWG bytes; reader self-read remains a named S111 safety boundary |
+| J87 | S111 | J86 | ACTIVE | EXPERIMENTAL | Diagnose and harden generic raw-DWG replay self-read safety with bounded malformed-frame/section behavior and same-version compatibility, without inventing typed modeler writing | ready packet names the local generated output, frame/section trace points, fail-closed reader gate, and policy gates; no external DWG bytes |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -3291,7 +3309,8 @@ edit this block or commit the same slice concurrently.
 | J83.1 | J83 / S107 | WP5, WP7, WP8, WP10; malformed modeler DXF | J82 | COMMITTED | EXPERIMENTAL | write a temporary ASCII DXF containing odd-length and non-hex 310 chunks, assert `fileImport` fails and the modeler callback publishes no entity | focused malformed-carrier, CTest, and policy gates pass; temporary files are removed and no fixture bytes are staged |
 | J84.1 | J84 / S108 | WP5, WP7, WP8, WP10; DWG modeler reader | J83 | COMMITTED | EXPERIMENTAL | trace `DRW_ModelerGeometry::parseDwg` raw-body capture and `addModelerGeometry` publication using an existing/local-from-scratch sample; if none is available, record the exact deferred disposition without inventing a writer | AC1024 local sample trace/output counts pass; no external bytes staged |
 | J85.1 | J85 / S109 | WP5, WP7, WP8, WP10; DWG modeler writer boundary | J84 | COMMITTED | EXPERIMENTAL | compare target/source writer APIs and generic raw-DWG replay; record no typed encoder plus exact unblock condition, then continue to an independent ready lane | focused source/API audit and policy gates pass; no speculative encoder or external DWG bytes |
-| J86.1 | J86 / S110 | WP5, WP7, WP8, WP10; generic raw-DWG replay | J85 | ACTIVE | EXPERIMENTAL | exercise unsupported-object/raw-section registration/replay with local metadata, owner/handle/class invariants, and malformed rollback | focused replay contract first; update the plan after the gate and continue to the next ready child without a full-suite stop |
+| J86.1 | J86 / S110 | WP5, WP7, WP8, WP10; generic raw-DWG replay | J85 | COMMITTED | EXPERIMENTAL | exercise unsupported-object/raw-section registration/replay with local metadata, owner/handle/class invariants, and malformed rollback | local AC1027 writer contract passes focused raw-object/raw-section assertions and policy gates; no external DWG bytes; same-version reader promotion is deferred to J87.1 |
+| J87.1 | J87 / S111 | WP5, WP7, WP8, WP10; raw-DWG replay self-read safety | J86 | ACTIVE | EXPERIMENTAL | trace and harden same-version reader handling of the local raw replay output, including malformed raw-frame/section fail-closed behavior, without adding external drawing fixtures or a typed modeler writer | focused reader-safety target first; update the plan after the gate and continue to the next ready child without a full-suite stop |
 
 <!-- UPGRADE_PROGRESS_END -->
 

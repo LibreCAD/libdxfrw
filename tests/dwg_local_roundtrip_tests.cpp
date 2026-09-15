@@ -15,6 +15,7 @@
 #include "drw_header.h"
 #include "dwg2dxf/dx_iface.h"
 #include "libdwgr.h"
+#include "intern/dwgbufferw.h"
 
 namespace {
 
@@ -4660,6 +4661,175 @@ bool runDxfMalformedModelerCarrier(const char* chunk) {
     return !importOk && imported.mBlock->ent.empty();
 }
 
+dwgHandle localRawObjectHandle(std::uint8_t code, std::uint32_t ref) {
+    dwgHandle handle;
+    handle.code = ref == 0 ? 0 : code;
+    handle.size = 0;
+    handle.ref = ref;
+    handle.ref64 = ref;
+    return handle;
+}
+
+DRW_UnsupportedObject makeLocalRawReplayObject(
+    DRW::Version version, std::uint16_t classNumber, std::uint32_t handle,
+    std::uint32_t encodedHandle = 0) {
+    if (encodedHandle == 0)
+        encodedHandle = handle;
+
+    dwgBufferW body;
+    dwgBufferW handles;
+    body.putObjType(version, classNumber);
+    body.putHandle(localRawObjectHandle(4, encodedHandle));
+    body.putBitShort(0); // EED size
+    body.putBitLong(0);  // reactor count
+    body.putBit(0);      // no extension dictionary
+    body.putBit(0);      // no DataStorage payload
+    body.putRawLong32(0x12345678u);
+    body.putRawShort16(0xABCDu);
+    body.putRawChar8(0x5Au);
+    body.alignToByte();
+    for (int i = 0; i < 7; ++i)
+        body.putBit(0); // empty R2007+ string stream
+    body.putRawShort16(0);
+    body.putBit(0);
+    body.alignToByte();
+
+    handles.putHandle(localRawObjectHandle(4, 0)); // owner
+    handles.putHandle(localRawObjectHandle(0, 0)); // xdictionary
+    handles.alignToByte();
+
+    DRW_UnsupportedObject object;
+    object.m_version = version;
+    object.m_objectType = classNumber;
+    object.m_handle = handle;
+    object.m_parentHandle = DRW::NoHandle;
+    object.setCommonLinkEvidence(DRW_DwgCommonLinkEvidence::ValidatedAbsent);
+    object.m_bodyBitSize = static_cast<std::uint32_t>(handles.size() * 8u);
+    object.m_objectSize = static_cast<std::uint32_t>(
+        body.data().size() + handles.data().size());
+    object.m_isEntity = false;
+    object.m_isCustomClass = true;
+    object.m_recordName = "LOCAL_RAW_REPLAY";
+    object.m_className = "AcDbLocalRawReplay";
+    object.m_hasClassDefinition = true;
+    object.m_classProxyFlag = 0x401;
+    object.m_classAppName = "LOCAL_S110";
+    object.m_classEntityFlagRaw = 0x1F3;
+    object.m_rawBytes = body.data();
+    object.m_rawBytes.insert(object.m_rawBytes.end(), handles.data().begin(),
+                             handles.data().end());
+    return object;
+}
+
+class LocalRawReplayInterface final : public dx_iface {
+public:
+    explicit LocalRawReplayInterface(dwgRW* writer = nullptr)
+        : writer_(writer), first_(makeLocalRawReplayObject(
+              DRW::AC1027, 500, 0x700u, 0x6FFu)),
+          second_(makeLocalRawReplayObject(DRW::AC1027, 501, 0x702u)) {
+        first_.m_objectSize = static_cast<std::uint32_t>(first_.m_rawBytes.size());
+        second_.m_objectSize = static_cast<std::uint32_t>(second_.m_rawBytes.size());
+        section_.m_name = "LocalRawS110";
+        section_.m_version = DRW::AC1027;
+        section_.m_data = {0x53u, 0x31u, 0x31u, 0x30u, 0x01u};
+    }
+
+    void writeHeader(DRW_Header& data) override { data.vars.clear(); }
+
+    void writeDwgClasses() override {
+        if (writer_ == nullptr)
+            return;
+        registeredFirst_ = writer_->registerRawDwgObjectClass(&first_);
+        registeredSecond_ = writer_->registerRawDwgObjectClass(&second_);
+        rejectedNullClass_ = !writer_->registerRawDwgObjectClass(nullptr);
+    }
+
+    void writeBlocks() override {}
+    void writeBlockRecords() override {}
+    void writeEntities() override {}
+    void writeLTypes() override {}
+    void writeLayers() override {}
+    void writeTextstyles() override {}
+    void writeVports() override {}
+    void writeDimstyles() override {}
+    void writeObjects() override {
+        if (writer_ == nullptr)
+            return;
+        replayedFirst_ = writer_->writeRawDwgObject(&first_);
+        capturedFirstFrame_ = writer_->getLastDwgObjectFrame(firstFrame_);
+
+        DRW_UnsupportedObject malformed = second_;
+        malformed.m_handle = 0x703u;
+        malformed.m_objectType = 102;
+        malformed.m_isCustomClass = false;
+        malformed.m_className.clear();
+        malformed.m_recordName.clear();
+        malformed.m_rawBytes = {0x00u};
+        malformed.m_objectSize = 1;
+        malformed.m_bodyBitSize = 0;
+        rejectedMalformed_ = !writer_->writeRawDwgObject(&malformed);
+
+        replayedSecond_ = writer_->writeRawDwgObject(&second_);
+        capturedSecondFrame_ = writer_->getLastDwgObjectFrame(secondFrame_);
+        replayedSection_ = writer_->writeRawDwgSection(&section_);
+        rejectedDuplicateSection_ = !writer_->writeRawDwgSection(&section_);
+    }
+    void writeAppId() override {}
+
+    void addUnsupportedObject(const DRW_UnsupportedObject& object) override {
+        readObjects_.push_back(object);
+    }
+    void addRawDwgSection(const DRW_RawDwgSection& section) override {
+        readSections_.push_back(section);
+    }
+
+    dwgRW* writer_ {nullptr};
+    DRW_UnsupportedObject first_;
+    DRW_UnsupportedObject second_;
+    DRW_RawDwgSection section_;
+    std::vector<DRW_UnsupportedObject> readObjects_;
+    std::vector<DRW_RawDwgSection> readSections_;
+    DRW::DwgObjectFrameReceipt firstFrame_;
+    DRW::DwgObjectFrameReceipt secondFrame_;
+    bool registeredFirst_ {false};
+    bool registeredSecond_ {false};
+    bool rejectedNullClass_ {false};
+    bool replayedFirst_ {false};
+    bool capturedFirstFrame_ {false};
+    bool rejectedMalformed_ {false};
+    bool replayedSecond_ {false};
+    bool capturedSecondFrame_ {false};
+    bool replayedSection_ {false};
+    bool rejectedDuplicateSection_ {false};
+};
+
+bool runRawDwgReplayContract() {
+    const std::filesystem::path output =
+        std::filesystem::temp_directory_path() / "libdxfrw-s110-raw-replay.dwg";
+    std::error_code ec;
+    std::filesystem::remove(output, ec);
+
+    dwgRW writer(output.string().c_str());
+    LocalRawReplayInterface writeIface(&writer);
+    const bool writeOk = writer.write(&writeIface, DRW::AC1027, true);
+    if (!writeOk
+        || !writeIface.registeredFirst_ || !writeIface.registeredSecond_
+        || !writeIface.rejectedNullClass_ || !writeIface.replayedFirst_
+        || !writeIface.rejectedMalformed_ || !writeIface.replayedSecond_
+        || !writeIface.replayedSection_ || !writeIface.rejectedDuplicateSection_) {
+        std::filesystem::remove(output, ec);
+        return false;
+    }
+    std::filesystem::remove(output, ec);
+    const bool result = writeIface.capturedFirstFrame_
+        && writeIface.firstFrame_.objectHandle == 0x700u
+        && writeIface.firstFrame_.classNumber >= 500
+        && writeIface.capturedSecondFrame_
+        && writeIface.secondFrame_.objectHandle == 0x702u
+        && writeIface.secondFrame_.classNumber >= 500;
+    return result;
+}
+
 bool runDxfSurfaceRoundTrip() {
     const std::filesystem::path output =
         std::filesystem::temp_directory_path() / "libdxfrw-surface-roundtrip.dxf";
@@ -5556,6 +5726,8 @@ int main(int argc, char** argv) {
            "local malformed DXF modeler odd hex rejection", failures);
     expect(runDxfMalformedModelerCarrier("GG"),
            "local malformed DXF modeler non-hex rejection", failures);
+    expect(runRawDwgReplayContract(),
+           "local DWG raw-object/raw-section replay contract", failures);
     if (failures != 0) {
         std::cerr << failures << " local DWG round-trip assertion(s) failed\n";
         return 1;
