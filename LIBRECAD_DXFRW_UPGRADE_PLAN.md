@@ -52,10 +52,10 @@ then pin an immutable commit before importing source.
 ### Execution refresh (2026-09-15)
 
 The implementation worktree is rebased on `origin/master` and is currently
-195 commits ahead with no commits behind it. The latest green slice is
-S168/J144, including the live-plan update and its required policy gates.
-S169/J145 is the active slice; its DXF binary raw-object capture/replay
-symmetry qualification is the next commit boundary.
+196 commits ahead with no commits behind it. The latest green slice is
+S169/J145, including the live-plan update and its required policy gates.
+S170/J146 is the active slice; its DXF raw-object self-handle and duplicate
+rejection qualification is the next commit boundary.
 The worktree is clean at the last committed boundary; any subsequent active-
 slice edits are intentionally uncommitted until their narrow gate and
 status-bearing plan transition are green.
@@ -1934,17 +1934,23 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint (2026-09-15): S168/J144 DXF binary raw-section
-  capture/replay symmetry qualification is committed; S169/J145 DXF binary
-  raw-object capture/replay symmetry qualification is active.
+- Current checkpoint (2026-09-15): S169/J145 DXF binary raw-object
+  capture/replay symmetry qualification is committed; S170/J146 DXF
+  raw-object self-handle and duplicate rejection qualification is active.
   The
   branch is rebased on `origin/master`, and
   the pinned source/package/consumer convergence remains complete while
   runtime and wire-format parity stay evidence-gated. The AC1015 IMAGE legacy
   boundary remains fail-closed, and all format-support claims remain limited
   to rows with eligible runtime/oracle evidence. The next dependency-ready
-  sequence is S169 DXF binary raw-object capture/replay symmetry qualification;
+  sequence is S170 DXF raw-object self-handle and duplicate rejection
+  qualification;
   it is a separate commit with no external or derived DWG/DXF bytes.
+- Latest implementation slice: S169/J145 DXF binary raw-object capture/replay
+  symmetry qualification is committed. Safe and explicit LibreCAD-legacy
+  profile vectors capture and replay object framing, self-handle, disputed
+  carriers, and binary chunks; malformed chunks roll back output; no drawing
+  bytes are retained.
 - Latest implementation slice: S168/J144 DXF binary raw-section capture/replay
   symmetry qualification is committed. Safe and explicit LibreCAD-legacy
   profile vectors capture and replay SECTION/ENDSEC framing with profile-valid
@@ -2852,19 +2858,19 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 168 (`COMMITTED`); S169 is active.
+- Resolved slices: 169 (`COMMITTED`); S170 is active.
 - Slice states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 168 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 169 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 170 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 171 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 266 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 267 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 153 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S168 are committed; S169/J145 is active with a ready packet
-  naming DXF binary raw-object capture/replay symmetry qualification and focused
-  fast gates.
+  0 DEFERRED_EXTERNAL / 154 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S169 are committed; S170/J146 is active with a ready packet
+  naming DXF raw-object self-handle and duplicate rejection qualification and
+  focused fast gates.
   Keep validation fast and
   self-updating: run source/plan/policy checks and the focused carrier target
   after each implementation item, commit only after the narrow gate is green,
@@ -3081,7 +3087,8 @@ edit this block or commit the same slice concurrently.
 | S166 | J142: DWG optional stream-buffer fallback qualification | S165 | COMMITTED | nullable string/handle streams; version-specific fallback to body stream; successful encoding; output partition semantics; focused DWG gate; plan/scope/sync/fixture gates | committed `S166`; six-version vectors prove nullable string/handle streams fall back to the body stream with version-correct partitioning while separate streams remain valid; no drawing bytes committed | DWG object-vector, local-roundtrip, and reader-matrix tests, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S167 is active |
 | S167 | J143: DXF raw-section source-spelling and transactional round-trip qualification | S166 | COMMITTED | raw section capture/replay; group-code source spelling; ASCII/binary symmetry; malformed-section rollback; callback suppression; focused DXF gate; plan/scope/sync/fixture gates | committed `S167`; safe and explicit LibreCAD-legacy profiles capture one section through the façade and replay all source lexemes with matching canonical carrier types; malformed section rejection publishes no callbacks; no drawing bytes committed | Wave 1 raw-section tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S168 is active |
 | S168 | J144: DXF binary raw-section capture/replay symmetry qualification | S167 | COMMITTED | binary raw-section framing; profile symmetry; typed/raw carrier agreement; malformed binary rollback; callback suppression; focused DXF gate; plan/scope/sync/fixture gates | committed `S168`; safe and explicit LibreCAD-legacy profile vectors capture and replay SECTION/ENDSEC framing with profile-valid carriers, and malformed widths roll back output; no drawing bytes committed | Wave 1 binary raw-section tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S169 is active |
-| S169 | J145: DXF binary raw-object capture/replay symmetry qualification | S168 | ACTIVE | binary raw-object framing; self-handle lexeme; profile symmetry; typed/raw carrier agreement; malformed binary rollback; callback suppression; focused DXF gate; plan/scope/sync/fixture gates | use local binary raw-object vectors through the façade for safe and LibreCAD-legacy profiles; assert object name/handle framing, profile-valid disputed carriers, malformed width/chunk rejection, and no partial callback/output mutation; no drawing bytes committed | active after S168 commit; use Wave 1 binary raw-object tests, focused CTest selector, fast source/policy gates, fixture admission, import scope, pinned sync, and diff gates |
+| S169 | J145: DXF binary raw-object capture/replay symmetry qualification | S168 | COMMITTED | binary raw-object framing; self-handle lexeme; profile symmetry; typed/raw carrier agreement; malformed binary rollback; callback suppression; focused DXF gate; plan/scope/sync/fixture gates | committed `S169`; safe and explicit LibreCAD-legacy profile vectors capture and replay object framing, self-handle, disputed carriers, and binary chunks; malformed chunks roll back output; no drawing bytes committed | Wave 1 binary raw-object tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S170 is active |
+| S170 | J146: DXF raw-object self-handle and duplicate rejection qualification | S169 | ACTIVE | self-handle requirement; duplicate-handle detection; wide-handle lexemes; transactional object capture; callback suppression; focused DXF gate; plan/scope/sync/fixture gates | use local ASCII and binary object streams with missing, duplicate, zero, and wide code-5 handles; assert version/profile-specific acceptance or fail-closed rejection with no partial raw callback; no drawing bytes committed | active after S169 commit; use Wave 1 raw-object tests, focused CTest selector, fast source/policy gates, fixture admission, import scope, pinned sync, and diff gates |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3254,7 +3261,8 @@ edit this block or commit the same slice concurrently.
 | J142 | S166 | J141 | COMMITTED | EXPERIMENTAL | Qualify nullable string/handle stream fallback and version-specific output partition semantics for LAYOUT/PLOTSETTINGS encoders | six-version null-stream positive vectors, successful encoding, partition semantics, and no-fixture evidence |
 | J143 | S167 | J142 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-section source spelling, profile symmetry, and transactional malformed-section rejection | in-memory raw-section capture/replay vectors, callback suppression, output rollback, and no-fixture evidence |
 | J144 | S168 | J143 | COMMITTED | EXPERIMENTAL | Qualify DXF binary raw-section framing, profile symmetry, and transactional malformed-width rejection | local binary section capture/replay vectors, callback suppression, output rollback, and no-fixture evidence |
-| J145 | S169 | J144 | ACTIVE | EXPERIMENTAL | Qualify DXF binary raw-object framing, profile symmetry, and transactional malformed-width/chunk rejection | active packet names local binary object capture/replay vectors, callback suppression, output rollback, and no-fixture evidence |
+| J145 | S169 | J144 | COMMITTED | EXPERIMENTAL | Qualify DXF binary raw-object framing, profile symmetry, and transactional malformed-width/chunk rejection | local binary object capture/replay vectors, callback suppression, output rollback, and no-fixture evidence |
+| J146 | S170 | J145 | ACTIVE | EXPERIMENTAL | Qualify DXF raw-object self-handle requirements, duplicate detection, and wide-handle disposition | active packet names local ASCII/binary handle vectors, profile/version acceptance matrix, callback suppression, and no-fixture evidence |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -3534,7 +3542,8 @@ edit this block or commit the same slice concurrently.
 | J142.1 | J142 / S166 | WP3, WP5, WP7, WP8, WP10; DWG optional stream-buffer fallback qualification | J141 | COMMITTED | EXPERIMENTAL | assert nullable string/handle streams fall back to the body stream by version without mutating valid caller state, without external drawing bytes | focused object-vector/local-roundtrip positive target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 | J143.1 | J143 / S167 | WP4, WP5, WP6, WP8, WP10; DXF raw-section source-spelling and transactional round-trip qualification | J142 | COMMITTED | EXPERIMENTAL | assert raw-section capture/replay preserves source spelling across safe/legacy profiles and malformed sections roll back without partial callback or output mutation, without external drawing bytes | focused Wave 1 raw-section target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 | J144.1 | J144 / S168 | WP4, WP5, WP6, WP8, WP10; DXF binary raw-section capture/replay symmetry qualification | J143 | COMMITTED | EXPERIMENTAL | assert binary raw-section framing and profile symmetry survive façade capture/replay while malformed widths roll back without partial callback or output mutation, without external drawing bytes | focused Wave 1 binary raw-section target and policy gates pass; no external or derived DWG/DXF bytes are retained |
-| J145.1 | J145 / S169 | WP4, WP5, WP6, WP8, WP10; DXF binary raw-object capture/replay symmetry qualification | J144 | ACTIVE | EXPERIMENTAL | assert binary raw-object framing, self-handle, and profile symmetry survive façade capture/replay while malformed widths/chunks roll back without partial callback or output mutation, without external drawing bytes | focused Wave 1 binary raw-object target and policy gates pass; no external or derived DWG/DXF bytes are retained |
+| J145.1 | J145 / S169 | WP4, WP5, WP6, WP8, WP10; DXF binary raw-object capture/replay symmetry qualification | J144 | COMMITTED | EXPERIMENTAL | assert binary raw-object framing, self-handle, and profile symmetry survive façade capture/replay while malformed widths/chunks roll back without partial callback or output mutation, without external drawing bytes | focused Wave 1 binary raw-object target and policy gates pass; no external or derived DWG/DXF bytes are retained |
+| J146.1 | J146 / S170 | WP4, WP5, WP6, WP8, WP10; DXF raw-object self-handle and duplicate rejection qualification | J145 | ACTIVE | EXPERIMENTAL | assert self-handle requirements, duplicate detection, and wide-handle disposition fail closed transactionally without partial raw callbacks, without external drawing bytes | focused Wave 1 raw-object handle target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 
 <!-- UPGRADE_PROGRESS_END -->
 

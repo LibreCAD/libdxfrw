@@ -1117,6 +1117,104 @@ void testDxfBinaryRawSectionCaptureReplay(TestContext& t) {
     }
 }
 
+void testDxfBinaryRawObjectCaptureReplay(TestContext& t) {
+    const dxfRW::DxfCompatibilityProfile profiles[] = {
+        dxfRW::DxfCompatibilityProfile::StandaloneSafe,
+        dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy};
+    for (const dxfRW::DxfCompatibilityProfile profile : profiles) {
+        const bool legacy = profile
+            == dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy;
+        const int profileCode = legacy ? 482 : 470;
+        std::ostringstream source;
+        dxfWriterBinary sourceWriter(&source);
+        sourceWriter.writeString(0, "SECTION");
+        sourceWriter.writeString(2, "OBJECTS");
+        sourceWriter.writeString(0, "LOCAL_BINARY_OBJECT");
+        sourceWriter.writeString(5, "2A");
+        if (legacy) {
+            sourceWriter.writeBool(260, true);
+            sourceWriter.writeBool(269, true);
+        } else {
+            sourceWriter.writeInt32(260, 2147483647);
+            sourceWriter.writeInt32(269, -7);
+        }
+        if (legacy)
+            sourceWriter.writeDouble(profileCode, 3.5);
+        else
+            sourceWriter.writeString(profileCode, "SAFE");
+        sourceWriter.writeString(1004, "ABCD");
+        sourceWriter.writeString(0, "ENDSEC");
+        sourceWriter.writeString(0, "EOF");
+
+        std::stringstream input(source.str());
+        ProfileProbeInterface interface_;
+        dxfRW reader("");
+        reader.binFile = true;
+        reader.reader = std::make_unique<dxfReaderBinary>(&input);
+        reader.reader->setClassifierProfile(
+            legacy ? DxfClassifierProfile::LibreCadMasterLegacy
+                   : DxfClassifierProfile::StandaloneSafe);
+        reader.iface = &interface_;
+        t.expect(reader.processDxf() && interface_.objects.size() == 1,
+                 "binary DXF raw object capture publishes one object");
+        if (interface_.objects.size() != 1)
+            continue;
+        const DRW_RawDxfObject& captured = interface_.objects.front();
+        t.expect(captured.groups.size() == 5
+                     && captured.groups[0].code() == 5
+                     && captured.groups[1].code() == 260
+                     && captured.groups[2].code() == 269
+                     && captured.groups[3].code() == profileCode
+                     && captured.groups[4].code() == 1004
+                     && captured.groups[0].type() == DRW_Variant::STRING
+                     && captured.groups[1].type() == DRW_Variant::INTEGER
+                     && captured.groups[2].type() == DRW_Variant::INTEGER
+                     && captured.groups[3].type()
+                         == (legacy ? DRW_Variant::DOUBLE
+                                    : DRW_Variant::STRING),
+                 "binary DXF raw object capture retains profile carriers");
+
+        std::ostringstream replay;
+        dxfRW writer("");
+        writer.setDxfCompatibilityProfile(profile);
+        writer.version = DRW::AC1027;
+        writer.binFile = true;
+        writer.writer = std::make_unique<dxfWriterBinary>(&replay);
+        DRW_RawDxfObject copy = captured;
+        t.expect(writer.writeRawDxfObject(&copy),
+                 "binary DXF raw object replays through profile");
+        std::stringstream replayStream(replay.str());
+        dxfReaderBinary replayReader(&replayStream);
+        replayReader.setClassifierProfile(
+            legacy ? DxfClassifierProfile::LibreCadMasterLegacy
+                   : DxfClassifierProfile::StandaloneSafe);
+        const std::vector<int> expectedCodes {
+            0, 5, 260, 269, profileCode, 1004};
+        std::size_t index = 0;
+        int code = 0;
+        while (replayReader.readRec(&code)) {
+            t.expect(index < expectedCodes.size()
+                         && code == expectedCodes[index],
+                     "binary DXF raw object preserves code order");
+            ++index;
+        }
+        t.expect(index == expectedCodes.size(),
+                 "binary DXF raw object replay consumes complete record");
+
+        DRW_RawDxfObject malformed = captured;
+        malformed.groups[4] = DRW_Variant(1004, std::string("ABC"));
+        std::ostringstream rejected;
+        dxfRW rejectingWriter("");
+        rejectingWriter.setDxfCompatibilityProfile(profile);
+        rejectingWriter.version = DRW::AC1027;
+        rejectingWriter.binFile = true;
+        rejectingWriter.writer = std::make_unique<dxfWriterBinary>(&rejected);
+        t.expect(!rejectingWriter.writeRawDxfObject(&malformed)
+                     && rejected.str().empty(),
+                 "binary DXF malformed raw object rolls back output");
+    }
+}
+
 void testRawCapture(TestContext& t) {
     std::stringstream records("260\n2147483647\n482\n3.14\n1004\nAB\n");
     dxfRW owner("");
@@ -1322,6 +1420,7 @@ int main() {
     testDxfRawSectionCaptureReplay(context);
     testDxfBinaryRawBoundaryReplay(context);
     testDxfBinaryRawSectionCaptureReplay(context);
+    testDxfBinaryRawObjectCaptureReplay(context);
     testRawCapture(context);
     testHatchValidationIgnoresInactiveGradient(context);
     testFixedSpaceBlockClassification(context);
