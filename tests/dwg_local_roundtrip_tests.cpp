@@ -295,6 +295,10 @@ public:
                     DRW_Camera::kDwgClassNum, 0xEF00u);
             }
             if (expectedVersion_ >= DRW::AC1021) {
+                registeredLight_ = writer_->registerDwgEntityClassInstance(
+                    DRW_Light::kDwgClassNum, 0xF600u);
+            }
+            if (expectedVersion_ >= DRW::AC1021) {
                 DRW_DimensionAssociation dimAssocRegistration;
                 dimAssocRegistration.handle = 0xF000u;
                 registeredDimensionAssociation_ =
@@ -1922,6 +1926,55 @@ public:
             rejectedMalformedMLine_ = rejectedNonFinite && rejectedCountMismatch;
         }
 
+        if (expectedVersion_ < DRW::AC1021) {
+            wroteLight_ = false;
+            rejectedMalformedLight_ = true;
+        } else {
+            DRW_Light light;
+            light.handle = 0xF600u;
+            light.m_classVersion = 1;
+            light.m_name = "LOCAL_LIGHT";
+            light.m_type = 1;
+            light.m_status = true;
+            light.m_color = 3;
+            light.m_plotGlyph = false;
+            light.m_intensity = 2.5;
+            light.m_position = DRW_Coord(111.0, 112.0, 113.0);
+            light.m_target = DRW_Coord(114.0, 115.0, 116.0);
+            light.m_attenuationType = 1;
+            light.m_useAttenuationLimits = true;
+            light.m_attenuationStartLimit = 0.5;
+            light.m_attenuationEndLimit = 12.5;
+            light.m_hotspotAngle = 0.25;
+            light.m_falloffAngle = 0.75;
+            light.m_castShadows = true;
+            light.m_shadowType = 1;
+            light.m_shadowMapSize = 1024;
+            light.m_shadowMapSoftness = 3;
+            light.m_hasPhotometricData = true;
+            light.m_hasWebFile = true;
+            light.m_webFile = "LOCAL_LIGHT.IES";
+            light.m_physicalIntensityMethod = 2;
+            light.m_physicalIntensity = 4.5;
+            light.m_illuminanceDistance = 6.5;
+            light.m_lampColorType = 1;
+            light.m_lampColorTemperature = 3500.0;
+            light.m_lampColorPreset = 2;
+            light.m_webRotation = DRW_Coord(0.0, 1.0, 0.0);
+            light.m_extendedLightShape = 3;
+            light.m_extendedLightLength = 1.25;
+            light.m_extendedLightWidth = 2.25;
+            light.m_extendedLightRadius = 3.25;
+            wroteLight_ = registeredLight_ && writer_->writeLight(&light)
+                && light.handle == 0xF600u;
+            DRW_Light invalidLight = light;
+            invalidLight.handle = 0xF601u;
+            invalidLight.m_intensity =
+                std::numeric_limits<double>::quiet_NaN();
+            rejectedMalformedLight_ = !writer_->writeLight(&invalidLight)
+                && invalidLight.handle == 0xF601u;
+        }
+
         DRW_Hatch hatch;
         hatch.name = "SOLID";
         hatch.solid = 1;
@@ -2281,6 +2334,48 @@ public:
             && data->vertlist[0].segParms[0].size() == 1
             && data->vertlist[0].segParms[0][0] == 0.5
             && data->vertlist[0].areaFillParms[0][0] == 0.25;
+    }
+    void addLight(const DRW_Light& data) override {
+        if (data.handle != 0xF600u)
+            return;
+        readLightSeen_ = expectedVersion_ >= DRW::AC1021
+            && data.m_classVersion == 1
+            && data.m_name == "LOCAL_LIGHT"
+            && data.m_type == 1
+            && data.m_status
+            && data.m_color == 3
+            && !data.m_plotGlyph
+            && data.m_intensity == 2.5
+            && data.m_position.x == 111.0
+            && data.m_position.y == 112.0
+            && data.m_position.z == 113.0
+            && data.m_target.x == 114.0
+            && data.m_target.y == 115.0
+            && data.m_target.z == 116.0
+            && data.m_attenuationType == 1
+            && data.m_useAttenuationLimits
+            && data.m_attenuationStartLimit == 0.5
+            && data.m_attenuationEndLimit == 12.5
+            && data.m_hotspotAngle == 0.25
+            && data.m_falloffAngle == 0.75
+            && data.m_castShadows
+            && data.m_shadowType == 1
+            && data.m_shadowMapSize == 1024
+            && data.m_shadowMapSoftness == 3
+            && data.m_hasPhotometricData
+            && data.m_hasWebFile
+            && data.m_webFile == "LOCAL_LIGHT.IES"
+            && data.m_physicalIntensityMethod == 2
+            && data.m_physicalIntensity == 4.5
+            && data.m_illuminanceDistance == 6.5
+            && data.m_lampColorType == 1
+            && data.m_lampColorTemperature == 3500.0
+            && data.m_lampColorPreset == 2
+            && data.m_webRotation.y == 1.0
+            && data.m_extendedLightShape == 3
+            && data.m_extendedLightLength == 1.25
+            && data.m_extendedLightWidth == 2.25
+            && data.m_extendedLightRadius == 3.25;
     }
     void addHatch(const DRW_Hatch*) override { readHatchSeen_ = true; }
     void addLeader(const DRW_Leader*) override { readLeaderSeen_ = true; }
@@ -3334,6 +3429,9 @@ public:
     bool wroteMLine() const { return wroteMLine_; }
     bool rejectedMalformedMLine() const { return rejectedMalformedMLine_; }
     bool readMLineSeen() const { return readMLineSeen_; }
+    bool wroteLight() const { return wroteLight_; }
+    bool rejectedMalformedLight() const { return rejectedMalformedLight_; }
+    bool readLightSeen() const { return readLightSeen_; }
     bool readPointCloudSeen() const { return readPointCloudSeen_; }
     bool readPointCloudExSeen() const { return readPointCloudExSeen_; }
     bool readHatchSeen() const { return readHatchSeen_; }
@@ -3585,6 +3683,9 @@ private:
     bool rejectedMalformedShape_ {false};
     bool wroteMLine_ {false};
     bool rejectedMalformedMLine_ {false};
+    bool registeredLight_ {false};
+    bool wroteLight_ {false};
+    bool rejectedMalformedLight_ {false};
     bool wrotePointCloud_ {false};
     bool wrotePointCloudEx_ {false};
     bool rejectedMalformedPointCloudEntity_ {false};
@@ -3795,6 +3896,7 @@ private:
     bool readGeoPositionMarkerSeen_ {false};
     bool readShapeSeen_ {false};
     bool readMLineSeen_ {false};
+    bool readLightSeen_ {false};
     bool readPointCloudSeen_ {false};
     bool readPointCloudExSeen_ {false};
     bool readHatchSeen_ {false};
@@ -3998,6 +4100,13 @@ int main(int argc, char** argv) {
                ("local DWG MLINE capability gate" + suffix).c_str(), failures);
         expect(writeIface.rejectedMalformedMLine(),
                ("local DWG writer rejected malformed MLINE transaction"
+                + suffix).c_str(), failures);
+        expect(version >= DRW::AC1021
+                   ? writeIface.wroteLight()
+                   : !writeIface.wroteLight(),
+               ("local DWG LIGHT capability gate" + suffix).c_str(), failures);
+        expect(writeIface.rejectedMalformedLight(),
+               ("local DWG writer rejected malformed LIGHT transaction"
                 + suffix).c_str(), failures);
         expect(version > DRW::AC1018
                    ? writeIface.wrotePointCloud()
@@ -4325,6 +4434,11 @@ int main(int argc, char** argv) {
                    ? readIface.readMLineSeen()
                    : !readIface.readMLineSeen(),
                ("local DWG self-read MLINE capability gate" + suffix).c_str(),
+               failures);
+        expect(version >= DRW::AC1021
+                   ? readIface.readLightSeen()
+                   : !readIface.readLightSeen(),
+               ("local DWG self-read LIGHT capability gate" + suffix).c_str(),
                failures);
         expect(version > DRW::AC1018
                    ? readIface.readPointCloudSeen()

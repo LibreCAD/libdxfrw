@@ -2617,7 +2617,7 @@ edit this block or commit the same slice concurrently.
   round-trip one non-embedded local marker, with a fixed type-1164 reader route
   for the target's unused CLASSES ordinal and a finite-value writer guard. The
   pre-AC1027 omission is explicit; no marker or MText fixture bytes were added.
-- Latest implementation slice: S96/J72 MLINE entity parity is committed. Both
+- Previous implementation slice: S96/J72 MLINE entity parity is committed. Both
   trees expose `DRW_MLine`, fixed DWG type 47, `writeMLine`, `addMLine`, and
   the bounded per-vertex/per-line parameter wire contract. A local two-vertex,
   one-line MLINE with the existing local MLINESTYLE handle now round-trips on
@@ -2627,6 +2627,21 @@ edit this block or commit the same slice concurrently.
   entities before OBJECTS, so the optional style name remains local-self-read
   authoritative; no external style or drawing fixture is added, and malformed
   numeric/count state rolls back transactionally.
+- Previous implementation slice: S97/J73 LIGHT entity parity is committed.
+  Both trees expose `DRW_Light`, built-in class 502, `writeLight`, `addLight`,
+  and the version-gated photometric body. One local point LIGHT round-trips on
+  AC1021/24/27/32 with deterministic pre-AC1021 omission; finite-value writer
+  rejection, callback scalar/position/attenuation/photometric publication,
+  and independent LibreDWG type/handle/base-payload identity are qualified.
+  LibreDWG does not expose photometric/web fields, so local self-read remains
+  authoritative there; no external light/IES asset or drawing fixture bytes
+  are retained.
+- Active implementation slice: S98/J74 MESH entity parity is selected from
+  fresh target/source evidence. Both trees expose `DRW_Mesh`, built-in class
+  520, `writeMesh`, `addMesh`, and bounded vertex/face/edge/crease topology.
+  The fast slice will exercise one local MESH on AC1018/21/24/27/32, gate the
+  unsafe AC1015 legacy chain explicitly, reject malformed topology, and qualify
+  independent type/handle/base-payload identity without fixture bytes.
 - Previous implementation slice: S90/J66 DIMASSOC/EVALUATION_GRAPH object parity
   is committed. The AC1021+ lane registers the target's typed classes before
   CLASSES, writes one bounded DIMASSOC with a soft dimension/reference link and
@@ -2667,33 +2682,33 @@ edit this block or commit the same slice concurrently.
   names TVDEVICEPROPERTIES and the two VX frames as UNKNOWN_OBJ, while local
   self-read remains authoritative for VX payload fields; no generated drawings
   or external assets are retained.
-- Last fully resolved slice: S96 (the MLINE entity parity slice is committed
+- Last fully resolved slice: S97 (the LIGHT entity parity slice is committed
+  by the matching `Plan-Slice: S97` trailer; the
+  commit carries implementation, oracle evidence, and live-plan state).
+  The target integration commit remains
+  `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
+  terminal only when their recorded gates pass.
+- Previous fully resolved slice: S96 (the MLINE entity parity slice is committed
   by the matching `Plan-Slice: S96` trailer; the
   commit carries implementation, oracle evidence, and live-plan state).
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Previous fully resolved slice: S95 (the SHAPE entity parity slice is committed
-  by the matching `Plan-Slice: S95` trailer; the
-  commit carries implementation, oracle evidence, and live-plan state).
-  The target integration commit remains
-  `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
-  terminal only when their recorded gates pass.
-- Resolved slices: 96 (`COMMITTED`); no slice is active.
-- Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 96 COMMITTED.
-- Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 96 COMMITTED.
+- Resolved slices: 97 (`COMMITTED`); S98 is active.
+- Slice states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING / 0 VERIFIED /
+  0 BLOCKED_HARD / 0 SUPERSEDED / 97 COMMITTED.
+- Parent-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 97 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 4 VERIFIED / 193 COMMITTED; no child is anonymous.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 4 VERIFIED / 194 COMMITTED; 1 child is active; no child is anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 34 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S96 are committed and no slice is active. S96/J72 is
-  self-unblocked by its focused six-version round-trip, live LibreDWG oracle,
-  fixture/import-scope/sync/plan/diff gates, and explicit AC1015 capability
-  disposition. The next lane must be selected from fresh target/source
-  evidence; continue the same self-updating state transition after each
-  implementation item and commit.
+- Active work: S01-S97 are committed; S98/J74 is active with a ready packet
+  naming the built-in class-520 MESH route, AC1018+ capability window, local
+  from-scratch vertices/faces/edges/creases vector, bounded-geometry rollback,
+  focused self-read, and independent JSON identity oracle. Keep validation
+  fast and self-updating; after S98 commits, record its gates and immediately
+  select the next dependency-ready target/source lane.
   S76 records the explicit AC1015 image capability
   boundary and leaves newer image versions locally qualified; S77 keeps
   point-cloud payload evidence identity-only where LibreDWG is opaque.
@@ -2832,6 +2847,8 @@ edit this block or commit the same slice concurrently.
 | S94 | J70: GEOPOSITIONMARKER entity parity | S93 | COMMITTED | fresh target/source API inventory; AC1027+ capability gate; focused six-version local writer/self-read; mapped `addGeoPositionMarker` publication; bounded marker body fields; malformed rollback; independent oracle identity; plan/scope/sync/fixture gates | pinned target and standalone expose `DRW_GeoPositionMarker`, `writeGeoPositionMarker`, `addGeoPositionMarker`, and the version-gated marker encoder/parser; one fixed non-embedded marker with local position/radius/notes/alignment values now round-trips on AC1027/AC1032, while pre-AC1027 emission is explicitly gated; the fixed type-1164 reader route is adapted for the target's unused CLASSES ordinal; no embedded MText or fixture bytes | focused six-version capability matrix and oracle probe pass; callback and type/handle identity qualify on AC1027+ (LibreDWG exposes it as UNKNOWN_OBJ); malformed non-finite marker state is rejected transactionally; pre-AC1027 omission is deterministic and documented; fixture admission, import scope, target sync, plan check, and diff gates pass |
 | S95 | J71: SHAPE entity parity | S94 | COMMITTED | target/source API inventory; fixed type-33 dispatch; focused six-version local writer/self-read; mapped `addShape` publication; bounded scalar/style-reference fields; malformed rollback; independent oracle identity; plan/scope/sync/fixture gates | pinned target and standalone expose `DRW_Shape`, fixed type 33, `writeShape`, and `addShape`; one local-from-scratch SHAPE with the standard STYLE handle round-trips on AC1018/21/24/27/32, while AC1015 is explicitly gated by its legacy contiguous-chain limitation; no SHX payload/fixture | focused six-version capability matrix and independent LibreDWG oracle qualify callback scalar/insertion/extrusion/style identity and type 33/handle `0xF400`; malformed missing-style state is rejected transactionally; SHX remains opaque; fixture admission, import scope, target sync, plan check, and diff gates pass |
 | S96 | J72: MLINE entity parity | S95 | COMMITTED | fresh target/source API inventory; fixed type-47 dispatch; focused six-version local writer/self-read; mapped `addMLine` publication; bounded style/vertex/segment fields; malformed rollback; independent oracle identity; plan/scope/sync/fixture gates | pinned target and standalone expose `DRW_MLine`, fixed type 47, `writeMLine`, `addMLine`, and the per-vertex/per-line parameter encoder/parser; one local two-vertex, one-line MLINE references the existing local MLINESTYLE handle `0xA800`; AC1015 is an explicit fixed-high-handle gate, with no external style or drawing fixture | focused six-version local round-trip and CTest pass for AC1018/21/24/27/32 plus deterministic AC1015 omission; callback qualifies scalar geometry, style handle, vertices, segment/area-fill arrays, and malformed non-finite/count-mismatch rollback; LibreDWG JSON independently qualifies type 47/handle `0xF500`, style handle `0xA800`, and bounded payload; style name remains local-self-read authoritative because entities publish before OBJECTS; fixture admission, import scope, target sync, plan check, and diff gates pass |
+| S97 | J73: LIGHT entity parity | S96 | COMMITTED | fresh target/source API inventory; built-in class-502 dispatch; AC1021+ capability gate; focused six-version local writer/self-read; mapped `addLight` publication; bounded scalar/photometric fields; malformed rollback; independent oracle identity; plan/scope/sync/fixture gates | pinned target and standalone expose `DRW_Light`, class 502, `writeLight`, `addLight`, and the version-gated photometric body; one local point LIGHT round-trips on AC1021/24/27/32 with deterministic pre-AC1021 omission; finite-value rollback, callback scalar/position/attenuation/photometric publication, and independent LibreDWG base identity pass; no external light/IES asset or drawing fixture | focused six-version capability matrix, local self-read, CTest, live LibreDWG JSON oracle (base payload), fixture admission, import scope, target sync, plan check, and diff gates pass; photometric/web fields remain local-self-read authoritative because LibreDWG omits them |
+| S98 | J74: MESH entity parity | S97 | ACTIVE | fresh target/source API inventory; built-in class-520 dispatch; AC1018+ capability gate; focused five-version local writer/self-read; mapped `addMesh` publication; bounded topology; malformed rollback; independent oracle identity; plan/scope/sync/fixture gates | pinned target and standalone expose `DRW_Mesh`, class 520, `writeMesh`, `addMesh`, and the bounded `AcDbSubDMesh` body; use one local four-vertex/one-face mesh with one edge and crease on AC1018/21/24/27/32, gate AC1015 explicitly, and stage no drawing fixture | active implementation must prove class/instance registration, version behavior, callback topology publication, malformed topology rejection, independent type/handle/base-payload identity, and policy gates before commit |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -2932,6 +2949,8 @@ edit this block or commit the same slice concurrently.
 | J70 | S94 | J69 | COMMITTED | EXPERIMENTAL | Qualify the existing GEOPOSITIONMARKER entity writer and reader on AC1027/32, including version-gated marker-body framing, mapped `addGeoPositionMarker` publication, bounded position/radius/notes/alignment fields, and transaction-safe malformed-state rejection; retain explicit pre-AC1027 capability gates and leave embedded MText for a follow-up |
 | J71 | S95 | J70 | COMMITTED | EXPERIMENTAL | Qualify the existing SHAPE entity writer and reader on AC1018/21/24/27/32, including fixed type-33 framing, mapped `addShape` publication, bounded scalar/insertion/extrusion fields, standard STYLE hard-pointer resolution, and transaction-safe malformed-state rejection; retain the SHX glyph stream as opaque and keep AC1015 explicitly gated by its contiguous-chain limitation |
 | J72 | S96 | J71 | COMMITTED | EXPERIMENTAL | Qualify the existing MLINE entity writer and reader across AC1015/18/21/24/27/32, including fixed type-47 framing, MLINESTYLE hard-pointer publication, bounded vertex/segment/area-fill arrays, mapped `addMLine` publication, and transaction-safe malformed-state rejection; retain the optional style-name resolution limitation caused by entity-before-OBJECTS publication order |
+| J73 | S97 | J72 | COMMITTED | EXPERIMENTAL | Qualify the existing LIGHT entity writer and reader on AC1021/24/27/32, including built-in class-502 identity/instance bookkeeping, version-gated photometric fields, mapped `addLight` publication, bounded geometry/intensity/attenuation/shadow metadata, and transaction-safe malformed-state rejection; keep pre-AC1021 omission explicit | six-version capability matrix, local self-read and CTest pass; live LibreDWG qualifies class/type/handle and stable base fields, while photometric/web fields remain local-self-read authoritative; no fixture bytes or external IES asset |
+| J74 | S98 | J73 | ACTIVE | EXPERIMENTAL | Qualify the existing MESH entity writer and reader on AC1018/21/24/27/32, including built-in class-520 identity/instance bookkeeping, version-gated legacy-chain handling, mapped `addMesh` publication, bounded vertex/face/edge/crease topology, and transaction-safe malformed-state rejection; keep AC1015 omission explicit |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -3139,6 +3158,8 @@ edit this block or commit the same slice concurrently.
 | J70.1 | J70 / S94 | WP5, WP7, WP8, WP10; GEOPOSITIONMARKER | J69 | COMMITTED | EXPERIMENTAL | emit and self-read one bounded non-embedded GEOPOSITIONMARKER on AC1027/32, verify callback identity and marker-body fields plus independent type/handle identity, and reject non-finite/over-limit state without publishing a frame; gate AC1015/18/21 explicitly until the versioned body is supported | focused six-version capability matrix (write/read only AC1027+), local-from-scratch values, live oracle identity where stable, no embedded MText asset and no fixture bytes; fixed type-1164 classification/dispatch and writer finite-value guard are covered, and plan, fixture, import-scope, sync, and diff gates pass |
 | J71.1 | J71 / S95 | WP5, WP7, WP8, WP10; SHAPE | J70 | COMMITTED | EXPERIMENTAL | emit and self-read one bounded SHAPE with a standard STYLE reference on AC1018/21/24/27/32, verify callback scalar/insertion/extrusion/style identity plus independent type/handle evidence, and reject non-finite or missing-style state without publishing a frame; gate AC1015 explicitly until a safe legacy handle route is proven; retain the SHX glyph stream as opaque | focused six-version capability matrix (write/read only AC1018+), LibreDWG identity, local-from-scratch values, no external SHX or drawing fixture, and fixture/import-scope/sync/plan gates pass |
 | J72.1 | J72 / S96 | WP5, WP7, WP8, WP10; MLINE | J71 | COMMITTED | EXPERIMENTAL | emit and self-read one bounded two-vertex MLINE with one local MLINESTYLE reference across AC1015/18/21/24/27/32, verify callback style-handle/vertex/parameter identity plus independent type/handle evidence, and reject non-finite or count-mismatched state without publishing a frame; accept an unresolved optional style name during the entity pass | focused six-version local round-trip and oracle probe pass; AC1015 omission is explicit, AC1018+ identity uses local MLINESTYLE handle `0xA800`, no external style/drawing fixture is committed, and fixture/import-scope/sync/plan/diff gates pass |
+| J73.1 | J73 / S97 | WP5, WP7, WP8, WP10; LIGHT | J72 | COMMITTED | EXPERIMENTAL | emit and self-read one bounded LIGHT with class 502 on AC1021/24/27/32, explicitly gate AC1015/18, verify callback class/name/type/color/intensity/position/target/attenuation/shadow and photometric fields plus independent JSON identity, and reject non-finite intensity/geometry transactionally without publishing a frame | focused six-version capability matrix, local-from-scratch values only, independent LibreDWG JSON base-payload check, fixture/import-scope/sync/plan/diff gates pass; photometric/web fields are locally qualified because LibreDWG omits them, no external light/IES asset and no generated drawing bytes committed |
+| J74.1 | J74 / S98 | WP5, WP7, WP8, WP10; MESH | J73 | ACTIVE | EXPERIMENTAL | emit and self-read one bounded MESH with class 520 on AC1018/21/24/27/32, explicitly gate AC1015, verify callback vertices/faces/edges/creases plus independent JSON identity, and reject non-finite vertices, invalid indices, and over-limit topology transactionally without publishing a frame | focused five-version capability matrix, local-from-scratch values only, independent LibreDWG JSON identity/payload check, fixture/import-scope/sync/plan/diff gates; no external mesh asset and no generated drawing bytes committed |
 
 <!-- UPGRADE_PROGRESS_END -->
 

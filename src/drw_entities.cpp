@@ -8030,7 +8030,30 @@ bool DRW_GeoPositionMarker::parseDwg(DRW::Version v, dwgBuffer *buf,
 bool DRW_Light::encodeDwg(DRW::Version v, dwgBufferW *buf, std::uint32_t bs,
                           dwgBufferW *strBuf, dwgBufferW *handleBuf) {
     (void)bs;
-    if (v < DRW::AC1021)
+    if (v < DRW::AC1021 || buf == nullptr
+        || m_color > std::numeric_limits<std::uint16_t>::max()
+        || m_name.size() > kMaxTableStringBytes
+        || m_webFile.size() > kMaxTableStringBytes)
+        return false;
+    const auto finite = [](const DRW_Coord& point) {
+        return std::isfinite(point.x) && std::isfinite(point.y)
+            && std::isfinite(point.z);
+    };
+    if (!finite(m_position) || !finite(m_target)
+        || !std::isfinite(m_intensity)
+        || !std::isfinite(m_attenuationStartLimit)
+        || !std::isfinite(m_attenuationEndLimit)
+        || !std::isfinite(m_hotspotAngle)
+        || !std::isfinite(m_falloffAngle))
+        return false;
+    if (m_hasPhotometricData
+        && (!finite(m_webRotation)
+            || !std::isfinite(m_physicalIntensity)
+            || !std::isfinite(m_illuminanceDistance)
+            || !std::isfinite(m_lampColorTemperature)
+            || !std::isfinite(m_extendedLightLength)
+            || !std::isfinite(m_extendedLightWidth)
+            || !std::isfinite(m_extendedLightRadius)))
         return false;
 
     oType = kDwgClassNum;

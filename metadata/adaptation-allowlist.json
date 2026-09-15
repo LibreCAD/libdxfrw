@@ -70,10 +70,10 @@
     },
     {
       "path": "src/drw_entities.cpp",
-      "reason": "Mark one intentionally unused helper, remove two unused locals exposed by standalone -Werror compilation, and reject non-finite GEOPOSITIONMARKER marker-body values before encoding.",
+      "reason": "Mark one intentionally unused helper, remove two unused locals exposed by standalone -Werror compilation, and reject non-finite GEOPOSITIONMARKER and LIGHT entity-body values plus bounded LIGHT strings/color before encoding.",
       "scope": "warning hygiene",
       "targetBlob": "890ea64e07010339cac96e5d580ecacef7f0f39e",
-      "adaptedSha256": "5fe948deef7f0a27515422396c847a5d15b93ea02fa273620d940db093274272"
+      "adaptedSha256": "194cc3006440c9013300f3555f9f4d5e808053c87f1008085fd4b7ddc38da759"
     },
     {
       "path": "src/intern/dwgutil.h",

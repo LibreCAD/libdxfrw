@@ -135,6 +135,7 @@ CAMERA_HANDLE = 0xEF00
 GEOPOSITIONMARKER_HANDLE = 0xF300
 SHAPE_HANDLE = 0xF400
 MLINE_HANDLE = 0xF500
+LIGHT_HANDLE = 0xF600
 DIMASSOC_HANDLE = 0xF000
 EVALUATION_GRAPH_HANDLE = 0xF100
 BLOCKREPRESENTATIONDATA_HANDLE = 0xF200
@@ -411,6 +412,50 @@ def check_mline_entity(records: list[dict], version_name: str) -> dict:
     }
 
 
+def check_light_entity(records: list[dict], version_name: str) -> dict:
+    """Qualify the class-502 LIGHT entity and stable base payload."""
+    if version_name in {"AC1015", "AC1018"}:
+        return {"supported": False}
+    matches = [
+        record for record in records
+        if isinstance(record, dict)
+        and record.get("entity") == "LIGHT"
+    ]
+    if len(matches) != 1:
+        raise ValueError("LIGHT entity frame count mismatch")
+    light = matches[0]
+    if (record_handle(light) != LIGHT_HANDLE
+            or light.get("class_version") != 1
+            or light.get("name") != "LOCAL_LIGHT"
+            # LibreDWG's JSON object repeats the key "type": the outer
+            # entity class (502) is overwritten by the inner light-kind (1)
+            # during JSON parsing.  The entity name/subclass supplies the
+            # class identity; assert the stable inner kind here.
+            or light.get("_subclass") != "AcDbLight"
+            or light.get("type") != 1
+            or light.get("status") != 1
+            or light.get("light_color", {}).get("rgb") != "c3000003"
+            or light.get("intensity") != 2.5
+            or light.get("position") != [111.0, 112.0, 113.0]
+            or light.get("target") != [114.0, 115.0, 116.0]
+            or light.get("attenuation_type") != 1
+            or light.get("use_attenuation_limits") != 1
+            or light.get("attenuation_start_limit") != 0.5
+            or light.get("attenuation_end_limit") != 12.5
+            or light.get("hotspot_angle") != 0.25
+            or light.get("falloff_angle") != 0.75
+            or light.get("cast_shadows") != 1
+            or light.get("shadow_type") != 1
+            or light.get("shadow_map_size") != 1024
+            or light.get("shadow_map_softness") != 3):
+        raise ValueError("LIGHT identity or bounded payload mismatch")
+    return {
+        "supported": True, "entity": "LIGHT", "type": 502,
+        "handle": LIGHT_HANDLE, "name": "LOCAL_LIGHT", "lightType": 1,
+        "intensity": 2.5, "photometricPayloadQualified": False,
+    }
+
+
 def check_express_text_entities(records: list[dict], version_name: str) -> dict:
     """Qualify RTEXT/ARCALIGNEDTEXT identity and bounded oracle payload.
 
@@ -540,6 +585,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
     geo_position_marker = check_geo_position_marker(records, version_name)
     shape_entity = check_shape_entity(records, version_name)
     mline_entity = check_mline_entity(records, version_name)
+    light_entity = check_light_entity(records, version_name)
     express_text_entities = check_express_text_entities(records, version_name)
     associative_objects = check_associative_objects(records, version_name)
     block_representation = check_block_representation(records, version_name)
@@ -598,6 +644,17 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "per-vertex segment/area-fill arrays, and MLINESTYLE handle; "
             "the optional style name remains local-self-read authoritative "
             "because DWG entities are published before OBJECTS table records")
+    light_discrepancies = []
+    if not light_entity.get("supported"):
+        light_discrepancies.append(
+            "LIGHT emission is intentionally gated off before AC1021 because "
+            "the target encoder's versioned body begins at R2007")
+    else:
+        light_discrepancies.append(
+            "LibreDWG 0.14 qualifies LIGHT class/type/handle and the stable "
+            "name, color, intensity, geometry, attenuation, and shadow fields; "
+            "photometric/web fields are not exposed in its JSON record and "
+            "remain local-self-read authoritative")
 
     render_matrix = {}
     for kind, (object_name, handle, object_type) in RENDER_SETTINGS_KINDS.items():
@@ -1658,6 +1715,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         "geoPositionMarker": geo_position_marker,
         "shapeEntity": shape_entity,
         "mlineEntity": mline_entity,
+        "lightEntity": light_entity,
         "expressTextEntities": express_text_entities,
         "associativeObjects": associative_objects,
         "blockRepresentationData": block_representation,
@@ -1697,7 +1755,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         + associative_discrepancies
         + block_representation_discrepancies
         + camera_discrepancies + geo_position_marker_discrepancies
-        + shape_discrepancies + mline_discrepancies),
+        + shape_discrepancies + mline_discrepancies + light_discrepancies),
     }
 
 
@@ -2139,9 +2197,21 @@ def self_test() -> None:
                               "areafillparms": [0.25]}]},
                  {"vertex": [107.0, 108.0, 109.0],
                   "vertex_direction": [1.0, 0.0, 0.0],
-                  "miter_direction": [0.0, 1.0, 0.0],
+                 "miter_direction": [0.0, 1.0, 0.0],
                   "lines": [{"segparms": [0.5],
                               "areafillparms": [0.25]}]}]},
+            {"entity": "LIGHT", "handle": [0, 2, LIGHT_HANDLE],
+             "_subclass": "AcDbLight", "class_version": 1,
+             "name": "LOCAL_LIGHT", "type": 1, "status": 1,
+             "light_color": {"rgb": "c3000003"}, "intensity": 2.5,
+             "position": [111.0, 112.0, 113.0],
+             "target": [114.0, 115.0, 116.0],
+             "attenuation_type": 1, "use_attenuation_limits": 1,
+             "attenuation_start_limit": 0.5,
+             "attenuation_end_limit": 12.5,
+             "hotspot_angle": 0.25, "falloff_angle": 0.75,
+             "cast_shadows": 1, "shadow_type": 1,
+             "shadow_map_size": 1024, "shadow_map_softness": 3},
             {"entity": "RTEXT", "handle": [0, 2, RTEXT_HANDLE],
              "type": 521, "text_value": "LOCAL_RTEXT",
              "pt": [90.0, 91.0, 0.0],
@@ -2198,6 +2268,11 @@ def self_test() -> None:
             "handle": MLINE_HANDLE, "style": MLINESTYLE_HANDLE,
             "vertices": 2, "lines": 1}:
         raise AssertionError("MLINE entity identity was not qualified")
+    if summary.get("lightEntity") != {
+            "supported": True, "entity": "LIGHT", "type": 502,
+            "handle": LIGHT_HANDLE, "name": "LOCAL_LIGHT", "lightType": 1,
+            "intensity": 2.5, "photometricPayloadQualified": False}:
+        raise AssertionError("LIGHT entity identity was not qualified")
     if summary.get("expressTextEntities") != {
             "rtext": {"entity": "RTEXT", "type": 521,
                       "handle": RTEXT_HANDLE, "text": "LOCAL_RTEXT"},
