@@ -1259,6 +1259,9 @@ bool dxfRW::read(DRW_Interface *interface_, bool ext){
     if (nullptr == interface_) {
         return setError(DRW::BAD_UNKNOWN);
     }
+    // A dxfRW instance is reusable.  Do not carry header variables/comments
+    // from a previous document into this read session.
+    header = DRW_Header{};
     DRW_DBG("dxfRW::read 1def\n");
     filestr.open (fileName.c_str(), std::ios_base::in | std::ios::binary);
     if (!filestr.is_open()
@@ -1326,6 +1329,10 @@ bool dxfRW::readAscii(DRW_Interface *interface_, bool ext, std::string& content)
     // dxfRW instance after a binary write/read operation; leaving binFile set
     // would incorrectly suppress ASCII raw-value/source-spelling capture.
     binFile = false;
+    // Keep the in-memory entry point consistent with file-backed reads: each
+    // document gets a fresh header rather than inheriting prior variables or
+    // comments from the dxfRW object's previous operation.
+    header = DRW_Header{};
     version = DRW::UNKNOWNV;
     error = DRW::BAD_NONE;
     nextentity.clear();

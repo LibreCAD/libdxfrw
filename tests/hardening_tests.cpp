@@ -32,7 +32,10 @@ struct TestContext {
 // hardening coverage to the dwg2dxf adapter's storage policy.
 class FuzzInterface final : public DRW_Interface {
 public:
-    void addHeader(const DRW_Header*) override {}
+    void addHeader(const DRW_Header* data) override {
+        ++headerCount;
+        headerComments = data != nullptr ? data->getComments() : std::string{};
+    }
     void addLType(const DRW_LType&) override {}
     void addLayer(const DRW_Layer&) override {}
     void addDimStyle(const DRW_Dimstyle&) override {}
@@ -91,6 +94,8 @@ public:
 
     std::size_t rawSectionCount {0};
     bool rawSectionHasValues {false};
+    std::size_t headerCount {0};
+    std::string headerComments;
 };
 
 void testCheckedArithmetic(TestContext& t) {
@@ -318,6 +323,27 @@ void testDxfReadAsciiResetsFormatState(TestContext& t) {
              "ASCII raw capture retains source values after binary reuse");
 }
 
+void testDxfReadResetsHeaderState(TestContext& t) {
+    std::string first =
+        "999\nfirst-read-comment\n0\nSECTION\n2\nHEADER\n"
+        "9\n$HANDSEED\n1\nAB\n0\nENDSEC\n0\nEOF\n";
+    std::string second =
+        "0\nSECTION\n2\nHEADER\n0\nENDSEC\n0\nEOF\n";
+    dxfRW reader(nullptr);
+    FuzzInterface firstInterface;
+    FuzzInterface secondInterface;
+    t.expect(reader.readAscii(&firstInterface, false, first),
+             "first ASCII read establishes header state");
+    t.expect(reader.readAscii(&secondInterface, false, second),
+             "second ASCII read remains usable after header state");
+    t.expect(firstInterface.headerCount == 1u
+                 && firstInterface.headerComments == "first-read-comment",
+             "first read publishes its own header comment");
+    t.expect(secondInterface.headerCount == 1u
+                 && secondInterface.headerComments.empty(),
+             "second read does not inherit prior header comments");
+}
+
 } // namespace
 
 int main() {
@@ -328,6 +354,7 @@ int main() {
     testDxfReadFuzzSmoke(context);
     testDwgReadFuzzSmoke(context);
     testDxfReadAsciiResetsFormatState(context);
+    testDxfReadResetsHeaderState(context);
     if (context.failures != 0) {
         std::cerr << context.failures << " hardening assertion(s) failed\n";
         return 1;
