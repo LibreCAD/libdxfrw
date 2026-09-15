@@ -4,6 +4,7 @@
 #include <array>
 #include <cstring>
 #include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <limits>
 #include <string>
@@ -4601,7 +4602,7 @@ bool runAcisSabFastCheck() {
 
 bool runDxfModelerCarrierRoundTrip(DRW::Version version,
                                    const std::vector<std::uint8_t>& payload,
-                                   const char* suffix) {
+                                   const char* suffix, bool binary) {
     const std::filesystem::path output =
         std::filesystem::temp_directory_path()
         / (std::string("libdxfrw-modeler-") + suffix + ".dxf");
@@ -4614,7 +4615,7 @@ bool runDxfModelerCarrierRoundTrip(DRW::Version version,
     modeler->m_rawBytes = payload;
     source.mBlock->ent.push_back(modeler);
     dx_iface exporter;
-    const bool exportOk = exporter.fileExport(output.string(), version, false,
+    const bool exportOk = exporter.fileExport(output.string(), version, binary,
                                                &source, false);
     if (!exportOk) {
         std::filesystem::remove(output, ec);
@@ -5528,9 +5529,9 @@ int main(int argc, char** argv) {
     expect(runAcisSabFastCheck(), "local ACIS SAB parser fast check", failures);
     const std::vector<std::uint8_t> textCarrier {
         'A', 'C', 'I', 'S', ' ', 'S', 'A', 'T', ' ', 'L', 'O', 'C', 'A', 'L'};
-    expect(runDxfModelerCarrierRoundTrip(DRW::AC1018, textCarrier, "text"),
+    expect(runDxfModelerCarrierRoundTrip(DRW::AC1018, textCarrier, "text", false),
            "local DXF text modeler carrier round-trip", failures);
-    expect(runDxfModelerCarrierRoundTrip(DRW::AC1027, sabPayload, "binary"),
+    expect(runDxfModelerCarrierRoundTrip(DRW::AC1027, sabPayload, "binary", true),
            "local DXF binary modeler carrier round-trip", failures);
     if (failures != 0) {
         std::cerr << failures << " local DWG round-trip assertion(s) failed\n";
