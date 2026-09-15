@@ -52,10 +52,10 @@ then pin an immutable commit before importing source.
 ### Execution refresh (2026-09-15)
 
 The implementation worktree is rebased on `origin/master` and is currently
-268 commits ahead with no commits behind it. The latest green slice is
-S240/J216, including the live-plan update and its required policy gates.
-S241/J217 is the active slice; its DXF raw-object wide-handle replay and remap
-preservation parity is the next commit boundary.
+269 commits ahead with no commits behind it. The latest green slice is
+S241/J217, including the live-plan update and its required policy gates.
+S242/J218 is the active slice; its DXF raw-object malformed-handle rejection
+parity is the next commit boundary.
 The worktree is clean at the last committed boundary; any subsequent active-
 slice edits are intentionally uncommitted until their narrow gate and
 status-bearing plan transition are green.
@@ -1934,16 +1934,16 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint (2026-09-15): S240/J216 DXF raw-object one-step handle-remap
-  chain parity is committed; S241/J217 DXF raw-object wide-handle replay and
-  remap preservation parity is active.
+- Current checkpoint (2026-09-15): S241/J217 DXF raw-object wide-handle replay
+  and remap preservation parity is committed; S242/J218 DXF raw-object
+  malformed-handle rejection parity is active.
   The
   branch is rebased on `origin/master`, and
   the pinned source/package/consumer convergence remains complete while
   runtime and wire-format parity stay evidence-gated. The AC1015 IMAGE legacy
   boundary remains fail-closed, and all format-support claims remain limited
   to rows with eligible runtime/oracle evidence. The next dependency-ready
-  sequence is S241 DXF raw-object wide-handle replay and remap preservation parity;
+  sequence is S242 DXF raw-object malformed-handle rejection parity;
   it is a separate commit with no external or derived DWG/DXF bytes.
 - Latest implementation slice: S171/J147 DXF raw-object handle-scope and
   cross-record uniqueness qualification is committed. Local ASCII and binary
@@ -2210,6 +2210,10 @@ edit this block or commit the same slice concurrently.
 - Latest implementation slice: S240/J216 DXF raw-object one-step handle-remap
   chain parity is committed. Local ASCII and binary raw objects apply exactly
   one explicit remap step per handle; no drawing bytes are retained.
+- Latest implementation slice: S241/J217 DXF raw-object wide-handle replay and
+  remap preservation parity is committed. Local ASCII and binary raw objects
+  preserve wide self/owner lexemes beyond narrow remap width; no drawing bytes
+  are retained.
 - Latest implementation slice: S172/J148 DXF raw-object duplicate-handle
   diagnostic and error-precedence qualification is committed. Local ASCII and
   binary duplicate streams preserve the legacy `BAD_CODE_PARSED` result and
@@ -3134,16 +3138,16 @@ edit this block or commit the same slice concurrently.
   terminal only when their recorded gates pass.
 - Resolved slices: 239 (`COMMITTED`); S240 is active.
 - Slice states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 240 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 241 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 242 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 243 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 338 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 339 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 225 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S240 are committed; S241/J217 is active with a ready packet
-  naming DXF raw-object wide-handle replay and remap preservation parity and focused fast gates.
+  0 DEFERRED_EXTERNAL / 226 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S241 are committed; S242/J218 is active with a ready packet
+  naming DXF raw-object malformed-handle rejection parity and focused fast gates.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
   S174/J150, S175/J151, S176/J152, S177/J153, S178/J154, and S179/J155 added
   malformed, field-context, raw-entity propagation, duplicate-entity,
@@ -3436,7 +3440,8 @@ edit this block or commit the same slice concurrently.
 | S238 | J214: DXF raw-object binary-chunk size parity | S237 | COMMITTED | 127-byte chunk boundary; 128-byte rejection; ASCII/binary symmetry; transactional output; focused DXF gate; plan/scope/sync/fixture gates | committed `S238`; local ASCII and binary raw objects accept 127-byte chunks and reject 128-byte chunks transactionally with zero output; no drawing bytes committed | Wave 1 raw-object chunk-size tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S239 is active |
 | S239 | J215: DXF raw-object source-spelling cardinality parity | S238 | COMMITTED | ASCII raw-value parallelism; missing/extra source spellings; binary empty placeholders; transactional output; focused DXF gate; plan/scope/fixture gates | committed `S239`; local ASCII raw objects reject missing/extra spellings while binary empty placeholders remain valid; no drawing bytes committed | Wave 1 raw-object cardinality tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S240 is active |
 | S240 | J216: DXF raw-object one-step handle-remap chain parity | S239 | COMMITTED | explicit remap lookup; one-step semantics; ASCII/binary replay; structure preservation; focused DXF gate; plan/scope/fixture gates | committed `S240`; local ASCII and binary raw objects apply exactly one explicit remap step per handle; no drawing bytes committed | Wave 1 raw-object remap-chain tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S241 is active |
-| S241 | J217: DXF raw-object wide-handle replay and remap preservation parity | S240 | ACTIVE | 16-digit handle lexemes; bounded convenience state; narrow remap non-representability; ASCII/binary replay; focused DXF gate; plan/scope/fixture gates | use self/owner handles wider than 32 bits with narrow remap keys; assert wide lexemes replay verbatim and are not narrowed or remapped in ASCII and binary | active after S240 commit; use Wave 1 raw-object wide-handle tests, focused CTest selector, fast source/policy gates, fixture admission, import scope, pinned sync, and diff gates |
+| S241 | J217: DXF raw-object wide-handle replay and remap preservation parity | S240 | COMMITTED | 16-digit handle lexemes; bounded convenience state; narrow remap non-representability; ASCII/binary replay; focused DXF gate; plan/scope/fixture gates | committed `S241`; local ASCII and binary raw objects preserve wide self/owner lexemes beyond narrow remap width; no drawing bytes committed | Wave 1 raw-object wide-handle tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S242 is active |
+| S242 | J218: DXF raw-object malformed-handle rejection parity | S241 | ACTIVE | malformed self/owner/reference lexemes; transactional rejection; ASCII/binary symmetry; sticky diagnostics; focused DXF gate; plan/scope/fixture gates | use self-handle-bearing raw objects with malformed code-5, code-330, and code-340 lexemes; assert ASCII and binary writers reject with zero output and sticky errors | active after S241 commit; use Wave 1 raw-object malformed-handle tests, focused CTest selector, fast source/policy gates, fixture admission, import scope, pinned sync, and diff gates |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3681,7 +3686,8 @@ edit this block or commit the same slice concurrently.
 | J214 | S238 | J213 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-object binary-chunk size parity | local ASCII and binary raw objects accept 127-byte chunks and reject 128-byte chunks transactionally; no-fixture evidence |
 | J215 | S239 | J214 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-object source-spelling cardinality parity | local ASCII raw objects reject missing/extra spellings while binary empty placeholders remain valid; no-fixture evidence |
 | J216 | S240 | J215 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-object one-step handle-remap chain parity | local ASCII and binary raw objects apply exactly one explicit remap step per handle; no-fixture evidence |
-| J217 | S241 | J216 | ACTIVE | EXPERIMENTAL | Qualify DXF raw-object wide-handle replay and remap preservation parity | active packet names wide self/owner lexeme replay with narrow remap non-representability in ASCII/binary; no-fixture evidence |
+| J217 | S241 | J216 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-object wide-handle replay and remap preservation parity | local ASCII and binary raw objects preserve wide self/owner lexemes beyond narrow remap width; no-fixture evidence |
+| J218 | S242 | J217 | ACTIVE | EXPERIMENTAL | Qualify DXF raw-object malformed-handle rejection parity | active packet names malformed code-5/330/340 lexeme rejection with zero output and sticky errors in ASCII/binary; no-fixture evidence |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4033,7 +4039,8 @@ edit this block or commit the same slice concurrently.
 | J214.1 | J214 / S238 | WP4, WP5, WP6, WP8, WP10; DXF raw-object binary-chunk size parity | J213 | COMMITTED | EXPERIMENTAL | assert a raw-object code-310 chunk at 127 bytes writes while 128 bytes rejects transactionally in ASCII/binary, without external drawing bytes | focused Wave 1 raw-object chunk-size target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 | J215.1 | J215 / S239 | WP4, WP5, WP6, WP8, WP10; DXF raw-object source-spelling cardinality parity | J214 | COMMITTED | EXPERIMENTAL | assert matching ASCII rawValues write while missing/extra spellings reject, and binary empty placeholders remain valid, without external drawing bytes | focused Wave 1 raw-object cardinality target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 | J216.1 | J216 / S240 | WP4, WP5, WP6, WP8, WP10; DXF raw-object one-step handle-remap chain parity | J215 | COMMITTED | EXPERIMENTAL | assert raw-object handle references apply exactly one explicit remap step in ASCII/binary while structure remains intact, without external drawing bytes | focused Wave 1 raw-object remap-chain target and policy gates pass; no external or derived DWG/DXF bytes are retained |
-| J217.1 | J217 / S241 | WP4, WP5, WP6, WP8, WP10; DXF raw-object wide-handle replay and remap preservation parity | J216 | ACTIVE | EXPERIMENTAL | assert wide self/owner handle lexemes replay verbatim and ignore narrow remap keys in ASCII/binary, without external drawing bytes | focused Wave 1 raw-object wide-handle target and policy gates pass; no external or derived DWG/DXF bytes are retained |
+| J217.1 | J217 / S241 | WP4, WP5, WP6, WP8, WP10; DXF raw-object wide-handle replay and remap preservation parity | J216 | COMMITTED | EXPERIMENTAL | assert wide self/owner handle lexemes replay verbatim and ignore narrow remap keys in ASCII/binary, without external drawing bytes | focused Wave 1 raw-object wide-handle target and policy gates pass; no external or derived DWG/DXF bytes are retained |
+| J218.1 | J218 / S242 | WP4, WP5, WP6, WP8, WP10; DXF raw-object malformed-handle rejection parity | J217 | ACTIVE | EXPERIMENTAL | assert malformed code-5/330/340 handle lexemes reject transactionally with zero ASCII/binary output and sticky diagnostics, without external drawing bytes | focused Wave 1 raw-object malformed-handle target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 
 <!-- UPGRADE_PROGRESS_END -->
 

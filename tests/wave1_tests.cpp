@@ -5237,6 +5237,61 @@ void testDxfRawObjectRemapChain(TestContext& t) {
              "DXF binary raw object preserves one-step remap semantics");
 }
 
+void testDxfRawObjectWideHandleReplay(TestContext& t) {
+    const std::string wideSelf = "123456789ABCDEF0";
+    const std::string wideOwner = "FEDCBA9876543210";
+    DRW_RawDxfObject object;
+    object.name = "LOCAL_RAW_WIDE_HANDLE";
+    object.m_version = DRW::AC1027;
+    object.hasRawValues = true;
+    object.groups = {DRW_Variant(5, wideSelf), DRW_Variant(330, wideOwner)};
+    object.rawValues = {wideSelf, wideOwner};
+    const std::map<std::uint32_t, std::uint32_t> narrowRemap = {
+        {0x1Au, 0x2Au}};
+    const std::vector<std::pair<int, std::string>> expected = {
+        {0, object.name}, {5, wideSelf}, {330, wideOwner}};
+
+    std::ostringstream asciiOutput;
+    dxfRW asciiWriter("");
+    asciiWriter.version = DRW::AC1027;
+    asciiWriter.binFile = false;
+    asciiWriter.writer = std::make_unique<dxfWriterAscii>(&asciiOutput);
+    asciiWriter.setHandleRemap(narrowRemap);
+    t.expect(asciiWriter.writeRawDxfObject(&object),
+             "DXF ASCII raw object accepts wide handle lexemes");
+    std::stringstream asciiRecords(asciiOutput.str());
+    dxfReaderAscii asciiReader(&asciiRecords);
+    asciiReader.setAllowWideHandleLexemes(true);
+    std::vector<std::pair<int, std::string>> asciiActual;
+    int asciiCode = 0;
+    while (asciiReader.readRec(&asciiCode))
+        asciiActual.emplace_back(asciiCode, asciiReader.getString());
+    t.expect(asciiActual == expected,
+             "DXF ASCII raw object preserves wide handles beyond remap width");
+
+    DRW_RawDxfObject binaryObject = object;
+    binaryObject.hasRawValues = false;
+    binaryObject.rawValues.clear();
+    std::ostringstream binaryOutput;
+    dxfRW binaryWriter("");
+    binaryWriter.version = DRW::AC1027;
+    binaryWriter.binFile = true;
+    binaryWriter.writer = std::make_unique<dxfWriterBinary>(&binaryOutput);
+    binaryWriter.setHandleRemap(narrowRemap);
+    t.expect(binaryWriter.writeRawDxfObject(&binaryObject),
+             "DXF binary raw object accepts wide handle lexemes");
+    std::stringstream binaryRecords(binaryOutput.str());
+    dxfReaderBinary binaryReader(&binaryRecords);
+    binaryReader.setClassifierProfile(DxfClassifierProfile::StandaloneSafe);
+    binaryReader.setAllowWideHandleLexemes(true);
+    std::vector<std::pair<int, std::string>> binaryActual;
+    int binaryCode = 0;
+    while (binaryReader.readRec(&binaryCode))
+        binaryActual.emplace_back(binaryCode, binaryReader.getString());
+    t.expect(binaryActual == expected,
+             "DXF binary raw object preserves wide handles beyond remap width");
+}
+
 void testDxfRawSectionApplicationGroupReferenceMatrix(TestContext& t) {
     DRW_RawDxfSection section;
     section.m_name = "LOCAL_SECTION_REFERENCE_MATRIX";
@@ -5590,6 +5645,7 @@ int main() {
     testDxfRawObjectApplicationGroupChunkSize(context);
     testDxfRawObjectRawValueCardinality(context);
     testDxfRawObjectRemapChain(context);
+    testDxfRawObjectWideHandleReplay(context);
     testDxfRawSectionApplicationGroupReferenceMatrix(context);
     testRawCapture(context);
     testHatchValidationIgnoresInactiveGradient(context);
