@@ -278,6 +278,48 @@ void testDxfClassifierProfileProbe(TestContext& t) {
                  && legacyBinaryReader.type == dxfReader::DOUBLE
                  && legacyBinaryReader.getDouble() == 3.5,
              "legacy binary probe reproduces code 482 width");
+
+    std::stringstream captureRecords("5\n1A\n260\n7\n482\n3.5\n");
+    std::ostringstream replayBytes;
+    dxfRW owner("");
+    owner.m_useTargetLegacyClassifier = true;
+    owner.version = DRW::AC1027;
+    owner.binFile = false;
+    owner.reader = std::make_unique<dxfReaderAscii>(&captureRecords);
+    owner.reader->setClassifierProfile(
+        DxfClassifierProfile::LibreCadMasterLegacy);
+    DRW_RawDxfObject object;
+    object.name = "RAW_PROFILE";
+    object.m_version = DRW::AC1027;
+    int captured = 0;
+    while (owner.reader->readRec(&code)) {
+        t.expect(owner.captureRawGroup(object, code, true),
+                 "legacy profile capture accepts its typed groups");
+        ++captured;
+    }
+    t.expect(captured == 3 && object.groups.size() == 3
+                 && object.groups[1].type() == DRW_Variant::INTEGER
+                 && object.groups[2].type() == DRW_Variant::DOUBLE,
+             "legacy profile capture aligns typed raw variants");
+    owner.writer = std::make_unique<dxfWriterAscii>(&replayBytes);
+    t.expect(owner.writeRawDxfObject(&object),
+             "legacy profile raw capture replays through matching writer");
+    std::stringstream replayRecords(replayBytes.str());
+    dxfReaderAscii replayReader(&replayRecords);
+    replayReader.setClassifierProfile(
+        DxfClassifierProfile::LibreCadMasterLegacy);
+    t.expect(replayReader.readRec(&code) && code == 0
+                 && replayReader.getString() == "RAW_PROFILE"
+                 && replayReader.readRec(&code) && code == 5,
+             "legacy profile raw replay preserves object framing");
+    t.expect(replayReader.readRec(&code) && code == 260
+                 && replayReader.type == dxfReader::BOOL
+                 && replayReader.getInt32() == 7,
+             "legacy profile raw replay preserves code 260 value");
+    t.expect(replayReader.readRec(&code) && code == 482
+                 && replayReader.type == dxfReader::DOUBLE
+                 && replayReader.getDouble() == 3.5,
+             "legacy profile raw replay preserves code 482 value");
 }
 
 DRW_RawDxfObject rawBoundaryObject() {

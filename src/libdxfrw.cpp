@@ -108,7 +108,9 @@ OperationErrorMapping mapOperationError(DRW::error value) {
 
 bool updateRawDxfApplicationDepth(const DRW_Variant& value, int& depth);
 bool validateCapturedRawDxfObject(const DRW_RawDxfObject& object,
-                                  bool binaryOutput);
+                                  bool binaryOutput,
+                                  DxfClassifierProfile profile =
+                                      DxfClassifierProfile::StandaloneSafe);
 
 bool isSupportedDxfWriteVersion(DRW::Version version) {
     switch (version) {
@@ -1290,6 +1292,10 @@ bool dxfRW::read(DRW_Interface *interface_, bool ext){
             return setError(DRW::BAD_OPEN);
         reader = std::make_unique<dxfReaderAscii>(&filestr);
     }
+    reader->setClassifierProfile(
+        m_useTargetLegacyClassifier
+            ? DxfClassifierProfile::LibreCadMasterLegacy
+            : DxfClassifierProfile::StandaloneSafe);
 
     bool isOk {processDxf()};
     filestr.close();
@@ -1316,6 +1322,10 @@ bool dxfRW::readAscii(DRW_Interface *interface_, bool ext, std::string& content)
     iface = interface_;
     std::istringstream strstream(content);
     reader = std::make_unique<dxfReaderAscii>(&strstream);
+    reader->setClassifierProfile(
+        m_useTargetLegacyClassifier
+            ? DxfClassifierProfile::LibreCadMasterLegacy
+            : DxfClassifierProfile::StandaloneSafe);
     bool isOk {processDxf()};
     version = (DRW::Version) reader->getVersion();
     reader.reset();
@@ -10375,7 +10385,7 @@ bool dxfRW::processGeoPositionMarker() {
                 return setError(DRW::BAD_READ_ENTITIES);
             if (!acceptEntityCallbackBoundary())
                 return setError(DRW::BAD_READ_ENTITIES);
-            if (!validateCapturedRawDxfObject(raw, binFile))
+            if (!validateCapturedRawDxfObject(raw, binFile, reader->classifierProfile()))
                 return setError(DRW::BAD_CODE_PARSED);
             marker.handle = raw.handle;
             marker.parentHandle = raw.parentHandle;
@@ -10414,7 +10424,7 @@ bool dxfRW::processSectionObject() {
             if (section.m_verts.size() > DRW_SectionObject::kMaxVertices
                 || section.m_blVerts.size() > DRW_SectionObject::kMaxVertices)
                 return setError(DRW::BAD_CODE_PARSED);
-            if (!validateCapturedRawDxfObject(raw, binFile))
+            if (!validateCapturedRawDxfObject(raw, binFile, reader->classifierProfile()))
                 return setError(DRW::BAD_CODE_PARSED);
             iface->addSectionObject(section);
             iface->addRawDxfEntity(raw);
@@ -11242,7 +11252,7 @@ bool dxfRW::processAssociativeObject() {
                 || boundary == DxfEntityBoundary::EndBlock) {
                 return setError(DRW::BAD_READ_OBJECTS);
             }
-            if (!validateCapturedRawDxfObject(raw, binFile))
+            if (!validateCapturedRawDxfObject(raw, binFile, reader->classifierProfile()))
                 return setError(DRW::BAD_CODE_PARSED);
             iface->addAssociativeObject(data);
             iface->addRawDxfObject(raw);
@@ -11276,7 +11286,7 @@ bool dxfRW::processDynamicBlockObject() {
                 || boundary == DxfEntityBoundary::EndBlock) {
                 return setError(DRW::BAD_READ_OBJECTS);
             }
-            if (!validateCapturedRawDxfObject(raw, binFile))
+            if (!validateCapturedRawDxfObject(raw, binFile, reader->classifierProfile()))
                 return setError(DRW::BAD_CODE_PARSED);
             data.handle = raw.handle;
             data.parentHandle = raw.parentHandle;
@@ -11306,7 +11316,7 @@ bool dxfRW::processAcShHistoryObject() {
                 || boundary == DxfEntityBoundary::EndBlock) {
                 return setError(DRW::BAD_READ_OBJECTS);
             }
-            if (!validateCapturedRawDxfObject(raw, binFile))
+            if (!validateCapturedRawDxfObject(raw, binFile, reader->classifierProfile()))
                 return setError(DRW::BAD_CODE_PARSED);
             data.handle = raw.handle;
             data.parentHandle = raw.parentHandle;
@@ -11336,7 +11346,7 @@ bool dxfRW::processDetailViewStyle() {
             if (!acceptObjectBoundary(code))
                 return setError(DRW::BAD_READ_OBJECTS);
             DRW_DBG(nextentity); DRW_DBG("\n");
-            if (!validateCapturedRawDxfObject(raw, binFile))
+            if (!validateCapturedRawDxfObject(raw, binFile, reader->classifierProfile()))
                 return setError(DRW::BAD_CODE_PARSED);
             iface->addDetailViewStyle(style);
             iface->addRawDxfObject(raw);
@@ -11360,7 +11370,7 @@ bool dxfRW::processSectionViewStyle() {
             if (!acceptObjectBoundary(code))
                 return setError(DRW::BAD_READ_OBJECTS);
             DRW_DBG(nextentity); DRW_DBG("\n");
-            if (!validateCapturedRawDxfObject(raw, binFile))
+            if (!validateCapturedRawDxfObject(raw, binFile, reader->classifierProfile()))
                 return setError(DRW::BAD_CODE_PARSED);
             iface->addSectionViewStyle(style);
             iface->addRawDxfObject(raw);
@@ -12236,7 +12246,7 @@ bool dxfRW::processXRecord() {
         if (code == 0) {
             if (!acceptObjectBoundary(code))
                 return setError(DRW::BAD_READ_OBJECTS);
-            if (!validateCapturedRawDxfObject(raw, binFile))
+            if (!validateCapturedRawDxfObject(raw, binFile, reader->classifierProfile()))
                 return setError(DRW::BAD_CODE_PARSED);
             iface->addXRecord(record);
             iface->addRawDxfObject(raw);
@@ -12419,7 +12429,7 @@ bool dxfRW::processField() {
                     != field.m_objectHandles.size()
                 || static_cast<std::size_t>(childValueCount)
                     != field.m_childValues.size()
-                || !validateCapturedRawDxfObject(raw, binFile))
+                || !validateCapturedRawDxfObject(raw, binFile, reader->classifierProfile()))
                 return setError(DRW::BAD_CODE_PARSED);
             field.setDwgCommonObjectState(
                 static_cast<std::int32_t>(field.reactorHandles.size()),
@@ -12668,7 +12678,7 @@ bool dxfRW::processFieldList() {
                 || !sawCount || !sawUnknown || list.handle == 0 || fieldCount < 0
                 || static_cast<std::size_t>(fieldCount)
                     != list.m_fieldHandles.size()
-                || !validateCapturedRawDxfObject(raw, binFile))
+                || !validateCapturedRawDxfObject(raw, binFile, reader->classifierProfile()))
                 return setError(DRW::BAD_CODE_PARSED);
             list.setDwgCommonObjectState(
                 static_cast<std::int32_t>(list.reactorHandles.size()),
@@ -12869,7 +12879,7 @@ bool dxfRW::processTvDeviceProperties() {
         if (code == 0) {
             if (!acceptObjectBoundary(code))
                 return setError(DRW::BAD_READ_OBJECTS);
-            if (!validateCapturedRawDxfObject(raw, binFile))
+            if (!validateCapturedRawDxfObject(raw, binFile, reader->classifierProfile()))
                 return setError(DRW::BAD_CODE_PARSED);
             data.handle = raw.handle;
             data.parentHandle = raw.parentHandle;
@@ -12938,7 +12948,7 @@ bool dxfRW::processCsacDocumentOptions() {
         if (code == 0) {
             if (!acceptObjectBoundary(code))
                 return setError(DRW::BAD_READ_OBJECTS);
-            if (!validateCapturedRawDxfObject(raw, binFile))
+            if (!validateCapturedRawDxfObject(raw, binFile, reader->classifierProfile()))
                 return setError(DRW::BAD_CODE_PARSED);
             data.handle = raw.handle;
             data.parentHandle = raw.parentHandle;
@@ -12980,8 +12990,10 @@ enum class RawValType { Str, Int16, Int32, Int64, Dbl, Bool };
 //strData STALE, so getString() is wrong for them. The reader's public `type` is
 //ALSO unreliable here: each numeric reader sets `type` then calls readString(&t)
 //which resets it to STRING — hence we classify by code range, not reader->type.
-RawValType classifyDxfCode(int code) {
-    switch (dxfValueKindForCode(code)) {
+RawValType classifyDxfCode(int code,
+                           DxfClassifierProfile profile =
+                               DxfClassifierProfile::StandaloneSafe) {
+    switch (dxfValueKindForCode(code, profile)) {
     case DxfValueKind::Dbl: return RawValType::Dbl;
     case DxfValueKind::I16: return RawValType::Int16;
     case DxfValueKind::I32: return RawValType::Int32;
@@ -13144,7 +13156,9 @@ bool validateRawDxfGroups(const std::vector<DRW_Variant>& groups,
                           const std::vector<UTF8STRING>& rawValues,
                           bool hasRawValues,
                           bool binaryOutput,
-                          bool allowRecordBoundaries) {
+                          bool allowRecordBoundaries,
+                          DxfClassifierProfile profile =
+                              DxfClassifierProfile::StandaloneSafe) {
     if (groups.size() > DRW::kMaxDxfApplicationGroupPairs
         || (hasRawValues && rawValues.size() != groups.size())) {
         return false;
@@ -13160,7 +13174,7 @@ bool validateRawDxfGroups(const std::vector<DRW_Variant>& groups,
             return false;
         }
 
-        const RawValType type = classifyDxfCode(code);
+        const RawValType type = classifyDxfCode(code, profile);
         if (writesRawValues
             && !isValidRawDxfLexeme(code, type, rawValues[groupIndex])) {
             return false;
@@ -13193,7 +13207,7 @@ bool validateRawDxfGroups(const std::vector<DRW_Variant>& groups,
         case RawValType::Int32:
         case RawValType::Bool:
             if (group.type() == DRW_Variant::STRING && !binaryOutput
-                && isValidRawDxfNumericString(classifyDxfCode(code),
+                && isValidRawDxfNumericString(classifyDxfCode(code, profile),
                                                group.c_str())) {
                 break;
             }
@@ -13234,10 +13248,11 @@ bool validateRawDxfGroups(const std::vector<DRW_Variant>& groups,
 }
 
 bool validateCapturedRawDxfObject(const DRW_RawDxfObject& object,
-                                  bool binaryOutput) {
+                                  bool binaryOutput,
+                                  DxfClassifierProfile profile) {
     return validateRawDxfGroups(object.groups, object.rawValues,
                                 object.hasRawValues, binaryOutput,
-                                /*allowRecordBoundaries=*/false);
+                                /*allowRecordBoundaries=*/false, profile);
 }
 
 enum class DxfProxyPayloadSlot { Primary, Body, Unknown };
@@ -13715,7 +13730,7 @@ bool dxfRW::captureRawGroup(DRW_RawDxfObject &obj, int code,
             return false;
     }
     try {
-        switch (classifyDxfCode(code)) {
+        switch (classifyDxfCode(code, reader->classifierProfile())) {
         case RawValType::Int16:
         case RawValType::Int32:
         case RawValType::Bool:
@@ -14094,14 +14109,18 @@ bool dxfRW::writeRawDxfGroups(
     const std::vector<UTF8STRING> &rawValues,
     bool hasRawValues,
     DRW::Version sourceVersion,
-    bool remapSourceHandles) {
+    bool remapSourceHandles,
+    bool useLegacyClassifier) {
     if (writer == nullptr
         || (sourceVersion != DRW::UNKNOWNV && sourceVersion != version)) {
         m_writeError = true;
         return false;
     }
+    const DxfClassifierProfile profile = useLegacyClassifier
+        ? DxfClassifierProfile::LibreCadMasterLegacy
+        : DxfClassifierProfile::StandaloneSafe;
     if (!validateRawDxfGroups(groups, rawValues, hasRawValues, binFile,
-                              /*allowRecordBoundaries=*/true)) {
+                              /*allowRecordBoundaries=*/true, profile)) {
         m_writeError = true;
         return false;
     }
@@ -14194,7 +14213,7 @@ bool dxfRW::writeRawDxfGroups(
             written = writeString(v.code(), std::string(v.c_str()));
             break;
         case DRW_Variant::INTEGER: {
-            switch (classifyDxfCode(v.code())) {
+            switch (classifyDxfCode(v.code(), profile)) {
             case RawValType::Int16:
                 written = writeInt16(v.code(), v.i_val());
                 break;
@@ -14211,13 +14230,13 @@ bool dxfRW::writeRawDxfGroups(
             break;
         }
         case DRW_Variant::INTEGER64:
-            if (classifyDxfCode(v.code()) == RawValType::Int64)
+            if (classifyDxfCode(v.code(), profile) == RawValType::Int64)
                 written = writeInt64(v.code(), v.i64_val());
             else
                 m_writeError = true;
             break;
         case DRW_Variant::DOUBLE:
-            if (classifyDxfCode(v.code()) == RawValType::Dbl)
+            if (classifyDxfCode(v.code(), profile) == RawValType::Dbl)
                 written = writeDouble(v.code(), v.d_val());
             else
                 m_writeError = true;
@@ -14241,10 +14260,13 @@ bool dxfRW::writeRawDxfObject(DRW_RawDxfObject *obj) {
         m_writeError = true;
         return false;
     }
+    const DxfClassifierProfile profile = m_useTargetLegacyClassifier
+        ? DxfClassifierProfile::LibreCadMasterLegacy
+        : DxfClassifierProfile::StandaloneSafe;
     if (obj->name.empty()
         || !validateRawDxfGroups(obj->groups, obj->rawValues,
                                  obj->hasRawValues, binFile,
-                                 /*allowRecordBoundaries=*/false)
+                                 /*allowRecordBoundaries=*/false, profile)
         || (requiresDxfSelfHandle(version) && !hasRawDxfSelfHandle(*obj))) {
         m_writeError = true;
         return false;
@@ -14260,7 +14282,8 @@ bool dxfRW::writeRawDxfObject(DRW_RawDxfObject *obj) {
     if (!writeString(0, obj->name))
         return false;
     if (!writeRawDxfGroups(obj->groups, obj->rawValues, obj->hasRawValues,
-                            obj->m_version, /*remapSourceHandles=*/true))
+                            obj->m_version, /*remapSourceHandles=*/true,
+                            m_useTargetLegacyClassifier))
         return false;
     if (!record.commit()) {
         m_writeError = true;
@@ -14282,9 +14305,12 @@ bool dxfRW::writeRawDxfSection(const DRW_RawDxfSection &section) {
         m_writeError = true;
         return false;
     }
+    const DxfClassifierProfile profile = m_useTargetLegacyClassifier
+        ? DxfClassifierProfile::LibreCadMasterLegacy
+        : DxfClassifierProfile::StandaloneSafe;
     if (!validateRawDxfGroups(section.m_groups, section.m_rawValues,
                               section.m_hasRawValues, binFile,
-                              /*allowRecordBoundaries=*/true)) {
+                              /*allowRecordBoundaries=*/true, profile)) {
         m_writeError = true;
         return false;
     }
@@ -14294,7 +14320,8 @@ bool dxfRW::writeRawDxfSection(const DRW_RawDxfSection &section) {
         || !writeRawDxfGroups(section.m_groups, section.m_rawValues,
                               section.m_hasRawValues,
                               section.m_version,
-                              /*remapSourceHandles=*/false)
+                              /*remapSourceHandles=*/false,
+                              m_useTargetLegacyClassifier)
         || !writer->writeString(0, "ENDSEC")) {
         m_writeError = true;
         return false;

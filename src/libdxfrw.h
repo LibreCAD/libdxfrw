@@ -588,7 +588,8 @@ private:
                            const std::vector<UTF8STRING> &rawValues,
                            bool hasRawValues,
                            DRW::Version sourceVersion,
-                           bool remapSourceHandles = true);
+                           bool remapSourceHandles = true,
+                           bool useLegacyClassifier = false);
     bool writeRawDxfSection(const DRW_RawDxfSection &section);
     void writePlotSettingsFields(const DRW_PlotSettings *ent);
     /*use version from dwgutil.h*/
@@ -615,6 +616,9 @@ private:
     DRW::Version version { DRW::UNKNOWNV };
     DRW::error error {DRW::BAD_NONE};
     bool m_writeError {false};
+    // Internal compatibility-probe switch. The standalone-safe classifier
+    // remains the default for all public read/write calls.
+    bool m_useTargetLegacyClassifier {false};
     std::string fileName;
     std::string codePage;
     bool binFile {false};
