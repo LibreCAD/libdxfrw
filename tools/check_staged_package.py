@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import os
 import shlex
+import shutil
 import subprocess
 import tempfile
 from pathlib import Path
@@ -63,6 +64,33 @@ def self_test_staged_flags() -> None:
     raise RuntimeError("staged pkg-config path guard accepted system paths")
 
 
+def assert_profile_symbols(prefix: Path) -> None:
+    library_candidates = sorted((prefix / "lib").glob("libdxfrw.a"))
+    if not library_candidates:
+        library_candidates = sorted((prefix / "lib").glob("libdxfrw.*"))
+    if not library_candidates:
+        raise RuntimeError("staged prefix has no libdxfrw library")
+    nm = shutil.which("nm")
+    cxxfilt = shutil.which("c++filt")
+    if nm is None or cxxfilt is None:
+        raise RuntimeError("nm and c++filt are required for symbol checks")
+    symbols = subprocess.run(
+        [nm, "-g", str(library_candidates[0])], check=True,
+        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    demangled = subprocess.run(
+        [cxxfilt], input=symbols.stdout, check=True,
+        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True).stdout
+    required = (
+        "dxfRW::setDxfCompatibilityProfile(",
+        "dxfRW::dxfCompatibilityProfile() const",
+    )
+    missing = [symbol for symbol in required if symbol not in demangled]
+    if missing:
+        raise RuntimeError(
+            "staged libdxfrw is missing profile symbols: "
+            + ", ".join(missing))
+
+
 def check(prefix: Path, cxx: str) -> None:
     prefix = prefix.resolve()
     include_root = prefix / "include" / "libdxfrw"
@@ -77,6 +105,7 @@ def check(prefix: Path, cxx: str) -> None:
         raise RuntimeError(
             "installed libdxfrw.h is missing profile declarations: "
             + ", ".join(missing))
+    assert_profile_symbols(prefix)
 
     with tempfile.TemporaryDirectory(prefix="libdxfrw-package-") as directory:
         root = Path(directory)
