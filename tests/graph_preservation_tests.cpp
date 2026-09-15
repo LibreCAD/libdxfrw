@@ -1,4 +1,5 @@
 #include <array>
+#include <cmath>
 #include <cstdint>
 #include <cstring>
 #include <iostream>
@@ -65,6 +66,181 @@ std::vector<std::uint8_t> minimalSab() {
     bytes.insert(bytes.end(), marker.begin(), marker.end());
     bytes.push_back(static_cast<std::uint8_t>(DRW_SabTag::RecordEnd));
     return bytes;
+}
+
+DRW_SabToken acisEntityType(const std::string& value) {
+    DRW_SabToken token;
+    token.tag = DRW_SabTag::EntityType;
+    token.sval = value;
+    return token;
+}
+
+DRW_SabToken acisPointer(int value) {
+    DRW_SabToken token;
+    token.tag = DRW_SabTag::Pointer;
+    token.ival = value;
+    return token;
+}
+
+DRW_SabToken acisLocation(double x, double y, double z) {
+    DRW_SabToken token;
+    token.tag = DRW_SabTag::LocationVec;
+    token.vec = DRW_Coord(x, y, z);
+    return token;
+}
+
+DRW_SabToken acisDirection(double x, double y, double z) {
+    DRW_SabToken token;
+    token.tag = DRW_SabTag::DirectionVec;
+    token.vec = DRW_Coord(x, y, z);
+    return token;
+}
+
+DRW_SabToken acisDouble(double value) {
+    DRW_SabToken token;
+    token.tag = DRW_SabTag::Double;
+    token.dval = value;
+    return token;
+}
+
+DRW_SabToken acisInteger(long long value) {
+    DRW_SabToken token;
+    token.tag = DRW_SabTag::Int;
+    token.ival = value;
+    return token;
+}
+
+DRW_SabRecord acisRecord(const std::string& type,
+                         std::vector<DRW_SabToken> tokens) {
+    DRW_SabRecord record;
+    record.type = type;
+    record.tokens.push_back(acisEntityType(type));
+    record.tokens.insert(record.tokens.end(), tokens.begin(), tokens.end());
+    return record;
+}
+
+DRW_SabData syntheticAcisGeometry() {
+    DRW_SabData data;
+    data.header.signature = "ACIS BinaryFile";
+    data.header.version = 21200;
+    data.header.unitsInMm = 1.0;
+    data.records = {
+        acisRecord("asmheader", {}),
+        acisRecord("point", {acisLocation(1, 2, 3)}),
+        acisRecord("point", {acisLocation(4, 5, 6)}),
+        acisRecord("vertex", {acisPointer(6), acisPointer(1)}),
+        acisRecord("vertex", {acisPointer(6), acisPointer(2)}),
+        // A leading pointer must not displace the straight-curve vectors.
+        acisRecord("straight-curve", {acisPointer(0), acisLocation(10, 20, 30),
+                                       acisDirection(2, 0, 0)}),
+        acisRecord("edge", {acisPointer(3), acisPointer(4), acisPointer(5)}),
+        acisRecord("plane-surface", {acisLocation(0, 0, 0),
+                                      acisDirection(0, 0, 1),
+                                      acisDirection(1, 0, 0)}),
+        acisRecord("coedge", {acisPointer(8), acisPointer(8), acisPointer(8),
+                               acisPointer(6), acisPointer(9)}),
+        acisRecord("loop", {acisPointer(-1), acisPointer(8), acisPointer(10)}),
+        acisRecord("face", {acisPointer(-1), acisPointer(9), acisPointer(-1),
+                             acisPointer(-1), acisPointer(7)}),
+        acisRecord("point", {acisLocation(0, 0, 5)}),
+        acisRecord("vertex", {acisPointer(15), acisPointer(11)}),
+        acisRecord("ellipse-curve", {acisLocation(0, 0, 5),
+                                      acisDirection(0, 0, 1),
+                                      acisDirection(3, 0, 0), acisDouble(0.5)}),
+        acisRecord("point", {acisLocation(3, 0, 5)}),
+        acisRecord("edge", {acisPointer(12), acisPointer(16), acisPointer(13)}),
+        acisRecord("vertex", {acisPointer(15), acisPointer(14)}),
+        acisRecord("cone-surface", {acisLocation(0, 0, 0),
+                                     acisDirection(0, 0, 1),
+                                     acisDirection(1, 0, 0), acisDouble(0.5),
+                                     acisDouble(0.3), acisDouble(0.95)}),
+        acisRecord("face", {acisPointer(-1), acisPointer(-1), acisPointer(-1),
+                             acisPointer(-1), acisPointer(17)}),
+        acisRecord("torus-surface", {acisLocation(0, 0, 0),
+                                      acisDirection(0, 0, 1),
+                                      acisDirection(1, 0, 0), acisDouble(10),
+                                      acisDouble(2)}),
+        acisRecord("face", {acisPointer(-1), acisPointer(-1), acisPointer(-1),
+                             acisPointer(-1), acisPointer(19)}),
+        // This face intentionally has no surface pointer.
+        acisRecord("face", {acisPointer(-1), acisPointer(-1), acisPointer(-1),
+                             acisPointer(-1), acisPointer(-1)}),
+        acisRecord("point", {acisLocation(0, 0, 0)}),
+        acisRecord("point", {acisLocation(4, 0, 0)}),
+        acisRecord("vertex", {acisPointer(27), acisPointer(22)}),
+        acisRecord("vertex", {acisPointer(27), acisPointer(23)}),
+        acisRecord("intcurve-curve", {acisEntityType("nubs"), acisInteger(2),
+                                       acisDouble(0), acisDouble(1),
+                                       acisDouble(7), acisDouble(8), acisDouble(9),
+                                       acisDouble(10), acisDouble(11),
+                                       acisDouble(12)}),
+        acisRecord("edge", {acisPointer(24), acisPointer(25), acisPointer(26)}),
+        acisRecord("End-of-ACIS-data", {})
+    };
+    return data;
+}
+
+bool acisCoordNear(const DRW_Coord& value, double x, double y, double z) {
+    return std::fabs(value.x - x) < 1e-9
+        && std::fabs(value.y - y) < 1e-9
+        && std::fabs(value.z - z) < 1e-9;
+}
+
+void testAcisWireframeGraph(TestContext& t) {
+    const DRW_AcisModel model = drw_buildAcisModel(syntheticAcisGeometry());
+    DRW_AcisBrep wireframe;
+    t.expect(drw_extractAcisWireframe(model, wireframe),
+             "ACIS synthetic graph extracts without error");
+    t.expect(wireframe.vertices.size() == 6 && wireframe.edges.size() == 3
+                 && wireframe.faces.size() == 4,
+             "ACIS extractor retains vertex/edge/face cardinalities");
+    t.expect(wireframe.hasBBox && acisCoordNear(wireframe.bboxMin, 0, 0, 0)
+                 && acisCoordNear(wireframe.bboxMax, 4, 5, 6),
+             "ACIS extractor computes finite bounds");
+
+    const DRW_AcisEdge* straight = nullptr;
+    const DRW_AcisEdge* ellipse = nullptr;
+    const DRW_AcisEdge* intcurve = nullptr;
+    for (const DRW_AcisEdge& edge : wireframe.edges) {
+        if (edge.curveType == DRW_AcisCurve::Straight) straight = &edge;
+        if (edge.curveType == DRW_AcisCurve::Ellipse) ellipse = &edge;
+        if (edge.curveType == DRW_AcisCurve::Intcurve) intcurve = &edge;
+    }
+    t.expect(straight != nullptr && straight->hasStart && straight->hasEnd
+                 && acisCoordNear(straight->start, 1, 2, 3)
+                 && acisCoordNear(straight->end, 4, 5, 6)
+                 && acisCoordNear(straight->p0, 10, 20, 30)
+                 && acisCoordNear(straight->p1, 2, 0, 0),
+             "ACIS straight curve skips leading pointer and resolves endpoints");
+    t.expect(ellipse != nullptr && ellipse->hasCurve
+                 && acisCoordNear(ellipse->p0, 0, 0, 5)
+                 && acisCoordNear(ellipse->p1, 0, 0, 1)
+                 && acisCoordNear(ellipse->p2, 3, 0, 0)
+                 && std::fabs(ellipse->ratio - 0.5) < 1e-9,
+             "ACIS ellipse curve retains analytic parameters");
+    t.expect(intcurve != nullptr && intcurve->controlPoints.size() == 2
+                 && acisCoordNear(intcurve->controlPoints[0], 7, 8, 9)
+                 && acisCoordNear(intcurve->controlPoints[1], 10, 11, 12),
+             "ACIS intcurve recovers its control polygon");
+
+    int plane = 0;
+    int cone = 0;
+    int torus = 0;
+    int unknown = 0;
+    int loops = 0;
+    for (const DRW_AcisFace& face : wireframe.faces) {
+        if (face.surfaceType == DRW_AcisSurface::Plane) ++plane;
+        if (face.surfaceType == DRW_AcisSurface::Cone) ++cone;
+        if (face.surfaceType == DRW_AcisSurface::Torus) ++torus;
+        if (face.surfaceType == DRW_AcisSurface::Unknown) ++unknown;
+        loops += static_cast<int>(face.loops.size());
+    }
+    t.expect(plane == 1 && cone == 1 && torus == 1 && unknown == 1
+                 && loops == 1,
+             "ACIS faces retain analytic surfaces and loop structure");
+    t.expect(drw_extractAcisWireframe(DRW_AcisModel{}, wireframe)
+                 && wireframe.empty(),
+             "ACIS empty graph fails closed without stale output");
 }
 
 void testDataStorageBounds(TestContext& t) {
@@ -232,6 +408,7 @@ int main() {
     testFramePublicationContract(context);
     testDataStorageBounds(context);
     testAcisBoundaries(context);
+    testAcisWireframeGraph(context);
     testProxyBounds(context);
     testDataStorageCapabilities(context);
     if (context.failures != 0) {
