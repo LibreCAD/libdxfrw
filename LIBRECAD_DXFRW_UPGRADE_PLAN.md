@@ -2548,7 +2548,7 @@ edit this block or commit the same slice concurrently.
   type/handle/owner and bounded settings while retaining opaque trailing bits;
   no generated drawings or external assets are retained.
 - Latest implementation slice: S87/J63 TVDEVICEPROPERTIES/VXCONTROL/VXTABLERECORD
-  parity is verifying. The slice exercises the existing typed register/write
+  parity is committed. The slice exercises the existing typed register/write
   APIs across AC1015/18/21/24/27/32, with dictionary ownership, bounded scalar,
   handle, and name fields, and transactional malformed-state rejection. Legacy
   AC1015/18 high custom ordinals are compacted into file-local class slots so
@@ -2572,17 +2572,19 @@ edit this block or commit the same slice concurrently.
   `6969e0a003414f9a7084349ac54bc2b32515e16b`. All in-horizon lanes are
   terminal only when their recorded gates pass; the next runtime qualification
   lane requires no new target pin.
-- Resolved slices: 86 (`COMMITTED`); S87 is in verification.
-- Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 1 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 86 COMMITTED.
-- Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 1 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 86 COMMITTED.
-- Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 1 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 4 VERIFIED / 181 COMMITTED; no child is anonymous.
+- Resolved slices: 87 (`COMMITTED`).
+- Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
+  0 BLOCKED_HARD / 0 SUPERSEDED / 87 COMMITTED.
+- Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 87 COMMITTED.
+- Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
+  0 BLOCKED_HARD / 0 SUPERSEDED / 4 VERIFIED / 182 COMMITTED; no child is anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 29 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S86 are committed; S87/J63
-  TVDEVICEPROPERTIES/VXCONTROL/VXTABLERECORD parity is in verification.
+- Active work: S01-S87 are committed; no slice is currently active.
+  The next lane must be selected from a fresh target/source inventory and
+  activated only after its completeness, compatibility, implementation-speed,
+  and readiness evidence is recorded.
   S76 records the explicit AC1015 image capability
   boundary and leaves newer image versions locally qualified; S77 keeps
   point-cloud payload evidence identity-only where LibreDWG is opaque.
