@@ -50,6 +50,29 @@ def input_version(path: Path) -> str:
     return prefix if re.fullmatch(r"AC\d{4}", prefix) else "UNKNOWN"
 
 
+def _status_summary(document: dict[str, Any]) -> dict[str, Any]:
+    """Extract the optional coarse reader/writer status contract.
+
+    The pinned dumpers currently expose diagnostics inside the semantic
+    envelope, but a future target or standalone adapter may also report the
+    legacy boolean/error/stage result.  Keep only known scalar fields so the
+    differential report cannot retain arbitrary runner output.
+    """
+    status: dict[str, Any] = {}
+    nested = document.get("status")
+    if isinstance(nested, dict):
+        for key in ("ok", "error", "stage", "errorCode", "errorStage"):
+            value = nested.get(key)
+            if isinstance(value, (bool, int, str)) or value is None:
+                status[key] = value
+    for key in ("ok", "error", "stage", "errorCode", "errorStage"):
+        if key in document:
+            value = document[key]
+            if isinstance(value, (bool, int, str)) or value is None:
+                status[key] = value
+    return status
+
+
 def summary(document: object) -> dict[str, Any]:
     if not isinstance(document, dict):
         raise DifferentialError("dumper output root is not a JSON object")
@@ -80,7 +103,25 @@ def summary(document: object) -> dict[str, Any]:
         "objectCount": len(objects),
         "entityTypes": entity_types,
         "objectTypes": object_types,
+        "status": _status_summary(document),
     }
+
+
+def _value_relation(left: object, right: object,
+                    *, missing: str = "unavailable") -> str:
+    if left is None or right is None:
+        return missing
+    return "equal" if left == right else "delta"
+
+
+def _summary_relation(left: dict[str, Any], right: dict[str, Any]) -> str:
+    return "equal" if left == right else "delta"
+
+
+def _status_relation(left: dict[str, Any], right: dict[str, Any]) -> str:
+    if not left or not right:
+        return "not-reported"
+    return _summary_relation(left, right)
 
 
 def run_dumper(executable: Path, source: Path, output: Path,
@@ -203,6 +244,24 @@ def compare(root: Path, registry: Path, target: Path, standalone: Path,
                 "standalone": standalone_result,
                 "summaryEqual": target_result.get("summary")
                 == standalone_result.get("summary"),
+                "byteRelation": _value_relation(
+                    target_result.get("outputSha256"),
+                    standalone_result.get("outputSha256"),
+                ),
+                "semanticRelation": (
+                    _summary_relation(target_result["summary"],
+                                      standalone_result["summary"])
+                    if isinstance(target_result.get("summary"), dict)
+                    and isinstance(standalone_result.get("summary"), dict)
+                    else "unavailable"
+                ),
+                "statusRelation": (
+                    _status_relation(target_result["summary"]["status"],
+                                     standalone_result["summary"]["status"])
+                    if isinstance(target_result.get("summary"), dict)
+                    and isinstance(standalone_result.get("summary"), dict)
+                    else "unavailable"
+                ),
                 "relation": relation,
             })
     rows.sort(key=lambda row: (row["inputVersion"], row["sourceSha256"]))
@@ -259,6 +318,23 @@ def self_test() -> None:
         bad.chmod(0o755)
         mismatch = compare(root, registry, runner, bad, -1, 2.0)
         assert mismatch["relationCounts"] == {"delta": 1}
+        assert mismatch["rows"][0]["byteRelation"] == "delta"
+        assert mismatch["rows"][0]["semanticRelation"] == "delta"
+        pretty = root / "pretty.py"
+        pretty.write_text(
+            "#!/usr/bin/env python3\n"
+            "import json, pathlib, sys\n"
+            f"payload = {json.dumps(payload)!r}\n"
+            "pathlib.Path(sys.argv[sys.argv.index('-o') + 1]).write_text("
+            "json.dumps(json.loads(payload), indent=2) + '\\n')\n",
+            encoding="utf-8",
+        )
+        pretty.chmod(0o755)
+        formatting = compare(root, registry, runner, pretty, -1, 2.0)
+        assert formatting["relationCounts"] == {"delta": 1}
+        assert formatting["rows"][0]["byteRelation"] == "delta"
+        assert formatting["rows"][0]["semanticRelation"] == "equal"
+        assert formatting["rows"][0]["statusRelation"] == "not-reported"
         ineligible = root / "ineligible.json"
         ineligible.write_text(json.dumps({"fixtures": [{
             "path": "sample.dxf", "originKind": "externalCorpus"
