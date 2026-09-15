@@ -563,6 +563,57 @@ void testMLeaderDxfContextRoundTrip(TestContext& t) {
     t.expect(!rejectingOwner.writeMultiLeader(&invalid)
                  && rejectedOutput.str().empty(),
              "MULTILEADER DXF writer rejects oversized context transactionally");
+
+    DRW_MLeader legacy = source;
+    legacy.styleContentType = 2;
+    DRW_MLeader::ArrowHeadEntry arrow;
+    arrow.isDefault = false;
+    arrow.handle.ref = 0xA10Au;
+    legacy.arrowHeads.push_back(arrow);
+    DRW_MLeader::BlockLabelEntry label;
+    label.attDefHandle.ref = 0xA10Bu;
+    label.labelText = "legacy label";
+    label.uiIndex = 3;
+    label.width = 12.5;
+    legacy.blockLabels.push_back(label);
+    std::ostringstream legacyOutput;
+    dxfRW legacyOwner("");
+    legacyOwner.version = DRW::AC1021;
+    legacyOwner.binFile = false;
+    legacyOwner.writer = std::make_unique<dxfWriterAscii>(&legacyOutput);
+    t.expect(legacyOwner.writeMultiLeader(&legacy),
+             "AC1021 MULTILEADER writer accepts legacy arrays");
+    std::stringstream legacyRecords(legacyOutput.str());
+    std::unique_ptr<dxfReader> legacyReader =
+        std::make_unique<dxfReaderAscii>(&legacyRecords);
+    ExposedMLeader parsedLegacy;
+    parseOk = true;
+    while (legacyReader->readRec(&code)) {
+        if (code == 0)
+            continue;
+        parseOk = parsedLegacy.parseCode(code, legacyReader) && parseOk;
+    }
+    t.expect(parseOk && parsedLegacy.arrowHeads.size() == 1u
+                 && !parsedLegacy.arrowHeads.front().isDefault
+                 && parsedLegacy.arrowHeads.front().handle.ref == 0xA10Au
+                 && parsedLegacy.blockLabels.size() == 1u
+                 && parsedLegacy.blockLabels.front().attDefHandle.ref == 0xA10Bu
+                 && parsedLegacy.blockLabels.front().labelText == "legacy label"
+                 && parsedLegacy.blockLabels.front().uiIndex == 3
+                 && parsedLegacy.blockLabels.front().width == 12.5,
+             "AC1021 MULTILEADER round-trip preserves legacy arrays");
+
+    DRW_MLeader oversizedLegacy = legacy;
+    oversizedLegacy.arrowHeads.resize(DRW_MLeader::kMaxLeaderLines + 1u);
+    std::ostringstream oversizedLegacyOutput;
+    dxfRW oversizedLegacyOwner("");
+    oversizedLegacyOwner.version = DRW::AC1021;
+    oversizedLegacyOwner.binFile = false;
+    oversizedLegacyOwner.writer =
+        std::make_unique<dxfWriterAscii>(&oversizedLegacyOutput);
+    t.expect(!oversizedLegacyOwner.writeMultiLeader(&oversizedLegacy)
+                 && oversizedLegacyOutput.str().empty(),
+             "AC1021 MULTILEADER writer rejects oversized legacy arrays");
 }
 
 } // namespace

@@ -20508,11 +20508,19 @@ bool DRW_MLeader::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     // mirror the DWG body parser.
     if (parseDxfContextCode(code, reader))
         return true;
+    if (code == 100) {
+        const std::string subclass = reader->getString();
+        if (subclass == "AcDbMLeader")
+            m_dxfMLeaderSubclassSeen = true;
+        return DRW_Entity::parseCode(code, reader);
+    }
     // A failed nested parse must not fall through to the permissive base
     // parser: that would silently discard malformed controls or over-limit
     // collections and still publish the entity.
     if (m_dxfCtxState != 0 || (code >= 300 && code <= 305))
-        return false;
+        if (!(m_dxfCtxState == 0 && code == 302 &&
+              m_dxfMLeaderSubclassSeen && !blockLabels.empty()))
+            return false;
     switch (code) {
     case 170: leaderType = reader->getInt32(); break;
     case 171: leaderLineWeight = reader->getInt32(); break;
@@ -20572,6 +20580,45 @@ bool DRW_MLeader::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         break;
     case 270:
         classVersion = reader->getInt32();
+        break;
+    case 94: {
+        if (arrowHeads.size() >= kMaxLeaderLines)
+            return false;
+        ArrowHeadEntry entry;
+        entry.isDefault = reader->getInt32() != 0;
+        arrowHeads.push_back(entry);
+        break;
+    }
+    case 345:
+        if (arrowHeads.empty())
+            return false;
+        arrowHeads.back().handle.ref = reader->getHandleString();
+        arrowHeads.back().handle.ref64 = arrowHeads.back().handle.ref;
+        break;
+    case 330:
+        if (!m_dxfMLeaderSubclassSeen)
+            return DRW_Entity::parseCode(code, reader);
+        if (blockLabels.size() >= kMaxLeaderLines)
+            return false;
+        blockLabels.emplace_back();
+        blockLabels.back().attDefHandle.ref = reader->getHandleString();
+        blockLabels.back().attDefHandle.ref64 =
+            blockLabels.back().attDefHandle.ref;
+        break;
+    case 302:
+        if (blockLabels.empty())
+            return false;
+        blockLabels.back().labelText = reader->getUtf8String();
+        break;
+    case 177:
+        if (blockLabels.empty())
+            return false;
+        blockLabels.back().uiIndex = reader->getInt32();
+        break;
+    case 44:
+        if (blockLabels.empty())
+            return false;
+        blockLabels.back().width = reader->getDouble();
         break;
     default:
         return DRW_Entity::parseCode(code, reader);
@@ -21023,6 +21070,7 @@ void DRW_MLeader::resetDwgState() {
     leaderExtendedToText = false;
     m_dxfCtxState = 0;
     m_dxfBlockTransformIndex = 0;
+    m_dxfMLeaderSubclassSeen = false;
 }
 
 bool DRW_MLeader::validateDxf() const {
@@ -21066,12 +21114,18 @@ bool DRW_MLeader::validateDxf() const {
         !std::all_of(context.blockTransform.cbegin(),
                      context.blockTransform.cend(),
                      [](double value) { return std::isfinite(value); }) ||
+        arrowHeads.size() > kMaxLeaderLines ||
+        blockLabels.size() > kMaxLeaderLines ||
         !finiteCoord(context.basePoint) || !finiteCoord(context.baseDirection) ||
         !finiteCoord(context.baseVertical) || !std::isfinite(landingDistance) ||
         !std::isfinite(defaultArrowHeadSize) ||
         !std::isfinite(styleBlockRotation) || !std::isfinite(scaleFactor) ||
         !finiteCoord(styleBlockScale)) {
         return false;
+    }
+    for (const BlockLabelEntry &entry : blockLabels) {
+        if (!std::isfinite(entry.width))
+            return false;
     }
     for (const DRW_MLeaderRoot &root : context.roots) {
         if (!finiteCoord(root.connectionPoint) ||

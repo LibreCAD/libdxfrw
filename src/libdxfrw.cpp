@@ -6072,6 +6072,20 @@ bool dxfRW::writeMultiLeader(DRW_MLeader *ent){
     writer->writeBool(295, ent->leaderExtendedToText);
     if (version >= DRW::AC1024)
         writer->writeInt16(270, ent->classVersion);
+    if (version <= DRW::AC1021) {
+        for (const DRW_MLeader::ArrowHeadEntry &entry : ent->arrowHeads) {
+            writer->writeBool(94, entry.isDefault);
+            if (entry.handle.ref != 0)
+                writer->writeString(345, toHexStr(entry.handle.ref));
+        }
+        for (const DRW_MLeader::BlockLabelEntry &entry : ent->blockLabels) {
+            if (entry.attDefHandle.ref != 0)
+                writer->writeString(330, toHexStr(entry.attDefHandle.ref));
+            writer->writeUtf8String(302, entry.labelText);
+            writer->writeInt16(177, entry.uiIndex);
+            writer->writeDouble(44, entry.width);
+        }
+    }
     if (!ent->extData.empty() && !writeExtData(ent->extData))
         return false;
     return !writer->hasWriteError();

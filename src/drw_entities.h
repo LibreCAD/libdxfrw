@@ -3803,6 +3803,7 @@ private:
     // matrix. Keep the insertion cursor transient so a reused entity cannot
     // append a second matrix onto the first document's state.
     std::size_t m_dxfBlockTransformIndex = 0;
+    bool m_dxfMLeaderSubclassSeen = false;
 };
 
 //! Class to handle viewport entity
