@@ -221,6 +221,11 @@ public:
             objectPtrRegistration.handle = 0xDE00u;
             registeredObjectPtr_ = writer_->registerObjectPtrObjectClass(
                 &objectPtrRegistration);
+            DRW_PartialViewingIndex partialViewingIndexRegistration;
+            partialViewingIndexRegistration.handle = 0xDF00u;
+            registeredPartialViewingIndex_ =
+                writer_->registerPartialViewingIndexObjectClass(
+                    &partialViewingIndexRegistration);
         }
     }
 
@@ -304,6 +309,7 @@ public:
             {"LOCAL_CURVEPATH", 0xDC00u},
             {"LOCAL_POINTPATH", 0xDD00u},
             {"LOCAL_OBJECT_PTR", 0xDE00u},
+            {"LOCAL_PARTIAL_VIEWING_INDEX", 0xDF00u},
         };
         wroteDictionary_ = registeredDictionary_
             && writer_->writeDictionary(&dictionary)
@@ -1214,6 +1220,26 @@ public:
         invalidObjectPtr.setDwgCommonObjectState(0, 2, false);
         rejectedMalformedObjectPtr_ = !writer_->writeObjectPtr(&invalidObjectPtr);
 
+        DRW_PartialViewingIndex partialViewingIndex;
+        partialViewingIndex.handle = 0xDF00u;
+        partialViewingIndex.parentHandle = dictionary.handle;
+        partialViewingIndex.m_entries = {
+            {DRW_Coord{-1.0, -2.0, -3.0}, DRW_Coord{10.0, 20.0, 30.0},
+             modelSpaceLineHandle_},
+            {DRW_Coord{40.0, 50.0, 60.0}, DRW_Coord{70.0, 80.0, 90.0},
+             0xD925u},
+        };
+        wrotePartialViewingIndex_ = registeredPartialViewingIndex_
+            && writer_->writePartialViewingIndex(&partialViewingIndex)
+            && partialViewingIndex.handle != 0;
+
+        DRW_PartialViewingIndex invalidPartialViewingIndex = partialViewingIndex;
+        invalidPartialViewingIndex.handle = 0xDF01u;
+        invalidPartialViewingIndex.m_entries.front().extentsMax.x =
+            std::numeric_limits<double>::quiet_NaN();
+        rejectedMalformedPartialViewingIndex_ =
+            !writer_->writePartialViewingIndex(&invalidPartialViewingIndex);
+
         DRW_Group group;
         group.handle = 0xA600u;
         group.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
@@ -1574,7 +1600,7 @@ public:
         if (data.handle == 0xA601u) {
             readDictionarySeen_ = data.parentHandle
                     == DRW::DwgNamedObjectsDictionaryHandle
-                && data.m_entries.size() == 42
+                && data.m_entries.size() == 43
                 && data.m_entries[0].m_name == "LOCAL_XRECORD"
                 && data.m_entries[0].m_handle == 0xA602u
                 && data.m_entries[1].m_name == "LOCAL_PLOTSETTINGS"
@@ -1658,7 +1684,9 @@ public:
                 && data.m_entries[40].m_name == "LOCAL_POINTPATH"
                 && data.m_entries[40].m_handle == 0xDD00u
                 && data.m_entries[41].m_name == "LOCAL_OBJECT_PTR"
-                && data.m_entries[41].m_handle == 0xDE00u;
+                && data.m_entries[41].m_handle == 0xDE00u
+                && data.m_entries[42].m_name == "LOCAL_PARTIAL_VIEWING_INDEX"
+                && data.m_entries[42].m_handle == 0xDF00u;
         }
     }
     void addXRecord(const DRW_XRecord& data) override {
@@ -2147,6 +2175,21 @@ public:
         if (data.handle == 0xDE01u)
             readMalformedObjectPtrSeen_ = true;
     }
+    void addPartialViewingIndex(const DRW_PartialViewingIndex& data) override {
+        if (data.handle == 0xDF00u)
+            readPartialViewingIndexSeen_ = data.parentHandle == 0xA601u
+                && data.m_entryCount == 2
+                && data.m_hasEntries
+                && data.m_entries.size() == 2
+                && data.m_entries[0].extentsMin.x == -1.0
+                && data.m_entries[0].extentsMax.z == 30.0
+                && data.m_entries[0].objectHandle != 0
+                && data.m_entries[1].extentsMin.x == 40.0
+                && data.m_entries[1].extentsMax.z == 90.0
+                && data.m_entries[1].objectHandle == 0xD925u;
+        if (data.handle == 0xDF01u)
+            readMalformedPartialViewingIndexSeen_ = true;
+    }
     void addInsert(const DRW_Insert& data) override {
         readInsertSeen_ = true;
         readAttribSeen_ = data.attlist.size() == 1
@@ -2218,6 +2261,7 @@ public:
             && wroteCurvePath_
             && wrotePointPath_
             && wroteObjectPtr_
+            && wrotePartialViewingIndex_
             && wroteGroup_;
     }
     bool rejectedMalformedObject() const { return rejectedMalformedObject_; }
@@ -2318,6 +2362,10 @@ public:
     bool rejectedMalformedObjectPtr() const {
         return rejectedMalformedObjectPtr_;
     }
+    bool wrotePartialViewingIndex() const { return wrotePartialViewingIndex_; }
+    bool rejectedMalformedPartialViewingIndex() const {
+        return rejectedMalformedPartialViewingIndex_;
+    }
     bool wroteImage() const { return wroteImage_; }
     bool rejectedMalformedImage() const { return rejectedMalformedImage_; }
     bool readLineSeen() const { return readLineSeen_; }
@@ -2370,6 +2418,7 @@ public:
             && readCurvePathSeen_
             && readPointPathSeen_
             && readObjectPtrSeen_
+            && readPartialViewingIndexSeen_
             && readGroupSeen_;
     }
     bool readMalformedObjectSeen() const { return readMalformedObjectSeen_; }
@@ -2485,6 +2534,12 @@ public:
     }
     bool readMalformedObjectPtrSeen() const {
         return readMalformedObjectPtrSeen_;
+    }
+    bool readPartialViewingIndexSeen() const {
+        return readPartialViewingIndexSeen_;
+    }
+    bool readMalformedPartialViewingIndexSeen() const {
+        return readMalformedPartialViewingIndexSeen_;
     }
     bool readMalformedNavisworksModelDefSeen() const {
         return readMalformedNavisworksModelDefSeen_;
@@ -2611,6 +2666,8 @@ private:
     bool rejectedMalformedPointPath_ {false};
     bool wroteObjectPtr_ {false};
     bool rejectedMalformedObjectPtr_ {false};
+    bool wrotePartialViewingIndex_ {false};
+    bool rejectedMalformedPartialViewingIndex_ {false};
     bool wroteImage_ {false};
     bool rejectedMalformedImage_ {false};
     bool registeredDictionary_ {false};
@@ -2654,6 +2711,7 @@ private:
     bool registeredCurvePath_ {false};
     bool registeredPointPath_ {false};
     bool registeredObjectPtr_ {false};
+    bool registeredPartialViewingIndex_ {false};
     bool registeredPlotSettings_ {false};
     bool readLineSeen_ {false};
     bool readPointSeen_ {false};
@@ -2759,6 +2817,8 @@ private:
     bool readMalformedCurvePathSeen_ {false};
     bool readMalformedPointPathSeen_ {false};
     bool readMalformedObjectPtrSeen_ {false};
+    bool readPartialViewingIndexSeen_ {false};
+    bool readMalformedPartialViewingIndexSeen_ {false};
     bool readImageSeen_ {false};
     bool readImageDefSeen_ {false};
     bool readImageReactorSeen_ {false};
@@ -3006,6 +3066,12 @@ int main(int argc, char** argv) {
         expect(writeIface.rejectedMalformedObjectPtr(),
                ("local DWG writer rejected malformed OBJECT_PTR transaction" + suffix).c_str(),
                failures);
+        expect(writeIface.wrotePartialViewingIndex(),
+               ("local DWG writer emitted PARTIAL_VIEWING_INDEX" + suffix).c_str(),
+               failures);
+        expect(writeIface.rejectedMalformedPartialViewingIndex(),
+               ("local DWG writer rejected malformed PARTIAL_VIEWING_INDEX transaction" + suffix).c_str(),
+               failures);
         expect(version < DRW::AC1018
                    ? !writeIface.wroteImage()
                    : writeIface.wroteImage(),
@@ -3151,6 +3217,9 @@ int main(int argc, char** argv) {
         expect(readIface.readObjectPtrSeen(),
                ("local DWG self-read publishes OBJECT_PTR" + suffix).c_str(),
                failures);
+        expect(readIface.readPartialViewingIndexSeen(),
+               ("local DWG self-read publishes PARTIAL_VIEWING_INDEX" + suffix).c_str(),
+               failures);
         expect(version < DRW::AC1018 || readIface.readImageSeen(),
                ("local DWG self-read publishes IMAGE" + suffix).c_str(), failures);
         expect(version < DRW::AC1018 || readIface.readImageDefSeen(),
@@ -3258,6 +3327,9 @@ int main(int argc, char** argv) {
                failures);
         expect(!readIface.readMalformedObjectPtrSeen(),
                ("local DWG self-read omits rolled-back malformed OBJECT_PTR" + suffix).c_str(),
+               failures);
+        expect(!readIface.readMalformedPartialViewingIndexSeen(),
+               ("local DWG self-read omits rolled-back malformed PARTIAL_VIEWING_INDEX" + suffix).c_str(),
                failures);
         if (readIface.readLineSeen()) {
             const DRW_Line& line = readIface.readLine();

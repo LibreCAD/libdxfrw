@@ -108,6 +108,8 @@ POINT_PATH_HANDLE = 0xDD00
 MALFORMED_POINT_PATH_HANDLE = 0xDD01
 OBJECT_PTR_HANDLE = 0xDE00
 MALFORMED_OBJECT_PTR_HANDLE = 0xDE01
+PARTIAL_VIEWING_INDEX_HANDLE = 0xDF00
+MALFORMED_PARTIAL_VIEWING_INDEX_HANDLE = 0xDF01
 IMAGE_HANDLE = 0xD700
 MALFORMED_IMAGE_HANDLE = 0xD710
 
@@ -236,7 +238,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         raise ValueError("GROUP name, owner, or member stream mismatch")
 
     dictionary = find_record(records, "DICTIONARY", DICTIONARY_HANDLE)
-    if (dictionary.get("numitems") != 42
+    if (dictionary.get("numitems") != 43
             or dictionary.get("is_hardowner") != 1
             or owner_handle(dictionary) != 0x0C):
         raise ValueError("custom DICTIONARY count, owner, or cloning mismatch")
@@ -372,6 +374,24 @@ def check_objects(payload: dict, version_name: str) -> dict:
         "LibreDWG 0.14 exposes CURVEPATH/POINTPATH as UNKNOWN_OBJ and "
         "retains OBJECT_PTR by name; type/handle/owner identity is qualified "
         "while path payload fields remain local-self-read authoritative"
+    ]
+    partial_viewing_index = find_record(
+        records, "PARTIAL_VIEWING_INDEX", PARTIAL_VIEWING_INDEX_HANDLE)
+    partial_entries = partial_viewing_index.get("entries")
+    if (partial_viewing_index.get("type") != 559
+            or owner_handle(partial_viewing_index) != DICTIONARY_HANDLE
+            or partial_viewing_index.get("has_entries") != 1
+            or not isinstance(partial_entries, list)
+            or len(partial_entries) != 2
+            or not isinstance(partial_entries[0], dict)
+            or partial_entries[0].get("extents_min") != [-1.0, -2.0, -3.0]
+            or partial_entries[0].get("extents_max") != [10.0, 20.0, 30.0]):
+        raise ValueError(
+            "PARTIAL_VIEWING_INDEX type, owner, count, or extent mismatch")
+    partial_viewing_index_discrepancies = [
+        "LibreDWG 0.14 qualifies PARTIAL_VIEWING_INDEX type/handle/owner, "
+        "entry count, and first extent pair; object-reference and later-entry "
+        "fields are not stable and remain local-self-read authoritative"
     ]
     image_discrepancies = [
         "LibreDWG 0.14 does not expose the local IMAGE/IMAGEDEF entity and "
@@ -967,6 +987,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         MALFORMED_CURVE_PATH_HANDLE: "CURVEPATH",
         MALFORMED_POINT_PATH_HANDLE: "POINTPATH",
         MALFORMED_OBJECT_PTR_HANDLE: "OBJECT_PTR",
+        MALFORMED_PARTIAL_VIEWING_INDEX_HANDLE: "PARTIAL_VIEWING_INDEX",
         MALFORMED_IMAGE_HANDLE: "IMAGE",
     }
     if any(record_handle(record) in malformed_handles
@@ -1023,6 +1044,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "CURVEPATH": CURVE_PATH_HANDLE,
             "POINTPATH": POINT_PATH_HANDLE,
             "OBJECT_PTR": OBJECT_PTR_HANDLE,
+            "PARTIAL_VIEWING_INDEX": PARTIAL_VIEWING_INDEX_HANDLE,
             "IMAGE": IMAGE_HANDLE,
             "IMAGEDEF_REACTOR": IMAGE_HANDLE + 1,
             "DICTIONARYWDFLT": DICTIONARYWDFLT_HANDLE,
@@ -1037,6 +1059,12 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "object": "MOTIONPATH", "handle": MOTIONPATH_HANDLE, "type": 552,
         },
         "pathObjects": path_objects,
+        "partialViewingIndex": {
+            "object": "PARTIAL_VIEWING_INDEX",
+            "handle": PARTIAL_VIEWING_INDEX_HANDLE,
+            "type": 559,
+            "entryCount": len(partial_entries),
+        },
         "objectStatus": "qualified",
         "oracleDiscrepancies": (oracle_discrepancies + mental_discrepancies
                                  + material_discrepancies
@@ -1049,6 +1077,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
                                  + sun_study_discrepancies
                                  + motion_path_discrepancies
                                  + path_discrepancies
+                                 + partial_viewing_index_discrepancies
                                  + image_discrepancies),
     }
 
@@ -1120,7 +1149,7 @@ def self_test() -> None:
              "ownerhandle": [4, 1, 0x0C, 0x0C], "name": "LOCAL_GROUP",
              "groups": [[5, 1, 0x1234]]},
             {"object": "DICTIONARY", "handle": [0, 1, DICTIONARY_HANDLE],
-             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 42,
+             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 43,
              "is_hardowner": 1},
             {"object": "XRECORD", "handle": [0, 1, XRECORD_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
@@ -1385,6 +1414,16 @@ def self_test() -> None:
             {"object": "OBJECT_PTR", "handle": [0, 2, OBJECT_PTR_HANDLE],
              "ownerhandle": [4, 2, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
              "type": 555},
+            {"object": "PARTIAL_VIEWING_INDEX",
+             "handle": [0, 2, PARTIAL_VIEWING_INDEX_HANDLE],
+             "ownerhandle": [4, 2, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "type": 559, "has_entries": 1,
+             "entries": [
+                 {"extents_min": [-1.0, -2.0, -3.0],
+                  "extents_max": [10.0, 20.0, 30.0], "object": [0, 0]},
+                 {"extents_min": [1.0, 1.0, 0.0],
+                  "extents_max": [0.0, 0.0, 0.0], "object": [0, 0]},
+             ]},
             {"entity": "UNKNOWN_ENT", "handle": [0, 2, 0xD925],
              "type": 533},
         ],
@@ -1399,6 +1438,12 @@ def self_test() -> None:
     if [frame["object"] for frame in summary.get("pathObjects", [])] != [
             "CURVEPATH", "POINTPATH", "OBJECT_PTR"]:
         raise AssertionError("path-object identity was not qualified")
+    if summary.get("partialViewingIndex") != {
+            "object": "PARTIAL_VIEWING_INDEX",
+            "handle": PARTIAL_VIEWING_INDEX_HANDLE,
+            "type": 559,
+            "entryCount": 2}:
+        raise AssertionError("PARTIAL_VIEWING_INDEX evidence was not qualified")
     try:
         bad = json.loads(json.dumps(payload))
         bad["OBJECTS"].append({"object": "XRECORD", "handle": [0, 1, MALFORMED_HANDLE]})
@@ -1711,6 +1756,17 @@ def self_test() -> None:
         pass
     else:
         raise AssertionError("malformed OBJECT_PTR was not rejected")
+    try:
+        bad = json.loads(json.dumps(payload))
+        bad["OBJECTS"].append({
+            "object": "PARTIAL_VIEWING_INDEX",
+            "handle": [0, 1, MALFORMED_PARTIAL_VIEWING_INDEX_HANDLE],
+            "type": 559})
+        check_objects(bad, "AC1024")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("malformed PARTIAL_VIEWING_INDEX was not rejected")
     try:
         bad = json.loads(json.dumps(payload))
         bad["OBJECTS"].append({"entity": "UNKNOWN_ENT",
