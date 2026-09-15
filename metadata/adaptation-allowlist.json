@@ -56,10 +56,10 @@
     },
     {
       "path": "src/intern/dwgreader.cpp",
-      "reason": "Remove two unused target locals exposed by standalone -Werror compilation; parser control flow is unchanged.",
+      "reason": "Remove two unused target locals exposed by standalone -Werror compilation and route the fixed-type GEOPOSITIONMARKER entity through the mapped reader instead of treating its legacy class ordinal as an opaque object.",
       "scope": "warning hygiene",
       "targetBlob": "ae471df1928269fb8b81009bcd1821d304a003de",
-      "adaptedSha256": "e7e766d2aa3a490cf242f9fdb8ce0ea1f0adacd288640b3184924cee6996feef"
+      "adaptedSha256": "e9fb92bdf2a222dbb74e1eabd0a3f2d7307d19d0da172ca89818211799200878"
     },
     {
       "path": "src/drw_datastorage.cpp",
@@ -70,10 +70,17 @@
     },
     {
       "path": "src/drw_entities.cpp",
-      "reason": "Mark one intentionally unused helper and remove two unused locals exposed by standalone -Werror compilation; entity parsing behavior is unchanged.",
+      "reason": "Mark one intentionally unused helper, remove two unused locals exposed by standalone -Werror compilation, and reject non-finite GEOPOSITIONMARKER marker-body values before encoding.",
       "scope": "warning hygiene",
       "targetBlob": "890ea64e07010339cac96e5d580ecacef7f0f39e",
-      "adaptedSha256": "574cbae469896786e72921acb3218166a0f8f64e6264a14cc478dfa519ad8923"
+      "adaptedSha256": "5fe948deef7f0a27515422396c847a5d15b93ea02fa273620d940db093274272"
+    },
+    {
+      "path": "src/intern/dwgutil.h",
+      "reason": "Expose the fixed GEOPOSITIONMARKER DWG type code to the shared reader dispatch while keeping the target's existing utility enums intact.",
+      "scope": "DWG reader compatibility",
+      "targetBlob": "e33363bf4d3e814a67c875ecb89e70c9fe154bed",
+      "adaptedSha256": "17306de7cd56db029d3e2d35813d1ca9b3c4acbb895e2edba79768d74ad93b7e"
     },
     {
       "path": "src/intern/dwgwriter.h",

@@ -11945,7 +11945,10 @@ bool DRW_GeoPositionMarker::encodeDwg(DRW::Version v, dwgBufferW *buf,
                                       std::uint32_t bs, dwgBufferW *strBuf,
                                       dwgBufferW *handleBuf) {
     (void)bs;
-    if (v < DRW::AC1027 || buf == nullptr)
+    if (v < DRW::AC1027 || buf == nullptr
+        || !std::isfinite(m_position.x) || !std::isfinite(m_position.y)
+        || !std::isfinite(m_position.z) || !std::isfinite(m_radius)
+        || !std::isfinite(m_landingGap))
         return false;
     // The embedded AcDbMTextObjectEmbedded wire form was introduced with
     // AC1032. Reject an AC1027 framed marker rather than emitting a body that

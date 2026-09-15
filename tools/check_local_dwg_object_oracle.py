@@ -132,6 +132,7 @@ RTEXT_HANDLE = 0xED00
 ARCALIGNEDTEXT_HANDLE = 0xED01
 HELIX_HANDLE = 0xEE00
 CAMERA_HANDLE = 0xEF00
+GEOPOSITIONMARKER_HANDLE = 0xF300
 DIMASSOC_HANDLE = 0xF000
 EVALUATION_GRAPH_HANDLE = 0xF100
 BLOCKREPRESENTATIONDATA_HANDLE = 0xF200
@@ -316,6 +317,26 @@ def check_camera_entity(records: list[dict], version_name: str) -> dict:
     }
 
 
+def check_geo_position_marker(records: list[dict], version_name: str) -> dict:
+    """Qualify the fixed-type GEOPOSITIONMARKER entity body."""
+    if version_name in {"AC1015", "AC1018", "AC1021", "AC1024"}:
+        return {"supported": False}
+    matches = [
+        record for record in records
+        if isinstance(record, dict)
+        and record_handle(record) == GEOPOSITIONMARKER_HANDLE
+        and record.get("type") == 1164
+    ]
+    if len(matches) != 1:
+        raise ValueError("GEOPOSITIONMARKER frame count mismatch")
+    marker = matches[0]
+    return {
+        "supported": True, "object": "GEOPOSITIONMARKER", "type": 1164,
+        "handle": GEOPOSITIONMARKER_HANDLE,
+        "oracleObject": marker.get("object"),
+    }
+
+
 def check_express_text_entities(records: list[dict], version_name: str) -> dict:
     """Qualify RTEXT/ARCALIGNEDTEXT identity and bounded oracle payload.
 
@@ -442,6 +463,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
     tolerance_entity = check_tolerance_entity(records)
     helix_entity = check_helix_entity(records)
     camera_entity = check_camera_entity(records, version_name)
+    geo_position_marker = check_geo_position_marker(records, version_name)
     express_text_entities = check_express_text_entities(records, version_name)
     associative_objects = check_associative_objects(records, version_name)
     block_representation = check_block_representation(records, version_name)
@@ -468,6 +490,16 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "CAMERA emission is intentionally gated off for AC1015 because "
             "the legacy implicit next-entity chain cannot safely carry its "
             "class-542 frame; AC1018+ identity is independently qualified")
+    geo_position_marker_discrepancies = []
+    if not geo_position_marker.get("supported"):
+        geo_position_marker_discrepancies.append(
+            "GEOPOSITIONMARKER emission is intentionally gated off before "
+            "AC1027 because its versioned marker body is not supported there")
+    else:
+        geo_position_marker_discrepancies.append(
+            "LibreDWG 0.14 exposes the local GEOPOSITIONMARKER as "
+            "UNKNOWN_OBJ; type/handle identity is qualified while marker "
+            "body fields remain local-self-read authoritative")
 
     render_matrix = {}
     for kind, (object_name, handle, object_type) in RENDER_SETTINGS_KINDS.items():
@@ -1525,6 +1557,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         "toleranceEntity": tolerance_entity,
         "helixEntity": helix_entity,
         "cameraEntity": camera_entity,
+        "geoPositionMarker": geo_position_marker,
         "expressTextEntities": express_text_entities,
         "associativeObjects": associative_objects,
         "blockRepresentationData": block_representation,
@@ -1563,7 +1596,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
                                  + image_discrepancies
         + associative_discrepancies
         + block_representation_discrepancies
-        + camera_discrepancies),
+        + camera_discrepancies + geo_position_marker_discrepancies),
     }
 
 
@@ -1985,6 +2018,8 @@ def self_test() -> None:
             "handedness": 1, "constraint_type": 2},
             {"entity": "CAMERA", "handle": [0, 2, CAMERA_HANDLE],
              "type": 542, "view": [5, 0, 0, 0]},
+            {"object": "UNKNOWN_OBJ",
+             "handle": [0, 2, GEOPOSITIONMARKER_HANDLE], "type": 1164},
             {"entity": "RTEXT", "handle": [0, 2, RTEXT_HANDLE],
              "type": 521, "text_value": "LOCAL_RTEXT",
              "pt": [90.0, 91.0, 0.0],
@@ -2008,6 +2043,7 @@ def self_test() -> None:
         ],
     }
     summary = check_objects(payload, "AC1024")
+    geo_marker_summary = check_geo_position_marker(payload["OBJECTS"], "AC1027")
     if set(summary.get("renderSettingsKinds", {})) != set(RENDER_SETTINGS_KINDS):
         raise AssertionError("aggregate RENDERSETTINGS kind matrix is incomplete")
     if summary.get("pointCloudEntities") != [{
@@ -2026,6 +2062,11 @@ def self_test() -> None:
             "supported": True, "entity": "CAMERA", "type": 542,
             "handle": CAMERA_HANDLE, "view": 0}:
         raise AssertionError("CAMERA entity identity was not qualified")
+    if geo_marker_summary != {
+            "supported": True, "object": "GEOPOSITIONMARKER", "type": 1164,
+            "handle": GEOPOSITIONMARKER_HANDLE,
+            "oracleObject": "UNKNOWN_OBJ"}:
+        raise AssertionError("GEOPOSITIONMARKER identity was not qualified")
     if summary.get("expressTextEntities") != {
             "rtext": {"entity": "RTEXT", "type": 521,
                       "handle": RTEXT_HANDLE, "text": "LOCAL_RTEXT"},

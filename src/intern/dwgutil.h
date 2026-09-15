@@ -354,6 +354,7 @@ namespace dwgType {
         IMAGE = 101,
         NAVISWORKSMODEL = 1150,
         CAMERA = 1160,
+        GEOPOSITIONMARKER = 1164,
         // Modern custom-class 3DLINE. The legacy pre-R13 3DLINE uses a
         // separate type code in dwgreaderR11.cpp.
         THREEDLINE = 1162,

@@ -1832,6 +1832,30 @@ public:
                 && invalidCamera.handle == 0xEF01u;
         }
 
+        if (expectedVersion_ < DRW::AC1027) {
+            wroteGeoPositionMarker_ = false;
+            rejectedMalformedGeoPositionMarker_ = true;
+        } else {
+            DRW_GeoPositionMarker marker;
+            marker.handle = 0xF300u;
+            marker.m_classVersion = 1;
+            marker.m_position = DRW_Coord(81.0, 82.0, 83.0);
+            marker.m_radius = 3.5;
+            marker.m_notes = "LOCAL_GEO_MARKER";
+            marker.m_landingGap = 0.75;
+            marker.m_mtextVisible = true;
+            marker.m_textAlignment = 2;
+            marker.m_enableFrameText = false;
+            wroteGeoPositionMarker_ = writer_->writeGeoPositionMarker(&marker)
+                && marker.handle == 0xF300u;
+            DRW_GeoPositionMarker invalidMarker = marker;
+            invalidMarker.handle = 0xF301u;
+            invalidMarker.m_radius = std::numeric_limits<double>::quiet_NaN();
+            rejectedMalformedGeoPositionMarker_ =
+                !writer_->writeGeoPositionMarker(&invalidMarker)
+                && invalidMarker.handle == 0xF301u;
+        }
+
         DRW_Hatch hatch;
         hatch.name = "SOLID";
         hatch.solid = 1;
@@ -2135,6 +2159,22 @@ public:
     void addCamera(const DRW_Camera& data) override {
         if (data.handle == 0xEF00u && data.m_viewHandle == 0)
             readCameraSeen_ = true;
+    }
+    void addGeoPositionMarker(const DRW_GeoPositionMarker& data) override {
+        if (data.handle == 0xF300u)
+            readGeoPositionMarkerSeen_ =
+                expectedVersion_ >= DRW::AC1027
+                && data.m_classVersion == 1
+                && data.m_position.x == 81.0
+                && data.m_position.y == 82.0
+                && data.m_position.z == 83.0
+                && data.m_radius == 3.5
+                && data.m_notes == "LOCAL_GEO_MARKER"
+                && data.m_landingGap == 0.75
+                && data.m_mtextVisible
+                && data.m_textAlignment == 2
+                && !data.m_enableFrameText
+                && data.mtext == nullptr;
     }
     void addHatch(const DRW_Hatch*) override { readHatchSeen_ = true; }
     void addLeader(const DRW_Leader*) override { readLeaderSeen_ = true; }
@@ -2940,6 +2980,10 @@ public:
     bool rejectedMalformedHelix() const { return rejectedMalformedHelix_; }
     bool wroteCamera() const { return wroteCamera_; }
     bool rejectedMalformedCamera() const { return rejectedMalformedCamera_; }
+    bool wroteGeoPositionMarker() const { return wroteGeoPositionMarker_; }
+    bool rejectedMalformedGeoPositionMarker() const {
+        return rejectedMalformedGeoPositionMarker_;
+    }
     bool wrotePointCloud() const { return wrotePointCloud_; }
     bool wrotePointCloudEx() const { return wrotePointCloudEx_; }
     bool rejectedMalformedPointCloudEntity() const {
@@ -3177,6 +3221,7 @@ public:
     bool readSplineSeen() const { return readSplineSeen_; }
     bool readHelixSeen() const { return readHelixSeen_; }
     bool readCameraSeen() const { return readCameraSeen_; }
+    bool readGeoPositionMarkerSeen() const { return readGeoPositionMarkerSeen_; }
     bool readPointCloudSeen() const { return readPointCloudSeen_; }
     bool readPointCloudExSeen() const { return readPointCloudExSeen_; }
     bool readHatchSeen() const { return readHatchSeen_; }
@@ -3422,6 +3467,8 @@ private:
     bool rejectedMalformedHelix_ {false};
     bool wroteCamera_ {false};
     bool rejectedMalformedCamera_ {false};
+    bool wroteGeoPositionMarker_ {false};
+    bool rejectedMalformedGeoPositionMarker_ {false};
     bool wrotePointCloud_ {false};
     bool wrotePointCloudEx_ {false};
     bool rejectedMalformedPointCloudEntity_ {false};
@@ -3629,6 +3676,7 @@ private:
     bool readSplineSeen_ {false};
     bool readHelixSeen_ {false};
     bool readCameraSeen_ {false};
+    bool readGeoPositionMarkerSeen_ {false};
     bool readPointCloudSeen_ {false};
     bool readPointCloudExSeen_ {false};
     bool readHatchSeen_ {false};
@@ -3811,6 +3859,14 @@ int main(int argc, char** argv) {
         expect(writeIface.rejectedMalformedCamera(),
                ("local DWG writer rejected malformed CAMERA transaction" + suffix).c_str(),
                failures);
+        expect(version >= DRW::AC1027
+                   ? writeIface.wroteGeoPositionMarker()
+                   : !writeIface.wroteGeoPositionMarker(),
+               ("local DWG GEOPOSITIONMARKER capability gate" + suffix).c_str(),
+               failures);
+        expect(writeIface.rejectedMalformedGeoPositionMarker(),
+               ("local DWG writer rejected malformed GEOPOSITIONMARKER transaction"
+                + suffix).c_str(), failures);
         expect(version > DRW::AC1018
                    ? writeIface.wrotePointCloud()
                    : !writeIface.wrotePointCloud(),
@@ -4123,6 +4179,11 @@ int main(int argc, char** argv) {
                    ? readIface.readCameraSeen()
                    : !readIface.readCameraSeen(),
                ("local DWG self-read CAMERA capability gate" + suffix).c_str(), failures);
+        expect(version >= DRW::AC1027
+                   ? readIface.readGeoPositionMarkerSeen()
+                   : !readIface.readGeoPositionMarkerSeen(),
+               ("local DWG self-read GEOPOSITIONMARKER capability gate" + suffix).c_str(),
+               failures);
         expect(version > DRW::AC1018
                    ? readIface.readPointCloudSeen()
                    : !readIface.readPointCloudSeen(),

@@ -674,6 +674,10 @@ bool dwgReader::classifyDwgSourceFrame(dwgBuffer *dbuf, const objHandle &object,
 
   if (classification.fixedObjectShell || fixedObject) {
     classification.route = DwgFrameClassification::Route::Object;
+  } else if (encodedType == dwgType::GEOPOSITIONMARKER) {
+    // GEOPOSITIONMARKER uses a fixed entity type (1164) without a
+    // CLASSES ordinal in the writer's target-compatible wire form.
+    classification.route = DwgFrameClassification::Route::Entity;
   } else if (classification.resolvedClass != nullptr) {
     classification.route = classification.resolvedClass->entityFlag == 0
                                ? DwgFrameClassification::Route::Object
@@ -9012,7 +9016,8 @@ bool dwgReader::readDwgEntityWithOutput(dwgBuffer *dbuf, objHandle &obj,
     // CLASSES item_class_id 0x1F3 identifies an OBJECTS record. Defer it
     // before the entity owner probe: object owners commonly point to the
     // named-object dictionary and must not be mistaken for stray entities.
-    if (resolvedClass != nullptr && resolvedClass->entityFlag == 0) {
+    if (resolvedClass != nullptr && resolvedClass->entityFlag == 0
+        && oType != dwgType::GEOPOSITIONMARKER) {
       obj.type = oType;
       if (!deferObject(obj))
         return false;
@@ -9788,6 +9793,17 @@ bool dwgReader::readDwgEntityWithOutput(dwgBuffer *dbuf, objHandle &obj,
         DRW_Wipeout e;
         if (entryParse(e, buff, bs, ret)) {
           output.appendValue(e, &DRW_Interface::addWipeout);
+        }
+        break;
+      }
+      case dwgType::GEOPOSITIONMARKER: {
+        DRW_GeoPositionMarker e;
+        if (entryParse(e, buff, bs, ret)) {
+          output.appendValue(e, &DRW_Interface::addGeoPositionMarker);
+          output.appendValue(makeRawEntity(oType, nullptr,
+                                           e.hasDataStorageBinaryData(),
+                                           DRW::NoHandle, &e),
+                             &DRW_Interface::addUnsupportedObject);
         }
         break;
       }
