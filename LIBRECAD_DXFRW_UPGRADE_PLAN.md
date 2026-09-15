@@ -52,10 +52,10 @@ then pin an immutable commit before importing source.
 ### Execution refresh (2026-09-15)
 
 The implementation worktree is rebased on `origin/master` and is currently
-229 commits ahead with no commits behind it. The latest green slice is
-S203/J179, including the live-plan update and its required policy gates.
-S204/J180 is the active slice; its DXF raw-section remap transaction rollback
-is the next commit boundary.
+230 commits ahead with no commits behind it. The latest green slice is
+S204/J180, including the live-plan update and its required policy gates.
+S205/J181 is the active slice; its DXF raw-section reserved-name guard parity is
+the next commit boundary.
 The worktree is clean at the last committed boundary; any subsequent active-
 slice edits are intentionally uncommitted until their narrow gate and
 status-bearing plan transition are green.
@@ -1934,16 +1934,16 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint (2026-09-15): S203/J179 DXF raw-section wide-handle remap
-  preservation is committed; S204/J180 DXF raw-section remap transaction
-  rollback is active.
+- Current checkpoint (2026-09-15): S204/J180 DXF raw-section remap transaction
+  rollback is committed; S205/J181 DXF raw-section reserved-name guard parity
+  is active.
   The
   branch is rebased on `origin/master`, and
   the pinned source/package/consumer convergence remains complete while
   runtime and wire-format parity stay evidence-gated. The AC1015 IMAGE legacy
   boundary remains fail-closed, and all format-support claims remain limited
   to rows with eligible runtime/oracle evidence. The next dependency-ready
-  sequence is S204 DXF raw-section remap transaction rollback;
+  sequence is S205 DXF raw-section reserved-name guard parity;
   it is a separate commit with no external or derived DWG/DXF bytes.
 - Latest implementation slice: S171/J147 DXF raw-object handle-scope and
   cross-record uniqueness qualification is committed. Local ASCII and binary
@@ -2076,6 +2076,10 @@ edit this block or commit the same slice concurrently.
 - Latest implementation slice: S203/J179 DXF raw-section wide-handle remap
   preservation is committed. Local ASCII and binary section vectors keep wide
   identities verbatim when remap keys are narrow; no drawing bytes are retained.
+- Latest implementation slice: S204/J180 DXF raw-section remap transaction
+  rollback is committed. Local ASCII and binary sections publish zero bytes
+  when a remapped prefix is followed by a malformed typed group; no drawing
+  bytes are retained.
 - Latest implementation slice: S172/J148 DXF raw-object duplicate-handle
   diagnostic and error-precedence qualification is committed. Local ASCII and
   binary duplicate streams preserve the legacy `BAD_CODE_PARSED` result and
@@ -2998,18 +3002,18 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 203 (`COMMITTED`); S204 is active.
+- Resolved slices: 204 (`COMMITTED`); S205 is active.
 - Slice states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 203 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 204 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 205 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 206 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 301 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 302 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 188 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S203 are committed; S204/J180 is active with a ready packet
-  naming DXF raw-section remap transaction rollback and focused fast gates.
+  0 DEFERRED_EXTERNAL / 189 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S204 are committed; S205/J181 is active with a ready packet
+  naming DXF raw-section reserved-name guard parity and focused fast gates.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
   S174/J150, S175/J151, S176/J152, S177/J153, S178/J154, and S179/J155 added
   malformed, field-context, raw-entity propagation, duplicate-entity,
@@ -3265,7 +3269,8 @@ edit this block or commit the same slice concurrently.
 | S201 | J177: DXF raw-section handle-scope and duplicate diagnostics parity | S200 | COMMITTED | duplicate self handles across unknown-section records; scope/reset semantics; structured diagnostics; callback disposition; focused DXF gate; plan/scope/sync/fixture gates | committed `S201`; local ASCII and binary unknown sections reject duplicate handles across sections, retain the first callback, and reset for a fresh session; no drawing bytes committed | Wave 1 raw-section handle-scope tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S202 is active |
 | S202 | J178: DXF raw-section wide-handle replay parity | S201 | COMMITTED | 16-digit section code-5 lexemes; ASCII/binary capture and replay; bounded convenience state; wide-handle preservation; focused DXF gate; plan/scope/sync/fixture gates | committed `S202`; local ASCII and binary unknown sections preserve 16-digit code-5/code-330 lexemes through capture and replay; no drawing bytes committed | Wave 1 raw-section wide-handle tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S203 is active |
 | S203 | J179: DXF raw-section wide-handle remap preservation | S202 | COMMITTED | 16-digit section handle lexemes; explicit remap non-representability; ASCII/binary replay; source identity preservation; focused DXF gate; plan/scope/sync/fixture gates | committed `S203`; local ASCII and binary section vectors keep wide identities verbatim when remap keys are narrow; no drawing bytes committed | Wave 1 raw-section wide-remap tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S204 is active |
-| S204 | J180: DXF raw-section remap transaction rollback | S203 | ACTIVE | malformed typed groups after remap; output transaction rollback; no partial bytes; section framing disposition; focused DXF gate; plan/scope/sync/fixture gates | use local ASCII and binary sections with remapped prefixes followed by malformed typed groups; assert zero output and no partial SECTION/ENDSEC framing; no drawing bytes committed | active after S203 commit; use Wave 1 raw-section rollback tests, focused CTest selector, fast source/policy gates, fixture admission, import scope, pinned sync, and diff gates |
+| S204 | J180: DXF raw-section remap transaction rollback | S203 | COMMITTED | malformed typed groups after remap; output transaction rollback; no partial bytes; section framing disposition; focused DXF gate; plan/scope/sync/fixture gates | committed `S204`; local ASCII and binary sections publish zero bytes when a remapped prefix is followed by a malformed typed group; no drawing bytes committed | Wave 1 raw-section rollback tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S205 is active |
+| S205 | J181: DXF raw-section reserved-name guard parity | S204 | ACTIVE | reserved built-in section names; empty-name rejection; ASCII/binary symmetry; transactional output; focused DXF gate; plan/scope/sync/fixture gates | use local carriers named HEADER/CLASSES/TABLES/BLOCKS/ENTITIES/OBJECTS and empty; assert fail-closed rejection with zero output in both encodings; no drawing bytes committed | active after S204 commit; use Wave 1 section-name guard tests, focused CTest selector, fast source/policy gates, fixture admission, import scope, pinned sync, and diff gates |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3473,7 +3478,8 @@ edit this block or commit the same slice concurrently.
 | J177 | S201 | J176 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-section handle-scope and duplicate diagnostics parity | local ASCII/binary unknown sections reject duplicate handles across sections, retain the first callback, and reset for a fresh session; no-fixture evidence |
 | J178 | S202 | J177 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-section wide-handle replay parity | local ASCII/binary unknown sections preserve 16-digit code-5/code-330 lexemes through capture and replay; no-fixture evidence |
 | J179 | S203 | J178 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-section wide-handle remap preservation | local ASCII/binary section vectors keep wide identities verbatim when remap keys are narrow; no-fixture evidence |
-| J180 | S204 | J179 | ACTIVE | EXPERIMENTAL | Qualify DXF raw-section remap transaction rollback | active packet names malformed trailing groups, zero output, section framing rollback, and no-fixture evidence |
+| J180 | S204 | J179 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-section remap transaction rollback | local ASCII/binary sections publish zero bytes when remapped prefixes are followed by malformed typed groups; no-fixture evidence |
+| J181 | S205 | J180 | ACTIVE | EXPERIMENTAL | Qualify DXF raw-section reserved-name guard parity | active packet names reserved built-in section names, empty-name rejection, ASCII/binary symmetry, and no-fixture evidence |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -3788,7 +3794,8 @@ edit this block or commit the same slice concurrently.
 | J177.1 | J177 / S201 | WP4, WP5, WP6, WP8, WP10; DXF raw-section handle-scope and duplicate diagnostics parity | J176 | COMMITTED | EXPERIMENTAL | assert duplicate raw-section self handles reject within scope, preserve prior-valid callback publication, and reset for fresh sessions in ASCII/binary, without external drawing bytes | focused Wave 1 raw-section handle-scope target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 | J178.1 | J178 / S202 | WP4, WP5, WP6, WP8, WP10; DXF raw-section wide-handle replay parity | J177 | COMMITTED | EXPERIMENTAL | assert 16-digit code-5 lexemes capture/replay losslessly in unknown sections for ASCII and binary while convenience handles remain bounded, without external drawing bytes | focused Wave 1 raw-section wide-handle target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 | J179.1 | J179 / S203 | WP4, WP5, WP6, WP8, WP10; DXF raw-section wide-handle remap preservation | J178 | COMMITTED | EXPERIMENTAL | assert wide self/reference identities remain verbatim when explicit remap keys are only representable as narrow handles in ASCII/binary replay, without external drawing bytes | focused Wave 1 raw-section wide-remap target and policy gates pass; no external or derived DWG/DXF bytes are retained |
-| J180.1 | J180 / S204 | WP4, WP5, WP6, WP8, WP10; DXF raw-section remap transaction rollback | J179 | ACTIVE | EXPERIMENTAL | assert malformed typed groups after remap leave empty ASCII/binary output and no partial SECTION/ENDSEC framing, without external drawing bytes | focused Wave 1 raw-section rollback target and policy gates pass; no external or derived DWG/DXF bytes are retained |
+| J180.1 | J180 / S204 | WP4, WP5, WP6, WP8, WP10; DXF raw-section remap transaction rollback | J179 | COMMITTED | EXPERIMENTAL | assert malformed typed groups after remap leave empty ASCII/binary output and no partial SECTION/ENDSEC framing, without external drawing bytes | focused Wave 1 raw-section rollback target and policy gates pass; no external or derived DWG/DXF bytes are retained |
+| J181.1 | J181 / S205 | WP4, WP5, WP6, WP8, WP10; DXF raw-section reserved-name guard parity | J180 | ACTIVE | EXPERIMENTAL | assert built-in section names and empty names are rejected symmetrically with zero ASCII/binary output, without external drawing bytes | focused Wave 1 section-name guard target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 
 <!-- UPGRADE_PROGRESS_END -->
 

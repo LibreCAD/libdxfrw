@@ -3450,6 +3450,44 @@ void testDxfRawSectionWideHandleRemap(TestContext& t) {
              "DXF binary raw section preserves wide identities under remap");
 }
 
+void testDxfRawSectionRemapRollback(TestContext& t) {
+    DRW_RawDxfSection malformed;
+    malformed.m_name = "LOCAL_SECTION_ROLLBACK";
+    malformed.m_version = DRW::AC1027;
+    malformed.m_hasRawValues = true;
+    malformed.m_groups = {DRW_Variant(102, std::string("{ROLLBACK")),
+                          DRW_Variant(330, std::string("2A")),
+                          DRW_Variant(260, std::string("not-an-int")),
+                          DRW_Variant(102, std::string("}"))};
+    malformed.m_rawValues = {"{ROLLBACK", "2A", "not-an-int", "}"};
+    const std::map<std::uint32_t, std::uint32_t> remap = {{0x2Au, 0x4Au}};
+
+    std::ostringstream rejectedAsciiOutput;
+    dxfRW rejectingAsciiWriter("");
+    rejectingAsciiWriter.version = DRW::AC1027;
+    rejectingAsciiWriter.binFile = false;
+    rejectingAsciiWriter.writer = std::make_unique<dxfWriterAscii>(
+        &rejectedAsciiOutput);
+    rejectingAsciiWriter.setHandleRemap(remap);
+    t.expect(!rejectingAsciiWriter.writeRawDxfSection(malformed)
+                 && rejectedAsciiOutput.str().empty(),
+             "DXF ASCII raw section remap rolls back malformed typed groups");
+
+    DRW_RawDxfSection malformedBinary = malformed;
+    malformedBinary.m_hasRawValues = false;
+    malformedBinary.m_rawValues.clear();
+    std::ostringstream rejectedBinaryOutput;
+    dxfRW rejectingBinaryWriter("");
+    rejectingBinaryWriter.version = DRW::AC1027;
+    rejectingBinaryWriter.binFile = true;
+    rejectingBinaryWriter.writer = std::make_unique<dxfWriterBinary>(
+        &rejectedBinaryOutput);
+    rejectingBinaryWriter.setHandleRemap(remap);
+    t.expect(!rejectingBinaryWriter.writeRawDxfSection(malformedBinary)
+                 && rejectedBinaryOutput.str().empty(),
+             "DXF binary raw section remap rolls back malformed typed groups");
+}
+
 void testDxfRawSectionApplicationGroupMarker(TestContext& t) {
     const std::vector<std::string> invalidMarkers = {"{", "NOT_A_MARKER"};
     for (const std::string& marker : invalidMarkers) {
@@ -3799,6 +3837,7 @@ int main() {
     testDxfRawSectionHandleScope(context);
     testDxfRawSectionWideHandleReplay(context);
     testDxfRawSectionWideHandleRemap(context);
+    testDxfRawSectionRemapRollback(context);
     testDxfRawSectionApplicationGroupMarker(context);
     testDxfRawSectionApplicationGroupReferenceMatrix(context);
     testRawCapture(context);
