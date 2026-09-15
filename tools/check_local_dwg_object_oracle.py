@@ -157,6 +157,45 @@ def find_record(records: list[dict], object_name: str, handle: int) -> dict:
     return matches[0]
 
 
+def check_pointcloud_entities(records: list[dict], version_name: str) -> list[dict]:
+    """Qualify the opaque LibreDWG entity frames by type and handle.
+
+    LibreDWG 0.14 does not decode these classes into named entities, but its
+    JSON reader retains the class type and allocated handle.  Keep that
+    identity evidence separate from the libdxfrw self-read payload checks.
+    """
+    expected = []
+    if version_name not in {"AC1015", "AC1018"}:
+        expected.append((533, 0xD925))
+    if version_name in {"AC1027", "AC1032"}:
+        expected.append((534, 0xD926))
+    candidates = [
+        record for record in records
+        if isinstance(record, dict)
+        and record.get("entity") == "UNKNOWN_ENT"
+        and record.get("type") in {533, 534}
+    ]
+    if len(candidates) != len(expected):
+        raise ValueError("POINTCLOUD entity frame count mismatch")
+    frames = []
+    for object_type, handle in expected:
+        matches = [
+            record for record in candidates
+            if record.get("type") == object_type
+            and record_handle(record) == handle
+        ]
+        if len(matches) != 1:
+            raise ValueError(
+                f"POINTCLOUD entity type/handle mismatch for 0x{handle:X}")
+        frames.append({
+            "entity": "POINTCLOUD" if object_type == 533 else "POINTCLOUDEX",
+            "type": object_type,
+            "handle": handle,
+            "oracleEntity": "UNKNOWN_ENT",
+        })
+    return frames
+
+
 def check_objects(payload: dict, version_name: str) -> dict:
     header = payload.get("FILEHEADER")
     if not isinstance(header, dict) or header.get("version") != version_name:
@@ -164,6 +203,8 @@ def check_objects(payload: dict, version_name: str) -> dict:
     records = payload.get("OBJECTS")
     if not isinstance(records, list):
         raise ValueError("oracle JSON has no OBJECTS list")
+
+    pointcloud_entities = check_pointcloud_entities(records, version_name)
 
     render_matrix = {}
     for kind, (object_name, handle, object_type) in RENDER_SETTINGS_KINDS.items():
@@ -272,6 +313,10 @@ def check_objects(payload: dict, version_name: str) -> dict:
         raise ValueError("NAVISWORKSMODELDEF identity or owner mismatch")
     pointcloud_discrepancies.append(
         "LibreDWG 0.14 exposes local NAVISWORKSMODELDEF as UNKNOWN_OBJ; type/handle/owner identity is qualified")
+    pointcloud_discrepancies.append(
+        "LibreDWG 0.14 exposes POINTCLOUD/POINTCLOUDEX as UNKNOWN_ENT; "
+        "type/handle identity is qualified while payload fields remain "
+        "local-self-read authoritative")
     image_discrepancies = [
         "LibreDWG 0.14 does not expose the local IMAGE/IMAGEDEF entity and "
         "fixed-object frames in JSON; local self-read remains the authoritative "
@@ -918,6 +963,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         },
         "underlayDefinitions": underlays,
         "pointCloudDefinitions": pointcloud_frames,
+        "pointCloudEntities": pointcloud_entities,
         "objectStatus": "qualified",
         "oracleDiscrepancies": (oracle_discrepancies + mental_discrepancies
                                  + material_discrepancies
@@ -1245,11 +1291,17 @@ def self_test() -> None:
              "handle": [0, 1, NAVISWORKS_MODEL_DEF_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
              "type": 539},
+            {"entity": "UNKNOWN_ENT", "handle": [0, 2, 0xD925],
+             "type": 533},
         ],
     }
     summary = check_objects(payload, "AC1024")
     if set(summary.get("renderSettingsKinds", {})) != set(RENDER_SETTINGS_KINDS):
         raise AssertionError("aggregate RENDERSETTINGS kind matrix is incomplete")
+    if summary.get("pointCloudEntities") != [{
+            "entity": "POINTCLOUD", "type": 533, "handle": 0xD925,
+            "oracleEntity": "UNKNOWN_ENT"}]:
+        raise AssertionError("POINTCLOUD entity identity was not qualified")
     try:
         bad = json.loads(json.dumps(payload))
         bad["OBJECTS"].append({"object": "XRECORD", "handle": [0, 1, MALFORMED_HANDLE]})
@@ -1514,6 +1566,15 @@ def self_test() -> None:
         pass
     else:
         raise AssertionError("malformed NAVISWORKSMODELDEF was not rejected")
+    try:
+        bad = json.loads(json.dumps(payload))
+        bad["OBJECTS"].append({"entity": "UNKNOWN_ENT",
+                                "handle": [0, 2, 0xD927], "type": 533})
+        check_objects(bad, "AC1024")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("duplicate POINTCLOUD entity was not rejected")
     print("local DWG object oracle: PASS")
 
 

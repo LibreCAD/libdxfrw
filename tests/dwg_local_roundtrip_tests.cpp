@@ -15,8 +15,9 @@ namespace {
 
 class LocalDwgInterface final : public dx_iface {
 public:
-    explicit LocalDwgInterface(dwgRW* writer = nullptr)
-        : writer_(writer) {
+    explicit LocalDwgInterface(dwgRW* writer = nullptr,
+                               DRW::Version expectedVersion = DRW::UNKNOWNV)
+        : writer_(writer), expectedVersion_(expectedVersion) {
         cData = &data_;
         currentBlock = data_.mBlock;
     }
@@ -1290,6 +1291,66 @@ public:
         wroteAttrib_ = wroteInsert_ && insert.attlist.size() == 1
             && insert.attlist.front()->handle != 0
             && insert.seqendH.ref != DRW::NoHandle;
+
+        DRW_PointCloud pointCloud;
+        pointCloud.handle = 0xD925u;
+        pointCloud.classVersion = 2;
+        pointCloud.origin = DRW_Coord{1.0, 2.0, 3.0};
+        pointCloud.savedFilename = "LOCAL_POINTCLOUD.rcs";
+        pointCloud.sourceFileCount = 0;
+        pointCloud.extentsMin = DRW_Coord{-1.0, -2.0, -3.0};
+        pointCloud.extentsMax = DRW_Coord{10.0, 20.0, 30.0};
+        pointCloud.pointCount = 1234;
+        pointCloud.ucsName = "LOCAL_POINTCLOUD_UCS";
+        pointCloud.ucsOrigin = DRW_Coord{4.0, 5.0, 6.0};
+        pointCloud.definitionHandle = 0xD600u;
+        pointCloud.reactorHandle = 0xD602u;
+        pointCloud.showIntensity = false;
+        pointCloud.showClipping = false;
+        if (writer_->getVersion() <= DRW::AC1018) {
+            wrotePointCloud_ = false;
+            rejectedMalformedPointCloudEntity_ = true;
+        } else {
+            wrotePointCloud_ = writer_->writePointCloud(&pointCloud)
+                && pointCloud.handle != 0;
+            DRW_PointCloud invalidPointCloudEntity = pointCloud;
+            invalidPointCloudEntity.origin.x =
+                std::numeric_limits<double>::quiet_NaN();
+            rejectedMalformedPointCloudEntity_ =
+                !writer_->writePointCloud(&invalidPointCloudEntity);
+        }
+
+        DRW_PointCloudEx pointCloudEx;
+        pointCloudEx.handle = 0xD926u;
+        pointCloudEx.classVersion = 3;
+        pointCloudEx.extentsMin = DRW_Coord{-10.0, -20.0, -30.0};
+        pointCloudEx.extentsMax = DRW_Coord{100.0, 200.0, 300.0};
+        pointCloudEx.ucsOrigin = DRW_Coord{0.0, 0.0, 0.0};
+        pointCloudEx.name = "LOCAL_POINTCLOUD_EX";
+        pointCloudEx.definitionHandle = 0xD601u;
+        pointCloudEx.reactorHandle = 0xD603u;
+        pointCloudEx.stylizationType = 1;
+        pointCloudEx.intensityColorScheme = "LOCAL_INTENSITY";
+        pointCloudEx.currentColorScheme = "LOCAL_CURRENT";
+        pointCloudEx.classificationColorScheme = "LOCAL_CLASSIFICATION";
+        pointCloudEx.elevationMin = -5.0;
+        pointCloudEx.elevationMax = 50.0;
+        pointCloudEx.intensityMin = 1.0;
+        pointCloudEx.intensityMax = 255.0;
+        pointCloudEx.intensityOutOfRangeBehavior = 2;
+        pointCloudEx.elevationOutOfRangeBehavior = 3;
+        if (writer_->getVersion() <= DRW::AC1024) {
+            wrotePointCloudEx_ = false;
+            rejectedMalformedPointCloudEx_ = true;
+        } else {
+            wrotePointCloudEx_ = writer_->writePointCloudEx(&pointCloudEx)
+                && pointCloudEx.handle != 0;
+            DRW_PointCloudEx invalidPointCloudEx = pointCloudEx;
+            invalidPointCloudEx.extentsMax.z =
+                std::numeric_limits<double>::quiet_NaN();
+            rejectedMalformedPointCloudEx_ =
+                !writer_->writePointCloudEx(&invalidPointCloudEx);
+        }
     }
 
     void addLine(const DRW_Line& data) override {
@@ -1315,6 +1376,47 @@ public:
     void addRay(const DRW_Ray&) override { readRaySeen_ = true; }
     void addXline(const DRW_Xline&) override { readXlineSeen_ = true; }
     void add3DLine(const DRW_3DLine&) override { read3dLineSeen_ = true; }
+    void addPointCloud(const DRW_PointCloud* data) override {
+        if (data != nullptr)
+            readPointCloudSeen_ = data->classVersion == 2
+                && data->handle == 0xD925u
+                && data->origin.x == 1.0
+                && data->origin.z == 3.0
+                && data->savedFilename == "LOCAL_POINTCLOUD.rcs"
+                && data->sourceFileCount == 0
+                && data->pointCount == 1234
+                && data->extentsMin.x == -1.0
+                && data->extentsMax.z == 30.0
+                && data->ucsName == "LOCAL_POINTCLOUD_UCS"
+                && data->ucsOrigin.x == 4.0
+                && (expectedVersion_ <= DRW::AC1024
+                    ? (data->definitionHandle == 0
+                       && data->reactorHandle == 0)
+                    : (data->definitionHandle == 0xD600u
+                       && data->reactorHandle == 0xD602u))
+                && !data->showIntensity && !data->showClipping;
+    }
+    void addPointCloudEx(const DRW_PointCloudEx* data) override {
+        if (data != nullptr)
+            readPointCloudExSeen_ = data->classVersion == 3
+                && data->handle == 0xD926u
+                && data->name == "LOCAL_POINTCLOUD_EX"
+                && data->extentsMin.x == -10.0
+                && data->extentsMax.z == 300.0
+                && data->ucsOrigin.x == 0.0
+                && data->definitionHandle == 0xD601u
+                && data->reactorHandle == 0xD603u
+                && data->stylizationType == 1
+                && data->intensityColorScheme == "LOCAL_INTENSITY"
+                && data->currentColorScheme == "LOCAL_CURRENT"
+                && data->classificationColorScheme == "LOCAL_CLASSIFICATION"
+                && data->elevationMin == -5.0
+                && data->elevationMax == 50.0
+                && data->intensityMin == 1.0
+                && data->intensityMax == 255.0
+                && data->intensityOutOfRangeBehavior == 2
+                && data->elevationOutOfRangeBehavior == 3;
+    }
     void addImage(const DRW_Image* data) override {
         if (data != nullptr && data->sizeu == 64.0 && data->sizev == 48.0)
             readImageSeen_ = data->ref != 0
@@ -1865,6 +1967,14 @@ public:
     }
     bool wroteOldPolyline() const { return wroteOldPolyline_; }
     bool wroteSpline() const { return wroteSpline_; }
+    bool wrotePointCloud() const { return wrotePointCloud_; }
+    bool wrotePointCloudEx() const { return wrotePointCloudEx_; }
+    bool rejectedMalformedPointCloudEntity() const {
+        return rejectedMalformedPointCloudEntity_;
+    }
+    bool rejectedMalformedPointCloudEx() const {
+        return rejectedMalformedPointCloudEx_;
+    }
     bool wroteHatch() const { return wroteHatch_; }
     bool wroteLeader() const { return wroteLeader_; }
     bool wroteBlock() const {
@@ -1999,6 +2109,8 @@ public:
     }
     bool readOldPolylineSeen() const { return readOldPolylineSeen_; }
     bool readSplineSeen() const { return readSplineSeen_; }
+    bool readPointCloudSeen() const { return readPointCloudSeen_; }
+    bool readPointCloudExSeen() const { return readPointCloudExSeen_; }
     bool readHatchSeen() const { return readHatchSeen_; }
     bool readLeaderSeen() const { return readLeaderSeen_; }
     bool readInsertSeen() const { return readInsertSeen_; }
@@ -2138,6 +2250,7 @@ public:
 
 private:
     dwgRW* writer_ {nullptr};
+    DRW::Version expectedVersion_ {DRW::UNKNOWNV};
     bool wroteLine_ {false};
     std::uint32_t modelSpaceLineHandle_ {0};
     bool wrotePoint_ {false};
@@ -2155,6 +2268,10 @@ private:
     bool wrote3dLine_ {false};
     bool wroteOldPolyline_ {false};
     bool wroteSpline_ {false};
+    bool wrotePointCloud_ {false};
+    bool wrotePointCloudEx_ {false};
+    bool rejectedMalformedPointCloudEntity_ {false};
+    bool rejectedMalformedPointCloudEx_ {false};
     bool wroteHatch_ {false};
     bool wroteLeader_ {false};
     bool wroteBlock_ {false};
@@ -2292,6 +2409,8 @@ private:
     bool read3dLineSeen_ {false};
     bool readOldPolylineSeen_ {false};
     bool readSplineSeen_ {false};
+    bool readPointCloudSeen_ {false};
+    bool readPointCloudExSeen_ {false};
     bool readHatchSeen_ {false};
     bool readLeaderSeen_ {false};
     bool readInsertSeen_ {false};
@@ -2426,6 +2545,22 @@ int main(int argc, char** argv) {
                ("local DWG writer emitted POLYLINE" + suffix).c_str(), failures);
         expect(writeIface.wroteSpline(),
                ("local DWG writer emitted SPLINE" + suffix).c_str(), failures);
+        expect(version > DRW::AC1018
+                   ? writeIface.wrotePointCloud()
+                   : !writeIface.wrotePointCloud(),
+               ("local DWG POINTCLOUD capability gate" + suffix).c_str(),
+               failures);
+        expect(version > DRW::AC1024
+                   ? writeIface.wrotePointCloudEx()
+                   : !writeIface.wrotePointCloudEx(),
+               ("local DWG POINTCLOUDEX capability gate" + suffix).c_str(),
+               failures);
+        expect(writeIface.rejectedMalformedPointCloudEntity(),
+               ("local DWG writer rejected malformed POINTCLOUD transaction" + suffix).c_str(),
+               failures);
+        expect(writeIface.rejectedMalformedPointCloudEx(),
+               ("local DWG writer rejected malformed POINTCLOUDEX transaction" + suffix).c_str(),
+               failures);
         expect(writeIface.wroteHatch(),
                ("local DWG writer emitted HATCH" + suffix).c_str(), failures);
         expect(writeIface.wroteLeader(),
@@ -2580,7 +2715,7 @@ int main(int argc, char** argv) {
                ("local DWG output is published" + suffix).c_str(), failures);
 
         dwgRW reader(output.string().c_str());
-        LocalDwgInterface readIface;
+        LocalDwgInterface readIface(nullptr, version);
         readIface.setTableStyleExpected(version <= DRW::AC1021);
         const bool readOk = reader.read(&readIface, false);
         expect(readOk, ("local DWG reader self-read succeeds" + suffix).c_str(),
@@ -2599,6 +2734,16 @@ int main(int argc, char** argv) {
                ("local DWG self-read publishes POLYLINE" + suffix).c_str(), failures);
         expect(readIface.readSplineSeen(),
                ("local DWG self-read publishes SPLINE" + suffix).c_str(), failures);
+        expect(version > DRW::AC1018
+                   ? readIface.readPointCloudSeen()
+                   : !readIface.readPointCloudSeen(),
+               ("local DWG POINTCLOUD capability-gated self-read" + suffix).c_str(),
+               failures);
+        expect(version > DRW::AC1024
+                   ? readIface.readPointCloudExSeen()
+                   : !readIface.readPointCloudExSeen(),
+               ("local DWG POINTCLOUDEX capability-gated self-read" + suffix).c_str(),
+               failures);
         expect(readIface.readHatchSeen(),
                ("local DWG self-read publishes HATCH" + suffix).c_str(), failures);
         expect(readIface.readLeaderSeen(),
