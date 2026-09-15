@@ -2557,21 +2557,19 @@ edit this block or commit the same slice concurrently.
   names TVDEVICEPROPERTIES and the two VX frames as UNKNOWN_OBJ, while local
   self-read remains authoritative for VX payload fields; no generated drawings
   or external assets are retained.
-- Last fully resolved slice: S83 (the PARTIAL_VIEWING_INDEX bounded-entry
-  slice is committed by the matching `Plan-Slice: S83` trailer;
-  broader
-  fixed object families remain experimental follow-up).
-  target integration commit remains
-  `6969e0a003414f9a7084349ac54bc2b32515e16b`. All in-horizon lanes are
-  terminal only when their recorded gates pass; the next runtime qualification
-  lane requires no new target pin.
-- Previous fully resolved slice: S82 (the CURVEPATH/POINTPATH/OBJECT_PTR
-  linkage slice is committed by the matching `Plan-Slice: S82` trailer; broader
-  fixed object families remain experimental follow-up).
-  target integration commit remains
-  `6969e0a003414f9a7084349ac54bc2b32515e16b`. All in-horizon lanes are
-  terminal only when their recorded gates pass; the next runtime qualification
-  lane requires no new target pin.
+- Last fully resolved slice: S87 (the TVDEVICEPROPERTIES/VXCONTROL/
+  VXTABLERECORD parity slice is committed by the matching `Plan-Slice: S87`
+  trailers in `36d01e6` and `6843771`; the first commit carries the
+  implementation/evidence and the second reconciles the plan summary).
+  The target integration commit remains
+  `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
+  terminal only when their recorded gates pass.
+- Previous fully resolved slice: S86 (the SECTION view-style/break writer-gap
+  inventory is committed by the matching `Plan-Slice: S86` trailer, with an
+  explicit unsupported DWG-write boundary and no speculative wire layout).
+  The target integration commit remains
+  `6969e0a003414f9a7084349ac54bc2b32515e16b`; the next lane must be selected
+  from fresh target/source evidence rather than assumed from stale ordering.
 - Resolved slices: 87 (`COMMITTED`).
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
   0 BLOCKED_HARD / 0 SUPERSEDED / 87 COMMITTED.
