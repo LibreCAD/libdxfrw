@@ -201,6 +201,14 @@ public:
             registeredNavisworksModelDef_ =
                 writer_->registerNavisworksModelDefObjectClass(
                     &navisworksRegistration);
+            DRW_SunStudy sunStudyRegistration;
+            sunStudyRegistration.handle = 0xDA00u;
+            registeredSunStudy_ = writer_->registerSunStudyObjectClass(
+                &sunStudyRegistration);
+            DRW_MotionPath motionPathRegistration;
+            motionPathRegistration.handle = 0xDB00u;
+            registeredMotionPath_ = writer_->registerMotionPathObjectClass(
+                &motionPathRegistration);
         }
     }
 
@@ -279,6 +287,8 @@ public:
             {"LOCAL_POINTCLOUDDEFINITIONEX", 0xD601u},
             {"LOCAL_POINTCLOUDCOLORMAP", 0xD800u},
             {"LOCAL_NAVISWORKSMODELDEF", 0xD900u},
+            {"LOCAL_SUNSTUDY", 0xDA00u},
+            {"LOCAL_MOTIONPATH", 0xDB00u},
         };
         wroteDictionary_ = registeredDictionary_
             && writer_->writeDictionary(&dictionary)
@@ -1092,6 +1102,63 @@ public:
         rejectedMalformedNavisworksModelDef_ =
             !writer_->writeNavisworksModelDef(&invalidNavisworks);
 
+        DRW_SunStudy sunStudy;
+        sunStudy.handle = 0xDA00u;
+        sunStudy.parentHandle = dictionary.handle;
+        sunStudy.m_classVersion = 1;
+        sunStudy.m_setupName = "LOCAL_SUNSTUDY";
+        sunStudy.m_description = "LOCAL_SUN_DESC";
+        sunStudy.m_sheetSetName = "LOCAL_SHEETSET";
+        sunStudy.m_sheetSubsetName = "LOCAL_SUBSET";
+        sunStudy.m_outputType = 0;
+        sunStudy.m_useSubset = true;
+        sunStudy.m_selectDatesFromCalendar = true;
+        sunStudy.m_selectRangeOfDates = true;
+        sunStudy.m_lockViewports = true;
+        sunStudy.m_labelViewports = false;
+        sunStudy.m_startTime = 10;
+        sunStudy.m_endTime = 20;
+        sunStudy.m_interval = 5;
+        sunStudy.m_shadePlotType = 2;
+        sunStudy.m_viewportCount = 3;
+        sunStudy.m_rowCount = 4;
+        sunStudy.m_columnCount = 5;
+        sunStudy.m_spacing = 1.5;
+        sunStudy.m_dates = {{2451545, 3600000}};
+        sunStudy.m_hours = {true, false, true};
+        sunStudy.m_pageSetupWizardHandle = 0xA603u;
+        sunStudy.m_viewHandle = 0xA700u;
+        sunStudy.m_visualStyleHandle = 0xC000u;
+        sunStudy.m_textStyleHandle = 0xA800u;
+        wroteSunStudy_ = registeredSunStudy_
+            && writer_->writeSunStudy(&sunStudy)
+            && sunStudy.handle != 0;
+
+        DRW_SunStudy invalidSunStudy = sunStudy;
+        invalidSunStudy.handle = 0xDA01u;
+        invalidSunStudy.m_spacing = std::numeric_limits<double>::quiet_NaN();
+        rejectedMalformedSunStudy_ = !writer_->writeSunStudy(&invalidSunStudy);
+
+        DRW_MotionPath motionPath;
+        motionPath.handle = 0xDB00u;
+        motionPath.parentHandle = dictionary.handle;
+        motionPath.m_classVersion = 2;
+        motionPath.m_cameraPathHandle = 0xD925u;
+        motionPath.m_targetPathHandle = 0xD926u;
+        motionPath.m_viewTableHandle = 0xA700u;
+        motionPath.m_frames = 120;
+        motionPath.m_frameRate = 30;
+        motionPath.m_cornerDeceleration = true;
+        wroteMotionPath_ = registeredMotionPath_
+            && writer_->writeMotionPath(&motionPath)
+            && motionPath.handle != 0;
+
+        DRW_MotionPath invalidMotionPath = motionPath;
+        invalidMotionPath.handle = 0xDB01u;
+        invalidMotionPath.m_frames = std::numeric_limits<std::int32_t>::max();
+        rejectedMalformedMotionPath_ =
+            !writer_->writeMotionPath(&invalidMotionPath);
+
         DRW_Group group;
         group.handle = 0xA600u;
         group.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
@@ -1452,7 +1519,7 @@ public:
         if (data.handle == 0xA601u) {
             readDictionarySeen_ = data.parentHandle
                     == DRW::DwgNamedObjectsDictionaryHandle
-                && data.m_entries.size() == 37
+                && data.m_entries.size() == 39
                 && data.m_entries[0].m_name == "LOCAL_XRECORD"
                 && data.m_entries[0].m_handle == 0xA602u
                 && data.m_entries[1].m_name == "LOCAL_PLOTSETTINGS"
@@ -1526,7 +1593,11 @@ public:
                 && data.m_entries[35].m_name == "LOCAL_POINTCLOUDCOLORMAP"
                 && data.m_entries[35].m_handle == 0xD800u
                 && data.m_entries[36].m_name == "LOCAL_NAVISWORKSMODELDEF"
-                && data.m_entries[36].m_handle == 0xD900u;
+                && data.m_entries[36].m_handle == 0xD900u
+                && data.m_entries[37].m_name == "LOCAL_SUNSTUDY"
+                && data.m_entries[37].m_handle == 0xDA00u
+                && data.m_entries[38].m_name == "LOCAL_MOTIONPATH"
+                && data.m_entries[38].m_handle == 0xDB00u;
         }
     }
     void addXRecord(const DRW_XRecord& data) override {
@@ -1946,6 +2017,51 @@ public:
         if (data.handle == 0xD901u)
             readMalformedNavisworksModelDefSeen_ = true;
     }
+    void addSunStudy(const DRW_SunStudy& data) override {
+        if (data.handle == 0xDA00u)
+            readSunStudySeen_ = data.parentHandle == 0xA601u
+                && data.m_classVersion == 1
+                && data.m_setupName == "LOCAL_SUNSTUDY"
+                && data.m_description == "LOCAL_SUN_DESC"
+                && data.m_sheetSetName == "LOCAL_SHEETSET"
+                && data.m_sheetSubsetName == "LOCAL_SUBSET"
+                && data.m_outputType == 0
+                && data.m_useSubset
+                && data.m_selectDatesFromCalendar
+                && data.m_selectRangeOfDates
+                && data.m_startTime == 10
+                && data.m_endTime == 20
+                && data.m_interval == 5
+                && data.m_shadePlotType == 2
+                && data.m_viewportCount == 3
+                && data.m_rowCount == 4
+                && data.m_columnCount == 5
+                && data.m_spacing == 1.5
+                && data.m_dates.size() == 1
+                && data.m_dates.front().m_julianDay == 2451545
+                && data.m_dates.front().m_milliseconds == 3600000
+                && data.m_hours.size() == 3
+                && data.m_hours[0] && !data.m_hours[1] && data.m_hours[2]
+                && data.m_pageSetupWizardHandle == 0xA603u
+                && data.m_viewHandle == 0xA700u
+                && data.m_visualStyleHandle == 0xC000u
+                && data.m_textStyleHandle == 0xA800u;
+        if (data.handle == 0xDA01u)
+            readMalformedSunStudySeen_ = true;
+    }
+    void addMotionPath(const DRW_MotionPath& data) override {
+        if (data.handle == 0xDB00u)
+            readMotionPathSeen_ = data.parentHandle == 0xA601u
+                && data.m_classVersion == 2
+                && data.m_cameraPathHandle == 0xD925u
+                && data.m_targetPathHandle == 0xD926u
+                && data.m_viewTableHandle == 0xA700u
+                && data.m_frames == 120
+                && data.m_frameRate == 30
+                && data.m_cornerDeceleration;
+        if (data.handle == 0xDB01u)
+            readMalformedMotionPathSeen_ = true;
+    }
     void addInsert(const DRW_Insert& data) override {
         readInsertSeen_ = true;
         readAttribSeen_ = data.attlist.size() == 1
@@ -2012,6 +2128,8 @@ public:
             && wrotePointCloudReactorEx_
             && wrotePointCloudColorMap_
             && wroteNavisworksModelDef_
+            && wroteSunStudy_
+            && wroteMotionPath_
             && wroteGroup_;
     }
     bool rejectedMalformedObject() const { return rejectedMalformedObject_; }
@@ -2094,6 +2212,12 @@ public:
     bool rejectedMalformedNavisworksModelDef() const {
         return rejectedMalformedNavisworksModelDef_;
     }
+    bool wroteSunStudy() const { return wroteSunStudy_; }
+    bool rejectedMalformedSunStudy() const { return rejectedMalformedSunStudy_; }
+    bool wroteMotionPath() const { return wroteMotionPath_; }
+    bool rejectedMalformedMotionPath() const {
+        return rejectedMalformedMotionPath_;
+    }
     bool wroteImage() const { return wroteImage_; }
     bool rejectedMalformedImage() const { return rejectedMalformedImage_; }
     bool readLineSeen() const { return readLineSeen_; }
@@ -2141,6 +2265,8 @@ public:
             && readPointCloudReactorExSeen_
             && readPointCloudColorMapSeen_
             && readNavisworksModelDefSeen_
+            && readSunStudySeen_
+            && readMotionPathSeen_
             && readGroupSeen_;
     }
     bool readMalformedObjectSeen() const { return readMalformedObjectSeen_; }
@@ -2238,6 +2364,12 @@ public:
     }
     bool readNavisworksModelDefSeen() const {
         return readNavisworksModelDefSeen_;
+    }
+    bool readSunStudySeen() const { return readSunStudySeen_; }
+    bool readMotionPathSeen() const { return readMotionPathSeen_; }
+    bool readMalformedSunStudySeen() const { return readMalformedSunStudySeen_; }
+    bool readMalformedMotionPathSeen() const {
+        return readMalformedMotionPathSeen_;
     }
     bool readMalformedNavisworksModelDefSeen() const {
         return readMalformedNavisworksModelDefSeen_;
@@ -2354,6 +2486,10 @@ private:
     bool rejectedMalformedPointCloudColorMap_ {false};
     bool wroteNavisworksModelDef_ {false};
     bool rejectedMalformedNavisworksModelDef_ {false};
+    bool wroteSunStudy_ {false};
+    bool rejectedMalformedSunStudy_ {false};
+    bool wroteMotionPath_ {false};
+    bool rejectedMalformedMotionPath_ {false};
     bool wroteImage_ {false};
     bool rejectedMalformedImage_ {false};
     bool registeredDictionary_ {false};
@@ -2392,6 +2528,8 @@ private:
     bool registeredPointCloudReactorEx_ {false};
     bool registeredPointCloudColorMap_ {false};
     bool registeredNavisworksModelDef_ {false};
+    bool registeredSunStudy_ {false};
+    bool registeredMotionPath_ {false};
     bool registeredPlotSettings_ {false};
     bool readLineSeen_ {false};
     bool readPointSeen_ {false};
@@ -2487,6 +2625,10 @@ private:
     bool readMalformedPointCloudColorMapSeen_ {false};
     bool readNavisworksModelDefSeen_ {false};
     bool readMalformedNavisworksModelDefSeen_ {false};
+    bool readSunStudySeen_ {false};
+    bool readMotionPathSeen_ {false};
+    bool readMalformedSunStudySeen_ {false};
+    bool readMalformedMotionPathSeen_ {false};
     bool readImageSeen_ {false};
     bool readImageDefSeen_ {false};
     bool readImageReactorSeen_ {false};
@@ -2704,6 +2846,18 @@ int main(int argc, char** argv) {
         expect(writeIface.rejectedMalformedNavisworksModelDef(),
                ("local DWG writer rejected malformed NAVISWORKSMODELDEF transaction" + suffix).c_str(),
                failures);
+        expect(writeIface.wroteSunStudy(),
+               ("local DWG writer emitted SUNSTUDY" + suffix).c_str(),
+               failures);
+        expect(writeIface.rejectedMalformedSunStudy(),
+               ("local DWG writer rejected malformed SUNSTUDY transaction" + suffix).c_str(),
+               failures);
+        expect(writeIface.wroteMotionPath(),
+               ("local DWG writer emitted MOTIONPATH" + suffix).c_str(),
+               failures);
+        expect(writeIface.rejectedMalformedMotionPath(),
+               ("local DWG writer rejected malformed MOTIONPATH transaction" + suffix).c_str(),
+               failures);
         expect(version < DRW::AC1018
                    ? !writeIface.wroteImage()
                    : writeIface.wroteImage(),
@@ -2834,6 +2988,12 @@ int main(int argc, char** argv) {
         expect(readIface.readNavisworksModelDefSeen(),
                ("local DWG self-read publishes NAVISWORKSMODELDEF" + suffix).c_str(),
                failures);
+        expect(readIface.readSunStudySeen(),
+               ("local DWG self-read publishes SUNSTUDY" + suffix).c_str(),
+               failures);
+        expect(readIface.readMotionPathSeen(),
+               ("local DWG self-read publishes MOTIONPATH" + suffix).c_str(),
+               failures);
         expect(version < DRW::AC1018 || readIface.readImageSeen(),
                ("local DWG self-read publishes IMAGE" + suffix).c_str(), failures);
         expect(version < DRW::AC1018 || readIface.readImageDefSeen(),
@@ -2926,6 +3086,12 @@ int main(int argc, char** argv) {
                failures);
         expect(!readIface.readMalformedNavisworksModelDefSeen(),
                ("local DWG self-read omits rolled-back malformed NAVISWORKSMODELDEF" + suffix).c_str(),
+               failures);
+        expect(!readIface.readMalformedSunStudySeen(),
+               ("local DWG self-read omits rolled-back malformed SUNSTUDY" + suffix).c_str(),
+               failures);
+        expect(!readIface.readMalformedMotionPathSeen(),
+               ("local DWG self-read omits rolled-back malformed MOTIONPATH" + suffix).c_str(),
                failures);
         if (readIface.readLineSeen()) {
             const DRW_Line& line = readIface.readLine();

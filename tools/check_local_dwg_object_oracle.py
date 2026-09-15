@@ -98,6 +98,10 @@ POINTCLOUD_COLORMAP_HANDLE = 0xD800
 MALFORMED_POINTCLOUD_COLORMAP_HANDLE = 0xD801
 NAVISWORKS_MODEL_DEF_HANDLE = 0xD900
 MALFORMED_NAVISWORKS_MODEL_DEF_HANDLE = 0xD901
+SUNSTUDY_HANDLE = 0xDA00
+MALFORMED_SUNSTUDY_HANDLE = 0xDA01
+MOTIONPATH_HANDLE = 0xDB00
+MALFORMED_MOTIONPATH_HANDLE = 0xDB01
 IMAGE_HANDLE = 0xD700
 MALFORMED_IMAGE_HANDLE = 0xD710
 
@@ -226,7 +230,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         raise ValueError("GROUP name, owner, or member stream mismatch")
 
     dictionary = find_record(records, "DICTIONARY", DICTIONARY_HANDLE)
-    if (dictionary.get("numitems") != 37
+    if (dictionary.get("numitems") != 39
             or dictionary.get("is_hardowner") != 1
             or owner_handle(dictionary) != 0x0C):
         raise ValueError("custom DICTIONARY count, owner, or cloning mismatch")
@@ -317,6 +321,30 @@ def check_objects(payload: dict, version_name: str) -> dict:
         "LibreDWG 0.14 exposes POINTCLOUD/POINTCLOUDEX as UNKNOWN_ENT; "
         "type/handle identity is qualified while payload fields remain "
         "local-self-read authoritative")
+    sun_study = find_record(records, "SUNSTUDY", SUNSTUDY_HANDLE)
+    if (sun_study.get("type") != 548
+            or owner_handle(sun_study) != 0xA603
+            or sun_study.get("class_version") != 1
+            or sun_study.get("setup_name") != "LOCAL_SUNSTUDY"
+            or sun_study.get("description") != "LOCAL_SUN_DESC"
+            or sun_study.get("dates") != [{"julian_day": 2451545,
+                                           "msecs": 3600000}]
+            or sun_study.get("hours") != [1, 0, 1]
+            or sun_study.get("spacing") != 1.5):
+        raise ValueError("SUNSTUDY type, identity, or bounded payload mismatch")
+    sun_study_discrepancies = [
+        "LibreDWG 0.14 shifts SUNSTUDY owner/reference handle fields for the "
+        "local carrier; class/name/date/hour/scalar identity is qualified"
+    ]
+    motion_path = find_record(records, "MOTIONPATH", MOTIONPATH_HANDLE)
+    if (motion_path.get("type") != 552
+            or owner_handle(motion_path) != DICTIONARY_HANDLE
+            or motion_path.get("class_version") != 2):
+        raise ValueError("MOTIONPATH type, identity, or owner mismatch")
+    motion_path_discrepancies = [
+        "LibreDWG 0.14 misdecodes local MOTIONPATH hard-pointer/frame payload; "
+        "type/handle/owner/class identity is qualified"
+    ]
     image_discrepancies = [
         "LibreDWG 0.14 does not expose the local IMAGE/IMAGEDEF entity and "
         "fixed-object frames in JSON; local self-read remains the authoritative "
@@ -906,6 +934,8 @@ def check_objects(payload: dict, version_name: str) -> dict:
         MALFORMED_POINTCLOUD_HANDLE: "POINTCLOUDDEFINITION",
         MALFORMED_POINTCLOUD_COLORMAP_HANDLE: "POINTCLOUDCOLORMAP",
         MALFORMED_NAVISWORKS_MODEL_DEF_HANDLE: "NAVISWORKSMODELDEF",
+        MALFORMED_SUNSTUDY_HANDLE: "SUNSTUDY",
+        MALFORMED_MOTIONPATH_HANDLE: "MOTIONPATH",
         MALFORMED_IMAGE_HANDLE: "IMAGE",
     }
     if any(record_handle(record) in malformed_handles
@@ -957,6 +987,8 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "POINTCLOUDDEFREACTOREX": POINTCLOUD_REACTOR_EX_HANDLE,
             "POINTCLOUDCOLORMAP": POINTCLOUD_COLORMAP_HANDLE,
             "NAVISWORKSMODELDEF": NAVISWORKS_MODEL_DEF_HANDLE,
+            "SUNSTUDY": SUNSTUDY_HANDLE,
+            "MOTIONPATH": MOTIONPATH_HANDLE,
             "IMAGE": IMAGE_HANDLE,
             "IMAGEDEF_REACTOR": IMAGE_HANDLE + 1,
             "DICTIONARYWDFLT": DICTIONARYWDFLT_HANDLE,
@@ -964,6 +996,12 @@ def check_objects(payload: dict, version_name: str) -> dict:
         "underlayDefinitions": underlays,
         "pointCloudDefinitions": pointcloud_frames,
         "pointCloudEntities": pointcloud_entities,
+        "sunStudy": {
+            "object": "SUNSTUDY", "handle": SUNSTUDY_HANDLE, "type": 548,
+        },
+        "motionPath": {
+            "object": "MOTIONPATH", "handle": MOTIONPATH_HANDLE, "type": 552,
+        },
         "objectStatus": "qualified",
         "oracleDiscrepancies": (oracle_discrepancies + mental_discrepancies
                                  + material_discrepancies
@@ -973,6 +1011,8 @@ def check_objects(payload: dict, version_name: str) -> dict:
                                  + table_style_discrepancies
                                  + geodata_discrepancies
                                  + pointcloud_discrepancies
+                                 + sun_study_discrepancies
+                                 + motion_path_discrepancies
                                  + image_discrepancies),
     }
 
@@ -1044,7 +1084,7 @@ def self_test() -> None:
              "ownerhandle": [4, 1, 0x0C, 0x0C], "name": "LOCAL_GROUP",
              "groups": [[5, 1, 0x1234]]},
             {"object": "DICTIONARY", "handle": [0, 1, DICTIONARY_HANDLE],
-             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 37,
+             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 39,
              "is_hardowner": 1},
             {"object": "XRECORD", "handle": [0, 1, XRECORD_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
@@ -1291,6 +1331,15 @@ def self_test() -> None:
              "handle": [0, 1, NAVISWORKS_MODEL_DEF_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
              "type": 539},
+            {"object": "SUNSTUDY", "handle": [0, 2, SUNSTUDY_HANDLE],
+             "ownerhandle": [5, 2, 0xA603, 0xA603], "type": 548,
+             "class_version": 1, "setup_name": "LOCAL_SUNSTUDY",
+             "description": "LOCAL_SUN_DESC",
+             "dates": [{"julian_day": 2451545, "msecs": 3600000}],
+             "hours": [1, 0, 1], "spacing": 1.5},
+            {"object": "MOTIONPATH", "handle": [0, 2, MOTIONPATH_HANDLE],
+             "ownerhandle": [4, 2, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "type": 552, "class_version": 2},
             {"entity": "UNKNOWN_ENT", "handle": [0, 2, 0xD925],
              "type": 533},
         ],
@@ -1566,6 +1615,24 @@ def self_test() -> None:
         pass
     else:
         raise AssertionError("malformed NAVISWORKSMODELDEF was not rejected")
+    try:
+        bad = json.loads(json.dumps(payload))
+        bad["OBJECTS"].append({"object": "SUNSTUDY",
+                                "handle": [0, 1, MALFORMED_SUNSTUDY_HANDLE]})
+        check_objects(bad, "AC1024")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("malformed SUNSTUDY was not rejected")
+    try:
+        bad = json.loads(json.dumps(payload))
+        bad["OBJECTS"].append({"object": "MOTIONPATH",
+                                "handle": [0, 1, MALFORMED_MOTIONPATH_HANDLE]})
+        check_objects(bad, "AC1024")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("malformed MOTIONPATH was not rejected")
     try:
         bad = json.loads(json.dumps(payload))
         bad["OBJECTS"].append({"entity": "UNKNOWN_ENT",

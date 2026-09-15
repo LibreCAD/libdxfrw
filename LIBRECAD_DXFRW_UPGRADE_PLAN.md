@@ -1916,8 +1916,8 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint: S80/J56 POINTCLOUD/POINTCLOUDEX entity linkage is
-  committed; S01-S80 implementation slices are committed and the
+- Current checkpoint: S81/J57 SUNSTUDY/MOTIONPATH object parity is committed;
+  S01-S81 implementation slices are committed and the
   legacy
   image boundary remains explicit. The point-cloud slice adds all four
   definition/reactor class identities with dictionary/owner links and bounded
@@ -2522,8 +2522,17 @@ edit this block or commit the same slice concurrently.
   non-finite rejection. LibreDWG 0.14 retains the frames as UNKNOWN_ENT but
   independently qualifies type/handle identity (533/0xD925 and 534/0xD926);
   external point data and generated drawings remain absent from the repository.
-- Next implementation slice: S81/J57 SUNSTUDY/MOTIONPATH object parity is ready.
-  It will cover the smallest bounded animation/solar metadata graph with
+- Latest implementation slice: S81/J57 SUNSTUDY/MOTIONPATH object parity is
+  committed. Local self-read covers bounded setup,
+  description, date/hour, range, viewport, spacing, and hard-pointer fields
+  across AC1015/18/21/24/27/32, plus bounded MOTIONPATH references/frame
+  metadata; non-finite SUNSTUDY spacing and out-of-range MOTIONPATH frames are
+  rejected transactionally. LibreDWG 0.14 qualifies type/handle/class/name
+  identity and stable SUNSTUDY scalar/date/hour fields, while recording the
+  known owner/reference and MOTIONPATH payload decode discrepancies; no
+  generated drawings or external assets are retained.
+- Next implementation slice: S82/J58 CURVEPATH/POINTPATH/OBJECT_PTR linkage is
+  ready. It will cover the smallest bounded path/reference object graph with
   version gates, local self-read first, and an independent oracle only where
   the decoder exposes stable identity; full suites remain checkpoint-only.
 - Last fully resolved slice: S80 (the POINTCLOUD/POINTCLOUDEX entity linkage
@@ -2541,18 +2550,18 @@ edit this block or commit the same slice concurrently.
   `6969e0a003414f9a7084349ac54bc2b32515e16b`. All in-horizon lanes are
   terminal only when their recorded gates pass; the next runtime qualification
   lane requires no new target pin.
-- Resolved slices: 80/81 (`COMMITTED`, or `SUPERSEDED` after all replacements
+- Resolved slices: 81/82 (`COMMITTED`, or `SUPERSEDED` after all replacements
   commit).
 - Slice states: 1 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 80 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 81 COMMITTED.
 - Parent-item states: 1 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 80 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 82 COMMITTED.
 - Expanded child-item states: 1 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 177 COMMITTED; no child is anonymous.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 178 COMMITTED; no child is anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 29 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S80 are committed; S81/J57 SUNSTUDY/MOTIONPATH is the
-  next ready lane. S76 records the explicit AC1015 image capability
+- Active work: S01-S81 are committed; S82/J58 CURVEPATH/POINTPATH/OBJECT_PTR is the next
+  ready lane. S76 records the explicit AC1015 image capability
   boundary and leaves newer image versions locally qualified; S77 keeps
   point-cloud payload evidence identity-only where LibreDWG is opaque.
   S23/I5
@@ -2674,7 +2683,8 @@ edit this block or commit the same slice concurrently.
 | S78 | J54: POINTCLOUDCOLORMAP ramp parity | S77 | COMMITTED | focused six-version local writer/self-read; pre-CLASSES registration and dictionary ownership; independent object oracle where decodable; bounded ramp/color limits; malformed rollback; plan/scope/sync/fixture gates | local writer/self-read covers one bounded default/ramp color-map graph, one classification ramp, class registration, dictionary ownership, and mismatched-ramp-count rollback across AC1015/18/21/24/27/32; LibreDWG 0.14 reports UNKNOWN_OBJ type 540 but qualifies type/handle/owner identity; generated drawings remain temporary | focused self-test, six-version round-trip, LibreDWG identity oracle, and policy gates pass; full point-cloud entity payloads remain out of scope |
 | S79 | J55: NAVISWORKSMODELDEF metadata parity | S78 | COMMITTED | focused six-version local writer/self-read; pre-CLASSES registration and dictionary ownership; independent object oracle where decodable; bounded path/extent fields; malformed rollback; plan/scope/sync/fixture gates | local writer/self-read covers bounded flags/path/status/extents/visibility, dictionary ownership, and malformed extent rollback across AC1015/18/21/24/27/32; LibreDWG 0.14 reports UNKNOWN_OBJ type 539 but qualifies type/handle/owner identity; external model files remain absent and no drawing bytes are staged | focused self-test, six-version round-trip, LibreDWG identity oracle, and policy gates pass; model/entity linkage remains evidence-only |
 | S80 | J56: POINTCLOUD/POINTCLOUDEX entity linkage | S79 | COMMITTED | focused six-version local writer/self-read; definition-reference/transform closure; independent JSON entity oracle; capability/error gates; plan/scope/sync/fixture gates | local self-read emits POINTCLOUD on AC1021/24/27/32 and POINTCLOUDEX on AC1027/32, verifies bounded origin/extents/UCS/style metadata and version-correct definition/reactor handle publication, and rejects non-finite entity state transactionally; LibreDWG 0.14 retains UNKNOWN_ENT frames and independently qualifies type/handle identity (533/0xD925 and 534/0xD926); external point data are absent and generated drawings remain temporary | focused self-test, six-version round-trip, independent object/entity oracle, and policy gates pass; full suite remains checkpoint-only and payload parity stays experimental |
-| S81 | J57: SUNSTUDY/MOTIONPATH object parity | S80 | READY | focused six-version local writer/self-read; pre-CLASSES registration and dictionary ownership; bounded date/hour/path vectors; independent JSON object oracle where decodable; capability/error gates; plan/scope/sync/fixture gates | ready to cover the smallest bounded SUNSTUDY and MOTIONPATH metadata graph across AC1015/18/21/24/27/32, including hard-pointer references, bounded counts, and transactional overflow/non-finite rejection; generated drawings and external assets remain temporary | focused self-test and six-version round-trip first; use the independent oracle only for stable identity/payload fields and defer full suites to a release checkpoint |
+| S81 | J57: SUNSTUDY/MOTIONPATH object parity | S80 | COMMITTED | focused six-version local writer/self-read; pre-CLASSES registration and dictionary ownership; bounded date/hour/path vectors; independent JSON object oracle; capability/error gates; plan/scope/sync/fixture gates | local self-read covers bounded SUNSTUDY setup/description/date/hour/range/viewport/spacing and MOTIONPATH reference/frame metadata across AC1015/18/21/24/27/32; non-finite SUNSTUDY spacing and out-of-range MOTIONPATH frames are rejected transactionally. LibreDWG 0.14 qualifies type/handle/class/name identity and stable SUNSTUDY scalar/date/hour fields, while recording owner/reference and MOTIONPATH payload decode discrepancies; generated drawings remain temporary | focused self-test, six-version round-trip, independent object oracle, and policy gates pass; full suite remains checkpoint-only and payload parity stays experimental |
+| S82 | J58: CURVEPATH/POINTPATH/OBJECT_PTR linkage | S81 | READY | focused six-version local writer/self-read; pre-CLASSES registration and dictionary ownership; bounded path/reference fields; independent JSON object oracle where decodable; capability/error gates; plan/scope/sync/fixture gates | ready to cover the smallest bounded CURVEPATH, POINTPATH, and OBJECT_PTR graph with entity/object references, version gates, and transactional malformed-reference rejection; generated drawings remain temporary and external assets remain absent | focused self-test and six-version round-trip first; use the independent oracle only for stable identity/payload fields and defer full suites to a release checkpoint |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -2759,7 +2769,8 @@ edit this block or commit the same slice concurrently.
 | J54 | S78 | J53 | COMMITTED | EXPERIMENTAL | Extend the local object graph and independent object evidence to POINTCLOUDCOLORMAP, including pre-CLASSES registration, dictionary ownership, bounded default schemes and color ramps, six-version capability gates, and transaction-safe malformed-count/scheme rejection |
 | J55 | S79 | J54 | COMMITTED | EXPERIMENTAL | Extend the local object graph and independent object evidence to NAVISWORKSMODELDEF, including pre-CLASSES registration, dictionary ownership, bounded path/status/extent fields, six-version capability gates, and transaction-safe malformed-path/extent rejection |
 | J56 | S80 | J55 | COMMITTED | EXPERIMENTAL | Extend the local object graph and independent object evidence to POINTCLOUD and POINTCLOUDEX entities, including definition-reference/transform metadata, version gates, and transaction-safe malformed-state rejection without external point data |
-| J57 | S81 | J56 | READY | EXPERIMENTAL | Extend the local object graph and independent JSON object evidence to SUNSTUDY and MOTIONPATH, including pre-CLASSES registration, bounded scalar/date/hour/path fields, hard-pointer references, six-version capability gates, and transaction-safe malformed-vector rejection without external assets |
+| J57 | S81 | J56 | COMMITTED | EXPERIMENTAL | Extend the local object graph and independent JSON object evidence to SUNSTUDY and MOTIONPATH, including pre-CLASSES registration, bounded scalar/date/hour/path fields, hard-pointer references, six-version capability gates, and transaction-safe malformed-vector rejection without external assets |
+| J58 | S82 | J57 | READY | EXPERIMENTAL | Extend the local object graph and independent JSON object evidence to CURVEPATH, POINTPATH, and OBJECT_PTR, including pre-CLASSES registration, bounded entity/object references, six-version capability gates, and transaction-safe malformed-reference rejection without external assets |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -2951,7 +2962,8 @@ edit this block or commit the same slice concurrently.
 | J54.1 | J54 / S78 | WP5, WP7, WP8, WP10; POINTCLOUDCOLORMAP | J53 | COMMITTED | EXPERIMENTAL | emit and self-read one bounded POINTCLOUDCOLORMAP with default schemes, one color ramp, and one classification ramp per supported version, register the class before CLASSES, verify dictionary ownership/count limits, and reject mismatched ramp counts without publishing a frame | focused six-version local round-trip, capability/error assertions, LibreDWG identity oracle, and policy gates pass; generated drawings remain temporary and external point-cloud resources are not staged |
 | J55.1 | J55 / S79 | WP5, WP7, WP8, WP10; NAVISWORKSMODELDEF | J54 | COMMITTED | EXPERIMENTAL | emit and self-read one bounded NAVISWORKSMODELDEF metadata object across AC1015/18/21/24/27/32, register its class before CLASSES, verify dictionary ownership/path/status/extents, and reject malformed extent state without publishing a frame | focused six-version local round-trip, capability/error assertions, LibreDWG identity oracle, and policy gates pass; generated drawings remain temporary, no external model files are staged, and opaque decoder output remains explicit |
 | J56.1 | J56 / S80 | WP5, WP7, WP8, WP10; POINTCLOUD/POINTCLOUDEX | J55 | COMMITTED | EXPERIMENTAL | emit and self-read one POINTCLOUD and one POINTCLOUDEX entity linked to the S77 definitions, register entity classes before CLASSES, verify definition handles and bounded transform/clip metadata with version-correct handle gates, and reject malformed non-finite state without publishing a frame | focused six-version local round-trip, capability/error assertions, LibreDWG JSON identity check (UNKNOWN_ENT type/handle), and policy gates pass; external point data remain absent and no generated drawings are staged |
-| J57.1 | J57 / S81 | WP5, WP7, WP8, WP10; SUNSTUDY/MOTIONPATH | J56 | READY | EXPERIMENTAL | emit and self-read one bounded SUNSTUDY and one MOTIONPATH object across AC1015/18/21/24/27/32, register both classes before CLASSES, verify dictionary ownership, dates/hours/path handles and version-specific streams, and reject over-limit/non-finite vectors without publishing a frame | focused self-test and six-version local round-trip first; qualify independent JSON fields only where LibreDWG is stable, keep external assets absent, and do not stage generated drawings |
+| J57.1 | J57 / S81 | WP5, WP7, WP8, WP10; SUNSTUDY/MOTIONPATH | J56 | COMMITTED | EXPERIMENTAL | emit and self-read one bounded SUNSTUDY and one MOTIONPATH object across AC1015/18/21/24/27/32, register both classes before CLASSES, verify dictionary ownership, dates/hours/path handles and version-specific streams, and reject over-limit/non-finite vectors without publishing a frame | focused self-test, six-version local round-trip, LibreDWG JSON oracle, and policy gates pass; stable SUNSTUDY fields are qualified while owner/reference and MOTIONPATH payload discrepancies remain explicit, external assets remain absent, and no generated drawings are staged |
+| J58.1 | J58 / S82 | WP5, WP7, WP8, WP10; CURVEPATH/POINTPATH/OBJECT_PTR | J57 | READY | EXPERIMENTAL | emit and self-read one bounded CURVEPATH, POINTPATH, and OBJECT_PTR linkage graph across AC1015/18/21/24/27/32, register each class before CLASSES, verify owner/reference fields and capability gates, and reject malformed references without publishing a frame | focused self-test and six-version local round-trip first; qualify independent JSON fields only where LibreDWG is stable, keep external assets absent, and do not stage generated drawings |
 
 <!-- UPGRADE_PROGRESS_END -->
 
