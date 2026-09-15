@@ -4427,6 +4427,66 @@ void testDxfRawSectionApplicationGroupMarker(TestContext& t) {
     }
 }
 
+void testDxfRawSectionWriterPreflight(TestContext& t) {
+    DRW_RawDxfSection section;
+    section.m_name = "LOCAL_SECTION_PREFLIGHT";
+    section.m_version = DRW::AC1027;
+    section.m_hasRawValues = true;
+    section.m_groups = {DRW_Variant(1000, std::string("payload"))};
+    section.m_rawValues = {"payload"};
+
+    dxfRW asciiWriter("");
+    asciiWriter.version = DRW::AC1027;
+    asciiWriter.binFile = false;
+    t.expect(!asciiWriter.writeRawDxfSection(section)
+                 && asciiWriter.m_writeError && asciiWriter.writer == nullptr,
+             "DXF ASCII raw section rejects a missing writer during preflight");
+
+    DRW_RawDxfSection binarySection = section;
+    binarySection.m_hasRawValues = false;
+    binarySection.m_rawValues.clear();
+    dxfRW binaryWriter("");
+    binaryWriter.version = DRW::AC1027;
+    binaryWriter.binFile = true;
+    t.expect(!binaryWriter.writeRawDxfSection(binarySection)
+                 && binaryWriter.m_writeError && binaryWriter.writer == nullptr,
+             "DXF binary raw section rejects a missing writer during preflight");
+}
+
+void testDxfRawSectionWriterStickyError(TestContext& t) {
+    DRW_RawDxfSection section;
+    section.m_name = "LOCAL_SECTION_STICKY_ERROR";
+    section.m_version = DRW::AC1027;
+    section.m_hasRawValues = true;
+    section.m_groups = {DRW_Variant(1000, std::string("payload"))};
+    section.m_rawValues = {"payload"};
+
+    std::ostringstream output;
+    dxfRW asciiWriter("");
+    asciiWriter.version = DRW::AC1027;
+    asciiWriter.binFile = false;
+    asciiWriter.writer = std::make_unique<dxfWriterAscii>(&output);
+    asciiWriter.writer->markWriteError();
+    t.expect(asciiWriter.writeRawDxfSection(section)
+                 && asciiWriter.writer->hasWriteError()
+                 && !output.str().empty(),
+             "DXF ASCII raw section preserves a pre-existing writer error");
+
+    DRW_RawDxfSection binarySection = section;
+    binarySection.m_hasRawValues = false;
+    binarySection.m_rawValues.clear();
+    std::ostringstream binaryOutput;
+    dxfRW binaryWriter("");
+    binaryWriter.version = DRW::AC1027;
+    binaryWriter.binFile = true;
+    binaryWriter.writer = std::make_unique<dxfWriterBinary>(&binaryOutput);
+    binaryWriter.writer->markWriteError();
+    t.expect(binaryWriter.writeRawDxfSection(binarySection)
+                 && binaryWriter.writer->hasWriteError()
+                 && !binaryOutput.str().empty(),
+             "DXF binary raw section preserves a pre-existing writer error");
+}
+
 void testDxfRawSectionApplicationGroupReferenceMatrix(TestContext& t) {
     DRW_RawDxfSection section;
     section.m_name = "LOCAL_SECTION_REFERENCE_MATRIX";
@@ -4765,6 +4825,8 @@ int main() {
     testDxfRawSectionDepthLimit(context);
     testDxfRawSectionApplicationGroupValidMarker(context);
     testDxfRawSectionApplicationGroupMarker(context);
+    testDxfRawSectionWriterPreflight(context);
+    testDxfRawSectionWriterStickyError(context);
     testDxfRawSectionApplicationGroupReferenceMatrix(context);
     testRawCapture(context);
     testHatchValidationIgnoresInactiveGradient(context);
