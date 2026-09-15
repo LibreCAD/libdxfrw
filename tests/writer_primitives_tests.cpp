@@ -344,6 +344,76 @@ void testOutputTransactionPublicationAndRollback(TestContext& t) {
     t.expect(substitutionContents == "original",
              "temporary pathname substitution preserves the destination");
 
+#if !defined(_WIN32)
+    {
+        const std::filesystem::path target = transactionTestPath("symlink");
+        const std::filesystem::path linked =
+            transactionTestPath("symlink-target");
+        std::filesystem::remove(target, ignored);
+        std::filesystem::remove(linked, ignored);
+        {
+            std::ofstream seed(linked, std::ios::binary | std::ios::trunc);
+            seed << "linked-original";
+        }
+        std::error_code linkError;
+        std::filesystem::create_symlink(linked, target, linkError);
+        if (!linkError) {
+            DwgDxfOutputTransaction transaction(target.string(),
+                                                std::ios::binary);
+            t.expect(transaction.open(),
+                     "symlink destination transaction opens");
+            transaction.stream() << "symlink-replacement";
+            t.expect(transaction.commit(),
+                     "symlink destination transaction commits by replacement");
+            std::ifstream linkedAfter(linked, std::ios::binary);
+            const std::string linkedContents(
+                (std::istreambuf_iterator<char>(linkedAfter)),
+                std::istreambuf_iterator<char>());
+            t.expect(linkedContents == "linked-original",
+                     "symlink target remains unchanged by publication");
+            t.expect(!std::filesystem::is_symlink(target),
+                     "publication replaces the symlink itself");
+        }
+        t.expect(!linkError || !std::filesystem::exists(target),
+                 "symlink policy leaves no stale destination after cleanup");
+        std::filesystem::remove(target, ignored);
+        std::filesystem::remove(linked, ignored);
+    }
+
+    {
+        const std::filesystem::path target = transactionTestPath("hardlink");
+        const std::filesystem::path linked =
+            transactionTestPath("hardlink-target");
+        std::filesystem::remove(target, ignored);
+        std::filesystem::remove(linked, ignored);
+        {
+            std::ofstream seed(linked, std::ios::binary | std::ios::trunc);
+            seed << "hardlink-original";
+        }
+        std::error_code linkError;
+        std::filesystem::create_hard_link(linked, target, linkError);
+        if (!linkError) {
+            DwgDxfOutputTransaction transaction(target.string(),
+                                                std::ios::binary);
+            t.expect(transaction.open(),
+                     "hardlink destination transaction opens");
+            transaction.stream() << "hardlink-replacement";
+            t.expect(transaction.commit(),
+                     "hardlink destination transaction commits by replacement");
+            std::ifstream linkedAfter(linked, std::ios::binary);
+            const std::string linkedContents(
+                (std::istreambuf_iterator<char>(linkedAfter)),
+                std::istreambuf_iterator<char>());
+            t.expect(linkedContents == "hardlink-original",
+                     "hardlink target remains unchanged by publication");
+        }
+        t.expect(!linkError || !std::filesystem::exists(target),
+                 "hardlink policy leaves no stale destination after cleanup");
+        std::filesystem::remove(target, ignored);
+        std::filesystem::remove(linked, ignored);
+    }
+#endif
+
     const std::filesystem::path missing =
         target.parent_path() / "libdxfrw-s248-missing-parent" / "out.dwg";
     DwgDxfOutputTransaction failed(missing.string(), std::ios::binary);
