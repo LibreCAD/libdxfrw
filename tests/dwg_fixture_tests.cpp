@@ -1,7 +1,9 @@
 #include <cstdint>
 #include <cmath>
 #include <filesystem>
+#include <fstream>
 #include <iostream>
+#include <iterator>
 #include <string>
 #include <vector>
 
@@ -173,6 +175,45 @@ void testAdvancedTargetFixtures(TestContext& t) {
     }
 }
 
+void testTruncatedTargetFixtures(TestContext& t) {
+    const char* names[] = {
+        "ordinary_enc_AC1021.dwg",
+        "ordinary_enc_AC1027.dwg",
+        "rtext_arctext.dwg",
+        "mpolygon_solid.dwg",
+        "large_radial.dwg"
+    };
+    for (const char* name : names) {
+        const std::filesystem::path source = fixturePath(name);
+        std::ifstream input(source, std::ios::binary);
+        const std::vector<char> sourceBytes(
+            (std::istreambuf_iterator<char>(input)),
+            std::istreambuf_iterator<char>());
+        t.expect(sourceBytes.size() > 128u,
+                 "target DWG fixture is large enough for truncation");
+        if (sourceBytes.size() <= 128u)
+            continue;
+
+        const std::filesystem::path truncated =
+            std::filesystem::temp_directory_path()
+            / (std::string("libdxfrw-s247-truncated-") + name);
+        std::error_code ec;
+        std::filesystem::remove(truncated, ec);
+        {
+            std::ofstream output(truncated, std::ios::binary);
+            output.write(sourceBytes.data(),
+                         static_cast<std::streamsize>(sourceBytes.size() / 2u));
+        }
+        FixtureInterface interface_;
+        dx_data data;
+        t.expect(!interface_.fileImport(truncated.string(), &data, false),
+                 "truncated target DWG is rejected");
+        t.expect(data.mBlock == nullptr || data.mBlock->ent.empty(),
+                 "truncated target DWG publishes no partial entities");
+        std::filesystem::remove(truncated, ec);
+    }
+}
+
 } // namespace
 
 int main() {
@@ -187,6 +228,7 @@ int main() {
     testOrdinaryEncoding(context, "ordinary_enc_ac1027_ansi932.dwg", true,
                          "Book$Ａ");
     testAdvancedTargetFixtures(context);
+    testTruncatedTargetFixtures(context);
     if (context.failures != 0) {
         std::cerr << context.failures << " DWG fixture assertion(s) failed\n";
         return 1;
