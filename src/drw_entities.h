@@ -3798,6 +3798,10 @@ private:
        0 = entity level, 1 = inside CONTEXT_DATA{}, 2 = inside LEADER{},
        3 = inside LEADER_LINE{}.  Not serialized; reset per fresh entity. */
     int m_dxfCtxState = 0;
+    // CONTEXT_DATA code 47 is a repeated 16-value block transformation
+    // matrix. Keep the insertion cursor transient so a reused entity cannot
+    // append a second matrix onto the first document's state.
+    std::size_t m_dxfBlockTransformIndex = 0;
 };
 
 //! Class to handle viewport entity

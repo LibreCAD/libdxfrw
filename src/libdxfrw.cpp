@@ -5899,13 +5899,11 @@ DRW_ImageDef* dxfRW::writeImage(DRW_Image *ent, std::string name){
     return id;
 }
 
-// MULTILEADER DXF write.  Mirrors the entity-level field set captured by
-// DRW_MLeader::parseCode.  The CONTEXT_DATA{} block is NOT emitted yet —
-// a full faithful round-trip requires walking all roots/leader-lines
-// with their control-flow markers (302/304 open, 305/303/301 close);
-// follow-up.  For now the entity is written as a recognisable
-// AcDbMLeader stub plus its scalar fields; consumers that read it back
-// see all the override flags + style fields preserved.
+// MULTILEADER DXF write. Mirrors the entity-level field set captured by
+// DRW_MLeader::parseCode and emits the nested CONTEXT_DATA{} leader/root
+// structure, including break geometry, content transforms, and hard-pointer
+// handles. Unsupported pre-R2010 array variants remain outside this bounded
+// modern-context route and are retained by the raw carrier when present.
 bool dxfRW::writeMultiLeader(DRW_MLeader *ent){
     if (!preflightEntity(ent))
         return false;
@@ -5940,6 +5938,8 @@ bool dxfRW::writeMultiLeader(DRW_MLeader *ent){
         if (ctx.hasTextContents) {
             writer->writeUtf8String(304, ctx.textLabel);
             writeCoord(11, ctx.textNormal);
+            if (ctx.textStyleHandle.ref != 0)
+                writer->writeString(340, toHexStr(ctx.textStyleHandle.ref));
             writeCoord(12, ctx.textLocation);
             writeCoord(13, ctx.textDirection);
             writer->writeDouble(42, ctx.textRotation);
@@ -5971,6 +5971,11 @@ bool dxfRW::writeMultiLeader(DRW_MLeader *ent){
             writeCoord(16, ctx.blockScale);
             writer->writeDouble(46, ctx.blockRotation);
             writer->writeInt32(93, ctx.blockColor);
+            if (ctx.blockTableRecordHandle.ref != 0)
+                writer->writeString(341,
+                                    toHexStr(ctx.blockTableRecordHandle.ref));
+            for (double value : ctx.blockTransform)
+                writer->writeDouble(47, value);
         }
 
         for (const DRW_MLeaderRoot &root : ctx.roots) {
@@ -5981,10 +5986,18 @@ bool dxfRW::writeMultiLeader(DRW_MLeader *ent){
             writeCoord(11, root.direction);
             writer->writeInt32(90, root.leaderIndex);
             writer->writeDouble(40, root.landingDistance);
+            for (const auto &breakPair : root.breaks) {
+                writeCoord(12, breakPair.first);
+                writeCoord(13, breakPair.second);
+            }
             for (const DRW_MLeaderLeaderLine &line : root.leaderLines) {
                 writer->writeString(304, "LEADER_LINE{");
                 for (const DRW_Coord &point : line.points)
                     writeCoord(10, point);
+                for (const auto &breakPair : line.breaks) {
+                    writeCoord(11, breakPair.first);
+                    writeCoord(12, breakPair.second);
+                }
                 writer->writeInt32(90, line.segmentIndex);
                 writer->writeInt32(91, line.leaderLineIndex);
                 writer->writeInt32(93, line.overrideFlags);
@@ -5992,6 +6005,11 @@ bool dxfRW::writeMultiLeader(DRW_MLeader *ent){
                 writer->writeInt32(92, line.color);
                 writer->writeInt32(171, line.lineWeight);
                 writer->writeDouble(40, line.arrowSize);
+                if (line.lineTypeHandle.ref != 0)
+                    writer->writeString(340,
+                                        toHexStr(line.lineTypeHandle.ref));
+                if (line.arrowHandle.ref != 0)
+                    writer->writeString(341, toHexStr(line.arrowHandle.ref));
                 writer->writeString(305, "}");
             }
             writer->writeInt16(271, root.attachmentDirection);
@@ -6016,6 +6034,16 @@ bool dxfRW::writeMultiLeader(DRW_MLeader *ent){
     writer->writeDouble(41, ent->landingDistance);
     writer->writeDouble(42, ent->defaultArrowHeadSize);
     writer->writeInt16(172, ent->styleContentType);
+    if (ent->styleHandle.ref != 0)
+        writer->writeString(340, toHexStr(ent->styleHandle.ref));
+    if (ent->leaderLineTypeHandle.ref != 0)
+        writer->writeString(341, toHexStr(ent->leaderLineTypeHandle.ref));
+    if (ent->arrowHeadHandle.ref != 0)
+        writer->writeString(342, toHexStr(ent->arrowHeadHandle.ref));
+    if (ent->styleTextStyleHandle.ref != 0)
+        writer->writeString(343, toHexStr(ent->styleTextStyleHandle.ref));
+    if (ent->styleBlockHandle.ref != 0)
+        writer->writeString(344, toHexStr(ent->styleBlockHandle.ref));
     writer->writeInt16(173, ent->styleLeftAttach);
     writer->writeInt16(95, ent->styleRightAttach);
     writer->writeInt16(174, ent->styleTextAngleType);

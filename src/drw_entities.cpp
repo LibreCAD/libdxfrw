@@ -20263,6 +20263,7 @@ bool DRW_MLeader::parseDxfContextCode(int code, const std::unique_ptr<dxfReader>
             if (m_dxfCtxState != 0 || reader->getString() != "CONTEXT_DATA{")
                 return false;
             m_dxfCtxState = 1;
+            m_dxfBlockTransformIndex = 0;
             return true;
         case 301:
             if (m_dxfCtxState != 1 || reader->getString() != "}")
@@ -20324,6 +20325,39 @@ bool DRW_MLeader::parseDxfContextCode(int code, const std::unique_ptr<dxfReader>
                 case 93: line->overrideFlags = reader->getInt32(); return true;
                 case 170: line->leaderType = reader->getInt32(); return true;
                 case 171: line->lineWeight = reader->getInt32(); return true;
+                case 340:
+                    line->lineTypeHandle.ref = reader->getHandleString();
+                    line->lineTypeHandle.ref64 = line->lineTypeHandle.ref;
+                    return true;
+                case 341:
+                    line->arrowHandle.ref = reader->getHandleString();
+                    line->arrowHandle.ref64 = line->arrowHandle.ref;
+                    return true;
+                case 11:
+                    line->breaks.emplace_back(
+                        DRW_Coord{reader->getDouble(), 0.0, 0.0},
+                        DRW_Coord{});
+                    return true;
+                case 21:
+                    if (!line->breaks.empty())
+                        line->breaks.back().first.y = reader->getDouble();
+                    return true;
+                case 31:
+                    if (!line->breaks.empty())
+                        line->breaks.back().first.z = reader->getDouble();
+                    return true;
+                case 12:
+                    if (!line->breaks.empty())
+                        line->breaks.back().second.x = reader->getDouble();
+                    return true;
+                case 22:
+                    if (!line->breaks.empty())
+                        line->breaks.back().second.y = reader->getDouble();
+                    return true;
+                case 32:
+                    if (!line->breaks.empty())
+                        line->breaks.back().second.z = reader->getDouble();
+                    return true;
                 default: break;
             }
             return true;                             // swallow other line codes
@@ -20343,6 +20377,31 @@ bool DRW_MLeader::parseDxfContextCode(int code, const std::unique_ptr<dxfReader>
                 case 90: root->leaderIndex = reader->getInt32(); return true;
                 case 40: root->landingDistance = reader->getDouble(); return true;
                 case 271: root->attachmentDirection = reader->getInt32(); return true;
+                case 12:
+                    root->breaks.emplace_back(
+                        DRW_Coord{reader->getDouble(), 0.0, 0.0},
+                        DRW_Coord{});
+                    return true;
+                case 22:
+                    if (!root->breaks.empty())
+                        root->breaks.back().first.y = reader->getDouble();
+                    return true;
+                case 32:
+                    if (!root->breaks.empty())
+                        root->breaks.back().first.z = reader->getDouble();
+                    return true;
+                case 13:
+                    if (!root->breaks.empty())
+                        root->breaks.back().second.x = reader->getDouble();
+                    return true;
+                case 23:
+                    if (!root->breaks.empty())
+                        root->breaks.back().second.y = reader->getDouble();
+                    return true;
+                case 33:
+                    if (!root->breaks.empty())
+                        root->breaks.back().second.z = reader->getDouble();
+                    return true;
                 default: break;
             }
             return true;                             // swallow other leader codes
@@ -20408,6 +20467,21 @@ bool DRW_MLeader::parseDxfContextCode(int code, const std::unique_ptr<dxfReader>
         case 36: context.blockScale.z = reader->getDouble(); return true;
         case 46: context.blockRotation = reader->getDouble(); return true;
         case 93: context.blockColor = reader->getInt32(); return true;
+        case 340:
+            context.textStyleHandle.ref = reader->getHandleString();
+            context.textStyleHandle.ref64 = context.textStyleHandle.ref;
+            return true;
+        case 341:
+            context.blockTableRecordHandle.ref = reader->getHandleString();
+            context.blockTableRecordHandle.ref64 =
+                context.blockTableRecordHandle.ref;
+            return true;
+        case 47:
+            if (m_dxfBlockTransformIndex >= context.blockTransform.size())
+                return false;
+            context.blockTransform[m_dxfBlockTransformIndex++] =
+                reader->getDouble();
+            return true;
         /* common tail */
         case 110: case 120: case 130:
         case 111: case 121: case 131:
@@ -20466,6 +20540,26 @@ bool DRW_MLeader::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     case 293: isAnnotative = (reader->getInt32() != 0); break;
     case 294: isTextDirectionNegative = (reader->getInt32() != 0); break;
     case 295: leaderExtendedToText = (reader->getInt32() != 0); break;
+    case 340:
+        styleHandle.ref = reader->getHandleString();
+        styleHandle.ref64 = styleHandle.ref;
+        break;
+    case 341:
+        leaderLineTypeHandle.ref = reader->getHandleString();
+        leaderLineTypeHandle.ref64 = leaderLineTypeHandle.ref;
+        break;
+    case 342:
+        arrowHeadHandle.ref = reader->getHandleString();
+        arrowHeadHandle.ref64 = arrowHeadHandle.ref;
+        break;
+    case 343:
+        styleTextStyleHandle.ref = reader->getHandleString();
+        styleTextStyleHandle.ref64 = styleTextStyleHandle.ref;
+        break;
+    case 344:
+        styleBlockHandle.ref = reader->getHandleString();
+        styleBlockHandle.ref64 = styleBlockHandle.ref;
+        break;
     default:
         return DRW_Entity::parseCode(code, reader);
     }
@@ -20915,6 +21009,7 @@ void DRW_MLeader::resetDwgState() {
     styleBottomAttach = 0;
     leaderExtendedToText = false;
     m_dxfCtxState = 0;
+    m_dxfBlockTransformIndex = 0;
 }
 
 bool DRW_MLeader::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs){

@@ -4,6 +4,7 @@
 #include <iostream>
 #include <limits>
 #include <memory>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -12,8 +13,12 @@
 #include "drw_datastorage.h"
 #include "intern/dwgsafety.h"
 #include "intern/dwgreader15.h"
+#include "intern/dxfreader.h"
+#include "intern/dxfwriter.h"
 #include "intern/proxygraphicdecoder.h"
+#define private public
 #include "libdxfrw.h"
+#undef private
 #include "libdwgr.h"
 
 namespace {
@@ -455,6 +460,92 @@ void testDwgAggregateObjectBudget(TestContext& t) {
              "DWG object budget permits a bounded valid handle map");
 }
 
+class ExposedMLeader final : public DRW_MLeader {
+public:
+    using DRW_MLeader::parseCode;
+};
+
+void testMLeaderDxfContextRoundTrip(TestContext& t) {
+    DRW_MLeader source;
+    source.handle = 0xA100u;
+    source.layer = "0";
+    source.styleHandle.ref = 0xA101u;
+    source.leaderLineTypeHandle.ref = 0xA102u;
+    source.arrowHeadHandle.ref = 0xA103u;
+    source.styleTextStyleHandle.ref = 0xA104u;
+    source.styleBlockHandle.ref = 0xA105u;
+    source.context.hasTextContents = true;
+    source.context.textLabel = "context text";
+    source.context.textStyleHandle.ref = 0xA106u;
+    source.context.hasContentsBlock = true;
+    source.context.blockTableRecordHandle.ref = 0xA107u;
+    for (std::size_t i = 0; i < source.context.blockTransform.size(); ++i)
+        source.context.blockTransform[i] = static_cast<double>(i + 1u);
+
+    DRW_MLeaderRoot root;
+    root.connectionPoint = DRW_Coord{1.0, 2.0, 3.0};
+    root.direction = DRW_Coord{0.0, 1.0, 0.0};
+    root.breaks.emplace_back(DRW_Coord{4.0, 5.0, 6.0},
+                             DRW_Coord{7.0, 8.0, 9.0});
+    DRW_MLeaderLeaderLine line;
+    line.points.emplace_back(DRW_Coord{10.0, 11.0, 12.0});
+    line.breaks.emplace_back(DRW_Coord{13.0, 14.0, 15.0},
+                             DRW_Coord{16.0, 17.0, 18.0});
+    line.lineTypeHandle.ref = 0xA108u;
+    line.arrowHandle.ref = 0xA109u;
+    root.leaderLines.push_back(line);
+    source.context.roots.push_back(root);
+
+    std::ostringstream output;
+    dxfRW writerOwner("");
+    writerOwner.version = DRW::AC1027;
+    writerOwner.binFile = false;
+    writerOwner.writer = std::make_unique<dxfWriterAscii>(&output);
+    t.expect(writerOwner.writeMultiLeader(&source),
+             "MULTILEADER DXF writer accepts nested context payload");
+    const std::string encoded = output.str();
+    t.expect(encoded.find("302\nLEADER{\n") != std::string::npos
+                 && encoded.find("304\nLEADER_LINE{\n") != std::string::npos
+                 && encoded.find(" 12\n4\n") != std::string::npos
+                 && encoded.find("340\nA106\n") != std::string::npos
+                 && encoded.find(" 47\n1\n") != std::string::npos,
+             "MULTILEADER DXF writer emits nested breaks handles and transform");
+
+    std::stringstream records(encoded);
+    std::unique_ptr<dxfReader> reader =
+        std::make_unique<dxfReaderAscii>(&records);
+    ExposedMLeader parsed;
+    int code = 0;
+    bool parseOk = true;
+    while (reader->readRec(&code)) {
+        if (code == 0)
+            continue;
+        parseOk = parsed.parseCode(code, reader) && parseOk;
+    }
+    t.expect(parseOk && parsed.isDxfContextClosed()
+                 && parsed.context.roots.size() == 1u
+                 && parsed.context.roots.front().breaks.size() == 1u
+                 && parsed.context.roots.front().leaderLines.size() == 1u,
+             "MULTILEADER DXF parser closes and retains nested context");
+    if (parseOk && parsed.context.roots.size() == 1u
+        && parsed.context.roots.front().leaderLines.size() == 1u) {
+        const DRW_MLeaderRoot& parsedRoot = parsed.context.roots.front();
+        const DRW_MLeaderLeaderLine& parsedLine =
+            parsedRoot.leaderLines.front();
+        t.expect(parsedRoot.breaks.front().first.x == 4.0
+                     && parsedRoot.breaks.front().second.z == 9.0
+                     && parsedLine.breaks.front().first.y == 14.0
+                     && parsedLine.breaks.front().second.z == 18.0
+                     && parsedLine.lineTypeHandle.ref == 0xA108u
+                     && parsedLine.arrowHandle.ref == 0xA109u
+                     && parsed.context.textStyleHandle.ref == 0xA106u
+                     && parsed.context.blockTableRecordHandle.ref == 0xA107u
+                     && parsed.context.blockTransform[15] == 16.0
+                     && parsed.styleHandle.ref == 0xA101u,
+                 "MULTILEADER DXF round-trip preserves geometry handles and matrix");
+    }
+}
+
 } // namespace
 
 int main() {
@@ -469,6 +560,7 @@ int main() {
     testDwgReadResetsVersionState(context);
     testDxfAggregateRecordBudget(context);
     testDwgAggregateObjectBudget(context);
+    testMLeaderDxfContextRoundTrip(context);
     if (context.failures != 0) {
         std::cerr << context.failures << " hardening assertion(s) failed\n";
         return 1;
