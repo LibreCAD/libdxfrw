@@ -84,6 +84,7 @@ SPATIAL_FILTER_HANDLE = 0xD000
 MALFORMED_SPATIAL_FILTER_HANDLE = 0xD001
 GEODATA_HANDLE = 0xD100
 MALFORMED_GEODATA_HANDLE = 0xD101
+GEODATA_V2_HANDLE = 0xD200
 
 RENDER_SETTINGS_KINDS = {
     "Settings": ("RENDERSETTINGS", RENDERSETTINGS_HANDLE, 556),
@@ -169,7 +170,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         raise ValueError("GROUP name, owner, or member stream mismatch")
 
     dictionary = find_record(records, "DICTIONARY", DICTIONARY_HANDLE)
-    if (dictionary.get("numitems") != 29
+    if (dictionary.get("numitems") != 30
             or dictionary.get("is_hardowner") != 1
             or owner_handle(dictionary) != 0x0C):
         raise ValueError("custom DICTIONARY count, owner, or cloning mismatch")
@@ -634,6 +635,43 @@ def check_objects(payload: dict, version_name: str) -> dict:
         "differently from libdxfrw; only type/handle identity is qualified"
     ]
 
+    geodata_v2 = find_record(records, "GEODATA", GEODATA_V2_HANDLE)
+    if (geodata_v2.get("type") != expected_geodata_type
+            or record_handle(geodata_v2) != GEODATA_V2_HANDLE):
+        raise ValueError("GEODATA v2 type or handle mismatch")
+    if version_name in {"AC1024", "AC1027", "AC1032"}:
+        if (owner_handle(geodata_v2) != 0x17
+                or geodata_v2.get("host_block") != [4, 1, 0x17, 0x17]
+                or geodata_v2.get("xdicobjhandle") != [3, 2,
+                                                       DICTIONARY_HANDLE,
+                                                       DICTIONARY_HANDLE]
+                or geodata_v2.get("class_version") != 2
+                or geodata_v2.get("coord_type") != 2
+                or geodata_v2.get("design_pt") != [100.0, 200.0, 300.0]
+                or geodata_v2.get("ref_pt") != [10.0, 20.0, 30.0]
+                or geodata_v2.get("unit_scale_horiz") != 1.5
+                or geodata_v2.get("units_value_horiz") != 2
+                or geodata_v2.get("unit_scale_vert") != 2.5
+                or geodata_v2.get("units_value_vert") != 3
+                or geodata_v2.get("up_dir") != [0.0, 0.0, 1.0]
+                or geodata_v2.get("north_dir") != [0.0, 1.0]
+                or geodata_v2.get("scale_est") != 1
+                or geodata_v2.get("user_scale_factor") != 1.25
+                or geodata_v2.get("do_sea_level_corr") != 1
+                or geodata_v2.get("sea_level_elev") != 4.5
+                or geodata_v2.get("coord_proj_radius") != 6.5
+                or geodata_v2.get("coord_system_def") != "LOCAL_COORD_SYS_V2"
+                or geodata_v2.get("geo_rss_tag") != "LOCAL_GEO_TAG_V2"
+                or geodata_v2.get("observation_from_tag") != "LOCAL_FROM_V2"
+                or geodata_v2.get("observation_to_tag") != "LOCAL_TO_V2"
+                or geodata_v2.get("observation_coverage_tag")
+                    != "LOCAL_COVERAGE_V2"):
+            raise ValueError("GEODATA v2 bounded payload mismatch")
+    else:
+        geodata_discrepancies.append(
+            "LibreDWG 0.14 does not decode version-2 GEODATA fields reliably "
+            "before AC1024")
+
     dictionary_default = find_record(
         records, "DICTIONARYWDFLT", DICTIONARYWDFLT_HANDLE)
     if (owner_handle(dictionary_default) != DICTIONARY_HANDLE
@@ -728,6 +766,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "TABLESTYLE": TABLESTYLE_HANDLE,
             "SPATIAL_FILTER": SPATIAL_FILTER_HANDLE,
             "GEODATA": GEODATA_HANDLE,
+            "GEODATA_V2": GEODATA_V2_HANDLE,
             "DICTIONARYWDFLT": DICTIONARYWDFLT_HANDLE,
         },
         "objectStatus": "qualified",
@@ -808,7 +847,7 @@ def self_test() -> None:
              "ownerhandle": [4, 1, 0x0C, 0x0C], "name": "LOCAL_GROUP",
              "groups": [[5, 1, 0x1234]]},
             {"object": "DICTIONARY", "handle": [0, 1, DICTIONARY_HANDLE],
-             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 29,
+             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 30,
              "is_hardowner": 1},
             {"object": "XRECORD", "handle": [0, 1, XRECORD_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
@@ -993,6 +1032,24 @@ def self_test() -> None:
              "handle": [0, 1, GEODATA_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
              "type": 527},
+            {"object": "GEODATA", "handle": [0, 1, GEODATA_V2_HANDLE],
+             "ownerhandle": [4, 1, 0x17, 0x17],
+             "xdicobjhandle": [3, 2, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "host_block": [4, 1, 0x17, 0x17], "type": 527,
+             "class_version": 2, "coord_type": 2,
+             "design_pt": [100.0, 200.0, 300.0],
+             "ref_pt": [10.0, 20.0, 30.0],
+             "unit_scale_horiz": 1.5, "units_value_horiz": 2,
+             "unit_scale_vert": 2.5, "units_value_vert": 3,
+             "up_dir": [0.0, 0.0, 1.0], "north_dir": [0.0, 1.0],
+             "scale_est": 1, "user_scale_factor": 1.25,
+             "do_sea_level_corr": 1, "sea_level_elev": 4.5,
+             "coord_proj_radius": 6.5,
+             "coord_system_def": "LOCAL_COORD_SYS_V2",
+             "geo_rss_tag": "LOCAL_GEO_TAG_V2",
+             "observation_from_tag": "LOCAL_FROM_V2",
+             "observation_to_tag": "LOCAL_TO_V2",
+             "observation_coverage_tag": "LOCAL_COVERAGE_V2"},
         ],
     }
     summary = check_objects(payload, "AC1024")

@@ -77,10 +77,10 @@
     },
     {
       "path": "src/drw_objects.cpp",
-      "reason": "Remove unused validation helper/captures and mark one unused helper exposed by standalone -Werror compilation; object parsing behavior is unchanged.",
-      "scope": "warning hygiene",
+      "reason": "Retain the imported warning-hygiene fixes and correct GEODATA AC1015/AC1018 inline versus R2007+ deferred host-block handle ordering per ODA §20.4.78, with bounded version-2 parity evidence.",
+      "scope": "warning hygiene and DWG object compatibility",
       "targetBlob": "edb2bac15f330471355332524032e57b29a9ca58",
-      "adaptedSha256": "3f5711337759aa21502173d89c41c740cb68eab6f3cb5720c0a34057d2a78ed3"
+      "adaptedSha256": "351abe71a68106771bf80f9bfffee9b6a6e6817d48241f73baddae83d4782790"
     },
     {
       "path": "src/intern/dxfreader.cpp",

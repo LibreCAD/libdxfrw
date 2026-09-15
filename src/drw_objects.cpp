@@ -15480,10 +15480,9 @@ bool DRW_SpatialFilter::encodeDwg(DRW::Version version, dwgBufferW *buf,
 }
 
 // GEODATA (AcDbGeoData) encoder — ODA §20.4.78.  Inverts parseDwg below.
-// The type-specific host-block handle is the first handle in the handle
-// stream; the common owner/reactor/xDictionary handles follow the body.  For
-// AC1015/AC1018 the handle stream is inline, so this order is also the order
-// in the single data buffer.
+// AC1015/AC1018 keep the type-specific host-block handle inline before the
+// body.  R2007+ places the common owner/reactor/xDictionary prefix first in
+// the deferred handle stream, followed by the host-block handle.
 //
 // Mesh points + faces always follow the version-specific body when
 // m_version is 2 or 3 (for legacy v1, the parser falls through to
@@ -15524,10 +15523,11 @@ bool DRW_GeoData::encodeDwg(DRW::Version version, dwgBufferW *buf,
         ? handleBuf : buf;
 
     buf->putBitLong(m_version);
-    // FIELD_HANDLE(host_block) is the first deferred handle after the body
-    // for AC1024+, and is inline at this position for AC1015/AC1018.
-    hostBuf->putHandle(makeRefW(
-        m_hostBlockHandle, DRW::DwgSoftPointer));
+    // AC1015/AC1018 keep the host-block handle inline at this position.
+    // R2007+ stores it after the common owner/reactor/xdictionary prefix in
+    // the deferred handle stream (ODA §20.4.78).
+    if (version <= DRW::AC1018)
+        hostBuf->putHandle(makeRefW(m_hostBlockHandle, DRW::DwgSoftPointer));
     buf->putBitShort(m_coordinatesType);
 
     if (m_version == 1) {
@@ -15586,14 +15586,17 @@ bool DRW_GeoData::encodeDwg(DRW::Version version, dwgBufferW *buf,
         buf->putBitLong(f.m_index3);
     }
 
-    // START_OBJECT_HANDLE_STREAM: common handles are always after the
-    // type-specific host-block reference.
+    // START_OBJECT_HANDLE_STREAM: R2007+ common handles precede the deferred
+    // type-specific host-block reference; legacy versions keep the inline
+    // host handle before the body.
     const std::uint8_t effectiveXDictFlag = version > DRW::AC1015
         ? extensionDictionaryFlag() : 0;
     putCommonObjectHandlePrefix(
         hb, static_cast<std::uint32_t>(parentHandle),
         static_cast<std::int32_t>(reactorHandles.size()),
         effectiveXDictFlag, &reactorHandles, xDictHandle);
+    if (version > DRW::AC1018)
+        hb->putHandle(makeRefW(m_hostBlockHandle, DRW::DwgSoftPointer));
     return buf->isGood() && sb->isGood() && hb->isGood();
 }
 
@@ -18657,9 +18660,10 @@ bool DRW_GeoData::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t b
     if (sBuf != buf)
         *sBuf = *bodyStringBuf;
 
-    // FIELD_HANDLE(host_block) is deferred after the data body for R2007+;
-    // the common handle stream follows it.  For AC1015/AC1018 hBuf is the
-    // inline cursor, already positioned after the body above.
+    // For R2007+, the deferred handle stream starts with the common
+    // owner/reactor/xDictionary prefix and ends with FIELD_HANDLE(host_block).
+    // For AC1015/AC1018 hBuf is the inline cursor, already positioned after
+    // the body above, where the host handle was consumed before the body.
     dwgBuffer hBuff = *buf;
     dwgBuffer *hBuf = (version > DRW::AC1018) ? &hBuff : buf;
     std::uint64_t handleEndBit = 0;
@@ -18669,14 +18673,13 @@ bool DRW_GeoData::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t b
         seekObjectHandleStream(version, hBuf, objSize);
     if (!hBuf->isGood())
         return fail();
-    if (version > DRW::AC1018)
-        parsedHostBlockHandle = readObjectHandleRef(hBuf, handleEndBit);
-
     std::uint32_t parsedParentHandle = 0;
     std::vector<std::uint32_t> parsedReactors;
     std::uint32_t parsedXDictHandle = 0;
     if (!this->readDwgObjectCommonHandles(version, hBuf, &parsedParentHandle, &parsedReactors, &parsedXDictHandle))
         return fail();
+    if (version > DRW::AC1018)
+        parsedHostBlockHandle = readObjectHandleRef(hBuf, handleEndBit);
     if (!buf->isGood() || !sBuf->isGood() || !hBuf->isGood())
         return fail();
 
