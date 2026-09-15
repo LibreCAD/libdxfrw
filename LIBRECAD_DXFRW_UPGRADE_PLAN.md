@@ -52,10 +52,10 @@ then pin an immutable commit before importing source.
 ### Execution refresh (2026-09-15)
 
 The implementation worktree is rebased on `origin/master` and is currently
-213 commits ahead with no commits behind it. The latest green slice is
-S187/J163, including the live-plan update and its required policy gates.
-S188/J164 is the active slice; its DXF raw-entity application-group raw-value
-cardinality parity is the next commit boundary.
+214 commits ahead with no commits behind it. The latest green slice is
+S188/J164, including the live-plan update and its required policy gates.
+S189/J165 is the active slice; its DXF raw-entity application-group source
+spelling under remap is the next commit boundary.
 The worktree is clean at the last committed boundary; any subsequent active-
 slice edits are intentionally uncommitted until their narrow gate and
 status-bearing plan transition are green.
@@ -1934,16 +1934,16 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint (2026-09-15): S187/J163 DXF raw-entity application-group
-  binary chunk-code matrix parity is committed; S188/J164 DXF raw-entity
-  application-group raw-value cardinality parity is active.
+- Current checkpoint (2026-09-15): S188/J164 DXF raw-entity application-group
+  raw-value cardinality parity is committed; S189/J165 DXF raw-entity
+  application-group source spelling under remap is active.
   The
   branch is rebased on `origin/master`, and
   the pinned source/package/consumer convergence remains complete while
   runtime and wire-format parity stay evidence-gated. The AC1015 IMAGE legacy
   boundary remains fail-closed, and all format-support claims remain limited
   to rows with eligible runtime/oracle evidence. The next dependency-ready
-  sequence is S188 DXF raw-entity application-group raw-value cardinality parity;
+  sequence is S189 DXF raw-entity application-group source spelling under remap;
   it is a separate commit with no external or derived DWG/DXF bytes.
 - Latest implementation slice: S171/J147 DXF raw-object handle-scope and
   cross-record uniqueness qualification is committed. Local ASCII and binary
@@ -2014,6 +2014,10 @@ edit this block or commit the same slice concurrently.
   binary chunk-code matrix parity is committed. Local ASCII and binary vectors
   replay every 310–319/1004 chunk code and reject malformed values
   transactionally; no drawing bytes are retained.
+- Latest implementation slice: S188/J164 DXF raw-entity application-group
+  raw-value cardinality parity is committed. Local ASCII carriers reject
+  missing/extra source spellings while binary empty placeholders remain valid;
+  no drawing bytes are retained.
 - Latest implementation slice: S172/J148 DXF raw-object duplicate-handle
   diagnostic and error-precedence qualification is committed. Local ASCII and
   binary duplicate streams preserve the legacy `BAD_CODE_PARSED` result and
@@ -2936,18 +2940,18 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 187 (`COMMITTED`); S188 is active.
+- Resolved slices: 188 (`COMMITTED`); S189 is active.
 - Slice states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 187 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 188 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 189 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 190 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 285 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 286 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 172 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S187 are committed; S188/J164 is active with a ready packet
-  naming DXF raw-entity application-group raw-value cardinality parity and focused fast gates.
+  0 DEFERRED_EXTERNAL / 173 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S188 are committed; S189/J165 is active with a ready packet
+  naming DXF raw-entity application-group source spelling under remap and focused fast gates.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
   S174/J150, S175/J151, S176/J152, S177/J153, S178/J154, and S179/J155 added
   malformed, field-context, raw-entity propagation, duplicate-entity,
@@ -3187,7 +3191,8 @@ edit this block or commit the same slice concurrently.
 | S185 | J161: DXF raw-entity application-group binary chunk coexistence | S184 | COMMITTED | binary chunk codes 310-319/1004; nested 102 groups; ASCII/binary replay; malformed hex rollback; focused DXF gate; plan/scope/sync/fixture gates | committed `S185`; local ASCII and binary vectors replay valid chunks beside remapped references and reject malformed chunk text with zero output; no drawing bytes committed | Wave 1 application-group binary-chunk tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S186 is active |
 | S186 | J162: DXF raw-entity application-group per-record binary-chunk-size parity | S185 | COMMITTED | binary chunk per-record size limit; ASCII/binary rejection symmetry; transactional output; focused DXF gate; plan/scope/sync/fixture gates | committed `S186`; local generated ASCII and binary vectors accept the supported 127-byte payload boundary and reject 128-byte chunks with zero output; no drawing bytes committed | Wave 1 application-group chunk-size tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S187 is active |
 | S187 | J163: DXF raw-entity application-group binary chunk-code matrix parity | S186 | COMMITTED | binary chunk codes 310-319/1004; nested 102 groups; ASCII/binary replay; malformed hex rollback; focused DXF gate; plan/scope/sync/fixture gates | committed `S187`; local ASCII and binary vectors replay every 310–319/1004 chunk code and reject malformed values transactionally; no drawing bytes committed | Wave 1 application-group chunk-code tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S188 is active |
-| S188 | J164: DXF raw-entity application-group raw-value cardinality parity | S187 | ACTIVE | ASCII raw-value parallelism; missing/extra source spellings; binary empty placeholders; transactional output; focused DXF gate; plan/scope/sync/fixture gates | use local carriers with missing and extra rawValues plus binary placeholders; assert strict cardinality rejection and valid binary replay in both encodings; no drawing bytes committed | active after S187 commit; use Wave 1 raw-value cardinality tests, focused CTest selector, fast source/policy gates, fixture admission, import scope, pinned sync, and diff gates |
+| S188 | J164: DXF raw-entity application-group raw-value cardinality parity | S187 | COMMITTED | ASCII raw-value parallelism; missing/extra source spellings; binary empty placeholders; transactional output; focused DXF gate; plan/scope/sync/fixture gates | committed `S188`; local ASCII carriers reject missing/extra source spellings while binary empty placeholders remain valid; no drawing bytes committed | Wave 1 raw-value cardinality tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S189 is active |
+| S189 | J165: DXF raw-entity application-group source spelling under remap | S188 | ACTIVE | lowercase/mixed-case raw lexemes; selective remap canonicalization; ASCII/binary replay; transactional output; focused DXF gate; plan/scope/sync/fixture gates | use local mixed-case handle/chunk/marker spellings; assert mapped handles canonicalize while untouched lexemes retain source spelling in both encodings; no drawing bytes committed | active after S188 commit; use Wave 1 source-spelling remap tests, focused CTest selector, fast source/policy gates, fixture admission, import scope, pinned sync, and diff gates |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3379,7 +3384,8 @@ edit this block or commit the same slice concurrently.
 | J161 | S185 | J160 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-entity application-group binary chunk coexistence | local ASCII/binary vectors replay valid chunks beside remapped references and reject malformed chunk text transactionally; no-fixture evidence |
 | J162 | S186 | J161 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-entity application-group per-record binary-chunk-size parity | local ASCII/binary vectors accept the 127-byte boundary and reject 128-byte chunks transactionally; no-fixture evidence |
 | J163 | S187 | J162 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-entity application-group binary chunk-code matrix parity | local ASCII/binary vectors replay every 310–319/1004 code and reject malformed values transactionally; no-fixture evidence |
-| J164 | S188 | J163 | ACTIVE | EXPERIMENTAL | Qualify DXF raw-entity application-group raw-value cardinality parity | active packet names strict ASCII raw-value cardinality, binary placeholders, valid replay, and transactional mismatch rejection; no-fixture evidence |
+| J164 | S188 | J163 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-entity application-group raw-value cardinality parity | local ASCII carriers reject missing/extra source spellings while binary empty placeholders remain valid; no-fixture evidence |
+| J165 | S189 | J164 | ACTIVE | EXPERIMENTAL | Qualify DXF raw-entity application-group source spelling under remap | active packet names mixed-case lexemes, mapped-handle canonicalization, untouched source preservation, and no-fixture evidence |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -3678,7 +3684,8 @@ edit this block or commit the same slice concurrently.
 | J161.1 | J161 / S185 | WP4, WP5, WP6, WP8, WP10; DXF raw-entity application-group binary chunk coexistence | J160 | COMMITTED | EXPERIMENTAL | assert valid binary chunks coexist with nested 102 remapped references and malformed chunks reject symmetrically with zero ASCII/binary output, without external drawing bytes | focused Wave 1 application-group binary-chunk target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 | J162.1 | J162 / S186 | WP4, WP5, WP6, WP8, WP10; DXF raw-entity application-group per-record binary-chunk-size parity | J161 | COMMITTED | EXPERIMENTAL | assert a 127-byte binary chunk is accepted and a 128-byte chunk rejects symmetrically with zero ASCII/binary output, without external drawing bytes | focused Wave 1 application-group chunk-size target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 | J163.1 | J163 / S187 | WP4, WP5, WP6, WP8, WP10; DXF raw-entity application-group binary chunk-code matrix parity | J162 | COMMITTED | EXPERIMENTAL | assert every binary chunk code 310-319 and 1004 replays inside nested 102 groups and malformed values reject symmetrically, without external drawing bytes | focused Wave 1 application-group chunk-code target and policy gates pass; no external or derived DWG/DXF bytes are retained |
-| J164.1 | J164 / S188 | WP4, WP5, WP6, WP8, WP10; DXF raw-entity application-group raw-value cardinality parity | J163 | ACTIVE | EXPERIMENTAL | assert ASCII rawValues must match group cardinality, binary empty placeholders remain valid, and mismatches reject with zero output, without external drawing bytes | focused Wave 1 raw-value cardinality target and policy gates pass; no external or derived DWG/DXF bytes are retained |
+| J164.1 | J164 / S188 | WP4, WP5, WP6, WP8, WP10; DXF raw-entity application-group raw-value cardinality parity | J163 | COMMITTED | EXPERIMENTAL | assert ASCII rawValues must match group cardinality, binary empty placeholders remain valid, and mismatches reject with zero output, without external drawing bytes | focused Wave 1 raw-value cardinality target and policy gates pass; no external or derived DWG/DXF bytes are retained |
+| J165.1 | J165 / S189 | WP4, WP5, WP6, WP8, WP10; DXF raw-entity application-group source spelling under remap | J164 | ACTIVE | EXPERIMENTAL | assert mapped handle lexemes canonicalize while untouched mixed-case handles, markers, and chunks retain source spelling in ASCII/binary replay, without external drawing bytes | focused Wave 1 source-spelling remap target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 
 <!-- UPGRADE_PROGRESS_END -->
 
