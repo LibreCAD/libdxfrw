@@ -64,6 +64,8 @@ def _status_summary(document: dict[str, Any]) -> dict[str, Any]:
     nested = document.get("status")
     if isinstance(nested, dict):
         for key in ("ok", "error", "stage", "errorCode", "errorStage"):
+            if key not in nested:
+                continue
             value = nested.get(key)
             if isinstance(value, (bool, int, str)) or value is None:
                 status[key] = value
@@ -375,6 +377,34 @@ def self_test() -> None:
         assert formatting["rows"][0]["byteRelation"] == "delta"
         assert formatting["rows"][0]["semanticRelation"] == "equal"
         assert formatting["rows"][0]["statusRelation"] == "not-reported"
+        status_payload = {
+            **payload,
+            "status": {"ok": True, "error": 0, "stage": "complete"},
+        }
+        status_runner = root / "status.py"
+        status_runner.write_text(
+            "#!/usr/bin/env python3\n"
+            "import json, pathlib, sys\n"
+            f"payload = {json.dumps(status_payload)!r}\n"
+            "pathlib.Path(sys.argv[sys.argv.index('-o') + 1]).write_text(payload)\n",
+            encoding="utf-8",
+        )
+        status_runner.chmod(0o755)
+        status_report = compare(root, registry, status_runner, status_runner,
+                                -1, 2.0)
+        assert status_report["statusRelationCounts"] == {"equal": 1}
+        status_bad = root / "status_bad.py"
+        status_bad.write_text(
+            "#!/usr/bin/env python3\n"
+            "import json, pathlib, sys\n"
+            f"payload = {json.dumps({**status_payload, 'status': {'ok': False, 'error': 5, 'stage': 'header'}})!r}\n"
+            "pathlib.Path(sys.argv[sys.argv.index('-o') + 1]).write_text(payload)\n",
+            encoding="utf-8",
+        )
+        status_bad.chmod(0o755)
+        status_mismatch = compare(root, registry, status_runner, status_bad,
+                                  -1, 2.0)
+        assert status_mismatch["statusRelationCounts"] == {"delta": 1}
         ineligible = root / "ineligible.json"
         ineligible.write_text(json.dumps({"fixtures": [{
             "path": "sample.dxf", "originKind": "externalCorpus"
