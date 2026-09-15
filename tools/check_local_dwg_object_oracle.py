@@ -110,6 +110,13 @@ OBJECT_PTR_HANDLE = 0xDE00
 MALFORMED_OBJECT_PTR_HANDLE = 0xDE01
 PARTIAL_VIEWING_INDEX_HANDLE = 0xDF00
 MALFORMED_PARTIAL_VIEWING_INDEX_HANDLE = 0xDF01
+SOLID_BACKGROUND_HANDLE = 0xE000
+GRADIENT_BACKGROUND_HANDLE = 0xE100
+GROUNDPLANE_BACKGROUND_HANDLE = 0xE200
+IMAGE_BACKGROUND_HANDLE = 0xE300
+IBL_BACKGROUND_HANDLE = 0xE400
+SKYLIGHT_BACKGROUND_HANDLE = 0xE500
+MALFORMED_BACKGROUND_HANDLE = 0xE600
 IMAGE_HANDLE = 0xD700
 MALFORMED_IMAGE_HANDLE = 0xD710
 
@@ -238,7 +245,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         raise ValueError("GROUP name, owner, or member stream mismatch")
 
     dictionary = find_record(records, "DICTIONARY", DICTIONARY_HANDLE)
-    if (dictionary.get("numitems") != 43
+    if (dictionary.get("numitems") != 49
             or dictionary.get("is_hardowner") != 1
             or owner_handle(dictionary) != 0x0C):
         raise ValueError("custom DICTIONARY count, owner, or cloning mismatch")
@@ -392,6 +399,64 @@ def check_objects(payload: dict, version_name: str) -> dict:
         "LibreDWG 0.14 qualifies PARTIAL_VIEWING_INDEX type/handle/owner, "
         "entry count, and first extent pair; object-reference and later-entry "
         "fields are not stable and remain local-self-read authoritative"
+    ]
+    background_types = {
+        "AC1015": {
+            "SOLIDBACKGROUND": 544, "GRADIENTBACKGROUND": 545,
+            "GROUNDPLANEBACKGROUND": 546, "IMAGEBACKGROUND": 547,
+            "IBLBACKGROUND": 561, "SKYLIGHTBACKGROUND": 565,
+        },
+        "AC1018": {
+            "SOLIDBACKGROUND": 544, "GRADIENTBACKGROUND": 545,
+            "GROUNDPLANEBACKGROUND": 546, "IMAGEBACKGROUND": 547,
+            "IBLBACKGROUND": 561, "SKYLIGHTBACKGROUND": 565,
+        },
+        "AC1021": {
+            "SOLIDBACKGROUND": 544, "GRADIENTBACKGROUND": 545,
+            "GROUNDPLANEBACKGROUND": 546, "IMAGEBACKGROUND": 547,
+            "IBLBACKGROUND": 561, "SKYLIGHTBACKGROUND": 565,
+        },
+        "AC1024": {
+            "SOLIDBACKGROUND": 543, "GRADIENTBACKGROUND": 544,
+            "GROUNDPLANEBACKGROUND": 545, "IMAGEBACKGROUND": 546,
+            "IBLBACKGROUND": 547, "SKYLIGHTBACKGROUND": 561,
+        },
+        "AC1027": {
+            "SOLIDBACKGROUND": 543, "GRADIENTBACKGROUND": 544,
+            "GROUNDPLANEBACKGROUND": 545, "IMAGEBACKGROUND": 546,
+            "IBLBACKGROUND": 547, "SKYLIGHTBACKGROUND": 561,
+        },
+        "AC1032": {
+            "SOLIDBACKGROUND": 543, "GRADIENTBACKGROUND": 544,
+            "GROUNDPLANEBACKGROUND": 545, "IMAGEBACKGROUND": 546,
+            "IBLBACKGROUND": 547, "SKYLIGHTBACKGROUND": 561,
+        },
+    }[version_name]
+    background_handles = {
+        "SOLIDBACKGROUND": SOLID_BACKGROUND_HANDLE,
+        "GRADIENTBACKGROUND": GRADIENT_BACKGROUND_HANDLE,
+        "GROUNDPLANEBACKGROUND": GROUNDPLANE_BACKGROUND_HANDLE,
+        "IMAGEBACKGROUND": IMAGE_BACKGROUND_HANDLE,
+        "IBLBACKGROUND": IBL_BACKGROUND_HANDLE,
+        "SKYLIGHTBACKGROUND": SKYLIGHT_BACKGROUND_HANDLE,
+    }
+    backgrounds = {}
+    for object_name, handle in background_handles.items():
+        background = find_record(records, "UNKNOWN_OBJ", handle)
+        if (background.get("type") != background_types[object_name]
+                or owner_handle(background) != DICTIONARY_HANDLE):
+            raise ValueError(
+                f"{object_name} type, handle, or owner mismatch")
+        backgrounds[object_name] = {
+            "object": object_name,
+            "handle": handle,
+            "type": background_types[object_name],
+            "oracleObject": background.get("object"),
+        }
+    background_discrepancies = [
+        "LibreDWG 0.14 exposes all six BACKGROUND kinds as UNKNOWN_OBJ; "
+        "version-specific type/handle/owner identity is qualified while "
+        "kind payload fields remain local-self-read authoritative"
     ]
     image_discrepancies = [
         "LibreDWG 0.14 does not expose the local IMAGE/IMAGEDEF entity and "
@@ -988,6 +1053,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         MALFORMED_POINT_PATH_HANDLE: "POINTPATH",
         MALFORMED_OBJECT_PTR_HANDLE: "OBJECT_PTR",
         MALFORMED_PARTIAL_VIEWING_INDEX_HANDLE: "PARTIAL_VIEWING_INDEX",
+        MALFORMED_BACKGROUND_HANDLE: "UNKNOWN_OBJ",
         MALFORMED_IMAGE_HANDLE: "IMAGE",
     }
     if any(record_handle(record) in malformed_handles
@@ -1045,6 +1111,12 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "POINTPATH": POINT_PATH_HANDLE,
             "OBJECT_PTR": OBJECT_PTR_HANDLE,
             "PARTIAL_VIEWING_INDEX": PARTIAL_VIEWING_INDEX_HANDLE,
+            "SOLIDBACKGROUND": SOLID_BACKGROUND_HANDLE,
+            "GRADIENTBACKGROUND": GRADIENT_BACKGROUND_HANDLE,
+            "GROUNDPLANEBACKGROUND": GROUNDPLANE_BACKGROUND_HANDLE,
+            "IMAGEBACKGROUND": IMAGE_BACKGROUND_HANDLE,
+            "IBLBACKGROUND": IBL_BACKGROUND_HANDLE,
+            "SKYLIGHTBACKGROUND": SKYLIGHT_BACKGROUND_HANDLE,
             "IMAGE": IMAGE_HANDLE,
             "IMAGEDEF_REACTOR": IMAGE_HANDLE + 1,
             "DICTIONARYWDFLT": DICTIONARYWDFLT_HANDLE,
@@ -1065,6 +1137,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "type": 559,
             "entryCount": len(partial_entries),
         },
+        "backgrounds": backgrounds,
         "objectStatus": "qualified",
         "oracleDiscrepancies": (oracle_discrepancies + mental_discrepancies
                                  + material_discrepancies
@@ -1078,6 +1151,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
                                  + motion_path_discrepancies
                                  + path_discrepancies
                                  + partial_viewing_index_discrepancies
+                                 + background_discrepancies
                                  + image_discrepancies),
     }
 
@@ -1149,7 +1223,7 @@ def self_test() -> None:
              "ownerhandle": [4, 1, 0x0C, 0x0C], "name": "LOCAL_GROUP",
              "groups": [[5, 1, 0x1234]]},
             {"object": "DICTIONARY", "handle": [0, 1, DICTIONARY_HANDLE],
-             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 43,
+             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 49,
              "is_hardowner": 1},
             {"object": "XRECORD", "handle": [0, 1, XRECORD_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
@@ -1424,6 +1498,24 @@ def self_test() -> None:
                  {"extents_min": [1.0, 1.0, 0.0],
                   "extents_max": [0.0, 0.0, 0.0], "object": [0, 0]},
              ]},
+            {"object": "UNKNOWN_OBJ", "handle": [0, 2, SOLID_BACKGROUND_HANDLE],
+             "ownerhandle": [4, 2, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "type": 543},
+            {"object": "UNKNOWN_OBJ", "handle": [0, 2, GRADIENT_BACKGROUND_HANDLE],
+             "ownerhandle": [4, 2, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "type": 544},
+            {"object": "UNKNOWN_OBJ", "handle": [0, 2, GROUNDPLANE_BACKGROUND_HANDLE],
+             "ownerhandle": [4, 2, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "type": 545},
+            {"object": "UNKNOWN_OBJ", "handle": [0, 2, IMAGE_BACKGROUND_HANDLE],
+             "ownerhandle": [4, 2, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "type": 546},
+            {"object": "UNKNOWN_OBJ", "handle": [0, 2, IBL_BACKGROUND_HANDLE],
+             "ownerhandle": [4, 2, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "type": 547},
+            {"object": "UNKNOWN_OBJ", "handle": [0, 2, SKYLIGHT_BACKGROUND_HANDLE],
+             "ownerhandle": [4, 2, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "type": 561},
             {"entity": "UNKNOWN_ENT", "handle": [0, 2, 0xD925],
              "type": 533},
         ],
@@ -1444,6 +1536,20 @@ def self_test() -> None:
             "type": 559,
             "entryCount": 2}:
         raise AssertionError("PARTIAL_VIEWING_INDEX evidence was not qualified")
+    expected_backgrounds = {
+        "SOLIDBACKGROUND": (SOLID_BACKGROUND_HANDLE, 543),
+        "GRADIENTBACKGROUND": (GRADIENT_BACKGROUND_HANDLE, 544),
+        "GROUNDPLANEBACKGROUND": (GROUNDPLANE_BACKGROUND_HANDLE, 545),
+        "IMAGEBACKGROUND": (IMAGE_BACKGROUND_HANDLE, 546),
+        "IBLBACKGROUND": (IBL_BACKGROUND_HANDLE, 547),
+        "SKYLIGHTBACKGROUND": (SKYLIGHT_BACKGROUND_HANDLE, 561),
+    }
+    actual_backgrounds = {
+        name: (frame["handle"], frame["type"])
+        for name, frame in summary.get("backgrounds", {}).items()
+    }
+    if actual_backgrounds != expected_backgrounds:
+        raise AssertionError("BACKGROUND identity was not qualified")
     try:
         bad = json.loads(json.dumps(payload))
         bad["OBJECTS"].append({"object": "XRECORD", "handle": [0, 1, MALFORMED_HANDLE]})
@@ -1767,6 +1873,16 @@ def self_test() -> None:
         pass
     else:
         raise AssertionError("malformed PARTIAL_VIEWING_INDEX was not rejected")
+    try:
+        bad = json.loads(json.dumps(payload))
+        bad["OBJECTS"].append({
+            "object": "UNKNOWN_OBJ",
+            "handle": [0, 1, MALFORMED_BACKGROUND_HANDLE]})
+        check_objects(bad, "AC1024")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("malformed BACKGROUND was not rejected")
     try:
         bad = json.loads(json.dumps(payload))
         bad["OBJECTS"].append({"entity": "UNKNOWN_ENT",

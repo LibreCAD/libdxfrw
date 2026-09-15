@@ -226,6 +226,41 @@ public:
             registeredPartialViewingIndex_ =
                 writer_->registerPartialViewingIndexObjectClass(
                     &partialViewingIndexRegistration);
+            DRW_Background solidBackgroundRegistration;
+            solidBackgroundRegistration.handle = 0xE000u;
+            solidBackgroundRegistration.m_kind = DRW_Background::Solid;
+            registeredSolidBackground_ = writer_->registerBackgroundObjectClass(
+                &solidBackgroundRegistration);
+            DRW_Background gradientBackgroundRegistration;
+            gradientBackgroundRegistration.handle = 0xE100u;
+            gradientBackgroundRegistration.m_kind = DRW_Background::Gradient;
+            registeredGradientBackground_ =
+                writer_->registerBackgroundObjectClass(
+                    &gradientBackgroundRegistration);
+            DRW_Background groundPlaneBackgroundRegistration;
+            groundPlaneBackgroundRegistration.handle = 0xE200u;
+            groundPlaneBackgroundRegistration.m_kind =
+                DRW_Background::GroundPlane;
+            registeredGroundPlaneBackground_ =
+                writer_->registerBackgroundObjectClass(
+                    &groundPlaneBackgroundRegistration);
+            DRW_Background imageBackgroundRegistration;
+            imageBackgroundRegistration.handle = 0xE300u;
+            imageBackgroundRegistration.m_kind = DRW_Background::Image;
+            registeredImageBackground_ =
+                writer_->registerBackgroundObjectClass(
+                    &imageBackgroundRegistration);
+            DRW_Background iblBackgroundRegistration;
+            iblBackgroundRegistration.handle = 0xE400u;
+            iblBackgroundRegistration.m_kind = DRW_Background::Ibl;
+            registeredIblBackground_ = writer_->registerBackgroundObjectClass(
+                &iblBackgroundRegistration);
+            DRW_Background skylightBackgroundRegistration;
+            skylightBackgroundRegistration.handle = 0xE500u;
+            skylightBackgroundRegistration.m_kind = DRW_Background::Skylight;
+            registeredSkylightBackground_ =
+                writer_->registerBackgroundObjectClass(
+                    &skylightBackgroundRegistration);
         }
     }
 
@@ -310,6 +345,12 @@ public:
             {"LOCAL_POINTPATH", 0xDD00u},
             {"LOCAL_OBJECT_PTR", 0xDE00u},
             {"LOCAL_PARTIAL_VIEWING_INDEX", 0xDF00u},
+            {"LOCAL_SOLID_BACKGROUND", 0xE000u},
+            {"LOCAL_GRADIENT_BACKGROUND", 0xE100u},
+            {"LOCAL_GROUNDPLANE_BACKGROUND", 0xE200u},
+            {"LOCAL_IMAGE_BACKGROUND", 0xE300u},
+            {"LOCAL_IBL_BACKGROUND", 0xE400u},
+            {"LOCAL_SKYLIGHT_BACKGROUND", 0xE500u},
         };
         wroteDictionary_ = registeredDictionary_
             && writer_->writeDictionary(&dictionary)
@@ -1240,6 +1281,92 @@ public:
         rejectedMalformedPartialViewingIndex_ =
             !writer_->writePartialViewingIndex(&invalidPartialViewingIndex);
 
+        DRW_Background solidBackground;
+        solidBackground.handle = 0xE000u;
+        solidBackground.parentHandle = dictionary.handle;
+        solidBackground.m_kind = DRW_Background::Solid;
+        solidBackground.m_classVersion = 1;
+        solidBackground.m_solidColor = 0x010203;
+        wroteSolidBackground_ = registeredSolidBackground_
+            && writer_->writeBackground(&solidBackground)
+            && solidBackground.handle != 0;
+
+        DRW_Background gradientBackground;
+        gradientBackground.handle = 0xE100u;
+        gradientBackground.parentHandle = dictionary.handle;
+        gradientBackground.m_kind = DRW_Background::Gradient;
+        gradientBackground.m_classVersion = 1;
+        gradientBackground.m_colorTop = 0x101112;
+        gradientBackground.m_colorMiddle = 0x202122;
+        gradientBackground.m_colorBottom = 0x303132;
+        gradientBackground.m_horizon = 0.1;
+        gradientBackground.m_height = 0.2;
+        gradientBackground.m_rotation = 0.3;
+        wroteGradientBackground_ = registeredGradientBackground_
+            && writer_->writeBackground(&gradientBackground)
+            && gradientBackground.handle != 0;
+
+        DRW_Background groundPlaneBackground;
+        groundPlaneBackground.handle = 0xE200u;
+        groundPlaneBackground.parentHandle = dictionary.handle;
+        groundPlaneBackground.m_kind = DRW_Background::GroundPlane;
+        groundPlaneBackground.m_classVersion = 1;
+        groundPlaneBackground.m_colorSkyZenith = 0x404142;
+        groundPlaneBackground.m_colorSkyHorizon = 0x505152;
+        groundPlaneBackground.m_colorUndergroundHorizon = 0x606162;
+        groundPlaneBackground.m_colorUndergroundAzimuth = 0x707172;
+        groundPlaneBackground.m_colorNear = 0x808182;
+        groundPlaneBackground.m_colorFar = 0x909192;
+        wroteGroundPlaneBackground_ = registeredGroundPlaneBackground_
+            && writer_->writeBackground(&groundPlaneBackground)
+            && groundPlaneBackground.handle != 0;
+
+        DRW_Background imageBackground;
+        imageBackground.handle = 0xE300u;
+        imageBackground.parentHandle = dictionary.handle;
+        imageBackground.m_kind = DRW_Background::Image;
+        imageBackground.m_classVersion = 1;
+        imageBackground.m_fileName = "LOCAL_BACKGROUND_IMAGE.png";
+        imageBackground.m_fitToScreen = true;
+        imageBackground.m_maintainAspect = true;
+        imageBackground.m_useTiling = false;
+        imageBackground.m_offset = DRW_Coord{1.0, 2.0, 0.0};
+        imageBackground.m_scale = DRW_Coord{3.0, 4.0, 0.0};
+        wroteImageBackground_ = registeredImageBackground_
+            && writer_->writeBackground(&imageBackground)
+            && imageBackground.handle != 0;
+
+        DRW_Background iblBackground;
+        iblBackground.handle = 0xE400u;
+        iblBackground.parentHandle = dictionary.handle;
+        iblBackground.m_kind = DRW_Background::Ibl;
+        iblBackground.m_classVersion = 1;
+        iblBackground.m_iblName = "LOCAL_IBL";
+        iblBackground.m_enabled = true;
+        iblBackground.m_displayImage = true;
+        iblBackground.m_rotation = 0.4;
+        iblBackground.m_secondaryBackgroundHandle = imageBackground.handle;
+        wroteIblBackground_ = registeredIblBackground_
+            && writer_->writeBackground(&iblBackground)
+            && iblBackground.handle != 0;
+
+        DRW_Background skylightBackground;
+        skylightBackground.handle = 0xE500u;
+        skylightBackground.parentHandle = dictionary.handle;
+        skylightBackground.m_kind = DRW_Background::Skylight;
+        skylightBackground.m_classVersion = 1;
+        skylightBackground.m_sunHandle = 0xDA00u;
+        wroteSkylightBackground_ = registeredSkylightBackground_
+            && writer_->writeBackground(&skylightBackground)
+            && skylightBackground.handle != 0;
+
+        DRW_Background invalidGradientBackground = gradientBackground;
+        invalidGradientBackground.handle = 0xE600u;
+        invalidGradientBackground.m_rotation =
+            std::numeric_limits<double>::quiet_NaN();
+        rejectedMalformedBackground_ =
+            !writer_->writeBackground(&invalidGradientBackground);
+
         DRW_Group group;
         group.handle = 0xA600u;
         group.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
@@ -1600,7 +1727,7 @@ public:
         if (data.handle == 0xA601u) {
             readDictionarySeen_ = data.parentHandle
                     == DRW::DwgNamedObjectsDictionaryHandle
-                && data.m_entries.size() == 43
+                && data.m_entries.size() == 49
                 && data.m_entries[0].m_name == "LOCAL_XRECORD"
                 && data.m_entries[0].m_handle == 0xA602u
                 && data.m_entries[1].m_name == "LOCAL_PLOTSETTINGS"
@@ -1686,7 +1813,19 @@ public:
                 && data.m_entries[41].m_name == "LOCAL_OBJECT_PTR"
                 && data.m_entries[41].m_handle == 0xDE00u
                 && data.m_entries[42].m_name == "LOCAL_PARTIAL_VIEWING_INDEX"
-                && data.m_entries[42].m_handle == 0xDF00u;
+                && data.m_entries[42].m_handle == 0xDF00u
+                && data.m_entries[43].m_name == "LOCAL_SOLID_BACKGROUND"
+                && data.m_entries[43].m_handle == 0xE000u
+                && data.m_entries[44].m_name == "LOCAL_GRADIENT_BACKGROUND"
+                && data.m_entries[44].m_handle == 0xE100u
+                && data.m_entries[45].m_name == "LOCAL_GROUNDPLANE_BACKGROUND"
+                && data.m_entries[45].m_handle == 0xE200u
+                && data.m_entries[46].m_name == "LOCAL_IMAGE_BACKGROUND"
+                && data.m_entries[46].m_handle == 0xE300u
+                && data.m_entries[47].m_name == "LOCAL_IBL_BACKGROUND"
+                && data.m_entries[47].m_handle == 0xE400u
+                && data.m_entries[48].m_name == "LOCAL_SKYLIGHT_BACKGROUND"
+                && data.m_entries[48].m_handle == 0xE500u;
         }
     }
     void addXRecord(const DRW_XRecord& data) override {
@@ -2190,6 +2329,53 @@ public:
         if (data.handle == 0xDF01u)
             readMalformedPartialViewingIndexSeen_ = true;
     }
+    void addBackground(const DRW_Background& data) override {
+        if (data.handle == 0xE000u)
+            readSolidBackgroundSeen_ = data.parentHandle == 0xA601u
+                && data.m_kind == DRW_Background::Solid
+                && data.m_classVersion == 1
+                && data.m_solidColor == 0x010203;
+        if (data.handle == 0xE100u)
+            readGradientBackgroundSeen_ = data.parentHandle == 0xA601u
+                && data.m_kind == DRW_Background::Gradient
+                && data.m_classVersion == 1
+                && data.m_colorTop == 0x101112
+                && data.m_colorMiddle == 0x202122
+                && data.m_colorBottom == 0x303132
+                && data.m_horizon == 0.1
+                && data.m_height == 0.2
+                && data.m_rotation == 0.3;
+        if (data.handle == 0xE200u)
+            readGroundPlaneBackgroundSeen_ = data.parentHandle == 0xA601u
+                && data.m_kind == DRW_Background::GroundPlane
+                && data.m_classVersion == 1
+                && data.m_colorSkyZenith == 0x404142
+                && data.m_colorFar == 0x909192;
+        if (data.handle == 0xE300u)
+            readImageBackgroundSeen_ = data.parentHandle == 0xA601u
+                && data.m_kind == DRW_Background::Image
+                && data.m_classVersion == 1
+                && data.m_fileName == "LOCAL_BACKGROUND_IMAGE.png"
+                && data.m_fitToScreen && data.m_maintainAspect
+                && !data.m_useTiling
+                && data.m_offset.x == 1.0 && data.m_offset.y == 2.0
+                && data.m_scale.x == 3.0 && data.m_scale.y == 4.0;
+        if (data.handle == 0xE400u)
+            readIblBackgroundSeen_ = data.parentHandle == 0xA601u
+                && data.m_kind == DRW_Background::Ibl
+                && data.m_classVersion == 1
+                && data.m_iblName == "LOCAL_IBL"
+                && data.m_enabled && data.m_displayImage
+                && data.m_rotation == 0.4
+                && data.m_secondaryBackgroundHandle == 0xE300u;
+        if (data.handle == 0xE500u)
+            readSkylightBackgroundSeen_ = data.parentHandle == 0xA601u
+                && data.m_kind == DRW_Background::Skylight
+                && data.m_classVersion == 1
+                && data.m_sunHandle == 0xDA00u;
+        if (data.handle == 0xE600u)
+            readMalformedBackgroundSeen_ = true;
+    }
     void addInsert(const DRW_Insert& data) override {
         readInsertSeen_ = true;
         readAttribSeen_ = data.attlist.size() == 1
@@ -2262,6 +2448,12 @@ public:
             && wrotePointPath_
             && wroteObjectPtr_
             && wrotePartialViewingIndex_
+            && wroteSolidBackground_
+            && wroteGradientBackground_
+            && wroteGroundPlaneBackground_
+            && wroteImageBackground_
+            && wroteIblBackground_
+            && wroteSkylightBackground_
             && wroteGroup_;
     }
     bool rejectedMalformedObject() const { return rejectedMalformedObject_; }
@@ -2366,6 +2558,14 @@ public:
     bool rejectedMalformedPartialViewingIndex() const {
         return rejectedMalformedPartialViewingIndex_;
     }
+    bool rejectedMalformedBackground() const {
+        return rejectedMalformedBackground_;
+    }
+    bool wroteBackgrounds() const {
+        return wroteSolidBackground_ && wroteGradientBackground_
+            && wroteGroundPlaneBackground_ && wroteImageBackground_
+            && wroteIblBackground_ && wroteSkylightBackground_;
+    }
     bool wroteImage() const { return wroteImage_; }
     bool rejectedMalformedImage() const { return rejectedMalformedImage_; }
     bool readLineSeen() const { return readLineSeen_; }
@@ -2419,6 +2619,12 @@ public:
             && readPointPathSeen_
             && readObjectPtrSeen_
             && readPartialViewingIndexSeen_
+            && readSolidBackgroundSeen_
+            && readGradientBackgroundSeen_
+            && readGroundPlaneBackgroundSeen_
+            && readImageBackgroundSeen_
+            && readIblBackgroundSeen_
+            && readSkylightBackgroundSeen_
             && readGroupSeen_;
     }
     bool readMalformedObjectSeen() const { return readMalformedObjectSeen_; }
@@ -2540,6 +2746,14 @@ public:
     }
     bool readMalformedPartialViewingIndexSeen() const {
         return readMalformedPartialViewingIndexSeen_;
+    }
+    bool readBackgroundsSeen() const {
+        return readSolidBackgroundSeen_ && readGradientBackgroundSeen_
+            && readGroundPlaneBackgroundSeen_ && readImageBackgroundSeen_
+            && readIblBackgroundSeen_ && readSkylightBackgroundSeen_;
+    }
+    bool readMalformedBackgroundSeen() const {
+        return readMalformedBackgroundSeen_;
     }
     bool readMalformedNavisworksModelDefSeen() const {
         return readMalformedNavisworksModelDefSeen_;
@@ -2668,6 +2882,13 @@ private:
     bool rejectedMalformedObjectPtr_ {false};
     bool wrotePartialViewingIndex_ {false};
     bool rejectedMalformedPartialViewingIndex_ {false};
+    bool wroteSolidBackground_ {false};
+    bool wroteGradientBackground_ {false};
+    bool wroteGroundPlaneBackground_ {false};
+    bool wroteImageBackground_ {false};
+    bool wroteIblBackground_ {false};
+    bool wroteSkylightBackground_ {false};
+    bool rejectedMalformedBackground_ {false};
     bool wroteImage_ {false};
     bool rejectedMalformedImage_ {false};
     bool registeredDictionary_ {false};
@@ -2712,6 +2933,12 @@ private:
     bool registeredPointPath_ {false};
     bool registeredObjectPtr_ {false};
     bool registeredPartialViewingIndex_ {false};
+    bool registeredSolidBackground_ {false};
+    bool registeredGradientBackground_ {false};
+    bool registeredGroundPlaneBackground_ {false};
+    bool registeredImageBackground_ {false};
+    bool registeredIblBackground_ {false};
+    bool registeredSkylightBackground_ {false};
     bool registeredPlotSettings_ {false};
     bool readLineSeen_ {false};
     bool readPointSeen_ {false};
@@ -2819,6 +3046,13 @@ private:
     bool readMalformedObjectPtrSeen_ {false};
     bool readPartialViewingIndexSeen_ {false};
     bool readMalformedPartialViewingIndexSeen_ {false};
+    bool readSolidBackgroundSeen_ {false};
+    bool readGradientBackgroundSeen_ {false};
+    bool readGroundPlaneBackgroundSeen_ {false};
+    bool readImageBackgroundSeen_ {false};
+    bool readIblBackgroundSeen_ {false};
+    bool readSkylightBackgroundSeen_ {false};
+    bool readMalformedBackgroundSeen_ {false};
     bool readImageSeen_ {false};
     bool readImageDefSeen_ {false};
     bool readImageReactorSeen_ {false};
@@ -3072,6 +3306,12 @@ int main(int argc, char** argv) {
         expect(writeIface.rejectedMalformedPartialViewingIndex(),
                ("local DWG writer rejected malformed PARTIAL_VIEWING_INDEX transaction" + suffix).c_str(),
                failures);
+        expect(writeIface.wroteBackgrounds(),
+               ("local DWG writer emitted all BACKGROUND kinds" + suffix).c_str(),
+               failures);
+        expect(writeIface.rejectedMalformedBackground(),
+               ("local DWG writer rejected malformed BACKGROUND transaction" + suffix).c_str(),
+               failures);
         expect(version < DRW::AC1018
                    ? !writeIface.wroteImage()
                    : writeIface.wroteImage(),
@@ -3220,6 +3460,9 @@ int main(int argc, char** argv) {
         expect(readIface.readPartialViewingIndexSeen(),
                ("local DWG self-read publishes PARTIAL_VIEWING_INDEX" + suffix).c_str(),
                failures);
+        expect(readIface.readBackgroundsSeen(),
+               ("local DWG self-read publishes all BACKGROUND kinds" + suffix).c_str(),
+               failures);
         expect(version < DRW::AC1018 || readIface.readImageSeen(),
                ("local DWG self-read publishes IMAGE" + suffix).c_str(), failures);
         expect(version < DRW::AC1018 || readIface.readImageDefSeen(),
@@ -3330,6 +3573,9 @@ int main(int argc, char** argv) {
                failures);
         expect(!readIface.readMalformedPartialViewingIndexSeen(),
                ("local DWG self-read omits rolled-back malformed PARTIAL_VIEWING_INDEX" + suffix).c_str(),
+               failures);
+        expect(!readIface.readMalformedBackgroundSeen(),
+               ("local DWG self-read omits rolled-back malformed BACKGROUND" + suffix).c_str(),
                failures);
         if (readIface.readLineSeen()) {
             const DRW_Line& line = readIface.readLine();
