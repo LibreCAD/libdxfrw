@@ -5292,6 +5292,50 @@ void testDxfRawObjectWideHandleReplay(TestContext& t) {
              "DXF binary raw object preserves wide handles beyond remap width");
 }
 
+void testDxfRawObjectMalformedHandle(TestContext& t) {
+    DRW_RawDxfObject object;
+    object.name = "LOCAL_RAW_BAD_HANDLE";
+    object.m_version = DRW::AC1027;
+    object.hasRawValues = true;
+    object.groups = {DRW_Variant(5, std::string("1A")),
+                     DRW_Variant(330, std::string("2A")),
+                     DRW_Variant(340, std::string("3A"))};
+    object.rawValues = {"1A", "2A", "3A"};
+
+    const std::vector<std::pair<std::size_t, std::string>> malformed = {
+        {0u, "not-hex"}, {1u, "owner?"}, {2u, "reference?"}};
+    for (const auto& item : malformed) {
+        DRW_RawDxfObject asciiObject = object;
+        asciiObject.groups[item.first] = DRW_Variant(
+            asciiObject.groups[item.first].code(), item.second);
+        asciiObject.rawValues[item.first] = item.second;
+        std::ostringstream rejectedAsciiOutput;
+        dxfRW rejectingAsciiWriter("");
+        rejectingAsciiWriter.version = DRW::AC1027;
+        rejectingAsciiWriter.binFile = false;
+        rejectingAsciiWriter.writer = std::make_unique<dxfWriterAscii>(
+            &rejectedAsciiOutput);
+        t.expect(!rejectingAsciiWriter.writeRawDxfObject(&asciiObject)
+                     && rejectingAsciiWriter.m_writeError
+                     && rejectedAsciiOutput.str().empty(),
+                 "DXF ASCII malformed raw-object handle rejects transactionally");
+
+        DRW_RawDxfObject binaryObject = asciiObject;
+        binaryObject.hasRawValues = false;
+        binaryObject.rawValues.clear();
+        std::ostringstream rejectedBinaryOutput;
+        dxfRW rejectingBinaryWriter("");
+        rejectingBinaryWriter.version = DRW::AC1027;
+        rejectingBinaryWriter.binFile = true;
+        rejectingBinaryWriter.writer = std::make_unique<dxfWriterBinary>(
+            &rejectedBinaryOutput);
+        t.expect(!rejectingBinaryWriter.writeRawDxfObject(&binaryObject)
+                     && rejectingBinaryWriter.m_writeError
+                     && rejectedBinaryOutput.str().empty(),
+                 "DXF binary malformed raw-object handle rejects transactionally");
+    }
+}
+
 void testDxfRawSectionApplicationGroupReferenceMatrix(TestContext& t) {
     DRW_RawDxfSection section;
     section.m_name = "LOCAL_SECTION_REFERENCE_MATRIX";
@@ -5646,6 +5690,7 @@ int main() {
     testDxfRawObjectRawValueCardinality(context);
     testDxfRawObjectRemapChain(context);
     testDxfRawObjectWideHandleReplay(context);
+    testDxfRawObjectMalformedHandle(context);
     testDxfRawSectionApplicationGroupReferenceMatrix(context);
     testRawCapture(context);
     testHatchValidationIgnoresInactiveGradient(context);
