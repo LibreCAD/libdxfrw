@@ -2101,6 +2101,11 @@ edit this block or commit the same slice concurrently.
   reproduced here. The result is external-only, hash/status metadata in
   `/private/tmp/libdxfrw-s284-external-all.json`, and does not promote support
   or admit any drawing bytes.
+- Latest sanitizer checkpoint (2026-09-15): S285/J261 rebuilds the ASan/UBSan
+  hardening target and runs all 28 dependency-free sanitizer CTest entries
+  after the debt/advisory updates. The hardening binary and all tests pass in
+  7.61s with `detect_leaks=0` for the documented macOS limitation; no drawing
+  bytes are added and native Windows/long-fuzz evidence remains scheduled.
 - Previous checkpoint (2026-09-15): S257/J233 post-hardening validation
   checkpoint is committed. A fresh C++17 build and all 26 dependency-free
   CTest entries pass in 6.26 seconds, including source-route and release
@@ -3745,6 +3750,7 @@ edit this block or commit the same slice concurrently.
 | S282 | J258: scoped local differential-debt registry | S281 | COMMITTED | local-from-scratch AC1027/AC1032 reviewed-debt hashes; independent registry scope; exact target/source/output/semantic matching; no payload retention | checker passes the S276 six-version report with two reviewed target short-reads and zero unreviewed/stale rows; locked registry remains one-entry scoped; no drawing fixtures or derived payloads | continue with target-debt review, independent oracle qualification, and release closure |
 | S283 | J259: post-differential normal checkpoint | S282 | COMMITTED | fresh implementation build; all dependency-free CTest entries; measured timing; no fixture payload changes | 28/28 CTest entries pass in 6.19s, including differential/debt tests; sanitizer, native-platform, and protected external evidence remain scheduled | continue with target-debt review, independent oracle qualification, and release closure |
 | S284 | J260: full available external advisory corpus | S283 | COMMITTED | 29-file external corpus; bounded conversion run; hash/status-only metadata; AC1024 non-reproduction noted without promotion; no fixture admission | 18 converted, 10 failed, 1 timeout; all 9 AC1024 inputs convert successfully; report remains temporary and non-promoting | continue with target-debt review, independent oracle qualification, and release closure |
+| S285 | J261: post-debt sanitizer checkpoint | S284 | COMMITTED | fresh ASan/UBSan hardening build; complete 28-entry sanitizer CTest; documented macOS leak policy; no fixture changes | hardening target and all 28 sanitizer tests pass in 7.61s with leak detection disabled; native Windows and long-fuzz evidence remain scheduled | continue with target-debt review, independent oracle qualification, and release closure |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -4033,6 +4039,7 @@ edit this block or commit the same slice concurrently.
 | J258 | S282 | J257 | COMMITTED | EXPERIMENTAL | Qualify scoped local differential-debt registry | Add a separate metadata-only registry for the local-from-scratch AC1027/AC1032 target short-reads so exact local evidence is reviewable without making the locked-fixture registry stale |
 | J259 | S283 | J258 | COMMITTED | EXPERIMENTAL | Qualify post-differential normal checkpoint | Rebuild the implementation from the current tree and run all dependency-free CTest entries after the differential/debt wave, recording timing and retaining the fast/full cadence policy |
 | J260 | S284 | J259 | COMMITTED | DEFERRED_EXTERNAL | Qualify full available external advisory corpus | Run the bounded advisory converter over all 29 available external DWG inputs, record only hashes, versions, sizes, exit categories, and timeout outcomes, and retain AC1024 non-reproduction as advisory evidence |
+| J261 | S285 | J260 | COMMITTED | EXPERIMENTAL | Qualify post-debt sanitizer checkpoint | Rebuild the ASan/UBSan hardening target and run all dependency-free sanitizer CTest entries after the debt/advisory updates, preserving the macOS leak-detection limitation and no-fixture policy |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4428,6 +4435,7 @@ edit this block or commit the same slice concurrently.
 | J258.1 | J258 / S282 | WP5, WP8, WP10; local reviewed differential debt | J257 | COMMITTED | EXPERIMENTAL | validate the six-version local differential report against `metadata/differential-debt-local-v1.json`, require both AC1027/AC1032 target/source/output/semantic hashes, and fail closed on stale or unexpected rows | checker passes the temporary S276 report with two reviewed target short-reads and zero unreviewed/stale mismatches; no drawing bytes are retained |
 | J259.1 | J259 / S283 | WP8, WP10; normal checkpoint | J258 | COMMITTED | EXPERIMENTAL | run a fresh build and all 28 dependency-free CTest entries after S282, preserving the no-fixture policy and measured validation cadence | fresh build and CTest pass 28/28 in 6.19s; differential/debt tests included; no drawing bytes are retained |
 | J260.1 | J260 / S284 | WP5, WP8, WP10; external advisory corpus | J259 | COMMITTED | DEFERRED_EXTERNAL | execute `run_external_advisory.py` over the complete available corpus with a two-second per-input timeout and keep all source/generated drawing files outside Git | temporary report records 18 converted, 10 failed, and 1 timeout, including 9/9 AC1024 converted; no external bytes or derived outputs are committed and no support row is promoted |
+| J261.1 | J261 / S285 | WP8, WP10; sanitizer checkpoint | J260 | COMMITTED | EXPERIMENTAL | run a fresh ASan/UBSan hardening build and all 28 sanitizer CTest entries with `detect_leaks=0`, then retain timing and policy results without adding drawing fixtures | hardening vector and sanitizer CTest pass 28/28 in 7.61s; macOS leak limitation is explicit and no drawing bytes are retained |
 
 <!-- UPGRADE_PROGRESS_END -->
 
