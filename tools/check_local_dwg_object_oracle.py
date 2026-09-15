@@ -102,6 +102,12 @@ SUNSTUDY_HANDLE = 0xDA00
 MALFORMED_SUNSTUDY_HANDLE = 0xDA01
 MOTIONPATH_HANDLE = 0xDB00
 MALFORMED_MOTIONPATH_HANDLE = 0xDB01
+CURVE_PATH_HANDLE = 0xDC00
+MALFORMED_CURVE_PATH_HANDLE = 0xDC01
+POINT_PATH_HANDLE = 0xDD00
+MALFORMED_POINT_PATH_HANDLE = 0xDD01
+OBJECT_PTR_HANDLE = 0xDE00
+MALFORMED_OBJECT_PTR_HANDLE = 0xDE01
 IMAGE_HANDLE = 0xD700
 MALFORMED_IMAGE_HANDLE = 0xD710
 
@@ -230,7 +236,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         raise ValueError("GROUP name, owner, or member stream mismatch")
 
     dictionary = find_record(records, "DICTIONARY", DICTIONARY_HANDLE)
-    if (dictionary.get("numitems") != 39
+    if (dictionary.get("numitems") != 42
             or dictionary.get("is_hardowner") != 1
             or owner_handle(dictionary) != 0x0C):
         raise ValueError("custom DICTIONARY count, owner, or cloning mismatch")
@@ -344,6 +350,28 @@ def check_objects(payload: dict, version_name: str) -> dict:
     motion_path_discrepancies = [
         "LibreDWG 0.14 misdecodes local MOTIONPATH hard-pointer/frame payload; "
         "type/handle/owner/class identity is qualified"
+    ]
+    path_objects = []
+    for object_name, object_type, handle in (
+            ("CURVEPATH", 553, CURVE_PATH_HANDLE),
+            ("POINTPATH", 554, POINT_PATH_HANDLE),
+            ("OBJECT_PTR", 555, OBJECT_PTR_HANDLE)):
+        matches = [
+            record for record in records
+            if isinstance(record, dict)
+            and record_handle(record) == handle
+            and record.get("type") == object_type
+        ]
+        if len(matches) != 1 or owner_handle(matches[0]) != DICTIONARY_HANDLE:
+            raise ValueError(f"{object_name} type, handle, or owner mismatch")
+        path_objects.append({
+            "object": object_name, "handle": handle, "type": object_type,
+            "oracleObject": matches[0].get("object"),
+        })
+    path_discrepancies = [
+        "LibreDWG 0.14 exposes CURVEPATH/POINTPATH as UNKNOWN_OBJ and "
+        "retains OBJECT_PTR by name; type/handle/owner identity is qualified "
+        "while path payload fields remain local-self-read authoritative"
     ]
     image_discrepancies = [
         "LibreDWG 0.14 does not expose the local IMAGE/IMAGEDEF entity and "
@@ -936,6 +964,9 @@ def check_objects(payload: dict, version_name: str) -> dict:
         MALFORMED_NAVISWORKS_MODEL_DEF_HANDLE: "NAVISWORKSMODELDEF",
         MALFORMED_SUNSTUDY_HANDLE: "SUNSTUDY",
         MALFORMED_MOTIONPATH_HANDLE: "MOTIONPATH",
+        MALFORMED_CURVE_PATH_HANDLE: "CURVEPATH",
+        MALFORMED_POINT_PATH_HANDLE: "POINTPATH",
+        MALFORMED_OBJECT_PTR_HANDLE: "OBJECT_PTR",
         MALFORMED_IMAGE_HANDLE: "IMAGE",
     }
     if any(record_handle(record) in malformed_handles
@@ -989,6 +1020,9 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "NAVISWORKSMODELDEF": NAVISWORKS_MODEL_DEF_HANDLE,
             "SUNSTUDY": SUNSTUDY_HANDLE,
             "MOTIONPATH": MOTIONPATH_HANDLE,
+            "CURVEPATH": CURVE_PATH_HANDLE,
+            "POINTPATH": POINT_PATH_HANDLE,
+            "OBJECT_PTR": OBJECT_PTR_HANDLE,
             "IMAGE": IMAGE_HANDLE,
             "IMAGEDEF_REACTOR": IMAGE_HANDLE + 1,
             "DICTIONARYWDFLT": DICTIONARYWDFLT_HANDLE,
@@ -1002,6 +1036,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         "motionPath": {
             "object": "MOTIONPATH", "handle": MOTIONPATH_HANDLE, "type": 552,
         },
+        "pathObjects": path_objects,
         "objectStatus": "qualified",
         "oracleDiscrepancies": (oracle_discrepancies + mental_discrepancies
                                  + material_discrepancies
@@ -1013,6 +1048,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
                                  + pointcloud_discrepancies
                                  + sun_study_discrepancies
                                  + motion_path_discrepancies
+                                 + path_discrepancies
                                  + image_discrepancies),
     }
 
@@ -1084,7 +1120,7 @@ def self_test() -> None:
              "ownerhandle": [4, 1, 0x0C, 0x0C], "name": "LOCAL_GROUP",
              "groups": [[5, 1, 0x1234]]},
             {"object": "DICTIONARY", "handle": [0, 1, DICTIONARY_HANDLE],
-             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 39,
+             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 42,
              "is_hardowner": 1},
             {"object": "XRECORD", "handle": [0, 1, XRECORD_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
@@ -1340,6 +1376,15 @@ def self_test() -> None:
             {"object": "MOTIONPATH", "handle": [0, 2, MOTIONPATH_HANDLE],
              "ownerhandle": [4, 2, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
              "type": 552, "class_version": 2},
+            {"object": "UNKNOWN_OBJ", "handle": [0, 2, CURVE_PATH_HANDLE],
+             "ownerhandle": [4, 2, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "type": 553},
+            {"object": "UNKNOWN_OBJ", "handle": [0, 2, POINT_PATH_HANDLE],
+             "ownerhandle": [4, 2, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "type": 554},
+            {"object": "OBJECT_PTR", "handle": [0, 2, OBJECT_PTR_HANDLE],
+             "ownerhandle": [4, 2, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "type": 555},
             {"entity": "UNKNOWN_ENT", "handle": [0, 2, 0xD925],
              "type": 533},
         ],
@@ -1351,6 +1396,9 @@ def self_test() -> None:
             "entity": "POINTCLOUD", "type": 533, "handle": 0xD925,
             "oracleEntity": "UNKNOWN_ENT"}]:
         raise AssertionError("POINTCLOUD entity identity was not qualified")
+    if [frame["object"] for frame in summary.get("pathObjects", [])] != [
+            "CURVEPATH", "POINTPATH", "OBJECT_PTR"]:
+        raise AssertionError("path-object identity was not qualified")
     try:
         bad = json.loads(json.dumps(payload))
         bad["OBJECTS"].append({"object": "XRECORD", "handle": [0, 1, MALFORMED_HANDLE]})
@@ -1633,6 +1681,36 @@ def self_test() -> None:
         pass
     else:
         raise AssertionError("malformed MOTIONPATH was not rejected")
+    try:
+        bad = json.loads(json.dumps(payload))
+        bad["OBJECTS"].append({"object": "CURVEPATH",
+                                "handle": [0, 1, MALFORMED_CURVE_PATH_HANDLE],
+                                "type": 553})
+        check_objects(bad, "AC1024")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("malformed CURVEPATH was not rejected")
+    try:
+        bad = json.loads(json.dumps(payload))
+        bad["OBJECTS"].append({"object": "POINTPATH",
+                                "handle": [0, 1, MALFORMED_POINT_PATH_HANDLE],
+                                "type": 554})
+        check_objects(bad, "AC1024")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("malformed POINTPATH was not rejected")
+    try:
+        bad = json.loads(json.dumps(payload))
+        bad["OBJECTS"].append({"object": "OBJECT_PTR",
+                                "handle": [0, 1, MALFORMED_OBJECT_PTR_HANDLE],
+                                "type": 555})
+        check_objects(bad, "AC1024")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("malformed OBJECT_PTR was not rejected")
     try:
         bad = json.loads(json.dumps(payload))
         bad["OBJECTS"].append({"entity": "UNKNOWN_ENT",

@@ -209,6 +209,18 @@ public:
             motionPathRegistration.handle = 0xDB00u;
             registeredMotionPath_ = writer_->registerMotionPathObjectClass(
                 &motionPathRegistration);
+            DRW_CurvePath curvePathRegistration;
+            curvePathRegistration.handle = 0xDC00u;
+            registeredCurvePath_ = writer_->registerCurvePathObjectClass(
+                &curvePathRegistration);
+            DRW_PointPath pointPathRegistration;
+            pointPathRegistration.handle = 0xDD00u;
+            registeredPointPath_ = writer_->registerPointPathObjectClass(
+                &pointPathRegistration);
+            DRW_ObjectPtr objectPtrRegistration;
+            objectPtrRegistration.handle = 0xDE00u;
+            registeredObjectPtr_ = writer_->registerObjectPtrObjectClass(
+                &objectPtrRegistration);
         }
     }
 
@@ -289,6 +301,9 @@ public:
             {"LOCAL_NAVISWORKSMODELDEF", 0xD900u},
             {"LOCAL_SUNSTUDY", 0xDA00u},
             {"LOCAL_MOTIONPATH", 0xDB00u},
+            {"LOCAL_CURVEPATH", 0xDC00u},
+            {"LOCAL_POINTPATH", 0xDD00u},
+            {"LOCAL_OBJECT_PTR", 0xDE00u},
         };
         wroteDictionary_ = registeredDictionary_
             && writer_->writeDictionary(&dictionary)
@@ -1159,6 +1174,46 @@ public:
         rejectedMalformedMotionPath_ =
             !writer_->writeMotionPath(&invalidMotionPath);
 
+        DRW_CurvePath curvePath;
+        curvePath.handle = 0xDC00u;
+        curvePath.parentHandle = dictionary.handle;
+        curvePath.m_classVersion = 2;
+        curvePath.m_entityHandle = modelSpaceLineHandle_;
+        wroteCurvePath_ = registeredCurvePath_
+            && writer_->writeCurvePath(&curvePath)
+            && curvePath.handle != 0;
+
+        DRW_CurvePath invalidCurvePath = curvePath;
+        invalidCurvePath.handle = 0xDC01u;
+        invalidCurvePath.setDwgCommonObjectState(0, 2, false);
+        rejectedMalformedCurvePath_ = !writer_->writeCurvePath(&invalidCurvePath);
+
+        DRW_PointPath pointPath;
+        pointPath.handle = 0xDD00u;
+        pointPath.parentHandle = dictionary.handle;
+        pointPath.m_classVersion = 3;
+        pointPath.m_point = DRW_Coord{7.0, 8.0, 9.0};
+        wrotePointPath_ = registeredPointPath_
+            && writer_->writePointPath(&pointPath)
+            && pointPath.handle != 0;
+
+        DRW_PointPath invalidPointPath = pointPath;
+        invalidPointPath.handle = 0xDD01u;
+        invalidPointPath.m_point.x = std::numeric_limits<double>::quiet_NaN();
+        rejectedMalformedPointPath_ = !writer_->writePointPath(&invalidPointPath);
+
+        DRW_ObjectPtr objectPtr;
+        objectPtr.handle = 0xDE00u;
+        objectPtr.parentHandle = dictionary.handle;
+        wroteObjectPtr_ = registeredObjectPtr_
+            && writer_->writeObjectPtr(&objectPtr)
+            && objectPtr.handle != 0;
+
+        DRW_ObjectPtr invalidObjectPtr = objectPtr;
+        invalidObjectPtr.handle = 0xDE01u;
+        invalidObjectPtr.setDwgCommonObjectState(0, 2, false);
+        rejectedMalformedObjectPtr_ = !writer_->writeObjectPtr(&invalidObjectPtr);
+
         DRW_Group group;
         group.handle = 0xA600u;
         group.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
@@ -1519,7 +1574,7 @@ public:
         if (data.handle == 0xA601u) {
             readDictionarySeen_ = data.parentHandle
                     == DRW::DwgNamedObjectsDictionaryHandle
-                && data.m_entries.size() == 39
+                && data.m_entries.size() == 42
                 && data.m_entries[0].m_name == "LOCAL_XRECORD"
                 && data.m_entries[0].m_handle == 0xA602u
                 && data.m_entries[1].m_name == "LOCAL_PLOTSETTINGS"
@@ -1597,7 +1652,13 @@ public:
                 && data.m_entries[37].m_name == "LOCAL_SUNSTUDY"
                 && data.m_entries[37].m_handle == 0xDA00u
                 && data.m_entries[38].m_name == "LOCAL_MOTIONPATH"
-                && data.m_entries[38].m_handle == 0xDB00u;
+                && data.m_entries[38].m_handle == 0xDB00u
+                && data.m_entries[39].m_name == "LOCAL_CURVEPATH"
+                && data.m_entries[39].m_handle == 0xDC00u
+                && data.m_entries[40].m_name == "LOCAL_POINTPATH"
+                && data.m_entries[40].m_handle == 0xDD00u
+                && data.m_entries[41].m_name == "LOCAL_OBJECT_PTR"
+                && data.m_entries[41].m_handle == 0xDE00u;
         }
     }
     void addXRecord(const DRW_XRecord& data) override {
@@ -2062,6 +2123,30 @@ public:
         if (data.handle == 0xDB01u)
             readMalformedMotionPathSeen_ = true;
     }
+    void addCurvePath(const DRW_CurvePath& data) override {
+        if (data.handle == 0xDC00u)
+            readCurvePathSeen_ = data.parentHandle == 0xA601u
+                && data.m_classVersion == 2
+                && data.m_entityHandle != 0;
+        if (data.handle == 0xDC01u)
+            readMalformedCurvePathSeen_ = true;
+    }
+    void addPointPath(const DRW_PointPath& data) override {
+        if (data.handle == 0xDD00u)
+            readPointPathSeen_ = data.parentHandle == 0xA601u
+                && data.m_classVersion == 3
+                && data.m_point.x == 7.0
+                && data.m_point.y == 8.0
+                && data.m_point.z == 9.0;
+        if (data.handle == 0xDD01u)
+            readMalformedPointPathSeen_ = true;
+    }
+    void addObjectPtr(const DRW_ObjectPtr& data) override {
+        if (data.handle == 0xDE00u)
+            readObjectPtrSeen_ = data.parentHandle == 0xA601u;
+        if (data.handle == 0xDE01u)
+            readMalformedObjectPtrSeen_ = true;
+    }
     void addInsert(const DRW_Insert& data) override {
         readInsertSeen_ = true;
         readAttribSeen_ = data.attlist.size() == 1
@@ -2130,6 +2215,9 @@ public:
             && wroteNavisworksModelDef_
             && wroteSunStudy_
             && wroteMotionPath_
+            && wroteCurvePath_
+            && wrotePointPath_
+            && wroteObjectPtr_
             && wroteGroup_;
     }
     bool rejectedMalformedObject() const { return rejectedMalformedObject_; }
@@ -2218,6 +2306,18 @@ public:
     bool rejectedMalformedMotionPath() const {
         return rejectedMalformedMotionPath_;
     }
+    bool wroteCurvePath() const { return wroteCurvePath_; }
+    bool rejectedMalformedCurvePath() const {
+        return rejectedMalformedCurvePath_;
+    }
+    bool wrotePointPath() const { return wrotePointPath_; }
+    bool rejectedMalformedPointPath() const {
+        return rejectedMalformedPointPath_;
+    }
+    bool wroteObjectPtr() const { return wroteObjectPtr_; }
+    bool rejectedMalformedObjectPtr() const {
+        return rejectedMalformedObjectPtr_;
+    }
     bool wroteImage() const { return wroteImage_; }
     bool rejectedMalformedImage() const { return rejectedMalformedImage_; }
     bool readLineSeen() const { return readLineSeen_; }
@@ -2267,6 +2367,9 @@ public:
             && readNavisworksModelDefSeen_
             && readSunStudySeen_
             && readMotionPathSeen_
+            && readCurvePathSeen_
+            && readPointPathSeen_
+            && readObjectPtrSeen_
             && readGroupSeen_;
     }
     bool readMalformedObjectSeen() const { return readMalformedObjectSeen_; }
@@ -2370,6 +2473,18 @@ public:
     bool readMalformedSunStudySeen() const { return readMalformedSunStudySeen_; }
     bool readMalformedMotionPathSeen() const {
         return readMalformedMotionPathSeen_;
+    }
+    bool readCurvePathSeen() const { return readCurvePathSeen_; }
+    bool readPointPathSeen() const { return readPointPathSeen_; }
+    bool readObjectPtrSeen() const { return readObjectPtrSeen_; }
+    bool readMalformedCurvePathSeen() const {
+        return readMalformedCurvePathSeen_;
+    }
+    bool readMalformedPointPathSeen() const {
+        return readMalformedPointPathSeen_;
+    }
+    bool readMalformedObjectPtrSeen() const {
+        return readMalformedObjectPtrSeen_;
     }
     bool readMalformedNavisworksModelDefSeen() const {
         return readMalformedNavisworksModelDefSeen_;
@@ -2490,6 +2605,12 @@ private:
     bool rejectedMalformedSunStudy_ {false};
     bool wroteMotionPath_ {false};
     bool rejectedMalformedMotionPath_ {false};
+    bool wroteCurvePath_ {false};
+    bool rejectedMalformedCurvePath_ {false};
+    bool wrotePointPath_ {false};
+    bool rejectedMalformedPointPath_ {false};
+    bool wroteObjectPtr_ {false};
+    bool rejectedMalformedObjectPtr_ {false};
     bool wroteImage_ {false};
     bool rejectedMalformedImage_ {false};
     bool registeredDictionary_ {false};
@@ -2530,6 +2651,9 @@ private:
     bool registeredNavisworksModelDef_ {false};
     bool registeredSunStudy_ {false};
     bool registeredMotionPath_ {false};
+    bool registeredCurvePath_ {false};
+    bool registeredPointPath_ {false};
+    bool registeredObjectPtr_ {false};
     bool registeredPlotSettings_ {false};
     bool readLineSeen_ {false};
     bool readPointSeen_ {false};
@@ -2629,6 +2753,12 @@ private:
     bool readMotionPathSeen_ {false};
     bool readMalformedSunStudySeen_ {false};
     bool readMalformedMotionPathSeen_ {false};
+    bool readCurvePathSeen_ {false};
+    bool readPointPathSeen_ {false};
+    bool readObjectPtrSeen_ {false};
+    bool readMalformedCurvePathSeen_ {false};
+    bool readMalformedPointPathSeen_ {false};
+    bool readMalformedObjectPtrSeen_ {false};
     bool readImageSeen_ {false};
     bool readImageDefSeen_ {false};
     bool readImageReactorSeen_ {false};
@@ -2858,6 +2988,24 @@ int main(int argc, char** argv) {
         expect(writeIface.rejectedMalformedMotionPath(),
                ("local DWG writer rejected malformed MOTIONPATH transaction" + suffix).c_str(),
                failures);
+        expect(writeIface.wroteCurvePath(),
+               ("local DWG writer emitted CURVEPATH" + suffix).c_str(),
+               failures);
+        expect(writeIface.rejectedMalformedCurvePath(),
+               ("local DWG writer rejected malformed CURVEPATH transaction" + suffix).c_str(),
+               failures);
+        expect(writeIface.wrotePointPath(),
+               ("local DWG writer emitted POINTPATH" + suffix).c_str(),
+               failures);
+        expect(writeIface.rejectedMalformedPointPath(),
+               ("local DWG writer rejected malformed POINTPATH transaction" + suffix).c_str(),
+               failures);
+        expect(writeIface.wroteObjectPtr(),
+               ("local DWG writer emitted OBJECT_PTR" + suffix).c_str(),
+               failures);
+        expect(writeIface.rejectedMalformedObjectPtr(),
+               ("local DWG writer rejected malformed OBJECT_PTR transaction" + suffix).c_str(),
+               failures);
         expect(version < DRW::AC1018
                    ? !writeIface.wroteImage()
                    : writeIface.wroteImage(),
@@ -2994,6 +3142,15 @@ int main(int argc, char** argv) {
         expect(readIface.readMotionPathSeen(),
                ("local DWG self-read publishes MOTIONPATH" + suffix).c_str(),
                failures);
+        expect(readIface.readCurvePathSeen(),
+               ("local DWG self-read publishes CURVEPATH" + suffix).c_str(),
+               failures);
+        expect(readIface.readPointPathSeen(),
+               ("local DWG self-read publishes POINTPATH" + suffix).c_str(),
+               failures);
+        expect(readIface.readObjectPtrSeen(),
+               ("local DWG self-read publishes OBJECT_PTR" + suffix).c_str(),
+               failures);
         expect(version < DRW::AC1018 || readIface.readImageSeen(),
                ("local DWG self-read publishes IMAGE" + suffix).c_str(), failures);
         expect(version < DRW::AC1018 || readIface.readImageDefSeen(),
@@ -3092,6 +3249,15 @@ int main(int argc, char** argv) {
                failures);
         expect(!readIface.readMalformedMotionPathSeen(),
                ("local DWG self-read omits rolled-back malformed MOTIONPATH" + suffix).c_str(),
+               failures);
+        expect(!readIface.readMalformedCurvePathSeen(),
+               ("local DWG self-read omits rolled-back malformed CURVEPATH" + suffix).c_str(),
+               failures);
+        expect(!readIface.readMalformedPointPathSeen(),
+               ("local DWG self-read omits rolled-back malformed POINTPATH" + suffix).c_str(),
+               failures);
+        expect(!readIface.readMalformedObjectPtrSeen(),
+               ("local DWG self-read omits rolled-back malformed OBJECT_PTR" + suffix).c_str(),
                failures);
         if (readIface.readLineSeen()) {
             const DRW_Line& line = readIface.readLine();
