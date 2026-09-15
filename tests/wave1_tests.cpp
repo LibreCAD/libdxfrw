@@ -1249,6 +1249,72 @@ void testDxfBinaryRawObjectCaptureReplay(TestContext& t) {
     }
 }
 
+void testDxfRawObjectHandleScope(TestContext& t) {
+    const std::string duplicateRecords =
+        "0\nSECTION\n2\nOBJECTS\n0\nLOCAL_FIRST\n5\n1A\n"
+        "0\nLOCAL_SECOND\n5\n1A\n0\nENDSEC\n0\nEOF\n";
+    ProfileProbeInterface duplicateInterface;
+    dxfRW duplicateReader("");
+    std::string duplicateInput = duplicateRecords;
+    t.expect(!duplicateReader.readAscii(
+                  &duplicateInterface, false, duplicateInput)
+                 && duplicateInterface.objects.size() == 1
+                 && duplicateInterface.objects.front().name == "LOCAL_FIRST",
+             "DXF duplicate handles reject only the later raw object");
+
+    const std::string duplicateSections =
+        "0\nSECTION\n2\nOBJECTS\n0\nLOCAL_SECTION_FIRST\n5\n2A\n"
+        "0\nENDSEC\n0\nSECTION\n2\nOBJECTS\n0\nLOCAL_SECTION_SECOND\n"
+        "5\n2A\n0\nENDSEC\n0\nEOF\n";
+    ProfileProbeInterface sectionInterface;
+    dxfRW sectionReader("");
+    std::string sectionInput = duplicateSections;
+    t.expect(!sectionReader.readAscii(&sectionInterface, false, sectionInput)
+                 && sectionInterface.objects.size() == 1
+                 && sectionInterface.objects.front().name
+                        == "LOCAL_SECTION_FIRST",
+             "DXF duplicate handles remain unique across sections");
+
+    const std::string singleObject =
+        "0\nSECTION\n2\nOBJECTS\n0\nLOCAL_FRESH\n5\n1A\n"
+        "0\nENDSEC\n0\nEOF\n";
+    ProfileProbeInterface firstSession;
+    ProfileProbeInterface secondSession;
+    dxfRW freshReader("");
+    std::string firstInput = singleObject;
+    std::string secondInput = singleObject;
+    t.expect(freshReader.readAscii(&firstSession, false, firstInput)
+                 && firstSession.objects.size() == 1,
+             "DXF first handle session accepts the object");
+    t.expect(freshReader.readAscii(&secondSession, false, secondInput)
+                 && secondSession.objects.size() == 1,
+             "DXF fresh read session resets handle uniqueness");
+
+    std::ostringstream binarySource;
+    dxfWriterBinary binaryWriter(&binarySource);
+    binaryWriter.writeString(0, "SECTION");
+    binaryWriter.writeString(2, "OBJECTS");
+    binaryWriter.writeString(0, "LOCAL_BINARY_FIRST");
+    binaryWriter.writeString(5, "1A");
+    binaryWriter.writeString(0, "LOCAL_BINARY_SECOND");
+    binaryWriter.writeString(5, "1A");
+    binaryWriter.writeString(0, "ENDSEC");
+    binaryWriter.writeString(0, "EOF");
+    std::stringstream binaryInput(binarySource.str());
+    ProfileProbeInterface binaryInterface;
+    dxfRW binaryReader("");
+    binaryReader.binFile = true;
+    binaryReader.reader = std::make_unique<dxfReaderBinary>(&binaryInput);
+    binaryReader.reader->setClassifierProfile(
+        DxfClassifierProfile::StandaloneSafe);
+    binaryReader.iface = &binaryInterface;
+    t.expect(!binaryReader.processDxf()
+                 && binaryInterface.objects.size() == 1
+                 && binaryInterface.objects.front().name
+                        == "LOCAL_BINARY_FIRST",
+             "binary DXF duplicate handles share record scope policy");
+}
+
 void testRawCapture(TestContext& t) {
     std::stringstream records("260\n2147483647\n482\n3.14\n1004\nAB\n");
     dxfRW owner("");
@@ -1455,6 +1521,7 @@ int main() {
     testDxfBinaryRawBoundaryReplay(context);
     testDxfBinaryRawSectionCaptureReplay(context);
     testDxfBinaryRawObjectCaptureReplay(context);
+    testDxfRawObjectHandleScope(context);
     testRawCapture(context);
     testHatchValidationIgnoresInactiveGradient(context);
     testFixedSpaceBlockClassification(context);
