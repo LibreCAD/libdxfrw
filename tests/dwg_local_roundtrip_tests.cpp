@@ -4945,6 +4945,9 @@ bool runRawDwgReplayContract() {
         const bool rejectedBufferMutation = !corruptedReader.readBuffer(
             encodedBytes.data(), encodedBytes.size(), &corruptedIface, true)
             && corruptedIface.readObjects_.empty();
+        const DRW::error bufferMutationError = corruptedReader.getError();
+        const DRW_OperationDiagnostic bufferDiagnostic =
+            corruptedReader.getLastDiagnostic();
         const std::filesystem::path corruptedPath =
             std::filesystem::temp_directory_path()
             / "libdxfrw-s116-corrupted-replay.dwg";
@@ -4957,8 +4960,18 @@ bool runRawDwgReplayContract() {
         LocalRawReplayInterface corruptedFileIface;
         const bool rejectedFileMutation = !corruptedFileReader.read(
             &corruptedFileIface, true) && corruptedFileIface.readObjects_.empty();
+        const DRW::error fileMutationError = corruptedFileReader.getError();
+        const DRW_OperationDiagnostic fileDiagnostic =
+            corruptedFileReader.getLastDiagnostic();
         std::filesystem::remove(corruptedPath, ec);
-        rejectedMutation = rejectedBufferMutation && rejectedFileMutation;
+        const bool equivalentDiagnostic =
+            bufferDiagnostic.operation == fileDiagnostic.operation
+            && bufferDiagnostic.phase == fileDiagnostic.phase
+            && bufferDiagnostic.cause == fileDiagnostic.cause
+            && bufferDiagnostic.code == fileDiagnostic.code
+            && bufferDiagnostic.secondary.size() == fileDiagnostic.secondary.size();
+        rejectedMutation = rejectedBufferMutation && rejectedFileMutation
+            && bufferMutationError == fileMutationError && equivalentDiagnostic;
     }
     std::filesystem::remove(output, ec);
     const bool result = readContract && validBufferRead && rejectedMutation

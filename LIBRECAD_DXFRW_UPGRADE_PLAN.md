@@ -53,9 +53,9 @@ then pin an immutable commit before importing source.
 
 The implementation worktree is rebased on `origin/master` and is currently
 140 commits ahead with no commits behind it. The latest green slice is
-S115/J91, including the live-plan update and its required policy gates.
-S116/J92 is now the active slice; its focused local raw-DWG reader-parity
-assertions are the next commit boundary.
+S116/J92, including the live-plan update and its required policy gates.
+S117/J93 is now the active slice; its focused local raw-DWG receipt and
+callback-order assertions are the next commit boundary.
 The worktree also contains intentional, uncommitted follow-on test work for
 the S114-S116 safety sequence; it is not evidence of a committed slice and
 must be staged/committed one slice at a time.
@@ -1934,15 +1934,14 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint (2026-09-15): S115/J91 raw-DWG frame-integrity mutation
-  safety is committed; S116/J92 file/readBuffer parity is active. The branch
-  is rebased on `origin/master`, and
+- Current checkpoint (2026-09-15): S116/J92 file/readBuffer parity is
+  committed; S117/J93 raw-DWG receipt/callback-order alignment is active. The
+  branch is rebased on `origin/master`, and
   the pinned source/package/consumer convergence remains complete while
   runtime and wire-format parity stay evidence-gated. The AC1015 IMAGE legacy
   boundary remains fail-closed, and all format-support claims remain limited
   to rows with eligible runtime/oracle evidence. The next dependency-ready
-  remaining sequence is S116 parity of file-backed `read` and in-memory
-  `readBuffer`; it is a
+  remaining sequence is S117 receipt/callback-order alignment; it is a
   separate commit with no external or derived DWG/DXF bytes.
 - Latest implementation slice: S53/J29 RASTERVARIABLES/WIPEOUTVARIABLES parity
   is committed. The local-from-scratch production writer registers both custom
@@ -2786,11 +2785,11 @@ edit this block or commit the same slice concurrently.
   names TVDEVICEPROPERTIES and the two VX frames as UNKNOWN_OBJ, while local
   self-read remains authoritative for VX payload fields; no generated drawings
   or external assets are retained.
-- Last fully resolved slice: S115 (the raw-DWG frame-integrity mutation-safety
-  slice is committed by the matching `Plan-Slice: S115` trailer; the commit
-  carries local mutation rejection through the reader paths, no-publication
-  evidence, the live-plan update, and all required policy gates). The target
-  integration commit remains
+- Last fully resolved slice: S116 (the raw-DWG file/readBuffer parity slice is
+  committed by the matching `Plan-Slice: S116` trailer; the commit carries
+  equivalent valid/corrupted outcomes, legacy errors, structured diagnostics,
+  no-publication evidence, the live-plan update, and all required policy gates).
+  The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
 - Previous fully resolved slice: S109 (the DWG modeler-writer boundary slice is
@@ -2811,18 +2810,18 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 115 (`COMMITTED`); S116 is active.
+- Resolved slices: 116 (`COMMITTED`); S117 is active.
 - Slice states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 115 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 116 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 117 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 118 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 212 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 213 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 102 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S115 are committed; S116/J92 is active with a ready packet
-  naming raw replay file/readBuffer parity and focused fast gates.
+- Active work: S01-S116 are committed; S117/J93 is active with a ready packet
+  naming raw replay receipt/callback-order alignment and focused fast gates.
   Keep validation fast and
   self-updating: run source/plan/policy checks and the focused carrier target
   after each implementation item, commit only after the narrow gate is green,
@@ -2986,7 +2985,8 @@ edit this block or commit the same slice concurrently.
 | S113 | J89: raw class identity collision and duplicate-handle safety | S112 | COMMITTED | distinct local class identities sharing a source ordinal; deterministic class remap; duplicate object-handle rejection; rollback/no partial frame; fast replay gate; plan/scope/sync/fixture gates | two local raw classes sharing source ordinal 500 remap to distinct writer class numbers, a duplicate object handle is rejected, and the alternate class self-reads with its class identity intact; no external DWG/DXF bytes | focused collision/duplicate target and policy gates pass; typed modeler writing remains deferred |
 | S114 | J90: raw replay null/empty admission safety | S113 | COMMITTED | null pointer rejection; empty raw-body rejection; empty section-name rejection; skip diagnostics; no partial-file publication; fast replay gate; plan/scope/sync/fixture gates | null/empty generic raw replay inputs and their write-skip evidence are rejected while the valid local output remains intact; no typed modeler encoder or external drawing bytes | focused admission target, combined fast target, and policy gates pass; S115 is active |
 | S115 | J91: raw replay frame-integrity mutation safety | S114 | COMMITTED | deterministic in-memory frame mutation; bounded `readBuffer` rejection; no callback publication; valid-frame regression; fast replay gate; plan/scope/sync/fixture gates | one byte mutated inside a locally generated raw-object body is rejected without raw-object publication; valid replay remains green and no external or derived DWG/DXF bytes are retained | focused replay target and policy gates pass; S116 is active |
-| S116 | J92: file/readBuffer raw replay parity | S115 | ACTIVE | valid file-backed `read`; valid in-memory `readBuffer`; identical corrupted-frame rejection; no callback publication; equivalent error/stage; fast replay gate; plan/scope/sync/fixture gates | prove both public reader entry points accept the valid local replay and reject the same locally corrupted bytes with equivalent coarse outcome and empty publication | active after S115 commit; retain temporary-only outputs and escalate only if the impact map requires it |
+| S116 | J92: file/readBuffer raw replay parity | S115 | COMMITTED | valid file-backed `read`; valid in-memory `readBuffer`; identical corrupted-frame rejection; no callback publication; equivalent error/stage/diagnostic; fast replay gate; plan/scope/sync/fixture gates | both public reader entry points accept the valid local replay and reject the same locally corrupted bytes with equivalent legacy error, structured diagnostic, and empty publication | focused replay target and policy gates pass; S117 is active |
+| S117 | J93: raw replay receipt/callback-order alignment | S116 | ACTIVE | normalized frame receipts; callback publication order; section/object ordering; live-oracle trace comparison; no external payload; fast replay gate; plan/scope/sync/fixture gates | align local writer receipts with reader callback order and normalized `dwg2dxf` trace identifiers without retaining drawing bytes or promoting typed modeler writing | active after S116 commit; use local-from-scratch output and keep full CTest checkpoint-only |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3106,7 +3106,8 @@ edit this block or commit the same slice concurrently.
 | J89 | S113 | J88 | COMMITTED | EXPERIMENTAL | Qualify generic raw-DWG class-identity collision/remap and duplicate-handle rejection with deterministic rollback, without crossing the typed modeler-writer defer boundary | local AC1027 output remaps two source-ordinal-500 identities to distinct writer classes, rejects a duplicate handle, and self-reads the alternate class identity; no external DWG bytes |
 | J90 | S114 | J89 | COMMITTED | EXPERIMENTAL | Qualify generic raw-DWG null/empty admission and skip diagnostics without publishing partial output or crossing the typed modeler-writer defer boundary | null pointers, empty raw body, empty section name, skip-counter evidence, focused target, and policy gates pass; no external DWG bytes |
 | J91 | S115 | J90 | COMMITTED | EXPERIMENTAL | Qualify fail-closed raw-DWG frame-integrity handling by mutating one byte in a locally generated raw-object body and proving `readBuffer` rejects it without publishing a raw object | local-only mutation, bounded rejection, empty callback publication, and policy gates pass; no external or derived DWG bytes |
-| J92 | S116 | J91 | ACTIVE | EXPERIMENTAL | Qualify parity between file-backed `read` and in-memory `readBuffer` for valid and corrupted local raw-DWG replay frames | active packet names equivalent failure classification/publication assertions for both entry points; no external bytes |
+| J92 | S116 | J91 | COMMITTED | EXPERIMENTAL | Qualify parity between file-backed `read` and in-memory `readBuffer` for valid and corrupted local raw-DWG replay frames | valid and corrupted local replay paths have equivalent legacy error, structured diagnostic, and callback-publication outcomes; no external bytes |
+| J93 | S117 | J92 | ACTIVE | EXPERIMENTAL | Qualify normalized raw-DWG frame receipts and reader callback order against the local writer contract and an optional live `dwg2dxf` trace without retaining drawing bytes | active packet names receipt IDs, callback order, section/object ordering, and no-promotion oracle rules |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -3333,7 +3334,8 @@ edit this block or commit the same slice concurrently.
 | J89.1 | J89 / S113 | WP5, WP7, WP8, WP10; raw-DWG class identity and handle safety | J88 | COMMITTED | EXPERIMENTAL | exercise two distinct class identities sharing a source ordinal plus duplicate object handles, assert deterministic remap/rejection and no partial frame, and keep all raw bytes local-from-scratch | focused collision/duplicate target passes; valid alternate class self-reads and no external DWG bytes are retained |
 | J90.1 | J90 / S114 | WP5, WP7, WP8, WP10; raw-DWG null/empty admission safety | J89 | COMMITTED | EXPERIMENTAL | reject null pointers, empty raw bodies, and empty section names, assert skip diagnostics and valid-output preservation, and keep all inputs local-from-scratch | focused null/empty admission target, three-test CTest selector, and policy gates pass; no external DWG bytes |
 | J91.1 | J91 / S115 | WP5, WP7, WP8, WP10; raw-DWG frame-integrity mutation safety | J90 | COMMITTED | EXPERIMENTAL | mutate one byte inside a locally generated raw-object body, assert bounded `readBuffer` rejection and zero raw-object callback publication, and keep all bytes local-from-scratch | focused replay target and policy gates pass; no external or derived DWG bytes |
-| J92.1 | J92 / S116 | WP5, WP7, WP8, WP10; file/readBuffer parity | J91 | ACTIVE | EXPERIMENTAL | read valid local replay through file-backed `read` and in-memory `readBuffer`, feed the same local corruption through both, and compare error/stage and callback-publication results | focused replay target plus three-test CTest selector; temporary files are removed and full CTest remains checkpoint-only |
+| J92.1 | J92 / S116 | WP5, WP7, WP8, WP10; file/readBuffer parity | J91 | COMMITTED | EXPERIMENTAL | read valid local replay through file-backed `read` and in-memory `readBuffer`, feed the same local corruption through both, and compare error/stage, structured diagnostic, and callback-publication results | focused replay target plus three-test CTest selector pass; temporary files are removed and full CTest remains checkpoint-only |
+| J93.1 | J93 / S117 | WP5, WP7, WP8, WP10; raw replay receipt/callback-order alignment | J92 | ACTIVE | EXPERIMENTAL | capture stable writer receipt IDs and reader callback order for the three local raw objects and one raw section, normalize them, and compare optional live `dwg2dxf` trace labels without retaining payload bytes | focused replay target first; if live trace is unavailable, keep the normalized local contract and record the oracle as advisory rather than blocking the next lane |
 
 <!-- UPGRADE_PROGRESS_END -->
 
