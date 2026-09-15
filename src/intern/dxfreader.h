@@ -16,6 +16,7 @@
 #include <cstdint>
 #include <unordered_set>
 
+#include "dxfcode.h"
 #include "drw_textcodec.h"
 
 class dxfReader {
@@ -69,6 +70,15 @@ public:
     DRW::Version getSourceVersion() const { return decoder.getSourceVersion(); }
     bool hasSourceVersion() const { return decoder.hasSourceVersion(); }
     void setIgnoreComments(const bool bValue) {m_bIgnoreComments = bValue;}
+    /// Select an explicit classifier profile for compatibility probes. The
+    /// standalone-safe profile is the default; production callers must not
+    /// silently opt into the pinned LibreCAD legacy widths.
+    void setClassifierProfile(DxfClassifierProfile profile) {
+        m_classifierProfile = profile;
+    }
+    DxfClassifierProfile classifierProfile() const {
+        return m_classifierProfile;
+    }
 
 protected:
     virtual bool readCode(int *code) = 0; //return true if successful (not EOF)
@@ -94,6 +104,8 @@ protected:
 private:
     DRW_TextCodec decoder;
     bool m_bIgnoreComments {false};
+    DxfClassifierProfile m_classifierProfile {
+        DxfClassifierProfile::StandaloneSafe};
     bool m_allowWideHandleLexemes {false};
     std::unordered_set<std::uint64_t> m_selfHandles;
     std::uint64_t m_currentSelfHandle {0};

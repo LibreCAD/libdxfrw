@@ -106,7 +106,7 @@ bool dxfReader::readRec(int *codeData) {
     *codeData = code;
 
     bool valueOk = true;
-    switch (dxfValueKindForCode(code)) {
+    switch (dxfValueKindForCode(code, m_classifierProfile)) {
     case DxfValueKind::Str:    valueOk = readString(); break;
     case DxfValueKind::Dbl:    valueOk = readDouble(); break;
     case DxfValueKind::I16:    valueOk = readInt16();  break;

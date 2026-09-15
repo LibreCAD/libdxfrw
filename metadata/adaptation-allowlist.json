@@ -104,11 +104,18 @@
       "adaptedSha256": "351abe71a68106771bf80f9bfffee9b6a6e6817d48241f73baddae83d4782790"
     },
     {
+      "path": "src/intern/dxfreader.h",
+      "reason": "Expose the explicit standalone-safe versus LibreCAD-master legacy classifier profile to the internal DXF reader probe without changing the public façade.",
+      "scope": "DXF classifier compatibility probing",
+      "targetBlob": "ba66915b247af5a397caf04cd62eadbf6ed03f8c",
+      "adaptedSha256": "846a38ec0798c43eaf382c7709078735f0f1c943308780ef2ecbc5f76718833a"
+    },
+    {
       "path": "src/intern/dxfreader.cpp",
-      "reason": "Use the canonical DXF group-code table, preserve integer values in codes 260-269, and fail closed on the unassigned 482-998 span.",
+      "reason": "Use the canonical DXF group-code table, preserve integer values in codes 260-269, fail closed on the unassigned 482-998 span, and carry an explicit opt-in legacy classifier profile for compatibility probes.",
       "scope": "DXF classifier correctness",
       "targetBlob": "6d65c2baa9e604720a01c5cb050497847634a71a",
-      "adaptedSha256": "d593ad4cd69b86dc7a4293a75462b658a51369ad11bdbec180499f471bafa55c"
+      "adaptedSha256": "a9ed919b84065249e52e76ed0c0c20e5794a6c473f876bd3bb85d46219b3dffb"
     },
     {
       "path": "src/libdxfrw.cpp",

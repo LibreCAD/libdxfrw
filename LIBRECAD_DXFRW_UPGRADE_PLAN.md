@@ -53,8 +53,8 @@ then pin an immutable commit before importing source.
 
 The implementation worktree is rebased on `origin/master` and is currently
 140 commits ahead with no commits behind it. The latest green slice is
-S124/J100, including the live-plan update and its required policy gates.
-S125/J101 is the active slice; its focused compatibility-profile integration
+S125/J101, including the live-plan update and its required policy gates.
+S126/J102 is the active slice; its focused profile-aware raw capture/replay
 checks are the next commit boundary.
 The worktree is clean at the last committed boundary; any subsequent active-
 slice edits are intentionally uncommitted until their narrow gate and
@@ -1934,14 +1934,14 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint (2026-09-15): S124/J100 explicit compatibility-profile
-  vectors are committed; S125/J101 compatibility-profile integration is active. The
+- Current checkpoint (2026-09-15): S125/J101 compatibility-profile integration
+  is committed; S126/J102 profile-aware raw capture/replay is active. The
   branch is rebased on `origin/master`, and
   the pinned source/package/consumer convergence remains complete while
   runtime and wire-format parity stay evidence-gated. The AC1015 IMAGE legacy
   boundary remains fail-closed, and all format-support claims remain limited
   to rows with eligible runtime/oracle evidence. The next dependency-ready
-  sequence is S125 compatibility-profile integration; it is a separate commit
+  sequence is S126 profile-aware raw capture/replay; it is a separate commit
   with no external or derived DWG/DXF bytes.
 - Latest implementation slice: S53/J29 RASTERVARIABLES/WIPEOUTVARIABLES parity
   is committed. The local-from-scratch production writer registers both custom
@@ -2785,9 +2785,9 @@ edit this block or commit the same slice concurrently.
   names TVDEVICEPROPERTIES and the two VX frames as UNKNOWN_OBJ, while local
   self-read remains authoritative for VX payload fields; no generated drawings
   or external assets are retained.
-- Last fully resolved slice: S124 (the explicit classifier compatibility-profile
-  vector slice is committed by the matching `Plan-Slice: S124` trailer; the commit
-  carries the safe-default/legacy-opt-in contract and focused evidence, and
+- Last fully resolved slice: S125 (the compatibility-profile integration
+  slice is committed by the matching `Plan-Slice: S125` trailer; the commit
+  carries reader profile plumbing, safe-default proof, and legacy probe evidence, and
   all required policy gates). The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
@@ -2809,18 +2809,18 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 124 (`COMMITTED`); S125 is active.
+- Resolved slices: 125 (`COMMITTED`); S126 is active.
 - Slice states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 124 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 125 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 126 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 127 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 222 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 223 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 109 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S124 are committed; S125/J101 is active with a ready packet
-  naming compatibility-profile integration and focused fast gates.
+  0 DEFERRED_EXTERNAL / 110 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S125 are committed; S126/J102 is active with a ready packet
+  naming profile-aware raw capture/replay and focused fast gates.
   Keep validation fast and
   self-updating: run source/plan/policy checks and the focused carrier target
   after each implementation item, commit only after the narrow gate is green,
@@ -2993,7 +2993,8 @@ edit this block or commit the same slice concurrently.
 | S122 | J98: binary unknown-range disposition | S121 | COMMITTED | binary reader behavior for unknown 482-998 codes; raw-capture compatibility; fail-closed versus opaque preservation decision; target/source comparison; fast DXF gate; plan/scope/sync/fixture gates | pinned target source confirms 482-998 is decoded as `DxfValueKind::Dbl` in both ASCII and binary paths, while standalone intentionally uses ASCII-opaque/binary-fail-closed handling; the divergence is explicit and remains unpromoted until a compatibility choice is implemented; no external DXF bytes | source audit, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S123 is active |
 | S123 | J99: classifier compatibility decision | S122 | COMMITTED | target-compatible versus safety-preserving classifier policy; ASCII source-spelling retention; binary unknown-width handling; 260-269 integer/boolean compatibility; focused vectors; fast DXF gate; plan/scope/sync/fixture gates | deliberate decision: retain standalone `I32` for 260-269 and ASCII-opaque/binary-fail-closed handling for 482-998 because the pinned target's boolean/double widths cannot preserve arbitrary raw values safely; the delta remains experimental, with unblock requiring a target correction or explicit consumer-selected legacy profile; no external DXF bytes | source audit, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S124 is active |
 | S124 | J100: explicit classifier compatibility-profile vectors | S123 | COMMITTED | standalone-safe default profile; target-legacy profile contract; version/format selection; parser/capture/replay agreement; focused vectors; fast DXF gate; plan/scope/sync/fixture gates | internal `DxfClassifierProfile` contract exposes standalone-safe default and explicit LibreCAD-master legacy mappings for 260-269 and 482-998; focused vectors prove both profiles and unchanged safe default; no external DXF bytes | wave1 executable, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S125 is active |
-| S125 | J101: compatibility-profile integration | S124 | ACTIVE | explicit profile plumbing boundary; no silent default changes; reader/capture/replay call-site audit; focused vectors; fast DXF gate; plan/scope/sync/fixture gates | wire the profile only through an internal diagnostic/probe boundary or record why production callers remain on the safe default; prove no accidental target-legacy selection; no external DXF bytes | active after S124 commit; use local vectors and source audit, escalating only if public API or binary wire behavior changes |
+| S125 | J101: compatibility-profile integration | S124 | COMMITTED | explicit profile plumbing boundary; no silent default changes; reader/capture/replay call-site audit; focused vectors; fast DXF gate; plan/scope/sync/fixture gates | `dxfReader` now carries an explicit classifier profile; safe default remains unchanged, while local ASCII/binary probes reproduce target legacy 260/482 routes; no public façade silently selects legacy behavior and no external DXF bytes | wave1 executable, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S126 is active |
+| S126 | J102: profile-aware raw capture/replay alignment | S125 | ACTIVE | reader profile propagation into raw capture; typed/raw variant agreement; binary/ASCII preservation; malformed rejection; safe-default regression; fast DXF gate; plan/scope/sync/fixture gates | align capture and replay with the explicit reader profile or retain a documented split where raw preservation requires the standalone-safe map; prove no profile-selected mismatch can silently corrupt a carrier; no external DXF bytes | active after S125 commit; use local streams and profile vectors, escalating only if public `dxfRW` behavior changes |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3122,7 +3123,8 @@ edit this block or commit the same slice concurrently.
 | J98 | S122 | J97 | COMMITTED | EXPERIMENTAL | Reconcile binary-reader handling of unknown 482-998 raw codes against the pinned target and standalone capture/replay contracts, implementing bounded opaque support only where evidence permits | pinned target source audit proves target 482-998 `Dbl` routing versus standalone ASCII-opaque/binary-fail-closed routing; explicit compatibility delta recorded; no external DXF bytes |
 | J99 | S123 | J98 | COMMITTED | EXPERIMENTAL | Resolve the 260-269 and 482-998 classifier compatibility delta with a target-compatible bridge or a documented standalone extension and exact unblock condition | deliberate standalone-safe extension selected; target legacy widths are documented as an experimental delta requiring target correction or explicit legacy profile; no external DXF bytes |
 | J100 | S124 | J99 | COMMITTED | EXPERIMENTAL | Make the classifier compatibility decision executable through an explicit internal profile/vector contract without changing the standalone-safe default | `DxfClassifierProfile` offers standalone-safe and LibreCAD-master legacy mappings; focused vectors pass and default callers remain safe; no external DXF bytes |
-| J101 | S125 | J100 | ACTIVE | EXPERIMENTAL | Integrate the explicit classifier profile only at a deliberate internal probe/diagnostic boundary, preventing silent target-legacy selection in production readers and replay | active packet names call-site audit, safe-default proof, and no-fixture evidence |
+| J101 | S125 | J100 | COMMITTED | EXPERIMENTAL | Integrate the explicit classifier profile only at a deliberate internal probe/diagnostic boundary, preventing silent target-legacy selection in production readers and replay | `dxfReader` profile plumbing is explicit; focused ASCII/binary probes pass and safe default remains unchanged; no external DXF bytes |
+| J102 | S126 | J101 | ACTIVE | EXPERIMENTAL | Align raw capture and replay with explicit classifier profiles, preserving safe-default carriers and rejecting profile/type mismatches transactionally | active packet names profile propagation, typed/raw agreement, and no-fixture evidence |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -3358,7 +3360,8 @@ edit this block or commit the same slice concurrently.
 | J98.1 | J98 / S122 | WP4, WP5, WP6, WP8, WP10; binary unknown-range disposition | J97 | COMMITTED | EXPERIMENTAL | compare the pinned target `dxfreader.cpp` classifier and binary `readRec` route for unknown 482-998 codes with standalone's canonical map, then document the explicit delta and its unsupported/deferred status | pinned-source audit is recorded; no external or derived DXF bytes are retained |
 | J99.1 | J99 / S123 | WP4, WP5, WP6, WP8, WP10; classifier compatibility decision | J98 | COMMITTED | EXPERIMENTAL | choose and document the deliberate safety-preserving extension for 260-269 and 482-998, retain focused vectors, and record exact consumer/unblock impact; do not silently claim target source parity | source audit, focused vectors, and policy gates pass; no external or derived DXF bytes are retained |
 | J100.1 | J100 / S124 | WP4, WP5, WP6, WP8, WP10; explicit classifier compatibility-profile vectors | J99 | COMMITTED | EXPERIMENTAL | add an internal profile/vector contract for standalone-safe versus target-legacy classifier semantics, prove the safe default remains unchanged, and record any public/binary-impact escalation | focused classifier target and policy gates pass; no external or derived DXF bytes are retained |
-| J101.1 | J101 / S125 | WP4, WP5, WP6, WP8, WP10; compatibility-profile integration | J100 | ACTIVE | EXPERIMENTAL | audit profile call sites and integrate only through an internal probe/diagnostic boundary, proving production readers and replay retain the safe default | focused classifier/replay target and policy gates pass; no external or derived DXF bytes are retained |
+| J101.1 | J101 / S125 | WP4, WP5, WP6, WP8, WP10; compatibility-profile integration | J100 | COMMITTED | EXPERIMENTAL | audit profile call sites and integrate only through an internal probe/diagnostic boundary, proving production readers and replay retain the safe default | focused classifier/replay target and policy gates pass; no external or derived DXF bytes are retained |
+| J102.1 | J102 / S126 | WP4, WP5, WP6, WP8, WP10; profile-aware raw capture/replay alignment | J101 | ACTIVE | EXPERIMENTAL | propagate the explicit profile into raw capture/replay or document a deliberate safe-default split, then prove typed/raw agreement and transactional mismatch rejection | focused classifier/replay target and policy gates pass; no external or derived DXF bytes are retained |
 
 <!-- UPGRADE_PROGRESS_END -->
 

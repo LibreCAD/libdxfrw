@@ -229,6 +229,57 @@ void testDxfClassifierBoundaryMatrix(TestContext& t) {
              "raw capture preserves typed/opaque boundary values");
 }
 
+void testDxfClassifierProfileProbe(TestContext& t) {
+    std::stringstream asciiRecords("260\n7\n482\n3.5\n");
+    dxfReaderAscii safeReader(&asciiRecords);
+    t.expect(safeReader.classifierProfile()
+                 == DxfClassifierProfile::StandaloneSafe,
+             "DXF reader defaults to standalone-safe classifier profile");
+    int code = 0;
+    t.expect(safeReader.readRec(&code) && code == 260
+                 && safeReader.type == dxfReader::INT32
+                 && safeReader.getInt32() == 7,
+             "standalone-safe probe preserves code 260 integer width");
+    t.expect(safeReader.readRec(&code) && code == 482
+                 && safeReader.type == dxfReader::STRING
+                 && safeReader.getString() == "3.5",
+             "standalone-safe probe retains opaque ASCII spelling");
+
+    std::stringstream legacyAsciiRecords("260\n7\n482\n3.5\n");
+    dxfReaderAscii legacyReader(&legacyAsciiRecords);
+    legacyReader.setClassifierProfile(
+        DxfClassifierProfile::LibreCadMasterLegacy);
+    t.expect(legacyReader.classifierProfile()
+                 == DxfClassifierProfile::LibreCadMasterLegacy,
+             "legacy classifier profile is explicit on the reader");
+    t.expect(legacyReader.readRec(&code) && code == 260
+                 && legacyReader.type == dxfReader::BOOL
+                 && legacyReader.getInt32() == 7,
+             "legacy probe reproduces code 260 boolean route");
+    t.expect(legacyReader.readRec(&code) && code == 482
+                 && legacyReader.type == dxfReader::DOUBLE
+                 && legacyReader.getDouble() == 3.5,
+             "legacy probe reproduces code 482 double route");
+
+    std::ostringstream binaryBytes;
+    dxfWriterBinary binaryWriter(&binaryBytes);
+    t.expect(binaryWriter.writeBool(260, true)
+                 && binaryWriter.writeDouble(482, 3.5),
+             "legacy binary probe fixture writes locally");
+    std::stringstream legacyBinaryRecords(binaryBytes.str());
+    dxfReaderBinary legacyBinaryReader(&legacyBinaryRecords);
+    legacyBinaryReader.setClassifierProfile(
+        DxfClassifierProfile::LibreCadMasterLegacy);
+    t.expect(legacyBinaryReader.readRec(&code) && code == 260
+                 && legacyBinaryReader.type == dxfReader::BOOL
+                 && legacyBinaryReader.getBool(),
+             "legacy binary probe reproduces code 260 width");
+    t.expect(legacyBinaryReader.readRec(&code) && code == 482
+                 && legacyBinaryReader.type == dxfReader::DOUBLE
+                 && legacyBinaryReader.getDouble() == 3.5,
+             "legacy binary probe reproduces code 482 width");
+}
+
 DRW_RawDxfObject rawBoundaryObject() {
     DRW_RawDxfObject object;
     object.name = "RAW_BOUNDARY";
@@ -698,6 +749,7 @@ int main() {
     testBufferRoundTrip(context);
     testTextAndPreR13(context);
     testDxfClassifierBoundaryMatrix(context);
+    testDxfClassifierProfileProbe(context);
     testDxfRawBoundaryReplay(context);
     testDxfRawSectionBoundaryReplay(context);
     testDxfBinaryRawBoundaryReplay(context);
