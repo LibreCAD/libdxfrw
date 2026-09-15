@@ -2337,6 +2337,119 @@ void testDxfRawEntityApplicationGroupChunkSize(TestContext& t) {
              "DXF binary application-group chunk rejects at 128 bytes transactionally");
 }
 
+void testDxfRawEntityApplicationGroupChunkCodeMatrix(TestContext& t) {
+    DRW_RawDxfObject object;
+    object.name = "LOCAL_CHUNK_CODE_MATRIX_ENTITY";
+    object.handle = 0x1Au;
+    object.m_version = DRW::AC1027;
+    object.hasRawValues = true;
+    object.groups.emplace_back(5, std::string("1A"));
+    object.groups.emplace_back(102, std::string("{CHUNK_CODES"));
+    object.rawValues = {"1A", "{CHUNK_CODES"};
+    for (int code = 310; code <= 319; ++code) {
+        const std::string value = (code & 1) == 0 ? "A1B2" : "C3D4";
+        object.groups.emplace_back(code, value);
+        object.rawValues.emplace_back(value);
+    }
+    object.groups.emplace_back(1004, std::string("01020304"));
+    object.rawValues.emplace_back("01020304");
+    object.groups.emplace_back(102, std::string("}"));
+    object.rawValues.emplace_back("}");
+    const std::map<std::uint32_t, std::uint32_t> remap = {{0x1Au, 0x3Au}};
+
+    std::ostringstream asciiOutput;
+    dxfRW asciiWriter("");
+    asciiWriter.version = DRW::AC1027;
+    asciiWriter.binFile = false;
+    asciiWriter.writer = std::make_unique<dxfWriterAscii>(&asciiOutput);
+    asciiWriter.setHandleRemap(remap);
+    t.expect(asciiWriter.writeRawDxfObject(&object),
+             "DXF ASCII replays every application-group binary chunk code");
+    int code = 0;
+    std::stringstream asciiRecords(asciiOutput.str());
+    dxfReaderAscii asciiReader(&asciiRecords);
+    bool asciiShape = asciiReader.readRec(&code) && code == 0
+        && asciiReader.getString() == object.name
+        && asciiReader.readRec(&code) && code == 5
+        && asciiReader.getString() == "3A"
+        && asciiReader.readRec(&code) && code == 102
+        && asciiReader.getString() == "{CHUNK_CODES";
+    for (int expectedCode = 310; expectedCode <= 319 && asciiShape;
+         ++expectedCode) {
+        const std::string expectedValue = (expectedCode & 1) == 0
+            ? "A1B2" : "C3D4";
+        asciiShape = asciiReader.readRec(&code) && code == expectedCode
+            && asciiReader.getString() == expectedValue;
+    }
+    asciiShape = asciiShape && asciiReader.readRec(&code) && code == 1004
+        && asciiReader.getString() == "01020304"
+        && asciiReader.readRec(&code) && code == 102
+        && asciiReader.getString() == "}";
+    t.expect(asciiShape,
+             "DXF ASCII application-group binary chunk-code matrix preserves order");
+
+    DRW_RawDxfObject binaryObject = object;
+    binaryObject.hasRawValues = false;
+    binaryObject.rawValues.clear();
+    std::ostringstream binaryOutput;
+    dxfRW binaryWriter("");
+    binaryWriter.version = DRW::AC1027;
+    binaryWriter.binFile = true;
+    binaryWriter.writer = std::make_unique<dxfWriterBinary>(&binaryOutput);
+    binaryWriter.setHandleRemap(remap);
+    t.expect(binaryWriter.writeRawDxfObject(&binaryObject),
+             "DXF binary replays every application-group binary chunk code");
+    std::stringstream binaryRecords(binaryOutput.str());
+    dxfReaderBinary binaryReader(&binaryRecords);
+    binaryReader.setClassifierProfile(DxfClassifierProfile::StandaloneSafe);
+    bool binaryShape = binaryReader.readRec(&code) && code == 0
+        && binaryReader.getString() == object.name
+        && binaryReader.readRec(&code) && code == 5
+        && binaryReader.getString() == "3A"
+        && binaryReader.readRec(&code) && code == 102
+        && binaryReader.getString() == "{CHUNK_CODES";
+    for (int expectedCode = 310; expectedCode <= 319 && binaryShape;
+         ++expectedCode) {
+        const std::string expectedValue = (expectedCode & 1) == 0
+            ? "A1B2" : "C3D4";
+        binaryShape = binaryReader.readRec(&code) && code == expectedCode
+            && binaryReader.getString() == expectedValue;
+    }
+    binaryShape = binaryShape && binaryReader.readRec(&code) && code == 1004
+        && binaryReader.getString() == "01020304"
+        && binaryReader.readRec(&code) && code == 102
+        && binaryReader.getString() == "}";
+    t.expect(binaryShape,
+             "DXF binary application-group binary chunk-code matrix preserves order");
+
+    DRW_RawDxfObject malformedAscii = object;
+    malformedAscii.groups[5] = DRW_Variant(313, std::string("ABC"));
+    malformedAscii.rawValues[5] = "ABC";
+    std::ostringstream rejectedAsciiOutput;
+    dxfRW rejectingAsciiWriter("");
+    rejectingAsciiWriter.version = DRW::AC1027;
+    rejectingAsciiWriter.binFile = false;
+    rejectingAsciiWriter.writer = std::make_unique<dxfWriterAscii>(
+        &rejectedAsciiOutput);
+    rejectingAsciiWriter.setHandleRemap(remap);
+    t.expect(!rejectingAsciiWriter.writeRawDxfObject(&malformedAscii)
+                 && rejectedAsciiOutput.str().empty(),
+             "DXF ASCII malformed chunk-code matrix rejects transactionally");
+
+    DRW_RawDxfObject malformedBinary = binaryObject;
+    malformedBinary.groups[5] = DRW_Variant(313, std::string("GG"));
+    std::ostringstream rejectedBinaryOutput;
+    dxfRW rejectingBinaryWriter("");
+    rejectingBinaryWriter.version = DRW::AC1027;
+    rejectingBinaryWriter.binFile = true;
+    rejectingBinaryWriter.writer = std::make_unique<dxfWriterBinary>(
+        &rejectedBinaryOutput);
+    rejectingBinaryWriter.setHandleRemap(remap);
+    t.expect(!rejectingBinaryWriter.writeRawDxfObject(&malformedBinary)
+                 && rejectedBinaryOutput.str().empty(),
+             "DXF binary malformed chunk-code matrix rejects transactionally");
+}
+
 void testRawCapture(TestContext& t) {
     std::stringstream records("260\n2147483647\n482\n3.14\n1004\nAB\n");
     dxfRW owner("");
@@ -2556,6 +2669,7 @@ int main() {
     testDxfRawEntityApplicationGroupReferenceMatrix(context);
     testDxfRawEntityApplicationGroupBinaryChunks(context);
     testDxfRawEntityApplicationGroupChunkSize(context);
+    testDxfRawEntityApplicationGroupChunkCodeMatrix(context);
     testRawCapture(context);
     testHatchValidationIgnoresInactiveGradient(context);
     testFixedSpaceBlockClassification(context);
