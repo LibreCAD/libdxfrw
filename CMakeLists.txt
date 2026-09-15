@@ -245,6 +245,19 @@ if(LIBDXFRW_BUILD_TESTS)
     target_link_libraries(libdxfrw_diagnostic_tests PRIVATE dxfrw)
     add_test(NAME libdxfrw_diagnostic
         COMMAND libdxfrw_diagnostic_tests)
+
+    add_executable(libdxfrw_dxf_fixture_tests
+        tests/dxf_fixture_tests.cpp
+        dwg2dxf/dx_iface.cpp)
+    target_compile_features(libdxfrw_dxf_fixture_tests PRIVATE cxx_std_17)
+    target_compile_definitions(libdxfrw_dxf_fixture_tests PRIVATE
+        LIBDXFRW_DXF_FIXTURE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/dxf")
+    target_include_directories(libdxfrw_dxf_fixture_tests PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(libdxfrw_dxf_fixture_tests PRIVATE dxfrw)
+    add_test(NAME libdxfrw_dxf_fixtures
+        COMMAND libdxfrw_dxf_fixture_tests)
 endif()
 
 # INSTALLATION

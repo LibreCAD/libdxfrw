@@ -52,8 +52,8 @@ then pin an immutable commit before importing source.
 ### Execution refresh (2026-09-15)
 
 The implementation worktree is rebased on `origin/master` and is currently
-271 commits ahead with no commits behind it. The latest green slice is
-S243/J219, including the live-plan update and its required policy gates.
+272 commits ahead with no commits behind it. The latest green slice is
+S244/J220, including the live-plan update and its required policy gates.
 There is no uncommitted local implementation slice; the next parity work is
 the evidence-gated external/runtime and release closure listed below.
 The worktree is clean at the last committed boundary; any subsequent active-
@@ -1934,10 +1934,10 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint (2026-09-15): S243/J219 DXF raw-object duplicate-handle
-  scope and reset parity is committed. Local ASCII and binary OBJECTS streams
-  preserve the first callback, suppress later duplicate self handles, enforce
-  scope across sections, and reset the scope for a fresh read session.
+- Current checkpoint (2026-09-15): S244/J220 target-fixture DXF runtime parity
+  is committed. Seven exact LibreCAD target blobs exercise CJK codepages,
+  raw classes/entities, EED, BLOCK_RECORD preview data, and OBJECTS control
+  records through the production adapter.
   The
   branch is rebased on `origin/master`, and
   the pinned source/package/consumer convergence remains complete while
@@ -2223,6 +2223,11 @@ edit this block or commit the same slice concurrently.
   keep the first duplicate self-handle callback, suppress the later record,
   enforce cross-section uniqueness, and accept the same handle in a fresh
   read session; no drawing bytes are retained.
+- Latest implementation slice: S244/J220 target-fixture DXF runtime parity is
+  committed. Exact pinned LibreCAD fixtures pass CJK decoding, raw
+  class/entity publication, EED retention, block-preview parsing, and typed
+  dictionary/material/XRECORD control callbacks through `dx_iface`; no
+  unadmitted drawing bytes are present.
 - Latest implementation slice: S172/J148 DXF raw-object duplicate-handle
   diagnostic and error-precedence qualification is committed. Local ASCII and
   binary duplicate streams preserve the legacy `BAD_CODE_PARSED` result and
@@ -3145,17 +3150,17 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 243 (`COMMITTED`); no slice is active.
+- Resolved slices: 244 (`COMMITTED`); no slice is active.
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 243 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 244 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 245 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 246 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 2 VERIFIED / 341 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 2 VERIFIED / 342 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 227 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S243 are committed; no local implementation slice is active.
+  0 DEFERRED_EXTERNAL / 228 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S244 are committed; no local implementation slice is active.
   Remaining work is evidence-gated runtime/oracle and release closure; keep
   the fast inner loop and do not promote support claims from self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -3453,6 +3458,7 @@ edit this block or commit the same slice concurrently.
 | S241 | J217: DXF raw-object wide-handle replay and remap preservation parity | S240 | COMMITTED | 16-digit handle lexemes; bounded convenience state; narrow remap non-representability; ASCII/binary replay; focused DXF gate; plan/scope/fixture gates | committed `S241`; local ASCII and binary raw objects preserve wide self/owner lexemes beyond narrow remap width; no drawing bytes committed | Wave 1 raw-object wide-handle tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S242 is active |
 | S242 | J218: DXF raw-object malformed-handle rejection parity | S241 | COMMITTED | malformed self/owner/reference lexemes; transactional rejection; ASCII/binary symmetry; sticky diagnostics; focused DXF gate; plan/scope/fixture gates | committed `S242`; local ASCII and binary raw-object writers reject malformed self/owner/reference handles transactionally with zero output and sticky errors; no drawing bytes committed | Wave 1 raw-object malformed-handle tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S243 is committed |
 | S243 | J219: DXF raw-object duplicate-handle scope and reset parity | S242 | COMMITTED | duplicate self handles; session scope; reset semantics; callback/record disposition; focused DXF gate; plan/scope/fixture gates | committed `S243`; local ASCII and binary OBJECTS streams preserve the first duplicate self-handle callback, suppress the later duplicate across sections, and reset scope for a fresh session; no drawing bytes committed | Wave 1 raw-object duplicate-scope tests, focused CTest selector, fast source/policy gates, fixture admission, import scope, pinned sync, and diff gates pass; no active slice |
+| S244 | J220: target-fixture DXF runtime parity | S243 | COMMITTED | exact pinned target DXF blobs; CJK codepages; raw classes/entities; EED; block preview; OBJECTS control records; focused fixture gate; plan/scope/sync/fixture gates | committed `S244`; seven exact LibreCAD target blobs pass the production `dx_iface` import harness for CJK decoding, raw class/entity publication, EED retention, block preview, and typed OBJECTS controls; no derived or unadmitted bytes | `libdxfrw_dxf_fixture_tests` passes; fixture admission, plan check, import scope, pinned sync, and diff gates pass; no active slice |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3700,6 +3706,7 @@ edit this block or commit the same slice concurrently.
 | J217 | S241 | J216 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-object wide-handle replay and remap preservation parity | local ASCII and binary raw objects preserve wide self/owner lexemes beyond narrow remap width; no-fixture evidence |
 | J218 | S242 | J217 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-object malformed-handle rejection parity | local ASCII and binary raw-object writers reject malformed code-5/330/340 lexemes transactionally with zero output and sticky errors; no-fixture evidence |
 | J219 | S243 | J218 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-object duplicate-handle scope and reset parity | local ASCII and binary OBJECTS streams preserve the first duplicate self-handle callback, suppress the later duplicate across sections, and reset scope for a fresh read session; no-fixture evidence |
+| J220 | S244 | J219 | COMMITTED | EXPERIMENTAL | Qualify target-fixture DXF runtime parity | seven exact pinned LibreCAD DXF blobs qualify CJK decoding, raw classes/entities, EED, block preview, and typed OBJECTS control callbacks through the production adapter; no derived or unadmitted bytes |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4054,6 +4061,7 @@ edit this block or commit the same slice concurrently.
 | J217.1 | J217 / S241 | WP4, WP5, WP6, WP8, WP10; DXF raw-object wide-handle replay and remap preservation parity | J216 | COMMITTED | EXPERIMENTAL | assert wide self/owner handle lexemes replay verbatim and ignore narrow remap keys in ASCII/binary, without external drawing bytes | focused Wave 1 raw-object wide-handle target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 | J218.1 | J218 / S242 | WP4, WP5, WP6, WP8, WP10; DXF raw-object malformed-handle rejection parity | J217 | COMMITTED | EXPERIMENTAL | assert malformed code-5/330/340 handle lexemes reject transactionally with zero ASCII/binary output and sticky diagnostics, without external drawing bytes | focused Wave 1 raw-object malformed-handle target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 | J219.1 | J219 / S243 | WP4, WP5, WP6, WP8, WP10; DXF raw-object duplicate-handle scope and reset parity | J218 | COMMITTED | EXPERIMENTAL | assert duplicate raw-object self handles suppress only the later callback within a session and reset for a fresh ASCII/binary session, without external drawing bytes | focused Wave 1 raw-object duplicate-scope target and policy gates pass; no external or derived DWG/DXF bytes are retained |
+| J220.1 | J220 / S244 | WP4, WP5, WP6, WP8, WP10; target-fixture DXF runtime parity | J219 | COMMITTED | EXPERIMENTAL | import seven exact pinned LibreCAD DXF blobs and assert CJK decoding, raw class/entity publication, EED, block preview, and OBJECTS control callbacks through `dx_iface`, without derived or unadmitted drawing bytes | `libdxfrw_dxf_fixture_tests` passes; fixture admission, plan check, import scope, pinned sync, and diff gates pass; target blob IDs and hashes are recorded in `metadata/fixture-registry.json` |
 
 <!-- UPGRADE_PROGRESS_END -->
 
