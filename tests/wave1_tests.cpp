@@ -1983,6 +1983,83 @@ void testDxfRawEntityApplicationGroupDepth(TestContext& t) {
              "DXF binary over-limit application-group depth rejects transactionally");
 }
 
+void testDxfRawEntityApplicationGroupAggregate(TestContext& t) {
+    const auto makeObject = [](std::size_t pairCount, bool hasRawValues) {
+        DRW_RawDxfObject object;
+        object.name = "LOCAL_AGGREGATE_ENTITY";
+        object.handle = 0x1Au;
+        object.m_version = DRW::AC1027;
+        object.hasRawValues = hasRawValues;
+        object.groups.emplace_back(5, std::string("1A"));
+        if (hasRawValues)
+            object.rawValues.emplace_back("1A");
+
+        const std::size_t remaining = pairCount - 1u;
+        const std::size_t markerPairs = remaining / 2u;
+        for (std::size_t i = 0; i < markerPairs; ++i) {
+            object.groups.emplace_back(102, std::string("{AGGREGATE"));
+            object.groups.emplace_back(102, std::string("}"));
+            if (hasRawValues) {
+                object.rawValues.emplace_back("{AGGREGATE");
+                object.rawValues.emplace_back("}");
+            }
+        }
+        if (object.groups.size() < pairCount) {
+            object.groups.emplace_back(1000, std::string("payload"));
+            if (hasRawValues)
+                object.rawValues.emplace_back("payload");
+        }
+        return object;
+    };
+    constexpr std::size_t maxPairs = DRW::kMaxDxfApplicationGroupPairs;
+
+    DRW_RawDxfObject asciiBoundary = makeObject(maxPairs, true);
+    std::ostringstream asciiOutput;
+    dxfRW asciiWriter("");
+    asciiWriter.version = DRW::AC1027;
+    asciiWriter.binFile = false;
+    asciiWriter.writer = std::make_unique<dxfWriterAscii>(&asciiOutput);
+    t.expect(asciiBoundary.groups.size() == maxPairs
+                 && asciiWriter.writeRawDxfObject(&asciiBoundary)
+                 && !asciiOutput.str().empty(),
+             "DXF ASCII application-group aggregate limit is accepted");
+
+    DRW_RawDxfObject binaryBoundary = makeObject(maxPairs, false);
+    std::ostringstream binaryOutput;
+    dxfRW binaryWriter("");
+    binaryWriter.version = DRW::AC1027;
+    binaryWriter.binFile = true;
+    binaryWriter.writer = std::make_unique<dxfWriterBinary>(&binaryOutput);
+    t.expect(binaryBoundary.groups.size() == maxPairs
+                 && binaryWriter.writeRawDxfObject(&binaryBoundary)
+                 && !binaryOutput.str().empty(),
+             "DXF binary application-group aggregate limit is accepted");
+
+    DRW_RawDxfObject asciiOver = makeObject(maxPairs + 1u, true);
+    std::ostringstream rejectedAsciiOutput;
+    dxfRW rejectingAsciiWriter("");
+    rejectingAsciiWriter.version = DRW::AC1027;
+    rejectingAsciiWriter.binFile = false;
+    rejectingAsciiWriter.writer = std::make_unique<dxfWriterAscii>(
+        &rejectedAsciiOutput);
+    t.expect(asciiOver.groups.size() == maxPairs + 1u
+                 && !rejectingAsciiWriter.writeRawDxfObject(&asciiOver)
+                 && rejectedAsciiOutput.str().empty(),
+             "DXF ASCII over-limit application-group aggregate rejects transactionally");
+
+    DRW_RawDxfObject binaryOver = makeObject(maxPairs + 1u, false);
+    std::ostringstream rejectedBinaryOutput;
+    dxfRW rejectingBinaryWriter("");
+    rejectingBinaryWriter.version = DRW::AC1027;
+    rejectingBinaryWriter.binFile = true;
+    rejectingBinaryWriter.writer = std::make_unique<dxfWriterBinary>(
+        &rejectedBinaryOutput);
+    t.expect(binaryOver.groups.size() == maxPairs + 1u
+                 && !rejectingBinaryWriter.writeRawDxfObject(&binaryOver)
+                 && rejectedBinaryOutput.str().empty(),
+             "DXF binary over-limit application-group aggregate rejects transactionally");
+}
+
 void testRawCapture(TestContext& t) {
     std::stringstream records("260\n2147483647\n482\n3.14\n1004\nAB\n");
     dxfRW owner("");
@@ -2197,6 +2274,7 @@ int main() {
     testDxfRawEntityHandleRemap(context);
     testDxfRawEntityApplicationGroupRemap(context);
     testDxfRawEntityApplicationGroupDepth(context);
+    testDxfRawEntityApplicationGroupAggregate(context);
     testRawCapture(context);
     testHatchValidationIgnoresInactiveGradient(context);
     testFixedSpaceBlockClassification(context);
