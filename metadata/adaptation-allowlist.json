@@ -143,7 +143,14 @@
       "reason": "Replace timestamp-plus-counter temporary names with OS-backed mkstemp creation on POSIX and randomized exclusive names on Windows; stream-reopen identity and durability remain explicit follow-up work.",
       "scope": "output transaction temporary-name hardening",
       "targetBlob": "ab60082b5a27c7c876c95aeaab8c8eaf30b39200",
-      "adaptedSha256": "93042322079385c31446658bef379459bd5d64aee114fd6ef4cd9aed1b1b1f43"
+      "adaptedSha256": "cb6451eb58fbd6427236b87796cc576cd93f2d57e2f1618a0d7187d867420dcf"
+    },
+    {
+      "path": "src/intern/dwg_dxf_output_transaction.h",
+      "reason": "Retain the exclusive temporary descriptor through stream open and commit/abort identity checks, preventing a substituted pathname from being published or removed as if it were owned.",
+      "scope": "output transaction identity hardening",
+      "targetBlob": "c3ab578d52761c4cdfddb1288376a03bd44db86d",
+      "adaptedSha256": "b6e475bbe423331afb61c4e4be21be760a5f2a423ebc09c1c09bc7bf6d44e83b"
     },
     {
       "path": "src/intern/drw_dbg.cpp",

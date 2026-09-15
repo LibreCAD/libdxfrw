@@ -35,6 +35,7 @@
 #  include <windows.h>
 #else
 #  include <fcntl.h>
+#  include <sys/stat.h>
 #  include <unistd.h>
 #endif
 
@@ -45,6 +46,8 @@ DwgDxfOutputTransaction::DwgDxfOutputTransaction(
 DwgDxfOutputTransaction::~DwgDxfOutputTransaction() {
     if (!m_committed)
         abort();
+    else
+        closeExclusiveDescriptor();
 }
 
 bool DwgDxfOutputTransaction::createExclusiveTemporary() {
@@ -69,7 +72,7 @@ bool DwgDxfOutputTransaction::createExclusiveTemporary() {
             _S_IREAD | _S_IWRITE);
         if (descriptor < 0)
             continue;
-        _close(descriptor);
+        m_exclusiveDescriptor = descriptor;
         return true;
     }
 #else
@@ -80,12 +83,47 @@ bool DwgDxfOutputTransaction::createExclusiveTemporary() {
     const int descriptor = ::mkstemp(mutablePattern.data());
     if (descriptor >= 0) {
         m_temporary = std::filesystem::path(mutablePattern.data());
-        ::close(descriptor);
+        m_exclusiveDescriptor = descriptor;
         return true;
     }
 #endif
     m_temporary.clear();
     return false;
+}
+
+bool DwgDxfOutputTransaction::temporaryIdentityMatches() const noexcept {
+    if (m_exclusiveDescriptor < 0 || m_temporary.empty())
+        return false;
+#if defined(_WIN32)
+    struct _stat64 descriptorStatus {
+    };
+    struct _stat64 pathStatus {
+    };
+    return _fstat64(m_exclusiveDescriptor, &descriptorStatus) == 0
+           && _wstat64(m_temporary.c_str(), &pathStatus) == 0
+           && descriptorStatus.st_dev == pathStatus.st_dev
+           && descriptorStatus.st_ino == pathStatus.st_ino;
+#else
+    struct stat descriptorStatus {
+    };
+    struct stat pathStatus {
+    };
+    return ::fstat(m_exclusiveDescriptor, &descriptorStatus) == 0
+           && ::stat(m_temporary.c_str(), &pathStatus) == 0
+           && descriptorStatus.st_dev == pathStatus.st_dev
+           && descriptorStatus.st_ino == pathStatus.st_ino;
+#endif
+}
+
+void DwgDxfOutputTransaction::closeExclusiveDescriptor() noexcept {
+    if (m_exclusiveDescriptor < 0)
+        return;
+#if defined(_WIN32)
+    _close(m_exclusiveDescriptor);
+#else
+    ::close(m_exclusiveDescriptor);
+#endif
+    m_exclusiveDescriptor = -1;
 }
 
 bool DwgDxfOutputTransaction::open() {
@@ -95,7 +133,7 @@ bool DwgDxfOutputTransaction::open() {
     // The file was created exclusively above.  Do not pass ios::trunc here:
     // reopening with truncation would reintroduce a race with a stale name.
     m_stream.open(m_temporary, m_mode | std::ios::out);
-    if (!m_stream.is_open() || !m_stream.good()) {
+    if (!m_stream.is_open() || !m_stream.good() || !temporaryIdentityMatches()) {
         abort();
         return false;
     }
@@ -122,12 +160,17 @@ bool DwgDxfOutputTransaction::commit() {
         abort();
         return false;
     }
+    if (!temporaryIdentityMatches()) {
+        abort();
+        return false;
+    }
     m_stream.close();
-    if (m_stream.fail() || !publish()) {
+    if (m_stream.fail() || !temporaryIdentityMatches() || !publish()) {
         abort();
         return false;
     }
     m_committed = true;
+    closeExclusiveDescriptor();
     m_temporary.clear();
     return true;
 }
@@ -136,8 +179,11 @@ void DwgDxfOutputTransaction::abort() noexcept {
     if (m_stream.is_open())
         m_stream.close();
     if (!m_temporary.empty()) {
-        std::error_code ignored;
-        std::filesystem::remove(m_temporary, ignored);
+        if (temporaryIdentityMatches()) {
+            std::error_code ignored;
+            std::filesystem::remove(m_temporary, ignored);
+        }
+        closeExclusiveDescriptor();
         m_temporary.clear();
     }
 }

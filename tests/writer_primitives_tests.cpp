@@ -226,12 +226,13 @@ std::filesystem::path transactionTestPath(const char* suffix) {
               + std::to_string(stamp) + ".dwg");
 }
 
-std::size_t transactionTemporaryCount(const std::filesystem::path& target) {
+std::vector<std::filesystem::path> transactionTemporaryPaths(
+    const std::filesystem::path& target) {
     const std::filesystem::path directory =
         target.parent_path().empty() ? std::filesystem::path(".")
                                      : target.parent_path();
     const std::string prefix = target.filename().string() + ".libdxfrw-";
-    std::size_t count = 0;
+    std::vector<std::filesystem::path> paths;
     std::error_code error;
     for (const std::filesystem::directory_entry& entry :
          std::filesystem::directory_iterator(directory, error)) {
@@ -239,9 +240,13 @@ std::size_t transactionTemporaryCount(const std::filesystem::path& target) {
             break;
         const std::string name = entry.path().filename().string();
         if (name.rfind(prefix, 0) == 0)
-            ++count;
+            paths.push_back(entry.path());
     }
-    return count;
+    return paths;
+}
+
+std::size_t transactionTemporaryCount(const std::filesystem::path& target) {
+    return transactionTemporaryPaths(target).size();
 }
 
 void testOutputTransactionPublicationAndRollback(TestContext& t) {
@@ -304,6 +309,40 @@ void testOutputTransactionPublicationAndRollback(TestContext& t) {
         std::istreambuf_iterator<char>());
     t.expect(preservedContents == "original",
              "aborted output transaction preserves the destination");
+
+    {
+        DwgDxfOutputTransaction transaction(target.string(), std::ios::binary);
+        t.expect(transaction.open(),
+                 "identity-check transaction opens an exclusive temporary");
+        transaction.stream() << "not published";
+        const std::vector<std::filesystem::path> paths =
+            transactionTemporaryPaths(target);
+        t.expect(paths.size() == 1,
+                 "identity-check transaction exposes one temporary path");
+        const std::filesystem::path attacker =
+            target.parent_path() / (target.filename().string() + ".libdxfrw-attacker");
+        {
+            std::ofstream replacement(attacker,
+                                      std::ios::binary | std::ios::trunc);
+            replacement << "substituted";
+        }
+        std::error_code substitutionError;
+        std::filesystem::rename(attacker, paths.front(), substitutionError);
+        t.expect(!substitutionError,
+                 "identity-check test substitutes the temporary pathname");
+        t.expect(!transaction.commit(),
+                 "temporary pathname substitution rejects commit");
+        t.expect(std::filesystem::exists(paths.front()),
+                 "failed identity check does not delete an unowned replacement");
+        std::filesystem::remove(paths.front(), ignored);
+    }
+
+    std::ifstream preservedAfterSubstitution(target, std::ios::binary);
+    const std::string substitutionContents(
+        (std::istreambuf_iterator<char>(preservedAfterSubstitution)),
+        std::istreambuf_iterator<char>());
+    t.expect(substitutionContents == "original",
+             "temporary pathname substitution preserves the destination");
 
     const std::filesystem::path missing =
         target.parent_path() / "libdxfrw-s248-missing-parent" / "out.dwg";

@@ -50,12 +50,15 @@ public:
 
 private:
     bool createExclusiveTemporary();
+    bool temporaryIdentityMatches() const noexcept;
+    void closeExclusiveDescriptor() noexcept;
     bool publish();
 
     std::filesystem::path m_target;
     std::filesystem::path m_temporary;
     std::ios::openmode m_mode;
     std::ofstream m_stream;
+    int m_exclusiveDescriptor {-1};
     bool m_committed {false};
 };
 
