@@ -4732,6 +4732,8 @@ public:
         section_.m_name = "LocalRawS110";
         section_.m_version = DRW::AC1027;
         section_.m_data = {0x53u, 0x31u, 0x31u, 0x30u, 0x01u};
+        cData = &data_;
+        currentBlock = data_.mBlock;
     }
 
     void writeHeader(DRW_Header& data) override { data.vars.clear(); }
@@ -4801,6 +4803,7 @@ public:
     bool capturedSecondFrame_ {false};
     bool replayedSection_ {false};
     bool rejectedDuplicateSection_ {false};
+    dx_data data_;
 };
 
 bool runRawDwgReplayContract() {
@@ -4820,8 +4823,29 @@ bool runRawDwgReplayContract() {
         std::filesystem::remove(output, ec);
         return false;
     }
+
+    dwgRW reader(output.string().c_str());
+    LocalRawReplayInterface readIface;
+    const bool readOk = reader.read(&readIface, true);
+    const auto findObject = [&readIface](std::uint32_t handle)
+        -> const DRW_UnsupportedObject* {
+        for (const DRW_UnsupportedObject& object : readIface.readObjects_) {
+            if (object.m_handle == handle)
+                return &object;
+        }
+        return nullptr;
+    };
+    const DRW_UnsupportedObject* first = findObject(0x700u);
+    const DRW_UnsupportedObject* second = findObject(0x702u);
+    const bool readContract = readOk && first != nullptr && second != nullptr
+        && readIface.readSections_.size() == 1
+        && readIface.readSections_.front().m_name == "LocalRawS110"
+        && readIface.readSections_.front().m_data == writeIface.section_.m_data
+        && first->m_handle == 0x700u && second->m_handle == 0x702u
+        && first->m_className == "AcDbLocalRawReplay"
+        && second->m_className == "AcDbLocalRawReplay";
     std::filesystem::remove(output, ec);
-    const bool result = writeIface.capturedFirstFrame_
+    const bool result = readContract && writeIface.capturedFirstFrame_
         && writeIface.firstFrame_.objectHandle == 0x700u
         && writeIface.firstFrame_.classNumber >= 500
         && writeIface.capturedSecondFrame_
