@@ -51,6 +51,19 @@ def check(prefix: Path, cxx: str) -> None:
         consumer = root / "consumer.cpp"
         consumer.write_text(
             "#include <libdxfrw.h>\n"
+            "static bool configure_librecad_dxf_adapter(dxfRW& codec) {\n"
+            "  codec.setDxfCompatibilityProfile(\n"
+            "      dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy);\n"
+            "  using Read = bool (dxfRW::*)(DRW_Interface*, bool);\n"
+            "  using ReadAscii = bool (dxfRW::*)(DRW_Interface*, bool, std::string&);\n"
+            "  using Write = bool (dxfRW::*)(DRW_Interface*, DRW::Version, bool);\n"
+            "  const Read read = &dxfRW::read;\n"
+            "  const ReadAscii readAscii = &dxfRW::readAscii;\n"
+            "  const Write write = &dxfRW::write;\n"
+            "  (void)read; (void)readAscii; (void)write;\n"
+            "  return codec.dxfCompatibilityProfile() ==\n"
+            "      dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy;\n"
+            "}\n"
             "int main() {\n"
             "  dxfRW writer(\"\");\n"
             "  if (writer.dxfCompatibilityProfile() !=\n"
@@ -61,6 +74,7 @@ def check(prefix: Path, cxx: str) -> None:
             "      dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy) return 2;\n"
             "  writer.setDxfCompatibilityProfile(\n"
             "      dxfRW::DxfCompatibilityProfile::StandaloneSafe);\n"
+            "  if (!configure_librecad_dxf_adapter(writer)) return 3;\n"
             "  return writer.getError();\n"
             "}\n",
             encoding="utf-8")
