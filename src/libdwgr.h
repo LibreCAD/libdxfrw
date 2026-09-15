@@ -217,6 +217,20 @@ public:
     [[nodiscard]] bool readBuffer(const std::uint8_t *data, std::uint64_t size,
                     DRW_Interface *interface_, bool ext);
 
+    /**
+     * Set the aggregate object-map entry ceiling for each subsequent DWG
+     * read. The default is a resource limit of one million entries, not a
+     * DWG semantic maximum; set zero to reject the first entry or raise it
+     * explicitly for intentionally larger inputs.
+     */
+    void setDwgReadObjectBudget(std::size_t maxObjects) noexcept {
+        m_dwgReadObjectBudget = maxObjects;
+    }
+    /** Return the aggregate object-map ceiling used by subsequent DWG reads. */
+    std::size_t dwgReadObjectBudget() const noexcept {
+        return m_dwgReadObjectBudget;
+    }
+
     /// Write the in-memory model (driven via DRW_Interface callbacks)
     /// out to the file named at construction.
     /// The `bin` parameter is ignored — DWG is always binary — but
@@ -785,6 +799,7 @@ private:
     std::vector<std::string> m_layerNameOrder;
     std::vector<std::string> m_ltypeNameOrder;
     WriteSkipCounters m_writeSkipCounters;
+    std::size_t m_dwgReadObjectBudget { 1000000u };
     std::size_t m_successfulEntityWrites { 0 };
     std::uint32_t m_lastSuccessfulEntityHandle { 0 };
     DRW::DwgObjectFrameReceipt m_lastDwgObjectFrame;

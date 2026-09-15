@@ -5951,16 +5951,18 @@ bool dwgReader::readDwgHandles(dwgBuffer *dbuf, std::uint64_t offset,
 
   // Each entry is >= 2 bytes (a 1-byte-minimum modular-char handle delta +
   // a 1-byte-minimum modular-char location delta), so size/2 is a safe
-  // upper bound on entry count. Avoids repeated rehashing while the loop
-  // below fills ObjectMap -- large DWGs have hundreds of thousands of
-  // handles.
+  // upper bound on entry count. Cap the reservation by the aggregate work
+  // budget as well: a hostile section must not allocate for more entries
+  // than the operation is willing to inspect.
   std::unordered_map<std::uint32_t, objHandle> stagedMap;
   std::unordered_set<std::uint32_t> stagedOffsets;
   std::vector<objHandle> stagedEntries;
-  if (size / 2 > static_cast<std::uint64_t>(std::numeric_limits<int>::max()) ||
-      !DRW::reserve(stagedMap, static_cast<int>(size / 2)) ||
-      !DRW::reserve(stagedOffsets, static_cast<int>(size / 2)) ||
-      !DRW::reserve(stagedEntries, static_cast<int>(size / 2))) {
+  const std::uint64_t budget = static_cast<std::uint64_t>(m_readObjectBudget);
+  const std::uint64_t reserveCount = std::min(size / 2, budget);
+  if (reserveCount > static_cast<std::uint64_t>(std::numeric_limits<int>::max()) ||
+      !DRW::reserve(stagedMap, static_cast<int>(reserveCount)) ||
+      !DRW::reserve(stagedOffsets, static_cast<int>(reserveCount)) ||
+      !DRW::reserve(stagedEntries, static_cast<int>(reserveCount))) {
     recordFailure(DwgIntegrityCheckKind::ObjectMapProgress, offset, true);
     return false;
   }
@@ -6080,6 +6082,14 @@ bool dwgReader::readDwgHandles(dwgBuffer *dbuf, std::uint64_t offset,
           recordFailure(DwgIntegrityCheckKind::ObjectMapDuplicateOffset,
                         startPos + prevPos, true, 0, objectOffset, true);
           DRW_DBG("duplicate object-map offset\n");
+          return false;
+        }
+        if (!consumeReadObjectBudget()) {
+          recordFailure(DwgIntegrityCheckKind::ObjectMapProgress,
+                        startPos + prevPos, true,
+                        static_cast<std::uint64_t>(m_readObjectBudget),
+                        static_cast<std::uint64_t>(m_readObjectCount), true);
+          DRW_DBG("object map aggregate budget exhausted\n");
           return false;
         }
         const objHandle entry(0, handleKey, objectOffset,

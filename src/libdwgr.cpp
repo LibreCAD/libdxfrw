@@ -3461,9 +3461,18 @@ bool dwgRW::processDwg() {
 
     ret2 = reader->readDwgHandles();
     if (ret && !ret2) {
-        recordOperationDiagnostic(
-            DRW::OperationPhase::Handles, DRW::OperationCause::ReadFailure,
-            "read-handles", "the DWG handle map could not be read");
+        if (reader->readObjectBudgetExceeded()) {
+            recordOperationDiagnostic(
+                DRW::OperationPhase::Validation,
+                DRW::OperationCause::ResourceLimit,
+                "dwg-object-budget",
+                "the aggregate DWG object-map budget was exhausted");
+        } else {
+            recordOperationDiagnostic(
+                DRW::OperationPhase::Handles,
+                DRW::OperationCause::ReadFailure,
+                "read-handles", "the DWG handle map could not be read");
+        }
         error = DRW::BAD_READ_HANDLES;
         ret = ret2;
     }

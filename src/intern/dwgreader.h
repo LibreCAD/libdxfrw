@@ -240,7 +240,10 @@ public:
   };
 
   dwgReader(std::unique_ptr<dwgBuffer> buffer, dwgRW *p)
-      : fileBuf{std::move(buffer)}, parent{p} {
+      : fileBuf{std::move(buffer)}, parent{p},
+        m_readObjectBudget{p != nullptr
+                               ? p->dwgReadObjectBudget()
+                               : dwgSafety::MaxDwgReadObjectCount} {
     decoder.setVersion(DRW::AC1021, false); // default 2007 in utf8(no convert)
     decoder.setCodePage("UTF-16", false);
     //        blockCtrl=0; //RLZ: temporary
@@ -248,6 +251,13 @@ public:
     //        ucsCtrl=vportCtrl=appidCtrl=dimstyleCtrl=vpEntHeaderCtrl=0;
   }
   virtual ~dwgReader();
+
+  [[nodiscard]] bool readObjectBudgetExceeded() const noexcept {
+    return m_readObjectBudgetExceeded;
+  }
+  [[nodiscard]] std::size_t readObjectCount() const noexcept {
+    return m_readObjectCount;
+  }
 
 protected:
   struct DwgSourceFrameLease;
@@ -587,6 +597,14 @@ protected:
       std::uint64_t locationLimit = (std::numeric_limits<std::uint64_t>::max)(),
       DwgIntegrityAddressSpace offsetSpace = DwgIntegrityAddressSpace::None,
       std::int32_t sectionDescriptorId = -1);
+  [[nodiscard]] bool consumeReadObjectBudget() noexcept {
+    if (m_readObjectCount >= m_readObjectBudget) {
+      m_readObjectBudgetExceeded = true;
+      return false;
+    }
+    ++m_readObjectCount;
+    return true;
+  }
   void addIntegrityDiagnostic(DwgIntegrityDiagnostic diagnostic) noexcept;
   void recordIntegrityDiagnostic(
       DwgIntegritySeverity severity, DwgIntegrityAddressSpace offsetSpace,
@@ -1184,6 +1202,13 @@ protected:
   // are one of the standard sections.
   std::vector<dwgSectionInfo> m_unknownSections;
   std::unordered_map<std::uint32_t, DRW_Class *> classesmap;
+
+  // Aggregate object-map work budget for the current read operation. The
+  // HANDLE stream is the first point where every physical object is known,
+  // so enforcing the ceiling there bounds both staging and downstream work.
+  std::size_t m_readObjectBudget {dwgSafety::MaxDwgReadObjectCount};
+  std::size_t m_readObjectCount {0};
+  bool m_readObjectBudgetExceeded {false};
 
 protected:
   std::unordered_map<std::uint32_t, std::uint64_t> m_dwgClassNumberOrdinals;

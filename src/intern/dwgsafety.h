@@ -36,6 +36,11 @@ constexpr std::uint32_t MaxReactorCount = 1000000;
 // handle sequences. Keep the allocation ceiling aligned with reactor lists;
 // the enclosing object-body bound remains the primary format limit.
 constexpr std::uint32_t MaxOwnedObjectCount = 1000000;
+// A HANDLE map can contain many individually valid frames. Bound the total
+// object-map work per read while allowing callers to raise the ceiling for
+// intentionally larger drawings.
+constexpr std::size_t MaxDwgReadObjectCount =
+    static_cast<std::size_t>(MaxOwnedObjectCount);
 // Journalled BLOCK delivery can emit a typed/raw pair plus a receipt per
 // source, with separate semantic and receipt events for both delimiters.
 constexpr std::uint32_t MaxBlockJournalEventCount =

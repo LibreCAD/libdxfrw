@@ -45,21 +45,35 @@
       "reason": "Provide a deprecated composition-based dwgR read façade instead of an unsafe alias to dwgRW, and expose the diagnostic snapshot on both façade spellings.",
       "scope": "source compatibility",
       "targetBlob": "7d184f55c632599901f2072f42c80b0b9dd24c03",
-      "adaptedSha256": "2711545557c979b06066016ecd367ccff0972b2d8508d2699b1ea7966a7703fc"
+      "adaptedSha256": "707b50f774960e64b9b5e17112f36d3280a44584b5cfc613fc099fb48da0be13"
     },
     {
       "path": "src/libdwgr.cpp",
       "reason": "Define the out-of-line dwgR forwarding façade, preserve null DWG argument/error compatibility, and instrument stage-aware operation diagnostics.",
       "scope": "source compatibility",
       "targetBlob": "d1237b166b0ac0a03120c3b2eb6213e890832862",
-      "adaptedSha256": "7cf4b5376a1e216eb6f657b8d4e604876539722de3a59eeb79bbcd793930e375"
+      "adaptedSha256": "93a067b7e0635486be9dc4e644f7aa9efc3f7738a68286e83ee2178f2c2a8eb3"
     },
     {
       "path": "src/intern/dwgreader.cpp",
-      "reason": "Remove two unused target locals exposed by standalone -Werror compilation and route the fixed-type GEOPOSITIONMARKER entity through the mapped reader instead of treating its legacy class ordinal as an opaque object.",
-      "scope": "warning hygiene",
+      "reason": "Remove two unused target locals exposed by standalone -Werror compilation, route the fixed-type GEOPOSITIONMARKER entity through the mapped reader instead of treating its legacy class ordinal as an opaque object, and cap HANDLE-map staging plus aggregate object-map work per read.",
+      "scope": "warning hygiene and DWG resource-limit hardening",
       "targetBlob": "ae471df1928269fb8b81009bcd1821d304a003de",
-      "adaptedSha256": "e9fb92bdf2a222dbb74e1eabd0a3f2d7307d19d0da172ca89818211799200878"
+      "adaptedSha256": "01716132cb1da14754ce6331f532e16ebd258f10586b10693fbe9ae9986a7378"
+    },
+    {
+      "path": "src/intern/dwgreader.h",
+      "reason": "Carry a configurable aggregate DWG object-map budget into each reader and expose bounded-read status for structured resource diagnostics without changing the public callback contract.",
+      "scope": "DWG resource-limit hardening",
+      "targetBlob": "fdf48bb242fac317e82addd7fbcf066e439fc3ad",
+      "adaptedSha256": "8664782313368ba2a96deacf5c3ea0a8f12a14000b1539ef175be121f1d38d0d"
+    },
+    {
+      "path": "src/intern/dwgsafety.h",
+      "reason": "Define the default aggregate DWG object-map work ceiling alongside existing per-operation safety bounds while allowing explicit caller overrides.",
+      "scope": "DWG resource-limit hardening",
+      "targetBlob": "d8cdf63eb2ed081be2fad8363665d51f431fbcf0",
+      "adaptedSha256": "f0b04123b677c9b6754eea2551a704ec13f025646aac534394477e9a29d22f13"
     },
     {
       "path": "src/intern/dwgreader21.cpp",

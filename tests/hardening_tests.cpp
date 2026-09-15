@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <iostream>
 #include <limits>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -10,6 +11,7 @@
 #include "drw_base.h"
 #include "drw_datastorage.h"
 #include "intern/dwgsafety.h"
+#include "intern/dwgreader15.h"
 #include "intern/proxygraphicdecoder.h"
 #include "libdxfrw.h"
 #include "libdwgr.h"
@@ -395,6 +397,64 @@ void testDxfAggregateRecordBudget(TestContext& t) {
              "raising the DXF budget permits a fresh read session");
 }
 
+class ExposedDwgReader15 final : public dwgReader15 {
+public:
+    ExposedDwgReader15(std::unique_ptr<dwgBuffer> buffer, dwgRW* parent)
+        : dwgReader15(std::move(buffer), parent) {}
+
+    using dwgReader::readDwgHandles;
+
+    void setObjectBudget(std::size_t budget) noexcept {
+        m_readObjectBudget = budget;
+    }
+
+    bool readHandleMap(std::uint64_t size) {
+        return readDwgHandles(
+            fileBuf.get(), 0, size,
+            (std::numeric_limits<std::uint64_t>::max)(),
+            DwgIntegrityAddressSpace::None, -1);
+    }
+};
+
+std::vector<std::uint8_t> makeDwgHandleMapVector() {
+    // One data group (size=4, handle/location deltas 1/1) followed by the
+    // empty terminator group. CRCs cover each size/data span and are computed
+    // from the same in-memory bytes the reader receives.
+    std::vector<std::uint8_t> bytes {
+        0, 4, 1, 1, 0, 0,
+        0, 2, 0, 0};
+    dwgBuffer buffer(bytes.data(), bytes.size());
+    const std::uint16_t dataCrc = buffer.crc8(0xc0c1, 0, 4);
+    const std::uint16_t terminatorCrc = buffer.crc8(0xc0c1, 6, 8);
+    bytes[4] = static_cast<std::uint8_t>(dataCrc >> 8);
+    bytes[5] = static_cast<std::uint8_t>(dataCrc);
+    bytes[8] = static_cast<std::uint8_t>(terminatorCrc >> 8);
+    bytes[9] = static_cast<std::uint8_t>(terminatorCrc);
+    return bytes;
+}
+
+void testDwgAggregateObjectBudget(TestContext& t) {
+    std::vector<std::uint8_t> bytes = makeDwgHandleMapVector();
+    dwgRW owner(nullptr);
+    owner.setDwgReadObjectBudget(0u);
+    ExposedDwgReader15 limited(
+        std::make_unique<dwgBuffer>(bytes.data(), bytes.size()),
+        &owner);
+    t.expect(!limited.readHandleMap(bytes.size())
+                 && limited.readObjectBudgetExceeded(),
+             "DWG aggregate object budget rejects an exhausted handle map");
+
+    dwgRW retryOwner(nullptr);
+    retryOwner.setDwgReadObjectBudget(1u);
+    ExposedDwgReader15 retry(
+        std::make_unique<dwgBuffer>(bytes.data(), bytes.size()),
+        &retryOwner);
+    t.expect(retry.readHandleMap(bytes.size())
+                 && retry.ObjectMap.size() == 1u
+                 && !retry.readObjectBudgetExceeded(),
+             "DWG object budget permits a bounded valid handle map");
+}
+
 } // namespace
 
 int main() {
@@ -408,6 +468,7 @@ int main() {
     testDxfReadResetsHeaderState(context);
     testDwgReadResetsVersionState(context);
     testDxfAggregateRecordBudget(context);
+    testDwgAggregateObjectBudget(context);
     if (context.failures != 0) {
         std::cerr << context.failures << " hardening assertion(s) failed\n";
         return 1;
