@@ -1780,6 +1780,34 @@ void testDxfRawEntityHandleRemap(TestContext& t) {
                  && binaryReader.readRec(&code) && code == 340
                  && binaryReader.getString() == wideReference,
              "DXF binary remap preserves wide reference identity verbatim");
+
+    DRW_RawDxfObject malformedAscii = object;
+    malformedAscii.groups.push_back(
+        DRW_Variant(260, std::string("not-an-int")));
+    malformedAscii.rawValues.push_back("not-an-int");
+    std::ostringstream rejectedAsciiOutput;
+    dxfRW rejectingAsciiWriter("");
+    rejectingAsciiWriter.version = DRW::AC1027;
+    rejectingAsciiWriter.binFile = false;
+    rejectingAsciiWriter.writer = std::make_unique<dxfWriterAscii>(
+        &rejectedAsciiOutput);
+    rejectingAsciiWriter.setHandleRemap({{0x1Au, 0x3Au}, {0x2Au, 0x4Au}});
+    t.expect(!rejectingAsciiWriter.writeRawDxfObject(&malformedAscii)
+                 && rejectedAsciiOutput.str().empty(),
+             "DXF ASCII remap rolls back when a trailing group is malformed");
+
+    DRW_RawDxfObject malformedBinary = binaryObject;
+    malformedBinary.groups.push_back(DRW_Variant(1004, std::string("ABC")));
+    std::ostringstream rejectedBinaryOutput;
+    dxfRW rejectingBinaryWriter("");
+    rejectingBinaryWriter.version = DRW::AC1027;
+    rejectingBinaryWriter.binFile = true;
+    rejectingBinaryWriter.writer = std::make_unique<dxfWriterBinary>(
+        &rejectedBinaryOutput);
+    rejectingBinaryWriter.setHandleRemap({{0x1Au, 0x3Au}, {0x2Au, 0x4Au}});
+    t.expect(!rejectingBinaryWriter.writeRawDxfObject(&malformedBinary)
+                 && rejectedBinaryOutput.str().empty(),
+             "DXF binary remap rolls back malformed trailing chunks");
 }
 
 void testRawCapture(TestContext& t) {
