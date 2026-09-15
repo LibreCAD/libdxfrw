@@ -3748,6 +3748,28 @@ void testDxfRawSectionCommentPreservation(TestContext& t) {
              "DXF binary raw section rejects code-999 comments transactionally");
 }
 
+void testDxfRawSectionCommentReadPolicy(TestContext& t) {
+    const std::string content =
+        "0\nSECTION\n2\nLOCAL_COMMENT_READ\n"
+        "999\nbefore comment\n1000\npayload\n999\nafter COMMENT\n"
+        "0\nENDSEC\n0\nEOF\n";
+    ProfileProbeInterface interface_;
+    dxfRW reader("");
+    std::string input = content;
+    t.expect(reader.readAscii(&interface_, false, input)
+                 && interface_.sections.size() == 1,
+             "DXF ASCII raw section reads through code-999 comments");
+    if (interface_.sections.size() == 1) {
+        const DRW_RawDxfSection& captured = interface_.sections.front();
+        t.expect(captured.m_groups.size() == 1
+                     && captured.m_groups.front().code() == 1000
+                     && std::string(captured.m_groups.front().c_str()) == "payload"
+                     && captured.m_rawValues.size() == 1
+                     && captured.m_rawValues.front() == "payload",
+                 "DXF ASCII raw section filters comments but retains payload");
+    }
+}
+
 void testDxfRawSectionApplicationGroupMarker(TestContext& t) {
     const std::vector<std::string> invalidMarkers = {"{", "NOT_A_MARKER"};
     for (const std::string& marker : invalidMarkers) {
@@ -4103,6 +4125,7 @@ int main() {
     testDxfRawSectionVersionCompatibility(context);
     testDxfRawSectionEmptyPayload(context);
     testDxfRawSectionCommentPreservation(context);
+    testDxfRawSectionCommentReadPolicy(context);
     testDxfRawSectionApplicationGroupMarker(context);
     testDxfRawSectionApplicationGroupReferenceMatrix(context);
     testRawCapture(context);
