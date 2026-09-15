@@ -52,8 +52,8 @@ then pin an immutable commit before importing source.
 ### Execution refresh (2026-09-15)
 
 The implementation worktree is rebased on `origin/master` and is currently
-301 commits ahead with no commits behind it. The latest green slice is
-S273/J249, including the live-plan update and its required policy gates.
+302 commits ahead with no commits behind it. The latest green slice is
+S274/J250, including the live-plan update and its required policy gates.
 There is no uncommitted local implementation slice; the next parity work is
 the evidence-gated external/runtime and release closure listed below.
 The worktree is clean at the last committed boundary; any subsequent active-
@@ -2030,6 +2030,14 @@ edit this block or commit the same slice concurrently.
   weakening the reader or promoting support. The hash/semantic report is
   temporary at `/private/tmp/libdxfrw-s273-target-package-differential.json`;
   no drawing bytes were added.
+- Latest differential-harness slice (2026-09-15): S274/J250 adds
+  `tools/run_json_target_package_differential.py`, a shell-free, timeout-bound
+  runner that accepts only locked/local-from-scratch fixture provenance and
+  emits hashes plus bounded semantic summaries. Its self-test and fast CTest
+  entry pass in 0.63s. The live 15-fixture run is intentionally fail-closed at
+  `14 equal / 1 delta`, reproducing the S273 AC1021 target-debt result without
+  storing drawing bytes; the mismatch remains experimental and requires target
+  review or independent evidence before promotion.
 - Previous checkpoint (2026-09-15): S257/J233 post-hardening validation
   checkpoint is committed. A fresh C++17 build and all 26 dependency-free
   CTest entries pass in 6.26 seconds, including source-route and release
@@ -3325,17 +3333,17 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 273 (`COMMITTED`); no slice is active.
+- Resolved slices: 274 (`COMMITTED`); no slice is active.
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 273 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 274 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 275 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 276 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 370 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 371 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 259 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S273 are committed; no local implementation slice is active.
+  0 DEFERRED_EXTERNAL / 260 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S274 are committed; no local implementation slice is active.
   Remaining work is evidence-gated runtime/oracle and release closure; keep
   the fast inner loop and do not promote support claims from self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -3663,6 +3671,7 @@ edit this block or commit the same slice concurrently.
 | S271 | J247: MULTILEADER string-boundary hardening | S270 | COMMITTED | shared table-string ceiling for context and legacy block-label text; transactional rejection; focused hardening and policy gates | oversized context text and AC1021 block-label text are rejected before DXF publication; release and ASan/UBSan hardening pass; no drawing fixtures or derived payloads | native Windows, longer fuzz, package, and parity-promotion evidence remain scheduled |
 | S272 | J248: installed-package LibreCAD consumer validation | S271 | COMMITTED | staged package relocation/header closure; system-mode filter compile; full `librecad_lib` consumer build; package/scope/fixture gates | fresh staged-package validation, `librecad_filter_compile_check`, and full LibreCAD `librecad_lib` build pass against the pinned target; no drawing fixtures or derived payloads | native Windows, longer fuzz, external differential, and parity-promotion evidence remain scheduled |
 | S273 | J249: bundled-target versus installed-package JSON differential | S272 | COMMITTED | identical target/package dumper inputs over all 15 locked fixtures; normalized JSON/hash comparison; target-debt classification; no-fixture policy and differential evidence | 14/15 fixtures are byte/JSON identical; AC1021 ordinary ENC is the sole delta (target zero entities, standalone expected three LINEs) and is retained as target debt; report is hash/summary-only in `/private/tmp`; no drawing fixtures or derived payloads | continue with target-debt review, broader eligible differential/oracle evidence, and release closure |
+| S274 | J250: reproducible JSON target/package differential harness | S273 | COMMITTED | shell-free dumper invocation; timeout and provenance enforcement; hash/semantic-only report; self-test and fast CTest | `run_json_target_package_differential.py --self-test` and the new CTest entry pass; live locked-fixture run deterministically reports 14 equal and 1 reviewed AC1021 target-debt delta; no drawing fixtures or derived payloads | continue with target-debt review, broader eligible differential/oracle evidence, and release closure |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3940,6 +3949,7 @@ edit this block or commit the same slice concurrently.
 | J247 | S271 | J246 | COMMITTED | EXPERIMENTAL | Qualify MULTILEADER string-boundary hardening | Bound context text and pre-R2010 block-label strings by the shared table-string ceiling, rejecting oversized values transactionally before any DXF record is emitted |
 | J248 | S272 | J247 | COMMITTED | EXPERIMENTAL | Qualify installed-package LibreCAD consumer validation | Validate the staged install with relocation/header checks and compile the pinned LibreCAD system-package consumer, including the filter and full `librecad_lib` static-library target, without bundled libdxfrw paths |
 | J249 | S273 | J248 | COMMITTED | EXPERIMENTAL | Qualify bundled-target versus installed-package JSON differential | Run identical locked fixtures through the pinned bundled LibreCAD JSON dumper and the installed standalone-package dumper, compare byte/JSON and normalized semantic summaries, and classify the AC1021 page-map divergence as target debt without weakening the standalone compatibility fix |
+| J250 | S274 | J249 | COMMITTED | EXPERIMENTAL | Qualify reproducible JSON target/package differential harness | Add a fail-closed, shell-free harness that enforces admitted fixture provenance, bounded dumper timeouts, hash/semantic-only reports, deterministic mismatch relations, and a dependency-free self-test/CTest entry |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4324,6 +4334,7 @@ edit this block or commit the same slice concurrently.
 | J247.1 | J247 / S271 | WP4, WP8, WP10; MULTILEADER string-boundary hardening | J246 | COMMITTED | EXPERIMENTAL | reject context and AC1021 block-label strings larger than the shared 16 MiB table-string ceiling before writer publication, preserving zero-output transaction semantics without drawing fixtures | release and ASan/UBSan `libdxfrw_hardening_tests` pass; Wave 1, DXF/DWG fixture regressions, plan check, fixture admission, import scope, pinned sync, parity aggregate, release readiness, speed, and diff gates pass; no drawing fixtures or derived payloads |
 | J248.1 | J248 / S272 | WP8, WP10; installed-package consumer validation | J247 | COMMITTED | EXPERIMENTAL | validate staged package relocation/header closure, compile the LibreCAD system-mode filter, and build full `librecad_lib` against the installed target without bundled include/source paths | `check_staged_package.py --prefix /private/tmp/libdxfrw-package-34aHLc --relocation-smoke`, fresh system-mode CMake configure, `librecad_filter_compile_check`, and `librecad_lib` all pass; fixture admission, import scope, plan check, and diff gates pass; no drawing fixtures or derived payloads |
 | J249.1 | J249 / S273 | WP8, WP10; bundled-target versus installed-package JSON differential | J248 | COMMITTED | EXPERIMENTAL | run both dumpers on all 15 locked repository fixtures, require identical byte/JSON output or a reviewed target-debt disposition, and retain only hashes/summaries | bundled target and installed package both exit successfully on all 15 inputs; 14 outputs are byte/JSON identical; `ordinary_enc_AC1021.dwg` is the sole reviewed target-debt delta (target zero entities versus standalone three LINEs); temporary report records source/output hashes and semantic counts; no drawing bytes are retained |
+| J250.1 | J250 / S274 | WP8, WP10; reproducible JSON target/package differential harness | J249 | COMMITTED | EXPERIMENTAL | self-test the shell-free timeout/provenance/hash-summary harness, register it in CTest, and run the live locked-fixture comparison with the expected fail-closed AC1021 target-debt delta | script self-test and CTest pass; live run uses all 15 locked fixtures, reports 14 equal and 1 delta with bounded summaries/hashes only, and returns nonzero for the unresolved mismatch; no drawing bytes are retained |
 
 <!-- UPGRADE_PROGRESS_END -->
 
