@@ -4726,9 +4726,14 @@ public:
     explicit LocalRawReplayInterface(dwgRW* writer = nullptr)
         : writer_(writer), first_(makeLocalRawReplayObject(
               DRW::AC1027, 500, 0x700u, 0x6FFu)),
-          second_(makeLocalRawReplayObject(DRW::AC1027, 501, 0x702u)) {
+          second_(makeLocalRawReplayObject(DRW::AC1027, 501, 0x702u)),
+          third_(makeLocalRawReplayObject(DRW::AC1027, 500, 0x706u)) {
         first_.m_objectSize = static_cast<std::uint32_t>(first_.m_rawBytes.size());
         second_.m_objectSize = static_cast<std::uint32_t>(second_.m_rawBytes.size());
+        third_.m_objectSize = static_cast<std::uint32_t>(third_.m_rawBytes.size());
+        third_.m_recordName = "LOCAL_RAW_REPLAY_ALT";
+        third_.m_className = "AcDbLocalRawReplayAlt";
+        third_.m_classAppName = "LOCAL_S113";
         section_.m_name = "LocalRawS110";
         section_.m_version = DRW::AC1027;
         section_.m_data = {0x53u, 0x31u, 0x31u, 0x30u, 0x01u};
@@ -4743,6 +4748,7 @@ public:
             return;
         registeredFirst_ = writer_->registerRawDwgObjectClass(&first_);
         registeredSecond_ = writer_->registerRawDwgObjectClass(&second_);
+        registeredThird_ = writer_->registerRawDwgObjectClass(&third_);
         rejectedNullClass_ = !writer_->registerRawDwgObjectClass(nullptr);
     }
 
@@ -4794,6 +4800,10 @@ public:
 
         replayedSecond_ = writer_->writeRawDwgObject(&second_);
         capturedSecondFrame_ = writer_->getLastDwgObjectFrame(secondFrame_);
+        DRW_UnsupportedObject duplicate = first_;
+        rejectedDuplicateHandle_ = !writer_->writeRawDwgObject(&duplicate);
+        replayedThird_ = writer_->writeRawDwgObject(&third_);
+        capturedThirdFrame_ = writer_->getLastDwgObjectFrame(thirdFrame_);
         replayedSection_ = writer_->writeRawDwgSection(&section_);
         rejectedDuplicateSection_ = !writer_->writeRawDwgSection(&section_);
     }
@@ -4809,13 +4819,16 @@ public:
     dwgRW* writer_ {nullptr};
     DRW_UnsupportedObject first_;
     DRW_UnsupportedObject second_;
+    DRW_UnsupportedObject third_;
     DRW_RawDwgSection section_;
     std::vector<DRW_UnsupportedObject> readObjects_;
     std::vector<DRW_RawDwgSection> readSections_;
     DRW::DwgObjectFrameReceipt firstFrame_;
     DRW::DwgObjectFrameReceipt secondFrame_;
+    DRW::DwgObjectFrameReceipt thirdFrame_;
     bool registeredFirst_ {false};
     bool registeredSecond_ {false};
+    bool registeredThird_ {false};
     bool rejectedNullClass_ {false};
     bool replayedFirst_ {false};
     bool capturedFirstFrame_ {false};
@@ -4827,6 +4840,9 @@ public:
     bool rejectedOversized_ {false};
     bool replayedSecond_ {false};
     bool capturedSecondFrame_ {false};
+    bool rejectedDuplicateHandle_ {false};
+    bool replayedThird_ {false};
+    bool capturedThirdFrame_ {false};
     bool replayedSection_ {false};
     bool rejectedDuplicateSection_ {false};
     dx_data data_;
@@ -4843,6 +4859,7 @@ bool runRawDwgReplayContract() {
     const bool writeOk = writer.write(&writeIface, DRW::AC1027, true);
     if (!writeOk
         || !writeIface.registeredFirst_ || !writeIface.registeredSecond_
+        || !writeIface.registeredThird_
         || !writeIface.rejectedNullClass_ || !writeIface.replayedFirst_
         || !writeIface.rejectedMalformed_ || !writeIface.rejectedWrongVersion_
         || !writeIface.rejectedWrongSectionVersion_
@@ -4866,8 +4883,9 @@ bool runRawDwgReplayContract() {
     };
     const DRW_UnsupportedObject* first = findObject(0x700u);
     const DRW_UnsupportedObject* second = findObject(0x702u);
+    const DRW_UnsupportedObject* third = findObject(0x706u);
     const bool readContract = readOk && first != nullptr && second != nullptr
-        && readIface.readSections_.size() == 1
+        && third != nullptr && readIface.readSections_.size() == 1
         && readIface.readSections_.front().m_name == "LocalRawS110"
         && readIface.readSections_.front().m_data == writeIface.section_.m_data
         && first->m_handle == 0x700u && second->m_handle == 0x702u
@@ -4879,7 +4897,11 @@ bool runRawDwgReplayContract() {
         && writeIface.firstFrame_.classNumber >= 500
         && writeIface.capturedSecondFrame_
         && writeIface.secondFrame_.objectHandle == 0x702u
-        && writeIface.secondFrame_.classNumber >= 500;
+        && writeIface.secondFrame_.classNumber >= 500
+        && writeIface.capturedThirdFrame_
+        && writeIface.thirdFrame_.objectHandle == 0x706u
+        && writeIface.thirdFrame_.classNumber >= 500
+        && writeIface.thirdFrame_.classNumber != writeIface.firstFrame_.classNumber;
     return result;
 }
 
