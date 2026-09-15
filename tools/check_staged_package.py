@@ -31,6 +31,19 @@ def run(command, *, cwd=None, env=None):
                           text=True)
 
 
+def assert_staged_flags(flags, prefix: Path) -> None:
+    prefix = prefix.resolve()
+    for flag in flags:
+        if flag.startswith(("-I", "-L")) and len(flag) > 2:
+            path = Path(flag[2:]).resolve()
+            try:
+                path.relative_to(prefix)
+            except ValueError as error:
+                raise RuntimeError(
+                    "pkg-config resolved outside staged prefix: %s" % flag
+                ) from error
+
+
 def check(prefix: Path, cxx: str) -> None:
     prefix = prefix.resolve()
     include_root = prefix / "include" / "libdxfrw"
@@ -97,6 +110,7 @@ def check(prefix: Path, cxx: str) -> None:
         pkgconfig["PKG_CONFIG_PATH"] = str(prefix / "lib" / "pkgconfig")
         flags = shlex.split(run(["pkg-config", "--define-prefix", "--cflags", "--libs",
                                  "libdxfrw"], env=pkgconfig).stdout)
+        assert_staged_flags(flags, prefix)
         run([cxx, "-std=c++17", "-Wall", "-Wextra", "-Werror",
              str(consumer), "-o", str(root / "pkgconfig-consumer")] + flags)
 
