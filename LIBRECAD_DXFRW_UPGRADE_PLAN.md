@@ -52,8 +52,8 @@ then pin an immutable commit before importing source.
 ### Execution refresh (2026-09-15)
 
 The implementation worktree is rebased on `origin/master` and is currently
-275 commits ahead with no commits behind it. The latest green slice is
-S247/J223, including the live-plan update and its required policy gates.
+277 commits ahead with no commits behind it. The latest green slice is
+S249/J225, including the live-plan update and its required policy gates.
 There is no uncommitted local implementation slice; the next parity work is
 the evidence-gated external/runtime and release closure listed below.
 The worktree is clean at the last committed boundary; any subsequent active-
@@ -1934,14 +1934,16 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint (2026-09-15): S247/J223 target-fixture DWG corruption
-  rejection parity is committed. Eight exact pinned LibreCAD DWG blobs cover
-  ordinary encoded AC1015/18/21/27 records plus AC1032 RTEXT,
-  ARCALIGNEDTEXT, MPOLYGON, and LARGE_RADIAL_DIMENSION callbacks; runtime
-  truncated copies of the AC1021/27/32 advanced cases are rejected without
-  publishing partial entities. The AC1021 reader accepts compressed pages
-  whose decoded size exceeds the physical page envelope and legacy maps
-  without a repeated header page or explicit empty descriptor.
+- Current checkpoint (2026-09-15): S249/J225 output-transaction temporary-name
+  hardening is committed. Eight exact pinned LibreCAD DWG blobs cover ordinary
+  encoded AC1015/18/21/27 records plus AC1032 RTEXT, ARCALIGNEDTEXT, MPOLYGON,
+  and LARGE_RADIAL_DIMENSION callbacks; runtime-truncated copies of the
+  AC1021/27/32 advanced cases are rejected without publishing partial entities.
+  The AC1021 reader accepts compressed pages whose decoded size exceeds the
+  physical page envelope and legacy maps without a repeated header page or
+  explicit empty descriptor. POSIX transaction names now use `mkstemp` and
+  Windows names include randomized exclusive tokens; descriptor identity/TOCTOU
+  and crash-durability semantics remain explicit follow-up work.
   The
   branch is rebased on `origin/master`, and
   the pinned source/package/consumer convergence remains complete while
@@ -2237,6 +2239,12 @@ edit this block or commit the same slice concurrently.
   content is published, abort removes the temporary, an existing destination is
   preserved on rollback, and a missing parent fails without creating output.
   No drawing fixtures or derived payloads were added.
+- Latest implementation slice: S249/J225 output-transaction temporary-name
+  hardening is committed. POSIX creation now uses `mkstemp` and the Windows
+  path uses randomized exclusive names; parallel transactions are covered for
+  non-collision and cleanup. The stream-reopen identity/TOCTOU and durability
+  semantics remain explicit follow-up work, so no secure or crash-durable claim
+  is made. No drawing fixtures or derived payloads were added.
 - Latest implementation slice: S172/J148 DXF raw-object duplicate-handle
   diagnostic and error-precedence qualification is committed. Local ASCII and
   binary duplicate streams preserve the legacy `BAD_CODE_PARSED` result and
@@ -3159,17 +3167,17 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 248 (`COMMITTED`); no slice is active.
+- Resolved slices: 249 (`COMMITTED`); no slice is active.
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 248 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 249 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 250 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 251 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 2 VERIFIED / 346 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 2 VERIFIED / 347 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 231 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S248 are committed; no local implementation slice is active.
+- Active work: S01-S249 are committed; no local implementation slice is active.
   Remaining work is evidence-gated runtime/oracle and release closure; keep
   the fast inner loop and do not promote support claims from self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -3472,6 +3480,7 @@ edit this block or commit the same slice concurrently.
 | S246 | J222: AC1032 advanced target-fixture runtime parity | S245 | COMMITTED | exact pinned target AC1032 DWG blobs; RTEXT/ARCALIGNEDTEXT; MPOLYGON; LARGE_RADIAL_DIMENSION; dynamic callback publication; focused DWG fixture gate; plan/scope/sync/fixture gates | committed `S246`; three exact LibreCAD AC1032 blobs pass production `dx_iface` publication with text/radius, solid/fill, and jog/center/chord assertions; no derived or unadmitted bytes | `libdxfrw_dwg_fixture_tests` plus focused wave/hardening/DXF gates pass; fixture admission, plan check, import scope, pinned sync, and diff gates pass; no active slice |
 | S247 | J223: target-fixture DWG corruption rejection parity | S246 | COMMITTED | runtime-generated truncation of exact target DWG blobs; fail-closed file import; no partial publication; focused DWG fixture gate; plan/scope/sync/fixture gates | committed `S247`; truncated AC1021/AC1027/AC1032 target copies are rejected through `dx_iface` without partial entities; positive advanced callbacks remain green and no mutated bytes are committed | `libdxfrw_dwg_fixture_tests` plus focused wave/hardening/DXF gates pass; fixture admission, plan check, import scope, pinned sync, and diff gates pass; no active slice |
 | S248 | J224: output-transaction publication and rollback parity | S247 | COMMITTED | temporary-only publication, flush/commit, abort cleanup, destination preservation, missing-parent rejection; focused writer-primitives gate; plan/scope/sync/fixture gates | committed `S248`; local vectors prove committed content publication, temporary cleanup, rollback preservation, and fail-closed missing-parent handling; no drawing fixtures or derived payloads | `libdxfrw_writer_primitives_tests` plus plan check, fixture admission, import scope, pinned sync, and diff gates pass; no active slice |
+| S249 | J225: output-transaction temporary-name hardening | S248 | COMMITTED | OS-backed randomized exclusive temporary names; parallel non-collision and cleanup; focused writer-primitives gate; plan/scope/sync/fixture gates | committed `S249`; POSIX uses `mkstemp`, Windows names include randomized tokens, and parallel transactions obtain distinct temporary paths; stream-reopen identity/TOCTOU and durability remain explicit follow-ups; no drawing fixtures or derived payloads | `libdxfrw_writer_primitives_tests` plus plan check, fixture admission, import scope, pinned sync, and diff gates pass; no active slice |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3724,6 +3733,7 @@ edit this block or commit the same slice concurrently.
 | J222 | S246 | J221 | COMMITTED | EXPERIMENTAL | Qualify AC1032 advanced target-fixture runtime parity | three exact pinned LibreCAD AC1032 DWG blobs qualify RTEXT/ARCALIGNEDTEXT, MPOLYGON, and LARGE_RADIAL_DIMENSION dynamic callbacks and bounded fields through production publication; no derived or unadmitted bytes |
 | J223 | S247 | J222 | COMMITTED | EXPERIMENTAL | Qualify target-fixture DWG corruption rejection parity | runtime-truncated copies of exact AC1021/AC1027/AC1032 target blobs are rejected through `dx_iface` without partial entity publication; positive advanced callbacks remain qualified and mutated bytes remain temporary |
 | J224 | S248 | J223 | COMMITTED | EXPERIMENTAL | Qualify output-transaction publication and rollback parity | local temporary-only vectors prove flushed publication, abort cleanup, existing-destination preservation, and missing-parent rejection; no drawing fixtures or derived payloads |
+| J225 | S249 | J224 | COMMITTED | EXPERIMENTAL | Qualify output-transaction temporary-name hardening | POSIX `mkstemp` and randomized Windows exclusive names avoid predictable timestamp-only candidates; parallel temporary creation and cleanup pass; identity/TOCTOU and durability remain unpromoted follow-ups |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4083,6 +4093,7 @@ edit this block or commit the same slice concurrently.
 | J222.1 | J222 / S246 | WP5, WP6, WP8, WP10; AC1032 advanced target-fixture runtime parity | J221 | COMMITTED | EXPERIMENTAL | import three exact pinned LibreCAD AC1032 DWG blobs through `dx_iface`, assert dynamic RTEXT/ARCALIGNEDTEXT text/radius, MPOLYGON solid/fill, and LARGE_RADIAL_DIMENSION jog/center/chord fields, without derived or unadmitted drawing bytes | `libdxfrw_dwg_fixture_tests` passes; fixture admission, plan check, import scope, pinned sync, and diff gates pass; target blob IDs and hashes are recorded in `metadata/fixture-registry.json` |
 | J223.1 | J223 / S247 | WP5, WP6, WP8, WP10; target-fixture DWG corruption rejection parity | J222 | COMMITTED | EXPERIMENTAL | create runtime-truncated copies of exact AC1021/AC1027/AC1032 target blobs, assert `dx_iface` rejects each with no partial entities, and remove every mutation before test exit | `libdxfrw_dwg_fixture_tests` plus focused wave/hardening/DXF gates pass; fixture admission, plan check, import scope, pinned sync, and diff gates pass; no mutated DWG bytes are retained |
 | J224.1 | J224 / S248 | WP7.5, WP8.12; output-transaction publication and rollback parity | J223 | COMMITTED | EXPERIMENTAL | exercise `DwgDxfOutputTransaction` commit/abort/failure behavior using temporary-only paths, preserving destination bytes and removing temporary output | `libdxfrw_writer_primitives_tests` plus plan check, fixture admission, import scope, pinned sync, and diff gates pass; no drawing fixtures or derived payloads are retained |
+| J225.1 | J225 / S249 | WP7.1, WP7.5, WP8.12; output-transaction temporary-name hardening | J224 | COMMITTED | EXPERIMENTAL | use OS-backed randomized exclusive temporary names and exercise two concurrent transactions for non-collision and cleanup, without retaining drawing bytes | `libdxfrw_writer_primitives_tests` plus plan check, fixture admission, import scope, pinned sync, and diff gates pass; POSIX `mkstemp` path and randomized Windows branch are source-checked; identity/TOCTOU and durability remain explicit follow-ups |
 
 <!-- UPGRADE_PROGRESS_END -->
 

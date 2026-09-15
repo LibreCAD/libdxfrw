@@ -139,6 +139,13 @@
       "adaptedSha256": "608f9f607ba96b8ab873920fea36f01436d7dbf9ec9969170219c728cc36fdb7"
     },
     {
+      "path": "src/intern/dwg_dxf_output_transaction.cpp",
+      "reason": "Replace timestamp-plus-counter temporary names with OS-backed mkstemp creation on POSIX and randomized exclusive names on Windows; stream-reopen identity and durability remain explicit follow-up work.",
+      "scope": "output transaction temporary-name hardening",
+      "targetBlob": "ab60082b5a27c7c876c95aeaab8c8eaf30b39200",
+      "adaptedSha256": "93042322079385c31446658bef379459bd5d64aee114fd6ef4cd9aed1b1b1f43"
+    },
+    {
       "path": "src/intern/drw_dbg.cpp",
       "reason": "Make the documented setCustomDebugPrinter(nullptr) reset restore an owned default printer so later debug-level transitions cannot dereference null.",
       "scope": "debug ownership/reset hardening",

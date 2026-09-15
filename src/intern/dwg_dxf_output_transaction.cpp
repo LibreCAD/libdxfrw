@@ -23,9 +23,10 @@
 
 #include "dwg_dxf_output_transaction.h"
 
-#include <chrono>
 #include <cstdint>
+#include <random>
 #include <string>
+#include <vector>
 
 #if defined(_WIN32)
 #  include <fcntl.h>
@@ -57,29 +58,32 @@ bool DwgDxfOutputTransaction::createExclusiveTemporary() {
     if (name.empty())
         return false;
 
-    const auto stamp = std::chrono::steady_clock::now()
-                           .time_since_epoch().count();
+#if defined(_WIN32)
+    std::random_device random;
     for (std::uint32_t attempt = 0; attempt != 128; ++attempt) {
         m_temporary = directory /
-            (name + ".libdxfrw-" + std::to_string(stamp) + "-"
-             + std::to_string(attempt));
-#if defined(_WIN32)
+            (name + ".libdxfrw-" + std::to_string(random()) + "-"
+             + std::to_string(random()) + "-" + std::to_string(attempt));
         const int descriptor = _wopen(
             m_temporary.c_str(), _O_CREAT | _O_EXCL | _O_WRONLY | _O_BINARY,
             _S_IREAD | _S_IWRITE);
-#else
-        const int descriptor = ::open(
-            m_temporary.c_str(), O_CREAT | O_EXCL | O_WRONLY, 0600);
-#endif
         if (descriptor < 0)
             continue;
-#if defined(_WIN32)
         _close(descriptor);
-#else
-        ::close(descriptor);
-#endif
         return true;
     }
+#else
+    std::string pattern =
+        (directory / (name + ".libdxfrw-XXXXXX")).string();
+    std::vector<char> mutablePattern(pattern.begin(), pattern.end());
+    mutablePattern.push_back('\0');
+    const int descriptor = ::mkstemp(mutablePattern.data());
+    if (descriptor >= 0) {
+        m_temporary = std::filesystem::path(mutablePattern.data());
+        ::close(descriptor);
+        return true;
+    }
+#endif
     m_temporary.clear();
     return false;
 }

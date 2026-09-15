@@ -269,6 +269,19 @@ void testOutputTransactionPublicationAndRollback(TestContext& t) {
              "committed output transaction leaves no temporary file");
 
     {
+        DwgDxfOutputTransaction first(target.string(), std::ios::binary);
+        DwgDxfOutputTransaction second(target.string(), std::ios::binary);
+        t.expect(first.open() && second.open(),
+                 "parallel output transactions obtain distinct temporaries");
+        t.expect(transactionTemporaryCount(target) == 2,
+                 "parallel output transactions do not collide on names");
+        first.abort();
+        second.abort();
+        t.expect(transactionTemporaryCount(target) == 0,
+                 "parallel output transaction aborts clean up both files");
+    }
+
+    {
         std::ofstream seed(target, std::ios::binary | std::ios::trunc);
         seed << "original";
     }
