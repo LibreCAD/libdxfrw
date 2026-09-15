@@ -13962,16 +13962,7 @@ bool dxfRW::processRawObject() {
             return setError(DRW::BAD_CODE_PARSED);
     }
 
-    const int invalidHandleCode = reader->lastInvalidHandleCode();
-    if (invalidHandleCode != 0) {
-        recordOperationDiagnostic(
-            DRW::OperationPhase::Validation,
-            DRW::OperationCause::ValidationFailure,
-            "invalid-handle",
-            invalidHandleCode == DRW::dxfCode::HANDLE
-                ? "a DXF raw record contains an invalid self handle"
-                : "a DXF raw record contains an invalid handle reference");
-    }
+    recordInvalidRawHandleDiagnostic();
     return setError(DRW::BAD_READ_OBJECTS);
 }
 
@@ -14046,6 +14037,7 @@ bool dxfRW::processRawEntity() {
             return setError(DRW::BAD_CODE_PARSED);
     }
 
+    recordInvalidRawHandleDiagnostic();
     return setError(DRW::BAD_READ_ENTITIES);
 }
 
@@ -15980,6 +15972,21 @@ void dxfRW::recordOperationDiagnosticForError(DRW::error value) {
     const OperationErrorMapping mapped = mapOperationError(value);
     recordOperationDiagnostic(mapped.phase, mapped.cause, mapped.code,
                               mapped.message);
+}
+
+void dxfRW::recordInvalidRawHandleDiagnostic() {
+    if (reader == nullptr)
+        return;
+    const int invalidHandleCode = reader->lastInvalidHandleCode();
+    if (invalidHandleCode == 0)
+        return;
+    recordOperationDiagnostic(
+        DRW::OperationPhase::Validation,
+        DRW::OperationCause::ValidationFailure,
+        "invalid-handle",
+        invalidHandleCode == DRW::dxfCode::HANDLE
+            ? "a DXF raw record contains an invalid self handle"
+            : "a DXF raw record contains an invalid handle reference");
 }
 
 DRW_OperationDiagnostic dxfRW::getLastDiagnostic() const {

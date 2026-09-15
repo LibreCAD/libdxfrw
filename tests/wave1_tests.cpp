@@ -66,9 +66,14 @@ public:
         sections.push_back(data);
     }
 
+    void addRawDxfEntity(const DRW_RawDxfObject& data) override {
+        entities.push_back(data);
+    }
+
     dx_data storage;
     std::vector<DRW_RawDxfObject> objects;
     std::vector<DRW_RawDxfSection> sections;
+    std::vector<DRW_RawDxfObject> entities;
 };
 
 std::vector<std::uint8_t> literalRunHeader(std::uint32_t count) {
@@ -1470,6 +1475,60 @@ void testDxfRawObjectMalformedHandleDiagnostics(TestContext& t) {
              "binary owner handle diagnostic identifies reference context");
 }
 
+void testDxfRawEntityHandleDiagnostics(TestContext& t) {
+    const std::string malformedEntityRecords =
+        "0\nSECTION\n2\nENTITIES\n0\nLOCAL_RAW_ENTITY\n5\n4A\n"
+        "330\nnot-owner\n0\nENDSEC\n0\nEOF\n";
+    ProfileProbeInterface interface_;
+    dxfRW reader("");
+    std::string input = malformedEntityRecords;
+    t.expect(!reader.readAscii(&interface_, false, input)
+                 && reader.getError() == DRW::BAD_READ_ENTITIES
+                 && interface_.entities.empty(),
+             "DXF malformed raw entity handle preserves stage and callback policy");
+    const DRW_OperationDiagnostic diagnostic = reader.getLastDiagnostic();
+    t.expect(diagnostic.operation == DRW::OperationKind::Read
+                 && diagnostic.phase == DRW::OperationPhase::Validation
+                 && diagnostic.cause == DRW::OperationCause::ValidationFailure
+                 && diagnostic.code == "invalid-handle"
+                 && diagnostic.message.find("handle reference")
+                        != std::string::npos,
+             "DXF raw entity carries field-context handle diagnostic");
+
+    std::ostringstream binarySource;
+    dxfWriterBinary binaryWriter(&binarySource);
+    binaryWriter.writeString(0, "SECTION");
+    binaryWriter.writeString(2, "ENTITIES");
+    binaryWriter.writeString(0, "LOCAL_BINARY_RAW_ENTITY");
+    binaryWriter.writeString(5, "4A");
+    binaryWriter.writeString(330, "not-owner");
+    binaryWriter.writeString(0, "ENDSEC");
+    binaryWriter.writeString(0, "EOF");
+    std::stringstream binaryInput(binarySource.str());
+    ProfileProbeInterface binaryInterface;
+    dxfRW binaryReader("");
+    binaryReader.binFile = true;
+    binaryReader.reader = std::make_unique<dxfReaderBinary>(&binaryInput);
+    binaryReader.reader->setClassifierProfile(
+        DxfClassifierProfile::StandaloneSafe);
+    binaryReader.iface = &binaryInterface;
+    binaryReader.beginOperationDiagnostic(DRW::OperationKind::Read);
+    t.expect(!binaryReader.processDxf()
+                 && binaryReader.getError() == DRW::BAD_READ_ENTITIES
+                 && binaryInterface.entities.empty(),
+             "binary malformed raw entity handle preserves stage and callback");
+    const DRW_OperationDiagnostic binaryDiagnostic =
+        binaryReader.getLastDiagnostic();
+    t.expect(binaryDiagnostic.operation == DRW::OperationKind::Read
+                 && binaryDiagnostic.phase == DRW::OperationPhase::Validation
+                 && binaryDiagnostic.cause
+                        == DRW::OperationCause::ValidationFailure
+                 && binaryDiagnostic.code == "invalid-handle"
+                 && binaryDiagnostic.message.find("handle reference")
+                        != std::string::npos,
+             "binary raw entity carries field-context handle diagnostic");
+}
+
 void testRawCapture(TestContext& t) {
     std::stringstream records("260\n2147483647\n482\n3.14\n1004\nAB\n");
     dxfRW owner("");
@@ -1679,6 +1738,7 @@ int main() {
     testDxfRawObjectHandleScope(context);
     testDxfRawObjectHandleDiagnostics(context);
     testDxfRawObjectMalformedHandleDiagnostics(context);
+    testDxfRawEntityHandleDiagnostics(context);
     testRawCapture(context);
     testHatchValidationIgnoresInactiveGradient(context);
     testFixedSpaceBlockClassification(context);

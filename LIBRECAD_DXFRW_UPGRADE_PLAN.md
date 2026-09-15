@@ -52,10 +52,10 @@ then pin an immutable commit before importing source.
 ### Execution refresh (2026-09-15)
 
 The implementation worktree is rebased on `origin/master` and is currently
-200 commits ahead with no commits behind it. The latest green slice is
-S174/J150, including the live-plan update and its required policy gates.
-S175/J151 is the active slice; its DXF raw-handle diagnostic propagation across
-raw entity paths is the next commit boundary.
+201 commits ahead with no commits behind it. The latest green slice is
+S175/J151, including the live-plan update and its required policy gates.
+S176/J152 is the active slice; its DXF raw-entity duplicate-handle diagnostic
+parity is the next commit boundary.
 The worktree is clean at the last committed boundary; any subsequent active-
 slice edits are intentionally uncommitted until their narrow gate and
 status-bearing plan transition are green.
@@ -1934,17 +1934,16 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint (2026-09-15): S174/J150 DXF raw-handle field-context
-  diagnostic qualification is committed; S175/J151 DXF raw-handle diagnostic
-  propagation across raw entity paths is active.
+- Current checkpoint (2026-09-15): S175/J151 DXF raw-handle diagnostic
+  propagation across raw entity paths is committed; S176/J152 DXF raw-entity
+  duplicate-handle diagnostic parity is active.
   The
   branch is rebased on `origin/master`, and
   the pinned source/package/consumer convergence remains complete while
   runtime and wire-format parity stay evidence-gated. The AC1015 IMAGE legacy
   boundary remains fail-closed, and all format-support claims remain limited
   to rows with eligible runtime/oracle evidence. The next dependency-ready
-  sequence is S175 DXF raw-handle diagnostic propagation across raw entity
-  paths;
+  sequence is S176 DXF raw-entity duplicate-handle diagnostic parity;
   it is a separate commit with no external or derived DWG/DXF bytes.
 - Latest implementation slice: S171/J147 DXF raw-object handle-scope and
   cross-record uniqueness qualification is committed. Local ASCII and binary
@@ -1961,6 +1960,11 @@ edit this block or commit the same slice concurrently.
   owner/reference fields preserve `BAD_READ_OBJECTS`, suppress the malformed
   callback, and identify self versus reference context in the structured
   `invalid-handle` diagnostic; no drawing bytes are retained.
+- Latest implementation slice: S175/J151 DXF raw-handle diagnostic propagation
+  across raw entity paths is committed. Local ASCII and binary malformed raw
+  ENTITIES streams preserve `BAD_READ_ENTITIES`, suppress the malformed entity
+  callback, and carry field-context `invalid-handle` diagnostics; no drawing
+  bytes are retained.
 - Latest implementation slice: S172/J148 DXF raw-object duplicate-handle
   diagnostic and error-precedence qualification is committed. Local ASCII and
   binary duplicate streams preserve the legacy `BAD_CODE_PARSED` result and
@@ -2883,20 +2887,21 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 174 (`COMMITTED`); S175 is active.
+- Resolved slices: 175 (`COMMITTED`); S176 is active.
 - Slice states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 174 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 175 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 176 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 177 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 272 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 273 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 159 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S174 are committed; S175/J151 is active with a ready packet
-  naming DXF raw-handle diagnostic propagation across raw entity paths and
-  focused fast gates. S172/J148 preserved the legacy `BAD_CODE_PARSED` channel;
-  S173/J149 and S174/J150 added malformed and field-context diagnostics.
+  0 DEFERRED_EXTERNAL / 160 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S175 are committed; S176/J152 is active with a ready packet
+  naming DXF raw-entity duplicate-handle diagnostic parity and focused fast
+  gates. S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
+  S174/J150, and S175/J151 added malformed, field-context, and raw-entity
+  propagation diagnostics.
   Keep validation fast and
   self-updating: run source/plan/policy checks and the focused carrier target
   after each implementation item, commit only after the narrow gate is green,
@@ -3119,7 +3124,8 @@ edit this block or commit the same slice concurrently.
 | S172 | J148: DXF raw-object duplicate-handle diagnostic and error-precedence qualification | S171 | COMMITTED | BAD_READ_OBJECTS/BAD_CODE_PARSED precedence; structured raw-object diagnostic; duplicate-handle context; callback disposition; focused DXF gate; plan/scope/sync/fixture gates | committed `S172`; local ASCII and binary duplicate streams preserve `BAD_CODE_PARSED` and prior-valid callback publication while recording a `duplicate-handle` validation diagnostic with the offending handle; no drawing bytes committed | Wave 1 diagnostic/handle tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S173 is active |
 | S173 | J149: DXF raw-object malformed-handle diagnostic qualification | S172 | COMMITTED | malformed code-5 lexemes; overlength/wide-handle bounds; structured parse diagnostic; callback disposition; error precedence; focused DXF gate; plan/scope/sync/fixture gates | committed `S173`; local ASCII non-hex and binary overlength code-5 streams preserve `BAD_CODE_PARSED`, suppress the malformed callback, and record bounded `invalid-handle` validation diagnostics; no drawing bytes committed | Wave 1 malformed-handle tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S174 is active |
 | S174 | J150: DXF raw-handle field-context diagnostic qualification | S173 | COMMITTED | self-handle versus owner/reference handle context; structured diagnostic message; malformed code-330 fields; callback disposition; error precedence; focused DXF gate; plan/scope/sync/fixture gates | committed `S174`; local malformed code-5 and code-330 ASCII/binary raw-object streams preserve legacy stage results, suppress malformed callbacks, and identify self versus reference context in `invalid-handle`; no drawing bytes committed | Wave 1 handle-field diagnostic tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S175 is active |
-| S175 | J151: DXF raw-handle diagnostic propagation across raw entity paths | S174 | ACTIVE | raw ENTITIES and BLOCKS fallback paths; invalid self/reference handles; structured diagnostic propagation; callback disposition; legacy error precedence; focused DXF gate; plan/scope/sync/fixture gates | use local malformed raw entity streams in ASCII and binary; assert field-context diagnostics and no malformed entity callback while preserving the legacy entities-stage result; no drawing bytes committed | active after S174 commit; use Wave 1 raw-entity diagnostic tests, focused CTest selector, fast source/policy gates, fixture admission, import scope, pinned sync, and diff gates |
+| S175 | J151: DXF raw-handle diagnostic propagation across raw entity paths | S174 | COMMITTED | raw ENTITIES and BLOCKS fallback paths; invalid self/reference handles; structured diagnostic propagation; callback disposition; legacy error precedence; focused DXF gate; plan/scope/sync/fixture gates | committed `S175`; local malformed raw ENTITIES streams in ASCII and binary preserve `BAD_READ_ENTITIES`, suppress malformed entity callbacks, and carry field-context `invalid-handle` diagnostics; no drawing bytes committed | Wave 1 raw-entity diagnostic tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S176 is active |
+| S176 | J152: DXF raw-entity duplicate-handle diagnostic parity | S175 | ACTIVE | duplicate self handles across raw entities; cross-section scope; prior-valid callback; structured diagnostic parity; legacy entities error precedence; focused DXF gate; plan/scope/sync/fixture gates | use local ASCII and binary ENTITIES duplicate streams plus a fresh-session reset vector; assert `duplicate-handle` context and deterministic callback/error behavior; no drawing bytes committed | active after S175 commit; use Wave 1 raw-entity duplicate tests, focused CTest selector, fast source/policy gates, fixture admission, import scope, pinned sync, and diff gates |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3298,7 +3304,8 @@ edit this block or commit the same slice concurrently.
 | J148 | S172 | J147 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-object duplicate-handle diagnostic context and error precedence | local ASCII/binary duplicate vectors preserve the legacy error and prior-valid callback while recording structured handle context; no-fixture evidence |
 | J149 | S173 | J148 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-object malformed-handle diagnostic context and error precedence | local ASCII/binary malformed code-5 vectors preserve the legacy error and suppress malformed callbacks while recording structured context; no-fixture evidence |
 | J150 | S174 | J149 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-handle field-context diagnostic message and error precedence | local ASCII/binary self-handle/owner-handle malformed streams preserve legacy stage results and record field-specific diagnostics; no-fixture evidence |
-| J151 | S175 | J150 | ACTIVE | EXPERIMENTAL | Qualify DXF raw-handle diagnostic propagation across raw entity paths | active packet names malformed raw entity streams, field-context diagnostics, callback disposition, and no-fixture evidence |
+| J151 | S175 | J150 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-handle diagnostic propagation across raw entity paths | local ASCII/binary malformed raw ENTITIES vectors preserve stage results, suppress callbacks, and carry field-context diagnostics; no-fixture evidence |
+| J152 | S176 | J151 | ACTIVE | EXPERIMENTAL | Qualify DXF raw-entity duplicate-handle diagnostic parity | active packet names duplicate ASCII/binary entity streams, cross-section scope, reset semantics, callback disposition, and no-fixture evidence |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -3584,7 +3591,8 @@ edit this block or commit the same slice concurrently.
 | J148.1 | J148 / S172 | WP4, WP5, WP6, WP8, WP10; DXF raw-object duplicate-handle diagnostic and error-precedence qualification | J147 | COMMITTED | EXPERIMENTAL | assert duplicate-handle failures preserve stable stage/cause diagnostics and deterministic prior-valid callback disposition, without external drawing bytes | focused Wave 1 diagnostic/handle target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 | J149.1 | J149 / S173 | WP4, WP5, WP6, WP8, WP10; DXF raw-object malformed-handle diagnostic qualification | J148 | COMMITTED | EXPERIMENTAL | assert malformed code-5 lexemes reject with stable parse-stage diagnostics, bounded handle context, and no callback for the malformed record, without external drawing bytes | focused Wave 1 malformed-handle target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 | J150.1 | J150 / S174 | WP4, WP5, WP6, WP8, WP10; DXF raw-handle field-context diagnostic qualification | J149 | COMMITTED | EXPERIMENTAL | assert malformed code-5 and code-330 lexemes preserve the stable `invalid-handle` code while identifying self versus owner/reference context, without external drawing bytes | focused Wave 1 handle-field diagnostic target and policy gates pass; no external or derived DWG/DXF bytes are retained |
-| J151.1 | J151 / S175 | WP4, WP5, WP6, WP8, WP10; DXF raw-handle diagnostic propagation across raw entity paths | J150 | ACTIVE | EXPERIMENTAL | assert malformed raw entity self/reference handles preserve field-context diagnostics and suppress only the malformed entity callback while retaining the legacy entities-stage result, without external drawing bytes | focused Wave 1 raw-entity diagnostic target and policy gates pass; no external or derived DWG/DXF bytes are retained |
+| J151.1 | J151 / S175 | WP4, WP5, WP6, WP8, WP10; DXF raw-handle diagnostic propagation across raw entity paths | J150 | COMMITTED | EXPERIMENTAL | assert malformed raw entity self/reference handles preserve field-context diagnostics and suppress only the malformed entity callback while retaining the legacy entities-stage result, without external drawing bytes | focused Wave 1 raw-entity diagnostic target and policy gates pass; no external or derived DWG/DXF bytes are retained |
+| J152.1 | J152 / S176 | WP4, WP5, WP6, WP8, WP10; DXF raw-entity duplicate-handle diagnostic parity | J151 | ACTIVE | EXPERIMENTAL | assert duplicate raw entity handles preserve `duplicate-handle` diagnostics across entity records/sections, reset for fresh sessions, and suppress only later malformed callbacks while retaining the legacy entities-stage result, without external drawing bytes | focused Wave 1 raw-entity duplicate target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 
 <!-- UPGRADE_PROGRESS_END -->
 

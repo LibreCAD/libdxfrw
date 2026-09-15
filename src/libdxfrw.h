@@ -630,6 +630,7 @@ private:
                                    bool hasHandle = false,
                                    bool secondary = false);
     void recordOperationDiagnosticForError(DRW::error value);
+    void recordInvalidRawHandleDiagnostic();
 
 private:
     DRW::Version version { DRW::UNKNOWNV };
