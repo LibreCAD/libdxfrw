@@ -137,6 +137,7 @@ SHAPE_HANDLE = 0xF400
 MLINE_HANDLE = 0xF500
 LIGHT_HANDLE = 0xF600
 MESH_HANDLE = 0xF700
+WIPEOUT_HANDLE = 0xF800
 DIMASSOC_HANDLE = 0xF000
 EVALUATION_GRAPH_HANDLE = 0xF100
 BLOCKREPRESENTATIONDATA_HANDLE = 0xF200
@@ -301,7 +302,7 @@ def check_helix_entity(records: list[dict]) -> dict:
 
 def check_camera_entity(records: list[dict], version_name: str) -> dict:
     """Qualify CAMERA identity and its null optional VIEW reference."""
-    if version_name == "AC1015":
+    if version_name in {"AC1015", "AC1018"}:
         return {"supported": False}
     matches = [
         record for record in records
@@ -479,6 +480,25 @@ def check_mesh_entity(records: list[dict], version_name: str) -> dict:
     }
 
 
+def check_wipeout_entity(records: list[dict], version_name: str) -> dict:
+    """Qualify the fixed type-1109 WIPEOUT identity."""
+    if version_name in {"AC1015", "AC1018"}:
+        return {"supported": False}
+    matches = [
+        record for record in records
+        if isinstance(record, dict)
+        and record.get("type") == 1109
+        and record_handle(record) == WIPEOUT_HANDLE
+    ]
+    if len(matches) != 1:
+        raise ValueError("WIPEOUT entity frame count mismatch")
+    return {
+        "supported": True, "entity": "WIPEOUT", "type": 1109,
+        "handle": WIPEOUT_HANDLE, "oracleEntity": matches[0].get("object"),
+        "payloadQualified": False,
+    }
+
+
 def check_express_text_entities(records: list[dict], version_name: str) -> dict:
     """Qualify RTEXT/ARCALIGNEDTEXT identity and bounded oracle payload.
 
@@ -610,6 +630,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
     mline_entity = check_mline_entity(records, version_name)
     light_entity = check_light_entity(records, version_name)
     mesh_entity = check_mesh_entity(records, version_name)
+    wipeout_entity = check_wipeout_entity(records, version_name)
     express_text_entities = check_express_text_entities(records, version_name)
     associative_objects = check_associative_objects(records, version_name)
     block_representation = check_block_representation(records, version_name)
@@ -690,6 +711,22 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "LibreDWG 0.14 qualifies MESH type/handle/class identity but "
             "does not preserve the local topology payload reliably; vertices, "
             "faces, edges, and creases remain local-self-read authoritative")
+    wipeout_discrepancies = []
+    if version_name == "AC1015":
+        wipeout_discrepancies.append(
+            "WIPEOUT emission is intentionally gated off for AC1015 because "
+            "the fixed type-1109 frame is not safe in the legacy contiguous "
+            "entity chain")
+    elif version_name == "AC1018":
+        wipeout_discrepancies.append(
+            "LibreDWG 0.14 omits the local AC1018 WIPEOUT frame from JSON; "
+            "local self-read remains authoritative until an independent R2004 "
+            "type/handle route is available")
+    else:
+        wipeout_discrepancies.append(
+            "LibreDWG 0.14 retains WIPEOUT type/handle only as UNKNOWN_OBJ; "
+            "clip-boundary and image-derived scalar fields remain local-self-read "
+            "authoritative")
 
     render_matrix = {}
     for kind, (object_name, handle, object_type) in RENDER_SETTINGS_KINDS.items():
@@ -1752,6 +1789,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         "mlineEntity": mline_entity,
         "lightEntity": light_entity,
         "meshEntity": mesh_entity,
+        "wipeoutEntity": wipeout_entity,
         "expressTextEntities": express_text_entities,
         "associativeObjects": associative_objects,
         "blockRepresentationData": block_representation,
@@ -1792,7 +1830,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         + block_representation_discrepancies
         + camera_discrepancies + geo_position_marker_discrepancies
         + shape_discrepancies + mline_discrepancies + light_discrepancies
-        + mesh_discrepancies),
+        + mesh_discrepancies + wipeout_discrepancies),
     }
 
 
@@ -2253,6 +2291,8 @@ def self_test() -> None:
              "type": 520, "_subclass": "AcDbSubDMesh",
              "subdiv_vertex": [[121.0, 122.0, 123.0]],
              "faces": [], "crease": []},
+            {"object": "UNKNOWN_OBJ", "handle": [0, 2, WIPEOUT_HANDLE],
+             "type": 1109},
             {"entity": "RTEXT", "handle": [0, 2, RTEXT_HANDLE],
              "type": 521, "text_value": "LOCAL_RTEXT",
              "pt": [90.0, 91.0, 0.0],
@@ -2318,6 +2358,11 @@ def self_test() -> None:
             "supported": True, "entity": "MESH", "type": 520,
             "handle": MESH_HANDLE, "payloadQualified": False}:
         raise AssertionError("MESH entity identity was not qualified")
+    if summary.get("wipeoutEntity") != {
+            "supported": True, "entity": "WIPEOUT", "type": 1109,
+            "handle": WIPEOUT_HANDLE, "oracleEntity": "UNKNOWN_OBJ",
+            "payloadQualified": False}:
+        raise AssertionError("WIPEOUT entity identity was not qualified")
     if summary.get("expressTextEntities") != {
             "rtext": {"entity": "RTEXT", "type": 521,
                       "handle": RTEXT_HANDLE, "text": "LOCAL_RTEXT"},

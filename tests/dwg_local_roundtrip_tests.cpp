@@ -2008,6 +2008,37 @@ public:
                 && invalidMesh.handle == 0xF701u;
         }
 
+        if (expectedVersion_ < DRW::AC1018) {
+            wroteWipeout_ = false;
+            rejectedMalformedWipeout_ = true;
+        } else {
+        DRW_Wipeout wipeout;
+        wipeout.handle = 0xF800u;
+        wipeout.m_classVersion = 0;
+        wipeout.basePoint = DRW_Coord(131.0, 132.0, 133.0);
+        wipeout.secPoint = DRW_Coord(0.0, 0.0, 1.0);
+        wipeout.vVector = DRW_Coord(0.0, 1.0, 0.0);
+        wipeout.sizeu = 64.0;
+        wipeout.sizev = 48.0;
+        wipeout.clip = 1;
+        wipeout.brightness = 60;
+        wipeout.contrast = 70;
+        wipeout.fade = 10;
+        wipeout.m_clipBoundaryType = 2;
+        wipeout.clipPath = {
+            DRW_Coord(0.0, 0.0, 0.0), DRW_Coord(64.0, 0.0, 0.0),
+            DRW_Coord(64.0, 48.0, 0.0), DRW_Coord(0.0, 48.0, 0.0),
+        };
+        wipeout.clipMode = expectedVersion_ > DRW::AC1021;
+        wroteWipeout_ = writer_->writeWipeout(&wipeout)
+            && wipeout.handle == 0xF800u;
+        DRW_Wipeout invalidWipeout = wipeout;
+        invalidWipeout.handle = 0xF801u;
+        invalidWipeout.m_clipBoundaryType = 1;
+        rejectedMalformedWipeout_ = !writer_->writeWipeout(&invalidWipeout)
+            && invalidWipeout.handle == 0xF801u;
+        }
+
         DRW_Hatch hatch;
         hatch.name = "SOLID";
         hatch.solid = 1;
@@ -2427,6 +2458,28 @@ public:
             && data.creases.size() == 1
             && data.creases.front() == 0.5
             && data.unknown == 0;
+    }
+    void addWipeout(const DRW_Wipeout* data) override {
+        if (data == nullptr || data->handle != 0xF800u)
+            return;
+        readWipeoutSeen_ = expectedVersion_ >= DRW::AC1018
+            && data->m_classVersion == 0
+            && data->basePoint.x == 131.0
+            && data->basePoint.y == 132.0
+            && data->basePoint.z == 133.0
+            && data->secPoint.z == 1.0
+            && data->vVector.y == 1.0
+            && data->sizeu == 64.0
+            && data->sizev == 48.0
+            && data->clip == 1
+            && data->brightness == 60
+            && data->contrast == 70
+            && data->fade == 10
+            && data->m_clipBoundaryType == 2
+            && data->clipPath.size() == 4
+            && data->clipPath[2].x == 64.0
+            && data->clipPath[2].y == 48.0
+            && data->clipMode == (expectedVersion_ > DRW::AC1021);
     }
     void addHatch(const DRW_Hatch*) override { readHatchSeen_ = true; }
     void addLeader(const DRW_Leader*) override { readLeaderSeen_ = true; }
@@ -3486,6 +3539,9 @@ public:
     bool wroteMesh() const { return wroteMesh_; }
     bool rejectedMalformedMesh() const { return rejectedMalformedMesh_; }
     bool readMeshSeen() const { return readMeshSeen_; }
+    bool wroteWipeout() const { return wroteWipeout_; }
+    bool rejectedMalformedWipeout() const { return rejectedMalformedWipeout_; }
+    bool readWipeoutSeen() const { return readWipeoutSeen_; }
     bool readPointCloudSeen() const { return readPointCloudSeen_; }
     bool readPointCloudExSeen() const { return readPointCloudExSeen_; }
     bool readHatchSeen() const { return readHatchSeen_; }
@@ -3743,6 +3799,8 @@ private:
     bool registeredMesh_ {false};
     bool wroteMesh_ {false};
     bool rejectedMalformedMesh_ {false};
+    bool wroteWipeout_ {false};
+    bool rejectedMalformedWipeout_ {false};
     bool wrotePointCloud_ {false};
     bool wrotePointCloudEx_ {false};
     bool rejectedMalformedPointCloudEntity_ {false};
@@ -3955,6 +4013,7 @@ private:
     bool readMLineSeen_ {false};
     bool readLightSeen_ {false};
     bool readMeshSeen_ {false};
+    bool readWipeoutSeen_ {false};
     bool readPointCloudSeen_ {false};
     bool readPointCloudExSeen_ {false};
     bool readHatchSeen_ {false};
@@ -4172,6 +4231,13 @@ int main(int argc, char** argv) {
                ("local DWG MESH capability gate" + suffix).c_str(), failures);
         expect(writeIface.rejectedMalformedMesh(),
                ("local DWG writer rejected malformed MESH transaction"
+                + suffix).c_str(), failures);
+        expect(version >= DRW::AC1018
+                   ? writeIface.wroteWipeout()
+                   : !writeIface.wroteWipeout(),
+               ("local DWG WIPEOUT capability gate" + suffix).c_str(), failures);
+        expect(writeIface.rejectedMalformedWipeout(),
+               ("local DWG writer rejected malformed WIPEOUT transaction"
                 + suffix).c_str(), failures);
         expect(version > DRW::AC1018
                    ? writeIface.wrotePointCloud()
@@ -4509,6 +4575,11 @@ int main(int argc, char** argv) {
                    ? readIface.readMeshSeen()
                    : !readIface.readMeshSeen(),
                ("local DWG self-read MESH capability gate" + suffix).c_str(),
+               failures);
+        expect(version >= DRW::AC1018
+                   ? readIface.readWipeoutSeen()
+                   : !readIface.readWipeoutSeen(),
+               ("local DWG self-read WIPEOUT capability gate" + suffix).c_str(),
                failures);
         expect(version > DRW::AC1018
                    ? readIface.readPointCloudSeen()
