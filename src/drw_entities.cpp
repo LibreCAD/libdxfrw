@@ -21089,6 +21089,7 @@ bool DRW_MLeader::validateDxf() const {
             });
     };
     if (context.roots.size() > kMaxRoots ||
+        context.textLabel.size() > kMaxTableStringBytes ||
         !std::isfinite(context.overallScale) ||
         !finiteCoord(context.contentBasePoint) ||
         !std::isfinite(context.textHeight) ||
@@ -21124,7 +21125,8 @@ bool DRW_MLeader::validateDxf() const {
         return false;
     }
     for (const BlockLabelEntry &entry : blockLabels) {
-        if (!std::isfinite(entry.width))
+        if (entry.labelText.size() > kMaxTableStringBytes
+            || !std::isfinite(entry.width))
             return false;
     }
     for (const DRW_MLeaderRoot &root : context.roots) {

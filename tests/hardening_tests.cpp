@@ -614,6 +614,35 @@ void testMLeaderDxfContextRoundTrip(TestContext& t) {
     t.expect(!oversizedLegacyOwner.writeMultiLeader(&oversizedLegacy)
                  && oversizedLegacyOutput.str().empty(),
              "AC1021 MULTILEADER writer rejects oversized legacy arrays");
+
+    constexpr std::size_t maxMLeaderStringBytes = 16u * 1024u * 1024u;
+    DRW_MLeader oversizedContextText = source;
+    oversizedContextText.context.textLabel.assign(maxMLeaderStringBytes + 1u,
+                                                   'x');
+    std::ostringstream oversizedContextTextOutput;
+    dxfRW oversizedContextTextOwner("");
+    oversizedContextTextOwner.version = DRW::AC1027;
+    oversizedContextTextOwner.binFile = false;
+    oversizedContextTextOwner.writer =
+        std::make_unique<dxfWriterAscii>(&oversizedContextTextOutput);
+    t.expect(!oversizedContextTextOwner.writeMultiLeader(
+                  &oversizedContextText)
+                 && oversizedContextTextOutput.str().empty(),
+             "MULTILEADER writer rejects oversized context text transactionally");
+
+    DRW_MLeader oversizedBlockLabel = legacy;
+    oversizedBlockLabel.blockLabels.front().labelText.assign(
+        maxMLeaderStringBytes + 1u, 'y');
+    std::ostringstream oversizedBlockLabelOutput;
+    dxfRW oversizedBlockLabelOwner("");
+    oversizedBlockLabelOwner.version = DRW::AC1021;
+    oversizedBlockLabelOwner.binFile = false;
+    oversizedBlockLabelOwner.writer =
+        std::make_unique<dxfWriterAscii>(&oversizedBlockLabelOutput);
+    t.expect(!oversizedBlockLabelOwner.writeMultiLeader(
+                  &oversizedBlockLabel)
+                 && oversizedBlockLabelOutput.str().empty(),
+             "AC1021 MULTILEADER writer rejects oversized block-label text");
 }
 
 } // namespace

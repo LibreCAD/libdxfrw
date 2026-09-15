@@ -91,10 +91,10 @@
     },
     {
       "path": "src/drw_entities.cpp",
-      "reason": "Mark one intentionally unused helper, remove two unused locals exposed by standalone -Werror compilation, reject non-finite GEOPOSITIONMARKER and LIGHT entity-body values plus bounded LIGHT strings/color before encoding, and preserve nested MULTILEADER DXF context breaks, transforms, and hard-pointer handles on parse.",
+      "reason": "Mark one intentionally unused helper, remove two unused locals exposed by standalone -Werror compilation, reject non-finite GEOPOSITIONMARKER and LIGHT entity-body values plus bounded LIGHT strings/color before encoding, preserve nested MULTILEADER DXF context breaks, transforms, and hard-pointer handles on parse, and bound MULTILEADER context/block-label strings before publication.",
       "scope": "warning hygiene and DXF MULTILEADER parity",
       "targetBlob": "890ea64e07010339cac96e5d580ecacef7f0f39e",
-      "adaptedSha256": "3fe91d34cf311d1cd0813a1f2d00fa82535cdc04bc5d3ce37faf6dbfca72e557"
+      "adaptedSha256": "4d27c8e5320cd3af23405f92befd26b6606320d690b89d9c94a6774d5507532f"
     },
     {
       "path": "src/drw_entities.h",
