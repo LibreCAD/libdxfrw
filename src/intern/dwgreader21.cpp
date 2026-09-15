@@ -31,7 +31,6 @@ constexpr std::uint64_t kR2007FileHeaderOffset = 0x80;
 constexpr std::size_t kR2007RawFileHeaderSize = 0x2FD;
 constexpr std::size_t kR2007DecodedFileHeaderSize = 0x2CD;
 constexpr std::size_t kR2007FileHeaderDataSize = 0x110;
-constexpr std::size_t kR2007FileHeaderPageSize = 0x400;
 constexpr std::uint64_t kR2007PageMapBaseOffset = 0x480;
 
 } // namespace
@@ -416,7 +415,14 @@ bool dwgReader21::parseDataPage(const dwgSectionInfo &si, std::uint8_t *dData){
             DRW_DBG("\nERROR: dwgReader21::parseDataPage: compressed page size exceeds raw page size\n");
             return false;
         }
-        if (pi.dataSize != 0 && pi.uSize > pi.dataSize) {
+        // The section-map data-size field describes the physical page
+        // envelope (the same value as the page-map size), not the decoded
+        // logical payload.  A compressed page may legitimately expand past
+        // that envelope (for example the AC1021 Classes page has uSize
+        // 0x174c, cSize 0x10c1, and a 0x1200 physical page).  Constrain the
+        // bytes read from disk, while the decoded size is bounded by the
+        // section capacity checks above.
+        if (pi.dataSize != 0 && pi.cSize > pi.dataSize) {
             recordPageFailure(pi, DwgIntegrityCheckKind::PageGeometry);
             DRW_DBG("\nERROR: dwgReader21::parseDataPage: page data size declarations disagree\n");
             return false;
@@ -1200,7 +1206,7 @@ bool dwgReader21::readFileHeader() {
             pi.checksum = SectionsMapBuf.getRawLong64();
             pi.crc = SectionsMapBuf.getRawLong64();
             if (ds == 0 || ds > dwgSafety::MaxBufferSize
-                || pi.uSize == 0 || pi.cSize == 0 || pi.uSize > ds
+                || pi.uSize == 0 || pi.cSize == 0 || pi.cSize > ds
                 || po > sectionCapacity
                 || pi.uSize > sectionCapacity - po
                 || po > secInfo.size
@@ -1278,8 +1284,16 @@ bool dwgReader21::readFileHeader() {
     }
 
     // SectionsAmount includes the empty descriptor that terminates the map.
-    if (!SectionsMapBuf.isGood() || !sawEmptySection
-        || sectionCount != SectionsAmount) {
+    // Older valid R2007 writers omit the all-zero terminator descriptor and
+    // leave either a short zero tail or no tail at all.  SectionsAmount still
+    // counts that descriptor, so accept exactly one implicit empty record;
+    // any other count mismatch remains a hard structural failure.
+    const bool implicitEmptySection = !sawEmptySection
+        && sectionCount < SectionsAmount
+        && sectionCount + 1 == SectionsAmount;
+    if (!SectionsMapBuf.isGood()
+        || (!sawEmptySection && !implicitEmptySection)
+        || sectionCount + (sawEmptySection ? 0u : 1u) != SectionsAmount) {
         recordFailure(DwgIntegrityCheckKind::PageGeometry,
                       DwgIntegrityPhase::SectionMap);
         return false;
@@ -1301,11 +1315,12 @@ bool dwgReader21::readFileHeader() {
         return false;
     }
 
-    // The decoded file-size field includes the repeated file-header page at
-    // the end of the stream.  Page-map entries are already checked against
-    // the actual input length; use their maximum referenced end as the
-    // minimum physical envelope and keep trailing bytes a warning-only
-    // compatibility case.
+    // Page-map entries are already checked against the actual input length.
+    // Some R2007 writers include a repeated file-header page after the last
+    // data page while older valid writers stop at the last mapped page.  The
+    // decoded file-size field follows the writer's convention, so require
+    // only the mapped physical envelope and treat any optional trailing page
+    // or padding as a compatibility warning below.
     std::uint64_t lastPageEnd = kR2007PageMapBaseOffset;
     for (const auto& entry : sectionPageMapTmp) {
         std::uint64_t pageEnd = 0;
@@ -1320,12 +1335,7 @@ bool dwgReader21::readFileHeader() {
         lastPageEnd = std::max(lastPageEnd, pageEnd);
     }
     std::uint64_t minimumFileSize = 0;
-    if (!dwgSafety::add(lastPageEnd, kR2007FileHeaderPageSize,
-                        minimumFileSize)) {
-        recordFailure(DwgIntegrityCheckKind::PageRange,
-                      DwgIntegrityPhase::FileHeader);
-        return false;
-    }
+    minimumFileSize = lastPageEnd;
     if (fileSize < minimumFileSize) {
         recordIntegrityDiagnostic(
             DwgIntegritySeverity::Error,

@@ -62,6 +62,13 @@
       "adaptedSha256": "e9fb92bdf2a222dbb74e1eabd0a3f2d7307d19d0da172ca89818211799200878"
     },
     {
+      "path": "src/intern/dwgreader21.cpp",
+      "reason": "Accept valid AC1021 compressed pages whose decoded size exceeds the physical page envelope and older R2007 section maps that omit the repeated header page or explicit empty terminator descriptor, while retaining bounded physical-page and section-capacity checks.",
+      "scope": "DWG R2007 reader compatibility",
+      "targetBlob": "10d47f1c0313731fc6695b0dda8d7247dc492f88",
+      "adaptedSha256": "4558d6d77acd869bc633103926633082f4226b8824ceb97314063ae73c5936a4"
+    },
+    {
       "path": "src/drw_datastorage.cpp",
       "reason": "Remove an unused readSchemaNames parameter exposed by standalone -Werror compilation; parsing behavior is unchanged.",
       "scope": "warning hygiene",
