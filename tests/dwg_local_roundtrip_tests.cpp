@@ -1856,6 +1856,31 @@ public:
                 && invalidMarker.handle == 0xF301u;
         }
 
+        if (expectedVersion_ < DRW::AC1018) {
+            wroteShape_ = false;
+            rejectedMalformedShape_ = true;
+        } else {
+            DRW_Shape shape;
+            shape.handle = 0xF400u;
+            shape.m_insertionPoint = DRW_Coord(91.0, 92.0, 93.0);
+            shape.m_scale = 2.5;
+            shape.m_rotation = 0.25;
+            shape.m_widthFactor = 0.8;
+            shape.m_oblique = 0.1;
+            shape.m_thickness = 0.2;
+            shape.m_shapeIndex = 7;
+            shape.m_extrusion = DRW_Coord(0.0, 0.0, 1.0);
+            shape.m_shapeFileHandle = DRW::DwgStandardTextStyleHandle;
+            shape.m_styleName = "STANDARD";
+            wroteShape_ = writer_->writeShape(&shape)
+                && shape.handle == 0xF400u;
+            DRW_Shape invalidShape = shape;
+            invalidShape.handle = 0xF401u;
+            invalidShape.m_shapeFileHandle = 0;
+            rejectedMalformedShape_ = !writer_->writeShape(&invalidShape)
+                && invalidShape.handle == 0xF401u;
+        }
+
         DRW_Hatch hatch;
         hatch.name = "SOLID";
         hatch.solid = 1;
@@ -2175,6 +2200,21 @@ public:
                 && data.m_textAlignment == 2
                 && !data.m_enableFrameText
                 && data.mtext == nullptr;
+    }
+    void addShape(const DRW_Shape& data) override {
+        if (data.handle == 0xF400u)
+            readShapeSeen_ = data.m_insertionPoint.x == 91.0
+                && data.m_insertionPoint.y == 92.0
+                && data.m_insertionPoint.z == 93.0
+                && data.m_scale == 2.5
+                && data.m_rotation == 0.25
+                && data.m_widthFactor == 0.8
+                && data.m_oblique == 0.1
+                && data.m_thickness == 0.2
+                && data.m_shapeIndex == 7
+                && data.m_extrusion.z == 1.0
+                && data.m_shapeFileHandle == DRW::DwgStandardTextStyleHandle
+                && data.m_styleName == "STANDARD";
     }
     void addHatch(const DRW_Hatch*) override { readHatchSeen_ = true; }
     void addLeader(const DRW_Leader*) override { readLeaderSeen_ = true; }
@@ -3222,6 +3262,9 @@ public:
     bool readHelixSeen() const { return readHelixSeen_; }
     bool readCameraSeen() const { return readCameraSeen_; }
     bool readGeoPositionMarkerSeen() const { return readGeoPositionMarkerSeen_; }
+    bool wroteShape() const { return wroteShape_; }
+    bool rejectedMalformedShape() const { return rejectedMalformedShape_; }
+    bool readShapeSeen() const { return readShapeSeen_; }
     bool readPointCloudSeen() const { return readPointCloudSeen_; }
     bool readPointCloudExSeen() const { return readPointCloudExSeen_; }
     bool readHatchSeen() const { return readHatchSeen_; }
@@ -3469,6 +3512,8 @@ private:
     bool rejectedMalformedCamera_ {false};
     bool wroteGeoPositionMarker_ {false};
     bool rejectedMalformedGeoPositionMarker_ {false};
+    bool wroteShape_ {false};
+    bool rejectedMalformedShape_ {false};
     bool wrotePointCloud_ {false};
     bool wrotePointCloudEx_ {false};
     bool rejectedMalformedPointCloudEntity_ {false};
@@ -3677,6 +3722,7 @@ private:
     bool readHelixSeen_ {false};
     bool readCameraSeen_ {false};
     bool readGeoPositionMarkerSeen_ {false};
+    bool readShapeSeen_ {false};
     bool readPointCloudSeen_ {false};
     bool readPointCloudExSeen_ {false};
     bool readHatchSeen_ {false};
@@ -3866,6 +3912,13 @@ int main(int argc, char** argv) {
                failures);
         expect(writeIface.rejectedMalformedGeoPositionMarker(),
                ("local DWG writer rejected malformed GEOPOSITIONMARKER transaction"
+                + suffix).c_str(), failures);
+        expect(version >= DRW::AC1018
+                   ? writeIface.wroteShape()
+                   : !writeIface.wroteShape(),
+               ("local DWG SHAPE capability gate" + suffix).c_str(), failures);
+        expect(writeIface.rejectedMalformedShape(),
+               ("local DWG writer rejected malformed SHAPE transaction"
                 + suffix).c_str(), failures);
         expect(version > DRW::AC1018
                    ? writeIface.wrotePointCloud()
@@ -4183,6 +4236,11 @@ int main(int argc, char** argv) {
                    ? readIface.readGeoPositionMarkerSeen()
                    : !readIface.readGeoPositionMarkerSeen(),
                ("local DWG self-read GEOPOSITIONMARKER capability gate" + suffix).c_str(),
+               failures);
+        expect(version >= DRW::AC1018
+                   ? readIface.readShapeSeen()
+                   : !readIface.readShapeSeen(),
+               ("local DWG self-read SHAPE capability gate" + suffix).c_str(),
                failures);
         expect(version > DRW::AC1018
                    ? readIface.readPointCloudSeen()

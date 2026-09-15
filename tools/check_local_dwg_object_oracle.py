@@ -133,6 +133,7 @@ ARCALIGNEDTEXT_HANDLE = 0xED01
 HELIX_HANDLE = 0xEE00
 CAMERA_HANDLE = 0xEF00
 GEOPOSITIONMARKER_HANDLE = 0xF300
+SHAPE_HANDLE = 0xF400
 DIMASSOC_HANDLE = 0xF000
 EVALUATION_GRAPH_HANDLE = 0xF100
 BLOCKREPRESENTATIONDATA_HANDLE = 0xF200
@@ -337,6 +338,36 @@ def check_geo_position_marker(records: list[dict], version_name: str) -> dict:
     }
 
 
+def check_shape_entity(records: list[dict], version_name: str) -> dict:
+    """Qualify the fixed-type SHAPE entity and standard STYLE reference."""
+    if version_name == "AC1015":
+        return {"supported": False}
+    matches = [
+        record for record in records
+        if isinstance(record, dict)
+        and record.get("entity") == "SHAPE"
+        and record.get("type") == 33
+    ]
+    if len(matches) != 1:
+        raise ValueError("SHAPE entity frame count mismatch")
+    shape = matches[0]
+    if (record_handle(shape) != SHAPE_HANDLE
+            or shape.get("ins_pt") != [91.0, 92.0, 93.0]
+            or shape.get("scale") != 2.5
+            or shape.get("rotation") != 0.25
+            or shape.get("width_factor") != 0.8
+            or shape.get("oblique_angle") != 0.1
+            or shape.get("thickness") != 0.2
+            or shape.get("style_id") != 7
+            or shape.get("extrusion") != [0.0, 0.0, 1.0]
+            or shape.get("style") != [5, 1, 19, 19]):
+        raise ValueError("SHAPE identity or bounded payload mismatch")
+    return {
+        "supported": True, "entity": "SHAPE", "type": 33,
+        "handle": SHAPE_HANDLE, "style": 0x13,
+    }
+
+
 def check_express_text_entities(records: list[dict], version_name: str) -> dict:
     """Qualify RTEXT/ARCALIGNEDTEXT identity and bounded oracle payload.
 
@@ -464,6 +495,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
     helix_entity = check_helix_entity(records)
     camera_entity = check_camera_entity(records, version_name)
     geo_position_marker = check_geo_position_marker(records, version_name)
+    shape_entity = check_shape_entity(records, version_name)
     express_text_entities = check_express_text_entities(records, version_name)
     associative_objects = check_associative_objects(records, version_name)
     block_representation = check_block_representation(records, version_name)
@@ -500,6 +532,16 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "LibreDWG 0.14 exposes the local GEOPOSITIONMARKER as "
             "UNKNOWN_OBJ; type/handle identity is qualified while marker "
             "body fields remain local-self-read authoritative")
+    shape_discrepancies = []
+    if not shape_entity.get("supported"):
+        shape_discrepancies.append(
+            "SHAPE emission is intentionally gated off for AC1015 because "
+            "the fixed high local handle cannot satisfy its legacy contiguous "
+            "entity-chain contract")
+    else:
+        shape_discrepancies.append(
+            "SHX glyph bytes remain opaque; SHAPE type/handle/scalar/style "
+            "identity is independently qualified")
 
     render_matrix = {}
     for kind, (object_name, handle, object_type) in RENDER_SETTINGS_KINDS.items():
@@ -1558,6 +1600,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         "helixEntity": helix_entity,
         "cameraEntity": camera_entity,
         "geoPositionMarker": geo_position_marker,
+        "shapeEntity": shape_entity,
         "expressTextEntities": express_text_entities,
         "associativeObjects": associative_objects,
         "blockRepresentationData": block_representation,
@@ -1596,7 +1639,8 @@ def check_objects(payload: dict, version_name: str) -> dict:
                                  + image_discrepancies
         + associative_discrepancies
         + block_representation_discrepancies
-        + camera_discrepancies + geo_position_marker_discrepancies),
+        + camera_discrepancies + geo_position_marker_discrepancies
+        + shape_discrepancies),
     }
 
 
@@ -2020,6 +2064,11 @@ def self_test() -> None:
              "type": 542, "view": [5, 0, 0, 0]},
             {"object": "UNKNOWN_OBJ",
              "handle": [0, 2, GEOPOSITIONMARKER_HANDLE], "type": 1164},
+            {"entity": "SHAPE", "handle": [0, 2, SHAPE_HANDLE],
+             "type": 33, "ins_pt": [91.0, 92.0, 93.0], "scale": 2.5,
+             "rotation": 0.25, "width_factor": 0.8,
+             "oblique_angle": 0.1, "thickness": 0.2, "style_id": 7,
+             "extrusion": [0.0, 0.0, 1.0], "style": [5, 1, 19, 19]},
             {"entity": "RTEXT", "handle": [0, 2, RTEXT_HANDLE],
              "type": 521, "text_value": "LOCAL_RTEXT",
              "pt": [90.0, 91.0, 0.0],
@@ -2067,6 +2116,10 @@ def self_test() -> None:
             "handle": GEOPOSITIONMARKER_HANDLE,
             "oracleObject": "UNKNOWN_OBJ"}:
         raise AssertionError("GEOPOSITIONMARKER identity was not qualified")
+    if summary.get("shapeEntity") != {
+            "supported": True, "entity": "SHAPE", "type": 33,
+            "handle": SHAPE_HANDLE, "style": 0x13}:
+        raise AssertionError("SHAPE entity identity was not qualified")
     if summary.get("expressTextEntities") != {
             "rtext": {"entity": "RTEXT", "type": 521,
                       "handle": RTEXT_HANDLE, "text": "LOCAL_RTEXT"},
