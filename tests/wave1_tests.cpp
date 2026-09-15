@@ -3395,6 +3395,61 @@ void testDxfRawSectionWideHandleReplay(TestContext& t) {
     }
 }
 
+void testDxfRawSectionWideHandleRemap(TestContext& t) {
+    const std::string wideSelf = "123456789ABCDEF0";
+    const std::string wideReference = "FEDCBA9876543210";
+    DRW_RawDxfSection section;
+    section.m_name = "LOCAL_WIDE_REMAP_SECTION";
+    section.m_version = DRW::AC1027;
+    section.m_hasRawValues = true;
+    section.m_groups = {DRW_Variant(5, wideSelf),
+                        DRW_Variant(102, std::string("{WIDE_REMAP")),
+                        DRW_Variant(330, wideReference),
+                        DRW_Variant(102, std::string("}"))};
+    section.m_rawValues = {wideSelf, "{WIDE_REMAP", wideReference, "}"};
+    const std::map<std::uint32_t, std::uint32_t> remap = {{0x1Au, 0x3Au},
+                                                           {0x2Au, 0x4Au}};
+
+    std::ostringstream asciiOutput;
+    dxfRW asciiWriter("");
+    asciiWriter.version = DRW::AC1027;
+    asciiWriter.binFile = false;
+    asciiWriter.writer = std::make_unique<dxfWriterAscii>(&asciiOutput);
+    asciiWriter.setHandleRemap(remap);
+    t.expect(asciiWriter.writeRawDxfSection(section)
+                 && asciiOutput.str().find(wideSelf) != std::string::npos
+                 && asciiOutput.str().find(wideReference) != std::string::npos,
+             "DXF ASCII raw section wide handles ignore narrow remap keys");
+
+    DRW_RawDxfSection binarySection = section;
+    binarySection.m_hasRawValues = false;
+    binarySection.m_rawValues.clear();
+    std::ostringstream binaryOutput;
+    dxfRW binaryWriter("");
+    binaryWriter.version = DRW::AC1027;
+    binaryWriter.binFile = true;
+    binaryWriter.writer = std::make_unique<dxfWriterBinary>(&binaryOutput);
+    binaryWriter.setHandleRemap(remap);
+    t.expect(binaryWriter.writeRawDxfSection(binarySection)
+                 && !binaryOutput.str().empty(),
+             "DXF binary raw section wide handles ignore narrow remap keys");
+    std::stringstream binaryRecords(binaryOutput.str());
+    dxfReaderBinary binaryReader(&binaryRecords);
+    binaryReader.setClassifierProfile(DxfClassifierProfile::StandaloneSafe);
+    binaryReader.setAllowWideHandleLexemes(true);
+    bool retainedSelf = false;
+    bool retainedReference = false;
+    int code = 0;
+    while (binaryReader.readRec(&code)) {
+        retainedSelf = retainedSelf
+            || (code == 5 && binaryReader.getString() == wideSelf);
+        retainedReference = retainedReference
+            || (code == 330 && binaryReader.getString() == wideReference);
+    }
+    t.expect(retainedSelf && retainedReference,
+             "DXF binary raw section preserves wide identities under remap");
+}
+
 void testDxfRawSectionApplicationGroupMarker(TestContext& t) {
     const std::vector<std::string> invalidMarkers = {"{", "NOT_A_MARKER"};
     for (const std::string& marker : invalidMarkers) {
@@ -3743,6 +3798,7 @@ int main() {
     testDxfRawSectionHandleDiagnostics(context);
     testDxfRawSectionHandleScope(context);
     testDxfRawSectionWideHandleReplay(context);
+    testDxfRawSectionWideHandleRemap(context);
     testDxfRawSectionApplicationGroupMarker(context);
     testDxfRawSectionApplicationGroupReferenceMatrix(context);
     testRawCapture(context);
