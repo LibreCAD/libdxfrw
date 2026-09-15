@@ -4766,6 +4766,8 @@ public:
             return;
         replayedFirst_ = writer_->writeRawDwgObject(&first_);
         capturedFirstFrame_ = writer_->getLastDwgObjectFrame(firstFrame_);
+        if (replayedFirst_)
+            writeEvents_.push_back("O:" + std::to_string(first_.m_handle));
 
         DRW_UnsupportedObject malformed = second_;
         malformed.m_handle = 0x703u;
@@ -4810,20 +4812,28 @@ public:
 
         replayedSecond_ = writer_->writeRawDwgObject(&second_);
         capturedSecondFrame_ = writer_->getLastDwgObjectFrame(secondFrame_);
+        if (replayedSecond_)
+            writeEvents_.push_back("O:" + std::to_string(second_.m_handle));
         DRW_UnsupportedObject duplicate = first_;
         rejectedDuplicateHandle_ = !writer_->writeRawDwgObject(&duplicate);
         replayedThird_ = writer_->writeRawDwgObject(&third_);
         capturedThirdFrame_ = writer_->getLastDwgObjectFrame(thirdFrame_);
+        if (replayedThird_)
+            writeEvents_.push_back("O:" + std::to_string(third_.m_handle));
         replayedSection_ = writer_->writeRawDwgSection(&section_);
+        if (replayedSection_)
+            writeEvents_.push_back("S:" + section_.m_name);
         rejectedDuplicateSection_ = !writer_->writeRawDwgSection(&section_);
     }
     void writeAppId() override {}
 
     void addUnsupportedObject(const DRW_UnsupportedObject& object) override {
         readObjects_.push_back(object);
+        readEvents_.push_back("O:" + std::to_string(object.m_handle));
     }
     void addRawDwgSection(const DRW_RawDwgSection& section) override {
         readSections_.push_back(section);
+        readEvents_.push_back("S:" + section.m_name);
     }
 
     dwgRW* writer_ {nullptr};
@@ -4833,6 +4843,8 @@ public:
     DRW_RawDwgSection section_;
     std::vector<DRW_UnsupportedObject> readObjects_;
     std::vector<DRW_RawDwgSection> readSections_;
+    std::vector<std::string> writeEvents_;
+    std::vector<std::string> readEvents_;
     DRW::DwgObjectFrameReceipt firstFrame_;
     DRW::DwgObjectFrameReceipt secondFrame_;
     DRW::DwgObjectFrameReceipt thirdFrame_;
@@ -4906,6 +4918,10 @@ bool runRawDwgReplayContract() {
     const DRW_UnsupportedObject* first = findObject(0x700u);
     const DRW_UnsupportedObject* second = findObject(0x702u);
     const DRW_UnsupportedObject* third = findObject(0x706u);
+    const std::vector<std::string> expectedWriteEvents {
+        "O:1792", "O:1794", "O:1798", "S:LocalRawS110"};
+    const std::vector<std::string> expectedReadEvents {
+        "O:1794", "O:1792", "O:1798", "S:LocalRawS110"};
     const bool readContract = readOk && first != nullptr && second != nullptr
         && third != nullptr && readIface.readSections_.size() == 1
         && readIface.readSections_.front().m_name == "LocalRawS110"
@@ -4914,6 +4930,17 @@ bool runRawDwgReplayContract() {
         && first->m_className == "AcDbLocalRawReplay"
         && second->m_className == "AcDbLocalRawReplay"
         && third->m_className == "AcDbLocalRawReplayAlt";
+    const auto rawEvents = [](const std::vector<std::string>& events) {
+        std::vector<std::string> result;
+        for (const std::string& event : events) {
+            if (event == "O:1792" || event == "O:1794"
+                || event == "O:1798" || event == "S:LocalRawS110")
+                result.push_back(event);
+        }
+        return result;
+    };
+    const bool eventContract = writeIface.writeEvents_ == expectedWriteEvents
+        && rawEvents(readIface.readEvents_) == expectedReadEvents;
     bool rejectedMutation = false;
     std::ifstream encoded(output, std::ios::binary);
     std::vector<std::uint8_t> encodedBytes(
@@ -4974,7 +5001,8 @@ bool runRawDwgReplayContract() {
             && bufferMutationError == fileMutationError && equivalentDiagnostic;
     }
     std::filesystem::remove(output, ec);
-    const bool result = readContract && validBufferRead && rejectedMutation
+    const bool result = readContract && eventContract && validBufferRead
+        && rejectedMutation
         && writeIface.capturedFirstFrame_
         && writeIface.firstFrame_.objectHandle == 0x700u
         && writeIface.firstFrame_.classNumber >= 500
