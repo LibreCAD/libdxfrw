@@ -52,7 +52,7 @@
       "reason": "Define the out-of-line dwgR forwarding façade, preserve null DWG argument/error compatibility, and instrument stage-aware operation diagnostics.",
       "scope": "source compatibility",
       "targetBlob": "d1237b166b0ac0a03120c3b2eb6213e890832862",
-      "adaptedSha256": "2ddcfb4f00cd400379f838de192c34814d161aa6ab91f03dbcccf11bb3ffe08c"
+      "adaptedSha256": "7cf4b5376a1e216eb6f657b8d4e604876539722de3a59eeb79bbcd793930e375"
     },
     {
       "path": "src/intern/dwgreader.cpp",

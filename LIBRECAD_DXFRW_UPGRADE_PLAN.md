@@ -1958,6 +1958,11 @@ edit this block or commit the same slice concurrently.
   two-read regression confirms comments from the first document do not leak
   into the second; release and ASan/UBSan hardening binaries pass. No drawing
   bytes were added.
+- Latest DWG state-isolation slice (2026-09-15): S263/J239 resets the
+  per-operation DWG version and code-page fields before file-backed and
+  in-memory reads. A recognized-but-corrupt DWG followed by a too-short input
+  now reports `UNKNOWNV` with an empty code page; release and ASan/UBSan
+  hardening binaries pass. No drawing bytes were added.
 - Previous checkpoint (2026-09-15): S257/J233 post-hardening validation
   checkpoint is committed. A fresh C++17 build and all 26 dependency-free
   CTest entries pass in 6.26 seconds, including source-route and release
@@ -3253,17 +3258,17 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 262 (`COMMITTED`); no slice is active.
+- Resolved slices: 263 (`COMMITTED`); no slice is active.
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 262 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 263 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 264 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 265 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 2 VERIFIED / 360 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 2 VERIFIED / 361 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 240 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S262 are committed; no local implementation slice is active.
+  0 DEFERRED_EXTERNAL / 241 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S263 are committed; no local implementation slice is active.
   Remaining work is evidence-gated runtime/oracle and release closure; keep
   the fast inner loop and do not promote support claims from self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -3580,6 +3585,7 @@ edit this block or commit the same slice concurrently.
 | S260 | J236: bounded DWG parser fuzz smoke | S259 | COMMITTED | deterministic in-memory malformed DWG corpus; six-version headers; no-throw callback sink; focused hardening gate; plan/scope/sync/fixture gates | 512 deterministic parser inputs span AC1015/18/21/24/27/32 headers with arbitrary and zero-filled tails and pass through `dwgRW::readBuffer` without exceptions under release and ASan/UBSan builds; no drawing fixtures or payloads retained | longer external fuzz, native Windows, package, and parity-promotion evidence remain scheduled |
 | S261 | J237: DXF ASCII mode-state reuse fix | S260 | COMMITTED | ASCII reader reset; raw source-spelling regression; focused hardening gate; plan/scope/sync/fixture gates | `readAscii()` clears stale binary-mode state; a reused reader captures ASCII raw values after `setBinary(true)` under release and ASan/UBSan hardening binaries; no drawing fixtures or payloads retained | longer external fuzz, native Windows, package, and parity-promotion evidence remain scheduled |
 | S262 | J238: DXF header state isolation | S261 | COMMITTED | fresh header per read session; two-read regression; focused hardening gate; plan/scope/sync/fixture gates | file-backed and in-memory read entry points reset `DRW_Header`; a two-read regression prevents prior comments/variables from leaking; release and ASan/UBSan hardening binaries pass; no drawing fixtures or payloads retained | longer external fuzz, native Windows, package, and parity-promotion evidence remain scheduled |
+| S263 | J239: DWG version/code-page state isolation | S262 | COMMITTED | fresh DWG operation state; failure-to-failure regression; focused hardening gate; plan/scope/sync/fixture gates | file-backed and in-memory read entry points reset version and code page; recognized-but-corrupt followed by too-short input reports `UNKNOWNV` with an empty code page under release and ASan/UBSan hardening binaries; no drawing fixtures or payloads retained | longer external fuzz, native Windows, package, and parity-promotion evidence remain scheduled |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3846,6 +3852,7 @@ edit this block or commit the same slice concurrently.
 | J236 | S260 | J235 | COMMITTED | EXPERIMENTAL | Qualify bounded DWG parser fuzz smoke | Exercise the public in-memory DWG parser across all six supported magic families with deterministic malformed tails through a no-op callback sink; require no exceptions, bounded execution, and no retained drawing payloads while leaving long external fuzz evidence scheduled |
 | J237 | S261 | J236 | COMMITTED | EXPERIMENTAL | Qualify DXF ASCII mode-state reuse fix | Ensure the explicit ASCII read entry point resets stale binary-mode state on a reused `dxfRW` object and preserves raw source spellings through the callback contract without changing the standalone-safe classifier policy |
 | J238 | S262 | J237 | COMMITTED | EXPERIMENTAL | Qualify DXF header state isolation | Reset the per-document `DRW_Header` before both file-backed and in-memory reads so comments, variables, and control handles cannot leak across reusable `dxfRW` sessions; preserve existing error and classifier behavior |
+| J239 | S263 | J238 | COMMITTED | EXPERIMENTAL | Qualify DWG version/code-page state isolation | Reset version and code page at the beginning of each `dwgRW` read operation so failed reads cannot expose stale metadata from a prior document; preserve recognized-version behavior until the current operation fails |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4219,6 +4226,7 @@ edit this block or commit the same slice concurrently.
 | J236.1 | J236 / S260 | WP8, WP10; bounded DWG parser fuzz smoke | J235 | COMMITTED | EXPERIMENTAL | run 512 deterministic in-memory malformed DWG inputs spanning AC1015/18/21/24/27/32 through `dwgRW::readBuffer` with a no-op callback sink, assert no exception, and retain no drawing payloads | release and ASan/UBSan hardening binaries pass the six-version DWG parser fuzz smoke; focused hardening and policy gates pass; longer fuzz and external-corpus evidence remain scheduled |
 | J237.1 | J237 / S261 | WP4, WP8, WP10; DXF ASCII mode-state reuse | J236 | COMMITTED | EXPERIMENTAL | set binary mode on a `dxfRW` instance, call `readAscii()` with a raw custom section, and assert successful parsing plus source-value retention; keep the regression fixture-free | release and ASan/UBSan hardening binaries pass the reuse regression; focused hardening and policy gates pass; no drawing fixtures or derived payloads |
 | J238.1 | J238 / S262 | WP4, WP8, WP10; DXF header state isolation | J237 | COMMITTED | EXPERIMENTAL | reuse one `dxfRW` instance for two in-memory reads, capture both headers, and assert the second header has no first-document comments while both reads succeed; keep the regression fixture-free | release and ASan/UBSan hardening binaries pass the header-reset regression; focused hardening and policy gates pass; no drawing fixtures or derived payloads |
+| J239.1 | J239 / S263 | WP5, WP8, WP10; DWG version/code-page state isolation | J238 | COMMITTED | EXPERIMENTAL | feed a recognized six-byte DWG magic with a corrupt/truncated body, then a too-short buffer to one `dwgRW` instance and assert the final failure exposes `UNKNOWNV` and an empty code page; keep the regression fixture-free | release and ASan/UBSan hardening binaries pass the failure-to-failure state-reset regression; focused hardening and policy gates pass; no drawing fixtures or derived payloads |
 
 <!-- UPGRADE_PROGRESS_END -->
 

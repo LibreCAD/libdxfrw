@@ -344,6 +344,24 @@ void testDxfReadResetsHeaderState(TestContext& t) {
              "second read does not inherit prior header comments");
 }
 
+void testDwgReadResetsVersionState(TestContext& t) {
+    const std::array<std::uint8_t, 6> recognizedMagic {{
+        'A', 'C', '1', '0', '2', '7'}};
+    const std::array<std::uint8_t, 5> tooShort {{
+        'A', 'C', '1', '0', '2'}};
+    FuzzInterface interface_;
+    dwgRW reader(nullptr);
+    t.expect(!reader.readBuffer(recognizedMagic.data(), recognizedMagic.size(),
+                                &interface_, false)
+                 && reader.getVersion() == DRW::AC1027,
+             "recognized DWG magic is retained for the failed parse");
+    t.expect(!reader.readBuffer(tooShort.data(), tooShort.size(), &interface_,
+                                false)
+                 && reader.getVersion() == DRW::UNKNOWNV
+                 && reader.getCodePage().empty(),
+             "invalid DWG read does not expose stale version or code page");
+}
+
 } // namespace
 
 int main() {
@@ -355,6 +373,7 @@ int main() {
     testDwgReadFuzzSmoke(context);
     testDxfReadAsciiResetsFormatState(context);
     testDxfReadResetsHeaderState(context);
+    testDwgReadResetsVersionState(context);
     if (context.failures != 0) {
         std::cerr << context.failures << " hardening assertion(s) failed\n";
         return 1;

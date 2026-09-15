@@ -777,6 +777,8 @@ bool dwgRW::read(DRW_Interface *interface_, bool ext){
     bool isOk = false;
     beginOperationDiagnostic(DRW::OperationKind::Read);
     error = DRW::BAD_NONE;
+    version = DRW::UNKNOWNV;
+    codePage.clear();
     applyExt = ext;
     iface = interface_;
     resetReadDiagnostics();
@@ -804,6 +806,8 @@ bool dwgRW::readBuffer(const std::uint8_t *data, std::uint64_t size,
                        DRW_Interface *interface_, bool ext) {
     beginOperationDiagnostic(DRW::OperationKind::Read);
     error = DRW::BAD_NONE;
+    version = DRW::UNKNOWNV;
+    codePage.clear();
     applyExt = ext;
     iface = interface_;
     resetReadDiagnostics();
