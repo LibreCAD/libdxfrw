@@ -2810,6 +2810,60 @@ void testDxfRawSectionApplicationGroupSourceSpelling(TestContext& t) {
              "DXF binary raw section preserves untouched source spelling");
 }
 
+void testDxfRawSectionApplicationGroupRawValueCardinality(TestContext& t) {
+    DRW_RawDxfSection section;
+    section.m_name = "LOCAL_SECTION_RAW_VALUES";
+    section.m_version = DRW::AC1027;
+    section.m_hasRawValues = true;
+    section.m_groups = {DRW_Variant(102, std::string("{RAW_SECTION")),
+                        DRW_Variant(330, std::string("2A")),
+                        DRW_Variant(102, std::string("}"))};
+    section.m_rawValues = {"{RAW_SECTION", "2A", "}"};
+
+    std::ostringstream asciiOutput;
+    dxfRW asciiWriter("");
+    asciiWriter.version = DRW::AC1027;
+    asciiWriter.binFile = false;
+    asciiWriter.writer = std::make_unique<dxfWriterAscii>(&asciiOutput);
+    t.expect(asciiWriter.writeRawDxfSection(section)
+                 && !asciiOutput.str().empty(),
+             "DXF ASCII raw section accepts matching raw-value cardinality");
+
+    DRW_RawDxfSection missing = section;
+    missing.m_rawValues.pop_back();
+    std::ostringstream missingOutput;
+    dxfRW missingWriter("");
+    missingWriter.version = DRW::AC1027;
+    missingWriter.binFile = false;
+    missingWriter.writer = std::make_unique<dxfWriterAscii>(&missingOutput);
+    t.expect(!missingWriter.writeRawDxfSection(missing)
+                 && missingOutput.str().empty(),
+             "DXF ASCII raw section rejects missing raw-value spelling");
+
+    DRW_RawDxfSection extra = section;
+    extra.m_rawValues.emplace_back("EXTRA");
+    std::ostringstream extraOutput;
+    dxfRW extraWriter("");
+    extraWriter.version = DRW::AC1027;
+    extraWriter.binFile = false;
+    extraWriter.writer = std::make_unique<dxfWriterAscii>(&extraOutput);
+    t.expect(!extraWriter.writeRawDxfSection(extra)
+                 && extraOutput.str().empty(),
+             "DXF ASCII raw section rejects extra raw-value spelling");
+
+    DRW_RawDxfSection binarySection = section;
+    binarySection.m_hasRawValues = false;
+    binarySection.m_rawValues.assign(binarySection.m_groups.size(), UTF8STRING());
+    std::ostringstream binaryOutput;
+    dxfRW binaryWriter("");
+    binaryWriter.version = DRW::AC1027;
+    binaryWriter.binFile = true;
+    binaryWriter.writer = std::make_unique<dxfWriterBinary>(&binaryOutput);
+    t.expect(binaryWriter.writeRawDxfSection(binarySection)
+                 && !binaryOutput.str().empty(),
+             "DXF binary raw section accepts empty raw-value placeholders");
+}
+
 void testRawCapture(TestContext& t) {
     std::stringstream records("260\n2147483647\n482\n3.14\n1004\nAB\n");
     dxfRW owner("");
@@ -3035,6 +3089,7 @@ int main() {
     testDxfRawEntityApplicationGroupRemapChain(context);
     testDxfRawSectionApplicationGroupRemap(context);
     testDxfRawSectionApplicationGroupSourceSpelling(context);
+    testDxfRawSectionApplicationGroupRawValueCardinality(context);
     testRawCapture(context);
     testHatchValidationIgnoresInactiveGradient(context);
     testFixedSpaceBlockClassification(context);
