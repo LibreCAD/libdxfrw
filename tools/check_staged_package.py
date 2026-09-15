@@ -77,6 +77,27 @@ def self_test_staged_flags() -> None:
             % stale_flags)
 
 
+def self_test_package_root_identity() -> None:
+    with tempfile.TemporaryDirectory(prefix="libdxfrw-root-a-") as first_dir:
+        with tempfile.TemporaryDirectory(prefix="libdxfrw-root-b-") as second_dir:
+            first = Path(first_dir)
+            second = Path(second_dir)
+            assert_staged_flags(
+                ["-I" + str(first / "include"), "-L" + str(first / "lib")],
+                first)
+            for mixed_flags in (
+                ["-I" + str(second / "include"), "-L" + str(first / "lib")],
+                ["-I" + str(first / "include"), "-L" + str(second / "lib")],
+            ):
+                try:
+                    assert_staged_flags(mixed_flags, first)
+                except RuntimeError:
+                    continue
+                raise RuntimeError(
+                    "pkg-config root guard accepted mixed roots: %s"
+                    % mixed_flags)
+
+
 def assert_profile_symbols(prefix: Path) -> None:
     library_candidates = sorted((prefix / "lib").glob("libdxfrw.a"))
     if not library_candidates:
@@ -330,6 +351,7 @@ def main() -> int:
     args = parser.parse_args()
     if args.self_test:
         self_test_staged_flags()
+        self_test_package_root_identity()
         self_test_relocatable_cmake_export()
         print("staged package checker self-test: PASS")
         if not args.prefix:
