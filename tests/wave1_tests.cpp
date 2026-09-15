@@ -2177,6 +2177,105 @@ void testDxfRawEntityApplicationGroupReferenceMatrix(TestContext& t) {
              "DXF binary application-group reference-code matrix replays losslessly");
 }
 
+void testDxfRawEntityApplicationGroupBinaryChunks(TestContext& t) {
+    DRW_RawDxfObject object;
+    object.name = "LOCAL_BINARY_GROUP_ENTITY";
+    object.handle = 0x1Au;
+    object.m_version = DRW::AC1027;
+    object.hasRawValues = true;
+    object.groups = {DRW_Variant(5, std::string("1A")),
+                     DRW_Variant(102, std::string("{BINARY_PAYLOAD")),
+                     DRW_Variant(330, std::string("2A")),
+                     DRW_Variant(310, std::string("ABCD")),
+                     DRW_Variant(1004, std::string("0102")),
+                     DRW_Variant(102, std::string("}"))};
+    object.rawValues = {"1A", "{BINARY_PAYLOAD", "2A", "ABCD", "0102", "}"};
+    const std::map<std::uint32_t, std::uint32_t> remap = {{0x1Au, 0x3Au},
+                                                           {0x2Au, 0x4Au}};
+    const std::vector<std::pair<int, std::string>> expected = {
+        {0, "LOCAL_BINARY_GROUP_ENTITY"},
+        {5, "3A"},
+        {102, "{BINARY_PAYLOAD"},
+        {330, "4A"},
+        {310, "ABCD"},
+        {1004, "0102"},
+        {102, "}"}};
+
+    std::ostringstream asciiOutput;
+    dxfRW asciiWriter("");
+    asciiWriter.version = DRW::AC1027;
+    asciiWriter.binFile = false;
+    asciiWriter.writer = std::make_unique<dxfWriterAscii>(&asciiOutput);
+    asciiWriter.setHandleRemap(remap);
+    t.expect(asciiWriter.writeRawDxfObject(&object),
+             "DXF ASCII application-group binary chunks replay beside remapped references");
+    int code = 0;
+    std::stringstream asciiRecords(asciiOutput.str());
+    dxfReaderAscii asciiReader(&asciiRecords);
+    bool asciiShape = true;
+    for (const auto& item : expected) {
+        if (!asciiReader.readRec(&code) || code != item.first
+            || asciiReader.getString() != item.second) {
+            asciiShape = false;
+            break;
+        }
+    }
+    t.expect(asciiShape,
+             "DXF ASCII application-group binary chunks preserve group structure");
+
+    DRW_RawDxfObject binaryObject = object;
+    binaryObject.hasRawValues = false;
+    binaryObject.rawValues.clear();
+    std::ostringstream binaryOutput;
+    dxfRW binaryWriter("");
+    binaryWriter.version = DRW::AC1027;
+    binaryWriter.binFile = true;
+    binaryWriter.writer = std::make_unique<dxfWriterBinary>(&binaryOutput);
+    binaryWriter.setHandleRemap(remap);
+    t.expect(binaryWriter.writeRawDxfObject(&binaryObject),
+             "DXF binary application-group binary chunks replay beside remapped references");
+    std::stringstream binaryRecords(binaryOutput.str());
+    dxfReaderBinary binaryReader(&binaryRecords);
+    binaryReader.setClassifierProfile(DxfClassifierProfile::StandaloneSafe);
+    bool binaryShape = true;
+    for (const auto& item : expected) {
+        if (!binaryReader.readRec(&code) || code != item.first
+            || binaryReader.getString() != item.second) {
+            binaryShape = false;
+            break;
+        }
+    }
+    t.expect(binaryShape,
+             "DXF binary application-group binary chunks preserve group structure");
+
+    DRW_RawDxfObject malformedAscii = object;
+    malformedAscii.groups[4] = DRW_Variant(1004, std::string("ABC"));
+    malformedAscii.rawValues[4] = "ABC";
+    std::ostringstream rejectedAsciiOutput;
+    dxfRW rejectingAsciiWriter("");
+    rejectingAsciiWriter.version = DRW::AC1027;
+    rejectingAsciiWriter.binFile = false;
+    rejectingAsciiWriter.writer = std::make_unique<dxfWriterAscii>(
+        &rejectedAsciiOutput);
+    rejectingAsciiWriter.setHandleRemap(remap);
+    t.expect(!rejectingAsciiWriter.writeRawDxfObject(&malformedAscii)
+                 && rejectedAsciiOutput.str().empty(),
+             "DXF ASCII malformed application-group chunk rejects transactionally");
+
+    DRW_RawDxfObject malformedBinary = binaryObject;
+    malformedBinary.groups[4] = DRW_Variant(1004, std::string("GG"));
+    std::ostringstream rejectedBinaryOutput;
+    dxfRW rejectingBinaryWriter("");
+    rejectingBinaryWriter.version = DRW::AC1027;
+    rejectingBinaryWriter.binFile = true;
+    rejectingBinaryWriter.writer = std::make_unique<dxfWriterBinary>(
+        &rejectedBinaryOutput);
+    rejectingBinaryWriter.setHandleRemap(remap);
+    t.expect(!rejectingBinaryWriter.writeRawDxfObject(&malformedBinary)
+                 && rejectedBinaryOutput.str().empty(),
+             "DXF binary malformed application-group chunk rejects transactionally");
+}
+
 void testRawCapture(TestContext& t) {
     std::stringstream records("260\n2147483647\n482\n3.14\n1004\nAB\n");
     dxfRW owner("");
@@ -2394,6 +2493,7 @@ int main() {
     testDxfRawEntityApplicationGroupAggregate(context);
     testDxfRawEntityApplicationGroupMarker(context);
     testDxfRawEntityApplicationGroupReferenceMatrix(context);
+    testDxfRawEntityApplicationGroupBinaryChunks(context);
     testRawCapture(context);
     testHatchValidationIgnoresInactiveGradient(context);
     testFixedSpaceBlockClassification(context);
