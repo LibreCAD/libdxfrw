@@ -4575,7 +4575,7 @@
         {
           "line": 1,
           "path": "src/intern/dwgutil.h",
-          "spanSha256": "fba50c53a6a7d8595bfa4645461fe3ba67c42a6f115cad52dec672c33fca7526",
+          "spanSha256": "17306de7cd56db029d3e2d35813d1ca9b3c4acbb895e2edba79768d74ad93b7e",
           "symbol": "src/intern/dwgutil.h"
         }
       ],
@@ -4906,7 +4906,7 @@
         {
           "line": 74,
           "path": "src/intern/dxfreader.cpp",
-          "spanSha256": "12a1e676ad81ac3f10fe27d437991e682bac21e60ba3deffb43592967b1def4c",
+          "spanSha256": "8b3426f13cc480a3a1b9e5188c1154aa445341069b458b5017f0fff7f094de03",
           "symbol": "dxfReader::readRec"
         }
       ],
@@ -8712,7 +8712,7 @@
       ],
       "evidence": [
         {
-          "line": 12016,
+          "line": 12032,
           "path": "src/intern/dwgreader.cpp",
           "spanSha256": "e4b8991baf14722bdd5cb88b143d8458e3ce2c1247be21af5d55d317e18a8ff0",
           "symbol": "DRW_ObjControl::parseDwg"
@@ -8855,13 +8855,13 @@
       ],
       "evidence": [
         {
-          "line": 19323,
+          "line": 19326,
           "path": "src/drw_objects.cpp",
           "spanSha256": "8e8996a1e631cc9c9edf0f13df1d87dcbf2ba0e5ac0f89c0559568b076afa268",
           "symbol": "DRW_AcDbPlaceholder::parseDwg"
         },
         {
-          "line": 19370,
+          "line": 19373,
           "path": "src/drw_objects.cpp",
           "spanSha256": "54be581e28e7830b68a6fba0d240c2b63136b4b70f055c30bc5ca30f9ece4ee2",
           "symbol": "DRW_AcDbPlaceholder::encodeDwg"
@@ -8902,7 +8902,7 @@
       ],
       "evidence": [
         {
-          "line": 20891,
+          "line": 20894,
           "path": "src/drw_objects.cpp",
           "spanSha256": "6bc9894297b056426158fda9834726ca323eb01697e81dbb26c112af190e6061",
           "symbol": "DRW_AcShHistoryObject::parseDwg"
@@ -9273,19 +9273,19 @@
       ],
       "evidence": [
         {
-          "line": 11086,
+          "line": 11109,
           "path": "src/drw_entities.cpp",
           "spanSha256": "c2a1c2e7198046594cb20b7b0e5e2686ea57fd9135475338013bde97a9ab1b13",
           "symbol": "DRW_ArcAlignedText::encodeDwg"
         },
         {
-          "line": 11133,
+          "line": 11156,
           "path": "src/drw_entities.cpp",
           "spanSha256": "61711f786d475529ce6ba1634172881d2cb426495a5944eb1471e2523171e2d1",
           "symbol": "DRW_ArcAlignedText::parseCode"
         },
         {
-          "line": 11203,
+          "line": 11226,
           "path": "src/drw_entities.cpp",
           "spanSha256": "bc75fb8ebdf02dbd28e73f70b7ec64618e3509c20f61e6acf2fc1fd4d6fb9d0c",
           "symbol": "DRW_ArcAlignedText::parseDwg"
@@ -9355,13 +9355,13 @@
       ],
       "evidence": [
         {
-          "line": 19852,
+          "line": 19855,
           "path": "src/drw_objects.cpp",
           "spanSha256": "92563388c72e2c726b9bac495ea39227c8bc4154737725a51d834a09a1ad3fb2",
           "symbol": "DRW_AssociativeObject::parseCode"
         },
         {
-          "line": 19881,
+          "line": 19884,
           "path": "src/drw_objects.cpp",
           "spanSha256": "439134d7ff1b6e26e3517fc1ee15bc54fc595443db4f1e8b2ab390c29575352e",
           "symbol": "DRW_AssociativeObject::parseDwg"
@@ -9427,19 +9427,19 @@
       ],
       "evidence": [
         {
-          "line": 12281,
+          "line": 12307,
           "path": "src/drw_entities.cpp",
           "spanSha256": "09c4800d7c47a1956ad871d6f4f1f442ebba437d28e210c20459feae6ba7c526",
           "symbol": "DRW_Attdef::parseCode"
         },
         {
-          "line": 12292,
+          "line": 12318,
           "path": "src/drw_entities.cpp",
           "spanSha256": "f637bf1d49124d6f4d40b2059e1413c0737aea86178bcf52ccf76a13582bb292",
           "symbol": "DRW_Attdef::parseDwg"
         },
         {
-          "line": 12442,
+          "line": 12468,
           "path": "src/drw_entities.cpp",
           "spanSha256": "9ef88fe2db8409b202566997437f93c6f45c895af045dd4eec40b32d55add93a",
           "symbol": "DRW_Attdef::encodeDwg"
@@ -9486,19 +9486,19 @@
       ],
       "evidence": [
         {
-          "line": 11982,
+          "line": 12008,
           "path": "src/drw_entities.cpp",
           "spanSha256": "b50d293e1cf499d787f84325ad937c9957831e3d80b42dd9501d6aa4270deb8b",
           "symbol": "DRW_Attrib::parseCode"
         },
         {
-          "line": 12066,
+          "line": 12092,
           "path": "src/drw_entities.cpp",
           "spanSha256": "6b6adb3c2a5405624bfa52dc93a8f1980fa4aca2b324c75fcf6b318953e51992",
           "symbol": "DRW_Attrib::parseDwg"
         },
         {
-          "line": 12213,
+          "line": 12239,
           "path": "src/drw_entities.cpp",
           "spanSha256": "6769751dcdf34372c9da440dcaebf6f372da52517982a4bb92621dfbe7ebf511",
           "symbol": "DRW_Attrib::encodeDwg"
@@ -9610,13 +9610,13 @@
           "symbol": "DRW_Block::encodeDwg"
         },
         {
-          "line": 8563,
+          "line": 8586,
           "path": "src/drw_entities.cpp",
           "spanSha256": "66ffc92f0169b789ec744fa694c2d3f7e13953b9440086735a04d6cb626a472b",
           "symbol": "DRW_Block::parseCode"
         },
         {
-          "line": 8592,
+          "line": 8615,
           "path": "src/drw_entities.cpp",
           "spanSha256": "5aea9441813a9883b20c7d51bbeacd12ef7b027b48ee7ee1980893e77278311c",
           "symbol": "DRW_Block::parseDwg"
@@ -9663,13 +9663,13 @@
       ],
       "evidence": [
         {
-          "line": 19233,
+          "line": 19236,
           "path": "src/drw_objects.cpp",
           "spanSha256": "f84697cf75c320e7f364330938547a8d2dd764f4189b02fa39bf6c8dd4cb4b43",
           "symbol": "DRW_BlockRepresentationData::parseDwg"
         },
         {
-          "line": 19301,
+          "line": 19304,
           "path": "src/drw_objects.cpp",
           "spanSha256": "e04e06fe694ad1d44d81c984f3d0edddd36472bdc31a376dc0e1391bb180629b",
           "symbol": "DRW_BlockRepresentationData::encodeDwg"
@@ -9746,13 +9746,13 @@
       ],
       "evidence": [
         {
-          "line": 23593,
+          "line": 23596,
           "path": "src/drw_objects.cpp",
           "spanSha256": "2f0eea2141234b2c3f34f5243c478c4fd0ee3ff89ccf85fb122a6842f2dd7492",
           "symbol": "DRW_BreakData::parseCode"
         },
         {
-          "line": 23617,
+          "line": 23620,
           "path": "src/drw_objects.cpp",
           "spanSha256": "7b0be0d87b8a34096c0cfb3cd35fd3dba4572aa2a19051502e0e1ae4d93df1b1",
           "symbol": "DRW_BreakData::parseDwg"
@@ -9793,7 +9793,7 @@
       ],
       "evidence": [
         {
-          "line": 23701,
+          "line": 23704,
           "path": "src/drw_objects.cpp",
           "spanSha256": "afd0baee7fb7fe651f662c24bbc63dd0fa913530deef334ba8dcc48e954c257c",
           "symbol": "DRW_BreakPointRef::parseDwg"
@@ -10258,13 +10258,13 @@
       ],
       "evidence": [
         {
-          "line": 17248,
+          "line": 17251,
           "path": "src/drw_objects.cpp",
           "spanSha256": "e3f42a7ec100331d80933a4ee4f0405ff99a4b66c7ed8750d72020cb92a68398",
           "symbol": "DRW_DataLink::parseCode"
         },
         {
-          "line": 17339,
+          "line": 17342,
           "path": "src/drw_objects.cpp",
           "spanSha256": "328ab52aeedffdb5b51d718c02a763bcffc2bfad7b8cdc3873a6bf8d8c07ee38",
           "symbol": "DRW_DataLink::parseDwg"
@@ -10636,13 +10636,13 @@
           "symbol": "DRW_DbColor::parseCode"
         },
         {
-          "line": 24189,
+          "line": 24192,
           "path": "src/drw_objects.cpp",
           "spanSha256": "0936cadb307627c7a5ebfb5bc471add84ce4224f09249842722d424132b480ac",
           "symbol": "DRW_DbColor::parseDwg"
         },
         {
-          "line": 24281,
+          "line": 24284,
           "path": "src/drw_objects.cpp",
           "spanSha256": "2b90643b1b1c66acbb9122cf05ab956182985b65c6f073eef88a8e29442faff1",
           "symbol": "DRW_DbColor::encodeDwg"
@@ -10688,13 +10688,13 @@
       ],
       "evidence": [
         {
-          "line": 22968,
+          "line": 22971,
           "path": "src/drw_objects.cpp",
           "spanSha256": "30b4638647abe5ef7e9ba5ebb1a15973527489f8c5f3750c2a65abb53749d3fd",
           "symbol": "DRW_DetailViewStyle::parseCode"
         },
         {
-          "line": 23076,
+          "line": 23079,
           "path": "src/drw_objects.cpp",
           "spanSha256": "1ed3bcea3ccd193463b8f7f3af1eb99c261124ce65bc8a449526380e1a5f11b1",
           "symbol": "DRW_DetailViewStyle::parseDwg"
@@ -10853,7 +10853,7 @@
           "symbol": "DRW_DictionaryVar::parseDwg"
         },
         {
-          "line": 15602,
+          "line": 15605,
           "path": "src/drw_objects.cpp",
           "spanSha256": "1125f1b744a5062c2010a78c6ad24c9e4ef7ce2f75521f2b0e6fc5d12fa6e0f9",
           "symbol": "DRW_DictionaryVar::encodeDwg"
@@ -10912,7 +10912,7 @@
           "symbol": "DRW_DictionaryWithDefault::parseDwg"
         },
         {
-          "line": 15624,
+          "line": 15627,
           "path": "src/drw_objects.cpp",
           "spanSha256": "662489dc5e0fa6509fd2b02b12fd56be086cb7b8dd0cfe319eb16463dc13f4f5",
           "symbol": "DRW_DictionaryWithDefault::encodeDwg"
@@ -10959,13 +10959,13 @@
       ],
       "evidence": [
         {
-          "line": 19038,
+          "line": 19064,
           "path": "src/drw_entities.cpp",
           "spanSha256": "809f596ef05f807ce84755478b289631f553b5d1d981eec1434f7316bd5900d6",
           "symbol": "DRW_DimAligned::parseDwg"
         },
         {
-          "line": 19618,
+          "line": 19644,
           "path": "src/drw_entities.cpp",
           "spanSha256": "3f8393717ee13f55109cf16f5e28b88c9a820ee829631f3e6b6b5ca0a77aba7e",
           "symbol": "DRW_DimAligned::encodeDwg"
@@ -11007,13 +11007,13 @@
       ],
       "evidence": [
         {
-          "line": 19343,
+          "line": 19369,
           "path": "src/drw_entities.cpp",
           "spanSha256": "72bac089afceb5dcd3229093e72c023c9706c6cca670668ac8e9dc4f47ead4d9",
           "symbol": "DRW_DimAngular::parseDwg"
         },
         {
-          "line": 19705,
+          "line": 19731,
           "path": "src/drw_entities.cpp",
           "spanSha256": "ad1a8da373bec17fdcc47e3131de9e78418d4008cc9b1df27e4c050596c5de57",
           "symbol": "DRW_DimAngular::encodeDwg"
@@ -11055,13 +11055,13 @@
       ],
       "evidence": [
         {
-          "line": 19416,
+          "line": 19442,
           "path": "src/drw_entities.cpp",
           "spanSha256": "3a7377820f8c7c118f969436b118f36e4460abda1a3dea4e43d25f7f845e75d0",
           "symbol": "DRW_DimAngular3p::parseDwg"
         },
         {
-          "line": 19725,
+          "line": 19751,
           "path": "src/drw_entities.cpp",
           "spanSha256": "44ba030a7c5628300022ce8750586a615440d8e68649f4ec48950716d6c0e3b4",
           "symbol": "DRW_DimAngular3p::encodeDwg"
@@ -11103,19 +11103,19 @@
       ],
       "evidence": [
         {
-          "line": 19742,
+          "line": 19768,
           "path": "src/drw_entities.cpp",
           "spanSha256": "ec5ad0a80c4f630a4f004ad356e599ba3b90345adcb85b217ba61346c5dd6577",
           "symbol": "DRW_DimArc::parseCode"
         },
         {
-          "line": 19771,
+          "line": 19797,
           "path": "src/drw_entities.cpp",
           "spanSha256": "9c3cf1d347085f37c244b08f275fd94cf2b49311ac5b1e8dccaf53796fec1373",
           "symbol": "DRW_DimArc::parseDwg"
         },
         {
-          "line": 19854,
+          "line": 19880,
           "path": "src/drw_entities.cpp",
           "spanSha256": "d945642f25929516ae8190391783b0075fcf32529f9dc069cace2a18b9c9385c",
           "symbol": "DRW_DimArc::encodeDwg"
@@ -11162,13 +11162,13 @@
       ],
       "evidence": [
         {
-          "line": 19281,
+          "line": 19307,
           "path": "src/drw_entities.cpp",
           "spanSha256": "0eceb19262aba35e3727090399adcb60fcfefa9edc467e9c5daa44d65eac2380",
           "symbol": "DRW_DimDiametric::parseDwg"
         },
         {
-          "line": 19689,
+          "line": 19715,
           "path": "src/drw_entities.cpp",
           "spanSha256": "5bcc078e9f5a72dfbfbfe37d06e3731cc1522339214ba82f5f0018da0fc82044",
           "symbol": "DRW_DimDiametric::encodeDwg"
@@ -11210,19 +11210,19 @@
       ],
       "evidence": [
         {
-          "line": 19175,
+          "line": 19201,
           "path": "src/drw_entities.cpp",
           "spanSha256": "3aa0466d460435a3bada484a34ed20a41c0bdd73f61e2f34ce293a9969bcb15d",
           "symbol": "DRW_DimLargeRadial::parseCode"
         },
         {
-          "line": 19215,
+          "line": 19241,
           "path": "src/drw_entities.cpp",
           "spanSha256": "7e8659a773057219c2945ade3f1e80cdc30b1c581139f8a9c81537b97f08020a",
           "symbol": "DRW_DimLargeRadial::parseDwg"
         },
         {
-          "line": 19669,
+          "line": 19695,
           "path": "src/drw_entities.cpp",
           "spanSha256": "73b6be857f8dd16de310f6e0df81ebae2ef43230b18ee22396aba6c67ceefb90",
           "symbol": "DRW_DimLargeRadial::encodeDwg"
@@ -11268,7 +11268,7 @@
       ],
       "evidence": [
         {
-          "line": 19635,
+          "line": 19661,
           "path": "src/drw_entities.cpp",
           "spanSha256": "ad0f2757c434d30ec1c4ec826249694a35f18403d7ed54895116e91616e77e50",
           "symbol": "DRW_DimLinear::encodeDwg"
@@ -11305,13 +11305,13 @@
       ],
       "evidence": [
         {
-          "line": 19482,
+          "line": 19508,
           "path": "src/drw_entities.cpp",
           "spanSha256": "d4a4df35447303faefc224f78b6fc2ae6a6395089e472102db4a3814782991a8",
           "symbol": "DRW_DimOrdinate::parseDwg"
         },
         {
-          "line": 19881,
+          "line": 19907,
           "path": "src/drw_entities.cpp",
           "spanSha256": "a504b06c5f27a71929048ee3aa596a52497d4e9d756c9023b7bb41985a0341e3",
           "symbol": "DRW_DimOrdinate::encodeDwg"
@@ -11353,13 +11353,13 @@
       ],
       "evidence": [
         {
-          "line": 19108,
+          "line": 19134,
           "path": "src/drw_entities.cpp",
           "spanSha256": "211d32eab2ddc37b59a72d602bdef4d3f4f1118fe83e69aa9e63e21c94e54929",
           "symbol": "DRW_DimRadial::parseDwg"
         },
         {
-          "line": 19653,
+          "line": 19679,
           "path": "src/drw_entities.cpp",
           "spanSha256": "0d4c5b9280a3585b42af4b8b19a90d40542f6a176285971621ef60876825b5af",
           "symbol": "DRW_DimRadial::encodeDwg"
@@ -11401,31 +11401,31 @@
       ],
       "evidence": [
         {
-          "line": 18655,
+          "line": 18681,
           "path": "src/drw_entities.cpp",
           "spanSha256": "8b2fdf38cc9dd9297e47a9be1980c3ba1f844fb5330765b5bd3c16a58e3ec330",
           "symbol": "DRW_Dimension::parseCode"
         },
         {
-          "line": 18808,
+          "line": 18834,
           "path": "src/drw_entities.cpp",
           "spanSha256": "8e1a10673566de7a88a4de29bcdf930a780d35e50b915e8759f8b82587206f5a",
           "symbol": "DRW_Dimension::parseDwg"
         },
         {
-          "line": 18860,
+          "line": 18886,
           "path": "src/drw_entities.cpp",
           "spanSha256": "b36edd1535c3488654342ab1fa6bb0ee885f0c095313ff31d922791be288a376",
           "symbol": "DRW_Dimension::parseDwg"
         },
         {
-          "line": 19019,
+          "line": 19045,
           "path": "src/drw_entities.cpp",
           "spanSha256": "6e75279b1af907f314c76cd55b175735ba852779e152ac4cb8fe6eab432a2e7a",
           "symbol": "DRW_Dimension::parseDwgDimensionHandles"
         },
         {
-          "line": 19555,
+          "line": 19581,
           "path": "src/drw_entities.cpp",
           "spanSha256": "7b297d61022f09b5a3ae3f11ef8089aa49a0bc2e80ccb50de0297ce5b8b48222",
           "symbol": "DRW_Dimension::encodeDwgDimBase"
@@ -11482,19 +11482,19 @@
       ],
       "evidence": [
         {
-          "line": 17631,
+          "line": 17634,
           "path": "src/drw_objects.cpp",
           "spanSha256": "ba5eabf76681e97a469708ade0dc6b8cbf52c60fdcee4ddd0eb19168ebedfea5",
           "symbol": "DRW_DimensionAssociation::parseCode"
         },
         {
-          "line": 18868,
+          "line": 18871,
           "path": "src/drw_objects.cpp",
           "spanSha256": "81ff657a9058c5ec0f76da548f6788f4dc0d288a31e8c44ea6bb1d0c60c76ed9",
           "symbol": "DRW_DimensionAssociation::parseDwg"
         },
         {
-          "line": 24336,
+          "line": 24339,
           "path": "src/drw_objects.cpp",
           "spanSha256": "33425c9586b71da54a401d3cab936a7b8108459aa57a8134ad264be047a57ee5",
           "symbol": "DRW_DimensionAssociation::encodeDwg"
@@ -12223,7 +12223,7 @@
       ],
       "evidence": [
         {
-          "line": 21696,
+          "line": 21699,
           "path": "src/drw_objects.cpp",
           "spanSha256": "bd90c156872d34b088600da5a417f437318c2f46d54cbb87b248c4cc95460246",
           "symbol": "DRW_DynamicBlockObject::parseDwg"
@@ -12433,19 +12433,19 @@
       ],
       "evidence": [
         {
-          "line": 17689,
+          "line": 17692,
           "path": "src/drw_objects.cpp",
           "spanSha256": "d073b5f78ab02377ad84e583eab7238675c480e0c93600015392b033b48c1ad4",
           "symbol": "DRW_EvaluationGraph::parseCode"
         },
         {
-          "line": 19084,
+          "line": 19087,
           "path": "src/drw_objects.cpp",
           "spanSha256": "2b101bfe9dc929361ccc5816dd971584ab637d5ae5319e53e9913c2bf59caa90",
           "symbol": "DRW_EvaluationGraph::parseDwg"
         },
         {
-          "line": 24399,
+          "line": 24402,
           "path": "src/drw_objects.cpp",
           "spanSha256": "27a39f612cfbfb7d89b2514517110650a882e416b577df4760e9ed41dfc76874",
           "symbol": "DRW_EvaluationGraph::encodeDwg"
@@ -12539,7 +12539,7 @@
       ],
       "evidence": [
         {
-          "line": 17220,
+          "line": 17246,
           "path": "src/drw_entities.cpp",
           "spanSha256": "6af598c786bf5ccf6141ac77898f5c98f6422ff0477eb309574b878ca0e7e286",
           "symbol": "DRW_ExtrudedSurface::parseCode"
@@ -12582,7 +12582,7 @@
           "symbol": "DRW_Field::parseDwg"
         },
         {
-          "line": 15952,
+          "line": 15955,
           "path": "src/drw_objects.cpp",
           "spanSha256": "8163cb02abd91f89923d85257ff620596b9562303932d8e98f1e7ea265e697d4",
           "symbol": "DRW_Field::encodeDwg"
@@ -12630,7 +12630,7 @@
           "symbol": "DRW_FieldList::parseDwg"
         },
         {
-          "line": 16032,
+          "line": 16035,
           "path": "src/drw_objects.cpp",
           "spanSha256": "222e92e5ebc17cf86296a94a9bed3beb2d7a7d6c77e95fc275c5f024aec494c1",
           "symbol": "DRW_FieldList::encodeDwg"
@@ -12672,21 +12672,21 @@
       ],
       "evidence": [
         {
-          "line": 15491,
+          "line": 15490,
           "path": "src/drw_objects.cpp",
-          "spanSha256": "59b9d7827fc7a27ae7eef791679c52d161513c719200c8d56a111342113b1bd6",
+          "spanSha256": "f64cf023e82b792032cde0cb288924da28d1dbf1854459b5cc2410f160778d7d",
           "symbol": "DRW_GeoData::encodeDwg"
         },
         {
-          "line": 18314,
+          "line": 18317,
           "path": "src/drw_objects.cpp",
           "spanSha256": "5035d6f7d453d9e0ecb028187473f6c28677ce45e6812f20aaca40fa65c3fb99",
           "symbol": "DRW_GeoData::parseCode"
         },
         {
-          "line": 18469,
+          "line": 18472,
           "path": "src/drw_objects.cpp",
-          "spanSha256": "d45745cae4ad2040ee289ac258485e8ec189c90f3cdbb3792a466ab029e1e9e5",
+          "spanSha256": "bd3969b6d5f65f4fd708f2bdfadf81c6e2fc10362b7c7f61adda0eb2e88710a3",
           "symbol": "DRW_GeoData::parseDwg"
         },
         {
@@ -12730,13 +12730,13 @@
       ],
       "evidence": [
         {
-          "line": 17489,
+          "line": 17492,
           "path": "src/drw_objects.cpp",
           "spanSha256": "2cdb0017aa0e6d58f26e65169800967cfb79bf4cb74c82362a0f139458c560f7",
           "symbol": "DRW_GeoMapImage::parseCode"
         },
         {
-          "line": 17536,
+          "line": 17539,
           "path": "src/drw_objects.cpp",
           "spanSha256": "5dc3075fd693237b66bdd2dea9afa373457e5bf34bb7002510fabed266826040",
           "symbol": "DRW_GeoMapImage::parseDwg"
@@ -12844,9 +12844,9 @@
           "symbol": "DRW_GeoPositionMarker::parseDwg"
         },
         {
-          "line": 11944,
+          "line": 11967,
           "path": "src/drw_entities.cpp",
-          "spanSha256": "53ff830d77e2a174bd611b497b55cbbc6164289677fd0f08aa2a54b000d7b744",
+          "spanSha256": "f08fa9a22d50a60a624ccd17d4bd4453f88de7c9c6c2fcaf10e97cd97ea4fb43",
           "symbol": "DRW_GeoPositionMarker::encodeDwg"
         },
         {
@@ -12902,13 +12902,13 @@
           "symbol": "DRW_Group::encodeDwg"
         },
         {
-          "line": 16837,
+          "line": 16840,
           "path": "src/drw_objects.cpp",
           "spanSha256": "79c75d74ca4a8951ad757c8571edfdf621b31678d70f3128e0b616d2da7f2deb",
           "symbol": "DRW_Group::parseCode"
         },
         {
-          "line": 16869,
+          "line": 16872,
           "path": "src/drw_objects.cpp",
           "spanSha256": "ce6fc32838a316684a176a92980fa23c18f1f00818c6f80444bbd3d9e98fdbc8",
           "symbol": "DRW_Group::parseDwg"
@@ -12955,37 +12955,37 @@
       ],
       "evidence": [
         {
-          "line": 13347,
+          "line": 13373,
           "path": "src/drw_entities.cpp",
           "spanSha256": "bab1602c5d90ce54d43a8b309e357aa964c786d0ef143f97f35139d9e3956862",
           "symbol": "DRW_Hatch::parseCode"
         },
         {
-          "line": 14248,
+          "line": 14274,
           "path": "src/drw_entities.cpp",
           "spanSha256": "a5f86db7a35006954d8c81b523c5eb164aa0414493d7940e82bef2142e58139a",
           "symbol": "DRW_Hatch::parseDwgBoundaryData"
         },
         {
-          "line": 14487,
+          "line": 14513,
           "path": "src/drw_entities.cpp",
           "spanSha256": "f5ecaa1d68881460efb67d900682bab7d9a897e79bfdb60b27927efe5d00084e",
           "symbol": "DRW_Hatch::parseDwg"
         },
         {
-          "line": 14681,
+          "line": 14707,
           "path": "src/drw_entities.cpp",
           "spanSha256": "defa1fea13fd434d52fcdc184509b8ab3af7549e1fb234aa94d4d4098f28178f",
           "symbol": "DRW_Hatch::encodeDwgGradientData"
         },
         {
-          "line": 14703,
+          "line": 14729,
           "path": "src/drw_entities.cpp",
           "spanSha256": "6a629e387caf73ce5ed9796eb85797324d4e27673cb0af8db8b18ac65d9d26a9",
           "symbol": "DRW_Hatch::encodeDwgBoundaryData"
         },
         {
-          "line": 14790,
+          "line": 14816,
           "path": "src/drw_entities.cpp",
           "spanSha256": "2fdbb4db90ebb3f7a23f22052e52343aeea7f276505d407a95c01134266b8f03",
           "symbol": "DRW_Hatch::encodeDwg"
@@ -13158,13 +13158,13 @@
           "symbol": "DRW_Helix::encodeDwg"
         },
         {
-          "line": 15044,
+          "line": 15070,
           "path": "src/drw_entities.cpp",
           "spanSha256": "c1f4f9e34eaa3af2f18f6e93786c7a7d2e49d54fea43878c26b361bab6ab76f6",
           "symbol": "DRW_Helix::parseCode"
         },
         {
-          "line": 15412,
+          "line": 15438,
           "path": "src/drw_entities.cpp",
           "spanSha256": "5eeb244ce5fb8c3d5a619c1fc7b85df71c07d40a574cd0fe4e11cdd324ac3c40",
           "symbol": "DRW_Helix::parseDwg"
@@ -13223,7 +13223,7 @@
           "symbol": "DRW_IDBuffer::parseDwg"
         },
         {
-          "line": 15643,
+          "line": 15646,
           "path": "src/drw_objects.cpp",
           "spanSha256": "d067bcbd165c23b0be1e7369c54db28f7d2c1fd0d041c54b5d43b013cab29e6e",
           "symbol": "DRW_IDBuffer::encodeDwg"
@@ -13270,19 +13270,19 @@
       ],
       "evidence": [
         {
-          "line": 15495,
+          "line": 15521,
           "path": "src/drw_entities.cpp",
           "spanSha256": "94ffa9bdd658fb5b0ac0e28334d06317348496a7528169c9708fcc87bb5ac57d",
           "symbol": "DRW_Image::parseCode"
         },
         {
-          "line": 15673,
+          "line": 15699,
           "path": "src/drw_entities.cpp",
           "spanSha256": "c7529a08f9c145024bee2d9f0812d5f9241ccfd10816d1178ef253b8840ca7cb",
           "symbol": "DRW_Image::parseDwg"
         },
         {
-          "line": 15848,
+          "line": 15874,
           "path": "src/drw_entities.cpp",
           "spanSha256": "deb34b291d97ecea9587ebbc4a156cb2e6ad028ae61349acda212e18b4a3121d",
           "symbol": "DRW_Image::encodeDwg"
@@ -13388,19 +13388,19 @@
       ],
       "evidence": [
         {
-          "line": 17976,
+          "line": 17979,
           "path": "src/drw_objects.cpp",
           "spanSha256": "55126400bafa9dd3f09d342f819670b44aac21be482e9a44edfb867182e11c10",
           "symbol": "DRW_ImageDefinitionReactor::parseCode"
         },
         {
-          "line": 17998,
+          "line": 18001,
           "path": "src/drw_objects.cpp",
           "spanSha256": "92b1233d657ca949f97da638098629339d3a0ee9376fed511b17b0bae77b26d5",
           "symbol": "DRW_ImageDefinitionReactor::parseDwg"
         },
         {
-          "line": 18056,
+          "line": 18059,
           "path": "src/drw_objects.cpp",
           "spanSha256": "09d7d429afc3f1a2a656d03d2452c4b4691d1e5edfa4293f2c2c573c9cc23c92",
           "symbol": "DRW_ImageDefinitionReactor::encodeDwg"
@@ -13500,13 +13500,13 @@
           "symbol": "DRW_Insert::encodeDwg"
         },
         {
-          "line": 8663,
+          "line": 8686,
           "path": "src/drw_entities.cpp",
           "spanSha256": "286055500582d9fee568411ac83c1b2eebc5224e1417cbfe1c7b0abdb26f4ae7",
           "symbol": "DRW_Insert::parseCode"
         },
         {
-          "line": 8943,
+          "line": 8966,
           "path": "src/drw_entities.cpp",
           "spanSha256": "5d107498cd2d9953209d421289e5ff0071f05057c92118c85eefd2bdca174c1c",
           "symbol": "DRW_Insert::parseDwg"
@@ -13666,13 +13666,13 @@
           "symbol": "DRW_LWPolyline::encodeDwg"
         },
         {
-          "line": 9602,
+          "line": 9625,
           "path": "src/drw_entities.cpp",
           "spanSha256": "799a8e20bd8d62859329f61cfc62ad16ff481c1f8a61ac56228b2b7da92e3237",
           "symbol": "DRW_LWPolyline::parseCode"
         },
         {
-          "line": 9696,
+          "line": 9719,
           "path": "src/drw_entities.cpp",
           "spanSha256": "00a8e191ce744bd5aa1e913fa3d35d7a96310c834198efa0d34dde67751c6f9b",
           "symbol": "DRW_LWPolyline::parseDwg"
@@ -13801,13 +13801,13 @@
       ],
       "evidence": [
         {
-          "line": 17154,
+          "line": 17157,
           "path": "src/drw_objects.cpp",
           "spanSha256": "be8c8605cfb86cbe3f465b9b9e20f250f846f988a90f016bf8f5c61a74416d74",
           "symbol": "DRW_LayerFilter::parseCode"
         },
         {
-          "line": 17166,
+          "line": 17169,
           "path": "src/drw_objects.cpp",
           "spanSha256": "442ba35b5a1180a67ddead9eb129fc36fe2c81640d2ebf8a5bde9561cfedff2a",
           "symbol": "DRW_LayerFilter::parseDwg"
@@ -13861,7 +13861,7 @@
           "symbol": "DRW_LayerIndex::parseDwg"
         },
         {
-          "line": 15670,
+          "line": 15673,
           "path": "src/drw_objects.cpp",
           "spanSha256": "5ba778ecd3807e2f4c193d9f80563c9c129e992d70a14c08e0b05de7d924f80d",
           "symbol": "DRW_LayerIndex::encodeDwg"
@@ -13991,19 +13991,19 @@
       ],
       "evidence": [
         {
-          "line": 19899,
+          "line": 19925,
           "path": "src/drw_entities.cpp",
           "spanSha256": "f196baa3155c0eaf2f33861913191d37c11e393db229db0c448316cd373faa09",
           "symbol": "DRW_Leader::parseCode"
         },
         {
-          "line": 20048,
+          "line": 20074,
           "path": "src/drw_entities.cpp",
           "spanSha256": "d55548be51ea1da78218f134e6d2a884e42b950889714d729d14ad345b02740b",
           "symbol": "DRW_Leader::parseDwg"
         },
         {
-          "line": 21916,
+          "line": 21942,
           "path": "src/drw_entities.cpp",
           "spanSha256": "a54ad3a23809d5d97a3de0d9e3a51b01b04737e5dbb5ad2e13f386fca8ad7663",
           "symbol": "DRW_Leader::encodeDwg"
@@ -14058,7 +14058,7 @@
         {
           "line": 8030,
           "path": "src/drw_entities.cpp",
-          "spanSha256": "ea607b20bb697a527cd03985dac37d8fc5cfcdeb00fdd8ab1e6f2775c38990ac",
+          "spanSha256": "760b5c58a638629c099ab7c51127b3b7aed3645be6fa537a9c62f6c461428445",
           "symbol": "DRW_Light::encodeDwg"
         },
         {
@@ -14098,19 +14098,19 @@
       ],
       "evidence": [
         {
-          "line": 16968,
+          "line": 16971,
           "path": "src/drw_objects.cpp",
           "spanSha256": "120605a8ad372e56524a08aa4b17d3ed4d7cca87c39ca298337d2aba6065ad19",
           "symbol": "DRW_LightList::parseCode"
         },
         {
-          "line": 17023,
+          "line": 17026,
           "path": "src/drw_objects.cpp",
           "spanSha256": "0b1b9eb8477918688c94124dea725c24dcef9f8e398353dac752679b52e815e3",
           "symbol": "DRW_LightList::parseDwg"
         },
         {
-          "line": 17118,
+          "line": 17121,
           "path": "src/drw_objects.cpp",
           "spanSha256": "093f6cf7a95a9a7e57c907e942e3fa5450314ea50f3a0f53992f66e01504fe0c",
           "symbol": "DRW_LightList::encodeDwg"
@@ -14239,7 +14239,7 @@
       ],
       "evidence": [
         {
-          "line": 17568,
+          "line": 17594,
           "path": "src/drw_entities.cpp",
           "spanSha256": "53a68d4eed41af7e3bf67fbd6ea790c59c37db6212b1cea10194667a51209033",
           "symbol": "DRW_LoftedSurface::parseCode"
@@ -14276,25 +14276,25 @@
       ],
       "evidence": [
         {
-          "line": 20233,
+          "line": 20259,
           "path": "src/drw_entities.cpp",
           "spanSha256": "b7ddb8aa9fe788423b267325827c6e21fe50cc3974c0f4abb178db87a1f56b4d",
           "symbol": "DRW_MLeader::parseDxfContextCode"
         },
         {
-          "line": 20404,
+          "line": 20430,
           "path": "src/drw_entities.cpp",
           "spanSha256": "a6d8c81e5df653c644c8b04e5e6574691e3d8a1103fe0d5aff58ed536c8e9d69",
           "symbol": "DRW_MLeader::parseCode"
         },
         {
-          "line": 20894,
+          "line": 20920,
           "path": "src/drw_entities.cpp",
           "spanSha256": "0613ccfd10a26a9b61c4293d3215eba5f583327d8bfe17ef3c17f429f5457f03",
           "symbol": "DRW_MLeader::parseDwg"
         },
         {
-          "line": 21118,
+          "line": 21144,
           "path": "src/drw_entities.cpp",
           "spanSha256": "682ef9351d7545b055fe7255beab9ba4ee3434ad7f7ab93aaa6c82bef95f73f2",
           "symbol": "DRW_MLeader::encodeDwg"
@@ -14430,7 +14430,7 @@
           "symbol": "DRW_MLeaderStyle::parseDwg"
         },
         {
-          "line": 16082,
+          "line": 16085,
           "path": "src/drw_objects.cpp",
           "spanSha256": "5619338af688cd2ce93ae4b301b6bee7ab933ad6d760eee181476dd6b98d3281",
           "symbol": "DRW_MLeaderStyle::encodeDwg"
@@ -14477,19 +14477,19 @@
       ],
       "evidence": [
         {
-          "line": 9936,
+          "line": 9959,
           "path": "src/drw_entities.cpp",
           "spanSha256": "84c5de70d778d8f67276ebdffc788e8c01d31df812c7868d742cb055f0321d35",
           "symbol": "DRW_MLine::parseCode"
         },
         {
-          "line": 10193,
+          "line": 10216,
           "path": "src/drw_entities.cpp",
           "spanSha256": "8332de5d0c5339d16fa8b647dc0580b55c16353d739e53478b761b96c1eaf34b",
           "symbol": "DRW_MLine::parseDwg"
         },
         {
-          "line": 21715,
+          "line": 21741,
           "path": "src/drw_entities.cpp",
           "spanSha256": "01d94d9dc8fae017c5c74a81f19f2a08e4b6459941f5dc520345a91a1e63bff7",
           "symbol": "DRW_MLine::encodeDwg"
@@ -14643,19 +14643,19 @@
       ],
       "evidence": [
         {
-          "line": 13900,
+          "line": 13926,
           "path": "src/drw_entities.cpp",
           "spanSha256": "1522867611aa1edd6bee568ae42990a2ecdab4672813ee7e78b2eebce4418b3a",
           "symbol": "DRW_MPolygon::parseCode"
         },
         {
-          "line": 13939,
+          "line": 13965,
           "path": "src/drw_entities.cpp",
           "spanSha256": "625010dbbd8b3ebaa29b9467d6b8afdf395eba668bdaa5bfe4c10b0e7b16cb5a",
           "symbol": "DRW_MPolygon::parseDwg"
         },
         {
-          "line": 14191,
+          "line": 14217,
           "path": "src/drw_entities.cpp",
           "spanSha256": "0f5abe7303657230b8aed7a74caaae44716aa29143f52c53f5c5c213e9c0a819",
           "symbol": "DRW_MPolygon::encodeDwg"
@@ -14708,13 +14708,13 @@
           "symbol": "DRW_MText::encodeDwg"
         },
         {
-          "line": 12510,
+          "line": 12536,
           "path": "src/drw_entities.cpp",
           "spanSha256": "67544b9b43e6f8f157cf69764a7b15aef0b5a95a20b41a66d82a17195c9d4e3a",
           "symbol": "DRW_MText::parseCode"
         },
         {
-          "line": 12599,
+          "line": 12625,
           "path": "src/drw_entities.cpp",
           "spanSha256": "233bcb253b66b50fa2ad156935bff8cf0c1d2aaf82a6ce22ce30f9afad713ab6",
           "symbol": "DRW_MText::parseDwg"
@@ -15057,19 +15057,19 @@
       ],
       "evidence": [
         {
-          "line": 16007,
+          "line": 16033,
           "path": "src/drw_entities.cpp",
           "spanSha256": "471fab2179bb307f4840ee7751fcdd4d8e7694486ace27006a32062f93d00262",
           "symbol": "DRW_NavisworksModel::parseCode"
         },
         {
-          "line": 16064,
+          "line": 16090,
           "path": "src/drw_entities.cpp",
           "spanSha256": "cf05b0855f660e3c37afb6632a969a6a09c3b70757e004b6c0d45a78911a15d3",
           "symbol": "DRW_NavisworksModel::parseDwg"
         },
         {
-          "line": 16141,
+          "line": 16167,
           "path": "src/drw_entities.cpp",
           "spanSha256": "42079910e29491d4216ce199718440bddfbbede3199ceb941665e078fca5751c",
           "symbol": "DRW_NavisworksModel::encodeDwg"
@@ -15174,7 +15174,7 @@
       ],
       "evidence": [
         {
-          "line": 17724,
+          "line": 17750,
           "path": "src/drw_entities.cpp",
           "spanSha256": "5fa9f63041e9024259a44822d8e215735a5865306585aa6dfefd1787866516dc",
           "symbol": "DRW_NurbsSurface::parseCode"
@@ -15210,7 +15210,7 @@
       ],
       "evidence": [
         {
-          "line": 16458,
+          "line": 16461,
           "path": "src/drw_objects.cpp",
           "spanSha256": "60c1b257b5789a193bfac24b30c1d559973335c2b33a6132d95932950f2ce2a0",
           "symbol": "DRW_ObjectContextData::parseDwg"
@@ -15697,19 +15697,19 @@
       ],
       "evidence": [
         {
-          "line": 16182,
+          "line": 16208,
           "path": "src/drw_entities.cpp",
           "spanSha256": "80469471a8d953355cf8a69f4c489faa27518da806ebd6eeca87e170a35b1261",
           "symbol": "DRW_PointCloud::parseCode"
         },
         {
-          "line": 16298,
+          "line": 16324,
           "path": "src/drw_entities.cpp",
           "spanSha256": "14ca447c9370df3de44deabee3d44472ac07915a4eb11cdb18883f9e6ae2189f",
           "symbol": "DRW_PointCloud::parseDwg"
         },
         {
-          "line": 16501,
+          "line": 16527,
           "path": "src/drw_entities.cpp",
           "spanSha256": "8bcc2a27c895a09cbab3eba410196137b03abf239219ea882ab18652edfa4344",
           "symbol": "DRW_PointCloud::encodeDwg"
@@ -15922,19 +15922,19 @@
       ],
       "evidence": [
         {
-          "line": 16611,
+          "line": 16637,
           "path": "src/drw_entities.cpp",
           "spanSha256": "b26955749a1704b84ac8accbea96cb5837534fbd54ccf2ec8ea5f56ae0a50ca9",
           "symbol": "DRW_PointCloudEx::parseCode"
         },
         {
-          "line": 16887,
+          "line": 16913,
           "path": "src/drw_entities.cpp",
           "spanSha256": "5f9a5ec13fd4490d8b6a1f05471e90dab31d8e5977596a06f9280d524f645bf6",
           "symbol": "DRW_PointCloudEx::parseDwg"
         },
         {
-          "line": 17068,
+          "line": 17094,
           "path": "src/drw_entities.cpp",
           "spanSha256": "338fdd590c8dfbff29298e2f5076a09209abd22303e03db6a64d8c5c28b50a21",
           "symbol": "DRW_PointCloudEx::encodeDwg"
@@ -16088,19 +16088,19 @@
       ],
       "evidence": [
         {
-          "line": 12870,
+          "line": 12896,
           "path": "src/drw_entities.cpp",
           "spanSha256": "b3a54585f4021e001e8905c3a9829c533be3d42e6b5890ed0d8fada6d9d6a624",
           "symbol": "DRW_Polyline::parseCode"
         },
         {
-          "line": 12958,
+          "line": 12984,
           "path": "src/drw_entities.cpp",
           "spanSha256": "01dd11a8ac193113b0d84bbce8428b6818914ee7380b7a3f082e7b6c3131b6be",
           "symbol": "DRW_Polyline::parseDwg"
         },
         {
-          "line": 21848,
+          "line": 21874,
           "path": "src/drw_entities.cpp",
           "spanSha256": "dfaa465bce9c2bd8eaf0c3e29fc6ba31f7b271235bdae2b2459c6da1c5efc2f3",
           "symbol": "DRW_Polyline::encodeDwg"
@@ -16182,7 +16182,7 @@
       ],
       "evidence": [
         {
-          "line": 19478,
+          "line": 19481,
           "path": "src/drw_objects.cpp",
           "spanSha256": "0458d90764ae29a8d4f95cc1fcaa732a33fefeb5ad81cf925f0c43105e3507e9",
           "symbol": "DRW_ProxyObject::parseDwg"
@@ -16243,19 +16243,19 @@
       ],
       "evidence": [
         {
-          "line": 10921,
+          "line": 10944,
           "path": "src/drw_entities.cpp",
           "spanSha256": "b009bf76d8fca0e96a8e5a8f73c1d5305528a42ee47dd53f76983dd58706eea3",
           "symbol": "DRW_RText::parseCode"
         },
         {
-          "line": 10932,
+          "line": 10955,
           "path": "src/drw_entities.cpp",
           "spanSha256": "bc7a144a819047e7b38e6d75fe0949e1bba2ad572eaf2b0c18b0e7225ddf7384",
           "symbol": "DRW_RText::parseDwg"
         },
         {
-          "line": 11032,
+          "line": 11055,
           "path": "src/drw_entities.cpp",
           "spanSha256": "ccb4691bd25be75ed6321c30c0be754f0d0f959f4f457f513c4fbd40d61347c6",
           "symbol": "DRW_RText::encodeDwg"
@@ -16539,7 +16539,7 @@
       ],
       "evidence": [
         {
-          "line": 17865,
+          "line": 17891,
           "path": "src/drw_entities.cpp",
           "spanSha256": "89c2b7fda22ffb00ada862c41d008107dfc30dd63985a2526c6c75fa04701c5f",
           "symbol": "DRW_RevolvedSurface::parseCode"
@@ -16678,13 +16678,13 @@
           "symbol": "DRW_Scale::encodeDwg"
         },
         {
-          "line": 16275,
+          "line": 16278,
           "path": "src/drw_objects.cpp",
           "spanSha256": "3b8decb87f1ed999225977fc3dadf2927ab008ea5c58e03ffee96947d4c0e05f",
           "symbol": "DRW_Scale::parseCode"
         },
         {
-          "line": 16298,
+          "line": 16301,
           "path": "src/drw_objects.cpp",
           "spanSha256": "fbefd545847893f02de0e7e5953ebe542c79d1ca62a6502731f07c3e6ab38f13",
           "symbol": "DRW_Scale::parseDwg"
@@ -16814,19 +16814,19 @@
       ],
       "evidence": [
         {
-          "line": 8081,
+          "line": 8104,
           "path": "src/drw_entities.cpp",
           "spanSha256": "8239c1ca52667f7785e4f289a99f062e7daac09f36c39dbdfdfba6a56d16d4a7",
           "symbol": "DRW_SectionObject::parseCode"
         },
         {
-          "line": 8207,
+          "line": 8230,
           "path": "src/drw_entities.cpp",
           "spanSha256": "a99d856cc2204183c60b7dec94565e02887cc7dbb653e38fe2adc871fe331da1",
           "symbol": "DRW_SectionObject::parseDwg"
         },
         {
-          "line": 8347,
+          "line": 8370,
           "path": "src/drw_entities.cpp",
           "spanSha256": "5faf29dca9dff82bc8d4ed7f9bb89f8700c37f6c54d84991cb74414e2eee44a5",
           "symbol": "DRW_SectionObject::encodeDwg"
@@ -16896,13 +16896,13 @@
       ],
       "evidence": [
         {
-          "line": 23282,
+          "line": 23285,
           "path": "src/drw_objects.cpp",
           "spanSha256": "34ce3473540c3e5cbd9d005c8aa2dcc207caa60c192770b222c0601872536686",
           "symbol": "DRW_SectionViewStyle::parseCode"
         },
         {
-          "line": 23403,
+          "line": 23406,
           "path": "src/drw_objects.cpp",
           "spanSha256": "ef8b2fad00efcd95a6cdaf5ae72469c51c692384becfada39b3715fff6f1d788",
           "symbol": "DRW_SectionViewStyle::parseDwg"
@@ -16944,13 +16944,13 @@
       ],
       "evidence": [
         {
-          "line": 21810,
+          "line": 21836,
           "path": "src/drw_entities.cpp",
           "spanSha256": "122c62756cd77bcc90cee2a44837a209eaca40ebc6845d9abf8e577bd88c5ef6",
           "symbol": "DRW_SeqEnd::parseDwg"
         },
         {
-          "line": 21835,
+          "line": 21861,
           "path": "src/drw_entities.cpp",
           "spanSha256": "53dfcc703cbcc7320ab102121a59cb12299574725f2857f847db85aeda766825",
           "symbol": "DRW_SeqEnd::encodeDwg"
@@ -17111,7 +17111,7 @@
           "symbol": "DRW_SortEntsTable::encodeDwg"
         },
         {
-          "line": 17915,
+          "line": 17918,
           "path": "src/drw_objects.cpp",
           "spanSha256": "fd793f2f627bdf5cd50edb7608e91bdf5c3d644470e5bb9bed85f4bf6c083929",
           "symbol": "DRW_SortEntsTable::parseCode"
@@ -17164,13 +17164,13 @@
           "symbol": "DRW_SpatialFilter::encodeDwg"
         },
         {
-          "line": 18076,
+          "line": 18079,
           "path": "src/drw_objects.cpp",
           "spanSha256": "38eb8a159646d85fb0a6f6e91966bb2daff615c6b64c19b10082471312686328",
           "symbol": "DRW_SpatialFilter::parseCode"
         },
         {
-          "line": 18165,
+          "line": 18168,
           "path": "src/drw_objects.cpp",
           "spanSha256": "b1e036fc3d86ee9209e6e07696a493b3d3bedab7ac0ece2cc84750a1e4d8003e",
           "symbol": "DRW_SpatialFilter::parseDwg"
@@ -17229,7 +17229,7 @@
           "symbol": "DRW_SpatialIndex::parseDwg"
         },
         {
-          "line": 15701,
+          "line": 15704,
           "path": "src/drw_objects.cpp",
           "spanSha256": "c36ad051e1f8024d6c24033d6b0bb830a46b54b5abf29a6b8c7c8d3f89b85c5c",
           "symbol": "DRW_SpatialIndex::encodeDwg"
@@ -17288,19 +17288,19 @@
           "symbol": "DRW_Spline::encodeDwgSplineBody"
         },
         {
-          "line": 14843,
+          "line": 14869,
           "path": "src/drw_entities.cpp",
           "spanSha256": "d97d71a967721f20032d44649cd0b90e638ba053c00767722541ce4b869dd171",
           "symbol": "DRW_Spline::parseCode"
         },
         {
-          "line": 15148,
+          "line": 15174,
           "path": "src/drw_entities.cpp",
           "spanSha256": "47dc66afcd7a0f4baa3f5565f5c452749018b7a62356b00ff326bbff613579e8",
           "symbol": "DRW_Spline::parseDwg"
         },
         {
-          "line": 15187,
+          "line": 15213,
           "path": "src/drw_entities.cpp",
           "spanSha256": "d5f767a7d52115922b41cce705d669ff7ad7c7dfd1ca002c42de3fc06c303e58",
           "symbol": "DRW_Spline::parseDwgSplineBody"
@@ -17357,19 +17357,19 @@
       ],
       "evidence": [
         {
-          "line": 19623,
+          "line": 19626,
           "path": "src/drw_objects.cpp",
           "spanSha256": "3d1170896ae2d3454a5fd063671d2600a4db482cd3fb7233e5c1954580919dc7",
           "symbol": "DRW_Sun::parseCode"
         },
         {
-          "line": 19667,
+          "line": 19670,
           "path": "src/drw_objects.cpp",
           "spanSha256": "facaf0f4c9b86d8106cdf4ca4f90d10bf6780b701a7ed56b6154d80f3b1c1639",
           "symbol": "DRW_Sun::parseDwg"
         },
         {
-          "line": 19776,
+          "line": 19779,
           "path": "src/drw_objects.cpp",
           "spanSha256": "273caf6b2bbb92bd976d611a355b7a7d9f84c432c5213d273be2288b48b9bc17",
           "symbol": "DRW_Sun::encodeDwg"
@@ -17499,19 +17499,19 @@
       ],
       "evidence": [
         {
-          "line": 17184,
+          "line": 17210,
           "path": "src/drw_entities.cpp",
           "spanSha256": "1a33a824e8b1efc2e9c26c2adde876e7441941c2067769f985d874a94c622c6f",
           "symbol": "DRW_Surface::parseCode"
         },
         {
-          "line": 18067,
+          "line": 18093,
           "path": "src/drw_entities.cpp",
           "spanSha256": "2bdb8534cc5db7a3526c9ea180ef32881dd04071afc281b1353c9bc6543e6687",
           "symbol": "DRW_Surface::parseDwg"
         },
         {
-          "line": 18297,
+          "line": 18323,
           "path": "src/drw_entities.cpp",
           "spanSha256": "b737856903124640cfeef8532cc0ac9a6f54645b4e853ab0854006fb818c6c88",
           "symbol": "DRW_Surface::encodeDwg"
@@ -17557,7 +17557,7 @@
       ],
       "evidence": [
         {
-          "line": 17353,
+          "line": 17379,
           "path": "src/drw_entities.cpp",
           "spanSha256": "13e52f526413b7e31da256a70b4a5ddb4ab1a467b2d035b3f553182682d026db",
           "symbol": "DRW_SweptSurface::parseCode"
@@ -17593,13 +17593,13 @@
       ],
       "evidence": [
         {
-          "line": 8708,
+          "line": 8731,
           "path": "src/drw_entities.cpp",
           "spanSha256": "3cf4f72d0ddc7b304c78c451a5381875b34b6560f13ef339f975f351c9743965",
           "symbol": "DRW_Table::parseCode"
         },
         {
-          "line": 9150,
+          "line": 9173,
           "path": "src/drw_entities.cpp",
           "spanSha256": "a8d70565bebb32625fc8fbaecf01ac44a8a22bd503acbf23c0c3a19a7dc8f074",
           "symbol": "DRW_Table::parseDwg"
@@ -17784,7 +17784,7 @@
       ],
       "evidence": [
         {
-          "line": 9533,
+          "line": 9556,
           "path": "src/drw_entities.cpp",
           "spanSha256": "40a376758faa98119d2bba65fdf476cd9f0b87eb5322797526b4a74be4325b86",
           "symbol": "DRW_TableContentObject::parseDwg"
@@ -17900,7 +17900,7 @@
       ],
       "evidence": [
         {
-          "line": 18719,
+          "line": 18722,
           "path": "src/drw_objects.cpp",
           "spanSha256": "30d623da1407ade8d4702e03a5940787374c7be1fee089a345e45ed8e833e9fe",
           "symbol": "DRW_TableGeometry::parseDwg"
@@ -18194,13 +18194,13 @@
           "symbol": "DRW_Text::encodeDwg"
         },
         {
-          "line": 10692,
+          "line": 10715,
           "path": "src/drw_entities.cpp",
           "spanSha256": "3a6f98ac1b95ea2d73d8729112d98086af1edbe86d7e5adf1fdf540fe5c41797",
           "symbol": "DRW_Text::parseCode"
         },
         {
-          "line": 10747,
+          "line": 10770,
           "path": "src/drw_entities.cpp",
           "spanSha256": "e9b87edbca5c7e80f71486252aabaeab76fc181675f592c7c3a0e156d0f61dae",
           "symbol": "DRW_Text::parseDwg"
@@ -18306,19 +18306,19 @@
       ],
       "evidence": [
         {
-          "line": 8380,
+          "line": 8403,
           "path": "src/drw_entities.cpp",
           "spanSha256": "515dd0fee14a5f8e36e66439e2bf33024d725f39654004578d1690eadba713c7",
           "symbol": "DRW_Tolerance::parseCode"
         },
         {
-          "line": 8431,
+          "line": 8454,
           "path": "src/drw_entities.cpp",
           "spanSha256": "669bd4085778e1105a1dfe57b9ad93f07da8363c4f526fe33fcc5e72b05ed51b",
           "symbol": "DRW_Tolerance::parseDwg"
         },
         {
-          "line": 8536,
+          "line": 8559,
           "path": "src/drw_entities.cpp",
           "spanSha256": "10065501e72026bd9f1c04faebead488b01dc4f7f5ebd22261637e8b15841a5a",
           "symbol": "DRW_Tolerance::encodeDwg"
@@ -18555,19 +18555,19 @@
       ],
       "evidence": [
         {
-          "line": 10383,
+          "line": 10406,
           "path": "src/drw_entities.cpp",
           "spanSha256": "75b8c94677a509ebaad1668a63c44c65221d15b4e8c8a2923f6fe88652778283",
           "symbol": "DRW_Underlay::parseCode"
         },
         {
-          "line": 10510,
+          "line": 10533,
           "path": "src/drw_entities.cpp",
           "spanSha256": "21d7d94b7676c26f9ae3c88133d86d734ee6cb1b501cda8686c6a731e11b034e",
           "symbol": "DRW_Underlay::parseDwg"
         },
         {
-          "line": 10634,
+          "line": 10657,
           "path": "src/drw_entities.cpp",
           "spanSha256": "43161196379406c80007bb94292b7a43c74636e119d53332462685a95f731940",
           "symbol": "DRW_Underlay::encodeDwg"
@@ -18614,19 +18614,19 @@
       ],
       "evidence": [
         {
-          "line": 16161,
+          "line": 16164,
           "path": "src/drw_objects.cpp",
           "spanSha256": "d929868e5cffe5189fb174b68cd8f0b3bb7729915f914e0699253f83a56b5808",
           "symbol": "DRW_UnderlayDefinition::parseDwg"
         },
         {
-          "line": 16233,
+          "line": 16236,
           "path": "src/drw_objects.cpp",
           "spanSha256": "6acb2d9f2ce1efd808c4019d566be225f2c04269fd59a3f7c1dc58ce09d85f8e",
           "symbol": "DRW_UnderlayDefinition::parseCode"
         },
         {
-          "line": 16248,
+          "line": 16251,
           "path": "src/drw_objects.cpp",
           "spanSha256": "fe41f95b0a4563b81e06ff8166ecd8342a5e3e8e5f39597a85573d6acef3e863",
           "symbol": "DRW_UnderlayDefinition::encodeDwg"
@@ -18721,13 +18721,13 @@
       ],
       "evidence": [
         {
-          "line": 19386,
+          "line": 19389,
           "path": "src/drw_objects.cpp",
           "spanSha256": "8fbc9962b0f8a7ef9c5d29d6084c3d91a2f3cc6e3d226325daccdbb347f92772",
           "symbol": "DRW_VbaProject::parseDwg"
         },
         {
-          "line": 19454,
+          "line": 19457,
           "path": "src/drw_objects.cpp",
           "spanSha256": "bef906f131277f8aa487ef8f31ae3795aa2a09e50f507bf4e1e0cc7ceb6f346a",
           "symbol": "DRW_VbaProject::encodeDwg"
@@ -18793,19 +18793,19 @@
       ],
       "evidence": [
         {
-          "line": 13143,
+          "line": 13169,
           "path": "src/drw_entities.cpp",
           "spanSha256": "28968308a11e2a8a5321b254bb34ebde2817b8c0d125755027e97e1d4623aa55",
           "symbol": "DRW_Vertex::parseCode"
         },
         {
-          "line": 13220,
+          "line": 13246,
           "path": "src/drw_entities.cpp",
           "spanSha256": "049c1c1663c9adf91862f3544e340bb5969e259580d14e2f3ca2c3a4faa2704f",
           "symbol": "DRW_Vertex::parseDwg"
         },
         {
-          "line": 21761,
+          "line": 21787,
           "path": "src/drw_entities.cpp",
           "spanSha256": "f1bfc4d52e07d3f1af2f3cebaae93a56a6fad2b2084790caa236ba573c224e7d",
           "symbol": "DRW_Vertex::encodeDwg"
@@ -18935,19 +18935,19 @@
       ],
       "evidence": [
         {
-          "line": 21184,
+          "line": 21210,
           "path": "src/drw_entities.cpp",
           "spanSha256": "9304820c3b6529816f84178da9aea283a9ff0ca7ebe1f41fe118ab48f325054b",
           "symbol": "DRW_Viewport::parseCode"
         },
         {
-          "line": 21459,
+          "line": 21485,
           "path": "src/drw_entities.cpp",
           "spanSha256": "acd870ef80e8080aba63300a923eeaa1162e0661fa0ff9413279f8039393eb13",
           "symbol": "DRW_Viewport::parseDwg"
         },
         {
-          "line": 21978,
+          "line": 22004,
           "path": "src/drw_entities.cpp",
           "spanSha256": "e7c27013055640e979927210af504f0f5e6731d7d75cb2e0b930116d3ef89324",
           "symbol": "DRW_Viewport::encodeDwg"
@@ -19042,19 +19042,19 @@
       ],
       "evidence": [
         {
-          "line": 23751,
+          "line": 23754,
           "path": "src/drw_objects.cpp",
           "spanSha256": "6c6880c310d56178b66635ee31a66562bc2d3107d32b341f7d4e7c8041e51f35",
           "symbol": "DRW_VisualStyle::parseCode"
         },
         {
-          "line": 23779,
+          "line": 23782,
           "path": "src/drw_objects.cpp",
           "spanSha256": "fd1efc190fa128d5eab22c2634f06f1a14a5b005ae01e4931eb33577272b4d43",
           "symbol": "DRW_VisualStyle::parseDwg"
         },
         {
-          "line": 24009,
+          "line": 24012,
           "path": "src/drw_objects.cpp",
           "spanSha256": "bcd98a510056535fde5d3441c4cc93374b67eaf3e9598b07bb2df3b14b6ee5bd",
           "symbol": "DRW_VisualStyle::encodeDwg"
@@ -19280,19 +19280,19 @@
       ],
       "evidence": [
         {
-          "line": 15916,
+          "line": 15942,
           "path": "src/drw_entities.cpp",
           "spanSha256": "2b67e42a8153dab227018c3b927693d75cad873cfd76ac16edd34032018a54c8",
           "symbol": "DRW_Wipeout::parseCode"
         },
         {
-          "line": 15924,
+          "line": 15950,
           "path": "src/drw_entities.cpp",
           "spanSha256": "26242121871b35b368eae65d204a86de3052a6ccb53034ab819ef7f416338661",
           "symbol": "DRW_Wipeout::parseDwg"
         },
         {
-          "line": 15946,
+          "line": 15972,
           "path": "src/drw_entities.cpp",
           "spanSha256": "407cfbad191a3b014c81d57168ccc00fa54fb9b88188eb9ae74c592fb848d226",
           "symbol": "DRW_Wipeout::encodeDwg"
@@ -19698,7 +19698,7 @@
         {
           "line": 1,
           "path": "src/drw_entities.cpp",
-          "spanSha256": "574cbae469896786e72921acb3218166a0f8f64e6264a14cc478dfa519ad8923",
+          "spanSha256": "194cc3006440c9013300f3555f9f4d5e808053c87f1008085fd4b7ddc38da759",
           "symbol": "src/drw_entities.cpp"
         }
       ],
@@ -19818,7 +19818,7 @@
         {
           "line": 1,
           "path": "src/drw_objects.cpp",
-          "spanSha256": "3f5711337759aa21502173d89c41c740cb68eab6f3cb5720c0a34057d2a78ed3",
+          "spanSha256": "351abe71a68106771bf80f9bfffee9b6a6e6817d48241f73baddae83d4782790",
           "symbol": "src/drw_objects.cpp"
         }
       ],
@@ -20250,7 +20250,7 @@
         {
           "line": 1,
           "path": "src/intern/dwgreader.cpp",
-          "spanSha256": "e7e766d2aa3a490cf242f9fdb8ce0ea1f0adacd288640b3184924cee6996feef",
+          "spanSha256": "e9fb92bdf2a222dbb74e1eabd0a3f2d7307d19d0da172ca89818211799200878",
           "symbol": "src/intern/dwgreader.cpp"
         }
       ],
@@ -20730,7 +20730,7 @@
         {
           "line": 1,
           "path": "src/intern/dwgutil.h",
-          "spanSha256": "fba50c53a6a7d8595bfa4645461fe3ba67c42a6f115cad52dec672c33fca7526",
+          "spanSha256": "17306de7cd56db029d3e2d35813d1ca9b3c4acbb895e2edba79768d74ad93b7e",
           "symbol": "src/intern/dwgutil.h"
         }
       ],
@@ -20754,7 +20754,7 @@
         {
           "line": 1,
           "path": "src/intern/dwgwriter.h",
-          "spanSha256": "aff932d233602cc5472acfbda4e583287a85cd995e36efc4937b47a79e33a90d",
+          "spanSha256": "9d8c8e158b29244e1f080ca5591907366718c3048987c1956dcdc56e585db89b",
           "symbol": "src/intern/dwgwriter.h"
         }
       ],
@@ -20778,7 +20778,7 @@
         {
           "line": 1,
           "path": "src/intern/dwgwriter15.cpp",
-          "spanSha256": "bafaac548489434f1ec07591be00157cf30aa1ad47ac55effca7255e13a91356",
+          "spanSha256": "ca4916fcfbf556aabf92beb2c35435a720c20c2f711d9f5af0420741d443cd37",
           "symbol": "src/intern/dwgwriter15.cpp"
         }
       ],
@@ -21114,7 +21114,7 @@
         {
           "line": 1,
           "path": "src/intern/dxfcode.h",
-          "spanSha256": "4d4d15d4a50e82df421289d70e26f26c9219ebe5de466bf8bdfce146799fc1fe",
+          "spanSha256": "9723622a8324e8c173d47311f553e69656a330aa9d6e38fbbc55c5acee0315dd",
           "symbol": "src/intern/dxfcode.h"
         }
       ],
@@ -21162,7 +21162,7 @@
         {
           "line": 1,
           "path": "src/intern/dxfreader.cpp",
-          "spanSha256": "d593ad4cd69b86dc7a4293a75462b658a51369ad11bdbec180499f471bafa55c",
+          "spanSha256": "a9ed919b84065249e52e76ed0c0c20e5794a6c473f876bd3bb85d46219b3dffb",
           "symbol": "src/intern/dxfreader.cpp"
         }
       ],
@@ -21186,7 +21186,7 @@
         {
           "line": 1,
           "path": "src/intern/dxfreader.h",
-          "spanSha256": "87b13e521a3a3e0a5c193ef119383aa642de72e36111fc09df9ab9d8c0d63160",
+          "spanSha256": "846a38ec0798c43eaf382c7709078735f0f1c943308780ef2ecbc5f76718833a",
           "symbol": "src/intern/dxfreader.h"
         }
       ],
@@ -21402,7 +21402,7 @@
         {
           "line": 1,
           "path": "src/libdxfrw.cpp",
-          "spanSha256": "dfee2d04da7046f515422d1999f2f9998bd23e2886e4cf3a89a8ab6f91c0d9a6",
+          "spanSha256": "2dab0dd49ca8b8d8c3a72dd6efb6a0b0825f0ea8ae1f562957dddc237012546c",
           "symbol": "src/libdxfrw.cpp"
         }
       ],
@@ -21426,7 +21426,7 @@
         {
           "line": 1,
           "path": "src/libdxfrw.h",
-          "spanSha256": "914671ecd3455ebac28bbe1836d45f9ee640b2be0438c1fdf06a11ef5897ba2b",
+          "spanSha256": "464938cf9434b80f9ba6aa42a761f821b747c3fda321e60e51b672dc99488438",
           "symbol": "src/libdxfrw.h"
         }
       ],
@@ -71873,7 +71873,7 @@
       ],
       "evidence": [
         {
-          "line": 10458,
+          "line": 10474,
           "path": "src/intern/dwgreader.cpp",
           "spanSha256": "33ec77ed9b8808d805c88c5514330317e51f4a5466347945b57d70429eaf5e5d",
           "symbol": "dwgReader::publishDeferredRawObjects"
@@ -71897,7 +71897,7 @@
       ],
       "evidence": [
         {
-          "line": 7095,
+          "line": 7099,
           "path": "src/intern/dwgreader.cpp",
           "spanSha256": "31e4e782ebced1c26628967964d6a6713018911fdb0a4fc4cc738b78536803ec",
           "symbol": "dwgReader::publishDeferredTableFramePublications"
@@ -71945,9 +71945,9 @@
       ],
       "evidence": [
         {
-          "line": 8819,
+          "line": 8823,
           "path": "src/intern/dwgreader.cpp",
-          "spanSha256": "fcb2675f19e501e94f874c26233214d518b418603942b5f82d95554cbd6e0154",
+          "spanSha256": "ebb47ee1c963e158d239729246d8181027c9028953b19f5e9df92673cac8f4b6",
           "symbol": "dwgReader::readDwgEntityWithOutput"
         }
       ],
@@ -71969,7 +71969,7 @@
       ],
       "evidence": [
         {
-          "line": 10513,
+          "line": 10529,
           "path": "src/intern/dwgreader.cpp",
           "spanSha256": "6198e54fd89696268f2a8ffa6b71c17233a0dd6731b9c697bdab8bc5f4cb88d2",
           "symbol": "dwgReader::readDwgObject"
@@ -71993,9 +71993,9 @@
       ],
       "evidence": [
         {
-          "line": 8819,
+          "line": 8823,
           "path": "src/intern/dwgreader.cpp",
-          "spanSha256": "fcb2675f19e501e94f874c26233214d518b418603942b5f82d95554cbd6e0154",
+          "spanSha256": "ebb47ee1c963e158d239729246d8181027c9028953b19f5e9df92673cac8f4b6",
           "symbol": "dwgReader::readDwgEntityWithOutput"
         }
       ],
@@ -72017,7 +72017,7 @@
       ],
       "evidence": [
         {
-          "line": 10513,
+          "line": 10529,
           "path": "src/intern/dwgreader.cpp",
           "spanSha256": "6198e54fd89696268f2a8ffa6b71c17233a0dd6731b9c697bdab8bc5f4cb88d2",
           "symbol": "dwgReader::readDwgObject"
@@ -72041,7 +72041,7 @@
       ],
       "evidence": [
         {
-          "line": 6197,
+          "line": 6201,
           "path": "src/intern/dwgreader.cpp",
           "spanSha256": "0099493e709c566944e735acdc923422711f35ea68d7dd5124a07f78d8072291",
           "symbol": "dwgReader::readDwgTables"
@@ -72065,7 +72065,7 @@
       ],
       "evidence": [
         {
-          "line": 881,
+          "line": 883,
           "path": "src/libdxfrw.cpp",
           "spanSha256": "34cd59a376c30f6bb301288354d01168b0fcec14b990adfa5512a263fd512d05",
           "symbol": "DxfBlockEventSink::flush"
@@ -72089,7 +72089,7 @@
       ],
       "evidence": [
         {
-          "line": 8265,
+          "line": 8290,
           "path": "src/libdxfrw.cpp",
           "spanSha256": "5ad7f2b312616580d053b0ba30eee09a626f1899214eb5747dc1318e2a9c9638",
           "symbol": "dxfRW::processBlockRecord"
@@ -72113,7 +72113,7 @@
       ],
       "evidence": [
         {
-          "line": 8878,
+          "line": 8903,
           "path": "src/libdxfrw.cpp",
           "spanSha256": "f8d6d826d40708b327fe6568315739ad96be2933122514eeb5ec93459d1d28c1",
           "symbol": "dxfRW::processBlocks"
@@ -72137,7 +72137,7 @@
       ],
       "evidence": [
         {
-          "line": 9141,
+          "line": 9166,
           "path": "src/libdxfrw.cpp",
           "spanSha256": "cf23ef43f340e2b6649d4b34d51d498131f4eee003b91306492fbd7a37a859ec",
           "symbol": "dxfRW::processEntities"
@@ -72161,7 +72161,7 @@
       ],
       "evidence": [
         {
-          "line": 8039,
+          "line": 8064,
           "path": "src/libdxfrw.cpp",
           "spanSha256": "c1cae071553f7971c26428aaf39ead5f634913b1269438ef10bd9adcd6274d5d",
           "symbol": "dxfRW::processHeader"
@@ -72185,7 +72185,7 @@
       ],
       "evidence": [
         {
-          "line": 11902,
+          "line": 11927,
           "path": "src/libdxfrw.cpp",
           "spanSha256": "f3edebd815be6047cc8b6620b130d13b2d350613b7aadbc0afa835f24ffec23e",
           "symbol": "dxfRW::processImageDef"
@@ -72209,7 +72209,7 @@
       ],
       "evidence": [
         {
-          "line": 10930,
+          "line": 10955,
           "path": "src/libdxfrw.cpp",
           "spanSha256": "2232a9b3c79de8c84fa145292f3f0d97e1ab57ea124996c1ee1ae77824d7fca3",
           "symbol": "dxfRW::processObjects"
@@ -72233,7 +72233,7 @@
       ],
       "evidence": [
         {
-          "line": 11432,
+          "line": 11457,
           "path": "src/libdxfrw.cpp",
           "spanSha256": "2031d67921383b4b4942b456e1b2f7df8c8eb96f59002a8eaa2fc90f57cd356c",
           "symbol": "dxfRW::processRawCapturedObject"
@@ -72257,7 +72257,7 @@
       ],
       "evidence": [
         {
-          "line": 8196,
+          "line": 8221,
           "path": "src/libdxfrw.cpp",
           "spanSha256": "5cef1934d7397a9f9f674c0d832a4cb2087574e925559d42373dd35a8f587253",
           "symbol": "dxfRW::processTables"
@@ -72353,7 +72353,7 @@
       ],
       "evidence": [
         {
-          "line": 1999,
+          "line": 2003,
           "path": "src/intern/dwgreader.cpp",
           "spanSha256": "a94263928a78f5cef405000c59e84901af6c0da26dff4e0268f9e994dc75cb19",
           "symbol": "dwgReader::publishDwgFramePublication"
@@ -72595,7 +72595,7 @@
         {
           "line": 1,
           "path": "src/drw_entities.cpp",
-          "spanSha256": "574cbae469896786e72921acb3218166a0f8f64e6264a14cc478dfa519ad8923",
+          "spanSha256": "194cc3006440c9013300f3555f9f4d5e808053c87f1008085fd4b7ddc38da759",
           "symbol": "src/drw_entities.cpp"
         }
       ],
@@ -72715,7 +72715,7 @@
         {
           "line": 1,
           "path": "src/drw_objects.cpp",
-          "spanSha256": "3f5711337759aa21502173d89c41c740cb68eab6f3cb5720c0a34057d2a78ed3",
+          "spanSha256": "351abe71a68106771bf80f9bfffee9b6a6e6817d48241f73baddae83d4782790",
           "symbol": "src/drw_objects.cpp"
         }
       ],
@@ -73147,7 +73147,7 @@
         {
           "line": 1,
           "path": "src/intern/dwgreader.cpp",
-          "spanSha256": "e7e766d2aa3a490cf242f9fdb8ce0ea1f0adacd288640b3184924cee6996feef",
+          "spanSha256": "e9fb92bdf2a222dbb74e1eabd0a3f2d7307d19d0da172ca89818211799200878",
           "symbol": "src/intern/dwgreader.cpp"
         }
       ],
@@ -73627,7 +73627,7 @@
         {
           "line": 1,
           "path": "src/intern/dwgutil.h",
-          "spanSha256": "fba50c53a6a7d8595bfa4645461fe3ba67c42a6f115cad52dec672c33fca7526",
+          "spanSha256": "17306de7cd56db029d3e2d35813d1ca9b3c4acbb895e2edba79768d74ad93b7e",
           "symbol": "src/intern/dwgutil.h"
         }
       ],
@@ -73651,7 +73651,7 @@
         {
           "line": 1,
           "path": "src/intern/dwgwriter.h",
-          "spanSha256": "aff932d233602cc5472acfbda4e583287a85cd995e36efc4937b47a79e33a90d",
+          "spanSha256": "9d8c8e158b29244e1f080ca5591907366718c3048987c1956dcdc56e585db89b",
           "symbol": "src/intern/dwgwriter.h"
         }
       ],
@@ -73675,7 +73675,7 @@
         {
           "line": 1,
           "path": "src/intern/dwgwriter15.cpp",
-          "spanSha256": "bafaac548489434f1ec07591be00157cf30aa1ad47ac55effca7255e13a91356",
+          "spanSha256": "ca4916fcfbf556aabf92beb2c35435a720c20c2f711d9f5af0420741d443cd37",
           "symbol": "src/intern/dwgwriter15.cpp"
         }
       ],
@@ -74011,7 +74011,7 @@
         {
           "line": 1,
           "path": "src/intern/dxfcode.h",
-          "spanSha256": "4d4d15d4a50e82df421289d70e26f26c9219ebe5de466bf8bdfce146799fc1fe",
+          "spanSha256": "9723622a8324e8c173d47311f553e69656a330aa9d6e38fbbc55c5acee0315dd",
           "symbol": "src/intern/dxfcode.h"
         }
       ],
@@ -74059,7 +74059,7 @@
         {
           "line": 1,
           "path": "src/intern/dxfreader.cpp",
-          "spanSha256": "d593ad4cd69b86dc7a4293a75462b658a51369ad11bdbec180499f471bafa55c",
+          "spanSha256": "a9ed919b84065249e52e76ed0c0c20e5794a6c473f876bd3bb85d46219b3dffb",
           "symbol": "src/intern/dxfreader.cpp"
         }
       ],
@@ -74083,7 +74083,7 @@
         {
           "line": 1,
           "path": "src/intern/dxfreader.h",
-          "spanSha256": "87b13e521a3a3e0a5c193ef119383aa642de72e36111fc09df9ab9d8c0d63160",
+          "spanSha256": "846a38ec0798c43eaf382c7709078735f0f1c943308780ef2ecbc5f76718833a",
           "symbol": "src/intern/dxfreader.h"
         }
       ],
@@ -74299,7 +74299,7 @@
         {
           "line": 1,
           "path": "src/libdxfrw.cpp",
-          "spanSha256": "dfee2d04da7046f515422d1999f2f9998bd23e2886e4cf3a89a8ab6f91c0d9a6",
+          "spanSha256": "2dab0dd49ca8b8d8c3a72dd6efb6a0b0825f0ea8ae1f562957dddc237012546c",
           "symbol": "src/libdxfrw.cpp"
         }
       ],
@@ -74323,7 +74323,7 @@
         {
           "line": 1,
           "path": "src/libdxfrw.h",
-          "spanSha256": "914671ecd3455ebac28bbe1836d45f9ee640b2be0438c1fdf06a11ef5897ba2b",
+          "spanSha256": "464938cf9434b80f9ba6aa42a761f821b747c3fda321e60e51b672dc99488438",
           "symbol": "src/libdxfrw.h"
         }
       ],
@@ -74331,7 +74331,7 @@
       "id": "shared/source-unit-coverage/src_libdxfrw.h",
       "selector": {
         "coveredBy": [
-          "dxfRW/public-header/src_libdxfrw.h"
+          "dxfRW/public-enum/src_libdxfrw.h_dxfRW_DxfCompatibilityProfile"
         ],
         "kind": "source-unit-coverage",
         "path": "src/libdxfrw.h"
@@ -74539,7 +74539,7 @@
         {
           "line": 1,
           "path": "src/drw_entities.cpp",
-          "spanSha256": "574cbae469896786e72921acb3218166a0f8f64e6264a14cc478dfa519ad8923",
+          "spanSha256": "194cc3006440c9013300f3555f9f4d5e808053c87f1008085fd4b7ddc38da759",
           "symbol": "src/drw_entities.cpp"
         }
       ],
@@ -74659,7 +74659,7 @@
         {
           "line": 1,
           "path": "src/drw_objects.cpp",
-          "spanSha256": "3f5711337759aa21502173d89c41c740cb68eab6f3cb5720c0a34057d2a78ed3",
+          "spanSha256": "351abe71a68106771bf80f9bfffee9b6a6e6817d48241f73baddae83d4782790",
           "symbol": "src/drw_objects.cpp"
         }
       ],
@@ -75187,7 +75187,7 @@
         {
           "line": 1,
           "path": "src/intern/dwgreader.cpp",
-          "spanSha256": "e7e766d2aa3a490cf242f9fdb8ce0ea1f0adacd288640b3184924cee6996feef",
+          "spanSha256": "e9fb92bdf2a222dbb74e1eabd0a3f2d7307d19d0da172ca89818211799200878",
           "symbol": "src/intern/dwgreader.cpp"
         }
       ],
@@ -75667,7 +75667,7 @@
         {
           "line": 1,
           "path": "src/intern/dwgutil.h",
-          "spanSha256": "fba50c53a6a7d8595bfa4645461fe3ba67c42a6f115cad52dec672c33fca7526",
+          "spanSha256": "17306de7cd56db029d3e2d35813d1ca9b3c4acbb895e2edba79768d74ad93b7e",
           "symbol": "src/intern/dwgutil.h"
         }
       ],
@@ -75691,7 +75691,7 @@
         {
           "line": 1,
           "path": "src/intern/dwgwriter.h",
-          "spanSha256": "aff932d233602cc5472acfbda4e583287a85cd995e36efc4937b47a79e33a90d",
+          "spanSha256": "9d8c8e158b29244e1f080ca5591907366718c3048987c1956dcdc56e585db89b",
           "symbol": "src/intern/dwgwriter.h"
         }
       ],
@@ -75715,7 +75715,7 @@
         {
           "line": 1,
           "path": "src/intern/dwgwriter15.cpp",
-          "spanSha256": "bafaac548489434f1ec07591be00157cf30aa1ad47ac55effca7255e13a91356",
+          "spanSha256": "ca4916fcfbf556aabf92beb2c35435a720c20c2f711d9f5af0420741d443cd37",
           "symbol": "src/intern/dwgwriter15.cpp"
         }
       ],
@@ -76051,7 +76051,7 @@
         {
           "line": 1,
           "path": "src/intern/dxfcode.h",
-          "spanSha256": "4d4d15d4a50e82df421289d70e26f26c9219ebe5de466bf8bdfce146799fc1fe",
+          "spanSha256": "9723622a8324e8c173d47311f553e69656a330aa9d6e38fbbc55c5acee0315dd",
           "symbol": "src/intern/dxfcode.h"
         }
       ],
@@ -76099,7 +76099,7 @@
         {
           "line": 1,
           "path": "src/intern/dxfreader.cpp",
-          "spanSha256": "d593ad4cd69b86dc7a4293a75462b658a51369ad11bdbec180499f471bafa55c",
+          "spanSha256": "a9ed919b84065249e52e76ed0c0c20e5794a6c473f876bd3bb85d46219b3dffb",
           "symbol": "src/intern/dxfreader.cpp"
         }
       ],
@@ -76123,7 +76123,7 @@
         {
           "line": 1,
           "path": "src/intern/dxfreader.h",
-          "spanSha256": "87b13e521a3a3e0a5c193ef119383aa642de72e36111fc09df9ab9d8c0d63160",
+          "spanSha256": "846a38ec0798c43eaf382c7709078735f0f1c943308780ef2ecbc5f76718833a",
           "symbol": "src/intern/dxfreader.h"
         }
       ],
@@ -76339,7 +76339,7 @@
         {
           "line": 1,
           "path": "src/libdxfrw.cpp",
-          "spanSha256": "dfee2d04da7046f515422d1999f2f9998bd23e2886e4cf3a89a8ab6f91c0d9a6",
+          "spanSha256": "2dab0dd49ca8b8d8c3a72dd6efb6a0b0825f0ea8ae1f562957dddc237012546c",
           "symbol": "src/libdxfrw.cpp"
         }
       ],
@@ -76363,7 +76363,7 @@
         {
           "line": 1,
           "path": "src/libdxfrw.h",
-          "spanSha256": "914671ecd3455ebac28bbe1836d45f9ee640b2be0438c1fdf06a11ef5897ba2b",
+          "spanSha256": "464938cf9434b80f9ba6aa42a761f821b747c3fda321e60e51b672dc99488438",
           "symbol": "src/libdxfrw.h"
         }
       ],

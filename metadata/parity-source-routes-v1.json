@@ -3259,6 +3259,60 @@
             "selector"
           ],
           "routeId": "dwgRW/reader-stage/readDwgTables"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/table-descriptor/kAppIdTable"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/table-descriptor/kBlockTable"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/table-descriptor/kDimStyleTable"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/table-descriptor/kLTypeTable"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/table-descriptor/kLayerTable"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/table-descriptor/kStyleTable"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/table-descriptor/kUcsTable"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/table-descriptor/kVPortTable"
+        },
+        {
+          "classes": [
+            "selector"
+          ],
+          "routeId": "dwgRW/table-descriptor/kViewTable"
         }
       ],
       "semanticMismatches": [
@@ -3758,13 +3812,24 @@
         "dwgRW/parser-publication/dwgRW_named-object-class_XRECORD",
         "dwgRW/raw-flow/dwg-replay-object",
         "dwgRW/raw-flow/dwg-replay-section",
-        "dwgRW/reader-stage/readDwgTables"
+        "dwgRW/reader-stage/readDwgTables",
+        "dwgRW/table-descriptor/kAppIdTable",
+        "dwgRW/table-descriptor/kBlockTable",
+        "dwgRW/table-descriptor/kDimStyleTable",
+        "dwgRW/table-descriptor/kLTypeTable",
+        "dwgRW/table-descriptor/kLayerTable",
+        "dwgRW/table-descriptor/kStyleTable",
+        "dwgRW/table-descriptor/kUcsTable",
+        "dwgRW/table-descriptor/kVPortTable",
+        "dwgRW/table-descriptor/kViewTable"
       ],
       "standaloneOnly": [
         "dwgRW/facade-method/beginOperationDiagnostic-001",
         "dwgRW/facade-method/getLastDiagnostic-001",
         "dwgRW/facade-method/recordOperationDiagnostic-001",
         "dwgRW/facade-method/recordOperationDiagnosticForError-001",
+        "dwgRW/fixed-entity/1164-GEOPOSITIONMARKER",
+        "dwgRW/parser-publication/dwgRW_fixed-entity_1164-GEOPOSITIONMARKER",
         "dwgRW/public-inline-method/src_libdwgr.h_dwgR_1d63d75bbe4cf516ae735bb0afe00a248d974310967ecd166eba0629ce755268",
         "dwgRW/public-inline-method/src_libdwgr.h_dwgR_2ccf0b4c47c1b5a4c2b8dc013c3a621b11ddb5a46e4cf3e226f4bcf5cb8766c8",
         "dwgRW/public-inline-method/src_libdwgr.h_dwgR_3b8cc629932234c4eaa6774660e79b801f34edd2b10e5dc0e36855868732c106",
@@ -3843,6 +3908,13 @@
             "selector"
           ],
           "routeId": "dxfRW/dxf-transport-node/write-binary-r12"
+        },
+        {
+          "classes": [
+            "body",
+            "selector"
+          ],
+          "routeId": "dxfRW/facade-method/writeRawDxfGroups-001"
         },
         {
           "classes": [
@@ -3974,6 +4046,7 @@
         },
         {
           "classes": [
+            "body",
             "selector"
           ],
           "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_GEOPOSITIONMARKER"
@@ -4136,6 +4209,7 @@
         },
         {
           "classes": [
+            "body",
             "selector"
           ],
           "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_POSITIONMARKER"
@@ -4166,12 +4240,14 @@
         },
         {
           "classes": [
+            "body",
             "selector"
           ],
           "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_SECTIONOBJECT"
         },
         {
           "classes": [
+            "body",
             "selector"
           ],
           "routeId": "dxfRW/parser-publication/dxfRW_dxf-entity_SECTION_OBJECT"
@@ -4262,6 +4338,7 @@
         },
         {
           "classes": [
+            "body",
             "selector"
           ],
           "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBDETAILVIEWSTYLE"
@@ -4292,12 +4369,14 @@
         },
         {
           "classes": [
+            "body",
             "selector"
           ],
           "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBFIELD"
         },
         {
           "classes": [
+            "body",
             "selector"
           ],
           "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBFIELDLIST"
@@ -4316,6 +4395,7 @@
         },
         {
           "classes": [
+            "body",
             "selector"
           ],
           "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBHISTORYITEM"
@@ -4376,6 +4456,7 @@
         },
         {
           "classes": [
+            "body",
             "selector"
           ],
           "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBPERSSUBENTMANAGER"
@@ -4466,6 +4547,7 @@
         },
         {
           "classes": [
+            "body",
             "selector"
           ],
           "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBSECTIONVIEWSTYLE"
@@ -4490,6 +4572,7 @@
         },
         {
           "classes": [
+            "body",
             "selector"
           ],
           "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_ACDBTVDEVICEPROPERTIES"
@@ -4526,6 +4609,7 @@
         },
         {
           "classes": [
+            "body",
             "selector"
           ],
           "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_CSACDOCUMENTOPTIONS"
@@ -4550,6 +4634,7 @@
         },
         {
           "classes": [
+            "body",
             "selector"
           ],
           "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_DETAILVIEWSTYLE"
@@ -4604,12 +4689,14 @@
         },
         {
           "classes": [
+            "body",
             "selector"
           ],
           "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_FIELD"
         },
         {
           "classes": [
+            "body",
             "selector"
           ],
           "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_FIELDLIST"
@@ -4658,6 +4745,7 @@
         },
         {
           "classes": [
+            "body",
             "selector"
           ],
           "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_HISTORYNODE"
@@ -4814,12 +4902,14 @@
         },
         {
           "classes": [
+            "body",
             "selector"
           ],
           "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_PERSISTENTSUBENTITYMANAGER"
         },
         {
           "classes": [
+            "body",
             "selector"
           ],
           "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_PERSUBENTMGR"
@@ -4922,6 +5012,7 @@
         },
         {
           "classes": [
+            "body",
             "selector"
           ],
           "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_SECTIONVIEWSTYLE"
@@ -5012,6 +5103,7 @@
         },
         {
           "classes": [
+            "body",
             "selector"
           ],
           "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_TVDEVICEPROPERTIES"
@@ -5030,6 +5122,7 @@
         },
         {
           "classes": [
+            "body",
             "selector"
           ],
           "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_XRECORD"
@@ -5198,18 +5291,21 @@
         },
         {
           "classes": [
+            "body",
             "selector"
           ],
           "routeId": "dxfRW/raw-flow/dxf-replay-object"
         },
         {
           "classes": [
+            "body",
             "selector"
           ],
           "routeId": "dxfRW/raw-flow/dxf-replay-section"
         },
         {
           "classes": [
+            "body",
             "selector"
           ],
           "routeId": "dxfRW/raw-flow/dxf-write-object-groups-gate"
@@ -5222,9 +5318,17 @@
         },
         {
           "classes": [
+            "body",
             "selector"
           ],
           "routeId": "dxfRW/raw-flow/dxf-write-section-groups-gate"
+        },
+        {
+          "classes": [
+            "body",
+            "selector"
+          ],
+          "routeId": "dxfRW/writer-entrypoint/writeRawDxfGroups-001"
         }
       ],
       "semanticMismatches": [
@@ -5235,6 +5339,7 @@
         "dxfRW/dxf-transport-node/write-ascii",
         "dxfRW/dxf-transport-node/write-binary",
         "dxfRW/dxf-transport-node/write-binary-r12",
+        "dxfRW/facade-method/writeRawDxfGroups-001",
         "dxfRW/group-code-reader-range/260-269",
         "dxfRW/group-code-reader-range/482-998",
         "dxfRW/parser-publication/dxfRW_dxf-block_BLOCK",
@@ -5464,14 +5569,17 @@
         "dxfRW/raw-flow/dxf-replay-section",
         "dxfRW/raw-flow/dxf-write-object-groups-gate",
         "dxfRW/raw-flow/dxf-write-object-self-handle-gate",
-        "dxfRW/raw-flow/dxf-write-section-groups-gate"
+        "dxfRW/raw-flow/dxf-write-section-groups-gate",
+        "dxfRW/writer-entrypoint/writeRawDxfGroups-001"
       ],
       "standaloneOnly": [
         "dxfRW/dxf-transport-node/group-code-range-source",
         "dxfRW/facade-method/beginOperationDiagnostic-001",
+        "dxfRW/facade-method/dxfCompatibilityProfile-001",
         "dxfRW/facade-method/getLastDiagnostic-001",
         "dxfRW/facade-method/recordOperationDiagnostic-001",
         "dxfRW/facade-method/recordOperationDiagnosticForError-001",
+        "dxfRW/facade-method/setDxfCompatibilityProfile-001",
         "dxfRW/group-code-raw-rule/DxfValueKind_Bin",
         "dxfRW/group-code-raw-rule/DxfValueKind_Bln",
         "dxfRW/group-code-raw-rule/DxfValueKind_Dbl",
@@ -5484,7 +5592,11 @@
         "dxfRW/group-code-reader-range/1005-1008",
         "dxfRW/group-code-reader-range/440-459",
         "dxfRW/group-code-reader-range/999-1003",
-        "dxfRW/public-method/src_libdxfrw.h_dxfRW_1d63d75bbe4cf516ae735bb0afe00a248d974310967ecd166eba0629ce755268"
+        "dxfRW/public-enum/src_libdxfrw.h_dxfRW_DxfCompatibilityProfile",
+        "dxfRW/public-method/src_libdxfrw.h_dxfRW_1d63d75bbe4cf516ae735bb0afe00a248d974310967ecd166eba0629ce755268",
+        "dxfRW/public-method/src_libdxfrw.h_dxfRW_389effe06056b50f64b56ab4440f8670149d6e876e0488fa23789d3af30ad92f",
+        "dxfRW/public-method/src_libdxfrw.h_dxfRW_4061dabb2caef05d2c7effc3bc1ce17f28a22bc3268f34a4ad1b7140e8983eaf",
+        "dxfRW/public-method/src_libdxfrw.h_dxfRW_da9537c7ddd8a688b9f7c33cf37057fdadd79aa9da35300c530548d561d5a3a3"
       ],
       "targetOnly": [
         "dxfRW/group-code-raw-rule/condition-001",
@@ -5522,7 +5634,8 @@
         "dxfRW/group-code-raw-rule/fallback",
         "dxfRW/group-code-reader-range/440-449",
         "dxfRW/group-code-reader-range/450-459",
-        "dxfRW/group-code-reader-range/999-1008"
+        "dxfRW/group-code-reader-range/999-1008",
+        "dxfRW/public-method/src_libdxfrw.h_dxfRW_6ef6c2eced436ed1a0c4c176a76152d6a32c41deb1c53c210fdb6ae4f709c6e7"
       ]
     },
     "shared": {
@@ -5545,12 +5658,20 @@
             "selector"
           ],
           "routeId": "shared/source-unit-coverage/src_intern_dxfreader.cpp"
+        },
+        {
+          "classes": [
+            "body",
+            "selector"
+          ],
+          "routeId": "shared/source-unit-coverage/src_libdxfrw.h"
         }
       ],
       "semanticMismatches": [
         "shared/callback/addDimArc-001",
         "shared/interface-method/addDimArc-001",
-        "shared/source-unit-coverage/src_intern_dxfreader.cpp"
+        "shared/source-unit-coverage/src_intern_dxfreader.cpp",
+        "shared/source-unit-coverage/src_libdxfrw.h"
       ],
       "standaloneOnly": [
         "shared/pipeline-unit/src_intern_dxfcode.h",
@@ -5613,7 +5734,7 @@
   },
   "inputs": {
     "standalone": {
-      "contentTreeSha256": "421862b31345c6a65de0e7339727f9910c946341a74282755a5f6ca424ab8f27",
+      "contentTreeSha256": "e9fd7f38ab9c499663a8a557d3f7bdce3c9d95993ee8e9fd386266a7976ebfbe",
       "files": [
         {
           "mode": "100644",
@@ -5658,7 +5779,7 @@
         {
           "mode": "100644",
           "path": "src/drw_entities.cpp",
-          "sha256": "574cbae469896786e72921acb3218166a0f8f64e6264a14cc478dfa519ad8923"
+          "sha256": "194cc3006440c9013300f3555f9f4d5e808053c87f1008085fd4b7ddc38da759"
         },
         {
           "mode": "100644",
@@ -5683,7 +5804,7 @@
         {
           "mode": "100644",
           "path": "src/drw_objects.cpp",
-          "sha256": "3f5711337759aa21502173d89c41c740cb68eab6f3cb5720c0a34057d2a78ed3"
+          "sha256": "351abe71a68106771bf80f9bfffee9b6a6e6817d48241f73baddae83d4782790"
         },
         {
           "mode": "100644",
@@ -5793,7 +5914,7 @@
         {
           "mode": "100644",
           "path": "src/intern/dwgreader.cpp",
-          "sha256": "e7e766d2aa3a490cf242f9fdb8ce0ea1f0adacd288640b3184924cee6996feef"
+          "sha256": "e9fb92bdf2a222dbb74e1eabd0a3f2d7307d19d0da172ca89818211799200878"
         },
         {
           "mode": "100644",
@@ -5893,17 +6014,17 @@
         {
           "mode": "100644",
           "path": "src/intern/dwgutil.h",
-          "sha256": "fba50c53a6a7d8595bfa4645461fe3ba67c42a6f115cad52dec672c33fca7526"
+          "sha256": "17306de7cd56db029d3e2d35813d1ca9b3c4acbb895e2edba79768d74ad93b7e"
         },
         {
           "mode": "100644",
           "path": "src/intern/dwgwriter.h",
-          "sha256": "aff932d233602cc5472acfbda4e583287a85cd995e36efc4937b47a79e33a90d"
+          "sha256": "9d8c8e158b29244e1f080ca5591907366718c3048987c1956dcdc56e585db89b"
         },
         {
           "mode": "100644",
           "path": "src/intern/dwgwriter15.cpp",
-          "sha256": "bafaac548489434f1ec07591be00157cf30aa1ad47ac55effca7255e13a91356"
+          "sha256": "ca4916fcfbf556aabf92beb2c35435a720c20c2f711d9f5af0420741d443cd37"
         },
         {
           "mode": "100644",
@@ -5973,7 +6094,7 @@
         {
           "mode": "100644",
           "path": "src/intern/dxfcode.h",
-          "sha256": "4d4d15d4a50e82df421289d70e26f26c9219ebe5de466bf8bdfce146799fc1fe"
+          "sha256": "9723622a8324e8c173d47311f553e69656a330aa9d6e38fbbc55c5acee0315dd"
         },
         {
           "mode": "100644",
@@ -5983,12 +6104,12 @@
         {
           "mode": "100644",
           "path": "src/intern/dxfreader.cpp",
-          "sha256": "d593ad4cd69b86dc7a4293a75462b658a51369ad11bdbec180499f471bafa55c"
+          "sha256": "a9ed919b84065249e52e76ed0c0c20e5794a6c473f876bd3bb85d46219b3dffb"
         },
         {
           "mode": "100644",
           "path": "src/intern/dxfreader.h",
-          "sha256": "87b13e521a3a3e0a5c193ef119383aa642de72e36111fc09df9ab9d8c0d63160"
+          "sha256": "846a38ec0798c43eaf382c7709078735f0f1c943308780ef2ecbc5f76718833a"
         },
         {
           "mode": "100644",
@@ -6033,12 +6154,12 @@
         {
           "mode": "100644",
           "path": "src/libdxfrw.cpp",
-          "sha256": "dfee2d04da7046f515422d1999f2f9998bd23e2886e4cf3a89a8ab6f91c0d9a6"
+          "sha256": "2dab0dd49ca8b8d8c3a72dd6efb6a0b0825f0ea8ae1f562957dddc237012546c"
         },
         {
           "mode": "100644",
           "path": "src/libdxfrw.h",
-          "sha256": "914671ecd3455ebac28bbe1836d45f9ee640b2be0438c1fdf06a11ef5897ba2b"
+          "sha256": "464938cf9434b80f9ba6aa42a761f821b747c3fda321e60e51b672dc99488438"
         },
         {
           "mode": "100644",
@@ -31587,12 +31708,14 @@
       {
         "cardinality": "1:1",
         "category": "table-descriptor",
-        "deltaClasses": [],
+        "deltaClasses": [
+          "selector"
+        ],
         "dependencies": [],
-        "disposition": "equivalent",
+        "disposition": "delta-review",
         "facade": "dwgRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
+        "implementationState": "selector-delta",
         "mappingKind": "exact-route-id",
         "ownerPaths": [
           "src/intern/dwgreader.cpp"
@@ -31602,17 +31725,19 @@
           "dwgRW/table-descriptor/kAppIdTable"
         ],
         "targetRouteId": "dwgRW/table-descriptor/kAppIdTable",
-        "unblockCondition": "none"
+        "unblockCondition": "resolve every listed delta before support promotion"
       },
       {
         "cardinality": "1:1",
         "category": "table-descriptor",
-        "deltaClasses": [],
+        "deltaClasses": [
+          "selector"
+        ],
         "dependencies": [],
-        "disposition": "equivalent",
+        "disposition": "delta-review",
         "facade": "dwgRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
+        "implementationState": "selector-delta",
         "mappingKind": "exact-route-id",
         "ownerPaths": [
           "src/intern/dwgreader.cpp"
@@ -31622,17 +31747,19 @@
           "dwgRW/table-descriptor/kBlockTable"
         ],
         "targetRouteId": "dwgRW/table-descriptor/kBlockTable",
-        "unblockCondition": "none"
+        "unblockCondition": "resolve every listed delta before support promotion"
       },
       {
         "cardinality": "1:1",
         "category": "table-descriptor",
-        "deltaClasses": [],
+        "deltaClasses": [
+          "selector"
+        ],
         "dependencies": [],
-        "disposition": "equivalent",
+        "disposition": "delta-review",
         "facade": "dwgRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
+        "implementationState": "selector-delta",
         "mappingKind": "exact-route-id",
         "ownerPaths": [
           "src/intern/dwgreader.cpp"
@@ -31642,17 +31769,19 @@
           "dwgRW/table-descriptor/kDimStyleTable"
         ],
         "targetRouteId": "dwgRW/table-descriptor/kDimStyleTable",
-        "unblockCondition": "none"
+        "unblockCondition": "resolve every listed delta before support promotion"
       },
       {
         "cardinality": "1:1",
         "category": "table-descriptor",
-        "deltaClasses": [],
+        "deltaClasses": [
+          "selector"
+        ],
         "dependencies": [],
-        "disposition": "equivalent",
+        "disposition": "delta-review",
         "facade": "dwgRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
+        "implementationState": "selector-delta",
         "mappingKind": "exact-route-id",
         "ownerPaths": [
           "src/intern/dwgreader.cpp"
@@ -31662,17 +31791,19 @@
           "dwgRW/table-descriptor/kLTypeTable"
         ],
         "targetRouteId": "dwgRW/table-descriptor/kLTypeTable",
-        "unblockCondition": "none"
+        "unblockCondition": "resolve every listed delta before support promotion"
       },
       {
         "cardinality": "1:1",
         "category": "table-descriptor",
-        "deltaClasses": [],
+        "deltaClasses": [
+          "selector"
+        ],
         "dependencies": [],
-        "disposition": "equivalent",
+        "disposition": "delta-review",
         "facade": "dwgRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
+        "implementationState": "selector-delta",
         "mappingKind": "exact-route-id",
         "ownerPaths": [
           "src/intern/dwgreader.cpp"
@@ -31682,17 +31813,19 @@
           "dwgRW/table-descriptor/kLayerTable"
         ],
         "targetRouteId": "dwgRW/table-descriptor/kLayerTable",
-        "unblockCondition": "none"
+        "unblockCondition": "resolve every listed delta before support promotion"
       },
       {
         "cardinality": "1:1",
         "category": "table-descriptor",
-        "deltaClasses": [],
+        "deltaClasses": [
+          "selector"
+        ],
         "dependencies": [],
-        "disposition": "equivalent",
+        "disposition": "delta-review",
         "facade": "dwgRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
+        "implementationState": "selector-delta",
         "mappingKind": "exact-route-id",
         "ownerPaths": [
           "src/intern/dwgreader.cpp"
@@ -31702,17 +31835,19 @@
           "dwgRW/table-descriptor/kStyleTable"
         ],
         "targetRouteId": "dwgRW/table-descriptor/kStyleTable",
-        "unblockCondition": "none"
+        "unblockCondition": "resolve every listed delta before support promotion"
       },
       {
         "cardinality": "1:1",
         "category": "table-descriptor",
-        "deltaClasses": [],
+        "deltaClasses": [
+          "selector"
+        ],
         "dependencies": [],
-        "disposition": "equivalent",
+        "disposition": "delta-review",
         "facade": "dwgRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
+        "implementationState": "selector-delta",
         "mappingKind": "exact-route-id",
         "ownerPaths": [
           "src/intern/dwgreader.cpp"
@@ -31722,17 +31857,19 @@
           "dwgRW/table-descriptor/kUcsTable"
         ],
         "targetRouteId": "dwgRW/table-descriptor/kUcsTable",
-        "unblockCondition": "none"
+        "unblockCondition": "resolve every listed delta before support promotion"
       },
       {
         "cardinality": "1:1",
         "category": "table-descriptor",
-        "deltaClasses": [],
+        "deltaClasses": [
+          "selector"
+        ],
         "dependencies": [],
-        "disposition": "equivalent",
+        "disposition": "delta-review",
         "facade": "dwgRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
+        "implementationState": "selector-delta",
         "mappingKind": "exact-route-id",
         "ownerPaths": [
           "src/intern/dwgreader.cpp"
@@ -31742,17 +31879,19 @@
           "dwgRW/table-descriptor/kVPortTable"
         ],
         "targetRouteId": "dwgRW/table-descriptor/kVPortTable",
-        "unblockCondition": "none"
+        "unblockCondition": "resolve every listed delta before support promotion"
       },
       {
         "cardinality": "1:1",
         "category": "table-descriptor",
-        "deltaClasses": [],
+        "deltaClasses": [
+          "selector"
+        ],
         "dependencies": [],
-        "disposition": "equivalent",
+        "disposition": "delta-review",
         "facade": "dwgRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
+        "implementationState": "selector-delta",
         "mappingKind": "exact-route-id",
         "ownerPaths": [
           "src/intern/dwgreader.cpp"
@@ -31762,7 +31901,7 @@
           "dwgRW/table-descriptor/kViewTable"
         ],
         "targetRouteId": "dwgRW/table-descriptor/kViewTable",
-        "unblockCondition": "none"
+        "unblockCondition": "resolve every listed delta before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -51780,12 +51919,15 @@
       {
         "cardinality": "1:1",
         "category": "facade-method",
-        "deltaClasses": [],
+        "deltaClasses": [
+          "body",
+          "selector"
+        ],
         "dependencies": [],
-        "disposition": "equivalent",
+        "disposition": "delta-review",
         "facade": "dxfRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
+        "implementationState": "selector-delta",
         "mappingKind": "exact-route-id",
         "ownerPaths": [
           "src/libdxfrw.cpp"
@@ -51795,7 +51937,7 @@
           "dxfRW/facade-method/writeRawDxfGroups-001"
         ],
         "targetRouteId": "dxfRW/facade-method/writeRawDxfGroups-001",
-        "unblockCondition": "none"
+        "unblockCondition": "resolve every listed delta before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -54792,6 +54934,7 @@
         "cardinality": "1:1",
         "category": "parser-publication",
         "deltaClasses": [
+          "body",
           "selector"
         ],
         "dependencies": [],
@@ -55386,6 +55529,7 @@
         "cardinality": "1:1",
         "category": "parser-publication",
         "deltaClasses": [
+          "body",
           "selector"
         ],
         "dependencies": [],
@@ -55496,6 +55640,7 @@
         "cardinality": "1:1",
         "category": "parser-publication",
         "deltaClasses": [
+          "body",
           "selector"
         ],
         "dependencies": [],
@@ -55518,6 +55663,7 @@
         "cardinality": "1:1",
         "category": "parser-publication",
         "deltaClasses": [
+          "body",
           "selector"
         ],
         "dependencies": [],
@@ -55848,6 +55994,7 @@
         "cardinality": "1:1",
         "category": "parser-publication",
         "deltaClasses": [
+          "body",
           "selector"
         ],
         "dependencies": [],
@@ -55958,6 +56105,7 @@
         "cardinality": "1:1",
         "category": "parser-publication",
         "deltaClasses": [
+          "body",
           "selector"
         ],
         "dependencies": [],
@@ -55980,6 +56128,7 @@
         "cardinality": "1:1",
         "category": "parser-publication",
         "deltaClasses": [
+          "body",
           "selector"
         ],
         "dependencies": [],
@@ -56046,6 +56195,7 @@
         "cardinality": "1:1",
         "category": "parser-publication",
         "deltaClasses": [
+          "body",
           "selector"
         ],
         "dependencies": [],
@@ -56266,6 +56416,7 @@
         "cardinality": "1:1",
         "category": "parser-publication",
         "deltaClasses": [
+          "body",
           "selector"
         ],
         "dependencies": [],
@@ -56596,6 +56747,7 @@
         "cardinality": "1:1",
         "category": "parser-publication",
         "deltaClasses": [
+          "body",
           "selector"
         ],
         "dependencies": [],
@@ -56684,6 +56836,7 @@
         "cardinality": "1:1",
         "category": "parser-publication",
         "deltaClasses": [
+          "body",
           "selector"
         ],
         "dependencies": [],
@@ -56816,6 +56969,7 @@
         "cardinality": "1:1",
         "category": "parser-publication",
         "deltaClasses": [
+          "body",
           "selector"
         ],
         "dependencies": [],
@@ -56904,6 +57058,7 @@
         "cardinality": "1:1",
         "category": "parser-publication",
         "deltaClasses": [
+          "body",
           "selector"
         ],
         "dependencies": [],
@@ -57102,6 +57257,7 @@
         "cardinality": "1:1",
         "category": "parser-publication",
         "deltaClasses": [
+          "body",
           "selector"
         ],
         "dependencies": [],
@@ -57124,6 +57280,7 @@
         "cardinality": "1:1",
         "category": "parser-publication",
         "deltaClasses": [
+          "body",
           "selector"
         ],
         "dependencies": [],
@@ -57300,6 +57457,7 @@
         "cardinality": "1:1",
         "category": "parser-publication",
         "deltaClasses": [
+          "body",
           "selector"
         ],
         "dependencies": [],
@@ -57872,6 +58030,7 @@
         "cardinality": "1:1",
         "category": "parser-publication",
         "deltaClasses": [
+          "body",
           "selector"
         ],
         "dependencies": [],
@@ -57894,6 +58053,7 @@
         "cardinality": "1:1",
         "category": "parser-publication",
         "deltaClasses": [
+          "body",
           "selector"
         ],
         "dependencies": [],
@@ -58268,6 +58428,7 @@
         "cardinality": "1:1",
         "category": "parser-publication",
         "deltaClasses": [
+          "body",
           "selector"
         ],
         "dependencies": [],
@@ -58598,6 +58759,7 @@
         "cardinality": "1:1",
         "category": "parser-publication",
         "deltaClasses": [
+          "body",
           "selector"
         ],
         "dependencies": [],
@@ -58664,6 +58826,7 @@
         "cardinality": "1:1",
         "category": "parser-publication",
         "deltaClasses": [
+          "body",
           "selector"
         ],
         "dependencies": [],
@@ -60865,22 +61028,26 @@
       {
         "cardinality": "1:1",
         "category": "public-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "dxfRW/public-method/src_libdxfrw.h_dxfRW_da9537c7ddd8a688b9f7c33cf37057fdadd79aa9da35300c530548d561d5a3a3"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "dxfRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/libdxfrw.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "dxfRW/public-method/src_libdxfrw.h_dxfRW_6ef6c2eced436ed1a0c4c176a76152d6a32c41deb1c53c210fdb6ae4f709c6e7"
+          "dxfRW/public-method/src_libdxfrw.h_dxfRW_da9537c7ddd8a688b9f7c33cf37057fdadd79aa9da35300c530548d561d5a3a3"
         ],
         "targetRouteId": "dxfRW/public-method/src_libdxfrw.h_dxfRW_6ef6c2eced436ed1a0c4c176a76152d6a32c41deb1c53c210fdb6ae4f709c6e7",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -62700,6 +62867,7 @@
         "cardinality": "1:1",
         "category": "raw-flow",
         "deltaClasses": [
+          "body",
           "selector"
         ],
         "dependencies": [],
@@ -62722,6 +62890,7 @@
         "cardinality": "1:1",
         "category": "raw-flow",
         "deltaClasses": [
+          "body",
           "selector"
         ],
         "dependencies": [],
@@ -62764,6 +62933,7 @@
         "cardinality": "1:1",
         "category": "raw-flow",
         "deltaClasses": [
+          "body",
           "selector"
         ],
         "dependencies": [],
@@ -62828,6 +62998,7 @@
         "cardinality": "1:1",
         "category": "raw-flow",
         "deltaClasses": [
+          "body",
           "selector"
         ],
         "dependencies": [],
@@ -64509,12 +64680,15 @@
       {
         "cardinality": "1:1",
         "category": "writer-entrypoint",
-        "deltaClasses": [],
+        "deltaClasses": [
+          "body",
+          "selector"
+        ],
         "dependencies": [],
-        "disposition": "equivalent",
+        "disposition": "delta-review",
         "facade": "dxfRW",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
+        "implementationState": "selector-delta",
         "mappingKind": "exact-route-id",
         "ownerPaths": [
           "src/libdxfrw.cpp"
@@ -64524,7 +64698,7 @@
           "dxfRW/writer-entrypoint/writeRawDxfGroups-001"
         ],
         "targetRouteId": "dxfRW/writer-entrypoint/writeRawDxfGroups-001",
-        "unblockCondition": "none"
+        "unblockCondition": "resolve every listed delta before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -120442,12 +120616,15 @@
       {
         "cardinality": "1:1",
         "category": "source-unit-coverage",
-        "deltaClasses": [],
+        "deltaClasses": [
+          "body",
+          "selector"
+        ],
         "dependencies": [],
-        "disposition": "equivalent",
+        "disposition": "delta-review",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
+        "implementationState": "selector-delta",
         "mappingKind": "exact-route-id",
         "ownerPaths": [
           "src/libdxfrw.h"
@@ -120457,7 +120634,7 @@
           "shared/source-unit-coverage/src_libdxfrw.h"
         ],
         "targetRouteId": "shared/source-unit-coverage/src_libdxfrw.h",
-        "unblockCondition": "none"
+        "unblockCondition": "resolve every listed delta before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -122546,6 +122723,8 @@
       "dwgRW/facade-method/getLastDiagnostic-001",
       "dwgRW/facade-method/recordOperationDiagnostic-001",
       "dwgRW/facade-method/recordOperationDiagnosticForError-001",
+      "dwgRW/fixed-entity/1164-GEOPOSITIONMARKER",
+      "dwgRW/parser-publication/dwgRW_fixed-entity_1164-GEOPOSITIONMARKER",
       "dwgRW/public-inline-method/src_libdwgr.h_dwgR_1d63d75bbe4cf516ae735bb0afe00a248d974310967ecd166eba0629ce755268",
       "dwgRW/public-inline-method/src_libdwgr.h_dwgR_2ccf0b4c47c1b5a4c2b8dc013c3a621b11ddb5a46e4cf3e226f4bcf5cb8766c8",
       "dwgRW/public-inline-method/src_libdwgr.h_dwgR_3b8cc629932234c4eaa6774660e79b801f34edd2b10e5dc0e36855868732c106",
@@ -122570,9 +122749,11 @@
       "dwgRW/public-method/src_libdwgr.h_dwgR_f2badd9251cea8ef4839f1f45de61ff9daaf927b328106a533a511af6c5e5dec",
       "dxfRW/dxf-transport-node/group-code-range-source",
       "dxfRW/facade-method/beginOperationDiagnostic-001",
+      "dxfRW/facade-method/dxfCompatibilityProfile-001",
       "dxfRW/facade-method/getLastDiagnostic-001",
       "dxfRW/facade-method/recordOperationDiagnostic-001",
       "dxfRW/facade-method/recordOperationDiagnosticForError-001",
+      "dxfRW/facade-method/setDxfCompatibilityProfile-001",
       "dxfRW/group-code-raw-rule/DxfValueKind_Bin",
       "dxfRW/group-code-raw-rule/DxfValueKind_Bln",
       "dxfRW/group-code-raw-rule/DxfValueKind_Dbl",
@@ -122581,7 +122762,10 @@
       "dxfRW/group-code-raw-rule/DxfValueKind_I64",
       "dxfRW/group-code-raw-rule/DxfValueKind_Str",
       "dxfRW/group-code-raw-rule/DxfValueKind_Unknown",
+      "dxfRW/public-enum/src_libdxfrw.h_dxfRW_DxfCompatibilityProfile",
       "dxfRW/public-method/src_libdxfrw.h_dxfRW_1d63d75bbe4cf516ae735bb0afe00a248d974310967ecd166eba0629ce755268",
+      "dxfRW/public-method/src_libdxfrw.h_dxfRW_389effe06056b50f64b56ab4440f8670149d6e876e0488fa23789d3af30ad92f",
+      "dxfRW/public-method/src_libdxfrw.h_dxfRW_4061dabb2caef05d2c7effc3bc1ce17f28a22bc3268f34a4ad1b7140e8983eaf",
       "shared/pipeline-unit/src_intern_dxfcode.h",
       "shared/public-alias/src_drw_base.h_DRW_OperationCause",
       "shared/public-alias/src_drw_base.h_DRW_OperationDiagnostic",
@@ -122612,9 +122796,9 @@
       "shared/source-unit/src_intern_dxfcode.h"
     ],
     "summary": {
-      "deltaOneToOne": 749,
-      "exactOneToOne": 4885,
-      "standaloneOnly": 68,
+      "deltaOneToOne": 762,
+      "exactOneToOne": 4872,
+      "standaloneOnly": 75,
       "targetOnly": 0,
       "targetRows": 5669
     }
@@ -122629,14 +122813,18 @@
         "src/drw_objects.cpp",
         "src/intern/drw_dbg.cpp",
         "src/intern/dwgreader.cpp",
+        "src/intern/dwgutil.h",
+        "src/intern/dwgwriter.h",
+        "src/intern/dwgwriter15.cpp",
         "src/intern/dxfreader.cpp",
+        "src/intern/dxfreader.h",
         "src/libdwgr.cpp",
         "src/libdwgr.h",
         "src/libdxfrw.cpp",
         "src/libdxfrw.h"
       ],
       "allowlistPath": "metadata/adaptation-allowlist.json",
-      "allowlistSha256": "f42594695bda126a1fe12d8c5551d4ca468bc71304fd815b33755bbb1511e05c",
+      "allowlistSha256": "27c3321affc4803e687169a63b07948a3a8e96e810a746d79aec7333ff226566",
       "schema": 1,
       "targetCommit": "3c7785ebbcbfc8f3c8f79dbba093aff09cdec753",
       "targetRepository": "git@github.com-librecad:LibreCAD/LibreCAD.git"
@@ -122645,7 +122833,7 @@
       "algorithm": "sha256-canonical-json-v1",
       "bodyEvidenceExcluded": true,
       "inventoryDigests": {
-        "standalone": "5948b5ec4e526a76687e1f52c996551356b21511d865d38c3f839f5df7e36181",
+        "standalone": "9c3c0c90036e732a9f6dac05205573aa6cc90d75e1ca4da9f12624da7ca7ce58",
         "target": "5d5e58ff03fb0f677365ac2db73295cdc6f0b6df9150d99cae6f6b77ad16566a"
       },
       "stableFields": [
@@ -122661,7 +122849,7 @@
     "standalone": {
       "baselineCommit": "92d7466ed9146badcd4fb44c82d1dd8302b3c7db",
       "baselineRef": "origin/master",
-      "contentTreeSha256": "421862b31345c6a65de0e7339727f9910c946341a74282755a5f6ca424ab8f27",
+      "contentTreeSha256": "e9fd7f38ab9c499663a8a557d3f7bdce3c9d95993ee8e9fd386266a7976ebfbe",
       "repository": "git@github.com-librecad:LibreCAD/libdxfrw.git"
     },
     "target": {
@@ -122697,22 +122885,22 @@
     {
       "facade": "dxfRW",
       "path": "parity-source-routes-v1/standalone-dxfRW.json",
-      "routeCount": 1457,
-      "sha256": "6375b1b9eb0ecdf584b016bce69a6ab79dccebea374ed698e748f89dc5232db7",
+      "routeCount": 1462,
+      "sha256": "8215189721d86803a24717bd11879a4b210e2db6be503dd7213626a5c92b2aaf",
       "side": "standalone"
     },
     {
       "facade": "dwgRW",
       "path": "parity-source-routes-v1/standalone-dwgRW.json",
-      "routeCount": 1371,
-      "sha256": "e071bf7888e36a3df0ebeef43a0f4a0094b271693e0c72eeea345d75e5d59e88",
+      "routeCount": 1373,
+      "sha256": "a62e9ea5786026cdfa2d45d5ce37cbc148c7246bfef8d47b2d507cd6e8584004",
       "side": "standalone"
     },
     {
       "facade": "shared",
       "path": "parity-source-routes-v1/standalone-shared.json",
       "routeCount": 2877,
-      "sha256": "5131a59593f4af1abc1e1df531ef7a773911512d3868f81b9cd35737d68f8df5",
+      "sha256": "a8b7467bc029fda5da67827bc63b3690c7e1f3b481d729cf0d38ef79ebb5b9f7",
       "side": "standalone"
     }
   ],
@@ -122722,37 +122910,37 @@
         "dwgRW": {
           "body": 62,
           "condition": 214,
-          "selector": 497
+          "selector": 506
         },
         "dxfRW": {
-          "body": 9,
-          "selector": 237
+          "body": 36,
+          "selector": 239
         },
         "shared": {
-          "body": 1,
-          "selector": 3
+          "body": 2,
+          "selector": 4
         }
       },
       "dwgRW": {
-        "semanticMismatches": 497,
-        "standaloneOnly": 27,
+        "semanticMismatches": 506,
+        "standaloneOnly": 29,
         "targetOnly": 1
       },
       "dxfRW": {
-        "semanticMismatches": 237,
-        "standaloneOnly": 18,
-        "targetOnly": 36
+        "semanticMismatches": 239,
+        "standaloneOnly": 24,
+        "targetOnly": 37
       },
       "shared": {
-        "semanticMismatches": 3,
+        "semanticMismatches": 4,
         "standaloneOnly": 38,
         "targetOnly": 10
       }
     },
     "mapping": {
-      "deltaOneToOne": 749,
-      "exactOneToOne": 4885,
-      "standaloneOnly": 68,
+      "deltaOneToOne": 762,
+      "exactOneToOne": 4872,
+      "standaloneOnly": 75,
       "targetOnly": 0,
       "targetRows": 5669
     },
@@ -122773,8 +122961,8 @@
         "dxf-table": 9,
         "dxf-table-dispatch-branch": 9,
         "dxf-transport-node": 17,
-        "facade-method": 503,
-        "fixed-entity": 52,
+        "facade-method": 505,
+        "fixed-entity": 53,
         "fixed-object": 19,
         "group-code-raw-classifier": 1,
         "group-code-raw-rule": 9,
@@ -122789,14 +122977,14 @@
         "named-entity-class": 45,
         "named-object-class": 169,
         "object-context-class": 22,
-        "parser-publication": 504,
+        "parser-publication": 505,
         "pipeline-unit": 81,
         "public-alias": 16,
-        "public-enum": 64,
+        "public-enum": 65,
         "public-header": 10,
         "public-inline-function": 3,
         "public-inline-method": 660,
-        "public-method": 1056,
+        "public-method": 1058,
         "public-model": 259,
         "public-type": 320,
         "publication-stage": 24,
@@ -122820,7 +123008,7 @@
         "writer-pipeline": 7,
         "writer-version": 14
       },
-      "routeCount": 5705
+      "routeCount": 5712
     },
     "target": {
       "categoryCounts": {
