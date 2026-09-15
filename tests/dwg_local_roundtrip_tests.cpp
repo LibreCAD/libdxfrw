@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <algorithm>
 #include <array>
+#include <cstring>
 #include <filesystem>
 #include <iostream>
 #include <limits>
@@ -9,6 +10,7 @@
 #include <vector>
 
 #include "drw_entities.h"
+#include "drw_acis.h"
 #include "drw_header.h"
 #include "dwg2dxf/dx_iface.h"
 #include "libdwgr.h"
@@ -4528,6 +4530,116 @@ bool expect(bool value, const char* label, int& failures) {
     return false;
 }
 
+std::vector<std::uint8_t> makeLocalSabPayload() {
+    std::vector<std::uint8_t> bytes;
+    const auto putInt = [&bytes](std::int32_t value) {
+        const auto* raw = reinterpret_cast<const std::uint8_t*>(&value);
+        bytes.insert(bytes.end(), raw, raw + sizeof(value));
+    };
+    const auto putDouble = [&bytes](double value) {
+        const auto* raw = reinterpret_cast<const std::uint8_t*>(&value);
+        bytes.insert(bytes.end(), raw, raw + sizeof(value));
+    };
+    const auto putString = [&bytes](int tag, const std::string& value) {
+        bytes.push_back(static_cast<std::uint8_t>(tag));
+        bytes.push_back(static_cast<std::uint8_t>(value.size()));
+        bytes.insert(bytes.end(), value.begin(), value.end());
+    };
+    const auto putVec = [&putDouble](double x, double y, double z) {
+        putDouble(x);
+        putDouble(y);
+        putDouble(z);
+    };
+    const std::string signature = "ACIS BinaryFile";
+    bytes.insert(bytes.end(), signature.begin(), signature.end());
+    putInt(1); // SAB version
+    putInt(2); // one payload record plus end marker
+    putInt(1); // entity count
+    putInt(0); // flags
+    putString(DRW_SabTag::Str, "LOCAL_PRODUCT");
+    putString(DRW_SabTag::Str, "LOCAL_ACIS");
+    putString(DRW_SabTag::Str, "LOCAL_DATE");
+    bytes.push_back(DRW_SabTag::Double);
+    putDouble(1.0);
+    bytes.push_back(DRW_SabTag::Double);
+    putDouble(1.0e-6);
+    bytes.push_back(DRW_SabTag::Double);
+    putDouble(1.0e-6);
+    putString(DRW_SabTag::EntityType, "vertex");
+    bytes.push_back(DRW_SabTag::LocationVec);
+    putVec(1.0, 2.0, 3.0);
+    bytes.push_back(DRW_SabTag::RecordEnd);
+    putString(DRW_SabTag::EntityType, "End-of-ACIS-data");
+    bytes.push_back(DRW_SabTag::RecordEnd);
+    return bytes;
+}
+
+bool runAcisSabFastCheck() {
+    const std::vector<std::uint8_t> payload = makeLocalSabPayload();
+    DRW_SabData sab;
+    const bool parsed = drw_parseSab(payload.data(), payload.size(), sab);
+    if (!parsed
+        || sab.header.signature != "ACIS BinaryFile"
+        || sab.header.numRecords != 2
+        || sab.records.size() != 2
+        || sab.records.front().type != "vertex"
+        || sab.records.back().type != "End-of-ACIS-data") {
+        return false;
+    }
+    const DRW_AcisModel model = drw_buildAcisModel(sab);
+    if (model.nodes.size() != 2 || model.nodesOfType("vertex").size() != 1)
+        return false;
+    DRW_AcisBrep wireframe;
+    const bool decoded = drw_decodeAcisWireframe(payload, wireframe);
+    if (!decoded || wireframe.vertices.size() != 1)
+        return false;
+    std::vector<std::uint8_t> truncated(payload.begin(), payload.end() - 5);
+    DRW_SabData rejected;
+    const bool rejectedOk = !drw_parseSab(truncated.data(), truncated.size(), rejected);
+    return rejectedOk;
+}
+
+bool runDxfModelerCarrierRoundTrip(DRW::Version version,
+                                   const std::vector<std::uint8_t>& payload,
+                                   const char* suffix) {
+    const std::filesystem::path output =
+        std::filesystem::temp_directory_path()
+        / (std::string("libdxfrw-modeler-") + suffix + ".dxf");
+    std::error_code ec;
+    std::filesystem::remove(output, ec);
+    dx_data source;
+    auto* modeler = new DRW_ModelerGeometry(DRW::E3DSOLID);
+    modeler->handle = 0xFC00u;
+    modeler->m_modelerVersion = 7;
+    modeler->m_rawBytes = payload;
+    source.mBlock->ent.push_back(modeler);
+    dx_iface exporter;
+    const bool exportOk = exporter.fileExport(output.string(), version, false,
+                                               &source, false);
+    if (!exportOk) {
+        std::filesystem::remove(output, ec);
+        return false;
+    }
+    dx_data imported;
+    dx_iface importer;
+    const bool importOk = importer.fileImport(output.string(), &imported, false);
+    if (!importOk) {
+        std::filesystem::remove(output, ec);
+        return false;
+    }
+    bool found = false;
+    for (const DRW_Entity* entity : imported.mBlock->ent) {
+        if (entity == nullptr || entity->eType != DRW::E3DSOLID)
+            continue;
+        const auto* decoded = static_cast<const DRW_ModelerGeometry*>(entity);
+        found = decoded->handle != 0
+            && decoded->m_modelerVersion == 7
+            && decoded->m_rawBytes == payload;
+    }
+    std::filesystem::remove(output, ec);
+    return found;
+}
+
 bool runDxfSurfaceRoundTrip() {
     const std::filesystem::path output =
         std::filesystem::temp_directory_path() / "libdxfrw-surface-roundtrip.dxf";
@@ -5412,6 +5524,14 @@ int main(int argc, char** argv) {
     }
     expect(runDxfSurfaceRoundTrip(),
            "local DXF SURFACE family round-trip", failures);
+    const std::vector<std::uint8_t> sabPayload = makeLocalSabPayload();
+    expect(runAcisSabFastCheck(), "local ACIS SAB parser fast check", failures);
+    const std::vector<std::uint8_t> textCarrier {
+        'A', 'C', 'I', 'S', ' ', 'S', 'A', 'T', ' ', 'L', 'O', 'C', 'A', 'L'};
+    expect(runDxfModelerCarrierRoundTrip(DRW::AC1018, textCarrier, "text"),
+           "local DXF text modeler carrier round-trip", failures);
+    expect(runDxfModelerCarrierRoundTrip(DRW::AC1027, sabPayload, "binary"),
+           "local DXF binary modeler carrier round-trip", failures);
     if (failures != 0) {
         std::cerr << failures << " local DWG round-trip assertion(s) failed\n";
         return 1;

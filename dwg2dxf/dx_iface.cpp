@@ -133,6 +133,11 @@ void dx_iface::writeEntity(DRW_Entity* e){
     case DRW::NURBSURFACE:
         dxfW->writeSurface(static_cast<DRW_Surface*>(e));
         break;
+    case DRW::E3DSOLID:
+    case DRW::REGION:
+    case DRW::BODY:
+        dxfW->writeModelerGeometry(static_cast<DRW_ModelerGeometry*>(e));
+        break;
     default:
         break;
     }

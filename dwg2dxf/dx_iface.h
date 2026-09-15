@@ -197,6 +197,11 @@ public:
         }
     }
 
+    virtual void addModelerGeometry(const DRW_ModelerGeometry& data){
+        if (currentBlock != nullptr)
+            currentBlock->ent.push_back(new DRW_ModelerGeometry(data));
+    }
+
 //writer part, send all in class dx_data to writer
     virtual void addComment(const char* /*comment*/){}
     virtual void addPlotSettings(const DRW_PlotSettings *data) {
