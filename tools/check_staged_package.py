@@ -44,6 +44,19 @@ def assert_staged_flags(flags, prefix: Path) -> None:
                 ) from error
 
 
+def self_test_staged_flags() -> None:
+    prefix = Path(tempfile.gettempdir()) / "libdxfrw-staged-prefix"
+    assert_staged_flags(
+        ["-I" + str(prefix / "include"), "-L" + str(prefix / "lib"),
+         "-ldxfrw"], prefix)
+    try:
+        assert_staged_flags(["-I/usr/local/include", "-L/usr/local/lib"],
+                            prefix)
+    except RuntimeError:
+        return
+    raise RuntimeError("staged pkg-config path guard accepted system paths")
+
+
 def check(prefix: Path, cxx: str) -> None:
     prefix = prefix.resolve()
     include_root = prefix / "include" / "libdxfrw"
@@ -117,9 +130,18 @@ def check(prefix: Path, cxx: str) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--prefix", type=Path, required=True)
+    parser.add_argument("--prefix", type=Path)
+    parser.add_argument("--self-test", action="store_true",
+                        help="exercise staged-path acceptance and rejection")
     parser.add_argument("--cxx", default=os.environ.get("CXX", "c++"))
     args = parser.parse_args()
+    if args.self_test:
+        self_test_staged_flags()
+        print("staged package checker self-test: PASS")
+        if args.prefix is None:
+            return 0
+    if args.prefix is None:
+        parser.error("--prefix is required unless --self-test is used alone")
     try:
         check(args.prefix, args.cxx)
     except subprocess.CalledProcessError as error:
