@@ -4641,6 +4641,25 @@ bool runDxfModelerCarrierRoundTrip(DRW::Version version,
     return found;
 }
 
+bool runDxfMalformedModelerCarrier(const char* chunk) {
+    const std::filesystem::path output =
+        std::filesystem::temp_directory_path() / "libdxfrw-modeler-malformed.dxf";
+    std::error_code ec;
+    std::filesystem::remove(output, ec);
+    std::ofstream stream(output);
+    stream << "0\nSECTION\n2\nENTITIES\n"
+              "0\n3DSOLID\n5\n4A\n330\n1F\n100\nAcDbEntity\n"
+              "100\nAcDbModelerGeometry\n100\nAcDb3dSolid\n70\n1\n"
+           << "310\n" << chunk << "\n"
+              "0\nENDSEC\n0\nEOF\n";
+    stream.close();
+    dx_data imported;
+    dx_iface importer;
+    const bool importOk = importer.fileImport(output.string(), &imported, false);
+    std::filesystem::remove(output, ec);
+    return !importOk && imported.mBlock->ent.empty();
+}
+
 bool runDxfSurfaceRoundTrip() {
     const std::filesystem::path output =
         std::filesystem::temp_directory_path() / "libdxfrw-surface-roundtrip.dxf";
@@ -5533,6 +5552,10 @@ int main(int argc, char** argv) {
            "local DXF text modeler carrier round-trip", failures);
     expect(runDxfModelerCarrierRoundTrip(DRW::AC1027, sabPayload, "binary", true),
            "local DXF binary modeler carrier round-trip", failures);
+    expect(runDxfMalformedModelerCarrier("ABC"),
+           "local malformed DXF modeler odd hex rejection", failures);
+    expect(runDxfMalformedModelerCarrier("GG"),
+           "local malformed DXF modeler non-hex rejection", failures);
     if (failures != 0) {
         std::cerr << failures << " local DWG round-trip assertion(s) failed\n";
         return 1;

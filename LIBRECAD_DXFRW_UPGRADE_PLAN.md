@@ -2706,12 +2706,17 @@ edit this block or commit the same slice concurrently.
   now round-trip a bounded local SAB payload through 310-hex chunks while the
   ASCII text-carrier path remains green; no external ACIS/SAB or drawing bytes
   are retained.
-- Active implementation slice: S107/J83 malformed DXF modeler-carrier safety is
-  the next dependency-ready lane. Feed an odd-length/non-hex 310 chunk through
-  the ASCII reader, verify transactional rejection and no callback publication,
-  and keep the valid binary/text carrier checks green. If a malformed framing
-  edge differs by dialect, record its exact fallback and continue to the next
-  ready child.
+- Previous implementation slice: S107/J83 malformed DXF modeler-carrier safety
+  is committed. Temporary local ASCII DXF inputs with odd-length and non-hex
+  310 chunks now fail closed without publishing a modeler entity, while valid
+  text/binary carrier checks remain green; malformed files are removed and no
+  fixture bytes are retained.
+- Active implementation slice: S108/J84 DWG modeler-reader preservation audit
+  is the next dependency-ready lane. Trace `DRW_ModelerGeometry::parseDwg` raw
+  body capture and the `addModelerGeometry` publication boundary against the
+  pinned target and available local samples, then either add a bounded reader
+  regression or record the exact no-sample/deferred disposition. Do not invent
+  a DWG modeler writer entry point or commit external DWG bytes.
 - Previous implementation slice: S90/J66 DIMASSOC/EVALUATION_GRAPH object parity
   is committed. The AC1021+ lane registers the target's typed classes before
   CLASSES, writes one bounded DIMASSOC with a soft dimension/reference link and
@@ -2752,9 +2757,9 @@ edit this block or commit the same slice concurrently.
   names TVDEVICEPROPERTIES and the two VX frames as UNKNOWN_OBJ, while local
   self-read remains authoritative for VX payload fields; no generated drawings
   or external assets are retained.
-- Last fully resolved slice: S106 (the binary DXF modeler-carrier slice is
-  committed by the matching `Plan-Slice: S106` trailer; the commit carries
-  binary-file carrier evidence and live-plan state).
+- Last fully resolved slice: S107 (the malformed DXF modeler-carrier slice is
+  committed by the matching `Plan-Slice: S107` trailer; the commit carries
+  transactional rejection evidence and live-plan state).
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
@@ -2770,18 +2775,18 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 106 (`COMMITTED`); S107 is active.
+- Resolved slices: 107 (`COMMITTED`); S108 is active.
 - Slice states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 106 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 107 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 106 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 107 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 4 VERIFIED / 203 COMMITTED; 1 child is active; no child is anonymous.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 4 VERIFIED / 204 COMMITTED; 1 child is active; no child is anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 34 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S106 are committed; S107/J83 is active with a ready packet
-  naming the ASCII 310-chunk malformed-input route, no-publication assertion,
-  valid-carrier regressions, and focused timing/policy checks. Keep validation fast and
+- Active work: S01-S107 are committed; S108/J84 is active with a ready packet
+  naming `DRW_ModelerGeometry::parseDwg`, `addModelerGeometry`, local-sample
+  availability, raw-body capture, and the no-invented-writer fallback. Keep validation fast and
   self-updating: run source/plan/policy checks and the focused carrier target
   after each implementation item, commit only after the narrow gate is green,
   show the commit progress, and immediately re-run the ready-queue/unblock
@@ -2935,7 +2940,8 @@ edit this block or commit the same slice concurrently.
 | S104 | J80: ACIS derived-wireframe qualification | S103 | COMMITTED | synthetic SAB record graph; vertex/edge/face/loop extraction; finite bounds; leading-pointer tolerance; intcurve control polygon; null/malformed safety; fast graph gate; plan/scope/sync/fixture gates | `drw_acis` graph/extractor now passes a local synthetic graph covering all listed analytic routes, cardinalities, bounds, pointer ordering, control points, and empty-graph safety; no external ACIS/SAB or drawing bytes | focused graph/extractor target, combined fast CTest, and policy gates pass; full CTest remains checkpoint-only |
 | S105 | J81: modeler lazy-decode qualification | S104 | COMMITTED | bounded local SAB carrier; `DRW_ModelerGeometry::decodeWireframe`; idempotence; stale-output clearing; malformed/non-SAB failure; fast graph/carrier gate; plan/scope/sync/fixture gates | focused local SAB modeler object resolves one vertex and remains idempotent; non-SAB and truncated vectors fail closed with empty output; no external ACIS/SAB or drawing bytes | graph/preservation, hardening, local round-trip, and policy gates pass; full CTest remains checkpoint-only |
 | S106 | J82: binary DXF modeler-carrier fidelity | S105 | COMMITTED | binary DXF file writer/reader; 310-hex chunk framing; local SAB payload; modeler version/handle; text-path regression; fast carrier gate; plan/scope/sync/fixture gates | production `dx_iface`/`dxfRW` binary-file round-trip preserves the local SAB payload, modeler version, and nonzero handle; ASCII text carrier remains green; no external ACIS/SAB or generated drawing bytes | focused binary/text carrier round-trip, CTest, live oracle, and policy gates pass; full CTest remains checkpoint-only |
-| S107 | J83: malformed DXF modeler-carrier safety | S106 | ACTIVE | odd/non-hex 310 chunk; transactional reader rejection; no callback publication; valid-carrier regressions; fast carrier gate; plan/scope/sync/fixture gates | qualify fail-closed malformed modeler-carrier handling with temporary local ASCII content only; keep all fixture bytes untracked | focused malformed-carrier check first, then the combined fast target and policy gates; full CTest remains checkpoint-only |
+| S107 | J83: malformed DXF modeler-carrier safety | S106 | COMMITTED | odd/non-hex 310 chunk; transactional reader rejection; no callback publication; valid-carrier regressions; fast carrier gate; plan/scope/sync/fixture gates | temporary local ASCII inputs with odd/non-hex 310 chunks fail closed and publish no entity; valid text/binary carrier checks remain green; malformed files are removed | focused malformed-carrier, CTest, live oracle, fixture/import/sync/plan gates pass; no fixture bytes retained |
+| S108 | J84: DWG modeler-reader preservation audit | S107 | ACTIVE | `DRW_ModelerGeometry::parseDwg`; raw body capture; `addModelerGeometry` callback; local sample availability; no-invented-writer boundary; fast reader gate; plan/scope/sync/fixture gates | trace the pinned target reader path and available local samples; add only a bounded regression backed by an existing/local-from-scratch sample, otherwise record exact deferred evidence and unblock condition | focused reader audit first, then the combined fast target and policy gates; full CTest remains checkpoint-only |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3046,7 +3052,8 @@ edit this block or commit the same slice concurrently.
 | J80 | S104 | J79 | COMMITTED | EXPERIMENTAL | Qualify the `drw_acis` graph/extractor independently of carrier I/O with a synthetic record graph covering analytic edges/faces, loops, bounds, pointer ordering, intcurve control points, and malformed/null safety | `libdxfrw_graph_preservation_tests` now passes the full synthetic graph/extractor oracle and keeps all inputs local-from-scratch; no external ACIS/SAB or drawing bytes |
 | J81 | S105 | J80 | COMMITTED | EXPERIMENTAL | Qualify `DRW_ModelerGeometry::decodeWireframe` lazy caching and stale-output behavior against bounded local SAB, non-SAB, and truncated carriers | graph/preservation fast target passes local SAB success/idempotence plus malformed/non-SAB empty-output checks; no external ACIS/SAB or drawing bytes |
 | J82 | S106 | J81 | COMMITTED | EXPERIMENTAL | Qualify binary DXF modeler-carrier emission/parse through `dx_iface` and `dxfRW`, including 310-hex chunks and text-path regression | local binary-file round-trip and existing text-carrier regression pass with payload/version/handle identity; no external ACIS/SAB or drawing bytes |
-| J83 | S107 | J82 | ACTIVE | EXPERIMENTAL | Qualify malformed modeler-carrier 310-chunk rejection in the ASCII reader with transactional no-publication behavior | ready packet names the temporary local malformed DXF, odd/non-hex chunk cases, callback count assertion, smallest carrier target, and policy gates; no external ACIS/SAB or drawing bytes |
+| J83 | S107 | J82 | COMMITTED | EXPERIMENTAL | Qualify malformed modeler-carrier 310-chunk rejection in the ASCII reader with transactional no-publication behavior | local odd/non-hex 310 checks fail closed with no callback publication; no external or retained fixture bytes |
+| J84 | S108 | J83 | ACTIVE | EXPERIMENTAL | Audit DWG modeler raw-body reader capture and callback publication against target flow and available local samples, preserving the explicit no-typed-writer boundary | ready packet names `DRW_ModelerGeometry::parseDwg`, `addModelerGeometry`, sample search, smallest reader audit, and policy gates; no invented writer or external DWG bytes |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -3264,7 +3271,8 @@ edit this block or commit the same slice concurrently.
 | J80.1 | J80 / S104 | WP5, WP7, WP8, WP10; ACIS wireframe | J79 | COMMITTED | EXPERIMENTAL | build a local synthetic `DRW_SabData` graph and assert vertex coordinates/bounds, straight and ellipse parameters, intcurve control points, plane/cone/torus surfaces, loop counts, leading-pointer skip, and null/malformed failure behavior | focused graph/extractor target, combined fast CTest, and policy gates pass; local-from-scratch records only |
 | J81.1 | J81 / S105 | WP5, WP7, WP8, WP10; modeler lazy decode | J80 | COMMITTED | EXPERIMENTAL | attach a bounded local SAB vector to `DRW_ModelerGeometry`, assert lazy decode success and idempotence, then assert non-SAB/truncated vectors clear output and fail closed without exceptions | focused graph/preservation target and policy gates pass; local-from-scratch bytes only |
 | J82.1 | J82 / S106 | WP5, WP7, WP8, WP10; binary DXF modeler carrier | J81 | COMMITTED | EXPERIMENTAL | run `dx_iface::fileExport(..., binary=true)` and `fileImport` for a local SAB modeler payload, assert byte identity/version/handle, and retain the existing ASCII text-carrier check | focused binary/text carrier target, live oracle, and policy gates pass; local-from-scratch payload only |
-| J83.1 | J83 / S107 | WP5, WP7, WP8, WP10; malformed modeler DXF | J82 | ACTIVE | EXPERIMENTAL | write a temporary ASCII DXF containing odd-length and non-hex 310 chunks, assert `fileImport` fails and the modeler callback publishes no entity | focused malformed-carrier target first; update the plan after the gate and continue to the next ready child without a full-suite stop |
+| J83.1 | J83 / S107 | WP5, WP7, WP8, WP10; malformed modeler DXF | J82 | COMMITTED | EXPERIMENTAL | write a temporary ASCII DXF containing odd-length and non-hex 310 chunks, assert `fileImport` fails and the modeler callback publishes no entity | focused malformed-carrier, CTest, and policy gates pass; temporary files are removed and no fixture bytes are staged |
+| J84.1 | J84 / S108 | WP5, WP7, WP8, WP10; DWG modeler reader | J83 | ACTIVE | EXPERIMENTAL | trace `DRW_ModelerGeometry::parseDwg` raw-body capture and `addModelerGeometry` publication using an existing/local-from-scratch sample; if none is available, record the exact deferred disposition without inventing a writer | focused reader audit first; update the plan after the gate and continue to the next ready child without a full-suite stop |
 
 <!-- UPGRADE_PROGRESS_END -->
 
