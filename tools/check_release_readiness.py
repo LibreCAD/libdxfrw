@@ -16,6 +16,7 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).parent))
 from update_upgrade_plan import validate  # noqa: E402
+from check_support_matrix import MatrixError, validate_matrix  # noqa: E402
 
 
 class ReleaseError(ValueError):
@@ -32,7 +33,7 @@ def read_json(path: Path) -> dict:
     return value
 
 
-def validate_release(plan_path: Path, mapping_path: Path, registry_path: Path, manifest_path: Path) -> None:
+def validate_release(plan_path: Path, mapping_path: Path, registry_path: Path, manifest_path: Path, support_matrix_path: Path) -> None:
     slices, parents, children = validate(plan_path.read_text(encoding="utf-8"))
     required_committed_slices = {"S%02d" % number for number in range(1, 23)}
     missing_slices = sorted(item for item in required_committed_slices if slices.get(item, {}).get("state") != "COMMITTED")
@@ -43,7 +44,8 @@ def validate_release(plan_path: Path, mapping_path: Path, registry_path: Path, m
     for item in ("I0", "I1", "I2", "I3", "I4"):
         if parents.get(item, {}).get("state") != "COMMITTED":
             raise ReleaseError("parent %s is not committed" % item)
-    mapping = read_json(mapping_path).get("mapping", {})
+    mapping_document = read_json(mapping_path)
+    mapping = mapping_document.get("mapping", {})
     rows = mapping.get("rows")
     summary = mapping.get("summary", {})
     if not isinstance(rows, list) or not rows:
@@ -68,6 +70,10 @@ def validate_release(plan_path: Path, mapping_path: Path, registry_path: Path, m
     expected = {(side, facade, direction) for side in ("target", "standalone") for facade in ("dxfRW", "dwgRW") for direction in ("read", "write")}
     if keys != expected:
         raise ReleaseError("differential runner matrix is incomplete")
+    try:
+        validate_matrix(read_json(support_matrix_path), mapping_document, registry)
+    except MatrixError as exc:
+        raise ReleaseError("support matrix: %s" % exc) from exc
     print("release readiness: PASS (%d target façade rows; 8 differential runners; no promoted source-only claims)" % len(target_rows))
 
 
@@ -83,12 +89,13 @@ def main(argv=None) -> int:
     parser.add_argument("--mapping", type=Path, default=Path("metadata/parity-source-routes-v1.json"))
     parser.add_argument("--registry", type=Path, default=Path("metadata/parity-test-oracles-v1.json"))
     parser.add_argument("--manifest", type=Path, default=Path("metadata/parity-differential-runners-v1.json"))
+    parser.add_argument("--support-matrix", type=Path, default=Path("metadata/support-matrix-v1.json"))
     args = parser.parse_args(argv)
     try:
         if args.self_test:
             self_test()
         else:
-            validate_release(args.plan, args.mapping, args.registry, args.manifest)
+            validate_release(args.plan, args.mapping, args.registry, args.manifest, args.support_matrix)
         return 0
     except (OSError, UnicodeError, ReleaseError, AssertionError) as exc:
         print("release readiness: FAIL: %s" % exc, file=sys.stderr)

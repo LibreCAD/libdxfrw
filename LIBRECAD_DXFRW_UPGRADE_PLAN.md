@@ -52,8 +52,8 @@ then pin an immutable commit before importing source.
 ### Execution refresh (2026-09-15)
 
 The implementation worktree is rebased on `origin/master` and is currently
-281 commits ahead with no commits behind it. The latest green slice is
-S253/J229, including the live-plan update and its required policy gates.
+282 commits ahead with no commits behind it. The latest green slice is
+S254/J230, including the live-plan update and its required policy gates.
 There is no uncommitted local implementation slice; the next parity work is
 the evidence-gated external/runtime and release closure listed below.
 The worktree is clean at the last committed boundary; any subsequent active-
@@ -1934,7 +1934,17 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint (2026-09-15): S253/J229 output-transaction link-policy
+- Current checkpoint (2026-09-15): S254/J230 deterministic support-matrix
+  closure is committed. The generated matrix reports separate 1,475-row
+  `dxfRW` and 1,345-row `dwgRW` totals, 2,820 combined target façade rows,
+  zero target-unmapped rows, 75 standalone-only compatibility routes, and
+  zero advertised or `QUALIFIED_FORMAT_PARITY` rows. Exact same-selector
+  source rows are labelled `SOURCE_PARITY`; every reviewed delta or adaptation
+  remains `EXPERIMENTAL` until target-vs-standalone runtime, independent
+  reader/auditor, preservation, and fixture-policy evidence is complete.
+  The matrix is metadata-only and deterministic from the pinned route mapping
+  and non-promoting oracle registry; no drawing bytes were added.
+- Previous checkpoint (2026-09-15): S253/J229 output-transaction link-policy
   hardening is committed. Eight exact pinned LibreCAD DWG blobs cover ordinary
   encoded AC1015/18/21/27 records plus AC1032 RTEXT, ARCALIGNEDTEXT, MPOLYGON,
   and LARGE_RADIAL_DIMENSION callbacks; runtime-truncated copies of the
@@ -3192,17 +3202,17 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 253 (`COMMITTED`); no slice is active.
+- Resolved slices: 254 (`COMMITTED`); no slice is active.
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 253 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 254 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 255 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 256 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 2 VERIFIED / 351 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 2 VERIFIED / 352 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 231 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S253 are committed; no local implementation slice is active.
+  0 DEFERRED_EXTERNAL / 232 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S254 are committed; no local implementation slice is active.
   Remaining work is evidence-gated runtime/oracle and release closure; keep
   the fast inner loop and do not promote support claims from self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -3510,6 +3520,7 @@ edit this block or commit the same slice concurrently.
 | S251 | J227: output-transaction file-flush hardening | S250 | COMMITTED | retained-descriptor file flush before publication; focused writer-primitives gate; plan/scope/fixture gates | committed `S251`; POSIX `fsync` and Windows `FlushFileBuffers` run on the retained descriptor before rename; parent-directory durability and final rename semantics remain explicit follow-ups; no drawing fixtures or derived payloads | `libdxfrw_writer_primitives_tests` plus plan check, fixture admission, import scope, pinned sync, and diff gates pass; no active slice |
 | S252 | J228: implementation-speed and validation-cadence research | S251 | COMMITTED | schema-checked timings; changed-path selector map; checkpoint/nightly cadence; fast metadata gate; plan/scope/fixture gates | committed `S252`; `implementation-speed-baseline-v1.json` records 0.20s incremental build, 0.57s focused tests, 4.30s full build, and 5.38s full tests; `check_implementation_speed.py` validates fail-closed selector/cadence policy and CTest runs it from any build directory; no drawing fixtures or derived payloads | `check_implementation_speed.py --self-test`, `libdxfrw_implementation_speed`, plan check, fixture admission, import scope, pinned sync, and diff gates pass; no active slice |
 | S253 | J229: output-transaction link-policy qualification | S252 | COMMITTED | POSIX symlink/hardlink overwrite policy; linked-target preservation; focused writer-primitives gate; plan/scope/fixture gates | committed `S253`; POSIX symlink and hardlink destinations are replaced by the published output name while linked target content remains unchanged; no drawing fixtures or derived payloads | `libdxfrw_writer_primitives_tests` plus plan check, fixture admission, import scope, pinned sync, and diff gates pass; no active slice |
+| S254 | J230: deterministic support-matrix closure | S253 | COMMITTED | generated DWG/DXF support matrix; separate façade totals; zero target-unmapped rows; non-promoting claim policy; focused metadata gate; plan/scope/sync/fixture gates | generated `metadata/support-matrix-v1.json` reports 1,475 `dxfRW` rows, 1,345 `dwgRW` rows, 2,820 combined target façade rows, zero target-unmapped rows, 75 standalone-only routes, and zero advertised/qualified rows; no drawing fixtures or derived payloads | `check_support_matrix.py --self-test`, live support-matrix check, plan check, fixture admission, import scope, pinned sync, and diff gates pass; no active slice |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3767,6 +3778,7 @@ edit this block or commit the same slice concurrently.
 | J227 | S251 | J226 | COMMITTED | EXPERIMENTAL | Qualify output-transaction file-flush hardening | retained descriptor is flushed with `fsync`/`FlushFileBuffers` before publication; parent-directory durability and final rename semantics remain unpromoted follow-ups |
 | J228 | S252 | J227 | COMMITTED | EXPERIMENTAL | Qualify implementation-speed and validation-cadence research | schema-checked timing baseline and fail-closed changed-path selector/cadence policy are committed; no drawing fixtures or derived payloads |
 | J229 | S253 | J228 | COMMITTED | EXPERIMENTAL | Qualify output-transaction link-policy behavior | POSIX symlink and hardlink destinations are replaced without mutating linked targets; metadata semantics remain limited to the documented replacement policy; no drawing fixtures or derived payloads |
+| J230 | S254 | J229 | COMMITTED | EXPERIMENTAL | Qualify deterministic DWG/DXF support-matrix publication | Generate and validate a source-only matrix with separate DWG and DXF totals, zero target-unmapped routes, explicit standalone-only compatibility extensions, and zero advertised/qualified rows; derive it only from pinned mapping and non-promoting oracle metadata, without drawing payloads |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4131,6 +4143,7 @@ edit this block or commit the same slice concurrently.
 | J227.1 | J227 / S251 | WP7.5, WP7.6, WP8.12; output-transaction file-flush hardening | J226 | COMMITTED | EXPERIMENTAL | flush the retained descriptor with the platform storage primitive before rename while preserving atomic-visibility-only policy | `libdxfrw_writer_primitives_tests` plus plan check, fixture admission, import scope, pinned sync, and diff gates pass; no drawing fixtures or derived payloads are retained; parent-directory durability remains a separate gate |
 | J228.1 | J228 / S252 | WP8.12, WP10; implementation-speed and validation-cadence research | J227 | COMMITTED | EXPERIMENTAL | record reproducible timing commands/toolchain, validate fast/full separation, and enforce changed-path selector plus checkpoint/nightly cadence rules without drawing payloads | `check_implementation_speed.py --self-test`, `libdxfrw_implementation_speed`, plan check, fixture admission, import scope, pinned sync, and diff gates pass; metadata is independent of the build-directory working directory |
 | J229.1 | J229 / S253 | WP7.3, WP7.5, WP8.12; output-transaction link-policy qualification | J228 | COMMITTED | EXPERIMENTAL | exercise POSIX symlink and hardlink destinations, verify publication replaces only the destination name, and preserve linked-target content | `libdxfrw_writer_primitives_tests` plus plan check, fixture admission, import scope, pinned sync, and diff gates pass; no drawing fixtures or derived payloads are retained |
+| J230.1 | J230 / S254 | WP8, WP10; deterministic support-matrix publication | J229 | COMMITTED | EXPERIMENTAL | generate and validate `metadata/support-matrix-v1.json` from the pinned source-route mapping and non-promoting oracle registry, publish separate `dxfRW`/`dwgRW` totals and a combined zero-target-unmapped result, and keep all rows non-advertised without drawing payloads | `check_support_matrix.py --self-test`, live matrix check, focused CTest, plan check, fixture admission, import scope, pinned sync, and diff gates pass; no drawing fixtures or derived payloads are retained |
 
 <!-- UPGRADE_PROGRESS_END -->
 
