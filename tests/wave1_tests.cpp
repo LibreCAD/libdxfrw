@@ -1315,6 +1315,61 @@ void testDxfRawObjectHandleScope(TestContext& t) {
              "binary DXF duplicate handles share record scope policy");
 }
 
+void testDxfRawObjectHandleDiagnostics(TestContext& t) {
+    const std::string duplicateRecords =
+        "0\nSECTION\n2\nOBJECTS\n0\nLOCAL_DIAG_FIRST\n5\n1A\n"
+        "0\nLOCAL_DIAG_SECOND\n5\n1A\n0\nENDSEC\n0\nEOF\n";
+    ProfileProbeInterface interface_;
+    dxfRW reader("");
+    std::string input = duplicateRecords;
+    t.expect(!reader.readAscii(&interface_, false, input)
+                 && reader.getError() == DRW::BAD_CODE_PARSED
+                 && interface_.objects.size() == 1,
+             "DXF duplicate handle keeps legacy parse error and prior callback");
+    const DRW_OperationDiagnostic diagnostic = reader.getLastDiagnostic();
+    t.expect(diagnostic.operation == DRW::OperationKind::Read
+                 && diagnostic.phase == DRW::OperationPhase::Validation
+                 && diagnostic.cause == DRW::OperationCause::ValidationFailure
+                 && diagnostic.code == "duplicate-handle"
+                 && diagnostic.hasHandle && diagnostic.handle == 0x1Au
+                 && diagnostic.message.find("self handle") != std::string::npos,
+             "DXF duplicate handle records structured validation context");
+
+    std::ostringstream binarySource;
+    dxfWriterBinary binaryWriter(&binarySource);
+    binaryWriter.writeString(0, "SECTION");
+    binaryWriter.writeString(2, "OBJECTS");
+    binaryWriter.writeString(0, "LOCAL_BINARY_DIAG_FIRST");
+    binaryWriter.writeString(5, "2A");
+    binaryWriter.writeString(0, "LOCAL_BINARY_DIAG_SECOND");
+    binaryWriter.writeString(5, "2A");
+    binaryWriter.writeString(0, "ENDSEC");
+    binaryWriter.writeString(0, "EOF");
+    std::stringstream binaryInput(binarySource.str());
+    ProfileProbeInterface binaryInterface;
+    dxfRW binaryReader("");
+    binaryReader.binFile = true;
+    binaryReader.reader = std::make_unique<dxfReaderBinary>(&binaryInput);
+    binaryReader.reader->setClassifierProfile(
+        DxfClassifierProfile::StandaloneSafe);
+    binaryReader.iface = &binaryInterface;
+    binaryReader.beginOperationDiagnostic(DRW::OperationKind::Read);
+    t.expect(!binaryReader.processDxf()
+                 && binaryReader.getError() == DRW::BAD_CODE_PARSED
+                 && binaryInterface.objects.size() == 1,
+             "binary DXF duplicate handle keeps legacy error and callback");
+    const DRW_OperationDiagnostic binaryDiagnostic =
+        binaryReader.getLastDiagnostic();
+    t.expect(binaryDiagnostic.operation == DRW::OperationKind::Read
+                 && binaryDiagnostic.phase == DRW::OperationPhase::Validation
+                 && binaryDiagnostic.cause
+                        == DRW::OperationCause::ValidationFailure
+                 && binaryDiagnostic.code == "duplicate-handle"
+                 && binaryDiagnostic.hasHandle
+                 && binaryDiagnostic.handle == 0x2Au,
+             "binary DXF duplicate handle records offending handle");
+}
+
 void testRawCapture(TestContext& t) {
     std::stringstream records("260\n2147483647\n482\n3.14\n1004\nAB\n");
     dxfRW owner("");
@@ -1522,6 +1577,7 @@ int main() {
     testDxfBinaryRawSectionCaptureReplay(context);
     testDxfBinaryRawObjectCaptureReplay(context);
     testDxfRawObjectHandleScope(context);
+    testDxfRawObjectHandleDiagnostics(context);
     testRawCapture(context);
     testHatchValidationIgnoresInactiveGradient(context);
     testFixedSpaceBlockClassification(context);

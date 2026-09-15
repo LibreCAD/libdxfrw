@@ -52,10 +52,10 @@ then pin an immutable commit before importing source.
 ### Execution refresh (2026-09-15)
 
 The implementation worktree is rebased on `origin/master` and is currently
-198 commits ahead with no commits behind it. The latest green slice is
-S171/J147, including the live-plan update and its required policy gates.
-S172/J148 is the active slice; its DXF raw-object duplicate-handle diagnostic
-and error-precedence qualification is the next commit boundary.
+199 commits ahead with no commits behind it. The latest green slice is
+S172/J148, including the live-plan update and its required policy gates.
+S173/J149 is the active slice; its DXF raw-object malformed-handle diagnostic
+qualification is the next commit boundary.
 The worktree is clean at the last committed boundary; any subsequent active-
 slice edits are intentionally uncommitted until their narrow gate and
 status-bearing plan transition are green.
@@ -1934,23 +1934,28 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint (2026-09-15): S171/J147 DXF raw-object handle-scope and
-  cross-record uniqueness qualification is committed; S172/J148 DXF raw-object
-  duplicate-handle diagnostic and error-precedence qualification is active.
+- Current checkpoint (2026-09-15): S172/J148 DXF raw-object duplicate-handle
+  diagnostic and error-precedence qualification is committed; S173/J149 DXF
+  raw-object malformed-handle diagnostic qualification is active.
   The
   branch is rebased on `origin/master`, and
   the pinned source/package/consumer convergence remains complete while
   runtime and wire-format parity stay evidence-gated. The AC1015 IMAGE legacy
   boundary remains fail-closed, and all format-support claims remain limited
   to rows with eligible runtime/oracle evidence. The next dependency-ready
-  sequence is S172 DXF raw-object duplicate-handle diagnostic and
-  error-precedence qualification;
+  sequence is S173 DXF raw-object malformed-handle diagnostic qualification;
   it is a separate commit with no external or derived DWG/DXF bytes.
 - Latest implementation slice: S171/J147 DXF raw-object handle-scope and
   cross-record uniqueness qualification is committed. Local ASCII and binary
   vectors prove duplicate handles are rejected across records and sections,
   fresh read sessions reset the uniqueness set, and only the later malformed
   object is suppressed; no drawing bytes are retained.
+- Latest implementation slice: S172/J148 DXF raw-object duplicate-handle
+  diagnostic and error-precedence qualification is committed. Local ASCII and
+  binary duplicate streams preserve the legacy `BAD_CODE_PARSED` result and
+  prior-valid callback while exposing a structured validation diagnostic with
+  code `duplicate-handle` and the offending handle; no drawing bytes are
+  retained.
 - Latest implementation slice: S170/J146 DXF raw-object self-handle and
   duplicate rejection qualification is committed. Local ASCII/binary vectors
   reject missing/zero handles, accept bounded wide handles, and suppress
@@ -2867,19 +2872,20 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 171 (`COMMITTED`); S172 is active.
+- Resolved slices: 172 (`COMMITTED`); S173 is active.
 - Slice states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 171 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 172 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 173 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 174 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 269 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 270 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 156 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S171 are committed; S172/J148 is active with a ready packet
-  naming DXF raw-object duplicate-handle diagnostic and error-precedence
-  qualification and focused fast gates.
+  0 DEFERRED_EXTERNAL / 157 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S172 are committed; S173/J149 is active with a ready packet
+  naming DXF raw-object malformed-handle diagnostic qualification and focused
+  fast gates. S172/J148 preserved the legacy `BAD_CODE_PARSED` channel while
+  adding duplicate-handle diagnostic context.
   Keep validation fast and
   self-updating: run source/plan/policy checks and the focused carrier target
   after each implementation item, commit only after the narrow gate is green,
@@ -3099,7 +3105,8 @@ edit this block or commit the same slice concurrently.
 | S169 | J145: DXF binary raw-object capture/replay symmetry qualification | S168 | COMMITTED | binary raw-object framing; self-handle lexeme; profile symmetry; typed/raw carrier agreement; malformed binary rollback; callback suppression; focused DXF gate; plan/scope/sync/fixture gates | committed `S169`; safe and explicit LibreCAD-legacy profile vectors capture and replay object framing, self-handle, disputed carriers, and binary chunks; malformed chunks roll back output; no drawing bytes committed | Wave 1 binary raw-object tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S170 is active |
 | S170 | J146: DXF raw-object self-handle and duplicate rejection qualification | S169 | COMMITTED | self-handle requirement; duplicate-handle detection; wide-handle lexemes; transactional object capture; callback suppression; focused DXF gate; plan/scope/sync/fixture gates | committed `S170`; local ASCII/binary vectors reject missing/zero handles, accept bounded wide handles, and suppress duplicate-handle callbacks transactionally; no drawing bytes committed | Wave 1 raw-object tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S171 is active |
 | S171 | J147: DXF raw-object handle-scope and cross-record uniqueness qualification | S170 | COMMITTED | handle scope across records; duplicate handles across objects; section/session reset; wide-handle uniqueness; callback suppression; focused DXF gate; plan/scope/sync/fixture gates | committed `S171`; local ASCII and binary streams reject repeated handles across records and sections, a fresh read session accepts the reused handle, and only the later malformed object is suppressed; no drawing bytes committed | Wave 1 raw-object handle tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S172 is active |
-| S172 | J148: DXF raw-object duplicate-handle diagnostic and error-precedence qualification | S171 | ACTIVE | BAD_READ_OBJECTS/BAD_CODE_PARSED precedence; structured raw-object diagnostic; duplicate-handle context; callback disposition; focused DXF gate; plan/scope/sync/fixture gates | use local malformed duplicate-handle streams in ASCII and binary profiles; assert stable first-error stage/cause, duplicate context in the diagnostic, and deterministic prior-valid callback disposition; no drawing bytes committed | active after S171 commit; use Wave 1 diagnostic/handle tests, focused CTest selector, fast source/policy gates, fixture admission, import scope, pinned sync, and diff gates |
+| S172 | J148: DXF raw-object duplicate-handle diagnostic and error-precedence qualification | S171 | COMMITTED | BAD_READ_OBJECTS/BAD_CODE_PARSED precedence; structured raw-object diagnostic; duplicate-handle context; callback disposition; focused DXF gate; plan/scope/sync/fixture gates | committed `S172`; local ASCII and binary duplicate streams preserve `BAD_CODE_PARSED` and prior-valid callback publication while recording a `duplicate-handle` validation diagnostic with the offending handle; no drawing bytes committed | Wave 1 diagnostic/handle tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S173 is active |
+| S173 | J149: DXF raw-object malformed-handle diagnostic qualification | S172 | ACTIVE | malformed code-5 lexemes; overlength/wide-handle bounds; structured parse diagnostic; callback disposition; error precedence; focused DXF gate; plan/scope/sync/fixture gates | use local malformed ASCII and binary raw-object streams; assert stable parse-stage/cause diagnostics, bounded handle context, and no callback for the malformed record; no drawing bytes committed | active after S172 commit; use Wave 1 malformed-handle tests, focused CTest selector, fast source/policy gates, fixture admission, import scope, pinned sync, and diff gates |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3275,7 +3282,8 @@ edit this block or commit the same slice concurrently.
 | J145 | S169 | J144 | COMMITTED | EXPERIMENTAL | Qualify DXF binary raw-object framing, profile symmetry, and transactional malformed-width/chunk rejection | local binary object capture/replay vectors, callback suppression, output rollback, and no-fixture evidence |
 | J146 | S170 | J145 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-object self-handle requirements, duplicate detection, and wide-handle disposition | local ASCII/binary handle vectors, profile/version acceptance matrix, callback suppression, and no-fixture evidence |
 | J147 | S171 | J146 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-object handle scope across records, sections, and fresh read sessions | multi-object/section duplicate vectors, reset semantics, prior-valid callback disposition, and no-fixture evidence |
-| J148 | S172 | J147 | ACTIVE | EXPERIMENTAL | Qualify DXF raw-object duplicate-handle diagnostic context and error precedence | active packet names malformed duplicate streams, structured diagnostic fields, callback disposition, and no-fixture evidence |
+| J148 | S172 | J147 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-object duplicate-handle diagnostic context and error precedence | local ASCII/binary duplicate vectors preserve the legacy error and prior-valid callback while recording structured handle context; no-fixture evidence |
+| J149 | S173 | J148 | ACTIVE | EXPERIMENTAL | Qualify DXF raw-object malformed-handle diagnostic context and error precedence | active packet names malformed ASCII/binary streams, bounded handle context, callback disposition, and no-fixture evidence |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -3558,7 +3566,8 @@ edit this block or commit the same slice concurrently.
 | J145.1 | J145 / S169 | WP4, WP5, WP6, WP8, WP10; DXF binary raw-object capture/replay symmetry qualification | J144 | COMMITTED | EXPERIMENTAL | assert binary raw-object framing, self-handle, and profile symmetry survive façade capture/replay while malformed widths/chunks roll back without partial callback or output mutation, without external drawing bytes | focused Wave 1 binary raw-object target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 | J146.1 | J146 / S170 | WP4, WP5, WP6, WP8, WP10; DXF raw-object self-handle and duplicate rejection qualification | J145 | COMMITTED | EXPERIMENTAL | assert self-handle requirements, duplicate detection, and wide-handle disposition fail closed transactionally without partial raw callbacks, without external drawing bytes | focused Wave 1 raw-object handle target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 | J147.1 | J147 / S171 | WP4, WP5, WP6, WP8, WP10; DXF raw-object handle-scope and cross-record uniqueness qualification | J146 | COMMITTED | EXPERIMENTAL | assert duplicate handles are rejected within the intended read scope, reset at the intended boundary, and suppress only the later malformed raw callback while preserving prior-valid publication, without external drawing bytes | focused Wave 1 raw-object handle-scope target and policy gates pass; no external or derived DWG/DXF bytes are retained |
-| J148.1 | J148 / S172 | WP4, WP5, WP6, WP8, WP10; DXF raw-object duplicate-handle diagnostic and error-precedence qualification | J147 | ACTIVE | EXPERIMENTAL | assert duplicate-handle failures preserve stable stage/cause diagnostics and deterministic prior-valid callback disposition, without external drawing bytes | focused Wave 1 diagnostic/handle target and policy gates pass; no external or derived DWG/DXF bytes are retained |
+| J148.1 | J148 / S172 | WP4, WP5, WP6, WP8, WP10; DXF raw-object duplicate-handle diagnostic and error-precedence qualification | J147 | COMMITTED | EXPERIMENTAL | assert duplicate-handle failures preserve stable stage/cause diagnostics and deterministic prior-valid callback disposition, without external drawing bytes | focused Wave 1 diagnostic/handle target and policy gates pass; no external or derived DWG/DXF bytes are retained |
+| J149.1 | J149 / S173 | WP4, WP5, WP6, WP8, WP10; DXF raw-object malformed-handle diagnostic qualification | J148 | ACTIVE | EXPERIMENTAL | assert malformed code-5 lexemes reject with stable parse-stage diagnostics, bounded handle context, and no callback for the malformed record, without external drawing bytes | focused Wave 1 malformed-handle target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 
 <!-- UPGRADE_PROGRESS_END -->
 

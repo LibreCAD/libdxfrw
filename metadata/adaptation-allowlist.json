@@ -119,10 +119,10 @@
     },
     {
       "path": "src/libdxfrw.cpp",
-      "reason": "Route raw DXF capture and replay through canonical or explicitly selected classifier profiles, expose an additive public compatibility-profile opt-in, preserve null/error compatibility, instrument stage-aware operation diagnostics, and ignore inactive HATCH gradient carriers while retaining active-gradient validation.",
+      "reason": "Route raw DXF capture and replay through canonical or explicitly selected classifier profiles, expose an additive public compatibility-profile opt-in, preserve null/error compatibility, instrument stage-aware operation diagnostics including duplicate raw-handle context, and ignore inactive HATCH gradient carriers while retaining active-gradient validation.",
       "scope": "DXF classifier correctness",
       "targetBlob": "71851fcf8d5636080c83f2eb1af4a8ef5a80e0ef",
-      "adaptedSha256": "2dab0dd49ca8b8d8c3a72dd6efb6a0b0825f0ea8ae1f562957dddc237012546c"
+      "adaptedSha256": "390df067980d5294ee6fa530e475e66a6797be7c20f9e4efd93636ee06868382"
     },
     {
       "path": "src/libdxfrw.h",

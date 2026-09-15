@@ -13736,10 +13736,24 @@ bool dxfRW::captureRawGroup(DRW_RawDxfObject &obj, int code,
         std::uint64_t rawHandle = 0;
         if (!parseRawDxfHandleLexeme(reader->getString(), rawHandle))
             return false;
+        if (rawHandle != 0 && m_readRawHandles.count(rawHandle) != 0) {
+            const bool hasDiagnosticHandle =
+                rawHandle <= std::numeric_limits<std::uint32_t>::max();
+            recordOperationDiagnostic(
+                DRW::OperationPhase::Validation,
+                DRW::OperationCause::ValidationFailure,
+                "duplicate-handle",
+                "a DXF raw record reuses a previously seen self handle", 0,
+                false, hasDiagnosticHandle
+                    ? static_cast<std::uint32_t>(rawHandle)
+                    : 0,
+                hasDiagnosticHandle);
+            return false;
+        }
         if (!reader->registerSelfHandle())
             return false;
-        if (rawHandle != 0 && !m_readRawHandles.insert(rawHandle).second)
-            return false;
+        if (rawHandle != 0)
+            m_readRawHandles.insert(rawHandle);
     }
     try {
         switch (classifyDxfCode(code, reader->classifierProfile())) {
