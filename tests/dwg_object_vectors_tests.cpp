@@ -261,6 +261,30 @@ void testPlotSettingsVectors(TestContext& t) {
                  && body.data().empty() && strings.data().empty()
                  && handles.data().empty(),
              "PLOTSETTINGS emitted-shade rejection is transactional");
+
+    PlotSettingsEncodeProbe nullBody;
+    populatePlotSettings(nullBody);
+    t.expect(!nullBody.encodeDwg(DRW::AC1024, nullptr, &strings, &handles),
+             "PLOTSETTINGS rejects a null body buffer");
+
+    PlotSettingsEncodeProbe sentinel;
+    populatePlotSettings(sentinel);
+    sentinel.marginRight = std::numeric_limits<double>::infinity();
+    body.reset();
+    strings.reset();
+    handles.reset();
+    body.data().push_back(0xA5u);
+    strings.data().push_back(0x5Au);
+    handles.data().push_back(0xC3u);
+    const auto bodyBefore = body.data();
+    const auto stringsBefore = strings.data();
+    const auto handlesBefore = handles.data();
+    t.expect(!sentinel.encodeDwg(DRW::AC1024, &body, &strings, &handles),
+             "PLOTSETTINGS preflight rejects a non-finite sentinel case");
+    t.expect(body.data() == bodyBefore && strings.data() == stringsBefore
+                 && handles.data() == handlesBefore
+                 && std::isinf(sentinel.marginRight),
+             "PLOTSETTINGS preflight preserves sentinel buffers and state");
 }
 
 void testLayoutVectors(TestContext& t) {
@@ -368,6 +392,29 @@ void testLayoutVectors(TestContext& t) {
                  && invalidFlags.orthoViewType == -1 && body.size() == 0
                  && strings.size() == 0 && handles.size() == 0,
              "LAYOUT invalid-field rejection is transactional");
+
+    LayoutEncodeProbe nullBody;
+    t.expect(!nullBody.encodeDwg(DRW::AC1024, nullptr, &strings, &handles),
+             "LAYOUT rejects a null body buffer");
+
+    LayoutEncodeProbe sentinel;
+    sentinel.viewportCount = -1;
+    body.reset();
+    strings.reset();
+    handles.reset();
+    body.data().push_back(0xA5u);
+    strings.data().push_back(0x5Au);
+    handles.data().push_back(0xC3u);
+    const auto layoutBodyBefore = body.data();
+    const auto layoutStringsBefore = strings.data();
+    const auto layoutHandlesBefore = handles.data();
+    t.expect(!sentinel.encodeDwg(DRW::AC1024, &body, &strings, &handles),
+             "LAYOUT preflight rejects a malformed sentinel case");
+    t.expect(body.data() == layoutBodyBefore
+                 && strings.data() == layoutStringsBefore
+                 && handles.data() == layoutHandlesBefore
+                 && sentinel.viewportCount == -1,
+             "LAYOUT preflight preserves sentinel buffers and state");
 }
 
 } // namespace
