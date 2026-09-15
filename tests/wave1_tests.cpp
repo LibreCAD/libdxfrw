@@ -3248,6 +3248,64 @@ void testDxfRawSectionHandleDiagnostics(TestContext& t) {
              "binary raw-section owner handle records reference context");
 }
 
+void testDxfRawSectionHandleScope(TestContext& t) {
+    const std::string duplicateRecords =
+        "0\nSECTION\n2\nLOCAL_DUP_ONE\n0\nREC_A\n5\n2A\n"
+        "0\nENDSEC\n0\nSECTION\n2\nLOCAL_DUP_TWO\n0\nREC_B\n5\n2A\n"
+        "0\nENDSEC\n0\nEOF\n";
+    ProfileProbeInterface interface_;
+    dxfRW reader("");
+    std::string input = duplicateRecords;
+    t.expect(!reader.readAscii(&interface_, false, input)
+                 && reader.getError() == DRW::BAD_CODE_PARSED
+                 && interface_.sections.size() == 1,
+             "DXF duplicate raw-section handles preserve the first section callback");
+    const DRW_OperationDiagnostic diagnostic = reader.getLastDiagnostic();
+    t.expect(diagnostic.code == "duplicate-handle"
+                 && diagnostic.hasHandle && diagnostic.handle == 0x2Au,
+             "DXF duplicate raw-section handle records offending handle");
+
+    const std::string freshRecords =
+        "0\nSECTION\n2\nLOCAL_FRESH\n0\nREC_C\n5\n2A\n"
+        "0\nENDSEC\n0\nEOF\n";
+    ProfileProbeInterface freshInterface;
+    dxfRW freshReader("");
+    std::string freshInput = freshRecords;
+    t.expect(freshReader.readAscii(&freshInterface, false, freshInput)
+                 && freshInterface.sections.size() == 1,
+             "DXF fresh raw-section read resets duplicate-handle scope");
+
+    std::ostringstream binarySource;
+    dxfWriterBinary binaryWriter(&binarySource);
+    binaryWriter.writeString(0, "SECTION");
+    binaryWriter.writeString(2, "LOCAL_BINARY_DUP_ONE");
+    binaryWriter.writeString(0, "REC_A");
+    binaryWriter.writeString(5, "2A");
+    binaryWriter.writeString(0, "ENDSEC");
+    binaryWriter.writeString(0, "SECTION");
+    binaryWriter.writeString(2, "LOCAL_BINARY_DUP_TWO");
+    binaryWriter.writeString(0, "REC_B");
+    binaryWriter.writeString(5, "2A");
+    binaryWriter.writeString(0, "ENDSEC");
+    binaryWriter.writeString(0, "EOF");
+    std::stringstream binaryInput(binarySource.str());
+    ProfileProbeInterface binaryInterface;
+    dxfRW binaryReader("");
+    binaryReader.binFile = true;
+    binaryReader.reader = std::make_unique<dxfReaderBinary>(&binaryInput);
+    binaryReader.reader->setClassifierProfile(DxfClassifierProfile::StandaloneSafe);
+    binaryReader.iface = &binaryInterface;
+    binaryReader.beginOperationDiagnostic(DRW::OperationKind::Read);
+    t.expect(!binaryReader.processDxf()
+                 && binaryReader.getError() == DRW::BAD_CODE_PARSED
+                 && binaryInterface.sections.size() == 1,
+             "binary duplicate raw-section handles preserve the first callback");
+    const DRW_OperationDiagnostic binaryDiagnostic = binaryReader.getLastDiagnostic();
+    t.expect(binaryDiagnostic.code == "duplicate-handle"
+                 && binaryDiagnostic.hasHandle && binaryDiagnostic.handle == 0x2Au,
+             "binary duplicate raw-section handle records offending handle");
+}
+
 void testDxfRawSectionApplicationGroupMarker(TestContext& t) {
     const std::vector<std::string> invalidMarkers = {"{", "NOT_A_MARKER"};
     for (const std::string& marker : invalidMarkers) {
@@ -3594,6 +3652,7 @@ int main() {
     testDxfRawSectionApplicationGroupChunkCodeMatrix(context);
     testDxfRawSectionApplicationGroupChunkSize(context);
     testDxfRawSectionHandleDiagnostics(context);
+    testDxfRawSectionHandleScope(context);
     testDxfRawSectionApplicationGroupMarker(context);
     testDxfRawSectionApplicationGroupReferenceMatrix(context);
     testRawCapture(context);
