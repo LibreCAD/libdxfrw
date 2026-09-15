@@ -22,6 +22,11 @@
       "surface": "installed header closure",
       "decision": "install only handle_allocator.h, intern/dwgutil.h, and intern/dwg_fixed_handles.h as transitive compatibility headers",
       "verification": "every installed public header compiles standalone"
+    },
+    {
+      "surface": "DXF disputed classifier ranges 260-269 and 482-998",
+      "decision": "keep the standalone-safe classifier as the default; expose dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy as an explicit downstream adapter opt-in, never infer it from version or binary format, and keep binary unknown-width replay gated by a matching profile",
+      "verification": "staged public consumer and Wave 1 probes assert safe-default isolation plus explicit legacy selection"
     }
   ],
   "unresolved": [

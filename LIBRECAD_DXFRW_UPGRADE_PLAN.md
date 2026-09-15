@@ -52,10 +52,10 @@ then pin an immutable commit before importing source.
 ### Execution refresh (2026-09-15)
 
 The implementation worktree is rebased on `origin/master` and is currently
-158 commits ahead with no commits behind it. The latest green slice is
-S131/J107, including the live-plan update and its required policy gates.
-S132/J108 is the active slice; its focused DXF profile promotion decision
-checks are the next commit boundary.
+159 commits ahead with no commits behind it. The latest green slice is
+S132/J108, including the live-plan update and its required policy gates.
+S133/J109 is the active slice; its focused DXF profile matrix checks are the
+next commit boundary.
 The worktree is clean at the last committed boundary; any subsequent active-
 slice edits are intentionally uncommitted until their narrow gate and
 status-bearing plan transition are green.
@@ -1934,15 +1934,15 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint (2026-09-15): S131/J107 adapter-migration contract is
-  committed; S132/J108 DXF profile promotion decision is active.
+- Current checkpoint (2026-09-15): S132/J108 DXF profile promotion decision is
+  committed; S133/J109 DXF profile matrix is active.
   The
   branch is rebased on `origin/master`, and
   the pinned source/package/consumer convergence remains complete while
   runtime and wire-format parity stay evidence-gated. The AC1015 IMAGE legacy
   boundary remains fail-closed, and all format-support claims remain limited
   to rows with eligible runtime/oracle evidence. The next dependency-ready
-  sequence is S132 DXF profile promotion decision; it is a separate commit
+  sequence is S133 DXF profile matrix; it is a separate commit
   with no external or derived DWG/DXF bytes.
 - Latest implementation slice: S53/J29 RASTERVARIABLES/WIPEOUTVARIABLES parity
   is committed. The local-from-scratch production writer registers both custom
@@ -2786,10 +2786,10 @@ edit this block or commit the same slice concurrently.
   names TVDEVICEPROPERTIES and the two VX frames as UNKNOWN_OBJ, while local
   self-read remains authoritative for VX payload fields; no generated drawings
   or external assets are retained.
-- Last fully resolved slice: S131 (the LibreCAD adapter migration contract
-  slice is committed by the matching `Plan-Slice: S131` trailer; the commit
-  carries the exact read/readAscii/write opt-in pattern in the staged consumer
-  probe, and
+- Last fully resolved slice: S132 (the DXF profile promotion decision slice is
+  committed by the matching `Plan-Slice: S132` trailer; the commit carries the
+  explicit adapter-selected policy, binary-width safety rationale, and fast
+  regression assertion, and
   all required policy gates). The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
@@ -2811,18 +2811,18 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 131 (`COMMITTED`); S132 is active.
+- Resolved slices: 132 (`COMMITTED`); S133 is active.
 - Slice states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 131 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 132 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 133 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 134 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 229 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 230 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 116 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S131 are committed; S132/J108 is active with a ready packet
-  naming the DXF profile promotion decision and focused fast gates.
+  0 DEFERRED_EXTERNAL / 117 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S132 are committed; S133/J109 is active with a ready packet
+  naming the DXF profile matrix and focused fast gates.
   Keep validation fast and
   self-updating: run source/plan/policy checks and the focused carrier target
   after each implementation item, commit only after the narrow gate is green,
@@ -3002,7 +3002,8 @@ edit this block or commit the same slice concurrently.
 | S129 | J105: consumer-facing classifier profile disposition | S128 | COMMITTED | LibreCAD adapter compatibility; profile visibility; ABI/source compatibility; safe default; explicit opt-in boundary; fast DXF gate; plan/scope/sync/fixture gates | pinned LibreCAD adapter audit found direct `dxfRW` construction and no profile hook; added an additive `dxfRW::DxfCompatibilityProfile` API with safe default and explicit `LibreCadMasterLegacy` opt-in, then exercised read/capture/replay through that public boundary; no external DXF bytes | wave1 executable, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S130 is active |
 | S130 | J106: public-header consumer compatibility | S129 | COMMITTED | installed-header source compatibility; adapter migration contract; ABI additive surface; safe default; focused public API gate; fast DXF gate; plan/scope/sync/fixture gates | `check_staged_package.py` now compiles all ten installed public headers and CMake/pkg-config consumers; the consumer asserts safe default, explicit `LibreCadMasterLegacy` selection, and restoration to safe; no external DXF bytes | staged package check, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S131 is active |
 | S131 | J107: LibreCAD adapter migration contract | S130 | COMMITTED | adapter call-site contract; profile propagation on read/write; source compatibility; no silent default; focused migration probe; fast DXF gate; plan/scope/sync/fixture gates | staged consumer probe compiles the exact `setDxfCompatibilityProfile(LibreCadMasterLegacy)` call before the adapter's read/readAscii/write entry points, while safe-default assertions remain green; external LibreCAD sources and drawing bytes remain untouched | staged package check, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S132 is active |
-| S132 | J108: DXF profile promotion decision | S131 | ACTIVE | target parity disposition; default-profile policy; binary width safety; LibreCAD migration completeness; independent evidence; fast DXF gate; plan/scope/sync/fixture gates | reconcile whether LibreCAD compatibility should be promoted through an adapter-selected legacy profile or a build/default policy, document exact supported/deferred rows, and add only the smallest safe decision check; no external DXF bytes | active after S131 commit; use target/source audit and focused profile tests, escalating only if promotion would change safe-default ABI or binary preservation guarantees |
+| S132 | J108: DXF profile promotion decision | S131 | COMMITTED | target parity disposition; default-profile policy; binary width safety; LibreCAD migration completeness; independent evidence; fast DXF gate; plan/scope/sync/fixture gates | compatibility decision records adapter-selected `LibreCadMasterLegacy` as the only target-parity route, preserves standalone-safe defaults, and forbids version/format auto-promotion; Wave 1 asserts the policy across binary/ASCII mode changes; no external DXF bytes | wave1 executable, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S133 is active |
+| S133 | J109: DXF profile matrix gate | S132 | ACTIVE | ASCII/binary profile matrix; read/write/capture/replay agreement; safe-default isolation; adapter-selected legacy parity; fast DXF gate; plan/scope/sync/fixture gates | add a compact in-memory matrix covering safe and legacy profiles across ASCII and binary reader/writer paths, including malformed unknown-range rejection and typed callback agreement; no external DXF bytes | active after S132 commit; use Wave 1/profile target and policy gates, escalating only if a matrix cell contradicts the promotion decision |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3138,7 +3139,8 @@ edit this block or commit the same slice concurrently.
 | J105 | S129 | J104 | COMMITTED | EXPERIMENTAL | Reconcile downstream LibreCAD adapter needs with the internal classifier profile while preserving ABI/source compatibility and safe defaults | public additive profile API is explicit, safe by default, and covered by local façade probes; pinned adapter source audit is recorded; no external DXF bytes |
 | J106 | S130 | J105 | COMMITTED | EXPERIMENTAL | Prove the public profile API is consumable from installed headers and document the exact LibreCAD adapter opt-in migration without altering external sources | staged package checker passes ten header-only compiles plus CMake and pkg-config consumers with explicit profile assertions; no external DXF bytes |
 | J107 | S131 | J106 | COMMITTED | EXPERIMENTAL | Prove the LibreCAD adapter migration contract can select the legacy profile on every DXF read/write entry while preserving the standalone-safe default | staged package consumer compiles the explicit legacy selection before read/readAscii/write entry-point references and retains the safe-default check; no external DXF bytes |
-| J108 | S132 | J107 | ACTIVE | EXPERIMENTAL | Decide whether the explicit legacy profile remains adapter-selected or is promoted for a LibreCAD build mode, preserving safe standalone defaults and binary-width safety | active packet names target/source disposition, promotion/defer evidence, and no-fixture proof |
+| J108 | S132 | J107 | COMMITTED | EXPERIMENTAL | Decide whether the explicit legacy profile remains adapter-selected or is promoted for a LibreCAD build mode, preserving safe standalone defaults and binary-width safety | compatibility decision record and Wave 1 policy assertions select adapter-only legacy promotion; no external DXF bytes |
+| J109 | S133 | J108 | ACTIVE | EXPERIMENTAL | Prove the selected DXF profile policy across the complete ASCII/binary classifier, capture, replay, and callback matrix | active packet names compact matrix vectors, malformed rejection, and no-fixture evidence |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -3381,7 +3383,8 @@ edit this block or commit the same slice concurrently.
 | J105.1 | J105 / S129 | WP4, WP5, WP6, WP8, WP10; consumer-facing classifier profile disposition | J104 | COMMITTED | EXPERIMENTAL | audit LibreCAD adapter/source consumers, keep the profile internal or add a deliberate opt-in boundary, and prove ABI/source compatibility plus safe defaults | focused consumer/profile target passes; additive public opt-in boundary and safe default are covered; no external or derived DXF bytes are retained |
 | J106.1 | J106 / S130 | WP4, WP5, WP6, WP8, WP10; public-header consumer compatibility | J105 | COMMITTED | EXPERIMENTAL | compile a downstream-style public-header probe, exercise explicit safe/legacy profile selection, and record the adapter migration contract without external drawing bytes | staged package/API target and policy gates pass; no external or derived DXF bytes are retained |
 | J107.1 | J107 / S131 | WP4, WP5, WP6, WP8, WP10; LibreCAD adapter migration contract | J106 | COMMITTED | EXPERIMENTAL | compile a source-only adapter-pattern probe showing explicit legacy selection on read/readAscii/write and safe-default isolation; retain no external drawing bytes | staged migration/package target and policy gates pass; no external or derived DXF bytes are retained |
-| J108.1 | J108 / S132 | WP4, WP5, WP6, WP8, WP10; DXF profile promotion decision | J107 | ACTIVE | EXPERIMENTAL | audit target/source semantics and choose a narrow promotion or defer disposition with explicit default/binary-safety evidence; retain no external drawing bytes | focused profile decision target and policy gates pass; no external or derived DXF bytes are retained |
+| J108.1 | J108 / S132 | WP4, WP5, WP6, WP8, WP10; DXF profile promotion decision | J107 | COMMITTED | EXPERIMENTAL | audit target/source semantics and choose a narrow promotion or defer disposition with explicit default/binary-safety evidence; retain no external drawing bytes | focused profile decision target and policy gates pass; no external or derived DXF bytes are retained |
+| J109.1 | J109 / S133 | WP4, WP5, WP6, WP8, WP10; DXF profile matrix gate | J108 | ACTIVE | EXPERIMENTAL | exercise safe/legacy profiles over ASCII/binary parser, capture, replay, and callback paths, with malformed unknown-range rejection and no external drawing bytes | focused profile matrix target and policy gates pass; no external or derived DXF bytes are retained |
 
 <!-- UPGRADE_PROGRESS_END -->
 

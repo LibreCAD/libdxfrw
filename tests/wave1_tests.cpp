@@ -463,6 +463,28 @@ void testDxfFacadeClassifierProfile(TestContext& t) {
              "legacy facade profile publishes matching raw carrier types");
 }
 
+void testDxfProfilePromotionPolicy(TestContext& t) {
+    dxfRW codec("");
+    codec.setBinary(true);
+    t.expect(codec.dxfCompatibilityProfile()
+                 == dxfRW::DxfCompatibilityProfile::StandaloneSafe,
+             "binary-format selection does not silently promote DXF profile");
+    codec.setDxfCompatibilityProfile(
+        dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy);
+    t.expect(codec.dxfCompatibilityProfile()
+                 == dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy,
+             "legacy DXF profile requires explicit adapter selection");
+    codec.setBinary(false);
+    t.expect(codec.dxfCompatibilityProfile()
+                 == dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy,
+             "format changes do not discard explicit DXF profile");
+    codec.setDxfCompatibilityProfile(
+        dxfRW::DxfCompatibilityProfile::StandaloneSafe);
+    t.expect(codec.dxfCompatibilityProfile()
+                 == dxfRW::DxfCompatibilityProfile::StandaloneSafe,
+             "adapter can restore standalone-safe DXF profile explicitly");
+}
+
 DRW_RawDxfObject rawBoundaryObject() {
     DRW_RawDxfObject object;
     object.name = "RAW_BOUNDARY";
@@ -935,6 +957,7 @@ int main() {
     testDxfClassifierProfileProbe(context);
     testDxfBinaryLegacyProfileReplay(context);
     testDxfFacadeClassifierProfile(context);
+    testDxfProfilePromotionPolicy(context);
     testDxfRawBoundaryReplay(context);
     testDxfRawSectionBoundaryReplay(context);
     testDxfBinaryRawBoundaryReplay(context);
