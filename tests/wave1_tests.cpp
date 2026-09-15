@@ -2276,6 +2276,67 @@ void testDxfRawEntityApplicationGroupBinaryChunks(TestContext& t) {
              "DXF binary malformed application-group chunk rejects transactionally");
 }
 
+void testDxfRawEntityApplicationGroupChunkSize(TestContext& t) {
+    const auto makeObject = [](std::size_t byteCount, bool hasRawValues) {
+        DRW_RawDxfObject object;
+        object.name = "LOCAL_CHUNK_SIZE_ENTITY";
+        object.handle = 0x1Au;
+        object.m_version = DRW::AC1027;
+        object.hasRawValues = hasRawValues;
+        const std::string chunk(byteCount * 2u, 'A');
+        object.groups = {DRW_Variant(5, std::string("1A")),
+                         DRW_Variant(102, std::string("{CHUNK_SIZE")),
+                         DRW_Variant(310, chunk),
+                         DRW_Variant(102, std::string("}"))};
+        if (hasRawValues)
+            object.rawValues = {"1A", "{CHUNK_SIZE", chunk, "}"};
+        return object;
+    };
+    constexpr std::size_t maxChunkBytes = 127u;
+
+    DRW_RawDxfObject asciiBoundary = makeObject(maxChunkBytes, true);
+    std::ostringstream asciiOutput;
+    dxfRW asciiWriter("");
+    asciiWriter.version = DRW::AC1027;
+    asciiWriter.binFile = false;
+    asciiWriter.writer = std::make_unique<dxfWriterAscii>(&asciiOutput);
+    t.expect(asciiWriter.writeRawDxfObject(&asciiBoundary)
+                 && !asciiOutput.str().empty(),
+             "DXF ASCII application-group chunk accepts the 127-byte boundary");
+
+    DRW_RawDxfObject binaryBoundary = makeObject(maxChunkBytes, false);
+    std::ostringstream binaryOutput;
+    dxfRW binaryWriter("");
+    binaryWriter.version = DRW::AC1027;
+    binaryWriter.binFile = true;
+    binaryWriter.writer = std::make_unique<dxfWriterBinary>(&binaryOutput);
+    t.expect(binaryWriter.writeRawDxfObject(&binaryBoundary)
+                 && !binaryOutput.str().empty(),
+             "DXF binary application-group chunk accepts the 127-byte boundary");
+
+    DRW_RawDxfObject asciiOver = makeObject(maxChunkBytes + 1u, true);
+    std::ostringstream rejectedAsciiOutput;
+    dxfRW rejectingAsciiWriter("");
+    rejectingAsciiWriter.version = DRW::AC1027;
+    rejectingAsciiWriter.binFile = false;
+    rejectingAsciiWriter.writer = std::make_unique<dxfWriterAscii>(
+        &rejectedAsciiOutput);
+    t.expect(!rejectingAsciiWriter.writeRawDxfObject(&asciiOver)
+                 && rejectedAsciiOutput.str().empty(),
+             "DXF ASCII application-group chunk rejects at 128 bytes transactionally");
+
+    DRW_RawDxfObject binaryOver = makeObject(maxChunkBytes + 1u, false);
+    std::ostringstream rejectedBinaryOutput;
+    dxfRW rejectingBinaryWriter("");
+    rejectingBinaryWriter.version = DRW::AC1027;
+    rejectingBinaryWriter.binFile = true;
+    rejectingBinaryWriter.writer = std::make_unique<dxfWriterBinary>(
+        &rejectedBinaryOutput);
+    t.expect(!rejectingBinaryWriter.writeRawDxfObject(&binaryOver)
+                 && rejectedBinaryOutput.str().empty(),
+             "DXF binary application-group chunk rejects at 128 bytes transactionally");
+}
+
 void testRawCapture(TestContext& t) {
     std::stringstream records("260\n2147483647\n482\n3.14\n1004\nAB\n");
     dxfRW owner("");
@@ -2494,6 +2555,7 @@ int main() {
     testDxfRawEntityApplicationGroupMarker(context);
     testDxfRawEntityApplicationGroupReferenceMatrix(context);
     testDxfRawEntityApplicationGroupBinaryChunks(context);
+    testDxfRawEntityApplicationGroupChunkSize(context);
     testRawCapture(context);
     testHatchValidationIgnoresInactiveGradient(context);
     testFixedSpaceBlockClassification(context);
