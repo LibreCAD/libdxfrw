@@ -147,14 +147,16 @@ def self_test_relocatable_cmake_export() -> None:
         (config_root / "libdxfrwConfigVersion.cmake").write_text(
             "set(PACKAGE_VERSION \"2.0.0\")\n", encoding="utf-8")
         assert_relocatable_cmake_export(prefix)
-        (config_root / "libdxfrwConfigVersion.cmake").write_text(
-            "set(PACKAGE_VERSION \"/usr/local/libdxfrw\")\n",
-            encoding="utf-8")
-        try:
-            assert_relocatable_cmake_export(prefix)
-        except RuntimeError:
-            return
-        raise RuntimeError("CMake export self-test accepted a stale system path")
+        for stale_path in ("/usr/local/libdxfrw", str(prefix)):
+            (config_root / "libdxfrwConfigVersion.cmake").write_text(
+                "set(PACKAGE_VERSION \"%s\")\n" % stale_path,
+                encoding="utf-8")
+            try:
+                assert_relocatable_cmake_export(prefix)
+            except RuntimeError:
+                continue
+            raise RuntimeError(
+                "CMake export self-test accepted stale path: %s" % stale_path)
 
 
 def check_relocated_consumer(prefix: Path, cxx: str) -> None:
