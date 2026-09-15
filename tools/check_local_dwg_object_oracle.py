@@ -688,6 +688,13 @@ def check_objects(payload: dict, version_name: str) -> dict:
         geodata_discrepancies.append(
             "LibreDWG 0.14 does not decode version-2 GEODATA fields reliably "
             "before AC1024")
+    if version_name == "AC1021":
+        if (geodata.get("has_civil_data") != 0
+                or geodata_v2.get("has_civil_data") != 0):
+            raise ValueError("GEODATA civil-data disposition changed")
+        geodata_discrepancies.append(
+            "GEODATA civil-data tail is intentionally unsupported for the "
+            "local AC1021 carrier; no public DRW_GeoData fields model it")
 
     dictionary_default = find_record(
         records, "DICTIONARYWDFLT", DICTIONARYWDFLT_HANDLE)
@@ -1049,7 +1056,8 @@ def self_test() -> None:
              "handle": [0, 1, GEODATA_HANDLE],
              "ownerhandle": [4, 1, 0x17, 0x17],
              "xdicobjhandle": [3, 2, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
-             "host_block": [4, 1, 0x17, 0x17], "type": 527},
+             "host_block": [4, 1, 0x17, 0x17], "type": 527,
+             "has_civil_data": 0},
             {"object": "GEODATA", "handle": [0, 1, GEODATA_V2_HANDLE],
              "ownerhandle": [4, 1, 0x17, 0x17],
              "xdicobjhandle": [3, 2, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
@@ -1067,7 +1075,8 @@ def self_test() -> None:
              "geo_rss_tag": "LOCAL_GEO_TAG_V2",
              "observation_from_tag": "LOCAL_FROM_V2",
              "observation_to_tag": "LOCAL_TO_V2",
-             "observation_coverage_tag": "LOCAL_COVERAGE_V2"},
+             "observation_coverage_tag": "LOCAL_COVERAGE_V2",
+             "has_civil_data": 0},
         ],
     }
     summary = check_objects(payload, "AC1024")
