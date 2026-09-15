@@ -99,13 +99,62 @@ def assert_profile_symbols(prefix: Path) -> None:
 
 
 def assert_relocatable_cmake_export(prefix: Path) -> None:
-    export = prefix / "lib" / "cmake" / "libdxfrw" / "libdxfrwTargets.cmake"
+    config_root = prefix / "lib" / "cmake" / "libdxfrw"
+    export = config_root / "libdxfrwTargets.cmake"
+    if not export.is_file():
+        raise RuntimeError("CMake export is missing libdxfrwTargets.cmake")
     text = export.read_text(encoding="utf-8")
     if '"${_IMPORT_PREFIX}/include/libdxfrw"' not in text:
         raise RuntimeError("CMake export does not use a relocatable include root")
     source_root = str(Path(__file__).resolve().parents[1])
-    if source_root in text:
-        raise RuntimeError("CMake export contains a source-tree path")
+    target_exports = sorted(config_root.glob("libdxfrwTargets*.cmake"))
+    if len(target_exports) < 2:
+        raise RuntimeError("CMake export is missing configuration-specific targets")
+    for target in target_exports:
+        target_text = target.read_text(encoding="utf-8")
+        for leaked_path in (source_root, str(prefix), "/usr/local"):
+            if leaked_path in target_text:
+                raise RuntimeError(
+                    "CMake export contains a non-relocatable path: %s (%s)"
+                    % (leaked_path, target.name))
+        if target.name != export.name and "${_IMPORT_PREFIX}" not in target_text:
+            raise RuntimeError(
+                "configuration-specific CMake export does not use _IMPORT_PREFIX: %s"
+                % target.name)
+    for config in sorted(config_root.glob("libdxfrwConfig*.cmake")):
+        config_text = config.read_text(encoding="utf-8")
+        for leaked_path in (source_root, str(prefix), "/usr/local"):
+            if leaked_path in config_text:
+                raise RuntimeError(
+                    "CMake package config contains a non-relocatable path: %s (%s)"
+                    % (leaked_path, config.name))
+
+
+def self_test_relocatable_cmake_export() -> None:
+    with tempfile.TemporaryDirectory(prefix="libdxfrw-export-self-test-") as directory:
+        prefix = Path(directory)
+        config_root = prefix / "lib" / "cmake" / "libdxfrw"
+        config_root.mkdir(parents=True)
+        (config_root / "libdxfrwTargets.cmake").write_text(
+            'INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include/libdxfrw"\n',
+            encoding="utf-8")
+        (config_root / "libdxfrwTargets-noconfig.cmake").write_text(
+            'IMPORTED_LOCATION_NOCONFIG "${_IMPORT_PREFIX}/lib/libdxfrw.a"\n',
+            encoding="utf-8")
+        (config_root / "libdxfrwConfig.cmake").write_text(
+            "include(\"${CMAKE_CURRENT_LIST_DIR}/libdxfrwTargets.cmake\")\n",
+            encoding="utf-8")
+        (config_root / "libdxfrwConfigVersion.cmake").write_text(
+            "set(PACKAGE_VERSION \"2.0.0\")\n", encoding="utf-8")
+        assert_relocatable_cmake_export(prefix)
+        (config_root / "libdxfrwConfigVersion.cmake").write_text(
+            "set(PACKAGE_VERSION \"/usr/local/libdxfrw\")\n",
+            encoding="utf-8")
+        try:
+            assert_relocatable_cmake_export(prefix)
+        except RuntimeError:
+            return
+        raise RuntimeError("CMake export self-test accepted a stale system path")
 
 
 def check(prefix: Path, cxx: str) -> None:
@@ -220,6 +269,7 @@ def main() -> int:
     args = parser.parse_args()
     if args.self_test:
         self_test_staged_flags()
+        self_test_relocatable_cmake_export()
         print("staged package checker self-test: PASS")
         if not args.prefix:
             return 0
