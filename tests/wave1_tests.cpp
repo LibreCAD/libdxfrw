@@ -4211,8 +4211,71 @@ void testDxfRawSectionGroupCodeBounds(TestContext& t) {
         binaryWriter.writer = std::make_unique<dxfWriterBinary>(&binaryOutput);
         t.expect(!binaryWriter.writeRawDxfSection(binarySection)
                      && binaryOutput.str().empty(),
-                 "DXF binary raw section rejects out-of-range group codes");
+             "DXF binary raw section rejects out-of-range group codes");
     }
+}
+
+void testDxfRawSectionAggregateLimit(TestContext& t) {
+    const auto makeSection = [](std::size_t pairCount, bool hasRawValues) {
+        DRW_RawDxfSection section;
+        section.m_name = "LOCAL_SECTION_AGGREGATE";
+        section.m_version = DRW::AC1027;
+        section.m_hasRawValues = hasRawValues;
+        section.m_groups.reserve(pairCount);
+        if (hasRawValues)
+            section.m_rawValues.reserve(pairCount);
+        for (std::size_t i = 0; i < pairCount; ++i) {
+            section.m_groups.emplace_back(1000, std::string("payload"));
+            if (hasRawValues)
+                section.m_rawValues.emplace_back("payload");
+        }
+        return section;
+    };
+    constexpr std::size_t maxPairs = DRW::kMaxDxfApplicationGroupPairs;
+
+    DRW_RawDxfSection asciiBoundary = makeSection(maxPairs, true);
+    std::ostringstream asciiOutput;
+    dxfRW asciiWriter("");
+    asciiWriter.version = DRW::AC1027;
+    asciiWriter.binFile = false;
+    asciiWriter.writer = std::make_unique<dxfWriterAscii>(&asciiOutput);
+    t.expect(asciiBoundary.m_groups.size() == maxPairs
+                 && asciiWriter.writeRawDxfSection(asciiBoundary)
+                 && !asciiOutput.str().empty(),
+             "DXF ASCII raw section aggregate limit is accepted");
+
+    DRW_RawDxfSection binaryBoundary = makeSection(maxPairs, false);
+    std::ostringstream binaryOutput;
+    dxfRW binaryWriter("");
+    binaryWriter.version = DRW::AC1027;
+    binaryWriter.binFile = true;
+    binaryWriter.writer = std::make_unique<dxfWriterBinary>(&binaryOutput);
+    t.expect(binaryBoundary.m_groups.size() == maxPairs
+                 && binaryWriter.writeRawDxfSection(binaryBoundary)
+                 && !binaryOutput.str().empty(),
+             "DXF binary raw section aggregate limit is accepted");
+
+    DRW_RawDxfSection asciiOver = makeSection(maxPairs + 1u, true);
+    std::ostringstream rejectedAsciiOutput;
+    dxfRW rejectingAsciiWriter("");
+    rejectingAsciiWriter.version = DRW::AC1027;
+    rejectingAsciiWriter.binFile = false;
+    rejectingAsciiWriter.writer = std::make_unique<dxfWriterAscii>(
+        &rejectedAsciiOutput);
+    t.expect(!rejectingAsciiWriter.writeRawDxfSection(asciiOver)
+                 && rejectedAsciiOutput.str().empty(),
+             "DXF ASCII raw section over-limit aggregate rejects transactionally");
+
+    DRW_RawDxfSection binaryOver = makeSection(maxPairs + 1u, false);
+    std::ostringstream rejectedBinaryOutput;
+    dxfRW rejectingBinaryWriter("");
+    rejectingBinaryWriter.version = DRW::AC1027;
+    rejectingBinaryWriter.binFile = true;
+    rejectingBinaryWriter.writer = std::make_unique<dxfWriterBinary>(
+        &rejectedBinaryOutput);
+    t.expect(!rejectingBinaryWriter.writeRawDxfSection(binaryOver)
+                 && rejectedBinaryOutput.str().empty(),
+             "DXF binary raw section over-limit aggregate rejects transactionally");
 }
 
 void testDxfRawSectionApplicationGroupMarker(TestContext& t) {
@@ -4582,6 +4645,7 @@ int main() {
     testDxfRawSectionRecordBoundaryReplay(context);
     testDxfRawSectionEndsecTerminator(context);
     testDxfRawSectionGroupCodeBounds(context);
+    testDxfRawSectionAggregateLimit(context);
     testDxfRawSectionApplicationGroupMarker(context);
     testDxfRawSectionApplicationGroupReferenceMatrix(context);
     testRawCapture(context);
