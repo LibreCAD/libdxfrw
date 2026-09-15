@@ -85,6 +85,10 @@ MALFORMED_SPATIAL_FILTER_HANDLE = 0xD001
 GEODATA_HANDLE = 0xD100
 MALFORMED_GEODATA_HANDLE = 0xD101
 GEODATA_V2_HANDLE = 0xD200
+UNDERLAY_PDF_HANDLE = 0xD300
+UNDERLAY_DGN_HANDLE = 0xD400
+UNDERLAY_DWF_HANDLE = 0xD500
+MALFORMED_UNDERLAY_HANDLE = 0xD301
 
 RENDER_SETTINGS_KINDS = {
     "Settings": ("RENDERSETTINGS", RENDERSETTINGS_HANDLE, 556),
@@ -170,10 +174,46 @@ def check_objects(payload: dict, version_name: str) -> dict:
         raise ValueError("GROUP name, owner, or member stream mismatch")
 
     dictionary = find_record(records, "DICTIONARY", DICTIONARY_HANDLE)
-    if (dictionary.get("numitems") != 30
+    if (dictionary.get("numitems") != 33
             or dictionary.get("is_hardowner") != 1
             or owner_handle(dictionary) != 0x0C):
         raise ValueError("custom DICTIONARY count, owner, or cloning mismatch")
+
+    underlay_types = {
+        "AC1015": {"PDFDEFINITION": 530, "DGNDEFINITION": 531,
+                    "DWFDEFINITION": 543},
+        "AC1018": {"PDFDEFINITION": 530, "DGNDEFINITION": 531,
+                    "DWFDEFINITION": 543},
+        "AC1021": {"PDFDEFINITION": 530, "DGNDEFINITION": 531,
+                    "DWFDEFINITION": 543},
+        "AC1024": {"PDFDEFINITION": 528, "DGNDEFINITION": 530,
+                    "DWFDEFINITION": 531},
+        "AC1027": {"PDFDEFINITION": 528, "DGNDEFINITION": 530,
+                    "DWFDEFINITION": 531},
+        "AC1032": {"PDFDEFINITION": 528, "DGNDEFINITION": 530,
+                    "DWFDEFINITION": 531},
+    }[version_name]
+    underlay_handles = {
+        "PDFDEFINITION": UNDERLAY_PDF_HANDLE,
+        "DGNDEFINITION": UNDERLAY_DGN_HANDLE,
+        "DWFDEFINITION": UNDERLAY_DWF_HANDLE,
+    }
+    underlays = {}
+    for object_name, handle in underlay_handles.items():
+        underlay = find_record(records, object_name, handle)
+        expected_stem = object_name.removesuffix("DEFINITION")
+        if (underlay.get("type") != underlay_types[object_name]
+                or owner_handle(underlay) != DICTIONARY_HANDLE
+                or underlay.get("filename") != f"LOCAL_{expected_stem}."
+                + ("pdf" if expected_stem == "PDF" else
+                   "dgn" if expected_stem == "DGN" else "dwf")
+                or underlay.get("name") != f"LOCAL_{expected_stem}_SHEET"):
+            raise ValueError(f"{object_name} type, owner, or payload mismatch")
+        underlays[object_name] = {
+            "object": object_name,
+            "handle": handle,
+            "type": underlay_types[object_name],
+        }
 
     xrecord = find_record(records, "XRECORD", XRECORD_HANDLE)
     xdata = xrecord.get("xdata")
@@ -750,6 +790,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         MALFORMED_TABLESTYLE_HANDLE: "TABLESTYLE",
         MALFORMED_SPATIAL_FILTER_HANDLE: "SPATIAL_FILTER",
         MALFORMED_GEODATA_HANDLE: "GEODATA",
+        MALFORMED_UNDERLAY_HANDLE: "PDFDEFINITION",
     }
     if any(record_handle(record) in malformed_handles
            and record.get("object") == malformed_handles[record_handle(record)]
@@ -791,8 +832,12 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "SPATIAL_FILTER": SPATIAL_FILTER_HANDLE,
             "GEODATA": GEODATA_HANDLE,
             "GEODATA_V2": GEODATA_V2_HANDLE,
+            "PDFDEFINITION": UNDERLAY_PDF_HANDLE,
+            "DGNDEFINITION": UNDERLAY_DGN_HANDLE,
+            "DWFDEFINITION": UNDERLAY_DWF_HANDLE,
             "DICTIONARYWDFLT": DICTIONARYWDFLT_HANDLE,
         },
+        "underlayDefinitions": underlays,
         "objectStatus": "qualified",
         "oracleDiscrepancies": (oracle_discrepancies + mental_discrepancies
                                  + material_discrepancies
@@ -871,7 +916,7 @@ def self_test() -> None:
              "ownerhandle": [4, 1, 0x0C, 0x0C], "name": "LOCAL_GROUP",
              "groups": [[5, 1, 0x1234]]},
             {"object": "DICTIONARY", "handle": [0, 1, DICTIONARY_HANDLE],
-             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 30,
+             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 33,
              "is_hardowner": 1},
             {"object": "XRECORD", "handle": [0, 1, XRECORD_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
@@ -1077,6 +1122,21 @@ def self_test() -> None:
              "observation_to_tag": "LOCAL_TO_V2",
              "observation_coverage_tag": "LOCAL_COVERAGE_V2",
              "has_civil_data": 0},
+            {"object": "PDFDEFINITION",
+             "handle": [0, 1, UNDERLAY_PDF_HANDLE],
+             "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "type": 528, "filename": "LOCAL_PDF.pdf",
+             "name": "LOCAL_PDF_SHEET"},
+            {"object": "DGNDEFINITION",
+             "handle": [0, 1, UNDERLAY_DGN_HANDLE],
+             "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "type": 530, "filename": "LOCAL_DGN.dgn",
+             "name": "LOCAL_DGN_SHEET"},
+            {"object": "DWFDEFINITION",
+             "handle": [0, 1, UNDERLAY_DWF_HANDLE],
+             "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "type": 531, "filename": "LOCAL_DWF.dwf",
+             "name": "LOCAL_DWF_SHEET"},
         ],
     }
     summary = check_objects(payload, "AC1024")
@@ -1308,6 +1368,15 @@ def self_test() -> None:
         pass
     else:
         raise AssertionError("malformed SPATIAL_INDEX was not rejected")
+    try:
+        bad = json.loads(json.dumps(payload))
+        bad["OBJECTS"].append({"object": "PDFDEFINITION",
+                                "handle": [0, 1, MALFORMED_UNDERLAY_HANDLE]})
+        check_objects(bad, "AC1024")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("malformed UNDERLAYDEFINITION was not rejected")
     print("local DWG object oracle: PASS")
 
 

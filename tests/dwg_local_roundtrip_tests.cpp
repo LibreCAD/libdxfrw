@@ -148,6 +148,24 @@ public:
             geoDataV2Registration.handle = 0xD200u;
             registeredGeoDataV2_ = writer_->registerGeoDataObjectClass(
                 &geoDataV2Registration);
+            DRW_UnderlayDefinition pdfUnderlayRegistration;
+            pdfUnderlayRegistration.handle = 0xD300u;
+            pdfUnderlayRegistration.kind = DRW_UnderlayDefinition::PDF;
+            registeredPdfUnderlay_ =
+                writer_->registerUnderlayDefinitionObjectClass(
+                    &pdfUnderlayRegistration);
+            DRW_UnderlayDefinition dgnUnderlayRegistration;
+            dgnUnderlayRegistration.handle = 0xD400u;
+            dgnUnderlayRegistration.kind = DRW_UnderlayDefinition::DGN;
+            registeredDgnUnderlay_ =
+                writer_->registerUnderlayDefinitionObjectClass(
+                    &dgnUnderlayRegistration);
+            DRW_UnderlayDefinition dwfUnderlayRegistration;
+            dwfUnderlayRegistration.handle = 0xD500u;
+            dwfUnderlayRegistration.kind = DRW_UnderlayDefinition::DWF;
+            registeredDwfUnderlay_ =
+                writer_->registerUnderlayDefinitionObjectClass(
+                    &dwfUnderlayRegistration);
         }
     }
 
@@ -219,6 +237,9 @@ public:
             {"LOCAL_SPATIAL_FILTER", 0xD000u},
             {"LOCAL_GEODATA", 0xD100u},
             {"LOCAL_GEODATA_V2", 0xD200u},
+            {"LOCAL_PDFDEFINITION", 0xD300u},
+            {"LOCAL_DGNDEFINITION", 0xD400u},
+            {"LOCAL_DWFDEFINITION", 0xD500u},
         };
         wroteDictionary_ = registeredDictionary_
             && writer_->writeDictionary(&dictionary)
@@ -900,6 +921,42 @@ public:
             && writer_->writeGeoData(&geoDataV2)
             && geoDataV2.handle != 0;
 
+        DRW_UnderlayDefinition pdfDefinition;
+        pdfDefinition.handle = 0xD300u;
+        pdfDefinition.parentHandle = dictionary.handle;
+        pdfDefinition.kind = DRW_UnderlayDefinition::PDF;
+        pdfDefinition.filename = "LOCAL_PDF.pdf";
+        pdfDefinition.sheetName = "LOCAL_PDF_SHEET";
+        wrotePdfUnderlay_ = registeredPdfUnderlay_
+            && writer_->writeUnderlayDefinition(&pdfDefinition)
+            && pdfDefinition.handle != 0;
+
+        DRW_UnderlayDefinition dgnDefinition;
+        dgnDefinition.handle = 0xD400u;
+        dgnDefinition.parentHandle = dictionary.handle;
+        dgnDefinition.kind = DRW_UnderlayDefinition::DGN;
+        dgnDefinition.filename = "LOCAL_DGN.dgn";
+        dgnDefinition.sheetName = "LOCAL_DGN_SHEET";
+        wroteDgnUnderlay_ = registeredDgnUnderlay_
+            && writer_->writeUnderlayDefinition(&dgnDefinition)
+            && dgnDefinition.handle != 0;
+
+        DRW_UnderlayDefinition dwfDefinition;
+        dwfDefinition.handle = 0xD500u;
+        dwfDefinition.parentHandle = dictionary.handle;
+        dwfDefinition.kind = DRW_UnderlayDefinition::DWF;
+        dwfDefinition.filename = "LOCAL_DWF.dwf";
+        dwfDefinition.sheetName = "LOCAL_DWF_SHEET";
+        wroteDwfUnderlay_ = registeredDwfUnderlay_
+            && writer_->writeUnderlayDefinition(&dwfDefinition)
+            && dwfDefinition.handle != 0;
+
+        DRW_UnderlayDefinition invalidUnderlay = pdfDefinition;
+        invalidUnderlay.handle = 0xD301u;
+        invalidUnderlay.setDwgCommonObjectState(0, 2, false);
+        rejectedMalformedUnderlay_ =
+            !writer_->writeUnderlayDefinition(&invalidUnderlay);
+
         DRW_Group group;
         group.handle = 0xA600u;
         group.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
@@ -1098,7 +1155,7 @@ public:
         if (data.handle == 0xA601u) {
             readDictionarySeen_ = data.parentHandle
                     == DRW::DwgNamedObjectsDictionaryHandle
-                && data.m_entries.size() == 30
+                && data.m_entries.size() == 33
                 && data.m_entries[0].m_name == "LOCAL_XRECORD"
                 && data.m_entries[0].m_handle == 0xA602u
                 && data.m_entries[1].m_name == "LOCAL_PLOTSETTINGS"
@@ -1158,7 +1215,13 @@ public:
                 && data.m_entries[28].m_name == "LOCAL_GEODATA"
                 && data.m_entries[28].m_handle == 0xD100u
                 && data.m_entries[29].m_name == "LOCAL_GEODATA_V2"
-                && data.m_entries[29].m_handle == 0xD200u;
+                && data.m_entries[29].m_handle == 0xD200u
+                && data.m_entries[30].m_name == "LOCAL_PDFDEFINITION"
+                && data.m_entries[30].m_handle == 0xD300u
+                && data.m_entries[31].m_name == "LOCAL_DGNDEFINITION"
+                && data.m_entries[31].m_handle == 0xD400u
+                && data.m_entries[32].m_name == "LOCAL_DWFDEFINITION"
+                && data.m_entries[32].m_handle == 0xD500u;
         }
     }
     void addXRecord(const DRW_XRecord& data) override {
@@ -1491,6 +1554,25 @@ public:
                 && data.m_observationCoverageTag == "LOCAL_COVERAGE_V2"
                 && data.m_points.empty() && data.m_faces.empty();
     }
+    void linkUnderlay(const DRW_UnderlayDefinition* data) override {
+        if (data == nullptr)
+            return;
+        if (data->handle == 0xD300u)
+            readPdfUnderlaySeen_ = data->kind == DRW_UnderlayDefinition::PDF
+                && data->parentHandle == 0xA601u
+                && data->filename == "LOCAL_PDF.pdf"
+                && data->sheetName == "LOCAL_PDF_SHEET";
+        if (data->handle == 0xD400u)
+            readDgnUnderlaySeen_ = data->kind == DRW_UnderlayDefinition::DGN
+                && data->parentHandle == 0xA601u
+                && data->filename == "LOCAL_DGN.dgn"
+                && data->sheetName == "LOCAL_DGN_SHEET";
+        if (data->handle == 0xD500u)
+            readDwfUnderlaySeen_ = data->kind == DRW_UnderlayDefinition::DWF
+                && data->parentHandle == 0xA601u
+                && data->filename == "LOCAL_DWF.dwf"
+                && data->sheetName == "LOCAL_DWF_SHEET";
+    }
     void addInsert(const DRW_Insert& data) override {
         readInsertSeen_ = true;
         readAttribSeen_ = data.attlist.size() == 1
@@ -1540,6 +1622,9 @@ public:
             && wroteSpatialFilter_
             && wroteGeoData_
             && wroteGeoDataV2_
+            && wrotePdfUnderlay_
+            && wroteDgnUnderlay_
+            && wroteDwfUnderlay_
             && wroteGroup_;
     }
     bool rejectedMalformedObject() const { return rejectedMalformedObject_; }
@@ -1601,6 +1686,10 @@ public:
     bool wroteGeoData() const { return wroteGeoData_; }
     bool rejectedMalformedGeoData() const { return rejectedMalformedGeoData_; }
     bool wroteGeoDataV2() const { return wroteGeoDataV2_; }
+    bool rejectedMalformedUnderlay() const { return rejectedMalformedUnderlay_; }
+    bool wrotePdfUnderlay() const { return wrotePdfUnderlay_; }
+    bool wroteDgnUnderlay() const { return wroteDgnUnderlay_; }
+    bool wroteDwfUnderlay() const { return wroteDwfUnderlay_; }
     bool readLineSeen() const { return readLineSeen_; }
     bool readSimpleEntitiesSeen() const {
         return readPointSeen_ && readCircleSeen_ && readArcSeen_
@@ -1635,6 +1724,9 @@ public:
             && readSpatialFilterSeen_
             && readGeoDataSeen_
             && readGeoDataV2Seen_
+            && readPdfUnderlaySeen_
+            && readDgnUnderlaySeen_
+            && readDwfUnderlaySeen_
             && readGroupSeen_;
     }
     bool readMalformedObjectSeen() const { return readMalformedObjectSeen_; }
@@ -1708,6 +1800,9 @@ public:
     bool readGeoDataSeen() const { return readGeoDataSeen_; }
     bool readMalformedGeoDataSeen() const { return readMalformedGeoDataSeen_; }
     bool readGeoDataV2Seen() const { return readGeoDataV2Seen_; }
+    bool readPdfUnderlaySeen() const { return readPdfUnderlaySeen_; }
+    bool readDgnUnderlaySeen() const { return readDgnUnderlaySeen_; }
+    bool readDwfUnderlaySeen() const { return readDwfUnderlaySeen_; }
     void setTableStyleExpected(bool expected) { tableStyleExpected_ = expected; }
     const DRW_Line& readLine() const { return readLine_; }
 
@@ -1799,6 +1894,10 @@ private:
     bool rejectedUnsupportedTableStyle_ {false};
     bool rejectedMalformedSpatialFilter_ {false};
     bool rejectedMalformedGeoData_ {false};
+    bool wrotePdfUnderlay_ {false};
+    bool wroteDgnUnderlay_ {false};
+    bool wroteDwfUnderlay_ {false};
+    bool rejectedMalformedUnderlay_ {false};
     bool registeredDictionary_ {false};
     bool registeredMLeaderStyle_ {false};
     bool registeredDictionaryVar_ {false};
@@ -1826,6 +1925,9 @@ private:
     bool registeredSpatialFilter_ {false};
     bool registeredGeoData_ {false};
     bool registeredGeoDataV2_ {false};
+    bool registeredPdfUnderlay_ {false};
+    bool registeredDgnUnderlay_ {false};
+    bool registeredDwfUnderlay_ {false};
     bool registeredPlotSettings_ {false};
     bool readLineSeen_ {false};
     bool readPointSeen_ {false};
@@ -1907,6 +2009,9 @@ private:
     bool readMalformedTableStyleSeen_ {false};
     bool readMalformedSpatialFilterSeen_ {false};
     bool readMalformedGeoDataSeen_ {false};
+    bool readPdfUnderlaySeen_ {false};
+    bool readDgnUnderlaySeen_ {false};
+    bool readDwfUnderlaySeen_ {false};
     DRW_Line readLine_;
     dx_data data_;
 };
@@ -2068,6 +2173,15 @@ int main(int argc, char** argv) {
         expect(writeIface.rejectedMalformedGeoData(),
                ("local DWG writer rejected malformed GEODATA transaction" + suffix).c_str(),
                failures);
+        expect(writeIface.wrotePdfUnderlay(),
+               ("local DWG writer emitted PDFDEFINITION" + suffix).c_str(), failures);
+        expect(writeIface.wroteDgnUnderlay(),
+               ("local DWG writer emitted DGNDEFINITION" + suffix).c_str(), failures);
+        expect(writeIface.wroteDwfUnderlay(),
+               ("local DWG writer emitted DWFDEFINITION" + suffix).c_str(), failures);
+        expect(writeIface.rejectedMalformedUnderlay(),
+               ("local DWG writer rejected malformed UNDERLAYDEFINITION transaction" + suffix).c_str(),
+               failures);
         expect(std::filesystem::exists(output),
                ("local DWG output is published" + suffix).c_str(), failures);
 
@@ -2157,6 +2271,12 @@ int main(int argc, char** argv) {
                ("local DWG self-read publishes GEODATA" + suffix).c_str(), failures);
         expect(readIface.readGeoDataV2Seen(),
                ("local DWG self-read publishes GEODATA v2" + suffix).c_str(), failures);
+        expect(readIface.readPdfUnderlaySeen(),
+               ("local DWG self-read publishes PDFDEFINITION" + suffix).c_str(), failures);
+        expect(readIface.readDgnUnderlaySeen(),
+               ("local DWG self-read publishes DGNDEFINITION" + suffix).c_str(), failures);
+        expect(readIface.readDwfUnderlaySeen(),
+               ("local DWG self-read publishes DWFDEFINITION" + suffix).c_str(), failures);
         expect(!readIface.readMalformedObjectSeen(),
                ("local DWG self-read omits rolled-back malformed object" + suffix).c_str(),
                failures);
