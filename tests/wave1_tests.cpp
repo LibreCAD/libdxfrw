@@ -4182,6 +4182,39 @@ void testDxfRawSectionEndsecTerminator(TestContext& t) {
     }
 }
 
+void testDxfRawSectionGroupCodeBounds(TestContext& t) {
+    const std::vector<int> invalidCodes = {-1, 1072};
+    for (const int code : invalidCodes) {
+        DRW_RawDxfSection section;
+        section.m_name = "LOCAL_GROUP_CODE_BOUNDS";
+        section.m_version = DRW::AC1027;
+        section.m_hasRawValues = true;
+        section.m_groups = {DRW_Variant(code, std::string("payload"))};
+        section.m_rawValues = {"payload"};
+
+        std::ostringstream asciiOutput;
+        dxfRW asciiWriter("");
+        asciiWriter.version = DRW::AC1027;
+        asciiWriter.binFile = false;
+        asciiWriter.writer = std::make_unique<dxfWriterAscii>(&asciiOutput);
+        t.expect(!asciiWriter.writeRawDxfSection(section)
+                     && asciiOutput.str().empty(),
+                 "DXF ASCII raw section rejects out-of-range group codes");
+
+        DRW_RawDxfSection binarySection = section;
+        binarySection.m_hasRawValues = false;
+        binarySection.m_rawValues.clear();
+        std::ostringstream binaryOutput;
+        dxfRW binaryWriter("");
+        binaryWriter.version = DRW::AC1027;
+        binaryWriter.binFile = true;
+        binaryWriter.writer = std::make_unique<dxfWriterBinary>(&binaryOutput);
+        t.expect(!binaryWriter.writeRawDxfSection(binarySection)
+                     && binaryOutput.str().empty(),
+                 "DXF binary raw section rejects out-of-range group codes");
+    }
+}
+
 void testDxfRawSectionApplicationGroupMarker(TestContext& t) {
     const std::vector<std::string> invalidMarkers = {"{", "NOT_A_MARKER"};
     for (const std::string& marker : invalidMarkers) {
@@ -4548,6 +4581,7 @@ int main() {
     testDxfRawSectionRecordBoundaries(context);
     testDxfRawSectionRecordBoundaryReplay(context);
     testDxfRawSectionEndsecTerminator(context);
+    testDxfRawSectionGroupCodeBounds(context);
     testDxfRawSectionApplicationGroupMarker(context);
     testDxfRawSectionApplicationGroupReferenceMatrix(context);
     testRawCapture(context);

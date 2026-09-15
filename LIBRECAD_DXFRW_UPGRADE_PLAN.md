@@ -52,10 +52,10 @@ then pin an immutable commit before importing source.
 ### Execution refresh (2026-09-15)
 
 The implementation worktree is rebased on `origin/master` and is currently
-246 commits ahead with no commits behind it. The latest green slice is
-S220/J196, including the live-plan update and its required policy gates.
-S221/J197 is the active slice; its DXF raw-section group-code bounds parity is
-the next commit boundary.
+247 commits ahead with no commits behind it. The latest green slice is
+S221/J197, including the live-plan update and its required policy gates.
+S222/J198 is the active slice; its DXF raw-section aggregate-pair limit parity
+is the next commit boundary.
 The worktree is clean at the last committed boundary; any subsequent active-
 slice edits are intentionally uncommitted until their narrow gate and
 status-bearing plan transition are green.
@@ -1934,16 +1934,16 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint (2026-09-15): S220/J196 DXF raw-section ENDSEC
-  structural-terminator parity is committed; S221/J197 DXF raw-section
-  group-code bounds parity is active.
+- Current checkpoint (2026-09-15): S221/J197 DXF raw-section group-code bounds
+  parity is committed; S222/J198 DXF raw-section aggregate-pair limit parity
+  is active.
   The
   branch is rebased on `origin/master`, and
   the pinned source/package/consumer convergence remains complete while
   runtime and wire-format parity stay evidence-gated. The AC1015 IMAGE legacy
   boundary remains fail-closed, and all format-support claims remain limited
   to rows with eligible runtime/oracle evidence. The next dependency-ready
-  sequence is S221 DXF raw-section group-code bounds parity;
+  sequence is S222 DXF raw-section aggregate-pair limit parity;
   it is a separate commit with no external or derived DWG/DXF bytes.
 - Latest implementation slice: S171/J147 DXF raw-object handle-scope and
   cross-record uniqueness qualification is committed. Local ASCII and binary
@@ -2140,6 +2140,9 @@ edit this block or commit the same slice concurrently.
   structural-terminator parity is committed. Local ASCII and binary unknown
   sections treat code-0 ENDSEC as framing, exclude it from callback groups, and
   publish preceding payload; no drawing bytes are retained.
+- Latest implementation slice: S221/J197 DXF raw-section group-code bounds
+  parity is committed. Local ASCII and binary writers reject negative and
+  above-1071 group codes transactionally; no drawing bytes are retained.
 - Latest implementation slice: S172/J148 DXF raw-object duplicate-handle
   diagnostic and error-precedence qualification is committed. Local ASCII and
   binary duplicate streams preserve the legacy `BAD_CODE_PARSED` result and
@@ -3062,18 +3065,18 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 220 (`COMMITTED`); S221 is active.
+- Resolved slices: 221 (`COMMITTED`); S222 is active.
 - Slice states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 220 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 221 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 222 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 223 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 318 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 319 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 205 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S220 are committed; S221/J197 is active with a ready packet
-  naming DXF raw-section group-code bounds parity and focused fast gates.
+  0 DEFERRED_EXTERNAL / 206 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S221 are committed; S222/J198 is active with a ready packet
+  naming DXF raw-section aggregate-pair limit parity and focused fast gates.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
   S174/J150, S175/J151, S176/J152, S177/J153, S178/J154, and S179/J155 added
   malformed, field-context, raw-entity propagation, duplicate-entity,
@@ -3346,7 +3349,8 @@ edit this block or commit the same slice concurrently.
 | S218 | J194: DXF raw-section record-boundary group parity | S217 | COMMITTED | code-0 record boundaries inside unknown sections; raw callback order; ASCII/binary symmetry; framing closure; focused DXF gate; plan/scope/sync/fixture gates | committed `S218`; local ASCII and binary unknown sections preserve code-0 record names and typed payload ordering through callback capture; no drawing bytes committed | Wave 1 raw-section boundary tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S219 is active |
 | S219 | J195: DXF raw-section record-boundary replay parity | S218 | COMMITTED | captured code-0 record boundaries; writer allowRecordBoundaries path; ASCII/binary replay; exact framing; focused DXF gate; plan/scope/sync/fixture gates | committed `S219`; local ASCII and binary writers replay captured code-0 record names and typed payloads with exact SECTION/name/ENDSEC framing; no drawing bytes committed | Wave 1 raw-section boundary-replay tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S220 is active |
 | S220 | J196: DXF raw-section ENDSEC structural-terminator parity | S219 | COMMITTED | code-0 ENDSEC structural terminator; payload cutoff; callback publication; ASCII/binary symmetry; focused DXF gate; plan/scope/sync/fixture gates | committed `S220`; local ASCII and binary unknown sections treat code-0 ENDSEC as framing, exclude it from callback groups, and publish preceding payload; no drawing bytes committed | Wave 1 ENDSEC-terminator tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S221 is active |
-| S221 | J197: DXF raw-section group-code bounds parity | S220 | ACTIVE | negative group codes; codes above 1071; validation bounds; ASCII/binary symmetry; transactional rejection; focused DXF gate; plan/scope/sync/fixture gates | use local raw sections containing group codes -1 and 1072; assert both writers reject them transactionally with zero output, with no drawing bytes committed | active after S220 commit; use Wave 1 raw-section bounds tests, focused CTest selector, fast source/policy gates, fixture admission, import scope, pinned sync, and diff gates |
+| S221 | J197: DXF raw-section group-code bounds parity | S220 | COMMITTED | negative group codes; codes above 1071; validation bounds; ASCII/binary symmetry; transactional rejection; focused DXF gate; plan/scope/sync/fixture gates | committed `S221`; local ASCII and binary writers reject negative and above-1071 group codes transactionally with zero output; no drawing bytes committed | Wave 1 raw-section bounds tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S222 is active |
+| S222 | J198: DXF raw-section aggregate-pair limit parity | S221 | ACTIVE | aggregate pair count; 65,536 boundary; over-limit rejection; ASCII/binary symmetry; transactional output; focused DXF gate; plan/scope/sync/fixture gates | generate local raw sections at `kMaxDxfApplicationGroupPairs` and one above; assert boundary acceptance and over-limit zero-output rejection in ASCII and binary, with no drawing bytes committed | active after S221 commit; use Wave 1 raw-section aggregate-limit tests, focused CTest selector, fast source/policy gates, fixture admission, import scope, pinned sync, and diff gates |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3571,7 +3575,8 @@ edit this block or commit the same slice concurrently.
 | J194 | S218 | J193 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-section record-boundary group parity | local ASCII and binary unknown sections preserve code-0 record names and typed payload ordering through callback capture; no-fixture evidence |
 | J195 | S219 | J194 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-section record-boundary replay parity | local ASCII and binary writers replay captured code-0 record names and typed payloads with exact SECTION/name/ENDSEC framing; no-fixture evidence |
 | J196 | S220 | J195 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-section ENDSEC structural-terminator parity | local ASCII and binary unknown sections treat code-0 ENDSEC as framing, exclude it from callback groups, and publish preceding payload; no-fixture evidence |
-| J197 | S221 | J196 | ACTIVE | EXPERIMENTAL | Qualify DXF raw-section group-code bounds parity | active packet names transactional rejection of negative and above-1071 group codes in ASCII/binary; no-fixture evidence |
+| J197 | S221 | J196 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-section group-code bounds parity | local ASCII and binary writers reject negative and above-1071 group codes transactionally with zero output; no-fixture evidence |
+| J198 | S222 | J197 | ACTIVE | EXPERIMENTAL | Qualify DXF raw-section aggregate-pair limit parity | active packet names 65,536-boundary acceptance and over-limit rejection in ASCII/binary; no-fixture evidence |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -3903,7 +3908,8 @@ edit this block or commit the same slice concurrently.
 | J194.1 | J194 / S218 | WP4, WP5, WP6, WP8, WP10; DXF raw-section record-boundary group parity | J193 | COMMITTED | EXPERIMENTAL | assert code-0 record names and typed payload order are preserved in unknown-section callbacks and ENDSEC closes in ASCII/binary, without external drawing bytes | focused Wave 1 raw-section boundary target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 | J195.1 | J195 / S219 | WP4, WP5, WP6, WP8, WP10; DXF raw-section record-boundary replay parity | J194 | COMMITTED | EXPERIMENTAL | assert a captured section with code-0 record names and typed payloads replays with exact framing in ASCII/binary, without external drawing bytes | focused Wave 1 raw-section boundary-replay target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 | J196.1 | J196 / S220 | WP4, WP5, WP6, WP8, WP10; DXF raw-section ENDSEC structural-terminator parity | J195 | COMMITTED | EXPERIMENTAL | assert code-0 ENDSEC terminates an unknown-section callback after its payload and is not captured, in ASCII/binary, without external drawing bytes | focused Wave 1 ENDSEC-terminator target and policy gates pass; no external or derived DWG/DXF bytes are retained |
-| J197.1 | J197 / S221 | WP4, WP5, WP6, WP8, WP10; DXF raw-section group-code bounds parity | J196 | ACTIVE | EXPERIMENTAL | assert negative and above-1071 raw section group codes reject transactionally with zero ASCII/binary output, without external drawing bytes | focused Wave 1 raw-section bounds target and policy gates pass; no external or derived DWG/DXF bytes are retained |
+| J197.1 | J197 / S221 | WP4, WP5, WP6, WP8, WP10; DXF raw-section group-code bounds parity | J196 | COMMITTED | EXPERIMENTAL | assert negative and above-1071 raw section group codes reject transactionally with zero ASCII/binary output, without external drawing bytes | focused Wave 1 raw-section bounds target and policy gates pass; no external or derived DWG/DXF bytes are retained |
+| J198.1 | J198 / S222 | WP4, WP5, WP6, WP8, WP10; DXF raw-section aggregate-pair limit parity | J197 | ACTIVE | EXPERIMENTAL | assert a raw section at kMaxDxfApplicationGroupPairs is accepted while one above rejects transactionally in ASCII/binary, without external drawing bytes | focused Wave 1 raw-section aggregate-limit target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 
 <!-- UPGRADE_PROGRESS_END -->
 
