@@ -976,6 +976,35 @@ public:
         wroteLine_ = writer_->writeLine(&line) && line.handle != 0;
         modelSpaceLineHandle_ = line.handle;
 
+        DRW_Image image;
+        image.handle = 0xD700u;
+        image.basePoint = DRW_Coord(50.0, 60.0, 0.0);
+        image.secPoint = DRW_Coord(114.0, 60.0, 0.0);
+        image.vVector = DRW_Coord(0.0, 1.0, 0.0);
+        image.sizeu = 64.0;
+        image.sizev = 48.0;
+        image.clip = 1;
+        image.brightness = 60;
+        image.contrast = 70;
+        image.fade = 10;
+        image.m_classVersion = 2;
+        const std::string imageFileName = "LOCAL_IMAGE.png";
+        if (writer_->getVersion() < DRW::AC1018) {
+            rejectedUnsupportedImage_ = true;
+            wroteImage_ = false;
+            rejectedMalformedImage_ = true;
+        } else {
+            wroteImage_ = writer_->writeImage(&image, &imageFileName)
+                && image.handle == 0xD700u
+                && image.ref != 0
+                && image.m_imageDefReactorHandle != 0;
+            DRW_Image invalidImage = image;
+            invalidImage.handle = 0xD710u;
+            invalidImage.sizeu = std::numeric_limits<double>::quiet_NaN();
+            rejectedMalformedImage_ =
+                !writer_->writeImage(&invalidImage, &imageFileName);
+        }
+
         DRW_Point point;
         point.basePoint = DRW_Coord(7.0, 8.0, 9.0);
         wrotePoint_ = writer_->writePoint(&point) && point.handle != 0;
@@ -1141,6 +1170,25 @@ public:
     void addRay(const DRW_Ray&) override { readRaySeen_ = true; }
     void addXline(const DRW_Xline&) override { readXlineSeen_ = true; }
     void add3DLine(const DRW_3DLine&) override { read3dLineSeen_ = true; }
+    void addImage(const DRW_Image* data) override {
+        if (data != nullptr && data->handle == 0xD700u)
+            readImageSeen_ = data->ref != 0
+                && data->m_imageDefReactorHandle != 0
+                && data->sizeu == 64.0 && data->sizev == 48.0
+                && data->brightness == 60 && data->contrast == 70
+                && data->fade == 10;
+    }
+    void linkImage(const DRW_ImageDef* data) override {
+        if (data != nullptr && data->name == "LOCAL_IMAGE.png")
+            readImageDefSeen_ = data->u == 64.0 && data->v == 48.0
+                && data->up == 1.0 && data->vp == 1.0
+                && data->loaded == 1 && data->resolution == 0;
+    }
+    void addImageDefinitionReactor(
+        const DRW_ImageDefinitionReactor& data) override {
+        if (data.parentHandle == 0xD700u)
+            readImageReactorSeen_ = data.m_classVersion == 2;
+    }
     void addPolyline(const DRW_Polyline&) override {
         readOldPolylineSeen_ = true;
     }
@@ -1690,6 +1738,9 @@ public:
     bool wrotePdfUnderlay() const { return wrotePdfUnderlay_; }
     bool wroteDgnUnderlay() const { return wroteDgnUnderlay_; }
     bool wroteDwfUnderlay() const { return wroteDwfUnderlay_; }
+    bool wroteImage() const { return wroteImage_; }
+    bool rejectedMalformedImage() const { return rejectedMalformedImage_; }
+    bool rejectedUnsupportedImage() const { return rejectedUnsupportedImage_; }
     bool readLineSeen() const { return readLineSeen_; }
     bool readSimpleEntitiesSeen() const {
         return readPointSeen_ && readCircleSeen_ && readArcSeen_
@@ -1803,6 +1854,9 @@ public:
     bool readPdfUnderlaySeen() const { return readPdfUnderlaySeen_; }
     bool readDgnUnderlaySeen() const { return readDgnUnderlaySeen_; }
     bool readDwfUnderlaySeen() const { return readDwfUnderlaySeen_; }
+    bool readImageSeen() const { return readImageSeen_; }
+    bool readImageDefSeen() const { return readImageDefSeen_; }
+    bool readImageReactorSeen() const { return readImageReactorSeen_; }
     void setTableStyleExpected(bool expected) { tableStyleExpected_ = expected; }
     const DRW_Line& readLine() const { return readLine_; }
 
@@ -1898,6 +1952,9 @@ private:
     bool wroteDgnUnderlay_ {false};
     bool wroteDwfUnderlay_ {false};
     bool rejectedMalformedUnderlay_ {false};
+    bool wroteImage_ {false};
+    bool rejectedMalformedImage_ {false};
+    bool rejectedUnsupportedImage_ {false};
     bool registeredDictionary_ {false};
     bool registeredMLeaderStyle_ {false};
     bool registeredDictionaryVar_ {false};
@@ -2012,6 +2069,9 @@ private:
     bool readPdfUnderlaySeen_ {false};
     bool readDgnUnderlaySeen_ {false};
     bool readDwfUnderlaySeen_ {false};
+    bool readImageSeen_ {false};
+    bool readImageDefSeen_ {false};
+    bool readImageReactorSeen_ {false};
     DRW_Line readLine_;
     dx_data data_;
 };
@@ -2182,6 +2242,13 @@ int main(int argc, char** argv) {
         expect(writeIface.rejectedMalformedUnderlay(),
                ("local DWG writer rejected malformed UNDERLAYDEFINITION transaction" + suffix).c_str(),
                failures);
+        expect(version < DRW::AC1018
+                   ? writeIface.rejectedUnsupportedImage()
+                   : writeIface.wroteImage(),
+               ("local DWG IMAGE capability gate" + suffix).c_str(), failures);
+        expect(writeIface.rejectedMalformedImage(),
+               ("local DWG writer rejected malformed IMAGE transaction" + suffix).c_str(),
+               failures);
         expect(std::filesystem::exists(output),
                ("local DWG output is published" + suffix).c_str(), failures);
 
@@ -2277,6 +2344,12 @@ int main(int argc, char** argv) {
                ("local DWG self-read publishes DGNDEFINITION" + suffix).c_str(), failures);
         expect(readIface.readDwfUnderlaySeen(),
                ("local DWG self-read publishes DWFDEFINITION" + suffix).c_str(), failures);
+        expect(version < DRW::AC1018 || readIface.readImageSeen(),
+               ("local DWG self-read publishes IMAGE" + suffix).c_str(), failures);
+        expect(version < DRW::AC1018 || readIface.readImageDefSeen(),
+               ("local DWG self-read publishes IMAGEDEF" + suffix).c_str(), failures);
+        expect(version < DRW::AC1018 || readIface.readImageReactorSeen(),
+               ("local DWG self-read publishes IMAGEDEF_REACTOR" + suffix).c_str(), failures);
         expect(!readIface.readMalformedObjectSeen(),
                ("local DWG self-read omits rolled-back malformed object" + suffix).c_str(),
                failures);

@@ -89,6 +89,8 @@ UNDERLAY_PDF_HANDLE = 0xD300
 UNDERLAY_DGN_HANDLE = 0xD400
 UNDERLAY_DWF_HANDLE = 0xD500
 MALFORMED_UNDERLAY_HANDLE = 0xD301
+IMAGE_HANDLE = 0xD700
+MALFORMED_IMAGE_HANDLE = 0xD710
 
 RENDER_SETTINGS_KINDS = {
     "Settings": ("RENDERSETTINGS", RENDERSETTINGS_HANDLE, 556),
@@ -214,6 +216,15 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "handle": handle,
             "type": underlay_types[object_name],
         }
+    image_discrepancies = [
+        "LibreDWG 0.14 does not expose the local IMAGE/IMAGEDEF entity and "
+        "fixed-object frames in JSON; local self-read remains the authoritative "
+        "IMAGE/IMAGEDEF/IMAGEDEF_REACTOR check"
+    ]
+    if version_name == "AC1015":
+        image_discrepancies.append(
+            "IMAGE/IMAGEDEF/IMAGEDEF_REACTOR emission is intentionally gated "
+            "off for AC1015 pending a compatible legacy image wire layout")
 
     xrecord = find_record(records, "XRECORD", XRECORD_HANDLE)
     xdata = xrecord.get("xdata")
@@ -791,6 +802,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         MALFORMED_SPATIAL_FILTER_HANDLE: "SPATIAL_FILTER",
         MALFORMED_GEODATA_HANDLE: "GEODATA",
         MALFORMED_UNDERLAY_HANDLE: "PDFDEFINITION",
+        MALFORMED_IMAGE_HANDLE: "IMAGE",
     }
     if any(record_handle(record) in malformed_handles
            and record.get("object") == malformed_handles[record_handle(record)]
@@ -835,6 +847,8 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "PDFDEFINITION": UNDERLAY_PDF_HANDLE,
             "DGNDEFINITION": UNDERLAY_DGN_HANDLE,
             "DWFDEFINITION": UNDERLAY_DWF_HANDLE,
+            "IMAGE": IMAGE_HANDLE,
+            "IMAGEDEF_REACTOR": IMAGE_HANDLE + 1,
             "DICTIONARYWDFLT": DICTIONARYWDFLT_HANDLE,
         },
         "underlayDefinitions": underlays,
@@ -845,7 +859,8 @@ def check_objects(payload: dict, version_name: str) -> dict:
                                  + light_list_discrepancies
                                  + spatial_index_discrepancies
                                  + table_style_discrepancies
-                                 + geodata_discrepancies),
+                                 + geodata_discrepancies
+                                 + image_discrepancies),
     }
 
 
