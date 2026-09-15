@@ -80,6 +80,8 @@ SPATIAL_INDEX_HANDLE = 0xCE00
 MALFORMED_SPATIAL_INDEX_HANDLE = 0xCE01
 TABLESTYLE_HANDLE = 0xCF00
 MALFORMED_TABLESTYLE_HANDLE = 0xCF01
+SPATIAL_FILTER_HANDLE = 0xD000
+MALFORMED_SPATIAL_FILTER_HANDLE = 0xD001
 
 RENDER_SETTINGS_KINDS = {
     "Settings": ("RENDERSETTINGS", RENDERSETTINGS_HANDLE, 556),
@@ -165,7 +167,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         raise ValueError("GROUP name, owner, or member stream mismatch")
 
     dictionary = find_record(records, "DICTIONARY", DICTIONARY_HANDLE)
-    if (dictionary.get("numitems") != 27
+    if (dictionary.get("numitems") != 28
             or dictionary.get("is_hardowner") != 1
             or owner_handle(dictionary) != 0x0C):
         raise ValueError("custom DICTIONARY count, owner, or cloning mismatch")
@@ -597,6 +599,28 @@ def check_objects(payload: dict, version_name: str) -> dict:
         table_style_discrepancies.append(
             "TABLESTYLE is intentionally unsupported after AC1021")
 
+    spatial_filter = find_record(records, "SPATIAL_FILTER", SPATIAL_FILTER_HANDLE)
+    boundary = spatial_filter.get("clip_verts")
+    expected_spatial_filter_type = 527 if version_name in {
+        "AC1015", "AC1018", "AC1021"} else 526
+    if (owner_handle(spatial_filter) != DICTIONARY_HANDLE
+            or spatial_filter.get("type") != expected_spatial_filter_type
+            or not isinstance(boundary, list)
+            or len(boundary) != 2
+            or boundary[0] != [1.0, 2.0]
+            or boundary[1] != [3.0, 4.0]
+            or spatial_filter.get("extrusion") != [0.0, 0.0, 1.0]
+            or spatial_filter.get("origin") != [10.0, 20.0, 30.0]
+            or spatial_filter.get("display_boundary_on") != 1
+            or spatial_filter.get("front_clip_on") != 1
+            or spatial_filter.get("front_clip_z") != 5.0
+            or spatial_filter.get("back_clip_on") != 0
+            or not isinstance(spatial_filter.get("inverse_transform"), list)
+            or len(spatial_filter["inverse_transform"]) != 12
+            or not isinstance(spatial_filter.get("transform"), list)
+            or len(spatial_filter["transform"]) != 12):
+        raise ValueError("SPATIAL_FILTER owner or bounded payload mismatch")
+
     dictionary_default = find_record(
         records, "DICTIONARYWDFLT", DICTIONARYWDFLT_HANDLE)
     if (owner_handle(dictionary_default) != DICTIONARY_HANDLE
@@ -649,6 +673,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         MALFORMED_LAYER_INDEX_HANDLE: "LAYER_INDEX",
         MALFORMED_SPATIAL_INDEX_HANDLE: "SPATIAL_INDEX",
         MALFORMED_TABLESTYLE_HANDLE: "TABLESTYLE",
+        MALFORMED_SPATIAL_FILTER_HANDLE: "SPATIAL_FILTER",
     }
     if any(record_handle(record) in malformed_handles
            and record.get("object") == malformed_handles[record_handle(record)]
@@ -687,6 +712,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "LAYER_INDEX": LAYER_INDEX_HANDLE,
             "SPATIAL_INDEX": SPATIAL_INDEX_HANDLE,
             "TABLESTYLE": TABLESTYLE_HANDLE,
+            "SPATIAL_FILTER": SPATIAL_FILTER_HANDLE,
             "DICTIONARYWDFLT": DICTIONARYWDFLT_HANDLE,
         },
         "objectStatus": "qualified",
@@ -766,7 +792,7 @@ def self_test() -> None:
              "ownerhandle": [4, 1, 0x0C, 0x0C], "name": "LOCAL_GROUP",
              "groups": [[5, 1, 0x1234]]},
             {"object": "DICTIONARY", "handle": [0, 1, DICTIONARY_HANDLE],
-             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 27,
+             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 28,
              "is_hardowner": 1},
             {"object": "XRECORD", "handle": [0, 1, XRECORD_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
@@ -937,6 +963,16 @@ def self_test() -> None:
              "handle": [0, 1, SPATIAL_INDEX_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
              "type": 517, "last_updated": [300, 400]},
+            {"object": "SPATIAL_FILTER",
+             "handle": [0, 1, SPATIAL_FILTER_HANDLE],
+             "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "type": 526, "clip_verts": [[1.0, 2.0], [3.0, 4.0]],
+             "extrusion": [0.0, 0.0, 1.0],
+             "origin": [10.0, 20.0, 30.0],
+             "display_boundary_on": 1, "front_clip_on": 1,
+             "front_clip_z": 5.0, "back_clip_on": 0,
+             "inverse_transform": [0.0] * 12,
+             "transform": [0.0] * 12},
         ],
     }
     summary = check_objects(payload, "AC1024")

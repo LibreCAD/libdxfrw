@@ -1916,8 +1916,8 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint: S68/J44 TABLESTYLE object-family parity is committed;
-  S01-S68 implementation slices are committed with a
+- Current checkpoint: S69/J45 SPATIAL_FILTER object-family parity is
+  committed; S01-S69 implementation slices are committed with a
   version-specific oracle discrepancy recorded,
   including the clean
   LibreCAD target worktree change. Format-support claims remain limited to
@@ -2068,13 +2068,22 @@ edit this block or commit the same slice concurrently.
   qualifies type 526, owner A601, name, three rows, and six borders for the
   supported versions, with an AC1021 row-scalar decode discrepancy recorded;
   generated drawings remain temporary and evidence remains experimental.
-- Next implementation slice: S69/J45 SPATIAL_FILTER object-family parity is
-  ready. It will qualify the existing AC1015+-capable clipped-reference
-  encoder with a bounded two-point boundary, normal/origin and plane flags,
-  class registration before CLASSES, owner/handle closure, six-version
-  self-read, independent LibreDWG type/owner/boundary evidence, and
-  transaction-safe rejection of over-limit or non-finite boundary state.
-  Generated drawings remain temporary and no fixture bytes may be retained.
+- Latest implementation slice: S69/J45 SPATIAL_FILTER object-family parity is
+  committed. The local-from-scratch production writer registers the
+  class before CLASSES, emits a bounded two-point boundary, normal/origin,
+  clip flags/distances, and 12-value transforms for AC1015/18/21/24/27/32,
+  and rejects an over-limit boundary transactionally. LibreDWG 0.14
+  independently qualifies owner A601, exact boundary/plane/transform fields,
+  and the expected type split (527 through AC1021; 526 for AC1024+) in all
+  six outputs. Generated drawings remain temporary and evidence remains
+  experimental.
+- Next implementation slice: S70/J46 GEODATA object-family parity is ready.
+  It will qualify the existing AC1015+-capable geolocation encoder with a
+  minimal version-1 metadata payload and host-block handle, class registration
+  before CLASSES, owner/handle closure, six-version self-read, independent
+  LibreDWG type/owner/version/coordinate evidence, and transaction-safe
+  rejection of non-finite coordinates or over-limit mesh vectors. Generated
+  drawings remain temporary and no fixture bytes may be retained.
 - Latest committed slice: S52/J28 FIELD/FIELDLIST member parity is
   committed. The local-from-scratch production writer registers FIELD and
   FIELDLIST classes before CLASSES, emits one valid field referenced by the
@@ -2439,33 +2448,33 @@ edit this block or commit the same slice concurrently.
   evidence. S53/J29 adds fixed RASTERVARIABLES/WIPEOUTVARIABLES scalar
   evidence with transactional invalid-value checks and no fixture bytes.
   parity or a PR boundary.
-- Last fully resolved slice: S68 (the TABLESTYLE object-family parity slice is
-  committed by the matching `Plan-Slice: S68` trailer; broader
+- Last fully resolved slice: S69 (the SPATIAL_FILTER object-family parity
+  slice is committed by the matching `Plan-Slice: S69` trailer; broader
   fixed object families remain experimental follow-up).
   target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`. All in-horizon lanes are
   terminal only when their recorded gates pass; the next runtime qualification
   lane requires no new target pin.
-- Previous fully resolved slice: S67 (the LAYER_INDEX/SPATIAL_INDEX
-  object-family parity slice is committed by the matching `Plan-Slice: S67`
+- Previous fully resolved slice: S68 (the TABLESTYLE object-family parity
+  slice is committed by the matching `Plan-Slice: S68` trailer; broader
   trailer; broader fixed
   object families remain experimental follow-up).
   target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`. All in-horizon lanes are
   terminal only when their recorded gates pass; the next runtime qualification
   lane requires no new target pin.
-- Resolved slices: 68/69 (`COMMITTED`, or `SUPERSEDED` after all replacements
+- Resolved slices: 69/70 (`COMMITTED`, or `SUPERSEDED` after all replacements
   commit).
 - Slice states: 1 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 68 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 69 COMMITTED.
 - Parent-item states: 1 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 68 COMMITTED.
-- Expanded child-item states: 165 COMMITTED / 0 PLANNED / 1 READY / 0 ACTIVE /
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 69 COMMITTED.
+- Expanded child-item states: 166 COMMITTED / 0 PLANNED / 1 READY / 0 ACTIVE /
   0 VERIFYING / 0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED; no child is anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 29 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S68 are committed; S69/J45 SPATIAL_FILTER object-family
-  parity is ready. S23/I5
+- Active work: S01-S69 are committed; S70/J46 GEODATA object-family parity is
+  ready. S23/I5
   qualification is ready. S23/I5
   reconciled separate DXF/DWG reports, public/package/LibreCAD consumers, the
   scheduled full and ASan/UBSan checkpoints, bounded fuzz smoke, and explicit
@@ -2572,7 +2581,8 @@ edit this block or commit the same slice concurrently.
 | S66 | J42: IDBUFFER object-family parity | S65 | COMMITTED | focused six-version local writer/self-read; class-registration/owner closure; independent JSON object oracle; malformed-list rejection; plan/scope/sync/fixture gates | local writer/self-read and malformed over-limit-list rollback pass for AC1015/18/21/24/27/32; LibreDWG 0.14 independently qualifies type 510, owner A601, class/count header, and one object handle in all six outputs; generated drawings remain temporary and evidence remains experimental | next fixed-object or version-discrepancy lane; do not block on unavailable variants |
 | S67 | J43: LAYER_INDEX/SPATIAL_INDEX object-family parity | S66 | COMMITTED | focused six-version local writer/self-read; class-registration/owner closure; independent JSON object oracle; malformed-entry rejection; plan/scope/sync/fixture gates | local writer/self-read and malformed-entry rollback pass for one bounded LAYER_INDEX entry linked to IDBUFFER plus an opaque-but-bounded SPATIAL_INDEX carrier; LibreDWG 0.14 qualifies type 511/517, owner A601, and timestamps in all six outputs; generated drawings remain temporary and evidence remains experimental | next fixed-object lane; keep SPATIAL_INDEX opaque-tail discrepancy explicit |
 | S68 | J44: TABLESTYLE object-family parity | S67 | COMMITTED | focused supported-version local writer/self-read; class-registration/owner closure; independent JSON object oracle; malformed-row rejection; capability-boundary checks; plan/scope/sync/fixture gates | local writer/self-read and malformed-row rollback pass for the minimum three-row/six-border payload on AC1015/18/21, with explicit AC1024/27/32 rejection; LibreDWG 0.14 qualifies type 526, owner A601, name, three rows, and six borders, recording an AC1021 row-scalar discrepancy; generated drawings remain temporary and evidence remains experimental | next fixed-object lane; keep AC1021 decoder discrepancy and newer-version capability boundary explicit |
-| S69 | J45: SPATIAL_FILTER object-family parity | S68 | READY | focused six-version local writer/self-read; class-registration/owner closure; independent JSON object oracle; malformed-boundary rejection; plan/scope/sync/fixture gates | ready to qualify a bounded two-point clipped-reference boundary, normal/origin and plane flags, and explicit over-limit/non-finite rejection for AC1015/18/21/24/27/32; generated drawings remain temporary and no fixture bytes are permitted | focused local self-read and object oracle; no full suite unless a release checkpoint declares it |
+| S69 | J45: SPATIAL_FILTER object-family parity | S68 | COMMITTED | focused six-version local writer/self-read; class-registration/owner closure; independent JSON object oracle; malformed-boundary rejection; plan/scope/sync/fixture gates | local writer/self-read and malformed over-limit-boundary rollback pass for AC1015/18/21/24/27/32; LibreDWG 0.14 qualifies owner A601, exact boundary/plane/transform fields, and type 527 through AC1021 versus 526 for AC1024+; generated drawings remain temporary and evidence remains experimental | next fixed-object lane; retain the version-dependent type split explicitly |
+| S70 | J46: GEODATA object-family parity | S69 | READY | focused six-version local writer/self-read; class-registration/owner closure; independent JSON object oracle; malformed-coordinate/mesh rejection; plan/scope/sync/fixture gates | ready to qualify a minimum version-1 geolocation payload with host-block handle and bounded coordinate strings/vectors for AC1015/18/21/24/27/32; generated drawings remain temporary and no fixture bytes are permitted | focused local self-read and object oracle; no full suite unless a release checkpoint declares it |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -2645,7 +2655,8 @@ edit this block or commit the same slice concurrently.
 | J42 | S66 | J41 | COMMITTED | EXPERIMENTAL | Extend the local object graph and independent JSON oracle to IDBUFFER, including class registration, fixed type/header, owner, class version, bounded object-handle list/count, six-version self-read, and transaction-safe out-of-range handling |
 | J43 | S67 | J42 | COMMITTED | EXPERIMENTAL | Extend the local object graph and independent JSON oracle to LAYER_INDEX/SPATIAL_INDEX, including class registration, fixed type/header, owner, timestamp/count fields, one bounded layer-name/IDBUFFER handle entry, an explicitly opaque spatial tail, six-version self-read, and transaction-safe invalid-entry handling |
 | J44 | S68 | J43 | COMMITTED | EXPERIMENTAL | Extend the local object graph and independent JSON oracle to TABLESTYLE for its AC1015-AC1021 capability window, including class registration, fixed type/header, owner/name, minimum three-row/18-border payload, supported-version self-read, explicit newer-version rejection, and transaction-safe invalid-row handling |
-| J45 | S69 | J44 | READY | EXPERIMENTAL | Extend the local object graph and independent JSON oracle to SPATIAL_FILTER, including class registration, fixed type/header, owner, bounded boundary/normal/origin/plane fields, six-version self-read, and transaction-safe over-limit or non-finite rejection |
+| J45 | S69 | J44 | COMMITTED | EXPERIMENTAL | Extend the local object graph and independent JSON oracle to SPATIAL_FILTER, including class registration, fixed type/header, owner, bounded boundary/normal/origin/plane fields, six-version self-read, and transaction-safe over-limit or non-finite rejection |
+| J46 | S70 | J45 | READY | EXPERIMENTAL | Extend the local object graph and independent JSON oracle to GEODATA, including class registration, fixed type/header, owner/host-block handle, version-1 coordinate metadata, bounded strings/vectors, six-version self-read, and transaction-safe non-finite or over-limit rejection |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -2825,7 +2836,8 @@ edit this block or commit the same slice concurrently.
 | J42.1 | J42 / S66 | WP5, WP7, WP8, WP10; IDBUFFER | J41 | COMMITTED | EXPERIMENTAL | emit and self-read one bounded IDBUFFER object for AC1015/18/21/24/27/32, register its class before CLASSES, independently verify fixed type/owner/class-version/count and one object handle, and reject an over-limit list without publishing a frame | focused six-version local self-read, object-oracle self-test/live run, and policy gates; generated drawings remain temporary, no fixture bytes are staged, and list-size/handle edge cases stay explicit |
 | J43.1 | J43 / S67 | WP5, WP7, WP8, WP10; LAYER_INDEX/SPATIAL_INDEX | J42 | COMMITTED | EXPERIMENTAL | emit and self-read one bounded LAYER_INDEX entry linked to IDBUFFER plus an opaque-but-bounded SPATIAL_INDEX carrier for AC1015/18/21/24/27/32, register both classes before CLASSES, independently verify fixed type/owner/timestamp/count/name/handle fields and preserve the spatial-tail discrepancy, and reject invalid entries without publishing a frame | focused six-version local self-read, object-oracle self-test/live run, and policy gates; generated drawings remain temporary, no fixture bytes are staged, and timestamp/name/handle and opaque-tail edge cases stay explicit |
 | J44.1 | J44 / S68 | WP5, WP7, WP8, WP10; TABLESTYLE | J43 | COMMITTED | EXPERIMENTAL | emit and self-read the minimum valid TABLESTYLE payload (three row styles, six borders each) for AC1015/18/21, register its class before CLASSES, independently verify fixed type/owner/name/row-count fields, explicitly reject AC1024/27/32 as unsupported, and reject non-finite or structurally invalid rows without publishing a frame | focused supported-version self-read, object-oracle self-test/live run, capability-boundary check, and policy gates; generated drawings remain temporary, no fixture bytes are staged, and row/border validation remains bounded |
-| J45.1 | J45 / S69 | WP5, WP7, WP8, WP10; SPATIAL_FILTER | J44 | READY | EXPERIMENTAL | emit and self-read one bounded two-point SPATIAL_FILTER for AC1015/18/21/24/27/32, register its class before CLASSES, independently verify fixed type/owner/boundary/normal/plane fields, and reject an over-limit or non-finite boundary without publishing a frame | focused six-version local self-read, object-oracle self-test/live run, and policy gates; generated drawings remain temporary, no fixture bytes are staged, and boundary/transform edge cases stay explicit |
+| J45.1 | J45 / S69 | WP5, WP7, WP8, WP10; SPATIAL_FILTER | J44 | COMMITTED | EXPERIMENTAL | emit and self-read one bounded two-point SPATIAL_FILTER for AC1015/18/21/24/27/32, register its class before CLASSES, independently verify fixed type/owner/boundary/normal/plane fields, and reject an over-limit or non-finite boundary without publishing a frame | focused six-version local self-read, object-oracle self-test/live run, and policy gates; generated drawings remain temporary, no fixture bytes are staged, and boundary/transform edge cases stay explicit |
+| J46.1 | J46 / S70 | WP5, WP7, WP8, WP10; GEODATA | J45 | READY | EXPERIMENTAL | emit and self-read one bounded version-1 GEODATA payload with host-block handle for AC1015/18/21/24/27/32, register its class before CLASSES, independently verify fixed type/owner/version/coordinate fields and reject non-finite coordinates or over-limit mesh vectors without publishing a frame | focused six-version local self-read, object-oracle self-test/live run, and policy gates; generated drawings remain temporary, no fixture bytes are staged, and geodata strings/mesh limits stay explicit |
 
 <!-- UPGRADE_PROGRESS_END -->
 

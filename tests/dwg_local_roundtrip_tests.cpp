@@ -136,6 +136,10 @@ public:
                 registeredTableStyle_ = writer_->registerTableStyleObjectClass(
                     &tableStyleRegistration);
             }
+            DRW_SpatialFilter spatialFilterRegistration;
+            spatialFilterRegistration.handle = 0xD000u;
+            registeredSpatialFilter_ = writer_->registerSpatialFilterObjectClass(
+                &spatialFilterRegistration);
         }
     }
 
@@ -204,6 +208,7 @@ public:
             {"LOCAL_LAYER_INDEX", 0xCD00u},
             {"LOCAL_SPATIAL_INDEX", 0xCE00u},
             {"LOCAL_TABLESTYLE", 0xCF00u},
+            {"LOCAL_SPATIAL_FILTER", 0xD000u},
         };
         wroteDictionary_ = registeredDictionary_
             && writer_->writeDictionary(&dictionary)
@@ -800,6 +805,36 @@ public:
                 !writer_->writeTableStyle(&tableStyle);
         }
 
+        DRW_SpatialFilter spatialFilter;
+        spatialFilter.handle = 0xD000u;
+        spatialFilter.parentHandle = dictionary.handle;
+        spatialFilter.m_boundaryPoints = {
+            DRW_Coord{1.0, 2.0, 0.0}, DRW_Coord{3.0, 4.0, 0.0}};
+        spatialFilter.m_normal = DRW_Coord{0.0, 0.0, 1.0};
+        spatialFilter.m_origin = DRW_Coord{10.0, 20.0, 30.0};
+        spatialFilter.m_displayBoundary = true;
+        spatialFilter.m_clipFrontPlane = true;
+        spatialFilter.m_frontDistance = 5.0;
+        spatialFilter.m_inverseInsertTransform.assign(12, 0.0);
+        spatialFilter.m_insertTransform.assign(12, 0.0);
+        spatialFilter.m_inverseInsertTransform[0] = 1.0;
+        spatialFilter.m_inverseInsertTransform[5] = 1.0;
+        spatialFilter.m_inverseInsertTransform[10] = 1.0;
+        spatialFilter.m_insertTransform[0] = 1.0;
+        spatialFilter.m_insertTransform[5] = 1.0;
+        spatialFilter.m_insertTransform[10] = 1.0;
+        wroteSpatialFilter_ = registeredSpatialFilter_
+            && writer_->writeSpatialFilter(&spatialFilter)
+            && spatialFilter.handle != 0;
+
+        DRW_SpatialFilter invalidSpatialFilter = spatialFilter;
+        invalidSpatialFilter.handle = 0xD001u;
+        invalidSpatialFilter.m_boundaryPoints.assign(
+            DRW_SpatialFilter::kMaxBoundaryPoints + 1,
+            DRW_Coord{0.0, 0.0, 0.0});
+        rejectedMalformedSpatialFilter_ =
+            !writer_->writeSpatialFilter(&invalidSpatialFilter);
+
         DRW_Group group;
         group.handle = 0xA600u;
         group.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
@@ -998,7 +1033,7 @@ public:
         if (data.handle == 0xA601u) {
             readDictionarySeen_ = data.parentHandle
                     == DRW::DwgNamedObjectsDictionaryHandle
-                && data.m_entries.size() == 27
+                && data.m_entries.size() == 28
                 && data.m_entries[0].m_name == "LOCAL_XRECORD"
                 && data.m_entries[0].m_handle == 0xA602u
                 && data.m_entries[1].m_name == "LOCAL_PLOTSETTINGS"
@@ -1052,7 +1087,9 @@ public:
                 && data.m_entries[25].m_name == "LOCAL_SPATIAL_INDEX"
                 && data.m_entries[25].m_handle == 0xCE00u
                 && data.m_entries[26].m_name == "LOCAL_TABLESTYLE"
-                && data.m_entries[26].m_handle == 0xCF00u;
+                && data.m_entries[26].m_handle == 0xCF00u
+                && data.m_entries[27].m_name == "LOCAL_SPATIAL_FILTER"
+                && data.m_entries[27].m_handle == 0xD000u;
         }
     }
     void addXRecord(const DRW_XRecord& data) override {
@@ -1329,6 +1366,20 @@ public:
         if (data.handle == 0xCF01u)
             readMalformedTableStyleSeen_ = true;
     }
+    void addSpatialFilter(const DRW_SpatialFilter& data) override {
+        if (data.handle == 0xD000u)
+            readSpatialFilterSeen_ = data.parentHandle == 0xA601u
+                && data.m_boundaryPoints.size() == 2
+                && data.m_boundaryPoints[0].x == 1.0
+                && data.m_boundaryPoints[1].y == 4.0
+                && data.m_normal.z == 1.0
+                && data.m_origin.x == 10.0
+                && data.m_displayBoundary
+                && data.m_clipFrontPlane
+                && data.m_frontDistance == 5.0;
+        if (data.handle == 0xD001u)
+            readMalformedSpatialFilterSeen_ = true;
+    }
     void addInsert(const DRW_Insert& data) override {
         readInsertSeen_ = true;
         readAttribSeen_ = data.attlist.size() == 1
@@ -1375,6 +1426,7 @@ public:
             && wroteLayerIndex_
             && wroteSpatialIndex_
             && (wroteTableStyle_ || rejectedUnsupportedTableStyle_)
+            && wroteSpatialFilter_
             && wroteGroup_;
     }
     bool rejectedMalformedObject() const { return rejectedMalformedObject_; }
@@ -1432,6 +1484,7 @@ public:
     bool wroteTableStyle() const { return wroteTableStyle_; }
     bool rejectedMalformedTableStyle() const { return rejectedMalformedTableStyle_; }
     bool rejectedUnsupportedTableStyle() const { return rejectedUnsupportedTableStyle_; }
+    bool rejectedMalformedSpatialFilter() const { return rejectedMalformedSpatialFilter_; }
     bool readLineSeen() const { return readLineSeen_; }
     bool readSimpleEntitiesSeen() const {
         return readPointSeen_ && readCircleSeen_ && readArcSeen_
@@ -1463,6 +1516,7 @@ public:
             && readMaterialSeen_ && readLightListSeen_ && readScaleSeen_
             && readIDBufferSeen_ && readLayerIndexSeen_ && readSpatialIndexSeen_
             && (readTableStyleSeen_ || !tableStyleExpected_)
+            && readSpatialFilterSeen_
             && readGroupSeen_;
     }
     bool readMalformedObjectSeen() const { return readMalformedObjectSeen_; }
@@ -1531,6 +1585,8 @@ public:
     bool readMalformedSpatialIndexSeen() const { return readMalformedSpatialIndexSeen_; }
     bool readTableStyleSeen() const { return readTableStyleSeen_; }
     bool readMalformedTableStyleSeen() const { return readMalformedTableStyleSeen_; }
+    bool readSpatialFilterSeen() const { return readSpatialFilterSeen_; }
+    bool readMalformedSpatialFilterSeen() const { return readMalformedSpatialFilterSeen_; }
     void setTableStyleExpected(bool expected) { tableStyleExpected_ = expected; }
     const DRW_Line& readLine() const { return readLine_; }
 
@@ -1590,6 +1646,7 @@ private:
     bool wroteLayerIndex_ {false};
     bool wroteSpatialIndex_ {false};
     bool wroteTableStyle_ {false};
+    bool wroteSpatialFilter_ {false};
     bool rejectedMalformedObject_ {false};
     bool rejectedMalformedStyle_ {false};
     bool rejectedMalformedMLeaderStyle_ {false};
@@ -1617,6 +1674,7 @@ private:
     bool rejectedMalformedSpatialIndex_ {false};
     bool rejectedMalformedTableStyle_ {false};
     bool rejectedUnsupportedTableStyle_ {false};
+    bool rejectedMalformedSpatialFilter_ {false};
     bool registeredDictionary_ {false};
     bool registeredMLeaderStyle_ {false};
     bool registeredDictionaryVar_ {false};
@@ -1641,6 +1699,7 @@ private:
     bool registeredLayerIndex_ {false};
     bool registeredSpatialIndex_ {false};
     bool registeredTableStyle_ {false};
+    bool registeredSpatialFilter_ {false};
     bool registeredPlotSettings_ {false};
     bool readLineSeen_ {false};
     bool readPointSeen_ {false};
@@ -1691,6 +1750,7 @@ private:
     bool readLayerIndexSeen_ {false};
     bool readSpatialIndexSeen_ {false};
     bool readTableStyleSeen_ {false};
+    bool readSpatialFilterSeen_ {false};
     bool tableStyleExpected_ {false};
     bool readMalformedObjectSeen_ {false};
     bool readMalformedStyleSeen_ {false};
@@ -1717,6 +1777,7 @@ private:
     bool readMalformedLayerIndexSeen_ {false};
     bool readMalformedSpatialIndexSeen_ {false};
     bool readMalformedTableStyleSeen_ {false};
+    bool readMalformedSpatialFilterSeen_ {false};
     DRW_Line readLine_;
     dx_data data_;
 };
@@ -1868,6 +1929,9 @@ int main(int argc, char** argv) {
                    : true,
                ("local DWG writer rejected malformed TABLESTYLE transaction" + suffix).c_str(),
                failures);
+        expect(writeIface.rejectedMalformedSpatialFilter(),
+               ("local DWG writer rejected malformed SPATIAL_FILTER transaction" + suffix).c_str(),
+               failures);
         expect(std::filesystem::exists(output),
                ("local DWG output is published" + suffix).c_str(), failures);
 
@@ -1950,6 +2014,9 @@ int main(int argc, char** argv) {
                    : !readIface.readTableStyleSeen(),
                ("local DWG TABLESTYLE capability-gated self-read" + suffix).c_str(),
                failures);
+        expect(readIface.readSpatialFilterSeen(),
+               ("local DWG self-read publishes SPATIAL_FILTER" + suffix).c_str(),
+               failures);
         expect(!readIface.readMalformedObjectSeen(),
                ("local DWG self-read omits rolled-back malformed object" + suffix).c_str(),
                failures);
@@ -2021,6 +2088,9 @@ int main(int argc, char** argv) {
                failures);
         expect(!readIface.readMalformedTableStyleSeen(),
                ("local DWG self-read omits rolled-back malformed TABLESTYLE" + suffix).c_str(),
+               failures);
+        expect(!readIface.readMalformedSpatialFilterSeen(),
+               ("local DWG self-read omits rolled-back malformed SPATIAL_FILTER" + suffix).c_str(),
                failures);
         if (readIface.readLineSeen()) {
             const DRW_Line& line = readIface.readLine();
