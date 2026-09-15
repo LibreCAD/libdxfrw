@@ -14007,13 +14007,10 @@ bool dxfRW::processRawEntity() {
         // parse the common fields needed by the proxy decoder's draw state.
         switch (code) {
         case DRW::dxfCode::HANDLE:
-            // A wide raw handle has no typed proxy-host representation. Keep
-            // its source lexeme in the raw carrier and do not turn it into a
-            // misleading zero handle for proxy-graphic decoding.
-            if (reader->isValidHandleString()
-                && !proxyHost.parseCode(code, reader)) {
-                return setError(DRW::BAD_CODE_PARSED);
-            }
+            // Code 5 is identity metadata for the raw carrier. Do not route
+            // it through the proxy host: DRW_Entity::parseCode registers the
+            // handle and would reject a later raw entity before captureRawGroup
+            // can provide the duplicate-handle diagnostic.
             break;
         case DRW::dxfCode::LAYER:
         case 6:

@@ -1527,6 +1527,84 @@ void testDxfRawEntityHandleDiagnostics(TestContext& t) {
                  && binaryDiagnostic.message.find("handle reference")
                         != std::string::npos,
              "binary raw entity carries field-context handle diagnostic");
+
+    const std::string duplicateEntityRecords =
+        "0\nSECTION\n2\nENTITIES\n0\nLOCAL_ENTITY_FIRST\n5\n5A\n"
+        "0\nLOCAL_ENTITY_SECOND\n5\n5A\n0\nENDSEC\n0\nEOF\n";
+    ProfileProbeInterface duplicateInterface;
+    dxfRW duplicateReader("");
+    std::string duplicateInput = duplicateEntityRecords;
+    t.expect(!duplicateReader.readAscii(&duplicateInterface, false,
+                                        duplicateInput)
+                 && duplicateReader.getError() == DRW::BAD_CODE_PARSED
+                 && duplicateInterface.entities.size() == 1,
+             "DXF raw entity duplicate preserves error and prior callback");
+    const DRW_OperationDiagnostic duplicateDiagnostic =
+        duplicateReader.getLastDiagnostic();
+    t.expect(duplicateDiagnostic.code == "duplicate-handle"
+                 && duplicateDiagnostic.hasHandle
+                 && duplicateDiagnostic.handle == 0x5Au
+                 && duplicateDiagnostic.message.find("self handle")
+                        != std::string::npos,
+             "DXF raw entity duplicate records structured handle context");
+
+    const std::string duplicateEntitySections =
+        "0\nSECTION\n2\nENTITIES\n0\nLOCAL_ENTITY_SECTION_FIRST\n5\n6A\n"
+        "0\nENDSEC\n0\nSECTION\n2\nENTITIES\n"
+        "0\nLOCAL_ENTITY_SECTION_SECOND\n5\n6A\n0\nENDSEC\n0\nEOF\n";
+    ProfileProbeInterface sectionInterface;
+    dxfRW sectionReader("");
+    std::string sectionInput = duplicateEntitySections;
+    t.expect(!sectionReader.readAscii(&sectionInterface, false, sectionInput)
+                 && sectionReader.getError() == DRW::BAD_CODE_PARSED
+                 && sectionInterface.entities.size() == 1,
+             "DXF raw entity duplicates remain scoped across sections");
+
+    const std::string singleEntity =
+        "0\nSECTION\n2\nENTITIES\n0\nLOCAL_ENTITY_FRESH\n5\n5A\n"
+        "0\nENDSEC\n0\nEOF\n";
+    ProfileProbeInterface firstSession;
+    ProfileProbeInterface secondSession;
+    dxfRW freshReader("");
+    std::string firstInput = singleEntity;
+    std::string secondInput = singleEntity;
+    t.expect(freshReader.readAscii(&firstSession, false, firstInput)
+                 && firstSession.entities.size() == 1,
+             "DXF raw entity first session accepts the handle");
+    t.expect(freshReader.readAscii(&secondSession, false, secondInput)
+                 && secondSession.entities.size() == 1,
+             "DXF raw entity fresh session resets handle scope");
+
+    std::ostringstream binaryDuplicateSource;
+    dxfWriterBinary binaryDuplicateWriter(&binaryDuplicateSource);
+    binaryDuplicateWriter.writeString(0, "SECTION");
+    binaryDuplicateWriter.writeString(2, "ENTITIES");
+    binaryDuplicateWriter.writeString(0, "LOCAL_BINARY_ENTITY_FIRST");
+    binaryDuplicateWriter.writeString(5, "5A");
+    binaryDuplicateWriter.writeString(0, "LOCAL_BINARY_ENTITY_SECOND");
+    binaryDuplicateWriter.writeString(5, "5A");
+    binaryDuplicateWriter.writeString(0, "ENDSEC");
+    binaryDuplicateWriter.writeString(0, "EOF");
+    std::stringstream binaryDuplicateInput(binaryDuplicateSource.str());
+    ProfileProbeInterface binaryDuplicateInterface;
+    dxfRW binaryDuplicateReader("");
+    binaryDuplicateReader.binFile = true;
+    binaryDuplicateReader.reader = std::make_unique<dxfReaderBinary>(
+        &binaryDuplicateInput);
+    binaryDuplicateReader.reader->setClassifierProfile(
+        DxfClassifierProfile::StandaloneSafe);
+    binaryDuplicateReader.iface = &binaryDuplicateInterface;
+    binaryDuplicateReader.beginOperationDiagnostic(DRW::OperationKind::Read);
+    t.expect(!binaryDuplicateReader.processDxf()
+                 && binaryDuplicateReader.getError() == DRW::BAD_CODE_PARSED
+                 && binaryDuplicateInterface.entities.size() == 1,
+             "binary raw entity duplicate preserves prior callback");
+    const DRW_OperationDiagnostic binaryDuplicateDiagnostic =
+        binaryDuplicateReader.getLastDiagnostic();
+    t.expect(binaryDuplicateDiagnostic.code == "duplicate-handle"
+                 && binaryDuplicateDiagnostic.hasHandle
+                 && binaryDuplicateDiagnostic.handle == 0x5Au,
+             "binary raw entity duplicate records handle context");
 }
 
 void testRawCapture(TestContext& t) {
