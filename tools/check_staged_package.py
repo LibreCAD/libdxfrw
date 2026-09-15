@@ -157,6 +157,56 @@ def self_test_relocatable_cmake_export() -> None:
         raise RuntimeError("CMake export self-test accepted a stale system path")
 
 
+def check_relocated_consumer(prefix: Path, cxx: str) -> None:
+    """Build one minimal consumer after copying the install to a new root."""
+    prefix = prefix.resolve()
+    if not (prefix / "include" / "libdxfrw").is_dir():
+        raise RuntimeError("relocation source is missing installed headers")
+    with tempfile.TemporaryDirectory(prefix="libdxfrw-relocated-") as directory:
+        root = Path(directory)
+        relocated = root / "prefix"
+        shutil.copytree(prefix, relocated)
+        consumer = root / "consumer.cpp"
+        consumer.write_text(
+            "#include <libdxfrw.h>\n"
+            "int main() {\n"
+            "  dxfRW codec(\"\");\n"
+            "  return codec.dxfCompatibilityProfile() ==\n"
+            "      dxfRW::DxfCompatibilityProfile::StandaloneSafe ? 0 : 1;\n"
+            "}\n",
+            encoding="utf-8")
+        cmake = root / "CMakeLists.txt"
+        cmake.write_text(
+            "cmake_minimum_required(VERSION 3.10)\n"
+            "project(libdxfrw_relocated_consumer LANGUAGES CXX)\n"
+            "set(CMAKE_CXX_STANDARD 17)\n"
+            "find_package(libdxfrw CONFIG REQUIRED)\n"
+            "add_executable(relocated_consumer consumer.cpp)\n"
+            "target_link_libraries(relocated_consumer PRIVATE libdxfrw::libdxfrw)\n",
+            encoding="utf-8")
+        cmake_build = root / "cmake-build"
+        run(["cmake", "-S", str(root), "-B", str(cmake_build),
+             "-DCMAKE_PREFIX_PATH=" + str(relocated),
+             "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"])
+        run(["cmake", "--build", str(cmake_build), "-j2"])
+
+        pkgconfig = os.environ.copy()
+        pkgconfig["PKG_CONFIG_PATH"] = str(relocated / "lib" / "pkgconfig")
+        reported_prefix = run(
+            ["pkg-config", "--define-prefix", "--variable=prefix", "libdxfrw"],
+            env=pkgconfig).stdout.strip()
+        if Path(reported_prefix).resolve() != relocated.resolve():
+            raise RuntimeError(
+                "relocated pkg-config prefix does not resolve to copied root: %s"
+                % reported_prefix)
+        flags = shlex.split(run(
+            ["pkg-config", "--define-prefix", "--cflags", "--libs", "libdxfrw"],
+            env=pkgconfig).stdout)
+        assert_staged_flags(flags, relocated)
+        run([cxx, "-std=c++17", "-Wall", "-Wextra", "-Werror",
+             str(consumer), "-o", str(root / "pkgconfig-consumer")] + flags)
+
+
 def check(prefix: Path, cxx: str) -> None:
     prefix = prefix.resolve()
     include_root = prefix / "include" / "libdxfrw"
@@ -265,6 +315,8 @@ def main() -> int:
                         help="staged install prefix (repeat for isolation checks)")
     parser.add_argument("--self-test", action="store_true",
                         help="exercise staged-path acceptance and rejection")
+    parser.add_argument("--relocation-smoke", action="store_true",
+                        help="copy one staged prefix and build relocated consumers")
     parser.add_argument("--cxx", default=os.environ.get("CXX", "c++"))
     args = parser.parse_args()
     if args.self_test:
@@ -281,6 +333,10 @@ def main() -> int:
     try:
         for prefix in prefixes:
             check(prefix, args.cxx)
+        if args.relocation_smoke:
+            if len(prefixes) != 1:
+                parser.error("--relocation-smoke requires exactly one --prefix")
+            check_relocated_consumer(prefixes[0], args.cxx)
     except subprocess.CalledProcessError as error:
         if error.output:
             print(error.output, end="")
