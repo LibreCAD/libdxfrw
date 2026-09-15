@@ -1948,6 +1948,11 @@ edit this block or commit the same slice concurrently.
   exceptions under both release and ASan/UBSan hardening binaries. No drawing
   bytes were added; long fuzz, native Windows, package, and parity-promotion
   evidence remain scheduled.
+- Latest correctness slice (2026-09-15): S261/J237 fixes `dxfRW` ASCII
+  state reuse. `readAscii()` now clears stale binary-mode state before parsing;
+  a focused regression reuses one object after `setBinary(true)` and confirms
+  raw ASCII source spellings remain captured. Release and ASan/UBSan hardening
+  binaries pass; no drawing bytes were added.
 - Previous checkpoint (2026-09-15): S257/J233 post-hardening validation
   checkpoint is committed. A fresh C++17 build and all 26 dependency-free
   CTest entries pass in 6.26 seconds, including source-route and release
@@ -3243,17 +3248,17 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 260 (`COMMITTED`); no slice is active.
+- Resolved slices: 261 (`COMMITTED`); no slice is active.
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 260 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 261 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 262 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 263 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 2 VERIFIED / 358 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 2 VERIFIED / 359 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 238 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S260 are committed; no local implementation slice is active.
+  0 DEFERRED_EXTERNAL / 239 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S261 are committed; no local implementation slice is active.
   Remaining work is evidence-gated runtime/oracle and release closure; keep
   the fast inner loop and do not promote support claims from self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -3568,6 +3573,7 @@ edit this block or commit the same slice concurrently.
 | S258 | J234: post-hardening sanitizer/security checkpoint | S257 | COMMITTED | fresh ASan+UBSan build; complete dependency-free CTest; leak-policy note; plan/scope/sync/fixture gates | fresh sanitizer build and all 26 dependency-free CTest entries pass in 6.58 seconds with macOS leak detection disabled; transaction race/descriptor tests, façade lanes, local DWG/oracle probes, fixtures, support matrix, and release readiness pass; no drawing fixtures or derived payloads | native Windows, longer fuzz, package, and external-corpus evidence remain scheduled |
 | S259 | J235: bounded DXF parser fuzz smoke | S258 | COMMITTED | deterministic in-memory malformed ASCII corpus; no-throw callback sink; focused hardening gate; plan/scope/sync/fixture gates | 2,048 deterministic parser inputs (structured DXF skeletons plus arbitrary bytes, maximum 384 bytes) pass through `dxfRW::readAscii` without exceptions under release and ASan/UBSan builds; no drawing fixtures or payloads retained | longer external fuzz, native Windows, package, and parity-promotion evidence remain scheduled |
 | S260 | J236: bounded DWG parser fuzz smoke | S259 | COMMITTED | deterministic in-memory malformed DWG corpus; six-version headers; no-throw callback sink; focused hardening gate; plan/scope/sync/fixture gates | 512 deterministic parser inputs span AC1015/18/21/24/27/32 headers with arbitrary and zero-filled tails and pass through `dwgRW::readBuffer` without exceptions under release and ASan/UBSan builds; no drawing fixtures or payloads retained | longer external fuzz, native Windows, package, and parity-promotion evidence remain scheduled |
+| S261 | J237: DXF ASCII mode-state reuse fix | S260 | COMMITTED | ASCII reader reset; raw source-spelling regression; focused hardening gate; plan/scope/sync/fixture gates | `readAscii()` clears stale binary-mode state; a reused reader captures ASCII raw values after `setBinary(true)` under release and ASan/UBSan hardening binaries; no drawing fixtures or payloads retained | longer external fuzz, native Windows, package, and parity-promotion evidence remain scheduled |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3832,6 +3838,7 @@ edit this block or commit the same slice concurrently.
 | J234 | S258 | J233 | COMMITTED | EXPERIMENTAL | Qualify post-hardening sanitizer/security checkpoint | Run a fresh ASan+UBSan build and all dependency-free CTest entries after transaction hardening, record the macOS leak-detection limitation, and keep native Windows/fuzz/package evidence scheduled |
 | J235 | S259 | J234 | COMMITTED | EXPERIMENTAL | Qualify bounded DXF parser fuzz smoke | Exercise the public in-memory DXF parser with deterministic malformed and structured inputs through a no-op callback sink; require no exceptions, bounded execution, and no retained drawing payloads while leaving long external fuzz evidence scheduled |
 | J236 | S260 | J235 | COMMITTED | EXPERIMENTAL | Qualify bounded DWG parser fuzz smoke | Exercise the public in-memory DWG parser across all six supported magic families with deterministic malformed tails through a no-op callback sink; require no exceptions, bounded execution, and no retained drawing payloads while leaving long external fuzz evidence scheduled |
+| J237 | S261 | J236 | COMMITTED | EXPERIMENTAL | Qualify DXF ASCII mode-state reuse fix | Ensure the explicit ASCII read entry point resets stale binary-mode state on a reused `dxfRW` object and preserves raw source spellings through the callback contract without changing the standalone-safe classifier policy |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4203,6 +4210,7 @@ edit this block or commit the same slice concurrently.
 | J234.1 | J234 / S258 | WP8, WP10; post-hardening sanitizer/security checkpoint | J233 | COMMITTED | EXPERIMENTAL | run a fresh ASan+UBSan build and all dependency-free CTest entries, preserve the macOS leak-detection limitation, and retain the no-fixture policy | all 26 sanitizer CTest entries pass in 6.58 seconds with leak detection disabled; plan check, fixture admission, import scope, pinned sync, and diff gates pass; native Windows, longer fuzz, package, and external-corpus evidence remains scheduled |
 | J235.1 | J235 / S259 | WP8, WP10; bounded DXF parser fuzz smoke | J234 | COMMITTED | EXPERIMENTAL | run 2,048 deterministic in-memory malformed/structured ASCII inputs through `dxfRW::readAscii` with a no-op callback sink, assert no exception, and retain no drawing payloads | release and ASan/UBSan hardening binaries pass the parser fuzz smoke; focused hardening and policy gates pass; longer fuzz and external-corpus evidence remain scheduled |
 | J236.1 | J236 / S260 | WP8, WP10; bounded DWG parser fuzz smoke | J235 | COMMITTED | EXPERIMENTAL | run 512 deterministic in-memory malformed DWG inputs spanning AC1015/18/21/24/27/32 through `dwgRW::readBuffer` with a no-op callback sink, assert no exception, and retain no drawing payloads | release and ASan/UBSan hardening binaries pass the six-version DWG parser fuzz smoke; focused hardening and policy gates pass; longer fuzz and external-corpus evidence remain scheduled |
+| J237.1 | J237 / S261 | WP4, WP8, WP10; DXF ASCII mode-state reuse | J236 | COMMITTED | EXPERIMENTAL | set binary mode on a `dxfRW` instance, call `readAscii()` with a raw custom section, and assert successful parsing plus source-value retention; keep the regression fixture-free | release and ASan/UBSan hardening binaries pass the reuse regression; focused hardening and policy gates pass; no drawing fixtures or derived payloads |
 
 <!-- UPGRADE_PROGRESS_END -->
 

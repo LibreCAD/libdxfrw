@@ -71,6 +71,10 @@ public:
     void addViewport(const DRW_Viewport&) override {}
     void addImage(const DRW_Image*) override {}
     void linkImage(const DRW_ImageDef*) override {}
+    void addRawDxfSection(const DRW_RawDxfSection& data) override {
+        ++rawSectionCount;
+        rawSectionHasValues = rawSectionHasValues || data.m_hasRawValues;
+    }
     void addComment(const char*) override {}
     void addPlotSettings(const DRW_PlotSettings*) override {}
     void writeHeader(DRW_Header&) override {}
@@ -84,6 +88,9 @@ public:
     void writeDimstyles() override {}
     void writeObjects() override {}
     void writeAppId() override {}
+
+    std::size_t rawSectionCount {0};
+    bool rawSectionHasValues {false};
 };
 
 void testCheckedArithmetic(TestContext& t) {
@@ -298,6 +305,19 @@ void testDwgReadFuzzSmoke(TestContext& t) {
     }
 }
 
+void testDxfReadAsciiResetsFormatState(TestContext& t) {
+    std::string content =
+        "0\nSECTION\n2\nLOCAL_REUSE\n260\n2147483647\n"
+        "0\nENDSEC\n0\nEOF\n";
+    FuzzInterface interface_;
+    dxfRW reader(nullptr);
+    reader.setBinary(true);
+    t.expect(reader.readAscii(&interface_, false, content),
+             "ASCII read remains usable after binary mode state");
+    t.expect(interface_.rawSectionCount == 1u && interface_.rawSectionHasValues,
+             "ASCII raw capture retains source values after binary reuse");
+}
+
 } // namespace
 
 int main() {
@@ -307,6 +327,7 @@ int main() {
     testMalformedInMemoryInputs(context);
     testDxfReadFuzzSmoke(context);
     testDwgReadFuzzSmoke(context);
+    testDxfReadAsciiResetsFormatState(context);
     if (context.failures != 0) {
         std::cerr << context.failures << " hardening assertion(s) failed\n";
         return 1;

@@ -1322,6 +1322,10 @@ bool dxfRW::readAscii(DRW_Interface *interface_, bool ext, std::string& content)
     if (nullptr == interface_) {
         return setError(DRW::BAD_UNKNOWN);
     }
+    // readAscii is an explicit ASCII entry point.  A caller may reuse one
+    // dxfRW instance after a binary write/read operation; leaving binFile set
+    // would incorrectly suppress ASCII raw-value/source-spelling capture.
+    binFile = false;
     version = DRW::UNKNOWNV;
     error = DRW::BAD_NONE;
     nextentity.clear();
