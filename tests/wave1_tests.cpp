@@ -3981,6 +3981,42 @@ void testDxfRawSectionMissingEndsec(TestContext& t) {
              "DXF binary raw section rejects a missing ENDSEC marker");
 }
 
+void testDxfRawSectionEmptyNameRead(TestContext& t) {
+    const std::string asciiSource =
+        "0\nSECTION\n2\n\n0\nENDSEC\n0\nEOF\n";
+    ProfileProbeInterface asciiInterface;
+    dxfRW asciiReader("");
+    asciiReader.binFile = false;
+    std::stringstream asciiInput(asciiSource);
+    asciiReader.reader = std::make_unique<dxfReaderAscii>(&asciiInput);
+    asciiReader.reader->setClassifierProfile(DxfClassifierProfile::StandaloneSafe);
+    asciiReader.iface = &asciiInterface;
+    asciiReader.beginOperationDiagnostic(DRW::OperationKind::Read);
+    t.expect(!asciiReader.processDxf()
+                 && asciiReader.getError() == DRW::BAD_READ_SECTION
+                 && asciiInterface.sections.empty(),
+             "DXF ASCII raw section rejects an empty section name");
+
+    std::ostringstream binarySource;
+    dxfWriterBinary binarySourceWriter(&binarySource);
+    binarySourceWriter.writeString(0, "SECTION");
+    binarySourceWriter.writeString(2, "");
+    binarySourceWriter.writeString(0, "ENDSEC");
+    binarySourceWriter.writeString(0, "EOF");
+    std::stringstream binaryInput(binarySource.str());
+    ProfileProbeInterface binaryInterface;
+    dxfRW binaryReader("");
+    binaryReader.binFile = true;
+    binaryReader.reader = std::make_unique<dxfReaderBinary>(&binaryInput);
+    binaryReader.reader->setClassifierProfile(DxfClassifierProfile::StandaloneSafe);
+    binaryReader.iface = &binaryInterface;
+    binaryReader.beginOperationDiagnostic(DRW::OperationKind::Read);
+    t.expect(!binaryReader.processDxf()
+                 && binaryReader.getError() == DRW::BAD_READ_SECTION
+                 && binaryInterface.sections.empty(),
+             "DXF binary raw section rejects an empty section name");
+}
+
 void testDxfRawSectionApplicationGroupMarker(TestContext& t) {
     const std::vector<std::string> invalidMarkers = {"{", "NOT_A_MARKER"};
     for (const std::string& marker : invalidMarkers) {
@@ -4343,6 +4379,7 @@ int main() {
     testDxfRawSectionFinalEofWithoutNewline(context);
     testDxfRawSectionMissingEof(context);
     testDxfRawSectionMissingEndsec(context);
+    testDxfRawSectionEmptyNameRead(context);
     testDxfRawSectionApplicationGroupMarker(context);
     testDxfRawSectionApplicationGroupReferenceMatrix(context);
     testRawCapture(context);
