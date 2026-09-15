@@ -2877,6 +2877,24 @@ public:
         readGroupSeen_ = data.m_entityHandles.size() == 1
             && data.m_description == "LOCAL_GROUP";
     }
+    void addUnsupportedObject(const DRW_UnsupportedObject& data) override {
+        if (data.m_isEntity)
+            return;
+        readRawObjectInvariant_ = readRawObjectInvariant_
+            && data.m_version == expectedVersion_
+            && data.m_objectSize == data.m_rawBytes.size()
+            && static_cast<std::uint64_t>(data.m_bodyBitSize)
+                <= static_cast<std::uint64_t>(data.m_rawBytes.size()) * 8u;
+        if (!isLocalObjectHandle(data.m_handle))
+            return;
+        if (std::find(readLocalRawObjectHandles_.begin(),
+                      readLocalRawObjectHandles_.end(), data.m_handle)
+            != readLocalRawObjectHandles_.end()) {
+            readRawObjectInvariant_ = false;
+            return;
+        }
+        readLocalRawObjectHandles_.push_back(data.m_handle);
+    }
     void addDictionary(const DRW_Dictionary& data) override {
         if (data.handle == 0xA601u) {
             readDictionarySeen_ = data.parentHandle
@@ -3932,6 +3950,13 @@ public:
     bool readInsertSeen() const { return readInsertSeen_; }
     bool readAttribSeen() const { return readAttribSeen_; }
     bool readGroupSeen() const { return readGroupSeen_; }
+    bool readObjectRawCarrierSetSeen() const {
+        const std::size_t expected = expectedVersion_ == DRW::AC1015
+            ? 53u : expectedVersion_ == DRW::AC1018
+                ? 54u : expectedVersion_ == DRW::AC1021 ? 56u : 55u;
+        return readRawObjectInvariant_
+            && readLocalRawObjectHandles_.size() == expected;
+    }
     bool readObjectSetSeen() const {
         const bool result = readDictionarySeen_ && readXRecordSeen_
             && readPlotSettingsSeen_ && readLayoutSeen_ && readMLineStyleSeen_
@@ -4137,6 +4162,70 @@ public:
     const DRW_Line& readLine() const { return readLine_; }
 
 private:
+    static bool isLocalObjectHandle(std::uint32_t handle) {
+        switch (handle) {
+        case 0xA600u:
+        case 0xA601u:
+        case 0xA602u:
+        case 0xA603u:
+        case 0xA700u:
+        case 0xA800u:
+        case 0xA900u:
+        case 0xB000u:
+        case 0xB100u:
+        case 0xB200u:
+        case 0xB300u:
+        case 0xB400u:
+        case 0xB500u:
+        case 0xB600u:
+        case 0xC000u:
+        case 0xC100u:
+        case 0xC200u:
+        case 0xC300u:
+        case 0xC400u:
+        case 0xC600u:
+        case 0xC700u:
+        case 0xC800u:
+        case 0xC900u:
+        case 0xCA00u:
+        case 0xCB00u:
+        case 0xCC00u:
+        case 0xCD00u:
+        case 0xCE00u:
+        case 0xCF00u:
+        case 0xD000u:
+        case 0xD100u:
+        case 0xD200u:
+        case 0xD300u:
+        case 0xD400u:
+        case 0xD500u:
+        case 0xD600u:
+        case 0xD601u:
+        case 0xD800u:
+        case 0xD900u:
+        case 0xDA00u:
+        case 0xDB00u:
+        case 0xDC00u:
+        case 0xDD00u:
+        case 0xDE00u:
+        case 0xDF00u:
+        case 0xE000u:
+        case 0xE100u:
+        case 0xE200u:
+        case 0xE300u:
+        case 0xE400u:
+        case 0xE500u:
+        case 0xE700u:
+        case 0xE800u:
+        case 0xEA00u:
+        case 0xEB00u:
+        case 0xEC00u:
+            return true;
+        default:
+            return false;
+        }
+    }
+
     dwgRW* writer_ {nullptr};
     DRW::Version expectedVersion_ {DRW::UNKNOWNV};
     bool wroteLine_ {false};
@@ -4457,6 +4546,8 @@ private:
     bool readGeoDataSeen_ {false};
     bool readGeoDataV2Seen_ {false};
     bool tableStyleExpected_ {false};
+    bool readRawObjectInvariant_ {true};
+    std::vector<std::uint32_t> readLocalRawObjectHandles_;
     bool readMalformedObjectSeen_ {false};
     bool readMalformedStyleSeen_ {false};
     bool readMalformedMLeaderStyleSeen_ {false};
@@ -5657,6 +5748,9 @@ int main(int argc, char** argv) {
         expect(readIface.readObjectSetSeen(),
                ("local DWG self-read publishes object carrier set" + suffix).c_str(),
                failures);
+        expect(readIface.readObjectRawCarrierSetSeen(),
+               ("local DWG self-read pairs typed OBJECTS with valid raw carriers"
+                + suffix).c_str(), failures);
         expect(readIface.readTvDevicePropertiesSeen(),
                ("local DWG self-read publishes TVDEVICEPROPERTIES" + suffix).c_str(),
                failures);
