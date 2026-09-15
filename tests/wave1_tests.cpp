@@ -3199,6 +3199,55 @@ void testDxfRawSectionApplicationGroupChunkSize(TestContext& t) {
              "DXF binary raw section rejects a 128-byte chunk transactionally");
 }
 
+void testDxfRawSectionHandleDiagnostics(TestContext& t) {
+    const std::string malformedSelf =
+        "0\nSECTION\n2\nLOCAL_BAD_SECTION\n5\nnot-hex\n"
+        "0\nENDSEC\n0\nEOF\n";
+    ProfileProbeInterface selfInterface;
+    dxfRW selfReader("");
+    std::string selfInput = malformedSelf;
+    const bool selfRead = selfReader.readAscii(&selfInterface, false, selfInput);
+    t.expect(!selfRead
+                 && selfReader.getError() == DRW::BAD_CODE_PARSED
+                 && selfInterface.sections.empty(),
+             "DXF malformed raw-section self handle preserves stage and callback policy");
+    const DRW_OperationDiagnostic selfDiagnostic = selfReader.getLastDiagnostic();
+    t.expect(selfDiagnostic.phase == DRW::OperationPhase::Validation
+                 && selfDiagnostic.cause == DRW::OperationCause::ValidationFailure
+                 && selfDiagnostic.code == "invalid-handle"
+                 && selfDiagnostic.message.find("invalid self handle")
+                        != std::string::npos,
+             "DXF raw-section self handle records invalid-handle context");
+
+    std::ostringstream binarySource;
+    dxfWriterBinary binaryWriter(&binarySource);
+    binaryWriter.writeString(0, "SECTION");
+    binaryWriter.writeString(2, "LOCAL_BINARY_BAD_SECTION");
+    binaryWriter.writeString(330, "not-owner");
+    binaryWriter.writeString(0, "ENDSEC");
+    binaryWriter.writeString(0, "EOF");
+    std::stringstream binaryInput(binarySource.str());
+    ProfileProbeInterface ownerInterface;
+    dxfRW ownerReader("");
+    ownerReader.binFile = true;
+    ownerReader.reader = std::make_unique<dxfReaderBinary>(&binaryInput);
+    ownerReader.reader->setClassifierProfile(DxfClassifierProfile::StandaloneSafe);
+    ownerReader.iface = &ownerInterface;
+    ownerReader.beginOperationDiagnostic(DRW::OperationKind::Read);
+    const bool ownerRead = ownerReader.processDxf();
+    t.expect(!ownerRead
+                 && ownerReader.getError() == DRW::BAD_READ_SECTION
+                 && ownerInterface.sections.empty(),
+             "binary malformed raw-section owner handle preserves stage and callback policy");
+    const DRW_OperationDiagnostic ownerDiagnostic = ownerReader.getLastDiagnostic();
+    t.expect(ownerDiagnostic.phase == DRW::OperationPhase::Validation
+                 && ownerDiagnostic.cause == DRW::OperationCause::ValidationFailure
+                 && ownerDiagnostic.code == "invalid-handle"
+                 && ownerDiagnostic.message.find("handle reference")
+                        != std::string::npos,
+             "binary raw-section owner handle records reference context");
+}
+
 void testDxfRawSectionApplicationGroupMarker(TestContext& t) {
     const std::vector<std::string> invalidMarkers = {"{", "NOT_A_MARKER"};
     for (const std::string& marker : invalidMarkers) {
@@ -3544,6 +3593,7 @@ int main() {
     testDxfRawSectionApplicationGroupBinaryChunks(context);
     testDxfRawSectionApplicationGroupChunkCodeMatrix(context);
     testDxfRawSectionApplicationGroupChunkSize(context);
+    testDxfRawSectionHandleDiagnostics(context);
     testDxfRawSectionApplicationGroupMarker(context);
     testDxfRawSectionApplicationGroupReferenceMatrix(context);
     testRawCapture(context);

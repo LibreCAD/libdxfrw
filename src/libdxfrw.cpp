@@ -8044,8 +8044,11 @@ bool dxfRW::processRawDxfSection(const std::string& sectionName) {
         }
 
         DRW_RawDxfObject group;
-        if (!captureRawGroup(group, code, /*validateHandles=*/true)
-            || group.groups.empty()
+        if (!captureRawGroup(group, code, /*validateHandles=*/true)) {
+            recordInvalidRawHandleDiagnostic();
+            return setError(DRW::BAD_CODE_PARSED);
+        }
+        if (group.groups.empty()
             || !updateRawDxfApplicationDepth(group.groups.back(),
                                                applicationDepth))
             return setError(DRW::BAD_CODE_PARSED);
@@ -8056,6 +8059,7 @@ bool dxfRW::processRawDxfSection(const std::string& sectionName) {
             return setError(DRW::BAD_CODE_PARSED);
         }
     }
+    recordInvalidRawHandleDiagnostic();
     return setError(DRW::BAD_READ_SECTION);
 }
 

@@ -119,10 +119,10 @@
     },
     {
       "path": "src/libdxfrw.cpp",
-      "reason": "Route raw DXF capture and replay through canonical or explicitly selected classifier profiles, expose an additive public compatibility-profile opt-in, preserve null/error compatibility, instrument stage-aware operation diagnostics including duplicate, malformed, and field-context raw-handle context across raw object and entity paths, and keep code-5 identity metadata out of proxy-host registration so raw replay remains authoritative; ignore inactive HATCH gradient carriers while retaining active-gradient validation.",
+      "reason": "Route raw DXF capture and replay through canonical or explicitly selected classifier profiles, expose an additive public compatibility-profile opt-in, preserve null/error compatibility, instrument stage-aware operation diagnostics including duplicate, malformed, and field-context raw-handle context across raw object, entity, and unknown-section paths, and keep code-5 identity metadata out of proxy-host registration so raw replay remains authoritative; ignore inactive HATCH gradient carriers while retaining active-gradient validation.",
       "scope": "DXF classifier correctness",
       "targetBlob": "71851fcf8d5636080c83f2eb1af4a8ef5a80e0ef",
-      "adaptedSha256": "4532efc0525af5b84fb5c3b119c05f030e85e6852cb89a41b598e92166133632"
+      "adaptedSha256": "96696d84e016cac5e552c0f04d08afdb84a587828d99703bdb2d860e1aee8d55"
     },
     {
       "path": "src/libdxfrw.h",
