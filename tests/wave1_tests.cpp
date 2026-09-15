@@ -5185,6 +5185,58 @@ void testDxfRawObjectRawValueCardinality(TestContext& t) {
              "DXF binary raw object accepts empty raw-value placeholders");
 }
 
+void testDxfRawObjectRemapChain(TestContext& t) {
+    DRW_RawDxfObject object;
+    object.name = "LOCAL_RAW_REMAP_CHAIN";
+    object.m_version = DRW::AC1027;
+    object.hasRawValues = true;
+    object.groups = {DRW_Variant(5, std::string("2A")),
+                     DRW_Variant(330, std::string("3A"))};
+    object.rawValues = {"2A", "3A"};
+    const std::map<std::uint32_t, std::uint32_t> remap = {
+        {0x2Au, 0x3Au}, {0x3Au, 0x4Au}};
+    const std::vector<std::pair<int, std::string>> expected = {
+        {0, object.name}, {5, "3A"}, {330, "4A"}};
+
+    std::ostringstream asciiOutput;
+    dxfRW asciiWriter("");
+    asciiWriter.version = DRW::AC1027;
+    asciiWriter.binFile = false;
+    asciiWriter.writer = std::make_unique<dxfWriterAscii>(&asciiOutput);
+    asciiWriter.setHandleRemap(remap);
+    t.expect(asciiWriter.writeRawDxfObject(&object),
+             "DXF ASCII raw object applies one remap step per handle");
+    std::stringstream asciiRecords(asciiOutput.str());
+    dxfReaderAscii asciiReader(&asciiRecords);
+    std::vector<std::pair<int, std::string>> asciiActual;
+    int asciiCode = 0;
+    while (asciiReader.readRec(&asciiCode))
+        asciiActual.emplace_back(asciiCode, asciiReader.getString());
+    t.expect(asciiActual == expected,
+             "DXF ASCII raw object preserves one-step remap semantics");
+
+    DRW_RawDxfObject binaryObject = object;
+    binaryObject.hasRawValues = false;
+    binaryObject.rawValues.clear();
+    std::ostringstream binaryOutput;
+    dxfRW binaryWriter("");
+    binaryWriter.version = DRW::AC1027;
+    binaryWriter.binFile = true;
+    binaryWriter.writer = std::make_unique<dxfWriterBinary>(&binaryOutput);
+    binaryWriter.setHandleRemap(remap);
+    t.expect(binaryWriter.writeRawDxfObject(&binaryObject),
+             "DXF binary raw object applies one remap step per handle");
+    std::stringstream binaryRecords(binaryOutput.str());
+    dxfReaderBinary binaryReader(&binaryRecords);
+    binaryReader.setClassifierProfile(DxfClassifierProfile::StandaloneSafe);
+    std::vector<std::pair<int, std::string>> binaryActual;
+    int binaryCode = 0;
+    while (binaryReader.readRec(&binaryCode))
+        binaryActual.emplace_back(binaryCode, binaryReader.getString());
+    t.expect(binaryActual == expected,
+             "DXF binary raw object preserves one-step remap semantics");
+}
+
 void testDxfRawSectionApplicationGroupReferenceMatrix(TestContext& t) {
     DRW_RawDxfSection section;
     section.m_name = "LOCAL_SECTION_REFERENCE_MATRIX";
@@ -5537,6 +5589,7 @@ int main() {
     testDxfRawObjectApplicationGroupChunkCodeMatrix(context);
     testDxfRawObjectApplicationGroupChunkSize(context);
     testDxfRawObjectRawValueCardinality(context);
+    testDxfRawObjectRemapChain(context);
     testDxfRawSectionApplicationGroupReferenceMatrix(context);
     testRawCapture(context);
     testHatchValidationIgnoresInactiveGradient(context);
