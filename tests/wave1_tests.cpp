@@ -4989,6 +4989,91 @@ void testDxfRawObjectApplicationGroupReferenceMatrix(TestContext& t) {
              "DXF binary raw object reference-code matrix preserves framing");
 }
 
+void testDxfRawObjectApplicationGroupChunkCodeMatrix(TestContext& t) {
+    DRW_RawDxfObject object;
+    object.name = "LOCAL_RAW_CHUNK_CODES";
+    object.m_version = DRW::AC1027;
+    object.hasRawValues = true;
+    object.groups.emplace_back(5, std::string("1A"));
+    object.rawValues.emplace_back("1A");
+    object.groups.emplace_back(102, std::string("{CHUNK_CODES"));
+    object.rawValues.emplace_back("{CHUNK_CODES");
+    for (int code = 310; code <= 319; ++code) {
+        const std::string value = (code & 1) == 0 ? "A1B2" : "C3D4";
+        object.groups.emplace_back(code, value);
+        object.rawValues.emplace_back(value);
+    }
+    object.groups.emplace_back(1004, std::string("01020304"));
+    object.rawValues.emplace_back("01020304");
+    object.groups.emplace_back(102, std::string("}"));
+    object.rawValues.emplace_back("}");
+
+    std::ostringstream asciiOutput;
+    dxfRW asciiWriter("");
+    asciiWriter.version = DRW::AC1027;
+    asciiWriter.binFile = false;
+    asciiWriter.writer = std::make_unique<dxfWriterAscii>(&asciiOutput);
+    t.expect(asciiWriter.writeRawDxfObject(&object),
+             "DXF ASCII raw object replays every binary chunk code");
+    std::stringstream asciiRecords(asciiOutput.str());
+    dxfReaderAscii asciiReader(&asciiRecords);
+    std::vector<std::pair<int, std::string>> asciiActual;
+    int asciiCode = 0;
+    while (asciiReader.readRec(&asciiCode))
+        asciiActual.emplace_back(asciiCode, asciiReader.getString());
+    t.expect(asciiActual.size() == object.groups.size() + 1u
+                 && asciiActual[0] == std::make_pair(0, object.name)
+                 && asciiActual[1] == std::make_pair(5, std::string("1A")),
+             "DXF ASCII raw object preserves chunk-code framing");
+
+    DRW_RawDxfObject binaryObject = object;
+    binaryObject.hasRawValues = false;
+    binaryObject.rawValues.clear();
+    std::ostringstream binaryOutput;
+    dxfRW binaryWriter("");
+    binaryWriter.version = DRW::AC1027;
+    binaryWriter.binFile = true;
+    binaryWriter.writer = std::make_unique<dxfWriterBinary>(&binaryOutput);
+    t.expect(binaryWriter.writeRawDxfObject(&binaryObject),
+             "DXF binary raw object replays every binary chunk code");
+    std::stringstream binaryRecords(binaryOutput.str());
+    dxfReaderBinary binaryReader(&binaryRecords);
+    binaryReader.setClassifierProfile(DxfClassifierProfile::StandaloneSafe);
+    std::vector<std::pair<int, std::string>> binaryActual;
+    int binaryCode = 0;
+    while (binaryReader.readRec(&binaryCode))
+        binaryActual.emplace_back(binaryCode, binaryReader.getString());
+    t.expect(binaryActual.size() == object.groups.size() + 1u
+                 && binaryActual[0] == std::make_pair(0, object.name)
+                 && binaryActual[1] == std::make_pair(5, std::string("1A")),
+             "DXF binary raw object preserves chunk-code framing");
+
+    DRW_RawDxfObject malformedAscii = object;
+    malformedAscii.groups[5] = DRW_Variant(313, std::string("ABC"));
+    malformedAscii.rawValues[5] = "ABC";
+    std::ostringstream rejectedAsciiOutput;
+    dxfRW rejectingAsciiWriter("");
+    rejectingAsciiWriter.version = DRW::AC1027;
+    rejectingAsciiWriter.binFile = false;
+    rejectingAsciiWriter.writer = std::make_unique<dxfWriterAscii>(
+        &rejectedAsciiOutput);
+    t.expect(!rejectingAsciiWriter.writeRawDxfObject(&malformedAscii)
+                 && rejectedAsciiOutput.str().empty(),
+             "DXF ASCII malformed raw-object chunk rejects transactionally");
+
+    DRW_RawDxfObject malformedBinary = binaryObject;
+    malformedBinary.groups[5] = DRW_Variant(313, std::string("GG"));
+    std::ostringstream rejectedBinaryOutput;
+    dxfRW rejectingBinaryWriter("");
+    rejectingBinaryWriter.version = DRW::AC1027;
+    rejectingBinaryWriter.binFile = true;
+    rejectingBinaryWriter.writer = std::make_unique<dxfWriterBinary>(
+        &rejectedBinaryOutput);
+    t.expect(!rejectingBinaryWriter.writeRawDxfObject(&malformedBinary)
+                 && rejectedBinaryOutput.str().empty(),
+             "DXF binary malformed raw-object chunk rejects transactionally");
+}
+
 void testDxfRawSectionApplicationGroupReferenceMatrix(TestContext& t) {
     DRW_RawDxfSection section;
     section.m_name = "LOCAL_SECTION_REFERENCE_MATRIX";
@@ -5338,6 +5423,7 @@ int main() {
     testDxfRawObjectApplicationGroupDepth(context);
     testDxfRawObjectApplicationGroupMarker(context);
     testDxfRawObjectApplicationGroupReferenceMatrix(context);
+    testDxfRawObjectApplicationGroupChunkCodeMatrix(context);
     testDxfRawSectionApplicationGroupReferenceMatrix(context);
     testRawCapture(context);
     testHatchValidationIgnoresInactiveGradient(context);
