@@ -3706,6 +3706,48 @@ void testDxfRawSectionEmptyPayload(TestContext& t) {
              "DXF binary empty section emits only framing records");
 }
 
+void testDxfRawSectionCommentPreservation(TestContext& t) {
+    DRW_RawDxfSection section;
+    section.m_name = "LOCAL_SECTION_COMMENTS";
+    section.m_version = DRW::AC1027;
+    section.m_hasRawValues = true;
+    section.m_groups = {DRW_Variant(999, std::string("before comment")),
+                        DRW_Variant(1000, std::string("payload")),
+                        DRW_Variant(999, std::string("after COMMENT"))};
+    section.m_rawValues = {"before comment", "payload", "after COMMENT"};
+    const std::vector<std::pair<int, std::string>> expected = {
+        {0, "SECTION"}, {2, section.m_name}, {999, "before comment"},
+        {1000, "payload"}, {999, "after COMMENT"}, {0, "ENDSEC"}};
+
+    std::ostringstream asciiOutput;
+    dxfRW asciiWriter("");
+    asciiWriter.version = DRW::AC1027;
+    asciiWriter.binFile = false;
+    asciiWriter.writer = std::make_unique<dxfWriterAscii>(&asciiOutput);
+    t.expect(asciiWriter.writeRawDxfSection(section),
+             "DXF ASCII raw section writes comments around payload");
+    std::stringstream asciiRecords(asciiOutput.str());
+    dxfReaderAscii asciiReader(&asciiRecords);
+    std::vector<std::pair<int, std::string>> asciiActual;
+    int asciiCode = 0;
+    while (asciiReader.readRec(&asciiCode))
+        asciiActual.emplace_back(asciiCode, asciiReader.getString());
+    t.expect(asciiActual == expected,
+             "DXF ASCII raw section preserves code-999 comments and framing");
+
+    DRW_RawDxfSection binarySection = section;
+    binarySection.m_hasRawValues = false;
+    binarySection.m_rawValues.clear();
+    std::ostringstream binaryOutput;
+    dxfRW binaryWriter("");
+    binaryWriter.version = DRW::AC1027;
+    binaryWriter.binFile = true;
+    binaryWriter.writer = std::make_unique<dxfWriterBinary>(&binaryOutput);
+    t.expect(!binaryWriter.writeRawDxfSection(binarySection)
+                 && binaryOutput.str().empty(),
+             "DXF binary raw section rejects code-999 comments transactionally");
+}
+
 void testDxfRawSectionApplicationGroupMarker(TestContext& t) {
     const std::vector<std::string> invalidMarkers = {"{", "NOT_A_MARKER"};
     for (const std::string& marker : invalidMarkers) {
@@ -4060,6 +4102,7 @@ int main() {
     testDxfRawSectionCustomFraming(context);
     testDxfRawSectionVersionCompatibility(context);
     testDxfRawSectionEmptyPayload(context);
+    testDxfRawSectionCommentPreservation(context);
     testDxfRawSectionApplicationGroupMarker(context);
     testDxfRawSectionApplicationGroupReferenceMatrix(context);
     testRawCapture(context);
