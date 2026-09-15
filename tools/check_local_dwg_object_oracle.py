@@ -89,6 +89,11 @@ UNDERLAY_PDF_HANDLE = 0xD300
 UNDERLAY_DGN_HANDLE = 0xD400
 UNDERLAY_DWF_HANDLE = 0xD500
 MALFORMED_UNDERLAY_HANDLE = 0xD301
+POINTCLOUD_DEFINITION_HANDLE = 0xD600
+POINTCLOUD_DEFINITION_EX_HANDLE = 0xD601
+POINTCLOUD_REACTOR_HANDLE = 0xD602
+POINTCLOUD_REACTOR_EX_HANDLE = 0xD603
+MALFORMED_POINTCLOUD_HANDLE = 0xD604
 IMAGE_HANDLE = 0xD700
 MALFORMED_IMAGE_HANDLE = 0xD710
 
@@ -176,7 +181,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         raise ValueError("GROUP name, owner, or member stream mismatch")
 
     dictionary = find_record(records, "DICTIONARY", DICTIONARY_HANDLE)
-    if (dictionary.get("numitems") != 33
+    if (dictionary.get("numitems") != 35
             or dictionary.get("is_hardowner") != 1
             or owner_handle(dictionary) != 0x0C):
         raise ValueError("custom DICTIONARY count, owner, or cloning mismatch")
@@ -216,6 +221,33 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "handle": handle,
             "type": underlay_types[object_name],
         }
+    pointcloud_specs = [
+        (POINTCLOUD_DEFINITION_HANDLE, 535, DICTIONARY_HANDLE),
+        (POINTCLOUD_DEFINITION_EX_HANDLE, 536, DICTIONARY_HANDLE),
+        (POINTCLOUD_REACTOR_HANDLE, 537, POINTCLOUD_DEFINITION_HANDLE),
+        (POINTCLOUD_REACTOR_EX_HANDLE, 538, POINTCLOUD_DEFINITION_EX_HANDLE),
+    ]
+    pointcloud_frames = {}
+    for handle, object_type, expected_owner in pointcloud_specs:
+        matches = [
+            record for record in records
+            if isinstance(record, dict)
+            and record_handle(record) == handle
+            and record.get("type") == object_type
+        ]
+        if len(matches) != 1 or owner_handle(matches[0]) != expected_owner:
+            raise ValueError(
+                f"POINTCLOUD definition frame 0x{handle:X} identity/owner mismatch")
+        pointcloud_frames[f"0x{handle:X}"] = {
+            "handle": handle,
+            "type": object_type,
+            "owner": expected_owner,
+            "object": matches[0].get("object"),
+        }
+    pointcloud_discrepancies = [
+        "LibreDWG 0.14 exposes local POINTCLOUDDEFINITION frames as UNKNOWN_OBJ; type/handle/owner identity is qualified",
+        "POINTCLOUDDEFINITION payload fields remain local-self-read authoritative while external point-cloud resources are absent",
+    ]
     image_discrepancies = [
         "LibreDWG 0.14 does not expose the local IMAGE/IMAGEDEF entity and "
         "fixed-object frames in JSON; local self-read remains the authoritative "
@@ -802,6 +834,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         MALFORMED_SPATIAL_FILTER_HANDLE: "SPATIAL_FILTER",
         MALFORMED_GEODATA_HANDLE: "GEODATA",
         MALFORMED_UNDERLAY_HANDLE: "PDFDEFINITION",
+        MALFORMED_POINTCLOUD_HANDLE: "POINTCLOUDDEFINITION",
         MALFORMED_IMAGE_HANDLE: "IMAGE",
     }
     if any(record_handle(record) in malformed_handles
@@ -847,11 +880,16 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "PDFDEFINITION": UNDERLAY_PDF_HANDLE,
             "DGNDEFINITION": UNDERLAY_DGN_HANDLE,
             "DWFDEFINITION": UNDERLAY_DWF_HANDLE,
+            "POINTCLOUDDEFINITION": POINTCLOUD_DEFINITION_HANDLE,
+            "POINTCLOUDDEFINITIONEX": POINTCLOUD_DEFINITION_EX_HANDLE,
+            "POINTCLOUDDEFREACTOR": POINTCLOUD_REACTOR_HANDLE,
+            "POINTCLOUDDEFREACTOREX": POINTCLOUD_REACTOR_EX_HANDLE,
             "IMAGE": IMAGE_HANDLE,
             "IMAGEDEF_REACTOR": IMAGE_HANDLE + 1,
             "DICTIONARYWDFLT": DICTIONARYWDFLT_HANDLE,
         },
         "underlayDefinitions": underlays,
+        "pointCloudDefinitions": pointcloud_frames,
         "objectStatus": "qualified",
         "oracleDiscrepancies": (oracle_discrepancies + mental_discrepancies
                                  + material_discrepancies
@@ -860,6 +898,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
                                  + spatial_index_discrepancies
                                  + table_style_discrepancies
                                  + geodata_discrepancies
+                                 + pointcloud_discrepancies
                                  + image_discrepancies),
     }
 
@@ -931,7 +970,7 @@ def self_test() -> None:
              "ownerhandle": [4, 1, 0x0C, 0x0C], "name": "LOCAL_GROUP",
              "groups": [[5, 1, 0x1234]]},
             {"object": "DICTIONARY", "handle": [0, 1, DICTIONARY_HANDLE],
-             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 33,
+             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 35,
              "is_hardowner": 1},
             {"object": "XRECORD", "handle": [0, 1, XRECORD_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
@@ -1152,6 +1191,24 @@ def self_test() -> None:
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
              "type": 531, "filename": "LOCAL_DWF.dwf",
              "name": "LOCAL_DWF_SHEET"},
+            {"object": "UNKNOWN_OBJ",
+             "handle": [0, 1, POINTCLOUD_DEFINITION_HANDLE],
+             "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "type": 535},
+            {"object": "UNKNOWN_OBJ",
+             "handle": [0, 1, POINTCLOUD_DEFINITION_EX_HANDLE],
+             "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "type": 536},
+            {"object": "UNKNOWN_OBJ",
+             "handle": [0, 1, POINTCLOUD_REACTOR_HANDLE],
+             "ownerhandle": [4, 1, POINTCLOUD_DEFINITION_HANDLE,
+                             POINTCLOUD_DEFINITION_HANDLE],
+             "type": 537},
+            {"object": "UNKNOWN_OBJ",
+             "handle": [0, 1, POINTCLOUD_REACTOR_EX_HANDLE],
+             "ownerhandle": [4, 1, POINTCLOUD_DEFINITION_EX_HANDLE,
+                             POINTCLOUD_DEFINITION_EX_HANDLE],
+             "type": 538},
         ],
     }
     summary = check_objects(payload, "AC1024")
@@ -1392,6 +1449,15 @@ def self_test() -> None:
         pass
     else:
         raise AssertionError("malformed UNDERLAYDEFINITION was not rejected")
+    try:
+        bad = json.loads(json.dumps(payload))
+        bad["OBJECTS"].append({"object": "POINTCLOUDDEFINITION",
+                                "handle": [0, 1, MALFORMED_POINTCLOUD_HANDLE]})
+        check_objects(bad, "AC1024")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("malformed POINTCLOUDDEFINITION was not rejected")
     print("local DWG object oracle: PASS")
 
 

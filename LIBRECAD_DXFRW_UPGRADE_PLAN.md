@@ -1916,8 +1916,12 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint: S76/J52 AC1015 IMAGE compatibility is committed; S01-S76
-  implementation slices are committed and the legacy image
+- Current checkpoint: S77/J53 POINTCLOUDDEFINITION family parity is committed;
+  S01-S77 implementation slices are committed and the legacy
+  image boundary remains explicit. The point-cloud slice adds all four
+  definition/reactor class identities with dictionary/owner links and bounded
+  path/count/extent fields through local self-read; LibreDWG exposes these
+  frames as UNKNOWN_OBJ, so its type/handle/owner evidence is non-promoting.
   boundary is now explicit. The AC1015 diagnostic reproduced the failure in
   the legacy contiguous model-space handle chain when compound IMAGE auxiliary
   objects reserve additional handles; no safe production correction was found
@@ -2484,7 +2488,7 @@ edit this block or commit the same slice concurrently.
   AC1015 is explicitly gated pending a compatible legacy image wire-layout
   correction; AC1018–AC1032 pass local self-read. LibreDWG 0.14 does not expose
   these image frames in JSON, so that lane remains non-promoting.
-- Latest implementation slice: S76/J52 IMAGE AC1015 legacy compatibility is
+- Latest committed slice: S76/J52 IMAGE AC1015 legacy compatibility is
   committed as an explicit compatibility-boundary disposition. Focused
   AC1015 probes and the ODA/target review isolate the failure to the legacy
   contiguous model-space entity chain plus compound auxiliary handle
@@ -2493,14 +2497,18 @@ edit this block or commit the same slice concurrently.
   self-test/live run, and policy gates pass, with no generated drawing bytes
   retained.
 - Next implementation slice: S77/J53 POINTCLOUDDEFINITION family parity is
-  ready. It will cover the legacy and extended point-cloud definition
-  objects, their reactor variants, bounded external-path/color-map links,
-  pre-CLASSES registration, dictionary ownership, six-version capability
-  gates, and transaction-safe rejection. Implementation is ordered as one
-  minimal object graph plus one fast self-read/oracle slice; unavailable
-  external point-cloud resources remain runtime-only and never enter Git.
-- Last fully resolved slice: S76 (the AC1015 IMAGE compatibility boundary
-  slice is committed by the matching `Plan-Slice: S76` trailer;
+  committed. It covers the legacy and extended point-cloud definition
+  objects, their reactor variants, bounded external paths, pre-CLASSES
+  registration, dictionary/owner links, six-version capability gates, and
+  transaction-safe rejection. Local self-read and the independent object
+  oracle qualify identity; external point-cloud resources remain runtime-only.
+- Next implementation slice: S78/J54 POINTCLOUDCOLORMAP ramp parity is ready.
+  It will add the smallest default/ramp color-map graph, bound ramp/color
+  counts and scheme lengths, verify class registration and owner links, and
+  reject malformed counts without fixtures; full point-cloud entity payloads
+  stay a later slice.
+- Last fully resolved slice: S77 (the POINTCLOUDDEFINITION family parity
+  slice is committed by the matching `Plan-Slice: S77` trailer;
   broader
   fixed object families remain experimental follow-up).
   target integration commit remains
@@ -2515,19 +2523,20 @@ edit this block or commit the same slice concurrently.
   `6969e0a003414f9a7084349ac54bc2b32515e16b`. All in-horizon lanes are
   terminal only when their recorded gates pass; the next runtime qualification
   lane requires no new target pin.
-- Resolved slices: 76/77 (`COMMITTED`, or `SUPERSEDED` after all replacements
+- Resolved slices: 77/78 (`COMMITTED`, or `SUPERSEDED` after all replacements
   commit).
 - Slice states: 1 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 76 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 77 COMMITTED.
 - Parent-item states: 1 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 76 COMMITTED.
-- Expanded child-item states: 172 COMMITTED / 0 PLANNED / 1 READY / 0 ACTIVE /
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 77 COMMITTED.
+- Expanded child-item states: 173 COMMITTED / 0 PLANNED / 1 READY / 0 ACTIVE /
   0 VERIFYING / 0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED; no child is anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 29 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S76 are committed; S77/J53 POINTCLOUDDEFINITION family
-  parity is the next ready lane. S76 records the explicit AC1015 image
-  capability boundary and leaves newer image versions locally qualified.
+- Active work: S01-S77 are committed; S78/J54 POINTCLOUDCOLORMAP ramp parity is
+  the next ready lane. S76 records the explicit AC1015 image capability
+  boundary and leaves newer image versions locally qualified; S77 keeps
+  point-cloud payload evidence identity-only where LibreDWG is opaque.
   S23/I5
   qualification is ready. S23/I5
   reconciled separate DXF/DWG reports, public/package/LibreCAD consumers, the
@@ -2643,7 +2652,8 @@ edit this block or commit the same slice concurrently.
 | S74 | J50: UNDERLAYDEFINITION object-family parity | S73 | COMMITTED | focused six-version local writer/self-read; class-registration/dictionary ownership closure; independent JSON object oracle; malformed-definition rejection; plan/scope/sync/fixture gates | local-from-scratch writer registers PDF/DGN/DWF classes before CLASSES, adds all three definitions to the custom dictionary, round-trips filename/sheet fields across AC1015/18/21/24/27/32, and rejects malformed common-object state transactionally; LibreDWG 0.14 independently qualifies type/handle/owner/filename/name with version-specific types (530/531/543 through AC1021; 528/530/531 from AC1024); no generated bytes are staged | focused self-test, six-version local round-trip, LibreDWG oracle, and policy gates pass; generated drawings remain temporary and evidence remains experimental |
 | S75 | J51: IMAGEDEF/IMAGEDEF_REACTOR object-family parity | S74 | COMMITTED | focused six-version local writer/self-read; fixed-type/reactor registration closure; independent JSON object oracle; malformed-definition rejection; plan/scope/sync/fixture gates | local self-read covers IMAGE/IMAGEDEF/IMAGEDEF_REACTOR compound writes, bounded filename/pixel metadata, reactor ownership, and malformed rollback for AC1018/21/24/27/32; AC1015 is fail-closed as an explicit legacy capability boundary because the current image wire path cannot publish a compatible frame; LibreDWG 0.14 does not expose the image frames in JSON, so no external field claim is promoted | focused self-test, six-version matrix with AC1015 capability gate, LibreDWG object oracle, and policy gates pass; generated drawings remain temporary |
 | S76 | J52: IMAGE AC1015 legacy compatibility | S75 | COMMITTED | ODA/target wire-layout trace; bounded version-gated correction or unsupported disposition; plan/scope/sync/fixture gates | AC1015 diagnostics isolate the failure to the legacy contiguous model-space entity chain interacting with compound IMAGE auxiliary handle reservations; no safe bounded production correction exists without a broader allocator/API change, so the explicit AC1015 gate is retained while AC1018-AC1032 stay locally qualified; no drawing bytes are staged | focused AC1015 diagnostics, six-version local self-read, object-oracle self-test/live run, and policy gates pass; no full suite unless a release checkpoint declares it |
-| S77 | J53: POINTCLOUDDEFINITION family parity | S76 | READY | focused six-version local writer/self-read; pre-CLASSES registration and dictionary ownership; independent object oracle where decodable; capability/error gates; plan/scope/sync/fixture gates | ready to cover POINTCLOUDDEFINITION and POINTCLOUDDEFINITIONEX plus their reactor variants with bounded external-path/color-map links, version-aware class identities, transactional malformed-link rejection, and no committed drawing bytes; external resource absence remains explicit evidence-only disposition | focused self-test and six-version round-trip first; run the object oracle only on decodable fields; defer full suite to a release checkpoint |
+| S77 | J53: POINTCLOUDDEFINITION family parity | S76 | COMMITTED | focused six-version local writer/self-read; pre-CLASSES registration and dictionary ownership; independent object oracle where decodable; capability/error gates; plan/scope/sync/fixture gates | local writer/self-read covers POINTCLOUDDEFINITION and POINTCLOUDDEFINITIONEX plus both reactor variants, dictionary/owner links, bounded source paths/counts/extents, and malformed extent rollback across AC1015/18/21/24/27/32; LibreDWG 0.14 reports UNKNOWN_OBJ for these types but qualifies type/handle/owner identity; no drawing bytes are staged | focused self-test, six-version round-trip, LibreDWG identity oracle, and policy gates pass; external point-cloud resources remain evidence-only |
+| S78 | J54: POINTCLOUDCOLORMAP ramp parity | S77 | READY | focused six-version local writer/self-read; pre-CLASSES registration and dictionary ownership; independent object oracle where decodable; bounded ramp/color limits; malformed rollback; plan/scope/sync/fixture gates | ready to add the smallest default/ramp color-map graph with bounded scheme lengths/counts and explicit class identity, while keeping full point-cloud entity payloads and external resources out of scope; generated drawings remain temporary | focused self-test and six-version round-trip first; invoke independent oracle only for fields it decodes; defer full suite to a release checkpoint |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -2724,7 +2734,8 @@ edit this block or commit the same slice concurrently.
 | J50 | S74 | J49 | COMMITTED | EXPERIMENTAL | Extend the local object graph and independent JSON oracle to UNDERLAYDEFINITION for PDF/DGN/DWF kinds, including pre-CLASSES registration, dictionary ownership, fixed type/header, bounded filename/sheet fields, six-version self-read, and transaction-safe malformed-object rejection |
 | J51 | S75 | J50 | COMMITTED | EXPERIMENTAL | Extend the local object graph and independent JSON oracle to fixed IMAGEDEF and IMAGEDEF_REACTOR carriers, including type-102 image metadata, bootstrap reactor class registration, bounded filename/pixel fields, six-version self-read, and transaction-safe malformed-object rejection |
 | J52 | S76 | J51 | COMMITTED | EXPERIMENTAL | Isolate and resolve the AC1015 IMAGE/IMAGEDEF/IMAGEDEF_REACTOR legacy wire-layout failure against the pinned target and ODA specification, applying only a bounded correction or retaining an explicit unsupported disposition with trace evidence |
-| J53 | S77 | J52 | READY | EXPERIMENTAL | Extend the local object graph and independent object evidence to POINTCLOUDDEFINITION and POINTCLOUDDEFINITIONEX, including reactor variants, pre-CLASSES class registration, dictionary ownership, bounded external-path/color-map links, six-version capability gates, and transaction-safe malformed-link rejection |
+| J53 | S77 | J52 | COMMITTED | EXPERIMENTAL | Extend the local object graph and independent object evidence to POINTCLOUDDEFINITION and POINTCLOUDDEFINITIONEX, including reactor variants, pre-CLASSES class registration, dictionary ownership, bounded external paths/counts/extents, six-version capability gates, and transaction-safe malformed-link rejection |
+| J54 | S78 | J53 | READY | EXPERIMENTAL | Extend the local object graph and independent object evidence to POINTCLOUDCOLORMAP, including pre-CLASSES registration, dictionary ownership, bounded default schemes and color ramps, six-version capability gates, and transaction-safe malformed-count/scheme rejection |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -2912,7 +2923,8 @@ edit this block or commit the same slice concurrently.
 | J50.1 | J50 / S74 | WP5, WP7, WP8, WP10; UNDERLAYDEFINITION | J49 | COMMITTED | EXPERIMENTAL | emit and self-read one PDF, DGN, and DWF UNDERLAYDEFINITION for AC1015/18/21/24/27/32, register each class before CLASSES, verify dictionary ownership and bounded filename/sheet fields through an independent object oracle, and reject malformed common-object state without publishing a frame | focused self-test, six-version local round-trip, LibreDWG JSON oracle, and policy gates pass; generated drawings remain temporary, no fixture bytes are staged, and version-specific external type mappings are recorded explicitly |
 | J51.1 | J51 / S75 | WP5, WP7, WP8, WP10; IMAGEDEF/IMAGEDEF_REACTOR | J50 | COMMITTED | EXPERIMENTAL | emit and self-read one IMAGEDEF plus its IMAGEDEF_REACTOR for AC1018/21/24/27/32, explicitly gate AC1015 pending legacy correction, verify fixed type/owner/reactor/filename/pixel metadata through local callbacks, and reject malformed metadata without publishing a frame | focused self-test, six-version matrix with AC1015 capability gate, LibreDWG JSON discrepancy probe, and policy gates pass; generated drawings remain temporary, no fixture bytes are staged, and unsupported AC1015 behavior remains an explicit S76 follow-up |
 | J52.1 | J52 / S76 | WP5, WP7, WP8, WP10; IMAGE AC1015 compatibility | J51 | COMMITTED | EXPERIMENTAL | trace AC1015 body and handle-stream failure with the ODA spec and pinned LibreCAD implementation, run the smallest production correction that preserves newer-version behavior, or document a version-gated unsupported result without staging fixtures | focused diagnostics reproduce the legacy contiguous-chain/compound-reservation failure; the version-gated unsupported disposition is recorded, AC1018-AC1032 self-read remains green, and the discrepancy is bounded and non-promoting |
-| J53.1 | J53 / S77 | WP5, WP7, WP8, WP10; POINTCLOUDDEFINITION family | J52 | READY | EXPERIMENTAL | emit and self-read the smallest valid POINTCLOUDDEFINITION and POINTCLOUDDEFINITIONEX graph plus reactor links across the supported version window, register every class before CLASSES, verify dictionary ownership/path/color-map handles where the oracle decodes them, and reject malformed external-link state without publishing a frame | focused six-version local round-trip, capability/error assertions, object-oracle self-test/live run where decodable, and policy gates; generated drawings remain temporary, no fixture bytes are staged, and unsupported variants remain explicit |
+| J53.1 | J53 / S77 | WP5, WP7, WP8, WP10; POINTCLOUDDEFINITION family | J52 | COMMITTED | EXPERIMENTAL | emit and self-read the smallest valid POINTCLOUDDEFINITION and POINTCLOUDDEFINITIONEX graph plus reactor links across the supported version window, register every class before CLASSES, verify dictionary ownership/path/count/extent fields through local callbacks and type/owner identity through the independent oracle, and reject malformed extent state without publishing a frame | focused six-version local round-trip, capability/error assertions, object-oracle self-test/live run, and policy gates pass; generated drawings remain temporary, no fixture bytes are staged, and opaque external payloads remain explicit |
+| J54.1 | J54 / S78 | WP5, WP7, WP8, WP10; POINTCLOUDCOLORMAP | J53 | READY | EXPERIMENTAL | emit and self-read one bounded POINTCLOUDCOLORMAP with default schemes and one ramp per supported version, register the class before CLASSES, verify dictionary ownership/count limits, and reject malformed ramp/color data without publishing a frame | focused six-version local round-trip and capability/error assertions first; use the independent oracle only for decodable identity, keep generated drawings temporary, and do not stage external point-cloud resources |
 
 <!-- UPGRADE_PROGRESS_END -->
 

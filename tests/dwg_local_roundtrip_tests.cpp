@@ -166,6 +166,30 @@ public:
             registeredDwfUnderlay_ =
                 writer_->registerUnderlayDefinitionObjectClass(
                     &dwfUnderlayRegistration);
+            DRW_PointCloudDef pointCloudRegistration;
+            pointCloudRegistration.handle = 0xD600u;
+            pointCloudRegistration.m_kind = DRW_PointCloudDef::Definition;
+            registeredPointCloudDefinition_ =
+                writer_->registerPointCloudDefObjectClass(
+                    &pointCloudRegistration);
+            DRW_PointCloudDef pointCloudExRegistration;
+            pointCloudExRegistration.handle = 0xD601u;
+            pointCloudExRegistration.m_kind = DRW_PointCloudDef::DefinitionEx;
+            registeredPointCloudDefinitionEx_ =
+                writer_->registerPointCloudDefObjectClass(
+                    &pointCloudExRegistration);
+            DRW_PointCloudDef pointCloudReactorRegistration;
+            pointCloudReactorRegistration.handle = 0xD602u;
+            pointCloudReactorRegistration.m_kind = DRW_PointCloudDef::Reactor;
+            registeredPointCloudReactor_ =
+                writer_->registerPointCloudDefObjectClass(
+                    &pointCloudReactorRegistration);
+            DRW_PointCloudDef pointCloudReactorExRegistration;
+            pointCloudReactorExRegistration.handle = 0xD603u;
+            pointCloudReactorExRegistration.m_kind = DRW_PointCloudDef::ReactorEx;
+            registeredPointCloudReactorEx_ =
+                writer_->registerPointCloudDefObjectClass(
+                    &pointCloudReactorExRegistration);
         }
     }
 
@@ -240,6 +264,8 @@ public:
             {"LOCAL_PDFDEFINITION", 0xD300u},
             {"LOCAL_DGNDEFINITION", 0xD400u},
             {"LOCAL_DWFDEFINITION", 0xD500u},
+            {"LOCAL_POINTCLOUDDEFINITION", 0xD600u},
+            {"LOCAL_POINTCLOUDDEFINITIONEX", 0xD601u},
         };
         wroteDictionary_ = registeredDictionary_
             && writer_->writeDictionary(&dictionary)
@@ -957,6 +983,53 @@ public:
         rejectedMalformedUnderlay_ =
             !writer_->writeUnderlayDefinition(&invalidUnderlay);
 
+        DRW_PointCloudDef pointCloudDefinition;
+        pointCloudDefinition.handle = 0xD600u;
+        pointCloudDefinition.parentHandle = dictionary.handle;
+        pointCloudDefinition.m_kind = DRW_PointCloudDef::Definition;
+        pointCloudDefinition.m_classVersion = 2;
+        pointCloudDefinition.m_sourceFilename = "LOCAL_POINTCLOUD.rcs";
+        pointCloudDefinition.m_isLoaded = true;
+        pointCloudDefinition.m_pointCount = 1234;
+        pointCloudDefinition.m_extentsMin = DRW_Coord{-1.0, -2.0, -3.0};
+        pointCloudDefinition.m_extentsMax = DRW_Coord{10.0, 20.0, 30.0};
+        wrotePointCloudDefinition_ = registeredPointCloudDefinition_
+            && writer_->writePointCloudDef(&pointCloudDefinition)
+            && pointCloudDefinition.handle != 0;
+
+        DRW_PointCloudDef pointCloudDefinitionEx = pointCloudDefinition;
+        pointCloudDefinitionEx.handle = 0xD601u;
+        pointCloudDefinitionEx.m_kind = DRW_PointCloudDef::DefinitionEx;
+        pointCloudDefinitionEx.m_sourceFilename = "LOCAL_POINTCLOUD_EX.rcs";
+        pointCloudDefinitionEx.m_pointCount = 5678;
+        wrotePointCloudDefinitionEx_ = registeredPointCloudDefinitionEx_
+            && writer_->writePointCloudDef(&pointCloudDefinitionEx)
+            && pointCloudDefinitionEx.handle != 0;
+
+        DRW_PointCloudDef pointCloudReactor;
+        pointCloudReactor.handle = 0xD602u;
+        pointCloudReactor.parentHandle = pointCloudDefinition.handle;
+        pointCloudReactor.m_kind = DRW_PointCloudDef::Reactor;
+        pointCloudReactor.m_classVersion = 2;
+        wrotePointCloudReactor_ = registeredPointCloudReactor_
+            && writer_->writePointCloudDef(&pointCloudReactor)
+            && pointCloudReactor.handle != 0;
+
+        DRW_PointCloudDef pointCloudReactorEx = pointCloudReactor;
+        pointCloudReactorEx.handle = 0xD603u;
+        pointCloudReactorEx.parentHandle = pointCloudDefinitionEx.handle;
+        pointCloudReactorEx.m_kind = DRW_PointCloudDef::ReactorEx;
+        wrotePointCloudReactorEx_ = registeredPointCloudReactorEx_
+            && writer_->writePointCloudDef(&pointCloudReactorEx)
+            && pointCloudReactorEx.handle != 0;
+
+        DRW_PointCloudDef invalidPointCloud = pointCloudDefinition;
+        invalidPointCloud.handle = 0xD604u;
+        invalidPointCloud.m_extentsMin.x =
+            std::numeric_limits<double>::quiet_NaN();
+        rejectedMalformedPointCloud_ =
+            !writer_->writePointCloudDef(&invalidPointCloud);
+
         DRW_Group group;
         group.handle = 0xA600u;
         group.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
@@ -1216,7 +1289,7 @@ public:
         if (data.handle == 0xA601u) {
             readDictionarySeen_ = data.parentHandle
                     == DRW::DwgNamedObjectsDictionaryHandle
-                && data.m_entries.size() == 33
+                && data.m_entries.size() == 35
                 && data.m_entries[0].m_name == "LOCAL_XRECORD"
                 && data.m_entries[0].m_handle == 0xA602u
                 && data.m_entries[1].m_name == "LOCAL_PLOTSETTINGS"
@@ -1282,7 +1355,11 @@ public:
                 && data.m_entries[31].m_name == "LOCAL_DGNDEFINITION"
                 && data.m_entries[31].m_handle == 0xD400u
                 && data.m_entries[32].m_name == "LOCAL_DWFDEFINITION"
-                && data.m_entries[32].m_handle == 0xD500u;
+                && data.m_entries[32].m_handle == 0xD500u
+                && data.m_entries[33].m_name == "LOCAL_POINTCLOUDDEFINITION"
+                && data.m_entries[33].m_handle == 0xD600u
+                && data.m_entries[34].m_name == "LOCAL_POINTCLOUDDEFINITIONEX"
+                && data.m_entries[34].m_handle == 0xD601u;
         }
     }
     void addXRecord(const DRW_XRecord& data) override {
@@ -1634,6 +1711,37 @@ public:
                 && data->filename == "LOCAL_DWF.dwf"
                 && data->sheetName == "LOCAL_DWF_SHEET";
     }
+    void addPointCloudDef(const DRW_PointCloudDef& data) override {
+        if (data.handle == 0xD600u)
+            readPointCloudDefinitionSeen_ =
+                data.m_kind == DRW_PointCloudDef::Definition
+                && data.parentHandle == 0xA601u
+                && data.m_classVersion == 2
+                && data.m_sourceFilename == "LOCAL_POINTCLOUD.rcs"
+                && data.m_isLoaded
+                && data.m_pointCount == 1234
+                && data.m_extentsMin.x == -1.0
+                && data.m_extentsMax.z == 30.0;
+        if (data.handle == 0xD601u)
+            readPointCloudDefinitionExSeen_ =
+                data.m_kind == DRW_PointCloudDef::DefinitionEx
+                && data.parentHandle == 0xA601u
+                && data.m_classVersion == 2
+                && data.m_sourceFilename == "LOCAL_POINTCLOUD_EX.rcs"
+                && data.m_pointCount == 5678;
+        if (data.handle == 0xD602u)
+            readPointCloudReactorSeen_ =
+                data.m_kind == DRW_PointCloudDef::Reactor
+                && data.parentHandle == 0xD600u
+                && data.m_classVersion == 2;
+        if (data.handle == 0xD603u)
+            readPointCloudReactorExSeen_ =
+                data.m_kind == DRW_PointCloudDef::ReactorEx
+                && data.parentHandle == 0xD601u
+                && data.m_classVersion == 2;
+        if (data.handle == 0xD604u)
+            readMalformedPointCloudSeen_ = true;
+    }
     void addInsert(const DRW_Insert& data) override {
         readInsertSeen_ = true;
         readAttribSeen_ = data.attlist.size() == 1
@@ -1686,6 +1794,10 @@ public:
             && wrotePdfUnderlay_
             && wroteDgnUnderlay_
             && wroteDwfUnderlay_
+            && wrotePointCloudDefinition_
+            && wrotePointCloudDefinitionEx_
+            && wrotePointCloudReactor_
+            && wrotePointCloudReactorEx_
             && wroteGroup_;
     }
     bool rejectedMalformedObject() const { return rejectedMalformedObject_; }
@@ -1751,6 +1863,15 @@ public:
     bool wrotePdfUnderlay() const { return wrotePdfUnderlay_; }
     bool wroteDgnUnderlay() const { return wroteDgnUnderlay_; }
     bool wroteDwfUnderlay() const { return wroteDwfUnderlay_; }
+    bool wrotePointCloudDefinition() const { return wrotePointCloudDefinition_; }
+    bool wrotePointCloudDefinitionEx() const {
+        return wrotePointCloudDefinitionEx_;
+    }
+    bool wrotePointCloudReactor() const { return wrotePointCloudReactor_; }
+    bool wrotePointCloudReactorEx() const { return wrotePointCloudReactorEx_; }
+    bool rejectedMalformedPointCloud() const {
+        return rejectedMalformedPointCloud_;
+    }
     bool wroteImage() const { return wroteImage_; }
     bool rejectedMalformedImage() const { return rejectedMalformedImage_; }
     bool readLineSeen() const { return readLineSeen_; }
@@ -1790,6 +1911,10 @@ public:
             && readPdfUnderlaySeen_
             && readDgnUnderlaySeen_
             && readDwfUnderlaySeen_
+            && readPointCloudDefinitionSeen_
+            && readPointCloudDefinitionExSeen_
+            && readPointCloudReactorSeen_
+            && readPointCloudReactorExSeen_
             && readGroupSeen_;
     }
     bool readMalformedObjectSeen() const { return readMalformedObjectSeen_; }
@@ -1866,6 +1991,19 @@ public:
     bool readPdfUnderlaySeen() const { return readPdfUnderlaySeen_; }
     bool readDgnUnderlaySeen() const { return readDgnUnderlaySeen_; }
     bool readDwfUnderlaySeen() const { return readDwfUnderlaySeen_; }
+    bool readPointCloudDefinitionSeen() const {
+        return readPointCloudDefinitionSeen_;
+    }
+    bool readPointCloudDefinitionExSeen() const {
+        return readPointCloudDefinitionExSeen_;
+    }
+    bool readPointCloudReactorSeen() const { return readPointCloudReactorSeen_; }
+    bool readPointCloudReactorExSeen() const {
+        return readPointCloudReactorExSeen_;
+    }
+    bool readMalformedPointCloudSeen() const {
+        return readMalformedPointCloudSeen_;
+    }
     bool readImageSeen() const { return readImageSeen_; }
     bool readImageDefSeen() const { return readImageDefSeen_; }
     bool readImageReactorSeen() const { return readImageReactorSeen_; }
@@ -1964,6 +2102,11 @@ private:
     bool wroteDgnUnderlay_ {false};
     bool wroteDwfUnderlay_ {false};
     bool rejectedMalformedUnderlay_ {false};
+    bool wrotePointCloudDefinition_ {false};
+    bool wrotePointCloudDefinitionEx_ {false};
+    bool wrotePointCloudReactor_ {false};
+    bool wrotePointCloudReactorEx_ {false};
+    bool rejectedMalformedPointCloud_ {false};
     bool wroteImage_ {false};
     bool rejectedMalformedImage_ {false};
     bool registeredDictionary_ {false};
@@ -1996,6 +2139,10 @@ private:
     bool registeredPdfUnderlay_ {false};
     bool registeredDgnUnderlay_ {false};
     bool registeredDwfUnderlay_ {false};
+    bool registeredPointCloudDefinition_ {false};
+    bool registeredPointCloudDefinitionEx_ {false};
+    bool registeredPointCloudReactor_ {false};
+    bool registeredPointCloudReactorEx_ {false};
     bool registeredPlotSettings_ {false};
     bool readLineSeen_ {false};
     bool readPointSeen_ {false};
@@ -2080,6 +2227,11 @@ private:
     bool readPdfUnderlaySeen_ {false};
     bool readDgnUnderlaySeen_ {false};
     bool readDwfUnderlaySeen_ {false};
+    bool readPointCloudDefinitionSeen_ {false};
+    bool readPointCloudDefinitionExSeen_ {false};
+    bool readPointCloudReactorSeen_ {false};
+    bool readPointCloudReactorExSeen_ {false};
+    bool readMalformedPointCloudSeen_ {false};
     bool readImageSeen_ {false};
     bool readImageDefSeen_ {false};
     bool readImageReactorSeen_ {false};
@@ -2254,6 +2406,21 @@ int main(int argc, char** argv) {
         expect(writeIface.rejectedMalformedUnderlay(),
                ("local DWG writer rejected malformed UNDERLAYDEFINITION transaction" + suffix).c_str(),
                failures);
+        expect(writeIface.wrotePointCloudDefinition(),
+               ("local DWG writer emitted POINTCLOUDDEFINITION" + suffix).c_str(),
+               failures);
+        expect(writeIface.wrotePointCloudDefinitionEx(),
+               ("local DWG writer emitted POINTCLOUDDEFINITIONEX" + suffix).c_str(),
+               failures);
+        expect(writeIface.wrotePointCloudReactor(),
+               ("local DWG writer emitted POINTCLOUDDEFREACTOR" + suffix).c_str(),
+               failures);
+        expect(writeIface.wrotePointCloudReactorEx(),
+               ("local DWG writer emitted POINTCLOUDDEFREACTOREX" + suffix).c_str(),
+               failures);
+        expect(writeIface.rejectedMalformedPointCloud(),
+               ("local DWG writer rejected malformed POINTCLOUDDEFINITION transaction" + suffix).c_str(),
+               failures);
         expect(version < DRW::AC1018
                    ? !writeIface.wroteImage()
                    : writeIface.wroteImage(),
@@ -2356,6 +2523,18 @@ int main(int argc, char** argv) {
                ("local DWG self-read publishes DGNDEFINITION" + suffix).c_str(), failures);
         expect(readIface.readDwfUnderlaySeen(),
                ("local DWG self-read publishes DWFDEFINITION" + suffix).c_str(), failures);
+        expect(readIface.readPointCloudDefinitionSeen(),
+               ("local DWG self-read publishes POINTCLOUDDEFINITION" + suffix).c_str(),
+               failures);
+        expect(readIface.readPointCloudDefinitionExSeen(),
+               ("local DWG self-read publishes POINTCLOUDDEFINITIONEX" + suffix).c_str(),
+               failures);
+        expect(readIface.readPointCloudReactorSeen(),
+               ("local DWG self-read publishes POINTCLOUDDEFREACTOR" + suffix).c_str(),
+               failures);
+        expect(readIface.readPointCloudReactorExSeen(),
+               ("local DWG self-read publishes POINTCLOUDDEFREACTOREX" + suffix).c_str(),
+               failures);
         expect(version < DRW::AC1018 || readIface.readImageSeen(),
                ("local DWG self-read publishes IMAGE" + suffix).c_str(), failures);
         expect(version < DRW::AC1018 || readIface.readImageDefSeen(),
@@ -2439,6 +2618,9 @@ int main(int argc, char** argv) {
                failures);
         expect(!readIface.readMalformedGeoDataSeen(),
                ("local DWG self-read omits rolled-back malformed GEODATA" + suffix).c_str(),
+               failures);
+        expect(!readIface.readMalformedPointCloudSeen(),
+               ("local DWG self-read omits rolled-back malformed POINTCLOUDDEFINITION" + suffix).c_str(),
                failures);
         if (readIface.readLineSeen()) {
             const DRW_Line& line = readIface.readLine();
