@@ -52,10 +52,10 @@ then pin an immutable commit before importing source.
 ### Execution refresh (2026-09-15)
 
 The implementation worktree is rebased on `origin/master` and is currently
-239 commits ahead with no commits behind it. The latest green slice is
-S213/J189, including the live-plan update and its required policy gates.
-S214/J190 is the active slice; its DXF final-EOF-without-newline parity is the
-next commit boundary.
+240 commits ahead with no commits behind it. The latest green slice is
+S214/J190, including the live-plan update and its required policy gates.
+S215/J191 is the active slice; its DXF missing-EOF rejection parity is the next
+commit boundary.
 The worktree is clean at the last committed boundary; any subsequent active-
 slice edits are intentionally uncommitted until their narrow gate and
 status-bearing plan transition are green.
@@ -1934,16 +1934,15 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint (2026-09-15): S213/J189 DXF case-insensitive EOF
-  termination parity is committed; S214/J190 DXF final-EOF-without-newline
-  parity is active.
+- Current checkpoint (2026-09-15): S214/J190 DXF final-EOF-without-newline
+  parity is committed; S215/J191 DXF missing-EOF rejection parity is active.
   The
   branch is rebased on `origin/master`, and
   the pinned source/package/consumer convergence remains complete while
   runtime and wire-format parity stay evidence-gated. The AC1015 IMAGE legacy
   boundary remains fail-closed, and all format-support claims remain limited
   to rows with eligible runtime/oracle evidence. The next dependency-ready
-  sequence is S214 DXF final-EOF-without-newline parity;
+  sequence is S215 DXF missing-EOF rejection parity;
   it is a separate commit with no external or derived DWG/DXF bytes.
 - Latest implementation slice: S171/J147 DXF raw-object handle-scope and
   cross-record uniqueness qualification is committed. Local ASCII and binary
@@ -2113,6 +2112,9 @@ edit this block or commit the same slice concurrently.
 - Latest implementation slice: S213/J189 DXF case-insensitive EOF termination
   parity is committed. Local ASCII and binary streams terminate successfully on
   mixed-case EOF after raw-section publication; no drawing bytes are retained.
+- Latest implementation slice: S214/J190 DXF final-EOF-without-newline parity
+  is committed. A local ASCII stream terminates successfully when its final EOF
+  has no trailing newline; no drawing bytes are retained.
 - Latest implementation slice: S172/J148 DXF raw-object duplicate-handle
   diagnostic and error-precedence qualification is committed. Local ASCII and
   binary duplicate streams preserve the legacy `BAD_CODE_PARSED` result and
@@ -3035,18 +3037,18 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 213 (`COMMITTED`); S214 is active.
+- Resolved slices: 214 (`COMMITTED`); S215 is active.
 - Slice states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 213 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 214 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 215 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 216 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 311 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 312 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 198 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S213 are committed; S214/J190 is active with a ready packet
-  naming DXF final-EOF-without-newline parity and focused fast gates.
+  0 DEFERRED_EXTERNAL / 199 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S214 are committed; S215/J191 is active with a ready packet
+  naming DXF missing-EOF rejection parity and focused fast gates.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
   S174/J150, S175/J151, S176/J152, S177/J153, S178/J154, and S179/J155 added
   malformed, field-context, raw-entity propagation, duplicate-entity,
@@ -3312,7 +3314,8 @@ edit this block or commit the same slice concurrently.
 | S211 | J187: DXF raw-section case-insensitive ENDSEC framing parity | S210 | COMMITTED | mixed-case ENDSEC marker; unknown-section closure; ASCII/binary symmetry; callback publication; focused DXF gate; plan/scope/sync/fixture gates | committed `S211`; local ASCII and binary unknown sections close on mixed-case ENDSEC and publish their payload; no drawing bytes committed | Wave 1 raw-section ENDSEC tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S212 is active |
 | S212 | J188: DXF case-insensitive SECTION keyword parity | S211 | COMMITTED | mixed-case SECTION keyword; section entry; unknown-section capture; ASCII/binary symmetry; callback publication; focused DXF gate; plan/scope/sync/fixture gates | committed `S212`; local ASCII and binary streams enter unknown sections on mixed-case SECTION and publish their payload; no drawing bytes committed | Wave 1 raw-section SECTION tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S213 is active |
 | S213 | J189: DXF case-insensitive EOF termination parity | S212 | COMMITTED | mixed-case EOF marker; top-level termination; unknown-section capture; ASCII/binary symmetry; callback publication; focused DXF gate; plan/scope/sync/fixture gates | committed `S213`; local ASCII and binary streams terminate successfully on mixed-case EOF after raw-section publication; no drawing bytes committed | Wave 1 raw-section EOF tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S214 is active |
-| S214 | J190: DXF final-EOF-without-newline parity | S213 | ACTIVE | final EOF record without trailing newline; reader good-state fallback; unknown-section capture; ASCII behavior; focused DXF gate; plan/scope/sync/fixture gates | feed a local ASCII unknown section whose final EOF has no trailing newline; assert successful termination and callback publication, with no drawing bytes committed | active after S213 commit; use Wave 1 final-EOF tests, focused CTest selector, fast source/policy gates, fixture admission, import scope, pinned sync, and diff gates |
+| S214 | J190: DXF final-EOF-without-newline parity | S213 | COMMITTED | final EOF record without trailing newline; reader good-state fallback; unknown-section capture; ASCII behavior; focused DXF gate; plan/scope/sync/fixture gates | committed `S214`; a local ASCII unknown section terminates successfully when its final EOF has no trailing newline and publishes its callback; no drawing bytes committed | Wave 1 final-EOF tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S215 is active |
+| S215 | J191: DXF missing-EOF rejection parity | S214 | ACTIVE | missing EOF marker; reader terminal error; unknown-section callback disposition; ASCII/binary symmetry; focused DXF gate; plan/scope/sync/fixture gates | feed local unknown sections ending after ENDSEC with no EOF; assert processing fails with the terminal unknown-input error after callback publication in ASCII and binary, with no drawing bytes committed | active after S214 commit; use Wave 1 missing-EOF tests, focused CTest selector, fast source/policy gates, fixture admission, import scope, pinned sync, and diff gates |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3530,7 +3533,8 @@ edit this block or commit the same slice concurrently.
 | J187 | S211 | J186 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-section case-insensitive ENDSEC framing parity | local ASCII and binary unknown sections close on mixed-case ENDSEC and publish their payload; no-fixture evidence |
 | J188 | S212 | J187 | COMMITTED | EXPERIMENTAL | Qualify DXF case-insensitive SECTION keyword parity | local ASCII and binary streams enter unknown sections on mixed-case SECTION and publish their payload; no-fixture evidence |
 | J189 | S213 | J188 | COMMITTED | EXPERIMENTAL | Qualify DXF case-insensitive EOF termination parity | local ASCII and binary streams terminate successfully on mixed-case EOF after raw-section publication; no-fixture evidence |
-| J190 | S214 | J189 | ACTIVE | EXPERIMENTAL | Qualify DXF final-EOF-without-newline parity | active packet names final EOF without trailing newline and successful raw-section callback publication; no-fixture evidence |
+| J190 | S214 | J189 | COMMITTED | EXPERIMENTAL | Qualify DXF final-EOF-without-newline parity | local ASCII final EOF without trailing newline terminates successfully after raw-section callback publication; no-fixture evidence |
+| J191 | S215 | J190 | ACTIVE | EXPERIMENTAL | Qualify DXF missing-EOF rejection parity | active packet names terminal failure when ENDSEC is not followed by EOF in ASCII/binary; no-fixture evidence |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -3855,7 +3859,8 @@ edit this block or commit the same slice concurrently.
 | J187.1 | J187 / S211 | WP4, WP5, WP6, WP8, WP10; DXF raw-section case-insensitive ENDSEC framing parity | J186 | COMMITTED | EXPERIMENTAL | assert mixed-case ENDSEC closes unknown ASCII/binary sections and publishes the raw callback, without external drawing bytes | focused Wave 1 raw-section ENDSEC target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 | J188.1 | J188 / S212 | WP4, WP5, WP6, WP8, WP10; DXF case-insensitive SECTION keyword parity | J187 | COMMITTED | EXPERIMENTAL | assert mixed-case SECTION enters unknown ASCII/binary sections and publishes the raw callback when framing closes, without external drawing bytes | focused Wave 1 raw-section SECTION target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 | J189.1 | J189 / S213 | WP4, WP5, WP6, WP8, WP10; DXF case-insensitive EOF termination parity | J188 | COMMITTED | EXPERIMENTAL | assert mixed-case EOF terminates unknown ASCII/binary streams after the raw callback publishes, without external drawing bytes | focused Wave 1 raw-section EOF target and policy gates pass; no external or derived DWG/DXF bytes are retained |
-| J190.1 | J190 / S214 | WP4, WP5, WP6, WP8, WP10; DXF final-EOF-without-newline parity | J189 | ACTIVE | EXPERIMENTAL | assert final ASCII EOF without trailing newline still terminates successfully after raw-section callback publication, without external drawing bytes | focused Wave 1 final-EOF target and policy gates pass; no external or derived DWG/DXF bytes are retained |
+| J190.1 | J190 / S214 | WP4, WP5, WP6, WP8, WP10; DXF final-EOF-without-newline parity | J189 | COMMITTED | EXPERIMENTAL | assert final ASCII EOF without trailing newline still terminates successfully after raw-section callback publication, without external drawing bytes | focused Wave 1 final-EOF target and policy gates pass; no external or derived DWG/DXF bytes are retained |
+| J191.1 | J191 / S215 | WP4, WP5, WP6, WP8, WP10; DXF missing-EOF rejection parity | J190 | ACTIVE | EXPERIMENTAL | assert ASCII/binary unknown sections ending after ENDSEC without EOF fail with the terminal unknown-input error after callback publication, without external drawing bytes | focused Wave 1 missing-EOF target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 
 <!-- UPGRADE_PROGRESS_END -->
 

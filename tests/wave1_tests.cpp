@@ -3894,6 +3894,21 @@ void testDxfRawSectionCaseInsensitiveEof(TestContext& t) {
              "DXF binary raw section accepts mixed-case EOF");
 }
 
+void testDxfRawSectionFinalEofWithoutNewline(TestContext& t) {
+    const std::string content =
+        "0\nSECTION\n2\nLOCAL_FINAL_EOF\n1000\npayload\n"
+        "0\nENDSEC\n0\nEOF";
+    ProfileProbeInterface interface_;
+    dxfRW reader("");
+    std::string input = content;
+    t.expect(reader.readAscii(&interface_, false, input)
+                 && interface_.sections.size() == 1
+                 && interface_.sections.front().m_name == "LOCAL_FINAL_EOF"
+                 && interface_.sections.front().m_groups.size() == 1
+                 && interface_.sections.front().m_groups.front().code() == 1000,
+             "DXF ASCII raw section accepts EOF without trailing newline");
+}
+
 void testDxfRawSectionApplicationGroupMarker(TestContext& t) {
     const std::vector<std::string> invalidMarkers = {"{", "NOT_A_MARKER"};
     for (const std::string& marker : invalidMarkers) {
@@ -4253,6 +4268,7 @@ int main() {
     testDxfRawSectionCaseInsensitiveEndsec(context);
     testDxfRawSectionCaseInsensitiveSection(context);
     testDxfRawSectionCaseInsensitiveEof(context);
+    testDxfRawSectionFinalEofWithoutNewline(context);
     testDxfRawSectionApplicationGroupMarker(context);
     testDxfRawSectionApplicationGroupReferenceMatrix(context);
     testRawCapture(context);
