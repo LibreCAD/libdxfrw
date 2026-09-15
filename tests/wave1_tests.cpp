@@ -4711,6 +4711,139 @@ void testDxfRawObjectEmptyPayload(TestContext& t) {
              "DXF binary raw object emits only name and handle framing");
 }
 
+void testDxfRawObjectAggregateLimit(TestContext& t) {
+    const auto makeObject = [](std::size_t pairCount, bool hasRawValues) {
+        DRW_RawDxfObject object;
+        object.name = "LOCAL_RAW_AGGREGATE_LIMIT";
+        object.m_version = DRW::AC1027;
+        object.hasRawValues = hasRawValues;
+        object.groups.reserve(pairCount);
+        if (hasRawValues)
+            object.rawValues.reserve(pairCount);
+        object.groups.emplace_back(5, std::string("1A"));
+        if (hasRawValues)
+            object.rawValues.emplace_back("1A");
+        for (std::size_t i = 1; i < pairCount; ++i) {
+            object.groups.emplace_back(1000, std::string("payload"));
+            if (hasRawValues)
+                object.rawValues.emplace_back("payload");
+        }
+        return object;
+    };
+    constexpr std::size_t maxPairs = DRW::kMaxDxfApplicationGroupPairs;
+
+    DRW_RawDxfObject asciiBoundary = makeObject(maxPairs, true);
+    std::ostringstream asciiOutput;
+    dxfRW asciiWriter("");
+    asciiWriter.version = DRW::AC1027;
+    asciiWriter.binFile = false;
+    asciiWriter.writer = std::make_unique<dxfWriterAscii>(&asciiOutput);
+    t.expect(asciiWriter.writeRawDxfObject(&asciiBoundary)
+                 && !asciiOutput.str().empty(),
+             "DXF ASCII raw object accepts the aggregate-pair boundary");
+
+    DRW_RawDxfObject binaryBoundary = makeObject(maxPairs, false);
+    std::ostringstream binaryOutput;
+    dxfRW binaryWriter("");
+    binaryWriter.version = DRW::AC1027;
+    binaryWriter.binFile = true;
+    binaryWriter.writer = std::make_unique<dxfWriterBinary>(&binaryOutput);
+    t.expect(binaryWriter.writeRawDxfObject(&binaryBoundary)
+                 && !binaryOutput.str().empty(),
+             "DXF binary raw object accepts the aggregate-pair boundary");
+
+    DRW_RawDxfObject asciiOver = makeObject(maxPairs + 1u, true);
+    std::ostringstream rejectedAsciiOutput;
+    dxfRW rejectingAsciiWriter("");
+    rejectingAsciiWriter.version = DRW::AC1027;
+    rejectingAsciiWriter.binFile = false;
+    rejectingAsciiWriter.writer = std::make_unique<dxfWriterAscii>(
+        &rejectedAsciiOutput);
+    t.expect(!rejectingAsciiWriter.writeRawDxfObject(&asciiOver)
+                 && rejectedAsciiOutput.str().empty(),
+             "DXF ASCII raw object rejects an over-limit aggregate transactionally");
+
+    DRW_RawDxfObject binaryOver = makeObject(maxPairs + 1u, false);
+    std::ostringstream rejectedBinaryOutput;
+    dxfRW rejectingBinaryWriter("");
+    rejectingBinaryWriter.version = DRW::AC1027;
+    rejectingBinaryWriter.binFile = true;
+    rejectingBinaryWriter.writer = std::make_unique<dxfWriterBinary>(
+        &rejectedBinaryOutput);
+    t.expect(!rejectingBinaryWriter.writeRawDxfObject(&binaryOver)
+                 && rejectedBinaryOutput.str().empty(),
+             "DXF binary raw object rejects an over-limit aggregate transactionally");
+}
+
+void testDxfRawObjectApplicationGroupDepth(TestContext& t) {
+    const auto makeObject = [](std::size_t depth, bool hasRawValues) {
+        DRW_RawDxfObject object;
+        object.name = "LOCAL_RAW_DEPTH_LIMIT";
+        object.m_version = DRW::AC1027;
+        object.hasRawValues = hasRawValues;
+        object.groups.reserve(1u + depth * 2u);
+        if (hasRawValues)
+            object.rawValues.reserve(1u + depth * 2u);
+        object.groups.emplace_back(5, std::string("1A"));
+        if (hasRawValues)
+            object.rawValues.emplace_back("1A");
+        for (std::size_t i = 0; i < depth; ++i) {
+            object.groups.emplace_back(102, std::string("{DEPTH"));
+            if (hasRawValues)
+                object.rawValues.emplace_back("{DEPTH");
+        }
+        for (std::size_t i = 0; i < depth; ++i) {
+            object.groups.emplace_back(102, std::string("}"));
+            if (hasRawValues)
+                object.rawValues.emplace_back("}");
+        }
+        return object;
+    };
+    constexpr std::size_t maxDepth = DRW::kMaxDxfApplicationGroupNesting;
+
+    DRW_RawDxfObject asciiBoundary = makeObject(maxDepth, true);
+    std::ostringstream asciiOutput;
+    dxfRW asciiWriter("");
+    asciiWriter.version = DRW::AC1027;
+    asciiWriter.binFile = false;
+    asciiWriter.writer = std::make_unique<dxfWriterAscii>(&asciiOutput);
+    t.expect(asciiWriter.writeRawDxfObject(&asciiBoundary)
+                 && !asciiOutput.str().empty(),
+             "DXF ASCII raw object accepts the application-group depth boundary");
+
+    DRW_RawDxfObject binaryBoundary = makeObject(maxDepth, false);
+    std::ostringstream binaryOutput;
+    dxfRW binaryWriter("");
+    binaryWriter.version = DRW::AC1027;
+    binaryWriter.binFile = true;
+    binaryWriter.writer = std::make_unique<dxfWriterBinary>(&binaryOutput);
+    t.expect(binaryWriter.writeRawDxfObject(&binaryBoundary)
+                 && !binaryOutput.str().empty(),
+             "DXF binary raw object accepts the application-group depth boundary");
+
+    DRW_RawDxfObject asciiOver = makeObject(maxDepth + 1u, true);
+    std::ostringstream rejectedAsciiOutput;
+    dxfRW rejectingAsciiWriter("");
+    rejectingAsciiWriter.version = DRW::AC1027;
+    rejectingAsciiWriter.binFile = false;
+    rejectingAsciiWriter.writer = std::make_unique<dxfWriterAscii>(
+        &rejectedAsciiOutput);
+    t.expect(!rejectingAsciiWriter.writeRawDxfObject(&asciiOver)
+                 && rejectedAsciiOutput.str().empty(),
+             "DXF ASCII raw object rejects over-depth transactionally");
+
+    DRW_RawDxfObject binaryOver = makeObject(maxDepth + 1u, false);
+    std::ostringstream rejectedBinaryOutput;
+    dxfRW rejectingBinaryWriter("");
+    rejectingBinaryWriter.version = DRW::AC1027;
+    rejectingBinaryWriter.binFile = true;
+    rejectingBinaryWriter.writer = std::make_unique<dxfWriterBinary>(
+        &rejectedBinaryOutput);
+    t.expect(!rejectingBinaryWriter.writeRawDxfObject(&binaryOver)
+                 && rejectedBinaryOutput.str().empty(),
+             "DXF binary raw object rejects over-depth transactionally");
+}
+
 void testDxfRawSectionApplicationGroupReferenceMatrix(TestContext& t) {
     DRW_RawDxfSection section;
     section.m_name = "LOCAL_SECTION_REFERENCE_MATRIX";
@@ -5056,6 +5189,8 @@ int main() {
     testDxfRawObjectWriterPreflight(context);
     testDxfRawObjectVersionCompatibility(context);
     testDxfRawObjectEmptyPayload(context);
+    testDxfRawObjectAggregateLimit(context);
+    testDxfRawObjectApplicationGroupDepth(context);
     testDxfRawSectionApplicationGroupReferenceMatrix(context);
     testRawCapture(context);
     testHatchValidationIgnoresInactiveGradient(context);
