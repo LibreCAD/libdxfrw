@@ -50,8 +50,19 @@ def check(prefix: Path, cxx: str) -> None:
 
         consumer = root / "consumer.cpp"
         consumer.write_text(
-            "#include <libdxfrw/libdxfrw.h>\n"
-            "int main() { dxfRW writer(\"\"); return writer.getError(); }\n",
+            "#include <libdxfrw.h>\n"
+            "int main() {\n"
+            "  dxfRW writer(\"\");\n"
+            "  if (writer.dxfCompatibilityProfile() !=\n"
+            "      dxfRW::DxfCompatibilityProfile::StandaloneSafe) return 1;\n"
+            "  writer.setDxfCompatibilityProfile(\n"
+            "      dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy);\n"
+            "  if (writer.dxfCompatibilityProfile() !=\n"
+            "      dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy) return 2;\n"
+            "  writer.setDxfCompatibilityProfile(\n"
+            "      dxfRW::DxfCompatibilityProfile::StandaloneSafe);\n"
+            "  return writer.getError();\n"
+            "}\n",
             encoding="utf-8")
         cmake = root / "CMakeLists.txt"
         cmake.write_text(
@@ -70,7 +81,7 @@ def check(prefix: Path, cxx: str) -> None:
 
         pkgconfig = os.environ.copy()
         pkgconfig["PKG_CONFIG_PATH"] = str(prefix / "lib" / "pkgconfig")
-        flags = shlex.split(run(["pkg-config", "--cflags", "--libs",
+        flags = shlex.split(run(["pkg-config", "--define-prefix", "--cflags", "--libs",
                                  "libdxfrw"], env=pkgconfig).stdout)
         run([cxx, "-std=c++17", "-Wall", "-Wextra", "-Werror",
              str(consumer), "-o", str(root / "pkgconfig-consumer")] + flags)
@@ -81,7 +92,12 @@ def main() -> int:
     parser.add_argument("--prefix", type=Path, required=True)
     parser.add_argument("--cxx", default=os.environ.get("CXX", "c++"))
     args = parser.parse_args()
-    check(args.prefix, args.cxx)
+    try:
+        check(args.prefix, args.cxx)
+    except subprocess.CalledProcessError as error:
+        if error.output:
+            print(error.output, end="")
+        raise
     print("staged package check: PASS")
     return 0
 
