@@ -4771,6 +4771,27 @@ public:
         malformed.m_bodyBitSize = 0;
         rejectedMalformed_ = !writer_->writeRawDwgObject(&malformed);
 
+        DRW_UnsupportedObject wrongVersion = second_;
+        wrongVersion.m_handle = 0x704u;
+        wrongVersion.m_version = DRW::AC1024;
+        rejectedWrongVersion_ = !writer_->writeRawDwgObject(&wrongVersion);
+
+        DRW_RawDwgSection wrongSection = section_;
+        wrongSection.m_version = DRW::AC1024;
+        rejectedWrongSectionVersion_ = !writer_->writeRawDwgSection(&wrongSection);
+        DRW_RawDwgSection invalidEncoding = section_;
+        invalidEncoding.m_name = "LocalRawS112Encoding";
+        invalidEncoding.m_encoding = 3;
+        rejectedInvalidEncoding_ = !writer_->writeRawDwgSection(&invalidEncoding);
+        DRW_RawDwgSection encrypted = section_;
+        encrypted.m_name = "LocalRawS112Encrypted";
+        encrypted.m_encrypted = 1;
+        rejectedEncrypted_ = !writer_->writeRawDwgSection(&encrypted);
+        DRW_RawDwgSection oversized = section_;
+        oversized.m_name = "LocalRawS112Oversized";
+        oversized.m_maxSize = 0xFFFFFFFFu;
+        rejectedOversized_ = !writer_->writeRawDwgSection(&oversized);
+
         replayedSecond_ = writer_->writeRawDwgObject(&second_);
         capturedSecondFrame_ = writer_->getLastDwgObjectFrame(secondFrame_);
         replayedSection_ = writer_->writeRawDwgSection(&section_);
@@ -4799,6 +4820,11 @@ public:
     bool replayedFirst_ {false};
     bool capturedFirstFrame_ {false};
     bool rejectedMalformed_ {false};
+    bool rejectedWrongVersion_ {false};
+    bool rejectedWrongSectionVersion_ {false};
+    bool rejectedInvalidEncoding_ {false};
+    bool rejectedEncrypted_ {false};
+    bool rejectedOversized_ {false};
     bool replayedSecond_ {false};
     bool capturedSecondFrame_ {false};
     bool replayedSection_ {false};
@@ -4818,7 +4844,10 @@ bool runRawDwgReplayContract() {
     if (!writeOk
         || !writeIface.registeredFirst_ || !writeIface.registeredSecond_
         || !writeIface.rejectedNullClass_ || !writeIface.replayedFirst_
-        || !writeIface.rejectedMalformed_ || !writeIface.replayedSecond_
+        || !writeIface.rejectedMalformed_ || !writeIface.rejectedWrongVersion_
+        || !writeIface.rejectedWrongSectionVersion_
+        || !writeIface.rejectedInvalidEncoding_ || !writeIface.rejectedEncrypted_
+        || !writeIface.rejectedOversized_ || !writeIface.replayedSecond_
         || !writeIface.replayedSection_ || !writeIface.rejectedDuplicateSection_) {
         std::filesystem::remove(output, ec);
         return false;
