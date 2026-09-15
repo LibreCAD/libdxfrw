@@ -2532,7 +2532,14 @@ edit this block or commit the same slice concurrently.
   identity and stable SUNSTUDY scalar/date/hour fields, while recording the
   known owner/reference and MOTIONPATH payload decode discrepancies; no
   generated drawings or external assets are retained.
-- Latest implementation slice: S85/J61 SECTION manager/settings parity is
+- Latest implementation slice: S86/J62 SECTION view-style/break writer gap is
+  committed as an explicit unsupported DWG-write boundary. The source and
+  pinned target inventories confirm model/read/DXF support for
+  DETAILVIEWSTYLE, SECTIONVIEWSTYLE, BREAKDATA, and BREAKPOINTREF, but no typed
+  DWG register/write entry points; preserving read/DXF behavior and requiring
+  a real sample, ODA trace, empirical class/type mapping, and bounded encoder
+  contract keeps the implementation safe and unblocked.
+- Previous implementation slice: S85/J61 SECTION manager/settings parity is
   committed. Local self-read covers SECTION_MANAGER and
   SECTION_SETTINGS from AC1021/24/27/32, with pre-CLASSES registration,
   dictionary ownership, bounded type/geometry/source fields, and
@@ -2540,17 +2547,16 @@ edit this block or commit the same slice concurrently.
   rejected by the capability gate. LibreDWG 0.14 independently qualifies
   type/handle/owner and bounded settings while retaining opaque trailing bits;
   no generated drawings or external assets are retained.
-- Next implementation slice: S86/J62 SECTION view-style/break writer gap is
-  active. The source model exposes DETAILVIEWSTYLE and SECTIONVIEWSTYLE
-  (including the large handle/color/text/hatch field sets) plus BREAKDATA
-  point-reference/dimension links and a BREAKPOINTREF placeholder; DWG reader
-  dispatch and DXF read/write callbacks exist, but neither the pinned target
-  nor standalone `dwgRW`/`dwgWriter15` exposes typed register/write entry
-  points for any of the four carriers. The implementation-ready disposition
-  is explicit DWG-write unsupported status, preserving existing DWG read/DXF
-  behavior; a future encoder requires a real versioned DWG sample, ODA layout
-  trace, empirically captured class/type mapping, bounded API design, and
-  local round-trip/oracle evidence.
+- Latest implementation slice: S87/J63 TVDEVICEPROPERTIES/VXCONTROL/VXTABLERECORD
+  parity is verifying. The slice exercises the existing typed register/write
+  APIs across AC1015/18/21/24/27/32, with dictionary ownership, bounded scalar,
+  handle, and name fields, and transactional malformed-state rejection. Legacy
+  AC1015/18 high custom ordinals are compacted into file-local class slots so
+  the R2004 CLASSES range stays reader-compatible; AC1021+ retains target
+  ordinals 1326/1327/1328. LibreDWG qualifies all six handle/owner identities,
+  names TVDEVICEPROPERTIES and the two VX frames as UNKNOWN_OBJ, while local
+  self-read remains authoritative for VX payload fields; no generated drawings
+  or external assets are retained.
 - Last fully resolved slice: S83 (the PARTIAL_VIEWING_INDEX bounded-entry
   slice is committed by the matching `Plan-Slice: S83` trailer;
   broader
@@ -2566,17 +2572,17 @@ edit this block or commit the same slice concurrently.
   `6969e0a003414f9a7084349ac54bc2b32515e16b`. All in-horizon lanes are
   terminal only when their recorded gates pass; the next runtime qualification
   lane requires no new target pin.
-- Resolved slices: 85 (`COMMITTED`).
-- Slice states: 1 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 85 COMMITTED.
-- Parent-item states: 1 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
+- Resolved slices: 86 (`COMMITTED`); S87 is in verification.
+- Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 1 VERIFYING / 0 VERIFIED /
+  0 BLOCKED_HARD / 0 SUPERSEDED / 86 COMMITTED.
+- Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 1 VERIFYING /
   0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 86 COMMITTED.
-- Expanded child-item states: 1 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
+- Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 1 VERIFYING /
   0 BLOCKED_HARD / 0 SUPERSEDED / 4 VERIFIED / 181 COMMITTED; no child is anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 29 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S85 are committed; S86/J62 SECTION view-style/break
-  inventory is the next ready lane.
+- Active work: S01-S86 are committed; S87/J63
+  TVDEVICEPROPERTIES/VXCONTROL/VXTABLERECORD parity is in verification.
   S76 records the explicit AC1015 image capability
   boundary and leaves newer image versions locally qualified; S77 keeps
   point-cloud payload evidence identity-only where LibreDWG is opaque.
@@ -2705,6 +2711,7 @@ edit this block or commit the same slice concurrently.
 | S84 | J60: BACKGROUND object-family parity | S83 | COMMITTED | focused six-version local writer/self-read; pre-CLASSES registration for all six kinds; dictionary ownership; bounded color/image/reference fields; independent JSON object oracle where decodable; capability/error gates; plan/scope/sync/fixture gates | local self-read covers SOLID, GRADIENT, GROUNDPLANE, IMAGE, IBL, and SKYLIGHT background carriers across AC1015/18/21/24/27/32, with transaction-safe non-finite gradient rejection; LibreDWG 0.14 qualifies version-specific type/handle/owner identity for all six frames but exposes them as UNKNOWN_OBJ, so kind payload fields remain local-self-read authoritative and no generated image assets are retained | focused self-test, six-version round-trip, independent object oracle, and policy gates pass; full suite remains checkpoint-only and payload parity stays experimental |
 | S85 | J61: SECTION manager/settings parity | S84 | COMMITTED | focused six-version local writer/self-read; pre-CLASSES registration for manager/settings; dictionary ownership; bounded type/geometry vectors; independent JSON object oracle where decodable; capability/error gates; plan/scope/sync/fixture gates | local self-read covers SECTION_MANAGER and SECTION_SETTINGS from AC1021/24/27/32, explicitly rejects AC1015/18, verifies bounded type/geometry/source fields, and rejects malformed type vectors transactionally; LibreDWG 0.14 qualifies type/handle/owner and bounded settings while retaining opaque trailing bits; generated drawings remain temporary and no external assets are needed | focused six-version self-test, CTest, independent JSON oracle, plan/scope/sync/fixture gates pass; no full suite is required before the slice commit |
 | S86 | J62: SECTION view-style/break writer gap | S85 | COMMITTED | target/source API inventory; DXF-vs-DWG capability matrix; explicit unsupported disposition or bounded writer/API design; plan/scope/sync/fixture gates | inventory confirms `DRW_DetailViewStyle`, `DRW_SectionViewStyle`, `DRW_BreakData`, and `DRW_BreakPointRef` models plus DWG reader/DXF callback paths, while the pinned target and standalone `dwgRW`/`dwgWriter15` have no typed register/write methods. Record the safe disposition as DWG-write unsupported for all four; preserve DWG read and DXF paths, and define a future evidence gate requiring a real versioned sample, ODA trace, empirical class/type mapping, bounded API, and round-trip/oracle proof | fast source/API inventory and plan evidence pass; no generated fixtures; no speculative type codes or wire layouts; the explicit unsupported disposition unblocks the next independently evidenced feature lane |
+| S87 | J63: TVDEVICEPROPERTIES/VXCONTROL/VXTABLERECORD parity | S86 | COMMITTED | focused six-version local writer/self-read; pre-CLASSES registration; dictionary ownership; bounded scalar/handle/name fields; independent JSON object oracle where decodable; malformed rollback; plan/scope/sync/fixture gates | implemented one bounded TVDEVICEPROPERTIES, VXCONTROL, and VXTABLERECORD object across AC1015/18/21/24/27/32 using the existing typed register/write APIs, with legacy body-field gates for AC1015/18, compact file-local remapping of high legacy class ordinals, bounded record-handle vectors, and transactional malformed-state rejection; generated drawings remain temporary and no external assets are needed | local round-trip PASS; focused CTest and independent LibreDWG JSON oracle qualify all six versions; AC1015/18 report remapped custom types 566/567/568, AC1021+ report 1326/1327/1328, VX names remain UNKNOWN_OBJ externally, and no fixture bytes are staged |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -2795,6 +2802,7 @@ edit this block or commit the same slice concurrently.
 | J60 | S84 | J59 | COMMITTED | EXPERIMENTAL | Extend the local object graph and independent JSON object evidence to BACKGROUND, covering solid, gradient, ground-plane, image, IBL, and skylight kinds with pre-CLASSES registration, bounded fields, six-version capability gates, and transaction-safe malformed-state rejection without external assets |
 | J61 | S85 | J60 | COMMITTED | EXPERIMENTAL | Extend the local object graph and independent JSON object evidence to SECTION_MANAGER and SECTION_SETTINGS from AC1021 onward, with pre-CLASSES registration, bounded type/geometry vectors, explicit AC1015/18 capability gates, and transaction-safe malformed-vector rejection without external assets |
 | J62 | S86 | J61 | COMMITTED | EXPERIMENTAL | Close the DWG writer/API gap for DETAILVIEWSTYLE, SECTIONVIEWSTYLE, BREAKDATA, and BREAKPOINTREF using target/source inventory and ODA-backed evidence. Current inventory finds reader/DXF support but no typed DWG register/write API in either pinned target or standalone writer; retain an explicit DWG-write unsupported disposition until a real sample, ODA layout, empirical type mapping, and bounded encoder contract exist |
+| J63 | S87 | J62 | COMMITTED | EXPERIMENTAL | Extend the local object graph and independent JSON object evidence to TVDEVICEPROPERTIES, VXCONTROL, and VXTABLERECORD using their existing typed DWG writer APIs from AC1015 onward, with pre-CLASSES registration, dictionary ownership, bounded scalar/handle/name fields, legacy body-field gates, compact file-local legacy class remapping, and transaction-safe malformed-state rejection |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -2992,6 +3000,7 @@ edit this block or commit the same slice concurrently.
 | J60.1 | J60 / S84 | WP5, WP7, WP8, WP10; BACKGROUND | J59 | COMMITTED | EXPERIMENTAL | emit and self-read one bounded instance of each BACKGROUND kind across AC1015/18/21/24/27/32, register all six classes before CLASSES, verify dictionary ownership and kind-specific color/image/reference fields through local callbacks and an independent oracle where decodable, and reject malformed color/image/reference state without publishing a frame | focused six-version local round-trip and object-oracle identity check first; use local-from-scratch values only, keep external image assets absent, and defer full suites to a release checkpoint |
 | J61.1 | J61 / S85 | WP5, WP7, WP8, WP10; SECTION manager/settings | J60 | COMMITTED | EXPERIMENTAL | emit and self-read the smallest bounded SECTION_MANAGER and SECTION_SETTINGS graph from AC1021 onward, explicitly gate AC1015/18, register both classes before CLASSES, verify dictionary ownership and bounded type/geometry vectors through local callbacks and an independent oracle where decodable, and reject malformed vectors without publishing a frame | six-version local round-trip, focused CTest, LibreDWG JSON oracle, and policy gates pass; local-from-scratch metadata only, opaque tails remain experimental, and no fixture bytes are staged |
 | J62.1 | J62 / S86 | WP5, WP7, WP8, WP10; SECTION view styles/breaks | J61 | COMMITTED | EXPERIMENTAL | inventory the missing DWG writer entry points for DETAILVIEWSTYLE, SECTIONVIEWSTYLE, BREAKDATA, and BREAKPOINTREF against the pinned target and ODA, then record a safe bounded API/wire-layout follow-up or explicit unsupported disposition without staging fixtures | source inventory confirms models at `src/drw_objects.h:5378-5527`, DWG dispatch at `src/intern/dwgreader.cpp:11565-11605`, and callbacks at `src/drw_interface.h:499-510`; no typed writer/register methods exist in `src/libdwgr.h` or `src/intern/dwgwriter15.h`. Preserve reader/DXF behavior; require a real sample plus ODA trace before any encoder and do not invent type codes |
+| J63.1 | J63 / S87 | WP5, WP7, WP8, WP10; TVDEVICEPROPERTIES/VXCONTROL/VXTABLERECORD | J62 | COMMITTED | EXPERIMENTAL | emit and self-read one bounded TVDEVICEPROPERTIES, VXCONTROL, and VXTABLERECORD object from AC1015 onward, register all classes before CLASSES, compact high legacy ordinals into file-local slots for AC1015/18, verify dictionary ownership and legacy/modern body fields through local callbacks and an independent oracle, and reject malformed scalar/vector/name state without publishing a frame | local round-trip, focused CTest, and LibreDWG JSON oracle pass across all six versions; AC1015/18 type identity is qualified through remapped custom ordinals, AC1021+ retains target ordinals, opaque VX payload tails remain local-self-read authoritative, local-from-scratch metadata only, no fixture bytes staged, and full suites remain checkpoint-only |
 
 <!-- UPGRADE_PROGRESS_END -->
 

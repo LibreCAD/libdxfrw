@@ -261,6 +261,20 @@ public:
             registeredSkylightBackground_ =
                 writer_->registerBackgroundObjectClass(
                     &skylightBackgroundRegistration);
+            DRW_TvDeviceProperties tvDeviceRegistration;
+            tvDeviceRegistration.handle = 0xEA00u;
+            registeredTvDeviceProperties_ =
+                writer_->registerTvDevicePropertiesObjectClass(
+                    &tvDeviceRegistration);
+            DRW_VxControl vxControlRegistration;
+            vxControlRegistration.handle = 0xEB00u;
+            registeredVxControl_ = writer_->registerVxControlObjectClass(
+                &vxControlRegistration);
+            DRW_VxTableRecord vxTableRecordRegistration;
+            vxTableRecordRegistration.handle = 0xEC00u;
+            registeredVxTableRecord_ =
+                writer_->registerVxTableRecordObjectClass(
+                    &vxTableRecordRegistration);
             if (expectedVersion_ >= DRW::AC1021) {
                 DRW_Section sectionManagerRegistration;
                 sectionManagerRegistration.handle = 0xE700u;
@@ -363,6 +377,9 @@ public:
             {"LOCAL_IMAGE_BACKGROUND", 0xE300u},
             {"LOCAL_IBL_BACKGROUND", 0xE400u},
             {"LOCAL_SKYLIGHT_BACKGROUND", 0xE500u},
+            {"LOCAL_TVDEVICEPROPERTIES", 0xEA00u},
+            {"LOCAL_VXCONTROL", 0xEB00u},
+            {"LOCAL_VXTABLERECORD", 0xEC00u},
         };
         if (expectedVersion_ >= DRW::AC1021) {
             dictionary.m_entries.push_back(
@@ -1446,6 +1463,60 @@ public:
                 && !writer_->writeSection(&unsupportedSettings);
         }
 
+        DRW_TvDeviceProperties tvDevice;
+        tvDevice.handle = 0xEA00u;
+        tvDevice.parentHandle = dictionary.handle;
+        tvDevice.flags = 1;
+        tvDevice.maxRegenThreads = 2;
+        tvDevice.useLutPalette = 3;
+        tvDevice.alternateHighlight = 4;
+        tvDevice.alternateHighlightColor = 5;
+        tvDevice.geometryShaderUsage = 6;
+        tvDevice.blendingMode = 7;
+        tvDevice.antialiasingLevel = 0.25;
+        tvDevice.valueBd2 = 0.75;
+        wroteTvDeviceProperties_ = registeredTvDeviceProperties_
+            && writer_->writeTvDeviceProperties(&tvDevice)
+            && tvDevice.handle != 0;
+        DRW_TvDeviceProperties invalidTvDevice = tvDevice;
+        invalidTvDevice.handle = 0xEA01u;
+        invalidTvDevice.antialiasingLevel =
+            std::numeric_limits<double>::quiet_NaN();
+        rejectedMalformedTvDeviceProperties_ =
+            !writer_->writeTvDeviceProperties(&invalidTvDevice);
+
+        DRW_VxControl vxControl;
+        vxControl.handle = 0xEB00u;
+        vxControl.parentHandle = dictionary.handle;
+        vxControl.classVersion = 8;
+        vxControl.flags = 9;
+        vxControl.recordHandles = expectedVersion_ > DRW::AC1018
+            ? std::vector<std::uint32_t>{modelSpaceLineHandle_}
+            : std::vector<std::uint32_t>{};
+        wroteVxControl_ = registeredVxControl_
+            && writer_->writeVxControl(&vxControl)
+            && vxControl.handle != 0;
+        DRW_VxControl invalidVxControl = vxControl;
+        invalidVxControl.handle = 0xEB01u;
+        invalidVxControl.recordHandles.resize(1000001u);
+        rejectedMalformedVxControl_ =
+            !writer_->writeVxControl(&invalidVxControl);
+
+        DRW_VxTableRecord vxTableRecord;
+        vxTableRecord.handle = 0xEC00u;
+        vxTableRecord.parentHandle = dictionary.handle;
+        vxTableRecord.classVersion = 10;
+        vxTableRecord.flags = 11;
+        vxTableRecord.name = "LOCAL_VX_RECORD";
+        wroteVxTableRecord_ = registeredVxTableRecord_
+            && writer_->writeVxTableRecord(&vxTableRecord)
+            && vxTableRecord.handle != 0;
+        DRW_VxTableRecord invalidVxTableRecord = vxTableRecord;
+        invalidVxTableRecord.handle = 0xEC01u;
+        invalidVxTableRecord.reactorHandles.resize(1000001u);
+        rejectedMalformedVxTableRecord_ =
+            !writer_->writeVxTableRecord(&invalidVxTableRecord);
+
         DRW_Group group;
         group.handle = 0xA600u;
         group.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
@@ -1807,7 +1878,7 @@ public:
             readDictionarySeen_ = data.parentHandle
                     == DRW::DwgNamedObjectsDictionaryHandle
                 && data.m_entries.size()
-                    == (expectedVersion_ >= DRW::AC1021 ? 51u : 49u)
+                    == (expectedVersion_ >= DRW::AC1021 ? 54u : 52u)
                 && data.m_entries[0].m_name == "LOCAL_XRECORD"
                 && data.m_entries[0].m_handle == 0xA602u
                 && data.m_entries[1].m_name == "LOCAL_PLOTSETTINGS"
@@ -1906,11 +1977,17 @@ public:
                 && data.m_entries[47].m_handle == 0xE400u
                 && data.m_entries[48].m_name == "LOCAL_SKYLIGHT_BACKGROUND"
                 && data.m_entries[48].m_handle == 0xE500u
+                && data.m_entries[49].m_name == "LOCAL_TVDEVICEPROPERTIES"
+                && data.m_entries[49].m_handle == 0xEA00u
+                && data.m_entries[50].m_name == "LOCAL_VXCONTROL"
+                && data.m_entries[50].m_handle == 0xEB00u
+                && data.m_entries[51].m_name == "LOCAL_VXTABLERECORD"
+                && data.m_entries[51].m_handle == 0xEC00u
                 && (expectedVersion_ < DRW::AC1021
-                    || (data.m_entries[49].m_name == "LOCAL_SECTION_MANAGER"
-                        && data.m_entries[49].m_handle == 0xE700u
-                        && data.m_entries[50].m_name == "LOCAL_SECTION_SETTINGS"
-                        && data.m_entries[50].m_handle == 0xE800u));
+                    || (data.m_entries[52].m_name == "LOCAL_SECTION_MANAGER"
+                        && data.m_entries[52].m_handle == 0xE700u
+                        && data.m_entries[53].m_name == "LOCAL_SECTION_SETTINGS"
+                        && data.m_entries[53].m_handle == 0xE800u));
         }
     }
     void addXRecord(const DRW_XRecord& data) override {
@@ -2487,6 +2564,44 @@ public:
         if (data.handle == 0xE900u)
             readMalformedSectionSeen_ = true;
     }
+    void addTvDeviceProperties(const DRW_TvDeviceProperties& data) override {
+        if (data.handle == 0xEA00u)
+            readTvDevicePropertiesSeen_ = data.parentHandle == 0xA601u
+                && data.flags == 1
+                && data.maxRegenThreads == 2
+                && data.useLutPalette == 3
+                && data.alternateHighlight == 4
+                && data.alternateHighlightColor == 5
+                && data.geometryShaderUsage == 6
+                && data.blendingMode == 7
+                && data.antialiasingLevel == 0.25
+                && data.valueBd2 == 0.75;
+        if (data.handle == 0xEA01u)
+            readMalformedTvDevicePropertiesSeen_ = true;
+    }
+    void addVxControl(const DRW_VxControl& data) override {
+        if (data.handle == 0xEB00u)
+            readVxControlSeen_ = data.parentHandle == 0xA601u
+                && (expectedVersion_ <= DRW::AC1018
+                    ? (data.classVersion == 0 && data.flags == 0
+                       && data.recordHandles.empty())
+                    : (data.classVersion == 8 && data.flags == 9
+                       && data.recordHandles.size() == 1
+                       && data.recordHandles.front() != 0));
+        if (data.handle == 0xEB01u)
+            readMalformedVxControlSeen_ = true;
+    }
+    void addVxTableRecord(const DRW_VxTableRecord& data) override {
+        if (data.handle == 0xEC00u)
+            readVxTableRecordSeen_ = data.parentHandle == 0xA601u
+                && (expectedVersion_ <= DRW::AC1018
+                    ? (data.classVersion == 0 && data.flags == 0
+                       && data.name.empty())
+                    : (data.classVersion == 10 && data.flags == 11
+                       && data.name == "LOCAL_VX_RECORD"));
+        if (data.handle == 0xEC01u)
+            readMalformedVxTableRecordSeen_ = true;
+    }
     void addInsert(const DRW_Insert& data) override {
         readInsertSeen_ = true;
         readAttribSeen_ = data.attlist.size() == 1
@@ -2567,6 +2682,9 @@ public:
             && wroteSkylightBackground_
             && (wroteSectionManager_ || rejectedUnsupportedSection_)
             && (wroteSectionSettings_ || rejectedUnsupportedSection_)
+            && wroteTvDeviceProperties_
+            && wroteVxControl_
+            && wroteVxTableRecord_
             && wroteGroup_;
     }
     bool rejectedMalformedObject() const { return rejectedMalformedObject_; }
@@ -2683,6 +2801,18 @@ public:
     bool wroteSectionSettings() const { return wroteSectionSettings_; }
     bool rejectedUnsupportedSection() const { return rejectedUnsupportedSection_; }
     bool rejectedMalformedSection() const { return rejectedMalformedSection_; }
+    bool wroteTvDeviceProperties() const { return wroteTvDeviceProperties_; }
+    bool wroteVxControl() const { return wroteVxControl_; }
+    bool wroteVxTableRecord() const { return wroteVxTableRecord_; }
+    bool rejectedMalformedTvDeviceProperties() const {
+        return rejectedMalformedTvDeviceProperties_;
+    }
+    bool rejectedMalformedVxControl() const {
+        return rejectedMalformedVxControl_;
+    }
+    bool rejectedMalformedVxTableRecord() const {
+        return rejectedMalformedVxTableRecord_;
+    }
     bool wroteImage() const { return wroteImage_; }
     bool rejectedMalformedImage() const { return rejectedMalformedImage_; }
     bool readLineSeen() const { return readLineSeen_; }
@@ -2743,6 +2873,9 @@ public:
             && readIblBackgroundSeen_
             && readSkylightBackgroundSeen_
             && (expectedVersion_ < DRW::AC1021 || readSectionSetSeen())
+            && readTvDevicePropertiesSeen_
+            && readVxControlSeen_
+            && readVxTableRecordSeen_
             && readGroupSeen_;
         return result;
     }
@@ -2880,6 +3013,20 @@ public:
         return readMalformedBackgroundSeen_;
     }
     bool readMalformedSectionSeen() const { return readMalformedSectionSeen_; }
+    bool readTvDevicePropertiesSeen() const {
+        return readTvDevicePropertiesSeen_;
+    }
+    bool readVxControlSeen() const { return readVxControlSeen_; }
+    bool readVxTableRecordSeen() const { return readVxTableRecordSeen_; }
+    bool readMalformedTvDevicePropertiesSeen() const {
+        return readMalformedTvDevicePropertiesSeen_;
+    }
+    bool readMalformedVxControlSeen() const {
+        return readMalformedVxControlSeen_;
+    }
+    bool readMalformedVxTableRecordSeen() const {
+        return readMalformedVxTableRecordSeen_;
+    }
     bool readMalformedNavisworksModelDefSeen() const {
         return readMalformedNavisworksModelDefSeen_;
     }
@@ -3018,6 +3165,12 @@ private:
     bool wroteSectionSettings_ {false};
     bool rejectedUnsupportedSection_ {false};
     bool rejectedMalformedSection_ {false};
+    bool wroteTvDeviceProperties_ {false};
+    bool wroteVxControl_ {false};
+    bool wroteVxTableRecord_ {false};
+    bool rejectedMalformedTvDeviceProperties_ {false};
+    bool rejectedMalformedVxControl_ {false};
+    bool rejectedMalformedVxTableRecord_ {false};
     bool wroteImage_ {false};
     bool rejectedMalformedImage_ {false};
     bool registeredDictionary_ {false};
@@ -3070,6 +3223,9 @@ private:
     bool registeredSkylightBackground_ {false};
     bool registeredSectionManager_ {false};
     bool registeredSectionSettings_ {false};
+    bool registeredTvDeviceProperties_ {false};
+    bool registeredVxControl_ {false};
+    bool registeredVxTableRecord_ {false};
     bool registeredPlotSettings_ {false};
     bool readLineSeen_ {false};
     bool readPointSeen_ {false};
@@ -3187,6 +3343,12 @@ private:
     bool readSectionManagerSeen_ {false};
     bool readSectionSettingsSeen_ {false};
     bool readMalformedSectionSeen_ {false};
+    bool readTvDevicePropertiesSeen_ {false};
+    bool readVxControlSeen_ {false};
+    bool readVxTableRecordSeen_ {false};
+    bool readMalformedTvDevicePropertiesSeen_ {false};
+    bool readMalformedVxControlSeen_ {false};
+    bool readMalformedVxTableRecordSeen_ {false};
     bool readImageSeen_ {false};
     bool readImageDefSeen_ {false};
     bool readImageReactorSeen_ {false};
@@ -3461,6 +3623,24 @@ int main(int argc, char** argv) {
                    : true,
                ("local DWG writer rejected malformed SECTION transaction" + suffix).c_str(),
                failures);
+        expect(writeIface.wroteTvDeviceProperties(),
+               ("local DWG writer emitted TVDEVICEPROPERTIES" + suffix).c_str(),
+               failures);
+        expect(writeIface.wroteVxControl(),
+               ("local DWG writer emitted VXCONTROL" + suffix).c_str(),
+               failures);
+        expect(writeIface.wroteVxTableRecord(),
+               ("local DWG writer emitted VXTABLERECORD" + suffix).c_str(),
+               failures);
+        expect(writeIface.rejectedMalformedTvDeviceProperties(),
+               ("local DWG writer rejected malformed TVDEVICEPROPERTIES transaction" + suffix).c_str(),
+               failures);
+        expect(writeIface.rejectedMalformedVxControl(),
+               ("local DWG writer rejected malformed VXCONTROL transaction" + suffix).c_str(),
+               failures);
+        expect(writeIface.rejectedMalformedVxTableRecord(),
+               ("local DWG writer rejected malformed VXTABLERECORD transaction" + suffix).c_str(),
+               failures);
         expect(version < DRW::AC1018
                    ? !writeIface.wroteImage()
                    : writeIface.wroteImage(),
@@ -3513,6 +3693,15 @@ int main(int argc, char** argv) {
                ("local DWG self-read publishes GROUP" + suffix).c_str(), failures);
         expect(readIface.readObjectSetSeen(),
                ("local DWG self-read publishes object carrier set" + suffix).c_str(),
+               failures);
+        expect(readIface.readTvDevicePropertiesSeen(),
+               ("local DWG self-read publishes TVDEVICEPROPERTIES" + suffix).c_str(),
+               failures);
+        expect(readIface.readVxControlSeen(),
+               ("local DWG self-read publishes VXCONTROL" + suffix).c_str(),
+               failures);
+        expect(readIface.readVxTableRecordSeen(),
+               ("local DWG self-read publishes VXTABLERECORD" + suffix).c_str(),
                failures);
         expect(readIface.readVisualStyleSeen(),
                ("local DWG self-read publishes VISUALSTYLE" + suffix).c_str(),
@@ -3734,6 +3923,15 @@ int main(int argc, char** argv) {
                failures);
         expect(!readIface.readMalformedSectionSeen(),
                ("local DWG self-read omits rolled-back malformed SECTION" + suffix).c_str(),
+               failures);
+        expect(!readIface.readMalformedTvDevicePropertiesSeen(),
+               ("local DWG self-read omits rolled-back malformed TVDEVICEPROPERTIES" + suffix).c_str(),
+               failures);
+        expect(!readIface.readMalformedVxControlSeen(),
+               ("local DWG self-read omits rolled-back malformed VXCONTROL" + suffix).c_str(),
+               failures);
+        expect(!readIface.readMalformedVxTableRecordSeen(),
+               ("local DWG self-read omits rolled-back malformed VXTABLERECORD" + suffix).c_str(),
                failures);
         if (readIface.readLineSeen()) {
             const DRW_Line& line = readIface.readLine();

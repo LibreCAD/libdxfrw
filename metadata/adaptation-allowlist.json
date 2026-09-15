@@ -76,6 +76,13 @@
       "adaptedSha256": "574cbae469896786e72921acb3218166a0f8f64e6264a14cc478dfa519ad8923"
     },
     {
+      "path": "src/intern/dwgwriter.h",
+      "reason": "Compact high custom class ordinals into file-local legacy slots for AC1015/AC1018 so the R2004 CLASSES range remains compatible with independent readers; modern ordinals are unchanged.",
+      "scope": "DWG writer compatibility",
+      "targetBlob": "ce0087fb791558ca1afab7082b0f2164e99c457c",
+      "adaptedSha256": "9d8c8e158b29244e1f080ca5591907366718c3048987c1956dcdc56e585db89b"
+    },
+    {
       "path": "src/drw_objects.cpp",
       "reason": "Retain the imported warning-hygiene fixes and correct GEODATA AC1015/AC1018 inline versus R2007+ deferred host-block handle ordering per ODA §20.4.78, with bounded version-2 parity evidence.",
       "scope": "warning hygiene and DWG object compatibility",

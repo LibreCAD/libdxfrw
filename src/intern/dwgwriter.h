@@ -1623,6 +1623,20 @@ protected:
                     return false;
                 break;
             }
+
+            // R2000/R2004 serialize every custom ordinal from 500 through
+            // maxClassNum, including placeholders.  The modern Vx/TV
+            // classes use ordinals in the 1320s; carrying those ordinals into
+            // a legacy file needlessly expands CLASSES by hundreds of
+            // placeholder records and causes older readers to truncate the
+            // following OBJECTS stream.  Custom class numbers are file-local,
+            // so keep the modern ordinals for R2007+ and compact high
+            // ordinals into the next available legacy slot.
+            if (m_version < DRW::AC1021 && definition.m_classNum >= 1000) {
+                definition.m_classNum = nextFreeCustomClassNum();
+                if (definition.m_classNum < 500)
+                    return false;
+            }
         }
         bool insertedInstance = false;
         if (!stageDwgClassInstance(definition.m_classNum, handle,

@@ -120,6 +120,12 @@ MALFORMED_BACKGROUND_HANDLE = 0xE600
 SECTION_MANAGER_HANDLE = 0xE700
 SECTION_SETTINGS_HANDLE = 0xE800
 MALFORMED_SECTION_HANDLE = 0xE900
+TVDEVICEPROPERTIES_HANDLE = 0xEA00
+VXCONTROL_HANDLE = 0xEB00
+VXTABLERECORD_HANDLE = 0xEC00
+MALFORMED_TVDEVICEPROPERTIES_HANDLE = 0xEA01
+MALFORMED_VXCONTROL_HANDLE = 0xEB01
+MALFORMED_VXTABLERECORD_HANDLE = 0xEC01
 IMAGE_HANDLE = 0xD700
 MALFORMED_IMAGE_HANDLE = 0xD710
 
@@ -248,8 +254,8 @@ def check_objects(payload: dict, version_name: str) -> dict:
         raise ValueError("GROUP name, owner, or member stream mismatch")
 
     dictionary = find_record(records, "DICTIONARY", DICTIONARY_HANDLE)
-    expected_dictionary_items = 51 if version_name in {
-        "AC1021", "AC1024", "AC1027", "AC1032"} else 49
+    expected_dictionary_items = 54 if version_name in {
+        "AC1021", "AC1024", "AC1027", "AC1032"} else 52
     if (dictionary.get("numitems") != expected_dictionary_items
             or dictionary.get("is_hardowner") != 1
             or owner_handle(dictionary) != 0x0C):
@@ -517,6 +523,95 @@ def check_objects(payload: dict, version_name: str) -> dict:
             raise ValueError("unsupported SECTION objects were published")
         section_discrepancies.append(
             "SECTION_MANAGER/SECTION_SETTINGS are intentionally gated off before AC1021")
+    tv_vx = {}
+    tv_vx_discrepancies = []
+    modern_tv_vx = version_name in {"AC1021", "AC1024", "AC1027", "AC1032"}
+    if modern_tv_vx:
+        tv_device = find_record(
+            records, "TVDEVICEPROPERTIES", TVDEVICEPROPERTIES_HANDLE)
+        if (tv_device.get("type") != 1326
+                or owner_handle(tv_device) != DICTIONARY_HANDLE
+                or tv_device.get("flags") != 1
+                or tv_device.get("max_regen_threads") != 2
+                or tv_device.get("use_lut_palette") != 3
+                or tv_device.get("alt_hlt") != 4
+                or tv_device.get("alt_hltcolor") != 5
+                or tv_device.get("geom_shader_usage") != 6
+                or tv_device.get("blending_mode") != 7
+                or tv_device.get("antialiasing_level") != 0.25
+                or tv_device.get("bd2") != 0.75):
+            raise ValueError("TVDEVICEPROPERTIES type, owner, or payload mismatch")
+        tv_vx["TVDEVICEPROPERTIES"] = {
+            "object": "TVDEVICEPROPERTIES",
+            "handle": TVDEVICEPROPERTIES_HANDLE,
+            "type": 1326,
+        }
+    else:
+        # AC1015/AC1018 use a compact, file-local remap for the 1320s custom
+        # classes.  LibreDWG names TVDEVICEPROPERTIES but reports the VX
+        # carriers as UNKNOWN_OBJ; qualify their physical identity by handle,
+        # owner, and a valid custom type instead of requiring the modern
+        # ordinals.
+        legacy_specs = {
+            "TVDEVICEPROPERTIES": TVDEVICEPROPERTIES_HANDLE,
+            "VXCONTROL": VXCONTROL_HANDLE,
+            "VXTABLERECORD": VXTABLERECORD_HANDLE,
+        }
+        for object_name, handle in legacy_specs.items():
+            matches = [
+                record for record in records
+                if isinstance(record, dict)
+                and record_handle(record) == handle
+            ]
+            if len(matches) != 1 or owner_handle(matches[0]) != DICTIONARY_HANDLE:
+                raise ValueError(
+                    f"{object_name} legacy type, handle, or owner mismatch")
+            observed_type = matches[0].get("type")
+            if not isinstance(observed_type, int) or observed_type < 500:
+                raise ValueError(f"{object_name} legacy custom type mismatch")
+            if object_name == "TVDEVICEPROPERTIES":
+                if matches[0].get("object") != object_name:
+                    raise ValueError("TVDEVICEPROPERTIES legacy name mismatch")
+            elif matches[0].get("object") != object_name:
+                tv_vx_discrepancies.append(
+                    f"LibreDWG 0.14 exposes local {object_name} as UNKNOWN_OBJ")
+            tv_vx[object_name] = {
+                "object": object_name,
+                "handle": handle,
+                "type": observed_type,
+                "oracleObject": matches[0].get("object"),
+            }
+        tv_vx_discrepancies.append(
+            "AC1015/AC1018 compact high custom-class ordinals are file-local; "
+            "LibreDWG 0.14 qualifies TV/VX handle-owner identity while VX "
+            "payload fields remain local-self-read authoritative")
+    vx_specs = {
+        "VXCONTROL": (VXCONTROL_HANDLE, 1327),
+        "VXTABLERECORD": (VXTABLERECORD_HANDLE, 1328),
+    }
+    for object_name, (handle, object_type) in vx_specs.items():
+        if version_name not in {"AC1021", "AC1024", "AC1027", "AC1032"}:
+            continue
+        matches = [
+            record for record in records
+            if isinstance(record, dict)
+            and record_handle(record) == handle
+            and record.get("type") == object_type
+        ]
+        if len(matches) != 1 or owner_handle(matches[0]) != DICTIONARY_HANDLE:
+            raise ValueError(f"{object_name} type, handle, or owner mismatch")
+        if matches[0].get("object") != object_name:
+            tv_vx_discrepancies.append(
+                f"LibreDWG 0.14 exposes local {object_name} as UNKNOWN_OBJ")
+        tv_vx[object_name] = {
+            "object": object_name,
+            "handle": handle,
+            "type": object_type,
+            "oracleObject": matches[0].get("object"),
+        }
+    tv_vx_discrepancies.append(
+        "VXCONTROL/VXTABLERECORD payload fields remain local-self-read "
+        "authoritative while LibreDWG retains type/handle/owner identity")
     image_discrepancies = [
         "LibreDWG 0.14 does not expose the local IMAGE/IMAGEDEF entity and "
         "fixed-object frames in JSON; local self-read remains the authoritative "
@@ -1114,6 +1209,9 @@ def check_objects(payload: dict, version_name: str) -> dict:
         MALFORMED_PARTIAL_VIEWING_INDEX_HANDLE: "PARTIAL_VIEWING_INDEX",
         MALFORMED_BACKGROUND_HANDLE: "UNKNOWN_OBJ",
         MALFORMED_SECTION_HANDLE: "SECTION_SETTINGS",
+        MALFORMED_TVDEVICEPROPERTIES_HANDLE: "TVDEVICEPROPERTIES",
+        MALFORMED_VXCONTROL_HANDLE: "UNKNOWN_OBJ",
+        MALFORMED_VXTABLERECORD_HANDLE: "UNKNOWN_OBJ",
         MALFORMED_IMAGE_HANDLE: "IMAGE",
     }
     if any(record_handle(record) in malformed_handles
@@ -1179,6 +1277,9 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "SKYLIGHTBACKGROUND": SKYLIGHT_BACKGROUND_HANDLE,
             "SECTION_MANAGER": SECTION_MANAGER_HANDLE,
             "SECTION_SETTINGS": SECTION_SETTINGS_HANDLE,
+            "TVDEVICEPROPERTIES": TVDEVICEPROPERTIES_HANDLE,
+            "VXCONTROL": VXCONTROL_HANDLE,
+            "VXTABLERECORD": VXTABLERECORD_HANDLE,
             "IMAGE": IMAGE_HANDLE,
             "IMAGEDEF_REACTOR": IMAGE_HANDLE + 1,
             "DICTIONARYWDFLT": DICTIONARYWDFLT_HANDLE,
@@ -1201,6 +1302,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         },
         "backgrounds": backgrounds,
         "sections": sections,
+        "tvVxObjects": tv_vx,
         "objectStatus": "qualified",
         "oracleDiscrepancies": (oracle_discrepancies + mental_discrepancies
                                  + material_discrepancies
@@ -1216,6 +1318,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
                                  + partial_viewing_index_discrepancies
                                  + background_discrepancies
                                  + section_discrepancies
+                                 + tv_vx_discrepancies
                                  + image_discrepancies),
     }
 
@@ -1287,7 +1390,7 @@ def self_test() -> None:
              "ownerhandle": [4, 1, 0x0C, 0x0C], "name": "LOCAL_GROUP",
              "groups": [[5, 1, 0x1234]]},
             {"object": "DICTIONARY", "handle": [0, 1, DICTIONARY_HANDLE],
-             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 51,
+             "ownerhandle": [4, 1, 0x0C, 0x0C], "numitems": 54,
              "is_hardowner": 1},
             {"object": "SECTION_MANAGER",
              "handle": [0, 1, SECTION_MANAGER_HANDLE],
@@ -1309,6 +1412,21 @@ def self_test() -> None:
                      "layer": "LOCAL_LAYER", "hatch_scale": 1.25,
                  }],
              }]},
+            {"object": "TVDEVICEPROPERTIES",
+             "handle": [0, 1, TVDEVICEPROPERTIES_HANDLE],
+             "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "type": 1326, "flags": 1, "max_regen_threads": 2,
+             "use_lut_palette": 3, "alt_hlt": 4, "alt_hltcolor": 5,
+             "geom_shader_usage": 6, "blending_mode": 7,
+             "antialiasing_level": 0.25, "bd2": 0.75},
+            {"object": "UNKNOWN_OBJ",
+             "handle": [0, 1, VXCONTROL_HANDLE],
+             "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "type": 1327},
+            {"object": "UNKNOWN_OBJ",
+             "handle": [0, 1, VXTABLERECORD_HANDLE],
+             "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
+             "type": 1328},
             {"object": "XRECORD", "handle": [0, 1, XRECORD_HANDLE],
              "ownerhandle": [4, 1, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
              "xdata": [[40, 1.25], [1, "LOCAL_XRECORD"], [310, "010203"]]},
@@ -1644,6 +1762,17 @@ def self_test() -> None:
     }
     if actual_sections != expected_sections:
         raise AssertionError("SECTION identity was not qualified")
+    expected_tv_vx = {
+        "TVDEVICEPROPERTIES": (TVDEVICEPROPERTIES_HANDLE, 1326),
+        "VXCONTROL": (VXCONTROL_HANDLE, 1327),
+        "VXTABLERECORD": (VXTABLERECORD_HANDLE, 1328),
+    }
+    actual_tv_vx = {
+        name: (frame["handle"], frame["type"])
+        for name, frame in summary.get("tvVxObjects", {}).items()
+    }
+    if actual_tv_vx != expected_tv_vx:
+        raise AssertionError("TV/VX object identity was not qualified")
     try:
         bad = json.loads(json.dumps(payload))
         bad["OBJECTS"].append({"object": "XRECORD", "handle": [0, 1, MALFORMED_HANDLE]})
