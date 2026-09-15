@@ -24,6 +24,12 @@ PUBLIC_HEADERS = (
     "libdxfrw.h",
 )
 
+PROFILE_DECLARATIONS = (
+    "enum class DxfCompatibilityProfile",
+    "void setDxfCompatibilityProfile(DxfCompatibilityProfile profile) noexcept;",
+    "DxfCompatibilityProfile dxfCompatibilityProfile() const noexcept;",
+)
+
 
 def run(command, *, cwd=None, env=None):
     return subprocess.run(command, cwd=cwd, env=env, check=True,
@@ -63,6 +69,14 @@ def check(prefix: Path, cxx: str) -> None:
     config_root = prefix / "lib" / "cmake" / "libdxfrw"
     if not include_root.is_dir() or not config_root.is_dir():
         raise RuntimeError("prefix is missing installed headers or CMake package")
+    public_facade = include_root / "libdxfrw.h"
+    public_text = public_facade.read_text(encoding="utf-8")
+    missing = [declaration for declaration in PROFILE_DECLARATIONS
+               if declaration not in public_text]
+    if missing:
+        raise RuntimeError(
+            "installed libdxfrw.h is missing profile declarations: "
+            + ", ".join(missing))
 
     with tempfile.TemporaryDirectory(prefix="libdxfrw-package-") as directory:
         root = Path(directory)

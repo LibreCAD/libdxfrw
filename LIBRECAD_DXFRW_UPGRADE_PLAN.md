@@ -52,10 +52,10 @@ then pin an immutable commit before importing source.
 ### Execution refresh (2026-09-15)
 
 The implementation worktree is rebased on `origin/master` and is currently
-165 commits ahead with no commits behind it. The latest green slice is
-S138/J114, including the live-plan update and its required policy gates.
-S139/J115 is the active slice; its focused installed-package API surface
-checks are the next commit boundary.
+166 commits ahead with no commits behind it. The latest green slice is
+S139/J115, including the live-plan update and its required policy gates.
+S140/J116 is the active slice; its focused public-ABI symbol checks are the
+next commit boundary.
 The worktree is clean at the last committed boundary; any subsequent active-
 slice edits are intentionally uncommitted until their narrow gate and
 status-bearing plan transition are green.
@@ -1934,15 +1934,15 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint (2026-09-15): S138/J114 package-install reproducibility
-  is committed; S139/J115 installed-package API surface is active.
+- Current checkpoint (2026-09-15): S139/J115 installed-package API surface is
+  committed; S140/J116 public-ABI symbol checks are active.
   The
   branch is rebased on `origin/master`, and
   the pinned source/package/consumer convergence remains complete while
   runtime and wire-format parity stay evidence-gated. The AC1015 IMAGE legacy
   boundary remains fail-closed, and all format-support claims remain limited
   to rows with eligible runtime/oracle evidence. The next dependency-ready
-  sequence is S139 installed-package API surface; it is a separate commit
+  sequence is S140 public-ABI symbol checks; it is a separate commit
   with no external or derived DWG/DXF bytes.
 - Latest implementation slice: S53/J29 RASTERVARIABLES/WIPEOUTVARIABLES parity
   is committed. The local-from-scratch production writer registers both custom
@@ -2786,9 +2786,10 @@ edit this block or commit the same slice concurrently.
   names TVDEVICEPROPERTIES and the two VX frames as UNKNOWN_OBJ, while local
   self-read remains authoritative for VX payload fields; no generated drawings
   or external assets are retained.
-- Last fully resolved slice: S138 (the package-install reproducibility slice is
-  committed by the matching `Plan-Slice: S138` trailer; the commit carries two
-  fresh-prefix installs, repeated staged consumer checks, and
+- Last fully resolved slice: S139 (the installed-package API surface slice is
+  committed by the matching `Plan-Slice: S139` trailer; the commit carries an
+  installed-header declaration scan coupled to staged consumer compilation,
+  and
   all required policy gates). The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
@@ -2810,18 +2811,18 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 138 (`COMMITTED`); S139 is active.
+- Resolved slices: 139 (`COMMITTED`); S140 is active.
 - Slice states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 138 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 139 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 140 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 141 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 236 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 237 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 123 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S138 are committed; S139/J115 is active with a ready packet
-  naming installed-package API surface and focused fast gates.
+  0 DEFERRED_EXTERNAL / 124 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S139 are committed; S140/J116 is active with a ready packet
+  naming public-ABI symbol checks and focused fast gates.
   Keep validation fast and
   self-updating: run source/plan/policy checks and the focused carrier target
   after each implementation item, commit only after the narrow gate is green,
@@ -3008,7 +3009,8 @@ edit this block or commit the same slice concurrently.
 | S136 | J112: DXF profile package/consumer behavior | S135 | COMMITTED | staged package profile API; CMake/pkg-config consumer parity; adapter migration; safe default; focused package gate; fast DXF gate; plan/scope/sync/fixture gates | staged installed-header, CMake, and pkg-config consumers compile the finalized profile API and exact adapter migration sequence; package flags are asserted to remain inside the staged prefix; no external DXF bytes | staged package check, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S137 is active |
 | S137 | J113: installed-package isolation | S136 | COMMITTED | stale-prefix/system-header rejection; CMake/pkg-config path integrity; consumer reproducibility; fast package gate; plan/scope/sync/fixture gates | checker self-test accepts staged `-I/-L` flags, rejects `/usr/local` paths, and clean staged package consumers remain green; no external DXF bytes | staged-package self-test, clean package check, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S138 is active |
 | S138 | J114: package-install reproducibility | S137 | COMMITTED | clean-prefix install; exported CMake target; pkg-config relocation; profile consumer repeatability; fast package gate; plan/scope/sync/fixture gates | two fresh temporary prefixes install the current library; each passes staged self-test and full header/CMake/pkg-config profile consumer checks independently; no external DXF bytes | two fresh-prefix install/check runs, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S139 is active |
-| S139 | J115: installed-package API surface | S138 | ACTIVE | public enum/method visibility; CMake/pkg-config source compatibility; ABI additive declarations; adapter migration; fast package gate; plan/scope/sync/fixture gates | add a source-only API surface assertion for the public profile enum and methods, verify declarations are exported in every installed public-header compilation mode, and retain the adapter migration contract; no external DXF bytes | active after S138 commit; use staged package checker and source API scan, escalating only if public declarations diverge between build and install surfaces |
+| S139 | J115: installed-package API surface | S138 | COMMITTED | public enum/method visibility; CMake/pkg-config source compatibility; ABI additive declarations; adapter migration; fast package gate; plan/scope/sync/fixture gates | staged checker scans installed `libdxfrw.h` for the profile enum and noexcept accessors, then compiles all public headers plus CMake/pkg-config consumers and the adapter migration pattern; no external DXF bytes | staged package declaration scan, consumer check, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S140 is active |
+| S140 | J116: public-ABI symbol checks | S139 | ACTIVE | link/export visibility; additive ABI symbols; CMake/pkg-config parity; profile accessor linkage; fast package gate; plan/scope/sync/fixture gates | add a symbol-level probe for the profile setter/getter in the staged static library and verify both CMake and pkg-config consumers link those calls without source-tree headers; no external DXF bytes | active after S139 commit; use `nm`/link probe and staged package checks, escalating only if toolchain symbol spelling or visibility differs across platforms |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3151,7 +3153,8 @@ edit this block or commit the same slice concurrently.
 | J112 | S136 | J111 | COMMITTED | EXPERIMENTAL | Prove the finalized public profile API remains consumable through staged CMake/pkg-config installs and the documented adapter migration sequence | staged package consumer and path-integrity checks pass with explicit safe/legacy profile assertions; no external DXF bytes |
 | J113 | S137 | J112 | COMMITTED | EXPERIMENTAL | Prove installed-package validation fails closed when stale/system headers or libraries are offered, while clean staged consumers remain reproducible | staged checker self-test rejects system paths and clean staged consumer remains green; no external DXF bytes |
 | J114 | S138 | J113 | COMMITTED | EXPERIMENTAL | Prove fresh-prefix install/export/pkg-config validation is reproducible and independent of prior package state | two independent fresh-prefix package installs and staged consumer checks pass; no external DXF bytes |
-| J115 | S139 | J114 | ACTIVE | EXPERIMENTAL | Prove the public profile enum and methods have one consistent installed API surface across header-only, CMake, and pkg-config consumers | active packet names API scan, staged package compile, and no-fixture evidence |
+| J115 | S139 | J114 | COMMITTED | EXPERIMENTAL | Prove the public profile enum and methods have one consistent installed API surface across header-only, CMake, and pkg-config consumers | installed-header declaration scan plus staged CMake/pkg-config profile consumer passes; no external DXF bytes |
+| J116 | S140 | J115 | ACTIVE | EXPERIMENTAL | Prove profile setter/getter symbols are link-visible and additive through staged static-library CMake/pkg-config consumers | active packet names symbol/link probe and no-fixture evidence |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -3401,7 +3404,8 @@ edit this block or commit the same slice concurrently.
 | J112.1 | J112 / S136 | WP4, WP5, WP6, WP8, WP10; DXF profile package/consumer behavior | J111 | COMMITTED | EXPERIMENTAL | rerun staged public-header/CMake/pkg-config profile consumers and preserve the exact adapter migration sequence without external drawing bytes | focused staged-package/API target and policy gates pass; no external or derived DXF bytes are retained |
 | J113.1 | J113 / S137 | WP4, WP5, WP6, WP8, WP10; installed-package isolation | J112 | COMMITTED | EXPERIMENTAL | inject conflicting system include/library paths into a temporary consumer and prove staged package checks reject them, then retain no external drawing bytes | package-isolation self-test and clean package target pass; no external or derived DXF bytes are retained |
 | J114.1 | J114 / S138 | WP4, WP5, WP6, WP8, WP10; package-install reproducibility | J113 | COMMITTED | EXPERIMENTAL | repeat fresh-prefix install and staged consumer checks with no dependency on existing system or prior prefix state | two fresh-prefix reproducibility targets and policy gates pass; no external or derived DXF bytes are retained |
-| J115.1 | J115 / S139 | WP4, WP5, WP6, WP8, WP10; installed-package API surface | J114 | ACTIVE | EXPERIMENTAL | scan and compile the installed public profile API through all supported consumer entry modes, retaining no external drawing bytes | focused API-surface/package target and policy gates pass; no external or derived DXF bytes are retained |
+| J115.1 | J115 / S139 | WP4, WP5, WP6, WP8, WP10; installed-package API surface | J114 | COMMITTED | EXPERIMENTAL | scan and compile the installed public profile API through all supported consumer entry modes, retaining no external drawing bytes | focused API-surface/package target and policy gates pass; no external or derived DXF bytes are retained |
+| J116.1 | J116 / S140 | WP4, WP5, WP6, WP8, WP10; public-ABI symbol checks | J115 | ACTIVE | EXPERIMENTAL | inspect and link profile setter/getter symbols from staged static-library CMake/pkg-config consumers without external drawing bytes | focused ABI/link target and policy gates pass; no external or derived DXF bytes are retained |
 
 <!-- UPGRADE_PROGRESS_END -->
 
