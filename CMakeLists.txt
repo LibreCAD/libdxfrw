@@ -271,6 +271,12 @@ if(LIBDXFRW_BUILD_TESTS)
     target_link_libraries(libdxfrw_dwg_fixture_tests PRIVATE dxfrw)
     add_test(NAME libdxfrw_dwg_fixtures
         COMMAND libdxfrw_dwg_fixture_tests)
+
+    add_test(NAME libdxfrw_implementation_speed
+        COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE}
+            ${CMAKE_CURRENT_SOURCE_DIR}/tools/check_implementation_speed.py
+            --metadata
+            ${CMAKE_CURRENT_SOURCE_DIR}/metadata/implementation-speed-baseline-v1.json)
 endif()
 
 # INSTALLATION

@@ -52,8 +52,8 @@ then pin an immutable commit before importing source.
 ### Execution refresh (2026-09-15)
 
 The implementation worktree is rebased on `origin/master` and is currently
-279 commits ahead with no commits behind it. The latest green slice is
-S251/J227, including the live-plan update and its required policy gates.
+280 commits ahead with no commits behind it. The latest green slice is
+S252/J228, including the live-plan update and its required policy gates.
 There is no uncommitted local implementation slice; the next parity work is
 the evidence-gated external/runtime and release closure listed below.
 The worktree is clean at the last committed boundary; any subsequent active-
@@ -2257,6 +2257,12 @@ edit this block or commit the same slice concurrently.
   the retained descriptor before rename; focused transaction tests remain
   green. Parent-directory durability and final rename semantics remain
   unpromoted. No drawing fixtures or derived payloads were added.
+- Latest implementation slice: S252/J228 implementation-speed and validation
+  cadence research is committed. A schema-checked timing baseline records
+  incremental/fast/full build-test durations, a fail-closed changed-path
+  selector map, and checkpoint/nightly cadence rules; the metadata gate is
+  build-directory independent. No drawing fixtures or derived payloads were
+  added.
 - Latest implementation slice: S172/J148 DXF raw-object duplicate-handle
   diagnostic and error-precedence qualification is committed. Local ASCII and
   binary duplicate streams preserve the legacy `BAD_CODE_PARSED` result and
@@ -3179,17 +3185,17 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 251 (`COMMITTED`); no slice is active.
+- Resolved slices: 252 (`COMMITTED`); no slice is active.
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 251 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 252 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 253 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 254 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 2 VERIFIED / 349 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 2 VERIFIED / 350 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 231 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S251 are committed; no local implementation slice is active.
+- Active work: S01-S252 are committed; no local implementation slice is active.
   Remaining work is evidence-gated runtime/oracle and release closure; keep
   the fast inner loop and do not promote support claims from self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -3495,6 +3501,7 @@ edit this block or commit the same slice concurrently.
 | S249 | J225: output-transaction temporary-name hardening | S248 | COMMITTED | OS-backed randomized exclusive temporary names; parallel non-collision and cleanup; focused writer-primitives gate; plan/scope/sync/fixture gates | committed `S249`; POSIX uses `mkstemp`, Windows names include randomized tokens, and parallel transactions obtain distinct temporary paths; stream-reopen identity/TOCTOU and durability remain explicit follow-ups; no drawing fixtures or derived payloads | `libdxfrw_writer_primitives_tests` plus plan check, fixture admission, import scope, pinned sync, and diff gates pass; no active slice |
 | S250 | J226: output-transaction identity hardening | S249 | COMMITTED | retained exclusive descriptor; post-open and pre-publish identity checks; substitution rejection and ownership-safe cleanup; focused writer-primitives gate; plan/scope/sync/fixture gates | committed `S250`; descriptor identity is checked against the temporary pathname after stream open and before publication, substituted paths fail closed without deleting unowned output, and the destination remains unchanged; final rename race and durability remain explicit follow-ups; no drawing fixtures or derived payloads | `libdxfrw_writer_primitives_tests` plus plan check, fixture admission, import scope, pinned sync, and diff gates pass; no active slice |
 | S251 | J227: output-transaction file-flush hardening | S250 | COMMITTED | retained-descriptor file flush before publication; focused writer-primitives gate; plan/scope/fixture gates | committed `S251`; POSIX `fsync` and Windows `FlushFileBuffers` run on the retained descriptor before rename; parent-directory durability and final rename semantics remain explicit follow-ups; no drawing fixtures or derived payloads | `libdxfrw_writer_primitives_tests` plus plan check, fixture admission, import scope, pinned sync, and diff gates pass; no active slice |
+| S252 | J228: implementation-speed and validation-cadence research | S251 | COMMITTED | schema-checked timings; changed-path selector map; checkpoint/nightly cadence; fast metadata gate; plan/scope/fixture gates | committed `S252`; `implementation-speed-baseline-v1.json` records 0.20s incremental build, 0.57s focused tests, 4.30s full build, and 5.38s full tests; `check_implementation_speed.py` validates fail-closed selector/cadence policy and CTest runs it from any build directory; no drawing fixtures or derived payloads | `check_implementation_speed.py --self-test`, `libdxfrw_implementation_speed`, plan check, fixture admission, import scope, pinned sync, and diff gates pass; no active slice |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3750,6 +3757,7 @@ edit this block or commit the same slice concurrently.
 | J225 | S249 | J224 | COMMITTED | EXPERIMENTAL | Qualify output-transaction temporary-name hardening | POSIX `mkstemp` and randomized Windows exclusive names avoid predictable timestamp-only candidates; parallel temporary creation and cleanup pass; identity/TOCTOU and durability remain unpromoted follow-ups |
 | J226 | S250 | J225 | COMMITTED | EXPERIMENTAL | Qualify output-transaction identity hardening | exclusive descriptor identity is checked after stream open and before publication; substituted temporary paths fail closed without deleting unowned output; final rename race and durability remain unpromoted follow-ups |
 | J227 | S251 | J226 | COMMITTED | EXPERIMENTAL | Qualify output-transaction file-flush hardening | retained descriptor is flushed with `fsync`/`FlushFileBuffers` before publication; parent-directory durability and final rename semantics remain unpromoted follow-ups |
+| J228 | S252 | J227 | COMMITTED | EXPERIMENTAL | Qualify implementation-speed and validation-cadence research | schema-checked timing baseline and fail-closed changed-path selector/cadence policy are committed; no drawing fixtures or derived payloads |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4112,6 +4120,7 @@ edit this block or commit the same slice concurrently.
 | J225.1 | J225 / S249 | WP7.1, WP7.5, WP8.12; output-transaction temporary-name hardening | J224 | COMMITTED | EXPERIMENTAL | use OS-backed randomized exclusive temporary names and exercise two concurrent transactions for non-collision and cleanup, without retaining drawing bytes | `libdxfrw_writer_primitives_tests` plus plan check, fixture admission, import scope, pinned sync, and diff gates pass; POSIX `mkstemp` path and randomized Windows branch are source-checked; identity/TOCTOU and durability remain explicit follow-ups |
 | J226.1 | J226 / S250 | WP7.2, WP7.5, WP8.12; output-transaction identity hardening | J225 | COMMITTED | EXPERIMENTAL | retain the exclusive descriptor, compare descriptor/path identities after stream open and before publish, and reject a substituted pathname without deleting unowned output | `libdxfrw_writer_primitives_tests` plus plan check, fixture admission, import scope, pinned sync, and diff gates pass; deterministic substitution regression preserves the destination and cleans only owned paths; final rename race and durability remain explicit follow-ups |
 | J227.1 | J227 / S251 | WP7.5, WP7.6, WP8.12; output-transaction file-flush hardening | J226 | COMMITTED | EXPERIMENTAL | flush the retained descriptor with the platform storage primitive before rename while preserving atomic-visibility-only policy | `libdxfrw_writer_primitives_tests` plus plan check, fixture admission, import scope, pinned sync, and diff gates pass; no drawing fixtures or derived payloads are retained; parent-directory durability remains a separate gate |
+| J228.1 | J228 / S252 | WP8.12, WP10; implementation-speed and validation-cadence research | J227 | COMMITTED | EXPERIMENTAL | record reproducible timing commands/toolchain, validate fast/full separation, and enforce changed-path selector plus checkpoint/nightly cadence rules without drawing payloads | `check_implementation_speed.py --self-test`, `libdxfrw_implementation_speed`, plan check, fixture admission, import scope, pinned sync, and diff gates pass; metadata is independent of the build-directory working directory |
 
 <!-- UPGRADE_PROGRESS_END -->
 
