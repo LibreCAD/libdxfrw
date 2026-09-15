@@ -417,6 +417,58 @@ void testLayoutVectors(TestContext& t) {
              "LAYOUT preflight preserves sentinel buffers and state");
 }
 
+void testOptionalStreamFallbacks(TestContext& t) {
+    for (DRW::Version version : kVersions) {
+        PlotSettingsEncodeProbe plotSettings;
+        populatePlotSettings(plotSettings);
+        dwgBufferW plotBody;
+        dwgBufferW plotStrings;
+        dwgBufferW plotHandles;
+        t.expect(plotSettings.encodeDwg(
+                     version, &plotBody, &plotStrings, &plotHandles),
+                 "PLOTSETTINGS encodes with separate streams");
+
+        PlotSettingsEncodeProbe plotFallback;
+        populatePlotSettings(plotFallback);
+        dwgBufferW plotFallbackBody;
+        t.expect(plotFallback.encodeDwg(
+                     version, &plotFallbackBody, nullptr, nullptr),
+                 "PLOTSETTINGS accepts both optional streams as null");
+        t.expect(!plotFallbackBody.data().empty()
+                     && plotFallback.handle == plotSettings.handle,
+                 "PLOTSETTINGS null-stream fallback emits without mutation");
+
+        PlotSettingsEncodeProbe plotMixed;
+        populatePlotSettings(plotMixed);
+        dwgBufferW plotMixedBody;
+        dwgBufferW plotMixedStrings;
+        t.expect(plotMixed.encodeDwg(
+                     version, &plotMixedBody, &plotMixedStrings, nullptr),
+                 "PLOTSETTINGS accepts a null handle stream");
+        t.expect(!plotMixedBody.data().empty()
+                     && (version > DRW::AC1018
+                         ? !plotMixedStrings.data().empty()
+                         : plotMixedStrings.data().empty()),
+                 "PLOTSETTINGS null handle stream follows version partition");
+
+        LayoutEncodeProbe layout;
+        layout.name = "FALLBACK_LAYOUT";
+        layout.pageSetupName = "FALLBACK_PAGE";
+        layout.printerConfig = "FALLBACK_PRINTER";
+        layout.paperSize = "A4";
+        layout.paperWidth = 210.0;
+        layout.paperHeight = 297.0;
+        layout.ucsXAxis = DRW_Coord(1.0, 0.0, 0.0);
+        layout.ucsYAxis = DRW_Coord(0.0, 1.0, 0.0);
+        layout.viewportCount = 0;
+        dwgBufferW layoutBody;
+        t.expect(layout.encodeDwg(version, &layoutBody, nullptr, nullptr),
+                 "LAYOUT accepts both optional streams as null");
+        t.expect(!layoutBody.data().empty(),
+                 "LAYOUT null-stream fallback emits a body");
+    }
+}
+
 } // namespace
 
 int main() {
@@ -426,6 +478,7 @@ int main() {
     testXRecordVectors(context);
     testPlotSettingsVectors(context);
     testLayoutVectors(context);
+    testOptionalStreamFallbacks(context);
     if (context.failures != 0) {
         std::cerr << context.failures << " DWG object vector assertion(s) failed\n";
         return 1;
