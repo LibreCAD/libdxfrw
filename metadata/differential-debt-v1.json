@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "kind": "libdxfrw-differential-debt",
+  "targetCommit": "3c7785ebbcbfc8f3c8f79dbba093aff09cdec753",
+  "fixturePolicy": "hashes-and-summaries-only; no drawing payloads",
+  "entries": [
+    {
+      "id": "ordinary-enc-ac1021-target-debt",
+      "sourceSha256": "25685bec2d9d537a2f04dfd081f2a0933078cc19c59ebc3473dc011dfad970c8",
+      "inputVersion": "AC1021",
+      "relation": "delta",
+      "reason": "Pinned target rejects the legacy AC1021 page-map envelope at file-header stage while standalone accepts the spec- and fixture-backed compatibility form and publishes the expected three LINE records.",
+      "target": {
+        "outputSha256": "f95ed702add2dca8c253e0fce918e09d8087cb7de3a272220e2a3c15152e659c",
+        "summarySha256": "c2e7f0fac2847b509e664cb8d9993d18012e49384f761a9efef6850006ab7612"
+      },
+      "standalone": {
+        "outputSha256": "b2e224252590290b8eb447ab320d9a1526c8c25f719951422b32a164555da9d7",
+        "summarySha256": "5ff295e5992769af491fe1e5b8d2a88b491a3fe1901500a600e74b64754e60ea"
+      }
+    }
+  ]
+}

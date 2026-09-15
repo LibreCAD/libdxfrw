@@ -111,6 +111,10 @@ if(LIBDXFRW_BUILD_TESTS)
         COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE}
             ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_json_target_package_differential.py
             --self-test)
+    add_test(NAME libdxfrw_differential_debt
+        COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE}
+            ${CMAKE_CURRENT_SOURCE_DIR}/tools/check_differential_debt.py
+            --self-test)
     add_test(NAME libdxfrw_dxf_parity_lane
         COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE}
             ${CMAKE_CURRENT_SOURCE_DIR}/tools/check_dxf_lane.py

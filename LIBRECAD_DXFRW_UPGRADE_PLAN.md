@@ -2076,6 +2076,13 @@ edit this block or commit the same slice concurrently.
   (four AC1021 failures, one AC1015, one AC1018, and four unknown-version
   inputs). Source/output hashes and statuses remain temporary metadata only;
   this external corpus cannot promote support or add fixtures.
+- Latest differential-debt slice (2026-09-15): S281/J257 adds
+  `tools/check_differential_debt.py` and the metadata-only
+  `metadata/differential-debt-v1.json`. The checker validates the pinned target
+  commit, source/output/semantic hashes, exact reviewed-delta cardinality, and
+  stale/unreviewed mismatches; its self-test, CTest entry, and the current
+  locked report all pass with one reviewed AC1021 target-debt delta. No drawing
+  bytes are stored.
 - Previous checkpoint (2026-09-15): S257/J233 post-hardening validation
   checkpoint is committed. A fresh C++17 build and all 26 dependency-free
   CTest entries pass in 6.26 seconds, including source-route and release
@@ -3716,6 +3723,7 @@ edit this block or commit the same slice concurrently.
 | S278 | J254: differential relation aggregate counts | S277 | COMMITTED | top-level byte/semantic/status relation counters; deterministic schema-2 report; explicit not-reported status accounting; no payload retention | self-test and CTest pass; locked 15-fixture run reports 14 equal/1 delta, byte and semantic counts match, and status counts are 15 not-reported; no drawing fixtures or derived payloads | continue with target-debt review, independent oracle qualification, and release closure |
 | S279 | J255: optional status extraction correctness | S278 | COMMITTED | fail-closed nested status-key handling; equal/mismatched coarse status self-tests; explicit not-reported absence; no payload retention | differential self-test and CTest pass; absent status remains not-reported while matching and differing recognized status fields classify equal/delta; no drawing fixtures or derived payloads | continue with target-debt review, independent oracle qualification, and release closure |
 | S280 | J256: bounded external advisory refresh | S279 | COMMITTED | 20-file external corpus rerun; hash/status-only metadata; timeout bound; explicit non-promoting disposition; no fixture admission | current `dwg2dxf` reports 10 converted, 9 failed, and 1 timeout with stable version distribution; report is temporary and no external or derived drawing bytes are committed | continue with target-debt review, independent oracle qualification, and release closure |
+| S281 | J257: reviewed differential-debt checker | S280 | COMMITTED | metadata-only reviewed-delta registry; target/source/output/semantic hash matching; stale/unreviewed fail-closed checks; self-test/CTest; no payload retention | checker passes the current locked report with one reviewed AC1021 delta and zero unreviewed mismatches; changed-hash self-test fails closed; no drawing fixtures or derived payloads | continue with target-debt review, independent oracle qualification, and release closure |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -4000,6 +4008,7 @@ edit this block or commit the same slice concurrently.
 | J254 | S278 | J253 | COMMITTED | EXPERIMENTAL | Qualify differential relation aggregate counts | Add deterministic top-level counters for output, byte, normalized-semantic, and optional coarse status/error-stage relations so release review can consume bounded totals without row-by-row parsing |
 | J255 | S279 | J254 | COMMITTED | EXPERIMENTAL | Qualify optional status extraction correctness | Preserve only recognized nested/top-level coarse status fields, avoid synthesizing absent keys, and self-test equal/mismatched status relations while retaining explicit not-reported behavior when status is unavailable |
 | J256 | S280 | J255 | COMMITTED | DEFERRED_EXTERNAL | Qualify bounded external advisory refresh | Rerun the 20-file external corpus with a two-second per-input timeout, retain only source/output hashes, versions, sizes, and status categories, and preserve failures/timeouts as advisory evidence without support promotion |
+| J257 | S281 | J256 | COMMITTED | EXPERIMENTAL | Qualify reviewed differential-debt checker | Add a metadata-only registry and checker that accepts only exact target/source/output/semantic hashes for reviewed deltas, rejects stale or unreviewed mismatches, and preserves non-promoting release semantics |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4391,6 +4400,7 @@ edit this block or commit the same slice concurrently.
 | J254.1 | J254 / S278 | WP8, WP10; differential aggregate reporting | J253 | COMMITTED | EXPERIMENTAL | count overall, byte, semantic, and status relations in the schema-2 report and self-test equal, mismatch, formatting-only, and absent-status cases without storing drawing payloads | self-test and CTest pass; locked report records relation counts `14 equal/1 delta`, byte and semantic counts `14 equal/1 delta`, and status `15 not-reported`; no drawing bytes are retained |
 | J255.1 | J255 / S279 | WP8, WP10; optional status/error-stage relation | J254 | COMMITTED | EXPERIMENTAL | ignore absent nested status keys, compare recognized equal and mismatched `ok`/error/stage fields, and preserve `not-reported` when neither side provides status | differential self-test and CTest pass; equal/mismatched status counters are deterministic and no arbitrary dumper fields or drawing bytes are retained |
 | J256.1 | J256 / S280 | WP5, WP8, WP10; external advisory corpus | J255 | COMMITTED | DEFERRED_EXTERNAL | execute the bounded 20-input external advisory run, classify conversion/timeout outcomes by version, and keep all corpus files and generated DXF outputs outside the repository | temporary report records 10 converted, 9 failed, and 1 timeout; no external bytes or derived outputs are committed and no support row is promoted |
+| J257.1 | J257 / S281 | WP8, WP10; reviewed differential debt | J256 | COMMITTED | EXPERIMENTAL | validate the current locked differential report against `metadata/differential-debt-v1.json`, require target-commit and exact source/output/semantic hashes, and fail closed on changed, stale, or unreviewed mismatches | `check_differential_debt.py --self-test`, CTest, and the current report check pass with one reviewed delta and zero unreviewed mismatches; no drawing bytes are retained |
 
 <!-- UPGRADE_PROGRESS_END -->
 
