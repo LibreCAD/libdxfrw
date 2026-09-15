@@ -281,6 +281,37 @@ void testLayoutVectors(TestContext& t) {
     dwgBufferW handles;
     t.expect(!invalid.encodeDwg(DRW::AC1024, &body, &strings, &handles),
              "LAYOUT rejects a viewport count/vector mismatch");
+    t.expect(invalid.viewportCount == 1 && invalid.viewportHandles.empty()
+                 && body.size() == 0 && strings.size() == 0
+                 && handles.size() == 0,
+             "LAYOUT mismatch rejection preserves caller state and buffers");
+
+    LayoutEncodeProbe negative;
+    negative.handle = 0x261u;
+    negative.viewportCount = -1;
+    body.reset();
+    strings.reset();
+    handles.reset();
+    t.expect(!negative.encodeDwg(DRW::AC1024, &body, &strings, &handles),
+             "LAYOUT rejects a negative viewport count");
+    t.expect(negative.handle == 0x261u && negative.viewportCount == -1
+                 && negative.viewportHandles.empty() && body.size() == 0
+                 && strings.size() == 0 && handles.size() == 0,
+             "LAYOUT negative-count rejection is transactional");
+
+    LayoutEncodeProbe overLimit;
+    overLimit.handle = 0x262u;
+    overLimit.viewportCount = DRW_Layout::kMaxViewportCount + 1;
+    body.reset();
+    strings.reset();
+    handles.reset();
+    t.expect(!overLimit.encodeDwg(DRW::AC1024, &body, &strings, &handles),
+             "LAYOUT rejects an over-limit viewport count");
+    t.expect(overLimit.handle == 0x262u
+                 && overLimit.viewportCount == DRW_Layout::kMaxViewportCount + 1
+                 && overLimit.viewportHandles.empty() && body.size() == 0
+                 && strings.size() == 0 && handles.size() == 0,
+             "LAYOUT over-limit rejection is transactional");
 }
 
 } // namespace
