@@ -2670,18 +2670,29 @@ edit this block or commit the same slice concurrently.
   capability-gated omission. Malformed transform state is rejected
   transactionally, and LibreDWG independently qualifies each flavor's
   type/handle/definition/base identity; no external underlay bytes are kept.
-- Active implementation slice: S102/J78 SURFACE family parity is selected from
-  the next dependency-ready target/source inventory. Both trees expose
-  `DRW_Surface` and the PLANESURFACE, EXTRUDEDSURFACE, REVOLVEDSURFACE,
-  SWEPTSURFACE, LOFTEDSURFACE, and NURBSSURFACE variants, `writeSurface`,
-  `addSurface`, class registration, and ACIS/modeler payload carriers. The
-  fast slice first inventories each variant's exact DXF/DWG body and version
-  gate, then qualifies the smallest bounded local-from-scratch payload (or
-  records an explicit unsupported/deferred disposition) across AC1018/21/24/27/32,
-  with AC1015/AC1018 DXF gates where source evidence requires them. It must
-  preserve raw ACIS bytes independently from derived geometry, reject malformed
-  payload/transform/count state transactionally, and use local self-read plus
-  independent type/handle/class identity without committing drawing fixtures.
+- Previous implementation slice: S102/J78 SURFACE family parity is committed.
+  The standalone adapter now exercises all six PLANESURFACE,
+  EXTRUDEDSURFACE, REVOLVEDSURFACE, SWEPTSURFACE, LOFTEDSURFACE, and
+  NURBSSURFACE variants through the target `dxfRW` and `dwgRW` routes. A
+  metadata-only local-from-scratch DWG set round-trips on AC1021/24/27/32,
+  AC1015/AC1018 are explicit write/read omissions, and the production
+  `dwg2dxf` adapter stores and re-emits all six DXF variants. The focused
+  DXF/DWG test verifies callback dynamic types, bounded fields, class-instance
+  registration, and malformed transactional rejection. LibreDWG independently
+  qualifies every newer-version entity type/handle/class identity; modeler and
+  raw ACIS bytes remain local-self-read authoritative, and no external ACIS or
+  generated drawing bytes are retained.
+- Active implementation slice: S103/J79 SURFACE ACIS/raw-carrier fidelity is
+  selected as the next dependency-ready lane. Keep the six-variant capability
+  gates green while proving the raw ACIS text/binary carrier boundary,
+  `DRW_ModelerGeometry` preservation, and derived-wireframe isolation in both
+  `dxfRW` and `dwgRW`. Use only bounded local-from-scratch byte vectors and
+  synthetic malformed inputs; add no external ACIS/SAB or drawing fixture.
+  The first item is an inventory-plus-timing baseline, followed by independent
+  text/binary DXF and DWG self-read checks, then a combined preservation gate.
+  If a version or carrier cannot be proven, record that exact route as
+  experimental/deferred with its unblock condition and immediately continue to
+  the next ready child.
 - Previous implementation slice: S90/J66 DIMASSOC/EVALUATION_GRAPH object parity
   is committed. The AC1021+ lane registers the target's typed classes before
   CLASSES, writes one bounded DIMASSOC with a soft dimension/reference link and
@@ -2722,7 +2733,13 @@ edit this block or commit the same slice concurrently.
   names TVDEVICEPROPERTIES and the two VX frames as UNKNOWN_OBJ, while local
   self-read remains authoritative for VX payload fields; no generated drawings
   or external assets are retained.
-- Last fully resolved slice: S101 (the UNDERLAY flavor parity slice is committed
+- Last fully resolved slice: S102 (the SURFACE family parity slice is committed
+  by the matching `Plan-Slice: S102` trailer; the commit carries implementation,
+  adapter, oracle evidence, and live-plan state).
+  The target integration commit remains
+  `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
+  terminal only when their recorded gates pass.
+- Previous fully resolved slice: S101 (the UNDERLAY flavor parity slice is committed
   by the matching `Plan-Slice: S101` trailer; the
   commit carries implementation, oracle evidence, and live-plan state).
   The target integration commit remains
@@ -2734,21 +2751,20 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 101 (`COMMITTED`); S102 is active.
+- Resolved slices: 102 (`COMMITTED`); S103 is active.
 - Slice states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 101 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 102 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 101 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 102 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 4 VERIFIED / 198 COMMITTED; 1 child is active; no child is anonymous.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 4 VERIFIED / 199 COMMITTED; 1 child is active; no child is anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 34 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S101 are committed; S102/J78 is active with a ready packet
-  naming the six SURFACE variants, exact target/source writer and reader symbols,
-  ACIS/modeler raw-payload boundary, per-version DXF/DWG gates, smallest
-  bounded local payload, malformed-state rollback, focused self-read, and
-  independent class/type/handle identity oracle. Keep validation fast and
-  self-updating: run source/plan/policy checks and the focused variant target
+- Active work: S01-S102 are committed; S103/J79 is active with a ready packet
+  naming the raw ACIS/modeler carriers, exact DXF/DWG symbols, text/binary
+  preservation routes, bounded local byte vectors, malformed rollback, focused
+  self-read, and independent timing/policy gates. Keep validation fast and
+  self-updating: run source/plan/policy checks and the focused carrier target
   after each implementation item, commit only after the narrow gate is green,
   show the commit progress, and immediately re-run the ready-queue/unblock
   procedure to select or activate the next lane. Full CTest remains a scheduled
@@ -2896,7 +2912,8 @@ edit this block or commit the same slice concurrently.
 | S99 | J75: WIPEOUT entity parity | S98 | COMMITTED | target/source API inventory; fixed type-1109 dispatch; focused AC1018+ local writer/self-read; explicit AC1015 capability gate; mapped `addWipeout` publication; bounded clip/scalar fields; malformed rollback; independent oracle identity where decodable; plan/scope/sync/fixture gates | pinned target and standalone expose `DRW_Wipeout`, fixed type 1109, `writeWipeout`, `addWipeout`, and image-derived clip-boundary framing; one local polygon WIPEOUT round-trips on AC1018/21/24/27/32 with AC1015 deterministic omission and no image definition/file dependency; malformed clip-boundary rejection is transactional; no drawing fixture | focused five-version capability matrix, local self-read, CTest, live LibreDWG JSON identity on AC1021+, fixture admission, import scope, target sync, plan check, and diff gates pass; AC1018 external omission remains explicit |
 | S100 | J76: NAVISWORKSMODEL entity parity | S99 | COMMITTED | target/source API inventory; class-541 registration; focused six-version local writer/self-read; mapped `addNavisworksModel` publication; bounded transform/definition fields; malformed rollback; independent oracle identity; plan/scope/sync/fixture gates | pinned target and standalone expose `DRW_NavisworksModel`, class 541, `writeNavisworksModel`, `addNavisworksModel`, and version-aware definition-handle placement; one metadata-only local model round-trips on AC1018/21/24/27/32 with deterministic AC1015 omission; malformed transform/unit rollback and version-specific handle ordering pass; no external NWD asset or drawing fixture | focused five-version capability matrix, local self-read, CTest, live LibreDWG JSON identity, fixture admission, import scope, target sync, plan check, and diff gates pass; LibreDWG transform/unit/definition payload remains non-promoting |
 | S101 | J77: UNDERLAY flavor parity | S100 | COMMITTED | target/source API inventory; class-523/524/525 registration; focused AC1018+ local writer/self-read; explicit AC1015 capability gate; mapped `addUnderlay` publication; bounded clip/transform fields; malformed rollback; independent oracle identity; plan/scope/sync/fixture gates | pinned target and standalone expose `DRW_Underlay`, PDF/DGN/DWF classes 523/524/525, `writeUnderlay`, `addUnderlay`, and version-aware definition/clip framing; local PDFUNDERLAY/DGNUNDERLAY/DWFUNDERLAY records linked to existing definition handles `0xD300`/`0xD400`/`0xD500` round-trip on AC1018/21/24/27/32 with deterministic AC1015 omission; malformed transform rejection is transactional; no external underlay bytes or drawing fixture | focused five-version capability matrix, local self-read, CTest, live LibreDWG JSON type/handle/base-payload oracle for all three flavors, fixture admission, import scope, target sync, plan check, and diff gates pass |
-| S102 | J78: SURFACE family parity | S101 | ACTIVE | fresh target/source API inventory; six variant registration/dispatch rows; focused DXF/DWG local writer/self-read; version gates; mapped `addSurface` publication; ACIS/modeler raw carrier; bounded payload/count/transform checks; malformed rollback; independent oracle identity; plan/scope/sync/fixture gates | pinned target and standalone expose `DRW_Surface` plus PLANESURFACE, EXTRUDEDSURFACE, REVOLVEDSURFACE, SWEPTSURFACE, LOFTEDSURFACE, and NURBSSURFACE; inventory exact class ordinals, `dxfRW::writeSurface`, `DRW_*::parseCode`/`finalizeDxf`, `dwgRW::writeSurface`, `DRW_Surface::parseDwg`, `dwgWriter::registerSurfaceEntityClass`, and `dwgReader::readDwgEntityWithOutput`; record exact DXF group-code bodies, DWG section framing, ACIS raw-carrier limits, and AC1015/AC1018 gates before coding; qualify the smallest local-from-scratch raw ACIS/payload vectors on AC1018/21/24/27/32 or record a variant-specific unsupported/deferred disposition; stage no external ACIS or drawing bytes | active implementation must prove each variant's writer/reader route, class/instance registration, raw-vs-derived payload boundary, callback publication, version gate, malformed payload/count/transform rejection, independent type/handle/class identity, fast-gate timing, and policy gates before commit |
+| S102 | J78: SURFACE family parity | S101 | COMMITTED | fresh target/source API inventory; six variant registration/dispatch rows; focused DXF/DWG local writer/self-read; version gates; mapped `addSurface` publication; ACIS/modeler raw carrier; bounded payload/count/transform checks; malformed rollback; independent oracle identity; plan/scope/sync/fixture gates | pinned target and standalone expose `DRW_Surface` plus PLANESURFACE, EXTRUDEDSURFACE, REVOLVEDSURFACE, SWEPTSURFACE, LOFTEDSURFACE, and NURBSSURFACE; all six variants now pass the metadata-only local DWG writer/self-read on AC1021/24/27/32 with deterministic AC1015/AC1018 omissions, and the production `dx_iface` stores/re-emits all six through DXF; callback dynamic types, class-instance registration, bounded fields, and malformed rollback are covered; stage no external ACIS or drawing bytes | focused DXF/DWG local round-trip, CTest, live LibreDWG JSON class/type/handle oracle (all six variants; modeler/raw ACIS payload remains non-promoting), fixture admission, import scope, target sync, plan check, and diff gates pass |
+| S103 | J79: SURFACE ACIS/raw-carrier fidelity | S102 | ACTIVE | target/source ACIS/modeler inventory; bounded text/binary carrier vectors; DXF/DWG raw-preservation routes; derived-wireframe isolation; malformed rollback; timing baseline; plan/scope/sync/fixture gates | prove `DRW_ModelerGeometry` and `DRW_Surface::rawAcisData` preservation independently from typed surface fields using local-from-scratch text and binary payloads; retain explicit per-version unsupported/deferred dispositions where the target body cannot be reconstructed safely; no external ACIS/SAB or generated drawing bytes | active implementation must establish the smallest raw carrier gate first, then one focused DXF and one focused DWG check, followed by the combined preservation oracle; full CTest remains checkpoint-only and any unproved carrier immediately records its unblock condition |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3002,7 +3019,8 @@ edit this block or commit the same slice concurrently.
 | J75 | S99 | J74 | COMMITTED | EXPERIMENTAL | Qualify the existing WIPEOUT entity writer and reader on AC1018/21/24/27/32, including fixed type-1109 dispatch, image-derived clip-boundary framing, mapped `addWipeout` publication, bounded clip/scalar fields, and transaction-safe malformed-state rejection without image-definition dependencies; retain an explicit AC1015 omission until the legacy fixed-type chain is proven safe | five-version local self-read and CTest pass; LibreDWG qualifies type/handle as UNKNOWN_OBJ from AC1021+, omits AC1018, and does not preserve clip payload; no fixture bytes or external image asset |
 | J76 | S100 | J75 | COMMITTED | EXPERIMENTAL | Qualify the existing NAVISWORKSMODEL entity writer and reader across AC1015/18/21/24/27/32, including class-541 identity/instance bookkeeping, version-aware definition-handle placement, mapped `addNavisworksModel` publication, bounded transform/unit metadata, and transaction-safe malformed-state rejection without loading external NWD content | five-version local self-read and CTest pass; LibreDWG qualifies type/handle identity (named AC1018, UNKNOWN_ENT newer) while payload remains local-self-read authoritative; no fixture bytes or external NWD asset |
 | J77 | S101 | J76 | COMMITTED | EXPERIMENTAL | Qualify the existing UNDERLAY entity writer and reader on AC1018/21/24/27/32, including PDF/DGN/DWF class registration, version-aware definition-handle placement, mapped `addUnderlay` publication, bounded clip/transform metadata, and transaction-safe malformed-state rejection without loading external underlay files; retain explicit AC1015 omission | five-version PDF/DGN/DWF local self-read, CTest, and independent JSON type/handle/base-payload oracle pass; no external underlay bytes or fixture |
-| J78 | S102 | J77 | ACTIVE | EXPERIMENTAL | Qualify the six SURFACE variant writers/readers on AC1018/21/24/27/32, beginning with an evidence-backed raw ACIS/modeler payload contract and preserving unsupported variants explicitly; inventory class/instance registration, DXF/DWG framing, callback publication, version gates, bounded payload/count/transform validation, and transaction-safe malformed-state rejection without external ACIS files; retain explicit AC1015/AC1018 DXF omissions where required | ready packet requires target/source symbols, per-variant smallest gate, local payload identity, independent class/type/handle oracle, timing baseline, and exact unblock condition for any deferred variant |
+| J78 | S102 | J77 | COMMITTED | EXPERIMENTAL | Qualify the six SURFACE variant writers/readers on AC1021/24/27/32, beginning with an evidence-backed raw ACIS/modeler payload contract and preserving unsupported AC1015/AC1018 routes explicitly; inventory class/instance registration, DXF/DWG framing, callback publication, version gates, bounded payload/count/transform validation, and transaction-safe malformed-state rejection without external ACIS files; retain explicit AC1015/AC1018 DXF omissions where required | all six variants pass focused DXF/DWG local round-trip and malformed rollback; `dx_iface` now maps typed surface callbacks into the DXF writer; LibreDWG independently qualifies class/type/handle identities and the raw/modeler payload remains non-promoting; no external ACIS or drawing fixture |
+| J79 | S103 | J78 | ACTIVE | EXPERIMENTAL | Prove the six SURFACE raw ACIS/modeler carrier and preservation routes independently of typed metadata, with bounded text/binary local vectors, derived-wireframe isolation, and explicit per-version fallback dispositions | ready packet names `src/drw_acis.{h,cpp}`, `DRW_ModelerGeometry`, `DRW_Surface::rawAcisData`, `dxfRW::writeSurface`/`processSurface`, `dwgRW::writeSurface`, and the smallest DXF/DWG self-read/oracle gates; no external ACIS/SAB or drawing bytes |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -3215,7 +3233,8 @@ edit this block or commit the same slice concurrently.
 | J75.1 | J75 / S99 | WP5, WP7, WP8, WP10; WIPEOUT | J74 | COMMITTED | EXPERIMENTAL | emit and self-read one bounded polygon WIPEOUT with fixed type 1109 on AC1018/21/24/27/32, explicitly gate AC1015, verify callback clip/scalar fields plus independent JSON identity where available, and reject non-finite geometry, invalid boundary mode, and over-limit vertices transactionally without publishing a frame | focused five-version capability matrix, local-from-scratch values only, independent LibreDWG JSON identity on AC1021+, fixture/import-scope/sync/plan/diff gates pass; AC1018 external omission is explicit and local self-read remains authoritative; no external image/file asset and no generated drawing bytes committed |
 | J76.1 | J76 / S100 | WP5, WP7, WP8, WP10; NAVISWORKSMODEL | J75 | COMMITTED | EXPERIMENTAL | emit and self-read one bounded metadata-only NAVISWORKSMODEL with class 541 across AC1015/18/21/24/27/32, register the class before CLASSES, verify callback transform/unit/definition fields plus independent JSON identity, and reject non-finite transform or unit state transactionally without publishing a frame | focused six-version capability matrix, local-from-scratch values only, independent LibreDWG JSON identity check, fixture-import-scope/sync/plan/diff gates pass; no external NWD asset and no generated drawing bytes committed |
 | J77.1 | J77 / S101 | WP5, WP7, WP8, WP10; UNDERLAY | J76 | COMMITTED | EXPERIMENTAL | emit and self-read one bounded PDFUNDERLAY, DGNUNDERLAY, and DWFUNDERLAY linked to existing definitions on AC1018/21/24/27/32, explicitly gate AC1015, register classes 523/524/525 before CLASSES, verify callback flavor/clip/transform/definition fields plus independent JSON identity, and reject non-finite or over-limit transform/clip state transactionally without publishing a frame | focused five-version capability matrix, local-from-scratch values only, independent LibreDWG JSON identity check for all three flavors, fixture/import-scope/sync/plan/diff gates pass; no external underlay bytes or generated drawing bytes committed |
-| J78.1 | J78 / S102 | WP5, WP7, WP8, WP10; SURFACE/ACIS | J77 | ACTIVE | EXPERIMENTAL | inventory and then implement the smallest bounded local-from-scratch payload for each PLANESURFACE, EXTRUDEDSURFACE, REVOLVEDSURFACE, SWEPTSURFACE, LOFTEDSURFACE, and NURBSSURFACE route through `dxfRW::writeSurface`/`DRW_*::parseCode` and `dwgRW::writeSurface`/`DRW_Surface::parseDwg`; register the exact target class before CLASSES, verify DXF/DWG version gates, `addSurface` callback fields, raw ACIS-byte identity, and independent class/type/handle identity, and reject non-finite payload/count/transform state transactionally; mark any unproved variant unsupported/deferred with an exact unblock condition | source-only inventory and timing baseline first; focused per-variant self-read/oracle/policy gates only, no full suite in the inner loop, no external ACIS or generated drawing bytes committed |
+| J78.1 | J78 / S102 | WP5, WP7, WP8, WP10; SURFACE/ACIS | J77 | COMMITTED | EXPERIMENTAL | inventory and then implement the smallest bounded local-from-scratch payload for each PLANESURFACE, EXTRUDEDSURFACE, REVOLVEDSURFACE, SWEPTSURFACE, LOFTEDSURFACE, and NURBSSURFACE route through `dxfRW::writeSurface`/`DRW_*::parseCode` and `dwgRW::writeSurface`/`DRW_Surface::parseDwg`; register the exact target class before CLASSES, verify AC1021/24/27/32 DXF/DWG gates plus explicit AC1015/AC1018 omissions, verify `addSurface` callback fields, raw ACIS-byte identity, and independent class/type/handle identity, and reject non-finite payload/count/transform state transactionally; mark any unproved variant unsupported/deferred with an exact unblock condition | focused six-version DWG self-read, focused DXF self-read through `dx_iface`, live LibreDWG class/type/handle oracle, and policy gates pass; modeler/raw ACIS payload remains non-promoting, no external ACIS or generated drawing bytes committed |
+| J79.1 | J79 / S103 | WP5, WP7, WP8, WP10; SURFACE/ACIS raw carrier | J78 | ACTIVE | EXPERIMENTAL | inventory `DRW_ModelerGeometry` and ACIS text/binary chunk framing, then emit and self-read bounded local text and binary carriers through both `dxfRW` and `dwgRW`; verify raw-byte retention is independent from derived-wireframe decoding, reject oversized/non-finite/invalid carrier state transactionally, and record an exact per-version fallback if the target body cannot be reconstructed | source-only inventory plus timing baseline first; focused carrier tests and one combined preservation check, no full suite in the inner loop, no external ACIS/SAB or generated drawing bytes committed |
 
 <!-- UPGRADE_PROGRESS_END -->
 

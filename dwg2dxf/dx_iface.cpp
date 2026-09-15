@@ -125,6 +125,14 @@ void dx_iface::writeEntity(DRW_Entity* e){
     case DRW::IMAGE:
         dxfW->writeImage(static_cast<DRW_Image*>(e), static_cast<dx_ifaceImg*>(e)->path);
         break;
+    case DRW::PLANESURFACE:
+    case DRW::EXTRUDEDSURFACE:
+    case DRW::REVOLVEDSURFACE:
+    case DRW::SWEPTSURFACE:
+    case DRW::LOFTEDSURFACE:
+    case DRW::NURBSURFACE:
+        dxfW->writeSurface(static_cast<DRW_Surface*>(e));
+        break;
     default:
         break;
     }

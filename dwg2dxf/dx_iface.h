@@ -153,6 +153,39 @@ public:
         cData->images.push_back(img);
     }
 
+    virtual void addSurface(const DRW_Surface *data){
+        if (data == nullptr || currentBlock == nullptr)
+            return;
+        switch (data->eType) {
+        case DRW::PLANESURFACE:
+            currentBlock->ent.push_back(
+                new DRW_PlaneSurface(*static_cast<const DRW_PlaneSurface*>(data)));
+            break;
+        case DRW::EXTRUDEDSURFACE:
+            currentBlock->ent.push_back(
+                new DRW_ExtrudedSurface(*static_cast<const DRW_ExtrudedSurface*>(data)));
+            break;
+        case DRW::REVOLVEDSURFACE:
+            currentBlock->ent.push_back(
+                new DRW_RevolvedSurface(*static_cast<const DRW_RevolvedSurface*>(data)));
+            break;
+        case DRW::SWEPTSURFACE:
+            currentBlock->ent.push_back(
+                new DRW_SweptSurface(*static_cast<const DRW_SweptSurface*>(data)));
+            break;
+        case DRW::LOFTEDSURFACE:
+            currentBlock->ent.push_back(
+                new DRW_LoftedSurface(*static_cast<const DRW_LoftedSurface*>(data)));
+            break;
+        case DRW::NURBSURFACE:
+            currentBlock->ent.push_back(
+                new DRW_NurbsSurface(*static_cast<const DRW_NurbsSurface*>(data)));
+            break;
+        default:
+            break;
+        }
+    }
+
     virtual void linkImage(const DRW_ImageDef *data){
         std::uint32_t handle = data->handle;
         std::string path(data->name);

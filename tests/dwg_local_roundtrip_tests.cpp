@@ -1,5 +1,7 @@
 #include <cstdio>
 #include <cstdint>
+#include <algorithm>
+#include <array>
 #include <filesystem>
 #include <iostream>
 #include <limits>
@@ -167,6 +169,51 @@ public:
             registeredDwfUnderlay_ =
                 writer_->registerUnderlayDefinitionObjectClass(
                     &dwfUnderlayRegistration);
+            if (writer_->getVersion() >= DRW::AC1021) {
+                DRW_PlaneSurface planeSurfaceRegistration;
+                DRW_ExtrudedSurface extrudedSurfaceRegistration;
+                DRW_RevolvedSurface revolvedSurfaceRegistration;
+                DRW_SweptSurface sweptSurfaceRegistration;
+                DRW_LoftedSurface loftedSurfaceRegistration;
+                DRW_NurbsSurface nurbsSurfaceRegistration;
+                planeSurfaceRegistration.handle = 0xFB00u;
+                extrudedSurfaceRegistration.handle = 0xFB01u;
+                revolvedSurfaceRegistration.handle = 0xFB02u;
+                sweptSurfaceRegistration.handle = 0xFB03u;
+                loftedSurfaceRegistration.handle = 0xFB04u;
+                nurbsSurfaceRegistration.handle = 0xFB05u;
+                registeredSurfaceClasses_ =
+                    writer_->registerSurfaceEntityClass(
+                        &planeSurfaceRegistration)
+                    && writer_->registerDwgEntityClassInstance(
+                        planeSurfaceRegistration.getDwgClassNum(),
+                        planeSurfaceRegistration.handle)
+                    && writer_->registerSurfaceEntityClass(
+                        &extrudedSurfaceRegistration)
+                    && writer_->registerDwgEntityClassInstance(
+                        extrudedSurfaceRegistration.getDwgClassNum(),
+                        extrudedSurfaceRegistration.handle)
+                    && writer_->registerSurfaceEntityClass(
+                        &revolvedSurfaceRegistration)
+                    && writer_->registerDwgEntityClassInstance(
+                        revolvedSurfaceRegistration.getDwgClassNum(),
+                        revolvedSurfaceRegistration.handle)
+                    && writer_->registerSurfaceEntityClass(
+                        &sweptSurfaceRegistration)
+                    && writer_->registerDwgEntityClassInstance(
+                        sweptSurfaceRegistration.getDwgClassNum(),
+                        sweptSurfaceRegistration.handle)
+                    && writer_->registerSurfaceEntityClass(
+                        &loftedSurfaceRegistration)
+                    && writer_->registerDwgEntityClassInstance(
+                        loftedSurfaceRegistration.getDwgClassNum(),
+                        loftedSurfaceRegistration.handle)
+                    && writer_->registerSurfaceEntityClass(
+                        &nurbsSurfaceRegistration)
+                    && writer_->registerDwgEntityClassInstance(
+                        nurbsSurfaceRegistration.getDwgClassNum(),
+                        nurbsSurfaceRegistration.handle);
+            }
             DRW_PointCloudDef pointCloudRegistration;
             pointCloudRegistration.handle = 0xD600u;
             pointCloudRegistration.m_kind = DRW_PointCloudDef::Definition;
@@ -2118,6 +2165,106 @@ public:
                 rejectedMalformedUnderlay_ && rejectedInvalidClip;
         }
 
+        // SURFACE DWG bodies are available from AC1021 onward.  Keep this
+        // probe metadata-only (the writer emits an empty modeler body) so the
+        // test does not depend on external ACIS/SAB fixtures while still
+        // exercising every target variant's class registration, framing, and
+        // callback route.
+        if (expectedVersion_ < DRW::AC1021) {
+            wroteSurfaceSet_ = false;
+            rejectedMalformedSurface_ = true;
+        } else {
+            const auto registerSurfaceForWrite =
+                [this](DRW_Surface& surface) {
+                    return writer_->registerSurfaceEntityClass(&surface);
+                };
+            DRW_PlaneSurface plane;
+            plane.handle = 0xFB00u;
+            plane.uIsolines = 2;
+            plane.vIsolines = 3;
+            plane.modelerFormatVersion = 1;
+            wrotePlaneSurface_ = registerSurfaceForWrite(plane)
+                && writer_->writeSurface(&plane)
+                && plane.handle == 0xFB00u;
+
+            DRW_ExtrudedSurface extruded;
+            extruded.handle = 0xFB01u;
+            extruded.uIsolines = 4;
+            extruded.vIsolines = 5;
+            extruded.modelerFormatVersion = 1;
+            extruded.sweepVector = DRW_Coord(0.0, 0.0, 1.0);
+            extruded.draftAngle = 0.1;
+            extruded.scaleFactor = 1.25;
+            wroteExtrudedSurface_ = registerSurfaceForWrite(extruded)
+                && writer_->writeSurface(&extruded)
+                && extruded.handle == 0xFB01u;
+
+            DRW_RevolvedSurface revolved;
+            revolved.handle = 0xFB02u;
+            revolved.uIsolines = 6;
+            revolved.vIsolines = 7;
+            revolved.classId = 2;
+            revolved.id = 3;
+            revolved.axisPoint = DRW_Coord(1.0, 2.0, 3.0);
+            revolved.axisVector = DRW_Coord(0.0, 0.0, 1.0);
+            revolved.revolveAngle = 1.5;
+            revolved.startAngle = 0.25;
+            wroteRevolvedSurface_ = registerSurfaceForWrite(revolved)
+                && writer_->writeSurface(&revolved)
+                && revolved.handle == 0xFB02u;
+
+            DRW_SweptSurface swept;
+            swept.handle = 0xFB03u;
+            swept.uIsolines = 8;
+            swept.vIsolines = 9;
+            swept.classVersion = 2;
+            swept.sweepEntityId = 4;
+            swept.pathEntityId = 5;
+            swept.referenceVector = DRW_Coord(1.0, 0.0, 0.0);
+            swept.scaleFactor = 1.1;
+            wroteSweptSurface_ = registerSurfaceForWrite(swept)
+                && writer_->writeSurface(&swept)
+                && swept.handle == 0xFB03u;
+
+            DRW_LoftedSurface lofted;
+            lofted.handle = 0xFB04u;
+            lofted.uIsolines = 10;
+            lofted.vIsolines = 11;
+            lofted.modelerFormatVersion = 1;
+            lofted.planeNormalLoftingType = 1;
+            lofted.startDraftAngle = 0.2;
+            lofted.endDraftAngle = 0.3;
+            wroteLoftedSurface_ = registerSurfaceForWrite(lofted)
+                && writer_->writeSurface(&lofted)
+                && lofted.handle == 0xFB04u;
+
+            DRW_NurbsSurface nurbs;
+            nurbs.handle = 0xFB05u;
+            nurbs.uIsolines = 12;
+            nurbs.vIsolines = 13;
+            nurbs.short170 = 14;
+            nurbs.cvHullDisplay = true;
+            nurbs.uvec1 = DRW_Coord(1.0, 0.0, 0.0);
+            nurbs.vvec1 = DRW_Coord(0.0, 1.0, 0.0);
+            nurbs.uvec2 = DRW_Coord(2.0, 0.0, 0.0);
+            nurbs.vvec2 = DRW_Coord(0.0, 2.0, 0.0);
+            wroteNurbsSurface_ = registerSurfaceForWrite(nurbs)
+                && writer_->writeSurface(&nurbs)
+                && nurbs.handle == 0xFB05u;
+
+            DRW_PlaneSurface invalidSurface;
+            invalidSurface.handle = 0xFB06u;
+            invalidSurface.uIsolines = -1;
+            const bool rejectedInvalidSurface =
+                registerSurfaceForWrite(invalidSurface)
+                && !writer_->writeSurface(&invalidSurface)
+                && invalidSurface.handle == 0xFB06u;
+            wroteSurfaceSet_ = wrotePlaneSurface_ && wroteExtrudedSurface_
+                && wroteRevolvedSurface_ && wroteSweptSurface_
+                && wroteLoftedSurface_ && wroteNurbsSurface_;
+            rejectedMalformedSurface_ = rejectedInvalidSurface;
+        }
+
         DRW_Hatch hatch;
         hatch.name = "SOLID";
         hatch.solid = 1;
@@ -2602,6 +2749,73 @@ public:
             readDwfUnderlayEntitySeen_ = data->kind == DRW_Underlay::DWF
                 && data->definitionHandle == 0xD500u
                 && data->clipBoundary.size() == 4;
+    }
+    void addSurface(const DRW_Surface* data) override {
+        if (data == nullptr)
+            return;
+        if (data->handle == 0xFB00u) {
+            const auto* plane = dynamic_cast<const DRW_PlaneSurface*>(data);
+            readPlaneSurfaceSeen_ = expectedVersion_ >= DRW::AC1021
+                && plane != nullptr && data->eType == DRW::PLANESURFACE
+                && data->dwgClassNum != 0
+                && data->uIsolines == 2 && data->vIsolines == 3;
+        }
+        if (data->handle == 0xFB01u) {
+            const auto* extruded =
+                dynamic_cast<const DRW_ExtrudedSurface*>(data);
+            readExtrudedSurfaceSeen_ = expectedVersion_ >= DRW::AC1021
+                && extruded != nullptr
+                && data->eType == DRW::EXTRUDEDSURFACE
+                && data->dwgClassNum != 0
+                && data->uIsolines == 4 && data->vIsolines == 5
+                && extruded->sweepVector.z == 1.0
+                && extruded->draftAngle == 0.1;
+        }
+        if (data->handle == 0xFB02u) {
+            const auto* revolved =
+                dynamic_cast<const DRW_RevolvedSurface*>(data);
+            readRevolvedSurfaceSeen_ = expectedVersion_ >= DRW::AC1021
+                && revolved != nullptr
+                && data->eType == DRW::REVOLVEDSURFACE
+                && data->dwgClassNum != 0
+                && revolved->classId == 2 && revolved->id == 3
+                && revolved->axisPoint.x == 1.0
+                && revolved->axisVector.z == 1.0
+                && revolved->revolveAngle == 1.5;
+        }
+        if (data->handle == 0xFB03u) {
+            const auto* swept = dynamic_cast<const DRW_SweptSurface*>(data);
+            readSweptSurfaceSeen_ = expectedVersion_ >= DRW::AC1021
+                && swept != nullptr && data->eType == DRW::SWEPTSURFACE
+                && data->dwgClassNum != 0
+                && data->uIsolines == 8 && data->vIsolines == 9
+                && swept->classVersion == 2
+                && swept->sweepEntityId == 4
+                && swept->pathEntityId == 5
+                && swept->scaleFactor == 1.1;
+        }
+        if (data->handle == 0xFB04u) {
+            const auto* lofted = dynamic_cast<const DRW_LoftedSurface*>(data);
+            readLoftedSurfaceSeen_ = expectedVersion_ >= DRW::AC1021
+                && lofted != nullptr && data->eType == DRW::LOFTEDSURFACE
+                && data->dwgClassNum != 0
+                && data->uIsolines == 10 && data->vIsolines == 11
+                && lofted->modelerFormatVersion == 1
+                && lofted->planeNormalLoftingType == 1
+                && lofted->startDraftAngle == 0.2;
+        }
+        if (data->handle == 0xFB05u) {
+            const auto* nurbs = dynamic_cast<const DRW_NurbsSurface*>(data);
+            readNurbsSurfaceSeen_ = expectedVersion_ >= DRW::AC1021
+                && nurbs != nullptr && data->eType == DRW::NURBSURFACE
+                && data->dwgClassNum != 0
+                && data->uIsolines == 12 && data->vIsolines == 13
+                && (expectedVersion_ < DRW::AC1027
+                    ? (nurbs->short170 == 0 && !nurbs->cvHullDisplay)
+                    : (nurbs->short170 == 14 && nurbs->cvHullDisplay
+                       && nurbs->uvec1.x == 1.0 && nurbs->vvec1.y == 1.0
+                       && nurbs->uvec2.x == 2.0 && nurbs->vvec2.y == 2.0));
+        }
     }
     void addHatch(const DRW_Hatch*) override { readHatchSeen_ = true; }
     void addLeader(const DRW_Leader*) override { readLeaderSeen_ = true; }
@@ -3679,6 +3893,17 @@ public:
     bool readDwfUnderlayEntitySeen() const {
         return readDwfUnderlayEntitySeen_;
     }
+    bool wroteSurfaceSet() const {
+        return wroteSurfaceSet_;
+    }
+    bool rejectedMalformedSurface() const {
+        return rejectedMalformedSurface_;
+    }
+    bool readSurfaceSetSeen() const {
+        return readPlaneSurfaceSeen_ && readExtrudedSurfaceSeen_
+            && readRevolvedSurfaceSeen_ && readSweptSurfaceSeen_
+            && readLoftedSurfaceSeen_ && readNurbsSurfaceSeen_;
+    }
     bool readPointCloudSeen() const { return readPointCloudSeen_; }
     bool readPointCloudExSeen() const { return readPointCloudExSeen_; }
     bool readHatchSeen() const { return readHatchSeen_; }
@@ -3943,6 +4168,14 @@ private:
     bool wroteUnderlay_ {false};
     bool wroteDgnUnderlayEntity_ {false};
     bool wroteDwfUnderlayEntity_ {false};
+    bool wroteSurfaceSet_ {false};
+    bool wrotePlaneSurface_ {false};
+    bool wroteExtrudedSurface_ {false};
+    bool wroteRevolvedSurface_ {false};
+    bool wroteSweptSurface_ {false};
+    bool wroteLoftedSurface_ {false};
+    bool wroteNurbsSurface_ {false};
+    bool rejectedMalformedSurface_ {false};
     bool wrotePointCloud_ {false};
     bool wrotePointCloudEx_ {false};
     bool rejectedMalformedPointCloudEntity_ {false};
@@ -4106,6 +4339,7 @@ private:
     bool registeredPdfUnderlay_ {false};
     bool registeredDgnUnderlay_ {false};
     bool registeredDwfUnderlay_ {false};
+    bool registeredSurfaceClasses_ {false};
     bool registeredPointCloudDefinition_ {false};
     bool registeredPointCloudDefinitionEx_ {false};
     bool registeredPointCloudReactor_ {false};
@@ -4160,6 +4394,12 @@ private:
     bool readUnderlaySeen_ {false};
     bool readDgnUnderlayEntitySeen_ {false};
     bool readDwfUnderlayEntitySeen_ {false};
+    bool readPlaneSurfaceSeen_ {false};
+    bool readExtrudedSurfaceSeen_ {false};
+    bool readRevolvedSurfaceSeen_ {false};
+    bool readSweptSurfaceSeen_ {false};
+    bool readLoftedSurfaceSeen_ {false};
+    bool readNurbsSurfaceSeen_ {false};
     bool readPointCloudSeen_ {false};
     bool readPointCloudExSeen_ {false};
     bool readHatchSeen_ {false};
@@ -4288,6 +4528,95 @@ bool expect(bool value, const char* label, int& failures) {
     return false;
 }
 
+bool runDxfSurfaceRoundTrip() {
+    const std::filesystem::path output =
+        std::filesystem::temp_directory_path() / "libdxfrw-surface-roundtrip.dxf";
+    std::error_code ec;
+    std::filesystem::remove(output, ec);
+
+    dx_data source;
+    auto plane = new DRW_PlaneSurface();
+    plane->handle = 0xFB00u;
+    plane->uIsolines = 2;
+    plane->vIsolines = 3;
+    source.mBlock->ent.push_back(plane);
+    auto extruded = new DRW_ExtrudedSurface();
+    extruded->handle = 0xFB01u;
+    extruded->uIsolines = 4;
+    extruded->vIsolines = 5;
+    extruded->sweepVector = DRW_Coord(0.0, 0.0, 1.0);
+    extruded->draftAngle = 0.1;
+    extruded->scaleFactor = 1.25;
+    source.mBlock->ent.push_back(extruded);
+    auto revolved = new DRW_RevolvedSurface();
+    revolved->handle = 0xFB02u;
+    revolved->uIsolines = 6;
+    revolved->vIsolines = 7;
+    revolved->classId = 2;
+    revolved->axisPoint = DRW_Coord(1.0, 2.0, 3.0);
+    revolved->axisVector = DRW_Coord(0.0, 0.0, 1.0);
+    revolved->revolveAngle = 1.5;
+    source.mBlock->ent.push_back(revolved);
+    auto swept = new DRW_SweptSurface();
+    swept->handle = 0xFB03u;
+    swept->uIsolines = 8;
+    swept->vIsolines = 9;
+    swept->classVersion = 2;
+    swept->sweepEntityId = 4;
+    swept->pathEntityId = 5;
+    swept->referenceVector = DRW_Coord(1.0, 0.0, 0.0);
+    swept->scaleFactor = 1.1;
+    source.mBlock->ent.push_back(swept);
+    auto lofted = new DRW_LoftedSurface();
+    lofted->handle = 0xFB04u;
+    lofted->uIsolines = 10;
+    lofted->vIsolines = 11;
+    lofted->planeNormalLoftingType = 1;
+    lofted->startDraftAngle = 0.2;
+    lofted->endDraftAngle = 0.3;
+    source.mBlock->ent.push_back(lofted);
+    auto nurbs = new DRW_NurbsSurface();
+    nurbs->handle = 0xFB05u;
+    nurbs->uIsolines = 12;
+    nurbs->vIsolines = 13;
+    nurbs->short170 = 14;
+    nurbs->cvHullDisplay = true;
+    nurbs->uvec1 = DRW_Coord(1.0, 0.0, 0.0);
+    nurbs->vvec1 = DRW_Coord(0.0, 1.0, 0.0);
+    nurbs->uvec2 = DRW_Coord(2.0, 0.0, 0.0);
+    nurbs->vvec2 = DRW_Coord(0.0, 2.0, 0.0);
+    source.mBlock->ent.push_back(nurbs);
+
+    dx_iface exporter;
+    if (!exporter.fileExport(output.string(), DRW::AC1027, false, &source,
+                             false)) {
+        std::filesystem::remove(output, ec);
+        return false;
+    }
+    dx_data imported;
+    dx_iface importer;
+    if (!importer.fileImport(output.string(), &imported, false)) {
+        std::filesystem::remove(output, ec);
+        return false;
+    }
+    std::array<bool, 6> seen{};
+    for (const DRW_Entity* entity : imported.mBlock->ent) {
+        if (entity == nullptr)
+            continue;
+        switch (entity->eType) {
+        case DRW::PLANESURFACE: seen[0] = true; break;
+        case DRW::EXTRUDEDSURFACE: seen[1] = true; break;
+        case DRW::REVOLVEDSURFACE: seen[2] = true; break;
+        case DRW::SWEPTSURFACE: seen[3] = true; break;
+        case DRW::LOFTEDSURFACE: seen[4] = true; break;
+        case DRW::NURBSURFACE: seen[5] = true; break;
+        default: break;
+        }
+    }
+    std::filesystem::remove(output, ec);
+    return std::all_of(seen.begin(), seen.end(), [](bool value) { return value; });
+}
+
 } // namespace
 
 int main(int argc, char** argv) {
@@ -4409,6 +4738,14 @@ int main(int argc, char** argv) {
                failures);
         expect(writeIface.rejectedMalformedUnderlay(),
                ("local DWG writer rejected malformed UNDERLAY transaction"
+                + suffix).c_str(), failures);
+        expect(version >= DRW::AC1021
+                   ? writeIface.wroteSurfaceSet()
+                   : !writeIface.wroteSurfaceSet(),
+               ("local DWG SURFACE variant capability gate" + suffix).c_str(),
+               failures);
+        expect(writeIface.rejectedMalformedSurface(),
+               ("local DWG writer rejected malformed SURFACE transaction"
                 + suffix).c_str(), failures);
         expect(version > DRW::AC1018
                    ? writeIface.wrotePointCloud()
@@ -4772,6 +5109,11 @@ int main(int argc, char** argv) {
                    : !readIface.readDwfUnderlayEntitySeen(),
                ("local DWG self-read DWFUNDERLAY capability gate"
                 + suffix).c_str(), failures);
+        expect(version >= DRW::AC1021
+                   ? readIface.readSurfaceSetSeen()
+                   : !readIface.readSurfaceSetSeen(),
+               ("local DWG self-read SURFACE variant capability gate"
+                + suffix).c_str(), failures);
         expect(version > DRW::AC1018
                    ? readIface.readPointCloudSeen()
                    : !readIface.readPointCloudSeen(),
@@ -5068,6 +5410,8 @@ int main(int argc, char** argv) {
         if (!keepOutputs)
             std::filesystem::remove(output, ec);
     }
+    expect(runDxfSurfaceRoundTrip(),
+           "local DXF SURFACE family round-trip", failures);
     if (failures != 0) {
         std::cerr << failures << " local DWG round-trip assertion(s) failed\n";
         return 1;

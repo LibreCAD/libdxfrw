@@ -148,6 +148,22 @@ DWF_UNDERLAY_DEFINITION_HANDLE = 0xD500
 DIMASSOC_HANDLE = 0xF000
 EVALUATION_GRAPH_HANDLE = 0xF100
 BLOCKREPRESENTATIONDATA_HANDLE = 0xF200
+SURFACE_HANDLES = {
+    "PLANESURFACE": 0xFB00,
+    "EXTRUDEDSURFACE": 0xFB01,
+    "REVOLVEDSURFACE": 0xFB02,
+    "SWEPTSURFACE": 0xFB03,
+    "LOFTEDSURFACE": 0xFB04,
+    "NURBSURFACE": 0xFB05,
+}
+SURFACE_CLASS_NAMES = {
+    "PLANESURFACE": "AcDbPlaneSurface",
+    "EXTRUDEDSURFACE": "AcDbExtrudedSurface",
+    "REVOLVEDSURFACE": "AcDbRevolvedSurface",
+    "SWEPTSURFACE": "AcDbSweptSurface",
+    "LOFTEDSURFACE": "AcDbLoftedSurface",
+    "NURBSURFACE": "AcDbNurbSurface",
+}
 
 RENDER_SETTINGS_KINDS = {
     "Settings": ("RENDERSETTINGS", RENDERSETTINGS_HANDLE, 556),
@@ -594,6 +610,74 @@ def check_underlay_flavor_entities(records: list[dict], version_name: str) -> li
     return frames
 
 
+def check_surface_entities(payload: dict, records: list[dict],
+                           version_name: str) -> dict:
+    """Qualify the six class-backed SURFACE entity identities.
+
+    LibreDWG currently decodes the bounded modeler/ACIS body differently from
+    libdxfrw.  Its named entity record, class number, and handle are still
+    independent evidence that the writer emitted the intended route; the raw
+    modeler payload remains local-self-read authoritative.
+    """
+    if version_name in {"AC1015", "AC1018"}:
+        return {"supported": False, "variants": []}
+    type_map = {
+        "AC1021": {
+            "PLANESURFACE": 544, "EXTRUDEDSURFACE": 545,
+            "REVOLVEDSURFACE": 546, "SWEPTSURFACE": 547,
+            "LOFTEDSURFACE": 561, "NURBSURFACE": 565,
+        },
+        "AC1024": {
+            "PLANESURFACE": 543, "EXTRUDEDSURFACE": 544,
+            "REVOLVEDSURFACE": 545, "SWEPTSURFACE": 546,
+            "LOFTEDSURFACE": 547, "NURBSURFACE": 561,
+        },
+        "AC1027": {
+            "PLANESURFACE": 543, "EXTRUDEDSURFACE": 544,
+            "REVOLVEDSURFACE": 545, "SWEPTSURFACE": 546,
+            "LOFTEDSURFACE": 547, "NURBSURFACE": 561,
+        },
+        "AC1032": {
+            "PLANESURFACE": 543, "EXTRUDEDSURFACE": 544,
+            "REVOLVEDSURFACE": 545, "SWEPTSURFACE": 546,
+            "LOFTEDSURFACE": 547, "NURBSURFACE": 561,
+        },
+    }[version_name]
+    classes = payload.get("CLASSES")
+    if not isinstance(classes, list):
+        raise ValueError("oracle JSON has no CLASSES list for SURFACE")
+    variants = []
+    for entity, object_type in type_map.items():
+        handle = SURFACE_HANDLES[entity]
+        matches = [
+            record for record in records
+            if isinstance(record, dict)
+            and record.get("entity") == entity
+            and record.get("type") == object_type
+            and record_handle(record) == handle
+        ]
+        if len(matches) != 1:
+            raise ValueError(f"{entity} entity type/handle mismatch")
+        class_matches = [
+            cls for cls in classes
+            if isinstance(cls, dict)
+            and cls.get("number") == object_type
+            and cls.get("dxfname") == entity
+            and cls.get("cppname") == SURFACE_CLASS_NAMES[entity]
+            and cls.get("num_instances") == 1
+        ]
+        if len(class_matches) != 1:
+            raise ValueError(f"{entity} class identity mismatch")
+        variants.append({
+            "entity": entity,
+            "type": object_type,
+            "handle": handle,
+            "className": SURFACE_CLASS_NAMES[entity],
+            "payloadQualified": False,
+        })
+    return {"supported": True, "variants": variants}
+
+
 def check_express_text_entities(records: list[dict], version_name: str) -> dict:
     """Qualify RTEXT/ARCALIGNEDTEXT identity and bounded oracle payload.
 
@@ -658,10 +742,13 @@ def check_associative_objects(records: list[dict], version_name: str) -> dict:
     if version_name in {"AC1015", "AC1018"}:
         return {"supported": False}
     type_map = {
-        "AC1021": (566, 567),
-        "AC1024": (565, 566),
-        "AC1027": (565, 566),
-        "AC1032": (565, 566),
+        # SURFACE classes are registered before these records and therefore
+        # consume the file-local ordinals that previously belonged to the
+        # associative pair.
+        "AC1021": (572, 573),
+        "AC1024": (571, 572),
+        "AC1027": (571, 572),
+        "AC1032": (571, 572),
     }
     dim_type, graph_type = type_map[version_name]
     dim = find_record(records, "DIMASSOC", DIMASSOC_HANDLE)
@@ -729,6 +816,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
     navisworks_model_entity = check_navisworks_model_entity(records, version_name)
     underlay_entity = check_underlay_entity(records, version_name)
     underlay_flavors = check_underlay_flavor_entities(records, version_name)
+    surface_entities = check_surface_entities(payload, records, version_name)
     express_text_entities = check_express_text_entities(records, version_name)
     associative_objects = check_associative_objects(records, version_name)
     block_representation = check_block_representation(records, version_name)
@@ -847,6 +935,16 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "External underlay file contents are intentionally absent; the "
             "PDF/DGN/DWF UNDERLAY metadata and clip payloads are independently "
             "qualified")
+    surface_discrepancies = []
+    if not surface_entities.get("supported"):
+        surface_discrepancies.append(
+            "SURFACE emission is intentionally gated off for AC1015/AC1018 "
+            "because the class-backed modeler body is only proven on AC1021+")
+    else:
+        surface_discrepancies.append(
+            "LibreDWG 0.14 qualifies all six SURFACE type/handle/class "
+            "identities; modeler and raw ACIS payloads remain local-self-read "
+            "authoritative")
 
     render_matrix = {}
     for kind, (object_name, handle, object_type) in RENDER_SETTINGS_KINDS.items():
@@ -1037,24 +1135,24 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "IBLBACKGROUND": 561, "SKYLIGHTBACKGROUND": 565,
         },
         "AC1021": {
-            "SOLIDBACKGROUND": 544, "GRADIENTBACKGROUND": 545,
-            "GROUNDPLANEBACKGROUND": 546, "IMAGEBACKGROUND": 547,
-            "IBLBACKGROUND": 561, "SKYLIGHTBACKGROUND": 565,
+            "SOLIDBACKGROUND": 566, "GRADIENTBACKGROUND": 567,
+            "GROUNDPLANEBACKGROUND": 568, "IMAGEBACKGROUND": 569,
+            "IBLBACKGROUND": 570, "SKYLIGHTBACKGROUND": 571,
         },
         "AC1024": {
-            "SOLIDBACKGROUND": 543, "GRADIENTBACKGROUND": 544,
-            "GROUNDPLANEBACKGROUND": 545, "IMAGEBACKGROUND": 546,
-            "IBLBACKGROUND": 547, "SKYLIGHTBACKGROUND": 561,
+            "SOLIDBACKGROUND": 565, "GRADIENTBACKGROUND": 566,
+            "GROUNDPLANEBACKGROUND": 567, "IMAGEBACKGROUND": 568,
+            "IBLBACKGROUND": 569, "SKYLIGHTBACKGROUND": 570,
         },
         "AC1027": {
-            "SOLIDBACKGROUND": 543, "GRADIENTBACKGROUND": 544,
-            "GROUNDPLANEBACKGROUND": 545, "IMAGEBACKGROUND": 546,
-            "IBLBACKGROUND": 547, "SKYLIGHTBACKGROUND": 561,
+            "SOLIDBACKGROUND": 565, "GRADIENTBACKGROUND": 566,
+            "GROUNDPLANEBACKGROUND": 567, "IMAGEBACKGROUND": 568,
+            "IBLBACKGROUND": 569, "SKYLIGHTBACKGROUND": 570,
         },
         "AC1032": {
-            "SOLIDBACKGROUND": 543, "GRADIENTBACKGROUND": 544,
-            "GROUNDPLANEBACKGROUND": 545, "IMAGEBACKGROUND": 546,
-            "IBLBACKGROUND": 547, "SKYLIGHTBACKGROUND": 561,
+            "SOLIDBACKGROUND": 565, "GRADIENTBACKGROUND": 566,
+            "GROUNDPLANEBACKGROUND": 567, "IMAGEBACKGROUND": 568,
+            "IBLBACKGROUND": 569, "SKYLIGHTBACKGROUND": 570,
         },
     }[version_name]
     background_handles = {
@@ -1913,6 +2011,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         "navisworksModelEntity": navisworks_model_entity,
         "underlayEntity": underlay_entity,
         "underlayFlavorEntities": underlay_flavors,
+        "surfaceEntities": surface_entities,
         "expressTextEntities": express_text_entities,
         "associativeObjects": associative_objects,
         "blockRepresentationData": block_representation,
@@ -1954,7 +2053,8 @@ def check_objects(payload: dict, version_name: str) -> dict:
         + camera_discrepancies + geo_position_marker_discrepancies
         + shape_discrepancies + mline_discrepancies + light_discrepancies
         + mesh_discrepancies + wipeout_discrepancies
-        + navisworks_model_discrepancies + underlay_discrepancies),
+        + navisworks_model_discrepancies + underlay_discrepancies
+        + surface_discrepancies),
     }
 
 
@@ -2020,6 +2120,20 @@ def run(writer: str, oracle: str, timeout: float) -> dict:
 def self_test() -> None:
     payload = {
         "FILEHEADER": {"version": "AC1024"},
+        "CLASSES": [
+            {"number": 543, "dxfname": "PLANESURFACE",
+             "cppname": "AcDbPlaneSurface", "num_instances": 1},
+            {"number": 544, "dxfname": "EXTRUDEDSURFACE",
+             "cppname": "AcDbExtrudedSurface", "num_instances": 1},
+            {"number": 545, "dxfname": "REVOLVEDSURFACE",
+             "cppname": "AcDbRevolvedSurface", "num_instances": 1},
+            {"number": 546, "dxfname": "SWEPTSURFACE",
+             "cppname": "AcDbSweptSurface", "num_instances": 1},
+            {"number": 547, "dxfname": "LOFTEDSURFACE",
+             "cppname": "AcDbLoftedSurface", "num_instances": 1},
+            {"number": 561, "dxfname": "NURBSURFACE",
+             "cppname": "AcDbNurbSurface", "num_instances": 1},
+        ],
         "OBJECTS": [
             {"object": "GROUP", "handle": [0, 1, GROUP_HANDLE],
              "ownerhandle": [4, 1, 0x0C, 0x0C], "name": "LOCAL_GROUP",
@@ -2337,22 +2451,22 @@ def self_test() -> None:
              ]},
             {"object": "UNKNOWN_OBJ", "handle": [0, 2, SOLID_BACKGROUND_HANDLE],
              "ownerhandle": [4, 2, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
-             "type": 543},
+             "type": 565},
             {"object": "UNKNOWN_OBJ", "handle": [0, 2, GRADIENT_BACKGROUND_HANDLE],
              "ownerhandle": [4, 2, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
-             "type": 544},
+             "type": 566},
             {"object": "UNKNOWN_OBJ", "handle": [0, 2, GROUNDPLANE_BACKGROUND_HANDLE],
              "ownerhandle": [4, 2, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
-             "type": 545},
+             "type": 567},
             {"object": "UNKNOWN_OBJ", "handle": [0, 2, IMAGE_BACKGROUND_HANDLE],
              "ownerhandle": [4, 2, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
-             "type": 546},
+             "type": 568},
             {"object": "UNKNOWN_OBJ", "handle": [0, 2, IBL_BACKGROUND_HANDLE],
              "ownerhandle": [4, 2, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
-             "type": 547},
+             "type": 569},
             {"object": "UNKNOWN_OBJ", "handle": [0, 2, SKYLIGHT_BACKGROUND_HANDLE],
              "ownerhandle": [4, 2, DICTIONARY_HANDLE, DICTIONARY_HANDLE],
-             "type": 561},
+             "type": 570},
             {"entity": "UNKNOWN_ENT", "handle": [0, 2, 0xD925],
              "type": 533},
             {"entity": "TOLERANCE", "handle": [0, 2, 0xEC20],
@@ -2438,6 +2552,18 @@ def self_test() -> None:
              "ins_pt": [141.0, 142.0, 143.0], "scale": [2.0, 3.0, 1.0],
              "clip_verts": [[0.0, 0.0], [64.0, 0.0],
                             [64.0, 48.0], [0.0, 48.0]]},
+            {"entity": "PLANESURFACE", "handle": [0, 2, 0xFB00],
+             "type": 543},
+            {"entity": "EXTRUDEDSURFACE", "handle": [0, 2, 0xFB01],
+             "type": 544},
+            {"entity": "REVOLVEDSURFACE", "handle": [0, 2, 0xFB02],
+             "type": 545},
+            {"entity": "SWEPTSURFACE", "handle": [0, 2, 0xFB03],
+             "type": 546},
+            {"entity": "LOFTEDSURFACE", "handle": [0, 2, 0xFB04],
+             "type": 547},
+            {"entity": "NURBSURFACE", "handle": [0, 2, 0xFB05],
+             "type": 561},
             {"entity": "RTEXT", "handle": [0, 2, RTEXT_HANDLE],
              "type": 521, "text_value": "LOCAL_RTEXT",
              "pt": [90.0, 91.0, 0.0],
@@ -2449,10 +2575,10 @@ def self_test() -> None:
              "start_angle": 0.25, "end_angle": 1.25,
              "text_size": "2", "xscale": "1", "char_spacing": "1"},
             {"object": "DIMASSOC",
-             "handle": [0, 2, DIMASSOC_HANDLE], "type": 565,
+             "handle": [0, 2, DIMASSOC_HANDLE], "type": 571,
              "ownerhandle": [4, 1, 0x0C, 0x0C], "associativity": 1},
             {"object": "EVALUATION_GRAPH",
-             "handle": [0, 2, EVALUATION_GRAPH_HANDLE], "type": 566,
+             "handle": [0, 2, EVALUATION_GRAPH_HANDLE], "type": 572,
              "ownerhandle": [4, 1, 0x0C, 0x0C],
              "first_nodeid": 96, "first_nodeid_copy": 97},
             {"object": "UNKNOWN_OBJ",
@@ -2529,6 +2655,20 @@ def self_test() -> None:
              "definition": DWF_UNDERLAY_DEFINITION_HANDLE,
              "payloadQualified": True}]:
         raise AssertionError("DGN/DWF UNDERLAY identity was not qualified")
+    surface_summary = summary.get("surfaceEntities")
+    if (not isinstance(surface_summary, dict)
+            or surface_summary.get("supported") is not True
+            or [(frame["entity"], frame["type"], frame["handle"])
+                for frame in surface_summary.get("variants", [])]
+            != [
+                ("PLANESURFACE", 543, 0xFB00),
+                ("EXTRUDEDSURFACE", 544, 0xFB01),
+                ("REVOLVEDSURFACE", 545, 0xFB02),
+                ("SWEPTSURFACE", 546, 0xFB03),
+                ("LOFTEDSURFACE", 547, 0xFB04),
+                ("NURBSURFACE", 561, 0xFB05),
+            ]):
+        raise AssertionError("SURFACE entity identity was not qualified")
     if summary.get("expressTextEntities") != {
             "rtext": {"entity": "RTEXT", "type": 521,
                       "handle": RTEXT_HANDLE, "text": "LOCAL_RTEXT"},
@@ -2541,10 +2681,10 @@ def self_test() -> None:
             "supported": True,
             "dimensionAssociation": {
                 "object": "DIMASSOC", "handle": DIMASSOC_HANDLE,
-                "type": 565, "associativity": 1},
+                "type": 571, "associativity": 1},
             "evaluationGraph": {
                 "object": "EVALUATION_GRAPH", "handle": EVALUATION_GRAPH_HANDLE,
-                "type": 566, "firstNodeId": 96, "firstNodeIdCopy": 97}}:
+                "type": 572, "firstNodeId": 96, "firstNodeIdCopy": 97}}:
         raise AssertionError("DIMASSOC/EVALUATION_GRAPH identity was not qualified")
     if summary.get("blockRepresentationData") != {
             "supported": True, "object": "BLOCKREPRESENTATIONDATA",
@@ -2561,12 +2701,12 @@ def self_test() -> None:
             "entryCount": 2}:
         raise AssertionError("PARTIAL_VIEWING_INDEX evidence was not qualified")
     expected_backgrounds = {
-        "SOLIDBACKGROUND": (SOLID_BACKGROUND_HANDLE, 543),
-        "GRADIENTBACKGROUND": (GRADIENT_BACKGROUND_HANDLE, 544),
-        "GROUNDPLANEBACKGROUND": (GROUNDPLANE_BACKGROUND_HANDLE, 545),
-        "IMAGEBACKGROUND": (IMAGE_BACKGROUND_HANDLE, 546),
-        "IBLBACKGROUND": (IBL_BACKGROUND_HANDLE, 547),
-        "SKYLIGHTBACKGROUND": (SKYLIGHT_BACKGROUND_HANDLE, 561),
+        "SOLIDBACKGROUND": (SOLID_BACKGROUND_HANDLE, 565),
+        "GRADIENTBACKGROUND": (GRADIENT_BACKGROUND_HANDLE, 566),
+        "GROUNDPLANEBACKGROUND": (GROUNDPLANE_BACKGROUND_HANDLE, 567),
+        "IMAGEBACKGROUND": (IMAGE_BACKGROUND_HANDLE, 568),
+        "IBLBACKGROUND": (IBL_BACKGROUND_HANDLE, 569),
+        "SKYLIGHTBACKGROUND": (SKYLIGHT_BACKGROUND_HANDLE, 570),
     }
     actual_backgrounds = {
         name: (frame["handle"], frame["type"])
