@@ -176,6 +176,19 @@ void testDxfClassifierBoundaryMatrix(TestContext& t) {
                  && dxfValueKindForCode(1071) == DxfValueKind::I32
                  && dxfValueKindForCode(1072) == DxfValueKind::Unknown,
              "DXF binary/XDATA boundaries are explicit");
+    t.expect(dxfValueKindForCode(260, DxfClassifierProfile::StandaloneSafe)
+                 == DxfValueKind::I32
+                 && dxfValueKindForCode(482,
+                                        DxfClassifierProfile::StandaloneSafe)
+                        == DxfValueKind::Unknown,
+             "standalone-safe classifier profile remains the default");
+    t.expect(dxfValueKindForCode(260,
+                                 DxfClassifierProfile::LibreCadMasterLegacy)
+                 == DxfValueKind::Bln
+                 && dxfValueKindForCode(
+                        482, DxfClassifierProfile::LibreCadMasterLegacy)
+                        == DxfValueKind::Dbl,
+             "target legacy classifier profile is explicit and opt-in");
 
     std::stringstream records(
         "259\n1.25\n260\n2147483647\n269\n-7\n270\n7\n"

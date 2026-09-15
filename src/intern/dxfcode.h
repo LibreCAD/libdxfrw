@@ -10,6 +10,15 @@
 // readers fail closed instead of guessing a floating-point representation.
 enum class DxfValueKind { Str, Dbl, I16, I32, I64, Bln, Bin, Unknown };
 
+// The pinned LibreCAD tree predates the standalone safety correction for two
+// disputed ranges.  Keep that legacy interpretation available to an explicit
+// compatibility probe without changing the standalone-safe default used by
+// readers, capture, validation, and replay.
+enum class DxfClassifierProfile {
+    StandaloneSafe,
+    LibreCadMasterLegacy
+};
+
 struct DxfCodeRange {
     int lo;
     int hi;
@@ -59,6 +68,17 @@ inline constexpr DxfValueKind dxfValueKindForCode(int code) {
             return range.kind;
     }
     return DxfValueKind::Unknown;
+}
+
+inline constexpr DxfValueKind dxfValueKindForCode(
+    int code, DxfClassifierProfile profile) {
+    if (profile == DxfClassifierProfile::LibreCadMasterLegacy) {
+        if (code >= 260 && code <= 269)
+            return DxfValueKind::Bln;
+        if (code >= 482 && code <= 998)
+            return DxfValueKind::Dbl;
+    }
+    return dxfValueKindForCode(code);
 }
 
 // Keep the table a complete, ordered description of the DXF group-code
