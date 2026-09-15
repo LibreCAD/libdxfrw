@@ -52,9 +52,9 @@ then pin an immutable commit before importing source.
 ### Execution refresh (2026-09-15)
 
 The implementation worktree is rebased on `origin/master` and is currently
-203 commits ahead with no commits behind it. The latest green slice is
-S177/J153, including the live-plan update and its required policy gates.
-S178/J154 is the active slice; its DXF raw-entity handle-remap preservation is
+204 commits ahead with no commits behind it. The latest green slice is
+S178/J154, including the live-plan update and its required policy gates.
+S179/J155 is the active slice; its DXF raw-entity remap transaction rollback is
 the next commit boundary.
 The worktree is clean at the last committed boundary; any subsequent active-
 slice edits are intentionally uncommitted until their narrow gate and
@@ -1934,16 +1934,16 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint (2026-09-15): S177/J153 DXF raw-entity wide-handle replay
-  parity is committed; S178/J154 DXF raw-entity handle-remap preservation is
-  active.
+- Current checkpoint (2026-09-15): S178/J154 DXF raw-entity handle-remap
+  preservation is committed; S179/J155 DXF raw-entity remap transaction
+  rollback is active.
   The
   branch is rebased on `origin/master`, and
   the pinned source/package/consumer convergence remains complete while
   runtime and wire-format parity stay evidence-gated. The AC1015 IMAGE legacy
   boundary remains fail-closed, and all format-support claims remain limited
   to rows with eligible runtime/oracle evidence. The next dependency-ready
-  sequence is S178 DXF raw-entity handle-remap preservation;
+  sequence is S179 DXF raw-entity remap transaction rollback;
   it is a separate commit with no external or derived DWG/DXF bytes.
 - Latest implementation slice: S171/J147 DXF raw-object handle-scope and
   cross-record uniqueness qualification is committed. Local ASCII and binary
@@ -1974,6 +1974,10 @@ edit this block or commit the same slice concurrently.
   parity is committed. Local ASCII and binary ENTITIES vectors preserve a
   16-digit code-5 lexeme through capture and raw replay while the legacy
   convenience handle remains safely un-narrowed; no drawing bytes are retained.
+- Latest implementation slice: S178/J154 DXF raw-entity handle-remap
+  preservation is committed. Local ASCII and binary vectors rewrite narrow
+  self/reference handles through an explicit map while preserving wide raw
+  identities verbatim; no drawing bytes are retained.
 - Latest implementation slice: S172/J148 DXF raw-object duplicate-handle
   diagnostic and error-precedence qualification is committed. Local ASCII and
   binary duplicate streams preserve the legacy `BAD_CODE_PARSED` result and
@@ -2896,21 +2900,22 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 177 (`COMMITTED`); S178 is active.
+- Resolved slices: 178 (`COMMITTED`); S179 is active.
 - Slice states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 177 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 178 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 179 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 180 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 275 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 276 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 162 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S177 are committed; S178/J154 is active with a ready packet
-  naming DXF raw-entity handle-remap preservation and focused fast gates.
+  0 DEFERRED_EXTERNAL / 163 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S178 are committed; S179/J155 is active with a ready packet
+  naming DXF raw-entity remap transaction rollback and focused fast gates.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
-  S174/J150, S175/J151, S176/J152, and S177/J153 added malformed, field-context,
-  raw-entity propagation, duplicate-entity, and wide-handle replay coverage.
+  S174/J150, S175/J151, S176/J152, S177/J153, and S178/J154 added malformed,
+  field-context, raw-entity propagation, duplicate-entity, wide-handle replay,
+  and selective-remap coverage.
   Keep validation fast and
   self-updating: run source/plan/policy checks and the focused carrier target
   after each implementation item, commit only after the narrow gate is green,
@@ -3136,7 +3141,8 @@ edit this block or commit the same slice concurrently.
 | S175 | J151: DXF raw-handle diagnostic propagation across raw entity paths | S174 | COMMITTED | raw ENTITIES and BLOCKS fallback paths; invalid self/reference handles; structured diagnostic propagation; callback disposition; legacy error precedence; focused DXF gate; plan/scope/sync/fixture gates | committed `S175`; local malformed raw ENTITIES streams in ASCII and binary preserve `BAD_READ_ENTITIES`, suppress malformed entity callbacks, and carry field-context `invalid-handle` diagnostics; no drawing bytes committed | Wave 1 raw-entity diagnostic tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S176 is active |
 | S176 | J152: DXF raw-entity duplicate-handle diagnostic parity | S175 | COMMITTED | duplicate self handles across raw entities; cross-section scope; prior-valid callback; structured diagnostic parity; legacy entities error precedence; focused DXF gate; plan/scope/sync/fixture gates | committed `S176`; local ASCII and binary ENTITIES streams reject repeated self handles with `duplicate-handle` context, preserve the first callback, enforce cross-section scope, and reset for fresh sessions; no drawing bytes committed | Wave 1 raw-entity duplicate tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S177 is active |
 | S177 | J153: DXF raw-entity wide-handle replay parity | S176 | COMMITTED | 16-digit code-5 lexemes; ASCII/binary raw entity capture; source spelling; typed convenience narrowing; replay symmetry; focused DXF gate; plan/scope/sync/fixture gates | committed `S177`; local ASCII and binary ENTITIES vectors preserve a 16-digit code-5 lexeme through capture and raw replay while the legacy convenience handle remains safely un-narrowed; no drawing bytes committed | Wave 1 raw-entity wide-handle tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S178 is active |
-| S178 | J154: DXF raw-entity handle-remap preservation | S177 | ACTIVE | raw entity code-5 identity remap; reference-handle remap; wide-handle non-remap; ASCII/binary replay; transactional output; focused DXF gate; plan/scope/sync/fixture gates | use local raw entity vectors with narrow and wide self/reference handles plus an explicit remap map; assert only representable mapped handles change and wide identities remain verbatim; no drawing bytes committed | active after S177 commit; use Wave 1 raw-entity remap tests, focused CTest selector, fast source/policy gates, fixture admission, import scope, pinned sync, and diff gates |
+| S178 | J154: DXF raw-entity handle-remap preservation | S177 | COMMITTED | raw entity code-5 identity remap; reference-handle remap; wide-handle non-remap; ASCII/binary replay; transactional output; focused DXF gate; plan/scope/sync/fixture gates | committed `S178`; local ASCII and binary vectors rewrite narrow self/reference handles through an explicit map while preserving wide raw identities verbatim; no drawing bytes committed | Wave 1 raw-entity remap tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S179 is active |
+| S179 | J155: DXF raw-entity remap transaction rollback | S178 | ACTIVE | malformed typed groups after remap; output transaction rollback; no partial bytes; callback/output disposition; focused DXF gate; plan/scope/sync/fixture gates | use local remap vectors with a malformed trailing typed group in ASCII and binary; assert remap work leaves empty output on rejection and no callback/state leaks; no drawing bytes committed | active after S178 commit; use Wave 1 remap rollback tests, focused CTest selector, fast source/policy gates, fixture admission, import scope, pinned sync, and diff gates |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3318,7 +3324,8 @@ edit this block or commit the same slice concurrently.
 | J151 | S175 | J150 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-handle diagnostic propagation across raw entity paths | local ASCII/binary malformed raw ENTITIES vectors preserve stage results, suppress callbacks, and carry field-context diagnostics; no-fixture evidence |
 | J152 | S176 | J151 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-entity duplicate-handle diagnostic parity | local ASCII/binary duplicate entity streams preserve legacy error, prior callback, cross-section scope, and fresh-session reset; no-fixture evidence |
 | J153 | S177 | J152 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-entity wide-handle replay parity | local ASCII/binary 16-digit raw entity vectors preserve lexemes through capture/replay while convenience handles remain un-narrowed; no-fixture evidence |
-| J154 | S178 | J153 | ACTIVE | EXPERIMENTAL | Qualify DXF raw-entity handle-remap preservation | active packet names narrow/wide self/reference handles, explicit remap map, selective remap behavior, and no-fixture evidence |
+| J154 | S178 | J153 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-entity handle-remap preservation | local ASCII/binary narrow/wide self/reference vectors rewrite only representable mapped handles and preserve wide identities; no-fixture evidence |
+| J155 | S179 | J154 | ACTIVE | EXPERIMENTAL | Qualify DXF raw-entity remap transaction rollback | active packet names malformed trailing groups, empty-output rollback, callback suppression, and no-fixture evidence |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -3607,7 +3614,8 @@ edit this block or commit the same slice concurrently.
 | J151.1 | J151 / S175 | WP4, WP5, WP6, WP8, WP10; DXF raw-handle diagnostic propagation across raw entity paths | J150 | COMMITTED | EXPERIMENTAL | assert malformed raw entity self/reference handles preserve field-context diagnostics and suppress only the malformed entity callback while retaining the legacy entities-stage result, without external drawing bytes | focused Wave 1 raw-entity diagnostic target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 | J152.1 | J152 / S176 | WP4, WP5, WP6, WP8, WP10; DXF raw-entity duplicate-handle diagnostic parity | J151 | COMMITTED | EXPERIMENTAL | assert duplicate raw entity handles preserve `duplicate-handle` diagnostics across entity records/sections, reset for fresh sessions, and suppress only later malformed callbacks while retaining the legacy entities-stage result, without external drawing bytes | focused Wave 1 raw-entity duplicate target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 | J153.1 | J153 / S177 | WP4, WP5, WP6, WP8, WP10; DXF raw-entity wide-handle replay parity | J152 | COMMITTED | EXPERIMENTAL | assert 16-digit code-5 lexemes capture/replay losslessly in raw ENTITIES for ASCII and binary while convenience handles remain bounded, without external drawing bytes | focused Wave 1 raw-entity wide-handle target and policy gates pass; no external or derived DWG/DXF bytes are retained |
-| J154.1 | J154 / S178 | WP4, WP5, WP6, WP8, WP10; DXF raw-entity handle-remap preservation | J153 | ACTIVE | EXPERIMENTAL | assert explicit remaps rewrite representable narrow handles and references while preserving wide raw identities verbatim in ASCII and binary, without external drawing bytes | focused Wave 1 raw-entity remap target and policy gates pass; no external or derived DWG/DXF bytes are retained |
+| J154.1 | J154 / S178 | WP4, WP5, WP6, WP8, WP10; DXF raw-entity handle-remap preservation | J153 | COMMITTED | EXPERIMENTAL | assert explicit remaps rewrite representable narrow handles and references while preserving wide raw identities verbatim in ASCII and binary, without external drawing bytes | focused Wave 1 raw-entity remap target and policy gates pass; no external or derived DWG/DXF bytes are retained |
+| J155.1 | J155 / S179 | WP4, WP5, WP6, WP8, WP10; DXF raw-entity remap transaction rollback | J154 | ACTIVE | EXPERIMENTAL | assert malformed trailing groups after handle remap leave empty ASCII/binary output and no callback/state leaks, without external drawing bytes | focused Wave 1 remap rollback target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 
 <!-- UPGRADE_PROGRESS_END -->
 

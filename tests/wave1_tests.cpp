@@ -1,6 +1,7 @@
 #include <cstdint>
 #include <initializer_list>
 #include <iostream>
+#include <map>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -1698,6 +1699,89 @@ void testDxfRawEntityWideHandleReplay(TestContext& t) {
     }
 }
 
+void testDxfRawEntityHandleRemap(TestContext& t) {
+    const std::string wideHandle = "123456789ABCDEF0";
+    const std::string wideReference = "FEDCBA9876543210";
+    DRW_RawDxfObject object;
+    object.name = "LOCAL_REMAP_ENTITY";
+    object.handle = 0x1Au;
+    object.parentHandle = 0x2Au;
+    object.m_version = DRW::AC1027;
+    object.hasRawValues = true;
+    object.groups = {DRW_Variant(5, std::string("1A")),
+                     DRW_Variant(330, std::string("2A")),
+                     DRW_Variant(340, wideReference)};
+    object.rawValues = {"1A", "2A", wideReference};
+
+    std::ostringstream asciiOutput;
+    dxfRW asciiWriter("");
+    asciiWriter.version = DRW::AC1027;
+    asciiWriter.binFile = false;
+    asciiWriter.writer = std::make_unique<dxfWriterAscii>(&asciiOutput);
+    asciiWriter.setHandleRemap({{0x1Au, 0x3Au}, {0x2Au, 0x4Au}});
+    t.expect(asciiWriter.writeRawDxfObject(&object),
+             "DXF raw entity remaps narrow handles through ASCII replay");
+    int code = 0;
+    std::stringstream asciiRecords(asciiOutput.str());
+    dxfReaderAscii asciiReader(&asciiRecords);
+    asciiReader.setAllowWideHandleLexemes(true);
+    t.expect(asciiReader.readRec(&code) && code == 0
+                 && asciiReader.readRec(&code) && code == 5
+                 && asciiReader.getString() == "3A"
+                 && asciiReader.readRec(&code) && code == 330
+                 && asciiReader.getString() == "4A"
+                 && asciiReader.readRec(&code) && code == 340
+                 && asciiReader.getString() == wideReference,
+             "DXF ASCII remap preserves wide reference identity verbatim");
+
+    DRW_RawDxfObject wideObject;
+    wideObject.name = "LOCAL_WIDE_REMAP_ENTITY";
+    wideObject.m_version = DRW::AC1027;
+    wideObject.groups = {DRW_Variant(5, wideHandle),
+                         DRW_Variant(330, wideReference)};
+    std::ostringstream wideOutput;
+    dxfRW wideWriter("");
+    wideWriter.version = DRW::AC1027;
+    wideWriter.binFile = false;
+    wideWriter.writer = std::make_unique<dxfWriterAscii>(&wideOutput);
+    wideWriter.setHandleRemap({{0x1Au, 0x3Au}});
+    t.expect(wideWriter.writeRawDxfObject(&wideObject),
+             "DXF wide raw entity ignores non-representable remap keys");
+    std::stringstream wideRecords(wideOutput.str());
+    dxfReaderAscii wideReader(&wideRecords);
+    wideReader.setAllowWideHandleLexemes(true);
+    t.expect(wideReader.readRec(&code) && code == 0
+                 && wideReader.readRec(&code) && code == 5
+                 && wideReader.getString() == wideHandle
+                 && wideReader.readRec(&code) && code == 330
+                 && wideReader.getString() == wideReference,
+             "DXF wide ASCII self/reference handles remain lossless");
+
+    DRW_RawDxfObject binaryObject = object;
+    binaryObject.hasRawValues = false;
+    binaryObject.rawValues.clear();
+    std::ostringstream binaryOutput;
+    dxfRW binaryWriter("");
+    binaryWriter.version = DRW::AC1027;
+    binaryWriter.binFile = true;
+    binaryWriter.writer = std::make_unique<dxfWriterBinary>(&binaryOutput);
+    binaryWriter.setHandleRemap({{0x1Au, 0x3Au}, {0x2Au, 0x4Au}});
+    t.expect(binaryWriter.writeRawDxfObject(&binaryObject),
+             "DXF raw entity remaps narrow handles through binary replay");
+    std::stringstream binaryRecords(binaryOutput.str());
+    dxfReaderBinary binaryReader(&binaryRecords);
+    binaryReader.setClassifierProfile(DxfClassifierProfile::StandaloneSafe);
+    binaryReader.setAllowWideHandleLexemes(true);
+    t.expect(binaryReader.readRec(&code) && code == 0
+                 && binaryReader.readRec(&code) && code == 5
+                 && binaryReader.getString() == "3A"
+                 && binaryReader.readRec(&code) && code == 330
+                 && binaryReader.getString() == "4A"
+                 && binaryReader.readRec(&code) && code == 340
+                 && binaryReader.getString() == wideReference,
+             "DXF binary remap preserves wide reference identity verbatim");
+}
+
 void testRawCapture(TestContext& t) {
     std::stringstream records("260\n2147483647\n482\n3.14\n1004\nAB\n");
     dxfRW owner("");
@@ -1909,6 +1993,7 @@ int main() {
     testDxfRawObjectMalformedHandleDiagnostics(context);
     testDxfRawEntityHandleDiagnostics(context);
     testDxfRawEntityWideHandleReplay(context);
+    testDxfRawEntityHandleRemap(context);
     testRawCapture(context);
     testHatchValidationIgnoresInactiveGradient(context);
     testFixedSpaceBlockClassification(context);
