@@ -58,6 +58,14 @@ def assert_staged_flags(flags, prefix: Path) -> None:
                 ) from error
 
 
+def assert_reported_prefix(reported: str, prefix: Path) -> None:
+    reported_path = Path(reported)
+    if not reported_path.is_absolute() or reported_path.resolve() != prefix.resolve():
+        raise RuntimeError(
+            "pkg-config reported prefix does not identify staged root: %s"
+            % reported)
+
+
 def self_test_staged_flags() -> None:
     prefix = Path(tempfile.gettempdir()) / "libdxfrw-staged-prefix"
     assert_staged_flags(
@@ -96,6 +104,15 @@ def self_test_package_root_identity() -> None:
                 raise RuntimeError(
                     "pkg-config root guard accepted mixed roots: %s"
                     % mixed_flags)
+            assert_reported_prefix(str(first), first)
+            for stale_prefix in (str(second), "relative-prefix"):
+                try:
+                    assert_reported_prefix(stale_prefix, first)
+                except RuntimeError:
+                    continue
+                raise RuntimeError(
+                    "pkg-config prefix guard accepted stale value: %s"
+                    % stale_prefix)
 
 
 def assert_profile_symbols(prefix: Path) -> None:
@@ -225,10 +242,7 @@ def check_relocated_consumer(prefix: Path, cxx: str) -> None:
         reported_prefix = run(
             ["pkg-config", "--define-prefix", "--variable=prefix", "libdxfrw"],
             env=pkgconfig).stdout.strip()
-        if Path(reported_prefix).resolve() != relocated.resolve():
-            raise RuntimeError(
-                "relocated pkg-config prefix does not resolve to copied root: %s"
-                % reported_prefix)
+        assert_reported_prefix(reported_prefix, relocated)
         flags = shlex.split(run(
             ["pkg-config", "--define-prefix", "--cflags", "--libs", "libdxfrw"],
             env=pkgconfig).stdout)
@@ -328,10 +342,7 @@ def check(prefix: Path, cxx: str) -> None:
         reported_prefix = run(
             ["pkg-config", "--define-prefix", "--variable=prefix", "libdxfrw"],
             env=pkgconfig).stdout.strip()
-        if Path(reported_prefix).resolve() != prefix:
-            raise RuntimeError(
-                "pkg-config prefix does not resolve to staged prefix: %s"
-                % reported_prefix)
+        assert_reported_prefix(reported_prefix, prefix)
         flags = shlex.split(run(["pkg-config", "--define-prefix", "--cflags", "--libs",
                                  "libdxfrw"], env=pkgconfig).stdout)
         assert_staged_flags(flags, prefix)
