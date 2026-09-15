@@ -3306,6 +3306,95 @@ void testDxfRawSectionHandleScope(TestContext& t) {
              "binary duplicate raw-section handle records offending handle");
 }
 
+void testDxfRawSectionWideHandleReplay(TestContext& t) {
+    const std::string wideSelf = "123456789ABCDEF0";
+    const std::string wideReference = "FEDCBA9876543210";
+    const std::string asciiSource =
+        "0\nSECTION\n2\nLOCAL_WIDE_SECTION\n0\nRECORD\n5\n"
+        + wideSelf + "\n330\n" + wideReference + "\n0\nENDSEC\n0\nEOF\n";
+    ProfileProbeInterface interface_;
+    dxfRW reader("");
+    reader.binFile = false;
+    std::stringstream asciiInput(asciiSource);
+    reader.reader = std::make_unique<dxfReaderAscii>(&asciiInput);
+    reader.reader->setClassifierProfile(DxfClassifierProfile::StandaloneSafe);
+    reader.reader->setAllowWideHandleLexemes(true);
+    reader.iface = &interface_;
+    reader.beginOperationDiagnostic(DRW::OperationKind::Read);
+    t.expect(reader.processDxf() && interface_.sections.size() == 1,
+             "DXF ASCII raw section captures wide handle lexemes");
+    if (interface_.sections.size() == 1) {
+        const DRW_RawDxfSection& captured = interface_.sections.front();
+        t.expect(captured.m_groups.size() == 3
+                     && captured.m_groups[1].code() == 5
+                     && std::string(captured.m_groups[1].c_str()) == wideSelf
+                     && captured.m_groups[2].code() == 330
+                     && std::string(captured.m_groups[2].c_str()) == wideReference,
+                 "DXF ASCII raw section retains wide handle strings");
+        std::ostringstream replay;
+        dxfRW writer("");
+        writer.version = DRW::AC1027;
+        writer.binFile = false;
+        writer.writer = std::make_unique<dxfWriterAscii>(&replay);
+        t.expect(writer.writeRawDxfSection(captured)
+                     && replay.str().find(wideSelf) != std::string::npos
+                     && replay.str().find(wideReference) != std::string::npos,
+                 "DXF ASCII raw section wide handles replay losslessly");
+    }
+
+    std::ostringstream binarySource;
+    dxfWriterBinary binarySourceWriter(&binarySource);
+    binarySourceWriter.writeString(0, "SECTION");
+    binarySourceWriter.writeString(2, "LOCAL_WIDE_SECTION");
+    binarySourceWriter.writeString(0, "RECORD");
+    binarySourceWriter.writeString(5, wideSelf);
+    binarySourceWriter.writeString(330, wideReference);
+    binarySourceWriter.writeString(0, "ENDSEC");
+    binarySourceWriter.writeString(0, "EOF");
+    std::stringstream binaryInput(binarySource.str());
+    ProfileProbeInterface binaryInterface;
+    dxfRW binaryReader("");
+    binaryReader.binFile = true;
+    binaryReader.reader = std::make_unique<dxfReaderBinary>(&binaryInput);
+    binaryReader.reader->setClassifierProfile(DxfClassifierProfile::StandaloneSafe);
+    binaryReader.reader->setAllowWideHandleLexemes(true);
+    binaryReader.iface = &binaryInterface;
+    binaryReader.beginOperationDiagnostic(DRW::OperationKind::Read);
+    t.expect(binaryReader.processDxf() && binaryInterface.sections.size() == 1,
+             "DXF binary raw section captures wide handle lexemes");
+    if (binaryInterface.sections.size() == 1) {
+        const DRW_RawDxfSection& captured = binaryInterface.sections.front();
+        t.expect(captured.m_groups.size() == 3
+                     && captured.m_groups[1].code() == 5
+                     && std::string(captured.m_groups[1].c_str()) == wideSelf
+                     && captured.m_groups[2].code() == 330
+                     && std::string(captured.m_groups[2].c_str()) == wideReference,
+                 "DXF binary raw section retains wide handle strings");
+        std::ostringstream replay;
+        dxfRW writer("");
+        writer.version = DRW::AC1027;
+        writer.binFile = true;
+        writer.writer = std::make_unique<dxfWriterBinary>(&replay);
+        DRW_RawDxfSection binaryCopy = captured;
+        t.expect(writer.writeRawDxfSection(binaryCopy)
+                     && !replay.str().empty(),
+                 "DXF binary raw section wide handles replay losslessly");
+        std::stringstream replayInput(replay.str());
+        dxfReaderBinary replayReader(&replayInput);
+        replayReader.setClassifierProfile(DxfClassifierProfile::StandaloneSafe);
+        replayReader.setAllowWideHandleLexemes(true);
+        int code = 0;
+        bool retained = false;
+        while (replayReader.readRec(&code)) {
+            if ((code == 5 && replayReader.getString() == wideSelf)
+                || (code == 330 && replayReader.getString() == wideReference))
+                retained = true;
+        }
+        t.expect(retained,
+                 "DXF binary raw section replay retains wide handle strings");
+    }
+}
+
 void testDxfRawSectionApplicationGroupMarker(TestContext& t) {
     const std::vector<std::string> invalidMarkers = {"{", "NOT_A_MARKER"};
     for (const std::string& marker : invalidMarkers) {
@@ -3653,6 +3742,7 @@ int main() {
     testDxfRawSectionApplicationGroupChunkSize(context);
     testDxfRawSectionHandleDiagnostics(context);
     testDxfRawSectionHandleScope(context);
+    testDxfRawSectionWideHandleReplay(context);
     testDxfRawSectionApplicationGroupMarker(context);
     testDxfRawSectionApplicationGroupReferenceMatrix(context);
     testRawCapture(context);
