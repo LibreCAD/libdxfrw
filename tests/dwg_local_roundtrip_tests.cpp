@@ -521,6 +521,24 @@ public:
                 && invalidEvaluationGraph.handle == 0xF101u;
         }
 
+        DRW_BlockRepresentationData blockRepresentation;
+        blockRepresentation.handle = 0xF200u;
+        blockRepresentation.parentHandle =
+            DRW::DwgNamedObjectsDictionaryHandle;
+        blockRepresentation.m_flag = 7;
+        blockRepresentation.m_blockHandle = modelSpaceLineHandle_;
+        wroteBlockRepresentationData_ =
+            writer_->writeBlockRepresentationData(&blockRepresentation)
+            && blockRepresentation.handle == 0xF200u;
+
+        DRW_BlockRepresentationData invalidBlockRepresentation =
+            blockRepresentation;
+        invalidBlockRepresentation.handle = 0xF201u;
+        invalidBlockRepresentation.reactorHandles.resize(1000001u);
+        rejectedMalformedBlockRepresentationData_ =
+            !writer_->writeBlockRepresentationData(&invalidBlockRepresentation)
+            && invalidBlockRepresentation.handle == 0xF201u;
+
         DRW_Layout layout;
         layout.handle = 0xA700u;
         layout.parentHandle = dictionary.handle;
@@ -2081,6 +2099,14 @@ public:
                 && data.m_edges.front().m_value92 == 92
                 && data.m_edges.front().m_value92e == 925;
     }
+    void addBlockRepresentationData(
+        const DRW_BlockRepresentationData& data) override {
+        if (data.handle == 0xF200u)
+            readBlockRepresentationDataSeen_ =
+                data.parentHandle == DRW::DwgNamedObjectsDictionaryHandle
+                && data.m_flag == 7
+                && data.m_blockHandle == modelSpaceLineHandle_;
+    }
     void addGroup(const DRW_Group& data) override {
         readGroupSeen_ = data.m_entityHandles.size() == 1
             && data.m_description == "LOCAL_GROUP";
@@ -2865,6 +2891,12 @@ public:
     bool rejectedMalformedEvaluationGraph() const {
         return rejectedMalformedEvaluationGraph_;
     }
+    bool wroteBlockRepresentationData() const {
+        return wroteBlockRepresentationData_;
+    }
+    bool rejectedMalformedBlockRepresentationData() const {
+        return rejectedMalformedBlockRepresentationData_;
+    }
     bool wroteBlock() const {
         return wroteBlock_ && wroteBlockPolyline_ && wroteBlockContent_;
     }
@@ -2917,6 +2949,7 @@ public:
             && (wroteDimensionAssociation_
                 || expectedVersion_ < DRW::AC1021)
             && (wroteEvaluationGraph_ || expectedVersion_ < DRW::AC1021)
+            && wroteBlockRepresentationData_
             && wroteTvDeviceProperties_
             && wroteVxControl_
             && wroteVxTableRecord_
@@ -3074,6 +3107,9 @@ public:
         return readDimensionAssociationSeen_;
     }
     bool readEvaluationGraphSeen() const { return readEvaluationGraphSeen_; }
+    bool readBlockRepresentationDataSeen() const {
+        return readBlockRepresentationDataSeen_;
+    }
     bool readInsertSeen() const { return readInsertSeen_; }
     bool readAttribSeen() const { return readAttribSeen_; }
     bool readGroupSeen() const { return readGroupSeen_; }
@@ -3117,6 +3153,7 @@ public:
             && (expectedVersion_ < DRW::AC1021 || readSectionSetSeen())
             && (expectedVersion_ < DRW::AC1021 || readDimensionAssociationSeen_)
             && (expectedVersion_ < DRW::AC1021 || readEvaluationGraphSeen_)
+            && readBlockRepresentationDataSeen_
             && readTvDevicePropertiesSeen_
             && readVxControlSeen_
             && readVxTableRecordSeen_
@@ -3318,6 +3355,8 @@ private:
     bool wroteEvaluationGraph_ {false};
     bool rejectedMalformedDimensionAssociation_ {false};
     bool rejectedMalformedEvaluationGraph_ {false};
+    bool wroteBlockRepresentationData_ {false};
+    bool rejectedMalformedBlockRepresentationData_ {false};
     bool wroteBlock_ {false};
     bool wroteBlockPolyline_ {false};
     bool wroteBlockContent_ {false};
@@ -3510,6 +3549,7 @@ private:
     bool readArcAlignedTextSeen_ {false};
     bool readDimensionAssociationSeen_ {false};
     bool readEvaluationGraphSeen_ {false};
+    bool readBlockRepresentationDataSeen_ {false};
     bool readInsertSeen_ {false};
     bool readAttribSeen_ {false};
     bool readGroupSeen_ {false};
@@ -3725,6 +3765,12 @@ int main(int argc, char** argv) {
                    ? writeIface.rejectedMalformedEvaluationGraph()
                    : true,
                ("local DWG writer rejected malformed EVALUATION_GRAPH transaction" + suffix).c_str(),
+               failures);
+        expect(writeIface.wroteBlockRepresentationData(),
+               ("local DWG writer emitted BLOCKREPRESENTATIONDATA" + suffix).c_str(),
+               failures);
+        expect(writeIface.rejectedMalformedBlockRepresentationData(),
+               ("local DWG writer rejected malformed BLOCKREPRESENTATIONDATA transaction" + suffix).c_str(),
                failures);
         expect(writeIface.wroteBlock(),
                ("local DWG writer emitted user block" + suffix).c_str(), failures);
@@ -4000,6 +4046,9 @@ int main(int argc, char** argv) {
                    ? readIface.readEvaluationGraphSeen()
                    : !readIface.readEvaluationGraphSeen(),
                ("local DWG self-read publishes EVALUATION_GRAPH" + suffix).c_str(),
+               failures);
+        expect(readIface.readBlockRepresentationDataSeen(),
+               ("local DWG self-read publishes BLOCKREPRESENTATIONDATA" + suffix).c_str(),
                failures);
         expect(readIface.readInsertSeen(),
                ("local DWG self-read publishes INSERT" + suffix).c_str(), failures);

@@ -132,6 +132,7 @@ RTEXT_HANDLE = 0xED00
 ARCALIGNEDTEXT_HANDLE = 0xED01
 DIMASSOC_HANDLE = 0xF000
 EVALUATION_GRAPH_HANDLE = 0xF100
+BLOCKREPRESENTATIONDATA_HANDLE = 0xF200
 
 RENDER_SETTINGS_KINDS = {
     "Settings": ("RENDERSETTINGS", RENDERSETTINGS_HANDLE, 556),
@@ -347,6 +348,27 @@ def check_associative_objects(records: list[dict], version_name: str) -> dict:
     }
 
 
+def check_block_representation(records: list[dict], version_name: str) -> dict:
+    """Qualify fixed BLOCKREPRESENTATIONDATA where LibreDWG exposes it."""
+    if version_name in {"AC1015", "AC1018"}:
+        return {"supported": False}
+    matches = [
+        record for record in records
+        if isinstance(record, dict)
+        and record_handle(record) == BLOCKREPRESENTATIONDATA_HANDLE
+        and record.get("type") == 1120
+    ]
+    if len(matches) != 1 or owner_handle(matches[0]) != 0x0C:
+        raise ValueError("BLOCKREPRESENTATIONDATA identity mismatch")
+    return {
+        "supported": True,
+        "object": "BLOCKREPRESENTATIONDATA",
+        "handle": BLOCKREPRESENTATIONDATA_HANDLE,
+        "type": 1120,
+        "oracleObject": matches[0].get("object"),
+    }
+
+
 def check_objects(payload: dict, version_name: str) -> dict:
     header = payload.get("FILEHEADER")
     if not isinstance(header, dict) or header.get("version") != version_name:
@@ -359,6 +381,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
     tolerance_entity = check_tolerance_entity(records)
     express_text_entities = check_express_text_entities(records, version_name)
     associative_objects = check_associative_objects(records, version_name)
+    block_representation = check_block_representation(records, version_name)
     associative_discrepancies = []
     if associative_objects.get("supported"):
         associative_discrepancies.append(
@@ -366,6 +389,16 @@ def check_objects(payload: dict, version_name: str) -> dict:
             "identity and DIMASSOC associativity, but does not retain the local "
             "evaluation-graph node/edge arrays; those payloads remain local-self-read "
             "authoritative")
+    block_representation_discrepancies = []
+    if not block_representation.get("supported"):
+        block_representation_discrepancies.append(
+            "LibreDWG 0.14 does not expose the local BLOCKREPRESENTATIONDATA "
+            "frame before AC1021; local self-read remains authoritative")
+    else:
+        block_representation_discrepancies.append(
+            "LibreDWG 0.14 exposes BLOCKREPRESENTATIONDATA as UNKNOWN_OBJ; "
+            "type/handle/owner identity is qualified while flag/block payload "
+            "remains local-self-read authoritative")
 
     render_matrix = {}
     for kind, (object_name, handle, object_type) in RENDER_SETTINGS_KINDS.items():
@@ -1423,6 +1456,7 @@ def check_objects(payload: dict, version_name: str) -> dict:
         "toleranceEntity": tolerance_entity,
         "expressTextEntities": express_text_entities,
         "associativeObjects": associative_objects,
+        "blockRepresentationData": block_representation,
         "sunStudy": {
             "object": "SUNSTUDY", "handle": SUNSTUDY_HANDLE, "type": 548,
         },
@@ -1456,7 +1490,8 @@ def check_objects(payload: dict, version_name: str) -> dict:
                                  + section_discrepancies
                                  + tv_vx_discrepancies
                                  + image_discrepancies
-                                 + associative_discrepancies),
+                                 + associative_discrepancies
+                                 + block_representation_discrepancies),
     }
 
 
@@ -1880,6 +1915,9 @@ def self_test() -> None:
              "handle": [0, 2, EVALUATION_GRAPH_HANDLE], "type": 566,
              "ownerhandle": [4, 1, 0x0C, 0x0C],
              "first_nodeid": 96, "first_nodeid_copy": 97},
+            {"object": "UNKNOWN_OBJ",
+             "handle": [0, 2, BLOCKREPRESENTATIONDATA_HANDLE], "type": 1120,
+             "ownerhandle": [4, 1, 0x0C, 0x0C]},
         ],
     }
     summary = check_objects(payload, "AC1024")
@@ -1910,6 +1948,11 @@ def self_test() -> None:
                 "object": "EVALUATION_GRAPH", "handle": EVALUATION_GRAPH_HANDLE,
                 "type": 566, "firstNodeId": 96, "firstNodeIdCopy": 97}}:
         raise AssertionError("DIMASSOC/EVALUATION_GRAPH identity was not qualified")
+    if summary.get("blockRepresentationData") != {
+            "supported": True, "object": "BLOCKREPRESENTATIONDATA",
+            "handle": BLOCKREPRESENTATIONDATA_HANDLE, "type": 1120,
+            "oracleObject": "UNKNOWN_OBJ"}:
+        raise AssertionError("BLOCKREPRESENTATIONDATA identity was not qualified")
     if [frame["object"] for frame in summary.get("pathObjects", [])] != [
             "CURVEPATH", "POINTPATH", "OBJECT_PTR"]:
         raise AssertionError("path-object identity was not qualified")

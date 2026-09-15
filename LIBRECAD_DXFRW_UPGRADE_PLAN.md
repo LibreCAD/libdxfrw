@@ -2577,6 +2577,26 @@ edit this block or commit the same slice concurrently.
   evaluation-graph node/edge arrays remain local-self-read authoritative. No
   dictionary cardinality change, generated drawing, or external associative
   asset is retained.
+- Latest implementation slice: S91/J67 BLOCKREPRESENTATIONDATA fixed-object
+  parity is committed. The fixed type-1120 writer/reader path now has a
+  six-version local round-trip probe with root ownership, bounded flag and
+  block-handle publication through `addBlockRepresentationData`, and
+  transaction-safe oversized-reactor rejection. LibreDWG 0.14 independently
+  exposes the frame as `UNKNOWN_OBJ` with type/handle/owner from AC1021 onward;
+  its pre-AC1021 omission is recorded as an explicit oracle limitation while
+  local self-read remains authoritative. No dictionary cardinality change,
+  external block asset, or generated drawing is retained.
+- Previous implementation slice: S90/J66 DIMASSOC/EVALUATION_GRAPH object parity
+  is committed. The AC1021+ lane registers the target's typed classes before
+  CLASSES, writes one bounded DIMASSOC with a soft dimension/reference link and
+  one bounded ACAD_EVALUATION_GRAPH node/edge graph under the root named-object
+  owner, publishes both through their interface callbacks, and rejects invalid
+  associativity/count/reactor state transactionally. AC1015/AC1018 remain
+  explicit capability-gated skips. LibreDWG 0.14 independently qualifies the
+  version-remapped type/handle/owner identities and stable DIMASSOC fields;
+  evaluation-graph node/edge arrays remain local-self-read authoritative. No
+  dictionary cardinality change, generated drawing, or external associative
+  asset is retained.
 - Previous implementation slice: S89/J65 RTEXT/ARCALIGNEDTEXT entity parity is
   committed. The slice uses the target's existing class definitions plus the
   pre-CLASSES entity-instance ledger, publishes both custom entities through
@@ -2606,28 +2626,28 @@ edit this block or commit the same slice concurrently.
   names TVDEVICEPROPERTIES and the two VX frames as UNKNOWN_OBJ, while local
   self-read remains authoritative for VX payload fields; no generated drawings
   or external assets are retained.
-- Last fully resolved slice: S90 (the DIMASSOC/EVALUATION_GRAPH object parity
-  slice is committed by the matching `Plan-Slice: S90` trailer; the commit
-  carries implementation, oracle evidence, and live-plan state).
+- Last fully resolved slice: S91 (the BLOCKREPRESENTATIONDATA fixed-object
+  parity slice is committed by the matching `Plan-Slice: S91` trailer; the
+  commit carries implementation, oracle evidence, and live-plan state).
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Previous fully resolved slice: S89 (the RTEXT/ARCALIGNEDTEXT entity parity
-  slice is committed by the matching `Plan-Slice: S89` trailer; the commit
-  carries implementation, oracle evidence, and import adaptation).
+- Previous fully resolved slice: S90 (the DIMASSOC/EVALUATION_GRAPH object
+  parity slice is committed by the matching `Plan-Slice: S90` trailer; the
+  commit carries implementation and independent object-oracle evidence).
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; the next lane must be selected
   from fresh target/source evidence rather than assumed from stale ordering.
-- Resolved slices: 90 (`COMMITTED`).
+- Resolved slices: 91 (`COMMITTED`).
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 90 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 91 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 90 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 91 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 4 VERIFIED / 188 COMMITTED; no child is anonymous.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 4 VERIFIED / 190 COMMITTED; no child is anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 32 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S90 are committed; no slice is currently active.
+  0 DEFERRED_EXTERNAL / 33 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S91 are committed; no slice is currently active.
   The next lane must be selected from a fresh target/source inventory and
   activated only after its completeness, compatibility, implementation-speed,
   and readiness evidence is recorded.
@@ -2763,6 +2783,7 @@ edit this block or commit the same slice concurrently.
 | S88 | J64: TOLERANCE entity parity | S87 | COMMITTED | target/source API inventory; focused six-version local writer/self-read; callback publication; bounded scalar/text/coordinate fields; malformed rollback; independent oracle where decodable; plan/scope/sync/fixture gates | implemented and verified one bounded `DRW_Tolerance` entity across AC1015/18/21/24/27/32 using the existing writer/reader paths, callback publication, version-aware text/handle framing, and transaction-safe oversized-reactor rejection; local-generated drawings remain temporary | local round-trip PASS; focused CTest and independent LibreDWG JSON oracle qualify all six versions with type 46 and bounded text/coordinates/dimstyle fields; fixture admission, import scope, target sync, and plan checks PASS; no fixture bytes staged; full suites remain checkpoint-only |
 | S89 | J65: RTEXT/ARCALIGNEDTEXT entity parity | S88 | COMMITTED | target/source API inventory; pre-CLASSES custom-entity registration; focused six-version local writer/self-read; mapped callback publication; bounded text/geometry fields; malformed rollback; independent oracle where decodable; plan/scope/sync/fixture gates | target and standalone expose `DRW_RText`, `DRW_ArcAlignedText`, `dwgRW::writeRText`, and `dwgRW::writeArcAlignedText`; the writer already carries class definitions 521/522, so the implementation stages fixed entity instances with `registerDwgEntityClassInstance` before CLASSES and preserves AC1015 built-in-chain validation around optional custom frames; local-from-scratch strings/arc geometry only, no drawing fixtures | focused local CTest and independent LibreDWG JSON oracle pass for all six versions; RTEXT payload and ARCALIGNEDTEXT identity qualify everywhere, full arc payload qualifies on AC1015/AC1018, and newer arc payload remains explicitly local-self-read authoritative; fixture admission, import scope, target sync, plan, and diff gates pass |
 | S90 | J66: DIMASSOC/EVALUATION_GRAPH object parity | S89 | COMMITTED | target/source API inventory; AC1021+ capability gate; pre-CLASSES typed object registration; bounded associative references/nodes/edges; callback publication; malformed rollback; independent oracle where decodable; plan/scope/sync/fixture gates | pinned target and standalone expose typed `DRW_DimensionAssociation`/`DRW_EvaluationGraph` models, callbacks, class registration, and DWG writers; use root named-object ownership to avoid changing the existing dictionary cardinality contract, local-from-scratch handles/references, and no drawing fixtures | focused six-version writer/self-read (write/read only from AC1021 onward) and independent JSON type/handle/owner evidence pass; AC1021+ DIMASSOC/EVALUATION_GRAPH identity qualifies with version-remapped types, graph payload stays local-self-read authoritative, AC1015/18 skips are explicit, and all policy gates pass |
+| S91 | J67: BLOCKREPRESENTATIONDATA fixed-object parity | S90 | COMMITTED | target/source API inventory; AC1015+ capability gate; fixed-type writer/reader; bounded flag/block ownership; callback publication; malformed rollback; independent oracle identity; plan/scope/sync/fixture gates | pinned target and standalone expose `DRW_BlockRepresentationData`, fixed DWG type 1120, `dwgRW::writeBlockRepresentationData`, and `addBlockRepresentationData`; use the root named-object owner and a local line handle for the hard-owner block reference, with no new dictionary entry or drawing fixture | focused six-version writer/self-read and independent JSON type/handle/owner identity pass; LibreDWG exposes type 1120 as UNKNOWN_OBJ from AC1021 onward and omits it before then; local flag/block payload is authoritative, malformed reactor rejection and all policy gates pass |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -2857,6 +2878,7 @@ edit this block or commit the same slice concurrently.
 | J64 | S88 | J63 | COMMITTED | EXPERIMENTAL | Qualify the existing TOLERANCE entity writer and reader across AC1015/18/21/24/27/32, with callback publication, bounded geometric-dimensioning fields, version-aware string/handle framing, and transaction-safe malformed-state rejection | six-version local writer/self-read and independent LibreDWG JSON identity/payload checks pass; no external fixture bytes are retained and support remains experimental |
 | J65 | S89 | J64 | COMMITTED | EXPERIMENTAL | Qualify RTEXT and ARCALIGNEDTEXT custom entity writers/readers across AC1015/18/21/24/27/32, including pre-CLASSES class identity/instance bookkeeping, mapped `addText` publication, bounded text/arc parameters, and transaction-safe malformed-state rejection |
 | J66 | S90 | J65 | COMMITTED | EXPERIMENTAL | Qualify DIMASSOC and ACAD_EVALUATION_GRAPH typed object writers/readers from AC1021 onward, including pre-CLASSES registration, root named-object ownership, bounded association references/graph nodes/edges, mapped callbacks, and transaction-safe malformed-state rejection |
+| J67 | S91 | J66 | COMMITTED | EXPERIMENTAL | Qualify BLOCKREPRESENTATIONDATA fixed-type object writing/reading from AC1015 onward, including bounded flag/block ownership, callback publication, and transaction-safe malformed-state rejection |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -3058,6 +3080,7 @@ edit this block or commit the same slice concurrently.
 | J64.1 | J64 / S88 | WP5, WP7, WP8, WP10; TOLERANCE | J63 | COMMITTED | EXPERIMENTAL | emit and self-read one bounded TOLERANCE entity from AC1015 onward, verify text/style/coordinate fields through `addTolerance`, exercise version-aware body/string/handle framing, and reject malformed bounded state transactionally without publishing a frame | local round-trip PASS; independent LibreDWG JSON oracle reports one type-46 TOLERANCE per version with expected bounded fields; malformed reactor-count rejection, fixture admission, import scope, target sync, and plan checks PASS; local-from-scratch values only and no generated fixtures |
 | J65.1 | J65 / S89 | WP5, WP7, WP8, WP10; RTEXT/ARCALIGNEDTEXT | J64 | COMMITTED | EXPERIMENTAL | emit and self-read one bounded RTEXT and one ARCALIGNEDTEXT from AC1015 onward, register fixed custom classes and instances before CLASSES, verify mapped callback/dynamic-type fields plus independent JSON identity where decodable, and reject malformed reactor vectors without publishing a frame | focused six-version local round-trip, independent oracle probe, and policy gates pass; RTEXT payload and ARCALIGNEDTEXT identity qualify through LibreDWG on every version, full arc payload is qualified through AC1018, newer arc payload is intentionally local-self-read authoritative because the independent decoder misaligns its split string stream; local-from-scratch values only, no external Express Tools assets or fixture bytes |
 | J66.1 | J66 / S90 | WP5, WP7, WP8, WP10; DIMASSOC/EVALUATION_GRAPH | J65 | COMMITTED | EXPERIMENTAL | emit and self-read one bounded DIMASSOC and one ACAD_EVALUATION_GRAPH object from AC1021 onward, explicitly reject AC1015/AC1018, register typed classes before CLASSES, verify root ownership and bounded reference/node/edge fields through callbacks plus independent JSON identity, and reject malformed reactor/count state without publishing a frame | focused six-version capability matrix, local-from-scratch values only, independent oracle identity where stable, and policy gates pass; AC1021+ class/type/owner identities qualify, graph node/edge arrays remain local-self-read authoritative, no dictionary-count changes, no external associative assets, and no fixture bytes |
+| J67.1 | J67 / S91 | WP5, WP7, WP8, WP10; BLOCKREPRESENTATIONDATA | J66 | COMMITTED | EXPERIMENTAL | emit and self-read one bounded fixed-type BLOCKREPRESENTATIONDATA object from AC1015 onward, verify flag/block handle and root ownership through callbacks plus independent JSON identity, and reject malformed reactor state without publishing a frame | focused six-version local round-trip, independent object-oracle identity, and policy gates pass; LibreDWG identity qualifies AC1021+, pre-AC1021 omission is explicit, local flag/block payload remains authoritative, local-from-scratch values only, no new dictionary entries, no external block assets, and no fixture bytes |
 
 <!-- UPGRADE_PROGRESS_END -->
 
