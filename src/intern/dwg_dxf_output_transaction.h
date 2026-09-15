@@ -54,6 +54,7 @@ private:
     bool flushFileToStorage() const noexcept;
     bool flushParentDirectoryToStorage() const noexcept;
     void closeExclusiveDescriptor() noexcept;
+    void closeDirectoryDescriptor() noexcept;
     bool publish();
 
     std::filesystem::path m_target;
@@ -61,6 +62,7 @@ private:
     std::ios::openmode m_mode;
     std::ofstream m_stream;
     int m_exclusiveDescriptor {-1};
+    int m_directoryDescriptor {-1};
     bool m_committed {false};
 };
 

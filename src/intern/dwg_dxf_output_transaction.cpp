@@ -46,8 +46,10 @@ DwgDxfOutputTransaction::DwgDxfOutputTransaction(
 DwgDxfOutputTransaction::~DwgDxfOutputTransaction() {
     if (!m_committed)
         abort();
-    else
+    else {
         closeExclusiveDescriptor();
+        closeDirectoryDescriptor();
+    }
 }
 
 bool DwgDxfOutputTransaction::createExclusiveTemporary() {
@@ -76,6 +78,16 @@ bool DwgDxfOutputTransaction::createExclusiveTemporary() {
         return true;
     }
 #else
+    int directoryFlags = O_RDONLY;
+#  if defined(O_DIRECTORY)
+    directoryFlags |= O_DIRECTORY;
+#  endif
+#  if defined(O_CLOEXEC)
+    directoryFlags |= O_CLOEXEC;
+#  endif
+    m_directoryDescriptor = ::open(directory.c_str(), directoryFlags);
+    if (m_directoryDescriptor < 0)
+        return false;
     std::string pattern =
         (directory / (name + ".libdxfrw-XXXXXX")).string();
     std::vector<char> mutablePattern(pattern.begin(), pattern.end());
@@ -86,6 +98,9 @@ bool DwgDxfOutputTransaction::createExclusiveTemporary() {
         m_exclusiveDescriptor = descriptor;
         return true;
     }
+#endif
+#if !defined(_WIN32)
+    closeDirectoryDescriptor();
 #endif
     m_temporary.clear();
     return false;
@@ -126,6 +141,16 @@ void DwgDxfOutputTransaction::closeExclusiveDescriptor() noexcept {
     m_exclusiveDescriptor = -1;
 }
 
+void DwgDxfOutputTransaction::closeDirectoryDescriptor() noexcept {
+#if defined(_WIN32)
+    return;
+#else
+    if (m_directoryDescriptor >= 0)
+        ::close(m_directoryDescriptor);
+    m_directoryDescriptor = -1;
+#endif
+}
+
 bool DwgDxfOutputTransaction::flushFileToStorage() const noexcept {
     if (m_exclusiveDescriptor < 0)
         return false;
@@ -146,22 +171,9 @@ bool DwgDxfOutputTransaction::flushParentDirectoryToStorage() const noexcept {
     // directory descriptor that can be flushed like a POSIX directory.
     return true;
 #else
-    const std::filesystem::path directory =
-        m_target.parent_path().empty() ? std::filesystem::path(".")
-                                       : m_target.parent_path();
-    int flags = O_RDONLY;
-#  if defined(O_DIRECTORY)
-    flags |= O_DIRECTORY;
-#  endif
-#  if defined(O_CLOEXEC)
-    flags |= O_CLOEXEC;
-#  endif
-    const int descriptor = ::open(directory.c_str(), flags);
-    if (descriptor < 0)
+    if (m_directoryDescriptor < 0)
         return false;
-    const bool flushed = ::fsync(descriptor) == 0;
-    ::close(descriptor);
-    return flushed;
+    return ::fsync(m_directoryDescriptor) == 0;
 #endif
 }
 
@@ -185,9 +197,12 @@ bool DwgDxfOutputTransaction::publish() {
                        MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH)
         != 0;
 #else
-    std::error_code error;
-    std::filesystem::rename(m_temporary, m_target, error);
-    return !error;
+    if (m_directoryDescriptor < 0)
+        return false;
+    const std::filesystem::path temporaryName = m_temporary.filename();
+    const std::filesystem::path targetName = m_target.filename();
+    return ::renameat(m_directoryDescriptor, temporaryName.c_str(),
+                      m_directoryDescriptor, targetName.c_str()) == 0;
 #endif
 }
 
@@ -222,8 +237,9 @@ bool DwgDxfOutputTransaction::commit() {
     }
     m_committed = true;
     closeExclusiveDescriptor();
-    m_temporary.clear();
     (void)flushParentDirectoryToStorage();
+    closeDirectoryDescriptor();
+    m_temporary.clear();
     return true;
 }
 
@@ -236,6 +252,7 @@ void DwgDxfOutputTransaction::abort() noexcept {
             std::filesystem::remove(m_temporary, ignored);
         }
         closeExclusiveDescriptor();
+        closeDirectoryDescriptor();
         m_temporary.clear();
     }
 }

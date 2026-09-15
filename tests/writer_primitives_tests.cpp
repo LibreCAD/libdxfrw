@@ -412,6 +412,39 @@ void testOutputTransactionPublicationAndRollback(TestContext& t) {
         std::filesystem::remove(target, ignored);
         std::filesystem::remove(linked, ignored);
     }
+
+    {
+        const std::filesystem::path root = transactionTestPath("parent-race");
+        const std::filesystem::path original = root / "original";
+        const std::filesystem::path moved = root / "moved";
+        const std::filesystem::path target = original / "out.dwg";
+        std::filesystem::create_directory(root, ignored);
+        std::filesystem::create_directory(original, ignored);
+        {
+            DwgDxfOutputTransaction transaction(target.string(),
+                                                std::ios::binary);
+            t.expect(transaction.open(),
+                     "parent-race transaction opens before directory swap");
+            transaction.stream() << "parent-race-output";
+            std::error_code moveError;
+            std::filesystem::rename(original, moved, moveError);
+            t.expect(!moveError,
+                     "parent-race test moves the original parent directory");
+            if (!moveError) {
+                std::filesystem::create_directory(original, ignored);
+                t.expect(!transaction.commit(),
+                         "parent-path replacement fails closed before publish");
+                t.expect(!std::filesystem::exists(original / "out.dwg")
+                             && !std::filesystem::exists(moved / "out.dwg"),
+                         "parent-path replacement publishes no redirected output");
+            }
+        }
+        std::filesystem::remove(original / "out.dwg", ignored);
+        std::filesystem::remove(moved / "out.dwg", ignored);
+        std::filesystem::remove(original, ignored);
+        std::filesystem::remove(moved, ignored);
+        std::filesystem::remove(root, ignored);
+    }
 #endif
 
     const std::filesystem::path missing =
