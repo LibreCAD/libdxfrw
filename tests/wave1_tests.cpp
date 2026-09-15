@@ -3199,6 +3199,39 @@ void testDxfRawSectionApplicationGroupChunkSize(TestContext& t) {
              "DXF binary raw section rejects a 128-byte chunk transactionally");
 }
 
+void testDxfRawSectionApplicationGroupMarker(TestContext& t) {
+    const std::vector<std::string> invalidMarkers = {"{", "NOT_A_MARKER"};
+    for (const std::string& marker : invalidMarkers) {
+        DRW_RawDxfSection section;
+        section.m_name = "LOCAL_SECTION_MARKER";
+        section.m_version = DRW::AC1027;
+        section.m_hasRawValues = true;
+        section.m_groups = {DRW_Variant(102, marker)};
+        section.m_rawValues = {marker};
+
+        std::ostringstream asciiOutput;
+        dxfRW asciiWriter("");
+        asciiWriter.version = DRW::AC1027;
+        asciiWriter.binFile = false;
+        asciiWriter.writer = std::make_unique<dxfWriterAscii>(&asciiOutput);
+        t.expect(!asciiWriter.writeRawDxfSection(section)
+                     && asciiOutput.str().empty(),
+                 "DXF ASCII raw section invalid marker rejects transactionally");
+
+        DRW_RawDxfSection binarySection = section;
+        binarySection.m_hasRawValues = false;
+        binarySection.m_rawValues.clear();
+        std::ostringstream binaryOutput;
+        dxfRW binaryWriter("");
+        binaryWriter.version = DRW::AC1027;
+        binaryWriter.binFile = true;
+        binaryWriter.writer = std::make_unique<dxfWriterBinary>(&binaryOutput);
+        t.expect(!binaryWriter.writeRawDxfSection(binarySection)
+                     && binaryOutput.str().empty(),
+                 "DXF binary raw section invalid marker rejects transactionally");
+    }
+}
+
 void testRawCapture(TestContext& t) {
     std::stringstream records("260\n2147483647\n482\n3.14\n1004\nAB\n");
     dxfRW owner("");
@@ -3429,6 +3462,7 @@ int main() {
     testDxfRawSectionApplicationGroupBinaryChunks(context);
     testDxfRawSectionApplicationGroupChunkCodeMatrix(context);
     testDxfRawSectionApplicationGroupChunkSize(context);
+    testDxfRawSectionApplicationGroupMarker(context);
     testRawCapture(context);
     testHatchValidationIgnoresInactiveGradient(context);
     testFixedSpaceBlockClassification(context);
