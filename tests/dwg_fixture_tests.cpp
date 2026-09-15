@@ -1,4 +1,5 @@
 #include <cstdint>
+#include <cmath>
 #include <filesystem>
 #include <iostream>
 #include <string>
@@ -18,6 +19,54 @@ struct TestContext {
             ++failures;
             std::cerr << "FAIL: " << label << '\n';
         }
+    }
+};
+
+class FixtureInterface final : public dx_iface {
+public:
+    bool sawRText {false};
+    bool sawArcAlignedText {false};
+    bool sawMPolygon {false};
+    bool sawLargeRadial {false};
+    std::string rtext;
+    std::string arcAlignedText;
+    double arcRadius {0.0};
+    int mpolygonSolid {0};
+    int mpolygonFillAci {0};
+    DRW_Coord largeRadialJog;
+    DRW_Coord largeRadialCenter;
+    DRW_Coord largeRadialChord;
+
+    void addText(const DRW_Text& data) override {
+        if (const auto* value = dynamic_cast<const DRW_RText*>(&data)) {
+            sawRText = true;
+            rtext = value->text;
+        }
+        if (const auto* value = dynamic_cast<const DRW_ArcAlignedText*>(&data)) {
+            sawArcAlignedText = true;
+            arcAlignedText = value->text;
+            arcRadius = value->m_radius;
+        }
+        dx_iface::addText(data);
+    }
+
+    void addHatch(const DRW_Hatch* data) override {
+        if (const auto* value = dynamic_cast<const DRW_MPolygon*>(data)) {
+            sawMPolygon = true;
+            mpolygonSolid = value->solid;
+            mpolygonFillAci = value->fillColorAci;
+        }
+        dx_iface::addHatch(data);
+    }
+
+    void addDimRadial(const DRW_DimRadial* data) override {
+        if (const auto* value = dynamic_cast<const DRW_DimLargeRadial*>(data)) {
+            sawLargeRadial = true;
+            largeRadialJog = value->jogPoint;
+            largeRadialCenter = value->getCenterPoint();
+            largeRadialChord = value->getChordPoint();
+        }
+        dx_iface::addDimRadial(data);
     }
 };
 
@@ -42,7 +91,7 @@ std::vector<const DRW_Line*> linesIn(const dx_data& data) {
 
 void testOrdinaryEncoding(TestContext& t, const char* name,
                           bool extended, const char* expectedBookName) {
-    dx_iface interface_;
+    FixtureInterface interface_;
     dx_data data;
     const std::filesystem::path path = fixturePath(name);
     t.expect(std::filesystem::is_regular_file(path), "DWG fixture exists");
@@ -81,6 +130,49 @@ void testOrdinaryEncoding(TestContext& t, const char* name,
              "modern ordinary ENC preserves linked color graph");
 }
 
+void testAdvancedTargetFixtures(TestContext& t) {
+    {
+        FixtureInterface interface_;
+        dx_data data;
+        t.expect(interface_.fileImport(
+                      fixturePath("rtext_arctext.dwg").string(), &data, false),
+                 "RTEXT/ARCALIGNEDTEXT fixture imports through dx_iface");
+        t.expect(interface_.sawRText && interface_.rtext == "RTEXT-DIESEL-TEST",
+                 "RTEXT callback preserves the DIESEL text payload");
+        t.expect(interface_.sawArcAlignedText
+                     && interface_.arcAlignedText == "ARC-TEXT-TEST"
+                     && std::fabs(interface_.arcRadius - 25.0) < 1e-12,
+                 "ARCALIGNEDTEXT callback preserves text and radius");
+    }
+
+    {
+        FixtureInterface interface_;
+        dx_data data;
+        t.expect(interface_.fileImport(
+                      fixturePath("mpolygon_solid.dwg").string(), &data, false),
+                 "MPOLYGON fixture imports through dx_iface");
+        t.expect(interface_.sawMPolygon && interface_.mpolygonSolid == 1
+                     && interface_.mpolygonFillAci == 256,
+                 "MPOLYGON callback preserves solid/fill metadata");
+    }
+
+    {
+        FixtureInterface interface_;
+        dx_data data;
+        t.expect(interface_.fileImport(
+                      fixturePath("large_radial.dwg").string(), &data, false),
+                 "large radial dimension fixture imports through dx_iface");
+        t.expect(interface_.sawLargeRadial
+                     && std::fabs(interface_.largeRadialJog.x - 8.0) < 1e-12
+                     && std::fabs(interface_.largeRadialJog.y - 2.0) < 1e-12
+                     && std::fabs(interface_.largeRadialCenter.x - 5.0) < 1e-12
+                     && std::fabs(interface_.largeRadialCenter.y - 6.0) < 1e-12
+                     && std::fabs(interface_.largeRadialChord.x - 10.0) < 1e-12
+                     && std::fabs(interface_.largeRadialChord.y) < 1e-12,
+                 "large radial callback preserves jog/center/chord points");
+    }
+}
+
 } // namespace
 
 int main() {
@@ -94,6 +186,7 @@ int main() {
                          "Book$Entry");
     testOrdinaryEncoding(context, "ordinary_enc_ac1027_ansi932.dwg", true,
                          "Book$Ａ");
+    testAdvancedTargetFixtures(context);
     if (context.failures != 0) {
         std::cerr << context.failures << " DWG fixture assertion(s) failed\n";
         return 1;
