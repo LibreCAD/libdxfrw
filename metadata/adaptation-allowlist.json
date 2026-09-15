@@ -126,10 +126,10 @@
     },
     {
       "path": "src/libdxfrw.h",
-      "reason": "Expose the structured operation-diagnostic snapshot while preserving the legacy dxfRW error and version API, and add an explicit public DXF compatibility-profile opt-in while retaining a safe default.",
+      "reason": "Expose the structured operation-diagnostic snapshot while preserving the legacy dxfRW error and version API, and add an explicitly documented public DXF compatibility-profile opt-in while retaining a safe default.",
       "scope": "diagnostic compatibility",
       "targetBlob": "8e2af88800c1af341a14982340a9648b07a5890f",
-      "adaptedSha256": "9372e2b61261f755eefe0549a839f66d3e6c3f83f1c17ffd82dee00244c75691"
+      "adaptedSha256": "464938cf9434b80f9ba6aa42a761f821b747c3fda321e60e51b672dc99488438"
     },
     {
       "path": "src/intern/drw_dbg.cpp",

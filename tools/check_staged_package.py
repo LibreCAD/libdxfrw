@@ -31,6 +31,13 @@ PROFILE_DECLARATIONS = (
     "DxfCompatibilityProfile dxfCompatibilityProfile() const noexcept;",
 )
 
+PROFILE_DOCUMENTATION = (
+    "Select the DXF classifier profile used by subsequent read, write, and",
+    "StandaloneSafe is the default",
+    "LibreCadMasterLegacy",
+    "never selected implicitly from a version or file format",
+)
+
 
 def run(command, *, cwd=None, env=None):
     return subprocess.run(command, cwd=cwd, env=env, check=True,
@@ -105,6 +112,12 @@ def check(prefix: Path, cxx: str) -> None:
         raise RuntimeError(
             "installed libdxfrw.h is missing profile declarations: "
             + ", ".join(missing))
+    missing_docs = [marker for marker in PROFILE_DOCUMENTATION
+                    if marker not in public_text]
+    if missing_docs:
+        raise RuntimeError(
+            "installed libdxfrw.h is missing profile documentation: "
+            + ", ".join(missing_docs))
     assert_profile_symbols(prefix)
 
     with tempfile.TemporaryDirectory(prefix="libdxfrw-package-") as directory:

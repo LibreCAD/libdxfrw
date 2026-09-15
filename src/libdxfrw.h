@@ -105,7 +105,15 @@ public:
     dxfRW& operator=(dxfRW&&) = delete;
     ~dxfRW();
     void setDebug(DRW::DebugLevel lvl);
+    /**
+     * Select the DXF classifier profile used by subsequent read, write, and
+     * raw-preservation operations. StandaloneSafe is the default and preserves
+     * the fail-closed handling of disputed binary widths. LibreCadMasterLegacy
+     * is an explicit opt-in for adapters migrating from LibreCAD's bundled
+     * fork; it is never selected implicitly from a version or file format.
+     */
     void setDxfCompatibilityProfile(DxfCompatibilityProfile profile) noexcept;
+    /** Return the currently selected DXF compatibility profile. */
     DxfCompatibilityProfile dxfCompatibilityProfile() const noexcept;
     /// reads the file specified in constructor
     /*!
