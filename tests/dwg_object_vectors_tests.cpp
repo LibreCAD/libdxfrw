@@ -312,6 +312,35 @@ void testLayoutVectors(TestContext& t) {
                  && overLimit.viewportHandles.empty() && body.size() == 0
                  && strings.size() == 0 && handles.size() == 0,
              "LAYOUT over-limit rejection is transactional");
+
+    LayoutEncodeProbe nonFinite;
+    nonFinite.handle = 0x263u;
+    nonFinite.marginLeft = std::numeric_limits<double>::quiet_NaN();
+    nonFinite.extMax.x = std::numeric_limits<double>::infinity();
+    body.reset();
+    strings.reset();
+    handles.reset();
+    t.expect(!nonFinite.encodeDwg(DRW::AC1024, &body, &strings, &handles),
+             "LAYOUT rejects non-finite body fields");
+    t.expect(nonFinite.handle == 0x263u && std::isnan(nonFinite.marginLeft)
+                 && std::isinf(nonFinite.extMax.x) && body.size() == 0
+                 && strings.size() == 0 && handles.size() == 0,
+             "LAYOUT non-finite rejection is transactional");
+
+    LayoutEncodeProbe invalidFlags;
+    invalidFlags.handle = 0x264u;
+    invalidFlags.layoutFlags = 65536;
+    invalidFlags.orthoViewType = -1;
+    body.reset();
+    strings.reset();
+    handles.reset();
+    t.expect(!invalidFlags.encodeDwg(DRW::AC1024, &body, &strings, &handles),
+             "LAYOUT rejects an invalid bit-short field");
+    t.expect(invalidFlags.handle == 0x264u
+                 && invalidFlags.layoutFlags == 65536
+                 && invalidFlags.orthoViewType == -1 && body.size() == 0
+                 && strings.size() == 0 && handles.size() == 0,
+             "LAYOUT invalid-field rejection is transactional");
 }
 
 } // namespace
