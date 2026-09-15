@@ -111,8 +111,14 @@ def check(prefix: Path, cxx: str) -> None:
         root = Path(directory)
         for header in PUBLIC_HEADERS:
             source = root / (header.replace("/", "_") + ".cpp")
-            source.write_text("#include <libdxfrw/%s>\nint main() { return 0; }\n"
-                              % header, encoding="utf-8")
+            source_text = "#include <libdxfrw/%s>\n" % header
+            if header == "libdxfrw.h":
+                source_text += (
+                    "static_assert(static_cast<unsigned>(dxfRW::DxfCompatibilityProfile::StandaloneSafe) == 0);\n"
+                    "static_assert(static_cast<unsigned>(dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy) == 1);\n"
+                )
+            source_text += "int main() { return 0; }\n"
+            source.write_text(source_text, encoding="utf-8")
             run([cxx, "-std=c++17", "-Wall", "-Wextra", "-Werror",
                  "-I", str(prefix / "include"), "-c", str(source),
                  "-o", str(source.with_suffix(".o"))])
@@ -120,6 +126,8 @@ def check(prefix: Path, cxx: str) -> None:
         consumer = root / "consumer.cpp"
         consumer.write_text(
             "#include <libdxfrw.h>\n"
+            "static_assert(static_cast<unsigned>(dxfRW::DxfCompatibilityProfile::StandaloneSafe) == 0);\n"
+            "static_assert(static_cast<unsigned>(dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy) == 1);\n"
             "static bool configure_librecad_dxf_adapter(dxfRW& codec) {\n"
             "  codec.setDxfCompatibilityProfile(\n"
             "      dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy);\n"
