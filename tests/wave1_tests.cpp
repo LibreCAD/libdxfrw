@@ -4,6 +4,7 @@
 #include <map>
 #include <sstream>
 #include <string>
+#include <streambuf>
 #include <vector>
 
 #include "drw_base.h"
@@ -51,6 +52,16 @@ struct TestContext {
             std::cerr << "FAIL: " << label << '\n';
         }
     }
+};
+
+class RejectingStreambuf final : public std::streambuf {
+public:
+    std::size_t acceptedBytes() const { return 0; }
+
+protected:
+    std::streamsize xsputn(const char*, std::streamsize) override { return 0; }
+
+    int_type overflow(int_type) override { return traits_type::eof(); }
 };
 
 class ProfileProbeInterface final : public dx_iface {
@@ -4487,6 +4498,42 @@ void testDxfRawSectionWriterStickyError(TestContext& t) {
              "DXF binary raw section preserves a pre-existing writer error");
 }
 
+void testDxfRawSectionAppendFailure(TestContext& t) {
+    DRW_RawDxfSection section;
+    section.m_name = "LOCAL_SECTION_APPEND_FAILURE";
+    section.m_version = DRW::AC1027;
+    section.m_hasRawValues = true;
+    section.m_groups = {DRW_Variant(1000, std::string("payload"))};
+    section.m_rawValues = {"payload"};
+
+    RejectingStreambuf asciiBuffer;
+    std::ostream asciiSink(&asciiBuffer);
+    dxfRW asciiWriter("");
+    asciiWriter.version = DRW::AC1027;
+    asciiWriter.binFile = false;
+    asciiWriter.writer = std::make_unique<dxfWriterAscii>(&asciiSink);
+    t.expect(!asciiWriter.writeRawDxfSection(section)
+                 && asciiWriter.m_writeError
+                 && asciiWriter.writer->hasWriteError()
+                 && asciiBuffer.acceptedBytes() == 0,
+             "DXF ASCII raw section rolls back a failed append");
+
+    DRW_RawDxfSection binarySection = section;
+    binarySection.m_hasRawValues = false;
+    binarySection.m_rawValues.clear();
+    RejectingStreambuf binaryBuffer;
+    std::ostream binarySink(&binaryBuffer);
+    dxfRW binaryWriter("");
+    binaryWriter.version = DRW::AC1027;
+    binaryWriter.binFile = true;
+    binaryWriter.writer = std::make_unique<dxfWriterBinary>(&binarySink);
+    t.expect(!binaryWriter.writeRawDxfSection(binarySection)
+                 && binaryWriter.m_writeError
+                 && binaryWriter.writer->hasWriteError()
+                 && binaryBuffer.acceptedBytes() == 0,
+             "DXF binary raw section rolls back a failed append");
+}
+
 void testDxfRawSectionApplicationGroupReferenceMatrix(TestContext& t) {
     DRW_RawDxfSection section;
     section.m_name = "LOCAL_SECTION_REFERENCE_MATRIX";
@@ -4827,6 +4874,7 @@ int main() {
     testDxfRawSectionApplicationGroupMarker(context);
     testDxfRawSectionWriterPreflight(context);
     testDxfRawSectionWriterStickyError(context);
+    testDxfRawSectionAppendFailure(context);
     testDxfRawSectionApplicationGroupReferenceMatrix(context);
     testRawCapture(context);
     testHatchValidationIgnoresInactiveGradient(context);
