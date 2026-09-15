@@ -52,10 +52,10 @@ then pin an immutable commit before importing source.
 ### Execution refresh (2026-09-15)
 
 The implementation worktree is rebased on `origin/master` and is currently
-219 commits ahead with no commits behind it. The latest green slice is
-S193/J169, including the live-plan update and its required policy gates.
-S194/J170 is the active slice; its DXF raw-section application-group remap-chain
-parity is the next commit boundary.
+220 commits ahead with no commits behind it. The latest green slice is
+S194/J170, including the live-plan update and its required policy gates.
+S195/J171 is the active slice; its DXF raw-section application-group binary
+chunk coexistence is the next commit boundary.
 The worktree is clean at the last committed boundary; any subsequent active-
 slice edits are intentionally uncommitted until their narrow gate and
 status-bearing plan transition are green.
@@ -1934,16 +1934,16 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint (2026-09-15): S193/J169 DXF raw-section application-group
-  raw-value cardinality parity is committed; S194/J170 DXF raw-section
-  application-group remap-chain parity is active.
+- Current checkpoint (2026-09-15): S194/J170 DXF raw-section application-group
+  remap-chain parity is committed; S195/J171 DXF raw-section application-group
+  binary chunk coexistence is active.
   The
   branch is rebased on `origin/master`, and
   the pinned source/package/consumer convergence remains complete while
   runtime and wire-format parity stay evidence-gated. The AC1015 IMAGE legacy
   boundary remains fail-closed, and all format-support claims remain limited
   to rows with eligible runtime/oracle evidence. The next dependency-ready
-  sequence is S194 DXF raw-section application-group remap-chain parity;
+  sequence is S195 DXF raw-section application-group binary chunk coexistence;
   it is a separate commit with no external or derived DWG/DXF bytes.
 - Latest implementation slice: S171/J147 DXF raw-object handle-scope and
   cross-record uniqueness qualification is committed. Local ASCII and binary
@@ -2038,6 +2038,9 @@ edit this block or commit the same slice concurrently.
   raw-value cardinality parity is committed. Local ASCII section carriers reject
   missing/extra source spellings while binary empty placeholders remain valid;
   no drawing bytes are retained.
+- Latest implementation slice: S194/J170 DXF raw-section application-group
+  remap-chain parity is committed. Local ASCII and binary section vectors prove
+  overlapping map destinations are not cascaded; no drawing bytes are retained.
 - Latest implementation slice: S172/J148 DXF raw-object duplicate-handle
   diagnostic and error-precedence qualification is committed. Local ASCII and
   binary duplicate streams preserve the legacy `BAD_CODE_PARSED` result and
@@ -2960,18 +2963,18 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 193 (`COMMITTED`); S194 is active.
+- Resolved slices: 194 (`COMMITTED`); S195 is active.
 - Slice states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 193 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 194 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 195 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 196 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 1 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 291 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 292 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 178 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S193 are committed; S194/J170 is active with a ready packet
-  naming DXF raw-section application-group remap-chain parity and focused fast gates.
+  0 DEFERRED_EXTERNAL / 179 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S194 are committed; S195/J171 is active with a ready packet
+  naming DXF raw-section application-group binary chunk coexistence and focused fast gates.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
   S174/J150, S175/J151, S176/J152, S177/J153, S178/J154, and S179/J155 added
   malformed, field-context, raw-entity propagation, duplicate-entity,
@@ -3217,7 +3220,8 @@ edit this block or commit the same slice concurrently.
 | S191 | J167: DXF raw-section application-group remap parity | S190 | COMMITTED | SECTION payload nested 102 groups; explicit handle remap; ASCII/binary replay; balanced-depth validation; transactional output; focused DXF gate; plan/scope/sync/fixture gates | committed `S191`; local ASCII and binary section vectors remap nested references while preserving framing and reject malformed groups transactionally; no drawing bytes committed | Wave 1 raw-section remap tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S192 is active |
 | S192 | J168: DXF raw-section application-group source spelling parity | S191 | COMMITTED | mixed-case section markers/references; raw source spellings; ASCII/binary replay; explicit remap; focused DXF gate; plan/scope/sync/fixture gates | committed `S192`; local ASCII and binary section vectors canonicalize mapped handles while preserving untouched mixed-case lexemes; no drawing bytes committed | Wave 1 raw-section source-spelling tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S193 is active |
 | S193 | J169: DXF raw-section application-group raw-value cardinality parity | S192 | COMMITTED | ASCII section raw-value parallelism; missing/extra spellings; binary placeholders; transactional output; focused DXF gate; plan/scope/sync/fixture gates | committed `S193`; local ASCII section carriers reject missing/extra source spellings while binary empty placeholders remain valid; no drawing bytes committed | Wave 1 raw-section raw-value tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S194 is active |
-| S194 | J170: DXF raw-section application-group remap-chain parity | S193 | ACTIVE | overlapping remap keys; one-step lookup semantics; nested section references; ASCII/binary replay; focused DXF gate; plan/scope/sync/fixture gates | use local section maps where a destination is also a source; assert one-step remap without cascading in both encodings; no drawing bytes committed | active after S193 commit; use Wave 1 raw-section remap-chain tests, focused CTest selector, fast source/policy gates, fixture admission, import scope, pinned sync, and diff gates |
+| S194 | J170: DXF raw-section application-group remap-chain parity | S193 | COMMITTED | overlapping remap keys; one-step lookup semantics; nested section references; ASCII/binary replay; focused DXF gate; plan/scope/sync/fixture gates | committed `S194`; local ASCII and binary section vectors prove overlapping map destinations are not cascaded; no drawing bytes committed | Wave 1 raw-section remap-chain tests, focused CTest selector, plan check, fixture admission, import scope, pinned sync, and diff gates pass; S195 is active |
+| S195 | J171: DXF raw-section application-group binary chunk coexistence | S194 | ACTIVE | binary chunk codes 310-319/1004; nested section groups; ASCII/binary replay; malformed chunk rollback; focused DXF gate; plan/scope/sync/fixture gates | use local section groups containing valid and malformed binary chunks beside remapped references; assert replay and zero output on malformed chunks in both encodings; no drawing bytes committed | active after S194 commit; use Wave 1 raw-section binary-chunk tests, focused CTest selector, fast source/policy gates, fixture admission, import scope, pinned sync, and diff gates |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3415,7 +3419,8 @@ edit this block or commit the same slice concurrently.
 | J167 | S191 | J166 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-section application-group remap parity | local ASCII/binary section vectors remap nested references while preserving framing and reject malformed groups transactionally; no-fixture evidence |
 | J168 | S192 | J167 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-section application-group source spelling parity | local ASCII/binary section vectors canonicalize mapped handles while preserving untouched mixed-case lexemes; no-fixture evidence |
 | J169 | S193 | J168 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-section application-group raw-value cardinality parity | local ASCII section carriers reject missing/extra source spellings while binary empty placeholders remain valid; no-fixture evidence |
-| J170 | S194 | J169 | ACTIVE | EXPERIMENTAL | Qualify DXF raw-section application-group remap-chain parity | active packet names overlapping remap keys, one-step lookup semantics, nested section replay, and no-fixture evidence |
+| J170 | S194 | J169 | COMMITTED | EXPERIMENTAL | Qualify DXF raw-section application-group remap-chain parity | local ASCII/binary section vectors prove overlapping map destinations are not cascaded; no-fixture evidence |
+| J171 | S195 | J170 | ACTIVE | EXPERIMENTAL | Qualify DXF raw-section application-group binary chunk coexistence | active packet names valid/malformed binary chunks beside remapped section references, ASCII/binary symmetry, transactional output, and no-fixture evidence |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -3720,7 +3725,8 @@ edit this block or commit the same slice concurrently.
 | J167.1 | J167 / S191 | WP4, WP5, WP6, WP8, WP10; DXF raw-section application-group remap parity | J166 | COMMITTED | EXPERIMENTAL | assert SECTION nested 102 references remap and replay with balanced depth in ASCII/binary, with malformed sections rejected transactionally, without external drawing bytes | focused Wave 1 raw-section remap target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 | J168.1 | J168 / S192 | WP4, WP5, WP6, WP8, WP10; DXF raw-section application-group source spelling parity | J167 | COMMITTED | EXPERIMENTAL | assert mapped section handles canonicalize while untouched mixed-case markers and references retain source spelling in ASCII/binary replay, without external drawing bytes | focused Wave 1 raw-section source-spelling target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 | J169.1 | J169 / S193 | WP4, WP5, WP6, WP8, WP10; DXF raw-section application-group raw-value cardinality parity | J168 | COMMITTED | EXPERIMENTAL | assert ASCII section rawValues match group cardinality, binary placeholders remain valid, and mismatches reject with zero output, without external drawing bytes | focused Wave 1 raw-section raw-value target and policy gates pass; no external or derived DWG/DXF bytes are retained |
-| J170.1 | J170 / S194 | WP4, WP5, WP6, WP8, WP10; DXF raw-section application-group remap-chain parity | J169 | ACTIVE | EXPERIMENTAL | assert overlapping section remap keys are applied once without cascading through destination keys in ASCII/binary replay, without external drawing bytes | focused Wave 1 raw-section remap-chain target and policy gates pass; no external or derived DWG/DXF bytes are retained |
+| J170.1 | J170 / S194 | WP4, WP5, WP6, WP8, WP10; DXF raw-section application-group remap-chain parity | J169 | COMMITTED | EXPERIMENTAL | assert overlapping section remap keys are applied once without cascading through destination keys in ASCII/binary replay, without external drawing bytes | focused Wave 1 raw-section remap-chain target and policy gates pass; no external or derived DWG/DXF bytes are retained |
+| J171.1 | J171 / S195 | WP4, WP5, WP6, WP8, WP10; DXF raw-section application-group binary chunk coexistence | J170 | ACTIVE | EXPERIMENTAL | assert valid binary chunks coexist with nested 102 remapped section references and malformed chunks reject symmetrically with zero ASCII/binary output, without external drawing bytes | focused Wave 1 raw-section binary-chunk target and policy gates pass; no external or derived DWG/DXF bytes are retained |
 
 <!-- UPGRADE_PROGRESS_END -->
 
