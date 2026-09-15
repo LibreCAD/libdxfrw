@@ -25,6 +25,11 @@ PUBLIC_HEADERS = (
     "libdxfrw.h",
 )
 
+FAST_FORBIDDEN_COMMANDS = frozenset({
+    "ctest", "curl", "wget", "git", "pip", "pip3", "brew", "apt", "apt-get",
+})
+_FAST_COMMAND_GUARD = False
+
 PROFILE_DECLARATIONS = (
     "enum class DxfCompatibilityProfile",
     "void setDxfCompatibilityProfile(DxfCompatibilityProfile profile) noexcept;",
@@ -40,6 +45,10 @@ PROFILE_DOCUMENTATION = (
 
 
 def run(command, *, cwd=None, env=None):
+    if _FAST_COMMAND_GUARD and Path(command[0]).name in FAST_FORBIDDEN_COMMANDS:
+        raise RuntimeError(
+            "fast validation forbids external/full-suite command: %s"
+            % command[0])
     return subprocess.run(command, cwd=cwd, env=env, check=True,
                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                           text=True)
@@ -127,6 +136,25 @@ def self_test_package_root_identity() -> None:
                 raise RuntimeError(
                     "pkg-config prefix guard accepted stale value: %s"
                     % stale_prefix)
+
+
+def self_test_fast_command_scope() -> None:
+    global _FAST_COMMAND_GUARD
+    _FAST_COMMAND_GUARD = True
+    try:
+        for forbidden in sorted(FAST_FORBIDDEN_COMMANDS):
+            try:
+                run([forbidden, "--probe"])
+            except RuntimeError as error:
+                if forbidden not in str(error):
+                    raise RuntimeError(
+                        "fast command diagnostic omitted command: %s" % forbidden
+                    ) from error
+                continue
+            raise RuntimeError(
+                "fast command guard allowed forbidden command: %s" % forbidden)
+    finally:
+        _FAST_COMMAND_GUARD = False
 
 
 def assert_profile_symbols(prefix: Path) -> None:
@@ -434,6 +462,7 @@ def main() -> int:
         self_test_staged_flags()
         self_test_package_root_identity()
         self_test_relocatable_cmake_export()
+        self_test_fast_command_scope()
         print("staged package checker self-test: PASS")
         if not args.prefix:
             return 0
