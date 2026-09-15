@@ -3551,6 +3551,161 @@ void testDxfRawSectionReservedNames(TestContext& t) {
              "DXF binary raw section accepts a custom name");
 }
 
+void testDxfRawSectionCustomFraming(TestContext& t) {
+    DRW_RawDxfSection section;
+    section.m_name = "LOCAL_CUSTOM_SECTION_FRAMING";
+    section.m_version = DRW::AC1027;
+    section.m_hasRawValues = true;
+    section.m_groups = {DRW_Variant(1000, std::string("payload"))};
+    section.m_rawValues = {"payload"};
+    const std::vector<std::pair<int, std::string>> expected = {
+        {0, "SECTION"}, {2, section.m_name}, {1000, "payload"},
+        {0, "ENDSEC"}};
+
+    std::ostringstream asciiOutput;
+    dxfRW asciiWriter("");
+    asciiWriter.version = DRW::AC1027;
+    asciiWriter.binFile = false;
+    asciiWriter.writer = std::make_unique<dxfWriterAscii>(&asciiOutput);
+    t.expect(asciiWriter.writeRawDxfSection(section),
+             "DXF ASCII raw section custom framing writes");
+    std::stringstream asciiRecords(asciiOutput.str());
+    dxfReaderAscii asciiReader(&asciiRecords);
+    std::vector<std::pair<int, std::string>> asciiActual;
+    int asciiCode = 0;
+    while (asciiReader.readRec(&asciiCode))
+        asciiActual.emplace_back(asciiCode, asciiReader.getString());
+    t.expect(asciiActual == expected,
+             "DXF ASCII raw section emits exact SECTION/name/payload/ENDSEC framing");
+
+    DRW_RawDxfSection binarySection = section;
+    binarySection.m_hasRawValues = false;
+    binarySection.m_rawValues.clear();
+    std::ostringstream binaryOutput;
+    dxfRW binaryWriter("");
+    binaryWriter.version = DRW::AC1027;
+    binaryWriter.binFile = true;
+    binaryWriter.writer = std::make_unique<dxfWriterBinary>(&binaryOutput);
+    t.expect(binaryWriter.writeRawDxfSection(binarySection),
+             "DXF binary raw section custom framing writes");
+    std::stringstream binaryRecords(binaryOutput.str());
+    dxfReaderBinary binaryReader(&binaryRecords);
+    binaryReader.setClassifierProfile(DxfClassifierProfile::StandaloneSafe);
+    std::vector<std::pair<int, std::string>> binaryActual;
+    int binaryCode = 0;
+    while (binaryReader.readRec(&binaryCode))
+        binaryActual.emplace_back(binaryCode, binaryReader.getString());
+    t.expect(binaryActual == expected,
+             "DXF binary raw section emits exact SECTION/name/payload/ENDSEC framing");
+}
+
+void testDxfRawSectionVersionCompatibility(TestContext& t) {
+    const std::vector<DRW::Version> accepted = {
+        DRW::AC1027, DRW::UNKNOWNV};
+    for (const DRW::Version taggedVersion : accepted) {
+        DRW_RawDxfSection section;
+        section.m_name = "LOCAL_SECTION_VERSION_ACCEPTED";
+        section.m_version = taggedVersion;
+        section.m_hasRawValues = true;
+        section.m_groups = {DRW_Variant(1000, std::string("payload"))};
+        section.m_rawValues = {"payload"};
+
+        std::ostringstream asciiOutput;
+        dxfRW asciiWriter("");
+        asciiWriter.version = DRW::AC1027;
+        asciiWriter.binFile = false;
+        asciiWriter.writer = std::make_unique<dxfWriterAscii>(&asciiOutput);
+        t.expect(asciiWriter.writeRawDxfSection(section)
+                     && !asciiOutput.str().empty(),
+                 "DXF ASCII raw section accepts matching and unknown versions");
+
+        DRW_RawDxfSection binarySection = section;
+        binarySection.m_hasRawValues = false;
+        binarySection.m_rawValues.clear();
+        std::ostringstream binaryOutput;
+        dxfRW binaryWriter("");
+        binaryWriter.version = DRW::AC1027;
+        binaryWriter.binFile = true;
+        binaryWriter.writer = std::make_unique<dxfWriterBinary>(&binaryOutput);
+        t.expect(binaryWriter.writeRawDxfSection(binarySection)
+                     && !binaryOutput.str().empty(),
+                 "DXF binary raw section accepts matching and unknown versions");
+    }
+
+    DRW_RawDxfSection mismatched;
+    mismatched.m_name = "LOCAL_SECTION_VERSION_MISMATCH";
+    mismatched.m_version = DRW::AC1024;
+    mismatched.m_hasRawValues = true;
+    mismatched.m_groups = {DRW_Variant(1000, std::string("payload"))};
+    mismatched.m_rawValues = {"payload"};
+    std::ostringstream rejectedAsciiOutput;
+    dxfRW rejectingAsciiWriter("");
+    rejectingAsciiWriter.version = DRW::AC1027;
+    rejectingAsciiWriter.binFile = false;
+    rejectingAsciiWriter.writer = std::make_unique<dxfWriterAscii>(
+        &rejectedAsciiOutput);
+    t.expect(!rejectingAsciiWriter.writeRawDxfSection(mismatched)
+                 && rejectedAsciiOutput.str().empty(),
+             "DXF ASCII raw section rejects mismatched versions transactionally");
+
+    DRW_RawDxfSection mismatchedBinary = mismatched;
+    mismatchedBinary.m_hasRawValues = false;
+    mismatchedBinary.m_rawValues.clear();
+    std::ostringstream rejectedBinaryOutput;
+    dxfRW rejectingBinaryWriter("");
+    rejectingBinaryWriter.version = DRW::AC1027;
+    rejectingBinaryWriter.binFile = true;
+    rejectingBinaryWriter.writer = std::make_unique<dxfWriterBinary>(
+        &rejectedBinaryOutput);
+    t.expect(!rejectingBinaryWriter.writeRawDxfSection(mismatchedBinary)
+                 && rejectedBinaryOutput.str().empty(),
+             "DXF binary raw section rejects mismatched versions transactionally");
+}
+
+void testDxfRawSectionEmptyPayload(TestContext& t) {
+    DRW_RawDxfSection section;
+    section.m_name = "LOCAL_EMPTY_SECTION_PAYLOAD";
+    section.m_version = DRW::AC1027;
+    section.m_hasRawValues = true;
+    const std::vector<std::pair<int, std::string>> expected = {
+        {0, "SECTION"}, {2, section.m_name}, {0, "ENDSEC"}};
+
+    std::ostringstream asciiOutput;
+    dxfRW asciiWriter("");
+    asciiWriter.version = DRW::AC1027;
+    asciiWriter.binFile = false;
+    asciiWriter.writer = std::make_unique<dxfWriterAscii>(&asciiOutput);
+    t.expect(asciiWriter.writeRawDxfSection(section),
+             "DXF ASCII raw section accepts an empty payload");
+    std::stringstream asciiRecords(asciiOutput.str());
+    dxfReaderAscii asciiReader(&asciiRecords);
+    std::vector<std::pair<int, std::string>> asciiActual;
+    int asciiCode = 0;
+    while (asciiReader.readRec(&asciiCode))
+        asciiActual.emplace_back(asciiCode, asciiReader.getString());
+    t.expect(asciiActual == expected,
+             "DXF ASCII empty section emits only framing records");
+
+    DRW_RawDxfSection binarySection = section;
+    binarySection.m_hasRawValues = false;
+    std::ostringstream binaryOutput;
+    dxfRW binaryWriter("");
+    binaryWriter.version = DRW::AC1027;
+    binaryWriter.binFile = true;
+    binaryWriter.writer = std::make_unique<dxfWriterBinary>(&binaryOutput);
+    t.expect(binaryWriter.writeRawDxfSection(binarySection),
+             "DXF binary raw section accepts an empty payload");
+    std::stringstream binaryRecords(binaryOutput.str());
+    dxfReaderBinary binaryReader(&binaryRecords);
+    binaryReader.setClassifierProfile(DxfClassifierProfile::StandaloneSafe);
+    std::vector<std::pair<int, std::string>> binaryActual;
+    int binaryCode = 0;
+    while (binaryReader.readRec(&binaryCode))
+        binaryActual.emplace_back(binaryCode, binaryReader.getString());
+    t.expect(binaryActual == expected,
+             "DXF binary empty section emits only framing records");
+}
+
 void testDxfRawSectionApplicationGroupMarker(TestContext& t) {
     const std::vector<std::string> invalidMarkers = {"{", "NOT_A_MARKER"};
     for (const std::string& marker : invalidMarkers) {
@@ -3902,6 +4057,9 @@ int main() {
     testDxfRawSectionWideHandleRemap(context);
     testDxfRawSectionRemapRollback(context);
     testDxfRawSectionReservedNames(context);
+    testDxfRawSectionCustomFraming(context);
+    testDxfRawSectionVersionCompatibility(context);
+    testDxfRawSectionEmptyPayload(context);
     testDxfRawSectionApplicationGroupMarker(context);
     testDxfRawSectionApplicationGroupReferenceMatrix(context);
     testRawCapture(context);
