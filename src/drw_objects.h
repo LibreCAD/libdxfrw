@@ -4543,6 +4543,19 @@ public:
   static constexpr std::int32_t kMaxViewportCount = 10000;
 
   DRW_Layout() { reset(); }
+  DRW_Layout(const DRW_Layout& o): DRW_TableEntry(o), m_dxfSubclass(0) {
+    copyPersistentFields(o);
+    tType = DRW::LAYOUT;
+  }
+  DRW_Layout& operator=(const DRW_Layout& o) {
+    if (this != &o) {
+      DRW_TableEntry::operator=(o);
+      copyPersistentFields(o);
+      m_dxfSubclass = 0;
+      tType = DRW::LAYOUT;
+    }
+    return *this;
+  }
   void reset() {
     tType = DRW::LAYOUT;
     // PlotSettings prefix
@@ -4604,6 +4617,62 @@ protected:
   //! (0 = AcDbPlotSettings prefix, 1 = AcDbLayout). Disambiguates the
   //! codes 1/70/76/330 that appear in both subclasses.
   int m_dxfSubclass = 0;
+
+private:
+  void copyPersistentFields(const DRW_Layout& o) {
+    pageSetupName = o.pageSetupName;
+    printerConfig = o.printerConfig;
+    plotLayoutFlags = o.plotLayoutFlags;
+    marginLeft = o.marginLeft;
+    marginBottom = o.marginBottom;
+    marginRight = o.marginRight;
+    marginTop = o.marginTop;
+    paperWidth = o.paperWidth;
+    paperHeight = o.paperHeight;
+    paperSize = o.paperSize;
+    plotOriginX = o.plotOriginX;
+    plotOriginY = o.plotOriginY;
+    paperUnits = o.paperUnits;
+    plotRotation = o.plotRotation;
+    plotType = o.plotType;
+    windowMinX = o.windowMinX;
+    windowMinY = o.windowMinY;
+    windowMaxX = o.windowMaxX;
+    windowMaxY = o.windowMaxY;
+    plotViewName = o.plotViewName;
+    realWorldUnits = o.realWorldUnits;
+    drawingUnits = o.drawingUnits;
+    currentStyleSheet = o.currentStyleSheet;
+    scaleType = o.scaleType;
+    scaleFactor = o.scaleFactor;
+    paperImageOriginX = o.paperImageOriginX;
+    paperImageOriginY = o.paperImageOriginY;
+    shadePlotMode = o.shadePlotMode;
+    shadePlotResLevel = o.shadePlotResLevel;
+    shadePlotCustomDPI = o.shadePlotCustomDPI;
+    layoutFlags = o.layoutFlags;
+    tabOrder = o.tabOrder;
+    ucsOrigin = o.ucsOrigin;
+    limMinX = o.limMinX;
+    limMinY = o.limMinY;
+    limMaxX = o.limMaxX;
+    limMaxY = o.limMaxY;
+    insPoint = o.insPoint;
+    ucsXAxis = o.ucsXAxis;
+    ucsYAxis = o.ucsYAxis;
+    elevation = o.elevation;
+    orthoViewType = o.orthoViewType;
+    extMin = o.extMin;
+    extMax = o.extMax;
+    viewportCount = o.viewportCount;
+    plotViewHandle = o.plotViewHandle;
+    shadePlotHandle = o.shadePlotHandle;
+    paperSpaceBlockRecordHandle = o.paperSpaceBlockRecordHandle;
+    lastActiveViewportHandle = o.lastActiveViewportHandle;
+    baseUcsHandle = o.baseUcsHandle;
+    namedUcsHandle = o.namedUcsHandle;
+    viewportHandles = o.viewportHandles;
+  }
 
 public:
   // PlotSettings prefix per ODA §20.4.84 (the LAYOUT object embeds these

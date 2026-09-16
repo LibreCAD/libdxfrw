@@ -266,6 +266,11 @@ public:
     using DRW_NavisworksModelDef::parseCode;
 };
 
+class ExposedLayout : public DRW_Layout {
+public:
+    using DRW_Layout::parseCode;
+};
+
 template <typename Entity>
 bool parseDxfRecords(Entity& entity, const std::string& source) {
     std::stringstream records(source);
@@ -383,6 +388,8 @@ void testPublicOwnershipContracts(TestContext& t) {
                   "DRW_Background copy contract");
     static_assert(std::is_copy_constructible<DRW_NavisworksModelDef>::value,
                   "DRW_NavisworksModelDef copy contract");
+    static_assert(std::is_copy_constructible<DRW_Layout>::value,
+                  "DRW_Layout copy contract");
     static_assert(std::is_copy_constructible<DRW_Attrib>::value,
                   "DRW_Attrib copy contract");
     static_assert(std::is_copy_constructible<DRW_GeoPositionMarker>::value,
@@ -1749,6 +1756,32 @@ void testPublicOwnershipContracts(TestContext& t) {
                  && assignedNavisworksModelDef.m_status
                  && !assignedNavisworksModelDef.m_hostDrawingVisibility,
              "NAVISWORKSMODELDEF assignment clears repeated 290 parser state");
+
+    const std::string layoutBody =
+        "100\nAcDbPlotSettings\n1\nplot-page\n2\nprinter\n70\n4\n"
+        "100\nAcDbLayout\n1\nlayout-name\n70\n2\n71\n3\n330\nA1\n";
+    ExposedLayout partialLayout;
+    t.expect(parseDxfRecords(partialLayout, layoutBody)
+                 && partialLayout.pageSetupName == "plot-page"
+                 && partialLayout.printerConfig == "printer"
+                 && partialLayout.name == "layout-name"
+                 && partialLayout.layoutFlags == 2
+                 && partialLayout.tabOrder == 3
+                 && partialLayout.paperSpaceBlockRecordHandle.ref == 0xA1u,
+             "LAYOUT parser state source setup");
+    ExposedLayout copiedLayout(partialLayout);
+    t.expect(parseDxfRecords(copiedLayout, "1\ncopied-plot-page\n")
+                 && copiedLayout.pageSetupName == "copied-plot-page"
+                 && copiedLayout.name == "layout-name"
+                 && copiedLayout.layoutFlags == 2,
+             "LAYOUT copy clears subclass parser state");
+    ExposedLayout assignedLayout;
+    assignedLayout = partialLayout;
+    t.expect(parseDxfRecords(assignedLayout, "1\nassigned-plot-page\n")
+                 && assignedLayout.pageSetupName == "assigned-plot-page"
+                 && assignedLayout.name == "layout-name"
+                 && assignedLayout.layoutFlags == 2,
+             "LAYOUT assignment clears subclass parser state");
 
     DRW_Dimension sourceDimension;
     sourceDimension.extData.push_back(
