@@ -17,6 +17,7 @@
 #include "dwg2dxf/dx_iface.h"
 #include "libdwgr.h"
 #include "intern/dwgbufferw.h"
+#include "intern/dwg_fixed_handles.h"
 
 namespace {
 
