@@ -174,6 +174,14 @@ if(LIBDXFRW_BUILD_TESTS)
         COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE}
             ${CMAKE_CURRENT_SOURCE_DIR}/tools/check_libredwg_ac1024_advisory.py
             --self-test)
+    add_test(NAME libdxfrw_external_evidence_resolution
+        COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE}
+            ${CMAKE_CURRENT_SOURCE_DIR}/tools/check_external_evidence_resolution.py
+            --self-test)
+    add_test(NAME libdxfrw_external_advisory_runner
+        COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE}
+            ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_external_advisory.py
+            --self-test)
     add_test(NAME libdxfrw_local_dwg_oracle_advisory
         COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE}
             ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_local_dwg_oracle_advisory.py

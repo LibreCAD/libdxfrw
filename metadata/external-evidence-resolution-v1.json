@@ -1,0 +1,1277 @@
+{
+  "schema": 1,
+  "kind": "external-evidence-resolution-v1",
+  "evidenceDate": "2026-09-16",
+  "fixturePolicy": "metadata-only; no drawing payloads; non-promoting",
+  "aliasBasis": "local relative-name to retained report sourceSha256 join; retained private reports have no paths",
+  "setDigestDefinition": "SHA-256 over LF-terminated sorted unique lowercase source SHA-256 values",
+  "localRefAudits": [
+    {
+      "id": "libdxfrw-local-2026-09-16",
+      "repository": "LibreCAD/libdxfrw local clone",
+      "refNamespaces": [
+        "refs/heads",
+        "refs/remotes",
+        "refs/tags"
+      ],
+      "evidenceDate": "2026-09-16",
+      "canonicalRecordFormat": "sorted refname NUL object-id LF",
+      "refCount": 17,
+      "uniqueTipCount": 15,
+      "refTipRecordsSha256": "bd11ff8307e3442c3a797504245002d90d10edc10708e76b04d39ebd1e47db5e",
+      "result": "zero private-corpus blobs reachable from audited commit tips"
+    },
+    {
+      "id": "librecad-local-2026-09-16",
+      "repository": "LibreCAD/LibreCAD local clone",
+      "refNamespaces": [
+        "refs/heads",
+        "refs/remotes",
+        "refs/tags"
+      ],
+      "evidenceDate": "2026-09-16",
+      "canonicalRecordFormat": "sorted refname NUL object-id LF",
+      "refCount": 509,
+      "uniqueTipCount": 382,
+      "refTipRecordsSha256": "813de9c681efd120a53777f5f6e1a3a1bbc6d6f27690953d362598bbc5f9e286",
+      "result": "zero private-corpus blobs reachable from audited commit tips"
+    }
+  ],
+  "provenanceSources": [
+    {
+      "id": "autodesk-official-samples",
+      "kind": "publicUrl",
+      "locator": "https://www.autodesk.com/support/technical/article/caas/tsarticles/ts/01em4r6LLJgnQQVBlk5GqD.html",
+      "publisher": "Autodesk",
+      "artifactLicenseState": "pending-explicit-artifact-license",
+      "localRefAuditIds": [
+        "libdxfrw-local-2026-09-16",
+        "librecad-local-2026-09-16"
+      ],
+      "note": "17 real DWG hashes join official sample downloads; public origin does not admit fixtures"
+    },
+    {
+      "id": "engineering-technology-course",
+      "kind": "publicUrl",
+      "locator": "https://engineeringtechnology.org/et-curriculum-and-lecture-notes/course-notes-graphics-and-descriptive-geometry/autocad-lab-assignments/autocad-lab-4-geometric-construction/",
+      "publisher": "Engineering Technology",
+      "artifactLicenseState": "pending-explicit-artifact-license",
+      "localRefAuditIds": [
+        "libdxfrw-local-2026-09-16",
+        "librecad-local-2026-09-16"
+      ],
+      "note": "page is marked CC BY 4.0; drawing artifact license remains unconfirmed"
+    },
+    {
+      "id": "librecad-history-3c028612",
+      "kind": "repositoryCommit",
+      "locator": "https://github.com/LibreCAD/LibreCAD/commit/3c028612dd8e75d98692ac346635c190500eea94",
+      "publisher": "LibreCAD/LibreCAD contributors",
+      "artifactLicenseState": "repository-covered-GPL-2.0-or-later",
+      "localRefAuditIds": [
+        "librecad-local-2026-09-16"
+      ],
+      "note": "21 historical top-level testdata blobs; only three exact hashes are currently admitted"
+    },
+    {
+      "id": "unresolved-private",
+      "kind": "unresolved",
+      "locator": null,
+      "publisher": null,
+      "artifactLicenseState": "unknown",
+      "localRefAuditIds": [
+        "libdxfrw-local-2026-09-16",
+        "librecad-local-2026-09-16"
+      ],
+      "note": "six real DWGs have no reproducible public origin or reachable repository blob"
+    },
+    {
+      "id": "unresolved-local-derived",
+      "kind": "unresolvedLocalDerived",
+      "locator": null,
+      "publisher": null,
+      "artifactLicenseState": "unknown",
+      "localRefAuditIds": [
+        "libdxfrw-local-2026-09-16",
+        "librecad-local-2026-09-16"
+      ],
+      "note": "four .dwg aliases contain dxfrw-generated ASCII DXF bytes; filename relation is not source provenance"
+    }
+  ],
+  "reports": [
+    {
+      "itemId": "J256",
+      "sliceId": "S280",
+      "membershipBasis": "observed",
+      "evidenceDate": "2026-09-16",
+      "historicalDisposition": "DEFERRED_EXTERNAL",
+      "archivedNonPromoting": true,
+      "supersededBy": [
+        "J359"
+      ],
+      "reportedCounts": {
+        "pathCount": 20,
+        "uniqueStreamCount": 20,
+        "dwgCount": 16,
+        "nonDwgCount": 4,
+        "converted": 10,
+        "failed": 9,
+        "timeout": 1,
+        "improvements": null,
+        "regressions": null
+      },
+      "memberSha256s": [
+        "0e74f0aa84b1323c922345f067739c42ee26213dea010b407b87a94212271654",
+        "21b49e383cc43171fd13e2bbcd1c235bc1a57804be97f63a0d581fb944e743ff",
+        "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+        "3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07",
+        "3eb8c946863ca733a289813589ecee8ea383aa63b4c5fa2a22fe31feacf02f71",
+        "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+        "47bb4c784621b50b4b5395c8374a9e7c8cb9ad4886fd7f901aa25019a1a53987",
+        "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+        "57ec80c861976ea8b100033f2f92fcaf230e134a3a40d3ec9f3417bb173c6fcc",
+        "6702705ed765af035761a77170ea1486d01f513690b3fd8dc8295957ddc89e58",
+        "7c70a76ce00647770b5026727fd0156a94a11d456db47db97d0bdf5a81acc344",
+        "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+        "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+        "85819667e8e88366ca3d8f9a0dda9770f094b6445882e08e0b2b3bf983472f7b",
+        "8cfad4e4090ce5fead86c8fd4ed17020f6d13a4dda86f67d92953f10e8bf04ca",
+        "9c40870a93a299f9d0ddbc1b35da363e1cf2dbed112d7413423643182eb97142",
+        "ad2656f141675aeda06ede347f8921516700b60a0f5ba17af042419be5397b4d",
+        "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+        "e22c24d315c9f5819b2e8c3763c6dbb2a8d3ee450754f0f180763fd581a1ac17",
+        "fa44ada15684eecf46acc4ef095be2ed4793f438da6d570be46c828279aed21c"
+      ],
+      "setDigestSha256": "e09d421cd501801f925984e52e7d1626b47b6e6c08a7b2903d02109cb40b1538",
+      "membershipNote": "retained hash rows; aliases recovered by local SHA-256 join"
+    },
+    {
+      "itemId": "J260",
+      "sliceId": "S284",
+      "membershipBasis": "observed",
+      "evidenceDate": "2026-09-16",
+      "historicalDisposition": "DEFERRED_EXTERNAL",
+      "archivedNonPromoting": true,
+      "supersededBy": [
+        "J359"
+      ],
+      "reportedCounts": {
+        "pathCount": 29,
+        "uniqueStreamCount": 28,
+        "dwgCount": 24,
+        "nonDwgCount": 4,
+        "converted": 18,
+        "failed": 10,
+        "timeout": 1,
+        "improvements": null,
+        "regressions": null
+      },
+      "memberSha256s": [
+        "0579e4b5746593ff41d9326e488b1faddc0f7cc10e7db5317fc1d5b86f0132c4",
+        "0e74f0aa84b1323c922345f067739c42ee26213dea010b407b87a94212271654",
+        "1a94d2412b7aac3c1c3ab6fdb2b62c4e8b031e5868ad45d2169f571bfc7cf8d4",
+        "1e105bc884972d3d80cd983965d8dfa17f6f392042ec6c5997d99ae347487a92",
+        "21b49e383cc43171fd13e2bbcd1c235bc1a57804be97f63a0d581fb944e743ff",
+        "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+        "3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07",
+        "3eb8c946863ca733a289813589ecee8ea383aa63b4c5fa2a22fe31feacf02f71",
+        "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+        "47bb4c784621b50b4b5395c8374a9e7c8cb9ad4886fd7f901aa25019a1a53987",
+        "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+        "57ec80c861976ea8b100033f2f92fcaf230e134a3a40d3ec9f3417bb173c6fcc",
+        "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+        "6702705ed765af035761a77170ea1486d01f513690b3fd8dc8295957ddc89e58",
+        "7c70a76ce00647770b5026727fd0156a94a11d456db47db97d0bdf5a81acc344",
+        "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+        "7f203649dc8434ef7cf7a46f7f6def2a0192a1163ba34ebcf88ebfe69635ccd4",
+        "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+        "85819667e8e88366ca3d8f9a0dda9770f094b6445882e08e0b2b3bf983472f7b",
+        "8cfad4e4090ce5fead86c8fd4ed17020f6d13a4dda86f67d92953f10e8bf04ca",
+        "9c40870a93a299f9d0ddbc1b35da363e1cf2dbed112d7413423643182eb97142",
+        "ad2656f141675aeda06ede347f8921516700b60a0f5ba17af042419be5397b4d",
+        "b874d82c5ee04f8a4fa6e907408c4ed770ee8208740fe4e1eb0f96fb2f793bc2",
+        "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+        "e22c24d315c9f5819b2e8c3763c6dbb2a8d3ee450754f0f180763fd581a1ac17",
+        "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+        "fa44ada15684eecf46acc4ef095be2ed4793f438da6d570be46c828279aed21c",
+        "fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881"
+      ],
+      "setDigestSha256": "741bb8e2fb2468a3aa40e1ab8dda9d9738538337a879315cf104687bdd3063b7",
+      "membershipNote": "retained 29 result rows collapse to 28 unique source streams"
+    },
+    {
+      "itemId": "J268",
+      "sliceId": "S292",
+      "membershipBasis": "reconstructed",
+      "evidenceDate": "2026-09-16",
+      "historicalDisposition": "DEFERRED_EXTERNAL",
+      "archivedNonPromoting": true,
+      "supersededBy": [
+        "J359"
+      ],
+      "reportedCounts": {
+        "pathCount": 28,
+        "uniqueStreamCount": null,
+        "dwgCount": null,
+        "nonDwgCount": null,
+        "converted": null,
+        "failed": null,
+        "timeout": 1,
+        "improvements": 5,
+        "regressions": 0
+      },
+      "memberSha256s": null,
+      "setDigestSha256": null,
+      "membershipNote": "no durable row report; exact membership and digest unprovable"
+    },
+    {
+      "itemId": "J284",
+      "sliceId": "S308",
+      "membershipBasis": "observed",
+      "evidenceDate": "2026-09-16",
+      "historicalDisposition": "DEFERRED_EXTERNAL",
+      "archivedNonPromoting": true,
+      "supersededBy": [
+        "J361"
+      ],
+      "reportedCounts": {
+        "pathCount": 21,
+        "uniqueStreamCount": 21,
+        "dwgCount": 21,
+        "nonDwgCount": 0,
+        "converted": 21,
+        "failed": 0,
+        "timeout": 0,
+        "improvements": null,
+        "regressions": null
+      },
+      "memberSha256s": [
+        "0d3d92555e077b4f42a96bc53381afae745006a07e54316644ee342f431dc0c5",
+        "0e3eccc70ea6b82120c77449bb1d1d27ee280a1ed1c0f2e88e31b1db503ca66f",
+        "2aedb4d92ab5115806457dc18abb9fd5b1e3a959547d46743b4009b8cb0515ef",
+        "4d3d81a0dd7b7a845368e3517ad745b763a9e338b0bae09e78e86c5bf2742e27",
+        "66a171c55bc90fdd0764ad3556ec786503666a30a4473a637d168a01979ffc29",
+        "7ba7ea2e6e89a01094d4ffe104dd1cfc03513d1991bd223aeac1a3186a6c38d3",
+        "7d9280105e614b69b72702cf299163f7c374db014386cdec6ea960a75b818069",
+        "7fcf6c7db5698a5ab5bb5eb3ecb3bb53e12cefddc5006fb4e12dc8dee643b4f6",
+        "808f0a0d7ad029c6a23fed4fd87323fd03d6938f4feee2d8ab64c2e70e21f232",
+        "8827e33cd1b2427533b9544967b7d1de9b22a83875986f27ff01c83f3c8e681a",
+        "947575519871fb7026ff8d4654d36200adffff6f5a90a45dcc347b17f7a0ee58",
+        "947e28fb312349efffe04dbfe8754892fceba872e41536d1fdcdf0a77a62c6e4",
+        "a12f8a08862bb53fb8a62304a19091f602937679e8ed8ab9f1face199f8897b3",
+        "a821c7b29a7be02a9db6db223398360b59173316d8a07c14f01e9f4f1766bb55",
+        "bdd7458bda6c1464faa5836b8aa85640199fbd01c510fa00e25550c043185429",
+        "be1e24ea0cd5194d0c57935b5018123b7cc981331172a1a2ca7cecc2d9a18e4f",
+        "cc5808621cfdc597f6e726a4f3591402b92ea627e581ce4380344c5dd02392f1",
+        "d3f7c22db4b6c3953e2d716da719d7e7e5b285cf73bd4e317f0a171d3859f98a",
+        "db5663cdc5c1759fdc1f68f9122e596307de06317e766cd5e0aab55912e5d511",
+        "e72d5e86d5d36d64b08822fb25a46079f592fd895a6157b1b8d9b07775e06108",
+        "f00891dbfedbbe44fe97233ef503594d59948b2669705bf58154b57d1ca28df8"
+      ],
+      "setDigestSha256": "93761f9ea5325b55be657baa72be740e12962f42560d165cf994ec763c937af8",
+      "membershipNote": "committed 21-row report joins target and independent advisory reports"
+    },
+    {
+      "itemId": "J293",
+      "sliceId": "S317",
+      "membershipBasis": "observed",
+      "evidenceDate": "2026-09-16",
+      "historicalDisposition": "DEFERRED_EXTERNAL",
+      "archivedNonPromoting": true,
+      "supersededBy": [
+        "J359"
+      ],
+      "reportedCounts": {
+        "pathCount": 29,
+        "uniqueStreamCount": 28,
+        "dwgCount": 24,
+        "nonDwgCount": 4,
+        "converted": 20,
+        "failed": 8,
+        "timeout": 1,
+        "improvements": null,
+        "regressions": null
+      },
+      "memberSha256s": [
+        "0579e4b5746593ff41d9326e488b1faddc0f7cc10e7db5317fc1d5b86f0132c4",
+        "0e74f0aa84b1323c922345f067739c42ee26213dea010b407b87a94212271654",
+        "1a94d2412b7aac3c1c3ab6fdb2b62c4e8b031e5868ad45d2169f571bfc7cf8d4",
+        "1e105bc884972d3d80cd983965d8dfa17f6f392042ec6c5997d99ae347487a92",
+        "21b49e383cc43171fd13e2bbcd1c235bc1a57804be97f63a0d581fb944e743ff",
+        "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+        "3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07",
+        "3eb8c946863ca733a289813589ecee8ea383aa63b4c5fa2a22fe31feacf02f71",
+        "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+        "47bb4c784621b50b4b5395c8374a9e7c8cb9ad4886fd7f901aa25019a1a53987",
+        "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+        "57ec80c861976ea8b100033f2f92fcaf230e134a3a40d3ec9f3417bb173c6fcc",
+        "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+        "6702705ed765af035761a77170ea1486d01f513690b3fd8dc8295957ddc89e58",
+        "7c70a76ce00647770b5026727fd0156a94a11d456db47db97d0bdf5a81acc344",
+        "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+        "7f203649dc8434ef7cf7a46f7f6def2a0192a1163ba34ebcf88ebfe69635ccd4",
+        "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+        "85819667e8e88366ca3d8f9a0dda9770f094b6445882e08e0b2b3bf983472f7b",
+        "8cfad4e4090ce5fead86c8fd4ed17020f6d13a4dda86f67d92953f10e8bf04ca",
+        "9c40870a93a299f9d0ddbc1b35da363e1cf2dbed112d7413423643182eb97142",
+        "ad2656f141675aeda06ede347f8921516700b60a0f5ba17af042419be5397b4d",
+        "b874d82c5ee04f8a4fa6e907408c4ed770ee8208740fe4e1eb0f96fb2f793bc2",
+        "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+        "e22c24d315c9f5819b2e8c3763c6dbb2a8d3ee450754f0f180763fd581a1ac17",
+        "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+        "fa44ada15684eecf46acc4ef095be2ed4793f438da6d570be46c828279aed21c",
+        "fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881"
+      ],
+      "setDigestSha256": "741bb8e2fb2468a3aa40e1ab8dda9d9738538337a879315cf104687bdd3063b7",
+      "membershipNote": "retained 29 result rows collapse to the same 28 streams as J260"
+    },
+    {
+      "itemId": "J295",
+      "sliceId": "S319",
+      "membershipBasis": "observed",
+      "evidenceDate": "2026-09-16",
+      "historicalDisposition": "DEFERRED_EXTERNAL",
+      "archivedNonPromoting": true,
+      "supersededBy": [
+        "J362"
+      ],
+      "reportedCounts": {
+        "pathCount": 9,
+        "uniqueStreamCount": 9,
+        "dwgCount": 9,
+        "nonDwgCount": 0,
+        "converted": 9,
+        "failed": 0,
+        "timeout": 0,
+        "improvements": null,
+        "regressions": null
+      },
+      "memberSha256s": [
+        "0579e4b5746593ff41d9326e488b1faddc0f7cc10e7db5317fc1d5b86f0132c4",
+        "1a94d2412b7aac3c1c3ab6fdb2b62c4e8b031e5868ad45d2169f571bfc7cf8d4",
+        "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+        "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+        "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+        "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+        "b874d82c5ee04f8a4fa6e907408c4ed770ee8208740fe4e1eb0f96fb2f793bc2",
+        "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+        "fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881"
+      ],
+      "setDigestSha256": "7f6a09903097f45ac0368270c724f33ae95d9e9b277e7fc2f228d6f95dd6d897",
+      "membershipNote": "committed nine-row AC1024 LibreDWG advisory report"
+    }
+  ],
+  "corpus": [
+    {
+      "sha256": "0579e4b5746593ff41d9326e488b1faddc0f7cc10e7db5317fc1d5b86f0132c4",
+      "byteSize": 973730,
+      "aliases": [
+        "visualization_-_conference_room.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1024",
+      "detectedVersion": "AC1024",
+      "duplicateRelationship": null,
+      "originDisposition": "reproducible-public-origin",
+      "provenanceSourceId": "autodesk-official-samples",
+      "provenanceDisposition": "official-public-download-sha256-observed",
+      "repositoryBlob": null,
+      "admissionDisposition": "external-origin-not-admitted"
+    },
+    {
+      "sha256": "0d3d92555e077b4f42a96bc53381afae745006a07e54316644ee342f431dc0c5",
+      "byteSize": 3347,
+      "aliases": [
+        "pre_r10_r26_entities.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1003",
+      "detectedVersion": "AC1003",
+      "duplicateRelationship": null,
+      "originDisposition": "historical-repository-origin",
+      "provenanceSourceId": "librecad-history-3c028612",
+      "provenanceDisposition": "historical-librecad-repository-blob",
+      "repositoryBlob": {
+        "repository": "LibreCAD/LibreCAD",
+        "commit": "3c028612dd8e75d98692ac346635c190500eea94",
+        "path": "librecad/src/lib/filters/tests/testdata/pre_r10_r26_entities.dwg",
+        "blob": "061c0b5c0d2c7750ac9872418aec66e523ce9173"
+      },
+      "admissionDisposition": "historical-repository-blob-not-admitted"
+    },
+    {
+      "sha256": "0e3eccc70ea6b82120c77449bb1d1d27ee280a1ed1c0f2e88e31b1db503ca66f",
+      "byteSize": 398400,
+      "aliases": [
+        "acsh_r2007.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1021",
+      "detectedVersion": "AC1021",
+      "duplicateRelationship": null,
+      "originDisposition": "historical-repository-origin",
+      "provenanceSourceId": "librecad-history-3c028612",
+      "provenanceDisposition": "historical-librecad-repository-blob",
+      "repositoryBlob": {
+        "repository": "LibreCAD/LibreCAD",
+        "commit": "3c028612dd8e75d98692ac346635c190500eea94",
+        "path": "librecad/src/lib/filters/tests/testdata/acsh_r2007.dwg",
+        "blob": "a7b5486a0f132746f73eacb5949a15a07cff9667"
+      },
+      "admissionDisposition": "historical-repository-blob-not-admitted"
+    },
+    {
+      "sha256": "0e74f0aa84b1323c922345f067739c42ee26213dea010b407b87a94212271654",
+      "byteSize": 188992,
+      "aliases": [
+        "architectural_-_annotation_scaling_and_multileaders.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1021",
+      "detectedVersion": "AC1021",
+      "duplicateRelationship": null,
+      "originDisposition": "reproducible-public-origin",
+      "provenanceSourceId": "autodesk-official-samples",
+      "provenanceDisposition": "official-public-download-sha256-observed",
+      "repositoryBlob": null,
+      "admissionDisposition": "external-origin-not-admitted"
+    },
+    {
+      "sha256": "1a94d2412b7aac3c1c3ab6fdb2b62c4e8b031e5868ad45d2169f571bfc7cf8d4",
+      "byteSize": 1415699,
+      "aliases": [
+        "visualization_-_condominium_with_skylight.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1024",
+      "detectedVersion": "AC1024",
+      "duplicateRelationship": null,
+      "originDisposition": "reproducible-public-origin",
+      "provenanceSourceId": "autodesk-official-samples",
+      "provenanceDisposition": "official-public-download-sha256-observed",
+      "repositoryBlob": null,
+      "admissionDisposition": "external-origin-not-admitted"
+    },
+    {
+      "sha256": "1e105bc884972d3d80cd983965d8dfa17f6f392042ec6c5997d99ae347487a92",
+      "byteSize": 70464,
+      "aliases": [
+        "truetype.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1021",
+      "detectedVersion": "AC1021",
+      "duplicateRelationship": null,
+      "originDisposition": "reproducible-public-origin",
+      "provenanceSourceId": "autodesk-official-samples",
+      "provenanceDisposition": "official-public-download-sha256-observed",
+      "repositoryBlob": null,
+      "admissionDisposition": "external-origin-not-admitted"
+    },
+    {
+      "sha256": "21b49e383cc43171fd13e2bbcd1c235bc1a57804be97f63a0d581fb944e743ff",
+      "byteSize": 522,
+      "aliases": [
+        "dwgreader21_230.dwg",
+        "tArch/dwgreader21_230.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1021",
+      "detectedVersion": "AC1021",
+      "duplicateRelationship": {
+        "canonicalAlias": "dwgreader21_230.dwg",
+        "duplicateAliases": [
+          "tArch/dwgreader21_230.dwg"
+        ]
+      },
+      "originDisposition": "unresolved-origin",
+      "provenanceSourceId": "unresolved-private",
+      "provenanceDisposition": "unresolved-no-public-or-reachable-repository-match",
+      "repositoryBlob": null,
+      "admissionDisposition": "unresolved-external-not-admitted"
+    },
+    {
+      "sha256": "2aedb4d92ab5115806457dc18abb9fd5b1e3a959547d46743b4009b8cb0515ef",
+      "byteSize": 40591,
+      "aliases": [
+        "section_object_r2018.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1032",
+      "detectedVersion": "AC1032",
+      "duplicateRelationship": null,
+      "originDisposition": "historical-repository-origin",
+      "provenanceSourceId": "librecad-history-3c028612",
+      "provenanceDisposition": "historical-librecad-repository-blob",
+      "repositoryBlob": {
+        "repository": "LibreCAD/LibreCAD",
+        "commit": "3c028612dd8e75d98692ac346635c190500eea94",
+        "path": "librecad/src/lib/filters/tests/testdata/section_object_r2018.dwg",
+        "blob": "4d9054faa8df5671323a26ab40a816352443e90a"
+      },
+      "admissionDisposition": "historical-repository-blob-not-admitted"
+    },
+    {
+      "sha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+      "byteSize": 18880,
+      "aliases": [
+        "Cover.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1027",
+      "detectedVersion": "AC1027",
+      "duplicateRelationship": null,
+      "originDisposition": "unresolved-origin",
+      "provenanceSourceId": "unresolved-private",
+      "provenanceDisposition": "unresolved-no-public-or-reachable-repository-match",
+      "repositoryBlob": null,
+      "admissionDisposition": "unresolved-external-not-admitted"
+    },
+    {
+      "sha256": "3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07",
+      "byteSize": 227008,
+      "aliases": [
+        "blocks_and_tables_-_imperial.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1021",
+      "detectedVersion": "AC1021",
+      "duplicateRelationship": null,
+      "originDisposition": "reproducible-public-origin",
+      "provenanceSourceId": "autodesk-official-samples",
+      "provenanceDisposition": "official-public-download-sha256-observed",
+      "repositoryBlob": null,
+      "admissionDisposition": "external-origin-not-admitted"
+    },
+    {
+      "sha256": "3eb8c946863ca733a289813589ecee8ea383aa63b4c5fa2a22fe31feacf02f71",
+      "byteSize": 85952,
+      "aliases": [
+        "plot_screening_and_fill_patterns.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1021",
+      "detectedVersion": "AC1021",
+      "duplicateRelationship": null,
+      "originDisposition": "reproducible-public-origin",
+      "provenanceSourceId": "autodesk-official-samples",
+      "provenanceDisposition": "official-public-download-sha256-observed",
+      "repositoryBlob": null,
+      "admissionDisposition": "external-origin-not-admitted"
+    },
+    {
+      "sha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+      "byteSize": 169592,
+      "aliases": [
+        "civil_example-imperial.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1024",
+      "detectedVersion": "AC1024",
+      "duplicateRelationship": null,
+      "originDisposition": "reproducible-public-origin",
+      "provenanceSourceId": "autodesk-official-samples",
+      "provenanceDisposition": "official-public-download-sha256-observed",
+      "repositoryBlob": null,
+      "admissionDisposition": "external-origin-not-admitted"
+    },
+    {
+      "sha256": "47bb4c784621b50b4b5395c8374a9e7c8cb9ad4886fd7f901aa25019a1a53987",
+      "byteSize": 111516,
+      "aliases": [
+        "#title_block-iso.dwg"
+      ],
+      "detectedFormat": "DXF_ASCII",
+      "detectedMagic": "DXF_ASCII_GROUP_CODES",
+      "detectedVersion": "AC1021",
+      "duplicateRelationship": null,
+      "originDisposition": "unresolved-local-derived-origin",
+      "provenanceSourceId": "unresolved-local-derived",
+      "provenanceDisposition": "filename-related-local-derived-bytes-no-source-proof",
+      "repositoryBlob": null,
+      "admissionDisposition": "non-dwg-excluded-not-admitted"
+    },
+    {
+      "sha256": "4d3d81a0dd7b7a845368e3517ad745b763a9e338b0bae09e78e86c5bf2742e27",
+      "byteSize": 65070,
+      "aliases": [
+        "datatable_r2010.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1024",
+      "detectedVersion": "AC1024",
+      "duplicateRelationship": null,
+      "originDisposition": "historical-repository-origin",
+      "provenanceSourceId": "librecad-history-3c028612",
+      "provenanceDisposition": "historical-librecad-repository-blob",
+      "repositoryBlob": {
+        "repository": "LibreCAD/LibreCAD",
+        "commit": "3c028612dd8e75d98692ac346635c190500eea94",
+        "path": "librecad/src/lib/filters/tests/testdata/datatable_r2010.dwg",
+        "blob": "e43f44e49e2a647bc72602f60d3ce1b524736945"
+      },
+      "admissionDisposition": "historical-repository-blob-not-admitted"
+    },
+    {
+      "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+      "byteSize": 148638,
+      "aliases": [
+        "architectural_example-imperial.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1024",
+      "detectedVersion": "AC1024",
+      "duplicateRelationship": null,
+      "originDisposition": "reproducible-public-origin",
+      "provenanceSourceId": "autodesk-official-samples",
+      "provenanceDisposition": "official-public-download-sha256-observed",
+      "repositoryBlob": null,
+      "admissionDisposition": "external-origin-not-admitted"
+    },
+    {
+      "sha256": "57ec80c861976ea8b100033f2f92fcaf230e134a3a40d3ec9f3417bb173c6fcc",
+      "byteSize": 67441,
+      "aliases": [
+        "#mechanical_example-imperial.dwg"
+      ],
+      "detectedFormat": "DXF_ASCII",
+      "detectedMagic": "DXF_ASCII_GROUP_CODES",
+      "detectedVersion": "AC1021",
+      "duplicateRelationship": null,
+      "originDisposition": "unresolved-local-derived-origin",
+      "provenanceSourceId": "unresolved-local-derived",
+      "provenanceDisposition": "filename-related-local-derived-bytes-no-source-proof",
+      "repositoryBlob": null,
+      "admissionDisposition": "non-dwg-excluded-not-admitted"
+    },
+    {
+      "sha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+      "byteSize": 126985,
+      "aliases": [
+        "title_block-arch.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1024",
+      "detectedVersion": "AC1024",
+      "duplicateRelationship": null,
+      "originDisposition": "reproducible-public-origin",
+      "provenanceSourceId": "autodesk-official-samples",
+      "provenanceDisposition": "official-public-download-sha256-observed",
+      "repositoryBlob": null,
+      "admissionDisposition": "external-origin-not-admitted"
+    },
+    {
+      "sha256": "66a171c55bc90fdd0764ad3556ec786503666a30a4473a637d168a01979ffc29",
+      "byteSize": 11767,
+      "aliases": [
+        "mpolygon_solid.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1032",
+      "detectedVersion": "AC1032",
+      "duplicateRelationship": null,
+      "originDisposition": "historical-repository-origin",
+      "provenanceSourceId": "librecad-history-3c028612",
+      "provenanceDisposition": "historical-librecad-repository-blob",
+      "repositoryBlob": {
+        "repository": "LibreCAD/LibreCAD",
+        "commit": "3c028612dd8e75d98692ac346635c190500eea94",
+        "path": "librecad/src/lib/filters/tests/testdata/mpolygon_solid.dwg",
+        "blob": "43d1671a6bc69a88587a3899267c4d7a546e9629"
+      },
+      "admissionDisposition": "admitted-fixture-exact-sha256"
+    },
+    {
+      "sha256": "6702705ed765af035761a77170ea1486d01f513690b3fd8dc8295957ddc89e58",
+      "byteSize": 12117,
+      "aliases": [
+        "simple.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1015",
+      "detectedVersion": "AC1015",
+      "duplicateRelationship": null,
+      "originDisposition": "unresolved-origin",
+      "provenanceSourceId": "unresolved-private",
+      "provenanceDisposition": "unresolved-no-public-or-reachable-repository-match",
+      "repositoryBlob": null,
+      "admissionDisposition": "unresolved-external-not-admitted"
+    },
+    {
+      "sha256": "7ba7ea2e6e89a01094d4ffe104dd1cfc03513d1991bd223aeac1a3186a6c38d3",
+      "byteSize": 162991,
+      "aliases": [
+        "assoc_surface_r2004.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1018",
+      "detectedVersion": "AC1018",
+      "duplicateRelationship": null,
+      "originDisposition": "historical-repository-origin",
+      "provenanceSourceId": "librecad-history-3c028612",
+      "provenanceDisposition": "historical-librecad-repository-blob",
+      "repositoryBlob": {
+        "repository": "LibreCAD/LibreCAD",
+        "commit": "3c028612dd8e75d98692ac346635c190500eea94",
+        "path": "librecad/src/lib/filters/tests/testdata/assoc_surface_r2004.dwg",
+        "blob": "c50af664c1733c4e583c6a5b74a71b0b933f7d74"
+      },
+      "admissionDisposition": "historical-repository-blob-not-admitted"
+    },
+    {
+      "sha256": "7c70a76ce00647770b5026727fd0156a94a11d456db47db97d0bdf5a81acc344",
+      "byteSize": 1786976,
+      "aliases": [
+        "colorwh.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1021",
+      "detectedVersion": "AC1021",
+      "duplicateRelationship": null,
+      "originDisposition": "reproducible-public-origin",
+      "provenanceSourceId": "autodesk-official-samples",
+      "provenanceDisposition": "official-public-download-sha256-observed",
+      "repositoryBlob": null,
+      "admissionDisposition": "external-origin-not-admitted"
+    },
+    {
+      "sha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+      "byteSize": 258848,
+      "aliases": [
+        "blocks_and_tables_-_metric.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1021",
+      "detectedVersion": "AC1021",
+      "duplicateRelationship": null,
+      "originDisposition": "reproducible-public-origin",
+      "provenanceSourceId": "autodesk-official-samples",
+      "provenanceDisposition": "official-public-download-sha256-observed",
+      "repositoryBlob": null,
+      "admissionDisposition": "external-origin-not-admitted"
+    },
+    {
+      "sha256": "7d9280105e614b69b72702cf299163f7c374db014386cdec6ea960a75b818069",
+      "byteSize": 2236,
+      "aliases": [
+        "pre_r10_r210_entities.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC2.10",
+      "detectedVersion": "AC2.10",
+      "duplicateRelationship": null,
+      "originDisposition": "historical-repository-origin",
+      "provenanceSourceId": "librecad-history-3c028612",
+      "provenanceDisposition": "historical-librecad-repository-blob",
+      "repositoryBlob": {
+        "repository": "LibreCAD/LibreCAD",
+        "commit": "3c028612dd8e75d98692ac346635c190500eea94",
+        "path": "librecad/src/lib/filters/tests/testdata/pre_r10_r210_entities.dwg",
+        "blob": "9751735339391625acbc88f5821063124369b550"
+      },
+      "admissionDisposition": "historical-repository-blob-not-admitted"
+    },
+    {
+      "sha256": "7f203649dc8434ef7cf7a46f7f6def2a0192a1163ba34ebcf88ebfe69635ccd4",
+      "byteSize": 438656,
+      "aliases": [
+        "tablet.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1021",
+      "detectedVersion": "AC1021",
+      "duplicateRelationship": null,
+      "originDisposition": "reproducible-public-origin",
+      "provenanceSourceId": "autodesk-official-samples",
+      "provenanceDisposition": "official-public-download-sha256-observed",
+      "repositoryBlob": null,
+      "admissionDisposition": "external-origin-not-admitted"
+    },
+    {
+      "sha256": "7fcf6c7db5698a5ab5bb5eb3ecb3bb53e12cefddc5006fb4e12dc8dee643b4f6",
+      "byteSize": 74624,
+      "aliases": [
+        "visualstyle_r2007.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1021",
+      "detectedVersion": "AC1021",
+      "duplicateRelationship": null,
+      "originDisposition": "historical-repository-origin",
+      "provenanceSourceId": "librecad-history-3c028612",
+      "provenanceDisposition": "historical-librecad-repository-blob",
+      "repositoryBlob": {
+        "repository": "LibreCAD/LibreCAD",
+        "commit": "3c028612dd8e75d98692ac346635c190500eea94",
+        "path": "librecad/src/lib/filters/tests/testdata/visualstyle_r2007.dwg",
+        "blob": "306e2ca68d9ceb38592f00868c906a5316e96dbd"
+      },
+      "admissionDisposition": "historical-repository-blob-not-admitted"
+    },
+    {
+      "sha256": "808f0a0d7ad029c6a23fed4fd87323fd03d6938f4feee2d8ab64c2e70e21f232",
+      "byteSize": 35951,
+      "aliases": [
+        "dynblock_point.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1032",
+      "detectedVersion": "AC1032",
+      "duplicateRelationship": null,
+      "originDisposition": "historical-repository-origin",
+      "provenanceSourceId": "librecad-history-3c028612",
+      "provenanceDisposition": "historical-librecad-repository-blob",
+      "repositoryBlob": {
+        "repository": "LibreCAD/LibreCAD",
+        "commit": "3c028612dd8e75d98692ac346635c190500eea94",
+        "path": "librecad/src/lib/filters/tests/testdata/dynblock_point.dwg",
+        "blob": "f49836ad639d46e608b61c2b584dd55351d5b18b"
+      },
+      "admissionDisposition": "historical-repository-blob-not-admitted"
+    },
+    {
+      "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+      "byteSize": 142267,
+      "aliases": [
+        "mechanical_example-imperial.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1024",
+      "detectedVersion": "AC1024",
+      "duplicateRelationship": null,
+      "originDisposition": "reproducible-public-origin",
+      "provenanceSourceId": "autodesk-official-samples",
+      "provenanceDisposition": "official-public-download-sha256-observed",
+      "repositoryBlob": null,
+      "admissionDisposition": "external-origin-not-admitted"
+    },
+    {
+      "sha256": "85819667e8e88366ca3d8f9a0dda9770f094b6445882e08e0b2b3bf983472f7b",
+      "byteSize": 30217,
+      "aliases": [
+        "ET-Drawing-with-Border.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1018",
+      "detectedVersion": "AC1018",
+      "duplicateRelationship": null,
+      "originDisposition": "reproducible-public-origin",
+      "provenanceSourceId": "engineering-technology-course",
+      "provenanceDisposition": "public-download-sha256-observed-artifact-license-unconfirmed",
+      "repositoryBlob": null,
+      "admissionDisposition": "external-origin-not-admitted"
+    },
+    {
+      "sha256": "8827e33cd1b2427533b9544967b7d1de9b22a83875986f27ff01c83f3c8e681a",
+      "byteSize": 574537,
+      "aliases": [
+        "dynblock_r2018.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1032",
+      "detectedVersion": "AC1032",
+      "duplicateRelationship": null,
+      "originDisposition": "historical-repository-origin",
+      "provenanceSourceId": "librecad-history-3c028612",
+      "provenanceDisposition": "historical-librecad-repository-blob",
+      "repositoryBlob": {
+        "repository": "LibreCAD/LibreCAD",
+        "commit": "3c028612dd8e75d98692ac346635c190500eea94",
+        "path": "librecad/src/lib/filters/tests/testdata/dynblock_r2018.dwg",
+        "blob": "9449b8bbaff3d133b69159a21666e67f72be77f2"
+      },
+      "admissionDisposition": "historical-repository-blob-not-admitted"
+    },
+    {
+      "sha256": "8cfad4e4090ce5fead86c8fd4ed17020f6d13a4dda86f67d92953f10e8bf04ca",
+      "byteSize": 1228697,
+      "aliases": [
+        "#Pool_Detail.dwg"
+      ],
+      "detectedFormat": "DXF_ASCII",
+      "detectedMagic": "DXF_ASCII_GROUP_CODES",
+      "detectedVersion": "AC1021",
+      "duplicateRelationship": null,
+      "originDisposition": "unresolved-local-derived-origin",
+      "provenanceSourceId": "unresolved-local-derived",
+      "provenanceDisposition": "filename-related-local-derived-bytes-no-source-proof",
+      "repositoryBlob": null,
+      "admissionDisposition": "non-dwg-excluded-not-admitted"
+    },
+    {
+      "sha256": "947575519871fb7026ff8d4654d36200adffff6f5a90a45dcc347b17f7a0ee58",
+      "byteSize": 31931,
+      "aliases": [
+        "visualstyle_r2013.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1027",
+      "detectedVersion": "AC1027",
+      "duplicateRelationship": null,
+      "originDisposition": "historical-repository-origin",
+      "provenanceSourceId": "librecad-history-3c028612",
+      "provenanceDisposition": "historical-librecad-repository-blob",
+      "repositoryBlob": {
+        "repository": "LibreCAD/LibreCAD",
+        "commit": "3c028612dd8e75d98692ac346635c190500eea94",
+        "path": "librecad/src/lib/filters/tests/testdata/visualstyle_r2013.dwg",
+        "blob": "7b8fd1a2b2e8e9c9df28ad6772cdc534c0535e2f"
+      },
+      "admissionDisposition": "historical-repository-blob-not-admitted"
+    },
+    {
+      "sha256": "947e28fb312349efffe04dbfe8754892fceba872e41536d1fdcdf0a77a62c6e4",
+      "byteSize": 202493,
+      "aliases": [
+        "ocd_leader_r2000.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1015",
+      "detectedVersion": "AC1015",
+      "duplicateRelationship": null,
+      "originDisposition": "historical-repository-origin",
+      "provenanceSourceId": "librecad-history-3c028612",
+      "provenanceDisposition": "historical-librecad-repository-blob",
+      "repositoryBlob": {
+        "repository": "LibreCAD/LibreCAD",
+        "commit": "3c028612dd8e75d98692ac346635c190500eea94",
+        "path": "librecad/src/lib/filters/tests/testdata/ocd_leader_r2000.dwg",
+        "blob": "bc03185ac197daa8a3e25a485d4bc8b786e12123"
+      },
+      "admissionDisposition": "historical-repository-blob-not-admitted"
+    },
+    {
+      "sha256": "9c40870a93a299f9d0ddbc1b35da363e1cf2dbed112d7413423643182eb97142",
+      "byteSize": 420256,
+      "aliases": [
+        "Pool_Detail.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1021",
+      "detectedVersion": "AC1021",
+      "duplicateRelationship": null,
+      "originDisposition": "unresolved-origin",
+      "provenanceSourceId": "unresolved-private",
+      "provenanceDisposition": "unresolved-no-public-or-reachable-repository-match",
+      "repositoryBlob": null,
+      "admissionDisposition": "unresolved-external-not-admitted"
+    },
+    {
+      "sha256": "a12f8a08862bb53fb8a62304a19091f602937679e8ed8ab9f1face199f8897b3",
+      "byteSize": 3476,
+      "aliases": [
+        "pre_r10_r9_entities.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1004",
+      "detectedVersion": "AC1004",
+      "duplicateRelationship": null,
+      "originDisposition": "historical-repository-origin",
+      "provenanceSourceId": "librecad-history-3c028612",
+      "provenanceDisposition": "historical-librecad-repository-blob",
+      "repositoryBlob": {
+        "repository": "LibreCAD/LibreCAD",
+        "commit": "3c028612dd8e75d98692ac346635c190500eea94",
+        "path": "librecad/src/lib/filters/tests/testdata/pre_r10_r9_entities.dwg",
+        "blob": "698888831d2ac5486eae5aad742789cfc6d25a2a"
+      },
+      "admissionDisposition": "historical-repository-blob-not-admitted"
+    },
+    {
+      "sha256": "a821c7b29a7be02a9db6db223398360b59173316d8a07c14f01e9f4f1766bb55",
+      "byteSize": 4305,
+      "aliases": [
+        "pre_r13_r10_entities.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1006",
+      "detectedVersion": "AC1006",
+      "duplicateRelationship": null,
+      "originDisposition": "historical-repository-origin",
+      "provenanceSourceId": "librecad-history-3c028612",
+      "provenanceDisposition": "historical-librecad-repository-blob",
+      "repositoryBlob": {
+        "repository": "LibreCAD/LibreCAD",
+        "commit": "3c028612dd8e75d98692ac346635c190500eea94",
+        "path": "librecad/src/lib/filters/tests/testdata/pre_r13_r10_entities.dwg",
+        "blob": "a84a159674dbade944c50f28e667727207ce6fbf"
+      },
+      "admissionDisposition": "historical-repository-blob-not-admitted"
+    },
+    {
+      "sha256": "ad2656f141675aeda06ede347f8921516700b60a0f5ba17af042419be5397b4d",
+      "byteSize": 58496,
+      "aliases": [
+        "lineweights.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1021",
+      "detectedVersion": "AC1021",
+      "duplicateRelationship": null,
+      "originDisposition": "reproducible-public-origin",
+      "provenanceSourceId": "autodesk-official-samples",
+      "provenanceDisposition": "official-public-download-sha256-observed",
+      "repositoryBlob": null,
+      "admissionDisposition": "external-origin-not-admitted"
+    },
+    {
+      "sha256": "b874d82c5ee04f8a4fa6e907408c4ed770ee8208740fe4e1eb0f96fb2f793bc2",
+      "byteSize": 128233,
+      "aliases": [
+        "title_block-iso.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1024",
+      "detectedVersion": "AC1024",
+      "duplicateRelationship": null,
+      "originDisposition": "reproducible-public-origin",
+      "provenanceSourceId": "autodesk-official-samples",
+      "provenanceDisposition": "official-public-download-sha256-observed",
+      "repositoryBlob": null,
+      "admissionDisposition": "external-origin-not-admitted"
+    },
+    {
+      "sha256": "bdd7458bda6c1464faa5836b8aa85640199fbd01c510fa00e25550c043185429",
+      "byteSize": 33206,
+      "aliases": [
+        "assoc_constraints_r2013.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1027",
+      "detectedVersion": "AC1027",
+      "duplicateRelationship": null,
+      "originDisposition": "historical-repository-origin",
+      "provenanceSourceId": "librecad-history-3c028612",
+      "provenanceDisposition": "historical-librecad-repository-blob",
+      "repositoryBlob": {
+        "repository": "LibreCAD/LibreCAD",
+        "commit": "3c028612dd8e75d98692ac346635c190500eea94",
+        "path": "librecad/src/lib/filters/tests/testdata/assoc_constraints_r2013.dwg",
+        "blob": "dd98568020daff316048a7d3c554e8180177a62e"
+      },
+      "admissionDisposition": "historical-repository-blob-not-admitted"
+    },
+    {
+      "sha256": "be1e24ea0cd5194d0c57935b5018123b7cc981331172a1a2ca7cecc2d9a18e4f",
+      "byteSize": 38641,
+      "aliases": [
+        "blockvisibility.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1032",
+      "detectedVersion": "AC1032",
+      "duplicateRelationship": null,
+      "originDisposition": "historical-repository-origin",
+      "provenanceSourceId": "librecad-history-3c028612",
+      "provenanceDisposition": "historical-librecad-repository-blob",
+      "repositoryBlob": {
+        "repository": "LibreCAD/LibreCAD",
+        "commit": "3c028612dd8e75d98692ac346635c190500eea94",
+        "path": "librecad/src/lib/filters/tests/testdata/blockvisibility.dwg",
+        "blob": "4233a6105231655b38727f84f26727298a6da174"
+      },
+      "admissionDisposition": "historical-repository-blob-not-admitted"
+    },
+    {
+      "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+      "byteSize": 1715680,
+      "aliases": [
+        "children-room-decoration.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1021",
+      "detectedVersion": "AC1021",
+      "duplicateRelationship": null,
+      "originDisposition": "unresolved-origin",
+      "provenanceSourceId": "unresolved-private",
+      "provenanceDisposition": "unresolved-no-public-or-reachable-repository-match",
+      "repositoryBlob": null,
+      "admissionDisposition": "unresolved-external-not-admitted"
+    },
+    {
+      "sha256": "cc5808621cfdc597f6e726a4f3591402b92ea627e581ce4380344c5dd02392f1",
+      "byteSize": 93538,
+      "aliases": [
+        "pre_r13_r11_tables.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1009",
+      "detectedVersion": "AC1009",
+      "duplicateRelationship": null,
+      "originDisposition": "historical-repository-origin",
+      "provenanceSourceId": "librecad-history-3c028612",
+      "provenanceDisposition": "historical-librecad-repository-blob",
+      "repositoryBlob": {
+        "repository": "LibreCAD/LibreCAD",
+        "commit": "3c028612dd8e75d98692ac346635c190500eea94",
+        "path": "librecad/src/lib/filters/tests/testdata/pre_r13_r11_tables.dwg",
+        "blob": "2e70b3d400886f3239cd757fb52b100b79f09930"
+      },
+      "admissionDisposition": "historical-repository-blob-not-admitted"
+    },
+    {
+      "sha256": "d3f7c22db4b6c3953e2d716da719d7e7e5b285cf73bd4e317f0a171d3859f98a",
+      "byteSize": 12632,
+      "aliases": [
+        "large_radial.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1032",
+      "detectedVersion": "AC1032",
+      "duplicateRelationship": null,
+      "originDisposition": "historical-repository-origin",
+      "provenanceSourceId": "librecad-history-3c028612",
+      "provenanceDisposition": "historical-librecad-repository-blob",
+      "repositoryBlob": {
+        "repository": "LibreCAD/LibreCAD",
+        "commit": "3c028612dd8e75d98692ac346635c190500eea94",
+        "path": "librecad/src/lib/filters/tests/testdata/large_radial.dwg",
+        "blob": "d711f89ea9645454f27a4d10231d87c95578a378"
+      },
+      "admissionDisposition": "admitted-fixture-exact-sha256"
+    },
+    {
+      "sha256": "db5663cdc5c1759fdc1f68f9122e596307de06317e766cd5e0aab55912e5d511",
+      "byteSize": 19774,
+      "aliases": [
+        "rtext_arctext.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1032",
+      "detectedVersion": "AC1032",
+      "duplicateRelationship": null,
+      "originDisposition": "historical-repository-origin",
+      "provenanceSourceId": "librecad-history-3c028612",
+      "provenanceDisposition": "historical-librecad-repository-blob",
+      "repositoryBlob": {
+        "repository": "LibreCAD/LibreCAD",
+        "commit": "3c028612dd8e75d98692ac346635c190500eea94",
+        "path": "librecad/src/lib/filters/tests/testdata/rtext_arctext.dwg",
+        "blob": "8e1036ed74e797d183da1deca0edd1c4c7c79d03"
+      },
+      "admissionDisposition": "admitted-fixture-exact-sha256"
+    },
+    {
+      "sha256": "e22c24d315c9f5819b2e8c3763c6dbb2a8d3ee450754f0f180763fd581a1ac17",
+      "byteSize": 378774,
+      "aliases": [
+        "#blocks_and_tables_-_metric.dwg"
+      ],
+      "detectedFormat": "DXF_ASCII",
+      "detectedMagic": "DXF_ASCII_GROUP_CODES",
+      "detectedVersion": "AC1021",
+      "duplicateRelationship": null,
+      "originDisposition": "unresolved-local-derived-origin",
+      "provenanceSourceId": "unresolved-local-derived",
+      "provenanceDisposition": "filename-related-local-derived-bytes-no-source-proof",
+      "repositoryBlob": null,
+      "admissionDisposition": "non-dwg-excluded-not-admitted"
+    },
+    {
+      "sha256": "e72d5e86d5d36d64b08822fb25a46079f592fd895a6157b1b8d9b07775e06108",
+      "byteSize": 187890,
+      "aliases": [
+        "evalgraph_r2004.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1018",
+      "detectedVersion": "AC1018",
+      "duplicateRelationship": null,
+      "originDisposition": "historical-repository-origin",
+      "provenanceSourceId": "librecad-history-3c028612",
+      "provenanceDisposition": "historical-librecad-repository-blob",
+      "repositoryBlob": {
+        "repository": "LibreCAD/LibreCAD",
+        "commit": "3c028612dd8e75d98692ac346635c190500eea94",
+        "path": "librecad/src/lib/filters/tests/testdata/evalgraph_r2004.dwg",
+        "blob": "770ab3f38564daaf715adeb6ab29c811012d9a4a"
+      },
+      "admissionDisposition": "historical-repository-blob-not-admitted"
+    },
+    {
+      "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+      "byteSize": 733036,
+      "aliases": [
+        "visualization_-_aerial.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1024",
+      "detectedVersion": "AC1024",
+      "duplicateRelationship": null,
+      "originDisposition": "reproducible-public-origin",
+      "provenanceSourceId": "autodesk-official-samples",
+      "provenanceDisposition": "official-public-download-sha256-observed",
+      "repositoryBlob": null,
+      "admissionDisposition": "external-origin-not-admitted"
+    },
+    {
+      "sha256": "f00891dbfedbbe44fe97233ef503594d59948b2669705bf58154b57d1ca28df8",
+      "byteSize": 1152,
+      "aliases": [
+        "pre_r10_r140_entities.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1.40",
+      "detectedVersion": "AC1.40",
+      "duplicateRelationship": null,
+      "originDisposition": "historical-repository-origin",
+      "provenanceSourceId": "librecad-history-3c028612",
+      "provenanceDisposition": "historical-librecad-repository-blob",
+      "repositoryBlob": {
+        "repository": "LibreCAD/LibreCAD",
+        "commit": "3c028612dd8e75d98692ac346635c190500eea94",
+        "path": "librecad/src/lib/filters/tests/testdata/pre_r10_r140_entities.dwg",
+        "blob": "0ab1db4ea555f630096ced0d4bf98850925d5df5"
+      },
+      "admissionDisposition": "historical-repository-blob-not-admitted"
+    },
+    {
+      "sha256": "fa44ada15684eecf46acc4ef095be2ed4793f438da6d570be46c828279aed21c",
+      "byteSize": 2856002,
+      "aliases": [
+        "Extruder2.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1018",
+      "detectedVersion": "AC1018",
+      "duplicateRelationship": null,
+      "originDisposition": "unresolved-origin",
+      "provenanceSourceId": "unresolved-private",
+      "provenanceDisposition": "unresolved-no-public-or-reachable-repository-match",
+      "repositoryBlob": null,
+      "admissionDisposition": "unresolved-external-not-admitted"
+    },
+    {
+      "sha256": "fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881",
+      "byteSize": 553297,
+      "aliases": [
+        "visualization_-_sun_and_sky_demo.dwg"
+      ],
+      "detectedFormat": "DWG",
+      "detectedMagic": "AC1024",
+      "detectedVersion": "AC1024",
+      "duplicateRelationship": null,
+      "originDisposition": "reproducible-public-origin",
+      "provenanceSourceId": "autodesk-official-samples",
+      "provenanceDisposition": "official-public-download-sha256-observed",
+      "repositoryBlob": null,
+      "admissionDisposition": "external-origin-not-admitted"
+    }
+  ],
+  "joins": {
+    "j284": {
+      "targetReport": "metadata/target-advisory-differential-v1.json",
+      "independentReport": "metadata/libredwg-advisory-differential-v1.json",
+      "joinedHashCount": 21,
+      "admittedFixtureIds": [
+        "tests/fixtures/dwg/large_radial.dwg",
+        "tests/fixtures/dwg/mpolygon_solid.dwg",
+        "tests/fixtures/dwg/rtext_arctext.dwg"
+      ]
+    },
+    "j295": {
+      "independentReport": "metadata/libredwg-ac1024-advisory-v1.json",
+      "joinedHashCount": 9
+    }
+  }
+}
