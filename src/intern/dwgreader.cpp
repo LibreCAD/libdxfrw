@@ -7461,7 +7461,6 @@ bool dwgReader::readDwgBlocks(DRW_Interface &intfa, dwgBuffer *dbuf,
     const DRW_DwgFramePublication endBlockPublication =
         makeTypedEntityFramePublication(version, endBlockObject,
                                         dwgType::ENDBLK, end);
-    const std::size_t entityFailuresBefore = m_entityParseFailures;
     const std::size_t entityDiagnosticsBefore =
         m_entityFailureDiagnostics.size();
 
@@ -7566,6 +7565,22 @@ bool dwgReader::readDwgBlocks(DRW_Interface &intfa, dwgBuffer *dbuf,
                                       entry.m_sourceMapOrdinal,
                                       entry.m_sourceOffsetSpace, true};
           };
+          const auto receiptWasAdmitted =
+              [this](const DRW_DwgSourceFrame &source) {
+                const auto sourceIt =
+                    m_dwgSourceFrameIndexes.find(source.m_handle);
+                if (sourceIt == m_dwgSourceFrameIndexes.end() ||
+                    sourceIt->second >= m_dwgSourceFrameLedger.size())
+                  return false;
+                const DRW_DwgFrameCoverageEntry &entry =
+                    m_dwgSourceFrameLedger[sourceIt->second];
+                return (entry.m_disposition ==
+                            DRW_DwgFrameDisposition::Staged &&
+                        entry.m_publicationCount == 0u) ||
+                       (entry.m_disposition ==
+                            DRW_DwgFrameDisposition::Published &&
+                        entry.m_publicationCount == 1u);
+              };
           const auto recordSource = sourceFrameIdForHandle(bkr->handle);
           const auto recordReceipt = receiptSource(recordSource);
           // Direct reader probes can exercise a block scope without
@@ -7593,6 +7608,7 @@ bool dwgReader::readDwgBlocks(DRW_Interface &intfa, dwgBuffer *dbuf,
                 receipt.m_blockRecord = *recordReceipt;
                 receipt.m_block = *blockReceipt;
                 receipt.m_endBlock = *endBlockReceipt;
+                bool allEntitiesAdmitted = true;
                 try {
                   receipt.m_entities.reserve(bkr->entMap.size());
                   for (const std::uint32_t entityHandle : bkr->entMap) {
@@ -7602,12 +7618,20 @@ bool dwgReader::readDwgBlocks(DRW_Interface &intfa, dwgBuffer *dbuf,
                       journalled = false;
                       break;
                     }
+                    if (!receiptWasAdmitted(*entityReceipt)) {
+                      // A malformed typed body is quarantined as a
+                      // record-level warning.  It cannot participate in a
+                      // complete reachability receipt, but it must not
+                      // invalidate the surrounding block transaction.
+                      allEntitiesAdmitted = false;
+                      continue;
+                    }
                     receipt.m_entities.push_back(*entityReceipt);
                   }
                 } catch (...) {
                   journalled = false;
                 }
-                if (journalled)
+                if (journalled && allEntitiesAdmitted)
                   reachability.emplace(std::move(receipt));
               }
             }
@@ -7706,8 +7730,12 @@ bool dwgReader::readDwgBlocks(DRW_Interface &intfa, dwgBuffer *dbuf,
       }
     }
 
-    blockScopeFailure = blockScopeFailure || !blockEntityWalkSucceeded ||
-                        m_entityParseFailures != entityFailuresBefore;
+    // A bounded typed-body failure is a record-level warning.  The source
+    // frame has already been quarantined by the walker, so it must not turn
+    // an otherwise complete BLOCK scope into a section failure.  Structural
+    // frame/identity failures and unresolved compound state still set
+    // blockEntityWalkSucceeded/blockScopeFailure above.
+    blockScopeFailure = blockScopeFailure || !blockEntityWalkSucceeded;
 
     if (blockScopeOpened && !blockScopeFailure &&
         blockEntityWalkSucceeded
@@ -8142,8 +8170,15 @@ bool dwgReader::walkJournalledBlockRecordEntities(
         if (m_entityParseFailures != std::numeric_limits<std::size_t>::max()) {
           ++m_entityParseFailures;
         }
-        restoreState();
-        return false;
+        // A failed typed body is isolated to its source frame and is already
+        // quarantined by readMappedDwgEntity.  Keep the block transaction
+        // alive for the remaining entities; only a frame/identity failure
+        // can make the scope structurally unsafe to commit.
+        if (frameFailure) {
+          restoreState();
+          return false;
+        }
+        continue;
       }
       if (lease.isDetached() && !transaction.adopt(lease)) {
         discardUnadopted(lease);

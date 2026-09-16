@@ -56,10 +56,10 @@
     },
     {
       "path": "src/intern/dwgreader.cpp",
-      "reason": "Remove two unused target locals exposed by standalone -Werror compilation, route the fixed-type GEOPOSITIONMARKER entity through the mapped reader instead of treating its legacy class ordinal as an opaque object, and cap HANDLE-map staging plus aggregate object-map work per read.",
-      "scope": "warning hygiene and DWG resource-limit hardening",
+      "reason": "Remove two unused target locals exposed by standalone -Werror compilation, route the fixed-type GEOPOSITIONMARKER entity through the mapped reader instead of treating its legacy class ordinal as an opaque object, cap HANDLE-map staging plus aggregate object-map work per read, and isolate bounded typed-body failures inside journalled BLOCK scopes.",
+      "scope": "warning hygiene, DWG resource-limit hardening, and BLOCK transaction compatibility",
       "targetBlob": "ae471df1928269fb8b81009bcd1821d304a003de",
-      "adaptedSha256": "01716132cb1da14754ce6331f532e16ebd258f10586b10693fbe9ae9986a7378"
+      "adaptedSha256": "c77b4aa07e68fc8b6937b39ee11cff37c8547feb5636759c9c1ec2806242a713"
     },
     {
       "path": "src/intern/dwgreader.h",

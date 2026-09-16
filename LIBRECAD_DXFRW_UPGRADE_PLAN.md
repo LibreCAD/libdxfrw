@@ -1934,7 +1934,17 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint (2026-09-15): S259/J235 bounded DXF parser fuzz smoke is
+- Current checkpoint (2026-09-15): S291/J267 DWG block typed-body failure
+  isolation is committed. Bounded typed-body parse failures in a journalled
+  BLOCK scope are quarantined as record-level warnings, the surrounding block
+  transaction remains publishable, and incomplete reachability receipts are
+  withheld; structural frame/identity failures still abort the scope. The
+  external AC1021 `blocks_and_tables` imperial and metric drawings now both
+  convert successfully through `dwg2dxf`; those files and generated DXFs stay
+  outside Git. Focused release, fixture, scope, sync, aggregate, and diff gates
+  pass, while external conversion remains advisory and no support row is
+  promoted.
+- Earlier checkpoint (2026-09-15): S259/J235 bounded DXF parser fuzz smoke is
   committed. A deterministic 2,048-input in-memory corpus (structured DXF
   skeletons plus arbitrary bytes, maximum 384 bytes) passes through the public
   `dxfRW::readAscii` path without exceptions under both release and
@@ -3364,7 +3374,7 @@ edit this block or commit the same slice concurrently.
   ordinal 500 now remap to distinct writer class numbers, a duplicate object
   handle is rejected, and the alternate class still self-reads with its class
   identity intact. No external DWG/DXF bytes were added.
-- Active implementation slice: S114/J90 raw replay null/empty admission safety
+- Previous implementation slice: S114/J90 raw replay null/empty admission safety
   is the next dependency-ready lane. Qualify null pointers, empty raw bodies,
   empty section names, and the associated skip diagnostics without publishing
   a partial file; keep typed modeler writing deferred until S109's exact
@@ -3434,17 +3444,17 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 289 (`COMMITTED`); no slice is active.
+- Resolved slices: 291 (`COMMITTED`); no slice is active.
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 289 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 291 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
   0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 292 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 390 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 391 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  2 DEFERRED_EXTERNAL / 273 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S290 are committed; no local implementation slice is active.
+  2 DEFERRED_EXTERNAL / 275 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S291 are committed; no local implementation slice is active.
   Remaining work is evidence-gated runtime/oracle and release closure; keep
   the fast inner loop and do not promote support claims from self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -3789,6 +3799,7 @@ edit this block or commit the same slice concurrently.
 | S288 | J264: dual-format local DWG oracle contract correction | S287 | COMMITTED | split full-DXF basic geometry from JSON full-entity validation; correct LibreDWG invocation; explicit AC1015 geometry discrepancy; six-version runtime evidence; no payload retention | corrected live run returns 5/6 DXF basic-route matches with the AC1015 model-line geometry discrepancy and 6/6 JSON version/full-18-entity matches; generated files remain temporary and the advisory runner stays fail-closed | target-debt review, independent oracle qualification, and release closure |
 | S289 | J265: JSON oracle qualification fail-closed hardening | S288 | COMMITTED | explicit JSON version/entity-set/count qualification predicate; negative incomplete-result self-test; six-version advisory rerun; no payload retention | incomplete JSON output now reports `jsonOracleStatus=mismatch` instead of being unconditionally qualified; self-tests and focused CTest pass, while the existing six-version local evidence remains 6/6 JSON-qualified; no drawing bytes are committed | target-debt review, independent oracle qualification, and release closure |
 | S290 | J266: reconcile verified inventory children | S289 | COMMITTED | close the three already-delivered I0 source/public inventory children; recompute plan counters; metadata-only reconciliation; no fixture admission | `I0.1`, `I0.2`, and `I0.2a` evidence is present in the pinned inventory history; current plan, parity aggregate, oracle registry, fixture, import-scope, sync, release-readiness, speed, and diff checks pass; no source or drawing bytes change | target-debt review, independent oracle qualification, and release closure |
+| S291 | J267: DWG block typed-body failure isolation | S290 | COMMITTED | bounded typed-body warning isolation; block transaction preservation; incomplete reachability receipt suppression; external AC1021 advisory conversion; focused tests and policy gates; no fixture admission | `dwg2dxf` converts the external AC1021 `blocks_and_tables` imperial and metric drawings successfully after quarantining custom type-506 typed-body failures; structural frame/identity failures remain hard; focused release, fixture, scope, sync, aggregate, and diff gates pass; no external or derived drawing bytes are committed | continue with target-debt review, independent oracle qualification, and release closure |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -4083,6 +4094,7 @@ edit this block or commit the same slice concurrently.
 | J264 | S288 | J263 | COMMITTED | EXPERIMENTAL | Correct the dual-format local DWG oracle contract | Separate the LibreDWG full-DXF basic-geometry contract from the JSON full-entity contract, remove the incompatible `--minimal` invocation, retain the known AC1015 model-line discrepancy, and keep all local outputs temporary |
 | J265 | S289 | J264 | COMMITTED | EXPERIMENTAL | Harden JSON oracle qualification | Qualify JSON oracle output only when its expected version, complete required entity set, and bounded entity counts all match; preserve explicit mismatch status and fail-closed aggregate behavior without retaining payloads |
 | J266 | S290 | J265 | COMMITTED | EXPERIMENTAL | Reconcile verified inventory-child states | Close `I0.1`, `I0.2`, and `I0.2a` after confirming their pinned source/public closure evidence and current aggregate/policy checks; change no source or fixture bytes and keep all support claims non-promoted |
+| J267 | S291 | J266 | COMMITTED | EXPERIMENTAL | Isolate bounded DWG BLOCK typed-body failures | Quarantine a failed typed entity body as a record-level warning, preserve publication of the surrounding block and its valid entities, suppress incomplete reachability receipts, and retain hard failure for structural frame/identity corruption; validate with temporary external AC1021 block/table conversions without admitting drawing bytes |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4484,6 +4496,7 @@ edit this block or commit the same slice concurrently.
 | J264.1 | J264 / S288 | WP5, WP8, WP10; dual-format local DWG oracle correction | J263 | COMMITTED | EXPERIMENTAL | validate separate full-DXF basic LINE/POLYLINE plus geometry and JSON full-entity/version contracts across AC1015/18/21/24/27/32, with an explicit AC1015 model-line discrepancy and no payload retention | matrix/runner self-tests pass; corrected live run records 5/6 DXF basic-route matches, one reviewed AC1015 geometry mismatch, and 6/6 JSON full-entity/version matches; no drawing bytes are committed |
 | J265.1 | J265 / S289 | WP8, WP10; JSON oracle qualification hardening | J264 | COMMITTED | EXPERIMENTAL | require the JSON status to be `qualified` only when version, required entity set, and bounded counts all pass; self-test an incomplete JSON result and retain only status/count metadata | runner self-test and focused CTest pass; the corrected six-version run remains 6/6 JSON-qualified while any future incomplete JSON result is reported as `mismatch`; no drawing bytes are retained |
 | J266.1 | J266 / S290 | WP8, WP10; plan-state reconciliation | J265 | COMMITTED | EXPERIMENTAL | confirm the three I0 inventory children have complete pinned evidence, transition them from `VERIFIED` to `COMMITTED`, and recompute the live counters without changing source or fixture bytes | current plan check, parity aggregate, oracle registry, fixture admission, import scope, pinned sync, release readiness, implementation-speed, and diff checks pass; no drawing bytes are retained |
+| J267.1 | J267 / S291 | WP5, WP6, WP8, WP10; DWG BLOCK transaction compatibility | J266 | COMMITTED | EXPERIMENTAL | isolate non-structural `parseDwg` failures within `walkJournalledBlockRecordEntities`, keep valid callbacks and block commit alive, omit failed frames from complete reachability receipts, and fail closed for frame/identity errors | `dwg2dxf` converts both temporary external AC1021 `blocks_and_tables` inputs; hardening, wave, writer, DXF/DWG fixture, release-readiness, support-matrix, plan, fixture, import-scope, pinned-sync, parity, speed, and diff gates pass; no external or derived drawing bytes are retained |
 
 <!-- UPGRADE_PROGRESS_END -->
 
