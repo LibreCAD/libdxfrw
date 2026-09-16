@@ -52,8 +52,8 @@ then pin an immutable commit before importing source.
 ### Execution refresh (2026-09-15)
 
 The implementation worktree is rebased on `origin/master` and is currently
-317 commits ahead with no commits behind it. The latest green slice is
-S289/J265, including the live-plan update and its required policy gates.
+324 commits ahead with no commits behind it. The latest green slice is
+S296/J272, including the live-plan update and its required policy gates.
 There is no uncommitted local implementation slice; the next parity work is
 the evidence-gated external/runtime and release closure listed below.
 The worktree is clean at the last committed boundary; any subsequent active-
@@ -1934,6 +1934,12 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
+- Current checkpoint (2026-09-15): S297/J273 live-plan status refresh is
+  committed. The parser-backed audit reconciled the post-S296 values of 296
+  slices, 298 parents, and 396 children; including this maintenance slice, the
+  current tables contain 297 slices, 299 parents, and 397 children. The
+  execution-refresh prose and F1.1a disposition no longer describe stale
+  pre-S296 state. This is metadata-only and adds no source or drawing bytes.
 - Current checkpoint (2026-09-15): S296/J272 TU terminator framing
   compatibility is committed. The R2007+ TU reader now consumes the declared
   UTF-16 units first and conditionally accepts one trailing UTF-16 NUL through
@@ -3476,17 +3482,17 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 295 (`COMMITTED`); no slice is active.
+- Resolved slices: 297 (`COMMITTED`); no slice is active.
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 295 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 297 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 298 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 299 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 395 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 397 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   3 DEFERRED_EXTERNAL / 279 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S296 are committed; no local implementation slice is active.
+- Active work: S01-S297 are committed; no local implementation slice is active.
   Remaining work is evidence-gated runtime/oracle and release closure; keep
   the fast inner loop and do not promote support claims from self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -3837,6 +3843,7 @@ edit this block or commit the same slice concurrently.
 | S294 | J270: post-BLOCK sanitizer validation | S293 | COMMITTED | impact-map sanitizer escalation after DWG BLOCK transaction change; complete ASan/UBSan CTest; documented macOS leak policy; no fixture changes | all 28 ASan/UBSan CTest entries pass in 7.70 seconds with leak detection disabled, including reader/writer matrices, local round trips, hardening, fixtures, parity, release-readiness, and implementation-speed checks; no drawing bytes are added | continue with target-debt review, independent oracle qualification, and release closure |
 | S295 | J271: plan-counter reconciliation | S294 | COMMITTED | parser-backed live-plan count audit; terminal state reconciliation; metadata-only change; no fixture admission | updater-backed parsing reports 295 committed slices, 297 committed parents, and 395 committed children; the live status block now matches the tables, and plan, fixture, scope, sync, parity, release-readiness, speed, and diff checks pass | continue with target-debt review, independent oracle qualification, and release closure |
 | S296 | J272: TU terminator framing compatibility | S295 | COMMITTED | authoritative local ODA TU layout review; adaptive reader probe; six-version writer matrix; focused DWG safety/round-trip checks; no fixture admission | R2007+ TU reads accept both declared-length forms without poisoning a truncated probe; codec-backed semantic tests, hardening, reader matrix, local round-trip, and temporary AC1021 conversions pass; no drawing bytes are added | continue with target-debt review, independent oracle qualification, and release closure |
+| S297 | J273: live-plan status refresh | S296 | COMMITTED | parser-backed post-S296 counter audit; stale prose correction; no fixture admission | updater-backed parsing reconciles 296/298/396 pre-slice values and 297/299/397 current committed execution states; execution-refresh and F1.1a text are aligned with current state, and plan/policy checks pass; no source or drawing bytes are changed | continue with target-debt review, independent oracle qualification, and release closure |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -3853,7 +3860,7 @@ edit this block or commit the same slice concurrently.
 | E1 | S09 | D1 | COMMITTED | NOT_EVALUATED | Versioned DWG-reader and section qualification; E1.1-E1.4 committed; aggregate gates PASS; support claims remain experimental without admitted positives |
 | E2 | S10 | E0, E1 | COMMITTED | NOT_EVALUATED | Graph accounting, raw replay, DataStorage, ACIS, and proxy paths; E2.1-E2.5 verified; aggregate gates PASS |
 | F0 | S11 | E2 | COMMITTED | NOT_EVALUATED | Writer primitives, framing, handles, and secure transaction; F0.1-F0.5 committed with focused and aggregate evidence |
-| F1 | S12 | F0 | COMMITTED | NOT_EVALUATED | Per-version/per-feature writer qualification; F1.1-F1.5 committed, with F1.1a explicitly DEFERRED_EXTERNAL |
+| F1 | S12 | F0 | COMMITTED | NOT_EVALUATED | Per-version/per-feature writer qualification; F1.1-F1.5 committed, with F1.1a experimental pending independent promotion evidence |
 | G0 | S13 | E2, F0 | COMMITTED | NOT_EVALUATED | Diagnostics, budgets, ownership, fuzzing, and sanitizers; G0.1-G0.5 verified; structured diagnostics are completed in the dependency-closed S15/H0 follow-up |
 | G1 | S14 | D1, F1, G0 | COMMITTED | NOT_EVALUATED | Installed LibreCAD mode, packaging, documentation, and release |
 | H1 | S16 | H0, G1 | COMMITTED | EXPERIMENTAL | Installed-package transitive header closure required by the LibreCAD adapter; package-only consumer compiles without bundled paths |
@@ -4137,6 +4144,7 @@ edit this block or commit the same slice concurrently.
 | J270 | S294 | J269 | COMMITTED | EXPERIMENTAL | Revalidate sanitizer safety after BLOCK transaction changes | Run the complete 28-entry ASan/UBSan CTest set once because S291 changes shared DWG transaction/publication code; retain the macOS leak-detection limitation and no-fixture evidence while keeping native-platform and long-fuzz qualification separate |
 | J271 | S295 | J270 | COMMITTED | EXPERIMENTAL | Reconcile live-plan execution counters | Parse the live progress tables after S291-S294, correct only stale aggregate counters, and verify that every slice, parent, and child remains terminal without changing source or fixture bytes |
 | J272 | S296 | J271 | COMMITTED | EXPERIMENTAL | Resolve TU terminator framing compatibility | Use the local ODA TU definition and an independent-cursor probe to accept both length-includes-terminator and length-excludes-terminator streams, add codec-backed six-version semantic vectors plus a trailing-field alignment check, and keep external support promotion separate without adding drawing fixtures |
+| J273 | S297 | J272 | COMMITTED | EXPERIMENTAL | Refresh live-plan status after S296 | Reconcile parser-backed slice/parent/child counts and stale checkpoint/disposition prose after S296 without changing implementation or fixture bytes |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4544,6 +4552,7 @@ edit this block or commit the same slice concurrently.
 | J270.1 | J270 / S294 | WP8, WP10; post-BLOCK sanitizer checkpoint | J269 | COMMITTED | EXPERIMENTAL | rebuild/run all 28 dependency-free CTest entries under ASan/UBSan after the S291 shared DWG transaction change with `detect_leaks=0`, preserving the no-fixture policy | all 28 sanitizer CTest entries pass in 7.70 seconds; macOS leak detection remains disabled and native Windows/long-fuzz/package/external qualification remain separate follow-ups |
 | J271.1 | J271 / S295 | WP8, WP10; plan-counter reconciliation | J270 | COMMITTED | EXPERIMENTAL | run the plan parser and compare its slice/parent/child state totals and claim dispositions with the live status block, changing no source or fixture bytes | parser-backed audit reports 295/297/395 committed execution states and 10 NOT_EVALUATED, 3 DEFERRED_EXTERNAL, 278 EXPERIMENTAL, and 6 NOT_APPLICABLE parent claims; plan and policy checks pass |
 | J272.1 | J272 / S296 | WP5, WP7, WP8, WP10; TU framing compatibility | J271 | COMMITTED | EXPERIMENTAL | run codec-backed six-version TU semantic vectors for both declared-length forms, verify a trailing field remains readable, and preserve the no-fixture policy | `libdxfrw_writer_version_matrix_tests`, DWG hardening, reader matrix, local round-trip, and temporary external AC1021 conversion checks pass; the local ODA definition is recorded, no drawing bytes are retained, and independent support promotion remains separate |
+| J273.1 | J273 / S297 | WP8, WP10; live-plan status refresh | J272 | COMMITTED | EXPERIMENTAL | parse the live block after S296 and align counters, execution-refresh prose, and F1.1a wording without changing source or fixture bytes | parser-backed audit reconciles 296/298/396 pre-slice values and reports 297/299/397 current committed execution states; plan, fixture, scope, sync, parity, release-readiness, speed, and diff checks pass |
 
 <!-- UPGRADE_PROGRESS_END -->
 
