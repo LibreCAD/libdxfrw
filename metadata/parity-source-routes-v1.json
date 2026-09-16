@@ -2035,7 +2035,6 @@
         },
         {
           "classes": [
-            "body",
             "selector"
           ],
           "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_AcDbGeoPositionMarker"
@@ -2126,7 +2125,6 @@
         },
         {
           "classes": [
-            "body",
             "selector"
           ],
           "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_GEOPOSITIONMARKER"
@@ -2211,7 +2209,6 @@
         },
         {
           "classes": [
-            "body",
             "selector"
           ],
           "routeId": "dwgRW/parser-publication/dwgRW_named-entity-class_POSITIONMARKER"
@@ -3830,6 +3827,8 @@
         "dwgRW/facade-method/recordOperationDiagnosticForError-001",
         "dwgRW/fixed-entity/1164-GEOPOSITIONMARKER",
         "dwgRW/parser-publication/dwgRW_fixed-entity_1164-GEOPOSITIONMARKER",
+        "dwgRW/public-inline-method/src_libdwgr.h_dwgRW_0021231ff90d000b7e674f5e86a77bf4370597b07f8fb71238de2f581adceb19",
+        "dwgRW/public-inline-method/src_libdwgr.h_dwgRW_da72fe798ed37397a61ce8141ba8e959a8c9ed287c62f47c93719d54d0881885",
         "dwgRW/public-inline-method/src_libdwgr.h_dwgR_1d63d75bbe4cf516ae735bb0afe00a248d974310967ecd166eba0629ce755268",
         "dwgRW/public-inline-method/src_libdwgr.h_dwgR_2ccf0b4c47c1b5a4c2b8dc013c3a621b11ddb5a46e4cf3e226f4bcf5cb8766c8",
         "dwgRW/public-inline-method/src_libdwgr.h_dwgR_3b8cc629932234c4eaa6774660e79b801f34edd2b10e5dc0e36855868732c106",
@@ -3840,7 +3839,9 @@
         "dwgRW/public-inline-method/src_libdwgr.h_dwgR_cf06df83c1b62f9793814264c2d5f524de013317013f9b0a6de31d2dfb151ce4",
         "dwgRW/public-inline-method/src_libdwgr.h_dwgR_e5d170fca4c606e40323578e834a7688afe027d3a1ba1126d7e9c6cc0176a808",
         "dwgRW/public-inline-method/src_libdwgr.h_dwgR_e5fb576b6f30e37b4dfa25cc35a70fbf6c672384ee33d337065311f44877d845",
+        "dwgRW/public-method/src_libdwgr.h_dwgRW_0021231ff90d000b7e674f5e86a77bf4370597b07f8fb71238de2f581adceb19",
         "dwgRW/public-method/src_libdwgr.h_dwgRW_1d63d75bbe4cf516ae735bb0afe00a248d974310967ecd166eba0629ce755268",
+        "dwgRW/public-method/src_libdwgr.h_dwgRW_da72fe798ed37397a61ce8141ba8e959a8c9ed287c62f47c93719d54d0881885",
         "dwgRW/public-method/src_libdwgr.h_dwgR_1d63d75bbe4cf516ae735bb0afe00a248d974310967ecd166eba0629ce755268",
         "dwgRW/public-method/src_libdwgr.h_dwgR_2ccf0b4c47c1b5a4c2b8dc013c3a621b11ddb5a46e4cf3e226f4bcf5cb8766c8",
         "dwgRW/public-method/src_libdwgr.h_dwgR_3b8cc629932234c4eaa6774660e79b801f34edd2b10e5dc0e36855868732c106",
@@ -3932,6 +3933,7 @@
         },
         {
           "classes": [
+            "body",
             "selector"
           ],
           "routeId": "dxfRW/parser-publication/dxfRW_dxf-block_BLOCK"
@@ -5055,6 +5057,7 @@
         },
         {
           "classes": [
+            "body",
             "selector"
           ],
           "routeId": "dxfRW/parser-publication/dxfRW_dxf-object_SORTENTSTABLE"
@@ -5129,6 +5132,7 @@
         },
         {
           "classes": [
+            "body",
             "selector"
           ],
           "routeId": "dxfRW/parser-publication/dxfRW_dxf-section_CLASSES"
@@ -5147,6 +5151,7 @@
         },
         {
           "classes": [
+            "body",
             "selector"
           ],
           "routeId": "dxfRW/parser-publication/dxfRW_dxf-table_DIMSTYLE"
@@ -5165,6 +5170,7 @@
         },
         {
           "classes": [
+            "body",
             "selector"
           ],
           "routeId": "dxfRW/parser-publication/dxfRW_dxf-table_STYLE"
@@ -5189,12 +5195,14 @@
         },
         {
           "classes": [
+            "body",
             "selector"
           ],
           "routeId": "dxfRW/raw-flow/dxf-publish-entity"
         },
         {
           "classes": [
+            "body",
             "selector"
           ],
           "routeId": "dxfRW/raw-flow/dxf-publish-object"
@@ -5207,6 +5215,7 @@
         },
         {
           "classes": [
+            "body",
             "selector"
           ],
           "routeId": "dxfRW/raw-flow/dxf-publish-section"
@@ -5249,6 +5258,7 @@
         },
         {
           "classes": [
+            "body",
             "selector"
           ],
           "routeId": "dxfRW/raw-flow/dxf-read-proxy-payload-gate"
@@ -5267,18 +5277,21 @@
         },
         {
           "classes": [
+            "body",
             "selector"
           ],
           "routeId": "dxfRW/raw-flow/dxf-read-raw-entity-boundary"
         },
         {
           "classes": [
+            "body",
             "selector"
           ],
           "routeId": "dxfRW/raw-flow/dxf-read-raw-object-boundary"
         },
         {
           "classes": [
+            "body",
             "selector"
           ],
           "routeId": "dxfRW/raw-flow/dxf-read-raw-section-boundary"
@@ -5576,7 +5589,9 @@
         "dxfRW/dxf-transport-node/group-code-range-source",
         "dxfRW/facade-method/beginOperationDiagnostic-001",
         "dxfRW/facade-method/dxfCompatibilityProfile-001",
+        "dxfRW/facade-method/failDxfReadBudget-001",
         "dxfRW/facade-method/getLastDiagnostic-001",
+        "dxfRW/facade-method/recordInvalidRawHandleDiagnostic-001",
         "dxfRW/facade-method/recordOperationDiagnostic-001",
         "dxfRW/facade-method/recordOperationDiagnosticForError-001",
         "dxfRW/facade-method/setDxfCompatibilityProfile-001",
@@ -5593,9 +5608,13 @@
         "dxfRW/group-code-reader-range/440-459",
         "dxfRW/group-code-reader-range/999-1003",
         "dxfRW/public-enum/src_libdxfrw.h_dxfRW_DxfCompatibilityProfile",
+        "dxfRW/public-inline-method/src_libdxfrw.h_dxfRW_0040f7b89f62146ee157dc175cbd434788a301f3e42f2db4ebaf43da91ee9f75",
+        "dxfRW/public-inline-method/src_libdxfrw.h_dxfRW_cca9ef7732a090e5b5b2a12545c5a1685668d4bc14c98ec73e15cb161a6d1c5b",
+        "dxfRW/public-method/src_libdxfrw.h_dxfRW_0040f7b89f62146ee157dc175cbd434788a301f3e42f2db4ebaf43da91ee9f75",
         "dxfRW/public-method/src_libdxfrw.h_dxfRW_1d63d75bbe4cf516ae735bb0afe00a248d974310967ecd166eba0629ce755268",
         "dxfRW/public-method/src_libdxfrw.h_dxfRW_389effe06056b50f64b56ab4440f8670149d6e876e0488fa23789d3af30ad92f",
         "dxfRW/public-method/src_libdxfrw.h_dxfRW_4061dabb2caef05d2c7effc3bc1ce17f28a22bc3268f34a4ad1b7140e8983eaf",
+        "dxfRW/public-method/src_libdxfrw.h_dxfRW_cca9ef7732a090e5b5b2a12545c5a1685668d4bc14c98ec73e15cb161a6d1c5b",
         "dxfRW/public-method/src_libdxfrw.h_dxfRW_da9537c7ddd8a688b9f7c33cf37057fdadd79aa9da35300c530548d561d5a3a3"
       ],
       "targetOnly": [
@@ -5734,7 +5753,7 @@
   },
   "inputs": {
     "standalone": {
-      "contentTreeSha256": "e9fd7f38ab9c499663a8a557d3f7bdce3c9d95993ee8e9fd386266a7976ebfbe",
+      "contentTreeSha256": "a93c18e3530b951d1ea59c4f7a3d62d6f46bdbd7b8cfbc5250a54af59eee9482",
       "files": [
         {
           "mode": "100644",
@@ -5779,12 +5798,12 @@
         {
           "mode": "100644",
           "path": "src/drw_entities.cpp",
-          "sha256": "194cc3006440c9013300f3555f9f4d5e808053c87f1008085fd4b7ddc38da759"
+          "sha256": "30d368ccdff0e57d41abf30c83708ba47919069f918cd20ce6cb36c850ca5b14"
         },
         {
           "mode": "100644",
           "path": "src/drw_entities.h",
-          "sha256": "801021d8b391af217c307001febbb481c4bf96ab9dd46412d7689e5e5189db4d"
+          "sha256": "0b77c34b426363daf39982fc3ba370e1ce467482f3511284db9ee433c08b9ec2"
         },
         {
           "mode": "100644",
@@ -5804,7 +5823,7 @@
         {
           "mode": "100644",
           "path": "src/drw_objects.cpp",
-          "sha256": "351abe71a68106771bf80f9bfffee9b6a6e6817d48241f73baddae83d4782790"
+          "sha256": "8f8d837f3493ddacb02e4a6e2907c64b58c802fc2b62081bf9375e6e51bd810e"
         },
         {
           "mode": "100644",
@@ -5869,12 +5888,12 @@
         {
           "mode": "100644",
           "path": "src/intern/dwg_dxf_output_transaction.cpp",
-          "sha256": "d526b2f6d707d9a88dc5ddbeb1abf85cab5efed28cfe931fa0728c8adba05964"
+          "sha256": "f044561aa2b99b5a825d11028f58e1303b8495120b0f8cff3a3e54ef6b9e7ac7"
         },
         {
           "mode": "100644",
           "path": "src/intern/dwg_dxf_output_transaction.h",
-          "sha256": "1c7e352395b637215de351676ae053e46cd2d6c0f380a6322932fe021a8c7aa0"
+          "sha256": "468b94d112fd076cd0becbd978b342d0c2e05d5066187794aa09f472f1b4253b"
         },
         {
           "mode": "100644",
@@ -5884,7 +5903,7 @@
         {
           "mode": "100644",
           "path": "src/intern/dwgbuffer.cpp",
-          "sha256": "950ebb88201faf1826952f7c8a7499c521ec4004f4edf0e03b36ed5799329f3d"
+          "sha256": "5699b52890a91314a058d474fdb448d9fcc52ae30ddaa6e48a671aadd1b5c545"
         },
         {
           "mode": "100644",
@@ -5914,12 +5933,12 @@
         {
           "mode": "100644",
           "path": "src/intern/dwgreader.cpp",
-          "sha256": "e9fb92bdf2a222dbb74e1eabd0a3f2d7307d19d0da172ca89818211799200878"
+          "sha256": "c77b4aa07e68fc8b6937b39ee11cff37c8547feb5636759c9c1ec2806242a713"
         },
         {
           "mode": "100644",
           "path": "src/intern/dwgreader.h",
-          "sha256": "20244687203522df12e1791971f4cfd7ae9da60f0a3bb82e33dc1ac0fb303cb8"
+          "sha256": "8664782313368ba2a96deacf5c3ea0a8f12a14000b1539ef175be121f1d38d0d"
         },
         {
           "mode": "100644",
@@ -5944,7 +5963,7 @@
         {
           "mode": "100644",
           "path": "src/intern/dwgreader21.cpp",
-          "sha256": "02caf3da295c2057ebf7f98067b87a1745fe5be8b7d1170bb2c052d7b684c8f5"
+          "sha256": "113a94b8ee0a9dd1268f9eba569c1a7633977d08a93690f5137673e9a887d1fa"
         },
         {
           "mode": "100644",
@@ -6004,7 +6023,7 @@
         {
           "mode": "100644",
           "path": "src/intern/dwgsafety.h",
-          "sha256": "82f5393b5b20d524bf1822b674d5a6678d72a2217dce4ec7fa7737ca75e36d7f"
+          "sha256": "f0b04123b677c9b6754eea2551a704ec13f025646aac534394477e9a29d22f13"
         },
         {
           "mode": "100644",
@@ -6099,17 +6118,17 @@
         {
           "mode": "100644",
           "path": "src/intern/dxfparserlimits.h",
-          "sha256": "e59f96cc162fd1279b96244a984f8d5693207c750008e1b661baa58a7c52c721"
+          "sha256": "77c6975b52a78eef3e09ea168b9e3ae577ed3fee430f3009de2594f438b6cde5"
         },
         {
           "mode": "100644",
           "path": "src/intern/dxfreader.cpp",
-          "sha256": "a9ed919b84065249e52e76ed0c0c20e5794a6c473f876bd3bb85d46219b3dffb"
+          "sha256": "49683751065b36c50ee4f081b8fa0cc594621a7b0c73bb415ae1764d32ea73cc"
         },
         {
           "mode": "100644",
           "path": "src/intern/dxfreader.h",
-          "sha256": "846a38ec0798c43eaf382c7709078735f0f1c943308780ef2ecbc5f76718833a"
+          "sha256": "e18754cf0891fbd3c343b0c56a2b37e4b5ea34b902f45d891c93149670bc53ae"
         },
         {
           "mode": "100644",
@@ -6144,22 +6163,22 @@
         {
           "mode": "100644",
           "path": "src/libdwgr.cpp",
-          "sha256": "2ddcfb4f00cd400379f838de192c34814d161aa6ab91f03dbcccf11bb3ffe08c"
+          "sha256": "93a067b7e0635486be9dc4e644f7aa9efc3f7738a68286e83ee2178f2c2a8eb3"
         },
         {
           "mode": "100644",
           "path": "src/libdwgr.h",
-          "sha256": "2711545557c979b06066016ecd367ccff0972b2d8508d2699b1ea7966a7703fc"
+          "sha256": "707b50f774960e64b9b5e17112f36d3280a44584b5cfc613fc099fb48da0be13"
         },
         {
           "mode": "100644",
           "path": "src/libdxfrw.cpp",
-          "sha256": "2dab0dd49ca8b8d8c3a72dd6efb6a0b0825f0ea8ae1f562957dddc237012546c"
+          "sha256": "afc6e5d241c488717988e424568ff21708945f748618cb4a47e1ad360d58f3db"
         },
         {
           "mode": "100644",
           "path": "src/libdxfrw.h",
-          "sha256": "464938cf9434b80f9ba6aa42a761f821b747c3fda321e60e51b672dc99488438"
+          "sha256": "26998c942d94a77e0cd460766c398ed72e2724503e546d02dc3bd2aeb770d4c6"
         },
         {
           "mode": "100644",
@@ -19732,7 +19751,6 @@
         "cardinality": "1:1",
         "category": "parser-publication",
         "deltaClasses": [
-          "body",
           "selector"
         ],
         "dependencies": [],
@@ -20063,7 +20081,6 @@
         "cardinality": "1:1",
         "category": "parser-publication",
         "deltaClasses": [
-          "body",
           "selector"
         ],
         "dependencies": [],
@@ -20372,7 +20389,6 @@
         "cardinality": "1:1",
         "category": "parser-publication",
         "deltaClasses": [
-          "body",
           "selector"
         ],
         "dependencies": [],
@@ -54516,6 +54532,7 @@
         "cardinality": "1:1",
         "category": "parser-publication",
         "deltaClasses": [
+          "body",
           "selector"
         ],
         "dependencies": [],
@@ -58583,6 +58600,7 @@
         "cardinality": "1:1",
         "category": "parser-publication",
         "deltaClasses": [
+          "body",
           "selector"
         ],
         "dependencies": [],
@@ -58869,6 +58887,7 @@
         "cardinality": "1:1",
         "category": "parser-publication",
         "deltaClasses": [
+          "body",
           "selector"
         ],
         "dependencies": [],
@@ -59015,6 +59034,7 @@
         "cardinality": "1:1",
         "category": "parser-publication",
         "deltaClasses": [
+          "body",
           "selector"
         ],
         "dependencies": [],
@@ -59081,6 +59101,7 @@
         "cardinality": "1:1",
         "category": "parser-publication",
         "deltaClasses": [
+          "body",
           "selector"
         ],
         "dependencies": [],
@@ -62473,6 +62494,7 @@
         "cardinality": "1:1",
         "category": "raw-flow",
         "deltaClasses": [
+          "body",
           "selector"
         ],
         "dependencies": [],
@@ -62495,6 +62517,7 @@
         "cardinality": "1:1",
         "category": "raw-flow",
         "deltaClasses": [
+          "body",
           "selector"
         ],
         "dependencies": [],
@@ -62539,6 +62562,7 @@
         "cardinality": "1:1",
         "category": "raw-flow",
         "deltaClasses": [
+          "body",
           "selector"
         ],
         "dependencies": [],
@@ -62693,6 +62717,7 @@
         "cardinality": "1:1",
         "category": "raw-flow",
         "deltaClasses": [
+          "body",
           "selector"
         ],
         "dependencies": [],
@@ -62759,6 +62784,7 @@
         "cardinality": "1:1",
         "category": "raw-flow",
         "deltaClasses": [
+          "body",
           "selector"
         ],
         "dependencies": [],
@@ -62781,6 +62807,7 @@
         "cardinality": "1:1",
         "category": "raw-flow",
         "deltaClasses": [
+          "body",
           "selector"
         ],
         "dependencies": [],
@@ -62803,6 +62830,7 @@
         "cardinality": "1:1",
         "category": "raw-flow",
         "deltaClasses": [
+          "body",
           "selector"
         ],
         "dependencies": [],
@@ -122725,6 +122753,8 @@
       "dwgRW/facade-method/recordOperationDiagnosticForError-001",
       "dwgRW/fixed-entity/1164-GEOPOSITIONMARKER",
       "dwgRW/parser-publication/dwgRW_fixed-entity_1164-GEOPOSITIONMARKER",
+      "dwgRW/public-inline-method/src_libdwgr.h_dwgRW_0021231ff90d000b7e674f5e86a77bf4370597b07f8fb71238de2f581adceb19",
+      "dwgRW/public-inline-method/src_libdwgr.h_dwgRW_da72fe798ed37397a61ce8141ba8e959a8c9ed287c62f47c93719d54d0881885",
       "dwgRW/public-inline-method/src_libdwgr.h_dwgR_1d63d75bbe4cf516ae735bb0afe00a248d974310967ecd166eba0629ce755268",
       "dwgRW/public-inline-method/src_libdwgr.h_dwgR_2ccf0b4c47c1b5a4c2b8dc013c3a621b11ddb5a46e4cf3e226f4bcf5cb8766c8",
       "dwgRW/public-inline-method/src_libdwgr.h_dwgR_3b8cc629932234c4eaa6774660e79b801f34edd2b10e5dc0e36855868732c106",
@@ -122735,7 +122765,9 @@
       "dwgRW/public-inline-method/src_libdwgr.h_dwgR_cf06df83c1b62f9793814264c2d5f524de013317013f9b0a6de31d2dfb151ce4",
       "dwgRW/public-inline-method/src_libdwgr.h_dwgR_e5d170fca4c606e40323578e834a7688afe027d3a1ba1126d7e9c6cc0176a808",
       "dwgRW/public-inline-method/src_libdwgr.h_dwgR_e5fb576b6f30e37b4dfa25cc35a70fbf6c672384ee33d337065311f44877d845",
+      "dwgRW/public-method/src_libdwgr.h_dwgRW_0021231ff90d000b7e674f5e86a77bf4370597b07f8fb71238de2f581adceb19",
       "dwgRW/public-method/src_libdwgr.h_dwgRW_1d63d75bbe4cf516ae735bb0afe00a248d974310967ecd166eba0629ce755268",
+      "dwgRW/public-method/src_libdwgr.h_dwgRW_da72fe798ed37397a61ce8141ba8e959a8c9ed287c62f47c93719d54d0881885",
       "dwgRW/public-method/src_libdwgr.h_dwgR_1d63d75bbe4cf516ae735bb0afe00a248d974310967ecd166eba0629ce755268",
       "dwgRW/public-method/src_libdwgr.h_dwgR_2ccf0b4c47c1b5a4c2b8dc013c3a621b11ddb5a46e4cf3e226f4bcf5cb8766c8",
       "dwgRW/public-method/src_libdwgr.h_dwgR_3b8cc629932234c4eaa6774660e79b801f34edd2b10e5dc0e36855868732c106",
@@ -122750,7 +122782,9 @@
       "dxfRW/dxf-transport-node/group-code-range-source",
       "dxfRW/facade-method/beginOperationDiagnostic-001",
       "dxfRW/facade-method/dxfCompatibilityProfile-001",
+      "dxfRW/facade-method/failDxfReadBudget-001",
       "dxfRW/facade-method/getLastDiagnostic-001",
+      "dxfRW/facade-method/recordInvalidRawHandleDiagnostic-001",
       "dxfRW/facade-method/recordOperationDiagnostic-001",
       "dxfRW/facade-method/recordOperationDiagnosticForError-001",
       "dxfRW/facade-method/setDxfCompatibilityProfile-001",
@@ -122763,9 +122797,13 @@
       "dxfRW/group-code-raw-rule/DxfValueKind_Str",
       "dxfRW/group-code-raw-rule/DxfValueKind_Unknown",
       "dxfRW/public-enum/src_libdxfrw.h_dxfRW_DxfCompatibilityProfile",
+      "dxfRW/public-inline-method/src_libdxfrw.h_dxfRW_0040f7b89f62146ee157dc175cbd434788a301f3e42f2db4ebaf43da91ee9f75",
+      "dxfRW/public-inline-method/src_libdxfrw.h_dxfRW_cca9ef7732a090e5b5b2a12545c5a1685668d4bc14c98ec73e15cb161a6d1c5b",
+      "dxfRW/public-method/src_libdxfrw.h_dxfRW_0040f7b89f62146ee157dc175cbd434788a301f3e42f2db4ebaf43da91ee9f75",
       "dxfRW/public-method/src_libdxfrw.h_dxfRW_1d63d75bbe4cf516ae735bb0afe00a248d974310967ecd166eba0629ce755268",
       "dxfRW/public-method/src_libdxfrw.h_dxfRW_389effe06056b50f64b56ab4440f8670149d6e876e0488fa23789d3af30ad92f",
       "dxfRW/public-method/src_libdxfrw.h_dxfRW_4061dabb2caef05d2c7effc3bc1ce17f28a22bc3268f34a4ad1b7140e8983eaf",
+      "dxfRW/public-method/src_libdxfrw.h_dxfRW_cca9ef7732a090e5b5b2a12545c5a1685668d4bc14c98ec73e15cb161a6d1c5b",
       "shared/pipeline-unit/src_intern_dxfcode.h",
       "shared/public-alias/src_drw_base.h_DRW_OperationCause",
       "shared/public-alias/src_drw_base.h_DRW_OperationDiagnostic",
@@ -122798,7 +122836,7 @@
     "summary": {
       "deltaOneToOne": 762,
       "exactOneToOne": 4872,
-      "standaloneOnly": 75,
+      "standaloneOnly": 85,
       "targetOnly": 0,
       "targetRows": 5669
     }
@@ -122809,13 +122847,21 @@
         "src/drw_base.h",
         "src/drw_datastorage.cpp",
         "src/drw_entities.cpp",
+        "src/drw_entities.h",
         "src/drw_interface.h",
         "src/drw_objects.cpp",
         "src/intern/drw_dbg.cpp",
+        "src/intern/dwg_dxf_output_transaction.cpp",
+        "src/intern/dwg_dxf_output_transaction.h",
+        "src/intern/dwgbuffer.cpp",
         "src/intern/dwgreader.cpp",
+        "src/intern/dwgreader.h",
+        "src/intern/dwgreader21.cpp",
+        "src/intern/dwgsafety.h",
         "src/intern/dwgutil.h",
         "src/intern/dwgwriter.h",
         "src/intern/dwgwriter15.cpp",
+        "src/intern/dxfparserlimits.h",
         "src/intern/dxfreader.cpp",
         "src/intern/dxfreader.h",
         "src/libdwgr.cpp",
@@ -122824,17 +122870,17 @@
         "src/libdxfrw.h"
       ],
       "allowlistPath": "metadata/adaptation-allowlist.json",
-      "allowlistSha256": "27c3321affc4803e687169a63b07948a3a8e96e810a746d79aec7333ff226566",
+      "allowlistSha256": "00e9d4fbbfe556030b30ada95c4813a0390a1b6519476fcacef1540bb479fc49",
       "schema": 1,
-      "targetCommit": "3c7785ebbcbfc8f3c8f79dbba093aff09cdec753",
+      "targetCommit": "0ffb38d790db53116978e01fcaf94cee9bc6ee48",
       "targetRepository": "git@github.com-librecad:LibreCAD/LibreCAD.git"
     },
     "routeIdentity": {
       "algorithm": "sha256-canonical-json-v1",
       "bodyEvidenceExcluded": true,
       "inventoryDigests": {
-        "standalone": "9c3c0c90036e732a9f6dac05205573aa6cc90d75e1ca4da9f12624da7ca7ce58",
-        "target": "5d5e58ff03fb0f677365ac2db73295cdc6f0b6df9150d99cae6f6b77ad16566a"
+        "standalone": "45a06e6010fe02861bb997b7e9ebdc476a75619962453595a091e013827ae56f",
+        "target": "5c0ad5e9221c95df0c2c056148b88273e9d06a7f3e3fe1c50cc202b51a1f9f78"
       },
       "stableFields": [
         "id",
@@ -122849,7 +122895,7 @@
     "standalone": {
       "baselineCommit": "92d7466ed9146badcd4fb44c82d1dd8302b3c7db",
       "baselineRef": "origin/master",
-      "contentTreeSha256": "e9fd7f38ab9c499663a8a557d3f7bdce3c9d95993ee8e9fd386266a7976ebfbe",
+      "contentTreeSha256": "a93c18e3530b951d1ea59c4f7a3d62d6f46bdbd7b8cfbc5250a54af59eee9482",
       "repository": "git@github.com-librecad:LibreCAD/libdxfrw.git"
     },
     "target": {
@@ -122865,7 +122911,7 @@
       "facade": "dxfRW",
       "path": "parity-source-routes-v1/target-dxfRW.json",
       "routeCount": 1475,
-      "sha256": "a70ba6d68d05f2c576eb3d00369b0b3cc34119d20d275e03315021e4a0411d82",
+      "sha256": "98fcc76b68265eaeb266b897db7114ac71d403236a74b53a6a67bb8bf9e10600",
       "side": "target"
     },
     {
@@ -122879,28 +122925,28 @@
       "facade": "shared",
       "path": "parity-source-routes-v1/target-shared.json",
       "routeCount": 2849,
-      "sha256": "141178517860ea4f9b93da431c9e85262abee180ea12b0ad74bbd56cb6b7fb0f",
+      "sha256": "b270512a1c09bed665de3119edbca2bdc1b4b0530d3fa6305db0de8ce3dee3a8",
       "side": "target"
     },
     {
       "facade": "dxfRW",
       "path": "parity-source-routes-v1/standalone-dxfRW.json",
-      "routeCount": 1462,
-      "sha256": "8215189721d86803a24717bd11879a4b210e2db6be503dd7213626a5c92b2aaf",
+      "routeCount": 1468,
+      "sha256": "986c216fd0c6c07fba6003d62a92b089456b7892c82b2f44401ac026251ae31e",
       "side": "standalone"
     },
     {
       "facade": "dwgRW",
       "path": "parity-source-routes-v1/standalone-dwgRW.json",
-      "routeCount": 1373,
-      "sha256": "a62e9ea5786026cdfa2d45d5ce37cbc148c7246bfef8d47b2d507cd6e8584004",
+      "routeCount": 1377,
+      "sha256": "8a09e794344c4dac8b419af672c1816fe2fd97bf150081c422eef8830a241f7c",
       "side": "standalone"
     },
     {
       "facade": "shared",
       "path": "parity-source-routes-v1/standalone-shared.json",
       "routeCount": 2877,
-      "sha256": "a8b7467bc029fda5da67827bc63b3690c7e1f3b481d729cf0d38ef79ebb5b9f7",
+      "sha256": "e430e6ef53159a7cf79aaab7e521f8aab1709f28f9251eaccec2f2f02c3626a0",
       "side": "standalone"
     }
   ],
@@ -122908,12 +122954,12 @@
     "comparison": {
       "deltaClassCounts": {
         "dwgRW": {
-          "body": 62,
+          "body": 59,
           "condition": 214,
           "selector": 506
         },
         "dxfRW": {
-          "body": 36,
+          "body": 48,
           "selector": 239
         },
         "shared": {
@@ -122923,12 +122969,12 @@
       },
       "dwgRW": {
         "semanticMismatches": 506,
-        "standaloneOnly": 29,
+        "standaloneOnly": 33,
         "targetOnly": 1
       },
       "dxfRW": {
         "semanticMismatches": 239,
-        "standaloneOnly": 24,
+        "standaloneOnly": 30,
         "targetOnly": 37
       },
       "shared": {
@@ -122940,7 +122986,7 @@
     "mapping": {
       "deltaOneToOne": 762,
       "exactOneToOne": 4872,
-      "standaloneOnly": 75,
+      "standaloneOnly": 85,
       "targetOnly": 0,
       "targetRows": 5669
     },
@@ -122961,7 +123007,7 @@
         "dxf-table": 9,
         "dxf-table-dispatch-branch": 9,
         "dxf-transport-node": 17,
-        "facade-method": 505,
+        "facade-method": 507,
         "fixed-entity": 53,
         "fixed-object": 19,
         "group-code-raw-classifier": 1,
@@ -122983,8 +123029,8 @@
         "public-enum": 65,
         "public-header": 10,
         "public-inline-function": 3,
-        "public-inline-method": 660,
-        "public-method": 1058,
+        "public-inline-method": 664,
+        "public-method": 1062,
         "public-model": 259,
         "public-type": 320,
         "publication-stage": 24,
@@ -123008,7 +123054,7 @@
         "writer-pipeline": 7,
         "writer-version": 14
       },
-      "routeCount": 5712
+      "routeCount": 5722
     },
     "target": {
       "categoryCounts": {

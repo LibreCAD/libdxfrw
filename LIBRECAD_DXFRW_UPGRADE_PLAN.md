@@ -1939,6 +1939,15 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
+- Current checkpoint (2026-09-16): S303/J279 route-inventory generator
+  hardening is committed. Sticky-error lifecycle matching now tolerates nested
+  diagnostic blocks, the generated source-route JSON plus six shards were
+  refreshed against target `0ffb38d790db53116978e01fcaf94cee9bc6ee48`, and the
+  support matrix records 85 standalone-only routes with zero target-unmapped
+  rows. Route check, parity aggregate, support matrix, release-readiness,
+  fixture-admission, import-scope, and diff gates pass; no drawing bytes were
+  added. Target-bound differential debt and independent qualification remain
+  open.
 - Current checkpoint (2026-09-15): S302/J278 post-target-refresh full
   validation is committed. A clean normal build and all 28 dependency-free
   CTest entries pass in 5.85s; a rebuilt ASan/UBSan configuration passes all
@@ -3892,6 +3901,7 @@ edit this block or commit the same slice concurrently.
 | S300 | J276: support-documentation refresh | S299 | COMMITTED | stale TU support statement corrected; external-promotion boundary retained; plan/release/fixture/scope/sync/parity/speed/diff gates | `docs/UPGRADE_SUPPORT.md` documents the tested dual TU framing conventions and keeps independent support promotion evidence-gated; no source or drawing bytes changed | target-debt review, independent oracle qualification, native-platform, long-fuzz, package, and release closure |
 | S301 | J277: LibreCAD-master DXF compatibility refresh | S300 | COMMITTED | audited current target tip; seven-file source delta; fast DXF/DWG regression targets; refreshed lock/archive/manifest/provenance metadata; no fixture admission | audited LibreCAD master commit `aacfc3bb0` through target tip `0ffb38d790db53116978e01fcaf94cee9bc6ee48`; ported typed-handle/XDATA, table-cell, spline/surface, linetype/dictionary/sortents, DIMSTYLE, BLOCK, FIELD/FIELDLIST, XRECORD, and proxy compatibility; fast targets and focused CTest selector pass; no drawing bytes added | target-bound differential debt, full validation, and independent-oracle qualification remain open |
 | S302 | J278: post-target-refresh full validation | S301 | COMMITTED | fresh normal and ASan/UBSan builds; all 28 dependency-free CTest entries; macOS leak policy; no fixture changes | normal build and CTest pass 28/28 in 5.85s; ASan/UBSan build and CTest pass 28/28 in 12.92s with `detect_leaks=0`; no drawing bytes changed or added | target-bound differential debt, independent-oracle qualification, native-platform, package, and release closure |
+| S303 | J279: route-inventory generator hardening | S302 | COMMITTED | nested sticky-error diagnostics; regenerated source-route JSON/shards; support-matrix refresh; fast metadata gates; no fixture admission | route extractor now handles nested lifecycle diagnostic blocks; generated inventory and support matrix pass with 5,669 target routes, 5,722 standalone routes, zero target-unmapped rows, and 85 standalone-only rows; no drawing bytes added | target-bound differential debt, independent-oracle qualification, native-platform, package, and release closure |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -4198,6 +4208,7 @@ edit this block or commit the same slice concurrently.
 | J276 | S300 | J275 | COMMITTED | EXPERIMENTAL | Refresh support documentation after TU framing compatibility | Correct the support document's stale TU-deferred statement to reflect S296's dual declared-length reader behavior while preserving the independent-oracle promotion boundary; no fixture or source bytes change |
 | J277 | S301 | J276 | COMMITTED | EXPERIMENTAL | Port the audited LibreCAD-master DXF compatibility delta | Port the seven changed target library files into standalone with explicit adaptations, preserve C++17/`-Werror` and ABI-safe callback behavior, refresh target-bound provenance metadata, and keep all support claims non-promoted until target-bound differential debt is rerun |
 | J278 | S302 | J277 | COMMITTED | EXPERIMENTAL | Revalidate the full suite after the LibreCAD-master refresh | Rebuild normal and ASan/UBSan configurations and run all 28 dependency-free CTest entries after S301; retain the macOS leak-detection limitation, no-fixture policy, and non-promoting target-debt boundary |
+| J279 | S303 | J278 | COMMITTED | EXPERIMENTAL | Harden and regenerate the source-route inventory | Make sticky-error lifecycle matching robust to nested diagnostic blocks, regenerate the route inventory/shards and support matrix from the refreshed target lock, and keep mapping/oracle closure and all support claims non-promoted |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4611,6 +4622,7 @@ edit this block or commit the same slice concurrently.
 | J276.1 | J276 / S300 | WP8, WP10; support documentation | J275 | COMMITTED | EXPERIMENTAL | verify the support document no longer claims TU framing is unresolved and still states the no-fixture and independent-promotion policies | focused plan/release/policy checks pass; no source or drawing bytes changed |
 | J277.1 | J277 / S301 | WP3, WP5, WP7, WP8, WP10; target-refresh DXF compatibility | J276 | COMMITTED | EXPERIMENTAL | port the current LibreCAD-master seven-file DXF delta, update target lock/archive/manifest and target-bound source/oracle provenance, run the focused five-test selector, and admit no new drawing bytes | normal hardening, Wave 1, writer-primitives, DXF-fixture, and DWG-fixture targets pass; sync/import-scope, parity aggregate, inventory/oracle registry, support-matrix, release-readiness, fixture-admission, and diff checks pass; prior DWG debt reports remain old-target evidence and are not promoted |
 | J278.1 | J278 / S302 | WP8, WP10; post-target-refresh full validation | J277 | COMMITTED | EXPERIMENTAL | run the fresh normal and ASan/UBSan builds with all 28 dependency-free CTest entries after S301, using `detect_leaks=0` on macOS and adding no drawing fixtures | normal 28/28 passes in 5.85s and ASan/UBSan 28/28 passes in 12.92s; all policy gates remain green and no drawing bytes changed or were added |
+| J279.1 | J279 / S303 | WP0, WP8, WP10; source-route metadata | J278 | COMMITTED | EXPERIMENTAL | update the nested-brace lifecycle regex, regenerate `metadata/parity-source-routes-v1.json` and its six shards, refresh `metadata/support-matrix-v1.json`, and run route/parity/support/policy gates without adding drawing bytes | extractor `--check`, parity aggregate, support matrix, release-readiness, fixture-admission, import-scope, and diff checks pass; generated metadata reports 5,669 target routes, 5,722 standalone routes, zero target-unmapped rows, and 85 standalone-only rows |
 
 <!-- UPGRADE_PROGRESS_END -->
 
