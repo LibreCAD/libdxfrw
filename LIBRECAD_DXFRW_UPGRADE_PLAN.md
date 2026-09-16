@@ -52,14 +52,14 @@ then pin an immutable commit before importing source.
 ### Execution refresh (2026-09-15)
 
 The implementation worktree is rebased on `origin/master` and is currently
-336 commits ahead with no commits behind it. The target refresh audited
+338 commits ahead with no commits behind it. The target refresh audited
 LibreCAD master commit `aacfc3bb0` (DXF compatibility fixes) through the
 current target tip, ported the seven changed library source/header files, and
 refreshed the target lock, archive, manifest, source-route inventory, oracle
 registry, inventory-input lock, and support-matrix provenance. S304/J280
 reran the reviewed DWG differential-debt reports against the refreshed target
 and reconciled both registries to `0ffb38d790db53116978e01fcaf94cee9bc6ee48`.
-The latest green implementation slice is S309/J285; the hash-only target and
+The latest green implementation slice is S310/J286; the hash-only target and
 independent-oracle advisory checkers are now part of the fast metadata gate.
 Native-platform, long-fuzz, and release-closure evidence remains open.
 The worktree is clean at the last committed boundary; any subsequent active-
@@ -1969,6 +1969,14 @@ edit this block or commit the same slice concurrently.
   policy. No drawing bytes changed or were added; native-platform, long-fuzz,
   and support-promotion evidence remain separate.
 
+- Current checkpoint (2026-09-16): S310/J286 adds a cross-platform CI lane
+  covering Ubuntu, macOS, and Windows. Each runner configures C++17 with docs
+  disabled and dependency-free tests enabled, builds Release (including the
+  `/bigobj` MSVC library branch), and runs the complete CTest topology. This
+  schedules the unavailable native-platform evidence without weakening local
+  gates or adding drawing payloads; hosted execution remains required before
+  that claim can be promoted.
+
 - Current checkpoint (2026-09-16): S305/J281 refreshed package and LibreCAD
   system-consumer validation after the DXF target port. A clean install at a
   fresh prefix passes staged-header, CMake/pkg-config, and relocation checks;
@@ -3582,17 +3590,17 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 309 (`COMMITTED`); no slice is active.
+- Resolved slices: 310 (`COMMITTED`); no slice is active.
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 309 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 310 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 311 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 312 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 409 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 410 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  4 DEFERRED_EXTERNAL / 291 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S309 are committed; no local implementation slice is active.
+  4 DEFERRED_EXTERNAL / 292 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S310 are committed; no local implementation slice is active.
   Remaining work is evidence-gated runtime/oracle and release closure; keep
   the fast inner loop and do not promote support claims from self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -3956,6 +3964,7 @@ edit this block or commit the same slice concurrently.
 | S307 | J283: self-check expanded advisory differential | S306 | COMMITTED | strict report schema/provenance/counter checker; negative tamper self-tests; CTest hook; plan/scope/sync/fixture gates; no fixture admission | `check_target_advisory_differential.py` validates the 21-row report, exact equal relation/byte/semantic counters, target/corpus provenance, hash/size fields, and tamper rejection; CTest integration is metadata-only and no drawing bytes are read or staged | independent-oracle qualification, native-platform, long-fuzz, and release closure |
 | S308 | J284: independent LibreDWG advisory differential | S307 | COMMITTED | external LibreDWG 0.14 reader; 21 top-level committed LibreCAD DWGs; 10-second per-input bound; hash/status-only report; checker/CTest; no fixture admission | LibreDWG `dwg2dxf 0.14` converts all 21 selected inputs successfully; metadata records source/output hashes, sizes, versions, and status with explicit external provenance; checker self-test/live validation and CTest pass; no drawing bytes added and no broad support claim promoted | native-platform, long-fuzz, independent semantic oracle, and release closure |
 | S309 | J285: cumulative full validation after advisory gates | S308 | COMMITTED | fresh normal and ASan/UBSan builds; all current dependency-free CTest entries; macOS leak policy; no fixture changes | normal build and CTest pass 30/30 in 4.43 seconds; ASan/UBSan build and CTest pass 30/30 in 6.86 seconds with `detect_leaks=0`; new advisory checkers and existing parser/writer/fixture/policy tests remain green; no drawing bytes added | native-platform, long-fuzz, independent semantic oracle, and release closure |
+| S310 | J286: cross-platform CI build/test lane | S309 | COMMITTED | GitHub Actions Ubuntu/macOS/Windows matrix; C++17 Release build; MSVC `/bigobj`; dependency-free CTest; docs disabled; no fixture admission | `.github/workflows/build.yml` configures and builds all three hosted platforms and runs the complete CTest topology; Windows/MSVC and hosted-run evidence remain externally pending, while the workflow introduces no drawing payloads or local gate bypasses | native-platform, long-fuzz, independent semantic oracle, and release closure |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -4269,6 +4278,7 @@ edit this block or commit the same slice concurrently.
 | J283 | S307 | J282 | COMMITTED | EXPERIMENTAL | Make the expanded advisory differential self-checking | Add a strict metadata checker and CTest hook that validates report provenance, row-derived counters, exact equality, bounded runner identity, and tamper-negative behavior while retaining only hashes/summaries and never admitting drawing payloads |
 | J284 | S308 | J283 | COMMITTED | DEFERRED_EXTERNAL | Run the independent LibreDWG advisory differential | Use LibreDWG 0.14 to convert the same 21 top-level committed LibreCAD testdata DWGs under a ten-second bound, retain only non-reconstructive hashes/status metadata, validate the report with a strict checker, and keep all evidence external/advisory without promoting support claims |
 | J285 | S309 | J284 | COMMITTED | EXPERIMENTAL | Revalidate the complete current test topology | Rebuild normal and ASan/UBSan configurations after adding the advisory checkers and run all current dependency-free CTest entries once; retain timings, the macOS leak-detection limitation, and no-fixture evidence while keeping platform, long-fuzz, and support-promotion requirements separate |
+| J286 | S310 | J285 | COMMITTED | EXPERIMENTAL | Add a cross-platform build/test workflow | Configure C++17 with docs disabled and tests enabled on Ubuntu, macOS, and Windows hosted runners; build Release (including the MSVC `/bigobj` path) and run the complete CTest topology, keeping hosted results external until CI executes and retaining the no-fixture policy |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4689,6 +4699,7 @@ edit this block or commit the same slice concurrently.
 | J283.1 | J283 / S307 | WP8, WP10; advisory report integrity | J282 | COMMITTED | EXPERIMENTAL | validate the checked-in expanded advisory report with strict schema/provenance/counter checks, reject tampered equal rows and counters in self-tests, and register the checker as a metadata-only CTest | checker self-test and live report validation pass; report remains 21 equal relation/byte/semantic rows with hashes/summaries only, and no drawing payloads are read or staged |
 | J284.1 | J284 / S308 | WP5, WP8, WP10; independent LibreDWG advisory differential | J283 | COMMITTED | DEFERRED_EXTERNAL | run LibreDWG `dwg2dxf 0.14` over the 21 top-level committed LibreCAD testdata DWGs with a ten-second per-input bound, discard temporary DXF payloads, and validate the resulting source/output hash report | 21/21 independent conversions succeed; strict checker self-test/live validation and CTest pass; report stores hashes/statuses only, names external corpus commit `3c028612dd8e75d98692ac346635c190500eea94`, and does not promote format support |
 | J285.1 | J285 / S309 | WP8, WP10; cumulative full validation checkpoint | J284 | COMMITTED | EXPERIMENTAL | rebuild and run the complete current dependency-free CTest topology in normal and ASan/UBSan configurations after the advisory checker additions, using `detect_leaks=0` on macOS and adding no drawing fixtures | normal 30/30 CTest passes in 4.43 seconds; ASan/UBSan 30/30 passes in 6.86 seconds; no drawing bytes changed or were added and native-platform/long-fuzz/support-promotion evidence remains separate |
+| J286.1 | J286 / S310 | WP8, WP10; native-platform CI readiness | J285 | COMMITTED | EXPERIMENTAL | add and statically validate the Ubuntu/macOS/Windows GitHub Actions matrix, with C++17 Release configuration, docs disabled, `/bigobj` covered by the existing MSVC target branch, and complete CTest invocation | workflow is present with least-privilege read-only contents permission, fail-fast disabled, all three OSes, and build/test steps; hosted Windows/MSVC execution remains the explicit promotion gate and no drawing payloads are added |
 
 <!-- UPGRADE_PROGRESS_END -->
 
