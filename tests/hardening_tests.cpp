@@ -220,6 +220,11 @@ public:
     using DRW_DimensionAssociation::parseCode;
 };
 
+class ExposedPointCloudColorMap : public DRW_PointCloudColorMap {
+public:
+    using DRW_PointCloudColorMap::parseCode;
+};
+
 template <typename Entity>
 bool parseDxfRecords(Entity& entity, const std::string& source) {
     std::stringstream records(source);
@@ -319,6 +324,8 @@ void testPublicOwnershipContracts(TestContext& t) {
                   "DRW_EvaluationGraph copy contract");
     static_assert(std::is_copy_constructible<DRW_DimensionAssociation>::value,
                   "DRW_DimensionAssociation copy contract");
+    static_assert(std::is_copy_constructible<DRW_PointCloudColorMap>::value,
+                  "DRW_PointCloudColorMap copy contract");
     static_assert(std::is_copy_constructible<DRW_Attrib>::value,
                   "DRW_Attrib copy contract");
     static_assert(std::is_copy_constructible<DRW_GeoPositionMarker>::value,
@@ -1419,6 +1426,69 @@ void testPublicOwnershipContracts(TestContext& t) {
                  && assignedDimAssocFresh && assignedDimAssoc.m_dimensionHandle == 0xA5u
                  && assignedDimAssoc.m_osnapRefs.size() == 1u,
              "DIMASSOC assignment clears body parser state");
+
+    const std::string pointCloudColorMapBody =
+        "100\nAcDbPointCloudColorMap\n90\n7\n"
+        "1\nintensity\n1\nelevation\n1\nclassification\n"
+        "91\n2\n90\n3\n1\nramp-one\n";
+    ExposedPointCloudColorMap partialPointCloudColorMap;
+    t.expect(parseDxfRecords(partialPointCloudColorMap,
+                             pointCloudColorMapBody)
+                 && partialPointCloudColorMap.m_classVersion == 7
+                 && partialPointCloudColorMap.m_defaultIntensityColorScheme
+                        == "intensity"
+                 && partialPointCloudColorMap.m_colorRamps.size() == 1u
+                 && partialPointCloudColorMap.m_colorRamps.front()
+                            .m_classVersion
+                        == 3
+                 && partialPointCloudColorMap.m_colorRamps.front()
+                            .m_colorSchemes.front()
+                        == "ramp-one",
+             "POINTCLOUDCOLORMAP parser state source setup");
+    ExposedPointCloudColorMap copiedPointCloudColorMap(
+        partialPointCloudColorMap);
+    const bool copiedPointCloudColorMapStale = parseDxfRecords(
+        copiedPointCloudColorMap, "1\nstale-default\n");
+    const bool copiedPointCloudColorMapFresh = parseDxfRecords(
+        copiedPointCloudColorMap,
+        "100\nAcDbPointCloudColorMap\n70\n1\n91\n1\n90\n4\n"
+        "1\nclass-ramp\n");
+    t.expect(copiedPointCloudColorMapStale
+                 && copiedPointCloudColorMap.m_defaultIntensityColorScheme
+                        == "stale-default"
+                 && copiedPointCloudColorMap.m_colorRamps.size() == 1u
+                 && copiedPointCloudColorMap.m_colorRamps.front()
+                            .m_colorSchemes.front()
+                        == "ramp-one"
+                 && copiedPointCloudColorMapFresh
+                 && copiedPointCloudColorMap.m_classificationColorRamps.size()
+                        == 1u
+                 && copiedPointCloudColorMap.m_classificationColorRamps.front()
+                            .m_colorSchemes.front()
+                        == "class-ramp",
+             "POINTCLOUDCOLORMAP copy clears ramp/default parser state");
+    ExposedPointCloudColorMap assignedPointCloudColorMap;
+    assignedPointCloudColorMap = partialPointCloudColorMap;
+    const bool assignedPointCloudColorMapStale = parseDxfRecords(
+        assignedPointCloudColorMap, "1\nassigned-default\n");
+    const bool assignedPointCloudColorMapFresh = parseDxfRecords(
+        assignedPointCloudColorMap,
+        "100\nAcDbPointCloudColorMap\n70\n1\n91\n1\n90\n5\n"
+        "1\nassigned-ramp\n");
+    t.expect(assignedPointCloudColorMapStale
+                 && assignedPointCloudColorMap.m_defaultIntensityColorScheme
+                        == "assigned-default"
+                 && assignedPointCloudColorMap.m_colorRamps.size() == 1u
+                 && assignedPointCloudColorMap.m_colorRamps.front()
+                            .m_colorSchemes.front()
+                        == "ramp-one"
+                 && assignedPointCloudColorMapFresh
+                 && assignedPointCloudColorMap.m_classificationColorRamps.size()
+                        == 1u
+                 && assignedPointCloudColorMap.m_classificationColorRamps.front()
+                            .m_colorSchemes.front()
+                        == "assigned-ramp",
+             "POINTCLOUDCOLORMAP assignment clears ramp/default parser state");
 
     DRW_Dimension sourceDimension;
     sourceDimension.extData.push_back(

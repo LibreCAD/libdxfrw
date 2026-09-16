@@ -3655,6 +3655,37 @@ public:
   static constexpr std::size_t kMaxColorSchemeLength = 1u << 20;
 
   DRW_PointCloudColorMap() { reset(); }
+  DRW_PointCloudColorMap(const DRW_PointCloudColorMap& o):
+      DRW_TableEntry(o), m_classVersion(o.m_classVersion),
+      m_defaultIntensityColorScheme(o.m_defaultIntensityColorScheme),
+      m_defaultElevationColorScheme(o.m_defaultElevationColorScheme),
+      m_defaultClassificationColorScheme(o.m_defaultClassificationColorScheme),
+      m_colorRampCount(o.m_colorRampCount), m_colorRamps(o.m_colorRamps),
+      m_classificationColorRampCount(o.m_classificationColorRampCount),
+      m_classificationColorRamps(o.m_classificationColorRamps),
+      m_dxfClassification(false), m_dxfActiveRamp(-1),
+      m_dxfDefaultSchemeCount(0) {
+    tType = DRW::POINTCLOUDCOLORMAP;
+  }
+  DRW_PointCloudColorMap& operator=(const DRW_PointCloudColorMap& o) {
+    if (this != &o) {
+      DRW_TableEntry::operator=(o);
+      m_classVersion = o.m_classVersion;
+      m_defaultIntensityColorScheme = o.m_defaultIntensityColorScheme;
+      m_defaultElevationColorScheme = o.m_defaultElevationColorScheme;
+      m_defaultClassificationColorScheme =
+          o.m_defaultClassificationColorScheme;
+      m_colorRampCount = o.m_colorRampCount;
+      m_colorRamps = o.m_colorRamps;
+      m_classificationColorRampCount = o.m_classificationColorRampCount;
+      m_classificationColorRamps = o.m_classificationColorRamps;
+      m_dxfClassification = false;
+      m_dxfActiveRamp = -1;
+      m_dxfDefaultSchemeCount = 0;
+      tType = DRW::POINTCLOUDCOLORMAP;
+    }
+    return *this;
+  }
   void reset();
 
   std::int32_t m_classVersion = 0; /*!< code 90 / DWG BS */
