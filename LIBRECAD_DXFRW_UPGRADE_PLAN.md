@@ -60,10 +60,11 @@ refreshed the target lock, archive, manifest, source-route inventory, oracle
 registry, inventory-input lock, and support-matrix provenance. S304/J280
 reran the reviewed DWG differential-debt reports against the refreshed target
 and reconciled both registries to `0ffb38d790db53116978e01fcaf94cee9bc6ee48`.
-The latest green implementation slice is S373/J349; it records the current
-support-policy and release-documentation boundary after the installed-package
-consumer fast-test proof.  The docs now publish separate DWG/DXF route totals,
-zero qualified/advertised rows, the CMake/C++17 2.0.0 support surface, and the
+The latest green implementation slice is S374/J350; it hardens the fast
+release-readiness gate so required support/build-policy markers in
+`docs/UPGRADE_SUPPORT.md` and `README.md` cannot drift from the executable
+support matrix.  The docs publish separate DWG/DXF route totals, zero
+qualified/advertised rows, the CMake/C++17 2.0.0 support surface, and the
 deprecated legacy-generator policy.
 Native-platform, long-fuzz, and release-closure evidence remains open.
 The worktree is clean at the last committed boundary; any subsequent active-
@@ -2199,6 +2200,12 @@ edit this block or commit the same slice concurrently.
   generator boundary.  `README.md` now points users to the supported CMake
   workflow.  No source or drawing bytes changed.
 
+- Current checkpoint (2026-09-16): S374/J350 makes release documentation
+  drift fail closed.  `check_release_readiness.py` now validates required
+  route-count, support-status, support-axis, build-policy, version-boundary,
+  and deprecation markers in both release-facing documents; its self-test and
+  live gate pass.  No source or drawing bytes changed.
+
 - Current checkpoint (2026-09-16): S329/J305 compound-entity graph ownership
   is committed.  Explicit copies now clone legacy POLYLINE vertices, SPLINE
   control/fit points, and INSERT attributes while resetting parser cursors;
@@ -3902,20 +3909,20 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 373 (`COMMITTED`); no slice is active.
+- Resolved slices: 374 (`COMMITTED`); no slice is active.
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 373 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 374 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 375 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 376 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 VERIFIED / 0 SUPERSEDED / 476 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 VERIFIED / 0 SUPERSEDED / 477 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  6 DEFERRED_EXTERNAL / 364 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S373 and J329/J329.1/J330/J330.1/J331/J331.1/J332/J332.1/
+  6 DEFERRED_EXTERNAL / 365 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S374 and J329/J329.1/J330/J330.1/J331/J331.1/J332/J332.1/
   J333/J333.1/J334/J334.1/J335/J335.1/J336/J336.1/J337/J337.1/J338/J338.1/
   J339/J339.1/J340/J340.1/J341/J341.1/J342/J342.1/J343/J343.1/J344/J344.1/
-  J345/J345.1/J346/J346.1/J347/J347.1/J348/J348.1/J349/J349.1 are committed; no local implementation
+  J345/J345.1/J346/J346.1/J347/J347.1/J348/J348.1/J349/J349.1/J350/J350.1 are committed; no local implementation
   slice is active.
   Keep the fast inner loop and do not promote support claims from
   self-read alone.
@@ -4344,6 +4351,7 @@ edit this block or commit the same slice concurrently.
 | S371 | J347: installed-package and LibreCAD system-consumer revalidation | S370 | COMMITTED | staged package relocation; system-mode LibreCAD configure/build; system target availability; plan; fixture; diff | fresh staged prefix passes `check_staged_package.py --relocation-smoke`; LibreCAD system mode selects staged `libdxfrw` and builds `librecad_lib`; optional `libdxfrw_system_fast_tests` target is absent in this checkout; no drawing bytes or derived fixtures changed | finish package/consumer evidence, verify child, commit plan report with trailers, and recompute the next ready queue |
 | S372 | J348: registered LibreCAD system fast-test validation | S371 | COMMITTED | fresh `BUILD_TESTS=ON` system-package configure; `libdxfrw_system_fast_tests`; `librecad_filter_compile_check`; plan; fixture; diff | fresh pinned LibreCAD system-package build defines and builds both targets; `libdxfrw_system_fast_tests` passes 176 assertions in 12 cases; no drawing bytes or derived fixtures changed | continue with native-platform, long-fuzz, external-oracle, and format-support promotion closure |
 | S373 | J349: support-policy and release-documentation reconciliation | S372 | COMMITTED | support/readiness documentation; CMake/C++17 release policy; system-consumer evidence; plan; fixture; diff | `docs/UPGRADE_SUPPORT.md` and `README.md` distinguish support axes, publish current route totals and zero promotion, record the system fast-test proof, and state the deprecated legacy-generator boundary; no source or drawing bytes changed | continue with native-platform, long-fuzz, external-oracle, and format-support promotion closure |
+| S374 | J350: release-documentation drift guard | S373 | COMMITTED | release-readiness self-test/live gate; documentation marker audit; plan; fixture; diff | `check_release_readiness.py` self-test and live gate verify required support/build/version/deprecation markers in `docs/UPGRADE_SUPPORT.md` and `README.md`; no source or drawing bytes changed | continue with native-platform, long-fuzz, external-oracle, and format-support promotion closure |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -4721,6 +4729,7 @@ edit this block or commit the same slice concurrently.
 | J347 | S371 | J346 | COMMITTED | EXPERIMENTAL | Revalidate staged package and LibreCAD system consumer | Install the current build into a fresh prefix, run relocation smoke, configure LibreCAD with `LIBRECAD_USE_SYSTEM_LIBDXFRW=ON`, and build `librecad_lib`; record the unavailable optional fast-test target without overstating coverage; no fixture changes |
 | J348 | S372 | J347 | COMMITTED | EXPERIMENTAL | Validate registered LibreCAD system fast tests | Configure the pinned LibreCAD checkout with `BUILD_TESTS=ON`, `LIBRECAD_USE_SYSTEM_LIBDXFRW=ON`, and format/integration test registration enabled; build `libdxfrw_system_fast_tests` and `librecad_filter_compile_check`, then run the installed-package fast test without changing fixtures |
 | J349 | S373 | J348 | COMMITTED | EXPERIMENTAL | Reconcile support-policy and release documentation | Update `docs/UPGRADE_SUPPORT.md` and `README.md` with separate DWG/DXF route totals, zero qualified/advertised rows, the system fast-test evidence, supported CMake/C++17 2.0.0 workflow, and deprecated legacy-generator policy without changing source or drawing bytes |
+| J350 | S374 | J349 | COMMITTED | EXPERIMENTAL | Guard release-documentation drift | Extend `check_release_readiness.py` with fail-closed marker checks for route totals, support axes/status, CMake/C++17 policy, package/banner version boundary, and deprecated generator policy in both release-facing documents; run self-test and live gate without drawing bytes |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -5204,6 +5213,7 @@ edit this block or commit the same slice concurrently.
 | J347.1 | J347 / S371 | WP2, WP8, WP10; installed-package and LibreCAD system-consumer revalidation | J346 | COMMITTED | EXPERIMENTAL | run `check_staged_package.py --relocation-smoke` on a fresh prefix and build LibreCAD `librecad_lib` against the staged package; record that `libdxfrw_system_fast_tests` is not a target in the checkout | staged package relocation smoke passes; system-mode configure selects staged `libdxfrw` and `librecad_lib` builds successfully; optional fast-test target is unavailable; no drawing bytes or derived fixtures changed |
 | J348.1 | J348 / S372 | WP2, WP8, WP10; registered system fast-test consumer | J347 | COMMITTED | EXPERIMENTAL | configure the pinned LibreCAD system-package consumer with `BUILD_TESTS=ON` and format/integration registration, build `libdxfrw_system_fast_tests` plus `librecad_filter_compile_check`, and run the installed-package fast test without drawing fixtures | fresh configure and both target builds pass; `libdxfrw_system_fast_tests` passes 176 assertions in 12 cases; no drawing bytes or derived fixtures changed |
 | J349.1 | J349 / S373 | WP1, WP8, WP10; release documentation and support policy | J348 | COMMITTED | EXPERIMENTAL | update support and build documentation from the current support matrix and system-consumer evidence, explicitly separate package/ABI version from the legacy DXF banner, and state the no-fixture/deprecated-generator policies | documentation audit and plan/fixture/scope/sync/route/aggregate/support/release/speed/diff gates pass; no source or drawing bytes changed |
+| J350.1 | J350 / S374 | WP1, WP8, WP10; release documentation drift guard | J349 | COMMITTED | EXPERIMENTAL | assert `check_release_readiness.py` rejects missing release-policy markers and accepts the current `docs/UPGRADE_SUPPORT.md`/`README.md` contract, then run the live release gate without drawing bytes | checker self-test and live release-readiness gate pass; no source or drawing bytes changed |
 | J313.1 | J313 / S337 | WP3.11-WP3.12, WP8, WP10; TABLE parser-state copy isolation | J312 | COMMITTED | EXPERIMENTAL | assert copied and assigned TABLE models accept fresh subclass/grid dimensions after a partial source parse while preserving public table content; keep all inputs in memory | focused `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures |
 
 <!-- UPGRADE_PROGRESS_END -->

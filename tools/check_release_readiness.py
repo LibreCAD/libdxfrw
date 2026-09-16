@@ -23,6 +23,26 @@ class ReleaseError(ValueError):
     pass
 
 
+DOCUMENTATION_REQUIREMENTS = {
+    "docs/UPGRADE_SUPPORT.md": (
+        "1,345 `dwgRW`",
+        "1,475 `dxfRW`",
+        "`QUALIFIED_FORMAT_PARITY`",
+        "dispatch, decode",
+        "derived rendering",
+        "`BUILD_TESTS=ON`",
+        "`DRW_VERSION`",
+        "deprecated",
+    ),
+    "README.md": (
+        "C++17",
+        "CMake is the supported 2.x build",
+        "LIBDXFRW_BUILD_TESTS=ON",
+        "deprecated",
+    ),
+}
+
+
 def read_json(path: Path) -> dict:
     try:
         value = json.loads(path.read_text(encoding="utf-8"))
@@ -33,7 +53,24 @@ def read_json(path: Path) -> dict:
     return value
 
 
+def validate_documentation(root: Path) -> None:
+    """Keep release-facing documentation aligned with the support policy."""
+    for relative, markers in DOCUMENTATION_REQUIREMENTS.items():
+        path = root / relative
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeError) as exc:
+            raise ReleaseError("cannot read release documentation %s: %s" %
+                               (path, exc)) from exc
+        missing = [marker for marker in markers if marker not in text]
+        if missing:
+            raise ReleaseError(
+                "%s is missing release-policy markers: %s" %
+                (path, ", ".join(missing)))
+
+
 def validate_release(plan_path: Path, mapping_path: Path, registry_path: Path, manifest_path: Path, support_matrix_path: Path) -> None:
+    validate_documentation(plan_path.parent)
     slices, parents, children = validate(plan_path.read_text(encoding="utf-8"))
     required_committed_slices = {"S%02d" % number for number in range(1, 23)}
     missing_slices = sorted(item for item in required_committed_slices if slices.get(item, {}).get("state") != "COMMITTED")
@@ -79,6 +116,7 @@ def validate_release(plan_path: Path, mapping_path: Path, registry_path: Path, m
 
 def self_test() -> None:
     assert Counter(["dxfRW", "dwgRW", "dxfRW"])["dxfRW"] == 2
+    assert len(DOCUMENTATION_REQUIREMENTS) == 2
     print("check_release_readiness self-test: PASS")
 
 
