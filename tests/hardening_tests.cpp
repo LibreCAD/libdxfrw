@@ -2323,6 +2323,38 @@ public:
     using DRW_MLeader::parseCode;
 };
 
+void testMLeaderParserStateCopyIsolation(TestContext& t) {
+    std::stringstream records("300\nCONTEXT_DATA{\n302\nLEADER{\n");
+    std::unique_ptr<dxfReader> reader =
+        std::make_unique<dxfReaderAscii>(&records);
+    ExposedMLeader partial;
+    int code = 0;
+    bool parseOk = true;
+    while (reader->readRec(&code)) {
+        if (code == 0)
+            continue;
+        parseOk = partial.parseCode(code, reader) && parseOk;
+    }
+    t.expect(parseOk && !partial.isDxfContextClosed()
+                 && partial.context.roots.size() == 1u,
+             "MULTILEADER partial parse records an open context state");
+
+    ExposedMLeader copied(partial);
+    t.expect(copied.isDxfContextClosed()
+                 && copied.context.roots.size() == 1u,
+             "MULTILEADER copy resets transient context state");
+
+    ExposedMLeader assigned;
+    assigned = partial;
+    t.expect(assigned.isDxfContextClosed()
+                 && assigned.context.roots.size() == 1u,
+             "MULTILEADER assignment resets transient context state");
+
+    copied.context.roots.front().connectionPoint.x = 42.0;
+    t.expect(partial.context.roots.front().connectionPoint.x != 42.0,
+             "MULTILEADER copy keeps context graph value ownership isolated");
+}
+
 void testMLeaderDxfContextRoundTrip(TestContext& t) {
     DRW_MLeader source;
     source.handle = 0xA100u;
@@ -2518,6 +2550,7 @@ int main() {
     testDwgReadResetsVersionState(context);
     testDxfAggregateRecordBudget(context);
     testDwgAggregateObjectBudget(context);
+    testMLeaderParserStateCopyIsolation(context);
     testMLeaderDxfContextRoundTrip(context);
     if (context.failures != 0) {
         std::cerr << context.failures << " hardening assertion(s) failed\n";

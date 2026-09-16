@@ -4554,6 +4554,10 @@ public:
     DRW_MLeader() {
         eType = DRW::MLEADER;
     }
+    DRW_MLeader(const DRW_MLeader&);
+    DRW_MLeader& operator=(const DRW_MLeader&);
+    DRW_MLeader(DRW_MLeader&&) noexcept;
+    DRW_MLeader& operator=(DRW_MLeader&&) noexcept;
 
     virtual void applyExtrusion() override {}
 

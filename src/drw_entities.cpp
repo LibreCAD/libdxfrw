@@ -21328,6 +21328,87 @@ static bool encodeMLeaderAnnotContext(DRW::Version version, dwgBufferW *buf,
     return true;
 }
 
+DRW_MLeader::DRW_MLeader(const DRW_MLeader& o)
+    : DRW_Entity(o), context(o.context), classVersion(o.classVersion),
+      styleHandle(o.styleHandle), overrideFlags(o.overrideFlags),
+      leaderType(o.leaderType), leaderColor(o.leaderColor),
+      leaderLineTypeHandle(o.leaderLineTypeHandle),
+      leaderLineWeight(o.leaderLineWeight),
+      landingEnabled(o.landingEnabled), doglegEnabled(o.doglegEnabled),
+      landingDistance(o.landingDistance), arrowHeadHandle(o.arrowHeadHandle),
+      defaultArrowHeadSize(o.defaultArrowHeadSize),
+      styleContentType(o.styleContentType),
+      styleTextStyleHandle(o.styleTextStyleHandle),
+      styleLeftAttach(o.styleLeftAttach), styleRightAttach(o.styleRightAttach),
+      styleTextAngleType(o.styleTextAngleType), unknown175(o.unknown175),
+      styleTextColor(o.styleTextColor),
+      styleTextFrameEnabled(o.styleTextFrameEnabled),
+      styleBlockHandle(o.styleBlockHandle), styleBlockColor(o.styleBlockColor),
+      styleBlockScale(o.styleBlockScale),
+      styleBlockRotation(o.styleBlockRotation),
+      styleAttachmentType(o.styleAttachmentType), isAnnotative(o.isAnnotative),
+      arrowHeads(o.arrowHeads), blockLabels(o.blockLabels),
+      isTextDirectionNegative(o.isTextDirectionNegative), ipeAlign(o.ipeAlign),
+      justification(o.justification), scaleFactor(o.scaleFactor),
+      attachmentDirection(o.attachmentDirection),
+      styleTopAttach(o.styleTopAttach), styleBottomAttach(o.styleBottomAttach),
+      leaderExtendedToText(o.leaderExtendedToText), m_dxfCtxState(0),
+      m_dxfBlockTransformIndex(0), m_dxfMLeaderSubclassSeen(false) {}
+
+DRW_MLeader& DRW_MLeader::operator=(const DRW_MLeader& o) {
+    if (this != &o) {
+        DRW_Entity::operator=(o);
+        context = o.context;
+        classVersion = o.classVersion;
+        styleHandle = o.styleHandle;
+        overrideFlags = o.overrideFlags;
+        leaderType = o.leaderType;
+        leaderColor = o.leaderColor;
+        leaderLineTypeHandle = o.leaderLineTypeHandle;
+        leaderLineWeight = o.leaderLineWeight;
+        landingEnabled = o.landingEnabled;
+        doglegEnabled = o.doglegEnabled;
+        landingDistance = o.landingDistance;
+        arrowHeadHandle = o.arrowHeadHandle;
+        defaultArrowHeadSize = o.defaultArrowHeadSize;
+        styleContentType = o.styleContentType;
+        styleTextStyleHandle = o.styleTextStyleHandle;
+        styleLeftAttach = o.styleLeftAttach;
+        styleRightAttach = o.styleRightAttach;
+        styleTextAngleType = o.styleTextAngleType;
+        unknown175 = o.unknown175;
+        styleTextColor = o.styleTextColor;
+        styleTextFrameEnabled = o.styleTextFrameEnabled;
+        styleBlockHandle = o.styleBlockHandle;
+        styleBlockColor = o.styleBlockColor;
+        styleBlockScale = o.styleBlockScale;
+        styleBlockRotation = o.styleBlockRotation;
+        styleAttachmentType = o.styleAttachmentType;
+        isAnnotative = o.isAnnotative;
+        arrowHeads = o.arrowHeads;
+        blockLabels = o.blockLabels;
+        isTextDirectionNegative = o.isTextDirectionNegative;
+        ipeAlign = o.ipeAlign;
+        justification = o.justification;
+        scaleFactor = o.scaleFactor;
+        attachmentDirection = o.attachmentDirection;
+        styleTopAttach = o.styleTopAttach;
+        styleBottomAttach = o.styleBottomAttach;
+        leaderExtendedToText = o.leaderExtendedToText;
+
+        // These fields only describe an in-progress DXF CONTEXT_DATA walk.
+        // A copied model is a fresh parse destination, never a continuation
+        // of the source or destination parser state.
+        m_dxfCtxState = 0;
+        m_dxfBlockTransformIndex = 0;
+        m_dxfMLeaderSubclassSeen = false;
+    }
+    return *this;
+}
+
+DRW_MLeader::DRW_MLeader(DRW_MLeader&&) noexcept = default;
+DRW_MLeader& DRW_MLeader::operator=(DRW_MLeader&&) noexcept = default;
+
 void DRW_MLeader::resetDwgState() {
     DRW_Entity::reset();
     context = DRW_MLeaderAnnotContext{};

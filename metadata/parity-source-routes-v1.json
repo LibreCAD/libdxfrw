@@ -5925,6 +5925,10 @@
         "shared/public-method/src_drw_entities.h_DRW_Line_26c6a0cb411e543fa0bd9eec513739b4cadb30bf14b6a761b55880f3b6727ed1",
         "shared/public-method/src_drw_entities.h_DRW_LoftedSurface_1fb0f793f20a57a1df06f6fb2cecb5b24c037b1bc20cbf423c9a90c68965d516",
         "shared/public-method/src_drw_entities.h_DRW_LoftedSurface_2b7fbe49eb19563b2f7fafd3a394a3d611f38b095801d2ca9287b717c8da5fdc",
+        "shared/public-method/src_drw_entities.h_DRW_MLeader_0b6dd35368edfffbe24d9befd8b878c95e475ec78c3c933bbc8fcf79a61f4758",
+        "shared/public-method/src_drw_entities.h_DRW_MLeader_3ed2a0359c028b21a044a0bdccfc4d009581887e7e1fdb80f5d4b515f88457d9",
+        "shared/public-method/src_drw_entities.h_DRW_MLeader_758da24e826a690a67aca86488952309e025edf15525f17a1f5da7b2d80ace5d",
+        "shared/public-method/src_drw_entities.h_DRW_MLeader_a2a6f3827e7f1c97065fd806cd1b47554a94246f2f786ea2b7bc8c34aa821115",
         "shared/public-method/src_drw_entities.h_DRW_MLine_503e81578d060eadba2289b5812d984480ce6e153f61448bc451ee997e803596",
         "shared/public-method/src_drw_entities.h_DRW_MLine_9b91b6e9d05f2ea91d54caadc3ac5d015a45c30cb663d37095ea54adaf61adf8",
         "shared/public-method/src_drw_entities.h_DRW_MLine_fac310b1bf536631c254626fb1367652386fa6009513741ab078ea4bc3fd1b22",
@@ -6165,7 +6169,7 @@
   },
   "inputs": {
     "standalone": {
-      "contentTreeSha256": "ad84950692a87701883a21b2186cf7d3cdd75f4c9ca1ecdc5dd77c5dceae4778",
+      "contentTreeSha256": "fef82e2dfcbc076fcb4627fe9bcce0efa119ca7635571856ed53a83066d6ded0",
       "files": [
         {
           "mode": "100644",
@@ -6210,12 +6214,12 @@
         {
           "mode": "100644",
           "path": "src/drw_entities.cpp",
-          "sha256": "9900194f9f94e63a524a069d4cdfed1d31c5b4316e017bc32a8bfbf42bfaa00e"
+          "sha256": "4255a823d18541a7a46d542b83f454c9e4142e0ca005701e37e144b4f0d81bd2"
         },
         {
           "mode": "100644",
           "path": "src/drw_entities.h",
-          "sha256": "6d4caa0dd98cad417943a645ebf521a7e002bc75fe116b7230b03b46e8fbfb92"
+          "sha256": "6e1d1100558db6c4cd5575e63dd25ead4778291f962de2130960b7abd64a3696"
         },
         {
           "mode": "100644",
@@ -123724,6 +123728,10 @@
       "shared/public-method/src_drw_entities.h_DRW_Leader_c3426e1baeb842d6e531ffc339001e864e74c2b175f10a66756d59b564c07980",
       "shared/public-method/src_drw_entities.h_DRW_LoftedSurface_1fb0f793f20a57a1df06f6fb2cecb5b24c037b1bc20cbf423c9a90c68965d516",
       "shared/public-method/src_drw_entities.h_DRW_LoftedSurface_2b7fbe49eb19563b2f7fafd3a394a3d611f38b095801d2ca9287b717c8da5fdc",
+      "shared/public-method/src_drw_entities.h_DRW_MLeader_0b6dd35368edfffbe24d9befd8b878c95e475ec78c3c933bbc8fcf79a61f4758",
+      "shared/public-method/src_drw_entities.h_DRW_MLeader_3ed2a0359c028b21a044a0bdccfc4d009581887e7e1fdb80f5d4b515f88457d9",
+      "shared/public-method/src_drw_entities.h_DRW_MLeader_758da24e826a690a67aca86488952309e025edf15525f17a1f5da7b2d80ace5d",
+      "shared/public-method/src_drw_entities.h_DRW_MLeader_a2a6f3827e7f1c97065fd806cd1b47554a94246f2f786ea2b7bc8c34aa821115",
       "shared/public-method/src_drw_entities.h_DRW_MLine_9b91b6e9d05f2ea91d54caadc3ac5d015a45c30cb663d37095ea54adaf61adf8",
       "shared/public-method/src_drw_entities.h_DRW_MLine_fac310b1bf536631c254626fb1367652386fa6009513741ab078ea4bc3fd1b22",
       "shared/public-method/src_drw_entities.h_DRW_Mesh_62983d8adc37d8493892e94bebeda7b5fe3c7ced098cf054edf164adfea7c126",
@@ -123829,7 +123837,7 @@
     "summary": {
       "deltaOneToOne": 847,
       "exactOneToOne": 4785,
-      "standaloneOnly": 319,
+      "standaloneOnly": 323,
       "targetOnly": 0,
       "targetRows": 5669
     }
@@ -123864,7 +123872,7 @@
         "src/libdxfrw.h"
       ],
       "allowlistPath": "metadata/adaptation-allowlist.json",
-      "allowlistSha256": "1284658485715ba0d0fd7008a77632c433db3d4af4c70f5f58d3694ca28528b1",
+      "allowlistSha256": "8aa13b291f3a23c9c2960c9437d52706ef9ff10d63f2bc39340b869e33127d3d",
       "schema": 1,
       "targetCommit": "0ffb38d790db53116978e01fcaf94cee9bc6ee48",
       "targetRepository": "git@github.com-librecad:LibreCAD/LibreCAD.git"
@@ -123873,7 +123881,7 @@
       "algorithm": "sha256-canonical-json-v1",
       "bodyEvidenceExcluded": true,
       "inventoryDigests": {
-        "standalone": "01155ca30c0a9c3aa9a61692146c2fc9933cee2d67633c00a1662c4f175424cf",
+        "standalone": "c9b08ce3a73725a4a734a3b0cdcbeb8bf6bf46253a8970bdb2d5c3e4a3a31c70",
         "target": "5c0ad5e9221c95df0c2c056148b88273e9d06a7f3e3fe1c50cc202b51a1f9f78"
       },
       "stableFields": [
@@ -123889,7 +123897,7 @@
     "standalone": {
       "baselineCommit": "92d7466ed9146badcd4fb44c82d1dd8302b3c7db",
       "baselineRef": "origin/master",
-      "contentTreeSha256": "ad84950692a87701883a21b2186cf7d3cdd75f4c9ca1ecdc5dd77c5dceae4778",
+      "contentTreeSha256": "fef82e2dfcbc076fcb4627fe9bcce0efa119ca7635571856ed53a83066d6ded0",
       "repository": "git@github.com-librecad:LibreCAD/libdxfrw.git"
     },
     "target": {
@@ -123939,8 +123947,8 @@
     {
       "facade": "shared",
       "path": "parity-source-routes-v1/standalone-shared.json",
-      "routeCount": 3108,
-      "sha256": "ec899cb376b1f38b960f8e5c1b4cc221bfd2e7722178d0572d8d50dc5203e7f2",
+      "routeCount": 3112,
+      "sha256": "d3d707877b0b4f908e1385aecf2ab73fec79b0cefa85eb1b5305edf24e1e054e",
       "side": "standalone"
     }
   ],
@@ -123973,14 +123981,14 @@
       },
       "shared": {
         "semanticMismatches": 4,
-        "standaloneOnly": 353,
+        "standaloneOnly": 357,
         "targetOnly": 94
       }
     },
     "mapping": {
       "deltaOneToOne": 847,
       "exactOneToOne": 4785,
-      "standaloneOnly": 319,
+      "standaloneOnly": 323,
       "targetOnly": 0,
       "targetRows": 5669
     },
@@ -124024,7 +124032,7 @@
         "public-header": 10,
         "public-inline-function": 3,
         "public-inline-method": 770,
-        "public-method": 1184,
+        "public-method": 1188,
         "public-model": 259,
         "public-type": 321,
         "publication-stage": 24,
@@ -124048,7 +124056,7 @@
         "writer-pipeline": 7,
         "writer-version": 14
       },
-      "routeCount": 5954
+      "routeCount": 5958
     },
     "target": {
       "categoryCounts": {
