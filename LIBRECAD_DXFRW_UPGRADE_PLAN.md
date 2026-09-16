@@ -59,7 +59,7 @@ refreshed the target lock, archive, manifest, source-route inventory, oracle
 registry, inventory-input lock, and support-matrix provenance. S304/J280
 reran the reviewed DWG differential-debt reports against the refreshed target
 and reconciled both registries to `0ffb38d790db53116978e01fcaf94cee9bc6ee48`.
-The latest green implementation slice is S313/J289; the hash-only target and
+The latest green implementation slice is S314/J290; the hash-only target and
 independent-oracle advisory checkers are now part of the fast metadata gate.
 Native-platform, long-fuzz, and release-closure evidence remains open.
 The worktree is clean at the last committed boundary; any subsequent active-
@@ -3611,17 +3611,17 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 313 (`COMMITTED`); no slice is active.
+- Resolved slices: 314 (`COMMITTED`); no slice is active.
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 313 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 314 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 315 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 316 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 413 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 414 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   4 DEFERRED_EXTERNAL / 293 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S313 are committed; no local implementation slice is active.
+- Active work: S01-S314 are committed; no local implementation slice is active.
   Remaining work is evidence-gated runtime/oracle and release closure; keep
   the fast inner loop and do not promote support claims from self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -3989,6 +3989,7 @@ edit this block or commit the same slice concurrently.
 | S311 | J287: opt-in extended deterministic fuzz lane | S310 | COMMITTED | opt-in `LIBDXFRW_BUILD_LONG_FUZZ`; bounded in-memory malformed-input generators; release and ASan/UBSan runs; default fast-target non-regression; no fixture admission | extended target passes 8,192 generic, 65,536 DXF, and 16,384 DWG deterministic vectors in 0.15 seconds release and 1.86 seconds ASan/UBSan (`detect_leaks=0`); default target remains unchanged and no drawing bytes are added | native-platform, protected external fuzz, independent semantic oracle, and release closure |
 | S312 | J288: CI Release-generator correction | S311 | COMMITTED | workflow configure explicitly sets `CMAKE_BUILD_TYPE=Release`; multi-config `--config Release`; actionlint; plan/scope/sync/fixture gates; no fixture admission | `.github/workflows/build.yml` now selects Release for single-config Unix generators and multi-config Windows builds; actionlint and YAML validation pass; no drawing payloads or local test bypasses are introduced | native-platform, protected external fuzz, independent semantic oracle, and release closure |
 | S313 | J289: CI-equivalent local Release checkpoint | S312 | COMMITTED | fresh local configure with workflow flags; Release build; complete 30-entry CTest; plan/scope/sync/fixture gates; no fixture admission | exact workflow configure flags produce a clean Release build and 30/30 CTest pass in 5.74 seconds on macOS; actionlint/YAML and all policy gates remain green; no drawing bytes are added | native-platform, protected external fuzz, independent semantic oracle, and release closure |
+| S314 | J290: exact locked-target differential provenance checkpoint | S313 | COMMITTED | archive exact target commit; rebuild target JSON dumper; rerun locked 15-input differential; exact report/hash comparison; plan/scope/sync/fixture gates; no fixture admission | clean archive of LibreCAD `0ffb38d790db53116978e01fcaf94cee9bc6ee48` builds the target dumper; exact-target rerun remains 14 equal/1 reviewed AC1021 delta with identical target/standalone output hashes to S304, proving the prior report's behavior was not an unpinned working-tree artifact; no drawing bytes added | native-platform, protected external fuzz, independent semantic oracle, and release closure |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -4306,6 +4307,7 @@ edit this block or commit the same slice concurrently.
 | J287 | S311 | J286 | COMMITTED | EXPERIMENTAL | Add an opt-in extended deterministic fuzz target | Keep the default hardening target fast, expose a `LIBDXFRW_BUILD_LONG_FUZZ` opt-in target with expanded deterministic in-memory malformed-input loops, run it under release and ASan/UBSan, and retain no drawing payloads while leaving external/native promotion gates intact |
 | J288 | S312 | J287 | COMMITTED | EXPERIMENTAL | Correct CI Release configuration on all generators | Add `-DCMAKE_BUILD_TYPE=Release` to the shared CI configure command while retaining `--config Release` for Windows, then statically validate the workflow and preserve the no-fixture policy |
 | J289 | S313 | J288 | COMMITTED | EXPERIMENTAL | Exercise the exact CI Release command locally | Configure a fresh single-config build with the workflow's Release/docs/tests flags, build the library and test targets, and run the complete 30-entry CTest topology; retain the native-platform boundary and no-fixture policy |
+| J290 | S314 | J289 | COMMITTED | EXPERIMENTAL | Reconfirm differential debt against an exact target archive | Build LibreCAD's `libdxfrw_json_dump` from an archive of the locked target commit, rerun the 15-input differential against the current standalone dumper, compare report counters and mismatch hashes to S304, and retain the external/build provenance without adding drawing bytes |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4730,6 +4732,7 @@ edit this block or commit the same slice concurrently.
 | J287.1 | J287 / S311 | WP8, WP10; extended fuzz hardening | J286 | COMMITTED | EXPERIMENTAL | configure `LIBDXFRW_BUILD_LONG_FUZZ=ON`, build and run the opt-in target in release and ASan/UBSan modes, verify expanded loop bounds and no-throw completion, and keep the default fast test topology unchanged | release long target passes in 0.15 seconds; ASan/UBSan long target passes in 1.86 seconds with `detect_leaks=0`; 8,192 generic, 65,536 DXF, and 16,384 DWG vectors execute entirely in memory with no fixture or payload admission |
 | J288.1 | J288 / S312 | WP8, WP10; CI Release configuration | J287 | COMMITTED | EXPERIMENTAL | run actionlint/YAML validation and inspect the configure/build/test commands for both single-config and multi-config Release selection | `actionlint .github/workflows/build.yml` and Ruby YAML parsing pass; configure includes `-DCMAKE_BUILD_TYPE=Release`, build/test retain `--config Release`, and no drawing payloads are added |
 | J289.1 | J289 / S313 | WP8, WP10; CI-equivalent local Release checkpoint | J288 | COMMITTED | EXPERIMENTAL | run the exact workflow configure/build/test command sequence in a fresh local macOS build tree and retain complete CTest timing without adding fixtures | clean Release build and 30/30 CTest pass in 5.74 seconds; workflow flags and policy gates are verified, while hosted Windows/MSVC execution remains external |
+| J290.1 | J290 / S314 | WP5, WP8, WP10; exact locked-target differential provenance | J289 | COMMITTED | EXPERIMENTAL | archive target commit `0ffb38d790db53116978e01fcaf94cee9bc6ee48` into a temporary source tree, build its JSON dumper, rerun the locked 15-input differential, and compare all relation/byte/semantic counters and mismatch hashes with S304 without retaining drawing payloads | exact archived-target build succeeds; rerun reports 14 equal and 1 reviewed AC1021 delta with the same target/standalone hashes as S304; no drawing bytes are added and the delta remains explicit target debt |
 
 <!-- UPGRADE_PROGRESS_END -->
 
