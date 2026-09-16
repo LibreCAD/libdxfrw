@@ -161,6 +161,15 @@ def validate_json_oracle_output(path: Path, expected_version: str) -> dict[str, 
     }
 
 
+def json_oracle_qualified(result: dict[str, object]) -> bool:
+    """Return whether a JSON oracle result satisfies every required check."""
+    return bool(
+        result.get("jsonVersionMatch")
+        and result.get("jsonEntitySetMatch")
+        and not result.get("jsonEntityCountViolations")
+    )
+
+
 def run(command: list[str], timeout: float) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         command,
@@ -207,8 +216,21 @@ def self_test() -> None:
             encoding="utf-8",
         )
         json_result = validate_json_oracle_output(json_path, "AC1015")
-        if not json_result["jsonVersionMatch"] or not json_result["jsonEntitySetMatch"]:
+        if not json_oracle_qualified(json_result):
             raise AssertionError("synthetic JSON oracle output was not recognized")
+        invalid_json_path = Path(directory) / "invalid.json"
+        invalid_json_path.write_text(
+            json.dumps({
+                "FILEHEADER": {"version": "AC1015"},
+                "OBJECTS": [{"entity": "LINE"}],
+            }),
+            encoding="utf-8",
+        )
+        invalid_json_result = validate_json_oracle_output(
+            invalid_json_path, "AC1015"
+        )
+        if json_oracle_qualified(invalid_json_result):
+            raise AssertionError("incomplete JSON oracle output was qualified")
     print("local DWG oracle advisory self-test: PASS")
 
 
@@ -283,9 +305,15 @@ def main() -> int:
                                             or not json_output.exists()):
                                         record["jsonOracleStatus"] = "failed"
                                     else:
-                                        record.update(validate_json_oracle_output(
-                                            json_output, expected))
-                                        record["jsonOracleStatus"] = "qualified"
+                                        json_result = validate_json_oracle_output(
+                                            json_output, expected
+                                        )
+                                        record.update(json_result)
+                                        record["jsonOracleStatus"] = (
+                                            "qualified"
+                                            if json_oracle_qualified(json_result)
+                                            else "mismatch"
+                                        )
                             record["status"] = (
                                 "qualified" if record["qualified"] else "mismatch"
                             )
