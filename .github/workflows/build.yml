@@ -4,6 +4,8 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+  schedule:
+    - cron: '17 3 * * *'
 
 permissions:
   contents: read
@@ -37,3 +39,28 @@ jobs:
 
       - name: Test
         run: ctest --test-dir build --build-config Release --output-on-failure
+
+  long-fuzz:
+    name: extended deterministic fuzz (scheduled)
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Configure extended fuzz target
+        run: >-
+          cmake -S . -B build-long-fuzz
+          -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+          -DCMAKE_BUILD_TYPE=Release
+          -DLIBDXFRW_BUILD_DOC=OFF
+          -DLIBDXFRW_BUILD_TESTS=ON
+          -DLIBDXFRW_BUILD_LONG_FUZZ=ON
+
+      - name: Build extended fuzz target
+        run: cmake --build build-long-fuzz --config Release --target libdxfrw_long_fuzz_tests --parallel 2
+
+      - name: Run extended fuzz target
+        run: ctest --test-dir build-long-fuzz --build-config Release -R '^libdxfrw_long_fuzz$' --output-on-failure
