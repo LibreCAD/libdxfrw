@@ -251,6 +251,11 @@ public:
     using DRW_PartialViewingIndex::finalizeDxf;
 };
 
+class ExposedSection : public DRW_Section {
+public:
+    using DRW_Section::parseCode;
+};
+
 template <typename Entity>
 bool parseDxfRecords(Entity& entity, const std::string& source) {
     std::stringstream records(source);
@@ -362,6 +367,8 @@ void testPublicOwnershipContracts(TestContext& t) {
                   "DRW_PointPath copy contract");
     static_assert(std::is_copy_constructible<DRW_PartialViewingIndex>::value,
                   "DRW_PartialViewingIndex copy contract");
+    static_assert(std::is_copy_constructible<DRW_Section>::value,
+                  "DRW_Section copy contract");
     static_assert(std::is_copy_constructible<DRW_Attrib>::value,
                   "DRW_Attrib copy contract");
     static_assert(std::is_copy_constructible<DRW_GeoPositionMarker>::value,
@@ -1640,6 +1647,42 @@ void testPublicOwnershipContracts(TestContext& t) {
                  && assignedPartialViewingIndex.m_entries.back().objectHandle
                         == 0xA3u,
              "PARTIAL_VIEWING_INDEX assignment clears pending-entry parser state");
+
+    const std::string sectionSettingsBody =
+        "100\nAcDbSectionSettings\n90\n1\n91\n2\n92\n3\n"
+        "1\nSectionTypeSettings\n90\n10\n91\n11\n92\n1\n93\n0\n"
+        "2\nSectionGeometrySettings\n90\n4\n91\n5\n92\n6\n8\nLayer\n"
+        "6\nContinuous\n";
+    ExposedSection partialSectionSettings;
+    partialSectionSettings.m_kind = DRW_Section::Settings;
+    t.expect(parseDxfRecords(partialSectionSettings, sectionSettingsBody)
+                 && partialSectionSettings.m_classVersion == 1
+                 && partialSectionSettings.m_typeCount == 2
+                 && partialSectionSettings.m_types.size() == 1u
+                 && partialSectionSettings.m_types.front().m_type == 10
+                 && partialSectionSettings.m_types.front().m_geometry.size() == 1u
+                 && partialSectionSettings.m_types.front().m_geometry.front().m_layer
+                        == "Layer",
+             "SECTION settings parser state source setup");
+    ExposedSection copiedSectionSettings(partialSectionSettings);
+    const bool copiedSectionFresh = parseDxfRecords(
+        copiedSectionSettings,
+        "100\nAcDbSectionSettings\n90\n99\n1\nSectionTypeSettings\n"
+        "90\n20\n91\n21\n92\n2\n93\n0\n");
+    t.expect(copiedSectionFresh && copiedSectionSettings.m_classVersion == 99
+                 && copiedSectionSettings.m_types.size() == 2u
+                 && copiedSectionSettings.m_types.back().m_type == 20,
+             "SECTION copy clears body/type/geometry parser state");
+    ExposedSection assignedSectionSettings;
+    assignedSectionSettings = partialSectionSettings;
+    const bool assignedSectionFresh = parseDxfRecords(
+        assignedSectionSettings,
+        "100\nAcDbSectionSettings\n90\n98\n1\nSectionTypeSettings\n"
+        "90\n30\n91\n31\n92\n3\n93\n0\n");
+    t.expect(assignedSectionFresh && assignedSectionSettings.m_classVersion == 98
+                 && assignedSectionSettings.m_types.size() == 2u
+                 && assignedSectionSettings.m_types.back().m_type == 30,
+             "SECTION assignment clears body/type/geometry parser state");
 
     DRW_Dimension sourceDimension;
     sourceDimension.extData.push_back(

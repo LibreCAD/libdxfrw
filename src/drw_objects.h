@@ -4197,6 +4197,50 @@ public:
   static constexpr std::int32_t kMaxSectionGeometryEntryCount = 100000;
 
   DRW_Section() { reset(); }
+  DRW_Section(const DRW_Section& o):
+      DRW_TableEntry(o), m_kind(o.m_kind), m_isLive(o.m_isLive),
+      m_sectionCount(o.m_sectionCount), m_sectionHandles(o.m_sectionHandles),
+      m_classVersion(o.m_classVersion), m_sectionType(o.m_sectionType),
+      m_generationOptions(o.m_generationOptions), m_currentType(o.m_currentType),
+      m_typeCount(o.m_typeCount), m_types(o.m_types),
+      m_sourceHandle(o.m_sourceHandle),
+      m_destinationBlockHandle(o.m_destinationBlockHandle),
+      m_destinationFileHandle(o.m_destinationFileHandle),
+      m_destinationFile(o.m_destinationFile), m_dxfInBody(false),
+      m_dxfTypeIndex(-1), m_dxfGeometryIndex(-1), m_settingsInts(),
+      m_rawData(o.m_rawData), m_rawDataBitSize(o.m_rawDataBitSize),
+      m_rawDataValid(o.m_rawDataValid), m_rawDataVersion(o.m_rawDataVersion) {
+    tType = DRW::SECTIONOBJ;
+  }
+  DRW_Section& operator=(const DRW_Section& o) {
+    if (this != &o) {
+      DRW_TableEntry::operator=(o);
+      m_kind = o.m_kind;
+      m_isLive = o.m_isLive;
+      m_sectionCount = o.m_sectionCount;
+      m_sectionHandles = o.m_sectionHandles;
+      m_classVersion = o.m_classVersion;
+      m_sectionType = o.m_sectionType;
+      m_generationOptions = o.m_generationOptions;
+      m_currentType = o.m_currentType;
+      m_typeCount = o.m_typeCount;
+      m_types = o.m_types;
+      m_sourceHandle = o.m_sourceHandle;
+      m_destinationBlockHandle = o.m_destinationBlockHandle;
+      m_destinationFileHandle = o.m_destinationFileHandle;
+      m_destinationFile = o.m_destinationFile;
+      m_dxfInBody = false;
+      m_dxfTypeIndex = -1;
+      m_dxfGeometryIndex = -1;
+      m_settingsInts.clear();
+      m_rawData = o.m_rawData;
+      m_rawDataBitSize = o.m_rawDataBitSize;
+      m_rawDataValid = o.m_rawDataValid;
+      m_rawDataVersion = o.m_rawDataVersion;
+      tType = DRW::SECTIONOBJ;
+    }
+    return *this;
+  }
 
   void reset() {
     const Kind kind = m_kind;
