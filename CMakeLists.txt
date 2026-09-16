@@ -8,8 +8,12 @@ option(LIBDXFRW_BUILD_LIBRARY "Build the libdxfrw library" ON)
 option(LIBDXFRW_BUILD_DOC "Build the documentation" ON)
 option(LIBDXFRW_BUILD_DWG2DXF "Build the dwg2dxf application" ON)
 option(LIBDXFRW_BUILD_TESTS "Build dependency-free Wave 1 tests" OFF)
+option(LIBDXFRW_BUILD_QUALIFICATION
+    "Build the pinned target/standalone semantic qualification adapters" OFF)
 option(LIBDXFRW_BUILD_LONG_FUZZ
     "Build the opt-in extended deterministic parser fuzz target" OFF)
+set(LIBDXFRW_TARGET_GIT_DIR "" CACHE PATH
+    "Git directory for the pinned LibreCAD target qualification build")
 
 if(LIBDXFRW_BUILD_DWG2DXF AND NOT LIBDXFRW_BUILD_LIBRARY)
     message(FATAL_ERROR "LIBDXFRW_BUILD_DWG2DXF requires LIBDXFRW_BUILD_LIBRARY")
@@ -17,13 +21,18 @@ endif()
 if(LIBDXFRW_BUILD_LONG_FUZZ AND NOT LIBDXFRW_BUILD_TESTS)
     message(FATAL_ERROR "LIBDXFRW_BUILD_LONG_FUZZ requires LIBDXFRW_BUILD_TESTS")
 endif()
+if(LIBDXFRW_BUILD_QUALIFICATION AND NOT LIBDXFRW_BUILD_TESTS)
+    message(FATAL_ERROR "LIBDXFRW_BUILD_QUALIFICATION requires LIBDXFRW_BUILD_TESTS")
+endif()
 
 # Keep warnings target-local so consumers are not forced to inherit the
 # library's maintainer diagnostics policy.
 if (MSVC)
     set(LIBDXFRW_WARNING_FLAGS /W3)
+    set(LIBDXFRW_ADAPTER_WARNING_FLAGS /W3 /WX /bigobj)
 else()
     set(LIBDXFRW_WARNING_FLAGS -Wall -Wextra -pedantic -Werror)
+    set(LIBDXFRW_ADAPTER_WARNING_FLAGS ${LIBDXFRW_WARNING_FLAGS})
 endif()
 
 
@@ -33,6 +42,7 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 # The pinned source list is the completeness oracle once the target snapshot
 # is present.  It is activated atomically with the imported source tree.
@@ -63,6 +73,8 @@ if(LIBDXFRW_BUILD_LIBRARY)
         PUBLIC
             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
             $<INSTALL_INTERFACE:${LIBDXFRW_INSTALL_INCLUDEDIR}>
+        PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/intern
     )
 endif()
 
@@ -94,6 +106,213 @@ if(LIBDXFRW_BUILD_TESTS)
     if(NOT "${LIBDXFRW_PYTHON_VERSION_OK}" STREQUAL "0")
         message(FATAL_ERROR "LIBDXFRW_BUILD_TESTS requires Python 3.10 or newer")
     endif()
+    set(LIBDXFRW_QUALIFIED_DIFFERENTIAL_MANIFEST
+        ${CMAKE_CURRENT_SOURCE_DIR}/metadata/qualified-differential-v2.json)
+
+    if(LIBDXFRW_BUILD_QUALIFICATION)
+        if(NOT LIBDXFRW_BUILD_LIBRARY)
+            message(FATAL_ERROR
+                "LIBDXFRW_BUILD_QUALIFICATION requires LIBDXFRW_BUILD_LIBRARY")
+        endif()
+        if(BUILD_SHARED_LIBS)
+            message(FATAL_ERROR
+                "LIBDXFRW_BUILD_QUALIFICATION requires a static libdxfrw build")
+        endif()
+        if(NOT LIBDXFRW_TARGET_GIT_DIR)
+            message(FATAL_ERROR
+                "LIBDXFRW_BUILD_QUALIFICATION requires LIBDXFRW_TARGET_GIT_DIR")
+        endif()
+        if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
+            message(FATAL_ERROR
+                "LIBDXFRW_BUILD_QUALIFICATION requires an explicit "
+                "CMAKE_BUILD_TYPE for a single-config generator")
+        endif()
+        if(NOT EXISTS "${LIBDXFRW_TARGET_GIT_DIR}")
+            message(FATAL_ERROR
+                "LIBDXFRW_TARGET_GIT_DIR does not exist: ${LIBDXFRW_TARGET_GIT_DIR}")
+        endif()
+
+        add_executable(libdxfrw_semantic_adapter_standalone
+            tests/semantic_differential_adapter.cpp)
+        target_compile_features(libdxfrw_semantic_adapter_standalone
+            PRIVATE cxx_std_17)
+        target_compile_options(libdxfrw_semantic_adapter_standalone
+            PRIVATE ${LIBDXFRW_ADAPTER_WARNING_FLAGS})
+        target_compile_definitions(libdxfrw_semantic_adapter_standalone PRIVATE
+            LIBDXFRW_SEMANTIC_SIDE_STANDALONE=1
+            LIBDXFRW_SEMANTIC_ADAPTER_NAME="libdxfrw_semantic_adapter_standalone")
+        target_include_directories(libdxfrw_semantic_adapter_standalone PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}/src
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/intern)
+        target_link_libraries(libdxfrw_semantic_adapter_standalone PRIVATE dxfrw)
+        set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+            ${CMAKE_CURRENT_SOURCE_DIR}/tests/semantic_differential_adapter.cpp
+            ${LIBDXFRW_QUALIFIED_DIFFERENTIAL_MANIFEST})
+
+        add_test(NAME libdxfrw_qualified_differential_v2_schema
+            COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+                ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_qualified_differential_v2.py
+                --self-test
+                --manifest ${LIBDXFRW_QUALIFIED_DIFFERENTIAL_MANIFEST})
+        add_test(NAME libdxfrw_semantic_adapter_build_helper
+            COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+                ${CMAKE_CURRENT_SOURCE_DIR}/tools/build_semantic_adapter.py
+                --self-test)
+        set_tests_properties(libdxfrw_semantic_adapter_build_helper PROPERTIES
+            LABELS qualification)
+        set_tests_properties(libdxfrw_qualified_differential_v2_schema PROPERTIES
+            LABELS qualification)
+
+        set(LIBDXFRW_SEMANTIC_QUALIFICATION_DIR
+            ${CMAKE_CURRENT_BINARY_DIR}/semantic-qualification/$<CONFIG>)
+        set(LIBDXFRW_SEMANTIC_TARGET_BUILD_DIR
+            ${LIBDXFRW_SEMANTIC_QUALIFICATION_DIR}/target)
+        set(LIBDXFRW_SEMANTIC_TARGET_RECEIPT
+            ${LIBDXFRW_SEMANTIC_TARGET_BUILD_DIR}/semantic-adapter-target-receipt.json)
+        set(LIBDXFRW_SEMANTIC_STANDALONE_RECEIPT
+            ${LIBDXFRW_SEMANTIC_QUALIFICATION_DIR}/semantic-adapter-standalone-receipt.json)
+
+        add_custom_target(libdxfrw_semantic_adapter_target
+            COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+                ${CMAKE_CURRENT_SOURCE_DIR}/tools/build_semantic_adapter.py
+                build-target
+                --target-git-dir ${LIBDXFRW_TARGET_GIT_DIR}
+                --build-dir ${LIBDXFRW_SEMANTIC_TARGET_BUILD_DIR}
+                --parent-cmake-build-dir ${CMAKE_CURRENT_BINARY_DIR}
+                --lock ${CMAKE_CURRENT_SOURCE_DIR}/metadata/libdxfrw-target-lock.json
+                --manifest ${CMAKE_CURRENT_SOURCE_DIR}/metadata/libdxfrw-target-source-manifest.txt
+                --semantic-manifest ${LIBDXFRW_QUALIFIED_DIFFERENTIAL_MANIFEST}
+                --adapter-source ${CMAKE_CURRENT_SOURCE_DIR}/tests/semantic_differential_adapter.cpp
+                --wrapper-source ${CMAKE_CURRENT_SOURCE_DIR}/cmake/semantic_adapter_target
+                --configuration $<CONFIG>
+                --parallel 2
+                --receipt ${LIBDXFRW_SEMANTIC_TARGET_RECEIPT}
+                --cmake ${CMAKE_COMMAND}
+            DEPENDS
+                ${CMAKE_CURRENT_SOURCE_DIR}/tools/build_semantic_adapter.py
+                ${CMAKE_CURRENT_SOURCE_DIR}/tests/semantic_differential_adapter.cpp
+                ${CMAKE_CURRENT_SOURCE_DIR}/cmake/semantic_adapter_target/CMakeLists.txt
+                ${CMAKE_CURRENT_SOURCE_DIR}/metadata/libdxfrw-target-lock.json
+                ${CMAKE_CURRENT_SOURCE_DIR}/metadata/libdxfrw-target-source-manifest.txt
+                ${LIBDXFRW_QUALIFIED_DIFFERENTIAL_MANIFEST}
+            COMMENT "Building receipt-bound pinned-target semantic adapter"
+            VERBATIM)
+
+        add_custom_target(libdxfrw_semantic_adapter_standalone_receipt
+            COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+                ${CMAKE_CURRENT_SOURCE_DIR}/tools/build_semantic_adapter.py
+                receipt-standalone
+                --executable $<TARGET_FILE:libdxfrw_semantic_adapter_standalone>
+                --static-library $<TARGET_FILE:dxfrw>
+                --cmake-build-dir ${CMAKE_CURRENT_BINARY_DIR}
+                --adapter-source ${CMAKE_CURRENT_SOURCE_DIR}/tests/semantic_differential_adapter.cpp
+                --semantic-manifest ${LIBDXFRW_QUALIFIED_DIFFERENTIAL_MANIFEST}
+                --config-source ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
+                --config-source ${CMAKE_CURRENT_SOURCE_DIR}/libdxfrw_sources.cmake
+                --configuration $<CONFIG>
+                --receipt ${LIBDXFRW_SEMANTIC_STANDALONE_RECEIPT}
+                --cmake ${CMAKE_COMMAND}
+            DEPENDS
+                libdxfrw_semantic_adapter_standalone
+                dxfrw
+                ${CMAKE_CURRENT_SOURCE_DIR}/tools/build_semantic_adapter.py
+                ${CMAKE_CURRENT_SOURCE_DIR}/tests/semantic_differential_adapter.cpp
+                ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
+                ${CMAKE_CURRENT_SOURCE_DIR}/libdxfrw_sources.cmake
+                ${LIBDXFRW_QUALIFIED_DIFFERENTIAL_MANIFEST}
+            COMMENT "Attesting standalone semantic adapter build"
+            VERBATIM)
+        add_custom_target(libdxfrw_semantic_adapters ALL
+            DEPENDS
+                libdxfrw_semantic_adapter_target
+                libdxfrw_semantic_adapter_standalone_receipt)
+
+        file(SHA256
+            ${CMAKE_CURRENT_SOURCE_DIR}/tests/semantic_differential_adapter.cpp
+            LIBDXFRW_SEMANTIC_RECIPE_GENERATOR_DIGEST)
+        set(LIBDXFRW_QUALIFIED_DIFFERENTIAL_COMMON
+            --manifest ${LIBDXFRW_QUALIFIED_DIFFERENTIAL_MANIFEST}
+            --target-receipt ${LIBDXFRW_SEMANTIC_TARGET_RECEIPT}
+            --standalone-receipt ${LIBDXFRW_SEMANTIC_STANDALONE_RECEIPT}
+            --input-git-dir ${LIBDXFRW_TARGET_GIT_DIR})
+
+        add_test(NAME libdxfrw_semantic_adapters_setup
+            COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}
+                --target libdxfrw_semantic_adapters
+                --config $<CONFIG>
+                --parallel 1)
+        set_tests_properties(libdxfrw_semantic_adapters_setup PROPERTIES
+            DEPENDS "libdxfrw_qualified_differential_v2_schema;libdxfrw_semantic_adapter_build_helper"
+            FIXTURES_SETUP libdxfrw_semantic_adapters_fixture
+            LABELS qualification)
+
+        add_test(NAME libdxfrw_qualified_differential_v2
+            COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+                ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_qualified_differential_v2.py
+                ${LIBDXFRW_QUALIFIED_DIFFERENTIAL_COMMON}
+                --input ${CMAKE_CURRENT_SOURCE_DIR}/metadata/semantic-minimal-line-v1.json
+                --input-id recipe:minimal-line-v1
+                --input-path-hint metadata/semantic-minimal-line-v1.json
+                --origin-kind localFromScratch
+                --generator-digest ${LIBDXFRW_SEMANTIC_RECIPE_GENERATOR_DIGEST}
+                --facade dwgRW
+                --direction write
+                --output ${LIBDXFRW_SEMANTIC_QUALIFICATION_DIR}/qualified-differential-dwg-write.json)
+        add_test(NAME libdxfrw_qualified_differential_v2_dxf_write
+            COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+                ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_qualified_differential_v2.py
+                ${LIBDXFRW_QUALIFIED_DIFFERENTIAL_COMMON}
+                --input ${CMAKE_CURRENT_SOURCE_DIR}/metadata/semantic-minimal-line-v1.json
+                --input-id recipe:minimal-line-v1
+                --input-path-hint metadata/semantic-minimal-line-v1.json
+                --origin-kind localFromScratch
+                --generator-digest ${LIBDXFRW_SEMANTIC_RECIPE_GENERATOR_DIGEST}
+                --facade dxfRW
+                --direction write
+                --output ${LIBDXFRW_SEMANTIC_QUALIFICATION_DIR}/qualified-differential-dxf-write.json)
+        add_test(NAME libdxfrw_qualified_differential_v2_dxf_read
+            COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+                ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_qualified_differential_v2.py
+                ${LIBDXFRW_QUALIFIED_DIFFERENTIAL_COMMON}
+                --input ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/dxf/classes_raw_entity_r2007.dxf
+                --input-id fixture:dxf:classes-raw-entity-r2007
+                --input-path-hint tests/fixtures/dxf/classes_raw_entity_r2007.dxf
+                --origin-kind lockedRepositoryBlob
+                --input-repository LibreCAD/LibreCAD
+                --input-commit 3c7785ebbcbfc8f3c8f79dbba093aff09cdec753
+                --facade dxfRW
+                --direction read
+                --output ${LIBDXFRW_SEMANTIC_QUALIFICATION_DIR}/qualified-differential-dxf-read.json)
+        add_test(NAME libdxfrw_qualified_differential_v2_dwg_read
+            COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+                ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_qualified_differential_v2.py
+                ${LIBDXFRW_QUALIFIED_DIFFERENTIAL_COMMON}
+                --input ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/dwg/rtext_arctext.dwg
+                --input-id fixture:dwg:rtext-arctext
+                --input-path-hint tests/fixtures/dwg/rtext_arctext.dwg
+                --origin-kind lockedRepositoryBlob
+                --input-repository LibreCAD/LibreCAD
+                --input-commit 3c7785ebbcbfc8f3c8f79dbba093aff09cdec753
+                --facade dwgRW
+                --direction read
+                --output ${LIBDXFRW_SEMANTIC_QUALIFICATION_DIR}/qualified-differential-dwg-read.json)
+        set_tests_properties(
+            libdxfrw_qualified_differential_v2
+            libdxfrw_qualified_differential_v2_dxf_write
+            libdxfrw_qualified_differential_v2_dxf_read
+            libdxfrw_qualified_differential_v2_dwg_read
+            PROPERTIES
+                DEPENDS libdxfrw_qualified_differential_v2_schema
+                FIXTURES_REQUIRED libdxfrw_semantic_adapters_fixture
+                LABELS qualification)
+    else()
+        add_test(NAME libdxfrw_qualified_differential_v2
+            COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+                ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_qualified_differential_v2.py
+                --self-test
+                --manifest ${LIBDXFRW_QUALIFIED_DIFFERENTIAL_MANIFEST})
+    endif()
+
     add_test(NAME libdxfrw_parity_inventory_inputs
         COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE}
             ${CMAKE_CURRENT_SOURCE_DIR}/tools/check_parity_inventory_inputs.py
