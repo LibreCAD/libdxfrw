@@ -91,6 +91,12 @@ public:
     using DRW_PointCloudEx::finalizeDxf;
 };
 
+class ExposedNurbsSurface : public DRW_NurbsSurface {
+public:
+    using DRW_NurbsSurface::parseCode;
+    using DRW_NurbsSurface::finalizeDxf;
+};
+
 template <typename Entity>
 bool parseDxfRecords(Entity& entity, const std::string& source) {
     std::stringstream records(source);
@@ -138,6 +144,8 @@ void testPublicOwnershipContracts(TestContext& t) {
                   "DRW_PointCloud copy contract");
     static_assert(std::is_copy_constructible<DRW_PointCloudEx>::value,
                   "DRW_PointCloudEx copy contract");
+    static_assert(std::is_copy_constructible<DRW_NurbsSurface>::value,
+                  "DRW_NurbsSurface copy contract");
     static_assert(std::is_copy_constructible<DRW_Attrib>::value,
                   "DRW_Attrib copy contract");
     static_assert(std::is_copy_constructible<DRW_GeoPositionMarker>::value,
@@ -658,6 +666,26 @@ void testPublicOwnershipContracts(TestContext& t) {
                  && assignedPointCloudEx.unknownInt0 == 11
                  && assignedPointCloudEx.unknownInt1 == 22,
              "POINTCLOUDEX assignment starts a fresh body parser walk");
+
+    ExposedNurbsSurface partialNurbsSurface;
+    t.expect(parseDxfRecords(partialNurbsSurface,
+                              "100\nAcDbNurbSurface\n10\n9\n"),
+             "NURBSURFACE parser state source setup");
+    ExposedNurbsSurface copiedNurbsSurface(partialNurbsSurface);
+    copiedNurbsSurface.uvec1 = DRW_Coord{};
+    t.expect(parseDxfRecords(copiedNurbsSurface,
+                             "100\nAcDbNurbSurface\n170\n2\n")
+                 && copiedNurbsSurface.finalizeDxf()
+                 && copiedNurbsSurface.short170 == 2u,
+             "NURBSURFACE copy starts a fresh coordinate parser walk");
+    ExposedNurbsSurface assignedNurbsSurface;
+    assignedNurbsSurface = partialNurbsSurface;
+    assignedNurbsSurface.uvec1 = DRW_Coord{};
+    t.expect(parseDxfRecords(assignedNurbsSurface,
+                             "100\nAcDbNurbSurface\n170\n2\n")
+                 && assignedNurbsSurface.finalizeDxf()
+                 && assignedNurbsSurface.short170 == 2u,
+             "NURBSURFACE assignment starts a fresh coordinate parser walk");
 
     DRW_Dimension sourceDimension;
     sourceDimension.extData.push_back(

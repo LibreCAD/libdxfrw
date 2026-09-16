@@ -3554,6 +3554,26 @@ class DRW_NurbsSurface : public DRW_Surface {
     SETENTFRIENDS
 public:
     DRW_NurbsSurface() { eType = DRW::NURBSURFACE; }
+    DRW_NurbsSurface(const DRW_NurbsSurface& o): DRW_Surface(o),
+        short170(o.short170), cvHullDisplay(o.cvHullDisplay),
+        uvec1(o.uvec1), vvec1(o.vvec1), uvec2(o.uvec2), vvec2(o.vvec2) {
+        eType = DRW::NURBSURFACE;
+        resetDxfParserState();
+    }
+    DRW_NurbsSurface& operator=(const DRW_NurbsSurface& o) {
+        if (this != &o) {
+            DRW_Surface::operator=(o);
+            short170 = o.short170;
+            cvHullDisplay = o.cvHullDisplay;
+            uvec1 = o.uvec1;
+            vvec1 = o.vvec1;
+            uvec2 = o.uvec2;
+            vvec2 = o.vvec2;
+            eType = DRW::NURBSURFACE;
+            resetDxfParserState();
+        }
+        return *this;
+    }
 
 protected:
     bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) override;
@@ -3569,6 +3589,12 @@ public:
     DRW_Coord vvec2;
 
 private:
+    void resetDxfParserState() noexcept {
+        m_dxfCoordinateMask.fill(0);
+        m_dxfTypedFieldSeen = false;
+        m_dxfInSubtype = false;
+    }
+
     std::array<std::uint8_t, 4> m_dxfCoordinateMask{};
     bool m_dxfTypedFieldSeen = false;
     bool m_dxfInSubtype = false;
