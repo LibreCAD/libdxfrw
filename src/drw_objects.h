@@ -1370,6 +1370,35 @@ public:
   static constexpr std::size_t kMaxBoundaryPoints = 10000;
 
   DRW_SpatialFilter() { reset(); }
+  DRW_SpatialFilter(const DRW_SpatialFilter& o): DRW_TableEntry(o),
+      m_dxfCode40Values(), m_boundaryPoints(o.m_boundaryPoints),
+      m_normal(o.m_normal), m_origin(o.m_origin),
+      m_displayBoundary(o.m_displayBoundary),
+      m_clipFrontPlane(o.m_clipFrontPlane),
+      m_clipBackPlane(o.m_clipBackPlane), m_frontDistance(o.m_frontDistance),
+      m_backDistance(o.m_backDistance),
+      m_inverseInsertTransform(o.m_inverseInsertTransform),
+      m_insertTransform(o.m_insertTransform) {
+    tType = o.tType;
+  }
+  DRW_SpatialFilter& operator=(const DRW_SpatialFilter& o) {
+    if (this != &o) {
+      DRW_TableEntry::operator=(o);
+      m_dxfCode40Values.clear();
+      m_boundaryPoints = o.m_boundaryPoints;
+      m_normal = o.m_normal;
+      m_origin = o.m_origin;
+      m_displayBoundary = o.m_displayBoundary;
+      m_clipFrontPlane = o.m_clipFrontPlane;
+      m_clipBackPlane = o.m_clipBackPlane;
+      m_frontDistance = o.m_frontDistance;
+      m_backDistance = o.m_backDistance;
+      m_inverseInsertTransform = o.m_inverseInsertTransform;
+      m_insertTransform = o.m_insertTransform;
+      tType = o.tType;
+    }
+    return *this;
+  }
   void reset();
 
 protected:

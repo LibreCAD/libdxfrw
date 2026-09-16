@@ -204,6 +204,11 @@ public:
     using DRW_GeoData::parseCode;
 };
 
+class ExposedSpatialFilter : public DRW_SpatialFilter {
+public:
+    using DRW_SpatialFilter::parseCode;
+};
+
 template <typename Entity>
 bool parseDxfRecords(Entity& entity, const std::string& source) {
     std::stringstream records(source);
@@ -297,6 +302,8 @@ void testPublicOwnershipContracts(TestContext& t) {
                   "DRW_DataLink copy contract");
     static_assert(std::is_copy_constructible<DRW_GeoData>::value,
                   "DRW_GeoData copy contract");
+    static_assert(std::is_copy_constructible<DRW_SpatialFilter>::value,
+                  "DRW_SpatialFilter copy contract");
     static_assert(std::is_copy_constructible<DRW_Attrib>::value,
                   "DRW_Attrib copy contract");
     static_assert(std::is_copy_constructible<DRW_GeoPositionMarker>::value,
@@ -1313,6 +1320,29 @@ void testPublicOwnershipContracts(TestContext& t) {
                  && assignedGeoData.m_version == 3
                  && assignedGeoData.m_points.size() == 1u,
              "GEODATA assignment clears subclass and mesh parser state");
+
+    std::ostringstream spatialFilterRecords;
+    for (int i = 0; i < 25; ++i)
+        spatialFilterRecords << "40\n" << (i + 1) << "\n";
+    ExposedSpatialFilter partialSpatialFilter;
+    t.expect(parseDxfRecords(partialSpatialFilter, spatialFilterRecords.str())
+                 && partialSpatialFilter.m_inverseInsertTransform.size() == 12u
+                 && partialSpatialFilter.m_insertTransform.size() == 12u
+                 && partialSpatialFilter.m_frontDistance == 1.0,
+             "SPATIAL_FILTER parser state source setup");
+    ExposedSpatialFilter copiedSpatialFilter(partialSpatialFilter);
+    t.expect(parseDxfRecords(copiedSpatialFilter, "40\n99\n")
+                 && copiedSpatialFilter.m_inverseInsertTransform.size() == 12u
+                 && copiedSpatialFilter.m_insertTransform.size() == 12u
+                 && copiedSpatialFilter.m_frontDistance == 1.0,
+             "SPATIAL_FILTER copy clears matrix parser state");
+    ExposedSpatialFilter assignedSpatialFilter;
+    assignedSpatialFilter = partialSpatialFilter;
+    t.expect(parseDxfRecords(assignedSpatialFilter, "40\n98\n")
+                 && assignedSpatialFilter.m_inverseInsertTransform.size() == 12u
+                 && assignedSpatialFilter.m_insertTransform.size() == 12u
+                 && assignedSpatialFilter.m_frontDistance == 1.0,
+             "SPATIAL_FILTER assignment clears matrix parser state");
 
     DRW_Dimension sourceDimension;
     sourceDimension.extData.push_back(
