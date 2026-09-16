@@ -52,7 +52,7 @@ then pin an immutable commit before importing source.
 ### Execution refresh (2026-09-15)
 
 The implementation worktree is rebased on `origin/master` and is currently
-331 commits ahead with no commits behind it. The target refresh audited
+332 commits ahead with no commits behind it. The target refresh audited
 LibreCAD master commit `aacfc3bb0` (DXF compatibility fixes) through the
 current target tip, ported the seven changed library source/header files, and
 refreshed the target lock, archive, manifest, source-route inventory, oracle
@@ -1939,6 +1939,15 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
+- Current checkpoint (2026-09-16): S305/J281 refreshed package and LibreCAD
+  system-consumer validation after the DXF target port. A clean install at a
+  fresh prefix passes staged-header, CMake/pkg-config, and relocation checks;
+  LibreCAD system mode builds `librecad_lib` and the system fast-test target,
+  the focused test passes all 176 assertions, and 1,245 compile commands have
+  zero bundled libdxfrw path hits. No drawing bytes were added; independent
+  format qualification, native-platform, external-corpus, and release claims
+  remain open.
+
 - Current checkpoint (2026-09-16): S304/J280 refreshed the reviewed
   target/package differential evidence against LibreCAD target
   `0ffb38d790db53116978e01fcaf94cee9bc6ee48`. The locked 15-fixture run is
@@ -3543,17 +3552,17 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 304 (`COMMITTED`); no slice is active.
+- Resolved slices: 305 (`COMMITTED`); no slice is active.
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 304 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 305 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 306 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 307 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 404 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 405 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  3 DEFERRED_EXTERNAL / 287 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S304 are committed; no local implementation slice is active.
+  3 DEFERRED_EXTERNAL / 288 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S305 are committed; no local implementation slice is active.
   Remaining work is evidence-gated runtime/oracle and release closure; keep
   the fast inner loop and do not promote support claims from self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -3912,6 +3921,7 @@ edit this block or commit the same slice concurrently.
 | S302 | J278: post-target-refresh full validation | S301 | COMMITTED | fresh normal and ASan/UBSan builds; all 28 dependency-free CTest entries; macOS leak policy; no fixture changes | normal build and CTest pass 28/28 in 5.85s; ASan/UBSan build and CTest pass 28/28 in 12.92s with `detect_leaks=0`; no drawing bytes changed or added | target-bound differential debt, independent-oracle qualification, native-platform, package, and release closure |
 | S303 | J279: route-inventory generator hardening | S302 | COMMITTED | nested sticky-error diagnostics; regenerated source-route JSON/shards; support-matrix refresh; fast metadata gates; no fixture admission | route extractor now handles nested lifecycle diagnostic blocks; generated inventory and support matrix pass with 5,669 target routes, 5,722 standalone routes, zero target-unmapped rows, and 85 standalone-only rows; no drawing bytes added | target-bound differential debt, independent-oracle qualification, native-platform, package, and release closure |
 | S304 | J280: refreshed-target differential-debt reconciliation | S303 | COMMITTED | current-target JSON differential; exact reviewed source/output/summary hashes; local and locked debt checks; plan/scope/sync/fixture gates; no fixture admission | LibreCAD target `0ffb38d790db53116978e01fcaf94cee9bc6ee48` rerun is 14 equal/1 reviewed AC1021 delta on locked fixtures and 4 equal/2 reviewed AC1027/AC1032 deltas on local-from-scratch versions; both registries now bind to the refreshed target and pass exact-hash checks; no drawing bytes added | independent-oracle qualification, native-platform, package, and release closure |
+| S305 | J281: package and LibreCAD system-consumer revalidation | S304 | COMMITTED | fresh installed prefix; staged package relocation; system-mode LibreCAD configure/build; fast consumer assertions; zero bundled-path audit; plan/scope/sync/fixture gates; no fixture admission | fresh package prefix passes `check_staged_package.py --relocation-smoke`; LibreCAD system mode builds `librecad_lib`, `libdxfrw_system_fast_tests`, and `librecad_filter_compile_check`; 176 assertions pass and 1,245 compile commands contain zero bundled libdxfrw paths; no drawing bytes added | independent format qualification, native-platform, external-corpus, and release closure |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -4220,6 +4230,7 @@ edit this block or commit the same slice concurrently.
 | J278 | S302 | J277 | COMMITTED | EXPERIMENTAL | Revalidate the full suite after the LibreCAD-master refresh | Rebuild normal and ASan/UBSan configurations and run all 28 dependency-free CTest entries after S301; retain the macOS leak-detection limitation, no-fixture policy, and non-promoting target-debt boundary |
 | J279 | S303 | J278 | COMMITTED | EXPERIMENTAL | Harden and regenerate the source-route inventory | Make sticky-error lifecycle matching robust to nested diagnostic blocks, regenerate the route inventory/shards and support matrix from the refreshed target lock, and keep mapping/oracle closure and all support claims non-promoted |
 | J280 | S304 | J279 | COMMITTED | EXPERIMENTAL | Requalify reviewed differential debt against the refreshed target | Rerun the locked and local-from-scratch schema-2 target/package differentials against LibreCAD `0ffb38d790db53116978e01fcaf94cee9bc6ee48`, require exact reviewed source/output/summary hashes, update both debt registries, and keep the AC1021/AC1027/AC1032 deltas non-promoting without adding drawing bytes |
+| J281 | S305 | J280 | COMMITTED | EXPERIMENTAL | Revalidate the installed package and LibreCAD system consumer | Install the current standalone library into a fresh prefix, run staged package relocation checks, configure/build LibreCAD with `LIBRECAD_USE_SYSTEM_LIBDXFRW=ON`, run the focused system tests, and audit compile commands for bundled-source/include leakage without adding drawing bytes |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4635,6 +4646,7 @@ edit this block or commit the same slice concurrently.
 | J278.1 | J278 / S302 | WP8, WP10; post-target-refresh full validation | J277 | COMMITTED | EXPERIMENTAL | run the fresh normal and ASan/UBSan builds with all 28 dependency-free CTest entries after S301, using `detect_leaks=0` on macOS and adding no drawing fixtures | normal 28/28 passes in 5.85s and ASan/UBSan 28/28 passes in 12.92s; all policy gates remain green and no drawing bytes changed or were added |
 | J279.1 | J279 / S303 | WP0, WP8, WP10; source-route metadata | J278 | COMMITTED | EXPERIMENTAL | update the nested-brace lifecycle regex, regenerate `metadata/parity-source-routes-v1.json` and its six shards, refresh `metadata/support-matrix-v1.json`, and run route/parity/support/policy gates without adding drawing bytes | extractor `--check`, parity aggregate, support matrix, release-readiness, fixture-admission, import-scope, and diff checks pass; generated metadata reports 5,669 target routes, 5,722 standalone routes, zero target-unmapped rows, and 85 standalone-only rows |
 | J280.1 | J280 / S304 | WP5, WP8, WP10; refreshed-target differential debt | J279 | COMMITTED | EXPERIMENTAL | rerun locked and local-from-scratch schema-2 differential reports against target `0ffb38d790db53116978e01fcaf94cee9bc6ee48`, reconcile both reviewed-debt registries, and retain only hashes/summaries without drawing payloads | locked run 14 equal/1 reviewed AC1021 delta; local run 4 equal/2 reviewed AC1027/AC1032 deltas; `check_differential_debt.py` passes both registries with zero unreviewed/stale mismatches; no drawing bytes added |
+| J281.1 | J281 / S305 | WP8, WP10; package and system-consumer revalidation | J280 | COMMITTED | EXPERIMENTAL | run fresh-prefix staged package and relocation checks, build LibreCAD system mode against the installed library, run focused system tests, and reject bundled-path leakage without drawing fixtures | `check_staged_package.py --relocation-smoke` passes; system `librecad_lib`, `libdxfrw_system_fast_tests`, and `librecad_filter_compile_check` build; 176 assertions pass and 1,245 compile commands have zero bundled libdxfrw hits; no drawing bytes added |
 
 <!-- UPGRADE_PROGRESS_END -->
 
