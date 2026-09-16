@@ -52,8 +52,8 @@ then pin an immutable commit before importing source.
 ### Execution refresh (2026-09-15)
 
 The implementation worktree is rebased on `origin/master` and is currently
-302 commits ahead with no commits behind it. The latest green slice is
-S274/J250, including the live-plan update and its required policy gates.
+315 commits ahead with no commits behind it. The latest green slice is
+S287/J263, including the live-plan update and its required policy gates.
 There is no uncommitted local implementation slice; the next parity work is
 the evidence-gated external/runtime and release closure listed below.
 The worktree is clean at the last committed boundary; any subsequent active-
@@ -2118,6 +2118,15 @@ edit this block or commit the same slice concurrently.
   against the row data before accepting any delta. Its self-test rejects
   schema downgrades and tampered counts; both current locked/local reports and
   the fast CTest entry pass without retaining drawing bytes.
+- Latest oracle-contract correction (2026-09-15): S288/J264 separates the
+  independent local-DWG oracle into a full-DXF basic-geometry contract and a
+  JSON full-entity contract. The corrected runner no longer invokes LibreDWG's
+  `--minimal` mode while requiring the 18-entity set: the full DXF path
+  qualifies AC1018/21/24/27/32 and retains the known AC1015 missing model-line
+  geometry discrepancy, while LibreDWG JSON qualifies version and all 18
+  entities for all six locally generated versions. This is advisory evidence
+  only; generated DWG/DXF/JSON files remain temporary and no support row is
+  promoted.
 - Previous checkpoint (2026-09-15): S257/J233 post-hardening validation
   checkpoint is committed. A fresh C++17 build and all 26 dependency-free
   CTest entries pass in 6.26 seconds, including source-route and release
@@ -3413,17 +3422,17 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 274 (`COMMITTED`); no slice is active.
+- Resolved slices: 288 (`COMMITTED`); no slice is active.
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 274 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 288 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 276 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 290 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 371 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 3 VERIFIED / 385 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 260 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S274 are committed; no local implementation slice is active.
+  2 DEFERRED_EXTERNAL / 272 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S288 are committed; no local implementation slice is active.
   Remaining work is evidence-gated runtime/oracle and release closure; keep
   the fast inner loop and do not promote support claims from self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -3765,6 +3774,7 @@ edit this block or commit the same slice concurrently.
 | S285 | J261: post-debt sanitizer checkpoint | S284 | COMMITTED | fresh ASan/UBSan hardening build; complete 28-entry sanitizer CTest; documented macOS leak policy; no fixture changes | hardening target and all 28 sanitizer tests pass in 7.61s with leak detection disabled; native Windows and long-fuzz evidence remain scheduled | continue with target-debt review, independent oracle qualification, and release closure |
 | S286 | J262: schema-2 local differential refresh | S285 | COMMITTED | six local-from-scratch DWGs; per-record semantic fingerprints; scoped debt-registry validation; four equal/two reviewed deltas; no payload retention | schema-2 report records 4 equal and 2 target deltas; `check_differential_debt.py` passes with 2 reviewed and 0 unreviewed; no drawing fixtures or derived payloads | continue with target-debt review, independent oracle qualification, and release closure |
 | S287 | J263: schema-2 debt-report integrity gate | S286 | COMMITTED | mandatory schema-2 report; row-derived relation-counter verification; downgrade/tamper self-tests; no payload retention | checker, locked/local debt reports, and CTest pass; schema-1 and tampered-counter reports fail closed; no drawing fixtures or derived payloads | continue with target-debt review, independent oracle qualification, and release closure |
+| S288 | J264: dual-format local DWG oracle contract correction | S287 | COMMITTED | split full-DXF basic geometry from JSON full-entity validation; correct LibreDWG invocation; explicit AC1015 geometry discrepancy; six-version runtime evidence; no payload retention | corrected live run returns 5/6 DXF basic-route matches with the AC1015 model-line geometry discrepancy and 6/6 JSON version/full-18-entity matches; generated files remain temporary and the advisory runner stays fail-closed | target-debt review, independent oracle qualification, and release closure |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -4056,6 +4066,7 @@ edit this block or commit the same slice concurrently.
 | J261 | S285 | J260 | COMMITTED | EXPERIMENTAL | Qualify post-debt sanitizer checkpoint | Rebuild the ASan/UBSan hardening target and run all dependency-free sanitizer CTest entries after the debt/advisory updates, preserving the macOS leak-detection limitation and no-fixture policy |
 | J262 | S286 | J261 | COMMITTED | EXPERIMENTAL | Qualify schema-2 local differential refresh | Rerun the six local-from-scratch DWG outputs through the schema-2 target/package harness and validate all non-equal rows against the scoped local reviewed-debt registry |
 | J263 | S287 | J262 | COMMITTED | EXPERIMENTAL | Qualify schema-2 debt-report integrity gate | Require schema-2 differential reports and verify relation, byte, semantic, and status counters are exactly derived from row data before accepting reviewed debt |
+| J264 | S288 | J263 | COMMITTED | EXPERIMENTAL | Correct the dual-format local DWG oracle contract | Separate the LibreDWG full-DXF basic-geometry contract from the JSON full-entity contract, remove the incompatible `--minimal` invocation, retain the known AC1015 model-line discrepancy, and keep all local outputs temporary |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4454,6 +4465,7 @@ edit this block or commit the same slice concurrently.
 | J261.1 | J261 / S285 | WP8, WP10; sanitizer checkpoint | J260 | COMMITTED | EXPERIMENTAL | run a fresh ASan/UBSan hardening build and all 28 sanitizer CTest entries with `detect_leaks=0`, then retain timing and policy results without adding drawing fixtures | hardening vector and sanitizer CTest pass 28/28 in 7.61s; macOS leak limitation is explicit and no drawing bytes are retained |
 | J262.1 | J262 / S286 | WP5, WP8, WP10; schema-2 local differential | J261 | COMMITTED | EXPERIMENTAL | run `run_json_target_package_differential.py` over AC1015/18/21/24/27/32 local-from-scratch outputs, retain bounded hashes/fingerprints, and check the two deltas against `metadata/differential-debt-local-v1.json` | temporary schema-2 report records 4 equal/2 deltas and the debt checker passes 2 reviewed/0 unreviewed; no drawing bytes are retained |
 | J263.1 | J263 / S287 | WP8, WP10; debt-report integrity | J262 | COMMITTED | EXPERIMENTAL | reject schema-1 reports, detect tampered aggregate counters, and then validate current schema-2 locked/local reports against their exact reviewed-debt registries | self-test, CTest, and both debt checks pass; schema downgrade/counter tamper fail closed and no drawing bytes are retained |
+| J264.1 | J264 / S288 | WP5, WP8, WP10; dual-format local DWG oracle correction | J263 | COMMITTED | EXPERIMENTAL | validate separate full-DXF basic LINE/POLYLINE plus geometry and JSON full-entity/version contracts across AC1015/18/21/24/27/32, with an explicit AC1015 model-line discrepancy and no payload retention | matrix/runner self-tests pass; corrected live run records 5/6 DXF basic-route matches, one reviewed AC1015 geometry mismatch, and 6/6 JSON full-entity/version matches; no drawing bytes are committed |
 
 <!-- UPGRADE_PROGRESS_END -->
 

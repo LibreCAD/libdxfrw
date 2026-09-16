@@ -25,10 +25,19 @@ _MATRIX = json.loads(MATRIX_PATH.read_text(encoding="utf-8"))
 VERSIONS = {
     entry["marker"]: entry["acadver"] for entry in _MATRIX["versions"]
 }
-EXPECTED_ENTITIES = tuple(_MATRIX["expectedEntities"])
+EXPECTED_JSON_ENTITIES = tuple(_MATRIX["expectedEntities"])
+EXPECTED_DXF_ENTITIES = tuple(
+    _MATRIX.get("dxfExpectedEntities", ("LINE", "POLYLINE"))
+)
 ENTITY_COUNT_BOUNDS = {
     name: (bound["min"], bound["max"])
     for name, bound in _MATRIX.get("entityCountBounds", {}).items()
+}
+DXF_ENTITY_COUNT_BOUNDS = {
+    name: (bound["min"], bound["max"])
+    for name, bound in _MATRIX.get(
+        "dxfEntityCountBounds", _MATRIX.get("entityCountBounds", {})
+    ).items()
 }
 
 
@@ -65,36 +74,34 @@ def validate_oracle_output(path: Path, expected_version: str) -> dict[str, objec
         (value for code, value in pairs if code == "1" and value.startswith("AC")),
         "",
     )
-    line_start = None
-    line_end = None
-    for index, (code, value) in enumerate(pairs):
-        if code == "0" and value == "LINE":
-            line_start = index
-            break
-    if line_start is not None:
-        tail = []
-        for code, value in pairs[line_start + 1 :]:
-            if code == "0":
-                break
-            tail.append((code, value))
-        values = {code: value for code, value in tail}
-        line_end = values
     expected = {"10": "1.0", "20": "2.0", "30": "3.0",
                 "11": "4.0", "21": "5.0", "31": "6.0"}
-    geometry_ok = line_end is not None and all(
-        line_end.get(code) == value for code, value in expected.items()
+    line_geometries = []
+    for index, (code, value) in enumerate(pairs):
+        if code != "0" or value != "LINE":
+            continue
+        tail = []
+        for next_code, next_value in pairs[index + 1 :]:
+            if next_code == "0":
+                break
+            tail.append((next_code, next_value))
+        line_geometries.append(dict(tail))
+    geometry_ok = any(
+        all(line.get(code) == value for code, value in expected.items())
+        for line in line_geometries
     )
     entity_counts = Counter(value for code, value in pairs if code == "0")
     missing_entities = [
-        name for name in EXPECTED_ENTITIES
-        if entity_counts.get(name, 0) < ENTITY_COUNT_BOUNDS.get(name, (1, 1))[0]
+        name for name in EXPECTED_DXF_ENTITIES
+        if entity_counts.get(name, 0)
+        < DXF_ENTITY_COUNT_BOUNDS.get(name, (1, 1))[0]
     ]
     count_violations = [
-        name for name in EXPECTED_ENTITIES
+        name for name in EXPECTED_DXF_ENTITIES
         if not (
-            ENTITY_COUNT_BOUNDS.get(name, (1, 1))[0]
+            DXF_ENTITY_COUNT_BOUNDS.get(name, (1, 1))[0]
             <= entity_counts.get(name, 0)
-            <= ENTITY_COUNT_BOUNDS.get(name, (1, 1))[1]
+            <= DXF_ENTITY_COUNT_BOUNDS.get(name, (1, 1))[1]
         )
     ]
     simple_entities_ok = not missing_entities and not count_violations
@@ -133,11 +140,11 @@ def validate_json_oracle_output(path: Path, expected_version: str) -> dict[str, 
     oracle_version = fileheader.get("version", "") if isinstance(fileheader, dict) else ""
     entity_counts = Counter(_json_entity_names(document))
     missing_entities = [
-        name for name in EXPECTED_ENTITIES
+        name for name in EXPECTED_JSON_ENTITIES
         if entity_counts.get(name, 0) < ENTITY_COUNT_BOUNDS.get(name, (1, 1))[0]
     ]
     count_violations = [
-        name for name in EXPECTED_ENTITIES
+        name for name in EXPECTED_JSON_ENTITIES
         if not (
             ENTITY_COUNT_BOUNDS.get(name, (1, 1))[0]
             <= entity_counts.get(name, 0)
@@ -168,7 +175,7 @@ def self_test() -> None:
     with tempfile.TemporaryDirectory(prefix="libdxfrw-oracle-selftest-") as directory:
         path = Path(directory) / "sample.dxf"
         entity_pairs = "".join(
-            "0\n%s\n" % name for name in EXPECTED_ENTITIES if name != "LINE"
+            "0\n%s\n" % name for name in EXPECTED_JSON_ENTITIES if name != "LINE"
         )
         path.write_text(
             "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1015\n"
@@ -195,7 +202,7 @@ def self_test() -> None:
         json_path.write_text(
             json.dumps({
                 "FILEHEADER": {"version": "AC1015"},
-                "OBJECTS": [{"entity": name} for name in EXPECTED_ENTITIES],
+                "OBJECTS": [{"entity": name} for name in EXPECTED_JSON_ENTITIES],
             }),
             encoding="utf-8",
         )
@@ -249,7 +256,7 @@ def main() -> int:
                     }
                     try:
                         oracle = run(
-                            [args.oracle, "-m", "-y", "-o", str(output), str(drawing)],
+                            [args.oracle, "-y", "-o", str(output), str(drawing)],
                             args.timeout,
                         )
                     except subprocess.TimeoutExpired:

@@ -3,6 +3,7 @@
   "fixturePolicy": "localFromScratchRuntimeOnly",
   "oracle": {
     "dxfExporter": "LibreDWG dwg2dxf 0.14",
+    "dxfMode": "full",
     "jsonReader": "LibreDWG dwgread 0.14",
     "qualification": "advisory"
   },
@@ -11,7 +12,8 @@
       "marker": "13",
       "acadver": "AC1015",
       "dxfStatus": "mismatch",
-      "dxfMissingEntities": ["HATCH", "LEADER", "SPLINE"],
+      "dxfMissingEntities": [],
+      "dxfMissingGeometry": ["LINE"],
       "jsonStatus": "qualified"
     },
     {
@@ -19,6 +21,7 @@
       "acadver": "AC1018",
       "dxfStatus": "qualified",
       "dxfMissingEntities": [],
+      "dxfMissingGeometry": [],
       "jsonStatus": "qualified"
     },
     {
@@ -26,6 +29,7 @@
       "acadver": "AC1021",
       "dxfStatus": "qualified",
       "dxfMissingEntities": [],
+      "dxfMissingGeometry": [],
       "jsonStatus": "qualified"
     },
     {
@@ -33,6 +37,7 @@
       "acadver": "AC1024",
       "dxfStatus": "qualified",
       "dxfMissingEntities": [],
+      "dxfMissingGeometry": [],
       "jsonStatus": "qualified"
     },
     {
@@ -40,6 +45,7 @@
       "acadver": "AC1027",
       "dxfStatus": "qualified",
       "dxfMissingEntities": [],
+      "dxfMissingGeometry": [],
       "jsonStatus": "qualified"
     },
     {
@@ -47,6 +53,7 @@
       "acadver": "AC1032",
       "dxfStatus": "qualified",
       "dxfMissingEntities": [],
+      "dxfMissingGeometry": [],
       "jsonStatus": "qualified"
     }
   ],
@@ -70,7 +77,12 @@
     "HATCH",
     "LEADER"
   ],
+  "dxfExpectedEntities": ["LINE", "POLYLINE"],
   "entityCountBounds": {
+    "LINE": {"min": 1, "max": 2},
+    "POLYLINE": {"min": 1, "max": 2}
+  },
+  "dxfEntityCountBounds": {
     "LINE": {"min": 1, "max": 2},
     "POLYLINE": {"min": 1, "max": 2}
   }

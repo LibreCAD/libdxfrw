@@ -31,6 +31,7 @@ EXPECTED_ENTITIES = [
     "ELLIPSE", "TRACE", "SOLID", "3DFACE", "RAY", "XLINE", "3DLINE",
     "POLYLINE", "SPLINE", "HATCH", "LEADER",
 ]
+EXPECTED_DXF_ENTITIES = ["LINE", "POLYLINE"]
 
 
 def load(path: Path) -> dict[str, object]:
@@ -46,7 +47,9 @@ def validate(document: dict[str, object]) -> None:
     if document.get("fixturePolicy") != "localFromScratchRuntimeOnly":
         raise ValueError("oracle matrix must remain runtime-only")
     oracle = document.get("oracle")
-    if not isinstance(oracle, dict) or oracle.get("qualification") != "advisory":
+    if (not isinstance(oracle, dict)
+            or oracle.get("qualification") != "advisory"
+            or oracle.get("dxfMode") != "full"):
         raise ValueError("oracle matrix must be advisory and independent")
 
     versions = document.get("versions")
@@ -70,21 +73,32 @@ def validate(document: dict[str, object]) -> None:
             raise ValueError("DXF missing-entity evidence must be a string list")
         if entry.get("dxfStatus") == "qualified" and missing:
             raise ValueError("qualified DXF route cannot list missing entities")
+        missing_geometry = entry.get("dxfMissingGeometry")
+        if (not isinstance(missing_geometry, list)
+                or any(not isinstance(name, str) for name in missing_geometry)):
+            raise ValueError("DXF missing-geometry evidence must be a string list")
     if actual_versions != EXPECTED_VERSIONS:
         raise ValueError("version order or mapping drifted")
-    if actual_versions[0] == EXPECTED_VERSIONS[0]:
-        first = versions[0]
-        assert isinstance(first, dict)
-        if first.get("dxfStatus") != "mismatch" or first.get("dxfMissingEntities") != ["HATCH", "LEADER", "SPLINE"]:
-            raise ValueError("AC1015 discrepancy disposition changed unexpectedly")
-    if any(entry.get("dxfStatus") == "mismatch" for entry in versions[1:]):
-        raise ValueError("only the observed AC1015 exporter discrepancy is allowed")
+    expected_status = ["mismatch", "qualified", "qualified", "qualified",
+                       "qualified", "qualified"]
+    actual_status = [entry.get("dxfStatus") for entry in versions]
+    if actual_status != expected_status:
+        raise ValueError("DXF oracle status/discrepancy disposition drifted")
+    expected_geometry = [["LINE"], [], [], [], [], []]
+    actual_geometry = [entry.get("dxfMissingGeometry") for entry in versions]
+    if actual_geometry != expected_geometry:
+        raise ValueError("DXF geometry discrepancy disposition drifted")
 
     entities = document.get("expectedEntities")
     if entities != EXPECTED_ENTITIES:
         raise ValueError("expected entity set drifted")
     if len(set(entities)) != len(entities):
         raise ValueError("expected entity set contains duplicates")
+    dxf_entities = document.get("dxfExpectedEntities")
+    if dxf_entities != EXPECTED_DXF_ENTITIES:
+        raise ValueError("DXF expected entity set drifted")
+    if len(set(dxf_entities)) != len(dxf_entities):
+        raise ValueError("DXF expected entity set contains duplicates")
     bounds = document.get("entityCountBounds")
     if not isinstance(bounds, dict):
         raise ValueError("entity count bounds are missing")
@@ -97,6 +111,18 @@ def validate(document: dict[str, object]) -> None:
                 or bound["min"] < 1
                 or bound["min"] > bound["max"]):
             raise ValueError("invalid entity count bound for %s" % name)
+    dxf_bounds = document.get("dxfEntityCountBounds")
+    if not isinstance(dxf_bounds, dict):
+        raise ValueError("DXF entity count bounds are missing")
+    if set(dxf_bounds) - set(EXPECTED_DXF_ENTITIES):
+        raise ValueError("DXF entity count bounds contain an unknown entity")
+    for name, bound in dxf_bounds.items():
+        if (not isinstance(bound, dict)
+                or not isinstance(bound.get("min"), int)
+                or not isinstance(bound.get("max"), int)
+                or bound["min"] < 1
+                or bound["min"] > bound["max"]):
+            raise ValueError("invalid DXF entity count bound for %s" % name)
 
 
 def self_test() -> None:
