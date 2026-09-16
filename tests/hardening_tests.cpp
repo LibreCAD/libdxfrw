@@ -199,6 +199,11 @@ public:
     using DRW_DataLink::parseCode;
 };
 
+class ExposedGeoData : public DRW_GeoData {
+public:
+    using DRW_GeoData::parseCode;
+};
+
 template <typename Entity>
 bool parseDxfRecords(Entity& entity, const std::string& source) {
     std::stringstream records(source);
@@ -290,6 +295,8 @@ void testPublicOwnershipContracts(TestContext& t) {
                   "DRW_GeoMapImage copy contract");
     static_assert(std::is_copy_constructible<DRW_DataLink>::value,
                   "DRW_DataLink copy contract");
+    static_assert(std::is_copy_constructible<DRW_GeoData>::value,
+                  "DRW_GeoData copy contract");
     static_assert(std::is_copy_constructible<DRW_Attrib>::value,
                   "DRW_Attrib copy contract");
     static_assert(std::is_copy_constructible<DRW_GeoPositionMarker>::value,
@@ -1273,6 +1280,39 @@ void testPublicOwnershipContracts(TestContext& t) {
                  && assignedDataFresh && assignedDataLink.m_customData.size() == 2u
                  && assignedDataLink.m_customData.back().m_text == "third-row",
              "DATALINK assignment clears body/custom-data parser state");
+
+    const std::string geoDataBody =
+        "100\nAcDbGeoData\n330\nA1\n90\n1\n93\n1\n"
+        "13\n1\n23\n2\n14\n3\n24\n4\n";
+    ExposedGeoData partialGeoData;
+    t.expect(parseDxfRecords(partialGeoData, geoDataBody)
+                 && partialGeoData.m_hostBlockHandle == 0xA1u
+                 && partialGeoData.m_points.size() == 1u
+                 && partialGeoData.m_points.front().m_source.y == 2.0,
+             "GEODATA parser state source setup");
+    ExposedGeoData copiedGeoData(partialGeoData);
+    const bool copiedGeoDataStale = parseDxfRecords(copiedGeoData, "330\nA2\n");
+    const std::uint32_t copiedGeoDataHostAfterStale =
+        copiedGeoData.m_hostBlockHandle;
+    const bool copiedGeoDataFresh = parseDxfRecords(
+        copiedGeoData, "100\nAcDbGeoData\n330\nA3\n90\n2\n");
+    t.expect(copiedGeoDataStale && copiedGeoDataHostAfterStale == 0xA1u
+                 && copiedGeoDataFresh && copiedGeoData.m_hostBlockHandle == 0xA3u
+                 && copiedGeoData.m_version == 2
+                 && copiedGeoData.m_points.size() == 1u,
+             "GEODATA copy clears subclass and mesh parser state");
+    ExposedGeoData assignedGeoData;
+    assignedGeoData = partialGeoData;
+    const bool assignedGeoDataStale = parseDxfRecords(assignedGeoData, "330\nA4\n");
+    const std::uint32_t assignedGeoDataHostAfterStale =
+        assignedGeoData.m_hostBlockHandle;
+    const bool assignedGeoDataFresh = parseDxfRecords(
+        assignedGeoData, "100\nAcDbGeoData\n330\nA5\n90\n3\n");
+    t.expect(assignedGeoDataStale && assignedGeoDataHostAfterStale == 0xA1u
+                 && assignedGeoDataFresh && assignedGeoData.m_hostBlockHandle == 0xA5u
+                 && assignedGeoData.m_version == 3
+                 && assignedGeoData.m_points.size() == 1u,
+             "GEODATA assignment clears subclass and mesh parser state");
 
     DRW_Dimension sourceDimension;
     sourceDimension.extData.push_back(

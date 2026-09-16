@@ -1413,6 +1413,63 @@ public:
   static constexpr std::int32_t kMaxMeshItems = 50000;
 
   DRW_GeoData() { reset(); }
+  DRW_GeoData(const DRW_GeoData& o): DRW_TableEntry(o),
+      m_dxfInGeoDataSubclass(false), m_dxfSourcePointIndex(0),
+      m_dxfTargetPointIndex(0), m_dxfFaceIndex(0), m_version(o.m_version),
+      m_hostBlockHandle(o.m_hostBlockHandle),
+      m_coordinatesType(o.m_coordinatesType), m_designPoint(o.m_designPoint),
+      m_referencePoint(o.m_referencePoint), m_upDirection(o.m_upDirection),
+      m_northDirection(o.m_northDirection),
+      m_horizontalUnitScale(o.m_horizontalUnitScale),
+      m_verticalUnitScale(o.m_verticalUnitScale),
+      m_horizontalUnits(o.m_horizontalUnits),
+      m_verticalUnits(o.m_verticalUnits),
+      m_scaleEstimationMethod(o.m_scaleEstimationMethod),
+      m_userSpecifiedScaleFactor(o.m_userSpecifiedScaleFactor),
+      m_enableSeaLevelCorrection(o.m_enableSeaLevelCorrection),
+      m_seaLevelElevation(o.m_seaLevelElevation),
+      m_coordinateProjectionRadius(o.m_coordinateProjectionRadius),
+      m_coordinateSystemDefinition(o.m_coordinateSystemDefinition),
+      m_geoRssTag(o.m_geoRssTag), m_observationFromTag(o.m_observationFromTag),
+      m_observationToTag(o.m_observationToTag),
+      m_observationCoverageTag(o.m_observationCoverageTag),
+      m_points(o.m_points), m_faces(o.m_faces) {
+    tType = o.tType;
+  }
+  DRW_GeoData& operator=(const DRW_GeoData& o) {
+    if (this != &o) {
+      DRW_TableEntry::operator=(o);
+      m_dxfInGeoDataSubclass = false;
+      m_dxfSourcePointIndex = 0;
+      m_dxfTargetPointIndex = 0;
+      m_dxfFaceIndex = 0;
+      m_version = o.m_version;
+      m_hostBlockHandle = o.m_hostBlockHandle;
+      m_coordinatesType = o.m_coordinatesType;
+      m_designPoint = o.m_designPoint;
+      m_referencePoint = o.m_referencePoint;
+      m_upDirection = o.m_upDirection;
+      m_northDirection = o.m_northDirection;
+      m_horizontalUnitScale = o.m_horizontalUnitScale;
+      m_verticalUnitScale = o.m_verticalUnitScale;
+      m_horizontalUnits = o.m_horizontalUnits;
+      m_verticalUnits = o.m_verticalUnits;
+      m_scaleEstimationMethod = o.m_scaleEstimationMethod;
+      m_userSpecifiedScaleFactor = o.m_userSpecifiedScaleFactor;
+      m_enableSeaLevelCorrection = o.m_enableSeaLevelCorrection;
+      m_seaLevelElevation = o.m_seaLevelElevation;
+      m_coordinateProjectionRadius = o.m_coordinateProjectionRadius;
+      m_coordinateSystemDefinition = o.m_coordinateSystemDefinition;
+      m_geoRssTag = o.m_geoRssTag;
+      m_observationFromTag = o.m_observationFromTag;
+      m_observationToTag = o.m_observationToTag;
+      m_observationCoverageTag = o.m_observationCoverageTag;
+      m_points = o.m_points;
+      m_faces = o.m_faces;
+      tType = o.tType;
+    }
+    return *this;
+  }
   void reset();
 
 protected:
