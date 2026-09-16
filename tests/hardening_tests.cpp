@@ -2333,6 +2333,17 @@ public:
     using DRW_DimLargeRadial::parseCode;
 };
 
+class ExposedModelerGeometry final : public DRW_ModelerGeometry {
+public:
+    using DRW_ModelerGeometry::DRW_ModelerGeometry;
+    using DRW_ModelerGeometry::parseCode;
+};
+
+class ExposedSurface final : public DRW_Surface {
+public:
+    using DRW_Surface::parseCode;
+};
+
 void testMLeaderParserStateCopyIsolation(TestContext& t) {
     std::stringstream records("300\nCONTEXT_DATA{\n302\nLEADER{\n");
     std::unique_ptr<dxfReader> reader =
@@ -2424,6 +2435,37 @@ void testDimensionParserStateCopyIsolation(TestContext& t) {
     t.expect(copiedRadial.jogPoint.x == 5.0
                  && copiedRadial.jogAngle == 6.5,
              "LARGE_RADIAL copy resets transient subclass routing");
+}
+
+void testDxfProxyGraphicsStayOutOfAcis(TestContext& t) {
+    const std::vector<std::uint8_t> expectedAcis {'A', 'C', 'I', 'S'};
+    const std::string modelerRecords =
+        "92\n2\n310\nAABB\n"
+        "100\nAcDbModelerGeometry\n70\n1\n310\n41434953\n";
+    for (DRW::ETYPE type : {DRW::E3DSOLID, DRW::REGION, DRW::BODY}) {
+        ExposedModelerGeometry modeler(type);
+        t.expect(parseDxfRecords(modeler, modelerRecords)
+                     && modeler.numProxyGraph == 2
+                     && modeler.proxyGraphics == std::string("\xAA\xBB", 2)
+                     && modeler.m_modelerVersion == 1
+                     && modeler.m_rawBytes == expectedAcis,
+                 "MODELER_GEOMETRY keeps proxy graphics out of ACIS payload");
+    }
+
+    for (const char* countCode : {"92", "160"}) {
+        ExposedSurface surface;
+        const std::string records = std::string(countCode)
+            + "\n2\n310\nAABB\n"
+              "100\nAcDbModelerGeometry\n70\n1\n310\n41434953\n"
+              "100\nAcDbSurface\n71\n4\n72\n5\n";
+        t.expect(parseDxfRecords(surface, records)
+                     && surface.numProxyGraph == 2
+                     && surface.proxyGraphics == std::string("\xAA\xBB", 2)
+                     && surface.modelerFormatVersion == 1
+                     && surface.uIsolines == 4 && surface.vIsolines == 5
+                     && surface.rawAcisData == expectedAcis,
+                 "SURFACE keeps proxy graphics out of ACIS payload");
+    }
 }
 
 void testMLeaderDxfContextRoundTrip(TestContext& t) {
@@ -2623,6 +2665,7 @@ int main() {
     testDwgAggregateObjectBudget(context);
     testMLeaderParserStateCopyIsolation(context);
     testDimensionParserStateCopyIsolation(context);
+    testDxfProxyGraphicsStayOutOfAcis(context);
     testMLeaderDxfContextRoundTrip(context);
     if (context.failures != 0) {
         std::cerr << context.failures << " hardening assertion(s) failed\n";

@@ -36,10 +36,10 @@ unavailable fixture or oracle. The target is the immutable LibreCAD revision
 recorded below; a later `master` refresh is a new delta audit, not silent
 scope expansion.
 
-The target lock was refreshed on 2026-09-15 after auditing the latest
+The target lock was refreshed on 2026-09-16 after auditing the latest
 LibreCAD master delta and is the active format-parity baseline:
 
-- LibreCAD repository commit: `0ffb38d790db53116978e01fcaf94cee9bc6ee48`
+- LibreCAD repository commit: `512d8bd86612f17158d4d222fcdc8a7c2b052c57`
 - Bundled `.snapshot-revision`: `89b762bef636c90eb370cb1af3cec80fe759cb32`
 - Standalone baseline: `origin/master` at
   `92d7466ed9146badcd4fb44c82d1dd8302b3c7db`
@@ -53,16 +53,16 @@ then pin an immutable commit before importing source.
 
 The implementation worktree is rebased on `origin/master` with no commits
 behind it; the exact ahead distance is emitted by each post-commit report.
-The target refresh audited
-LibreCAD master commit `aacfc3bb0` (DXF compatibility fixes) through the
-current target tip, ported the seven changed library source/header files, and
-refreshed the target lock, archive, manifest, source-route inventory, oracle
-registry, inventory-input lock, and support-matrix provenance. S304/J280
-reran the reviewed DWG differential-debt reports against the refreshed target
-and reconciled both registries to `0ffb38d790db53116978e01fcaf94cee9bc6ee48`.
-The latest green implementation slice is S376/J352; it hardens DIMARC and
-LARGE_RADIAL parser-state copy and assignment isolation while keeping the fast
-release-readiness gate so required support/build-policy markers in
+The target refresh audited LibreCAD master through commit
+`512d8bd86612f17158d4d222fcdc8a7c2b052c57`, ported the proxy-graphics/ACIS
+source delta, added an in-memory regression for both modeler and surface
+entities, and refreshed the target lock, archive, manifest, source-route
+inventory, oracle registry, inventory-input lock, and support-matrix
+provenance. Existing DWG differential-debt reports remain hash-identical and
+are reconciled to the new target commit. The latest green implementation
+slice is S377/J353; it keeps announced DXF proxy graphics out of ACIS/modeler
+payloads while retaining the fast release-readiness gate so required
+support/build-policy markers in
 `docs/UPGRADE_SUPPORT.md` and `README.md` cannot drift from the executable
 support matrix.  The docs publish separate DWG/DXF route totals, zero
 qualified/advertised rows, the CMake/C++17 2.0.0 support surface, and the
@@ -2218,6 +2218,14 @@ edit this block or commit the same slice concurrently.
   copied while transient DXF subclass markers reset; focused hardening vectors
   pass and no drawing bytes or derived fixtures are used.
 
+- Current checkpoint (2026-09-16): S377/J353 refreshes the locked target to
+  LibreCAD master `512d8bd86612f17158d4d222fcdc8a7c2b052c57` and ports its
+  proxy-graphics/ACIS routing fix. In-memory DXF vectors for 3DSOLID, REGION,
+  BODY, and both proxy-count encodings confirm that group-310 proxy bytes do
+  not enter ACIS/modeler payloads; focused hardening, source-policy, route,
+  aggregate, support, release, and speed gates pass. No drawing bytes or
+  derived fixtures are used.
+
 - Current checkpoint (2026-09-16): S329/J305 compound-entity graph ownership
   is committed.  Explicit copies now clone legacy POLYLINE vertices, SPLINE
   control/fit points, and INSERT attributes while resetting parser cursors;
@@ -3921,20 +3929,20 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 376 (`COMMITTED`).
+- Resolved slices: 377 (`COMMITTED`).
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 376 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 377 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 378 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 379 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 VERIFIED / 0 SUPERSEDED / 479 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 VERIFIED / 0 SUPERSEDED / 480 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  6 DEFERRED_EXTERNAL / 366 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S376 and J329/J329.1/J330/J330.1/J331/J331.1/J332/J332.1/
+  6 DEFERRED_EXTERNAL / 367 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S377 and J329/J329.1/J330/J330.1/J331/J331.1/J332/J332.1/
   J333/J333.1/J334/J334.1/J335/J335.1/J336/J336.1/J337/J337.1/J338/J338.1/
   J339/J339.1/J340/J340.1/J341/J341.1/J342/J342.1/J343/J343.1/J344/J344.1/
-  J345/J345.1/J346/J346.1/J347/J347.1/J348/J348.1/J349/J349.1/J350/J350.1/J351/J351.1/J352/J352.1 are committed; no other local implementation
+  J345/J345.1/J346/J346.1/J347/J347.1/J348/J348.1/J349/J349.1/J350/J350.1/J351/J351.1/J352/J352.1/J353/J353.1 are committed; no other local implementation
   slice is active.
   Keep the fast inner loop and do not promote support claims from
   self-read alone.
@@ -4366,6 +4374,7 @@ edit this block or commit the same slice concurrently.
 | S374 | J350: release-documentation drift guard | S373 | COMMITTED | release-readiness self-test/live gate; documentation marker audit; plan; fixture; diff | `check_release_readiness.py` self-test and live gate verify required support/build/version/deprecation markers in `docs/UPGRADE_SUPPORT.md` and `README.md`; no source or drawing bytes changed | continue with native-platform, long-fuzz, external-oracle, and format-support promotion closure |
 | S375 | J351: MULTILEADER parser-state copy isolation | S374 | COMMITTED | MULTILEADER copy/assignment of persisted context/style/handle/legacy-array state; transient nested-context reset; focused hardening target; plan; fixture; diff | focused `libdxfrw_hardening_tests` passes partial-context copy/assignment isolation and context graph ownership checks; no drawing bytes or derived fixtures | prepare the verified slice, commit with matching trailers, report progress, and continue with native-platform, long-fuzz, external-oracle, and format-support promotion closure |
 | S376 | J352: DIMARC/LARGE_RADIAL parser-state copy isolation | S375 | COMMITTED | DIMARC and LARGE_RADIAL copy/assignment of persisted arc/jog fields; transient DXF subclass-marker reset; focused hardening target; plan; fixture; diff | focused `libdxfrw_hardening_tests` passes partial-subclass copy/assignment isolation for both dimension entities; no drawing bytes or derived fixtures | prepare the verified slice, commit with matching trailers, report progress, and continue with native-platform, long-fuzz, external-oracle, and format-support promotion closure |
+| S377 | J353: LibreCAD master proxy-graphics/ACIS refresh | S376 | COMMITTED | LibreCAD target refresh to commit `512d8bd86612f17158d4d222fcdc8a7c2b052c57`; modeler/surface proxy-routing fix; in-memory DXF vectors; lock/manifest/oracle/route refresh; focused hardening; fixture; import-scope; sync; aggregate; support; release-readiness; speed; diff | target source delta is ported; 3DSOLID/REGION/BODY and 92/160 proxy-count vectors keep proxy bytes out of ACIS/modeler payloads; all fast metadata/policy gates pass; no drawing bytes or derived fixtures | commit the verified target-refresh slice with matching trailers, report progress, and continue with native-platform, long-fuzz, external-oracle, and format-support promotion closure |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -4746,6 +4755,7 @@ edit this block or commit the same slice concurrently.
 | J350 | S374 | J349 | COMMITTED | EXPERIMENTAL | Guard release-documentation drift | Extend `check_release_readiness.py` with fail-closed marker checks for route totals, support axes/status, CMake/C++17 policy, package/banner version boundary, and deprecated generator policy in both release-facing documents; run self-test and live gate without drawing bytes |
 | J351 | S375 | J350 | COMMITTED | EXPERIMENTAL | Harden MULTILEADER parser-state copy and assignment | Add explicit copy/assignment/move contracts for `DRW_MLeader`; preserve every persisted context/style/handle/legacy-array field while resetting transient DXF nested-context and transform cursors; keep all inputs in memory |
 | J352 | S376 | J351 | COMMITTED | EXPERIMENTAL | Harden DIMARC/LARGE_RADIAL parser-state copy and assignment | Add explicit copy/assignment/move contracts for `DRW_DimArc` and `DRW_DimLargeRadial`; preserve persisted arc/jog fields while resetting transient DXF subclass markers; keep all inputs in memory |
+| J353 | S377 | J352 | COMMITTED | EXPERIMENTAL | Refresh LibreCAD master proxy-graphics/ACIS behavior | Port the target `DRW_ModelerGeometry::parseCode` and `DRW_Surface::parseCode` routing fix from LibreCAD master `512d8bd86612f17158d4d222fcdc8a7c2b052c57`; refresh immutable target metadata and add only in-memory parser vectors for modeler/surface entities; no drawing bytes |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -5232,6 +5242,7 @@ edit this block or commit the same slice concurrently.
 | J350.1 | J350 / S374 | WP1, WP8, WP10; release documentation drift guard | J349 | COMMITTED | EXPERIMENTAL | assert `check_release_readiness.py` rejects missing release-policy markers and accepts the current `docs/UPGRADE_SUPPORT.md`/`README.md` contract, then run the live release gate without drawing bytes | checker self-test and live release-readiness gate pass; no source or drawing bytes changed |
 | J351.1 | J351 / S375 | WP3.11-WP3.12, WP8, WP10; MULTILEADER parser-state copy isolation | J350 | COMMITTED | EXPERIMENTAL | assert copied and assigned MULTILEADER models reset an open CONTEXT_DATA/LEADER parser walk while preserving nested context, style, handle, and legacy-array values; mutate the copy to verify graph-value isolation; keep all inputs in memory | focused `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures |
 | J352.1 | J352 / S376 | WP3.11-WP3.12, WP8, WP10; DIMARC/LARGE_RADIAL parser-state copy isolation | J351 | COMMITTED | EXPERIMENTAL | assert copied and assigned DIMARC and LARGE_RADIAL models preserve persisted arc/jog values but do not route later group codes through a stale DXF subclass marker; keep all inputs in memory | focused `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures |
+| J353.1 | J353 / S377 | WP3.11-WP3.12, WP8, WP10; LibreCAD master proxy-graphics/ACIS refresh | J352 | COMMITTED | EXPERIMENTAL | assert announced proxy graphics (group 92 or 160 plus group 310) remain in `DRW_Entity::proxyGraphics` while subsequent modeler/surface group-310 bytes populate only the ACIS carrier; cover 3DSOLID, REGION, BODY, and surface fields with in-memory records | focused `libdxfrw_hardening_tests`, target lock/manifest, import-scope, sync, route, aggregate, support, release-readiness, speed, and diff gates pass; no drawing bytes or derived fixtures |
 | J313.1 | J313 / S337 | WP3.11-WP3.12, WP8, WP10; TABLE parser-state copy isolation | J312 | COMMITTED | EXPERIMENTAL | assert copied and assigned TABLE models accept fresh subclass/grid dimensions after a partial source parse while preserving public table content; keep all inputs in memory | focused `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures |
 
 <!-- UPGRADE_PROGRESS_END -->

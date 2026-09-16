@@ -8,7 +8,7 @@ libraries/libdxfrw/src/drw_classes.cpp|100644|af3095933dd2ea8c7300903c3f6db0ea02
 libraries/libdxfrw/src/drw_classes.h|100644|835bc615c7b3bbb55af7a33e68168c5634bbda09|header-listed
 libraries/libdxfrw/src/drw_datastorage.cpp|100644|66a2bddca9bebe01c00879c14151d51019e8a866|source
 libraries/libdxfrw/src/drw_datastorage.h|100644|58219c2779291c00c1beb44b51576736a7e5f0a8|header-listed
-libraries/libdxfrw/src/drw_entities.cpp|100644|f6552e6be5e59f7aca602d4d9c520baf993bb159|source
+libraries/libdxfrw/src/drw_entities.cpp|100644|bb6bae561077c273241670843137e10b4c3e9ba1|source
 libraries/libdxfrw/src/drw_entities.h|100644|077a84860cea7c35da2f136ce6afedd3be1adf44|header-listed
 libraries/libdxfrw/src/drw_header.cpp|100644|74625fc34f9d7fedcc754bdc68fe11d4c0b53b42|source
 libraries/libdxfrw/src/drw_header.h|100644|59ad442cc371e378b5297e24a7ac2774dac309e8|header-listed

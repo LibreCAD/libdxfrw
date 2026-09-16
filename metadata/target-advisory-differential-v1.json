@@ -426,7 +426,7 @@
     "repository": "LibreCAD/LibreCAD"
   },
   "target": {
-    "commit": "0ffb38d790db53116978e01fcaf94cee9bc6ee48",
+      "commit": "512d8bd86612f17158d4d222fcdc8a7c2b052c57",
     "repository": "LibreCAD/LibreCAD"
   }
 }
