@@ -5818,11 +5818,19 @@
         "shared/public-inline-method/src_drw_objects.h_DRW_DictionaryWithDefault_3d5c4fc6f6e97bbb4a3509da71cd665e08dc0600f15e17e4e44b303a4fd8c95b",
         "shared/public-inline-method/src_drw_objects.h_DRW_Dictionary_07765a47730f72f5b566ab3cd7854b65f35f4568a30bf7fd27687fa918266af6",
         "shared/public-inline-method/src_drw_objects.h_DRW_Dictionary_39129c8a4a8272d91c975e11224b0831db485db46a41f9b7302f68f7ffe36c45",
+        "shared/public-inline-method/src_drw_objects.h_DRW_IDBuffer_56da6d9a942df8aa98a30e0442664354585ae91137d3324f306c41150dc5805e",
+        "shared/public-inline-method/src_drw_objects.h_DRW_IDBuffer_f59ec0f32b88c925c36100110ca467b07dbacddfdc82bb5a6af6faf47edc7ab9",
+        "shared/public-inline-method/src_drw_objects.h_DRW_Index_55b4be57c4c29d69e2adafc0a7e14dc78bd7bf2f0623b2dd99a2ae33a6639360",
+        "shared/public-inline-method/src_drw_objects.h_DRW_Index_d31d769fe66117b48478561859f54b5ba71b3f5d2a45e74683ce94379d9c46c9",
+        "shared/public-inline-method/src_drw_objects.h_DRW_LayerIndex_03dee2e23926762af1730fd7dbb391c1c54ab0f426cc902512fbb82ed77c8422",
+        "shared/public-inline-method/src_drw_objects.h_DRW_LayerIndex_e9d38092b4feb409464df129f459a1ed267075e906ad5d4259cc4f84002a8423",
         "shared/public-inline-method/src_drw_objects.h_DRW_MLineStyle_ce9e2dc8de76f515cd4b39942cdde57e78639824a16d061ff0da16a9e6710ce9",
         "shared/public-inline-method/src_drw_objects.h_DRW_SectionViewStyle_618daac7d1df429a169d4d801f6e3e5532b703164530a42b1b63e5dd03a85c0c",
         "shared/public-inline-method/src_drw_objects.h_DRW_SortEntsTable_356cef7fc2d375479e62f0a301ed7b0d169658ad947d55e9c69c8b23da23daf2",
         "shared/public-inline-method/src_drw_objects.h_DRW_SortEntsTable_f6f2d54989e664abe78c6b6e07aaed7070a48d452a98f62ad6c18258281e4846",
-        "shared/public-inline-method/src_drw_objects.h_DRW_WritingContext_6652830d74e7ff09c4eef92bc31aa7e0e3f61d06e2cfcfa073944414fac7a2ea",
+        "shared/public-inline-method/src_drw_objects.h_DRW_SpatialIndex_0765ec5f82195b1fb86d4911eab7171360a969d560ee11548810973dc931b0c3",
+        "shared/public-inline-method/src_drw_objects.h_DRW_SpatialIndex_ac7bedf9dab931f9e591c319a42e74c5be32f625a1e8958f79fed90475a88586",
+        "shared/public-inline-method/src_drw_objects.h_DRW_WritingContext_43c9837daa38356d4990e9f28eacfd21d68b4cff0333ab2bf77861b9c6149361",
         "shared/public-inline-method/src_drw_objects.h_DRW_XRecord_2d47adabf22d9082460a9e207d84cb4607a3abdcde01566655a900cb58213358",
         "shared/public-inline-method/src_drw_objects.h_DRW_XRecord_4279d011431dd0446368af2b9d4064706a6a73114f7ac5e8d1dde1abb4879d13",
         "shared/public-inline-method/src_drw_objects.h_DRW_XRecord_ea8d2e1f60d11c7313a27b62c776afdf8a6d9c03526ef7c0ba6e0ce6830fe2d2",
@@ -5931,11 +5939,19 @@
         "shared/public-method/src_drw_objects.h_DRW_DictionaryWithDefault_3d5c4fc6f6e97bbb4a3509da71cd665e08dc0600f15e17e4e44b303a4fd8c95b",
         "shared/public-method/src_drw_objects.h_DRW_Dictionary_07765a47730f72f5b566ab3cd7854b65f35f4568a30bf7fd27687fa918266af6",
         "shared/public-method/src_drw_objects.h_DRW_Dictionary_39129c8a4a8272d91c975e11224b0831db485db46a41f9b7302f68f7ffe36c45",
+        "shared/public-method/src_drw_objects.h_DRW_IDBuffer_56da6d9a942df8aa98a30e0442664354585ae91137d3324f306c41150dc5805e",
+        "shared/public-method/src_drw_objects.h_DRW_IDBuffer_f59ec0f32b88c925c36100110ca467b07dbacddfdc82bb5a6af6faf47edc7ab9",
+        "shared/public-method/src_drw_objects.h_DRW_Index_55b4be57c4c29d69e2adafc0a7e14dc78bd7bf2f0623b2dd99a2ae33a6639360",
+        "shared/public-method/src_drw_objects.h_DRW_Index_d31d769fe66117b48478561859f54b5ba71b3f5d2a45e74683ce94379d9c46c9",
+        "shared/public-method/src_drw_objects.h_DRW_LayerIndex_03dee2e23926762af1730fd7dbb391c1c54ab0f426cc902512fbb82ed77c8422",
+        "shared/public-method/src_drw_objects.h_DRW_LayerIndex_e9d38092b4feb409464df129f459a1ed267075e906ad5d4259cc4f84002a8423",
         "shared/public-method/src_drw_objects.h_DRW_MLineStyle_ce9e2dc8de76f515cd4b39942cdde57e78639824a16d061ff0da16a9e6710ce9",
         "shared/public-method/src_drw_objects.h_DRW_SectionViewStyle_618daac7d1df429a169d4d801f6e3e5532b703164530a42b1b63e5dd03a85c0c",
         "shared/public-method/src_drw_objects.h_DRW_SortEntsTable_356cef7fc2d375479e62f0a301ed7b0d169658ad947d55e9c69c8b23da23daf2",
         "shared/public-method/src_drw_objects.h_DRW_SortEntsTable_f6f2d54989e664abe78c6b6e07aaed7070a48d452a98f62ad6c18258281e4846",
-        "shared/public-method/src_drw_objects.h_DRW_WritingContext_6652830d74e7ff09c4eef92bc31aa7e0e3f61d06e2cfcfa073944414fac7a2ea",
+        "shared/public-method/src_drw_objects.h_DRW_SpatialIndex_0765ec5f82195b1fb86d4911eab7171360a969d560ee11548810973dc931b0c3",
+        "shared/public-method/src_drw_objects.h_DRW_SpatialIndex_ac7bedf9dab931f9e591c319a42e74c5be32f625a1e8958f79fed90475a88586",
+        "shared/public-method/src_drw_objects.h_DRW_WritingContext_43c9837daa38356d4990e9f28eacfd21d68b4cff0333ab2bf77861b9c6149361",
         "shared/public-method/src_drw_objects.h_DRW_XRecord_2d47adabf22d9082460a9e207d84cb4607a3abdcde01566655a900cb58213358",
         "shared/public-method/src_drw_objects.h_DRW_XRecord_4279d011431dd0446368af2b9d4064706a6a73114f7ac5e8d1dde1abb4879d13",
         "shared/public-method/src_drw_objects.h_DRW_XRecord_ea8d2e1f60d11c7313a27b62c776afdf8a6d9c03526ef7c0ba6e0ce6830fe2d2",
@@ -6029,7 +6045,7 @@
   },
   "inputs": {
     "standalone": {
-      "contentTreeSha256": "64d7bcab2940f56bad798006c83341f0246640f467b6ad17af1e42eca60de041",
+      "contentTreeSha256": "5c8dabc3e5f7689cd42b4cd7f8c9faaafd691cd611b381989c0f9667d6529eff",
       "files": [
         {
           "mode": "100644",
@@ -6104,7 +6120,7 @@
         {
           "mode": "100644",
           "path": "src/drw_objects.h",
-          "sha256": "e0d21f43e4315ba23975b7a3c9bf8fd10b19871b1cf72b8eb3955fa5ad5fe099"
+          "sha256": "784a5f53cd60a6eec116f52a8a58928b794b3066b151bdb3f9bf4d923cc53340"
         },
         {
           "mode": "100644",
@@ -93630,7 +93646,7 @@
           "route-identity"
         ],
         "dependencies": [
-          "shared/public-inline-method/src_drw_objects.h_DRW_WritingContext_6652830d74e7ff09c4eef92bc31aa7e0e3f61d06e2cfcfa073944414fac7a2ea"
+          "shared/public-inline-method/src_drw_objects.h_DRW_WritingContext_43c9837daa38356d4990e9f28eacfd21d68b4cff0333ab2bf77861b9c6149361"
         ],
         "disposition": "compatibility-extension",
         "facade": "shared",
@@ -93642,7 +93658,7 @@
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-inline-method/src_drw_objects.h_DRW_WritingContext_6652830d74e7ff09c4eef92bc31aa7e0e3f61d06e2cfcfa073944414fac7a2ea"
+          "shared/public-inline-method/src_drw_objects.h_DRW_WritingContext_43c9837daa38356d4990e9f28eacfd21d68b4cff0333ab2bf77861b9c6149361"
         ],
         "targetRouteId": "shared/public-inline-method/src_drw_objects.h_DRW_WritingContext_50786d306badfa8d4b0522a72f1d266640ea8f6c83c6bdfb96bb011004d80f8e",
         "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
@@ -107818,7 +107834,7 @@
           "route-identity"
         ],
         "dependencies": [
-          "shared/public-method/src_drw_objects.h_DRW_WritingContext_6652830d74e7ff09c4eef92bc31aa7e0e3f61d06e2cfcfa073944414fac7a2ea"
+          "shared/public-method/src_drw_objects.h_DRW_WritingContext_43c9837daa38356d4990e9f28eacfd21d68b4cff0333ab2bf77861b9c6149361"
         ],
         "disposition": "compatibility-extension",
         "facade": "shared",
@@ -107830,7 +107846,7 @@
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-method/src_drw_objects.h_DRW_WritingContext_6652830d74e7ff09c4eef92bc31aa7e0e3f61d06e2cfcfa073944414fac7a2ea"
+          "shared/public-method/src_drw_objects.h_DRW_WritingContext_43c9837daa38356d4990e9f28eacfd21d68b4cff0333ab2bf77861b9c6149361"
         ],
         "targetRouteId": "shared/public-method/src_drw_objects.h_DRW_WritingContext_50786d306badfa8d4b0522a72f1d266640ea8f6c83c6bdfb96bb011004d80f8e",
         "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
@@ -123429,8 +123445,16 @@
       "shared/public-inline-method/src_drw_objects.h_DRW_DictionaryWithDefault_3d5c4fc6f6e97bbb4a3509da71cd665e08dc0600f15e17e4e44b303a4fd8c95b",
       "shared/public-inline-method/src_drw_objects.h_DRW_Dictionary_07765a47730f72f5b566ab3cd7854b65f35f4568a30bf7fd27687fa918266af6",
       "shared/public-inline-method/src_drw_objects.h_DRW_Dictionary_39129c8a4a8272d91c975e11224b0831db485db46a41f9b7302f68f7ffe36c45",
+      "shared/public-inline-method/src_drw_objects.h_DRW_IDBuffer_56da6d9a942df8aa98a30e0442664354585ae91137d3324f306c41150dc5805e",
+      "shared/public-inline-method/src_drw_objects.h_DRW_IDBuffer_f59ec0f32b88c925c36100110ca467b07dbacddfdc82bb5a6af6faf47edc7ab9",
+      "shared/public-inline-method/src_drw_objects.h_DRW_Index_55b4be57c4c29d69e2adafc0a7e14dc78bd7bf2f0623b2dd99a2ae33a6639360",
+      "shared/public-inline-method/src_drw_objects.h_DRW_Index_d31d769fe66117b48478561859f54b5ba71b3f5d2a45e74683ce94379d9c46c9",
+      "shared/public-inline-method/src_drw_objects.h_DRW_LayerIndex_03dee2e23926762af1730fd7dbb391c1c54ab0f426cc902512fbb82ed77c8422",
+      "shared/public-inline-method/src_drw_objects.h_DRW_LayerIndex_e9d38092b4feb409464df129f459a1ed267075e906ad5d4259cc4f84002a8423",
       "shared/public-inline-method/src_drw_objects.h_DRW_SortEntsTable_356cef7fc2d375479e62f0a301ed7b0d169658ad947d55e9c69c8b23da23daf2",
       "shared/public-inline-method/src_drw_objects.h_DRW_SortEntsTable_f6f2d54989e664abe78c6b6e07aaed7070a48d452a98f62ad6c18258281e4846",
+      "shared/public-inline-method/src_drw_objects.h_DRW_SpatialIndex_0765ec5f82195b1fb86d4911eab7171360a969d560ee11548810973dc931b0c3",
+      "shared/public-inline-method/src_drw_objects.h_DRW_SpatialIndex_ac7bedf9dab931f9e591c319a42e74c5be32f625a1e8958f79fed90475a88586",
       "shared/public-inline-method/src_drw_objects.h_DRW_XRecord_4279d011431dd0446368af2b9d4064706a6a73114f7ac5e8d1dde1abb4879d13",
       "shared/public-inline-method/src_drw_objects.h_DRW_XRecord_ea8d2e1f60d11c7313a27b62c776afdf8a6d9c03526ef7c0ba6e0ce6830fe2d2",
       "shared/public-method/src_drw_base.h_DRW_OperationDiagnostic_dec0631ead756075020c274434191cb34a8d6d7ad212c42058489b77cb2cb459",
@@ -123505,8 +123529,16 @@
       "shared/public-method/src_drw_objects.h_DRW_DictionaryWithDefault_3d5c4fc6f6e97bbb4a3509da71cd665e08dc0600f15e17e4e44b303a4fd8c95b",
       "shared/public-method/src_drw_objects.h_DRW_Dictionary_07765a47730f72f5b566ab3cd7854b65f35f4568a30bf7fd27687fa918266af6",
       "shared/public-method/src_drw_objects.h_DRW_Dictionary_39129c8a4a8272d91c975e11224b0831db485db46a41f9b7302f68f7ffe36c45",
+      "shared/public-method/src_drw_objects.h_DRW_IDBuffer_56da6d9a942df8aa98a30e0442664354585ae91137d3324f306c41150dc5805e",
+      "shared/public-method/src_drw_objects.h_DRW_IDBuffer_f59ec0f32b88c925c36100110ca467b07dbacddfdc82bb5a6af6faf47edc7ab9",
+      "shared/public-method/src_drw_objects.h_DRW_Index_55b4be57c4c29d69e2adafc0a7e14dc78bd7bf2f0623b2dd99a2ae33a6639360",
+      "shared/public-method/src_drw_objects.h_DRW_Index_d31d769fe66117b48478561859f54b5ba71b3f5d2a45e74683ce94379d9c46c9",
+      "shared/public-method/src_drw_objects.h_DRW_LayerIndex_03dee2e23926762af1730fd7dbb391c1c54ab0f426cc902512fbb82ed77c8422",
+      "shared/public-method/src_drw_objects.h_DRW_LayerIndex_e9d38092b4feb409464df129f459a1ed267075e906ad5d4259cc4f84002a8423",
       "shared/public-method/src_drw_objects.h_DRW_SortEntsTable_356cef7fc2d375479e62f0a301ed7b0d169658ad947d55e9c69c8b23da23daf2",
       "shared/public-method/src_drw_objects.h_DRW_SortEntsTable_f6f2d54989e664abe78c6b6e07aaed7070a48d452a98f62ad6c18258281e4846",
+      "shared/public-method/src_drw_objects.h_DRW_SpatialIndex_0765ec5f82195b1fb86d4911eab7171360a969d560ee11548810973dc931b0c3",
+      "shared/public-method/src_drw_objects.h_DRW_SpatialIndex_ac7bedf9dab931f9e591c319a42e74c5be32f625a1e8958f79fed90475a88586",
       "shared/public-method/src_drw_objects.h_DRW_XRecord_4279d011431dd0446368af2b9d4064706a6a73114f7ac5e8d1dde1abb4879d13",
       "shared/public-method/src_drw_objects.h_DRW_XRecord_ea8d2e1f60d11c7313a27b62c776afdf8a6d9c03526ef7c0ba6e0ce6830fe2d2",
       "shared/public-type/src_drw_base.h_definition_DRW_OperationDiagnostic",
@@ -123517,7 +123549,7 @@
     "summary": {
       "deltaOneToOne": 827,
       "exactOneToOne": 4805,
-      "standaloneOnly": 223,
+      "standaloneOnly": 239,
       "targetOnly": 0,
       "targetRows": 5669
     }
@@ -123552,7 +123584,7 @@
         "src/libdxfrw.h"
       ],
       "allowlistPath": "metadata/adaptation-allowlist.json",
-      "allowlistSha256": "5ecf2b05009e222103e4f6faa6d9e03cd33e951290bd5e3ad5f64f5d680c8ce0",
+      "allowlistSha256": "3db72d35836c76f83bd7db29cce43467f3cb0e735839f573c35e424addfffa8c",
       "schema": 1,
       "targetCommit": "0ffb38d790db53116978e01fcaf94cee9bc6ee48",
       "targetRepository": "git@github.com-librecad:LibreCAD/LibreCAD.git"
@@ -123561,7 +123593,7 @@
       "algorithm": "sha256-canonical-json-v1",
       "bodyEvidenceExcluded": true,
       "inventoryDigests": {
-        "standalone": "0045ef981892db5a25abd190d63853b7021e542e99031bee84f1b1e680d9992c",
+        "standalone": "4ecee25b755a31343ee9716f9b26212b14a4cd7bcd698778f91d16ef80b5f8cb",
         "target": "5c0ad5e9221c95df0c2c056148b88273e9d06a7f3e3fe1c50cc202b51a1f9f78"
       },
       "stableFields": [
@@ -123577,7 +123609,7 @@
     "standalone": {
       "baselineCommit": "92d7466ed9146badcd4fb44c82d1dd8302b3c7db",
       "baselineRef": "origin/master",
-      "contentTreeSha256": "64d7bcab2940f56bad798006c83341f0246640f467b6ad17af1e42eca60de041",
+      "contentTreeSha256": "5c8dabc3e5f7689cd42b4cd7f8c9faaafd691cd611b381989c0f9667d6529eff",
       "repository": "git@github.com-librecad:LibreCAD/libdxfrw.git"
     },
     "target": {
@@ -123627,8 +123659,8 @@
     {
       "facade": "shared",
       "path": "parity-source-routes-v1/standalone-shared.json",
-      "routeCount": 3012,
-      "sha256": "b1f4e1456b14102c7bc309e2842eccdc5a4c2752be8bb20855ea8a38be47e363",
+      "routeCount": 3028,
+      "sha256": "6b1d0e82d388e26d1f1c6624f13fd84d742752e337d601a5708078b169b536a0",
       "side": "standalone"
     }
   ],
@@ -123661,14 +123693,14 @@
       },
       "shared": {
         "semanticMismatches": 4,
-        "standaloneOnly": 237,
+        "standaloneOnly": 253,
         "targetOnly": 74
       }
     },
     "mapping": {
       "deltaOneToOne": 827,
       "exactOneToOne": 4805,
-      "standaloneOnly": 223,
+      "standaloneOnly": 239,
       "targetOnly": 0,
       "targetRows": 5669
     },
@@ -123711,8 +123743,8 @@
         "public-enum": 66,
         "public-header": 10,
         "public-inline-function": 3,
-        "public-inline-method": 722,
-        "public-method": 1136,
+        "public-inline-method": 730,
+        "public-method": 1144,
         "public-model": 259,
         "public-type": 321,
         "publication-stage": 24,
@@ -123736,7 +123768,7 @@
         "writer-pipeline": 7,
         "writer-version": 14
       },
-      "routeCount": 5858
+      "routeCount": 5874
     },
     "target": {
       "categoryCounts": {

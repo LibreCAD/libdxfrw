@@ -13229,7 +13229,7 @@
           "symbol": "DRW_IDBuffer::encodeDwg"
         },
         {
-          "line": 5784,
+          "line": 5799,
           "path": "src/drw_objects.h",
           "spanSha256": "c13c396ec92f1d540fa9c5d9d647db0a07643a13e9acaf55919f3eda32e741f6",
           "symbol": "DRW_IDBuffer"
@@ -13867,7 +13867,7 @@
           "symbol": "DRW_LayerIndex::encodeDwg"
         },
         {
-          "line": 5827,
+          "line": 5857,
           "path": "src/drw_objects.h",
           "spanSha256": "5a18530a40dc671176d2d19746692310c58221407ebcd60f36bafa0a269a43e8",
           "symbol": "DRW_LayerIndex"
@@ -13907,7 +13907,7 @@
       ],
       "evidence": [
         {
-          "line": 5820,
+          "line": 5850,
           "path": "src/drw_objects.h",
           "spanSha256": "ca433969201ec3ded7d7e2c0d12c5469d0cb17c038e17c32014ba41229dd4630",
           "symbol": "DRW_LayerIndexEntry"
@@ -17235,7 +17235,7 @@
           "symbol": "DRW_SpatialIndex::encodeDwg"
         },
         {
-          "line": 5874,
+          "line": 5925,
           "path": "src/drw_objects.h",
           "spanSha256": "753a3e6005ddc82ce5bd0b589761c303110694e21d99b97c2be0a9e34ea5d3de",
           "symbol": "DRW_SpatialIndex"
@@ -19397,7 +19397,7 @@
       ],
       "evidence": [
         {
-          "line": 5913,
+          "line": 5985,
           "path": "src/drw_objects.h",
           "spanSha256": "af6afa7ecbe9030da9b38b2b71864e13e72b5d823227b1cdac2df627a69f292e",
           "symbol": "DRW_WritingContext"
@@ -19842,7 +19842,7 @@
         {
           "line": 1,
           "path": "src/drw_objects.h",
-          "spanSha256": "e0d21f43e4315ba23975b7a3c9bf8fd10b19871b1cf72b8eb3955fa5ad5fe099",
+          "spanSha256": "784a5f53cd60a6eec116f52a8a58928b794b3066b151bdb3f9bf4d923cc53340",
           "symbol": "src/drw_objects.h"
         }
       ],
@@ -26411,7 +26411,7 @@
         {
           "line": 1,
           "path": "src/drw_objects.h",
-          "spanSha256": "e0d21f43e4315ba23975b7a3c9bf8fd10b19871b1cf72b8eb3955fa5ad5fe099",
+          "spanSha256": "784a5f53cd60a6eec116f52a8a58928b794b3066b151bdb3f9bf4d923cc53340",
           "symbol": "src/drw_objects.h"
         }
       ],
@@ -39981,7 +39981,7 @@
       ],
       "evidence": [
         {
-          "line": 5791,
+          "line": 5821,
           "path": "src/drw_objects.h",
           "spanSha256": "82501cf21a7c7a68f4bf7ebfd8217be7e06cbaa948691bff9d3b197a40f79b2f",
           "symbol": "DRW_IDBuffer::reset"
@@ -40006,7 +40006,32 @@
       ],
       "evidence": [
         {
-          "line": 5790,
+          "line": 5808,
+          "path": "src/drw_objects.h",
+          "spanSha256": "4a1351780c292a71c2e4c1aedda62016eefdd33d758ca84db55cd218ea554b7e",
+          "symbol": "DRW_IDBuffer::m_dxfBodySeen"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-inline-method/src_drw_objects.h_DRW_IDBuffer_56da6d9a942df8aa98a30e0442664354585ae91137d3324f306c41150dc5805e",
+      "selector": {
+        "implementationKind": "body",
+        "kind": "method",
+        "owner": "DRW_IDBuffer",
+        "qualifiedName": "DRW_IDBuffer::m_dxfBodySeen",
+        "signatureFingerprint": "56da6d9a942df8aa98a30e0442664354585ae91137d3324f306c41150dc5805e",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-inline-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 5805,
           "path": "src/drw_objects.h",
           "spanSha256": "549e23db132d2ae72ec761217bcf446245781cd63a9d9520a42a165a84757a7b",
           "symbol": "DRW_IDBuffer::DRW_IDBuffer"
@@ -40020,6 +40045,31 @@
         "owner": "DRW_IDBuffer",
         "qualifiedName": "DRW_IDBuffer::DRW_IDBuffer",
         "signatureFingerprint": "ebb5b6ba4596f245d0dcbe428df7b41bf4ffbc3af1922f37a1f457315266f394",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-inline-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 5811,
+          "path": "src/drw_objects.h",
+          "spanSha256": "fe6776083281cbab135693f21c5d4919f225bcfa22a7cf71ffe228e3de5b4593",
+          "symbol": "DRW_IDBuffer::operator="
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-inline-method/src_drw_objects.h_DRW_IDBuffer_f59ec0f32b88c925c36100110ca467b07dbacddfdc82bb5a6af6faf47edc7ab9",
+      "selector": {
+        "implementationKind": "body",
+        "kind": "method",
+        "owner": "DRW_IDBuffer",
+        "qualifiedName": "DRW_IDBuffer::operator=",
+        "signatureFingerprint": "f59ec0f32b88c925c36100110ca467b07dbacddfdc82bb5a6af6faf47edc7ab9",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -40106,7 +40156,7 @@
       ],
       "evidence": [
         {
-          "line": 5758,
+          "line": 5773,
           "path": "src/drw_objects.h",
           "spanSha256": "af04ec312eb21bc03c075b2396aa1bb0dbf075d1e2a599f31865cf6acc61f46f",
           "symbol": "DRW_Index::reset"
@@ -40145,6 +40195,56 @@
         "owner": "DRW_Index",
         "qualifiedName": "DRW_Index::DRW_Index",
         "signatureFingerprint": "2eecbc7b9da0faba3b8c90d032598fd30e7d99a642ce71ac3d9710eed2312132",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-inline-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 5763,
+          "path": "src/drw_objects.h",
+          "spanSha256": "976be0a3286afc309108ee731cfa80fc1800cdbd698d5cf022f5f877f6ba3bf0",
+          "symbol": "DRW_Index::operator="
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-inline-method/src_drw_objects.h_DRW_Index_55b4be57c4c29d69e2adafc0a7e14dc78bd7bf2f0623b2dd99a2ae33a6639360",
+      "selector": {
+        "implementationKind": "body",
+        "kind": "method",
+        "owner": "DRW_Index",
+        "qualifiedName": "DRW_Index::operator=",
+        "signatureFingerprint": "55b4be57c4c29d69e2adafc0a7e14dc78bd7bf2f0623b2dd99a2ae33a6639360",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-inline-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 5760,
+          "path": "src/drw_objects.h",
+          "spanSha256": "a1e88127160029e5bc9981c9d74bb5ddd94b3a021702e1de4e89d69fba97c13d",
+          "symbol": "DRW_Index::m_dxfTimestampSeen"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-inline-method/src_drw_objects.h_DRW_Index_d31d769fe66117b48478561859f54b5ba71b3f5d2a45e74683ce94379d9c46c9",
+      "selector": {
+        "implementationKind": "body",
+        "kind": "method",
+        "owner": "DRW_Index",
+        "qualifiedName": "DRW_Index::m_dxfTimestampSeen",
+        "signatureFingerprint": "d31d769fe66117b48478561859f54b5ba71b3f5d2a45e74683ce94379d9c46c9",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -40281,7 +40381,32 @@
       ],
       "evidence": [
         {
-          "line": 5833,
+          "line": 5868,
+          "path": "src/drw_objects.h",
+          "spanSha256": "10d630f682b70b57eb99b7946f44045092168435cfaf2425181ba4f8856de75d",
+          "symbol": "DRW_LayerIndex::m_dxfPendingName"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-inline-method/src_drw_objects.h_DRW_LayerIndex_03dee2e23926762af1730fd7dbb391c1c54ab0f426cc902512fbb82ed77c8422",
+      "selector": {
+        "implementationKind": "body",
+        "kind": "method",
+        "owner": "DRW_LayerIndex",
+        "qualifiedName": "DRW_LayerIndex::m_dxfPendingName",
+        "signatureFingerprint": "03dee2e23926762af1730fd7dbb391c1c54ab0f426cc902512fbb82ed77c8422",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-inline-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 5863,
           "path": "src/drw_objects.h",
           "spanSha256": "fb4e28273c9138af19eed914149b7e97b6e78fc12d3ad18e5cb0a8a718182c0c",
           "symbol": "DRW_LayerIndex::DRW_LayerIndex"
@@ -40306,7 +40431,7 @@
       ],
       "evidence": [
         {
-          "line": 5834,
+          "line": 5885,
           "path": "src/drw_objects.h",
           "spanSha256": "7bccab5bc323c5cf31e46181dc8e434fb45fadb779228168850ce11fadafa765",
           "symbol": "DRW_LayerIndex::reset"
@@ -40320,6 +40445,31 @@
         "owner": "DRW_LayerIndex",
         "qualifiedName": "DRW_LayerIndex::reset",
         "signatureFingerprint": "26bf00b5f107014d5ec49d9ee66ec9725e2dd4c532b8051ad042e52e5d493a7a",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-inline-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 5871,
+          "path": "src/drw_objects.h",
+          "spanSha256": "ff868d18f95912dcaf628930df8528846442f0b14f896302cdd086130ef93188",
+          "symbol": "DRW_LayerIndex::operator="
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-inline-method/src_drw_objects.h_DRW_LayerIndex_e9d38092b4feb409464df129f459a1ed267075e906ad5d4259cc4f84002a8423",
+      "selector": {
+        "implementationKind": "body",
+        "kind": "method",
+        "owner": "DRW_LayerIndex",
+        "qualifiedName": "DRW_LayerIndex::operator=",
+        "signatureFingerprint": "e9d38092b4feb409464df129f459a1ed267075e906ad5d4259cc4f84002a8423",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -41681,7 +41831,32 @@
       ],
       "evidence": [
         {
-          "line": 5880,
+          "line": 5938,
+          "path": "src/drw_objects.h",
+          "spanSha256": "e1ded10f09d070e036db3ff48797ebd3e90805e9e07d138b52d9e8cc3fa395b6",
+          "symbol": "DRW_SpatialIndex::operator="
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-inline-method/src_drw_objects.h_DRW_SpatialIndex_0765ec5f82195b1fb86d4911eab7171360a969d560ee11548810973dc931b0c3",
+      "selector": {
+        "implementationKind": "body",
+        "kind": "method",
+        "owner": "DRW_SpatialIndex",
+        "qualifiedName": "DRW_SpatialIndex::operator=",
+        "signatureFingerprint": "0765ec5f82195b1fb86d4911eab7171360a969d560ee11548810973dc931b0c3",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-inline-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 5952,
           "path": "src/drw_objects.h",
           "spanSha256": "483d15f90349864732982d9ac40da23fba81daef4c80022c21ae4270f26ddbf2",
           "symbol": "DRW_SpatialIndex::reset"
@@ -41706,7 +41881,32 @@
       ],
       "evidence": [
         {
-          "line": 5879,
+          "line": 5935,
+          "path": "src/drw_objects.h",
+          "spanSha256": "a1e88127160029e5bc9981c9d74bb5ddd94b3a021702e1de4e89d69fba97c13d",
+          "symbol": "DRW_SpatialIndex::m_dxfTimestampSeen"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-inline-method/src_drw_objects.h_DRW_SpatialIndex_ac7bedf9dab931f9e591c319a42e74c5be32f625a1e8958f79fed90475a88586",
+      "selector": {
+        "implementationKind": "body",
+        "kind": "method",
+        "owner": "DRW_SpatialIndex",
+        "qualifiedName": "DRW_SpatialIndex::m_dxfTimestampSeen",
+        "signatureFingerprint": "ac7bedf9dab931f9e591c319a42e74c5be32f625a1e8958f79fed90475a88586",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-inline-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 5930,
           "path": "src/drw_objects.h",
           "spanSha256": "607728daf3d78d1786094b667f6b164b4347309c9d5bcc3c1f5bf366b92f7c7e",
           "symbol": "DRW_SpatialIndex::DRW_SpatialIndex"
@@ -43181,20 +43381,20 @@
       ],
       "evidence": [
         {
-          "line": 5915,
+          "line": 5987,
           "path": "src/drw_objects.h",
           "spanSha256": "c60f389e9400d238542b581f42c872e655be5fe958bd777aef3defff798e7e80",
           "symbol": "DRW_WritingContext::DRW_WritingContext"
         }
       ],
       "facade": "shared",
-      "id": "shared/public-inline-method/src_drw_objects.h_DRW_WritingContext_6652830d74e7ff09c4eef92bc31aa7e0e3f61d06e2cfcfa073944414fac7a2ea",
+      "id": "shared/public-inline-method/src_drw_objects.h_DRW_WritingContext_43c9837daa38356d4990e9f28eacfd21d68b4cff0333ab2bf77861b9c6149361",
       "selector": {
         "implementationKind": "defaulted",
         "kind": "method",
         "owner": "DRW_WritingContext",
         "qualifiedName": "DRW_WritingContext::DRW_WritingContext",
-        "signatureFingerprint": "6652830d74e7ff09c4eef92bc31aa7e0e3f61d06e2cfcfa073944414fac7a2ea",
+        "signatureFingerprint": "43c9837daa38356d4990e9f28eacfd21d68b4cff0333ab2bf77861b9c6149361",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -58042,7 +58242,7 @@
       ],
       "evidence": [
         {
-          "line": 5791,
+          "line": 5821,
           "path": "src/drw_objects.h",
           "spanSha256": "82501cf21a7c7a68f4bf7ebfd8217be7e06cbaa948691bff9d3b197a40f79b2f",
           "symbol": "DRW_IDBuffer::reset"
@@ -58066,7 +58266,31 @@
       ],
       "evidence": [
         {
-          "line": 5790,
+          "line": 5808,
+          "path": "src/drw_objects.h",
+          "spanSha256": "4a1351780c292a71c2e4c1aedda62016eefdd33d758ca84db55cd218ea554b7e",
+          "symbol": "DRW_IDBuffer::m_dxfBodySeen"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-method/src_drw_objects.h_DRW_IDBuffer_56da6d9a942df8aa98a30e0442664354585ae91137d3324f306c41150dc5805e",
+      "selector": {
+        "kind": "method",
+        "owner": "DRW_IDBuffer",
+        "qualifiedName": "DRW_IDBuffer::m_dxfBodySeen",
+        "signatureFingerprint": "56da6d9a942df8aa98a30e0442664354585ae91137d3324f306c41150dc5805e",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 5805,
           "path": "src/drw_objects.h",
           "spanSha256": "549e23db132d2ae72ec761217bcf446245781cd63a9d9520a42a165a84757a7b",
           "symbol": "DRW_IDBuffer::DRW_IDBuffer"
@@ -58079,6 +58303,30 @@
         "owner": "DRW_IDBuffer",
         "qualifiedName": "DRW_IDBuffer::DRW_IDBuffer",
         "signatureFingerprint": "ebb5b6ba4596f245d0dcbe428df7b41bf4ffbc3af1922f37a1f457315266f394",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 5811,
+          "path": "src/drw_objects.h",
+          "spanSha256": "fe6776083281cbab135693f21c5d4919f225bcfa22a7cf71ffe228e3de5b4593",
+          "symbol": "DRW_IDBuffer::operator="
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-method/src_drw_objects.h_DRW_IDBuffer_f59ec0f32b88c925c36100110ca467b07dbacddfdc82bb5a6af6faf47edc7ab9",
+      "selector": {
+        "kind": "method",
+        "owner": "DRW_IDBuffer",
+        "qualifiedName": "DRW_IDBuffer::operator=",
+        "signatureFingerprint": "f59ec0f32b88c925c36100110ca467b07dbacddfdc82bb5a6af6faf47edc7ab9",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -58186,7 +58434,7 @@
       ],
       "evidence": [
         {
-          "line": 5758,
+          "line": 5773,
           "path": "src/drw_objects.h",
           "spanSha256": "af04ec312eb21bc03c075b2396aa1bb0dbf075d1e2a599f31865cf6acc61f46f",
           "symbol": "DRW_Index::reset"
@@ -58223,6 +58471,54 @@
         "owner": "DRW_Index",
         "qualifiedName": "DRW_Index::DRW_Index",
         "signatureFingerprint": "2eecbc7b9da0faba3b8c90d032598fd30e7d99a642ce71ac3d9710eed2312132",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 5763,
+          "path": "src/drw_objects.h",
+          "spanSha256": "976be0a3286afc309108ee731cfa80fc1800cdbd698d5cf022f5f877f6ba3bf0",
+          "symbol": "DRW_Index::operator="
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-method/src_drw_objects.h_DRW_Index_55b4be57c4c29d69e2adafc0a7e14dc78bd7bf2f0623b2dd99a2ae33a6639360",
+      "selector": {
+        "kind": "method",
+        "owner": "DRW_Index",
+        "qualifiedName": "DRW_Index::operator=",
+        "signatureFingerprint": "55b4be57c4c29d69e2adafc0a7e14dc78bd7bf2f0623b2dd99a2ae33a6639360",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 5760,
+          "path": "src/drw_objects.h",
+          "spanSha256": "a1e88127160029e5bc9981c9d74bb5ddd94b3a021702e1de4e89d69fba97c13d",
+          "symbol": "DRW_Index::m_dxfTimestampSeen"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-method/src_drw_objects.h_DRW_Index_d31d769fe66117b48478561859f54b5ba71b3f5d2a45e74683ce94379d9c46c9",
+      "selector": {
+        "kind": "method",
+        "owner": "DRW_Index",
+        "qualifiedName": "DRW_Index::m_dxfTimestampSeen",
+        "signatureFingerprint": "d31d769fe66117b48478561859f54b5ba71b3f5d2a45e74683ce94379d9c46c9",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -58378,7 +58674,31 @@
       ],
       "evidence": [
         {
-          "line": 5833,
+          "line": 5868,
+          "path": "src/drw_objects.h",
+          "spanSha256": "10d630f682b70b57eb99b7946f44045092168435cfaf2425181ba4f8856de75d",
+          "symbol": "DRW_LayerIndex::m_dxfPendingName"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-method/src_drw_objects.h_DRW_LayerIndex_03dee2e23926762af1730fd7dbb391c1c54ab0f426cc902512fbb82ed77c8422",
+      "selector": {
+        "kind": "method",
+        "owner": "DRW_LayerIndex",
+        "qualifiedName": "DRW_LayerIndex::m_dxfPendingName",
+        "signatureFingerprint": "03dee2e23926762af1730fd7dbb391c1c54ab0f426cc902512fbb82ed77c8422",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 5863,
           "path": "src/drw_objects.h",
           "spanSha256": "fb4e28273c9138af19eed914149b7e97b6e78fc12d3ad18e5cb0a8a718182c0c",
           "symbol": "DRW_LayerIndex::DRW_LayerIndex"
@@ -58402,7 +58722,7 @@
       ],
       "evidence": [
         {
-          "line": 5834,
+          "line": 5885,
           "path": "src/drw_objects.h",
           "spanSha256": "7bccab5bc323c5cf31e46181dc8e434fb45fadb779228168850ce11fadafa765",
           "symbol": "DRW_LayerIndex::reset"
@@ -58426,7 +58746,7 @@
       ],
       "evidence": [
         {
-          "line": 5845,
+          "line": 5896,
           "path": "src/drw_objects.h",
           "spanSha256": "0a975cb84e024a1db04e2707334345a53425bc6fb3307bdbb56e940fbfecbdca",
           "symbol": "DRW_LayerIndex::finalizeDxf"
@@ -58439,6 +58759,30 @@
         "owner": "DRW_LayerIndex",
         "qualifiedName": "DRW_LayerIndex::finalizeDxf",
         "signatureFingerprint": "cc4018700052e92296189b087857169b9ac4095296d474e4578c39467a474170",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 5871,
+          "path": "src/drw_objects.h",
+          "spanSha256": "ff868d18f95912dcaf628930df8528846442f0b14f896302cdd086130ef93188",
+          "symbol": "DRW_LayerIndex::operator="
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-method/src_drw_objects.h_DRW_LayerIndex_e9d38092b4feb409464df129f459a1ed267075e906ad5d4259cc4f84002a8423",
+      "selector": {
+        "kind": "method",
+        "owner": "DRW_LayerIndex",
+        "qualifiedName": "DRW_LayerIndex::operator=",
+        "signatureFingerprint": "e9d38092b4feb409464df129f459a1ed267075e906ad5d4259cc4f84002a8423",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -60178,7 +60522,31 @@
       ],
       "evidence": [
         {
-          "line": 5880,
+          "line": 5938,
+          "path": "src/drw_objects.h",
+          "spanSha256": "e1ded10f09d070e036db3ff48797ebd3e90805e9e07d138b52d9e8cc3fa395b6",
+          "symbol": "DRW_SpatialIndex::operator="
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-method/src_drw_objects.h_DRW_SpatialIndex_0765ec5f82195b1fb86d4911eab7171360a969d560ee11548810973dc931b0c3",
+      "selector": {
+        "kind": "method",
+        "owner": "DRW_SpatialIndex",
+        "qualifiedName": "DRW_SpatialIndex::operator=",
+        "signatureFingerprint": "0765ec5f82195b1fb86d4911eab7171360a969d560ee11548810973dc931b0c3",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 5952,
           "path": "src/drw_objects.h",
           "spanSha256": "483d15f90349864732982d9ac40da23fba81daef4c80022c21ae4270f26ddbf2",
           "symbol": "DRW_SpatialIndex::reset"
@@ -60202,7 +60570,31 @@
       ],
       "evidence": [
         {
-          "line": 5879,
+          "line": 5935,
+          "path": "src/drw_objects.h",
+          "spanSha256": "a1e88127160029e5bc9981c9d74bb5ddd94b3a021702e1de4e89d69fba97c13d",
+          "symbol": "DRW_SpatialIndex::m_dxfTimestampSeen"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-method/src_drw_objects.h_DRW_SpatialIndex_ac7bedf9dab931f9e591c319a42e74c5be32f625a1e8958f79fed90475a88586",
+      "selector": {
+        "kind": "method",
+        "owner": "DRW_SpatialIndex",
+        "qualifiedName": "DRW_SpatialIndex::m_dxfTimestampSeen",
+        "signatureFingerprint": "ac7bedf9dab931f9e591c319a42e74c5be32f625a1e8958f79fed90475a88586",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 5930,
           "path": "src/drw_objects.h",
           "spanSha256": "607728daf3d78d1786094b667f6b164b4347309c9d5bcc3c1f5bf366b92f7c7e",
           "symbol": "DRW_SpatialIndex::DRW_SpatialIndex"
@@ -61858,19 +62250,19 @@
       ],
       "evidence": [
         {
-          "line": 5915,
+          "line": 5987,
           "path": "src/drw_objects.h",
           "spanSha256": "c60f389e9400d238542b581f42c872e655be5fe958bd777aef3defff798e7e80",
           "symbol": "DRW_WritingContext::DRW_WritingContext"
         }
       ],
       "facade": "shared",
-      "id": "shared/public-method/src_drw_objects.h_DRW_WritingContext_6652830d74e7ff09c4eef92bc31aa7e0e3f61d06e2cfcfa073944414fac7a2ea",
+      "id": "shared/public-method/src_drw_objects.h_DRW_WritingContext_43c9837daa38356d4990e9f28eacfd21d68b4cff0333ab2bf77861b9c6149361",
       "selector": {
         "kind": "method",
         "owner": "DRW_WritingContext",
         "qualifiedName": "DRW_WritingContext::DRW_WritingContext",
-        "signatureFingerprint": "6652830d74e7ff09c4eef92bc31aa7e0e3f61d06e2cfcfa073944414fac7a2ea",
+        "signatureFingerprint": "43c9837daa38356d4990e9f28eacfd21d68b4cff0333ab2bf77861b9c6149361",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -64655,7 +65047,7 @@
       ],
       "evidence": [
         {
-          "line": 5784,
+          "line": 5799,
           "path": "src/drw_objects.h",
           "spanSha256": "c13c396ec92f1d540fa9c5d9d647db0a07643a13e9acaf55919f3eda32e741f6",
           "symbol": "DRW_IDBuffer"
@@ -64954,7 +65346,7 @@
       ],
       "evidence": [
         {
-          "line": 5827,
+          "line": 5857,
           "path": "src/drw_objects.h",
           "spanSha256": "5a18530a40dc671176d2d19746692310c58221407ebcd60f36bafa0a269a43e8",
           "symbol": "DRW_LayerIndex"
@@ -64977,7 +65369,7 @@
       ],
       "evidence": [
         {
-          "line": 5820,
+          "line": 5850,
           "path": "src/drw_objects.h",
           "spanSha256": "ca433969201ec3ded7d7e2c0d12c5469d0cb17c038e17c32014ba41229dd4630",
           "symbol": "DRW_LayerIndexEntry"
@@ -66737,7 +67129,7 @@
       ],
       "evidence": [
         {
-          "line": 5874,
+          "line": 5925,
           "path": "src/drw_objects.h",
           "spanSha256": "753a3e6005ddc82ce5bd0b589761c303110694e21d99b97c2be0a9e34ea5d3de",
           "symbol": "DRW_SpatialIndex"
@@ -67910,7 +68302,7 @@
       ],
       "evidence": [
         {
-          "line": 5913,
+          "line": 5985,
           "path": "src/drw_objects.h",
           "spanSha256": "af6afa7ecbe9030da9b38b2b71864e13e72b5d823227b1cdac2df627a69f292e",
           "symbol": "DRW_WritingContext"
@@ -73353,9 +73745,9 @@
       ],
       "evidence": [
         {
-          "line": 5784,
+          "line": 5799,
           "path": "src/drw_objects.h",
-          "spanSha256": "776d701c6fd7fc6fd9ecc182f0b6b667b07d69fedc69143926bcd07a523756b9",
+          "spanSha256": "fb208e68c303493df62a5fd9cd88a77435042a0112cf0bb444dccb040c8cc99e",
           "symbol": "DRW_IDBuffer"
         }
       ],
@@ -73427,7 +73819,7 @@
         {
           "line": 5752,
           "path": "src/drw_objects.h",
-          "spanSha256": "7b62a9951f0d6a14b5631c8cac8054c0491d96160883ac481166d3536859c1ed",
+          "spanSha256": "2630ddaa267bc668aff1984514e9ad9be6a1e15223fb397edc758e73bfe03ebf",
           "symbol": "DRW_Index"
         }
       ],
@@ -73545,9 +73937,9 @@
       ],
       "evidence": [
         {
-          "line": 5827,
+          "line": 5857,
           "path": "src/drw_objects.h",
-          "spanSha256": "bcd54b653a9cabb489fab5dede3a8025efd7083424a7972301318bef24985e2f",
+          "spanSha256": "ef8392ddd98ae6764a31242dab15346a152132600236bfae1e81408f9a7ea6d0",
           "symbol": "DRW_LayerIndex"
         }
       ],
@@ -73569,7 +73961,7 @@
       ],
       "evidence": [
         {
-          "line": 5820,
+          "line": 5850,
           "path": "src/drw_objects.h",
           "spanSha256": "e5d3d7d5dfbd27cfa4dbc88520ef4d7c9d6b9c84893d926398aa47cf0c519314",
           "symbol": "DRW_LayerIndexEntry"
@@ -74385,9 +74777,9 @@
       ],
       "evidence": [
         {
-          "line": 5874,
+          "line": 5925,
           "path": "src/drw_objects.h",
-          "spanSha256": "c70fe41364e718215e33518059a86eb51272ae4b34846d7a5e3541cab42d9bb0",
+          "spanSha256": "98491325c77aca8278df3973f591b9e5da818f50a516b21b2387b064511f2903",
           "symbol": "DRW_SpatialIndex"
         }
       ],
@@ -75105,7 +75497,7 @@
       ],
       "evidence": [
         {
-          "line": 5913,
+          "line": 5985,
           "path": "src/drw_objects.h",
           "spanSha256": "98361f72b87a63b450783565772257d4957652e7094f64f0567ea6ce763c1f63",
           "symbol": "DRW_WritingContext"
@@ -76211,7 +76603,7 @@
         {
           "line": 1,
           "path": "src/drw_objects.h",
-          "spanSha256": "e0d21f43e4315ba23975b7a3c9bf8fd10b19871b1cf72b8eb3955fa5ad5fe099",
+          "spanSha256": "784a5f53cd60a6eec116f52a8a58928b794b3066b151bdb3f9bf4d923cc53340",
           "symbol": "src/drw_objects.h"
         }
       ],
@@ -78155,7 +78547,7 @@
         {
           "line": 1,
           "path": "src/drw_objects.h",
-          "spanSha256": "e0d21f43e4315ba23975b7a3c9bf8fd10b19871b1cf72b8eb3955fa5ad5fe099",
+          "spanSha256": "784a5f53cd60a6eec116f52a8a58928b794b3066b151bdb3f9bf4d923cc53340",
           "symbol": "src/drw_objects.h"
         }
       ],

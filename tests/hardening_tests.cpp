@@ -163,6 +163,27 @@ public:
     using DRW_SortEntsTable::parseCode;
 };
 
+class ExposedIndex : public DRW_Index {
+public:
+    using DRW_Index::parseCode;
+};
+
+class ExposedIdBuffer : public DRW_IDBuffer {
+public:
+    using DRW_IDBuffer::parseCode;
+};
+
+class ExposedLayerIndex : public DRW_LayerIndex {
+public:
+    using DRW_LayerIndex::parseCode;
+    using DRW_LayerIndex::finalizeDxf;
+};
+
+class ExposedSpatialIndex : public DRW_SpatialIndex {
+public:
+    using DRW_SpatialIndex::parseCode;
+};
+
 template <typename Entity>
 bool parseDxfRecords(Entity& entity, const std::string& source) {
     std::stringstream records(source);
@@ -240,6 +261,14 @@ void testPublicOwnershipContracts(TestContext& t) {
                   "DRW_XRecord copy contract");
     static_assert(std::is_copy_constructible<DRW_SortEntsTable>::value,
                   "DRW_SortEntsTable copy contract");
+    static_assert(std::is_copy_constructible<DRW_Index>::value,
+                  "DRW_Index copy contract");
+    static_assert(std::is_copy_constructible<DRW_IDBuffer>::value,
+                  "DRW_IDBuffer copy contract");
+    static_assert(std::is_copy_constructible<DRW_LayerIndex>::value,
+                  "DRW_LayerIndex copy contract");
+    static_assert(std::is_copy_constructible<DRW_SpatialIndex>::value,
+                  "DRW_SpatialIndex copy contract");
     static_assert(std::is_copy_constructible<DRW_Attrib>::value,
                   "DRW_Attrib copy contract");
     static_assert(std::is_copy_constructible<DRW_GeoPositionMarker>::value,
@@ -1058,6 +1087,82 @@ void testPublicOwnershipContracts(TestContext& t) {
                  && assignedSortEnts.m_entityHandles.size() == 1u
                  && assignedSortEnts.m_sortHandles.size() == 1u,
              "SORTENTSTABLE assignment clears body parser state");
+
+    ExposedIndex partialIndex;
+    t.expect(parseDxfRecords(partialIndex, "40\n1.5\n")
+                 && partialIndex.timestamp1 == 1u,
+             "INDEX parser state source setup");
+    ExposedIndex copiedIndex(partialIndex);
+    t.expect(parseDxfRecords(copiedIndex, "40\n2.5\n")
+                 && copiedIndex.timestamp1 == 2u
+                 && copiedIndex.timestamp2 == 43200000u,
+             "INDEX copy clears timestamp parser state");
+    ExposedIndex assignedIndex;
+    assignedIndex = partialIndex;
+    t.expect(parseDxfRecords(assignedIndex, "40\n3.5\n")
+                 && assignedIndex.timestamp1 == 3u
+                 && assignedIndex.timestamp2 == 43200000u,
+             "INDEX assignment clears timestamp parser state");
+
+    ExposedIdBuffer partialIdBuffer;
+    t.expect(parseDxfRecords(partialIdBuffer,
+                             "100\nAcDbIdBuffer\n70\n1\n330\nA1\n")
+                 && partialIdBuffer.objIds.size() == 1u,
+             "IDBUFFER parser state source setup");
+    ExposedIdBuffer copiedIdBuffer(partialIdBuffer);
+    const bool copiedIdStale = parseDxfRecords(copiedIdBuffer, "330\nA2\n");
+    const std::size_t copiedIdAfterStale = copiedIdBuffer.objIds.size();
+    const bool copiedIdFresh = parseDxfRecords(
+        copiedIdBuffer, "100\nAcDbIdBuffer\n330\nA2\n");
+    t.expect(copiedIdStale && copiedIdAfterStale == 1u
+                 && copiedIdFresh && copiedIdBuffer.objIds.size() == 2u,
+             "IDBUFFER copy clears body parser state");
+    ExposedIdBuffer assignedIdBuffer;
+    assignedIdBuffer = partialIdBuffer;
+    const bool assignedIdStale = parseDxfRecords(assignedIdBuffer, "330\nA3\n");
+    const std::size_t assignedIdAfterStale = assignedIdBuffer.objIds.size();
+    const bool assignedIdFresh = parseDxfRecords(
+        assignedIdBuffer, "100\nAcDbIdBuffer\n330\nA3\n");
+    t.expect(assignedIdStale && assignedIdAfterStale == 1u
+                 && assignedIdFresh && assignedIdBuffer.objIds.size() == 2u,
+             "IDBUFFER assignment clears body parser state");
+
+    const std::string layerIndexBody =
+        "40\n1.5\n90\n1\n8\nlayer-one\n360\nA1\n";
+    ExposedLayerIndex partialLayerIndex;
+    t.expect(parseDxfRecords(partialLayerIndex, layerIndexBody)
+                 && partialLayerIndex.finalizeDxf()
+                 && partialLayerIndex.entries.size() == 1u,
+             "LAYER_INDEX parser state source setup");
+    ExposedLayerIndex copiedLayerIndex(partialLayerIndex);
+    t.expect(parseDxfRecords(copiedLayerIndex,
+                             "40\n2.5\n90\n2\n8\nlayer-two\n360\nA2\n")
+                 && copiedLayerIndex.entries.size() == 2u
+                 && copiedLayerIndex.entries.back().name == "layer-two",
+             "LAYER_INDEX copy clears timestamp and entry parser state");
+    ExposedLayerIndex assignedLayerIndex;
+    assignedLayerIndex = partialLayerIndex;
+    t.expect(parseDxfRecords(assignedLayerIndex,
+                             "40\n3.5\n90\n3\n8\nlayer-three\n360\nA3\n")
+                 && assignedLayerIndex.entries.size() == 2u
+                 && assignedLayerIndex.entries.back().name == "layer-three",
+             "LAYER_INDEX assignment clears timestamp and entry parser state");
+
+    ExposedSpatialIndex partialSpatialIndex;
+    t.expect(parseDxfRecords(partialSpatialIndex, "40\n1.5\n")
+                 && partialSpatialIndex.timestamp1 == 1u,
+             "SPATIAL_INDEX parser state source setup");
+    ExposedSpatialIndex copiedSpatialIndex(partialSpatialIndex);
+    t.expect(parseDxfRecords(copiedSpatialIndex, "40\n2.5\n")
+                 && copiedSpatialIndex.timestamp1 == 2u
+                 && copiedSpatialIndex.timestamp2 == 43200000u,
+             "SPATIAL_INDEX copy clears timestamp parser state");
+    ExposedSpatialIndex assignedSpatialIndex;
+    assignedSpatialIndex = partialSpatialIndex;
+    t.expect(parseDxfRecords(assignedSpatialIndex, "40\n3.5\n")
+                 && assignedSpatialIndex.timestamp1 == 3u
+                 && assignedSpatialIndex.timestamp2 == 43200000u,
+             "SPATIAL_INDEX assignment clears timestamp parser state");
 
     DRW_Dimension sourceDimension;
     sourceDimension.extData.push_back(

@@ -5755,6 +5755,21 @@ public:
   static constexpr std::uint16_t kDwgType = 1307;
 
   DRW_Index() { reset(); }
+  DRW_Index(const DRW_Index& o): DRW_TableEntry(o),
+      timestamp1(o.timestamp1), timestamp2(o.timestamp2),
+      m_dxfTimestampSeen(false) {
+    tType = o.tType;
+  }
+  DRW_Index& operator=(const DRW_Index& o) {
+    if (this != &o) {
+      DRW_TableEntry::operator=(o);
+      timestamp1 = o.timestamp1;
+      timestamp2 = o.timestamp2;
+      m_dxfTimestampSeen = false;
+      tType = o.tType;
+    }
+    return *this;
+  }
   void reset() {
     tType = DRW::INDEX;
     timestamp1 = 0;
@@ -5788,6 +5803,21 @@ public:
   static constexpr std::size_t kMaxObjectIds = 100000;
 
   DRW_IDBuffer() { reset(); }
+  DRW_IDBuffer(const DRW_IDBuffer& o): DRW_TableEntry(o),
+      classVersion(o.classVersion), objIds(o.objIds),
+      m_dxfBodySeen(false) {
+    tType = o.tType;
+  }
+  DRW_IDBuffer& operator=(const DRW_IDBuffer& o) {
+    if (this != &o) {
+      DRW_TableEntry::operator=(o);
+      classVersion = o.classVersion;
+      objIds = o.objIds;
+      m_dxfBodySeen = false;
+      tType = o.tType;
+    }
+    return *this;
+  }
   void reset() {
     tType = DRW::IDBUFFER;
     classVersion = 0;
@@ -5831,6 +5861,27 @@ public:
   static constexpr std::size_t kMaxEntries = 100000;
 
   DRW_LayerIndex() { reset(); }
+  DRW_LayerIndex(const DRW_LayerIndex& o): DRW_TableEntry(o),
+      timestamp1(o.timestamp1), timestamp2(o.timestamp2),
+      entries(o.entries), m_dxfTimestampSeen(false),
+      m_dxfPendingEntry(false), m_dxfPendingIndex(0),
+      m_dxfPendingName() {
+    tType = o.tType;
+  }
+  DRW_LayerIndex& operator=(const DRW_LayerIndex& o) {
+    if (this != &o) {
+      DRW_TableEntry::operator=(o);
+      timestamp1 = o.timestamp1;
+      timestamp2 = o.timestamp2;
+      entries = o.entries;
+      m_dxfTimestampSeen = false;
+      m_dxfPendingEntry = false;
+      m_dxfPendingIndex = 0;
+      m_dxfPendingName.clear();
+      tType = o.tType;
+    }
+    return *this;
+  }
   void reset() {
     tType = DRW::LAYERINDEX;
     timestamp1 = 0;
@@ -5877,6 +5928,27 @@ public:
   static constexpr std::uint16_t kDwgClassNum = 511;
 
   DRW_SpatialIndex() { reset(); }
+  DRW_SpatialIndex(const DRW_SpatialIndex& o): DRW_TableEntry(o),
+      timestamp1(o.timestamp1), timestamp2(o.timestamp2),
+      m_rawData(o.m_rawData), m_rawDataBitSize(o.m_rawDataBitSize),
+      m_rawDataValid(o.m_rawDataValid), m_rawDataVersion(o.m_rawDataVersion),
+      m_dxfTimestampSeen(false) {
+    tType = o.tType;
+  }
+  DRW_SpatialIndex& operator=(const DRW_SpatialIndex& o) {
+    if (this != &o) {
+      DRW_TableEntry::operator=(o);
+      timestamp1 = o.timestamp1;
+      timestamp2 = o.timestamp2;
+      m_rawData = o.m_rawData;
+      m_rawDataBitSize = o.m_rawDataBitSize;
+      m_rawDataValid = o.m_rawDataValid;
+      m_rawDataVersion = o.m_rawDataVersion;
+      m_dxfTimestampSeen = false;
+      tType = o.tType;
+    }
+    return *this;
+  }
   void reset() {
     tType = DRW::SPATIALINDEX;
     timestamp1 = 0;
