@@ -270,6 +270,20 @@ if(LIBDXFRW_BUILD_TESTS)
                 --facade dxfRW
                 --direction write
                 --output ${LIBDXFRW_SEMANTIC_QUALIFICATION_DIR}/qualified-differential-dxf-write.json)
+        add_test(NAME libdxfrw_qualified_differential_v2_dxf_write_failure
+            COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+                ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_qualified_differential_v2.py
+                ${LIBDXFRW_QUALIFIED_DIFFERENTIAL_COMMON}
+                --input ${CMAKE_CURRENT_SOURCE_DIR}/metadata/semantic-minimal-line-v1.json
+                --input-id recipe:minimal-line-v1
+                --input-path-hint metadata/semantic-minimal-line-v1.json
+                --origin-kind localFromScratch
+                --generator-digest ${LIBDXFRW_SEMANTIC_RECIPE_GENERATOR_DIGEST}
+                --facade dxfRW
+                --direction write
+                --expect-operation-failure
+                --expected-failure-id failure:dxf-write-existing-directory
+                --output ${LIBDXFRW_SEMANTIC_QUALIFICATION_DIR}/qualified-differential-dxf-write-failure.json)
         add_test(NAME libdxfrw_qualified_differential_v2_dxf_read
             COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
                 ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_qualified_differential_v2.py
@@ -299,6 +313,7 @@ if(LIBDXFRW_BUILD_TESTS)
         set_tests_properties(
             libdxfrw_qualified_differential_v2
             libdxfrw_qualified_differential_v2_dxf_write
+            libdxfrw_qualified_differential_v2_dxf_write_failure
             libdxfrw_qualified_differential_v2_dxf_read
             libdxfrw_qualified_differential_v2_dwg_read
             PROPERTIES

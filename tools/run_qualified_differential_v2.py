@@ -1031,11 +1031,7 @@ def validate_result(value: Any, expected_adapter: dict[str, Any] | None = None) 
             raise QualifiedDifferentialError(
                 "first failure code does not match its diagnostic code"
             )
-        expected_path = (
-            "/callbacks" if failure["stage"] == "callback"
-            else "/output" if failure["stage"] in {"write", "writeResult", "readback"}
-            else "/input"
-        )
+        expected_path = _expected_failure_path(failure["stage"])
         if failure["path"] != expected_path:
             raise QualifiedDifferentialError(
                 "first failure path does not match its operation"
@@ -1595,6 +1591,7 @@ MANIFEST_KEYS = {
     "adapterSource",
     "inputRegistry",
     "localRecipes",
+    "expectedFailures",
     "runners",
     "comparison",
 }
@@ -1604,6 +1601,12 @@ INPUT_REGISTRY_KEYS = {"path", "digest"}
 LOCAL_RECIPE_KEYS = {
     "id", "path", "digest", "byteSize", "generatorSource", "format", "version"
 }
+EXPECTED_FAILURE_KEYS = {
+    "id", "inputId", "inputPathHint", "facade", "direction", "firstFailure",
+    "outputProbe"
+}
+EXPECTED_FIRST_FAILURE_KEYS = {"stage", "code", "path"}
+OUTPUT_PROBES = {"none", "existing-directory"}
 RUNNER_KEYS = {
     "id",
     "side",
@@ -1746,6 +1749,93 @@ def _validate_rules(comparison: Any) -> dict[str, Any]:
     return value
 
 
+def _expected_failure_path(stage: str) -> str:
+    if stage == "callback":
+        return "/callbacks"
+    if stage in {"write", "writeResult", "readback"}:
+        return "/output"
+    return "/input"
+
+
+def _validate_expected_failure(value: Any, path: str) -> dict[str, Any]:
+    row = _exact_keys(value, EXPECTED_FAILURE_KEYS, path)
+    _identifier(row["id"], f"{path}.id")
+    _identifier(row["inputId"], f"{path}.inputId")
+    _path_hint(row["inputPathHint"], f"{path}.inputPathHint")
+    if row["facade"] not in FACADES:
+        raise QualifiedDifferentialError(f"{path}.facade is invalid")
+    if row["direction"] not in DIRECTIONS:
+        raise QualifiedDifferentialError(f"{path}.direction is invalid")
+    failure = _exact_keys(
+        row["firstFailure"], EXPECTED_FIRST_FAILURE_KEYS,
+        f"{path}.firstFailure",
+    )
+    stage = _string(failure["stage"], f"{path}.firstFailure.stage")
+    if stage not in DIAGNOSTIC_STAGES:
+        raise QualifiedDifferentialError(
+            f"{path}.firstFailure.stage is invalid"
+        )
+    _integer(failure["code"], f"{path}.firstFailure.code", minimum=0)
+    failure_path = _semantic_path(
+        failure["path"], f"{path}.firstFailure.path"
+    )
+    if failure_path != _expected_failure_path(stage):
+        raise QualifiedDifferentialError(
+            f"{path}.firstFailure.path does not match its operation"
+        )
+    probe = _string(row["outputProbe"], f"{path}.outputProbe")
+    if probe not in OUTPUT_PROBES:
+        raise QualifiedDifferentialError(f"{path}.outputProbe is invalid")
+    if probe != "none" and row["direction"] != "write":
+        raise QualifiedDifferentialError(
+            f"{path}.outputProbe requires write direction"
+        )
+    if probe == "existing-directory" and failure != {
+        "stage": "write", "code": 2, "path": "/output",
+    }:
+        raise QualifiedDifferentialError(
+            f"{path}.outputProbe requires write/BAD_OPEN/output oracle"
+        )
+    return row
+
+
+def _validate_expected_failures(
+    value: Any, recipes: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    rows = _list(value, "manifest.expectedFailures")
+    expected_failure_ids: list[str] = []
+    expected_failure_invocations: list[str] = []
+    for index, item in enumerate(rows):
+        row = _validate_expected_failure(
+            item, f"manifest.expectedFailures[{index}]"
+        )
+        expected_failure_ids.append(row["id"])
+        expected_failure_invocations.append(
+            "\0".join((row["inputId"], row["facade"], row["direction"]))
+        )
+        matching_recipes = [
+            recipe for recipe in recipes
+            if recipe["id"] == row["inputId"]
+            and recipe["path"] == row["inputPathHint"]
+        ]
+        if row["direction"] == "write" and len(matching_recipes) != 1:
+            raise QualifiedDifferentialError(
+                "write expected-failure input must name one local recipe"
+            )
+    if (
+        expected_failure_ids != sorted(expected_failure_ids)
+        or len(set(expected_failure_ids)) != len(expected_failure_ids)
+    ):
+        raise QualifiedDifferentialError(
+            "expected-failure IDs must be sorted and unique"
+        )
+    if len(set(expected_failure_invocations)) != len(expected_failure_invocations):
+        raise QualifiedDifferentialError(
+            "expected-failure invocation tuples must be unique"
+        )
+    return rows
+
+
 def validate_manifest(value: Any, *, root: Path | None = None) -> dict[str, Any]:
     manifest = _exact_keys(value, MANIFEST_KEYS, "manifest")
     if manifest["schema"] != RESULT_SCHEMA or manifest["kind"] != MANIFEST_KIND:
@@ -1814,6 +1904,9 @@ def validate_manifest(value: Any, *, root: Path | None = None) -> dict[str, Any]
         raise QualifiedDifferentialError("local recipe IDs must be sorted and unique")
     if len(set(recipe_paths)) != len(recipe_paths):
         raise QualifiedDifferentialError("local recipe paths must be unique")
+    expected_failures = _validate_expected_failures(
+        manifest["expectedFailures"], recipes
+    )
     runners = _list(manifest["runners"], "manifest.runners")
     if len(runners) != 2:
         raise QualifiedDifferentialError("manifest requires exactly two runners")
@@ -1881,6 +1974,22 @@ def validate_manifest(value: Any, *, root: Path | None = None) -> dict[str, Any]
             or _sha256_file(registry_path) != input_registry["digest"]
         ):
             raise QualifiedDifferentialError("input registry path/digest is stale")
+        registry_document = _read_json(registry_path)
+        if (
+            not isinstance(registry_document, dict)
+            or not isinstance(registry_document.get("fixtures"), list)
+        ):
+            raise QualifiedDifferentialError("fixture registry structure is invalid")
+        admitted_input_paths = set(recipe_paths)
+        admitted_input_paths.update(
+            row["path"] for row in registry_document["fixtures"]
+            if isinstance(row, dict) and isinstance(row.get("path"), str)
+        )
+        for index, row in enumerate(expected_failures):
+            if row["inputPathHint"] not in admitted_input_paths:
+                raise QualifiedDifferentialError(
+                    f"manifest.expectedFailures[{index}] input is not registered"
+                )
         for index, recipe in enumerate(recipes):
             recipe_path = root / recipe["path"]
             if not recipe_path.is_file():
@@ -2011,7 +2120,9 @@ def _matching_rules(path: str, comparison: dict[str, Any]) -> list[tuple[str, di
 def compare_results(target_value: Any, standalone_value: Any,
                     comparison_value: Any, *, manifest_digest: str,
                     target_lock: dict[str, Any],
-                    expected_operation_succeeded: bool = True) -> dict[str, Any]:
+                    expected_operation_succeeded: bool = True,
+                    expected_failure: dict[str, Any] | None = None
+                    ) -> dict[str, Any]:
     """Compare two validated results and classify every normalized value."""
 
     target = validate_result(target_value)
@@ -2044,6 +2155,39 @@ def compare_results(target_value: Any, standalone_value: Any,
         raise QualifiedDifferentialError(
             "target adapter commit does not bind the target lock"
         )
+    if expected_operation_succeeded:
+        if expected_failure is not None:
+            raise QualifiedDifferentialError(
+                "successful comparison cannot declare an expected failure"
+            )
+    elif expected_failure is None:
+        raise QualifiedDifferentialError(
+            "expected-failure comparison requires a stage/code/path oracle"
+        )
+    if expected_failure is not None:
+        oracle = _validate_expected_failure(
+            expected_failure, "expectedFailure"
+        )
+        expected_invocation = {
+            "inputId": target["input"]["id"],
+            "inputPathHint": target["input"]["pathHint"],
+            "facade": target["invocation"]["facade"],
+            "direction": target["invocation"]["direction"],
+        }
+        for key, actual in expected_invocation.items():
+            if oracle[key] != actual:
+                raise QualifiedDifferentialError(
+                    f"expected-failure {key} does not match the invocation"
+                )
+        for side, document in (("target", target), ("standalone", standalone)):
+            actual = document["status"]["firstFailure"]
+            for key in ("stage", "code", "path"):
+                expected = oracle["firstFailure"][key]
+                if actual[key] != expected:
+                    raise QualifiedDifferentialError(
+                        f"{side} first failure {key} does not match the "
+                        "expected-failure oracle"
+                    )
     operation_succeeded = (
         target["status"]["operationSucceeded"]
         and standalone["status"]["operationSucceeded"]
@@ -2197,6 +2341,10 @@ def compare_results(target_value: Any, standalone_value: Any,
         "targetAdapter": copy.deepcopy(target["adapter"]),
         "standaloneAdapter": copy.deepcopy(standalone["adapter"]),
         "deterministicRunsPerSide": 2,
+        "expectedFailure": (
+            copy.deepcopy(expected_failure)
+            if expected_failure is not None else None
+        ),
         "status": status,
         "claimEligible": (
             mismatch == 0 and reviewed == 0 and not eligibility_blockers
@@ -2269,10 +2417,16 @@ def _run_twice(command: list[str], timeout_seconds: float) -> tuple[bytes, int]:
 
 def _run_adapter_twice(command_template: list[str], replacements: dict[str, str],
                        timeout_seconds: float, *, output_policy: str,
-                       output_suffix: str
+                       output_suffix: str, output_probe: str = "none"
                        ) -> tuple[bytes, int, bytes, dict[str, Any] | None]:
     if output_policy not in {"required", "forbidden", "optional"}:
         raise QualifiedDifferentialError("invalid generated-output policy")
+    if output_probe not in OUTPUT_PROBES:
+        raise QualifiedDifferentialError("invalid generated-output probe")
+    if output_probe != "none" and output_policy != "optional":
+        raise QualifiedDifferentialError(
+            "generated-output probe requires optional output policy"
+        )
     environment = os.environ.copy()
     environment.update({
         "LC_ALL": "C", "LANG": "C", "TZ": "UTC", "SOURCE_DATE_EPOCH": "0"
@@ -2285,7 +2439,13 @@ def _run_adapter_twice(command_template: list[str], replacements: dict[str, str]
         root = Path(temp)
         for index in range(2):
             output_path = root / f"run-{index}" / f"output{output_suffix}"
-            output_path.parent.mkdir()
+            probe_marker: Path | None = None
+            if output_probe == "existing-directory":
+                output_path.mkdir(parents=True)
+                probe_marker = output_path / "preserve.txt"
+                probe_marker.write_bytes(b"expected-failure probe\n")
+            else:
+                output_path.parent.mkdir()
             run_replacements = dict(replacements)
             run_replacements["{output}"] = str(output_path)
             command = _expand_command(command_template, run_replacements)
@@ -2315,6 +2475,15 @@ def _run_adapter_twice(command_template: list[str], replacements: dict[str, str]
                 })
             else:
                 artifacts.append(None)
+            if output_probe == "existing-directory" and (
+                not output_path.is_dir()
+                or probe_marker is None
+                or not probe_marker.is_file()
+                or probe_marker.read_bytes() != b"expected-failure probe\n"
+            ):
+                raise QualifiedDifferentialError(
+                    "write failure probe damaged its pre-existing destination"
+                )
         if (
             outputs[0] != outputs[1]
             or errors[0] != errors[1]
@@ -2348,6 +2517,22 @@ def _runner_by_side(manifest: dict[str, Any], side: str) -> dict[str, Any]:
         if runner["side"] == side:
             return runner
     raise QualifiedDifferentialError(f"manifest has no {side} runner")
+
+
+def _expected_failure_by_id(
+    manifest: dict[str, Any], expected_failure_id: str | None,
+) -> dict[str, Any] | None:
+    if expected_failure_id is None:
+        return None
+    matches = [
+        row for row in manifest["expectedFailures"]
+        if row["id"] == expected_failure_id
+    ]
+    if len(matches) != 1:
+        raise QualifiedDifferentialError(
+            "expected-failure ID is absent or ambiguous"
+        )
+    return matches[0]
 
 
 def _git_blob_digest(data: bytes) -> str:
@@ -2676,6 +2861,7 @@ def _run_live_side(
     direction: str,
     timeout_seconds: float,
     expected_operation_succeeded: bool,
+    output_probe: str,
 ) -> dict[str, Any]:
     runner = _runner_by_side(manifest, side)
     identity = receipt["adapter"]
@@ -2718,6 +2904,7 @@ def _run_live_side(
             else "optional"
         ),
         output_suffix=".dwg" if facade == "dwgRW" else ".dxf",
+        output_probe=output_probe,
     )
     try:
         result = _loads_json(encoded.decode("utf-8"), f"{side} adapter stdout")
@@ -2782,10 +2969,30 @@ def run_live(
     direction: str,
     timeout_seconds: float,
     expected_operation_succeeded: bool = True,
+    expected_failure: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Execute the receipt-bound target and standalone adapters twice each."""
 
     manifest = validate_manifest(_read_json(manifest_path), root=root)
+    if expected_operation_succeeded == (expected_failure is not None):
+        raise QualifiedDifferentialError(
+            "operation expectation and expected-failure oracle disagree"
+        )
+    if expected_failure is not None:
+        expected_failure = _validate_expected_failure(
+            expected_failure, "expectedFailure"
+        )
+        manifest_failure = _expected_failure_by_id(
+            manifest, expected_failure["id"]
+        )
+        if manifest_failure != expected_failure:
+            raise QualifiedDifferentialError(
+                "expected-failure oracle is not the manifest-bound case"
+            )
+    output_probe = (
+        expected_failure["outputProbe"]
+        if expected_failure is not None else "none"
+    )
     manifest_digest = _sha256_file(manifest_path)
     source_digest = _sha256_file(root / manifest["adapterSource"]["path"])
     target_receipt = validate_receipt(
@@ -2826,6 +3033,15 @@ def run_live(
         _digest(generator_digest, "generatorDigest")
     if facade not in FACADES or direction not in DIRECTIONS:
         raise QualifiedDifferentialError("facade/direction is invalid")
+    if expected_failure is not None and (
+        expected_failure["inputId"] != input_id
+        or expected_failure["inputPathHint"] != input_path_hint
+        or expected_failure["facade"] != facade
+        or expected_failure["direction"] != direction
+    ):
+        raise QualifiedDifferentialError(
+            "expected-failure case does not match the live invocation"
+        )
     provenance = _resolve_input_provenance(
         root=root,
         manifest=manifest,
@@ -2854,6 +3070,7 @@ def run_live(
         generator_digest=generator_digest, facade=facade, direction=direction,
         timeout_seconds=timeout_seconds,
         expected_operation_succeeded=expected_operation_succeeded,
+        output_probe=output_probe,
     )
     standalone = _run_live_side(
         side="standalone", manifest=manifest, manifest_digest=manifest_digest,
@@ -2870,11 +3087,13 @@ def run_live(
         generator_digest=generator_digest, facade=facade, direction=direction,
         timeout_seconds=timeout_seconds,
         expected_operation_succeeded=expected_operation_succeeded,
+        output_probe=output_probe,
     )
     return compare_results(
         target, standalone, manifest["comparison"],
         manifest_digest=manifest_digest, target_lock=manifest["targetLock"],
         expected_operation_succeeded=expected_operation_succeeded,
+        expected_failure=expected_failure,
     )
 
 
@@ -3116,14 +3335,87 @@ def self_test() -> None:
         assert "expected both adapter operations to succeed" in str(exc)
     else:
         raise AssertionError("identical operation failures qualified as success")
-    expected_failure = compare_results(
+    failure_oracle = {
+        "id": "failure:synthetic-read",
+        "inputId": "synthetic-line",
+        "inputPathHint": "local/synthetic-line-v1",
+        "facade": "dxfRW",
+        "direction": "read",
+        "firstFailure": {
+            "stage": "entities", "code": 1, "path": "/input",
+        },
+        "outputProbe": "none",
+    }
+    duplicate_oracle = copy.deepcopy(failure_oracle)
+    duplicate_oracle["id"] = "failure:synthetic-read-duplicate"
+    try:
+        _validate_expected_failures(
+            [failure_oracle, duplicate_oracle], []
+        )
+    except QualifiedDifferentialError as exc:
+        assert "invocation tuples" in str(exc)
+    else:
+        raise AssertionError("duplicate expected-failure invocation was accepted")
+    unregistered_write_oracle = copy.deepcopy(failure_oracle)
+    unregistered_write_oracle.update({
+        "id": "failure:unregistered-write",
+        "direction": "write",
+        "outputProbe": "existing-directory",
+        "firstFailure": {"stage": "write", "code": 2, "path": "/output"},
+    })
+    try:
+        _validate_expected_failures([unregistered_write_oracle], [])
+    except QualifiedDifferentialError as exc:
+        assert "local recipe" in str(exc)
+    else:
+        raise AssertionError("unregistered write-failure input was accepted")
+    try:
+        compare_results(
+            failed_target, failed_standalone, empty_rules,
+            manifest_digest=config_digest, target_lock=target_lock,
+            expected_operation_succeeded=False,
+        )
+    except QualifiedDifferentialError as exc:
+        assert "stage/code/path oracle" in str(exc)
+    else:
+        raise AssertionError("oracle-free expected failure was accepted")
+    expected_failure_report = compare_results(
         failed_target, failed_standalone, empty_rules,
         manifest_digest=config_digest, target_lock=target_lock,
         expected_operation_succeeded=False,
+        expected_failure=failure_oracle,
     )
-    assert expected_failure["status"] == "reviewedNonPromoting"
-    assert not expected_failure["claimEligible"]
-    assert "expectedOperationFailure" in expected_failure["eligibilityBlockers"]
+    assert expected_failure_report["status"] == "reviewedNonPromoting"
+    assert not expected_failure_report["claimEligible"]
+    assert expected_failure_report["expectedFailure"] == failure_oracle
+    assert "expectedOperationFailure" in expected_failure_report["eligibilityBlockers"]
+    for key, wrong_value in (("stage", "objects"), ("code", 2)):
+        wrong_oracle = copy.deepcopy(failure_oracle)
+        wrong_oracle["firstFailure"][key] = wrong_value
+        try:
+            compare_results(
+                failed_target, failed_standalone, empty_rules,
+                manifest_digest=config_digest, target_lock=target_lock,
+                expected_operation_succeeded=False,
+                expected_failure=wrong_oracle,
+            )
+        except QualifiedDifferentialError as exc:
+            assert f"first failure {key}" in str(exc)
+        else:
+            raise AssertionError(f"wrong expected failure {key} was accepted")
+    wrong_path_oracle = copy.deepcopy(failure_oracle)
+    wrong_path_oracle["firstFailure"]["path"] = "/output"
+    try:
+        compare_results(
+            failed_target, failed_standalone, empty_rules,
+            manifest_digest=config_digest, target_lock=target_lock,
+            expected_operation_succeeded=False,
+            expected_failure=wrong_path_oracle,
+        )
+    except QualifiedDifferentialError as exc:
+        assert "path does not match its operation" in str(exc)
+    else:
+        raise AssertionError("wrong expected failure path was accepted")
     write_failure = copy.deepcopy(failed_target)
     write_failure["status"]["firstFailure"].update({
         "stage": "write", "code": 2, "path": "/output",
@@ -3544,6 +3836,7 @@ def self_test() -> None:
             expected_detected_version="AC1024",
             generator_digest=source_digest, facade="dxfRW", direction="read",
             timeout_seconds=1.0, expected_operation_succeeded=True,
+            output_probe="none",
         )
         assert "input_source_path" in side_arguments.arguments
         assert "input_git_dir" not in side_arguments.arguments
@@ -3622,6 +3915,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--direction", choices=sorted(DIRECTIONS), default="read")
     parser.add_argument("--timeout", type=float, default=30.0)
     parser.add_argument("--expect-operation-failure", action="store_true")
+    parser.add_argument("--expected-failure-id")
     parser.add_argument("--output", type=Path)
     args = parser.parse_args(argv)
     try:
@@ -3636,6 +3930,14 @@ def main(argv: list[str] | None = None) -> int:
         root = args.root.resolve()
         manifest_path = args.manifest.resolve()
         manifest = validate_manifest(_read_json(manifest_path), root=root)
+        expected_failure = _expected_failure_by_id(
+            manifest, args.expected_failure_id
+        )
+        if args.expect_operation_failure != (expected_failure is not None):
+            raise QualifiedDifferentialError(
+                "--expect-operation-failure and --expected-failure-id "
+                "must be supplied together"
+            )
         if args.target_result is not None or args.standalone_result is not None:
             if args.target_result is None or args.standalone_result is None:
                 parser.error("--target-result and --standalone-result are paired")
@@ -3645,6 +3947,7 @@ def main(argv: list[str] | None = None) -> int:
                 manifest["comparison"], manifest_digest=manifest_digest,
                 target_lock=manifest["targetLock"],
                 expected_operation_succeeded=not args.expect_operation_failure,
+                expected_failure=expected_failure,
             )
             report["claimEligible"] = False
             report["eligibilityBlockers"] = sorted(set(
@@ -3679,6 +3982,7 @@ def main(argv: list[str] | None = None) -> int:
                 facade=args.facade, direction=args.direction,
                 timeout_seconds=args.timeout,
                 expected_operation_succeeded=not args.expect_operation_failure,
+                expected_failure=expected_failure,
             )
         else:
             print("qualified differential v2 manifest: PASS")

@@ -31,6 +31,21 @@
       "version": "AC1024"
     }
   ],
+  "expectedFailures": [
+    {
+      "id": "failure:dxf-write-existing-directory",
+      "inputId": "recipe:minimal-line-v1",
+      "inputPathHint": "metadata/semantic-minimal-line-v1.json",
+      "facade": "dxfRW",
+      "direction": "write",
+      "firstFailure": {
+        "stage": "write",
+        "code": 2,
+        "path": "/output"
+      },
+      "outputProbe": "existing-directory"
+    }
+  ],
   "runners": [
     {
       "id": "standalone-semantic-adapter",
