@@ -999,6 +999,50 @@ public:
     DRW_Ole2Frame() {
         eType = DRW::OLE2FRAME;
     }
+    DRW_Ole2Frame(const DRW_Ole2Frame& o): DRW_Entity(o),
+        m_flags(o.m_flags), m_mode(o.m_mode),
+        m_declaredPayloadLength(o.m_declaredPayloadLength),
+        m_payloadByteCount(o.m_payloadByteCount),
+        m_payloadStartBit(o.m_payloadStartBit),
+        m_payloadPresent(o.m_payloadPresent),
+        m_payloadTruncated(o.m_payloadTruncated),
+        m_payloadTooLarge(o.m_payloadTooLarge),
+        m_hasR2000TrailingByte(o.m_hasR2000TrailingByte),
+        m_r2000TrailingByte(o.m_r2000TrailingByte),
+        m_lockAspect(o.m_lockAspect), m_dxfPayloadLengthSpecified(false),
+        m_objectSize(o.m_objectSize), m_bodyBitSize(o.m_bodyBitSize),
+        m_rawBytes(o.m_rawBytes), m_payloadBytes(o.m_payloadBytes),
+        m_oleVersion(o.m_oleVersion), m_oleClient(o.m_oleClient),
+        m_pt1(o.m_pt1), m_pt2(o.m_pt2) {
+        eType = DRW::OLE2FRAME;
+    }
+    DRW_Ole2Frame& operator=(const DRW_Ole2Frame& o) {
+        if (this != &o) {
+            DRW_Entity::operator=(o);
+            m_flags = o.m_flags;
+            m_mode = o.m_mode;
+            m_declaredPayloadLength = o.m_declaredPayloadLength;
+            m_payloadByteCount = o.m_payloadByteCount;
+            m_payloadStartBit = o.m_payloadStartBit;
+            m_payloadPresent = o.m_payloadPresent;
+            m_payloadTruncated = o.m_payloadTruncated;
+            m_payloadTooLarge = o.m_payloadTooLarge;
+            m_hasR2000TrailingByte = o.m_hasR2000TrailingByte;
+            m_r2000TrailingByte = o.m_r2000TrailingByte;
+            m_lockAspect = o.m_lockAspect;
+            m_dxfPayloadLengthSpecified = false;
+            m_objectSize = o.m_objectSize;
+            m_bodyBitSize = o.m_bodyBitSize;
+            m_rawBytes = o.m_rawBytes;
+            m_payloadBytes = o.m_payloadBytes;
+            m_oleVersion = o.m_oleVersion;
+            m_oleClient = o.m_oleClient;
+            m_pt1 = o.m_pt1;
+            m_pt2 = o.m_pt2;
+            eType = DRW::OLE2FRAME;
+        }
+        return *this;
+    }
     void applyExtrusion() override {}
 
 protected:
@@ -1046,6 +1090,37 @@ public:
 
     DRW_OleFrame() {
         eType = DRW::OLEFRAME;
+    }
+    DRW_OleFrame(const DRW_OleFrame& o): DRW_Entity(o),
+        m_flags(o.m_flags), m_mode(o.m_mode),
+        m_declaredPayloadLength(o.m_declaredPayloadLength),
+        m_payloadByteCount(o.m_payloadByteCount),
+        m_payloadPresent(o.m_payloadPresent),
+        m_payloadTruncated(o.m_payloadTruncated),
+        m_payloadTooLarge(o.m_payloadTooLarge),
+        m_dxfPayloadLengthSpecified(false),
+        m_objectSize(o.m_objectSize), m_bodyBitSize(o.m_bodyBitSize),
+        m_rawBytes(o.m_rawBytes), m_payloadBytes(o.m_payloadBytes) {
+        eType = DRW::OLEFRAME;
+    }
+    DRW_OleFrame& operator=(const DRW_OleFrame& o) {
+        if (this != &o) {
+            DRW_Entity::operator=(o);
+            m_flags = o.m_flags;
+            m_mode = o.m_mode;
+            m_declaredPayloadLength = o.m_declaredPayloadLength;
+            m_payloadByteCount = o.m_payloadByteCount;
+            m_payloadPresent = o.m_payloadPresent;
+            m_payloadTruncated = o.m_payloadTruncated;
+            m_payloadTooLarge = o.m_payloadTooLarge;
+            m_dxfPayloadLengthSpecified = false;
+            m_objectSize = o.m_objectSize;
+            m_bodyBitSize = o.m_bodyBitSize;
+            m_rawBytes = o.m_rawBytes;
+            m_payloadBytes = o.m_payloadBytes;
+            eType = DRW::OLEFRAME;
+        }
+        return *this;
     }
     void applyExtrusion() override {}
 

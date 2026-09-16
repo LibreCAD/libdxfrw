@@ -128,6 +128,16 @@ public:
     using DRW_SectionObject::parseCode;
 };
 
+class ExposedOle2Frame : public DRW_Ole2Frame {
+public:
+    using DRW_Ole2Frame::parseCode;
+};
+
+class ExposedOleFrame : public DRW_OleFrame {
+public:
+    using DRW_OleFrame::parseCode;
+};
+
 template <typename Entity>
 bool parseDxfRecords(Entity& entity, const std::string& source) {
     std::stringstream records(source);
@@ -191,6 +201,10 @@ void testPublicOwnershipContracts(TestContext& t) {
                   "DRW_Wipeout copy contract");
     static_assert(std::is_copy_constructible<DRW_SectionObject>::value,
                   "DRW_SectionObject copy contract");
+    static_assert(std::is_copy_constructible<DRW_Ole2Frame>::value,
+                  "DRW_Ole2Frame copy contract");
+    static_assert(std::is_copy_constructible<DRW_OleFrame>::value,
+                  "DRW_OleFrame copy contract");
     static_assert(std::is_copy_constructible<DRW_Attrib>::value,
                   "DRW_Attrib copy contract");
     static_assert(std::is_copy_constructible<DRW_GeoPositionMarker>::value,
@@ -851,6 +865,44 @@ void testPublicOwnershipContracts(TestContext& t) {
                                     "100\nAcDbSection\n90\n2\n")
                  && assignedSection.m_state == 2u,
              "SECTIONOBJECT assignment starts a fresh subclass parser walk");
+
+    ExposedOle2Frame partialOle2;
+    t.expect(parseDxfRecords(partialOle2, "90\n4\n310\n4142\n")
+                 && partialOle2.m_dxfPayloadLengthSpecified,
+             "OLE2FRAME parser state source setup");
+    ExposedOle2Frame copiedOle2(partialOle2);
+    t.expect(!copiedOle2.m_dxfPayloadLengthSpecified
+                 && copiedOle2.m_payloadBytes.size() == 2u
+                 && copiedOle2.m_payloadBytes[0] == 0x41u
+                 && copiedOle2.m_payloadBytes[1] == 0x42u,
+             "OLE2FRAME copy resets payload-length parser marker");
+    ExposedOle2Frame assignedOle2;
+    t.expect(parseDxfRecords(assignedOle2, "90\n9\n")
+                 && assignedOle2.m_dxfPayloadLengthSpecified,
+             "OLE2FRAME assignment destination setup");
+    assignedOle2 = partialOle2;
+    t.expect(!assignedOle2.m_dxfPayloadLengthSpecified
+                 && assignedOle2.m_payloadBytes.size() == 2u,
+             "OLE2FRAME assignment resets payload-length parser marker");
+
+    ExposedOleFrame partialOle;
+    t.expect(parseDxfRecords(partialOle, "90\n4\n310\n4344\n")
+                 && partialOle.m_dxfPayloadLengthSpecified,
+             "OLEFRAME parser state source setup");
+    ExposedOleFrame copiedOle(partialOle);
+    t.expect(!copiedOle.m_dxfPayloadLengthSpecified
+                 && copiedOle.m_payloadBytes.size() == 2u
+                 && copiedOle.m_payloadBytes[0] == 0x43u
+                 && copiedOle.m_payloadBytes[1] == 0x44u,
+             "OLEFRAME copy resets payload-length parser marker");
+    ExposedOleFrame assignedOle;
+    t.expect(parseDxfRecords(assignedOle, "90\n9\n")
+                 && assignedOle.m_dxfPayloadLengthSpecified,
+             "OLEFRAME assignment destination setup");
+    assignedOle = partialOle;
+    t.expect(!assignedOle.m_dxfPayloadLengthSpecified
+                 && assignedOle.m_payloadBytes.size() == 2u,
+             "OLEFRAME assignment resets payload-length parser marker");
 
     DRW_Dimension sourceDimension;
     sourceDimension.extData.push_back(
