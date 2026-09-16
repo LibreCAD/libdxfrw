@@ -2071,6 +2071,12 @@ edit this block or commit the same slice concurrently.
   payloads remain copied; focused hardening vectors pass and no drawing bytes
   or derived fixtures are used.
 
+- Current checkpoint (2026-09-16): S354/J330 extends transient parser-state
+  isolation to SORTENTSTABLE copies and assignments.  Body, block-owner, and
+  pending-entity markers now reset while persisted draw-order handles remain
+  copied; focused hardening vectors pass and no drawing bytes or derived
+  fixtures are used.
+
 - Current checkpoint (2026-09-16): S329/J305 compound-entity graph ownership
   is committed.  Explicit copies now clone legacy POLYLINE vertices, SPLINE
   control/fit points, and INSERT attributes while resetting parser cursors;
@@ -3774,18 +3780,18 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 353 (`COMMITTED`); no slice is active.
+- Resolved slices: 354 (`COMMITTED`); no slice is active.
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 353 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 354 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 355 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 356 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 VERIFIED / 0 SUPERSEDED / 453 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 VERIFIED / 0 SUPERSEDED / 454 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  6 DEFERRED_EXTERNAL / 349 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S353 and J329/J329.1 are committed; no local implementation
-  slice is active.
+  6 DEFERRED_EXTERNAL / 350 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S354 and J329/J329.1/J330/J330.1 are committed; no local
+  implementation slice is active.
   Keep the fast inner loop and do not promote support claims from
   self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -4193,6 +4199,7 @@ edit this block or commit the same slice concurrently.
 | S351 | J327: BREAKDATA parser-state copy isolation | S350 | COMMITTED | BREAKDATA copy/assignment subclass-body parser-state reset; focused hardening target; fixture admission; import scope; sync; plan; diff | focused `libdxfrw_hardening_tests` passes for copied and assigned BREAKDATA models; route/support and policy gates pass; no drawing bytes or derived fixtures | continue with target-bound differential debt, independent-oracle, native-platform, and release closure |
 | S352 | J328: DICTIONARY parser-state copy isolation | S351 | COMMITTED | DICTIONARY/DICTIONARYWDFLT copy/assignment pending-entry/default-marker parser-state reset; focused hardening target; fixture admission; import scope; sync; plan; diff | focused `libdxfrw_hardening_tests` passes for copied and assigned DICTIONARY models; route/support and policy gates pass; no drawing bytes or derived fixtures | continue with target-bound differential debt, independent-oracle, native-platform, and release closure |
 | S353 | J329: XRECORD parser-state copy isolation | S352 | COMMITTED | XRECORD copy/assignment subclass-body parser-state reset; focused hardening target; fixture admission; import scope; sync; plan; diff | focused `libdxfrw_hardening_tests` plus plan, fixture, import-scope, sync, route, aggregate, support, release-readiness, speed, and diff gates pass; no drawing bytes or derived fixtures | commit the verified slice with trailers, report progress, and recompute the next ready queue |
+| S354 | J330: SORTENTSTABLE parser-state copy isolation | S353 | COMMITTED | SORTENTSTABLE copy/assignment body/block-owner/pending-entry parser-state reset; focused hardening target; fixture admission; import scope; sync; plan; diff | focused `libdxfrw_hardening_tests` plus plan, fixture, import-scope, sync, route, aggregate, support, release-readiness, speed, and diff gates pass; no drawing bytes or derived fixtures | commit the verified slice with trailers, report progress, and recompute the next ready queue |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -4550,6 +4557,7 @@ edit this block or commit the same slice concurrently.
 | J327 | S351 | J326 | COMMITTED | EXPERIMENTAL | Harden BREAKDATA parser-state copy and assignment | Reset transient BREAKDATA subclass-body marker across copy/assignment while preserving persisted point-reference and dimension-handle data; keep the no-fixture policy |
 | J328 | S352 | J327 | COMMITTED | EXPERIMENTAL | Harden DICTIONARY parser-state copy and assignment | Reset transient DICTIONARY pending-entry and DICTIONARYWDFLT default-entry markers across copy/assignment while preserving persisted dictionary entries and handles; keep the no-fixture policy |
 | J329 | S353 | J328 | COMMITTED | EXPERIMENTAL | Harden XRECORD parser-state copy and assignment | Reset transient XRECORD AcDbXrecord subclass-body marker across copy/assignment while preserving typed values, handle values, and opaque payloads; keep the no-fixture policy |
+| J330 | S354 | J329 | COMMITTED | EXPERIMENTAL | Harden SORTENTSTABLE parser-state copy and assignment | Reset transient SORTENTSTABLE body, block-owner, and pending-entity markers across copy/assignment while preserving persisted draw-order handles; keep the no-fixture policy |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -5013,6 +5021,7 @@ edit this block or commit the same slice concurrently.
 | J327.1 | J327 / S351 | WP3.11-WP3.12, WP8, WP10; BREAKDATA parser-state copy isolation | J326 | COMMITTED | EXPERIMENTAL | assert copied and assigned BREAKDATA models reset the subclass-body marker while preserving point-reference and dimension-handle data; keep all inputs in memory | focused `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures |
 | J328.1 | J328 / S352 | WP3.11-WP3.12, WP8, WP10; DICTIONARY parser-state copy isolation | J327 | COMMITTED | EXPERIMENTAL | assert copied and assigned DICTIONARY/DICTIONARYWDFLT models reject stale pending/default parser state while preserving persisted entries and handles; keep all inputs in memory | focused `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures |
 | J329.1 | J329 / S353 | WP3.11-WP3.12, WP8, WP10; XRECORD parser-state copy isolation | J328 | COMMITTED | EXPERIMENTAL | assert copied and assigned XRECORD models do not append values before a fresh AcDbXrecord marker while preserving typed values, handle values, and opaque payloads; keep all inputs in memory | focused `libdxfrw_hardening_tests`, plan, fixture-admission, import-scope, sync, route, aggregate, support, release-readiness, speed, and diff gates; no drawing bytes or derived fixtures |
+| J330.1 | J330 / S354 | WP3.11-WP3.12, WP8, WP10; SORTENTSTABLE parser-state copy isolation | J329 | COMMITTED | EXPERIMENTAL | assert copied and assigned SORTENTSTABLE models do not consume body sort handles before a fresh AcDbSortentsTable marker while preserving persisted draw-order handles; keep all inputs in memory | focused `libdxfrw_hardening_tests`, plan, fixture-admission, import-scope, sync, route, aggregate, support, release-readiness, speed, and diff gates; no drawing bytes or derived fixtures |
 | J313.1 | J313 / S337 | WP3.11-WP3.12, WP8, WP10; TABLE parser-state copy isolation | J312 | COMMITTED | EXPERIMENTAL | assert copied and assigned TABLE models accept fresh subclass/grid dimensions after a partial source parse while preserving public table content; keep all inputs in memory | focused `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures |
 
 <!-- UPGRADE_PROGRESS_END -->

@@ -5805,22 +5805,24 @@
         "shared/public-inline-method/src_drw_entities.h_DRW_Vertex_b81fd42c9157ac3f5ab792681b5d86d49339c0cf962bfeafdd0a8cda1d96fe55",
         "shared/public-inline-method/src_drw_entities.h_DRW_Xline_3d20f093f79929c02c7486b039b4f5c414d452022fd7e1bfae0e7ead31fd5ae8",
         "shared/public-inline-method/src_drw_interface.h_DRW_Interface_6190e2e1ac4584b071d2809572602df0a20c74f7111d9b63326fbba607e14bb1",
-        "shared/public-inline-method/src_drw_objects.h_DRW_AcDbPlaceholder_435b845b696aeff3334bd8deb311ecb8374e8af4d427ba50a88c836d0545d056",
-        "shared/public-inline-method/src_drw_objects.h_DRW_AcShHistoryObject_4636b481d82027e95f103318ef9edd9b01997f6816f01c64bc2f5dd2072fff8b",
-        "shared/public-inline-method/src_drw_objects.h_DRW_AssociativeObject_28d6d31bee467e7b9cabc488873e7b01905115ae2cda792b7976af9471631868",
+        "shared/public-inline-method/src_drw_objects.h_DRW_AcDbPlaceholder_5cc550512523257353a61672ab41a4713f98bba27111c6c530c105ee78a87a15",
+        "shared/public-inline-method/src_drw_objects.h_DRW_AcShHistoryObject_d1715d9cfa6750d564b3cc0c0042a552442226d505ad34a1c5d4a3a80c332bd8",
+        "shared/public-inline-method/src_drw_objects.h_DRW_AssociativeObject_cfedc50fa0bc313bf3b4e886df62c3ffae9b578ce56ba96e4d2154cc6ca57c54",
         "shared/public-inline-method/src_drw_objects.h_DRW_BreakData_5c645abf31689ad0e1087c49e213eb95304515a673074555f9116addaa73994a",
-        "shared/public-inline-method/src_drw_objects.h_DRW_BreakData_7299a23f1ba4c35b5b553e40059ba74e99d9e316e2ae5e493e3d62ac2857835c",
         "shared/public-inline-method/src_drw_objects.h_DRW_BreakData_795f85f9b3d407dbd2744dd8be249241428169676838731a4cd17a26f05589c7",
-        "shared/public-inline-method/src_drw_objects.h_DRW_BreakPointRef_21927fc60dd7793122d54a85b752e6d45fdf3bc5dcb33946a2720430d26c419a",
-        "shared/public-inline-method/src_drw_objects.h_DRW_CellStyleMap_1d8381dfb725b7c196d04ce78fe9dff55204e997dd8c7ad670c85424dd5b9a80",
-        "shared/public-inline-method/src_drw_objects.h_DRW_DetailViewStyle_0c7b669f2a1c3bc6083eaec32c7880cd7a08d3b96fa0f63fde51b5b93154a4ef",
+        "shared/public-inline-method/src_drw_objects.h_DRW_BreakData_f0f81f1fe74e1a9e9281ac7574cbc2f659d6bf445a2042423da9906533a939ed",
+        "shared/public-inline-method/src_drw_objects.h_DRW_BreakPointRef_c4ffb64d45916dfa9a358653a7afcbfc00aa57390e6ad76bfb29ed2ee9265b74",
+        "shared/public-inline-method/src_drw_objects.h_DRW_CellStyleMap_0efe4b09be29aa73aad01d46c32b58fd273395e3c30d850cc869e5fa1f49ec80",
+        "shared/public-inline-method/src_drw_objects.h_DRW_DetailViewStyle_41dad996d0d6cfc0c185c0f1e60c0e06f6d0cb2532c44615a51ef2d34338b734",
         "shared/public-inline-method/src_drw_objects.h_DRW_DictionaryWithDefault_37c73de9d5c80f8f5594bed68275315e1185fb0e213dde14c156465da6d8d2ae",
         "shared/public-inline-method/src_drw_objects.h_DRW_DictionaryWithDefault_3d5c4fc6f6e97bbb4a3509da71cd665e08dc0600f15e17e4e44b303a4fd8c95b",
         "shared/public-inline-method/src_drw_objects.h_DRW_Dictionary_07765a47730f72f5b566ab3cd7854b65f35f4568a30bf7fd27687fa918266af6",
         "shared/public-inline-method/src_drw_objects.h_DRW_Dictionary_39129c8a4a8272d91c975e11224b0831db485db46a41f9b7302f68f7ffe36c45",
-        "shared/public-inline-method/src_drw_objects.h_DRW_MLineStyle_41e4f22d1d7d4fee9880961049da1aa9b3ccb31b04b4cf9131572abe27186d13",
-        "shared/public-inline-method/src_drw_objects.h_DRW_SectionViewStyle_d66e30ea5b4b5692c4044575f4d0ddfff70bfc157fcf49012273774ea86b964e",
-        "shared/public-inline-method/src_drw_objects.h_DRW_WritingContext_8d805e477f5ec15512f5deee908c4c0f928480c967b86592e7e0e61a2c9f0f32",
+        "shared/public-inline-method/src_drw_objects.h_DRW_MLineStyle_ce9e2dc8de76f515cd4b39942cdde57e78639824a16d061ff0da16a9e6710ce9",
+        "shared/public-inline-method/src_drw_objects.h_DRW_SectionViewStyle_618daac7d1df429a169d4d801f6e3e5532b703164530a42b1b63e5dd03a85c0c",
+        "shared/public-inline-method/src_drw_objects.h_DRW_SortEntsTable_356cef7fc2d375479e62f0a301ed7b0d169658ad947d55e9c69c8b23da23daf2",
+        "shared/public-inline-method/src_drw_objects.h_DRW_SortEntsTable_f6f2d54989e664abe78c6b6e07aaed7070a48d452a98f62ad6c18258281e4846",
+        "shared/public-inline-method/src_drw_objects.h_DRW_WritingContext_6652830d74e7ff09c4eef92bc31aa7e0e3f61d06e2cfcfa073944414fac7a2ea",
         "shared/public-inline-method/src_drw_objects.h_DRW_XRecord_2d47adabf22d9082460a9e207d84cb4607a3abdcde01566655a900cb58213358",
         "shared/public-inline-method/src_drw_objects.h_DRW_XRecord_4279d011431dd0446368af2b9d4064706a6a73114f7ac5e8d1dde1abb4879d13",
         "shared/public-inline-method/src_drw_objects.h_DRW_XRecord_ea8d2e1f60d11c7313a27b62c776afdf8a6d9c03526ef7c0ba6e0ce6830fe2d2",
@@ -5916,22 +5918,24 @@
         "shared/public-method/src_drw_entities.h_DRW_Vertex_b81fd42c9157ac3f5ab792681b5d86d49339c0cf962bfeafdd0a8cda1d96fe55",
         "shared/public-method/src_drw_entities.h_DRW_Xline_3d20f093f79929c02c7486b039b4f5c414d452022fd7e1bfae0e7ead31fd5ae8",
         "shared/public-method/src_drw_interface.h_DRW_Interface_6190e2e1ac4584b071d2809572602df0a20c74f7111d9b63326fbba607e14bb1",
-        "shared/public-method/src_drw_objects.h_DRW_AcDbPlaceholder_435b845b696aeff3334bd8deb311ecb8374e8af4d427ba50a88c836d0545d056",
-        "shared/public-method/src_drw_objects.h_DRW_AcShHistoryObject_4636b481d82027e95f103318ef9edd9b01997f6816f01c64bc2f5dd2072fff8b",
-        "shared/public-method/src_drw_objects.h_DRW_AssociativeObject_28d6d31bee467e7b9cabc488873e7b01905115ae2cda792b7976af9471631868",
+        "shared/public-method/src_drw_objects.h_DRW_AcDbPlaceholder_5cc550512523257353a61672ab41a4713f98bba27111c6c530c105ee78a87a15",
+        "shared/public-method/src_drw_objects.h_DRW_AcShHistoryObject_d1715d9cfa6750d564b3cc0c0042a552442226d505ad34a1c5d4a3a80c332bd8",
+        "shared/public-method/src_drw_objects.h_DRW_AssociativeObject_cfedc50fa0bc313bf3b4e886df62c3ffae9b578ce56ba96e4d2154cc6ca57c54",
         "shared/public-method/src_drw_objects.h_DRW_BreakData_5c645abf31689ad0e1087c49e213eb95304515a673074555f9116addaa73994a",
-        "shared/public-method/src_drw_objects.h_DRW_BreakData_7299a23f1ba4c35b5b553e40059ba74e99d9e316e2ae5e493e3d62ac2857835c",
         "shared/public-method/src_drw_objects.h_DRW_BreakData_795f85f9b3d407dbd2744dd8be249241428169676838731a4cd17a26f05589c7",
-        "shared/public-method/src_drw_objects.h_DRW_BreakPointRef_21927fc60dd7793122d54a85b752e6d45fdf3bc5dcb33946a2720430d26c419a",
-        "shared/public-method/src_drw_objects.h_DRW_CellStyleMap_1d8381dfb725b7c196d04ce78fe9dff55204e997dd8c7ad670c85424dd5b9a80",
-        "shared/public-method/src_drw_objects.h_DRW_DetailViewStyle_0c7b669f2a1c3bc6083eaec32c7880cd7a08d3b96fa0f63fde51b5b93154a4ef",
+        "shared/public-method/src_drw_objects.h_DRW_BreakData_f0f81f1fe74e1a9e9281ac7574cbc2f659d6bf445a2042423da9906533a939ed",
+        "shared/public-method/src_drw_objects.h_DRW_BreakPointRef_c4ffb64d45916dfa9a358653a7afcbfc00aa57390e6ad76bfb29ed2ee9265b74",
+        "shared/public-method/src_drw_objects.h_DRW_CellStyleMap_0efe4b09be29aa73aad01d46c32b58fd273395e3c30d850cc869e5fa1f49ec80",
+        "shared/public-method/src_drw_objects.h_DRW_DetailViewStyle_41dad996d0d6cfc0c185c0f1e60c0e06f6d0cb2532c44615a51ef2d34338b734",
         "shared/public-method/src_drw_objects.h_DRW_DictionaryWithDefault_37c73de9d5c80f8f5594bed68275315e1185fb0e213dde14c156465da6d8d2ae",
         "shared/public-method/src_drw_objects.h_DRW_DictionaryWithDefault_3d5c4fc6f6e97bbb4a3509da71cd665e08dc0600f15e17e4e44b303a4fd8c95b",
         "shared/public-method/src_drw_objects.h_DRW_Dictionary_07765a47730f72f5b566ab3cd7854b65f35f4568a30bf7fd27687fa918266af6",
         "shared/public-method/src_drw_objects.h_DRW_Dictionary_39129c8a4a8272d91c975e11224b0831db485db46a41f9b7302f68f7ffe36c45",
-        "shared/public-method/src_drw_objects.h_DRW_MLineStyle_41e4f22d1d7d4fee9880961049da1aa9b3ccb31b04b4cf9131572abe27186d13",
-        "shared/public-method/src_drw_objects.h_DRW_SectionViewStyle_d66e30ea5b4b5692c4044575f4d0ddfff70bfc157fcf49012273774ea86b964e",
-        "shared/public-method/src_drw_objects.h_DRW_WritingContext_8d805e477f5ec15512f5deee908c4c0f928480c967b86592e7e0e61a2c9f0f32",
+        "shared/public-method/src_drw_objects.h_DRW_MLineStyle_ce9e2dc8de76f515cd4b39942cdde57e78639824a16d061ff0da16a9e6710ce9",
+        "shared/public-method/src_drw_objects.h_DRW_SectionViewStyle_618daac7d1df429a169d4d801f6e3e5532b703164530a42b1b63e5dd03a85c0c",
+        "shared/public-method/src_drw_objects.h_DRW_SortEntsTable_356cef7fc2d375479e62f0a301ed7b0d169658ad947d55e9c69c8b23da23daf2",
+        "shared/public-method/src_drw_objects.h_DRW_SortEntsTable_f6f2d54989e664abe78c6b6e07aaed7070a48d452a98f62ad6c18258281e4846",
+        "shared/public-method/src_drw_objects.h_DRW_WritingContext_6652830d74e7ff09c4eef92bc31aa7e0e3f61d06e2cfcfa073944414fac7a2ea",
         "shared/public-method/src_drw_objects.h_DRW_XRecord_2d47adabf22d9082460a9e207d84cb4607a3abdcde01566655a900cb58213358",
         "shared/public-method/src_drw_objects.h_DRW_XRecord_4279d011431dd0446368af2b9d4064706a6a73114f7ac5e8d1dde1abb4879d13",
         "shared/public-method/src_drw_objects.h_DRW_XRecord_ea8d2e1f60d11c7313a27b62c776afdf8a6d9c03526ef7c0ba6e0ce6830fe2d2",
@@ -6025,7 +6029,7 @@
   },
   "inputs": {
     "standalone": {
-      "contentTreeSha256": "26d370d4c62ea6e2f1bf0c567e67f9e7848f4032bfabbecbcb035841fb6dc8ef",
+      "contentTreeSha256": "64d7bcab2940f56bad798006c83341f0246640f467b6ad17af1e42eca60de041",
       "files": [
         {
           "mode": "100644",
@@ -6100,7 +6104,7 @@
         {
           "mode": "100644",
           "path": "src/drw_objects.h",
-          "sha256": "65c43a0f496b7e92977cc5179310844e9e28c443b79d6090b16a1304457fb333"
+          "sha256": "e0d21f43e4315ba23975b7a3c9bf8fd10b19871b1cf72b8eb3955fa5ad5fe099"
         },
         {
           "mode": "100644",
@@ -89850,7 +89854,7 @@
           "route-identity"
         ],
         "dependencies": [
-          "shared/public-inline-method/src_drw_objects.h_DRW_AcDbPlaceholder_435b845b696aeff3334bd8deb311ecb8374e8af4d427ba50a88c836d0545d056"
+          "shared/public-inline-method/src_drw_objects.h_DRW_AcDbPlaceholder_5cc550512523257353a61672ab41a4713f98bba27111c6c530c105ee78a87a15"
         ],
         "disposition": "compatibility-extension",
         "facade": "shared",
@@ -89862,7 +89866,7 @@
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-inline-method/src_drw_objects.h_DRW_AcDbPlaceholder_435b845b696aeff3334bd8deb311ecb8374e8af4d427ba50a88c836d0545d056"
+          "shared/public-inline-method/src_drw_objects.h_DRW_AcDbPlaceholder_5cc550512523257353a61672ab41a4713f98bba27111c6c530c105ee78a87a15"
         ],
         "targetRouteId": "shared/public-inline-method/src_drw_objects.h_DRW_AcDbPlaceholder_9680529b5f54cbdb70e3a6fc959ca97e9f2cf189453c96ccedf6bf6388adf55d",
         "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
@@ -89874,7 +89878,7 @@
           "route-identity"
         ],
         "dependencies": [
-          "shared/public-inline-method/src_drw_objects.h_DRW_AcShHistoryObject_4636b481d82027e95f103318ef9edd9b01997f6816f01c64bc2f5dd2072fff8b"
+          "shared/public-inline-method/src_drw_objects.h_DRW_AcShHistoryObject_d1715d9cfa6750d564b3cc0c0042a552442226d505ad34a1c5d4a3a80c332bd8"
         ],
         "disposition": "compatibility-extension",
         "facade": "shared",
@@ -89886,7 +89890,7 @@
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-inline-method/src_drw_objects.h_DRW_AcShHistoryObject_4636b481d82027e95f103318ef9edd9b01997f6816f01c64bc2f5dd2072fff8b"
+          "shared/public-inline-method/src_drw_objects.h_DRW_AcShHistoryObject_d1715d9cfa6750d564b3cc0c0042a552442226d505ad34a1c5d4a3a80c332bd8"
         ],
         "targetRouteId": "shared/public-inline-method/src_drw_objects.h_DRW_AcShHistoryObject_38b5845595397174294773660ae712c27eab4108c5c383dd89d1d820225305dc",
         "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
@@ -89938,7 +89942,7 @@
           "route-identity"
         ],
         "dependencies": [
-          "shared/public-inline-method/src_drw_objects.h_DRW_AssociativeObject_28d6d31bee467e7b9cabc488873e7b01905115ae2cda792b7976af9471631868"
+          "shared/public-inline-method/src_drw_objects.h_DRW_AssociativeObject_cfedc50fa0bc313bf3b4e886df62c3ffae9b578ce56ba96e4d2154cc6ca57c54"
         ],
         "disposition": "compatibility-extension",
         "facade": "shared",
@@ -89950,7 +89954,7 @@
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-inline-method/src_drw_objects.h_DRW_AssociativeObject_28d6d31bee467e7b9cabc488873e7b01905115ae2cda792b7976af9471631868"
+          "shared/public-inline-method/src_drw_objects.h_DRW_AssociativeObject_cfedc50fa0bc313bf3b4e886df62c3ffae9b578ce56ba96e4d2154cc6ca57c54"
         ],
         "targetRouteId": "shared/public-inline-method/src_drw_objects.h_DRW_AssociativeObject_f5bc5d44bfe100d52b094eeca0f8128a16e5a4b61087d831eaec6191e5116b94",
         "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
@@ -90062,7 +90066,7 @@
           "route-identity"
         ],
         "dependencies": [
-          "shared/public-inline-method/src_drw_objects.h_DRW_BreakData_7299a23f1ba4c35b5b553e40059ba74e99d9e316e2ae5e493e3d62ac2857835c"
+          "shared/public-inline-method/src_drw_objects.h_DRW_BreakData_f0f81f1fe74e1a9e9281ac7574cbc2f659d6bf445a2042423da9906533a939ed"
         ],
         "disposition": "compatibility-extension",
         "facade": "shared",
@@ -90074,7 +90078,7 @@
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-inline-method/src_drw_objects.h_DRW_BreakData_7299a23f1ba4c35b5b553e40059ba74e99d9e316e2ae5e493e3d62ac2857835c"
+          "shared/public-inline-method/src_drw_objects.h_DRW_BreakData_f0f81f1fe74e1a9e9281ac7574cbc2f659d6bf445a2042423da9906533a939ed"
         ],
         "targetRouteId": "shared/public-inline-method/src_drw_objects.h_DRW_BreakData_1791872fbeddde87d0f26600ad20d4ee49f18d0ae786735dc2143e9461aa44bc",
         "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
@@ -90086,7 +90090,7 @@
           "route-identity"
         ],
         "dependencies": [
-          "shared/public-inline-method/src_drw_objects.h_DRW_BreakPointRef_21927fc60dd7793122d54a85b752e6d45fdf3bc5dcb33946a2720430d26c419a"
+          "shared/public-inline-method/src_drw_objects.h_DRW_BreakPointRef_c4ffb64d45916dfa9a358653a7afcbfc00aa57390e6ad76bfb29ed2ee9265b74"
         ],
         "disposition": "compatibility-extension",
         "facade": "shared",
@@ -90098,7 +90102,7 @@
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-inline-method/src_drw_objects.h_DRW_BreakPointRef_21927fc60dd7793122d54a85b752e6d45fdf3bc5dcb33946a2720430d26c419a"
+          "shared/public-inline-method/src_drw_objects.h_DRW_BreakPointRef_c4ffb64d45916dfa9a358653a7afcbfc00aa57390e6ad76bfb29ed2ee9265b74"
         ],
         "targetRouteId": "shared/public-inline-method/src_drw_objects.h_DRW_BreakPointRef_02b325ce21ff676f56fcdb2b8f3baeba747f0a8e1da3faf8162a6cdbc6757431",
         "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
@@ -90150,7 +90154,7 @@
           "route-identity"
         ],
         "dependencies": [
-          "shared/public-inline-method/src_drw_objects.h_DRW_CellStyleMap_1d8381dfb725b7c196d04ce78fe9dff55204e997dd8c7ad670c85424dd5b9a80"
+          "shared/public-inline-method/src_drw_objects.h_DRW_CellStyleMap_0efe4b09be29aa73aad01d46c32b58fd273395e3c30d850cc869e5fa1f49ec80"
         ],
         "disposition": "compatibility-extension",
         "facade": "shared",
@@ -90162,7 +90166,7 @@
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-inline-method/src_drw_objects.h_DRW_CellStyleMap_1d8381dfb725b7c196d04ce78fe9dff55204e997dd8c7ad670c85424dd5b9a80"
+          "shared/public-inline-method/src_drw_objects.h_DRW_CellStyleMap_0efe4b09be29aa73aad01d46c32b58fd273395e3c30d850cc869e5fa1f49ec80"
         ],
         "targetRouteId": "shared/public-inline-method/src_drw_objects.h_DRW_CellStyleMap_8fc7e3386ed3d6e9d943676123a2e4d2994e82260d6341155e59c771f0026dd4",
         "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
@@ -90394,7 +90398,7 @@
           "route-identity"
         ],
         "dependencies": [
-          "shared/public-inline-method/src_drw_objects.h_DRW_DetailViewStyle_0c7b669f2a1c3bc6083eaec32c7880cd7a08d3b96fa0f63fde51b5b93154a4ef"
+          "shared/public-inline-method/src_drw_objects.h_DRW_DetailViewStyle_41dad996d0d6cfc0c185c0f1e60c0e06f6d0cb2532c44615a51ef2d34338b734"
         ],
         "disposition": "compatibility-extension",
         "facade": "shared",
@@ -90406,7 +90410,7 @@
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-inline-method/src_drw_objects.h_DRW_DetailViewStyle_0c7b669f2a1c3bc6083eaec32c7880cd7a08d3b96fa0f63fde51b5b93154a4ef"
+          "shared/public-inline-method/src_drw_objects.h_DRW_DetailViewStyle_41dad996d0d6cfc0c185c0f1e60c0e06f6d0cb2532c44615a51ef2d34338b734"
         ],
         "targetRouteId": "shared/public-inline-method/src_drw_objects.h_DRW_DetailViewStyle_f8ae80de21f3379190db8c0aeb70bc38855c4d476202aa20f8c6adc4c539e5cc",
         "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
@@ -91538,7 +91542,7 @@
           "route-identity"
         ],
         "dependencies": [
-          "shared/public-inline-method/src_drw_objects.h_DRW_MLineStyle_41e4f22d1d7d4fee9880961049da1aa9b3ccb31b04b4cf9131572abe27186d13"
+          "shared/public-inline-method/src_drw_objects.h_DRW_MLineStyle_ce9e2dc8de76f515cd4b39942cdde57e78639824a16d061ff0da16a9e6710ce9"
         ],
         "disposition": "compatibility-extension",
         "facade": "shared",
@@ -91550,7 +91554,7 @@
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-inline-method/src_drw_objects.h_DRW_MLineStyle_41e4f22d1d7d4fee9880961049da1aa9b3ccb31b04b4cf9131572abe27186d13"
+          "shared/public-inline-method/src_drw_objects.h_DRW_MLineStyle_ce9e2dc8de76f515cd4b39942cdde57e78639824a16d061ff0da16a9e6710ce9"
         ],
         "targetRouteId": "shared/public-inline-method/src_drw_objects.h_DRW_MLineStyle_51b5d8c21b62ca4ecde0b02830465947544c632493f4d54f9dbcc4d72a93a247",
         "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
@@ -92182,7 +92186,7 @@
           "route-identity"
         ],
         "dependencies": [
-          "shared/public-inline-method/src_drw_objects.h_DRW_SectionViewStyle_d66e30ea5b4b5692c4044575f4d0ddfff70bfc157fcf49012273774ea86b964e"
+          "shared/public-inline-method/src_drw_objects.h_DRW_SectionViewStyle_618daac7d1df429a169d4d801f6e3e5532b703164530a42b1b63e5dd03a85c0c"
         ],
         "disposition": "compatibility-extension",
         "facade": "shared",
@@ -92194,7 +92198,7 @@
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-inline-method/src_drw_objects.h_DRW_SectionViewStyle_d66e30ea5b4b5692c4044575f4d0ddfff70bfc157fcf49012273774ea86b964e"
+          "shared/public-inline-method/src_drw_objects.h_DRW_SectionViewStyle_618daac7d1df429a169d4d801f6e3e5532b703164530a42b1b63e5dd03a85c0c"
         ],
         "targetRouteId": "shared/public-inline-method/src_drw_objects.h_DRW_SectionViewStyle_c3601565139226d3ecbfd8d86da6f540e0cef07b821708ab6198766dc9968701",
         "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
@@ -93626,7 +93630,7 @@
           "route-identity"
         ],
         "dependencies": [
-          "shared/public-inline-method/src_drw_objects.h_DRW_WritingContext_8d805e477f5ec15512f5deee908c4c0f928480c967b86592e7e0e61a2c9f0f32"
+          "shared/public-inline-method/src_drw_objects.h_DRW_WritingContext_6652830d74e7ff09c4eef92bc31aa7e0e3f61d06e2cfcfa073944414fac7a2ea"
         ],
         "disposition": "compatibility-extension",
         "facade": "shared",
@@ -93638,7 +93642,7 @@
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-inline-method/src_drw_objects.h_DRW_WritingContext_8d805e477f5ec15512f5deee908c4c0f928480c967b86592e7e0e61a2c9f0f32"
+          "shared/public-inline-method/src_drw_objects.h_DRW_WritingContext_6652830d74e7ff09c4eef92bc31aa7e0e3f61d06e2cfcfa073944414fac7a2ea"
         ],
         "targetRouteId": "shared/public-inline-method/src_drw_objects.h_DRW_WritingContext_50786d306badfa8d4b0522a72f1d266640ea8f6c83c6bdfb96bb011004d80f8e",
         "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
@@ -102998,7 +103002,7 @@
           "route-identity"
         ],
         "dependencies": [
-          "shared/public-method/src_drw_objects.h_DRW_AcDbPlaceholder_435b845b696aeff3334bd8deb311ecb8374e8af4d427ba50a88c836d0545d056"
+          "shared/public-method/src_drw_objects.h_DRW_AcDbPlaceholder_5cc550512523257353a61672ab41a4713f98bba27111c6c530c105ee78a87a15"
         ],
         "disposition": "compatibility-extension",
         "facade": "shared",
@@ -103010,7 +103014,7 @@
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-method/src_drw_objects.h_DRW_AcDbPlaceholder_435b845b696aeff3334bd8deb311ecb8374e8af4d427ba50a88c836d0545d056"
+          "shared/public-method/src_drw_objects.h_DRW_AcDbPlaceholder_5cc550512523257353a61672ab41a4713f98bba27111c6c530c105ee78a87a15"
         ],
         "targetRouteId": "shared/public-method/src_drw_objects.h_DRW_AcDbPlaceholder_9680529b5f54cbdb70e3a6fc959ca97e9f2cf189453c96ccedf6bf6388adf55d",
         "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
@@ -103042,7 +103046,7 @@
           "route-identity"
         ],
         "dependencies": [
-          "shared/public-method/src_drw_objects.h_DRW_AcShHistoryObject_4636b481d82027e95f103318ef9edd9b01997f6816f01c64bc2f5dd2072fff8b"
+          "shared/public-method/src_drw_objects.h_DRW_AcShHistoryObject_d1715d9cfa6750d564b3cc0c0042a552442226d505ad34a1c5d4a3a80c332bd8"
         ],
         "disposition": "compatibility-extension",
         "facade": "shared",
@@ -103054,7 +103058,7 @@
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-method/src_drw_objects.h_DRW_AcShHistoryObject_4636b481d82027e95f103318ef9edd9b01997f6816f01c64bc2f5dd2072fff8b"
+          "shared/public-method/src_drw_objects.h_DRW_AcShHistoryObject_d1715d9cfa6750d564b3cc0c0042a552442226d505ad34a1c5d4a3a80c332bd8"
         ],
         "targetRouteId": "shared/public-method/src_drw_objects.h_DRW_AcShHistoryObject_38b5845595397174294773660ae712c27eab4108c5c383dd89d1d820225305dc",
         "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
@@ -103126,7 +103130,7 @@
           "route-identity"
         ],
         "dependencies": [
-          "shared/public-method/src_drw_objects.h_DRW_AssociativeObject_28d6d31bee467e7b9cabc488873e7b01905115ae2cda792b7976af9471631868"
+          "shared/public-method/src_drw_objects.h_DRW_AssociativeObject_cfedc50fa0bc313bf3b4e886df62c3ffae9b578ce56ba96e4d2154cc6ca57c54"
         ],
         "disposition": "compatibility-extension",
         "facade": "shared",
@@ -103138,7 +103142,7 @@
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-method/src_drw_objects.h_DRW_AssociativeObject_28d6d31bee467e7b9cabc488873e7b01905115ae2cda792b7976af9471631868"
+          "shared/public-method/src_drw_objects.h_DRW_AssociativeObject_cfedc50fa0bc313bf3b4e886df62c3ffae9b578ce56ba96e4d2154cc6ca57c54"
         ],
         "targetRouteId": "shared/public-method/src_drw_objects.h_DRW_AssociativeObject_f5bc5d44bfe100d52b094eeca0f8128a16e5a4b61087d831eaec6191e5116b94",
         "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
@@ -103250,7 +103254,7 @@
           "route-identity"
         ],
         "dependencies": [
-          "shared/public-method/src_drw_objects.h_DRW_BreakData_7299a23f1ba4c35b5b553e40059ba74e99d9e316e2ae5e493e3d62ac2857835c"
+          "shared/public-method/src_drw_objects.h_DRW_BreakData_f0f81f1fe74e1a9e9281ac7574cbc2f659d6bf445a2042423da9906533a939ed"
         ],
         "disposition": "compatibility-extension",
         "facade": "shared",
@@ -103262,7 +103266,7 @@
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-method/src_drw_objects.h_DRW_BreakData_7299a23f1ba4c35b5b553e40059ba74e99d9e316e2ae5e493e3d62ac2857835c"
+          "shared/public-method/src_drw_objects.h_DRW_BreakData_f0f81f1fe74e1a9e9281ac7574cbc2f659d6bf445a2042423da9906533a939ed"
         ],
         "targetRouteId": "shared/public-method/src_drw_objects.h_DRW_BreakData_1791872fbeddde87d0f26600ad20d4ee49f18d0ae786735dc2143e9461aa44bc",
         "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
@@ -103294,7 +103298,7 @@
           "route-identity"
         ],
         "dependencies": [
-          "shared/public-method/src_drw_objects.h_DRW_BreakPointRef_21927fc60dd7793122d54a85b752e6d45fdf3bc5dcb33946a2720430d26c419a"
+          "shared/public-method/src_drw_objects.h_DRW_BreakPointRef_c4ffb64d45916dfa9a358653a7afcbfc00aa57390e6ad76bfb29ed2ee9265b74"
         ],
         "disposition": "compatibility-extension",
         "facade": "shared",
@@ -103306,7 +103310,7 @@
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-method/src_drw_objects.h_DRW_BreakPointRef_21927fc60dd7793122d54a85b752e6d45fdf3bc5dcb33946a2720430d26c419a"
+          "shared/public-method/src_drw_objects.h_DRW_BreakPointRef_c4ffb64d45916dfa9a358653a7afcbfc00aa57390e6ad76bfb29ed2ee9265b74"
         ],
         "targetRouteId": "shared/public-method/src_drw_objects.h_DRW_BreakPointRef_02b325ce21ff676f56fcdb2b8f3baeba747f0a8e1da3faf8162a6cdbc6757431",
         "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
@@ -103358,7 +103362,7 @@
           "route-identity"
         ],
         "dependencies": [
-          "shared/public-method/src_drw_objects.h_DRW_CellStyleMap_1d8381dfb725b7c196d04ce78fe9dff55204e997dd8c7ad670c85424dd5b9a80"
+          "shared/public-method/src_drw_objects.h_DRW_CellStyleMap_0efe4b09be29aa73aad01d46c32b58fd273395e3c30d850cc869e5fa1f49ec80"
         ],
         "disposition": "compatibility-extension",
         "facade": "shared",
@@ -103370,7 +103374,7 @@
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-method/src_drw_objects.h_DRW_CellStyleMap_1d8381dfb725b7c196d04ce78fe9dff55204e997dd8c7ad670c85424dd5b9a80"
+          "shared/public-method/src_drw_objects.h_DRW_CellStyleMap_0efe4b09be29aa73aad01d46c32b58fd273395e3c30d850cc869e5fa1f49ec80"
         ],
         "targetRouteId": "shared/public-method/src_drw_objects.h_DRW_CellStyleMap_8fc7e3386ed3d6e9d943676123a2e4d2994e82260d6341155e59c771f0026dd4",
         "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
@@ -103642,7 +103646,7 @@
           "route-identity"
         ],
         "dependencies": [
-          "shared/public-method/src_drw_objects.h_DRW_DetailViewStyle_0c7b669f2a1c3bc6083eaec32c7880cd7a08d3b96fa0f63fde51b5b93154a4ef"
+          "shared/public-method/src_drw_objects.h_DRW_DetailViewStyle_41dad996d0d6cfc0c185c0f1e60c0e06f6d0cb2532c44615a51ef2d34338b734"
         ],
         "disposition": "compatibility-extension",
         "facade": "shared",
@@ -103654,7 +103658,7 @@
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-method/src_drw_objects.h_DRW_DetailViewStyle_0c7b669f2a1c3bc6083eaec32c7880cd7a08d3b96fa0f63fde51b5b93154a4ef"
+          "shared/public-method/src_drw_objects.h_DRW_DetailViewStyle_41dad996d0d6cfc0c185c0f1e60c0e06f6d0cb2532c44615a51ef2d34338b734"
         ],
         "targetRouteId": "shared/public-method/src_drw_objects.h_DRW_DetailViewStyle_f8ae80de21f3379190db8c0aeb70bc38855c4d476202aa20f8c6adc4c539e5cc",
         "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
@@ -105246,7 +105250,7 @@
           "route-identity"
         ],
         "dependencies": [
-          "shared/public-method/src_drw_objects.h_DRW_MLineStyle_41e4f22d1d7d4fee9880961049da1aa9b3ccb31b04b4cf9131572abe27186d13"
+          "shared/public-method/src_drw_objects.h_DRW_MLineStyle_ce9e2dc8de76f515cd4b39942cdde57e78639824a16d061ff0da16a9e6710ce9"
         ],
         "disposition": "compatibility-extension",
         "facade": "shared",
@@ -105258,7 +105262,7 @@
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-method/src_drw_objects.h_DRW_MLineStyle_41e4f22d1d7d4fee9880961049da1aa9b3ccb31b04b4cf9131572abe27186d13"
+          "shared/public-method/src_drw_objects.h_DRW_MLineStyle_ce9e2dc8de76f515cd4b39942cdde57e78639824a16d061ff0da16a9e6710ce9"
         ],
         "targetRouteId": "shared/public-method/src_drw_objects.h_DRW_MLineStyle_51b5d8c21b62ca4ecde0b02830465947544c632493f4d54f9dbcc4d72a93a247",
         "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
@@ -106130,7 +106134,7 @@
           "route-identity"
         ],
         "dependencies": [
-          "shared/public-method/src_drw_objects.h_DRW_SectionViewStyle_d66e30ea5b4b5692c4044575f4d0ddfff70bfc157fcf49012273774ea86b964e"
+          "shared/public-method/src_drw_objects.h_DRW_SectionViewStyle_618daac7d1df429a169d4d801f6e3e5532b703164530a42b1b63e5dd03a85c0c"
         ],
         "disposition": "compatibility-extension",
         "facade": "shared",
@@ -106142,7 +106146,7 @@
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-method/src_drw_objects.h_DRW_SectionViewStyle_d66e30ea5b4b5692c4044575f4d0ddfff70bfc157fcf49012273774ea86b964e"
+          "shared/public-method/src_drw_objects.h_DRW_SectionViewStyle_618daac7d1df429a169d4d801f6e3e5532b703164530a42b1b63e5dd03a85c0c"
         ],
         "targetRouteId": "shared/public-method/src_drw_objects.h_DRW_SectionViewStyle_c3601565139226d3ecbfd8d86da6f540e0cef07b821708ab6198766dc9968701",
         "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
@@ -107814,7 +107818,7 @@
           "route-identity"
         ],
         "dependencies": [
-          "shared/public-method/src_drw_objects.h_DRW_WritingContext_8d805e477f5ec15512f5deee908c4c0f928480c967b86592e7e0e61a2c9f0f32"
+          "shared/public-method/src_drw_objects.h_DRW_WritingContext_6652830d74e7ff09c4eef92bc31aa7e0e3f61d06e2cfcfa073944414fac7a2ea"
         ],
         "disposition": "compatibility-extension",
         "facade": "shared",
@@ -107826,7 +107830,7 @@
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-method/src_drw_objects.h_DRW_WritingContext_8d805e477f5ec15512f5deee908c4c0f928480c967b86592e7e0e61a2c9f0f32"
+          "shared/public-method/src_drw_objects.h_DRW_WritingContext_6652830d74e7ff09c4eef92bc31aa7e0e3f61d06e2cfcfa073944414fac7a2ea"
         ],
         "targetRouteId": "shared/public-method/src_drw_objects.h_DRW_WritingContext_50786d306badfa8d4b0522a72f1d266640ea8f6c83c6bdfb96bb011004d80f8e",
         "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
@@ -123425,6 +123429,8 @@
       "shared/public-inline-method/src_drw_objects.h_DRW_DictionaryWithDefault_3d5c4fc6f6e97bbb4a3509da71cd665e08dc0600f15e17e4e44b303a4fd8c95b",
       "shared/public-inline-method/src_drw_objects.h_DRW_Dictionary_07765a47730f72f5b566ab3cd7854b65f35f4568a30bf7fd27687fa918266af6",
       "shared/public-inline-method/src_drw_objects.h_DRW_Dictionary_39129c8a4a8272d91c975e11224b0831db485db46a41f9b7302f68f7ffe36c45",
+      "shared/public-inline-method/src_drw_objects.h_DRW_SortEntsTable_356cef7fc2d375479e62f0a301ed7b0d169658ad947d55e9c69c8b23da23daf2",
+      "shared/public-inline-method/src_drw_objects.h_DRW_SortEntsTable_f6f2d54989e664abe78c6b6e07aaed7070a48d452a98f62ad6c18258281e4846",
       "shared/public-inline-method/src_drw_objects.h_DRW_XRecord_4279d011431dd0446368af2b9d4064706a6a73114f7ac5e8d1dde1abb4879d13",
       "shared/public-inline-method/src_drw_objects.h_DRW_XRecord_ea8d2e1f60d11c7313a27b62c776afdf8a6d9c03526ef7c0ba6e0ce6830fe2d2",
       "shared/public-method/src_drw_base.h_DRW_OperationDiagnostic_dec0631ead756075020c274434191cb34a8d6d7ad212c42058489b77cb2cb459",
@@ -123499,6 +123505,8 @@
       "shared/public-method/src_drw_objects.h_DRW_DictionaryWithDefault_3d5c4fc6f6e97bbb4a3509da71cd665e08dc0600f15e17e4e44b303a4fd8c95b",
       "shared/public-method/src_drw_objects.h_DRW_Dictionary_07765a47730f72f5b566ab3cd7854b65f35f4568a30bf7fd27687fa918266af6",
       "shared/public-method/src_drw_objects.h_DRW_Dictionary_39129c8a4a8272d91c975e11224b0831db485db46a41f9b7302f68f7ffe36c45",
+      "shared/public-method/src_drw_objects.h_DRW_SortEntsTable_356cef7fc2d375479e62f0a301ed7b0d169658ad947d55e9c69c8b23da23daf2",
+      "shared/public-method/src_drw_objects.h_DRW_SortEntsTable_f6f2d54989e664abe78c6b6e07aaed7070a48d452a98f62ad6c18258281e4846",
       "shared/public-method/src_drw_objects.h_DRW_XRecord_4279d011431dd0446368af2b9d4064706a6a73114f7ac5e8d1dde1abb4879d13",
       "shared/public-method/src_drw_objects.h_DRW_XRecord_ea8d2e1f60d11c7313a27b62c776afdf8a6d9c03526ef7c0ba6e0ce6830fe2d2",
       "shared/public-type/src_drw_base.h_definition_DRW_OperationDiagnostic",
@@ -123509,7 +123517,7 @@
     "summary": {
       "deltaOneToOne": 827,
       "exactOneToOne": 4805,
-      "standaloneOnly": 219,
+      "standaloneOnly": 223,
       "targetOnly": 0,
       "targetRows": 5669
     }
@@ -123544,7 +123552,7 @@
         "src/libdxfrw.h"
       ],
       "allowlistPath": "metadata/adaptation-allowlist.json",
-      "allowlistSha256": "daf50ff986e28b231825552cd48acf0e11a6b3949cf998a2d9e9b546d0b44436",
+      "allowlistSha256": "5ecf2b05009e222103e4f6faa6d9e03cd33e951290bd5e3ad5f64f5d680c8ce0",
       "schema": 1,
       "targetCommit": "0ffb38d790db53116978e01fcaf94cee9bc6ee48",
       "targetRepository": "git@github.com-librecad:LibreCAD/LibreCAD.git"
@@ -123553,7 +123561,7 @@
       "algorithm": "sha256-canonical-json-v1",
       "bodyEvidenceExcluded": true,
       "inventoryDigests": {
-        "standalone": "c60d28f0e12c2e7d09832a23ae6db921dc589f07168b9afd93ae2f581d545c7f",
+        "standalone": "0045ef981892db5a25abd190d63853b7021e542e99031bee84f1b1e680d9992c",
         "target": "5c0ad5e9221c95df0c2c056148b88273e9d06a7f3e3fe1c50cc202b51a1f9f78"
       },
       "stableFields": [
@@ -123569,7 +123577,7 @@
     "standalone": {
       "baselineCommit": "92d7466ed9146badcd4fb44c82d1dd8302b3c7db",
       "baselineRef": "origin/master",
-      "contentTreeSha256": "26d370d4c62ea6e2f1bf0c567e67f9e7848f4032bfabbecbcb035841fb6dc8ef",
+      "contentTreeSha256": "64d7bcab2940f56bad798006c83341f0246640f467b6ad17af1e42eca60de041",
       "repository": "git@github.com-librecad:LibreCAD/libdxfrw.git"
     },
     "target": {
@@ -123619,8 +123627,8 @@
     {
       "facade": "shared",
       "path": "parity-source-routes-v1/standalone-shared.json",
-      "routeCount": 3008,
-      "sha256": "500530d1c23c9770db0b33d5f615df9109e9e75ab68d08ed73560a2b5aff4d5d",
+      "routeCount": 3012,
+      "sha256": "b1f4e1456b14102c7bc309e2842eccdc5a4c2752be8bb20855ea8a38be47e363",
       "side": "standalone"
     }
   ],
@@ -123653,14 +123661,14 @@
       },
       "shared": {
         "semanticMismatches": 4,
-        "standaloneOnly": 233,
+        "standaloneOnly": 237,
         "targetOnly": 74
       }
     },
     "mapping": {
       "deltaOneToOne": 827,
       "exactOneToOne": 4805,
-      "standaloneOnly": 219,
+      "standaloneOnly": 223,
       "targetOnly": 0,
       "targetRows": 5669
     },
@@ -123703,8 +123711,8 @@
         "public-enum": 66,
         "public-header": 10,
         "public-inline-function": 3,
-        "public-inline-method": 720,
-        "public-method": 1134,
+        "public-inline-method": 722,
+        "public-method": 1136,
         "public-model": 259,
         "public-type": 321,
         "publication-stage": 24,
@@ -123728,7 +123736,7 @@
         "writer-pipeline": 7,
         "writer-version": 14
       },
-      "routeCount": 5854
+      "routeCount": 5858
     },
     "target": {
       "categoryCounts": {

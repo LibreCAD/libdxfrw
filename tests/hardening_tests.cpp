@@ -158,6 +158,11 @@ public:
     using DRW_XRecord::parseCode;
 };
 
+class ExposedSortEntsTable : public DRW_SortEntsTable {
+public:
+    using DRW_SortEntsTable::parseCode;
+};
+
 template <typename Entity>
 bool parseDxfRecords(Entity& entity, const std::string& source) {
     std::stringstream records(source);
@@ -233,6 +238,8 @@ void testPublicOwnershipContracts(TestContext& t) {
                   "DRW_DictionaryWithDefault copy contract");
     static_assert(std::is_copy_constructible<DRW_XRecord>::value,
                   "DRW_XRecord copy contract");
+    static_assert(std::is_copy_constructible<DRW_SortEntsTable>::value,
+                  "DRW_SortEntsTable copy contract");
     static_assert(std::is_copy_constructible<DRW_Attrib>::value,
                   "DRW_Attrib copy contract");
     static_assert(std::is_copy_constructible<DRW_GeoPositionMarker>::value,
@@ -1012,6 +1019,45 @@ void testPublicOwnershipContracts(TestContext& t) {
     t.expect(assignedStale && assignedAfterStale == 1u
                  && assignedFresh && assignedXRecord.m_values.size() == 2u,
              "XRECORD assignment clears subclass-body parser state");
+
+    const std::string sortEntsBody =
+        "100\nAcDbSortentsTable\n330\nA1\n331\nB1\n5\nC1\n";
+    ExposedSortEntsTable partialSortEnts;
+    t.expect(parseDxfRecords(partialSortEnts, sortEntsBody)
+                 && partialSortEnts.m_entityHandles.size() == 1u
+                 && partialSortEnts.m_sortHandles.size() == 1u,
+             "SORTENTSTABLE parser state source setup");
+    ExposedSortEntsTable copiedSortEnts(partialSortEnts);
+    const bool copiedSortStale = parseDxfRecords(copiedSortEnts, "5\nC2\n");
+    const std::size_t copiedSortAfterStale =
+        copiedSortEnts.m_entityHandles.size();
+    copiedSortEnts.m_entityHandles.clear();
+    copiedSortEnts.m_sortHandles.clear();
+    copiedSortEnts.m_blockOwnerHandle = DRW::NoHandle;
+    const bool copiedSortFresh = parseDxfRecords(
+        copiedSortEnts,
+        "100\nAcDbSortentsTable\n330\nA2\n331\nB2\n5\nC2\n");
+    t.expect(copiedSortStale && copiedSortAfterStale == 1u
+                 && copiedSortFresh
+                 && copiedSortEnts.m_entityHandles.size() == 1u
+                 && copiedSortEnts.m_sortHandles.size() == 1u,
+             "SORTENTSTABLE copy clears body parser state");
+    ExposedSortEntsTable assignedSortEnts;
+    assignedSortEnts = partialSortEnts;
+    const bool assignedSortStale = parseDxfRecords(assignedSortEnts, "5\nC3\n");
+    const std::size_t assignedSortAfterStale =
+        assignedSortEnts.m_entityHandles.size();
+    assignedSortEnts.m_entityHandles.clear();
+    assignedSortEnts.m_sortHandles.clear();
+    assignedSortEnts.m_blockOwnerHandle = DRW::NoHandle;
+    const bool assignedSortFresh = parseDxfRecords(
+        assignedSortEnts,
+        "100\nAcDbSortentsTable\n330\nA3\n331\nB3\n5\nC3\n");
+    t.expect(assignedSortStale && assignedSortAfterStale == 1u
+                 && assignedSortFresh
+                 && assignedSortEnts.m_entityHandles.size() == 1u
+                 && assignedSortEnts.m_sortHandles.size() == 1u,
+             "SORTENTSTABLE assignment clears body parser state");
 
     DRW_Dimension sourceDimension;
     sourceDimension.extData.push_back(

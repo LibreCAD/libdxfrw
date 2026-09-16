@@ -3202,6 +3202,28 @@ public:
   static constexpr std::size_t kMaxEntries = 100000;
 
   DRW_SortEntsTable() { reset(); }
+  DRW_SortEntsTable(const DRW_SortEntsTable& o): DRW_TableEntry(o),
+      m_sortHandles(o.m_sortHandles),
+      m_blockOwnerHandle(o.m_blockOwnerHandle),
+      m_entityHandles(o.m_entityHandles), m_dxfInBody(false),
+      m_dxfHasBlockOwner(false), m_dxfPendingEntity(std::nullopt),
+      m_dwgEntriesComplete(o.m_dwgEntriesComplete) {
+    tType = o.tType;
+  }
+  DRW_SortEntsTable& operator=(const DRW_SortEntsTable& o) {
+    if (this != &o) {
+      DRW_TableEntry::operator=(o);
+      m_sortHandles = o.m_sortHandles;
+      m_blockOwnerHandle = o.m_blockOwnerHandle;
+      m_entityHandles = o.m_entityHandles;
+      m_dxfInBody = false;
+      m_dxfHasBlockOwner = false;
+      m_dxfPendingEntity.reset();
+      m_dwgEntriesComplete = o.m_dwgEntriesComplete;
+      tType = o.tType;
+    }
+    return *this;
+  }
   void reset() {
     tType = DRW::SORTENTSTABLE;
     m_sortHandles.clear();
