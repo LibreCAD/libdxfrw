@@ -1934,7 +1934,13 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint (2026-09-15): S293/J269 post-BLOCK compatibility full
+- Current checkpoint (2026-09-15): S294/J270 post-BLOCK sanitizer validation
+  is committed. The complete 28-entry ASan/UBSan CTest set passes in 7.70
+  seconds with macOS leak detection disabled, including DWG reader/writer
+  matrices, local round trips, hardening, fixtures, parity, and release gates.
+  No drawing bytes changed or were added; native Windows and long-fuzz
+  evidence remain separate external follow-ups.
+- Previous checkpoint (2026-09-15): S293/J269 post-BLOCK compatibility full
   validation is committed. Because S291 changed DWG BLOCK transaction
   semantics, the complete dependency-free CTest set was rerun once as an
   impact-map escalation: all 28 tests pass in 4.83 seconds, including the
@@ -3458,17 +3464,17 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 293 (`COMMITTED`); no slice is active.
+- Resolved slices: 294 (`COMMITTED`); no slice is active.
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 293 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 294 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
   0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 292 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 393 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 394 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  3 DEFERRED_EXTERNAL / 276 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S293 are committed; no local implementation slice is active.
+  3 DEFERRED_EXTERNAL / 277 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S294 are committed; no local implementation slice is active.
   Remaining work is evidence-gated runtime/oracle and release closure; keep
   the fast inner loop and do not promote support claims from self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -3816,6 +3822,7 @@ edit this block or commit the same slice concurrently.
 | S291 | J267: DWG block typed-body failure isolation | S290 | COMMITTED | bounded typed-body warning isolation; block transaction preservation; incomplete reachability receipt suppression; external AC1021 advisory conversion; focused tests and policy gates; no fixture admission | `dwg2dxf` converts the external AC1021 `blocks_and_tables` imperial and metric drawings successfully after quarantining custom type-506 typed-body failures; structural frame/identity failures remain hard; focused release, fixture, scope, sync, aggregate, and diff gates pass; no external or derived drawing bytes are committed | continue with target-debt review, independent oracle qualification, and release closure |
 | S292 | J268: baseline compatibility sweep | S291 | COMMITTED | bounded baseline-vs-upgraded external DWG sweep; zero baseline-success/current-failure regressions; advisory-only outcomes; no fixture admission | 28 available external DWGs were compared with a four-second per-input bound: zero baseline-success/current-failure regressions, five upgraded-branch improvements, and one `colorwh.dwg` timeout/non-success retained as advisory; all source and generated drawing files remain outside Git | continue with target-debt review, independent oracle qualification, and release closure |
 | S293 | J269: post-BLOCK compatibility full validation | S292 | COMMITTED | impact-map escalation after DWG BLOCK transaction change; complete dependency-free CTest; measured timing; no fixture changes | all 28 dependency-free CTest entries pass in 4.83 seconds after S291, including reader/writer matrices, local round trips, hardening, fixtures, parity, release-readiness, and implementation-speed checks; no drawing bytes are added | continue with target-debt review, independent oracle qualification, and release closure |
+| S294 | J270: post-BLOCK sanitizer validation | S293 | COMMITTED | impact-map sanitizer escalation after DWG BLOCK transaction change; complete ASan/UBSan CTest; documented macOS leak policy; no fixture changes | all 28 ASan/UBSan CTest entries pass in 7.70 seconds with leak detection disabled, including reader/writer matrices, local round trips, hardening, fixtures, parity, release-readiness, and implementation-speed checks; no drawing bytes are added | continue with target-debt review, independent oracle qualification, and release closure |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -4113,6 +4120,7 @@ edit this block or commit the same slice concurrently.
 | J267 | S291 | J266 | COMMITTED | EXPERIMENTAL | Isolate bounded DWG BLOCK typed-body failures | Quarantine a failed typed entity body as a record-level warning, preserve publication of the surrounding block and its valid entities, suppress incomplete reachability receipts, and retain hard failure for structural frame/identity corruption; validate with temporary external AC1021 block/table conversions without admitting drawing bytes |
 | J268 | S292 | J267 | COMMITTED | DEFERRED_EXTERNAL | Reconcile baseline and upgraded external DWG outcomes | Compare every available external DWG under a bounded timeout, record only status/version/hash summaries, distinguish improvements from regressions, and keep non-success/timeout outcomes advisory without promoting support or admitting drawing bytes |
 | J269 | S293 | J268 | COMMITTED | EXPERIMENTAL | Revalidate the full dependency-free suite after BLOCK transaction changes | Run the complete 28-entry CTest set once because the S291 impact map covers shared DWG transaction/publication code; retain timing and no-fixture evidence while keeping external/platform qualification separate |
+| J270 | S294 | J269 | COMMITTED | EXPERIMENTAL | Revalidate sanitizer safety after BLOCK transaction changes | Run the complete 28-entry ASan/UBSan CTest set once because S291 changes shared DWG transaction/publication code; retain the macOS leak-detection limitation and no-fixture evidence while keeping native-platform and long-fuzz qualification separate |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4517,6 +4525,7 @@ edit this block or commit the same slice concurrently.
 | J267.1 | J267 / S291 | WP5, WP6, WP8, WP10; DWG BLOCK transaction compatibility | J266 | COMMITTED | EXPERIMENTAL | isolate non-structural `parseDwg` failures within `walkJournalledBlockRecordEntities`, keep valid callbacks and block commit alive, omit failed frames from complete reachability receipts, and fail closed for frame/identity errors | `dwg2dxf` converts both temporary external AC1021 `blocks_and_tables` inputs; hardening, wave, writer, DXF/DWG fixture, release-readiness, support-matrix, plan, fixture, import-scope, pinned-sync, parity, speed, and diff gates pass; no external or derived drawing bytes are retained |
 | J268.1 | J268 / S292 | WP5, WP8, WP10; external baseline compatibility | J267 | COMMITTED | DEFERRED_EXTERNAL | run the 28-file baseline-vs-upgraded sweep with bounded per-input timeouts, compare only exit categories and version/status summaries, and retain all files and generated DXFs outside the repository | sweep reports zero baseline-success/current-failure regressions, five improvements, and one advisory current timeout where baseline also fails; no external or derived drawing bytes are retained |
 | J269.1 | J269 / S293 | WP8, WP10; post-BLOCK full validation checkpoint | J268 | COMMITTED | EXPERIMENTAL | rebuild and run all 28 dependency-free CTest entries once after the S291 shared DWG transaction change, preserving the fast-test-first cadence and no-fixture policy | all 28 CTest entries pass in 4.83 seconds; no drawing fixtures or derived payloads are added, and native Windows, longer fuzz, package, and external qualification remain separate follow-ups |
+| J270.1 | J270 / S294 | WP8, WP10; post-BLOCK sanitizer checkpoint | J269 | COMMITTED | EXPERIMENTAL | rebuild/run all 28 dependency-free CTest entries under ASan/UBSan after the S291 shared DWG transaction change with `detect_leaks=0`, preserving the no-fixture policy | all 28 sanitizer CTest entries pass in 7.70 seconds; macOS leak detection remains disabled and native Windows/long-fuzz/package/external qualification remain separate follow-ups |
 
 <!-- UPGRADE_PROGRESS_END -->
 
