@@ -739,6 +739,56 @@ next acquisition or local-generation action, run specification/helper/runtime-
 generated tests and any external advisory corpus, then continue with the next
 dependency-ready implementation slice.
 
+### External-only advisory evidence deep review (2026-09-16)
+
+Six evidence-only items remain intentionally `DEFERRED_EXTERNAL`: `J256`,
+`J260`, `J268`, `J284`, `J293`, and `J295`.  The reports are useful for
+triage, regression discovery, and deciding what evidence to acquire next, but
+none can change a support-matrix row to `QUALIFIED_FORMAT_PARITY`, `PROMOTED`,
+or an advertised status.  This is a claim boundary, not an implementation
+failure; the six rows are committed and do not block dependency-ready code
+work.
+
+| Item | Inputs and observed result | Deep-review finding | Disposition and exact unblock condition |
+| --- | --- | --- | --- |
+| J256 / S280 | Twenty developer-local `/Users/dli/doc/dwg` inputs: 10 converted, 9 failed, 1 timed out. | The corpus is private/untracked and the result keeps only hashes/statuses.  A bounded conversion exit does not establish typed semantics, callback publication, graph closure, preservation, or target equivalence. | Keep `DEFERRED_EXTERNAL`.  Promote only after an eligible locked blob or clean-room local case is admitted, target and standalone are run with identical options, normalized semantics/carriers/graphs/errors are compared, and an independent reader/auditor covers the claimed fields. |
+| J260 / S284 | All 29 available external inputs: 18 converted, 10 failed, 1 timed out; all 9 AC1024 inputs converted. | The AC1024 non-reproduction is useful diagnosis, not proof that the historical class-parser anomaly is fixed for the format.  External paths and generated outputs remain outside Git. | Keep `DEFERRED_EXTERNAL`.  Re-run only on the advisory cadence; require an admitted or local-from-scratch positive plus target differential and independent semantic/preservation evidence before any claim change. |
+| J268 / S292 | Twenty-eight-input baseline-vs-upgraded sweep: zero baseline-success/current-failure regressions, five improvements, and one bounded timeout where both sides were non-success. | The sweep compares coarse outcomes only.  It cannot distinguish a semantic loss from a conversion success, and it cannot make an external corpus eligible. | Keep `DEFERRED_EXTERNAL`.  Unblock with an eligible same-input differential that compares records, callbacks, carriers, ownership, and first-failure stage, followed by the required independent reader/auditor review. |
+| J284 / S308 | LibreDWG 0.14 `dwg2dxf` over 21 top-level DWGs from LibreCAD commit `3c028612dd8e75d98692ac346635c190500eea94`: 21/21 conversions under a 10-second bound; hashes/statuses only. | The source blobs are traceable to a LibreCAD Git commit and are candidates for locked-repository provenance, but this item is still an external-only **independent-tool** report.  LibreDWG documents skipped advanced R2010+ objects and known R2010–R2018 writer CRC limitations; a conversion success is therefore not a complete semantic oracle.  The later LibreCAD history also removed external/unresolved corpus files from PR testdata. | Keep `DEFERRED_EXTERNAL`; do not reinterpret repository provenance as qualification.  Unblock only after the exact input blobs have an admission record (or a local clean-room substitute), the target/standalone differential covers semantics/callbacks/raw carriers/graphs/errors, and an independent reader/auditor with a complete field contract confirms the promoted rows. |
+| J293 / S317 | Current converter over 29 external inputs: 20 converted, 8 failed, 1 timed out; all 9 AC1024 inputs converted. | This is a repeatability/status refresh.  It supplies no eligible positive fixture and no field-level or target-vs-standalone semantic proof; AC1024 success remains advisory. | Keep `DEFERRED_EXTERNAL`.  The next run may refresh hashes/statuses, but promotion requires the same admission, normalized differential, independent-oracle, and preservation gates as J260. |
+| J295 / S319 | LibreDWG 0.14 `dwgread -O minJSON` over 9 external AC1024 inputs: 9/9 converted, source/output hashes only. | `minJSON` and exit status establish reader availability and non-reproduction only; they do not prove complete AC1024 object fields, callbacks, ownership, preservation, or error-stage parity. | Keep `DEFERRED_EXTERNAL`.  Require an admitted/local AC1024 positive, a full semantic contract (not `minJSON` alone), target-vs-standalone comparison, and an independent reader/auditor before changing any support row. |
+
+The provenance and tool audit supports four additional rules:
+
+1. The LibreCAD testdata directory and commit history are evidence sources,
+   not automatic support grants.  Commits `886a407d4`, `9058f2999`, and
+   `2db274d59` deliberately remove external or unresolved DWG fixtures from PR
+   testdata, while `904856fa5` adds explicitly curated/local pre-R13 coverage.
+   The exact source commit, path, blob, hash, size, and license must still be
+   recorded before a blob is admitted.
+2. LibreDWG is a valuable independent cross-check, but its own README says
+   advanced R2010+ objects may be skipped and that R2010--R2018 writing still
+   has CRC errors.  Its test workflow filters generated DXF before comparing
+   only when a reference exists, and its maintainers describe some real-DWG
+   value checks as non-strict.  Those facts make it evidence, not a sole
+   promotion oracle.
+3. Hash-only reports, conversion counts, non-reproduction, and timeout
+   classifications are non-reconstructive metadata.  They must never be
+   converted into fixture bytes, a generated derivative, or a support claim.
+4. A future promotion review must attach all four gates: eligibility and
+   provenance, target-vs-standalone normalized behavior, independent
+   reader/auditor coverage, and preservation/unsupported-content review.  If
+   any gate is unavailable, finish safe implementation work, leave the row
+   `DEFERRED_EXTERNAL` or `EXPERIMENTAL`, record the exact unblock condition,
+   and continue the next ready lane.
+
+Authoritative references for this disposition are the [LibreCAD testdata
+directory](https://github.com/LibreCAD/LibreCAD/tree/master/librecad/src/lib/filters/tests/testdata),
+[LibreCAD README](https://github.com/LibreCAD/LibreCAD/blob/master/README.md),
+[LibreDWG README](https://github.com/LibreDWG/libredwg), its
+[DXF comparison workflow](https://github.com/LibreDWG/libredwg/blob/master/test-dxf.sh),
+and the maintainers' [real-DWG testing discussion](https://github.com/LibreDWG/libredwg/discussions/1081).
+
 ### Target-freeze and refresh policy
 
 Freeze at the last responsible moment, then stop chasing `master` during
@@ -2239,6 +2289,14 @@ edit this block or commit the same slice concurrently.
   checks, hardening, and release-readiness.  No drawing bytes or derived
   fixtures changed; external-oracle, native-platform, and support-promotion
   evidence remain open.
+
+- Current checkpoint (2026-09-16): S380/J356 deep-reviews the six remaining
+  external-only evidence items (`J256`, `J260`, `J268`, `J284`, `J293`, and
+  `J295`).  The report counts, provenance, LibreCAD fixture-history cleanup,
+  and LibreDWG reader/test limitations are reconciled in the external-advisory
+  disposition matrix above.  All six remain `DEFERRED_EXTERNAL`; no support
+  row is promoted, no drawing bytes or generated derivatives are admitted, and
+  the evidence-only rows do not block the next implementation lane.
 
 - Current checkpoint (2026-09-16): S329/J305 compound-entity graph ownership
   is committed.  Explicit copies now clone legacy POLYLINE vertices, SPLINE
@@ -3943,20 +4001,20 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 379 (`COMMITTED`).
+- Resolved slices: 380 (`COMMITTED`).
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 379 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 380 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 381 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 382 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 VERIFIED / 0 SUPERSEDED / 482 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 VERIFIED / 0 SUPERSEDED / 483 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  6 DEFERRED_EXTERNAL / 369 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S379 and J329/J329.1/J330/J330.1/J331/J331.1/J332/J332.1/
+  6 DEFERRED_EXTERNAL / 370 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S380 and J329/J329.1/J330/J330.1/J331/J331.1/J332/J332.1/
   J333/J333.1/J334/J334.1/J335/J335.1/J336/J336.1/J337/J337.1/J338/J338.1/
   J339/J339.1/J340/J340.1/J341/J341.1/J342/J342.1/J343/J343.1/J344/J344.1/
-  J345/J345.1/J346/J346.1/J347/J347.1/J348/J348.1/J349/J349.1/J350/J350.1/J351/J351.1/J352/J352.1/J353/J353.1/J354/J354.1/J355/J355.1 are committed; no other local implementation
+  J345/J345.1/J346/J346.1/J347/J347.1/J348/J348.1/J349/J349.1/J350/J350.1/J351/J351.1/J352/J352.1/J353/J353.1/J354/J354.1/J355/J355.1/J356/J356.1 are committed; no other local implementation
   slice is active.
   Keep the fast inner loop and do not promote support claims from
   self-read alone.
@@ -4391,6 +4449,7 @@ edit this block or commit the same slice concurrently.
 | S377 | J353: LibreCAD master proxy-graphics/ACIS refresh | S376 | COMMITTED | LibreCAD target refresh to commit `512d8bd86612f17158d4d222fcdc8a7c2b052c57`; modeler/surface proxy-routing fix; in-memory DXF vectors; lock/manifest/oracle/route refresh; focused hardening; fixture; import-scope; sync; aggregate; support; release-readiness; speed; diff | target source delta is ported; 3DSOLID/REGION/BODY and 92/160 proxy-count vectors keep proxy bytes out of ACIS/modeler payloads; all fast metadata/policy gates pass; no drawing bytes or derived fixtures | commit the verified target-refresh slice with matching trailers, report progress, and continue with native-platform, long-fuzz, external-oracle, and format-support promotion closure |
 | S378 | J354: public DXF proxy-graphics/ACIS façade regression | S377 | COMMITTED | public `dxfRW::readAscii` callback publication; 3DSOLID/REGION/BODY/PLANESURFACE coverage; group-92/group-160 counts; focused hardening; plan; fixture; diff | public façade vectors pass and confirm proxy/ACIS carrier separation and callback publication for all target entity variants; no drawing bytes or derived fixtures | S379 |
 | S379 | J355: post-proxy full validation checkpoint | S378 | COMMITTED | rebuild; complete dependency-free CTest; plan; fixture; import-scope; sync; route; aggregate; support; release-readiness; speed; diff | rebuild plus all 31 dependency-free CTest entries pass in 7.64s after S378; no drawing bytes or derived fixtures changed; external-oracle, native-platform, and support-promotion evidence remain open | next independent qualification or release lane |
+| S380 | J356: deep review of external-only advisory evidence | S379 | COMMITTED | report/provenance audit; LibreCAD fixture-history audit; LibreDWG limitation review; plan; fixture; import-scope; sync; route; aggregate; support; release-readiness; speed; diff | six external-only items remain explicitly `DEFERRED_EXTERNAL`; J284's repository provenance is separated from independent-reader qualification; no support row or drawing bytes change | next independent qualification or release lane |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -4774,6 +4833,7 @@ edit this block or commit the same slice concurrently.
 | J353 | S377 | J352 | COMMITTED | EXPERIMENTAL | Refresh LibreCAD master proxy-graphics/ACIS behavior | Port the target `DRW_ModelerGeometry::parseCode` and `DRW_Surface::parseCode` routing fix from LibreCAD master `512d8bd86612f17158d4d222fcdc8a7c2b052c57`; refresh immutable target metadata and add only in-memory parser vectors for modeler/surface entities; no drawing bytes |
 | J354 | S378 | J353 | COMMITTED | EXPERIMENTAL | Exercise public DXF proxy-graphics/ACIS façade publication | Extend the dependency-free hardening sink to call `dxfRW::readAscii` and assert proxy/ACIS separation for 3DSOLID, REGION, BODY, and PLANESURFACE with both count encodings; keep all records in memory and add no fixtures |
 | J355 | S379 | J354 | COMMITTED | EXPERIMENTAL | Run the post-proxy full validation checkpoint | Rebuild the current tree and run all 31 dependency-free CTest entries after S378; retain the reduced validation cadence, no-fixture policy, and explicit external-oracle/native-platform/support-promotion boundaries |
+| J356 | S380 | J355 | COMMITTED | EXPERIMENTAL | Deep-review external-only advisory evidence boundaries | Reconcile the six deferred items against their hash/status reports, LibreCAD repository provenance and fixture-removal history, and LibreDWG's documented reader/test limitations; preserve exact unblock criteria and prohibit support promotion or drawing-byte admission |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -5263,6 +5323,7 @@ edit this block or commit the same slice concurrently.
 | J353.1 | J353 / S377 | WP3.11-WP3.12, WP8, WP10; LibreCAD master proxy-graphics/ACIS refresh | J352 | COMMITTED | EXPERIMENTAL | assert announced proxy graphics (group 92 or 160 plus group 310) remain in `DRW_Entity::proxyGraphics` while subsequent modeler/surface group-310 bytes populate only the ACIS carrier; cover 3DSOLID, REGION, BODY, and surface fields with in-memory records | focused `libdxfrw_hardening_tests`, target lock/manifest, import-scope, sync, route, aggregate, support, release-readiness, speed, and diff gates pass; no drawing bytes or derived fixtures |
 | J354.1 | J354 / S378 | WP3.11-WP3.12, WP8, WP10; public DXF proxy-graphics/ACIS façade regression | J353 | COMMITTED | EXPERIMENTAL | assert public `dxfRW::readAscii` publishes exactly one modeler/surface callback and keeps proxy bytes `AA BB` separate from ACIS bytes `ACIS` for both proxy-count encodings and all modeler entity names; keep all records in memory | focused `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures |
 | J355.1 | J355 / S379 | WP8, WP10; post-proxy full validation checkpoint | J354 | COMMITTED | EXPERIMENTAL | run a fresh normal build and all 31 dependency-free CTest entries after the target proxy-graphics refresh and public façade regression, preserving the no-fixture policy and reduced validation cadence | rebuild plus 31/31 CTest entries pass in 7.64s; no drawing bytes or derived fixtures changed; external-oracle, native-platform, and support-promotion evidence remain open |
+| J356.1 | J356 / S380 | WP5, WP8, WP10; external-only advisory evidence disposition | J355 | COMMITTED | EXPERIMENTAL | audit the six deferred reports, exact source/provenance metadata, LibreCAD fixture-removal history, and LibreDWG reader/test caveats; record per-item promotion gates and keep all external files and generated derivatives outside Git | plan, fixture-admission, import-scope, sync, route, aggregate, support, release-readiness, speed, and diff checks pass; all six items remain `DEFERRED_EXTERNAL`, no support row is promoted, and no drawing bytes are staged |
 | J313.1 | J313 / S337 | WP3.11-WP3.12, WP8, WP10; TABLE parser-state copy isolation | J312 | COMMITTED | EXPERIMENTAL | assert copied and assigned TABLE models accept fresh subclass/grid dimensions after a partial source parse while preserving public table content; keep all inputs in memory | focused `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures |
 
 <!-- UPGRADE_PROGRESS_END -->
