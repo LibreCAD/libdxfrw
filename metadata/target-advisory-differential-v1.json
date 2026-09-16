@@ -1,0 +1,432 @@
+{
+  "advisory": true,
+  "byteRelationCounts": {
+    "equal": 21
+  },
+  "fixturePolicy": "lockedRepositoryBlob; hashes-and-summaries-only; never committed drawing bytes",
+  "inputCount": 21,
+  "kind": "libdxfrw-target-advisory-differential",
+  "relationCounts": {
+    "equal": 21
+  },
+  "rows": [
+    {
+      "byteRelation": "equal",
+      "inputVersion": "AC1003",
+      "path": "pre_r10_r26_entities.dwg",
+      "relation": "equal",
+      "semanticRelation": "equal",
+      "sourceSha256": "0d3d92555e077b4f42a96bc53381afae745006a07e54316644ee342f431dc0c5",
+      "sourceSize": 3347,
+      "standalone": {
+        "outputSha256": "d059e229ccac9cfbf44141c022982eaf486f974898b5401e331247f4b12a041c",
+        "outputSize": 7608,
+        "summarySha256": "a6f6e658b79d7c93c2868bf9da4f082354dd9a896dd65d278993587f99347122"
+      },
+      "target": {
+        "outputSha256": "d059e229ccac9cfbf44141c022982eaf486f974898b5401e331247f4b12a041c",
+        "outputSize": 7608,
+        "summarySha256": "a6f6e658b79d7c93c2868bf9da4f082354dd9a896dd65d278993587f99347122"
+      }
+    },
+    {
+      "byteRelation": "equal",
+      "inputVersion": "AC1004",
+      "path": "pre_r10_r9_entities.dwg",
+      "relation": "equal",
+      "semanticRelation": "equal",
+      "sourceSha256": "a12f8a08862bb53fb8a62304a19091f602937679e8ed8ab9f1face199f8897b3",
+      "sourceSize": 3476,
+      "standalone": {
+        "outputSha256": "8a8692e4c2baaab8d30783ff9d1d4a5590142c19d74edb236f561672a7569b20",
+        "outputSize": 7794,
+        "summarySha256": "9314936b4c0ea1d73068074df71b67c4d4ab63343ac0785c0e56d540f6b4ea63"
+      },
+      "target": {
+        "outputSha256": "8a8692e4c2baaab8d30783ff9d1d4a5590142c19d74edb236f561672a7569b20",
+        "outputSize": 7794,
+        "summarySha256": "9314936b4c0ea1d73068074df71b67c4d4ab63343ac0785c0e56d540f6b4ea63"
+      }
+    },
+    {
+      "byteRelation": "equal",
+      "inputVersion": "AC1006",
+      "path": "pre_r13_r10_entities.dwg",
+      "relation": "equal",
+      "semanticRelation": "equal",
+      "sourceSha256": "a821c7b29a7be02a9db6db223398360b59173316d8a07c14f01e9f4f1766bb55",
+      "sourceSize": 4305,
+      "standalone": {
+        "outputSha256": "430af4d723d559284d300e2aeae6b8534af1bedb5d98f0baee3f6f42858c561f",
+        "outputSize": 7794,
+        "summarySha256": "ae49b2b5eed9bb4452ab610fab430b1aea793679198a9d25a8839e9e11ce6773"
+      },
+      "target": {
+        "outputSha256": "430af4d723d559284d300e2aeae6b8534af1bedb5d98f0baee3f6f42858c561f",
+        "outputSize": 7794,
+        "summarySha256": "ae49b2b5eed9bb4452ab610fab430b1aea793679198a9d25a8839e9e11ce6773"
+      }
+    },
+    {
+      "byteRelation": "equal",
+      "inputVersion": "AC1009",
+      "path": "pre_r13_r11_tables.dwg",
+      "relation": "equal",
+      "semanticRelation": "equal",
+      "sourceSha256": "cc5808621cfdc597f6e726a4f3591402b92ea627e581ce4380344c5dd02392f1",
+      "sourceSize": 93538,
+      "standalone": {
+        "outputSha256": "b700669733ad9fb0bdf11d83d833bea2bbccd4800f5e4c7b6e2805e365671475",
+        "outputSize": 513753,
+        "summarySha256": "d4f8b5947e32c0a7d5baf1f6b5bfc0e784ebc832464918d91f530ef38a23956e"
+      },
+      "target": {
+        "outputSha256": "b700669733ad9fb0bdf11d83d833bea2bbccd4800f5e4c7b6e2805e365671475",
+        "outputSize": 513753,
+        "summarySha256": "d4f8b5947e32c0a7d5baf1f6b5bfc0e784ebc832464918d91f530ef38a23956e"
+      }
+    },
+    {
+      "byteRelation": "equal",
+      "inputVersion": "AC1015",
+      "path": "ocd_leader_r2000.dwg",
+      "relation": "equal",
+      "semanticRelation": "equal",
+      "sourceSha256": "947e28fb312349efffe04dbfe8754892fceba872e41536d1fdcdf0a77a62c6e4",
+      "sourceSize": 202493,
+      "standalone": {
+        "outputSha256": "9580eb2d08dace8b7bdefa842fa612601f979e5afbb9b2471c3dc83dd147e3be",
+        "outputSize": 33011,
+        "summarySha256": "8e2c6568e4d26008f9ccb406e897c805f0491cc78ccea21ef459b6c809b46fd5"
+      },
+      "target": {
+        "outputSha256": "9580eb2d08dace8b7bdefa842fa612601f979e5afbb9b2471c3dc83dd147e3be",
+        "outputSize": 33011,
+        "summarySha256": "8e2c6568e4d26008f9ccb406e897c805f0491cc78ccea21ef459b6c809b46fd5"
+      }
+    },
+    {
+      "byteRelation": "equal",
+      "inputVersion": "AC1018",
+      "path": "assoc_surface_r2004.dwg",
+      "relation": "equal",
+      "semanticRelation": "equal",
+      "sourceSha256": "7ba7ea2e6e89a01094d4ffe104dd1cfc03513d1991bd223aeac1a3186a6c38d3",
+      "sourceSize": 162991,
+      "standalone": {
+        "outputSha256": "f1d91cad22bd08ca01b1bf3068bf218311b93bfb3bb3b91c8687248f6326402c",
+        "outputSize": 39188,
+        "summarySha256": "745e0894a5d3e088e2c66e6f4a956b82bf28a150611fe34b42ee422d3a81de37"
+      },
+      "target": {
+        "outputSha256": "f1d91cad22bd08ca01b1bf3068bf218311b93bfb3bb3b91c8687248f6326402c",
+        "outputSize": 39188,
+        "summarySha256": "745e0894a5d3e088e2c66e6f4a956b82bf28a150611fe34b42ee422d3a81de37"
+      }
+    },
+    {
+      "byteRelation": "equal",
+      "inputVersion": "AC1018",
+      "path": "evalgraph_r2004.dwg",
+      "relation": "equal",
+      "semanticRelation": "equal",
+      "sourceSha256": "e72d5e86d5d36d64b08822fb25a46079f592fd895a6157b1b8d9b07775e06108",
+      "sourceSize": 187890,
+      "standalone": {
+        "outputSha256": "44403aee17c71c9b3616788dc6b6457406cad623f633713562b00b5caab66709",
+        "outputSize": 447947,
+        "summarySha256": "d2f7c32b5f1e48ae94f9d38b252e3c33e7fad4d36722ac7dc85432c6de80f9c6"
+      },
+      "target": {
+        "outputSha256": "44403aee17c71c9b3616788dc6b6457406cad623f633713562b00b5caab66709",
+        "outputSize": 447947,
+        "summarySha256": "d2f7c32b5f1e48ae94f9d38b252e3c33e7fad4d36722ac7dc85432c6de80f9c6"
+      }
+    },
+    {
+      "byteRelation": "equal",
+      "inputVersion": "AC1021",
+      "path": "acsh_r2007.dwg",
+      "relation": "equal",
+      "semanticRelation": "equal",
+      "sourceSha256": "0e3eccc70ea6b82120c77449bb1d1d27ee280a1ed1c0f2e88e31b1db503ca66f",
+      "sourceSize": 398400,
+      "standalone": {
+        "outputSha256": "d16ff9b305a2b3277e329a954390abe12688947e82194df8315696d690d58d2c",
+        "outputSize": 58852,
+        "summarySha256": "90559762be0fc0727fb47924f786c9212c86ac688e58988ab97bf7a50718caea"
+      },
+      "target": {
+        "outputSha256": "d16ff9b305a2b3277e329a954390abe12688947e82194df8315696d690d58d2c",
+        "outputSize": 58852,
+        "summarySha256": "90559762be0fc0727fb47924f786c9212c86ac688e58988ab97bf7a50718caea"
+      }
+    },
+    {
+      "byteRelation": "equal",
+      "inputVersion": "AC1021",
+      "path": "visualstyle_r2007.dwg",
+      "relation": "equal",
+      "semanticRelation": "equal",
+      "sourceSha256": "7fcf6c7db5698a5ab5bb5eb3ecb3bb53e12cefddc5006fb4e12dc8dee643b4f6",
+      "sourceSize": 74624,
+      "standalone": {
+        "outputSha256": "f88a98b3533bed52eae10769b6b5477e1eb2770f693d656369eedf1586b0dd07",
+        "outputSize": 24997,
+        "summarySha256": "9973b002158f7026aa6df0b2457e9f552e56e640282d37e7c1f1c491a9cb97bf"
+      },
+      "target": {
+        "outputSha256": "f88a98b3533bed52eae10769b6b5477e1eb2770f693d656369eedf1586b0dd07",
+        "outputSize": 24997,
+        "summarySha256": "9973b002158f7026aa6df0b2457e9f552e56e640282d37e7c1f1c491a9cb97bf"
+      }
+    },
+    {
+      "byteRelation": "equal",
+      "inputVersion": "AC1024",
+      "path": "datatable_r2010.dwg",
+      "relation": "equal",
+      "semanticRelation": "equal",
+      "sourceSha256": "4d3d81a0dd7b7a845368e3517ad745b763a9e338b0bae09e78e86c5bf2742e27",
+      "sourceSize": 65070,
+      "standalone": {
+        "outputSha256": "d4ad06f2d9c2476e5a1c1bc78d72fc38535d31a2a1bcb787f26d376d9d313b93",
+        "outputSize": 17855,
+        "summarySha256": "3eae75575bf620ce311425809e431df66b09033ba11fb66abf3e99042b47c3bb"
+      },
+      "target": {
+        "outputSha256": "d4ad06f2d9c2476e5a1c1bc78d72fc38535d31a2a1bcb787f26d376d9d313b93",
+        "outputSize": 17855,
+        "summarySha256": "3eae75575bf620ce311425809e431df66b09033ba11fb66abf3e99042b47c3bb"
+      }
+    },
+    {
+      "byteRelation": "equal",
+      "inputVersion": "AC1027",
+      "path": "visualstyle_r2013.dwg",
+      "relation": "equal",
+      "semanticRelation": "equal",
+      "sourceSha256": "947575519871fb7026ff8d4654d36200adffff6f5a90a45dcc347b17f7a0ee58",
+      "sourceSize": 31931,
+      "standalone": {
+        "outputSha256": "fa61afc101410d1a3982ff2d1542f75ff0610bda30045280bd2325d75fe02fd6",
+        "outputSize": 17134,
+        "summarySha256": "2fdf6cd40fc345bbc1789b3e1af8756647e9199ccc2778c68eb858e588b3134a"
+      },
+      "target": {
+        "outputSha256": "fa61afc101410d1a3982ff2d1542f75ff0610bda30045280bd2325d75fe02fd6",
+        "outputSize": 17134,
+        "summarySha256": "2fdf6cd40fc345bbc1789b3e1af8756647e9199ccc2778c68eb858e588b3134a"
+      }
+    },
+    {
+      "byteRelation": "equal",
+      "inputVersion": "AC1027",
+      "path": "assoc_constraints_r2013.dwg",
+      "relation": "equal",
+      "semanticRelation": "equal",
+      "sourceSha256": "bdd7458bda6c1464faa5836b8aa85640199fbd01c510fa00e25550c043185429",
+      "sourceSize": 33206,
+      "standalone": {
+        "outputSha256": "e93613f0d9dbf204da705db906bffeacef37932e118296a74658669dd12b7e3b",
+        "outputSize": 18550,
+        "summarySha256": "b073a0c392247fb4f43808baaad7d8b15d41c3a39ee2f1f3eae31a145ec461c2"
+      },
+      "target": {
+        "outputSha256": "e93613f0d9dbf204da705db906bffeacef37932e118296a74658669dd12b7e3b",
+        "outputSize": 18550,
+        "summarySha256": "b073a0c392247fb4f43808baaad7d8b15d41c3a39ee2f1f3eae31a145ec461c2"
+      }
+    },
+    {
+      "byteRelation": "equal",
+      "inputVersion": "AC1032",
+      "path": "section_object_r2018.dwg",
+      "relation": "equal",
+      "semanticRelation": "equal",
+      "sourceSha256": "2aedb4d92ab5115806457dc18abb9fd5b1e3a959547d46743b4009b8cb0515ef",
+      "sourceSize": 40591,
+      "standalone": {
+        "outputSha256": "3edc039297d130c669ef884b972abec1cac280aa7e7ecc0982f3a9aff2962537",
+        "outputSize": 24244,
+        "summarySha256": "082bd4a7ff90f6e3fc8153fd86e1b79106b32c6f7a0a1b97a3eb0343cf434609"
+      },
+      "target": {
+        "outputSha256": "3edc039297d130c669ef884b972abec1cac280aa7e7ecc0982f3a9aff2962537",
+        "outputSize": 24244,
+        "summarySha256": "082bd4a7ff90f6e3fc8153fd86e1b79106b32c6f7a0a1b97a3eb0343cf434609"
+      }
+    },
+    {
+      "byteRelation": "equal",
+      "inputVersion": "AC1032",
+      "path": "mpolygon_solid.dwg",
+      "relation": "equal",
+      "semanticRelation": "equal",
+      "sourceSha256": "66a171c55bc90fdd0764ad3556ec786503666a30a4473a637d168a01979ffc29",
+      "sourceSize": 11767,
+      "standalone": {
+        "outputSha256": "4ab9c3dad8759f9e1d9e8f0865a37956693d5f19e684415dddbec02715c850bc",
+        "outputSize": 11153,
+        "summarySha256": "fd0f4854bf1d88deb2b7727351d0031e84049f2e8265cec6d2146e7e2e55ed12"
+      },
+      "target": {
+        "outputSha256": "4ab9c3dad8759f9e1d9e8f0865a37956693d5f19e684415dddbec02715c850bc",
+        "outputSize": 11153,
+        "summarySha256": "fd0f4854bf1d88deb2b7727351d0031e84049f2e8265cec6d2146e7e2e55ed12"
+      }
+    },
+    {
+      "byteRelation": "equal",
+      "inputVersion": "AC1032",
+      "path": "dynblock_point.dwg",
+      "relation": "equal",
+      "semanticRelation": "equal",
+      "sourceSha256": "808f0a0d7ad029c6a23fed4fd87323fd03d6938f4feee2d8ab64c2e70e21f232",
+      "sourceSize": 35951,
+      "standalone": {
+        "outputSha256": "0b64e1ed9f20a7b5057d4b64b5aee7374338c99a5bc78bcc482a3b22d7b4f438",
+        "outputSize": 23044,
+        "summarySha256": "bbf3fb89cac38713b6d94160d075a6889ad53c4a237751565a0d59cf5bdfbfed"
+      },
+      "target": {
+        "outputSha256": "0b64e1ed9f20a7b5057d4b64b5aee7374338c99a5bc78bcc482a3b22d7b4f438",
+        "outputSize": 23044,
+        "summarySha256": "bbf3fb89cac38713b6d94160d075a6889ad53c4a237751565a0d59cf5bdfbfed"
+      }
+    },
+    {
+      "byteRelation": "equal",
+      "inputVersion": "AC1032",
+      "path": "dynblock_r2018.dwg",
+      "relation": "equal",
+      "semanticRelation": "equal",
+      "sourceSha256": "8827e33cd1b2427533b9544967b7d1de9b22a83875986f27ff01c83f3c8e681a",
+      "sourceSize": 574537,
+      "standalone": {
+        "outputSha256": "a40f5a887e93f1af9b2382cb4b07f6ca8c8e2089e39a2fd6cf4dcfd2c9ee9c00",
+        "outputSize": 439024,
+        "summarySha256": "79dc805af40d138607a4859450126755214fef2157364658910d3aebb7e03696"
+      },
+      "target": {
+        "outputSha256": "a40f5a887e93f1af9b2382cb4b07f6ca8c8e2089e39a2fd6cf4dcfd2c9ee9c00",
+        "outputSize": 439024,
+        "summarySha256": "79dc805af40d138607a4859450126755214fef2157364658910d3aebb7e03696"
+      }
+    },
+    {
+      "byteRelation": "equal",
+      "inputVersion": "AC1032",
+      "path": "blockvisibility.dwg",
+      "relation": "equal",
+      "semanticRelation": "equal",
+      "sourceSha256": "be1e24ea0cd5194d0c57935b5018123b7cc981331172a1a2ca7cecc2d9a18e4f",
+      "sourceSize": 38641,
+      "standalone": {
+        "outputSha256": "60d1b12604c54ee682fbc5be940ba95e0f9bb172b958d3ed1e0eccf64f3d8774",
+        "outputSize": 46905,
+        "summarySha256": "c4e606e5b18fa24035cd975984485ff1e5d0dbb9a921dfb7ecbf1d169a219579"
+      },
+      "target": {
+        "outputSha256": "60d1b12604c54ee682fbc5be940ba95e0f9bb172b958d3ed1e0eccf64f3d8774",
+        "outputSize": 46905,
+        "summarySha256": "c4e606e5b18fa24035cd975984485ff1e5d0dbb9a921dfb7ecbf1d169a219579"
+      }
+    },
+    {
+      "byteRelation": "equal",
+      "inputVersion": "AC1032",
+      "path": "large_radial.dwg",
+      "relation": "equal",
+      "semanticRelation": "equal",
+      "sourceSha256": "d3f7c22db4b6c3953e2d716da719d7e7e5b285cf73bd4e317f0a171d3859f98a",
+      "sourceSize": 12632,
+      "standalone": {
+        "outputSha256": "9124fa81f3c1ba7a567397485cd3712d4f276d577629ed90f04e53e497df3143",
+        "outputSize": 13384,
+        "summarySha256": "57a3e4851cbf07a03b137a791f9c2878be1dbeab4abef08cd8ea654329e1ab79"
+      },
+      "target": {
+        "outputSha256": "9124fa81f3c1ba7a567397485cd3712d4f276d577629ed90f04e53e497df3143",
+        "outputSize": 13384,
+        "summarySha256": "57a3e4851cbf07a03b137a791f9c2878be1dbeab4abef08cd8ea654329e1ab79"
+      }
+    },
+    {
+      "byteRelation": "equal",
+      "inputVersion": "AC1032",
+      "path": "rtext_arctext.dwg",
+      "relation": "equal",
+      "semanticRelation": "equal",
+      "sourceSha256": "db5663cdc5c1759fdc1f68f9122e596307de06317e766cd5e0aab55912e5d511",
+      "sourceSize": 19774,
+      "standalone": {
+        "outputSha256": "6a5a31a638bc4f3eae075d19e104dda8ba461751d02bc525fbae932ae5fc97a3",
+        "outputSize": 34134,
+        "summarySha256": "99304f088fed4b8da536674cec64f1274e5ea967cc6ed14661e890313358ac10"
+      },
+      "target": {
+        "outputSha256": "6a5a31a638bc4f3eae075d19e104dda8ba461751d02bc525fbae932ae5fc97a3",
+        "outputSize": 34134,
+        "summarySha256": "99304f088fed4b8da536674cec64f1274e5ea967cc6ed14661e890313358ac10"
+      }
+    },
+    {
+      "byteRelation": "equal",
+      "inputVersion": "UNKNOWN",
+      "path": "pre_r10_r210_entities.dwg",
+      "relation": "equal",
+      "semanticRelation": "equal",
+      "sourceSha256": "7d9280105e614b69b72702cf299163f7c374db014386cdec6ea960a75b818069",
+      "sourceSize": 2236,
+      "standalone": {
+        "outputSha256": "365bedc7e7434e7b6b295d99b61adc685d7ae00fe4d76c1be27808ea4d919990",
+        "outputSize": 4619,
+        "summarySha256": "4a7400d889ba2b0189642493fc818c19bdc4fc9c86223037ddc525fa3d6ccf9b"
+      },
+      "target": {
+        "outputSha256": "365bedc7e7434e7b6b295d99b61adc685d7ae00fe4d76c1be27808ea4d919990",
+        "outputSize": 4619,
+        "summarySha256": "4a7400d889ba2b0189642493fc818c19bdc4fc9c86223037ddc525fa3d6ccf9b"
+      }
+    },
+    {
+      "byteRelation": "equal",
+      "inputVersion": "UNKNOWN",
+      "path": "pre_r10_r140_entities.dwg",
+      "relation": "equal",
+      "semanticRelation": "equal",
+      "sourceSha256": "f00891dbfedbbe44fe97233ef503594d59948b2669705bf58154b57d1ca28df8",
+      "sourceSize": 1152,
+      "standalone": {
+        "outputSha256": "f5af2e891f83de45c24f0b62dd36f48a811d4995de7015e867b6a479c2da48ad",
+        "outputSize": 3178,
+        "summarySha256": "b0bc1a3333559424fee0d1a3a3c97b707c502232e4a50371769ee80f30a500c9"
+      },
+      "target": {
+        "outputSha256": "f5af2e891f83de45c24f0b62dd36f48a811d4995de7015e867b6a479c2da48ad",
+        "outputSize": 3178,
+        "summarySha256": "b0bc1a3333559424fee0d1a3a3c97b707c502232e4a50371769ee80f30a500c9"
+      }
+    }
+  ],
+  "runner": {
+    "standalone": "libdxfrw_json_dump",
+    "target": "libdxfrw_json_dump",
+    "timeoutSeconds": 10
+  },
+  "schema": 1,
+  "semanticRelationCounts": {
+    "equal": 21
+  },
+  "sourceCorpus": {
+    "commit": "3c028612dd8e75d98692ac346635c190500eea94",
+    "note": "temporary external checkout; source blobs are not copied into this repository",
+    "path": "librecad/src/lib/filters/tests/testdata",
+    "repository": "LibreCAD/LibreCAD"
+  },
+  "target": {
+    "commit": "0ffb38d790db53116978e01fcaf94cee9bc6ee48",
+    "repository": "LibreCAD/LibreCAD"
+  }
+}
