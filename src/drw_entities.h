@@ -4215,6 +4215,10 @@ class DRW_DimLargeRadial : public DRW_DimRadial {
 public:
     DRW_DimLargeRadial() { eType = DRW::DIMRADIAL; }
     DRW_DimLargeRadial(const DRW_Dimension& d) : DRW_DimRadial(d) { eType = DRW::DIMRADIAL; }
+    DRW_DimLargeRadial(const DRW_DimLargeRadial&);
+    DRW_DimLargeRadial& operator=(const DRW_DimLargeRadial&);
+    DRW_DimLargeRadial(DRW_DimLargeRadial&&) noexcept;
+    DRW_DimLargeRadial& operator=(DRW_DimLargeRadial&&) noexcept;
 
     static constexpr std::uint16_t kDwgClassNum = 519; /*!< AcDbRadialDimensionLarge DWG custom class id */
 
@@ -4329,6 +4333,10 @@ public:
     static constexpr std::uint16_t kDwgClassNum = 500; /*!< DWG class number — must match writeDwgClasses */
     DRW_DimArc() { eType = DRW::DIMARC; }
     DRW_DimArc(const DRW_Dimension& d) : DRW_Dimension(d) { eType = DRW::DIMARC; }
+    DRW_DimArc(const DRW_DimArc&);
+    DRW_DimArc& operator=(const DRW_DimArc&);
+    DRW_DimArc(DRW_DimArc&&) noexcept;
+    DRW_DimArc& operator=(DRW_DimArc&&) noexcept;
 
     DRW_Coord getArcDefPoint() const { return getDefPoint(); }   /*!< Arc dim-line arc point, code 10 */
     void setArcDefPoint(DRW_Coord p) { setDefPoint(p); }

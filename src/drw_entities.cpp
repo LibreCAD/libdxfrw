@@ -19498,6 +19498,46 @@ bool DRW_DimRadial::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t
 // 13/14/15/40 (chord / override center / jog point / jog angle), so gate them on
 // the subclass marker (like DRW_DimArc). The chord point is stored as the radial
 // diameter point so the existing addDimRadial consumer renders center→chord.
+DRW_DimLargeRadial::DRW_DimLargeRadial(const DRW_DimLargeRadial& o)
+    : DRW_DimRadial(o), overrideCenterPoint(o.overrideCenterPoint),
+      jogPoint(o.jogPoint), jogAngle(o.jogAngle),
+      m_largeRadialSubclassSeen(false) {
+    eType = DRW::DIMRADIAL;
+}
+
+DRW_DimLargeRadial& DRW_DimLargeRadial::operator=(
+    const DRW_DimLargeRadial& o) {
+    if (this != &o) {
+        DRW_DimRadial::operator=(o);
+        overrideCenterPoint = o.overrideCenterPoint;
+        jogPoint = o.jogPoint;
+        jogAngle = o.jogAngle;
+        m_largeRadialSubclassSeen = false;
+        eType = DRW::DIMRADIAL;
+    }
+    return *this;
+}
+
+DRW_DimLargeRadial::DRW_DimLargeRadial(DRW_DimLargeRadial&& o) noexcept
+    : DRW_DimRadial(o), overrideCenterPoint(o.overrideCenterPoint),
+      jogPoint(o.jogPoint), jogAngle(o.jogAngle),
+      m_largeRadialSubclassSeen(false) {
+    eType = DRW::DIMRADIAL;
+}
+
+DRW_DimLargeRadial& DRW_DimLargeRadial::operator=(
+    DRW_DimLargeRadial&& o) noexcept {
+    if (this != &o) {
+        DRW_DimRadial::operator=(o);
+        overrideCenterPoint = o.overrideCenterPoint;
+        jogPoint = o.jogPoint;
+        jogAngle = o.jogAngle;
+        m_largeRadialSubclassSeen = false;
+        eType = DRW::DIMRADIAL;
+    }
+    return *this;
+}
+
 bool DRW_DimLargeRadial::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     if (code == 100) {
         std::string s = reader->getString();
@@ -20065,6 +20105,52 @@ bool DRW_DimAngular3p::encodeDwg(DRW::Version version, dwgBufferW *buf, std::uin
 // ----------------------------------------------------------------------------
 // DRW_DimArc::parseCode  (DXF group-code parser)
 // ----------------------------------------------------------------------------
+DRW_DimArc::DRW_DimArc(const DRW_DimArc& o)
+    : DRW_Dimension(o), leaderPt2(o.leaderPt2),
+      arcStartAngle(o.arcStartAngle), arcEndAngle(o.arcEndAngle),
+      arcSymbol(o.arcSymbol), isPartial(o.isPartial), hasLeader(o.hasLeader),
+      m_arcSubclassSeen(false) {
+    eType = DRW::DIMARC;
+}
+
+DRW_DimArc& DRW_DimArc::operator=(const DRW_DimArc& o) {
+    if (this != &o) {
+        DRW_Dimension::operator=(o);
+        leaderPt2 = o.leaderPt2;
+        arcStartAngle = o.arcStartAngle;
+        arcEndAngle = o.arcEndAngle;
+        arcSymbol = o.arcSymbol;
+        isPartial = o.isPartial;
+        hasLeader = o.hasLeader;
+        m_arcSubclassSeen = false;
+        eType = DRW::DIMARC;
+    }
+    return *this;
+}
+
+DRW_DimArc::DRW_DimArc(DRW_DimArc&& o) noexcept
+    : DRW_Dimension(o), leaderPt2(o.leaderPt2),
+      arcStartAngle(o.arcStartAngle), arcEndAngle(o.arcEndAngle),
+      arcSymbol(o.arcSymbol), isPartial(o.isPartial), hasLeader(o.hasLeader),
+      m_arcSubclassSeen(false) {
+    eType = DRW::DIMARC;
+}
+
+DRW_DimArc& DRW_DimArc::operator=(DRW_DimArc&& o) noexcept {
+    if (this != &o) {
+        DRW_Dimension::operator=(o);
+        leaderPt2 = o.leaderPt2;
+        arcStartAngle = o.arcStartAngle;
+        arcEndAngle = o.arcEndAngle;
+        arcSymbol = o.arcSymbol;
+        isPartial = o.isPartial;
+        hasLeader = o.hasLeader;
+        m_arcSubclassSeen = false;
+        eType = DRW::DIMARC;
+    }
+    return *this;
+}
+
 bool DRW_DimArc::parseCode(int code, const std::unique_ptr<dxfReader>& reader) {
     if (code == 100) {
         std::string s = reader->getString();

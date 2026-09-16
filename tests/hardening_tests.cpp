@@ -2323,6 +2323,16 @@ public:
     using DRW_MLeader::parseCode;
 };
 
+class ExposedDimArc final : public DRW_DimArc {
+public:
+    using DRW_DimArc::parseCode;
+};
+
+class ExposedDimLargeRadial final : public DRW_DimLargeRadial {
+public:
+    using DRW_DimLargeRadial::parseCode;
+};
+
 void testMLeaderParserStateCopyIsolation(TestContext& t) {
     std::stringstream records("300\nCONTEXT_DATA{\n302\nLEADER{\n");
     std::unique_ptr<dxfReader> reader =
@@ -2353,6 +2363,67 @@ void testMLeaderParserStateCopyIsolation(TestContext& t) {
     copied.context.roots.front().connectionPoint.x = 42.0;
     t.expect(partial.context.roots.front().connectionPoint.x != 42.0,
              "MULTILEADER copy keeps context graph value ownership isolated");
+}
+
+void testDimensionParserStateCopyIsolation(TestContext& t) {
+    static_assert(std::is_copy_constructible<DRW_DimArc>::value,
+                  "DRW_DimArc copy contract");
+    static_assert(std::is_move_constructible<DRW_DimArc>::value,
+                  "DRW_DimArc move contract");
+    static_assert(std::is_copy_constructible<DRW_DimLargeRadial>::value,
+                  "DRW_DimLargeRadial copy contract");
+    static_assert(std::is_move_constructible<DRW_DimLargeRadial>::value,
+                  "DRW_DimLargeRadial move contract");
+
+    ExposedDimArc arc;
+    t.expect(parseDxfRecords(arc,
+                             "100\nAcDbArcDimension\n40\n1.25\n41\n2.5\n"
+                             "70\n3\n71\n1\n17\n9\n"),
+             "DIMARC partial subclass parse succeeds");
+    ExposedDimArc copiedArc(arc);
+    ExposedDimArc assignedArc;
+    assignedArc = arc;
+    t.expect(copiedArc.arcStartAngle == 1.25
+                 && copiedArc.arcEndAngle == 2.5
+                 && copiedArc.arcSymbol == 3 && copiedArc.isPartial
+                 && copiedArc.leaderPt2.x == 9.0
+                 && assignedArc.arcStartAngle == 1.25
+                 && assignedArc.arcEndAngle == 2.5
+                 && assignedArc.arcSymbol == 3 && assignedArc.isPartial,
+             "DIMARC copy and assignment preserve persisted arc state");
+    std::stringstream arcRecords("40\n8.0\n");
+    std::unique_ptr<dxfReader> arcReader =
+        std::make_unique<dxfReaderAscii>(&arcRecords);
+    int code = 0;
+    while (arcReader->readRec(&code))
+        copiedArc.parseCode(code, arcReader);
+    t.expect(copiedArc.arcStartAngle == 1.25,
+             "DIMARC copy resets transient subclass routing");
+
+    ExposedDimLargeRadial radial;
+    t.expect(parseDxfRecords(radial,
+                             "100\nAcDbRadialDimensionLarge\n13\n3\n"
+                             "14\n4\n15\n5\n40\n6.5\n"),
+             "LARGE_RADIAL partial subclass parse succeeds");
+    ExposedDimLargeRadial copiedRadial(radial);
+    ExposedDimLargeRadial assignedRadial;
+    assignedRadial = radial;
+    t.expect(copiedRadial.getChordPoint().x == 3.0
+                 && copiedRadial.overrideCenterPoint.x == 4.0
+                 && copiedRadial.jogPoint.x == 5.0
+                 && copiedRadial.jogAngle == 6.5
+                 && assignedRadial.overrideCenterPoint.x == 4.0
+                 && assignedRadial.jogPoint.x == 5.0
+                 && assignedRadial.jogAngle == 6.5,
+             "LARGE_RADIAL copy and assignment preserve persisted jog state");
+    std::stringstream radialRecords("15\n11.0\n40\n12.0\n");
+    std::unique_ptr<dxfReader> radialReader =
+        std::make_unique<dxfReaderAscii>(&radialRecords);
+    while (radialReader->readRec(&code))
+        copiedRadial.parseCode(code, radialReader);
+    t.expect(copiedRadial.jogPoint.x == 5.0
+                 && copiedRadial.jogAngle == 6.5,
+             "LARGE_RADIAL copy resets transient subclass routing");
 }
 
 void testMLeaderDxfContextRoundTrip(TestContext& t) {
@@ -2551,6 +2622,7 @@ int main() {
     testDxfAggregateRecordBudget(context);
     testDwgAggregateObjectBudget(context);
     testMLeaderParserStateCopyIsolation(context);
+    testDimensionParserStateCopyIsolation(context);
     testMLeaderDxfContextRoundTrip(context);
     if (context.failures != 0) {
         std::cerr << context.failures << " hardening assertion(s) failed\n";
