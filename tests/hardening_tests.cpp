@@ -48,6 +48,12 @@ void testPublicOwnershipContracts(TestContext& t) {
                   "DRW_TableEntry-derived copy contract");
     static_assert(std::is_copy_constructible<DRW_LWPolyline>::value,
                   "DRW_LWPolyline copy contract");
+    static_assert(std::is_copy_constructible<DRW_Polyline>::value,
+                  "DRW_Polyline copy contract");
+    static_assert(std::is_copy_constructible<DRW_Spline>::value,
+                  "DRW_Spline copy contract");
+    static_assert(std::is_copy_constructible<DRW_Insert>::value,
+                  "DRW_Insert copy contract");
     static_assert(std::is_copy_constructible<DRW_Attrib>::value,
                   "DRW_Attrib copy contract");
     static_assert(std::is_copy_constructible<DRW_GeoPositionMarker>::value,
@@ -76,6 +82,56 @@ void testPublicOwnershipContracts(TestContext& t) {
                  && std::string(sourceLine.extData.front()->c_str())
                         == "line-xdata",
              "implicit entity assignment isolates XDATA through DRW_Entity");
+
+    DRW_Polyline sourceLegacyPolyline;
+    auto polylineVertex = std::make_shared<DRW_Vertex>();
+    polylineVertex->basePoint.x = 3.0;
+    polylineVertex->extData.push_back(
+        std::make_shared<DRW_Variant>(1000, "polyline-xdata"));
+    sourceLegacyPolyline.vertlist.push_back(polylineVertex);
+    DRW_Polyline copiedLegacyPolyline(sourceLegacyPolyline);
+    copiedLegacyPolyline.vertlist.front()->basePoint.x = 4.0;
+    copiedLegacyPolyline.vertlist.front()->extData.front()->addString(
+        1000, "copy-polyline-xdata");
+    t.expect(copiedLegacyPolyline.vertlist.front() != polylineVertex
+                 && polylineVertex->basePoint.x == 3.0
+                 && std::string(polylineVertex->extData.front()->c_str())
+                        == "polyline-xdata",
+             "DRW_Polyline copy isolates vertex graph and XDATA");
+
+    DRW_Spline sourceSpline;
+    auto controlPoint = std::make_shared<DRW_Coord>(1.0, 2.0, 3.0);
+    auto fitPoint = std::make_shared<DRW_Coord>(4.0, 5.0, 6.0);
+    sourceSpline.controllist.push_back(controlPoint);
+    sourceSpline.fitlist.push_back(fitPoint);
+    sourceSpline.extData.push_back(
+        std::make_shared<DRW_Variant>(1000, "spline-xdata"));
+    DRW_Spline copiedSpline(sourceSpline);
+    copiedSpline.controllist.front()->x = 7.0;
+    copiedSpline.fitlist.front()->y = 8.0;
+    copiedSpline.extData.front()->addString(1000, "copy-spline-xdata");
+    t.expect(copiedSpline.controllist.front() != controlPoint
+                 && copiedSpline.fitlist.front() != fitPoint
+                 && controlPoint->x == 1.0 && fitPoint->y == 5.0
+                 && std::string(sourceSpline.extData.front()->c_str())
+                        == "spline-xdata",
+             "DRW_Spline copy isolates point graphs and XDATA");
+
+    DRW_Insert sourceInsert;
+    auto insertAttribute = std::make_shared<DRW_Attrib>();
+    insertAttribute->text = "attribute";
+    insertAttribute->extData.push_back(
+        std::make_shared<DRW_Variant>(1000, "insert-xdata"));
+    sourceInsert.attlist.push_back(insertAttribute);
+    DRW_Insert copiedInsert(sourceInsert);
+    copiedInsert.attlist.front()->text = "copy-attribute";
+    copiedInsert.attlist.front()->extData.front()->addString(
+        1000, "copy-insert-xdata");
+    t.expect(copiedInsert.attlist.front() != insertAttribute
+                 && insertAttribute->text == "attribute"
+                 && std::string(insertAttribute->extData.front()->c_str())
+                        == "insert-xdata",
+             "DRW_Insert copy isolates attribute graph and XDATA");
 
     DRW_Layer sourceLayer;
     t.expect(sourceLayer.addExtData(

@@ -101,14 +101,14 @@
       "reason": "Mark one intentionally unused helper, remove two unused locals exposed by standalone -Werror compilation, reject non-finite GEOPOSITIONMARKER and LIGHT entity-body values plus bounded LIGHT strings/color before encoding, preserve nested MULTILEADER DXF context breaks, transforms, and hard-pointer handles on parse, bound MULTILEADER context/block-label strings before publication, and deep-copy entity-owned XDATA variants for explicit entity copy paths.",
       "scope": "warning hygiene and DXF MULTILEADER parity",
       "targetBlob": "f6552e6be5e59f7aca602d4d9c520baf993bb159",
-      "adaptedSha256": "393c2f0ef380c413e9ae855fcec2d7b4f0f8a0af68a1c7b1034ed0918a0b4f03"
+      "adaptedSha256": "6ae8287e81f30f31e218bcde03f77c0cf9512d3a43fe6646fda3f085eaf73639"
     },
     {
       "path": "src/drw_entities.h",
       "reason": "Retain a transient DXF MULTILEADER transformation-matrix cursor so repeated code-47 values are bounded and reset between documents, and expose the protected entity XDATA deep-copy helper used by explicit copy paths.",
       "scope": "DXF MULTILEADER parity",
       "targetBlob": "077a84860cea7c35da2f136ce6afedd3be1adf44",
-      "adaptedSha256": "db47f602bc68b959ecbdf66245bda50be0b9b571ccff1677777cc8c2f7c05785"
+      "adaptedSha256": "98b62c3d9c5814ade300b660c58509fc294a1838f8dac22f927f921da2aec08d"
     },
     {
       "path": "src/intern/dwgutil.h",

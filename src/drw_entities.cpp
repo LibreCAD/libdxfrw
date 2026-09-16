@@ -11533,6 +11533,44 @@ DRW_Attrib& DRW_Attrib::operator=(const DRW_Attrib& o) {
 DRW_Attrib::DRW_Attrib(DRW_Attrib&&) noexcept = default;
 DRW_Attrib& DRW_Attrib::operator=(DRW_Attrib&&) noexcept = default;
 
+DRW_Insert::DRW_Insert(const DRW_Insert& o): DRW_Point(o),
+    name(o.name), xscale(o.xscale), yscale(o.yscale), zscale(o.zscale),
+    angle(o.angle), colcount(o.colcount), rowcount(o.rowcount),
+    colspace(o.colspace), rowspace(o.rowspace), blockRecH(o.blockRecH),
+    seqendH(o.seqendH), attribHandles(o.attribHandles) {
+    eType = DRW::INSERT;
+    for (const auto& attribute : o.attlist)
+        attlist.push_back(
+            attribute ? std::make_shared<DRW_Attrib>(*attribute) : nullptr);
+    clearParserCursor();
+}
+DRW_Insert& DRW_Insert::operator=(const DRW_Insert& o) {
+    if (this != &o) {
+        DRW_Point::operator=(o);
+        eType = DRW::INSERT;
+        name = o.name;
+        xscale = o.xscale;
+        yscale = o.yscale;
+        zscale = o.zscale;
+        angle = o.angle;
+        colcount = o.colcount;
+        rowcount = o.rowcount;
+        colspace = o.colspace;
+        rowspace = o.rowspace;
+        blockRecH = o.blockRecH;
+        seqendH = o.seqendH;
+        attribHandles = o.attribHandles;
+        attlist.clear();
+        for (const auto& attribute : o.attlist)
+            attlist.push_back(
+                attribute ? std::make_shared<DRW_Attrib>(*attribute) : nullptr);
+        clearParserCursor();
+    }
+    return *this;
+}
+DRW_Insert::DRW_Insert(DRW_Insert&&) noexcept = default;
+DRW_Insert& DRW_Insert::operator=(DRW_Insert&&) noexcept = default;
+
 DRW_GeoPositionMarker::~DRW_GeoPositionMarker() = default;
 DRW_GeoPositionMarker::DRW_GeoPositionMarker(
     const DRW_GeoPositionMarker& o)

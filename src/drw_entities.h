@@ -1291,6 +1291,10 @@ public:
         colspace = 0;
         rowspace = 0;
     }
+    DRW_Insert(const DRW_Insert&);
+    DRW_Insert& operator=(const DRW_Insert&);
+    DRW_Insert(DRW_Insert&&) noexcept;
+    DRW_Insert& operator=(DRW_Insert&&) noexcept;
 
 protected:
     void resetDwgState();
@@ -2016,6 +2020,33 @@ public:
         basePoint.z =sz;
         bulge = b;
     }
+    DRW_Vertex(const DRW_Vertex& o): DRW_Point(o),
+        stawidth(o.stawidth), endwidth(o.endwidth), bulge(o.bulge),
+        flags(o.flags), tgdir(o.tgdir), vindex1(o.vindex1),
+        vindex2(o.vindex2), vindex3(o.vindex3), vindex4(o.vindex4),
+        identifier(o.identifier), m_dwgSubtype(o.m_dwgSubtype) {
+        clearParserCursor();
+    }
+    DRW_Vertex& operator=(const DRW_Vertex& o) {
+        if (this != &o) {
+            DRW_Point::operator=(o);
+            stawidth = o.stawidth;
+            endwidth = o.endwidth;
+            bulge = o.bulge;
+            flags = o.flags;
+            tgdir = o.tgdir;
+            vindex1 = o.vindex1;
+            vindex2 = o.vindex2;
+            vindex3 = o.vindex3;
+            vindex4 = o.vindex4;
+            identifier = o.identifier;
+            m_dwgSubtype = o.m_dwgSubtype;
+            clearParserCursor();
+        }
+        return *this;
+    }
+    DRW_Vertex(DRW_Vertex&&) noexcept = default;
+    DRW_Vertex& operator=(DRW_Vertex&&) noexcept = default;
     void setDwgSubtype(DwgSubtype subtype) { m_dwgSubtype = subtype; }
     DwgSubtype dwgSubtype() const { return m_dwgSubtype; }
 
@@ -2073,6 +2104,51 @@ public:
         flags = vertexcount = facecount = 0;
         smoothM = smoothN = curvetype = 0;
     }
+    DRW_Polyline(const DRW_Polyline& p): DRW_Point(p) {
+        eType = DRW::POLYLINE;
+        flags = p.flags;
+        defstawidth = p.defstawidth;
+        defendwidth = p.defendwidth;
+        vertexcount = p.vertexcount;
+        facecount = p.facecount;
+        smoothM = p.smoothM;
+        smoothN = p.smoothN;
+        curvetype = p.curvetype;
+        for (const auto& vertex : p.vertlist)
+            vertlist.push_back(
+                vertex ? std::make_shared<DRW_Vertex>(*vertex) : nullptr);
+        hadlesList = p.hadlesList;
+        firstEH = p.firstEH;
+        lastEH = p.lastEH;
+        seqEndH = p.seqEndH;
+        clearParserCursor();
+    }
+    DRW_Polyline& operator=(const DRW_Polyline& p) {
+        if (this != &p) {
+            DRW_Point::operator=(p);
+            eType = DRW::POLYLINE;
+            flags = p.flags;
+            defstawidth = p.defstawidth;
+            defendwidth = p.defendwidth;
+            vertexcount = p.vertexcount;
+            facecount = p.facecount;
+            smoothM = p.smoothM;
+            smoothN = p.smoothN;
+            curvetype = p.curvetype;
+            vertlist.clear();
+            for (const auto& vertex : p.vertlist)
+                vertlist.push_back(
+                    vertex ? std::make_shared<DRW_Vertex>(*vertex) : nullptr);
+            hadlesList = p.hadlesList;
+            firstEH = p.firstEH;
+            lastEH = p.lastEH;
+            seqEndH = p.seqEndH;
+            clearParserCursor();
+        }
+        return *this;
+    }
+    DRW_Polyline(DRW_Polyline&&) noexcept = default;
+    DRW_Polyline& operator=(DRW_Polyline&&) noexcept = default;
     void addVertex (DRW_Vertex v) {
         auto vert = std::make_shared<DRW_Vertex>(v);
         // Replace the copied shared metadata with independent XDATA values.
@@ -2144,6 +2220,64 @@ public:
         tolknot = tolcontrol = tolfit = 0.0000001;
 
     }
+    DRW_Spline(const DRW_Spline& o): DRW_Entity(o),
+        normalVec(o.normalVec), tgStart(o.tgStart), tgEnd(o.tgEnd),
+        flags(o.flags), degree(o.degree), m_scenario(o.m_scenario),
+        m_splineFlags1(o.m_splineFlags1), m_knotParam(o.m_knotParam),
+        nknots(o.nknots), ncontrol(o.ncontrol), nfit(o.nfit),
+        tolknot(o.tolknot), tolcontrol(o.tolcontrol), tolfit(o.tolfit),
+        knotslist(o.knotslist), weightlist(o.weightlist),
+        m_dxfDegreeSeen(false), m_dxfKnotCountSeen(false),
+        m_dxfControlCountSeen(false), m_dxfFitCountSeen(false) {
+        for (const auto& point : o.controllist)
+            controllist.push_back(
+                point ? std::make_shared<DRW_Coord>(*point) : nullptr);
+        for (const auto& point : o.fitlist)
+            fitlist.push_back(
+                point ? std::make_shared<DRW_Coord>(*point) : nullptr);
+        controlpoint.reset();
+        fitpoint.reset();
+        clearParserCursor();
+    }
+    DRW_Spline& operator=(const DRW_Spline& o) {
+        if (this != &o) {
+            DRW_Entity::operator=(o);
+            normalVec = o.normalVec;
+            tgStart = o.tgStart;
+            tgEnd = o.tgEnd;
+            flags = o.flags;
+            degree = o.degree;
+            m_scenario = o.m_scenario;
+            m_splineFlags1 = o.m_splineFlags1;
+            m_knotParam = o.m_knotParam;
+            nknots = o.nknots;
+            ncontrol = o.ncontrol;
+            nfit = o.nfit;
+            tolknot = o.tolknot;
+            tolcontrol = o.tolcontrol;
+            tolfit = o.tolfit;
+            knotslist = o.knotslist;
+            weightlist = o.weightlist;
+            controllist.clear();
+            for (const auto& point : o.controllist)
+                controllist.push_back(
+                    point ? std::make_shared<DRW_Coord>(*point) : nullptr);
+            fitlist.clear();
+            for (const auto& point : o.fitlist)
+                fitlist.push_back(
+                    point ? std::make_shared<DRW_Coord>(*point) : nullptr);
+            controlpoint.reset();
+            fitpoint.reset();
+            m_dxfDegreeSeen = false;
+            m_dxfKnotCountSeen = false;
+            m_dxfControlCountSeen = false;
+            m_dxfFitCountSeen = false;
+            clearParserCursor();
+        }
+        return *this;
+    }
+    DRW_Spline(DRW_Spline&&) noexcept = default;
+    DRW_Spline& operator=(DRW_Spline&&) noexcept = default;
     virtual void applyExtrusion() override {}
 
 protected:
