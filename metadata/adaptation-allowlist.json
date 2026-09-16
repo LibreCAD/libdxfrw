@@ -161,17 +161,17 @@
     },
     {
       "path": "src/libdxfrw.cpp",
-      "reason": "Route raw DXF capture and replay through canonical or explicitly selected classifier profiles, expose an additive public compatibility-profile opt-in, preserve null/error compatibility, instrument stage-aware operation diagnostics including duplicate, malformed, and field-context raw-handle context across raw object, entity, and unknown-section paths, keep code-5 identity metadata out of proxy-host registration so raw replay remains authoritative, ignore inactive HATCH gradient carriers while retaining active-gradient validation, and emit complete modern MULTILEADER DXF context geometry, transforms, and hard-pointer handles.",
+      "reason": "Route raw DXF capture and replay through canonical or explicitly selected classifier profiles, expose an additive public compatibility-profile opt-in, preserve null/error compatibility, instrument stage-aware operation diagnostics including duplicate, malformed, and field-context raw-handle context across raw object, entity, and unknown-section paths, keep code-5 identity metadata out of proxy-host registration so raw replay remains authoritative, ignore inactive HATCH gradient carriers while retaining active-gradient validation, emit complete modern MULTILEADER DXF context geometry, transforms, and hard-pointer handles, and keep HandleAllocator implementation-only behind the façade.",
       "scope": "DXF classifier correctness and MULTILEADER parity",
       "targetBlob": "a091cd92e3914da6b227c1ae3fffcff3fc7676fe",
-      "adaptedSha256": "afc6e5d241c488717988e424568ff21708945f748618cb4a47e1ad360d58f3db"
+      "adaptedSha256": "33bc7e176dd91e6edb7b523608982dbc4ec20381a6db5e5cd4ad55b783862604"
     },
     {
       "path": "src/libdxfrw.h",
-      "reason": "Expose the structured operation-diagnostic snapshot while preserving the legacy dxfRW error and version API, add an explicitly documented public DXF compatibility-profile opt-in while retaining a safe default, and centralize invalid raw-handle diagnostic propagation.",
+      "reason": "Expose the structured operation-diagnostic snapshot while preserving the legacy dxfRW error and version API, add an explicitly documented public DXF compatibility-profile opt-in while retaining a safe default, centralize invalid raw-handle diagnostic propagation, and move HandleAllocator-dependent operations out of the public header.",
       "scope": "diagnostic compatibility",
       "targetBlob": "fd8fe1fc33175e268b477719452ed247dcdd2baf",
-      "adaptedSha256": "26998c942d94a77e0cd460766c398ed72e2724503e546d02dc3bd2aeb770d4c6"
+      "adaptedSha256": "71d4d48a7bb740a4e9d751275f07fd9451b9b4b2254ad55d2b78223b968b22ec"
     },
     {
       "path": "src/intern/dwg_dxf_output_transaction.cpp",

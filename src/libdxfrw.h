@@ -28,11 +28,11 @@
 #include "drw_classes.h"
 #include "drw_header.h"
 #include "drw_interface.h"
-#include "handle_allocator.h"
 
 
 class dxfReader;
 class dxfWriter;
+class HandleAllocator;
 
 /** Holds per-read-session name-resolution tables populated during DXF/DWG parsing. */
 class DRW_ParsingContext {
@@ -263,20 +263,11 @@ public:
      * write(), so a re-emitted raw OBJECT/ENTITY cannot collide with either a
      * freshly-minted handle or a fixed-low structural handle. Returns false and
      * latches the writer when the handle space is exhausted. */
-    bool reserveHandle(std::uint32_t h) {
-        try {
-            m_handleAllocator.reserve(h);
-            return true;
-        } catch (...) {
-            m_handleReservationFailed = true;
-            ++m_reservationFailureGeneration;
-            return false;
-        }
-    }
+    bool reserveHandle(std::uint32_t h);
     /*!< High-water mark of the handle allocator (one past the largest handle
      * reserved or minted so far). Used to populate $HANDSEED. Mirrors
      * dwgWriter::highWaterHandle. */
-    std::uint32_t highWaterHandle() const { return m_handleAllocator.current(); }
+    std::uint32_t highWaterHandle() const;
     /*!< Register the CLASS records to emit in the DXF CLASSES section. The
      * filter supplies source definitions and recomputes instance counts from
      * raw and typed records selected for output. */
@@ -677,7 +668,7 @@ private:
     /// every raw-net handle the filter reserves before write(); next() then
     /// skips that whole set, so a minted handle can never duplicate a fixed-low
     /// or preserved-raw handle. Replaces the old `int entCount` + handle floor.
-    HandleAllocator m_handleAllocator;
+    std::unique_ptr<HandleAllocator> m_handleAllocator;
     bool m_handleReservationFailed {false};
     // A reservation may be requested before write().  Generations distinguish
     // a new failure from the failure already consumed by an earlier attempt,

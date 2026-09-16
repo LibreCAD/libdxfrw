@@ -8701,15 +8701,51 @@ def build_route_mapping(
                 return candidate_ids, cardinality, "reviewed-group-code-domain", None
         if category in {"public-method", "public-inline-method"}:
             qualified = selector.get("qualifiedName")
-            candidates = sorted(
-                route_id
-                for route_id, route in standalone_routes.items()
-                if route["category"] == category
-                and route["selector"].get("qualifiedName") == qualified
-                and route_id not in target_routes
-            )
+            # Moving a public operation out of a header (for example to hide
+            # an implementation-only ownership type) legitimately changes
+            # the route category from inline to out-of-line.  Keep the
+            # target-centric mapping closed by matching the reviewed public
+            # symbol across those two representation categories; the
+            # signature/selector still has to match exactly and the route is
+            # recorded as a compatibility extension below.
+            candidate_categories = {"public-method", "public-inline-method"}
+            target_spans = {
+                item.get("spanSha256")
+                for item in target_route.get("evidence", [])
+                if item.get("spanSha256")
+            }
+
+            def candidates_for(categories: set[str]) -> list[str]:
+                candidates = [
+                    route_id
+                    for route_id, route in standalone_routes.items()
+                    if route["category"] in categories
+                    and route["selector"].get("qualifiedName") == qualified
+                ]
+                # A source declaration can produce both an inline and a
+                # declaration-only route.  Prefer the candidate with the
+                # same source span when representation duplicates exist.
+                if len(candidates) > 1 and target_spans:
+                    span_candidates = [
+                        route_id
+                        for route_id in candidates
+                        if target_spans
+                        & {
+                            item.get("spanSha256")
+                            for item in standalone_routes[route_id].get("evidence", [])
+                            if item.get("spanSha256")
+                        }
+                    ]
+                    if span_candidates:
+                        candidates = span_candidates
+                return sorted(candidates)
+
+            candidates = candidates_for({category})
+            if not candidates:
+                candidates = candidates_for(candidate_categories - {category})
             if len(candidates) == 1:
-                return candidates, "1:1", "signature-adaptation", None
+                cardinality = "N:1" if candidates[0] in target_routes else "1:1"
+                return candidates, cardinality, "signature-adaptation", None
         if category == "public-alias" and selector.get("qualifiedName") == "dwgR":
             candidates = sorted(
                 route_id

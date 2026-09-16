@@ -21,7 +21,7 @@
     "oracleFeatureLinks": 76,
     "oracleRoutes": 5,
     "sharedRouteRows": 2849,
-    "standaloneOnlyRows": 85,
+    "standaloneOnlyRows": 88,
     "targetRows": 2820,
     "targetUnmappedRows": 0,
     "zeroTargetUnmapped": true
@@ -111,22 +111,22 @@
         "writer-version": 8
       },
       "dispositionCounts": {
-        "compatibility-extension": 37,
-        "delta-review": 239,
-        "equivalent": 1199
+        "compatibility-extension": 39,
+        "delta-review": 240,
+        "equivalent": 1196
       },
       "implementationStateCounts": {
         "compatibility-adapted": 36,
-        "same-selector": 1199,
-        "selector-delta": 239,
-        "signature-adapted": 1
+        "same-selector": 1196,
+        "selector-delta": 240,
+        "signature-adapted": 3
       },
       "qualifiedFormatParityRows": 0,
       "routeCount": 1475,
       "routeIdsSha256": "4cdabdd014714c02c87c2f46e41cd1954351fb5980f2c14a85c6a64a9b9c2317",
       "statusCounts": {
-        "EXPERIMENTAL": 276,
-        "SOURCE_PARITY": 1199
+        "EXPERIMENTAL": 279,
+        "SOURCE_PARITY": 1196
       }
     }
   },
@@ -171,9 +171,11 @@
     "dxfRW/facade-method/dxfCompatibilityProfile-001",
     "dxfRW/facade-method/failDxfReadBudget-001",
     "dxfRW/facade-method/getLastDiagnostic-001",
+    "dxfRW/facade-method/highWaterHandle-001",
     "dxfRW/facade-method/recordInvalidRawHandleDiagnostic-001",
     "dxfRW/facade-method/recordOperationDiagnostic-001",
     "dxfRW/facade-method/recordOperationDiagnosticForError-001",
+    "dxfRW/facade-method/reserveHandle-001",
     "dxfRW/facade-method/setDxfCompatibilityProfile-001",
     "dxfRW/group-code-raw-rule/DxfValueKind_Bin",
     "dxfRW/group-code-raw-rule/DxfValueKind_Bln",
@@ -191,6 +193,7 @@
     "dxfRW/public-method/src_libdxfrw.h_dxfRW_389effe06056b50f64b56ab4440f8670149d6e876e0488fa23789d3af30ad92f",
     "dxfRW/public-method/src_libdxfrw.h_dxfRW_4061dabb2caef05d2c7effc3bc1ce17f28a22bc3268f34a4ad1b7140e8983eaf",
     "dxfRW/public-method/src_libdxfrw.h_dxfRW_cca9ef7732a090e5b5b2a12545c5a1685668d4bc14c98ec73e15cb161a6d1c5b",
+    "dxfRW/public-type/src_libdxfrw.h_forward_HandleAllocator",
     "shared/pipeline-unit/src_intern_dxfcode.h",
     "shared/public-alias/src_drw_base.h_DRW_OperationCause",
     "shared/public-alias/src_drw_base.h_DRW_OperationDiagnostic",

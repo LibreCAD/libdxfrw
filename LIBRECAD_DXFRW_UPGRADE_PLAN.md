@@ -3612,17 +3612,17 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 319 (`COMMITTED`); no slice is active.
+- Resolved slices: 320 (`COMMITTED`); no slice is active.
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 319 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 320 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 321 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 322 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 419 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 420 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  4 DEFERRED_EXTERNAL / 293 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S319 are committed; no local implementation slice is active.
+  4 DEFERRED_EXTERNAL / 300 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S320 are committed; no local implementation slice is active.
   Remaining work is evidence-gated runtime/oracle and release closure; keep
   the fast inner loop and do not promote support claims from self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -3671,9 +3671,9 @@ edit this block or commit the same slice concurrently.
   VISUALSTYLE object-family evidence with fixed type/owner/description and
   selected version-gated fields, under the same fast-test-first and
   temporary-only policy; broader visual-style variants remain experimental.
-  S55/J31 is the active RENDERSETTINGS Settings-kind lane and remains
-  experimental until the other render-settings kinds have independent
-  evidence.
+  S55/J31 and the subsequent derived RENDERSETTINGS lanes are committed and
+  remain experimental until the broader independent evidence and support
+  promotion gates clear.
 
 | Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -3996,6 +3996,7 @@ edit this block or commit the same slice concurrently.
 | S317 | J293: refresh bounded external DWG advisory evidence | S316 | COMMITTED | current converter; 29-input external corpus; two-second per-input bound; hash/status-only report; advisory checker; no fixture admission | current branch converts 20/29 external DWGs, with 8 failures and 1 timeout; all 9 AC1024 inputs convert successfully, but the corpus remains advisory and no support claim is promoted; source/output payloads remain outside the repository | native-platform, protected external fuzz, independent semantic oracle, and release closure |
 | S318 | J294: schedule protected long-fuzz execution | S317 | COMMITTED | scheduled/manual GitHub Actions job; opt-in long-fuzz target; actionlint/YAML; exact local job-equivalent build/test; no fixture admission | `.github/workflows/build.yml` now schedules a bounded Ubuntu extended-fuzz job on nightly/manual events; local job-equivalent Release configure/build/CTest passes in 0.45 seconds, while hosted execution remains the promotion gate; no drawing bytes added | native-platform, protected external fuzz, independent semantic oracle, and release closure |
 | S319 | J295: independent AC1024 advisory reader evidence | S318 | COMMITTED | LibreDWG 0.14 `dwgread -O minJSON`; nine external AC1024 inputs; two-second bound; hash/status-only report; strict checker/CTest; no fixture admission | independent reader converts all 9/9 available external AC1024 inputs; report records only source/output hashes, sizes, versions, and status; checker self-test/live validation and focused CTest pass; evidence remains external/deferred and does not promote AC1024 support | native-platform, protected external fuzz, independent semantic oracle, and release closure |
+| S320 | J296: hide HandleAllocator from the installed public façade | S319 | COMMITTED | incomplete-type façade refactor; focused writer/Wave 1/DXF tests; staged package and relocation checks; import scope; route/support metadata regeneration; no fixture admission | `dxfRW` owns `HandleAllocator` through an out-of-line `std::unique_ptr`, preserving handle allocation and high-water behavior while removing the implementation header from `libdxfrw.h`; the route mapper now records deterministic inline/out-of-line public-symbol aliases and the regenerated support matrix has zero target-unmapped routes; fresh staged install compiles all public consumers and rejects an installed `handle_allocator.h`; no drawing bytes added | DataStorage operation enum remains a separate public-header follow-up; continue with external qualification and release closure |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -4319,6 +4320,7 @@ edit this block or commit the same slice concurrently.
 | J293 | S317 | J292 | COMMITTED | DEFERRED_EXTERNAL | Refresh bounded external DWG advisory evidence | Run the current converter over all available external DWGs under a two-second per-input timeout, retain only hashes/status/version summaries, and keep successful AC1024 conversions advisory without promoting format support |
 | J294 | S318 | J293 | COMMITTED | EXPERIMENTAL | Schedule protected long-fuzz execution | Add a scheduled/manual hosted job for `LIBDXFRW_BUILD_LONG_FUZZ=ON`, keep it outside the normal PR suite, and validate the exact job-equivalent command locally without drawing fixtures |
 | J295 | S319 | J294 | COMMITTED | DEFERRED_EXTERNAL | Capture independent AC1024 advisory reader evidence | Run LibreDWG 0.14 `dwgread -O minJSON` over the available external AC1024 corpus under a two-second bound, retain hashes/statuses only, and keep the result advisory until an eligible or locally authored positive exists |
+| J296 | S320 | J295 | COMMITTED | EXPERIMENTAL | Hide HandleAllocator from the installed public façade | Move the allocator-dependent dxfRW operations out-of-line behind an incomplete-type ownership boundary, remove the implementation header from the staged public prefix, and preserve the existing writer behavior and package consumers |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4749,6 +4751,7 @@ edit this block or commit the same slice concurrently.
 | J293.1 | J293 / S317 | WP5, WP8, WP10; external advisory corpus | J292 | COMMITTED | DEFERRED_EXTERNAL | run `run_external_advisory.py` over `/Users/dli/doc/dwg` with the current converter, a two-second bound, and temporary outputs, then inspect version/status counts without retaining drawing payloads | report records 20 converted, 8 failed, and 1 timeout across 29 inputs; AC1024 is 9/9 converted, while all outcomes remain advisory and no fixture bytes are staged |
 | J294.1 | J294 / S318 | WP8, WP10; protected long-fuzz CI | J293 | COMMITTED | EXPERIMENTAL | validate the scheduled/manual workflow job with `actionlint`, YAML parsing, and a local Release configure/build/test sequence for `libdxfrw_long_fuzz` without adding fixtures | workflow syntax passes; local job-equivalent target builds and test passes in 0.45 seconds; hosted scheduled/manual execution remains external and no drawing bytes are admitted |
 | J295.1 | J295 / S319 | WP5, WP8, WP10; independent AC1024 advisory reader | J294 | COMMITTED | DEFERRED_EXTERNAL | validate the hash-only LibreDWG AC1024 report with strict provenance, nine unique source/output hashes, successful statuses, tamper-negative self-tests, and a metadata-only CTest hook without reading or staging external DWG bytes | checker self-test/live validation and focused CTest pass; 9/9 AC1024 rows are converted, but the report remains advisory and no support row is promoted |
+| J296.1 | J296 / S320 | WP1, WP4, WP8, WP10; installed public-header closure and deterministic route mapping | J295 | COMMITTED | EXPERIMENTAL | remove the public `handle_allocator.h` include by moving `reserveHandle` and `highWaterHandle` out-of-line behind an incomplete-type `std::unique_ptr`, teach the source-route mapper to disambiguate duplicated inline/declaration-only public symbols by source span, regenerate the route inventory/support matrix, reinstall from a clean prefix, compile every public header and relocated CMake/pkg-config consumer, and retain no drawing bytes | writer primitives, Wave 1, DXF fixtures, staged package, relocation smoke, import-scope, route-inventory, parity-aggregate, support-matrix, release-readiness, speed, fixture-admission, sync, and diff checks pass; target-unmapped routes remain zero, installed `handle_allocator.h` is rejected, and the DataStorage operation enum remains an explicit follow-up |
 
 <!-- UPGRADE_PROGRESS_END -->
 

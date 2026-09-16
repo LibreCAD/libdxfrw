@@ -21402,7 +21402,7 @@
         {
           "line": 1,
           "path": "src/libdxfrw.cpp",
-          "spanSha256": "afc6e5d241c488717988e424568ff21708945f748618cb4a47e1ad360d58f3db",
+          "spanSha256": "33bc7e176dd91e6edb7b523608982dbc4ec20381a6db5e5cd4ad55b783862604",
           "symbol": "src/libdxfrw.cpp"
         }
       ],
@@ -21426,7 +21426,7 @@
         {
           "line": 1,
           "path": "src/libdxfrw.h",
-          "spanSha256": "26998c942d94a77e0cd460766c398ed72e2724503e546d02dc3bd2aeb770d4c6",
+          "spanSha256": "71d4d48a7bb740a4e9d751275f07fd9451b9b4b2254ad55d2b78223b968b22ec",
           "symbol": "src/libdxfrw.h"
         }
       ],
@@ -72065,7 +72065,7 @@
       ],
       "evidence": [
         {
-          "line": 884,
+          "line": 885,
           "path": "src/libdxfrw.cpp",
           "spanSha256": "34cd59a376c30f6bb301288354d01168b0fcec14b990adfa5512a263fd512d05",
           "symbol": "DxfBlockEventSink::flush"
@@ -72089,7 +72089,7 @@
       ],
       "evidence": [
         {
-          "line": 8369,
+          "line": 8386,
           "path": "src/libdxfrw.cpp",
           "spanSha256": "95ac5b820a19e07ab313851108af40d4ed1ec28bf0c2e0abec78303829cdab11",
           "symbol": "dxfRW::processBlockRecord"
@@ -72113,7 +72113,7 @@
       ],
       "evidence": [
         {
-          "line": 8991,
+          "line": 9008,
           "path": "src/libdxfrw.cpp",
           "spanSha256": "f8d6d826d40708b327fe6568315739ad96be2933122514eeb5ec93459d1d28c1",
           "symbol": "dxfRW::processBlocks"
@@ -72137,7 +72137,7 @@
       ],
       "evidence": [
         {
-          "line": 9260,
+          "line": 9277,
           "path": "src/libdxfrw.cpp",
           "spanSha256": "cf23ef43f340e2b6649d4b34d51d498131f4eee003b91306492fbd7a37a859ec",
           "symbol": "dxfRW::processEntities"
@@ -72161,7 +72161,7 @@
       ],
       "evidence": [
         {
-          "line": 8140,
+          "line": 8157,
           "path": "src/libdxfrw.cpp",
           "spanSha256": "c1cae071553f7971c26428aaf39ead5f634913b1269438ef10bd9adcd6274d5d",
           "symbol": "dxfRW::processHeader"
@@ -72185,7 +72185,7 @@
       ],
       "evidence": [
         {
-          "line": 12027,
+          "line": 12044,
           "path": "src/libdxfrw.cpp",
           "spanSha256": "f3edebd815be6047cc8b6620b130d13b2d350613b7aadbc0afa835f24ffec23e",
           "symbol": "dxfRW::processImageDef"
@@ -72209,7 +72209,7 @@
       ],
       "evidence": [
         {
-          "line": 11049,
+          "line": 11066,
           "path": "src/libdxfrw.cpp",
           "spanSha256": "2232a9b3c79de8c84fa145292f3f0d97e1ab57ea124996c1ee1ae77824d7fca3",
           "symbol": "dxfRW::processObjects"
@@ -72233,7 +72233,7 @@
       ],
       "evidence": [
         {
-          "line": 11551,
+          "line": 11568,
           "path": "src/libdxfrw.cpp",
           "spanSha256": "2031d67921383b4b4942b456e1b2f7df8c8eb96f59002a8eaa2fc90f57cd356c",
           "symbol": "dxfRW::processRawCapturedObject"
@@ -72257,7 +72257,7 @@
       ],
       "evidence": [
         {
-          "line": 8300,
+          "line": 8317,
           "path": "src/libdxfrw.cpp",
           "spanSha256": "5cef1934d7397a9f9f674c0d832a4cb2087574e925559d42373dd35a8f587253",
           "symbol": "dxfRW::processTables"
@@ -74299,7 +74299,7 @@
         {
           "line": 1,
           "path": "src/libdxfrw.cpp",
-          "spanSha256": "afc6e5d241c488717988e424568ff21708945f748618cb4a47e1ad360d58f3db",
+          "spanSha256": "33bc7e176dd91e6edb7b523608982dbc4ec20381a6db5e5cd4ad55b783862604",
           "symbol": "src/libdxfrw.cpp"
         }
       ],
@@ -74323,7 +74323,7 @@
         {
           "line": 1,
           "path": "src/libdxfrw.h",
-          "spanSha256": "26998c942d94a77e0cd460766c398ed72e2724503e546d02dc3bd2aeb770d4c6",
+          "spanSha256": "71d4d48a7bb740a4e9d751275f07fd9451b9b4b2254ad55d2b78223b968b22ec",
           "symbol": "src/libdxfrw.h"
         }
       ],
@@ -76339,7 +76339,7 @@
         {
           "line": 1,
           "path": "src/libdxfrw.cpp",
-          "spanSha256": "afc6e5d241c488717988e424568ff21708945f748618cb4a47e1ad360d58f3db",
+          "spanSha256": "33bc7e176dd91e6edb7b523608982dbc4ec20381a6db5e5cd4ad55b783862604",
           "symbol": "src/libdxfrw.cpp"
         }
       ],
@@ -76363,7 +76363,7 @@
         {
           "line": 1,
           "path": "src/libdxfrw.h",
-          "spanSha256": "26998c942d94a77e0cd460766c398ed72e2724503e546d02dc3bd2aeb770d4c6",
+          "spanSha256": "71d4d48a7bb740a4e9d751275f07fd9451b9b4b2254ad55d2b78223b968b22ec",
           "symbol": "src/libdxfrw.h"
         }
       ],

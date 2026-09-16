@@ -355,6 +355,11 @@ def check(prefix: Path, cxx: str) -> None:
     config_root = prefix / "lib" / "cmake" / "libdxfrw"
     if not include_root.is_dir() or not config_root.is_dir():
         raise RuntimeError("prefix is missing installed headers or CMake package")
+    hidden_allocator = include_root / "handle_allocator.h"
+    if hidden_allocator.exists():
+        raise RuntimeError(
+            "implementation-only HandleAllocator header was installed: %s"
+            % hidden_allocator)
     public_facade = include_root / "libdxfrw.h"
     public_text = public_facade.read_text(encoding="utf-8")
     missing = [declaration for declaration in PROFILE_DECLARATIONS

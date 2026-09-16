@@ -41,7 +41,6 @@ set(libdxfrw_srcs ${LIBDXFRW_SOURCES})
 set(libdxfrw_hdrs ${LIBDXFRW_PRIVATE_HEADERS} ${LIBDXFRW_PUBLIC_HEADERS})
 set(installdxfrw_hdrs ${LIBDXFRW_PUBLIC_HEADERS})
 set(libdxfrw_transitive_hdrs
-    src/handle_allocator.h
     src/intern/dwg_fixed_handles.h
     src/intern/dwgutil.h
 )
@@ -360,10 +359,8 @@ if(LIBDXFRW_BUILD_LIBRARY)
             DESTINATION ${LIBDXFRW_INSTALL_INCLUDEDIR}
     )
     # The imported public façades still expose these declarations.  Install
-    # only the narrow transitive closure; hiding HandleAllocator and the
-    # DataStorage writer enum is tracked as a compatibility follow-up.
-    install(FILES src/handle_allocator.h
-            DESTINATION ${LIBDXFRW_INSTALL_INCLUDEDIR})
+    # only the narrow transitive closure; HandleAllocator is now internal and the
+    # DataStorage writer enum remains a compatibility follow-up.
     install(FILES src/intern/dwgutil.h src/intern/dwg_fixed_handles.h
                   src/intern/dwgbufferw.h src/intern/dwgsafety.h
             DESTINATION ${LIBDXFRW_INSTALL_INCLUDEDIR}/intern)
