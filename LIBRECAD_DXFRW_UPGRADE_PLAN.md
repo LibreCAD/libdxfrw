@@ -52,14 +52,14 @@ then pin an immutable commit before importing source.
 ### Execution refresh (2026-09-15)
 
 The implementation worktree is rebased on `origin/master` and is currently
-328 commits ahead with no commits behind it. The target refresh audited
+331 commits ahead with no commits behind it. The target refresh audited
 LibreCAD master commit `aacfc3bb0` (DXF compatibility fixes) through the
 current target tip, ported the seven changed library source/header files, and
 refreshed the target lock, archive, manifest, source-route inventory, oracle
-registry, inventory-input lock, and support-matrix provenance. The prior
-DWG differential-debt reports remain explicitly tied to the former target
-commit and must be rerun before any support claim is promoted. The latest
-green implementation slice is S301/J277; target-debt, independent-oracle,
+registry, inventory-input lock, and support-matrix provenance. S304/J280
+reran the reviewed DWG differential-debt reports against the refreshed target
+and reconciled both registries to `0ffb38d790db53116978e01fcaf94cee9bc6ee48`.
+The latest green implementation slice is S304/J280; independent-oracle,
 native-platform, package, and release-closure evidence remains open.
 The worktree is clean at the last committed boundary; any subsequent active-
 slice edits are intentionally uncommitted until their narrow gate and
@@ -1939,6 +1939,15 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
+- Current checkpoint (2026-09-16): S304/J280 refreshed the reviewed
+  target/package differential evidence against LibreCAD target
+  `0ffb38d790db53116978e01fcaf94cee9bc6ee48`. The locked 15-fixture run is
+  14 equal/1 reviewed AC1021 delta; the six local-from-scratch version run is
+  4 equal/2 reviewed AC1027/AC1032 deltas. Exact source/output/summary hashes
+  and target-commit checks pass for both debt registries; no drawing bytes
+  were added, and independent-oracle, native-platform, package, and release
+  closure remain open.
+
 - Current checkpoint (2026-09-16): S303/J279 route-inventory generator
   hardening is committed. Sticky-error lifecycle matching now tolerates nested
   diagnostic blocks, the generated source-route JSON plus six shards were
@@ -3534,17 +3543,17 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 300 (`COMMITTED`); no slice is active.
+- Resolved slices: 304 (`COMMITTED`); no slice is active.
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 300 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 304 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 302 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 306 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 400 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 404 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  3 DEFERRED_EXTERNAL / 281 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S300 are committed; no local implementation slice is active.
+  3 DEFERRED_EXTERNAL / 287 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S304 are committed; no local implementation slice is active.
   Remaining work is evidence-gated runtime/oracle and release closure; keep
   the fast inner loop and do not promote support claims from self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -3902,6 +3911,7 @@ edit this block or commit the same slice concurrently.
 | S301 | J277: LibreCAD-master DXF compatibility refresh | S300 | COMMITTED | audited current target tip; seven-file source delta; fast DXF/DWG regression targets; refreshed lock/archive/manifest/provenance metadata; no fixture admission | audited LibreCAD master commit `aacfc3bb0` through target tip `0ffb38d790db53116978e01fcaf94cee9bc6ee48`; ported typed-handle/XDATA, table-cell, spline/surface, linetype/dictionary/sortents, DIMSTYLE, BLOCK, FIELD/FIELDLIST, XRECORD, and proxy compatibility; fast targets and focused CTest selector pass; no drawing bytes added | target-bound differential debt, full validation, and independent-oracle qualification remain open |
 | S302 | J278: post-target-refresh full validation | S301 | COMMITTED | fresh normal and ASan/UBSan builds; all 28 dependency-free CTest entries; macOS leak policy; no fixture changes | normal build and CTest pass 28/28 in 5.85s; ASan/UBSan build and CTest pass 28/28 in 12.92s with `detect_leaks=0`; no drawing bytes changed or added | target-bound differential debt, independent-oracle qualification, native-platform, package, and release closure |
 | S303 | J279: route-inventory generator hardening | S302 | COMMITTED | nested sticky-error diagnostics; regenerated source-route JSON/shards; support-matrix refresh; fast metadata gates; no fixture admission | route extractor now handles nested lifecycle diagnostic blocks; generated inventory and support matrix pass with 5,669 target routes, 5,722 standalone routes, zero target-unmapped rows, and 85 standalone-only rows; no drawing bytes added | target-bound differential debt, independent-oracle qualification, native-platform, package, and release closure |
+| S304 | J280: refreshed-target differential-debt reconciliation | S303 | COMMITTED | current-target JSON differential; exact reviewed source/output/summary hashes; local and locked debt checks; plan/scope/sync/fixture gates; no fixture admission | LibreCAD target `0ffb38d790db53116978e01fcaf94cee9bc6ee48` rerun is 14 equal/1 reviewed AC1021 delta on locked fixtures and 4 equal/2 reviewed AC1027/AC1032 deltas on local-from-scratch versions; both registries now bind to the refreshed target and pass exact-hash checks; no drawing bytes added | independent-oracle qualification, native-platform, package, and release closure |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -4209,6 +4219,7 @@ edit this block or commit the same slice concurrently.
 | J277 | S301 | J276 | COMMITTED | EXPERIMENTAL | Port the audited LibreCAD-master DXF compatibility delta | Port the seven changed target library files into standalone with explicit adaptations, preserve C++17/`-Werror` and ABI-safe callback behavior, refresh target-bound provenance metadata, and keep all support claims non-promoted until target-bound differential debt is rerun |
 | J278 | S302 | J277 | COMMITTED | EXPERIMENTAL | Revalidate the full suite after the LibreCAD-master refresh | Rebuild normal and ASan/UBSan configurations and run all 28 dependency-free CTest entries after S301; retain the macOS leak-detection limitation, no-fixture policy, and non-promoting target-debt boundary |
 | J279 | S303 | J278 | COMMITTED | EXPERIMENTAL | Harden and regenerate the source-route inventory | Make sticky-error lifecycle matching robust to nested diagnostic blocks, regenerate the route inventory/shards and support matrix from the refreshed target lock, and keep mapping/oracle closure and all support claims non-promoted |
+| J280 | S304 | J279 | COMMITTED | EXPERIMENTAL | Requalify reviewed differential debt against the refreshed target | Rerun the locked and local-from-scratch schema-2 target/package differentials against LibreCAD `0ffb38d790db53116978e01fcaf94cee9bc6ee48`, require exact reviewed source/output/summary hashes, update both debt registries, and keep the AC1021/AC1027/AC1032 deltas non-promoting without adding drawing bytes |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4623,6 +4634,7 @@ edit this block or commit the same slice concurrently.
 | J277.1 | J277 / S301 | WP3, WP5, WP7, WP8, WP10; target-refresh DXF compatibility | J276 | COMMITTED | EXPERIMENTAL | port the current LibreCAD-master seven-file DXF delta, update target lock/archive/manifest and target-bound source/oracle provenance, run the focused five-test selector, and admit no new drawing bytes | normal hardening, Wave 1, writer-primitives, DXF-fixture, and DWG-fixture targets pass; sync/import-scope, parity aggregate, inventory/oracle registry, support-matrix, release-readiness, fixture-admission, and diff checks pass; prior DWG debt reports remain old-target evidence and are not promoted |
 | J278.1 | J278 / S302 | WP8, WP10; post-target-refresh full validation | J277 | COMMITTED | EXPERIMENTAL | run the fresh normal and ASan/UBSan builds with all 28 dependency-free CTest entries after S301, using `detect_leaks=0` on macOS and adding no drawing fixtures | normal 28/28 passes in 5.85s and ASan/UBSan 28/28 passes in 12.92s; all policy gates remain green and no drawing bytes changed or were added |
 | J279.1 | J279 / S303 | WP0, WP8, WP10; source-route metadata | J278 | COMMITTED | EXPERIMENTAL | update the nested-brace lifecycle regex, regenerate `metadata/parity-source-routes-v1.json` and its six shards, refresh `metadata/support-matrix-v1.json`, and run route/parity/support/policy gates without adding drawing bytes | extractor `--check`, parity aggregate, support matrix, release-readiness, fixture-admission, import-scope, and diff checks pass; generated metadata reports 5,669 target routes, 5,722 standalone routes, zero target-unmapped rows, and 85 standalone-only rows |
+| J280.1 | J280 / S304 | WP5, WP8, WP10; refreshed-target differential debt | J279 | COMMITTED | EXPERIMENTAL | rerun locked and local-from-scratch schema-2 differential reports against target `0ffb38d790db53116978e01fcaf94cee9bc6ee48`, reconcile both reviewed-debt registries, and retain only hashes/summaries without drawing payloads | locked run 14 equal/1 reviewed AC1021 delta; local run 4 equal/2 reviewed AC1027/AC1032 deltas; `check_differential_debt.py` passes both registries with zero unreviewed/stale mismatches; no drawing bytes added |
 
 <!-- UPGRADE_PROGRESS_END -->
 

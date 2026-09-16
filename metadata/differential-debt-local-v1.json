@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "kind": "libdxfrw-differential-debt",
-  "targetCommit": "3c7785ebbcbfc8f3c8f79dbba093aff09cdec753",
+  "targetCommit": "0ffb38d790db53116978e01fcaf94cee9bc6ee48",
   "fixturePolicy": "localFromScratch; hashes-and-summaries-only; no drawing payloads",
   "entries": [
     {
