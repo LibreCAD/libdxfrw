@@ -4867,6 +4867,40 @@ public:
   static constexpr std::size_t kMaxEntries = 100000;
 
   DRW_EvaluationGraph() { tType = DRW::EVALUATIONGRAPH; }
+  DRW_EvaluationGraph(const DRW_EvaluationGraph& o): DRW_TableEntry(o),
+      m_value96(o.m_value96), m_value97(o.m_value97), m_nodes(o.m_nodes),
+      m_edges(o.m_edges), m_dxfInBody(false), m_dxfEdges(false),
+      m_dxfMalformed(false), m_dxfHasValue96(false), m_dxfHasValue97(false),
+      m_dxfNodeHasFlags(false), m_dxfNodeHasNextNodeIndex(false),
+      m_dxfNodeHasExpressionHandle(false), m_dxfEdgeHasValue93(false),
+      m_dxfEdgeHasValue94(false), m_dxfNodeDataCount(0),
+      m_dxfEdgeDataCount(0), m_dxfEdge91Count(0) {
+    tType = o.tType;
+  }
+  DRW_EvaluationGraph& operator=(const DRW_EvaluationGraph& o) {
+    if (this != &o) {
+      DRW_TableEntry::operator=(o);
+      m_value96 = o.m_value96;
+      m_value97 = o.m_value97;
+      m_nodes = o.m_nodes;
+      m_edges = o.m_edges;
+      m_dxfInBody = false;
+      m_dxfEdges = false;
+      m_dxfMalformed = false;
+      m_dxfHasValue96 = false;
+      m_dxfHasValue97 = false;
+      m_dxfNodeHasFlags = false;
+      m_dxfNodeHasNextNodeIndex = false;
+      m_dxfNodeHasExpressionHandle = false;
+      m_dxfEdgeHasValue93 = false;
+      m_dxfEdgeHasValue94 = false;
+      m_dxfNodeDataCount = 0;
+      m_dxfEdgeDataCount = 0;
+      m_dxfEdge91Count = 0;
+      tType = o.tType;
+    }
+    return *this;
+  }
 
 protected:
   bool parseCode(int code, const std::unique_ptr<dxfReader> &reader) override;

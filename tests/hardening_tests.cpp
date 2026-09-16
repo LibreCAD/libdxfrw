@@ -209,6 +209,12 @@ public:
     using DRW_SpatialFilter::parseCode;
 };
 
+class ExposedEvaluationGraph : public DRW_EvaluationGraph {
+public:
+    using DRW_EvaluationGraph::parseCode;
+    using DRW_EvaluationGraph::finalizeDxf;
+};
+
 template <typename Entity>
 bool parseDxfRecords(Entity& entity, const std::string& source) {
     std::stringstream records(source);
@@ -304,6 +310,8 @@ void testPublicOwnershipContracts(TestContext& t) {
                   "DRW_GeoData copy contract");
     static_assert(std::is_copy_constructible<DRW_SpatialFilter>::value,
                   "DRW_SpatialFilter copy contract");
+    static_assert(std::is_copy_constructible<DRW_EvaluationGraph>::value,
+                  "DRW_EvaluationGraph copy contract");
     static_assert(std::is_copy_constructible<DRW_Attrib>::value,
                   "DRW_Attrib copy contract");
     static_assert(std::is_copy_constructible<DRW_GeoPositionMarker>::value,
@@ -1343,6 +1351,37 @@ void testPublicOwnershipContracts(TestContext& t) {
                  && assignedSpatialFilter.m_insertTransform.size() == 12u
                  && assignedSpatialFilter.m_frontDistance == 1.0,
              "SPATIAL_FILTER assignment clears matrix parser state");
+
+    const std::string evaluationGraphHeader =
+        "100\nAcDbEvalGraph\n96\n1\n97\n2\n";
+    ExposedEvaluationGraph partialEvaluationGraph;
+    t.expect(parseDxfRecords(partialEvaluationGraph, evaluationGraphHeader)
+                 && partialEvaluationGraph.m_value96 == 1
+                 && partialEvaluationGraph.m_value97 == 2,
+             "EVALUATION_GRAPH parser state source setup");
+    ExposedEvaluationGraph copiedEvaluationGraph(partialEvaluationGraph);
+    const bool copiedEvaluationStale = parseDxfRecords(copiedEvaluationGraph,
+                                                        "96\n9\n");
+    const bool copiedEvaluationFresh = parseDxfRecords(
+        copiedEvaluationGraph,
+        "100\nAcDbEvalGraph\n96\n3\n97\n4\n");
+    t.expect(copiedEvaluationStale && copiedEvaluationFresh
+                 && copiedEvaluationGraph.finalizeDxf()
+                 && copiedEvaluationGraph.m_value96 == 3
+                 && copiedEvaluationGraph.m_value97 == 4,
+             "EVALUATION_GRAPH copy clears malformed parser state");
+    ExposedEvaluationGraph assignedEvaluationGraph;
+    assignedEvaluationGraph = partialEvaluationGraph;
+    const bool assignedEvaluationStale = parseDxfRecords(assignedEvaluationGraph,
+                                                          "96\n9\n");
+    const bool assignedEvaluationFresh = parseDxfRecords(
+        assignedEvaluationGraph,
+        "100\nAcDbEvalGraph\n96\n5\n97\n6\n");
+    t.expect(assignedEvaluationStale && assignedEvaluationFresh
+                 && assignedEvaluationGraph.finalizeDxf()
+                 && assignedEvaluationGraph.m_value96 == 5
+                 && assignedEvaluationGraph.m_value97 == 6,
+             "EVALUATION_GRAPH assignment clears malformed parser state");
 
     DRW_Dimension sourceDimension;
     sourceDimension.extData.push_back(
