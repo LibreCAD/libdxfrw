@@ -1502,6 +1502,7 @@ public:
                 vertex ? std::make_shared<DRW_Vertex2D>(*vertex) : nullptr);
         // The base copy preserves scalar parser state; clone the mutable
         // XDATA values so parseAttribs cannot affect the source entity.
+        m_dxfVertexCountSeen = false;
         copyExtDataFrom(p);
     }
     // Deep-copy assignment to match the deep-copy constructor; the implicit
@@ -1522,6 +1523,7 @@ public:
                 vertlist.push_back(
                     vertex ? std::make_shared<DRW_Vertex2D>(*vertex) : nullptr);
             vertex.reset();  // transient build pointer — do not alias p's vertlist
+            m_dxfVertexCountSeen = false;
             // DRW_Entity::operator= aliases shared XDATA; restore ownership
             // isolation after copying the public entity fields.
             copyExtDataFrom(p);

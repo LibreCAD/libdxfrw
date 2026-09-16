@@ -11580,6 +11580,9 @@ DRW_Attrib::DRW_Attrib(const DRW_Attrib& o)
       m_attributeType(o.m_attributeType),
       keepDuplicateRecords(o.keepDuplicateRecords),
       mtext(o.mtext ? std::make_unique<DRW_MText>(*o.mtext) : nullptr) {
+    // Subclass routing is parser state, not persisted ATTRIB data.  A copied
+    // model must begin a fresh DXF subclass walk.
+    dxfInAttributeSubclass = false;
     copyExtDataFrom(o);
 }
 DRW_Attrib& DRW_Attrib::operator=(const DRW_Attrib& o) {
@@ -11593,6 +11596,9 @@ DRW_Attrib& DRW_Attrib::operator=(const DRW_Attrib& o) {
         m_attributeType = o.m_attributeType;
         keepDuplicateRecords = o.keepDuplicateRecords;
         mtext = o.mtext ? std::make_unique<DRW_MText>(*o.mtext) : nullptr;
+        // Do not retain the destination parser's subclass mode after an
+        // assignment; the copied model starts a fresh DXF walk.
+        dxfInAttributeSubclass = false;
         copyExtDataFrom(o);
     }
     return *this;
@@ -11711,8 +11717,8 @@ DRW_GeoPositionMarker::DRW_GeoPositionMarker(
       m_textAlignment(o.m_textAlignment),
       m_enableFrameText(o.m_enableFrameText),
       mtext(o.mtext ? std::make_unique<DRW_MText>(*o.mtext) : nullptr),
-      m_dxfDouble40Count(o.m_dxfDouble40Count),
-      m_dxfBool290Count(o.m_dxfBool290Count) {
+      m_dxfDouble40Count(0),
+      m_dxfBool290Count(0) {
     copyExtDataFrom(o);
 }
 DRW_GeoPositionMarker& DRW_GeoPositionMarker::operator=(
@@ -11728,8 +11734,11 @@ DRW_GeoPositionMarker& DRW_GeoPositionMarker::operator=(
         m_textAlignment = o.m_textAlignment;
         m_enableFrameText = o.m_enableFrameText;
         mtext = o.mtext ? std::make_unique<DRW_MText>(*o.mtext) : nullptr;
-        m_dxfDouble40Count = o.m_dxfDouble40Count;
-        m_dxfBool290Count = o.m_dxfBool290Count;
+        // These counters only disambiguate repeated DXF group codes while a
+        // record is being parsed; assignment must not inherit either the
+        // source's completed walk or the destination's prior walk.
+        m_dxfDouble40Count = 0;
+        m_dxfBool290Count = 0;
         copyExtDataFrom(o);
     }
     return *this;

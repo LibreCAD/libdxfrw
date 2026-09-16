@@ -35,6 +35,36 @@ struct TestContext {
     }
 };
 
+// Expose the protected DXF record hooks for parser-state copy regressions.
+// These wrappers stay local to the hardening executable and do not alter the
+// installed API surface.
+class ExposedAttrib : public DRW_Attrib {
+public:
+    using DRW_Attrib::parseCode;
+};
+
+class ExposedGeoPositionMarker : public DRW_GeoPositionMarker {
+public:
+    using DRW_GeoPositionMarker::parseCode;
+};
+
+class ExposedLWPolyline : public DRW_LWPolyline {
+public:
+    using DRW_LWPolyline::parseCode;
+};
+
+template <typename Entity>
+bool parseDxfRecords(Entity& entity, const std::string& source) {
+    std::stringstream records(source);
+    std::unique_ptr<dxfReader> reader =
+        std::make_unique<dxfReaderAscii>(&records);
+    int code = 0;
+    bool ok = true;
+    while (reader->readRec(&code))
+        ok = entity.parseCode(code, reader) && ok;
+    return ok;
+}
+
 void testPublicOwnershipContracts(TestContext& t) {
     static_assert(!std::is_copy_constructible<dxfRW>::value,
                   "dxfRW must remain non-copyable");
@@ -348,6 +378,61 @@ void testPublicOwnershipContracts(TestContext& t) {
                  && assignedMarker.mtext.get() != sourceMarker.mtext.get()
                  && assignedMarker.extData.front() != sourceMarker.extData.front(),
              "DRW_GeoPositionMarker assignment deep-copies owned state");
+
+    // Copying a model must start a fresh DXF parser walk.  In particular,
+    // repeated group-code counters and subclass routing are transient and
+    // must not leak through assignment from or into a partially parsed model.
+    ExposedLWPolyline parsedPolyline;
+    ExposedLWPolyline destinationPolyline;
+    t.expect(parseDxfRecords(destinationPolyline, "90\n1\n"),
+             "LWPOLYLINE parser accepts initial vertex count");
+    DRW_LWPolyline plainPolyline;
+    plainPolyline.vertexnum = 2;
+    destinationPolyline.DRW_LWPolyline::operator=(plainPolyline);
+    t.expect(parseDxfRecords(destinationPolyline, "90\n1\n"),
+             "LWPOLYLINE assignment resets vertex-count parser state");
+    t.expect(parseDxfRecords(parsedPolyline, "90\n1\n"),
+             "LWPOLYLINE parser-state source setup");
+    ExposedLWPolyline copiedPolylineState(parsedPolyline);
+    t.expect(parseDxfRecords(copiedPolylineState, "90\n1\n"),
+             "LWPOLYLINE copy starts a fresh vertex-count walk");
+
+    ExposedAttrib parsedAttrib;
+    ExposedAttrib assignedAttribState;
+    t.expect(parseDxfRecords(assignedAttribState,
+                             "100\nAcDbAttribute\n"),
+             "ATTRIB parser subclass source setup");
+    DRW_Attrib plainAttrib;
+    assignedAttribState.DRW_Attrib::operator=(plainAttrib);
+    t.expect(parseDxfRecords(assignedAttribState, "71\n2\n")
+                 && assignedAttribState.textgen == 2
+                 && assignedAttribState.m_attributeType == 1,
+             "ATTRIB assignment resets subclass routing state");
+    t.expect(parseDxfRecords(parsedAttrib,
+                             "100\nAcDbAttribute\n71\n2\n"),
+             "ATTRIB parser subclass state accepts attribute type");
+    ExposedAttrib copiedAttribState(parsedAttrib);
+    copiedAttribState.textgen = 0;
+    copiedAttribState.m_attributeType = 1;
+    t.expect(parseDxfRecords(copiedAttribState, "71\n2\n")
+                 && copiedAttribState.textgen == 2
+                 && copiedAttribState.m_attributeType == 1,
+             "ATTRIB copy starts outside subclass routing");
+
+    ExposedGeoPositionMarker parsedMarker;
+    t.expect(parseDxfRecords(parsedMarker, "40\n1.5\n"),
+             "GEOPOSITIONMARKER parser counter source setup");
+    ExposedGeoPositionMarker copiedMarkerState(parsedMarker);
+    t.expect(parseDxfRecords(copiedMarkerState, "40\n2.5\n")
+                 && copiedMarkerState.m_radius == 2.5
+                 && copiedMarkerState.m_landingGap == 0.0,
+             "GEOPOSITIONMARKER copy resets repeated-double counter");
+    ExposedGeoPositionMarker assignedMarkerState;
+    assignedMarkerState = parsedMarker;
+    t.expect(parseDxfRecords(assignedMarkerState, "40\n2.5\n")
+                 && assignedMarkerState.m_radius == 2.5
+                 && assignedMarkerState.m_landingGap == 0.0,
+             "GEOPOSITIONMARKER assignment resets repeated-double counter");
 
     DRW_Dimension sourceDimension;
     sourceDimension.extData.push_back(

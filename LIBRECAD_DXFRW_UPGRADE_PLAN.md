@@ -1950,6 +1950,13 @@ edit this block or commit the same slice concurrently.
   vectors and route/policy gates are green with no drawing fixtures.  The slice
   is committed as `36a46e1`.
 
+- Current checkpoint (2026-09-16): S334/J310 hardens transient DXF parser
+  state across public-model copies and assignments.  LWPOLYLINE vertex-count
+  admission, ATTRIB subclass routing, and GEOPOSITIONMARKER repeated-code
+  counters now reset for a fresh parser walk while persisted payloads remain
+  deep-isolated; focused hardening vectors pass and no drawing bytes or
+  derived fixtures are used.
+
 - Current checkpoint (2026-09-16): S329/J305 compound-entity graph ownership
   is committed.  Explicit copies now clone legacy POLYLINE vertices, SPLINE
   control/fit points, and INSERT attributes while resetting parser cursors;
@@ -3653,18 +3660,18 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 333 (`COMMITTED`); no slice is active.
-- Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 333 COMMITTED.
+- Resolved slices: 334 (`COMMITTED`); no slice is active.
+- Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 1 VERIFIED /
+  0 BLOCKED_HARD / 0 SUPERSEDED / 334 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 335 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 336 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 433 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 434 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  6 DEFERRED_EXTERNAL / 313 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S333 are committed; no local implementation slice is
-  active. Keep the fast inner loop and do not promote support claims from
+  6 DEFERRED_EXTERNAL / 314 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S334 are committed; no local implementation slice is active.
+  Keep the fast inner loop and do not promote support claims from
   self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
   S174/J150, S175/J151, S176/J152, S177/J153, S178/J154, and S179/J155 added
@@ -4051,6 +4058,7 @@ edit this block or commit the same slice concurrently.
 | S331 | J307: LEADER vertex graph ownership hardening | S330 | COMMITTED | LEADER copy/assignment/move contracts; vertex-graph isolation; parser-state reset; focused hardening target; fixture admission; import scope; sync; plan; diff | focused `libdxfrw_hardening_tests` passes; copy/assignment/move tests isolate vertex coordinates and inherited XDATA while preserving persisted leader state; route metadata is regenerated; no drawing bytes or derived fixtures | continue with remaining compound graph audit, target-bound differential debt, independent-oracle, native-platform, and release closure |
 | S332 | J308: live-plan counter reconciliation | S331 | COMMITTED | plan parser/check; trailer/report validation; fixture admission; diff check | parser-backed counters reconciled to 332 committed slices, 334 committed parents, 432 committed children, and 312 experimental claims; no source or drawing bytes changed | continue with target-bound differential debt, independent-oracle, native-platform, and release closure |
 | S333 | J309: post-commit checkpoint wording reconciliation | S332 | COMMITTED | plan parser/check; trailer/report validation; fixture admission; diff check | latest checkpoint now names S331 as committed at `36a46e1`; parser/report and policy checks pass; no source or drawing bytes changed | continue with target-bound differential debt, independent-oracle, native-platform, and release closure |
+| S334 | J310: transient parser-state copy isolation | S333 | COMMITTED | LWPOLYLINE, ATTRIB, and GEOPOSITIONMARKER copy/assignment parser-state reset; focused hardening target; fixture admission; import scope; sync; plan; diff | committed focused parser-state copy/assignment regressions; `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures | continue with target-bound differential debt, independent-oracle, native-platform, and release closure |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -4388,6 +4396,7 @@ edit this block or commit the same slice concurrently.
 | J307 | S331 | J306 | COMMITTED | EXPERIMENTAL | Harden LEADER vertex graph ownership | Add explicit copy/assignment/move contracts for `DRW_Leader`; deep-clone mutable vertex coordinates, reset the transient parser cursor, preserve persisted leader fields and XDATA, and retain in-memory evidence only |
 | J308 | S332 | J307 | COMMITTED | EXPERIMENTAL | Reconcile live-plan counters after S331 | Update parser-backed slice, parent, child, and claim totals after the LEADER ownership slice; preserve the post-commit report protocol without changing source or fixture bytes |
 | J309 | S333 | J308 | COMMITTED | EXPERIMENTAL | Reconcile post-commit checkpoint wording | Replace stale prepared-for-commit wording with the actual S331 commit identity; change no source or fixture bytes |
+| J310 | S334 | J309 | COMMITTED | EXPERIMENTAL | Harden transient parser-state copy and assignment | Ensure explicit copy/assignment contracts for DXF models do not inherit partially consumed subclass or repeated-code parser state; focused vectors pass; preserve persisted fields and the no-fixture policy |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4832,6 +4841,7 @@ edit this block or commit the same slice concurrently.
 | J307.1 | J307 / S331 | WP3.11-WP3.12, WP8, WP10; LEADER vertex graph ownership | J306 | COMMITTED | EXPERIMENTAL | assert LEADER copy, assignment, and move isolation for vertex coordinates, persisted leader fields, parser cursor, and inherited XDATA; keep all generated models in memory | `libdxfrw_hardening_tests` passes; route metadata and policy checks are green; no drawing bytes or derived fixtures |
 | J308.1 | J308 / S332 | WP8, WP10; live-plan counter reconciliation | J307 | COMMITTED | EXPERIMENTAL | reconcile the parser-backed live counters and report the next ready queue after S331; change no source or drawing bytes | plan checker and report validation pass; no drawing bytes or derived fixtures |
 | J309.1 | J309 / S333 | WP8, WP10; post-commit checkpoint wording reconciliation | J308 | COMMITTED | EXPERIMENTAL | assert the latest checkpoint names S331 as committed and retains the actual commit identity; change no source or drawing bytes | plan checker and report validation pass; no drawing bytes or derived fixtures |
+| J310.1 | J310 / S334 | WP3.11-WP3.12, WP8, WP10; transient parser-state copy isolation | J309 | COMMITTED | EXPERIMENTAL | assert LWPOLYLINE vertex-count, ATTRIB subclass-routing, and GEOPOSITIONMARKER repeated-code counters reset on copy/assignment while persisted payloads remain isolated; keep all inputs in memory | `libdxfrw_hardening_tests` passes; plan, fixture-admission, import-scope, sync, and diff gates remain green; no drawing bytes or derived fixtures |
 
 <!-- UPGRADE_PROGRESS_END -->
 
