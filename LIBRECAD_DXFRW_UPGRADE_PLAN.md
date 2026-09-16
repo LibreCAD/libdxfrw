@@ -49,7 +49,7 @@ still evidence for the plan rather than an implicit floating dependency. The
 implementation must query both branch tips once more, record any delta, and
 then pin an immutable commit before importing source.
 
-### Execution refresh (2026-09-15)
+### Execution refresh (2026-09-16)
 
 The implementation worktree is rebased on `origin/master` with no commits
 behind it; the exact ahead distance is emitted by each post-commit report.
@@ -60,8 +60,10 @@ refreshed the target lock, archive, manifest, source-route inventory, oracle
 registry, inventory-input lock, and support-matrix provenance. S304/J280
 reran the reviewed DWG differential-debt reports against the refreshed target
 and reconciled both registries to `0ffb38d790db53116978e01fcaf94cee9bc6ee48`.
-The latest green implementation slice is S319/J295; the hash-only target and
-independent-oracle advisory checkers are now part of the fast metadata gate.
+The latest green implementation slice is S321/J297; it completes the
+public-header closure by hiding HandleAllocator and relocating the DataStorage
+writer operation enum while keeping the hash-only target and independent-oracle
+advisory checkers in the fast metadata gate.
 Native-platform, long-fuzz, and release-closure evidence remains open.
 The worktree is clean at the last committed boundary; any subsequent active-
 slice edits are intentionally uncommitted until their narrow gate and
@@ -3612,17 +3614,17 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 321 (`COMMITTED`); no slice is active.
+- Resolved slices: 322 (`COMMITTED`); no slice is active.
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 321 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 322 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 323 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 324 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 421 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 422 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  6 DEFERRED_EXTERNAL / 301 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S321 are committed; no local implementation slice is active.
+  6 DEFERRED_EXTERNAL / 302 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S322 are committed; no local implementation slice is active.
   Remaining work is evidence-gated runtime/oracle and release closure; keep
   the fast inner loop and do not promote support claims from self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -3998,6 +4000,7 @@ edit this block or commit the same slice concurrently.
 | S319 | J295: independent AC1024 advisory reader evidence | S318 | COMMITTED | LibreDWG 0.14 `dwgread -O minJSON`; nine external AC1024 inputs; two-second bound; hash/status-only report; strict checker/CTest; no fixture admission | independent reader converts all 9/9 available external AC1024 inputs; report records only source/output hashes, sizes, versions, and status; checker self-test/live validation and focused CTest pass; evidence remains external/deferred and does not promote AC1024 support | native-platform, protected external fuzz, independent semantic oracle, and release closure |
 | S320 | J296: hide HandleAllocator from the installed public façade | S319 | COMMITTED | incomplete-type façade refactor; focused writer/Wave 1/DXF tests; staged package and relocation checks; import scope; route/support metadata regeneration; no fixture admission | `dxfRW` owns `HandleAllocator` through an out-of-line `std::unique_ptr`, preserving handle allocation and high-water behavior while removing the implementation header from `libdxfrw.h`; the route mapper now records deterministic inline/out-of-line public-symbol aliases and the regenerated support matrix has zero target-unmapped routes; fresh staged install compiles all public consumers and rejects an installed `handle_allocator.h`; no drawing bytes added | DataStorage operation enum remains a separate public-header follow-up; continue with external qualification and release closure |
 | S321 | J297: expose the DataStorage writer operation enum from the public base header | S320 | COMMITTED | public-header enum relocation; staged direct-header consumer; writer/Wave 1/DXF regressions; route/support metadata regeneration; import scope; no fixture admission | `DwgDataStorageWriterOperation` now lives in `drw_base.h` with its historical global name and values, while `intern/dwgutil.h` remains a compatibility include without owning the declaration; staged consumers compile the enum directly from `drw_base.h`, and the compatibility decision no longer leaves this dependency unresolved; no drawing bytes added | exhaustive callback/API hardening and all runtime/oracle/release evidence remain open; continue with external qualification and release closure |
+| S322 | J298: refresh live-plan status after S321 | S321 | COMMITTED | plan parser/counter reconciliation; no source or fixture changes | refreshed the execution header to identify S321/J297 as the latest green implementation slice and kept the live counts aligned at 322 slices, 324 parent items, 422 child items, and 6 deferred external claims; no drawing bytes added | no implementation state changed; continue with external qualification and release closure |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -4323,6 +4326,7 @@ edit this block or commit the same slice concurrently.
 | J295 | S319 | J294 | COMMITTED | DEFERRED_EXTERNAL | Capture independent AC1024 advisory reader evidence | Run LibreDWG 0.14 `dwgread -O minJSON` over the available external AC1024 corpus under a two-second bound, retain hashes/statuses only, and keep the result advisory until an eligible or locally authored positive exists |
 | J296 | S320 | J295 | COMMITTED | EXPERIMENTAL | Hide HandleAllocator from the installed public façade | Move the allocator-dependent dxfRW operations out-of-line behind an incomplete-type ownership boundary, remove the implementation header from the staged public prefix, and preserve the existing writer behavior and package consumers |
 | J297 | S321 | J296 | COMMITTED | EXPERIMENTAL | Expose the DataStorage writer operation enum from the public base header | Move `DwgDataStorageWriterOperation` from `intern/dwgutil.h` to `drw_base.h` without changing its global spelling or underlying values, compile it through the installed foundational header, retain the compatibility include for existing consumers, and update provenance/plan metadata without adding drawing bytes |
+| J298 | S322 | J297 | COMMITTED | EXPERIMENTAL | Refresh live-plan status after S321 | Reconcile the execution-refresh prose and parser-backed slice/parent/child/claim totals after the S321 public-header cleanup, changing no source or fixture bytes |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4755,6 +4759,7 @@ edit this block or commit the same slice concurrently.
 | J295.1 | J295 / S319 | WP5, WP8, WP10; independent AC1024 advisory reader | J294 | COMMITTED | DEFERRED_EXTERNAL | validate the hash-only LibreDWG AC1024 report with strict provenance, nine unique source/output hashes, successful statuses, tamper-negative self-tests, and a metadata-only CTest hook without reading or staging external DWG bytes | checker self-test/live validation and focused CTest pass; 9/9 AC1024 rows are converted, but the report remains advisory and no support row is promoted |
 | J296.1 | J296 / S320 | WP1, WP4, WP8, WP10; installed public-header closure and deterministic route mapping | J295 | COMMITTED | EXPERIMENTAL | remove the public `handle_allocator.h` include by moving `reserveHandle` and `highWaterHandle` out-of-line behind an incomplete-type `std::unique_ptr`, teach the source-route mapper to disambiguate duplicated inline/declaration-only public symbols by source span, regenerate the route inventory/support matrix, reinstall from a clean prefix, compile every public header and relocated CMake/pkg-config consumer, and retain no drawing bytes | writer primitives, Wave 1, DXF fixtures, staged package, relocation smoke, import-scope, route-inventory, parity-aggregate, support-matrix, release-readiness, speed, fixture-admission, sync, and diff checks pass; target-unmapped routes remain zero, installed `handle_allocator.h` is rejected, and the DataStorage operation enum remains an explicit follow-up |
 | J297.1 | J297 / S321 | WP1, WP4, WP8, WP10; public enum/header closure | J296 | COMMITTED | EXPERIMENTAL | move the global `DwgDataStorageWriterOperation` declaration into `drw_base.h`, remove its duplicate from `intern/dwgutil.h`, compile direct `drw_base.h` consumers with stable ordinal assertions, retain existing `dwgutil.h` include compatibility, refresh route/support metadata, and retain no drawing bytes | writer-version, graph-preservation, staged-package, route-inventory, parity-aggregate, support-matrix, release-readiness, import-scope, sync, fixture-admission, plan, and diff checks pass; enum values remain 0..33 and the compatibility-decision unresolved list no longer contains the enum relocation |
+| J298.1 | J298 / S322 | WP8, WP10; live-plan bookkeeping | J297 | COMMITTED | EXPERIMENTAL | update the execution-refresh date/latest-slice prose and parser-backed state totals after S321, verify plan consistency, and retain no source or fixture changes | plan check passes; the current header names S321/J297 as latest and reports 322 committed slices, 324 committed parents, 422 committed children, and 6 deferred external claims |
 
 <!-- UPGRADE_PROGRESS_END -->
 
