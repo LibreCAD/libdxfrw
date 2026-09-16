@@ -776,22 +776,37 @@ std::string dwgBuffer::get8bitStr(){
     return str;
 }
 
-//internal since 2007 //pending: are 2 bytes null terminated??
-//nullTerm = true if string are 2 bytes null terminated from the stream
+//internal since 2007
+//nullTerm = true if the stream may carry a two-byte terminator after the
+//declared units.  Some writers include the terminating code unit in the TU
+//length while others encode the length of the text and append the terminator.
+//Read the declared units first, then consume an extra terminator only when it
+//is actually present.  This keeps the cursor aligned for either representation
+//without allowing a speculative truncated read to poison the publishing
+//buffer.
 std::string dwgBuffer::get16bitStr(std::uint16_t textSize, bool nullTerm){
     if (textSize == 0)
         return std::string();
     const std::uint32_t byteCount = static_cast<std::uint32_t>(textSize) * 2;
-    const std::uint32_t readCount = byteCount + (nullTerm ? 2U : 0U);
     std::vector<std::uint8_t> tmpBuffer;
     if (!DRW::resize(tmpBuffer, static_cast<int>(byteCount + 2)))
         return std::string();
-    bool good = getBytes(tmpBuffer.data(), readCount);
-    if (!good)
+    if (!getBytes(tmpBuffer.data(), byteCount))
         return std::string();
-    if (!nullTerm) {
-        tmpBuffer[byteCount] = '\0';
-        tmpBuffer[byteCount + 1] = '\0';
+
+    std::uint32_t readCount = byteCount;
+    if (nullTerm
+        && (tmpBuffer[byteCount - 2] != 0 || tmpBuffer[byteCount - 1] != 0)) {
+        // Probe on an independent cursor.  A failed probe (including EOF)
+        // must not make an otherwise valid length-delimited TU unreadable.
+        dwgBuffer probe = forkIndependent();
+        std::uint8_t terminator[2] = {0, 0};
+        if (probe.getBytes(terminator, 2)
+            && terminator[0] == 0 && terminator[1] == 0) {
+            if (!getBytes(tmpBuffer.data() + byteCount, 2))
+                return std::string();
+            readCount += 2;
+        }
     }
     std::string str(reinterpret_cast<char*>(tmpBuffer.data()), readCount);
 

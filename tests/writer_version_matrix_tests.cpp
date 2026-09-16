@@ -7,6 +7,7 @@
 #include "drw_base.h"
 #include "intern/dwgbuffer.h"
 #include "intern/dwgbufferw.h"
+#include "intern/drw_textcodec.h"
 #include "intern/dwgwriter15.h"
 #include "intern/dwgwriter18.h"
 #include "intern/dwgwriter21.h"
@@ -81,13 +82,52 @@ void testVersionedText(TestContext& t) {
         t.expect(writer.isGood() && raw == expectedRaw && reader.isGood(),
                  "versioned TU raw framing "
                      + std::to_string(static_cast<int>(version)));
+
+        DRW_TextCodec codec;
+        codec.setVersion(version, false);
         dwgBuffer semanticReader(
             const_cast<std::uint8_t*>(writer.data().data()),
-            writer.data().size());
+            writer.data().size(), &codec);
         const std::string semantic = semanticReader.getVariableText(version);
-        t.expect((semantic == "writer-A")
-                     || (semantic.empty() && !semanticReader.isGood()),
-                 "versioned TU semantic path is correct or fail-closed "
+        t.expect(semantic == "writer-A" && semanticReader.isGood(),
+                 "versioned TU semantic path accepts inline terminator "
+                     + std::to_string(static_cast<int>(version)));
+
+        // The ODA description defines TU as a length followed by N Unicode
+        // characters; exercise the alternate length-excludes-terminator form
+        // as well.  The adaptive reader must consume the following UTF-16 NUL
+        // without consuming any subsequent field.
+        dwgBufferW lengthOnly;
+        lengthOnly.putBitShort(8);
+        for (const char c : std::string("writer-A")) {
+            lengthOnly.putRawChar8(static_cast<std::uint8_t>(c));
+            lengthOnly.putRawChar8(0);
+        }
+        lengthOnly.putRawChar8(0);
+        lengthOnly.putRawChar8(0);
+        lengthOnly.putRawChar8(0x7f);
+        dwgBuffer lengthOnlyReader(
+            const_cast<std::uint8_t*>(lengthOnly.data().data()),
+            lengthOnly.data().size(), &codec);
+        t.expect(lengthOnlyReader.getVariableText(version) == "writer-A"
+                     && lengthOnlyReader.isGood()
+                     && lengthOnlyReader.getRawChar8() == 0x7f
+                     && lengthOnlyReader.isGood(),
+                 "versioned TU semantic path accepts trailing terminator "
+                     + std::to_string(static_cast<int>(version)));
+
+        dwgBufferW noTerminator;
+        noTerminator.putBitShort(8);
+        for (const char c : std::string("writer-A")) {
+            noTerminator.putRawChar8(static_cast<std::uint8_t>(c));
+            noTerminator.putRawChar8(0);
+        }
+        dwgBuffer noTerminatorReader(
+            const_cast<std::uint8_t*>(noTerminator.data().data()),
+            noTerminator.data().size(), &codec);
+        t.expect(noTerminatorReader.getVariableText(version) == "writer-A"
+                     && noTerminatorReader.isGood(),
+                 "versioned TU semantic path tolerates absent terminator "
                      + std::to_string(static_cast<int>(version)));
     }
 }

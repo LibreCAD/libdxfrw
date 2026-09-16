@@ -83,6 +83,13 @@
       "adaptedSha256": "4558d6d77acd869bc633103926633082f4226b8824ceb97314063ae73c5936a4"
     },
     {
+      "path": "src/intern/dwgbuffer.cpp",
+      "reason": "Accept both R2007+ TU length conventions by reading the declared UTF-16 units first and probing an optional trailing UTF-16 NUL on an independent cursor, preserving fail-closed behavior for truncated streams.",
+      "scope": "DWG TU text framing compatibility",
+      "targetBlob": "e70e5fdbef6bc187850c1eb02689c39f254d4f96",
+      "adaptedSha256": "a75f4eb808072e4e39b07783ba7a9b3644cb6c0059af89802b71f4b668b23875"
+    },
+    {
       "path": "src/drw_datastorage.cpp",
       "reason": "Remove an unused readSchemaNames parameter exposed by standalone -Werror compilation; parsing behavior is unchanged.",
       "scope": "warning hygiene",
