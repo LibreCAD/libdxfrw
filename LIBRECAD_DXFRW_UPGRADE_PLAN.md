@@ -1940,6 +1940,12 @@ edit this block or commit the same slice concurrently.
   current tables contain 297 slices, 299 parents, and 397 children. The
   execution-refresh prose and F1.1a disposition no longer describe stale
   pre-S296 state. This is metadata-only and adds no source or drawing bytes.
+- Current checkpoint (2026-09-15): S299/J275 post-section-name full
+  validation is committed. Because S298 changed the AC1021 section-map reader,
+  fresh normal and ASan/UBSan builds reran all 28 dependency-free CTest
+  entries: 28/28 passed in 6.13s and 13.33s respectively, with macOS leak
+  detection disabled. No source or drawing bytes changed in this checkpoint;
+  target-debt, independent-oracle, and native-platform evidence remain open.
 - Current checkpoint (2026-09-15): S298/J274 section-name framing
   compatibility is committed. The AC1021 section-map byte-length guard now
   accepts a valid one-code-unit UTF-16 name, strips only NUL code units that
@@ -3489,17 +3495,17 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 298 (`COMMITTED`); no slice is active.
+- Resolved slices: 299 (`COMMITTED`); no slice is active.
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 298 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 299 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 300 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 301 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 398 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 399 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   3 DEFERRED_EXTERNAL / 281 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S298 are committed; no local implementation slice is active.
+- Active work: S01-S299 are committed; no local implementation slice is active.
   Remaining work is evidence-gated runtime/oracle and release closure; keep
   the fast inner loop and do not promote support claims from self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -3852,6 +3858,7 @@ edit this block or commit the same slice concurrently.
 | S296 | J272: TU terminator framing compatibility | S295 | COMMITTED | authoritative local ODA TU layout review; adaptive reader probe; six-version writer matrix; focused DWG safety/round-trip checks; no fixture admission | R2007+ TU reads accept both declared-length forms without poisoning a truncated probe; codec-backed semantic tests, hardening, reader matrix, local round-trip, and temporary AC1021 conversions pass; no drawing bytes are added | continue with target-debt review, independent oracle qualification, and release closure |
 | S297 | J273: live-plan status refresh | S296 | COMMITTED | parser-backed post-S296 counter audit; stale prose correction; no fixture admission | updater-backed parsing reconciles 296/298/396 pre-slice values and 297/299/397 current committed execution states; execution-refresh and F1.1a text are aligned with current state, and plan/policy checks pass; no source or drawing bytes are changed | S298: section-name framing compatibility |
 | S298 | J274: section-name framing compatibility | S297 | COMMITTED | ODA-backed UTF-16 section-name boundary; one-code-unit acceptance; declared-NUL normalization; fixture-free focused DWG reader test; plan/scope/sync/fixture gates | `libdxfrw_dwg_reader_matrix_tests`, hardening, Wave 1, DWG fixtures, support-matrix, and release-readiness checks pass; ODA-backed one-code-unit and declared-NUL vectors preserve sentinels and reject odd lengths; no external or derived drawing bytes | target-debt review, independent oracle qualification, and release closure |
+| S299 | J275: post-section-name full validation checkpoint | S298 | COMMITTED | fresh normal and ASan/UBSan builds; all 28 dependency-free CTest entries; macOS leak policy; no fixture changes | fresh normal build and CTest pass 28/28 in 6.13s; fresh ASan/UBSan build and CTest pass 28/28 in 13.33s with `detect_leaks=0`; S298 reader changes remain green and no drawing bytes changed or were added | target-debt review, independent oracle qualification, native-platform, long-fuzz, and release closure |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -4154,6 +4161,7 @@ edit this block or commit the same slice concurrently.
 | J272 | S296 | J271 | COMMITTED | EXPERIMENTAL | Resolve TU terminator framing compatibility | Use the local ODA TU definition and an independent-cursor probe to accept both length-includes-terminator and length-excludes-terminator streams, add codec-backed six-version semantic vectors plus a trailing-field alignment check, and keep external support promotion separate without adding drawing fixtures |
 | J273 | S297 | J272 | COMMITTED | EXPERIMENTAL | Refresh live-plan status after S296 | Reconcile parser-backed slice/parent/child counts and stale checkpoint/disposition prose after S296 without changing implementation or fixture bytes |
 | J274 | S298 | J273 | COMMITTED | EXPERIMENTAL | Close R2007+ section-name framing boundary | Update the UTF-16 section-name length guard and declared-NUL normalization from the ODA section-map contract; add a synthetic one-code-unit reader vector with sentinel alignment and malformed-length negatives, without external or derived drawing bytes |
+| J275 | S299 | J274 | COMMITTED | EXPERIMENTAL | Revalidate the full suite after section-name framing changes | Rebuild normal and ASan/UBSan configurations and run all 28 dependency-free CTest entries after the S298 AC1021 reader change; record timing and the macOS leak-detection limitation without adding drawing fixtures |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4563,6 +4571,7 @@ edit this block or commit the same slice concurrently.
 | J272.1 | J272 / S296 | WP5, WP7, WP8, WP10; TU framing compatibility | J271 | COMMITTED | EXPERIMENTAL | run codec-backed six-version TU semantic vectors for both declared-length forms, verify a trailing field remains readable, and preserve the no-fixture policy | `libdxfrw_writer_version_matrix_tests`, DWG hardening, reader matrix, local round-trip, and temporary external AC1021 conversion checks pass; the local ODA definition is recorded, no drawing bytes are retained, and independent support promotion remains separate |
 | J273.1 | J273 / S297 | WP8, WP10; live-plan status refresh | J272 | COMMITTED | EXPERIMENTAL | parse the live block after S296 and align counters, execution-refresh prose, and F1.1a wording without changing source or fixture bytes | parser-backed audit reconciles 296/298/396 pre-slice values and reports 297/299/397 current committed execution states; plan, fixture, scope, sync, parity, release-readiness, speed, and diff checks pass |
 | J274.1 | J274 / S298 | WP3, WP5, WP8, WP10; R2007+ section-map UTF-16 framing | J273 | COMMITTED | EXPERIMENTAL | accept a valid two-byte one-code-unit section name, strip only declared trailing UTF-16 NUL code units, preserve the following sentinel, and reject odd/truncated lengths transactionally without drawing fixtures | `libdxfrw_dwg_reader_matrix_tests`, hardening, Wave 1, DWG fixtures, support-matrix, and release-readiness checks pass; no external or derived drawing bytes |
+| J275.1 | J275 / S299 | WP8, WP10; post-section-name full validation checkpoint | J274 | COMMITTED | EXPERIMENTAL | rebuild normal and ASan/UBSan configurations and run all 28 dependency-free CTest entries after S298, retaining the macOS leak-detection limitation and no-fixture policy | normal CTest 28/28 in 6.13s and ASan/UBSan CTest 28/28 in 13.33s with `detect_leaks=0`; no drawing bytes changed or were retained |
 
 <!-- UPGRADE_PROGRESS_END -->
 
