@@ -739,55 +739,132 @@ next acquisition or local-generation action, run specification/helper/runtime-
 generated tests and any external advisory corpus, then continue with the next
 dependency-ready implementation slice.
 
-### External-only advisory evidence deep review (2026-09-16)
+### External advisory resolution and qualification replacement (2026-09-16)
 
-Six evidence-only items remain intentionally `DEFERRED_EXTERNAL`: `J256`,
-`J260`, `J268`, `J284`, `J293`, and `J295`.  The reports are useful for
-triage, regression discovery, and deciding what evidence to acquire next, but
-none can change a support-matrix row to `QUALIFIED_FORMAT_PARITY`, `PROMOTED`,
-or an advertised status.  This is a claim boundary, not an implementation
-failure; the six rows are committed and do not block dependency-ready code
-work.
+S382/J358 preserves the six aggregate advisory rows as **immutable historical
+receipts, not support claims**.  `J256`, `J260`, `J268`, `J284`, `J293`, and
+`J295`, plus their committed children, remain `DEFERRED_EXTERNAL`; changing a
+committed claim disposition would rewrite history.  Their resolution is
+instead explicit successor metadata: each report becomes
+`archivedNonPromoting`, names `supersededBy`, is rejected by every promotion
+gate, and stops consuming implementation time.  None is a release blocker and
+none should be rerun merely to refresh a conversion percentage.  New,
+feature-scoped candidate evidence and the only actionable hosted gate are
+scheduled in J359-J364 below.
 
-| Item | Inputs and observed result | Deep-review finding | Disposition and exact unblock condition |
+The byte-level audit found that the apparently separate private-corpus runs
+mostly repeat one data set.  Set digests below are SHA-256 over the
+LF-terminated, sorted unique source hashes.
+
+| Item | Audited corpus/result | Resolution |
+| --- | --- | --- |
+| J256 / S280 | 20 unique inputs, but only 16 are DWGs; set digest `e09d421cd501801f925984e52e7d1626b47b6e6c08a7b2903d02109cb40b1538`.  Ten have reproducible public origins, zero match commits reachable from the audited local LibreCAD/libdxfrw heads, remotes, or tags, and all 20 occur in J260/J293. | Retain `DEFERRED_EXTERNAL`; mark the receipt `archivedNonPromoting` and superseded by J359's durable resolution record.  It adds no unique current signal. |
+| J260 / S284 | 29 paths are 28 unique byte streams and 24 actual DWGs; set digest `741bb8e2fb2468a3aa40e1ab8dda9d9738538337a879315cf104687bdd3063b7`.  One 522-byte AC1021 input is duplicated; four `#*.dwg` paths are ASCII DXF; 18/24 real DWGs have reproducible public origins but zero satisfy repository-fixture admission. | Retain `DEFERRED_EXTERNAL`; archive it behind J293 for operational history and J359 for reproducibility.  Exclude the duplicate and mislabeled DXFs from every future DWG denominator. |
+| J268 / S292 | The historical note identifies the same 28-path inventory used by the surrounding private-corpus runs and records zero coarse regressions plus five improvements.  No durable row report survived, so exact historical byte-set equality and a set digest are unprovable. | Retain `DEFERRED_EXTERNAL` as coarse non-support triage; do not claim a replay.  J360 supplies a new reproducible normalized differential over eligible inputs, and J361/J362 supply field-level independent evidence. |
+| J284 / S308 | Its 21 hashes (set digest `93761f9ea5325b55be657baa72be740e12962f42560d165cf994ec763c937af8`) exactly match the committed target-versus-standalone report, which is 21/21 byte- and summary-equal.  Only `large_radial.dwg`, `mpolygon_solid.dwg`, and `rtext_arctext.dwg` exactly match the current admitted fixture registry; the other 18 are historical LibreCAD `3c028612` blobs that are not currently admitted. | Retain `DEFERRED_EXTERNAL` for the 21-file conversion aggregate.  J361 may establish candidate fields only from the three admitted blobs; the other 18 cannot enter a current claim unless separately admitted and qualified. |
+| J293 / S317 | Same 29 paths/28 unique hashes as J260: 20 converted, 8 failed, 1 timed out.  The only changes from J260 are two AC1021 block/table hashes moving from failed to converted. | Retain `DEFERRED_EXTERNAL` as the last coarse monitoring receipt, archive it through J359, and do not schedule another percentage refresh. |
+| J295 / S319 | Exactly the nine AC1024 hashes inside J260/J293; set digest `7f6a09903097f45ac0368270c724f33ae95d9e9b277e7fc2f228d6f95dd6d897`.  All nine exactly match official Autodesk downloads, but none is a repository-admitted fixture.  LibreDWG `minJSON` is compact JSON, not a weaker format; the report is insufficient because it retained only hashes/status and never checked fields. | Retain `DEFERRED_EXTERNAL` and archive the receipt.  J362 uses a local-from-scratch AC1024 input, full parsed JSON, exact field inclusions/exclusions, and integrity diagnostics. |
+
+The four mislabeled inputs are `#Pool_Detail.dwg`,
+`#blocks_and_tables_-_metric.dwg`, `#mechanical_example-imperial.dwg`, and
+`#title_block-iso.dwg`.  Their bytes start with DXF group codes and
+`$ACADVER`; treat them only as invalid-input/type-sniffing cases.  After
+deduplication and format validation, the full private set is 24 unique real
+DWGs: 18 have reproducible public origins (17 Autodesk samples and one
+ET-hosted drawing linked from a page marked CC BY 4.0, pending explicit
+artifact-license confirmation), while six remain unresolved.  Public download provenance is
+useful for protected external monitoring but does not meet this plan's stricter
+LibreCAD/libdxfrw-blob or local-from-scratch admission rule.
+
+The apparent 16-unique-blob/17-path libdxfrw match from
+`git rev-list --objects --all` was a false positive: the objects occur only below two Codex snapshot refs whose
+target is a tree, not a commit, and the corresponding `tests/samples/` path is
+untracked.  Searches restricted to commits reachable from heads, remotes, and
+tags find zero matching private-corpus blobs in either complete repository.
+Never use tool-owned snapshot refs, stashes, reflogs, or untracked worktree
+content as repository provenance.
+
+#### Replacement qualification DAG
+
+| Item | Scope | Fast implementation-ready gate | Promotion boundary |
 | --- | --- | --- | --- |
-| J256 / S280 | Twenty developer-local `/Users/dli/doc/dwg` inputs: 10 converted, 9 failed, 1 timed out. | The corpus is private/untracked and the result keeps only hashes/statuses.  A bounded conversion exit does not establish typed semantics, callback publication, graph closure, preservation, or target equivalence. | Keep `DEFERRED_EXTERNAL`.  Promote only after an eligible locked blob or clean-room local case is admitted, target and standalone are run with identical options, normalized semantics/carriers/graphs/errors are compared, and an independent reader/auditor covers the claimed fields. |
-| J260 / S284 | All 29 available external inputs: 18 converted, 10 failed, 1 timed out; all 9 AC1024 inputs converted. | The AC1024 non-reproduction is useful diagnosis, not proof that the historical class-parser anomaly is fixed for the format.  External paths and generated outputs remain outside Git. | Keep `DEFERRED_EXTERNAL`.  Re-run only on the advisory cadence; require an admitted or local-from-scratch positive plus target differential and independent semantic/preservation evidence before any claim change. |
-| J268 / S292 | Twenty-eight-input baseline-vs-upgraded sweep: zero baseline-success/current-failure regressions, five improvements, and one bounded timeout where both sides were non-success. | The sweep compares coarse outcomes only.  It cannot distinguish a semantic loss from a conversion success, and it cannot make an external corpus eligible. | Keep `DEFERRED_EXTERNAL`.  Unblock with an eligible same-input differential that compares records, callbacks, carriers, ownership, and first-failure stage, followed by the required independent reader/auditor review. |
-| J284 / S308 | LibreDWG 0.14 `dwg2dxf` over 21 top-level DWGs from LibreCAD commit `3c028612dd8e75d98692ac346635c190500eea94`: 21/21 conversions under a 10-second bound; hashes/statuses only. | The source blobs are traceable to a LibreCAD Git commit and are candidates for locked-repository provenance, but this item is still an external-only **independent-tool** report.  LibreDWG documents skipped advanced R2010+ objects and known R2010–R2018 writer CRC limitations; a conversion success is therefore not a complete semantic oracle.  The later LibreCAD history also removed external/unresolved corpus files from PR testdata. | Keep `DEFERRED_EXTERNAL`; do not reinterpret repository provenance as qualification.  Unblock only after the exact input blobs have an admission record (or a local clean-room substitute), the target/standalone differential covers semantics/callbacks/raw carriers/graphs/errors, and an independent reader/auditor with a complete field contract confirms the promoted rows. |
-| J293 / S317 | Current converter over 29 external inputs: 20 converted, 8 failed, 1 timed out; all 9 AC1024 inputs converted. | This is a repeatability/status refresh.  It supplies no eligible positive fixture and no field-level or target-vs-standalone semantic proof; AC1024 success remains advisory. | Keep `DEFERRED_EXTERNAL`.  The next run may refresh hashes/statuses, but promotion requires the same admission, normalized differential, independent-oracle, and preservation gates as J260. |
-| J295 / S319 | LibreDWG 0.14 `dwgread -O minJSON` over 9 external AC1024 inputs: 9/9 converted, source/output hashes only. | `minJSON` and exit status establish reader availability and non-reproduction only; they do not prove complete AC1024 object fields, callbacks, ownership, preservation, or error-stage parity. | Keep `DEFERRED_EXTERNAL`.  Require an admitted/local AC1024 positive, a full semantic contract (not `minJSON` alone), target-vs-standalone comparison, and an independent reader/auditor before changing any support row. |
+| J359 / S383 | Add a durable evidence-resolution manifest/checker.  Store per-hash aliases, detected magic/version, duplicate relationships, report counts, four distinct set digests for J256, J260/J293, J284, and J295, `membershipBasis: observed|reconstructed`, and evidence date; J268 must be reconstructed with no exact membership/digest.  Every hash, including the six unresolved ones, receives an origin/provenance/admission disposition; public-origin rows additionally record URL or repository commit/path/blob, publisher and artifact-license state, and audited local ref tips.  Record J284's 21-hash join and three admitted fixture IDs.  Make `run_external_advisory.py` classify and content-deduplicate before applying `--limit`, with separate path, unique-stream, DWG, and non-DWG counts. | Checker self-test/live check, runner self-test with synthetic duplicates/mislabeled inputs/limit-order cases, fixture-admission, plan, and diff only. | Every old report remains historically `DEFERRED_EXTERNAL` but is `archivedNonPromoting` with `supersededBy`; the registry rejects support-state or promotion fields. |
+| J360 / S384 | Implement normalized-differential schema v2, not another conversion-status sweep.  Compile one adapter/schema source against pinned target and standalone packages and bind target lock/archive, adapter source/config/binary, and linked-library-closure digests.  Required, even when empty: input/provenance and adapter identities, status, ordered callbacks, normalized records/typed fields, handle/owner/block graph edges, opaque carriers with source/size/SHA-256/disposition, unsupported-content dispositions, diagnostics, and first-failure stage/code/path.  Enforce schema types, finite numbers, stable IDs, cross-reference validity, uniqueness, and declared cardinalities.  Replace placeholder commands in the generic manifest with deterministic build/run targets. | Adapter/schema self-test, target/standalone same-input positive, callback-order/graph/carrier/diagnostic negative vectors, deterministic double-run, plan, fixture, and diff; compare each value as `exact`, `toleranceNormalized`, `reviewedTargetDebt`, `excluded`, or `mismatch`. | This is shared evidence infrastructure only.  Missing/extra records, callbacks, edges, carriers, unsupported dispositions, or diagnostics fail closed.  Only `exact`/proved `toleranceNormalized` outcomes can feed a claim; reviewed debt/exclusion never promotes.  It neither replays J268 nor promotes a format. |
+| J361 / S385 | Use J360 plus pinned LibreDWG full JSON on the three admitted J284 fixtures to establish candidate field evidence.  RTEXT has three separate initial claims: `recordClass=RTEXT↔entity=RTEXT`, normalized `handle↔handle`, and `text↔text_value`; identity never implies text.  The MPOLYGON crosswalk is exactly `solid↔is_solid_fill`, `associative↔is_associative`, `name↔name`, `hpattern↔pattern_type`, `basePoint.z↔elevation`, and `extPoint.{x,y,z}↔extrusion.{x,y,z}`, with per-field tolerances.  Exclude `color`/`hatch_color` until an ACI-to-RGB/entity-color normalization is independently proved; keep LARGE_RADIAL identity-only and ARCALIGNEDTEXT payload non-qualifying. | Focused three-fixture field checker, identical target/standalone options, graph/preservation/error assertions, malformed-case negatives, and deterministic rerun; no full suite. | Evidence remains `EXPERIMENTAL`/`PENDING_NATIVE`.  No fixture-, version-, or whole-format claim can be promoted here. |
+| J362 / S386 | Replace J295 with the existing six-version local-from-scratch generator, J360, pinned LibreDWG full JSON, and an explicit AC1024 high-bit-classes case.  Before invoking the oracle, freeze `metadata/ac1024-candidate-fields-v1.json` with exact claim keys, expected values/tolerances, and provenance; fields discovered later require a new child/rerun.  Current trace proves `maxClassNum=1328` and class-string size `536312`, but reports `readDwgClasses CRC mismatch: calc=0x1db3 read=0x10`.  Repair the emitted/read range or prove from ODA v5.4.1 that the checker algorithm/range is wrong and fix the checker.  Require `getClassesCrcMismatch()==0`, no `ClassesCrc` integrity diagnostic, zero dropped diagnostics, and a test-side ODA-specified raw-range/parameter recomputation that does not call production CRC helpers and equals the stored CRC. | `libdxfrw_dwg_local_roundtrip`, reader-matrix and diagnostic tests; pinned-oracle field contract; J360 target/standalone differential.  Generated DWG/JSON stays temporary. | Self-read is reachability only.  Candidate evidence covers only predeclared independently parsed fields; bind each of the 34 discrepancies in the current AC1024 run by stable ID, field scope, outcome, and oracle-dependency digest and keep it excluded until resolved. |
+| J363 / S387 | Add digest-scoped `metadata/qualified-format-claims-v1.json` for immutable claim definitions/evidence and per-route non-empty `requiredClaimIds`, plus digest-excluded `metadata/qualified-format-status-v1.json` for status/receipt references, with a fail-closed join checker, native receipt schema/emitter/checker, and final workflow.  Candidate statuses may be only `EXPERIMENTAL` or `PENDING_NATIVE`.  Freeze `metadata/qualification-required-tests-v1.json`: seven focused CTest IDs per platform (`libdxfrw_dwg_local_roundtrip`, `libdxfrw_dwg_reader_matrix`, `libdxfrw_diagnostic`, `libdxfrw_dwg_fixtures`, `libdxfrw_qualified_differential_v2`, `libdxfrw_qualified_semantic_fields`, `libdxfrw_qualified_support_metadata`) plus the complete broad-test inventory/count digest.  Replace full CTest on every push/PR OS with those focused jobs; retain one manual/final three-OS broad matrix.  Pin third-party actions by full-length commit SHA and record explicit label, OS/architecture, image, compiler, CMake, environment, tests, and conclusion. | Checker negative/self-tests, seven-test focused local job equivalent, workflow lint, live candidate ledger, release-readiness, fixture policy, plan, and diff. | Reject archived reports, external-only origins, self-read as independence, identity-only payload claims, unresolved integrity diagnostics, silent loss, stale digests, blanket claims, partial/empty/duplicate route requirements, or skipped/not-run/omitted focused tests.  Freeze implementation plus immutable-claims digests only after every scoped tool/workflow/contract change is complete. |
+| J364 / S388 | Execute the unchanged J363 implementation and immutable-claims digests natively on Ubuntu/GCC, macOS/Clang, and Windows/MSVC.  Verify—not merely trust—each receipt through the GitHub run/jobs/artifacts APIs: bind repository, workflow path/blob, head commit, run ID/attempt/job, conclusion, both digests, runner OS/architecture/image, whitelisted build-affecting environment, exact required test IDs/counts with zero skipped/not-run, and downloaded artifact ID/archive SHA-256/content.  Accept exactly one successful manual three-OS broad matrix for the final digest; retain and permit retries only for canceled/infrastructure-failed attempts, while any build/test semantic failure requires a repair slice and new digest.  This slice may add only receipt metadata and status/receipt-reference overlay updates. | Three same-digest seven-test focused receipts, API/artifact/test-manifest checker, one accepted successful manual three-OS broad matrix, release-readiness, plan, fixture, and diff. | Hosted execution is the only new external gate.  Promote only exact rows whose complete local and hosted evidence passes; reject any immutable claim mutation.  Any code/tool/workflow/claim repair invalidates old receipts and immediately resumes other ready work. |
 
-The provenance and tool audit supports four additional rules:
+J360 follows the quick metadata hygiene in J359.  J361 and J362 then run in
+parallel on the shared differential; J363 joins their candidate evidence and
+freezes the complete local implementation/workflow; J364 executes that exact
+digest.  A failure appends a repair/exclusion child and immediately continues
+the other ready lane.  No external corpus refresh blocks implementation.
 
-1. The LibreCAD testdata directory and commit history are evidence sources,
-   not automatic support grants.  Commits `886a407d4`, `9058f2999`, and
-   `2db274d59` deliberately remove external or unresolved DWG fixtures from PR
-   testdata, while `904856fa5` adds explicitly curated/local pre-R13 coverage.
-   The exact source commit, path, blob, hash, size, and license must still be
-   recorded before a blob is admitted.
-2. LibreDWG is a valuable independent cross-check, but its own README says
-   advanced R2010+ objects may be skipped and that R2010--R2018 writing still
-   has CRC errors.  Its test workflow filters generated DXF before comparing
-   only when a reference exists, and its maintainers describe some real-DWG
-   value checks as non-strict.  Those facts make it evidence, not a sole
-   promotion oracle.
-3. Hash-only reports, conversion counts, non-reproduction, and timeout
-   classifications are non-reconstructive metadata.  They must never be
-   converted into fixture bytes, a generated derivative, or a support claim.
-4. A future promotion review must attach all four gates: eligibility and
-   provenance, target-vs-standalone normalized behavior, independent
-   reader/auditor coverage, and preservation/unsupported-content review.  If
-   any gate is unavailable, finish safe implementation work, leave the row
-   `DEFERRED_EXTERNAL` or `EXPERIMENTAL`, record the exact unblock condition,
-   and continue the next ready lane.
+The implementation digest is SHA-256 over LF-terminated records
+`path\0mode\0Git-blob-id\n`, sorted by the UTF-8 bytes of `path`.  A versioned,
+checked manifest enumerates every tracked input: root and `cmake/` build files,
+`src/`, `dwg2dxf/`, `tests/`, the exact qualification tools/schemas/contracts,
+target/fixture locks, and `.github/workflows/build.yml`.  It excludes plan and
+release prose, generated reports, `metadata/qualification-receipts/`, and the
+status/receipt overlay so J364 can attach receipts and promote rows without
+pretending to qualify a new implementation.  The immutable claims manifest is
+digest-scoped and separately content-hashed; every native receipt binds both
+digests, and J364 rejects any change outside overlay `status` and
+`receiptRefs`.  The versioned input-manifest definition is itself digest-scoped
+but contains no recorded digest; digest values live only in the excluded
+overlay/receipts, avoiding self-reference.  Every immutable-claim `evidenceId`
+must resolve to evidence embedded in that claims file or a tracked artifact
+named by SHA-256 and included in the implementation input manifest; excluded
+generated reports can be informational only.  The implementation checker
+rejects a missing, extra, changed, untracked, or non-regular digest-scoped
+input or unresolved evidence reference.
 
-Authoritative references for this disposition are the [LibreCAD testdata
+One immutable claim row represents exactly one canonical tuple:
+`facade, format, direction, ACVersion, recordKind, recordClass, fieldPath,
+contractKind`, where `contractKind` is one of value-read, value-write,
+callback-order, ownership-edge, opaque-preservation, or first-failure.  Its
+ID input is the fields in that order, encoded as UTF-8 NFC, rejecting NUL/LF,
+joined by NUL bytes and terminated by LF; its stable ID is SHA-256 of those
+bytes.  The claim maps to explicit
+support-matrix route IDs, provenance, tolerance, and evidence IDs.  No row
+implies sibling fields, another record class/version/direction, fixture-wide
+support, or whole-format support.
+
+The existing support matrix remains the source/route inventory; the joined
+immutable-claims manifest plus status overlay is the sole qualification
+authority.  The digest-scoped claims manifest carries an immutable non-empty
+`requiredClaimIds` set for each potentially advertised route.  J363's checker
+reconciles both directions: every claim route exists, every required ID names
+a claim for that route, and a support-matrix row is advertised only when every
+member of its exact required set is `PROMOTED`.  Empty, partial, duplicate,
+unknown, wrong-route, or unexpected promoted-claim sets fail closed; one field
+can never promote the broader route.  Release documentation is generated or
+checked from that join.  Any second
+writable promotion field or disagreement fails release readiness.  Overlay
+statuses are exactly `EXPERIMENTAL`, `PENDING_NATIVE`, or `PROMOTED`; only a
+joined `PROMOTED` row is rendered as `QUALIFIED_FORMAT_PARITY`, and the first
+two are never advertised.  Exactly one accepted receipt is required for each
+`linux+gcc`, `macos+clang`, and `windows+msvc` key at the same two digests;
+failed/superseded attempts remain auditable but never satisfy cardinality.
+
+Every independent-tool record pins the source commit/release, reproducible
+build recipe/toolchain, `--version` output, executable SHA-256, exact
+command/options, timeout, platform, and license.  A static build is preferred;
+a dynamic build must additionally record and hash the complete transitive
+non-system library closure from the platform dependency inspector.  A
+Homebrew-path executable hash alone is never an oracle pin.
+
+Authoritative references for this resolution are the [LibreCAD testdata
 directory](https://github.com/LibreCAD/LibreCAD/tree/master/librecad/src/lib/filters/tests/testdata),
-[LibreCAD README](https://github.com/LibreCAD/LibreCAD/blob/master/README.md),
-[LibreDWG README](https://github.com/LibreDWG/libredwg), its
-[DXF comparison workflow](https://github.com/LibreDWG/libredwg/blob/master/test-dxf.sh),
-and the maintainers' [real-DWG testing discussion](https://github.com/LibreDWG/libredwg/discussions/1081).
+[Autodesk sample listing](https://www.autodesk.com/support/technical/article/caas/tsarticles/ts/01em4r6LLJgnQQVBlk5GqD.html),
+[ET drawing course/license page](https://engineeringtechnology.org/et-curriculum-and-lecture-notes/course-notes-graphics-and-descriptive-geometry/autocad-lab-assignments/autocad-lab-4-geometric-construction/),
+[LibreDWG README](https://github.com/LibreDWG/libredwg),
+[LibreDWG `dwgread(1)` output contract](https://github.com/LibreDWG/libredwg/blob/master/programs/dwgread.1),
+[LibreDWG JSON/minJSON release note](https://github.com/LibreDWG/libredwg/blob/master/NEWS),
+[LibreDWG format/coverage manual](https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi),
+the [GitHub-hosted runner reference](https://docs.github.com/en/actions/reference/runners/github-hosted-runners),
+and GitHub's [full-length action-SHA guidance](https://docs.github.com/en/actions/reference/security/secure-use).
 
 ### Target-freeze and refresh policy
 
@@ -2307,6 +2384,20 @@ edit this block or commit the same slice concurrently.
   the moved directory.  Windows keeps its existing `MoveFileExW` durability
   path.  The six external-only items remain `DEFERRED_EXTERNAL` and are not
   part of this implementation lane; no drawing bytes are admitted.
+
+- Current checkpoint (2026-09-16): S382/J358 resolves how the six aggregate
+  external receipts leave the actionable support backlog without rewriting
+  their immutable `DEFERRED_EXTERNAL` dispositions.  The retained reports are
+  archival/non-promoting and acquire explicit successors.  Hash-set comparison
+  proves J260/J293 share one 28-unique set; J268 names the same historical
+  path inventory but has no durable row report, so byte-set equality remains
+  unclaimed.  The audit removes one duplicate and four mislabeled DXFs, finds
+  zero private-corpus matches in commits reachable from the audited
+  LibreCAD/libdxfrw heads/remotes/tags, and limits J284's eligible successor
+  evidence to three admitted fixtures.  J359 is the only ready slice; J360
+  builds the missing differential, J361/J362 run independent semantic lanes
+  in parallel, J363 freezes the ledger/workflow/digest, and J364 retains the
+  only new external execution gate.  No support row or drawing byte changes.
 
 - Current checkpoint (2026-09-16): S329/J305 compound-entity graph ownership
   is committed.  Explicit copies now clone legacy POLYLINE vertices, SPLINE
@@ -4011,20 +4102,23 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 381 (`COMMITTED`).
-- Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 381 COMMITTED.
-- Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 383 COMMITTED.
-- Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 VERIFIED / 0 SUPERSEDED / 484 COMMITTED; no child is
+- Resolved slices: 382 (`COMMITTED`).
+- Slice states: 1 READY / 5 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
+  0 BLOCKED_HARD / 0 SUPERSEDED / 382 COMMITTED.
+- Parent-item states: 1 READY / 5 PLANNED / 0 ACTIVE / 0 VERIFYING /
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 384 COMMITTED.
+- Expanded child-item states: 1 READY / 10 PLANNED / 0 ACTIVE / 0 VERIFYING /
+  0 BLOCKED_HARD / 0 VERIFIED / 0 SUPERSEDED / 482 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  6 DEFERRED_EXTERNAL / 371 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S381 and J329/J329.1/J330/J330.1/J331/J331.1/J332/J332.1/
+  7 DEFERRED_EXTERNAL / 365 EXPERIMENTAL / 0 PROMOTED / 8 NOT_APPLICABLE.
+- Active work: S01-S382 and J329/J329.1/J330/J330.1/J331/J331.1/J332/J332.1/
   J333/J333.1/J334/J334.1/J335/J335.1/J336/J336.1/J337/J337.1/J338/J338.1/
   J339/J339.1/J340/J340.1/J341/J341.1/J342/J342.1/J343/J343.1/J344/J344.1/
-  J345/J345.1/J346/J346.1/J347/J347.1/J348/J348.1/J349/J349.1/J350/J350.1/J351/J351.1/J352/J352.1/J353/J353.1/J354/J354.1/J355/J355.1/J356/J356.1/J357/J357.1 are committed.
+  J345/J345.1/J346/J346.1/J347/J347.1/J348/J348.1/J349/J349.1/J350/J350.1/J351/J351.1/J352/J352.1/J353/J353.1/J354/J354.1/J355/J355.1/J356/J356.1/J357/J357.1/J358/J358.1 are committed.  S383/J359/J359.1 is READY;
+  S384/J360 supplies the shared differential, S385/J361 and S386/J362 then
+  run in parallel, S387/J363 freezes the candidate ledger/workflow/digest,
+  and S388/J364 is the hosted evidence gate.
   Keep the fast inner loop and do not promote support claims from
   self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -4460,6 +4554,13 @@ edit this block or commit the same slice concurrently.
 | S379 | J355: post-proxy full validation checkpoint | S378 | COMMITTED | rebuild; complete dependency-free CTest; plan; fixture; import-scope; sync; route; aggregate; support; release-readiness; speed; diff | rebuild plus all 31 dependency-free CTest entries pass in 7.64s after S378; no drawing bytes or derived fixtures changed; external-oracle, native-platform, and support-promotion evidence remain open | next independent qualification or release lane |
 | S380 | J356: deep review of external-only advisory evidence | S379 | COMMITTED | report/provenance audit; LibreCAD fixture-history audit; LibreDWG limitation review; plan; fixture; import-scope; sync; route; aggregate; support; release-readiness; speed; diff | six external-only items remain explicitly `DEFERRED_EXTERNAL`; J284's repository provenance is separated from independent-reader qualification; no support row or drawing bytes change | next independent qualification or release lane |
 | S381 | J357: output transaction parent-directory race cleanup | S380 | COMMITTED | descriptor-relative temporary identity and cleanup; parent pathname identity check; parent-race regression; writer-primitives; plan; fixture; diff | POSIX commit now fails closed when the target parent pathname is replaced after open, and abort removes the owned temporary through the pinned directory descriptor; focused writer-primitives regression passes with no orphaned temporary, no drawing bytes, and no external corpus | continue with the next independent qualification or release lane; external-only evidence remains deferred |
+| S382 | J358: external-evidence resolution and qualification replacement research | S381 | COMMITTED | exact set/provenance audit; magic and duplicate validation; repository-history/admission joins; independent-tool and runner research; replacement DAG; plan; fixture; diff | six immutable deferred receipts are retained as archival/non-promoting evidence; exact actionable successors J359-J364 are implementation-ready; no support row or drawing bytes change | prepare the verified plan slice, commit with matching trailers, report progress, then activate S383 |
+| S383 | J359: durable advisory-evidence resolution registry | S382 | READY | per-hash basis/provenance/admission/ref-tip registry/checker; magic-before-suffix and dedup-before-limit hygiene; separate path/unique/DWG counts; runner self-test; plan; fixture; diff | pending | activate J359.1, run only fast metadata/runner gates, update plan, commit, report progress, then unblock S384 |
+| S384 | J360: normalized semantic differential harness | S383 | PLANNED | one dual-build schema-v2 adapter; mandatory ordered callbacks/typed fields/ownership/opaque carriers/unsupported/diagnostics; identity and linked-closure digests; deterministic build/run targets; focused tests; plan; fixture; diff | pending | commit the shared harness, then activate S385 and S386 in parallel without refreshing any external corpus |
+| S385 | J361: admitted-fixture independent candidate fields | S384 | PLANNED | three admitted DWGs; pinned full-JSON field contracts; identical target/standalone options; graph/preservation/error checks; focused tests; plan; fixture; diff | pending | ready in parallel with S386; produce candidate evidence only and keep disputed color/ARCALIGNEDTEXT fields excluded |
+| S386 | J362: local-from-scratch AC1024 integrity and candidate fields | S384 | PLANNED | predeclared field allowlist; six-version runtime generator; AC1024 extended classes; structured zero-CRC/dropped-diagnostic gate; pinned full-JSON oracle closure; normalized differential; focused tests; plan; fixture; diff | pending | ready in parallel with S385; keep every generated drawing and oracle output temporary |
+| S387 | J363: qualified-support claims/status join, frozen workflow, and digests | S385, S386 | PLANNED | digest-scoped immutable claims plus mutable status overlay; authority reconciliation; receipt schema/emitter/API checker; full-length action SHAs; exact seven-test focused manifest and broad-inventory digest; one manual three-OS broad matrix; exact implementation/claims digests; release gate; plan; fixture; diff | pending | freeze only `EXPERIMENTAL`/`PENDING_NATIVE` statuses and both complete digests, then S388 |
+| S388 | J364: native qualification receipts and bounded promotion review | S387 | PLANNED | unchanged implementation/claims-digest Ubuntu/GCC, macOS/Clang, Windows/MSVC receipts; GitHub run/job/artifact/test verification; focused hosted matrix; one accepted successful final-digest manual three-OS broad matrix; receipt and release gates; plan; fixture; diff | pending | promote only exact claims whose local and hosted gates all pass; retry recorded infrastructure failures, but on semantic failure append a repair/exclusion slice, invalidate stale receipts, and continue |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -4845,6 +4946,13 @@ edit this block or commit the same slice concurrently.
 | J355 | S379 | J354 | COMMITTED | EXPERIMENTAL | Run the post-proxy full validation checkpoint | Rebuild the current tree and run all 31 dependency-free CTest entries after S378; retain the reduced validation cadence, no-fixture policy, and explicit external-oracle/native-platform/support-promotion boundaries |
 | J356 | S380 | J355 | COMMITTED | EXPERIMENTAL | Deep-review external-only advisory evidence boundaries | Reconcile the six deferred items against their hash/status reports, LibreCAD repository provenance and fixture-removal history, and LibreDWG's documented reader/test limitations; preserve exact unblock criteria and prohibit support promotion or drawing-byte admission |
 | J357 | S381 | J356 | COMMITTED | EXPERIMENTAL | Harden output transaction against parent-directory replacement | In `src/intern/dwg_dxf_output_transaction.{h,cpp}`, compare the opened POSIX parent directory identity with the current target parent before flush/publish, use descriptor-relative `fstatat`/`unlinkat` for temporary identity and owned cleanup, and add a parent-race orphan-cleanup regression to `tests/writer_primitives_tests.cpp`; preserve Windows behavior and fail closed without deleting an unowned replacement; no drawing fixtures |
+| J358 | S382 | J357 | COMMITTED | NOT_APPLICABLE | Resolve the six external advisory receipts into an immutable-history replacement plan | Audit exact set overlap, actual formats, public/repository provenance, admitted-fixture joins, independent-tool limitations, and hosted-runner requirements; retain all six historical `DEFERRED_EXTERNAL` dispositions, make their non-promoting successors explicit, and define J359-J364 |
+| J359 | S383 | J358 | READY | NOT_APPLICABLE | Make archival disposition and corpus hygiene reproducible | Add a metadata-only per-hash basis/provenance/admission/ref-tip registry/checker, explicitly prevent an exact J268 membership/digest, classify and deduplicate content before limits, and enforce `archivedNonPromoting` plus `supersededBy` for J256/J260/J268/J284/J293/J295 without changing their historical dispositions |
+| J360 | S384 | J359 | PLANNED | EXPERIMENTAL | Implement the normalized semantic differential required for support evidence | Compile one mandatory schema-v2 adapter source against target and standalone packages; bind source/binary/link identities and compare complete ordered callbacks, typed fields, ownership graph, opaque carriers/disposition, unsupported content, and first-failure diagnostics with strict cardinality and deterministic focused tests |
+| J361 | S385 | J360 | PLANNED | EXPERIMENTAL | Establish admitted-fixture independent candidate fields | Run pinned full-JSON auditing and the normalized differential for the three admitted J284 hashes; establish only the explicit RTEXT/MPOLYGON crosswalk, retaining LARGE_RADIAL identity-only and excluding MPOLYGON color and discrepant ARCALIGNEDTEXT payload |
+| J362 | S386 | J360 | PLANNED | EXPERIMENTAL | Establish local-from-scratch AC1024 integrity and candidate fields | Predeclare exact candidate fields, exercise the six-version runtime generator and AC1024 high-bit class-string path, require structured zero CLASSES-CRC/dropped-diagnostic evidence, parse pinned LibreDWG full JSON, and run the normalized differential without retaining generated files |
+| J363 | S387 | J361, J362 | PLANNED | EXPERIMENTAL | Freeze fail-closed support claims/status, native workflow, and implementation/claims digests | Split immutable claims from mutable status, reconcile the existing support matrix/release docs, add API-verifiable receipt machinery, freeze seven exact focused tests plus the broad inventory, convert push/PR CI to focused jobs, pin full-length action SHAs and explicit OS labels, keep one manual/final three-OS broad matrix, and freeze statuses no stronger than `PENDING_NATIVE` |
+| J364 | S388 | J363 | PLANNED | DEFERRED_EXTERNAL | Capture native-platform evidence and conduct the final bounded promotion review | Execute unchanged implementation/claims digests on Ubuntu/GCC, macOS/Clang, and Windows/MSVC; verify GitHub run/job/artifact, runner/environment, and exact no-skip test evidence; accept one successful final-digest manual three-OS broad matrix with recorded infrastructure retries, and promote only exact immutable claims |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -5336,6 +5444,18 @@ edit this block or commit the same slice concurrently.
 | J355.1 | J355 / S379 | WP8, WP10; post-proxy full validation checkpoint | J354 | COMMITTED | EXPERIMENTAL | run a fresh normal build and all 31 dependency-free CTest entries after the target proxy-graphics refresh and public façade regression, preserving the no-fixture policy and reduced validation cadence | rebuild plus 31/31 CTest entries pass in 7.64s; no drawing bytes or derived fixtures changed; external-oracle, native-platform, and support-promotion evidence remain open |
 | J356.1 | J356 / S380 | WP5, WP8, WP10; external-only advisory evidence disposition | J355 | COMMITTED | EXPERIMENTAL | audit the six deferred reports, exact source/provenance metadata, LibreCAD fixture-removal history, and LibreDWG reader/test caveats; record per-item promotion gates and keep all external files and generated derivatives outside Git | plan, fixture-admission, import-scope, sync, route, aggregate, support, release-readiness, speed, and diff checks pass; all six items remain `DEFERRED_EXTERNAL`, no support row is promoted, and no drawing bytes are staged |
 | J357.1 | J357 / S381 | WP7.2, WP7.5, WP8.12, WP10; output transaction parent-directory race | J356 | COMMITTED | EXPERIMENTAL | add `directoryIdentityMatchesPath()` and descriptor-relative temporary lookup/removal on POSIX; check the parent identity before file flush and again before rename; extend the existing parent-race test to assert no orphaned `.libdxfrw-*` file remains in the moved directory; keep Windows `MoveFileExW` unchanged and use only temporary text output | focused `libdxfrw_writer_primitives_tests` passes, including fail-closed parent replacement and owned-temp cleanup; plan/fixture/import/sync/route/aggregate/support/release/speed/diff checks pass with no drawing bytes; if a platform cannot expose directory identity, retain the existing safe failure and document the bounded limitation |
+| J358.1 | J358 / S382 | WP5, WP8, WP10; external evidence resolution and qualification replacement | J357 | COMMITTED | NOT_APPLICABLE | audit exact source-hash sets, duplicates, actual file magic, public/repository provenance, Codex-ref false positives, J284 target/admission joins, LibreDWG semantics, AC1024 local-oracle integrity, current CI cadence, and hosted requirements; preserve the six committed deferred rows and write the replacement DAG without admitting bytes or promoting support | research records four distinct set digests across six item bindings, 24 real DWGs in the full private set, 18 reproducible public origins, no durable J268 row set, zero eligible private-corpus matches in audited reachable commits, three admitted J284 fixtures, the AC1024 CLASSES CRC blocker, and focused J359-J364 gates; plan/fixture/diff checks pass |
+| J359.1 | J359 / S383 | WP5, WP8, WP10; durable advisory-evidence resolution | J358 | READY | NOT_APPLICABLE | add `metadata/external-evidence-resolution-v1.json` and a fail-closed checker with per-hash report aliases, `membershipBasis`, evidence date, magic/version, origin/provenance/admission disposition for all hashes, public URL or repository commit/path/blob, publisher/license state, audited ref tips, four distinct observed set digests, explicit no-membership/no-digest status for reconstructed J268, J284 joins, `archivedNonPromoting`, and `supersededBy`; reject support-state fields | checker negative/self-test/live checks, fixture admission, plan, and diff; no external path or drawing payload |
+| J359.2 | J359 / S383 | WP5, WP8, WP10; external runner corpus hygiene | J359.1 | PLANNED | NOT_APPLICABLE | update `run_external_advisory.py` to identify DWG/DXF by magic, deduplicate by source SHA-256, and only then apply `--limit`; retain path aliases and emit separate path/unique-stream/DWG/non-DWG counts plus invalid/mislabeled rows and a generation receipt | runner self-test plus synthetic duplicate/mislabeled/limit-order cases; no live corpus or full CTest in the slice gate |
+| J360.1 | J360 / S384 | WP5, WP8, WP10; mandatory normalized dual-build schema v2 | J359 | PLANNED | EXPERIMENTAL | compile one adapter/schema source against pinned target and standalone packages; bind target lock/archive plus adapter source/config/binary/linked-closure digests; require typed finite input/identity/status, ordered callback, normalized record/field, handle/owner/block edge, opaque-carrier, unsupported-disposition, diagnostic, and first-failure fields even when arrays are empty, with stable IDs/cardinality/cross-reference checks | focused schema positives/tamper negatives and identical-input target/standalone run; absent/extra/ill-typed/non-finite callback, edge, carrier, disposition, or diagnostic fails closed |
+| J360.2 | J360 / S384 | WP5, WP8, WP10; deterministic differential execution | J360.1 | PLANNED | EXPERIMENTAL | replace placeholder manifest commands with deterministic CMake build/run targets, bind schema/config/executable/link hashes and exact options, verify two clean executions are byte-identical, and emit per-value `exact`, `toleranceNormalized`, `reviewedTargetDebt`, `excluded`, or `mismatch` outcomes with completeness/cardinality totals | focused callback-order, ownership, opaque-carrier, unsupported-loss, and first-failure vectors; only exact/proved-tolerance outcomes are claim-eligible; no broad suite or external corpus |
+| J361.1 | J361 / S385 | WP5, WP8, WP10; admitted independent candidate fields | J360 | PLANNED | EXPERIMENTAL | bind the three admitted J284 hashes to a pinned-source LibreDWG full-JSON build/dependency closure and identical J360 runs; assert separate RTEXT `recordClass=RTEXT↔entity=RTEXT`, normalized `handle↔handle`, and `text↔text_value` claims plus the exact MPOLYGON crosswalk `solid↔is_solid_fill`, `associative↔is_associative`, `name↔name`, `hpattern↔pattern_type`, `basePoint.z↔elevation`, `extPoint↔extrusion`, graph/preservation/error behavior, LARGE_RADIAL identity-only disposition, color/hatch-color exclusion, and ARCALIGNEDTEXT payload exclusion | focused three-fixture semantic checker and negative tests; identity cannot imply text, exact candidate fields/tolerances only, and no external inputs/native/whole-version promotion |
+| J362.1 | J362 / S386 | WP5, WP8, WP10; AC1024 extended-classes integrity | J360 | PLANNED | EXPERIMENTAL | freeze `metadata/ac1024-candidate-fields-v1.json`, then use the local-from-scratch writer to assert AC1024 `maxClassNum=1328`, class-string size `536312`, and actual high-bit extension; repair the writer/reader range or prove the CRC checker wrong from ODA v5.4.1 and fix it; require a separate test parser to recompute the ODA-specified raw range/parameters without any production CRC helper, stored/recomputed equality, `getClassesCrcMismatch()==0`, no `ClassesCrc` integrity entry, and `getIntegrityDiagnosticsDropped()==0` | local roundtrip, reader-matrix, diagnostic, plan, fixture, and diff gates; generated drawings remain temporary and trace-text absence, shared-helper agreement, or a reclassified warning never passes |
+| J362.2 | J362 / S386 | WP5, WP8, WP10; AC1024 independent candidate fields | J362.1 | PLANNED | EXPERIMENTAL | build LibreDWG from pinned source or hash its transitive non-system dynamic closure and build recipe; record release/commit, executable/dependency digests, exact command, platform, and license; parse full JSON only for the predeclared claim keys; run J360 on the same generated input; bind every one of the 34 current-run discrepancies by stable ID, field scope, outcome, and oracle-dependency digest | focused oracle/differential checks; newly discovered fields require a new child/rerun, self-read is reachability only, and no generated payload or pre-native qualification is retained |
+| J363.1 | J363 / S387 | WP8, WP10; fail-closed immutable claims/status join and frozen digests | J361, J362 | PLANNED | EXPERIMENTAL | add digest-scoped `qualified-format-claims-v1.json` with canonical claims and non-empty per-route `requiredClaimIds`, digest-excluded `qualified-format-status-v1.json`, strict join/checker, non-self-referential implementation-input manifest/algorithm, content-resolved evidence IDs, canonical NUL-tuple claim IDs, exact status transition rules, release-readiness/support-matrix reconciliation, and native receipt schema/emitter/API checker; allow only `EXPERIMENTAL`/`PENDING_NATIVE` before hosted evidence | negative/self-test/live gates reject archived reports, unresolved evidence, identity-only payload claims, blanket claims, integrity/differential gaps, empty/partial/duplicate/unexpected route claim sets, conflicting authority, immutable mutation, bad receipt cardinality, and stale digests |
+| J363.2 | J363 / S387 | WP8, WP10; focused native workflow freeze | J363.1 | PLANNED | EXPERIMENTAL | pin third-party actions by full-length commit SHA, use explicit available Ubuntu/macOS/Windows labels, record label plus OS/architecture, `ImageOS`/`ImageVersion`, whitelisted build-affecting environment, and tool versions; register/freeze the seven named focused CTest IDs with expected count seven per platform and zero skipped/not-run, freeze the complete `ctest --show-only=json-v1` broad inventory/count digest, replace push/PR full suites with focused jobs, retain one manual/final three-OS broad matrix, and freeze both digests | workflow lint and exact seven-test focused local job equivalents; generated drawings remain temporary; no hosted result is claimed by this local slice |
+| J364.1 | J364 / S388 | WP8, WP10; API-verified immutable-digest native receipts | J363 | PLANNED | DEFERRED_EXTERNAL | execute unchanged implementation/claims digests on native Ubuntu/GCC, macOS/Clang, and Windows/MSVC; query GitHub run/jobs/artifacts APIs and verify repository, workflow path/blob, head commit, run ID/attempt/job, conclusion, digests, runner OS/architecture/image, whitelisted environment, all seven exact focused test IDs/count with zero skipped/not-run, artifact ID, downloaded archive SHA-256, and receipt content without changing scoped files or immutable claims | exactly one accepted focused receipt for each linux+gcc, macos+clang, windows+msvc key plus strict API/artifact/test-manifest checker; failed attempts are nonpromoting and any semantic mismatch spawns a repair slice |
+| J364.2 | J364 / S388 | WP8, WP10; final bounded promotion review | J364.1 | PLANNED | DEFERRED_EXTERNAL | require three same-digest API-verified focused receipts, accept exactly one successful manual three-OS broad matrix for the final digest, permit and retain retries only for canceled/infrastructure-failed attempts, require a repair slice/new digest after any build/test semantic failure, and change only status/receipt references for exact complete claims | verified run/job/artifact IDs/digests plus one accepted broad result matching the frozen inventory with zero skipped/not-run; no aggregate external report can promote and only digest-excluded receipt/status metadata changes |
 | J313.1 | J313 / S337 | WP3.11-WP3.12, WP8, WP10; TABLE parser-state copy isolation | J312 | COMMITTED | EXPERIMENTAL | assert copied and assigned TABLE models accept fresh subclass/grid dimensions after a partial source parse while preserving public table content; keep all inputs in memory | focused `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures |
 
 <!-- UPGRADE_PROGRESS_END -->
@@ -6461,6 +6581,12 @@ The convergence is complete only when all of the following are true:
 - Every advertised DWG/DXF read, write, or preservation row reaches
   `QUALIFIED_FORMAT_PARITY`; source-only and dispatch-only matches remain
   explicitly experimental and are excluded from the supported matrix.
+- Every `QUALIFIED_FORMAT_PARITY` row is emitted from the separate
+  qualified-format ledger introduced by J363, names exact fields/tolerances,
+  and binds eligible provenance, target equivalence, independent semantics,
+  preservation/error evidence, and same-digest Linux/macOS/Windows receipts.
+  J256/J260/J268/J284/J293/J295 and their aggregate reports are rejected as
+  promotion inputs even when a conversion exits successfully.
 - The S18-S23 readiness packets and artifacts prove all four quality axes:
   zero-unmapped/duplicate completeness, classified target/spec/compatibility
   correctness, executable owner/dependency/gate/evidence details for every
@@ -6507,6 +6633,9 @@ The convergence is complete only when all of the following are true:
 - Advertise only DWG/DXF rows whose ledger status is
   `QUALIFIED_FORMAT_PARITY` and whose positive evidence satisfies the fixture
   policy or an eligible runtime-from-scratch route.
+- Treat the source-only support matrix and archived advisory reports as inputs
+  to planning, never as the promotion authority; only the fail-closed J363
+  qualified-format ledger may authorize release wording.
 - Keep readers, writers, and preservation rows experimental per version and
   feature until their target-versus-standalone differential and required
   independent-oracle gates clear; a target recognition row is not a support
