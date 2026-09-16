@@ -1934,7 +1934,12 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint (2026-09-15): S294/J270 post-BLOCK sanitizer validation
+- Current checkpoint (2026-09-15): S295/J271 plan-counter reconciliation is
+  committed. A parser-backed plan audit found the parent-state counter lagging
+  the committed S291-S294 rows; the live status block now matches the actual
+  295 slices, 297 parents, and 395 children, with all execution states
+  terminal and no source or drawing bytes changed.
+- Previous checkpoint (2026-09-15): S294/J270 post-BLOCK sanitizer validation
   is committed. The complete 28-entry ASan/UBSan CTest set passes in 7.70
   seconds with macOS leak detection disabled, including DWG reader/writer
   matrices, local round trips, hardening, fixtures, parity, and release gates.
@@ -3464,17 +3469,17 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 294 (`COMMITTED`); no slice is active.
+- Resolved slices: 295 (`COMMITTED`); no slice is active.
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 294 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 295 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 292 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 296 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 394 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 395 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  3 DEFERRED_EXTERNAL / 277 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S294 are committed; no local implementation slice is active.
+  3 DEFERRED_EXTERNAL / 278 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S295 are committed; no local implementation slice is active.
   Remaining work is evidence-gated runtime/oracle and release closure; keep
   the fast inner loop and do not promote support claims from self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -3823,6 +3828,7 @@ edit this block or commit the same slice concurrently.
 | S292 | J268: baseline compatibility sweep | S291 | COMMITTED | bounded baseline-vs-upgraded external DWG sweep; zero baseline-success/current-failure regressions; advisory-only outcomes; no fixture admission | 28 available external DWGs were compared with a four-second per-input bound: zero baseline-success/current-failure regressions, five upgraded-branch improvements, and one `colorwh.dwg` timeout/non-success retained as advisory; all source and generated drawing files remain outside Git | continue with target-debt review, independent oracle qualification, and release closure |
 | S293 | J269: post-BLOCK compatibility full validation | S292 | COMMITTED | impact-map escalation after DWG BLOCK transaction change; complete dependency-free CTest; measured timing; no fixture changes | all 28 dependency-free CTest entries pass in 4.83 seconds after S291, including reader/writer matrices, local round trips, hardening, fixtures, parity, release-readiness, and implementation-speed checks; no drawing bytes are added | continue with target-debt review, independent oracle qualification, and release closure |
 | S294 | J270: post-BLOCK sanitizer validation | S293 | COMMITTED | impact-map sanitizer escalation after DWG BLOCK transaction change; complete ASan/UBSan CTest; documented macOS leak policy; no fixture changes | all 28 ASan/UBSan CTest entries pass in 7.70 seconds with leak detection disabled, including reader/writer matrices, local round trips, hardening, fixtures, parity, release-readiness, and implementation-speed checks; no drawing bytes are added | continue with target-debt review, independent oracle qualification, and release closure |
+| S295 | J271: plan-counter reconciliation | S294 | COMMITTED | parser-backed live-plan count audit; terminal state reconciliation; metadata-only change; no fixture admission | updater-backed parsing reports 295 committed slices, 297 committed parents, and 395 committed children; the live status block now matches the tables, and plan, fixture, scope, sync, parity, release-readiness, speed, and diff checks pass | continue with target-debt review, independent oracle qualification, and release closure |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -4121,6 +4127,7 @@ edit this block or commit the same slice concurrently.
 | J268 | S292 | J267 | COMMITTED | DEFERRED_EXTERNAL | Reconcile baseline and upgraded external DWG outcomes | Compare every available external DWG under a bounded timeout, record only status/version/hash summaries, distinguish improvements from regressions, and keep non-success/timeout outcomes advisory without promoting support or admitting drawing bytes |
 | J269 | S293 | J268 | COMMITTED | EXPERIMENTAL | Revalidate the full dependency-free suite after BLOCK transaction changes | Run the complete 28-entry CTest set once because the S291 impact map covers shared DWG transaction/publication code; retain timing and no-fixture evidence while keeping external/platform qualification separate |
 | J270 | S294 | J269 | COMMITTED | EXPERIMENTAL | Revalidate sanitizer safety after BLOCK transaction changes | Run the complete 28-entry ASan/UBSan CTest set once because S291 changes shared DWG transaction/publication code; retain the macOS leak-detection limitation and no-fixture evidence while keeping native-platform and long-fuzz qualification separate |
+| J271 | S295 | J270 | COMMITTED | EXPERIMENTAL | Reconcile live-plan execution counters | Parse the live progress tables after S291-S294, correct only stale aggregate counters, and verify that every slice, parent, and child remains terminal without changing source or fixture bytes |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4526,6 +4533,7 @@ edit this block or commit the same slice concurrently.
 | J268.1 | J268 / S292 | WP5, WP8, WP10; external baseline compatibility | J267 | COMMITTED | DEFERRED_EXTERNAL | run the 28-file baseline-vs-upgraded sweep with bounded per-input timeouts, compare only exit categories and version/status summaries, and retain all files and generated DXFs outside the repository | sweep reports zero baseline-success/current-failure regressions, five improvements, and one advisory current timeout where baseline also fails; no external or derived drawing bytes are retained |
 | J269.1 | J269 / S293 | WP8, WP10; post-BLOCK full validation checkpoint | J268 | COMMITTED | EXPERIMENTAL | rebuild and run all 28 dependency-free CTest entries once after the S291 shared DWG transaction change, preserving the fast-test-first cadence and no-fixture policy | all 28 CTest entries pass in 4.83 seconds; no drawing fixtures or derived payloads are added, and native Windows, longer fuzz, package, and external qualification remain separate follow-ups |
 | J270.1 | J270 / S294 | WP8, WP10; post-BLOCK sanitizer checkpoint | J269 | COMMITTED | EXPERIMENTAL | rebuild/run all 28 dependency-free CTest entries under ASan/UBSan after the S291 shared DWG transaction change with `detect_leaks=0`, preserving the no-fixture policy | all 28 sanitizer CTest entries pass in 7.70 seconds; macOS leak detection remains disabled and native Windows/long-fuzz/package/external qualification remain separate follow-ups |
+| J271.1 | J271 / S295 | WP8, WP10; plan-counter reconciliation | J270 | COMMITTED | EXPERIMENTAL | run the plan parser and compare its slice/parent/child state totals and claim dispositions with the live status block, changing no source or fixture bytes | parser-backed audit reports 295/297/395 committed execution states and 10 NOT_EVALUATED, 3 DEFERRED_EXTERNAL, 278 EXPERIMENTAL, and 6 NOT_APPLICABLE parent claims; plan and policy checks pass |
 
 <!-- UPGRADE_PROGRESS_END -->
 
