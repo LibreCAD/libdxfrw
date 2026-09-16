@@ -3046,6 +3046,50 @@ public:
     static constexpr std::size_t kMaxItems = 512;
 
     DRW_PointCloud() { eType = DRW::POINTCLOUD; }
+    DRW_PointCloud(const DRW_PointCloud& o): DRW_Entity(o),
+        classVersion(o.classVersion), origin(o.origin),
+        savedFilename(o.savedFilename), sourceFileCount(o.sourceFileCount),
+        sourceFiles(o.sourceFiles), extentsMin(o.extentsMin),
+        extentsMax(o.extentsMax), pointCount(o.pointCount),
+        ucsName(o.ucsName), ucsOrigin(o.ucsOrigin),
+        ucsXDirection(o.ucsXDirection), ucsYDirection(o.ucsYDirection),
+        ucsZDirection(o.ucsZDirection),
+        definitionHandle(o.definitionHandle), reactorHandle(o.reactorHandle),
+        showIntensity(o.showIntensity), intensityScheme(o.intensityScheme),
+        intensityStyle(o.intensityStyle), showClipping(o.showClipping),
+        clippingCount(o.clippingCount), clippings(o.clippings) {
+        eType = DRW::POINTCLOUD;
+        resetDxfParserState();
+    }
+    DRW_PointCloud& operator=(const DRW_PointCloud& o) {
+        if (this != &o) {
+            DRW_Entity::operator=(o);
+            classVersion = o.classVersion;
+            origin = o.origin;
+            savedFilename = o.savedFilename;
+            sourceFileCount = o.sourceFileCount;
+            sourceFiles = o.sourceFiles;
+            extentsMin = o.extentsMin;
+            extentsMax = o.extentsMax;
+            pointCount = o.pointCount;
+            ucsName = o.ucsName;
+            ucsOrigin = o.ucsOrigin;
+            ucsXDirection = o.ucsXDirection;
+            ucsYDirection = o.ucsYDirection;
+            ucsZDirection = o.ucsZDirection;
+            definitionHandle = o.definitionHandle;
+            reactorHandle = o.reactorHandle;
+            showIntensity = o.showIntensity;
+            intensityScheme = o.intensityScheme;
+            intensityStyle = o.intensityStyle;
+            showClipping = o.showClipping;
+            clippingCount = o.clippingCount;
+            clippings = o.clippings;
+            eType = DRW::POINTCLOUD;
+            resetDxfParserState();
+        }
+        return *this;
+    }
     void applyExtrusion() override {}
 
 protected:
@@ -3080,6 +3124,13 @@ public:
     std::vector<DRW_PointCloudClipping> clippings;
 
 private:
+    void resetDxfParserState() noexcept {
+        m_dxfInBody = false;
+        m_dxfSawClassVersion = false;
+        m_dxfSawSourceCount = false;
+        m_dxfSawPointCount = false;
+    }
+
     bool m_dxfInBody = false;
     bool m_dxfSawClassVersion = false;
     bool m_dxfSawSourceCount = false;

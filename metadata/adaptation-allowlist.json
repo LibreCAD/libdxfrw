@@ -105,10 +105,10 @@
     },
     {
       "path": "src/drw_entities.h",
-      "reason": "Retain a transient DXF MULTILEADER transformation-matrix cursor so repeated code-47 values are bounded and reset between documents, expose the protected entity XDATA deep-copy helper used by explicit copy paths, publish HATCH copy/assignment declarations plus deterministic parser-state reset, publish LEADER copy/assignment/move declarations for deep vertex ownership, reset transient LWPOLYLINE parser state for explicit copies and assignments, reset transient MLINE segment/vertex parser state for explicit copies and assignments, reset transient TABLE subclass/grid parser state for explicit copies and assignments, reset transient MESH topology parser state for explicit copies and assignments, reset transient UNDERLAY clip parser state for explicit copies and assignments, and reset transient NAVISWORKSMODEL transform/subclass parser state for explicit copies and assignments.",
+      "reason": "Retain a transient DXF MULTILEADER transformation-matrix cursor so repeated code-47 values are bounded and reset between documents, expose the protected entity XDATA deep-copy helper used by explicit copy paths, publish HATCH copy/assignment declarations plus deterministic parser-state reset, publish LEADER copy/assignment/move declarations for deep vertex ownership, reset transient LWPOLYLINE parser state for explicit copies and assignments, reset transient MLINE segment/vertex parser state for explicit copies and assignments, reset transient TABLE subclass/grid parser state for explicit copies and assignments, reset transient MESH topology parser state for explicit copies and assignments, reset transient UNDERLAY clip parser state for explicit copies and assignments, reset transient NAVISWORKSMODEL transform/subclass parser state for explicit copies and assignments, and reset transient POINTCLOUD body parser state for explicit copies and assignments.",
       "scope": "DXF MULTILEADER parity",
       "targetBlob": "077a84860cea7c35da2f136ce6afedd3be1adf44",
-      "adaptedSha256": "6c51d25b990fdc3892a86c60a34cd0f1653f47c4c7d8bbd204c6713730ac7062"
+      "adaptedSha256": "64fe7be1c6e2a200741285465f0f5bbc1b97023f0f72f9dba936bbe3c34a0e95"
     },
     {
       "path": "src/intern/dwgutil.h",

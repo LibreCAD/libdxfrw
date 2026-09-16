@@ -79,6 +79,12 @@ public:
     using DRW_NavisworksModel::parseCode;
 };
 
+class ExposedPointCloud : public DRW_PointCloud {
+public:
+    using DRW_PointCloud::parseCode;
+    using DRW_PointCloud::finalizeDxf;
+};
+
 template <typename Entity>
 bool parseDxfRecords(Entity& entity, const std::string& source) {
     std::stringstream records(source);
@@ -122,6 +128,8 @@ void testPublicOwnershipContracts(TestContext& t) {
                   "DRW_Underlay copy contract");
     static_assert(std::is_copy_constructible<DRW_NavisworksModel>::value,
                   "DRW_NavisworksModel copy contract");
+    static_assert(std::is_copy_constructible<DRW_PointCloud>::value,
+                  "DRW_PointCloud copy contract");
     static_assert(std::is_copy_constructible<DRW_Attrib>::value,
                   "DRW_Attrib copy contract");
     static_assert(std::is_copy_constructible<DRW_GeoPositionMarker>::value,
@@ -596,6 +604,28 @@ void testPublicOwnershipContracts(TestContext& t) {
                  && assignedNavisworks.transform.back() == 16.0
                  && assignedNavisworks.unitFactor == 2.0,
              "NAVISWORKSMODEL assignment starts a fresh transform parser walk");
+
+    const std::string pointCloudComplete =
+        "100\nAcDbPointCloud\n70\n7\n90\n0\n92\n42\n";
+    ExposedPointCloud partialPointCloud;
+    t.expect(parseDxfRecords(partialPointCloud,
+                              "100\nAcDbPointCloud\n90\n0\n"),
+             "POINTCLOUD parser state source setup");
+    ExposedPointCloud copiedPointCloud(partialPointCloud);
+    copiedPointCloud.classVersion = 0;
+    t.expect(parseDxfRecords(copiedPointCloud, pointCloudComplete)
+                 && copiedPointCloud.finalizeDxf()
+                 && copiedPointCloud.classVersion == 7
+                 && copiedPointCloud.pointCount == 42u,
+             "POINTCLOUD copy starts a fresh body parser walk");
+    ExposedPointCloud assignedPointCloud;
+    assignedPointCloud = partialPointCloud;
+    assignedPointCloud.classVersion = 0;
+    t.expect(parseDxfRecords(assignedPointCloud, pointCloudComplete)
+                 && assignedPointCloud.finalizeDxf()
+                 && assignedPointCloud.classVersion == 7
+                 && assignedPointCloud.pointCount == 42u,
+             "POINTCLOUD assignment starts a fresh body parser walk");
 
     DRW_Dimension sourceDimension;
     sourceDimension.extData.push_back(
