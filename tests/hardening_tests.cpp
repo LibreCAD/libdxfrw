@@ -60,6 +60,23 @@ void testPublicOwnershipContracts(TestContext& t) {
                  && std::string(copiedVariant.c_str()) == "copy",
              "DRW_Variant copy owns string storage");
 
+    DRW_Line sourceLine;
+    sourceLine.extData.push_back(
+        std::make_shared<DRW_Variant>(1000, "line-xdata"));
+    DRW_Line copiedLine(sourceLine);
+    copiedLine.extData.front()->addString(1000, "copy-line-xdata");
+    t.expect(copiedLine.extData.front() != sourceLine.extData.front()
+                 && std::string(sourceLine.extData.front()->c_str())
+                        == "line-xdata",
+             "implicit entity copy deep-copies XDATA through DRW_Entity");
+    DRW_Line assignedLine;
+    assignedLine = sourceLine;
+    assignedLine.extData.front()->addString(1000, "assigned-line-xdata");
+    t.expect(assignedLine.extData.front() != sourceLine.extData.front()
+                 && std::string(sourceLine.extData.front()->c_str())
+                        == "line-xdata",
+             "implicit entity assignment isolates XDATA through DRW_Entity");
+
     DRW_Layer sourceLayer;
     t.expect(sourceLayer.addExtData(
                   std::make_unique<DRW_Variant>(1000, "layer")),

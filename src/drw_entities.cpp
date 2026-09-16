@@ -2971,6 +2971,86 @@ bool parseTableContent(DRW::Version version, dwgBuffer *buf, dwgBuffer *strBuf,
 
 } // namespace
 
+DRW_Entity::DRW_Entity(const DRW_Entity& rhs) {
+    init(rhs);
+}
+
+DRW_Entity& DRW_Entity::operator=(const DRW_Entity& rhs) {
+    if (this != &rhs)
+        init(rhs);
+    return *this;
+}
+
+void DRW_Entity::init(DRW_Entity const& rhs) {
+    eType = rhs.eType;
+    handle = rhs.handle;
+    appData = rhs.appData;
+    parentHandle = rhs.parentHandle;
+    space = rhs.space;
+    layer = rhs.layer;
+    lineType = rhs.lineType;
+    material = rhs.material;
+    color = rhs.color;
+    lWeight = rhs.lWeight;
+    ltypeScale = rhs.ltypeScale;
+    visible = rhs.visible;
+    numProxyGraph = rhs.numProxyGraph;
+    proxyGraphics = rhs.proxyGraphics;
+    color24 = rhs.color24;
+    colorName = rhs.colorName;
+    transparency = rhs.transparency;
+    plotStyle = rhs.plotStyle;
+    shadow = rhs.shadow;
+    shadowHandle = rhs.shadowHandle;
+    fullVisualStyleHandle = rhs.fullVisualStyleHandle;
+    faceVisualStyleHandle = rhs.faceVisualStyleHandle;
+    edgeVisualStyleHandle = rhs.edgeVisualStyleHandle;
+    reactorHandles = rhs.reactorHandles;
+    xDictHandle = rhs.xDictHandle;
+    hasDataStorageRecord = rhs.hasDataStorageRecord;
+    dataStorageHandle = rhs.dataStorageHandle;
+    dataStorageHandleKey = rhs.dataStorageHandleKey;
+    dataStorageData = rhs.dataStorageData;
+    dataStorageSegmentIndex = rhs.dataStorageSegmentIndex;
+    dataStorageSchemaIndex = rhs.dataStorageSchemaIndex;
+    hasDataStoragePayloadMarker = rhs.hasDataStoragePayloadMarker;
+    dataStoragePayloadMarkerOffset = rhs.dataStoragePayloadMarkerOffset;
+    dataStoragePayloadMarkerLength = rhs.dataStoragePayloadMarkerLength;
+    dataStoragePayloadMarkerSection = rhs.dataStoragePayloadMarkerSection;
+    haveExtrusion = rhs.haveExtrusion;
+    pendingAppIdResolutions = rhs.pendingAppIdResolutions;
+    pendingLayerRefResolutions = rhs.pendingLayerRefResolutions;
+    haveNextLinks = rhs.haveNextLinks;
+    hasDsData = rhs.hasDsData;
+    plotFlags = rhs.plotFlags;
+    ltFlags = rhs.ltFlags;
+    materialFlag = rhs.materialFlag;
+    shadowFlag = rhs.shadowFlag;
+    hasFullVisualStyle = rhs.hasFullVisualStyle;
+    hasFaceVisualStyle = rhs.hasFaceVisualStyle;
+    hasEdgeVisualStyle = rhs.hasEdgeVisualStyle;
+    hasAcDbColorH = rhs.hasAcDbColorH;
+    acDbColorHandle = rhs.acDbColorHandle;
+    lTypeH = rhs.lTypeH;
+    layerH = rhs.layerH;
+    nextEntLink = rhs.nextEntLink;
+    prevEntLink = rhs.prevEntLink;
+    ownerHandle = rhs.ownerHandle;
+    xDictFlag = rhs.xDictFlag;
+    numReactors = rhs.numReactors;
+    commonLinkTailValidated = rhs.commonLinkTailValidated;
+    objSize = rhs.objSize;
+    dwgDataEndBit = rhs.dwgDataEndBit;
+    oType = rhs.oType;
+    dwgEedAppIdWriteRefs = rhs.dwgEedAppIdWriteRefs;
+    dwgEedLayerWriteRefs = rhs.dwgEedLayerWriteRefs;
+    dwgEedCodePage = rhs.dwgEedCodePage;
+    extAxisX = rhs.extAxisX;
+    extAxisY = rhs.extAxisY;
+    curr.reset();
+    copyExtDataFrom(rhs);
+}
+
 void DRW_Entity::copyExtDataFrom(const DRW_Entity& source) {
     std::vector<std::shared_ptr<DRW_Variant>> copies;
     copies.reserve(source.extData.size());

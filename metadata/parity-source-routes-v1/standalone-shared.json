@@ -8748,13 +8748,13 @@
       ],
       "evidence": [
         {
-          "line": 4876,
+          "line": 4956,
           "path": "src/drw_entities.cpp",
           "spanSha256": "434db2143637de25e543bf87ac9599620fbbf3fdfca4d45f8fc021edcf11f068",
           "symbol": "DRW_3DLine::parseDwg"
         },
         {
-          "line": 4920,
+          "line": 5000,
           "path": "src/drw_entities.cpp",
           "spanSha256": "612d52737c0a74b2141ec1f61371573d71e789a760674f97f8a94d4c80015f6b",
           "symbol": "DRW_3DLine::encodeDwg"
@@ -8796,19 +8796,19 @@
       ],
       "evidence": [
         {
-          "line": 5328,
+          "line": 5408,
           "path": "src/drw_entities.cpp",
           "spanSha256": "81579c614807b75527cfb2abdecca8d7bbe038b74e795b7d2fc9715f58a80d96",
           "symbol": "DRW_3Dface::encodeDwg"
         },
         {
-          "line": 6137,
+          "line": 6217,
           "path": "src/drw_entities.cpp",
           "spanSha256": "19a49dcea0479917df4346463badc291ce2195146eb32e22c04d8fcf1774cffa",
           "symbol": "DRW_3Dface::parseCode"
         },
         {
-          "line": 6149,
+          "line": 6229,
           "path": "src/drw_entities.cpp",
           "spanSha256": "690468d159ce2dfab1c9f57c7f439f4b8013258859ccdffdf47bd4c8c637f04d",
           "symbol": "DRW_3Dface::parseDwg"
@@ -9214,19 +9214,19 @@
       ],
       "evidence": [
         {
-          "line": 5530,
+          "line": 5610,
           "path": "src/drw_entities.cpp",
           "spanSha256": "5cee57d3a73e5a3f8545d3ac526b6d3cba27a34a7895f8225eec455303a32e80",
           "symbol": "DRW_Arc::encodeDwg"
         },
         {
-          "line": 5780,
+          "line": 5860,
           "path": "src/drw_entities.cpp",
           "spanSha256": "3405a499469efb303f4aa3e7fbec998800a65217bcbf04f75548e61aa9895032",
           "symbol": "DRW_Arc::parseCode"
         },
         {
-          "line": 5795,
+          "line": 5875,
           "path": "src/drw_entities.cpp",
           "spanSha256": "9af523ed358e2d083fb5540e2f84863f8026b1d90fa4e4e511a6b961fc8ca02a",
           "symbol": "DRW_Arc::parseDwg"
@@ -9273,19 +9273,19 @@
       ],
       "evidence": [
         {
-          "line": 11129,
+          "line": 11209,
           "path": "src/drw_entities.cpp",
           "spanSha256": "c2a1c2e7198046594cb20b7b0e5e2686ea57fd9135475338013bde97a9ab1b13",
           "symbol": "DRW_ArcAlignedText::encodeDwg"
         },
         {
-          "line": 11176,
+          "line": 11256,
           "path": "src/drw_entities.cpp",
           "spanSha256": "61711f786d475529ce6ba1634172881d2cb426495a5944eb1471e2523171e2d1",
           "symbol": "DRW_ArcAlignedText::parseCode"
         },
         {
-          "line": 11246,
+          "line": 11326,
           "path": "src/drw_entities.cpp",
           "spanSha256": "bc75fb8ebdf02dbd28e73f70b7ec64618e3509c20f61e6acf2fc1fd4d6fb9d0c",
           "symbol": "DRW_ArcAlignedText::parseDwg"
@@ -9427,19 +9427,19 @@
       ],
       "evidence": [
         {
-          "line": 12333,
+          "line": 12413,
           "path": "src/drw_entities.cpp",
           "spanSha256": "09c4800d7c47a1956ad871d6f4f1f442ebba437d28e210c20459feae6ba7c526",
           "symbol": "DRW_Attdef::parseCode"
         },
         {
-          "line": 12344,
+          "line": 12424,
           "path": "src/drw_entities.cpp",
           "spanSha256": "f637bf1d49124d6f4d40b2059e1413c0737aea86178bcf52ccf76a13582bb292",
           "symbol": "DRW_Attdef::parseDwg"
         },
         {
-          "line": 12494,
+          "line": 12574,
           "path": "src/drw_entities.cpp",
           "spanSha256": "9ef88fe2db8409b202566997437f93c6f45c895af045dd4eec40b32d55add93a",
           "symbol": "DRW_Attdef::encodeDwg"
@@ -9486,19 +9486,19 @@
       ],
       "evidence": [
         {
-          "line": 12034,
+          "line": 12114,
           "path": "src/drw_entities.cpp",
           "spanSha256": "b50d293e1cf499d787f84325ad937c9957831e3d80b42dd9501d6aa4270deb8b",
           "symbol": "DRW_Attrib::parseCode"
         },
         {
-          "line": 12118,
+          "line": 12198,
           "path": "src/drw_entities.cpp",
           "spanSha256": "6b6adb3c2a5405624bfa52dc93a8f1980fa4aca2b324c75fcf6b318953e51992",
           "symbol": "DRW_Attrib::parseDwg"
         },
         {
-          "line": 12265,
+          "line": 12345,
           "path": "src/drw_entities.cpp",
           "spanSha256": "6769751dcdf34372c9da440dcaebf6f372da52517982a4bb92621dfbe7ebf511",
           "symbol": "DRW_Attrib::encodeDwg"
@@ -9604,19 +9604,19 @@
       ],
       "evidence": [
         {
-          "line": 5455,
+          "line": 5535,
           "path": "src/drw_entities.cpp",
           "spanSha256": "76e0cf25a1d0087bf8e0c1f2b88be6cb1572fe64137b5c2ab4e1905797ca17d2",
           "symbol": "DRW_Block::encodeDwg"
         },
         {
-          "line": 8601,
+          "line": 8681,
           "path": "src/drw_entities.cpp",
           "spanSha256": "66ffc92f0169b789ec744fa694c2d3f7e13953b9440086735a04d6cb626a472b",
           "symbol": "DRW_Block::parseCode"
         },
         {
-          "line": 8630,
+          "line": 8710,
           "path": "src/drw_entities.cpp",
           "spanSha256": "5aea9441813a9883b20c7d51bbeacd12ef7b027b48ee7ee1980893e77278311c",
           "symbol": "DRW_Block::parseDwg"
@@ -9854,19 +9854,19 @@
       ],
       "evidence": [
         {
-          "line": 7743,
+          "line": 7823,
           "path": "src/drw_entities.cpp",
           "spanSha256": "3b5eb7d1a237988ada30a7c547b9be0a047384c2988ec19004000ff4d31adad7",
           "symbol": "DRW_Camera::parseCode"
         },
         {
-          "line": 7757,
+          "line": 7837,
           "path": "src/drw_entities.cpp",
           "spanSha256": "fe1078c97e7f5732e42f502d4852d4d4cbceecc11595d434249466c3af756f2e",
           "symbol": "DRW_Camera::parseDwg"
         },
         {
-          "line": 7800,
+          "line": 7880,
           "path": "src/drw_entities.cpp",
           "spanSha256": "b8db4bec953d1346e2835754452e421349a2c38b75c91ee6af5a28564dd586a8",
           "symbol": "DRW_Camera::encodeDwg"
@@ -9949,19 +9949,19 @@
       ],
       "evidence": [
         {
-          "line": 4943,
+          "line": 5023,
           "path": "src/drw_entities.cpp",
           "spanSha256": "93ac147878ddbed9d437d991941ae02db9d1ef07dd9c21e1493b1d6013871322",
           "symbol": "DRW_Circle::encodeDwg"
         },
         {
-          "line": 5687,
+          "line": 5767,
           "path": "src/drw_entities.cpp",
           "spanSha256": "8c4873746fe0c15de33c06279c3547055cf5fa4bb397307c2f1eb2d5cd510d48",
           "symbol": "DRW_Circle::parseCode"
         },
         {
-          "line": 5704,
+          "line": 5784,
           "path": "src/drw_entities.cpp",
           "spanSha256": "3935c24e668307b5ca977c40a8adf04a89a4660519ffe62bcc3849c0e7f826d2",
           "symbol": "DRW_Circle::parseDwg"
@@ -10959,13 +10959,13 @@
       ],
       "evidence": [
         {
-          "line": 19106,
+          "line": 19186,
           "path": "src/drw_entities.cpp",
           "spanSha256": "809f596ef05f807ce84755478b289631f553b5d1d981eec1434f7316bd5900d6",
           "symbol": "DRW_DimAligned::parseDwg"
         },
         {
-          "line": 19686,
+          "line": 19766,
           "path": "src/drw_entities.cpp",
           "spanSha256": "3f8393717ee13f55109cf16f5e28b88c9a820ee829631f3e6b6b5ca0a77aba7e",
           "symbol": "DRW_DimAligned::encodeDwg"
@@ -11007,13 +11007,13 @@
       ],
       "evidence": [
         {
-          "line": 19411,
+          "line": 19491,
           "path": "src/drw_entities.cpp",
           "spanSha256": "72bac089afceb5dcd3229093e72c023c9706c6cca670668ac8e9dc4f47ead4d9",
           "symbol": "DRW_DimAngular::parseDwg"
         },
         {
-          "line": 19773,
+          "line": 19853,
           "path": "src/drw_entities.cpp",
           "spanSha256": "ad1a8da373bec17fdcc47e3131de9e78418d4008cc9b1df27e4c050596c5de57",
           "symbol": "DRW_DimAngular::encodeDwg"
@@ -11055,13 +11055,13 @@
       ],
       "evidence": [
         {
-          "line": 19484,
+          "line": 19564,
           "path": "src/drw_entities.cpp",
           "spanSha256": "3a7377820f8c7c118f969436b118f36e4460abda1a3dea4e43d25f7f845e75d0",
           "symbol": "DRW_DimAngular3p::parseDwg"
         },
         {
-          "line": 19793,
+          "line": 19873,
           "path": "src/drw_entities.cpp",
           "spanSha256": "44ba030a7c5628300022ce8750586a615440d8e68649f4ec48950716d6c0e3b4",
           "symbol": "DRW_DimAngular3p::encodeDwg"
@@ -11103,19 +11103,19 @@
       ],
       "evidence": [
         {
-          "line": 19810,
+          "line": 19890,
           "path": "src/drw_entities.cpp",
           "spanSha256": "ec5ad0a80c4f630a4f004ad356e599ba3b90345adcb85b217ba61346c5dd6577",
           "symbol": "DRW_DimArc::parseCode"
         },
         {
-          "line": 19839,
+          "line": 19919,
           "path": "src/drw_entities.cpp",
           "spanSha256": "9c3cf1d347085f37c244b08f275fd94cf2b49311ac5b1e8dccaf53796fec1373",
           "symbol": "DRW_DimArc::parseDwg"
         },
         {
-          "line": 19922,
+          "line": 20002,
           "path": "src/drw_entities.cpp",
           "spanSha256": "d945642f25929516ae8190391783b0075fcf32529f9dc069cace2a18b9c9385c",
           "symbol": "DRW_DimArc::encodeDwg"
@@ -11162,13 +11162,13 @@
       ],
       "evidence": [
         {
-          "line": 19349,
+          "line": 19429,
           "path": "src/drw_entities.cpp",
           "spanSha256": "0eceb19262aba35e3727090399adcb60fcfefa9edc467e9c5daa44d65eac2380",
           "symbol": "DRW_DimDiametric::parseDwg"
         },
         {
-          "line": 19757,
+          "line": 19837,
           "path": "src/drw_entities.cpp",
           "spanSha256": "5bcc078e9f5a72dfbfbfe37d06e3731cc1522339214ba82f5f0018da0fc82044",
           "symbol": "DRW_DimDiametric::encodeDwg"
@@ -11210,19 +11210,19 @@
       ],
       "evidence": [
         {
-          "line": 19243,
+          "line": 19323,
           "path": "src/drw_entities.cpp",
           "spanSha256": "3aa0466d460435a3bada484a34ed20a41c0bdd73f61e2f34ce293a9969bcb15d",
           "symbol": "DRW_DimLargeRadial::parseCode"
         },
         {
-          "line": 19283,
+          "line": 19363,
           "path": "src/drw_entities.cpp",
           "spanSha256": "7e8659a773057219c2945ade3f1e80cdc30b1c581139f8a9c81537b97f08020a",
           "symbol": "DRW_DimLargeRadial::parseDwg"
         },
         {
-          "line": 19737,
+          "line": 19817,
           "path": "src/drw_entities.cpp",
           "spanSha256": "73b6be857f8dd16de310f6e0df81ebae2ef43230b18ee22396aba6c67ceefb90",
           "symbol": "DRW_DimLargeRadial::encodeDwg"
@@ -11268,7 +11268,7 @@
       ],
       "evidence": [
         {
-          "line": 19703,
+          "line": 19783,
           "path": "src/drw_entities.cpp",
           "spanSha256": "ad0f2757c434d30ec1c4ec826249694a35f18403d7ed54895116e91616e77e50",
           "symbol": "DRW_DimLinear::encodeDwg"
@@ -11305,13 +11305,13 @@
       ],
       "evidence": [
         {
-          "line": 19550,
+          "line": 19630,
           "path": "src/drw_entities.cpp",
           "spanSha256": "d4a4df35447303faefc224f78b6fc2ae6a6395089e472102db4a3814782991a8",
           "symbol": "DRW_DimOrdinate::parseDwg"
         },
         {
-          "line": 19949,
+          "line": 20029,
           "path": "src/drw_entities.cpp",
           "spanSha256": "a504b06c5f27a71929048ee3aa596a52497d4e9d756c9023b7bb41985a0341e3",
           "symbol": "DRW_DimOrdinate::encodeDwg"
@@ -11353,13 +11353,13 @@
       ],
       "evidence": [
         {
-          "line": 19176,
+          "line": 19256,
           "path": "src/drw_entities.cpp",
           "spanSha256": "211d32eab2ddc37b59a72d602bdef4d3f4f1118fe83e69aa9e63e21c94e54929",
           "symbol": "DRW_DimRadial::parseDwg"
         },
         {
-          "line": 19721,
+          "line": 19801,
           "path": "src/drw_entities.cpp",
           "spanSha256": "0d4c5b9280a3585b42af4b8b19a90d40542f6a176285971621ef60876825b5af",
           "symbol": "DRW_DimRadial::encodeDwg"
@@ -11401,31 +11401,31 @@
       ],
       "evidence": [
         {
-          "line": 18723,
+          "line": 18803,
           "path": "src/drw_entities.cpp",
           "spanSha256": "8b2fdf38cc9dd9297e47a9be1980c3ba1f844fb5330765b5bd3c16a58e3ec330",
           "symbol": "DRW_Dimension::parseCode"
         },
         {
-          "line": 18876,
+          "line": 18956,
           "path": "src/drw_entities.cpp",
           "spanSha256": "8e1a10673566de7a88a4de29bcdf930a780d35e50b915e8759f8b82587206f5a",
           "symbol": "DRW_Dimension::parseDwg"
         },
         {
-          "line": 18928,
+          "line": 19008,
           "path": "src/drw_entities.cpp",
           "spanSha256": "b36edd1535c3488654342ab1fa6bb0ee885f0c095313ff31d922791be288a376",
           "symbol": "DRW_Dimension::parseDwg"
         },
         {
-          "line": 19087,
+          "line": 19167,
           "path": "src/drw_entities.cpp",
           "spanSha256": "6e75279b1af907f314c76cd55b175735ba852779e152ac4cb8fe6eab432a2e7a",
           "symbol": "DRW_Dimension::parseDwgDimensionHandles"
         },
         {
-          "line": 19623,
+          "line": 19703,
           "path": "src/drw_entities.cpp",
           "spanSha256": "7b297d61022f09b5a3ae3f11ef8089aa49a0bc2e80ccb50de0297ce5b8b48222",
           "symbol": "DRW_Dimension::encodeDwgDimBase"
@@ -12260,19 +12260,19 @@
       ],
       "evidence": [
         {
-          "line": 5514,
+          "line": 5594,
           "path": "src/drw_entities.cpp",
           "spanSha256": "cbcfeb29c87a93885099c03e0af5ed0687d3f9b51ab6f88ff80d2bee292395a0",
           "symbol": "DRW_Ellipse::encodeDwg"
         },
         {
-          "line": 5865,
+          "line": 5945,
           "path": "src/drw_entities.cpp",
           "spanSha256": "a19e1ebc1387356833b56a506c5dd07ff17205d1198d007c2be65f1499037859",
           "symbol": "DRW_Ellipse::parseCode"
         },
         {
-          "line": 5922,
+          "line": 6002,
           "path": "src/drw_entities.cpp",
           "spanSha256": "a38cf8c4dc357750d163f21217f29382719341112f1548df097609a21f29733b",
           "symbol": "DRW_Ellipse::parseDwg"
@@ -12319,49 +12319,49 @@
       ],
       "evidence": [
         {
-          "line": 3033,
+          "line": 3113,
           "path": "src/drw_entities.cpp",
           "spanSha256": "b4b94e035d891000e5c7f4977713cb6a781e14050490ce6dd2195b1f2ceaebe1",
           "symbol": "DRW_Entity::parseCode"
         },
         {
-          "line": 3207,
+          "line": 3287,
           "path": "src/drw_entities.cpp",
           "spanSha256": "c916d6d6b7cfb4a0dfcf72bcde7ecbe3cc55e30ad162c942a00da07b6b8b16f6",
           "symbol": "DRW_Entity::parseDxfGroups"
         },
         {
-          "line": 3299,
+          "line": 3379,
           "path": "src/drw_entities.cpp",
           "spanSha256": "d8f1253ea9b931138479dd9174a72f4f7d1ed781bcd00db769fd52d439290f50",
           "symbol": "DRW_Entity::parseDwg"
         },
         {
-          "line": 3655,
+          "line": 3735,
           "path": "src/drw_entities.cpp",
           "spanSha256": "d9be640ea7add98346eca4839709127f901e71fadd6afc71b7b4f2854b434594",
           "symbol": "DRW_Entity::parseDwgEntHandle"
         },
         {
-          "line": 3930,
+          "line": 4010,
           "path": "src/drw_entities.cpp",
           "spanSha256": "298ab5ec7cb2794c9e0ee57ac0a1b39bcf300807043516114a2a02a58b0ff6c7",
           "symbol": "DRW_Entity::parseDwgCommon"
         },
         {
-          "line": 4342,
+          "line": 4422,
           "path": "src/drw_entities.cpp",
           "spanSha256": "b4384eb8720bbd524f4b308906a3ebd9f06a04b6ce7ed153c682e23df8b6d6bf",
           "symbol": "DRW_Entity::encodeDwgEed"
         },
         {
-          "line": 4439,
+          "line": 4519,
           "path": "src/drw_entities.cpp",
           "spanSha256": "1fe7a38257f9537008842338c13e75ab34d4a49a7c97068981531a7c195540b6",
           "symbol": "DRW_Entity::encodeDwgCommon"
         },
         {
-          "line": 4629,
+          "line": 4709,
           "path": "src/drw_entities.cpp",
           "spanSha256": "f6e4a63b906a71d3f33015ed2f9baa25960b9801450939d106f7323ff56952f8",
           "symbol": "DRW_Entity::encodeDwgEntHandle"
@@ -12539,7 +12539,7 @@
       ],
       "evidence": [
         {
-          "line": 17272,
+          "line": 17352,
           "path": "src/drw_entities.cpp",
           "spanSha256": "4541bc4e821f6a6de20491691faeef7d75dda81984ff62fa723f3205cbafe505",
           "symbol": "DRW_ExtrudedSurface::parseCode"
@@ -12826,25 +12826,25 @@
       ],
       "evidence": [
         {
-          "line": 7817,
+          "line": 7897,
           "path": "src/drw_entities.cpp",
           "spanSha256": "1e04db1609d62b2288e26b3402aa6fdc25fdc142354d0d621beb83dc4e40f8d8",
           "symbol": "DRW_GeoPositionMarker::parseCode"
         },
         {
-          "line": 7872,
+          "line": 7952,
           "path": "src/drw_entities.cpp",
           "spanSha256": "a5c3c31f7a8908add77ab0449c73ea05c23ac98571acd36f19800c01eaa06dd0",
           "symbol": "DRW_GeoPositionMarker::parseDxfVariant"
         },
         {
-          "line": 7947,
+          "line": 8027,
           "path": "src/drw_entities.cpp",
           "spanSha256": "e79e6a431d6d161c61cc53b88528e1aedf9f00ab7a0b500fa8138298cd7244b6",
           "symbol": "DRW_GeoPositionMarker::parseDwg"
         },
         {
-          "line": 11993,
+          "line": 12073,
           "path": "src/drw_entities.cpp",
           "spanSha256": "f08fa9a22d50a60a624ccd17d4bd4453f88de7c9c6c2fcaf10e97cd97ea4fb43",
           "symbol": "DRW_GeoPositionMarker::encodeDwg"
@@ -12955,37 +12955,37 @@
       ],
       "evidence": [
         {
-          "line": 13399,
+          "line": 13479,
           "path": "src/drw_entities.cpp",
           "spanSha256": "bab1602c5d90ce54d43a8b309e357aa964c786d0ef143f97f35139d9e3956862",
           "symbol": "DRW_Hatch::parseCode"
         },
         {
-          "line": 14300,
+          "line": 14380,
           "path": "src/drw_entities.cpp",
           "spanSha256": "a5f86db7a35006954d8c81b523c5eb164aa0414493d7940e82bef2142e58139a",
           "symbol": "DRW_Hatch::parseDwgBoundaryData"
         },
         {
-          "line": 14539,
+          "line": 14619,
           "path": "src/drw_entities.cpp",
           "spanSha256": "f5ecaa1d68881460efb67d900682bab7d9a897e79bfdb60b27927efe5d00084e",
           "symbol": "DRW_Hatch::parseDwg"
         },
         {
-          "line": 14733,
+          "line": 14813,
           "path": "src/drw_entities.cpp",
           "spanSha256": "defa1fea13fd434d52fcdc184509b8ab3af7549e1fb234aa94d4d4098f28178f",
           "symbol": "DRW_Hatch::encodeDwgGradientData"
         },
         {
-          "line": 14755,
+          "line": 14835,
           "path": "src/drw_entities.cpp",
           "spanSha256": "6a629e387caf73ce5ed9796eb85797324d4e27673cb0af8db8b18ac65d9d26a9",
           "symbol": "DRW_Hatch::encodeDwgBoundaryData"
         },
         {
-          "line": 14842,
+          "line": 14922,
           "path": "src/drw_entities.cpp",
           "spanSha256": "2fdbb4db90ebb3f7a23f22052e52343aeea7f276505d407a95c01134266b8f03",
           "symbol": "DRW_Hatch::encodeDwg"
@@ -13152,19 +13152,19 @@
       ],
       "evidence": [
         {
-          "line": 5100,
+          "line": 5180,
           "path": "src/drw_entities.cpp",
           "spanSha256": "55fc524d597ab308cb064797d9d12dded3d2bcb3c944a2f56d3bf92650915178",
           "symbol": "DRW_Helix::encodeDwg"
         },
         {
-          "line": 15096,
+          "line": 15176,
           "path": "src/drw_entities.cpp",
           "spanSha256": "c1f4f9e34eaa3af2f18f6e93786c7a7d2e49d54fea43878c26b361bab6ab76f6",
           "symbol": "DRW_Helix::parseCode"
         },
         {
-          "line": 15464,
+          "line": 15544,
           "path": "src/drw_entities.cpp",
           "spanSha256": "5eeb244ce5fb8c3d5a619c1fc7b85df71c07d40a574cd0fe4e11cdd324ac3c40",
           "symbol": "DRW_Helix::parseDwg"
@@ -13270,19 +13270,19 @@
       ],
       "evidence": [
         {
-          "line": 15547,
+          "line": 15627,
           "path": "src/drw_entities.cpp",
           "spanSha256": "94ffa9bdd658fb5b0ac0e28334d06317348496a7528169c9708fcc87bb5ac57d",
           "symbol": "DRW_Image::parseCode"
         },
         {
-          "line": 15725,
+          "line": 15805,
           "path": "src/drw_entities.cpp",
           "spanSha256": "c7529a08f9c145024bee2d9f0812d5f9241ccfd10816d1178ef253b8840ca7cb",
           "symbol": "DRW_Image::parseDwg"
         },
         {
-          "line": 15900,
+          "line": 15980,
           "path": "src/drw_entities.cpp",
           "spanSha256": "deb34b291d97ecea9587ebbc4a156cb2e6ad028ae61349acda212e18b4a3121d",
           "symbol": "DRW_Image::encodeDwg"
@@ -13494,19 +13494,19 @@
       ],
       "evidence": [
         {
-          "line": 5218,
+          "line": 5298,
           "path": "src/drw_entities.cpp",
           "spanSha256": "f85a4620a601b083fadc4a68f0bb800b4df0be4ab550800cfe95af76735f5237",
           "symbol": "DRW_Insert::encodeDwg"
         },
         {
-          "line": 8701,
+          "line": 8781,
           "path": "src/drw_entities.cpp",
           "spanSha256": "286055500582d9fee568411ac83c1b2eebc5224e1417cbfe1c7b0abdb26f4ae7",
           "symbol": "DRW_Insert::parseCode"
         },
         {
-          "line": 8986,
+          "line": 9066,
           "path": "src/drw_entities.cpp",
           "spanSha256": "5d107498cd2d9953209d421289e5ff0071f05057c92118c85eefd2bdca174c1c",
           "symbol": "DRW_Insert::parseDwg"
@@ -13660,19 +13660,19 @@
       ],
       "evidence": [
         {
-          "line": 5380,
+          "line": 5460,
           "path": "src/drw_entities.cpp",
           "spanSha256": "391948ae13c85e44179481131dfadb6db67d20052ed10226e07bd16fb31c1aad",
           "symbol": "DRW_LWPolyline::encodeDwg"
         },
         {
-          "line": 9645,
+          "line": 9725,
           "path": "src/drw_entities.cpp",
           "spanSha256": "799a8e20bd8d62859329f61cfc62ad16ff481c1f8a61ac56228b2b7da92e3237",
           "symbol": "DRW_LWPolyline::parseCode"
         },
         {
-          "line": 9739,
+          "line": 9819,
           "path": "src/drw_entities.cpp",
           "spanSha256": "00a8e191ce744bd5aa1e913fa3d35d7a96310c834198efa0d34dde67751c6f9b",
           "symbol": "DRW_LWPolyline::parseDwg"
@@ -13991,19 +13991,19 @@
       ],
       "evidence": [
         {
-          "line": 19967,
+          "line": 20047,
           "path": "src/drw_entities.cpp",
           "spanSha256": "f196baa3155c0eaf2f33861913191d37c11e393db229db0c448316cd373faa09",
           "symbol": "DRW_Leader::parseCode"
         },
         {
-          "line": 20116,
+          "line": 20196,
           "path": "src/drw_entities.cpp",
           "spanSha256": "d55548be51ea1da78218f134e6d2a884e42b950889714d729d14ad345b02740b",
           "symbol": "DRW_Leader::parseDwg"
         },
         {
-          "line": 22216,
+          "line": 22296,
           "path": "src/drw_entities.cpp",
           "spanSha256": "a54ad3a23809d5d97a3de0d9e3a51b01b04737e5dbb5ad2e13f386fca8ad7663",
           "symbol": "DRW_Leader::encodeDwg"
@@ -14050,13 +14050,13 @@
       ],
       "evidence": [
         {
-          "line": 7542,
+          "line": 7622,
           "path": "src/drw_entities.cpp",
           "spanSha256": "b1f4f5577cc196132ec89a1c0a506253396cb60c7ca72d1ebc6906de3ce66e93",
           "symbol": "DRW_Light::parseDwg"
         },
         {
-          "line": 8045,
+          "line": 8125,
           "path": "src/drw_entities.cpp",
           "spanSha256": "760b5c58a638629c099ab7c51127b3b7aed3645be6fa537a9c62f6c461428445",
           "symbol": "DRW_Light::encodeDwg"
@@ -14181,19 +14181,19 @@
       ],
       "evidence": [
         {
-          "line": 4831,
+          "line": 4911,
           "path": "src/drw_entities.cpp",
           "spanSha256": "8de04c6c93b3635c2f9d5216714946c5ba9d495094aa734c00ba88dc6db5dcfe",
           "symbol": "DRW_Line::parseCode"
         },
         {
-          "line": 4849,
+          "line": 4929,
           "path": "src/drw_entities.cpp",
           "spanSha256": "3263d075f51306e0ceb0adab68498497a5b5898a4fe1eac702af09d033429186",
           "symbol": "DRW_Line::encodeDwg"
         },
         {
-          "line": 5548,
+          "line": 5628,
           "path": "src/drw_entities.cpp",
           "spanSha256": "465601635e112f8808d022e030594912d36accac043c7db557da8c7c0d907b44",
           "symbol": "DRW_Line::parseDwg"
@@ -14239,7 +14239,7 @@
       ],
       "evidence": [
         {
-          "line": 17632,
+          "line": 17712,
           "path": "src/drw_entities.cpp",
           "spanSha256": "53a68d4eed41af7e3bf67fbd6ea790c59c37db6212b1cea10194667a51209033",
           "symbol": "DRW_LoftedSurface::parseCode"
@@ -14276,25 +14276,25 @@
       ],
       "evidence": [
         {
-          "line": 20301,
+          "line": 20381,
           "path": "src/drw_entities.cpp",
           "spanSha256": "c819118a98b200d39488163abb74a8290e4bdb8706dceac450aa4cdf922959a1",
           "symbol": "DRW_MLeader::parseDxfContextCode"
         },
         {
-          "line": 20546,
+          "line": 20626,
           "path": "src/drw_entities.cpp",
           "spanSha256": "e9e76b1373e6afa59e7574b4e39dd0af7bcb96c6b559dc48583972d858918984",
           "symbol": "DRW_MLeader::parseCode"
         },
         {
-          "line": 21194,
+          "line": 21274,
           "path": "src/drw_entities.cpp",
           "spanSha256": "0613ccfd10a26a9b61c4293d3215eba5f583327d8bfe17ef3c17f429f5457f03",
           "symbol": "DRW_MLeader::parseDwg"
         },
         {
-          "line": 21418,
+          "line": 21498,
           "path": "src/drw_entities.cpp",
           "spanSha256": "682ef9351d7545b055fe7255beab9ba4ee3434ad7f7ab93aaa6c82bef95f73f2",
           "symbol": "DRW_MLeader::encodeDwg"
@@ -14477,19 +14477,19 @@
       ],
       "evidence": [
         {
-          "line": 9979,
+          "line": 10059,
           "path": "src/drw_entities.cpp",
           "spanSha256": "84c5de70d778d8f67276ebdffc788e8c01d31df812c7868d742cb055f0321d35",
           "symbol": "DRW_MLine::parseCode"
         },
         {
-          "line": 10236,
+          "line": 10316,
           "path": "src/drw_entities.cpp",
           "spanSha256": "8332de5d0c5339d16fa8b647dc0580b55c16353d739e53478b761b96c1eaf34b",
           "symbol": "DRW_MLine::parseDwg"
         },
         {
-          "line": 22015,
+          "line": 22095,
           "path": "src/drw_entities.cpp",
           "spanSha256": "01d94d9dc8fae017c5c74a81f19f2a08e4b6459941f5dc520345a91a1e63bff7",
           "symbol": "DRW_MLine::encodeDwg"
@@ -14643,19 +14643,19 @@
       ],
       "evidence": [
         {
-          "line": 13952,
+          "line": 14032,
           "path": "src/drw_entities.cpp",
           "spanSha256": "1522867611aa1edd6bee568ae42990a2ecdab4672813ee7e78b2eebce4418b3a",
           "symbol": "DRW_MPolygon::parseCode"
         },
         {
-          "line": 13991,
+          "line": 14071,
           "path": "src/drw_entities.cpp",
           "spanSha256": "625010dbbd8b3ebaa29b9467d6b8afdf395eba668bdaa5bfe4c10b0e7b16cb5a",
           "symbol": "DRW_MPolygon::parseDwg"
         },
         {
-          "line": 14243,
+          "line": 14323,
           "path": "src/drw_entities.cpp",
           "spanSha256": "0f5abe7303657230b8aed7a74caaae44716aa29143f52c53f5c5c213e9c0a819",
           "symbol": "DRW_MPolygon::encodeDwg"
@@ -14702,19 +14702,19 @@
       ],
       "evidence": [
         {
-          "line": 5130,
+          "line": 5210,
           "path": "src/drw_entities.cpp",
           "spanSha256": "3c8e89739a27c7318f91e7107cf7615bb30f8402ab2860e0321c08f660017dba",
           "symbol": "DRW_MText::encodeDwg"
         },
         {
-          "line": 12562,
+          "line": 12642,
           "path": "src/drw_entities.cpp",
           "spanSha256": "67544b9b43e6f8f157cf69764a7b15aef0b5a95a20b41a66d82a17195c9d4e3a",
           "symbol": "DRW_MText::parseCode"
         },
         {
-          "line": 12651,
+          "line": 12731,
           "path": "src/drw_entities.cpp",
           "spanSha256": "233bcb253b66b50fa2ad156935bff8cf0c1d2aaf82a6ce22ce30f9afad713ab6",
           "symbol": "DRW_MText::parseDwg"
@@ -14820,19 +14820,19 @@
       ],
       "evidence": [
         {
-          "line": 6412,
+          "line": 6492,
           "path": "src/drw_entities.cpp",
           "spanSha256": "47c597414ff6c809abf6c964ded11de8ebe47fe2f2e34a6b530c8d48f119372e",
           "symbol": "DRW_Mesh::parseDwg"
         },
         {
-          "line": 6568,
+          "line": 6648,
           "path": "src/drw_entities.cpp",
           "spanSha256": "d83472ea7e689950094532fbf191a61b8bff2a82d315851bc01a7d82e7473ca9",
           "symbol": "DRW_Mesh::parseCode"
         },
         {
-          "line": 6847,
+          "line": 6927,
           "path": "src/drw_entities.cpp",
           "spanSha256": "faa579115a11d1e39b890729f91f7372db01fca3e1118ad884ed43edb5c1911b",
           "symbol": "DRW_Mesh::encodeDwg"
@@ -14926,13 +14926,13 @@
       ],
       "evidence": [
         {
-          "line": 6266,
+          "line": 6346,
           "path": "src/drw_entities.cpp",
           "spanSha256": "cee40252f6f58d8354a934210d60cd13ea06fd2492082db53327475a10802ad4",
           "symbol": "DRW_ModelerGeometry::parseDwg"
         },
         {
-          "line": 6350,
+          "line": 6430,
           "path": "src/drw_entities.cpp",
           "spanSha256": "29c36cac2e83fdfe60992fe2ff644cb385f5144e4ed404cc9b5ef829a04ad6b6",
           "symbol": "DRW_ModelerGeometry::parseCode"
@@ -15057,19 +15057,19 @@
       ],
       "evidence": [
         {
-          "line": 16059,
+          "line": 16139,
           "path": "src/drw_entities.cpp",
           "spanSha256": "471fab2179bb307f4840ee7751fcdd4d8e7694486ace27006a32062f93d00262",
           "symbol": "DRW_NavisworksModel::parseCode"
         },
         {
-          "line": 16116,
+          "line": 16196,
           "path": "src/drw_entities.cpp",
           "spanSha256": "cf05b0855f660e3c37afb6632a969a6a09c3b70757e004b6c0d45a78911a15d3",
           "symbol": "DRW_NavisworksModel::parseDwg"
         },
         {
-          "line": 16193,
+          "line": 16273,
           "path": "src/drw_entities.cpp",
           "spanSha256": "42079910e29491d4216ce199718440bddfbbede3199ceb941665e078fca5751c",
           "symbol": "DRW_NavisworksModel::encodeDwg"
@@ -15174,7 +15174,7 @@
       ],
       "evidence": [
         {
-          "line": 17788,
+          "line": 17868,
           "path": "src/drw_entities.cpp",
           "spanSha256": "5fa9f63041e9024259a44822d8e215735a5865306585aa6dfefd1787866516dc",
           "symbol": "DRW_NurbsSurface::parseCode"
@@ -15306,19 +15306,19 @@
       ],
       "evidence": [
         {
-          "line": 7074,
+          "line": 7154,
           "path": "src/drw_entities.cpp",
           "spanSha256": "04817d3b577d6bff930bb7730ed7ca13280d77721ebabbd65c88fe11e980ffbc",
           "symbol": "DRW_Ole2Frame::parseCode"
         },
         {
-          "line": 7189,
+          "line": 7269,
           "path": "src/drw_entities.cpp",
           "spanSha256": "bc8dbdb2082f2277dc7c8d1d83e9fef51065f70c11aebcd53b7644aaa91a6803",
           "symbol": "DRW_Ole2Frame::parseDwg"
         },
         {
-          "line": 7313,
+          "line": 7393,
           "path": "src/drw_entities.cpp",
           "spanSha256": "1d7c02323e492f693584b12c8384595e4c6af54be0f4d4348109156e384bf5d5",
           "symbol": "DRW_Ole2Frame::encodeDwg"
@@ -15365,19 +15365,19 @@
       ],
       "evidence": [
         {
-          "line": 7347,
+          "line": 7427,
           "path": "src/drw_entities.cpp",
           "spanSha256": "e38d895698088759d1635ecdd4c09ca85aceeaf2ac3327399794c12410ae8057",
           "symbol": "DRW_OleFrame::parseCode"
         },
         {
-          "line": 7406,
+          "line": 7486,
           "path": "src/drw_entities.cpp",
           "spanSha256": "23f9c5d2cd89cbfc5d57456efca1088739318e89c442dded16526422147088a2",
           "symbol": "DRW_OleFrame::parseDwg"
         },
         {
-          "line": 7479,
+          "line": 7559,
           "path": "src/drw_entities.cpp",
           "spanSha256": "58c86e4ab5a840d56dd12b73af3d40708c966fdd0de973d0829f7e9460a9d6fa",
           "symbol": "DRW_OleFrame::encodeDwg"
@@ -15638,19 +15638,19 @@
       ],
       "evidence": [
         {
-          "line": 4084,
+          "line": 4164,
           "path": "src/drw_entities.cpp",
           "spanSha256": "595b335d233def421f6778aad8222b61e5e31f806a8da23c073ff8008fe77965",
           "symbol": "DRW_Point::parseCode"
         },
         {
-          "line": 4747,
+          "line": 4827,
           "path": "src/drw_entities.cpp",
           "spanSha256": "8e27370922b263320e076b504b9ef1933e7d3bbec7d9823aafa3ee11cb185a98",
           "symbol": "DRW_Point::encodeDwg"
         },
         {
-          "line": 4771,
+          "line": 4851,
           "path": "src/drw_entities.cpp",
           "spanSha256": "a604431b656752a4eab5c0c45de402070664cc4fb64dd90a2dd173b0ad96c08c",
           "symbol": "DRW_Point::parseDwg"
@@ -15697,19 +15697,19 @@
       ],
       "evidence": [
         {
-          "line": 16234,
+          "line": 16314,
           "path": "src/drw_entities.cpp",
           "spanSha256": "80469471a8d953355cf8a69f4c489faa27518da806ebd6eeca87e170a35b1261",
           "symbol": "DRW_PointCloud::parseCode"
         },
         {
-          "line": 16350,
+          "line": 16430,
           "path": "src/drw_entities.cpp",
           "spanSha256": "14ca447c9370df3de44deabee3d44472ac07915a4eb11cdb18883f9e6ae2189f",
           "symbol": "DRW_PointCloud::parseDwg"
         },
         {
-          "line": 16553,
+          "line": 16633,
           "path": "src/drw_entities.cpp",
           "spanSha256": "8bcc2a27c895a09cbab3eba410196137b03abf239219ea882ab18652edfa4344",
           "symbol": "DRW_PointCloud::encodeDwg"
@@ -15922,19 +15922,19 @@
       ],
       "evidence": [
         {
-          "line": 16663,
+          "line": 16743,
           "path": "src/drw_entities.cpp",
           "spanSha256": "b26955749a1704b84ac8accbea96cb5837534fbd54ccf2ec8ea5f56ae0a50ca9",
           "symbol": "DRW_PointCloudEx::parseCode"
         },
         {
-          "line": 16939,
+          "line": 17019,
           "path": "src/drw_entities.cpp",
           "spanSha256": "5f9a5ec13fd4490d8b6a1f05471e90dab31d8e5977596a06f9280d524f645bf6",
           "symbol": "DRW_PointCloudEx::parseDwg"
         },
         {
-          "line": 17120,
+          "line": 17200,
           "path": "src/drw_entities.cpp",
           "spanSha256": "338fdd590c8dfbff29298e2f5076a09209abd22303e03db6a64d8c5c28b50a21",
           "symbol": "DRW_PointCloudEx::encodeDwg"
@@ -16088,19 +16088,19 @@
       ],
       "evidence": [
         {
-          "line": 12922,
+          "line": 13002,
           "path": "src/drw_entities.cpp",
           "spanSha256": "b3a54585f4021e001e8905c3a9829c533be3d42e6b5890ed0d8fada6d9d6a624",
           "symbol": "DRW_Polyline::parseCode"
         },
         {
-          "line": 13010,
+          "line": 13090,
           "path": "src/drw_entities.cpp",
           "spanSha256": "01dd11a8ac193113b0d84bbce8428b6818914ee7380b7a3f082e7b6c3131b6be",
           "symbol": "DRW_Polyline::parseDwg"
         },
         {
-          "line": 22148,
+          "line": 22228,
           "path": "src/drw_entities.cpp",
           "spanSha256": "dfaa465bce9c2bd8eaf0c3e29fc6ba31f7b271235bdae2b2459c6da1c5efc2f3",
           "symbol": "DRW_Polyline::encodeDwg"
@@ -16146,7 +16146,7 @@
       ],
       "evidence": [
         {
-          "line": 3951,
+          "line": 4031,
           "path": "src/drw_entities.cpp",
           "spanSha256": "ab3358c72e225b639880391841f8e9d8958c52f805dd5bfa4f3890378f6fed14",
           "symbol": "DRW_ProxyEntity::parseDwg"
@@ -16243,19 +16243,19 @@
       ],
       "evidence": [
         {
-          "line": 10964,
+          "line": 11044,
           "path": "src/drw_entities.cpp",
           "spanSha256": "b009bf76d8fca0e96a8e5a8f73c1d5305528a42ee47dd53f76983dd58706eea3",
           "symbol": "DRW_RText::parseCode"
         },
         {
-          "line": 10975,
+          "line": 11055,
           "path": "src/drw_entities.cpp",
           "spanSha256": "bc7a144a819047e7b38e6d75fe0949e1bba2ad572eaf2b0c18b0e7225ddf7384",
           "symbol": "DRW_RText::parseDwg"
         },
         {
-          "line": 11075,
+          "line": 11155,
           "path": "src/drw_entities.cpp",
           "spanSha256": "ccb4691bd25be75ed6321c30c0be754f0d0f959f4f457f513c4fbd40d61347c6",
           "symbol": "DRW_RText::encodeDwg"
@@ -16433,13 +16433,13 @@
       ],
       "evidence": [
         {
-          "line": 4959,
+          "line": 5039,
           "path": "src/drw_entities.cpp",
           "spanSha256": "565ccf62d1090c937c1a259eb1a6877217dbdf82f9a57d8fd7a4541a142ef9ff",
           "symbol": "DRW_Ray::encodeDwg"
         },
         {
-          "line": 5633,
+          "line": 5713,
           "path": "src/drw_entities.cpp",
           "spanSha256": "111997a9a919a4d77d6d0f676a0e465364302c258643b7db8dfe01ad2a018167",
           "symbol": "DRW_Ray::parseDwg"
@@ -16539,7 +16539,7 @@
       ],
       "evidence": [
         {
-          "line": 17929,
+          "line": 18009,
           "path": "src/drw_entities.cpp",
           "spanSha256": "90c7ddf885b32e08b2616f830fdd0ee301b37cb9e157cc8723d477057daacc08",
           "symbol": "DRW_RevolvedSurface::parseCode"
@@ -16814,19 +16814,19 @@
       ],
       "evidence": [
         {
-          "line": 8119,
+          "line": 8199,
           "path": "src/drw_entities.cpp",
           "spanSha256": "8239c1ca52667f7785e4f289a99f062e7daac09f36c39dbdfdfba6a56d16d4a7",
           "symbol": "DRW_SectionObject::parseCode"
         },
         {
-          "line": 8245,
+          "line": 8325,
           "path": "src/drw_entities.cpp",
           "spanSha256": "a99d856cc2204183c60b7dec94565e02887cc7dbb653e38fe2adc871fe331da1",
           "symbol": "DRW_SectionObject::parseDwg"
         },
         {
-          "line": 8385,
+          "line": 8465,
           "path": "src/drw_entities.cpp",
           "spanSha256": "5faf29dca9dff82bc8d4ed7f9bb89f8700c37f6c54d84991cb74414e2eee44a5",
           "symbol": "DRW_SectionObject::encodeDwg"
@@ -16944,13 +16944,13 @@
       ],
       "evidence": [
         {
-          "line": 22110,
+          "line": 22190,
           "path": "src/drw_entities.cpp",
           "spanSha256": "122c62756cd77bcc90cee2a44837a209eaca40ebc6845d9abf8e577bd88c5ef6",
           "symbol": "DRW_SeqEnd::parseDwg"
         },
         {
-          "line": 22135,
+          "line": 22215,
           "path": "src/drw_entities.cpp",
           "spanSha256": "53dfcc703cbcc7320ab102121a59cb12299574725f2857f847db85aeda766825",
           "symbol": "DRW_SeqEnd::encodeDwg"
@@ -16992,19 +16992,19 @@
       ],
       "evidence": [
         {
-          "line": 6891,
+          "line": 6971,
           "path": "src/drw_entities.cpp",
           "spanSha256": "33595384e4fba108f1466fd89942596159d489ff1804c6399540ead71340a5ae",
           "symbol": "DRW_Shape::parseCode"
         },
         {
-          "line": 6951,
+          "line": 7031,
           "path": "src/drw_entities.cpp",
           "spanSha256": "ceb1f13ea08e13048918c31e2886f2ce8f409b3c759755525aefb178e750bceb",
           "symbol": "DRW_Shape::parseDwg"
         },
         {
-          "line": 7032,
+          "line": 7112,
           "path": "src/drw_entities.cpp",
           "spanSha256": "afa71b79df920de53c2ee1f54991bc030ea6e16086cc081fa4be0a2caa5066a5",
           "symbol": "DRW_Shape::encodeDwg"
@@ -17051,13 +17051,13 @@
       ],
       "evidence": [
         {
-          "line": 5357,
+          "line": 5437,
           "path": "src/drw_entities.cpp",
           "spanSha256": "362c63812038bf29f8942362ec150dd05e674e7efb8f472b4d69625d1d2f4d89",
           "symbol": "DRW_Solid::encodeDwg"
         },
         {
-          "line": 6132,
+          "line": 6212,
           "path": "src/drw_entities.cpp",
           "spanSha256": "5290478072a0ff7696ba0772344f58e14f8c7c5f8decd17998aac55d6d6679af",
           "symbol": "DRW_Solid::parseDwg"
@@ -17276,31 +17276,31 @@
       ],
       "evidence": [
         {
-          "line": 5000,
+          "line": 5080,
           "path": "src/drw_entities.cpp",
           "spanSha256": "351b1332cd7fd322d1cdc935ce912868b920285bb2be9408470127ede0933653",
           "symbol": "DRW_Spline::encodeDwg"
         },
         {
-          "line": 5015,
+          "line": 5095,
           "path": "src/drw_entities.cpp",
           "spanSha256": "4dcfa25b64d4a03b5551f46cbb04bd9ee60dff698a7558948eaad49bdd565149",
           "symbol": "DRW_Spline::encodeDwgSplineBody"
         },
         {
-          "line": 14895,
+          "line": 14975,
           "path": "src/drw_entities.cpp",
           "spanSha256": "d97d71a967721f20032d44649cd0b90e638ba053c00767722541ce4b869dd171",
           "symbol": "DRW_Spline::parseCode"
         },
         {
-          "line": 15200,
+          "line": 15280,
           "path": "src/drw_entities.cpp",
           "spanSha256": "47dc66afcd7a0f4baa3f5565f5c452749018b7a62356b00ff326bbff613579e8",
           "symbol": "DRW_Spline::parseDwg"
         },
         {
-          "line": 15239,
+          "line": 15319,
           "path": "src/drw_entities.cpp",
           "spanSha256": "d5f767a7d52115922b41cce705d669ff7ad7c7dfd1ca002c42de3fc06c303e58",
           "symbol": "DRW_Spline::parseDwgSplineBody"
@@ -17499,19 +17499,19 @@
       ],
       "evidence": [
         {
-          "line": 17236,
+          "line": 17316,
           "path": "src/drw_entities.cpp",
           "spanSha256": "1a33a824e8b1efc2e9c26c2adde876e7441941c2067769f985d874a94c622c6f",
           "symbol": "DRW_Surface::parseCode"
         },
         {
-          "line": 18135,
+          "line": 18215,
           "path": "src/drw_entities.cpp",
           "spanSha256": "2bdb8534cc5db7a3526c9ea180ef32881dd04071afc281b1353c9bc6543e6687",
           "symbol": "DRW_Surface::parseDwg"
         },
         {
-          "line": 18365,
+          "line": 18445,
           "path": "src/drw_entities.cpp",
           "spanSha256": "b737856903124640cfeef8532cc0ac9a6f54645b4e853ab0854006fb818c6c88",
           "symbol": "DRW_Surface::encodeDwg"
@@ -17557,7 +17557,7 @@
       ],
       "evidence": [
         {
-          "line": 17412,
+          "line": 17492,
           "path": "src/drw_entities.cpp",
           "spanSha256": "0dd05560c4d52be81d9d935c8314cdb78f675c356f22d0a7bee8ddc85788cd0c",
           "symbol": "DRW_SweptSurface::parseCode"
@@ -17593,13 +17593,13 @@
       ],
       "evidence": [
         {
-          "line": 8746,
+          "line": 8826,
           "path": "src/drw_entities.cpp",
           "spanSha256": "583ba363514d609cae9762e45586bdc68c76ce82b29b60692f580826caaa5972",
           "symbol": "DRW_Table::parseCode"
         },
         {
-          "line": 9193,
+          "line": 9273,
           "path": "src/drw_entities.cpp",
           "spanSha256": "a8d70565bebb32625fc8fbaecf01ac44a8a22bd503acbf23c0c3a19a7dc8f074",
           "symbol": "DRW_Table::parseDwg"
@@ -17784,7 +17784,7 @@
       ],
       "evidence": [
         {
-          "line": 9576,
+          "line": 9656,
           "path": "src/drw_entities.cpp",
           "spanSha256": "40a376758faa98119d2bba65fdf476cd9f0b87eb5322797526b4a74be4325b86",
           "symbol": "DRW_TableContentObject::parseDwg"
@@ -18188,19 +18188,19 @@
       ],
       "evidence": [
         {
-          "line": 5469,
+          "line": 5549,
           "path": "src/drw_entities.cpp",
           "spanSha256": "06cf50cf8a428424734c905611ef8f3ed778ad8a7376850090e66a714787e19a",
           "symbol": "DRW_Text::encodeDwg"
         },
         {
-          "line": 10735,
+          "line": 10815,
           "path": "src/drw_entities.cpp",
           "spanSha256": "3a6f98ac1b95ea2d73d8729112d98086af1edbe86d7e5adf1fdf540fe5c41797",
           "symbol": "DRW_Text::parseCode"
         },
         {
-          "line": 10790,
+          "line": 10870,
           "path": "src/drw_entities.cpp",
           "spanSha256": "e9b87edbca5c7e80f71486252aabaeab76fc181675f592c7c3a0e156d0f61dae",
           "symbol": "DRW_Text::parseDwg"
@@ -18306,19 +18306,19 @@
       ],
       "evidence": [
         {
-          "line": 8418,
+          "line": 8498,
           "path": "src/drw_entities.cpp",
           "spanSha256": "515dd0fee14a5f8e36e66439e2bf33024d725f39654004578d1690eadba713c7",
           "symbol": "DRW_Tolerance::parseCode"
         },
         {
-          "line": 8469,
+          "line": 8549,
           "path": "src/drw_entities.cpp",
           "spanSha256": "669bd4085778e1105a1dfe57b9ad93f07da8363c4f526fe33fcc5e72b05ed51b",
           "symbol": "DRW_Tolerance::parseDwg"
         },
         {
-          "line": 8574,
+          "line": 8654,
           "path": "src/drw_entities.cpp",
           "spanSha256": "10065501e72026bd9f1c04faebead488b01dc4f7f5ebd22261637e8b15841a5a",
           "symbol": "DRW_Tolerance::encodeDwg"
@@ -18365,19 +18365,19 @@
       ],
       "evidence": [
         {
-          "line": 4977,
+          "line": 5057,
           "path": "src/drw_entities.cpp",
           "spanSha256": "d04b15ac022bb6a978a4a75a8855d7d11355ae748b3fcebe256741f75f7dcb0a",
           "symbol": "DRW_Trace::encodeDwg"
         },
         {
-          "line": 6038,
+          "line": 6118,
           "path": "src/drw_entities.cpp",
           "spanSha256": "86704628e4025ab31ee78df93697aa22bc3e47d750eecd2e3fd0315aa7ebb975",
           "symbol": "DRW_Trace::parseCode"
         },
         {
-          "line": 6071,
+          "line": 6151,
           "path": "src/drw_entities.cpp",
           "spanSha256": "ba29d6c82bb8e23ca1c3872de7901d71ac9782e79007defae5d9761712d6262a",
           "symbol": "DRW_Trace::parseDwg"
@@ -18555,19 +18555,19 @@
       ],
       "evidence": [
         {
-          "line": 10426,
+          "line": 10506,
           "path": "src/drw_entities.cpp",
           "spanSha256": "75b8c94677a509ebaad1668a63c44c65221d15b4e8c8a2923f6fe88652778283",
           "symbol": "DRW_Underlay::parseCode"
         },
         {
-          "line": 10553,
+          "line": 10633,
           "path": "src/drw_entities.cpp",
           "spanSha256": "21d7d94b7676c26f9ae3c88133d86d734ee6cb1b501cda8686c6a731e11b034e",
           "symbol": "DRW_Underlay::parseDwg"
         },
         {
-          "line": 10677,
+          "line": 10757,
           "path": "src/drw_entities.cpp",
           "spanSha256": "43161196379406c80007bb94292b7a43c74636e119d53332462685a95f731940",
           "symbol": "DRW_Underlay::encodeDwg"
@@ -18793,19 +18793,19 @@
       ],
       "evidence": [
         {
-          "line": 13195,
+          "line": 13275,
           "path": "src/drw_entities.cpp",
           "spanSha256": "28968308a11e2a8a5321b254bb34ebde2817b8c0d125755027e97e1d4623aa55",
           "symbol": "DRW_Vertex::parseCode"
         },
         {
-          "line": 13272,
+          "line": 13352,
           "path": "src/drw_entities.cpp",
           "spanSha256": "049c1c1663c9adf91862f3544e340bb5969e259580d14e2f3ca2c3a4faa2704f",
           "symbol": "DRW_Vertex::parseDwg"
         },
         {
-          "line": 22061,
+          "line": 22141,
           "path": "src/drw_entities.cpp",
           "spanSha256": "f1bfc4d52e07d3f1af2f3cebaae93a56a6fad2b2084790caa236ba573c224e7d",
           "symbol": "DRW_Vertex::encodeDwg"
@@ -18935,19 +18935,19 @@
       ],
       "evidence": [
         {
-          "line": 21484,
+          "line": 21564,
           "path": "src/drw_entities.cpp",
           "spanSha256": "9304820c3b6529816f84178da9aea283a9ff0ca7ebe1f41fe118ab48f325054b",
           "symbol": "DRW_Viewport::parseCode"
         },
         {
-          "line": 21759,
+          "line": 21839,
           "path": "src/drw_entities.cpp",
           "spanSha256": "acd870ef80e8080aba63300a923eeaa1162e0661fa0ff9413279f8039393eb13",
           "symbol": "DRW_Viewport::parseDwg"
         },
         {
-          "line": 22278,
+          "line": 22358,
           "path": "src/drw_entities.cpp",
           "spanSha256": "e7c27013055640e979927210af504f0f5e6731d7d75cb2e0b930116d3ef89324",
           "symbol": "DRW_Viewport::encodeDwg"
@@ -19280,19 +19280,19 @@
       ],
       "evidence": [
         {
-          "line": 15968,
+          "line": 16048,
           "path": "src/drw_entities.cpp",
           "spanSha256": "2b67e42a8153dab227018c3b927693d75cad873cfd76ac16edd34032018a54c8",
           "symbol": "DRW_Wipeout::parseCode"
         },
         {
-          "line": 15976,
+          "line": 16056,
           "path": "src/drw_entities.cpp",
           "spanSha256": "26242121871b35b368eae65d204a86de3052a6ccb53034ab819ef7f416338661",
           "symbol": "DRW_Wipeout::parseDwg"
         },
         {
-          "line": 15998,
+          "line": 16078,
           "path": "src/drw_entities.cpp",
           "spanSha256": "407cfbad191a3b014c81d57168ccc00fa54fb9b88188eb9ae74c592fb848d226",
           "symbol": "DRW_Wipeout::encodeDwg"
@@ -19698,7 +19698,7 @@
         {
           "line": 1,
           "path": "src/drw_entities.cpp",
-          "spanSha256": "fbf1e64b511c165c8a62c790df1642e2b27b03452d19999d0a303cb0db4ee881",
+          "spanSha256": "393c2f0ef380c413e9ae855fcec2d7b4f0f8a0af68a1c7b1034ed0918a0b4f03",
           "symbol": "src/drw_entities.cpp"
         }
       ],
@@ -19722,7 +19722,7 @@
         {
           "line": 1,
           "path": "src/drw_entities.h",
-          "spanSha256": "45f204c43b3cd00cc870834f264951a6dc67d1d2633c88d976b96f3a50d84ce9",
+          "spanSha256": "db47f602bc68b959ecbdf66245bda50be0b9b571ccff1677777cc8c2f7c05785",
           "symbol": "src/drw_entities.h"
         }
       ],
@@ -26345,7 +26345,7 @@
         {
           "line": 1,
           "path": "src/drw_entities.h",
-          "spanSha256": "45f204c43b3cd00cc870834f264951a6dc67d1d2633c88d976b96f3a50d84ce9",
+          "spanSha256": "db47f602bc68b959ecbdf66245bda50be0b9b571ccff1677777cc8c2f7c05785",
           "symbol": "src/drw_entities.h"
         }
       ],
@@ -28381,31 +28381,6 @@
       ],
       "evidence": [
         {
-          "line": 602,
-          "path": "src/drw_entities.h",
-          "spanSha256": "87d19f42bd0bbdad437dd137d7e9cd09c091200721d42e6515894e9ddcd453e7",
-          "symbol": "DRW_Arc::DRW_Arc"
-        }
-      ],
-      "facade": "shared",
-      "id": "shared/public-inline-method/src_drw_entities.h_DRW_Arc_41e6e1bf69a029effa8974ffb94a6765d24d520ab41c855722caa5eecba92cde",
-      "selector": {
-        "implementationKind": "body",
-        "kind": "method",
-        "owner": "DRW_Arc",
-        "qualifiedName": "DRW_Arc::DRW_Arc",
-        "signatureFingerprint": "41e6e1bf69a029effa8974ffb94a6765d24d520ab41c855722caa5eecba92cde",
-        "visibility": "public"
-      },
-      "sourceDisposition": "source-route-only"
-    },
-    {
-      "category": "public-inline-method",
-      "directions": [
-        "public-api"
-      ],
-      "evidence": [
-        {
           "line": 614,
           "path": "src/drw_entities.h",
           "spanSha256": "0c25de0e58a38118a681cf9d14ac61f40a5fe996380e0290be9bda31828a079d",
@@ -28531,6 +28506,31 @@
       ],
       "evidence": [
         {
+          "line": 602,
+          "path": "src/drw_entities.h",
+          "spanSha256": "87d19f42bd0bbdad437dd137d7e9cd09c091200721d42e6515894e9ddcd453e7",
+          "symbol": "DRW_Arc::DRW_Arc"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-inline-method/src_drw_entities.h_DRW_Arc_e3dd0b8b09710fea4904af41258af370c81cb424670f0cf12f9907b0bf6ca695",
+      "selector": {
+        "implementationKind": "body",
+        "kind": "method",
+        "owner": "DRW_Arc",
+        "qualifiedName": "DRW_Arc::DRW_Arc",
+        "signatureFingerprint": "e3dd0b8b09710fea4904af41258af370c81cb424670f0cf12f9907b0bf6ca695",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-inline-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
           "line": 1800,
           "path": "src/drw_entities.h",
           "spanSha256": "2b5f2d4a89b58d568f3431bbac05e80a45995884f763b028a20991e5e895e10f",
@@ -28538,13 +28538,13 @@
         }
       ],
       "facade": "shared",
-      "id": "shared/public-inline-method/src_drw_entities.h_DRW_Attdef_92c9053f6fce09481de0a06b7f6c5145d3403cd834451a16aff70c85c52f0fee",
+      "id": "shared/public-inline-method/src_drw_entities.h_DRW_Attdef_ba74b82404a7d25b8e488d8cb04d55556f0a082fcd7d61ec729593d7093ee782",
       "selector": {
         "implementationKind": "body",
         "kind": "method",
         "owner": "DRW_Attdef",
         "qualifiedName": "DRW_Attdef::DRW_Attdef",
-        "signatureFingerprint": "92c9053f6fce09481de0a06b7f6c5145d3403cd834451a16aff70c85c52f0fee",
+        "signatureFingerprint": "ba74b82404a7d25b8e488d8cb04d55556f0a082fcd7d61ec729593d7093ee782",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -28563,13 +28563,13 @@
         }
       ],
       "facade": "shared",
-      "id": "shared/public-inline-method/src_drw_entities.h_DRW_Attrib_88a119c5695cdcf5be6b55aca0cfedd0d66ade1d9af534fa03d83c2a753eb591",
+      "id": "shared/public-inline-method/src_drw_entities.h_DRW_Attrib_eef737b419ed0b60f0a32c44cddddb8e4fc77d87588f4b0f0fbfcb4b0d62f0c9",
       "selector": {
         "implementationKind": "body",
         "kind": "method",
         "owner": "DRW_Attrib",
         "qualifiedName": "DRW_Attrib::DRW_Attrib",
-        "signatureFingerprint": "88a119c5695cdcf5be6b55aca0cfedd0d66ade1d9af534fa03d83c2a753eb591",
+        "signatureFingerprint": "eef737b419ed0b60f0a32c44cddddb8e4fc77d87588f4b0f0fbfcb4b0d62f0c9",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -28588,13 +28588,13 @@
         }
       ],
       "facade": "shared",
-      "id": "shared/public-inline-method/src_drw_entities.h_DRW_Block_54d66d691be085330cc2f1e476982bdc37455a9fd5247a314f3f0b219a515271",
+      "id": "shared/public-inline-method/src_drw_entities.h_DRW_Block_1dcfb09d321f47a405fa0a9cf464e2334b4b713171b4aef14d08e6c5f5ddcf9f",
       "selector": {
         "implementationKind": "body",
         "kind": "method",
         "owner": "DRW_Block",
         "qualifiedName": "DRW_Block::DRW_Block",
-        "signatureFingerprint": "54d66d691be085330cc2f1e476982bdc37455a9fd5247a314f3f0b219a515271",
+        "signatureFingerprint": "1dcfb09d321f47a405fa0a9cf464e2334b4b713171b4aef14d08e6c5f5ddcf9f",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -28713,13 +28713,13 @@
         }
       ],
       "facade": "shared",
-      "id": "shared/public-inline-method/src_drw_entities.h_DRW_Circle_6474a156fa4fe0787ce7a4eee4e3dc035f1f70bd2ce5b35bf02d5f2ac7dc6efe",
+      "id": "shared/public-inline-method/src_drw_entities.h_DRW_Circle_45a4d5eb859468929365990358694df010a82b7db2774ced17ed4cbeaf68b413",
       "selector": {
         "implementationKind": "body",
         "kind": "method",
         "owner": "DRW_Circle",
         "qualifiedName": "DRW_Circle::DRW_Circle",
-        "signatureFingerprint": "6474a156fa4fe0787ce7a4eee4e3dc035f1f70bd2ce5b35bf02d5f2ac7dc6efe",
+        "signatureFingerprint": "45a4d5eb859468929365990358694df010a82b7db2774ced17ed4cbeaf68b413",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -31238,13 +31238,13 @@
         }
       ],
       "facade": "shared",
-      "id": "shared/public-inline-method/src_drw_entities.h_DRW_Ellipse_bbbf5c3f9ce97798a3d206b505460100baf09d7bbd1a400742bea46753b79cae",
+      "id": "shared/public-inline-method/src_drw_entities.h_DRW_Ellipse_d61a1dfc6c011b1b4507da116293510f82da6cb79ec3202c5fe3326523b84120",
       "selector": {
         "implementationKind": "body",
         "kind": "method",
         "owner": "DRW_Ellipse",
         "qualifiedName": "DRW_Ellipse::DRW_Ellipse",
-        "signatureFingerprint": "bbbf5c3f9ce97798a3d206b505460100baf09d7bbd1a400742bea46753b79cae",
+        "signatureFingerprint": "d61a1dfc6c011b1b4507da116293510f82da6cb79ec3202c5fe3326523b84120",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -31356,6 +31356,31 @@
       ],
       "evidence": [
         {
+          "line": 151,
+          "path": "src/drw_entities.h",
+          "spanSha256": "5df3baf63fffe286f42d95a5339ec6db1ea7f5d8c9dc686f3eb0279242b10826",
+          "symbol": "DRW_Entity::DRW_Entity"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-inline-method/src_drw_entities.h_DRW_Entity_53bef7e9ac32e6af198e99d06201d0cef18c961283997ec779335f145340c7cd",
+      "selector": {
+        "implementationKind": "defaulted",
+        "kind": "method",
+        "owner": "DRW_Entity",
+        "qualifiedName": "DRW_Entity::DRW_Entity",
+        "signatureFingerprint": "53bef7e9ac32e6af198e99d06201d0cef18c961283997ec779335f145340c7cd",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-inline-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
           "line": 349,
           "path": "src/drw_entities.h",
           "spanSha256": "f3d98eaf2a8157fe6a2b355a58b7e3bbf566544de71a342ca2acdbe5d1c24095",
@@ -31420,6 +31445,31 @@
         "owner": "DRW_Entity",
         "qualifiedName": "DRW_Entity::hasDwgAcDbColorHandle",
         "signatureFingerprint": "7f37079495b6197245ee67db49efbce1db97102abd924c82a2c532c4f666c0e0",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-inline-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 152,
+          "path": "src/drw_entities.h",
+          "spanSha256": "4d211f15f67e3e2fb767fc55ca434e4bb85d1220c050cb3d22e00176cd0ff5d0",
+          "symbol": "DRW_Entity::operator="
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-inline-method/src_drw_entities.h_DRW_Entity_9233f1e0d829e31048128afdb58e21984a7b1dfb322ca8ee789bdaea95c252df",
+      "selector": {
+        "implementationKind": "defaulted",
+        "kind": "method",
+        "owner": "DRW_Entity",
+        "qualifiedName": "DRW_Entity::operator=",
+        "signatureFingerprint": "9233f1e0d829e31048128afdb58e21984a7b1dfb322ca8ee789bdaea95c252df",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -31631,7 +31681,7 @@
       ],
       "evidence": [
         {
-          "line": 149,
+          "line": 153,
           "path": "src/drw_entities.h",
           "spanSha256": "c0b4e0975113ee3ad84644585677462996eaff267b58a00e8e73c1f4c59895f7",
           "symbol": "DRW_Entity::~DRW_Entity"
@@ -31838,13 +31888,13 @@
         }
       ],
       "facade": "shared",
-      "id": "shared/public-inline-method/src_drw_entities.h_DRW_Insert_641c53b5825e83559d57e48263cb0098ce0872ea537c4c520a937e0cd9950007",
+      "id": "shared/public-inline-method/src_drw_entities.h_DRW_Insert_0075d340c511fca9eff274983d51629837e930ff8cf94886aaf2f1508c7e2e84",
       "selector": {
         "implementationKind": "body",
         "kind": "method",
         "owner": "DRW_Insert",
         "qualifiedName": "DRW_Insert::DRW_Insert",
-        "signatureFingerprint": "641c53b5825e83559d57e48263cb0098ce0872ea537c4c520a937e0cd9950007",
+        "signatureFingerprint": "0075d340c511fca9eff274983d51629837e930ff8cf94886aaf2f1508c7e2e84",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -31931,6 +31981,31 @@
       ],
       "evidence": [
         {
+          "line": 1480,
+          "path": "src/drw_entities.h",
+          "spanSha256": "01df03069537c45393007f332e59910a4afc962600f8c53468c0cb7f83eadf07",
+          "symbol": "DRW_LWPolyline::DRW_LWPolyline"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-inline-method/src_drw_entities.h_DRW_LWPolyline_319212956ceb88638401946adabf0416c0e3433c28de93b34a2ada65248bec1f",
+      "selector": {
+        "implementationKind": "body",
+        "kind": "method",
+        "owner": "DRW_LWPolyline",
+        "qualifiedName": "DRW_LWPolyline::DRW_LWPolyline",
+        "signatureFingerprint": "319212956ceb88638401946adabf0416c0e3433c28de93b34a2ada65248bec1f",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-inline-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
           "line": 1529,
           "path": "src/drw_entities.h",
           "spanSha256": "a10804e9b8f985a04ffd51ef73276b67c6b315de7dd92a6ce627f38b22d57ff3",
@@ -31945,31 +32020,6 @@
         "owner": "DRW_LWPolyline",
         "qualifiedName": "DRW_LWPolyline::addVertex",
         "signatureFingerprint": "c89415c54d64c5dbbce4745956af638723109df0040709559da6041c5a5a5a4c",
-        "visibility": "public"
-      },
-      "sourceDisposition": "source-route-only"
-    },
-    {
-      "category": "public-inline-method",
-      "directions": [
-        "public-api"
-      ],
-      "evidence": [
-        {
-          "line": 1480,
-          "path": "src/drw_entities.h",
-          "spanSha256": "01df03069537c45393007f332e59910a4afc962600f8c53468c0cb7f83eadf07",
-          "symbol": "DRW_LWPolyline::DRW_LWPolyline"
-        }
-      ],
-      "facade": "shared",
-      "id": "shared/public-inline-method/src_drw_entities.h_DRW_LWPolyline_e70f5e8aaf1768e6e3d0adc03a1dd8facb9cd495f07a9938dc9c9e81209ea568",
-      "selector": {
-        "implementationKind": "body",
-        "kind": "method",
-        "owner": "DRW_LWPolyline",
-        "qualifiedName": "DRW_LWPolyline::DRW_LWPolyline",
-        "signatureFingerprint": "e70f5e8aaf1768e6e3d0adc03a1dd8facb9cd495f07a9938dc9c9e81209ea568",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -32063,13 +32113,13 @@
         }
       ],
       "facade": "shared",
-      "id": "shared/public-inline-method/src_drw_entities.h_DRW_Line_4ec852589b11cc9ce80afa66f7a8104b04c3f28e253468af3919aba616a5a221",
+      "id": "shared/public-inline-method/src_drw_entities.h_DRW_Line_26c6a0cb411e543fa0bd9eec513739b4cadb30bf14b6a761b55880f3b6727ed1",
       "selector": {
         "implementationKind": "body",
         "kind": "method",
         "owner": "DRW_Line",
         "qualifiedName": "DRW_Line::DRW_Line",
-        "signatureFingerprint": "4ec852589b11cc9ce80afa66f7a8104b04c3f28e253468af3919aba616a5a221",
+        "signatureFingerprint": "26c6a0cb411e543fa0bd9eec513739b4cadb30bf14b6a761b55880f3b6727ed1",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -32163,13 +32213,13 @@
         }
       ],
       "facade": "shared",
-      "id": "shared/public-inline-method/src_drw_entities.h_DRW_MLine_e405512218ce63a2bb2313b540bbaacbfac072598b482bf1ab4353f2dc176740",
+      "id": "shared/public-inline-method/src_drw_entities.h_DRW_MLine_7af387cda84eb3ead5e9ce5424dd98cdb4c381b46286f62a9709910ee0371e6f",
       "selector": {
         "implementationKind": "body",
         "kind": "method",
         "owner": "DRW_MLine",
         "qualifiedName": "DRW_MLine::DRW_MLine",
-        "signatureFingerprint": "e405512218ce63a2bb2313b540bbaacbfac072598b482bf1ab4353f2dc176740",
+        "signatureFingerprint": "7af387cda84eb3ead5e9ce5424dd98cdb4c381b46286f62a9709910ee0371e6f",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -32238,13 +32288,13 @@
         }
       ],
       "facade": "shared",
-      "id": "shared/public-inline-method/src_drw_entities.h_DRW_Mesh_76233741fe7da0cdd8c7b7915501af8612f614c01428f37ac1714db577bfdb44",
+      "id": "shared/public-inline-method/src_drw_entities.h_DRW_Mesh_30e161474e5f2f54f471d1842244f7abeac8c7f1d21700dea43a30e58fde8dc9",
       "selector": {
         "implementationKind": "body",
         "kind": "method",
         "owner": "DRW_Mesh",
         "qualifiedName": "DRW_Mesh::DRW_Mesh",
-        "signatureFingerprint": "76233741fe7da0cdd8c7b7915501af8612f614c01428f37ac1714db577bfdb44",
+        "signatureFingerprint": "30e161474e5f2f54f471d1842244f7abeac8c7f1d21700dea43a30e58fde8dc9",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -32281,6 +32331,31 @@
       ],
       "evidence": [
         {
+          "line": 823,
+          "path": "src/drw_entities.h",
+          "spanSha256": "deec63bc130d4a5f122e03ffe584d5bf6e898649df8ea730a03074620de5316c",
+          "symbol": "DRW_ModelerGeometry::DRW_ModelerGeometry"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-inline-method/src_drw_entities.h_DRW_ModelerGeometry_0ce58efd644c8897fbc5aa87898d3e61b2cd5ddc26ccbe18bdba93cdbf2e5a00",
+      "selector": {
+        "implementationKind": "body",
+        "kind": "method",
+        "owner": "DRW_ModelerGeometry",
+        "qualifiedName": "DRW_ModelerGeometry::DRW_ModelerGeometry",
+        "signatureFingerprint": "0ce58efd644c8897fbc5aa87898d3e61b2cd5ddc26ccbe18bdba93cdbf2e5a00",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-inline-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
           "line": 849,
           "path": "src/drw_entities.h",
           "spanSha256": "8fc8eda12cdfd270af45e64670e6d0e01970704e6a2fd047ff238ee6f55f0154",
@@ -32295,31 +32370,6 @@
         "owner": "DRW_ModelerGeometry",
         "qualifiedName": "DRW_ModelerGeometry::decodeWireframe",
         "signatureFingerprint": "8703392ab2366d02df2eaac97ec80cc51159eb06db86ee88c2a45d31418d4778",
-        "visibility": "public"
-      },
-      "sourceDisposition": "source-route-only"
-    },
-    {
-      "category": "public-inline-method",
-      "directions": [
-        "public-api"
-      ],
-      "evidence": [
-        {
-          "line": 823,
-          "path": "src/drw_entities.h",
-          "spanSha256": "deec63bc130d4a5f122e03ffe584d5bf6e898649df8ea730a03074620de5316c",
-          "symbol": "DRW_ModelerGeometry::DRW_ModelerGeometry"
-        }
-      ],
-      "facade": "shared",
-      "id": "shared/public-inline-method/src_drw_entities.h_DRW_ModelerGeometry_bde9185487af82b65ede647ced04682bf4cc9239dcfcd2aef6cd4e2e4933f965",
-      "selector": {
-        "implementationKind": "body",
-        "kind": "method",
-        "owner": "DRW_ModelerGeometry",
-        "qualifiedName": "DRW_ModelerGeometry::DRW_ModelerGeometry",
-        "signatureFingerprint": "bde9185487af82b65ede647ced04682bf4cc9239dcfcd2aef6cd4e2e4933f965",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -32638,13 +32688,13 @@
         }
       ],
       "facade": "shared",
-      "id": "shared/public-inline-method/src_drw_entities.h_DRW_Point_29096fc0690aebfdddc24770f1ffe0eb516e7d378ff4898cedb316ad2180f2c3",
+      "id": "shared/public-inline-method/src_drw_entities.h_DRW_Point_266c160cb24e15eb43776035a8caf6cb736e68bde66f76c8a212de46d5b4f3fa",
       "selector": {
         "implementationKind": "body",
         "kind": "method",
         "owner": "DRW_Point",
         "qualifiedName": "DRW_Point::DRW_Point",
-        "signatureFingerprint": "29096fc0690aebfdddc24770f1ffe0eb516e7d378ff4898cedb316ad2180f2c3",
+        "signatureFingerprint": "266c160cb24e15eb43776035a8caf6cb736e68bde66f76c8a212de46d5b4f3fa",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -32863,13 +32913,13 @@
         }
       ],
       "facade": "shared",
-      "id": "shared/public-inline-method/src_drw_entities.h_DRW_Ray_a8a81af7f24b6b170f220ba00867a6f63f4266cb74d1204325c68e2bf95b5b19",
+      "id": "shared/public-inline-method/src_drw_entities.h_DRW_Ray_0dbc329c3fffcb2ea208ce08555c4ba7c47cb4a8759d1a076cb15af395218032",
       "selector": {
         "implementationKind": "body",
         "kind": "method",
         "owner": "DRW_Ray",
         "qualifiedName": "DRW_Ray::DRW_Ray",
-        "signatureFingerprint": "a8a81af7f24b6b170f220ba00867a6f63f4266cb74d1204325c68e2bf95b5b19",
+        "signatureFingerprint": "0dbc329c3fffcb2ea208ce08555c4ba7c47cb4a8759d1a076cb15af395218032",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -32988,13 +33038,13 @@
         }
       ],
       "facade": "shared",
-      "id": "shared/public-inline-method/src_drw_entities.h_DRW_Shape_2604f56e1c2bf0fbba2d3e7468e5beb1eee173f13ec9fa1f106c80e9cd58716e",
+      "id": "shared/public-inline-method/src_drw_entities.h_DRW_Shape_4a1dfee5f25fdefc9848241c06c516b880f6cf69a027e40fce49ae2bea82f70c",
       "selector": {
         "implementationKind": "body",
         "kind": "method",
         "owner": "DRW_Shape",
         "qualifiedName": "DRW_Shape::DRW_Shape",
-        "signatureFingerprint": "2604f56e1c2bf0fbba2d3e7468e5beb1eee173f13ec9fa1f106c80e9cd58716e",
+        "signatureFingerprint": "4a1dfee5f25fdefc9848241c06c516b880f6cf69a027e40fce49ae2bea82f70c",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -33020,31 +33070,6 @@
         "owner": "DRW_Shape",
         "qualifiedName": "DRW_Shape::applyExtrusion",
         "signatureFingerprint": "fdecbe50e08621f4b0102c5ede197d901a17d2ac87d9a14aa98dd926375b570f",
-        "visibility": "public"
-      },
-      "sourceDisposition": "source-route-only"
-    },
-    {
-      "category": "public-inline-method",
-      "directions": [
-        "public-api"
-      ],
-      "evidence": [
-        {
-          "line": 705,
-          "path": "src/drw_entities.h",
-          "spanSha256": "84913ef5ec3122071d4f9b092eaf95d5f44d6b8fd7e49a89639002d17364f446",
-          "symbol": "DRW_Solid::DRW_Solid"
-        }
-      ],
-      "facade": "shared",
-      "id": "shared/public-inline-method/src_drw_entities.h_DRW_Solid_0025e989e78eea99a8feeb1abe1d1fb61c138e413022ed0bc5591d1b5e15b6eb",
-      "selector": {
-        "implementationKind": "body",
-        "kind": "method",
-        "owner": "DRW_Solid",
-        "qualifiedName": "DRW_Solid::DRW_Solid",
-        "signatureFingerprint": "0025e989e78eea99a8feeb1abe1d1fb61c138e413022ed0bc5591d1b5e15b6eb",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -33145,6 +33170,31 @@
         "owner": "DRW_Solid",
         "qualifiedName": "DRW_Solid::firstCorner",
         "signatureFingerprint": "699ed72389eed603128adc6d18ac51b3c80d6299ed54ab6d69f12185761154d8",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-inline-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 705,
+          "path": "src/drw_entities.h",
+          "spanSha256": "84913ef5ec3122071d4f9b092eaf95d5f44d6b8fd7e49a89639002d17364f446",
+          "symbol": "DRW_Solid::DRW_Solid"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-inline-method/src_drw_entities.h_DRW_Solid_a731961ac8f15ab267eda4f6018f663b939624a4ee8aa9b2ba9363ce7744b1af",
+      "selector": {
+        "implementationKind": "body",
+        "kind": "method",
+        "owner": "DRW_Solid",
+        "qualifiedName": "DRW_Solid::DRW_Solid",
+        "signatureFingerprint": "a731961ac8f15ab267eda4f6018f663b939624a4ee8aa9b2ba9363ce7744b1af",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -33438,13 +33488,13 @@
         }
       ],
       "facade": "shared",
-      "id": "shared/public-inline-method/src_drw_entities.h_DRW_TableContentObject_d28262ef457279db93bcc3a1cfe7b4e3df1111fd22962565ed53ef675721b4a0",
+      "id": "shared/public-inline-method/src_drw_entities.h_DRW_TableContentObject_553e444c4dcdb6456f95014d2e4003f5b39cbcb2a1cfd8f7f387dc41fcaa8474",
       "selector": {
         "implementationKind": "body",
         "kind": "method",
         "owner": "DRW_TableContentObject",
         "qualifiedName": "DRW_TableContentObject::DRW_TableContentObject",
-        "signatureFingerprint": "d28262ef457279db93bcc3a1cfe7b4e3df1111fd22962565ed53ef675721b4a0",
+        "signatureFingerprint": "553e444c4dcdb6456f95014d2e4003f5b39cbcb2a1cfd8f7f387dc41fcaa8474",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -33463,13 +33513,13 @@
         }
       ],
       "facade": "shared",
-      "id": "shared/public-inline-method/src_drw_entities.h_DRW_Table_63d056f5d8acec6558a763ea2356a84e609cdaf0c9bdc3d56781a7241de6594b",
+      "id": "shared/public-inline-method/src_drw_entities.h_DRW_Table_653ea694b62a9ecd0529171e4ce61d82fba7a220d9170e7954f7860cc69508b1",
       "selector": {
         "implementationKind": "body",
         "kind": "method",
         "owner": "DRW_Table",
         "qualifiedName": "DRW_Table::DRW_Table",
-        "signatureFingerprint": "63d056f5d8acec6558a763ea2356a84e609cdaf0c9bdc3d56781a7241de6594b",
+        "signatureFingerprint": "653ea694b62a9ecd0529171e4ce61d82fba7a220d9170e7954f7860cc69508b1",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -33538,13 +33588,13 @@
         }
       ],
       "facade": "shared",
-      "id": "shared/public-inline-method/src_drw_entities.h_DRW_Tolerance_8e27282c8c991add880fd855e5eb9587b193b05c986f00db11b4ed684d4195a1",
+      "id": "shared/public-inline-method/src_drw_entities.h_DRW_Tolerance_a25b37d5483c45134de4bb7201c4d8bbeceeddb09460b1a99a7beb53903920c1",
       "selector": {
         "implementationKind": "body",
         "kind": "method",
         "owner": "DRW_Tolerance",
         "qualifiedName": "DRW_Tolerance::DRW_Tolerance",
-        "signatureFingerprint": "8e27282c8c991add880fd855e5eb9587b193b05c986f00db11b4ed684d4195a1",
+        "signatureFingerprint": "a25b37d5483c45134de4bb7201c4d8bbeceeddb09460b1a99a7beb53903920c1",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -33588,13 +33638,13 @@
         }
       ],
       "facade": "shared",
-      "id": "shared/public-inline-method/src_drw_entities.h_DRW_Trace_c9e8490a74223a03e7d1f767ca4cff7fd2c7aea3815b74403551b3dbe86b7e82",
+      "id": "shared/public-inline-method/src_drw_entities.h_DRW_Trace_de865d955750bc75f5cf6b7490a7afeb6f903378a2224610ffedc08d8fe4af03",
       "selector": {
         "implementationKind": "body",
         "kind": "method",
         "owner": "DRW_Trace",
         "qualifiedName": "DRW_Trace::DRW_Trace",
-        "signatureFingerprint": "c9e8490a74223a03e7d1f767ca4cff7fd2c7aea3815b74403551b3dbe86b7e82",
+        "signatureFingerprint": "de865d955750bc75f5cf6b7490a7afeb6f903378a2224610ffedc08d8fe4af03",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -33763,13 +33813,13 @@
         }
       ],
       "facade": "shared",
-      "id": "shared/public-inline-method/src_drw_entities.h_DRW_Xline_f798b1c22611c33bbd8746580755fe4f7a26f8942660f5733df5045fc4d321d0",
+      "id": "shared/public-inline-method/src_drw_entities.h_DRW_Xline_3d20f093f79929c02c7486b039b4f5c414d452022fd7e1bfae0e7ead31fd5ae8",
       "selector": {
         "implementationKind": "body",
         "kind": "method",
         "owner": "DRW_Xline",
         "qualifiedName": "DRW_Xline::DRW_Xline",
-        "signatureFingerprint": "f798b1c22611c33bbd8746580755fe4f7a26f8942660f5733df5045fc4d321d0",
+        "signatureFingerprint": "3d20f093f79929c02c7486b039b4f5c414d452022fd7e1bfae0e7ead31fd5ae8",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -43702,30 +43752,6 @@
       ],
       "evidence": [
         {
-          "line": 602,
-          "path": "src/drw_entities.h",
-          "spanSha256": "87d19f42bd0bbdad437dd137d7e9cd09c091200721d42e6515894e9ddcd453e7",
-          "symbol": "DRW_Arc::DRW_Arc"
-        }
-      ],
-      "facade": "shared",
-      "id": "shared/public-method/src_drw_entities.h_DRW_Arc_41e6e1bf69a029effa8974ffb94a6765d24d520ab41c855722caa5eecba92cde",
-      "selector": {
-        "kind": "method",
-        "owner": "DRW_Arc",
-        "qualifiedName": "DRW_Arc::DRW_Arc",
-        "signatureFingerprint": "41e6e1bf69a029effa8974ffb94a6765d24d520ab41c855722caa5eecba92cde",
-        "visibility": "public"
-      },
-      "sourceDisposition": "source-route-only"
-    },
-    {
-      "category": "public-method",
-      "directions": [
-        "public-api"
-      ],
-      "evidence": [
-        {
           "line": 614,
           "path": "src/drw_entities.h",
           "spanSha256": "0c25de0e58a38118a681cf9d14ac61f40a5fe996380e0290be9bda31828a079d",
@@ -43846,6 +43872,30 @@
       ],
       "evidence": [
         {
+          "line": 602,
+          "path": "src/drw_entities.h",
+          "spanSha256": "87d19f42bd0bbdad437dd137d7e9cd09c091200721d42e6515894e9ddcd453e7",
+          "symbol": "DRW_Arc::DRW_Arc"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-method/src_drw_entities.h_DRW_Arc_e3dd0b8b09710fea4904af41258af370c81cb424670f0cf12f9907b0bf6ca695",
+      "selector": {
+        "kind": "method",
+        "owner": "DRW_Arc",
+        "qualifiedName": "DRW_Arc::DRW_Arc",
+        "signatureFingerprint": "e3dd0b8b09710fea4904af41258af370c81cb424670f0cf12f9907b0bf6ca695",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
           "line": 607,
           "path": "src/drw_entities.h",
           "spanSha256": "5884f998c6292ed088ad482270263f10b9a0cc6ddf8367e74ad02ea0726f9225",
@@ -43877,12 +43927,12 @@
         }
       ],
       "facade": "shared",
-      "id": "shared/public-method/src_drw_entities.h_DRW_Attdef_92c9053f6fce09481de0a06b7f6c5145d3403cd834451a16aff70c85c52f0fee",
+      "id": "shared/public-method/src_drw_entities.h_DRW_Attdef_ba74b82404a7d25b8e488d8cb04d55556f0a082fcd7d61ec729593d7093ee782",
       "selector": {
         "kind": "method",
         "owner": "DRW_Attdef",
         "qualifiedName": "DRW_Attdef::DRW_Attdef",
-        "signatureFingerprint": "92c9053f6fce09481de0a06b7f6c5145d3403cd834451a16aff70c85c52f0fee",
+        "signatureFingerprint": "ba74b82404a7d25b8e488d8cb04d55556f0a082fcd7d61ec729593d7093ee782",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -43966,30 +44016,6 @@
       ],
       "evidence": [
         {
-          "line": 1750,
-          "path": "src/drw_entities.h",
-          "spanSha256": "540a0a4910f4a7a70a1175b257b354bb8d72f24f271c54e782493efd563d9777",
-          "symbol": "DRW_Attrib::DRW_Attrib"
-        }
-      ],
-      "facade": "shared",
-      "id": "shared/public-method/src_drw_entities.h_DRW_Attrib_88a119c5695cdcf5be6b55aca0cfedd0d66ade1d9af534fa03d83c2a753eb591",
-      "selector": {
-        "kind": "method",
-        "owner": "DRW_Attrib",
-        "qualifiedName": "DRW_Attrib::DRW_Attrib",
-        "signatureFingerprint": "88a119c5695cdcf5be6b55aca0cfedd0d66ade1d9af534fa03d83c2a753eb591",
-        "visibility": "public"
-      },
-      "sourceDisposition": "source-route-only"
-    },
-    {
-      "category": "public-method",
-      "directions": [
-        "public-api"
-      ],
-      "evidence": [
-        {
           "line": 1763,
           "path": "src/drw_entities.h",
           "spanSha256": "018ff393d62f78335b4e3a05a7fb74951e17113410b07d2c5592bd6055645327",
@@ -44038,6 +44064,30 @@
       ],
       "evidence": [
         {
+          "line": 1750,
+          "path": "src/drw_entities.h",
+          "spanSha256": "540a0a4910f4a7a70a1175b257b354bb8d72f24f271c54e782493efd563d9777",
+          "symbol": "DRW_Attrib::DRW_Attrib"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-method/src_drw_entities.h_DRW_Attrib_eef737b419ed0b60f0a32c44cddddb8e4fc77d87588f4b0f0fbfcb4b0d62f0c9",
+      "selector": {
+        "kind": "method",
+        "owner": "DRW_Attrib",
+        "qualifiedName": "DRW_Attrib::DRW_Attrib",
+        "signatureFingerprint": "eef737b419ed0b60f0a32c44cddddb8e4fc77d87588f4b0f0fbfcb4b0d62f0c9",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
           "line": 1243,
           "path": "src/drw_entities.h",
           "spanSha256": "5433ff12d07c3bcf41d150605164ea68e6bcc87151c1e3011efa6abaad216f95",
@@ -44045,12 +44095,12 @@
         }
       ],
       "facade": "shared",
-      "id": "shared/public-method/src_drw_entities.h_DRW_Block_54d66d691be085330cc2f1e476982bdc37455a9fd5247a314f3f0b219a515271",
+      "id": "shared/public-method/src_drw_entities.h_DRW_Block_1dcfb09d321f47a405fa0a9cf464e2334b4b713171b4aef14d08e6c5f5ddcf9f",
       "selector": {
         "kind": "method",
         "owner": "DRW_Block",
         "qualifiedName": "DRW_Block::DRW_Block",
-        "signatureFingerprint": "54d66d691be085330cc2f1e476982bdc37455a9fd5247a314f3f0b219a515271",
+        "signatureFingerprint": "1dcfb09d321f47a405fa0a9cf464e2334b4b713171b4aef14d08e6c5f5ddcf9f",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -44165,12 +44215,12 @@
         }
       ],
       "facade": "shared",
-      "id": "shared/public-method/src_drw_entities.h_DRW_Circle_6474a156fa4fe0787ce7a4eee4e3dc035f1f70bd2ce5b35bf02d5f2ac7dc6efe",
+      "id": "shared/public-method/src_drw_entities.h_DRW_Circle_45a4d5eb859468929365990358694df010a82b7db2774ced17ed4cbeaf68b413",
       "selector": {
         "kind": "method",
         "owner": "DRW_Circle",
         "qualifiedName": "DRW_Circle::DRW_Circle",
-        "signatureFingerprint": "6474a156fa4fe0787ce7a4eee4e3dc035f1f70bd2ce5b35bf02d5f2ac7dc6efe",
+        "signatureFingerprint": "45a4d5eb859468929365990358694df010a82b7db2774ced17ed4cbeaf68b413",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -46637,12 +46687,12 @@
         }
       ],
       "facade": "shared",
-      "id": "shared/public-method/src_drw_entities.h_DRW_Ellipse_bbbf5c3f9ce97798a3d206b505460100baf09d7bbd1a400742bea46753b79cae",
+      "id": "shared/public-method/src_drw_entities.h_DRW_Ellipse_d61a1dfc6c011b1b4507da116293510f82da6cb79ec3202c5fe3326523b84120",
       "selector": {
         "kind": "method",
         "owner": "DRW_Ellipse",
         "qualifiedName": "DRW_Ellipse::DRW_Ellipse",
-        "signatureFingerprint": "bbbf5c3f9ce97798a3d206b505460100baf09d7bbd1a400742bea46753b79cae",
+        "signatureFingerprint": "d61a1dfc6c011b1b4507da116293510f82da6cb79ec3202c5fe3326523b84120",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -46798,6 +46848,30 @@
       ],
       "evidence": [
         {
+          "line": 151,
+          "path": "src/drw_entities.h",
+          "spanSha256": "5df3baf63fffe286f42d95a5339ec6db1ea7f5d8c9dc686f3eb0279242b10826",
+          "symbol": "DRW_Entity::DRW_Entity"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-method/src_drw_entities.h_DRW_Entity_53bef7e9ac32e6af198e99d06201d0cef18c961283997ec779335f145340c7cd",
+      "selector": {
+        "kind": "method",
+        "owner": "DRW_Entity",
+        "qualifiedName": "DRW_Entity::DRW_Entity",
+        "signatureFingerprint": "53bef7e9ac32e6af198e99d06201d0cef18c961283997ec779335f145340c7cd",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
           "line": 349,
           "path": "src/drw_entities.h",
           "spanSha256": "f3d98eaf2a8157fe6a2b355a58b7e3bbf566544de71a342ca2acdbe5d1c24095",
@@ -46846,6 +46920,30 @@
       ],
       "evidence": [
         {
+          "line": 149,
+          "path": "src/drw_entities.h",
+          "spanSha256": "68857d24b45101cec8df12c20813f86d21a6c78b0541be3262c687a8d8efb7cb",
+          "symbol": "DRW_Entity::DRW_Entity"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-method/src_drw_entities.h_DRW_Entity_7dd6d7a979702acf97097448682d6934f7b452d8399d3c7310342ae703505ddf",
+      "selector": {
+        "kind": "method",
+        "owner": "DRW_Entity",
+        "qualifiedName": "DRW_Entity::DRW_Entity",
+        "signatureFingerprint": "7dd6d7a979702acf97097448682d6934f7b452d8399d3c7310342ae703505ddf",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
           "line": 346,
           "path": "src/drw_entities.h",
           "spanSha256": "391e02992594f5a012ccf374b37a70ba3f6fb756aab1fcbf7bf663055e29b6a6",
@@ -46859,6 +46957,54 @@
         "owner": "DRW_Entity",
         "qualifiedName": "DRW_Entity::hasDwgAcDbColorHandle",
         "signatureFingerprint": "7f37079495b6197245ee67db49efbce1db97102abd924c82a2c532c4f666c0e0",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 152,
+          "path": "src/drw_entities.h",
+          "spanSha256": "4d211f15f67e3e2fb767fc55ca434e4bb85d1220c050cb3d22e00176cd0ff5d0",
+          "symbol": "DRW_Entity::operator="
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-method/src_drw_entities.h_DRW_Entity_9233f1e0d829e31048128afdb58e21984a7b1dfb322ca8ee789bdaea95c252df",
+      "selector": {
+        "kind": "method",
+        "owner": "DRW_Entity",
+        "qualifiedName": "DRW_Entity::operator=",
+        "signatureFingerprint": "9233f1e0d829e31048128afdb58e21984a7b1dfb322ca8ee789bdaea95c252df",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 150,
+          "path": "src/drw_entities.h",
+          "spanSha256": "bae7d5ac4110c7d05191a4a4ffadd629cbc72b4a302296d5e0bb771ec1b60f9f",
+          "symbol": "DRW_Entity::operator="
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-method/src_drw_entities.h_DRW_Entity_9aa0f1f0d677ed216056ae5685a220851bf738d8139eaa4a56978e5cece31131",
+      "selector": {
+        "kind": "method",
+        "owner": "DRW_Entity",
+        "qualifiedName": "DRW_Entity::operator=",
+        "signatureFingerprint": "9aa0f1f0d677ed216056ae5685a220851bf738d8139eaa4a56978e5cece31131",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -47062,7 +47208,7 @@
       ],
       "evidence": [
         {
-          "line": 149,
+          "line": 153,
           "path": "src/drw_entities.h",
           "spanSha256": "c0b4e0975113ee3ad84644585677462996eaff267b58a00e8e73c1f4c59895f7",
           "symbol": "DRW_Entity::~DRW_Entity"
@@ -47453,12 +47599,12 @@
         }
       ],
       "facade": "shared",
-      "id": "shared/public-method/src_drw_entities.h_DRW_Insert_641c53b5825e83559d57e48263cb0098ce0872ea537c4c520a937e0cd9950007",
+      "id": "shared/public-method/src_drw_entities.h_DRW_Insert_0075d340c511fca9eff274983d51629837e930ff8cf94886aaf2f1508c7e2e84",
       "selector": {
         "kind": "method",
         "owner": "DRW_Insert",
         "qualifiedName": "DRW_Insert::DRW_Insert",
-        "signatureFingerprint": "641c53b5825e83559d57e48263cb0098ce0872ea537c4c520a937e0cd9950007",
+        "signatureFingerprint": "0075d340c511fca9eff274983d51629837e930ff8cf94886aaf2f1508c7e2e84",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -47542,6 +47688,30 @@
       ],
       "evidence": [
         {
+          "line": 1480,
+          "path": "src/drw_entities.h",
+          "spanSha256": "01df03069537c45393007f332e59910a4afc962600f8c53468c0cb7f83eadf07",
+          "symbol": "DRW_LWPolyline::DRW_LWPolyline"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-method/src_drw_entities.h_DRW_LWPolyline_319212956ceb88638401946adabf0416c0e3433c28de93b34a2ada65248bec1f",
+      "selector": {
+        "kind": "method",
+        "owner": "DRW_LWPolyline",
+        "qualifiedName": "DRW_LWPolyline::DRW_LWPolyline",
+        "signatureFingerprint": "319212956ceb88638401946adabf0416c0e3433c28de93b34a2ada65248bec1f",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
           "line": 1529,
           "path": "src/drw_entities.h",
           "spanSha256": "a10804e9b8f985a04ffd51ef73276b67c6b315de7dd92a6ce627f38b22d57ff3",
@@ -47555,30 +47725,6 @@
         "owner": "DRW_LWPolyline",
         "qualifiedName": "DRW_LWPolyline::addVertex",
         "signatureFingerprint": "c89415c54d64c5dbbce4745956af638723109df0040709559da6041c5a5a5a4c",
-        "visibility": "public"
-      },
-      "sourceDisposition": "source-route-only"
-    },
-    {
-      "category": "public-method",
-      "directions": [
-        "public-api"
-      ],
-      "evidence": [
-        {
-          "line": 1480,
-          "path": "src/drw_entities.h",
-          "spanSha256": "01df03069537c45393007f332e59910a4afc962600f8c53468c0cb7f83eadf07",
-          "symbol": "DRW_LWPolyline::DRW_LWPolyline"
-        }
-      ],
-      "facade": "shared",
-      "id": "shared/public-method/src_drw_entities.h_DRW_LWPolyline_e70f5e8aaf1768e6e3d0adc03a1dd8facb9cd495f07a9938dc9c9e81209ea568",
-      "selector": {
-        "kind": "method",
-        "owner": "DRW_LWPolyline",
-        "qualifiedName": "DRW_LWPolyline::DRW_LWPolyline",
-        "signatureFingerprint": "e70f5e8aaf1768e6e3d0adc03a1dd8facb9cd495f07a9938dc9c9e81209ea568",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -47741,12 +47887,12 @@
         }
       ],
       "facade": "shared",
-      "id": "shared/public-method/src_drw_entities.h_DRW_Line_4ec852589b11cc9ce80afa66f7a8104b04c3f28e253468af3919aba616a5a221",
+      "id": "shared/public-method/src_drw_entities.h_DRW_Line_26c6a0cb411e543fa0bd9eec513739b4cadb30bf14b6a761b55880f3b6727ed1",
       "selector": {
         "kind": "method",
         "owner": "DRW_Line",
         "qualifiedName": "DRW_Line::DRW_Line",
-        "signatureFingerprint": "4ec852589b11cc9ce80afa66f7a8104b04c3f28e253468af3919aba616a5a221",
+        "signatureFingerprint": "26c6a0cb411e543fa0bd9eec513739b4cadb30bf14b6a761b55880f3b6727ed1",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -47854,6 +48000,30 @@
       ],
       "evidence": [
         {
+          "line": 1584,
+          "path": "src/drw_entities.h",
+          "spanSha256": "89b0b9ef72f9a2a4a73efdc234103e67c1ce7382edb029f272536f7d68fd3fc1",
+          "symbol": "DRW_MLine::DRW_MLine"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-method/src_drw_entities.h_DRW_MLine_7af387cda84eb3ead5e9ce5424dd98cdb4c381b46286f62a9709910ee0371e6f",
+      "selector": {
+        "kind": "method",
+        "owner": "DRW_MLine",
+        "qualifiedName": "DRW_MLine::DRW_MLine",
+        "signatureFingerprint": "7af387cda84eb3ead5e9ce5424dd98cdb4c381b46286f62a9709910ee0371e6f",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
           "line": 1602,
           "path": "src/drw_entities.h",
           "spanSha256": "b7868b42a7462991489d57dae8c1720636de09909395a66670a927324f07b3e0",
@@ -47867,30 +48037,6 @@
         "owner": "DRW_MLine",
         "qualifiedName": "DRW_MLine::parseCode",
         "signatureFingerprint": "9fc33a5b058a3e1d3eacf092d468974f18736984eb21d0dbd5999d57d8c135c5",
-        "visibility": "public"
-      },
-      "sourceDisposition": "source-route-only"
-    },
-    {
-      "category": "public-method",
-      "directions": [
-        "public-api"
-      ],
-      "evidence": [
-        {
-          "line": 1584,
-          "path": "src/drw_entities.h",
-          "spanSha256": "89b0b9ef72f9a2a4a73efdc234103e67c1ce7382edb029f272536f7d68fd3fc1",
-          "symbol": "DRW_MLine::DRW_MLine"
-        }
-      ],
-      "facade": "shared",
-      "id": "shared/public-method/src_drw_entities.h_DRW_MLine_e405512218ce63a2bb2313b540bbaacbfac072598b482bf1ab4353f2dc176740",
-      "selector": {
-        "kind": "method",
-        "owner": "DRW_MLine",
-        "qualifiedName": "DRW_MLine::DRW_MLine",
-        "signatureFingerprint": "e405512218ce63a2bb2313b540bbaacbfac072598b482bf1ab4353f2dc176740",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -47957,12 +48103,12 @@
         }
       ],
       "facade": "shared",
-      "id": "shared/public-method/src_drw_entities.h_DRW_Mesh_76233741fe7da0cdd8c7b7915501af8612f614c01428f37ac1714db577bfdb44",
+      "id": "shared/public-method/src_drw_entities.h_DRW_Mesh_30e161474e5f2f54f471d1842244f7abeac8c7f1d21700dea43a30e58fde8dc9",
       "selector": {
         "kind": "method",
         "owner": "DRW_Mesh",
         "qualifiedName": "DRW_Mesh::DRW_Mesh",
-        "signatureFingerprint": "76233741fe7da0cdd8c7b7915501af8612f614c01428f37ac1714db577bfdb44",
+        "signatureFingerprint": "30e161474e5f2f54f471d1842244f7abeac8c7f1d21700dea43a30e58fde8dc9",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -47998,6 +48144,30 @@
       ],
       "evidence": [
         {
+          "line": 823,
+          "path": "src/drw_entities.h",
+          "spanSha256": "deec63bc130d4a5f122e03ffe584d5bf6e898649df8ea730a03074620de5316c",
+          "symbol": "DRW_ModelerGeometry::DRW_ModelerGeometry"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-method/src_drw_entities.h_DRW_ModelerGeometry_0ce58efd644c8897fbc5aa87898d3e61b2cd5ddc26ccbe18bdba93cdbf2e5a00",
+      "selector": {
+        "kind": "method",
+        "owner": "DRW_ModelerGeometry",
+        "qualifiedName": "DRW_ModelerGeometry::DRW_ModelerGeometry",
+        "signatureFingerprint": "0ce58efd644c8897fbc5aa87898d3e61b2cd5ddc26ccbe18bdba93cdbf2e5a00",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
           "line": 849,
           "path": "src/drw_entities.h",
           "spanSha256": "8fc8eda12cdfd270af45e64670e6d0e01970704e6a2fd047ff238ee6f55f0154",
@@ -48011,30 +48181,6 @@
         "owner": "DRW_ModelerGeometry",
         "qualifiedName": "DRW_ModelerGeometry::decodeWireframe",
         "signatureFingerprint": "8703392ab2366d02df2eaac97ec80cc51159eb06db86ee88c2a45d31418d4778",
-        "visibility": "public"
-      },
-      "sourceDisposition": "source-route-only"
-    },
-    {
-      "category": "public-method",
-      "directions": [
-        "public-api"
-      ],
-      "evidence": [
-        {
-          "line": 823,
-          "path": "src/drw_entities.h",
-          "spanSha256": "deec63bc130d4a5f122e03ffe584d5bf6e898649df8ea730a03074620de5316c",
-          "symbol": "DRW_ModelerGeometry::DRW_ModelerGeometry"
-        }
-      ],
-      "facade": "shared",
-      "id": "shared/public-method/src_drw_entities.h_DRW_ModelerGeometry_bde9185487af82b65ede647ced04682bf4cc9239dcfcd2aef6cd4e2e4933f965",
-      "selector": {
-        "kind": "method",
-        "owner": "DRW_ModelerGeometry",
-        "qualifiedName": "DRW_ModelerGeometry::DRW_ModelerGeometry",
-        "signatureFingerprint": "bde9185487af82b65ede647ced04682bf4cc9239dcfcd2aef6cd4e2e4933f965",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -48365,12 +48511,12 @@
         }
       ],
       "facade": "shared",
-      "id": "shared/public-method/src_drw_entities.h_DRW_Point_29096fc0690aebfdddc24770f1ffe0eb516e7d378ff4898cedb316ad2180f2c3",
+      "id": "shared/public-method/src_drw_entities.h_DRW_Point_266c160cb24e15eb43776035a8caf6cb736e68bde66f76c8a212de46d5b4f3fa",
       "selector": {
         "kind": "method",
         "owner": "DRW_Point",
         "qualifiedName": "DRW_Point::DRW_Point",
-        "signatureFingerprint": "29096fc0690aebfdddc24770f1ffe0eb516e7d378ff4898cedb316ad2180f2c3",
+        "signatureFingerprint": "266c160cb24e15eb43776035a8caf6cb736e68bde66f76c8a212de46d5b4f3fa",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -48605,12 +48751,12 @@
         }
       ],
       "facade": "shared",
-      "id": "shared/public-method/src_drw_entities.h_DRW_Ray_a8a81af7f24b6b170f220ba00867a6f63f4266cb74d1204325c68e2bf95b5b19",
+      "id": "shared/public-method/src_drw_entities.h_DRW_Ray_0dbc329c3fffcb2ea208ce08555c4ba7c47cb4a8759d1a076cb15af395218032",
       "selector": {
         "kind": "method",
         "owner": "DRW_Ray",
         "qualifiedName": "DRW_Ray::DRW_Ray",
-        "signatureFingerprint": "a8a81af7f24b6b170f220ba00867a6f63f4266cb74d1204325c68e2bf95b5b19",
+        "signatureFingerprint": "0dbc329c3fffcb2ea208ce08555c4ba7c47cb4a8759d1a076cb15af395218032",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -48725,12 +48871,12 @@
         }
       ],
       "facade": "shared",
-      "id": "shared/public-method/src_drw_entities.h_DRW_Shape_2604f56e1c2bf0fbba2d3e7468e5beb1eee173f13ec9fa1f106c80e9cd58716e",
+      "id": "shared/public-method/src_drw_entities.h_DRW_Shape_4a1dfee5f25fdefc9848241c06c516b880f6cf69a027e40fce49ae2bea82f70c",
       "selector": {
         "kind": "method",
         "owner": "DRW_Shape",
         "qualifiedName": "DRW_Shape::DRW_Shape",
-        "signatureFingerprint": "2604f56e1c2bf0fbba2d3e7468e5beb1eee173f13ec9fa1f106c80e9cd58716e",
+        "signatureFingerprint": "4a1dfee5f25fdefc9848241c06c516b880f6cf69a027e40fce49ae2bea82f70c",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -48755,30 +48901,6 @@
         "owner": "DRW_Shape",
         "qualifiedName": "DRW_Shape::applyExtrusion",
         "signatureFingerprint": "fdecbe50e08621f4b0102c5ede197d901a17d2ac87d9a14aa98dd926375b570f",
-        "visibility": "public"
-      },
-      "sourceDisposition": "source-route-only"
-    },
-    {
-      "category": "public-method",
-      "directions": [
-        "public-api"
-      ],
-      "evidence": [
-        {
-          "line": 705,
-          "path": "src/drw_entities.h",
-          "spanSha256": "84913ef5ec3122071d4f9b092eaf95d5f44d6b8fd7e49a89639002d17364f446",
-          "symbol": "DRW_Solid::DRW_Solid"
-        }
-      ],
-      "facade": "shared",
-      "id": "shared/public-method/src_drw_entities.h_DRW_Solid_0025e989e78eea99a8feeb1abe1d1fb61c138e413022ed0bc5591d1b5e15b6eb",
-      "selector": {
-        "kind": "method",
-        "owner": "DRW_Solid",
-        "qualifiedName": "DRW_Solid::DRW_Solid",
-        "signatureFingerprint": "0025e989e78eea99a8feeb1abe1d1fb61c138e413022ed0bc5591d1b5e15b6eb",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -48875,6 +48997,30 @@
         "owner": "DRW_Solid",
         "qualifiedName": "DRW_Solid::firstCorner",
         "signatureFingerprint": "699ed72389eed603128adc6d18ac51b3c80d6299ed54ab6d69f12185761154d8",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 705,
+          "path": "src/drw_entities.h",
+          "spanSha256": "84913ef5ec3122071d4f9b092eaf95d5f44d6b8fd7e49a89639002d17364f446",
+          "symbol": "DRW_Solid::DRW_Solid"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-method/src_drw_entities.h_DRW_Solid_a731961ac8f15ab267eda4f6018f663b939624a4ee8aa9b2ba9363ce7744b1af",
+      "selector": {
+        "kind": "method",
+        "owner": "DRW_Solid",
+        "qualifiedName": "DRW_Solid::DRW_Solid",
+        "signatureFingerprint": "a731961ac8f15ab267eda4f6018f663b939624a4ee8aa9b2ba9363ce7744b1af",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -49157,12 +49303,12 @@
         }
       ],
       "facade": "shared",
-      "id": "shared/public-method/src_drw_entities.h_DRW_TableContentObject_d28262ef457279db93bcc3a1cfe7b4e3df1111fd22962565ed53ef675721b4a0",
+      "id": "shared/public-method/src_drw_entities.h_DRW_TableContentObject_553e444c4dcdb6456f95014d2e4003f5b39cbcb2a1cfd8f7f387dc41fcaa8474",
       "selector": {
         "kind": "method",
         "owner": "DRW_TableContentObject",
         "qualifiedName": "DRW_TableContentObject::DRW_TableContentObject",
-        "signatureFingerprint": "d28262ef457279db93bcc3a1cfe7b4e3df1111fd22962565ed53ef675721b4a0",
+        "signatureFingerprint": "553e444c4dcdb6456f95014d2e4003f5b39cbcb2a1cfd8f7f387dc41fcaa8474",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -49181,12 +49327,12 @@
         }
       ],
       "facade": "shared",
-      "id": "shared/public-method/src_drw_entities.h_DRW_Table_63d056f5d8acec6558a763ea2356a84e609cdaf0c9bdc3d56781a7241de6594b",
+      "id": "shared/public-method/src_drw_entities.h_DRW_Table_653ea694b62a9ecd0529171e4ce61d82fba7a220d9170e7954f7860cc69508b1",
       "selector": {
         "kind": "method",
         "owner": "DRW_Table",
         "qualifiedName": "DRW_Table::DRW_Table",
-        "signatureFingerprint": "63d056f5d8acec6558a763ea2356a84e609cdaf0c9bdc3d56781a7241de6594b",
+        "signatureFingerprint": "653ea694b62a9ecd0529171e4ce61d82fba7a220d9170e7954f7860cc69508b1",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -49253,12 +49399,12 @@
         }
       ],
       "facade": "shared",
-      "id": "shared/public-method/src_drw_entities.h_DRW_Tolerance_8e27282c8c991add880fd855e5eb9587b193b05c986f00db11b4ed684d4195a1",
+      "id": "shared/public-method/src_drw_entities.h_DRW_Tolerance_a25b37d5483c45134de4bb7201c4d8bbeceeddb09460b1a99a7beb53903920c1",
       "selector": {
         "kind": "method",
         "owner": "DRW_Tolerance",
         "qualifiedName": "DRW_Tolerance::DRW_Tolerance",
-        "signatureFingerprint": "8e27282c8c991add880fd855e5eb9587b193b05c986f00db11b4ed684d4195a1",
+        "signatureFingerprint": "a25b37d5483c45134de4bb7201c4d8bbeceeddb09460b1a99a7beb53903920c1",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -49301,12 +49447,12 @@
         }
       ],
       "facade": "shared",
-      "id": "shared/public-method/src_drw_entities.h_DRW_Trace_c9e8490a74223a03e7d1f767ca4cff7fd2c7aea3815b74403551b3dbe86b7e82",
+      "id": "shared/public-method/src_drw_entities.h_DRW_Trace_de865d955750bc75f5cf6b7490a7afeb6f903378a2224610ffedc08d8fe4af03",
       "selector": {
         "kind": "method",
         "owner": "DRW_Trace",
         "qualifiedName": "DRW_Trace::DRW_Trace",
-        "signatureFingerprint": "c9e8490a74223a03e7d1f767ca4cff7fd2c7aea3815b74403551b3dbe86b7e82",
+        "signatureFingerprint": "de865d955750bc75f5cf6b7490a7afeb6f903378a2224610ffedc08d8fe4af03",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -49541,12 +49687,12 @@
         }
       ],
       "facade": "shared",
-      "id": "shared/public-method/src_drw_entities.h_DRW_Xline_f798b1c22611c33bbd8746580755fe4f7a26f8942660f5733df5045fc4d321d0",
+      "id": "shared/public-method/src_drw_entities.h_DRW_Xline_3d20f093f79929c02c7486b039b4f5c414d452022fd7e1bfae0e7ead31fd5ae8",
       "selector": {
         "kind": "method",
         "owner": "DRW_Xline",
         "qualifiedName": "DRW_Xline::DRW_Xline",
-        "signatureFingerprint": "f798b1c22611c33bbd8746580755fe4f7a26f8942660f5733df5045fc4d321d0",
+        "signatureFingerprint": "3d20f093f79929c02c7486b039b4f5c414d452022fd7e1bfae0e7ead31fd5ae8",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -66239,7 +66385,7 @@
         {
           "line": 144,
           "path": "src/drw_entities.h",
-          "spanSha256": "ba25b205cec7f40925515cd4cef026cc3d4136b61770fb919e810b342ca11846",
+          "spanSha256": "21b6e3abcaf9eed0ccd7a993281d92055ed538aa8e6fb8ed41933047d6268822",
           "symbol": "DRW_Entity"
         }
       ],
@@ -72791,7 +72937,7 @@
         {
           "line": 1,
           "path": "src/drw_entities.cpp",
-          "spanSha256": "fbf1e64b511c165c8a62c790df1642e2b27b03452d19999d0a303cb0db4ee881",
+          "spanSha256": "393c2f0ef380c413e9ae855fcec2d7b4f0f8a0af68a1c7b1034ed0918a0b4f03",
           "symbol": "src/drw_entities.cpp"
         }
       ],
@@ -72815,7 +72961,7 @@
         {
           "line": 1,
           "path": "src/drw_entities.h",
-          "spanSha256": "45f204c43b3cd00cc870834f264951a6dc67d1d2633c88d976b96f3a50d84ce9",
+          "spanSha256": "db47f602bc68b959ecbdf66245bda50be0b9b571ccff1677777cc8c2f7c05785",
           "symbol": "src/drw_entities.h"
         }
       ],
@@ -74735,7 +74881,7 @@
         {
           "line": 1,
           "path": "src/drw_entities.cpp",
-          "spanSha256": "fbf1e64b511c165c8a62c790df1642e2b27b03452d19999d0a303cb0db4ee881",
+          "spanSha256": "393c2f0ef380c413e9ae855fcec2d7b4f0f8a0af68a1c7b1034ed0918a0b4f03",
           "symbol": "src/drw_entities.cpp"
         }
       ],
@@ -74759,7 +74905,7 @@
         {
           "line": 1,
           "path": "src/drw_entities.h",
-          "spanSha256": "45f204c43b3cd00cc870834f264951a6dc67d1d2633c88d976b96f3a50d84ce9",
+          "spanSha256": "db47f602bc68b959ecbdf66245bda50be0b9b571ccff1677777cc8c2f7c05785",
           "symbol": "src/drw_entities.h"
         }
       ],

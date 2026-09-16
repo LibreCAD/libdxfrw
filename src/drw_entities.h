@@ -146,11 +146,11 @@ class DRW_Entity {
 public:
     //initializes default values
 	DRW_Entity() = default;
+	DRW_Entity(const DRW_Entity& rhs);
+	DRW_Entity& operator=(const DRW_Entity& rhs);
+	DRW_Entity(DRW_Entity&&) noexcept = default;
+	DRW_Entity& operator=(DRW_Entity&&) noexcept = default;
 	virtual ~DRW_Entity() = default;
-
-	//removed copy/move ctors
-	// looks like the potential issue is the "curr" pointer is reset in previous
-	// versions during copy ctor
 
 	void reset() {
 		extData.clear();
