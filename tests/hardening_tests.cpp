@@ -107,6 +107,11 @@ public:
     using DRW_ExtrudedSurface::parseCode;
 };
 
+class ExposedSweptSurface : public DRW_SweptSurface {
+public:
+    using DRW_SweptSurface::parseCode;
+};
+
 template <typename Entity>
 bool parseDxfRecords(Entity& entity, const std::string& source) {
     std::stringstream records(source);
@@ -160,6 +165,8 @@ void testPublicOwnershipContracts(TestContext& t) {
                   "DRW_RevolvedSurface copy contract");
     static_assert(std::is_copy_constructible<DRW_ExtrudedSurface>::value,
                   "DRW_ExtrudedSurface copy contract");
+    static_assert(std::is_copy_constructible<DRW_SweptSurface>::value,
+                  "DRW_SweptSurface copy contract");
     static_assert(std::is_copy_constructible<DRW_Attrib>::value,
                   "DRW_Attrib copy contract");
     static_assert(std::is_copy_constructible<DRW_GeoPositionMarker>::value,
@@ -737,6 +744,24 @@ void testPublicOwnershipContracts(TestContext& t) {
                              "100\nAcDbExtrudedSurface\n90\n2\n")
                  && assignedExtrudedSurface.classId == 2u,
              "EXTRUDEDSURFACE assignment starts a fresh class-id parser walk");
+
+    ExposedSweptSurface partialSweptSurface;
+    t.expect(parseDxfRecords(partialSweptSurface,
+                             "100\nAcDbSweptSurface\n90\n1\n"),
+             "SWEPTSURFACE parser state source setup");
+    ExposedSweptSurface copiedSweptSurface(partialSweptSurface);
+    copiedSweptSurface.sweepEntityId = 0;
+    t.expect(parseDxfRecords(copiedSweptSurface,
+                             "100\nAcDbSweptSurface\n90\n2\n")
+                 && copiedSweptSurface.sweepEntityId == 2u,
+             "SWEPTSURFACE copy starts a fresh entity-id parser walk");
+    ExposedSweptSurface assignedSweptSurface;
+    assignedSweptSurface = partialSweptSurface;
+    assignedSweptSurface.sweepEntityId = 0;
+    t.expect(parseDxfRecords(assignedSweptSurface,
+                             "100\nAcDbSweptSurface\n90\n2\n")
+                 && assignedSweptSurface.sweepEntityId == 2u,
+             "SWEPTSURFACE assignment starts a fresh entity-id parser walk");
 
     DRW_Dimension sourceDimension;
     sourceDimension.extData.push_back(
