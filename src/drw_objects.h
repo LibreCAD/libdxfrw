@@ -4012,6 +4012,24 @@ public:
   static constexpr std::uint32_t kMaxEntryCount = 1000000;
 
   DRW_PartialViewingIndex() { reset(); }
+  DRW_PartialViewingIndex(const DRW_PartialViewingIndex& o):
+      DRW_TableEntry(o), m_entryCount(o.m_entryCount),
+      m_hasEntries(o.m_hasEntries), m_entries(o.m_entries),
+      m_pendingEntry(), m_pendingFields(0) {
+    tType = DRW::PARTIALVIEWINGINDEX;
+  }
+  DRW_PartialViewingIndex& operator=(const DRW_PartialViewingIndex& o) {
+    if (this != &o) {
+      DRW_TableEntry::operator=(o);
+      m_entryCount = o.m_entryCount;
+      m_hasEntries = o.m_hasEntries;
+      m_entries = o.m_entries;
+      m_pendingEntry = DRW_PartialViewingIndexEntry{};
+      m_pendingFields = 0;
+      tType = DRW::PARTIALVIEWINGINDEX;
+    }
+    return *this;
+  }
   void reset();
 
   std::uint32_t m_entryCount = 0;

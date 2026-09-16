@@ -245,6 +245,12 @@ public:
     using DRW_PointPath::parseCode;
 };
 
+class ExposedPartialViewingIndex : public DRW_PartialViewingIndex {
+public:
+    using DRW_PartialViewingIndex::parseCode;
+    using DRW_PartialViewingIndex::finalizeDxf;
+};
+
 template <typename Entity>
 bool parseDxfRecords(Entity& entity, const std::string& source) {
     std::stringstream records(source);
@@ -354,6 +360,8 @@ void testPublicOwnershipContracts(TestContext& t) {
                   "DRW_CurvePath copy contract");
     static_assert(std::is_copy_constructible<DRW_PointPath>::value,
                   "DRW_PointPath copy contract");
+    static_assert(std::is_copy_constructible<DRW_PartialViewingIndex>::value,
+                  "DRW_PartialViewingIndex copy contract");
     static_assert(std::is_copy_constructible<DRW_Attrib>::value,
                   "DRW_Attrib copy contract");
     static_assert(std::is_copy_constructible<DRW_GeoPositionMarker>::value,
@@ -1602,6 +1610,36 @@ void testPublicOwnershipContracts(TestContext& t) {
     t.expect(parseDxfRecords(assignedPointPath, "10\n8\n")
                  && assignedPointPath.m_point.x == 8.0,
              "POINTPATH assignment clears coordinate parser state");
+
+    const std::string partialViewingIndexBody =
+        "10\n1\n20\n2\n30\n3\n11\n4\n21\n5\n31\n6\n340\nA1\n";
+    ExposedPartialViewingIndex partialViewingIndex;
+    t.expect(parseDxfRecords(partialViewingIndex, partialViewingIndexBody)
+                 && partialViewingIndex.finalizeDxf()
+                 && partialViewingIndex.m_entries.size() == 1u
+                 && partialViewingIndex.m_entries.front().objectHandle == 0xA1u,
+             "PARTIAL_VIEWING_INDEX parser state source setup");
+    ExposedPartialViewingIndex copiedPartialViewingIndex(partialViewingIndex);
+    const bool copiedPartialViewingIndexFresh = parseDxfRecords(
+        copiedPartialViewingIndex,
+        "10\n7\n20\n8\n30\n9\n11\n10\n21\n11\n31\n12\n340\nA2\n");
+    t.expect(copiedPartialViewingIndexFresh
+                 && copiedPartialViewingIndex.finalizeDxf()
+                 && copiedPartialViewingIndex.m_entries.size() == 2u
+                 && copiedPartialViewingIndex.m_entries.back().objectHandle
+                        == 0xA2u,
+             "PARTIAL_VIEWING_INDEX copy clears pending-entry parser state");
+    ExposedPartialViewingIndex assignedPartialViewingIndex;
+    assignedPartialViewingIndex = partialViewingIndex;
+    const bool assignedPartialViewingIndexFresh = parseDxfRecords(
+        assignedPartialViewingIndex,
+        "10\n13\n20\n14\n30\n15\n11\n16\n21\n17\n31\n18\n340\nA3\n");
+    t.expect(assignedPartialViewingIndexFresh
+                 && assignedPartialViewingIndex.finalizeDxf()
+                 && assignedPartialViewingIndex.m_entries.size() == 2u
+                 && assignedPartialViewingIndex.m_entries.back().objectHandle
+                        == 0xA3u,
+             "PARTIAL_VIEWING_INDEX assignment clears pending-entry parser state");
 
     DRW_Dimension sourceDimension;
     sourceDimension.extData.push_back(

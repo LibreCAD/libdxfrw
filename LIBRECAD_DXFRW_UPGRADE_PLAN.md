@@ -2132,6 +2132,12 @@ edit this block or commit the same slice concurrently.
   persisted study, path, and point data remain copied; focused hardening
   vectors pass and no drawing bytes or derived fixtures are used.
 
+- Current checkpoint (2026-09-16): S364/J340 extends transient parser-state
+  isolation to PARTIAL_VIEWING_INDEX copies and assignments.  Pending-entry
+  geometry staging now resets while persisted entry vectors and handles remain
+  copied; focused hardening vectors pass and no drawing bytes or derived
+  fixtures are used.
+
 - Current checkpoint (2026-09-16): S329/J305 compound-entity graph ownership
   is committed.  Explicit copies now clone legacy POLYLINE vertices, SPLINE
   control/fit points, and INSERT attributes while resetting parser cursors;
@@ -3835,19 +3841,20 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 363 (`COMMITTED`); no slice is active.
+- Resolved slices: 364 (`COMMITTED`); no slice is active.
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 363 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 364 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 365 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 366 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 VERIFIED / 0 SUPERSEDED / 466 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 VERIFIED / 0 SUPERSEDED / 467 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   6 DEFERRED_EXTERNAL / 357 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S363 and J329/J329.1/J330/J330.1/J331/J331.1/J332/J332.1/
+- Active work: S01-S364 and J329/J329.1/J330/J330.1/J331/J331.1/J332/J332.1/
   J333/J333.1/J334/J334.1/J335/J335.1/J336/J336.1/J337/J337.1/J338/J338.1/
-  J339/J339.1 are committed; no local implementation slice is active.
+  J339/J339.1/J340/J340.1 are committed; no local implementation slice is
+  active.
   Keep the fast inner loop and do not promote support claims from
   self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -4265,6 +4272,7 @@ edit this block or commit the same slice concurrently.
 | S361 | J337: DIMASSOC parser-state copy isolation | S360 | COMMITTED | DIMASSOC copy/assignment body parser-state reset; focused hardening target; fixture admission; import scope; sync; plan; diff | focused `libdxfrw_hardening_tests` plus plan, fixture, import-scope, sync, route, aggregate, support, release-readiness, speed, and diff gates pass; no drawing bytes or derived fixtures | commit the verified slice with trailers, report progress, and recompute the next ready queue |
 | S362 | J338: POINTCLOUDCOLORMAP parser-state copy isolation | S361 | COMMITTED | POINTCLOUDCOLORMAP copy/assignment ramp-selection/default-scheme parser-state reset; focused hardening target; fixture admission; import scope; sync; plan; diff | focused `libdxfrw_hardening_tests` for copied and assigned POINTCLOUDCOLORMAP models; no drawing bytes or derived fixtures | finish focused gate, run policy/route/support/release/speed checks, verify children, commit with trailers, report progress, and recompute the next ready queue |
 | S363 | J339: SUNSTUDY/MOTIONPATH/CURVEPATH/POINTPATH parser-state copy isolation | S362 | COMMITTED | SUNSTUDY date/hour and MOTIONPATH/CURVEPATH/POINTPATH positional/handle parser-state reset; focused hardening target; fixture admission; import scope; sync; plan; diff | focused `libdxfrw_hardening_tests` for copied and assigned SUNSTUDY, MOTIONPATH, CURVEPATH, and POINTPATH models; no drawing bytes or derived fixtures | finish focused gate, run policy/route/support/release/speed checks, verify children, commit with trailers, report progress, and recompute the next ready queue |
+| S364 | J340: PARTIAL_VIEWING_INDEX parser-state copy isolation | S363 | COMMITTED | PARTIAL_VIEWING_INDEX copy/assignment pending-entry parser-state reset; focused hardening target; fixture admission; import scope; sync; plan; diff | focused `libdxfrw_hardening_tests` for copied and assigned PARTIAL_VIEWING_INDEX models; no drawing bytes or derived fixtures | finish focused gate, run policy/route/support/release/speed checks, verify children, commit with trailers, report progress, and recompute the next ready queue |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -4632,6 +4640,7 @@ edit this block or commit the same slice concurrently.
 | J337 | S361 | J336 | COMMITTED | EXPERIMENTAL | Harden DIMASSOC parser-state copy and assignment | Reset transient DIMASSOC AcDbDimAssoc body marker across copy/assignment while preserving persisted dimension handles and osnap references; keep the no-fixture policy |
 | J338 | S362 | J337 | COMMITTED | EXPERIMENTAL | Harden POINTCLOUDCOLORMAP parser-state copy and assignment | Reset transient POINTCLOUDCOLORMAP ramp-selection and default-scheme markers across copy/assignment while preserving persisted class metadata, schemes, and ramp vectors; keep the no-fixture policy |
 | J339 | S363 | J338 | COMMITTED | EXPERIMENTAL | Harden SUNSTUDY/MOTIONPATH/CURVEPATH/POINTPATH parser-state copy and assignment | Reset transient SUNSTUDY date/hour and MOTIONPATH/CURVEPATH/POINTPATH positional/handle markers across copy/assignment while preserving persisted study, path, and point data; keep the no-fixture policy |
+| J340 | S364 | J339 | COMMITTED | EXPERIMENTAL | Harden PARTIAL_VIEWING_INDEX parser-state copy and assignment | Reset transient PARTIAL_VIEWING_INDEX pending-entry geometry marker across copy/assignment while preserving persisted entry vectors and handles; keep the no-fixture policy |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -5105,6 +5114,7 @@ edit this block or commit the same slice concurrently.
 | J337.1 | J337 / S361 | WP3.11-WP3.12, WP8, WP10; DIMASSOC parser-state copy isolation | J336 | COMMITTED | EXPERIMENTAL | assert copied and assigned DIMASSOC models route stale body handles through the base owner field until a fresh AcDbDimAssoc marker while preserving persisted osnap references; keep all inputs in memory | focused `libdxfrw_hardening_tests`, plan, fixture-admission, import-scope, sync, route, aggregate, support, release-readiness, speed, and diff gates; no drawing bytes or derived fixtures |
 | J338.1 | J338 / S362 | WP3.11-WP3.12, WP8, WP10; POINTCLOUDCOLORMAP parser-state copy isolation | J337 | COMMITTED | EXPERIMENTAL | assert copied and assigned POINTCLOUDCOLORMAP models route stale default schemes through the base default cursor until a fresh classification ramp while preserving persisted ramp vectors; keep all inputs in memory | focused `libdxfrw_hardening_tests`, plan, fixture-admission, import-scope, sync, route, aggregate, support, release-readiness, speed, and diff gates; no drawing bytes or derived fixtures |
 | J339.1 | J339 / S363 | WP3.11-WP3.12, WP8, WP10; SUNSTUDY/MOTIONPATH/CURVEPATH/POINTPATH parser-state copy isolation | J338 | COMMITTED | EXPERIMENTAL | assert copied and assigned SUNSTUDY models accept fresh date/hour walks and MOTIONPATH/CURVEPATH/POINTPATH models accept fresh positional/handle values without stale counters while preserving persisted payloads; keep all inputs in memory | focused `libdxfrw_hardening_tests`, plan, fixture-admission, import-scope, sync, route, aggregate, support, release-readiness, speed, and diff gates; no drawing bytes or derived fixtures |
+| J340.1 | J340 / S364 | WP3.11-WP3.12, WP8, WP10; PARTIAL_VIEWING_INDEX parser-state copy isolation | J339 | COMMITTED | EXPERIMENTAL | assert copied and assigned PARTIAL_VIEWING_INDEX models accept fresh complete entries without stale pending geometry fields while preserving persisted entry vectors and handles; keep all inputs in memory | focused `libdxfrw_hardening_tests`, plan, fixture-admission, import-scope, sync, route, aggregate, support, release-readiness, speed, and diff gates; no drawing bytes or derived fixtures |
 | J313.1 | J313 / S337 | WP3.11-WP3.12, WP8, WP10; TABLE parser-state copy isolation | J312 | COMMITTED | EXPERIMENTAL | assert copied and assigned TABLE models accept fresh subclass/grid dimensions after a partial source parse while preserving public table content; keep all inputs in memory | focused `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures |
 
 <!-- UPGRADE_PROGRESS_END -->
