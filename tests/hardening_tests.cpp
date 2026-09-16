@@ -69,6 +69,11 @@ public:
     using DRW_Table::parseCode;
 };
 
+class ExposedMesh : public DRW_Mesh {
+public:
+    using DRW_Mesh::parseCode;
+};
+
 template <typename Entity>
 bool parseDxfRecords(Entity& entity, const std::string& source) {
     std::stringstream records(source);
@@ -106,6 +111,8 @@ void testPublicOwnershipContracts(TestContext& t) {
                   "DRW_MLine copy contract");
     static_assert(std::is_copy_constructible<DRW_Table>::value,
                   "DRW_Table copy contract");
+    static_assert(std::is_copy_constructible<DRW_Mesh>::value,
+                  "DRW_Mesh copy contract");
     static_assert(std::is_copy_constructible<DRW_Attrib>::value,
                   "DRW_Attrib copy contract");
     static_assert(std::is_copy_constructible<DRW_GeoPositionMarker>::value,
@@ -510,6 +517,30 @@ void testPublicOwnershipContracts(TestContext& t) {
                  && assignedTableState.m_content.m_rows.size() == 2u
                  && assignedTableState.m_content.m_columns.size() == 2u,
              "TABLE assignment starts a fresh grid parser walk");
+
+    ExposedMesh partialMesh;
+    t.expect(parseDxfRecords(partialMesh,
+                             "100\nAcDbSubDMesh\n92\n1\n10\n0\n20\n0\n30\n0\n93\n4\n90\n3\n"),
+             "MESH parser face state source setup");
+    ExposedMesh copiedMeshState(partialMesh);
+    copiedMeshState.vertices.clear();
+    copiedMeshState.faces.clear();
+    copiedMeshState.edges.clear();
+    copiedMeshState.creases.clear();
+    copiedMeshState.propertyOverrides.clear();
+    t.expect(parseDxfRecords(copiedMeshState,
+                             "100\nAcDbSubDMesh\n92\n1\n10\n0\n20\n0\n30\n0\n93\n0\n94\n0\n95\n0\n90\n0\n"),
+             "MESH copy starts a fresh topology parser walk");
+    ExposedMesh assignedMeshState;
+    assignedMeshState = partialMesh;
+    assignedMeshState.vertices.clear();
+    assignedMeshState.faces.clear();
+    assignedMeshState.edges.clear();
+    assignedMeshState.creases.clear();
+    assignedMeshState.propertyOverrides.clear();
+    t.expect(parseDxfRecords(assignedMeshState,
+                             "100\nAcDbSubDMesh\n92\n1\n10\n0\n20\n0\n30\n0\n93\n0\n94\n0\n95\n0\n90\n0\n"),
+             "MESH assignment starts a fresh topology parser walk");
 
     DRW_Dimension sourceDimension;
     sourceDimension.extData.push_back(

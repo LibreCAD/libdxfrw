@@ -105,10 +105,10 @@
     },
     {
       "path": "src/drw_entities.h",
-      "reason": "Retain a transient DXF MULTILEADER transformation-matrix cursor so repeated code-47 values are bounded and reset between documents, expose the protected entity XDATA deep-copy helper used by explicit copy paths, publish HATCH copy/assignment declarations plus deterministic parser-state reset, publish LEADER copy/assignment/move declarations for deep vertex ownership, reset transient LWPOLYLINE parser state for explicit copies and assignments, reset transient MLINE segment/vertex parser state for explicit copies and assignments, and reset transient TABLE subclass/grid parser state for explicit copies and assignments.",
+      "reason": "Retain a transient DXF MULTILEADER transformation-matrix cursor so repeated code-47 values are bounded and reset between documents, expose the protected entity XDATA deep-copy helper used by explicit copy paths, publish HATCH copy/assignment declarations plus deterministic parser-state reset, publish LEADER copy/assignment/move declarations for deep vertex ownership, reset transient LWPOLYLINE parser state for explicit copies and assignments, reset transient MLINE segment/vertex parser state for explicit copies and assignments, reset transient TABLE subclass/grid parser state for explicit copies and assignments, and reset transient MESH topology parser state for explicit copies and assignments.",
       "scope": "DXF MULTILEADER parity",
       "targetBlob": "077a84860cea7c35da2f136ce6afedd3be1adf44",
-      "adaptedSha256": "075a30e246436885a2049efc1284e605563aa72dc48df554c403c7323b93b3a2"
+      "adaptedSha256": "d325ec9acb457fe5d1e29df9c3d1d6da253f55ba97980a029725b8a3a3c39e2b"
     },
     {
       "path": "src/intern/dwgutil.h",

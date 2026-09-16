@@ -1975,6 +1975,12 @@ edit this block or commit the same slice concurrently.
   remain copied; focused hardening vectors pass and no drawing bytes or
   derived fixtures are used.
 
+- Current checkpoint (2026-09-16): S338/J314 extends transient parser-state
+  isolation to MESH copies and assignments.  Face/edge/crease stream cursors
+  and topology counters now reset while persisted mesh geometry remains
+  copied; focused hardening vectors pass and no drawing bytes or derived
+  fixtures are used.
+
 - Current checkpoint (2026-09-16): S329/J305 compound-entity graph ownership
   is committed.  Explicit copies now clone legacy POLYLINE vertices, SPLINE
   control/fit points, and INSERT attributes while resetting parser cursors;
@@ -3678,17 +3684,17 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 337 (`COMMITTED`); no slice is active.
+- Resolved slices: 338 (`COMMITTED`); no slice is active.
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 337 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 338 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 339 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 340 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 437 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 438 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  6 DEFERRED_EXTERNAL / 318 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S337 are committed; no local implementation slice is active.
+  6 DEFERRED_EXTERNAL / 320 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S338 are committed; no local implementation slice is active.
   Keep the fast inner loop and do not promote support claims from
   self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -4080,6 +4086,7 @@ edit this block or commit the same slice concurrently.
 | S335 | J311: LEADER parser-state copy isolation | S334 | COMMITTED | LEADER copy/assignment vertex-count parser-state reset; focused hardening target; fixture admission; import scope; sync; plan; diff | committed LEADER parser-state copy/assignment regressions; `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures | continue with target-bound differential debt, independent-oracle, native-platform, and release closure |
 | S336 | J312: MLINE parser-state copy isolation | S335 | COMMITTED | MLINE copy/assignment segment/vertex parser-state reset; focused hardening target; fixture admission; import scope; sync; plan; diff | committed focused `libdxfrw_hardening_tests` regressions for copied and assigned MLINE models; no drawing bytes or derived fixtures | continue with target-bound differential debt, independent-oracle, native-platform, and release closure |
 | S337 | J313: TABLE parser-state copy isolation | S336 | COMMITTED | TABLE copy/assignment subclass/grid parser-state reset; focused hardening target; fixture admission; import scope; sync; plan; diff | committed focused `libdxfrw_hardening_tests` regressions for copied and assigned TABLE models; no drawing bytes or derived fixtures | continue with target-bound differential debt, independent-oracle, native-platform, and release closure |
+| S338 | J314: MESH parser-state copy isolation | S337 | COMMITTED | MESH copy/assignment topology parser-state reset; focused hardening target; fixture admission; import scope; sync; plan; diff | committed focused `libdxfrw_hardening_tests` regressions for copied and assigned MESH models; no drawing bytes or derived fixtures | continue with target-bound differential debt, independent-oracle, native-platform, and release closure |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -4421,6 +4428,7 @@ edit this block or commit the same slice concurrently.
 | J311 | S335 | J310 | COMMITTED | EXPERIMENTAL | Harden LEADER parser-state copy and assignment | Reset the transient LEADER vertex-count-seen marker across copy/assignment while preserving persisted leader payload and graph ownership; keep the no-fixture policy |
 | J312 | S336 | J311 | COMMITTED | EXPERIMENTAL | Harden MLINE parser-state copy and assignment | Reset transient MLINE segment/vertex cursors and count markers across copy/assignment while preserving persisted multiline fields and geometry; keep the no-fixture policy |
 | J313 | S337 | J312 | COMMITTED | EXPERIMENTAL | Harden TABLE parser-state copy and assignment | Reset transient TABLE subclass/grid cursors across copy/assignment while preserving persisted table content and style fields; keep the no-fixture policy |
+| J314 | S338 | J313 | COMMITTED | EXPERIMENTAL | Harden MESH parser-state copy and assignment | Reset transient MESH topology cursors and counters across copy/assignment while preserving persisted mesh geometry and overrides; keep the no-fixture policy |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4868,6 +4876,7 @@ edit this block or commit the same slice concurrently.
 | J310.1 | J310 / S334 | WP3.11-WP3.12, WP8, WP10; transient parser-state copy isolation | J309 | COMMITTED | EXPERIMENTAL | assert LWPOLYLINE vertex-count, ATTRIB subclass-routing, and GEOPOSITIONMARKER repeated-code counters reset on copy/assignment while persisted payloads remain isolated; keep all inputs in memory | `libdxfrw_hardening_tests` passes; plan, fixture-admission, import-scope, sync, and diff gates remain green; no drawing bytes or derived fixtures |
 | J311.1 | J311 / S335 | WP3.11-WP3.12, WP8, WP10; LEADER parser-state copy isolation | J310 | COMMITTED | EXPERIMENTAL | assert copied and assigned LEADER models validate without inheriting a partial DXF vertex-count marker; keep all inputs in memory | focused `libdxfrw_hardening_tests`, plan, fixture-admission, import-scope, sync, and diff gates; no drawing bytes or derived fixtures |
 | J312.1 | J312 / S336 | WP3.11-WP3.12, WP8, WP10; MLINE parser-state copy isolation | J311 | COMMITTED | EXPERIMENTAL | assert copied and assigned MLINE models accept a fresh segment walk after a partial source parse while preserving public geometry fields; keep all inputs in memory | focused `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures |
+| J314.1 | J314 / S338 | WP3.11-WP3.12, WP8, WP10; MESH parser-state copy isolation | J313 | COMMITTED | EXPERIMENTAL | assert copied and assigned MESH models accept a fresh topology stream after a partial face parse while preserving public geometry fields; keep all inputs in memory | focused `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures |
 | J313.1 | J313 / S337 | WP3.11-WP3.12, WP8, WP10; TABLE parser-state copy isolation | J312 | COMMITTED | EXPERIMENTAL | assert copied and assigned TABLE models accept fresh subclass/grid dimensions after a partial source parse while preserving public table content; keep all inputs in memory | focused `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures |
 
 <!-- UPGRADE_PROGRESS_END -->

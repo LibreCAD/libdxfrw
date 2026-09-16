@@ -869,6 +869,33 @@ class DRW_Mesh : public DRW_Entity {
     SETENTFRIENDS
 public:
     DRW_Mesh() { eType = DRW::MESH; }
+    DRW_Mesh(const DRW_Mesh& o): DRW_Entity(o),
+        version(o.version), blendCrease(o.blendCrease),
+        subdivisionLevel(o.subdivisionLevel), subdivVertices(o.subdivVertices),
+        vertices(o.vertices), faces(o.faces), edges(o.edges),
+        creases(o.creases), unknown(o.unknown),
+        propertyOverrides(o.propertyOverrides) {
+        eType = DRW::MESH;
+        resetDxfParserState();
+    }
+    DRW_Mesh& operator=(const DRW_Mesh& o) {
+        if (this != &o) {
+            DRW_Entity::operator=(o);
+            version = o.version;
+            blendCrease = o.blendCrease;
+            subdivisionLevel = o.subdivisionLevel;
+            subdivVertices = o.subdivVertices;
+            vertices = o.vertices;
+            faces = o.faces;
+            edges = o.edges;
+            creases = o.creases;
+            unknown = o.unknown;
+            propertyOverrides = o.propertyOverrides;
+            eType = DRW::MESH;
+            resetDxfParserState();
+        }
+        return *this;
+    }
     static constexpr std::uint16_t kDwgClassNum = 520; /*!< AcDbSubDMesh DWG custom class id */
     static constexpr std::int32_t kMaxMeshItems = 100000;
     void applyExtrusion() override {}
@@ -908,6 +935,19 @@ private:
     std::int32_t m_dxfEdgeFrom = -1;  // half-read edge pair
     std::int32_t m_dxfOverrideEntityCount = -1;
     std::int32_t m_dxfOverridePropertyCount = -1;
+
+    void resetDxfParserState() noexcept {
+        m_dxfMeshSubclassSeen = false;
+        m_dxfState = 0;
+        m_dxfVertexCount = -1;
+        m_dxfFaceItemsRemaining = -1;
+        m_dxfEdgeValuesRemaining = -1;
+        m_dxfCreaseValuesRemaining = -1;
+        m_dxfPending = 0;
+        m_dxfEdgeFrom = -1;
+        m_dxfOverrideEntityCount = -1;
+        m_dxfOverridePropertyCount = -1;
+    }
 
     [[nodiscard]] bool validateGeometry() const;
     [[nodiscard]] bool validateDxf() const;
