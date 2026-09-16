@@ -1557,7 +1557,9 @@ bool dwgReader21::readDwgClasses(){
         recordFailure(DwgIntegrityCheckKind::PageGeometry, si.Id);
         return false;
     }
-    crcPosition = stringBufferSize;
+    // Keep the CRC at the RL-declared end of the complete class-data area.
+    // `stringBufferSize` ends before the backward-readable size footer; using
+    // it here read the extended footer's high word as the CRC.
     strBuff = dwgBuffer(tmpClassesData.data(), stringBufferSize, &decoder);
     DRW_DBG("\nclass string start bit: ");
     DRW_DBG(static_cast<unsigned long long>(stringStartBit));

@@ -1402,7 +1402,12 @@ bool dwgReader18::readDwgClasses(){
             recordFailure(DwgIntegrityCheckKind::PageGeometry, si.Id);
             return false;
         }
-        crcPosition = stringBufferSize;
+        // `stringBufferSize` bounds the string-only view; it is not the CRC
+        // position.  In the extended footer it lands immediately before the
+        // high size word, which made that word (0x0010 for the local AC1024
+        // max-class case) look like the stored CRC.  ODA 10.2 places the CRC
+        // after the complete class-data area, including both size words and
+        // the end bit.  The RL-derived `crcPosition` above is that byte.
         strBuff = dwgBuffer(objData.get(), stringBufferSize, &decoder);
         strBuf = &strBuff;
         DRW_DBG("\nclass string start bit: ");

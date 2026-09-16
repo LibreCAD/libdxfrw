@@ -21,6 +21,233 @@
 
 namespace {
 
+struct Ac1024ClassesIntegrityReceipt {
+    bool valid {false};
+    bool usedExtendedStringSize {false};
+    std::uint32_t classDataSize {0};
+    std::uint32_t bitSize {0};
+    std::uint16_t maxClassNumber {0};
+    std::uint64_t stringBitSize {0};
+    std::size_t declaredCrcOffset {0};
+    std::size_t footerCrcOffset {0};
+    std::uint16_t storedCrc {0};
+    std::uint16_t calculatedCrc {0};
+};
+
+std::uint16_t readLe16(const std::vector<std::uint8_t>& bytes,
+                       std::size_t offset) {
+    return static_cast<std::uint16_t>(bytes[offset])
+        | static_cast<std::uint16_t>(bytes[offset + 1]) << 8;
+}
+
+std::uint32_t readLe32(const std::vector<std::uint8_t>& bytes,
+                       std::size_t offset) {
+    return static_cast<std::uint32_t>(bytes[offset])
+        | static_cast<std::uint32_t>(bytes[offset + 1]) << 8
+        | static_cast<std::uint32_t>(bytes[offset + 2]) << 16
+        | static_cast<std::uint32_t>(bytes[offset + 3]) << 24;
+}
+
+class IndependentBitReader {
+public:
+    IndependentBitReader(const std::vector<std::uint8_t>& bytes,
+                         std::uint64_t bitOffset)
+        : m_bytes{bytes}, m_bitOffset{bitOffset} {}
+
+    bool readBit(std::uint8_t& value) {
+        if (m_bitOffset >= static_cast<std::uint64_t>(m_bytes.size()) * 8u)
+            return false;
+        value = static_cast<std::uint8_t>(
+            (m_bytes[static_cast<std::size_t>(m_bitOffset >> 3)]
+             >> (7u - static_cast<unsigned>(m_bitOffset & 7u))) & 1u);
+        ++m_bitOffset;
+        return true;
+    }
+
+    bool readRawByte(std::uint8_t& value) {
+        value = 0;
+        for (int i = 0; i < 8; ++i) {
+            std::uint8_t bit = 0;
+            if (!readBit(bit))
+                return false;
+            value = static_cast<std::uint8_t>((value << 1) | bit);
+        }
+        return true;
+    }
+
+    bool readRawShort(std::uint16_t& value) {
+        std::uint8_t low = 0;
+        std::uint8_t high = 0;
+        if (!readRawByte(low) || !readRawByte(high))
+            return false;
+        value = static_cast<std::uint16_t>(low)
+            | static_cast<std::uint16_t>(high) << 8;
+        return true;
+    }
+
+    bool readBitShort(std::uint16_t& value) {
+        std::uint8_t highCode = 0;
+        std::uint8_t lowCode = 0;
+        if (!readBit(highCode) || !readBit(lowCode))
+            return false;
+        const std::uint8_t code = static_cast<std::uint8_t>(
+            (highCode << 1) | lowCode);
+        if (code == 2) {
+            value = 0;
+            return true;
+        }
+        if (code == 3) {
+            value = 256;
+            return true;
+        }
+        if (code == 1) {
+            std::uint8_t byte = 0;
+            if (!readRawByte(byte))
+                return false;
+            value = byte;
+            return true;
+        }
+        return readRawShort(value);
+    }
+
+private:
+    const std::vector<std::uint8_t>& m_bytes;
+    std::uint64_t m_bitOffset {0};
+};
+
+// ODA 2.14.1's reflected 0xA001 CRC, implemented bit-by-bit so this test does
+// not agree with production merely because it called dwgBuffer::crc8 or
+// dwgBufferW::crc16.  CLASSES starts the range immediately after its opening
+// sentinel, uses seed 0xC0C1, and stops immediately before the stored RS.
+std::uint16_t independentOdaCrc16(
+        const std::vector<std::uint8_t>& bytes, std::size_t begin,
+        std::size_t end) {
+    std::uint16_t crc = 0xC0C1u;
+    for (std::size_t i = begin; i < end; ++i) {
+        crc = static_cast<std::uint16_t>(crc ^ bytes[i]);
+        for (int bit = 0; bit < 8; ++bit) {
+            crc = static_cast<std::uint16_t>(
+                (crc >> 1) ^ ((crc & 1u) != 0 ? 0xA001u : 0u));
+        }
+    }
+    return crc;
+}
+
+bool readRawShortAtBit(const std::vector<std::uint8_t>& bytes,
+                       std::uint64_t bitOffset, std::uint16_t& value) {
+    IndependentBitReader reader(bytes, bitOffset);
+    return reader.readRawShort(value);
+}
+
+Ac1024ClassesIntegrityReceipt inspectAc1024ClassesIntegrity(
+        const std::filesystem::path& path) {
+    // Literal constants and the 0x7400 page size come from ODA 5.8/10.2.  The
+    // local AC1024 writer emits stored R2004 pages, so reconstruct the decoded
+    // section by skipping each page's independent 32-byte physical header.
+    constexpr std::array<std::uint8_t, 16> beginSentinel {
+        0x8D, 0xA1, 0xC4, 0xB8, 0xC4, 0xA9, 0xF8, 0xC5,
+        0xC0, 0xDC, 0xF4, 0x5F, 0xE7, 0xCF, 0xB6, 0x8A};
+    constexpr std::array<std::uint8_t, 16> endSentinel {
+        0x72, 0x5E, 0x3B, 0x47, 0x3B, 0x56, 0x07, 0x3A,
+        0x3F, 0x23, 0x0B, 0xA0, 0x18, 0x30, 0x49, 0x75};
+    constexpr std::size_t pageDataSize = 0x7400u;
+    constexpr std::size_t pageHeaderSize = 32u;
+    constexpr std::size_t unknownTailSize = 8u;
+
+    Ac1024ClassesIntegrityReceipt receipt;
+    std::ifstream stream(path, std::ios::binary);
+    if (!stream)
+        return receipt;
+    const std::vector<std::uint8_t> file {
+        std::istreambuf_iterator<char>{stream},
+        std::istreambuf_iterator<char>{}};
+    const auto begin = std::search(file.cbegin(), file.cend(),
+                                   beginSentinel.cbegin(), beginSentinel.cend());
+    if (begin == file.cend())
+        return receipt;
+    const std::size_t physicalStart = static_cast<std::size_t>(
+        std::distance(file.cbegin(), begin));
+    if (physicalStart > file.size()
+        || file.size() - physicalStart < beginSentinel.size() + 4u)
+        return receipt;
+    receipt.classDataSize = readLe32(file, physicalStart + 16u);
+    const std::uint64_t logicalSize64 =
+        static_cast<std::uint64_t>(receipt.classDataSize) + 46u;
+    if (logicalSize64 > (std::numeric_limits<std::size_t>::max)())
+        return receipt;
+    const std::size_t logicalSize = static_cast<std::size_t>(logicalSize64);
+    std::vector<std::uint8_t> section;
+    section.reserve(logicalSize);
+    std::size_t physical = physicalStart;
+    while (section.size() < logicalSize) {
+        const std::size_t count = std::min(
+            pageDataSize, logicalSize - section.size());
+        if (physical > file.size() || count > file.size() - physical)
+            return receipt;
+        section.insert(section.end(), file.cbegin() + physical,
+                       file.cbegin() + physical + count);
+        physical += count;
+        if (section.size() < logicalSize) {
+            if (physical > file.size()
+                || pageHeaderSize > file.size() - physical)
+                return receipt;
+            physical += pageHeaderSize;
+        }
+    }
+    if (!std::equal(beginSentinel.cbegin(), beginSentinel.cend(),
+                    section.cbegin())
+        || section.size() < endSentinel.size()
+        || !std::equal(endSentinel.cbegin(), endSentinel.cend(),
+                       section.cend() - endSentinel.size()))
+        return receipt;
+
+    receipt.bitSize = readLe32(section, 20u);
+    IndependentBitReader classHeader(section, 24u * 8u);
+    if (!classHeader.readBitShort(receipt.maxClassNumber))
+        return receipt;
+
+    // AC1024 without the optional high-size RL uses the documented 159-bit
+    // fixed prefix. `footerEndBit` addresses the one-bit string-present flag.
+    const std::uint64_t footerEndBit =
+        static_cast<std::uint64_t>(receipt.bitSize) + 159u;
+    const std::uint64_t totalBits =
+        static_cast<std::uint64_t>(section.size()) * 8u;
+    if (footerEndBit >= totalBits || footerEndBit < 16u)
+        return receipt;
+    IndependentBitReader endBitReader(section, footerEndBit);
+    std::uint8_t endBit = 0;
+    if (!endBitReader.readBit(endBit) || endBit != 1u)
+        return receipt;
+    std::uint16_t lowSize = 0;
+    if (!readRawShortAtBit(section, footerEndBit - 16u, lowSize))
+        return receipt;
+    receipt.usedExtendedStringSize = (lowSize & 0x8000u) != 0;
+    receipt.stringBitSize = lowSize & 0x7FFFu;
+    if (receipt.usedExtendedStringSize) {
+        if (footerEndBit < 32u)
+            return receipt;
+        std::uint16_t highSize = 0;
+        if (!readRawShortAtBit(section, footerEndBit - 32u, highSize))
+            return receipt;
+        receipt.stringBitSize |= static_cast<std::uint64_t>(highSize) << 15;
+    }
+
+    receipt.declaredCrcOffset =
+        20u + static_cast<std::size_t>(receipt.classDataSize);
+    receipt.footerCrcOffset = static_cast<std::size_t>(
+        (footerEndBit + 1u + 7u) / 8u);
+    if (receipt.declaredCrcOffset != receipt.footerCrcOffset
+        || receipt.footerCrcOffset > section.size()
+        || section.size() - receipt.footerCrcOffset
+               < 2u + unknownTailSize + endSentinel.size())
+        return receipt;
+    receipt.storedCrc = readLe16(section, receipt.footerCrcOffset);
+    receipt.calculatedCrc = independentOdaCrc16(
+        section, beginSentinel.size(), receipt.footerCrcOffset);
+    receipt.valid = true;
+    return receipt;
+}
+
 class LocalDwgInterface final : public dx_iface {
 public:
     explicit LocalDwgInterface(dwgRW* writer = nullptr,
@@ -5726,6 +5953,26 @@ int main(int argc, char** argv) {
         expect(std::filesystem::exists(output),
                ("local DWG output is published" + suffix).c_str(), failures);
 
+        if (version == DRW::AC1024) {
+            const Ac1024ClassesIntegrityReceipt classes =
+                inspectAc1024ClassesIntegrity(output);
+            expect(classes.valid,
+                   "AC1024 independent CLASSES raw parser succeeds", failures);
+            expect(classes.maxClassNumber == 1328u,
+                   "AC1024 CLASSES reaches class 1328", failures);
+            expect(classes.usedExtendedStringSize
+                       && classes.stringBitSize == 536312u,
+                   "AC1024 CLASSES uses the expected extended string footer",
+                   failures);
+            expect(classes.declaredCrcOffset == classes.footerCrcOffset,
+                   "AC1024 CLASSES RL and footer identify the same CRC byte",
+                   failures);
+            expect(classes.storedCrc != 0u
+                       && classes.calculatedCrc == classes.storedCrc,
+                   "AC1024 CLASSES stored CRC matches independent ODA CRC",
+                   failures);
+        }
+
         dwgRW reader(output.string().c_str());
         LocalDwgInterface readIface(nullptr, version);
         readIface.setTableStyleExpected(version <= DRW::AC1021);
@@ -5734,6 +5981,25 @@ int main(int argc, char** argv) {
                failures);
         expect(reader.getVersion() == version,
                ("local DWG self-read preserves version" + suffix).c_str(), failures);
+        if (version >= DRW::AC1021) {
+            expect(reader.getClassesCrcMismatch() == 0u,
+                   ("local DWG self-read has no CLASSES CRC mismatch" + suffix).c_str(),
+                   failures);
+            const std::vector<DwgIntegrityDiagnostic> diagnostics =
+                reader.getIntegrityDiagnostics();
+            const bool hasClassesCrc = std::any_of(
+                diagnostics.cbegin(), diagnostics.cend(),
+                [](const DwgIntegrityDiagnostic& diagnostic) {
+                    return diagnostic.kind == DwgIntegrityCheckKind::ClassesCrc;
+                });
+            expect(!hasClassesCrc,
+                   ("local DWG self-read has no CLASSES CRC diagnostic" + suffix).c_str(),
+                   failures);
+        }
+        if (version == DRW::AC1024) {
+            expect(reader.getIntegrityDiagnosticsDropped() == 0u,
+                   "AC1024 self-read drops no integrity diagnostics", failures);
+        }
         expect(readIface.readLineSeen(),
                ("local DWG self-read publishes a line" + suffix).c_str(), failures);
         expect(readIface.readSimpleEntitiesSeen(),
