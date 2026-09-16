@@ -184,6 +184,16 @@ public:
     using DRW_SpatialIndex::parseCode;
 };
 
+class ExposedLightList : public DRW_LightList {
+public:
+    using DRW_LightList::parseCode;
+};
+
+class ExposedGeoMapImage : public DRW_GeoMapImage {
+public:
+    using DRW_GeoMapImage::parseCode;
+};
+
 template <typename Entity>
 bool parseDxfRecords(Entity& entity, const std::string& source) {
     std::stringstream records(source);
@@ -269,6 +279,10 @@ void testPublicOwnershipContracts(TestContext& t) {
                   "DRW_LayerIndex copy contract");
     static_assert(std::is_copy_constructible<DRW_SpatialIndex>::value,
                   "DRW_SpatialIndex copy contract");
+    static_assert(std::is_copy_constructible<DRW_LightList>::value,
+                  "DRW_LightList copy contract");
+    static_assert(std::is_copy_constructible<DRW_GeoMapImage>::value,
+                  "DRW_GeoMapImage copy contract");
     static_assert(std::is_copy_constructible<DRW_Attrib>::value,
                   "DRW_Attrib copy contract");
     static_assert(std::is_copy_constructible<DRW_GeoPositionMarker>::value,
@@ -1163,6 +1177,62 @@ void testPublicOwnershipContracts(TestContext& t) {
                  && assignedSpatialIndex.timestamp1 == 3u
                  && assignedSpatialIndex.timestamp2 == 43200000u,
              "SPATIAL_INDEX assignment clears timestamp parser state");
+
+    const std::string lightListBody =
+        "100\nAcDbLightList\n90\n1\n90\n1\n5\nA1\n1\nlight-one\n";
+    ExposedLightList partialLightList;
+    t.expect(parseDxfRecords(partialLightList, lightListBody)
+                 && partialLightList.m_lights.size() == 1u
+                 && partialLightList.m_lights.front().m_name == "light-one",
+             "LIGHTLIST parser state source setup");
+    ExposedLightList copiedLightList(partialLightList);
+    const bool copiedLightStale = parseDxfRecords(copiedLightList,
+                                                   "1\nstale-light\n");
+    const std::size_t copiedLightAfterStale = copiedLightList.m_lights.size();
+    const bool copiedLightFresh = parseDxfRecords(
+        copiedLightList,
+        "100\nAcDbLightList\n90\n2\n90\n2\n5\nA2\n1\nlight-two\n");
+    t.expect(copiedLightStale && copiedLightAfterStale == 1u
+                 && copiedLightFresh && copiedLightList.m_lights.size() == 2u
+                 && copiedLightList.m_lights.back().m_name == "light-two",
+             "LIGHTLIST copy clears subclass parser state");
+    ExposedLightList assignedLightList;
+    assignedLightList = partialLightList;
+    const bool assignedLightStale = parseDxfRecords(assignedLightList,
+                                                     "1\nstale-light\n");
+    const std::size_t assignedLightAfterStale = assignedLightList.m_lights.size();
+    const bool assignedLightFresh = parseDxfRecords(
+        assignedLightList,
+        "100\nAcDbLightList\n90\n3\n90\n3\n5\nA3\n1\nlight-three\n");
+    t.expect(assignedLightStale && assignedLightAfterStale == 1u
+                 && assignedLightFresh && assignedLightList.m_lights.size() == 2u
+                 && assignedLightList.m_lights.back().m_name == "light-three",
+             "LIGHTLIST assignment clears subclass parser state");
+
+    ExposedGeoMapImage partialGeoMapImage;
+    t.expect(parseDxfRecords(partialGeoMapImage,
+                             "100\nAcDbGeomapImage\n90\n1\n")
+                 && partialGeoMapImage.m_classVersion == 1,
+             "GEOMAPIMAGE parser state source setup");
+    ExposedGeoMapImage copiedGeoMapImage(partialGeoMapImage);
+    const bool copiedGeoStale = parseDxfRecords(copiedGeoMapImage, "90\n2\n");
+    const std::int32_t copiedGeoAfterStale = copiedGeoMapImage.m_classVersion;
+    const bool copiedGeoFresh = parseDxfRecords(copiedGeoMapImage,
+                                                "100\nAcDbGeomapImage\n90\n2\n10\n4\n");
+    t.expect(copiedGeoStale && copiedGeoAfterStale == 1
+                 && copiedGeoFresh && copiedGeoMapImage.m_classVersion == 2
+                 && copiedGeoMapImage.m_insertionPoint.x == 4.0,
+             "GEOMAPIMAGE copy clears subclass parser state");
+    ExposedGeoMapImage assignedGeoMapImage;
+    assignedGeoMapImage = partialGeoMapImage;
+    const bool assignedGeoStale = parseDxfRecords(assignedGeoMapImage, "90\n3\n");
+    const std::int32_t assignedGeoAfterStale = assignedGeoMapImage.m_classVersion;
+    const bool assignedGeoFresh = parseDxfRecords(assignedGeoMapImage,
+                                                  "100\nAcDbGeomapImage\n90\n3\n10\n5\n");
+    t.expect(assignedGeoStale && assignedGeoAfterStale == 1
+                 && assignedGeoFresh && assignedGeoMapImage.m_classVersion == 3
+                 && assignedGeoMapImage.m_insertionPoint.x == 5.0,
+             "GEOMAPIMAGE assignment clears subclass parser state");
 
     DRW_Dimension sourceDimension;
     sourceDimension.extData.push_back(

@@ -140,10 +140,10 @@
     },
     {
       "path": "src/drw_objects.h",
-      "reason": "Reset transient BREAKDATA subclass-body parser state, DICTIONARY/DICTIONARYWDFLT pending-entry/default-pointer parser state, XRECORD subclass-body parser state, SORTENTSTABLE body/pending-entry parser state, and INDEX/IDBUFFER/LAYERINDEX/SPATIALINDEX timestamp/body parser state for explicit copies and assignments while preserving persisted entries, handles, and opaque payloads.",
+      "reason": "Reset transient BREAKDATA subclass-body parser state, DICTIONARY/DICTIONARYWDFLT pending-entry/default-pointer parser state, XRECORD subclass-body parser state, SORTENTSTABLE body/pending-entry parser state, INDEX/IDBUFFER/LAYERINDEX/SPATIALINDEX timestamp/body parser state, and LIGHTLIST/GEOMAPIMAGE subclass parser state for explicit copies and assignments while preserving persisted entries, handles, and opaque payloads.",
       "scope": "DXF parser-state copy isolation",
       "targetBlob": "41d58d78e0706509ee22232fb70e187baaf0ec34",
-      "adaptedSha256": "784a5f53cd60a6eec116f52a8a58928b794b3066b151bdb3f9bf4d923cc53340"
+      "adaptedSha256": "9632edfa9d119ec320759503dbf0035a692b18abf8ea15bf30e144e6fe3c2495"
     },
     {
       "path": "src/intern/dxfparserlimits.h",

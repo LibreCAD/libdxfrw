@@ -1086,6 +1086,25 @@ public:
   static constexpr std::uint32_t kMaxLightCount = 100000;
 
   DRW_LightList() { reset(); }
+  DRW_LightList(const DRW_LightList& o): DRW_TableEntry(o),
+      m_classVersion(o.m_classVersion), m_lightCount(o.m_lightCount),
+      m_lights(o.m_lights), m_dxfInLightListSubclass(false),
+      m_dxfPendingLightHandle(0), m_dxfSeen90(0) {
+    tType = o.tType;
+  }
+  DRW_LightList& operator=(const DRW_LightList& o) {
+    if (this != &o) {
+      DRW_TableEntry::operator=(o);
+      m_classVersion = o.m_classVersion;
+      m_lightCount = o.m_lightCount;
+      m_lights = o.m_lights;
+      m_dxfInLightListSubclass = false;
+      m_dxfPendingLightHandle = 0;
+      m_dxfSeen90 = 0;
+      tType = o.tType;
+    }
+    return *this;
+  }
   void reset();
 
 protected:
@@ -1213,6 +1232,30 @@ class DRW_GeoMapImage : public DRW_TableEntry {
   SETOBJFRIENDS
 public:
   DRW_GeoMapImage() { reset(); }
+  DRW_GeoMapImage(const DRW_GeoMapImage& o): DRW_TableEntry(o),
+      m_classVersion(o.m_classVersion), m_insertionPoint(o.m_insertionPoint),
+      m_imageSize(o.m_imageSize), m_displayProps(o.m_displayProps),
+      m_clipping(o.m_clipping), m_brightness(o.m_brightness),
+      m_contrast(o.m_contrast), m_fade(o.m_fade),
+      m_dxfInGeoMapImageBody(false) {
+    tType = o.tType;
+  }
+  DRW_GeoMapImage& operator=(const DRW_GeoMapImage& o) {
+    if (this != &o) {
+      DRW_TableEntry::operator=(o);
+      m_classVersion = o.m_classVersion;
+      m_insertionPoint = o.m_insertionPoint;
+      m_imageSize = o.m_imageSize;
+      m_displayProps = o.m_displayProps;
+      m_clipping = o.m_clipping;
+      m_brightness = o.m_brightness;
+      m_contrast = o.m_contrast;
+      m_fade = o.m_fade;
+      m_dxfInGeoMapImageBody = false;
+      tType = o.tType;
+    }
+    return *this;
+  }
   void reset() {
     DRW_TableEntry::reset();
     tType = DRW::GEOMAPIMAGE;
