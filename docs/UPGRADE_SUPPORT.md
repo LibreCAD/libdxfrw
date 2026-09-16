@@ -8,8 +8,10 @@ Support status is evidence-based, not dispatch-based. A reader/writer route may
 be recognized by a version or class table while remaining experimental until a
 fixture-policy-eligible regression, an authoritative specification vector, or
 an independent oracle qualifies it. The current writer matrix deliberately
-promotes no feature row; the modern TU terminator question is explicitly
-deferred pending an authoritative ODA/sample check.
+promotes no feature row. The modern R2007+ TU reader accepts both
+length-includes-terminator and length-excludes-terminator streams; its
+independent-cursor probe preserves alignment for either form, while external
+support promotion remains evidence-gated.
 
 The repository does not commit downloaded DWG/DXF bytes. A fixture may be
 committed only when it is an exact Git-tracked blob already present in LibreCAD
