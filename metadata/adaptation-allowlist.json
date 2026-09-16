@@ -98,10 +98,10 @@
     },
     {
       "path": "src/drw_entities.cpp",
-      "reason": "Mark one intentionally unused helper, remove two unused locals exposed by standalone -Werror compilation, reject non-finite GEOPOSITIONMARKER and LIGHT entity-body values plus bounded LIGHT strings/color before encoding, preserve nested MULTILEADER DXF context breaks, transforms, and hard-pointer handles on parse, bound MULTILEADER context/block-label strings before publication, deep-copy entity-owned XDATA variants for explicit entity copy paths, clone HATCH boundary graphs for copy/assignment without aliasing unsupported polymorphic edges, clone LEADER vertex graphs for copy/assignment without retaining transient parser cursors, and reset transient DXF parser state across explicit model copies and assignments.",
+      "reason": "Mark one intentionally unused helper, remove two unused locals exposed by standalone -Werror compilation, reject non-finite GEOPOSITIONMARKER and LIGHT entity-body values plus bounded LIGHT strings/color before encoding, preserve nested MULTILEADER DXF context breaks, transforms, and hard-pointer handles on parse, bound MULTILEADER context/block-label strings before publication, deep-copy entity-owned XDATA variants for explicit entity copy paths, clone HATCH boundary graphs for copy/assignment without aliasing unsupported polymorphic edges, clone LEADER vertex graphs for copy/assignment without retaining transient parser cursors, reset transient DXF parser state across explicit model copies and assignments, and reset the LEADER vertex-count parser marker across copy and assignment.",
       "scope": "warning hygiene and DXF MULTILEADER parity",
       "targetBlob": "f6552e6be5e59f7aca602d4d9c520baf993bb159",
-      "adaptedSha256": "4a1535e645c7575bb2e0bc008e4f1a2ea13196b4b760ed91ea9bacf427089643"
+      "adaptedSha256": "9900194f9f94e63a524a069d4cdfed1d31c5b4316e017bc32a8bfbf42bfaa00e"
     },
     {
       "path": "src/drw_entities.h",

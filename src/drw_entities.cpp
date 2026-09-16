@@ -22640,7 +22640,9 @@ DRW_Leader::DRW_Leader(const DRW_Leader& o)
       coloruse(o.coloruse), annotHandle(o.annotHandle), origin(o.origin),
       extrusionPoint(o.extrusionPoint), horizdir(o.horizdir),
       offsetblock(o.offsetblock), offsettext(o.offsettext),
-      hasVertexCount(o.hasVertexCount), dimStyleH(o.dimStyleH),
+      // The count-seen marker belongs to an in-progress DXF parse and must
+      // not make a copied, otherwise complete model fail validation.
+      hasVertexCount(false), dimStyleH(o.dimStyleH),
       AnnotH(o.AnnotH) {
     eType = DRW::LEADER;
     vertexlist.reserve(o.vertexlist.size());
@@ -22669,7 +22671,9 @@ DRW_Leader& DRW_Leader::operator=(const DRW_Leader& o) {
         horizdir = o.horizdir;
         offsetblock = o.offsetblock;
         offsettext = o.offsettext;
-        hasVertexCount = o.hasVertexCount;
+        // Assignment also starts a fresh DXF parse walk; persisted vertex
+        // coordinates and the declared count remain available for callers.
+        hasVertexCount = false;
         dimStyleH = o.dimStyleH;
         AnnotH = o.AnnotH;
         std::vector<std::shared_ptr<DRW_Coord>> copies;

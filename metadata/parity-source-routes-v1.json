@@ -5901,7 +5901,7 @@
   },
   "inputs": {
     "standalone": {
-      "contentTreeSha256": "45255af7f59be7c0837146b2ce1e2a60ddb45f879b8e250c58f95dd3cabd3ea1",
+      "contentTreeSha256": "cbb01e2c3bdd21e62f46189c97786c41069d216bc1c8ef5b39369ebb6443aed9",
       "files": [
         {
           "mode": "100644",
@@ -5946,7 +5946,7 @@
         {
           "mode": "100644",
           "path": "src/drw_entities.cpp",
-          "sha256": "4a1535e645c7575bb2e0bc008e4f1a2ea13196b4b760ed91ea9bacf427089643"
+          "sha256": "9900194f9f94e63a524a069d4cdfed1d31c5b4316e017bc32a8bfbf42bfaa00e"
         },
         {
           "mode": "100644",
@@ -123251,7 +123251,7 @@
         "src/libdxfrw.h"
       ],
       "allowlistPath": "metadata/adaptation-allowlist.json",
-      "allowlistSha256": "b449dd684d7e1183f98dd90d681d99c773d54b0696f80e521e3b1e4da134f030",
+      "allowlistSha256": "075bbaa4398124b5be02ccf9f59b48a588a46b4d54d14cdc5bb4f61af9c54c79",
       "schema": 1,
       "targetCommit": "0ffb38d790db53116978e01fcaf94cee9bc6ee48",
       "targetRepository": "git@github.com-librecad:LibreCAD/LibreCAD.git"
@@ -123276,7 +123276,7 @@
     "standalone": {
       "baselineCommit": "92d7466ed9146badcd4fb44c82d1dd8302b3c7db",
       "baselineRef": "origin/master",
-      "contentTreeSha256": "45255af7f59be7c0837146b2ce1e2a60ddb45f879b8e250c58f95dd3cabd3ea1",
+      "contentTreeSha256": "cbb01e2c3bdd21e62f46189c97786c41069d216bc1c8ef5b39369ebb6443aed9",
       "repository": "git@github.com-librecad:LibreCAD/libdxfrw.git"
     },
     "target": {
@@ -123327,7 +123327,7 @@
       "facade": "shared",
       "path": "parity-source-routes-v1/standalone-shared.json",
       "routeCount": 2928,
-      "sha256": "888070106f8f8ff475fb6227e90ed5c23b410eb890377d1d35c591a3368dfbd6",
+      "sha256": "263535f266c141131d47676c394a4fd8fba17739c2dfedf48a13a2ed1c1c8678",
       "side": "standalone"
     }
   ],

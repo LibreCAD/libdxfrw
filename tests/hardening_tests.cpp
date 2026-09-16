@@ -53,6 +53,12 @@ public:
     using DRW_LWPolyline::parseCode;
 };
 
+class ExposedLeader : public DRW_Leader {
+public:
+    using DRW_Leader::parseCode;
+    using DRW_Leader::validateDxf;
+};
+
 template <typename Entity>
 bool parseDxfRecords(Entity& entity, const std::string& source) {
     std::stringstream records(source);
@@ -433,6 +439,19 @@ void testPublicOwnershipContracts(TestContext& t) {
                  && assignedMarkerState.m_radius == 2.5
                  && assignedMarkerState.m_landingGap == 0.0,
              "GEOPOSITIONMARKER assignment resets repeated-double counter");
+
+    ExposedLeader partialLeader;
+    partialLeader.vertnum = 2;
+    t.expect(parseDxfRecords(partialLeader, "76\n2\n")
+                 && !partialLeader.validateDxf(),
+             "LEADER parser count marker source setup");
+    ExposedLeader copiedLeaderState(partialLeader);
+    t.expect(copiedLeaderState.validateDxf(),
+             "LEADER copy resets vertex-count parser state");
+    ExposedLeader assignedLeaderState;
+    assignedLeaderState = partialLeader;
+    t.expect(assignedLeaderState.validateDxf(),
+             "LEADER assignment resets vertex-count parser state");
 
     DRW_Dimension sourceDimension;
     sourceDimension.extData.push_back(
