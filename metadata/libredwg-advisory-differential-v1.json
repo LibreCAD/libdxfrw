@@ -1,0 +1,255 @@
+{
+  "advisory": true,
+  "fixturePolicy": "external-only; never committed",
+  "inputCount": 21,
+  "oracle": "LibreDWG dwg2dxf 0.14",
+  "rows": [
+    {
+      "diagnosticCode": "success",
+      "exitStatus": 0,
+      "inputVersion": "AC1021",
+      "outputSha256": "37cc3b5f6e0aa41160e035a18a464d3bc2dbb204f6e1189d74c4aa3c4eb3b4dd",
+      "outputSize": 843641,
+      "path": "acsh_r2007.dwg",
+      "sourceSha256": "0e3eccc70ea6b82120c77449bb1d1d27ee280a1ed1c0f2e88e31b1db503ca66f",
+      "sourceSize": 398400,
+      "status": "converted"
+    },
+    {
+      "diagnosticCode": "success",
+      "exitStatus": 0,
+      "inputVersion": "AC1027",
+      "outputSha256": "9feedd36bc0409f00e43268f7ff5be3f40a91378deb539698a351c197113365d",
+      "outputSize": 126579,
+      "path": "assoc_constraints_r2013.dwg",
+      "sourceSha256": "bdd7458bda6c1464faa5836b8aa85640199fbd01c510fa00e25550c043185429",
+      "sourceSize": 33206,
+      "status": "converted"
+    },
+    {
+      "diagnosticCode": "success",
+      "exitStatus": 0,
+      "inputVersion": "AC1018",
+      "outputSha256": "ae3c78821ea658c6a9caf43d398c909b59c3bcea3c0822e65872cfc0c1e05f9d",
+      "outputSize": 688752,
+      "path": "assoc_surface_r2004.dwg",
+      "sourceSha256": "7ba7ea2e6e89a01094d4ffe104dd1cfc03513d1991bd223aeac1a3186a6c38d3",
+      "sourceSize": 162991,
+      "status": "converted"
+    },
+    {
+      "diagnosticCode": "success",
+      "exitStatus": 0,
+      "inputVersion": "AC1032",
+      "outputSha256": "b4859f385abca072c718416749ee0e9afa4014c7aafe05ebecddfa344de7f26b",
+      "outputSize": 156310,
+      "path": "blockvisibility.dwg",
+      "sourceSha256": "be1e24ea0cd5194d0c57935b5018123b7cc981331172a1a2ca7cecc2d9a18e4f",
+      "sourceSize": 38641,
+      "status": "converted"
+    },
+    {
+      "diagnosticCode": "success",
+      "exitStatus": 0,
+      "inputVersion": "AC1024",
+      "outputSha256": "f1375dbd33248bea7bd0bdd73316ac18a62b6501adf6f04d05729a433eb8d20f",
+      "outputSize": 258132,
+      "path": "datatable_r2010.dwg",
+      "sourceSha256": "4d3d81a0dd7b7a845368e3517ad745b763a9e338b0bae09e78e86c5bf2742e27",
+      "sourceSize": 65070,
+      "status": "converted"
+    },
+    {
+      "diagnosticCode": "success",
+      "exitStatus": 0,
+      "inputVersion": "AC1032",
+      "outputSha256": "75bfe7d552d6d5d579bf094770fbea467ecad08ec7b86e4a94568c9ae44310af",
+      "outputSize": 134349,
+      "path": "dynblock_point.dwg",
+      "sourceSha256": "808f0a0d7ad029c6a23fed4fd87323fd03d6938f4feee2d8ab64c2e70e21f232",
+      "sourceSize": 35951,
+      "status": "converted"
+    },
+    {
+      "diagnosticCode": "success",
+      "exitStatus": 0,
+      "inputVersion": "AC1032",
+      "outputSha256": "8a76ee212c9e04ff8d04d7cae22dc1356dff66896ddcb1866d52199b22f5b24f",
+      "outputSize": 1794081,
+      "path": "dynblock_r2018.dwg",
+      "sourceSha256": "8827e33cd1b2427533b9544967b7d1de9b22a83875986f27ff01c83f3c8e681a",
+      "sourceSize": 574537,
+      "status": "converted"
+    },
+    {
+      "diagnosticCode": "success",
+      "exitStatus": 0,
+      "inputVersion": "AC1018",
+      "outputSha256": "fcb871bbe0a5857d162f401693d91745175129c9d6edb8cba52fd015e0fd2a61",
+      "outputSize": 929560,
+      "path": "evalgraph_r2004.dwg",
+      "sourceSha256": "e72d5e86d5d36d64b08822fb25a46079f592fd895a6157b1b8d9b07775e06108",
+      "sourceSize": 187890,
+      "status": "converted"
+    },
+    {
+      "diagnosticCode": "success",
+      "exitStatus": 0,
+      "inputVersion": "AC1032",
+      "outputSha256": "c0683e6de7299a8631c0f84917b7202c7e0114dd96859e3c49ef336a378afefc",
+      "outputSize": 80038,
+      "path": "large_radial.dwg",
+      "sourceSha256": "d3f7c22db4b6c3953e2d716da719d7e7e5b285cf73bd4e317f0a171d3859f98a",
+      "sourceSize": 12632,
+      "status": "converted"
+    },
+    {
+      "diagnosticCode": "success",
+      "exitStatus": 0,
+      "inputVersion": "AC1032",
+      "outputSha256": "9d36ae28c7b967721968265a3f98949179715ae34ce50ff18962473e27b6b519",
+      "outputSize": 75767,
+      "path": "mpolygon_solid.dwg",
+      "sourceSha256": "66a171c55bc90fdd0764ad3556ec786503666a30a4473a637d168a01979ffc29",
+      "sourceSize": 11767,
+      "status": "converted"
+    },
+    {
+      "diagnosticCode": "success",
+      "exitStatus": 0,
+      "inputVersion": "AC1015",
+      "outputSha256": "2404cb75988d96d4c35d1ebd3ee2ccadfa5b3fabc7f22478f93f8597287652cf",
+      "outputSize": 394002,
+      "path": "ocd_leader_r2000.dwg",
+      "sourceSha256": "947e28fb312349efffe04dbfe8754892fceba872e41536d1fdcdf0a77a62c6e4",
+      "sourceSize": 202493,
+      "status": "converted"
+    },
+    {
+      "diagnosticCode": "success",
+      "exitStatus": 0,
+      "inputVersion": "AC1.40",
+      "outputSha256": "9cfe3194ea66f7707c6305b88fb535d6b868e631d427b52bef58b6f1f74769b3",
+      "outputSize": 3142,
+      "path": "pre_r10_r140_entities.dwg",
+      "sourceSha256": "f00891dbfedbbe44fe97233ef503594d59948b2669705bf58154b57d1ca28df8",
+      "sourceSize": 1152,
+      "status": "converted"
+    },
+    {
+      "diagnosticCode": "success",
+      "exitStatus": 0,
+      "inputVersion": "AC2.10",
+      "outputSha256": "3ddb24b40dea310cd4ddb3610ab35172c3f5c69158d78cb6a8d4755ef4ac9b62",
+      "outputSize": 4767,
+      "path": "pre_r10_r210_entities.dwg",
+      "sourceSha256": "7d9280105e614b69b72702cf299163f7c374db014386cdec6ea960a75b818069",
+      "sourceSize": 2236,
+      "status": "converted"
+    },
+    {
+      "diagnosticCode": "success",
+      "exitStatus": 0,
+      "inputVersion": "AC1003",
+      "outputSha256": "3771862387b378a2cc130b96d912127e875d9d9f65bdf332daf5691fe063141d",
+      "outputSize": 7529,
+      "path": "pre_r10_r26_entities.dwg",
+      "sourceSha256": "0d3d92555e077b4f42a96bc53381afae745006a07e54316644ee342f431dc0c5",
+      "sourceSize": 3347,
+      "status": "converted"
+    },
+    {
+      "diagnosticCode": "success",
+      "exitStatus": 0,
+      "inputVersion": "AC1004",
+      "outputSha256": "e7b2d731c87d474558adf2d4dc768658d7c6ba05745363cf1499d00c0059120e",
+      "outputSize": 7947,
+      "path": "pre_r10_r9_entities.dwg",
+      "sourceSha256": "a12f8a08862bb53fb8a62304a19091f602937679e8ed8ab9f1face199f8897b3",
+      "sourceSize": 3476,
+      "status": "converted"
+    },
+    {
+      "diagnosticCode": "success",
+      "exitStatus": 0,
+      "inputVersion": "AC1006",
+      "outputSha256": "f420cb8c1822f61c7fdd9594480099dfbb2d0406e91d74b5cba1f68ef5f8f27b",
+      "outputSize": 9149,
+      "path": "pre_r13_r10_entities.dwg",
+      "sourceSha256": "a821c7b29a7be02a9db6db223398360b59173316d8a07c14f01e9f4f1766bb55",
+      "sourceSize": 4305,
+      "status": "converted"
+    },
+    {
+      "diagnosticCode": "success",
+      "exitStatus": 0,
+      "inputVersion": "AC1009",
+      "outputSha256": "0db91465e4f4287be4f57efcfdd3dad2d7481a146ba64d1a39efc6d211d1f155",
+      "outputSize": 111483,
+      "path": "pre_r13_r11_tables.dwg",
+      "sourceSha256": "cc5808621cfdc597f6e726a4f3591402b92ea627e581ce4380344c5dd02392f1",
+      "sourceSize": 93538,
+      "status": "converted"
+    },
+    {
+      "diagnosticCode": "success",
+      "exitStatus": 0,
+      "inputVersion": "AC1032",
+      "outputSha256": "f853965af242eddbcbe80c75e94d1b2c3bd183e0eb7104a88f7f885b66152bc9",
+      "outputSize": 122648,
+      "path": "rtext_arctext.dwg",
+      "sourceSha256": "db5663cdc5c1759fdc1f68f9122e596307de06317e766cd5e0aab55912e5d511",
+      "sourceSize": 19774,
+      "status": "converted"
+    },
+    {
+      "diagnosticCode": "success",
+      "exitStatus": 0,
+      "inputVersion": "AC1032",
+      "outputSha256": "1dc1e375dc7bdc770a0a0c0b3380441d840f07decdd0ec2c09908a697e16a7a8",
+      "outputSize": 147985,
+      "path": "section_object_r2018.dwg",
+      "sourceSha256": "2aedb4d92ab5115806457dc18abb9fd5b1e3a959547d46743b4009b8cb0515ef",
+      "sourceSize": 40591,
+      "status": "converted"
+    },
+    {
+      "diagnosticCode": "success",
+      "exitStatus": 0,
+      "inputVersion": "AC1021",
+      "outputSha256": "b56f4b48b0e13f1ce52c4d62fde752306f799f2e82b19847171f5d8a534fc86d",
+      "outputSize": 332309,
+      "path": "visualstyle_r2007.dwg",
+      "sourceSha256": "7fcf6c7db5698a5ab5bb5eb3ecb3bb53e12cefddc5006fb4e12dc8dee643b4f6",
+      "sourceSize": 74624,
+      "status": "converted"
+    },
+    {
+      "diagnosticCode": "success",
+      "exitStatus": 0,
+      "inputVersion": "AC1027",
+      "outputSha256": "e65902583982a19aa2fb8ec4fd1f54be4071cd1da45c2defbc15541312c815af",
+      "outputSize": 121702,
+      "path": "visualstyle_r2013.dwg",
+      "sourceSha256": "947575519871fb7026ff8d4654d36200adffff6f5a90a45dcc347b17f7a0ee58",
+      "sourceSize": 31931,
+      "status": "converted"
+    }
+  ],
+  "runner": {
+    "name": "dwg2dxf",
+    "timeoutSeconds": 10,
+    "version": "0.14"
+  },
+  "schema": 1,
+  "sourceCorpus": {
+    "commit": "3c028612dd8e75d98692ac346635c190500eea94",
+    "note": "temporary external checkout; source blobs are not copied into this repository",
+    "path": "librecad/src/lib/filters/tests/testdata",
+    "repository": "LibreCAD/LibreCAD",
+    "selection": "top-level *.dwg only"
+  },
+  "statusCounts": {
+    "converted": 21
+  }
+}
