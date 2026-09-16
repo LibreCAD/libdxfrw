@@ -3614,17 +3614,17 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 323 (`COMMITTED`); no slice is active.
+- Resolved slices: 324 (`COMMITTED`); no slice is active.
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 323 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 324 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 325 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 326 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 423 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 424 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  6 DEFERRED_EXTERNAL / 303 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S323 are committed; no local implementation slice is active.
+  6 DEFERRED_EXTERNAL / 304 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S324 are committed; no local implementation slice is active.
   Remaining work is evidence-gated runtime/oracle and release closure; keep
   the fast inner loop and do not promote support claims from self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -4002,6 +4002,7 @@ edit this block or commit the same slice concurrently.
 | S321 | J297: expose the DataStorage writer operation enum from the public base header | S320 | COMMITTED | public-header enum relocation; staged direct-header consumer; writer/Wave 1/DXF regressions; route/support metadata regeneration; import scope; no fixture admission | `DwgDataStorageWriterOperation` now lives in `drw_base.h` with its historical global name and values, while `intern/dwgutil.h` remains a compatibility include without owning the declaration; staged consumers compile the enum directly from `drw_base.h`, and the compatibility decision no longer leaves this dependency unresolved; no drawing bytes added | exhaustive callback/API hardening and all runtime/oracle/release evidence remain open; continue with external qualification and release closure |
 | S322 | J298: refresh live-plan status after S321 | S321 | COMMITTED | plan parser/counter reconciliation; no source or fixture changes | refreshed the execution header to identify S321/J297 as the latest green implementation slice and kept the live counts aligned at 322 slices, 324 parent items, 422 child items, and 6 deferred external claims; no drawing bytes added | no implementation state changed; continue with external qualification and release closure |
 | S323 | J299: restore explicit fixed-handle test include closure | S322 | COMMITTED | full build; full 31-test CTest checkpoint; fixture admission; import scope; sync; plan; diff | `dwg_local_roundtrip_tests.cpp` now includes `intern/dwg_fixed_handles.h` for the fixed-handle constants it uses; the complete build and all 31 CTest entries pass, with no drawing bytes added | continue with external qualification and release closure |
+| S324 | J300: scheduled ASan/UBSan checkpoint after S323 | S323 | COMMITTED | rebuilt ASan/UBSan tree; full 31-test CTest checkpoint with `detect_leaks=0`; no fixture changes | `/private/tmp/libdxfrw-s264-asan` rebuilt from the current tree and all 31 tests pass under `ASAN_OPTIONS=detect_leaks=0 UBSAN_OPTIONS=halt_on_error=1`; no sanitizer findings or drawing bytes added | native-platform, long-fuzz, external/oracle, and release-closure evidence remain open |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -4329,6 +4330,7 @@ edit this block or commit the same slice concurrently.
 | J297 | S321 | J296 | COMMITTED | EXPERIMENTAL | Expose the DataStorage writer operation enum from the public base header | Move `DwgDataStorageWriterOperation` from `intern/dwgutil.h` to `drw_base.h` without changing its global spelling or underlying values, compile it through the installed foundational header, retain the compatibility include for existing consumers, and update provenance/plan metadata without adding drawing bytes |
 | J298 | S322 | J297 | COMMITTED | EXPERIMENTAL | Refresh live-plan status after S321 | Reconcile the execution-refresh prose and parser-backed slice/parent/child/claim totals after the S321 public-header cleanup, changing no source or fixture bytes |
 | J299 | S323 | J298 | COMMITTED | EXPERIMENTAL | Restore explicit fixed-handle test include closure | Add the declared fixed-handle header to the local DWG round-trip test, prove the complete build and full CTest checkpoint, and retain no drawing bytes |
+| J300 | S324 | J299 | COMMITTED | EXPERIMENTAL | Run the scheduled ASan/UBSan checkpoint after S323 | Rebuild the sanitizer configuration from the current tree and run the complete 31-test CTest set with the documented macOS leak policy, retaining no drawing bytes |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4763,6 +4765,7 @@ edit this block or commit the same slice concurrently.
 | J297.1 | J297 / S321 | WP1, WP4, WP8, WP10; public enum/header closure | J296 | COMMITTED | EXPERIMENTAL | move the global `DwgDataStorageWriterOperation` declaration into `drw_base.h`, remove its duplicate from `intern/dwgutil.h`, compile direct `drw_base.h` consumers with stable ordinal assertions, retain existing `dwgutil.h` include compatibility, refresh route/support metadata, and retain no drawing bytes | writer-version, graph-preservation, staged-package, route-inventory, parity-aggregate, support-matrix, release-readiness, import-scope, sync, fixture-admission, plan, and diff checks pass; enum values remain 0..33 and the compatibility-decision unresolved list no longer contains the enum relocation |
 | J298.1 | J298 / S322 | WP8, WP10; live-plan bookkeeping | J297 | COMMITTED | EXPERIMENTAL | update the execution-refresh date/latest-slice prose and parser-backed state totals after S321, verify plan consistency, and retain no source or fixture changes | plan check passes; the current header names S321/J297 as latest and reports 322 committed slices, 324 committed parents, 422 committed children, and 6 deferred external claims |
 | J299.1 | J299 / S323 | WP1, WP8, WP10; test include closure | J298 | COMMITTED | EXPERIMENTAL | include `intern/dwg_fixed_handles.h` at the test use site, rebuild every target, run all 31 CTest entries, and retain no drawing bytes | full build and 31/31 CTest pass; the prior undeclared fixed-handle dependency is explicit and no fixture admission changes |
+| J300.1 | J300 / S324 | WP8, WP10; sanitizer checkpoint | J299 | COMMITTED | EXPERIMENTAL | rebuild `/private/tmp/libdxfrw-s264-asan`, run all 31 tests with ASan/UBSan enabled and leak detection disabled only as documented for macOS, and retain no drawing bytes | sanitizer build succeeds and ASan/UBSan CTest passes 31/31 in 13.15s with no findings |
 
 <!-- UPGRADE_PROGRESS_END -->
 
