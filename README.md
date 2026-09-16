@@ -1,8 +1,10 @@
 libdxfrw ![Build status](https://api.travis-ci.org/LibreCAD/libdxfrw.svg?branch=master)
 ==========
 
-libdxfrw is a free C++ library to read and write DXF files in both formats, ascii and binary form.
-It also has rudimentary capabilities to read DWG files.
+libdxfrw 2.x is a C++17 library that reads and writes DXF files in ASCII and
+binary form and reads and writes the pinned LibreCAD DWG version routes. Format
+rows remain explicitly supported, experimental, or unsupported according to
+the evidence-led support matrix; recognition alone is not a support claim.
 It is licensed under the terms of the GNU General Public License version 2 (or at you option
 any later version).
 
@@ -20,6 +22,21 @@ When you clone or download this project to build [LibreCAD_3](https://github.com
 
 Building and installing the library
 ==========
+
+CMake is the supported 2.x build. It requires CMake 3.10 or newer and C++17:
+
+```
+cmake -S . -B build -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+  -DLIBDXFRW_BUILD_TESTS=ON -DLIBDXFRW_BUILD_DOC=OFF
+cmake --build build
+ctest --test-dir build --output-on-failure
+cmake --install build --prefix /tmp/libdxfrw-install
+```
+
+The historical Autotools, MinGW, and Conan recipes are retained for reference
+but are deprecated for the 2.x convergence until they consume the canonical
+source manifest and have a maintained C++17/CI lane. See
+`docs/UPGRADE_SUPPORT.md` for the support and release policy.
 
 Debug version
 ----------
