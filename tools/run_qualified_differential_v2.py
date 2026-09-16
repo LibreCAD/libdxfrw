@@ -280,6 +280,12 @@ def _digest(value: Any, path: str) -> str:
     return text
 
 
+def _optional_digest(value: Any, path: str) -> str | None:
+    if value is None:
+        return None
+    return _digest(value, path)
+
+
 def _commit(value: Any, path: str) -> str:
     text = _string(value, path)
     if not COMMIT_RE.fullmatch(text):
@@ -1619,13 +1625,22 @@ RUNNER_KEYS = {
 }
 COMPARISON_KEYS = {"tolerances", "reviewedTargetDebt", "exclusions"}
 TOLERANCE_KEYS = {
-    "id", "path", "absolute", "relative", "expectedMatches", "evidenceId"
-}
-DEBT_KEYS = {
-    "id", "path", "targetDigest", "standaloneDigest", "expectedMatches",
+    "id", "scope", "path", "absolute", "relative", "expectedMatches",
     "evidenceId"
 }
-EXCLUSION_KEYS = {"id", "path", "reason", "expectedMatches", "evidenceId"}
+DEBT_KEYS = {
+    "id", "scope", "path", "targetDigest", "standaloneDigest",
+    "expectedMatches", "evidenceId", "reason", "diagnosticContext"
+}
+EXCLUSION_KEYS = {
+    "id", "scope", "path", "reason", "expectedMatches", "evidenceId"
+}
+RULE_SCOPE_KEYS = {
+    "inputId", "inputPathHint", "inputSha256", "facade", "direction",
+    "optionsDigest"
+}
+DEBT_DIAGNOSTIC_CONTEXT_KEYS = {"target", "standalone"}
+DEBT_DIAGNOSTIC_KEYS = {"id", "ordinal", "severity", "stage", "code", "path"}
 
 BUILD_TOKENS = {"{sourceRoot}", "{buildDir}", "{configuration}"}
 RUN_TOKENS = {
@@ -1680,14 +1695,98 @@ def _validate_command(value: Any, path: str, *, allowed_tokens: set[str],
     return command
 
 
+def _validate_rule_scope(value: Any, path: str) -> dict[str, Any]:
+    scope = _exact_keys(value, RULE_SCOPE_KEYS, path)
+    _identifier(scope["inputId"], f"{path}.inputId")
+    _path_hint(scope["inputPathHint"], f"{path}.inputPathHint")
+    _digest(scope["inputSha256"], f"{path}.inputSha256")
+    _digest(scope["optionsDigest"], f"{path}.optionsDigest")
+    if scope["facade"] not in FACADES:
+        raise QualifiedDifferentialError(f"{path}.facade is invalid")
+    if scope["direction"] not in DIRECTIONS:
+        raise QualifiedDifferentialError(f"{path}.direction is invalid")
+    return scope
+
+
+def _exact_json_pointer(value: Any, path: str) -> str:
+    pointer = _string(value, path)
+    if not pointer.startswith("/") or pointer == "/":
+        raise QualifiedDifferentialError(f"{path} is not a non-root JSON pointer")
+    if any(character in pointer for character in "*?[]"):
+        raise QualifiedDifferentialError(f"{path} must not contain glob metacharacters")
+    tokens = pointer[1:].split("/")
+    if any(not token for token in tokens):
+        raise QualifiedDifferentialError(f"{path} contains an empty JSON pointer token")
+    for token in tokens:
+        if re.search(r"~(?![01])", token):
+            raise QualifiedDifferentialError(f"{path} has an invalid JSON pointer escape")
+        decoded = token.replace("~1", "/").replace("~0", "~")
+        normalized = decoded.replace("~", "~0").replace("/", "~1")
+        if normalized != token:
+            raise QualifiedDifferentialError(f"{path} is not a normalized JSON pointer")
+    return pointer
+
+
+def _validate_debt_diagnostic_context(
+    value: Any, rule_path: str, target_digest: str | None,
+    standalone_digest: str | None, path: str,
+) -> None:
+    if value is None:
+        if re.fullmatch(r"/diagnostics/[0-9]+/messageDigest", rule_path):
+            raise QualifiedDifferentialError(
+                f"{path} is required for diagnostic message debt"
+            )
+        return
+    match = re.fullmatch(r"/diagnostics/([0-9]+)/messageDigest", rule_path)
+    if match is None:
+        raise QualifiedDifferentialError(
+            f"{path} is only valid for an exact diagnostic messageDigest path"
+        )
+    context = _exact_keys(value, DEBT_DIAGNOSTIC_CONTEXT_KEYS, path)
+    expected_ordinal = int(match.group(1))
+    for side, digest in (
+        ("target", target_digest), ("standalone", standalone_digest),
+    ):
+        if digest is None:
+            if context[side] is not None:
+                raise QualifiedDifferentialError(
+                    f"{path}.{side} must be null when that side is absent"
+                )
+            continue
+        if context[side] is None:
+            raise QualifiedDifferentialError(
+                f"{path}.{side} is required when that side is present"
+            )
+        row = _exact_keys(
+            context[side], DEBT_DIAGNOSTIC_KEYS, f"{path}.{side}",
+        )
+        _identifier(row["id"], f"{path}.{side}.id")
+        ordinal = _integer(
+            row["ordinal"], f"{path}.{side}.ordinal", minimum=0,
+        )
+        if ordinal != expected_ordinal:
+            raise QualifiedDifferentialError(
+                f"{path}.{side}.ordinal does not match the diagnostic path"
+            )
+        if row["severity"] not in DIAGNOSTIC_SEVERITIES:
+            raise QualifiedDifferentialError(f"{path}.{side}.severity is invalid")
+        if row["stage"] not in DIAGNOSTIC_STAGES:
+            raise QualifiedDifferentialError(f"{path}.{side}.stage is invalid")
+        _string(row["code"], f"{path}.{side}.code")
+        _string(row["path"], f"{path}.{side}.path")
+
+
 def _validate_rules(comparison: Any) -> dict[str, Any]:
     value = _exact_keys(comparison, COMPARISON_KEYS, "comparison")
     rule_ids: list[str] = []
-    rule_paths: list[tuple[str, str]] = []
+    rule_paths: list[str] = []
     for index, item in enumerate(_list(value["tolerances"], "comparison.tolerances")):
         row = _exact_keys(item, TOLERANCE_KEYS,
                           f"comparison.tolerances[{index}]")
         rule_ids.append(_identifier(row["id"], f"comparison.tolerances[{index}].id"))
+        scope = _validate_rule_scope(
+            row["scope"], f"comparison.tolerances[{index}].scope",
+        )
         path = _string(row["path"], f"comparison.tolerances[{index}].path")
         if (
             not path.startswith("/records/")
@@ -1698,7 +1797,11 @@ def _validate_rules(comparison: Any) -> dict[str, Any]:
             raise QualifiedDifferentialError(
                 "numeric tolerance paths are limited to typed record field values"
             )
-        rule_paths.append(("toleranceNormalized", path))
+        rule_paths.append(
+            f"{scope['inputId']}\0{scope['inputPathHint']}\0"
+            f"{scope['inputSha256']}\0{scope['facade']}\0"
+            f"{scope['direction']}\0{scope['optionsDigest']}\0{path}"
+        )
         absolute = _finite_number(
             row["absolute"], f"comparison.tolerances[{index}].absolute"
         )
@@ -1721,13 +1824,35 @@ def _validate_rules(comparison: Any) -> dict[str, Any]:
         rule_ids.append(_identifier(
             row["id"], f"comparison.reviewedTargetDebt[{index}].id"
         ))
-        path = _string(row["path"],
-                       f"comparison.reviewedTargetDebt[{index}].path")
-        rule_paths.append(("reviewedTargetDebt", path))
-        _digest(row["targetDigest"],
-                f"comparison.reviewedTargetDebt[{index}].targetDigest")
-        _digest(row["standaloneDigest"],
-                f"comparison.reviewedTargetDebt[{index}].standaloneDigest")
+        scope = _validate_rule_scope(
+            row["scope"], f"comparison.reviewedTargetDebt[{index}].scope",
+        )
+        path = _exact_json_pointer(
+            row["path"], f"comparison.reviewedTargetDebt[{index}].path",
+        )
+        rule_paths.append(
+            f"{scope['inputId']}\0{scope['inputPathHint']}\0"
+            f"{scope['inputSha256']}\0{scope['facade']}\0"
+            f"{scope['direction']}\0{scope['optionsDigest']}\0{path}"
+        )
+        target_digest = _optional_digest(
+            row["targetDigest"],
+            f"comparison.reviewedTargetDebt[{index}].targetDigest",
+        )
+        standalone_digest = _optional_digest(
+            row["standaloneDigest"],
+            f"comparison.reviewedTargetDebt[{index}].standaloneDigest",
+        )
+        if target_digest is None and standalone_digest is None:
+            raise QualifiedDifferentialError(
+                "reviewed target debt cannot expect both sides to be absent"
+            )
+        _string(row["reason"],
+                f"comparison.reviewedTargetDebt[{index}].reason")
+        _validate_debt_diagnostic_context(
+            row["diagnosticContext"], path, target_digest, standalone_digest,
+            f"comparison.reviewedTargetDebt[{index}].diagnosticContext",
+        )
         _integer(row["expectedMatches"],
                  f"comparison.reviewedTargetDebt[{index}].expectedMatches", minimum=1)
         _identifier(row["evidenceId"],
@@ -1736,16 +1861,22 @@ def _validate_rules(comparison: Any) -> dict[str, Any]:
         row = _exact_keys(item, EXCLUSION_KEYS,
                           f"comparison.exclusions[{index}]")
         rule_ids.append(_identifier(row["id"], f"comparison.exclusions[{index}].id"))
+        scope = _validate_rule_scope(
+            row["scope"], f"comparison.exclusions[{index}].scope",
+        )
         path = _string(row["path"], f"comparison.exclusions[{index}].path")
-        rule_paths.append(("excluded", path))
+        rule_paths.append(
+            f"{scope['inputId']}\0{scope['inputPathHint']}\0"
+            f"{scope['inputSha256']}\0{scope['facade']}\0"
+            f"{scope['direction']}\0{scope['optionsDigest']}\0{path}"
+        )
         _string(row["reason"], f"comparison.exclusions[{index}].reason")
         _integer(row["expectedMatches"],
                  f"comparison.exclusions[{index}].expectedMatches", minimum=1)
         _identifier(row["evidenceId"],
                     f"comparison.exclusions[{index}].evidenceId")
     _unique(rule_ids, "comparison rule IDs")
-    _unique((f"{kind}\0{path}" for kind, path in rule_paths),
-            "comparison rule kind/path pairs")
+    _unique(rule_paths, "comparison rule invocation/path selectors")
     return value
 
 
@@ -2099,16 +2230,46 @@ def _numeric_tolerance_paths(document: dict[str, Any]) -> set[str]:
     return paths
 
 
-def _matching_rules(path: str, comparison: dict[str, Any]) -> list[tuple[str, dict[str, Any]]]:
+def _rule_applies(rule: dict[str, Any], invocation: dict[str, str]) -> bool:
+    return rule["scope"] == invocation
+
+
+def _debt_diagnostic_context_matches(rule: dict[str, Any],
+                                     target: dict[str, Any],
+                                     standalone: dict[str, Any]) -> bool:
+    context = rule["diagnosticContext"]
+    if context is None:
+        return True
+    match = re.fullmatch(r"/diagnostics/([0-9]+)/messageDigest", rule["path"])
+    if match is None:  # _validate_rules rejects this shape.
+        return False
+    index = int(match.group(1))
+    keys = DEBT_DIAGNOSTIC_KEYS
+    for side, document in (("target", target), ("standalone", standalone)):
+        expected = context[side]
+        if expected is None:
+            if index < len(document["diagnostics"]):
+                return False
+            continue
+        if index >= len(document["diagnostics"]):
+            return False
+        actual = {key: document["diagnostics"][index][key] for key in keys}
+        if actual != expected:
+            return False
+    return True
+
+
+def _matching_rules(path: str, comparison: dict[str, Any],
+                    invocation: dict[str, str]) -> list[tuple[str, dict[str, Any]]]:
     matches: list[tuple[str, dict[str, Any]]] = []
     for row in comparison["tolerances"]:
-        if fnmatch.fnmatchcase(path, row["path"]):
+        if _rule_applies(row, invocation) and fnmatch.fnmatchcase(path, row["path"]):
             matches.append(("toleranceNormalized", row))
     for row in comparison["reviewedTargetDebt"]:
-        if fnmatch.fnmatchcase(path, row["path"]):
+        if _rule_applies(row, invocation) and fnmatch.fnmatchcase(path, row["path"]):
             matches.append(("reviewedTargetDebt", row))
     for row in comparison["exclusions"]:
-        if fnmatch.fnmatchcase(path, row["path"]):
+        if _rule_applies(row, invocation) and fnmatch.fnmatchcase(path, row["path"]):
             matches.append(("excluded", row))
     if len(matches) > 1:
         raise QualifiedDifferentialError(
@@ -2210,6 +2371,14 @@ def compare_results(target_value: Any, standalone_value: Any,
     tolerance_paths = (
         _numeric_tolerance_paths(target) & _numeric_tolerance_paths(standalone)
     )
+    invocation_scope = {
+        "inputId": target["input"]["id"],
+        "inputPathHint": target["input"]["pathHint"],
+        "inputSha256": target["input"]["sha256"],
+        "facade": target["invocation"]["facade"],
+        "direction": target["invocation"]["direction"],
+        "optionsDigest": target["invocation"]["optionsDigest"],
+    }
     all_paths = sorted(set(target_flat) | set(standalone_flat))
     rows: list[dict[str, Any]] = []
     missing_target = 0
@@ -2230,7 +2399,7 @@ def compare_results(target_value: Any, standalone_value: Any,
             if _strict_equal(left, right):
                 outcome = "exact"
             else:
-                matches = _matching_rules(path, comparison)
+                matches = _matching_rules(path, comparison, invocation_scope)
                 if matches:
                     rule_kind, rule = matches[0]
                     rule_id = rule["id"]
@@ -2261,19 +2430,35 @@ def compare_results(target_value: Any, standalone_value: Any,
                         if (
                             _value_digest(left) == rule["targetDigest"]
                             and _value_digest(right) == rule["standaloneDigest"]
+                            and _debt_diagnostic_context_matches(
+                                rule, target, standalone,
+                            )
                         ):
                             outcome = rule_kind
                     else:
                         outcome = rule_kind
         else:
-            # Presence differences remain fail-closed unless an explicit
-            # exclusion gives the missing/extra value a reviewed disposition.
-            matches = _matching_rules(path, comparison)
+            # Presence differences remain fail-closed unless exact optional
+            # debt digests or an explicit exclusion give the path a reviewed
+            # disposition.
+            matches = _matching_rules(path, comparison, invocation_scope)
             if matches:
                 rule_kind, rule = matches[0]
                 rule_id = rule["id"]
                 rule_matches[rule_id] += 1
-                if rule_kind == "excluded":
+                target_digest = _value_digest(left) if left_present else None
+                standalone_digest = (
+                    _value_digest(right) if right_present else None
+                )
+                if rule_kind == "reviewedTargetDebt" and (
+                    target_digest == rule["targetDigest"]
+                    and standalone_digest == rule["standaloneDigest"]
+                    and _debt_diagnostic_context_matches(
+                        rule, target, standalone,
+                    )
+                ):
+                    outcome = "reviewedTargetDebt"
+                elif rule_kind == "excluded":
                     outcome = "excluded"
         if outcome not in VALUE_OUTCOMES:  # defensive schema assertion
             raise QualifiedDifferentialError("internal comparison outcome is invalid")
@@ -2298,6 +2483,8 @@ def compare_results(target_value: Any, standalone_value: Any,
 
     for category in ("tolerances", "reviewedTargetDebt", "exclusions"):
         for rule in comparison[category]:
+            if not _rule_applies(rule, invocation_scope):
+                continue
             observed = rule_matches[rule["id"]]
             if observed != rule["expectedMatches"]:
                 raise QualifiedDifferentialError(
@@ -3263,6 +3450,14 @@ def self_test() -> None:
         "manifestEntries": 86,
     }
     empty_rules = {"tolerances": [], "reviewedTargetDebt": [], "exclusions": []}
+    synthetic_scope = {
+        "inputId": "synthetic-line",
+        "inputPathHint": "local/synthetic-line-v1",
+        "inputSha256": _digest_text("0\nEOF\n"),
+        "facade": "dxfRW",
+        "direction": "read",
+        "optionsDigest": target["invocation"]["optionsDigest"],
+    }
     pair_target = {
         "build": {
             "buildParityDigest": _digest_text("parity"),
@@ -3542,6 +3737,7 @@ def self_test() -> None:
     tolerance_rules = {
         "tolerances": [{
             "id": "tol-start-x",
+            "scope": copy.deepcopy(synthetic_scope),
             "path": "/records/record:1/fields/start/value/x",
             "absolute": 1e-9,
             "relative": 1e-12,
@@ -3565,11 +3761,14 @@ def self_test() -> None:
         "tolerances": [],
         "reviewedTargetDebt": [{
             "id": "debt-layer",
+            "scope": copy.deepcopy(synthetic_scope),
             "path": debt_path,
             "targetDigest": _value_digest("0"),
             "standaloneDigest": _value_digest("TARGET-DEBT"),
             "expectedMatches": 1,
             "evidenceId": "reviewed-target-debt-1",
+            "reason": "synthetic exact target-debt vector",
+            "diagnosticContext": None,
         }],
         "exclusions": [],
     }
@@ -3579,6 +3778,241 @@ def self_test() -> None:
     )
     assert reviewed["status"] == "reviewedNonPromoting"
     assert not reviewed["claimEligible"]
+
+    non_applicable_rules = copy.deepcopy(debt_rules)
+    non_applicable_rules["reviewedTargetDebt"][0]["scope"].update(
+        {
+            "inputPathHint": "local/different-bytes-v1",
+            "inputSha256": _digest_text("different bytes"),
+        }
+    )
+    ignored = compare_results(
+        target, standalone, non_applicable_rules,
+        manifest_digest=config_digest, target_lock=target_lock,
+    )
+    assert ignored["status"] == "exact"
+    wrong_scope = compare_results(
+        target, debt_delta, non_applicable_rules,
+        manifest_digest=config_digest, target_lock=target_lock,
+    )
+    assert wrong_scope["status"] == "mismatch"
+    assert wrong_scope["outcomeCounts"]["reviewedTargetDebt"] == 0
+
+    wrong_options_rules = copy.deepcopy(debt_rules)
+    wrong_options_rules["reviewedTargetDebt"][0]["scope"]["optionsDigest"] = (
+        _digest_text("different-options")
+    )
+    wrong_options = compare_results(
+        target, debt_delta, wrong_options_rules,
+        manifest_digest=config_digest, target_lock=target_lock,
+    )
+    assert wrong_options["status"] == "mismatch"
+    assert wrong_options["outcomeCounts"]["reviewedTargetDebt"] == 0
+
+    wrong_digest_rules = copy.deepcopy(debt_rules)
+    wrong_digest_rules["reviewedTargetDebt"][0]["targetDigest"] = (
+        _value_digest("WRONG-TARGET")
+    )
+    wrong_digest = compare_results(
+        target, debt_delta, wrong_digest_rules,
+        manifest_digest=config_digest, target_lock=target_lock,
+    )
+    assert wrong_digest["status"] == "mismatch"
+    assert wrong_digest["outcomeCounts"]["reviewedTargetDebt"] == 0
+
+    duplicate_scope_rules = copy.deepcopy(debt_rules)
+    duplicate_rule = copy.deepcopy(duplicate_scope_rules["reviewedTargetDebt"][0])
+    duplicate_rule["id"] = "debt-layer-duplicate"
+    duplicate_scope_rules["reviewedTargetDebt"].append(duplicate_rule)
+    try:
+        _validate_rules(duplicate_scope_rules)
+    except QualifiedDifferentialError as exc:
+        assert "invocation/path selectors" in str(exc)
+    else:
+        raise AssertionError("duplicate scoped comparison rule was accepted")
+
+    glob_debt_rules = copy.deepcopy(debt_rules)
+    glob_debt_rules["reviewedTargetDebt"][0]["path"] = (
+        "/records/record:1/fields/layer/val*"
+    )
+    try:
+        _validate_rules(glob_debt_rules)
+    except QualifiedDifferentialError as exc:
+        assert "glob metacharacters" in str(exc)
+    else:
+        raise AssertionError("globbed reviewed-target-debt path was accepted")
+
+    diagnostic_target = copy.deepcopy(target)
+    diagnostic_standalone = copy.deepcopy(standalone)
+    diagnostic_context = {
+        "id": "diagnostic:00000000",
+        "ordinal": 0,
+        "severity": "warning",
+        "stage": "integrity",
+        "code": "dwg-integrity-1",
+        "path": "/diagnostics/integrity",
+    }
+    for document, message in (
+        (diagnostic_target, "target CRC payload"),
+        (diagnostic_standalone, "standalone CRC payload"),
+    ):
+        document["diagnostics"] = [{
+            **diagnostic_context,
+            "messageDigest": _digest_text(message),
+        }]
+        document["cardinality"]["diagnosticCount"] = 1
+    diagnostic_debt_rules = {
+        "tolerances": [],
+        "reviewedTargetDebt": [{
+            "id": "debt-diagnostic-message",
+            "scope": copy.deepcopy(synthetic_scope),
+            "path": "/diagnostics/0/messageDigest",
+            "targetDigest": _value_digest(_digest_text("target CRC payload")),
+            "standaloneDigest": _value_digest(
+                _digest_text("standalone CRC payload")
+            ),
+            "expectedMatches": 1,
+            "evidenceId": "synthetic-diagnostic-context",
+            "reason": "synthetic exact diagnostic-context vector",
+            "diagnosticContext": {
+                "target": copy.deepcopy(diagnostic_context),
+                "standalone": copy.deepcopy(diagnostic_context),
+            },
+        }],
+        "exclusions": [],
+    }
+    diagnostic_debt = compare_results(
+        diagnostic_target, diagnostic_standalone, diagnostic_debt_rules,
+        manifest_digest=config_digest, target_lock=target_lock,
+    )
+    assert diagnostic_debt["status"] == "reviewedNonPromoting"
+    assert diagnostic_debt["outcomeCounts"]["mismatch"] == 0
+    wrong_context_rules = copy.deepcopy(diagnostic_debt_rules)
+    wrong_context_rules["reviewedTargetDebt"][0]["diagnosticContext"][
+        "standalone"
+    ]["code"] = "dwg-integrity-2"
+    wrong_context = compare_results(
+        diagnostic_target, diagnostic_standalone, wrong_context_rules,
+        manifest_digest=config_digest, target_lock=target_lock,
+    )
+    assert wrong_context["status"] == "mismatch"
+    assert wrong_context["outcomeCounts"]["reviewedTargetDebt"] == 0
+
+    false_ordinal_rules = copy.deepcopy(diagnostic_debt_rules)
+    false_ordinal_rules["reviewedTargetDebt"][0]["diagnosticContext"][
+        "target"
+    ]["ordinal"] = False
+    try:
+        _validate_rules(false_ordinal_rules)
+    except QualifiedDifferentialError as exc:
+        assert "must be an integer" in str(exc)
+    else:
+        raise AssertionError("boolean diagnostic-context ordinal was accepted")
+
+    target_only_diagnostic = copy.deepcopy(diagnostic_target)
+    standalone_without_diagnostic = copy.deepcopy(standalone)
+    target_only_flat = _flatten(_semantic_view(target_only_diagnostic))
+    standalone_without_flat = _flatten(
+        _semantic_view(standalone_without_diagnostic)
+    )
+    target_only_paths = sorted(
+        path for path in set(target_only_flat) | set(standalone_without_flat)
+        if target_only_flat.get(path, _MISSING)
+        != standalone_without_flat.get(path, _MISSING)
+    )
+    assert target_only_paths == [
+        "/cardinality/diagnosticCount",
+        "/diagnostics/0/@size",
+        "/diagnostics/0/code",
+        "/diagnostics/0/id",
+        "/diagnostics/0/messageDigest",
+        "/diagnostics/0/ordinal",
+        "/diagnostics/0/path",
+        "/diagnostics/0/severity",
+        "/diagnostics/0/stage",
+        "/diagnostics/@length",
+    ]
+    nullable_debt_rows: list[dict[str, Any]] = []
+    for index, path in enumerate(target_only_paths):
+        left = target_only_flat.get(path, _MISSING)
+        right = standalone_without_flat.get(path, _MISSING)
+        nullable_debt_rows.append({
+            "id": f"nullable-debt-{index}",
+            "scope": copy.deepcopy(synthetic_scope),
+            "path": path,
+            "targetDigest": None if left is _MISSING else _value_digest(left),
+            "standaloneDigest": None if right is _MISSING else _value_digest(right),
+            "expectedMatches": 1,
+            "evidenceId": "synthetic-nullable-debt",
+            "reason": "synthetic exact one-sided diagnostic debt",
+            "diagnosticContext": (
+                {
+                    "target": copy.deepcopy(diagnostic_context),
+                    "standalone": None,
+                }
+                if path == "/diagnostics/0/messageDigest" else None
+            ),
+        })
+    nullable_debt_rules = {
+        "tolerances": [],
+        "reviewedTargetDebt": nullable_debt_rows,
+        "exclusions": [],
+    }
+    nullable_reviewed = compare_results(
+        target_only_diagnostic, standalone_without_diagnostic,
+        nullable_debt_rules, manifest_digest=config_digest,
+        target_lock=target_lock,
+    )
+    assert nullable_reviewed["status"] == "reviewedNonPromoting"
+    assert nullable_reviewed["outcomeCounts"]["reviewedTargetDebt"] == 10
+    assert nullable_reviewed["outcomeCounts"]["mismatch"] == 0
+
+    changed_target_diagnostic = copy.deepcopy(target_only_diagnostic)
+    changed_target_diagnostic["diagnostics"][0]["code"] = "dwg-integrity-2"
+    changed_target = compare_results(
+        changed_target_diagnostic, standalone_without_diagnostic,
+        nullable_debt_rules, manifest_digest=config_digest,
+        target_lock=target_lock,
+    )
+    assert changed_target["status"] == "mismatch"
+    assert changed_target["outcomeCounts"]["mismatch"] >= 1
+
+    unexpected_standalone_diagnostic = copy.deepcopy(standalone_without_diagnostic)
+    unexpected_standalone_diagnostic["diagnostics"] = copy.deepcopy(
+        target_only_diagnostic["diagnostics"]
+    )
+    unexpected_standalone_diagnostic["cardinality"]["diagnosticCount"] = 1
+    try:
+        compare_results(
+            target_only_diagnostic, unexpected_standalone_diagnostic,
+            nullable_debt_rules, manifest_digest=config_digest,
+            target_lock=target_lock,
+        )
+    except QualifiedDifferentialError as exc:
+        assert "expected 1" in str(exc)
+    else:
+        raise AssertionError("unexpected standalone diagnostic was accepted")
+
+    nullable_wrong_scope = copy.deepcopy(nullable_debt_rules)
+    for rule in nullable_wrong_scope["reviewedTargetDebt"]:
+        rule["scope"]["optionsDigest"] = _digest_text("wrong-options")
+    nullable_wrong_scope_report = compare_results(
+        target_only_diagnostic, standalone_without_diagnostic,
+        nullable_wrong_scope, manifest_digest=config_digest,
+        target_lock=target_lock,
+    )
+    assert nullable_wrong_scope_report["status"] == "mismatch"
+    assert nullable_wrong_scope_report["outcomeCounts"]["mismatch"] == 10
+
+    null_null_rules = copy.deepcopy(nullable_debt_rules)
+    null_null_rules["reviewedTargetDebt"][0]["targetDigest"] = None
+    null_null_rules["reviewedTargetDebt"][0]["standaloneDigest"] = None
+    try:
+        _validate_rules(null_null_rules)
+    except QualifiedDifferentialError as exc:
+        assert "both sides" in str(exc)
+    else:
+        raise AssertionError("null/null reviewed target debt was accepted")
 
     stale_rules = copy.deepcopy(tolerance_rules)
     stale_rules["tolerances"][0]["expectedMatches"] = 2
@@ -3606,13 +4040,19 @@ def self_test() -> None:
         "tolerances": [],
         "reviewedTargetDebt": [],
         "exclusions": [
-            {"id": "exclude-field-map-size", "path": "/records/record:1/fields/@size",
+            {"id": "exclude-field-map-size",
+             "scope": copy.deepcopy(synthetic_scope),
+             "path": "/records/record:1/fields/@size",
              "reason": "synthetic missing-field vector", "expectedMatches": 1,
              "evidenceId": "synthetic-exclusion-1"},
-            {"id": "exclude-layer-field", "path": "/records/record:1/fields/layer/*",
+            {"id": "exclude-layer-field",
+             "scope": copy.deepcopy(synthetic_scope),
+             "path": "/records/record:1/fields/layer/*",
              "reason": "synthetic missing-field vector", "expectedMatches": 3,
              "evidenceId": "synthetic-exclusion-2"},
-            {"id": "exclude-field-count", "path": "/cardinality/fieldCount",
+            {"id": "exclude-field-count",
+             "scope": copy.deepcopy(synthetic_scope),
+             "path": "/cardinality/fieldCount",
              "reason": "synthetic missing-field vector", "expectedMatches": 1,
              "evidenceId": "synthetic-exclusion-3"},
         ],
@@ -3746,7 +4186,9 @@ def self_test() -> None:
 
     bad_tolerance_rules = {
         "tolerances": [{
-            "id": "tol-cardinality", "path": "/cardinality/fieldCount",
+            "id": "tol-cardinality",
+            "scope": copy.deepcopy(synthetic_scope),
+            "path": "/cardinality/fieldCount",
             "absolute": 1, "relative": 0, "expectedMatches": 1,
             "evidenceId": "invalid-cardinality-tolerance",
         }],

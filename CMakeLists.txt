@@ -14,6 +14,8 @@ option(LIBDXFRW_BUILD_LONG_FUZZ
     "Build the opt-in extended deterministic parser fuzz target" OFF)
 set(LIBDXFRW_TARGET_GIT_DIR "" CACHE PATH
     "Git directory for the pinned LibreCAD target qualification build")
+set(LIBDXFRW_LIBREDWG_DWGREAD "" CACHE FILEPATH
+    "Pinned LibreDWG dwgread executable for semantic field qualification")
 
 if(LIBDXFRW_BUILD_DWG2DXF AND NOT LIBDXFRW_BUILD_LIBRARY)
     message(FATAL_ERROR "LIBDXFRW_BUILD_DWG2DXF requires LIBDXFRW_BUILD_LIBRARY")
@@ -108,6 +110,8 @@ if(LIBDXFRW_BUILD_TESTS)
     endif()
     set(LIBDXFRW_QUALIFIED_DIFFERENTIAL_MANIFEST
         ${CMAKE_CURRENT_SOURCE_DIR}/metadata/qualified-differential-v2.json)
+    set(LIBDXFRW_QUALIFIED_SEMANTIC_FIELDS_CONTRACT
+        ${CMAKE_CURRENT_SOURCE_DIR}/metadata/admitted-candidate-fields-v1.json)
 
     if(LIBDXFRW_BUILD_QUALIFICATION)
         if(NOT LIBDXFRW_BUILD_LIBRARY)
@@ -131,6 +135,16 @@ if(LIBDXFRW_BUILD_TESTS)
             message(FATAL_ERROR
                 "LIBDXFRW_TARGET_GIT_DIR does not exist: ${LIBDXFRW_TARGET_GIT_DIR}")
         endif()
+        if(NOT LIBDXFRW_LIBREDWG_DWGREAD)
+            message(FATAL_ERROR
+                "LIBDXFRW_BUILD_QUALIFICATION requires "
+                "LIBDXFRW_LIBREDWG_DWGREAD")
+        endif()
+        if(NOT EXISTS "${LIBDXFRW_LIBREDWG_DWGREAD}")
+            message(FATAL_ERROR
+                "LIBDXFRW_LIBREDWG_DWGREAD does not exist: "
+                "${LIBDXFRW_LIBREDWG_DWGREAD}")
+        endif()
 
         add_executable(libdxfrw_semantic_adapter_standalone
             tests/semantic_differential_adapter.cpp)
@@ -147,7 +161,9 @@ if(LIBDXFRW_BUILD_TESTS)
         target_link_libraries(libdxfrw_semantic_adapter_standalone PRIVATE dxfrw)
         set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
             ${CMAKE_CURRENT_SOURCE_DIR}/tests/semantic_differential_adapter.cpp
-            ${LIBDXFRW_QUALIFIED_DIFFERENTIAL_MANIFEST})
+            ${LIBDXFRW_QUALIFIED_DIFFERENTIAL_MANIFEST}
+            ${CMAKE_CURRENT_SOURCE_DIR}/tools/check_admitted_candidate_fields.py
+            ${LIBDXFRW_QUALIFIED_SEMANTIC_FIELDS_CONTRACT})
 
         add_test(NAME libdxfrw_qualified_differential_v2_schema
             COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
@@ -302,7 +318,7 @@ if(LIBDXFRW_BUILD_TESTS)
                 ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_qualified_differential_v2.py
                 ${LIBDXFRW_QUALIFIED_DIFFERENTIAL_COMMON}
                 --input ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/dwg/rtext_arctext.dwg
-                --input-id fixture:dwg:rtext-arctext
+                --input-id fixture:rtext_arctext
                 --input-path-hint tests/fixtures/dwg/rtext_arctext.dwg
                 --origin-kind lockedRepositoryBlob
                 --input-repository LibreCAD/LibreCAD
@@ -310,6 +326,17 @@ if(LIBDXFRW_BUILD_TESTS)
                 --facade dwgRW
                 --direction read
                 --output ${LIBDXFRW_SEMANTIC_QUALIFICATION_DIR}/qualified-differential-dwg-read.json)
+        add_test(NAME libdxfrw_qualified_semantic_fields
+            COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+                ${CMAKE_CURRENT_SOURCE_DIR}/tools/check_admitted_candidate_fields.py
+                --root ${CMAKE_CURRENT_SOURCE_DIR}
+                --contract ${LIBDXFRW_QUALIFIED_SEMANTIC_FIELDS_CONTRACT}
+                --manifest ${LIBDXFRW_QUALIFIED_DIFFERENTIAL_MANIFEST}
+                --target-receipt ${LIBDXFRW_SEMANTIC_TARGET_RECEIPT}
+                --standalone-receipt ${LIBDXFRW_SEMANTIC_STANDALONE_RECEIPT}
+                --input-git-dir ${LIBDXFRW_TARGET_GIT_DIR}
+                --dwgread ${LIBDXFRW_LIBREDWG_DWGREAD}
+                --output ${LIBDXFRW_SEMANTIC_QUALIFICATION_DIR}/qualified-semantic-fields.json)
         set_tests_properties(
             libdxfrw_qualified_differential_v2
             libdxfrw_qualified_differential_v2_dxf_write
@@ -320,12 +347,20 @@ if(LIBDXFRW_BUILD_TESTS)
                 DEPENDS libdxfrw_qualified_differential_v2_schema
                 FIXTURES_REQUIRED libdxfrw_semantic_adapters_fixture
                 LABELS qualification)
+        set_tests_properties(libdxfrw_qualified_semantic_fields PROPERTIES
+            DEPENDS libdxfrw_qualified_differential_v2_schema
+            FIXTURES_REQUIRED libdxfrw_semantic_adapters_fixture
+            LABELS qualification)
     else()
         add_test(NAME libdxfrw_qualified_differential_v2
             COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
                 ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_qualified_differential_v2.py
                 --self-test
                 --manifest ${LIBDXFRW_QUALIFIED_DIFFERENTIAL_MANIFEST})
+        add_test(NAME libdxfrw_qualified_semantic_fields
+            COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+                ${CMAKE_CURRENT_SOURCE_DIR}/tools/check_admitted_candidate_fields.py
+                --self-test)
     endif()
 
     add_test(NAME libdxfrw_parity_inventory_inputs

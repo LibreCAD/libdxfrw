@@ -1,0 +1,538 @@
+{
+  "schema": 1,
+  "kind": "libdxfrw-admitted-independent-candidate-fields",
+  "status": "EXPERIMENTAL",
+  "fixturePolicy": "exactly-three-locked-repository-blobs; runtime-json-only; no-new-drawing-payloads",
+  "promotionBoundary": {
+    "promotesSupport": false,
+    "unlistedFieldDisposition": "excluded",
+    "allowedStatuses": [
+      "EXPERIMENTAL",
+      "PENDING_NATIVE"
+    ],
+    "forbiddenClaimScopes": [
+      "fixture",
+      "version",
+      "whole-format"
+    ]
+  },
+  "sharedDifferential": {
+    "manifest": "metadata/qualified-differential-v2.json",
+    "facade": "dwgRW",
+    "direction": "read",
+    "options": {
+      "applyExtrusion": false,
+      "compatibilityProfile": "default"
+    },
+    "deterministicRunsPerSide": 2,
+    "requireNoMismatches": true
+  },
+  "oracle": {
+    "name": "LibreDWG dwgread",
+    "version": "0.14",
+    "versionOutput": "dwgread 0.14",
+    "license": "GPL-3.0-or-later",
+    "outputFormat": "JSON",
+    "timeoutSeconds": 10,
+    "command": [
+      "{executable}",
+      "-O",
+      "JSON",
+      "{input}"
+    ],
+    "source": {
+      "release": "0.14",
+      "url": "https://ftpmirror.gnu.org/gnu/libredwg/libredwg-0.14.tar.gz",
+      "sha256": "cb6ee0b078c6d9e0f09d66f1feac33ba6342df88ae544e9f9335fab475218351"
+    },
+    "buildRecipe": {
+      "kind": "homebrew-formula-and-bottle",
+      "formulaSha256": "bf4063db732dc93e63b3e10bbde5f1831b7dad695e95ebfc50a51342bdcf8f95",
+      "bottleSha256": "2e5efe7bb02a7067cd67e028da20b90a56d45fb126352d7d963de8ff8c6a2298",
+      "statementRepresentation": "symbolic-homebrew-formula-argv-expressions",
+      "statements": [
+        {
+          "callee": "system",
+          "argvExpression": [
+            "./configure",
+            "--disable-silent-rules",
+            "*std_configure_args"
+          ]
+        },
+        {
+          "callee": "system",
+          "argvExpression": [
+            "make"
+          ]
+        },
+        {
+          "callee": "system",
+          "argvExpression": [
+            "make",
+            "install"
+          ]
+        }
+      ]
+    },
+    "platform": {
+      "system": "Darwin",
+      "architecture": "arm64",
+      "osVersion": "26.5.2"
+    },
+    "dependencyInspection": {
+      "tool": "/usr/bin/otool -L",
+      "algorithm": "sha256-sort-role-basename-sha256-then-role-nul-basename-nul-size-decimal-nul-sha256-lf-v1",
+      "systemPrefixes": [
+        "/System/Library/",
+        "/usr/lib/"
+      ]
+    },
+    "artifacts": [
+      {
+        "role": "executable",
+        "basename": "dwgread",
+        "byteSize": 51568,
+        "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff"
+      },
+      {
+        "role": "library",
+        "basename": "libredwg.0.dylib",
+        "byteSize": 19787920,
+        "sha256": "0dd60856c25aa0dad6ff80f6c753957d0f27cc39a29f8466637db68dbd0a8847"
+      }
+    ],
+    "closureDigest": "4170272163a077731dad3b4d77602dbf38d32f3232c877b135d6b67e0895f1b0"
+  },
+  "fixtures": [
+    {
+      "id": "fixture:large_radial",
+      "path": "tests/fixtures/dwg/large_radial.dwg",
+      "sha256": "d3f7c22db4b6c3953e2d716da719d7e7e5b285cf73bd4e317f0a171d3859f98a",
+      "byteSize": 12632,
+      "version": "AC1032",
+      "repository": "LibreCAD/LibreCAD",
+      "commit": "3c7785ebbcbfc8f3c8f79dbba093aff09cdec753",
+      "sourcePath": "librecad/src/lib/filters/tests/testdata/large_radial.dwg",
+      "sourceBlob": "d711f89ea9645454f27a4d10231d87c95578a378",
+      "oracleJsonSha256": "0e074d8f8462fb00733a263ad6c34096c2055eb810edc9459f88f6b0433f6ec4",
+      "records": [
+        {
+          "semanticRecordClass": "LARGE_RADIAL",
+          "oracleEntity": "LARGE_RADIAL_DIMENSION",
+          "expectedHandle": "2f",
+          "callback": "addDimRadial",
+          "expectedIncidentEdgeCount": 1,
+          "carrierDisposition": "preserved"
+        }
+      ]
+    },
+    {
+      "id": "fixture:mpolygon_solid",
+      "path": "tests/fixtures/dwg/mpolygon_solid.dwg",
+      "sha256": "66a171c55bc90fdd0764ad3556ec786503666a30a4473a637d168a01979ffc29",
+      "byteSize": 11767,
+      "version": "AC1032",
+      "repository": "LibreCAD/LibreCAD",
+      "commit": "3c7785ebbcbfc8f3c8f79dbba093aff09cdec753",
+      "sourcePath": "librecad/src/lib/filters/tests/testdata/mpolygon_solid.dwg",
+      "sourceBlob": "43d1671a6bc69a88587a3899267c4d7a546e9629",
+      "oracleJsonSha256": "b1ed4ce8e0cbb12badd89208f80d9a1f4908410046470b6c756f4f9d7202349e",
+      "records": [
+        {
+          "semanticRecordClass": "MPOLYGON",
+          "oracleEntity": "MPOLYGON",
+          "expectedHandle": "2f",
+          "callback": "addMPolygon",
+          "expectedIncidentEdgeCount": 1,
+          "carrierDisposition": "preserved"
+        }
+      ]
+    },
+    {
+      "id": "fixture:rtext_arctext",
+      "path": "tests/fixtures/dwg/rtext_arctext.dwg",
+      "sha256": "db5663cdc5c1759fdc1f68f9122e596307de06317e766cd5e0aab55912e5d511",
+      "byteSize": 19774,
+      "version": "AC1032",
+      "repository": "LibreCAD/LibreCAD",
+      "commit": "3c7785ebbcbfc8f3c8f79dbba093aff09cdec753",
+      "sourcePath": "librecad/src/lib/filters/tests/testdata/rtext_arctext.dwg",
+      "sourceBlob": "8e1036ed74e797d183da1deca0edd1c4c7c79d03",
+      "oracleJsonSha256": "3dfd7797e92bb05bd3603fb6edaee511b02104d14d203a4464d642d87566199f",
+      "records": [
+        {
+          "semanticRecordClass": "ARCALIGNEDTEXT",
+          "oracleEntity": "ARCALIGNEDTEXT",
+          "expectedHandle": "5a1",
+          "callback": "addText",
+          "expectedIncidentEdgeCount": 1,
+          "carrierDisposition": "preserved"
+        },
+        {
+          "semanticRecordClass": "RTEXT",
+          "oracleEntity": "RTEXT",
+          "expectedHandle": "5a0",
+          "callback": "addText",
+          "expectedIncidentEdgeCount": 1,
+          "carrierDisposition": "preserved"
+        }
+      ]
+    }
+  ],
+  "claims": [
+    {
+      "id": "large-radial-handle",
+      "fixtureId": "fixture:large_radial",
+      "semantic": {
+        "recordClass": "LARGE_RADIAL",
+        "field": "handle",
+        "expected": "2f"
+      },
+      "oracle": {
+        "entity": "LARGE_RADIAL_DIMENSION",
+        "field": "handle",
+        "expected": "2f"
+      },
+      "normalization": "handleHex",
+      "tolerance": null
+    },
+    {
+      "id": "large-radial-record-class",
+      "fixtureId": "fixture:large_radial",
+      "semantic": {
+        "recordClass": "LARGE_RADIAL",
+        "field": "recordClass",
+        "expected": "LARGE_RADIAL"
+      },
+      "oracle": {
+        "entity": "LARGE_RADIAL_DIMENSION",
+        "field": "entity",
+        "expected": "LARGE_RADIAL_DIMENSION"
+      },
+      "normalization": "mappedIdentity",
+      "tolerance": null
+    },
+    {
+      "id": "mpolygon-associative",
+      "fixtureId": "fixture:mpolygon_solid",
+      "semantic": {
+        "recordClass": "MPOLYGON",
+        "field": "associative",
+        "expected": false
+      },
+      "oracle": {
+        "entity": "MPOLYGON",
+        "field": "is_associative",
+        "expected": 0
+      },
+      "normalization": "boolean01",
+      "tolerance": null
+    },
+    {
+      "id": "mpolygon-base-point-z",
+      "fixtureId": "fixture:mpolygon_solid",
+      "semantic": {
+        "recordClass": "MPOLYGON",
+        "field": "basePoint.z",
+        "expected": 0.0
+      },
+      "oracle": {
+        "entity": "MPOLYGON",
+        "field": "elevation",
+        "expected": 0.0
+      },
+      "normalization": "floatTolerance",
+      "tolerance": {
+        "absolute": 1e-12,
+        "relative": 1e-12
+      }
+    },
+    {
+      "id": "mpolygon-extrusion-x",
+      "fixtureId": "fixture:mpolygon_solid",
+      "semantic": {
+        "recordClass": "MPOLYGON",
+        "field": "extPoint.x",
+        "expected": 0.0
+      },
+      "oracle": {
+        "entity": "MPOLYGON",
+        "field": "extrusion.0",
+        "expected": 0.0
+      },
+      "normalization": "floatTolerance",
+      "tolerance": {
+        "absolute": 1e-12,
+        "relative": 1e-12
+      }
+    },
+    {
+      "id": "mpolygon-extrusion-y",
+      "fixtureId": "fixture:mpolygon_solid",
+      "semantic": {
+        "recordClass": "MPOLYGON",
+        "field": "extPoint.y",
+        "expected": 0.0
+      },
+      "oracle": {
+        "entity": "MPOLYGON",
+        "field": "extrusion.1",
+        "expected": 0.0
+      },
+      "normalization": "floatTolerance",
+      "tolerance": {
+        "absolute": 1e-12,
+        "relative": 1e-12
+      }
+    },
+    {
+      "id": "mpolygon-extrusion-z",
+      "fixtureId": "fixture:mpolygon_solid",
+      "semantic": {
+        "recordClass": "MPOLYGON",
+        "field": "extPoint.z",
+        "expected": 1.0
+      },
+      "oracle": {
+        "entity": "MPOLYGON",
+        "field": "extrusion.2",
+        "expected": 1.0
+      },
+      "normalization": "floatTolerance",
+      "tolerance": {
+        "absolute": 1e-12,
+        "relative": 1e-12
+      }
+    },
+    {
+      "id": "mpolygon-name",
+      "fixtureId": "fixture:mpolygon_solid",
+      "semantic": {
+        "recordClass": "MPOLYGON",
+        "field": "name",
+        "expected": "SOLID"
+      },
+      "oracle": {
+        "entity": "MPOLYGON",
+        "field": "name",
+        "expected": "SOLID"
+      },
+      "normalization": "exact",
+      "tolerance": null
+    },
+    {
+      "id": "mpolygon-pattern-type",
+      "fixtureId": "fixture:mpolygon_solid",
+      "semantic": {
+        "recordClass": "MPOLYGON",
+        "field": "hpattern",
+        "expected": 0
+      },
+      "oracle": {
+        "entity": "MPOLYGON",
+        "field": "pattern_type",
+        "expected": 0
+      },
+      "normalization": "exact",
+      "tolerance": null
+    },
+    {
+      "id": "mpolygon-solid",
+      "fixtureId": "fixture:mpolygon_solid",
+      "semantic": {
+        "recordClass": "MPOLYGON",
+        "field": "solid",
+        "expected": true
+      },
+      "oracle": {
+        "entity": "MPOLYGON",
+        "field": "is_solid_fill",
+        "expected": 1
+      },
+      "normalization": "boolean01",
+      "tolerance": null
+    },
+    {
+      "id": "rtext-handle",
+      "fixtureId": "fixture:rtext_arctext",
+      "semantic": {
+        "recordClass": "RTEXT",
+        "field": "handle",
+        "expected": "5a0"
+      },
+      "oracle": {
+        "entity": "RTEXT",
+        "field": "handle",
+        "expected": "5a0"
+      },
+      "normalization": "handleHex",
+      "tolerance": null
+    },
+    {
+      "id": "rtext-record-class",
+      "fixtureId": "fixture:rtext_arctext",
+      "semantic": {
+        "recordClass": "RTEXT",
+        "field": "recordClass",
+        "expected": "RTEXT"
+      },
+      "oracle": {
+        "entity": "RTEXT",
+        "field": "entity",
+        "expected": "RTEXT"
+      },
+      "normalization": "exact",
+      "tolerance": null
+    },
+    {
+      "id": "rtext-text",
+      "fixtureId": "fixture:rtext_arctext",
+      "semantic": {
+        "recordClass": "RTEXT",
+        "field": "text",
+        "expected": "RTEXT-DIESEL-TEST"
+      },
+      "oracle": {
+        "entity": "RTEXT",
+        "field": "text_value",
+        "expected": "RTEXT-DIESEL-TEST"
+      },
+      "normalization": "exact",
+      "tolerance": null
+    }
+  ],
+  "exclusions": [
+    {
+      "id": "arcalignedtext-payload",
+      "fixtureId": "fixture:rtext_arctext",
+      "semanticRecordClass": "ARCALIGNEDTEXT",
+      "oracleEntity": "ARCALIGNEDTEXT",
+      "scope": "payload-fields-excluded; record-class-and-handle-selector-only-nonclaim",
+      "semanticFields": [
+        "arcHandle",
+        "bigFontName",
+        "center",
+        "characterSpacing",
+        "color",
+        "color24",
+        "endAngle",
+        "fontName",
+        "layer",
+        "leftOffset",
+        "lineType",
+        "offsetFromArc",
+        "radius",
+        "rawColor",
+        "rightOffset",
+        "space",
+        "startAngle",
+        "text",
+        "textSize",
+        "visible",
+        "xScale"
+      ],
+      "oracleFields": [
+        "alignment",
+        "arc_handle",
+        "bigfont_name",
+        "center",
+        "char_spacing",
+        "character_set",
+        "color",
+        "end_angle",
+        "extrusion",
+        "font_name",
+        "is_bold",
+        "is_italic",
+        "is_reverse",
+        "is_shx",
+        "is_underlined",
+        "left_offset",
+        "offset_from_arc",
+        "pitch_and_family",
+        "radius",
+        "right_offset",
+        "start_angle",
+        "style",
+        "text_direction",
+        "text_position",
+        "text_size",
+        "text_value",
+        "wizard_flag",
+        "xscale"
+      ],
+      "disposition": "excluded",
+      "reason": "libredwg-ac1032-split-string-decoder-misalignment"
+    },
+    {
+      "id": "large-radial-payload",
+      "fixtureId": "fixture:large_radial",
+      "semanticRecordClass": "LARGE_RADIAL",
+      "oracleEntity": "LARGE_RADIAL_DIMENSION",
+      "scope": "all-payload-fields-except-record-class-and-handle",
+      "semanticFields": [
+        "center",
+        "chord",
+        "color",
+        "color24",
+        "entity",
+        "jogAngle",
+        "jogPoint",
+        "layer",
+        "leaderLength",
+        "lineType",
+        "overrideCenter",
+        "space",
+        "visible"
+      ],
+      "oracleFields": [
+        "act_measurement",
+        "attachment",
+        "chord_pt",
+        "clone_ins_pt",
+        "color",
+        "def_pt",
+        "elevation",
+        "extrusion",
+        "flag",
+        "flag1",
+        "flip_arrow1",
+        "flip_arrow2",
+        "horiz_dir",
+        "ins_rotation",
+        "ins_scale",
+        "jog_angle",
+        "jog_pt",
+        "lspace_factor",
+        "lspace_style",
+        "ovr_center",
+        "text_midpt",
+        "text_rotation",
+        "unknown",
+        "user_text"
+      ],
+      "disposition": "excluded",
+      "reason": "identity-only-independent-evidence"
+    },
+    {
+      "id": "mpolygon-color",
+      "fixtureId": "fixture:mpolygon_solid",
+      "semanticRecordClass": "MPOLYGON",
+      "oracleEntity": "MPOLYGON",
+      "scope": "entity-and-hatch-color-fields",
+      "semanticFields": [
+        "color",
+        "color24",
+        "fillColorAci",
+        "fillColorName",
+        "fillColorRgb"
+      ],
+      "oracleFields": [
+        "color",
+        "hatch_color"
+      ],
+      "disposition": "excluded",
+      "reason": "aci-rgb-entity-color-normalization-unproved"
+    }
+  ]
+}
