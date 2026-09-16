@@ -1909,6 +1909,16 @@ public:
     void addSolid(const DRW_Solid&) override {}
     void addMText(const DRW_MText&) override {}
     void addText(const DRW_Text&) override {}
+    void addModelerGeometry(const DRW_ModelerGeometry& data) override {
+        ++modelerGeometryCount;
+        lastModelerGeometry = data;
+    }
+    void addSurface(const DRW_Surface* data) override {
+        if (data != nullptr) {
+            ++surfaceCount;
+            lastSurface = *data;
+        }
+    }
     void addDimAlign(const DRW_DimAligned*) override {}
     void addDimLinear(const DRW_DimLinear*) override {}
     void addDimRadial(const DRW_DimRadial*) override {}
@@ -1943,6 +1953,10 @@ public:
     bool rawSectionHasValues {false};
     std::size_t headerCount {0};
     std::string headerComments;
+    std::size_t modelerGeometryCount {0};
+    std::size_t surfaceCount {0};
+    DRW_ModelerGeometry lastModelerGeometry;
+    DRW_Surface lastSurface;
 };
 
 void testCheckedArithmetic(TestContext& t) {
@@ -2465,6 +2479,49 @@ void testDxfProxyGraphicsStayOutOfAcis(TestContext& t) {
                      && surface.uIsolines == 4 && surface.vIsolines == 5
                      && surface.rawAcisData == expectedAcis,
                  "SURFACE keeps proxy graphics out of ACIS payload");
+    }
+
+    const auto readAscii = [&t](std::string content,
+                                FuzzInterface& capture) {
+        dxfRW reader("");
+        t.expect(reader.readAscii(&capture, true, content),
+                 "DXF façade accepts proxy/ACIS in-memory records");
+    };
+    for (const char* name : {"3DSOLID", "REGION", "BODY"}) {
+        FuzzInterface capture;
+        const std::string content =
+            std::string("0\nSECTION\n2\nENTITIES\n0\n") + name
+            + "\n5\n710\n330\n1F\n100\nAcDbEntity\n8\n0\n"
+              "92\n2\n310\nAABB\n"
+              "100\nAcDbModelerGeometry\n70\n1\n310\n41434953\n"
+              "0\nENDSEC\n0\nEOF\n";
+        readAscii(content, capture);
+        t.expect(capture.modelerGeometryCount == 1u
+                     && capture.lastModelerGeometry.numProxyGraph == 2
+                     && capture.lastModelerGeometry.proxyGraphics
+                            == std::string("\xAA\xBB", 2)
+                     && capture.lastModelerGeometry.m_rawBytes == expectedAcis,
+                 "DXF façade keeps modeler proxy graphics out of ACIS payload");
+    }
+    for (const char* countCode : {"92", "160"}) {
+        FuzzInterface capture;
+        const std::string content =
+            std::string("0\nSECTION\n2\nENTITIES\n0\nPLANESURFACE\n"
+                        "5\n700\n330\n1F\n100\nAcDbEntity\n8\n0\n")
+            + countCode
+            + "\n2\n310\nAABB\n100\nAcDbModelerGeometry\n70\n1\n"
+              "310\n41434953\n100\nAcDbSurface\n71\n4\n72\n5\n"
+              "0\nENDSEC\n0\nEOF\n";
+        readAscii(content, capture);
+        t.expect(capture.surfaceCount == 1u
+                     && capture.lastSurface.numProxyGraph == 2
+                     && capture.lastSurface.proxyGraphics
+                            == std::string("\xAA\xBB", 2)
+                     && capture.lastSurface.modelerFormatVersion == 1
+                     && capture.lastSurface.uIsolines == 4
+                     && capture.lastSurface.vIsolines == 5
+                     && capture.lastSurface.rawAcisData == expectedAcis,
+                 "DXF façade keeps surface proxy graphics out of ACIS payload");
     }
 }
 
