@@ -387,6 +387,11 @@ def check(prefix: Path, cxx: str) -> None:
                     "static_assert(static_cast<unsigned>(dxfRW::DxfCompatibilityProfile::StandaloneSafe) == 0);\n"
                     "static_assert(static_cast<unsigned>(dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy) == 1);\n"
                 )
+            if header == "drw_base.h":
+                source_text += (
+                    "static_assert(static_cast<unsigned>(DwgDataStorageWriterOperation::None) == 0);\n"
+                    "static_assert(static_cast<unsigned>(DwgDataStorageWriterOperation::WriteVxTableRecord) == 33);\n"
+                )
             source_text += "int main() { return 0; }\n"
             source.write_text(source_text, encoding="utf-8")
             run([cxx, "-std=c++17", "-Wall", "-Wextra", "-Werror",

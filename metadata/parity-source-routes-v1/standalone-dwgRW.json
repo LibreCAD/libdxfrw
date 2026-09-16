@@ -83743,7 +83743,7 @@
       ],
       "evidence": [
         {
-          "line": 285,
+          "line": 245,
           "path": "src/intern/dwgutil.h",
           "spanSha256": "349c2f2ac8c39efe628f6cd28cf4665ef5f5ca3469d49ba826e20ead17f9268b",
           "symbol": "secEnum::DWGSection"
@@ -83766,7 +83766,7 @@
       ],
       "evidence": [
         {
-          "line": 296,
+          "line": 256,
           "path": "src/intern/dwgutil.h",
           "spanSha256": "349c2f2ac8c39efe628f6cd28cf4665ef5f5ca3469d49ba826e20ead17f9268b",
           "symbol": "secEnum::DWGSection"
@@ -83789,7 +83789,7 @@
       ],
       "evidence": [
         {
-          "line": 294,
+          "line": 254,
           "path": "src/intern/dwgutil.h",
           "spanSha256": "349c2f2ac8c39efe628f6cd28cf4665ef5f5ca3469d49ba826e20ead17f9268b",
           "symbol": "secEnum::DWGSection"
@@ -83812,7 +83812,7 @@
       ],
       "evidence": [
         {
-          "line": 281,
+          "line": 241,
           "path": "src/intern/dwgutil.h",
           "spanSha256": "349c2f2ac8c39efe628f6cd28cf4665ef5f5ca3469d49ba826e20ead17f9268b",
           "symbol": "secEnum::DWGSection"
@@ -83835,7 +83835,7 @@
       ],
       "evidence": [
         {
-          "line": 297,
+          "line": 257,
           "path": "src/intern/dwgutil.h",
           "spanSha256": "349c2f2ac8c39efe628f6cd28cf4665ef5f5ca3469d49ba826e20ead17f9268b",
           "symbol": "secEnum::DWGSection"
@@ -83858,7 +83858,7 @@
       ],
       "evidence": [
         {
-          "line": 286,
+          "line": 246,
           "path": "src/intern/dwgutil.h",
           "spanSha256": "349c2f2ac8c39efe628f6cd28cf4665ef5f5ca3469d49ba826e20ead17f9268b",
           "symbol": "secEnum::DWGSection"
@@ -83881,7 +83881,7 @@
       ],
       "evidence": [
         {
-          "line": 279,
+          "line": 239,
           "path": "src/intern/dwgutil.h",
           "spanSha256": "349c2f2ac8c39efe628f6cd28cf4665ef5f5ca3469d49ba826e20ead17f9268b",
           "symbol": "secEnum::DWGSection"
@@ -83904,7 +83904,7 @@
       ],
       "evidence": [
         {
-          "line": 292,
+          "line": 252,
           "path": "src/intern/dwgutil.h",
           "spanSha256": "349c2f2ac8c39efe628f6cd28cf4665ef5f5ca3469d49ba826e20ead17f9268b",
           "symbol": "secEnum::DWGSection"
@@ -83927,7 +83927,7 @@
       ],
       "evidence": [
         {
-          "line": 280,
+          "line": 240,
           "path": "src/intern/dwgutil.h",
           "spanSha256": "349c2f2ac8c39efe628f6cd28cf4665ef5f5ca3469d49ba826e20ead17f9268b",
           "symbol": "secEnum::DWGSection"
@@ -83950,7 +83950,7 @@
       ],
       "evidence": [
         {
-          "line": 289,
+          "line": 249,
           "path": "src/intern/dwgutil.h",
           "spanSha256": "349c2f2ac8c39efe628f6cd28cf4665ef5f5ca3469d49ba826e20ead17f9268b",
           "symbol": "secEnum::DWGSection"
@@ -83973,7 +83973,7 @@
       ],
       "evidence": [
         {
-          "line": 290,
+          "line": 250,
           "path": "src/intern/dwgutil.h",
           "spanSha256": "349c2f2ac8c39efe628f6cd28cf4665ef5f5ca3469d49ba826e20ead17f9268b",
           "symbol": "secEnum::DWGSection"
@@ -83996,7 +83996,7 @@
       ],
       "evidence": [
         {
-          "line": 283,
+          "line": 243,
           "path": "src/intern/dwgutil.h",
           "spanSha256": "349c2f2ac8c39efe628f6cd28cf4665ef5f5ca3469d49ba826e20ead17f9268b",
           "symbol": "secEnum::DWGSection"
@@ -84019,7 +84019,7 @@
       ],
       "evidence": [
         {
-          "line": 293,
+          "line": 253,
           "path": "src/intern/dwgutil.h",
           "spanSha256": "349c2f2ac8c39efe628f6cd28cf4665ef5f5ca3469d49ba826e20ead17f9268b",
           "symbol": "secEnum::DWGSection"
@@ -84042,7 +84042,7 @@
       ],
       "evidence": [
         {
-          "line": 298,
+          "line": 258,
           "path": "src/intern/dwgutil.h",
           "spanSha256": "349c2f2ac8c39efe628f6cd28cf4665ef5f5ca3469d49ba826e20ead17f9268b",
           "symbol": "secEnum::DWGSection"
@@ -84065,7 +84065,7 @@
       ],
       "evidence": [
         {
-          "line": 287,
+          "line": 247,
           "path": "src/intern/dwgutil.h",
           "spanSha256": "349c2f2ac8c39efe628f6cd28cf4665ef5f5ca3469d49ba826e20ead17f9268b",
           "symbol": "secEnum::DWGSection"
@@ -84088,7 +84088,7 @@
       ],
       "evidence": [
         {
-          "line": 288,
+          "line": 248,
           "path": "src/intern/dwgutil.h",
           "spanSha256": "349c2f2ac8c39efe628f6cd28cf4665ef5f5ca3469d49ba826e20ead17f9268b",
           "symbol": "secEnum::DWGSection"
@@ -84111,7 +84111,7 @@
       ],
       "evidence": [
         {
-          "line": 295,
+          "line": 255,
           "path": "src/intern/dwgutil.h",
           "spanSha256": "349c2f2ac8c39efe628f6cd28cf4665ef5f5ca3469d49ba826e20ead17f9268b",
           "symbol": "secEnum::DWGSection"
@@ -84134,7 +84134,7 @@
       ],
       "evidence": [
         {
-          "line": 282,
+          "line": 242,
           "path": "src/intern/dwgutil.h",
           "spanSha256": "349c2f2ac8c39efe628f6cd28cf4665ef5f5ca3469d49ba826e20ead17f9268b",
           "symbol": "secEnum::DWGSection"
@@ -84157,7 +84157,7 @@
       ],
       "evidence": [
         {
-          "line": 291,
+          "line": 251,
           "path": "src/intern/dwgutil.h",
           "spanSha256": "349c2f2ac8c39efe628f6cd28cf4665ef5f5ca3469d49ba826e20ead17f9268b",
           "symbol": "secEnum::DWGSection"
@@ -84180,7 +84180,7 @@
       ],
       "evidence": [
         {
-          "line": 278,
+          "line": 238,
           "path": "src/intern/dwgutil.h",
           "spanSha256": "349c2f2ac8c39efe628f6cd28cf4665ef5f5ca3469d49ba826e20ead17f9268b",
           "symbol": "secEnum::DWGSection"
@@ -84203,7 +84203,7 @@
       ],
       "evidence": [
         {
-          "line": 284,
+          "line": 244,
           "path": "src/intern/dwgutil.h",
           "spanSha256": "349c2f2ac8c39efe628f6cd28cf4665ef5f5ca3469d49ba826e20ead17f9268b",
           "symbol": "secEnum::DWGSection"

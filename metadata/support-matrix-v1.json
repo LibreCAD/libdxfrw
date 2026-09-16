@@ -21,7 +21,7 @@
     "oracleFeatureLinks": 76,
     "oracleRoutes": 5,
     "sharedRouteRows": 2849,
-    "standaloneOnlyRows": 88,
+    "standaloneOnlyRows": 89,
     "targetRows": 2820,
     "targetUnmappedRows": 0,
     "zeroTargetUnmapped": true
@@ -214,6 +214,7 @@
     "shared/public-enum/src_drw_base.h_DRW_OperationCause",
     "shared/public-enum/src_drw_base.h_DRW_OperationKind",
     "shared/public-enum/src_drw_base.h_DRW_OperationPhase",
+    "shared/public-enum/src_drw_base.h_DwgDataStorageWriterOperation",
     "shared/public-inline-method/src_drw_base.h_DRW_OperationDiagnostic_dec0631ead756075020c274434191cb34a8d6d7ad212c42058489b77cb2cb459",
     "shared/public-inline-method/src_drw_interface.h_DRW_Interface_6190e2e1ac4584b071d2809572602df0a20c74f7111d9b63326fbba607e14bb1",
     "shared/public-method/src_drw_base.h_DRW_OperationDiagnostic_dec0631ead756075020c274434191cb34a8d6d7ad212c42058489b77cb2cb459",

@@ -20,8 +20,8 @@
     },
     {
       "surface": "installed header closure",
-      "decision": "keep only the narrow internal DWG utility closure installed; hide HandleAllocator behind dxfRW while retaining the remaining compatibility headers until their public enum dependency is moved",
-      "verification": "every installed public header compiles standalone and handle_allocator.h is absent from the staged prefix"
+      "decision": "keep only the narrow internal DWG utility closure installed; hide HandleAllocator behind dxfRW and expose the DataStorage writer operation enum from the foundational public header",
+      "verification": "every installed public header compiles standalone, drw_base.h exposes DwgDataStorageWriterOperation without an internal include, and handle_allocator.h is absent from the staged prefix"
     },
     {
       "surface": "DXF disputed classifier ranges 260-269 and 482-998",
@@ -30,7 +30,6 @@
     }
   ],
   "unresolved": [
-    "Move the DataStorage writer operation enum out of intern/dwgutil.h in a later ABI-reviewed slice.",
     "Exhaustive callback ownership and behavioral API hardening remains outside C0."
   ]
 }

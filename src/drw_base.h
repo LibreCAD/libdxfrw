@@ -56,6 +56,50 @@ typedef float dfloat32;
 typedef double ddouble64;
 typedef long double ddouble80;
 
+/// Concrete OBJECTS operation used by a typed DataStorage writer. Several
+/// class identities can share one encoder, so this is separate from the
+/// DataStorage class binding and from file-local DWG class ordinals.
+///
+/// The operation identity is part of the public writer contract. Keep its
+/// declaration in the foundational public header so consumers do not need to
+/// include the implementation-only DWG utility header.
+enum class DwgDataStorageWriterOperation : std::uint8_t {
+    None,
+    WriteMLeaderStyle,
+    WriteTableStyle,
+    WriteMaterial,
+    WriteLightList,
+    WriteGroup,
+    WriteDictionary,
+    WriteXRecord,
+    WriteLayout,
+    WriteMLineStyle,
+    WriteAcDbPlaceholder,
+    WriteRasterVariables,
+    WriteWipeoutVariables,
+    WriteGeoData,
+    WriteSpatialFilter,
+    WriteScale,
+    WriteIDBuffer,
+    WriteLayerIndex,
+    WriteSpatialIndex,
+    WriteDictionaryVar,
+    WriteDictionaryWithDefault,
+    WriteSortEntsTable,
+    WriteFieldList,
+    WriteField,
+    WriteUnderlayDefinition,
+    WritePointCloudDef,
+    WriteNavisworksModelDef,
+    WritePointCloudColorMap,
+    WriteDbColor,
+    WriteDimensionAssociation,
+    WriteEvaluationGraph,
+    WriteTvDeviceProperties,
+    WriteVxControl,
+    WriteVxTableRecord
+};
+
 #if defined(WIN64) || defined(_WIN64) || defined(__WIN64__)
 #  define DRW_WIN
 #elif defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)

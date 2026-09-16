@@ -23,46 +23,6 @@ namespace DRW {
     std::string toHexStr(int n);
 }
 
-/// Concrete OBJECTS operation used by a typed DataStorage writer. Several
-/// class identities can share one encoder, so this is separate from the
-/// DataStorage class binding and from file-local DWG class ordinals.
-enum class DwgDataStorageWriterOperation : std::uint8_t {
-    None,
-    WriteMLeaderStyle,
-    WriteTableStyle,
-    WriteMaterial,
-    WriteLightList,
-    WriteGroup,
-    WriteDictionary,
-    WriteXRecord,
-    WriteLayout,
-    WriteMLineStyle,
-    WriteAcDbPlaceholder,
-    WriteRasterVariables,
-    WriteWipeoutVariables,
-    WriteGeoData,
-    WriteSpatialFilter,
-    WriteScale,
-    WriteIDBuffer,
-    WriteLayerIndex,
-    WriteSpatialIndex,
-    WriteDictionaryVar,
-    WriteDictionaryWithDefault,
-    WriteSortEntsTable,
-    WriteFieldList,
-    WriteField,
-    WriteUnderlayDefinition,
-    WritePointCloudDef,
-    WriteNavisworksModelDef,
-    WritePointCloudColorMap,
-    WriteDbColor,
-    WriteDimensionAssociation,
-    WriteEvaluationGraph,
-    WriteTvDeviceProperties,
-    WriteVxControl,
-    WriteVxTableRecord
-};
-
 namespace dwgSpec {
     /// R18+ CLASSES sections carry eight ODA-defined unknown bytes between
     /// the class CRC and the closing sentinel. ODA specifies zero values.

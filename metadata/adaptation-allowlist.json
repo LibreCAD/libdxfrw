@@ -23,15 +23,15 @@
   "entries": [
     {
       "path": "CMakeLists.txt",
-      "reason": "Install the three narrow transitive headers required by the imported public façades; hide HandleAllocator and the DataStorage operation enum in a follow-up.",
+      "reason": "Install the narrow transitive headers required by the imported public façades; hide HandleAllocator and expose the DataStorage operation enum from the foundational public header.",
       "scope": "standalone packaging only"
     },
     {
       "path": "src/drw_base.h",
-      "reason": "Restore the historical dint*/duint*/ddouble* public typedef names removed by the target C++17 conversion and expose the shared operation-diagnostic schema.",
+      "reason": "Restore the historical dint*/duint*/ddouble* public typedef names removed by the target C++17 conversion, expose the shared operation-diagnostic schema, and move the DataStorage writer operation enum into the foundational public header.",
       "scope": "source compatibility",
       "targetBlob": "7844a3ae6621056212430bb4f961bdfb242c39ce",
-      "adaptedSha256": "78c2d09aafea36f7f66b80de3cd375dbf490b643e4f70662f01cbb5006fb394a"
+      "adaptedSha256": "697b47b1a455bf7b863ca90d3a6cc1d6be0f7edb14c20e8d5b2118a4d8dbf4d4"
     },
     {
       "path": "src/drw_interface.h",
@@ -112,10 +112,10 @@
     },
     {
       "path": "src/intern/dwgutil.h",
-      "reason": "Expose the fixed GEOPOSITIONMARKER DWG type code to the shared reader dispatch while keeping the target's existing utility enums intact.",
+      "reason": "Expose the fixed GEOPOSITIONMARKER DWG type code to the shared reader dispatch while moving the public DataStorage writer operation enum out of the installed utility header.",
       "scope": "DWG reader compatibility",
       "targetBlob": "e33363bf4d3e814a67c875ecb89e70c9fe154bed",
-      "adaptedSha256": "17306de7cd56db029d3e2d35813d1ca9b3c4acbb895e2edba79768d74ad93b7e"
+      "adaptedSha256": "0a60e4b5a02a8b31b169411d1c7c52882bd7a8c7188256a648538edb1ce6143c"
     },
     {
       "path": "src/intern/dwgwriter.h",
