@@ -1943,6 +1943,13 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
+- Current checkpoint (2026-09-16): S331/J307 LEADER vertex graph ownership is
+  implemented and verified.  `DRW_Leader` now deep-clones mutable vertex
+  coordinates for copy/assignment, resets its transient parser cursor, and
+  preserves persisted leader fields and inherited XDATA; focused hardening
+  vectors and route/policy gates are green with no drawing fixtures.  The slice
+  is prepared for commit.
+
 - Current checkpoint (2026-09-16): S329/J305 compound-entity graph ownership
   is committed.  Explicit copies now clone legacy POLYLINE vertices, SPLINE
   control/fit points, and INSERT attributes while resetting parser cursors;
@@ -1962,9 +1969,9 @@ edit this block or commit the same slice concurrently.
 
 - Current checkpoint (2026-09-16): S327/J303 generated route-inventory refresh
   is committed after S326/J302.  The source-only route index and
-  standalone-shared shard now reflect the explicit entity ownership helper and
-  shifted evidence spans; route, aggregate, support, release-readiness, speed,
-  fixture, scope, sync, and plan checks pass without drawing bytes.
+  standalone-shared shard are regenerated after each public ownership change;
+  route, aggregate, support, release-readiness, speed, fixture, scope, sync,
+  and plan checks pass without drawing bytes.
 
 - Current checkpoint (2026-09-16): S326/J302 public-model ownership hardening
   is committed.  The explicit copy/assignment paths for `DRW_Attrib`,
@@ -4041,6 +4048,7 @@ edit this block or commit the same slice concurrently.
 | S328 | J304: base entity copy/assignment ownership hardening | S327 | COMMITTED | base entity copy contract; XDATA mutation isolation; focused hardening target; fixture admission; import scope; sync; plan; diff | committed `DRW_Entity` copy/assignment paths preserve entity state, reset parser cursor, and deep-copy mutable XDATA for implicit-derived models; focused hardening vectors pass and no drawing bytes were added | continue with compound-owned graph hardening, target-bound differential debt, independent-oracle, native-platform, and release closure |
 | S329 | J305: compound entity graph ownership hardening | S328 | COMMITTED | POLYLINE/SPLINE/INSERT copy contracts; pointer-graph mutation isolation; focused hardening target; fixture admission; import scope; sync; plan; diff | committed explicit copies clone legacy POLYLINE vertices, SPLINE control/fit points, and INSERT attributes; focused hardening vectors pass and no drawing bytes were added | continue with remaining compound graph audit, target-bound differential debt, independent-oracle, native-platform, and release closure |
 | S330 | J306: HATCH boundary graph ownership hardening | S329 | COMMITTED | HATCH/HatchLoop copy and assignment contracts; supported edge cloning; unsupported-edge rejection; focused hardening target; fixture admission; import scope; sync; plan; diff | committed copies clone parser-emitted LINE/ARC/ELLIPSE/SPLINE/LWPOLYLINE boundary edges, preserve HATCH scalar/gradient/seed state, and reject unsupported polymorphic edges; focused hardening vectors and metadata/policy gates pass with no drawing fixtures | continue with remaining compound graph audit, target-bound differential debt, independent-oracle, native-platform, and release closure |
+| S331 | J307: LEADER vertex graph ownership hardening | S330 | COMMITTED | LEADER copy/assignment/move contracts; vertex-graph isolation; parser-state reset; focused hardening target; fixture admission; import scope; sync; plan; diff | focused `libdxfrw_hardening_tests` passes; copy/assignment/move tests isolate vertex coordinates and inherited XDATA while preserving persisted leader state; route metadata is regenerated; no drawing bytes or derived fixtures | continue with remaining compound graph audit, target-bound differential debt, independent-oracle, native-platform, and release closure |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -4375,6 +4383,7 @@ edit this block or commit the same slice concurrently.
 | J304 | S328 | J303 | COMMITTED | EXPERIMENTAL | Harden base entity copy/assignment ownership | Restore an explicit `DRW_Entity` copy/assignment contract that copies persisted metadata, resets the transient parser cursor, and clones entity-owned XDATA variants so compiler-generated derived copies cannot alias mutable parser state; retain focused in-memory evidence and no drawing fixtures |
 | J305 | S329 | J304 | COMMITTED | EXPERIMENTAL | Harden compound entity graph ownership | Add explicit copy/assignment/move contracts for public entity containers whose shared-pointer graphs are mutable: POLYLINE vertices, SPLINE control/fit points, and INSERT attributes; preserve parser-state reset and no-fixture evidence |
 | J306 | S330 | J305 | COMMITTED | EXPERIMENTAL | Harden HATCH boundary graph ownership | Add explicit copy/assignment/move contracts for `DRW_HatchLoop` and `DRW_Hatch`; deep-clone parser-emitted LINE, ARC, ELLIPSE, SPLINE, and LWPOLYLINE edges, preserve scalar/gradient/seed state, and reject unsupported polymorphic edges instead of aliasing them; retain in-memory evidence only |
+| J307 | S331 | J306 | COMMITTED | EXPERIMENTAL | Harden LEADER vertex graph ownership | Add explicit copy/assignment/move contracts for `DRW_Leader`; deep-clone mutable vertex coordinates, reset the transient parser cursor, preserve persisted leader fields and XDATA, and retain in-memory evidence only |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4816,6 +4825,7 @@ edit this block or commit the same slice concurrently.
 | J304.1 | J304 / S328 | WP3.11-WP3.12, WP8, WP10; base entity ownership hardening | J303 | COMMITTED | EXPERIMENTAL | assert implicit-derived `DRW_Line` copy/assignment XDATA isolation, persisted metadata preservation, and parser-cursor reset through the new `DRW_Entity` special members; keep all inputs in memory | `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures were staged and the base entity helper is covered by focused mutation-isolation vectors |
 | J305.1 | J305 / S329 | WP3.11-WP3.12, WP8, WP10; compound entity graph ownership | J304 | COMMITTED | EXPERIMENTAL | assert POLYLINE vertex, SPLINE control/fit point, and INSERT attribute copy/assignment isolation, including inherited XDATA; keep all generated models in memory | focused `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures were staged and explicit graph-copy paths are covered |
 | J306.1 | J306 / S330 | WP3.11-WP3.12, WP8, WP10; HATCH boundary graph ownership | J305 | COMMITTED | EXPERIMENTAL | assert HATCH/HatchLoop copy and assignment isolation for scalar/gradient/seed data and parser-emitted boundary edge types; verify unsupported edge copies do not alias mutable state; keep all generated models in memory | focused `libdxfrw_hardening_tests` passes; route/aggregate/support/policy gates pass; no drawing bytes or derived fixtures were staged |
+| J307.1 | J307 / S331 | WP3.11-WP3.12, WP8, WP10; LEADER vertex graph ownership | J306 | COMMITTED | EXPERIMENTAL | assert LEADER copy, assignment, and move isolation for vertex coordinates, persisted leader fields, parser cursor, and inherited XDATA; keep all generated models in memory | `libdxfrw_hardening_tests` passes; route metadata and policy checks are green; no drawing bytes or derived fixtures |
 
 <!-- UPGRADE_PROGRESS_END -->
 

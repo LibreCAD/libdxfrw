@@ -3717,6 +3717,10 @@ public:
     DRW_Leader() {
         eType = DRW::LEADER;
     }
+    DRW_Leader(const DRW_Leader&);
+    DRW_Leader& operator=(const DRW_Leader&);
+    DRW_Leader(DRW_Leader&&) noexcept;
+    DRW_Leader& operator=(DRW_Leader&&) noexcept;
 
     virtual void applyExtrusion() override {}
 

@@ -54,6 +54,8 @@ void testPublicOwnershipContracts(TestContext& t) {
                   "DRW_Spline copy contract");
     static_assert(std::is_copy_constructible<DRW_Insert>::value,
                   "DRW_Insert copy contract");
+    static_assert(std::is_copy_constructible<DRW_Leader>::value,
+                  "DRW_Leader copy contract");
     static_assert(std::is_copy_constructible<DRW_Attrib>::value,
                   "DRW_Attrib copy contract");
     static_assert(std::is_copy_constructible<DRW_GeoPositionMarker>::value,
@@ -219,6 +221,41 @@ void testPublicOwnershipContracts(TestContext& t) {
                  && sourceHatchLoop->objlist.front()->eType == DRW::LINE
                  && assignedHatch.gradName == "LINEAR",
              "DRW_Hatch assignment isolates boundary graph");
+
+    DRW_Leader sourceLeader;
+    sourceLeader.style = "STANDARD";
+    sourceLeader.arrow = 0;
+    sourceLeader.leadertype = 1;
+    sourceLeader.vertnum = 2;
+    sourceLeader.extData.push_back(
+        std::make_shared<DRW_Variant>(1000, "leader-xdata"));
+    auto leaderVertex = std::make_shared<DRW_Coord>(2.0, 3.0, 4.0);
+    sourceLeader.vertexlist.push_back(leaderVertex);
+    sourceLeader.vertexlist.push_back(nullptr);
+    DRW_Leader copiedLeader(sourceLeader);
+    t.expect(copiedLeader.vertexlist.size() == 2u
+                 && copiedLeader.vertexlist.front() != leaderVertex
+                 && copiedLeader.vertexlist.back() == nullptr
+                 && copiedLeader.style == "STANDARD"
+                 && copiedLeader.arrow == 0
+                 && copiedLeader.extData.front() != sourceLeader.extData.front(),
+             "DRW_Leader copy clones vertex graph and persisted state");
+    copiedLeader.vertexlist.front()->x = 8.0;
+    copiedLeader.extData.front()->addString(1000, "copy-leader-xdata");
+    t.expect(leaderVertex->x == 2.0
+                 && std::string(sourceLeader.extData.front()->c_str())
+                        == "leader-xdata",
+             "DRW_Leader copy isolates vertex and XDATA mutation");
+    DRW_Leader assignedLeader;
+    assignedLeader = sourceLeader;
+    assignedLeader.vertexlist.front()->y = 9.0;
+    t.expect(assignedLeader.vertexlist.front() != leaderVertex
+                 && leaderVertex->y == 3.0,
+             "DRW_Leader assignment isolates vertex graph");
+    DRW_Leader movedLeader(std::move(copiedLeader));
+    t.expect(movedLeader.vertexlist.size() == 2u
+                 && copiedLeader.vertexlist.empty(),
+             "DRW_Leader move transfers vertex ownership");
 
     DRW_HatchLoop unsupported(0);
     unsupported.objlist.push_back(std::make_shared<DRW_Point>());

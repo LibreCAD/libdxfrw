@@ -22623,3 +22623,56 @@ bool DRW_Viewport::encodeDwg(DRW::Version version, dwgBufferW *buf, std::uint32_
 
     return buf->isGood() && sb->isGood() && hb->isGood();
 }
+
+DRW_Leader::DRW_Leader(const DRW_Leader& o)
+    : DRW_Entity(o), style(o.style), arrow(o.arrow), leadertype(o.leadertype),
+      flag(o.flag), hookline(o.hookline), hookflag(o.hookflag),
+      textheight(o.textheight), textwidth(o.textwidth), vertnum(o.vertnum),
+      coloruse(o.coloruse), annotHandle(o.annotHandle), origin(o.origin),
+      extrusionPoint(o.extrusionPoint), horizdir(o.horizdir),
+      offsetblock(o.offsetblock), offsettext(o.offsettext),
+      hasVertexCount(o.hasVertexCount), dimStyleH(o.dimStyleH),
+      AnnotH(o.AnnotH) {
+    eType = DRW::LEADER;
+    vertexlist.reserve(o.vertexlist.size());
+    for (const auto& vertex : o.vertexlist)
+        vertexlist.push_back(
+            vertex ? std::make_shared<DRW_Coord>(*vertex) : nullptr);
+    vertexpoint.reset();
+}
+
+DRW_Leader& DRW_Leader::operator=(const DRW_Leader& o) {
+    if (this != &o) {
+        DRW_Entity::operator=(o);
+        style = o.style;
+        arrow = o.arrow;
+        leadertype = o.leadertype;
+        flag = o.flag;
+        hookline = o.hookline;
+        hookflag = o.hookflag;
+        textheight = o.textheight;
+        textwidth = o.textwidth;
+        vertnum = o.vertnum;
+        coloruse = o.coloruse;
+        annotHandle = o.annotHandle;
+        origin = o.origin;
+        extrusionPoint = o.extrusionPoint;
+        horizdir = o.horizdir;
+        offsetblock = o.offsetblock;
+        offsettext = o.offsettext;
+        hasVertexCount = o.hasVertexCount;
+        dimStyleH = o.dimStyleH;
+        AnnotH = o.AnnotH;
+        std::vector<std::shared_ptr<DRW_Coord>> copies;
+        copies.reserve(o.vertexlist.size());
+        for (const auto& vertex : o.vertexlist)
+            copies.push_back(
+                vertex ? std::make_shared<DRW_Coord>(*vertex) : nullptr);
+        vertexlist.swap(copies);
+        vertexpoint.reset();
+    }
+    return *this;
+}
+
+DRW_Leader::DRW_Leader(DRW_Leader&&) noexcept = default;
+DRW_Leader& DRW_Leader::operator=(DRW_Leader&&) noexcept = default;

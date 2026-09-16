@@ -5803,6 +5803,10 @@
         "shared/public-method/src_drw_entities.h_DRW_Insert_7dbdbb8b9bd4ec30dc1e0c4d4aa84303bc48aa1503ba7a446fc36fe49450f013",
         "shared/public-method/src_drw_entities.h_DRW_Insert_98835da2a90a382b56eefdc70582cbb368f11537ebada7b2091c1b4b85d1c59e",
         "shared/public-method/src_drw_entities.h_DRW_LWPolyline_54a093c350ed5f6ae5cc42b8fc02afe40b5f94e07aec9df2a4bb4e6d8bd996d9",
+        "shared/public-method/src_drw_entities.h_DRW_Leader_591ec5f218174b696e31f8b07ada2e355cdaab93afdeaaa5be1b6bf393389f57",
+        "shared/public-method/src_drw_entities.h_DRW_Leader_7a6a8456c42adf8f9d3e692344fcf789885a37d62bbb7253da981a77efc23408",
+        "shared/public-method/src_drw_entities.h_DRW_Leader_92817e1c2236b008371986fef933f33ac770fc069b80f6d4719f2b3ffc5c81fc",
+        "shared/public-method/src_drw_entities.h_DRW_Leader_c3426e1baeb842d6e531ffc339001e864e74c2b175f10a66756d59b564c07980",
         "shared/public-method/src_drw_entities.h_DRW_Line_26c6a0cb411e543fa0bd9eec513739b4cadb30bf14b6a761b55880f3b6727ed1",
         "shared/public-method/src_drw_entities.h_DRW_MLine_a1ce4f912208096ac7ab31c02b47fe18c90576b3a286d32f26a167ba0704a51f",
         "shared/public-method/src_drw_entities.h_DRW_Mesh_30e161474e5f2f54f471d1842244f7abeac8c7f1d21700dea43a30e58fde8dc9",
@@ -5897,7 +5901,7 @@
   },
   "inputs": {
     "standalone": {
-      "contentTreeSha256": "a3670d150af7b8a81a2c6971a9269afdb8714f5b463f4b8d95340b5f8f7b72e9",
+      "contentTreeSha256": "b0df9330adac46e43e08377da77a7c2bc4ebd7523020a6f5824f2bf74592f8f1",
       "files": [
         {
           "mode": "100644",
@@ -5942,12 +5946,12 @@
         {
           "mode": "100644",
           "path": "src/drw_entities.cpp",
-          "sha256": "55d75f184d53e60c60a3cbc8dcfccd594a5d00a9f9e23c25e3c7cdd5536e3fb2"
+          "sha256": "cd78a2d64247d398cf2c7b274a84babd581f74a39422fab3f07bcb29751b0b00"
         },
         {
           "mode": "100644",
           "path": "src/drw_entities.h",
-          "sha256": "b59110ae357917c08c7832d85ec7caea9d86c4bc7284971c7e6eeedfd83bf6c4"
+          "sha256": "7999931dbbea2284414de619f936deb14b62f07442a576e2a114084184f19b24"
         },
         {
           "mode": "100644",
@@ -123188,6 +123192,10 @@
       "shared/public-method/src_drw_entities.h_DRW_Insert_4320a0836cd46e1c1d4950d4ce2de4339e6c7827811e3c8776a1b57ad609ca48",
       "shared/public-method/src_drw_entities.h_DRW_Insert_7dbdbb8b9bd4ec30dc1e0c4d4aa84303bc48aa1503ba7a446fc36fe49450f013",
       "shared/public-method/src_drw_entities.h_DRW_Insert_98835da2a90a382b56eefdc70582cbb368f11537ebada7b2091c1b4b85d1c59e",
+      "shared/public-method/src_drw_entities.h_DRW_Leader_591ec5f218174b696e31f8b07ada2e355cdaab93afdeaaa5be1b6bf393389f57",
+      "shared/public-method/src_drw_entities.h_DRW_Leader_7a6a8456c42adf8f9d3e692344fcf789885a37d62bbb7253da981a77efc23408",
+      "shared/public-method/src_drw_entities.h_DRW_Leader_92817e1c2236b008371986fef933f33ac770fc069b80f6d4719f2b3ffc5c81fc",
+      "shared/public-method/src_drw_entities.h_DRW_Leader_c3426e1baeb842d6e531ffc339001e864e74c2b175f10a66756d59b564c07980",
       "shared/public-method/src_drw_entities.h_DRW_Polyline_11ece727bc691c669bffa0fe1892a725a152cd1a856ddbcf71ae7f40d70af20a",
       "shared/public-method/src_drw_entities.h_DRW_Polyline_4baca8883b6d6e46ed3d8594ae40b71a487a97f7595de915ff389cd23783b0b0",
       "shared/public-method/src_drw_entities.h_DRW_Polyline_9a74ba5b3d8ef0d7080c1c005baff0bb291deb32073c3c538a055297f18d700c",
@@ -123209,7 +123217,7 @@
     "summary": {
       "deltaOneToOne": 805,
       "exactOneToOne": 4827,
-      "standaloneOnly": 135,
+      "standaloneOnly": 139,
       "targetOnly": 0,
       "targetRows": 5669
     }
@@ -123243,7 +123251,7 @@
         "src/libdxfrw.h"
       ],
       "allowlistPath": "metadata/adaptation-allowlist.json",
-      "allowlistSha256": "82ab24c030f3e517f496755b10e54b57c52969c15ab8f12420b57bc6069fdef9",
+      "allowlistSha256": "ee81fe6e71e9604b2e998750144e222a15bd89760216844d39ff1d3c046a809f",
       "schema": 1,
       "targetCommit": "0ffb38d790db53116978e01fcaf94cee9bc6ee48",
       "targetRepository": "git@github.com-librecad:LibreCAD/LibreCAD.git"
@@ -123252,7 +123260,7 @@
       "algorithm": "sha256-canonical-json-v1",
       "bodyEvidenceExcluded": true,
       "inventoryDigests": {
-        "standalone": "b3f5ac6f6893b7b7070397dbc587aa7945735840de79f4788ace7c9ed55e89d6",
+        "standalone": "c38b47536da91e348e34be04e0da4a0d48c035b8494b8a90c3619a0e7e5dfd9b",
         "target": "5c0ad5e9221c95df0c2c056148b88273e9d06a7f3e3fe1c50cc202b51a1f9f78"
       },
       "stableFields": [
@@ -123268,7 +123276,7 @@
     "standalone": {
       "baselineCommit": "92d7466ed9146badcd4fb44c82d1dd8302b3c7db",
       "baselineRef": "origin/master",
-      "contentTreeSha256": "a3670d150af7b8a81a2c6971a9269afdb8714f5b463f4b8d95340b5f8f7b72e9",
+      "contentTreeSha256": "b0df9330adac46e43e08377da77a7c2bc4ebd7523020a6f5824f2bf74592f8f1",
       "repository": "git@github.com-librecad:LibreCAD/libdxfrw.git"
     },
     "target": {
@@ -123318,8 +123326,8 @@
     {
       "facade": "shared",
       "path": "parity-source-routes-v1/standalone-shared.json",
-      "routeCount": 2924,
-      "sha256": "8fa9f22ecd8c5880a0d9901917a79442bc30b5bc1916cf360a2cec7e641fee9b",
+      "routeCount": 2928,
+      "sha256": "e0e5477856449e9116fe0f6d9af8aaf9414c4cb20022657db9bd5cc1e12a03ed",
       "side": "standalone"
     }
   ],
@@ -123352,14 +123360,14 @@
       },
       "shared": {
         "semanticMismatches": 4,
-        "standaloneOnly": 127,
+        "standaloneOnly": 131,
         "targetOnly": 52
       }
     },
     "mapping": {
       "deltaOneToOne": 805,
       "exactOneToOne": 4827,
-      "standaloneOnly": 135,
+      "standaloneOnly": 139,
       "targetOnly": 0,
       "targetRows": 5669
     },
@@ -123403,7 +123411,7 @@
         "public-header": 10,
         "public-inline-function": 3,
         "public-inline-method": 680,
-        "public-method": 1090,
+        "public-method": 1094,
         "public-model": 259,
         "public-type": 321,
         "publication-stage": 24,
@@ -123427,7 +123435,7 @@
         "writer-pipeline": 7,
         "writer-version": 14
       },
-      "routeCount": 5770
+      "routeCount": 5774
     },
     "target": {
       "categoryCounts": {
