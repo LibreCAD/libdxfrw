@@ -1766,6 +1766,33 @@ public:
         m_currentClipVertexIdx = -1;
         m_currentInverseClipVertexIdx = -1;
     }
+    DRW_Underlay(const DRW_Underlay& o): DRW_Entity(o),
+        kind(o.kind), position(o.position), scale(o.scale),
+        rotation(o.rotation), extPoint(o.extPoint), flags(o.flags),
+        contrast(o.contrast), fade(o.fade), definitionHandle(o.definitionHandle),
+        clipBoundary(o.clipBoundary), inverseClipBoundary(o.inverseClipBoundary) {
+        eType = DRW::UNDERLAY;
+        resetDxfParserState();
+    }
+    DRW_Underlay& operator=(const DRW_Underlay& o) {
+        if (this != &o) {
+            DRW_Entity::operator=(o);
+            kind = o.kind;
+            position = o.position;
+            scale = o.scale;
+            rotation = o.rotation;
+            extPoint = o.extPoint;
+            flags = o.flags;
+            contrast = o.contrast;
+            fade = o.fade;
+            definitionHandle = o.definitionHandle;
+            clipBoundary = o.clipBoundary;
+            inverseClipBoundary = o.inverseClipBoundary;
+            eType = DRW::UNDERLAY;
+            resetDxfParserState();
+        }
+        return *this;
+    }
     void applyExtrusion() override {}
 protected:
     void resetDwgState();
@@ -1793,6 +1820,13 @@ private:
     int m_currentInverseClipVertexIdx;
     std::uint32_t m_inverseClipVertexCount = 0;
     bool m_inverseClipCountSeen = false;
+
+    void resetDxfParserState() noexcept {
+        m_currentClipVertexIdx = -1;
+        m_currentInverseClipVertexIdx = -1;
+        m_inverseClipVertexCount = 0;
+        m_inverseClipCountSeen = false;
+    }
 };
 
 //! Class to handle insert entries

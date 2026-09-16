@@ -113,6 +113,8 @@ void testPublicOwnershipContracts(TestContext& t) {
                   "DRW_Table copy contract");
     static_assert(std::is_copy_constructible<DRW_Mesh>::value,
                   "DRW_Mesh copy contract");
+    static_assert(std::is_copy_constructible<DRW_Underlay>::value,
+                  "DRW_Underlay copy contract");
     static_assert(std::is_copy_constructible<DRW_Attrib>::value,
                   "DRW_Attrib copy contract");
     static_assert(std::is_copy_constructible<DRW_GeoPositionMarker>::value,
@@ -541,6 +543,23 @@ void testPublicOwnershipContracts(TestContext& t) {
     t.expect(parseDxfRecords(assignedMeshState,
                              "100\nAcDbSubDMesh\n92\n1\n10\n0\n20\n0\n30\n0\n93\n0\n94\n0\n95\n0\n90\n0\n"),
              "MESH assignment starts a fresh topology parser walk");
+
+    DRW_Underlay partialUnderlay;
+    t.expect(parseDxfRecords(partialUnderlay, "11\n0\n"),
+             "UNDERLAY parser clip state source setup");
+    DRW_Underlay copiedUnderlayState(partialUnderlay);
+    copiedUnderlayState.clipBoundary.clear();
+    t.expect(parseDxfRecords(copiedUnderlayState, "11\n1\n")
+                 && copiedUnderlayState.clipBoundary.size() == 1u
+                 && copiedUnderlayState.clipBoundary.front().x == 1.0,
+             "UNDERLAY copy starts a fresh clip parser walk");
+    DRW_Underlay assignedUnderlayState;
+    assignedUnderlayState = partialUnderlay;
+    assignedUnderlayState.clipBoundary.clear();
+    t.expect(parseDxfRecords(assignedUnderlayState, "11\n1\n")
+                 && assignedUnderlayState.clipBoundary.size() == 1u
+                 && assignedUnderlayState.clipBoundary.front().x == 1.0,
+             "UNDERLAY assignment starts a fresh clip parser walk");
 
     DRW_Dimension sourceDimension;
     sourceDimension.extData.push_back(
