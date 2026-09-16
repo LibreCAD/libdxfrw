@@ -5757,6 +5757,8 @@
         "shared/public-inline-method/src_drw_entities.h_DRW_ModelerGeometry_0ce58efd644c8897fbc5aa87898d3e61b2cd5ddc26ccbe18bdba93cdbf2e5a00",
         "shared/public-inline-method/src_drw_entities.h_DRW_NavisworksModel_78473844d3296f9b3adcb7e628fda4f7392fe4da416ddd3936bed7154e32044c",
         "shared/public-inline-method/src_drw_entities.h_DRW_NavisworksModel_efe06f3d330777cd1fc60ef0cdd4643882a734cbf7dd2ec5b5d2519fb6cc9812",
+        "shared/public-inline-method/src_drw_entities.h_DRW_PointCloudEx_34c570b751d3a39cb4a42607788d37cae0bb0e2be54eaf95cc8b166e700226f4",
+        "shared/public-inline-method/src_drw_entities.h_DRW_PointCloudEx_884fcdaf69387ccc9f84d8a07c1a2b20e4e985f16f2f57225219d2122a599b4f",
         "shared/public-inline-method/src_drw_entities.h_DRW_PointCloud_9bd8d3584365df8f21af73720dded5ce815655d314eba1a8ddde55053337fe86",
         "shared/public-inline-method/src_drw_entities.h_DRW_PointCloud_a074a8d4100c7cbc9f8a5210a1c2bfb08d23dd2c15dae569f9cdb77ce9e4e861",
         "shared/public-inline-method/src_drw_entities.h_DRW_Point_266c160cb24e15eb43776035a8caf6cb736e68bde66f76c8a212de46d5b4f3fa",
@@ -5829,6 +5831,8 @@
         "shared/public-method/src_drw_entities.h_DRW_ModelerGeometry_0ce58efd644c8897fbc5aa87898d3e61b2cd5ddc26ccbe18bdba93cdbf2e5a00",
         "shared/public-method/src_drw_entities.h_DRW_NavisworksModel_78473844d3296f9b3adcb7e628fda4f7392fe4da416ddd3936bed7154e32044c",
         "shared/public-method/src_drw_entities.h_DRW_NavisworksModel_efe06f3d330777cd1fc60ef0cdd4643882a734cbf7dd2ec5b5d2519fb6cc9812",
+        "shared/public-method/src_drw_entities.h_DRW_PointCloudEx_34c570b751d3a39cb4a42607788d37cae0bb0e2be54eaf95cc8b166e700226f4",
+        "shared/public-method/src_drw_entities.h_DRW_PointCloudEx_884fcdaf69387ccc9f84d8a07c1a2b20e4e985f16f2f57225219d2122a599b4f",
         "shared/public-method/src_drw_entities.h_DRW_PointCloud_9bd8d3584365df8f21af73720dded5ce815655d314eba1a8ddde55053337fe86",
         "shared/public-method/src_drw_entities.h_DRW_PointCloud_a074a8d4100c7cbc9f8a5210a1c2bfb08d23dd2c15dae569f9cdb77ce9e4e861",
         "shared/public-method/src_drw_entities.h_DRW_Point_266c160cb24e15eb43776035a8caf6cb736e68bde66f76c8a212de46d5b4f3fa",
@@ -5925,7 +5929,7 @@
   },
   "inputs": {
     "standalone": {
-      "contentTreeSha256": "b922262406c5f48223e6ec8697d31944d7f3fa82ff82fd962995e4844ae56661",
+      "contentTreeSha256": "96ca394acf5c683d3895be083cd47a5d0c2efe7452a8ffe280bd568466f348c0",
       "files": [
         {
           "mode": "100644",
@@ -5975,7 +5979,7 @@
         {
           "mode": "100644",
           "path": "src/drw_entities.h",
-          "sha256": "64fe7be1c6e2a200741285465f0f5bbc1b97023f0f72f9dba936bbe3c34a0e95"
+          "sha256": "16d10515ccd34a511534a66e97479f65b18c4a21ed576621904663bd7f646fbe"
         },
         {
           "mode": "100644",
@@ -123192,6 +123196,8 @@
       "shared/public-inline-method/src_drw_entities.h_DRW_Mesh_a3a583366aaecff665b8224d8c707128df1b638f792f95049d7f859cffc389b9",
       "shared/public-inline-method/src_drw_entities.h_DRW_NavisworksModel_78473844d3296f9b3adcb7e628fda4f7392fe4da416ddd3936bed7154e32044c",
       "shared/public-inline-method/src_drw_entities.h_DRW_NavisworksModel_efe06f3d330777cd1fc60ef0cdd4643882a734cbf7dd2ec5b5d2519fb6cc9812",
+      "shared/public-inline-method/src_drw_entities.h_DRW_PointCloudEx_34c570b751d3a39cb4a42607788d37cae0bb0e2be54eaf95cc8b166e700226f4",
+      "shared/public-inline-method/src_drw_entities.h_DRW_PointCloudEx_884fcdaf69387ccc9f84d8a07c1a2b20e4e985f16f2f57225219d2122a599b4f",
       "shared/public-inline-method/src_drw_entities.h_DRW_PointCloud_9bd8d3584365df8f21af73720dded5ce815655d314eba1a8ddde55053337fe86",
       "shared/public-inline-method/src_drw_entities.h_DRW_PointCloud_a074a8d4100c7cbc9f8a5210a1c2bfb08d23dd2c15dae569f9cdb77ce9e4e861",
       "shared/public-inline-method/src_drw_entities.h_DRW_Polyline_11ece727bc691c669bffa0fe1892a725a152cd1a856ddbcf71ae7f40d70af20a",
@@ -123238,6 +123244,8 @@
       "shared/public-method/src_drw_entities.h_DRW_Mesh_a3a583366aaecff665b8224d8c707128df1b638f792f95049d7f859cffc389b9",
       "shared/public-method/src_drw_entities.h_DRW_NavisworksModel_78473844d3296f9b3adcb7e628fda4f7392fe4da416ddd3936bed7154e32044c",
       "shared/public-method/src_drw_entities.h_DRW_NavisworksModel_efe06f3d330777cd1fc60ef0cdd4643882a734cbf7dd2ec5b5d2519fb6cc9812",
+      "shared/public-method/src_drw_entities.h_DRW_PointCloudEx_34c570b751d3a39cb4a42607788d37cae0bb0e2be54eaf95cc8b166e700226f4",
+      "shared/public-method/src_drw_entities.h_DRW_PointCloudEx_884fcdaf69387ccc9f84d8a07c1a2b20e4e985f16f2f57225219d2122a599b4f",
       "shared/public-method/src_drw_entities.h_DRW_PointCloud_9bd8d3584365df8f21af73720dded5ce815655d314eba1a8ddde55053337fe86",
       "shared/public-method/src_drw_entities.h_DRW_PointCloud_a074a8d4100c7cbc9f8a5210a1c2bfb08d23dd2c15dae569f9cdb77ce9e4e861",
       "shared/public-method/src_drw_entities.h_DRW_Polyline_11ece727bc691c669bffa0fe1892a725a152cd1a856ddbcf71ae7f40d70af20a",
@@ -123265,7 +123273,7 @@
     "summary": {
       "deltaOneToOne": 805,
       "exactOneToOne": 4827,
-      "standaloneOnly": 163,
+      "standaloneOnly": 167,
       "targetOnly": 0,
       "targetRows": 5669
     }
@@ -123299,7 +123307,7 @@
         "src/libdxfrw.h"
       ],
       "allowlistPath": "metadata/adaptation-allowlist.json",
-      "allowlistSha256": "17249e8071724e9c101a9b69c7953ebee0d5778eaaa119a755a4f0d07135b43e",
+      "allowlistSha256": "4eabdfaadd680466772d349b39c660d53122cc33543d22deebdb9fa9a658832c",
       "schema": 1,
       "targetCommit": "0ffb38d790db53116978e01fcaf94cee9bc6ee48",
       "targetRepository": "git@github.com-librecad:LibreCAD/LibreCAD.git"
@@ -123308,7 +123316,7 @@
       "algorithm": "sha256-canonical-json-v1",
       "bodyEvidenceExcluded": true,
       "inventoryDigests": {
-        "standalone": "f467821ffe9881d908f4963aef01f88cb278cd18c9df5d41c272090b034f842c",
+        "standalone": "a0a3a098d270a9d315fea5da7376a93c3aff4d970c162a97379a5bb20f334507",
         "target": "5c0ad5e9221c95df0c2c056148b88273e9d06a7f3e3fe1c50cc202b51a1f9f78"
       },
       "stableFields": [
@@ -123324,7 +123332,7 @@
     "standalone": {
       "baselineCommit": "92d7466ed9146badcd4fb44c82d1dd8302b3c7db",
       "baselineRef": "origin/master",
-      "contentTreeSha256": "b922262406c5f48223e6ec8697d31944d7f3fa82ff82fd962995e4844ae56661",
+      "contentTreeSha256": "96ca394acf5c683d3895be083cd47a5d0c2efe7452a8ffe280bd568466f348c0",
       "repository": "git@github.com-librecad:LibreCAD/libdxfrw.git"
     },
     "target": {
@@ -123374,8 +123382,8 @@
     {
       "facade": "shared",
       "path": "parity-source-routes-v1/standalone-shared.json",
-      "routeCount": 2952,
-      "sha256": "d66f99a5675778d41b515dd45016a87ad794eccd46d7bcf6084e28d68e9306e8",
+      "routeCount": 2956,
+      "sha256": "ab94946c4049441e587cc07110b3bca67b60a525df3062c15e4ae1f87317e3d9",
       "side": "standalone"
     }
   ],
@@ -123408,14 +123416,14 @@
       },
       "shared": {
         "semanticMismatches": 4,
-        "standaloneOnly": 155,
+        "standaloneOnly": 159,
         "targetOnly": 52
       }
     },
     "mapping": {
       "deltaOneToOne": 805,
       "exactOneToOne": 4827,
-      "standaloneOnly": 163,
+      "standaloneOnly": 167,
       "targetOnly": 0,
       "targetRows": 5669
     },
@@ -123458,8 +123466,8 @@
         "public-enum": 66,
         "public-header": 10,
         "public-inline-function": 3,
-        "public-inline-method": 692,
-        "public-method": 1106,
+        "public-inline-method": 694,
+        "public-method": 1108,
         "public-model": 259,
         "public-type": 321,
         "publication-stage": 24,
@@ -123483,7 +123491,7 @@
         "writer-pipeline": 7,
         "writer-version": 14
       },
-      "routeCount": 5798
+      "routeCount": 5802
     },
     "target": {
       "categoryCounts": {

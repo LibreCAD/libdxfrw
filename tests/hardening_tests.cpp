@@ -85,6 +85,12 @@ public:
     using DRW_PointCloud::finalizeDxf;
 };
 
+class ExposedPointCloudEx : public DRW_PointCloudEx {
+public:
+    using DRW_PointCloudEx::parseCode;
+    using DRW_PointCloudEx::finalizeDxf;
+};
+
 template <typename Entity>
 bool parseDxfRecords(Entity& entity, const std::string& source) {
     std::stringstream records(source);
@@ -130,6 +136,8 @@ void testPublicOwnershipContracts(TestContext& t) {
                   "DRW_NavisworksModel copy contract");
     static_assert(std::is_copy_constructible<DRW_PointCloud>::value,
                   "DRW_PointCloud copy contract");
+    static_assert(std::is_copy_constructible<DRW_PointCloudEx>::value,
+                  "DRW_PointCloudEx copy contract");
     static_assert(std::is_copy_constructible<DRW_Attrib>::value,
                   "DRW_Attrib copy contract");
     static_assert(std::is_copy_constructible<DRW_GeoPositionMarker>::value,
@@ -626,6 +634,30 @@ void testPublicOwnershipContracts(TestContext& t) {
                  && assignedPointCloud.classVersion == 7
                  && assignedPointCloud.pointCount == 42u,
              "POINTCLOUD assignment starts a fresh body parser walk");
+
+    const std::string pointCloudExComplete =
+        "100\nAcDbPointCloud\n70\n7\n92\n0\n93\n11\n93\n22\n";
+    ExposedPointCloudEx partialPointCloudEx;
+    t.expect(parseDxfRecords(partialPointCloudEx,
+                              "100\nAcDbPointCloud\n92\n0\n"),
+             "POINTCLOUDEX parser state source setup");
+    ExposedPointCloudEx copiedPointCloudEx(partialPointCloudEx);
+    copiedPointCloudEx.classVersion = 0;
+    t.expect(parseDxfRecords(copiedPointCloudEx, pointCloudExComplete)
+                 && copiedPointCloudEx.finalizeDxf()
+                 && copiedPointCloudEx.classVersion == 7
+                 && copiedPointCloudEx.unknownInt0 == 11
+                 && copiedPointCloudEx.unknownInt1 == 22,
+             "POINTCLOUDEX copy starts a fresh body parser walk");
+    ExposedPointCloudEx assignedPointCloudEx;
+    assignedPointCloudEx = partialPointCloudEx;
+    assignedPointCloudEx.classVersion = 0;
+    t.expect(parseDxfRecords(assignedPointCloudEx, pointCloudExComplete)
+                 && assignedPointCloudEx.finalizeDxf()
+                 && assignedPointCloudEx.classVersion == 7
+                 && assignedPointCloudEx.unknownInt0 == 11
+                 && assignedPointCloudEx.unknownInt1 == 22,
+             "POINTCLOUDEX assignment starts a fresh body parser walk");
 
     DRW_Dimension sourceDimension;
     sourceDimension.extData.push_back(

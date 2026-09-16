@@ -1999,6 +1999,12 @@ edit this block or commit the same slice concurrently.
   clipping records, and handles remain copied; focused hardening vectors pass
   and no drawing bytes or derived fixtures are used.
 
+- Current checkpoint (2026-09-16): S342/J318 extends transient parser-state
+  isolation to POINTCLOUDEX copies and assignments.  Body/subclass, cropping,
+  and declared-count markers now reset while persisted point-cloud metadata
+  and cropping records remain copied; focused hardening vectors pass and no
+  drawing bytes or derived fixtures are used.
+
 - Current checkpoint (2026-09-16): S329/J305 compound-entity graph ownership
   is committed.  Explicit copies now clone legacy POLYLINE vertices, SPLINE
   control/fit points, and INSERT attributes while resetting parser cursors;
@@ -3702,17 +3708,17 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 341 (`COMMITTED`); no slice is active.
+- Resolved slices: 342 (`COMMITTED`); no slice is active.
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 341 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 342 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 343 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 344 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 441 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 442 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  6 DEFERRED_EXTERNAL / 326 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S341 are committed; no local implementation slice is active.
+  6 DEFERRED_EXTERNAL / 328 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S342 are committed; no local implementation slice is active.
   Keep the fast inner loop and do not promote support claims from
   self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -4107,7 +4113,8 @@ edit this block or commit the same slice concurrently.
 | S338 | J314: MESH parser-state copy isolation | S337 | COMMITTED | MESH copy/assignment topology parser-state reset; focused hardening target; fixture admission; import scope; sync; plan; diff | committed focused `libdxfrw_hardening_tests` regressions for copied and assigned MESH models; no drawing bytes or derived fixtures | continue with target-bound differential debt, independent-oracle, native-platform, and release closure |
 | S339 | J315: UNDERLAY parser-state copy isolation | S338 | COMMITTED | UNDERLAY copy/assignment clip parser-state reset; focused hardening target; fixture admission; import scope; sync; plan; diff | focused `libdxfrw_hardening_tests` passes for copied and assigned UNDERLAY models; no drawing bytes or derived fixtures | continue with target-bound differential debt, independent-oracle, native-platform, and release closure |
 | S340 | J316: NAVISWORKSMODEL parser-state copy isolation | S339 | COMMITTED | NAVISWORKSMODEL copy/assignment transform parser-state reset; focused hardening target; fixture admission; import scope; sync; plan; diff | focused `libdxfrw_hardening_tests` passes for copied and assigned NAVISWORKSMODEL models; no drawing bytes or derived fixtures | continue with target-bound differential debt, independent-oracle, native-platform, and release closure |
-| S341 | J317: POINTCLOUD parser-state copy isolation | S340 | COMMITTED | POINTCLOUD copy/assignment body parser-state reset; focused hardening target; fixture admission; import scope; sync; plan; diff | focused `libdxfrw_hardening_tests` passes for copied and assigned POINTCLOUD models; no drawing bytes or derived fixtures | prepare the status-bearing commit, then continue with target-bound differential debt, independent-oracle, native-platform, and release closure |
+| S341 | J317: POINTCLOUD parser-state copy isolation | S340 | COMMITTED | POINTCLOUD copy/assignment body parser-state reset; focused hardening target; fixture admission; import scope; sync; plan; diff | focused `libdxfrw_hardening_tests` passes for copied and assigned POINTCLOUD models; no drawing bytes or derived fixtures | continue with target-bound differential debt, independent-oracle, native-platform, and release closure |
+| S342 | J318: POINTCLOUDEX parser-state copy isolation | S341 | COMMITTED | POINTCLOUDEX copy/assignment body/cropping parser-state reset; focused hardening target; fixture admission; import scope; sync; plan; diff | focused `libdxfrw_hardening_tests` passes for copied and assigned POINTCLOUDEX models; no drawing bytes or derived fixtures | prepare the status-bearing commit, then continue with target-bound differential debt, independent-oracle, native-platform, and release closure |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -4453,6 +4460,7 @@ edit this block or commit the same slice concurrently.
 | J315 | S339 | J314 | COMMITTED | EXPERIMENTAL | Harden UNDERLAY parser-state copy and assignment | Reset transient UNDERLAY clip-vertex indices and inverse-clip count state across copy/assignment while preserving persisted underlay geometry and handles; keep the no-fixture policy |
 | J316 | S340 | J315 | COMMITTED | EXPERIMENTAL | Harden NAVISWORKSMODEL parser-state copy and assignment | Reset transient NAVISWORKSMODEL transform-component cursor and subclass/body markers across copy/assignment while preserving persisted flags, definition handle, transform, and unit factor; keep the no-fixture policy |
 | J317 | S341 | J316 | COMMITTED | EXPERIMENTAL | Harden POINTCLOUD parser-state copy and assignment | Reset transient POINTCLOUD body/subclass and declared count markers across copy/assignment while preserving persisted point-cloud metadata, source files, clipping records, and handles; keep the no-fixture policy |
+| J318 | S342 | J317 | COMMITTED | EXPERIMENTAL | Harden POINTCLOUDEX parser-state copy and assignment | Reset transient POINTCLOUDEX body/subclass, cropping, and declared count markers across copy/assignment while preserving persisted point-cloud metadata and cropping records; keep the no-fixture policy |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4904,6 +4912,7 @@ edit this block or commit the same slice concurrently.
 | J315.1 | J315 / S339 | WP3.11-WP3.12, WP8, WP10; UNDERLAY parser-state copy isolation | J314 | COMMITTED | EXPERIMENTAL | assert copied and assigned UNDERLAY models accept a fresh clip-boundary walk after a partial source parse while preserving public geometry fields; keep all inputs in memory | focused `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures |
 | J316.1 | J316 / S340 | WP3.11-WP3.12, WP8, WP10; NAVISWORKSMODEL parser-state copy isolation | J315 | COMMITTED | EXPERIMENTAL | assert copied and assigned NAVISWORKSMODEL models accept a fresh 16-component transform and unit-factor walk after a partial source parse while preserving public fields; keep all inputs in memory | focused `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures |
 | J317.1 | J317 / S341 | WP3.11-WP3.12, WP8, WP10; POINTCLOUD parser-state copy isolation | J316 | COMMITTED | EXPERIMENTAL | assert copied and assigned POINTCLOUD models accept a fresh body and declared-count walk after a partial source parse while preserving public fields; keep all inputs in memory | focused `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures |
+| J318.1 | J318 / S342 | WP3.11-WP3.12, WP8, WP10; POINTCLOUDEX parser-state copy isolation | J317 | COMMITTED | EXPERIMENTAL | assert copied and assigned POINTCLOUDEX models accept a fresh body and cropping-count walk after a partial source parse while preserving public fields; keep all inputs in memory | focused `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures |
 | J313.1 | J313 / S337 | WP3.11-WP3.12, WP8, WP10; TABLE parser-state copy isolation | J312 | COMMITTED | EXPERIMENTAL | assert copied and assigned TABLE models accept fresh subclass/grid dimensions after a partial source parse while preserving public table content; keep all inputs in memory | focused `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures |
 
 <!-- UPGRADE_PROGRESS_END -->

@@ -3155,6 +3155,67 @@ public:
     static constexpr std::size_t kMaxItems = 512;
 
     DRW_PointCloudEx() { eType = DRW::POINTCLOUDEX; }
+    DRW_PointCloudEx(const DRW_PointCloudEx& o): DRW_Entity(o),
+        classVersion(o.classVersion), extentsMin(o.extentsMin),
+        extentsMax(o.extentsMax), ucsOrigin(o.ucsOrigin),
+        ucsXDirection(o.ucsXDirection), ucsYDirection(o.ucsYDirection),
+        ucsZDirection(o.ucsZDirection), isLocked(o.isLocked),
+        definitionHandle(o.definitionHandle), reactorHandle(o.reactorHandle),
+        name(o.name), showIntensity(o.showIntensity),
+        showCropping(o.showCropping), croppingCount(o.croppingCount),
+        unknownInt0(o.unknownInt0), unknownInt1(o.unknownInt1),
+        stylizationType(o.stylizationType),
+        intensityColorScheme(o.intensityColorScheme),
+        currentColorScheme(o.currentColorScheme),
+        classificationColorScheme(o.classificationColorScheme),
+        elevationMin(o.elevationMin), elevationMax(o.elevationMax),
+        intensityMin(o.intensityMin), intensityMax(o.intensityMax),
+        intensityOutOfRangeBehavior(o.intensityOutOfRangeBehavior),
+        elevationOutOfRangeBehavior(o.elevationOutOfRangeBehavior),
+        elevationApplyToFixedRange(o.elevationApplyToFixedRange),
+        intensityAsGradient(o.intensityAsGradient),
+        elevationAsGradient(o.elevationAsGradient), croppings(o.croppings) {
+        eType = DRW::POINTCLOUDEX;
+        resetDxfParserState();
+    }
+    DRW_PointCloudEx& operator=(const DRW_PointCloudEx& o) {
+        if (this != &o) {
+            DRW_Entity::operator=(o);
+            classVersion = o.classVersion;
+            extentsMin = o.extentsMin;
+            extentsMax = o.extentsMax;
+            ucsOrigin = o.ucsOrigin;
+            ucsXDirection = o.ucsXDirection;
+            ucsYDirection = o.ucsYDirection;
+            ucsZDirection = o.ucsZDirection;
+            isLocked = o.isLocked;
+            definitionHandle = o.definitionHandle;
+            reactorHandle = o.reactorHandle;
+            name = o.name;
+            showIntensity = o.showIntensity;
+            showCropping = o.showCropping;
+            croppingCount = o.croppingCount;
+            unknownInt0 = o.unknownInt0;
+            unknownInt1 = o.unknownInt1;
+            stylizationType = o.stylizationType;
+            intensityColorScheme = o.intensityColorScheme;
+            currentColorScheme = o.currentColorScheme;
+            classificationColorScheme = o.classificationColorScheme;
+            elevationMin = o.elevationMin;
+            elevationMax = o.elevationMax;
+            intensityMin = o.intensityMin;
+            intensityMax = o.intensityMax;
+            intensityOutOfRangeBehavior = o.intensityOutOfRangeBehavior;
+            elevationOutOfRangeBehavior = o.elevationOutOfRangeBehavior;
+            elevationApplyToFixedRange = o.elevationApplyToFixedRange;
+            intensityAsGradient = o.intensityAsGradient;
+            elevationAsGradient = o.elevationAsGradient;
+            croppings = o.croppings;
+            eType = DRW::POINTCLOUDEX;
+            resetDxfParserState();
+        }
+        return *this;
+    }
     void applyExtrusion() override {}
 
 protected:
@@ -3198,6 +3259,25 @@ public:
     std::vector<DRW_PointCloudExCropping> croppings;
 
 private:
+    void resetDxfParserState() noexcept {
+        m_dxfCurrentCropping = DRW_PointCloudExCropping{};
+        m_dxfTextCount = 0;
+        m_dxfSeen70 = 0;
+        m_dxfSeen71 = 0;
+        m_dxfSeen90 = 0;
+        m_dxfSeen91 = 0;
+        m_dxfSeen93 = 0;
+        m_dxfSeen290 = 0;
+        m_dxfSeen40 = 0;
+        m_dxfDirectionComponent = 0;
+        m_dxfCropPlaneComponent = 0;
+        m_dxfSawCroppingCount = false;
+        m_dxfInBody = false;
+        m_dxfHasCropping = false;
+        m_dxfCropPointOpen = false;
+        m_dxfCropPoint = DRW_Coord{};
+    }
+
     bool finishDxfCropping();
     DRW_PointCloudExCropping m_dxfCurrentCropping;
     std::size_t m_dxfTextCount = 0;
