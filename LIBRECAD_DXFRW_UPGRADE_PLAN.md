@@ -2232,6 +2232,14 @@ edit this block or commit the same slice concurrently.
   two proxy bytes separately from the four ACIS bytes for both group-92 and
   group-160 counts; the focused hardening target passes with no drawing bytes.
 
+- Current checkpoint (2026-09-16): S379/J355 runs the scheduled post-proxy
+  full validation checkpoint.  A rebuild plus all 31 dependency-free CTest
+  entries pass in 7.64 seconds, including both façade parity lanes, target
+  differential/debt reports, six-version DWG round trips, fixture-policy
+  checks, hardening, and release-readiness.  No drawing bytes or derived
+  fixtures changed; external-oracle, native-platform, and support-promotion
+  evidence remain open.
+
 - Current checkpoint (2026-09-16): S329/J305 compound-entity graph ownership
   is committed.  Explicit copies now clone legacy POLYLINE vertices, SPLINE
   control/fit points, and INSERT attributes while resetting parser cursors;
@@ -3935,20 +3943,20 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 378 (`COMMITTED`).
+- Resolved slices: 379 (`COMMITTED`).
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 378 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 379 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 380 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 381 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 VERIFIED / 0 SUPERSEDED / 481 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 VERIFIED / 0 SUPERSEDED / 482 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  6 DEFERRED_EXTERNAL / 368 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S378 and J329/J329.1/J330/J330.1/J331/J331.1/J332/J332.1/
+  6 DEFERRED_EXTERNAL / 369 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S379 and J329/J329.1/J330/J330.1/J331/J331.1/J332/J332.1/
   J333/J333.1/J334/J334.1/J335/J335.1/J336/J336.1/J337/J337.1/J338/J338.1/
   J339/J339.1/J340/J340.1/J341/J341.1/J342/J342.1/J343/J343.1/J344/J344.1/
-  J345/J345.1/J346/J346.1/J347/J347.1/J348/J348.1/J349/J349.1/J350/J350.1/J351/J351.1/J352/J352.1/J353/J353.1/J354/J354.1 are committed; no other local implementation
+  J345/J345.1/J346/J346.1/J347/J347.1/J348/J348.1/J349/J349.1/J350/J350.1/J351/J351.1/J352/J352.1/J353/J353.1/J354/J354.1/J355/J355.1 are committed; no other local implementation
   slice is active.
   Keep the fast inner loop and do not promote support claims from
   self-read alone.
@@ -4381,7 +4389,8 @@ edit this block or commit the same slice concurrently.
 | S375 | J351: MULTILEADER parser-state copy isolation | S374 | COMMITTED | MULTILEADER copy/assignment of persisted context/style/handle/legacy-array state; transient nested-context reset; focused hardening target; plan; fixture; diff | focused `libdxfrw_hardening_tests` passes partial-context copy/assignment isolation and context graph ownership checks; no drawing bytes or derived fixtures | prepare the verified slice, commit with matching trailers, report progress, and continue with native-platform, long-fuzz, external-oracle, and format-support promotion closure |
 | S376 | J352: DIMARC/LARGE_RADIAL parser-state copy isolation | S375 | COMMITTED | DIMARC and LARGE_RADIAL copy/assignment of persisted arc/jog fields; transient DXF subclass-marker reset; focused hardening target; plan; fixture; diff | focused `libdxfrw_hardening_tests` passes partial-subclass copy/assignment isolation for both dimension entities; no drawing bytes or derived fixtures | prepare the verified slice, commit with matching trailers, report progress, and continue with native-platform, long-fuzz, external-oracle, and format-support promotion closure |
 | S377 | J353: LibreCAD master proxy-graphics/ACIS refresh | S376 | COMMITTED | LibreCAD target refresh to commit `512d8bd86612f17158d4d222fcdc8a7c2b052c57`; modeler/surface proxy-routing fix; in-memory DXF vectors; lock/manifest/oracle/route refresh; focused hardening; fixture; import-scope; sync; aggregate; support; release-readiness; speed; diff | target source delta is ported; 3DSOLID/REGION/BODY and 92/160 proxy-count vectors keep proxy bytes out of ACIS/modeler payloads; all fast metadata/policy gates pass; no drawing bytes or derived fixtures | commit the verified target-refresh slice with matching trailers, report progress, and continue with native-platform, long-fuzz, external-oracle, and format-support promotion closure |
-| S378 | J354: public DXF proxy-graphics/ACIS façade regression | S377 | COMMITTED | public `dxfRW::readAscii` callback publication; 3DSOLID/REGION/BODY/PLANESURFACE coverage; group-92/group-160 counts; focused hardening; plan; fixture; diff | public façade vectors pass and confirm proxy/ACIS carrier separation and callback publication for all target entity variants; no drawing bytes or derived fixtures | commit the verified façade-regression slice with matching trailers, report progress, and continue with DWG qualification and format-support promotion closure |
+| S378 | J354: public DXF proxy-graphics/ACIS façade regression | S377 | COMMITTED | public `dxfRW::readAscii` callback publication; 3DSOLID/REGION/BODY/PLANESURFACE coverage; group-92/group-160 counts; focused hardening; plan; fixture; diff | public façade vectors pass and confirm proxy/ACIS carrier separation and callback publication for all target entity variants; no drawing bytes or derived fixtures | S379 |
+| S379 | J355: post-proxy full validation checkpoint | S378 | COMMITTED | rebuild; complete dependency-free CTest; plan; fixture; import-scope; sync; route; aggregate; support; release-readiness; speed; diff | rebuild plus all 31 dependency-free CTest entries pass in 7.64s after S378; no drawing bytes or derived fixtures changed; external-oracle, native-platform, and support-promotion evidence remain open | next independent qualification or release lane |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -4764,6 +4773,7 @@ edit this block or commit the same slice concurrently.
 | J352 | S376 | J351 | COMMITTED | EXPERIMENTAL | Harden DIMARC/LARGE_RADIAL parser-state copy and assignment | Add explicit copy/assignment/move contracts for `DRW_DimArc` and `DRW_DimLargeRadial`; preserve persisted arc/jog fields while resetting transient DXF subclass markers; keep all inputs in memory |
 | J353 | S377 | J352 | COMMITTED | EXPERIMENTAL | Refresh LibreCAD master proxy-graphics/ACIS behavior | Port the target `DRW_ModelerGeometry::parseCode` and `DRW_Surface::parseCode` routing fix from LibreCAD master `512d8bd86612f17158d4d222fcdc8a7c2b052c57`; refresh immutable target metadata and add only in-memory parser vectors for modeler/surface entities; no drawing bytes |
 | J354 | S378 | J353 | COMMITTED | EXPERIMENTAL | Exercise public DXF proxy-graphics/ACIS façade publication | Extend the dependency-free hardening sink to call `dxfRW::readAscii` and assert proxy/ACIS separation for 3DSOLID, REGION, BODY, and PLANESURFACE with both count encodings; keep all records in memory and add no fixtures |
+| J355 | S379 | J354 | COMMITTED | EXPERIMENTAL | Run the post-proxy full validation checkpoint | Rebuild the current tree and run all 31 dependency-free CTest entries after S378; retain the reduced validation cadence, no-fixture policy, and explicit external-oracle/native-platform/support-promotion boundaries |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -5252,6 +5262,7 @@ edit this block or commit the same slice concurrently.
 | J352.1 | J352 / S376 | WP3.11-WP3.12, WP8, WP10; DIMARC/LARGE_RADIAL parser-state copy isolation | J351 | COMMITTED | EXPERIMENTAL | assert copied and assigned DIMARC and LARGE_RADIAL models preserve persisted arc/jog values but do not route later group codes through a stale DXF subclass marker; keep all inputs in memory | focused `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures |
 | J353.1 | J353 / S377 | WP3.11-WP3.12, WP8, WP10; LibreCAD master proxy-graphics/ACIS refresh | J352 | COMMITTED | EXPERIMENTAL | assert announced proxy graphics (group 92 or 160 plus group 310) remain in `DRW_Entity::proxyGraphics` while subsequent modeler/surface group-310 bytes populate only the ACIS carrier; cover 3DSOLID, REGION, BODY, and surface fields with in-memory records | focused `libdxfrw_hardening_tests`, target lock/manifest, import-scope, sync, route, aggregate, support, release-readiness, speed, and diff gates pass; no drawing bytes or derived fixtures |
 | J354.1 | J354 / S378 | WP3.11-WP3.12, WP8, WP10; public DXF proxy-graphics/ACIS façade regression | J353 | COMMITTED | EXPERIMENTAL | assert public `dxfRW::readAscii` publishes exactly one modeler/surface callback and keeps proxy bytes `AA BB` separate from ACIS bytes `ACIS` for both proxy-count encodings and all modeler entity names; keep all records in memory | focused `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures |
+| J355.1 | J355 / S379 | WP8, WP10; post-proxy full validation checkpoint | J354 | COMMITTED | EXPERIMENTAL | run a fresh normal build and all 31 dependency-free CTest entries after the target proxy-graphics refresh and public façade regression, preserving the no-fixture policy and reduced validation cadence | rebuild plus 31/31 CTest entries pass in 7.64s; no drawing bytes or derived fixtures changed; external-oracle, native-platform, and support-promotion evidence remain open |
 | J313.1 | J313 / S337 | WP3.11-WP3.12, WP8, WP10; TABLE parser-state copy isolation | J312 | COMMITTED | EXPERIMENTAL | assert copied and assigned TABLE models accept fresh subclass/grid dimensions after a partial source parse while preserving public table content; keep all inputs in memory | focused `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures |
 
 <!-- UPGRADE_PROGRESS_END -->
