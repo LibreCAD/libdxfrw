@@ -225,6 +225,26 @@ public:
     using DRW_PointCloudColorMap::parseCode;
 };
 
+class ExposedSunStudy : public DRW_SunStudy {
+public:
+    using DRW_SunStudy::parseCode;
+};
+
+class ExposedMotionPath : public DRW_MotionPath {
+public:
+    using DRW_MotionPath::parseCode;
+};
+
+class ExposedCurvePath : public DRW_CurvePath {
+public:
+    using DRW_CurvePath::parseCode;
+};
+
+class ExposedPointPath : public DRW_PointPath {
+public:
+    using DRW_PointPath::parseCode;
+};
+
 template <typename Entity>
 bool parseDxfRecords(Entity& entity, const std::string& source) {
     std::stringstream records(source);
@@ -326,6 +346,14 @@ void testPublicOwnershipContracts(TestContext& t) {
                   "DRW_DimensionAssociation copy contract");
     static_assert(std::is_copy_constructible<DRW_PointCloudColorMap>::value,
                   "DRW_PointCloudColorMap copy contract");
+    static_assert(std::is_copy_constructible<DRW_SunStudy>::value,
+                  "DRW_SunStudy copy contract");
+    static_assert(std::is_copy_constructible<DRW_MotionPath>::value,
+                  "DRW_MotionPath copy contract");
+    static_assert(std::is_copy_constructible<DRW_CurvePath>::value,
+                  "DRW_CurvePath copy contract");
+    static_assert(std::is_copy_constructible<DRW_PointPath>::value,
+                  "DRW_PointPath copy contract");
     static_assert(std::is_copy_constructible<DRW_Attrib>::value,
                   "DRW_Attrib copy contract");
     static_assert(std::is_copy_constructible<DRW_GeoPositionMarker>::value,
@@ -1489,6 +1517,91 @@ void testPublicOwnershipContracts(TestContext& t) {
                             .m_colorSchemes.front()
                         == "assigned-ramp",
              "POINTCLOUDCOLORMAP assignment clears ramp/default parser state");
+
+    const std::string sunStudyBody =
+        "90\n7\n1\nsetup\n2\ndescription\n3\nsheet\n4\nsubset\n"
+        "70\n0\n290\n1\n91\n1\n90\n10\n90\n20\n91\n2\n"
+        "290\n1\n290\n0\n40\n2.5\n340\nA1\n341\nA2\n"
+        "342\nA3\n343\nA4\n";
+    ExposedSunStudy partialSunStudy;
+    t.expect(parseDxfRecords(partialSunStudy, sunStudyBody)
+                 && partialSunStudy.m_classVersion == 7
+                 && partialSunStudy.m_dates.size() == 1u
+                 && partialSunStudy.m_dates.front().m_julianDay == 10
+                 && partialSunStudy.m_dates.front().m_milliseconds == 20
+                 && partialSunStudy.m_hours.size() == 2u
+                 && partialSunStudy.m_hours.front()
+                 && !partialSunStudy.m_hours.back()
+                 && partialSunStudy.m_pageSetupWizardHandle == 0xA1u,
+             "SUNSTUDY parser state source setup");
+    ExposedSunStudy copiedSunStudy(partialSunStudy);
+    const bool copiedSunStudyFresh = parseDxfRecords(
+        copiedSunStudy, "90\n8\n91\n1\n90\n30\n90\n40\n");
+    t.expect(copiedSunStudyFresh && copiedSunStudy.m_dates.size() == 2u
+                 && copiedSunStudy.m_dates.back().m_julianDay == 30
+                 && copiedSunStudy.m_dates.back().m_milliseconds == 40
+                 && copiedSunStudy.m_hours.size() == 2u,
+             "SUNSTUDY copy clears date/hour parser state");
+    ExposedSunStudy assignedSunStudy;
+    assignedSunStudy = partialSunStudy;
+    const bool assignedSunStudyFresh = parseDxfRecords(
+        assignedSunStudy, "90\n9\n91\n1\n90\n50\n90\n60\n");
+    t.expect(assignedSunStudyFresh && assignedSunStudy.m_dates.size() == 2u
+                 && assignedSunStudy.m_dates.back().m_julianDay == 50
+                 && assignedSunStudy.m_dates.back().m_milliseconds == 60
+                 && assignedSunStudy.m_hours.size() == 2u,
+             "SUNSTUDY assignment clears date/hour parser state");
+
+    const std::string motionPathBody =
+        "90\n1\n90\n2\n90\n3\n340\nA1\n340\nA2\n340\nA3\n";
+    ExposedMotionPath partialMotionPath;
+    t.expect(parseDxfRecords(partialMotionPath, motionPathBody)
+                 && partialMotionPath.m_classVersion == 1
+                 && partialMotionPath.m_frames == 2
+                 && partialMotionPath.m_frameRate == 3
+                 && partialMotionPath.m_viewTableHandle == 0xA3u,
+             "MOTIONPATH parser state source setup");
+    ExposedMotionPath copiedMotionPath(partialMotionPath);
+    t.expect(parseDxfRecords(copiedMotionPath, "90\n9\n")
+                 && copiedMotionPath.m_classVersion == 9,
+             "MOTIONPATH copy clears positional parser state");
+    ExposedMotionPath assignedMotionPath;
+    assignedMotionPath = partialMotionPath;
+    t.expect(parseDxfRecords(assignedMotionPath, "90\n10\n")
+                 && assignedMotionPath.m_classVersion == 10,
+             "MOTIONPATH assignment clears positional parser state");
+
+    ExposedCurvePath partialCurvePath;
+    t.expect(parseDxfRecords(partialCurvePath, "90\n1\n340\nA1\n")
+                 && partialCurvePath.m_classVersion == 1
+                 && partialCurvePath.m_entityHandle == 0xA1u,
+             "CURVEPATH parser state source setup");
+    ExposedCurvePath copiedCurvePath(partialCurvePath);
+    t.expect(parseDxfRecords(copiedCurvePath, "90\n2\n")
+                 && copiedCurvePath.m_classVersion == 2,
+             "CURVEPATH copy clears positional parser state");
+    ExposedCurvePath assignedCurvePath;
+    assignedCurvePath = partialCurvePath;
+    t.expect(parseDxfRecords(assignedCurvePath, "340\nA2\n")
+                 && assignedCurvePath.m_entityHandle == 0xA2u,
+             "CURVEPATH assignment clears positional parser state");
+
+    ExposedPointPath partialPointPath;
+    t.expect(parseDxfRecords(partialPointPath,
+                             "90\n1\n10\n1\n20\n2\n30\n3\n")
+                 && partialPointPath.m_classVersion == 1
+                 && partialPointPath.m_point.x == 1.0
+                 && partialPointPath.m_point.z == 3.0,
+             "POINTPATH parser state source setup");
+    ExposedPointPath copiedPointPath(partialPointPath);
+    t.expect(parseDxfRecords(copiedPointPath, "10\n9\n")
+                 && copiedPointPath.m_point.x == 9.0,
+             "POINTPATH copy clears coordinate parser state");
+    ExposedPointPath assignedPointPath;
+    assignedPointPath = partialPointPath;
+    t.expect(parseDxfRecords(assignedPointPath, "10\n8\n")
+                 && assignedPointPath.m_point.x == 8.0,
+             "POINTPATH assignment clears coordinate parser state");
 
     DRW_Dimension sourceDimension;
     sourceDimension.extData.push_back(

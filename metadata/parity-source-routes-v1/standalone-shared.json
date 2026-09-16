@@ -8867,7 +8867,7 @@
           "symbol": "DRW_AcDbPlaceholder::encodeDwg"
         },
         {
-          "line": 5023,
+          "line": 5141,
           "path": "src/drw_objects.h",
           "spanSha256": "f07e58491dd358b34f6f39c222a539cfadbb0c067f76f53d1e8aa3184a8312f2",
           "symbol": "DRW_AcDbPlaceholder"
@@ -8908,7 +8908,7 @@
           "symbol": "DRW_AcShHistoryObject::parseDwg"
         },
         {
-          "line": 5285,
+          "line": 5403,
           "path": "src/drw_objects.h",
           "spanSha256": "54f3193958ac1f54341152adc601ddecfb423ad7a401f10da6545b987b47ad55",
           "symbol": "DRW_AcShHistoryObject"
@@ -9331,7 +9331,7 @@
       ],
       "evidence": [
         {
-          "line": 5187,
+          "line": 5305,
           "path": "src/drw_objects.h",
           "spanSha256": "90b58edca49db8dbb1492edf784ceb8279493ae7d4c0fbdf0160241af052db58",
           "symbol": "DRW_AssociativeHandleRef"
@@ -9367,7 +9367,7 @@
           "symbol": "DRW_AssociativeObject::parseDwg"
         },
         {
-          "line": 5225,
+          "line": 5343,
           "path": "src/drw_objects.h",
           "spanSha256": "3874b3dd34e9c4c2aa11820d85b019c4db10c77f4f4b502e3e30473c74522a0b",
           "symbol": "DRW_AssociativeObject"
@@ -9402,7 +9402,7 @@
       ],
       "evidence": [
         {
-          "line": 5192,
+          "line": 5310,
           "path": "src/drw_objects.h",
           "spanSha256": "fcb50ba615c85a3de8db861a3348504bcadc2a377915dbc2a6dbfcce7f20846c",
           "symbol": "DRW_AssociativePrefixStatus"
@@ -9675,7 +9675,7 @@
           "symbol": "DRW_BlockRepresentationData::encodeDwg"
         },
         {
-          "line": 4996,
+          "line": 5114,
           "path": "src/drw_objects.h",
           "spanSha256": "01d6ec92a0b9a9e123f608d5a7e3900fe5da7771499a5022cdbdfa5aa827a7c1",
           "symbol": "DRW_BlockRepresentationData"
@@ -9758,7 +9758,7 @@
           "symbol": "DRW_BreakData::parseDwg"
         },
         {
-          "line": 5836,
+          "line": 5954,
           "path": "src/drw_objects.h",
           "spanSha256": "f8cae7db6d9459bcc5bc39c8263c3da512c05cb857657478d3506ddca4ccffa7",
           "symbol": "DRW_BreakData"
@@ -9799,7 +9799,7 @@
           "symbol": "DRW_BreakPointRef::parseDwg"
         },
         {
-          "line": 5871,
+          "line": 5989,
           "path": "src/drw_objects.h",
           "spanSha256": "01379affc17f7f93cc0a0c044e1385c3e908b16b478500a87ab4ee79d874e489",
           "symbol": "DRW_BreakPointRef"
@@ -9918,7 +9918,7 @@
           "symbol": "DRW_CellStyleMap::parseDwg"
         },
         {
-          "line": 4262,
+          "line": 4380,
           "path": "src/drw_objects.h",
           "spanSha256": "74d0823cff581fc8793600efdabe3ae8d42c3ece3efd67e63ed6c4d0caeaa385",
           "symbol": "DRW_CellStyleMap"
@@ -10218,7 +10218,7 @@
           "symbol": "DRW_CurvePath::encodeDwg"
         },
         {
-          "line": 3810,
+          "line": 3896,
           "path": "src/drw_objects.h",
           "spanSha256": "80c83581a32b0fb5bbaa9f6a8bb82ce7a4333a123514590fc567fc78f7938d74",
           "symbol": "DRW_CurvePath"
@@ -10648,7 +10648,7 @@
           "symbol": "DRW_DbColor::encodeDwg"
         },
         {
-          "line": 4599,
+          "line": 4717,
           "path": "src/drw_objects.h",
           "spanSha256": "6c8d3ec8f8bf3a44a73b00c9e2cd111085b5a33493b6be55eb972c981e838d2b",
           "symbol": "DRW_DbColor"
@@ -10700,7 +10700,7 @@
           "symbol": "DRW_DetailViewStyle::parseDwg"
         },
         {
-          "line": 5720,
+          "line": 5838,
           "path": "src/drw_objects.h",
           "spanSha256": "b3307941d6d8d54f5143fb3da41e1698a66208c317eec2e02909e2c6c9c55345",
           "symbol": "DRW_DetailViewStyle"
@@ -11500,7 +11500,7 @@
           "symbol": "DRW_DimensionAssociation::encodeDwg"
         },
         {
-          "line": 4824,
+          "line": 4942,
           "path": "src/drw_objects.h",
           "spanSha256": "a66a7732fee1c1a580a51d2140562bc974b072e07d572eb7cdb3eef1bc57cecd",
           "symbol": "DRW_DimensionAssociation"
@@ -11540,7 +11540,7 @@
       ],
       "evidence": [
         {
-          "line": 4817,
+          "line": 4935,
           "path": "src/drw_objects.h",
           "spanSha256": "37a02e0d2fe5287e4ed67cd2449c8b8baa6d353859c7514194c698b5ab723b06",
           "symbol": "DRW_DimensionAssociationOsnapRef"
@@ -12229,7 +12229,7 @@
           "symbol": "DRW_DynamicBlockObject::parseDwg"
         },
         {
-          "line": 5370,
+          "line": 5488,
           "path": "src/drw_objects.h",
           "spanSha256": "638fdea50813ff3d48845041f866a075237649880802044fcd4996d295f2c5d6",
           "symbol": "DRW_DynamicBlockObject"
@@ -12451,7 +12451,7 @@
           "symbol": "DRW_EvaluationGraph::encodeDwg"
         },
         {
-          "line": 4918,
+          "line": 5036,
           "path": "src/drw_objects.h",
           "spanSha256": "596c4c4c2b6d748c90ff238b1473aa1511d740179f114df742ebb9853c825e1e",
           "symbol": "DRW_EvaluationGraph"
@@ -12491,7 +12491,7 @@
       ],
       "evidence": [
         {
-          "line": 4904,
+          "line": 5022,
           "path": "src/drw_objects.h",
           "spanSha256": "8701851570ba90e6d9c334dcbce30e954678a4c96b838643533bd16fb44cbdfc",
           "symbol": "DRW_EvaluationGraphEdge"
@@ -12515,7 +12515,7 @@
       ],
       "evidence": [
         {
-          "line": 4893,
+          "line": 5011,
           "path": "src/drw_objects.h",
           "spanSha256": "5922b03493eec057841951c89926ff77b41f22f632ffb1d03ca4e24e0ffdd6ef",
           "symbol": "DRW_EvaluationGraphNode"
@@ -13229,7 +13229,7 @@
           "symbol": "DRW_IDBuffer::encodeDwg"
         },
         {
-          "line": 6064,
+          "line": 6182,
           "path": "src/drw_objects.h",
           "spanSha256": "c13c396ec92f1d540fa9c5d9d647db0a07643a13e9acaf55919f3eda32e741f6",
           "symbol": "DRW_IDBuffer"
@@ -13458,7 +13458,7 @@
           "symbol": "DRW_Index::parseDwg"
         },
         {
-          "line": 6017,
+          "line": 6135,
           "path": "src/drw_objects.h",
           "spanSha256": "0aeb4ed9d4ca0c77e24916eddb564eb872105482ff401d55530bfe2dbff16c53",
           "symbol": "DRW_Index"
@@ -13867,7 +13867,7 @@
           "symbol": "DRW_LayerIndex::encodeDwg"
         },
         {
-          "line": 6122,
+          "line": 6240,
           "path": "src/drw_objects.h",
           "spanSha256": "5a18530a40dc671176d2d19746692310c58221407ebcd60f36bafa0a269a43e8",
           "symbol": "DRW_LayerIndex"
@@ -13907,7 +13907,7 @@
       ],
       "evidence": [
         {
-          "line": 6115,
+          "line": 6233,
           "path": "src/drw_objects.h",
           "spanSha256": "ca433969201ec3ded7d7e2c0d12c5469d0cb17c038e17c32014ba41229dd4630",
           "symbol": "DRW_LayerIndexEntry"
@@ -13950,7 +13950,7 @@
           "symbol": "DRW_Layout::encodeDwg"
         },
         {
-          "line": 4286,
+          "line": 4404,
           "path": "src/drw_objects.h",
           "spanSha256": "c0e957e44d5fc96bff12d9bd94b02354ea3e2b4f67863a9e3b1c403c27b589ec",
           "symbol": "DRW_Layout"
@@ -14436,7 +14436,7 @@
           "symbol": "DRW_MLeaderStyle::encodeDwg"
         },
         {
-          "line": 4470,
+          "line": 4588,
           "path": "src/drw_objects.h",
           "spanSha256": "c5683414c3b086fa873579bd480531919bba838bff837909d804d705fff6b3a5",
           "symbol": "DRW_MLeaderStyle"
@@ -14535,7 +14535,7 @@
       ],
       "evidence": [
         {
-          "line": 4414,
+          "line": 4532,
           "path": "src/drw_objects.h",
           "spanSha256": "4cc2649a13b3ddfcffc87c8b53397f3d49dc38299cc2d85b6526072955346642",
           "symbol": "DRW_MLineElement"
@@ -14578,7 +14578,7 @@
           "symbol": "DRW_MLineStyle::encodeDwg"
         },
         {
-          "line": 4431,
+          "line": 4549,
           "path": "src/drw_objects.h",
           "spanSha256": "2dad2e934b5680c8e4ab12d47d1aeebbc76533400f991864de311c5f48c08443",
           "symbol": "DRW_MLineStyle"
@@ -14902,7 +14902,7 @@
       ],
       "evidence": [
         {
-          "line": 5710,
+          "line": 5828,
           "path": "src/drw_objects.h",
           "spanSha256": "8eca59c493dd21da3244263bae58c5aab1d6e261d4e2cc4077997d249fe75cf8",
           "symbol": "DRW_ModelDocViewStyle"
@@ -15016,7 +15016,7 @@
           "symbol": "DRW_MotionPath::encodeDwg"
         },
         {
-          "line": 3779,
+          "line": 3840,
           "path": "src/drw_objects.h",
           "spanSha256": "febe1d421fb5a49300e5b3770f5349d399f2a3f39f17ef20c5dfc06988bfba9c",
           "symbol": "DRW_MotionPath"
@@ -15216,7 +15216,7 @@
           "symbol": "DRW_ObjectContextData::parseDwg"
         },
         {
-          "line": 4696,
+          "line": 4814,
           "path": "src/drw_objects.h",
           "spanSha256": "ef4144a68486c79afc7475124f4f4dc8d6359aaeee4096f038e93de102c7b579",
           "symbol": "DRW_ObjectContextData"
@@ -15265,7 +15265,7 @@
           "symbol": "DRW_ObjectPtr::encodeDwg"
         },
         {
-          "line": 3862,
+          "line": 3980,
           "path": "src/drw_objects.h",
           "spanSha256": "fb66c92cf9a67dd842b43cc9410f429c0ffe61d17fe2b43f83df5f5ed2566e30",
           "symbol": "DRW_ObjectPtr"
@@ -15490,7 +15490,7 @@
           "symbol": "DRW_PartialViewingIndex::encodeDwg"
         },
         {
-          "line": 3889,
+          "line": 4007,
           "path": "src/drw_objects.h",
           "spanSha256": "2181449a8ed78799dd82305fbbfea98cd17214bfc73d2edfa801e8f13247e89e",
           "symbol": "DRW_PartialViewingIndex"
@@ -15530,7 +15530,7 @@
       ],
       "evidence": [
         {
-          "line": 3883,
+          "line": 4001,
           "path": "src/drw_objects.h",
           "spanSha256": "6e47d87335687329638fd682a2bf15cf4e706bd61b473aabc05706f04263fe10",
           "symbol": "DRW_PartialViewingIndexEntry"
@@ -16047,7 +16047,7 @@
           "symbol": "DRW_PointPath::encodeDwg"
         },
         {
-          "line": 3836,
+          "line": 3938,
           "path": "src/drw_objects.h",
           "spanSha256": "339a41d23cb28858ed35d5dd760580295120ab491c336169ba10c5754ece81d0",
           "symbol": "DRW_PointPath"
@@ -16188,7 +16188,7 @@
           "symbol": "DRW_ProxyObject::parseDwg"
         },
         {
-          "line": 5076,
+          "line": 5194,
           "path": "src/drw_objects.h",
           "spanSha256": "c26a6f39b7732dc281ab16c51671f6b730cdb06815b0939f8865def97e1dd29a",
           "symbol": "DRW_ProxyObject"
@@ -16218,7 +16218,7 @@
       ],
       "evidence": [
         {
-          "line": 5069,
+          "line": 5187,
           "path": "src/drw_objects.h",
           "spanSha256": "1f3efefe674a8a3b9b26883d204e095636cd66c17f08730de95aea9e5ef967ab",
           "symbol": "DRW_ProxyObjectIdRef"
@@ -16499,7 +16499,7 @@
           "symbol": "DRW_RenderSettings::encodeDwg"
         },
         {
-          "line": 3925,
+          "line": 4043,
           "path": "src/drw_objects.h",
           "spanSha256": "3c3202bb0f6dceced082610b74d20826992f03c5e2da950814495af057d27fa3",
           "symbol": "DRW_RenderSettings"
@@ -16690,7 +16690,7 @@
           "symbol": "DRW_Scale::parseDwg"
         },
         {
-          "line": 4655,
+          "line": 4773,
           "path": "src/drw_objects.h",
           "spanSha256": "a6618edbd2ec1f8862acc7a09724fbd96977d8074744fb1ab1bf1dc97cbdf2d1",
           "symbol": "DRW_Scale"
@@ -16749,7 +16749,7 @@
           "symbol": "DRW_Section::encodeDwg"
         },
         {
-          "line": 4051,
+          "line": 4169,
           "path": "src/drw_objects.h",
           "spanSha256": "8b9a4c24c0d36f82c75c51ea17d051a69f742d6d8138f600caa5e8d59388c140",
           "symbol": "DRW_Section"
@@ -16789,7 +16789,7 @@
       ],
       "evidence": [
         {
-          "line": 4015,
+          "line": 4133,
           "path": "src/drw_objects.h",
           "spanSha256": "99f65d35cb0c34d7edb8a165ae5a3c7cc672254d52e6b96a20becedccb336fe6",
           "symbol": "DRW_SectionGeometrySettings"
@@ -16872,7 +16872,7 @@
       ],
       "evidence": [
         {
-          "line": 4036,
+          "line": 4154,
           "path": "src/drw_objects.h",
           "spanSha256": "9f01fbc72741ce3bea1546e0190152222950ece1fd5788fce601a2e9e26d9bdb",
           "symbol": "DRW_SectionTypeSettings"
@@ -16908,7 +16908,7 @@
           "symbol": "DRW_SectionViewStyle::parseDwg"
         },
         {
-          "line": 5772,
+          "line": 5890,
           "path": "src/drw_objects.h",
           "spanSha256": "9e5f8260274b8b1f29f0bab8bc4437b8119462585ca8ab20aa77da96511bb363",
           "symbol": "DRW_SectionViewStyle"
@@ -17235,7 +17235,7 @@
           "symbol": "DRW_SpatialIndex::encodeDwg"
         },
         {
-          "line": 6190,
+          "line": 6308,
           "path": "src/drw_objects.h",
           "spanSha256": "753a3e6005ddc82ce5bd0b589761c303110694e21d99b97c2be0a9e34ea5d3de",
           "symbol": "DRW_SpatialIndex"
@@ -17375,7 +17375,7 @@
           "symbol": "DRW_Sun::encodeDwg"
         },
         {
-          "line": 5140,
+          "line": 5258,
           "path": "src/drw_objects.h",
           "spanSha256": "d398cfc1aae395ccfb562c69e32cf8f1e9a8e58915a60131b4e4a1c08ca05009",
           "symbol": "DRW_Sun"
@@ -18051,7 +18051,7 @@
           "symbol": "DRW_TableStyle::encodeDwg"
         },
         {
-          "line": 4214,
+          "line": 4332,
           "path": "src/drw_objects.h",
           "spanSha256": "a1b13e30b6e5db1336bbd0df844b1cf63d252aea34fd29654121f2bc345281b0",
           "symbol": "DRW_TableStyle"
@@ -18091,7 +18091,7 @@
       ],
       "evidence": [
         {
-          "line": 4154,
+          "line": 4272,
           "path": "src/drw_objects.h",
           "spanSha256": "9da8a4d2ffc2d9e9d6a00f42e4925e701997f00f84bce6ee7d57c82120bcbfd1",
           "symbol": "DRW_TableStyleBorder"
@@ -18115,7 +18115,7 @@
       ],
       "evidence": [
         {
-          "line": 4179,
+          "line": 4297,
           "path": "src/drw_objects.h",
           "spanSha256": "600df30da6e7d01beef542262a0963b3e458a4e3bf4fa36498e54e6802987d28",
           "symbol": "DRW_TableStyleCellStyle"
@@ -18139,7 +18139,7 @@
       ],
       "evidence": [
         {
-          "line": 4165,
+          "line": 4283,
           "path": "src/drw_objects.h",
           "spanSha256": "faddde176361d49a7f1f23de6fea942075433ba504376a0dd304a4b914033331",
           "symbol": "DRW_TableStyleContentFormat"
@@ -18163,7 +18163,7 @@
       ],
       "evidence": [
         {
-          "line": 4200,
+          "line": 4318,
           "path": "src/drw_objects.h",
           "spanSha256": "a1da15a16022152e339e5b06959eca2bfdd80a72d239ec375607fa664b0cde83",
           "symbol": "DRW_TableStyleRowStyle"
@@ -18632,7 +18632,7 @@
           "symbol": "DRW_UnderlayDefinition::encodeDwg"
         },
         {
-          "line": 5986,
+          "line": 6104,
           "path": "src/drw_objects.h",
           "spanSha256": "fcda26f9b253757f7fc838066217297fdd6eb0e044fe56a0f626f75748c7d626",
           "symbol": "DRW_UnderlayDefinition"
@@ -18733,7 +18733,7 @@
           "symbol": "DRW_VbaProject::encodeDwg"
         },
         {
-          "line": 5042,
+          "line": 5160,
           "path": "src/drw_objects.h",
           "spanSha256": "ea9aef10aeb905e87dd733b62f699c9038ad2dcd98dab79936901317b3c87984",
           "symbol": "DRW_VbaProject"
@@ -19060,7 +19060,7 @@
           "symbol": "DRW_VisualStyle::encodeDwg"
         },
         {
-          "line": 5947,
+          "line": 6065,
           "path": "src/drw_objects.h",
           "spanSha256": "7de8182c8b73bdfa0aaf37bdcc707dc6e029589089445365950f074e9a7c8749",
           "symbol": "DRW_VisualStyle"
@@ -19100,7 +19100,7 @@
       ],
       "evidence": [
         {
-          "line": 5895,
+          "line": 6013,
           "path": "src/drw_objects.h",
           "spanSha256": "4f2f6c811165482a4e2128b15f0e5a954bf1e7ce0c0723696a9c883a29284872",
           "symbol": "DRW_VisualStyleBody"
@@ -19397,7 +19397,7 @@
       ],
       "evidence": [
         {
-          "line": 6250,
+          "line": 6368,
           "path": "src/drw_objects.h",
           "spanSha256": "af6afa7ecbe9030da9b38b2b71864e13e72b5d823227b1cdac2df627a69f292e",
           "symbol": "DRW_WritingContext"
@@ -19842,7 +19842,7 @@
         {
           "line": 1,
           "path": "src/drw_objects.h",
-          "spanSha256": "cb6ee48d60bdcbdb70c87d6f09b13b844fbeb4316c13e8b5bafbd39f2919249f",
+          "spanSha256": "8eb6cb77cb3a5872ba0fa1f223110f47f1e9b00c6b837a9e93062d6ca1e1f6e0",
           "symbol": "src/drw_objects.h"
         }
       ],
@@ -24639,7 +24639,7 @@
       ],
       "evidence": [
         {
-          "line": 5193,
+          "line": 5311,
           "path": "src/drw_objects.h",
           "spanSha256": "3b9603a6540d5f6ab444d720ddf60f2efd63fea7ada7be3f29b5188efca8db1c",
           "symbol": "DRW_AssociativePrefixStatus::Kind"
@@ -24710,7 +24710,7 @@
       ],
       "evidence": [
         {
-          "line": 5205,
+          "line": 5323,
           "path": "src/drw_objects.h",
           "spanSha256": "ac993e5fd3c25145aa54161c44c6ad0c0917c66481e24209bde1f13066580026",
           "symbol": "DRW_AssociativePrefixStatus::ParseStatus"
@@ -25327,7 +25327,7 @@
       ],
       "evidence": [
         {
-          "line": 5375,
+          "line": 5493,
           "path": "src/drw_objects.h",
           "spanSha256": "2dd9818958416e2f58a7706686bc29060155d9879370db7bfe595049cdfb7c68",
           "symbol": "DRW_DynamicBlockObject::Kind"
@@ -25559,7 +25559,7 @@
       ],
       "evidence": [
         {
-          "line": 4699,
+          "line": 4817,
           "path": "src/drw_objects.h",
           "spanSha256": "1b910a93968953c3c1c1f666f85fbfe55b43a3db54ace0bd54ad73d7f7767494",
           "symbol": "DRW_ObjectContextData::Kind"
@@ -25706,7 +25706,7 @@
       ],
       "evidence": [
         {
-          "line": 3928,
+          "line": 4046,
           "path": "src/drw_objects.h",
           "spanSha256": "23feebead75f87b9ebd4121e0efcb69dd93ebbc629d50ebdd328daaf332e33e1",
           "symbol": "DRW_RenderSettings::Kind"
@@ -25762,7 +25762,7 @@
       ],
       "evidence": [
         {
-          "line": 4054,
+          "line": 4172,
           "path": "src/drw_objects.h",
           "spanSha256": "27447d64043a42a26e9da8c8776b94180560510c3e5e8de178b43b13745aa722",
           "symbol": "DRW_Section::Kind"
@@ -26214,7 +26214,7 @@
       ],
       "evidence": [
         {
-          "line": 5989,
+          "line": 6107,
           "path": "src/drw_objects.h",
           "spanSha256": "c2a0d5130ae4ef0d58f7e1a9ea6ceada434649ef344ecc06bc3fadc8842bfbac",
           "symbol": "DRW_UnderlayDefinition::Kind"
@@ -26411,7 +26411,7 @@
         {
           "line": 1,
           "path": "src/drw_objects.h",
-          "spanSha256": "cb6ee48d60bdcbdb70c87d6f09b13b844fbeb4316c13e8b5bafbd39f2919249f",
+          "spanSha256": "8eb6cb77cb3a5872ba0fa1f223110f47f1e9b00c6b837a9e93062d6ca1e1f6e0",
           "symbol": "src/drw_objects.h"
         }
       ],
@@ -38281,7 +38281,7 @@
       ],
       "evidence": [
         {
-          "line": 5027,
+          "line": 5145,
           "path": "src/drw_objects.h",
           "spanSha256": "665d5f474e0f71621d39c568a3091f4bb5952373bbe5e3a3a1dd143684aad391",
           "symbol": "DRW_AcDbPlaceholder::reset"
@@ -38306,20 +38306,20 @@
       ],
       "evidence": [
         {
-          "line": 5026,
+          "line": 5144,
           "path": "src/drw_objects.h",
           "spanSha256": "537ea55de45896d1da4c656054ce37ba79fd8b12d94788f01b245b9d659ae298",
           "symbol": "DRW_AcDbPlaceholder::DRW_AcDbPlaceholder"
         }
       ],
       "facade": "shared",
-      "id": "shared/public-inline-method/src_drw_objects.h_DRW_AcDbPlaceholder_fa00b143d47b8c329a25d2a6bc60d4a24ce9eb8cc8980252c92a9e66703f31a6",
+      "id": "shared/public-inline-method/src_drw_objects.h_DRW_AcDbPlaceholder_8eb0881f6821a44b85571649ec333243ed66102a0e06854f96c1120c2d103b4e",
       "selector": {
         "implementationKind": "body",
         "kind": "method",
         "owner": "DRW_AcDbPlaceholder",
         "qualifiedName": "DRW_AcDbPlaceholder::DRW_AcDbPlaceholder",
-        "signatureFingerprint": "fa00b143d47b8c329a25d2a6bc60d4a24ce9eb8cc8980252c92a9e66703f31a6",
+        "signatureFingerprint": "8eb0881f6821a44b85571649ec333243ed66102a0e06854f96c1120c2d103b4e",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -38331,20 +38331,20 @@
       ],
       "evidence": [
         {
-          "line": 5289,
+          "line": 5407,
           "path": "src/drw_objects.h",
           "spanSha256": "89cb61204ba481ffa9bdbdb61de3c323a90c7b206b0ea4775962c05c0dc530b2",
           "symbol": "DRW_AcShHistoryObject::m_recordName"
         }
       ],
       "facade": "shared",
-      "id": "shared/public-inline-method/src_drw_objects.h_DRW_AcShHistoryObject_39dd08042f22fef7246f86a918b0a7942ca1d153aabc5cb76b00c15403ef7637",
+      "id": "shared/public-inline-method/src_drw_objects.h_DRW_AcShHistoryObject_f8daa8f7b3038605120e54a954184f9cb83da93518af65df8a7c155b1e2c7274",
       "selector": {
         "implementationKind": "body",
         "kind": "method",
         "owner": "DRW_AcShHistoryObject",
         "qualifiedName": "DRW_AcShHistoryObject::m_recordName",
-        "signatureFingerprint": "39dd08042f22fef7246f86a918b0a7942ca1d153aabc5cb76b00c15403ef7637",
+        "signatureFingerprint": "f8daa8f7b3038605120e54a954184f9cb83da93518af65df8a7c155b1e2c7274",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -38406,20 +38406,20 @@
       ],
       "evidence": [
         {
-          "line": 5229,
+          "line": 5347,
           "path": "src/drw_objects.h",
           "spanSha256": "030d7aed69059913e601ce1ed00afa9cd3fca55089ed413a9456bebcdc5de593",
           "symbol": "DRW_AssociativeObject::m_recordName"
         }
       ],
       "facade": "shared",
-      "id": "shared/public-inline-method/src_drw_objects.h_DRW_AssociativeObject_6129549b54d56ed556b3d277a30573e9940dc804e77fdaa5f284232ae1d5127d",
+      "id": "shared/public-inline-method/src_drw_objects.h_DRW_AssociativeObject_5532e726b90db402cca0a6d04b48d1aff2105ea9cf45112d686faf9aa04719ae",
       "selector": {
         "implementationKind": "body",
         "kind": "method",
         "owner": "DRW_AssociativeObject",
         "qualifiedName": "DRW_AssociativeObject::m_recordName",
-        "signatureFingerprint": "6129549b54d56ed556b3d277a30573e9940dc804e77fdaa5f284232ae1d5127d",
+        "signatureFingerprint": "5532e726b90db402cca0a6d04b48d1aff2105ea9cf45112d686faf9aa04719ae",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -38456,7 +38456,7 @@
       ],
       "evidence": [
         {
-          "line": 5003,
+          "line": 5121,
           "path": "src/drw_objects.h",
           "spanSha256": "83a31774046aaada079cc6a497a288ace840aa53d6f6559fbc01c02217378486",
           "symbol": "DRW_BlockRepresentationData::reset"
@@ -38481,7 +38481,7 @@
       ],
       "evidence": [
         {
-          "line": 5001,
+          "line": 5119,
           "path": "src/drw_objects.h",
           "spanSha256": "ff5502944261c969c1cced803ae04e3d765760c2989377b5d7d192efa733a019",
           "symbol": "DRW_BlockRepresentationData::DRW_BlockRepresentationData"
@@ -38556,7 +38556,32 @@
       ],
       "evidence": [
         {
-          "line": 5842,
+          "line": 5957,
+          "path": "src/drw_objects.h",
+          "spanSha256": "2b914fcb6aa17d7d26de468477e6e76c41428a14121c8a18143fb3769de2c070",
+          "symbol": "DRW_BreakData::DRW_BreakData"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-inline-method/src_drw_objects.h_DRW_BreakData_59ede6ad02ce60926e201c994bbe02a02a25e31528f5cdeee5c8c295f742e784",
+      "selector": {
+        "implementationKind": "body",
+        "kind": "method",
+        "owner": "DRW_BreakData",
+        "qualifiedName": "DRW_BreakData::DRW_BreakData",
+        "signatureFingerprint": "59ede6ad02ce60926e201c994bbe02a02a25e31528f5cdeee5c8c295f742e784",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-inline-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 5960,
           "path": "src/drw_objects.h",
           "spanSha256": "f9d277e1f13d25ff30db048633dfec4f273b82a960238500dbd6aeecc2b24b73",
           "symbol": "DRW_BreakData::m_dxfInBreakData"
@@ -38581,7 +38606,7 @@
       ],
       "evidence": [
         {
-          "line": 5845,
+          "line": 5963,
           "path": "src/drw_objects.h",
           "spanSha256": "b7a4acede156ed84340b58df9c973e53101bfb2571f6fbd08e6de55e51d339c1",
           "symbol": "DRW_BreakData::operator="
@@ -38606,45 +38631,20 @@
       ],
       "evidence": [
         {
-          "line": 5839,
-          "path": "src/drw_objects.h",
-          "spanSha256": "2b914fcb6aa17d7d26de468477e6e76c41428a14121c8a18143fb3769de2c070",
-          "symbol": "DRW_BreakData::DRW_BreakData"
-        }
-      ],
-      "facade": "shared",
-      "id": "shared/public-inline-method/src_drw_objects.h_DRW_BreakData_8738874739048484a82f438ecafbabdc14154766d560e7c2b25a1be767575383",
-      "selector": {
-        "implementationKind": "body",
-        "kind": "method",
-        "owner": "DRW_BreakData",
-        "qualifiedName": "DRW_BreakData::DRW_BreakData",
-        "signatureFingerprint": "8738874739048484a82f438ecafbabdc14154766d560e7c2b25a1be767575383",
-        "visibility": "public"
-      },
-      "sourceDisposition": "source-route-only"
-    },
-    {
-      "category": "public-inline-method",
-      "directions": [
-        "public-api"
-      ],
-      "evidence": [
-        {
-          "line": 5874,
+          "line": 5992,
           "path": "src/drw_objects.h",
           "spanSha256": "add2b4ac7e4c199bc29d21a067db22fdcf4e52bda4fb2b50a82a8bf9c7b7a296",
           "symbol": "DRW_BreakPointRef::DRW_BreakPointRef"
         }
       ],
       "facade": "shared",
-      "id": "shared/public-inline-method/src_drw_objects.h_DRW_BreakPointRef_0b5e7188a4aad71abe86c07fc0b19c968812e876993e06f6802a8a04ebbda4db",
+      "id": "shared/public-inline-method/src_drw_objects.h_DRW_BreakPointRef_042d13fb8571414cbca06680cfd211df12e6f3ef6974ea7b4369642967a463d0",
       "selector": {
         "implementationKind": "body",
         "kind": "method",
         "owner": "DRW_BreakPointRef",
         "qualifiedName": "DRW_BreakPointRef::DRW_BreakPointRef",
-        "signatureFingerprint": "0b5e7188a4aad71abe86c07fc0b19c968812e876993e06f6802a8a04ebbda4db",
+        "signatureFingerprint": "042d13fb8571414cbca06680cfd211df12e6f3ef6974ea7b4369642967a463d0",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -38656,7 +38656,7 @@
       ],
       "evidence": [
         {
-          "line": 5875,
+          "line": 5993,
           "path": "src/drw_objects.h",
           "spanSha256": "56403d70e353957977d47980cdd9151e39d74243a7734dbd4a7c56af3f2fbc3a",
           "symbol": "DRW_BreakPointRef::reset"
@@ -38681,7 +38681,7 @@
       ],
       "evidence": [
         {
-          "line": 4266,
+          "line": 4384,
           "path": "src/drw_objects.h",
           "spanSha256": "8e075814b2d0acd5f4016cd71449cf116f289587596d5702952b42d0939e2f7e",
           "symbol": "DRW_CellStyleMap::reset"
@@ -38706,20 +38706,20 @@
       ],
       "evidence": [
         {
-          "line": 4265,
+          "line": 4383,
           "path": "src/drw_objects.h",
           "spanSha256": "4450452762be429d6fa02a798697bdc2641c684cad159ea32f239cfcf95d3e92",
           "symbol": "DRW_CellStyleMap::DRW_CellStyleMap"
         }
       ],
       "facade": "shared",
-      "id": "shared/public-inline-method/src_drw_objects.h_DRW_CellStyleMap_30a7041247c97aebb8f4288a1a28e0866c4ae231baedbb45f410eb20918f1c44",
+      "id": "shared/public-inline-method/src_drw_objects.h_DRW_CellStyleMap_b6c8d9b1c00e8360295404eaaafdf5ed9c20d59f336d0a33e4043e0b9dc4bceb",
       "selector": {
         "implementationKind": "body",
         "kind": "method",
         "owner": "DRW_CellStyleMap",
         "qualifiedName": "DRW_CellStyleMap::DRW_CellStyleMap",
-        "signatureFingerprint": "30a7041247c97aebb8f4288a1a28e0866c4ae231baedbb45f410eb20918f1c44",
+        "signatureFingerprint": "b6c8d9b1c00e8360295404eaaafdf5ed9c20d59f336d0a33e4043e0b9dc4bceb",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -38831,7 +38831,7 @@
       ],
       "evidence": [
         {
-          "line": 3816,
+          "line": 3902,
           "path": "src/drw_objects.h",
           "spanSha256": "9631cdaf542d64e5a0079342f43025330f21ba9f691dc3d380dc57f8765348f3",
           "symbol": "DRW_CurvePath::DRW_CurvePath"
@@ -38845,6 +38845,56 @@
         "owner": "DRW_CurvePath",
         "qualifiedName": "DRW_CurvePath::DRW_CurvePath",
         "signatureFingerprint": "1732642620fad3d8360a7c9abdcb8b9f2c213bf5cf1cd963ea1851dff3905520",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-inline-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 3908,
+          "path": "src/drw_objects.h",
+          "spanSha256": "5ab2ae48d028ed6f9c2f63609f780562f76c7826f552db0e3fa035931efcff57",
+          "symbol": "DRW_CurvePath::operator="
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-inline-method/src_drw_objects.h_DRW_CurvePath_4c4b629822c032568d0df1b0071e2fd4c8f17f3f9e26b454e7f09c74ba41dd3f",
+      "selector": {
+        "implementationKind": "body",
+        "kind": "method",
+        "owner": "DRW_CurvePath",
+        "qualifiedName": "DRW_CurvePath::operator=",
+        "signatureFingerprint": "4c4b629822c032568d0df1b0071e2fd4c8f17f3f9e26b454e7f09c74ba41dd3f",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-inline-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 3905,
+          "path": "src/drw_objects.h",
+          "spanSha256": "5ee7113539a156147c0d2da01c8cc658e904878e8569a11362ab59a77294d36c",
+          "symbol": "DRW_CurvePath::m_seen340"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-inline-method/src_drw_objects.h_DRW_CurvePath_59868bc0596990fe4373dcfa3792f0cfbf75a71af81b7dc6352d24e77c02fe38",
+      "selector": {
+        "implementationKind": "body",
+        "kind": "method",
+        "owner": "DRW_CurvePath",
+        "qualifiedName": "DRW_CurvePath::m_seen340",
+        "signatureFingerprint": "59868bc0596990fe4373dcfa3792f0cfbf75a71af81b7dc6352d24e77c02fe38",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -39006,7 +39056,7 @@
       ],
       "evidence": [
         {
-          "line": 4608,
+          "line": 4726,
           "path": "src/drw_objects.h",
           "spanSha256": "d03be90256b993ba944a2f3d2bd0d11c87ebbff606fa84d6e5a95c5de8293fec",
           "symbol": "DRW_DbColor::reset"
@@ -39031,7 +39081,7 @@
       ],
       "evidence": [
         {
-          "line": 4607,
+          "line": 4725,
           "path": "src/drw_objects.h",
           "spanSha256": "3938c5f04df16889f8c9611573b1fcc82ac845bf2ee3ad636c9ba18722aaefd5",
           "symbol": "DRW_DbColor::DRW_DbColor"
@@ -39056,20 +39106,20 @@
       ],
       "evidence": [
         {
-          "line": 5723,
+          "line": 5841,
           "path": "src/drw_objects.h",
           "spanSha256": "031769282b7702f8c99f97b95a884f5ec2b98e8fa9079c0487aacbac65698dae",
           "symbol": "DRW_DetailViewStyle::DRW_DetailViewStyle"
         }
       ],
       "facade": "shared",
-      "id": "shared/public-inline-method/src_drw_objects.h_DRW_DetailViewStyle_8add6286bbda00e006cbb203cf2dbbb2d319c4fde17c746a9b9990e6bd7af9bd",
+      "id": "shared/public-inline-method/src_drw_objects.h_DRW_DetailViewStyle_ee31c41f42a7cd4ceee20efdc58d441d0516ad80b67069b45fc9c3bec92f49f8",
       "selector": {
         "implementationKind": "body",
         "kind": "method",
         "owner": "DRW_DetailViewStyle",
         "qualifiedName": "DRW_DetailViewStyle::DRW_DetailViewStyle",
-        "signatureFingerprint": "8add6286bbda00e006cbb203cf2dbbb2d319c4fde17c746a9b9990e6bd7af9bd",
+        "signatureFingerprint": "ee31c41f42a7cd4ceee20efdc58d441d0516ad80b67069b45fc9c3bec92f49f8",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -39356,7 +39406,7 @@
       ],
       "evidence": [
         {
-          "line": 4855,
+          "line": 4973,
           "path": "src/drw_objects.h",
           "spanSha256": "e2a717e456121be34d535985244a29f782dccd2987ed01aa7086bda98a51a389",
           "symbol": "DRW_DimensionAssociation::reset"
@@ -39381,7 +39431,7 @@
       ],
       "evidence": [
         {
-          "line": 4829,
+          "line": 4947,
           "path": "src/drw_objects.h",
           "spanSha256": "476816efe4f50abee78201d96d314ebf2a8ab30d5b88d001ea09b236c51c0ee9",
           "symbol": "DRW_DimensionAssociation::DRW_DimensionAssociation"
@@ -39406,7 +39456,7 @@
       ],
       "evidence": [
         {
-          "line": 4840,
+          "line": 4958,
           "path": "src/drw_objects.h",
           "spanSha256": "0e7bb4b46b6972a39439decf052bacc0f52e88c6c3820221eea4b57d70e09ced",
           "symbol": "DRW_DimensionAssociation::operator="
@@ -39431,7 +39481,7 @@
       ],
       "evidence": [
         {
-          "line": 4837,
+          "line": 4955,
           "path": "src/drw_objects.h",
           "spanSha256": "c404a3dcbd73338a24beeb22361a1d3d2d1ee29538493a2f254a33bc24f92c6b",
           "symbol": "DRW_DimensionAssociation::m_dxfInBody"
@@ -39756,7 +39806,7 @@
       ],
       "evidence": [
         {
-          "line": 5417,
+          "line": 5535,
           "path": "src/drw_objects.h",
           "spanSha256": "246602b46fa69f17d322ad2118286c7da7710c1e72130d5e22668a6b7b53d318",
           "symbol": "DRW_DynamicBlockObject::m_recordName"
@@ -39781,7 +39831,7 @@
       ],
       "evidence": [
         {
-          "line": 4924,
+          "line": 5042,
           "path": "src/drw_objects.h",
           "spanSha256": "416ab083c9b9cef3a4b77bd3112da246a67630288eeeefd4e98584f856370647",
           "symbol": "DRW_EvaluationGraph::DRW_EvaluationGraph"
@@ -39806,7 +39856,7 @@
       ],
       "evidence": [
         {
-          "line": 4935,
+          "line": 5053,
           "path": "src/drw_objects.h",
           "spanSha256": "5df56e8053b76a541b79a240066c8ee0bd2ea0230b497d745fbefe648babf673",
           "symbol": "DRW_EvaluationGraph::operator="
@@ -39831,7 +39881,7 @@
       ],
       "evidence": [
         {
-          "line": 4932,
+          "line": 5050,
           "path": "src/drw_objects.h",
           "spanSha256": "bd99ed3a4c4974cc878f10bea6f982ce149d99b538a6ace3dd1fdabc7b89ca36",
           "symbol": "DRW_EvaluationGraph::m_dxfEdge91Count"
@@ -40231,7 +40281,7 @@
       ],
       "evidence": [
         {
-          "line": 6086,
+          "line": 6204,
           "path": "src/drw_objects.h",
           "spanSha256": "82501cf21a7c7a68f4bf7ebfd8217be7e06cbaa948691bff9d3b197a40f79b2f",
           "symbol": "DRW_IDBuffer::reset"
@@ -40256,7 +40306,7 @@
       ],
       "evidence": [
         {
-          "line": 6073,
+          "line": 6191,
           "path": "src/drw_objects.h",
           "spanSha256": "4a1351780c292a71c2e4c1aedda62016eefdd33d758ca84db55cd218ea554b7e",
           "symbol": "DRW_IDBuffer::m_dxfBodySeen"
@@ -40281,7 +40331,7 @@
       ],
       "evidence": [
         {
-          "line": 6070,
+          "line": 6188,
           "path": "src/drw_objects.h",
           "spanSha256": "549e23db132d2ae72ec761217bcf446245781cd63a9d9520a42a165a84757a7b",
           "symbol": "DRW_IDBuffer::DRW_IDBuffer"
@@ -40306,7 +40356,7 @@
       ],
       "evidence": [
         {
-          "line": 6076,
+          "line": 6194,
           "path": "src/drw_objects.h",
           "spanSha256": "fe6776083281cbab135693f21c5d4919f225bcfa22a7cf71ffe228e3de5b4593",
           "symbol": "DRW_IDBuffer::operator="
@@ -40406,7 +40456,7 @@
       ],
       "evidence": [
         {
-          "line": 6038,
+          "line": 6156,
           "path": "src/drw_objects.h",
           "spanSha256": "af04ec312eb21bc03c075b2396aa1bb0dbf075d1e2a599f31865cf6acc61f46f",
           "symbol": "DRW_Index::reset"
@@ -40431,7 +40481,7 @@
       ],
       "evidence": [
         {
-          "line": 6022,
+          "line": 6140,
           "path": "src/drw_objects.h",
           "spanSha256": "b1794fca37a0fdd25d680074c65057b324dc1be99156253942fd277775d545a0",
           "symbol": "DRW_Index::DRW_Index"
@@ -40456,7 +40506,7 @@
       ],
       "evidence": [
         {
-          "line": 6028,
+          "line": 6146,
           "path": "src/drw_objects.h",
           "spanSha256": "976be0a3286afc309108ee731cfa80fc1800cdbd698d5cf022f5f877f6ba3bf0",
           "symbol": "DRW_Index::operator="
@@ -40481,7 +40531,7 @@
       ],
       "evidence": [
         {
-          "line": 6025,
+          "line": 6143,
           "path": "src/drw_objects.h",
           "spanSha256": "a1e88127160029e5bc9981c9d74bb5ddd94b3a021702e1de4e89d69fba97c13d",
           "symbol": "DRW_Index::m_dxfTimestampSeen"
@@ -40631,7 +40681,7 @@
       ],
       "evidence": [
         {
-          "line": 6133,
+          "line": 6251,
           "path": "src/drw_objects.h",
           "spanSha256": "10d630f682b70b57eb99b7946f44045092168435cfaf2425181ba4f8856de75d",
           "symbol": "DRW_LayerIndex::m_dxfPendingName"
@@ -40656,7 +40706,7 @@
       ],
       "evidence": [
         {
-          "line": 6128,
+          "line": 6246,
           "path": "src/drw_objects.h",
           "spanSha256": "fb4e28273c9138af19eed914149b7e97b6e78fc12d3ad18e5cb0a8a718182c0c",
           "symbol": "DRW_LayerIndex::DRW_LayerIndex"
@@ -40681,7 +40731,7 @@
       ],
       "evidence": [
         {
-          "line": 6150,
+          "line": 6268,
           "path": "src/drw_objects.h",
           "spanSha256": "7bccab5bc323c5cf31e46181dc8e434fb45fadb779228168850ce11fadafa765",
           "symbol": "DRW_LayerIndex::reset"
@@ -40706,7 +40756,7 @@
       ],
       "evidence": [
         {
-          "line": 6136,
+          "line": 6254,
           "path": "src/drw_objects.h",
           "spanSha256": "ff868d18f95912dcaf628930df8528846442f0b14f896302cdd086130ef93188",
           "symbol": "DRW_LayerIndex::operator="
@@ -40781,7 +40831,7 @@
       ],
       "evidence": [
         {
-          "line": 4292,
+          "line": 4410,
           "path": "src/drw_objects.h",
           "spanSha256": "3b18fe3caf5c3202692c786ba852967ccb8a6e62bf46b477c894a5b7a197f7e2",
           "symbol": "DRW_Layout::reset"
@@ -40806,7 +40856,7 @@
       ],
       "evidence": [
         {
-          "line": 4291,
+          "line": 4409,
           "path": "src/drw_objects.h",
           "spanSha256": "0b3ebd71860b08b34ddb0893c3ffaaddaae8f87c820f12e092886582e64a09e2",
           "symbol": "DRW_Layout::DRW_Layout"
@@ -40906,7 +40956,7 @@
       ],
       "evidence": [
         {
-          "line": 4476,
+          "line": 4594,
           "path": "src/drw_objects.h",
           "spanSha256": "26d251607ad58ff6efee58324bbbcfd79d6008b77db5d3ca2646675e3bad3720",
           "symbol": "DRW_MLeaderStyle::reset"
@@ -40931,7 +40981,7 @@
       ],
       "evidence": [
         {
-          "line": 4475,
+          "line": 4593,
           "path": "src/drw_objects.h",
           "spanSha256": "bfbb691e1d08ecc06e057debb30ec2937132d6cd9a9a288bc9e2668f96cbe564",
           "symbol": "DRW_MLeaderStyle::DRW_MLeaderStyle"
@@ -40956,7 +41006,32 @@
       ],
       "evidence": [
         {
-          "line": 4435,
+          "line": 4552,
+          "path": "src/drw_objects.h",
+          "spanSha256": "09631d7e4ea9826784a50830c4523253ce509249ef1c39e1994c64619361a179",
+          "symbol": "DRW_MLineStyle::DRW_MLineStyle"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-inline-method/src_drw_objects.h_DRW_MLineStyle_153fae7a19317ab43586de1b5d1f9e5d0e39a379592201a2a35d6d3aeedb4c34",
+      "selector": {
+        "implementationKind": "body",
+        "kind": "method",
+        "owner": "DRW_MLineStyle",
+        "qualifiedName": "DRW_MLineStyle::DRW_MLineStyle",
+        "signatureFingerprint": "153fae7a19317ab43586de1b5d1f9e5d0e39a379592201a2a35d6d3aeedb4c34",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-inline-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 4553,
           "path": "src/drw_objects.h",
           "spanSha256": "e97b13b1a98a5bafc0efedfe711ce8d162791140e2fd33e8f4132dee45cd8be3",
           "symbol": "DRW_MLineStyle::reset"
@@ -40970,31 +41045,6 @@
         "owner": "DRW_MLineStyle",
         "qualifiedName": "DRW_MLineStyle::reset",
         "signatureFingerprint": "26bf00b5f107014d5ec49d9ee66ec9725e2dd4c532b8051ad042e52e5d493a7a",
-        "visibility": "public"
-      },
-      "sourceDisposition": "source-route-only"
-    },
-    {
-      "category": "public-inline-method",
-      "directions": [
-        "public-api"
-      ],
-      "evidence": [
-        {
-          "line": 4434,
-          "path": "src/drw_objects.h",
-          "spanSha256": "09631d7e4ea9826784a50830c4523253ce509249ef1c39e1994c64619361a179",
-          "symbol": "DRW_MLineStyle::DRW_MLineStyle"
-        }
-      ],
-      "facade": "shared",
-      "id": "shared/public-inline-method/src_drw_objects.h_DRW_MLineStyle_cb5c9cb2731cedf94b04c66ee37474a69e60c79646cf384012f2742deb5a6604",
-      "selector": {
-        "implementationKind": "body",
-        "kind": "method",
-        "owner": "DRW_MLineStyle",
-        "qualifiedName": "DRW_MLineStyle::DRW_MLineStyle",
-        "signatureFingerprint": "cb5c9cb2731cedf94b04c66ee37474a69e60c79646cf384012f2742deb5a6604",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -41181,7 +41231,57 @@
       ],
       "evidence": [
         {
-          "line": 3785,
+          "line": 3853,
+          "path": "src/drw_objects.h",
+          "spanSha256": "86615e2697c278481c25ed01aacebbf01bb2e12d89b79a3eebf6a5a1e1eb7ba7",
+          "symbol": "DRW_MotionPath::m_seen340"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-inline-method/src_drw_objects.h_DRW_MotionPath_aac3720c5ca06ed548364ad9c7f68c349a8fba8df4087be59f7a4813ef4139a4",
+      "selector": {
+        "implementationKind": "body",
+        "kind": "method",
+        "owner": "DRW_MotionPath",
+        "qualifiedName": "DRW_MotionPath::m_seen340",
+        "signatureFingerprint": "aac3720c5ca06ed548364ad9c7f68c349a8fba8df4087be59f7a4813ef4139a4",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-inline-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 3856,
+          "path": "src/drw_objects.h",
+          "spanSha256": "c8ad575422f294c68052e4a3ec596355e08ec15c0b15ebdeba8920eac994ea42",
+          "symbol": "DRW_MotionPath::operator="
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-inline-method/src_drw_objects.h_DRW_MotionPath_ad10eed03ab28849dea4d5feb09d4e39417a102756acdb31a6da5fa46c93cec6",
+      "selector": {
+        "implementationKind": "body",
+        "kind": "method",
+        "owner": "DRW_MotionPath",
+        "qualifiedName": "DRW_MotionPath::operator=",
+        "signatureFingerprint": "ad10eed03ab28849dea4d5feb09d4e39417a102756acdb31a6da5fa46c93cec6",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-inline-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 3846,
           "path": "src/drw_objects.h",
           "spanSha256": "ac63b6f5a2e1e2bc19bd59c726d50d08fd03b094cf88e622c844e7d82469172c",
           "symbol": "DRW_MotionPath::DRW_MotionPath"
@@ -41231,7 +41331,7 @@
       ],
       "evidence": [
         {
-          "line": 4723,
+          "line": 4841,
           "path": "src/drw_objects.h",
           "spanSha256": "e595a909042c337f5d0a81cc3241ab8fd3eb1b094ac661cd66cb6a125239219b",
           "symbol": "DRW_ObjectContextData::isTextFamily"
@@ -41256,7 +41356,7 @@
       ],
       "evidence": [
         {
-          "line": 4727,
+          "line": 4845,
           "path": "src/drw_objects.h",
           "spanSha256": "9e4f1185ed2adfbd890df9b3361df3181a2ccbd88b11f37200775246375252d9",
           "symbol": "DRW_ObjectContextData::isDimensionFamily"
@@ -41281,7 +41381,7 @@
       ],
       "evidence": [
         {
-          "line": 4719,
+          "line": 4837,
           "path": "src/drw_objects.h",
           "spanSha256": "7ef42b4902c54bc96712ed320e6447fbccc17018ae30756d878805370e5b9251",
           "symbol": "DRW_ObjectContextData::m_kind"
@@ -41306,7 +41406,7 @@
       ],
       "evidence": [
         {
-          "line": 3868,
+          "line": 3986,
           "path": "src/drw_objects.h",
           "spanSha256": "67b196b99989033ada9fad5aa95d4bdbe1ec457d38ae54c6e5f4775177742297",
           "symbol": "DRW_ObjectPtr::DRW_ObjectPtr"
@@ -41331,7 +41431,7 @@
       ],
       "evidence": [
         {
-          "line": 3896,
+          "line": 4014,
           "path": "src/drw_objects.h",
           "spanSha256": "62c329341f61e99f8cfc9b2d4fe34a85a69ed19982e67edda0a207c2a10ad538",
           "symbol": "DRW_PartialViewingIndex::DRW_PartialViewingIndex"
@@ -41506,7 +41606,7 @@
       ],
       "evidence": [
         {
-          "line": 3842,
+          "line": 3944,
           "path": "src/drw_objects.h",
           "spanSha256": "b6c7d8a0208671a42b7317032db5c4abf7f9fb76921bfe88d0fa65bc4200f5d5",
           "symbol": "DRW_PointPath::DRW_PointPath"
@@ -41531,7 +41631,57 @@
       ],
       "evidence": [
         {
-          "line": 5083,
+          "line": 3950,
+          "path": "src/drw_objects.h",
+          "spanSha256": "03e63d3d5a95076aab61285db6aa80c5bef0328a94fca45d8757beb2e92dcc9b",
+          "symbol": "DRW_PointPath::operator="
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-inline-method/src_drw_objects.h_DRW_PointPath_c71dd03d03c59cc6f2fc41dedfd434a27fd074df09d86eccb611e2c7205701b0",
+      "selector": {
+        "implementationKind": "body",
+        "kind": "method",
+        "owner": "DRW_PointPath",
+        "qualifiedName": "DRW_PointPath::operator=",
+        "signatureFingerprint": "c71dd03d03c59cc6f2fc41dedfd434a27fd074df09d86eccb611e2c7205701b0",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-inline-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 3947,
+          "path": "src/drw_objects.h",
+          "spanSha256": "c78b62a7c771f2ad9ca069b2d9241a42da4ad36ac4bbc8e44f11b6f8205edd5d",
+          "symbol": "DRW_PointPath::m_seen10"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-inline-method/src_drw_objects.h_DRW_PointPath_e2300d2e14c81a22a087ba98835cf7abc2128d8e5eb43ed9dc910f284ac5ecfa",
+      "selector": {
+        "implementationKind": "body",
+        "kind": "method",
+        "owner": "DRW_PointPath",
+        "qualifiedName": "DRW_PointPath::m_seen10",
+        "signatureFingerprint": "e2300d2e14c81a22a087ba98835cf7abc2128d8e5eb43ed9dc910f284ac5ecfa",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-inline-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 5201,
           "path": "src/drw_objects.h",
           "spanSha256": "50d4ccf027c500dd8a8d018572c06cb5218526cb6484b7ab0d8598c46fe747b1",
           "symbol": "DRW_ProxyObject::reset"
@@ -41556,7 +41706,7 @@
       ],
       "evidence": [
         {
-          "line": 5081,
+          "line": 5199,
           "path": "src/drw_objects.h",
           "spanSha256": "be9612963a5dab7a547feec205dd6aae5fbb1bf240f6d1eb7b3d49ba92b073b5",
           "symbol": "DRW_ProxyObject::DRW_ProxyObject"
@@ -41631,7 +41781,7 @@
       ],
       "evidence": [
         {
-          "line": 3986,
+          "line": 4104,
           "path": "src/drw_objects.h",
           "spanSha256": "7e97ee6fa13173e3126cbb2dda813f6f4143826585a21249b47d6ed36fc55710",
           "symbol": "DRW_RenderSettings::dwgRawData"
@@ -41656,7 +41806,7 @@
       ],
       "evidence": [
         {
-          "line": 3973,
+          "line": 4091,
           "path": "src/drw_objects.h",
           "spanSha256": "e85f7c6834222b2658fa8a51325f93f8604ca69020509a47c247a3ef031bbf52",
           "symbol": "DRW_RenderSettings::setDwgRawData"
@@ -41681,7 +41831,7 @@
       ],
       "evidence": [
         {
-          "line": 3941,
+          "line": 4059,
           "path": "src/drw_objects.h",
           "spanSha256": "cc32258b6867d3e31d7ed406000b6d8d3256af5de852af63d179a64854a32703",
           "symbol": "DRW_RenderSettings::DRW_RenderSettings"
@@ -41706,7 +41856,7 @@
       ],
       "evidence": [
         {
-          "line": 3992,
+          "line": 4110,
           "path": "src/drw_objects.h",
           "spanSha256": "ec248cd8e00a0404c614dd30a818aa0aed18ede7f4bcb7103fe334be822db745",
           "symbol": "DRW_RenderSettings::hasDwgRawData"
@@ -41731,7 +41881,7 @@
       ],
       "evidence": [
         {
-          "line": 3993,
+          "line": 4111,
           "path": "src/drw_objects.h",
           "spanSha256": "4bcebf03c2e13e284f685f1e40ca7ba6ddffa523cabaf46e7fa2f4647f104ccb",
           "symbol": "DRW_RenderSettings::dwgRawDataVersion"
@@ -41756,7 +41906,7 @@
       ],
       "evidence": [
         {
-          "line": 3989,
+          "line": 4107,
           "path": "src/drw_objects.h",
           "spanSha256": "0843e0e637e5f4518bbb7dd8a3a079b44bb5c14cf8149b119636e66ab2d0bd1a",
           "symbol": "DRW_RenderSettings::dwgRawDataBitSize"
@@ -41781,7 +41931,7 @@
       ],
       "evidence": [
         {
-          "line": 4662,
+          "line": 4780,
           "path": "src/drw_objects.h",
           "spanSha256": "e2e495bba5f06fec24c042c243bff4528adb65b8dd677d5022bb75e6e8067f2a",
           "symbol": "DRW_Scale::scaleFactor"
@@ -41806,7 +41956,7 @@
       ],
       "evidence": [
         {
-          "line": 4660,
+          "line": 4778,
           "path": "src/drw_objects.h",
           "spanSha256": "779f5bd49269dfaa58fcf642e51a23f90db0131db406592f80c977f6ee76e6ea",
           "symbol": "DRW_Scale::DRW_Scale"
@@ -41831,20 +41981,20 @@
       ],
       "evidence": [
         {
-          "line": 5775,
+          "line": 5893,
           "path": "src/drw_objects.h",
           "spanSha256": "628ef829181d987f5feb62c0cec67eb0d4c7980c21634784bd47ffec4b59fa3e",
           "symbol": "DRW_SectionViewStyle::DRW_SectionViewStyle"
         }
       ],
       "facade": "shared",
-      "id": "shared/public-inline-method/src_drw_objects.h_DRW_SectionViewStyle_2533f62becc24c481da370d7cc40c073964a382c94cab29cd56868ef916a5524",
+      "id": "shared/public-inline-method/src_drw_objects.h_DRW_SectionViewStyle_fbd82a57778cbe38decaf087758d6eb28bb1e955487e36b726feac4037a232ee",
       "selector": {
         "implementationKind": "body",
         "kind": "method",
         "owner": "DRW_SectionViewStyle",
         "qualifiedName": "DRW_SectionViewStyle::DRW_SectionViewStyle",
-        "signatureFingerprint": "2533f62becc24c481da370d7cc40c073964a382c94cab29cd56868ef916a5524",
+        "signatureFingerprint": "fbd82a57778cbe38decaf087758d6eb28bb1e955487e36b726feac4037a232ee",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -41856,7 +42006,7 @@
       ],
       "evidence": [
         {
-          "line": 4063,
+          "line": 4181,
           "path": "src/drw_objects.h",
           "spanSha256": "30640ad544c8fedeed2671a1432e60d85b87fc4ab2a1adde438fa9b9293a934d",
           "symbol": "DRW_Section::DRW_Section"
@@ -41881,7 +42031,7 @@
       ],
       "evidence": [
         {
-          "line": 4124,
+          "line": 4242,
           "path": "src/drw_objects.h",
           "spanSha256": "7e97ee6fa13173e3126cbb2dda813f6f4143826585a21249b47d6ed36fc55710",
           "symbol": "DRW_Section::dwgRawData"
@@ -41906,7 +42056,7 @@
       ],
       "evidence": [
         {
-          "line": 4065,
+          "line": 4183,
           "path": "src/drw_objects.h",
           "spanSha256": "a817286cbdad8ff9f292a54fcdcb6dc835f637b02f1c4426fc3b69fb723cf728",
           "symbol": "DRW_Section::reset"
@@ -41931,7 +42081,7 @@
       ],
       "evidence": [
         {
-          "line": 4111,
+          "line": 4229,
           "path": "src/drw_objects.h",
           "spanSha256": "e85f7c6834222b2658fa8a51325f93f8604ca69020509a47c247a3ef031bbf52",
           "symbol": "DRW_Section::setDwgRawData"
@@ -41956,7 +42106,7 @@
       ],
       "evidence": [
         {
-          "line": 4130,
+          "line": 4248,
           "path": "src/drw_objects.h",
           "spanSha256": "ec248cd8e00a0404c614dd30a818aa0aed18ede7f4bcb7103fe334be822db745",
           "symbol": "DRW_Section::hasDwgRawData"
@@ -41981,7 +42131,7 @@
       ],
       "evidence": [
         {
-          "line": 4131,
+          "line": 4249,
           "path": "src/drw_objects.h",
           "spanSha256": "4bcebf03c2e13e284f685f1e40ca7ba6ddffa523cabaf46e7fa2f4647f104ccb",
           "symbol": "DRW_Section::dwgRawDataVersion"
@@ -42006,7 +42156,7 @@
       ],
       "evidence": [
         {
-          "line": 4127,
+          "line": 4245,
           "path": "src/drw_objects.h",
           "spanSha256": "0843e0e637e5f4518bbb7dd8a3a079b44bb5c14cf8149b119636e66ab2d0bd1a",
           "symbol": "DRW_Section::dwgRawDataBitSize"
@@ -42231,7 +42381,7 @@
       ],
       "evidence": [
         {
-          "line": 6203,
+          "line": 6321,
           "path": "src/drw_objects.h",
           "spanSha256": "e1ded10f09d070e036db3ff48797ebd3e90805e9e07d138b52d9e8cc3fa395b6",
           "symbol": "DRW_SpatialIndex::operator="
@@ -42256,7 +42406,7 @@
       ],
       "evidence": [
         {
-          "line": 6217,
+          "line": 6335,
           "path": "src/drw_objects.h",
           "spanSha256": "483d15f90349864732982d9ac40da23fba81daef4c80022c21ae4270f26ddbf2",
           "symbol": "DRW_SpatialIndex::reset"
@@ -42281,7 +42431,7 @@
       ],
       "evidence": [
         {
-          "line": 6200,
+          "line": 6318,
           "path": "src/drw_objects.h",
           "spanSha256": "a1e88127160029e5bc9981c9d74bb5ddd94b3a021702e1de4e89d69fba97c13d",
           "symbol": "DRW_SpatialIndex::m_dxfTimestampSeen"
@@ -42306,7 +42456,7 @@
       ],
       "evidence": [
         {
-          "line": 6195,
+          "line": 6313,
           "path": "src/drw_objects.h",
           "spanSha256": "607728daf3d78d1786094b667f6b164b4347309c9d5bcc3c1f5bf366b92f7c7e",
           "symbol": "DRW_SpatialIndex::DRW_SpatialIndex"
@@ -42320,6 +42470,31 @@
         "owner": "DRW_SpatialIndex",
         "qualifiedName": "DRW_SpatialIndex::DRW_SpatialIndex",
         "signatureFingerprint": "b60dc533460ca63bebdfc29e62d49e78c11c31e83a4a0840ac71d26654f401a4",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-inline-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 3752,
+          "path": "src/drw_objects.h",
+          "spanSha256": "8730a0132eb9b8320d17b9af27d18988688c5ca393751029b4b526e100501da7",
+          "symbol": "DRW_SunStudy::operator="
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-inline-method/src_drw_objects.h_DRW_SunStudy_16c7a4fc70220b310eabbfea339bb4d0371ad57ee6af81b04421122a1f521770",
+      "selector": {
+        "implementationKind": "body",
+        "kind": "method",
+        "owner": "DRW_SunStudy",
+        "qualifiedName": "DRW_SunStudy::operator=",
+        "signatureFingerprint": "16c7a4fc70220b310eabbfea339bb4d0371ad57ee6af81b04421122a1f521770",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -42356,7 +42531,32 @@
       ],
       "evidence": [
         {
-          "line": 5146,
+          "line": 3749,
+          "path": "src/drw_objects.h",
+          "spanSha256": "2cc76f665ef9dc782d98ce5fc157fcf23827c2490dcbe7ca750d8da88391f40b",
+          "symbol": "DRW_SunStudy::m_dxfHasPendingDateValue"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-inline-method/src_drw_objects.h_DRW_SunStudy_89f14393f938e9d4a0015eb8ab4026f26319c3c0de7c0b94c67c33f8c8847dfe",
+      "selector": {
+        "implementationKind": "body",
+        "kind": "method",
+        "owner": "DRW_SunStudy",
+        "qualifiedName": "DRW_SunStudy::m_dxfHasPendingDateValue",
+        "signatureFingerprint": "89f14393f938e9d4a0015eb8ab4026f26319c3c0de7c0b94c67c33f8c8847dfe",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-inline-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 5264,
           "path": "src/drw_objects.h",
           "spanSha256": "746bb282688c7e60fc484d5e3f51029229edcb3dc9b6f1d571eb0e714ec728f4",
           "symbol": "DRW_Sun::reset"
@@ -42381,7 +42581,7 @@
       ],
       "evidence": [
         {
-          "line": 5145,
+          "line": 5263,
           "path": "src/drw_objects.h",
           "spanSha256": "806f2f6c3957cb46a9aca680a5f712904b50bb88985aa5555f72e83381ae7348",
           "symbol": "DRW_Sun::DRW_Sun"
@@ -42756,7 +42956,7 @@
       ],
       "evidence": [
         {
-          "line": 4220,
+          "line": 4338,
           "path": "src/drw_objects.h",
           "spanSha256": "795cc051c8e4a6c1dd0ffded0c758ae264474ef89896b2f153f854f2b4eb05ce",
           "symbol": "DRW_TableStyle::reset"
@@ -42781,7 +42981,7 @@
       ],
       "evidence": [
         {
-          "line": 4219,
+          "line": 4337,
           "path": "src/drw_objects.h",
           "spanSha256": "728e6854d771fe997a17c4a65b1e8bd2017de6c87969a9421ef259aeffba29ec",
           "symbol": "DRW_TableStyle::DRW_TableStyle"
@@ -42956,7 +43156,7 @@
       ],
       "evidence": [
         {
-          "line": 5994,
+          "line": 6112,
           "path": "src/drw_objects.h",
           "spanSha256": "6bdd541da40232e3633f67a2c123f8fff4b90f664ee1b175a86f9df49a5a5660",
           "symbol": "DRW_UnderlayDefinition::reset"
@@ -42981,7 +43181,7 @@
       ],
       "evidence": [
         {
-          "line": 5993,
+          "line": 6111,
           "path": "src/drw_objects.h",
           "spanSha256": "171ee53dddec3271cecda8cb0baa0b563ea38ac0d0306b182a33f2b3d0370e60",
           "symbol": "DRW_UnderlayDefinition::DRW_UnderlayDefinition"
@@ -43131,7 +43331,7 @@
       ],
       "evidence": [
         {
-          "line": 5049,
+          "line": 5167,
           "path": "src/drw_objects.h",
           "spanSha256": "3b45ddf65c33c1860e4357a66dc4f430db5d0d1585a5d9b9e1be47e43aba7938",
           "symbol": "DRW_VbaProject::reset"
@@ -43156,7 +43356,7 @@
       ],
       "evidence": [
         {
-          "line": 5047,
+          "line": 5165,
           "path": "src/drw_objects.h",
           "spanSha256": "1a264165d26f4f2dc1ab77a130d503dafe1ac29c37f84141fc57aae77364ba17",
           "symbol": "DRW_VbaProject::DRW_VbaProject"
@@ -43281,7 +43481,7 @@
       ],
       "evidence": [
         {
-          "line": 5952,
+          "line": 6070,
           "path": "src/drw_objects.h",
           "spanSha256": "a06f457c4a1dadc8461f088a38d33ab0f19950e5980325460307a544e643ae14",
           "symbol": "DRW_VisualStyle::DRW_VisualStyle"
@@ -43306,7 +43506,7 @@
       ],
       "evidence": [
         {
-          "line": 5953,
+          "line": 6071,
           "path": "src/drw_objects.h",
           "spanSha256": "5654ee3016279acfd96d8e3673b33cebb43883884cc383b273601da0ace2850a",
           "symbol": "DRW_VisualStyle::reset"
@@ -43781,20 +43981,20 @@
       ],
       "evidence": [
         {
-          "line": 6252,
+          "line": 6370,
           "path": "src/drw_objects.h",
           "spanSha256": "c60f389e9400d238542b581f42c872e655be5fe958bd777aef3defff798e7e80",
           "symbol": "DRW_WritingContext::DRW_WritingContext"
         }
       ],
       "facade": "shared",
-      "id": "shared/public-inline-method/src_drw_objects.h_DRW_WritingContext_d9dcd7332a105427ab1647e2413f854762a81a1b2c56a9c3d503b757abfb0733",
+      "id": "shared/public-inline-method/src_drw_objects.h_DRW_WritingContext_9ad293df27d50310303eaeef972838fc4c96c6d0204ecfd78d8f2fa7c259d5e3",
       "selector": {
         "implementationKind": "defaulted",
         "kind": "method",
         "owner": "DRW_WritingContext",
         "qualifiedName": "DRW_WritingContext::DRW_WritingContext",
-        "signatureFingerprint": "d9dcd7332a105427ab1647e2413f854762a81a1b2c56a9c3d503b757abfb0733",
+        "signatureFingerprint": "9ad293df27d50310303eaeef972838fc4c96c6d0204ecfd78d8f2fa7c259d5e3",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -56506,7 +56706,7 @@
       ],
       "evidence": [
         {
-          "line": 5027,
+          "line": 5145,
           "path": "src/drw_objects.h",
           "spanSha256": "665d5f474e0f71621d39c568a3091f4bb5952373bbe5e3a3a1dd143684aad391",
           "symbol": "DRW_AcDbPlaceholder::reset"
@@ -56530,7 +56730,31 @@
       ],
       "evidence": [
         {
-          "line": 5037,
+          "line": 5144,
+          "path": "src/drw_objects.h",
+          "spanSha256": "537ea55de45896d1da4c656054ce37ba79fd8b12d94788f01b245b9d659ae298",
+          "symbol": "DRW_AcDbPlaceholder::DRW_AcDbPlaceholder"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-method/src_drw_objects.h_DRW_AcDbPlaceholder_8eb0881f6821a44b85571649ec333243ed66102a0e06854f96c1120c2d103b4e",
+      "selector": {
+        "kind": "method",
+        "owner": "DRW_AcDbPlaceholder",
+        "qualifiedName": "DRW_AcDbPlaceholder::DRW_AcDbPlaceholder",
+        "signatureFingerprint": "8eb0881f6821a44b85571649ec333243ed66102a0e06854f96c1120c2d103b4e",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 5155,
           "path": "src/drw_objects.h",
           "spanSha256": "c6ea6145cfb4da3d5d61e25bea7763efaf7166733d99cca958cf0e720d9e09b1",
           "symbol": "DRW_AcDbPlaceholder::encodeDwg"
@@ -56554,43 +56778,19 @@
       ],
       "evidence": [
         {
-          "line": 5026,
-          "path": "src/drw_objects.h",
-          "spanSha256": "537ea55de45896d1da4c656054ce37ba79fd8b12d94788f01b245b9d659ae298",
-          "symbol": "DRW_AcDbPlaceholder::DRW_AcDbPlaceholder"
-        }
-      ],
-      "facade": "shared",
-      "id": "shared/public-method/src_drw_objects.h_DRW_AcDbPlaceholder_fa00b143d47b8c329a25d2a6bc60d4a24ce9eb8cc8980252c92a9e66703f31a6",
-      "selector": {
-        "kind": "method",
-        "owner": "DRW_AcDbPlaceholder",
-        "qualifiedName": "DRW_AcDbPlaceholder::DRW_AcDbPlaceholder",
-        "signatureFingerprint": "fa00b143d47b8c329a25d2a6bc60d4a24ce9eb8cc8980252c92a9e66703f31a6",
-        "visibility": "public"
-      },
-      "sourceDisposition": "source-route-only"
-    },
-    {
-      "category": "public-method",
-      "directions": [
-        "public-api"
-      ],
-      "evidence": [
-        {
-          "line": 5289,
+          "line": 5407,
           "path": "src/drw_objects.h",
           "spanSha256": "89cb61204ba481ffa9bdbdb61de3c323a90c7b206b0ea4775962c05c0dc530b2",
           "symbol": "DRW_AcShHistoryObject::m_recordName"
         }
       ],
       "facade": "shared",
-      "id": "shared/public-method/src_drw_objects.h_DRW_AcShHistoryObject_39dd08042f22fef7246f86a918b0a7942ca1d153aabc5cb76b00c15403ef7637",
+      "id": "shared/public-method/src_drw_objects.h_DRW_AcShHistoryObject_f8daa8f7b3038605120e54a954184f9cb83da93518af65df8a7c155b1e2c7274",
       "selector": {
         "kind": "method",
         "owner": "DRW_AcShHistoryObject",
         "qualifiedName": "DRW_AcShHistoryObject::m_recordName",
-        "signatureFingerprint": "39dd08042f22fef7246f86a918b0a7942ca1d153aabc5cb76b00c15403ef7637",
+        "signatureFingerprint": "f8daa8f7b3038605120e54a954184f9cb83da93518af65df8a7c155b1e2c7274",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -56674,19 +56874,19 @@
       ],
       "evidence": [
         {
-          "line": 5229,
+          "line": 5347,
           "path": "src/drw_objects.h",
           "spanSha256": "030d7aed69059913e601ce1ed00afa9cd3fca55089ed413a9456bebcdc5de593",
           "symbol": "DRW_AssociativeObject::m_recordName"
         }
       ],
       "facade": "shared",
-      "id": "shared/public-method/src_drw_objects.h_DRW_AssociativeObject_6129549b54d56ed556b3d277a30573e9940dc804e77fdaa5f284232ae1d5127d",
+      "id": "shared/public-method/src_drw_objects.h_DRW_AssociativeObject_5532e726b90db402cca0a6d04b48d1aff2105ea9cf45112d686faf9aa04719ae",
       "selector": {
         "kind": "method",
         "owner": "DRW_AssociativeObject",
         "qualifiedName": "DRW_AssociativeObject::m_recordName",
-        "signatureFingerprint": "6129549b54d56ed556b3d277a30573e9940dc804e77fdaa5f284232ae1d5127d",
+        "signatureFingerprint": "5532e726b90db402cca0a6d04b48d1aff2105ea9cf45112d686faf9aa04719ae",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -56722,7 +56922,7 @@
       ],
       "evidence": [
         {
-          "line": 5003,
+          "line": 5121,
           "path": "src/drw_objects.h",
           "spanSha256": "83a31774046aaada079cc6a497a288ace840aa53d6f6559fbc01c02217378486",
           "symbol": "DRW_BlockRepresentationData::reset"
@@ -56746,7 +56946,7 @@
       ],
       "evidence": [
         {
-          "line": 5001,
+          "line": 5119,
           "path": "src/drw_objects.h",
           "spanSha256": "ff5502944261c969c1cced803ae04e3d765760c2989377b5d7d192efa733a019",
           "symbol": "DRW_BlockRepresentationData::DRW_BlockRepresentationData"
@@ -56818,7 +57018,7 @@
       ],
       "evidence": [
         {
-          "line": 5855,
+          "line": 5973,
           "path": "src/drw_objects.h",
           "spanSha256": "302ac24f3a65c8c97044ea440452ed484289c397154088871db73bfea2ee6151",
           "symbol": "DRW_BreakData::reset"
@@ -56842,7 +57042,31 @@
       ],
       "evidence": [
         {
-          "line": 5842,
+          "line": 5957,
+          "path": "src/drw_objects.h",
+          "spanSha256": "2b914fcb6aa17d7d26de468477e6e76c41428a14121c8a18143fb3769de2c070",
+          "symbol": "DRW_BreakData::DRW_BreakData"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-method/src_drw_objects.h_DRW_BreakData_59ede6ad02ce60926e201c994bbe02a02a25e31528f5cdeee5c8c295f742e784",
+      "selector": {
+        "kind": "method",
+        "owner": "DRW_BreakData",
+        "qualifiedName": "DRW_BreakData::DRW_BreakData",
+        "signatureFingerprint": "59ede6ad02ce60926e201c994bbe02a02a25e31528f5cdeee5c8c295f742e784",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 5960,
           "path": "src/drw_objects.h",
           "spanSha256": "f9d277e1f13d25ff30db048633dfec4f273b82a960238500dbd6aeecc2b24b73",
           "symbol": "DRW_BreakData::m_dxfInBreakData"
@@ -56866,7 +57090,7 @@
       ],
       "evidence": [
         {
-          "line": 5845,
+          "line": 5963,
           "path": "src/drw_objects.h",
           "spanSha256": "b7a4acede156ed84340b58df9c973e53101bfb2571f6fbd08e6de55e51d339c1",
           "symbol": "DRW_BreakData::operator="
@@ -56890,43 +57114,19 @@
       ],
       "evidence": [
         {
-          "line": 5839,
-          "path": "src/drw_objects.h",
-          "spanSha256": "2b914fcb6aa17d7d26de468477e6e76c41428a14121c8a18143fb3769de2c070",
-          "symbol": "DRW_BreakData::DRW_BreakData"
-        }
-      ],
-      "facade": "shared",
-      "id": "shared/public-method/src_drw_objects.h_DRW_BreakData_8738874739048484a82f438ecafbabdc14154766d560e7c2b25a1be767575383",
-      "selector": {
-        "kind": "method",
-        "owner": "DRW_BreakData",
-        "qualifiedName": "DRW_BreakData::DRW_BreakData",
-        "signatureFingerprint": "8738874739048484a82f438ecafbabdc14154766d560e7c2b25a1be767575383",
-        "visibility": "public"
-      },
-      "sourceDisposition": "source-route-only"
-    },
-    {
-      "category": "public-method",
-      "directions": [
-        "public-api"
-      ],
-      "evidence": [
-        {
-          "line": 5874,
+          "line": 5992,
           "path": "src/drw_objects.h",
           "spanSha256": "add2b4ac7e4c199bc29d21a067db22fdcf4e52bda4fb2b50a82a8bf9c7b7a296",
           "symbol": "DRW_BreakPointRef::DRW_BreakPointRef"
         }
       ],
       "facade": "shared",
-      "id": "shared/public-method/src_drw_objects.h_DRW_BreakPointRef_0b5e7188a4aad71abe86c07fc0b19c968812e876993e06f6802a8a04ebbda4db",
+      "id": "shared/public-method/src_drw_objects.h_DRW_BreakPointRef_042d13fb8571414cbca06680cfd211df12e6f3ef6974ea7b4369642967a463d0",
       "selector": {
         "kind": "method",
         "owner": "DRW_BreakPointRef",
         "qualifiedName": "DRW_BreakPointRef::DRW_BreakPointRef",
-        "signatureFingerprint": "0b5e7188a4aad71abe86c07fc0b19c968812e876993e06f6802a8a04ebbda4db",
+        "signatureFingerprint": "042d13fb8571414cbca06680cfd211df12e6f3ef6974ea7b4369642967a463d0",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -56938,7 +57138,7 @@
       ],
       "evidence": [
         {
-          "line": 5875,
+          "line": 5993,
           "path": "src/drw_objects.h",
           "spanSha256": "56403d70e353957977d47980cdd9151e39d74243a7734dbd4a7c56af3f2fbc3a",
           "symbol": "DRW_BreakPointRef::reset"
@@ -56962,7 +57162,7 @@
       ],
       "evidence": [
         {
-          "line": 4266,
+          "line": 4384,
           "path": "src/drw_objects.h",
           "spanSha256": "8e075814b2d0acd5f4016cd71449cf116f289587596d5702952b42d0939e2f7e",
           "symbol": "DRW_CellStyleMap::reset"
@@ -56986,19 +57186,19 @@
       ],
       "evidence": [
         {
-          "line": 4265,
+          "line": 4383,
           "path": "src/drw_objects.h",
           "spanSha256": "4450452762be429d6fa02a798697bdc2641c684cad159ea32f239cfcf95d3e92",
           "symbol": "DRW_CellStyleMap::DRW_CellStyleMap"
         }
       ],
       "facade": "shared",
-      "id": "shared/public-method/src_drw_objects.h_DRW_CellStyleMap_30a7041247c97aebb8f4288a1a28e0866c4ae231baedbb45f410eb20918f1c44",
+      "id": "shared/public-method/src_drw_objects.h_DRW_CellStyleMap_b6c8d9b1c00e8360295404eaaafdf5ed9c20d59f336d0a33e4043e0b9dc4bceb",
       "selector": {
         "kind": "method",
         "owner": "DRW_CellStyleMap",
         "qualifiedName": "DRW_CellStyleMap::DRW_CellStyleMap",
-        "signatureFingerprint": "30a7041247c97aebb8f4288a1a28e0866c4ae231baedbb45f410eb20918f1c44",
+        "signatureFingerprint": "b6c8d9b1c00e8360295404eaaafdf5ed9c20d59f336d0a33e4043e0b9dc4bceb",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -57106,7 +57306,7 @@
       ],
       "evidence": [
         {
-          "line": 3816,
+          "line": 3902,
           "path": "src/drw_objects.h",
           "spanSha256": "9631cdaf542d64e5a0079342f43025330f21ba9f691dc3d380dc57f8765348f3",
           "symbol": "DRW_CurvePath::DRW_CurvePath"
@@ -57130,7 +57330,7 @@
       ],
       "evidence": [
         {
-          "line": 3817,
+          "line": 3919,
           "path": "src/drw_objects.h",
           "spanSha256": "302ac24f3a65c8c97044ea440452ed484289c397154088871db73bfea2ee6151",
           "symbol": "DRW_CurvePath::reset"
@@ -57143,6 +57343,54 @@
         "owner": "DRW_CurvePath",
         "qualifiedName": "DRW_CurvePath::reset",
         "signatureFingerprint": "26bf00b5f107014d5ec49d9ee66ec9725e2dd4c532b8051ad042e52e5d493a7a",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 3908,
+          "path": "src/drw_objects.h",
+          "spanSha256": "5ab2ae48d028ed6f9c2f63609f780562f76c7826f552db0e3fa035931efcff57",
+          "symbol": "DRW_CurvePath::operator="
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-method/src_drw_objects.h_DRW_CurvePath_4c4b629822c032568d0df1b0071e2fd4c8f17f3f9e26b454e7f09c74ba41dd3f",
+      "selector": {
+        "kind": "method",
+        "owner": "DRW_CurvePath",
+        "qualifiedName": "DRW_CurvePath::operator=",
+        "signatureFingerprint": "4c4b629822c032568d0df1b0071e2fd4c8f17f3f9e26b454e7f09c74ba41dd3f",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 3905,
+          "path": "src/drw_objects.h",
+          "spanSha256": "5ee7113539a156147c0d2da01c8cc658e904878e8569a11362ab59a77294d36c",
+          "symbol": "DRW_CurvePath::m_seen340"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-method/src_drw_objects.h_DRW_CurvePath_59868bc0596990fe4373dcfa3792f0cfbf75a71af81b7dc6352d24e77c02fe38",
+      "selector": {
+        "kind": "method",
+        "owner": "DRW_CurvePath",
+        "qualifiedName": "DRW_CurvePath::m_seen340",
+        "signatureFingerprint": "59868bc0596990fe4373dcfa3792f0cfbf75a71af81b7dc6352d24e77c02fe38",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -57298,7 +57546,7 @@
       ],
       "evidence": [
         {
-          "line": 4608,
+          "line": 4726,
           "path": "src/drw_objects.h",
           "spanSha256": "d03be90256b993ba944a2f3d2bd0d11c87ebbff606fa84d6e5a95c5de8293fec",
           "symbol": "DRW_DbColor::reset"
@@ -57322,7 +57570,7 @@
       ],
       "evidence": [
         {
-          "line": 4607,
+          "line": 4725,
           "path": "src/drw_objects.h",
           "spanSha256": "3938c5f04df16889f8c9611573b1fcc82ac845bf2ee3ad636c9ba18722aaefd5",
           "symbol": "DRW_DbColor::DRW_DbColor"
@@ -57346,7 +57594,7 @@
       ],
       "evidence": [
         {
-          "line": 5724,
+          "line": 5842,
           "path": "src/drw_objects.h",
           "spanSha256": "302ac24f3a65c8c97044ea440452ed484289c397154088871db73bfea2ee6151",
           "symbol": "DRW_DetailViewStyle::reset"
@@ -57370,19 +57618,19 @@
       ],
       "evidence": [
         {
-          "line": 5723,
+          "line": 5841,
           "path": "src/drw_objects.h",
           "spanSha256": "031769282b7702f8c99f97b95a884f5ec2b98e8fa9079c0487aacbac65698dae",
           "symbol": "DRW_DetailViewStyle::DRW_DetailViewStyle"
         }
       ],
       "facade": "shared",
-      "id": "shared/public-method/src_drw_objects.h_DRW_DetailViewStyle_8add6286bbda00e006cbb203cf2dbbb2d319c4fde17c746a9b9990e6bd7af9bd",
+      "id": "shared/public-method/src_drw_objects.h_DRW_DetailViewStyle_ee31c41f42a7cd4ceee20efdc58d441d0516ad80b67069b45fc9c3bec92f49f8",
       "selector": {
         "kind": "method",
         "owner": "DRW_DetailViewStyle",
         "qualifiedName": "DRW_DetailViewStyle::DRW_DetailViewStyle",
-        "signatureFingerprint": "8add6286bbda00e006cbb203cf2dbbb2d319c4fde17c746a9b9990e6bd7af9bd",
+        "signatureFingerprint": "ee31c41f42a7cd4ceee20efdc58d441d0516ad80b67069b45fc9c3bec92f49f8",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -57778,7 +58026,7 @@
       ],
       "evidence": [
         {
-          "line": 4855,
+          "line": 4973,
           "path": "src/drw_objects.h",
           "spanSha256": "e2a717e456121be34d535985244a29f782dccd2987ed01aa7086bda98a51a389",
           "symbol": "DRW_DimensionAssociation::reset"
@@ -57802,7 +58050,7 @@
       ],
       "evidence": [
         {
-          "line": 4829,
+          "line": 4947,
           "path": "src/drw_objects.h",
           "spanSha256": "476816efe4f50abee78201d96d314ebf2a8ab30d5b88d001ea09b236c51c0ee9",
           "symbol": "DRW_DimensionAssociation::DRW_DimensionAssociation"
@@ -57826,7 +58074,7 @@
       ],
       "evidence": [
         {
-          "line": 4840,
+          "line": 4958,
           "path": "src/drw_objects.h",
           "spanSha256": "0e7bb4b46b6972a39439decf052bacc0f52e88c6c3820221eea4b57d70e09ced",
           "symbol": "DRW_DimensionAssociation::operator="
@@ -57850,7 +58098,7 @@
       ],
       "evidence": [
         {
-          "line": 4837,
+          "line": 4955,
           "path": "src/drw_objects.h",
           "spanSha256": "c404a3dcbd73338a24beeb22361a1d3d2d1ee29538493a2f254a33bc24f92c6b",
           "symbol": "DRW_DimensionAssociation::m_dxfInBody"
@@ -58210,7 +58458,7 @@
       ],
       "evidence": [
         {
-          "line": 5425,
+          "line": 5543,
           "path": "src/drw_objects.h",
           "spanSha256": "294c6b9681984e27bfd761f0fd363c58bdb17b68599c28903e17e8d4f2273f8a",
           "symbol": "DRW_DynamicBlockObject::isDynamicBlockRecName"
@@ -58234,7 +58482,7 @@
       ],
       "evidence": [
         {
-          "line": 5417,
+          "line": 5535,
           "path": "src/drw_objects.h",
           "spanSha256": "246602b46fa69f17d322ad2118286c7da7710c1e72130d5e22668a6b7b53d318",
           "symbol": "DRW_DynamicBlockObject::m_recordName"
@@ -58258,7 +58506,7 @@
       ],
       "evidence": [
         {
-          "line": 5427,
+          "line": 5545,
           "path": "src/drw_objects.h",
           "spanSha256": "dfaa8c1bffe4c9a63bfcd4e2739055775e85e12e42c298b827cc296e3b74067f",
           "symbol": "DRW_DynamicBlockObject::classify"
@@ -58282,7 +58530,7 @@
       ],
       "evidence": [
         {
-          "line": 4924,
+          "line": 5042,
           "path": "src/drw_objects.h",
           "spanSha256": "416ab083c9b9cef3a4b77bd3112da246a67630288eeeefd4e98584f856370647",
           "symbol": "DRW_EvaluationGraph::DRW_EvaluationGraph"
@@ -58306,7 +58554,7 @@
       ],
       "evidence": [
         {
-          "line": 4935,
+          "line": 5053,
           "path": "src/drw_objects.h",
           "spanSha256": "5df56e8053b76a541b79a240066c8ee0bd2ea0230b497d745fbefe648babf673",
           "symbol": "DRW_EvaluationGraph::operator="
@@ -58330,7 +58578,7 @@
       ],
       "evidence": [
         {
-          "line": 4977,
+          "line": 5095,
           "path": "src/drw_objects.h",
           "spanSha256": "0a975cb84e024a1db04e2707334345a53425bc6fb3307bdbb56e940fbfecbdca",
           "symbol": "DRW_EvaluationGraph::finalizeDxf"
@@ -58354,7 +58602,7 @@
       ],
       "evidence": [
         {
-          "line": 4932,
+          "line": 5050,
           "path": "src/drw_objects.h",
           "spanSha256": "bd99ed3a4c4974cc878f10bea6f982ce149d99b538a6ace3dd1fdabc7b89ca36",
           "symbol": "DRW_EvaluationGraph::m_dxfEdge91Count"
@@ -58882,7 +59130,7 @@
       ],
       "evidence": [
         {
-          "line": 6086,
+          "line": 6204,
           "path": "src/drw_objects.h",
           "spanSha256": "82501cf21a7c7a68f4bf7ebfd8217be7e06cbaa948691bff9d3b197a40f79b2f",
           "symbol": "DRW_IDBuffer::reset"
@@ -58906,7 +59154,7 @@
       ],
       "evidence": [
         {
-          "line": 6073,
+          "line": 6191,
           "path": "src/drw_objects.h",
           "spanSha256": "4a1351780c292a71c2e4c1aedda62016eefdd33d758ca84db55cd218ea554b7e",
           "symbol": "DRW_IDBuffer::m_dxfBodySeen"
@@ -58930,7 +59178,7 @@
       ],
       "evidence": [
         {
-          "line": 6070,
+          "line": 6188,
           "path": "src/drw_objects.h",
           "spanSha256": "549e23db132d2ae72ec761217bcf446245781cd63a9d9520a42a165a84757a7b",
           "symbol": "DRW_IDBuffer::DRW_IDBuffer"
@@ -58954,7 +59202,7 @@
       ],
       "evidence": [
         {
-          "line": 6076,
+          "line": 6194,
           "path": "src/drw_objects.h",
           "spanSha256": "fe6776083281cbab135693f21c5d4919f225bcfa22a7cf71ffe228e3de5b4593",
           "symbol": "DRW_IDBuffer::operator="
@@ -59074,7 +59322,7 @@
       ],
       "evidence": [
         {
-          "line": 6038,
+          "line": 6156,
           "path": "src/drw_objects.h",
           "spanSha256": "af04ec312eb21bc03c075b2396aa1bb0dbf075d1e2a599f31865cf6acc61f46f",
           "symbol": "DRW_Index::reset"
@@ -59098,7 +59346,7 @@
       ],
       "evidence": [
         {
-          "line": 6022,
+          "line": 6140,
           "path": "src/drw_objects.h",
           "spanSha256": "b1794fca37a0fdd25d680074c65057b324dc1be99156253942fd277775d545a0",
           "symbol": "DRW_Index::DRW_Index"
@@ -59122,7 +59370,7 @@
       ],
       "evidence": [
         {
-          "line": 6028,
+          "line": 6146,
           "path": "src/drw_objects.h",
           "spanSha256": "976be0a3286afc309108ee731cfa80fc1800cdbd698d5cf022f5f877f6ba3bf0",
           "symbol": "DRW_Index::operator="
@@ -59146,7 +59394,7 @@
       ],
       "evidence": [
         {
-          "line": 6025,
+          "line": 6143,
           "path": "src/drw_objects.h",
           "spanSha256": "a1e88127160029e5bc9981c9d74bb5ddd94b3a021702e1de4e89d69fba97c13d",
           "symbol": "DRW_Index::m_dxfTimestampSeen"
@@ -59314,7 +59562,7 @@
       ],
       "evidence": [
         {
-          "line": 6133,
+          "line": 6251,
           "path": "src/drw_objects.h",
           "spanSha256": "10d630f682b70b57eb99b7946f44045092168435cfaf2425181ba4f8856de75d",
           "symbol": "DRW_LayerIndex::m_dxfPendingName"
@@ -59338,7 +59586,7 @@
       ],
       "evidence": [
         {
-          "line": 6128,
+          "line": 6246,
           "path": "src/drw_objects.h",
           "spanSha256": "fb4e28273c9138af19eed914149b7e97b6e78fc12d3ad18e5cb0a8a718182c0c",
           "symbol": "DRW_LayerIndex::DRW_LayerIndex"
@@ -59362,7 +59610,7 @@
       ],
       "evidence": [
         {
-          "line": 6150,
+          "line": 6268,
           "path": "src/drw_objects.h",
           "spanSha256": "7bccab5bc323c5cf31e46181dc8e434fb45fadb779228168850ce11fadafa765",
           "symbol": "DRW_LayerIndex::reset"
@@ -59386,7 +59634,7 @@
       ],
       "evidence": [
         {
-          "line": 6161,
+          "line": 6279,
           "path": "src/drw_objects.h",
           "spanSha256": "0a975cb84e024a1db04e2707334345a53425bc6fb3307bdbb56e940fbfecbdca",
           "symbol": "DRW_LayerIndex::finalizeDxf"
@@ -59410,7 +59658,7 @@
       ],
       "evidence": [
         {
-          "line": 6136,
+          "line": 6254,
           "path": "src/drw_objects.h",
           "spanSha256": "ff868d18f95912dcaf628930df8528846442f0b14f896302cdd086130ef93188",
           "symbol": "DRW_LayerIndex::operator="
@@ -59506,7 +59754,7 @@
       ],
       "evidence": [
         {
-          "line": 4292,
+          "line": 4410,
           "path": "src/drw_objects.h",
           "spanSha256": "3b18fe3caf5c3202692c786ba852967ccb8a6e62bf46b477c894a5b7a197f7e2",
           "symbol": "DRW_Layout::reset"
@@ -59530,7 +59778,7 @@
       ],
       "evidence": [
         {
-          "line": 4291,
+          "line": 4409,
           "path": "src/drw_objects.h",
           "spanSha256": "0b3ebd71860b08b34ddb0893c3ffaaddaae8f87c820f12e092886582e64a09e2",
           "symbol": "DRW_Layout::DRW_Layout"
@@ -59650,7 +59898,7 @@
       ],
       "evidence": [
         {
-          "line": 4532,
+          "line": 4650,
           "path": "src/drw_objects.h",
           "spanSha256": "2ab11474e43affdcd8cb21b77d1082fb38a701924d8061db3d9e2e27c393fecc",
           "symbol": "DRW_MLeaderStyle::encodeDwg"
@@ -59674,7 +59922,7 @@
       ],
       "evidence": [
         {
-          "line": 4476,
+          "line": 4594,
           "path": "src/drw_objects.h",
           "spanSha256": "26d251607ad58ff6efee58324bbbcfd79d6008b77db5d3ca2646675e3bad3720",
           "symbol": "DRW_MLeaderStyle::reset"
@@ -59698,7 +59946,7 @@
       ],
       "evidence": [
         {
-          "line": 4531,
+          "line": 4649,
           "path": "src/drw_objects.h",
           "spanSha256": "25d1a416743ba1ac674a9c3b6a2b4bc01a00441f6bff3923ad714dcbbd34a474",
           "symbol": "DRW_MLeaderStyle::validateDwgPayload"
@@ -59722,7 +59970,7 @@
       ],
       "evidence": [
         {
-          "line": 4475,
+          "line": 4593,
           "path": "src/drw_objects.h",
           "spanSha256": "bfbb691e1d08ecc06e057debb30ec2937132d6cd9a9a288bc9e2668f96cbe564",
           "symbol": "DRW_MLeaderStyle::DRW_MLeaderStyle"
@@ -59746,7 +59994,31 @@
       ],
       "evidence": [
         {
-          "line": 4435,
+          "line": 4552,
+          "path": "src/drw_objects.h",
+          "spanSha256": "09631d7e4ea9826784a50830c4523253ce509249ef1c39e1994c64619361a179",
+          "symbol": "DRW_MLineStyle::DRW_MLineStyle"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-method/src_drw_objects.h_DRW_MLineStyle_153fae7a19317ab43586de1b5d1f9e5d0e39a379592201a2a35d6d3aeedb4c34",
+      "selector": {
+        "kind": "method",
+        "owner": "DRW_MLineStyle",
+        "qualifiedName": "DRW_MLineStyle::DRW_MLineStyle",
+        "signatureFingerprint": "153fae7a19317ab43586de1b5d1f9e5d0e39a379592201a2a35d6d3aeedb4c34",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 4553,
           "path": "src/drw_objects.h",
           "spanSha256": "e97b13b1a98a5bafc0efedfe711ce8d162791140e2fd33e8f4132dee45cd8be3",
           "symbol": "DRW_MLineStyle::reset"
@@ -59759,30 +60031,6 @@
         "owner": "DRW_MLineStyle",
         "qualifiedName": "DRW_MLineStyle::reset",
         "signatureFingerprint": "26bf00b5f107014d5ec49d9ee66ec9725e2dd4c532b8051ad042e52e5d493a7a",
-        "visibility": "public"
-      },
-      "sourceDisposition": "source-route-only"
-    },
-    {
-      "category": "public-method",
-      "directions": [
-        "public-api"
-      ],
-      "evidence": [
-        {
-          "line": 4434,
-          "path": "src/drw_objects.h",
-          "spanSha256": "09631d7e4ea9826784a50830c4523253ce509249ef1c39e1994c64619361a179",
-          "symbol": "DRW_MLineStyle::DRW_MLineStyle"
-        }
-      ],
-      "facade": "shared",
-      "id": "shared/public-method/src_drw_objects.h_DRW_MLineStyle_cb5c9cb2731cedf94b04c66ee37474a69e60c79646cf384012f2742deb5a6604",
-      "selector": {
-        "kind": "method",
-        "owner": "DRW_MLineStyle",
-        "qualifiedName": "DRW_MLineStyle::DRW_MLineStyle",
-        "signatureFingerprint": "cb5c9cb2731cedf94b04c66ee37474a69e60c79646cf384012f2742deb5a6604",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -59986,7 +60234,7 @@
       ],
       "evidence": [
         {
-          "line": 3786,
+          "line": 3872,
           "path": "src/drw_objects.h",
           "spanSha256": "302ac24f3a65c8c97044ea440452ed484289c397154088871db73bfea2ee6151",
           "symbol": "DRW_MotionPath::reset"
@@ -60010,7 +60258,55 @@
       ],
       "evidence": [
         {
-          "line": 3785,
+          "line": 3853,
+          "path": "src/drw_objects.h",
+          "spanSha256": "86615e2697c278481c25ed01aacebbf01bb2e12d89b79a3eebf6a5a1e1eb7ba7",
+          "symbol": "DRW_MotionPath::m_seen340"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-method/src_drw_objects.h_DRW_MotionPath_aac3720c5ca06ed548364ad9c7f68c349a8fba8df4087be59f7a4813ef4139a4",
+      "selector": {
+        "kind": "method",
+        "owner": "DRW_MotionPath",
+        "qualifiedName": "DRW_MotionPath::m_seen340",
+        "signatureFingerprint": "aac3720c5ca06ed548364ad9c7f68c349a8fba8df4087be59f7a4813ef4139a4",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 3856,
+          "path": "src/drw_objects.h",
+          "spanSha256": "c8ad575422f294c68052e4a3ec596355e08ec15c0b15ebdeba8920eac994ea42",
+          "symbol": "DRW_MotionPath::operator="
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-method/src_drw_objects.h_DRW_MotionPath_ad10eed03ab28849dea4d5feb09d4e39417a102756acdb31a6da5fa46c93cec6",
+      "selector": {
+        "kind": "method",
+        "owner": "DRW_MotionPath",
+        "qualifiedName": "DRW_MotionPath::operator=",
+        "signatureFingerprint": "ad10eed03ab28849dea4d5feb09d4e39417a102756acdb31a6da5fa46c93cec6",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 3846,
           "path": "src/drw_objects.h",
           "spanSha256": "ac63b6f5a2e1e2bc19bd59c726d50d08fd03b094cf88e622c844e7d82469172c",
           "symbol": "DRW_MotionPath::DRW_MotionPath"
@@ -60082,7 +60378,7 @@
       ],
       "evidence": [
         {
-          "line": 4723,
+          "line": 4841,
           "path": "src/drw_objects.h",
           "spanSha256": "e595a909042c337f5d0a81cc3241ab8fd3eb1b094ac661cd66cb6a125239219b",
           "symbol": "DRW_ObjectContextData::isTextFamily"
@@ -60106,7 +60402,7 @@
       ],
       "evidence": [
         {
-          "line": 4727,
+          "line": 4845,
           "path": "src/drw_objects.h",
           "spanSha256": "9e4f1185ed2adfbd890df9b3361df3181a2ccbd88b11f37200775246375252d9",
           "symbol": "DRW_ObjectContextData::isDimensionFamily"
@@ -60130,7 +60426,7 @@
       ],
       "evidence": [
         {
-          "line": 4719,
+          "line": 4837,
           "path": "src/drw_objects.h",
           "spanSha256": "7ef42b4902c54bc96712ed320e6447fbccc17018ae30756d878805370e5b9251",
           "symbol": "DRW_ObjectContextData::m_kind"
@@ -60154,7 +60450,7 @@
       ],
       "evidence": [
         {
-          "line": 3869,
+          "line": 3987,
           "path": "src/drw_objects.h",
           "spanSha256": "302ac24f3a65c8c97044ea440452ed484289c397154088871db73bfea2ee6151",
           "symbol": "DRW_ObjectPtr::reset"
@@ -60178,7 +60474,7 @@
       ],
       "evidence": [
         {
-          "line": 3868,
+          "line": 3986,
           "path": "src/drw_objects.h",
           "spanSha256": "67b196b99989033ada9fad5aa95d4bdbe1ec457d38ae54c6e5f4775177742297",
           "symbol": "DRW_ObjectPtr::DRW_ObjectPtr"
@@ -60202,7 +60498,7 @@
       ],
       "evidence": [
         {
-          "line": 3897,
+          "line": 4015,
           "path": "src/drw_objects.h",
           "spanSha256": "302ac24f3a65c8c97044ea440452ed484289c397154088871db73bfea2ee6151",
           "symbol": "DRW_PartialViewingIndex::reset"
@@ -60226,7 +60522,7 @@
       ],
       "evidence": [
         {
-          "line": 3904,
+          "line": 4022,
           "path": "src/drw_objects.h",
           "spanSha256": "0a975cb84e024a1db04e2707334345a53425bc6fb3307bdbb56e940fbfecbdca",
           "symbol": "DRW_PartialViewingIndex::finalizeDxf"
@@ -60250,7 +60546,7 @@
       ],
       "evidence": [
         {
-          "line": 3896,
+          "line": 4014,
           "path": "src/drw_objects.h",
           "spanSha256": "62c329341f61e99f8cfc9b2d4fe34a85a69ed19982e67edda0a207c2a10ad538",
           "symbol": "DRW_PartialViewingIndex::DRW_PartialViewingIndex"
@@ -60466,7 +60762,7 @@
       ],
       "evidence": [
         {
-          "line": 3843,
+          "line": 3961,
           "path": "src/drw_objects.h",
           "spanSha256": "302ac24f3a65c8c97044ea440452ed484289c397154088871db73bfea2ee6151",
           "symbol": "DRW_PointPath::reset"
@@ -60490,7 +60786,7 @@
       ],
       "evidence": [
         {
-          "line": 3842,
+          "line": 3944,
           "path": "src/drw_objects.h",
           "spanSha256": "b6c7d8a0208671a42b7317032db5c4abf7f9fb76921bfe88d0fa65bc4200f5d5",
           "symbol": "DRW_PointPath::DRW_PointPath"
@@ -60514,7 +60810,55 @@
       ],
       "evidence": [
         {
-          "line": 5083,
+          "line": 3950,
+          "path": "src/drw_objects.h",
+          "spanSha256": "03e63d3d5a95076aab61285db6aa80c5bef0328a94fca45d8757beb2e92dcc9b",
+          "symbol": "DRW_PointPath::operator="
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-method/src_drw_objects.h_DRW_PointPath_c71dd03d03c59cc6f2fc41dedfd434a27fd074df09d86eccb611e2c7205701b0",
+      "selector": {
+        "kind": "method",
+        "owner": "DRW_PointPath",
+        "qualifiedName": "DRW_PointPath::operator=",
+        "signatureFingerprint": "c71dd03d03c59cc6f2fc41dedfd434a27fd074df09d86eccb611e2c7205701b0",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 3947,
+          "path": "src/drw_objects.h",
+          "spanSha256": "c78b62a7c771f2ad9ca069b2d9241a42da4ad36ac4bbc8e44f11b6f8205edd5d",
+          "symbol": "DRW_PointPath::m_seen10"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-method/src_drw_objects.h_DRW_PointPath_e2300d2e14c81a22a087ba98835cf7abc2128d8e5eb43ed9dc910f284ac5ecfa",
+      "selector": {
+        "kind": "method",
+        "owner": "DRW_PointPath",
+        "qualifiedName": "DRW_PointPath::m_seen10",
+        "signatureFingerprint": "e2300d2e14c81a22a087ba98835cf7abc2128d8e5eb43ed9dc910f284ac5ecfa",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 5201,
           "path": "src/drw_objects.h",
           "spanSha256": "50d4ccf027c500dd8a8d018572c06cb5218526cb6484b7ab0d8598c46fe747b1",
           "symbol": "DRW_ProxyObject::reset"
@@ -60538,7 +60882,7 @@
       ],
       "evidence": [
         {
-          "line": 5081,
+          "line": 5199,
           "path": "src/drw_objects.h",
           "spanSha256": "be9612963a5dab7a547feec205dd6aae5fbb1bf240f6d1eb7b3d49ba92b073b5",
           "symbol": "DRW_ProxyObject::DRW_ProxyObject"
@@ -60610,7 +60954,7 @@
       ],
       "evidence": [
         {
-          "line": 3986,
+          "line": 4104,
           "path": "src/drw_objects.h",
           "spanSha256": "7e97ee6fa13173e3126cbb2dda813f6f4143826585a21249b47d6ed36fc55710",
           "symbol": "DRW_RenderSettings::dwgRawData"
@@ -60634,7 +60978,7 @@
       ],
       "evidence": [
         {
-          "line": 3998,
+          "line": 4116,
           "path": "src/drw_objects.h",
           "spanSha256": "b8d2ae3bf6c8d1bbf931aeb7401e30303065faf7d3f4648f42c984878b1f97d1",
           "symbol": "DRW_RenderSettings::finalize"
@@ -60658,7 +61002,7 @@
       ],
       "evidence": [
         {
-          "line": 3943,
+          "line": 4061,
           "path": "src/drw_objects.h",
           "spanSha256": "302ac24f3a65c8c97044ea440452ed484289c397154088871db73bfea2ee6151",
           "symbol": "DRW_RenderSettings::reset"
@@ -60682,7 +61026,7 @@
       ],
       "evidence": [
         {
-          "line": 3973,
+          "line": 4091,
           "path": "src/drw_objects.h",
           "spanSha256": "e85f7c6834222b2658fa8a51325f93f8604ca69020509a47c247a3ef031bbf52",
           "symbol": "DRW_RenderSettings::setDwgRawData"
@@ -60706,7 +61050,7 @@
       ],
       "evidence": [
         {
-          "line": 3941,
+          "line": 4059,
           "path": "src/drw_objects.h",
           "spanSha256": "cc32258b6867d3e31d7ed406000b6d8d3256af5de852af63d179a64854a32703",
           "symbol": "DRW_RenderSettings::DRW_RenderSettings"
@@ -60730,7 +61074,7 @@
       ],
       "evidence": [
         {
-          "line": 3992,
+          "line": 4110,
           "path": "src/drw_objects.h",
           "spanSha256": "ec248cd8e00a0404c614dd30a818aa0aed18ede7f4bcb7103fe334be822db745",
           "symbol": "DRW_RenderSettings::hasDwgRawData"
@@ -60754,7 +61098,7 @@
       ],
       "evidence": [
         {
-          "line": 3993,
+          "line": 4111,
           "path": "src/drw_objects.h",
           "spanSha256": "4bcebf03c2e13e284f685f1e40ca7ba6ddffa523cabaf46e7fa2f4647f104ccb",
           "symbol": "DRW_RenderSettings::dwgRawDataVersion"
@@ -60778,7 +61122,7 @@
       ],
       "evidence": [
         {
-          "line": 3989,
+          "line": 4107,
           "path": "src/drw_objects.h",
           "spanSha256": "0843e0e637e5f4518bbb7dd8a3a079b44bb5c14cf8149b119636e66ab2d0bd1a",
           "symbol": "DRW_RenderSettings::dwgRawDataBitSize"
@@ -60802,7 +61146,7 @@
       ],
       "evidence": [
         {
-          "line": 4662,
+          "line": 4780,
           "path": "src/drw_objects.h",
           "spanSha256": "e2e495bba5f06fec24c042c243bff4528adb65b8dd677d5022bb75e6e8067f2a",
           "symbol": "DRW_Scale::scaleFactor"
@@ -60826,7 +61170,7 @@
       ],
       "evidence": [
         {
-          "line": 4660,
+          "line": 4778,
           "path": "src/drw_objects.h",
           "spanSha256": "779f5bd49269dfaa58fcf642e51a23f90db0131db406592f80c977f6ee76e6ea",
           "symbol": "DRW_Scale::DRW_Scale"
@@ -60850,31 +61194,7 @@
       ],
       "evidence": [
         {
-          "line": 5775,
-          "path": "src/drw_objects.h",
-          "spanSha256": "628ef829181d987f5feb62c0cec67eb0d4c7980c21634784bd47ffec4b59fa3e",
-          "symbol": "DRW_SectionViewStyle::DRW_SectionViewStyle"
-        }
-      ],
-      "facade": "shared",
-      "id": "shared/public-method/src_drw_objects.h_DRW_SectionViewStyle_2533f62becc24c481da370d7cc40c073964a382c94cab29cd56868ef916a5524",
-      "selector": {
-        "kind": "method",
-        "owner": "DRW_SectionViewStyle",
-        "qualifiedName": "DRW_SectionViewStyle::DRW_SectionViewStyle",
-        "signatureFingerprint": "2533f62becc24c481da370d7cc40c073964a382c94cab29cd56868ef916a5524",
-        "visibility": "public"
-      },
-      "sourceDisposition": "source-route-only"
-    },
-    {
-      "category": "public-method",
-      "directions": [
-        "public-api"
-      ],
-      "evidence": [
-        {
-          "line": 5776,
+          "line": 5894,
           "path": "src/drw_objects.h",
           "spanSha256": "302ac24f3a65c8c97044ea440452ed484289c397154088871db73bfea2ee6151",
           "symbol": "DRW_SectionViewStyle::reset"
@@ -60898,7 +61218,31 @@
       ],
       "evidence": [
         {
-          "line": 4063,
+          "line": 5893,
+          "path": "src/drw_objects.h",
+          "spanSha256": "628ef829181d987f5feb62c0cec67eb0d4c7980c21634784bd47ffec4b59fa3e",
+          "symbol": "DRW_SectionViewStyle::DRW_SectionViewStyle"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-method/src_drw_objects.h_DRW_SectionViewStyle_fbd82a57778cbe38decaf087758d6eb28bb1e955487e36b726feac4037a232ee",
+      "selector": {
+        "kind": "method",
+        "owner": "DRW_SectionViewStyle",
+        "qualifiedName": "DRW_SectionViewStyle::DRW_SectionViewStyle",
+        "signatureFingerprint": "fbd82a57778cbe38decaf087758d6eb28bb1e955487e36b726feac4037a232ee",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 4181,
           "path": "src/drw_objects.h",
           "spanSha256": "30640ad544c8fedeed2671a1432e60d85b87fc4ab2a1adde438fa9b9293a934d",
           "symbol": "DRW_Section::DRW_Section"
@@ -60922,7 +61266,7 @@
       ],
       "evidence": [
         {
-          "line": 4124,
+          "line": 4242,
           "path": "src/drw_objects.h",
           "spanSha256": "7e97ee6fa13173e3126cbb2dda813f6f4143826585a21249b47d6ed36fc55710",
           "symbol": "DRW_Section::dwgRawData"
@@ -60946,7 +61290,7 @@
       ],
       "evidence": [
         {
-          "line": 4065,
+          "line": 4183,
           "path": "src/drw_objects.h",
           "spanSha256": "a817286cbdad8ff9f292a54fcdcb6dc835f637b02f1c4426fc3b69fb723cf728",
           "symbol": "DRW_Section::reset"
@@ -60970,7 +61314,7 @@
       ],
       "evidence": [
         {
-          "line": 4111,
+          "line": 4229,
           "path": "src/drw_objects.h",
           "spanSha256": "e85f7c6834222b2658fa8a51325f93f8604ca69020509a47c247a3ef031bbf52",
           "symbol": "DRW_Section::setDwgRawData"
@@ -60994,7 +61338,7 @@
       ],
       "evidence": [
         {
-          "line": 4130,
+          "line": 4248,
           "path": "src/drw_objects.h",
           "spanSha256": "ec248cd8e00a0404c614dd30a818aa0aed18ede7f4bcb7103fe334be822db745",
           "symbol": "DRW_Section::hasDwgRawData"
@@ -61018,7 +61362,7 @@
       ],
       "evidence": [
         {
-          "line": 4131,
+          "line": 4249,
           "path": "src/drw_objects.h",
           "spanSha256": "4bcebf03c2e13e284f685f1e40ca7ba6ddffa523cabaf46e7fa2f4647f104ccb",
           "symbol": "DRW_Section::dwgRawDataVersion"
@@ -61042,7 +61386,7 @@
       ],
       "evidence": [
         {
-          "line": 4127,
+          "line": 4245,
           "path": "src/drw_objects.h",
           "spanSha256": "0843e0e637e5f4518bbb7dd8a3a079b44bb5c14cf8149b119636e66ab2d0bd1a",
           "symbol": "DRW_Section::dwgRawDataBitSize"
@@ -61306,7 +61650,7 @@
       ],
       "evidence": [
         {
-          "line": 6203,
+          "line": 6321,
           "path": "src/drw_objects.h",
           "spanSha256": "e1ded10f09d070e036db3ff48797ebd3e90805e9e07d138b52d9e8cc3fa395b6",
           "symbol": "DRW_SpatialIndex::operator="
@@ -61330,7 +61674,7 @@
       ],
       "evidence": [
         {
-          "line": 6217,
+          "line": 6335,
           "path": "src/drw_objects.h",
           "spanSha256": "483d15f90349864732982d9ac40da23fba81daef4c80022c21ae4270f26ddbf2",
           "symbol": "DRW_SpatialIndex::reset"
@@ -61354,7 +61698,7 @@
       ],
       "evidence": [
         {
-          "line": 6200,
+          "line": 6318,
           "path": "src/drw_objects.h",
           "spanSha256": "a1e88127160029e5bc9981c9d74bb5ddd94b3a021702e1de4e89d69fba97c13d",
           "symbol": "DRW_SpatialIndex::m_dxfTimestampSeen"
@@ -61378,7 +61722,7 @@
       ],
       "evidence": [
         {
-          "line": 6195,
+          "line": 6313,
           "path": "src/drw_objects.h",
           "spanSha256": "607728daf3d78d1786094b667f6b164b4347309c9d5bcc3c1f5bf366b92f7c7e",
           "symbol": "DRW_SpatialIndex::DRW_SpatialIndex"
@@ -61402,7 +61746,31 @@
       ],
       "evidence": [
         {
-          "line": 3731,
+          "line": 3752,
+          "path": "src/drw_objects.h",
+          "spanSha256": "8730a0132eb9b8320d17b9af27d18988688c5ca393751029b4b526e100501da7",
+          "symbol": "DRW_SunStudy::operator="
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-method/src_drw_objects.h_DRW_SunStudy_16c7a4fc70220b310eabbfea339bb4d0371ad57ee6af81b04421122a1f521770",
+      "selector": {
+        "kind": "method",
+        "owner": "DRW_SunStudy",
+        "qualifiedName": "DRW_SunStudy::operator=",
+        "signatureFingerprint": "16c7a4fc70220b310eabbfea339bb4d0371ad57ee6af81b04421122a1f521770",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 3792,
           "path": "src/drw_objects.h",
           "spanSha256": "302ac24f3a65c8c97044ea440452ed484289c397154088871db73bfea2ee6151",
           "symbol": "DRW_SunStudy::reset"
@@ -61450,7 +61818,31 @@
       ],
       "evidence": [
         {
-          "line": 5146,
+          "line": 3749,
+          "path": "src/drw_objects.h",
+          "spanSha256": "2cc76f665ef9dc782d98ce5fc157fcf23827c2490dcbe7ca750d8da88391f40b",
+          "symbol": "DRW_SunStudy::m_dxfHasPendingDateValue"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-method/src_drw_objects.h_DRW_SunStudy_89f14393f938e9d4a0015eb8ab4026f26319c3c0de7c0b94c67c33f8c8847dfe",
+      "selector": {
+        "kind": "method",
+        "owner": "DRW_SunStudy",
+        "qualifiedName": "DRW_SunStudy::m_dxfHasPendingDateValue",
+        "signatureFingerprint": "89f14393f938e9d4a0015eb8ab4026f26319c3c0de7c0b94c67c33f8c8847dfe",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 5264,
           "path": "src/drw_objects.h",
           "spanSha256": "746bb282688c7e60fc484d5e3f51029229edcb3dc9b6f1d571eb0e714ec728f4",
           "symbol": "DRW_Sun::reset"
@@ -61474,7 +61866,7 @@
       ],
       "evidence": [
         {
-          "line": 5145,
+          "line": 5263,
           "path": "src/drw_objects.h",
           "spanSha256": "806f2f6c3957cb46a9aca680a5f712904b50bb88985aa5555f72e83381ae7348",
           "symbol": "DRW_Sun::DRW_Sun"
@@ -61498,7 +61890,7 @@
       ],
       "evidence": [
         {
-          "line": 5169,
+          "line": 5287,
           "path": "src/drw_objects.h",
           "spanSha256": "c6ea6145cfb4da3d5d61e25bea7763efaf7166733d99cca958cf0e720d9e09b1",
           "symbol": "DRW_Sun::encodeDwg"
@@ -61858,7 +62250,7 @@
       ],
       "evidence": [
         {
-          "line": 4220,
+          "line": 4338,
           "path": "src/drw_objects.h",
           "spanSha256": "795cc051c8e4a6c1dd0ffded0c758ae264474ef89896b2f153f854f2b4eb05ce",
           "symbol": "DRW_TableStyle::reset"
@@ -61882,7 +62274,7 @@
       ],
       "evidence": [
         {
-          "line": 4246,
+          "line": 4364,
           "path": "src/drw_objects.h",
           "spanSha256": "25d1a416743ba1ac674a9c3b6a2b4bc01a00441f6bff3923ad714dcbbd34a474",
           "symbol": "DRW_TableStyle::validateDwgPayload"
@@ -61906,7 +62298,7 @@
       ],
       "evidence": [
         {
-          "line": 4219,
+          "line": 4337,
           "path": "src/drw_objects.h",
           "spanSha256": "728e6854d771fe997a17c4a65b1e8bd2017de6c87969a9421ef259aeffba29ec",
           "symbol": "DRW_TableStyle::DRW_TableStyle"
@@ -62122,7 +62514,7 @@
       ],
       "evidence": [
         {
-          "line": 5994,
+          "line": 6112,
           "path": "src/drw_objects.h",
           "spanSha256": "6bdd541da40232e3633f67a2c123f8fff4b90f664ee1b175a86f9df49a5a5660",
           "symbol": "DRW_UnderlayDefinition::reset"
@@ -62146,7 +62538,7 @@
       ],
       "evidence": [
         {
-          "line": 5993,
+          "line": 6111,
           "path": "src/drw_objects.h",
           "spanSha256": "171ee53dddec3271cecda8cb0baa0b563ea38ac0d0306b182a33f2b3d0370e60",
           "symbol": "DRW_UnderlayDefinition::DRW_UnderlayDefinition"
@@ -62290,7 +62682,7 @@
       ],
       "evidence": [
         {
-          "line": 5049,
+          "line": 5167,
           "path": "src/drw_objects.h",
           "spanSha256": "3b45ddf65c33c1860e4357a66dc4f430db5d0d1585a5d9b9e1be47e43aba7938",
           "symbol": "DRW_VbaProject::reset"
@@ -62314,7 +62706,7 @@
       ],
       "evidence": [
         {
-          "line": 5047,
+          "line": 5165,
           "path": "src/drw_objects.h",
           "spanSha256": "1a264165d26f4f2dc1ab77a130d503dafe1ac29c37f84141fc57aae77364ba17",
           "symbol": "DRW_VbaProject::DRW_VbaProject"
@@ -62338,7 +62730,7 @@
       ],
       "evidence": [
         {
-          "line": 5061,
+          "line": 5179,
           "path": "src/drw_objects.h",
           "spanSha256": "2ab11474e43affdcd8cb21b77d1082fb38a701924d8061db3d9e2e27c393fecc",
           "symbol": "DRW_VbaProject::encodeDwg"
@@ -62482,7 +62874,7 @@
       ],
       "evidence": [
         {
-          "line": 5952,
+          "line": 6070,
           "path": "src/drw_objects.h",
           "spanSha256": "a06f457c4a1dadc8461f088a38d33ab0f19950e5980325460307a544e643ae14",
           "symbol": "DRW_VisualStyle::DRW_VisualStyle"
@@ -62506,7 +62898,7 @@
       ],
       "evidence": [
         {
-          "line": 5953,
+          "line": 6071,
           "path": "src/drw_objects.h",
           "spanSha256": "5654ee3016279acfd96d8e3673b33cebb43883884cc383b273601da0ace2850a",
           "symbol": "DRW_VisualStyle::reset"
@@ -63034,19 +63426,19 @@
       ],
       "evidence": [
         {
-          "line": 6252,
+          "line": 6370,
           "path": "src/drw_objects.h",
           "spanSha256": "c60f389e9400d238542b581f42c872e655be5fe958bd777aef3defff798e7e80",
           "symbol": "DRW_WritingContext::DRW_WritingContext"
         }
       ],
       "facade": "shared",
-      "id": "shared/public-method/src_drw_objects.h_DRW_WritingContext_d9dcd7332a105427ab1647e2413f854762a81a1b2c56a9c3d503b757abfb0733",
+      "id": "shared/public-method/src_drw_objects.h_DRW_WritingContext_9ad293df27d50310303eaeef972838fc4c96c6d0204ecfd78d8f2fa7c259d5e3",
       "selector": {
         "kind": "method",
         "owner": "DRW_WritingContext",
         "qualifiedName": "DRW_WritingContext::DRW_WritingContext",
-        "signatureFingerprint": "d9dcd7332a105427ab1647e2413f854762a81a1b2c56a9c3d503b757abfb0733",
+        "signatureFingerprint": "9ad293df27d50310303eaeef972838fc4c96c6d0204ecfd78d8f2fa7c259d5e3",
         "visibility": "public"
       },
       "sourceDisposition": "source-route-only"
@@ -63202,7 +63594,7 @@
       ],
       "evidence": [
         {
-          "line": 5023,
+          "line": 5141,
           "path": "src/drw_objects.h",
           "spanSha256": "f07e58491dd358b34f6f39c222a539cfadbb0c067f76f53d1e8aa3184a8312f2",
           "symbol": "DRW_AcDbPlaceholder"
@@ -63225,7 +63617,7 @@
       ],
       "evidence": [
         {
-          "line": 5285,
+          "line": 5403,
           "path": "src/drw_objects.h",
           "spanSha256": "54f3193958ac1f54341152adc601ddecfb423ad7a401f10da6545b987b47ad55",
           "symbol": "DRW_AcShHistoryObject"
@@ -63524,7 +63916,7 @@
       ],
       "evidence": [
         {
-          "line": 5187,
+          "line": 5305,
           "path": "src/drw_objects.h",
           "spanSha256": "90b58edca49db8dbb1492edf784ceb8279493ae7d4c0fbdf0160241af052db58",
           "symbol": "DRW_AssociativeHandleRef"
@@ -63547,7 +63939,7 @@
       ],
       "evidence": [
         {
-          "line": 5225,
+          "line": 5343,
           "path": "src/drw_objects.h",
           "spanSha256": "3874b3dd34e9c4c2aa11820d85b019c4db10c77f4f4b502e3e30473c74522a0b",
           "symbol": "DRW_AssociativeObject"
@@ -63570,7 +63962,7 @@
       ],
       "evidence": [
         {
-          "line": 5192,
+          "line": 5310,
           "path": "src/drw_objects.h",
           "spanSha256": "fcb50ba615c85a3de8db861a3348504bcadc2a377915dbc2a6dbfcce7f20846c",
           "symbol": "DRW_AssociativePrefixStatus"
@@ -63709,7 +64101,7 @@
       ],
       "evidence": [
         {
-          "line": 4996,
+          "line": 5114,
           "path": "src/drw_objects.h",
           "spanSha256": "01d6ec92a0b9a9e123f608d5a7e3900fe5da7771499a5022cdbdfa5aa827a7c1",
           "symbol": "DRW_BlockRepresentationData"
@@ -63755,7 +64147,7 @@
       ],
       "evidence": [
         {
-          "line": 5836,
+          "line": 5954,
           "path": "src/drw_objects.h",
           "spanSha256": "f8cae7db6d9459bcc5bc39c8263c3da512c05cb857657478d3506ddca4ccffa7",
           "symbol": "DRW_BreakData"
@@ -63778,7 +64170,7 @@
       ],
       "evidence": [
         {
-          "line": 5871,
+          "line": 5989,
           "path": "src/drw_objects.h",
           "spanSha256": "01379affc17f7f93cc0a0c044e1385c3e908b16b478500a87ab4ee79d874e489",
           "symbol": "DRW_BreakPointRef"
@@ -63847,7 +64239,7 @@
       ],
       "evidence": [
         {
-          "line": 4262,
+          "line": 4380,
           "path": "src/drw_objects.h",
           "spanSha256": "74d0823cff581fc8793600efdabe3ae8d42c3ece3efd67e63ed6c4d0caeaa385",
           "symbol": "DRW_CellStyleMap"
@@ -64037,7 +64429,7 @@
       ],
       "evidence": [
         {
-          "line": 3810,
+          "line": 3896,
           "path": "src/drw_objects.h",
           "spanSha256": "80c83581a32b0fb5bbaa9f6a8bb82ce7a4333a123514590fc567fc78f7938d74",
           "symbol": "DRW_CurvePath"
@@ -64382,7 +64774,7 @@
       ],
       "evidence": [
         {
-          "line": 4599,
+          "line": 4717,
           "path": "src/drw_objects.h",
           "spanSha256": "6c8d3ec8f8bf3a44a73b00c9e2cd111085b5a33493b6be55eb972c981e838d2b",
           "symbol": "DRW_DbColor"
@@ -64405,7 +64797,7 @@
       ],
       "evidence": [
         {
-          "line": 5720,
+          "line": 5838,
           "path": "src/drw_objects.h",
           "spanSha256": "b3307941d6d8d54f5143fb3da41e1698a66208c317eec2e02909e2c6c9c55345",
           "symbol": "DRW_DetailViewStyle"
@@ -64750,7 +65142,7 @@
       ],
       "evidence": [
         {
-          "line": 4824,
+          "line": 4942,
           "path": "src/drw_objects.h",
           "spanSha256": "a66a7732fee1c1a580a51d2140562bc974b072e07d572eb7cdb3eef1bc57cecd",
           "symbol": "DRW_DimensionAssociation"
@@ -64773,7 +65165,7 @@
       ],
       "evidence": [
         {
-          "line": 4817,
+          "line": 4935,
           "path": "src/drw_objects.h",
           "spanSha256": "37a02e0d2fe5287e4ed67cd2449c8b8baa6d353859c7514194c698b5ab723b06",
           "symbol": "DRW_DimensionAssociationOsnapRef"
@@ -65394,7 +65786,7 @@
       ],
       "evidence": [
         {
-          "line": 5370,
+          "line": 5488,
           "path": "src/drw_objects.h",
           "spanSha256": "638fdea50813ff3d48845041f866a075237649880802044fcd4996d295f2c5d6",
           "symbol": "DRW_DynamicBlockObject"
@@ -65463,7 +65855,7 @@
       ],
       "evidence": [
         {
-          "line": 4918,
+          "line": 5036,
           "path": "src/drw_objects.h",
           "spanSha256": "596c4c4c2b6d748c90ff238b1473aa1511d740179f114df742ebb9853c825e1e",
           "symbol": "DRW_EvaluationGraph"
@@ -65486,7 +65878,7 @@
       ],
       "evidence": [
         {
-          "line": 4904,
+          "line": 5022,
           "path": "src/drw_objects.h",
           "spanSha256": "8701851570ba90e6d9c334dcbce30e954678a4c96b838643533bd16fb44cbdfc",
           "symbol": "DRW_EvaluationGraphEdge"
@@ -65509,7 +65901,7 @@
       ],
       "evidence": [
         {
-          "line": 4893,
+          "line": 5011,
           "path": "src/drw_objects.h",
           "spanSha256": "5922b03493eec057841951c89926ff77b41f22f632ffb1d03ca4e24e0ffdd6ef",
           "symbol": "DRW_EvaluationGraphNode"
@@ -65831,7 +66223,7 @@
       ],
       "evidence": [
         {
-          "line": 6064,
+          "line": 6182,
           "path": "src/drw_objects.h",
           "spanSha256": "c13c396ec92f1d540fa9c5d9d647db0a07643a13e9acaf55919f3eda32e741f6",
           "symbol": "DRW_IDBuffer"
@@ -65923,7 +66315,7 @@
       ],
       "evidence": [
         {
-          "line": 6017,
+          "line": 6135,
           "path": "src/drw_objects.h",
           "spanSha256": "0aeb4ed9d4ca0c77e24916eddb564eb872105482ff401d55530bfe2dbff16c53",
           "symbol": "DRW_Index"
@@ -66130,7 +66522,7 @@
       ],
       "evidence": [
         {
-          "line": 6122,
+          "line": 6240,
           "path": "src/drw_objects.h",
           "spanSha256": "5a18530a40dc671176d2d19746692310c58221407ebcd60f36bafa0a269a43e8",
           "symbol": "DRW_LayerIndex"
@@ -66153,7 +66545,7 @@
       ],
       "evidence": [
         {
-          "line": 6115,
+          "line": 6233,
           "path": "src/drw_objects.h",
           "spanSha256": "ca433969201ec3ded7d7e2c0d12c5469d0cb17c038e17c32014ba41229dd4630",
           "symbol": "DRW_LayerIndexEntry"
@@ -66176,7 +66568,7 @@
       ],
       "evidence": [
         {
-          "line": 4286,
+          "line": 4404,
           "path": "src/drw_objects.h",
           "spanSha256": "c0e957e44d5fc96bff12d9bd94b02354ea3e2b4f67863a9e3b1c403c27b589ec",
           "symbol": "DRW_Layout"
@@ -66429,7 +66821,7 @@
       ],
       "evidence": [
         {
-          "line": 4470,
+          "line": 4588,
           "path": "src/drw_objects.h",
           "spanSha256": "c5683414c3b086fa873579bd480531919bba838bff837909d804d705fff6b3a5",
           "symbol": "DRW_MLeaderStyle"
@@ -66475,7 +66867,7 @@
       ],
       "evidence": [
         {
-          "line": 4414,
+          "line": 4532,
           "path": "src/drw_objects.h",
           "spanSha256": "4cc2649a13b3ddfcffc87c8b53397f3d49dc38299cc2d85b6526072955346642",
           "symbol": "DRW_MLineElement"
@@ -66498,7 +66890,7 @@
       ],
       "evidence": [
         {
-          "line": 4431,
+          "line": 4549,
           "path": "src/drw_objects.h",
           "spanSha256": "2dad2e934b5680c8e4ab12d47d1aeebbc76533400f991864de311c5f48c08443",
           "symbol": "DRW_MLineStyle"
@@ -66665,7 +67057,7 @@
       ],
       "evidence": [
         {
-          "line": 5710,
+          "line": 5828,
           "path": "src/drw_objects.h",
           "spanSha256": "8eca59c493dd21da3244263bae58c5aab1d6e261d4e2cc4077997d249fe75cf8",
           "symbol": "DRW_ModelDocViewStyle"
@@ -66734,7 +67126,7 @@
       ],
       "evidence": [
         {
-          "line": 3779,
+          "line": 3840,
           "path": "src/drw_objects.h",
           "spanSha256": "febe1d421fb5a49300e5b3770f5349d399f2a3f39f17ef20c5dfc06988bfba9c",
           "symbol": "DRW_MotionPath"
@@ -66826,7 +67218,7 @@
       ],
       "evidence": [
         {
-          "line": 4696,
+          "line": 4814,
           "path": "src/drw_objects.h",
           "spanSha256": "ef4144a68486c79afc7475124f4f4dc8d6359aaeee4096f038e93de102c7b579",
           "symbol": "DRW_ObjectContextData"
@@ -66849,7 +67241,7 @@
       ],
       "evidence": [
         {
-          "line": 3862,
+          "line": 3980,
           "path": "src/drw_objects.h",
           "spanSha256": "fb66c92cf9a67dd842b43cc9410f429c0ffe61d17fe2b43f83df5f5ed2566e30",
           "symbol": "DRW_ObjectPtr"
@@ -66964,7 +67356,7 @@
       ],
       "evidence": [
         {
-          "line": 3889,
+          "line": 4007,
           "path": "src/drw_objects.h",
           "spanSha256": "2181449a8ed78799dd82305fbbfea98cd17214bfc73d2edfa801e8f13247e89e",
           "symbol": "DRW_PartialViewingIndex"
@@ -66987,7 +67379,7 @@
       ],
       "evidence": [
         {
-          "line": 3883,
+          "line": 4001,
           "path": "src/drw_objects.h",
           "spanSha256": "6e47d87335687329638fd682a2bf15cf4e706bd61b473aabc05706f04263fe10",
           "symbol": "DRW_PartialViewingIndexEntry"
@@ -67263,7 +67655,7 @@
       ],
       "evidence": [
         {
-          "line": 3836,
+          "line": 3938,
           "path": "src/drw_objects.h",
           "spanSha256": "339a41d23cb28858ed35d5dd760580295120ab491c336169ba10c5754ece81d0",
           "symbol": "DRW_PointPath"
@@ -67338,7 +67730,7 @@
       ],
       "evidence": [
         {
-          "line": 5076,
+          "line": 5194,
           "path": "src/drw_objects.h",
           "spanSha256": "c26a6f39b7732dc281ab16c51671f6b730cdb06815b0939f8865def97e1dd29a",
           "symbol": "DRW_ProxyObject"
@@ -67361,7 +67753,7 @@
       ],
       "evidence": [
         {
-          "line": 5069,
+          "line": 5187,
           "path": "src/drw_objects.h",
           "spanSha256": "1f3efefe674a8a3b9b26883d204e095636cd66c17f08730de95aea9e5ef967ab",
           "symbol": "DRW_ProxyObjectIdRef"
@@ -67522,7 +67914,7 @@
       ],
       "evidence": [
         {
-          "line": 3925,
+          "line": 4043,
           "path": "src/drw_objects.h",
           "spanSha256": "3c3202bb0f6dceced082610b74d20826992f03c5e2da950814495af057d27fa3",
           "symbol": "DRW_RenderSettings"
@@ -67660,7 +68052,7 @@
       ],
       "evidence": [
         {
-          "line": 4655,
+          "line": 4773,
           "path": "src/drw_objects.h",
           "spanSha256": "a6618edbd2ec1f8862acc7a09724fbd96977d8074744fb1ab1bf1dc97cbdf2d1",
           "symbol": "DRW_Scale"
@@ -67683,7 +68075,7 @@
       ],
       "evidence": [
         {
-          "line": 4051,
+          "line": 4169,
           "path": "src/drw_objects.h",
           "spanSha256": "8b9a4c24c0d36f82c75c51ea17d051a69f742d6d8138f600caa5e8d59388c140",
           "symbol": "DRW_Section"
@@ -67706,7 +68098,7 @@
       ],
       "evidence": [
         {
-          "line": 4015,
+          "line": 4133,
           "path": "src/drw_objects.h",
           "spanSha256": "99f65d35cb0c34d7edb8a165ae5a3c7cc672254d52e6b96a20becedccb336fe6",
           "symbol": "DRW_SectionGeometrySettings"
@@ -67752,7 +68144,7 @@
       ],
       "evidence": [
         {
-          "line": 4036,
+          "line": 4154,
           "path": "src/drw_objects.h",
           "spanSha256": "9f01fbc72741ce3bea1546e0190152222950ece1fd5788fce601a2e9e26d9bdb",
           "symbol": "DRW_SectionTypeSettings"
@@ -67775,7 +68167,7 @@
       ],
       "evidence": [
         {
-          "line": 5772,
+          "line": 5890,
           "path": "src/drw_objects.h",
           "spanSha256": "9e5f8260274b8b1f29f0bab8bc4437b8119462585ca8ab20aa77da96511bb363",
           "symbol": "DRW_SectionViewStyle"
@@ -67913,7 +68305,7 @@
       ],
       "evidence": [
         {
-          "line": 6190,
+          "line": 6308,
           "path": "src/drw_objects.h",
           "spanSha256": "753a3e6005ddc82ce5bd0b589761c303110694e21d99b97c2be0a9e34ea5d3de",
           "symbol": "DRW_SpatialIndex"
@@ -67959,7 +68351,7 @@
       ],
       "evidence": [
         {
-          "line": 5140,
+          "line": 5258,
           "path": "src/drw_objects.h",
           "spanSha256": "d398cfc1aae395ccfb562c69e32cf8f1e9a8e58915a60131b4e4a1c08ca05009",
           "symbol": "DRW_Sun"
@@ -68396,7 +68788,7 @@
       ],
       "evidence": [
         {
-          "line": 4214,
+          "line": 4332,
           "path": "src/drw_objects.h",
           "spanSha256": "a1b13e30b6e5db1336bbd0df844b1cf63d252aea34fd29654121f2bc345281b0",
           "symbol": "DRW_TableStyle"
@@ -68419,7 +68811,7 @@
       ],
       "evidence": [
         {
-          "line": 4154,
+          "line": 4272,
           "path": "src/drw_objects.h",
           "spanSha256": "9da8a4d2ffc2d9e9d6a00f42e4925e701997f00f84bce6ee7d57c82120bcbfd1",
           "symbol": "DRW_TableStyleBorder"
@@ -68442,7 +68834,7 @@
       ],
       "evidence": [
         {
-          "line": 4179,
+          "line": 4297,
           "path": "src/drw_objects.h",
           "spanSha256": "600df30da6e7d01beef542262a0963b3e458a4e3bf4fa36498e54e6802987d28",
           "symbol": "DRW_TableStyleCellStyle"
@@ -68465,7 +68857,7 @@
       ],
       "evidence": [
         {
-          "line": 4165,
+          "line": 4283,
           "path": "src/drw_objects.h",
           "spanSha256": "faddde176361d49a7f1f23de6fea942075433ba504376a0dd304a4b914033331",
           "symbol": "DRW_TableStyleContentFormat"
@@ -68488,7 +68880,7 @@
       ],
       "evidence": [
         {
-          "line": 4200,
+          "line": 4318,
           "path": "src/drw_objects.h",
           "spanSha256": "a1da15a16022152e339e5b06959eca2bfdd80a72d239ec375607fa664b0cde83",
           "symbol": "DRW_TableStyleRowStyle"
@@ -68695,7 +69087,7 @@
       ],
       "evidence": [
         {
-          "line": 5986,
+          "line": 6104,
           "path": "src/drw_objects.h",
           "spanSha256": "fcda26f9b253757f7fc838066217297fdd6eb0e044fe56a0f626f75748c7d626",
           "symbol": "DRW_UnderlayDefinition"
@@ -68764,7 +69156,7 @@
       ],
       "evidence": [
         {
-          "line": 5042,
+          "line": 5160,
           "path": "src/drw_objects.h",
           "spanSha256": "ea9aef10aeb905e87dd733b62f699c9038ad2dcd98dab79936901317b3c87984",
           "symbol": "DRW_VbaProject"
@@ -68925,7 +69317,7 @@
       ],
       "evidence": [
         {
-          "line": 5947,
+          "line": 6065,
           "path": "src/drw_objects.h",
           "spanSha256": "7de8182c8b73bdfa0aaf37bdcc707dc6e029589089445365950f074e9a7c8749",
           "symbol": "DRW_VisualStyle"
@@ -68948,7 +69340,7 @@
       ],
       "evidence": [
         {
-          "line": 5895,
+          "line": 6013,
           "path": "src/drw_objects.h",
           "spanSha256": "4f2f6c811165482a4e2128b15f0e5a954bf1e7ce0c0723696a9c883a29284872",
           "symbol": "DRW_VisualStyleBody"
@@ -69086,7 +69478,7 @@
       ],
       "evidence": [
         {
-          "line": 6250,
+          "line": 6368,
           "path": "src/drw_objects.h",
           "spanSha256": "af6afa7ecbe9030da9b38b2b71864e13e72b5d823227b1cdac2df627a69f292e",
           "symbol": "DRW_WritingContext"
@@ -72921,7 +73313,7 @@
       ],
       "evidence": [
         {
-          "line": 5023,
+          "line": 5141,
           "path": "src/drw_objects.h",
           "spanSha256": "26ab8788e5bcd6d028be2a2b8b67e048e41089f7b8fe53b9dd53bac2318c33dc",
           "symbol": "DRW_AcDbPlaceholder"
@@ -72945,7 +73337,7 @@
       ],
       "evidence": [
         {
-          "line": 5285,
+          "line": 5403,
           "path": "src/drw_objects.h",
           "spanSha256": "f6723ea3c05a7c9bb90947cd52c8ca46d8a5970cb935a6fe98d41563f86fdf73",
           "symbol": "DRW_AcShHistoryObject"
@@ -72993,7 +73385,7 @@
       ],
       "evidence": [
         {
-          "line": 5187,
+          "line": 5305,
           "path": "src/drw_objects.h",
           "spanSha256": "4dbd06331eea6fd804a1eb7ac60df1c92f4a8962a601cef7194b20f001bd67fe",
           "symbol": "DRW_AssociativeHandleRef"
@@ -73017,7 +73409,7 @@
       ],
       "evidence": [
         {
-          "line": 5225,
+          "line": 5343,
           "path": "src/drw_objects.h",
           "spanSha256": "9ce932fccc6cc55ea2321a693c3e5f6381068f7cbd2f72797da8768e7857fbdd",
           "symbol": "DRW_AssociativeObject"
@@ -73041,7 +73433,7 @@
       ],
       "evidence": [
         {
-          "line": 5192,
+          "line": 5310,
           "path": "src/drw_objects.h",
           "spanSha256": "33b63d38a807679b86dfc39cd914643a64d864b24fe01d0a5f7a552454300d05",
           "symbol": "DRW_AssociativePrefixStatus"
@@ -73089,7 +73481,7 @@
       ],
       "evidence": [
         {
-          "line": 4996,
+          "line": 5114,
           "path": "src/drw_objects.h",
           "spanSha256": "3db0713a65cbd0f08b443b5023b441eacbff9a81f5d2c6f76fac672d037118e3",
           "symbol": "DRW_BlockRepresentationData"
@@ -73137,7 +73529,7 @@
       ],
       "evidence": [
         {
-          "line": 5836,
+          "line": 5954,
           "path": "src/drw_objects.h",
           "spanSha256": "122fa724c1b1cea59b480e5cd610c95a81b0c42363e82e0d348be159d3eab8c4",
           "symbol": "DRW_BreakData"
@@ -73161,7 +73553,7 @@
       ],
       "evidence": [
         {
-          "line": 5871,
+          "line": 5989,
           "path": "src/drw_objects.h",
           "spanSha256": "6242beffe3889e23c1f39b7dc39645251f94a2066d15d8960d304c95fe52dd4c",
           "symbol": "DRW_BreakPointRef"
@@ -73209,7 +73601,7 @@
       ],
       "evidence": [
         {
-          "line": 4262,
+          "line": 4380,
           "path": "src/drw_objects.h",
           "spanSha256": "8f387e80cab027fd0b14155567345294411cefd15d8f4621a927ae66d48e1597",
           "symbol": "DRW_CellStyleMap"
@@ -73329,9 +73721,9 @@
       ],
       "evidence": [
         {
-          "line": 3810,
+          "line": 3896,
           "path": "src/drw_objects.h",
-          "spanSha256": "f68a4cb5d0f04590e10e6bd3cc9c4e4b11f629a1619a5847d661209756c9ee38",
+          "spanSha256": "a890825b3c5bda10caad48752734fc6f6c42a5aaa1c4eabe34d99a226a373bde",
           "symbol": "DRW_CurvePath"
         }
       ],
@@ -73473,7 +73865,7 @@
       ],
       "evidence": [
         {
-          "line": 4599,
+          "line": 4717,
           "path": "src/drw_objects.h",
           "spanSha256": "17105f8d5d357cfffb3c076b7ffac790e0039c04c21ff8810b668094bd6e0ac8",
           "symbol": "DRW_DbColor"
@@ -73497,7 +73889,7 @@
       ],
       "evidence": [
         {
-          "line": 5720,
+          "line": 5838,
           "path": "src/drw_objects.h",
           "spanSha256": "da252d1af31357bf9dc11d166362a000010910b0bd04db67adcb738e29f1b4ec",
           "symbol": "DRW_DetailViewStyle"
@@ -73641,7 +74033,7 @@
       ],
       "evidence": [
         {
-          "line": 4824,
+          "line": 4942,
           "path": "src/drw_objects.h",
           "spanSha256": "7e399d345568a34f3574fa818f12a06033db5c82f3f7210acf1c3781dc822436",
           "symbol": "DRW_DimensionAssociation"
@@ -73665,7 +74057,7 @@
       ],
       "evidence": [
         {
-          "line": 4817,
+          "line": 4935,
           "path": "src/drw_objects.h",
           "spanSha256": "e930c2939b0625231f347b9e71d1b6fbf00c9e3702e591082aff84836f089fae",
           "symbol": "DRW_DimensionAssociationOsnapRef"
@@ -74217,7 +74609,7 @@
       ],
       "evidence": [
         {
-          "line": 5370,
+          "line": 5488,
           "path": "src/drw_objects.h",
           "spanSha256": "9d4e41b51c950286abd99f6c4abc725b4c4755bd337a63d9fa487cb03f24d510",
           "symbol": "DRW_DynamicBlockObject"
@@ -74241,7 +74633,7 @@
       ],
       "evidence": [
         {
-          "line": 4918,
+          "line": 5036,
           "path": "src/drw_objects.h",
           "spanSha256": "83d24fbcbb90beb364709eef836551c7fc564edb2345c472d7c9e1aa47f63a81",
           "symbol": "DRW_EvaluationGraph"
@@ -74265,7 +74657,7 @@
       ],
       "evidence": [
         {
-          "line": 4904,
+          "line": 5022,
           "path": "src/drw_objects.h",
           "spanSha256": "fd794c061381f4a58011067e54d7c24b25dcccd3ba44347746c840548555f062",
           "symbol": "DRW_EvaluationGraphEdge"
@@ -74289,7 +74681,7 @@
       ],
       "evidence": [
         {
-          "line": 4893,
+          "line": 5011,
           "path": "src/drw_objects.h",
           "spanSha256": "d80d5b6427146e63a7fa6463b5f630803d4e83d88a0b7f9567e4afa1e97c0b83",
           "symbol": "DRW_EvaluationGraphNode"
@@ -74529,7 +74921,7 @@
       ],
       "evidence": [
         {
-          "line": 6064,
+          "line": 6182,
           "path": "src/drw_objects.h",
           "spanSha256": "fb208e68c303493df62a5fd9cd88a77435042a0112cf0bb444dccb040c8cc99e",
           "symbol": "DRW_IDBuffer"
@@ -74601,7 +74993,7 @@
       ],
       "evidence": [
         {
-          "line": 6017,
+          "line": 6135,
           "path": "src/drw_objects.h",
           "spanSha256": "2630ddaa267bc668aff1984514e9ad9be6a1e15223fb397edc758e73bfe03ebf",
           "symbol": "DRW_Index"
@@ -74721,7 +75113,7 @@
       ],
       "evidence": [
         {
-          "line": 6122,
+          "line": 6240,
           "path": "src/drw_objects.h",
           "spanSha256": "ef8392ddd98ae6764a31242dab15346a152132600236bfae1e81408f9a7ea6d0",
           "symbol": "DRW_LayerIndex"
@@ -74745,7 +75137,7 @@
       ],
       "evidence": [
         {
-          "line": 6115,
+          "line": 6233,
           "path": "src/drw_objects.h",
           "spanSha256": "e5d3d7d5dfbd27cfa4dbc88520ef4d7c9d6b9c84893d926398aa47cf0c519314",
           "symbol": "DRW_LayerIndexEntry"
@@ -74769,7 +75161,7 @@
       ],
       "evidence": [
         {
-          "line": 4286,
+          "line": 4404,
           "path": "src/drw_objects.h",
           "spanSha256": "d584fe2f6766d294ad7ebc5d25c897effa34cf92ac1d00326e7f47535bc2b5e9",
           "symbol": "DRW_Layout"
@@ -74841,7 +75233,7 @@
       ],
       "evidence": [
         {
-          "line": 4470,
+          "line": 4588,
           "path": "src/drw_objects.h",
           "spanSha256": "a648b9db02fbe1f9bcf5358702382ce3a1518728f82978bdef07483994a7af11",
           "symbol": "DRW_MLeaderStyle"
@@ -74865,7 +75257,7 @@
       ],
       "evidence": [
         {
-          "line": 4414,
+          "line": 4532,
           "path": "src/drw_objects.h",
           "spanSha256": "fb3c46b4e38cfe906d31da152d6312a16736f5669c8ea598b747c542744aea9d",
           "symbol": "DRW_MLineElement"
@@ -74889,7 +75281,7 @@
       ],
       "evidence": [
         {
-          "line": 4431,
+          "line": 4549,
           "path": "src/drw_objects.h",
           "spanSha256": "2c3706ca83b82b326184a75515afd46b613f784344e52032f91896c08b41a5d7",
           "symbol": "DRW_MLineStyle"
@@ -74937,7 +75329,7 @@
       ],
       "evidence": [
         {
-          "line": 5710,
+          "line": 5828,
           "path": "src/drw_objects.h",
           "spanSha256": "b516feac1d8b54230e9bb6bd4b3782b282efebf2fa5423f5bcf9c850e6db49ea",
           "symbol": "DRW_ModelDocViewStyle"
@@ -74961,9 +75353,9 @@
       ],
       "evidence": [
         {
-          "line": 3779,
+          "line": 3840,
           "path": "src/drw_objects.h",
-          "spanSha256": "7448c745154f7967ff84de522a97222853a187a951d5a5d9b5b02a6211670e55",
+          "spanSha256": "0b78ebb837ab71e21903923da2a402c9d1e715386b58ebe2c7efbc70cebcc01d",
           "symbol": "DRW_MotionPath"
         }
       ],
@@ -75009,7 +75401,7 @@
       ],
       "evidence": [
         {
-          "line": 4696,
+          "line": 4814,
           "path": "src/drw_objects.h",
           "spanSha256": "c7bfd394d1cda51a0eb79bcd8cadec0e5722b6af639530451f3d50b430d89168",
           "symbol": "DRW_ObjectContextData"
@@ -75033,7 +75425,7 @@
       ],
       "evidence": [
         {
-          "line": 3862,
+          "line": 3980,
           "path": "src/drw_objects.h",
           "spanSha256": "10c95f5447b433915cb4a9a9ac20914a26167daf6bc1dd35b2cab4bf69461b0b",
           "symbol": "DRW_ObjectPtr"
@@ -75057,7 +75449,7 @@
       ],
       "evidence": [
         {
-          "line": 3889,
+          "line": 4007,
           "path": "src/drw_objects.h",
           "spanSha256": "dbcd1395c4d5f5f80fafa8d2b7bb47739c0da3171e9a2c6ae5fc9679b35d0ac3",
           "symbol": "DRW_PartialViewingIndex"
@@ -75081,7 +75473,7 @@
       ],
       "evidence": [
         {
-          "line": 3883,
+          "line": 4001,
           "path": "src/drw_objects.h",
           "spanSha256": "a0c466e9a0d6f82026364ce5e78a9922c751c2aa3caa65b26d22fffb6b779eb4",
           "symbol": "DRW_PartialViewingIndexEntry"
@@ -75201,9 +75593,9 @@
       ],
       "evidence": [
         {
-          "line": 3836,
+          "line": 3938,
           "path": "src/drw_objects.h",
-          "spanSha256": "c846106f39f99fa7cbdfa378ccbab6046eee707358c6ca083b21b55b2e9070c0",
+          "spanSha256": "1e6c6d23e370a95e41ba7f1999df05bc5b70f975f64eec6e24c138094bd99a20",
           "symbol": "DRW_PointPath"
         }
       ],
@@ -75225,7 +75617,7 @@
       ],
       "evidence": [
         {
-          "line": 5076,
+          "line": 5194,
           "path": "src/drw_objects.h",
           "spanSha256": "4fdf771fc26b0cb872faa11986f8242bdf589c5544c071a0398da807206bf53d",
           "symbol": "DRW_ProxyObject"
@@ -75249,7 +75641,7 @@
       ],
       "evidence": [
         {
-          "line": 5069,
+          "line": 5187,
           "path": "src/drw_objects.h",
           "spanSha256": "0570ea581e5cc5111ba2996ed7450fc108d4e1d52efdc9a27b19dff12471c231",
           "symbol": "DRW_ProxyObjectIdRef"
@@ -75369,7 +75761,7 @@
       ],
       "evidence": [
         {
-          "line": 3925,
+          "line": 4043,
           "path": "src/drw_objects.h",
           "spanSha256": "15285b01ea00810d69b35a91e5b9742aaa6c975a7e65807bc6287461e6fc2e49",
           "symbol": "DRW_RenderSettings"
@@ -75393,7 +75785,7 @@
       ],
       "evidence": [
         {
-          "line": 4655,
+          "line": 4773,
           "path": "src/drw_objects.h",
           "spanSha256": "11765c9e1c5395151b91ec8433553f8a591d063e3ebfca6a4d6a5b25a7574355",
           "symbol": "DRW_Scale"
@@ -75417,7 +75809,7 @@
       ],
       "evidence": [
         {
-          "line": 4051,
+          "line": 4169,
           "path": "src/drw_objects.h",
           "spanSha256": "877e9b367aba0bbabe2f6b1a1c91910f6b9866c3dea8326289900b4627086b7a",
           "symbol": "DRW_Section"
@@ -75441,7 +75833,7 @@
       ],
       "evidence": [
         {
-          "line": 4015,
+          "line": 4133,
           "path": "src/drw_objects.h",
           "spanSha256": "944ea3b5fd971ffaa19f885c90c68a0d1f7f1cf6f2877b0d0a31e6644683ef9d",
           "symbol": "DRW_SectionGeometrySettings"
@@ -75465,7 +75857,7 @@
       ],
       "evidence": [
         {
-          "line": 4036,
+          "line": 4154,
           "path": "src/drw_objects.h",
           "spanSha256": "f73de3ba656cff5c5157cf4de931e1d3ed5e0944c0bcd5e3f48ef9c71aba8d7c",
           "symbol": "DRW_SectionTypeSettings"
@@ -75489,7 +75881,7 @@
       ],
       "evidence": [
         {
-          "line": 5772,
+          "line": 5890,
           "path": "src/drw_objects.h",
           "spanSha256": "4b43eab80023c99728946acb5680fb3935a5998bf4deaebe344983bef3107356",
           "symbol": "DRW_SectionViewStyle"
@@ -75561,7 +75953,7 @@
       ],
       "evidence": [
         {
-          "line": 6190,
+          "line": 6308,
           "path": "src/drw_objects.h",
           "spanSha256": "98491325c77aca8278df3973f591b9e5da818f50a516b21b2387b064511f2903",
           "symbol": "DRW_SpatialIndex"
@@ -75585,7 +75977,7 @@
       ],
       "evidence": [
         {
-          "line": 5140,
+          "line": 5258,
           "path": "src/drw_objects.h",
           "spanSha256": "570e6732843c65fdc3018d8df8449fc11642fe3e3dfbcc8051f923184a25e244",
           "symbol": "DRW_Sun"
@@ -75611,7 +76003,7 @@
         {
           "line": 3722,
           "path": "src/drw_objects.h",
-          "spanSha256": "637a8346412f71ad07f28ebf18633161f20651aa2a91e9e8d3ac9046bf50206d",
+          "spanSha256": "4d1a3e386b944ca9df1b3d44181b4afa054aeb5b20ebc6e24751aa6ab408f49b",
           "symbol": "DRW_SunStudy"
         }
       ],
@@ -75777,7 +76169,7 @@
       ],
       "evidence": [
         {
-          "line": 4214,
+          "line": 4332,
           "path": "src/drw_objects.h",
           "spanSha256": "f51209c904c65140b42e3619d7c8f905ce82c21b15db622b8791b58a17f5ce27",
           "symbol": "DRW_TableStyle"
@@ -75801,7 +76193,7 @@
       ],
       "evidence": [
         {
-          "line": 4154,
+          "line": 4272,
           "path": "src/drw_objects.h",
           "spanSha256": "4bb181d61e7ff5383bd605346d3e07c888f47c8f912c20257ac4cd9acdd79f49",
           "symbol": "DRW_TableStyleBorder"
@@ -75825,7 +76217,7 @@
       ],
       "evidence": [
         {
-          "line": 4179,
+          "line": 4297,
           "path": "src/drw_objects.h",
           "spanSha256": "40d76bcbc1d4d10080a18106662397df9e99d8c468d2f7bc2a7f56308f670922",
           "symbol": "DRW_TableStyleCellStyle"
@@ -75849,7 +76241,7 @@
       ],
       "evidence": [
         {
-          "line": 4165,
+          "line": 4283,
           "path": "src/drw_objects.h",
           "spanSha256": "688b42d3510acaa97c76ffae77d9bb94598512ad7fb82fb2d2f60a52339693e2",
           "symbol": "DRW_TableStyleContentFormat"
@@ -75873,7 +76265,7 @@
       ],
       "evidence": [
         {
-          "line": 4200,
+          "line": 4318,
           "path": "src/drw_objects.h",
           "spanSha256": "570ed7f2b1c270330212489e3724d826813f4700fd9cf758c7c2fb3ac4b95cfc",
           "symbol": "DRW_TableStyleRowStyle"
@@ -75993,7 +76385,7 @@
       ],
       "evidence": [
         {
-          "line": 5986,
+          "line": 6104,
           "path": "src/drw_objects.h",
           "spanSha256": "074980c6c0d8d1124889bd63b9ee8a170349eb4c64dc96aed80e823b267098df",
           "symbol": "DRW_UnderlayDefinition"
@@ -76041,7 +76433,7 @@
       ],
       "evidence": [
         {
-          "line": 5042,
+          "line": 5160,
           "path": "src/drw_objects.h",
           "spanSha256": "ed2485ecf72f45f81299b9c517d25c81a9ffdcc3bae8fcfd2bf32e4e415cccde",
           "symbol": "DRW_VbaProject"
@@ -76137,7 +76529,7 @@
       ],
       "evidence": [
         {
-          "line": 5947,
+          "line": 6065,
           "path": "src/drw_objects.h",
           "spanSha256": "fa6e7e96969c259b677b86b8bcb0822c15ea0c75c4af616c233cbbf37b57630d",
           "symbol": "DRW_VisualStyle"
@@ -76161,7 +76553,7 @@
       ],
       "evidence": [
         {
-          "line": 5895,
+          "line": 6013,
           "path": "src/drw_objects.h",
           "spanSha256": "4e98c325f04e557d3549b6c59597b43b9228074e38c840fc915256d19466c3aa",
           "symbol": "DRW_VisualStyleBody"
@@ -76281,7 +76673,7 @@
       ],
       "evidence": [
         {
-          "line": 6250,
+          "line": 6368,
           "path": "src/drw_objects.h",
           "spanSha256": "98361f72b87a63b450783565772257d4957652e7094f64f0567ea6ce763c1f63",
           "symbol": "DRW_WritingContext"
@@ -77387,7 +77779,7 @@
         {
           "line": 1,
           "path": "src/drw_objects.h",
-          "spanSha256": "cb6ee48d60bdcbdb70c87d6f09b13b844fbeb4316c13e8b5bafbd39f2919249f",
+          "spanSha256": "8eb6cb77cb3a5872ba0fa1f223110f47f1e9b00c6b837a9e93062d6ca1e1f6e0",
           "symbol": "src/drw_objects.h"
         }
       ],
@@ -79331,7 +79723,7 @@
         {
           "line": 1,
           "path": "src/drw_objects.h",
-          "spanSha256": "cb6ee48d60bdcbdb70c87d6f09b13b844fbeb4316c13e8b5bafbd39f2919249f",
+          "spanSha256": "8eb6cb77cb3a5872ba0fa1f223110f47f1e9b00c6b837a9e93062d6ca1e1f6e0",
           "symbol": "src/drw_objects.h"
         }
       ],

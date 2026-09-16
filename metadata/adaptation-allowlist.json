@@ -140,10 +140,10 @@
     },
     {
       "path": "src/drw_objects.h",
-      "reason": "Reset transient BREAKDATA subclass-body parser state, DICTIONARY/DICTIONARYWDFLT pending-entry/default-pointer parser state, XRECORD subclass-body parser state, SORTENTSTABLE body/pending-entry parser state, INDEX/IDBUFFER/LAYERINDEX/SPATIALINDEX timestamp/body parser state, LIGHTLIST/GEOMAPIMAGE subclass parser state, DATALINK body/custom-data/adapter/pending-handle parser state, GEODATA subclass/mesh cursor parser state, SPATIALFILTER matrix-value parser state, EVALUATIONGRAPH body/node/edge/malformed parser state, DIMASSOC body parser state, and POINTCLOUDCOLORMAP ramp-selection/default-scheme parser state for explicit copies and assignments while preserving persisted entries, handles, schemes, and opaque payloads.",
+      "reason": "Reset transient BREAKDATA subclass-body parser state, DICTIONARY/DICTIONARYWDFLT pending-entry/default-pointer parser state, XRECORD subclass-body parser state, SORTENTSTABLE body/pending-entry parser state, INDEX/IDBUFFER/LAYERINDEX/SPATIALINDEX timestamp/body parser state, LIGHTLIST/GEOMAPIMAGE subclass parser state, DATALINK body/custom-data/adapter/pending-handle parser state, GEODATA subclass/mesh cursor parser state, SPATIALFILTER matrix-value parser state, EVALUATIONGRAPH body/node/edge/malformed parser state, DIMASSOC body parser state, POINTCLOUDCOLORMAP ramp-selection/default-scheme parser state, and SUNSTUDY/MOTIONPATH/CURVEPATH/POINTPATH date/hour/positional/handle parser state for explicit copies and assignments while preserving persisted entries, handles, schemes, and opaque payloads.",
       "scope": "DXF parser-state copy isolation",
       "targetBlob": "41d58d78e0706509ee22232fb70e187baaf0ec34",
-      "adaptedSha256": "cb6ee48d60bdcbdb70c87d6f09b13b844fbeb4316c13e8b5bafbd39f2919249f"
+      "adaptedSha256": "8eb6cb77cb3a5872ba0fa1f223110f47f1e9b00c6b837a9e93062d6ca1e1f6e0"
     },
     {
       "path": "src/intern/dxfparserlimits.h",

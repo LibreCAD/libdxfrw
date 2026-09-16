@@ -3727,6 +3727,67 @@ public:
   static constexpr std::int32_t kMaxDateCount = 10000;
   static constexpr std::int32_t kMaxHourCount = 10000;
   DRW_SunStudy() { reset(); }
+  DRW_SunStudy(const DRW_SunStudy& o):
+      DRW_TableEntry(o), m_classVersion(o.m_classVersion),
+      m_setupName(o.m_setupName), m_description(o.m_description),
+      m_sheetSetName(o.m_sheetSetName), m_sheetSubsetName(o.m_sheetSubsetName),
+      m_outputType(o.m_outputType), m_useSubset(o.m_useSubset),
+      m_selectDatesFromCalendar(o.m_selectDatesFromCalendar),
+      m_selectRangeOfDates(o.m_selectRangeOfDates),
+      m_lockViewports(o.m_lockViewports), m_labelViewports(o.m_labelViewports),
+      m_startTime(o.m_startTime), m_endTime(o.m_endTime),
+      m_interval(o.m_interval), m_shadePlotType(o.m_shadePlotType),
+      m_viewportCount(o.m_viewportCount), m_rowCount(o.m_rowCount),
+      m_columnCount(o.m_columnCount), m_spacing(o.m_spacing),
+      m_dates(o.m_dates), m_hours(o.m_hours),
+      m_pageSetupWizardHandle(o.m_pageSetupWizardHandle),
+      m_viewHandle(o.m_viewHandle),
+      m_visualStyleHandle(o.m_visualStyleHandle),
+      m_textStyleHandle(o.m_textStyleHandle), m_seen90(0), m_seen290(0),
+      m_dxfDateCountSeen(false), m_dxfHourCountSeen(false),
+      m_dxfDateValuesRemaining(0), m_dxfDateValue(0),
+      m_dxfHasPendingDateValue(false) {
+    tType = DRW::SUNSTUDY;
+  }
+  DRW_SunStudy& operator=(const DRW_SunStudy& o) {
+    if (this != &o) {
+      DRW_TableEntry::operator=(o);
+      m_classVersion = o.m_classVersion;
+      m_setupName = o.m_setupName;
+      m_description = o.m_description;
+      m_sheetSetName = o.m_sheetSetName;
+      m_sheetSubsetName = o.m_sheetSubsetName;
+      m_outputType = o.m_outputType;
+      m_useSubset = o.m_useSubset;
+      m_selectDatesFromCalendar = o.m_selectDatesFromCalendar;
+      m_selectRangeOfDates = o.m_selectRangeOfDates;
+      m_lockViewports = o.m_lockViewports;
+      m_labelViewports = o.m_labelViewports;
+      m_startTime = o.m_startTime;
+      m_endTime = o.m_endTime;
+      m_interval = o.m_interval;
+      m_shadePlotType = o.m_shadePlotType;
+      m_viewportCount = o.m_viewportCount;
+      m_rowCount = o.m_rowCount;
+      m_columnCount = o.m_columnCount;
+      m_spacing = o.m_spacing;
+      m_dates = o.m_dates;
+      m_hours = o.m_hours;
+      m_pageSetupWizardHandle = o.m_pageSetupWizardHandle;
+      m_viewHandle = o.m_viewHandle;
+      m_visualStyleHandle = o.m_visualStyleHandle;
+      m_textStyleHandle = o.m_textStyleHandle;
+      m_seen90 = 0;
+      m_seen290 = 0;
+      m_dxfDateCountSeen = false;
+      m_dxfHourCountSeen = false;
+      m_dxfDateValuesRemaining = 0;
+      m_dxfDateValue = 0;
+      m_dxfHasPendingDateValue = false;
+      tType = DRW::SUNSTUDY;
+    }
+    return *this;
+  }
 
   void reset();
 
@@ -3783,6 +3844,31 @@ public:
   static constexpr std::uint16_t kDwgType = 1310;
 
   DRW_MotionPath() { reset(); }
+  DRW_MotionPath(const DRW_MotionPath& o):
+      DRW_TableEntry(o), m_classVersion(o.m_classVersion),
+      m_cameraPathHandle(o.m_cameraPathHandle),
+      m_targetPathHandle(o.m_targetPathHandle),
+      m_viewTableHandle(o.m_viewTableHandle), m_frames(o.m_frames),
+      m_frameRate(o.m_frameRate), m_cornerDeceleration(o.m_cornerDeceleration),
+      m_seen90(0), m_seen340(0) {
+    tType = DRW::MOTIONPATH;
+  }
+  DRW_MotionPath& operator=(const DRW_MotionPath& o) {
+    if (this != &o) {
+      DRW_TableEntry::operator=(o);
+      m_classVersion = o.m_classVersion;
+      m_cameraPathHandle = o.m_cameraPathHandle;
+      m_targetPathHandle = o.m_targetPathHandle;
+      m_viewTableHandle = o.m_viewTableHandle;
+      m_frames = o.m_frames;
+      m_frameRate = o.m_frameRate;
+      m_cornerDeceleration = o.m_cornerDeceleration;
+      m_seen90 = 0;
+      m_seen340 = 0;
+      tType = DRW::MOTIONPATH;
+    }
+    return *this;
+  }
   void reset();
 
   std::int32_t m_classVersion = 0;      /*!< code 90 */
@@ -3814,6 +3900,22 @@ public:
   static constexpr std::uint16_t kDwgType = 1294;
 
   DRW_CurvePath() { reset(); }
+  DRW_CurvePath(const DRW_CurvePath& o):
+      DRW_TableEntry(o), m_classVersion(o.m_classVersion),
+      m_entityHandle(o.m_entityHandle), m_seen90(0), m_seen340(0) {
+    tType = DRW::CURVEPATH;
+  }
+  DRW_CurvePath& operator=(const DRW_CurvePath& o) {
+    if (this != &o) {
+      DRW_TableEntry::operator=(o);
+      m_classVersion = o.m_classVersion;
+      m_entityHandle = o.m_entityHandle;
+      m_seen90 = 0;
+      m_seen340 = 0;
+      tType = DRW::CURVEPATH;
+    }
+    return *this;
+  }
   void reset();
 
   std::int32_t m_classVersion = 0;  /*!< code 90 */
@@ -3840,6 +3942,22 @@ public:
   static constexpr std::uint16_t kDwgType = 1314;
 
   DRW_PointPath() { reset(); }
+  DRW_PointPath(const DRW_PointPath& o):
+      DRW_TableEntry(o), m_classVersion(o.m_classVersion),
+      m_point(o.m_point), m_seen90(0), m_seen10(0) {
+    tType = DRW::POINTPATH;
+  }
+  DRW_PointPath& operator=(const DRW_PointPath& o) {
+    if (this != &o) {
+      DRW_TableEntry::operator=(o);
+      m_classVersion = o.m_classVersion;
+      m_point = o.m_point;
+      m_seen90 = 0;
+      m_seen10 = 0;
+      tType = DRW::POINTPATH;
+    }
+    return *this;
+  }
   void reset();
 
   std::int32_t m_classVersion = 0; /*!< code 90 */
