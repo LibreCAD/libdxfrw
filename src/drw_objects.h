@@ -6044,6 +6044,26 @@ class DRW_DetailViewStyle : public DRW_TableEntry {
   SETOBJFRIENDS
 public:
   DRW_DetailViewStyle() { reset(); }
+  DRW_DetailViewStyle(const DRW_DetailViewStyle& o): DRW_TableEntry(o),
+      m_dxfSubclass(), m_dxfGroup(-1), m_dxfHandleCount(0),
+      m_dxfColorCount(0), m_dxfDoubleCount(0), m_dxfLongCount(0) {
+    copyPersistentFields(o);
+    tType = DRW::DETAILVIEWSTYLE;
+  }
+  DRW_DetailViewStyle& operator=(const DRW_DetailViewStyle& o) {
+    if (this != &o) {
+      DRW_TableEntry::operator=(o);
+      copyPersistentFields(o);
+      m_dxfSubclass.clear();
+      m_dxfGroup = -1;
+      m_dxfHandleCount = 0;
+      m_dxfColorCount = 0;
+      m_dxfDoubleCount = 0;
+      m_dxfLongCount = 0;
+      tType = DRW::DETAILVIEWSTYLE;
+    }
+    return *this;
+  }
   void reset();
 
 protected:
@@ -6083,6 +6103,37 @@ public:
   std::uint8_t m_modelEdge = 0;
 
 private:
+  void copyPersistentFields(const DRW_DetailViewStyle& o) {
+    m_modelDoc = o.m_modelDoc;
+    m_classVersion = o.m_classVersion;
+    m_flags = o.m_flags;
+    m_identifierStyleHandle = o.m_identifierStyleHandle;
+    m_identifierColor = o.m_identifierColor;
+    m_identifierHeight = o.m_identifierHeight;
+    m_identifierExcludeCharacters = o.m_identifierExcludeCharacters;
+    m_identifierOffset = o.m_identifierOffset;
+    m_identifierPlacement = o.m_identifierPlacement;
+    m_arrowSymbolHandle = o.m_arrowSymbolHandle;
+    m_arrowSymbolColor = o.m_arrowSymbolColor;
+    m_arrowSymbolSize = o.m_arrowSymbolSize;
+    m_boundaryLineTypeHandle = o.m_boundaryLineTypeHandle;
+    m_boundaryLineWeight = o.m_boundaryLineWeight;
+    m_boundaryLineColor = o.m_boundaryLineColor;
+    m_viewLabelTextStyleHandle = o.m_viewLabelTextStyleHandle;
+    m_viewLabelTextColor = o.m_viewLabelTextColor;
+    m_viewLabelTextHeight = o.m_viewLabelTextHeight;
+    m_viewLabelAttachment = o.m_viewLabelAttachment;
+    m_viewLabelOffset = o.m_viewLabelOffset;
+    m_viewLabelAlignment = o.m_viewLabelAlignment;
+    m_viewLabelPattern = o.m_viewLabelPattern;
+    m_connectionLineTypeHandle = o.m_connectionLineTypeHandle;
+    m_connectionLineWeight = o.m_connectionLineWeight;
+    m_connectionLineColor = o.m_connectionLineColor;
+    m_borderLineTypeHandle = o.m_borderLineTypeHandle;
+    m_borderLineWeight = o.m_borderLineWeight;
+    m_borderLineColor = o.m_borderLineColor;
+    m_modelEdge = o.m_modelEdge;
+  }
   UTF8STRING m_dxfSubclass;
   int m_dxfGroup = -1;
   int m_dxfHandleCount = 0;
@@ -6096,6 +6147,29 @@ class DRW_SectionViewStyle : public DRW_TableEntry {
   SETOBJFRIENDS
 public:
   DRW_SectionViewStyle() { reset(); }
+  DRW_SectionViewStyle(const DRW_SectionViewStyle& o): DRW_TableEntry(o),
+      m_dxfSubclass(), m_dxfGroup(-1), m_dxfHandleCount(0),
+      m_dxfColorCount(0), m_dxfDoubleCount(0), m_dxfLongCount(0),
+      m_dxfBoolCount(0), m_dxfExpectedHatchAngles(0) {
+    copyPersistentFields(o);
+    tType = DRW::SECTIONVIEWSTYLE;
+  }
+  DRW_SectionViewStyle& operator=(const DRW_SectionViewStyle& o) {
+    if (this != &o) {
+      DRW_TableEntry::operator=(o);
+      copyPersistentFields(o);
+      m_dxfSubclass.clear();
+      m_dxfGroup = -1;
+      m_dxfHandleCount = 0;
+      m_dxfColorCount = 0;
+      m_dxfDoubleCount = 0;
+      m_dxfLongCount = 0;
+      m_dxfBoolCount = 0;
+      m_dxfExpectedHatchAngles = 0;
+      tType = DRW::SECTIONVIEWSTYLE;
+    }
+    return *this;
+  }
   void reset();
 
 protected:
@@ -6145,6 +6219,47 @@ public:
   std::vector<double> m_hatchAngles;
 
 private:
+  void copyPersistentFields(const DRW_SectionViewStyle& o) {
+    m_modelDoc = o.m_modelDoc;
+    m_classVersion = o.m_classVersion;
+    m_flags = o.m_flags;
+    m_identifierStyleHandle = o.m_identifierStyleHandle;
+    m_identifierColor = o.m_identifierColor;
+    m_identifierHeight = o.m_identifierHeight;
+    m_arrowStartSymbolHandle = o.m_arrowStartSymbolHandle;
+    m_arrowEndSymbolHandle = o.m_arrowEndSymbolHandle;
+    m_arrowSymbolColor = o.m_arrowSymbolColor;
+    m_arrowSymbolSize = o.m_arrowSymbolSize;
+    m_identifierExcludeCharacters = o.m_identifierExcludeCharacters;
+    m_identifierPosition = o.m_identifierPosition;
+    m_identifierOffset = o.m_identifierOffset;
+    m_arrowPosition = o.m_arrowPosition;
+    m_arrowSymbolExtensionLength = o.m_arrowSymbolExtensionLength;
+    m_planeLineTypeHandle = o.m_planeLineTypeHandle;
+    m_planeLineWeight = o.m_planeLineWeight;
+    m_planeLineColor = o.m_planeLineColor;
+    m_bendLineTypeHandle = o.m_bendLineTypeHandle;
+    m_bendLineWeight = o.m_bendLineWeight;
+    m_bendLineColor = o.m_bendLineColor;
+    m_bendLineLength = o.m_bendLineLength;
+    m_endLineOvershoot = o.m_endLineOvershoot;
+    m_endLineLength = o.m_endLineLength;
+    m_viewLabelTextStyleHandle = o.m_viewLabelTextStyleHandle;
+    m_viewLabelTextColor = o.m_viewLabelTextColor;
+    m_viewLabelTextHeight = o.m_viewLabelTextHeight;
+    m_viewLabelAttachment = o.m_viewLabelAttachment;
+    m_viewLabelOffset = o.m_viewLabelOffset;
+    m_viewLabelAlignment = o.m_viewLabelAlignment;
+    m_viewLabelPattern = o.m_viewLabelPattern;
+    m_hatchColor = o.m_hatchColor;
+    m_hatchBackgroundColor = o.m_hatchBackgroundColor;
+    m_hatchPattern = o.m_hatchPattern;
+    m_hatchScale = o.m_hatchScale;
+    m_hatchTransparency = o.m_hatchTransparency;
+    m_unknownB1 = o.m_unknownB1;
+    m_unknownB2 = o.m_unknownB2;
+    m_hatchAngles = o.m_hatchAngles;
+  }
   UTF8STRING m_dxfSubclass;
   int m_dxfGroup = -1;
   int m_dxfHandleCount = 0;

@@ -271,6 +271,16 @@ public:
     using DRW_Layout::parseCode;
 };
 
+class ExposedDetailViewStyle : public DRW_DetailViewStyle {
+public:
+    using DRW_DetailViewStyle::parseCode;
+};
+
+class ExposedSectionViewStyle : public DRW_SectionViewStyle {
+public:
+    using DRW_SectionViewStyle::parseCode;
+};
+
 template <typename Entity>
 bool parseDxfRecords(Entity& entity, const std::string& source) {
     std::stringstream records(source);
@@ -390,6 +400,10 @@ void testPublicOwnershipContracts(TestContext& t) {
                   "DRW_NavisworksModelDef copy contract");
     static_assert(std::is_copy_constructible<DRW_Layout>::value,
                   "DRW_Layout copy contract");
+    static_assert(std::is_copy_constructible<DRW_DetailViewStyle>::value,
+                  "DRW_DetailViewStyle copy contract");
+    static_assert(std::is_copy_constructible<DRW_SectionViewStyle>::value,
+                  "DRW_SectionViewStyle copy contract");
     static_assert(std::is_copy_constructible<DRW_Attrib>::value,
                   "DRW_Attrib copy contract");
     static_assert(std::is_copy_constructible<DRW_GeoPositionMarker>::value,
@@ -1782,6 +1796,42 @@ void testPublicOwnershipContracts(TestContext& t) {
                  && assignedLayout.name == "layout-name"
                  && assignedLayout.layoutFlags == 2,
              "LAYOUT assignment clears subclass parser state");
+
+    ExposedDetailViewStyle partialDetail;
+    t.expect(parseDxfRecords(
+                 partialDetail,
+                 "100\nAcDbDetailViewStyle\n71\n1\n340\nA1\n")
+                 && partialDetail.m_identifierStyleHandle == 0xA1u,
+             "DETAILVIEWSTYLE parser state source setup");
+    ExposedDetailViewStyle copiedDetail(partialDetail);
+    t.expect(parseDxfRecords(copiedDetail, "340\nA2\n")
+                 && copiedDetail.m_identifierStyleHandle == 0xA1u
+                 && copiedDetail.m_arrowSymbolHandle == 0u,
+             "DETAILVIEWSTYLE copy clears group parser state");
+    ExposedDetailViewStyle assignedDetail;
+    assignedDetail = partialDetail;
+    t.expect(parseDxfRecords(assignedDetail, "340\nA3\n")
+                 && assignedDetail.m_identifierStyleHandle == 0xA1u
+                 && assignedDetail.m_arrowSymbolHandle == 0u,
+             "DETAILVIEWSTYLE assignment clears group parser state");
+
+    ExposedSectionViewStyle partialSectionView;
+    t.expect(parseDxfRecords(
+                 partialSectionView,
+                 "100\nAcDbSectionViewStyle\n71\n1\n340\nB1\n")
+                 && partialSectionView.m_identifierStyleHandle == 0xB1u,
+             "SECTIONVIEWSTYLE parser state source setup");
+    ExposedSectionViewStyle copiedSectionView(partialSectionView);
+    t.expect(parseDxfRecords(copiedSectionView, "340\nB2\n")
+                 && copiedSectionView.m_identifierStyleHandle == 0xB1u
+                 && copiedSectionView.m_arrowStartSymbolHandle == 0u,
+             "SECTIONVIEWSTYLE copy clears group parser state");
+    ExposedSectionViewStyle assignedSectionView;
+    assignedSectionView = partialSectionView;
+    t.expect(parseDxfRecords(assignedSectionView, "340\nB3\n")
+                 && assignedSectionView.m_identifierStyleHandle == 0xB1u
+                 && assignedSectionView.m_arrowStartSymbolHandle == 0u,
+             "SECTIONVIEWSTYLE assignment clears group parser state");
 
     DRW_Dimension sourceDimension;
     sourceDimension.extData.push_back(
