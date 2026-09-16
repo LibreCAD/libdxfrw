@@ -2715,6 +2715,25 @@ public:
   static constexpr std::size_t kMaxEntries = 100000;
 
   DRW_Dictionary() { reset(); }
+  DRW_Dictionary(const DRW_Dictionary& o): DRW_TableEntry(o),
+      cloning(o.cloning), hardOwner(o.hardOwner), m_entries(o.m_entries),
+      countCap(o.countCap), m_dwgEntriesComplete(o.m_dwgEntriesComplete) {
+    tType = o.tType;
+    m_pendingEntryName.clear();
+  }
+  DRW_Dictionary& operator=(const DRW_Dictionary& o) {
+    if (this != &o) {
+      DRW_TableEntry::operator=(o);
+      cloning = o.cloning;
+      hardOwner = o.hardOwner;
+      m_entries = o.m_entries;
+      countCap = o.countCap;
+      m_dwgEntriesComplete = o.m_dwgEntriesComplete;
+      m_pendingEntryName.clear();
+      tType = o.tType;
+    }
+    return *this;
+  }
   void reset() {
     tType = DRW::DICTIONARY;
     cloning = 0;
@@ -2777,6 +2796,20 @@ public:
   static constexpr std::uint16_t kDwgClassNum = 513;
 
   DRW_DictionaryWithDefault() { reset(); }
+  DRW_DictionaryWithDefault(const DRW_DictionaryWithDefault& o):
+      DRW_Dictionary(o), m_defaultEntryHandle(o.m_defaultEntryHandle),
+      m_dxfDefaultEntrySeen(false) {
+    tType = DRW::DICTIONARYWDFLT;
+  }
+  DRW_DictionaryWithDefault& operator=(const DRW_DictionaryWithDefault& o) {
+    if (this != &o) {
+      DRW_Dictionary::operator=(o);
+      m_defaultEntryHandle = o.m_defaultEntryHandle;
+      m_dxfDefaultEntrySeen = false;
+      tType = DRW::DICTIONARYWDFLT;
+    }
+    return *this;
+  }
   void reset() {
     DRW_Dictionary::reset();
     tType = DRW::DICTIONARYWDFLT;

@@ -143,6 +143,16 @@ public:
     using DRW_BreakData::parseCode;
 };
 
+class ExposedDictionary : public DRW_Dictionary {
+public:
+    using DRW_Dictionary::parseCode;
+};
+
+class ExposedDictionaryWithDefault : public DRW_DictionaryWithDefault {
+public:
+    using DRW_DictionaryWithDefault::parseCode;
+};
+
 template <typename Entity>
 bool parseDxfRecords(Entity& entity, const std::string& source) {
     std::stringstream records(source);
@@ -212,6 +222,10 @@ void testPublicOwnershipContracts(TestContext& t) {
                   "DRW_OleFrame copy contract");
     static_assert(std::is_copy_constructible<DRW_BreakData>::value,
                   "DRW_BreakData copy contract");
+    static_assert(std::is_copy_constructible<DRW_Dictionary>::value,
+                  "DRW_Dictionary copy contract");
+    static_assert(std::is_copy_constructible<DRW_DictionaryWithDefault>::value,
+                  "DRW_DictionaryWithDefault copy contract");
     static_assert(std::is_copy_constructible<DRW_Attrib>::value,
                   "DRW_Attrib copy contract");
     static_assert(std::is_copy_constructible<DRW_GeoPositionMarker>::value,
@@ -931,6 +945,43 @@ void testPublicOwnershipContracts(TestContext& t) {
                                     "100\nAcDbBreakData\n331\nB3\n")
                  && assignedBreakData.m_dimensionHandle == 0xB3u,
              "BREAKDATA assignment starts a fresh subclass parser walk");
+
+    ExposedDictionary partialDictionary;
+    t.expect(parseDxfRecords(partialDictionary, "3\nfirst\n"),
+             "DICTIONARY parser state source setup");
+    ExposedDictionary copiedDictionary(partialDictionary);
+    t.expect(!parseDxfRecords(copiedDictionary, "350\nA1\n")
+                 && parseDxfRecords(copiedDictionary,
+                                    "3\nfresh\n350\nA2\n")
+                 && copiedDictionary.m_entries.size() == 1u
+                 && copiedDictionary.m_entries.front().m_name == "fresh"
+                 && copiedDictionary.m_entries.front().m_handle == 0xA2u,
+             "DICTIONARY copy clears pending-entry parser state");
+    ExposedDictionary assignedDictionary;
+    assignedDictionary = partialDictionary;
+    t.expect(!parseDxfRecords(assignedDictionary, "350\nA1\n")
+                 && parseDxfRecords(assignedDictionary,
+                                    "3\nfresh\n350\nA2\n")
+                 && assignedDictionary.m_entries.size() == 1u
+                 && assignedDictionary.m_entries.front().m_handle == 0xA2u,
+             "DICTIONARY assignment clears pending-entry parser state");
+
+    ExposedDictionaryWithDefault partialDictionaryDefault;
+    t.expect(parseDxfRecords(partialDictionaryDefault, "340\nA1\n")
+                 && partialDictionaryDefault.m_defaultEntryHandle == 0xA1u,
+             "DICTIONARYWDFLT parser state source setup");
+    ExposedDictionaryWithDefault copiedDictionaryDefault(
+        partialDictionaryDefault);
+    t.expect(parseDxfRecords(copiedDictionaryDefault, "340\nA2\n")
+                 && copiedDictionaryDefault.m_defaultEntryHandle == 0xA2u,
+             "DICTIONARYWDFLT copy clears default-entry parser state");
+    ExposedDictionaryWithDefault assignedDictionaryDefault;
+    t.expect(parseDxfRecords(assignedDictionaryDefault, "340\nA3\n"),
+             "DICTIONARYWDFLT assignment destination setup");
+    assignedDictionaryDefault = partialDictionaryDefault;
+    t.expect(parseDxfRecords(assignedDictionaryDefault, "340\nA4\n")
+                 && assignedDictionaryDefault.m_defaultEntryHandle == 0xA4u,
+             "DICTIONARYWDFLT assignment clears default-entry parser state");
 
     DRW_Dimension sourceDimension;
     sourceDimension.extData.push_back(
