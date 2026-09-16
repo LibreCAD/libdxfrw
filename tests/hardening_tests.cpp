@@ -97,6 +97,11 @@ public:
     using DRW_NurbsSurface::finalizeDxf;
 };
 
+class ExposedRevolvedSurface : public DRW_RevolvedSurface {
+public:
+    using DRW_RevolvedSurface::parseCode;
+};
+
 template <typename Entity>
 bool parseDxfRecords(Entity& entity, const std::string& source) {
     std::stringstream records(source);
@@ -146,6 +151,8 @@ void testPublicOwnershipContracts(TestContext& t) {
                   "DRW_PointCloudEx copy contract");
     static_assert(std::is_copy_constructible<DRW_NurbsSurface>::value,
                   "DRW_NurbsSurface copy contract");
+    static_assert(std::is_copy_constructible<DRW_RevolvedSurface>::value,
+                  "DRW_RevolvedSurface copy contract");
     static_assert(std::is_copy_constructible<DRW_Attrib>::value,
                   "DRW_Attrib copy contract");
     static_assert(std::is_copy_constructible<DRW_GeoPositionMarker>::value,
@@ -686,6 +693,25 @@ void testPublicOwnershipContracts(TestContext& t) {
                  && assignedNurbsSurface.finalizeDxf()
                  && assignedNurbsSurface.short170 == 2u,
              "NURBSURFACE assignment starts a fresh coordinate parser walk");
+
+    ExposedRevolvedSurface partialRevolvedSurface;
+    t.expect(parseDxfRecords(partialRevolvedSurface, "90\n1\n"),
+             "REVOLVEDSURFACE parser state source setup");
+    ExposedRevolvedSurface copiedRevolvedSurface(partialRevolvedSurface);
+    copiedRevolvedSurface.classId = 0;
+    copiedRevolvedSurface.id = 0;
+    t.expect(parseDxfRecords(copiedRevolvedSurface, "90\n2\n")
+                 && copiedRevolvedSurface.classId == 2u
+                 && copiedRevolvedSurface.id == 0u,
+             "REVOLVEDSURFACE copy starts a fresh class-id parser walk");
+    ExposedRevolvedSurface assignedRevolvedSurface;
+    assignedRevolvedSurface = partialRevolvedSurface;
+    assignedRevolvedSurface.classId = 0;
+    assignedRevolvedSurface.id = 0;
+    t.expect(parseDxfRecords(assignedRevolvedSurface, "90\n2\n")
+                 && assignedRevolvedSurface.classId == 2u
+                 && assignedRevolvedSurface.id == 0u,
+             "REVOLVEDSURFACE assignment starts a fresh class-id parser walk");
 
     DRW_Dimension sourceDimension;
     sourceDimension.extData.push_back(

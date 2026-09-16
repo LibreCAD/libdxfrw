@@ -3418,6 +3418,37 @@ public:
                      0.0, 0.0, 1.0, 0.0,
                      0.0, 0.0, 0.0, 1.0};
     }
+    DRW_RevolvedSurface(const DRW_RevolvedSurface& o): DRW_Surface(o),
+        classId(o.classId), id(o.id), axisPoint(o.axisPoint),
+        axisVector(o.axisVector), revolveAngle(o.revolveAngle),
+        startAngle(o.startAngle), transform(o.transform),
+        draftAngle(o.draftAngle), draftStartDistance(o.draftStartDistance),
+        draftEndDistance(o.draftEndDistance), twistAngle(o.twistAngle),
+        solid(o.solid), closeToAxis(o.closeToAxis) {
+        eType = DRW::REVOLVEDSURFACE;
+        resetDxfParserState();
+    }
+    DRW_RevolvedSurface& operator=(const DRW_RevolvedSurface& o) {
+        if (this != &o) {
+            DRW_Surface::operator=(o);
+            classId = o.classId;
+            id = o.id;
+            axisPoint = o.axisPoint;
+            axisVector = o.axisVector;
+            revolveAngle = o.revolveAngle;
+            startAngle = o.startAngle;
+            transform = o.transform;
+            draftAngle = o.draftAngle;
+            draftStartDistance = o.draftStartDistance;
+            draftEndDistance = o.draftEndDistance;
+            twistAngle = o.twistAngle;
+            solid = o.solid;
+            closeToAxis = o.closeToAxis;
+            eType = DRW::REVOLVEDSURFACE;
+            resetDxfParserState();
+        }
+        return *this;
+    }
 
 protected:
     bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) override;
@@ -3438,6 +3469,11 @@ public:
     bool closeToAxis = false;
 
 private:
+    void resetDxfParserState() noexcept {
+        m_dxfTransformCount = 0;
+        m_dxfClassIdSeen = false;
+    }
+
     std::size_t m_dxfTransformCount = 0;
     bool m_dxfClassIdSeen = false;
 };
