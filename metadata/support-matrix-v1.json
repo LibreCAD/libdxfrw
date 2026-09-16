@@ -211,7 +211,7 @@
     "shared/source-unit/src_intern_dxfcode.h"
   ],
   "target": {
-    "commit": "3c7785ebbcbfc8f3c8f79dbba093aff09cdec753",
+    "commit": "0ffb38d790db53116978e01fcaf94cee9bc6ee48",
     "repository": "git@github.com-librecad:LibreCAD/LibreCAD.git"
   }
 }

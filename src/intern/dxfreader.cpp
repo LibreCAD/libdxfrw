@@ -152,7 +152,9 @@ bool dxfReader::readRec(int *codeData) {
     const bool validHandle = m_allowWideHandleLexemes
         ? isValidHandleLexeme()
         : isValidHandleString();
-    if (isUnambiguousDxfHandleCode(code) && !validHandle) {
+    const bool dimstyleName = m_allowDimstyleNames
+        && (code == 340 || (code > 340 && code <= 344 && strData.empty()));
+    if (isUnambiguousDxfHandleCode(code) && !validHandle && !dimstyleName) {
         m_lastInvalidHandleCode = code;
         invalidateRecord();
         return false;
@@ -483,8 +485,10 @@ bool dxfReaderAscii::readDouble() {
                && std::isspace(static_cast<unsigned char>(*end))) {
             ++end;
         }
+        // Underflow sets ERANGE but produces a valid tiny value; overflow is
+        // rejected by the finite check.
         if (end == text.c_str() || end == nullptr || *end != '\0'
-            || errno == ERANGE || !std::isfinite(parsed)) {
+            || !std::isfinite(parsed)) {
             DRW_DBG("dxfReaderAscii::readDouble(): reading double error: ");
             DRW_DBG(text);
             DRW_DBG('\n');

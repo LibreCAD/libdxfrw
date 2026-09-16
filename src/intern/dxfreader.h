@@ -75,6 +75,9 @@ public:
     bool allowsWideHandleLexemes() const {
         return m_allowWideHandleLexemes;
     }
+    // Some legacy DIMSTYLE records use 340 for a text-style name and leave
+    // subsequent handle slots empty; accept that scoped spelling.
+    void setAllowDimstyleNames(bool allow) { m_allowDimstyleNames = allow; }
     std::string toUtf8String(std::string t) {return decoder.toUtf8(t);}
     std::string getUtf8String() {return decoder.toUtf8(strData);}
     double getDouble() {return doubleData;}
@@ -125,6 +128,7 @@ private:
     DxfClassifierProfile m_classifierProfile {
         DxfClassifierProfile::StandaloneSafe};
     bool m_allowWideHandleLexemes {false};
+    bool m_allowDimstyleNames {false};
     std::unordered_set<std::uint64_t> m_selfHandles;
     std::uint64_t m_currentSelfHandle {0};
     bool m_currentSelfHandleRegistered {false};

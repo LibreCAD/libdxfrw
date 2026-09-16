@@ -6187,7 +6187,7 @@
       ]
     },
     "target": {
-      "commit": "3c7785ebbcbfc8f3c8f79dbba093aff09cdec753",
+      "commit": "0ffb38d790db53116978e01fcaf94cee9bc6ee48",
       "files": [
         {
           "gitBlob": "1dfaa070ec897c632b144229cbbba2f789fa21d7",
@@ -6238,16 +6238,16 @@
           "sha256": "7a49427a9b6ace22299dec7b098e0be2a9f9a5ff46ccc7a3ed9e646216bf4a47"
         },
         {
-          "gitBlob": "890ea64e07010339cac96e5d580ecacef7f0f39e",
+          "gitBlob": "f6552e6be5e59f7aca602d4d9c520baf993bb159",
           "mode": "100644",
           "path": "src/drw_entities.cpp",
-          "sha256": "416e5fd0bc91925a86c8c05227d11455e5f4cebbfdb3194276d50e2fb792fe60"
+          "sha256": "83cfe3ea34dfa655c16997b71e75d9ac911d5e812082ed054058f112ae287b79"
         },
         {
-          "gitBlob": "3ea21c8481ef299757916dc1a5bea5d5bc048476",
+          "gitBlob": "077a84860cea7c35da2f136ce6afedd3be1adf44",
           "mode": "100644",
           "path": "src/drw_entities.h",
-          "sha256": "801021d8b391af217c307001febbb481c4bf96ab9dd46412d7689e5e5189db4d"
+          "sha256": "68fcd4c052222215731ad480136a6c9920467e5179fb5cf6f24ec902158f9f15"
         },
         {
           "gitBlob": "74625fc34f9d7fedcc754bdc68fe11d4c0b53b42",
@@ -6268,10 +6268,10 @@
           "sha256": "2d6500844b47a6cf9a16b959039f34442cf53fb2707109017129f5995c6eac33"
         },
         {
-          "gitBlob": "edb2bac15f330471355332524032e57b29a9ca58",
+          "gitBlob": "acdf5ef4ab0c7d6604311684c5cc87b973fa1932",
           "mode": "100644",
           "path": "src/drw_objects.cpp",
-          "sha256": "314c77ada19bb871e583ad1ae1990723793d1bda7cf7a6ce6aae5395238b62d5"
+          "sha256": "789fd30956daf035abf4211a78c7bee5989b3e7e35aa4bebfe610d185cda7487"
         },
         {
           "gitBlob": "41d58d78e0706509ee22232fb70e187baaf0ec34",
@@ -6622,16 +6622,16 @@
           "sha256": "e59f96cc162fd1279b96244a984f8d5693207c750008e1b661baa58a7c52c721"
         },
         {
-          "gitBlob": "6d65c2baa9e604720a01c5cb050497847634a71a",
+          "gitBlob": "29199a12f12b53bbcefb8abe61c362e3b1ad077e",
           "mode": "100644",
           "path": "src/intern/dxfreader.cpp",
-          "sha256": "e7fc690834d1015c525fe80e60f6efc0de95b968404dee345eac1b3d6f7f2492"
+          "sha256": "6eefc78e044d9072b34e6294df98162bcd9a8e9876d1f410d779b904d20f9540"
         },
         {
-          "gitBlob": "ba66915b247af5a397caf04cd62eadbf6ed03f8c",
+          "gitBlob": "bac140e1a647d86c8dd4f7f8e2fbbb995bcebe70",
           "mode": "100644",
           "path": "src/intern/dxfreader.h",
-          "sha256": "87b13e521a3a3e0a5c193ef119383aa642de72e36111fc09df9ab9d8c0d63160"
+          "sha256": "ba00b7caeef042e37b9fe5edefa5b6bee6580b01fc04a3e742a40fd056814900"
         },
         {
           "gitBlob": "1c9fbb0d331d32d0423e1ccd9a982c9aec34bf88",
@@ -6682,16 +6682,16 @@
           "sha256": "e06f2d410eaef55401b1d7d1ca4fcff97337ee2da88b502f9bcbe3a6f3ac705a"
         },
         {
-          "gitBlob": "71851fcf8d5636080c83f2eb1af4a8ef5a80e0ef",
+          "gitBlob": "a091cd92e3914da6b227c1ae3fffcff3fc7676fe",
           "mode": "100644",
           "path": "src/libdxfrw.cpp",
-          "sha256": "d6a5b86ab4d9274c5329db055364f5aeae00c9f4e82f56fb2e8c2ee597063c61"
+          "sha256": "e4a4979ed38f9dd21aa2fbf54297fe36049f8b8060c7c25654a87317c542c629"
         },
         {
-          "gitBlob": "8e2af88800c1af341a14982340a9648b07a5890f",
+          "gitBlob": "fd8fe1fc33175e268b477719452ed247dcdd2baf",
           "mode": "100644",
           "path": "src/libdxfrw.h",
-          "sha256": "35f51a8675b8dadc71e1a74821856843e8d994b30eef8c51a74be8fa9ae1b864"
+          "sha256": "4a9cc0939c7fbc89dda332653b32402f27dc679b14e9fc69662aec5054f51adb"
         },
         {
           "gitBlob": "2b525a236de56fda2a8613f6ff5d453e9b28568a",
@@ -122853,7 +122853,7 @@
       "repository": "git@github.com-librecad:LibreCAD/libdxfrw.git"
     },
     "target": {
-      "commit": "3c7785ebbcbfc8f3c8f79dbba093aff09cdec753",
+      "commit": "0ffb38d790db53116978e01fcaf94cee9bc6ee48",
       "repository": "git@github.com-librecad:LibreCAD/LibreCAD.git",
       "snapshotRevision": "89b762bef636c90eb370cb1af3cec80fe759cb32",
       "sourceRoot": "libraries/libdxfrw/src"

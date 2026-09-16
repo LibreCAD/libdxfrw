@@ -36,10 +36,10 @@ unavailable fixture or oracle. The target is the immutable LibreCAD revision
 recorded below; a later `master` refresh is a new delta audit, not silent
 scope expansion.
 
-The target lock was last re-inspected on 2026-09-13 and remains the active
-format-parity baseline:
+The target lock was refreshed on 2026-09-15 after auditing the latest
+LibreCAD master delta and is the active format-parity baseline:
 
-- LibreCAD repository commit: `3c7785ebbcbfc8f3c8f79dbba093aff09cdec753`
+- LibreCAD repository commit: `0ffb38d790db53116978e01fcaf94cee9bc6ee48`
 - Bundled `.snapshot-revision`: `89b762bef636c90eb370cb1af3cec80fe759cb32`
 - Standalone baseline: `origin/master` at
   `92d7466ed9146badcd4fb44c82d1dd8302b3c7db`
@@ -52,10 +52,15 @@ then pin an immutable commit before importing source.
 ### Execution refresh (2026-09-15)
 
 The implementation worktree is rebased on `origin/master` and is currently
-324 commits ahead with no commits behind it. The latest green slice is
-S296/J272, including the live-plan update and its required policy gates.
-There is no uncommitted local implementation slice; the next parity work is
-the evidence-gated external/runtime and release closure listed below.
+328 commits ahead with no commits behind it. The target refresh audited
+LibreCAD master commit `aacfc3bb0` (DXF compatibility fixes) through the
+current target tip, ported the seven changed library source/header files, and
+refreshed the target lock, archive, manifest, source-route inventory, oracle
+registry, inventory-input lock, and support-matrix provenance. The prior
+DWG differential-debt reports remain explicitly tied to the former target
+commit and must be rerun before any support claim is promoted. The latest
+green implementation slice is S301/J277; target-debt, independent-oracle,
+native-platform, package, and release-closure evidence remains open.
 The worktree is clean at the last committed boundary; any subsequent active-
 slice edits are intentionally uncommitted until their narrow gate and
 status-bearing plan transition are green.
@@ -1934,6 +1939,18 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
+- Current checkpoint (2026-09-15): S301/J277 LibreCAD-master DXF refresh is
+  active at the implementation boundary. The audited master delta
+  `aacfc3bb0` was ported across seven standalone library source/header files:
+  tolerant typed handles and XDATA, table-cell collision filtering, modern
+  spline/surface framing, linetype/dictionary/sortents compatibility,
+  DIMSTYLE legacy names and numeric underflow, BLOCK/ENDBLK variants,
+  FIELD/FIELDLIST legacy forms, XRECORD raw groups, and proxy 162-bit sizing.
+  Normal fast targets and the focused five-test CTest selector pass; target
+  lock/archive/manifest, source-route, oracle, inventory-input, and support-
+  matrix provenance are refreshed to `0ffb38d790db53116978e01fcaf94cee9bc6ee48`.
+  Existing DWG differential-debt evidence remains tied to the former target
+  and is not reused for support promotion.
 - Current checkpoint (2026-09-15): S297/J273 live-plan status refresh is
   committed. The parser-backed audit reconciled the post-S296 values of 296
   slices, 298 parents, and 396 children; including this maintenance slice, the
@@ -3866,6 +3883,7 @@ edit this block or commit the same slice concurrently.
 | S298 | J274: section-name framing compatibility | S297 | COMMITTED | ODA-backed UTF-16 section-name boundary; one-code-unit acceptance; declared-NUL normalization; fixture-free focused DWG reader test; plan/scope/sync/fixture gates | `libdxfrw_dwg_reader_matrix_tests`, hardening, Wave 1, DWG fixtures, support-matrix, and release-readiness checks pass; ODA-backed one-code-unit and declared-NUL vectors preserve sentinels and reject odd lengths; no external or derived drawing bytes | target-debt review, independent oracle qualification, and release closure |
 | S299 | J275: post-section-name full validation checkpoint | S298 | COMMITTED | fresh normal and ASan/UBSan builds; all 28 dependency-free CTest entries; macOS leak policy; no fixture changes | fresh normal build and CTest pass 28/28 in 6.13s; fresh ASan/UBSan build and CTest pass 28/28 in 13.33s with `detect_leaks=0`; S298 reader changes remain green and no drawing bytes changed or were added | target-debt review, independent oracle qualification, native-platform, long-fuzz, and release closure |
 | S300 | J276: support-documentation refresh | S299 | COMMITTED | stale TU support statement corrected; external-promotion boundary retained; plan/release/fixture/scope/sync/parity/speed/diff gates | `docs/UPGRADE_SUPPORT.md` documents the tested dual TU framing conventions and keeps independent support promotion evidence-gated; no source or drawing bytes changed | target-debt review, independent oracle qualification, native-platform, long-fuzz, package, and release closure |
+| S301 | J277: LibreCAD-master DXF compatibility refresh | S300 | COMMITTED | audited current target tip; seven-file source delta; fast DXF/DWG regression targets; refreshed lock/archive/manifest/provenance metadata; no fixture admission | audited LibreCAD master commit `aacfc3bb0` through target tip `0ffb38d790db53116978e01fcaf94cee9bc6ee48`; ported typed-handle/XDATA, table-cell, spline/surface, linetype/dictionary/sortents, DIMSTYLE, BLOCK, FIELD/FIELDLIST, XRECORD, and proxy compatibility; fast targets and focused CTest selector pass; no drawing bytes added | target-bound differential debt, full validation, and independent-oracle qualification remain open |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -4170,6 +4188,7 @@ edit this block or commit the same slice concurrently.
 | J274 | S298 | J273 | COMMITTED | EXPERIMENTAL | Close R2007+ section-name framing boundary | Update the UTF-16 section-name length guard and declared-NUL normalization from the ODA section-map contract; add a synthetic one-code-unit reader vector with sentinel alignment and malformed-length negatives, without external or derived drawing bytes |
 | J275 | S299 | J274 | COMMITTED | EXPERIMENTAL | Revalidate the full suite after section-name framing changes | Rebuild normal and ASan/UBSan configurations and run all 28 dependency-free CTest entries after the S298 AC1021 reader change; record timing and the macOS leak-detection limitation without adding drawing fixtures |
 | J276 | S300 | J275 | COMMITTED | EXPERIMENTAL | Refresh support documentation after TU framing compatibility | Correct the support document's stale TU-deferred statement to reflect S296's dual declared-length reader behavior while preserving the independent-oracle promotion boundary; no fixture or source bytes change |
+| J277 | S301 | J276 | COMMITTED | EXPERIMENTAL | Port the audited LibreCAD-master DXF compatibility delta | Port the seven changed target library files into standalone with explicit adaptations, preserve C++17/`-Werror` and ABI-safe callback behavior, refresh target-bound provenance metadata, and keep all support claims non-promoted until target-bound differential debt is rerun |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4581,6 +4600,7 @@ edit this block or commit the same slice concurrently.
 | J274.1 | J274 / S298 | WP3, WP5, WP8, WP10; R2007+ section-map UTF-16 framing | J273 | COMMITTED | EXPERIMENTAL | accept a valid two-byte one-code-unit section name, strip only declared trailing UTF-16 NUL code units, preserve the following sentinel, and reject odd/truncated lengths transactionally without drawing fixtures | `libdxfrw_dwg_reader_matrix_tests`, hardening, Wave 1, DWG fixtures, support-matrix, and release-readiness checks pass; no external or derived drawing bytes |
 | J275.1 | J275 / S299 | WP8, WP10; post-section-name full validation checkpoint | J274 | COMMITTED | EXPERIMENTAL | rebuild normal and ASan/UBSan configurations and run all 28 dependency-free CTest entries after S298, retaining the macOS leak-detection limitation and no-fixture policy | normal CTest 28/28 in 6.13s and ASan/UBSan CTest 28/28 in 13.33s with `detect_leaks=0`; no drawing bytes changed or were retained |
 | J276.1 | J276 / S300 | WP8, WP10; support documentation | J275 | COMMITTED | EXPERIMENTAL | verify the support document no longer claims TU framing is unresolved and still states the no-fixture and independent-promotion policies | focused plan/release/policy checks pass; no source or drawing bytes changed |
+| J277.1 | J277 / S301 | WP3, WP5, WP7, WP8, WP10; target-refresh DXF compatibility | J276 | COMMITTED | EXPERIMENTAL | port the current LibreCAD-master seven-file DXF delta, update target lock/archive/manifest and target-bound source/oracle provenance, run the focused five-test selector, and admit no new drawing bytes | normal hardening, Wave 1, writer-primitives, DXF-fixture, and DWG-fixture targets pass; sync/import-scope, parity aggregate, inventory/oracle registry, support-matrix, release-readiness, fixture-admission, and diff checks pass; prior DWG debt reports remain old-target evidence and are not promoted |
 
 <!-- UPGRADE_PROGRESS_END -->
 

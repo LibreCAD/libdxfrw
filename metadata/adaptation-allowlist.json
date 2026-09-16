@@ -100,15 +100,15 @@
       "path": "src/drw_entities.cpp",
       "reason": "Mark one intentionally unused helper, remove two unused locals exposed by standalone -Werror compilation, reject non-finite GEOPOSITIONMARKER and LIGHT entity-body values plus bounded LIGHT strings/color before encoding, preserve nested MULTILEADER DXF context breaks, transforms, and hard-pointer handles on parse, and bound MULTILEADER context/block-label strings before publication.",
       "scope": "warning hygiene and DXF MULTILEADER parity",
-      "targetBlob": "890ea64e07010339cac96e5d580ecacef7f0f39e",
-      "adaptedSha256": "4d27c8e5320cd3af23405f92befd26b6606320d690b89d9c94a6774d5507532f"
+      "targetBlob": "f6552e6be5e59f7aca602d4d9c520baf993bb159",
+      "adaptedSha256": "30d368ccdff0e57d41abf30c83708ba47919069f918cd20ce6cb36c850ca5b14"
     },
     {
       "path": "src/drw_entities.h",
       "reason": "Retain a transient DXF MULTILEADER transformation-matrix cursor so repeated code-47 values are bounded and reset between documents.",
       "scope": "DXF MULTILEADER parity",
-      "targetBlob": "3ea21c8481ef299757916dc1a5bea5d5bc048476",
-      "adaptedSha256": "4dfbb534461389fde280c73ab2032f25dd26b90c5bb1d85bc8dcde1661e6355c"
+      "targetBlob": "077a84860cea7c35da2f136ce6afedd3be1adf44",
+      "adaptedSha256": "0b77c34b426363daf39982fc3ba370e1ce467482f3511284db9ee433c08b9ec2"
     },
     {
       "path": "src/intern/dwgutil.h",
@@ -135,8 +135,8 @@
       "path": "src/drw_objects.cpp",
       "reason": "Retain the imported warning-hygiene fixes and correct GEODATA AC1015/AC1018 inline versus R2007+ deferred host-block handle ordering per ODA §20.4.78, with bounded version-2 parity evidence.",
       "scope": "warning hygiene and DWG object compatibility",
-      "targetBlob": "edb2bac15f330471355332524032e57b29a9ca58",
-      "adaptedSha256": "351abe71a68106771bf80f9bfffee9b6a6e6817d48241f73baddae83d4782790"
+      "targetBlob": "acdf5ef4ab0c7d6604311684c5cc87b973fa1932",
+      "adaptedSha256": "8f8d837f3493ddacb02e4a6e2907c64b58c802fc2b62081bf9375e6e51bd810e"
     },
     {
       "path": "src/intern/dxfparserlimits.h",
@@ -149,29 +149,29 @@
       "path": "src/intern/dxfreader.h",
       "reason": "Expose the explicit standalone-safe versus LibreCAD-master legacy classifier profile and the last rejected handle-reference group code to the façade's diagnostic path without changing the public API.",
       "scope": "DXF classifier compatibility probing",
-      "targetBlob": "ba66915b247af5a397caf04cd62eadbf6ed03f8c",
-      "adaptedSha256": "4af2c6acde200d4bee78e25db1f3e1eb7b3b5106e8aa4f5a95eecaf990e665e5"
+      "targetBlob": "bac140e1a647d86c8dd4f7f8e2fbbb995bcebe70",
+      "adaptedSha256": "e18754cf0891fbd3c343b0c56a2b37e4b5ea34b902f45d891c93149670bc53ae"
     },
     {
       "path": "src/intern/dxfreader.cpp",
       "reason": "Use the canonical DXF group-code table, preserve integer values in codes 260-269, fail closed on the unassigned 482-998 span, carry an explicit opt-in legacy classifier profile for compatibility probes, and retain the rejected handle-reference group code for façade diagnostics.",
       "scope": "DXF classifier correctness",
-      "targetBlob": "6d65c2baa9e604720a01c5cb050497847634a71a",
-      "adaptedSha256": "6fafb993bf9a6808d063ca87bd8785bb31dd8f4d27e8906ee4985e648032b201"
+      "targetBlob": "29199a12f12b53bbcefb8abe61c362e3b1ad077e",
+      "adaptedSha256": "49683751065b36c50ee4f081b8fa0cc594621a7b0c73bb415ae1764d32ea73cc"
     },
     {
       "path": "src/libdxfrw.cpp",
       "reason": "Route raw DXF capture and replay through canonical or explicitly selected classifier profiles, expose an additive public compatibility-profile opt-in, preserve null/error compatibility, instrument stage-aware operation diagnostics including duplicate, malformed, and field-context raw-handle context across raw object, entity, and unknown-section paths, keep code-5 identity metadata out of proxy-host registration so raw replay remains authoritative, ignore inactive HATCH gradient carriers while retaining active-gradient validation, and emit complete modern MULTILEADER DXF context geometry, transforms, and hard-pointer handles.",
       "scope": "DXF classifier correctness and MULTILEADER parity",
-      "targetBlob": "71851fcf8d5636080c83f2eb1af4a8ef5a80e0ef",
-      "adaptedSha256": "895935318e09c1257521c4dc3735f9928e0cfcb111dd5041583428173b6d9ee3"
+      "targetBlob": "a091cd92e3914da6b227c1ae3fffcff3fc7676fe",
+      "adaptedSha256": "afc6e5d241c488717988e424568ff21708945f748618cb4a47e1ad360d58f3db"
     },
     {
       "path": "src/libdxfrw.h",
       "reason": "Expose the structured operation-diagnostic snapshot while preserving the legacy dxfRW error and version API, add an explicitly documented public DXF compatibility-profile opt-in while retaining a safe default, and centralize invalid raw-handle diagnostic propagation.",
       "scope": "diagnostic compatibility",
-      "targetBlob": "8e2af88800c1af341a14982340a9648b07a5890f",
-      "adaptedSha256": "acdda610706ba32cb61f974981c6d8a56752c92ef1b85806a700e8562a886f78"
+      "targetBlob": "fd8fe1fc33175e268b477719452ed247dcdd2baf",
+      "adaptedSha256": "26998c942d94a77e0cd460766c398ed72e2724503e546d02dc3bd2aeb770d4c6"
     },
     {
       "path": "src/intern/dwg_dxf_output_transaction.cpp",

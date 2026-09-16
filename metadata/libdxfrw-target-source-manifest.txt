@@ -8,12 +8,12 @@ libraries/libdxfrw/src/drw_classes.cpp|100644|af3095933dd2ea8c7300903c3f6db0ea02
 libraries/libdxfrw/src/drw_classes.h|100644|835bc615c7b3bbb55af7a33e68168c5634bbda09|header-listed
 libraries/libdxfrw/src/drw_datastorage.cpp|100644|66a2bddca9bebe01c00879c14151d51019e8a866|source
 libraries/libdxfrw/src/drw_datastorage.h|100644|58219c2779291c00c1beb44b51576736a7e5f0a8|header-listed
-libraries/libdxfrw/src/drw_entities.cpp|100644|890ea64e07010339cac96e5d580ecacef7f0f39e|source
-libraries/libdxfrw/src/drw_entities.h|100644|3ea21c8481ef299757916dc1a5bea5d5bc048476|header-listed
+libraries/libdxfrw/src/drw_entities.cpp|100644|f6552e6be5e59f7aca602d4d9c520baf993bb159|source
+libraries/libdxfrw/src/drw_entities.h|100644|077a84860cea7c35da2f136ce6afedd3be1adf44|header-listed
 libraries/libdxfrw/src/drw_header.cpp|100644|74625fc34f9d7fedcc754bdc68fe11d4c0b53b42|source
 libraries/libdxfrw/src/drw_header.h|100644|59ad442cc371e378b5297e24a7ac2774dac309e8|header-listed
 libraries/libdxfrw/src/drw_interface.h|100644|cea88281e86cddda28c8c1d4a7d2bf1ee245e552|header-listed
-libraries/libdxfrw/src/drw_objects.cpp|100644|edb2bac15f330471355332524032e57b29a9ca58|source
+libraries/libdxfrw/src/drw_objects.cpp|100644|acdf5ef4ab0c7d6604311684c5cc87b973fa1932|source
 libraries/libdxfrw/src/drw_objects.h|100644|41d58d78e0706509ee22232fb70e187baaf0ec34|header-listed
 libraries/libdxfrw/src/handle_allocator.h|100644|8efbe309374d004543d366457a1b70eee863dcfb|header-listed
 libraries/libdxfrw/src/intern/drw_cptable932.h|100644|fb49499207f6c92cd5663619a8831e6bf9aeeb26|header-listed
@@ -72,8 +72,8 @@ libraries/libdxfrw/src/intern/dwgwriter32.h|100644|2f03299e050d645eec8c3df580f00
 libraries/libdxfrw/src/intern/dwgwriterlayoutvalidation.cpp|100644|3feaf1655f09806a3f773ef14740fbbb0a376d9d|source
 libraries/libdxfrw/src/intern/dwgwriterlayoutvalidation.h|100644|3745138ff9e265d6f350bf0f4cf83373fd398353|header-listed
 libraries/libdxfrw/src/intern/dxfparserlimits.h|100644|716307e131dc5fec27eb7bc54b5a782b63f1d08c|header-unlisted
-libraries/libdxfrw/src/intern/dxfreader.cpp|100644|6d65c2baa9e604720a01c5cb050497847634a71a|source
-libraries/libdxfrw/src/intern/dxfreader.h|100644|ba66915b247af5a397caf04cd62eadbf6ed03f8c|header-listed
+libraries/libdxfrw/src/intern/dxfreader.cpp|100644|29199a12f12b53bbcefb8abe61c362e3b1ad077e|source
+libraries/libdxfrw/src/intern/dxfreader.h|100644|bac140e1a647d86c8dd4f7f8e2fbbb995bcebe70|header-listed
 libraries/libdxfrw/src/intern/dxfwriter.cpp|100644|1c9fbb0d331d32d0423e1ccd9a982c9aec34bf88|source
 libraries/libdxfrw/src/intern/dxfwriter.h|100644|95820f22609395ab6366cada657d32d716a67a27|header-listed
 libraries/libdxfrw/src/intern/proxygraphicdecoder.cpp|100644|4ed9e0cb7d188c4e4cd052ca835e00611cd2db28|source
@@ -82,6 +82,6 @@ libraries/libdxfrw/src/intern/rscodec.cpp|100644|671813f0f8de9310b9689fd4330068d
 libraries/libdxfrw/src/intern/rscodec.h|100644|26be36c219f044cf7186b26e15acd085c6048800|header-listed
 libraries/libdxfrw/src/libdwgr.cpp|100644|d1237b166b0ac0a03120c3b2eb6213e890832862|source
 libraries/libdxfrw/src/libdwgr.h|100644|7d184f55c632599901f2072f42c80b0b9dd24c03|header-listed
-libraries/libdxfrw/src/libdxfrw.cpp|100644|71851fcf8d5636080c83f2eb1af4a8ef5a80e0ef|source
-libraries/libdxfrw/src/libdxfrw.h|100644|8e2af88800c1af341a14982340a9648b07a5890f|header-listed
+libraries/libdxfrw/src/libdxfrw.cpp|100644|a091cd92e3914da6b227c1ae3fffcff3fc7676fe|source
+libraries/libdxfrw/src/libdxfrw.h|100644|fd8fe1fc33175e268b477719452ed247dcdd2baf|header-listed
 libraries/libdxfrw/src/main_doc.h|100644|2b525a236de56fda2a8613f6ff5d453e9b28568a|header-listed

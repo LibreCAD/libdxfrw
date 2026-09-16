@@ -3,7 +3,7 @@
   "kind": "librecad-parity-test-oracle-registry",
   "target": {
     "repository": "git@github.com-librecad:LibreCAD/LibreCAD.git",
-    "commit": "3c7785ebbcbfc8f3c8f79dbba093aff09cdec753"
+    "commit": "0ffb38d790db53116978e01fcaf94cee9bc6ee48"
   },
   "fixturePolicy": "no-drawing-payloads; source-and-metadata-only",
   "routes": [
@@ -124,7 +124,7 @@
       "id": "source-0001",
       "path": "CMakeLists.txt",
       "mode": "100644",
-      "blob": "d962512c81f1927490c54174c10d12090795c7aa",
+      "blob": "c28dcb6e3096f8ced31a40d8000029b2d5b659db",
       "classification": "portable",
       "role": "test-manifest",
       "registeredTargets": [
@@ -637,7 +637,7 @@
       "id": "source-0043",
       "path": "librecad/src/lib/filters/tests/dxf_object_tests.cpp",
       "mode": "100644",
-      "blob": "44f30c2f746ea0186f611b2dbf8d5e6cd0b9019f",
+      "blob": "6d38cd1b5b465dad0bec5db7f858f4587950dac0",
       "classification": "portable",
       "role": "dxf-runtime-oracle",
       "registeredTargets": [
