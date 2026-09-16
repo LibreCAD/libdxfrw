@@ -360,7 +360,7 @@ if(LIBDXFRW_BUILD_LIBRARY)
     )
     # The imported public façades still expose these declarations.  Install
     # only the narrow transitive closure; HandleAllocator is now internal and the
-    # DataStorage writer enum remains a compatibility follow-up.
+    # DataStorage writer enum is declared by the installed foundational header.
     install(FILES src/intern/dwgutil.h src/intern/dwg_fixed_handles.h
                   src/intern/dwgbufferw.h src/intern/dwgsafety.h
             DESTINATION ${LIBDXFRW_INSTALL_INCLUDEDIR}/intern)
