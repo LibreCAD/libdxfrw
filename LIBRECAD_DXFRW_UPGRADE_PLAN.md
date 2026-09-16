@@ -51,8 +51,9 @@ then pin an immutable commit before importing source.
 
 ### Execution refresh (2026-09-15)
 
-The implementation worktree is rebased on `origin/master` and is currently
-342 commits ahead with no commits behind it. The target refresh audited
+The implementation worktree is rebased on `origin/master` with no commits
+behind it; the exact ahead distance is emitted by each post-commit report.
+The target refresh audited
 LibreCAD master commit `aacfc3bb0` (DXF compatibility fixes) through the
 current target tip, ported the seven changed library source/header files, and
 refreshed the target lock, archive, manifest, source-route inventory, oracle
@@ -3611,17 +3612,17 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 315 (`COMMITTED`); no slice is active.
+- Resolved slices: 316 (`COMMITTED`); no slice is active.
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 315 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 316 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 317 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 318 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 415 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 416 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   4 DEFERRED_EXTERNAL / 293 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S314 are committed; no local implementation slice is active.
+- Active work: S01-S316 are committed; no local implementation slice is active.
   Remaining work is evidence-gated runtime/oracle and release closure; keep
   the fast inner loop and do not promote support claims from self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -3991,6 +3992,7 @@ edit this block or commit the same slice concurrently.
 | S313 | J289: CI-equivalent local Release checkpoint | S312 | COMMITTED | fresh local configure with workflow flags; Release build; complete 30-entry CTest; plan/scope/sync/fixture gates; no fixture admission | exact workflow configure flags produce a clean Release build and 30/30 CTest pass in 5.74 seconds on macOS; actionlint/YAML and all policy gates remain green; no drawing bytes are added | native-platform, protected external fuzz, independent semantic oracle, and release closure |
 | S314 | J290: exact locked-target differential provenance checkpoint | S313 | COMMITTED | archive exact target commit; rebuild target JSON dumper; rerun locked 15-input differential; exact report/hash comparison; plan/scope/sync/fixture gates; no fixture admission | clean archive of LibreCAD `0ffb38d790db53116978e01fcaf94cee9bc6ee48` builds the target dumper; exact-target rerun remains 14 equal/1 reviewed AC1021 delta with identical target/standalone output hashes to S304, proving the prior report's behavior was not an unpinned working-tree artifact; no drawing bytes added | native-platform, protected external fuzz, independent semantic oracle, and release closure |
 | S315 | J291: live progress count refresh | S314 | COMMITTED | actual branch-ahead count; plan check/report; no fixture admission | corrected the execution refresh from 341 to the actual 342 commits ahead of `origin/master`; no source or drawing bytes changed and all prior S314 evidence remains intact | native-platform, protected external fuzz, independent semantic oracle, and release closure |
+| S316 | J292: make progress prose invariant | S315 | COMMITTED | remove volatile branch-count prose; plan check/report; no fixture admission | execution refresh now records the rebase/no-behind invariant and delegates the exact ahead distance to the post-commit report, preventing every subsequent plan commit from making the prose stale; no source or drawing bytes changed | native-platform, protected external fuzz, independent semantic oracle, and release closure |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -4310,6 +4312,7 @@ edit this block or commit the same slice concurrently.
 | J289 | S313 | J288 | COMMITTED | EXPERIMENTAL | Exercise the exact CI Release command locally | Configure a fresh single-config build with the workflow's Release/docs/tests flags, build the library and test targets, and run the complete 30-entry CTest topology; retain the native-platform boundary and no-fixture policy |
 | J290 | S314 | J289 | COMMITTED | EXPERIMENTAL | Reconfirm differential debt against an exact target archive | Build LibreCAD's `libdxfrw_json_dump` from an archive of the locked target commit, rerun the 15-input differential against the current standalone dumper, compare report counters and mismatch hashes to S304, and retain the external/build provenance without adding drawing bytes |
 | J291 | S315 | J290 | COMMITTED | EXPERIMENTAL | Refresh the live branch progress count | Query `origin/master..HEAD`, correct the stale execution-refresh count, and re-run plan integrity without changing source or fixture content |
+| J292 | S316 | J291 | COMMITTED | EXPERIMENTAL | Remove volatile branch-count wording | Replace the literal ahead count with a stable rebase/no-behind statement and retain exact count in post-commit reports without changing source or fixture content |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4736,6 +4739,7 @@ edit this block or commit the same slice concurrently.
 | J289.1 | J289 / S313 | WP8, WP10; CI-equivalent local Release checkpoint | J288 | COMMITTED | EXPERIMENTAL | run the exact workflow configure/build/test command sequence in a fresh local macOS build tree and retain complete CTest timing without adding fixtures | clean Release build and 30/30 CTest pass in 5.74 seconds; workflow flags and policy gates are verified, while hosted Windows/MSVC execution remains external |
 | J290.1 | J290 / S314 | WP5, WP8, WP10; exact locked-target differential provenance | J289 | COMMITTED | EXPERIMENTAL | archive target commit `0ffb38d790db53116978e01fcaf94cee9bc6ee48` into a temporary source tree, build its JSON dumper, rerun the locked 15-input differential, and compare all relation/byte/semantic counters and mismatch hashes with S304 without retaining drawing payloads | exact archived-target build succeeds; rerun reports 14 equal and 1 reviewed AC1021 delta with the same target/standalone hashes as S304; no drawing bytes are added and the delta remains explicit target debt |
 | J291.1 | J291 / S315 | WP8, WP10; live progress accounting | J290 | COMMITTED | EXPERIMENTAL | verify `git rev-list --count origin/master..HEAD`, update the execution-refresh prose, and run the plan checker without adding fixtures | actual count is 342; plan check passes and no source or drawing bytes change |
+| J292.1 | J292 / S316 | WP8, WP10; live progress accounting | J291 | COMMITTED | EXPERIMENTAL | update the execution-refresh prose to avoid a commit-sensitive literal count and run the plan checker without adding fixtures | stable rebase/no-behind wording is present; plan check passes and no source or drawing bytes change |
 
 <!-- UPGRADE_PROGRESS_END -->
 
