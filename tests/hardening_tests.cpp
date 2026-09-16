@@ -281,6 +281,12 @@ public:
     using DRW_SectionViewStyle::parseCode;
 };
 
+class ExposedAssociativeObject : public DRW_AssociativeObject {
+public:
+    using DRW_AssociativeObject::DRW_AssociativeObject;
+    using DRW_AssociativeObject::parseCode;
+};
+
 template <typename Entity>
 bool parseDxfRecords(Entity& entity, const std::string& source) {
     std::stringstream records(source);
@@ -404,6 +410,8 @@ void testPublicOwnershipContracts(TestContext& t) {
                   "DRW_DetailViewStyle copy contract");
     static_assert(std::is_copy_constructible<DRW_SectionViewStyle>::value,
                   "DRW_SectionViewStyle copy contract");
+    static_assert(std::is_copy_constructible<DRW_AssociativeObject>::value,
+                  "DRW_AssociativeObject copy contract");
     static_assert(std::is_copy_constructible<DRW_Attrib>::value,
                   "DRW_Attrib copy contract");
     static_assert(std::is_copy_constructible<DRW_GeoPositionMarker>::value,
@@ -1832,6 +1840,29 @@ void testPublicOwnershipContracts(TestContext& t) {
                  && assignedSectionView.m_identifierStyleHandle == 0xB1u
                  && assignedSectionView.m_arrowStartSymbolHandle == 0u,
              "SECTIONVIEWSTYLE assignment clears group parser state");
+
+    ExposedAssociativeObject partialAssociative("ACDBASSOCNETWORK");
+    t.expect(parseDxfRecords(partialAssociative,
+                             "100\nAcDbPersSubentManager\n90\n7\n330\nA1\n")
+                 && partialAssociative.m_classVersion == 7
+                 && partialAssociative.m_persistentSubentityHandles.size() == 1u
+                 && partialAssociative.m_persistentSubentityHandles.front()
+                        == 0xA1u,
+             "ASSOCIATIVEOBJECT parser state source setup");
+    ExposedAssociativeObject copiedAssociative(partialAssociative);
+    t.expect(parseDxfRecords(copiedAssociative, "330\nA2\n")
+                 && copiedAssociative.m_persistentSubentityHandles.size() == 1u
+                 && copiedAssociative.m_persistentSubentityHandles.front()
+                        == 0xA1u,
+             "ASSOCIATIVEOBJECT copy clears persistent-body parser state");
+    ExposedAssociativeObject assignedAssociative;
+    assignedAssociative = partialAssociative;
+    t.expect(parseDxfRecords(assignedAssociative, "330\nA3\n")
+                 && assignedAssociative.m_persistentSubentityHandles.size()
+                        == 1u
+                 && assignedAssociative.m_persistentSubentityHandles.front()
+                        == 0xA1u,
+             "ASSOCIATIVEOBJECT assignment clears persistent-body parser state");
 
     DRW_Dimension sourceDimension;
     sourceDimension.extData.push_back(

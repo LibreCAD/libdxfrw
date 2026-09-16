@@ -5552,6 +5552,22 @@ public:
       : m_recordName(recordName) {
     tType = DRW::ASSOCIATIVEOBJECT;
   }
+  DRW_AssociativeObject(const DRW_AssociativeObject& o): DRW_TableEntry(o),
+      m_dxfPersistentSubentityBody(false),
+      m_dxfPersistentSubentityClassValueCount(0) {
+    copyPersistentFields(o);
+    tType = DRW::ASSOCIATIVEOBJECT;
+  }
+  DRW_AssociativeObject& operator=(const DRW_AssociativeObject& o) {
+    if (this != &o) {
+      DRW_TableEntry::operator=(o);
+      copyPersistentFields(o);
+      m_dxfPersistentSubentityBody = false;
+      m_dxfPersistentSubentityClassValueCount = 0;
+      tType = DRW::ASSOCIATIVEOBJECT;
+    }
+    return *this;
+  }
 
 protected:
   bool parseCode(int code, const std::unique_ptr<dxfReader> &reader) override;
@@ -5600,6 +5616,43 @@ public:
   std::vector<DRW_AssociativePrefixStatus> m_prefixStatuses;
 
 private:
+  void copyPersistentFields(const DRW_AssociativeObject& o) {
+    m_recordName = o.m_recordName;
+    m_classVersion = o.m_classVersion;
+    m_geometryStatus = o.m_geometryStatus;
+    m_owningNetworkHandle = o.m_owningNetworkHandle;
+    m_actionBodyHandle = o.m_actionBodyHandle;
+    m_actionIndex = o.m_actionIndex;
+    m_maxDependencyIndex = o.m_maxDependencyIndex;
+    m_dependencies = o.m_dependencies;
+    m_actions = o.m_actions;
+    m_ownedParams = o.m_ownedParams;
+    m_ownedActions = o.m_ownedActions;
+    m_persistentSubentityCount = o.m_persistentSubentityCount;
+    m_persistentSubentityHandles = o.m_persistentSubentityHandles;
+    m_persistentUnknown0 = o.m_persistentUnknown0;
+    m_persistentUnknown2 = o.m_persistentUnknown2;
+    m_persistentAssocStepCount = o.m_persistentAssocStepCount;
+    m_persistentAssocSubentityCount = o.m_persistentAssocSubentityCount;
+    m_persistentSteps = o.m_persistentSteps;
+    m_persistentSubentityIds = o.m_persistentSubentityIds;
+    m_valueParamCount = o.m_valueParamCount;
+    m_ownedParamPrefixCount = o.m_ownedParamPrefixCount;
+    m_valueParamsParsed = o.m_valueParamsParsed;
+    m_actionParamPrefixParsed = o.m_actionParamPrefixParsed;
+    m_singleDependencyActionParamParsed = o.m_singleDependencyActionParamParsed;
+    m_compoundActionParamParsed = o.m_compoundActionParamParsed;
+    m_dependencyHandle = o.m_dependencyHandle;
+    m_readDependencyHandle = o.m_readDependencyHandle;
+    m_writeDependencyHandle = o.m_writeDependencyHandle;
+    m_rNodeHandle = o.m_rNodeHandle;
+    m_dNodeHandle = o.m_dNodeHandle;
+    m_status = o.m_status;
+    m_osnapMode = o.m_osnapMode;
+    m_parameter = o.m_parameter;
+    m_point = o.m_point;
+    m_prefixStatuses = o.m_prefixStatuses;
+  }
   bool m_dxfPersistentSubentityBody = false;
   std::uint32_t m_dxfPersistentSubentityClassValueCount = 0;
 };
