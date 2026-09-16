@@ -2967,6 +2967,24 @@ public:
                      0.0, 0.0, 1.0, 0.0,
                      0.0, 0.0, 0.0, 1.0};
     }
+    DRW_NavisworksModel(const DRW_NavisworksModel& o): DRW_Entity(o),
+        flags(o.flags), definitionHandle(o.definitionHandle),
+        transform(o.transform), unitFactor(o.unitFactor) {
+        eType = DRW::NAVISWORKSMODEL;
+        resetDxfParserState();
+    }
+    DRW_NavisworksModel& operator=(const DRW_NavisworksModel& o) {
+        if (this != &o) {
+            DRW_Entity::operator=(o);
+            flags = o.flags;
+            definitionHandle = o.definitionHandle;
+            transform = o.transform;
+            unitFactor = o.unitFactor;
+            eType = DRW::NAVISWORKSMODEL;
+            resetDxfParserState();
+        }
+        return *this;
+    }
 
     void applyExtrusion() override {}
 
@@ -2987,6 +3005,14 @@ public:
     bool finalizeDxf();
 
 private:
+    void resetDxfParserState() noexcept {
+        m_dxfTransformCount = 0;
+        m_dxfInBody = false;
+        m_dxfSawFlags = false;
+        m_dxfSawDefinition = false;
+        m_dxfSawUnitFactor = false;
+    }
+
     std::size_t m_dxfTransformCount = 0;
     bool m_dxfInBody = false;
     bool m_dxfSawFlags = false;

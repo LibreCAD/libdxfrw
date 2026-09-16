@@ -74,6 +74,11 @@ public:
     using DRW_Mesh::parseCode;
 };
 
+class ExposedNavisworksModel : public DRW_NavisworksModel {
+public:
+    using DRW_NavisworksModel::parseCode;
+};
+
 template <typename Entity>
 bool parseDxfRecords(Entity& entity, const std::string& source) {
     std::stringstream records(source);
@@ -115,6 +120,8 @@ void testPublicOwnershipContracts(TestContext& t) {
                   "DRW_Mesh copy contract");
     static_assert(std::is_copy_constructible<DRW_Underlay>::value,
                   "DRW_Underlay copy contract");
+    static_assert(std::is_copy_constructible<DRW_NavisworksModel>::value,
+                  "DRW_NavisworksModel copy contract");
     static_assert(std::is_copy_constructible<DRW_Attrib>::value,
                   "DRW_Attrib copy contract");
     static_assert(std::is_copy_constructible<DRW_GeoPositionMarker>::value,
@@ -560,6 +567,35 @@ void testPublicOwnershipContracts(TestContext& t) {
                  && assignedUnderlayState.clipBoundary.size() == 1u
                  && assignedUnderlayState.clipBoundary.front().x == 1.0,
              "UNDERLAY assignment starts a fresh clip parser walk");
+
+    const std::string navisworksComplete =
+        "100\nAcDbNavisworksModel\n"
+        "40\n1\n40\n2\n40\n3\n40\n4\n"
+        "40\n5\n40\n6\n40\n7\n40\n8\n"
+        "40\n9\n40\n10\n40\n11\n40\n12\n"
+        "40\n13\n40\n14\n40\n15\n40\n16\n"
+        "40\n2\n";
+    ExposedNavisworksModel partialNavisworks;
+    t.expect(parseDxfRecords(partialNavisworks,
+                              "100\nAcDbNavisworksModel\n40\n99\n"),
+             "NAVISWORKSMODEL parser state source setup");
+    ExposedNavisworksModel copiedNavisworks(partialNavisworks);
+    copiedNavisworks.transform.fill(0.0);
+    t.expect(parseDxfRecords(copiedNavisworks, navisworksComplete)
+                 && copiedNavisworks.finalizeDxf()
+                 && copiedNavisworks.transform.front() == 1.0
+                 && copiedNavisworks.transform.back() == 16.0
+                 && copiedNavisworks.unitFactor == 2.0,
+             "NAVISWORKSMODEL copy starts a fresh transform parser walk");
+    ExposedNavisworksModel assignedNavisworks;
+    assignedNavisworks = partialNavisworks;
+    assignedNavisworks.transform.fill(0.0);
+    t.expect(parseDxfRecords(assignedNavisworks, navisworksComplete)
+                 && assignedNavisworks.finalizeDxf()
+                 && assignedNavisworks.transform.front() == 1.0
+                 && assignedNavisworks.transform.back() == 16.0
+                 && assignedNavisworks.unitFactor == 2.0,
+             "NAVISWORKSMODEL assignment starts a fresh transform parser walk");
 
     DRW_Dimension sourceDimension;
     sourceDimension.extData.push_back(
