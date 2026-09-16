@@ -1109,7 +1109,7 @@ bool dwgReader21::readFileHeader() {
             || (secInfo.compressed != 1 && secInfo.compressed != 4)
             || secInfo.pageCount > dwgSafety::MaxPageCount
             || SectionNameLength > std::numeric_limits<std::uint16_t>::max()
-            || (SectionNameLength != 0 && (SectionNameLength < 4 || (SectionNameLength & 1) != 0))) {
+            || (SectionNameLength != 0 && (SectionNameLength < 2 || (SectionNameLength & 1) != 0))) {
             recordFailure(DwgIntegrityCheckKind::PageGeometry,
                           DwgIntegrityPhase::SectionMap);
             return false;

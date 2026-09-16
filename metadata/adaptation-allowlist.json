@@ -77,17 +77,17 @@
     },
     {
       "path": "src/intern/dwgreader21.cpp",
-      "reason": "Accept valid AC1021 compressed pages whose decoded size exceeds the physical page envelope and older R2007 section maps that omit the repeated header page or explicit empty terminator descriptor, while retaining bounded physical-page and section-capacity checks.",
+      "reason": "Accept valid AC1021 compressed pages whose decoded size exceeds the physical page envelope and older R2007 section maps that omit the repeated header page or explicit empty terminator descriptor, while retaining bounded physical-page and section-capacity checks; accept the ODA-valid one-code-unit UTF-16 section-name boundary without weakening odd/truncated-length rejection.",
       "scope": "DWG R2007 reader compatibility",
       "targetBlob": "10d47f1c0313731fc6695b0dda8d7247dc492f88",
-      "adaptedSha256": "4558d6d77acd869bc633103926633082f4226b8824ceb97314063ae73c5936a4"
+      "adaptedSha256": "113a94b8ee0a9dd1268f9eba569c1a7633977d08a93690f5137673e9a887d1fa"
     },
     {
       "path": "src/intern/dwgbuffer.cpp",
-      "reason": "Accept both R2007+ TU length conventions by reading the declared UTF-16 units first and probing an optional trailing UTF-16 NUL on an independent cursor, preserving fail-closed behavior for truncated streams.",
+      "reason": "Accept both R2007+ TU length conventions by reading the declared UTF-16 units first and probing an optional trailing UTF-16 NUL on an independent cursor, preserving fail-closed behavior for truncated streams; normalize declared section-name NUL code units and accept the one-code-unit section-name boundary.",
       "scope": "DWG TU text framing compatibility",
       "targetBlob": "e70e5fdbef6bc187850c1eb02689c39f254d4f96",
-      "adaptedSha256": "a75f4eb808072e4e39b07783ba7a9b3644cb6c0059af89802b71f4b668b23875"
+      "adaptedSha256": "5699b52890a91314a058d474fdb448d9fcc52ae30ddaa6e48a671aadd1b5c545"
     },
     {
       "path": "src/drw_datastorage.cpp",

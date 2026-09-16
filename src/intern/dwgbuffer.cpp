@@ -835,14 +835,29 @@ std::string dwgBuffer::getENCText(){
    ts= total input size in bytes.
 **/
 std::string dwgBuffer::getUCSStr(std::uint16_t ts){
-    std::string strData;
-    if (ts<4) //at least 1 char
+    // Section-map names carry a byte length.  A single UTF-16 code unit is
+    // therefore valid (2 bytes); reject only empty or odd-length envelopes.
+    if (ts == 0 || (ts & 1u) != 0)
         return std::string();
-    strData = get16bitStr(ts/2, false);
-    if (!decoder)
-        return strData;
 
-    return decoder->toUtf8(strData);
+    const auto stripTrailingUtf16Nulls = [](std::string value) {
+        while (value.size() >= 2 && value[value.size() - 1] == '\0'
+               && value[value.size() - 2] == '\0') {
+            value.resize(value.size() - 2);
+        }
+        return value;
+    };
+    const auto stripTrailingUtf8Nulls = [](std::string value) {
+        while (!value.empty() && value.back() == '\0')
+            value.pop_back();
+        return value;
+    };
+
+    const std::string strData = get16bitStr(ts / 2, false);
+    if (!decoder)
+        return stripTrailingUtf16Nulls(strData);
+
+    return stripTrailingUtf8Nulls(decoder->toUtf8(strData));
 }
 
 //TU unicode 16 bit (UCS) text converted to utf8

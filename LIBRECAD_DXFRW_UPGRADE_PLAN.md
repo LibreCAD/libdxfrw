@@ -1940,6 +1940,13 @@ edit this block or commit the same slice concurrently.
   current tables contain 297 slices, 299 parents, and 397 children. The
   execution-refresh prose and F1.1a disposition no longer describe stale
   pre-S296 state. This is metadata-only and adds no source or drawing bytes.
+- Current checkpoint (2026-09-15): S298/J274 section-name framing
+  compatibility is committed. The AC1021 section-map byte-length guard now
+  accepts a valid one-code-unit UTF-16 name, strips only NUL code units that
+  are inside the declared name envelope, and leaves the following field
+  aligned; odd-length input remains rejected. Reader-matrix, hardening,
+  Wave 1, DWG-fixture, support-matrix, release-readiness, and policy gates
+  pass. No external or derived drawing bytes changed or were added.
 - Current checkpoint (2026-09-15): S296/J272 TU terminator framing
   compatibility is committed. The R2007+ TU reader now consumes the declared
   UTF-16 units first and conditionally accepts one trailing UTF-16 NUL through
@@ -3482,17 +3489,17 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 297 (`COMMITTED`); no slice is active.
+- Resolved slices: 298 (`COMMITTED`); no slice is active.
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 297 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 298 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 299 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 300 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 397 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 398 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  3 DEFERRED_EXTERNAL / 279 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S297 are committed; no local implementation slice is active.
+  3 DEFERRED_EXTERNAL / 281 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S298 are committed; no local implementation slice is active.
   Remaining work is evidence-gated runtime/oracle and release closure; keep
   the fast inner loop and do not promote support claims from self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -3843,7 +3850,8 @@ edit this block or commit the same slice concurrently.
 | S294 | J270: post-BLOCK sanitizer validation | S293 | COMMITTED | impact-map sanitizer escalation after DWG BLOCK transaction change; complete ASan/UBSan CTest; documented macOS leak policy; no fixture changes | all 28 ASan/UBSan CTest entries pass in 7.70 seconds with leak detection disabled, including reader/writer matrices, local round trips, hardening, fixtures, parity, release-readiness, and implementation-speed checks; no drawing bytes are added | continue with target-debt review, independent oracle qualification, and release closure |
 | S295 | J271: plan-counter reconciliation | S294 | COMMITTED | parser-backed live-plan count audit; terminal state reconciliation; metadata-only change; no fixture admission | updater-backed parsing reports 295 committed slices, 297 committed parents, and 395 committed children; the live status block now matches the tables, and plan, fixture, scope, sync, parity, release-readiness, speed, and diff checks pass | continue with target-debt review, independent oracle qualification, and release closure |
 | S296 | J272: TU terminator framing compatibility | S295 | COMMITTED | authoritative local ODA TU layout review; adaptive reader probe; six-version writer matrix; focused DWG safety/round-trip checks; no fixture admission | R2007+ TU reads accept both declared-length forms without poisoning a truncated probe; codec-backed semantic tests, hardening, reader matrix, local round-trip, and temporary AC1021 conversions pass; no drawing bytes are added | continue with target-debt review, independent oracle qualification, and release closure |
-| S297 | J273: live-plan status refresh | S296 | COMMITTED | parser-backed post-S296 counter audit; stale prose correction; no fixture admission | updater-backed parsing reconciles 296/298/396 pre-slice values and 297/299/397 current committed execution states; execution-refresh and F1.1a text are aligned with current state, and plan/policy checks pass; no source or drawing bytes are changed | continue with target-debt review, independent oracle qualification, and release closure |
+| S297 | J273: live-plan status refresh | S296 | COMMITTED | parser-backed post-S296 counter audit; stale prose correction; no fixture admission | updater-backed parsing reconciles 296/298/396 pre-slice values and 297/299/397 current committed execution states; execution-refresh and F1.1a text are aligned with current state, and plan/policy checks pass; no source or drawing bytes are changed | S298: section-name framing compatibility |
+| S298 | J274: section-name framing compatibility | S297 | COMMITTED | ODA-backed UTF-16 section-name boundary; one-code-unit acceptance; declared-NUL normalization; fixture-free focused DWG reader test; plan/scope/sync/fixture gates | `libdxfrw_dwg_reader_matrix_tests`, hardening, Wave 1, DWG fixtures, support-matrix, and release-readiness checks pass; ODA-backed one-code-unit and declared-NUL vectors preserve sentinels and reject odd lengths; no external or derived drawing bytes | target-debt review, independent oracle qualification, and release closure |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -4145,6 +4153,7 @@ edit this block or commit the same slice concurrently.
 | J271 | S295 | J270 | COMMITTED | EXPERIMENTAL | Reconcile live-plan execution counters | Parse the live progress tables after S291-S294, correct only stale aggregate counters, and verify that every slice, parent, and child remains terminal without changing source or fixture bytes |
 | J272 | S296 | J271 | COMMITTED | EXPERIMENTAL | Resolve TU terminator framing compatibility | Use the local ODA TU definition and an independent-cursor probe to accept both length-includes-terminator and length-excludes-terminator streams, add codec-backed six-version semantic vectors plus a trailing-field alignment check, and keep external support promotion separate without adding drawing fixtures |
 | J273 | S297 | J272 | COMMITTED | EXPERIMENTAL | Refresh live-plan status after S296 | Reconcile parser-backed slice/parent/child counts and stale checkpoint/disposition prose after S296 without changing implementation or fixture bytes |
+| J274 | S298 | J273 | COMMITTED | EXPERIMENTAL | Close R2007+ section-name framing boundary | Update the UTF-16 section-name length guard and declared-NUL normalization from the ODA section-map contract; add a synthetic one-code-unit reader vector with sentinel alignment and malformed-length negatives, without external or derived drawing bytes |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4553,6 +4562,7 @@ edit this block or commit the same slice concurrently.
 | J271.1 | J271 / S295 | WP8, WP10; plan-counter reconciliation | J270 | COMMITTED | EXPERIMENTAL | run the plan parser and compare its slice/parent/child state totals and claim dispositions with the live status block, changing no source or fixture bytes | parser-backed audit reports 295/297/395 committed execution states and 10 NOT_EVALUATED, 3 DEFERRED_EXTERNAL, 278 EXPERIMENTAL, and 6 NOT_APPLICABLE parent claims; plan and policy checks pass |
 | J272.1 | J272 / S296 | WP5, WP7, WP8, WP10; TU framing compatibility | J271 | COMMITTED | EXPERIMENTAL | run codec-backed six-version TU semantic vectors for both declared-length forms, verify a trailing field remains readable, and preserve the no-fixture policy | `libdxfrw_writer_version_matrix_tests`, DWG hardening, reader matrix, local round-trip, and temporary external AC1021 conversion checks pass; the local ODA definition is recorded, no drawing bytes are retained, and independent support promotion remains separate |
 | J273.1 | J273 / S297 | WP8, WP10; live-plan status refresh | J272 | COMMITTED | EXPERIMENTAL | parse the live block after S296 and align counters, execution-refresh prose, and F1.1a wording without changing source or fixture bytes | parser-backed audit reconciles 296/298/396 pre-slice values and reports 297/299/397 current committed execution states; plan, fixture, scope, sync, parity, release-readiness, speed, and diff checks pass |
+| J274.1 | J274 / S298 | WP3, WP5, WP8, WP10; R2007+ section-map UTF-16 framing | J273 | COMMITTED | EXPERIMENTAL | accept a valid two-byte one-code-unit section name, strip only declared trailing UTF-16 NUL code units, preserve the following sentinel, and reject odd/truncated lengths transactionally without drawing fixtures | `libdxfrw_dwg_reader_matrix_tests`, hardening, Wave 1, DWG fixtures, support-matrix, and release-readiness checks pass; no external or derived drawing bytes |
 
 <!-- UPGRADE_PROGRESS_END -->
 

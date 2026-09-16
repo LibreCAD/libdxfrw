@@ -24,6 +24,7 @@
 #include "intern/dwgreaderR1_40.h"
 #include "intern/dwgreader.h"
 #include "intern/dwgutil.h"
+#include "intern/drw_textcodec.h"
 
 namespace {
 
@@ -181,6 +182,40 @@ void testSectionNameMatrix(TestContext& t) {
              "section matrix keeps empty names unsupported");
 }
 
+void testSectionNameUtf16Framing(TestContext& t) {
+    DRW_TextCodec codec;
+    codec.setVersion(DRW::AC1021, false);
+
+    // SectionNameLength is a byte count.  A one-code-unit name must be
+    // accepted, and the following byte must remain untouched for the next
+    // section-map field.
+    std::vector<std::uint8_t> oneUnit {'A', 0, 0x7f};
+    dwgBuffer oneUnitBuffer(oneUnit.data(), oneUnit.size(), &codec);
+    t.expect(oneUnitBuffer.getUCSStr(2) == "A",
+             "section-name framing accepts one UTF-16 code unit");
+    t.expect(oneUnitBuffer.getPosition() == 2
+                 && oneUnitBuffer.getRawChar8() == 0x7f,
+             "section-name framing preserves the following byte");
+
+    // Some section-map producers include a declared UTF-16 NUL code unit in
+    // the byte count.  Normalize that declared unit without consuming the
+    // next field.
+    std::vector<std::uint8_t> declaredNull {'A', 0, 0, 0, 0x6b};
+    dwgBuffer declaredNullBuffer(declaredNull.data(), declaredNull.size(),
+                                  &codec);
+    t.expect(declaredNullBuffer.getUCSStr(4) == "A",
+             "section-name framing strips a declared UTF-16 NUL");
+    t.expect(declaredNullBuffer.getPosition() == 4
+                 && declaredNullBuffer.getRawChar8() == 0x6b,
+             "declared UTF-16 NUL normalization preserves alignment");
+
+    std::vector<std::uint8_t> malformed {'A', 0, 0x7f};
+    dwgBuffer malformedBuffer(malformed.data(), malformed.size(), &codec);
+    t.expect(malformedBuffer.getUCSStr(3).empty()
+                 && malformedBuffer.getPosition() == 0,
+             "section-name framing rejects an odd byte length");
+}
+
 void testR2007ClassStringFooter(TestContext& t) {
     // The AC1024 RTM class footer uses the high-bit extension when the UTF-16
     // string stream exceeds 0x7fff bits. Keep this vector local and synthetic:
@@ -223,6 +258,7 @@ int main() {
     testVersionDispatch(context);
     testReadBufferRejection(context);
     testSectionNameMatrix(context);
+    testSectionNameUtf16Framing(context);
     testR2007ClassStringFooter(context);
     if (context.failures != 0) {
         std::cerr << context.failures << " DWG reader matrix assertion(s) failed\n";
