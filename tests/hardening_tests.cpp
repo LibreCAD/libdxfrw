@@ -102,6 +102,11 @@ public:
     using DRW_RevolvedSurface::parseCode;
 };
 
+class ExposedExtrudedSurface : public DRW_ExtrudedSurface {
+public:
+    using DRW_ExtrudedSurface::parseCode;
+};
+
 template <typename Entity>
 bool parseDxfRecords(Entity& entity, const std::string& source) {
     std::stringstream records(source);
@@ -153,6 +158,8 @@ void testPublicOwnershipContracts(TestContext& t) {
                   "DRW_NurbsSurface copy contract");
     static_assert(std::is_copy_constructible<DRW_RevolvedSurface>::value,
                   "DRW_RevolvedSurface copy contract");
+    static_assert(std::is_copy_constructible<DRW_ExtrudedSurface>::value,
+                  "DRW_ExtrudedSurface copy contract");
     static_assert(std::is_copy_constructible<DRW_Attrib>::value,
                   "DRW_Attrib copy contract");
     static_assert(std::is_copy_constructible<DRW_GeoPositionMarker>::value,
@@ -712,6 +719,24 @@ void testPublicOwnershipContracts(TestContext& t) {
                  && assignedRevolvedSurface.classId == 2u
                  && assignedRevolvedSurface.id == 0u,
              "REVOLVEDSURFACE assignment starts a fresh class-id parser walk");
+
+    ExposedExtrudedSurface partialExtrudedSurface;
+    t.expect(parseDxfRecords(partialExtrudedSurface,
+                             "100\nAcDbExtrudedSurface\n90\n1\n"),
+             "EXTRUDEDSURFACE parser state source setup");
+    ExposedExtrudedSurface copiedExtrudedSurface(partialExtrudedSurface);
+    copiedExtrudedSurface.classId = 0;
+    t.expect(parseDxfRecords(copiedExtrudedSurface,
+                             "100\nAcDbExtrudedSurface\n90\n2\n")
+                 && copiedExtrudedSurface.classId == 2u,
+             "EXTRUDEDSURFACE copy starts a fresh class-id parser walk");
+    ExposedExtrudedSurface assignedExtrudedSurface;
+    assignedExtrudedSurface = partialExtrudedSurface;
+    assignedExtrudedSurface.classId = 0;
+    t.expect(parseDxfRecords(assignedExtrudedSurface,
+                             "100\nAcDbExtrudedSurface\n90\n2\n")
+                 && assignedExtrudedSurface.classId == 2u,
+             "EXTRUDEDSURFACE assignment starts a fresh class-id parser walk");
 
     DRW_Dimension sourceDimension;
     sourceDimension.extData.push_back(

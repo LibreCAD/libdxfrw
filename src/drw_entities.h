@@ -3369,6 +3369,51 @@ public:
         sweepEntityTransform = extrudedTransform;
         pathEntityTransform = extrudedTransform;
     }
+    DRW_ExtrudedSurface(const DRW_ExtrudedSurface& o): DRW_Surface(o),
+        classId(o.classId), sweepVector(o.sweepVector),
+        extrudedTransform(o.extrudedTransform),
+        sweepEntityTransform(o.sweepEntityTransform),
+        pathEntityTransform(o.pathEntityTransform), draftAngle(o.draftAngle),
+        draftStartDistance(o.draftStartDistance),
+        draftEndDistance(o.draftEndDistance), twistAngle(o.twistAngle),
+        scaleFactor(o.scaleFactor), alignAngle(o.alignAngle), solid(o.solid),
+        sweepAlignmentFlags(o.sweepAlignmentFlags), pathFlags(o.pathFlags),
+        alignStart(o.alignStart), bank(o.bank),
+        basePointSet(o.basePointSet),
+        sweepEntityTransformComputed(o.sweepEntityTransformComputed),
+        pathEntityTransformComputed(o.pathEntityTransformComputed),
+        referenceVector(o.referenceVector) {
+        eType = DRW::EXTRUDEDSURFACE;
+        resetDxfParserState();
+    }
+    DRW_ExtrudedSurface& operator=(const DRW_ExtrudedSurface& o) {
+        if (this != &o) {
+            DRW_Surface::operator=(o);
+            classId = o.classId;
+            sweepVector = o.sweepVector;
+            extrudedTransform = o.extrudedTransform;
+            sweepEntityTransform = o.sweepEntityTransform;
+            pathEntityTransform = o.pathEntityTransform;
+            draftAngle = o.draftAngle;
+            draftStartDistance = o.draftStartDistance;
+            draftEndDistance = o.draftEndDistance;
+            twistAngle = o.twistAngle;
+            scaleFactor = o.scaleFactor;
+            alignAngle = o.alignAngle;
+            solid = o.solid;
+            sweepAlignmentFlags = o.sweepAlignmentFlags;
+            pathFlags = o.pathFlags;
+            alignStart = o.alignStart;
+            bank = o.bank;
+            basePointSet = o.basePointSet;
+            sweepEntityTransformComputed = o.sweepEntityTransformComputed;
+            pathEntityTransformComputed = o.pathEntityTransformComputed;
+            referenceVector = o.referenceVector;
+            eType = DRW::EXTRUDEDSURFACE;
+            resetDxfParserState();
+        }
+        return *this;
+    }
 
 protected:
     bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) override;
@@ -3397,6 +3442,15 @@ public:
     DRW_Coord referenceVector;
 
 private:
+    void resetDxfParserState() noexcept {
+        m_dxfExtrudedTransformCount = 0;
+        m_dxfSweepTransformCount = 0;
+        m_dxfPathTransformCount = 0;
+        m_dxfClassIdSeen = false;
+        m_dxfDataSizeSeen = false;
+        m_dxfInSubtype = false;
+    }
+
     std::size_t m_dxfExtrudedTransformCount = 0;
     std::size_t m_dxfSweepTransformCount = 0;
     std::size_t m_dxfPathTransformCount = 0;
