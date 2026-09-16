@@ -1934,7 +1934,15 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint (2026-09-15): S291/J267 DWG block typed-body failure
+- Current checkpoint (2026-09-15): S292/J268 baseline compatibility sweep is
+  committed. A bounded baseline-vs-upgraded sweep over all 28 available
+  external DWGs found zero cases where `origin/master` succeeds and the
+  upgraded reader fails; five inputs are upgraded-branch improvements. The
+  `colorwh.dwg` input remains non-success on both binaries (the upgraded run
+  exceeds the bounded probe while baseline returns error 9), so it is not
+  promoted as parity evidence. All files and generated DXFs remain outside
+  Git; the sweep is advisory and no support row is promoted.
+- Previous checkpoint (2026-09-15): S291/J267 DWG block typed-body failure
   isolation is committed. Bounded typed-body parse failures in a journalled
   BLOCK scope are quarantined as record-level warnings, the surrounding block
   transaction remains publishable, and incomplete reachability receipts are
@@ -3444,17 +3452,17 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 291 (`COMMITTED`); no slice is active.
+- Resolved slices: 292 (`COMMITTED`); no slice is active.
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 291 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 292 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
   0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 292 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 391 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 392 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  2 DEFERRED_EXTERNAL / 275 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S291 are committed; no local implementation slice is active.
+  3 DEFERRED_EXTERNAL / 275 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S292 are committed; no local implementation slice is active.
   Remaining work is evidence-gated runtime/oracle and release closure; keep
   the fast inner loop and do not promote support claims from self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -3800,6 +3808,7 @@ edit this block or commit the same slice concurrently.
 | S289 | J265: JSON oracle qualification fail-closed hardening | S288 | COMMITTED | explicit JSON version/entity-set/count qualification predicate; negative incomplete-result self-test; six-version advisory rerun; no payload retention | incomplete JSON output now reports `jsonOracleStatus=mismatch` instead of being unconditionally qualified; self-tests and focused CTest pass, while the existing six-version local evidence remains 6/6 JSON-qualified; no drawing bytes are committed | target-debt review, independent oracle qualification, and release closure |
 | S290 | J266: reconcile verified inventory children | S289 | COMMITTED | close the three already-delivered I0 source/public inventory children; recompute plan counters; metadata-only reconciliation; no fixture admission | `I0.1`, `I0.2`, and `I0.2a` evidence is present in the pinned inventory history; current plan, parity aggregate, oracle registry, fixture, import-scope, sync, release-readiness, speed, and diff checks pass; no source or drawing bytes change | target-debt review, independent oracle qualification, and release closure |
 | S291 | J267: DWG block typed-body failure isolation | S290 | COMMITTED | bounded typed-body warning isolation; block transaction preservation; incomplete reachability receipt suppression; external AC1021 advisory conversion; focused tests and policy gates; no fixture admission | `dwg2dxf` converts the external AC1021 `blocks_and_tables` imperial and metric drawings successfully after quarantining custom type-506 typed-body failures; structural frame/identity failures remain hard; focused release, fixture, scope, sync, aggregate, and diff gates pass; no external or derived drawing bytes are committed | continue with target-debt review, independent oracle qualification, and release closure |
+| S292 | J268: baseline compatibility sweep | S291 | COMMITTED | bounded baseline-vs-upgraded external DWG sweep; zero baseline-success/current-failure regressions; advisory-only outcomes; no fixture admission | 28 available external DWGs were compared with a four-second per-input bound: zero baseline-success/current-failure regressions, five upgraded-branch improvements, and one `colorwh.dwg` timeout/non-success retained as advisory; all source and generated drawing files remain outside Git | continue with target-debt review, independent oracle qualification, and release closure |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -4095,6 +4104,7 @@ edit this block or commit the same slice concurrently.
 | J265 | S289 | J264 | COMMITTED | EXPERIMENTAL | Harden JSON oracle qualification | Qualify JSON oracle output only when its expected version, complete required entity set, and bounded entity counts all match; preserve explicit mismatch status and fail-closed aggregate behavior without retaining payloads |
 | J266 | S290 | J265 | COMMITTED | EXPERIMENTAL | Reconcile verified inventory-child states | Close `I0.1`, `I0.2`, and `I0.2a` after confirming their pinned source/public closure evidence and current aggregate/policy checks; change no source or fixture bytes and keep all support claims non-promoted |
 | J267 | S291 | J266 | COMMITTED | EXPERIMENTAL | Isolate bounded DWG BLOCK typed-body failures | Quarantine a failed typed entity body as a record-level warning, preserve publication of the surrounding block and its valid entities, suppress incomplete reachability receipts, and retain hard failure for structural frame/identity corruption; validate with temporary external AC1021 block/table conversions without admitting drawing bytes |
+| J268 | S292 | J267 | COMMITTED | DEFERRED_EXTERNAL | Reconcile baseline and upgraded external DWG outcomes | Compare every available external DWG under a bounded timeout, record only status/version/hash summaries, distinguish improvements from regressions, and keep non-success/timeout outcomes advisory without promoting support or admitting drawing bytes |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4497,6 +4507,7 @@ edit this block or commit the same slice concurrently.
 | J265.1 | J265 / S289 | WP8, WP10; JSON oracle qualification hardening | J264 | COMMITTED | EXPERIMENTAL | require the JSON status to be `qualified` only when version, required entity set, and bounded counts all pass; self-test an incomplete JSON result and retain only status/count metadata | runner self-test and focused CTest pass; the corrected six-version run remains 6/6 JSON-qualified while any future incomplete JSON result is reported as `mismatch`; no drawing bytes are retained |
 | J266.1 | J266 / S290 | WP8, WP10; plan-state reconciliation | J265 | COMMITTED | EXPERIMENTAL | confirm the three I0 inventory children have complete pinned evidence, transition them from `VERIFIED` to `COMMITTED`, and recompute the live counters without changing source or fixture bytes | current plan check, parity aggregate, oracle registry, fixture admission, import scope, pinned sync, release readiness, implementation-speed, and diff checks pass; no drawing bytes are retained |
 | J267.1 | J267 / S291 | WP5, WP6, WP8, WP10; DWG BLOCK transaction compatibility | J266 | COMMITTED | EXPERIMENTAL | isolate non-structural `parseDwg` failures within `walkJournalledBlockRecordEntities`, keep valid callbacks and block commit alive, omit failed frames from complete reachability receipts, and fail closed for frame/identity errors | `dwg2dxf` converts both temporary external AC1021 `blocks_and_tables` inputs; hardening, wave, writer, DXF/DWG fixture, release-readiness, support-matrix, plan, fixture, import-scope, pinned-sync, parity, speed, and diff gates pass; no external or derived drawing bytes are retained |
+| J268.1 | J268 / S292 | WP5, WP8, WP10; external baseline compatibility | J267 | COMMITTED | DEFERRED_EXTERNAL | run the 28-file baseline-vs-upgraded sweep with bounded per-input timeouts, compare only exit categories and version/status summaries, and retain all files and generated DXFs outside the repository | sweep reports zero baseline-success/current-failure regressions, five improvements, and one advisory current timeout where baseline also fails; no external or derived drawing bytes are retained |
 
 <!-- UPGRADE_PROGRESS_END -->
 
