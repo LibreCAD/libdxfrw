@@ -2866,6 +2866,40 @@ public:
         fade = clip = 0;
         brightness = contrast = 50;
     }
+    DRW_Image(const DRW_Image& o): DRW_Line(o),
+        m_classVersion(o.m_classVersion), ref(o.ref),
+        m_imageDefReactorHandle(o.m_imageDefReactorHandle),
+        m_displayProps(o.m_displayProps), vVector(o.vVector),
+        sizeu(o.sizeu), sizev(o.sizev), dz(o.dz), clip(o.clip),
+        brightness(o.brightness), contrast(o.contrast), fade(o.fade),
+        m_clipBoundaryType(o.m_clipBoundaryType), clipPath(o.clipPath),
+        clipMode(o.clipMode) {
+        eType = o.eType;
+        resetDxfParserState();
+    }
+    DRW_Image& operator=(const DRW_Image& o) {
+        if (this != &o) {
+            DRW_Line::operator=(o);
+            m_classVersion = o.m_classVersion;
+            ref = o.ref;
+            m_imageDefReactorHandle = o.m_imageDefReactorHandle;
+            m_displayProps = o.m_displayProps;
+            vVector = o.vVector;
+            sizeu = o.sizeu;
+            sizev = o.sizev;
+            dz = o.dz;
+            clip = o.clip;
+            brightness = o.brightness;
+            contrast = o.contrast;
+            fade = o.fade;
+            m_clipBoundaryType = o.m_clipBoundaryType;
+            clipPath = o.clipPath;
+            clipMode = o.clipMode;
+            eType = o.eType;
+            resetDxfParserState();
+        }
+        return *this;
+    }
 
 protected:
     void resetDwgState();
@@ -2915,6 +2949,12 @@ public:
 protected:
     std::int32_t m_declaredClipVertexCount {-1};
     bool m_clipPathHasOpenVertex {false};
+
+private:
+    void resetDxfParserState() noexcept {
+        m_declaredClipVertexCount = -1;
+        m_clipPathHasOpenVertex = false;
+    }
 
 };
 

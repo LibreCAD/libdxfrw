@@ -118,6 +118,11 @@ public:
     using DRW_LoftedSurface::finalizeDxf;
 };
 
+class ExposedImage : public DRW_Image {
+public:
+    using DRW_Image::parseCode;
+};
+
 template <typename Entity>
 bool parseDxfRecords(Entity& entity, const std::string& source) {
     std::stringstream records(source);
@@ -175,6 +180,10 @@ void testPublicOwnershipContracts(TestContext& t) {
                   "DRW_SweptSurface copy contract");
     static_assert(std::is_copy_constructible<DRW_LoftedSurface>::value,
                   "DRW_LoftedSurface copy contract");
+    static_assert(std::is_copy_constructible<DRW_Image>::value,
+                  "DRW_Image copy contract");
+    static_assert(std::is_copy_constructible<DRW_Wipeout>::value,
+                  "DRW_Wipeout copy contract");
     static_assert(std::is_copy_constructible<DRW_Attrib>::value,
                   "DRW_Attrib copy contract");
     static_assert(std::is_copy_constructible<DRW_GeoPositionMarker>::value,
@@ -796,6 +805,25 @@ void testPublicOwnershipContracts(TestContext& t) {
                  && assignedLoftedSurface.loftEntityTransform.front() == 1.0
                  && assignedLoftedSurface.loftEntityTransform.back() == 16.0,
              "LOFTEDSURFACE assignment starts a fresh transform parser walk");
+
+    ExposedImage partialImage;
+    t.expect(parseDxfRecords(partialImage, "91\n1\n14\n1\n"),
+             "IMAGE parser state source setup");
+    ExposedImage copiedImage(partialImage);
+    copiedImage.clipPath.clear();
+    t.expect(parseDxfRecords(copiedImage, "14\n2\n24\n3\n")
+                 && copiedImage.clipPath.size() == 1u
+                 && copiedImage.clipPath.front().x == 2.0
+                 && copiedImage.clipPath.front().y == 3.0,
+             "IMAGE copy starts a fresh clip-vertex parser walk");
+    ExposedImage assignedImage;
+    assignedImage = partialImage;
+    assignedImage.clipPath.clear();
+    t.expect(parseDxfRecords(assignedImage, "14\n2\n24\n3\n")
+                 && assignedImage.clipPath.size() == 1u
+                 && assignedImage.clipPath.front().x == 2.0
+                 && assignedImage.clipPath.front().y == 3.0,
+             "IMAGE assignment starts a fresh clip-vertex parser walk");
 
     DRW_Dimension sourceDimension;
     sourceDimension.extData.push_back(
