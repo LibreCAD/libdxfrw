@@ -64,6 +64,11 @@ public:
     using DRW_MLine::parseCode;
 };
 
+class ExposedTable : public DRW_Table {
+public:
+    using DRW_Table::parseCode;
+};
+
 template <typename Entity>
 bool parseDxfRecords(Entity& entity, const std::string& source) {
     std::stringstream records(source);
@@ -99,6 +104,8 @@ void testPublicOwnershipContracts(TestContext& t) {
                   "DRW_Leader copy contract");
     static_assert(std::is_copy_constructible<DRW_MLine>::value,
                   "DRW_MLine copy contract");
+    static_assert(std::is_copy_constructible<DRW_Table>::value,
+                  "DRW_Table copy contract");
     static_assert(std::is_copy_constructible<DRW_Attrib>::value,
                   "DRW_Attrib copy contract");
     static_assert(std::is_copy_constructible<DRW_GeoPositionMarker>::value,
@@ -481,6 +488,28 @@ void testPublicOwnershipContracts(TestContext& t) {
     t.expect(parseDxfRecords(assignedMLineState,
                              "11\n0\n21\n0\n31\n0\n74\n0\n75\n0\n"),
              "MLINE assignment starts a fresh segment parser walk");
+
+    ExposedTable partialTable;
+    t.expect(parseDxfRecords(partialTable,
+                             "100\nAcDbTable\n91\n1\n92\n1\n"),
+             "TABLE parser grid state source setup");
+    ExposedTable copiedTableState(partialTable);
+    copiedTableState.m_content.m_rows.clear();
+    copiedTableState.m_content.m_columns.clear();
+    t.expect(parseDxfRecords(copiedTableState,
+                             "100\nAcDbTable\n91\n2\n92\n2\n")
+                 && copiedTableState.m_content.m_rows.size() == 2u
+                 && copiedTableState.m_content.m_columns.size() == 2u,
+             "TABLE copy starts a fresh grid parser walk");
+    ExposedTable assignedTableState;
+    assignedTableState = partialTable;
+    assignedTableState.m_content.m_rows.clear();
+    assignedTableState.m_content.m_columns.clear();
+    t.expect(parseDxfRecords(assignedTableState,
+                             "100\nAcDbTable\n91\n2\n92\n2\n")
+                 && assignedTableState.m_content.m_rows.size() == 2u
+                 && assignedTableState.m_content.m_columns.size() == 2u,
+             "TABLE assignment starts a fresh grid parser walk");
 
     DRW_Dimension sourceDimension;
     sourceDimension.extData.push_back(

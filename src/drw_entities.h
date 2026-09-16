@@ -1424,6 +1424,29 @@ public:
     DRW_Table() {
         eType = DRW::TABLE;
     }
+    DRW_Table(const DRW_Table& o): DRW_Insert(o),
+        m_valueFlag(o.m_valueFlag),
+        m_horizontalDirection(o.m_horizontalDirection),
+        m_hasSemanticContent(o.m_hasSemanticContent),
+        m_semanticContentComplete(o.m_semanticContentComplete),
+        m_tableStyleHandle(o.m_tableStyleHandle), m_content(o.m_content) {
+        eType = DRW::TABLE;
+        resetDxfParserState();
+    }
+    DRW_Table& operator=(const DRW_Table& o) {
+        if (this != &o) {
+            DRW_Insert::operator=(o);
+            m_valueFlag = o.m_valueFlag;
+            m_horizontalDirection = o.m_horizontalDirection;
+            m_hasSemanticContent = o.m_hasSemanticContent;
+            m_semanticContentComplete = o.m_semanticContentComplete;
+            m_tableStyleHandle = o.m_tableStyleHandle;
+            m_content = o.m_content;
+            eType = DRW::TABLE;
+            resetDxfParserState();
+        }
+        return *this;
+    }
 
 protected:
     void resetDwgState();
@@ -1453,6 +1476,17 @@ private:
     std::size_t m_dxfNextCell = 0;
     int m_dxfCurrentCell = -1;
     bool m_dxfInCellValue = false;
+
+    void resetDxfParserState() noexcept {
+        m_dxfSubclass = DxfSubclass::Entity;
+        m_dxfRowsExpected = -1;
+        m_dxfColumnsExpected = -1;
+        m_dxfRowHeightsRead = 0;
+        m_dxfColumnWidthsRead = 0;
+        m_dxfNextCell = 0;
+        m_dxfCurrentCell = -1;
+        m_dxfInCellValue = false;
+    }
 };
 
 //! Class to handle standalone TABLECONTENT (AcDbTableContent) objects.
