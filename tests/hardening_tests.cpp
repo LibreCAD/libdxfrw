@@ -256,6 +256,16 @@ public:
     using DRW_Section::parseCode;
 };
 
+class ExposedBackground : public DRW_Background {
+public:
+    using DRW_Background::parseCode;
+};
+
+class ExposedNavisworksModelDef : public DRW_NavisworksModelDef {
+public:
+    using DRW_NavisworksModelDef::parseCode;
+};
+
 template <typename Entity>
 bool parseDxfRecords(Entity& entity, const std::string& source) {
     std::stringstream records(source);
@@ -369,6 +379,10 @@ void testPublicOwnershipContracts(TestContext& t) {
                   "DRW_PartialViewingIndex copy contract");
     static_assert(std::is_copy_constructible<DRW_Section>::value,
                   "DRW_Section copy contract");
+    static_assert(std::is_copy_constructible<DRW_Background>::value,
+                  "DRW_Background copy contract");
+    static_assert(std::is_copy_constructible<DRW_NavisworksModelDef>::value,
+                  "DRW_NavisworksModelDef copy contract");
     static_assert(std::is_copy_constructible<DRW_Attrib>::value,
                   "DRW_Attrib copy contract");
     static_assert(std::is_copy_constructible<DRW_GeoPositionMarker>::value,
@@ -1683,6 +1697,58 @@ void testPublicOwnershipContracts(TestContext& t) {
                  && assignedSectionSettings.m_types.size() == 2u
                  && assignedSectionSettings.m_types.back().m_type == 30,
              "SECTION assignment clears body/type/geometry parser state");
+
+    ExposedBackground partialGradient;
+    partialGradient.m_kind = DRW_Background::Gradient;
+    t.expect(parseDxfRecords(partialGradient, "90\n1\n90\n2\n")
+                 && partialGradient.m_classVersion == 1
+                 && partialGradient.m_colorTop == 2,
+             "BACKGROUND gradient parser state source setup");
+    ExposedBackground copiedGradient(partialGradient);
+    t.expect(parseDxfRecords(copiedGradient, "90\n9\n")
+                 && copiedGradient.m_classVersion == 9
+                 && copiedGradient.m_colorTop == 2,
+             "BACKGROUND copy clears overloaded 90 parser state");
+    ExposedBackground assignedGradient;
+    assignedGradient = partialGradient;
+    t.expect(parseDxfRecords(assignedGradient, "90\n8\n")
+                 && assignedGradient.m_classVersion == 8
+                 && assignedGradient.m_colorTop == 2,
+             "BACKGROUND assignment clears overloaded 90 parser state");
+
+    ExposedBackground partialIbl;
+    partialIbl.m_kind = DRW_Background::Ibl;
+    t.expect(parseDxfRecords(partialIbl, "290\n0\n")
+                 && !partialIbl.m_enabled && !partialIbl.m_displayImage,
+             "BACKGROUND IBL parser state source setup");
+    ExposedBackground copiedIbl(partialIbl);
+    t.expect(parseDxfRecords(copiedIbl, "290\n1\n")
+                 && copiedIbl.m_enabled && !copiedIbl.m_displayImage,
+             "BACKGROUND copy clears repeated 290 parser state");
+    ExposedBackground assignedIbl;
+    assignedIbl = partialIbl;
+    t.expect(parseDxfRecords(assignedIbl, "290\n1\n")
+                 && assignedIbl.m_enabled && !assignedIbl.m_displayImage,
+             "BACKGROUND assignment clears repeated 290 parser state");
+
+    ExposedNavisworksModelDef partialNavisworksModelDef;
+    t.expect(parseDxfRecords(partialNavisworksModelDef,
+                             "290\n1\n290\n0\n")
+                 && partialNavisworksModelDef.m_status
+                 && !partialNavisworksModelDef.m_hostDrawingVisibility,
+             "NAVISWORKSMODELDEF parser state source setup");
+    ExposedNavisworksModelDef copiedNavisworksModelDef(
+        partialNavisworksModelDef);
+    t.expect(parseDxfRecords(copiedNavisworksModelDef, "290\n1\n")
+                 && copiedNavisworksModelDef.m_status
+                 && !copiedNavisworksModelDef.m_hostDrawingVisibility,
+             "NAVISWORKSMODELDEF copy clears repeated 290 parser state");
+    ExposedNavisworksModelDef assignedNavisworksModelDef;
+    assignedNavisworksModelDef = partialNavisworksModelDef;
+    t.expect(parseDxfRecords(assignedNavisworksModelDef, "290\n1\n")
+                 && assignedNavisworksModelDef.m_status
+                 && !assignedNavisworksModelDef.m_hostDrawingVisibility,
+             "NAVISWORKSMODELDEF assignment clears repeated 290 parser state");
 
     DRW_Dimension sourceDimension;
     sourceDimension.extData.push_back(

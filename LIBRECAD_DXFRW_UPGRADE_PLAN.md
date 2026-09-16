@@ -2144,6 +2144,12 @@ edit this block or commit the same slice concurrently.
   payloads remain copied; focused hardening vectors pass and no drawing bytes
   or derived fixtures are used.
 
+- Current checkpoint (2026-09-16): S366/J342 extends transient parser-state
+  isolation to BACKGROUND and NAVISWORKSMODELDEF copies and assignments.
+  Overloaded 90/290 and repeated-status cursors now reset while persisted
+  background/model fields remain copied; focused hardening vectors pass and no
+  drawing bytes or derived fixtures are used.
+
 - Current checkpoint (2026-09-16): S329/J305 compound-entity graph ownership
   is committed.  Explicit copies now clone legacy POLYLINE vertices, SPLINE
   control/fit points, and INSERT attributes while resetting parser cursors;
@@ -3847,20 +3853,20 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 365 (`COMMITTED`); no slice is active.
+- Resolved slices: 366 (`COMMITTED`); no slice is active.
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 365 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 366 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 367 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 368 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 VERIFIED / 0 SUPERSEDED / 468 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 VERIFIED / 0 SUPERSEDED / 469 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   6 DEFERRED_EXTERNAL / 357 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S365 and J329/J329.1/J330/J330.1/J331/J331.1/J332/J332.1/
+- Active work: S01-S366 and J329/J329.1/J330/J330.1/J331/J331.1/J332/J332.1/
   J333/J333.1/J334/J334.1/J335/J335.1/J336/J336.1/J337/J337.1/J338/J338.1/
-  J339/J339.1/J340/J340.1/J341/J341.1 are committed; no local implementation
-  slice is active.
+  J339/J339.1/J340/J340.1/J341/J341.1/J342/J342.1 are committed; no local
+  implementation slice is active.
   Keep the fast inner loop and do not promote support claims from
   self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -4280,6 +4286,7 @@ edit this block or commit the same slice concurrently.
 | S363 | J339: SUNSTUDY/MOTIONPATH/CURVEPATH/POINTPATH parser-state copy isolation | S362 | COMMITTED | SUNSTUDY date/hour and MOTIONPATH/CURVEPATH/POINTPATH positional/handle parser-state reset; focused hardening target; fixture admission; import scope; sync; plan; diff | focused `libdxfrw_hardening_tests` for copied and assigned SUNSTUDY, MOTIONPATH, CURVEPATH, and POINTPATH models; no drawing bytes or derived fixtures | finish focused gate, run policy/route/support/release/speed checks, verify children, commit with trailers, report progress, and recompute the next ready queue |
 | S364 | J340: PARTIAL_VIEWING_INDEX parser-state copy isolation | S363 | COMMITTED | PARTIAL_VIEWING_INDEX copy/assignment pending-entry parser-state reset; focused hardening target; fixture admission; import scope; sync; plan; diff | focused `libdxfrw_hardening_tests` for copied and assigned PARTIAL_VIEWING_INDEX models; no drawing bytes or derived fixtures | finish focused gate, run policy/route/support/release/speed checks, verify children, commit with trailers, report progress, and recompute the next ready queue |
 | S365 | J341: SECTION parser-state copy isolation | S364 | COMMITTED | SECTION settings copy/assignment body/type/geometry parser-state reset; focused hardening target; fixture admission; import scope; sync; plan; diff | focused `libdxfrw_hardening_tests` for copied and assigned SECTION settings models; no drawing bytes or derived fixtures | finish focused gate, run policy/route/support/release/speed checks, verify children, commit with trailers, report progress, and recompute the next ready queue |
+| S366 | J342: BACKGROUND/NAVISWORKSMODELDEF parser-state copy isolation | S365 | COMMITTED | BACKGROUND overloaded 90/290 and NAVISWORKSMODELDEF repeated-status parser-state reset; focused hardening target; fixture admission; import scope; sync; plan; diff | focused `libdxfrw_hardening_tests` for copied and assigned BACKGROUND and NAVISWORKSMODELDEF models; no drawing bytes or derived fixtures | finish focused gate, run policy/route/support/release/speed checks, verify children, commit with trailers, report progress, and recompute the next ready queue |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -4649,6 +4656,7 @@ edit this block or commit the same slice concurrently.
 | J339 | S363 | J338 | COMMITTED | EXPERIMENTAL | Harden SUNSTUDY/MOTIONPATH/CURVEPATH/POINTPATH parser-state copy and assignment | Reset transient SUNSTUDY date/hour and MOTIONPATH/CURVEPATH/POINTPATH positional/handle markers across copy/assignment while preserving persisted study, path, and point data; keep the no-fixture policy |
 | J340 | S364 | J339 | COMMITTED | EXPERIMENTAL | Harden PARTIAL_VIEWING_INDEX parser-state copy and assignment | Reset transient PARTIAL_VIEWING_INDEX pending-entry geometry marker across copy/assignment while preserving persisted entry vectors and handles; keep the no-fixture policy |
 | J341 | S365 | J340 | COMMITTED | EXPERIMENTAL | Harden SECTION parser-state copy and assignment | Reset transient SECTION body/type/geometry parser markers across copy/assignment while preserving persisted section settings and raw payloads; keep the no-fixture policy |
+| J342 | S366 | J341 | COMMITTED | EXPERIMENTAL | Harden BACKGROUND/NAVISWORKSMODELDEF parser-state copy and assignment | Reset transient BACKGROUND overloaded 90/290 and NAVISWORKSMODELDEF repeated-status markers across copy/assignment while preserving persisted background/model fields; keep the no-fixture policy |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -5124,6 +5132,7 @@ edit this block or commit the same slice concurrently.
 | J339.1 | J339 / S363 | WP3.11-WP3.12, WP8, WP10; SUNSTUDY/MOTIONPATH/CURVEPATH/POINTPATH parser-state copy isolation | J338 | COMMITTED | EXPERIMENTAL | assert copied and assigned SUNSTUDY models accept fresh date/hour walks and MOTIONPATH/CURVEPATH/POINTPATH models accept fresh positional/handle values without stale counters while preserving persisted payloads; keep all inputs in memory | focused `libdxfrw_hardening_tests`, plan, fixture-admission, import-scope, sync, route, aggregate, support, release-readiness, speed, and diff gates; no drawing bytes or derived fixtures |
 | J340.1 | J340 / S364 | WP3.11-WP3.12, WP8, WP10; PARTIAL_VIEWING_INDEX parser-state copy isolation | J339 | COMMITTED | EXPERIMENTAL | assert copied and assigned PARTIAL_VIEWING_INDEX models accept fresh complete entries without stale pending geometry fields while preserving persisted entry vectors and handles; keep all inputs in memory | focused `libdxfrw_hardening_tests`, plan, fixture-admission, import-scope, sync, route, aggregate, support, release-readiness, speed, and diff gates; no drawing bytes or derived fixtures |
 | J341.1 | J341 / S365 | WP3.11-WP3.12, WP8, WP10; SECTION parser-state copy isolation | J340 | COMMITTED | EXPERIMENTAL | assert copied and assigned SECTION settings models require a fresh AcDbSectionSettings marker before routing type/geometry codes while preserving persisted settings and raw payloads; keep all inputs in memory | focused `libdxfrw_hardening_tests`, plan, fixture-admission, import-scope, sync, route, aggregate, support, release-readiness, speed, and diff gates; no drawing bytes or derived fixtures |
+| J342.1 | J342 / S366 | WP3.11-WP3.12, WP8, WP10; BACKGROUND/NAVISWORKSMODELDEF parser-state copy isolation | J341 | COMMITTED | EXPERIMENTAL | assert copied and assigned BACKGROUND models reset overloaded gradient/IBL cursors and NAVISWORKSMODELDEF models reset repeated-status cursors while preserving persisted fields; keep all inputs in memory | focused `libdxfrw_hardening_tests`, plan, fixture-admission, import-scope, sync, route, aggregate, support, release-readiness, speed, and diff gates; no drawing bytes or derived fixtures |
 | J313.1 | J313 / S337 | WP3.11-WP3.12, WP8, WP10; TABLE parser-state copy isolation | J312 | COMMITTED | EXPERIMENTAL | assert copied and assigned TABLE models accept fresh subclass/grid dimensions after a partial source parse while preserving public table content; keep all inputs in memory | focused `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures |
 
 <!-- UPGRADE_PROGRESS_END -->

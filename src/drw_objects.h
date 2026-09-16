@@ -3525,6 +3525,59 @@ public:
   static constexpr std::uint16_t kDwgClassNumIbl = 545;
   static constexpr std::uint16_t kDwgClassNumImage = 546;
   DRW_Background() { tType = DRW::BACKGROUND; }
+  DRW_Background(const DRW_Background& o):
+      DRW_TableEntry(o), m_kind(o.m_kind), m_classVersion(o.m_classVersion),
+      m_solidColor(o.m_solidColor), m_colorTop(o.m_colorTop),
+      m_colorMiddle(o.m_colorMiddle), m_colorBottom(o.m_colorBottom),
+      m_horizon(o.m_horizon), m_height(o.m_height), m_rotation(o.m_rotation),
+      m_colorSkyZenith(o.m_colorSkyZenith),
+      m_colorSkyHorizon(o.m_colorSkyHorizon),
+      m_colorUndergroundHorizon(o.m_colorUndergroundHorizon),
+      m_colorUndergroundAzimuth(o.m_colorUndergroundAzimuth),
+      m_colorNear(o.m_colorNear), m_colorFar(o.m_colorFar),
+      m_fileName(o.m_fileName), m_fitToScreen(o.m_fitToScreen),
+      m_maintainAspect(o.m_maintainAspect), m_useTiling(o.m_useTiling),
+      m_offset(o.m_offset), m_scale(o.m_scale), m_iblName(o.m_iblName),
+      m_enabled(o.m_enabled), m_displayImage(o.m_displayImage),
+      m_secondaryBackgroundHandle(o.m_secondaryBackgroundHandle),
+      m_sunHandle(o.m_sunHandle), m_seen90(0), m_seen290(0) {
+    tType = DRW::BACKGROUND;
+  }
+  DRW_Background& operator=(const DRW_Background& o) {
+    if (this != &o) {
+      DRW_TableEntry::operator=(o);
+      m_kind = o.m_kind;
+      m_classVersion = o.m_classVersion;
+      m_solidColor = o.m_solidColor;
+      m_colorTop = o.m_colorTop;
+      m_colorMiddle = o.m_colorMiddle;
+      m_colorBottom = o.m_colorBottom;
+      m_horizon = o.m_horizon;
+      m_height = o.m_height;
+      m_rotation = o.m_rotation;
+      m_colorSkyZenith = o.m_colorSkyZenith;
+      m_colorSkyHorizon = o.m_colorSkyHorizon;
+      m_colorUndergroundHorizon = o.m_colorUndergroundHorizon;
+      m_colorUndergroundAzimuth = o.m_colorUndergroundAzimuth;
+      m_colorNear = o.m_colorNear;
+      m_colorFar = o.m_colorFar;
+      m_fileName = o.m_fileName;
+      m_fitToScreen = o.m_fitToScreen;
+      m_maintainAspect = o.m_maintainAspect;
+      m_useTiling = o.m_useTiling;
+      m_offset = o.m_offset;
+      m_scale = o.m_scale;
+      m_iblName = o.m_iblName;
+      m_enabled = o.m_enabled;
+      m_displayImage = o.m_displayImage;
+      m_secondaryBackgroundHandle = o.m_secondaryBackgroundHandle;
+      m_sunHandle = o.m_sunHandle;
+      m_seen90 = 0;
+      m_seen290 = 0;
+      tType = DRW::BACKGROUND;
+    }
+    return *this;
+  }
 
   Kind m_kind = Solid;
   std::int32_t m_classVersion = 0;
@@ -3613,6 +3666,27 @@ public:
   static constexpr std::size_t kMaxPathLength = 1u << 20;
 
   DRW_NavisworksModelDef() { reset(); }
+  DRW_NavisworksModelDef(const DRW_NavisworksModelDef& o):
+      DRW_TableEntry(o), m_flags(o.m_flags), m_path(o.m_path),
+      m_status(o.m_status), m_minExtent(o.m_minExtent),
+      m_maxExtent(o.m_maxExtent),
+      m_hostDrawingVisibility(o.m_hostDrawingVisibility), m_seen290(0) {
+    tType = DRW::NAVISWORKSMODELDEF;
+  }
+  DRW_NavisworksModelDef& operator=(const DRW_NavisworksModelDef& o) {
+    if (this != &o) {
+      DRW_TableEntry::operator=(o);
+      m_flags = o.m_flags;
+      m_path = o.m_path;
+      m_status = o.m_status;
+      m_minExtent = o.m_minExtent;
+      m_maxExtent = o.m_maxExtent;
+      m_hostDrawingVisibility = o.m_hostDrawingVisibility;
+      m_seen290 = 0;
+      tType = DRW::NAVISWORKSMODELDEF;
+    }
+    return *this;
+  }
   void reset();
 
   std::int32_t m_flags = 0;             /*!< code 70 / DWG BS */
