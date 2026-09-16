@@ -2384,6 +2384,10 @@ public:
         type = t;
         numedges = 0;
     }
+    DRW_HatchLoop(const DRW_HatchLoop& rhs);
+    DRW_HatchLoop& operator=(const DRW_HatchLoop& rhs);
+    DRW_HatchLoop(DRW_HatchLoop&&) noexcept = default;
+    DRW_HatchLoop& operator=(DRW_HatchLoop&&) noexcept = default;
 
     void update() {
         numedges = objlist.size();
@@ -2420,6 +2424,10 @@ public:
         deflines = doubleflag = 0;
         clearEntities();
     }
+    DRW_Hatch(const DRW_Hatch& rhs);
+    DRW_Hatch& operator=(const DRW_Hatch& rhs);
+    DRW_Hatch(DRW_Hatch&&) noexcept = default;
+    DRW_Hatch& operator=(DRW_Hatch&&) noexcept = default;
 
     /*!
      * One pattern definition line (group 53/43/44/45/46/79/49).
@@ -2566,6 +2574,28 @@ private:
         m_dxfSplineFitCountExpected = -1;
     }
 
+    void clearParserState() {
+        clearEntities();
+        loop.reset();
+        ispol = false;
+        m_boundaryHandleCount = 0;
+        m_dxfBoundaryHandleCountSeen = false;
+        m_dxfLoopCountExpected = -1;
+        m_dxfLoopCountSeen = false;
+        m_dxfLoopEdgeCountExpected = -1;
+        m_dxfLoopEdgeCountSeen = false;
+        m_dxfPolylineVertexCountExpected = -1;
+        m_dxfPolylineVertexCountSeen = false;
+        m_dxfPatternLineCountExpected = -1;
+        m_dxfPatternLineCountSeen = false;
+        m_dxfPatternDashCountExpected = -1;
+        m_dxfPatternDashCountSeen = false;
+        m_dxfGradientColorCountExpected = -1;
+        m_dxfGradientColorCountSeen = false;
+        m_dxfSeedPointsExpected = -1;
+        m_dxfSeedPointCountSeen = false;
+    }
+
     void addLine() {
         clearEntities();
         if (loop) {
@@ -2607,7 +2637,7 @@ private:
     std::shared_ptr<DRW_LWPolyline> pline;
     std::shared_ptr<DRW_Point> pt;
     std::shared_ptr<DRW_Vertex2D> plvert;
-    bool ispol;
+    bool ispol = false;
     /* True after the first code-97 in the current spline edge (= nfit set);
        the second code-97 while spline is active is the per-loop boundary
        handle count, not another nfit.  Reset by clearEntities(). */

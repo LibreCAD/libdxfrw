@@ -133,6 +133,105 @@ void testPublicOwnershipContracts(TestContext& t) {
                         == "insert-xdata",
              "DRW_Insert copy isolates attribute graph and XDATA");
 
+    DRW_Hatch sourceHatch;
+    sourceHatch.name = "ANSI31";
+    sourceHatch.solid = 0;
+    sourceHatch.angle = 0.25;
+    sourceHatch.scale = 2.0;
+    sourceHatch.isGradient = 1;
+    sourceHatch.gradName = "LINEAR";
+    sourceHatch.gradColors.push_back({0.25, 0x102030, 7, 1, "", ""});
+    sourceHatch.seedPoints.emplace_back(9.0, 10.0, 0.0);
+    sourceHatch.extData.push_back(
+        std::make_shared<DRW_Variant>(1000, "hatch-xdata"));
+    auto sourceHatchLoop = std::make_shared<DRW_HatchLoop>(0);
+    sourceHatchLoop->m_boundaryHandles.push_back(0x1234u);
+    auto hatchLine = std::make_shared<DRW_Line>();
+    hatchLine->secPoint.x = 1.0;
+    hatchLine->extData.push_back(
+        std::make_shared<DRW_Variant>(1000, "hatch-line-xdata"));
+    auto hatchArc = std::make_shared<DRW_Arc>();
+    hatchArc->radious = 2.0;
+    auto hatchEllipse = std::make_shared<DRW_Ellipse>();
+    hatchEllipse->ratio = 0.5;
+    auto hatchSpline = std::make_shared<DRW_Spline>();
+    hatchSpline->controllist.push_back(
+        std::make_shared<DRW_Coord>(3.0, 4.0, 5.0));
+    auto hatchPolyline = std::make_shared<DRW_LWPolyline>();
+    auto hatchVertex = hatchPolyline->addVertex();
+    hatchVertex->x = 6.0;
+    sourceHatchLoop->objlist.push_back(hatchLine);
+    sourceHatchLoop->objlist.push_back(hatchArc);
+    sourceHatchLoop->objlist.push_back(hatchEllipse);
+    sourceHatchLoop->objlist.push_back(hatchSpline);
+    sourceHatchLoop->objlist.push_back(hatchPolyline);
+    sourceHatchLoop->update();
+    sourceHatch.looplist.push_back(sourceHatchLoop);
+
+    static_assert(std::is_copy_constructible<DRW_HatchLoop>::value,
+                  "DRW_HatchLoop copy contract");
+    static_assert(std::is_copy_constructible<DRW_Hatch>::value,
+                  "DRW_Hatch copy contract");
+    DRW_Hatch copiedHatch(sourceHatch);
+    t.expect(copiedHatch.looplist.size() == 1u
+                 && copiedHatch.looplist.front() != sourceHatchLoop
+                 && copiedHatch.looplist.front()->objlist.size() == 5u
+                 && copiedHatch.looplist.front()->m_boundaryHandles.front()
+                        == 0x1234u
+                 && copiedHatch.name == "ANSI31"
+                 && copiedHatch.gradColors.size() == 1u
+                 && copiedHatch.seedPoints.front().x == 9.0
+                 && copiedHatch.extData.front() != sourceHatch.extData.front(),
+             "DRW_Hatch copy clones boundary graph and fill state");
+    auto copiedHatchLoop = copiedHatch.looplist.front();
+    auto hatchCopiedLine = std::dynamic_pointer_cast<DRW_Line>(
+        copiedHatchLoop->objlist.at(0));
+    auto hatchCopiedArc = std::dynamic_pointer_cast<DRW_Arc>(
+        copiedHatchLoop->objlist.at(1));
+    auto hatchCopiedEllipse = std::dynamic_pointer_cast<DRW_Ellipse>(
+        copiedHatchLoop->objlist.at(2));
+    auto hatchCopiedSpline = std::dynamic_pointer_cast<DRW_Spline>(
+        copiedHatchLoop->objlist.at(3));
+    auto hatchCopiedPolyline = std::dynamic_pointer_cast<DRW_LWPolyline>(
+        copiedHatchLoop->objlist.at(4));
+    hatchCopiedLine->secPoint.x = 11.0;
+    hatchCopiedLine->extData.front()->addString(1000, "copy-hatch-line-xdata");
+    hatchCopiedArc->radious = 12.0;
+    hatchCopiedEllipse->ratio = 0.25;
+    hatchCopiedSpline->controllist.front()->x = 13.0;
+    hatchCopiedPolyline->vertlist.front()->x = 14.0;
+    copiedHatch.extData.front()->addString(1000, "copy-hatch-xdata");
+    t.expect(hatchCopiedLine && hatchCopiedArc && hatchCopiedEllipse
+                 && hatchCopiedSpline && hatchCopiedPolyline
+                 && hatchLine->secPoint.x == 1.0
+                 && std::string(hatchLine->extData.front()->c_str())
+                        == "hatch-line-xdata"
+                 && hatchArc->radious == 2.0 && hatchEllipse->ratio == 0.5
+                 && hatchSpline->controllist.front()->x == 3.0
+                 && hatchVertex->x == 6.0
+                 && std::string(sourceHatch.extData.front()->c_str())
+                        == "hatch-xdata",
+             "DRW_Hatch copy isolates every boundary edge and XDATA");
+    DRW_Hatch assignedHatch;
+    assignedHatch = sourceHatch;
+    assignedHatch.looplist.front()->objlist.front()->eType = DRW::RAY;
+    t.expect(assignedHatch.looplist.front() != sourceHatchLoop
+                 && sourceHatchLoop->objlist.front()->eType == DRW::LINE
+                 && assignedHatch.gradName == "LINEAR",
+             "DRW_Hatch assignment isolates boundary graph");
+
+    DRW_HatchLoop unsupported(0);
+    unsupported.objlist.push_back(std::make_shared<DRW_Point>());
+    bool rejectedUnsupportedEdge = false;
+    try {
+        DRW_HatchLoop rejected(unsupported);
+        (void)rejected;
+    } catch (const std::invalid_argument&) {
+        rejectedUnsupportedEdge = true;
+    }
+    t.expect(rejectedUnsupportedEdge,
+             "DRW_HatchLoop rejects unsupported polymorphic edge copies");
+
     DRW_Layer sourceLayer;
     t.expect(sourceLayer.addExtData(
                   std::make_unique<DRW_Variant>(1000, "layer")),

@@ -1948,6 +1948,12 @@ edit this block or commit the same slice concurrently.
   control/fit points, and INSERT attributes while resetting parser cursors;
   focused hardening vectors are green and all inputs remain in memory.
 
+- Current checkpoint (2026-09-16): S330/J306 HATCH boundary graph ownership
+  is committed.  Explicit copies now clone parser-emitted LINE, ARC, ELLIPSE,
+  SPLINE, and LWPOLYLINE boundary edges, preserve HATCH fill/seed state, and
+  reject unsupported polymorphic edges; focused hardening vectors and all
+  metadata/policy gates are green with no drawing fixtures.
+
 - Current checkpoint (2026-09-16): S328/J304 base-entity ownership hardening
   is committed.  `DRW_Entity` now has explicit copy/assignment paths that copy
   persisted scalar/parser metadata, reset the transient cursor, and deep-copy
@@ -3640,19 +3646,19 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 329 (`COMMITTED`); no slice is active.
+- Resolved slices: 330 (`COMMITTED`); no slice is active.
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 329 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 330 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 331 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 332 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 429 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 430 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  6 DEFERRED_EXTERNAL / 309 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S329 are committed; no local implementation slice is active.
-  Remaining work is evidence-gated runtime/oracle and release closure. Keep the fast inner
-  loop and do not promote support claims from self-read alone.
+  6 DEFERRED_EXTERNAL / 310 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S330 are committed; no local implementation slice is
+  active. Keep the fast inner loop and do not promote support claims from
+  self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
   S174/J150, S175/J151, S176/J152, S177/J153, S178/J154, and S179/J155 added
   malformed, field-context, raw-entity propagation, duplicate-entity,
@@ -4034,6 +4040,7 @@ edit this block or commit the same slice concurrently.
 | S327 | J303: refresh generated source-route inventory after S326 | S326 | COMMITTED | deterministic route regeneration; source-surface closure; aggregate/support metadata; fixture admission; import scope; sync; plan; diff | committed source-only route index and standalone-shared shard after the ownership helper changed source spans; metadata-only update and no drawing bytes | continue with exhaustive behavioral API hardening, target-bound differential debt, independent-oracle, native-platform, and release closure |
 | S328 | J304: base entity copy/assignment ownership hardening | S327 | COMMITTED | base entity copy contract; XDATA mutation isolation; focused hardening target; fixture admission; import scope; sync; plan; diff | committed `DRW_Entity` copy/assignment paths preserve entity state, reset parser cursor, and deep-copy mutable XDATA for implicit-derived models; focused hardening vectors pass and no drawing bytes were added | continue with compound-owned graph hardening, target-bound differential debt, independent-oracle, native-platform, and release closure |
 | S329 | J305: compound entity graph ownership hardening | S328 | COMMITTED | POLYLINE/SPLINE/INSERT copy contracts; pointer-graph mutation isolation; focused hardening target; fixture admission; import scope; sync; plan; diff | committed explicit copies clone legacy POLYLINE vertices, SPLINE control/fit points, and INSERT attributes; focused hardening vectors pass and no drawing bytes were added | continue with remaining compound graph audit, target-bound differential debt, independent-oracle, native-platform, and release closure |
+| S330 | J306: HATCH boundary graph ownership hardening | S329 | COMMITTED | HATCH/HatchLoop copy and assignment contracts; supported edge cloning; unsupported-edge rejection; focused hardening target; fixture admission; import scope; sync; plan; diff | committed copies clone parser-emitted LINE/ARC/ELLIPSE/SPLINE/LWPOLYLINE boundary edges, preserve HATCH scalar/gradient/seed state, and reject unsupported polymorphic edges; focused hardening vectors and metadata/policy gates pass with no drawing fixtures | continue with remaining compound graph audit, target-bound differential debt, independent-oracle, native-platform, and release closure |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -4367,6 +4374,7 @@ edit this block or commit the same slice concurrently.
 | J303 | S327 | J302 | COMMITTED | EXPERIMENTAL | Refresh generated source-route inventory after S326 | Regenerate the deterministic source-only route index and standalone-shared shard for the current source spans, retain the route/aggregate/support metadata closure, and change no drawing bytes |
 | J304 | S328 | J303 | COMMITTED | EXPERIMENTAL | Harden base entity copy/assignment ownership | Restore an explicit `DRW_Entity` copy/assignment contract that copies persisted metadata, resets the transient parser cursor, and clones entity-owned XDATA variants so compiler-generated derived copies cannot alias mutable parser state; retain focused in-memory evidence and no drawing fixtures |
 | J305 | S329 | J304 | COMMITTED | EXPERIMENTAL | Harden compound entity graph ownership | Add explicit copy/assignment/move contracts for public entity containers whose shared-pointer graphs are mutable: POLYLINE vertices, SPLINE control/fit points, and INSERT attributes; preserve parser-state reset and no-fixture evidence |
+| J306 | S330 | J305 | COMMITTED | EXPERIMENTAL | Harden HATCH boundary graph ownership | Add explicit copy/assignment/move contracts for `DRW_HatchLoop` and `DRW_Hatch`; deep-clone parser-emitted LINE, ARC, ELLIPSE, SPLINE, and LWPOLYLINE edges, preserve scalar/gradient/seed state, and reject unsupported polymorphic edges instead of aliasing them; retain in-memory evidence only |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4807,6 +4815,7 @@ edit this block or commit the same slice concurrently.
 | J303.1 | J303 / S327 | WP8, WP10; generated source-route inventory refresh | J302 | COMMITTED | EXPERIMENTAL | regenerate `metadata/parity-source-routes-v1.json` and its six shards from the current worktree, run route, aggregate, support, fixture, scope, sync, plan, release-readiness, speed, and diff gates, and retain no drawing payloads | route inventory matches deterministic extraction; aggregate/support/readiness gates pass and only source-derived metadata changes were staged |
 | J304.1 | J304 / S328 | WP3.11-WP3.12, WP8, WP10; base entity ownership hardening | J303 | COMMITTED | EXPERIMENTAL | assert implicit-derived `DRW_Line` copy/assignment XDATA isolation, persisted metadata preservation, and parser-cursor reset through the new `DRW_Entity` special members; keep all inputs in memory | `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures were staged and the base entity helper is covered by focused mutation-isolation vectors |
 | J305.1 | J305 / S329 | WP3.11-WP3.12, WP8, WP10; compound entity graph ownership | J304 | COMMITTED | EXPERIMENTAL | assert POLYLINE vertex, SPLINE control/fit point, and INSERT attribute copy/assignment isolation, including inherited XDATA; keep all generated models in memory | focused `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures were staged and explicit graph-copy paths are covered |
+| J306.1 | J306 / S330 | WP3.11-WP3.12, WP8, WP10; HATCH boundary graph ownership | J305 | COMMITTED | EXPERIMENTAL | assert HATCH/HatchLoop copy and assignment isolation for scalar/gradient/seed data and parser-emitted boundary edge types; verify unsupported edge copies do not alias mutable state; keep all generated models in memory | focused `libdxfrw_hardening_tests` passes; route/aggregate/support/policy gates pass; no drawing bytes or derived fixtures were staged |
 
 <!-- UPGRADE_PROGRESS_END -->
 

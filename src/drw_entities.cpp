@@ -21,6 +21,7 @@
 #include <cmath>
 #include <cstring>
 #include <limits>
+#include <stdexcept>
 #include <vector>
 #include "drw_entities.h"
 #include "intern/dxfreader.h"
@@ -2967,6 +2968,72 @@ bool parseTableContent(DRW::Version version, dwgBuffer *buf, dwgBuffer *strBuf,
     if (!good)
         DRW_DBG("TABLECONTENT stream ended unexpectedly\n");
     return good;
+}
+
+std::shared_ptr<DRW_Entity> cloneHatchBoundaryEntity(
+    const std::shared_ptr<DRW_Entity>& entity) {
+    if (!entity)
+        return nullptr;
+
+    // HATCH and MPOLYGON parsers emit only these five concrete boundary edge
+    // types.  Keep the copy operation closed over that wire-format set so a
+    // caller-injected polymorphic edge can never be silently aliased.
+    switch (entity->eType) {
+    case DRW::LINE: {
+        const auto value = std::dynamic_pointer_cast<DRW_Line>(entity);
+        if (value)
+            return std::make_shared<DRW_Line>(*value);
+        break;
+    }
+    case DRW::ARC: {
+        const auto value = std::dynamic_pointer_cast<DRW_Arc>(entity);
+        if (value)
+            return std::make_shared<DRW_Arc>(*value);
+        break;
+    }
+    case DRW::ELLIPSE: {
+        const auto value = std::dynamic_pointer_cast<DRW_Ellipse>(entity);
+        if (value)
+            return std::make_shared<DRW_Ellipse>(*value);
+        break;
+    }
+    case DRW::SPLINE: {
+        const auto value = std::dynamic_pointer_cast<DRW_Spline>(entity);
+        if (value)
+            return std::make_shared<DRW_Spline>(*value);
+        break;
+    }
+    case DRW::LWPOLYLINE: {
+        const auto value = std::dynamic_pointer_cast<DRW_LWPolyline>(entity);
+        if (value)
+            return std::make_shared<DRW_LWPolyline>(*value);
+        break;
+    }
+    default:
+        break;
+    }
+
+    throw std::invalid_argument(
+        "DRW_HatchLoop cannot copy an unsupported boundary entity type");
+}
+
+std::vector<std::shared_ptr<DRW_Entity>> cloneHatchBoundaryEntities(
+    const std::vector<std::shared_ptr<DRW_Entity>>& source) {
+    std::vector<std::shared_ptr<DRW_Entity>> copies;
+    copies.reserve(source.size());
+    for (const auto& entity : source)
+        copies.push_back(cloneHatchBoundaryEntity(entity));
+    return copies;
+}
+
+std::vector<std::shared_ptr<DRW_HatchLoop>> cloneHatchLoops(
+    const std::vector<std::shared_ptr<DRW_HatchLoop>>& source) {
+    std::vector<std::shared_ptr<DRW_HatchLoop>> copies;
+    copies.reserve(source.size());
+    for (const auto& loop : source)
+        copies.push_back(loop ? std::make_shared<DRW_HatchLoop>(*loop)
+                              : nullptr);
+    return copies;
 }
 
 } // namespace
@@ -11570,6 +11637,70 @@ DRW_Insert& DRW_Insert::operator=(const DRW_Insert& o) {
 }
 DRW_Insert::DRW_Insert(DRW_Insert&&) noexcept = default;
 DRW_Insert& DRW_Insert::operator=(DRW_Insert&&) noexcept = default;
+
+DRW_HatchLoop::DRW_HatchLoop(const DRW_HatchLoop& rhs)
+    : type(rhs.type), numedges(rhs.numedges),
+      objlist(cloneHatchBoundaryEntities(rhs.objlist)),
+      m_boundaryHandles(rhs.m_boundaryHandles) {}
+
+DRW_HatchLoop& DRW_HatchLoop::operator=(const DRW_HatchLoop& rhs) {
+    if (this != &rhs) {
+        auto copies = cloneHatchBoundaryEntities(rhs.objlist);
+        type = rhs.type;
+        numedges = rhs.numedges;
+        m_boundaryHandles = rhs.m_boundaryHandles;
+        objlist.swap(copies);
+    }
+    return *this;
+}
+
+DRW_Hatch::DRW_Hatch(const DRW_Hatch& rhs)
+    : DRW_Point(rhs), name(rhs.name), solid(rhs.solid),
+      associative(rhs.associative), hstyle(rhs.hstyle),
+      hpattern(rhs.hpattern), doubleflag(rhs.doubleflag),
+      loopsnum(rhs.loopsnum), angle(rhs.angle), scale(rhs.scale),
+      deflines(rhs.deflines), pixelSize(rhs.pixelSize),
+      patternLines(rhs.patternLines), looplist(cloneHatchLoops(rhs.looplist)),
+      isGradient(rhs.isGradient), gradReserved(rhs.gradReserved),
+      gradAngle(rhs.gradAngle), gradShift(rhs.gradShift),
+      singleColor(rhs.singleColor), gradTint(rhs.gradTint),
+      gradName(rhs.gradName), gradColors(rhs.gradColors),
+      seedPoints(rhs.seedPoints) {
+    eType = rhs.eType;
+    clearParserState();
+}
+
+DRW_Hatch& DRW_Hatch::operator=(const DRW_Hatch& rhs) {
+    if (this != &rhs) {
+        auto copies = cloneHatchLoops(rhs.looplist);
+        DRW_Point::operator=(rhs);
+        eType = rhs.eType;
+        name = rhs.name;
+        solid = rhs.solid;
+        associative = rhs.associative;
+        hstyle = rhs.hstyle;
+        hpattern = rhs.hpattern;
+        doubleflag = rhs.doubleflag;
+        loopsnum = rhs.loopsnum;
+        angle = rhs.angle;
+        scale = rhs.scale;
+        deflines = rhs.deflines;
+        pixelSize = rhs.pixelSize;
+        patternLines = rhs.patternLines;
+        looplist.swap(copies);
+        isGradient = rhs.isGradient;
+        gradReserved = rhs.gradReserved;
+        gradAngle = rhs.gradAngle;
+        gradShift = rhs.gradShift;
+        singleColor = rhs.singleColor;
+        gradTint = rhs.gradTint;
+        gradName = rhs.gradName;
+        gradColors = rhs.gradColors;
+        seedPoints = rhs.seedPoints;
+        clearParserState();
+    }
+    return *this;
+}
 
 DRW_GeoPositionMarker::~DRW_GeoPositionMarker() = default;
 DRW_GeoPositionMarker::DRW_GeoPositionMarker(

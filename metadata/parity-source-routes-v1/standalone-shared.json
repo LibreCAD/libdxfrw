@@ -8748,13 +8748,13 @@
       ],
       "evidence": [
         {
-          "line": 4956,
+          "line": 5023,
           "path": "src/drw_entities.cpp",
           "spanSha256": "434db2143637de25e543bf87ac9599620fbbf3fdfca4d45f8fc021edcf11f068",
           "symbol": "DRW_3DLine::parseDwg"
         },
         {
-          "line": 5000,
+          "line": 5067,
           "path": "src/drw_entities.cpp",
           "spanSha256": "612d52737c0a74b2141ec1f61371573d71e789a760674f97f8a94d4c80015f6b",
           "symbol": "DRW_3DLine::encodeDwg"
@@ -8796,19 +8796,19 @@
       ],
       "evidence": [
         {
-          "line": 5408,
+          "line": 5475,
           "path": "src/drw_entities.cpp",
           "spanSha256": "81579c614807b75527cfb2abdecca8d7bbe038b74e795b7d2fc9715f58a80d96",
           "symbol": "DRW_3Dface::encodeDwg"
         },
         {
-          "line": 6217,
+          "line": 6284,
           "path": "src/drw_entities.cpp",
           "spanSha256": "19a49dcea0479917df4346463badc291ce2195146eb32e22c04d8fcf1774cffa",
           "symbol": "DRW_3Dface::parseCode"
         },
         {
-          "line": 6229,
+          "line": 6296,
           "path": "src/drw_entities.cpp",
           "spanSha256": "690468d159ce2dfab1c9f57c7f439f4b8013258859ccdffdf47bd4c8c637f04d",
           "symbol": "DRW_3Dface::parseDwg"
@@ -9214,19 +9214,19 @@
       ],
       "evidence": [
         {
-          "line": 5610,
+          "line": 5677,
           "path": "src/drw_entities.cpp",
           "spanSha256": "5cee57d3a73e5a3f8545d3ac526b6d3cba27a34a7895f8225eec455303a32e80",
           "symbol": "DRW_Arc::encodeDwg"
         },
         {
-          "line": 5860,
+          "line": 5927,
           "path": "src/drw_entities.cpp",
           "spanSha256": "3405a499469efb303f4aa3e7fbec998800a65217bcbf04f75548e61aa9895032",
           "symbol": "DRW_Arc::parseCode"
         },
         {
-          "line": 5875,
+          "line": 5942,
           "path": "src/drw_entities.cpp",
           "spanSha256": "9af523ed358e2d083fb5540e2f84863f8026b1d90fa4e4e511a6b961fc8ca02a",
           "symbol": "DRW_Arc::parseDwg"
@@ -9273,19 +9273,19 @@
       ],
       "evidence": [
         {
-          "line": 11209,
+          "line": 11276,
           "path": "src/drw_entities.cpp",
           "spanSha256": "c2a1c2e7198046594cb20b7b0e5e2686ea57fd9135475338013bde97a9ab1b13",
           "symbol": "DRW_ArcAlignedText::encodeDwg"
         },
         {
-          "line": 11256,
+          "line": 11323,
           "path": "src/drw_entities.cpp",
           "spanSha256": "61711f786d475529ce6ba1634172881d2cb426495a5944eb1471e2523171e2d1",
           "symbol": "DRW_ArcAlignedText::parseCode"
         },
         {
-          "line": 11326,
+          "line": 11393,
           "path": "src/drw_entities.cpp",
           "spanSha256": "bc75fb8ebdf02dbd28e73f70b7ec64618e3509c20f61e6acf2fc1fd4d6fb9d0c",
           "symbol": "DRW_ArcAlignedText::parseDwg"
@@ -9427,19 +9427,19 @@
       ],
       "evidence": [
         {
-          "line": 12451,
+          "line": 12582,
           "path": "src/drw_entities.cpp",
           "spanSha256": "09c4800d7c47a1956ad871d6f4f1f442ebba437d28e210c20459feae6ba7c526",
           "symbol": "DRW_Attdef::parseCode"
         },
         {
-          "line": 12462,
+          "line": 12593,
           "path": "src/drw_entities.cpp",
           "spanSha256": "f637bf1d49124d6f4d40b2059e1413c0737aea86178bcf52ccf76a13582bb292",
           "symbol": "DRW_Attdef::parseDwg"
         },
         {
-          "line": 12612,
+          "line": 12743,
           "path": "src/drw_entities.cpp",
           "spanSha256": "9ef88fe2db8409b202566997437f93c6f45c895af045dd4eec40b32d55add93a",
           "symbol": "DRW_Attdef::encodeDwg"
@@ -9486,19 +9486,19 @@
       ],
       "evidence": [
         {
-          "line": 12152,
+          "line": 12283,
           "path": "src/drw_entities.cpp",
           "spanSha256": "b50d293e1cf499d787f84325ad937c9957831e3d80b42dd9501d6aa4270deb8b",
           "symbol": "DRW_Attrib::parseCode"
         },
         {
-          "line": 12236,
+          "line": 12367,
           "path": "src/drw_entities.cpp",
           "spanSha256": "6b6adb3c2a5405624bfa52dc93a8f1980fa4aca2b324c75fcf6b318953e51992",
           "symbol": "DRW_Attrib::parseDwg"
         },
         {
-          "line": 12383,
+          "line": 12514,
           "path": "src/drw_entities.cpp",
           "spanSha256": "6769751dcdf34372c9da440dcaebf6f372da52517982a4bb92621dfbe7ebf511",
           "symbol": "DRW_Attrib::encodeDwg"
@@ -9604,19 +9604,19 @@
       ],
       "evidence": [
         {
-          "line": 5535,
+          "line": 5602,
           "path": "src/drw_entities.cpp",
           "spanSha256": "76e0cf25a1d0087bf8e0c1f2b88be6cb1572fe64137b5c2ab4e1905797ca17d2",
           "symbol": "DRW_Block::encodeDwg"
         },
         {
-          "line": 8681,
+          "line": 8748,
           "path": "src/drw_entities.cpp",
           "spanSha256": "66ffc92f0169b789ec744fa694c2d3f7e13953b9440086735a04d6cb626a472b",
           "symbol": "DRW_Block::parseCode"
         },
         {
-          "line": 8710,
+          "line": 8777,
           "path": "src/drw_entities.cpp",
           "spanSha256": "5aea9441813a9883b20c7d51bbeacd12ef7b027b48ee7ee1980893e77278311c",
           "symbol": "DRW_Block::parseDwg"
@@ -9854,19 +9854,19 @@
       ],
       "evidence": [
         {
-          "line": 7823,
+          "line": 7890,
           "path": "src/drw_entities.cpp",
           "spanSha256": "3b5eb7d1a237988ada30a7c547b9be0a047384c2988ec19004000ff4d31adad7",
           "symbol": "DRW_Camera::parseCode"
         },
         {
-          "line": 7837,
+          "line": 7904,
           "path": "src/drw_entities.cpp",
           "spanSha256": "fe1078c97e7f5732e42f502d4852d4d4cbceecc11595d434249466c3af756f2e",
           "symbol": "DRW_Camera::parseDwg"
         },
         {
-          "line": 7880,
+          "line": 7947,
           "path": "src/drw_entities.cpp",
           "spanSha256": "b8db4bec953d1346e2835754452e421349a2c38b75c91ee6af5a28564dd586a8",
           "symbol": "DRW_Camera::encodeDwg"
@@ -9949,19 +9949,19 @@
       ],
       "evidence": [
         {
-          "line": 5023,
+          "line": 5090,
           "path": "src/drw_entities.cpp",
           "spanSha256": "93ac147878ddbed9d437d991941ae02db9d1ef07dd9c21e1493b1d6013871322",
           "symbol": "DRW_Circle::encodeDwg"
         },
         {
-          "line": 5767,
+          "line": 5834,
           "path": "src/drw_entities.cpp",
           "spanSha256": "8c4873746fe0c15de33c06279c3547055cf5fa4bb397307c2f1eb2d5cd510d48",
           "symbol": "DRW_Circle::parseCode"
         },
         {
-          "line": 5784,
+          "line": 5851,
           "path": "src/drw_entities.cpp",
           "spanSha256": "3935c24e668307b5ca977c40a8adf04a89a4660519ffe62bcc3849c0e7f826d2",
           "symbol": "DRW_Circle::parseDwg"
@@ -10959,19 +10959,19 @@
       ],
       "evidence": [
         {
-          "line": 19224,
+          "line": 19355,
           "path": "src/drw_entities.cpp",
           "spanSha256": "809f596ef05f807ce84755478b289631f553b5d1d981eec1434f7316bd5900d6",
           "symbol": "DRW_DimAligned::parseDwg"
         },
         {
-          "line": 19804,
+          "line": 19935,
           "path": "src/drw_entities.cpp",
           "spanSha256": "3f8393717ee13f55109cf16f5e28b88c9a820ee829631f3e6b6b5ca0a77aba7e",
           "symbol": "DRW_DimAligned::encodeDwg"
         },
         {
-          "line": 3419,
+          "line": 3449,
           "path": "src/drw_entities.h",
           "spanSha256": "0380f9b72c9eda4833d4a4f2a933e567132c3a9e700eb81c625685010ea6e533",
           "symbol": "DRW_DimAligned"
@@ -11007,19 +11007,19 @@
       ],
       "evidence": [
         {
-          "line": 19529,
+          "line": 19660,
           "path": "src/drw_entities.cpp",
           "spanSha256": "72bac089afceb5dcd3229093e72c023c9706c6cca670668ac8e9dc4f47ead4d9",
           "symbol": "DRW_DimAngular::parseDwg"
         },
         {
-          "line": 19891,
+          "line": 20022,
           "path": "src/drw_entities.cpp",
           "spanSha256": "ad1a8da373bec17fdcc47e3131de9e78418d4008cc9b1df27e4c050596c5de57",
           "symbol": "DRW_DimAngular::encodeDwg"
         },
         {
-          "line": 3561,
+          "line": 3591,
           "path": "src/drw_entities.h",
           "spanSha256": "123b8a2c7307d17274f478780cc008741727ba26c58c04fc7bf81c95f6bdd751",
           "symbol": "DRW_DimAngular"
@@ -11055,19 +11055,19 @@
       ],
       "evidence": [
         {
-          "line": 19602,
+          "line": 19733,
           "path": "src/drw_entities.cpp",
           "spanSha256": "3a7377820f8c7c118f969436b118f36e4460abda1a3dea4e43d25f7f845e75d0",
           "symbol": "DRW_DimAngular3p::parseDwg"
         },
         {
-          "line": 19911,
+          "line": 20042,
           "path": "src/drw_entities.cpp",
           "spanSha256": "44ba030a7c5628300022ce8750586a615440d8e68649f4ec48950716d6c0e3b4",
           "symbol": "DRW_DimAngular3p::encodeDwg"
         },
         {
-          "line": 3593,
+          "line": 3623,
           "path": "src/drw_entities.h",
           "spanSha256": "17dca7eccddc2239f39fa30f4cb6ab079835fab6acb396c2cdc469373480bf81",
           "symbol": "DRW_DimAngular3p"
@@ -11103,25 +11103,25 @@
       ],
       "evidence": [
         {
-          "line": 19928,
+          "line": 20059,
           "path": "src/drw_entities.cpp",
           "spanSha256": "ec5ad0a80c4f630a4f004ad356e599ba3b90345adcb85b217ba61346c5dd6577",
           "symbol": "DRW_DimArc::parseCode"
         },
         {
-          "line": 19957,
+          "line": 20088,
           "path": "src/drw_entities.cpp",
           "spanSha256": "9c3cf1d347085f37c244b08f275fd94cf2b49311ac5b1e8dccaf53796fec1373",
           "symbol": "DRW_DimArc::parseDwg"
         },
         {
-          "line": 20040,
+          "line": 20171,
           "path": "src/drw_entities.cpp",
           "spanSha256": "d945642f25929516ae8190391783b0075fcf32529f9dc069cace2a18b9c9385c",
           "symbol": "DRW_DimArc::encodeDwg"
         },
         {
-          "line": 3618,
+          "line": 3648,
           "path": "src/drw_entities.h",
           "spanSha256": "50495e845d0416a934c16015f3535d06197b17181e06329bef8ed25a96d32c0b",
           "symbol": "DRW_DimArc"
@@ -11162,19 +11162,19 @@
       ],
       "evidence": [
         {
-          "line": 19467,
+          "line": 19598,
           "path": "src/drw_entities.cpp",
           "spanSha256": "0eceb19262aba35e3727090399adcb60fcfefa9edc467e9c5daa44d65eac2380",
           "symbol": "DRW_DimDiametric::parseDwg"
         },
         {
-          "line": 19875,
+          "line": 20006,
           "path": "src/drw_entities.cpp",
           "spanSha256": "5bcc078e9f5a72dfbfbfe37d06e3731cc1522339214ba82f5f0018da0fc82044",
           "symbol": "DRW_DimDiametric::encodeDwg"
         },
         {
-          "line": 3534,
+          "line": 3564,
           "path": "src/drw_entities.h",
           "spanSha256": "f3c7df57e70cd6d55c781e86ed93db0e13eff87f069de212c12a90b94da512f5",
           "symbol": "DRW_DimDiametric"
@@ -11210,25 +11210,25 @@
       ],
       "evidence": [
         {
-          "line": 19361,
+          "line": 19492,
           "path": "src/drw_entities.cpp",
           "spanSha256": "3aa0466d460435a3bada484a34ed20a41c0bdd73f61e2f34ce293a9969bcb15d",
           "symbol": "DRW_DimLargeRadial::parseCode"
         },
         {
-          "line": 19401,
+          "line": 19532,
           "path": "src/drw_entities.cpp",
           "spanSha256": "7e8659a773057219c2945ade3f1e80cdc30b1c581139f8a9c81537b97f08020a",
           "symbol": "DRW_DimLargeRadial::parseDwg"
         },
         {
-          "line": 19855,
+          "line": 19986,
           "path": "src/drw_entities.cpp",
           "spanSha256": "73b6be857f8dd16de310f6e0df81ebae2ef43230b18ee22396aba6c67ceefb90",
           "symbol": "DRW_DimLargeRadial::encodeDwg"
         },
         {
-          "line": 3505,
+          "line": 3535,
           "path": "src/drw_entities.h",
           "spanSha256": "617af7f5a5cbc40a60736ebe2e46069f44cb8c36e13442bba642007541bcaedf",
           "symbol": "DRW_DimLargeRadial"
@@ -11268,13 +11268,13 @@
       ],
       "evidence": [
         {
-          "line": 19821,
+          "line": 19952,
           "path": "src/drw_entities.cpp",
           "spanSha256": "ad0f2757c434d30ec1c4ec826249694a35f18403d7ed54895116e91616e77e50",
           "symbol": "DRW_DimLinear::encodeDwg"
         },
         {
-          "line": 3449,
+          "line": 3479,
           "path": "src/drw_entities.h",
           "spanSha256": "958d6482696012127fc4f9a86c3beec9e7e2dec463bcb00b8f6447517384e796",
           "symbol": "DRW_DimLinear"
@@ -11305,19 +11305,19 @@
       ],
       "evidence": [
         {
-          "line": 19668,
+          "line": 19799,
           "path": "src/drw_entities.cpp",
           "spanSha256": "d4a4df35447303faefc224f78b6fc2ae6a6395089e472102db4a3814782991a8",
           "symbol": "DRW_DimOrdinate::parseDwg"
         },
         {
-          "line": 20067,
+          "line": 20198,
           "path": "src/drw_entities.cpp",
           "spanSha256": "a504b06c5f27a71929048ee3aa596a52497d4e9d756c9023b7bb41985a0341e3",
           "symbol": "DRW_DimOrdinate::encodeDwg"
         },
         {
-          "line": 3656,
+          "line": 3686,
           "path": "src/drw_entities.h",
           "spanSha256": "8529567b4e33f33467257029347f33ddc64976cfaaa331e02fbdab000f98dd02",
           "symbol": "DRW_DimOrdinate"
@@ -11353,19 +11353,19 @@
       ],
       "evidence": [
         {
-          "line": 19294,
+          "line": 19425,
           "path": "src/drw_entities.cpp",
           "spanSha256": "211d32eab2ddc37b59a72d602bdef4d3f4f1118fe83e69aa9e63e21c94e54929",
           "symbol": "DRW_DimRadial::parseDwg"
         },
         {
-          "line": 19839,
+          "line": 19970,
           "path": "src/drw_entities.cpp",
           "spanSha256": "0d4c5b9280a3585b42af4b8b19a90d40542f6a176285971621ef60876825b5af",
           "symbol": "DRW_DimRadial::encodeDwg"
         },
         {
-          "line": 3472,
+          "line": 3502,
           "path": "src/drw_entities.h",
           "spanSha256": "37eab634b07b51a35dcc0ce396708ecdf8653c7c6d7e07e672cb8ce8a55aec66",
           "symbol": "DRW_DimRadial"
@@ -11401,37 +11401,37 @@
       ],
       "evidence": [
         {
-          "line": 18841,
+          "line": 18972,
           "path": "src/drw_entities.cpp",
           "spanSha256": "8b2fdf38cc9dd9297e47a9be1980c3ba1f844fb5330765b5bd3c16a58e3ec330",
           "symbol": "DRW_Dimension::parseCode"
         },
         {
-          "line": 18994,
+          "line": 19125,
           "path": "src/drw_entities.cpp",
           "spanSha256": "8e1a10673566de7a88a4de29bcdf930a780d35e50b915e8759f8b82587206f5a",
           "symbol": "DRW_Dimension::parseDwg"
         },
         {
-          "line": 19046,
+          "line": 19177,
           "path": "src/drw_entities.cpp",
           "spanSha256": "b36edd1535c3488654342ab1fa6bb0ee885f0c095313ff31d922791be288a376",
           "symbol": "DRW_Dimension::parseDwg"
         },
         {
-          "line": 19205,
+          "line": 19336,
           "path": "src/drw_entities.cpp",
           "spanSha256": "6e75279b1af907f314c76cd55b175735ba852779e152ac4cb8fe6eab432a2e7a",
           "symbol": "DRW_Dimension::parseDwgDimensionHandles"
         },
         {
-          "line": 19741,
+          "line": 19872,
           "path": "src/drw_entities.cpp",
           "spanSha256": "7b297d61022f09b5a3ae3f11ef8089aa49a0bc2e80ccb50de0297ce5b8b48222",
           "symbol": "DRW_Dimension::encodeDwgDimBase"
         },
         {
-          "line": 3249,
+          "line": 3279,
           "path": "src/drw_entities.h",
           "spanSha256": "8024aee5bd44d316cfc43a9fd14776ea0d4375cc9b5af740a7aa098cb21a9ce4",
           "symbol": "DRW_Dimension"
@@ -12260,19 +12260,19 @@
       ],
       "evidence": [
         {
-          "line": 5594,
+          "line": 5661,
           "path": "src/drw_entities.cpp",
           "spanSha256": "cbcfeb29c87a93885099c03e0af5ed0687d3f9b51ab6f88ff80d2bee292395a0",
           "symbol": "DRW_Ellipse::encodeDwg"
         },
         {
-          "line": 5945,
+          "line": 6012,
           "path": "src/drw_entities.cpp",
           "spanSha256": "a19e1ebc1387356833b56a506c5dd07ff17205d1198d007c2be65f1499037859",
           "symbol": "DRW_Ellipse::parseCode"
         },
         {
-          "line": 6002,
+          "line": 6069,
           "path": "src/drw_entities.cpp",
           "spanSha256": "a38cf8c4dc357750d163f21217f29382719341112f1548df097609a21f29733b",
           "symbol": "DRW_Ellipse::parseDwg"
@@ -12319,49 +12319,49 @@
       ],
       "evidence": [
         {
-          "line": 3113,
+          "line": 3180,
           "path": "src/drw_entities.cpp",
           "spanSha256": "b4b94e035d891000e5c7f4977713cb6a781e14050490ce6dd2195b1f2ceaebe1",
           "symbol": "DRW_Entity::parseCode"
         },
         {
-          "line": 3287,
+          "line": 3354,
           "path": "src/drw_entities.cpp",
           "spanSha256": "c916d6d6b7cfb4a0dfcf72bcde7ecbe3cc55e30ad162c942a00da07b6b8b16f6",
           "symbol": "DRW_Entity::parseDxfGroups"
         },
         {
-          "line": 3379,
+          "line": 3446,
           "path": "src/drw_entities.cpp",
           "spanSha256": "d8f1253ea9b931138479dd9174a72f4f7d1ed781bcd00db769fd52d439290f50",
           "symbol": "DRW_Entity::parseDwg"
         },
         {
-          "line": 3735,
+          "line": 3802,
           "path": "src/drw_entities.cpp",
           "spanSha256": "d9be640ea7add98346eca4839709127f901e71fadd6afc71b7b4f2854b434594",
           "symbol": "DRW_Entity::parseDwgEntHandle"
         },
         {
-          "line": 4010,
+          "line": 4077,
           "path": "src/drw_entities.cpp",
           "spanSha256": "298ab5ec7cb2794c9e0ee57ac0a1b39bcf300807043516114a2a02a58b0ff6c7",
           "symbol": "DRW_Entity::parseDwgCommon"
         },
         {
-          "line": 4422,
+          "line": 4489,
           "path": "src/drw_entities.cpp",
           "spanSha256": "b4384eb8720bbd524f4b308906a3ebd9f06a04b6ce7ed153c682e23df8b6d6bf",
           "symbol": "DRW_Entity::encodeDwgEed"
         },
         {
-          "line": 4519,
+          "line": 4586,
           "path": "src/drw_entities.cpp",
           "spanSha256": "1fe7a38257f9537008842338c13e75ab34d4a49a7c97068981531a7c195540b6",
           "symbol": "DRW_Entity::encodeDwgCommon"
         },
         {
-          "line": 4709,
+          "line": 4776,
           "path": "src/drw_entities.cpp",
           "spanSha256": "f6e4a63b906a71d3f33015ed2f9baa25960b9801450939d106f7323ff56952f8",
           "symbol": "DRW_Entity::encodeDwgEntHandle"
@@ -12539,13 +12539,13 @@
       ],
       "evidence": [
         {
-          "line": 17390,
+          "line": 17521,
           "path": "src/drw_entities.cpp",
           "spanSha256": "4541bc4e821f6a6de20491691faeef7d75dda81984ff62fa723f3205cbafe505",
           "symbol": "DRW_ExtrudedSurface::parseCode"
         },
         {
-          "line": 3023,
+          "line": 3053,
           "path": "src/drw_entities.h",
           "spanSha256": "74051b7534cdb6452aa5f0e6c196116ade1a9b537275b429c8bd29646a45bda2",
           "symbol": "DRW_ExtrudedSurface"
@@ -12826,25 +12826,25 @@
       ],
       "evidence": [
         {
-          "line": 7897,
+          "line": 7964,
           "path": "src/drw_entities.cpp",
           "spanSha256": "1e04db1609d62b2288e26b3402aa6fdc25fdc142354d0d621beb83dc4e40f8d8",
           "symbol": "DRW_GeoPositionMarker::parseCode"
         },
         {
-          "line": 7952,
+          "line": 8019,
           "path": "src/drw_entities.cpp",
           "spanSha256": "a5c3c31f7a8908add77ab0449c73ea05c23ac98571acd36f19800c01eaa06dd0",
           "symbol": "DRW_GeoPositionMarker::parseDxfVariant"
         },
         {
-          "line": 8027,
+          "line": 8094,
           "path": "src/drw_entities.cpp",
           "spanSha256": "e79e6a431d6d161c61cc53b88528e1aedf9f00ab7a0b500fa8138298cd7244b6",
           "symbol": "DRW_GeoPositionMarker::parseDwg"
         },
         {
-          "line": 12111,
+          "line": 12242,
           "path": "src/drw_entities.cpp",
           "spanSha256": "f08fa9a22d50a60a624ccd17d4bd4453f88de7c9c6c2fcaf10e97cd97ea4fb43",
           "symbol": "DRW_GeoPositionMarker::encodeDwg"
@@ -12955,43 +12955,43 @@
       ],
       "evidence": [
         {
-          "line": 13517,
+          "line": 13648,
           "path": "src/drw_entities.cpp",
           "spanSha256": "bab1602c5d90ce54d43a8b309e357aa964c786d0ef143f97f35139d9e3956862",
           "symbol": "DRW_Hatch::parseCode"
         },
         {
-          "line": 14418,
+          "line": 14549,
           "path": "src/drw_entities.cpp",
           "spanSha256": "a5f86db7a35006954d8c81b523c5eb164aa0414493d7940e82bef2142e58139a",
           "symbol": "DRW_Hatch::parseDwgBoundaryData"
         },
         {
-          "line": 14657,
+          "line": 14788,
           "path": "src/drw_entities.cpp",
           "spanSha256": "f5ecaa1d68881460efb67d900682bab7d9a897e79bfdb60b27927efe5d00084e",
           "symbol": "DRW_Hatch::parseDwg"
         },
         {
-          "line": 14851,
+          "line": 14982,
           "path": "src/drw_entities.cpp",
           "spanSha256": "defa1fea13fd434d52fcdc184509b8ab3af7549e1fb234aa94d4d4098f28178f",
           "symbol": "DRW_Hatch::encodeDwgGradientData"
         },
         {
-          "line": 14873,
+          "line": 15004,
           "path": "src/drw_entities.cpp",
           "spanSha256": "6a629e387caf73ce5ed9796eb85797324d4e27673cb0af8db8b18ac65d9d26a9",
           "symbol": "DRW_Hatch::encodeDwgBoundaryData"
         },
         {
-          "line": 14960,
+          "line": 15091,
           "path": "src/drw_entities.cpp",
           "spanSha256": "2fdbb4db90ebb3f7a23f22052e52343aeea7f276505d407a95c01134266b8f03",
           "symbol": "DRW_Hatch::encodeDwg"
         },
         {
-          "line": 2409,
+          "line": 2413,
           "path": "src/drw_entities.h",
           "spanSha256": "80a3d113be266b9ed86545e7116bfe114dae589ca1106769ed54d2348bf99e43",
           "symbol": "DRW_Hatch"
@@ -13152,19 +13152,19 @@
       ],
       "evidence": [
         {
-          "line": 5180,
+          "line": 5247,
           "path": "src/drw_entities.cpp",
           "spanSha256": "55fc524d597ab308cb064797d9d12dded3d2bcb3c944a2f56d3bf92650915178",
           "symbol": "DRW_Helix::encodeDwg"
         },
         {
-          "line": 15214,
+          "line": 15345,
           "path": "src/drw_entities.cpp",
           "spanSha256": "c1f4f9e34eaa3af2f18f6e93786c7a7d2e49d54fea43878c26b361bab6ab76f6",
           "symbol": "DRW_Helix::parseCode"
         },
         {
-          "line": 15582,
+          "line": 15713,
           "path": "src/drw_entities.cpp",
           "spanSha256": "5eeb244ce5fb8c3d5a619c1fc7b85df71c07d40a574cd0fe4e11cdd324ac3c40",
           "symbol": "DRW_Helix::parseDwg"
@@ -13270,25 +13270,25 @@
       ],
       "evidence": [
         {
-          "line": 15665,
+          "line": 15796,
           "path": "src/drw_entities.cpp",
           "spanSha256": "94ffa9bdd658fb5b0ac0e28334d06317348496a7528169c9708fcc87bb5ac57d",
           "symbol": "DRW_Image::parseCode"
         },
         {
-          "line": 15843,
+          "line": 15974,
           "path": "src/drw_entities.cpp",
           "spanSha256": "c7529a08f9c145024bee2d9f0812d5f9241ccfd10816d1178ef253b8840ca7cb",
           "symbol": "DRW_Image::parseDwg"
         },
         {
-          "line": 16018,
+          "line": 16149,
           "path": "src/drw_entities.cpp",
           "spanSha256": "deb34b291d97ecea9587ebbc4a156cb2e6ad028ae61349acda212e18b4a3121d",
           "symbol": "DRW_Image::encodeDwg"
         },
         {
-          "line": 2681,
+          "line": 2711,
           "path": "src/drw_entities.h",
           "spanSha256": "e0b9d2bbd0da442a3d5f28ac2e45e7a5ea2f3c667f96edea0bc4619ebe805c82",
           "symbol": "DRW_Image"
@@ -13494,19 +13494,19 @@
       ],
       "evidence": [
         {
-          "line": 5298,
+          "line": 5365,
           "path": "src/drw_entities.cpp",
           "spanSha256": "f85a4620a601b083fadc4a68f0bb800b4df0be4ab550800cfe95af76735f5237",
           "symbol": "DRW_Insert::encodeDwg"
         },
         {
-          "line": 8781,
+          "line": 8848,
           "path": "src/drw_entities.cpp",
           "spanSha256": "286055500582d9fee568411ac83c1b2eebc5224e1417cbfe1c7b0abdb26f4ae7",
           "symbol": "DRW_Insert::parseCode"
         },
         {
-          "line": 9066,
+          "line": 9133,
           "path": "src/drw_entities.cpp",
           "spanSha256": "5d107498cd2d9953209d421289e5ff0071f05057c92118c85eefd2bdca174c1c",
           "symbol": "DRW_Insert::parseDwg"
@@ -13660,19 +13660,19 @@
       ],
       "evidence": [
         {
-          "line": 5460,
+          "line": 5527,
           "path": "src/drw_entities.cpp",
           "spanSha256": "391948ae13c85e44179481131dfadb6db67d20052ed10226e07bd16fb31c1aad",
           "symbol": "DRW_LWPolyline::encodeDwg"
         },
         {
-          "line": 9725,
+          "line": 9792,
           "path": "src/drw_entities.cpp",
           "spanSha256": "799a8e20bd8d62859329f61cfc62ad16ff481c1f8a61ac56228b2b7da92e3237",
           "symbol": "DRW_LWPolyline::parseCode"
         },
         {
-          "line": 9819,
+          "line": 9886,
           "path": "src/drw_entities.cpp",
           "spanSha256": "00a8e191ce744bd5aa1e913fa3d35d7a96310c834198efa0d34dde67751c6f9b",
           "symbol": "DRW_LWPolyline::parseDwg"
@@ -13991,25 +13991,25 @@
       ],
       "evidence": [
         {
-          "line": 20085,
+          "line": 20216,
           "path": "src/drw_entities.cpp",
           "spanSha256": "f196baa3155c0eaf2f33861913191d37c11e393db229db0c448316cd373faa09",
           "symbol": "DRW_Leader::parseCode"
         },
         {
-          "line": 20234,
+          "line": 20365,
           "path": "src/drw_entities.cpp",
           "spanSha256": "d55548be51ea1da78218f134e6d2a884e42b950889714d729d14ad345b02740b",
           "symbol": "DRW_Leader::parseDwg"
         },
         {
-          "line": 22334,
+          "line": 22465,
           "path": "src/drw_entities.cpp",
           "spanSha256": "a54ad3a23809d5d97a3de0d9e3a51b01b04737e5dbb5ad2e13f386fca8ad7663",
           "symbol": "DRW_Leader::encodeDwg"
         },
         {
-          "line": 3684,
+          "line": 3714,
           "path": "src/drw_entities.h",
           "spanSha256": "59b89d6532e5b808c22f21d30b251a75320dc98ce3f5698850d400a61c3704cc",
           "symbol": "DRW_Leader"
@@ -14050,13 +14050,13 @@
       ],
       "evidence": [
         {
-          "line": 7622,
+          "line": 7689,
           "path": "src/drw_entities.cpp",
           "spanSha256": "b1f4f5577cc196132ec89a1c0a506253396cb60c7ca72d1ebc6906de3ce66e93",
           "symbol": "DRW_Light::parseDwg"
         },
         {
-          "line": 8125,
+          "line": 8192,
           "path": "src/drw_entities.cpp",
           "spanSha256": "760b5c58a638629c099ab7c51127b3b7aed3645be6fa537a9c62f6c461428445",
           "symbol": "DRW_Light::encodeDwg"
@@ -14181,19 +14181,19 @@
       ],
       "evidence": [
         {
-          "line": 4911,
+          "line": 4978,
           "path": "src/drw_entities.cpp",
           "spanSha256": "8de04c6c93b3635c2f9d5216714946c5ba9d495094aa734c00ba88dc6db5dcfe",
           "symbol": "DRW_Line::parseCode"
         },
         {
-          "line": 4929,
+          "line": 4996,
           "path": "src/drw_entities.cpp",
           "spanSha256": "3263d075f51306e0ceb0adab68498497a5b5898a4fe1eac702af09d033429186",
           "symbol": "DRW_Line::encodeDwg"
         },
         {
-          "line": 5628,
+          "line": 5695,
           "path": "src/drw_entities.cpp",
           "spanSha256": "465601635e112f8808d022e030594912d36accac043c7db557da8c7c0d907b44",
           "symbol": "DRW_Line::parseDwg"
@@ -14239,13 +14239,13 @@
       ],
       "evidence": [
         {
-          "line": 17750,
+          "line": 17881,
           "path": "src/drw_entities.cpp",
           "spanSha256": "53a68d4eed41af7e3bf67fbd6ea790c59c37db6212b1cea10194667a51209033",
           "symbol": "DRW_LoftedSurface::parseCode"
         },
         {
-          "line": 3171,
+          "line": 3201,
           "path": "src/drw_entities.h",
           "spanSha256": "5feb4315e38883884f5c15054048e4b857eb21729f4d19aa84574bfa840b4cc9",
           "symbol": "DRW_LoftedSurface"
@@ -14276,31 +14276,31 @@
       ],
       "evidence": [
         {
-          "line": 20419,
+          "line": 20550,
           "path": "src/drw_entities.cpp",
           "spanSha256": "c819118a98b200d39488163abb74a8290e4bdb8706dceac450aa4cdf922959a1",
           "symbol": "DRW_MLeader::parseDxfContextCode"
         },
         {
-          "line": 20664,
+          "line": 20795,
           "path": "src/drw_entities.cpp",
           "spanSha256": "e9e76b1373e6afa59e7574b4e39dd0af7bcb96c6b559dc48583972d858918984",
           "symbol": "DRW_MLeader::parseCode"
         },
         {
-          "line": 21312,
+          "line": 21443,
           "path": "src/drw_entities.cpp",
           "spanSha256": "0613ccfd10a26a9b61c4293d3215eba5f583327d8bfe17ef3c17f429f5457f03",
           "symbol": "DRW_MLeader::parseDwg"
         },
         {
-          "line": 21536,
+          "line": 21667,
           "path": "src/drw_entities.cpp",
           "spanSha256": "682ef9351d7545b055fe7255beab9ba4ee3434ad7f7ab93aaa6c82bef95f73f2",
           "symbol": "DRW_MLeader::encodeDwg"
         },
         {
-          "line": 3839,
+          "line": 3869,
           "path": "src/drw_entities.h",
           "spanSha256": "268f6a74c30cfb416468ab5969321e658b7d25744c1435ede0d298c33182c949",
           "symbol": "DRW_MLeader"
@@ -14345,7 +14345,7 @@
       ],
       "evidence": [
         {
-          "line": 3767,
+          "line": 3797,
           "path": "src/drw_entities.h",
           "spanSha256": "25d30372cfead7801e92ac7084848b4385da3865cf69c52f7b33fef7f1c774a3",
           "symbol": "DRW_MLeaderAnnotContext"
@@ -14369,7 +14369,7 @@
       ],
       "evidence": [
         {
-          "line": 3734,
+          "line": 3764,
           "path": "src/drw_entities.h",
           "spanSha256": "7117a7629997b9cd27bb69966933557a20083d69675f347c4d39c80ca6b1a01f",
           "symbol": "DRW_MLeaderLeaderLine"
@@ -14393,7 +14393,7 @@
       ],
       "evidence": [
         {
-          "line": 3750,
+          "line": 3780,
           "path": "src/drw_entities.h",
           "spanSha256": "88b70ee8c4053b7478398120709592d26c3c4b26d41abcd0b3706ee7cea3a773",
           "symbol": "DRW_MLeaderRoot"
@@ -14477,19 +14477,19 @@
       ],
       "evidence": [
         {
-          "line": 10059,
+          "line": 10126,
           "path": "src/drw_entities.cpp",
           "spanSha256": "84c5de70d778d8f67276ebdffc788e8c01d31df812c7868d742cb055f0321d35",
           "symbol": "DRW_MLine::parseCode"
         },
         {
-          "line": 10316,
+          "line": 10383,
           "path": "src/drw_entities.cpp",
           "spanSha256": "8332de5d0c5339d16fa8b647dc0580b55c16353d739e53478b761b96c1eaf34b",
           "symbol": "DRW_MLine::parseDwg"
         },
         {
-          "line": 22133,
+          "line": 22264,
           "path": "src/drw_entities.cpp",
           "spanSha256": "01d94d9dc8fae017c5c74a81f19f2a08e4b6459941f5dc520345a91a1e63bff7",
           "symbol": "DRW_MLine::encodeDwg"
@@ -14643,25 +14643,25 @@
       ],
       "evidence": [
         {
-          "line": 14070,
+          "line": 14201,
           "path": "src/drw_entities.cpp",
           "spanSha256": "1522867611aa1edd6bee568ae42990a2ecdab4672813ee7e78b2eebce4418b3a",
           "symbol": "DRW_MPolygon::parseCode"
         },
         {
-          "line": 14109,
+          "line": 14240,
           "path": "src/drw_entities.cpp",
           "spanSha256": "625010dbbd8b3ebaa29b9467d6b8afdf395eba668bdaa5bfe4c10b0e7b16cb5a",
           "symbol": "DRW_MPolygon::parseDwg"
         },
         {
-          "line": 14361,
+          "line": 14492,
           "path": "src/drw_entities.cpp",
           "spanSha256": "0f5abe7303657230b8aed7a74caaae44716aa29143f52c53f5c5c213e9c0a819",
           "symbol": "DRW_MPolygon::encodeDwg"
         },
         {
-          "line": 2651,
+          "line": 2681,
           "path": "src/drw_entities.h",
           "spanSha256": "d80f50b1f106176796c8ceba09f314a241a395ac518e7431079d3e725ad809d7",
           "symbol": "DRW_MPolygon"
@@ -14702,19 +14702,19 @@
       ],
       "evidence": [
         {
-          "line": 5210,
+          "line": 5277,
           "path": "src/drw_entities.cpp",
           "spanSha256": "3c8e89739a27c7318f91e7107cf7615bb30f8402ab2860e0321c08f660017dba",
           "symbol": "DRW_MText::encodeDwg"
         },
         {
-          "line": 12680,
+          "line": 12811,
           "path": "src/drw_entities.cpp",
           "spanSha256": "67544b9b43e6f8f157cf69764a7b15aef0b5a95a20b41a66d82a17195c9d4e3a",
           "symbol": "DRW_MText::parseCode"
         },
         {
-          "line": 12769,
+          "line": 12900,
           "path": "src/drw_entities.cpp",
           "spanSha256": "233bcb253b66b50fa2ad156935bff8cf0c1d2aaf82a6ce22ce30f9afad713ab6",
           "symbol": "DRW_MText::parseDwg"
@@ -14820,19 +14820,19 @@
       ],
       "evidence": [
         {
-          "line": 6492,
+          "line": 6559,
           "path": "src/drw_entities.cpp",
           "spanSha256": "47c597414ff6c809abf6c964ded11de8ebe47fe2f2e34a6b530c8d48f119372e",
           "symbol": "DRW_Mesh::parseDwg"
         },
         {
-          "line": 6648,
+          "line": 6715,
           "path": "src/drw_entities.cpp",
           "spanSha256": "d83472ea7e689950094532fbf191a61b8bff2a82d315851bc01a7d82e7473ca9",
           "symbol": "DRW_Mesh::parseCode"
         },
         {
-          "line": 6927,
+          "line": 6994,
           "path": "src/drw_entities.cpp",
           "spanSha256": "faa579115a11d1e39b890729f91f7372db01fca3e1118ad884ed43edb5c1911b",
           "symbol": "DRW_Mesh::encodeDwg"
@@ -14926,13 +14926,13 @@
       ],
       "evidence": [
         {
-          "line": 6346,
+          "line": 6413,
           "path": "src/drw_entities.cpp",
           "spanSha256": "cee40252f6f58d8354a934210d60cd13ea06fd2492082db53327475a10802ad4",
           "symbol": "DRW_ModelerGeometry::parseDwg"
         },
         {
-          "line": 6430,
+          "line": 6497,
           "path": "src/drw_entities.cpp",
           "spanSha256": "29c36cac2e83fdfe60992fe2ff644cb385f5144e4ed404cc9b5ef829a04ad6b6",
           "symbol": "DRW_ModelerGeometry::parseCode"
@@ -15057,25 +15057,25 @@
       ],
       "evidence": [
         {
-          "line": 16177,
+          "line": 16308,
           "path": "src/drw_entities.cpp",
           "spanSha256": "471fab2179bb307f4840ee7751fcdd4d8e7694486ace27006a32062f93d00262",
           "symbol": "DRW_NavisworksModel::parseCode"
         },
         {
-          "line": 16234,
+          "line": 16365,
           "path": "src/drw_entities.cpp",
           "spanSha256": "cf05b0855f660e3c37afb6632a969a6a09c3b70757e004b6c0d45a78911a15d3",
           "symbol": "DRW_NavisworksModel::parseDwg"
         },
         {
-          "line": 16311,
+          "line": 16442,
           "path": "src/drw_entities.cpp",
           "spanSha256": "42079910e29491d4216ce199718440bddfbbede3199ceb941665e078fca5751c",
           "symbol": "DRW_NavisworksModel::encodeDwg"
         },
         {
-          "line": 2780,
+          "line": 2810,
           "path": "src/drw_entities.h",
           "spanSha256": "136548f5b157565f16df8f699c8f3c76012f52afef7fd4b6e5bb601abe12d6f5",
           "symbol": "DRW_NavisworksModel"
@@ -15174,13 +15174,13 @@
       ],
       "evidence": [
         {
-          "line": 17906,
+          "line": 18037,
           "path": "src/drw_entities.cpp",
           "spanSha256": "5fa9f63041e9024259a44822d8e215735a5865306585aa6dfefd1787866516dc",
           "symbol": "DRW_NurbsSurface::parseCode"
         },
         {
-          "line": 3219,
+          "line": 3249,
           "path": "src/drw_entities.h",
           "spanSha256": "f0e2a0b551031c99a4207ea601cc1f0ab0336ec15a55aa6e26686e0826a0eb61",
           "symbol": "DRW_NurbsSurface"
@@ -15306,19 +15306,19 @@
       ],
       "evidence": [
         {
-          "line": 7154,
+          "line": 7221,
           "path": "src/drw_entities.cpp",
           "spanSha256": "04817d3b577d6bff930bb7730ed7ca13280d77721ebabbd65c88fe11e980ffbc",
           "symbol": "DRW_Ole2Frame::parseCode"
         },
         {
-          "line": 7269,
+          "line": 7336,
           "path": "src/drw_entities.cpp",
           "spanSha256": "bc8dbdb2082f2277dc7c8d1d83e9fef51065f70c11aebcd53b7644aaa91a6803",
           "symbol": "DRW_Ole2Frame::parseDwg"
         },
         {
-          "line": 7393,
+          "line": 7460,
           "path": "src/drw_entities.cpp",
           "spanSha256": "1d7c02323e492f693584b12c8384595e4c6af54be0f4d4348109156e384bf5d5",
           "symbol": "DRW_Ole2Frame::encodeDwg"
@@ -15365,19 +15365,19 @@
       ],
       "evidence": [
         {
-          "line": 7427,
+          "line": 7494,
           "path": "src/drw_entities.cpp",
           "spanSha256": "e38d895698088759d1635ecdd4c09ca85aceeaf2ac3327399794c12410ae8057",
           "symbol": "DRW_OleFrame::parseCode"
         },
         {
-          "line": 7486,
+          "line": 7553,
           "path": "src/drw_entities.cpp",
           "spanSha256": "23f9c5d2cd89cbfc5d57456efca1088739318e89c442dded16526422147088a2",
           "symbol": "DRW_OleFrame::parseDwg"
         },
         {
-          "line": 7559,
+          "line": 7626,
           "path": "src/drw_entities.cpp",
           "spanSha256": "58c86e4ab5a840d56dd12b73af3d40708c966fdd0de973d0829f7e9460a9d6fa",
           "symbol": "DRW_OleFrame::encodeDwg"
@@ -15554,7 +15554,7 @@
       ],
       "evidence": [
         {
-          "line": 3016,
+          "line": 3046,
           "path": "src/drw_entities.h",
           "spanSha256": "26bcb57dd2241894ee48ad65adce67ef5b57ccd6ec1d7dec2176440fa3e1107f",
           "symbol": "DRW_PlaneSurface"
@@ -15638,19 +15638,19 @@
       ],
       "evidence": [
         {
-          "line": 4164,
+          "line": 4231,
           "path": "src/drw_entities.cpp",
           "spanSha256": "595b335d233def421f6778aad8222b61e5e31f806a8da23c073ff8008fe77965",
           "symbol": "DRW_Point::parseCode"
         },
         {
-          "line": 4827,
+          "line": 4894,
           "path": "src/drw_entities.cpp",
           "spanSha256": "8e27370922b263320e076b504b9ef1933e7d3bbec7d9823aafa3ee11cb185a98",
           "symbol": "DRW_Point::encodeDwg"
         },
         {
-          "line": 4851,
+          "line": 4918,
           "path": "src/drw_entities.cpp",
           "spanSha256": "a604431b656752a4eab5c0c45de402070664cc4fb64dd90a2dd173b0ad96c08c",
           "symbol": "DRW_Point::parseDwg"
@@ -15697,25 +15697,25 @@
       ],
       "evidence": [
         {
-          "line": 16352,
+          "line": 16483,
           "path": "src/drw_entities.cpp",
           "spanSha256": "80469471a8d953355cf8a69f4c489faa27518da806ebd6eeca87e170a35b1261",
           "symbol": "DRW_PointCloud::parseCode"
         },
         {
-          "line": 16468,
+          "line": 16599,
           "path": "src/drw_entities.cpp",
           "spanSha256": "14ca447c9370df3de44deabee3d44472ac07915a4eb11cdb18883f9e6ae2189f",
           "symbol": "DRW_PointCloud::parseDwg"
         },
         {
-          "line": 16671,
+          "line": 16802,
           "path": "src/drw_entities.cpp",
           "spanSha256": "8bcc2a27c895a09cbab3eba410196137b03abf239219ea882ab18652edfa4344",
           "symbol": "DRW_PointCloud::encodeDwg"
         },
         {
-          "line": 2836,
+          "line": 2866,
           "path": "src/drw_entities.h",
           "spanSha256": "fbc2a23ae20b474678c312ff4b432de8ff28831a42827a7cbd18e220406f5aa8",
           "symbol": "DRW_PointCloud"
@@ -15755,7 +15755,7 @@
       ],
       "evidence": [
         {
-          "line": 2827,
+          "line": 2857,
           "path": "src/drw_entities.h",
           "spanSha256": "bc8710325f74d484e2267f03875b01b53a027b9577d08f3f100e028eef86d019",
           "symbol": "DRW_PointCloudClipping"
@@ -15922,25 +15922,25 @@
       ],
       "evidence": [
         {
-          "line": 16781,
+          "line": 16912,
           "path": "src/drw_entities.cpp",
           "spanSha256": "b26955749a1704b84ac8accbea96cb5837534fbd54ccf2ec8ea5f56ae0a50ca9",
           "symbol": "DRW_PointCloudEx::parseCode"
         },
         {
-          "line": 17057,
+          "line": 17188,
           "path": "src/drw_entities.cpp",
           "spanSha256": "5f9a5ec13fd4490d8b6a1f05471e90dab31d8e5977596a06f9280d524f645bf6",
           "symbol": "DRW_PointCloudEx::parseDwg"
         },
         {
-          "line": 17238,
+          "line": 17369,
           "path": "src/drw_entities.cpp",
           "spanSha256": "338fdd590c8dfbff29298e2f5076a09209abd22303e03db6a64d8c5c28b50a21",
           "symbol": "DRW_PointCloudEx::encodeDwg"
         },
         {
-          "line": 2897,
+          "line": 2927,
           "path": "src/drw_entities.h",
           "spanSha256": "40fe4703848ef46124ef7cda0fba8623d5272c80b0f7f5b6549d73255e8245fc",
           "symbol": "DRW_PointCloudEx"
@@ -15980,7 +15980,7 @@
       ],
       "evidence": [
         {
-          "line": 2886,
+          "line": 2916,
           "path": "src/drw_entities.h",
           "spanSha256": "9a2bb0633540aefba981f2430c186b897c049ea7034bb7550ab68d703427323e",
           "symbol": "DRW_PointCloudExCropping"
@@ -16004,7 +16004,7 @@
       ],
       "evidence": [
         {
-          "line": 2820,
+          "line": 2850,
           "path": "src/drw_entities.h",
           "spanSha256": "652111ff92311be6443a87eaacdf099b39a250a21ffa3332abbff391d56405e2",
           "symbol": "DRW_PointCloudIntensityStyle"
@@ -16088,19 +16088,19 @@
       ],
       "evidence": [
         {
-          "line": 13040,
+          "line": 13171,
           "path": "src/drw_entities.cpp",
           "spanSha256": "b3a54585f4021e001e8905c3a9829c533be3d42e6b5890ed0d8fada6d9d6a624",
           "symbol": "DRW_Polyline::parseCode"
         },
         {
-          "line": 13128,
+          "line": 13259,
           "path": "src/drw_entities.cpp",
           "spanSha256": "01dd11a8ac193113b0d84bbce8428b6818914ee7380b7a3f082e7b6c3131b6be",
           "symbol": "DRW_Polyline::parseDwg"
         },
         {
-          "line": 22266,
+          "line": 22397,
           "path": "src/drw_entities.cpp",
           "spanSha256": "dfaa465bce9c2bd8eaf0c3e29fc6ba31f7b271235bdae2b2459c6da1c5efc2f3",
           "symbol": "DRW_Polyline::encodeDwg"
@@ -16146,7 +16146,7 @@
       ],
       "evidence": [
         {
-          "line": 4031,
+          "line": 4098,
           "path": "src/drw_entities.cpp",
           "spanSha256": "ab3358c72e225b639880391841f8e9d8958c52f805dd5bfa4f3890378f6fed14",
           "symbol": "DRW_ProxyEntity::parseDwg"
@@ -16243,19 +16243,19 @@
       ],
       "evidence": [
         {
-          "line": 11044,
+          "line": 11111,
           "path": "src/drw_entities.cpp",
           "spanSha256": "b009bf76d8fca0e96a8e5a8f73c1d5305528a42ee47dd53f76983dd58706eea3",
           "symbol": "DRW_RText::parseCode"
         },
         {
-          "line": 11055,
+          "line": 11122,
           "path": "src/drw_entities.cpp",
           "spanSha256": "bc7a144a819047e7b38e6d75fe0949e1bba2ad572eaf2b0c18b0e7225ddf7384",
           "symbol": "DRW_RText::parseDwg"
         },
         {
-          "line": 11155,
+          "line": 11222,
           "path": "src/drw_entities.cpp",
           "spanSha256": "ccb4691bd25be75ed6321c30c0be754f0d0f959f4f457f513c4fbd40d61347c6",
           "symbol": "DRW_RText::encodeDwg"
@@ -16433,13 +16433,13 @@
       ],
       "evidence": [
         {
-          "line": 5039,
+          "line": 5106,
           "path": "src/drw_entities.cpp",
           "spanSha256": "565ccf62d1090c937c1a259eb1a6877217dbdf82f9a57d8fd7a4541a142ef9ff",
           "symbol": "DRW_Ray::encodeDwg"
         },
         {
-          "line": 5713,
+          "line": 5780,
           "path": "src/drw_entities.cpp",
           "spanSha256": "111997a9a919a4d77d6d0f676a0e465364302c258643b7db8dfe01ad2a018167",
           "symbol": "DRW_Ray::parseDwg"
@@ -16539,13 +16539,13 @@
       ],
       "evidence": [
         {
-          "line": 18047,
+          "line": 18178,
           "path": "src/drw_entities.cpp",
           "spanSha256": "90c7ddf885b32e08b2616f830fdd0ee301b37cb9e157cc8723d477057daacc08",
           "symbol": "DRW_RevolvedSurface::parseCode"
         },
         {
-          "line": 3074,
+          "line": 3104,
           "path": "src/drw_entities.h",
           "spanSha256": "e5c80e650ba23ce13dbd9f2f89fcb8e619d6c9250e1c8d61ce0646d23c00efc1",
           "symbol": "DRW_RevolvedSurface"
@@ -16814,19 +16814,19 @@
       ],
       "evidence": [
         {
-          "line": 8199,
+          "line": 8266,
           "path": "src/drw_entities.cpp",
           "spanSha256": "8239c1ca52667f7785e4f289a99f062e7daac09f36c39dbdfdfba6a56d16d4a7",
           "symbol": "DRW_SectionObject::parseCode"
         },
         {
-          "line": 8325,
+          "line": 8392,
           "path": "src/drw_entities.cpp",
           "spanSha256": "a99d856cc2204183c60b7dec94565e02887cc7dbb653e38fe2adc871fe331da1",
           "symbol": "DRW_SectionObject::parseDwg"
         },
         {
-          "line": 8465,
+          "line": 8532,
           "path": "src/drw_entities.cpp",
           "spanSha256": "5faf29dca9dff82bc8d4ed7f9bb89f8700c37f6c54d84991cb74414e2eee44a5",
           "symbol": "DRW_SectionObject::encodeDwg"
@@ -16944,13 +16944,13 @@
       ],
       "evidence": [
         {
-          "line": 22228,
+          "line": 22359,
           "path": "src/drw_entities.cpp",
           "spanSha256": "122c62756cd77bcc90cee2a44837a209eaca40ebc6845d9abf8e577bd88c5ef6",
           "symbol": "DRW_SeqEnd::parseDwg"
         },
         {
-          "line": 22253,
+          "line": 22384,
           "path": "src/drw_entities.cpp",
           "spanSha256": "53dfcc703cbcc7320ab102121a59cb12299574725f2857f847db85aeda766825",
           "symbol": "DRW_SeqEnd::encodeDwg"
@@ -16992,19 +16992,19 @@
       ],
       "evidence": [
         {
-          "line": 6971,
+          "line": 7038,
           "path": "src/drw_entities.cpp",
           "spanSha256": "33595384e4fba108f1466fd89942596159d489ff1804c6399540ead71340a5ae",
           "symbol": "DRW_Shape::parseCode"
         },
         {
-          "line": 7031,
+          "line": 7098,
           "path": "src/drw_entities.cpp",
           "spanSha256": "ceb1f13ea08e13048918c31e2886f2ce8f409b3c759755525aefb178e750bceb",
           "symbol": "DRW_Shape::parseDwg"
         },
         {
-          "line": 7112,
+          "line": 7179,
           "path": "src/drw_entities.cpp",
           "spanSha256": "afa71b79df920de53c2ee1f54991bc030ea6e16086cc081fa4be0a2caa5066a5",
           "symbol": "DRW_Shape::encodeDwg"
@@ -17051,13 +17051,13 @@
       ],
       "evidence": [
         {
-          "line": 5437,
+          "line": 5504,
           "path": "src/drw_entities.cpp",
           "spanSha256": "362c63812038bf29f8942362ec150dd05e674e7efb8f472b4d69625d1d2f4d89",
           "symbol": "DRW_Solid::encodeDwg"
         },
         {
-          "line": 6212,
+          "line": 6279,
           "path": "src/drw_entities.cpp",
           "spanSha256": "5290478072a0ff7696ba0772344f58e14f8c7c5f8decd17998aac55d6d6679af",
           "symbol": "DRW_Solid::parseDwg"
@@ -17276,31 +17276,31 @@
       ],
       "evidence": [
         {
-          "line": 5080,
+          "line": 5147,
           "path": "src/drw_entities.cpp",
           "spanSha256": "351b1332cd7fd322d1cdc935ce912868b920285bb2be9408470127ede0933653",
           "symbol": "DRW_Spline::encodeDwg"
         },
         {
-          "line": 5095,
+          "line": 5162,
           "path": "src/drw_entities.cpp",
           "spanSha256": "4dcfa25b64d4a03b5551f46cbb04bd9ee60dff698a7558948eaad49bdd565149",
           "symbol": "DRW_Spline::encodeDwgSplineBody"
         },
         {
-          "line": 15013,
+          "line": 15144,
           "path": "src/drw_entities.cpp",
           "spanSha256": "d97d71a967721f20032d44649cd0b90e638ba053c00767722541ce4b869dd171",
           "symbol": "DRW_Spline::parseCode"
         },
         {
-          "line": 15318,
+          "line": 15449,
           "path": "src/drw_entities.cpp",
           "spanSha256": "47dc66afcd7a0f4baa3f5565f5c452749018b7a62356b00ff326bbff613579e8",
           "symbol": "DRW_Spline::parseDwg"
         },
         {
-          "line": 15357,
+          "line": 15488,
           "path": "src/drw_entities.cpp",
           "spanSha256": "d5f767a7d52115922b41cce705d669ff7ad7c7dfd1ca002c42de3fc06c303e58",
           "symbol": "DRW_Spline::parseDwgSplineBody"
@@ -17499,25 +17499,25 @@
       ],
       "evidence": [
         {
-          "line": 17354,
+          "line": 17485,
           "path": "src/drw_entities.cpp",
           "spanSha256": "1a33a824e8b1efc2e9c26c2adde876e7441941c2067769f985d874a94c622c6f",
           "symbol": "DRW_Surface::parseCode"
         },
         {
-          "line": 18253,
+          "line": 18384,
           "path": "src/drw_entities.cpp",
           "spanSha256": "2bdb8534cc5db7a3526c9ea180ef32881dd04071afc281b1353c9bc6543e6687",
           "symbol": "DRW_Surface::parseDwg"
         },
         {
-          "line": 18483,
+          "line": 18614,
           "path": "src/drw_entities.cpp",
           "spanSha256": "b737856903124640cfeef8532cc0ac9a6f54645b4e853ab0854006fb818c6c88",
           "symbol": "DRW_Surface::encodeDwg"
         },
         {
-          "line": 2966,
+          "line": 2996,
           "path": "src/drw_entities.h",
           "spanSha256": "825b11a5664a954d1ac972fad30cfbef265cdd352f03b5873863277882c5e372",
           "symbol": "DRW_Surface"
@@ -17557,13 +17557,13 @@
       ],
       "evidence": [
         {
-          "line": 17530,
+          "line": 17661,
           "path": "src/drw_entities.cpp",
           "spanSha256": "0dd05560c4d52be81d9d935c8314cdb78f675c356f22d0a7bee8ddc85788cd0c",
           "symbol": "DRW_SweptSurface::parseCode"
         },
         {
-          "line": 3111,
+          "line": 3141,
           "path": "src/drw_entities.h",
           "spanSha256": "5a74f1a49813dd7d46d2b57351f69e88b3099ed7034b886ed365b67f460ca9f0",
           "symbol": "DRW_SweptSurface"
@@ -17593,13 +17593,13 @@
       ],
       "evidence": [
         {
-          "line": 8826,
+          "line": 8893,
           "path": "src/drw_entities.cpp",
           "spanSha256": "583ba363514d609cae9762e45586bdc68c76ce82b29b60692f580826caaa5972",
           "symbol": "DRW_Table::parseCode"
         },
         {
-          "line": 9273,
+          "line": 9340,
           "path": "src/drw_entities.cpp",
           "spanSha256": "a8d70565bebb32625fc8fbaecf01ac44a8a22bd503acbf23c0c3a19a7dc8f074",
           "symbol": "DRW_Table::parseDwg"
@@ -17784,7 +17784,7 @@
       ],
       "evidence": [
         {
-          "line": 9656,
+          "line": 9723,
           "path": "src/drw_entities.cpp",
           "spanSha256": "40a376758faa98119d2bba65fdf476cd9f0b87eb5322797526b4a74be4325b86",
           "symbol": "DRW_TableContentObject::parseDwg"
@@ -18188,19 +18188,19 @@
       ],
       "evidence": [
         {
-          "line": 5549,
+          "line": 5616,
           "path": "src/drw_entities.cpp",
           "spanSha256": "06cf50cf8a428424734c905611ef8f3ed778ad8a7376850090e66a714787e19a",
           "symbol": "DRW_Text::encodeDwg"
         },
         {
-          "line": 10815,
+          "line": 10882,
           "path": "src/drw_entities.cpp",
           "spanSha256": "3a6f98ac1b95ea2d73d8729112d98086af1edbe86d7e5adf1fdf540fe5c41797",
           "symbol": "DRW_Text::parseCode"
         },
         {
-          "line": 10870,
+          "line": 10937,
           "path": "src/drw_entities.cpp",
           "spanSha256": "e9b87edbca5c7e80f71486252aabaeab76fc181675f592c7c3a0e156d0f61dae",
           "symbol": "DRW_Text::parseDwg"
@@ -18306,19 +18306,19 @@
       ],
       "evidence": [
         {
-          "line": 8498,
+          "line": 8565,
           "path": "src/drw_entities.cpp",
           "spanSha256": "515dd0fee14a5f8e36e66439e2bf33024d725f39654004578d1690eadba713c7",
           "symbol": "DRW_Tolerance::parseCode"
         },
         {
-          "line": 8549,
+          "line": 8616,
           "path": "src/drw_entities.cpp",
           "spanSha256": "669bd4085778e1105a1dfe57b9ad93f07da8363c4f526fe33fcc5e72b05ed51b",
           "symbol": "DRW_Tolerance::parseDwg"
         },
         {
-          "line": 8654,
+          "line": 8721,
           "path": "src/drw_entities.cpp",
           "spanSha256": "10065501e72026bd9f1c04faebead488b01dc4f7f5ebd22261637e8b15841a5a",
           "symbol": "DRW_Tolerance::encodeDwg"
@@ -18365,19 +18365,19 @@
       ],
       "evidence": [
         {
-          "line": 5057,
+          "line": 5124,
           "path": "src/drw_entities.cpp",
           "spanSha256": "d04b15ac022bb6a978a4a75a8855d7d11355ae748b3fcebe256741f75f7dcb0a",
           "symbol": "DRW_Trace::encodeDwg"
         },
         {
-          "line": 6118,
+          "line": 6185,
           "path": "src/drw_entities.cpp",
           "spanSha256": "86704628e4025ab31ee78df93697aa22bc3e47d750eecd2e3fd0315aa7ebb975",
           "symbol": "DRW_Trace::parseCode"
         },
         {
-          "line": 6151,
+          "line": 6218,
           "path": "src/drw_entities.cpp",
           "spanSha256": "ba29d6c82bb8e23ca1c3872de7901d71ac9782e79007defae5d9761712d6262a",
           "symbol": "DRW_Trace::parseDwg"
@@ -18555,19 +18555,19 @@
       ],
       "evidence": [
         {
-          "line": 10506,
+          "line": 10573,
           "path": "src/drw_entities.cpp",
           "spanSha256": "75b8c94677a509ebaad1668a63c44c65221d15b4e8c8a2923f6fe88652778283",
           "symbol": "DRW_Underlay::parseCode"
         },
         {
-          "line": 10633,
+          "line": 10700,
           "path": "src/drw_entities.cpp",
           "spanSha256": "21d7d94b7676c26f9ae3c88133d86d734ee6cb1b501cda8686c6a731e11b034e",
           "symbol": "DRW_Underlay::parseDwg"
         },
         {
-          "line": 10757,
+          "line": 10824,
           "path": "src/drw_entities.cpp",
           "spanSha256": "43161196379406c80007bb94292b7a43c74636e119d53332462685a95f731940",
           "symbol": "DRW_Underlay::encodeDwg"
@@ -18793,19 +18793,19 @@
       ],
       "evidence": [
         {
-          "line": 13313,
+          "line": 13444,
           "path": "src/drw_entities.cpp",
           "spanSha256": "28968308a11e2a8a5321b254bb34ebde2817b8c0d125755027e97e1d4623aa55",
           "symbol": "DRW_Vertex::parseCode"
         },
         {
-          "line": 13390,
+          "line": 13521,
           "path": "src/drw_entities.cpp",
           "spanSha256": "049c1c1663c9adf91862f3544e340bb5969e259580d14e2f3ca2c3a4faa2704f",
           "symbol": "DRW_Vertex::parseDwg"
         },
         {
-          "line": 22179,
+          "line": 22310,
           "path": "src/drw_entities.cpp",
           "spanSha256": "f1bfc4d52e07d3f1af2f3cebaae93a56a6fad2b2084790caa236ba573c224e7d",
           "symbol": "DRW_Vertex::encodeDwg"
@@ -18935,25 +18935,25 @@
       ],
       "evidence": [
         {
-          "line": 21602,
+          "line": 21733,
           "path": "src/drw_entities.cpp",
           "spanSha256": "9304820c3b6529816f84178da9aea283a9ff0ca7ebe1f41fe118ab48f325054b",
           "symbol": "DRW_Viewport::parseCode"
         },
         {
-          "line": 21877,
+          "line": 22008,
           "path": "src/drw_entities.cpp",
           "spanSha256": "acd870ef80e8080aba63300a923eeaa1162e0661fa0ff9413279f8039393eb13",
           "symbol": "DRW_Viewport::parseDwg"
         },
         {
-          "line": 22396,
+          "line": 22527,
           "path": "src/drw_entities.cpp",
           "spanSha256": "e7c27013055640e979927210af504f0f5e6731d7d75cb2e0b930116d3ef89324",
           "symbol": "DRW_Viewport::encodeDwg"
         },
         {
-          "line": 3949,
+          "line": 3979,
           "path": "src/drw_entities.h",
           "spanSha256": "993253f041f8eaabf308281f1916dfbdccf071fc507e33c1a8acd491d32de6ac",
           "symbol": "DRW_Viewport"
@@ -19280,25 +19280,25 @@
       ],
       "evidence": [
         {
-          "line": 16086,
+          "line": 16217,
           "path": "src/drw_entities.cpp",
           "spanSha256": "2b67e42a8153dab227018c3b927693d75cad873cfd76ac16edd34032018a54c8",
           "symbol": "DRW_Wipeout::parseCode"
         },
         {
-          "line": 16094,
+          "line": 16225,
           "path": "src/drw_entities.cpp",
           "spanSha256": "26242121871b35b368eae65d204a86de3052a6ccb53034ab819ef7f416338661",
           "symbol": "DRW_Wipeout::parseDwg"
         },
         {
-          "line": 16116,
+          "line": 16247,
           "path": "src/drw_entities.cpp",
           "spanSha256": "407cfbad191a3b014c81d57168ccc00fa54fb9b88188eb9ae74c592fb848d226",
           "symbol": "DRW_Wipeout::encodeDwg"
         },
         {
-          "line": 2753,
+          "line": 2783,
           "path": "src/drw_entities.h",
           "spanSha256": "b0deba0a099f9fa7116a17472efb3ef7a149d933c3f00ec29608e0a18ea4eb64",
           "symbol": "DRW_Wipeout"
@@ -19698,7 +19698,7 @@
         {
           "line": 1,
           "path": "src/drw_entities.cpp",
-          "spanSha256": "6ae8287e81f30f31e218bcde03f77c0cf9512d3a43fe6646fda3f085eaf73639",
+          "spanSha256": "55d75f184d53e60c60a3cbc8dcfccd594a5d00a9f9e23c25e3c7cdd5536e3fb2",
           "symbol": "src/drw_entities.cpp"
         }
       ],
@@ -19722,7 +19722,7 @@
         {
           "line": 1,
           "path": "src/drw_entities.h",
-          "spanSha256": "98b62c3d9c5814ade300b660c58509fc294a1838f8dac22f927f921da2aec08d",
+          "spanSha256": "b59110ae357917c08c7832d85ec7caea9d86c4bc7284971c7e6eeedfd83bf6c4",
           "symbol": "src/drw_entities.h"
         }
       ],
@@ -26345,7 +26345,7 @@
         {
           "line": 1,
           "path": "src/drw_entities.h",
-          "spanSha256": "98b62c3d9c5814ade300b660c58509fc294a1838f8dac22f927f921da2aec08d",
+          "spanSha256": "b59110ae357917c08c7832d85ec7caea9d86c4bc7284971c7e6eeedfd83bf6c4",
           "symbol": "src/drw_entities.h"
         }
       ],
@@ -28731,7 +28731,7 @@
       ],
       "evidence": [
         {
-          "line": 3436,
+          "line": 3466,
           "path": "src/drw_entities.h",
           "spanSha256": "77ccb35f3ddef5854a0f6de4e1420e5ba2cfb8cbb68e77ea23985e5a0e939262",
           "symbol": "DRW_DimAligned::getDef2Point"
@@ -28756,7 +28756,7 @@
       ],
       "evidence": [
         {
-          "line": 3433,
+          "line": 3463,
           "path": "src/drw_entities.h",
           "spanSha256": "0bcc8d72723fdc807cc01a22d1bc5aeede741d206d99d875a68354b158575509",
           "symbol": "DRW_DimAligned::setDimPoint"
@@ -28781,7 +28781,7 @@
       ],
       "evidence": [
         {
-          "line": 3434,
+          "line": 3464,
           "path": "src/drw_entities.h",
           "spanSha256": "b4d0d4fb3604df876b627ce66e8a22bc22341df788e013de8e535c1d63a85b99",
           "symbol": "DRW_DimAligned::getDef1Point"
@@ -28806,7 +28806,7 @@
       ],
       "evidence": [
         {
-          "line": 3437,
+          "line": 3467,
           "path": "src/drw_entities.h",
           "spanSha256": "bd7756c08be753be55c23e933d080ecf6aaf59a70dcb6d6845c3921be6f8bd80",
           "symbol": "DRW_DimAligned::setDef2Point"
@@ -28831,7 +28831,7 @@
       ],
       "evidence": [
         {
-          "line": 3425,
+          "line": 3455,
           "path": "src/drw_entities.h",
           "spanSha256": "badfee3fb9e0c0a72385757aad96357d613720e01f987889275ee0ecec50697c",
           "symbol": "DRW_DimAligned::DRW_Dimension"
@@ -28856,7 +28856,7 @@
       ],
       "evidence": [
         {
-          "line": 3432,
+          "line": 3462,
           "path": "src/drw_entities.h",
           "spanSha256": "8c925081d47484d4270e7ab642e5ae23a01b732aa3c1b6eecf5493da904c4b2e",
           "symbol": "DRW_DimAligned::getDimPoint"
@@ -28881,7 +28881,7 @@
       ],
       "evidence": [
         {
-          "line": 3430,
+          "line": 3460,
           "path": "src/drw_entities.h",
           "spanSha256": "b6b9e43f08794565702722b0cc645fab8d99899a465b99904ac1076f80d95878",
           "symbol": "DRW_DimAligned::setClonePoint"
@@ -28906,7 +28906,7 @@
       ],
       "evidence": [
         {
-          "line": 3435,
+          "line": 3465,
           "path": "src/drw_entities.h",
           "spanSha256": "6a92100229496dbde52d24cf24f56faf421c9d17932df38a08502e5d69a8d944",
           "symbol": "DRW_DimAligned::setDef1Point"
@@ -28931,7 +28931,7 @@
       ],
       "evidence": [
         {
-          "line": 3429,
+          "line": 3459,
           "path": "src/drw_entities.h",
           "spanSha256": "a2415f7c971d8f935cf1a0ebf3bfd50f0b9c70f89c2bf4952852c704fcd4d2e5",
           "symbol": "DRW_DimAligned::getClonepoint"
@@ -28956,7 +28956,7 @@
       ],
       "evidence": [
         {
-          "line": 3610,
+          "line": 3640,
           "path": "src/drw_entities.h",
           "spanSha256": "c44dcd70dfbe601201b3266acbd000cb260e0ea2cae8fb86792e52a4149177a7",
           "symbol": "DRW_DimAngular3p::setDimPoint"
@@ -28981,7 +28981,7 @@
       ],
       "evidence": [
         {
-          "line": 3607,
+          "line": 3637,
           "path": "src/drw_entities.h",
           "spanSha256": "e6f8c1259f908af17a84621431a3be4846e19aed6b238808f9920bd2e3845928",
           "symbol": "DRW_DimAngular3p::getVertexPoint"
@@ -29006,7 +29006,7 @@
       ],
       "evidence": [
         {
-          "line": 3603,
+          "line": 3633,
           "path": "src/drw_entities.h",
           "spanSha256": "aad02d37e1660e2f84c09bdfee5aa7409e8a3c6527969c43685a8abcc97e9090",
           "symbol": "DRW_DimAngular3p::getFirstLine"
@@ -29031,7 +29031,7 @@
       ],
       "evidence": [
         {
-          "line": 3604,
+          "line": 3634,
           "path": "src/drw_entities.h",
           "spanSha256": "61d98368dd5d8c58ed71101a503e3b0d9d836bacbb85e07cee5917b9063c2c20",
           "symbol": "DRW_DimAngular3p::setFirstLine"
@@ -29056,7 +29056,7 @@
       ],
       "evidence": [
         {
-          "line": 3606,
+          "line": 3636,
           "path": "src/drw_entities.h",
           "spanSha256": "b09f2f024729f0167e842c3b7151b1c68fba982336fe4751a1e81cf1231cb370",
           "symbol": "DRW_DimAngular3p::setSecondLine"
@@ -29081,7 +29081,7 @@
       ],
       "evidence": [
         {
-          "line": 3605,
+          "line": 3635,
           "path": "src/drw_entities.h",
           "spanSha256": "cb788282b52c2b984d14abf8bd4b1f58625a207a6da74138602b89d6c0da9a31",
           "symbol": "DRW_DimAngular3p::getSecondLine"
@@ -29106,7 +29106,7 @@
       ],
       "evidence": [
         {
-          "line": 3599,
+          "line": 3629,
           "path": "src/drw_entities.h",
           "spanSha256": "d7753f4ffde1faa4a086fbd2be4116a2db78da2370c89052f6bb3ba68c8de49d",
           "symbol": "DRW_DimAngular3p::DRW_Dimension"
@@ -29131,7 +29131,7 @@
       ],
       "evidence": [
         {
-          "line": 3608,
+          "line": 3638,
           "path": "src/drw_entities.h",
           "spanSha256": "76e4189209fbf483a0e2e659502227d621b5e8680de7a1cc6955e866737b2f74",
           "symbol": "DRW_DimAngular3p::SetVertexPoint"
@@ -29156,7 +29156,7 @@
       ],
       "evidence": [
         {
-          "line": 3609,
+          "line": 3639,
           "path": "src/drw_entities.h",
           "spanSha256": "8c925081d47484d4270e7ab642e5ae23a01b732aa3c1b6eecf5493da904c4b2e",
           "symbol": "DRW_DimAngular3p::getDimPoint"
@@ -29181,7 +29181,7 @@
       ],
       "evidence": [
         {
-          "line": 3580,
+          "line": 3610,
           "path": "src/drw_entities.h",
           "spanSha256": "c0d0c018dfd40812f5e14960188634faca542dbfb14c6d85e2c1d7cf3bbe826a",
           "symbol": "DRW_DimAngular::setDimPoint"
@@ -29206,7 +29206,7 @@
       ],
       "evidence": [
         {
-          "line": 3571,
+          "line": 3601,
           "path": "src/drw_entities.h",
           "spanSha256": "9ae873f4ad425a910eb07c6305a488c3375bdac24bb388e50059f3df3101b111",
           "symbol": "DRW_DimAngular::getFirstLine1"
@@ -29231,7 +29231,7 @@
       ],
       "evidence": [
         {
-          "line": 3574,
+          "line": 3604,
           "path": "src/drw_entities.h",
           "spanSha256": "bd8ca8d445784a09cb102c4bde9bcc3652bcd0d4dad9d2ba126d187bf17555e3",
           "symbol": "DRW_DimAngular::setFirstLine2"
@@ -29256,7 +29256,7 @@
       ],
       "evidence": [
         {
-          "line": 3567,
+          "line": 3597,
           "path": "src/drw_entities.h",
           "spanSha256": "f569ab3048d07eae4b0eadceaaac5c57a7419e6383828d95d85dec17249e32d8",
           "symbol": "DRW_DimAngular::DRW_Dimension"
@@ -29281,7 +29281,7 @@
       ],
       "evidence": [
         {
-          "line": 3573,
+          "line": 3603,
           "path": "src/drw_entities.h",
           "spanSha256": "c3cd689370eebc0e59069d337c5256b3f5b20197ca448b13f764156a8e43909f",
           "symbol": "DRW_DimAngular::getFirstLine2"
@@ -29306,7 +29306,7 @@
       ],
       "evidence": [
         {
-          "line": 3577,
+          "line": 3607,
           "path": "src/drw_entities.h",
           "spanSha256": "c6cb36e411d2dd338bac6db9ded9737640f74d4a1db3ea547af7b27af29d1f64",
           "symbol": "DRW_DimAngular::getSecondLine2"
@@ -29331,7 +29331,7 @@
       ],
       "evidence": [
         {
-          "line": 3578,
+          "line": 3608,
           "path": "src/drw_entities.h",
           "spanSha256": "bc050ef854d388d221d4fcfac028c67d810e5e0bd5214fb4945c6a3b62c547b8",
           "symbol": "DRW_DimAngular::setSecondLine2"
@@ -29356,7 +29356,7 @@
       ],
       "evidence": [
         {
-          "line": 3576,
+          "line": 3606,
           "path": "src/drw_entities.h",
           "spanSha256": "78ceda8afcc61c0aff40305234b8e7d11b50eabd18dd069b0dc446d0cbe22f24",
           "symbol": "DRW_DimAngular::setSecondLine1"
@@ -29381,7 +29381,7 @@
       ],
       "evidence": [
         {
-          "line": 3579,
+          "line": 3609,
           "path": "src/drw_entities.h",
           "spanSha256": "63e7de3b7ba7651f87a89cacd4eaec7939c379300bce3debfc10912279118051",
           "symbol": "DRW_DimAngular::getDimPoint"
@@ -29406,7 +29406,7 @@
       ],
       "evidence": [
         {
-          "line": 3575,
+          "line": 3605,
           "path": "src/drw_entities.h",
           "spanSha256": "d8650dd3307ebb7f592ba112f25a18d8e874de15000e30090b15cd5322cd353a",
           "symbol": "DRW_DimAngular::getSecondLine1"
@@ -29431,7 +29431,7 @@
       ],
       "evidence": [
         {
-          "line": 3572,
+          "line": 3602,
           "path": "src/drw_entities.h",
           "spanSha256": "0a72ba47729b760ba39adb41e9af6c0ed29f8dd5bce2c1c71be8261a1efc4b89",
           "symbol": "DRW_DimAngular::setFirstLine1"
@@ -29456,7 +29456,7 @@
       ],
       "evidence": [
         {
-          "line": 3632,
+          "line": 3662,
           "path": "src/drw_entities.h",
           "spanSha256": "0ed40a4dd00bb39eb1dd09167b3f0a82ece3fec1fcaa3eb4c9822b3db50aacad",
           "symbol": "DRW_DimArc::setArcCenter"
@@ -29481,7 +29481,7 @@
       ],
       "evidence": [
         {
-          "line": 3630,
+          "line": 3660,
           "path": "src/drw_entities.h",
           "spanSha256": "a29a3aec7a389bb57a7f38dddf2c3abc0dfec50e2306d3461545ce83363e3869",
           "symbol": "DRW_DimArc::setExtLine2"
@@ -29506,7 +29506,7 @@
       ],
       "evidence": [
         {
-          "line": 3622,
+          "line": 3652,
           "path": "src/drw_entities.h",
           "spanSha256": "8064bcd5052209c6772d9a7e243640faafa60d33eed5527d410f46948abf3581",
           "symbol": "DRW_DimArc::DRW_DimArc"
@@ -29531,7 +29531,7 @@
       ],
       "evidence": [
         {
-          "line": 3625,
+          "line": 3655,
           "path": "src/drw_entities.h",
           "spanSha256": "d46f33a7ba900e4220d7c4847b99fb0d87247f0cb069da854d0ef4c667197400",
           "symbol": "DRW_DimArc::getArcDefPoint"
@@ -29556,7 +29556,7 @@
       ],
       "evidence": [
         {
-          "line": 3623,
+          "line": 3653,
           "path": "src/drw_entities.h",
           "spanSha256": "980d3488677514c95452af5305b1a4295911e6e6f5d24d4df9882da87c58a13d",
           "symbol": "DRW_DimArc::DRW_Dimension"
@@ -29581,7 +29581,7 @@
       ],
       "evidence": [
         {
-          "line": 3629,
+          "line": 3659,
           "path": "src/drw_entities.h",
           "spanSha256": "f7f4e3c3d3bf931aaecc2307a3c92a7e306a4ccf9b8711c9e784eebfbe4a4cc8",
           "symbol": "DRW_DimArc::getExtLine2"
@@ -29606,7 +29606,7 @@
       ],
       "evidence": [
         {
-          "line": 3631,
+          "line": 3661,
           "path": "src/drw_entities.h",
           "spanSha256": "41b4b0654405a42d6c1ca66b75043c66f8b54ea2028d91ad82bfd618e9d13be4",
           "symbol": "DRW_DimArc::getArcCenter"
@@ -29631,7 +29631,7 @@
       ],
       "evidence": [
         {
-          "line": 3627,
+          "line": 3657,
           "path": "src/drw_entities.h",
           "spanSha256": "d17a306ece3bc6cd26dbd847b4dbbb53bf5791c71a967436085f888a862b015e",
           "symbol": "DRW_DimArc::getExtLine1"
@@ -29656,7 +29656,7 @@
       ],
       "evidence": [
         {
-          "line": 3626,
+          "line": 3656,
           "path": "src/drw_entities.h",
           "spanSha256": "26fb219a5c8d8edfe590b29dcd5d43e7568face0cc05140b59376d9f2de4f606",
           "symbol": "DRW_DimArc::setArcDefPoint"
@@ -29681,7 +29681,7 @@
       ],
       "evidence": [
         {
-          "line": 3633,
+          "line": 3663,
           "path": "src/drw_entities.h",
           "spanSha256": "8c35440837b943d59cad1e51186c80d0f7cc7773238794ffec98ec8767a2b0fb",
           "symbol": "DRW_DimArc::getLeaderPt1"
@@ -29706,7 +29706,7 @@
       ],
       "evidence": [
         {
-          "line": 3634,
+          "line": 3664,
           "path": "src/drw_entities.h",
           "spanSha256": "e8baed20bd39d684e2935002efe3672cd295cb90eecb9b5e04126c939408fe51",
           "symbol": "DRW_DimArc::setLeaderPt1"
@@ -29731,7 +29731,7 @@
       ],
       "evidence": [
         {
-          "line": 3628,
+          "line": 3658,
           "path": "src/drw_entities.h",
           "spanSha256": "c1f407a2e78c50ab84904b061db094375da5cd9ef6594d8624aecbf01811a7c0",
           "symbol": "DRW_DimArc::setExtLine1"
@@ -29756,7 +29756,7 @@
       ],
       "evidence": [
         {
-          "line": 3547,
+          "line": 3577,
           "path": "src/drw_entities.h",
           "spanSha256": "a28c1642fdc9e913a4752bc209f822c6bcf64da601a17c29ad5eafe6d36f3396",
           "symbol": "DRW_DimDiametric::setDiameter2Point"
@@ -29781,7 +29781,7 @@
       ],
       "evidence": [
         {
-          "line": 3548,
+          "line": 3578,
           "path": "src/drw_entities.h",
           "spanSha256": "b60a7c8df8e9de2e0155d3ddf4c45f5734baf97f079398282b17a6cf9e85528e",
           "symbol": "DRW_DimDiametric::getLeaderLength"
@@ -29806,7 +29806,7 @@
       ],
       "evidence": [
         {
-          "line": 3540,
+          "line": 3570,
           "path": "src/drw_entities.h",
           "spanSha256": "0416fc8a3f9f96ce29668922427ac6d5311f903b2bfa53a2a3a62c9a197afe3d",
           "symbol": "DRW_DimDiametric::DRW_Dimension"
@@ -29831,7 +29831,7 @@
       ],
       "evidence": [
         {
-          "line": 3544,
+          "line": 3574,
           "path": "src/drw_entities.h",
           "spanSha256": "f686e91be9612f6edef5db1ea46d8eb8a4dc915ed349c60b1069048bd581ca4f",
           "symbol": "DRW_DimDiametric::getDiameter1Point"
@@ -29856,7 +29856,7 @@
       ],
       "evidence": [
         {
-          "line": 3549,
+          "line": 3579,
           "path": "src/drw_entities.h",
           "spanSha256": "ee79a6e533fd5b704932699b257fd6f72b5a568e49d63121a5824c3b2aa63ee7",
           "symbol": "DRW_DimDiametric::setLeaderLength"
@@ -29881,7 +29881,7 @@
       ],
       "evidence": [
         {
-          "line": 3546,
+          "line": 3576,
           "path": "src/drw_entities.h",
           "spanSha256": "c1664ac183397a5e038806b36bdf40549e76c6112b49b71074fe72d31eb8b28f",
           "symbol": "DRW_DimDiametric::getDiameter2Point"
@@ -29906,7 +29906,7 @@
       ],
       "evidence": [
         {
-          "line": 3545,
+          "line": 3575,
           "path": "src/drw_entities.h",
           "spanSha256": "b957ea5fae80fdba3ded2360430e08416cea48024c54c226d48aa99924082f72",
           "symbol": "DRW_DimDiametric::setDiameter1Point"
@@ -29931,7 +29931,7 @@
       ],
       "evidence": [
         {
-          "line": 3514,
+          "line": 3544,
           "path": "src/drw_entities.h",
           "spanSha256": "5da0794530c9af44cc4f652964264b3e87543d2c0e8a19e4e39574442e8a94e5",
           "symbol": "DRW_DimLargeRadial::setChordPoint"
@@ -29956,7 +29956,7 @@
       ],
       "evidence": [
         {
-          "line": 3509,
+          "line": 3539,
           "path": "src/drw_entities.h",
           "spanSha256": "6b5c0c0176f30c9bbe2df5eb86f110c9df41addcdf1c15079f5404fda210a57e",
           "symbol": "DRW_DimLargeRadial::DRW_DimRadial"
@@ -29981,7 +29981,7 @@
       ],
       "evidence": [
         {
-          "line": 3513,
+          "line": 3543,
           "path": "src/drw_entities.h",
           "spanSha256": "40b1ede9fd5b9d8df4a00efe91848fe77a5f0a32ddfea1873382bcb06678e4ff",
           "symbol": "DRW_DimLargeRadial::getChordPoint"
@@ -30006,7 +30006,7 @@
       ],
       "evidence": [
         {
-          "line": 3458,
+          "line": 3488,
           "path": "src/drw_entities.h",
           "spanSha256": "a4f061e707d957c593ec9690a240dc76a7d7143291d42d028104c52e798ef251",
           "symbol": "DRW_DimLinear::getAngle"
@@ -30031,7 +30031,7 @@
       ],
       "evidence": [
         {
-          "line": 3460,
+          "line": 3490,
           "path": "src/drw_entities.h",
           "spanSha256": "b1944e72385680209b5646eed8ebb293e2e47e9699d2622959bd7325f430c06d",
           "symbol": "DRW_DimLinear::getOblique"
@@ -30056,7 +30056,7 @@
       ],
       "evidence": [
         {
-          "line": 3459,
+          "line": 3489,
           "path": "src/drw_entities.h",
           "spanSha256": "6ff828277478f5c0ac29d9d8b4ef39019aff080aa7b0cef9b1e3b311c2692ec8",
           "symbol": "DRW_DimLinear::setAngle"
@@ -30081,7 +30081,7 @@
       ],
       "evidence": [
         {
-          "line": 3454,
+          "line": 3484,
           "path": "src/drw_entities.h",
           "spanSha256": "4f7af2e84440610c68fe741efca52daf077ab701143052968a6a82ff9190c0ef",
           "symbol": "DRW_DimLinear::DRW_DimAligned"
@@ -30106,7 +30106,7 @@
       ],
       "evidence": [
         {
-          "line": 3461,
+          "line": 3491,
           "path": "src/drw_entities.h",
           "spanSha256": "cbc5059f2127dc1ca8e5ae913425bf3f4d25b79298833a7892b471f1938afb65",
           "symbol": "DRW_DimLinear::setOblique"
@@ -30131,7 +30131,7 @@
       ],
       "evidence": [
         {
-          "line": 3667,
+          "line": 3697,
           "path": "src/drw_entities.h",
           "spanSha256": "407e0a8a628151084da24e2489704aae3f5cfd05830be3f076357499442781ac",
           "symbol": "DRW_DimOrdinate::setOriginPoint"
@@ -30156,7 +30156,7 @@
       ],
       "evidence": [
         {
-          "line": 3662,
+          "line": 3692,
           "path": "src/drw_entities.h",
           "spanSha256": "de8816943dcc4b849b43bb63fed56b49ca423fe6a5a185d421db1d2e27ae74de",
           "symbol": "DRW_DimOrdinate::DRW_Dimension"
@@ -30181,7 +30181,7 @@
       ],
       "evidence": [
         {
-          "line": 3668,
+          "line": 3698,
           "path": "src/drw_entities.h",
           "spanSha256": "aad02d37e1660e2f84c09bdfee5aa7409e8a3c6527969c43685a8abcc97e9090",
           "symbol": "DRW_DimOrdinate::getFirstLine"
@@ -30206,7 +30206,7 @@
       ],
       "evidence": [
         {
-          "line": 3669,
+          "line": 3699,
           "path": "src/drw_entities.h",
           "spanSha256": "61d98368dd5d8c58ed71101a503e3b0d9d836bacbb85e07cee5917b9063c2c20",
           "symbol": "DRW_DimOrdinate::setFirstLine"
@@ -30231,7 +30231,7 @@
       ],
       "evidence": [
         {
-          "line": 3671,
+          "line": 3701,
           "path": "src/drw_entities.h",
           "spanSha256": "b09f2f024729f0167e842c3b7151b1c68fba982336fe4751a1e81cf1231cb370",
           "symbol": "DRW_DimOrdinate::setSecondLine"
@@ -30256,7 +30256,7 @@
       ],
       "evidence": [
         {
-          "line": 3670,
+          "line": 3700,
           "path": "src/drw_entities.h",
           "spanSha256": "cb788282b52c2b984d14abf8bd4b1f58625a207a6da74138602b89d6c0da9a31",
           "symbol": "DRW_DimOrdinate::getSecondLine"
@@ -30281,7 +30281,7 @@
       ],
       "evidence": [
         {
-          "line": 3666,
+          "line": 3696,
           "path": "src/drw_entities.h",
           "spanSha256": "7ee9112f96789f1101a69deb1132d8e3a55fa76a496671614537b5d4e106e686",
           "symbol": "DRW_DimOrdinate::getOriginPoint"
@@ -30306,7 +30306,7 @@
       ],
       "evidence": [
         {
-          "line": 3486,
+          "line": 3516,
           "path": "src/drw_entities.h",
           "spanSha256": "b60a7c8df8e9de2e0155d3ddf4c45f5734baf97f079398282b17a6cf9e85528e",
           "symbol": "DRW_DimRadial::getLeaderLength"
@@ -30331,7 +30331,7 @@
       ],
       "evidence": [
         {
-          "line": 3484,
+          "line": 3514,
           "path": "src/drw_entities.h",
           "spanSha256": "cfe8b76a8491b1648b13a4865ee6a769df462bf25e9c7471cd7726a8245de016",
           "symbol": "DRW_DimRadial::getDiameterPoint"
@@ -30356,7 +30356,7 @@
       ],
       "evidence": [
         {
-          "line": 3478,
+          "line": 3508,
           "path": "src/drw_entities.h",
           "spanSha256": "144681b27479ac3aef60a1b6af5b7aaa9c4960bc32410260da49a558a7370b42",
           "symbol": "DRW_DimRadial::DRW_Dimension"
@@ -30381,7 +30381,7 @@
       ],
       "evidence": [
         {
-          "line": 3482,
+          "line": 3512,
           "path": "src/drw_entities.h",
           "spanSha256": "9e9b67da398596386f1524cfc817698a020d50e36321bdda4297569e2f720da3",
           "symbol": "DRW_DimRadial::getCenterPoint"
@@ -30406,7 +30406,7 @@
       ],
       "evidence": [
         {
-          "line": 3487,
+          "line": 3517,
           "path": "src/drw_entities.h",
           "spanSha256": "ee79a6e533fd5b704932699b257fd6f72b5a568e49d63121a5824c3b2aa63ee7",
           "symbol": "DRW_DimRadial::setLeaderLength"
@@ -30431,7 +30431,7 @@
       ],
       "evidence": [
         {
-          "line": 3485,
+          "line": 3515,
           "path": "src/drw_entities.h",
           "spanSha256": "a165d4c5d29b432a5d36953f6873b3ccacf6e12087a814902df861bd3ab9102c",
           "symbol": "DRW_DimRadial::setDiameterPoint"
@@ -30456,7 +30456,7 @@
       ],
       "evidence": [
         {
-          "line": 3483,
+          "line": 3513,
           "path": "src/drw_entities.h",
           "spanSha256": "bf4850391897399edc316154493c8df8c8f3628e2aa11475775857413f3f0143",
           "symbol": "DRW_DimRadial::setCenterPoint"
@@ -30481,7 +30481,7 @@
       ],
       "evidence": [
         {
-          "line": 3340,
+          "line": 3370,
           "path": "src/drw_entities.h",
           "spanSha256": "a6f28a8fed159b321c53424016cd99ee1a6babb1c05edc7f957bfa192c0746ba",
           "symbol": "DRW_Dimension::getExtrusion"
@@ -30506,7 +30506,7 @@
       ],
       "evidence": [
         {
-          "line": 3333,
+          "line": 3363,
           "path": "src/drw_entities.h",
           "spanSha256": "5d16674c36c7c159a47ccdd8366416d843118af001ebeaf0e5ed1ed5ed34bf7d",
           "symbol": "DRW_Dimension::getHDir"
@@ -30531,7 +30531,7 @@
       ],
       "evidence": [
         {
-          "line": 3325,
+          "line": 3355,
           "path": "src/drw_entities.h",
           "spanSha256": "24b6a68da55f945a81581becabc831c115c9d3ab221c1ce0ef01951d423edcaa",
           "symbol": "DRW_Dimension::getTextLineStyle"
@@ -30556,7 +30556,7 @@
       ],
       "evidence": [
         {
-          "line": 3334,
+          "line": 3364,
           "path": "src/drw_entities.h",
           "spanSha256": "71c4235f9ce549a58a281cf68aa7aba76ecd87cbb54b428f7a02df95c79f51b9",
           "symbol": "DRW_Dimension::setHDir"
@@ -30581,7 +30581,7 @@
       ],
       "evidence": [
         {
-          "line": 3323,
+          "line": 3353,
           "path": "src/drw_entities.h",
           "spanSha256": "5b41c8f20e853a812d706bca9302ca8e15e9204b3a40ae0ec43d7ee6511b84a1",
           "symbol": "DRW_Dimension::getAlign"
@@ -30606,7 +30606,7 @@
       ],
       "evidence": [
         {
-          "line": 3321,
+          "line": 3351,
           "path": "src/drw_entities.h",
           "spanSha256": "18314a3635ad687b68697082826d0898e0eef9d57952a63b764e0d0adbb58a94",
           "symbol": "DRW_Dimension::getStyle"
@@ -30631,7 +30631,7 @@
       ],
       "evidence": [
         {
-          "line": 3336,
+          "line": 3366,
           "path": "src/drw_entities.h",
           "spanSha256": "afac2ad25956967662fff06a9b70bbf717cbbb7e8f7ef80de868f0803b121d45",
           "symbol": "DRW_Dimension::getFlipArrow2"
@@ -30656,7 +30656,7 @@
       ],
       "evidence": [
         {
-          "line": 3341,
+          "line": 3371,
           "path": "src/drw_entities.h",
           "spanSha256": "c35f57ce5c095170c1b0efe343d5ab6caeeb1256b0bee7346e153398d761ba74",
           "symbol": "DRW_Dimension::setExtrusion"
@@ -30681,7 +30681,7 @@
       ],
       "evidence": [
         {
-          "line": 3337,
+          "line": 3367,
           "path": "src/drw_entities.h",
           "spanSha256": "7276c3ef0d9baa3b907b6a18c4aaed4159effdeb1824f3281e9be5c148095c3a",
           "symbol": "DRW_Dimension::setFlipArrow1"
@@ -30706,7 +30706,7 @@
       ],
       "evidence": [
         {
-          "line": 3324,
+          "line": 3354,
           "path": "src/drw_entities.h",
           "spanSha256": "953f55c86d1c38d5188c7e09a1aa13f271dbd28c80ba4fed3a7e4758c37137a3",
           "symbol": "DRW_Dimension::setAlign"
@@ -30731,7 +30731,7 @@
       ],
       "evidence": [
         {
-          "line": 3342,
+          "line": 3372,
           "path": "src/drw_entities.h",
           "spanSha256": "ed12d6d2f8af8fd1dc03d29dc2abab0eed49dfd99d919158578f0fb7854bf41e",
           "symbol": "DRW_Dimension::getName"
@@ -30756,7 +30756,7 @@
       ],
       "evidence": [
         {
-          "line": 3331,
+          "line": 3361,
           "path": "src/drw_entities.h",
           "spanSha256": "4a9b9c49b8dc344541c6c53631df12057336ad91222648ae90e1c43b862dcaf4",
           "symbol": "DRW_Dimension::getDir"
@@ -30781,7 +30781,7 @@
       ],
       "evidence": [
         {
-          "line": 3343,
+          "line": 3373,
           "path": "src/drw_entities.h",
           "spanSha256": "d09ff9007800f92bba12df4c59f5242f054a24c097ea7c5fe897bbd87e304b86",
           "symbol": "DRW_Dimension::setName"
@@ -30806,7 +30806,7 @@
       ],
       "evidence": [
         {
-          "line": 3338,
+          "line": 3368,
           "path": "src/drw_entities.h",
           "spanSha256": "a73188b3d6443ed4dfc4a1b76794e90d04c4aa89cce1596b2186ae54a13aa9dc",
           "symbol": "DRW_Dimension::setFlipArrow2"
@@ -30831,7 +30831,7 @@
       ],
       "evidence": [
         {
-          "line": 3335,
+          "line": 3365,
           "path": "src/drw_entities.h",
           "spanSha256": "6da1942389bf8520f792d5a7592b0624c33cf2048043cc18608328c547d6483c",
           "symbol": "DRW_Dimension::getFlipArrow1"
@@ -30856,7 +30856,7 @@
       ],
       "evidence": [
         {
-          "line": 3304,
+          "line": 3334,
           "path": "src/drw_entities.h",
           "spanSha256": "e8ca455c6eeea39661746216a147e194351d3b841e3894b40833619c2f8728f6",
           "symbol": "DRW_Dimension::~DRW_Dimension"
@@ -30881,7 +30881,7 @@
       ],
       "evidence": [
         {
-          "line": 3326,
+          "line": 3356,
           "path": "src/drw_entities.h",
           "spanSha256": "3030deb3dc17aa3dcf9117061f679997f2aff06bf78174cb9387ce1bff2b1d52",
           "symbol": "DRW_Dimension::setTextLineStyle"
@@ -30906,7 +30906,7 @@
       ],
       "evidence": [
         {
-          "line": 3317,
+          "line": 3347,
           "path": "src/drw_entities.h",
           "spanSha256": "aa9e104aa73ebabe1f30e0eeb09e8baa514da65fe3ba41ab760a45a88fdc0add",
           "symbol": "DRW_Dimension::getDefPoint"
@@ -30931,7 +30931,7 @@
       ],
       "evidence": [
         {
-          "line": 3329,
+          "line": 3359,
           "path": "src/drw_entities.h",
           "spanSha256": "fc2b79f7891a4c6c3791293dc93776c67b0addf9cd2558b2e7244f7d3ab7935d",
           "symbol": "DRW_Dimension::getTextLineFactor"
@@ -30956,7 +30956,7 @@
       ],
       "evidence": [
         {
-          "line": 3322,
+          "line": 3352,
           "path": "src/drw_entities.h",
           "spanSha256": "13ccba7be9b378f7ed93943191a38dc8ed82c01bcc48d62d367c16c30a84e0a3",
           "symbol": "DRW_Dimension::setStyle"
@@ -30981,7 +30981,7 @@
       ],
       "evidence": [
         {
-          "line": 3319,
+          "line": 3349,
           "path": "src/drw_entities.h",
           "spanSha256": "dd53bade28893c0018e296b62bae93913f2f764b9bc457ef57cebe8d65f15e69",
           "symbol": "DRW_Dimension::getTextPoint"
@@ -31006,7 +31006,7 @@
       ],
       "evidence": [
         {
-          "line": 3320,
+          "line": 3350,
           "path": "src/drw_entities.h",
           "spanSha256": "b46ce1b71748e1b76fad928bb81418e0cb0760824ad9a17dfbf433febbc61b9f",
           "symbol": "DRW_Dimension::setTextPoint"
@@ -31031,7 +31031,7 @@
       ],
       "evidence": [
         {
-          "line": 3327,
+          "line": 3357,
           "path": "src/drw_entities.h",
           "spanSha256": "9716f6302d5b8165689a83da28e6dab69a8185e57d74f2ecd5a69c480cb9f7c6",
           "symbol": "DRW_Dimension::getText"
@@ -31056,7 +31056,7 @@
       ],
       "evidence": [
         {
-          "line": 3345,
+          "line": 3375,
           "path": "src/drw_entities.h",
           "spanSha256": "302c4fa3d676960a71fb3af3594bf6d0a215fa3541072cd5d5ca894afcd21a37",
           "symbol": "DRW_Dimension::getMeasureValue"
@@ -31081,7 +31081,7 @@
       ],
       "evidence": [
         {
-          "line": 3330,
+          "line": 3360,
           "path": "src/drw_entities.h",
           "spanSha256": "cfde3e496d50b4c94d64da7387fd2c16cdae9e250d66b3341d95fef00fb1180c",
           "symbol": "DRW_Dimension::setTextLineFactor"
@@ -31106,7 +31106,7 @@
       ],
       "evidence": [
         {
-          "line": 3265,
+          "line": 3295,
           "path": "src/drw_entities.h",
           "spanSha256": "391dc97120ca62f31d76d6af131ff45a9dfa6ff091e43a915fadf30d1677ac19",
           "symbol": "DRW_Dimension::DRW_Entity"
@@ -31131,7 +31131,7 @@
       ],
       "evidence": [
         {
-          "line": 3328,
+          "line": 3358,
           "path": "src/drw_entities.h",
           "spanSha256": "9a25856aa7c634a3671e672b0e39de75a59a74fa62ca79b4fa2900239236663b",
           "symbol": "DRW_Dimension::setText"
@@ -31156,7 +31156,7 @@
       ],
       "evidence": [
         {
-          "line": 3318,
+          "line": 3348,
           "path": "src/drw_entities.h",
           "spanSha256": "68458d02c98bbfbfc576d3b7e1c2328a0512085d1195aed49d47d649720674be",
           "symbol": "DRW_Dimension::setDefPoint"
@@ -31181,7 +31181,7 @@
       ],
       "evidence": [
         {
-          "line": 3332,
+          "line": 3362,
           "path": "src/drw_entities.h",
           "spanSha256": "9532f644c350dd6324e888b339fb9eccee44d51c18c1a809a45bf3a26d609f06",
           "symbol": "DRW_Dimension::setDir"
@@ -31206,7 +31206,7 @@
       ],
       "evidence": [
         {
-          "line": 3306,
+          "line": 3336,
           "path": "src/drw_entities.h",
           "spanSha256": "50bd3aee93cf5ca52566a1a865b01141cac519b542702105e959eb220cb4a24c",
           "symbol": "DRW_Dimension::applyExtrusion"
@@ -31706,7 +31706,7 @@
       ],
       "evidence": [
         {
-          "line": 3029,
+          "line": 3059,
           "path": "src/drw_entities.h",
           "spanSha256": "29a08f395c7a5ee35ec9cff3a3d54748a6af6b9e804e8d64a6829fb49c43859f",
           "symbol": "DRW_ExtrudedSurface::DRW_ExtrudedSurface"
@@ -31781,7 +31781,32 @@
       ],
       "evidence": [
         {
-          "line": 2388,
+          "line": 2390,
+          "path": "src/drw_entities.h",
+          "spanSha256": "42f108abd100c77b4ce48b8253ee26972676c5599a4b0125087f5e87d6638705",
+          "symbol": "DRW_HatchLoop::operator="
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-inline-method/src_drw_entities.h_DRW_HatchLoop_79acdc3b38b2ac6b84de00a583e7336683c3cd664a46558c4e7ae33f962ea826",
+      "selector": {
+        "implementationKind": "defaulted",
+        "kind": "method",
+        "owner": "DRW_HatchLoop",
+        "qualifiedName": "DRW_HatchLoop::operator=",
+        "signatureFingerprint": "79acdc3b38b2ac6b84de00a583e7336683c3cd664a46558c4e7ae33f962ea826",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-inline-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 2392,
           "path": "src/drw_entities.h",
           "spanSha256": "0e8388cf66be0a0adc7e34399f91e2112b0f4e43d3335be6de77ae39970e3a06",
           "symbol": "DRW_HatchLoop::update"
@@ -31806,7 +31831,32 @@
       ],
       "evidence": [
         {
-          "line": 2451,
+          "line": 2389,
+          "path": "src/drw_entities.h",
+          "spanSha256": "45cfc34c245a7a0cca3b3f905f728c0bfc9d743aaefce6e1f81c16b87409698e",
+          "symbol": "DRW_HatchLoop::DRW_HatchLoop"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-inline-method/src_drw_entities.h_DRW_HatchLoop_cf55ec11be58558a82da0890692c157a731db54202cbe5256f5c8454cd2ad7b2",
+      "selector": {
+        "implementationKind": "defaulted",
+        "kind": "method",
+        "owner": "DRW_HatchLoop",
+        "qualifiedName": "DRW_HatchLoop::DRW_HatchLoop",
+        "signatureFingerprint": "cf55ec11be58558a82da0890692c157a731db54202cbe5256f5c8454cd2ad7b2",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-inline-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 2459,
           "path": "src/drw_entities.h",
           "spanSha256": "4be6bc196822205cf364e3ab8334bc54418693e4089eac19cbedf8dbc46dc517",
           "symbol": "DRW_Hatch::appendLoop"
@@ -31831,7 +31881,57 @@
       ],
       "evidence": [
         {
-          "line": 2414,
+          "line": 2429,
+          "path": "src/drw_entities.h",
+          "spanSha256": "aed44371a43421cd4915ca25f796d9cada3e8a01c83e6ddfe0bb372d35f35a72",
+          "symbol": "DRW_Hatch::DRW_Hatch"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-inline-method/src_drw_entities.h_DRW_Hatch_922983d21b064324ff73e7610472ad54eea36cbdc7f5be8d6f554cde70209ce2",
+      "selector": {
+        "implementationKind": "defaulted",
+        "kind": "method",
+        "owner": "DRW_Hatch",
+        "qualifiedName": "DRW_Hatch::DRW_Hatch",
+        "signatureFingerprint": "922983d21b064324ff73e7610472ad54eea36cbdc7f5be8d6f554cde70209ce2",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-inline-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 2430,
+          "path": "src/drw_entities.h",
+          "spanSha256": "355d53413ccd499eb0cf8aa4d7bc92e42fcf2a8d4ba9930dd9755738baa6f4da",
+          "symbol": "DRW_Hatch::operator="
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-inline-method/src_drw_entities.h_DRW_Hatch_e0b4de2cd099c2672738948a835f019317de77b50a73ddc5accd50f3649dd15e",
+      "selector": {
+        "implementationKind": "defaulted",
+        "kind": "method",
+        "owner": "DRW_Hatch",
+        "qualifiedName": "DRW_Hatch::operator=",
+        "signatureFingerprint": "e0b4de2cd099c2672738948a835f019317de77b50a73ddc5accd50f3649dd15e",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-inline-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 2418,
           "path": "src/drw_entities.h",
           "spanSha256": "3753c62519b4da540e8f7a067cbaea47869c83f4afe03bae52f73094cdc398da",
           "symbol": "DRW_Hatch::DRW_Hatch"
@@ -31856,7 +31956,7 @@
       ],
       "evidence": [
         {
-          "line": 2687,
+          "line": 2717,
           "path": "src/drw_entities.h",
           "spanSha256": "5546f9303aaaea4f58dd5e464e1f01ecad12bcdba8a83abad6dac33b62241e74",
           "symbol": "DRW_Image::DRW_Image"
@@ -32031,7 +32131,7 @@
       ],
       "evidence": [
         {
-          "line": 3691,
+          "line": 3721,
           "path": "src/drw_entities.h",
           "spanSha256": "50bd3aee93cf5ca52566a1a865b01141cac519b542702105e959eb220cb4a24c",
           "symbol": "DRW_Leader::applyExtrusion"
@@ -32131,7 +32231,7 @@
       ],
       "evidence": [
         {
-          "line": 3179,
+          "line": 3209,
           "path": "src/drw_entities.h",
           "spanSha256": "d500c5dd19708eb3ab857aa025e48cab633bb0097a34b3454334a8892d7ff5e4",
           "symbol": "DRW_LoftedSurface::DRW_LoftedSurface"
@@ -32156,7 +32256,7 @@
       ],
       "evidence": [
         {
-          "line": 3863,
+          "line": 3893,
           "path": "src/drw_entities.h",
           "spanSha256": "cd57d242c98a02c25b5b144c47dbeb5a7322758aabe1fd20d534a1ad903f070e",
           "symbol": "DRW_MLeader::isDxfContextClosed"
@@ -32181,7 +32281,7 @@
       ],
       "evidence": [
         {
-          "line": 3846,
+          "line": 3876,
           "path": "src/drw_entities.h",
           "spanSha256": "50bd3aee93cf5ca52566a1a865b01141cac519b542702105e959eb220cb4a24c",
           "symbol": "DRW_MLeader::applyExtrusion"
@@ -32406,7 +32506,7 @@
       ],
       "evidence": [
         {
-          "line": 2786,
+          "line": 2816,
           "path": "src/drw_entities.h",
           "spanSha256": "47faf71f7a01cc1d55cd4080c6252e63e42e3159ef031bfce6b4af57642d3e34",
           "symbol": "DRW_NavisworksModel::DRW_NavisworksModel"
@@ -32431,7 +32531,7 @@
       ],
       "evidence": [
         {
-          "line": 2794,
+          "line": 2824,
           "path": "src/drw_entities.h",
           "spanSha256": "50bd3aee93cf5ca52566a1a865b01141cac519b542702105e959eb220cb4a24c",
           "symbol": "DRW_NavisworksModel::applyExtrusion"
@@ -32556,7 +32656,7 @@
       ],
       "evidence": [
         {
-          "line": 3020,
+          "line": 3050,
           "path": "src/drw_entities.h",
           "spanSha256": "dd84126d71103dcda88de6143a265b3a508f69be7e6d7d5e55e94be074bb09a2",
           "symbol": "DRW_PlaneSurface::DRW_PlaneSurface"
@@ -32581,7 +32681,7 @@
       ],
       "evidence": [
         {
-          "line": 2903,
+          "line": 2933,
           "path": "src/drw_entities.h",
           "spanSha256": "526edae208409ac785da812e5427ebe3dad9d0281e39756481af51540758240b",
           "symbol": "DRW_PointCloudEx::DRW_PointCloudEx"
@@ -32606,7 +32706,7 @@
       ],
       "evidence": [
         {
-          "line": 2904,
+          "line": 2934,
           "path": "src/drw_entities.h",
           "spanSha256": "50bd3aee93cf5ca52566a1a865b01141cac519b542702105e959eb220cb4a24c",
           "symbol": "DRW_PointCloudEx::applyExtrusion"
@@ -32631,7 +32731,7 @@
       ],
       "evidence": [
         {
-          "line": 2845,
+          "line": 2875,
           "path": "src/drw_entities.h",
           "spanSha256": "25901a0bbec64c2e45af4093960564356ea416edc7ca673e271a8ca9d7513e53",
           "symbol": "DRW_PointCloud::DRW_PointCloud"
@@ -32656,7 +32756,7 @@
       ],
       "evidence": [
         {
-          "line": 2846,
+          "line": 2876,
           "path": "src/drw_entities.h",
           "spanSha256": "50bd3aee93cf5ca52566a1a865b01141cac519b542702105e959eb220cb4a24c",
           "symbol": "DRW_PointCloud::applyExtrusion"
@@ -33031,7 +33131,7 @@
       ],
       "evidence": [
         {
-          "line": 3080,
+          "line": 3110,
           "path": "src/drw_entities.h",
           "spanSha256": "37eba0457069298be8b91e1e83478282f8cf066b6e5483890f7f03ec479f54e7",
           "symbol": "DRW_RevolvedSurface::DRW_RevolvedSurface"
@@ -33506,7 +33606,7 @@
       ],
       "evidence": [
         {
-          "line": 2974,
+          "line": 3004,
           "path": "src/drw_entities.h",
           "spanSha256": "f50e2f0eabd0102b8f84d9eb3f8ea2df2d8315803ad74c50779b57d53fcac17d",
           "symbol": "DRW_Surface::getDwgClassNum"
@@ -33531,7 +33631,7 @@
       ],
       "evidence": [
         {
-          "line": 3005,
+          "line": 3035,
           "path": "src/drw_entities.h",
           "spanSha256": "7c0cbe7327fe045bfac1b5d655fd62a0d0ec1ad1c590ef9fafd09ce37f560c88",
           "symbol": "DRW_Surface::decodeWireframe"
@@ -33556,7 +33656,7 @@
       ],
       "evidence": [
         {
-          "line": 2976,
+          "line": 3006,
           "path": "src/drw_entities.h",
           "spanSha256": "b3d6cf9b9527e956d69ab213c669110f1470ceecc9174349e97e90c2ad1c7187",
           "symbol": "DRW_Surface::finalizeDxf"
@@ -33581,7 +33681,7 @@
       ],
       "evidence": [
         {
-          "line": 2970,
+          "line": 3000,
           "path": "src/drw_entities.h",
           "spanSha256": "027137decf1184c33e0a7e79ad83931fde33d66afc5d46a33f1bd7d412ea1677",
           "symbol": "DRW_Surface::setDwgClassNum"
@@ -33606,7 +33706,7 @@
       ],
       "evidence": [
         {
-          "line": 2975,
+          "line": 3005,
           "path": "src/drw_entities.h",
           "spanSha256": "50bd3aee93cf5ca52566a1a865b01141cac519b542702105e959eb220cb4a24c",
           "symbol": "DRW_Surface::applyExtrusion"
@@ -33631,7 +33731,7 @@
       ],
       "evidence": [
         {
-          "line": 3118,
+          "line": 3148,
           "path": "src/drw_entities.h",
           "spanSha256": "16bbd7e0992938abae066a47e6124f399137c0fda42b1c282c8e07e391dd8009",
           "symbol": "DRW_SweptSurface::DRW_SweptSurface"
@@ -44556,7 +44656,7 @@
       ],
       "evidence": [
         {
-          "line": 3436,
+          "line": 3466,
           "path": "src/drw_entities.h",
           "spanSha256": "77ccb35f3ddef5854a0f6de4e1420e5ba2cfb8cbb68e77ea23985e5a0e939262",
           "symbol": "DRW_DimAligned::getDef2Point"
@@ -44580,7 +44680,7 @@
       ],
       "evidence": [
         {
-          "line": 3433,
+          "line": 3463,
           "path": "src/drw_entities.h",
           "spanSha256": "0bcc8d72723fdc807cc01a22d1bc5aeede741d206d99d875a68354b158575509",
           "symbol": "DRW_DimAligned::setDimPoint"
@@ -44604,7 +44704,7 @@
       ],
       "evidence": [
         {
-          "line": 3434,
+          "line": 3464,
           "path": "src/drw_entities.h",
           "spanSha256": "b4d0d4fb3604df876b627ce66e8a22bc22341df788e013de8e535c1d63a85b99",
           "symbol": "DRW_DimAligned::getDef1Point"
@@ -44628,7 +44728,7 @@
       ],
       "evidence": [
         {
-          "line": 3437,
+          "line": 3467,
           "path": "src/drw_entities.h",
           "spanSha256": "bd7756c08be753be55c23e933d080ecf6aaf59a70dcb6d6845c3921be6f8bd80",
           "symbol": "DRW_DimAligned::setDef2Point"
@@ -44652,7 +44752,7 @@
       ],
       "evidence": [
         {
-          "line": 3425,
+          "line": 3455,
           "path": "src/drw_entities.h",
           "spanSha256": "badfee3fb9e0c0a72385757aad96357d613720e01f987889275ee0ecec50697c",
           "symbol": "DRW_DimAligned::DRW_Dimension"
@@ -44676,7 +44776,7 @@
       ],
       "evidence": [
         {
-          "line": 3432,
+          "line": 3462,
           "path": "src/drw_entities.h",
           "spanSha256": "8c925081d47484d4270e7ab642e5ae23a01b732aa3c1b6eecf5493da904c4b2e",
           "symbol": "DRW_DimAligned::getDimPoint"
@@ -44700,7 +44800,7 @@
       ],
       "evidence": [
         {
-          "line": 3430,
+          "line": 3460,
           "path": "src/drw_entities.h",
           "spanSha256": "b6b9e43f08794565702722b0cc645fab8d99899a465b99904ac1076f80d95878",
           "symbol": "DRW_DimAligned::setClonePoint"
@@ -44724,7 +44824,7 @@
       ],
       "evidence": [
         {
-          "line": 3435,
+          "line": 3465,
           "path": "src/drw_entities.h",
           "spanSha256": "6a92100229496dbde52d24cf24f56faf421c9d17932df38a08502e5d69a8d944",
           "symbol": "DRW_DimAligned::setDef1Point"
@@ -44748,7 +44848,7 @@
       ],
       "evidence": [
         {
-          "line": 3429,
+          "line": 3459,
           "path": "src/drw_entities.h",
           "spanSha256": "a2415f7c971d8f935cf1a0ebf3bfd50f0b9c70f89c2bf4952852c704fcd4d2e5",
           "symbol": "DRW_DimAligned::getClonepoint"
@@ -44772,7 +44872,7 @@
       ],
       "evidence": [
         {
-          "line": 3610,
+          "line": 3640,
           "path": "src/drw_entities.h",
           "spanSha256": "c44dcd70dfbe601201b3266acbd000cb260e0ea2cae8fb86792e52a4149177a7",
           "symbol": "DRW_DimAngular3p::setDimPoint"
@@ -44796,7 +44896,7 @@
       ],
       "evidence": [
         {
-          "line": 3607,
+          "line": 3637,
           "path": "src/drw_entities.h",
           "spanSha256": "e6f8c1259f908af17a84621431a3be4846e19aed6b238808f9920bd2e3845928",
           "symbol": "DRW_DimAngular3p::getVertexPoint"
@@ -44820,7 +44920,7 @@
       ],
       "evidence": [
         {
-          "line": 3603,
+          "line": 3633,
           "path": "src/drw_entities.h",
           "spanSha256": "aad02d37e1660e2f84c09bdfee5aa7409e8a3c6527969c43685a8abcc97e9090",
           "symbol": "DRW_DimAngular3p::getFirstLine"
@@ -44844,7 +44944,7 @@
       ],
       "evidence": [
         {
-          "line": 3604,
+          "line": 3634,
           "path": "src/drw_entities.h",
           "spanSha256": "61d98368dd5d8c58ed71101a503e3b0d9d836bacbb85e07cee5917b9063c2c20",
           "symbol": "DRW_DimAngular3p::setFirstLine"
@@ -44868,7 +44968,7 @@
       ],
       "evidence": [
         {
-          "line": 3606,
+          "line": 3636,
           "path": "src/drw_entities.h",
           "spanSha256": "b09f2f024729f0167e842c3b7151b1c68fba982336fe4751a1e81cf1231cb370",
           "symbol": "DRW_DimAngular3p::setSecondLine"
@@ -44892,7 +44992,7 @@
       ],
       "evidence": [
         {
-          "line": 3605,
+          "line": 3635,
           "path": "src/drw_entities.h",
           "spanSha256": "cb788282b52c2b984d14abf8bd4b1f58625a207a6da74138602b89d6c0da9a31",
           "symbol": "DRW_DimAngular3p::getSecondLine"
@@ -44916,7 +45016,7 @@
       ],
       "evidence": [
         {
-          "line": 3599,
+          "line": 3629,
           "path": "src/drw_entities.h",
           "spanSha256": "d7753f4ffde1faa4a086fbd2be4116a2db78da2370c89052f6bb3ba68c8de49d",
           "symbol": "DRW_DimAngular3p::DRW_Dimension"
@@ -44940,7 +45040,7 @@
       ],
       "evidence": [
         {
-          "line": 3608,
+          "line": 3638,
           "path": "src/drw_entities.h",
           "spanSha256": "76e4189209fbf483a0e2e659502227d621b5e8680de7a1cc6955e866737b2f74",
           "symbol": "DRW_DimAngular3p::SetVertexPoint"
@@ -44964,7 +45064,7 @@
       ],
       "evidence": [
         {
-          "line": 3609,
+          "line": 3639,
           "path": "src/drw_entities.h",
           "spanSha256": "8c925081d47484d4270e7ab642e5ae23a01b732aa3c1b6eecf5493da904c4b2e",
           "symbol": "DRW_DimAngular3p::getDimPoint"
@@ -44988,7 +45088,7 @@
       ],
       "evidence": [
         {
-          "line": 3580,
+          "line": 3610,
           "path": "src/drw_entities.h",
           "spanSha256": "c0d0c018dfd40812f5e14960188634faca542dbfb14c6d85e2c1d7cf3bbe826a",
           "symbol": "DRW_DimAngular::setDimPoint"
@@ -45012,7 +45112,7 @@
       ],
       "evidence": [
         {
-          "line": 3571,
+          "line": 3601,
           "path": "src/drw_entities.h",
           "spanSha256": "9ae873f4ad425a910eb07c6305a488c3375bdac24bb388e50059f3df3101b111",
           "symbol": "DRW_DimAngular::getFirstLine1"
@@ -45036,7 +45136,7 @@
       ],
       "evidence": [
         {
-          "line": 3574,
+          "line": 3604,
           "path": "src/drw_entities.h",
           "spanSha256": "bd8ca8d445784a09cb102c4bde9bcc3652bcd0d4dad9d2ba126d187bf17555e3",
           "symbol": "DRW_DimAngular::setFirstLine2"
@@ -45060,7 +45160,7 @@
       ],
       "evidence": [
         {
-          "line": 3567,
+          "line": 3597,
           "path": "src/drw_entities.h",
           "spanSha256": "f569ab3048d07eae4b0eadceaaac5c57a7419e6383828d95d85dec17249e32d8",
           "symbol": "DRW_DimAngular::DRW_Dimension"
@@ -45084,7 +45184,7 @@
       ],
       "evidence": [
         {
-          "line": 3573,
+          "line": 3603,
           "path": "src/drw_entities.h",
           "spanSha256": "c3cd689370eebc0e59069d337c5256b3f5b20197ca448b13f764156a8e43909f",
           "symbol": "DRW_DimAngular::getFirstLine2"
@@ -45108,7 +45208,7 @@
       ],
       "evidence": [
         {
-          "line": 3577,
+          "line": 3607,
           "path": "src/drw_entities.h",
           "spanSha256": "c6cb36e411d2dd338bac6db9ded9737640f74d4a1db3ea547af7b27af29d1f64",
           "symbol": "DRW_DimAngular::getSecondLine2"
@@ -45132,7 +45232,7 @@
       ],
       "evidence": [
         {
-          "line": 3578,
+          "line": 3608,
           "path": "src/drw_entities.h",
           "spanSha256": "bc050ef854d388d221d4fcfac028c67d810e5e0bd5214fb4945c6a3b62c547b8",
           "symbol": "DRW_DimAngular::setSecondLine2"
@@ -45156,7 +45256,7 @@
       ],
       "evidence": [
         {
-          "line": 3576,
+          "line": 3606,
           "path": "src/drw_entities.h",
           "spanSha256": "78ceda8afcc61c0aff40305234b8e7d11b50eabd18dd069b0dc446d0cbe22f24",
           "symbol": "DRW_DimAngular::setSecondLine1"
@@ -45180,7 +45280,7 @@
       ],
       "evidence": [
         {
-          "line": 3579,
+          "line": 3609,
           "path": "src/drw_entities.h",
           "spanSha256": "63e7de3b7ba7651f87a89cacd4eaec7939c379300bce3debfc10912279118051",
           "symbol": "DRW_DimAngular::getDimPoint"
@@ -45204,7 +45304,7 @@
       ],
       "evidence": [
         {
-          "line": 3575,
+          "line": 3605,
           "path": "src/drw_entities.h",
           "spanSha256": "d8650dd3307ebb7f592ba112f25a18d8e874de15000e30090b15cd5322cd353a",
           "symbol": "DRW_DimAngular::getSecondLine1"
@@ -45228,7 +45328,7 @@
       ],
       "evidence": [
         {
-          "line": 3572,
+          "line": 3602,
           "path": "src/drw_entities.h",
           "spanSha256": "0a72ba47729b760ba39adb41e9af6c0ed29f8dd5bce2c1c71be8261a1efc4b89",
           "symbol": "DRW_DimAngular::setFirstLine1"
@@ -45252,7 +45352,7 @@
       ],
       "evidence": [
         {
-          "line": 3632,
+          "line": 3662,
           "path": "src/drw_entities.h",
           "spanSha256": "0ed40a4dd00bb39eb1dd09167b3f0a82ece3fec1fcaa3eb4c9822b3db50aacad",
           "symbol": "DRW_DimArc::setArcCenter"
@@ -45276,7 +45376,7 @@
       ],
       "evidence": [
         {
-          "line": 3630,
+          "line": 3660,
           "path": "src/drw_entities.h",
           "spanSha256": "a29a3aec7a389bb57a7f38dddf2c3abc0dfec50e2306d3461545ce83363e3869",
           "symbol": "DRW_DimArc::setExtLine2"
@@ -45300,7 +45400,7 @@
       ],
       "evidence": [
         {
-          "line": 3622,
+          "line": 3652,
           "path": "src/drw_entities.h",
           "spanSha256": "8064bcd5052209c6772d9a7e243640faafa60d33eed5527d410f46948abf3581",
           "symbol": "DRW_DimArc::DRW_DimArc"
@@ -45324,7 +45424,7 @@
       ],
       "evidence": [
         {
-          "line": 3625,
+          "line": 3655,
           "path": "src/drw_entities.h",
           "spanSha256": "d46f33a7ba900e4220d7c4847b99fb0d87247f0cb069da854d0ef4c667197400",
           "symbol": "DRW_DimArc::getArcDefPoint"
@@ -45348,7 +45448,7 @@
       ],
       "evidence": [
         {
-          "line": 3623,
+          "line": 3653,
           "path": "src/drw_entities.h",
           "spanSha256": "980d3488677514c95452af5305b1a4295911e6e6f5d24d4df9882da87c58a13d",
           "symbol": "DRW_DimArc::DRW_Dimension"
@@ -45372,7 +45472,7 @@
       ],
       "evidence": [
         {
-          "line": 3629,
+          "line": 3659,
           "path": "src/drw_entities.h",
           "spanSha256": "f7f4e3c3d3bf931aaecc2307a3c92a7e306a4ccf9b8711c9e784eebfbe4a4cc8",
           "symbol": "DRW_DimArc::getExtLine2"
@@ -45396,7 +45496,7 @@
       ],
       "evidence": [
         {
-          "line": 3631,
+          "line": 3661,
           "path": "src/drw_entities.h",
           "spanSha256": "41b4b0654405a42d6c1ca66b75043c66f8b54ea2028d91ad82bfd618e9d13be4",
           "symbol": "DRW_DimArc::getArcCenter"
@@ -45420,7 +45520,7 @@
       ],
       "evidence": [
         {
-          "line": 3627,
+          "line": 3657,
           "path": "src/drw_entities.h",
           "spanSha256": "d17a306ece3bc6cd26dbd847b4dbbb53bf5791c71a967436085f888a862b015e",
           "symbol": "DRW_DimArc::getExtLine1"
@@ -45444,7 +45544,7 @@
       ],
       "evidence": [
         {
-          "line": 3626,
+          "line": 3656,
           "path": "src/drw_entities.h",
           "spanSha256": "26fb219a5c8d8edfe590b29dcd5d43e7568face0cc05140b59376d9f2de4f606",
           "symbol": "DRW_DimArc::setArcDefPoint"
@@ -45468,7 +45568,7 @@
       ],
       "evidence": [
         {
-          "line": 3633,
+          "line": 3663,
           "path": "src/drw_entities.h",
           "spanSha256": "8c35440837b943d59cad1e51186c80d0f7cc7773238794ffec98ec8767a2b0fb",
           "symbol": "DRW_DimArc::getLeaderPt1"
@@ -45492,7 +45592,7 @@
       ],
       "evidence": [
         {
-          "line": 3634,
+          "line": 3664,
           "path": "src/drw_entities.h",
           "spanSha256": "e8baed20bd39d684e2935002efe3672cd295cb90eecb9b5e04126c939408fe51",
           "symbol": "DRW_DimArc::setLeaderPt1"
@@ -45516,7 +45616,7 @@
       ],
       "evidence": [
         {
-          "line": 3628,
+          "line": 3658,
           "path": "src/drw_entities.h",
           "spanSha256": "c1f407a2e78c50ab84904b061db094375da5cd9ef6594d8624aecbf01811a7c0",
           "symbol": "DRW_DimArc::setExtLine1"
@@ -45540,7 +45640,7 @@
       ],
       "evidence": [
         {
-          "line": 3547,
+          "line": 3577,
           "path": "src/drw_entities.h",
           "spanSha256": "a28c1642fdc9e913a4752bc209f822c6bcf64da601a17c29ad5eafe6d36f3396",
           "symbol": "DRW_DimDiametric::setDiameter2Point"
@@ -45564,7 +45664,7 @@
       ],
       "evidence": [
         {
-          "line": 3548,
+          "line": 3578,
           "path": "src/drw_entities.h",
           "spanSha256": "b60a7c8df8e9de2e0155d3ddf4c45f5734baf97f079398282b17a6cf9e85528e",
           "symbol": "DRW_DimDiametric::getLeaderLength"
@@ -45588,7 +45688,7 @@
       ],
       "evidence": [
         {
-          "line": 3540,
+          "line": 3570,
           "path": "src/drw_entities.h",
           "spanSha256": "0416fc8a3f9f96ce29668922427ac6d5311f903b2bfa53a2a3a62c9a197afe3d",
           "symbol": "DRW_DimDiametric::DRW_Dimension"
@@ -45612,7 +45712,7 @@
       ],
       "evidence": [
         {
-          "line": 3544,
+          "line": 3574,
           "path": "src/drw_entities.h",
           "spanSha256": "f686e91be9612f6edef5db1ea46d8eb8a4dc915ed349c60b1069048bd581ca4f",
           "symbol": "DRW_DimDiametric::getDiameter1Point"
@@ -45636,7 +45736,7 @@
       ],
       "evidence": [
         {
-          "line": 3549,
+          "line": 3579,
           "path": "src/drw_entities.h",
           "spanSha256": "ee79a6e533fd5b704932699b257fd6f72b5a568e49d63121a5824c3b2aa63ee7",
           "symbol": "DRW_DimDiametric::setLeaderLength"
@@ -45660,7 +45760,7 @@
       ],
       "evidence": [
         {
-          "line": 3546,
+          "line": 3576,
           "path": "src/drw_entities.h",
           "spanSha256": "c1664ac183397a5e038806b36bdf40549e76c6112b49b71074fe72d31eb8b28f",
           "symbol": "DRW_DimDiametric::getDiameter2Point"
@@ -45684,7 +45784,7 @@
       ],
       "evidence": [
         {
-          "line": 3545,
+          "line": 3575,
           "path": "src/drw_entities.h",
           "spanSha256": "b957ea5fae80fdba3ded2360430e08416cea48024c54c226d48aa99924082f72",
           "symbol": "DRW_DimDiametric::setDiameter1Point"
@@ -45708,7 +45808,7 @@
       ],
       "evidence": [
         {
-          "line": 3514,
+          "line": 3544,
           "path": "src/drw_entities.h",
           "spanSha256": "5da0794530c9af44cc4f652964264b3e87543d2c0e8a19e4e39574442e8a94e5",
           "symbol": "DRW_DimLargeRadial::setChordPoint"
@@ -45732,7 +45832,7 @@
       ],
       "evidence": [
         {
-          "line": 3509,
+          "line": 3539,
           "path": "src/drw_entities.h",
           "spanSha256": "6b5c0c0176f30c9bbe2df5eb86f110c9df41addcdf1c15079f5404fda210a57e",
           "symbol": "DRW_DimLargeRadial::DRW_DimRadial"
@@ -45756,7 +45856,7 @@
       ],
       "evidence": [
         {
-          "line": 3513,
+          "line": 3543,
           "path": "src/drw_entities.h",
           "spanSha256": "40b1ede9fd5b9d8df4a00efe91848fe77a5f0a32ddfea1873382bcb06678e4ff",
           "symbol": "DRW_DimLargeRadial::getChordPoint"
@@ -45780,7 +45880,7 @@
       ],
       "evidence": [
         {
-          "line": 3458,
+          "line": 3488,
           "path": "src/drw_entities.h",
           "spanSha256": "a4f061e707d957c593ec9690a240dc76a7d7143291d42d028104c52e798ef251",
           "symbol": "DRW_DimLinear::getAngle"
@@ -45804,7 +45904,7 @@
       ],
       "evidence": [
         {
-          "line": 3460,
+          "line": 3490,
           "path": "src/drw_entities.h",
           "spanSha256": "b1944e72385680209b5646eed8ebb293e2e47e9699d2622959bd7325f430c06d",
           "symbol": "DRW_DimLinear::getOblique"
@@ -45828,7 +45928,7 @@
       ],
       "evidence": [
         {
-          "line": 3459,
+          "line": 3489,
           "path": "src/drw_entities.h",
           "spanSha256": "6ff828277478f5c0ac29d9d8b4ef39019aff080aa7b0cef9b1e3b311c2692ec8",
           "symbol": "DRW_DimLinear::setAngle"
@@ -45852,7 +45952,7 @@
       ],
       "evidence": [
         {
-          "line": 3454,
+          "line": 3484,
           "path": "src/drw_entities.h",
           "spanSha256": "4f7af2e84440610c68fe741efca52daf077ab701143052968a6a82ff9190c0ef",
           "symbol": "DRW_DimLinear::DRW_DimAligned"
@@ -45876,7 +45976,7 @@
       ],
       "evidence": [
         {
-          "line": 3461,
+          "line": 3491,
           "path": "src/drw_entities.h",
           "spanSha256": "cbc5059f2127dc1ca8e5ae913425bf3f4d25b79298833a7892b471f1938afb65",
           "symbol": "DRW_DimLinear::setOblique"
@@ -45900,7 +46000,7 @@
       ],
       "evidence": [
         {
-          "line": 3667,
+          "line": 3697,
           "path": "src/drw_entities.h",
           "spanSha256": "407e0a8a628151084da24e2489704aae3f5cfd05830be3f076357499442781ac",
           "symbol": "DRW_DimOrdinate::setOriginPoint"
@@ -45924,7 +46024,7 @@
       ],
       "evidence": [
         {
-          "line": 3662,
+          "line": 3692,
           "path": "src/drw_entities.h",
           "spanSha256": "de8816943dcc4b849b43bb63fed56b49ca423fe6a5a185d421db1d2e27ae74de",
           "symbol": "DRW_DimOrdinate::DRW_Dimension"
@@ -45948,7 +46048,7 @@
       ],
       "evidence": [
         {
-          "line": 3668,
+          "line": 3698,
           "path": "src/drw_entities.h",
           "spanSha256": "aad02d37e1660e2f84c09bdfee5aa7409e8a3c6527969c43685a8abcc97e9090",
           "symbol": "DRW_DimOrdinate::getFirstLine"
@@ -45972,7 +46072,7 @@
       ],
       "evidence": [
         {
-          "line": 3669,
+          "line": 3699,
           "path": "src/drw_entities.h",
           "spanSha256": "61d98368dd5d8c58ed71101a503e3b0d9d836bacbb85e07cee5917b9063c2c20",
           "symbol": "DRW_DimOrdinate::setFirstLine"
@@ -45996,7 +46096,7 @@
       ],
       "evidence": [
         {
-          "line": 3671,
+          "line": 3701,
           "path": "src/drw_entities.h",
           "spanSha256": "b09f2f024729f0167e842c3b7151b1c68fba982336fe4751a1e81cf1231cb370",
           "symbol": "DRW_DimOrdinate::setSecondLine"
@@ -46020,7 +46120,7 @@
       ],
       "evidence": [
         {
-          "line": 3670,
+          "line": 3700,
           "path": "src/drw_entities.h",
           "spanSha256": "cb788282b52c2b984d14abf8bd4b1f58625a207a6da74138602b89d6c0da9a31",
           "symbol": "DRW_DimOrdinate::getSecondLine"
@@ -46044,7 +46144,7 @@
       ],
       "evidence": [
         {
-          "line": 3666,
+          "line": 3696,
           "path": "src/drw_entities.h",
           "spanSha256": "7ee9112f96789f1101a69deb1132d8e3a55fa76a496671614537b5d4e106e686",
           "symbol": "DRW_DimOrdinate::getOriginPoint"
@@ -46068,7 +46168,7 @@
       ],
       "evidence": [
         {
-          "line": 3486,
+          "line": 3516,
           "path": "src/drw_entities.h",
           "spanSha256": "b60a7c8df8e9de2e0155d3ddf4c45f5734baf97f079398282b17a6cf9e85528e",
           "symbol": "DRW_DimRadial::getLeaderLength"
@@ -46092,7 +46192,7 @@
       ],
       "evidence": [
         {
-          "line": 3484,
+          "line": 3514,
           "path": "src/drw_entities.h",
           "spanSha256": "cfe8b76a8491b1648b13a4865ee6a769df462bf25e9c7471cd7726a8245de016",
           "symbol": "DRW_DimRadial::getDiameterPoint"
@@ -46116,7 +46216,7 @@
       ],
       "evidence": [
         {
-          "line": 3478,
+          "line": 3508,
           "path": "src/drw_entities.h",
           "spanSha256": "144681b27479ac3aef60a1b6af5b7aaa9c4960bc32410260da49a558a7370b42",
           "symbol": "DRW_DimRadial::DRW_Dimension"
@@ -46140,7 +46240,7 @@
       ],
       "evidence": [
         {
-          "line": 3482,
+          "line": 3512,
           "path": "src/drw_entities.h",
           "spanSha256": "9e9b67da398596386f1524cfc817698a020d50e36321bdda4297569e2f720da3",
           "symbol": "DRW_DimRadial::getCenterPoint"
@@ -46164,7 +46264,7 @@
       ],
       "evidence": [
         {
-          "line": 3487,
+          "line": 3517,
           "path": "src/drw_entities.h",
           "spanSha256": "ee79a6e533fd5b704932699b257fd6f72b5a568e49d63121a5824c3b2aa63ee7",
           "symbol": "DRW_DimRadial::setLeaderLength"
@@ -46188,7 +46288,7 @@
       ],
       "evidence": [
         {
-          "line": 3485,
+          "line": 3515,
           "path": "src/drw_entities.h",
           "spanSha256": "a165d4c5d29b432a5d36953f6873b3ccacf6e12087a814902df861bd3ab9102c",
           "symbol": "DRW_DimRadial::setDiameterPoint"
@@ -46212,7 +46312,7 @@
       ],
       "evidence": [
         {
-          "line": 3483,
+          "line": 3513,
           "path": "src/drw_entities.h",
           "spanSha256": "bf4850391897399edc316154493c8df8c8f3628e2aa11475775857413f3f0143",
           "symbol": "DRW_DimRadial::setCenterPoint"
@@ -46236,7 +46336,7 @@
       ],
       "evidence": [
         {
-          "line": 3340,
+          "line": 3370,
           "path": "src/drw_entities.h",
           "spanSha256": "a6f28a8fed159b321c53424016cd99ee1a6babb1c05edc7f957bfa192c0746ba",
           "symbol": "DRW_Dimension::getExtrusion"
@@ -46260,7 +46360,7 @@
       ],
       "evidence": [
         {
-          "line": 3333,
+          "line": 3363,
           "path": "src/drw_entities.h",
           "spanSha256": "5d16674c36c7c159a47ccdd8366416d843118af001ebeaf0e5ed1ed5ed34bf7d",
           "symbol": "DRW_Dimension::getHDir"
@@ -46284,7 +46384,7 @@
       ],
       "evidence": [
         {
-          "line": 3325,
+          "line": 3355,
           "path": "src/drw_entities.h",
           "spanSha256": "24b6a68da55f945a81581becabc831c115c9d3ab221c1ce0ef01951d423edcaa",
           "symbol": "DRW_Dimension::getTextLineStyle"
@@ -46308,7 +46408,7 @@
       ],
       "evidence": [
         {
-          "line": 3334,
+          "line": 3364,
           "path": "src/drw_entities.h",
           "spanSha256": "71c4235f9ce549a58a281cf68aa7aba76ecd87cbb54b428f7a02df95c79f51b9",
           "symbol": "DRW_Dimension::setHDir"
@@ -46332,7 +46432,7 @@
       ],
       "evidence": [
         {
-          "line": 3323,
+          "line": 3353,
           "path": "src/drw_entities.h",
           "spanSha256": "5b41c8f20e853a812d706bca9302ca8e15e9204b3a40ae0ec43d7ee6511b84a1",
           "symbol": "DRW_Dimension::getAlign"
@@ -46356,7 +46456,7 @@
       ],
       "evidence": [
         {
-          "line": 3321,
+          "line": 3351,
           "path": "src/drw_entities.h",
           "spanSha256": "18314a3635ad687b68697082826d0898e0eef9d57952a63b764e0d0adbb58a94",
           "symbol": "DRW_Dimension::getStyle"
@@ -46380,7 +46480,7 @@
       ],
       "evidence": [
         {
-          "line": 3336,
+          "line": 3366,
           "path": "src/drw_entities.h",
           "spanSha256": "afac2ad25956967662fff06a9b70bbf717cbbb7e8f7ef80de868f0803b121d45",
           "symbol": "DRW_Dimension::getFlipArrow2"
@@ -46404,7 +46504,7 @@
       ],
       "evidence": [
         {
-          "line": 3341,
+          "line": 3371,
           "path": "src/drw_entities.h",
           "spanSha256": "c35f57ce5c095170c1b0efe343d5ab6caeeb1256b0bee7346e153398d761ba74",
           "symbol": "DRW_Dimension::setExtrusion"
@@ -46428,7 +46528,7 @@
       ],
       "evidence": [
         {
-          "line": 3337,
+          "line": 3367,
           "path": "src/drw_entities.h",
           "spanSha256": "7276c3ef0d9baa3b907b6a18c4aaed4159effdeb1824f3281e9be5c148095c3a",
           "symbol": "DRW_Dimension::setFlipArrow1"
@@ -46452,7 +46552,7 @@
       ],
       "evidence": [
         {
-          "line": 3324,
+          "line": 3354,
           "path": "src/drw_entities.h",
           "spanSha256": "953f55c86d1c38d5188c7e09a1aa13f271dbd28c80ba4fed3a7e4758c37137a3",
           "symbol": "DRW_Dimension::setAlign"
@@ -46476,7 +46576,7 @@
       ],
       "evidence": [
         {
-          "line": 3342,
+          "line": 3372,
           "path": "src/drw_entities.h",
           "spanSha256": "ed12d6d2f8af8fd1dc03d29dc2abab0eed49dfd99d919158578f0fb7854bf41e",
           "symbol": "DRW_Dimension::getName"
@@ -46500,7 +46600,7 @@
       ],
       "evidence": [
         {
-          "line": 3331,
+          "line": 3361,
           "path": "src/drw_entities.h",
           "spanSha256": "4a9b9c49b8dc344541c6c53631df12057336ad91222648ae90e1c43b862dcaf4",
           "symbol": "DRW_Dimension::getDir"
@@ -46524,7 +46624,7 @@
       ],
       "evidence": [
         {
-          "line": 3343,
+          "line": 3373,
           "path": "src/drw_entities.h",
           "spanSha256": "d09ff9007800f92bba12df4c59f5242f054a24c097ea7c5fe897bbd87e304b86",
           "symbol": "DRW_Dimension::setName"
@@ -46548,7 +46648,7 @@
       ],
       "evidence": [
         {
-          "line": 3338,
+          "line": 3368,
           "path": "src/drw_entities.h",
           "spanSha256": "a73188b3d6443ed4dfc4a1b76794e90d04c4aa89cce1596b2186ae54a13aa9dc",
           "symbol": "DRW_Dimension::setFlipArrow2"
@@ -46572,7 +46672,7 @@
       ],
       "evidence": [
         {
-          "line": 3335,
+          "line": 3365,
           "path": "src/drw_entities.h",
           "spanSha256": "6da1942389bf8520f792d5a7592b0624c33cf2048043cc18608328c547d6483c",
           "symbol": "DRW_Dimension::getFlipArrow1"
@@ -46596,7 +46696,7 @@
       ],
       "evidence": [
         {
-          "line": 3304,
+          "line": 3334,
           "path": "src/drw_entities.h",
           "spanSha256": "e8ca455c6eeea39661746216a147e194351d3b841e3894b40833619c2f8728f6",
           "symbol": "DRW_Dimension::~DRW_Dimension"
@@ -46620,7 +46720,7 @@
       ],
       "evidence": [
         {
-          "line": 3326,
+          "line": 3356,
           "path": "src/drw_entities.h",
           "spanSha256": "3030deb3dc17aa3dcf9117061f679997f2aff06bf78174cb9387ce1bff2b1d52",
           "symbol": "DRW_Dimension::setTextLineStyle"
@@ -46644,7 +46744,7 @@
       ],
       "evidence": [
         {
-          "line": 3317,
+          "line": 3347,
           "path": "src/drw_entities.h",
           "spanSha256": "aa9e104aa73ebabe1f30e0eeb09e8baa514da65fe3ba41ab760a45a88fdc0add",
           "symbol": "DRW_Dimension::getDefPoint"
@@ -46668,7 +46768,7 @@
       ],
       "evidence": [
         {
-          "line": 3329,
+          "line": 3359,
           "path": "src/drw_entities.h",
           "spanSha256": "fc2b79f7891a4c6c3791293dc93776c67b0addf9cd2558b2e7244f7d3ab7935d",
           "symbol": "DRW_Dimension::getTextLineFactor"
@@ -46692,7 +46792,7 @@
       ],
       "evidence": [
         {
-          "line": 3322,
+          "line": 3352,
           "path": "src/drw_entities.h",
           "spanSha256": "13ccba7be9b378f7ed93943191a38dc8ed82c01bcc48d62d367c16c30a84e0a3",
           "symbol": "DRW_Dimension::setStyle"
@@ -46716,7 +46816,7 @@
       ],
       "evidence": [
         {
-          "line": 3319,
+          "line": 3349,
           "path": "src/drw_entities.h",
           "spanSha256": "dd53bade28893c0018e296b62bae93913f2f764b9bc457ef57cebe8d65f15e69",
           "symbol": "DRW_Dimension::getTextPoint"
@@ -46740,7 +46840,7 @@
       ],
       "evidence": [
         {
-          "line": 3320,
+          "line": 3350,
           "path": "src/drw_entities.h",
           "spanSha256": "b46ce1b71748e1b76fad928bb81418e0cb0760824ad9a17dfbf433febbc61b9f",
           "symbol": "DRW_Dimension::setTextPoint"
@@ -46764,7 +46864,7 @@
       ],
       "evidence": [
         {
-          "line": 3327,
+          "line": 3357,
           "path": "src/drw_entities.h",
           "spanSha256": "9716f6302d5b8165689a83da28e6dab69a8185e57d74f2ecd5a69c480cb9f7c6",
           "symbol": "DRW_Dimension::getText"
@@ -46788,7 +46888,7 @@
       ],
       "evidence": [
         {
-          "line": 3345,
+          "line": 3375,
           "path": "src/drw_entities.h",
           "spanSha256": "302c4fa3d676960a71fb3af3594bf6d0a215fa3541072cd5d5ca894afcd21a37",
           "symbol": "DRW_Dimension::getMeasureValue"
@@ -46812,7 +46912,7 @@
       ],
       "evidence": [
         {
-          "line": 3330,
+          "line": 3360,
           "path": "src/drw_entities.h",
           "spanSha256": "cfde3e496d50b4c94d64da7387fd2c16cdae9e250d66b3341d95fef00fb1180c",
           "symbol": "DRW_Dimension::setTextLineFactor"
@@ -46836,7 +46936,7 @@
       ],
       "evidence": [
         {
-          "line": 3265,
+          "line": 3295,
           "path": "src/drw_entities.h",
           "spanSha256": "391dc97120ca62f31d76d6af131ff45a9dfa6ff091e43a915fadf30d1677ac19",
           "symbol": "DRW_Dimension::DRW_Entity"
@@ -46860,7 +46960,7 @@
       ],
       "evidence": [
         {
-          "line": 3328,
+          "line": 3358,
           "path": "src/drw_entities.h",
           "spanSha256": "9a25856aa7c634a3671e672b0e39de75a59a74fa62ca79b4fa2900239236663b",
           "symbol": "DRW_Dimension::setText"
@@ -46884,7 +46984,7 @@
       ],
       "evidence": [
         {
-          "line": 3318,
+          "line": 3348,
           "path": "src/drw_entities.h",
           "spanSha256": "68458d02c98bbfbfc576d3b7e1c2328a0512085d1195aed49d47d649720674be",
           "symbol": "DRW_Dimension::setDefPoint"
@@ -46908,7 +47008,7 @@
       ],
       "evidence": [
         {
-          "line": 3332,
+          "line": 3362,
           "path": "src/drw_entities.h",
           "spanSha256": "9532f644c350dd6324e888b339fb9eccee44d51c18c1a809a45bf3a26d609f06",
           "symbol": "DRW_Dimension::setDir"
@@ -46932,7 +47032,7 @@
       ],
       "evidence": [
         {
-          "line": 3306,
+          "line": 3336,
           "path": "src/drw_entities.h",
           "spanSha256": "50bd3aee93cf5ca52566a1a865b01141cac519b542702105e959eb220cb4a24c",
           "symbol": "DRW_Dimension::applyExtrusion"
@@ -47532,7 +47632,7 @@
       ],
       "evidence": [
         {
-          "line": 3029,
+          "line": 3059,
           "path": "src/drw_entities.h",
           "spanSha256": "29a08f395c7a5ee35ec9cff3a3d54748a6af6b9e804e8d64a6829fb49c43859f",
           "symbol": "DRW_ExtrudedSurface::DRW_ExtrudedSurface"
@@ -47726,6 +47826,54 @@
         {
           "line": 2388,
           "path": "src/drw_entities.h",
+          "spanSha256": "e5bf7248de590bd1f384aa4dd2ea062c7e70164015aa9528eec70fe591ce384c",
+          "symbol": "DRW_HatchLoop::operator="
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-method/src_drw_entities.h_DRW_HatchLoop_265056dcb651fd862f9f7cac75f639cb0f3d57e7efb144a93592034ffb33d212",
+      "selector": {
+        "kind": "method",
+        "owner": "DRW_HatchLoop",
+        "qualifiedName": "DRW_HatchLoop::operator=",
+        "signatureFingerprint": "265056dcb651fd862f9f7cac75f639cb0f3d57e7efb144a93592034ffb33d212",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 2390,
+          "path": "src/drw_entities.h",
+          "spanSha256": "42f108abd100c77b4ce48b8253ee26972676c5599a4b0125087f5e87d6638705",
+          "symbol": "DRW_HatchLoop::operator="
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-method/src_drw_entities.h_DRW_HatchLoop_79acdc3b38b2ac6b84de00a583e7336683c3cd664a46558c4e7ae33f962ea826",
+      "selector": {
+        "kind": "method",
+        "owner": "DRW_HatchLoop",
+        "qualifiedName": "DRW_HatchLoop::operator=",
+        "signatureFingerprint": "79acdc3b38b2ac6b84de00a583e7336683c3cd664a46558c4e7ae33f962ea826",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 2392,
+          "path": "src/drw_entities.h",
           "spanSha256": "0e8388cf66be0a0adc7e34399f91e2112b0f4e43d3335be6de77ae39970e3a06",
           "symbol": "DRW_HatchLoop::update"
         }
@@ -47748,7 +47896,55 @@
       ],
       "evidence": [
         {
-          "line": 2451,
+          "line": 2389,
+          "path": "src/drw_entities.h",
+          "spanSha256": "45cfc34c245a7a0cca3b3f905f728c0bfc9d743aaefce6e1f81c16b87409698e",
+          "symbol": "DRW_HatchLoop::DRW_HatchLoop"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-method/src_drw_entities.h_DRW_HatchLoop_cf55ec11be58558a82da0890692c157a731db54202cbe5256f5c8454cd2ad7b2",
+      "selector": {
+        "kind": "method",
+        "owner": "DRW_HatchLoop",
+        "qualifiedName": "DRW_HatchLoop::DRW_HatchLoop",
+        "signatureFingerprint": "cf55ec11be58558a82da0890692c157a731db54202cbe5256f5c8454cd2ad7b2",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 2387,
+          "path": "src/drw_entities.h",
+          "spanSha256": "91f509e2153d5c326f74e6929ae9bbe9676567a8ac40837b85730fe91cb7a14a",
+          "symbol": "DRW_HatchLoop::DRW_HatchLoop"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-method/src_drw_entities.h_DRW_HatchLoop_dec9b56888f39e3ae84de336900fdd7a119c6b6ff1867f0313e7f3367f514110",
+      "selector": {
+        "kind": "method",
+        "owner": "DRW_HatchLoop",
+        "qualifiedName": "DRW_HatchLoop::DRW_HatchLoop",
+        "signatureFingerprint": "dec9b56888f39e3ae84de336900fdd7a119c6b6ff1867f0313e7f3367f514110",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 2459,
           "path": "src/drw_entities.h",
           "spanSha256": "4be6bc196822205cf364e3ab8334bc54418693e4089eac19cbedf8dbc46dc517",
           "symbol": "DRW_Hatch::appendLoop"
@@ -47772,7 +47968,103 @@
       ],
       "evidence": [
         {
-          "line": 2414,
+          "line": 2428,
+          "path": "src/drw_entities.h",
+          "spanSha256": "56eb0dda623c81336a5deb57b5703307e9e3dbdeeedff501c121f34460e01db8",
+          "symbol": "DRW_Hatch::operator="
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-method/src_drw_entities.h_DRW_Hatch_877f2d92d3fcc5432e81a480928adbc8eba2337d6b6be2082da3095f50582581",
+      "selector": {
+        "kind": "method",
+        "owner": "DRW_Hatch",
+        "qualifiedName": "DRW_Hatch::operator=",
+        "signatureFingerprint": "877f2d92d3fcc5432e81a480928adbc8eba2337d6b6be2082da3095f50582581",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 2429,
+          "path": "src/drw_entities.h",
+          "spanSha256": "aed44371a43421cd4915ca25f796d9cada3e8a01c83e6ddfe0bb372d35f35a72",
+          "symbol": "DRW_Hatch::DRW_Hatch"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-method/src_drw_entities.h_DRW_Hatch_922983d21b064324ff73e7610472ad54eea36cbdc7f5be8d6f554cde70209ce2",
+      "selector": {
+        "kind": "method",
+        "owner": "DRW_Hatch",
+        "qualifiedName": "DRW_Hatch::DRW_Hatch",
+        "signatureFingerprint": "922983d21b064324ff73e7610472ad54eea36cbdc7f5be8d6f554cde70209ce2",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 2427,
+          "path": "src/drw_entities.h",
+          "spanSha256": "d0ca72e7c1c7cb26039a9028189469161193c9a97870563d04f59f37499c0f28",
+          "symbol": "DRW_Hatch::DRW_Hatch"
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-method/src_drw_entities.h_DRW_Hatch_d1eecb38e10ba4ca9b9b500311ec6da1e7def10a7435c95c265645f27b9a5b9c",
+      "selector": {
+        "kind": "method",
+        "owner": "DRW_Hatch",
+        "qualifiedName": "DRW_Hatch::DRW_Hatch",
+        "signatureFingerprint": "d1eecb38e10ba4ca9b9b500311ec6da1e7def10a7435c95c265645f27b9a5b9c",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 2430,
+          "path": "src/drw_entities.h",
+          "spanSha256": "355d53413ccd499eb0cf8aa4d7bc92e42fcf2a8d4ba9930dd9755738baa6f4da",
+          "symbol": "DRW_Hatch::operator="
+        }
+      ],
+      "facade": "shared",
+      "id": "shared/public-method/src_drw_entities.h_DRW_Hatch_e0b4de2cd099c2672738948a835f019317de77b50a73ddc5accd50f3649dd15e",
+      "selector": {
+        "kind": "method",
+        "owner": "DRW_Hatch",
+        "qualifiedName": "DRW_Hatch::operator=",
+        "signatureFingerprint": "e0b4de2cd099c2672738948a835f019317de77b50a73ddc5accd50f3649dd15e",
+        "visibility": "public"
+      },
+      "sourceDisposition": "source-route-only"
+    },
+    {
+      "category": "public-method",
+      "directions": [
+        "public-api"
+      ],
+      "evidence": [
+        {
+          "line": 2418,
           "path": "src/drw_entities.h",
           "spanSha256": "3753c62519b4da540e8f7a067cbaea47869c83f4afe03bae52f73094cdc398da",
           "symbol": "DRW_Hatch::DRW_Hatch"
@@ -47796,7 +48088,7 @@
       ],
       "evidence": [
         {
-          "line": 2701,
+          "line": 2731,
           "path": "src/drw_entities.h",
           "spanSha256": "b59ca2c17c7eea78fface1faf636e2923e9234cc54c3bce3ff6821d1f629970c",
           "symbol": "DRW_Image::encodeDwg"
@@ -47820,7 +48112,7 @@
       ],
       "evidence": [
         {
-          "line": 2736,
+          "line": 2766,
           "path": "src/drw_entities.h",
           "spanSha256": "1944970e946f2139d2acf5cabcaaa61d8e286074474844f3401305992a5fe800",
           "symbol": "DRW_Image::hasValidClipBoundary"
@@ -47844,7 +48136,7 @@
       ],
       "evidence": [
         {
-          "line": 2731,
+          "line": 2761,
           "path": "src/drw_entities.h",
           "spanSha256": "df36ed2a47fff6b727cec661e8b7e5aff411ead99479b5a228cfb462332bc04e",
           "symbol": "DRW_Image::validatePayloadFields"
@@ -47868,7 +48160,7 @@
       ],
       "evidence": [
         {
-          "line": 2687,
+          "line": 2717,
           "path": "src/drw_entities.h",
           "spanSha256": "5546f9303aaaea4f58dd5e464e1f01ecad12bcdba8a83abad6dac33b62241e74",
           "symbol": "DRW_Image::DRW_Image"
@@ -48156,7 +48448,7 @@
       ],
       "evidence": [
         {
-          "line": 3720,
+          "line": 3750,
           "path": "src/drw_entities.h",
           "spanSha256": "2aeee5de405f2db5b03741a50565789f0cf0dacb3a229508d7a717b173de0176",
           "symbol": "DRW_Leader::validateDxf"
@@ -48180,7 +48472,7 @@
       ],
       "evidence": [
         {
-          "line": 3691,
+          "line": 3721,
           "path": "src/drw_entities.h",
           "spanSha256": "50bd3aee93cf5ca52566a1a865b01141cac519b542702105e959eb220cb4a24c",
           "symbol": "DRW_Leader::applyExtrusion"
@@ -48204,7 +48496,7 @@
       ],
       "evidence": [
         {
-          "line": 3719,
+          "line": 3749,
           "path": "src/drw_entities.h",
           "spanSha256": "df36ed2a47fff6b727cec661e8b7e5aff411ead99479b5a228cfb462332bc04e",
           "symbol": "DRW_Leader::validatePayloadFields"
@@ -48300,7 +48592,7 @@
       ],
       "evidence": [
         {
-          "line": 3177,
+          "line": 3207,
           "path": "src/drw_entities.h",
           "spanSha256": "f8b5a0fc8ef6905adc5b7607e34c37da6cfe7619ad8e8889188cb06b38ba57e8",
           "symbol": "DRW_LoftedSurface::sizeof"
@@ -48324,7 +48616,7 @@
       ],
       "evidence": [
         {
-          "line": 3179,
+          "line": 3209,
           "path": "src/drw_entities.h",
           "spanSha256": "d500c5dd19708eb3ab857aa025e48cab633bb0097a34b3454334a8892d7ff5e4",
           "symbol": "DRW_LoftedSurface::DRW_LoftedSurface"
@@ -48348,7 +48640,7 @@
       ],
       "evidence": [
         {
-          "line": 3863,
+          "line": 3893,
           "path": "src/drw_entities.h",
           "spanSha256": "cd57d242c98a02c25b5b144c47dbeb5a7322758aabe1fd20d534a1ad903f070e",
           "symbol": "DRW_MLeader::isDxfContextClosed"
@@ -48372,7 +48664,7 @@
       ],
       "evidence": [
         {
-          "line": 3846,
+          "line": 3876,
           "path": "src/drw_entities.h",
           "spanSha256": "50bd3aee93cf5ca52566a1a865b01141cac519b542702105e959eb220cb4a24c",
           "symbol": "DRW_MLeader::applyExtrusion"
@@ -48612,7 +48904,7 @@
       ],
       "evidence": [
         {
-          "line": 2786,
+          "line": 2816,
           "path": "src/drw_entities.h",
           "spanSha256": "47faf71f7a01cc1d55cd4080c6252e63e42e3159ef031bfce6b4af57642d3e34",
           "symbol": "DRW_NavisworksModel::DRW_NavisworksModel"
@@ -48636,7 +48928,7 @@
       ],
       "evidence": [
         {
-          "line": 2810,
+          "line": 2840,
           "path": "src/drw_entities.h",
           "spanSha256": "0a975cb84e024a1db04e2707334345a53425bc6fb3307bdbb56e940fbfecbdca",
           "symbol": "DRW_NavisworksModel::finalizeDxf"
@@ -48660,7 +48952,7 @@
       ],
       "evidence": [
         {
-          "line": 2794,
+          "line": 2824,
           "path": "src/drw_entities.h",
           "spanSha256": "50bd3aee93cf5ca52566a1a865b01141cac519b542702105e959eb220cb4a24c",
           "symbol": "DRW_NavisworksModel::applyExtrusion"
@@ -48780,7 +49072,7 @@
       ],
       "evidence": [
         {
-          "line": 3020,
+          "line": 3050,
           "path": "src/drw_entities.h",
           "spanSha256": "dd84126d71103dcda88de6143a265b3a508f69be7e6d7d5e55e94be074bb09a2",
           "symbol": "DRW_PlaneSurface::DRW_PlaneSurface"
@@ -48804,7 +49096,7 @@
       ],
       "evidence": [
         {
-          "line": 2903,
+          "line": 2933,
           "path": "src/drw_entities.h",
           "spanSha256": "526edae208409ac785da812e5427ebe3dad9d0281e39756481af51540758240b",
           "symbol": "DRW_PointCloudEx::DRW_PointCloudEx"
@@ -48828,7 +49120,7 @@
       ],
       "evidence": [
         {
-          "line": 2904,
+          "line": 2934,
           "path": "src/drw_entities.h",
           "spanSha256": "50bd3aee93cf5ca52566a1a865b01141cac519b542702105e959eb220cb4a24c",
           "symbol": "DRW_PointCloudEx::applyExtrusion"
@@ -48852,7 +49144,7 @@
       ],
       "evidence": [
         {
-          "line": 2845,
+          "line": 2875,
           "path": "src/drw_entities.h",
           "spanSha256": "25901a0bbec64c2e45af4093960564356ea416edc7ca673e271a8ca9d7513e53",
           "symbol": "DRW_PointCloud::DRW_PointCloud"
@@ -48876,7 +49168,7 @@
       ],
       "evidence": [
         {
-          "line": 2846,
+          "line": 2876,
           "path": "src/drw_entities.h",
           "spanSha256": "50bd3aee93cf5ca52566a1a865b01141cac519b542702105e959eb220cb4a24c",
           "symbol": "DRW_PointCloud::applyExtrusion"
@@ -49260,7 +49552,7 @@
       ],
       "evidence": [
         {
-          "line": 3080,
+          "line": 3110,
           "path": "src/drw_entities.h",
           "spanSha256": "37eba0457069298be8b91e1e83478282f8cf066b6e5483890f7f03ec479f54e7",
           "symbol": "DRW_RevolvedSurface::DRW_RevolvedSurface"
@@ -49716,7 +50008,7 @@
       ],
       "evidence": [
         {
-          "line": 2974,
+          "line": 3004,
           "path": "src/drw_entities.h",
           "spanSha256": "f50e2f0eabd0102b8f84d9eb3f8ea2df2d8315803ad74c50779b57d53fcac17d",
           "symbol": "DRW_Surface::getDwgClassNum"
@@ -49740,7 +50032,7 @@
       ],
       "evidence": [
         {
-          "line": 3005,
+          "line": 3035,
           "path": "src/drw_entities.h",
           "spanSha256": "7c0cbe7327fe045bfac1b5d655fd62a0d0ec1ad1c590ef9fafd09ce37f560c88",
           "symbol": "DRW_Surface::decodeWireframe"
@@ -49764,7 +50056,7 @@
       ],
       "evidence": [
         {
-          "line": 2976,
+          "line": 3006,
           "path": "src/drw_entities.h",
           "spanSha256": "b3d6cf9b9527e956d69ab213c669110f1470ceecc9174349e97e90c2ad1c7187",
           "symbol": "DRW_Surface::finalizeDxf"
@@ -49788,7 +50080,7 @@
       ],
       "evidence": [
         {
-          "line": 2970,
+          "line": 3000,
           "path": "src/drw_entities.h",
           "spanSha256": "027137decf1184c33e0a7e79ad83931fde33d66afc5d46a33f1bd7d412ea1677",
           "symbol": "DRW_Surface::setDwgClassNum"
@@ -49812,7 +50104,7 @@
       ],
       "evidence": [
         {
-          "line": 2975,
+          "line": 3005,
           "path": "src/drw_entities.h",
           "spanSha256": "50bd3aee93cf5ca52566a1a865b01141cac519b542702105e959eb220cb4a24c",
           "symbol": "DRW_Surface::applyExtrusion"
@@ -49836,7 +50128,7 @@
       ],
       "evidence": [
         {
-          "line": 3118,
+          "line": 3148,
           "path": "src/drw_entities.h",
           "spanSha256": "16bbd7e0992938abae066a47e6124f399137c0fda42b1c282c8e07e391dd8009",
           "symbol": "DRW_SweptSurface::DRW_SweptSurface"
@@ -50340,7 +50632,7 @@
       ],
       "evidence": [
         {
-          "line": 2764,
+          "line": 2794,
           "path": "src/drw_entities.h",
           "spanSha256": "ed123bd76e24d57b7769d456fdd53c779bb65fd28fe401655eff9b7b253d7d07",
           "symbol": "DRW_Wipeout::hasValidBoundary"
@@ -60898,7 +61190,7 @@
       ],
       "evidence": [
         {
-          "line": 3419,
+          "line": 3449,
           "path": "src/drw_entities.h",
           "spanSha256": "0380f9b72c9eda4833d4a4f2a933e567132c3a9e700eb81c625685010ea6e533",
           "symbol": "DRW_DimAligned"
@@ -60921,7 +61213,7 @@
       ],
       "evidence": [
         {
-          "line": 3561,
+          "line": 3591,
           "path": "src/drw_entities.h",
           "spanSha256": "123b8a2c7307d17274f478780cc008741727ba26c58c04fc7bf81c95f6bdd751",
           "symbol": "DRW_DimAngular"
@@ -60944,7 +61236,7 @@
       ],
       "evidence": [
         {
-          "line": 3593,
+          "line": 3623,
           "path": "src/drw_entities.h",
           "spanSha256": "17dca7eccddc2239f39fa30f4cb6ab079835fab6acb396c2cdc469373480bf81",
           "symbol": "DRW_DimAngular3p"
@@ -60967,7 +61259,7 @@
       ],
       "evidence": [
         {
-          "line": 3618,
+          "line": 3648,
           "path": "src/drw_entities.h",
           "spanSha256": "50495e845d0416a934c16015f3535d06197b17181e06329bef8ed25a96d32c0b",
           "symbol": "DRW_DimArc"
@@ -60990,7 +61282,7 @@
       ],
       "evidence": [
         {
-          "line": 3534,
+          "line": 3564,
           "path": "src/drw_entities.h",
           "spanSha256": "f3c7df57e70cd6d55c781e86ed93db0e13eff87f069de212c12a90b94da512f5",
           "symbol": "DRW_DimDiametric"
@@ -61013,7 +61305,7 @@
       ],
       "evidence": [
         {
-          "line": 3505,
+          "line": 3535,
           "path": "src/drw_entities.h",
           "spanSha256": "617af7f5a5cbc40a60736ebe2e46069f44cb8c36e13442bba642007541bcaedf",
           "symbol": "DRW_DimLargeRadial"
@@ -61036,7 +61328,7 @@
       ],
       "evidence": [
         {
-          "line": 3449,
+          "line": 3479,
           "path": "src/drw_entities.h",
           "spanSha256": "958d6482696012127fc4f9a86c3beec9e7e2dec463bcb00b8f6447517384e796",
           "symbol": "DRW_DimLinear"
@@ -61059,7 +61351,7 @@
       ],
       "evidence": [
         {
-          "line": 3656,
+          "line": 3686,
           "path": "src/drw_entities.h",
           "spanSha256": "8529567b4e33f33467257029347f33ddc64976cfaaa331e02fbdab000f98dd02",
           "symbol": "DRW_DimOrdinate"
@@ -61082,7 +61374,7 @@
       ],
       "evidence": [
         {
-          "line": 3472,
+          "line": 3502,
           "path": "src/drw_entities.h",
           "spanSha256": "37eab634b07b51a35dcc0ce396708ecdf8653c7c6d7e07e672cb8ce8a55aec66",
           "symbol": "DRW_DimRadial"
@@ -61105,7 +61397,7 @@
       ],
       "evidence": [
         {
-          "line": 3249,
+          "line": 3279,
           "path": "src/drw_entities.h",
           "spanSha256": "8024aee5bd44d316cfc43a9fd14776ea0d4375cc9b5af740a7aa098cb21a9ce4",
           "symbol": "DRW_Dimension"
@@ -61910,7 +62202,7 @@
       ],
       "evidence": [
         {
-          "line": 3023,
+          "line": 3053,
           "path": "src/drw_entities.h",
           "spanSha256": "74051b7534cdb6452aa5f0e6c196116ade1a9b537275b429c8bd29646a45bda2",
           "symbol": "DRW_ExtrudedSurface"
@@ -62117,7 +62409,7 @@
       ],
       "evidence": [
         {
-          "line": 2409,
+          "line": 2413,
           "path": "src/drw_entities.h",
           "spanSha256": "80a3d113be266b9ed86545e7116bfe114dae589ca1106769ed54d2348bf99e43",
           "symbol": "DRW_Hatch"
@@ -62232,7 +62524,7 @@
       ],
       "evidence": [
         {
-          "line": 2681,
+          "line": 2711,
           "path": "src/drw_entities.h",
           "spanSha256": "e0b9d2bbd0da442a3d5f28ac2e45e7a5ea2f3c667f96edea0bc4619ebe805c82",
           "symbol": "DRW_Image"
@@ -62577,7 +62869,7 @@
       ],
       "evidence": [
         {
-          "line": 3684,
+          "line": 3714,
           "path": "src/drw_entities.h",
           "spanSha256": "59b89d6532e5b808c22f21d30b251a75320dc98ce3f5698850d400a61c3704cc",
           "symbol": "DRW_Leader"
@@ -62692,7 +62984,7 @@
       ],
       "evidence": [
         {
-          "line": 3171,
+          "line": 3201,
           "path": "src/drw_entities.h",
           "spanSha256": "5feb4315e38883884f5c15054048e4b857eb21729f4d19aa84574bfa840b4cc9",
           "symbol": "DRW_LoftedSurface"
@@ -62715,7 +63007,7 @@
       ],
       "evidence": [
         {
-          "line": 3839,
+          "line": 3869,
           "path": "src/drw_entities.h",
           "spanSha256": "268f6a74c30cfb416468ab5969321e658b7d25744c1435ede0d298c33182c949",
           "symbol": "DRW_MLeader"
@@ -62738,7 +63030,7 @@
       ],
       "evidence": [
         {
-          "line": 3767,
+          "line": 3797,
           "path": "src/drw_entities.h",
           "spanSha256": "25d30372cfead7801e92ac7084848b4385da3865cf69c52f7b33fef7f1c774a3",
           "symbol": "DRW_MLeaderAnnotContext"
@@ -62761,7 +63053,7 @@
       ],
       "evidence": [
         {
-          "line": 3734,
+          "line": 3764,
           "path": "src/drw_entities.h",
           "spanSha256": "7117a7629997b9cd27bb69966933557a20083d69675f347c4d39c80ca6b1a01f",
           "symbol": "DRW_MLeaderLeaderLine"
@@ -62784,7 +63076,7 @@
       ],
       "evidence": [
         {
-          "line": 3750,
+          "line": 3780,
           "path": "src/drw_entities.h",
           "spanSha256": "88b70ee8c4053b7478398120709592d26c3c4b26d41abcd0b3706ee7cea3a773",
           "symbol": "DRW_MLeaderRoot"
@@ -62922,7 +63214,7 @@
       ],
       "evidence": [
         {
-          "line": 2651,
+          "line": 2681,
           "path": "src/drw_entities.h",
           "spanSha256": "d80f50b1f106176796c8ceba09f314a241a395ac518e7431079d3e725ad809d7",
           "symbol": "DRW_MPolygon"
@@ -63135,7 +63427,7 @@
       ],
       "evidence": [
         {
-          "line": 2780,
+          "line": 2810,
           "path": "src/drw_entities.h",
           "spanSha256": "136548f5b157565f16df8f699c8f3c76012f52afef7fd4b6e5bb601abe12d6f5",
           "symbol": "DRW_NavisworksModel"
@@ -63181,7 +63473,7 @@
       ],
       "evidence": [
         {
-          "line": 3219,
+          "line": 3249,
           "path": "src/drw_entities.h",
           "spanSha256": "f0e2a0b551031c99a4207ea601cc1f0ab0336ec15a55aa6e26686e0826a0eb61",
           "symbol": "DRW_NurbsSurface"
@@ -63388,7 +63680,7 @@
       ],
       "evidence": [
         {
-          "line": 3016,
+          "line": 3046,
           "path": "src/drw_entities.h",
           "spanSha256": "26bcb57dd2241894ee48ad65adce67ef5b57ccd6ec1d7dec2176440fa3e1107f",
           "symbol": "DRW_PlaneSurface"
@@ -63457,7 +63749,7 @@
       ],
       "evidence": [
         {
-          "line": 2836,
+          "line": 2866,
           "path": "src/drw_entities.h",
           "spanSha256": "fbc2a23ae20b474678c312ff4b432de8ff28831a42827a7cbd18e220406f5aa8",
           "symbol": "DRW_PointCloud"
@@ -63480,7 +63772,7 @@
       ],
       "evidence": [
         {
-          "line": 2827,
+          "line": 2857,
           "path": "src/drw_entities.h",
           "spanSha256": "bc8710325f74d484e2267f03875b01b53a027b9577d08f3f100e028eef86d019",
           "symbol": "DRW_PointCloudClipping"
@@ -63572,7 +63864,7 @@
       ],
       "evidence": [
         {
-          "line": 2897,
+          "line": 2927,
           "path": "src/drw_entities.h",
           "spanSha256": "40fe4703848ef46124ef7cda0fba8623d5272c80b0f7f5b6549d73255e8245fc",
           "symbol": "DRW_PointCloudEx"
@@ -63595,7 +63887,7 @@
       ],
       "evidence": [
         {
-          "line": 2886,
+          "line": 2916,
           "path": "src/drw_entities.h",
           "spanSha256": "9a2bb0633540aefba981f2430c186b897c049ea7034bb7550ab68d703427323e",
           "symbol": "DRW_PointCloudExCropping"
@@ -63618,7 +63910,7 @@
       ],
       "evidence": [
         {
-          "line": 2820,
+          "line": 2850,
           "path": "src/drw_entities.h",
           "spanSha256": "652111ff92311be6443a87eaacdf099b39a250a21ffa3332abbff391d56405e2",
           "symbol": "DRW_PointCloudIntensityStyle"
@@ -63923,7 +64215,7 @@
       ],
       "evidence": [
         {
-          "line": 3074,
+          "line": 3104,
           "path": "src/drw_entities.h",
           "spanSha256": "e5c80e650ba23ce13dbd9f2f89fcb8e619d6c9250e1c8d61ce0646d23c00efc1",
           "symbol": "DRW_RevolvedSurface"
@@ -64406,7 +64698,7 @@
       ],
       "evidence": [
         {
-          "line": 2966,
+          "line": 2996,
           "path": "src/drw_entities.h",
           "spanSha256": "825b11a5664a954d1ac972fad30cfbef265cdd352f03b5873863277882c5e372",
           "symbol": "DRW_Surface"
@@ -64429,7 +64721,7 @@
       ],
       "evidence": [
         {
-          "line": 3111,
+          "line": 3141,
           "path": "src/drw_entities.h",
           "spanSha256": "5a74f1a49813dd7d46d2b57351f69e88b3099ed7034b886ed365b67f460ca9f0",
           "symbol": "DRW_SweptSurface"
@@ -65257,7 +65549,7 @@
       ],
       "evidence": [
         {
-          "line": 3949,
+          "line": 3979,
           "path": "src/drw_entities.h",
           "spanSha256": "993253f041f8eaabf308281f1916dfbdccf071fc507e33c1a8acd491d32de6ac",
           "symbol": "DRW_Viewport"
@@ -65418,7 +65710,7 @@
       ],
       "evidence": [
         {
-          "line": 2753,
+          "line": 2783,
           "path": "src/drw_entities.h",
           "spanSha256": "b0deba0a099f9fa7116a17472efb3ef7a149d933c3f00ec29608e0a18ea4eb64",
           "symbol": "DRW_Wipeout"
@@ -66803,7 +67095,7 @@
       ],
       "evidence": [
         {
-          "line": 3419,
+          "line": 3449,
           "path": "src/drw_entities.h",
           "spanSha256": "170e8552ae058521262fc388828eb591807d3579b6d438d596d5f75325c5fa58",
           "symbol": "DRW_DimAligned"
@@ -66827,7 +67119,7 @@
       ],
       "evidence": [
         {
-          "line": 3561,
+          "line": 3591,
           "path": "src/drw_entities.h",
           "spanSha256": "9a75123a91706ab9552c6a8bfe4c80f6e9c738f78c0a17dd406550743c572903",
           "symbol": "DRW_DimAngular"
@@ -66851,7 +67143,7 @@
       ],
       "evidence": [
         {
-          "line": 3593,
+          "line": 3623,
           "path": "src/drw_entities.h",
           "spanSha256": "044f4c1250632338d946b7107de405859a3a3ea908b9c2bf157f4640ba7ef45b",
           "symbol": "DRW_DimAngular3p"
@@ -66875,7 +67167,7 @@
       ],
       "evidence": [
         {
-          "line": 3618,
+          "line": 3648,
           "path": "src/drw_entities.h",
           "spanSha256": "e4a824dfadc0b3efa000b01aff7fc7dc1317e47e6d59f4270eaaa592a2792d4b",
           "symbol": "DRW_DimArc"
@@ -66899,7 +67191,7 @@
       ],
       "evidence": [
         {
-          "line": 3534,
+          "line": 3564,
           "path": "src/drw_entities.h",
           "spanSha256": "171acc712db2ea4cf675dd45623944665df3d36228f7deda4f08b134250040d0",
           "symbol": "DRW_DimDiametric"
@@ -66923,7 +67215,7 @@
       ],
       "evidence": [
         {
-          "line": 3505,
+          "line": 3535,
           "path": "src/drw_entities.h",
           "spanSha256": "bfbdab5ab517237e7e0c4e0feea9af59c9e5c43893e9f81bbb6e7c216671e221",
           "symbol": "DRW_DimLargeRadial"
@@ -66947,7 +67239,7 @@
       ],
       "evidence": [
         {
-          "line": 3449,
+          "line": 3479,
           "path": "src/drw_entities.h",
           "spanSha256": "f2e97381ec7e6fdebe0affad0948c08cdd1b0e47d7524de81f09af39919f92c6",
           "symbol": "DRW_DimLinear"
@@ -66971,7 +67263,7 @@
       ],
       "evidence": [
         {
-          "line": 3656,
+          "line": 3686,
           "path": "src/drw_entities.h",
           "spanSha256": "fdf55e51010dc5e333db242b8751e435e7f9ce2cf6dcda0703f3ed2842147a93",
           "symbol": "DRW_DimOrdinate"
@@ -66995,7 +67287,7 @@
       ],
       "evidence": [
         {
-          "line": 3472,
+          "line": 3502,
           "path": "src/drw_entities.h",
           "spanSha256": "7c4109dd1e6c898ca18f5d592b4becafd55594df19abdb539fe995cf1159d3cc",
           "symbol": "DRW_DimRadial"
@@ -67019,7 +67311,7 @@
       ],
       "evidence": [
         {
-          "line": 3249,
+          "line": 3279,
           "path": "src/drw_entities.h",
           "spanSha256": "ff76d12e3133492858a386778aa8fdc9c9fec1f98fc1e704441d03e72184a53c",
           "symbol": "DRW_Dimension"
@@ -67115,7 +67407,7 @@
       ],
       "evidence": [
         {
-          "line": 3023,
+          "line": 3053,
           "path": "src/drw_entities.h",
           "spanSha256": "c4db7ab4f32c480a2ed4e748527eedb3b3376e2573b5839aca193da0e4753714",
           "symbol": "DRW_ExtrudedSurface"
@@ -67163,9 +67455,9 @@
       ],
       "evidence": [
         {
-          "line": 2409,
+          "line": 2413,
           "path": "src/drw_entities.h",
-          "spanSha256": "d14a9e3d55a186c0106ff6af25a5698e4ec9d37bfc6eac283865edab615a6fa7",
+          "spanSha256": "50e1728882da9bc21a82148402c48340e27b0699446706271ef73f85d444861c",
           "symbol": "DRW_Hatch"
         }
       ],
@@ -67189,7 +67481,7 @@
         {
           "line": 2381,
           "path": "src/drw_entities.h",
-          "spanSha256": "a3b4f33d5fef482e26842ef6ac099ace5e3de7783ae9726352713affcbf5fe23",
+          "spanSha256": "11e7e7e75f87cb375e25cc4a1192b5dd1829c5805cf0ee2aa619e8e0b21ad50b",
           "symbol": "DRW_HatchLoop"
         }
       ],
@@ -67211,7 +67503,7 @@
       ],
       "evidence": [
         {
-          "line": 2442,
+          "line": 2450,
           "path": "src/drw_entities.h",
           "spanSha256": "891a3e15011149bee2c8cdd89b567e6428ec5d9b372ce4a1340115e43c39a66c",
           "symbol": "GradientStop"
@@ -67235,7 +67527,7 @@
       ],
       "evidence": [
         {
-          "line": 2428,
+          "line": 2436,
           "path": "src/drw_entities.h",
           "spanSha256": "07a7a41cbdb5b02673d8cbef8efd94e03c420303e838e7b77623657f0fafb01e",
           "symbol": "PatternLine"
@@ -67283,7 +67575,7 @@
       ],
       "evidence": [
         {
-          "line": 2681,
+          "line": 2711,
           "path": "src/drw_entities.h",
           "spanSha256": "78370f97519311ee4bb461c29f1f2e301a5556c72a7f301dcbb81ff867c2c94e",
           "symbol": "DRW_Image"
@@ -67355,7 +67647,7 @@
       ],
       "evidence": [
         {
-          "line": 3684,
+          "line": 3714,
           "path": "src/drw_entities.h",
           "spanSha256": "0ae5567b651bf133c20e81ce753f52855f3777a41f638d26bb8ec6ea60c5dd30",
           "symbol": "DRW_Leader"
@@ -67427,7 +67719,7 @@
       ],
       "evidence": [
         {
-          "line": 3171,
+          "line": 3201,
           "path": "src/drw_entities.h",
           "spanSha256": "10abb9e7007482e53205ff3f10a3c1cb782db8f9878fde8762ba8db5815bec56",
           "symbol": "DRW_LoftedSurface"
@@ -67451,7 +67743,7 @@
       ],
       "evidence": [
         {
-          "line": 3839,
+          "line": 3869,
           "path": "src/drw_entities.h",
           "spanSha256": "cb7cdd64a68b04f542aa72a5e7ac656c0f2069abd069ce9b1bf106f28b45a775",
           "symbol": "DRW_MLeader"
@@ -67475,7 +67767,7 @@
       ],
       "evidence": [
         {
-          "line": 3767,
+          "line": 3797,
           "path": "src/drw_entities.h",
           "spanSha256": "c61acd1f5aeef3bea721c48165abfb6b02139e999a94a8604f21de8486513214",
           "symbol": "DRW_MLeaderAnnotContext"
@@ -67499,7 +67791,7 @@
       ],
       "evidence": [
         {
-          "line": 3734,
+          "line": 3764,
           "path": "src/drw_entities.h",
           "spanSha256": "1173e3e865ad10e5c8d8048863353a6cc5b51fb6f104f188ed5a9964899223aa",
           "symbol": "DRW_MLeaderLeaderLine"
@@ -67523,7 +67815,7 @@
       ],
       "evidence": [
         {
-          "line": 3750,
+          "line": 3780,
           "path": "src/drw_entities.h",
           "spanSha256": "aaf0b1700eacd7bf61caf4d9047f431c8049cbc095879b26a94e400c6eb5bdbe",
           "symbol": "DRW_MLeaderRoot"
@@ -67547,7 +67839,7 @@
       ],
       "evidence": [
         {
-          "line": 3906,
+          "line": 3936,
           "path": "src/drw_entities.h",
           "spanSha256": "243a2b35de25d962c3298a3ba31a9e57b96d8d17b543c38061db265db806c513",
           "symbol": "ArrowHeadEntry"
@@ -67571,7 +67863,7 @@
       ],
       "evidence": [
         {
-          "line": 3910,
+          "line": 3940,
           "path": "src/drw_entities.h",
           "spanSha256": "f064446bf1be2de0d85a859dc5da4fb9dec6322b559f4f3f820b3232d153e83a",
           "symbol": "BlockLabelEntry"
@@ -67643,7 +67935,7 @@
       ],
       "evidence": [
         {
-          "line": 2651,
+          "line": 2681,
           "path": "src/drw_entities.h",
           "spanSha256": "e4f3cac56f00ae89303cf986299c90dd3daa9d7899b83dd66d48746801ae17a2",
           "symbol": "DRW_MPolygon"
@@ -67787,7 +68079,7 @@
       ],
       "evidence": [
         {
-          "line": 2780,
+          "line": 2810,
           "path": "src/drw_entities.h",
           "spanSha256": "2d7d6a84489aa7b453c7ec8be1ef29aefc4e161356b938b314f8afe78844a9e3",
           "symbol": "DRW_NavisworksModel"
@@ -67811,7 +68103,7 @@
       ],
       "evidence": [
         {
-          "line": 3219,
+          "line": 3249,
           "path": "src/drw_entities.h",
           "spanSha256": "36a6564b83da123b5f7368a24474b8043fc9e085abbde0572d9a8f20cba5a7c5",
           "symbol": "DRW_NurbsSurface"
@@ -67883,7 +68175,7 @@
       ],
       "evidence": [
         {
-          "line": 3016,
+          "line": 3046,
           "path": "src/drw_entities.h",
           "spanSha256": "935f780b564878922d1339ecf50875deb5d7a28114430cedd9383db7dd388d43",
           "symbol": "DRW_PlaneSurface"
@@ -67931,7 +68223,7 @@
       ],
       "evidence": [
         {
-          "line": 2836,
+          "line": 2866,
           "path": "src/drw_entities.h",
           "spanSha256": "a72ccaa22c9102b9c95366f8e8b5d59d53a9944a28c94af73341f7b5d4700788",
           "symbol": "DRW_PointCloud"
@@ -67955,7 +68247,7 @@
       ],
       "evidence": [
         {
-          "line": 2827,
+          "line": 2857,
           "path": "src/drw_entities.h",
           "spanSha256": "0868df86388e95b33ad548ac3560d41083a85b8c4a094af6d29a71c71fa3b4d3",
           "symbol": "DRW_PointCloudClipping"
@@ -67979,7 +68271,7 @@
       ],
       "evidence": [
         {
-          "line": 2897,
+          "line": 2927,
           "path": "src/drw_entities.h",
           "spanSha256": "7e1b101a06153ee424921d38aba000974cf81d1c6bf4383bb811efbd2180dc4e",
           "symbol": "DRW_PointCloudEx"
@@ -68003,7 +68295,7 @@
       ],
       "evidence": [
         {
-          "line": 2886,
+          "line": 2916,
           "path": "src/drw_entities.h",
           "spanSha256": "60c5275fd61146d10d0a7c346faa140e7d1fca29df82560165805a30359fd437",
           "symbol": "DRW_PointCloudExCropping"
@@ -68027,7 +68319,7 @@
       ],
       "evidence": [
         {
-          "line": 2820,
+          "line": 2850,
           "path": "src/drw_entities.h",
           "spanSha256": "26aaf74dc85aad95ed16117d58fd404d6c05436e6fc5c626b282e99c3f84903d",
           "symbol": "DRW_PointCloudIntensityStyle"
@@ -68147,7 +68439,7 @@
       ],
       "evidence": [
         {
-          "line": 3074,
+          "line": 3104,
           "path": "src/drw_entities.h",
           "spanSha256": "804be7d6fc1a4d1f3a05e0dbf8b5dfcf941192943f2093c486c07209182aabec",
           "symbol": "DRW_RevolvedSurface"
@@ -68291,7 +68583,7 @@
       ],
       "evidence": [
         {
-          "line": 2966,
+          "line": 2996,
           "path": "src/drw_entities.h",
           "spanSha256": "81e23d7109cc2258fba12744ff8a7f23895d7ec60c18edf4b31d652c52335047",
           "symbol": "DRW_Surface"
@@ -68315,7 +68607,7 @@
       ],
       "evidence": [
         {
-          "line": 3111,
+          "line": 3141,
           "path": "src/drw_entities.h",
           "spanSha256": "126104105c8c8d4237111a57f769a21aa020558fc8b09ecc0962e5ae0cb526ac",
           "symbol": "DRW_SweptSurface"
@@ -68699,7 +68991,7 @@
       ],
       "evidence": [
         {
-          "line": 3949,
+          "line": 3979,
           "path": "src/drw_entities.h",
           "spanSha256": "82df615ee9b7d314db73447b2c8966dc9ed1d7e0d1a1e3ee3b97d037c1855b86",
           "symbol": "DRW_Viewport"
@@ -68723,7 +69015,7 @@
       ],
       "evidence": [
         {
-          "line": 2753,
+          "line": 2783,
           "path": "src/drw_entities.h",
           "spanSha256": "45cc216509a3e6301ead13ecc8f96aa93aaa748106ae79072a8209073481d21c",
           "symbol": "DRW_Wipeout"
@@ -73621,7 +73913,7 @@
         {
           "line": 1,
           "path": "src/drw_entities.cpp",
-          "spanSha256": "6ae8287e81f30f31e218bcde03f77c0cf9512d3a43fe6646fda3f085eaf73639",
+          "spanSha256": "55d75f184d53e60c60a3cbc8dcfccd594a5d00a9f9e23c25e3c7cdd5536e3fb2",
           "symbol": "src/drw_entities.cpp"
         }
       ],
@@ -73645,7 +73937,7 @@
         {
           "line": 1,
           "path": "src/drw_entities.h",
-          "spanSha256": "98b62c3d9c5814ade300b660c58509fc294a1838f8dac22f927f921da2aec08d",
+          "spanSha256": "b59110ae357917c08c7832d85ec7caea9d86c4bc7284971c7e6eeedfd83bf6c4",
           "symbol": "src/drw_entities.h"
         }
       ],
@@ -75565,7 +75857,7 @@
         {
           "line": 1,
           "path": "src/drw_entities.cpp",
-          "spanSha256": "6ae8287e81f30f31e218bcde03f77c0cf9512d3a43fe6646fda3f085eaf73639",
+          "spanSha256": "55d75f184d53e60c60a3cbc8dcfccd594a5d00a9f9e23c25e3c7cdd5536e3fb2",
           "symbol": "src/drw_entities.cpp"
         }
       ],
@@ -75589,7 +75881,7 @@
         {
           "line": 1,
           "path": "src/drw_entities.h",
-          "spanSha256": "98b62c3d9c5814ade300b660c58509fc294a1838f8dac22f927f921da2aec08d",
+          "spanSha256": "b59110ae357917c08c7832d85ec7caea9d86c4bc7284971c7e6eeedfd83bf6c4",
           "symbol": "src/drw_entities.h"
         }
       ],

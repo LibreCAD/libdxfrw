@@ -98,17 +98,17 @@
     },
     {
       "path": "src/drw_entities.cpp",
-      "reason": "Mark one intentionally unused helper, remove two unused locals exposed by standalone -Werror compilation, reject non-finite GEOPOSITIONMARKER and LIGHT entity-body values plus bounded LIGHT strings/color before encoding, preserve nested MULTILEADER DXF context breaks, transforms, and hard-pointer handles on parse, bound MULTILEADER context/block-label strings before publication, and deep-copy entity-owned XDATA variants for explicit entity copy paths.",
+      "reason": "Mark one intentionally unused helper, remove two unused locals exposed by standalone -Werror compilation, reject non-finite GEOPOSITIONMARKER and LIGHT entity-body values plus bounded LIGHT strings/color before encoding, preserve nested MULTILEADER DXF context breaks, transforms, and hard-pointer handles on parse, bound MULTILEADER context/block-label strings before publication, deep-copy entity-owned XDATA variants for explicit entity copy paths, and clone HATCH boundary graphs for copy/assignment without aliasing unsupported polymorphic edges.",
       "scope": "warning hygiene and DXF MULTILEADER parity",
       "targetBlob": "f6552e6be5e59f7aca602d4d9c520baf993bb159",
-      "adaptedSha256": "6ae8287e81f30f31e218bcde03f77c0cf9512d3a43fe6646fda3f085eaf73639"
+      "adaptedSha256": "55d75f184d53e60c60a3cbc8dcfccd594a5d00a9f9e23c25e3c7cdd5536e3fb2"
     },
     {
       "path": "src/drw_entities.h",
-      "reason": "Retain a transient DXF MULTILEADER transformation-matrix cursor so repeated code-47 values are bounded and reset between documents, and expose the protected entity XDATA deep-copy helper used by explicit copy paths.",
+      "reason": "Retain a transient DXF MULTILEADER transformation-matrix cursor so repeated code-47 values are bounded and reset between documents, expose the protected entity XDATA deep-copy helper used by explicit copy paths, and publish HATCH copy/assignment declarations plus deterministic parser-state reset.",
       "scope": "DXF MULTILEADER parity",
       "targetBlob": "077a84860cea7c35da2f136ce6afedd3be1adf44",
-      "adaptedSha256": "98b62c3d9c5814ade300b660c58509fc294a1838f8dac22f927f921da2aec08d"
+      "adaptedSha256": "b59110ae357917c08c7832d85ec7caea9d86c4bc7284971c7e6eeedfd83bf6c4"
     },
     {
       "path": "src/intern/dwgutil.h",
