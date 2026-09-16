@@ -1213,6 +1213,36 @@ public:
     DRW_SectionObject() {
         eType = DRW::SECTION;
     }
+    DRW_SectionObject(const DRW_SectionObject& o): DRW_Entity(o),
+        m_state(o.m_state), m_flags(o.m_flags), m_name(o.m_name),
+        m_vertDir(o.m_vertDir), m_topHeight(o.m_topHeight),
+        m_bottomHeight(o.m_bottomHeight),
+        m_indicatorAlpha(o.m_indicatorAlpha),
+        m_indicatorColor(o.m_indicatorColor), m_verts(o.m_verts),
+        m_blVerts(o.m_blVerts),
+        m_sectionSettingsHandle(o.m_sectionSettingsHandle) {
+        eType = DRW::SECTION;
+        m_dxfInBody = false;
+    }
+    DRW_SectionObject& operator=(const DRW_SectionObject& o) {
+        if (this != &o) {
+            DRW_Entity::operator=(o);
+            m_state = o.m_state;
+            m_flags = o.m_flags;
+            m_name = o.m_name;
+            m_vertDir = o.m_vertDir;
+            m_topHeight = o.m_topHeight;
+            m_bottomHeight = o.m_bottomHeight;
+            m_indicatorAlpha = o.m_indicatorAlpha;
+            m_indicatorColor = o.m_indicatorColor;
+            m_verts = o.m_verts;
+            m_blVerts = o.m_blVerts;
+            m_sectionSettingsHandle = o.m_sectionSettingsHandle;
+            eType = DRW::SECTION;
+            m_dxfInBody = false;
+        }
+        return *this;
+    }
     void applyExtrusion() override {}
 
 protected:

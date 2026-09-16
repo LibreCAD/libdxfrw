@@ -2041,6 +2041,12 @@ edit this block or commit the same slice concurrently.
   focused hardening vectors pass and no drawing bytes or derived fixtures are
   used.
 
+- Current checkpoint (2026-09-16): S349/J325 extends transient parser-state
+  isolation to SECTIONOBJECT copies and assignments.  The AcDbSection
+  subclass-body marker now resets while persisted section geometry and
+  metadata remain copied; focused hardening vectors pass and no drawing bytes
+  or derived fixtures are used.
+
 - Current checkpoint (2026-09-16): S329/J305 compound-entity graph ownership
   is committed.  Explicit copies now clone legacy POLYLINE vertices, SPLINE
   control/fit points, and INSERT attributes while resetting parser cursors;
@@ -3744,17 +3750,17 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 348 (`COMMITTED`); no slice is active.
+- Resolved slices: 349 (`COMMITTED`); no slice is active.
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 1 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 348 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 349 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 350 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 351 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 448 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 449 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  6 DEFERRED_EXTERNAL / 340 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S348 are committed; no local implementation slice is active.
+  6 DEFERRED_EXTERNAL / 342 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S349 are committed; no local implementation slice is active.
   Keep the fast inner loop and do not promote support claims from
   self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -4156,7 +4162,8 @@ edit this block or commit the same slice concurrently.
 | S345 | J321: EXTRUDEDSURFACE parser-state copy isolation | S344 | COMMITTED | EXTRUDEDSURFACE copy/assignment transform/class-ID parser-state reset; focused hardening target; fixture admission; import scope; sync; plan; diff | focused `libdxfrw_hardening_tests` passes for copied and assigned EXTRUDEDSURFACE models; no drawing bytes or derived fixtures | continue with target-bound differential debt, independent-oracle, native-platform, and release closure |
 | S346 | J322: SWEPTSURFACE parser-state copy isolation | S345 | COMMITTED | SWEPTSURFACE copy/assignment transform/entity-ID parser-state reset; focused hardening target; fixture admission; import scope; sync; plan; diff | focused `libdxfrw_hardening_tests` passes for copied and assigned SWEPTSURFACE models; no drawing bytes or derived fixtures | continue with target-bound differential debt, independent-oracle, native-platform, and release closure |
 | S347 | J323: LOFTEDSURFACE parser-state copy isolation | S346 | COMMITTED | LOFTEDSURFACE copy/assignment transform/reference parser-state reset; focused hardening target; fixture admission; import scope; sync; plan; diff | focused `libdxfrw_hardening_tests` passes for copied and assigned LOFTEDSURFACE models; no drawing bytes or derived fixtures | continue with target-bound differential debt, independent-oracle, native-platform, and release closure |
-| S348 | J324: IMAGE parser-state copy isolation | S347 | COMMITTED | IMAGE copy/assignment clip-vertex parser-state reset; focused hardening target; fixture admission; import scope; sync; plan; diff | focused `libdxfrw_hardening_tests` passes for copied and assigned IMAGE models; route/support and policy gates pass; no drawing bytes or derived fixtures | prepare the status-bearing commit, then continue with target-bound differential debt, independent-oracle, native-platform, and release closure |
+| S348 | J324: IMAGE parser-state copy isolation | S347 | COMMITTED | IMAGE copy/assignment clip-vertex parser-state reset; focused hardening target; fixture admission; import scope; sync; plan; diff | focused `libdxfrw_hardening_tests` passes for copied and assigned IMAGE models; route/support and policy gates pass; no drawing bytes or derived fixtures | continue with target-bound differential debt, independent-oracle, native-platform, and release closure |
+| S349 | J325: SECTIONOBJECT parser-state copy isolation | S348 | COMMITTED | SECTIONOBJECT copy/assignment subclass-body parser-state reset; focused hardening target; fixture admission; import scope; sync; plan; diff | focused `libdxfrw_hardening_tests` passes for copied and assigned SECTIONOBJECT models; route/support and policy gates pass; no drawing bytes or derived fixtures | continue with target-bound differential debt, independent-oracle, native-platform, and release closure |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -4509,6 +4516,7 @@ edit this block or commit the same slice concurrently.
 | J322 | S346 | J321 | COMMITTED | EXPERIMENTAL | Harden SWEPTSURFACE parser-state copy and assignment | Reset transient SWEPTSURFACE transform/entity-ID, data-size, and subtype markers across copy/assignment while preserving persisted surface fields and ACIS payloads; keep the no-fixture policy |
 | J323 | S347 | J322 | COMMITTED | EXPERIMENTAL | Harden LOFTEDSURFACE parser-state copy and assignment | Reset transient LOFTEDSURFACE transform/reference counters and subtype markers across copy/assignment while preserving persisted surface fields and reference data; keep the no-fixture policy |
 | J324 | S348 | J323 | COMMITTED | EXPERIMENTAL | Harden IMAGE parser-state copy and assignment | Reset transient IMAGE clip-vertex count/open-vertex markers across copy/assignment while preserving persisted image and WIPEOUT clip data; keep the no-fixture policy |
+| J325 | S349 | J324 | COMMITTED | EXPERIMENTAL | Harden SECTIONOBJECT parser-state copy and assignment | Reset transient SECTIONOBJECT subclass-body marker across copy/assignment while preserving persisted section geometry and metadata; keep the no-fixture policy |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4967,6 +4975,7 @@ edit this block or commit the same slice concurrently.
 | J322.1 | J322 / S346 | WP3.11-WP3.12, WP8, WP10; SWEPTSURFACE parser-state copy isolation | J321 | COMMITTED | EXPERIMENTAL | assert copied and assigned SWEPTSURFACE models treat a fresh entity-ID group as the sweep entity ID after a partial source parse while preserving public fields; keep all inputs in memory | focused `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures |
 | J323.1 | J323 / S347 | WP3.11-WP3.12, WP8, WP10; LOFTEDSURFACE parser-state copy isolation | J322 | COMMITTED | EXPERIMENTAL | assert copied and assigned LOFTEDSURFACE models accept a fresh full transform walk after a partial source parse while preserving public fields; keep all inputs in memory | focused `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures |
 | J324.1 | J324 / S348 | WP3.11-WP3.12, WP8, WP10; IMAGE parser-state copy isolation | J323 | COMMITTED | EXPERIMENTAL | assert copied and assigned IMAGE models accept a fresh clip-vertex walk after a partial source parse while preserving persisted clip data; keep all inputs in memory | focused `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures |
+| J325.1 | J325 / S349 | WP3.11-WP3.12, WP8, WP10; SECTIONOBJECT parser-state copy isolation | J324 | COMMITTED | EXPERIMENTAL | assert copied and assigned SECTIONOBJECT models preserve public state while requiring a fresh AcDbSection subclass marker after a partial source parse; keep all inputs in memory | focused `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures |
 | J313.1 | J313 / S337 | WP3.11-WP3.12, WP8, WP10; TABLE parser-state copy isolation | J312 | COMMITTED | EXPERIMENTAL | assert copied and assigned TABLE models accept fresh subclass/grid dimensions after a partial source parse while preserving public table content; keep all inputs in memory | focused `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures |
 
 <!-- UPGRADE_PROGRESS_END -->

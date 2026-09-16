@@ -123,6 +123,11 @@ public:
     using DRW_Image::parseCode;
 };
 
+class ExposedSectionObject : public DRW_SectionObject {
+public:
+    using DRW_SectionObject::parseCode;
+};
+
 template <typename Entity>
 bool parseDxfRecords(Entity& entity, const std::string& source) {
     std::stringstream records(source);
@@ -184,6 +189,8 @@ void testPublicOwnershipContracts(TestContext& t) {
                   "DRW_Image copy contract");
     static_assert(std::is_copy_constructible<DRW_Wipeout>::value,
                   "DRW_Wipeout copy contract");
+    static_assert(std::is_copy_constructible<DRW_SectionObject>::value,
+                  "DRW_SectionObject copy contract");
     static_assert(std::is_copy_constructible<DRW_Attrib>::value,
                   "DRW_Attrib copy contract");
     static_assert(std::is_copy_constructible<DRW_GeoPositionMarker>::value,
@@ -824,6 +831,26 @@ void testPublicOwnershipContracts(TestContext& t) {
                  && assignedImage.clipPath.front().x == 2.0
                  && assignedImage.clipPath.front().y == 3.0,
              "IMAGE assignment starts a fresh clip-vertex parser walk");
+
+    ExposedSectionObject partialSection;
+    t.expect(parseDxfRecords(partialSection,
+                             "100\nAcDbSection\n90\n1\n"),
+             "SECTIONOBJECT parser state source setup");
+    ExposedSectionObject copiedSection(partialSection);
+    t.expect(parseDxfRecords(copiedSection, "90\n2\n")
+                 && copiedSection.m_state == 1u
+                 && parseDxfRecords(copiedSection,
+                                    "100\nAcDbSection\n90\n2\n")
+                 && copiedSection.m_state == 2u,
+             "SECTIONOBJECT copy starts a fresh subclass parser walk");
+    ExposedSectionObject assignedSection;
+    assignedSection = partialSection;
+    t.expect(parseDxfRecords(assignedSection, "90\n2\n")
+                 && assignedSection.m_state == 1u
+                 && parseDxfRecords(assignedSection,
+                                    "100\nAcDbSection\n90\n2\n")
+                 && assignedSection.m_state == 2u,
+             "SECTIONOBJECT assignment starts a fresh subclass parser walk");
 
     DRW_Dimension sourceDimension;
     sourceDimension.extData.push_back(
