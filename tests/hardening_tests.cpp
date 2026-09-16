@@ -138,6 +138,11 @@ public:
     using DRW_OleFrame::parseCode;
 };
 
+class ExposedBreakData : public DRW_BreakData {
+public:
+    using DRW_BreakData::parseCode;
+};
+
 template <typename Entity>
 bool parseDxfRecords(Entity& entity, const std::string& source) {
     std::stringstream records(source);
@@ -205,6 +210,8 @@ void testPublicOwnershipContracts(TestContext& t) {
                   "DRW_Ole2Frame copy contract");
     static_assert(std::is_copy_constructible<DRW_OleFrame>::value,
                   "DRW_OleFrame copy contract");
+    static_assert(std::is_copy_constructible<DRW_BreakData>::value,
+                  "DRW_BreakData copy contract");
     static_assert(std::is_copy_constructible<DRW_Attrib>::value,
                   "DRW_Attrib copy contract");
     static_assert(std::is_copy_constructible<DRW_GeoPositionMarker>::value,
@@ -903,6 +910,27 @@ void testPublicOwnershipContracts(TestContext& t) {
     t.expect(!assignedOle.m_dxfPayloadLengthSpecified
                  && assignedOle.m_payloadBytes.size() == 2u,
              "OLEFRAME assignment resets payload-length parser marker");
+
+    ExposedBreakData partialBreakData;
+    t.expect(parseDxfRecords(partialBreakData,
+                             "100\nAcDbBreakData\n90\n0\n")
+                 && partialBreakData.m_dimensionHandle == 0u,
+             "BREAKDATA parser state source setup");
+    ExposedBreakData copiedBreakData(partialBreakData);
+    t.expect(parseDxfRecords(copiedBreakData, "331\nB2\n")
+                 && copiedBreakData.m_dimensionHandle == 0u
+                 && parseDxfRecords(copiedBreakData,
+                                    "100\nAcDbBreakData\n331\nB2\n")
+                 && copiedBreakData.m_dimensionHandle == 0xB2u,
+             "BREAKDATA copy starts a fresh subclass parser walk");
+    ExposedBreakData assignedBreakData;
+    assignedBreakData = partialBreakData;
+    t.expect(parseDxfRecords(assignedBreakData, "331\nB3\n")
+                 && assignedBreakData.m_dimensionHandle == 0u
+                 && parseDxfRecords(assignedBreakData,
+                                    "100\nAcDbBreakData\n331\nB3\n")
+                 && assignedBreakData.m_dimensionHandle == 0xB3u,
+             "BREAKDATA assignment starts a fresh subclass parser walk");
 
     DRW_Dimension sourceDimension;
     sourceDimension.extData.push_back(

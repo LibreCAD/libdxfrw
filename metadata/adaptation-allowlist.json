@@ -139,6 +139,13 @@
       "adaptedSha256": "8f8d837f3493ddacb02e4a6e2907c64b58c802fc2b62081bf9375e6e51bd810e"
     },
     {
+      "path": "src/drw_objects.h",
+      "reason": "Reset transient BREAKDATA subclass-body parser state for explicit copies and assignments while preserving persisted point-reference and dimension-handle data.",
+      "scope": "DXF parser-state copy isolation",
+      "targetBlob": "41d58d78e0706509ee22232fb70e187baaf0ec34",
+      "adaptedSha256": "42ad97e89da25a0e3c9927bb6eb006e1fba39fd281012424784a7a357473441e"
+    },
+    {
       "path": "src/intern/dxfparserlimits.h",
       "reason": "Add a configurable aggregate DXF read-record resource ceiling without changing the format's semantic group-code limits.",
       "scope": "DXF resource-limit hardening",

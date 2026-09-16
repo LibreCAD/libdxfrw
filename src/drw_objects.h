@@ -5496,6 +5496,21 @@ class DRW_BreakData : public DRW_TableEntry {
   SETOBJFRIENDS
 public:
   DRW_BreakData() { reset(); }
+  DRW_BreakData(const DRW_BreakData& o): DRW_TableEntry(o),
+      m_pointRefHandles(o.m_pointRefHandles),
+      m_dimensionHandle(o.m_dimensionHandle), m_dxfInBreakData(false) {
+    tType = DRW::BREAKDATA;
+  }
+  DRW_BreakData& operator=(const DRW_BreakData& o) {
+    if (this != &o) {
+      DRW_TableEntry::operator=(o);
+      m_pointRefHandles = o.m_pointRefHandles;
+      m_dimensionHandle = o.m_dimensionHandle;
+      m_dxfInBreakData = false;
+      tType = DRW::BREAKDATA;
+    }
+    return *this;
+  }
   void reset();
 
 protected:
