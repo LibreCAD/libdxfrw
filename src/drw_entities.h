@@ -1599,6 +1599,33 @@ public:
         m_currentElementIdx = 0;
         m_currentSegFillCount = 0;
     }
+    DRW_MLine(const DRW_MLine& o): DRW_Entity(o),
+        scale(o.scale), justification(o.justification),
+        basePoint(o.basePoint), extPoint(o.extPoint),
+        openClosed(o.openClosed), numLines(o.numLines), numVerts(o.numVerts),
+        styleName(o.styleName), styleHandle(o.styleHandle),
+        vertlist(o.vertlist) {
+        eType = DRW::MLINE;
+        resetDxfParserState();
+    }
+    DRW_MLine& operator=(const DRW_MLine& o) {
+        if (this != &o) {
+            DRW_Entity::operator=(o);
+            scale = o.scale;
+            justification = o.justification;
+            basePoint = o.basePoint;
+            extPoint = o.extPoint;
+            openClosed = o.openClosed;
+            numLines = o.numLines;
+            numVerts = o.numVerts;
+            styleName = o.styleName;
+            styleHandle = o.styleHandle;
+            vertlist = o.vertlist;
+            eType = DRW::MLINE;
+            resetDxfParserState();
+        }
+        return *this;
+    }
     void applyExtrusion() override {}
 protected:
     void resetDwgState();
@@ -1632,6 +1659,16 @@ private:
     std::int32_t m_currentAreaExpected = -1;
     bool m_dxfVertexCountSeen = false;
     bool m_dxfLineCountSeen = false;
+
+    void resetDxfParserState() noexcept {
+        m_currentVertexIdx = -1;
+        m_currentElementIdx = 0;
+        m_currentSegFillCount = 0;
+        m_currentSegExpected = -1;
+        m_currentAreaExpected = -1;
+        m_dxfVertexCountSeen = false;
+        m_dxfLineCountSeen = false;
+    }
 };
 
 //! Class to handle UNDERLAY entity (PDFUNDERLAY/DGNUNDERLAY/DWFUNDERLAY).

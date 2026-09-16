@@ -59,6 +59,11 @@ public:
     using DRW_Leader::validateDxf;
 };
 
+class ExposedMLine : public DRW_MLine {
+public:
+    using DRW_MLine::parseCode;
+};
+
 template <typename Entity>
 bool parseDxfRecords(Entity& entity, const std::string& source) {
     std::stringstream records(source);
@@ -92,6 +97,8 @@ void testPublicOwnershipContracts(TestContext& t) {
                   "DRW_Insert copy contract");
     static_assert(std::is_copy_constructible<DRW_Leader>::value,
                   "DRW_Leader copy contract");
+    static_assert(std::is_copy_constructible<DRW_MLine>::value,
+                  "DRW_MLine copy contract");
     static_assert(std::is_copy_constructible<DRW_Attrib>::value,
                   "DRW_Attrib copy contract");
     static_assert(std::is_copy_constructible<DRW_GeoPositionMarker>::value,
@@ -452,6 +459,28 @@ void testPublicOwnershipContracts(TestContext& t) {
     assignedLeaderState = partialLeader;
     t.expect(assignedLeaderState.validateDxf(),
              "LEADER assignment resets vertex-count parser state");
+
+    ExposedMLine partialMLine;
+    partialMLine.numVerts = 1;
+    partialMLine.numLines = 1;
+    t.expect(parseDxfRecords(partialMLine,
+                             "11\n0\n21\n0\n31\n0\n74\n1\n"),
+             "MLINE parser segment state source setup");
+    ExposedMLine copiedMLineState(partialMLine);
+    copiedMLineState.vertlist.clear();
+    copiedMLineState.numVerts = 1;
+    copiedMLineState.numLines = 1;
+    t.expect(parseDxfRecords(copiedMLineState,
+                             "11\n0\n21\n0\n31\n0\n74\n0\n75\n0\n"),
+             "MLINE copy starts a fresh segment parser walk");
+    ExposedMLine assignedMLineState;
+    assignedMLineState = partialMLine;
+    assignedMLineState.vertlist.clear();
+    assignedMLineState.numVerts = 1;
+    assignedMLineState.numLines = 1;
+    t.expect(parseDxfRecords(assignedMLineState,
+                             "11\n0\n21\n0\n31\n0\n74\n0\n75\n0\n"),
+             "MLINE assignment starts a fresh segment parser walk");
 
     DRW_Dimension sourceDimension;
     sourceDimension.extData.push_back(
