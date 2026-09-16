@@ -2867,6 +2867,27 @@ class DRW_XRecord : public DRW_TableEntry {
   SETOBJFRIENDS
 public:
   DRW_XRecord() { reset(); }
+  DRW_XRecord(const DRW_XRecord& o): DRW_TableEntry(o),
+      m_cloning(o.m_cloning), m_values(o.m_values),
+      m_handleValues(o.m_handleValues), m_dataEntries(o.m_dataEntries),
+      m_rawData(o.m_rawData), m_rawDataValid(o.m_rawDataValid),
+      m_dxfBodySeen(false) {
+    tType = o.tType;
+  }
+  DRW_XRecord& operator=(const DRW_XRecord& o) {
+    if (this != &o) {
+      DRW_TableEntry::operator=(o);
+      m_cloning = o.m_cloning;
+      m_values = o.m_values;
+      m_handleValues = o.m_handleValues;
+      m_dataEntries = o.m_dataEntries;
+      m_rawData = o.m_rawData;
+      m_rawDataValid = o.m_rawDataValid;
+      m_dxfBodySeen = false;
+      tType = o.tType;
+    }
+    return *this;
+  }
   void reset() {
     tType = DRW::XRECORD;
     m_cloning = 0;

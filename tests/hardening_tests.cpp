@@ -153,6 +153,11 @@ public:
     using DRW_DictionaryWithDefault::parseCode;
 };
 
+class ExposedXRecord : public DRW_XRecord {
+public:
+    using DRW_XRecord::parseCode;
+};
+
 template <typename Entity>
 bool parseDxfRecords(Entity& entity, const std::string& source) {
     std::stringstream records(source);
@@ -226,6 +231,8 @@ void testPublicOwnershipContracts(TestContext& t) {
                   "DRW_Dictionary copy contract");
     static_assert(std::is_copy_constructible<DRW_DictionaryWithDefault>::value,
                   "DRW_DictionaryWithDefault copy contract");
+    static_assert(std::is_copy_constructible<DRW_XRecord>::value,
+                  "DRW_XRecord copy contract");
     static_assert(std::is_copy_constructible<DRW_Attrib>::value,
                   "DRW_Attrib copy contract");
     static_assert(std::is_copy_constructible<DRW_GeoPositionMarker>::value,
@@ -982,6 +989,29 @@ void testPublicOwnershipContracts(TestContext& t) {
     t.expect(parseDxfRecords(assignedDictionaryDefault, "340\nA4\n")
                  && assignedDictionaryDefault.m_defaultEntryHandle == 0xA4u,
              "DICTIONARYWDFLT assignment clears default-entry parser state");
+
+    ExposedXRecord partialXRecord;
+    t.expect(parseDxfRecords(partialXRecord,
+                             "100\nAcDbXrecord\n1\nold-value\n")
+                 && partialXRecord.m_values.size() == 1u,
+             "XRECORD parser state source setup");
+    ExposedXRecord copiedXRecord(partialXRecord);
+    const bool copiedStale = parseDxfRecords(copiedXRecord, "1\nstale-value\n");
+    const std::size_t copiedAfterStale = copiedXRecord.m_values.size();
+    const bool copiedFresh = parseDxfRecords(copiedXRecord,
+                                    "100\nAcDbXrecord\n1\nfresh-value\n");
+    t.expect(copiedStale && copiedAfterStale == 1u
+                 && copiedFresh && copiedXRecord.m_values.size() == 2u,
+             "XRECORD copy clears subclass-body parser state");
+    ExposedXRecord assignedXRecord;
+    assignedXRecord = partialXRecord;
+    const bool assignedStale = parseDxfRecords(assignedXRecord, "1\nstale-value\n");
+    const std::size_t assignedAfterStale = assignedXRecord.m_values.size();
+    const bool assignedFresh = parseDxfRecords(assignedXRecord,
+                                    "100\nAcDbXrecord\n1\nfresh-value\n");
+    t.expect(assignedStale && assignedAfterStale == 1u
+                 && assignedFresh && assignedXRecord.m_values.size() == 2u,
+             "XRECORD assignment clears subclass-body parser state");
 
     DRW_Dimension sourceDimension;
     sourceDimension.extData.push_back(
