@@ -28,6 +28,7 @@ jobs:
         run: >-
           cmake -S . -B build
           -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+          -DCMAKE_BUILD_TYPE=Release
           -DLIBDXFRW_BUILD_DOC=OFF
           -DLIBDXFRW_BUILD_TESTS=ON
 
