@@ -112,6 +112,12 @@ public:
     using DRW_SweptSurface::parseCode;
 };
 
+class ExposedLoftedSurface : public DRW_LoftedSurface {
+public:
+    using DRW_LoftedSurface::parseCode;
+    using DRW_LoftedSurface::finalizeDxf;
+};
+
 template <typename Entity>
 bool parseDxfRecords(Entity& entity, const std::string& source) {
     std::stringstream records(source);
@@ -167,6 +173,8 @@ void testPublicOwnershipContracts(TestContext& t) {
                   "DRW_ExtrudedSurface copy contract");
     static_assert(std::is_copy_constructible<DRW_SweptSurface>::value,
                   "DRW_SweptSurface copy contract");
+    static_assert(std::is_copy_constructible<DRW_LoftedSurface>::value,
+                  "DRW_LoftedSurface copy contract");
     static_assert(std::is_copy_constructible<DRW_Attrib>::value,
                   "DRW_Attrib copy contract");
     static_assert(std::is_copy_constructible<DRW_GeoPositionMarker>::value,
@@ -762,6 +770,32 @@ void testPublicOwnershipContracts(TestContext& t) {
                              "100\nAcDbSweptSurface\n90\n2\n")
                  && assignedSweptSurface.sweepEntityId == 2u,
              "SWEPTSURFACE assignment starts a fresh entity-id parser walk");
+
+    const std::string loftedTransform =
+        "100\nAcDbLoftedSurface\n"
+        "40\n1\n40\n2\n40\n3\n40\n4\n"
+        "40\n5\n40\n6\n40\n7\n40\n8\n"
+        "40\n9\n40\n10\n40\n11\n40\n12\n"
+        "40\n13\n40\n14\n40\n15\n40\n16\n";
+    ExposedLoftedSurface partialLoftedSurface;
+    t.expect(parseDxfRecords(partialLoftedSurface,
+                             "100\nAcDbLoftedSurface\n40\n99\n"),
+             "LOFTEDSURFACE parser state source setup");
+    ExposedLoftedSurface copiedLoftedSurface(partialLoftedSurface);
+    copiedLoftedSurface.loftEntityTransform.fill(0.0);
+    t.expect(parseDxfRecords(copiedLoftedSurface, loftedTransform)
+                 && copiedLoftedSurface.finalizeDxf()
+                 && copiedLoftedSurface.loftEntityTransform.front() == 1.0
+                 && copiedLoftedSurface.loftEntityTransform.back() == 16.0,
+             "LOFTEDSURFACE copy starts a fresh transform parser walk");
+    ExposedLoftedSurface assignedLoftedSurface;
+    assignedLoftedSurface = partialLoftedSurface;
+    assignedLoftedSurface.loftEntityTransform.fill(0.0);
+    t.expect(parseDxfRecords(assignedLoftedSurface, loftedTransform)
+                 && assignedLoftedSurface.finalizeDxf()
+                 && assignedLoftedSurface.loftEntityTransform.front() == 1.0
+                 && assignedLoftedSurface.loftEntityTransform.back() == 16.0,
+             "LOFTEDSURFACE assignment starts a fresh transform parser walk");
 
     DRW_Dimension sourceDimension;
     sourceDimension.extData.push_back(

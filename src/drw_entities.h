@@ -3670,6 +3670,48 @@ public:
                                0.0, 0.0, 1.0, 0.0,
                                0.0, 0.0, 0.0, 1.0};
     }
+    DRW_LoftedSurface(const DRW_LoftedSurface& o): DRW_Surface(o),
+        loftEntityTransform(o.loftEntityTransform),
+        planeNormalLoftingType(o.planeNormalLoftingType),
+        startDraftAngle(o.startDraftAngle), endDraftAngle(o.endDraftAngle),
+        startDraftMagnitude(o.startDraftMagnitude),
+        endDraftMagnitude(o.endDraftMagnitude),
+        arcLengthParameterization(o.arcLengthParameterization),
+        noTwist(o.noTwist), alignDirection(o.alignDirection),
+        simpleSurfaces(o.simpleSurfaces), closedSurfaces(o.closedSurfaces),
+        solid(o.solid), ruledSurface(o.ruledSurface),
+        virtualGuide(o.virtualGuide), numCrossSections(o.numCrossSections),
+        numGuideCurves(o.numGuideCurves), dxfReferenceData(o.dxfReferenceData),
+        pathCurveHandle(o.pathCurveHandle) {
+        eType = DRW::LOFTEDSURFACE;
+        resetDxfParserState();
+    }
+    DRW_LoftedSurface& operator=(const DRW_LoftedSurface& o) {
+        if (this != &o) {
+            DRW_Surface::operator=(o);
+            loftEntityTransform = o.loftEntityTransform;
+            planeNormalLoftingType = o.planeNormalLoftingType;
+            startDraftAngle = o.startDraftAngle;
+            endDraftAngle = o.endDraftAngle;
+            startDraftMagnitude = o.startDraftMagnitude;
+            endDraftMagnitude = o.endDraftMagnitude;
+            arcLengthParameterization = o.arcLengthParameterization;
+            noTwist = o.noTwist;
+            alignDirection = o.alignDirection;
+            simpleSurfaces = o.simpleSurfaces;
+            closedSurfaces = o.closedSurfaces;
+            solid = o.solid;
+            ruledSurface = o.ruledSurface;
+            virtualGuide = o.virtualGuide;
+            numCrossSections = o.numCrossSections;
+            numGuideCurves = o.numGuideCurves;
+            dxfReferenceData = o.dxfReferenceData;
+            pathCurveHandle = o.pathCurveHandle;
+            eType = DRW::LOFTEDSURFACE;
+            resetDxfParserState();
+        }
+        return *this;
+    }
 
 protected:
     bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) override;
@@ -3696,6 +3738,14 @@ public:
     std::uint32_t pathCurveHandle = 0;
 
 private:
+    void resetDxfParserState() noexcept {
+        m_dxfTransformCount = 0;
+        m_dxfReferenceTokenCount = 0;
+        m_dxfReferenceDataSize = 0;
+        m_dxfTypedFieldSeen = false;
+        m_dxfInSubtype = false;
+    }
+
     std::size_t m_dxfTransformCount = 0;
     std::size_t m_dxfReferenceTokenCount = 0;
     std::size_t m_dxfReferenceDataSize = 0;

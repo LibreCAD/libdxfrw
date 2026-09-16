@@ -5750,6 +5750,8 @@
         "shared/public-inline-method/src_drw_entities.h_DRW_Insert_e51e1580b58f2f12ee677dc8949ce8102ce0276999748b465a84dc15d2a14a86",
         "shared/public-inline-method/src_drw_entities.h_DRW_LWPolyline_288b28487c2e7ebb1627a5302784d37a931acac0ba5e88a9cfc2b7ecc7478f74",
         "shared/public-inline-method/src_drw_entities.h_DRW_Line_26c6a0cb411e543fa0bd9eec513739b4cadb30bf14b6a761b55880f3b6727ed1",
+        "shared/public-inline-method/src_drw_entities.h_DRW_LoftedSurface_1fb0f793f20a57a1df06f6fb2cecb5b24c037b1bc20cbf423c9a90c68965d516",
+        "shared/public-inline-method/src_drw_entities.h_DRW_LoftedSurface_2b7fbe49eb19563b2f7fafd3a394a3d611f38b095801d2ca9287b717c8da5fdc",
         "shared/public-inline-method/src_drw_entities.h_DRW_MLine_4cf74395ca67a109e41807da5f1444c0c60802d8caca19cc55079d99fd365450",
         "shared/public-inline-method/src_drw_entities.h_DRW_MLine_9b91b6e9d05f2ea91d54caadc3ac5d015a45c30cb663d37095ea54adaf61adf8",
         "shared/public-inline-method/src_drw_entities.h_DRW_MLine_fac310b1bf536631c254626fb1367652386fa6009513741ab078ea4bc3fd1b22",
@@ -5832,6 +5834,8 @@
         "shared/public-method/src_drw_entities.h_DRW_Leader_92817e1c2236b008371986fef933f33ac770fc069b80f6d4719f2b3ffc5c81fc",
         "shared/public-method/src_drw_entities.h_DRW_Leader_c3426e1baeb842d6e531ffc339001e864e74c2b175f10a66756d59b564c07980",
         "shared/public-method/src_drw_entities.h_DRW_Line_26c6a0cb411e543fa0bd9eec513739b4cadb30bf14b6a761b55880f3b6727ed1",
+        "shared/public-method/src_drw_entities.h_DRW_LoftedSurface_1fb0f793f20a57a1df06f6fb2cecb5b24c037b1bc20cbf423c9a90c68965d516",
+        "shared/public-method/src_drw_entities.h_DRW_LoftedSurface_2b7fbe49eb19563b2f7fafd3a394a3d611f38b095801d2ca9287b717c8da5fdc",
         "shared/public-method/src_drw_entities.h_DRW_MLine_4cf74395ca67a109e41807da5f1444c0c60802d8caca19cc55079d99fd365450",
         "shared/public-method/src_drw_entities.h_DRW_MLine_9b91b6e9d05f2ea91d54caadc3ac5d015a45c30cb663d37095ea54adaf61adf8",
         "shared/public-method/src_drw_entities.h_DRW_MLine_fac310b1bf536631c254626fb1367652386fa6009513741ab078ea4bc3fd1b22",
@@ -5945,7 +5949,7 @@
   },
   "inputs": {
     "standalone": {
-      "contentTreeSha256": "365f2819a79dc0f9f61b1981b51b3464248853e3da7b2c28b8692b998d30e2ae",
+      "contentTreeSha256": "7dbc92e688cde45710b1248eb1aa09c68ae8bc81ea967b16ca0f476529acadf1",
       "files": [
         {
           "mode": "100644",
@@ -5995,7 +5999,7 @@
         {
           "mode": "100644",
           "path": "src/drw_entities.h",
-          "sha256": "639df78c2183d23b6f1770f1374e7b7a3b2af5ea9e6acc61d14f8257e2e038cb"
+          "sha256": "84da8d094cf1f8caa47e17717adc2f6e8f1998e73a4d7c6198b6560dce3570de"
         },
         {
           "mode": "100644",
@@ -123208,6 +123212,8 @@
       "shared/public-inline-method/src_drw_entities.h_DRW_HatchLoop_cf55ec11be58558a82da0890692c157a731db54202cbe5256f5c8454cd2ad7b2",
       "shared/public-inline-method/src_drw_entities.h_DRW_Hatch_922983d21b064324ff73e7610472ad54eea36cbdc7f5be8d6f554cde70209ce2",
       "shared/public-inline-method/src_drw_entities.h_DRW_Hatch_e0b4de2cd099c2672738948a835f019317de77b50a73ddc5accd50f3649dd15e",
+      "shared/public-inline-method/src_drw_entities.h_DRW_LoftedSurface_1fb0f793f20a57a1df06f6fb2cecb5b24c037b1bc20cbf423c9a90c68965d516",
+      "shared/public-inline-method/src_drw_entities.h_DRW_LoftedSurface_2b7fbe49eb19563b2f7fafd3a394a3d611f38b095801d2ca9287b717c8da5fdc",
       "shared/public-inline-method/src_drw_entities.h_DRW_MLine_9b91b6e9d05f2ea91d54caadc3ac5d015a45c30cb663d37095ea54adaf61adf8",
       "shared/public-inline-method/src_drw_entities.h_DRW_MLine_fac310b1bf536631c254626fb1367652386fa6009513741ab078ea4bc3fd1b22",
       "shared/public-inline-method/src_drw_entities.h_DRW_Mesh_62983d8adc37d8493892e94bebeda7b5fe3c7ced098cf054edf164adfea7c126",
@@ -123264,6 +123270,8 @@
       "shared/public-method/src_drw_entities.h_DRW_Leader_7a6a8456c42adf8f9d3e692344fcf789885a37d62bbb7253da981a77efc23408",
       "shared/public-method/src_drw_entities.h_DRW_Leader_92817e1c2236b008371986fef933f33ac770fc069b80f6d4719f2b3ffc5c81fc",
       "shared/public-method/src_drw_entities.h_DRW_Leader_c3426e1baeb842d6e531ffc339001e864e74c2b175f10a66756d59b564c07980",
+      "shared/public-method/src_drw_entities.h_DRW_LoftedSurface_1fb0f793f20a57a1df06f6fb2cecb5b24c037b1bc20cbf423c9a90c68965d516",
+      "shared/public-method/src_drw_entities.h_DRW_LoftedSurface_2b7fbe49eb19563b2f7fafd3a394a3d611f38b095801d2ca9287b717c8da5fdc",
       "shared/public-method/src_drw_entities.h_DRW_MLine_9b91b6e9d05f2ea91d54caadc3ac5d015a45c30cb663d37095ea54adaf61adf8",
       "shared/public-method/src_drw_entities.h_DRW_MLine_fac310b1bf536631c254626fb1367652386fa6009513741ab078ea4bc3fd1b22",
       "shared/public-method/src_drw_entities.h_DRW_Mesh_62983d8adc37d8493892e94bebeda7b5fe3c7ced098cf054edf164adfea7c126",
@@ -123305,7 +123313,7 @@
     "summary": {
       "deltaOneToOne": 805,
       "exactOneToOne": 4827,
-      "standaloneOnly": 183,
+      "standaloneOnly": 187,
       "targetOnly": 0,
       "targetRows": 5669
     }
@@ -123339,7 +123347,7 @@
         "src/libdxfrw.h"
       ],
       "allowlistPath": "metadata/adaptation-allowlist.json",
-      "allowlistSha256": "7753ac9b5c98a9b8d7e43fd35855db74215da51d9642635019de53d1dac3cd34",
+      "allowlistSha256": "e5d5d53b3e0371fb89b9f8765b6692ac4af134e8fb034fc6550797a5e87206ce",
       "schema": 1,
       "targetCommit": "0ffb38d790db53116978e01fcaf94cee9bc6ee48",
       "targetRepository": "git@github.com-librecad:LibreCAD/LibreCAD.git"
@@ -123348,7 +123356,7 @@
       "algorithm": "sha256-canonical-json-v1",
       "bodyEvidenceExcluded": true,
       "inventoryDigests": {
-        "standalone": "6ef072428a0ea75ba3e1d74baf731be75d3bb9be6e8a82157ace8bf0354870fc",
+        "standalone": "b3be1f573b480364cab19a1f23b1f81d2e2487504d69fbbf5d5ffb75ebce7e30",
         "target": "5c0ad5e9221c95df0c2c056148b88273e9d06a7f3e3fe1c50cc202b51a1f9f78"
       },
       "stableFields": [
@@ -123364,7 +123372,7 @@
     "standalone": {
       "baselineCommit": "92d7466ed9146badcd4fb44c82d1dd8302b3c7db",
       "baselineRef": "origin/master",
-      "contentTreeSha256": "365f2819a79dc0f9f61b1981b51b3464248853e3da7b2c28b8692b998d30e2ae",
+      "contentTreeSha256": "7dbc92e688cde45710b1248eb1aa09c68ae8bc81ea967b16ca0f476529acadf1",
       "repository": "git@github.com-librecad:LibreCAD/libdxfrw.git"
     },
     "target": {
@@ -123414,8 +123422,8 @@
     {
       "facade": "shared",
       "path": "parity-source-routes-v1/standalone-shared.json",
-      "routeCount": 2972,
-      "sha256": "20cc7da7d77ec95ea0d0131b1516eddd494d37f5cfff64b70b86beac256bbbf6",
+      "routeCount": 2976,
+      "sha256": "5d2f47b682efb1d7f44b0129c952881ddfe78a0052a4a879a050a6fef9a20615",
       "side": "standalone"
     }
   ],
@@ -123448,14 +123456,14 @@
       },
       "shared": {
         "semanticMismatches": 4,
-        "standaloneOnly": 175,
+        "standaloneOnly": 179,
         "targetOnly": 52
       }
     },
     "mapping": {
       "deltaOneToOne": 805,
       "exactOneToOne": 4827,
-      "standaloneOnly": 183,
+      "standaloneOnly": 187,
       "targetOnly": 0,
       "targetRows": 5669
     },
@@ -123498,8 +123506,8 @@
         "public-enum": 66,
         "public-header": 10,
         "public-inline-function": 3,
-        "public-inline-method": 702,
-        "public-method": 1116,
+        "public-inline-method": 704,
+        "public-method": 1118,
         "public-model": 259,
         "public-type": 321,
         "publication-stage": 24,
@@ -123523,7 +123531,7 @@
         "writer-pipeline": 7,
         "writer-version": 14
       },
-      "routeCount": 5818
+      "routeCount": 5822
     },
     "target": {
       "categoryCounts": {
