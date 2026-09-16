@@ -2971,6 +2971,16 @@ bool parseTableContent(DRW::Version version, dwgBuffer *buf, dwgBuffer *strBuf,
 
 } // namespace
 
+void DRW_Entity::copyExtDataFrom(const DRW_Entity& source) {
+    std::vector<std::shared_ptr<DRW_Variant>> copies;
+    copies.reserve(source.extData.size());
+    for (const std::shared_ptr<DRW_Variant>& value : source.extData) {
+        copies.push_back(value ? std::make_shared<DRW_Variant>(*value)
+                               : nullptr);
+    }
+    extData.swap(copies);
+}
+
 //! Calculate arbitrary axis
 /*!
 *   Calculate arbitrary axis for apply extrusions
@@ -11422,7 +11432,9 @@ DRW_Attrib::DRW_Attrib(const DRW_Attrib& o)
       lockPosition(o.lockPosition), attVersion(o.attVersion),
       m_attributeType(o.m_attributeType),
       keepDuplicateRecords(o.keepDuplicateRecords),
-      mtext(o.mtext ? std::make_unique<DRW_MText>(*o.mtext) : nullptr) {}
+      mtext(o.mtext ? std::make_unique<DRW_MText>(*o.mtext) : nullptr) {
+    copyExtDataFrom(o);
+}
 DRW_Attrib& DRW_Attrib::operator=(const DRW_Attrib& o) {
     if (this != &o) {
         DRW_Text::operator=(o);
@@ -11434,6 +11446,7 @@ DRW_Attrib& DRW_Attrib::operator=(const DRW_Attrib& o) {
         m_attributeType = o.m_attributeType;
         keepDuplicateRecords = o.keepDuplicateRecords;
         mtext = o.mtext ? std::make_unique<DRW_MText>(*o.mtext) : nullptr;
+        copyExtDataFrom(o);
     }
     return *this;
 }
@@ -11450,7 +11463,9 @@ DRW_GeoPositionMarker::DRW_GeoPositionMarker(
       m_enableFrameText(o.m_enableFrameText),
       mtext(o.mtext ? std::make_unique<DRW_MText>(*o.mtext) : nullptr),
       m_dxfDouble40Count(o.m_dxfDouble40Count),
-      m_dxfBool290Count(o.m_dxfBool290Count) {}
+      m_dxfBool290Count(o.m_dxfBool290Count) {
+    copyExtDataFrom(o);
+}
 DRW_GeoPositionMarker& DRW_GeoPositionMarker::operator=(
     const DRW_GeoPositionMarker& o) {
     if (this != &o) {
@@ -11466,6 +11481,7 @@ DRW_GeoPositionMarker& DRW_GeoPositionMarker::operator=(
         mtext = o.mtext ? std::make_unique<DRW_MText>(*o.mtext) : nullptr;
         m_dxfDouble40Count = o.m_dxfDouble40Count;
         m_dxfBool290Count = o.m_dxfBool290Count;
+        copyExtDataFrom(o);
     }
     return *this;
 }

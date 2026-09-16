@@ -98,17 +98,17 @@
     },
     {
       "path": "src/drw_entities.cpp",
-      "reason": "Mark one intentionally unused helper, remove two unused locals exposed by standalone -Werror compilation, reject non-finite GEOPOSITIONMARKER and LIGHT entity-body values plus bounded LIGHT strings/color before encoding, preserve nested MULTILEADER DXF context breaks, transforms, and hard-pointer handles on parse, and bound MULTILEADER context/block-label strings before publication.",
+      "reason": "Mark one intentionally unused helper, remove two unused locals exposed by standalone -Werror compilation, reject non-finite GEOPOSITIONMARKER and LIGHT entity-body values plus bounded LIGHT strings/color before encoding, preserve nested MULTILEADER DXF context breaks, transforms, and hard-pointer handles on parse, bound MULTILEADER context/block-label strings before publication, and deep-copy entity-owned XDATA variants for explicit entity copy paths.",
       "scope": "warning hygiene and DXF MULTILEADER parity",
       "targetBlob": "f6552e6be5e59f7aca602d4d9c520baf993bb159",
-      "adaptedSha256": "30d368ccdff0e57d41abf30c83708ba47919069f918cd20ce6cb36c850ca5b14"
+      "adaptedSha256": "fbf1e64b511c165c8a62c790df1642e2b27b03452d19999d0a303cb0db4ee881"
     },
     {
       "path": "src/drw_entities.h",
-      "reason": "Retain a transient DXF MULTILEADER transformation-matrix cursor so repeated code-47 values are bounded and reset between documents.",
+      "reason": "Retain a transient DXF MULTILEADER transformation-matrix cursor so repeated code-47 values are bounded and reset between documents, and expose the protected entity XDATA deep-copy helper used by explicit copy paths.",
       "scope": "DXF MULTILEADER parity",
       "targetBlob": "077a84860cea7c35da2f136ce6afedd3be1adf44",
-      "adaptedSha256": "0b77c34b426363daf39982fc3ba370e1ce467482f3511284db9ee433c08b9ec2"
+      "adaptedSha256": "45f204c43b3cd00cc870834f264951a6dc67d1d2633c88d976b96f3a50d84ce9"
     },
     {
       "path": "src/intern/dwgutil.h",

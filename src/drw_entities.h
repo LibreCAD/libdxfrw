@@ -409,6 +409,11 @@ protected: //only for read dwg
 	std::vector<PendingHandleRef> dwgEedLayerWriteRefs;
 	std::uint16_t dwgEedCodePage {30};
 
+    // Copy entity-owned XDATA variants instead of retaining the source's
+    // shared_ptr instances. Parser-side EED resolution can mutate a variant
+    // after a model has been copied, so copied entities must not share it.
+    void copyExtDataFrom(const DRW_Entity& source);
+
 private:
 	void init(DRW_Entity const& rhs);
 	DRW_Coord extAxisX;
@@ -1491,14 +1496,9 @@ public:
         for (const auto& vertex : p.vertlist)
             this->vertlist.push_back(
                 vertex ? std::make_shared<DRW_Vertex2D>(*vertex) : nullptr);
-        // Deep-copy the base extData too: the implicit DRW_Entity(p) base copy
-        // shallow-copies the shared_ptr XDATA variants, but parseAttribs mutates
-        // them, so two copies must not share. (`vertex` stays null in a fresh
-        // copy; `curr` is a private parse-transient cursor — its shallow copy is
-        // benign since reset() clears it before reuse.)
-        extData.clear();
-        for (const auto& v : p.extData)
-            extData.push_back(v ? std::make_shared<DRW_Variant>(*v) : nullptr);
+        // The base copy preserves scalar parser state; clone the mutable
+        // XDATA values so parseAttribs cannot affect the source entity.
+        copyExtDataFrom(p);
     }
     // Deep-copy assignment to match the deep-copy constructor; the implicit
     // operator= would shallow-copy the shared_ptr vertlist, so two assigned
@@ -1518,11 +1518,9 @@ public:
                 vertlist.push_back(
                     vertex ? std::make_shared<DRW_Vertex2D>(*vertex) : nullptr);
             vertex.reset();  // transient build pointer — do not alias p's vertlist
-            // Deep-copy base extData (DRW_Entity::operator= aliased the shared
-            // XDATA variants, which parseAttribs mutates).
-            extData.clear();
-            for (const auto& v : p.extData)
-                extData.push_back(v ? std::make_shared<DRW_Variant>(*v) : nullptr);
+            // DRW_Entity::operator= aliases shared XDATA; restore ownership
+            // isolation after copying the public entity fields.
+            copyExtDataFrom(p);
         }
         return *this;
     }
@@ -3167,6 +3165,7 @@ public:
         altZero = d.altZero;
         altTolZero = d.altTolZero;
         textMove = d.textMove;
+        copyExtDataFrom(d);
     }
     virtual ~DRW_Dimension() = default;
 

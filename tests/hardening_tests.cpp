@@ -6,6 +6,7 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #include "drw_acis.h"
@@ -33,6 +34,121 @@ struct TestContext {
         }
     }
 };
+
+void testPublicOwnershipContracts(TestContext& t) {
+    static_assert(!std::is_copy_constructible<dxfRW>::value,
+                  "dxfRW must remain non-copyable");
+    static_assert(!std::is_move_constructible<dxfRW>::value,
+                  "dxfRW must remain non-movable");
+    static_assert(std::is_copy_constructible<DRW_Variant>::value,
+                  "DRW_Variant copy contract");
+    static_assert(std::is_copy_constructible<DRW_Header>::value,
+                  "DRW_Header copy contract");
+    static_assert(std::is_copy_constructible<DRW_Layer>::value,
+                  "DRW_TableEntry-derived copy contract");
+    static_assert(std::is_copy_constructible<DRW_LWPolyline>::value,
+                  "DRW_LWPolyline copy contract");
+    static_assert(std::is_copy_constructible<DRW_Attrib>::value,
+                  "DRW_Attrib copy contract");
+    static_assert(std::is_copy_constructible<DRW_GeoPositionMarker>::value,
+                  "DRW_GeoPositionMarker copy contract");
+
+    DRW_Variant sourceVariant(1, UTF8STRING("source"));
+    DRW_Variant copiedVariant(sourceVariant);
+    copiedVariant.addString(1, "copy");
+    t.expect(std::string(sourceVariant.c_str()) == "source"
+                 && std::string(copiedVariant.c_str()) == "copy",
+             "DRW_Variant copy owns string storage");
+
+    DRW_Layer sourceLayer;
+    t.expect(sourceLayer.addExtData(
+                  std::make_unique<DRW_Variant>(1000, "layer")),
+             "DRW_TableEntry accepts owned extended data");
+    DRW_Layer copiedLayer(sourceLayer);
+    t.expect(copiedLayer.extData.size() == 1u
+                 && copiedLayer.extData.front() != sourceLayer.extData.front()
+                 && std::string(copiedLayer.extData.front()->c_str()) == "layer",
+             "DRW_TableEntry copy deep-copies extended data");
+    copiedLayer.extData.front()->addString(1000, "copy-layer");
+    t.expect(std::string(sourceLayer.extData.front()->c_str()) == "layer",
+             "DRW_TableEntry copy isolates extended-data mutation");
+    DRW_Layer movedLayer(std::move(copiedLayer));
+    t.expect(movedLayer.extData.size() == 1u && copiedLayer.extData.empty(),
+             "DRW_TableEntry move transfers extended-data ownership");
+
+    DRW_LWPolyline sourcePolyline;
+    const std::shared_ptr<DRW_Vertex2D> sourceVertex =
+        sourcePolyline.addVertex();
+    sourceVertex->x = 1.0;
+    sourcePolyline.extData.push_back(
+        std::make_shared<DRW_Variant>(1000, "polyline"));
+    DRW_LWPolyline copiedPolyline(sourcePolyline);
+    t.expect(copiedPolyline.vertlist.size() == 1u
+                 && copiedPolyline.vertlist.front() != sourceVertex
+                 && copiedPolyline.extData.front() != sourcePolyline.extData.front(),
+             "DRW_LWPolyline copy deep-copies owned graphs");
+    copiedPolyline.vertlist.front()->x = 2.0;
+    copiedPolyline.extData.front()->addString(1000, "copy-polyline");
+    t.expect(sourceVertex->x == 1.0
+                 && std::string(sourcePolyline.extData.front()->c_str())
+                        == "polyline",
+             "DRW_LWPolyline copy isolates owned-graph mutation");
+
+    DRW_Attrib sourceAttrib;
+    sourceAttrib.extData.push_back(
+        std::make_shared<DRW_Variant>(1000, "attribute-xdata"));
+    sourceAttrib.mtext = std::make_unique<DRW_MText>();
+    sourceAttrib.mtext->text = "attribute";
+    DRW_Attrib copiedAttrib(sourceAttrib);
+    t.expect(copiedAttrib.mtext != nullptr
+                 && copiedAttrib.mtext.get() != sourceAttrib.mtext.get(),
+             "DRW_Attrib copy deep-copies embedded MText");
+    copiedAttrib.mtext->text = "copy-attribute";
+    t.expect(sourceAttrib.mtext->text == "attribute",
+             "DRW_Attrib copy isolates embedded MText mutation");
+    copiedAttrib.extData.front()->addString(1000, "copy-attribute-xdata");
+    t.expect(std::string(sourceAttrib.extData.front()->c_str())
+                 == "attribute-xdata",
+             "DRW_Attrib copy isolates extended-data mutation");
+    DRW_Attrib assignedAttrib;
+    assignedAttrib = sourceAttrib;
+    t.expect(assignedAttrib.mtext != nullptr
+                 && assignedAttrib.mtext.get() != sourceAttrib.mtext.get()
+                 && assignedAttrib.extData.front() != sourceAttrib.extData.front(),
+             "DRW_Attrib assignment deep-copies owned state");
+
+    DRW_GeoPositionMarker sourceMarker;
+    sourceMarker.extData.push_back(
+        std::make_shared<DRW_Variant>(1000, "marker-xdata"));
+    sourceMarker.mtext = std::make_unique<DRW_MText>();
+    sourceMarker.mtext->text = "marker";
+    DRW_GeoPositionMarker copiedMarker(sourceMarker);
+    t.expect(copiedMarker.mtext != nullptr
+                 && copiedMarker.mtext.get() != sourceMarker.mtext.get(),
+             "DRW_GeoPositionMarker copy deep-copies embedded MText");
+    copiedMarker.mtext->text = "copy-marker";
+    t.expect(sourceMarker.mtext->text == "marker",
+             "DRW_GeoPositionMarker copy isolates embedded MText mutation");
+    copiedMarker.extData.front()->addString(1000, "copy-marker-xdata");
+    t.expect(std::string(sourceMarker.extData.front()->c_str())
+                 == "marker-xdata",
+             "DRW_GeoPositionMarker copy isolates extended-data mutation");
+    DRW_GeoPositionMarker assignedMarker;
+    assignedMarker = sourceMarker;
+    t.expect(assignedMarker.mtext != nullptr
+                 && assignedMarker.mtext.get() != sourceMarker.mtext.get()
+                 && assignedMarker.extData.front() != sourceMarker.extData.front(),
+             "DRW_GeoPositionMarker assignment deep-copies owned state");
+
+    DRW_Dimension sourceDimension;
+    sourceDimension.extData.push_back(
+        std::make_shared<DRW_Variant>(1000, "dimension-xdata"));
+    DRW_DimAligned copiedDimension(sourceDimension);
+    t.expect(copiedDimension.extData.size() == 1u
+                 && copiedDimension.extData.front()
+                        != sourceDimension.extData.front(),
+             "DRW_Dimension copy isolates extended data");
+}
 
 // A callback sink for parser-fuzz inputs.  Keeping the sink dependency-free
 // makes this lane exercise the public dxfRW::readAscii path without coupling
@@ -667,6 +783,7 @@ void testMLeaderDxfContextRoundTrip(TestContext& t) {
 
 int main() {
     TestContext context;
+    testPublicOwnershipContracts(context);
     testCheckedArithmetic(context);
     testNullAndOwnershipContracts(context);
     testMalformedInMemoryInputs(context);
