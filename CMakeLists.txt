@@ -8,9 +8,14 @@ option(LIBDXFRW_BUILD_LIBRARY "Build the libdxfrw library" ON)
 option(LIBDXFRW_BUILD_DOC "Build the documentation" ON)
 option(LIBDXFRW_BUILD_DWG2DXF "Build the dwg2dxf application" ON)
 option(LIBDXFRW_BUILD_TESTS "Build dependency-free Wave 1 tests" OFF)
+option(LIBDXFRW_BUILD_LONG_FUZZ
+    "Build the opt-in extended deterministic parser fuzz target" OFF)
 
 if(LIBDXFRW_BUILD_DWG2DXF AND NOT LIBDXFRW_BUILD_LIBRARY)
     message(FATAL_ERROR "LIBDXFRW_BUILD_DWG2DXF requires LIBDXFRW_BUILD_LIBRARY")
+endif()
+if(LIBDXFRW_BUILD_LONG_FUZZ AND NOT LIBDXFRW_BUILD_TESTS)
+    message(FATAL_ERROR "LIBDXFRW_BUILD_LONG_FUZZ requires LIBDXFRW_BUILD_TESTS")
 endif()
 
 # Keep warnings target-local so consumers are not forced to inherit the
@@ -248,6 +253,20 @@ if(LIBDXFRW_BUILD_TESTS)
     target_link_libraries(libdxfrw_hardening_tests PRIVATE dxfrw)
     add_test(NAME libdxfrw_hardening
         COMMAND libdxfrw_hardening_tests)
+
+    if(LIBDXFRW_BUILD_LONG_FUZZ)
+        add_executable(libdxfrw_long_fuzz_tests
+            tests/hardening_tests.cpp)
+        target_compile_features(libdxfrw_long_fuzz_tests PRIVATE cxx_std_17)
+        target_compile_definitions(libdxfrw_long_fuzz_tests PRIVATE
+            LIBDXFRW_LONG_FUZZ=1)
+        target_include_directories(libdxfrw_long_fuzz_tests PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}/src
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/intern)
+        target_link_libraries(libdxfrw_long_fuzz_tests PRIVATE dxfrw)
+        add_test(NAME libdxfrw_long_fuzz
+            COMMAND libdxfrw_long_fuzz_tests)
+    endif()
 
     add_executable(libdxfrw_writer_version_matrix_tests
         tests/writer_version_matrix_tests.cpp)

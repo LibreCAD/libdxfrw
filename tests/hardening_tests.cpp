@@ -193,7 +193,12 @@ void testNullAndOwnershipContracts(TestContext& t) {
 
 void testMalformedInMemoryInputs(TestContext& t) {
     std::uint32_t state = 0x13579BDFu;
-    for (std::size_t iteration = 0; iteration < 256; ++iteration) {
+#ifdef LIBDXFRW_LONG_FUZZ
+    constexpr std::size_t iterations = 8192;
+#else
+    constexpr std::size_t iterations = 256;
+#endif
+    for (std::size_t iteration = 0; iteration < iterations; ++iteration) {
         const std::size_t length = iteration % 97;
         std::vector<std::uint8_t> bytes(length);
         for (std::uint8_t& value : bytes) {
@@ -232,10 +237,18 @@ void testMalformedInMemoryInputs(TestContext& t) {
 }
 
 void testDxfReadFuzzSmoke(TestContext& t) {
+#ifdef LIBDXFRW_LONG_FUZZ
+    // The opt-in target expands the same deterministic generators for a
+    // longer local campaign. It remains bounded and payload-free; the default
+    // hardening target below stays small enough for the fast inner loop.
+    constexpr std::size_t iterations = 65536;
+    constexpr std::size_t maxLength = 1024;
+#else
     // Keep this deterministic and bounded: it is an inner-loop safety lane,
     // not a substitute for the scheduled long external fuzz campaign.
     constexpr std::size_t iterations = 2048;
     constexpr std::size_t maxLength = 384;
+#endif
     const std::string skeleton =
         "0\nSECTION\n2\nHEADER\n0\nENDSEC\n0\nSECTION\n"
         "2\nENTITIES\n0\nENDSEC\n0\nEOF\n";
@@ -280,8 +293,13 @@ void testDwgReadFuzzSmoke(TestContext& t) {
     // Exercise the public in-memory DWG entry point as well.  Each vector is
     // discarded immediately; the lane is deliberately bounded so it remains
     // suitable for the fast inner loop and sanitizer jobs.
+#ifdef LIBDXFRW_LONG_FUZZ
+    constexpr std::size_t iterations = 16384;
+    constexpr std::size_t maxLength = 512;
+#else
     constexpr std::size_t iterations = 512;
     constexpr std::size_t maxLength = 256;
+#endif
     constexpr std::array<std::array<std::uint8_t, 6>, 6> magics {{
         {{'A', 'C', '1', '0', '1', '5'}},
         {{'A', 'C', '1', '0', '1', '8'}},
