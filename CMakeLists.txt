@@ -171,6 +171,10 @@ if(LIBDXFRW_BUILD_TESTS)
         COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE}
             ${CMAKE_CURRENT_SOURCE_DIR}/tools/check_libredwg_advisory_differential.py
             --self-test)
+    add_test(NAME libdxfrw_libredwg_ac1024_advisory
+        COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE}
+            ${CMAKE_CURRENT_SOURCE_DIR}/tools/check_libredwg_ac1024_advisory.py
+            --self-test)
     add_test(NAME libdxfrw_local_dwg_oracle_advisory
         COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE}
             ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_local_dwg_oracle_advisory.py
