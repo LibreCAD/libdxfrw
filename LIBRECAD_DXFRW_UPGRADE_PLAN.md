@@ -2298,6 +2298,16 @@ edit this block or commit the same slice concurrently.
   row is promoted, no drawing bytes or generated derivatives are admitted, and
   the evidence-only rows do not block the next implementation lane.
 
+- Current checkpoint (2026-09-16): S381/J357 hardens the output transaction
+  against parent-directory replacement.  POSIX temporary identity is now
+  resolved relative to the opened directory descriptor, the current target
+  parent must still match that descriptor before flush and publication, and
+  abort removes only the owned temporary through `unlinkat`; the parent-race
+  regression confirms fail-closed publication with no orphaned temporary in
+  the moved directory.  Windows keeps its existing `MoveFileExW` durability
+  path.  The six external-only items remain `DEFERRED_EXTERNAL` and are not
+  part of this implementation lane; no drawing bytes are admitted.
+
 - Current checkpoint (2026-09-16): S329/J305 compound-entity graph ownership
   is committed.  Explicit copies now clone legacy POLYLINE vertices, SPLINE
   control/fit points, and INSERT attributes while resetting parser cursors;
@@ -4001,21 +4011,20 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 380 (`COMMITTED`).
+- Resolved slices: 381 (`COMMITTED`).
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 380 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 381 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 382 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 383 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 VERIFIED / 0 SUPERSEDED / 483 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 VERIFIED / 0 SUPERSEDED / 484 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  6 DEFERRED_EXTERNAL / 370 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S380 and J329/J329.1/J330/J330.1/J331/J331.1/J332/J332.1/
+  6 DEFERRED_EXTERNAL / 371 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S381 and J329/J329.1/J330/J330.1/J331/J331.1/J332/J332.1/
   J333/J333.1/J334/J334.1/J335/J335.1/J336/J336.1/J337/J337.1/J338/J338.1/
   J339/J339.1/J340/J340.1/J341/J341.1/J342/J342.1/J343/J343.1/J344/J344.1/
-  J345/J345.1/J346/J346.1/J347/J347.1/J348/J348.1/J349/J349.1/J350/J350.1/J351/J351.1/J352/J352.1/J353/J353.1/J354/J354.1/J355/J355.1/J356/J356.1 are committed; no other local implementation
-  slice is active.
+  J345/J345.1/J346/J346.1/J347/J347.1/J348/J348.1/J349/J349.1/J350/J350.1/J351/J351.1/J352/J352.1/J353/J353.1/J354/J354.1/J355/J355.1/J356/J356.1/J357/J357.1 are committed.
   Keep the fast inner loop and do not promote support claims from
   self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -4450,6 +4459,7 @@ edit this block or commit the same slice concurrently.
 | S378 | J354: public DXF proxy-graphics/ACIS façade regression | S377 | COMMITTED | public `dxfRW::readAscii` callback publication; 3DSOLID/REGION/BODY/PLANESURFACE coverage; group-92/group-160 counts; focused hardening; plan; fixture; diff | public façade vectors pass and confirm proxy/ACIS carrier separation and callback publication for all target entity variants; no drawing bytes or derived fixtures | S379 |
 | S379 | J355: post-proxy full validation checkpoint | S378 | COMMITTED | rebuild; complete dependency-free CTest; plan; fixture; import-scope; sync; route; aggregate; support; release-readiness; speed; diff | rebuild plus all 31 dependency-free CTest entries pass in 7.64s after S378; no drawing bytes or derived fixtures changed; external-oracle, native-platform, and support-promotion evidence remain open | next independent qualification or release lane |
 | S380 | J356: deep review of external-only advisory evidence | S379 | COMMITTED | report/provenance audit; LibreCAD fixture-history audit; LibreDWG limitation review; plan; fixture; import-scope; sync; route; aggregate; support; release-readiness; speed; diff | six external-only items remain explicitly `DEFERRED_EXTERNAL`; J284's repository provenance is separated from independent-reader qualification; no support row or drawing bytes change | next independent qualification or release lane |
+| S381 | J357: output transaction parent-directory race cleanup | S380 | COMMITTED | descriptor-relative temporary identity and cleanup; parent pathname identity check; parent-race regression; writer-primitives; plan; fixture; diff | POSIX commit now fails closed when the target parent pathname is replaced after open, and abort removes the owned temporary through the pinned directory descriptor; focused writer-primitives regression passes with no orphaned temporary, no drawing bytes, and no external corpus | continue with the next independent qualification or release lane; external-only evidence remains deferred |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -4834,6 +4844,7 @@ edit this block or commit the same slice concurrently.
 | J354 | S378 | J353 | COMMITTED | EXPERIMENTAL | Exercise public DXF proxy-graphics/ACIS façade publication | Extend the dependency-free hardening sink to call `dxfRW::readAscii` and assert proxy/ACIS separation for 3DSOLID, REGION, BODY, and PLANESURFACE with both count encodings; keep all records in memory and add no fixtures |
 | J355 | S379 | J354 | COMMITTED | EXPERIMENTAL | Run the post-proxy full validation checkpoint | Rebuild the current tree and run all 31 dependency-free CTest entries after S378; retain the reduced validation cadence, no-fixture policy, and explicit external-oracle/native-platform/support-promotion boundaries |
 | J356 | S380 | J355 | COMMITTED | EXPERIMENTAL | Deep-review external-only advisory evidence boundaries | Reconcile the six deferred items against their hash/status reports, LibreCAD repository provenance and fixture-removal history, and LibreDWG's documented reader/test limitations; preserve exact unblock criteria and prohibit support promotion or drawing-byte admission |
+| J357 | S381 | J356 | COMMITTED | EXPERIMENTAL | Harden output transaction against parent-directory replacement | In `src/intern/dwg_dxf_output_transaction.{h,cpp}`, compare the opened POSIX parent directory identity with the current target parent before flush/publish, use descriptor-relative `fstatat`/`unlinkat` for temporary identity and owned cleanup, and add a parent-race orphan-cleanup regression to `tests/writer_primitives_tests.cpp`; preserve Windows behavior and fail closed without deleting an unowned replacement; no drawing fixtures |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -5324,6 +5335,7 @@ edit this block or commit the same slice concurrently.
 | J354.1 | J354 / S378 | WP3.11-WP3.12, WP8, WP10; public DXF proxy-graphics/ACIS façade regression | J353 | COMMITTED | EXPERIMENTAL | assert public `dxfRW::readAscii` publishes exactly one modeler/surface callback and keeps proxy bytes `AA BB` separate from ACIS bytes `ACIS` for both proxy-count encodings and all modeler entity names; keep all records in memory | focused `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures |
 | J355.1 | J355 / S379 | WP8, WP10; post-proxy full validation checkpoint | J354 | COMMITTED | EXPERIMENTAL | run a fresh normal build and all 31 dependency-free CTest entries after the target proxy-graphics refresh and public façade regression, preserving the no-fixture policy and reduced validation cadence | rebuild plus 31/31 CTest entries pass in 7.64s; no drawing bytes or derived fixtures changed; external-oracle, native-platform, and support-promotion evidence remain open |
 | J356.1 | J356 / S380 | WP5, WP8, WP10; external-only advisory evidence disposition | J355 | COMMITTED | EXPERIMENTAL | audit the six deferred reports, exact source/provenance metadata, LibreCAD fixture-removal history, and LibreDWG reader/test caveats; record per-item promotion gates and keep all external files and generated derivatives outside Git | plan, fixture-admission, import-scope, sync, route, aggregate, support, release-readiness, speed, and diff checks pass; all six items remain `DEFERRED_EXTERNAL`, no support row is promoted, and no drawing bytes are staged |
+| J357.1 | J357 / S381 | WP7.2, WP7.5, WP8.12, WP10; output transaction parent-directory race | J356 | COMMITTED | EXPERIMENTAL | add `directoryIdentityMatchesPath()` and descriptor-relative temporary lookup/removal on POSIX; check the parent identity before file flush and again before rename; extend the existing parent-race test to assert no orphaned `.libdxfrw-*` file remains in the moved directory; keep Windows `MoveFileExW` unchanged and use only temporary text output | focused `libdxfrw_writer_primitives_tests` passes, including fail-closed parent replacement and owned-temp cleanup; plan/fixture/import/sync/route/aggregate/support/release/speed/diff checks pass with no drawing bytes; if a platform cannot expose directory identity, retain the existing safe failure and document the bounded limitation |
 | J313.1 | J313 / S337 | WP3.11-WP3.12, WP8, WP10; TABLE parser-state copy isolation | J312 | COMMITTED | EXPERIMENTAL | assert copied and assigned TABLE models accept fresh subclass/grid dimensions after a partial source parse while preserving public table content; keep all inputs in memory | focused `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures |
 
 <!-- UPGRADE_PROGRESS_END -->

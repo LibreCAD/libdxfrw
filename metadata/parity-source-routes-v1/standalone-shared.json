@@ -4727,13 +4727,13 @@
         {
           "line": 1,
           "path": "src/intern/dwg_dxf_output_transaction.cpp",
-          "spanSha256": "f044561aa2b99b5a825d11028f58e1303b8495120b0f8cff3a3e54ef6b9e7ac7",
+          "spanSha256": "bc35572e5fa4c4ee94ae244a1a0a6333e0b987fd2e492f4756691afcfc984d12",
           "symbol": "src/intern/dwg_dxf_output_transaction.cpp"
         },
         {
           "line": 1,
           "path": "src/intern/dwg_dxf_output_transaction.h",
-          "spanSha256": "468b94d112fd076cd0becbd978b342d0c2e05d5066187794aa09f472f1b4253b",
+          "spanSha256": "14b322bb702a22cf9f977054cd38c9937e5c6ca88ea69a2a71a0c40ee3b7d105",
           "symbol": "src/intern/dwg_dxf_output_transaction.h"
         }
       ],
@@ -20034,7 +20034,7 @@
         {
           "line": 1,
           "path": "src/intern/dwg_dxf_output_transaction.cpp",
-          "spanSha256": "f044561aa2b99b5a825d11028f58e1303b8495120b0f8cff3a3e54ef6b9e7ac7",
+          "spanSha256": "bc35572e5fa4c4ee94ae244a1a0a6333e0b987fd2e492f4756691afcfc984d12",
           "symbol": "src/intern/dwg_dxf_output_transaction.cpp"
         }
       ],
@@ -20058,7 +20058,7 @@
         {
           "line": 1,
           "path": "src/intern/dwg_dxf_output_transaction.h",
-          "spanSha256": "468b94d112fd076cd0becbd978b342d0c2e05d5066187794aa09f472f1b4253b",
+          "spanSha256": "14b322bb702a22cf9f977054cd38c9937e5c6ca88ea69a2a71a0c40ee3b7d105",
           "symbol": "src/intern/dwg_dxf_output_transaction.h"
         }
       ],
@@ -79043,7 +79043,7 @@
         {
           "line": 1,
           "path": "src/intern/dwg_dxf_output_transaction.cpp",
-          "spanSha256": "f044561aa2b99b5a825d11028f58e1303b8495120b0f8cff3a3e54ef6b9e7ac7",
+          "spanSha256": "bc35572e5fa4c4ee94ae244a1a0a6333e0b987fd2e492f4756691afcfc984d12",
           "symbol": "src/intern/dwg_dxf_output_transaction.cpp"
         }
       ],
@@ -79067,7 +79067,7 @@
         {
           "line": 1,
           "path": "src/intern/dwg_dxf_output_transaction.h",
-          "spanSha256": "468b94d112fd076cd0becbd978b342d0c2e05d5066187794aa09f472f1b4253b",
+          "spanSha256": "14b322bb702a22cf9f977054cd38c9937e5c6ca88ea69a2a71a0c40ee3b7d105",
           "symbol": "src/intern/dwg_dxf_output_transaction.h"
         }
       ],
@@ -81083,7 +81083,7 @@
         {
           "line": 1,
           "path": "src/intern/dwg_dxf_output_transaction.cpp",
-          "spanSha256": "f044561aa2b99b5a825d11028f58e1303b8495120b0f8cff3a3e54ef6b9e7ac7",
+          "spanSha256": "bc35572e5fa4c4ee94ae244a1a0a6333e0b987fd2e492f4756691afcfc984d12",
           "symbol": "src/intern/dwg_dxf_output_transaction.cpp"
         }
       ],
@@ -81107,7 +81107,7 @@
         {
           "line": 1,
           "path": "src/intern/dwg_dxf_output_transaction.h",
-          "spanSha256": "468b94d112fd076cd0becbd978b342d0c2e05d5066187794aa09f472f1b4253b",
+          "spanSha256": "14b322bb702a22cf9f977054cd38c9937e5c6ca88ea69a2a71a0c40ee3b7d105",
           "symbol": "src/intern/dwg_dxf_output_transaction.h"
         }
       ],

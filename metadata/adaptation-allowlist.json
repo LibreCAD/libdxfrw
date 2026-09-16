@@ -182,17 +182,17 @@
     },
     {
       "path": "src/intern/dwg_dxf_output_transaction.cpp",
-      "reason": "Replace timestamp-plus-counter temporary names with OS-backed mkstemp creation on POSIX and randomized exclusive names on Windows; retain descriptor/path identity checks, flush the file before publication, synchronize the containing directory before and after rename where POSIX permits, and publish with a retained-directory renameat to prevent parent-path redirection.",
-      "scope": "output transaction temporary-name, identity, and durability hardening",
+      "reason": "Replace timestamp-plus-counter temporary names with OS-backed mkstemp creation on POSIX and randomized exclusive names on Windows; retain descriptor/path identity checks, synchronize the containing directory before and after rename where POSIX permits, publish with a retained-directory renameat to prevent parent-path redirection, and use descriptor-relative temporary identity/cleanup plus parent-directory identity checks to fail closed after a directory replacement.",
+      "scope": "output transaction temporary-name, identity, parent-race, cleanup, and durability hardening",
       "targetBlob": "ab60082b5a27c7c876c95aeaab8c8eaf30b39200",
-      "adaptedSha256": "f044561aa2b99b5a825d11028f58e1303b8495120b0f8cff3a3e54ef6b9e7ac7"
+      "adaptedSha256": "bc35572e5fa4c4ee94ae244a1a0a6333e0b987fd2e492f4756691afcfc984d12"
     },
     {
       "path": "src/intern/dwg_dxf_output_transaction.h",
-      "reason": "Retain exclusive temporary and parent-directory descriptors through stream open and commit/abort identity checks, preventing substituted paths or swapped parent directories from being published or removed as if they were owned; expose the durability helpers without changing the public API.",
-      "scope": "output transaction identity and durability hardening",
+      "reason": "Retain exclusive temporary and parent-directory descriptors through stream open and commit/abort identity checks, preventing substituted paths or swapped parent directories from being published or removed as if they were owned; expose descriptor-relative temporary identity/cleanup and parent-path identity helpers without changing the public API.",
+      "scope": "output transaction identity, parent-race, cleanup, and durability hardening",
       "targetBlob": "c3ab578d52761c4cdfddb1288376a03bd44db86d",
-      "adaptedSha256": "468b94d112fd076cd0becbd978b342d0c2e05d5066187794aa09f472f1b4253b"
+      "adaptedSha256": "14b322bb702a22cf9f977054cd38c9937e5c6ca88ea69a2a71a0c40ee3b7d105"
     },
     {
       "path": "src/intern/drw_dbg.cpp",

@@ -437,6 +437,8 @@ void testOutputTransactionPublicationAndRollback(TestContext& t) {
                 t.expect(!std::filesystem::exists(original / "out.dwg")
                              && !std::filesystem::exists(moved / "out.dwg"),
                          "parent-path replacement publishes no redirected output");
+                t.expect(transactionTemporaryCount(moved / "out.dwg") == 0,
+                         "parent-path replacement cleans the owned temporary in the moved directory");
             }
         }
         std::filesystem::remove(original / "out.dwg", ignored);

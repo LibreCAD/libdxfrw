@@ -6177,7 +6177,7 @@
   },
   "inputs": {
     "standalone": {
-      "contentTreeSha256": "ffb539f3b357482828f625a96f4bd13e9f87e3453edb4fdca434f21ff12446e4",
+      "contentTreeSha256": "b700e2d2093d5b165d066241b605e17f643597eb7366b332e3b3196a9ed32912",
       "files": [
         {
           "mode": "100644",
@@ -6312,12 +6312,12 @@
         {
           "mode": "100644",
           "path": "src/intern/dwg_dxf_output_transaction.cpp",
-          "sha256": "f044561aa2b99b5a825d11028f58e1303b8495120b0f8cff3a3e54ef6b9e7ac7"
+          "sha256": "bc35572e5fa4c4ee94ae244a1a0a6333e0b987fd2e492f4756691afcfc984d12"
         },
         {
           "mode": "100644",
           "path": "src/intern/dwg_dxf_output_transaction.h",
-          "sha256": "468b94d112fd076cd0becbd978b342d0c2e05d5066187794aa09f472f1b4253b"
+          "sha256": "14b322bb702a22cf9f977054cd38c9937e5c6ca88ea69a2a71a0c40ee3b7d105"
         },
         {
           "mode": "100644",
@@ -123888,7 +123888,7 @@
         "src/libdxfrw.h"
       ],
       "allowlistPath": "metadata/adaptation-allowlist.json",
-      "allowlistSha256": "df3327ec160f9f6032ccd50460ba35fbfa127c8abd99bbe032a386dda67c3b53",
+      "allowlistSha256": "057da20366fcac40b67e56f5fb8938df5bd9c2dcdba8d40596bc3c724e91a5ee",
       "schema": 1,
       "targetCommit": "512d8bd86612f17158d4d222fcdc8a7c2b052c57",
       "targetRepository": "git@github.com-librecad:LibreCAD/LibreCAD.git"
@@ -123913,7 +123913,7 @@
     "standalone": {
       "baselineCommit": "92d7466ed9146badcd4fb44c82d1dd8302b3c7db",
       "baselineRef": "origin/master",
-      "contentTreeSha256": "ffb539f3b357482828f625a96f4bd13e9f87e3453edb4fdca434f21ff12446e4",
+      "contentTreeSha256": "b700e2d2093d5b165d066241b605e17f643597eb7366b332e3b3196a9ed32912",
       "repository": "git@github.com-librecad:LibreCAD/libdxfrw.git"
     },
     "target": {
@@ -123964,7 +123964,7 @@
       "facade": "shared",
       "path": "parity-source-routes-v1/standalone-shared.json",
       "routeCount": 3120,
-      "sha256": "51b8a9fe92e15ef685061cb9253040d2eff96be1a2cd2772b02c7b086887aba4",
+      "sha256": "e96ff948cb01a1a20feee140baf22bbfdcad3c80c679b81651792bdb23e1ff0f",
       "side": "standalone"
     }
   ],

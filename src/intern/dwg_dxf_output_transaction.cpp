@@ -123,8 +123,44 @@ bool DwgDxfOutputTransaction::temporaryIdentityMatches() const noexcept {
     };
     struct stat pathStatus {
     };
+    const std::filesystem::path temporaryName = m_temporary.filename();
+    if (m_directoryDescriptor < 0 || temporaryName.empty())
+        return false;
+    // Resolve the temporary name relative to the directory descriptor that
+    // created it.  This remains valid when the parent directory is renamed,
+    // and AT_SYMLINK_NOFOLLOW prevents a pathname substitution from being
+    // mistaken for our still-open file.
+    const int flags =
+#  if defined(AT_SYMLINK_NOFOLLOW)
+        AT_SYMLINK_NOFOLLOW;
+#  else
+        0;
+#  endif
     return ::fstat(m_exclusiveDescriptor, &descriptorStatus) == 0
-           && ::stat(m_temporary.c_str(), &pathStatus) == 0
+           && ::fstatat(m_directoryDescriptor, temporaryName.c_str(),
+                        &pathStatus, flags) == 0
+           && descriptorStatus.st_dev == pathStatus.st_dev
+           && descriptorStatus.st_ino == pathStatus.st_ino;
+#endif
+}
+
+bool DwgDxfOutputTransaction::directoryIdentityMatchesPath() const noexcept {
+#if defined(_WIN32)
+    // The Windows implementation publishes with MoveFileExW and has no
+    // portable directory descriptor to compare with the target pathname.
+    return true;
+#else
+    if (m_directoryDescriptor < 0 || m_target.empty())
+        return false;
+    const std::filesystem::path directory =
+        m_target.parent_path().empty() ? std::filesystem::path(".")
+                                       : m_target.parent_path();
+    struct stat descriptorStatus {
+    };
+    struct stat pathStatus {
+    };
+    return ::fstat(m_directoryDescriptor, &descriptorStatus) == 0
+           && ::stat(directory.c_str(), &pathStatus) == 0
            && descriptorStatus.st_dev == pathStatus.st_dev
            && descriptorStatus.st_ino == pathStatus.st_ino;
 #endif
@@ -214,7 +250,7 @@ bool DwgDxfOutputTransaction::commit() {
         abort();
         return false;
     }
-    if (!temporaryIdentityMatches()) {
+    if (!temporaryIdentityMatches() || !directoryIdentityMatchesPath()) {
         abort();
         return false;
     }
@@ -231,7 +267,8 @@ bool DwgDxfOutputTransaction::commit() {
         return false;
     }
     m_stream.close();
-    if (m_stream.fail() || !temporaryIdentityMatches() || !publish()) {
+    if (m_stream.fail() || !temporaryIdentityMatches()
+        || !directoryIdentityMatchesPath() || !publish()) {
         abort();
         return false;
     }
@@ -247,10 +284,20 @@ void DwgDxfOutputTransaction::abort() noexcept {
     if (m_stream.is_open())
         m_stream.close();
     if (!m_temporary.empty()) {
-        if (temporaryIdentityMatches()) {
+        const bool owned = temporaryIdentityMatches();
+#if defined(_WIN32)
+        if (owned) {
             std::error_code ignored;
             std::filesystem::remove(m_temporary, ignored);
         }
+#else
+        if (owned && m_directoryDescriptor >= 0) {
+            const std::filesystem::path temporaryName = m_temporary.filename();
+            if (!temporaryName.empty())
+                (void)::unlinkat(m_directoryDescriptor, temporaryName.c_str(),
+                                 0);
+        }
+#endif
         closeExclusiveDescriptor();
         closeDirectoryDescriptor();
         m_temporary.clear();
