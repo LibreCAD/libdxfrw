@@ -1162,6 +1162,53 @@ public:
   static constexpr std::int32_t kMaxCustomDataCount = 100000;
 
   DRW_DataLink() { reset(); }
+  DRW_DataLink(const DRW_DataLink& o): DRW_TableEntry(o),
+      m_dataAdapter(o.m_dataAdapter), m_description(o.m_description),
+      m_tooltip(o.m_tooltip), m_connectionString(o.m_connectionString),
+      m_option(o.m_option), m_updateOption(o.m_updateOption),
+      m_value92(o.m_value92), m_year(o.m_year), m_month(o.m_month),
+      m_day(o.m_day), m_hour(o.m_hour), m_minute(o.m_minute),
+      m_seconds(o.m_seconds), m_milliseconds(o.m_milliseconds),
+      m_pathOption(o.m_pathOption), m_value93(o.m_value93),
+      m_updateStatus(o.m_updateStatus),
+      m_customDataCount(o.m_customDataCount), m_customData(o.m_customData),
+      m_hardOwnerHandle(o.m_hardOwnerHandle), m_dxfInDataLinkBody(false),
+      m_dxfInCustomData(false), m_dxfDataAdapterSeen(false),
+      m_dxfPendingTargetHandle(0), m_dxfHasPendingTargetHandle(false) {
+    tType = o.tType;
+  }
+  DRW_DataLink& operator=(const DRW_DataLink& o) {
+    if (this != &o) {
+      DRW_TableEntry::operator=(o);
+      m_dataAdapter = o.m_dataAdapter;
+      m_description = o.m_description;
+      m_tooltip = o.m_tooltip;
+      m_connectionString = o.m_connectionString;
+      m_option = o.m_option;
+      m_updateOption = o.m_updateOption;
+      m_value92 = o.m_value92;
+      m_year = o.m_year;
+      m_month = o.m_month;
+      m_day = o.m_day;
+      m_hour = o.m_hour;
+      m_minute = o.m_minute;
+      m_seconds = o.m_seconds;
+      m_milliseconds = o.m_milliseconds;
+      m_pathOption = o.m_pathOption;
+      m_value93 = o.m_value93;
+      m_updateStatus = o.m_updateStatus;
+      m_customDataCount = o.m_customDataCount;
+      m_customData = o.m_customData;
+      m_hardOwnerHandle = o.m_hardOwnerHandle;
+      m_dxfInDataLinkBody = false;
+      m_dxfInCustomData = false;
+      m_dxfDataAdapterSeen = false;
+      m_dxfPendingTargetHandle = 0;
+      m_dxfHasPendingTargetHandle = false;
+      tType = o.tType;
+    }
+    return *this;
+  }
   void reset() {
     DRW_TableEntry::reset();
     tType = DRW::DATALINK;

@@ -194,6 +194,11 @@ public:
     using DRW_GeoMapImage::parseCode;
 };
 
+class ExposedDataLink : public DRW_DataLink {
+public:
+    using DRW_DataLink::parseCode;
+};
+
 template <typename Entity>
 bool parseDxfRecords(Entity& entity, const std::string& source) {
     std::stringstream records(source);
@@ -283,6 +288,8 @@ void testPublicOwnershipContracts(TestContext& t) {
                   "DRW_LightList copy contract");
     static_assert(std::is_copy_constructible<DRW_GeoMapImage>::value,
                   "DRW_GeoMapImage copy contract");
+    static_assert(std::is_copy_constructible<DRW_DataLink>::value,
+                  "DRW_DataLink copy contract");
     static_assert(std::is_copy_constructible<DRW_Attrib>::value,
                   "DRW_Attrib copy contract");
     static_assert(std::is_copy_constructible<DRW_GeoPositionMarker>::value,
@@ -1233,6 +1240,39 @@ void testPublicOwnershipContracts(TestContext& t) {
                  && assignedGeoFresh && assignedGeoMapImage.m_classVersion == 3
                  && assignedGeoMapImage.m_insertionPoint.x == 5.0,
              "GEOMAPIMAGE assignment clears subclass parser state");
+
+    const std::string dataLinkBody =
+        "100\nAcDbDataLink\n1\nSQLite\n300\ndescription\n"
+        "1\nCUSTOMDATA\n330\nA1\n304\nfirst-row\n309\n";
+    ExposedDataLink partialDataLink;
+    t.expect(parseDxfRecords(partialDataLink, dataLinkBody)
+                 && partialDataLink.m_dataAdapter == "SQLite"
+                 && partialDataLink.m_customData.size() == 1u
+                 && partialDataLink.m_customData.front().m_text == "first-row",
+             "DATALINK parser state source setup");
+    ExposedDataLink copiedDataLink(partialDataLink);
+    const bool copiedDataStale = parseDxfRecords(copiedDataLink,
+                                                  "304\nstale-row\n");
+    const std::size_t copiedDataAfterStale = copiedDataLink.m_customData.size();
+    const bool copiedDataFresh = parseDxfRecords(
+        copiedDataLink,
+        "100\nAcDbDataLink\n1\nCUSTOMDATA\n330\nA2\n304\nsecond-row\n309\n");
+    t.expect(copiedDataStale && copiedDataAfterStale == 1u
+                 && copiedDataFresh && copiedDataLink.m_customData.size() == 2u
+                 && copiedDataLink.m_customData.back().m_text == "second-row",
+             "DATALINK copy clears body/custom-data parser state");
+    ExposedDataLink assignedDataLink;
+    assignedDataLink = partialDataLink;
+    const bool assignedDataStale = parseDxfRecords(assignedDataLink,
+                                                    "304\nstale-row\n");
+    const std::size_t assignedDataAfterStale = assignedDataLink.m_customData.size();
+    const bool assignedDataFresh = parseDxfRecords(
+        assignedDataLink,
+        "100\nAcDbDataLink\n1\nCUSTOMDATA\n330\nA3\n304\nthird-row\n309\n");
+    t.expect(assignedDataStale && assignedDataAfterStale == 1u
+                 && assignedDataFresh && assignedDataLink.m_customData.size() == 2u
+                 && assignedDataLink.m_customData.back().m_text == "third-row",
+             "DATALINK assignment clears body/custom-data parser state");
 
     DRW_Dimension sourceDimension;
     sourceDimension.extData.push_back(

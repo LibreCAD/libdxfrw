@@ -2090,6 +2090,12 @@ edit this block or commit the same slice concurrently.
   image metadata remain copied; focused hardening vectors pass and no drawing
   bytes or derived fixtures are used.
 
+- Current checkpoint (2026-09-16): S357/J333 extends transient parser-state
+  isolation to DATALINK copies and assignments.  Body, custom-data, adapter,
+  and pending-handle markers now reset while persisted connection metadata and
+  custom rows remain copied; focused hardening vectors pass and no drawing
+  bytes or derived fixtures are used.
+
 - Current checkpoint (2026-09-16): S329/J305 compound-entity graph ownership
   is committed.  Explicit copies now clone legacy POLYLINE vertices, SPLINE
   control/fit points, and INSERT attributes while resetting parser cursors;
@@ -3793,18 +3799,18 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 356 (`COMMITTED`); no slice is active.
+- Resolved slices: 357 (`COMMITTED`); no slice is active.
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 356 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 357 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 358 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 359 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 VERIFIED / 0 SUPERSEDED / 456 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 VERIFIED / 0 SUPERSEDED / 457 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  6 DEFERRED_EXTERNAL / 352 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S356 and J329/J329.1/J330/J330.1/J331/J331.1/J332/J332.1
-  are committed; no local implementation slice is active.
+  6 DEFERRED_EXTERNAL / 353 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S357 and J329/J329.1/J330/J330.1/J331/J331.1/J332/J332.1/
+  J333/J333.1 are committed; no local implementation slice is active.
   Keep the fast inner loop and do not promote support claims from
   self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -4215,6 +4221,7 @@ edit this block or commit the same slice concurrently.
 | S354 | J330: SORTENTSTABLE parser-state copy isolation | S353 | COMMITTED | SORTENTSTABLE copy/assignment body/block-owner/pending-entry parser-state reset; focused hardening target; fixture admission; import scope; sync; plan; diff | focused `libdxfrw_hardening_tests` plus plan, fixture, import-scope, sync, route, aggregate, support, release-readiness, speed, and diff gates pass; no drawing bytes or derived fixtures | commit the verified slice with trailers, report progress, and recompute the next ready queue |
 | S355 | J331: index-object parser-state copy isolation | S354 | COMMITTED | INDEX/IDBUFFER/LAYERINDEX/SPATIALINDEX copy/assignment timestamp/body/pending-entry parser-state reset; focused hardening target; fixture admission; import scope; sync; plan; diff | focused `libdxfrw_hardening_tests` plus plan, fixture, import-scope, sync, route, aggregate, support, release-readiness, speed, and diff gates pass; no drawing bytes or derived fixtures | commit the verified slice with trailers, report progress, and recompute the next ready queue |
 | S356 | J332: LIGHTLIST/GEOMAPIMAGE parser-state copy isolation | S355 | COMMITTED | LIGHTLIST/GEOMAPIMAGE copy/assignment subclass/body/repeated-field parser-state reset; focused hardening target; fixture admission; import scope; sync; plan; diff | focused `libdxfrw_hardening_tests` plus plan, fixture, import-scope, sync, route, aggregate, support, release-readiness, speed, and diff gates pass; no drawing bytes or derived fixtures | commit the verified slice with trailers, report progress, and recompute the next ready queue |
+| S357 | J333: DATALINK parser-state copy isolation | S356 | COMMITTED | DATALINK copy/assignment body/custom-data/adapter/pending-handle parser-state reset; focused hardening target; fixture admission; import scope; sync; plan; diff | focused `libdxfrw_hardening_tests` plus plan, fixture, import-scope, sync, route, aggregate, support, release-readiness, speed, and diff gates pass; no drawing bytes or derived fixtures | commit the verified slice with trailers, report progress, and recompute the next ready queue |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -4575,6 +4582,7 @@ edit this block or commit the same slice concurrently.
 | J330 | S354 | J329 | COMMITTED | EXPERIMENTAL | Harden SORTENTSTABLE parser-state copy and assignment | Reset transient SORTENTSTABLE body, block-owner, and pending-entity markers across copy/assignment while preserving persisted draw-order handles; keep the no-fixture policy |
 | J331 | S355 | J330 | COMMITTED | EXPERIMENTAL | Harden index-object parser-state copy and assignment | Reset transient INDEX/IDBUFFER/LAYERINDEX/SPATIALINDEX timestamp, body, and pending-entry markers across copy/assignment while preserving persisted timestamps, entries, handles, and opaque data; keep the no-fixture policy |
 | J332 | S356 | J331 | COMMITTED | EXPERIMENTAL | Harden LIGHTLIST/GEOMAPIMAGE parser-state copy and assignment | Reset transient LIGHTLIST/GEOMAPIMAGE subclass, body, and repeated-field markers across copy/assignment while preserving persisted light references and image metadata; keep the no-fixture policy |
+| J333 | S357 | J332 | COMMITTED | EXPERIMENTAL | Harden DATALINK parser-state copy and assignment | Reset transient DATALINK body, custom-data, adapter, and pending-handle markers across copy/assignment while preserving persisted connection metadata and custom rows; keep the no-fixture policy |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -5041,6 +5049,7 @@ edit this block or commit the same slice concurrently.
 | J330.1 | J330 / S354 | WP3.11-WP3.12, WP8, WP10; SORTENTSTABLE parser-state copy isolation | J329 | COMMITTED | EXPERIMENTAL | assert copied and assigned SORTENTSTABLE models do not consume body sort handles before a fresh AcDbSortentsTable marker while preserving persisted draw-order handles; keep all inputs in memory | focused `libdxfrw_hardening_tests`, plan, fixture-admission, import-scope, sync, route, aggregate, support, release-readiness, speed, and diff gates; no drawing bytes or derived fixtures |
 | J331.1 | J331 / S355 | WP3.11-WP3.12, WP8, WP10; index-object parser-state copy isolation | J330 | COMMITTED | EXPERIMENTAL | assert copied and assigned INDEX/IDBUFFER/LAYERINDEX/SPATIALINDEX models accept fresh timestamp/body walks without consuming stale parser markers while preserving persisted payloads; keep all inputs in memory | focused `libdxfrw_hardening_tests`, plan, fixture-admission, import-scope, sync, route, aggregate, support, release-readiness, speed, and diff gates; no drawing bytes or derived fixtures |
 | J332.1 | J332 / S356 | WP3.11-WP3.12, WP8, WP10; LIGHTLIST/GEOMAPIMAGE parser-state copy isolation | J331 | COMMITTED | EXPERIMENTAL | assert copied and assigned LIGHTLIST/GEOMAPIMAGE models ignore stale body values until a fresh subclass marker while preserving persisted references and metadata; keep all inputs in memory | focused `libdxfrw_hardening_tests`, plan, fixture-admission, import-scope, sync, route, aggregate, support, release-readiness, speed, and diff gates; no drawing bytes or derived fixtures |
+| J333.1 | J333 / S357 | WP3.11-WP3.12, WP8, WP10; DATALINK parser-state copy isolation | J332 | COMMITTED | EXPERIMENTAL | assert copied and assigned DATALINK models do not reuse stale body/custom-data/adapter/pending-handle state while preserving persisted connection metadata and custom rows; keep all inputs in memory | focused `libdxfrw_hardening_tests`, plan, fixture-admission, import-scope, sync, route, aggregate, support, release-readiness, speed, and diff gates; no drawing bytes or derived fixtures |
 | J313.1 | J313 / S337 | WP3.11-WP3.12, WP8, WP10; TABLE parser-state copy isolation | J312 | COMMITTED | EXPERIMENTAL | assert copied and assigned TABLE models accept fresh subclass/grid dimensions after a partial source parse while preserving public table content; keep all inputs in memory | focused `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures |
 
 <!-- UPGRADE_PROGRESS_END -->
