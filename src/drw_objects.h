@@ -4796,6 +4796,30 @@ public:
   static constexpr std::uint16_t kDwgClassNum = 526;
 
   DRW_DimensionAssociation() { reset(); }
+  DRW_DimensionAssociation(const DRW_DimensionAssociation& o):
+      DRW_TableEntry(o), m_dimensionHandle(o.m_dimensionHandle),
+      m_associativityFlags(o.m_associativityFlags),
+      m_isTransSpace(o.m_isTransSpace),
+      m_rotatedDimensionType(o.m_rotatedDimensionType),
+      m_osnapRefs(o.m_osnapRefs),
+      m_hasUnrepresentableDetail(o.m_hasUnrepresentableDetail),
+      m_dxfInBody(false) {
+    tType = o.tType;
+  }
+  DRW_DimensionAssociation& operator=(const DRW_DimensionAssociation& o) {
+    if (this != &o) {
+      DRW_TableEntry::operator=(o);
+      m_dimensionHandle = o.m_dimensionHandle;
+      m_associativityFlags = o.m_associativityFlags;
+      m_isTransSpace = o.m_isTransSpace;
+      m_rotatedDimensionType = o.m_rotatedDimensionType;
+      m_osnapRefs = o.m_osnapRefs;
+      m_hasUnrepresentableDetail = o.m_hasUnrepresentableDetail;
+      m_dxfInBody = false;
+      tType = o.tType;
+    }
+    return *this;
+  }
 
   void reset() {
     DRW_TableEntry::reset();

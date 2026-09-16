@@ -215,6 +215,11 @@ public:
     using DRW_EvaluationGraph::finalizeDxf;
 };
 
+class ExposedDimensionAssociation : public DRW_DimensionAssociation {
+public:
+    using DRW_DimensionAssociation::parseCode;
+};
+
 template <typename Entity>
 bool parseDxfRecords(Entity& entity, const std::string& source) {
     std::stringstream records(source);
@@ -312,6 +317,8 @@ void testPublicOwnershipContracts(TestContext& t) {
                   "DRW_SpatialFilter copy contract");
     static_assert(std::is_copy_constructible<DRW_EvaluationGraph>::value,
                   "DRW_EvaluationGraph copy contract");
+    static_assert(std::is_copy_constructible<DRW_DimensionAssociation>::value,
+                  "DRW_DimensionAssociation copy contract");
     static_assert(std::is_copy_constructible<DRW_Attrib>::value,
                   "DRW_Attrib copy contract");
     static_assert(std::is_copy_constructible<DRW_GeoPositionMarker>::value,
@@ -1382,6 +1389,36 @@ void testPublicOwnershipContracts(TestContext& t) {
                  && assignedEvaluationGraph.m_value96 == 5
                  && assignedEvaluationGraph.m_value97 == 6,
              "EVALUATION_GRAPH assignment clears malformed parser state");
+
+    const std::string dimAssocBody =
+        "100\nAcDbDimAssoc\n330\nA1\n90\n3\n1\nPOINT\n72\n1\n331\nB1\n";
+    ExposedDimensionAssociation partialDimAssoc;
+    t.expect(parseDxfRecords(partialDimAssoc, dimAssocBody)
+                 && partialDimAssoc.m_dimensionHandle == 0xA1u
+                 && partialDimAssoc.m_osnapRefs.size() == 1u
+                 && partialDimAssoc.m_hasUnrepresentableDetail,
+             "DIMASSOC parser state source setup");
+    ExposedDimensionAssociation copiedDimAssoc(partialDimAssoc);
+    const bool copiedDimAssocStale = parseDxfRecords(copiedDimAssoc, "330\nA2\n");
+    const std::uint32_t copiedDimAssocAfterStale =
+        copiedDimAssoc.m_dimensionHandle;
+    const bool copiedDimAssocFresh = parseDxfRecords(
+        copiedDimAssoc, "100\nAcDbDimAssoc\n330\nA3\n");
+    t.expect(copiedDimAssocStale && copiedDimAssocAfterStale == 0xA1u
+                 && copiedDimAssocFresh && copiedDimAssoc.m_dimensionHandle == 0xA3u
+                 && copiedDimAssoc.m_osnapRefs.size() == 1u,
+             "DIMASSOC copy clears body parser state");
+    ExposedDimensionAssociation assignedDimAssoc;
+    assignedDimAssoc = partialDimAssoc;
+    const bool assignedDimAssocStale = parseDxfRecords(assignedDimAssoc, "330\nA4\n");
+    const std::uint32_t assignedDimAssocAfterStale =
+        assignedDimAssoc.m_dimensionHandle;
+    const bool assignedDimAssocFresh = parseDxfRecords(
+        assignedDimAssoc, "100\nAcDbDimAssoc\n330\nA5\n");
+    t.expect(assignedDimAssocStale && assignedDimAssocAfterStale == 0xA1u
+                 && assignedDimAssocFresh && assignedDimAssoc.m_dimensionHandle == 0xA5u
+                 && assignedDimAssoc.m_osnapRefs.size() == 1u,
+             "DIMASSOC assignment clears body parser state");
 
     DRW_Dimension sourceDimension;
     sourceDimension.extData.push_back(
