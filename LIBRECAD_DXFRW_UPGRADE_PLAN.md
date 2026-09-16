@@ -60,10 +60,11 @@ refreshed the target lock, archive, manifest, source-route inventory, oracle
 registry, inventory-input lock, and support-matrix provenance. S304/J280
 reran the reviewed DWG differential-debt reports against the refreshed target
 and reconciled both registries to `0ffb38d790db53116978e01fcaf94cee9bc6ee48`.
-The latest green implementation slice is S323/J299; it completes the
-public-header closure by hiding HandleAllocator and relocating the DataStorage
-writer operation enum while keeping the hash-only target and independent-oracle
-advisory checkers in the fast metadata gate.
+The latest green implementation slice is S372/J348; it completes the
+system-package consumer fast-test configuration by enabling the pinned
+LibreCAD test build and running the installed-package
+`libdxfrw_system_fast_tests` target (176 assertions) alongside
+`librecad_filter_compile_check`.
 Native-platform, long-fuzz, and release-closure evidence remains open.
 The worktree is clean at the last committed boundary; any subsequent active-
 slice edits are intentionally uncommitted until their narrow gate and
@@ -2181,6 +2182,14 @@ edit this block or commit the same slice concurrently.
   `libdxfrw_system_fast_tests` target, which remains an explicit evidence gap.
   No drawing bytes or derived fixtures are changed.
 
+- Current checkpoint (2026-09-16): S372/J348 closes the configuration gap from
+  S371.  A fresh pinned LibreCAD system-package build with `BUILD_TESTS=ON`
+  defines and builds `libdxfrw_system_fast_tests` plus
+  `librecad_filter_compile_check`; the system fast test passes all 176
+  assertions in 12 cases.  This validates the installed public package only;
+  native-platform, long-fuzz, external-oracle, and format-support promotion
+  evidence remain open.  No drawing bytes or derived fixtures are changed.
+
 - Current checkpoint (2026-09-16): S329/J305 compound-entity graph ownership
   is committed.  Explicit copies now clone legacy POLYLINE vertices, SPLINE
   control/fit points, and INSERT attributes while resetting parser cursors;
@@ -3884,20 +3893,20 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 371 (`COMMITTED`); no slice is active.
+- Resolved slices: 372 (`COMMITTED`); no slice is active.
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 371 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 372 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 373 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 374 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 VERIFIED / 0 SUPERSEDED / 474 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 VERIFIED / 0 SUPERSEDED / 475 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  6 DEFERRED_EXTERNAL / 362 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S366 and J329/J329.1/J330/J330.1/J331/J331.1/J332/J332.1/
+  6 DEFERRED_EXTERNAL / 363 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S372 and J329/J329.1/J330/J330.1/J331/J331.1/J332/J332.1/
   J333/J333.1/J334/J334.1/J335/J335.1/J336/J336.1/J337/J337.1/J338/J338.1/
   J339/J339.1/J340/J340.1/J341/J341.1/J342/J342.1/J343/J343.1/J344/J344.1/
-  J345/J345.1/J346/J346.1/J347/J347.1 are committed; no local implementation
+  J345/J345.1/J346/J346.1/J347/J347.1/J348/J348.1 are committed; no local implementation
   slice is active.
   Keep the fast inner loop and do not promote support claims from
   self-read alone.
@@ -4324,6 +4333,7 @@ edit this block or commit the same slice concurrently.
 | S369 | J345: ASSOCIATIVEOBJECT parser-state copy isolation | S368 | COMMITTED | ASSOCIATIVEOBJECT copy/assignment persistent-subentity parser-state reset; focused hardening target; fixture admission; import scope; sync; plan; diff | focused `libdxfrw_hardening_tests` for copied and assigned ASSOCIATIVEOBJECT models; no drawing bytes or derived fixtures | finish focused gate, run policy/route/support/release/speed checks, verify children, commit with trailers, report progress, and recompute the next ready queue |
 | S370 | J346: post-hardening full validation checkpoint | S369 | COMMITTED | complete dependency-free CTest topology; parser-state hardening regression; plan; fixture; import-scope; sync; route; aggregate; support; release-readiness; speed; diff | normal build's complete CTest topology passes 31/31 in 5.13 seconds after S369; no drawing bytes or derived fixtures changed | finish checkpoint evidence, verify child, commit plan report with trailers, and recompute the next ready queue |
 | S371 | J347: installed-package and LibreCAD system-consumer revalidation | S370 | COMMITTED | staged package relocation; system-mode LibreCAD configure/build; system target availability; plan; fixture; diff | fresh staged prefix passes `check_staged_package.py --relocation-smoke`; LibreCAD system mode selects staged `libdxfrw` and builds `librecad_lib`; optional `libdxfrw_system_fast_tests` target is absent in this checkout; no drawing bytes or derived fixtures changed | finish package/consumer evidence, verify child, commit plan report with trailers, and recompute the next ready queue |
+| S372 | J348: registered LibreCAD system fast-test validation | S371 | COMMITTED | fresh `BUILD_TESTS=ON` system-package configure; `libdxfrw_system_fast_tests`; `librecad_filter_compile_check`; plan; fixture; diff | fresh pinned LibreCAD system-package build defines and builds both targets; `libdxfrw_system_fast_tests` passes 176 assertions in 12 cases; no drawing bytes or derived fixtures changed | continue with native-platform, long-fuzz, external-oracle, and format-support promotion closure |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -4699,6 +4709,7 @@ edit this block or commit the same slice concurrently.
 | J345 | S369 | J344 | COMMITTED | EXPERIMENTAL | Harden ASSOCIATIVEOBJECT parser-state copy and assignment | Reset transient ASSOCIATIVEOBJECT persistent-subentity body and class-value counter across copy/assignment while preserving persisted associative payloads and prefix statuses; keep the no-fixture policy |
 | J346 | S370 | J345 | COMMITTED | EXPERIMENTAL | Record post-hardening full validation checkpoint | Run the complete dependency-free CTest topology after the parser-state isolation slices, record timing and lane coverage, and preserve the reduced-frequency full-suite cadence; no fixture changes |
 | J347 | S371 | J346 | COMMITTED | EXPERIMENTAL | Revalidate staged package and LibreCAD system consumer | Install the current build into a fresh prefix, run relocation smoke, configure LibreCAD with `LIBRECAD_USE_SYSTEM_LIBDXFRW=ON`, and build `librecad_lib`; record the unavailable optional fast-test target without overstating coverage; no fixture changes |
+| J348 | S372 | J347 | COMMITTED | EXPERIMENTAL | Validate registered LibreCAD system fast tests | Configure the pinned LibreCAD checkout with `BUILD_TESTS=ON`, `LIBRECAD_USE_SYSTEM_LIBDXFRW=ON`, and format/integration test registration enabled; build `libdxfrw_system_fast_tests` and `librecad_filter_compile_check`, then run the installed-package fast test without changing fixtures |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -5180,6 +5191,7 @@ edit this block or commit the same slice concurrently.
 | J345.1 | J345 / S369 | WP3.11-WP3.12, WP8, WP10; ASSOCIATIVEOBJECT parser-state copy isolation | J344 | COMMITTED | EXPERIMENTAL | assert copied and assigned ASSOCIATIVEOBJECT models do not append persistent-subentity handles before a fresh AcDbPersSubentManager marker while preserving persisted associative payloads and prefix statuses; keep all inputs in memory | focused `libdxfrw_hardening_tests`, plan, fixture-admission, import-scope, sync, route, aggregate, support, release-readiness, speed, and diff gates; no drawing bytes or derived fixtures |
 | J346.1 | J346 / S370 | WP8, WP10; post-hardening full validation checkpoint | J345 | COMMITTED | EXPERIMENTAL | run the complete dependency-free CTest topology, confirm all 31 entries pass, and record the 5.13-second timing without changing drawing fixtures | `ctest --test-dir /private/tmp/libdxfrw-s45-build --output-on-failure`: 31/31 passed in 5.13 seconds; no drawing bytes or derived fixtures changed |
 | J347.1 | J347 / S371 | WP2, WP8, WP10; installed-package and LibreCAD system-consumer revalidation | J346 | COMMITTED | EXPERIMENTAL | run `check_staged_package.py --relocation-smoke` on a fresh prefix and build LibreCAD `librecad_lib` against the staged package; record that `libdxfrw_system_fast_tests` is not a target in the checkout | staged package relocation smoke passes; system-mode configure selects staged `libdxfrw` and `librecad_lib` builds successfully; optional fast-test target is unavailable; no drawing bytes or derived fixtures changed |
+| J348.1 | J348 / S372 | WP2, WP8, WP10; registered system fast-test consumer | J347 | COMMITTED | EXPERIMENTAL | configure the pinned LibreCAD system-package consumer with `BUILD_TESTS=ON` and format/integration registration, build `libdxfrw_system_fast_tests` plus `librecad_filter_compile_check`, and run the installed-package fast test without drawing fixtures | fresh configure and both target builds pass; `libdxfrw_system_fast_tests` passes 176 assertions in 12 cases; no drawing bytes or derived fixtures changed |
 | J313.1 | J313 / S337 | WP3.11-WP3.12, WP8, WP10; TABLE parser-state copy isolation | J312 | COMMITTED | EXPERIMENTAL | assert copied and assigned TABLE models accept fresh subclass/grid dimensions after a partial source parse while preserving public table content; keep all inputs in memory | focused `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures |
 
 <!-- UPGRADE_PROGRESS_END -->
