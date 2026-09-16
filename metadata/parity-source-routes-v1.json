@@ -5733,6 +5733,27 @@
         "shared/public-inline-method/src_drw_base.h_DRW_ParseableEntity_466ee3353555698f1797e0b482c483f7d69f0005a42e427e16ed20f6cedd7e84",
         "shared/public-inline-method/src_drw_base.h_DRW_Vertex2D_3bb0b3f44282eafbd5ff8689c2eef5c4094dacec5e610d239d961f25de0f4c98",
         "shared/public-inline-method/src_drw_base.h_dwgHandle_20da1a3eceb58f517c35c260367dfe5e61d26c6d8c2b33d1549bdffaaaeba280",
+        "shared/public-inline-method/src_drw_entities.h_DRW_Arc_41e6e1bf69a029effa8974ffb94a6765d24d520ab41c855722caa5eecba92cde",
+        "shared/public-inline-method/src_drw_entities.h_DRW_Attdef_92c9053f6fce09481de0a06b7f6c5145d3403cd834451a16aff70c85c52f0fee",
+        "shared/public-inline-method/src_drw_entities.h_DRW_Attrib_88a119c5695cdcf5be6b55aca0cfedd0d66ade1d9af534fa03d83c2a753eb591",
+        "shared/public-inline-method/src_drw_entities.h_DRW_Block_54d66d691be085330cc2f1e476982bdc37455a9fd5247a314f3f0b219a515271",
+        "shared/public-inline-method/src_drw_entities.h_DRW_Circle_6474a156fa4fe0787ce7a4eee4e3dc035f1f70bd2ce5b35bf02d5f2ac7dc6efe",
+        "shared/public-inline-method/src_drw_entities.h_DRW_Ellipse_bbbf5c3f9ce97798a3d206b505460100baf09d7bbd1a400742bea46753b79cae",
+        "shared/public-inline-method/src_drw_entities.h_DRW_Insert_641c53b5825e83559d57e48263cb0098ce0872ea537c4c520a937e0cd9950007",
+        "shared/public-inline-method/src_drw_entities.h_DRW_LWPolyline_e70f5e8aaf1768e6e3d0adc03a1dd8facb9cd495f07a9938dc9c9e81209ea568",
+        "shared/public-inline-method/src_drw_entities.h_DRW_Line_4ec852589b11cc9ce80afa66f7a8104b04c3f28e253468af3919aba616a5a221",
+        "shared/public-inline-method/src_drw_entities.h_DRW_MLine_e405512218ce63a2bb2313b540bbaacbfac072598b482bf1ab4353f2dc176740",
+        "shared/public-inline-method/src_drw_entities.h_DRW_Mesh_76233741fe7da0cdd8c7b7915501af8612f614c01428f37ac1714db577bfdb44",
+        "shared/public-inline-method/src_drw_entities.h_DRW_ModelerGeometry_bde9185487af82b65ede647ced04682bf4cc9239dcfcd2aef6cd4e2e4933f965",
+        "shared/public-inline-method/src_drw_entities.h_DRW_Point_29096fc0690aebfdddc24770f1ffe0eb516e7d378ff4898cedb316ad2180f2c3",
+        "shared/public-inline-method/src_drw_entities.h_DRW_Ray_a8a81af7f24b6b170f220ba00867a6f63f4266cb74d1204325c68e2bf95b5b19",
+        "shared/public-inline-method/src_drw_entities.h_DRW_Shape_2604f56e1c2bf0fbba2d3e7468e5beb1eee173f13ec9fa1f106c80e9cd58716e",
+        "shared/public-inline-method/src_drw_entities.h_DRW_Solid_0025e989e78eea99a8feeb1abe1d1fb61c138e413022ed0bc5591d1b5e15b6eb",
+        "shared/public-inline-method/src_drw_entities.h_DRW_TableContentObject_d28262ef457279db93bcc3a1cfe7b4e3df1111fd22962565ed53ef675721b4a0",
+        "shared/public-inline-method/src_drw_entities.h_DRW_Table_63d056f5d8acec6558a763ea2356a84e609cdaf0c9bdc3d56781a7241de6594b",
+        "shared/public-inline-method/src_drw_entities.h_DRW_Tolerance_8e27282c8c991add880fd855e5eb9587b193b05c986f00db11b4ed684d4195a1",
+        "shared/public-inline-method/src_drw_entities.h_DRW_Trace_c9e8490a74223a03e7d1f767ca4cff7fd2c7aea3815b74403551b3dbe86b7e82",
+        "shared/public-inline-method/src_drw_entities.h_DRW_Xline_f798b1c22611c33bbd8746580755fe4f7a26f8942660f5733df5045fc4d321d0",
         "shared/public-inline-method/src_drw_interface.h_DRW_Interface_6190e2e1ac4584b071d2809572602df0a20c74f7111d9b63326fbba607e14bb1",
         "shared/public-method/src_drw_base.h_DRW_Coord_c0b1688623f266d6e10553cbda8a4ad8bad5e1d9312ffa65e0afc2968176c64d",
         "shared/public-method/src_drw_base.h_DRW_DebugPrinter_e9ebb8eaf5f9ccb043e05079ca464a0dfd6fec01de02a2e1424c4570f675e278",
@@ -5740,6 +5761,27 @@
         "shared/public-method/src_drw_base.h_DRW_ParseableEntity_466ee3353555698f1797e0b482c483f7d69f0005a42e427e16ed20f6cedd7e84",
         "shared/public-method/src_drw_base.h_DRW_Vertex2D_3bb0b3f44282eafbd5ff8689c2eef5c4094dacec5e610d239d961f25de0f4c98",
         "shared/public-method/src_drw_base.h_dwgHandle_20da1a3eceb58f517c35c260367dfe5e61d26c6d8c2b33d1549bdffaaaeba280",
+        "shared/public-method/src_drw_entities.h_DRW_Arc_41e6e1bf69a029effa8974ffb94a6765d24d520ab41c855722caa5eecba92cde",
+        "shared/public-method/src_drw_entities.h_DRW_Attdef_92c9053f6fce09481de0a06b7f6c5145d3403cd834451a16aff70c85c52f0fee",
+        "shared/public-method/src_drw_entities.h_DRW_Attrib_88a119c5695cdcf5be6b55aca0cfedd0d66ade1d9af534fa03d83c2a753eb591",
+        "shared/public-method/src_drw_entities.h_DRW_Block_54d66d691be085330cc2f1e476982bdc37455a9fd5247a314f3f0b219a515271",
+        "shared/public-method/src_drw_entities.h_DRW_Circle_6474a156fa4fe0787ce7a4eee4e3dc035f1f70bd2ce5b35bf02d5f2ac7dc6efe",
+        "shared/public-method/src_drw_entities.h_DRW_Ellipse_bbbf5c3f9ce97798a3d206b505460100baf09d7bbd1a400742bea46753b79cae",
+        "shared/public-method/src_drw_entities.h_DRW_Insert_641c53b5825e83559d57e48263cb0098ce0872ea537c4c520a937e0cd9950007",
+        "shared/public-method/src_drw_entities.h_DRW_LWPolyline_e70f5e8aaf1768e6e3d0adc03a1dd8facb9cd495f07a9938dc9c9e81209ea568",
+        "shared/public-method/src_drw_entities.h_DRW_Line_4ec852589b11cc9ce80afa66f7a8104b04c3f28e253468af3919aba616a5a221",
+        "shared/public-method/src_drw_entities.h_DRW_MLine_e405512218ce63a2bb2313b540bbaacbfac072598b482bf1ab4353f2dc176740",
+        "shared/public-method/src_drw_entities.h_DRW_Mesh_76233741fe7da0cdd8c7b7915501af8612f614c01428f37ac1714db577bfdb44",
+        "shared/public-method/src_drw_entities.h_DRW_ModelerGeometry_bde9185487af82b65ede647ced04682bf4cc9239dcfcd2aef6cd4e2e4933f965",
+        "shared/public-method/src_drw_entities.h_DRW_Point_29096fc0690aebfdddc24770f1ffe0eb516e7d378ff4898cedb316ad2180f2c3",
+        "shared/public-method/src_drw_entities.h_DRW_Ray_a8a81af7f24b6b170f220ba00867a6f63f4266cb74d1204325c68e2bf95b5b19",
+        "shared/public-method/src_drw_entities.h_DRW_Shape_2604f56e1c2bf0fbba2d3e7468e5beb1eee173f13ec9fa1f106c80e9cd58716e",
+        "shared/public-method/src_drw_entities.h_DRW_Solid_0025e989e78eea99a8feeb1abe1d1fb61c138e413022ed0bc5591d1b5e15b6eb",
+        "shared/public-method/src_drw_entities.h_DRW_TableContentObject_d28262ef457279db93bcc3a1cfe7b4e3df1111fd22962565ed53ef675721b4a0",
+        "shared/public-method/src_drw_entities.h_DRW_Table_63d056f5d8acec6558a763ea2356a84e609cdaf0c9bdc3d56781a7241de6594b",
+        "shared/public-method/src_drw_entities.h_DRW_Tolerance_8e27282c8c991add880fd855e5eb9587b193b05c986f00db11b4ed684d4195a1",
+        "shared/public-method/src_drw_entities.h_DRW_Trace_c9e8490a74223a03e7d1f767ca4cff7fd2c7aea3815b74403551b3dbe86b7e82",
+        "shared/public-method/src_drw_entities.h_DRW_Xline_f798b1c22611c33bbd8746580755fe4f7a26f8942660f5733df5045fc4d321d0",
         "shared/public-method/src_drw_interface.h_DRW_Interface_6190e2e1ac4584b071d2809572602df0a20c74f7111d9b63326fbba607e14bb1",
         "shared/public-type/src_drw_base.h_definition_DRW_OperationDiagnostic",
         "shared/public-type/src_drw_base.h_definition_DRW_OperationDiagnosticEntry",
@@ -5752,11 +5794,53 @@
         "shared/public-inline-method/src_drw_base.h_DRW_ParseableEntity_725ece067472b142d09ac97d696de7d79a2228439231d34a59e3cc5187f4efed",
         "shared/public-inline-method/src_drw_base.h_DRW_Vertex2D_2a22b8a5dcaa8e5331c978d4a9da6971217e108ad75dba9038e650bd177b1896",
         "shared/public-inline-method/src_drw_base.h_dwgHandle_e0b56f2f9f7c09fb584f9aae182c3bcb88c1159ca94b4f46260016c3bbe8e1e5",
+        "shared/public-inline-method/src_drw_entities.h_DRW_Arc_63d8a874e590d436f541a55a07a294aaccf3c430d2dd3329b8ab18e0ac91c729",
+        "shared/public-inline-method/src_drw_entities.h_DRW_Attdef_ec7bc465a9a2d9384f684ce6f83ffa355da2ad7c796b1aeab7b5ad77df2b1a42",
+        "shared/public-inline-method/src_drw_entities.h_DRW_Attrib_574dbba7a40b5429d2e273d190e6d40111a59171462d06a3ef25c8e288b7ae1e",
+        "shared/public-inline-method/src_drw_entities.h_DRW_Block_174fbc77edea9230faeecc7d7278be943ac441cac87c21f5a924e7b313b82563",
+        "shared/public-inline-method/src_drw_entities.h_DRW_Circle_85bb55d40e2dad57b972601d0eeb787a1c28e8ec63dcea91963340261228788a",
+        "shared/public-inline-method/src_drw_entities.h_DRW_Ellipse_dbd82addf4b68b1fadb9e29af525006abb2acbaa3d3deef5ee2fa137fe8c37ce",
+        "shared/public-inline-method/src_drw_entities.h_DRW_Insert_f31f8f394888fd048764d2c226adfb3b10882fb80046f0f1f3b72fc2171fbe62",
+        "shared/public-inline-method/src_drw_entities.h_DRW_LWPolyline_dfaa0a948e63dfbc57aa61fb5f7e3f8c616041df54fbdb88a3cbabeac32cf0fe",
+        "shared/public-inline-method/src_drw_entities.h_DRW_Line_575f003e3b1e0ae7527e6033f46b8dbc6e9c8f7b582209959483be53e5e1d018",
+        "shared/public-inline-method/src_drw_entities.h_DRW_MLine_115338082931d616e808451fba309ee2ac968d846f97b529f724c9d7914a395e",
+        "shared/public-inline-method/src_drw_entities.h_DRW_Mesh_0ec06224967131d5bccda2c02c6da0de2c50c372fa814057f2377d4403ef1f65",
+        "shared/public-inline-method/src_drw_entities.h_DRW_ModelerGeometry_64159dce704a895a34d8ad54ac2ac1efefaa8824d14d7beee81f1e49dd518059",
+        "shared/public-inline-method/src_drw_entities.h_DRW_Point_f46cef41f49481c9a5af04cad8feda6040b4542f324e4de1ab7d7fca4b5dd6f1",
+        "shared/public-inline-method/src_drw_entities.h_DRW_Ray_76daffda6c1b2cd8db0260c019c6a461f8ea7a9844237a1711f21d829f3cbc9a",
+        "shared/public-inline-method/src_drw_entities.h_DRW_Shape_dda630d1e72c27c9a018363163e4cf18462fe0af414cbcad60f7a96e33619639",
+        "shared/public-inline-method/src_drw_entities.h_DRW_Solid_7207ac0ad0c277ea7404006beae207cf56a22dec05ea6903000feaed035820ba",
+        "shared/public-inline-method/src_drw_entities.h_DRW_TableContentObject_7fca7bb9a18d239444a3c78aac0cc19d02cbffb214bd8a67292e76c9c77428ba",
+        "shared/public-inline-method/src_drw_entities.h_DRW_Table_7079ca05a4f4dbf4d70ee3c0c0d64c28b5f163355730e6ae56101bca1cd6862a",
+        "shared/public-inline-method/src_drw_entities.h_DRW_Tolerance_2f43c676bbd8ee38aca7f73076972a832715bf9c7d658fc38fc4f895da406da0",
+        "shared/public-inline-method/src_drw_entities.h_DRW_Trace_ab14c542a06928ab5a8ec9589bd57372d6e23c9ca5e872ea433b57fc83927992",
+        "shared/public-inline-method/src_drw_entities.h_DRW_Xline_5dee1fa8f23f9bb7c29ab975af38666b09ccd526f51ce68f997e9a0d6473e4e0",
         "shared/public-method/src_drw_base.h_DRW_Coord_134b397610b3bb4c923582bb28129bb39f2ed0425ba5bf2357ff84fe46ff36e6",
         "shared/public-method/src_drw_base.h_DRW_DebugPrinter_c674ff5f088150cc1c049e1040d5e11ac2f029e7f908b5f06b37d6f5bb64d436",
         "shared/public-method/src_drw_base.h_DRW_ParseableEntity_725ece067472b142d09ac97d696de7d79a2228439231d34a59e3cc5187f4efed",
         "shared/public-method/src_drw_base.h_DRW_Vertex2D_2a22b8a5dcaa8e5331c978d4a9da6971217e108ad75dba9038e650bd177b1896",
-        "shared/public-method/src_drw_base.h_dwgHandle_e0b56f2f9f7c09fb584f9aae182c3bcb88c1159ca94b4f46260016c3bbe8e1e5"
+        "shared/public-method/src_drw_base.h_dwgHandle_e0b56f2f9f7c09fb584f9aae182c3bcb88c1159ca94b4f46260016c3bbe8e1e5",
+        "shared/public-method/src_drw_entities.h_DRW_Arc_63d8a874e590d436f541a55a07a294aaccf3c430d2dd3329b8ab18e0ac91c729",
+        "shared/public-method/src_drw_entities.h_DRW_Attdef_ec7bc465a9a2d9384f684ce6f83ffa355da2ad7c796b1aeab7b5ad77df2b1a42",
+        "shared/public-method/src_drw_entities.h_DRW_Attrib_574dbba7a40b5429d2e273d190e6d40111a59171462d06a3ef25c8e288b7ae1e",
+        "shared/public-method/src_drw_entities.h_DRW_Block_174fbc77edea9230faeecc7d7278be943ac441cac87c21f5a924e7b313b82563",
+        "shared/public-method/src_drw_entities.h_DRW_Circle_85bb55d40e2dad57b972601d0eeb787a1c28e8ec63dcea91963340261228788a",
+        "shared/public-method/src_drw_entities.h_DRW_Ellipse_dbd82addf4b68b1fadb9e29af525006abb2acbaa3d3deef5ee2fa137fe8c37ce",
+        "shared/public-method/src_drw_entities.h_DRW_Insert_f31f8f394888fd048764d2c226adfb3b10882fb80046f0f1f3b72fc2171fbe62",
+        "shared/public-method/src_drw_entities.h_DRW_LWPolyline_dfaa0a948e63dfbc57aa61fb5f7e3f8c616041df54fbdb88a3cbabeac32cf0fe",
+        "shared/public-method/src_drw_entities.h_DRW_Line_575f003e3b1e0ae7527e6033f46b8dbc6e9c8f7b582209959483be53e5e1d018",
+        "shared/public-method/src_drw_entities.h_DRW_MLine_115338082931d616e808451fba309ee2ac968d846f97b529f724c9d7914a395e",
+        "shared/public-method/src_drw_entities.h_DRW_Mesh_0ec06224967131d5bccda2c02c6da0de2c50c372fa814057f2377d4403ef1f65",
+        "shared/public-method/src_drw_entities.h_DRW_ModelerGeometry_64159dce704a895a34d8ad54ac2ac1efefaa8824d14d7beee81f1e49dd518059",
+        "shared/public-method/src_drw_entities.h_DRW_Point_f46cef41f49481c9a5af04cad8feda6040b4542f324e4de1ab7d7fca4b5dd6f1",
+        "shared/public-method/src_drw_entities.h_DRW_Ray_76daffda6c1b2cd8db0260c019c6a461f8ea7a9844237a1711f21d829f3cbc9a",
+        "shared/public-method/src_drw_entities.h_DRW_Shape_dda630d1e72c27c9a018363163e4cf18462fe0af414cbcad60f7a96e33619639",
+        "shared/public-method/src_drw_entities.h_DRW_Solid_7207ac0ad0c277ea7404006beae207cf56a22dec05ea6903000feaed035820ba",
+        "shared/public-method/src_drw_entities.h_DRW_TableContentObject_7fca7bb9a18d239444a3c78aac0cc19d02cbffb214bd8a67292e76c9c77428ba",
+        "shared/public-method/src_drw_entities.h_DRW_Table_7079ca05a4f4dbf4d70ee3c0c0d64c28b5f163355730e6ae56101bca1cd6862a",
+        "shared/public-method/src_drw_entities.h_DRW_Tolerance_2f43c676bbd8ee38aca7f73076972a832715bf9c7d658fc38fc4f895da406da0",
+        "shared/public-method/src_drw_entities.h_DRW_Trace_ab14c542a06928ab5a8ec9589bd57372d6e23c9ca5e872ea433b57fc83927992",
+        "shared/public-method/src_drw_entities.h_DRW_Xline_5dee1fa8f23f9bb7c29ab975af38666b09ccd526f51ce68f997e9a0d6473e4e0"
       ]
     }
   },
@@ -5767,7 +5851,7 @@
   },
   "inputs": {
     "standalone": {
-      "contentTreeSha256": "874acce424b6004f45ce209c7e64a047386932f0982cb4feb7d4af871054bf5b",
+      "contentTreeSha256": "ebdb9357ae93f27a4c504ba9c1b9cabbf6145e637c74518e2bbe34735b732320",
       "files": [
         {
           "mode": "100644",
@@ -5812,12 +5896,12 @@
         {
           "mode": "100644",
           "path": "src/drw_entities.cpp",
-          "sha256": "30d368ccdff0e57d41abf30c83708ba47919069f918cd20ce6cb36c850ca5b14"
+          "sha256": "fbf1e64b511c165c8a62c790df1642e2b27b03452d19999d0a303cb0db4ee881"
         },
         {
           "mode": "100644",
           "path": "src/drw_entities.h",
-          "sha256": "0b77c34b426363daf39982fc3ba370e1ce467482f3511284db9ee433c08b9ec2"
+          "sha256": "45f204c43b3cd00cc870834f264951a6dc67d1d2633c88d976b96f3a50d84ce9"
         },
         {
           "mode": "100644",
@@ -82584,22 +82668,26 @@
       {
         "cardinality": "1:1",
         "category": "public-inline-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-inline-method/src_drw_entities.h_DRW_Arc_41e6e1bf69a029effa8974ffb94a6765d24d520ab41c855722caa5eecba92cde"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-inline-method/src_drw_entities.h_DRW_Arc_63d8a874e590d436f541a55a07a294aaccf3c430d2dd3329b8ab18e0ac91c729"
+          "shared/public-inline-method/src_drw_entities.h_DRW_Arc_41e6e1bf69a029effa8974ffb94a6765d24d520ab41c855722caa5eecba92cde"
         ],
         "targetRouteId": "shared/public-inline-method/src_drw_entities.h_DRW_Arc_63d8a874e590d436f541a55a07a294aaccf3c430d2dd3329b8ab18e0ac91c729",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -82704,62 +82792,74 @@
       {
         "cardinality": "1:1",
         "category": "public-inline-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-inline-method/src_drw_entities.h_DRW_Attdef_92c9053f6fce09481de0a06b7f6c5145d3403cd834451a16aff70c85c52f0fee"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-inline-method/src_drw_entities.h_DRW_Attdef_ec7bc465a9a2d9384f684ce6f83ffa355da2ad7c796b1aeab7b5ad77df2b1a42"
+          "shared/public-inline-method/src_drw_entities.h_DRW_Attdef_92c9053f6fce09481de0a06b7f6c5145d3403cd834451a16aff70c85c52f0fee"
         ],
         "targetRouteId": "shared/public-inline-method/src_drw_entities.h_DRW_Attdef_ec7bc465a9a2d9384f684ce6f83ffa355da2ad7c796b1aeab7b5ad77df2b1a42",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
         "category": "public-inline-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-inline-method/src_drw_entities.h_DRW_Attrib_88a119c5695cdcf5be6b55aca0cfedd0d66ade1d9af534fa03d83c2a753eb591"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-inline-method/src_drw_entities.h_DRW_Attrib_574dbba7a40b5429d2e273d190e6d40111a59171462d06a3ef25c8e288b7ae1e"
+          "shared/public-inline-method/src_drw_entities.h_DRW_Attrib_88a119c5695cdcf5be6b55aca0cfedd0d66ade1d9af534fa03d83c2a753eb591"
         ],
         "targetRouteId": "shared/public-inline-method/src_drw_entities.h_DRW_Attrib_574dbba7a40b5429d2e273d190e6d40111a59171462d06a3ef25c8e288b7ae1e",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
         "category": "public-inline-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-inline-method/src_drw_entities.h_DRW_Block_54d66d691be085330cc2f1e476982bdc37455a9fd5247a314f3f0b219a515271"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-inline-method/src_drw_entities.h_DRW_Block_174fbc77edea9230faeecc7d7278be943ac441cac87c21f5a924e7b313b82563"
+          "shared/public-inline-method/src_drw_entities.h_DRW_Block_54d66d691be085330cc2f1e476982bdc37455a9fd5247a314f3f0b219a515271"
         ],
         "targetRouteId": "shared/public-inline-method/src_drw_entities.h_DRW_Block_174fbc77edea9230faeecc7d7278be943ac441cac87c21f5a924e7b313b82563",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -82844,22 +82944,26 @@
       {
         "cardinality": "1:1",
         "category": "public-inline-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-inline-method/src_drw_entities.h_DRW_Circle_6474a156fa4fe0787ce7a4eee4e3dc035f1f70bd2ce5b35bf02d5f2ac7dc6efe"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-inline-method/src_drw_entities.h_DRW_Circle_85bb55d40e2dad57b972601d0eeb787a1c28e8ec63dcea91963340261228788a"
+          "shared/public-inline-method/src_drw_entities.h_DRW_Circle_6474a156fa4fe0787ce7a4eee4e3dc035f1f70bd2ce5b35bf02d5f2ac7dc6efe"
         ],
         "targetRouteId": "shared/public-inline-method/src_drw_entities.h_DRW_Circle_85bb55d40e2dad57b972601d0eeb787a1c28e8ec63dcea91963340261228788a",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -84864,22 +84968,26 @@
       {
         "cardinality": "1:1",
         "category": "public-inline-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-inline-method/src_drw_entities.h_DRW_Ellipse_bbbf5c3f9ce97798a3d206b505460100baf09d7bbd1a400742bea46753b79cae"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-inline-method/src_drw_entities.h_DRW_Ellipse_dbd82addf4b68b1fadb9e29af525006abb2acbaa3d3deef5ee2fa137fe8c37ce"
+          "shared/public-inline-method/src_drw_entities.h_DRW_Ellipse_bbbf5c3f9ce97798a3d206b505460100baf09d7bbd1a400742bea46753b79cae"
         ],
         "targetRouteId": "shared/public-inline-method/src_drw_entities.h_DRW_Ellipse_dbd82addf4b68b1fadb9e29af525006abb2acbaa3d3deef5ee2fa137fe8c37ce",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -85364,22 +85472,26 @@
       {
         "cardinality": "1:1",
         "category": "public-inline-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-inline-method/src_drw_entities.h_DRW_Insert_641c53b5825e83559d57e48263cb0098ce0872ea537c4c520a937e0cd9950007"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-inline-method/src_drw_entities.h_DRW_Insert_f31f8f394888fd048764d2c226adfb3b10882fb80046f0f1f3b72fc2171fbe62"
+          "shared/public-inline-method/src_drw_entities.h_DRW_Insert_641c53b5825e83559d57e48263cb0098ce0872ea537c4c520a937e0cd9950007"
         ],
         "targetRouteId": "shared/public-inline-method/src_drw_entities.h_DRW_Insert_f31f8f394888fd048764d2c226adfb3b10882fb80046f0f1f3b72fc2171fbe62",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -85444,22 +85556,26 @@
       {
         "cardinality": "1:1",
         "category": "public-inline-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-inline-method/src_drw_entities.h_DRW_LWPolyline_e70f5e8aaf1768e6e3d0adc03a1dd8facb9cd495f07a9938dc9c9e81209ea568"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-inline-method/src_drw_entities.h_DRW_LWPolyline_dfaa0a948e63dfbc57aa61fb5f7e3f8c616041df54fbdb88a3cbabeac32cf0fe"
+          "shared/public-inline-method/src_drw_entities.h_DRW_LWPolyline_e70f5e8aaf1768e6e3d0adc03a1dd8facb9cd495f07a9938dc9c9e81209ea568"
         ],
         "targetRouteId": "shared/public-inline-method/src_drw_entities.h_DRW_LWPolyline_dfaa0a948e63dfbc57aa61fb5f7e3f8c616041df54fbdb88a3cbabeac32cf0fe",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -85524,22 +85640,26 @@
       {
         "cardinality": "1:1",
         "category": "public-inline-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-inline-method/src_drw_entities.h_DRW_Line_4ec852589b11cc9ce80afa66f7a8104b04c3f28e253468af3919aba616a5a221"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-inline-method/src_drw_entities.h_DRW_Line_575f003e3b1e0ae7527e6033f46b8dbc6e9c8f7b582209959483be53e5e1d018"
+          "shared/public-inline-method/src_drw_entities.h_DRW_Line_4ec852589b11cc9ce80afa66f7a8104b04c3f28e253468af3919aba616a5a221"
         ],
         "targetRouteId": "shared/public-inline-method/src_drw_entities.h_DRW_Line_575f003e3b1e0ae7527e6033f46b8dbc6e9c8f7b582209959483be53e5e1d018",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -85604,22 +85724,26 @@
       {
         "cardinality": "1:1",
         "category": "public-inline-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-inline-method/src_drw_entities.h_DRW_MLine_e405512218ce63a2bb2313b540bbaacbfac072598b482bf1ab4353f2dc176740"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-inline-method/src_drw_entities.h_DRW_MLine_115338082931d616e808451fba309ee2ac968d846f97b529f724c9d7914a395e"
+          "shared/public-inline-method/src_drw_entities.h_DRW_MLine_e405512218ce63a2bb2313b540bbaacbfac072598b482bf1ab4353f2dc176740"
         ],
         "targetRouteId": "shared/public-inline-method/src_drw_entities.h_DRW_MLine_115338082931d616e808451fba309ee2ac968d846f97b529f724c9d7914a395e",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -85664,22 +85788,26 @@
       {
         "cardinality": "1:1",
         "category": "public-inline-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-inline-method/src_drw_entities.h_DRW_Mesh_76233741fe7da0cdd8c7b7915501af8612f614c01428f37ac1714db577bfdb44"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-inline-method/src_drw_entities.h_DRW_Mesh_0ec06224967131d5bccda2c02c6da0de2c50c372fa814057f2377d4403ef1f65"
+          "shared/public-inline-method/src_drw_entities.h_DRW_Mesh_76233741fe7da0cdd8c7b7915501af8612f614c01428f37ac1714db577bfdb44"
         ],
         "targetRouteId": "shared/public-inline-method/src_drw_entities.h_DRW_Mesh_0ec06224967131d5bccda2c02c6da0de2c50c372fa814057f2377d4403ef1f65",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -85704,22 +85832,26 @@
       {
         "cardinality": "1:1",
         "category": "public-inline-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-inline-method/src_drw_entities.h_DRW_ModelerGeometry_bde9185487af82b65ede647ced04682bf4cc9239dcfcd2aef6cd4e2e4933f965"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-inline-method/src_drw_entities.h_DRW_ModelerGeometry_64159dce704a895a34d8ad54ac2ac1efefaa8824d14d7beee81f1e49dd518059"
+          "shared/public-inline-method/src_drw_entities.h_DRW_ModelerGeometry_bde9185487af82b65ede647ced04682bf4cc9239dcfcd2aef6cd4e2e4933f965"
         ],
         "targetRouteId": "shared/public-inline-method/src_drw_entities.h_DRW_ModelerGeometry_64159dce704a895a34d8ad54ac2ac1efefaa8824d14d7beee81f1e49dd518059",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -86004,22 +86136,26 @@
       {
         "cardinality": "1:1",
         "category": "public-inline-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-inline-method/src_drw_entities.h_DRW_Point_29096fc0690aebfdddc24770f1ffe0eb516e7d378ff4898cedb316ad2180f2c3"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-inline-method/src_drw_entities.h_DRW_Point_f46cef41f49481c9a5af04cad8feda6040b4542f324e4de1ab7d7fca4b5dd6f1"
+          "shared/public-inline-method/src_drw_entities.h_DRW_Point_29096fc0690aebfdddc24770f1ffe0eb516e7d378ff4898cedb316ad2180f2c3"
         ],
         "targetRouteId": "shared/public-inline-method/src_drw_entities.h_DRW_Point_f46cef41f49481c9a5af04cad8feda6040b4542f324e4de1ab7d7fca4b5dd6f1",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -86164,22 +86300,26 @@
       {
         "cardinality": "1:1",
         "category": "public-inline-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-inline-method/src_drw_entities.h_DRW_Ray_a8a81af7f24b6b170f220ba00867a6f63f4266cb74d1204325c68e2bf95b5b19"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-inline-method/src_drw_entities.h_DRW_Ray_76daffda6c1b2cd8db0260c019c6a461f8ea7a9844237a1711f21d829f3cbc9a"
+          "shared/public-inline-method/src_drw_entities.h_DRW_Ray_a8a81af7f24b6b170f220ba00867a6f63f4266cb74d1204325c68e2bf95b5b19"
         ],
         "targetRouteId": "shared/public-inline-method/src_drw_entities.h_DRW_Ray_76daffda6c1b2cd8db0260c019c6a461f8ea7a9844237a1711f21d829f3cbc9a",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -86264,22 +86404,26 @@
       {
         "cardinality": "1:1",
         "category": "public-inline-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-inline-method/src_drw_entities.h_DRW_Shape_2604f56e1c2bf0fbba2d3e7468e5beb1eee173f13ec9fa1f106c80e9cd58716e"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-inline-method/src_drw_entities.h_DRW_Shape_dda630d1e72c27c9a018363163e4cf18462fe0af414cbcad60f7a96e33619639"
+          "shared/public-inline-method/src_drw_entities.h_DRW_Shape_2604f56e1c2bf0fbba2d3e7468e5beb1eee173f13ec9fa1f106c80e9cd58716e"
         ],
         "targetRouteId": "shared/public-inline-method/src_drw_entities.h_DRW_Shape_dda630d1e72c27c9a018363163e4cf18462fe0af414cbcad60f7a96e33619639",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -86384,22 +86528,26 @@
       {
         "cardinality": "1:1",
         "category": "public-inline-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-inline-method/src_drw_entities.h_DRW_Solid_0025e989e78eea99a8feeb1abe1d1fb61c138e413022ed0bc5591d1b5e15b6eb"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-inline-method/src_drw_entities.h_DRW_Solid_7207ac0ad0c277ea7404006beae207cf56a22dec05ea6903000feaed035820ba"
+          "shared/public-inline-method/src_drw_entities.h_DRW_Solid_0025e989e78eea99a8feeb1abe1d1fb61c138e413022ed0bc5591d1b5e15b6eb"
         ],
         "targetRouteId": "shared/public-inline-method/src_drw_entities.h_DRW_Solid_7207ac0ad0c277ea7404006beae207cf56a22dec05ea6903000feaed035820ba",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -86624,42 +86772,50 @@
       {
         "cardinality": "1:1",
         "category": "public-inline-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-inline-method/src_drw_entities.h_DRW_TableContentObject_d28262ef457279db93bcc3a1cfe7b4e3df1111fd22962565ed53ef675721b4a0"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-inline-method/src_drw_entities.h_DRW_TableContentObject_7fca7bb9a18d239444a3c78aac0cc19d02cbffb214bd8a67292e76c9c77428ba"
+          "shared/public-inline-method/src_drw_entities.h_DRW_TableContentObject_d28262ef457279db93bcc3a1cfe7b4e3df1111fd22962565ed53ef675721b4a0"
         ],
         "targetRouteId": "shared/public-inline-method/src_drw_entities.h_DRW_TableContentObject_7fca7bb9a18d239444a3c78aac0cc19d02cbffb214bd8a67292e76c9c77428ba",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
         "category": "public-inline-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-inline-method/src_drw_entities.h_DRW_Table_63d056f5d8acec6558a763ea2356a84e609cdaf0c9bdc3d56781a7241de6594b"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-inline-method/src_drw_entities.h_DRW_Table_7079ca05a4f4dbf4d70ee3c0c0d64c28b5f163355730e6ae56101bca1cd6862a"
+          "shared/public-inline-method/src_drw_entities.h_DRW_Table_63d056f5d8acec6558a763ea2356a84e609cdaf0c9bdc3d56781a7241de6594b"
         ],
         "targetRouteId": "shared/public-inline-method/src_drw_entities.h_DRW_Table_7079ca05a4f4dbf4d70ee3c0c0d64c28b5f163355730e6ae56101bca1cd6862a",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -86704,22 +86860,26 @@
       {
         "cardinality": "1:1",
         "category": "public-inline-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-inline-method/src_drw_entities.h_DRW_Tolerance_8e27282c8c991add880fd855e5eb9587b193b05c986f00db11b4ed684d4195a1"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-inline-method/src_drw_entities.h_DRW_Tolerance_2f43c676bbd8ee38aca7f73076972a832715bf9c7d658fc38fc4f895da406da0"
+          "shared/public-inline-method/src_drw_entities.h_DRW_Tolerance_8e27282c8c991add880fd855e5eb9587b193b05c986f00db11b4ed684d4195a1"
         ],
         "targetRouteId": "shared/public-inline-method/src_drw_entities.h_DRW_Tolerance_2f43c676bbd8ee38aca7f73076972a832715bf9c7d658fc38fc4f895da406da0",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -86744,22 +86904,26 @@
       {
         "cardinality": "1:1",
         "category": "public-inline-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-inline-method/src_drw_entities.h_DRW_Trace_c9e8490a74223a03e7d1f767ca4cff7fd2c7aea3815b74403551b3dbe86b7e82"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-inline-method/src_drw_entities.h_DRW_Trace_ab14c542a06928ab5a8ec9589bd57372d6e23c9ca5e872ea433b57fc83927992"
+          "shared/public-inline-method/src_drw_entities.h_DRW_Trace_c9e8490a74223a03e7d1f767ca4cff7fd2c7aea3815b74403551b3dbe86b7e82"
         ],
         "targetRouteId": "shared/public-inline-method/src_drw_entities.h_DRW_Trace_ab14c542a06928ab5a8ec9589bd57372d6e23c9ca5e872ea433b57fc83927992",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -86884,22 +87048,26 @@
       {
         "cardinality": "1:1",
         "category": "public-inline-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-inline-method/src_drw_entities.h_DRW_Xline_f798b1c22611c33bbd8746580755fe4f7a26f8942660f5733df5045fc4d321d0"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-inline-method/src_drw_entities.h_DRW_Xline_5dee1fa8f23f9bb7c29ab975af38666b09ccd526f51ce68f997e9a0d6473e4e0"
+          "shared/public-inline-method/src_drw_entities.h_DRW_Xline_f798b1c22611c33bbd8746580755fe4f7a26f8942660f5733df5045fc4d321d0"
         ],
         "targetRouteId": "shared/public-inline-method/src_drw_entities.h_DRW_Xline_5dee1fa8f23f9bb7c29ab975af38666b09ccd526f51ce68f997e9a0d6473e4e0",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -94884,22 +95052,26 @@
       {
         "cardinality": "1:1",
         "category": "public-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-method/src_drw_entities.h_DRW_Arc_41e6e1bf69a029effa8974ffb94a6765d24d520ab41c855722caa5eecba92cde"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-method/src_drw_entities.h_DRW_Arc_63d8a874e590d436f541a55a07a294aaccf3c430d2dd3329b8ab18e0ac91c729"
+          "shared/public-method/src_drw_entities.h_DRW_Arc_41e6e1bf69a029effa8974ffb94a6765d24d520ab41c855722caa5eecba92cde"
         ],
         "targetRouteId": "shared/public-method/src_drw_entities.h_DRW_Arc_63d8a874e590d436f541a55a07a294aaccf3c430d2dd3329b8ab18e0ac91c729",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -95024,22 +95196,26 @@
       {
         "cardinality": "1:1",
         "category": "public-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-method/src_drw_entities.h_DRW_Attdef_92c9053f6fce09481de0a06b7f6c5145d3403cd834451a16aff70c85c52f0fee"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-method/src_drw_entities.h_DRW_Attdef_ec7bc465a9a2d9384f684ce6f83ffa355da2ad7c796b1aeab7b5ad77df2b1a42"
+          "shared/public-method/src_drw_entities.h_DRW_Attdef_92c9053f6fce09481de0a06b7f6c5145d3403cd834451a16aff70c85c52f0fee"
         ],
         "targetRouteId": "shared/public-method/src_drw_entities.h_DRW_Attdef_ec7bc465a9a2d9384f684ce6f83ffa355da2ad7c796b1aeab7b5ad77df2b1a42",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -95104,22 +95280,26 @@
       {
         "cardinality": "1:1",
         "category": "public-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-method/src_drw_entities.h_DRW_Attrib_88a119c5695cdcf5be6b55aca0cfedd0d66ade1d9af534fa03d83c2a753eb591"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-method/src_drw_entities.h_DRW_Attrib_574dbba7a40b5429d2e273d190e6d40111a59171462d06a3ef25c8e288b7ae1e"
+          "shared/public-method/src_drw_entities.h_DRW_Attrib_88a119c5695cdcf5be6b55aca0cfedd0d66ade1d9af534fa03d83c2a753eb591"
         ],
         "targetRouteId": "shared/public-method/src_drw_entities.h_DRW_Attrib_574dbba7a40b5429d2e273d190e6d40111a59171462d06a3ef25c8e288b7ae1e",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -95164,22 +95344,26 @@
       {
         "cardinality": "1:1",
         "category": "public-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-method/src_drw_entities.h_DRW_Block_54d66d691be085330cc2f1e476982bdc37455a9fd5247a314f3f0b219a515271"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-method/src_drw_entities.h_DRW_Block_174fbc77edea9230faeecc7d7278be943ac441cac87c21f5a924e7b313b82563"
+          "shared/public-method/src_drw_entities.h_DRW_Block_54d66d691be085330cc2f1e476982bdc37455a9fd5247a314f3f0b219a515271"
         ],
         "targetRouteId": "shared/public-method/src_drw_entities.h_DRW_Block_174fbc77edea9230faeecc7d7278be943ac441cac87c21f5a924e7b313b82563",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -95264,22 +95448,26 @@
       {
         "cardinality": "1:1",
         "category": "public-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-method/src_drw_entities.h_DRW_Circle_6474a156fa4fe0787ce7a4eee4e3dc035f1f70bd2ce5b35bf02d5f2ac7dc6efe"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-method/src_drw_entities.h_DRW_Circle_85bb55d40e2dad57b972601d0eeb787a1c28e8ec63dcea91963340261228788a"
+          "shared/public-method/src_drw_entities.h_DRW_Circle_6474a156fa4fe0787ce7a4eee4e3dc035f1f70bd2ce5b35bf02d5f2ac7dc6efe"
         ],
         "targetRouteId": "shared/public-method/src_drw_entities.h_DRW_Circle_85bb55d40e2dad57b972601d0eeb787a1c28e8ec63dcea91963340261228788a",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -97324,22 +97512,26 @@
       {
         "cardinality": "1:1",
         "category": "public-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-method/src_drw_entities.h_DRW_Ellipse_bbbf5c3f9ce97798a3d206b505460100baf09d7bbd1a400742bea46753b79cae"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-method/src_drw_entities.h_DRW_Ellipse_dbd82addf4b68b1fadb9e29af525006abb2acbaa3d3deef5ee2fa137fe8c37ce"
+          "shared/public-method/src_drw_entities.h_DRW_Ellipse_bbbf5c3f9ce97798a3d206b505460100baf09d7bbd1a400742bea46753b79cae"
         ],
         "targetRouteId": "shared/public-method/src_drw_entities.h_DRW_Ellipse_dbd82addf4b68b1fadb9e29af525006abb2acbaa3d3deef5ee2fa137fe8c37ce",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -98024,22 +98216,26 @@
       {
         "cardinality": "1:1",
         "category": "public-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-method/src_drw_entities.h_DRW_Insert_641c53b5825e83559d57e48263cb0098ce0872ea537c4c520a937e0cd9950007"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-method/src_drw_entities.h_DRW_Insert_f31f8f394888fd048764d2c226adfb3b10882fb80046f0f1f3b72fc2171fbe62"
+          "shared/public-method/src_drw_entities.h_DRW_Insert_641c53b5825e83559d57e48263cb0098ce0872ea537c4c520a937e0cd9950007"
         ],
         "targetRouteId": "shared/public-method/src_drw_entities.h_DRW_Insert_f31f8f394888fd048764d2c226adfb3b10882fb80046f0f1f3b72fc2171fbe62",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -98104,22 +98300,26 @@
       {
         "cardinality": "1:1",
         "category": "public-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-method/src_drw_entities.h_DRW_LWPolyline_e70f5e8aaf1768e6e3d0adc03a1dd8facb9cd495f07a9938dc9c9e81209ea568"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-method/src_drw_entities.h_DRW_LWPolyline_dfaa0a948e63dfbc57aa61fb5f7e3f8c616041df54fbdb88a3cbabeac32cf0fe"
+          "shared/public-method/src_drw_entities.h_DRW_LWPolyline_e70f5e8aaf1768e6e3d0adc03a1dd8facb9cd495f07a9938dc9c9e81209ea568"
         ],
         "targetRouteId": "shared/public-method/src_drw_entities.h_DRW_LWPolyline_dfaa0a948e63dfbc57aa61fb5f7e3f8c616041df54fbdb88a3cbabeac32cf0fe",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -98244,22 +98444,26 @@
       {
         "cardinality": "1:1",
         "category": "public-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-method/src_drw_entities.h_DRW_Line_4ec852589b11cc9ce80afa66f7a8104b04c3f28e253468af3919aba616a5a221"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-method/src_drw_entities.h_DRW_Line_575f003e3b1e0ae7527e6033f46b8dbc6e9c8f7b582209959483be53e5e1d018"
+          "shared/public-method/src_drw_entities.h_DRW_Line_4ec852589b11cc9ce80afa66f7a8104b04c3f28e253468af3919aba616a5a221"
         ],
         "targetRouteId": "shared/public-method/src_drw_entities.h_DRW_Line_575f003e3b1e0ae7527e6033f46b8dbc6e9c8f7b582209959483be53e5e1d018",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -98344,22 +98548,26 @@
       {
         "cardinality": "1:1",
         "category": "public-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-method/src_drw_entities.h_DRW_MLine_e405512218ce63a2bb2313b540bbaacbfac072598b482bf1ab4353f2dc176740"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-method/src_drw_entities.h_DRW_MLine_115338082931d616e808451fba309ee2ac968d846f97b529f724c9d7914a395e"
+          "shared/public-method/src_drw_entities.h_DRW_MLine_e405512218ce63a2bb2313b540bbaacbfac072598b482bf1ab4353f2dc176740"
         ],
         "targetRouteId": "shared/public-method/src_drw_entities.h_DRW_MLine_115338082931d616e808451fba309ee2ac968d846f97b529f724c9d7914a395e",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -98424,22 +98632,26 @@
       {
         "cardinality": "1:1",
         "category": "public-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-method/src_drw_entities.h_DRW_Mesh_76233741fe7da0cdd8c7b7915501af8612f614c01428f37ac1714db577bfdb44"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-method/src_drw_entities.h_DRW_Mesh_0ec06224967131d5bccda2c02c6da0de2c50c372fa814057f2377d4403ef1f65"
+          "shared/public-method/src_drw_entities.h_DRW_Mesh_76233741fe7da0cdd8c7b7915501af8612f614c01428f37ac1714db577bfdb44"
         ],
         "targetRouteId": "shared/public-method/src_drw_entities.h_DRW_Mesh_0ec06224967131d5bccda2c02c6da0de2c50c372fa814057f2377d4403ef1f65",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -98464,22 +98676,26 @@
       {
         "cardinality": "1:1",
         "category": "public-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-method/src_drw_entities.h_DRW_ModelerGeometry_bde9185487af82b65ede647ced04682bf4cc9239dcfcd2aef6cd4e2e4933f965"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-method/src_drw_entities.h_DRW_ModelerGeometry_64159dce704a895a34d8ad54ac2ac1efefaa8824d14d7beee81f1e49dd518059"
+          "shared/public-method/src_drw_entities.h_DRW_ModelerGeometry_bde9185487af82b65ede647ced04682bf4cc9239dcfcd2aef6cd4e2e4933f965"
         ],
         "targetRouteId": "shared/public-method/src_drw_entities.h_DRW_ModelerGeometry_64159dce704a895a34d8ad54ac2ac1efefaa8824d14d7beee81f1e49dd518059",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -98784,22 +99000,26 @@
       {
         "cardinality": "1:1",
         "category": "public-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-method/src_drw_entities.h_DRW_Point_29096fc0690aebfdddc24770f1ffe0eb516e7d378ff4898cedb316ad2180f2c3"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-method/src_drw_entities.h_DRW_Point_f46cef41f49481c9a5af04cad8feda6040b4542f324e4de1ab7d7fca4b5dd6f1"
+          "shared/public-method/src_drw_entities.h_DRW_Point_29096fc0690aebfdddc24770f1ffe0eb516e7d378ff4898cedb316ad2180f2c3"
         ],
         "targetRouteId": "shared/public-method/src_drw_entities.h_DRW_Point_f46cef41f49481c9a5af04cad8feda6040b4542f324e4de1ab7d7fca4b5dd6f1",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -98964,22 +99184,26 @@
       {
         "cardinality": "1:1",
         "category": "public-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-method/src_drw_entities.h_DRW_Ray_a8a81af7f24b6b170f220ba00867a6f63f4266cb74d1204325c68e2bf95b5b19"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-method/src_drw_entities.h_DRW_Ray_76daffda6c1b2cd8db0260c019c6a461f8ea7a9844237a1711f21d829f3cbc9a"
+          "shared/public-method/src_drw_entities.h_DRW_Ray_a8a81af7f24b6b170f220ba00867a6f63f4266cb74d1204325c68e2bf95b5b19"
         ],
         "targetRouteId": "shared/public-method/src_drw_entities.h_DRW_Ray_76daffda6c1b2cd8db0260c019c6a461f8ea7a9844237a1711f21d829f3cbc9a",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -99064,22 +99288,26 @@
       {
         "cardinality": "1:1",
         "category": "public-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-method/src_drw_entities.h_DRW_Shape_2604f56e1c2bf0fbba2d3e7468e5beb1eee173f13ec9fa1f106c80e9cd58716e"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-method/src_drw_entities.h_DRW_Shape_dda630d1e72c27c9a018363163e4cf18462fe0af414cbcad60f7a96e33619639"
+          "shared/public-method/src_drw_entities.h_DRW_Shape_2604f56e1c2bf0fbba2d3e7468e5beb1eee173f13ec9fa1f106c80e9cd58716e"
         ],
         "targetRouteId": "shared/public-method/src_drw_entities.h_DRW_Shape_dda630d1e72c27c9a018363163e4cf18462fe0af414cbcad60f7a96e33619639",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -99184,22 +99412,26 @@
       {
         "cardinality": "1:1",
         "category": "public-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-method/src_drw_entities.h_DRW_Solid_0025e989e78eea99a8feeb1abe1d1fb61c138e413022ed0bc5591d1b5e15b6eb"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-method/src_drw_entities.h_DRW_Solid_7207ac0ad0c277ea7404006beae207cf56a22dec05ea6903000feaed035820ba"
+          "shared/public-method/src_drw_entities.h_DRW_Solid_0025e989e78eea99a8feeb1abe1d1fb61c138e413022ed0bc5591d1b5e15b6eb"
         ],
         "targetRouteId": "shared/public-method/src_drw_entities.h_DRW_Solid_7207ac0ad0c277ea7404006beae207cf56a22dec05ea6903000feaed035820ba",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -99424,42 +99656,50 @@
       {
         "cardinality": "1:1",
         "category": "public-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-method/src_drw_entities.h_DRW_TableContentObject_d28262ef457279db93bcc3a1cfe7b4e3df1111fd22962565ed53ef675721b4a0"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-method/src_drw_entities.h_DRW_TableContentObject_7fca7bb9a18d239444a3c78aac0cc19d02cbffb214bd8a67292e76c9c77428ba"
+          "shared/public-method/src_drw_entities.h_DRW_TableContentObject_d28262ef457279db93bcc3a1cfe7b4e3df1111fd22962565ed53ef675721b4a0"
         ],
         "targetRouteId": "shared/public-method/src_drw_entities.h_DRW_TableContentObject_7fca7bb9a18d239444a3c78aac0cc19d02cbffb214bd8a67292e76c9c77428ba",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
         "category": "public-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-method/src_drw_entities.h_DRW_Table_63d056f5d8acec6558a763ea2356a84e609cdaf0c9bdc3d56781a7241de6594b"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-method/src_drw_entities.h_DRW_Table_7079ca05a4f4dbf4d70ee3c0c0d64c28b5f163355730e6ae56101bca1cd6862a"
+          "shared/public-method/src_drw_entities.h_DRW_Table_63d056f5d8acec6558a763ea2356a84e609cdaf0c9bdc3d56781a7241de6594b"
         ],
         "targetRouteId": "shared/public-method/src_drw_entities.h_DRW_Table_7079ca05a4f4dbf4d70ee3c0c0d64c28b5f163355730e6ae56101bca1cd6862a",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -99504,22 +99744,26 @@
       {
         "cardinality": "1:1",
         "category": "public-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-method/src_drw_entities.h_DRW_Tolerance_8e27282c8c991add880fd855e5eb9587b193b05c986f00db11b4ed684d4195a1"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-method/src_drw_entities.h_DRW_Tolerance_2f43c676bbd8ee38aca7f73076972a832715bf9c7d658fc38fc4f895da406da0"
+          "shared/public-method/src_drw_entities.h_DRW_Tolerance_8e27282c8c991add880fd855e5eb9587b193b05c986f00db11b4ed684d4195a1"
         ],
         "targetRouteId": "shared/public-method/src_drw_entities.h_DRW_Tolerance_2f43c676bbd8ee38aca7f73076972a832715bf9c7d658fc38fc4f895da406da0",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -99544,22 +99788,26 @@
       {
         "cardinality": "1:1",
         "category": "public-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-method/src_drw_entities.h_DRW_Trace_c9e8490a74223a03e7d1f767ca4cff7fd2c7aea3815b74403551b3dbe86b7e82"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-method/src_drw_entities.h_DRW_Trace_ab14c542a06928ab5a8ec9589bd57372d6e23c9ca5e872ea433b57fc83927992"
+          "shared/public-method/src_drw_entities.h_DRW_Trace_c9e8490a74223a03e7d1f767ca4cff7fd2c7aea3815b74403551b3dbe86b7e82"
         ],
         "targetRouteId": "shared/public-method/src_drw_entities.h_DRW_Trace_ab14c542a06928ab5a8ec9589bd57372d6e23c9ca5e872ea433b57fc83927992",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -99744,22 +99992,26 @@
       {
         "cardinality": "1:1",
         "category": "public-method",
-        "deltaClasses": [],
-        "dependencies": [],
-        "disposition": "equivalent",
+        "deltaClasses": [
+          "route-identity"
+        ],
+        "dependencies": [
+          "shared/public-method/src_drw_entities.h_DRW_Xline_f798b1c22611c33bbd8746580755fe4f7a26f8942660f5733df5045fc4d321d0"
+        ],
+        "disposition": "compatibility-extension",
         "facade": "shared",
         "fixtureDisposition": "no-drawing-fixture",
-        "implementationState": "same-selector",
-        "mappingKind": "exact-route-id",
+        "implementationState": "signature-adapted",
+        "mappingKind": "derived-alias",
         "ownerPaths": [
           "src/drw_entities.h"
         ],
         "smallestGate": "extract_parity_source_routes.py --check",
         "standaloneRouteIds": [
-          "shared/public-method/src_drw_entities.h_DRW_Xline_5dee1fa8f23f9bb7c29ab975af38666b09ccd526f51ce68f997e9a0d6473e4e0"
+          "shared/public-method/src_drw_entities.h_DRW_Xline_f798b1c22611c33bbd8746580755fe4f7a26f8942660f5733df5045fc4d321d0"
         ],
         "targetRouteId": "shared/public-method/src_drw_entities.h_DRW_Xline_5dee1fa8f23f9bb7c29ab975af38666b09ccd526f51ce68f997e9a0d6473e4e0",
-        "unblockCondition": "none"
+        "unblockCondition": "confirm the reviewed alias/domain remains non-overlapping before support promotion"
       },
       {
         "cardinality": "1:1",
@@ -122863,8 +123115,8 @@
       "shared/source-unit/src_intern_dxfcode.h"
     ],
     "summary": {
-      "deltaOneToOne": 763,
-      "exactOneToOne": 4869,
+      "deltaOneToOne": 805,
+      "exactOneToOne": 4827,
       "standaloneOnly": 89,
       "targetOnly": 0,
       "targetRows": 5669
@@ -122899,7 +123151,7 @@
         "src/libdxfrw.h"
       ],
       "allowlistPath": "metadata/adaptation-allowlist.json",
-      "allowlistSha256": "71b32a40fcb8de86b10fab1b61bcf4231f276c9d5b6aadaad2269f436edfaf0a",
+      "allowlistSha256": "6b719d97354bcf6cf137c87082dc5b859d17d604cb60aa199a95ec98891f680e",
       "schema": 1,
       "targetCommit": "0ffb38d790db53116978e01fcaf94cee9bc6ee48",
       "targetRepository": "git@github.com-librecad:LibreCAD/LibreCAD.git"
@@ -122908,7 +123160,7 @@
       "algorithm": "sha256-canonical-json-v1",
       "bodyEvidenceExcluded": true,
       "inventoryDigests": {
-        "standalone": "a438a93be76464dd33d507826b5950063149783dad867eaaf169290c62631685",
+        "standalone": "5fc1e8492e16587f4004d920a98c151fb6621fb3401bdf2873bd8e7d2036f57c",
         "target": "5c0ad5e9221c95df0c2c056148b88273e9d06a7f3e3fe1c50cc202b51a1f9f78"
       },
       "stableFields": [
@@ -122924,7 +123176,7 @@
     "standalone": {
       "baselineCommit": "92d7466ed9146badcd4fb44c82d1dd8302b3c7db",
       "baselineRef": "origin/master",
-      "contentTreeSha256": "874acce424b6004f45ce209c7e64a047386932f0982cb4feb7d4af871054bf5b",
+      "contentTreeSha256": "ebdb9357ae93f27a4c504ba9c1b9cabbf6145e637c74518e2bbe34735b732320",
       "repository": "git@github.com-librecad:LibreCAD/libdxfrw.git"
     },
     "target": {
@@ -122975,7 +123227,7 @@
       "facade": "shared",
       "path": "parity-source-routes-v1/standalone-shared.json",
       "routeCount": 2878,
-      "sha256": "1657727ec23c0c819b37fd7f3fbda9c68c55142903a2dc10fabac2166c48a36a",
+      "sha256": "25226eba8a62128502a49934f15e431876d87fc3b05fce1550a5ddd3a1da1bfc",
       "side": "standalone"
     }
   ],
@@ -123008,13 +123260,13 @@
       },
       "shared": {
         "semanticMismatches": 4,
-        "standaloneOnly": 39,
-        "targetOnly": 10
+        "standaloneOnly": 81,
+        "targetOnly": 52
       }
     },
     "mapping": {
-      "deltaOneToOne": 763,
-      "exactOneToOne": 4869,
+      "deltaOneToOne": 805,
+      "exactOneToOne": 4827,
       "standaloneOnly": 89,
       "targetOnly": 0,
       "targetRows": 5669

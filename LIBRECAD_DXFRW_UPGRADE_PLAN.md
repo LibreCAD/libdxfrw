@@ -1943,6 +1943,12 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
+- Current checkpoint (2026-09-16): S327/J303 generated route-inventory refresh
+  is committed after S326/J302.  The source-only route index and
+  standalone-shared shard now reflect the explicit entity ownership helper and
+  shifted evidence spans; route, aggregate, support, release-readiness, speed,
+  fixture, scope, sync, and plan checks pass without drawing bytes.
+
 - Current checkpoint (2026-09-16): S326/J302 public-model ownership hardening
   is committed.  The explicit copy/assignment paths for `DRW_Attrib`,
   `DRW_GeoPositionMarker`, `DRW_Dimension`, and `DRW_LWPolyline` now clone
@@ -3623,17 +3629,17 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 326 (`COMMITTED`); no slice is active.
+- Resolved slices: 327 (`COMMITTED`); no slice is active.
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 326 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 327 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 328 COMMITTED.
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 329 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 426 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 SUPERSEDED / 0 VERIFIED / 427 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
-  6 DEFERRED_EXTERNAL / 306 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
-- Active work: S01-S326 are committed; no local implementation slice is active.
+  6 DEFERRED_EXTERNAL / 307 EXPERIMENTAL / 0 PROMOTED / 6 NOT_APPLICABLE.
+- Active work: S01-S327 are committed; no local implementation slice is active.
   Remaining work is evidence-gated runtime/oracle and release closure. Keep the fast inner
   loop and do not promote support claims from self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -4014,6 +4020,7 @@ edit this block or commit the same slice concurrently.
 | S324 | J300: scheduled ASan/UBSan checkpoint after S323 | S323 | COMMITTED | rebuilt ASan/UBSan tree; full 31-test CTest checkpoint with `detect_leaks=0`; no fixture changes | `/private/tmp/libdxfrw-s264-asan` rebuilt from the current tree and all 31 tests pass under `ASAN_OPTIONS=detect_leaks=0 UBSAN_OPTIONS=halt_on_error=1`; no sanitizer findings or drawing bytes added | native-platform, long-fuzz, external/oracle, and release-closure evidence remain open |
 | S325 | J301: reconcile installed-header documentation after S321 | S324 | COMMITTED | CMake comment matches installed enum ownership; plan, package, fixture, scope, sync, and diff gates | corrected the stale install-closure comment so it states that `DwgDataStorageWriterOperation` is provided by installed `drw_base.h`; no source behavior or drawing bytes changed | native-platform, long-fuzz, external/oracle, and release-closure evidence remain open |
 | S326 | J302: public model copy/move ownership hardening | S325 | COMMITTED | entity copy/assignment ownership isolation; focused hardening target; fixture admission; import scope; sync; plan; diff | committed explicit entity copy paths now deep-copy mutable XDATA variants, preserving embedded MText and polyline graph ownership; focused hardening vectors pass and no drawing bytes were added | exhaustive behavioral API hardening, target-bound differential debt, independent-oracle, native-platform, and release closure |
+| S327 | J303: refresh generated source-route inventory after S326 | S326 | COMMITTED | deterministic route regeneration; source-surface closure; aggregate/support metadata; fixture admission; import scope; sync; plan; diff | committed source-only route index and standalone-shared shard after the ownership helper changed source spans; metadata-only update and no drawing bytes | continue with exhaustive behavioral API hardening, target-bound differential debt, independent-oracle, native-platform, and release closure |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -4344,6 +4351,7 @@ edit this block or commit the same slice concurrently.
 | J300 | S324 | J299 | COMMITTED | EXPERIMENTAL | Run the scheduled ASan/UBSan checkpoint after S323 | Rebuild the sanitizer configuration from the current tree and run the complete 31-test CTest set with the documented macOS leak policy, retaining no drawing bytes |
 | J301 | S325 | J300 | COMMITTED | EXPERIMENTAL | Reconcile installed-header documentation after S321 | Update the CMake install-closure comment to reflect the public `drw_base.h` enum declaration while retaining the narrow compatibility includes and changing no source behavior or fixture bytes |
 | J302 | S326 | J301 | COMMITTED | EXPERIMENTAL | Harden explicit public-model copy/move ownership | Audit and test the explicit copy/assignment paths for entity models that own embedded payloads or mutable XDATA, deep-copy entity-owned variants where parser resolution can mutate them, and retain focused mutation-isolation evidence without adding drawing fixtures |
+| J303 | S327 | J302 | COMMITTED | EXPERIMENTAL | Refresh generated source-route inventory after S326 | Regenerate the deterministic source-only route index and standalone-shared shard for the current source spans, retain the route/aggregate/support metadata closure, and change no drawing bytes |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -4781,6 +4789,7 @@ edit this block or commit the same slice concurrently.
 | J300.1 | J300 / S324 | WP8, WP10; sanitizer checkpoint | J299 | COMMITTED | EXPERIMENTAL | rebuild `/private/tmp/libdxfrw-s264-asan`, run all 31 tests with ASan/UBSan enabled and leak detection disabled only as documented for macOS, and retain no drawing bytes | sanitizer build succeeds and ASan/UBSan CTest passes 31/31 in 13.15s with no findings |
 | J301.1 | J301 / S325 | WP1, WP8, WP10; installed-header documentation | J300 | COMMITTED | EXPERIMENTAL | correct the stale CMake install-closure comment after S321, verify the plan/package/policy gates, and retain no source or drawing bytes | CMake comment now identifies `drw_base.h` as the enum owner; plan, package, fixture, scope, sync, and diff checks pass |
 | J302.1 | J302 / S326 | WP3.11-WP3.12, WP8, WP10; public model ownership hardening | J301 | COMMITTED | EXPERIMENTAL | assert copy/assignment/move traits and mutation isolation for `DRW_Variant`, `DRW_Header`, `DRW_TableEntry` models, `DRW_LWPolyline`, `DRW_Attrib`, `DRW_GeoPositionMarker`, and `DRW_Dimension`; keep all XDATA and generated inputs in memory | focused `libdxfrw_hardening_tests` passes; entity XDATA clone helper covers explicit copy paths and no drawing bytes or derived fixtures were staged |
+| J303.1 | J303 / S327 | WP8, WP10; generated source-route inventory refresh | J302 | COMMITTED | EXPERIMENTAL | regenerate `metadata/parity-source-routes-v1.json` and its six shards from the current worktree, run route, aggregate, support, fixture, scope, sync, plan, release-readiness, speed, and diff gates, and retain no drawing payloads | route inventory matches deterministic extraction; aggregate/support/readiness gates pass and only source-derived metadata changes were staged |
 
 <!-- UPGRADE_PROGRESS_END -->
 
