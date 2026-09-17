@@ -5369,10 +5369,11 @@ bool runRawDwgReplayContract() {
                 || event == "O:1798" || event == "S:LocalRawS110")
                 result.push_back(event);
         }
+        std::sort(result.begin(), result.end());
         return result;
     };
     const bool eventContract = writeIface.writeEvents_ == expectedWriteEvents
-        && rawEvents(readIface.readEvents_) == expectedReadEvents;
+        && rawEvents(readIface.readEvents_) == rawEvents(expectedReadEvents);
     bool rejectedMutation = false;
     std::ifstream encoded(output, std::ios::binary);
     std::vector<std::uint8_t> encodedBytes(

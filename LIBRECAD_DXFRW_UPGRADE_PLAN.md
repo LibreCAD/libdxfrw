@@ -2633,6 +2633,21 @@ edit this block or commit the same slice concurrently.
   remain unchanged.  S392/J364.6 is `ACTIVE` for the next portability/test
   seam repair; S388/J364.1 remains `VERIFYING`.
 
+- Current checkpoint (2026-09-17): S392's hosted run `35178718521` at head
+  `64813b00cb3635375178485f41262ba4bc50cb90` compiled the focused targets on
+  all three platforms and passed the workflow contract and macOS/Clang job.
+  Linux/GCC then failed one focused test (`libdxfrw_dwg_local_roundtrip`),
+  with 6/7 tests passing; the raw-replay event assertion assumed a
+  compiler-specific unordered-map iteration order.  Windows/MSVC still
+  completed its build but the run is non-promoting because the focused set is
+  incomplete.  No focused receipt is accepted.  Digest
+  `3230cb388a2aeff7219533a1f7fcff3af89f04657b208c2620c4ee70829ff32e` is
+  invalidated by the test-only repair; the replacement implementation digest
+  is `a6fc2c2b23bfd08ce2384db070628ad805229a1e08da09db113640b3be9ffe74`
+  over 165 inputs.  Claims digest, support rows, immutable claims, and
+  fixtures remain unchanged.  S393/J364.7 is `ACTIVE` to make raw-replay
+  ordering compiler-independent; S388/J364.1 remains `VERIFYING`.
+
 - Current checkpoint (2026-09-16): S329/J305 compound-entity graph ownership
   is committed.  Explicit copies now clone legacy POLYLINE vertices, SPLINE
   control/fit points, and INSERT attributes while resetting parser cursors;
@@ -4349,7 +4364,7 @@ edit this block or commit the same slice concurrently.
 - Active work: S01-S384 and J329/J329.1/J330/J330.1/J331/J331.1/J332/J332.1/
   J333/J333.1/J334/J334.1/J335/J335.1/J336/J336.1/J337/J337.1/J338/J338.1/
   J339/J339.1/J340/J340.1/J341/J341.1/J342/J342.1/J343/J343.1/J344/J344.1/
-  J345/J345.1/J346/J346.1/J347/J347.1/J348/J348.1/J349/J349.1/J350/J350.1/J351/J351.1/J352/J352.1/J353/J353.1/J354/J354.1/J355/J355.1/J356/J356.1/J357/J357.1/J358/J358.1/J359/J359.1/J359.2/J360/J360.1/J360.2/J360.3/J361/J361.1/J362/J362.1/J362.2/J362.3/J363/J363.0/J363.1/J363.2 and S384a/S385/S386/S386a/S386b/S387a/S387/S389/S390 are committed.  S388/J364.1 is VERIFYING after the hosted runs exposed cross-platform compile defects; S392/J364.6 is ACTIVE for the next portability/test-seam repair, and J364.2 remains planned until a complete focused receipt set is accepted.
+  J345/J345.1/J346/J346.1/J347/J347.1/J348/J348.1/J349/J349.1/J350/J350.1/J351/J351.1/J352/J352.1/J353/J353.1/J354/J354.1/J355/J355.1/J356/J356.1/J357/J357.1/J358/J358.1/J359/J359.1/J359.2/J360/J360.1/J360.2/J360.3/J361/J361.1/J362/J362.1/J362.2/J362.3/J363/J363.0/J363.1/J363.2 and S384a/S385/S386/S386a/S386b/S387a/S387/S389/S390 are committed.  S388/J364.1 is VERIFYING after the hosted runs exposed cross-platform compile defects; S393/J364.7 is ACTIVE for the next test-portability repair, and J364.2 remains planned until a complete focused receipt set is accepted.
   Keep the fast inner loop and do not promote support claims from
   self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -4800,6 +4815,7 @@ edit this block or commit the same slice concurrently.
 | S390 | J364.4: repair GCC warning contract in ACIS bounds extraction | S389 | ACTIVE | GCC `-Werror=misleading-indentation` in `src/drw_acis.cpp:533-535`; focused native build; qualification digest/status; plan; fixture; diff | replacement PR #93 run `35176840834` reproduces the three GCC diagnostics; repair must preserve bounds semantics, recompute the implementation digest, and invalidate all prior receipts without changing claims or fixtures | split each coordinate-bound update into an independently indented conditional, run the smallest focused compile/tests, update digest/status and plan, commit with matching trailers, push to PR #93, then rerun S388 |
 | S391 | J364.5: repair remaining GCC/MSVC warning contract | S390 | ACTIVE | GCC enum/non-enum, deprecated-copy, and ignored-qualifier diagnostics in `src/drw_entities.cpp`, `src/drw_entities.h`, and `src/drw_objects.cpp`; focused native build; qualification digest/status; plan; fixture; diff | replacement PR #93 run `35177211341` reproduces the exact diagnostics; repairs must preserve handle/material semantics, explicit dimension assignment semantics, and enum range checks while recomputing the implementation digest and invalidating all prior receipts without changing claims or fixtures | add explicit enum sentinel conversions, default the `DRW_Dimension` copy assignment, remove const-qualified local enum-value casts, run the smallest focused compile/tests, update digest/status and plan, commit with matching trailers, push to PR #93, then rerun S388 |
 | S392 | J364.6: repair remaining hosted handle sentinels and reader-matrix seam | S391 | ACTIVE | GCC enum/non-enum handle sentinels in `src/libdxfrw.h`/`src/libdxfrw.cpp`; Windows/MSVC private-test seam link failure in `tests/dwg_reader_matrix_tests.cpp`; focused native build; qualification digest/status; plan; fixture; diff | hosted run `35177810798` reproduces the four GCC diagnostics and the Windows unresolved `dwgRW::openBuffer`; public `readBuffer` dispatch coverage and explicit sentinel conversions must preserve behavior while recomputing the implementation digest and invalidating prior receipts without changing claims or fixtures | convert all four `DRW::NoHandle` fallbacks to `std::uint32_t`, move the matrix test to the public read path with initialized `dx_iface`/`dx_data`, link `dx_iface.cpp`, run the smallest focused compile/tests, update digest/status and plan, commit with matching trailers, push to PR #93, then rerun S388 |
+| S393 | J364.7: make raw-replay focused evidence compiler-independent | S392 | ACTIVE | GCC 6/7 focused result in `tests/dwg_local_roundtrip_tests.cpp`; raw-object event assertion must not depend on unordered-map traversal order; focused native build; qualification digest/status; plan; fixture; diff | hosted run `35178718521` builds all focused targets but Linux/GCC fails only `libdxfrw_dwg_local_roundtrip` because the expected raw event order differs; canonicalizing the compared event multiset must preserve replay membership and section coverage without changing claims or fixtures | compare filtered raw events in sorted canonical order, run the smallest focused compile/tests (including parallel CTest), update digest/status and plan, commit with matching trailers, push to PR #93, then rerun S388 |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
