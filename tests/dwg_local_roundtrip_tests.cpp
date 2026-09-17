@@ -18,6 +18,7 @@
 #include "libdwgr.h"
 #include "intern/dwgbufferw.h"
 #include "intern/dwg_fixed_handles.h"
+#include "intern/drw_dbg.h"
 
 namespace {
 
@@ -5982,7 +5983,12 @@ int main(int argc, char** argv) {
         dwgRW reader(output.string().c_str());
         LocalDwgInterface readIface(nullptr, version);
         readIface.setTableStyleExpected(version <= DRW::AC1021);
+        const bool traceLegacySelfRead = version == DRW::AC1015;
+        if (traceLegacySelfRead)
+            DRW_DBGSL(DRW_dbg::Level::Debug);
         const bool readOk = reader.read(&readIface, false);
+        if (traceLegacySelfRead)
+            DRW_DBGSL(DRW_dbg::Level::None);
         if (!readOk) {
             const DRW_OperationDiagnostic diagnostic = reader.getLastDiagnostic();
             std::cerr << "DWG self-read diagnostic" << suffix << ": "
