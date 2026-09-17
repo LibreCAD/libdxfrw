@@ -331,6 +331,25 @@ void testOutputTransactionPublicationAndRollback(TestContext& t) {
         }
         std::error_code substitutionError;
         std::filesystem::rename(attacker, paths.front(), substitutionError);
+#if defined(_WIN32)
+        if (substitutionError) {
+            // The CRT stream does not grant FILE_SHARE_DELETE, so Windows
+            // correctly blocks replacing an open transaction pathname.  The
+            // identity-substitution attack is therefore unrepresentable while
+            // the stream is open; verify the safe abort/cleanup contract and
+            // leave the destination untouched.
+            transaction.abort();
+            t.expect(transactionTemporaryCount(target) == 0,
+                     "blocked replacement aborts and removes the owned temporary");
+            std::filesystem::remove(attacker, ignored);
+        } else {
+            t.expect(!transaction.commit(),
+                     "identity-check replacement rejects commit");
+            t.expect(std::filesystem::exists(paths.front()),
+                     "failed identity check does not delete an unowned replacement");
+            std::filesystem::remove(paths.front(), ignored);
+        }
+#else
         t.expect(!substitutionError,
                  "identity-check test substitutes the temporary pathname");
         t.expect(!transaction.commit(),
@@ -338,6 +357,7 @@ void testOutputTransactionPublicationAndRollback(TestContext& t) {
         t.expect(std::filesystem::exists(paths.front()),
                  "failed identity check does not delete an unowned replacement");
         std::filesystem::remove(paths.front(), ignored);
+#endif
     }
 
     std::ifstream preservedAfterSubstitution(target, std::ios::binary);
