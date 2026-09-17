@@ -854,7 +854,14 @@ def self_test() -> None:
     _expect_rejected(lambda: invalid_status(lambda d: d["claimStatus"][0].update(tuple={})), "immutable data in overlay")
     _expect_rejected(lambda: invalid_status(lambda d: d["claimStatus"][0].update(status="PROMOTED")), "pre-native promotion")
     _expect_rejected(lambda: invalid_status(lambda d: d["claimStatus"][0].update(status="PENDING_NATIVE")), "blocked pending-native")
-    _expect_rejected(lambda: validate_claims(claims, root=ROOT, inputs=inputs, routes=routes, matrix=matrix, allow_draft=False), "unfrozen claims")
+    draft_claims = copy.deepcopy(claims)
+    draft_claims["freezeState"] = "DRAFT_WORKFLOW_AND_DIGEST_PENDING"
+    _expect_rejected(
+        lambda: validate_claims(
+            draft_claims, root=ROOT, inputs=inputs, routes=routes,
+            matrix=matrix, allow_draft=False),
+        "unfrozen claims",
+    )
 
     eligible_claim = next(
         claim_id for claim_id, claim in claim_by_id.items()
@@ -864,6 +871,9 @@ def self_test() -> None:
 
     def draft_promotion() -> None:
         changed = copy.deepcopy(status)
+        changed["freezeState"] = "DRAFT_WORKFLOW_AND_DIGEST_PENDING"
+        changed["claimsDigestSha256"] = None
+        changed["implementationDigestSha256"] = None
         changed["nativeReceiptRefs"] = [{"id": item} for item in sorted(receipt_ids)]
         row = next(item for item in changed["claimStatus"] if item["claimId"] == eligible_claim)
         row.update(status="PROMOTED", blockers=[], receiptRefs=sorted(receipt_ids))

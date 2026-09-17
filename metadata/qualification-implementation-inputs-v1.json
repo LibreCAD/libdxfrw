@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "kind": "libdxfrw-qualification-implementation-inputs",
-  "freezeState": "DRAFT_WORKFLOW_AND_DIGEST_PENDING",
+  "freezeState": "FROZEN",
   "digestAlgorithm": {
     "name": "sha256-git-blob-records-v1",
     "record": "path UTF-8, NUL, six-digit Git mode, NUL, lowercase Git blob ID, LF",

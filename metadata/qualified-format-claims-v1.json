@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "kind": "libdxfrw-qualified-format-claims",
-  "freezeState": "DRAFT_WORKFLOW_AND_DIGEST_PENDING",
+  "freezeState": "FROZEN",
   "fixturePolicy": "locked-repository-blob-or-local-from-scratch-runtime; no-generated-drawing-payloads",
   "promotionAuthority": {
     "soleAuthority": true,
@@ -513,13 +513,5 @@
       ]
     }
   ],
-  "pendingFinalization": [
-    {
-      "slice": "S387",
-      "item": "J363.2",
-      "artifactPath": "metadata/qualification-required-tests-v1.json",
-      "requiredBeforeFreeze": true,
-      "reason": "the exact broad CTest inventory must be regenerated from committed S387a topology before claims and implementation digests freeze"
-    }
-  ]
+  "pendingFinalization": []
 }

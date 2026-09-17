@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "kind": "libdxfrw-qualified-format-status",
-  "freezeState": "DRAFT_WORKFLOW_AND_DIGEST_PENDING",
-  "implementationDigestSha256": null,
-  "claimsDigestSha256": null,
+  "freezeState": "FROZEN",
+  "implementationDigestSha256": "0a0a30a69d479a871d04028a0bec52ec61658f8297634ff03f7731cdd64c17b9",
+  "claimsDigestSha256": "7da9d990ab3d2b2ea18784a26a348a055085b16020519822c4deb543db1230f9",
   "allowedTransitions": {
     "EXPERIMENTAL": [
       "EXPERIMENTAL",
@@ -40,10 +40,8 @@
     },
     {
       "claimId": "2c5a971cacbcb4bcc73c4409eadaef14ba16f5047c21273ee86df77cab842a6c",
-      "status": "EXPERIMENTAL",
-      "blockers": [
-        "workflow-and-digest-freeze-pending"
-      ],
+      "status": "PENDING_NATIVE",
+      "blockers": [],
       "receiptRefs": []
     },
     {
@@ -57,10 +55,8 @@
     },
     {
       "claimId": "3415e4784e2b4e23d9973b7d85baea24a4e9d84d1be3347d880cd7f7db1407bd",
-      "status": "EXPERIMENTAL",
-      "blockers": [
-        "workflow-and-digest-freeze-pending"
-      ],
+      "status": "PENDING_NATIVE",
+      "blockers": [],
       "receiptRefs": []
     },
     {
@@ -74,10 +70,8 @@
     },
     {
       "claimId": "4a6f151a99dd9e4eca500a8e336a939926b643125063691fc519ded928652162",
-      "status": "EXPERIMENTAL",
-      "blockers": [
-        "workflow-and-digest-freeze-pending"
-      ],
+      "status": "PENDING_NATIVE",
+      "blockers": [],
       "receiptRefs": []
     },
     {
@@ -145,10 +139,8 @@
     },
     {
       "claimId": "f0aa5f13bcd294fd8e8385530657cc87b4bdc754c03802fe20bde5dde0d97811",
-      "status": "EXPERIMENTAL",
-      "blockers": [
-        "workflow-and-digest-freeze-pending"
-      ],
+      "status": "PENDING_NATIVE",
+      "blockers": [],
       "receiptRefs": []
     }
   ],

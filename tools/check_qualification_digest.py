@@ -331,7 +331,7 @@ def _expect_error(callable_value: Any, label: str) -> None:
 
 def self_test() -> None:
     document = _read_json(DEFAULT_MANIFEST)
-    validate_manifest(document, allow_draft=True)
+    validate_manifest(document, allow_draft=False)
     first = [("src/a.cpp", "100644", "1" * 40), ("src/b.cpp", "100755", "2" * 40)]
     second = list(reversed(first))
     digest_a, payload_a = digest_records(first)
@@ -355,7 +355,10 @@ def self_test() -> None:
     invalid["selection"]["includeExact"].append("metadata/qualified-format-status-v1.json")
     invalid["selection"]["includeExact"].sort()
     _expect_error(lambda: validate_manifest(invalid, allow_draft=True), "mutable status input")
-    _expect_error(lambda: validate_manifest(document, allow_draft=False), "unfrozen manifest")
+    unfrozen = json.loads(json.dumps(document))
+    unfrozen["freezeState"] = "DRAFT_WORKFLOW_AND_DIGEST_PENDING"
+    validate_manifest(unfrozen, allow_draft=True)
+    _expect_error(lambda: validate_manifest(unfrozen, allow_draft=False), "unfrozen manifest")
     with tempfile.TemporaryDirectory(prefix="libdxfrw-digest-test-") as directory:
         data = b"qualification-digest\n"
         path = Path(directory) / "input"
