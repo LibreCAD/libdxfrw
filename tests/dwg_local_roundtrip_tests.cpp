@@ -5983,6 +5983,11 @@ int main(int argc, char** argv) {
         LocalDwgInterface readIface(nullptr, version);
         readIface.setTableStyleExpected(version <= DRW::AC1021);
         const bool readOk = reader.read(&readIface, false);
+        if (!readOk) {
+            const DRW_OperationDiagnostic diagnostic = reader.getLastDiagnostic();
+            std::cerr << "DWG self-read diagnostic" << suffix << ": "
+                      << diagnostic.code << " / " << diagnostic.message << "\n";
+        }
         expect(readOk, ("local DWG reader self-read succeeds" + suffix).c_str(),
                failures);
         expect(reader.getVersion() == version,
