@@ -34,6 +34,12 @@ class dxfReader;
 class dxfWriter;
 class HandleAllocator;
 
+#if defined(_MSC_VER)
+#define LIBDXFRW_TEST_SEAM_NOINLINE __declspec(noinline)
+#else
+#define LIBDXFRW_TEST_SEAM_NOINLINE
+#endif
+
 /** Holds per-read-session name-resolution tables populated during DXF/DWG parsing. */
 class DRW_ParsingContext {
 public:
@@ -380,7 +386,7 @@ private:
     };
 
     /// used by read() to parse the content of the file
-    bool processDxf();
+    LIBDXFRW_TEST_SEAM_NOINLINE bool processDxf();
     bool processRawDxfSection(const std::string& sectionName);
     bool processHeader();
     bool processClasses();
@@ -531,7 +537,7 @@ private:
      * clobber reader->type to STRING, so neither getString() nor type can be
      * trusted for them — that was the A1/A4 capture bug). ASCII-DXF only. Also
      * latches code 5 -> handle and code 330 -> parentHandle. */
-    bool captureRawGroup(DRW_RawDxfObject &obj, int code,
+    LIBDXFRW_TEST_SEAM_NOINLINE bool captureRawGroup(DRW_RawDxfObject &obj, int code,
                          bool validateHandles = false,
                          bool selfHandle = true);
     bool captureRawDxfApplicationGroup(DRW_RawDxfObject &obj,
@@ -591,7 +597,7 @@ private:
     bool preflightEntity(const DRW_Entity *ent);
     bool preflightTableEntry(const DRW_TableEntry *ent);
     bool preflightDxfClasses();
-    bool validateHatchPayload(const DRW_Hatch *ent) const;
+    LIBDXFRW_TEST_SEAM_NOINLINE bool validateHatchPayload(const DRW_Hatch *ent) const;
     bool writeEntity(DRW_Entity *ent, bool captureSourceHandle = true,
                      std::uint32_t ownerOverride = DRW::NoHandle);
     bool writeSequenceEnd(std::uint32_t ownerHandle);
@@ -616,7 +622,7 @@ private:
                            DRW::Version sourceVersion,
                            bool remapSourceHandles = true,
                            bool useLegacyClassifier = false);
-    bool writeRawDxfSection(const DRW_RawDxfSection &section);
+    LIBDXFRW_TEST_SEAM_NOINLINE bool writeRawDxfSection(const DRW_RawDxfSection &section);
     void writePlotSettingsFields(const DRW_PlotSettings *ent);
     /*use version from dwgutil.h*/
     std::string toHexStr(std::uint32_t n);
@@ -627,7 +633,7 @@ private:
     bool setError(const DRW::error lastError);
     bool failDxfReadBudget();
 
-    void beginOperationDiagnostic(DRW::OperationKind kind);
+    LIBDXFRW_TEST_SEAM_NOINLINE void beginOperationDiagnostic(DRW::OperationKind kind);
     void recordOperationDiagnostic(DRW::OperationPhase phase,
                                    DRW::OperationCause cause,
                                    const char* code,
@@ -716,5 +722,6 @@ private:
     std::set<std::uint64_t> m_readRawHandles;
 };
 
+#undef LIBDXFRW_TEST_SEAM_NOINLINE
 
 #endif // LIBDXFRW_H
