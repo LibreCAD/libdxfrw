@@ -510,6 +510,10 @@ if(LIBDXFRW_BUILD_TESTS)
         COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE}
             ${CMAKE_CURRENT_SOURCE_DIR}/tools/check_local_dwg_object_oracle.py
             --self-test)
+    add_test(NAME libdxfrw_qualified_support_metadata
+        COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+            ${CMAKE_CURRENT_SOURCE_DIR}/tools/check_qualified_format_support.py
+            --self-test)
 
     add_executable(libdxfrw_wave1_tests tests/wave1_tests.cpp)
     target_compile_features(libdxfrw_wave1_tests PRIVATE cxx_std_17)
@@ -646,6 +650,16 @@ if(LIBDXFRW_BUILD_TESTS)
             ${CMAKE_CURRENT_SOURCE_DIR}/tools/check_implementation_speed.py
             --metadata
             ${CMAKE_CURRENT_SOURCE_DIR}/metadata/implementation-speed-baseline-v1.json)
+
+    set_property(TEST
+        libdxfrw_dwg_local_roundtrip
+        libdxfrw_dwg_reader_matrix
+        libdxfrw_diagnostic
+        libdxfrw_dwg_fixtures
+        libdxfrw_qualified_differential_v2
+        libdxfrw_qualified_semantic_fields
+        libdxfrw_qualified_support_metadata
+        APPEND PROPERTY LABELS native-qualification-focused)
 endif()
 
 # INSTALLATION

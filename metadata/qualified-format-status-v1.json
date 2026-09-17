@@ -1,0 +1,157 @@
+{
+  "schema": 1,
+  "kind": "libdxfrw-qualified-format-status",
+  "freezeState": "DRAFT_WORKFLOW_AND_DIGEST_PENDING",
+  "implementationDigestSha256": null,
+  "claimsDigestSha256": null,
+  "allowedTransitions": {
+    "EXPERIMENTAL": [
+      "EXPERIMENTAL",
+      "PENDING_NATIVE"
+    ],
+    "PENDING_NATIVE": [
+      "EXPERIMENTAL",
+      "PENDING_NATIVE",
+      "PROMOTED"
+    ],
+    "PROMOTED": [
+      "EXPERIMENTAL",
+      "PROMOTED"
+    ]
+  },
+  "claimStatus": [
+    {
+      "claimId": "0444071255e3d18566b11f8b31c4396551fdf56b92062a7718b3349510ea9146",
+      "status": "EXPERIMENTAL",
+      "blockers": [
+        "reviewed-target-debt",
+        "unresolved-integrity-diagnostic"
+      ],
+      "receiptRefs": []
+    },
+    {
+      "claimId": "29a2066546b3f16b9161c4b15dedafa1c8258e02777e847f4233353ddf8e37a6",
+      "status": "EXPERIMENTAL",
+      "blockers": [
+        "reviewed-target-debt",
+        "unresolved-integrity-diagnostic"
+      ],
+      "receiptRefs": []
+    },
+    {
+      "claimId": "2c5a971cacbcb4bcc73c4409eadaef14ba16f5047c21273ee86df77cab842a6c",
+      "status": "EXPERIMENTAL",
+      "blockers": [
+        "workflow-and-digest-freeze-pending"
+      ],
+      "receiptRefs": []
+    },
+    {
+      "claimId": "31f4353d67182a38ab8270c13aea8cee82de24c250b049f2f242ef8779ca7cbc",
+      "status": "EXPERIMENTAL",
+      "blockers": [
+        "reviewed-target-debt",
+        "unresolved-integrity-diagnostic"
+      ],
+      "receiptRefs": []
+    },
+    {
+      "claimId": "3415e4784e2b4e23d9973b7d85baea24a4e9d84d1be3347d880cd7f7db1407bd",
+      "status": "EXPERIMENTAL",
+      "blockers": [
+        "workflow-and-digest-freeze-pending"
+      ],
+      "receiptRefs": []
+    },
+    {
+      "claimId": "42baf49445bbadd2cc4bec1fd32a733fe6eb688f8c6cc107c66e31bbfd2aa15b",
+      "status": "EXPERIMENTAL",
+      "blockers": [
+        "reviewed-target-debt",
+        "unresolved-integrity-diagnostic"
+      ],
+      "receiptRefs": []
+    },
+    {
+      "claimId": "4a6f151a99dd9e4eca500a8e336a939926b643125063691fc519ded928652162",
+      "status": "EXPERIMENTAL",
+      "blockers": [
+        "workflow-and-digest-freeze-pending"
+      ],
+      "receiptRefs": []
+    },
+    {
+      "claimId": "79781d7b51a00cb1799986342a67991bc5c6276021a39420cff7b6953c8be4bc",
+      "status": "EXPERIMENTAL",
+      "blockers": [
+        "reviewed-target-debt",
+        "unresolved-integrity-diagnostic"
+      ],
+      "receiptRefs": []
+    },
+    {
+      "claimId": "910498b24561f0329d419da665bcea4a9473c651229547faaa5ea3b6d31eff72",
+      "status": "EXPERIMENTAL",
+      "blockers": [
+        "reviewed-target-debt",
+        "unresolved-integrity-diagnostic"
+      ],
+      "receiptRefs": []
+    },
+    {
+      "claimId": "a054d79e7375036010ec9f58ab99d6f8b164758f753f84ce597cdef162ed7bd5",
+      "status": "EXPERIMENTAL",
+      "blockers": [
+        "reviewed-target-debt",
+        "unresolved-integrity-diagnostic"
+      ],
+      "receiptRefs": []
+    },
+    {
+      "claimId": "b025d5202cc4d7196ff4a59323f5d717bd53acdbce57e1bbe0ade13349b33ae5",
+      "status": "EXPERIMENTAL",
+      "blockers": [
+        "reviewed-target-debt",
+        "unresolved-integrity-diagnostic"
+      ],
+      "receiptRefs": []
+    },
+    {
+      "claimId": "be6a133df8b46d044c190f98eb690647f097f518a0c74d44da435f8c6a7e5545",
+      "status": "EXPERIMENTAL",
+      "blockers": [
+        "reviewed-target-debt",
+        "unresolved-integrity-diagnostic"
+      ],
+      "receiptRefs": []
+    },
+    {
+      "claimId": "d3a300a043b37fc8ce91a631d280fb0abdeed8f5b080fd74a96cd3823f989fbc",
+      "status": "EXPERIMENTAL",
+      "blockers": [
+        "reviewed-target-debt",
+        "unresolved-integrity-diagnostic"
+      ],
+      "receiptRefs": []
+    },
+    {
+      "claimId": "e9aad451de79acefab9e18ffee3fe22bad2bee366e22297c7762a894d4448f9e",
+      "status": "EXPERIMENTAL",
+      "blockers": [
+        "reviewed-target-debt",
+        "unresolved-integrity-diagnostic"
+      ],
+      "receiptRefs": []
+    },
+    {
+      "claimId": "f0aa5f13bcd294fd8e8385530657cc87b4bdc754c03802fe20bde5dde0d97811",
+      "status": "EXPERIMENTAL",
+      "blockers": [
+        "workflow-and-digest-freeze-pending"
+      ],
+      "receiptRefs": []
+    }
+  ],
+  "nativeReceiptRefs": [],
+  "broadMatrixReceiptRefs": []
+}
