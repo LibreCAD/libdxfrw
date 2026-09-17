@@ -267,11 +267,34 @@ bool DwgDxfOutputTransaction::commit() {
         return false;
     }
     m_stream.close();
-    if (m_stream.fail() || !temporaryIdentityMatches()
-        || !directoryIdentityMatchesPath() || !publish()) {
+    if (m_stream.fail()) {
         abort();
         return false;
     }
+#if defined(_WIN32)
+    // MoveFileExW cannot replace a pathname while the CRT descriptor created
+    // by _wopen is still open: the CRT handle does not grant FILE_SHARE_DELETE.
+    // Verify ownership while the descriptor is available, then close it before
+    // publishing.  A failed publish removes only the uniquely named temporary
+    // file and leaves the target untouched.
+    if (!temporaryIdentityMatches() || !directoryIdentityMatchesPath()) {
+        abort();
+        return false;
+    }
+    closeExclusiveDescriptor();
+    if (!publish()) {
+        std::error_code ignored;
+        std::filesystem::remove(m_temporary, ignored);
+        m_temporary.clear();
+        return false;
+    }
+#else
+    if (!temporaryIdentityMatches() || !directoryIdentityMatchesPath()
+        || !publish()) {
+        abort();
+        return false;
+    }
+#endif
     m_committed = true;
     closeExclusiveDescriptor();
     (void)flushParentDirectoryToStorage();
