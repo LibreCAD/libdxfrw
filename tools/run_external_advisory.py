@@ -238,8 +238,10 @@ def summarize(root: Path, converter: Path | None, limit: int,
             if converter is not None:
                 output = output_root / (str(index) + ".dxf")
                 command = [
-                    str(converter), str(source_path(stream)),
-                    "-y", "-v2010", str(output),
+                    *([sys.executable, str(converter)]
+                      if converter.suffix.lower() == ".py"
+                      else [str(converter)]),
+                    str(source_path(stream)), "-y", "-v2010", str(output),
                 ]
                 try:
                     result = subprocess.run(

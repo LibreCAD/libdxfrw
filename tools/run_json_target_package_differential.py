@@ -156,9 +156,12 @@ def _status_relation(left: dict[str, Any], right: dict[str, Any]) -> str:
 def run_dumper(executable: Path, source: Path, output: Path,
                timeout_seconds: float) -> dict[str, Any]:
     result: dict[str, Any] = {}
+    command = ([sys.executable, str(executable), str(source), "-o", str(output)]
+               if executable.suffix.lower() == ".py"
+               else [str(executable), str(source), "-o", str(output)])
     try:
         completed = subprocess.run(
-            [str(executable), str(source), "-o", str(output)],
+            command,
             capture_output=True,
             text=True,
             check=False,

@@ -344,8 +344,15 @@ void DwgDxfOutputTransaction::abort() noexcept {
         const bool owned = temporaryIdentityMatches();
 #if defined(_WIN32)
         if (owned) {
+            // The CRT descriptor does not grant FILE_SHARE_DELETE, so the
+            // pathname cannot be removed until the descriptor is closed.
+            // Close only after the identity check above; an attacker-owned
+            // replacement must never be removed by abort().
+            closeExclusiveDescriptor();
             std::error_code ignored;
             std::filesystem::remove(m_temporary, ignored);
+        } else {
+            closeExclusiveDescriptor();
         }
 #else
         if (owned && m_directoryDescriptor >= 0) {

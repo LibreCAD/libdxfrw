@@ -2885,6 +2885,26 @@ edit this block or commit the same slice concurrently.
   and no claims, fixtures, or drawing bytes change.  Next action is to push
   S411, rerun focused, then repeat final-broad without stopping.
 
+- Current checkpoint (2026-09-17): final-broad run `35203654757` now links and
+  executes the Windows/MSVC Wave 1 binary, proving S411 repaired the decorated
+  private-seam references.  It exposes seven independent cross-platform test
+  defects: the frozen AC1024 self-test assumes a POSIX `/usr/bin/env` path;
+  parity-input mutation assumes Git preserves executable mode on Windows;
+  three advisory self-tests try to execute temporary `.py` files directly;
+  and Windows abort leaves the CRT temporary descriptor open while attempting
+  to remove the owned pathname.  S412/J364.26 adds a Windows-only self-test
+  adapter without changing the frozen checker bytes, makes the mode mutation
+  choose the opposite valid mode, invokes Python runner scripts through the
+  current interpreter, and closes an owned Windows descriptor before cleanup.
+  Local all-script checks, C++14/C++17 writer-primitives, fixture, workflow,
+  digest, support, readiness, plan, and diff checks pass; the implementation
+  digest is `e60e09c021e1c00853c27e6df83307c5c61f9e6d8b3c75ca25344d5453c4ea80`
+  over 166 inputs.  No claims, receipts, or drawing/oracle payloads change;
+  all six external-only items remain `DEFERRED_EXTERNAL` and non-promoting.
+  Next action is to commit and push S412, rerun focused, then repeat
+  final-broad automatically and accept metadata-only receipts only after exact
+  API/artifact joins pass.
+
 - Current checkpoint (2026-09-17): S400's replacement PR #93 run
   `35184950202` confirms Windows publishes the complete `13565`-byte AC1015
   file with `AC1015` magic, yet the reader still fails only in `read-entities`;
@@ -4614,20 +4634,20 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 411 (`COMMITTED`).
+- Resolved slices: 412 (`COMMITTED`).
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 1 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 411 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 412 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 1 VERIFYING /
   0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 389 COMMITTED.
-- Expanded child-item states: 0 READY / 1 PLANNED / 0 ACTIVE / 1 VERIFYING /
-  0 BLOCKED_HARD / 0 VERIFIED / 0 SUPERSEDED / 515 COMMITTED; no child is
+- Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 1 VERIFYING /
+  0 BLOCKED_HARD / 0 VERIFIED / 0 SUPERSEDED / 516 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   7 DEFERRED_EXTERNAL / 365 EXPERIMENTAL / 0 PROMOTED / 8 NOT_APPLICABLE.
 - Active work: S01-S384 and J329/J329.1/J330/J330.1/J331/J331.1/J332/J332.1/
   J333/J333.1/J334/J334.1/J335/J335.1/J336/J336.1/J337/J337.1/J338/J338.1/
   J339/J339.1/J340/J340.1/J341/J341.1/J342/J342.1/J343/J343.1/J344/J344.1/
-  J345/J345.1/J346/J346.1/J347/J347.1/J348/J348.1/J349/J349.1/J350/J350.1/J351/J351.1/J352/J352.1/J353/J353.1/J354/J354.1/J355/J355.1/J356/J356.1/J357/J357.1/J358/J358.1/J359/J359.1/J359.2/J360/J360.1/J360.2/J360.3/J361/J361.1/J362/J362.1/J362.2/J362.3/J363/J363.0/J363.1/J363.2/J364.18/J364.19/J364.20 and S384a/S385/S386/S386a/S386b/S387a/S387/S389/S390/S391/S392/S393/S394/S395/S396/S397/S398/S399/S400/S401/S402/S403/S404/S405/S406 are committed.  S388/J364.1 is VERIFYING until the complete final-broad matrix is accepted; J364.2 remains planned.
+  J345/J345.1/J346/J346.1/J347/J347.1/J348/J348.1/J349/J349.1/J350/J350.1/J351/J351.1/J352/J352.1/J353/J353.1/J354/J354.1/J355/J355.1/J356/J356.1/J357/J357.1/J358/J358.1/J359/J359.1/J359.2/J360/J360.1/J360.2/J360.3/J361/J361.1/J362/J362.1/J362.2/J362.3/J363/J363.0/J363.1/J363.2/J364.18/J364.19/J364.20/J364.21/J364.22/J364.23/J364.24/J364.25/J364.26 and S384a/S385/S386/S386a/S386b/S387a/S387/S389/S390/S391/S392/S393/S394/S395/S396/S397/S398/S399/S400/S401/S402/S403/S404/S405/S406/S407/S408/S409/S410/S411/S412 are committed.  S388/J364.1 is VERIFYING until the complete final-broad matrix is accepted; J364.2 remains planned.
   Keep the fast inner loop and do not promote support claims from
   self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -5097,6 +5117,7 @@ edit this block or commit the same slice concurrently.
 | S409 | J364.23: force MSVC test-seam symbol retention | S408 | COMMITTED | final-broad Windows link failure after noinline; test-only MSVC compile definition; five dxfRW seam declarations; local Wave 1 and focused fast tests; qualification digest/status; plan; fixture; diff | `__declspec(dllexport) __declspec(noinline)` is enabled only when `LIBDXFRW_FORCE_TEST_SEAMS` is defined for the library and Wave 1 test target; non-MSVC declarations remain unchanged and no claim or drawing bytes change | push S409, rerun focused, then repeat final-broad; accept metadata-only receipts only after exact API/artifact joins pass |
 | S410 | J364.24: disable MSVC whole-program optimization for seam archive | S409 | COMMITTED | final-broad Windows link failure after export/noinline; MSVC `/GL-` target containment; local Wave 1 and focused fast tests; qualification digest/status; plan; fixture; diff | `/GL-` is applied only to the MSVC `dxfrw` library target so the five test-seam symbols remain in the static archive; non-MSVC builds and public ABI are unchanged; no claim or drawing bytes change | push S410, rerun focused, then repeat final-broad; accept metadata-only receipts only after exact API/artifact joins pass |
 | S411 | J364.25: align MSVC seam access decoration | S410 | COMMITTED | final-broad Windows unresolved symbols after `/GL-`; MSVC public/private decorated-name mismatch; conditional access guard; local Wave 1 and focused fast tests; qualification digest/status; plan; fixture; diff | under `LIBDXFRW_FORCE_TEST_SEAMS`, the five seam declarations are public in both the library and Wave 1 translation units, matching MSVC `QEAA` names; ordinary consumers retain private access and non-MSVC builds are unchanged; no claim or drawing bytes change | push S411, rerun focused, then repeat final-broad; accept metadata-only receipts only after exact API/artifact joins pass |
+| S412 | J364.26: close final-broad cross-platform test defects | S411 | COMMITTED | final-broad run `35203654757`; Windows-only frozen-checker self-test adapter; mode-mutation portability; Python-script runner invocation; Windows transaction abort cleanup; local C++14/C++17 and fast policy gates; qualification digest/status; plan; fixture; diff | S411 now links on Windows; the broad matrix identifies seven test failures.  Keep the frozen AC1024 checker byte-identical while adapting only its Windows `/usr/bin/env` self-test probe; choose a mode mutation opposite to the platform's actual Git mode; invoke `.py` advisory runners through the active absolute Python interpreter; close the owned CRT descriptor before removing a Windows temporary.  Digest `e60e09c021e1c00853c27e6df83307c5c61f9e6d8b3c75ca25344d5453c4ea80` covers 166 inputs; no claims, receipts, or drawing bytes change | push S412, run the exact seven-test focused matrix, then repeat final-broad; record focused/broad metadata-only receipts only after exact API/artifact and digest joins pass |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -6017,6 +6038,7 @@ edit this block or commit the same slice concurrently.
 | J364.23 | J364 / S409 | WP8, WP10; test-only MSVC export retention for broad Wave 1 | J364.22 | COMMITTED | DEFERRED_EXTERNAL | define `LIBDXFRW_FORCE_TEST_SEAMS` only for the MSVC library and `libdxfrw_wave1_tests` targets; use it to add `__declspec(dllexport) __declspec(noinline)` to the five private dxfRW seam declarations; leave all non-MSVC declarations and ABI unchanged; rerun broad-link reproduction plus focused fast tests, recompute digest/status, invalidate prior receipts, and preserve the no-claim/no-fixture policy | final-broad run `35199586797` still fails only at the five unresolved MSVC seam symbols after noinline; local Wave 1, DWG-roundtrip, writer-primitives, digest, support, fixture, workflow, plan, and diff gates pass; no claim or drawing bytes change |
 | J364.24 | J364 / S410 | WP8, WP10; MSVC whole-program-optimization containment | J364.23 | COMMITTED | DEFERRED_EXTERNAL | add `/GL-` to the MSVC `dxfrw` library target alongside the test-only seam definition; keep non-MSVC builds and public ABI unchanged; rerun broad-link reproduction plus focused fast tests, recompute digest/status, invalidate prior receipts, and preserve the no-claim/no-fixture policy | final-broad run `35201148866` proves the five symbols remain unresolved after export/noinline while Linux/GCC and macOS/Clang pass; local fast tests and policy gates pass; no claim or drawing bytes change |
 | J364.25 | J364 / S411 | WP8, WP10; MSVC private/public seam name-decoration compatibility | J364.24 | COMMITTED | DEFERRED_EXTERNAL | make only the five test-seam declarations conditionally `public` under MSVC when `LIBDXFRW_FORCE_TEST_SEAMS` is defined, restoring public decorated names for the Wave 1 private-header view; keep ordinary-consumer access private and non-MSVC declarations unchanged; rerun broad-link reproduction plus focused fast tests, recompute digest/status, invalidate prior receipts, and preserve the no-claim/no-fixture policy | final-broad run `35202352604` shows export/noinline and `/GL-` do not address the MSVC `QEAA` versus private `AEAA` name mismatch; local fast tests and policy gates pass; no claim or drawing bytes change |
+| J364.26 | J364 / S412 | WP8, WP10; final-broad cross-platform self-test and cleanup portability | J364.25 | COMMITTED | DEFERRED_EXTERNAL | keep the frozen AC1024 checker byte-identical while adapting only its Windows `/usr/bin/env` self-test probe; make parity-input mode mutations opposite to the actual Git mode; invoke temporary Python advisory runners through the active interpreter; close an owned Windows CRT descriptor before removing its temporary pathname; recompute digest/status, invalidate prior receipts, and preserve the no-claim/no-fixture policy | final-broad run `35203654757` links Windows but fails seven tests for these four portability classes; local all-script and C++14/C++17 checks pass with digest `e60e09c021e1c00853c27e6df83307c5c61f9e6d8b3c75ca25344d5453c4ea80` over 166 inputs; no claim or drawing bytes change |
 | J313.1 | J313 / S337 | WP3.11-WP3.12, WP8, WP10; TABLE parser-state copy isolation | J312 | COMMITTED | EXPERIMENTAL | assert copied and assigned TABLE models accept fresh subclass/grid dimensions after a partial source parse while preserving public table content; keep all inputs in memory | focused `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures |
 
 <!-- UPGRADE_PROGRESS_END -->

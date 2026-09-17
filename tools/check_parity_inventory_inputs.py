@@ -328,7 +328,12 @@ def self_test() -> None:
         expect_input_error(lambda: check(inputs_path, source_lock_path, repo), "blob mismatch was accepted")
 
         bad_inputs = json.loads(json.dumps(inputs))
-        bad_inputs["entries"][2]["mode"] = "100644"
+        # Git on Windows commonly reports executable files as 100644 because
+        # core.filemode is unavailable.  Choose the opposite valid mode so
+        # the mutation is a mismatch on both POSIX and Windows.
+        actual_mode = tree["scripts/inventory.py"][0]
+        bad_inputs["entries"][2]["mode"] = (
+            "100644" if actual_mode == "100755" else "100755")
         inputs_path.write_text(json.dumps(bad_inputs), encoding="utf-8")
         expect_input_error(lambda: check(inputs_path, source_lock_path, repo), "mode mismatch was accepted")
 

@@ -427,16 +427,32 @@ if(LIBDXFRW_BUILD_TESTS)
             COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
                 ${CMAKE_CURRENT_SOURCE_DIR}/tools/check_admitted_candidate_fields.py
                 --self-test)
-        add_test(NAME libdxfrw_ac1024_candidate_fields
-            COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
-                ${CMAKE_CURRENT_SOURCE_DIR}/tools/check_ac1024_candidate_fields.py
-                --self-test
-                --manifest ${LIBDXFRW_AC1024_CANDIDATE_FIELDS_CONTRACT})
-        add_test(NAME libdxfrw_ac1024_candidate_fields_v2
-            COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
-                ${CMAKE_CURRENT_SOURCE_DIR}/tools/check_ac1024_candidate_fields_v2.py
-                --self-test
-                --manifest ${LIBDXFRW_AC1024_CANDIDATE_FIELDS_V2_CONTRACT})
+        if(WIN32)
+            # The frozen v1 checker self-test probes /usr/bin/env.  Keep that
+            # checker byte-identical and use a tiny host adapter only for the
+            # Windows self-test path; live candidate qualification is unchanged.
+            add_test(NAME libdxfrw_ac1024_candidate_fields
+                COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+                    ${CMAKE_CURRENT_SOURCE_DIR}/tests/ac1024_candidate_self_test.py
+                    --checker v1
+                    --manifest ${LIBDXFRW_AC1024_CANDIDATE_FIELDS_CONTRACT})
+            add_test(NAME libdxfrw_ac1024_candidate_fields_v2
+                COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+                    ${CMAKE_CURRENT_SOURCE_DIR}/tests/ac1024_candidate_self_test.py
+                    --checker v2
+                    --manifest ${LIBDXFRW_AC1024_CANDIDATE_FIELDS_V2_CONTRACT})
+        else()
+            add_test(NAME libdxfrw_ac1024_candidate_fields
+                COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+                    ${CMAKE_CURRENT_SOURCE_DIR}/tools/check_ac1024_candidate_fields.py
+                    --self-test
+                    --manifest ${LIBDXFRW_AC1024_CANDIDATE_FIELDS_CONTRACT})
+            add_test(NAME libdxfrw_ac1024_candidate_fields_v2
+                COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+                    ${CMAKE_CURRENT_SOURCE_DIR}/tools/check_ac1024_candidate_fields_v2.py
+                    --self-test
+                    --manifest ${LIBDXFRW_AC1024_CANDIDATE_FIELDS_V2_CONTRACT})
+        endif()
     endif()
 
     add_test(NAME libdxfrw_parity_inventory_inputs

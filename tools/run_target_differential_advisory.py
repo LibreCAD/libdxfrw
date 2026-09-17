@@ -42,7 +42,10 @@ def version(path: Path) -> str:
 
 def run_runner(runner: Path, source: Path, output: Path,
                timeout_seconds: float) -> dict:
-    command = [str(runner), str(source), "-y", "-v2010", str(output)]
+    command = ([sys.executable, str(runner), str(source), "-y", "-v2010",
+                str(output)]
+               if runner.suffix.lower() == ".py"
+               else [str(runner), str(source), "-y", "-v2010", str(output)])
     try:
         result = subprocess.run(
             command,
