@@ -2743,6 +2743,20 @@ edit this block or commit the same slice concurrently.
   165 inputs; claims digest, support rows, immutable claims, and fixtures remain
   unchanged.  S388/J364.1 remains `VERIFYING` and J364.2 remains planned.
 
+- Current checkpoint (2026-09-17): S402/J364.16 is committed and PR #93 run
+  `35186358403` passes the workflow contract plus all seven focused tests on
+  Linux/GCC, macOS/Clang, and Windows/MSVC.  The run emits metadata-only
+  artifacts with the unchanged implementation digest
+  `cdcd2733565bdc42e047a04ff69f499781986a84847ce1e491d549c3b9e761d7` and
+  claims digest `7da9d990ab3d2b2ea18784a26a348a055085b16020519822c4deb543db1230f9`.
+  Those pull-request receipts are not yet accepted because GitHub's run and
+  artifact APIs bind the source head while the runner receipt records the
+  synthetic pull-request merge checkout; a push-event replay is required for
+  an exact identity join.  No claim is promoted, no drawing/oracle payload is
+  retained, and the six `DEFERRED_EXTERNAL` items remain non-promoting.
+  S402/J364.16 is `COMMITTED`; S403/J364.17 is `ACTIVE` for the push-event
+  receipt identity replay; J364.2 remains planned.
+
 - Current checkpoint (2026-09-17): S400's replacement PR #93 run
   `35184950202` confirms Windows publishes the complete `13565`-byte AC1015
   file with `AC1015` magic, yet the reader still fails only in `read-entities`;
@@ -4472,20 +4486,20 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 400 (`COMMITTED`).
+- Resolved slices: 401 (`COMMITTED`).
 - Slice states: 0 READY / 0 PLANNED / 1 ACTIVE / 1 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 400 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 401 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 1 VERIFYING /
   0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 389 COMMITTED.
 - Expanded child-item states: 0 READY / 1 PLANNED / 1 ACTIVE / 1 VERIFYING /
-  0 BLOCKED_HARD / 0 VERIFIED / 0 SUPERSEDED / 505 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 VERIFIED / 0 SUPERSEDED / 506 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   7 DEFERRED_EXTERNAL / 365 EXPERIMENTAL / 0 PROMOTED / 8 NOT_APPLICABLE.
 - Active work: S01-S384 and J329/J329.1/J330/J330.1/J331/J331.1/J332/J332.1/
   J333/J333.1/J334/J334.1/J335/J335.1/J336/J336.1/J337/J337.1/J338/J338.1/
   J339/J339.1/J340/J340.1/J341/J341.1/J342/J342.1/J343/J343.1/J344/J344.1/
-  J345/J345.1/J346/J346.1/J347/J347.1/J348/J348.1/J349/J349.1/J350/J350.1/J351/J351.1/J352/J352.1/J353/J353.1/J354/J354.1/J355/J355.1/J356/J356.1/J357/J357.1/J358/J358.1/J359/J359.1/J359.2/J360/J360.1/J360.2/J360.3/J361/J361.1/J362/J362.1/J362.2/J362.3/J363/J363.0/J363.1/J363.2 and S384a/S385/S386/S386a/S386b/S387a/S387/S389/S390/S391/S392/S393/S394/S395/S396/S397/S398/S399/S400/S401 are committed.  S388/J364.1 is VERIFYING after the hosted runs exposed cross-platform compile defects; S402/J364.16 is ACTIVE for the deterministic entity sweep, and J364.2 remains planned until a complete focused receipt set is accepted.
+  J345/J345.1/J346/J346.1/J347/J347.1/J348/J348.1/J349/J349.1/J350/J350.1/J351/J351.1/J352/J352.1/J353/J353.1/J354/J354.1/J355/J355.1/J356/J356.1/J357/J357.1/J358/J358.1/J359/J359.1/J359.2/J360/J360.1/J360.2/J360.3/J361/J361.1/J362/J362.1/J362.2/J362.3/J363/J363.0/J363.1/J363.2 and S384a/S385/S386/S386a/S386b/S387a/S387/S389/S390/S391/S392/S393/S394/S395/S396/S397/S398/S399/S400/S401/S402 are committed.  S388/J364.1 is VERIFYING pending an exact push-event receipt identity join; S403/J364.17 is ACTIVE for that replay, and J364.2 remains planned until a complete focused receipt set is accepted.
   Keep the fast inner loop and do not promote support claims from
   self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -4945,7 +4959,8 @@ edit this block or commit the same slice concurrently.
 | S399 | J364.13: diagnose Windows AC1015 self-read stage | S398 | COMMITTED | AC1015/format-15 self-read path; focused native build; qualification digest/status; plan; fixture; diff | add bounded `dwgRW::getLastDiagnostic()` output when the local round-trip reader rejects its just-published AC1015 file; hosted run `35184309688` reports `read-entities` / “the DWG entities could not be read” and 40 assertions only for version 13; no behavior, claim, or fixture bytes change; implementation digest `51db6eb4cd8cfa3e7d3ee68fbfe40e97226748171a07d2378818e929bdf53773` is historical and superseded by S400 | inspect the bounded AC1015 output probe in S400, then implement the minimal reader repair and rerun S388 |
 | S400 | J364.14: probe Windows AC1015 published output | S399 | COMMITTED | AC1015 output publication and entity-section boundary; focused native build; qualification digest/status; plan; fixture; diff | print only the published file byte size and six-byte magic when the existing local round-trip self-read fails; hosted run `35184950202` confirms publication succeeds with `size=13565 magic=AC1015` and the failure remains confined to `read-entities`; implementation digest `40dad0535f55f5af15f5a8ac73fc755566e668f874070d14c29de6c8ef64278c` is historical and superseded by S401; no drawing payload is retained | inspect the AC1015-only debug trace in S401, then implement the minimal reader repair and rerun S388 |
 | S401 | J364.15: trace Windows AC1015 self-read frames | S400 | COMMITTED | AC1015 reader entity/frame trace; focused native build; qualification digest/status; plan; fixture; diff | enable existing `DRW_DBG` only around the AC1015 local self-read and restore the previous debug level immediately afterward; hosted run `35185631469` shows MSVC’s unordered sweep order leaves two compound frames unresolved while GCC completes; no parser behavior, claim, or fixture bytes changed; implementation digest `31c5e9b21748850cbb36735d62f03c2d1b766bd3d677c68b504015756d38e589` is historical and superseded by S402 | select a stable source-ordinal order in the final entity sweep, run focused validation, update digest/status and plan, commit/push, then rerun S388 |
-| S402 | J364.16: make legacy entity sweep deterministic | S401 | ACTIVE | AC1015 cross-platform entity/frame ordering; focused native build; qualification digest/status; plan; fixture; diff | select the lowest `sourceOrdinal` (then source offset/handle) instead of `unordered_map::begin()` when sweeping `ObjectMap`; preserve deferred compound ownership semantics and no-claim/no-fixture policy; implementation digest `cdcd2733565bdc42e047a04ff69f499781986a84847ce1e491d549c3b9e761d7` is staged | run focused local round-trip plus fast policy gates, commit/push the repair, inspect Windows, and continue automatically if another deterministic defect appears |
+| S402 | J364.16: make legacy entity sweep deterministic | S401 | COMMITTED | AC1015 cross-platform entity/frame ordering; focused native build; qualification digest/status; plan; fixture; diff | select the lowest `sourceOrdinal` (then source offset/handle) instead of `unordered_map::begin()` when sweeping `ObjectMap`; preserve deferred compound ownership semantics and no-claim/no-fixture policy; implementation digest `cdcd2733565bdc42e047a04ff69f499781986a84847ce1e491d549c3b9e761d7` is unchanged; PR #93 focused run `35186358403` passes all three native platforms, but pull-request receipt identity is awaiting push-event replay | record the focused result without promoting claims, then execute S403/J364.17 for exact push-event API/artifact identity and continue automatically if a platform defect appears |
+| S403 | J364.17: exact push-event receipt identity replay | S402 | ACTIVE | push-event native receipt/API/artifact join; focused native build; qualification digest/status; plan; fixture; diff | replay the unchanged frozen implementation on a push event so API `head_sha`, artifact `workflow_run.head_sha`, and runner `checkedOutCommit` are one exact commit; retain metadata-only evidence, keep all six `DEFERRED_EXTERNAL` items non-promoting, and add no drawing/oracle payload | capture one successful push-event focused artifact per platform, run the authenticated pre-native verifier, update only the status receipt overlay and plan, commit with matching trailers, push, and continue automatically until the receipt set is verified |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
