@@ -69,6 +69,11 @@ if(LIBDXFRW_BUILD_LIBRARY)
     target_compile_features(dxfrw PUBLIC cxx_std_17)
     target_compile_options(dxfrw PRIVATE ${LIBDXFRW_WARNING_FLAGS})
     if(MSVC)
+        # The broad Wave 1 seam reaches five private dxfRW methods directly
+        # through its test-only private->public header view.  Keep their
+        # symbols externally emitted in MSVC static-library builds without
+        # exporting them for ordinary consumers.
+        target_compile_definitions(dxfrw PRIVATE LIBDXFRW_FORCE_TEST_SEAMS=1)
         target_compile_options(dxfrw PRIVATE /bigobj)
         # The Wave 1 seam intentionally exercises a handful of dxfRW
         # implementation methods through a test-only private->public view of
@@ -537,6 +542,10 @@ if(LIBDXFRW_BUILD_TESTS)
 
     add_executable(libdxfrw_wave1_tests tests/wave1_tests.cpp)
     target_compile_features(libdxfrw_wave1_tests PRIVATE cxx_std_17)
+    if(MSVC)
+        target_compile_definitions(libdxfrw_wave1_tests PRIVATE
+            LIBDXFRW_FORCE_TEST_SEAMS=1)
+    endif()
     target_include_directories(libdxfrw_wave1_tests PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         ${CMAKE_CURRENT_SOURCE_DIR}/src/intern

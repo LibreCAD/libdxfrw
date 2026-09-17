@@ -34,8 +34,8 @@ class dxfReader;
 class dxfWriter;
 class HandleAllocator;
 
-#if defined(_MSC_VER)
-#define LIBDXFRW_TEST_SEAM_NOINLINE __declspec(noinline)
+#if defined(_MSC_VER) && defined(LIBDXFRW_FORCE_TEST_SEAMS)
+#define LIBDXFRW_TEST_SEAM_NOINLINE __declspec(dllexport) __declspec(noinline)
 #else
 #define LIBDXFRW_TEST_SEAM_NOINLINE
 #endif
