@@ -114,14 +114,33 @@ bool DwgDxfOutputTransaction::temporaryIdentityMatches() const noexcept {
     if (m_exclusiveDescriptor < 0 || m_temporary.empty())
         return false;
 #if defined(_WIN32)
-    struct _stat64 descriptorStatus {
+    // The CRT _stat64 st_ino field is not a stable Windows file identity
+    // (and can differ between _fstat64 and _wstat64).  Compare the native
+    // volume/file-index tuple instead, opening the pathname read-only with
+    // read/write sharing while the exclusive descriptor remains owned.
+    const intptr_t nativeDescriptor = _get_osfhandle(m_exclusiveDescriptor);
+    if (nativeDescriptor == static_cast<intptr_t>(-1))
+        return false;
+    BY_HANDLE_FILE_INFORMATION descriptorInfo {
     };
-    struct _stat64 pathStatus {
+    if (GetFileInformationByHandle(
+            reinterpret_cast<HANDLE>(nativeDescriptor), &descriptorInfo)
+        == 0)
+        return false;
+    const HANDLE pathHandle = CreateFileW(
+        m_temporary.c_str(), 0, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr,
+        OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+    if (pathHandle == INVALID_HANDLE_VALUE)
+        return false;
+    BY_HANDLE_FILE_INFORMATION pathInfo {
     };
-    return _fstat64(m_exclusiveDescriptor, &descriptorStatus) == 0
-           && _wstat64(m_temporary.c_str(), &pathStatus) == 0
-           && descriptorStatus.st_dev == pathStatus.st_dev
-           && descriptorStatus.st_ino == pathStatus.st_ino;
+    const bool pathInfoOk = GetFileInformationByHandle(pathHandle, &pathInfo)
+        != 0;
+    CloseHandle(pathHandle);
+    return pathInfoOk
+        && descriptorInfo.dwVolumeSerialNumber == pathInfo.dwVolumeSerialNumber
+        && descriptorInfo.nFileIndexHigh == pathInfo.nFileIndexHigh
+        && descriptorInfo.nFileIndexLow == pathInfo.nFileIndexLow;
 #else
     struct stat descriptorStatus {
     };
