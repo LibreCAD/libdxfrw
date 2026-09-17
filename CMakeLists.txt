@@ -81,6 +81,15 @@ if(LIBDXFRW_BUILD_LIBRARY)
         set_source_files_properties(
             ${CMAKE_CURRENT_SOURCE_DIR}/src/libdxfrw.cpp
             PROPERTIES COMPILE_OPTIONS /Zc:inline-)
+    elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        # Keep the byte-frozen entity parser source identical to the
+        # qualification oracle.  GCC diagnoses two legacy enum/integer
+        # conditional expressions in that frozen TU under -Wextra; contain
+        # only that warning family for this source while retaining -Werror
+        # for every other library translation unit.
+        set_source_files_properties(
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/drw_entities.cpp
+            PROPERTIES COMPILE_OPTIONS -Wno-extra)
     endif()
     target_include_directories(dxfrw
         PUBLIC

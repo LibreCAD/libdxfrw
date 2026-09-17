@@ -10429,8 +10429,56 @@ bool dwgReader::readDwgObjects(DRW_Interface &intfa, dwgBuffer *dbuf,
   // each object is read from its own ObjectMap location, so one bad
   // record cannot corrupt the next. Mirrors readDwgEntities resilience.
   size_t failures = 0;
-  while (!objObjectMap.empty()) {
-    auto itB = objObjectMap.begin();
+  struct ObjectPublicationOrderKey {
+    bool customClass{false};
+    std::string className;
+    std::uint64_t sourceOrdinal{0};
+    std::uint32_t loc{0};
+    std::uint32_t handle{0};
+  };
+  const auto objectPublicationOrderKey = [&](const objHandle &object) {
+    ObjectPublicationOrderKey key;
+    key.sourceOrdinal = object.sourceOrdinal;
+    key.loc = object.loc;
+    key.handle = object.handle;
+    DwgFrameClassification classification;
+    if (classifyDwgSourceFrame(dbuf, object, classification) &&
+        classification.resolvedClass != nullptr &&
+        classification.resolvedType > dwgObjType::PROXY_OBJECT &&
+        !classification.fixedObjectShell) {
+      key.customClass = true;
+      key.className = classification.resolvedClass->className;
+    }
+    return key;
+  };
+  const auto isEarlierObject = [&](const ObjectPublicationOrderKey &lhs,
+                                   const ObjectPublicationOrderKey &rhs) {
+    if (lhs.customClass != rhs.customClass)
+      return !lhs.customClass;
+    if (lhs.customClass && lhs.className != rhs.className)
+      return lhs.className < rhs.className;
+    if (lhs.customClass && lhs.sourceOrdinal != rhs.sourceOrdinal)
+      return lhs.sourceOrdinal > rhs.sourceOrdinal;
+    if (lhs.sourceOrdinal != rhs.sourceOrdinal)
+      return lhs.sourceOrdinal < rhs.sourceOrdinal;
+    if (lhs.loc != rhs.loc)
+      return lhs.loc < rhs.loc;
+    return lhs.handle < rhs.handle;
+  };
+  std::vector<ObjectPublicationOrderKey> publicationOrder;
+  try {
+    publicationOrder.reserve(objObjectMap.size());
+    for (const auto &entry : objObjectMap)
+      publicationOrder.push_back(objectPublicationOrderKey(entry.second));
+    std::sort(publicationOrder.begin(), publicationOrder.end(),
+              isEarlierObject);
+  } catch (...) {
+    return false;
+  }
+  for (const ObjectPublicationOrderKey &selectedKey : publicationOrder) {
+    auto itB = objObjectMap.find(selectedKey.handle);
+    if (itB == objObjectMap.end())
+      continue;
     if (m_quarantinedEntityHandles.find(itB->first) !=
         m_quarantinedEntityHandles.end()) {
       if (!discardDwgSourceFrame(objObjectMap, itB)) {
