@@ -153,8 +153,41 @@ public:
         cData->images.push_back(img);
     }
 
+    virtual void addSurface(const DRW_Surface *data){
+        if (data == nullptr || currentBlock == nullptr)
+            return;
+        switch (data->eType) {
+        case DRW::PLANESURFACE:
+            currentBlock->ent.push_back(
+                new DRW_PlaneSurface(*static_cast<const DRW_PlaneSurface*>(data)));
+            break;
+        case DRW::EXTRUDEDSURFACE:
+            currentBlock->ent.push_back(
+                new DRW_ExtrudedSurface(*static_cast<const DRW_ExtrudedSurface*>(data)));
+            break;
+        case DRW::REVOLVEDSURFACE:
+            currentBlock->ent.push_back(
+                new DRW_RevolvedSurface(*static_cast<const DRW_RevolvedSurface*>(data)));
+            break;
+        case DRW::SWEPTSURFACE:
+            currentBlock->ent.push_back(
+                new DRW_SweptSurface(*static_cast<const DRW_SweptSurface*>(data)));
+            break;
+        case DRW::LOFTEDSURFACE:
+            currentBlock->ent.push_back(
+                new DRW_LoftedSurface(*static_cast<const DRW_LoftedSurface*>(data)));
+            break;
+        case DRW::NURBSURFACE:
+            currentBlock->ent.push_back(
+                new DRW_NurbsSurface(*static_cast<const DRW_NurbsSurface*>(data)));
+            break;
+        default:
+            break;
+        }
+    }
+
     virtual void linkImage(const DRW_ImageDef *data){
-        duint32 handle = data->handle;
+        std::uint32_t handle = data->handle;
         std::string path(data->name);
         for (std::list<dx_ifaceImg*>::iterator it=cData->images.begin(); it != cData->images.end(); ++it){
             if ((*it)->ref == handle){
@@ -162,6 +195,11 @@ public:
                 img->path = path;
             }
         }
+    }
+
+    virtual void addModelerGeometry(const DRW_ModelerGeometry& data){
+        if (currentBlock != nullptr)
+            currentBlock->ent.push_back(new DRW_ModelerGeometry(data));
     }
 
 //writer part, send all in class dx_data to writer
@@ -183,6 +221,12 @@ public:
         //write each block
         for (std::list<dx_ifaceBlock*>::iterator it=cData->blocks.begin(); it != cData->blocks.end(); ++it){
             dx_ifaceBlock* bk = *it;
+            // dxfRW emits the canonical Model_Space and Paper_Space BLOCK
+            // records itself.  The DWG reader also reports those fixed blocks
+            // through addBlock(); replaying them here would collide with the
+            // codec's reserved handles and abort the whole DXF transaction.
+            if (isFixedSpaceBlock(bk))
+                continue;
             dxfW->writeBlock(bk);
             //and write each entity in block
             for (std::list<DRW_Entity*>::const_iterator it=bk->ent.begin(); it!=bk->ent.end(); ++it)
@@ -191,8 +235,11 @@ public:
     }
     //only send the name, needed by the reader to prepare handles of blocks & blockRecords
     virtual void writeBlockRecords(){
-        for (std::list<dx_ifaceBlock*>::iterator it=cData->blocks.begin(); it != cData->blocks.end(); ++it)
+        for (std::list<dx_ifaceBlock*>::iterator it=cData->blocks.begin(); it != cData->blocks.end(); ++it) {
+            if (isFixedSpaceBlock(*it))
+                continue;
             dxfW->writeBlockRecord((*it)->name);
+        }
     }
     //write entities of model space and first paper_space
     virtual void writeEntities(){
@@ -230,6 +277,13 @@ public:
     dxfRW* dxfW; //pointer to writer, needed to send data
     dx_data* cData; // class to store or read data
     dx_ifaceBlock* currentBlock;
+
+private:
+    static bool isFixedSpaceBlock(const dx_ifaceBlock* block) {
+        return block != nullptr
+            && (block->name == "*Model_Space"
+                || block->name == "*Paper_Space");
+    }
 };
 
 #endif // DX_IFACE_H

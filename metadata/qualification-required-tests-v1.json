@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "kind": "libdxfrw-native-qualification-test-contract",
+  "canonicalization": {
+    "json": "UTF-8; exact keys; no duplicate keys; no non-finite numbers; sort_keys=true; separators=(',', ':'); ensure_ascii=false; trailing LF",
+    "testNameDigest": "SHA-256 over NFC-normalized, unique test names sorted by UTF-8 bytes, each followed by one LF"
+  },
+  "artifactPolicy": "qualification artifacts contain metadata, logs, and test reports only; never DWG or DXF payloads",
+  "hostedProfile": {
+    "BUILD_SHARED_LIBS": "OFF",
+    "CMAKE_BUILD_TYPE": "Release",
+    "LIBDXFRW_BUILD_DOC": "OFF",
+    "LIBDXFRW_BUILD_DWG2DXF": "ON",
+    "LIBDXFRW_BUILD_LONG_FUZZ": "OFF",
+    "LIBDXFRW_BUILD_QUALIFICATION": "OFF",
+    "LIBDXFRW_BUILD_TESTS": "ON"
+  },
+  "focusedLabel": "native-qualification-focused",
+  "semanticEvidencePolicy": "hosted contract self-tests validate schemas and bindings only; they never supply independent semantic support evidence",
+  "focusedTests": [
+    {
+      "id": "libdxfrw_dwg_local_roundtrip",
+      "expectedExecutionMode": "native-executable",
+      "expectedCommandBasename": "libdxfrw_dwg_local_roundtrip",
+      "suppliesIndependentSemanticEvidence": false,
+      "reason": "native implementation regression; not an independent semantic oracle"
+    },
+    {
+      "id": "libdxfrw_dwg_reader_matrix",
+      "expectedExecutionMode": "native-executable",
+      "expectedCommandBasename": "libdxfrw_dwg_reader_matrix_tests",
+      "suppliesIndependentSemanticEvidence": false,
+      "reason": "native implementation regression; not an independent semantic oracle"
+    },
+    {
+      "id": "libdxfrw_diagnostic",
+      "expectedExecutionMode": "native-executable",
+      "expectedCommandBasename": "libdxfrw_diagnostic_tests",
+      "suppliesIndependentSemanticEvidence": false,
+      "reason": "native implementation regression; not an independent semantic oracle"
+    },
+    {
+      "id": "libdxfrw_dwg_fixtures",
+      "expectedExecutionMode": "native-executable",
+      "expectedCommandBasename": "libdxfrw_dwg_fixture_tests",
+      "suppliesIndependentSemanticEvidence": false,
+      "reason": "native admitted-fixture regression; not an independent semantic oracle"
+    },
+    {
+      "id": "libdxfrw_qualified_differential_v2",
+      "expectedExecutionMode": "contract-self-test",
+      "expectedCommandBasename": "run_qualified_differential_v2.py",
+      "suppliesIndependentSemanticEvidence": false,
+      "reason": "LIBDXFRW_BUILD_QUALIFICATION=OFF runs the schema self-test, not the live differential"
+    },
+    {
+      "id": "libdxfrw_qualified_semantic_fields",
+      "expectedExecutionMode": "contract-self-test",
+      "expectedCommandBasename": "check_admitted_candidate_fields.py",
+      "suppliesIndependentSemanticEvidence": false,
+      "reason": "LIBDXFRW_BUILD_QUALIFICATION=OFF runs the contract self-test, not an independent oracle"
+    },
+    {
+      "id": "libdxfrw_qualified_support_metadata",
+      "expectedExecutionMode": "contract-self-test",
+      "expectedCommandBasename": "check_qualified_format_support.py",
+      "suppliesIndependentSemanticEvidence": false,
+      "reason": "metadata join validation cannot itself promote or independently prove semantic support"
+    }
+  ],
+  "focusedCount": 7,
+  "focusedNameDigest": "645ee4628852bbd16cda76ef7fd94d82efac5b3ac2b7c328322c9beb3ca6eb79",
+  "broadInventory": {
+    "status": "FINAL",
+    "generatedAtCommit": "4b6df4b78d0d2a74feb7caa1e7355ab20703ab5b",
+    "configurationDigest": "e98e9fe436af560be1bd1ab094dc9fdfb646c38aa9f5190b1f3e12a669963c64",
+    "count": 38,
+    "nameDigest": "0b84147089615530148d6bc0f0239eec0592b2e19f3a34c9ee0b58c614a1ef14",
+    "names": [
+      "libdxfrw_ac1024_candidate_fields",
+      "libdxfrw_ac1024_candidate_fields_v2",
+      "libdxfrw_diagnostic",
+      "libdxfrw_differential_debt",
+      "libdxfrw_dwg_fixtures",
+      "libdxfrw_dwg_local_roundtrip",
+      "libdxfrw_dwg_object_vectors",
+      "libdxfrw_dwg_reader_matrix",
+      "libdxfrw_dwg_reader_parity_lane",
+      "libdxfrw_dwg_writer_parity_lane",
+      "libdxfrw_dxf_fixtures",
+      "libdxfrw_dxf_parity_lane",
+      "libdxfrw_external_advisory_runner",
+      "libdxfrw_external_evidence_resolution",
+      "libdxfrw_graph_preservation",
+      "libdxfrw_hardening",
+      "libdxfrw_implementation_speed",
+      "libdxfrw_json_target_package_differential",
+      "libdxfrw_libredwg_ac1024_advisory",
+      "libdxfrw_libredwg_advisory_differential",
+      "libdxfrw_local_dwg_object_oracle",
+      "libdxfrw_local_dwg_oracle_advisory",
+      "libdxfrw_local_dwg_oracle_matrix",
+      "libdxfrw_parity_differential",
+      "libdxfrw_parity_differential_manifest",
+      "libdxfrw_parity_inventory_inputs",
+      "libdxfrw_parity_source_routes",
+      "libdxfrw_qualified_differential_v2",
+      "libdxfrw_qualified_semantic_fields",
+      "libdxfrw_qualified_support_metadata",
+      "libdxfrw_release_readiness",
+      "libdxfrw_runtime_evidence_queue",
+      "libdxfrw_support_matrix",
+      "libdxfrw_target_advisory_differential",
+      "libdxfrw_target_differential_advisory",
+      "libdxfrw_wave1",
+      "libdxfrw_writer_primitives",
+      "libdxfrw_writer_version_matrix"
+    ]
+  }
+}

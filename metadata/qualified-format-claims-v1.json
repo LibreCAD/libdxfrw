@@ -1,0 +1,517 @@
+{
+  "schema": 1,
+  "kind": "libdxfrw-qualified-format-claims",
+  "freezeState": "FROZEN",
+  "fixturePolicy": "locked-repository-blob-or-local-from-scratch-runtime; no-generated-drawing-payloads",
+  "promotionAuthority": {
+    "soleAuthority": true,
+    "sourceInventoryIsAuthority": false,
+    "archivedReportsAreAuthority": false,
+    "externalOnlyEvidenceIsAuthority": false,
+    "selfReadIsIndependentEvidence": false,
+    "allowedContractKinds": [
+      "value-read",
+      "value-write",
+      "callback-order",
+      "ownership-edge",
+      "opaque-preservation",
+      "first-failure"
+    ],
+    "allowedPreNativeStatuses": [
+      "EXPERIMENTAL",
+      "PENDING_NATIVE"
+    ]
+  },
+  "claimIdCanonicalization": {
+    "algorithm": "sha256-utf8-nfc-nul-tuple-lf-v1",
+    "tupleFields": [
+      "facade",
+      "format",
+      "direction",
+      "ACVersion",
+      "recordKind",
+      "recordClass",
+      "fieldPath",
+      "contractKind"
+    ],
+    "normalization": "UTF-8 NFC",
+    "separator": "NUL",
+    "terminator": "LF",
+    "forbiddenCodePoints": [
+      "U+0000",
+      "U+000A"
+    ]
+  },
+  "evidence": [
+    {
+      "id": "evidence:s385-admitted-libredwg-fields-v1",
+      "authorityKind": "independent-semantic-reader",
+      "facade": "dwgRW",
+      "format": "DWG",
+      "direction": "read",
+      "artifactPath": "metadata/admitted-candidate-fields-v1.json",
+      "artifactSha256": "3c0c67ae7a37716946d42f7b08a52c38bc3bbed3ee28b8b6c43f1537d2ec93d2",
+      "checkerPath": "tools/check_admitted_candidate_fields.py",
+      "checkerSha256": "3d34d7d9b9d70a472c37e61137c938b3db8eade9a38cef92b94d001f98e48722",
+      "recordedByCommit": "b8d8a8296958ba0f9ff5c5a188d291a0a6f1a4ae",
+      "fixtureAdmission": "locked-repository-blob",
+      "independentTool": "LibreDWG dwgread 0.14",
+      "semanticOutput": "full-JSON",
+      "targetStandaloneDifferential": "reviewedNonPromoting",
+      "fieldOutcome": "exact",
+      "integrityDiagnostics": "unresolved",
+      "silentLoss": "none-observed-in-scoped-records",
+      "qualificationEligible": false,
+      "qualificationBlockers": [
+        "unresolved-integrity-diagnostic",
+        "reviewed-target-debt"
+      ],
+      "candidateFieldIds": [
+        "mpolygon-associative",
+        "mpolygon-base-point-z",
+        "mpolygon-extrusion-x",
+        "mpolygon-extrusion-y",
+        "mpolygon-extrusion-z",
+        "mpolygon-name",
+        "mpolygon-pattern-type",
+        "mpolygon-solid",
+        "rtext-handle",
+        "rtext-record-class",
+        "rtext-text"
+      ]
+    },
+    {
+      "id": "evidence:s386b-ac1024-rtext-insertion-v2",
+      "authorityKind": "independent-semantic-reader",
+      "facade": "dwgRW",
+      "format": "DWG",
+      "direction": "read",
+      "artifactPath": "metadata/ac1024-candidate-fields-v2.json",
+      "artifactSha256": "7b7baf1351e418cc2aa91faf4f4750e9eeeeff31a03518571e5be05e59f667dd",
+      "checkerPath": "tools/check_ac1024_candidate_fields_v2.py",
+      "checkerSha256": "c4d6c220a373622d10aecd6d2b9adbd4fb4b37bcea67c80d199f19c74b312dec",
+      "recordedByCommit": "daebd179010fbdec2c38f3652c088563568f1458",
+      "fixtureAdmission": "local-from-scratch-runtime",
+      "independentTool": "LibreDWG dwgread 0.14",
+      "semanticOutput": "full-JSON",
+      "targetStandaloneDifferential": "reviewedKnownDiagnostics",
+      "fieldOutcome": "exact",
+      "integrityDiagnostics": "resolved-none",
+      "silentLoss": "none-observed-in-scoped-records",
+      "qualificationEligible": true,
+      "qualificationBlockers": [],
+      "candidateFieldIds": [
+        "rtext-insertion-x",
+        "rtext-insertion-y",
+        "rtext-insertion-z"
+      ]
+    },
+    {
+      "id": "evidence:s386b-ac1024-rtext-rotation-v2",
+      "authorityKind": "independent-semantic-reader",
+      "facade": "dwgRW",
+      "format": "DWG",
+      "direction": "read",
+      "artifactPath": "metadata/ac1024-candidate-fields-v2.json",
+      "artifactSha256": "7b7baf1351e418cc2aa91faf4f4750e9eeeeff31a03518571e5be05e59f667dd",
+      "checkerPath": "tools/check_ac1024_candidate_fields_v2.py",
+      "checkerSha256": "c4d6c220a373622d10aecd6d2b9adbd4fb4b37bcea67c80d199f19c74b312dec",
+      "recordedByCommit": "daebd179010fbdec2c38f3652c088563568f1458",
+      "fixtureAdmission": "local-from-scratch-runtime",
+      "independentTool": "LibreDWG dwgread 0.14",
+      "semanticOutput": "full-JSON",
+      "targetStandaloneDifferential": "reviewedKnownDiagnostics",
+      "fieldOutcome": "toleranceNormalized",
+      "integrityDiagnostics": "resolved-none",
+      "silentLoss": "none-observed-in-scoped-records",
+      "qualificationEligible": true,
+      "qualificationBlockers": [],
+      "candidateFieldIds": [
+        "rtext-rotation"
+      ]
+    }
+  ],
+  "claims": [
+    {
+      "id": "d3a300a043b37fc8ce91a631d280fb0abdeed8f5b080fd74a96cd3823f989fbc",
+      "tuple": {
+        "facade": "dwgRW",
+        "format": "DWG",
+        "direction": "read",
+        "ACVersion": "AC1032",
+        "recordKind": "entity",
+        "recordClass": "RTEXT",
+        "fieldPath": "recordClass",
+        "contractKind": "value-read"
+      },
+      "routeIds": [
+        "dwgRW/named-entity-class/RTEXT"
+      ],
+      "evidenceIds": [
+        "evidence:s385-admitted-libredwg-fields-v1"
+      ],
+      "evidenceFieldId": "rtext-record-class",
+      "normalization": "exact",
+      "tolerance": null
+    },
+    {
+      "id": "910498b24561f0329d419da665bcea4a9473c651229547faaa5ea3b6d31eff72",
+      "tuple": {
+        "facade": "dwgRW",
+        "format": "DWG",
+        "direction": "read",
+        "ACVersion": "AC1032",
+        "recordKind": "entity",
+        "recordClass": "RTEXT",
+        "fieldPath": "handle",
+        "contractKind": "value-read"
+      },
+      "routeIds": [
+        "dwgRW/named-entity-class/RTEXT"
+      ],
+      "evidenceIds": [
+        "evidence:s385-admitted-libredwg-fields-v1"
+      ],
+      "evidenceFieldId": "rtext-handle",
+      "normalization": "handleHex",
+      "tolerance": null
+    },
+    {
+      "id": "29a2066546b3f16b9161c4b15dedafa1c8258e02777e847f4233353ddf8e37a6",
+      "tuple": {
+        "facade": "dwgRW",
+        "format": "DWG",
+        "direction": "read",
+        "ACVersion": "AC1032",
+        "recordKind": "entity",
+        "recordClass": "RTEXT",
+        "fieldPath": "text",
+        "contractKind": "value-read"
+      },
+      "routeIds": [
+        "dwgRW/named-entity-class/RTEXT"
+      ],
+      "evidenceIds": [
+        "evidence:s385-admitted-libredwg-fields-v1"
+      ],
+      "evidenceFieldId": "rtext-text",
+      "normalization": "exact",
+      "tolerance": null
+    },
+    {
+      "id": "3415e4784e2b4e23d9973b7d85baea24a4e9d84d1be3347d880cd7f7db1407bd",
+      "tuple": {
+        "facade": "dwgRW",
+        "format": "DWG",
+        "direction": "read",
+        "ACVersion": "AC1024",
+        "recordKind": "entity",
+        "recordClass": "RTEXT",
+        "fieldPath": "insertion.x",
+        "contractKind": "value-read"
+      },
+      "routeIds": [
+        "dwgRW/named-entity-class/RTEXT"
+      ],
+      "evidenceIds": [
+        "evidence:s386b-ac1024-rtext-insertion-v2"
+      ],
+      "evidenceFieldId": "rtext-insertion-x",
+      "normalization": "finiteNumber",
+      "tolerance": 0.0
+    },
+    {
+      "id": "2c5a971cacbcb4bcc73c4409eadaef14ba16f5047c21273ee86df77cab842a6c",
+      "tuple": {
+        "facade": "dwgRW",
+        "format": "DWG",
+        "direction": "read",
+        "ACVersion": "AC1024",
+        "recordKind": "entity",
+        "recordClass": "RTEXT",
+        "fieldPath": "insertion.y",
+        "contractKind": "value-read"
+      },
+      "routeIds": [
+        "dwgRW/named-entity-class/RTEXT"
+      ],
+      "evidenceIds": [
+        "evidence:s386b-ac1024-rtext-insertion-v2"
+      ],
+      "evidenceFieldId": "rtext-insertion-y",
+      "normalization": "finiteNumber",
+      "tolerance": 0.0
+    },
+    {
+      "id": "4a6f151a99dd9e4eca500a8e336a939926b643125063691fc519ded928652162",
+      "tuple": {
+        "facade": "dwgRW",
+        "format": "DWG",
+        "direction": "read",
+        "ACVersion": "AC1024",
+        "recordKind": "entity",
+        "recordClass": "RTEXT",
+        "fieldPath": "insertion.z",
+        "contractKind": "value-read"
+      },
+      "routeIds": [
+        "dwgRW/named-entity-class/RTEXT"
+      ],
+      "evidenceIds": [
+        "evidence:s386b-ac1024-rtext-insertion-v2"
+      ],
+      "evidenceFieldId": "rtext-insertion-z",
+      "normalization": "finiteNumber",
+      "tolerance": 0.0
+    },
+    {
+      "id": "f0aa5f13bcd294fd8e8385530657cc87b4bdc754c03802fe20bde5dde0d97811",
+      "tuple": {
+        "facade": "dwgRW",
+        "format": "DWG",
+        "direction": "read",
+        "ACVersion": "AC1024",
+        "recordKind": "entity",
+        "recordClass": "RTEXT",
+        "fieldPath": "rotation",
+        "contractKind": "value-read"
+      },
+      "routeIds": [
+        "dwgRW/named-entity-class/RTEXT"
+      ],
+      "evidenceIds": [
+        "evidence:s386b-ac1024-rtext-rotation-v2"
+      ],
+      "evidenceFieldId": "rtext-rotation",
+      "normalization": "degreesFromRadians",
+      "tolerance": 1e-12
+    },
+    {
+      "id": "31f4353d67182a38ab8270c13aea8cee82de24c250b049f2f242ef8779ca7cbc",
+      "tuple": {
+        "facade": "dwgRW",
+        "format": "DWG",
+        "direction": "read",
+        "ACVersion": "AC1032",
+        "recordKind": "entity",
+        "recordClass": "MPOLYGON",
+        "fieldPath": "solid",
+        "contractKind": "value-read"
+      },
+      "routeIds": [
+        "dwgRW/named-entity-class/MPOLYGON"
+      ],
+      "evidenceIds": [
+        "evidence:s385-admitted-libredwg-fields-v1"
+      ],
+      "evidenceFieldId": "mpolygon-solid",
+      "normalization": "boolean01",
+      "tolerance": null
+    },
+    {
+      "id": "be6a133df8b46d044c190f98eb690647f097f518a0c74d44da435f8c6a7e5545",
+      "tuple": {
+        "facade": "dwgRW",
+        "format": "DWG",
+        "direction": "read",
+        "ACVersion": "AC1032",
+        "recordKind": "entity",
+        "recordClass": "MPOLYGON",
+        "fieldPath": "associative",
+        "contractKind": "value-read"
+      },
+      "routeIds": [
+        "dwgRW/named-entity-class/MPOLYGON"
+      ],
+      "evidenceIds": [
+        "evidence:s385-admitted-libredwg-fields-v1"
+      ],
+      "evidenceFieldId": "mpolygon-associative",
+      "normalization": "boolean01",
+      "tolerance": null
+    },
+    {
+      "id": "b025d5202cc4d7196ff4a59323f5d717bd53acdbce57e1bbe0ade13349b33ae5",
+      "tuple": {
+        "facade": "dwgRW",
+        "format": "DWG",
+        "direction": "read",
+        "ACVersion": "AC1032",
+        "recordKind": "entity",
+        "recordClass": "MPOLYGON",
+        "fieldPath": "name",
+        "contractKind": "value-read"
+      },
+      "routeIds": [
+        "dwgRW/named-entity-class/MPOLYGON"
+      ],
+      "evidenceIds": [
+        "evidence:s385-admitted-libredwg-fields-v1"
+      ],
+      "evidenceFieldId": "mpolygon-name",
+      "normalization": "exact",
+      "tolerance": null
+    },
+    {
+      "id": "79781d7b51a00cb1799986342a67991bc5c6276021a39420cff7b6953c8be4bc",
+      "tuple": {
+        "facade": "dwgRW",
+        "format": "DWG",
+        "direction": "read",
+        "ACVersion": "AC1032",
+        "recordKind": "entity",
+        "recordClass": "MPOLYGON",
+        "fieldPath": "hpattern",
+        "contractKind": "value-read"
+      },
+      "routeIds": [
+        "dwgRW/named-entity-class/MPOLYGON"
+      ],
+      "evidenceIds": [
+        "evidence:s385-admitted-libredwg-fields-v1"
+      ],
+      "evidenceFieldId": "mpolygon-pattern-type",
+      "normalization": "exact",
+      "tolerance": null
+    },
+    {
+      "id": "42baf49445bbadd2cc4bec1fd32a733fe6eb688f8c6cc107c66e31bbfd2aa15b",
+      "tuple": {
+        "facade": "dwgRW",
+        "format": "DWG",
+        "direction": "read",
+        "ACVersion": "AC1032",
+        "recordKind": "entity",
+        "recordClass": "MPOLYGON",
+        "fieldPath": "basePoint.z",
+        "contractKind": "value-read"
+      },
+      "routeIds": [
+        "dwgRW/named-entity-class/MPOLYGON"
+      ],
+      "evidenceIds": [
+        "evidence:s385-admitted-libredwg-fields-v1"
+      ],
+      "evidenceFieldId": "mpolygon-base-point-z",
+      "normalization": "floatTolerance",
+      "tolerance": {
+        "absolute": 1e-12,
+        "relative": 1e-12
+      }
+    },
+    {
+      "id": "0444071255e3d18566b11f8b31c4396551fdf56b92062a7718b3349510ea9146",
+      "tuple": {
+        "facade": "dwgRW",
+        "format": "DWG",
+        "direction": "read",
+        "ACVersion": "AC1032",
+        "recordKind": "entity",
+        "recordClass": "MPOLYGON",
+        "fieldPath": "extPoint.x",
+        "contractKind": "value-read"
+      },
+      "routeIds": [
+        "dwgRW/named-entity-class/MPOLYGON"
+      ],
+      "evidenceIds": [
+        "evidence:s385-admitted-libredwg-fields-v1"
+      ],
+      "evidenceFieldId": "mpolygon-extrusion-x",
+      "normalization": "floatTolerance",
+      "tolerance": {
+        "absolute": 1e-12,
+        "relative": 1e-12
+      }
+    },
+    {
+      "id": "e9aad451de79acefab9e18ffee3fe22bad2bee366e22297c7762a894d4448f9e",
+      "tuple": {
+        "facade": "dwgRW",
+        "format": "DWG",
+        "direction": "read",
+        "ACVersion": "AC1032",
+        "recordKind": "entity",
+        "recordClass": "MPOLYGON",
+        "fieldPath": "extPoint.y",
+        "contractKind": "value-read"
+      },
+      "routeIds": [
+        "dwgRW/named-entity-class/MPOLYGON"
+      ],
+      "evidenceIds": [
+        "evidence:s385-admitted-libredwg-fields-v1"
+      ],
+      "evidenceFieldId": "mpolygon-extrusion-y",
+      "normalization": "floatTolerance",
+      "tolerance": {
+        "absolute": 1e-12,
+        "relative": 1e-12
+      }
+    },
+    {
+      "id": "a054d79e7375036010ec9f58ab99d6f8b164758f753f84ce597cdef162ed7bd5",
+      "tuple": {
+        "facade": "dwgRW",
+        "format": "DWG",
+        "direction": "read",
+        "ACVersion": "AC1032",
+        "recordKind": "entity",
+        "recordClass": "MPOLYGON",
+        "fieldPath": "extPoint.z",
+        "contractKind": "value-read"
+      },
+      "routeIds": [
+        "dwgRW/named-entity-class/MPOLYGON"
+      ],
+      "evidenceIds": [
+        "evidence:s385-admitted-libredwg-fields-v1"
+      ],
+      "evidenceFieldId": "mpolygon-extrusion-z",
+      "normalization": "floatTolerance",
+      "tolerance": {
+        "absolute": 1e-12,
+        "relative": 1e-12
+      }
+    }
+  ],
+  "routeRequirements": [
+    {
+      "routeId": "dwgRW/named-entity-class/MPOLYGON",
+      "requiredClaimIds": [
+        "0444071255e3d18566b11f8b31c4396551fdf56b92062a7718b3349510ea9146",
+        "31f4353d67182a38ab8270c13aea8cee82de24c250b049f2f242ef8779ca7cbc",
+        "42baf49445bbadd2cc4bec1fd32a733fe6eb688f8c6cc107c66e31bbfd2aa15b",
+        "79781d7b51a00cb1799986342a67991bc5c6276021a39420cff7b6953c8be4bc",
+        "a054d79e7375036010ec9f58ab99d6f8b164758f753f84ce597cdef162ed7bd5",
+        "b025d5202cc4d7196ff4a59323f5d717bd53acdbce57e1bbe0ade13349b33ae5",
+        "be6a133df8b46d044c190f98eb690647f097f518a0c74d44da435f8c6a7e5545",
+        "e9aad451de79acefab9e18ffee3fe22bad2bee366e22297c7762a894d4448f9e"
+      ]
+    },
+    {
+      "routeId": "dwgRW/named-entity-class/RTEXT",
+      "requiredClaimIds": [
+        "29a2066546b3f16b9161c4b15dedafa1c8258e02777e847f4233353ddf8e37a6",
+        "2c5a971cacbcb4bcc73c4409eadaef14ba16f5047c21273ee86df77cab842a6c",
+        "3415e4784e2b4e23d9973b7d85baea24a4e9d84d1be3347d880cd7f7db1407bd",
+        "4a6f151a99dd9e4eca500a8e336a939926b643125063691fc519ded928652162",
+        "910498b24561f0329d419da665bcea4a9473c651229547faaa5ea3b6d31eff72",
+        "d3a300a043b37fc8ce91a631d280fb0abdeed8f5b080fd74a96cd3823f989fbc",
+        "f0aa5f13bcd294fd8e8385530657cc87b4bdc754c03802fe20bde5dde0d97811"
+      ]
+    }
+  ],
+  "excludedCandidates": [
+    {
+      "recordClass": "LARGE_RADIAL",
+      "ACVersion": "AC1032",
+      "reason": "identity-only-independent-evidence",
+      "sourceFieldIds": [
+        "large-radial-handle",
+        "large-radial-record-class"
+      ]
+    }
+  ],
+  "pendingFinalization": []
+}

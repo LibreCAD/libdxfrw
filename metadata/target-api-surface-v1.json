@@ -1,0 +1,4476 @@
+{
+  "callbacks": [
+    "addAcDbPlaceholder",
+    "addAcShHistoryObject",
+    "addAppId",
+    "addArc",
+    "addAssociativeObject",
+    "addAttDef",
+    "addBackground",
+    "addBinary",
+    "addBlock",
+    "addBlockRepresentationData",
+    "addBreakData",
+    "addBreakPointRef",
+    "addCamera",
+    "addCellStyleMap",
+    "addCircle",
+    "addComment",
+    "addContextDataManager",
+    "addCoord",
+    "addCsacDocumentOptions",
+    "addCurvePath",
+    "addCustomVar",
+    "addDataLink",
+    "addDataStorage",
+    "addDataTable",
+    "addDbColor",
+    "addDetailViewStyle",
+    "addDictionary",
+    "addDictionaryVar",
+    "addDictionaryWithDefault",
+    "addDimAlign",
+    "addDimAngular",
+    "addDimAngular3P",
+    "addDimArc",
+    "addDimDiametric",
+    "addDimLinear",
+    "addDimOrdinate",
+    "addDimRadial",
+    "addDimStyle",
+    "addDimensionAssociation",
+    "addDimstyle",
+    "addDouble",
+    "addDwgBlockReachability",
+    "addDwgClassCoverageReport",
+    "addDwgDictionaryMembership",
+    "addDwgDictionaryWithDefaultMembership",
+    "addDwgFieldListMembership",
+    "addDwgFieldPayloadReceipt",
+    "addDwgFrameCoverageReport",
+    "addDwgFramePublication",
+    "addDwgGroupMembership",
+    "addDwgSortEntsMembership",
+    "addDwgTypedReference",
+    "addDxfClass",
+    "addDynamicBlockObject",
+    "addEllipse",
+    "addEvaluationGraph",
+    "addExtData",
+    "addField",
+    "addFieldList",
+    "addGeoData",
+    "addGeoMapImage",
+    "addGeoPositionMarker",
+    "addGroup",
+    "addHatch",
+    "addHeader",
+    "addHelix",
+    "addIDBuffer",
+    "addImage",
+    "addImageDefinitionReactor",
+    "addIndex",
+    "addInsert",
+    "addInt",
+    "addInt64",
+    "addIntegrityDiagnostic",
+    "addKnot",
+    "addLType",
+    "addLWPolyline",
+    "addLayer",
+    "addLayerFilter",
+    "addLayerIndex",
+    "addLayout",
+    "addLeader",
+    "addLight",
+    "addLightList",
+    "addLine",
+    "addMLeader",
+    "addMLeaderStyle",
+    "addMLine",
+    "addMLineStyle",
+    "addMPolygon",
+    "addMText",
+    "addMaterial",
+    "addMesh",
+    "addModelerGeometry",
+    "addMotionPath",
+    "addNavisworksModel",
+    "addNavisworksModelDef",
+    "addObjectContextData",
+    "addObjectPtr",
+    "addOle2Frame",
+    "addOleFrame",
+    "addPartialViewingIndex",
+    "addPlotSettings",
+    "addPoint",
+    "addPointCloud",
+    "addPointCloudColorMap",
+    "addPointCloudDef",
+    "addPointCloudEx",
+    "addPointPath",
+    "addPolyline",
+    "addProxyEntity",
+    "addProxyObject",
+    "addRasterVariables",
+    "addRawDwgSection",
+    "addRawDxfEntity",
+    "addRawDxfObject",
+    "addRawDxfSection",
+    "addRay",
+    "addRenderSettings",
+    "addScale",
+    "addSection",
+    "addSectionObject",
+    "addSectionViewStyle",
+    "addShape",
+    "addSolid",
+    "addSortEntsTable",
+    "addSpatialFilter",
+    "addSpatialIndex",
+    "addSpline",
+    "addStr",
+    "addString",
+    "addSun",
+    "addSunStudy",
+    "addSurface",
+    "addTable",
+    "addTableContent",
+    "addTableGeometry",
+    "addTableStyle",
+    "addText",
+    "addTextStyle",
+    "addTextstyle",
+    "addTolerance",
+    "addTrace",
+    "addTvDeviceProperties",
+    "addUCS",
+    "addUcs",
+    "addUnderlay",
+    "addUnsupportedObject",
+    "addVbaProject",
+    "addVertex",
+    "addView",
+    "addViewport",
+    "addViewportEntityHeader",
+    "addVisualStyle",
+    "addVport",
+    "addVxControl",
+    "addVxTableRecord",
+    "addWipeout",
+    "addWipeoutVariables",
+    "addXRecord",
+    "addXline",
+    "address"
+  ],
+  "headerCount": 49,
+  "headers": [
+    {
+      "callbacks": [],
+      "classes": [
+        "DRW_AcisBrep",
+        "DRW_AcisCurve",
+        "DRW_AcisEdge",
+        "DRW_AcisFace",
+        "DRW_AcisFaceLoop",
+        "DRW_AcisModel",
+        "DRW_AcisNode",
+        "DRW_AcisSurface",
+        "DRW_AcisVertex",
+        "DRW_SabData",
+        "DRW_SabHeader",
+        "DRW_SabRecord",
+        "DRW_SabToken"
+      ],
+      "enumValues": [
+        "BoolTrue",
+        "DirectionVec",
+        "EntityTypeEx",
+        "Float",
+        "NoType",
+        "RecordEnd"
+      ],
+      "enums": [
+        "DRW_AcisCurve",
+        "DRW_AcisSurface",
+        "Tag"
+      ],
+      "includes": [
+        "cstdint",
+        "drw_base.h",
+        "string",
+        "vector"
+      ],
+      "macros": [
+        "DRW_ACIS_H",
+        "LIBDXFRW_EXPORT"
+      ],
+      "path": "src/drw_acis.h",
+      "sha256": "93947c33950c7242b308cda62f2fa46748d31d57fcb04562ed387fdcd7df6dcb",
+      "typedefs": []
+    },
+    {
+      "callbacks": [
+        "addBinary",
+        "addCoord",
+        "addDouble",
+        "addInt",
+        "addInt64",
+        "addString"
+      ],
+      "classes": [
+        "DRW_Coord",
+        "DRW_LW_Conv",
+        "DRW_ParseableEntity",
+        "DRW_Variant",
+        "DRW_Vertex2D",
+        "DebugLevel",
+        "DebugPrinter",
+        "DwgBlockWriteRecord",
+        "DwgBlockWriteResult",
+        "DwgCompoundEntityFrameReceipt",
+        "DwgCompoundEntityFrameRole",
+        "DwgCompoundEntityWriteReceipt",
+        "DwgHandleWriteOccurrence",
+        "DwgNamedObjectDictionaryEntry",
+        "DwgObjectFrameProvenance",
+        "DwgObjectFrameReceipt",
+        "DwgObjectHandleOccurrence",
+        "DwgObjectHandleStream",
+        "DwgObjectSerializedSegment",
+        "dwgHandle",
+        "dxfReader",
+        "expectation",
+        "is",
+        "ordinal"
+      ],
+      "enumValues": [
+        "AC1002",
+        "AC1003",
+        "AC1004",
+        "AC1006",
+        "AC1009",
+        "AC1012",
+        "AC1014",
+        "AC1015",
+        "AC1018",
+        "AC1021",
+        "AC1024",
+        "AC1027",
+        "AC1032",
+        "AC12",
+        "AC14",
+        "AC150",
+        "AC210",
+        "Attribute",
+        "BAD_CODE_PARSED",
+        "BAD_NONE",
+        "BAD_OPEN",
+        "BAD_READ_BLOCKS",
+        "BAD_READ_CLASSES",
+        "BAD_READ_ENTITIES",
+        "BAD_READ_FILE_HEADER",
+        "BAD_READ_HANDLES",
+        "BAD_READ_HEADER",
+        "BAD_READ_METADATA",
+        "BAD_READ_OBJECTS",
+        "BAD_READ_SECTION",
+        "BAD_READ_TABLES",
+        "BAD_UNKNOWN",
+        "BAD_VERSION",
+        "BINARY",
+        "COLOR",
+        "COORD",
+        "CastAndReceieveShadows",
+        "CastShadows",
+        "ColorByBlock",
+        "ColorByLayer",
+        "DOUBLE",
+        "Data",
+        "Debug",
+        "DefaultPlotStyle",
+        "DwgHardOwnership",
+        "DwgHardPointer",
+        "DwgNullReference",
+        "DwgSoftOwnership",
+        "DwgSoftPointer",
+        "HANDLE",
+        "Handles",
+        "INTEGER",
+        "INTEGER64",
+        "INVALID",
+        "INVISIBLE",
+        "IgnoreShadows",
+        "LAYER",
+        "LINEWEIGHT",
+        "MC00",
+        "MaterialByLayer",
+        "ModelSpace",
+        "NoHandle",
+        "None",
+        "OWNER_HANDLE",
+        "Opaque",
+        "PLOTSTYLE",
+        "PaperSpace",
+        "Parent",
+        "ReceiveShadows",
+        "STRING",
+        "SeqEnd",
+        "Strings",
+        "Transparent",
+        "UNKNOWNV",
+        "Vertex"
+      ],
+      "enums": [
+        "ColorCodes",
+        "Common",
+        "DebugLevel",
+        "DwgCompoundEntityFrameRole",
+        "DwgHandleReferenceCode",
+        "DwgObjectHandleStream",
+        "DwgObjectSerializedSegment",
+        "HandleCodes",
+        "MaterialCodes",
+        "PlotStyleCodes",
+        "ShadowMode",
+        "Space",
+        "TYPE",
+        "TransparencyCodes",
+        "Version",
+        "error",
+        "lineWidth"
+      ],
+      "includes": [
+        "array",
+        "cmath",
+        "cstdint",
+        "memory",
+        "string",
+        "unordered_map",
+        "utility",
+        "vector"
+      ],
+      "macros": [
+        "ARAD",
+        "DRW_BASE_H",
+        "DRW_POSIX",
+        "DRW_UNUSED",
+        "DRW_VERSION",
+        "DRW_WIN",
+        "M_PI",
+        "M_PI_2",
+        "M_PIx2",
+        "UTF8STRING",
+        "drw_assert"
+      ],
+      "path": "src/drw_base.h",
+      "sha256": "dd7e17a9d392ecc8700c52ce2e7112ee3629300a29a868a8ead558c3ce7bc7ea",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "DRW_Class",
+        "dwgBuffer",
+        "dxfReader",
+        "dxfWriter",
+        "name"
+      ],
+      "enumValues": [],
+      "enums": [],
+      "includes": [
+        "drw_base.h"
+      ],
+      "macros": [
+        "DRW_CLASSES_H"
+      ],
+      "path": "src/drw_classes.h",
+      "sha256": "a49a41256c70fbbbafcc553ffe7f7abb9d98cf5da6f329b58fac873c79eba932",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "DRW_DataStorageBlobPage",
+        "DRW_DataStorageDiagnostic",
+        "DRW_DataStorageIndexEntry",
+        "DRW_DataStorageRecord",
+        "DRW_DataStorageSchema",
+        "DRW_DataStorageSchemaIndexEntry",
+        "DRW_DataStorageSchemaProperty",
+        "DRW_DataStorageSchemaUnknownProperty",
+        "DRW_DataStorageSection",
+        "DRW_DataStorageSegment",
+        "DRW_DataStorageSegmentKind",
+        "Kind"
+      ],
+      "enumValues": [
+        "Blob",
+        "Data",
+        "DataIndex",
+        "FreeSpace",
+        "Informational",
+        "PreviousSave",
+        "Schema",
+        "SchemaData",
+        "SchemaIndex",
+        "Search",
+        "SegmentIndex",
+        "StructuralInvalid",
+        "SupportedOpaque",
+        "Unknown"
+      ],
+      "enums": [
+        "DRW_DataStorageSegmentKind",
+        "Kind"
+      ],
+      "includes": [
+        "cstddef",
+        "cstdint",
+        "drw_base.h",
+        "string",
+        "unordered_map",
+        "vector"
+      ],
+      "macros": [
+        "DRW_DATASTORAGE_H"
+      ],
+      "path": "src/drw_datastorage.h",
+      "sha256": "7a49427a9b6ace22299dec7b098e0be2a9f9a5ff46ccc7a3ed9e646216bf4a47",
+      "typedefs": []
+    },
+    {
+      "callbacks": [
+        "addArc",
+        "addDimRadial",
+        "addEllipse",
+        "addLine",
+        "addSpline",
+        "addVertex"
+      ],
+      "classes": [
+        "ArrowHeadEntry",
+        "BlockLabelEntry",
+        "Confidence",
+        "Consistency",
+        "DRW_3DLine",
+        "DRW_3Dface",
+        "DRW_Arc",
+        "DRW_ArcAlignedText",
+        "DRW_Attdef",
+        "DRW_Attrib",
+        "DRW_Block",
+        "DRW_Camera",
+        "DRW_Circle",
+        "DRW_DimAligned",
+        "DRW_DimAngular",
+        "DRW_DimAngular3p",
+        "DRW_DimArc",
+        "DRW_DimDiametric",
+        "DRW_DimLargeRadial",
+        "DRW_DimLinear",
+        "DRW_DimOrdinate",
+        "DRW_DimRadial",
+        "DRW_Dimension",
+        "DRW_Ellipse",
+        "DRW_Entity",
+        "DRW_ExtrudedSurface",
+        "DRW_GeoPositionMarker",
+        "DRW_Hatch",
+        "DRW_HatchLoop",
+        "DRW_Helix",
+        "DRW_Image",
+        "DRW_Insert",
+        "DRW_LWPolyline",
+        "DRW_Leader",
+        "DRW_Light",
+        "DRW_Line",
+        "DRW_LoftedSurface",
+        "DRW_MLeader",
+        "DRW_MLeaderAnnotContext",
+        "DRW_MLeaderLeaderLine",
+        "DRW_MLeaderRoot",
+        "DRW_MLine",
+        "DRW_MLineVertex",
+        "DRW_MPolygon",
+        "DRW_MText",
+        "DRW_Mesh",
+        "DRW_MeshPropertyOverride",
+        "DRW_ModelerGeometry",
+        "DRW_ModelerPayloadRange",
+        "DRW_NavisworksModel",
+        "DRW_NurbsSurface",
+        "DRW_Ole2Frame",
+        "DRW_OleFrame",
+        "DRW_PlaneSurface",
+        "DRW_Point",
+        "DRW_PointCloud",
+        "DRW_PointCloudClipping",
+        "DRW_PointCloudEx",
+        "DRW_PointCloudExCropping",
+        "DRW_PointCloudIntensityStyle",
+        "DRW_Polyline",
+        "DRW_ProxyEntity",
+        "DRW_RText",
+        "DRW_Ray",
+        "DRW_RevolvedSurface",
+        "DRW_SectionObject",
+        "DRW_SeqEnd",
+        "DRW_Shape",
+        "DRW_Solid",
+        "DRW_Spline",
+        "DRW_Surface",
+        "DRW_SweptSurface",
+        "DRW_Table",
+        "DRW_TableBorder",
+        "DRW_TableCell",
+        "DRW_TableCellAttribute",
+        "DRW_TableCellContent",
+        "DRW_TableColumn",
+        "DRW_TableContent",
+        "DRW_TableContentObject",
+        "DRW_TableMergedRange",
+        "DRW_TableRow",
+        "DRW_Text",
+        "DRW_Tolerance",
+        "DRW_Trace",
+        "DRW_Underlay",
+        "DRW_Vertex",
+        "DRW_Viewport",
+        "DRW_Wipeout",
+        "DRW_Xline",
+        "DrwDataStorageTestAccess",
+        "DrwEntityEncodeTestAccess",
+        "DrwVisibilityTestAccess",
+        "DwgPolylineTraceTestAccess",
+        "DwgSubtype",
+        "DxfSubclass",
+        "GradientStop",
+        "Kind",
+        "PatternLine",
+        "PendingHandleRef",
+        "Section",
+        "bool",
+        "dwgBuffer",
+        "dwgBufferW",
+        "dwgRW",
+        "dwgReader",
+        "dwgWriter15",
+        "dwgWriter24",
+        "dxfRW",
+        "dxfReader",
+        "for",
+        "id",
+        "number",
+        "object",
+        "ordinal",
+        "ordinals",
+        "so",
+        "version",
+        "whose"
+      ],
+      "enumValues": [
+        "ARC",
+        "ATTDEF",
+        "ATTRIB",
+        "AllEdges",
+        "Auto",
+        "BLOCK",
+        "BODY",
+        "BlockReference",
+        "Body",
+        "BottomCenter",
+        "BottomLeft",
+        "BottomRight",
+        "CAMERA",
+        "CIRCLE",
+        "DIMALIGNED",
+        "DIMANGULAR",
+        "DIMANGULAR3P",
+        "DIMARC",
+        "DIMDIAMETRIC",
+        "DIMENSION",
+        "DIMLINEAR",
+        "DIMORDINATE",
+        "DIMRADIAL",
+        "DXF_TRACE",
+        "DeclaredSize",
+        "E3DFACE",
+        "E3DSOLID",
+        "ELLIPSE",
+        "EXTRUDEDSURFACE",
+        "Entity",
+        "Exact",
+        "FirstEdge",
+        "FourthEdge",
+        "GEOPOSITIONMARKER",
+        "HATCH",
+        "HAligned",
+        "HCenter",
+        "HELIX",
+        "HLeft",
+        "HMiddle",
+        "HRight",
+        "HandleStream",
+        "History",
+        "IMAGE",
+        "INSERT",
+        "Inferred",
+        "LEADER",
+        "LIGHT",
+        "LINE",
+        "LOFTEDSURFACE",
+        "LWPOLYLINE",
+        "MESH",
+        "MLEADER",
+        "MLINE",
+        "MPOLYGON",
+        "MTEXT",
+        "Marker",
+        "Mesh",
+        "MiddleCenter",
+        "MiddleLeft",
+        "MiddleRight",
+        "NAVISWORKSMODEL",
+        "NURBSURFACE",
+        "NoEdge",
+        "OLE2FRAME",
+        "OLEFRAME",
+        "Overrun",
+        "PLANESURFACE",
+        "POINT",
+        "POINTCLOUD",
+        "POINTCLOUDEX",
+        "POLYLINE",
+        "PROXYENTITY",
+        "Polyface",
+        "PolyfaceFace",
+        "RAY",
+        "REGION",
+        "REVOLVEDSURFACE",
+        "SECTION",
+        "SEQEND",
+        "SHAPE",
+        "SOLID",
+        "SPLINE",
+        "SWEPTSURFACE",
+        "Sab",
+        "Sat",
+        "SecodEdge",
+        "Silhouette",
+        "TABLE",
+        "TEXT",
+        "THREEDLINE",
+        "TOLERANCE",
+        "Table",
+        "ThirdEdge",
+        "TopCenter",
+        "TopLeft",
+        "TopRight",
+        "Truncated",
+        "UNDERLAY",
+        "UNKNOWN",
+        "Unknown",
+        "UnknownTail",
+        "VBaseLine",
+        "VBottom",
+        "VERTEX",
+        "VIEWPORT",
+        "VMiddle",
+        "Vertex2D",
+        "Vertex3D",
+        "WIPEOUT",
+        "Wire",
+        "XLINE"
+      ],
+      "enums": [
+        "Attach",
+        "Confidence",
+        "Consistency",
+        "DRW",
+        "DRW_LW_Conv",
+        "DwgSubtype",
+        "DxfSubclass",
+        "ETYPE",
+        "HAlign",
+        "InvisibleEdgeFlags",
+        "Kind",
+        "Section",
+        "VAlign"
+      ],
+      "includes": [
+        "array",
+        "drw_acis.h",
+        "drw_base.h",
+        "drw_objects.h",
+        "limits",
+        "list",
+        "memory",
+        "string",
+        "vector"
+      ],
+      "macros": [
+        "DRW_ENTITIES_H",
+        "SETENTFRIENDS"
+      ],
+      "path": "src/drw_entities.h",
+      "sha256": "801021d8b391af217c307001febbb481c4bf96ab9dd46412d7689e5e5189db4d",
+      "typedefs": []
+    },
+    {
+      "callbacks": [
+        "addComment",
+        "addCoord",
+        "addCustomVar",
+        "addDouble",
+        "addInt",
+        "addStr"
+      ],
+      "classes": [
+        "DRW_Header",
+        "DrwHeaderEncodeTestAccess",
+        "DwgHandseedTestAccess",
+        "dwgBuffer",
+        "dwgBufferW",
+        "dwgReader",
+        "dwgWriter15",
+        "dwgWriter24",
+        "dxfRW",
+        "dxfReader",
+        "dxfWriter"
+      ],
+      "enumValues": [
+        "Angstrom",
+        "Astro",
+        "Centimeter",
+        "Decameter",
+        "Decimeter",
+        "English",
+        "Foot",
+        "Gigameter",
+        "Hectometer",
+        "Inch",
+        "Kilometer",
+        "Lightyear",
+        "Meter",
+        "Metric",
+        "Microinch",
+        "Micron",
+        "Mil",
+        "Mile",
+        "Millimeter",
+        "Nanometer",
+        "None",
+        "Parsec",
+        "UnitCount",
+        "Yard"
+      ],
+      "enums": [
+        "Units"
+      ],
+      "includes": [
+        "drw_base.h",
+        "limits",
+        "map",
+        "memory",
+        "unordered_map",
+        "utility"
+      ],
+      "macros": [
+        "DRW_HEADER_H",
+        "SETHDRFRIENDS"
+      ],
+      "path": "src/drw_header.h",
+      "sha256": "35c264eeecddab8e3596f3f81fc2d2258e86911be5990c5d754349cfe2ad1ca1",
+      "typedefs": []
+    },
+    {
+      "callbacks": [
+        "addAcDbPlaceholder",
+        "addAcShHistoryObject",
+        "addAppId",
+        "addArc",
+        "addAssociativeObject",
+        "addAttDef",
+        "addBackground",
+        "addBlock",
+        "addBlockRepresentationData",
+        "addBreakData",
+        "addBreakPointRef",
+        "addCamera",
+        "addCellStyleMap",
+        "addCircle",
+        "addComment",
+        "addContextDataManager",
+        "addCsacDocumentOptions",
+        "addCurvePath",
+        "addDataLink",
+        "addDataStorage",
+        "addDataTable",
+        "addDbColor",
+        "addDetailViewStyle",
+        "addDictionary",
+        "addDictionaryVar",
+        "addDictionaryWithDefault",
+        "addDimAlign",
+        "addDimAngular",
+        "addDimAngular3P",
+        "addDimArc",
+        "addDimDiametric",
+        "addDimLinear",
+        "addDimOrdinate",
+        "addDimRadial",
+        "addDimStyle",
+        "addDimensionAssociation",
+        "addDwgBlockReachability",
+        "addDwgClassCoverageReport",
+        "addDwgDictionaryMembership",
+        "addDwgDictionaryWithDefaultMembership",
+        "addDwgFieldListMembership",
+        "addDwgFieldPayloadReceipt",
+        "addDwgFrameCoverageReport",
+        "addDwgFramePublication",
+        "addDwgGroupMembership",
+        "addDwgSortEntsMembership",
+        "addDwgTypedReference",
+        "addDxfClass",
+        "addDynamicBlockObject",
+        "addEllipse",
+        "addEvaluationGraph",
+        "addField",
+        "addFieldList",
+        "addGeoData",
+        "addGeoMapImage",
+        "addGeoPositionMarker",
+        "addGroup",
+        "addHatch",
+        "addHeader",
+        "addHelix",
+        "addIDBuffer",
+        "addImage",
+        "addImageDefinitionReactor",
+        "addIndex",
+        "addInsert",
+        "addKnot",
+        "addLType",
+        "addLWPolyline",
+        "addLayer",
+        "addLayerFilter",
+        "addLayerIndex",
+        "addLayout",
+        "addLeader",
+        "addLight",
+        "addLightList",
+        "addLine",
+        "addMLeader",
+        "addMLeaderStyle",
+        "addMLine",
+        "addMLineStyle",
+        "addMPolygon",
+        "addMText",
+        "addMaterial",
+        "addMesh",
+        "addModelerGeometry",
+        "addMotionPath",
+        "addNavisworksModel",
+        "addNavisworksModelDef",
+        "addObjectContextData",
+        "addObjectPtr",
+        "addOle2Frame",
+        "addOleFrame",
+        "addPartialViewingIndex",
+        "addPlotSettings",
+        "addPoint",
+        "addPointCloud",
+        "addPointCloudColorMap",
+        "addPointCloudDef",
+        "addPointCloudEx",
+        "addPointPath",
+        "addPolyline",
+        "addProxyEntity",
+        "addProxyObject",
+        "addRasterVariables",
+        "addRawDwgSection",
+        "addRawDxfEntity",
+        "addRawDxfObject",
+        "addRawDxfSection",
+        "addRay",
+        "addRenderSettings",
+        "addScale",
+        "addSection",
+        "addSectionObject",
+        "addSectionViewStyle",
+        "addShape",
+        "addSolid",
+        "addSortEntsTable",
+        "addSpatialFilter",
+        "addSpatialIndex",
+        "addSpline",
+        "addSun",
+        "addSunStudy",
+        "addSurface",
+        "addTable",
+        "addTableContent",
+        "addTableGeometry",
+        "addTableStyle",
+        "addText",
+        "addTextStyle",
+        "addTolerance",
+        "addTrace",
+        "addTvDeviceProperties",
+        "addUCS",
+        "addUnderlay",
+        "addUnsupportedObject",
+        "addVbaProject",
+        "addView",
+        "addViewport",
+        "addViewportEntityHeader",
+        "addVisualStyle",
+        "addVport",
+        "addVxControl",
+        "addVxTableRecord",
+        "addWipeout",
+        "addWipeoutVariables",
+        "addXRecord",
+        "addXline"
+      ],
+      "classes": [
+        "DRW_Attdef",
+        "DRW_Class",
+        "DRW_Interface",
+        "metadata",
+        "object",
+        "which"
+      ],
+      "enumValues": [],
+      "enums": [],
+      "includes": [
+        "cstring",
+        "drw_datastorage.h",
+        "drw_entities.h",
+        "drw_header.h",
+        "drw_objects.h"
+      ],
+      "macros": [
+        "DRW_INTERFACE_H"
+      ],
+      "path": "src/drw_interface.h",
+      "sha256": "2d6500844b47a6cf9a16b959039f34442cf53fb2707109017129f5995c6eac33",
+      "typedefs": []
+    },
+    {
+      "callbacks": [
+        "addExtData"
+      ],
+      "classes": [
+        "Carrier",
+        "ChildValue",
+        "Column",
+        "DRW_AcDbPlaceholder",
+        "DRW_AcShHistoryObject",
+        "DRW_AppId",
+        "DRW_AssociativeHandleRef",
+        "DRW_AssociativeObject",
+        "DRW_AssociativePrefixStatus",
+        "DRW_Background",
+        "DRW_BlockRepresentationData",
+        "DRW_Block_Record",
+        "DRW_BreakData",
+        "DRW_BreakPointRef",
+        "DRW_CadValue",
+        "DRW_CellStyleMap",
+        "DRW_ContextDataManager",
+        "DRW_ContextDataManagerEntry",
+        "DRW_ContextDataSubManager",
+        "DRW_CsacDocumentOptions",
+        "DRW_CurvePath",
+        "DRW_DataLink",
+        "DRW_DataLinkCustomData",
+        "DRW_DataTable",
+        "DRW_DbColor",
+        "DRW_DetailViewStyle",
+        "DRW_Dictionary",
+        "DRW_DictionaryCountCap",
+        "DRW_DictionaryVar",
+        "DRW_DictionaryWithDefault",
+        "DRW_DimensionAssociation",
+        "DRW_DimensionAssociationOsnapRef",
+        "DRW_Dimstyle",
+        "DRW_DwgBlockReachability",
+        "DRW_DwgClassBitRange",
+        "DRW_DwgClassCoverageEntry",
+        "DRW_DwgClassCoverageReason",
+        "DRW_DwgClassCoverageReport",
+        "DRW_DwgClassCoverageState",
+        "DRW_DwgClassCoverageStatus",
+        "DRW_DwgCommonLinkEvidence",
+        "DRW_DwgDictionaryMembership",
+        "DRW_DwgDictionaryWithDefaultMembership",
+        "DRW_DwgFieldListMembership",
+        "DRW_DwgFieldPayloadReceipt",
+        "DRW_DwgFrameCoverageEntry",
+        "DRW_DwgFrameCoverageReason",
+        "DRW_DwgFrameCoverageReport",
+        "DRW_DwgFrameCoverageStatus",
+        "DRW_DwgFrameDisposition",
+        "DRW_DwgFrameOffsetSpace",
+        "DRW_DwgFramePublication",
+        "DRW_DwgGroupMembership",
+        "DRW_DwgSortEntsMembership",
+        "DRW_DwgSourceFrame",
+        "DRW_DwgSubrecordRange",
+        "DRW_DwgTypedReference",
+        "DRW_DwgTypedReferenceField",
+        "DRW_DynamicBlockObject",
+        "DRW_EvaluationGraph",
+        "DRW_EvaluationGraphEdge",
+        "DRW_EvaluationGraphNode",
+        "DRW_Field",
+        "DRW_FieldList",
+        "DRW_GeoData",
+        "DRW_GeoMapImage",
+        "DRW_GeoMeshFace",
+        "DRW_GeoMeshPoint",
+        "DRW_Group",
+        "DRW_IDBuffer",
+        "DRW_ImageDef",
+        "DRW_ImageDefinitionReactor",
+        "DRW_Index",
+        "DRW_LType",
+        "DRW_LTypeSegment",
+        "DRW_Layer",
+        "DRW_LayerFilter",
+        "DRW_LayerIndex",
+        "DRW_LayerIndexEntry",
+        "DRW_Layout",
+        "DRW_LightList",
+        "DRW_LightListEntry",
+        "DRW_MLeaderStyle",
+        "DRW_MLineElement",
+        "DRW_MLineStyle",
+        "DRW_Material",
+        "DRW_ModelDocViewStyle",
+        "DRW_MotionPath",
+        "DRW_NavisworksModelDef",
+        "DRW_ObjectContextData",
+        "DRW_ObjectPtr",
+        "DRW_PartialViewingIndex",
+        "DRW_PartialViewingIndexEntry",
+        "DRW_PlotSettings",
+        "DRW_PointCloudColorMap",
+        "DRW_PointCloudColorMapRamp",
+        "DRW_PointCloudDef",
+        "DRW_PointPath",
+        "DRW_ProxyObject",
+        "DRW_ProxyObjectIdRef",
+        "DRW_RasterVariables",
+        "DRW_RawDwgSection",
+        "DRW_RawDxfObject",
+        "DRW_RawDxfSection",
+        "DRW_RenderSettings",
+        "DRW_Scale",
+        "DRW_Section",
+        "DRW_SectionGeometrySettings",
+        "DRW_SectionTypeSettings",
+        "DRW_SectionViewStyle",
+        "DRW_SortEntsTable",
+        "DRW_SpatialFilter",
+        "DRW_SpatialIndex",
+        "DRW_Sun",
+        "DRW_SunStudy",
+        "DRW_SunStudyDate",
+        "DRW_TableEntry",
+        "DRW_TableGeometry",
+        "DRW_TableGeometryCell",
+        "DRW_TableGeometryContent",
+        "DRW_TableStyle",
+        "DRW_TableStyleBorder",
+        "DRW_TableStyleCellStyle",
+        "DRW_TableStyleContentFormat",
+        "DRW_TableStyleRowStyle",
+        "DRW_Textstyle",
+        "DRW_TvDeviceProperties",
+        "DRW_UCS",
+        "DRW_UCSOrthoPoint",
+        "DRW_UnderlayDefinition",
+        "DRW_UnsupportedObject",
+        "DRW_VbaProject",
+        "DRW_VbaProjectSection",
+        "DRW_View",
+        "DRW_ViewportEntityHeader",
+        "DRW_VisualStyle",
+        "DRW_VisualStyleBody",
+        "DRW_Vport",
+        "DRW_VxControl",
+        "DRW_VxTableRecord",
+        "DRW_WipeoutVariables",
+        "DRW_WritingContext",
+        "DRW_XRecord",
+        "DrwObjectEncodeTestAccess",
+        "DwgBlockOwnershipTestAccess",
+        "DwgReferenceKind",
+        "DwgReferencePolicy",
+        "Entry",
+        "Kind",
+        "ParseStatus",
+        "PendingHandleRef",
+        "Row",
+        "already",
+        "and",
+        "dwgBuffer",
+        "dwgBufferW",
+        "dwgRW",
+        "dwgReader",
+        "dwgWriter15",
+        "dxfRW",
+        "dxfReader",
+        "dxfWriter",
+        "family",
+        "fields",
+        "for",
+        "intentionally",
+        "map",
+        "object",
+        "ordinal",
+        "params",
+        "recName",
+        "records",
+        "that",
+        "tuple",
+        "version",
+        "was",
+        "with"
+      ],
+      "enumValues": [
+        "ACDBPLACEHOLDER",
+        "ACSHHISTORYOBJECT",
+        "APPID",
+        "ASSOCIATIVEOBJECT",
+        "AcDbAssocAction",
+        "AcDbAssocActionBody",
+        "AcDbAssocActionParam",
+        "AcDbAssocDependency",
+        "AcDbAssocGeomDependency",
+        "AcDbAssocNetwork",
+        "AcDbEvalExpr",
+        "AcDbShHistoryNode",
+        "AcShActionBody",
+        "Action",
+        "AlignedConstraintParameter",
+        "AlignedDimension",
+        "AlignmentParameter",
+        "AngularConstraintParameter",
+        "AngularDimension",
+        "AnnotScale",
+        "ArrayAction",
+        "BACKGROUND",
+        "BLOCKREPRESENTATIONDATA",
+        "BLOCK_RECORD",
+        "BREAKDATA",
+        "BREAKPOINTREF",
+        "Bare",
+        "BasePointParameter",
+        "BlockReference",
+        "BoundedCountOverflow",
+        "Bounds",
+        "CELLSTYLEMAP",
+        "CONTEXTDATAMANAGER",
+        "CSACDOCUMENTOPTIONS",
+        "CURVEPATH",
+        "CadValueObjectId",
+        "Callback",
+        "CallbackException",
+        "ChildField",
+        "Complete",
+        "CompoundDeferred",
+        "CompoundStaged",
+        "DATALINK",
+        "DATATABLE",
+        "DBCOLOR",
+        "DETAILVIEWSTYLE",
+        "DICTIONARY",
+        "DICTIONARYVAR",
+        "DICTIONARYWDFLT",
+        "DIMASSOC",
+        "DIMSTYLE",
+        "DYNAMICBLOCKOBJECT",
+        "DecodedBuffer",
+        "Deferred",
+        "DiameterDimension",
+        "DiametricConstraintParameter",
+        "DictionaryDefault",
+        "Duplicate",
+        "EVALUATIONGRAPH",
+        "EvalExprOnly",
+        "FIELD",
+        "FIELDLIST",
+        "Failed",
+        "Fcf",
+        "FieldListMember",
+        "FinalizationUnresolved",
+        "FinalizedComplete",
+        "FinalizedPartial",
+        "FlipAction",
+        "FlipParameter",
+        "GEODATA",
+        "GEOMAPIMAGE",
+        "GROUP",
+        "Grip",
+        "GripLocationComponent",
+        "HorizontalConstraintParameter",
+        "IDBUFFER",
+        "IMAGEDEF",
+        "IMAGEDEFREACTOR",
+        "INDEX",
+        "InProgress",
+        "InvalidTransition",
+        "LAYER",
+        "LAYERFILTER",
+        "LAYERINDEX",
+        "LAYOUT",
+        "LIGHTLIST",
+        "LTYPE",
+        "LargeRadialDimension",
+        "Leader",
+        "LinearParameter",
+        "LookupAction",
+        "LookupParameter",
+        "MATERIAL",
+        "MLEADERSTYLE",
+        "MLINESTYLE",
+        "MLeader",
+        "MOTIONPATH",
+        "MText",
+        "MTextAttribute",
+        "Missing",
+        "MissingSource",
+        "MoveAction",
+        "NAVISWORKSMODELDEF",
+        "None",
+        "NotApplicable",
+        "NotAvailable",
+        "OBJECTCONTEXTDATA",
+        "OBJECTPTR",
+        "Object",
+        "OrdinateDimension",
+        "PARTIALVIEWINGINDEX",
+        "PLOTSETTINGS",
+        "POINTCLOUDCOLORMAP",
+        "POINTCLOUDDEF",
+        "POINTPATH",
+        "PROXYOBJECT",
+        "Parameter",
+        "Parse",
+        "ParseFailure",
+        "Parsed",
+        "Partial",
+        "Pending",
+        "PhaseAborted",
+        "PhysicalFile",
+        "PointParameter",
+        "PolarParameter",
+        "PolarStretchAction",
+        "Publish",
+        "Published",
+        "PurgePreventer",
+        "Quarantined",
+        "RASTERVARIABLES",
+        "RENDERSETTINGS",
+        "RadialConstraintParameter",
+        "RadialDimension",
+        "ReceiptFailure",
+        "ReceiptPublished",
+        "RotateAction",
+        "RotationParameter",
+        "SCALE",
+        "SECTIONOBJ",
+        "SECTIONVIEWSTYLE",
+        "SORTENTSTABLE",
+        "SPATIALFILTER",
+        "SPATIALINDEX",
+        "STYLE",
+        "SUN",
+        "SUNSTUDY",
+        "ScaleAction",
+        "Staged",
+        "StretchAction",
+        "TABLECONTENT",
+        "TABLEGEOMETRY",
+        "TABLESTYLE",
+        "TVDEVICEPROPERTIES",
+        "TableDeferred",
+        "Text",
+        "UCS",
+        "UNDERLAYDEFINITION",
+        "UNKNOWNT",
+        "Unknown",
+        "Unresolved",
+        "UnsupportedVersion",
+        "VBAPROJECT",
+        "VIEW",
+        "VISUALSTYLE",
+        "VPORT",
+        "VPORT_ENTITY_HEADER",
+        "VXCONTROL",
+        "VXTABLERECORD",
+        "Validated",
+        "ValidatedAbsent",
+        "VerticalConstraintParameter",
+        "VisibilityParameter",
+        "XRECORD",
+        "XYParameter"
+      ],
+      "enums": [
+        "Carrier",
+        "DRW",
+        "DRW_DwgClassCoverageReason",
+        "DRW_DwgClassCoverageState",
+        "DRW_DwgClassCoverageStatus",
+        "DRW_DwgCommonLinkEvidence",
+        "DRW_DwgFrameCoverageReason",
+        "DRW_DwgFrameCoverageStatus",
+        "DRW_DwgFrameDisposition",
+        "DRW_DwgFrameOffsetSpace",
+        "DRW_DwgTypedReferenceField",
+        "DRW_LW_Conv",
+        "DwgReferenceKind",
+        "Kind",
+        "ParseStatus",
+        "TTYPE"
+      ],
+      "includes": [
+        "array",
+        "cstddef",
+        "drw_base.h",
+        "limits",
+        "list",
+        "map",
+        "memory",
+        "optional",
+        "set",
+        "string",
+        "utility",
+        "vector"
+      ],
+      "macros": [
+        "DRW_OBJECTS_H",
+        "SETOBJFRIENDS"
+      ],
+      "path": "src/drw_objects.h",
+      "sha256": "3fe18a3496311bc76ddc096a0b79ec83f351e82d168fcf4e64b68956dd8a3d32",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "HandleAllocator"
+      ],
+      "enumValues": [],
+      "enums": [],
+      "includes": [
+        "cassert",
+        "cstdint",
+        "drw_base.h",
+        "intern/dwg_fixed_handles.h",
+        "limits",
+        "set",
+        "stdexcept"
+      ],
+      "macros": [
+        "HANDLE_ALLOCATOR_H"
+      ],
+      "path": "src/handle_allocator.h",
+      "sha256": "2b2de1b2c918793362284a243ef32dfc6e23c3377679489a069c8008bbe64b57",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [],
+      "enumValues": [],
+      "enums": [],
+      "includes": [],
+      "macros": [
+        "CPLENGTH932",
+        "CPOFFSET932",
+        "DRW_CPTABLE932_H",
+        "NOTFOUND932"
+      ],
+      "path": "src/intern/drw_cptable932.h",
+      "sha256": "3e51e2fc41a81cbdeebae79336d3a09fbcbc1e8db00406942f3f48921b268118",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [],
+      "enumValues": [],
+      "enums": [],
+      "includes": [],
+      "macros": [
+        "CPLENGTH936",
+        "CPOFFSET936",
+        "DRW_CPTABLE936_H",
+        "NOTFOUND936"
+      ],
+      "path": "src/intern/drw_cptable936.h",
+      "sha256": "d8ff540d6449c71886d97a8c179e302a639185a8b87baf6ef7e629250e3f0fbc",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [],
+      "enumValues": [],
+      "enums": [],
+      "includes": [],
+      "macros": [
+        "CPLENGTH949",
+        "CPOFFSET949",
+        "DRW_CPTABLE949_H",
+        "NOTFOUND949"
+      ],
+      "path": "src/intern/drw_cptable949.h",
+      "sha256": "4e29a2abc6b177eddae366a8cce2f3cbf5a7a5a5b0fc6516cde880c400a527fb",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [],
+      "enumValues": [],
+      "enums": [],
+      "includes": [],
+      "macros": [
+        "CPLENGTH950",
+        "CPOFFSET950",
+        "DRW_CPTABLE950_H",
+        "NOTFOUND950"
+      ],
+      "path": "src/intern/drw_cptable950.h",
+      "sha256": "c65bf0bfc66364cc531089172f59a85d35f9c93fd1ebc629a255d5cb36411723",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [],
+      "enumValues": [],
+      "enums": [],
+      "includes": [],
+      "macros": [
+        "CPLENGTHCOMMON",
+        "CPOFFSET",
+        "DRW_CPTABLES_H"
+      ],
+      "path": "src/intern/drw_cptables.h",
+      "sha256": "732be4cfa49469ac1e8ad54f9e6f66cb2e8f6ca677c9895b634472294c8dbbc9",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "DRW_dbg",
+        "Level"
+      ],
+      "enumValues": [
+        "Debug",
+        "None"
+      ],
+      "enums": [
+        "Level"
+      ],
+      "includes": [
+        "../drw_base.h",
+        "iostream",
+        "memory",
+        "string",
+        "utility"
+      ],
+      "macros": [
+        "DRW_DBG",
+        "DRW_DBGB",
+        "DRW_DBGGL",
+        "DRW_DBGH",
+        "DRW_DBGHL",
+        "DRW_DBGPT",
+        "DRW_DBGSL",
+        "DRW_DBG_H"
+      ],
+      "path": "src/intern/drw_dbg.h",
+      "sha256": "e2d221e52a1a00179011f27a41c3a1a6a1721a77459739be4d8c97b5008466f8",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [],
+      "enumValues": [],
+      "enums": [],
+      "includes": [
+        "drw_dbg.h",
+        "exception",
+        "string",
+        "unordered_map",
+        "unordered_set",
+        "vector"
+      ],
+      "macros": [
+        "DRW_RESERVE_H"
+      ],
+      "path": "src/intern/drw_reserve.h",
+      "sha256": "706da2d482c744348bb343c27d7363da7a431d07c802bef7359da61cdd8b7815",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "DRW_Conv932Table",
+        "DRW_ConvDBCSTable",
+        "DRW_ConvTable",
+        "DRW_ConvUTF16",
+        "DRW_Converter",
+        "DRW_TextCodec"
+      ],
+      "enumValues": [],
+      "enums": [],
+      "includes": [
+        "../drw_base.h",
+        "memory",
+        "string",
+        "string_view"
+      ],
+      "macros": [
+        "DRW_TEXTCODEC_H"
+      ],
+      "path": "src/intern/drw_textcodec.h",
+      "sha256": "b419247c93218cec911cfa87c17237f062017384aaef251f4d5bb30aa58803a2",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "DwgDxfOutputTransaction"
+      ],
+      "enumValues": [],
+      "enums": [],
+      "includes": [
+        "filesystem",
+        "fstream",
+        "ios",
+        "string"
+      ],
+      "macros": [
+        "DWG_DXF_OUTPUT_TRANSACTION_H"
+      ],
+      "path": "src/intern/dwg_dxf_output_transaction.h",
+      "sha256": "1c7e352395b637215de351676ae053e46cd2d6c0f380a6322932fe021a8c7aa0",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [],
+      "enumValues": [],
+      "enums": [],
+      "includes": [
+        "cstdint"
+      ],
+      "macros": [
+        "DWG_FIXED_HANDLES_H"
+      ],
+      "path": "src/intern/dwg_fixed_handles.h",
+      "sha256": "40fc75b207b13af26324dd174bf607b63d12601880c828025de86525eb8859fb",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "DRW_Coord",
+        "DRW_TextCodec",
+        "dwgBasicStream",
+        "dwgBuffer",
+        "dwgCharStream",
+        "dwgFileStream"
+      ],
+      "enumValues": [],
+      "enums": [],
+      "includes": [
+        "../drw_base.h",
+        "dwgutil.h",
+        "fstream",
+        "memory",
+        "sstream"
+      ],
+      "macros": [
+        "DWGBUFFER_H"
+      ],
+      "path": "src/intern/dwgbuffer.h",
+      "sha256": "cf8cb4820a22b3d34090e0ee6a0e1d149f2f9f802f4838e0d47eb0e97338327d",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "DRW_Coord",
+        "DRW_TextCodec",
+        "dwgBufferW"
+      ],
+      "enumValues": [],
+      "enums": [],
+      "includes": [
+        "../drw_base.h",
+        "algorithm",
+        "string",
+        "vector"
+      ],
+      "macros": [
+        "DWGBUFFERW_H"
+      ],
+      "path": "src/intern/dwgbufferw.h",
+      "sha256": "3e7995b8cc84c4ab8dd8e9c6f09b6ec7185b6c6b52ed270cadebe39358262441",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "DwgObjectFrame"
+      ],
+      "enumValues": [],
+      "enums": [],
+      "includes": [
+        "cstdint",
+        "dwgbuffer.h",
+        "vector"
+      ],
+      "macros": [
+        "DWGOBJECTFRAME_H"
+      ],
+      "path": "src/intern/dwgobjectframe.h",
+      "sha256": "b1bb3fd02e32757b05252a38e69b31c7890ce135ec874f49e669cc88a18d89af",
+      "typedefs": []
+    },
+    {
+      "callbacks": [
+        "addIntegrityDiagnostic",
+        "address"
+      ],
+      "classes": [
+        "DRW_ObjControl",
+        "Destination",
+        "DwgBlockJournalAdoptFailurePoint",
+        "DwgBlockJournalOutput",
+        "DwgBlockJournalReservationFailurePoint",
+        "DwgBlockScopeTransaction",
+        "DwgEedChunk",
+        "DwgEedHandleRef",
+        "DwgEntityFailureDiagnostic",
+        "DwgEntityFailurePhase",
+        "DwgEntityFramePublicationCapture",
+        "DwgEntityOutput",
+        "DwgFieldFamilyPublicationOutputs",
+        "DwgFrameClassification",
+        "DwgFrameMapLease",
+        "DwgFramePhaseSnapshot",
+        "DwgFramePublicationArtifacts",
+        "DwgImmediateEntityOutput",
+        "DwgInsertTerminalReason",
+        "DwgMappedEntityCompletion",
+        "DwgMappedEntityOutcome",
+        "DwgPolylinePrepareFailurePoint",
+        "DwgPolylineStageFailurePoint",
+        "DwgPreparedInsertCommit",
+        "DwgPreparedPolylineCommit",
+        "DwgSourceFrameId",
+        "DwgSourceFrameLease",
+        "DwgStagedClass",
+        "DwgStagedFrame",
+        "DwgTerminalizerFailurePoint",
+        "Event",
+        "Origin",
+        "OrphanAttribState",
+        "OrphanPolylineVertexState",
+        "PendingInsertState",
+        "PendingPolylineState",
+        "Route",
+        "SourceScope",
+        "StagedAttribState",
+        "StagedSeqEndState",
+        "StagedVertexState",
+        "T",
+        "dwgPageInfo",
+        "dwgRW",
+        "dwgReader",
+        "dwgSectionInfo",
+        "entities",
+        "objHandle"
+      ],
+      "enumValues": [
+        "Aggregate",
+        "BeforeChildMarker",
+        "BeforeFrameStaging",
+        "BeforeInsertOwnerMarker",
+        "BeforeOrphanAdoption",
+        "BeforeOrphanOwnerMarker",
+        "BeforeParentStateInsert",
+        "BeforeParentStateReserve",
+        "BeforeReservation",
+        "BeforeReserve",
+        "BeforeSeqEndMarker",
+        "BeforeTransfer",
+        "BlockFinalize",
+        "CallbackException",
+        "Classify",
+        "CommittedCompound",
+        "CommonHandles",
+        "DeferredObject",
+        "DeferredObjectMap",
+        "Failed",
+        "Frame",
+        "Identity",
+        "JournalledSimple",
+        "MalformedGroup",
+        "None",
+        "Published",
+        "PublishedSimple",
+        "Quarantined",
+        "ReceiptFailure",
+        "Rejected",
+        "StagedCompound",
+        "TypedBody",
+        "Unresolved"
+      ],
+      "enums": [
+        "Destination",
+        "DwgBlockJournalAdoptFailurePoint",
+        "DwgBlockJournalReservationFailurePoint",
+        "DwgEntityFailurePhase",
+        "DwgInsertTerminalReason",
+        "DwgMappedEntityCompletion",
+        "DwgMappedEntityOutcome",
+        "DwgPolylinePrepareFailurePoint",
+        "DwgPolylineStageFailurePoint",
+        "DwgTerminalizerFailurePoint",
+        "Origin",
+        "Route",
+        "secEnum"
+      ],
+      "includes": [
+        "../drw_entities.h",
+        "../drw_objects.h",
+        "../libdwgr.h",
+        "algorithm",
+        "drw_textcodec.h",
+        "dwgbuffer.h",
+        "dwgsafety.h",
+        "dwgutil.h",
+        "limits",
+        "list",
+        "memory",
+        "optional",
+        "set",
+        "unordered_map",
+        "unordered_set",
+        "utility",
+        "vector"
+      ],
+      "macros": [
+        "DWGREADER_H"
+      ],
+      "path": "src/intern/dwgreader.h",
+      "sha256": "20244687203522df12e1791971f4cfd7ae9da60f0a3bb82e33dc1ac0fb303cb8",
+      "typedefs": [
+        "DwgObjectMap",
+        "dwgR"
+      ]
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "dwgReader15"
+      ],
+      "enumValues": [],
+      "enums": [],
+      "includes": [
+        "drw_textcodec.h",
+        "dwgbuffer.h",
+        "dwgreader.h"
+      ],
+      "macros": [
+        "DWGREADER15_H"
+      ],
+      "path": "src/intern/dwgreader15.h",
+      "sha256": "3861862f10e587f885ac71a4031c7ca6b924cffd2d18fe768c9ded712c86c692",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "dwgReader18"
+      ],
+      "enumValues": [],
+      "enums": [],
+      "includes": [
+        "dwgbuffer.h",
+        "dwgreader.h",
+        "limits",
+        "unordered_map"
+      ],
+      "macros": [
+        "DWGREADER18_H"
+      ],
+      "path": "src/intern/dwgreader18.h",
+      "sha256": "08a2bf08d237bbaecdce83a59f3c2948669222bf4dd133461a84ebd3f2603855",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "PageMapFailure",
+        "dwgReader21"
+      ],
+      "enumValues": [
+        "CountMismatch",
+        "DuplicatePageId",
+        "InvalidInput",
+        "InvalidPageId",
+        "NonZeroTail",
+        "None",
+        "PageRange",
+        "ResourceLimit",
+        "Truncated"
+      ],
+      "enums": [
+        "PageMapFailure"
+      ],
+      "includes": [
+        "drw_textcodec.h",
+        "dwgbuffer.h",
+        "dwgreader.h",
+        "unordered_map",
+        "vector"
+      ],
+      "macros": [
+        "DWGREADER21_H"
+      ],
+      "path": "src/intern/dwgreader21.h",
+      "sha256": "a67df90fe6d517e305f397a36b6aa3a0f05d2604637e70088aa6b966988bc580",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "dwgReader24"
+      ],
+      "enumValues": [],
+      "enums": [],
+      "includes": [
+        "drw_textcodec.h",
+        "dwgbuffer.h",
+        "dwgreader18.h"
+      ],
+      "macros": [
+        "DWGREADER24_H"
+      ],
+      "path": "src/intern/dwgreader24.h",
+      "sha256": "86f0346badb5dcac299bb03b4f6a604a3d03a41ddbade6607b8f2f518875dcbd",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "dwgReader27"
+      ],
+      "enumValues": [],
+      "enums": [],
+      "includes": [
+        "drw_textcodec.h",
+        "dwgbuffer.h",
+        "dwgreader18.h"
+      ],
+      "macros": [
+        "DWGREADER27_H"
+      ],
+      "path": "src/intern/dwgreader27.h",
+      "sha256": "63fc7b3b54a03a06685d29be01c5443ed8cb0c898f303a4af6aeaab2eaa69d64",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "dwgReader32"
+      ],
+      "enumValues": [],
+      "enums": [],
+      "includes": [
+        "dwgreader27.h"
+      ],
+      "macros": [
+        "DWGREADER32_H"
+      ],
+      "path": "src/intern/dwgreader32.h",
+      "sha256": "90d911a25b0ce9918b74823e34f047b822cfcae22b55c60e6c572c8b298547ed",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "dwgReaderR11"
+      ],
+      "enumValues": [],
+      "enums": [],
+      "includes": [
+        "cstdint",
+        "drw_textcodec.h",
+        "dwgreader.h",
+        "memory"
+      ],
+      "macros": [
+        "DWGREADERR11_H"
+      ],
+      "path": "src/intern/dwgreaderR11.h",
+      "sha256": "2b399c1572ef89fbac1b4eddd4990989e7ef61e4feea2225f53d385b18e36c75",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "dwgReaderR1_40"
+      ],
+      "enumValues": [],
+      "enums": [],
+      "includes": [
+        "cstdint",
+        "dwgreader.h",
+        "memory",
+        "string"
+      ],
+      "macros": [
+        "DWGREADERR1_40_H"
+      ],
+      "path": "src/intern/dwgreaderR1_40.h",
+      "sha256": "e19f73436517ac2487d982827e2ccdcc1e3ad444f028d8886f5c1d6d68d51c12",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [],
+      "enumValues": [],
+      "enums": [],
+      "includes": [
+        "cstdint",
+        "limits"
+      ],
+      "macros": [
+        "DWGSAFETY_H"
+      ],
+      "path": "src/intern/dwgsafety.h",
+      "sha256": "82f5393b5b20d524bf1822b674d5a6678d72a2217dce4ec7fa7737ca75e36d7f",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "CRC",
+        "DwgDataStorageWriterOperation",
+        "binding",
+        "dwgCompressor",
+        "identities",
+        "ordinals"
+      ],
+      "enumValues": [
+        "ACDBPLACEHOLDER",
+        "ACIS",
+        "ANSI_1250",
+        "ANSI_1251",
+        "ANSI_1252",
+        "ANSI_1253",
+        "ANSI_1254",
+        "ANSI_1255",
+        "ANSI_1256",
+        "ANSI_1257",
+        "ANSI_1258",
+        "ANSI_874",
+        "APPINFO",
+        "APPINFOHISTORY",
+        "ARC",
+        "ATTDEF",
+        "ATTRIB",
+        "AUXHEADER",
+        "BIG5",
+        "BLOCK",
+        "BLOCKREPRESENTATION",
+        "BODY",
+        "BYBLOCK",
+        "BYLAYER",
+        "Block21OrderArray",
+        "CAMERA",
+        "CIRCLE",
+        "CLASSES",
+        "DBCOLOR",
+        "DICTIONARY",
+        "DIM_ALIGNED",
+        "DIM_ANGULAR",
+        "DIM_ANGULAR3P",
+        "DIM_DIAMETRIC",
+        "DIM_LINEAR",
+        "DIM_ORDINATE",
+        "DIM_RADIAL",
+        "DUMMY",
+        "ELLIPSE",
+        "ENDBLK",
+        "EXTEDATA",
+        "FACE3D",
+        "FILEDEP",
+        "FILEHEADER",
+        "GBK",
+        "GBK_CP936",
+        "GROUP",
+        "HANDLES",
+        "HATCH",
+        "HEADER",
+        "IMAGE",
+        "IMAGEDEF",
+        "INSERT",
+        "KOREAN_WANSUNG",
+        "LAYOUT",
+        "LEADER",
+        "LINE",
+        "LONG_TRANSACTION",
+        "LWPOLYLINE",
+        "MINSERT",
+        "MLINE",
+        "MLINESTYLE",
+        "MTEXT",
+        "MaxBlock21Length",
+        "NAVISWORKSMODEL",
+        "None",
+        "OBJECTS",
+        "OBJFREESPACE",
+        "OLE2FRAME",
+        "OLEFRAME",
+        "POINT",
+        "POLYLINE_2D",
+        "POLYLINE_3D",
+        "POLYLINE_MESH",
+        "POLYLINE_PFACE",
+        "PREVIEW",
+        "PROTOTYPE",
+        "PROXY_ENTITY",
+        "PROXY_OBJECT",
+        "RAY",
+        "REGION",
+        "REVHISTORY",
+        "RGB",
+        "SECURITY",
+        "SEQEND",
+        "SHAPE",
+        "SHIFT_JIS",
+        "SIGNATURE",
+        "SOLID",
+        "SOLID3D",
+        "SPLINE",
+        "SUMARYINFO",
+        "TEMPLATE",
+        "TEXT",
+        "THREEDLINE",
+        "TOLERANCE",
+        "TRACE",
+        "UNKNOWNS",
+        "UNKNOWN_36",
+        "UNKNOWN_37",
+        "UNKNOWN_3A",
+        "UNKNOWN_3B",
+        "UNKNOWN_9",
+        "VBAPROY",
+        "VBA_PROJECT",
+        "VERTEX_2D",
+        "VERTEX_3D",
+        "VERTEX_MESH",
+        "VERTEX_PFACE",
+        "VERTEX_PFACE_FACE",
+        "VIEWPORT",
+        "VPORT_ENTITY_HEADER",
+        "WINDOW_BG",
+        "WIPEOUT",
+        "WriteAcDbPlaceholder",
+        "WriteDbColor",
+        "WriteDictionary",
+        "WriteDictionaryVar",
+        "WriteDictionaryWithDefault",
+        "WriteDimensionAssociation",
+        "WriteEvaluationGraph",
+        "WriteField",
+        "WriteFieldList",
+        "WriteGeoData",
+        "WriteGroup",
+        "WriteIDBuffer",
+        "WriteLayerIndex",
+        "WriteLayout",
+        "WriteLightList",
+        "WriteMLeaderStyle",
+        "WriteMLineStyle",
+        "WriteMaterial",
+        "WriteNavisworksModelDef",
+        "WritePointCloudColorMap",
+        "WritePointCloudDef",
+        "WriteRasterVariables",
+        "WriteScale",
+        "WriteSortEntsTable",
+        "WriteSpatialFilter",
+        "WriteSpatialIndex",
+        "WriteTableStyle",
+        "WriteTvDeviceProperties",
+        "WriteUnderlayDefinition",
+        "WriteVxControl",
+        "WriteVxTableRecord",
+        "WriteWipeoutVariables",
+        "WriteXRecord",
+        "XLINE",
+        "XRECORD"
+      ],
+      "enums": [
+        "CodePage",
+        "DWGSection",
+        "DwgDataStorageWriterOperation",
+        "Encoding",
+        "Entity",
+        "Object",
+        "R21Consts"
+      ],
+      "includes": [
+        "../drw_base.h",
+        "cstddef",
+        "cstdint"
+      ],
+      "macros": [
+        "DWGUTIL_H"
+      ],
+      "path": "src/intern/dwgutil.h",
+      "sha256": "fba50c53a6a7d8595bfa4645461fe3ba67c42a6f115cad52dec672c33fca7526",
+      "typedefs": []
+    },
+    {
+      "callbacks": [
+        "addRawDwgSection"
+      ],
+      "classes": [
+        "CompoundWriteCheckpoint",
+        "DRW_Entity",
+        "DRW_TextCodec",
+        "DwgClassDefinition",
+        "DwgRawClassIdentityKey",
+        "DwgTypedClassRow",
+        "cannot",
+        "dwgReader",
+        "dwgWriter",
+        "from",
+        "identity",
+        "in",
+        "instance",
+        "instances",
+        "is",
+        "may",
+        "name",
+        "number",
+        "numbers",
+        "object",
+        "ordinal",
+        "ordinals",
+        "range",
+        "registration",
+        "return",
+        "set",
+        "switch",
+        "table",
+        "underlay",
+        "using",
+        "version"
+      ],
+      "enumValues": [],
+      "enums": [],
+      "includes": [
+        "../drw_base.h",
+        "../drw_entities.h",
+        "../drw_header.h",
+        "../drw_objects.h",
+        "../handle_allocator.h",
+        "algorithm",
+        "cstddef",
+        "dwgbufferw.h",
+        "dwgutil.h",
+        "fstream",
+        "limits",
+        "map",
+        "set",
+        "string",
+        "utility",
+        "vector"
+      ],
+      "macros": [
+        "DWGWRITER_H"
+      ],
+      "path": "src/intern/dwgwriter.h",
+      "sha256": "aff932d233602cc5472acfbda4e583287a85cd995e36efc4937b47a79e33a90d",
+      "typedefs": []
+    },
+    {
+      "callbacks": [
+        "addAppId",
+        "addDimstyle",
+        "addLType",
+        "addLayer",
+        "addTextstyle",
+        "addUcs",
+        "addView",
+        "addViewportEntityHeader",
+        "addVport"
+      ],
+      "classes": [
+        "DRW_Entity",
+        "PendingUserBlock",
+        "and",
+        "dwgRW",
+        "dwgWriter15"
+      ],
+      "enumValues": [],
+      "enums": [],
+      "includes": [
+        "../drw_objects.h",
+        "drw_textcodec.h",
+        "dwgwriter.h",
+        "initializer_list",
+        "set",
+        "unordered_map",
+        "utility",
+        "vector"
+      ],
+      "macros": [
+        "DWGWRITER15_H"
+      ],
+      "path": "src/intern/dwgwriter15.h",
+      "sha256": "faa88ce8f8af5ed695d032a83bf79e6821eae6842ab4e024bc4a939434546429",
+      "typedefs": []
+    },
+    {
+      "callbacks": [
+        "addRawDwgSection"
+      ],
+      "classes": [
+        "dwgWriter18"
+      ],
+      "enumValues": [],
+      "enums": [],
+      "includes": [
+        "dwgwriter15.h"
+      ],
+      "macros": [
+        "DWGWRITER18_H"
+      ],
+      "path": "src/intern/dwgwriter18.h",
+      "sha256": "c0302211675ddc034fd4f57f13bbdc9e63704a31be2dc1f63766f44047a37f8b",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "dwgWriter21"
+      ],
+      "enumValues": [],
+      "enums": [],
+      "includes": [
+        "dwgwriter24.h"
+      ],
+      "macros": [
+        "DWGWRITER21_H"
+      ],
+      "path": "src/intern/dwgwriter21.h",
+      "sha256": "91159ae6467a51b48207f175f52a4bdb9c4b125cb0f37fa82f1ea6b2759b2b3e",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "dwgWriter24"
+      ],
+      "enumValues": [],
+      "enums": [],
+      "includes": [
+        "dwgwriter18.h"
+      ],
+      "macros": [
+        "DWGWRITER24_H"
+      ],
+      "path": "src/intern/dwgwriter24.h",
+      "sha256": "52655faf5407d8945419684e53fcf4daebf714defb9f1230dd10cb8bc8503bf3",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "dwgWriter27"
+      ],
+      "enumValues": [],
+      "enums": [],
+      "includes": [
+        "dwgwriter24.h"
+      ],
+      "macros": [
+        "DWGWRITER27_H"
+      ],
+      "path": "src/intern/dwgwriter27.h",
+      "sha256": "6ad872d3f6f240b78097e921f7a941d9bae56faf3010b686ee7b41b8e18000b4",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "dwgWriter32"
+      ],
+      "enumValues": [],
+      "enums": [],
+      "includes": [
+        "dwgwriter27.h"
+      ],
+      "macros": [
+        "DWGWRITER32_H"
+      ],
+      "path": "src/intern/dwgwriter32.h",
+      "sha256": "4bbbba4790e2beaed515bd92d917fdd58ee9508f201543c6c942c38bafc6794c",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "Kind",
+        "Page",
+        "R2004LayoutReceipt",
+        "R2004PhysicalPage",
+        "R2004Section",
+        "R2004Snapshot",
+        "R2007LayoutReceipt",
+        "R2007Page",
+        "R2007PhysicalPage",
+        "R2007Section",
+        "R2007SectionPage",
+        "R2007Snapshot",
+        "R2007SystemPage",
+        "ValidationCategory",
+        "ValidationResult"
+      ],
+      "enumValues": [
+        "Checksum",
+        "Data",
+        "DataSectionMap",
+        "Decompression",
+        "Duplicate",
+        "Header",
+        "Map",
+        "None",
+        "PageMap",
+        "ReedSolomon",
+        "SectionMap",
+        "SectionPageMap",
+        "Span",
+        "Topology"
+      ],
+      "enums": [
+        "Kind",
+        "ValidationCategory"
+      ],
+      "includes": [
+        "../drw_base.h",
+        "cstdint",
+        "string",
+        "variant",
+        "vector"
+      ],
+      "macros": [
+        "DWGWRITERLAYOUTVALIDATION_H"
+      ],
+      "path": "src/intern/dwgwriterlayoutvalidation.h",
+      "sha256": "a14f79c542a592b2d6c102795c9f36c1b3bc1971382efa3cda256eee80804f0d",
+      "typedefs": [
+        "Snapshot",
+        "TestSnapshotObserver"
+      ]
+    },
+    {
+      "callbacks": [],
+      "classes": [],
+      "enumValues": [],
+      "enums": [],
+      "includes": [
+        "cstddef"
+      ],
+      "macros": [
+        "DXFPARSERLIMITS_H"
+      ],
+      "path": "src/intern/dxfparserlimits.h",
+      "sha256": "e59f96cc162fd1279b96244a984f8d5693207c750008e1b661baa58a7c52c721",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "dxfReader",
+        "dxfReaderAscii",
+        "dxfReaderBinary",
+        "dxfReaderBinaryR12"
+      ],
+      "enumValues": [
+        "BINARY",
+        "BOOL",
+        "DOUBLE",
+        "INT32",
+        "INT64",
+        "INVALID",
+        "STRING"
+      ],
+      "enums": [
+        "TYPE"
+      ],
+      "includes": [
+        "cstdint",
+        "drw_textcodec.h",
+        "unordered_set"
+      ],
+      "macros": [
+        "DXFREADER_H"
+      ],
+      "path": "src/intern/dxfreader.h",
+      "sha256": "87b13e521a3a3e0a5c193ef119383aa642de72e36111fc09df9ab9d8c0d63160",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "DxfWriterRecordScope",
+        "State",
+        "dxfWriter",
+        "dxfWriterAscii",
+        "dxfWriterBinary",
+        "dxfWriterBinaryR12"
+      ],
+      "enumValues": [
+        "Aborted",
+        "AppendFailed",
+        "Committed",
+        "Open"
+      ],
+      "enums": [
+        "State"
+      ],
+      "includes": [
+        "cstdint",
+        "drw_textcodec.h",
+        "ostream",
+        "sstream"
+      ],
+      "macros": [
+        "DXFWRITER_H"
+      ],
+      "path": "src/intern/dxfwriter.h",
+      "sha256": "3a5e389879b133ef2f62031a0a5abef16eceae18ca56065cb9b03f69ee13d554",
+      "typedefs": []
+    },
+    {
+      "callbacks": [
+        "addArc",
+        "addCircle",
+        "addEllipse",
+        "addLWPolyline",
+        "addMesh",
+        "addPolyline",
+        "addText"
+      ],
+      "classes": [
+        "DRW_Arc",
+        "DRW_Circle",
+        "DRW_Ellipse",
+        "DRW_Entity",
+        "DRW_Interface",
+        "DRW_LWPolyline",
+        "DRW_Mesh",
+        "DRW_Polyline",
+        "DRW_ProxyGraphicDecodeResult",
+        "DRW_ProxyGraphicDecoder",
+        "DRW_ProxyGraphicLimits",
+        "DRW_ProxyGraphicSink",
+        "DRW_ProxyGraphicStopReason",
+        "DRW_Text"
+      ],
+      "enumValues": [
+        "AllocationFailure",
+        "ChunkLimit",
+        "Complete",
+        "InvalidChunkSize",
+        "MatrixDepthLimit",
+        "PrimitiveLimit",
+        "ResourceLimit",
+        "ShortHeader",
+        "SinkRefused",
+        "TruncatedChunk"
+      ],
+      "enums": [
+        "DRW_ProxyGraphicStopReason"
+      ],
+      "includes": [
+        "../drw_base.h",
+        "cstddef",
+        "string",
+        "vector"
+      ],
+      "macros": [
+        "PROXYGRAPHICDECODER_H"
+      ],
+      "path": "src/intern/proxygraphicdecoder.h",
+      "sha256": "a8237e9ee8a32df099ce81d8793369e4eb11f923a298912f00bdbdf75bbd9efc",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "RScodec"
+      ],
+      "enumValues": [],
+      "enums": [],
+      "includes": [
+        "memory",
+        "vector"
+      ],
+      "macros": [
+        "RSCODEC_H"
+      ],
+      "path": "src/intern/rscodec.h",
+      "sha256": "4b74485421fac2b5520e5f3b87292fe1c8aadaff3517b4e261a91bdf67082147",
+      "typedefs": []
+    },
+    {
+      "callbacks": [
+        "addAppId",
+        "addDimstyle",
+        "addLType",
+        "addLayer",
+        "addTextstyle",
+        "addUCS",
+        "addView",
+        "addViewportEntityHeader",
+        "addVport"
+      ],
+      "classes": [
+        "DwgCompoundWriteTestAccess",
+        "DwgDataStorageWriterBinding",
+        "DwgDataStorageWriterCapability",
+        "DwgDataStorageWriterPhase",
+        "DwgEntityWriteState",
+        "DwgIntegrityAddressSpace",
+        "DwgIntegrityCheckKind",
+        "DwgIntegrityDiagnostic",
+        "DwgIntegrityPhase",
+        "DwgIntegritySeverity",
+        "DwgTableWriteState",
+        "DwgWriteFailurePoint",
+        "DwgWriteFailureTestAccess",
+        "DwgWriteTransaction",
+        "WriteSkipCounters",
+        "WriteSkipKind",
+        "admission",
+        "dwgBuffer",
+        "dwgR",
+        "dwgRW",
+        "dwgReader",
+        "dwgWriter",
+        "dxfRW",
+        "entities",
+        "is",
+        "number",
+        "ordinal",
+        "ordinals",
+        "table"
+      ],
+      "enumValues": [
+        "AcDbPlaceholder",
+        "AfterEndBlockFrame",
+        "AfterFirstBlockOwnedEntity",
+        "AfterFirstBlockRecord",
+        "AfterFirstDeferredTableRecord",
+        "BeforeEndBlockFrame",
+        "BlockDefinition",
+        "ClassRegistration",
+        "ClassesCrc",
+        "DataPage",
+        "DataPageChecksum",
+        "DataPageCrc",
+        "DbColor",
+        "DecodedBuffer",
+        "Decompression",
+        "Dictionary",
+        "DictionaryVar",
+        "DictionaryWithDefault",
+        "DimensionAssociation",
+        "Entity",
+        "Error",
+        "EvaluationGraph",
+        "Field",
+        "FieldList",
+        "FileHeader",
+        "FileHeaderCrc",
+        "FrameLedgerTransition",
+        "GeoData",
+        "Group",
+        "IDBuffer",
+        "LayerIndex",
+        "Layout",
+        "LightList",
+        "MLeaderStyle",
+        "MLineStyle",
+        "Material",
+        "Metadata",
+        "NavisworksModelDefinition",
+        "None",
+        "Object",
+        "ObjectFrame",
+        "ObjectFrameBounds",
+        "ObjectMap",
+        "ObjectMapCrc",
+        "ObjectMapDuplicateOffset",
+        "ObjectMapProgress",
+        "Objects",
+        "PageGeometry",
+        "PageMap",
+        "PageMapReference",
+        "PageRange",
+        "PhysicalFile",
+        "PointCloudColorMap",
+        "PointCloudDefinition",
+        "PointCloudDefinitionEx",
+        "PointCloudDefinitionReactor",
+        "PointCloudDefinitionReactorEx",
+        "RasterVariables",
+        "RawObject",
+        "RawSection",
+        "ReedSolomonDecode",
+        "Scale",
+        "Section",
+        "SectionMap",
+        "SectionPageReference",
+        "SectionParser",
+        "SortEntsTable",
+        "SpatialFilter",
+        "SpatialIndex",
+        "SystemPageChecksum",
+        "SystemPageCrc",
+        "SystemPageUncompressedCrc",
+        "TableRecord",
+        "TableStyle",
+        "TvDeviceProperties",
+        "UnderlayDgn",
+        "UnderlayDwf",
+        "UnderlayPdf",
+        "VxControl",
+        "VxTableRecord",
+        "Warning",
+        "WipeoutVariables",
+        "XRecord"
+      ],
+      "enums": [
+        "DwgDataStorageWriterBinding",
+        "DwgDataStorageWriterPhase",
+        "DwgIntegrityAddressSpace",
+        "DwgIntegrityCheckKind",
+        "DwgIntegrityPhase",
+        "DwgIntegritySeverity",
+        "DwgWriteFailurePoint",
+        "WriteSkipKind",
+        "contract",
+        "value"
+      ],
+      "includes": [
+        "cstddef",
+        "cstdint",
+        "drw_classes.h",
+        "drw_entities.h",
+        "drw_interface.h",
+        "drw_objects.h",
+        "functional",
+        "intern/dwgutil.h",
+        "limits",
+        "memory",
+        "set",
+        "string",
+        "unordered_map",
+        "vector"
+      ],
+      "macros": [
+        "LIBDWGR_H"
+      ],
+      "path": "src/libdwgr.h",
+      "sha256": "e06f2d410eaef55401b1d7d1ca4fcff97337ee2da88b502f9bcbe3a6f3ac705a",
+      "typedefs": [
+        "dwgR"
+      ]
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "BlockRecordInfo",
+        "DRW_ParsingContext",
+        "DxfEntityBoundary",
+        "DxfWriteMutation",
+        "DxfWriteMutationKind",
+        "EntityRecordScope",
+        "OBJECTS",
+        "PendingDxfBlockRecord",
+        "RecordStateScope",
+        "dxfRW",
+        "dxfReader",
+        "dxfWriter",
+        "to"
+      ],
+      "enumValues": [
+        "AmbiguousSourceHandleInsert",
+        "BlockMapInsert",
+        "EndBlock",
+        "EndSection",
+        "Error",
+        "ImageReactorInsert",
+        "NextEntity",
+        "SourceHandleErase",
+        "SourceHandleInsert",
+        "TextStyleMapSet"
+      ],
+      "enums": [
+        "DxfEntityBoundary",
+        "DxfWriteMutationKind"
+      ],
+      "includes": [
+        "drw_classes.h",
+        "drw_entities.h",
+        "drw_header.h",
+        "drw_interface.h",
+        "drw_objects.h",
+        "functional",
+        "handle_allocator.h",
+        "list",
+        "map",
+        "memory",
+        "set",
+        "string",
+        "unordered_map",
+        "utility",
+        "vector"
+      ],
+      "macros": [
+        "LIBDXFRW_H"
+      ],
+      "path": "src/libdxfrw.h",
+      "sha256": "35f51a8675b8dadc71e1a74821856843e8d994b30eef8c51a74be8fa9ae1b864",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [],
+      "enumValues": [],
+      "enums": [],
+      "includes": [],
+      "macros": [],
+      "path": "src/main_doc.h",
+      "sha256": "ec310b5f933e4377564e4a61b607c05d706b944bdd0d97389825ca92a0ae95ca",
+      "typedefs": []
+    }
+  ],
+  "includeDependencies": [
+    {
+      "from": "src/drw_acis.h",
+      "to": "cstdint"
+    },
+    {
+      "from": "src/drw_acis.h",
+      "to": "drw_base.h"
+    },
+    {
+      "from": "src/drw_acis.h",
+      "to": "string"
+    },
+    {
+      "from": "src/drw_acis.h",
+      "to": "vector"
+    },
+    {
+      "from": "src/drw_base.h",
+      "to": "array"
+    },
+    {
+      "from": "src/drw_base.h",
+      "to": "cmath"
+    },
+    {
+      "from": "src/drw_base.h",
+      "to": "cstdint"
+    },
+    {
+      "from": "src/drw_base.h",
+      "to": "memory"
+    },
+    {
+      "from": "src/drw_base.h",
+      "to": "string"
+    },
+    {
+      "from": "src/drw_base.h",
+      "to": "unordered_map"
+    },
+    {
+      "from": "src/drw_base.h",
+      "to": "utility"
+    },
+    {
+      "from": "src/drw_base.h",
+      "to": "vector"
+    },
+    {
+      "from": "src/drw_classes.h",
+      "to": "drw_base.h"
+    },
+    {
+      "from": "src/drw_datastorage.h",
+      "to": "cstddef"
+    },
+    {
+      "from": "src/drw_datastorage.h",
+      "to": "cstdint"
+    },
+    {
+      "from": "src/drw_datastorage.h",
+      "to": "drw_base.h"
+    },
+    {
+      "from": "src/drw_datastorage.h",
+      "to": "string"
+    },
+    {
+      "from": "src/drw_datastorage.h",
+      "to": "unordered_map"
+    },
+    {
+      "from": "src/drw_datastorage.h",
+      "to": "vector"
+    },
+    {
+      "from": "src/drw_entities.h",
+      "to": "array"
+    },
+    {
+      "from": "src/drw_entities.h",
+      "to": "drw_acis.h"
+    },
+    {
+      "from": "src/drw_entities.h",
+      "to": "drw_base.h"
+    },
+    {
+      "from": "src/drw_entities.h",
+      "to": "drw_objects.h"
+    },
+    {
+      "from": "src/drw_entities.h",
+      "to": "limits"
+    },
+    {
+      "from": "src/drw_entities.h",
+      "to": "list"
+    },
+    {
+      "from": "src/drw_entities.h",
+      "to": "memory"
+    },
+    {
+      "from": "src/drw_entities.h",
+      "to": "string"
+    },
+    {
+      "from": "src/drw_entities.h",
+      "to": "vector"
+    },
+    {
+      "from": "src/drw_header.h",
+      "to": "drw_base.h"
+    },
+    {
+      "from": "src/drw_header.h",
+      "to": "limits"
+    },
+    {
+      "from": "src/drw_header.h",
+      "to": "map"
+    },
+    {
+      "from": "src/drw_header.h",
+      "to": "memory"
+    },
+    {
+      "from": "src/drw_header.h",
+      "to": "unordered_map"
+    },
+    {
+      "from": "src/drw_header.h",
+      "to": "utility"
+    },
+    {
+      "from": "src/drw_interface.h",
+      "to": "cstring"
+    },
+    {
+      "from": "src/drw_interface.h",
+      "to": "drw_datastorage.h"
+    },
+    {
+      "from": "src/drw_interface.h",
+      "to": "drw_entities.h"
+    },
+    {
+      "from": "src/drw_interface.h",
+      "to": "drw_header.h"
+    },
+    {
+      "from": "src/drw_interface.h",
+      "to": "drw_objects.h"
+    },
+    {
+      "from": "src/drw_objects.h",
+      "to": "array"
+    },
+    {
+      "from": "src/drw_objects.h",
+      "to": "cstddef"
+    },
+    {
+      "from": "src/drw_objects.h",
+      "to": "drw_base.h"
+    },
+    {
+      "from": "src/drw_objects.h",
+      "to": "limits"
+    },
+    {
+      "from": "src/drw_objects.h",
+      "to": "list"
+    },
+    {
+      "from": "src/drw_objects.h",
+      "to": "map"
+    },
+    {
+      "from": "src/drw_objects.h",
+      "to": "memory"
+    },
+    {
+      "from": "src/drw_objects.h",
+      "to": "optional"
+    },
+    {
+      "from": "src/drw_objects.h",
+      "to": "set"
+    },
+    {
+      "from": "src/drw_objects.h",
+      "to": "string"
+    },
+    {
+      "from": "src/drw_objects.h",
+      "to": "utility"
+    },
+    {
+      "from": "src/drw_objects.h",
+      "to": "vector"
+    },
+    {
+      "from": "src/handle_allocator.h",
+      "to": "cassert"
+    },
+    {
+      "from": "src/handle_allocator.h",
+      "to": "cstdint"
+    },
+    {
+      "from": "src/handle_allocator.h",
+      "to": "drw_base.h"
+    },
+    {
+      "from": "src/handle_allocator.h",
+      "to": "intern/dwg_fixed_handles.h"
+    },
+    {
+      "from": "src/handle_allocator.h",
+      "to": "limits"
+    },
+    {
+      "from": "src/handle_allocator.h",
+      "to": "set"
+    },
+    {
+      "from": "src/handle_allocator.h",
+      "to": "stdexcept"
+    },
+    {
+      "from": "src/intern/drw_dbg.h",
+      "to": "../drw_base.h"
+    },
+    {
+      "from": "src/intern/drw_dbg.h",
+      "to": "iostream"
+    },
+    {
+      "from": "src/intern/drw_dbg.h",
+      "to": "memory"
+    },
+    {
+      "from": "src/intern/drw_dbg.h",
+      "to": "string"
+    },
+    {
+      "from": "src/intern/drw_dbg.h",
+      "to": "utility"
+    },
+    {
+      "from": "src/intern/drw_reserve.h",
+      "to": "drw_dbg.h"
+    },
+    {
+      "from": "src/intern/drw_reserve.h",
+      "to": "exception"
+    },
+    {
+      "from": "src/intern/drw_reserve.h",
+      "to": "string"
+    },
+    {
+      "from": "src/intern/drw_reserve.h",
+      "to": "unordered_map"
+    },
+    {
+      "from": "src/intern/drw_reserve.h",
+      "to": "unordered_set"
+    },
+    {
+      "from": "src/intern/drw_reserve.h",
+      "to": "vector"
+    },
+    {
+      "from": "src/intern/drw_textcodec.h",
+      "to": "../drw_base.h"
+    },
+    {
+      "from": "src/intern/drw_textcodec.h",
+      "to": "memory"
+    },
+    {
+      "from": "src/intern/drw_textcodec.h",
+      "to": "string"
+    },
+    {
+      "from": "src/intern/drw_textcodec.h",
+      "to": "string_view"
+    },
+    {
+      "from": "src/intern/dwg_dxf_output_transaction.h",
+      "to": "filesystem"
+    },
+    {
+      "from": "src/intern/dwg_dxf_output_transaction.h",
+      "to": "fstream"
+    },
+    {
+      "from": "src/intern/dwg_dxf_output_transaction.h",
+      "to": "ios"
+    },
+    {
+      "from": "src/intern/dwg_dxf_output_transaction.h",
+      "to": "string"
+    },
+    {
+      "from": "src/intern/dwg_fixed_handles.h",
+      "to": "cstdint"
+    },
+    {
+      "from": "src/intern/dwgbuffer.h",
+      "to": "../drw_base.h"
+    },
+    {
+      "from": "src/intern/dwgbuffer.h",
+      "to": "dwgutil.h"
+    },
+    {
+      "from": "src/intern/dwgbuffer.h",
+      "to": "fstream"
+    },
+    {
+      "from": "src/intern/dwgbuffer.h",
+      "to": "memory"
+    },
+    {
+      "from": "src/intern/dwgbuffer.h",
+      "to": "sstream"
+    },
+    {
+      "from": "src/intern/dwgbufferw.h",
+      "to": "../drw_base.h"
+    },
+    {
+      "from": "src/intern/dwgbufferw.h",
+      "to": "algorithm"
+    },
+    {
+      "from": "src/intern/dwgbufferw.h",
+      "to": "string"
+    },
+    {
+      "from": "src/intern/dwgbufferw.h",
+      "to": "vector"
+    },
+    {
+      "from": "src/intern/dwgobjectframe.h",
+      "to": "cstdint"
+    },
+    {
+      "from": "src/intern/dwgobjectframe.h",
+      "to": "dwgbuffer.h"
+    },
+    {
+      "from": "src/intern/dwgobjectframe.h",
+      "to": "vector"
+    },
+    {
+      "from": "src/intern/dwgreader.h",
+      "to": "../drw_entities.h"
+    },
+    {
+      "from": "src/intern/dwgreader.h",
+      "to": "../drw_objects.h"
+    },
+    {
+      "from": "src/intern/dwgreader.h",
+      "to": "../libdwgr.h"
+    },
+    {
+      "from": "src/intern/dwgreader.h",
+      "to": "algorithm"
+    },
+    {
+      "from": "src/intern/dwgreader.h",
+      "to": "drw_textcodec.h"
+    },
+    {
+      "from": "src/intern/dwgreader.h",
+      "to": "dwgbuffer.h"
+    },
+    {
+      "from": "src/intern/dwgreader.h",
+      "to": "dwgsafety.h"
+    },
+    {
+      "from": "src/intern/dwgreader.h",
+      "to": "dwgutil.h"
+    },
+    {
+      "from": "src/intern/dwgreader.h",
+      "to": "limits"
+    },
+    {
+      "from": "src/intern/dwgreader.h",
+      "to": "list"
+    },
+    {
+      "from": "src/intern/dwgreader.h",
+      "to": "memory"
+    },
+    {
+      "from": "src/intern/dwgreader.h",
+      "to": "optional"
+    },
+    {
+      "from": "src/intern/dwgreader.h",
+      "to": "set"
+    },
+    {
+      "from": "src/intern/dwgreader.h",
+      "to": "unordered_map"
+    },
+    {
+      "from": "src/intern/dwgreader.h",
+      "to": "unordered_set"
+    },
+    {
+      "from": "src/intern/dwgreader.h",
+      "to": "utility"
+    },
+    {
+      "from": "src/intern/dwgreader.h",
+      "to": "vector"
+    },
+    {
+      "from": "src/intern/dwgreader15.h",
+      "to": "drw_textcodec.h"
+    },
+    {
+      "from": "src/intern/dwgreader15.h",
+      "to": "dwgbuffer.h"
+    },
+    {
+      "from": "src/intern/dwgreader15.h",
+      "to": "dwgreader.h"
+    },
+    {
+      "from": "src/intern/dwgreader18.h",
+      "to": "dwgbuffer.h"
+    },
+    {
+      "from": "src/intern/dwgreader18.h",
+      "to": "dwgreader.h"
+    },
+    {
+      "from": "src/intern/dwgreader18.h",
+      "to": "limits"
+    },
+    {
+      "from": "src/intern/dwgreader18.h",
+      "to": "unordered_map"
+    },
+    {
+      "from": "src/intern/dwgreader21.h",
+      "to": "drw_textcodec.h"
+    },
+    {
+      "from": "src/intern/dwgreader21.h",
+      "to": "dwgbuffer.h"
+    },
+    {
+      "from": "src/intern/dwgreader21.h",
+      "to": "dwgreader.h"
+    },
+    {
+      "from": "src/intern/dwgreader21.h",
+      "to": "unordered_map"
+    },
+    {
+      "from": "src/intern/dwgreader21.h",
+      "to": "vector"
+    },
+    {
+      "from": "src/intern/dwgreader24.h",
+      "to": "drw_textcodec.h"
+    },
+    {
+      "from": "src/intern/dwgreader24.h",
+      "to": "dwgbuffer.h"
+    },
+    {
+      "from": "src/intern/dwgreader24.h",
+      "to": "dwgreader18.h"
+    },
+    {
+      "from": "src/intern/dwgreader27.h",
+      "to": "drw_textcodec.h"
+    },
+    {
+      "from": "src/intern/dwgreader27.h",
+      "to": "dwgbuffer.h"
+    },
+    {
+      "from": "src/intern/dwgreader27.h",
+      "to": "dwgreader18.h"
+    },
+    {
+      "from": "src/intern/dwgreader32.h",
+      "to": "dwgreader27.h"
+    },
+    {
+      "from": "src/intern/dwgreaderR11.h",
+      "to": "cstdint"
+    },
+    {
+      "from": "src/intern/dwgreaderR11.h",
+      "to": "drw_textcodec.h"
+    },
+    {
+      "from": "src/intern/dwgreaderR11.h",
+      "to": "dwgreader.h"
+    },
+    {
+      "from": "src/intern/dwgreaderR11.h",
+      "to": "memory"
+    },
+    {
+      "from": "src/intern/dwgreaderR1_40.h",
+      "to": "cstdint"
+    },
+    {
+      "from": "src/intern/dwgreaderR1_40.h",
+      "to": "dwgreader.h"
+    },
+    {
+      "from": "src/intern/dwgreaderR1_40.h",
+      "to": "memory"
+    },
+    {
+      "from": "src/intern/dwgreaderR1_40.h",
+      "to": "string"
+    },
+    {
+      "from": "src/intern/dwgsafety.h",
+      "to": "cstdint"
+    },
+    {
+      "from": "src/intern/dwgsafety.h",
+      "to": "limits"
+    },
+    {
+      "from": "src/intern/dwgutil.h",
+      "to": "../drw_base.h"
+    },
+    {
+      "from": "src/intern/dwgutil.h",
+      "to": "cstddef"
+    },
+    {
+      "from": "src/intern/dwgutil.h",
+      "to": "cstdint"
+    },
+    {
+      "from": "src/intern/dwgwriter.h",
+      "to": "../drw_base.h"
+    },
+    {
+      "from": "src/intern/dwgwriter.h",
+      "to": "../drw_entities.h"
+    },
+    {
+      "from": "src/intern/dwgwriter.h",
+      "to": "../drw_header.h"
+    },
+    {
+      "from": "src/intern/dwgwriter.h",
+      "to": "../drw_objects.h"
+    },
+    {
+      "from": "src/intern/dwgwriter.h",
+      "to": "../handle_allocator.h"
+    },
+    {
+      "from": "src/intern/dwgwriter.h",
+      "to": "algorithm"
+    },
+    {
+      "from": "src/intern/dwgwriter.h",
+      "to": "cstddef"
+    },
+    {
+      "from": "src/intern/dwgwriter.h",
+      "to": "dwgbufferw.h"
+    },
+    {
+      "from": "src/intern/dwgwriter.h",
+      "to": "dwgutil.h"
+    },
+    {
+      "from": "src/intern/dwgwriter.h",
+      "to": "fstream"
+    },
+    {
+      "from": "src/intern/dwgwriter.h",
+      "to": "limits"
+    },
+    {
+      "from": "src/intern/dwgwriter.h",
+      "to": "map"
+    },
+    {
+      "from": "src/intern/dwgwriter.h",
+      "to": "set"
+    },
+    {
+      "from": "src/intern/dwgwriter.h",
+      "to": "string"
+    },
+    {
+      "from": "src/intern/dwgwriter.h",
+      "to": "utility"
+    },
+    {
+      "from": "src/intern/dwgwriter.h",
+      "to": "vector"
+    },
+    {
+      "from": "src/intern/dwgwriter15.h",
+      "to": "../drw_objects.h"
+    },
+    {
+      "from": "src/intern/dwgwriter15.h",
+      "to": "drw_textcodec.h"
+    },
+    {
+      "from": "src/intern/dwgwriter15.h",
+      "to": "dwgwriter.h"
+    },
+    {
+      "from": "src/intern/dwgwriter15.h",
+      "to": "initializer_list"
+    },
+    {
+      "from": "src/intern/dwgwriter15.h",
+      "to": "set"
+    },
+    {
+      "from": "src/intern/dwgwriter15.h",
+      "to": "unordered_map"
+    },
+    {
+      "from": "src/intern/dwgwriter15.h",
+      "to": "utility"
+    },
+    {
+      "from": "src/intern/dwgwriter15.h",
+      "to": "vector"
+    },
+    {
+      "from": "src/intern/dwgwriter18.h",
+      "to": "dwgwriter15.h"
+    },
+    {
+      "from": "src/intern/dwgwriter21.h",
+      "to": "dwgwriter24.h"
+    },
+    {
+      "from": "src/intern/dwgwriter24.h",
+      "to": "dwgwriter18.h"
+    },
+    {
+      "from": "src/intern/dwgwriter27.h",
+      "to": "dwgwriter24.h"
+    },
+    {
+      "from": "src/intern/dwgwriter32.h",
+      "to": "dwgwriter27.h"
+    },
+    {
+      "from": "src/intern/dwgwriterlayoutvalidation.h",
+      "to": "../drw_base.h"
+    },
+    {
+      "from": "src/intern/dwgwriterlayoutvalidation.h",
+      "to": "cstdint"
+    },
+    {
+      "from": "src/intern/dwgwriterlayoutvalidation.h",
+      "to": "string"
+    },
+    {
+      "from": "src/intern/dwgwriterlayoutvalidation.h",
+      "to": "variant"
+    },
+    {
+      "from": "src/intern/dwgwriterlayoutvalidation.h",
+      "to": "vector"
+    },
+    {
+      "from": "src/intern/dxfparserlimits.h",
+      "to": "cstddef"
+    },
+    {
+      "from": "src/intern/dxfreader.h",
+      "to": "cstdint"
+    },
+    {
+      "from": "src/intern/dxfreader.h",
+      "to": "drw_textcodec.h"
+    },
+    {
+      "from": "src/intern/dxfreader.h",
+      "to": "unordered_set"
+    },
+    {
+      "from": "src/intern/dxfwriter.h",
+      "to": "cstdint"
+    },
+    {
+      "from": "src/intern/dxfwriter.h",
+      "to": "drw_textcodec.h"
+    },
+    {
+      "from": "src/intern/dxfwriter.h",
+      "to": "ostream"
+    },
+    {
+      "from": "src/intern/dxfwriter.h",
+      "to": "sstream"
+    },
+    {
+      "from": "src/intern/proxygraphicdecoder.h",
+      "to": "../drw_base.h"
+    },
+    {
+      "from": "src/intern/proxygraphicdecoder.h",
+      "to": "cstddef"
+    },
+    {
+      "from": "src/intern/proxygraphicdecoder.h",
+      "to": "string"
+    },
+    {
+      "from": "src/intern/proxygraphicdecoder.h",
+      "to": "vector"
+    },
+    {
+      "from": "src/intern/rscodec.h",
+      "to": "memory"
+    },
+    {
+      "from": "src/intern/rscodec.h",
+      "to": "vector"
+    },
+    {
+      "from": "src/libdwgr.h",
+      "to": "cstddef"
+    },
+    {
+      "from": "src/libdwgr.h",
+      "to": "cstdint"
+    },
+    {
+      "from": "src/libdwgr.h",
+      "to": "drw_classes.h"
+    },
+    {
+      "from": "src/libdwgr.h",
+      "to": "drw_entities.h"
+    },
+    {
+      "from": "src/libdwgr.h",
+      "to": "drw_interface.h"
+    },
+    {
+      "from": "src/libdwgr.h",
+      "to": "drw_objects.h"
+    },
+    {
+      "from": "src/libdwgr.h",
+      "to": "functional"
+    },
+    {
+      "from": "src/libdwgr.h",
+      "to": "intern/dwgutil.h"
+    },
+    {
+      "from": "src/libdwgr.h",
+      "to": "limits"
+    },
+    {
+      "from": "src/libdwgr.h",
+      "to": "memory"
+    },
+    {
+      "from": "src/libdwgr.h",
+      "to": "set"
+    },
+    {
+      "from": "src/libdwgr.h",
+      "to": "string"
+    },
+    {
+      "from": "src/libdwgr.h",
+      "to": "unordered_map"
+    },
+    {
+      "from": "src/libdwgr.h",
+      "to": "vector"
+    },
+    {
+      "from": "src/libdxfrw.h",
+      "to": "drw_classes.h"
+    },
+    {
+      "from": "src/libdxfrw.h",
+      "to": "drw_entities.h"
+    },
+    {
+      "from": "src/libdxfrw.h",
+      "to": "drw_header.h"
+    },
+    {
+      "from": "src/libdxfrw.h",
+      "to": "drw_interface.h"
+    },
+    {
+      "from": "src/libdxfrw.h",
+      "to": "drw_objects.h"
+    },
+    {
+      "from": "src/libdxfrw.h",
+      "to": "functional"
+    },
+    {
+      "from": "src/libdxfrw.h",
+      "to": "handle_allocator.h"
+    },
+    {
+      "from": "src/libdxfrw.h",
+      "to": "list"
+    },
+    {
+      "from": "src/libdxfrw.h",
+      "to": "map"
+    },
+    {
+      "from": "src/libdxfrw.h",
+      "to": "memory"
+    },
+    {
+      "from": "src/libdxfrw.h",
+      "to": "set"
+    },
+    {
+      "from": "src/libdxfrw.h",
+      "to": "string"
+    },
+    {
+      "from": "src/libdxfrw.h",
+      "to": "unordered_map"
+    },
+    {
+      "from": "src/libdxfrw.h",
+      "to": "utility"
+    },
+    {
+      "from": "src/libdxfrw.h",
+      "to": "vector"
+    }
+  ],
+  "lexicalOnly": true,
+  "macroEffects": [
+    "ARAD",
+    "CPLENGTH932",
+    "CPLENGTH936",
+    "CPLENGTH949",
+    "CPLENGTH950",
+    "CPLENGTHCOMMON",
+    "CPOFFSET",
+    "CPOFFSET932",
+    "CPOFFSET936",
+    "CPOFFSET949",
+    "CPOFFSET950",
+    "DRW_ACIS_H",
+    "DRW_BASE_H",
+    "DRW_CLASSES_H",
+    "DRW_CPTABLE932_H",
+    "DRW_CPTABLE936_H",
+    "DRW_CPTABLE949_H",
+    "DRW_CPTABLE950_H",
+    "DRW_CPTABLES_H",
+    "DRW_DATASTORAGE_H",
+    "DRW_DBG",
+    "DRW_DBGB",
+    "DRW_DBGGL",
+    "DRW_DBGH",
+    "DRW_DBGHL",
+    "DRW_DBGPT",
+    "DRW_DBGSL",
+    "DRW_DBG_H",
+    "DRW_ENTITIES_H",
+    "DRW_HEADER_H",
+    "DRW_INTERFACE_H",
+    "DRW_OBJECTS_H",
+    "DRW_POSIX",
+    "DRW_RESERVE_H",
+    "DRW_TEXTCODEC_H",
+    "DRW_UNUSED",
+    "DRW_VERSION",
+    "DRW_WIN",
+    "DWGBUFFERW_H",
+    "DWGBUFFER_H",
+    "DWGOBJECTFRAME_H",
+    "DWGREADER15_H",
+    "DWGREADER18_H",
+    "DWGREADER21_H",
+    "DWGREADER24_H",
+    "DWGREADER27_H",
+    "DWGREADER32_H",
+    "DWGREADERR11_H",
+    "DWGREADERR1_40_H",
+    "DWGREADER_H",
+    "DWGSAFETY_H",
+    "DWGUTIL_H",
+    "DWGWRITER15_H",
+    "DWGWRITER18_H",
+    "DWGWRITER21_H",
+    "DWGWRITER24_H",
+    "DWGWRITER27_H",
+    "DWGWRITER32_H",
+    "DWGWRITERLAYOUTVALIDATION_H",
+    "DWGWRITER_H",
+    "DWG_DXF_OUTPUT_TRANSACTION_H",
+    "DWG_FIXED_HANDLES_H",
+    "DXFPARSERLIMITS_H",
+    "DXFREADER_H",
+    "DXFWRITER_H",
+    "HANDLE_ALLOCATOR_H",
+    "LIBDWGR_H",
+    "LIBDXFRW_EXPORT",
+    "LIBDXFRW_H",
+    "M_PI",
+    "M_PI_2",
+    "M_PIx2",
+    "NOTFOUND932",
+    "NOTFOUND936",
+    "NOTFOUND949",
+    "NOTFOUND950",
+    "PROXYGRAPHICDECODER_H",
+    "RSCODEC_H",
+    "SETENTFRIENDS",
+    "SETHDRFRIENDS",
+    "SETOBJFRIENDS",
+    "UTF8STRING",
+    "drw_assert"
+  ],
+  "publicEnumValues": [
+    "AC1002",
+    "AC1003",
+    "AC1004",
+    "AC1006",
+    "AC1009",
+    "AC1012",
+    "AC1014",
+    "AC1015",
+    "AC1018",
+    "AC1021",
+    "AC1024",
+    "AC1027",
+    "AC1032",
+    "AC12",
+    "AC14",
+    "AC150",
+    "AC210",
+    "ACDBPLACEHOLDER",
+    "ACIS",
+    "ACSHHISTORYOBJECT",
+    "ANSI_1250",
+    "ANSI_1251",
+    "ANSI_1252",
+    "ANSI_1253",
+    "ANSI_1254",
+    "ANSI_1255",
+    "ANSI_1256",
+    "ANSI_1257",
+    "ANSI_1258",
+    "ANSI_874",
+    "APPID",
+    "APPINFO",
+    "APPINFOHISTORY",
+    "ARC",
+    "ASSOCIATIVEOBJECT",
+    "ATTDEF",
+    "ATTRIB",
+    "AUXHEADER",
+    "Aborted",
+    "AcDbAssocAction",
+    "AcDbAssocActionBody",
+    "AcDbAssocActionParam",
+    "AcDbAssocDependency",
+    "AcDbAssocGeomDependency",
+    "AcDbAssocNetwork",
+    "AcDbEvalExpr",
+    "AcDbPlaceholder",
+    "AcDbShHistoryNode",
+    "AcShActionBody",
+    "Action",
+    "AfterEndBlockFrame",
+    "AfterFirstBlockOwnedEntity",
+    "AfterFirstBlockRecord",
+    "AfterFirstDeferredTableRecord",
+    "Aggregate",
+    "AlignedConstraintParameter",
+    "AlignedDimension",
+    "AlignmentParameter",
+    "AllEdges",
+    "AllocationFailure",
+    "AmbiguousSourceHandleInsert",
+    "Angstrom",
+    "AngularConstraintParameter",
+    "AngularDimension",
+    "AnnotScale",
+    "AppendFailed",
+    "ArrayAction",
+    "Astro",
+    "Attribute",
+    "Auto",
+    "BACKGROUND",
+    "BAD_CODE_PARSED",
+    "BAD_NONE",
+    "BAD_OPEN",
+    "BAD_READ_BLOCKS",
+    "BAD_READ_CLASSES",
+    "BAD_READ_ENTITIES",
+    "BAD_READ_FILE_HEADER",
+    "BAD_READ_HANDLES",
+    "BAD_READ_HEADER",
+    "BAD_READ_METADATA",
+    "BAD_READ_OBJECTS",
+    "BAD_READ_SECTION",
+    "BAD_READ_TABLES",
+    "BAD_UNKNOWN",
+    "BAD_VERSION",
+    "BIG5",
+    "BINARY",
+    "BLOCK",
+    "BLOCKREPRESENTATION",
+    "BLOCKREPRESENTATIONDATA",
+    "BLOCK_RECORD",
+    "BODY",
+    "BOOL",
+    "BREAKDATA",
+    "BREAKPOINTREF",
+    "BYBLOCK",
+    "BYLAYER",
+    "Bare",
+    "BasePointParameter",
+    "BeforeChildMarker",
+    "BeforeEndBlockFrame",
+    "BeforeFrameStaging",
+    "BeforeInsertOwnerMarker",
+    "BeforeOrphanAdoption",
+    "BeforeOrphanOwnerMarker",
+    "BeforeParentStateInsert",
+    "BeforeParentStateReserve",
+    "BeforeReservation",
+    "BeforeReserve",
+    "BeforeSeqEndMarker",
+    "BeforeTransfer",
+    "Blob",
+    "Block21OrderArray",
+    "BlockDefinition",
+    "BlockFinalize",
+    "BlockMapInsert",
+    "BlockReference",
+    "Body",
+    "BoolTrue",
+    "BottomCenter",
+    "BottomLeft",
+    "BottomRight",
+    "BoundedCountOverflow",
+    "Bounds",
+    "CAMERA",
+    "CELLSTYLEMAP",
+    "CIRCLE",
+    "CLASSES",
+    "COLOR",
+    "CONTEXTDATAMANAGER",
+    "COORD",
+    "CSACDOCUMENTOPTIONS",
+    "CURVEPATH",
+    "CadValueObjectId",
+    "Callback",
+    "CallbackException",
+    "CastAndReceieveShadows",
+    "CastShadows",
+    "Centimeter",
+    "Checksum",
+    "ChildField",
+    "ChunkLimit",
+    "ClassRegistration",
+    "ClassesCrc",
+    "Classify",
+    "ColorByBlock",
+    "ColorByLayer",
+    "Committed",
+    "CommittedCompound",
+    "CommonHandles",
+    "Complete",
+    "CompoundDeferred",
+    "CompoundStaged",
+    "CountMismatch",
+    "DATALINK",
+    "DATATABLE",
+    "DBCOLOR",
+    "DETAILVIEWSTYLE",
+    "DICTIONARY",
+    "DICTIONARYVAR",
+    "DICTIONARYWDFLT",
+    "DIMALIGNED",
+    "DIMANGULAR",
+    "DIMANGULAR3P",
+    "DIMARC",
+    "DIMASSOC",
+    "DIMDIAMETRIC",
+    "DIMENSION",
+    "DIMLINEAR",
+    "DIMORDINATE",
+    "DIMRADIAL",
+    "DIMSTYLE",
+    "DIM_ALIGNED",
+    "DIM_ANGULAR",
+    "DIM_ANGULAR3P",
+    "DIM_DIAMETRIC",
+    "DIM_LINEAR",
+    "DIM_ORDINATE",
+    "DIM_RADIAL",
+    "DOUBLE",
+    "DUMMY",
+    "DXF_TRACE",
+    "DYNAMICBLOCKOBJECT",
+    "Data",
+    "DataIndex",
+    "DataPage",
+    "DataPageChecksum",
+    "DataPageCrc",
+    "DataSectionMap",
+    "DbColor",
+    "Debug",
+    "Decameter",
+    "Decimeter",
+    "DeclaredSize",
+    "DecodedBuffer",
+    "Decompression",
+    "DefaultPlotStyle",
+    "Deferred",
+    "DeferredObject",
+    "DeferredObjectMap",
+    "DiameterDimension",
+    "DiametricConstraintParameter",
+    "Dictionary",
+    "DictionaryDefault",
+    "DictionaryVar",
+    "DictionaryWithDefault",
+    "DimensionAssociation",
+    "DirectionVec",
+    "Duplicate",
+    "DuplicatePageId",
+    "DwgHardOwnership",
+    "DwgHardPointer",
+    "DwgNullReference",
+    "DwgSoftOwnership",
+    "DwgSoftPointer",
+    "E3DFACE",
+    "E3DSOLID",
+    "ELLIPSE",
+    "ENDBLK",
+    "EVALUATIONGRAPH",
+    "EXTEDATA",
+    "EXTRUDEDSURFACE",
+    "EndBlock",
+    "EndSection",
+    "English",
+    "Entity",
+    "EntityTypeEx",
+    "Error",
+    "EvalExprOnly",
+    "EvaluationGraph",
+    "Exact",
+    "FACE3D",
+    "FIELD",
+    "FIELDLIST",
+    "FILEDEP",
+    "FILEHEADER",
+    "Failed",
+    "Fcf",
+    "Field",
+    "FieldList",
+    "FieldListMember",
+    "FileHeader",
+    "FileHeaderCrc",
+    "FinalizationUnresolved",
+    "FinalizedComplete",
+    "FinalizedPartial",
+    "FirstEdge",
+    "FlipAction",
+    "FlipParameter",
+    "Float",
+    "Foot",
+    "FourthEdge",
+    "Frame",
+    "FrameLedgerTransition",
+    "FreeSpace",
+    "GBK",
+    "GBK_CP936",
+    "GEODATA",
+    "GEOMAPIMAGE",
+    "GEOPOSITIONMARKER",
+    "GROUP",
+    "GeoData",
+    "Gigameter",
+    "Grip",
+    "GripLocationComponent",
+    "Group",
+    "HANDLE",
+    "HANDLES",
+    "HATCH",
+    "HAligned",
+    "HCenter",
+    "HEADER",
+    "HELIX",
+    "HLeft",
+    "HMiddle",
+    "HRight",
+    "HandleStream",
+    "Handles",
+    "Header",
+    "Hectometer",
+    "History",
+    "HorizontalConstraintParameter",
+    "IDBUFFER",
+    "IDBuffer",
+    "IMAGE",
+    "IMAGEDEF",
+    "IMAGEDEFREACTOR",
+    "INDEX",
+    "INSERT",
+    "INT32",
+    "INT64",
+    "INTEGER",
+    "INTEGER64",
+    "INVALID",
+    "INVISIBLE",
+    "Identity",
+    "IgnoreShadows",
+    "ImageReactorInsert",
+    "InProgress",
+    "Inch",
+    "Inferred",
+    "Informational",
+    "InvalidChunkSize",
+    "InvalidInput",
+    "InvalidPageId",
+    "InvalidTransition",
+    "JournalledSimple",
+    "KOREAN_WANSUNG",
+    "Kilometer",
+    "LAYER",
+    "LAYERFILTER",
+    "LAYERINDEX",
+    "LAYOUT",
+    "LEADER",
+    "LIGHT",
+    "LIGHTLIST",
+    "LINE",
+    "LINEWEIGHT",
+    "LOFTEDSURFACE",
+    "LONG_TRANSACTION",
+    "LTYPE",
+    "LWPOLYLINE",
+    "LargeRadialDimension",
+    "LayerIndex",
+    "Layout",
+    "Leader",
+    "LightList",
+    "Lightyear",
+    "LinearParameter",
+    "LookupAction",
+    "LookupParameter",
+    "MATERIAL",
+    "MC00",
+    "MESH",
+    "MINSERT",
+    "MLEADER",
+    "MLEADERSTYLE",
+    "MLINE",
+    "MLINESTYLE",
+    "MLeader",
+    "MLeaderStyle",
+    "MLineStyle",
+    "MOTIONPATH",
+    "MPOLYGON",
+    "MTEXT",
+    "MText",
+    "MTextAttribute",
+    "MalformedGroup",
+    "Map",
+    "Marker",
+    "Material",
+    "MaterialByLayer",
+    "MatrixDepthLimit",
+    "MaxBlock21Length",
+    "Mesh",
+    "Metadata",
+    "Meter",
+    "Metric",
+    "Microinch",
+    "Micron",
+    "MiddleCenter",
+    "MiddleLeft",
+    "MiddleRight",
+    "Mil",
+    "Mile",
+    "Millimeter",
+    "Missing",
+    "MissingSource",
+    "ModelSpace",
+    "MoveAction",
+    "NAVISWORKSMODEL",
+    "NAVISWORKSMODELDEF",
+    "NURBSURFACE",
+    "Nanometer",
+    "NavisworksModelDefinition",
+    "NextEntity",
+    "NoEdge",
+    "NoHandle",
+    "NoType",
+    "NonZeroTail",
+    "None",
+    "NotApplicable",
+    "NotAvailable",
+    "OBJECTCONTEXTDATA",
+    "OBJECTPTR",
+    "OBJECTS",
+    "OBJFREESPACE",
+    "OLE2FRAME",
+    "OLEFRAME",
+    "OWNER_HANDLE",
+    "Object",
+    "ObjectFrame",
+    "ObjectFrameBounds",
+    "ObjectMap",
+    "ObjectMapCrc",
+    "ObjectMapDuplicateOffset",
+    "ObjectMapProgress",
+    "Objects",
+    "Opaque",
+    "Open",
+    "OrdinateDimension",
+    "Overrun",
+    "PARTIALVIEWINGINDEX",
+    "PLANESURFACE",
+    "PLOTSETTINGS",
+    "PLOTSTYLE",
+    "POINT",
+    "POINTCLOUD",
+    "POINTCLOUDCOLORMAP",
+    "POINTCLOUDDEF",
+    "POINTCLOUDEX",
+    "POINTPATH",
+    "POLYLINE",
+    "POLYLINE_2D",
+    "POLYLINE_3D",
+    "POLYLINE_MESH",
+    "POLYLINE_PFACE",
+    "PREVIEW",
+    "PROTOTYPE",
+    "PROXYENTITY",
+    "PROXYOBJECT",
+    "PROXY_ENTITY",
+    "PROXY_OBJECT",
+    "PageGeometry",
+    "PageMap",
+    "PageMapReference",
+    "PageRange",
+    "PaperSpace",
+    "Parameter",
+    "Parent",
+    "Parse",
+    "ParseFailure",
+    "Parsec",
+    "Parsed",
+    "Partial",
+    "Pending",
+    "PhaseAborted",
+    "PhysicalFile",
+    "PointCloudColorMap",
+    "PointCloudDefinition",
+    "PointCloudDefinitionEx",
+    "PointCloudDefinitionReactor",
+    "PointCloudDefinitionReactorEx",
+    "PointParameter",
+    "PolarParameter",
+    "PolarStretchAction",
+    "Polyface",
+    "PolyfaceFace",
+    "PreviousSave",
+    "PrimitiveLimit",
+    "Publish",
+    "Published",
+    "PublishedSimple",
+    "PurgePreventer",
+    "Quarantined",
+    "RASTERVARIABLES",
+    "RAY",
+    "REGION",
+    "RENDERSETTINGS",
+    "REVHISTORY",
+    "REVOLVEDSURFACE",
+    "RGB",
+    "RadialConstraintParameter",
+    "RadialDimension",
+    "RasterVariables",
+    "RawObject",
+    "RawSection",
+    "ReceiptFailure",
+    "ReceiptPublished",
+    "ReceiveShadows",
+    "RecordEnd",
+    "ReedSolomon",
+    "ReedSolomonDecode",
+    "Rejected",
+    "ResourceLimit",
+    "RotateAction",
+    "RotationParameter",
+    "SCALE",
+    "SECTION",
+    "SECTIONOBJ",
+    "SECTIONVIEWSTYLE",
+    "SECURITY",
+    "SEQEND",
+    "SHAPE",
+    "SHIFT_JIS",
+    "SIGNATURE",
+    "SOLID",
+    "SOLID3D",
+    "SORTENTSTABLE",
+    "SPATIALFILTER",
+    "SPATIALINDEX",
+    "SPLINE",
+    "STRING",
+    "STYLE",
+    "SUMARYINFO",
+    "SUN",
+    "SUNSTUDY",
+    "SWEPTSURFACE",
+    "Sab",
+    "Sat",
+    "Scale",
+    "ScaleAction",
+    "Schema",
+    "SchemaData",
+    "SchemaIndex",
+    "Search",
+    "SecodEdge",
+    "Section",
+    "SectionMap",
+    "SectionPageMap",
+    "SectionPageReference",
+    "SectionParser",
+    "SegmentIndex",
+    "SeqEnd",
+    "ShortHeader",
+    "Silhouette",
+    "SinkRefused",
+    "SortEntsTable",
+    "SourceHandleErase",
+    "SourceHandleInsert",
+    "Span",
+    "SpatialFilter",
+    "SpatialIndex",
+    "Staged",
+    "StagedCompound",
+    "StretchAction",
+    "Strings",
+    "StructuralInvalid",
+    "SupportedOpaque",
+    "SystemPageChecksum",
+    "SystemPageCrc",
+    "SystemPageUncompressedCrc",
+    "TABLE",
+    "TABLECONTENT",
+    "TABLEGEOMETRY",
+    "TABLESTYLE",
+    "TEMPLATE",
+    "TEXT",
+    "THREEDLINE",
+    "TOLERANCE",
+    "TRACE",
+    "TVDEVICEPROPERTIES",
+    "Table",
+    "TableDeferred",
+    "TableRecord",
+    "TableStyle",
+    "Text",
+    "TextStyleMapSet",
+    "ThirdEdge",
+    "TopCenter",
+    "TopLeft",
+    "TopRight",
+    "Topology",
+    "Transparent",
+    "Truncated",
+    "TruncatedChunk",
+    "TvDeviceProperties",
+    "TypedBody",
+    "UCS",
+    "UNDERLAY",
+    "UNDERLAYDEFINITION",
+    "UNKNOWN",
+    "UNKNOWNS",
+    "UNKNOWNT",
+    "UNKNOWNV",
+    "UNKNOWN_36",
+    "UNKNOWN_37",
+    "UNKNOWN_3A",
+    "UNKNOWN_3B",
+    "UNKNOWN_9",
+    "UnderlayDgn",
+    "UnderlayDwf",
+    "UnderlayPdf",
+    "UnitCount",
+    "Unknown",
+    "UnknownTail",
+    "Unresolved",
+    "UnsupportedVersion",
+    "VBAPROJECT",
+    "VBAPROY",
+    "VBA_PROJECT",
+    "VBaseLine",
+    "VBottom",
+    "VERTEX",
+    "VERTEX_2D",
+    "VERTEX_3D",
+    "VERTEX_MESH",
+    "VERTEX_PFACE",
+    "VERTEX_PFACE_FACE",
+    "VIEW",
+    "VIEWPORT",
+    "VISUALSTYLE",
+    "VMiddle",
+    "VPORT",
+    "VPORT_ENTITY_HEADER",
+    "VXCONTROL",
+    "VXTABLERECORD",
+    "Validated",
+    "ValidatedAbsent",
+    "Vertex",
+    "Vertex2D",
+    "Vertex3D",
+    "VerticalConstraintParameter",
+    "VisibilityParameter",
+    "VxControl",
+    "VxTableRecord",
+    "WINDOW_BG",
+    "WIPEOUT",
+    "Warning",
+    "WipeoutVariables",
+    "Wire",
+    "WriteAcDbPlaceholder",
+    "WriteDbColor",
+    "WriteDictionary",
+    "WriteDictionaryVar",
+    "WriteDictionaryWithDefault",
+    "WriteDimensionAssociation",
+    "WriteEvaluationGraph",
+    "WriteField",
+    "WriteFieldList",
+    "WriteGeoData",
+    "WriteGroup",
+    "WriteIDBuffer",
+    "WriteLayerIndex",
+    "WriteLayout",
+    "WriteLightList",
+    "WriteMLeaderStyle",
+    "WriteMLineStyle",
+    "WriteMaterial",
+    "WriteNavisworksModelDef",
+    "WritePointCloudColorMap",
+    "WritePointCloudDef",
+    "WriteRasterVariables",
+    "WriteScale",
+    "WriteSortEntsTable",
+    "WriteSpatialFilter",
+    "WriteSpatialIndex",
+    "WriteTableStyle",
+    "WriteTvDeviceProperties",
+    "WriteUnderlayDefinition",
+    "WriteVxControl",
+    "WriteVxTableRecord",
+    "WriteWipeoutVariables",
+    "WriteXRecord",
+    "XLINE",
+    "XRECORD",
+    "XRecord",
+    "XYParameter",
+    "Yard"
+  ],
+  "publicEnums": [
+    "Attach",
+    "Carrier",
+    "CodePage",
+    "ColorCodes",
+    "Common",
+    "Confidence",
+    "Consistency",
+    "DRW",
+    "DRW_AcisCurve",
+    "DRW_AcisSurface",
+    "DRW_DataStorageSegmentKind",
+    "DRW_DwgClassCoverageReason",
+    "DRW_DwgClassCoverageState",
+    "DRW_DwgClassCoverageStatus",
+    "DRW_DwgCommonLinkEvidence",
+    "DRW_DwgFrameCoverageReason",
+    "DRW_DwgFrameCoverageStatus",
+    "DRW_DwgFrameDisposition",
+    "DRW_DwgFrameOffsetSpace",
+    "DRW_DwgTypedReferenceField",
+    "DRW_LW_Conv",
+    "DRW_ProxyGraphicStopReason",
+    "DWGSection",
+    "DebugLevel",
+    "Destination",
+    "DwgBlockJournalAdoptFailurePoint",
+    "DwgBlockJournalReservationFailurePoint",
+    "DwgCompoundEntityFrameRole",
+    "DwgDataStorageWriterBinding",
+    "DwgDataStorageWriterOperation",
+    "DwgDataStorageWriterPhase",
+    "DwgEntityFailurePhase",
+    "DwgHandleReferenceCode",
+    "DwgInsertTerminalReason",
+    "DwgIntegrityAddressSpace",
+    "DwgIntegrityCheckKind",
+    "DwgIntegrityPhase",
+    "DwgIntegritySeverity",
+    "DwgMappedEntityCompletion",
+    "DwgMappedEntityOutcome",
+    "DwgObjectHandleStream",
+    "DwgObjectSerializedSegment",
+    "DwgPolylinePrepareFailurePoint",
+    "DwgPolylineStageFailurePoint",
+    "DwgReferenceKind",
+    "DwgSubtype",
+    "DwgTerminalizerFailurePoint",
+    "DwgWriteFailurePoint",
+    "DxfEntityBoundary",
+    "DxfSubclass",
+    "DxfWriteMutationKind",
+    "ETYPE",
+    "Encoding",
+    "Entity",
+    "HAlign",
+    "HandleCodes",
+    "InvisibleEdgeFlags",
+    "Kind",
+    "Level",
+    "MaterialCodes",
+    "Object",
+    "Origin",
+    "PageMapFailure",
+    "ParseStatus",
+    "PlotStyleCodes",
+    "R21Consts",
+    "Route",
+    "Section",
+    "ShadowMode",
+    "Space",
+    "State",
+    "TTYPE",
+    "TYPE",
+    "Tag",
+    "TransparencyCodes",
+    "Units",
+    "VAlign",
+    "ValidationCategory",
+    "Version",
+    "WriteSkipKind",
+    "contract",
+    "error",
+    "lineWidth",
+    "secEnum",
+    "value"
+  ],
+  "publicHeaderCount": 12,
+  "schema": 1,
+  "sourceRoot": "src",
+  "typedefs": [
+    "DwgObjectMap",
+    "Snapshot",
+    "TestSnapshotObserver",
+    "dwgR"
+  ]
+}

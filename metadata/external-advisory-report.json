@@ -1,0 +1,18 @@
+{
+  "advisory": true,
+  "fixturePolicy": "external-only; never committed",
+  "inputCount": 8,
+  "rows": [
+    {"diagnosticCode": "conversion-failed", "exitStatus": 1, "inputVersion": "AC1018", "sourceSha256": "85819667e8e88366ca3d8f9a0dda9770f094b6445882e08e0b2b3bf983472f7b", "sourceSize": 30217, "status": "failed"},
+    {"diagnosticCode": "conversion-failed", "exitStatus": 1, "inputVersion": "AC1018", "sourceSha256": "fa44ada15684eecf46acc4ef095be2ed4793f438da6d570be46c828279aed21c", "sourceSize": 2856002, "status": "failed"},
+    {"diagnosticCode": "conversion-failed", "exitStatus": 1, "inputVersion": "AC1021", "sourceSha256": "9c40870a93a299f9d0ddbc1b35da363e1cf2dbed112d7413423643182eb97142", "sourceSize": 420256, "status": "failed"},
+    {"diagnosticCode": "success", "exitStatus": 0, "inputVersion": "AC1027", "outputSha256": "48227d96e67fca642d3d52acbce9e717e6e051b3d5092d4a289ffa747fb82ff2", "outputSize": 11339, "sourceSha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42", "sourceSize": 18880, "status": "converted"},
+    {"diagnosticCode": "conversion-failed", "exitStatus": 1, "inputVersion": "UNKNOWN", "sourceSha256": "47bb4c784621b50b4b5395c8374a9e7c8cb9ad4886fd7f901aa25019a1a53987", "sourceSize": 111516, "status": "failed"},
+    {"diagnosticCode": "conversion-failed", "exitStatus": 1, "inputVersion": "UNKNOWN", "sourceSha256": "57ec80c861976ea8b100033f2f92fcaf230e134a3a40d3ec9f3417bb173c6fcc", "sourceSize": 67441, "status": "failed"},
+    {"diagnosticCode": "conversion-failed", "exitStatus": 1, "inputVersion": "UNKNOWN", "sourceSha256": "8cfad4e4090ce5fead86c8fd4ed17020f6d13a4dda86f67d92953f10e8bf04ca", "sourceSize": 1228697, "status": "failed"},
+    {"diagnosticCode": "conversion-failed", "exitStatus": 1, "inputVersion": "UNKNOWN", "sourceSha256": "e22c24d315c9f5819b2e8c3763c6dbb2a8d3ee450754f0f180763fd581a1ac17", "sourceSize": 378774, "status": "failed"}
+  ],
+  "schema": 1,
+  "statusCounts": {"converted": 1, "failed": 7},
+  "versionCounts": {"AC1018": 2, "AC1021": 1, "AC1027": 1, "UNKNOWN": 4}
+}

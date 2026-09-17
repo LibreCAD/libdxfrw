@@ -1,0 +1,209 @@
+{
+  "schema": 1,
+  "target": {
+    "commit": "512d8bd86612f17158d4d222fcdc8a7c2b052c57",
+    "repository": "git@github.com-librecad:LibreCAD/LibreCAD.git"
+  },
+  "fixturePolicy": "no-drawing-payloads; source-and-metadata-only",
+  "entries": [
+    {
+      "path": "libraries/libdxfrw/.snapshot-revision",
+      "mode": "100644",
+      "blob": "f049107df9a66ede431f15671ded3d42dd3f45f2",
+      "kind": "provenance",
+      "authority": "canonical",
+      "allowedFacts": [
+        "bundled-snapshot-revision"
+      ]
+    },
+    {
+      "path": "libraries/libdxfrw/CROSS_READ_PARITY_STATUS.md",
+      "mode": "100644",
+      "blob": "b142ed29a7135770419f88be4ca164e111212e04",
+      "kind": "generated-report",
+      "authority": "advisory",
+      "allowedFacts": [
+        "seed-backed-semantic-disposition-reference",
+        "source-dispatch-cross-read-reference"
+      ]
+    },
+    {
+      "path": "libraries/libdxfrw/DWGTS_FEATURE_PARITY_STATUS.md",
+      "mode": "100644",
+      "blob": "eb709721af7ea092b7913738993148f94b0cd111",
+      "kind": "generated-report",
+      "authority": "advisory",
+      "allowedFacts": [
+        "dwgts-feature-route-reference"
+      ]
+    },
+    {
+      "path": "libraries/libdxfrw/DWG_DXF_COVERAGE_INVENTORY.md",
+      "mode": "100644",
+      "blob": "745f10f5fee7118b5c89b53cc833b15815510cf8",
+      "kind": "generated-report",
+      "authority": "advisory",
+      "allowedFacts": [
+        "dxf-and-dwg-route-count-reference",
+        "raw-fallback-reference",
+        "version-gate-reference"
+      ]
+    },
+    {
+      "path": "libraries/libdxfrw/DWG_DXF_WRITER_SUPPORT_STATUS.md",
+      "mode": "100644",
+      "blob": "47dcf23dd8ae802527f704f81f9bd272df9cb4c2",
+      "kind": "generated-report",
+      "authority": "advisory",
+      "allowedFacts": [
+        "writer-entrypoint-reference",
+        "writer-promotion-blocker-reference"
+      ]
+    },
+    {
+      "path": "libraries/libdxfrw/DWG_REFERENCE_COVERAGE_STATUS.md",
+      "mode": "100644",
+      "blob": "ec7f53e72873c8b8954af59a555a55cd9561df4d",
+      "kind": "generated-report",
+      "authority": "advisory",
+      "allowedFacts": [
+        "reference-reader-route-reference"
+      ]
+    },
+    {
+      "path": "libraries/libdxfrw/DWG_ROADMAP.md",
+      "mode": "100644",
+      "blob": "a8f1eaea1b079e7cc8d74b4f1d9b8513d572a4b2",
+      "kind": "prose-context",
+      "authority": "context",
+      "allowedFacts": []
+    },
+    {
+      "path": "libraries/libdxfrw/DWG_VERSION_SUPPORT_STATUS.md",
+      "mode": "100644",
+      "blob": "edfc6758ad5aafdff2f334c52bd52c4cf96015bb",
+      "kind": "generated-report",
+      "authority": "advisory",
+      "allowedFacts": [
+        "version-reader-writer-reference"
+      ]
+    },
+    {
+      "path": "libraries/libdxfrw/cross_read_parity_seed.json",
+      "mode": "100644",
+      "blob": "51e5df1c40e07e5ba498344f2943d9328d870202",
+      "kind": "seed",
+      "authority": "advisory",
+      "allowedFacts": [
+        "reviewed-cross-read-semantic-dispositions-reference"
+      ]
+    },
+    {
+      "path": "scripts/dwg_cross_read_parity_inventory.py",
+      "mode": "100755",
+      "blob": "49bafc2edd62ae73253539e9317780cd66075e5b",
+      "kind": "generator",
+      "authority": "advisory",
+      "allowedFacts": [
+        "cross-read-route-extraction-reference",
+        "seed-join-rules-reference"
+      ]
+    },
+    {
+      "path": "scripts/dwg_dxf_coverage_inventory.py",
+      "mode": "100644",
+      "blob": "438feb89c28c1974e41ed161485612a68b6a09aa",
+      "kind": "generator",
+      "authority": "canonical",
+      "allowedFacts": [
+        "dwg-fixed-and-custom-route-extraction",
+        "dxf-registration-extraction",
+        "raw-fallback-extraction"
+      ]
+    },
+    {
+      "path": "scripts/dwg_inventory_common.py",
+      "mode": "100644",
+      "blob": "76c9e7d5dfd1465e8b99aaa2d60024f17ef95f7f",
+      "kind": "generator",
+      "authority": "canonical",
+      "allowedFacts": [
+        "canonical-name-normalization",
+        "route-extraction-helpers",
+        "version-and-writer-dispatch-helpers"
+      ]
+    },
+    {
+      "path": "scripts/dwg_reference_coverage_inventory.py",
+      "mode": "100755",
+      "blob": "394c4ff3c6ec9e71096c1cf88676eea46214cd93",
+      "kind": "generator",
+      "authority": "advisory",
+      "allowedFacts": [
+        "reference-reader-coverage-extraction-reference"
+      ]
+    },
+    {
+      "path": "scripts/dwg_version_inventory.py",
+      "mode": "100644",
+      "blob": "46d4cd90d62c91ea3bad1dea18679d2d84ac37d4",
+      "kind": "generator",
+      "authority": "canonical",
+      "allowedFacts": [
+        "dwg-version-reader-writer-dispatch"
+      ]
+    },
+    {
+      "path": "scripts/dwgts_feature_parity_inventory.py",
+      "mode": "100644",
+      "blob": "f01e603b05004e61207ab07b64c61276095cf4a5",
+      "kind": "generator",
+      "authority": "advisory",
+      "allowedFacts": [
+        "dwgts-feature-route-extraction-reference"
+      ]
+    },
+    {
+      "path": "scripts/generate_gap_report.py",
+      "mode": "100644",
+      "blob": "135f0662bc550a35da90cfa09161021d62d56ae5",
+      "kind": "roadmap-aggregator",
+      "authority": "advisory",
+      "allowedFacts": [
+        "fixture-and-oracle-gap-prioritization-reference"
+      ]
+    },
+    {
+      "path": "scripts/test_dwg_cross_read_parity_inventory.py",
+      "mode": "100755",
+      "blob": "42dbbefb1bfcefc5806c9ea2ac6d49796fa83c9f",
+      "kind": "generator-test",
+      "authority": "advisory",
+      "allowedFacts": [
+        "cross-read-extraction-regression-reference"
+      ]
+    },
+    {
+      "path": "scripts/test_dwg_version_inventory.py",
+      "mode": "100644",
+      "blob": "8867374088b6673368b4b51d3af72cda782ec2b8",
+      "kind": "generator-test",
+      "authority": "advisory",
+      "allowedFacts": [
+        "version-dispatch-regression-reference"
+      ]
+    },
+    {
+      "path": "scripts/writer_support_inventory.py",
+      "mode": "100644",
+      "blob": "1dd02fe7e7c74695b9c65e5104178fe8d5b0cbf6",
+      "kind": "generator",
+      "authority": "canonical",
+      "allowedFacts": [
+        "dwg-writer-route-extraction",
+        "dxf-writer-entrypoint-extraction",
+        "writer-blocker-extraction"
+      ]
+    }
+  ]
+}

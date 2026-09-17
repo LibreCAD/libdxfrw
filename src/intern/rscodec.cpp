@@ -26,29 +26,66 @@
 
 
 #include "rscodec.h"
-#include <new>          // std::nothrow
+#include <cstdint>
 #include <fstream>
+#include <limits>
+#include <new>          // std::nothrow
 
-RScodec::RScodec(unsigned int pp, int mm, int tt) {
-    this->mm = mm;
-    this->tt = tt;
-    nn = (1<<mm) -1; //mm==8 nn=255
-    kk = nn -(tt*2);
+RScodec::RScodec(unsigned int pp, int mmValue, int ttValue)
+    : mm(mmValue), tt(ttValue) {
+    if (mm <= 0 || mm >= 31 || tt <= 0)
+        return;
+
+    const std::int64_t fieldSize = std::int64_t{1} << mm;
+    if (fieldSize - 1 > std::numeric_limits<int>::max())
+        return;
+    nn = static_cast<int>(fieldSize - 1); // mm==8 -> nn==255
+    if (tt > nn / 2)
+        return;
+    kk = nn - (tt * 2);
+
+    alpha_to.reset(new (std::nothrow) int[nn + 1]);
+    index_of.reset(new (std::nothrow) unsigned int[nn + 1]);
+    gg.reset(new (std::nothrow) int[nn - kk + 1]);
+    if (!alpha_to || !index_of || !gg)
+        return;
     isOk = true;
-
-    alpha_to = new (std::nothrow) int[nn+1];
-    index_of = new (std::nothrow) unsigned int[nn+1];
-    gg = new (std::nothrow) int[nn-kk+1];
 
     RSgenerate_gf(pp) ;
     /* compute the generator polynomial for this RS code */
     RSgen_poly() ;
-}
+    if (!isOk)
+        return;
+    isOk = false;
 
-RScodec::~RScodec() {
-    delete[] alpha_to;
-    delete[] index_of;
-    delete[] gg;
+    // decode() scratch buffers -- see the member declarations in rscodec.h.
+    const int bb = nn - kk;
+    recd.reset(new (std::nothrow) int[nn]);
+    elp.reset(new (std::nothrow) int*[bb + 2]());
+    if (!recd || !elp)
+        return;
+    try {
+        elpRows.resize(static_cast<std::size_t>(bb + 2));
+    } catch (...) {
+        return;
+    }
+    for (int i = 0; i < bb + 2; ++i) {
+        elpRows[static_cast<std::size_t>(i)].reset(
+            new (std::nothrow) int[bb]);
+        if (!elpRows[static_cast<std::size_t>(i)])
+            return;
+        elp[i] = elpRows[static_cast<std::size_t>(i)].get();
+    }
+    d.reset(new (std::nothrow) int[bb + 2]);
+    l.reset(new (std::nothrow) int[bb + 2]);
+    u_lu.reset(new (std::nothrow) int[bb + 2]);
+    s.reset(new (std::nothrow) int[bb + 1]);
+    root.reset(new (std::nothrow) int[tt]);
+    loc.reset(new (std::nothrow) int[tt]);
+    z.reset(new (std::nothrow) int[tt + 1]);
+    err.reset(new (std::nothrow) int[nn]);
+    reg.reset(new (std::nothrow) int[tt + 1]);
+    isOk = d && l && u_lu && s && root && loc && z && err && reg;
 }
 
 
@@ -57,7 +94,7 @@ RScodec::~RScodec() {
                    polynomial form -> index form  index_of[j=alpha**i] = i
    alpha=2 is the primitive element of GF(2^mm)
 */
-void RScodec::RSgenerate_gf(unsigned int pp) {
+void RScodec::RSgenerate_gf(unsigned int pp) const {
     int i, mask ;
     int pb;
 
@@ -77,7 +114,9 @@ void RScodec::RSgenerate_gf(unsigned int pp) {
     for (i=mm+1; i<nn; i++) {
         if (alpha_to[i-1] >= mask) {
             alpha_to[i] = alpha_to[mm] ^ ((alpha_to[i-1]^mask)<<1) ;
-        } else alpha_to[i] = alpha_to[i-1]<<1 ;
+        } else {
+            alpha_to[i] = alpha_to[i-1]<<1 ;
+        }
         index_of[alpha_to[i]] = i ;
     }
     index_of[0] = -1 ;
@@ -90,40 +129,46 @@ void RScodec::RSgenerate_gf(unsigned int pp) {
 void RScodec::RSgen_poly() {
     int i,j ;
     int tmp;
-    int bb = nn-kk;; //nn-kk length of parity data
+    int bb = nn-kk; //nn-kk length of parity data
 
     gg[0] = 2 ;    /* primitive element alpha = 2  for GF(2**mm)  */
     gg[1] = 1 ;    /* g(x) = (X+alpha) initially */
     for (i=2; i<=bb; i++) {
         gg[i] = 1 ;
-        for (j=i-1; j>0; j--)
+        for (j=i-1; j>0; j--) {
             if (gg[j] != 0) {
-                if (gg[j]<0) { isOk=false; return; }
+                if (gg[j]<0 || gg[j]>nn) { isOk=false; return; }  // bound both ends of index_of[]
                 tmp = (index_of[gg[j]]+i)%nn;
                 if (tmp<0) { isOk=false; return; }
                 gg[j] = gg[j-1]^ alpha_to[tmp] ;
             } else {
                 gg[j] = gg[j-1] ;
             }
+        }
         gg[0] = alpha_to[(index_of[gg[0]]+i)%nn] ;     /* gg[0] can never be zero */
     }
     /* convert gg[] to index form for quicker encoding */
-    for (i=0; i<=bb; i++)  gg[i] = index_of[gg[i]] ;
+    for (i=0; i<=bb; i++) {
+        gg[i] = index_of[gg[i]] ;
+    }
 }
 
-int RScodec::calcDecode(unsigned char* data, int* recd, int** elp, int* d, int* l, int* u_lu, int* s, int* root, int* loc, int* z, int* err, int* reg, int bb)
-{
-    if (!isOk) return -1;
+int RScodec::calcDecode(unsigned char* data, int* recd, int** elp, int* d, int* l, int* u_lu, int* s, int* root, int* loc, int* z, int* err, int* reg, int bb) const {
+    if (!isOk) {
+        return -1;
+    }
     int count = 0;
     int syn_error = 0;
     int i, j, u, q;
 
     //    for (int i=0; i<nn; i++)
     //       recd[i] = index_of[recd[i]] ;          /* put recd[i] into index form */
-    for (int i = 0, j = bb; i<kk; i++, j++)
-        recd[j] = index_of[data[j]];          /* put data in recd[i] into index form */
-    for (int i = kk, j = 0; i<nn; i++, j++)
-        recd[j] = index_of[data[j]];          /* put data in recd[i] into index form */
+    for (int i = 0, j = bb; i<kk; i++, j++) {
+        recd[j] = index_of[data[j]]; /* put data in recd[i] into index form */
+    }
+    for (int i = kk, j = 0; i<nn; i++, j++) {
+        recd[j] = index_of[data[j]]; /* put data in recd[i] into index form */
+    }
 
     /* first form the syndromes */
     for (i = 1; i <= bb; i++) {
@@ -134,7 +179,9 @@ int RScodec::calcDecode(unsigned char* data, int* recd, int** elp, int* d, int* 
             }
         }
         /* convert syndrome from polynomial form to index form  */
-        if (s[i] != 0)  syn_error = 1;        /* set flag if non-zero syndrome => error */
+        if (s[i] != 0) {
+            syn_error = 1; /* set flag if non-zero syndrome => error */
+        }
         s[i] = index_of[s[i]];
     }
 
@@ -178,14 +225,17 @@ int RScodec::calcDecode(unsigned char* data, int* recd, int** elp, int* d, int* 
         else {
             /* search for words with greatest u_lu[q] for which d[q]!=0 */
             q = u - 1;
-            while ((d[q] == -1) && (q>0)) q--;
+            while ((d[q] == -1) && (q>0)) {
+                q--;
+            }
             /* have found first non-zero d[q]  */
             if (q>0) {
                 j = q;
                 do {
                     j--;
-                    if ((d[j] != -1) && (u_lu[q]<u_lu[j]))
+                    if ((d[j] != -1) && (u_lu[q]<u_lu[j])) {
                         q = j;
+                    }
                 } while (j>0);
             }
 
@@ -199,7 +249,9 @@ int RScodec::calcDecode(unsigned char* data, int* recd, int** elp, int* d, int* 
             }
 
             /* form new elp(x) */
-            for (i = 0; i<bb; i++)    elp[u + 1][i] = 0;
+            for (i = 0; i<bb; i++) {
+                elp[u + 1][i] = 0;
+            }
             for (i = 0; i <= l[q]; i++){
                 if (elp[q][i] != -1) {
                     elp[u + 1][i + u - q] = alpha_to[(d[u] + nn - d[q] + elp[q][i]) % nn];
@@ -236,7 +288,9 @@ int RScodec::calcDecode(unsigned char* data, int* recd, int** elp, int* d, int* 
 
     /* can correct error */
     /* put elp into index form */
-    for (i = 0; i <= l[u]; i++)   elp[u][i] = index_of[elp[u][i]];
+    for (i = 0; i <= l[u]; i++) {
+        elp[u][i] = index_of[elp[u][i]];
+    }
 
     /* find roots of the error location polynomial */
     for (i = 1; i <= l[u]; i++) {
@@ -286,7 +340,9 @@ int RScodec::calcDecode(unsigned char* data, int* recd, int** elp, int* d, int* 
     }
 
     /* evaluate errors at locations given by error location numbers loc[i] */
-    for (i = 0; i<nn; i++) err[i] = 0;
+    for (i = 0; i<nn; i++) {
+        err[i] = 0;
+    }
     for (i = 0; i<l[u]; i++) {   /* compute numerator of error term first */
         err[loc[i]] = 1;       /* accounts for z[0] */
         for (j = 1; j <= l[u]; j++) {
@@ -316,27 +372,35 @@ int RScodec::calcDecode(unsigned char* data, int* recd, int** elp, int* d, int* 
    Encoding is done by using a feedback shift register with appropriate
    connections specified by the elements of gg[], which was generated above.
    Codeword is   c(X) = data(X)*X**(nn-kk)+ b(X)         */
-bool RScodec::encode(unsigned char *data, unsigned char *parity) {
-    if (!isOk) return false;
+bool RScodec::encode(unsigned char *data, unsigned char *parity) const {
+    if (!isOk) {
+        return false;
+    }
     int i,j ;
     int feedback ;
     unsigned char *idata = data;
     unsigned char *bd = parity;
-    int bb = nn-kk;; //nn-kk length of parity data
+    int bb = nn-kk; //nn-kk length of parity data
 
-    for (i=0; i<bb; i++)   bd[i] = 0 ;
+    for (i=0; i<bb; i++) {
+        bd[i] = 0 ;
+    }
     for (i=kk-1; i>=0; i--) {
         feedback = index_of[idata[i]^bd[bb-1]] ;
         if (feedback != -1) {
-            for (j=bb-1; j>0; j--)
-                if (gg[j] != -1)
+            for (j=bb-1; j>0; j--) {
+                if (gg[j] != -1) {
                     bd[j] = bd[j-1]^alpha_to[(gg[j]+feedback)%nn] ;
-                else
+                }
+                else {
                     bd[j] = bd[j-1] ;
+                }
+            }
             bd[0] = alpha_to[(gg[0]+feedback)%nn] ;
         } else {
-            for (j=bb-1; j>0; j--)
+            for (j=bb-1; j>0; j--) {
                 bd[j] = bd[j-1] ;
+            }
             bd[0] = 0 ;
         }
     }
@@ -364,38 +428,14 @@ bool RScodec::encode(unsigned char *data, unsigned char *parity) {
    can be returned as error flags to the calling routine if desired.   */
 /** return value: number of corrected errors or -1 if can't correct it */
 int RScodec::decode(unsigned char *data) {
-    if (!isOk) return -1;
-    int bb = nn-kk;; //nn-kk length of parity data
+    if (!isOk) {
+        return -1;
+    }
+    const int bb = nn-kk; //nn-kk length of parity data
 
-    int *recd = new (std::nothrow) int[nn];
-    int **elp = new int*[bb + 2];
-    for (int i = 0; i < bb + 2; ++i)
-        elp[i] = new int[bb];
-    int *d = new int[bb + 2];
-    int *l = new int[bb + 2];
-    int *u_lu = new int[bb + 2];
-    int *s = new int[bb + 1];
-    int *root = new int[tt];
-    int *loc = new int[tt];
-    int *z = new int[tt+1];
-    int *err = new int[nn];
-    int *reg = new int[tt + 1];
-
-    int res = calcDecode(data, recd, elp ,d ,l, u_lu, s, root, loc ,z, err, reg, bb);
-
-    delete[] recd;
-    for (int i = 0; i < bb + 2; ++i)
-        delete[] elp[i];
-    delete[] elp;
-    delete[] d;
-    delete[] l;
-    delete[] u_lu;
-    delete[] s;
-    delete[] root;
-    delete[] loc;
-    delete[] z;
-    delete[] err;
-    delete[] reg;
-
-    return res;
+    // Scratch buffers are member-owned (sized once in the constructor) and
+    // reused across every call -- see the member declarations in rscodec.h.
+    return calcDecode(data, recd.get(), elp.get(), d.get(), l.get(),
+                      u_lu.get(), s.get(), root.get(), loc.get(), z.get(),
+                      err.get(), reg.get(), bb);
 }

@@ -1,0 +1,1555 @@
+{
+  "callbacks": [
+    "addAppId",
+    "addArc",
+    "addBlock",
+    "addCircle",
+    "addComment",
+    "addCoord",
+    "addDimAlign",
+    "addDimAngular",
+    "addDimAngular3P",
+    "addDimDiametric",
+    "addDimLinear",
+    "addDimOrdinate",
+    "addDimRadial",
+    "addDimStyle",
+    "addDouble",
+    "addEllipse",
+    "addHatch",
+    "addHeader",
+    "addImage",
+    "addInsert",
+    "addInt",
+    "addKnot",
+    "addLType",
+    "addLWPolyline",
+    "addLayer",
+    "addLeader",
+    "addLine",
+    "addMText",
+    "addPlotSettings",
+    "addPoint",
+    "addPolyline",
+    "addRay",
+    "addSolid",
+    "addSpline",
+    "addStr",
+    "addString",
+    "addText",
+    "addTextStyle",
+    "addTrace",
+    "addVertex",
+    "addViewport",
+    "addVport",
+    "addXline",
+    "address"
+  ],
+  "headerCount": 29,
+  "headers": [
+    {
+      "callbacks": [
+        "addCoord",
+        "addDouble",
+        "addInt",
+        "addString"
+      ],
+      "classes": [
+        "DRW_Coord",
+        "DRW_LW_Conv",
+        "DRW_Variant",
+        "DRW_Vertex2D",
+        "DebugLevel",
+        "DebugPrinter",
+        "dwgHandle",
+        "is"
+      ],
+      "enumValues": [
+        "AC1002",
+        "AC1003",
+        "AC1004",
+        "AC1006",
+        "AC1009",
+        "AC1012",
+        "AC1014",
+        "AC1015",
+        "AC1018",
+        "AC1021",
+        "AC1024",
+        "AC1027",
+        "AC1032",
+        "AC12",
+        "AC14",
+        "AC150",
+        "AC210",
+        "BAD_CODE_PARSED",
+        "BAD_NONE",
+        "BAD_OPEN",
+        "BAD_READ_BLOCKS",
+        "BAD_READ_CLASSES",
+        "BAD_READ_ENTITIES",
+        "BAD_READ_FILE_HEADER",
+        "BAD_READ_HANDLES",
+        "BAD_READ_HEADER",
+        "BAD_READ_METADATA",
+        "BAD_READ_OBJECTS",
+        "BAD_READ_SECTION",
+        "BAD_READ_TABLES",
+        "BAD_UNKNOWN",
+        "BAD_VERSION",
+        "COORD",
+        "CastAndReceieveShadows",
+        "CastShadows",
+        "ColorByBlock",
+        "ColorByLayer",
+        "DOUBLE",
+        "Debug",
+        "DefaultPlotStyle",
+        "INTEGER",
+        "INVALID",
+        "IgnoreShadows",
+        "MC00",
+        "MaterialByLayer",
+        "ModelSpace",
+        "NoHandle",
+        "None",
+        "Opaque",
+        "PaperSpace",
+        "ReceiveShadows",
+        "STRING",
+        "Transparent",
+        "UNKNOWNV"
+      ],
+      "enums": [
+        "ColorCodes",
+        "DebugLevel",
+        "HandleCodes",
+        "MaterialCodes",
+        "PlotStyleCodes",
+        "ShadowMode",
+        "Space",
+        "TYPE",
+        "TransparencyCodes",
+        "Version",
+        "error",
+        "lineWidth"
+      ],
+      "includes": [
+        "cmath",
+        "string",
+        "unordered_map"
+      ],
+      "macros": [
+        "ARAD",
+        "DRW_BASE_H",
+        "DRW_POSIX",
+        "DRW_UNUSED",
+        "DRW_VERSION",
+        "DRW_WIN",
+        "M_PI",
+        "M_PI_2",
+        "M_PIx2",
+        "UTF8STRING",
+        "drw_assert"
+      ],
+      "path": "src/drw_base.h",
+      "sha256": "00f6655a21f50d53f4e9eed8a21171321b9fe28904a92d642e444c7b70e58302",
+      "typedefs": [
+        "ddouble64",
+        "ddouble80",
+        "dfloat32",
+        "dint16",
+        "dint32",
+        "dint64",
+        "dint8",
+        "duint16",
+        "duint32",
+        "duint64",
+        "duint8"
+      ]
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "DRW_Class",
+        "dwgBuffer",
+        "dxfReader",
+        "dxfWriter",
+        "name"
+      ],
+      "enumValues": [],
+      "enums": [],
+      "includes": [
+        "drw_base.h"
+      ],
+      "macros": [
+        "DRW_CLASSES_H"
+      ],
+      "path": "src/drw_classes.h",
+      "sha256": "8640a0de3985b480f11d8f5fc971e597228c40a0250d9e61f55f0fc9a571b3f4",
+      "typedefs": []
+    },
+    {
+      "callbacks": [
+        "addArc",
+        "addEllipse",
+        "addLine",
+        "addSpline",
+        "addVertex"
+      ],
+      "classes": [
+        "DRW_3Dface",
+        "DRW_Arc",
+        "DRW_Block",
+        "DRW_Circle",
+        "DRW_DimAligned",
+        "DRW_DimAngular",
+        "DRW_DimAngular3p",
+        "DRW_DimDiametric",
+        "DRW_DimLinear",
+        "DRW_DimOrdinate",
+        "DRW_DimRadial",
+        "DRW_Dimension",
+        "DRW_Ellipse",
+        "DRW_Entity",
+        "DRW_Hatch",
+        "DRW_HatchLoop",
+        "DRW_Image",
+        "DRW_Insert",
+        "DRW_LWPolyline",
+        "DRW_Leader",
+        "DRW_Line",
+        "DRW_MText",
+        "DRW_Point",
+        "DRW_Polyline",
+        "DRW_Ray",
+        "DRW_Solid",
+        "DRW_Spline",
+        "DRW_Text",
+        "DRW_Trace",
+        "DRW_Vertex",
+        "DRW_Viewport",
+        "DRW_Xline",
+        "bool",
+        "dwgBuffer",
+        "dwgReader",
+        "dxfRW",
+        "dxfReader",
+        "for"
+      ],
+      "enumValues": [
+        "ARC",
+        "AllEdges",
+        "BLOCK",
+        "BottomCenter",
+        "BottomLeft",
+        "BottomRight",
+        "CIRCLE",
+        "DIMALIGNED",
+        "DIMANGULAR",
+        "DIMANGULAR3P",
+        "DIMDIAMETRIC",
+        "DIMENSION",
+        "DIMLINEAR",
+        "DIMORDINATE",
+        "DIMRADIAL",
+        "DXF_TRACE",
+        "E3DFACE",
+        "ELLIPSE",
+        "FirstEdge",
+        "FourthEdge",
+        "HATCH",
+        "HAligned",
+        "HCenter",
+        "HLeft",
+        "HMiddle",
+        "HRight",
+        "IMAGE",
+        "INSERT",
+        "LEADER",
+        "LINE",
+        "LWPOLYLINE",
+        "MTEXT",
+        "MiddleCenter",
+        "MiddleLeft",
+        "MiddleRight",
+        "NoEdge",
+        "POINT",
+        "POLYLINE",
+        "RAY",
+        "SOLID",
+        "SPLINE",
+        "SecodEdge",
+        "TEXT",
+        "ThirdEdge",
+        "TopCenter",
+        "TopLeft",
+        "TopRight",
+        "UNDERLAY",
+        "UNKNOWN",
+        "VBaseLine",
+        "VBottom",
+        "VERTEX",
+        "VIEWPORT",
+        "VMiddle",
+        "XLINE"
+      ],
+      "enums": [
+        "Attach",
+        "DRW",
+        "DRW_LW_Conv",
+        "ETYPE",
+        "HAlign",
+        "InvisibleEdgeFlags",
+        "VAlign"
+      ],
+      "includes": [
+        "drw_base.h",
+        "list",
+        "memory",
+        "string",
+        "vector"
+      ],
+      "macros": [
+        "DRW_ENTITIES_H",
+        "SETENTFRIENDS"
+      ],
+      "path": "src/drw_entities.h",
+      "sha256": "549bafb3edfc2d3bd94ee4ae2bc930739e7459802fe979e700a708c4a9b51df0",
+      "typedefs": []
+    },
+    {
+      "callbacks": [
+        "addComment",
+        "addCoord",
+        "addDouble",
+        "addInt",
+        "addStr"
+      ],
+      "classes": [
+        "DRW_Header",
+        "dwgBuffer",
+        "dwgReader",
+        "dxfRW",
+        "dxfReader",
+        "dxfWriter"
+      ],
+      "enumValues": [
+        "Angstrom",
+        "Astro",
+        "Centimeter",
+        "Decameter",
+        "Decimeter",
+        "English",
+        "Foot",
+        "Gigameter",
+        "Hectometer",
+        "Inch",
+        "Kilometer",
+        "Lightyear",
+        "Meter",
+        "Metric",
+        "Microinch",
+        "Micron",
+        "Mil",
+        "Mile",
+        "Millimeter",
+        "Nanometer",
+        "None",
+        "Parsec",
+        "UnitCount",
+        "Yard"
+      ],
+      "enums": [
+        "Units"
+      ],
+      "includes": [
+        "drw_base.h",
+        "memory",
+        "unordered_map"
+      ],
+      "macros": [
+        "DRW_HEADER_H",
+        "SETHDRFRIENDS"
+      ],
+      "path": "src/drw_header.h",
+      "sha256": "1192cec47067159a13fb70c5889c84ff5448ecb02cf6eca4e544ee3b1bcb57bf",
+      "typedefs": []
+    },
+    {
+      "callbacks": [
+        "addAppId",
+        "addArc",
+        "addBlock",
+        "addCircle",
+        "addComment",
+        "addDimAlign",
+        "addDimAngular",
+        "addDimAngular3P",
+        "addDimDiametric",
+        "addDimLinear",
+        "addDimOrdinate",
+        "addDimRadial",
+        "addDimStyle",
+        "addEllipse",
+        "addHatch",
+        "addHeader",
+        "addImage",
+        "addInsert",
+        "addKnot",
+        "addLType",
+        "addLWPolyline",
+        "addLayer",
+        "addLeader",
+        "addLine",
+        "addMText",
+        "addPlotSettings",
+        "addPoint",
+        "addPolyline",
+        "addRay",
+        "addSolid",
+        "addSpline",
+        "addText",
+        "addTextStyle",
+        "addTrace",
+        "addViewport",
+        "addVport",
+        "addXline"
+      ],
+      "classes": [
+        "DRW_Interface",
+        "which"
+      ],
+      "enumValues": [],
+      "enums": [],
+      "includes": [
+        "cstring",
+        "drw_entities.h",
+        "drw_header.h",
+        "drw_objects.h"
+      ],
+      "macros": [
+        "DRW_INTERFACE_H"
+      ],
+      "path": "src/drw_interface.h",
+      "sha256": "dfab5620b571a9b630db2db8009150697d89babf9cb249e4fe3690c478872293",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "DRW_AppId",
+        "DRW_Block_Record",
+        "DRW_Dimstyle",
+        "DRW_ImageDef",
+        "DRW_LType",
+        "DRW_Layer",
+        "DRW_PlotSettings",
+        "DRW_TableEntry",
+        "DRW_Textstyle",
+        "DRW_Vport",
+        "dwgBuffer",
+        "dwgReader",
+        "dxfRW",
+        "dxfReader",
+        "dxfWriter",
+        "for",
+        "version"
+      ],
+      "enumValues": [
+        "APPID",
+        "BLOCK_RECORD",
+        "DIMSTYLE",
+        "IMAGEDEF",
+        "LAYER",
+        "LTYPE",
+        "PLOTSETTINGS",
+        "STYLE",
+        "UNKNOWNT",
+        "VPORT"
+      ],
+      "enums": [
+        "DRW",
+        "DRW_LW_Conv",
+        "TTYPE"
+      ],
+      "includes": [
+        "drw_base.h",
+        "map",
+        "memory",
+        "string",
+        "vector"
+      ],
+      "macros": [
+        "DRW_OBJECTS_H",
+        "SETOBJFRIENDS"
+      ],
+      "path": "src/drw_objects.h",
+      "sha256": "d9ff9ffd356d12f7b97589b6dbe3a06c8f034c1c9cd1c3c80b7c2a8a7499e96f",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [],
+      "enumValues": [],
+      "enums": [],
+      "includes": [],
+      "macros": [
+        "CPLENGTH932",
+        "CPOFFSET932",
+        "DRW_CPTABLE932_H",
+        "NOTFOUND932"
+      ],
+      "path": "src/intern/drw_cptable932.h",
+      "sha256": "6bbfc4806d0f364c4316c21d7f2d73b2947d1f521bdc163dd7bf4d014cef4799",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [],
+      "enumValues": [],
+      "enums": [],
+      "includes": [],
+      "macros": [
+        "CPLENGTH936",
+        "CPOFFSET936",
+        "DRW_CPTABLE936_H",
+        "NOTFOUND936"
+      ],
+      "path": "src/intern/drw_cptable936.h",
+      "sha256": "67348543857aa31fd9704c8bbd861e9f93385c603ce15c749245d825ca21ac50",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [],
+      "enumValues": [],
+      "enums": [],
+      "includes": [],
+      "macros": [
+        "CPLENGTH949",
+        "CPOFFSET949",
+        "DRW_CPTABLE949_H",
+        "NOTFOUND949"
+      ],
+      "path": "src/intern/drw_cptable949.h",
+      "sha256": "f9040bb882f06bccb6dc7ce1bc4180a7565552deb5e9749c576123d8914de91a",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [],
+      "enumValues": [],
+      "enums": [],
+      "includes": [],
+      "macros": [
+        "CPLENGTH950",
+        "CPOFFSET950",
+        "DRW_CPTABLE950_H",
+        "NOTFOUND950"
+      ],
+      "path": "src/intern/drw_cptable950.h",
+      "sha256": "cc03ff5305795bd3f9cc4e654f127542e42df182c2c7c4579297da4776ff195d",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [],
+      "enumValues": [],
+      "enums": [],
+      "includes": [],
+      "macros": [
+        "CPLENGTHCOMMON",
+        "CPOFFSET",
+        "DRW_CPTABLES_H"
+      ],
+      "path": "src/intern/drw_cptables.h",
+      "sha256": "5d13e423b8dee5fcf9853368840903fc7ad2faec91b5200a66fd9e3bf0752cb4",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "DRW_dbg",
+        "Level"
+      ],
+      "enumValues": [
+        "Debug",
+        "None"
+      ],
+      "enums": [
+        "Level"
+      ],
+      "includes": [
+        "../drw_base.h",
+        "iostream",
+        "memory",
+        "string"
+      ],
+      "macros": [
+        "DRW_DBG",
+        "DRW_DBGB",
+        "DRW_DBGGL",
+        "DRW_DBGH",
+        "DRW_DBGHL",
+        "DRW_DBGPT",
+        "DRW_DBGSL",
+        "DRW_DBG_H"
+      ],
+      "path": "src/intern/drw_dbg.h",
+      "sha256": "6d6ae943782b8765bd144dbb9b6027c83305ecbd4bff07a0502ae7d5a45846ed",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [],
+      "enumValues": [],
+      "enums": [],
+      "includes": [
+        "drw_dbg.h",
+        "vector"
+      ],
+      "macros": [
+        "DRW_RESERVE_H"
+      ],
+      "path": "src/intern/drw_reserve.h",
+      "sha256": "66d3e112e21af9ba02b4e6432917ddf24b152e648d8ca7a1fa5812e149e6b3c1",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "DRW_Conv932Table",
+        "DRW_ConvDBCSTable",
+        "DRW_ConvTable",
+        "DRW_ConvUTF16",
+        "DRW_Converter",
+        "DRW_TextCodec"
+      ],
+      "enumValues": [],
+      "enums": [],
+      "includes": [
+        "../drw_base.h",
+        "memory",
+        "string"
+      ],
+      "macros": [
+        "DRW_TEXTCODEC_H"
+      ],
+      "path": "src/intern/drw_textcodec.h",
+      "sha256": "b90fd4079bb4da0984292692f4d09ee98432a8a03683f550cbe811b7be5d2d93",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "DRW_Coord",
+        "DRW_TextCodec",
+        "dwgBasicStream",
+        "dwgBuffer",
+        "dwgCharStream",
+        "dwgFileStream"
+      ],
+      "enumValues": [],
+      "enums": [],
+      "includes": [
+        "../drw_base.h",
+        "fstream",
+        "memory",
+        "sstream"
+      ],
+      "macros": [
+        "DWGBUFFER_H"
+      ],
+      "path": "src/intern/dwgbuffer.h",
+      "sha256": "70c97352f1267e9343ca6bdfce338a231bf876b9debc60675e6d8bf488533f96",
+      "typedefs": []
+    },
+    {
+      "callbacks": [
+        "address"
+      ],
+      "classes": [
+        "DRW_ObjControl",
+        "T",
+        "dwgPageInfo",
+        "dwgR",
+        "dwgReader",
+        "dwgSectionInfo",
+        "objHandle"
+      ],
+      "enumValues": [],
+      "enums": [
+        "secEnum"
+      ],
+      "includes": [
+        "../libdwgr.h",
+        "drw_textcodec.h",
+        "dwgbuffer.h",
+        "dwgutil.h",
+        "list",
+        "memory",
+        "unordered_map"
+      ],
+      "macros": [
+        "DWGREADER_H"
+      ],
+      "path": "src/intern/dwgreader.h",
+      "sha256": "77463228f9d8c493415984724ceca3b7775a1164ae53ee643b3f75717847104a",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "dwgReader15"
+      ],
+      "enumValues": [],
+      "enums": [],
+      "includes": [
+        "drw_textcodec.h",
+        "dwgbuffer.h",
+        "dwgreader.h"
+      ],
+      "macros": [
+        "DWGREADER15_H"
+      ],
+      "path": "src/intern/dwgreader15.h",
+      "sha256": "2b613c1a4ee7cfb42512c0d2fbfb97c1c372b1e4046fdd45936bed1fc6520a39",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "dwgReader18"
+      ],
+      "enumValues": [],
+      "enums": [],
+      "includes": [
+        "dwgbuffer.h",
+        "dwgreader.h"
+      ],
+      "macros": [
+        "DWGREADER18_H"
+      ],
+      "path": "src/intern/dwgreader18.h",
+      "sha256": "87041c4e57736b58bc5dc5603ac57fee041a39f40b3fea69a601a978e170536a",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "dwgReader21"
+      ],
+      "enumValues": [],
+      "enums": [],
+      "includes": [
+        "drw_textcodec.h",
+        "dwgbuffer.h",
+        "dwgreader.h",
+        "vector"
+      ],
+      "macros": [
+        "DWGREADER21_H"
+      ],
+      "path": "src/intern/dwgreader21.h",
+      "sha256": "4a902d73598930793ce1e3de8af6b1f27eee1e3f40ebf9304c2eadc0f07820bf",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "dwgReader24"
+      ],
+      "enumValues": [],
+      "enums": [],
+      "includes": [
+        "drw_textcodec.h",
+        "dwgbuffer.h",
+        "dwgreader18.h"
+      ],
+      "macros": [
+        "DWGREADER24_H"
+      ],
+      "path": "src/intern/dwgreader24.h",
+      "sha256": "ff9f91f7b53b5f761b8e7739fac3541cdf5d33cf7bfe70249aee1000b4c42927",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "dwgReader27"
+      ],
+      "enumValues": [],
+      "enums": [],
+      "includes": [
+        "drw_textcodec.h",
+        "dwgbuffer.h",
+        "dwgreader18.h"
+      ],
+      "macros": [
+        "DWGREADER27_H"
+      ],
+      "path": "src/intern/dwgreader27.h",
+      "sha256": "fefba290c3b9a768922fbcf3191585ee4f1548cbf843bdc7dd21243f242d5984",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "dwgReader32"
+      ],
+      "enumValues": [],
+      "enums": [],
+      "includes": [
+        "dwgreader27.h"
+      ],
+      "macros": [
+        "DWGREADER32_H"
+      ],
+      "path": "src/intern/dwgreader32.h",
+      "sha256": "8de04181d7639a8d4b7b3c9fa205afd891f90370078401895ce2511579041e8b",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "dwgCompressor"
+      ],
+      "enumValues": [
+        "APPINFO",
+        "APPINFOHISTORY",
+        "AUXHEADER",
+        "Block21OrderArray",
+        "CLASSES",
+        "EXTEDATA",
+        "FILEDEP",
+        "FILEHEADER",
+        "HANDLES",
+        "HEADER",
+        "MaxBlock21Length",
+        "OBJECTS",
+        "OBJFREESPACE",
+        "PREVIEW",
+        "PROTOTYPE",
+        "REVHISTORY",
+        "SECURITY",
+        "SIGNATURE",
+        "SUMARYINFO",
+        "TEMPLATE",
+        "UNKNOWNS",
+        "VBAPROY"
+      ],
+      "enums": [
+        "DWGSection",
+        "R21Consts"
+      ],
+      "includes": [
+        "../drw_base.h"
+      ],
+      "macros": [
+        "DWGUTIL_H"
+      ],
+      "path": "src/intern/dwgutil.h",
+      "sha256": "751caacdd8620f22a605f9c8399e8f1c9adff5fc74cdf533889c2e2036f81f3b",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "dxfReader",
+        "dxfReaderAscii",
+        "dxfReaderBinary"
+      ],
+      "enumValues": [
+        "BOOL",
+        "DOUBLE",
+        "INT32",
+        "INT64",
+        "INVALID",
+        "STRING"
+      ],
+      "enums": [
+        "TYPE"
+      ],
+      "includes": [
+        "drw_textcodec.h"
+      ],
+      "macros": [
+        "DXFREADER_H"
+      ],
+      "path": "src/intern/dxfreader.h",
+      "sha256": "1cffabbbda9b02bebfacaf79245e720e98d5576f5a970d1e14ff983e142aedad",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "dxfWriter",
+        "dxfWriterAscii",
+        "dxfWriterBinary"
+      ],
+      "enumValues": [],
+      "enums": [],
+      "includes": [
+        "drw_textcodec.h"
+      ],
+      "macros": [
+        "DXFWRITER_H"
+      ],
+      "path": "src/intern/dxfwriter.h",
+      "sha256": "6f3fb9dbb74d7d16fb86423d78ce545cb69de0a7587feb25083912a607f8f4f3",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "RScodec"
+      ],
+      "enumValues": [],
+      "enums": [],
+      "includes": [],
+      "macros": [
+        "RSCODEC_H"
+      ],
+      "path": "src/intern/rscodec.h",
+      "sha256": "9e8c873f26b6d6f01224eaa7616146f3dfc698f3974ff5a925bb0251f6031931",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "dwgR",
+        "dwgReader"
+      ],
+      "enumValues": [],
+      "enums": [],
+      "includes": [
+        "drw_classes.h",
+        "drw_entities.h",
+        "drw_interface.h",
+        "drw_objects.h",
+        "memory",
+        "string",
+        "unordered_map"
+      ],
+      "macros": [
+        "LIBDWGR_H"
+      ],
+      "path": "src/libdwgr.h",
+      "sha256": "1ccc89d84aa4f08e291dad07eca92cb6e0533fa74f9683b670732a522fcdcb29",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [
+        "dxfRW",
+        "dxfReader",
+        "dxfWriter",
+        "to"
+      ],
+      "enumValues": [],
+      "enums": [],
+      "includes": [
+        "drw_entities.h",
+        "drw_header.h",
+        "drw_interface.h",
+        "drw_objects.h",
+        "memory",
+        "string",
+        "unordered_map"
+      ],
+      "macros": [
+        "LIBDXFRW_H"
+      ],
+      "path": "src/libdxfrw.h",
+      "sha256": "74de8fb608c39696aef6f260c1ca7a1b32356ff03b1bbcd11bbbead95cb0720f",
+      "typedefs": []
+    },
+    {
+      "callbacks": [],
+      "classes": [],
+      "enumValues": [],
+      "enums": [],
+      "includes": [],
+      "macros": [],
+      "path": "src/main_doc.h",
+      "sha256": "575980cce5f79b5efb2b57ca5e994397f62bb771da9aacd076612b989c0150ad",
+      "typedefs": []
+    }
+  ],
+  "includeDependencies": [
+    {
+      "from": "src/drw_base.h",
+      "to": "cmath"
+    },
+    {
+      "from": "src/drw_base.h",
+      "to": "string"
+    },
+    {
+      "from": "src/drw_base.h",
+      "to": "unordered_map"
+    },
+    {
+      "from": "src/drw_classes.h",
+      "to": "drw_base.h"
+    },
+    {
+      "from": "src/drw_entities.h",
+      "to": "drw_base.h"
+    },
+    {
+      "from": "src/drw_entities.h",
+      "to": "list"
+    },
+    {
+      "from": "src/drw_entities.h",
+      "to": "memory"
+    },
+    {
+      "from": "src/drw_entities.h",
+      "to": "string"
+    },
+    {
+      "from": "src/drw_entities.h",
+      "to": "vector"
+    },
+    {
+      "from": "src/drw_header.h",
+      "to": "drw_base.h"
+    },
+    {
+      "from": "src/drw_header.h",
+      "to": "memory"
+    },
+    {
+      "from": "src/drw_header.h",
+      "to": "unordered_map"
+    },
+    {
+      "from": "src/drw_interface.h",
+      "to": "cstring"
+    },
+    {
+      "from": "src/drw_interface.h",
+      "to": "drw_entities.h"
+    },
+    {
+      "from": "src/drw_interface.h",
+      "to": "drw_header.h"
+    },
+    {
+      "from": "src/drw_interface.h",
+      "to": "drw_objects.h"
+    },
+    {
+      "from": "src/drw_objects.h",
+      "to": "drw_base.h"
+    },
+    {
+      "from": "src/drw_objects.h",
+      "to": "map"
+    },
+    {
+      "from": "src/drw_objects.h",
+      "to": "memory"
+    },
+    {
+      "from": "src/drw_objects.h",
+      "to": "string"
+    },
+    {
+      "from": "src/drw_objects.h",
+      "to": "vector"
+    },
+    {
+      "from": "src/intern/drw_dbg.h",
+      "to": "../drw_base.h"
+    },
+    {
+      "from": "src/intern/drw_dbg.h",
+      "to": "iostream"
+    },
+    {
+      "from": "src/intern/drw_dbg.h",
+      "to": "memory"
+    },
+    {
+      "from": "src/intern/drw_dbg.h",
+      "to": "string"
+    },
+    {
+      "from": "src/intern/drw_reserve.h",
+      "to": "drw_dbg.h"
+    },
+    {
+      "from": "src/intern/drw_reserve.h",
+      "to": "vector"
+    },
+    {
+      "from": "src/intern/drw_textcodec.h",
+      "to": "../drw_base.h"
+    },
+    {
+      "from": "src/intern/drw_textcodec.h",
+      "to": "memory"
+    },
+    {
+      "from": "src/intern/drw_textcodec.h",
+      "to": "string"
+    },
+    {
+      "from": "src/intern/dwgbuffer.h",
+      "to": "../drw_base.h"
+    },
+    {
+      "from": "src/intern/dwgbuffer.h",
+      "to": "fstream"
+    },
+    {
+      "from": "src/intern/dwgbuffer.h",
+      "to": "memory"
+    },
+    {
+      "from": "src/intern/dwgbuffer.h",
+      "to": "sstream"
+    },
+    {
+      "from": "src/intern/dwgreader.h",
+      "to": "../libdwgr.h"
+    },
+    {
+      "from": "src/intern/dwgreader.h",
+      "to": "drw_textcodec.h"
+    },
+    {
+      "from": "src/intern/dwgreader.h",
+      "to": "dwgbuffer.h"
+    },
+    {
+      "from": "src/intern/dwgreader.h",
+      "to": "dwgutil.h"
+    },
+    {
+      "from": "src/intern/dwgreader.h",
+      "to": "list"
+    },
+    {
+      "from": "src/intern/dwgreader.h",
+      "to": "memory"
+    },
+    {
+      "from": "src/intern/dwgreader.h",
+      "to": "unordered_map"
+    },
+    {
+      "from": "src/intern/dwgreader15.h",
+      "to": "drw_textcodec.h"
+    },
+    {
+      "from": "src/intern/dwgreader15.h",
+      "to": "dwgbuffer.h"
+    },
+    {
+      "from": "src/intern/dwgreader15.h",
+      "to": "dwgreader.h"
+    },
+    {
+      "from": "src/intern/dwgreader18.h",
+      "to": "dwgbuffer.h"
+    },
+    {
+      "from": "src/intern/dwgreader18.h",
+      "to": "dwgreader.h"
+    },
+    {
+      "from": "src/intern/dwgreader21.h",
+      "to": "drw_textcodec.h"
+    },
+    {
+      "from": "src/intern/dwgreader21.h",
+      "to": "dwgbuffer.h"
+    },
+    {
+      "from": "src/intern/dwgreader21.h",
+      "to": "dwgreader.h"
+    },
+    {
+      "from": "src/intern/dwgreader21.h",
+      "to": "vector"
+    },
+    {
+      "from": "src/intern/dwgreader24.h",
+      "to": "drw_textcodec.h"
+    },
+    {
+      "from": "src/intern/dwgreader24.h",
+      "to": "dwgbuffer.h"
+    },
+    {
+      "from": "src/intern/dwgreader24.h",
+      "to": "dwgreader18.h"
+    },
+    {
+      "from": "src/intern/dwgreader27.h",
+      "to": "drw_textcodec.h"
+    },
+    {
+      "from": "src/intern/dwgreader27.h",
+      "to": "dwgbuffer.h"
+    },
+    {
+      "from": "src/intern/dwgreader27.h",
+      "to": "dwgreader18.h"
+    },
+    {
+      "from": "src/intern/dwgreader32.h",
+      "to": "dwgreader27.h"
+    },
+    {
+      "from": "src/intern/dwgutil.h",
+      "to": "../drw_base.h"
+    },
+    {
+      "from": "src/intern/dxfreader.h",
+      "to": "drw_textcodec.h"
+    },
+    {
+      "from": "src/intern/dxfwriter.h",
+      "to": "drw_textcodec.h"
+    },
+    {
+      "from": "src/libdwgr.h",
+      "to": "drw_classes.h"
+    },
+    {
+      "from": "src/libdwgr.h",
+      "to": "drw_entities.h"
+    },
+    {
+      "from": "src/libdwgr.h",
+      "to": "drw_interface.h"
+    },
+    {
+      "from": "src/libdwgr.h",
+      "to": "drw_objects.h"
+    },
+    {
+      "from": "src/libdwgr.h",
+      "to": "memory"
+    },
+    {
+      "from": "src/libdwgr.h",
+      "to": "string"
+    },
+    {
+      "from": "src/libdwgr.h",
+      "to": "unordered_map"
+    },
+    {
+      "from": "src/libdxfrw.h",
+      "to": "drw_entities.h"
+    },
+    {
+      "from": "src/libdxfrw.h",
+      "to": "drw_header.h"
+    },
+    {
+      "from": "src/libdxfrw.h",
+      "to": "drw_interface.h"
+    },
+    {
+      "from": "src/libdxfrw.h",
+      "to": "drw_objects.h"
+    },
+    {
+      "from": "src/libdxfrw.h",
+      "to": "memory"
+    },
+    {
+      "from": "src/libdxfrw.h",
+      "to": "string"
+    },
+    {
+      "from": "src/libdxfrw.h",
+      "to": "unordered_map"
+    }
+  ],
+  "lexicalOnly": true,
+  "macroEffects": [
+    "ARAD",
+    "CPLENGTH932",
+    "CPLENGTH936",
+    "CPLENGTH949",
+    "CPLENGTH950",
+    "CPLENGTHCOMMON",
+    "CPOFFSET",
+    "CPOFFSET932",
+    "CPOFFSET936",
+    "CPOFFSET949",
+    "CPOFFSET950",
+    "DRW_BASE_H",
+    "DRW_CLASSES_H",
+    "DRW_CPTABLE932_H",
+    "DRW_CPTABLE936_H",
+    "DRW_CPTABLE949_H",
+    "DRW_CPTABLE950_H",
+    "DRW_CPTABLES_H",
+    "DRW_DBG",
+    "DRW_DBGB",
+    "DRW_DBGGL",
+    "DRW_DBGH",
+    "DRW_DBGHL",
+    "DRW_DBGPT",
+    "DRW_DBGSL",
+    "DRW_DBG_H",
+    "DRW_ENTITIES_H",
+    "DRW_HEADER_H",
+    "DRW_INTERFACE_H",
+    "DRW_OBJECTS_H",
+    "DRW_POSIX",
+    "DRW_RESERVE_H",
+    "DRW_TEXTCODEC_H",
+    "DRW_UNUSED",
+    "DRW_VERSION",
+    "DRW_WIN",
+    "DWGBUFFER_H",
+    "DWGREADER15_H",
+    "DWGREADER18_H",
+    "DWGREADER21_H",
+    "DWGREADER24_H",
+    "DWGREADER27_H",
+    "DWGREADER32_H",
+    "DWGREADER_H",
+    "DWGUTIL_H",
+    "DXFREADER_H",
+    "DXFWRITER_H",
+    "LIBDWGR_H",
+    "LIBDXFRW_H",
+    "M_PI",
+    "M_PI_2",
+    "M_PIx2",
+    "NOTFOUND932",
+    "NOTFOUND936",
+    "NOTFOUND949",
+    "NOTFOUND950",
+    "RSCODEC_H",
+    "SETENTFRIENDS",
+    "SETHDRFRIENDS",
+    "SETOBJFRIENDS",
+    "UTF8STRING",
+    "drw_assert"
+  ],
+  "publicEnumValues": [
+    "AC1002",
+    "AC1003",
+    "AC1004",
+    "AC1006",
+    "AC1009",
+    "AC1012",
+    "AC1014",
+    "AC1015",
+    "AC1018",
+    "AC1021",
+    "AC1024",
+    "AC1027",
+    "AC1032",
+    "AC12",
+    "AC14",
+    "AC150",
+    "AC210",
+    "APPID",
+    "APPINFO",
+    "APPINFOHISTORY",
+    "ARC",
+    "AUXHEADER",
+    "AllEdges",
+    "Angstrom",
+    "Astro",
+    "BAD_CODE_PARSED",
+    "BAD_NONE",
+    "BAD_OPEN",
+    "BAD_READ_BLOCKS",
+    "BAD_READ_CLASSES",
+    "BAD_READ_ENTITIES",
+    "BAD_READ_FILE_HEADER",
+    "BAD_READ_HANDLES",
+    "BAD_READ_HEADER",
+    "BAD_READ_METADATA",
+    "BAD_READ_OBJECTS",
+    "BAD_READ_SECTION",
+    "BAD_READ_TABLES",
+    "BAD_UNKNOWN",
+    "BAD_VERSION",
+    "BLOCK",
+    "BLOCK_RECORD",
+    "BOOL",
+    "Block21OrderArray",
+    "BottomCenter",
+    "BottomLeft",
+    "BottomRight",
+    "CIRCLE",
+    "CLASSES",
+    "COORD",
+    "CastAndReceieveShadows",
+    "CastShadows",
+    "Centimeter",
+    "ColorByBlock",
+    "ColorByLayer",
+    "DIMALIGNED",
+    "DIMANGULAR",
+    "DIMANGULAR3P",
+    "DIMDIAMETRIC",
+    "DIMENSION",
+    "DIMLINEAR",
+    "DIMORDINATE",
+    "DIMRADIAL",
+    "DIMSTYLE",
+    "DOUBLE",
+    "DXF_TRACE",
+    "Debug",
+    "Decameter",
+    "Decimeter",
+    "DefaultPlotStyle",
+    "E3DFACE",
+    "ELLIPSE",
+    "EXTEDATA",
+    "English",
+    "FILEDEP",
+    "FILEHEADER",
+    "FirstEdge",
+    "Foot",
+    "FourthEdge",
+    "Gigameter",
+    "HANDLES",
+    "HATCH",
+    "HAligned",
+    "HCenter",
+    "HEADER",
+    "HLeft",
+    "HMiddle",
+    "HRight",
+    "Hectometer",
+    "IMAGE",
+    "IMAGEDEF",
+    "INSERT",
+    "INT32",
+    "INT64",
+    "INTEGER",
+    "INVALID",
+    "IgnoreShadows",
+    "Inch",
+    "Kilometer",
+    "LAYER",
+    "LEADER",
+    "LINE",
+    "LTYPE",
+    "LWPOLYLINE",
+    "Lightyear",
+    "MC00",
+    "MTEXT",
+    "MaterialByLayer",
+    "MaxBlock21Length",
+    "Meter",
+    "Metric",
+    "Microinch",
+    "Micron",
+    "MiddleCenter",
+    "MiddleLeft",
+    "MiddleRight",
+    "Mil",
+    "Mile",
+    "Millimeter",
+    "ModelSpace",
+    "Nanometer",
+    "NoEdge",
+    "NoHandle",
+    "None",
+    "OBJECTS",
+    "OBJFREESPACE",
+    "Opaque",
+    "PLOTSETTINGS",
+    "POINT",
+    "POLYLINE",
+    "PREVIEW",
+    "PROTOTYPE",
+    "PaperSpace",
+    "Parsec",
+    "RAY",
+    "REVHISTORY",
+    "ReceiveShadows",
+    "SECURITY",
+    "SIGNATURE",
+    "SOLID",
+    "SPLINE",
+    "STRING",
+    "STYLE",
+    "SUMARYINFO",
+    "SecodEdge",
+    "TEMPLATE",
+    "TEXT",
+    "ThirdEdge",
+    "TopCenter",
+    "TopLeft",
+    "TopRight",
+    "Transparent",
+    "UNDERLAY",
+    "UNKNOWN",
+    "UNKNOWNS",
+    "UNKNOWNT",
+    "UNKNOWNV",
+    "UnitCount",
+    "VBAPROY",
+    "VBaseLine",
+    "VBottom",
+    "VERTEX",
+    "VIEWPORT",
+    "VMiddle",
+    "VPORT",
+    "XLINE",
+    "Yard"
+  ],
+  "publicEnums": [
+    "Attach",
+    "ColorCodes",
+    "DRW",
+    "DRW_LW_Conv",
+    "DWGSection",
+    "DebugLevel",
+    "ETYPE",
+    "HAlign",
+    "HandleCodes",
+    "InvisibleEdgeFlags",
+    "Level",
+    "MaterialCodes",
+    "PlotStyleCodes",
+    "R21Consts",
+    "ShadowMode",
+    "Space",
+    "TTYPE",
+    "TYPE",
+    "TransparencyCodes",
+    "Units",
+    "VAlign",
+    "Version",
+    "error",
+    "lineWidth",
+    "secEnum"
+  ],
+  "publicHeaderCount": 9,
+  "schema": 1,
+  "sourceRoot": "src",
+  "typedefs": [
+    "ddouble64",
+    "ddouble80",
+    "dfloat32",
+    "dint16",
+    "dint32",
+    "dint64",
+    "dint8",
+    "duint16",
+    "duint32",
+    "duint64",
+    "duint8"
+  ]
+}

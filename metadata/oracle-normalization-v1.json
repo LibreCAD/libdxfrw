@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "name": "libdxfrw semantic oracle normalization",
+  "volatileFields": ["timestamp", "date", "generatedAt", "toolInvocation"],
+  "requiredFields": ["format", "version", "toolVersion", "exitStatus", "diagnostics", "entities", "objects", "relationships", "opaquePayloadHashes"],
+  "ordering": {
+    "entities": "preserve-input-order",
+    "objects": "preserve-input-order",
+    "relationships": "sort-by-from-kind-to",
+    "diagnostics": "preserve-severity-and-order"
+  },
+  "floatingPoint": {
+    "absoluteTolerance": 1e-12,
+    "relativeTolerance": 1e-9,
+    "signedZero": "equal",
+    "nan": "canonical-token",
+    "infinity": "canonical-token"
+  },
+  "text": {
+    "codepage": "record-input-codepage",
+    "unicodeEscape": "preserve-or-record-lossy-fallback"
+  },
+  "opaquePayloads": "sha256-only",
+  "rule": "A normalized hash never replaces the required tool/version, exit status, diagnostics, semantic counts, graph relationships, and opaque-payload hashes. Any rule change increments schema."
+}

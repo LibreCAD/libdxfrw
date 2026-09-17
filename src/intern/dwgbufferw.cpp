@@ -1,0 +1,774 @@
+/******************************************************************************
+**  libDXFrw - Library to read/write DXF files (ascii & binary)              **
+**                                                                           **
+**  Copyright (C) 2026 LibreCAD (librecad.org)                                **
+**  Copyright (C) 2026 Dongxu Li (github.com/dxli)                            **
+**                                                                           **
+**  This library is free software, licensed under the terms of the GNU       **
+**  General Public License as published by the Free Software Foundation,     **
+**  either version 2 of the License, or (at your option) any later version.  **
+**  You should have received a copy of the GNU General Public License        **
+**  along with this program.  If not, see <http://www.gnu.org/licenses/>.    **
+******************************************************************************/
+
+#include "dwgbufferw.h"
+
+#include <algorithm>
+#include <cstring>
+#include <limits>
+
+#include "../drw_base.h"
+#include "drw_textcodec.h"
+
+// CRC-CCITT lookup table — same constants the reader uses (the file's
+// crctable[256] is static-linked, so we duplicate it locally; small
+// (512 bytes) and keeps the writer independent of the reader's TU).
+static const unsigned int crcTable[256] = {
+    0x0000, 0xC0C1, 0xC181, 0x0140, 0xC301, 0x03C0, 0x0280, 0xC241,
+    0xC601, 0x06C0, 0x0780, 0xC741, 0x0500, 0xC5C1, 0xC481, 0x0440,
+    0xCC01, 0x0CC0, 0x0D80, 0xCD41, 0x0F00, 0xCFC1, 0xCE81, 0x0E40,
+    0x0A00, 0xCAC1, 0xCB81, 0x0B40, 0xC901, 0x09C0, 0x0880, 0xC841,
+    0xD801, 0x18C0, 0x1980, 0xD941, 0x1B00, 0xDBC1, 0xDA81, 0x1A40,
+    0x1E00, 0xDEC1, 0xDF81, 0x1F40, 0xDD01, 0x1DC0, 0x1C80, 0xDC41,
+    0x1400, 0xD4C1, 0xD581, 0x1540, 0xD701, 0x17C0, 0x1680, 0xD641,
+    0xD201, 0x12C0, 0x1380, 0xD341, 0x1100, 0xD1C1, 0xD081, 0x1040,
+    0xF001, 0x30C0, 0x3180, 0xF141, 0x3300, 0xF3C1, 0xF281, 0x3240,
+    0x3600, 0xF6C1, 0xF781, 0x3740, 0xF501, 0x35C0, 0x3480, 0xF441,
+    0x3C00, 0xFCC1, 0xFD81, 0x3D40, 0xFF01, 0x3FC0, 0x3E80, 0xFE41,
+    0xFA01, 0x3AC0, 0x3B80, 0xFB41, 0x3900, 0xF9C1, 0xF881, 0x3840,
+    0x2800, 0xE8C1, 0xE981, 0x2940, 0xEB01, 0x2BC0, 0x2A80, 0xEA41,
+    0xEE01, 0x2EC0, 0x2F80, 0xEF41, 0x2D00, 0xEDC1, 0xEC81, 0x2C40,
+    0xE401, 0x24C0, 0x2580, 0xE541, 0x2700, 0xE7C1, 0xE681, 0x2640,
+    0x2200, 0xE2C1, 0xE381, 0x2340, 0xE101, 0x21C0, 0x2080, 0xE041,
+    0xA001, 0x60C0, 0x6180, 0xA141, 0x6300, 0xA3C1, 0xA281, 0x6240,
+    0x6600, 0xA6C1, 0xA781, 0x6740, 0xA501, 0x65C0, 0x6480, 0xA441,
+    0x6C00, 0xACC1, 0xAD81, 0x6D40, 0xAF01, 0x6FC0, 0x6E80, 0xAE41,
+    0xAA01, 0x6AC0, 0x6B80, 0xAB41, 0x6900, 0xA9C1, 0xA881, 0x6840,
+    0x7800, 0xB8C1, 0xB981, 0x7940, 0xBB01, 0x7BC0, 0x7A80, 0xBA41,
+    0xBE01, 0x7EC0, 0x7F80, 0xBF41, 0x7D00, 0xBDC1, 0xBC81, 0x7C40,
+    0xB401, 0x74C0, 0x7580, 0xB541, 0x7700, 0xB7C1, 0xB681, 0x7640,
+    0x7200, 0xB2C1, 0xB381, 0x7340, 0xB101, 0x71C0, 0x7080, 0xB041,
+    0x5000, 0x90C1, 0x9181, 0x5140, 0x9301, 0x53C0, 0x5280, 0x9241,
+    0x9601, 0x56C0, 0x5780, 0x9741, 0x5500, 0x95C1, 0x9481, 0x5440,
+    0x9C01, 0x5CC0, 0x5D80, 0x9D41, 0x5F00, 0x9FC1, 0x9E81, 0x5E40,
+    0x5A00, 0x9AC1, 0x9B81, 0x5B40, 0x9901, 0x59C0, 0x5880, 0x9841,
+    0x8801, 0x48C0, 0x4980, 0x8941, 0x4B00, 0x8BC1, 0x8A81, 0x4A40,
+    0x4E00, 0x8EC1, 0x8F81, 0x4F40, 0x8D01, 0x4DC0, 0x4C80, 0x8C41,
+    0x4400, 0x84C1, 0x8581, 0x4540, 0x8701, 0x47C0, 0x4680, 0x8641,
+    0x8201, 0x42C0, 0x4380, 0x8341, 0x4100, 0x81C1, 0x8081, 0x4040
+};
+
+dwgBufferW::dwgBufferW(DRW_TextCodec *decoder)
+    : m_decoder{decoder}
+{}
+
+void dwgBufferW::alignToByte() {
+    if (m_bitPos != 0)
+        m_bitPos = 0;
+}
+
+void dwgBufferW::appendAlignedByte(std::uint8_t b) {
+    m_buf.push_back(b);
+}
+
+// ---- bit-level primitives -------------------------------------------------
+
+void dwgBufferW::putBit(std::uint8_t b) {
+    if (m_bitPos == 0)
+        m_buf.push_back(0);
+    m_buf.back() = static_cast<std::uint8_t>(m_buf.back() | ((b & 1) << (7 - m_bitPos)));
+    m_bitPos = static_cast<std::uint8_t>((m_bitPos + 1) & 7);
+}
+
+void dwgBufferW::putBoolBit(bool b) {
+    putBit(b ? 1 : 0);
+}
+
+void dwgBufferW::put2Bits(std::uint8_t b) {
+    // MSB first: bit-1 of the 2-bit field comes out first.
+    putBit((b >> 1) & 1);
+    putBit(b & 1);
+}
+
+void dwgBufferW::put3Bits(std::uint8_t b) {
+    putBit((b >> 2) & 1);
+    putBit((b >> 1) & 1);
+    putBit(b & 1);
+}
+
+void dwgBufferW::putBitShort(std::uint16_t v) {
+    // Inverse of getBitShort: 2-bit code selects width.
+    //   code 0b00 → followed by RS (16 bits LE)
+    //   code 0b01 → followed by RC (8 bits)
+    //   code 0b10 → value is 0, no payload
+    //   code 0b11 → value is 256, no payload
+    if (v == 0) {
+        put2Bits(0b10);
+    } else if (v == 256) {
+        put2Bits(0b11);
+    } else if (v < 256) {
+        put2Bits(0b01);
+        putRawChar8(static_cast<std::uint8_t>(v));
+    } else {
+        put2Bits(0b00);
+        putRawShort16(v);
+    }
+}
+
+void dwgBufferW::putSBitShort(std::int16_t v) {
+    // Reader's getSBitShort returns signed; same compression rules but
+    // the 8-bit shortcut sign-extends.  For round-trip safety only use
+    // the shortcut when the value fits an unsigned byte (0..255).
+    if (v == 0) {
+        put2Bits(0b10);
+    } else if (v == 256) {
+        put2Bits(0b11);
+    } else if (v >= 0 && v < 256) {
+        put2Bits(0b01);
+        putRawChar8(static_cast<std::uint8_t>(v));
+    } else {
+        put2Bits(0b00);
+        putRawShort16(static_cast<std::uint16_t>(v));
+    }
+}
+
+void dwgBufferW::putBitLong(std::int32_t v) {
+    // Inverse of getBitLong:
+    //   code 0b00 → RL (32 bits LE)
+    //   code 0b01 → RC (8 bits)
+    //   code 0b10 → value is 0
+    if (v == 0) {
+        put2Bits(0b10);
+    } else if (v > 0 && v < 256) {
+        put2Bits(0b01);
+        putRawChar8(static_cast<std::uint8_t>(v));
+    } else {
+        put2Bits(0b00);
+        putRawLong32(static_cast<std::uint32_t>(v));
+    }
+}
+
+void dwgBufferW::putBitLongLong(std::uint64_t v) {
+    // Inverse of getBitLongLong: 3 bits = byte count, then that many
+    // bytes least-significant first. The three-bit count can represent at
+    // most seven payload bytes; do not silently discard the high byte(s).
+    if ((v >> 56) != 0) {
+        m_good = false;
+        return;
+    }
+    std::uint8_t n = 0;
+    std::uint64_t t = v;
+    while (t != 0 && n < 7) {
+        t >>= 8;
+        ++n;
+    }
+    put3Bits(n);
+    for (std::uint8_t i = 0; i < n; ++i)
+        putRawChar8(static_cast<std::uint8_t>((v >> (i * 8)) & 0xFF));
+}
+
+void dwgBufferW::putBitDouble(double d) {
+    // Inverse of getBitDouble:
+    //   code 0b00 → followed by 8 raw bytes (IEEE 754)
+    //   code 0b01 → value is 1.0
+    //   code 0b10 → value is 0.0
+    // Bit-exact compare on 0.0 / 1.0 (their IEEE patterns are unique).
+    std::uint64_t bits;
+    std::memcpy(&bits, &d, 8);
+    if (bits == 0x3FF0000000000000ULL) { // 1.0
+        put2Bits(0b01);
+    } else if (bits == 0x0000000000000000ULL) { // +0.0
+        put2Bits(0b10);
+    } else {
+        put2Bits(0b00);
+        // Emit the 8 bytes via putRawChar8 to respect current bit cursor.
+        std::uint8_t buf[8];
+        std::memcpy(buf, &d, 8);
+        for (int i = 0; i < 8; ++i)
+            putRawChar8(buf[i]);
+    }
+}
+
+void dwgBufferW::put3BitDouble(const DRW_Coord& c) {
+    putBitDouble(c.x);
+    putBitDouble(c.y);
+    putBitDouble(c.z);
+}
+
+// ---- raw fixed-width primitives ------------------------------------------
+
+void dwgBufferW::putRawChar8(std::uint8_t v) {
+    if (m_bitPos == 0) {
+        m_buf.push_back(v);
+        return;
+    }
+    // Top (8 - bitPos) bits of v fill the remaining low bits of the
+    // current byte; bottom bitPos bits become the high bits of a new byte.
+    m_buf.back() = static_cast<std::uint8_t>(m_buf.back() | (v >> m_bitPos));
+    m_buf.push_back(static_cast<std::uint8_t>((v << (8 - m_bitPos)) & 0xFF));
+}
+
+void dwgBufferW::putRawShort16(std::uint16_t v) {
+    putRawChar8(static_cast<std::uint8_t>(v & 0xFF));
+    putRawChar8(static_cast<std::uint8_t>((v >> 8) & 0xFF));
+}
+
+void dwgBufferW::putBERawShort16(std::uint16_t v) {
+    putRawChar8(static_cast<std::uint8_t>((v >> 8) & 0xFF));
+    putRawChar8(static_cast<std::uint8_t>(v & 0xFF));
+}
+
+void dwgBufferW::putRawDouble(double d) {
+    std::uint8_t buf[8];
+    std::memcpy(buf, &d, 8);
+    for (int i = 0; i < 8; ++i)
+        putRawChar8(buf[i]);
+}
+
+void dwgBufferW::putRawLong32(std::uint32_t v) {
+    putRawShort16(static_cast<std::uint16_t>(v & 0xFFFF));
+    putRawShort16(static_cast<std::uint16_t>((v >> 16) & 0xFFFF));
+}
+
+void dwgBufferW::putRawLong64(std::uint64_t v) {
+    putRawLong32(static_cast<std::uint32_t>(v & 0xFFFFFFFFu));
+    putRawLong32(static_cast<std::uint32_t>((v >> 32) & 0xFFFFFFFFu));
+}
+
+void dwgBufferW::put2RawDouble(const DRW_Coord& c) {
+    putRawDouble(c.x);
+    putRawDouble(c.y);
+}
+
+// ---- modular / variable-length encodings ---------------------------------
+
+bool dwgBufferW::putUModularChar(std::uint64_t v) {
+    // Emit 7-bit chunks LSB-first. The DWG form permits five chunks, so the
+    // representable unsigned range is 35 bits. Never truncate a value: a
+    // wrapped handle delta would make the following HANDLES entry decode at
+    // the wrong offset.
+    constexpr std::uint64_t maxValue = (std::uint64_t{1} << 35) - 1;
+    if (v > maxValue) {
+        m_good = false;
+        return false;
+    }
+    std::uint8_t chunks[5];
+    int n = 0;
+    do {
+        chunks[n++] = static_cast<std::uint8_t>(v & 0x7F);
+        v >>= 7;
+    } while (v != 0 && n < 5);
+    // Set continuation bit on all but the last chunk.
+    for (int i = 0; i < n - 1; ++i)
+        chunks[i] = static_cast<std::uint8_t>(chunks[i] | 0x80);
+    for (int i = 0; i < n; ++i)
+        putRawChar8(chunks[i]);
+    return true;
+}
+
+bool dwgBufferW::putModularChar(std::int64_t v) {
+    // The terminal chunk has six magnitude bits and one sign bit, giving a
+    // 34-bit magnitude range across the five-byte form. Never truncate a
+    // larger delta because the next object-map entry would be mislocated.
+    const bool negative = v < 0;
+    const std::uint64_t magnitude = negative
+        ? static_cast<std::uint64_t>(-(v + 1)) + 1
+        : static_cast<std::uint64_t>(v);
+    constexpr std::uint64_t maxMagnitude = (std::uint64_t{1} << 34) - 1;
+    if (magnitude > maxMagnitude) {
+        m_good = false;
+        return false;
+    }
+    std::uint64_t remaining = magnitude;
+    std::uint8_t chunks[5];
+    int n = 0;
+    do {
+        chunks[n++] = static_cast<std::uint8_t>(remaining & 0x7F);
+        remaining >>= 7;
+    } while (remaining != 0 && n < 5);
+    // If the magnitude needs the terminal sign bit, spill into a final zero
+    // chunk where possible. The range check above guarantees that the
+    // terminal chunk always fits without truncation.
+    if (chunks[n - 1] & 0x40) {
+        if (n < 5) {
+            chunks[n - 1] = static_cast<std::uint8_t>(chunks[n - 1] | 0x80);
+            chunks[n++] = 0;
+        } else {
+            chunks[n - 1] = static_cast<std::uint8_t>(chunks[n - 1] & 0x3F);
+        }
+    }
+    if (negative && !(chunks[n - 1] & 0x40))
+        chunks[n - 1] = static_cast<std::uint8_t>(chunks[n - 1] | 0x40);
+    for (int i = 0; i < n - 1; ++i)
+        chunks[i] = static_cast<std::uint8_t>(chunks[i] | 0x80);
+    for (int i = 0; i < n; ++i)
+        putRawChar8(chunks[i]);
+    return true;
+}
+
+void dwgBufferW::putModularShort(std::int32_t v) {
+    // Reader handles at most two 15-bit RS chunks; lengths are positive.
+    // Reject values that would lose their high bits or change sign when
+    // encoded in this bounded form.
+    constexpr std::int32_t maxValue = (std::int32_t{1} << 30) - 1;
+    if (v < 0 || v > maxValue) {
+        m_good = false;
+        return;
+    }
+    std::uint32_t absv = static_cast<std::uint32_t>(v);
+    std::uint16_t lo = static_cast<std::uint16_t>(absv & 0x7FFF);
+    std::uint16_t hi = static_cast<std::uint16_t>((absv >> 15) & 0x7FFF);
+    if (hi == 0) {
+        // Single chunk (no continuation bit).
+        putRawShort16(lo);
+    } else {
+        putRawShort16(static_cast<std::uint16_t>(lo | 0x8000));
+        putRawShort16(hi);
+    }
+}
+
+// ---- handles --------------------------------------------------------------
+
+void dwgBufferW::putHandle(const dwgHandle& h) {
+    if (h.size > sizeof(h.ref64)) {
+        m_good = false;
+        return;
+    }
+    std::uint64_t ref = h.ref;
+    std::uint8_t size = 0;
+    const bool hasWideReference = h.ref64 > std::numeric_limits<std::uint32_t>::max()
+        || h.size > sizeof(h.ref);
+    if (hasWideReference && h.ref64 != 0) {
+        ref = h.ref64;
+        while (size < sizeof(h.ref64) && (ref >> (size * 8)) != 0)
+            ++size;
+        if (h.size >= 5 && h.size <= sizeof(h.ref64) && h.size > size)
+            size = h.size;
+    } else if (ref != 0) {
+        std::uint32_t narrowRef = static_cast<std::uint32_t>(ref);
+        while (narrowRef != 0) {
+            narrowRef >>= 8;
+            ++size;
+        }
+    }
+    const std::uint64_t startBit = currentBitOffset();
+    const std::uint8_t code = static_cast<std::uint8_t>(h.code & 0x0F);
+    const std::uint8_t header =
+        static_cast<std::uint8_t>((code << 4) | (size & 0x0F));
+    putRawChar8(header);
+    // Emit MSB byte first.
+    for (int i = size - 1; i >= 0; --i)
+        putRawChar8(static_cast<std::uint8_t>((ref >> (i * 8)) & 0xFF));
+    recordHandleOccurrence(code, ref, startBit);
+}
+
+void dwgBufferW::putFixedHandle(std::uint8_t code, std::uint8_t size,
+                                std::uint64_t ref) {
+    if (size > sizeof(ref)) {
+        m_good = false;
+        return;
+    }
+    const std::uint64_t startBit = currentBitOffset();
+    const std::uint8_t wireCode = static_cast<std::uint8_t>(code & 0x0F);
+    putRawChar8(static_cast<std::uint8_t>((wireCode << 4) | size));
+    for (int i = size - 1; i >= 0; --i)
+        putRawChar8(static_cast<std::uint8_t>((ref >> (i * 8)) & 0xFF));
+    recordHandleOccurrence(wireCode, ref, startBit);
+}
+
+void dwgBufferW::recordHandleOccurrence(std::uint8_t code,
+                                         std::uint64_t reference,
+                                         std::uint64_t startBit) {
+    m_handleOccurrences.push_back(
+        {code, reference,
+         startBit,
+         currentBitOffset()});
+}
+
+// ---- object type (OT) ----------------------------------------------------
+
+void dwgBufferW::putObjType(DRW::Version v, std::uint16_t oType) {
+    if (v > DRW::AC1021) {
+        // R2010+ OT: 2-bit code + variable payload
+        if (oType < 256) {
+            put2Bits(0);
+            putRawChar8(static_cast<std::uint8_t>(oType));
+        } else if (oType >= 0x01F0 && oType < 0x02F0) {
+            put2Bits(1);
+            putRawChar8(static_cast<std::uint8_t>(oType - 0x01F0));
+        } else {
+            put2Bits(2);
+            putRawShort16(oType);
+        }
+    } else {
+        putBitShort(oType);
+    }
+}
+
+// ---- strings -------------------------------------------------------------
+
+void dwgBufferW::putVariableText(DRW::Version v, const std::string& utf8) {
+    if (v > DRW::AC1018)
+        putUCSText(utf8);
+    else
+        putCP8Text(utf8);
+}
+
+void dwgBufferW::putCP8Text(const std::string& utf8) {
+    std::string encoded = m_decoder ? m_decoder->fromUtf8(utf8) : utf8;
+    // R2004+ writers include the terminating zero in a non-empty TV field.
+    // The reader strips it, preserving the public string value.
+    if (!encoded.empty()) {
+        if (encoded.size() > 0xFFFEu) {
+            m_good = false;
+            return;
+        }
+        encoded.push_back('\0');
+    }
+    std::uint16_t byteLen = static_cast<std::uint16_t>(encoded.size());
+    putBitShort(byteLen);
+    if (byteLen != 0)
+        putBytes(reinterpret_cast<const std::uint8_t*>(encoded.data()), byteLen);
+}
+
+void dwgBufferW::putENCText(const std::string& utf8) {
+    std::string encoded = m_decoder ? m_decoder->fromUtf8CP8(utf8) : utf8;
+    if (!encoded.empty()) {
+        if (encoded.size() > 0xFFFEu) {
+            m_good = false;
+            return;
+        }
+        encoded.push_back('\0');
+    }
+    const std::uint16_t byteLen = static_cast<std::uint16_t>(encoded.size());
+    putBitShort(byteLen);
+    if (byteLen != 0)
+        putBytes(reinterpret_cast<const std::uint8_t*>(encoded.data()), byteLen);
+}
+
+void dwgBufferW::putUCSText(const std::string& utf8) {
+    // Convert UTF-8 to UTF-16LE code units. BMP codepoints emit one unit;
+    // astral codepoints (U+10000..U+10FFFF) emit a surrogate pair.
+    std::vector<std::uint16_t> units;
+    for (size_t i = 0; i < utf8.size(); ) {
+        unsigned char c = static_cast<unsigned char>(utf8[i]);
+        std::uint32_t cp = 0;
+        if (c < 0x80) {
+            cp = c; ++i;
+        } else if ((c & 0xE0) == 0xC0 && i + 1 < utf8.size()) {
+            cp = (c & 0x1F);
+            cp = (cp << 6) | (static_cast<unsigned char>(utf8[i+1]) & 0x3F);
+            i += 2;
+        } else if ((c & 0xF0) == 0xE0 && i + 2 < utf8.size()) {
+            cp = (c & 0x0F);
+            cp = (cp << 6) | (static_cast<unsigned char>(utf8[i+1]) & 0x3F);
+            cp = (cp << 6) | (static_cast<unsigned char>(utf8[i+2]) & 0x3F);
+            i += 3;
+        } else if ((c & 0xF8) == 0xF0 && i + 3 < utf8.size()) {
+            cp = (c & 0x07);
+            cp = (cp << 6) | (static_cast<unsigned char>(utf8[i+1]) & 0x3F);
+            cp = (cp << 6) | (static_cast<unsigned char>(utf8[i+2]) & 0x3F);
+            cp = (cp << 6) | (static_cast<unsigned char>(utf8[i+3]) & 0x3F);
+            i += 4;
+        } else {
+            cp = '?'; ++i;  // replacement for malformed input
+        }
+        // Encode as UTF-16 (surrogates for > 0xFFFF)
+        if (cp < 0x10000) {
+            units.push_back(static_cast<std::uint16_t>(cp));
+        } else {
+            cp -= 0x10000;
+            units.push_back(static_cast<std::uint16_t>(0xD800 | (cp >> 10)));
+            units.push_back(static_cast<std::uint16_t>(0xDC00 | (cp & 0x3FF)));
+        }
+    }
+    // The TU length is a 16-bit BS count and includes the terminating zero
+    // code unit for non-empty strings.
+    if (!units.empty()) {
+        if (units.size() > 0xFFFEu) {
+            m_good = false;
+            return;
+        }
+        units.push_back(0);
+    }
+    const size_t n = units.size();
+    putBitShort(static_cast<std::uint16_t>(n));
+    for (size_t i = 0; i < n; ++i) {
+        putRawChar8(static_cast<std::uint8_t>(units[i] & 0xFF));
+        putRawChar8(static_cast<std::uint8_t>(units[i] >> 8));
+    }
+}
+
+std::string dwgBufferW::encodeTextAreaString(const std::string& utf8,
+                                             bool unicode) const {
+    if (!unicode)
+        return m_decoder ? m_decoder->fromUtf8(utf8) : utf8;
+
+    std::string encoded;
+    for (size_t i = 0; i < utf8.size();) {
+        const unsigned char c = static_cast<unsigned char>(utf8[i]);
+        std::uint32_t cp = 0;
+        if (c < 0x80) {
+            cp = c;
+            ++i;
+        } else if ((c & 0xE0) == 0xC0 && i + 1 < utf8.size()) {
+            cp = c & 0x1F;
+            cp = (cp << 6) |
+                 (static_cast<unsigned char>(utf8[i + 1]) & 0x3F);
+            i += 2;
+        } else if ((c & 0xF0) == 0xE0 && i + 2 < utf8.size()) {
+            cp = c & 0x0F;
+            cp = (cp << 6) |
+                 (static_cast<unsigned char>(utf8[i + 1]) & 0x3F);
+            cp = (cp << 6) |
+                 (static_cast<unsigned char>(utf8[i + 2]) & 0x3F);
+            i += 3;
+        } else if ((c & 0xF8) == 0xF0 && i + 3 < utf8.size()) {
+            cp = c & 0x07;
+            cp = (cp << 6) |
+                 (static_cast<unsigned char>(utf8[i + 1]) & 0x3F);
+            cp = (cp << 6) |
+                 (static_cast<unsigned char>(utf8[i + 2]) & 0x3F);
+            cp = (cp << 6) |
+                 (static_cast<unsigned char>(utf8[i + 3]) & 0x3F);
+            i += 4;
+        } else {
+            cp = '?';
+            ++i;
+        }
+
+        if (cp < 0x10000) {
+            const auto unit = static_cast<std::uint16_t>(cp);
+            encoded.push_back(static_cast<char>(unit & 0xFF));
+            encoded.push_back(static_cast<char>(unit >> 8));
+        } else if (cp <= 0x10FFFF) {
+            cp -= 0x10000;
+            const std::uint16_t high =
+                static_cast<std::uint16_t>(0xD800 | (cp >> 10));
+            const std::uint16_t low =
+                static_cast<std::uint16_t>(0xDC00 | (cp & 0x3FF));
+            encoded.push_back(static_cast<char>(high & 0xFF));
+            encoded.push_back(static_cast<char>(high >> 8));
+            encoded.push_back(static_cast<char>(low & 0xFF));
+            encoded.push_back(static_cast<char>(low >> 8));
+        }
+    }
+    return encoded;
+}
+
+std::uint32_t dwgBufferW::bitCount() const {
+    if (m_bitPos == 0)
+        return static_cast<std::uint32_t>(m_buf.size()) * 8;
+    return static_cast<std::uint32_t>(m_buf.size() - 1) * 8 + m_bitPos;
+}
+
+void dwgBufferW::putBytes(const std::uint8_t* buf, size_t n) {
+    if (buf == nullptr || n == 0) return;
+    if (m_bitPos == 0) {
+        m_buf.insert(m_buf.end(), buf, buf + n);
+        return;
+    }
+    for (size_t i = 0; i < n; ++i)
+        putRawChar8(buf[i]);
+}
+
+// ---- specialty primitives ------------------------------------------------
+
+void dwgBufferW::putExtrusion(const DRW_Coord& ext, bool b_R2000_style) {
+    if (b_R2000_style) {
+        if (ext.x == 0.0 && ext.y == 0.0 && ext.z == 1.0) {
+            putBit(1);
+            return;
+        }
+        putBit(0);
+    }
+    putBitDouble(ext.x);
+    putBitDouble(ext.y);
+    putBitDouble(ext.z);
+}
+
+void dwgBufferW::putDefaultDouble(double defaultVal, double d) {
+    // Simplest correct encoding: always use code 0b11 (full RD) so the
+    // value is emitted byte-exact.  The reader handles all four codes.
+    // Phase 4 can revisit and pick smaller codes when low bytes match
+    // the default, but correctness first.
+    (void)defaultVal;
+    put2Bits(0b11);
+    putRawDouble(d);
+}
+
+void dwgBufferW::putThickness(double t, bool b_R2000_style) {
+    if (b_R2000_style) {
+        if (t == 0.0) {
+            putBit(1);
+            return;
+        }
+        putBit(0);
+    }
+    putBitDouble(t);
+}
+
+void dwgBufferW::putCmColor(DRW::Version v, std::uint16_t colorIndex) {
+    putBitShort(colorIndex);
+    if (v >= DRW::AC1018) {  // R2004+: getCmColor reads BS + BL(rgb) + rawchar8(flags)
+        // getCmColor dispatches on rgb>>24 (type byte):
+        //   0xC0 → return 256 (ByLayer)
+        //   0xC1 → return 0   (ByBlock)
+        //   0xC3 → return rgb&0xFF  (ACI palette index 1..255)
+        // Type 0x00 falls to the default "return 256" branch, discarding idx.
+        std::uint32_t typeNibble;
+        if (colorIndex == 0)
+            typeNibble = 0xC1u;         // ByBlock
+        else if (colorIndex >= 256)
+            typeNibble = 0xC0u;         // ByLayer (256)
+        else
+            typeNibble = 0xC3u;         // ACI 1..255
+        std::uint32_t rgb = (typeNibble << 24) | (colorIndex & 0xFFu);
+        putBitLong(rgb);
+        putRawChar8(0);      // flags = 0 (no color name, no book name)
+    }
+}
+
+void dwgBufferW::putCmColor(DRW::Version v, std::uint16_t colorIndex, std::int32_t rgb24,
+                            const UTF8STRING& colorName,
+                            const UTF8STRING& bookName,
+                            dwgBufferW* strBuf) {
+    // Pre-R2004 has no truecolor/name CMC encoding: index-only path.
+    if (v < DRW::AC1018 || rgb24 < 0) {
+        putCmColor(v, colorIndex);
+        return;
+    }
+    // R2004+ truecolor: BS index, BL packed (0xC2<<24 | rgb24), RC name flags,
+    // then the name strings to the string buffer (defaulting to this).
+    // Inverse of dwgBuffer::getCmColor type==0xC2 branch.
+    putBitShort(colorIndex);
+    std::uint32_t rgb = (0xC2u << 24) | (static_cast<std::uint32_t>(rgb24) & 0xFFFFFFu);
+    putBitLong(static_cast<std::int32_t>(rgb));
+    std::uint8_t flags = static_cast<std::uint8_t>((colorName.empty() ? 0u : 1u)
+                                       | (bookName.empty() ? 0u : 2u));
+    putRawChar8(flags);
+    dwgBufferW* names = strBuf ? strBuf : this;
+    if (flags & 1)
+        names->putVariableText(v, colorName);
+    if (flags & 2)
+        names->putVariableText(v, bookName);
+}
+
+void dwgBufferW::putEnColor(DRW::Version v, std::uint16_t colorIndex) {
+    if (v < DRW::AC1018)
+        putSBitShort(static_cast<std::int16_t>(colorIndex));
+    else
+        putBitShort(colorIndex);  // R2004+: unsigned BS; reader uses getBitShort()
+}
+
+void dwgBufferW::putEnColor(DRW::Version v, std::uint16_t colorIndex,
+                            std::int32_t rgb24, const UTF8STRING& colorName,
+                            const UTF8STRING& bookName,
+                            std::uint32_t alphaRaw,
+                            bool hasDbColorHandle) {
+    if (v < DRW::AC1018) {
+        putEnColor(v, colorIndex);
+        return;
+    }
+
+    const bool hasRgb = !hasDbColorHandle && rgb24 >= 0;
+    // A DBCOLOR/book-color reference is a complex ENC variant too.  The
+    // 0x40 and 0x80 flags are emitted together; 0x40 suppresses the inline
+    // RGB value while 0x80 identifies the extended color representation.
+    const bool hasComplexColor = hasDbColorHandle || hasRgb;
+    const std::uint8_t flags = static_cast<std::uint8_t>(
+        (alphaRaw != 0 ? 0x20u : 0u)
+        | (hasDbColorHandle ? 0x40u : 0u)
+        | (hasComplexColor ? 0x80u : 0u)
+        | (hasDbColorHandle && !colorName.empty() ? 0x01u : 0u)
+        | (hasDbColorHandle && !bookName.empty() ? 0x02u : 0u));
+    // With no name bits, ACI 256 would alias ENC flag bit 0 in the shared
+    // 16-bit field.  ACadSharp writes the DBCOLOR form with no index payload.
+    const std::uint16_t wireColorIndex =
+        (hasDbColorHandle && colorName.empty() && bookName.empty())
+            ? 0u : static_cast<std::uint16_t>(colorIndex & 0x1FFu);
+    const std::uint16_t raw = static_cast<std::uint16_t>(
+        (static_cast<std::uint16_t>(flags) << 8u) | wireColorIndex);
+    putBitShort(raw);
+    if (hasRgb)
+        putBitLong(rgb24 & 0x00FFFFFF);
+    if (alphaRaw != 0)
+        putBitLong(static_cast<std::int32_t>(alphaRaw));
+    if (flags & 0x01u)
+        putENCText(colorName);
+    if (flags & 0x02u)
+        putENCText(bookName);
+}
+
+// ---- CRC ------------------------------------------------------------------
+
+std::uint16_t dwgBufferW::crc16(std::uint16_t seed, size_t start, size_t end) const {
+    if (end > m_buf.size()) end = m_buf.size();
+    std::uint16_t dx = seed;
+    for (size_t i = start; i < end; ++i) {
+        std::uint8_t al = static_cast<std::uint8_t>(m_buf[i] ^ static_cast<std::uint8_t>(dx & 0xFF));
+        dx = static_cast<std::uint16_t>((dx >> 8) & 0xFF);
+        dx = static_cast<std::uint16_t>(dx ^ crcTable[al]);
+    }
+    return dx;
+}
+
+// ---- in-place patching ---------------------------------------------------
+
+void dwgBufferW::patchRawShort16(size_t byteOffset, std::uint16_t v) {
+    if (byteOffset + 2 > m_buf.size()) return;
+    m_buf[byteOffset]     = static_cast<std::uint8_t>(v & 0xFF);
+    m_buf[byteOffset + 1] = static_cast<std::uint8_t>((v >> 8) & 0xFF);
+}
+
+void dwgBufferW::patchRawLong32(size_t byteOffset, std::uint32_t v) {
+    if (byteOffset + 4 > m_buf.size()) return;
+    m_buf[byteOffset]     = static_cast<std::uint8_t>(v & 0xFF);
+    m_buf[byteOffset + 1] = static_cast<std::uint8_t>((v >> 8) & 0xFF);
+    m_buf[byteOffset + 2] = static_cast<std::uint8_t>((v >> 16) & 0xFF);
+    m_buf[byteOffset + 3] = static_cast<std::uint8_t>((v >> 24) & 0xFF);
+}
+
+void dwgBufferW::patchRawLong32AtBit(size_t bitOffset, std::uint32_t val) {
+    // Write 32 bits of val into the stream starting at stream-bit bitOffset.
+    // Precondition: bitOffset % 8 == 2 (all BS widths in our writer leave a
+    // 2-bit sub-byte remainder: "01"+RC = 10 bits, "00"+RS = 18 bits,
+    // "10"/"11" = 2 bits).
+    // In MSB-first packing each byte of val spreads across two adjacent output
+    // bytes, shifted 2 bits right relative to byte boundaries:
+    //   buf[byteIdx]  : high 2 bits preserved, low 6 = val_byte_hi_bits
+    //   buf[byteIdx+1..3]: full cross-byte blending
+    //   buf[byteIdx+4]: high 2 = remaining 2 bits, low 6 bits preserved
+    size_t byteIdx = bitOffset / 8;
+    if (byteIdx + 4 >= m_buf.size()) return;
+    std::uint8_t b0 = static_cast<std::uint8_t>(val & 0xFF);
+    std::uint8_t b1 = static_cast<std::uint8_t>((val >> 8) & 0xFF);
+    std::uint8_t b2 = static_cast<std::uint8_t>((val >> 16) & 0xFF);
+    std::uint8_t b3 = static_cast<std::uint8_t>((val >> 24) & 0xFF);
+    m_buf[byteIdx]     = (m_buf[byteIdx] & 0xC0) | static_cast<std::uint8_t>(b0 >> 2);
+    m_buf[byteIdx + 1] = static_cast<std::uint8_t>(b0 << 6) | static_cast<std::uint8_t>(b1 >> 2);
+    m_buf[byteIdx + 2] = static_cast<std::uint8_t>(b1 << 6) | static_cast<std::uint8_t>(b2 >> 2);
+    m_buf[byteIdx + 3] = static_cast<std::uint8_t>(b2 << 6) | static_cast<std::uint8_t>(b3 >> 2);
+    m_buf[byteIdx + 4] = (m_buf[byteIdx + 4] & 0x3F) | static_cast<std::uint8_t>(b3 << 6);
+}
+
+bool dwgBufferW::patchRawBytesAtBit(size_t bitOffset,
+                                    const std::uint8_t *bytes, size_t count) {
+    if (bytes == nullptr || count == 0 || bitOffset > bitCount()
+        || count > (bitCount() - bitOffset) / 8)
+        return false;
+
+    for (size_t byte = 0; byte < count; ++byte) {
+        for (unsigned bit = 0; bit < 8; ++bit) {
+            const size_t targetBit = bitOffset + byte * 8 + bit;
+            const size_t targetByte = targetBit / 8;
+            const std::uint8_t mask = static_cast<std::uint8_t>(
+                1u << (7u - static_cast<unsigned>(targetBit % 8)));
+            if ((bytes[byte] & (1u << (7u - bit))) != 0)
+                m_buf[targetByte] |= mask;
+            else
+                m_buf[targetByte] &= static_cast<std::uint8_t>(~mask);
+        }
+    }
+    return true;
+}

@@ -1,0 +1,85 @@
+{
+  "schema": 1,
+  "kind": "libdxfrw-qualification-implementation-inputs",
+  "freezeState": "FROZEN",
+  "digestAlgorithm": {
+    "name": "sha256-git-blob-records-v1",
+    "record": "path UTF-8, NUL, six-digit Git mode, NUL, lowercase Git blob ID, LF",
+    "ordering": "records sorted by unsigned UTF-8 path bytes",
+    "hash": "SHA-256 over the concatenated records",
+    "pathRules": "repository-relative NFC; no NUL, LF, absolute path, dot, dot-dot, or backslash",
+    "fileRules": "tracked regular files only; symlinks, submodules, conflicts, sparse omissions, untracked scoped files, and worktree/index drift are rejected",
+    "manifestSelfReference": "this definition is selected and hashed as a Git blob but contains no recorded implementation digest"
+  },
+  "selection": {
+    "includeExact": [
+      ".github/workflows/build.yml",
+      "CMakeLists.txt",
+      "Makefile.am",
+      "autogen.sh",
+      "conanfile.py",
+      "configure.ac",
+      "libdxfrw.pc.in",
+      "libdxfrw_sources.cmake",
+      "makefile.mingw",
+      "metadata/ac1024-candidate-fields-v1.json",
+      "metadata/ac1024-candidate-fields-v2.json",
+      "metadata/admitted-candidate-fields-v1.json",
+      "metadata/fixture-registry.json",
+      "metadata/libdxfrw-target-lock.json",
+      "metadata/libdxfrw-target-source-manifest.txt",
+      "metadata/native-qualification-receipt-schema-v1.json",
+      "metadata/parity-source-routes-v1.json",
+      "metadata/qualification-implementation-inputs-v1.json",
+      "metadata/qualification-required-tests-v1.json",
+      "metadata/qualified-differential-v2.json",
+      "metadata/qualified-format-claims-v1.json",
+      "metadata/semantic-minimal-line-v1.json",
+      "metadata/support-matrix-v1.json",
+      "tools/build_semantic_adapter.py",
+      "tools/check_ac1024_candidate_fields.py",
+      "tools/check_ac1024_candidate_fields_v2.py",
+      "tools/check_admitted_candidate_fields.py",
+      "tools/check_fixture_admission.py",
+      "tools/check_qualification_digest.py",
+      "tools/check_qualification_workflow.py",
+      "tools/check_qualified_format_support.py",
+      "tools/check_release_readiness.py",
+      "tools/check_support_matrix.py",
+      "tools/emit_native_qualification_receipt.py",
+      "tools/normalize_drawing_result.py",
+      "tools/run_native_qualification.py",
+      "tools/run_qualified_differential_v2.py",
+      "tools/verify_native_qualification_receipts.py"
+    ],
+    "includePrefixes": [
+      "cmake/",
+      "dwg2dxf/",
+      "src/",
+      "tests/"
+    ],
+    "excludeExact": [
+      "LIBRECAD_DXFRW_UPGRADE_PLAN.md",
+      "metadata/qualified-format-status-v1.json"
+    ],
+    "excludePrefixes": [
+      "metadata/qualification-receipts/"
+    ]
+  },
+  "excludedMutableOutputs": {
+    "statusOverlay": "metadata/qualified-format-status-v1.json",
+    "receiptDirectory": "metadata/qualification-receipts/",
+    "releaseProse": [
+      "LIBRECAD_DXFRW_UPGRADE_PLAN.md",
+      "docs/UPGRADE_SUPPORT.md"
+    ],
+    "generatedReports": "not selected; informational only and never evidence authority"
+  },
+  "requiredFinalizationPaths": [
+    "metadata/ac1024-candidate-fields-v1.json",
+    "metadata/ac1024-candidate-fields-v2.json",
+    "metadata/qualification-required-tests-v1.json",
+    "tools/check_qualification_workflow.py",
+    "tools/run_native_qualification.py"
+  ]
+}

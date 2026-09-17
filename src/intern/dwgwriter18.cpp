@@ -1,0 +1,1075 @@
+/******************************************************************************
+**  libDXFrw - Library to read/write DXF files (ascii & binary)              **
+**                                                                           **
+**  Copyright (C) 2026 LibreCAD (librecad.org)                                **
+**  Copyright (C) 2026 Dongxu Li (github.com/dxli)                            **
+**                                                                           **
+**  This library is free software, licensed under the terms of the GNU       **
+**  General Public License as published by the Free Software Foundation,     **
+**  either version 2 of the License, or (at your option) any later version.  **
+**  You should have received a copy of the GNU General Public License        **
+**  along with this program.  If not, see <http://www.gnu.org/licenses/>.    **
+******************************************************************************/
+
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <cstring>
+#include <limits>
+#include <string_view>
+#include "dwgwriter18.h"
+#include "drw_reserve.h"
+#include "dwgsafety.h"
+#include "dwgutil.h"
+#include "dwgwriterlayoutvalidation.h"
+
+// XOR key for the 0x6C-byte encrypted variable header (file offset 0x80).
+// Matches DRW_magicNum18 in dwgreader18.h — kept local to avoid including
+// the reader header from writer code.
+static const std::uint8_t kMagicNum18[0x6C] = {
+    0x29, 0x23, 0xbe, 0x84, 0xe1, 0x6c, 0xd6, 0xae,
+    0x52, 0x90, 0x49, 0xf1, 0xf1, 0xbb, 0xe9, 0xeb,
+    0xb3, 0xa6, 0xdb, 0x3c, 0x87, 0x0c, 0x3e, 0x99,
+    0x24, 0x5e, 0x0d, 0x1c, 0x06, 0xb7, 0x47, 0xde,
+    0xb3, 0x12, 0x4d, 0xc8, 0x43, 0xbb, 0x8b, 0xa6,
+    0x1f, 0x03, 0x5a, 0x7d, 0x09, 0x38, 0x25, 0x1f,
+    0x5d, 0xd4, 0xcb, 0xfc, 0x96, 0xf5, 0x45, 0x3b,
+    0x13, 0x0d, 0x89, 0x0a, 0x1c, 0xdb, 0xae, 0x32,
+    0x20, 0x9a, 0x50, 0xee, 0x40, 0x78, 0x36, 0xfd,
+    0x12, 0x49, 0x32, 0xf6, 0x9e, 0x7d, 0x49, 0xdc,
+    0xad, 0x4f, 0x14, 0xf2, 0x44, 0x40, 0x66, 0xd0,
+    0x6b, 0xc4, 0x30, 0xb7, 0x32, 0x3b, 0xa1, 0x22,
+    0xf6, 0x22, 0x91, 0x9d, 0xe1, 0x8b, 0x1f, 0xda,
+    0xb0, 0xca, 0x99, 0x02
+};
+
+// Tail magic emitted at file offsets 0xEC-0xFF.  Matches DRW_magicNumEnd18.
+static const std::uint8_t kMagicNumEnd18[0x14] = {
+    0xf8, 0x46, 0x6a, 0x04, 0x96, 0x73, 0x0e, 0xd9,
+    0x16, 0x2f, 0x67, 0x68, 0xd4, 0xf7, 0x4a, 0x4a,
+    0xd0, 0x57, 0x68, 0x76
+};
+
+// --- little-endian helpers ---------------------------------------------------
+
+static void putRL(std::vector<std::uint8_t>& v, std::uint32_t x) {
+    v.push_back(static_cast<std::uint8_t>(x));
+    v.push_back(static_cast<std::uint8_t>(x >> 8));
+    v.push_back(static_cast<std::uint8_t>(x >> 16));
+    v.push_back(static_cast<std::uint8_t>(x >> 24));
+}
+
+static void putRS(std::vector<std::uint8_t>& v, std::uint16_t x) {
+    v.push_back(static_cast<std::uint8_t>(x));
+    v.push_back(static_cast<std::uint8_t>(x >> 8));
+}
+
+static void putRLL(std::vector<std::uint8_t>& v, std::uint64_t x) {
+    putRL(v, static_cast<std::uint32_t>(x));
+    putRL(v, static_cast<std::uint32_t>(x >> 32));
+}
+
+static void patchRL(std::vector<std::uint8_t>& v, size_t offset, std::uint32_t x) {
+    v[offset+0] = static_cast<std::uint8_t>(x);
+    v[offset+1] = static_cast<std::uint8_t>(x >> 8);
+    v[offset+2] = static_cast<std::uint8_t>(x >> 16);
+    v[offset+3] = static_cast<std::uint8_t>(x >> 24);
+}
+
+using DataSectionDesc = dwgWriterLayoutValidation::R2004Section;
+using R2004PhysicalPageReceipt =
+    dwgWriterLayoutValidation::R2004PhysicalPage;
+using R2004LayoutReceipt = dwgWriterLayoutValidation::R2004LayoutReceipt;
+
+constexpr std::uint32_t kR2004DefaultDataPageSize = 0x7400;
+constexpr std::uint32_t kR2004AppInfoPageSize = 0x80;
+constexpr std::size_t kR2004FileHeaderSize = 0x100;
+constexpr std::uint64_t kR2004PageAlignment = 0x20;
+
+constexpr std::array<std::string_view, 17> kR2004SectionMapOrder = {
+    "AcDb:Security",
+    "AcDb:FileDepList",
+    "AcDb:AcDsPrototype_1b",
+    "AcDb:VBAProject",
+    "AcDb:AppInfoHistory",
+    "AcDb:AppInfo",
+    "AcDb:Preview",
+    "AcDb:SummaryInfo",
+    "AcDb:RevHistory",
+    "AcDb:AcDbObjects",
+    "AcDb:ObjFreeSpace",
+    "AcDb:Template",
+    "AcDb:Handles",
+    "AcDb:Classes",
+    "AcDb:AuxHeader",
+    "AcDb:Header",
+    "AcDb:Signature",
+};
+
+constexpr std::array<std::string_view, 17> kR2004StreamOrder = {
+    "AcDb:SummaryInfo",
+    "AcDb:Preview",
+    "AcDb:VBAProject",
+    "AcDb:AppInfo",
+    "AcDb:AppInfoHistory",
+    "AcDb:FileDepList",
+    "AcDb:AcDsPrototype_1b",
+    "AcDb:RevHistory",
+    "AcDb:Security",
+    "AcDb:AcDbObjects",
+    "AcDb:ObjFreeSpace",
+    "AcDb:Template",
+    "AcDb:Handles",
+    "AcDb:Classes",
+    "AcDb:AuxHeader",
+    "AcDb:Header",
+    "AcDb:Signature",
+};
+
+template <std::size_t N>
+std::size_t sectionOrderRank(
+        std::string_view name,
+        const std::array<std::string_view, N>& order) {
+    const auto it = std::find(order.cbegin(), order.cend(), name);
+    return it == order.cend()
+        ? order.size()
+        : static_cast<std::size_t>(it - order.cbegin());
+}
+
+static std::uint32_t dataPageSizeFor(const std::string& name) {
+    // ODA's R2004 section table assigns AppInfo its compact 0x80-byte pages;
+    // the structural sections use the normal 0x7400-byte page capacity.
+    return name == "AcDb:AppInfo" ? kR2004AppInfoPageSize
+                                   : kR2004DefaultDataPageSize;
+}
+
+static bool validR2004SectionEncoding(std::uint64_t encoding) {
+    return encoding == 1 || encoding == 2;
+}
+
+static std::uint16_t headerMeasurement(const DRW_Header* header) {
+    if (header == nullptr)
+        return 0;
+    auto it = header->vars.find("MEASUREMENT");
+    if (it == header->vars.end())
+        it = header->vars.find("$MEASUREMENT");
+    if (it == header->vars.end() || it->second == nullptr
+        || it->second->type() != DRW_Variant::INTEGER)
+        return 0;
+    return static_cast<std::uint16_t>(it->second->i_val() & 1);
+}
+
+static void alignSectionPage(std::vector<std::uint8_t>& page) {
+    const std::uint64_t remainder = page.size() % kR2004PageAlignment;
+    if (remainder != 0) {
+        page.resize(page.size() + (kR2004PageAlignment - remainder), 0);
+    }
+}
+
+// --- R2004 page builders -----------------------------------------------------
+
+// Emit the variable-length literal-run length in the R2004 (AC1018) LZ77 form,
+// i.e. the exact inverse of dwgCompressor::litLength18 (which returns
+// `cont + ll + 3`). `n` must be >= 4 (litLength18 cannot produce 0 < n < 4);
+// system sections are always larger. Single byte for 4..18; a 0x00 trigger then
+// 0xFF-chained bytes for >= 19.
+static void putLitLen18(std::vector<std::uint8_t>& out, std::uint32_t n) {
+    if (n <= 18) {
+        out.push_back(static_cast<std::uint8_t>(n - 3));   // ll in 0x01..0x0F
+        return;
+    }
+    out.push_back(0x00);                                   // trigger extended form
+    std::uint32_t rem = n - 18;
+    while (rem > 0xFF) { out.push_back(0x00); rem -= 0xFF; }
+    out.push_back(static_cast<std::uint8_t>(rem));         // final ll in 1..255
+}
+
+// Byte count putLitLen18 emits for length n — used to size the self-referential
+// Section Page Map page analytically (avoids a build/measure iteration).
+static std::uint32_t litLen18Bytes(std::uint32_t n) {
+    return (n <= 18) ? 1u : ((n - 19) / 0xFF + 2);
+}
+
+// Compress a system section as an R2004-LZ77 *literal-only* stream: one initial
+// literal run covering the whole input, no back-references. The decompressor's
+// output window fills on that run, so its opcode loop never executes and no
+// terminator is needed (matches dwgCompressor::decompress18 and libreDWG's
+// decompress_R2004_section, which both loop while output < decompSize).
+// Conformant readers UNCONDITIONALLY decompress the Section/Data Page Map
+// (libreDWG decode.c:1453); a store-mode page (compType 1) therefore decoded to
+// garbage -> wrong section addresses -> every R2004+ file libdxfrw wrote was
+// undecodable. (write-review EMPIRICAL #1 / plan 3.1)
+static std::vector<std::uint8_t> compressSysSection(const std::uint8_t* data,
+                                                    std::uint32_t n) {
+    std::vector<std::uint8_t> out;
+    out.reserve(n + 6);
+    putLitLen18(out, n);
+    out.insert(out.end(), data, data + n);
+    return out;
+}
+
+// --- R2004 page builders (legacy comment retained below) ---------------------
+
+// Build a sys page (Section Page Map or Data Section Map).
+// Layout: +0 pageType  +4 decompSize  +8 compSize  +12 compType  +16 checksum
+//         +20 compressed data.
+// The data is R2004-LZ77-compressed (literal-only) because conformant readers
+// decompress system pages unconditionally; see compressSysSection.  The page
+// checksum is computed over the COMPRESSED bytes (matches the reader, which
+// checksums the on-disk compressed payload).
+static std::vector<std::uint8_t> buildSysPage(std::uint32_t pageType,
+                                        const std::uint8_t* data, std::uint32_t dataSz) {
+    const std::vector<std::uint8_t> comp = compressSysSection(data, dataSz);
+    const std::uint32_t compSz = static_cast<std::uint32_t>(comp.size());
+
+    std::vector<std::uint8_t> pg;
+    pg.reserve(20 + compSz);
+    putRL(pg, pageType);    // +0
+    putRL(pg, dataSz);      // +4 decompressed size
+    putRL(pg, compSz);      // +8 compressed size
+    putRL(pg, 2);           // +12 compression type 2 = compressed
+    putRL(pg, 0);           // +16 checksum placeholder
+
+    // Checksum: seed over header[0..15] with [16..19]=0, then over the
+    // compressed payload (parseSysPage / libreDWG both checksum compressed bytes).
+    std::uint32_t ckH = dwgUtil::checksum18(0, pg.data(), 20);
+    std::uint32_t ckD = dwgUtil::checksum18(ckH, comp.data(), compSz);
+    patchRL(pg, 16, ckD);
+
+    if (compSz != 0)
+        pg.insert(pg.end(), comp.begin(), comp.end());
+    return pg;
+}
+
+// Build a data page.  The 32-byte page header is XOR-encrypted with
+// decrypt18Hdr using pageAddr as the key offset.
+// Layout: 32-byte encrypted header + data bytes (uncompressed).
+static std::vector<std::uint8_t> buildDataPage(std::uint64_t pageAddr,
+                                         std::uint32_t sectionNum,
+                                         const std::uint8_t* data,
+                                         std::uint32_t dataSz,
+                                         std::uint32_t startOffset) {
+    // Build decrypted 32-byte header.
+    std::uint8_t hdr[32] = {};
+    auto rl = [&](int off, std::uint32_t x) {
+        hdr[off+0] = static_cast<std::uint8_t>(x);
+        hdr[off+1] = static_cast<std::uint8_t>(x >> 8);
+        hdr[off+2] = static_cast<std::uint8_t>(x >> 16);
+        hdr[off+3] = static_cast<std::uint8_t>(x >> 24);
+    };
+    rl( 0, 0x4163043b);  // data page type
+    rl( 4, sectionNum);  // section number
+    rl( 8, dataSz);      // compressed size (= dataSz, store mode)
+    rl(12, dataSz);      // uncompressed size
+    rl(16, startOffset); // logical offset within the decompressed section
+    rl(20, 0);           // unknown
+    rl(24, 0);           // header checksum placeholder
+    rl(28, 0);           // data checksum placeholder
+
+    // Data checksum (seed=0 over the page data).
+    std::uint32_t ckData = dwgUtil::checksum18(0, data, dataSz);
+    rl(28, ckData);
+    // Header checksum: bytes 24-27 zeroed (they hold the field being computed).
+    rl(24, 0);
+    std::uint32_t ckHdr = dwgUtil::checksum18(ckData, hdr, 32);
+    rl(24, ckHdr);
+
+    // Encrypt the header using the page's file address.
+    dwgCompressor::decrypt18Hdr(hdr, 32, pageAddr);  // symmetric XOR
+
+    std::vector<std::uint8_t> pg;
+    pg.reserve(32 + dataSz);
+    pg.insert(pg.end(), hdr, hdr + 32);
+    if (dataSz != 0)
+        pg.insert(pg.end(), data, data + dataSz);
+    return pg;
+}
+
+// Build the decompressed content of the Section Page Map.
+// Each entry: std::int32_t id (RL) + std::uint32_t size (RL).  All IDs are positive
+// (no gap pages needed for a fresh write).
+static std::vector<std::uint8_t> buildSectionPageMapContent(
+        const std::vector<std::uint32_t>& pageSizes) {
+    std::vector<std::uint8_t> v;
+    v.reserve(pageSizes.size() * 8);
+    for (size_t i = 0; i < pageSizes.size(); ++i) {
+        putRL(v, static_cast<std::uint32_t>(i + 1));
+        putRL(v, pageSizes[i]);
+    }
+    return v;
+}
+
+// Append one section description to the Data Section Map buffer.
+// secId: 0-based section index.  pageNum: page ID in the Section Page Map.
+// dataSize: size of decompressed section content.
+static void appendSectionDesc(std::vector<std::uint8_t>& v,
+                              const DataSectionDesc& section) {
+    putRLL(v, section.dataSize);         // logical size of section (uint64)
+    putRL (v, static_cast<std::uint32_t>(section.pages.size()));
+    putRL (v, section.maxPageSize);
+    putRL (v, 0);                // unknown
+    putRL (v, section.compressionType);
+    putRL (v, section.sectionId);
+    putRL (v, section.encrypted);
+
+    // 64-byte null-padded name.
+    std::uint8_t nameBuf[64] = {};
+    std::strncpy(reinterpret_cast<char*>(nameBuf), section.name.c_str(), 63);
+    v.insert(v.end(), nameBuf, nameBuf + 64);
+
+    for (const DataSectionDesc::Page& page : section.pages) {
+        // Page number (RL) + stored page payload size (RL) + logical offset (RLL).
+        putRL (v, page.pageNum);
+        putRL (v, page.dataSize);
+        putRLL(v, page.startOffset);
+    }
+}
+
+// Build the decompressed content of the Data Section Map.
+static std::vector<std::uint8_t> buildDataSectionMapContent(
+        const std::vector<DataSectionDesc>& sections) {
+    std::vector<std::uint8_t> v;
+    const std::uint32_t numDescriptions = static_cast<std::uint32_t>(sections.size());
+    // 20-byte header.
+    putRL(v, numDescriptions);
+    putRL(v, 0x02);
+    putRL(v, 0x00007400);
+    putRL(v, 0x00);
+    putRL(v, numDescriptions);
+
+    for (const DataSectionDesc& section : sections)
+        appendSectionDesc(v, section);
+    return v;
+}
+
+static std::uint16_t auxHeaderRawVersion(DRW::Version version) {
+    switch (version) {
+    case DRW::AC1018: return 25;
+    case DRW::AC1021: return 27;
+    case DRW::AC1024: return 29;
+    case DRW::AC1027: return 31;
+    case DRW::AC1032: return 33;
+    default: return 0;
+    }
+}
+
+static double headerDoubleVar(const DRW_Header *header, const std::string& key) {
+    if (header == nullptr)
+        return 0.0;
+    auto it = header->vars.find(key);
+    if (it == header->vars.end() || it->second == nullptr
+        || it->second->type() != DRW_Variant::DOUBLE) {
+        return 0.0;
+    }
+    return it->second->d_val();
+}
+
+static void splitAuxDate(double stored, std::int32_t& day, std::int32_t& msec) {
+    // Canonical DWG aux-header date encoding: `stored` is julianDay + msec/86_400_000.
+    constexpr double kMsecPerDay = 86400000.0;
+    const double dayFloor = std::floor(stored);
+    day = static_cast<std::int32_t>(dayFloor);
+    const double frac = stored - dayFloor;
+    msec = static_cast<std::int32_t>(std::lround(frac * kMsecPerDay));
+    if (msec >= static_cast<std::int32_t>(kMsecPerDay)) {
+        day += 1;
+        msec = 0;
+    }
+}
+
+static void putAuxDate(std::vector<std::uint8_t>& v, double stored) {
+    std::int32_t day = 0;
+    std::int32_t msec = 0;
+    splitAuxDate(stored, day, msec);
+    putRL(v, static_cast<std::uint32_t>(day));
+    putRL(v, static_cast<std::uint32_t>(msec));
+}
+
+static std::vector<std::uint8_t> buildAuxHeaderContent(DRW::Version version,
+                                                 const DRW_Header *header) {
+    std::vector<std::uint8_t> v;
+    const std::uint16_t rawVersion = auxHeaderRawVersion(version);
+    if (rawVersion == 0)
+        return v;
+
+    v.push_back(0xff);
+    v.push_back(0x77);
+    v.push_back(0x01);
+    putRS(v, rawVersion);
+    putRS(v, 0);                       // maintenance version
+    putRL(v, 1);                       // number of saves
+    putRL(v, static_cast<std::uint32_t>(-1));
+    putRS(v, 1);                       // saves part 1
+    putRS(v, 0);                       // saves part 2
+    putRL(v, 0);
+    putRS(v, rawVersion);
+    putRS(v, 0);
+    putRS(v, rawVersion);
+    putRS(v, 0);
+    putRS(v, 0x0005);
+    putRS(v, 0x0893);
+    putRS(v, 0x0005);
+    putRS(v, 0x0893);
+    putRS(v, 0);
+    putRS(v, 1);
+    for (int i = 0; i < 5; ++i)
+        putRL(v, 0);
+
+    putAuxDate(v, headerDoubleVar(header, "TDCREATE"));
+    putAuxDate(v, headerDoubleVar(header, "TDUPDATE"));
+
+    const std::uint32_t handSeed = header ? header->getHandSeed() : 0;
+    putRL(v, handSeed <= 0x7fffffffu ? handSeed : static_cast<std::uint32_t>(-1));
+    putRL(v, 0);                       // educational plot stamp
+    putRS(v, 0);
+    putRS(v, 1);
+    putRL(v, 0);
+    putRL(v, 0);
+    putRL(v, 0);
+    putRL(v, 1);                       // number of saves
+    putRL(v, 0);
+    putRL(v, 0);
+    putRL(v, 0);
+    putRL(v, 0);
+
+    if (version >= DRW::AC1032) {
+        putRS(v, 0);
+        putRS(v, 0);
+        putRS(v, 0);
+    }
+    return v;
+}
+
+// Build the 0x100-byte fixed file header.
+// secPageMapAddr: absolute file address of the Section Page Map sys page.
+// secMapId: page ID of the Data Section Map page (= 5).
+// lastPageEndAddr: absolute file address after the last page listed in the
+//                  Section Page Map (= start of Section Page Map page).
+// numPages: total pages listed in the Section Page Map (= 5).
+static std::vector<std::uint8_t> buildFileHeader(std::uint64_t secPageMapAddr,
+                                           std::uint32_t secMapId,
+                                           std::uint64_t lastPageEndAddr,
+                                           std::uint32_t numPages,
+                                           const char* verStr,
+                                           std::uint16_t codePage) {
+    std::vector<std::uint8_t> hdr(kR2004FileHeaderSize, 0);
+
+    std::memcpy(hdr.data(), verStr, 6);
+    // Byte 11: maintenance version = 0 (already 0).
+    // Byte 12: 0x00 (already 0).
+    // Bytes 13-16: preview image position = 0 (no preview).
+    // Bytes 17-18: app version / maintenance = 0. R2013 files use an
+    // application-maintenance release greater than 3; this selects the
+    // extended header/class layout used by strict R2013 readers.
+    if (std::strcmp(verStr, "AC1027") == 0)
+        hdr[18] = 6;
+    // Bytes 19-20: codepage matching $DWGCODEPAGE, little-endian.
+    hdr[19] = static_cast<std::uint8_t>(codePage);
+    hdr[20] = static_cast<std::uint8_t>(codePage >> 8);
+    // Bytes 21-23: zeros.  Bytes 24-27: security flags = 0.
+    // Bytes 28-31: unknown = 0.  Bytes 32-35: summaryInfo = 0.
+    // Bytes 36-39: VBA address = 0.
+    // Bytes 40-43: constant 0x00000080.
+    hdr[40] = 0x80; hdr[41] = 0; hdr[42] = 0; hdr[43] = 0;
+    // Bytes 44-127: zeros (padding to 0x80).
+
+    // ---- Encrypted variable header at offset 0x80 (0x6C bytes) -----
+    std::uint8_t varHdr[0x6C] = {};
+    // Bytes 0-11: ID string "AcFssFcAJMB\0".
+    std::memcpy(varHdr, "AcFssFcAJMB", 11);
+    varHdr[11] = 0;
+
+    auto vrl = [&](int off, std::uint32_t x) {
+        varHdr[off+0] = static_cast<std::uint8_t>(x);
+        varHdr[off+1] = static_cast<std::uint8_t>(x >> 8);
+        varHdr[off+2] = static_cast<std::uint8_t>(x >> 16);
+        varHdr[off+3] = static_cast<std::uint8_t>(x >> 24);
+    };
+    auto vrll = [&](int off, std::uint64_t x) {
+        vrl(off,   static_cast<std::uint32_t>(x));
+        vrl(off+4, static_cast<std::uint32_t>(x >> 32));
+    };
+
+    vrl(12, 0x00000000);
+    vrl(16, 0x0000006C);
+    vrl(20, 0x00000004);
+    vrl(24, 0);  // root tree node gap
+    vrl(28, 0);  // lowermost left tree node gap
+    vrl(32, 0);  // lowermost right tree node gap
+    vrl(36, 1);  // unknown long (1)
+    vrl(40, numPages);  // last section page Id = last page in Section Page Map
+    vrll(44, lastPageEndAddr - 0x100);  // last section page end addr (relative: - 0x100)
+    vrll(52, 0);         // start of second header = 0
+    vrl(60, 0);          // @0x3c numgaps = 0
+    // @0x40 numsections: libreDWG checks (pages-in-map == numgaps + numsections);
+    // with no gaps this is the TOTAL page count (data pages + DSM + SPM), == numPages.
+    vrl(64, numPages);
+    vrl(68, 0x20);
+    vrl(72, 0x80);
+    vrl(76, 0x40);
+    // @0x50 section_map_id = the Section-Page-Map's OWN page id (the last/highest
+    // page). libreDWG searches the page map for this number; it was hardcoded -1
+    // ("section_map_id -1 not found"). It equals last_section_id (@0x28) here
+    // because the SPM is the last page. (plan 3.2)
+    vrl(80, numPages);
+    vrll(84, secPageMapAddr - 0x100);   // @0x54 section_map_address (SPM, relative)
+    vrl(92, secMapId);           // @0x5c section_info_id = Data-Section-Map page id
+    vrl(96, numPages);           // @0x60 section_array_size = total page count
+    vrl(100, 0);                 // Gap array size
+    vrl(104, 0);                 // CRC32 placeholder (zeroed for computation)
+
+    // Compute CRC32 over the 0x6C bytes with last 4 zeroed.
+    std::uint32_t crc = dwgUtil::crc32(0, varHdr, 0x6C);
+    vrl(104, crc);
+
+    // XOR-encrypt with kMagicNum18 and store at file offset 0x80.
+    for (int i = 0; i < 0x6C; ++i)
+        hdr[0x80 + i] = static_cast<std::uint8_t>(kMagicNum18[i] ^ varHdr[i]);
+
+    // Tail magic at 0xEC.
+    std::memcpy(hdr.data() + 0xEC, kMagicNumEnd18, 0x14);
+
+    return hdr;
+}
+
+// --- dwgWriter18::objectBaseOffset -------------------------------------------
+
+bool dwgWriter18::writeDwgObjects() {
+    m_buf.putRawLong32(0x0dca);
+    return dwgWriter15::writeDwgObjects();
+}
+
+bool dwgWriter18::objectBaseOffset(std::uint32_t& offset) const {
+    auto it1 = m_sectionOffsets.find(recno::CLASSES);
+    auto it2 = m_sectionSizes.find(recno::CLASSES);
+    if (it1 == m_sectionOffsets.end() || it2 == m_sectionSizes.end())
+        return false;
+
+    const std::uint64_t base = static_cast<std::uint64_t>(it1->second)
+        + static_cast<std::uint64_t>(it2->second);
+    if (base > std::numeric_limits<std::uint32_t>::max())
+        return false;
+
+    offset = static_cast<std::uint32_t>(base);
+    return true;
+}
+
+bool dwgWriter18::addRawDwgSection(const DRW_RawDwgSection& section) {
+    // Data-section payloads are encoded for their source DWG version. There
+    // is no typed converter for either opaque section, so accepting a
+    // mismatched (or unknown) source version would create invalid replay.
+    const bool supportedName = section.m_name == "AcDb:AcDsPrototype_1b"
+        || section.m_name == "AcDb:VBAProject";
+    const bool standardName = sectionOrderRank(
+        section.m_name, kR2004SectionMapOrder) < kR2004SectionMapOrder.size();
+    const bool opaqueName = !section.m_name.empty() && !standardName;
+    const bool prototypeAllowed = section.m_name == "AcDb:AcDsPrototype_1b"
+        && m_version >= DRW::AC1027;
+    const bool vbaAllowed = section.m_name == "AcDb:VBAProject"
+        && m_version >= DRW::AC1018;
+    if ((!supportedName && !opaqueName) || section.m_version != m_version
+        || (!opaqueName && !prototypeAllowed && !vbaAllowed)
+        || (m_version < DRW::AC1021 && section.m_name.size() > 63))
+        return false;
+    if ((section.m_encoding != 1 && section.m_encoding != 2
+         && section.m_encoding != 4)
+        || section.m_encrypted != 0
+        || section.m_maxSize > dwgSafety::MaxBufferSize
+        || (section.m_maxSize != 0
+            && section.m_maxSize > dwgSafety::MaxPageCap))
+        return false;
+    if (section.m_data.size() > UINT32_MAX)
+        return false;
+    for (const DRW_RawDwgSection& existing : m_rawDwgSections) {
+        if (existing.m_name == section.m_name)
+            return false;
+    }
+    m_rawDwgSections.push_back(section);
+    return true;
+}
+
+// --- dwgWriter18::writeDwgClasses --------------------------------------------
+// R2004 CLASSES format differs from R2000.  R2000 stores raw class-entry bytes;
+// R2004 adds BS maxClassNum + RC + RC + Bit before the class entries.  The
+// R2004 reader (dwgreader18) reads those fields and rejects any maxClassNum<499.
+
+bool dwgWriter18::writeDwgClasses() {
+    if (hasDwgClassConflict() || !validateDwgClassManifest())
+        return false;
+
+    size_t sectionStart = m_buf.size();
+    m_sectionOffsets[recno::CLASSES] = static_cast<std::uint32_t>(sectionStart);
+
+    size_t sizeOffset = beginSentinelSection(dwgSentinels::CLASSES_BEGIN);
+
+    m_buf.putBitShort(maxDwgClassNumber());
+    m_buf.putRawChar8(0);  // rc1
+    m_buf.putRawChar8(0);  // rc2
+    m_buf.putBit(0);       // flag
+
+    if (!emitDwgClassDefinitions(
+            [this](const DwgClassDefinition& definition) {
+                return writeDwgClassDefinition(definition, &m_buf, nullptr);
+            }))
+        return false;
+
+    endSentinelSection(sectionStart, sizeOffset, dwgSentinels::CLASSES_END,
+                       dwgSpec::kClassesUnknownTailBytes);
+
+    m_sectionSizes[recno::CLASSES] =
+        static_cast<std::uint32_t>(m_buf.size() - sectionStart);
+    return true;
+}
+
+// Build the AcDb:AppInfo section content (libreDWG appinfo.spec). R18 uses
+// null-terminated byte strings. R21+ uses null-terminated UTF-16LE strings
+// for the named fields, followed by a byte-string application version.
+std::vector<std::uint8_t> dwgWriter18::buildAppInfoContent(DRW::Version version) {
+    std::vector<std::uint8_t> v;
+    const auto putT16 = [&v](const std::string& s) {
+        if (s.size() >= std::numeric_limits<std::uint16_t>::max())
+            return false;
+        putRS(v, static_cast<std::uint16_t>(s.size() + 1));
+        v.insert(v.end(), s.begin(), s.end());
+        v.push_back(0);
+        return true;
+    };
+    const auto putUcs2T16 = [&v](const std::string& s) {
+        if (s.size() >= std::numeric_limits<std::uint16_t>::max())
+            return false;
+        putRS(v, static_cast<std::uint16_t>(s.size() + 1));
+        for (const unsigned char c : s) {
+            v.push_back(c);
+            v.push_back(0);
+        }
+        v.push_back(0);
+        v.push_back(0);
+        return true;
+    };
+    const auto putChecksum = [&v]() { v.insert(v.end(), 16, 0); };
+    const std::string name = "AppInfoDataList";
+    const std::string ver  = "LibreCAD";
+    if (version < DRW::AC1021) {           // R2004 (<R2007)
+        if (!putT16(name))
+            return {};
+        putRL(v, 2);                       // unknown
+        if (!putT16("4001")
+            || !putT16("<ProductInformation name=\"LibreCAD\"/>")
+            || !putT16(ver))
+            return {};
+    } else {                               // R2007+ (AC1021/24/27/32)
+        putRL(v, 2);                       // unknown
+        if (!putUcs2T16(name))
+            return {};
+        putRL(v, 3);                       // class_version
+        putChecksum();
+        if (!putUcs2T16(ver))
+            return {};
+        putChecksum();
+        if (!putUcs2T16(""))
+            return {};
+        putChecksum();
+        if (!putUcs2T16(""))
+            return {};
+        if (!putT16(ver))
+            return {};
+    }
+    return v;
+}
+
+// --- dwgWriter18::finalize ---------------------------------------------------
+
+bool dwgWriter18::finalize() {
+    if (objectWriteFailed() || m_stream == nullptr || !m_stream->good())
+        return false;
+
+    // Extract section ranges from the inherited m_buf accumulator.
+    const std::vector<std::uint8_t>& raw = m_buf.data();
+    const std::uint8_t* rawPtr = raw.data();
+
+    const auto sectionRangeIsValid = [&raw](std::uint32_t offset,
+                                             std::uint32_t size) {
+        return static_cast<std::uint64_t>(offset) <= raw.size()
+            && static_cast<std::uint64_t>(size) <= raw.size() - offset;
+    };
+
+    auto offIt = m_sectionOffsets.find(0);  // recno::HEADER
+    auto szIt  = m_sectionSizes  .find(0);
+    if (offIt == m_sectionOffsets.end() || szIt == m_sectionSizes.end()) {
+        return false;
+    }
+    std::uint32_t hdrOff = offIt->second;
+    std::uint32_t hdrSz  = szIt->second;
+
+    offIt = m_sectionOffsets.find(1);  // recno::CLASSES
+    szIt  = m_sectionSizes  .find(1);
+    if (offIt == m_sectionOffsets.end() || szIt == m_sectionSizes.end()) {
+        return false;
+    }
+    std::uint32_t clsOff = offIt->second;
+    std::uint32_t clsSz  = szIt->second;
+    if (!sectionRangeIsValid(hdrOff, hdrSz)
+        || !sectionRangeIsValid(clsOff, clsSz)) {
+        return false;
+    }
+
+    offIt = m_sectionOffsets.find(2);  // recno::HANDLES
+    szIt  = m_sectionSizes  .find(2);
+    if (offIt == m_sectionOffsets.end() || szIt == m_sectionSizes.end()) {
+        return false;
+    }
+    std::uint32_t hdlOff = offIt->second;
+    std::uint32_t hdlSz  = szIt->second;
+    if (!sectionRangeIsValid(hdlOff, hdlSz)) {
+        return false;
+    }
+
+    const std::uint64_t objOff64 = static_cast<std::uint64_t>(clsOff) + clsSz;
+    if (objOff64 > std::numeric_limits<std::uint32_t>::max()
+        || hdlOff < objOff64) {
+        return false;
+    }
+    const std::uint32_t objOff = static_cast<std::uint32_t>(objOff64);
+    const std::uint32_t objSz  = hdlOff - objOff;
+    if (!sectionRangeIsValid(objOff, objSz)) {
+        return false;
+    }
+
+    // Build the data pages (with correct file addresses).
+    // Addresses accumulate from 0x100; data page size = 32 + dataSize.
+    constexpr std::uint64_t kBase = 0x100;
+    std::uint64_t nextAddr = kBase;
+    std::uint32_t nextSectionId = 0;
+    std::uint32_t nextPageId = 1;
+    std::vector<DataSectionDesc> sectionDescs;
+    std::vector<std::vector<std::uint8_t>> dataPages;
+
+    auto appendDataSection = [&](const std::string& name,
+                                 const std::uint8_t* data,
+                                 std::uint32_t dataSize,
+                                 std::uint32_t maxPageSize = 0,
+                                 std::uint32_t compressionType = 1,
+                                 std::uint32_t encrypted = 0) {
+        if (dataSize != 0 && data == nullptr)
+            return false;
+        if (name.empty()
+            || std::any_of(sectionDescs.cbegin(), sectionDescs.cend(),
+                           [&name](const DataSectionDesc& section) {
+                               return section.name == name;
+                           }))
+            return false;
+        if (nextSectionId == std::numeric_limits<std::uint32_t>::max())
+            return false;
+        const std::uint32_t sectionId = nextSectionId++;
+        if (maxPageSize == 0)
+            maxPageSize = dataPageSizeFor(name);
+        if (maxPageSize == 0 || maxPageSize > dwgSafety::MaxPageCap
+            || !validR2004SectionEncoding(compressionType)
+            || encrypted != 0)
+            return false;
+        DataSectionDesc section;
+        section.sectionId = sectionId;
+        section.dataSize = dataSize;
+        section.maxPageSize = maxPageSize;
+        // The R2004 writer currently emits store pages only. A source
+        // compressed section is replayed as a valid store section after its
+        // decoded bytes have been captured; retaining a false compression
+        // flag would describe a payload we do not emit.
+        section.compressionType = 1;
+        section.encrypted = encrypted;
+        section.name = name;
+        if (dataSize != 0)
+            section.data.assign(data, data + dataSize);
+        sectionDescs.push_back(std::move(section));
+        return true;
+    };
+
+    if (!appendDataSection("AcDb:Header", rawPtr + hdrOff, hdrSz)
+        || !appendDataSection("AcDb:Classes", rawPtr + clsOff, clsSz)
+        || !appendDataSection("AcDb:AcDbObjects", rawPtr + objOff, objSz)
+        || !appendDataSection("AcDb:Handles", rawPtr + hdlOff, hdlSz))
+        return false;
+
+    for (const DRW_RawDwgSection& section : m_rawDwgSections) {
+        if (section.m_data.size() > std::numeric_limits<std::uint32_t>::max()
+            || (section.m_encoding != 1 && section.m_encoding != 2
+                && section.m_encoding != 4)
+            || section.m_encrypted != 0)
+            return false;
+        // R2004 source descriptors use 2 for compressed pages; R2007+ uses
+        // 4 for interleaved Reed-Solomon pages. This writer emits stored R2004
+        // pages, so either compressed provenance becomes encoding 1.
+        const std::uint64_t containerEncoding = 1;
+        const std::uint64_t requestedPageSize = section.m_maxSize != 0
+            ? section.m_maxSize : dataPageSizeFor(section.m_name);
+        if (requestedPageSize == 0
+            || requestedPageSize > std::numeric_limits<std::uint32_t>::max())
+            return false;
+        if (!appendDataSection(
+                section.m_name,
+                section.m_data.empty() ? nullptr : section.m_data.data(),
+                static_cast<std::uint32_t>(section.m_data.size()),
+                static_cast<std::uint32_t>(requestedPageSize),
+                static_cast<std::uint32_t>(containerEncoding),
+                static_cast<std::uint32_t>(section.m_encrypted)))
+            return false;
+    }
+
+    // AuxHeader is an R2004+ section (AC1018+); the builder + auxHeaderRawVersion
+    // already handle AC1018/AC1021/AC1024 (return 25/27/29), so the old
+    // >=AC1027 gate needlessly dropped it from the two commonest modern targets
+    // (AC1018, AC1024), which AutoCAD then flags. Lower to >=AC1018.
+    // (write-review pass-2 medium / plan 3.5)
+    const std::vector<std::uint8_t> auxHeaderData =
+        (m_version >= DRW::AC1018) ? buildAuxHeaderContent(m_version, m_header)
+                                   : std::vector<std::uint8_t>();
+    const bool hasAuxHeader = !auxHeaderData.empty();
+
+    if (hasAuxHeader) {
+        if (!appendDataSection("AcDb:AuxHeader", auxHeaderData.data(),
+                               static_cast<std::uint32_t>(auxHeaderData.size())))
+            return false;
+    }
+
+    // AcDb:AppInfo — without it libreDWG logs "Failed to read AppInfo section"
+    // and AutoCAD flags the file "created by other software / may be corrupt".
+    // (write-review pass-3 / plan 3.4)
+    const std::vector<std::uint8_t> appInfoData =
+        (m_version >= DRW::AC1018) ? buildAppInfoContent(m_version)
+                                   : std::vector<std::uint8_t>();
+    if (!appInfoData.empty()) {
+        if (!appendDataSection("AcDb:AppInfo", appInfoData.data(),
+                               static_cast<std::uint32_t>(appInfoData.size())))
+            return false;
+    }
+
+    // R2007+ requires the Template section. It carries MEASUREMENT, which is
+    // intentionally absent from AcDb:Header.
+    if (m_version >= DRW::AC1021) {
+        const std::uint16_t measurement = headerMeasurement(m_header);
+        const std::uint8_t templateData[] = {
+            1, 0,
+            0, 0,
+            static_cast<std::uint8_t>(measurement & 0xffu),
+            static_cast<std::uint8_t>(measurement >> 8),
+        };
+        if (!appendDataSection("AcDb:Template", templateData,
+                               static_cast<std::uint32_t>(sizeof(templateData))))
+            return false;
+    }
+
+    // The section map and physical stream have different normative orders.
+    // Build pages only after the stream order is known because each data-page
+    // header is encrypted with its final file address.
+    std::vector<DataSectionDesc> streamSections = sectionDescs;
+    std::sort(sectionDescs.begin(), sectionDescs.end(),
+              [](const DataSectionDesc& lhs, const DataSectionDesc& rhs) {
+                  return sectionOrderRank(lhs.name, kR2004SectionMapOrder)
+                      < sectionOrderRank(rhs.name, kR2004SectionMapOrder);
+              });
+    std::sort(streamSections.begin(), streamSections.end(),
+              [](const DataSectionDesc& lhs, const DataSectionDesc& rhs) {
+                  return sectionOrderRank(lhs.name, kR2004StreamOrder)
+                      < sectionOrderRank(rhs.name, kR2004StreamOrder);
+              });
+
+    for (DataSectionDesc& section : streamSections) {
+        std::uint64_t pageCountNumerator = 0;
+        if (!dwgSafety::add(section.dataSize,
+                            static_cast<std::uint64_t>(section.maxPageSize) - 1,
+                            pageCountNumerator))
+            return false;
+        const std::uint64_t pageCount = std::max<std::uint64_t>(
+            1, pageCountNumerator / section.maxPageSize);
+        for (std::uint64_t pageIndex = 0; pageIndex < pageCount; ++pageIndex) {
+            const std::uint64_t startOffset = pageIndex * section.maxPageSize;
+            const std::uint32_t sourceSize = static_cast<std::uint32_t>(
+                std::min<std::uint64_t>(
+                    section.maxPageSize,
+                    section.dataSize - std::min(startOffset, section.dataSize)));
+            std::vector<std::uint8_t> pageData;
+            if (!DRW::resize(pageData, static_cast<int>(section.maxPageSize)))
+                return false;
+            std::fill(pageData.begin(), pageData.end(), 0);
+            if (sourceSize != 0)
+                std::memcpy(pageData.data(),
+                            section.data.data() + startOffset, sourceSize);
+
+            if (nextPageId == std::numeric_limits<std::uint32_t>::max())
+                return false;
+            const std::uint32_t pageId = nextPageId++;
+            dataPages.push_back(buildDataPage(
+                nextAddr, section.sectionId, pageData.data(),
+                section.maxPageSize, static_cast<std::uint32_t>(startOffset)));
+            if (dataPages.back().empty())
+                return false;
+            section.pages.push_back({pageId, section.maxPageSize, startOffset});
+            if (!dwgSafety::add(nextAddr,
+                                static_cast<std::uint64_t>(dataPages.back().size()),
+                                nextAddr))
+                return false;
+        }
+        const auto mapIt = std::find_if(
+            sectionDescs.begin(), sectionDescs.end(),
+            [&section](const DataSectionDesc& candidate) {
+                return candidate.sectionId == section.sectionId;
+            });
+        if (mapIt == sectionDescs.end())
+            return false;
+        mapIt->pages = section.pages;
+    }
+
+    // Build the Data Section Map sys page.
+    auto dsmData = buildDataSectionMapContent(sectionDescs);
+    auto dsmPage = buildSysPage(0x4163003b, dsmData.data(),
+                                static_cast<std::uint32_t>(dsmData.size()));
+    // The following System Map page must start on a 0x20 boundary.  The page
+    // map records the physical (including pad) size, while the system-page
+    // header retains its exact compressed payload size.
+    alignSectionPage(dsmPage);
+
+    // Data Section Map sys page follows the last data page.
+    const std::uint64_t addrDsm = nextAddr;
+    std::uint64_t addrSPM = 0;
+    if (!dwgSafety::add(addrDsm, static_cast<std::uint64_t>(dsmPage.size()),
+                        addrSPM))
+        return false;
+
+    // Build Section Page Map sys page. The SPM must list EVERY page INCLUDING
+    // ITSELF: libreDWG (decode.c:1427/1501) searches the page map for the entry
+    // whose number == section_map_id (= the SPM's own page id) and sums all
+    // listed page sizes to validate last_section_address. Omitting the self-entry
+    // gave "section_map_id -1 not found" + "Invalid last_section_address" and
+    // left the file undecodable past the page map. (write-review pass-2 #3 / plan 3.2)
+    // The SPM size is self-referential; compute it analytically — the self-entry
+    // grows the content by exactly one 8-byte (number,size) pair and the
+    // compressed sys-page size is deterministic (20-byte header + lit-len + content).
+    std::vector<std::uint32_t> pageSizes;
+    pageSizes.reserve(dataPages.size() + 2);
+    for (const std::vector<std::uint8_t>& page : dataPages)
+        pageSizes.push_back(static_cast<std::uint32_t>(page.size()));
+    pageSizes.push_back(static_cast<std::uint32_t>(dsmPage.size()));   // DSM page
+    const std::uint32_t spmContentSize =
+        static_cast<std::uint32_t>((pageSizes.size() + 1) * 8);  // +1: SPM self-entry
+    const std::uint32_t spmPageSizePredicted =
+        20 + litLen18Bytes(spmContentSize) + spmContentSize;
+    pageSizes.push_back(spmPageSizePredicted);                        // SPM self-page
+    auto spmData = buildSectionPageMapContent(pageSizes);
+    auto spmPage = buildSysPage(0x41630e3b, spmData.data(),
+                                static_cast<std::uint32_t>(spmData.size()));
+    // The analytic self-size MUST equal the built page size, else the page map
+    // is internally inconsistent (would re-introduce the addressing bug).
+    if (spmPage.size() != spmPageSizePredicted)
+        return false;
+
+    // Build the 0x100-byte file header.
+    // lastPageEndAddr = byte address just past the end of the last page listed
+    // in the Section Page Map.  The SPM page is the last entry, so its end is
+    // addrSPM + spmPage.size().
+    const std::uint32_t dataSectionMapPageId = nextPageId;
+    if (dataSectionMapPageId
+            > std::numeric_limits<std::uint32_t>::max() - 1u
+        || pageSizes.size()
+               > static_cast<std::size_t>(std::numeric_limits<int>::max()))
+        return false;
+    std::uint64_t lastPageEndAddr = 0;
+    if (!dwgSafety::add(addrSPM, static_cast<std::uint64_t>(spmPage.size()),
+                        lastPageEndAddr))
+        return false;
+    auto fileHdr = buildFileHeader(addrSPM, dataSectionMapPageId,
+                                   lastPageEndAddr,
+                                   static_cast<std::uint32_t>(pageSizes.size()),  // total pages (incl SPM)
+                                   fileHeaderVersion(), fileCodePageId());
+    R2004LayoutReceipt receipt;
+    receipt.version = m_version;
+    receipt.dataStart = kBase;
+    receipt.declaredFileSize = lastPageEndAddr;
+    receipt.fileHeaderSize = fileHdr.size();
+    if (!DRW::reserve(receipt.pages,
+                      static_cast<int>(pageSizes.size()))) {
+        return false;
+    }
+    std::uint64_t receiptAddress = receipt.dataStart;
+    const auto appendReceiptPage = [&](
+            std::uint32_t pageId, const std::vector<std::uint8_t>& bytes,
+            R2004PhysicalPageReceipt::Kind kind, std::uint32_t sectionId,
+            const std::string& sectionName, std::uint64_t logicalOffset,
+            std::uint64_t headerSize) {
+        if (bytes.size() < headerSize)
+            return false;
+        std::uint64_t payloadOffset = 0;
+        if (!dwgSafety::add(receiptAddress, headerSize, payloadOffset))
+            return false;
+        receipt.pages.push_back({
+            pageId, receiptAddress, bytes.size(), kind, sectionId,
+            sectionName, logicalOffset, receiptAddress, headerSize,
+            payloadOffset, bytes.size() - headerSize});
+        return dwgSafety::add(receiptAddress, bytes.size(), receiptAddress);
+    };
+    std::size_t dataPageIndex = 0;
+    for (const DataSectionDesc& section : streamSections) {
+        for (const DataSectionDesc::Page& page : section.pages) {
+            if (dataPageIndex >= dataPages.size()
+                || !appendReceiptPage(
+                    page.pageNum, dataPages[dataPageIndex++],
+                    R2004PhysicalPageReceipt::Kind::Data, section.sectionId,
+                    section.name, page.startOffset, 32))
+                return false;
+        }
+    }
+    if (dataPageIndex != dataPages.size())
+        return false;
+    if (!appendReceiptPage(
+            dataSectionMapPageId, dsmPage,
+            R2004PhysicalPageReceipt::Kind::DataSectionMap, 0, {}, 0, 20)
+        || !appendReceiptPage(
+            dataSectionMapPageId + 1, spmPage,
+            R2004PhysicalPageReceipt::Kind::SectionPageMap, 0, {}, 0, 20))
+            return false;
+
+    if (receiptAddress > std::numeric_limits<std::size_t>::max())
+        return false;
+    receipt.actualFileSize = receiptAddress;
+    std::vector<std::uint8_t> assembled;
+    try {
+        assembled.reserve(static_cast<std::size_t>(receipt.actualFileSize));
+        assembled.insert(assembled.end(), fileHdr.cbegin(), fileHdr.cend());
+        for (const std::vector<std::uint8_t>& page : dataPages)
+            assembled.insert(assembled.end(), page.cbegin(), page.cend());
+        assembled.insert(assembled.end(), dsmPage.cbegin(), dsmPage.cend());
+        assembled.insert(assembled.end(), spmPage.cbegin(), spmPage.cend());
+    } catch (...) {
+        return false;
+    }
+    if (assembled.size() != receipt.actualFileSize)
+        return false;
+    dwgWriterLayoutValidation::R2004Snapshot validationSnapshot;
+    validationSnapshot.receipt = std::move(receipt);
+    validationSnapshot.sections = std::move(sectionDescs);
+    validationSnapshot.dataPages = std::move(dataPages);
+    validationSnapshot.dataSectionMapPage = std::move(dsmPage);
+    validationSnapshot.sectionPageMapPage = std::move(spmPage);
+    validationSnapshot.dataSectionMapData = std::move(dsmData);
+    validationSnapshot.sectionPageMapData = std::move(spmData);
+    validationSnapshot.pageSizes = std::move(pageSizes);
+    validationSnapshot.fileHeader = std::move(fileHdr);
+    validationSnapshot.assembled = std::move(assembled);
+    dwgWriterLayoutValidation::Snapshot validationVariant{
+        std::move(validationSnapshot)};
+#ifdef DWG_LAYOUT_VALIDATION_TESTS
+    if (!dwgWriterLayoutValidation::reserveTestMutationCapacity(
+            validationVariant))
+        return false;
+    dwgWriterLayoutValidation::notifyTestSnapshot(validationVariant);
+#endif
+    const auto* validated = std::get_if<
+        dwgWriterLayoutValidation::R2004Snapshot>(&validationVariant);
+    if (validated == nullptr
+        || !dwgWriterLayoutValidation::validate(*validated))
+        return false;
+
+    m_stream->write(reinterpret_cast<const char*>(validated->assembled.data()),
+                    static_cast<std::streamsize>(validated->assembled.size()));
+
+    return m_stream->good();
+}

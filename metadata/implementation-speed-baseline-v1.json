@@ -1,0 +1,79 @@
+{
+  "schema": 1,
+  "kind": "libdxfrw-implementation-speed-baseline",
+  "capturedAt": "2026-09-15",
+  "repository": {
+    "originMaster": "92d7466ed9146badcd4fb44c82d1dd8302b3c7db",
+    "implementation": "d3203454f0219fdafd131610345fbe3f37038c66",
+    "buildDirectoryClass": "persistent-temporary-CMake-build"
+  },
+  "toolchain": {
+    "cmake": "4.4.3",
+    "compiler": "Apple clang 21.0.0",
+    "standard": "C++17",
+    "warnings": "-Wall -Wextra -pedantic -Werror",
+    "parallelism": 2
+  },
+  "measurements": [
+    {
+      "id": "incremental-build",
+      "command": "cmake --build <build> --target libdxfrw_writer_primitives_tests -j2",
+      "selector": "changed transaction translation unit and direct writer target",
+      "seconds": 0.20,
+      "result": "PASS"
+    },
+    {
+      "id": "fast-tests",
+      "command": "ctest --test-dir <build> -R libdxfrw_(writer_primitives|wave1|hardening|dxf_fixtures|dwg_fixtures)",
+      "selector": "affected transaction/wave/fixture selectors",
+      "seconds": 0.57,
+      "result": "PASS"
+    },
+    {
+      "id": "full-build",
+      "command": "cmake --build <build> -j2",
+      "selector": "all configured library, CLI, and test targets",
+      "seconds": 4.30,
+      "result": "PASS"
+    },
+    {
+      "id": "full-tests",
+      "command": "ctest --test-dir <build> --output-on-failure",
+      "selector": "all 24 configured CTest entries",
+      "seconds": 5.38,
+      "result": "PASS"
+    }
+  ],
+  "selectorMap": [
+    {
+      "changedPathClass": "private-cpp",
+      "selects": ["changed translation unit", "direct fast CTest target"]
+    },
+    {
+      "changedPathClass": "public-header",
+      "selects": ["dependent header/API consumer checks", "affected fast CTest target"]
+    },
+    {
+      "changedPathClass": "parser-dispatch",
+      "selects": ["affected reader/writer matrix", "Wave 1 aggregate"]
+    },
+    {
+      "changedPathClass": "safety-or-transaction",
+      "selects": ["writer primitives", "hardening", "affected fixture targets"]
+    },
+    {
+      "changedPathClass": "build-or-generator",
+      "selects": ["full configured build", "full CTest at next checkpoint"]
+    },
+    {
+      "changedPathClass": "unknown",
+      "selects": ["safe affected aggregate", "never less validation than default"]
+    }
+  ],
+  "cadence": {
+    "fullSuite": "checkpoint-only",
+    "sanitizer": "checkpoint-or-security-triggered",
+    "externalCorpus": "nightly-advisory",
+    "fixturePolicy": "no-new-drawing-bytes-in-speed-study"
+  }
+}

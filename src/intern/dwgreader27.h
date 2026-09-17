@@ -2,6 +2,7 @@
 **  libDXFrw - Library to read/write DXF files (ascii & binary)              **
 **                                                                           **
 **  Copyright (C) 2011-2015 José F. Soriano, rallazz@gmail.com               **
+**  Copyright (C) 2026 LibreCAD (librecad.org)                                **
 **                                                                           **
 **  This library is free software, licensed under the terms of the GNU       **
 **  General Public License as published by the Free Software Foundation,     **
@@ -19,34 +20,17 @@
 
 class dwgReader27 : public dwgReader18 {
 public:
-    dwgReader27(std::ifstream *stream, dwgR *p):dwgReader18(stream, p){ }
+    dwgReader27(std::unique_ptr<dwgBuffer> buffer, dwgRW *p)
+        : dwgReader18(std::move(buffer), p) {}
     bool readFileHeader() override;
     bool readDwgHeader(DRW_Header& hdr) override;
     bool readDwgClasses() override;
 //    bool readDwgHandles(){return false;}
 //    bool readDwgTables(){return false;}
-    bool readDwgBlocks(DRW_Interface& intfa) override {
-        bool ret = true;
-        dwgBuffer dataBuf(objData.get(), uncompSize, &decoder);
-        ret = dwgReader::readDwgBlocks(intfa, &dataBuf);
-        return ret;
-    }
-    bool readDwgEntities(DRW_Interface& intfa) override {
-        bool ret = true;
-        dwgBuffer dataBuf(objData.get(), uncompSize, &decoder);
-        ret = dwgReader::readDwgEntities(intfa, &dataBuf);
-        return ret;
-    }
-    bool readDwgObjects(DRW_Interface& intfa) override {
-        bool ret = true;
-        dwgBuffer dataBuf(objData.get(), uncompSize, &decoder);
-        ret = dwgReader::readDwgObjects(intfa, &dataBuf);
-        return ret;
-    }
 //    bool readDwgEntity(objHandle& obj, DRW_Interface& intfa){
 //        DRW_UNUSED(obj);
 //        DRW_UNUSED(intfa);
 //        return false;}
 };
 
-#endif // DWGREADER27_H
+#endif

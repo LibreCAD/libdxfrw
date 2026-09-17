@@ -1,0 +1,7 @@
+{
+  "schema": 1,
+  "libraryTarget": "dxfrw",
+  "requiredCompileOption": "/bigobj",
+  "scope": "MSVC library target only; test and CLI targets do not inherit it",
+  "verification": "CMake branch inspection on non-MSVC host; native MSVC CI remains required"
+}

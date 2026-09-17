@@ -1,0 +1,369 @@
+{
+  "schema": 1,
+  "kind": "libdxfrw-local-ac1024-independent-candidate-fields",
+  "status": "EXPERIMENTAL",
+  "frozenBeforeOracle": true,
+  "fixturePolicy": "local-from-scratch-runtime-only; generated-dwg-and-json-temporary; no-generated-payloads",
+  "promotionBoundary": {
+    "promotesSupport": false,
+    "selfReadDisposition": "reachability-only",
+    "unlistedFieldDisposition": "excluded",
+    "wholeFixtureClaimsForbidden": true,
+    "wholeVersionClaimsForbidden": true
+  },
+  "frozenContract": {
+    "generatorSource": "tests/dwg_local_roundtrip_tests.cpp",
+    "generatorSourceSha256": "354ec286f8c574ad9262b00dd135482d65914f16468a10c8112649de2ba39050",
+    "generatorCommand": [
+      "{writer}",
+      "--keep-dir",
+      "{privateTempDirectory}"
+    ],
+    "generatedBasename": "libdxfrw-local-roundtrip-16.dwg",
+    "version": "AC1024",
+    "specification": {
+      "title": "Open Design Specification for .dwg files",
+      "version": "5.4.1",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "relevantPrintedPages": [
+        17,
+        86,
+        87,
+        88
+      ]
+    },
+    "sourceOnlyOracleContract": {
+      "path": "tools/check_local_dwg_object_oracle.py",
+      "sha256": "71f4b993cd40131b9608608b4acc902c165aec287fd7df561d748cfe6f913aea"
+    }
+  },
+  "oracle": {
+    "name": "LibreDWG dwgread",
+    "release": "0.14",
+    "versionOutput": "dwgread 0.14",
+    "license": "GPL-3.0-or-later",
+    "outputFormat": "JSON",
+    "fullJsonRequired": true,
+    "command": [
+      "{executable}",
+      "-O",
+      "JSON",
+      "{generatedInput}"
+    ],
+    "timeoutSeconds": 30,
+    "runtimeEnvironment": {
+      "inheritParent": false,
+      "variables": {
+        "LANG": "C",
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin",
+        "SOURCE_DATE_EPOCH": "0",
+        "TZ": "UTC"
+      },
+      "forbiddenParentInputs": [
+        "HOME",
+        "DYLD_*",
+        "LIBREDWG_*",
+        "DWG_*",
+        "DEBUG",
+        "TRACE"
+      ]
+    },
+    "source": {
+      "url": "https://ftpmirror.gnu.org/gnu/libredwg/libredwg-0.14.tar.gz",
+      "sha256": "cb6ee0b078c6d9e0f09d66f1feac33ba6342df88ae544e9f9335fab475218351"
+    },
+    "buildRecipe": {
+      "kind": "homebrew-formula-and-bottle",
+      "formulaSha256": "bf4063db732dc93e63b3e10bbde5f1831b7dad695e95ebfc50a51342bdcf8f95",
+      "bottleSha256": "2e5efe7bb02a7067cd67e028da20b90a56d45fb126352d7d963de8ff8c6a2298",
+      "formulaStatements": [
+        "system \"./configure\", \"--disable-silent-rules\", *std_configure_args",
+        "system \"make\"",
+        "system \"make\", \"install\""
+      ]
+    },
+    "expectedArtifacts": [
+      {
+        "role": "executable",
+        "basename": "dwgread",
+        "byteSize": 51568,
+        "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff"
+      },
+      {
+        "role": "library",
+        "basename": "libredwg.0.dylib",
+        "byteSize": 19787920,
+        "sha256": "0dd60856c25aa0dad6ff80f6c753957d0f27cc39a29f8466637db68dbd0a8847"
+      }
+    ],
+    "dynamicClosure": {
+      "inspectionCommand": [
+        "/usr/bin/otool",
+        "-L",
+        "{artifact}"
+      ],
+      "nonSystemPrefixes": [
+        "/opt/homebrew/",
+        "/usr/local/"
+      ],
+      "systemPrefixes": [
+        "/System/Library/",
+        "/usr/lib/"
+      ],
+      "digestAlgorithm": {
+        "hash": "sha256",
+        "sortKey": [
+          "role-utf8",
+          "basename-utf8",
+          "fileSha256-ascii"
+        ],
+        "rowFraming": "utf8(role) + NUL + utf8(basename) + NUL + ascii(decimalByteSize) + NUL + ascii(lowercaseFileSha256) + LF"
+      },
+      "expectedClosureDigest": "4170272163a077731dad3b4d77602dbf38d32f3232c877b135d6b67e0895f1b0"
+    },
+    "expectedPlatform": {
+      "system": "Darwin",
+      "architecture": "arm64",
+      "osVersion": "26.5.2"
+    }
+  },
+  "sharedDifferential": {
+    "manifest": "metadata/qualified-differential-v2.json",
+    "manifestSha256AtFreeze": "d383e9af7e5fb4732b3d90b51c00dea44657e9240f1b91bf88773179a47412e8",
+    "runnerSource": "tools/run_qualified_differential_v2.py",
+    "runnerSourceSha256AtFreeze": "201d0dfdc5f60fd7d1837637cc26016686d127f03903f7e053df1a30fa4d4d67",
+    "adapterSource": "tests/semantic_differential_adapter.cpp",
+    "adapterSourceSha256AtFreeze": "f2a2bf7ed759ff0afec89d352f124acc5f7f1e337e6efa80f45dbce5d982b05a",
+    "facade": "dwgRW",
+    "direction": "read",
+    "originKind": "localFromScratch",
+    "inputId": "local-from-scratch:ac1024-extended-classes-v1",
+    "inputPathHint": "runtime-only/libdxfrw-local-roundtrip-16.dwg",
+    "options": {
+      "applyExtrusion": false,
+      "compatibilityProfile": "default"
+    },
+    "deterministicRunsPerSide": 2,
+    "sameInputSha256Required": true
+  },
+  "records": [
+    {
+      "id": "model-space-line",
+      "semantic": {
+        "recordClass": "LINE",
+        "callback": "addLine",
+        "selector": {
+          "field": "start",
+          "equals": {
+            "x": 1.0,
+            "y": 2.0,
+            "z": 3.0
+          }
+        }
+      },
+      "oracle": {
+        "recordKind": "entity",
+        "entity": "LINE",
+        "selector": {
+          "field": "start",
+          "equals": [
+            1.0,
+            2.0,
+            3.0
+          ]
+        }
+      }
+    },
+    {
+      "id": "rtext-ed00",
+      "semantic": {
+        "recordClass": "RTEXT",
+        "callback": "addText",
+        "sourceHandle": "ed00"
+      },
+      "oracle": {
+        "recordKind": "entity",
+        "entity": "RTEXT",
+        "handle": "ed00"
+      }
+    }
+  ],
+  "claims": [
+    {
+      "id": "line-record-class",
+      "recordId": "model-space-line",
+      "semanticField": "recordClass",
+      "oracleField": "entity",
+      "expectedSemantic": "LINE",
+      "expectedOracle": "LINE",
+      "normalization": "mappedIdentity",
+      "tolerance": null
+    },
+    {
+      "id": "line-start-x",
+      "recordId": "model-space-line",
+      "semanticField": "start.x",
+      "oracleField": "start[0]",
+      "expectedSemantic": 1.0,
+      "expectedOracle": 1.0,
+      "normalization": "finiteNumber",
+      "tolerance": 0.0
+    },
+    {
+      "id": "line-start-y",
+      "recordId": "model-space-line",
+      "semanticField": "start.y",
+      "oracleField": "start[1]",
+      "expectedSemantic": 2.0,
+      "expectedOracle": 2.0,
+      "normalization": "finiteNumber",
+      "tolerance": 0.0
+    },
+    {
+      "id": "line-start-z",
+      "recordId": "model-space-line",
+      "semanticField": "start.z",
+      "oracleField": "start[2]",
+      "expectedSemantic": 3.0,
+      "expectedOracle": 3.0,
+      "normalization": "finiteNumber",
+      "tolerance": 0.0
+    },
+    {
+      "id": "line-end-x",
+      "recordId": "model-space-line",
+      "semanticField": "end.x",
+      "oracleField": "end[0]",
+      "expectedSemantic": 4.0,
+      "expectedOracle": 4.0,
+      "normalization": "finiteNumber",
+      "tolerance": 0.0
+    },
+    {
+      "id": "line-end-y",
+      "recordId": "model-space-line",
+      "semanticField": "end.y",
+      "oracleField": "end[1]",
+      "expectedSemantic": 5.0,
+      "expectedOracle": 5.0,
+      "normalization": "finiteNumber",
+      "tolerance": 0.0
+    },
+    {
+      "id": "line-end-z",
+      "recordId": "model-space-line",
+      "semanticField": "end.z",
+      "oracleField": "end[2]",
+      "expectedSemantic": 6.0,
+      "expectedOracle": 6.0,
+      "normalization": "finiteNumber",
+      "tolerance": 0.0
+    },
+    {
+      "id": "rtext-record-class",
+      "recordId": "rtext-ed00",
+      "semanticField": "recordClass",
+      "oracleField": "entity",
+      "expectedSemantic": "RTEXT",
+      "expectedOracle": "RTEXT",
+      "normalization": "mappedIdentity",
+      "tolerance": null
+    },
+    {
+      "id": "rtext-text",
+      "recordId": "rtext-ed00",
+      "semanticField": "text",
+      "oracleField": "text_value",
+      "expectedSemantic": "LOCAL_RTEXT",
+      "expectedOracle": "LOCAL_RTEXT",
+      "normalization": "exactString",
+      "tolerance": null
+    },
+    {
+      "id": "rtext-flags",
+      "recordId": "rtext-ed00",
+      "semanticField": "flags",
+      "oracleField": "flags",
+      "expectedSemantic": 1,
+      "expectedOracle": 1,
+      "normalization": "integer",
+      "tolerance": null
+    },
+    {
+      "id": "rtext-insertion-x",
+      "recordId": "rtext-ed00",
+      "semanticField": "insertion.x",
+      "oracleField": "ins_pt[0]",
+      "expectedSemantic": 90.0,
+      "expectedOracle": 90.0,
+      "normalization": "finiteNumber",
+      "tolerance": 0.0
+    },
+    {
+      "id": "rtext-insertion-y",
+      "recordId": "rtext-ed00",
+      "semanticField": "insertion.y",
+      "oracleField": "ins_pt[1]",
+      "expectedSemantic": 91.0,
+      "expectedOracle": 91.0,
+      "normalization": "finiteNumber",
+      "tolerance": 0.0
+    },
+    {
+      "id": "rtext-insertion-z",
+      "recordId": "rtext-ed00",
+      "semanticField": "insertion.z",
+      "oracleField": "ins_pt[2]",
+      "expectedSemantic": 0.0,
+      "expectedOracle": 0.0,
+      "normalization": "finiteNumber",
+      "tolerance": 0.0
+    },
+    {
+      "id": "rtext-extrusion-z",
+      "recordId": "rtext-ed00",
+      "semanticField": "extrusion.z",
+      "oracleField": "extrusion[2]",
+      "expectedSemantic": 1.0,
+      "expectedOracle": 1.0,
+      "normalization": "finiteNumber",
+      "tolerance": 0.0
+    },
+    {
+      "id": "rtext-height",
+      "recordId": "rtext-ed00",
+      "semanticField": "height",
+      "oracleField": "height",
+      "expectedSemantic": 2.0,
+      "expectedOracle": 2.0,
+      "normalization": "finiteNumber",
+      "tolerance": 0.0
+    },
+    {
+      "id": "rtext-rotation",
+      "recordId": "rtext-ed00",
+      "semanticField": "rotation",
+      "oracleField": "rotation",
+      "expectedSemantic": 15.0,
+      "expectedOracle": 15.0,
+      "normalization": "finiteNumber",
+      "tolerance": 0.0
+    }
+  ],
+  "discrepancyBinding": {
+    "expectedCurrentRunCount": 34,
+    "stableIdAlgorithm": "ac1024-disc- plus first-16-hex of sha256(fieldScope NUL outcome NUL exactMessage)",
+    "oracleDependencyDigestAlgorithm": "sha256(executableClosureDigest NUL commandDigest NUL sourceSha256 NUL buildRecipeDigest NUL runtimeEnvironmentDigest NUL platformDigest)",
+    "requireExactMessage": true,
+    "requireNonEmptyFieldScope": true,
+    "requireClassifiedOutcome": true,
+    "allowedOutcomes": [
+      "oracle-limitation",
+      "implementation-exclusion",
+      "external-resource-absent",
+      "version-gated",
+      "self-read-only-reachability"
+    ]
+  }
+}

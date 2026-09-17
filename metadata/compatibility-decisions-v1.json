@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "baselineReport": "metadata/baseline-api-surface-v1.json",
+  "targetReport": "metadata/target-api-surface-v1.json",
+  "decisions": [
+    {
+      "surface": "scalar typedefs",
+      "decision": "restore exact historical dint8/dint16/dint32/dint64, duint8/duint16/duint32/duint64, dfloat32/ddouble64/ddouble80 names",
+      "verification": "legacy consumer compiles and links"
+    },
+    {
+      "surface": "DRW_Interface::addDimArc",
+      "decision": "new callback has an empty default and is not pure",
+      "verification": "existing dx_iface concrete consumer instantiates"
+    },
+    {
+      "surface": "dwgR",
+      "decision": "deprecated composition wrapper forwards the historical read methods to dwgRW",
+      "verification": "forward-declaration/pointer and link contract compiles"
+    },
+    {
+      "surface": "installed header closure",
+      "decision": "keep only the narrow internal DWG utility closure installed; hide HandleAllocator behind dxfRW and expose the DataStorage writer operation enum from the foundational public header",
+      "verification": "every installed public header compiles standalone, drw_base.h exposes DwgDataStorageWriterOperation without an internal include, and handle_allocator.h is absent from the staged prefix"
+    },
+    {
+      "surface": "DXF disputed classifier ranges 260-269 and 482-998",
+      "decision": "keep the standalone-safe classifier as the default; expose dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy as an explicit downstream adapter opt-in, never infer it from version or binary format, and keep binary unknown-width replay gated by a matching profile",
+      "verification": "staged public consumer and Wave 1 probes assert safe-default isolation plus explicit legacy selection"
+    }
+  ],
+  "unresolved": [
+    "Exhaustive callback ownership and behavioral API hardening remains outside C0."
+  ]
+}

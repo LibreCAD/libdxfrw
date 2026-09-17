@@ -1,0 +1,490 @@
+{
+  "schema": 2,
+  "kind": "libdxfrw-qualified-differential-runners",
+  "fixturePolicy": "lockedRepositoryBlob-or-localFromScratch; no-drawing-payloads-in-reports",
+  "resultKind": "libdxfrw-semantic-adapter-result",
+  "targetLock": {
+    "path": "metadata/libdxfrw-target-lock.json",
+    "digest": "ac8dc26c9e6fde40c5160bc3f30c1483f5afc2821816f9093e64c02393141e21",
+    "targetCommit": "512d8bd86612f17158d4d222fcdc8a7c2b052c57",
+    "snapshotRevision": "89b762bef636c90eb370cb1af3cec80fe759cb32",
+    "archiveDigest": "d2db210bf364cc51de5469bb50cd80bee41247381ae304de837b4c6a8ef72f54",
+    "manifestDigest": "c4a9a0cf47b180e2ccdb4411bfdcd6c26d6c3085f2fb7e8c7a3b85f2d36f3fba",
+    "manifestEntries": 86
+  },
+  "adapterSource": {
+    "path": "tests/semantic_differential_adapter.cpp",
+    "digestAlgorithm": "sha256"
+  },
+  "inputRegistry": {
+    "path": "metadata/fixture-registry.json",
+    "digest": "d8aed12b009e5961b29e92cb8a06d2e607371ac6955927f79960a52b86f1c820"
+  },
+  "localRecipes": [
+    {
+      "id": "recipe:minimal-line-v1",
+      "path": "metadata/semantic-minimal-line-v1.json",
+      "digest": "a8d4036f25a9552ebad0817773181ea255ddcc7bd58a4f5f2a64ba7cce4b4260",
+      "byteSize": 127,
+      "generatorSource": "tests/semantic_differential_adapter.cpp",
+      "format": "recipe-json",
+      "version": "AC1024"
+    }
+  ],
+  "expectedFailures": [
+    {
+      "id": "failure:dxf-write-existing-directory",
+      "inputId": "recipe:minimal-line-v1",
+      "inputPathHint": "metadata/semantic-minimal-line-v1.json",
+      "facade": "dxfRW",
+      "direction": "write",
+      "firstFailure": {
+        "stage": "write",
+        "code": 2,
+        "path": "/output"
+      },
+      "outputProbe": "existing-directory"
+    }
+  ],
+  "runners": [
+    {
+      "id": "standalone-semantic-adapter",
+      "side": "standalone",
+      "cmakeTarget": "libdxfrw_semantic_adapter_standalone",
+      "buildCommand": [
+        "cmake",
+        "--build",
+        "{buildDir}",
+        "--target",
+        "libdxfrw_semantic_adapter_standalone_receipt",
+        "--config",
+        "{configuration}",
+        "--parallel",
+        "1"
+      ],
+      "runCommand": [
+        "{executable}",
+        "--facade",
+        "{facade}",
+        "--direction",
+        "{direction}",
+        "--input",
+        "{input}",
+        "--input-path-hint",
+        "{inputPathHint}",
+        "--output",
+        "{output}",
+        "--json",
+        "--origin-kind",
+        "{originKind}",
+        "--input-id",
+        "{inputId}",
+        "--repository",
+        "{inputRepository}",
+        "--input-commit",
+        "{inputCommit}",
+        "--source-path",
+        "{inputSourcePath}",
+        "--source-blob",
+        "{inputSourceBlob}",
+        "--registry-digest",
+        "{inputRegistryDigest}",
+        "--generator-digest",
+        "{generatorDigest}",
+        "--adapter-name",
+        "{adapterName}",
+        "--adapter-side",
+        "{adapterSide}",
+        "--package",
+        "{adapterPackage}",
+        "--adapter-commit",
+        "{adapterCommit}",
+        "--source-digest",
+        "{sourceDigest}",
+        "--config-digest",
+        "{configDigest}",
+        "--static-library-digest",
+        "{staticLibraryDigest}",
+        "--binary-digest",
+        "{binaryDigest}",
+        "--linked-closure-digest",
+        "{linkedClosureDigest}",
+        "--compatibility-profile",
+        "default"
+      ],
+      "inputMode": "locked-repository-blob-or-local-recipe",
+      "outputMode": "json-stdout",
+      "promotesSupport": false
+    },
+    {
+      "id": "target-semantic-adapter",
+      "side": "target",
+      "cmakeTarget": "libdxfrw_semantic_adapter_target",
+      "buildCommand": [
+        "cmake",
+        "--build",
+        "{buildDir}",
+        "--target",
+        "libdxfrw_semantic_adapter_target",
+        "--config",
+        "{configuration}",
+        "--parallel",
+        "1"
+      ],
+      "runCommand": [
+        "{executable}",
+        "--facade",
+        "{facade}",
+        "--direction",
+        "{direction}",
+        "--input",
+        "{input}",
+        "--input-path-hint",
+        "{inputPathHint}",
+        "--output",
+        "{output}",
+        "--json",
+        "--origin-kind",
+        "{originKind}",
+        "--input-id",
+        "{inputId}",
+        "--repository",
+        "{inputRepository}",
+        "--input-commit",
+        "{inputCommit}",
+        "--source-path",
+        "{inputSourcePath}",
+        "--source-blob",
+        "{inputSourceBlob}",
+        "--registry-digest",
+        "{inputRegistryDigest}",
+        "--generator-digest",
+        "{generatorDigest}",
+        "--adapter-name",
+        "{adapterName}",
+        "--adapter-side",
+        "{adapterSide}",
+        "--package",
+        "{adapterPackage}",
+        "--adapter-commit",
+        "{adapterCommit}",
+        "--source-digest",
+        "{sourceDigest}",
+        "--config-digest",
+        "{configDigest}",
+        "--static-library-digest",
+        "{staticLibraryDigest}",
+        "--binary-digest",
+        "{binaryDigest}",
+        "--linked-closure-digest",
+        "{linkedClosureDigest}",
+        "--compatibility-profile",
+        "default"
+      ],
+      "inputMode": "locked-repository-blob-or-local-recipe",
+      "outputMode": "json-stdout",
+      "promotesSupport": false
+    }
+  ],
+  "comparison": {
+    "tolerances": [],
+    "reviewedTargetDebt": [
+      {
+        "id": "debt-s386-write-diagnostic-count",
+        "scope": {
+          "inputId": "recipe:minimal-line-v1",
+          "inputPathHint": "metadata/semantic-minimal-line-v1.json",
+          "inputSha256": "a8d4036f25a9552ebad0817773181ea255ddcc7bd58a4f5f2a64ba7cce4b4260",
+          "facade": "dwgRW",
+          "direction": "write",
+          "optionsDigest": "adfb260b096bb9313906bb0088e49b83f441ad064719640ad02e62245a66e735"
+        },
+        "path": "/cardinality/diagnosticCount",
+        "targetDigest": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+        "standaloneDigest": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+        "expectedMatches": 1,
+        "evidenceId": "s386-classes-crc-boundary-4cd8d1c",
+        "reason": "S386 4cd8d1c fixes the generated AC1024 CLASSES CRC boundary, so the pinned target reports one legacy warning while the fixed standalone reports zero",
+        "diagnosticContext": null
+      },
+      {
+        "id": "debt-s386-write-diagnostic-object-size",
+        "scope": {
+          "inputId": "recipe:minimal-line-v1",
+          "inputPathHint": "metadata/semantic-minimal-line-v1.json",
+          "inputSha256": "a8d4036f25a9552ebad0817773181ea255ddcc7bd58a4f5f2a64ba7cce4b4260",
+          "facade": "dwgRW",
+          "direction": "write",
+          "optionsDigest": "adfb260b096bb9313906bb0088e49b83f441ad064719640ad02e62245a66e735"
+        },
+        "path": "/diagnostics/0/@size",
+        "targetDigest": "7902699be42c8a8e46fbbb4501726517e86b22c56a189f7625a6da49081b2451",
+        "standaloneDigest": null,
+        "expectedMatches": 1,
+        "evidenceId": "s386-classes-crc-boundary-4cd8d1c",
+        "reason": "The pinned target has one exact seven-field legacy CRC diagnostic object and the fixed standalone has no diagnostic object",
+        "diagnosticContext": null
+      },
+      {
+        "id": "debt-s386-write-diagnostic-code",
+        "scope": {
+          "inputId": "recipe:minimal-line-v1",
+          "inputPathHint": "metadata/semantic-minimal-line-v1.json",
+          "inputSha256": "a8d4036f25a9552ebad0817773181ea255ddcc7bd58a4f5f2a64ba7cce4b4260",
+          "facade": "dwgRW",
+          "direction": "write",
+          "optionsDigest": "adfb260b096bb9313906bb0088e49b83f441ad064719640ad02e62245a66e735"
+        },
+        "path": "/diagnostics/0/code",
+        "targetDigest": "db695f3dac765ac4b095d871254e1e4a179565206a0dd547304744a8d5098843",
+        "standaloneDigest": null,
+        "expectedMatches": 1,
+        "evidenceId": "s386-classes-crc-boundary-4cd8d1c",
+        "reason": "The pinned target has the exact legacy CLASSES CRC diagnostic code and the fixed standalone has no diagnostic",
+        "diagnosticContext": null
+      },
+      {
+        "id": "debt-s386-write-diagnostic-id",
+        "scope": {
+          "inputId": "recipe:minimal-line-v1",
+          "inputPathHint": "metadata/semantic-minimal-line-v1.json",
+          "inputSha256": "a8d4036f25a9552ebad0817773181ea255ddcc7bd58a4f5f2a64ba7cce4b4260",
+          "facade": "dwgRW",
+          "direction": "write",
+          "optionsDigest": "adfb260b096bb9313906bb0088e49b83f441ad064719640ad02e62245a66e735"
+        },
+        "path": "/diagnostics/0/id",
+        "targetDigest": "97dc378eaf37151a3a5b53d4b42399c99637ffbee7ccf69ff6a55507899072aa",
+        "standaloneDigest": null,
+        "expectedMatches": 1,
+        "evidenceId": "s386-classes-crc-boundary-4cd8d1c",
+        "reason": "The pinned target has the exact first diagnostic identifier and the fixed standalone has no diagnostic",
+        "diagnosticContext": null
+      },
+      {
+        "id": "debt-s386-write-diagnostic-message",
+        "scope": {
+          "inputId": "recipe:minimal-line-v1",
+          "inputPathHint": "metadata/semantic-minimal-line-v1.json",
+          "inputSha256": "a8d4036f25a9552ebad0817773181ea255ddcc7bd58a4f5f2a64ba7cce4b4260",
+          "facade": "dwgRW",
+          "direction": "write",
+          "optionsDigest": "adfb260b096bb9313906bb0088e49b83f441ad064719640ad02e62245a66e735"
+        },
+        "path": "/diagnostics/0/messageDigest",
+        "targetDigest": "2af8b3dfd29e4ab82ed2d8c82922c257371077cdeb2c32e510cb5cc320ba630a",
+        "standaloneDigest": null,
+        "expectedMatches": 1,
+        "evidenceId": "s386-classes-crc-boundary-4cd8d1c",
+        "reason": "The pinned target hashes the exact legacy CLASSES CRC warning payload and the fixed standalone has no diagnostic",
+        "diagnosticContext": {
+          "target": {
+            "id": "diagnostic:00000000",
+            "ordinal": 0,
+            "severity": "warning",
+            "stage": "integrity",
+            "code": "dwg-integrity-1",
+            "path": "/diagnostics/integrity"
+          },
+          "standalone": null
+        }
+      },
+      {
+        "id": "debt-s386-write-diagnostic-ordinal",
+        "scope": {
+          "inputId": "recipe:minimal-line-v1",
+          "inputPathHint": "metadata/semantic-minimal-line-v1.json",
+          "inputSha256": "a8d4036f25a9552ebad0817773181ea255ddcc7bd58a4f5f2a64ba7cce4b4260",
+          "facade": "dwgRW",
+          "direction": "write",
+          "optionsDigest": "adfb260b096bb9313906bb0088e49b83f441ad064719640ad02e62245a66e735"
+        },
+        "path": "/diagnostics/0/ordinal",
+        "targetDigest": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+        "standaloneDigest": null,
+        "expectedMatches": 1,
+        "evidenceId": "s386-classes-crc-boundary-4cd8d1c",
+        "reason": "The pinned target has the exact first diagnostic ordinal and the fixed standalone has no diagnostic",
+        "diagnosticContext": null
+      },
+      {
+        "id": "debt-s386-write-diagnostic-path",
+        "scope": {
+          "inputId": "recipe:minimal-line-v1",
+          "inputPathHint": "metadata/semantic-minimal-line-v1.json",
+          "inputSha256": "a8d4036f25a9552ebad0817773181ea255ddcc7bd58a4f5f2a64ba7cce4b4260",
+          "facade": "dwgRW",
+          "direction": "write",
+          "optionsDigest": "adfb260b096bb9313906bb0088e49b83f441ad064719640ad02e62245a66e735"
+        },
+        "path": "/diagnostics/0/path",
+        "targetDigest": "44a7847e9f9ed2f3c4ea9f8152f63794a326fcc33dd2e2e2e6d0d106317bdb4f",
+        "standaloneDigest": null,
+        "expectedMatches": 1,
+        "evidenceId": "s386-classes-crc-boundary-4cd8d1c",
+        "reason": "The pinned target has the exact integrity diagnostic path and the fixed standalone has no diagnostic",
+        "diagnosticContext": null
+      },
+      {
+        "id": "debt-s386-write-diagnostic-severity",
+        "scope": {
+          "inputId": "recipe:minimal-line-v1",
+          "inputPathHint": "metadata/semantic-minimal-line-v1.json",
+          "inputSha256": "a8d4036f25a9552ebad0817773181ea255ddcc7bd58a4f5f2a64ba7cce4b4260",
+          "facade": "dwgRW",
+          "direction": "write",
+          "optionsDigest": "adfb260b096bb9313906bb0088e49b83f441ad064719640ad02e62245a66e735"
+        },
+        "path": "/diagnostics/0/severity",
+        "targetDigest": "c94f9df6f3f7bc69e76a374ce4cd3e5d8766f2145a742ccb34d26e1954efd067",
+        "standaloneDigest": null,
+        "expectedMatches": 1,
+        "evidenceId": "s386-classes-crc-boundary-4cd8d1c",
+        "reason": "The pinned target has the exact warning severity and the fixed standalone has no diagnostic",
+        "diagnosticContext": null
+      },
+      {
+        "id": "debt-s386-write-diagnostic-stage",
+        "scope": {
+          "inputId": "recipe:minimal-line-v1",
+          "inputPathHint": "metadata/semantic-minimal-line-v1.json",
+          "inputSha256": "a8d4036f25a9552ebad0817773181ea255ddcc7bd58a4f5f2a64ba7cce4b4260",
+          "facade": "dwgRW",
+          "direction": "write",
+          "optionsDigest": "adfb260b096bb9313906bb0088e49b83f441ad064719640ad02e62245a66e735"
+        },
+        "path": "/diagnostics/0/stage",
+        "targetDigest": "55e10ce778eee689bf769828e2cf4ac96f60ce63a501fe00a7b06501d4e2de87",
+        "standaloneDigest": null,
+        "expectedMatches": 1,
+        "evidenceId": "s386-classes-crc-boundary-4cd8d1c",
+        "reason": "The pinned target has the exact integrity stage and the fixed standalone has no diagnostic",
+        "diagnosticContext": null
+      },
+      {
+        "id": "debt-s386-write-diagnostics-length",
+        "scope": {
+          "inputId": "recipe:minimal-line-v1",
+          "inputPathHint": "metadata/semantic-minimal-line-v1.json",
+          "inputSha256": "a8d4036f25a9552ebad0817773181ea255ddcc7bd58a4f5f2a64ba7cce4b4260",
+          "facade": "dwgRW",
+          "direction": "write",
+          "optionsDigest": "adfb260b096bb9313906bb0088e49b83f441ad064719640ad02e62245a66e735"
+        },
+        "path": "/diagnostics/@length",
+        "targetDigest": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+        "standaloneDigest": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+        "expectedMatches": 1,
+        "evidenceId": "s386-classes-crc-boundary-4cd8d1c",
+        "reason": "The pinned target has one legacy CRC diagnostic and the fixed standalone has zero diagnostics",
+        "diagnosticContext": null
+      },
+      {
+        "id": "debt-s386-classes-crc-large-radial",
+        "scope": {
+          "inputId": "fixture:large_radial",
+          "inputPathHint": "tests/fixtures/dwg/large_radial.dwg",
+          "inputSha256": "d3f7c22db4b6c3953e2d716da719d7e7e5b285cf73bd4e317f0a171d3859f98a",
+          "facade": "dwgRW",
+          "direction": "read",
+          "optionsDigest": "adfb260b096bb9313906bb0088e49b83f441ad064719640ad02e62245a66e735"
+        },
+        "path": "/diagnostics/0/messageDigest",
+        "targetDigest": "a813f682e138eaeb32dc2875dffbbb95f71a49ef13d173ccebdad49e3d62f307",
+        "standaloneDigest": "f6ad284f0ddc1181b6a5c919084697c72dfe128a18a8b5e87b426213daf154f7",
+        "expectedMatches": 1,
+        "evidenceId": "s386-classes-crc-boundary-4cd8d1c",
+        "reason": "S386 4cd8d1c fixes the CLASSES CRC boundary from the string-only view to the RL-declared complete class-data end; the warning context is unchanged while its hashed expected/observed CRC payload changes",
+        "diagnosticContext": {
+          "target": {
+            "id": "diagnostic:00000000",
+            "ordinal": 0,
+            "severity": "warning",
+            "stage": "integrity",
+            "code": "dwg-integrity-1",
+            "path": "/diagnostics/integrity"
+          },
+          "standalone": {
+            "id": "diagnostic:00000000",
+            "ordinal": 0,
+            "severity": "warning",
+            "stage": "integrity",
+            "code": "dwg-integrity-1",
+            "path": "/diagnostics/integrity"
+          }
+        }
+      },
+      {
+        "id": "debt-s386-classes-crc-mpolygon-solid",
+        "scope": {
+          "inputId": "fixture:mpolygon_solid",
+          "inputPathHint": "tests/fixtures/dwg/mpolygon_solid.dwg",
+          "inputSha256": "66a171c55bc90fdd0764ad3556ec786503666a30a4473a637d168a01979ffc29",
+          "facade": "dwgRW",
+          "direction": "read",
+          "optionsDigest": "adfb260b096bb9313906bb0088e49b83f441ad064719640ad02e62245a66e735"
+        },
+        "path": "/diagnostics/0/messageDigest",
+        "targetDigest": "200ad761a69cd7282c72171cd3dbe70ffdac4b029b3ba0dccbec2b149392c24d",
+        "standaloneDigest": "30871279153756e53ee6b5306a6ed68297c80217ef8fbe871ca73440fdeb8159",
+        "expectedMatches": 1,
+        "evidenceId": "s386-classes-crc-boundary-4cd8d1c",
+        "reason": "S386 4cd8d1c fixes the CLASSES CRC boundary from the string-only view to the RL-declared complete class-data end; the warning context is unchanged while its hashed expected/observed CRC payload changes",
+        "diagnosticContext": {
+          "target": {
+            "id": "diagnostic:00000000",
+            "ordinal": 0,
+            "severity": "warning",
+            "stage": "integrity",
+            "code": "dwg-integrity-1",
+            "path": "/diagnostics/integrity"
+          },
+          "standalone": {
+            "id": "diagnostic:00000000",
+            "ordinal": 0,
+            "severity": "warning",
+            "stage": "integrity",
+            "code": "dwg-integrity-1",
+            "path": "/diagnostics/integrity"
+          }
+        }
+      },
+      {
+        "id": "debt-s386-classes-crc-rtext-arctext",
+        "scope": {
+          "inputId": "fixture:rtext_arctext",
+          "inputPathHint": "tests/fixtures/dwg/rtext_arctext.dwg",
+          "inputSha256": "db5663cdc5c1759fdc1f68f9122e596307de06317e766cd5e0aab55912e5d511",
+          "facade": "dwgRW",
+          "direction": "read",
+          "optionsDigest": "adfb260b096bb9313906bb0088e49b83f441ad064719640ad02e62245a66e735"
+        },
+        "path": "/diagnostics/0/messageDigest",
+        "targetDigest": "451165561f3a4fd5fe2df4ada4106d063efe935a9eef293eb4688f99dc80cf3f",
+        "standaloneDigest": "f882883cb7cc60a27550203eb38c10bfd2236b5d26faa72a69b8fe9e6087d2b4",
+        "expectedMatches": 1,
+        "evidenceId": "s386-classes-crc-boundary-4cd8d1c",
+        "reason": "S386 4cd8d1c fixes the CLASSES CRC boundary from the string-only view to the RL-declared complete class-data end; the warning context is unchanged while its hashed expected/observed CRC payload changes",
+        "diagnosticContext": {
+          "target": {
+            "id": "diagnostic:00000000",
+            "ordinal": 0,
+            "severity": "warning",
+            "stage": "integrity",
+            "code": "dwg-integrity-1",
+            "path": "/diagnostics/integrity"
+          },
+          "standalone": {
+            "id": "diagnostic:00000000",
+            "ordinal": 0,
+            "severity": "warning",
+            "stage": "integrity",
+            "code": "dwg-integrity-1",
+            "path": "/diagnostics/integrity"
+          }
+        }
+      }
+    ],
+    "exclusions": []
+  }
+}

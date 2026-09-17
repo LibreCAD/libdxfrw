@@ -1,0 +1,372 @@
+name: libdxfrw native qualification
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      qualification_suite:
+        description: Qualification profile to run
+        required: true
+        type: choice
+        default: focused
+        options:
+          - focused
+          - final-broad
+          - extended-fuzz
+  schedule:
+    - cron: '17 3 * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  workflow-contract:
+    name: qualification workflow contract
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Configure byte-stable checkout
+        run: >-
+          git config --global core.autocrlf false
+          && git config --global core.eol lf
+
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check qualification tooling self-tests
+        run: >-
+          python3 -B tools/run_native_qualification.py --self-test
+          && python3 -B tools/check_qualification_workflow.py --self-test
+
+      - name: Check immutable qualification workflow contract
+        run: >-
+          python3 -B tools/check_qualification_workflow.py
+          --workflow .github/workflows/build.yml
+          --manifest metadata/qualification-required-tests-v1.json
+
+  native-focused:
+    name: focused / ${{ matrix.platformKey }}
+    needs: workflow-contract
+    if: >-
+      github.event_name == 'push' ||
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'workflow_dispatch' && inputs.qualification_suite == 'focused')
+    runs-on: ${{ matrix.runnerLabel }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platformKey: linux-gcc
+            runnerLabel: ubuntu-24.04
+            runnerOS: Linux
+            runnerArch: X64
+            toolchain: gcc-13
+            pythonCommand: python3
+            configureArgs: -G Ninja -DCMAKE_C_COMPILER=gcc-13 -DCMAKE_CXX_COMPILER=g++-13
+          - platformKey: macos-clang
+            runnerLabel: macos-15
+            runnerOS: macOS
+            runnerArch: ARM64
+            toolchain: apple-clang
+            pythonCommand: python3
+            configureArgs: -G Ninja -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++
+          - platformKey: windows-msvc
+            runnerLabel: windows-2022
+            runnerOS: Windows
+            runnerArch: X64
+            toolchain: msvc-vs2022-x64
+            pythonCommand: python
+            configureArgs: -G "Visual Studio 17 2022" -A x64
+
+    steps:
+      - name: Configure byte-stable checkout
+        run: >-
+          git config --global core.autocrlf false
+          && git config --global core.eol lf
+
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Configure fixed hosted profile
+        run: >-
+          cmake -S . -B build
+          ${{ matrix.configureArgs }}
+          -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+          -DCMAKE_BUILD_TYPE=Release
+          -DBUILD_SHARED_LIBS=OFF
+          -DLIBDXFRW_BUILD_DOC=OFF
+          -DLIBDXFRW_BUILD_DWG2DXF=ON
+          -DLIBDXFRW_BUILD_TESTS=ON
+          -DLIBDXFRW_BUILD_QUALIFICATION=OFF
+          -DLIBDXFRW_BUILD_LONG_FUZZ=OFF
+
+      - name: Build focused native targets
+        run: >-
+          cmake --build build --config Release --parallel 2 --target
+          libdxfrw_dwg_local_roundtrip
+          libdxfrw_dwg_reader_matrix_tests
+          libdxfrw_diagnostic_tests
+          libdxfrw_dwg_fixture_tests
+
+      - name: Prepare metadata-only qualification output
+        run: cmake -E make_directory qualification-output
+
+      - name: Run focused native qualification
+        id: qualification
+        continue-on-error: true
+        run: >-
+          ${{ matrix.pythonCommand }} -B tools/run_native_qualification.py run
+          --root .
+          --build-dir build
+          --manifest metadata/qualification-required-tests-v1.json
+          --workflow .github/workflows/build.yml
+          --output-dir qualification-output
+          --suite focused
+          --platform-key ${{ matrix.platformKey }}
+          --declared-runner-label ${{ matrix.runnerLabel }}
+          --declared-runner-os ${{ matrix.runnerOS }}
+          --declared-runner-arch ${{ matrix.runnerArch }}
+          --declared-toolchain ${{ matrix.toolchain }}
+          --require-github-runner
+
+      - name: Emit immutable native qualification receipt
+        id: receipt
+        if: always()
+        continue-on-error: true
+        run: >-
+          ${{ matrix.pythonCommand }} -B tools/emit_native_qualification_receipt.py
+          --input qualification-output/native-qualification-observation-v1.json
+          --output qualification-output/native-qualification-receipt-v1.json
+          --claims metadata/qualified-format-claims-v1.json
+          --status metadata/qualified-format-status-v1.json
+          --implementation-inputs metadata/qualification-implementation-inputs-v1.json
+          --required-tests metadata/qualification-required-tests-v1.json
+
+      - name: Seal and preflight metadata-only receipt
+        id: seal
+        if: always()
+        continue-on-error: true
+        run: >-
+          ${{ matrix.pythonCommand }} -B tools/run_native_qualification.py enforce
+          --output-dir qualification-output
+          --suite focused
+          --platform-key ${{ matrix.platformKey }}
+          --qualification-step-outcome ${{ steps.qualification.outcome }}
+          --receipt-step-outcome ${{ steps.receipt.outcome }}
+          --phase pre-upload-seal
+
+      - name: Upload immutable focused qualification evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: native-qualification-${{ github.run_id }}-${{ github.run_attempt }}-focused-${{ matrix.platformKey }}
+          path: |
+            qualification-output/qualification-status.json
+            qualification-output/ctest-inventory.json
+            qualification-output/ctest.log
+            qualification-output/ctest.xml
+            qualification-output/native-qualification-observation-v1.json
+            qualification-output/native-qualification-receipt-v1.json
+            qualification-output/native-qualification-receipt-v1.sha256
+          if-no-files-found: error
+          include-hidden-files: false
+          overwrite: false
+          retention-days: 30
+
+      - name: Enforce focused qualification result
+        if: always()
+        run: >-
+          ${{ matrix.pythonCommand }} -B tools/run_native_qualification.py enforce
+          --output-dir qualification-output
+          --suite focused
+          --platform-key ${{ matrix.platformKey }}
+          --qualification-step-outcome ${{ steps.qualification.outcome }}
+          --receipt-step-outcome ${{ steps.receipt.outcome }}
+          --phase post-upload-verify
+          --seal-step-outcome ${{ steps.seal.outcome }}
+
+  native-final-broad:
+    name: final broad / ${{ matrix.platformKey }}
+    needs: workflow-contract
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      inputs.qualification_suite == 'final-broad'
+    runs-on: ${{ matrix.runnerLabel }}
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platformKey: linux-gcc
+            runnerLabel: ubuntu-24.04
+            runnerOS: Linux
+            runnerArch: X64
+            toolchain: gcc-13
+            pythonCommand: python3
+            configureArgs: -G Ninja -DCMAKE_C_COMPILER=gcc-13 -DCMAKE_CXX_COMPILER=g++-13
+          - platformKey: macos-clang
+            runnerLabel: macos-15
+            runnerOS: macOS
+            runnerArch: ARM64
+            toolchain: apple-clang
+            pythonCommand: python3
+            configureArgs: -G Ninja -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++
+          - platformKey: windows-msvc
+            runnerLabel: windows-2022
+            runnerOS: Windows
+            runnerArch: X64
+            toolchain: msvc-vs2022-x64
+            pythonCommand: python
+            configureArgs: -G "Visual Studio 17 2022" -A x64
+
+    steps:
+      - name: Configure byte-stable checkout
+        run: >-
+          git config --global core.autocrlf false
+          && git config --global core.eol lf
+
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Configure fixed hosted profile
+        run: >-
+          cmake -S . -B build
+          ${{ matrix.configureArgs }}
+          -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+          -DCMAKE_BUILD_TYPE=Release
+          -DBUILD_SHARED_LIBS=OFF
+          -DLIBDXFRW_BUILD_DOC=OFF
+          -DLIBDXFRW_BUILD_DWG2DXF=ON
+          -DLIBDXFRW_BUILD_TESTS=ON
+          -DLIBDXFRW_BUILD_QUALIFICATION=OFF
+          -DLIBDXFRW_BUILD_LONG_FUZZ=OFF
+
+      - name: Build broad native suite
+        run: cmake --build build --config Release --parallel 2
+
+      - name: Prepare metadata-only qualification output
+        run: cmake -E make_directory qualification-output
+
+      - name: Run final broad native qualification
+        id: qualification
+        continue-on-error: true
+        run: >-
+          ${{ matrix.pythonCommand }} -B tools/run_native_qualification.py run
+          --root .
+          --build-dir build
+          --manifest metadata/qualification-required-tests-v1.json
+          --workflow .github/workflows/build.yml
+          --output-dir qualification-output
+          --suite final-broad
+          --platform-key ${{ matrix.platformKey }}
+          --declared-runner-label ${{ matrix.runnerLabel }}
+          --declared-runner-os ${{ matrix.runnerOS }}
+          --declared-runner-arch ${{ matrix.runnerArch }}
+          --declared-toolchain ${{ matrix.toolchain }}
+          --require-github-runner
+
+      - name: Emit immutable native qualification receipt
+        id: receipt
+        if: always()
+        continue-on-error: true
+        run: >-
+          ${{ matrix.pythonCommand }} -B tools/emit_native_qualification_receipt.py
+          --input qualification-output/native-qualification-observation-v1.json
+          --output qualification-output/native-qualification-receipt-v1.json
+          --claims metadata/qualified-format-claims-v1.json
+          --status metadata/qualified-format-status-v1.json
+          --implementation-inputs metadata/qualification-implementation-inputs-v1.json
+          --required-tests metadata/qualification-required-tests-v1.json
+
+      - name: Seal and preflight metadata-only receipt
+        id: seal
+        if: always()
+        continue-on-error: true
+        run: >-
+          ${{ matrix.pythonCommand }} -B tools/run_native_qualification.py enforce
+          --output-dir qualification-output
+          --suite final-broad
+          --platform-key ${{ matrix.platformKey }}
+          --qualification-step-outcome ${{ steps.qualification.outcome }}
+          --receipt-step-outcome ${{ steps.receipt.outcome }}
+          --phase pre-upload-seal
+
+      - name: Upload immutable final-broad qualification evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: native-qualification-${{ github.run_id }}-${{ github.run_attempt }}-final-broad-${{ matrix.platformKey }}
+          path: |
+            qualification-output/qualification-status.json
+            qualification-output/ctest-inventory.json
+            qualification-output/ctest.log
+            qualification-output/ctest.xml
+            qualification-output/native-qualification-observation-v1.json
+            qualification-output/native-qualification-receipt-v1.json
+            qualification-output/native-qualification-receipt-v1.sha256
+          if-no-files-found: error
+          include-hidden-files: false
+          overwrite: false
+          retention-days: 30
+
+      - name: Enforce final-broad qualification result
+        if: always()
+        run: >-
+          ${{ matrix.pythonCommand }} -B tools/run_native_qualification.py enforce
+          --output-dir qualification-output
+          --suite final-broad
+          --platform-key ${{ matrix.platformKey }}
+          --qualification-step-outcome ${{ steps.qualification.outcome }}
+          --receipt-step-outcome ${{ steps.receipt.outcome }}
+          --phase post-upload-verify
+          --seal-step-outcome ${{ steps.seal.outcome }}
+
+  long-fuzz:
+    name: extended deterministic fuzz / linux-gcc
+    needs: workflow-contract
+    if: >-
+      github.event_name == 'schedule' ||
+      (github.event_name == 'workflow_dispatch' && inputs.qualification_suite == 'extended-fuzz')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Configure extended deterministic fuzz
+        run: >-
+          cmake -S . -B build-long-fuzz
+          -G Ninja
+          -DCMAKE_C_COMPILER=gcc-13
+          -DCMAKE_CXX_COMPILER=g++-13
+          -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+          -DCMAKE_BUILD_TYPE=Release
+          -DBUILD_SHARED_LIBS=OFF
+          -DLIBDXFRW_BUILD_DOC=OFF
+          -DLIBDXFRW_BUILD_DWG2DXF=ON
+          -DLIBDXFRW_BUILD_TESTS=ON
+          -DLIBDXFRW_BUILD_QUALIFICATION=OFF
+          -DLIBDXFRW_BUILD_LONG_FUZZ=ON
+
+      - name: Build extended deterministic fuzz
+        run: >-
+          cmake --build build-long-fuzz --config Release --parallel 2
+          --target libdxfrw_long_fuzz_tests
+
+      - name: Run extended deterministic fuzz only
+        run: >-
+          ctest --test-dir build-long-fuzz --build-config Release
+          --no-tests=error --output-on-failure
+          -R '^libdxfrw_long_fuzz$'

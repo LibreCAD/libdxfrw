@@ -1,0 +1,205 @@
+{
+  "schema": 1,
+  "purpose": "Standalone build, packaging, CLI, and compatibility adaptations required around the pinned LibreCAD source snapshot.",
+  "allowedPaths": [
+    "CMakeLists.txt",
+    "src/intern/dxfcode.h",
+    "cmake/",
+    "dwg2dxf/",
+    "tests/",
+    "libdxfrw.pc.in",
+    "configure.ac",
+    "conanfile.py",
+    "makefile.mingw",
+    "LIBRECAD_SYNC.md",
+    "metadata/",
+    "tools/"
+  ],
+  "disallowed": [
+    "Unreviewed changes inside imported src/ files",
+    "Target repinning during checkpoints A-D",
+    "Fixture-policy-ineligible DWG/DXF payloads or derivatives"
+  ],
+  "entries": [
+    {
+      "path": "CMakeLists.txt",
+      "reason": "Install the narrow transitive headers required by the imported public façades; hide HandleAllocator and expose the DataStorage operation enum from the foundational public header.",
+      "scope": "standalone packaging only"
+    },
+    {
+      "path": "src/drw_base.h",
+      "reason": "Restore the historical dint*/duint*/ddouble* public typedef names removed by the target C++17 conversion, expose the shared operation-diagnostic schema, and move the DataStorage writer operation enum into the foundational public header.",
+      "scope": "source compatibility",
+      "targetBlob": "7844a3ae6621056212430bb4f961bdfb242c39ce",
+      "adaptedSha256": "697b47b1a455bf7b863ca90d3a6cc1d6be0f7edb14c20e8d5b2118a4d8dbf4d4"
+    },
+    {
+      "path": "src/drw_interface.h",
+      "reason": "Default the newly added addDimArc callback so existing concrete consumers remain instantiable.",
+      "scope": "source compatibility",
+      "targetBlob": "cea88281e86cddda28c8c1d4a7d2bf1ee245e552",
+      "adaptedSha256": "92ad0f44ec4b42e8b47e6197ea8a935325cb7c8df78c3a7e933e0d58493a37ac"
+    },
+    {
+      "path": "src/libdwgr.h",
+      "reason": "Provide a deprecated composition-based dwgR read façade instead of an unsafe alias to dwgRW, and expose the diagnostic snapshot on both façade spellings.",
+      "scope": "source compatibility",
+      "targetBlob": "7d184f55c632599901f2072f42c80b0b9dd24c03",
+      "adaptedSha256": "707b50f774960e64b9b5e17112f36d3280a44584b5cfc613fc099fb48da0be13"
+    },
+    {
+      "path": "src/libdwgr.cpp",
+      "reason": "Define the out-of-line dwgR forwarding façade, preserve null DWG argument/error compatibility, and instrument stage-aware operation diagnostics.",
+      "scope": "source compatibility",
+      "targetBlob": "d1237b166b0ac0a03120c3b2eb6213e890832862",
+      "adaptedSha256": "93a067b7e0635486be9dc4e644f7aa9efc3f7738a68286e83ee2178f2c2a8eb3"
+    },
+    {
+      "path": "src/intern/dwgreader.cpp",
+      "reason": "Remove two unused target locals exposed by standalone -Werror compilation, route the fixed-type GEOPOSITIONMARKER entity through the mapped reader instead of treating its legacy class ordinal as an opaque object, cap HANDLE-map staging plus aggregate object-map work per read, and isolate bounded typed-body failures inside journalled BLOCK scopes.",
+      "scope": "warning hygiene, DWG resource-limit hardening, and BLOCK transaction compatibility",
+      "targetBlob": "ae471df1928269fb8b81009bcd1821d304a003de",
+      "adaptedSha256": "c77b4aa07e68fc8b6937b39ee11cff37c8547feb5636759c9c1ec2806242a713"
+    },
+    {
+      "path": "src/intern/dwgreader.h",
+      "reason": "Carry a configurable aggregate DWG object-map budget into each reader and expose bounded-read status for structured resource diagnostics without changing the public callback contract.",
+      "scope": "DWG resource-limit hardening",
+      "targetBlob": "fdf48bb242fac317e82addd7fbcf066e439fc3ad",
+      "adaptedSha256": "8664782313368ba2a96deacf5c3ea0a8f12a14000b1539ef175be121f1d38d0d"
+    },
+    {
+      "path": "src/intern/dwgsafety.h",
+      "reason": "Define the default aggregate DWG object-map work ceiling alongside existing per-operation safety bounds while allowing explicit caller overrides.",
+      "scope": "DWG resource-limit hardening",
+      "targetBlob": "d8cdf63eb2ed081be2fad8363665d51f431fbcf0",
+      "adaptedSha256": "f0b04123b677c9b6754eea2551a704ec13f025646aac534394477e9a29d22f13"
+    },
+    {
+      "path": "src/intern/dwgreader21.cpp",
+      "reason": "Accept valid AC1021 compressed pages whose decoded size exceeds the physical page envelope and older R2007 section maps that omit the repeated header page or explicit empty terminator descriptor, while retaining bounded physical-page and section-capacity checks; accept the ODA-valid one-code-unit UTF-16 section-name boundary without weakening odd/truncated-length rejection.",
+      "scope": "DWG R2007 reader compatibility",
+      "targetBlob": "10d47f1c0313731fc6695b0dda8d7247dc492f88",
+      "adaptedSha256": "113a94b8ee0a9dd1268f9eba569c1a7633977d08a93690f5137673e9a887d1fa"
+    },
+    {
+      "path": "src/intern/dwgbuffer.cpp",
+      "reason": "Accept both R2007+ TU length conventions by reading the declared UTF-16 units first and probing an optional trailing UTF-16 NUL on an independent cursor, preserving fail-closed behavior for truncated streams; normalize declared section-name NUL code units and accept the one-code-unit section-name boundary.",
+      "scope": "DWG TU text framing compatibility",
+      "targetBlob": "e70e5fdbef6bc187850c1eb02689c39f254d4f96",
+      "adaptedSha256": "5699b52890a91314a058d474fdb448d9fcc52ae30ddaa6e48a671aadd1b5c545"
+    },
+    {
+      "path": "src/drw_datastorage.cpp",
+      "reason": "Remove an unused readSchemaNames parameter exposed by standalone -Werror compilation; parsing behavior is unchanged.",
+      "scope": "warning hygiene",
+      "targetBlob": "66a2bddca9bebe01c00879c14151d51019e8a866",
+      "adaptedSha256": "0c4d4705cc76dae4420e751dd38fc3f83b4704cfa3f0626c9f3dc21cce7b9175"
+    },
+    {
+      "path": "src/drw_entities.cpp",
+      "reason": "Mark one intentionally unused helper, remove two unused locals exposed by standalone -Werror compilation, reject non-finite GEOPOSITIONMARKER and LIGHT entity-body values plus bounded LIGHT strings/color before encoding, preserve nested MULTILEADER DXF context breaks, transforms, and hard-pointer handles on parse, bound MULTILEADER context/block-label strings before publication, deep-copy entity-owned XDATA variants for explicit entity copy paths, clone HATCH boundary graphs for copy/assignment without aliasing unsupported polymorphic edges, clone LEADER vertex graphs for copy/assignment without retaining transient parser cursors, reset transient DXF parser state across explicit model copies and assignments, reset the LEADER vertex-count parser marker across copy and assignment, reset MULTILEADER nested-context and transform cursors across explicit copy and assignment, reset DIMARC/LARGE_RADIAL subclass markers across explicit copy and assignment, and route announced AcDbEntity proxy graphics away from ACIS/modeler payload bytes.",
+      "scope": "warning hygiene and DXF MULTILEADER parity",
+      "targetBlob": "bb6bae561077c273241670843137e10b4c3e9ba1",
+      "adaptedSha256": "c2339aed6280472964526167b3b5eda3dcff90d25928d6ec14dd9881936966b6"
+    },
+    {
+      "path": "src/drw_entities.h",
+      "reason": "Retain a transient DXF MULTILEADER transformation-matrix cursor so repeated code-47 values are bounded and reset between documents, expose the protected entity XDATA deep-copy helper used by explicit copy paths, publish HATCH copy/assignment declarations plus deterministic parser-state reset, publish LEADER copy/assignment/move declarations for deep vertex ownership, reset transient LWPOLYLINE parser state for explicit copies and assignments, reset transient MLINE segment/vertex parser state for explicit copies and assignments, reset transient TABLE subclass/grid parser state for explicit copies and assignments, reset transient MESH topology parser state for explicit copies and assignments, reset transient UNDERLAY clip parser state for explicit copies and assignments, reset transient NAVISWORKSMODEL transform/subclass parser state for explicit copies and assignments, reset transient POINTCLOUD body parser state for explicit copies and assignments, reset transient POINTCLOUDEX body/cropping parser state for explicit copies and assignments, reset transient NURBSURFACE coordinate/subclass parser state for explicit copies and assignments, reset transient REVOLVEDSURFACE transform/class-id parser state for explicit copies and assignments, reset transient EXTRUDEDSURFACE transform/class-id parser state for explicit copies and assignments, reset transient SWEPTSURFACE transform/entity-id parser state for explicit copies and assignments, reset transient LOFTEDSURFACE transform/reference parser state for explicit copies and assignments, reset transient IMAGE clip-vertex parser state for explicit copies and assignments, reset transient SECTIONOBJECT subclass parser state for explicit copies and assignments, reset transient OLE2FRAME/OLEFRAME payload-length parser markers for explicit copies and assignments, publish MULTILEADER copy/assignment/move declarations for nested-context parser-state reset, and publish DIMARC/LARGE_RADIAL copy/assignment/move declarations for subclass-marker reset.",
+      "scope": "DXF MULTILEADER parity",
+      "targetBlob": "077a84860cea7c35da2f136ce6afedd3be1adf44",
+      "adaptedSha256": "45637eae9620a9dc9b126f90dd2ba700defbcb488c5ad5ef73dddece636323eb"
+    },
+    {
+      "path": "src/intern/dwgutil.h",
+      "reason": "Expose the fixed GEOPOSITIONMARKER DWG type code to the shared reader dispatch while moving the public DataStorage writer operation enum out of the installed utility header.",
+      "scope": "DWG reader compatibility",
+      "targetBlob": "e33363bf4d3e814a67c875ecb89e70c9fe154bed",
+      "adaptedSha256": "0a60e4b5a02a8b31b169411d1c7c52882bd7a8c7188256a648538edb1ce6143c"
+    },
+    {
+      "path": "src/intern/dwgwriter.h",
+      "reason": "Compact high custom class ordinals into file-local legacy slots for AC1015/AC1018 so the R2004 CLASSES range remains compatible with independent readers; modern ordinals are unchanged.",
+      "scope": "DWG writer compatibility",
+      "targetBlob": "ce0087fb791558ca1afab7082b0f2164e99c457c",
+      "adaptedSha256": "9d8c8e158b29244e1f080ca5591907366718c3048987c1956dcdc56e585db89b"
+    },
+    {
+      "path": "src/intern/dwgwriter15.cpp",
+      "reason": "Keep AC1015 entity-chain validation strict for built-in entities while allowing the target's RTEXT/ARCALIGNEDTEXT/HELIX/CAMERA custom frames to use preserved high handles; their object-map and class-instance ledgers remain validated separately.",
+      "scope": "DWG writer compatibility",
+      "targetBlob": "7c52152889fcb7da812493324003cdcbf629eb59",
+      "adaptedSha256": "ca4916fcfbf556aabf92beb2c35435a720c20c2f711d9f5af0420741d443cd37"
+    },
+    {
+      "path": "src/drw_objects.cpp",
+      "reason": "Retain the imported warning-hygiene fixes and correct GEODATA AC1015/AC1018 inline versus R2007+ deferred host-block handle ordering per ODA §20.4.78, with bounded version-2 parity evidence.",
+      "scope": "warning hygiene and DWG object compatibility",
+      "targetBlob": "acdf5ef4ab0c7d6604311684c5cc87b973fa1932",
+      "adaptedSha256": "8f8d837f3493ddacb02e4a6e2907c64b58c802fc2b62081bf9375e6e51bd810e"
+    },
+    {
+      "path": "src/drw_objects.h",
+      "reason": "Reset transient BREAKDATA subclass-body parser state, DICTIONARY/DICTIONARYWDFLT pending-entry/default-pointer parser state, XRECORD subclass-body parser state, SORTENTSTABLE body/pending-entry parser state, INDEX/IDBUFFER/LAYERINDEX/SPATIALINDEX timestamp/body parser state, LIGHTLIST/GEOMAPIMAGE subclass parser state, DATALINK body/custom-data/adapter/pending-handle parser state, GEODATA subclass/mesh cursor parser state, SPATIALFILTER matrix-value parser state, EVALUATIONGRAPH body/node/edge/malformed parser state, DIMASSOC body parser state, POINTCLOUDCOLORMAP ramp-selection/default-scheme parser state, SUNSTUDY/MOTIONPATH/CURVEPATH/POINTPATH date/hour/positional/handle parser state, PARTIAL_VIEWING_INDEX pending-entry parser state, SECTION body/type/geometry parser state, BACKGROUND/NAVISWORKSMODELDEF overloaded/repeated-value parser state, LAYOUT subclass parser state, DETAILVIEWSTYLE/SECTIONVIEWSTYLE subclass/group/counter parser state, and ASSOCIATIVEOBJECT persistent-subentity parser state for explicit copies and assignments while preserving persisted entries, handles, schemes, and opaque payloads.",
+      "scope": "DXF parser-state copy isolation",
+      "targetBlob": "41d58d78e0706509ee22232fb70e187baaf0ec34",
+      "adaptedSha256": "b7deb8f9e2f61b4ce886c625fdbc9ff12fb1035db12953333021233645a35e49"
+    },
+    {
+      "path": "src/intern/dxfparserlimits.h",
+      "reason": "Add a configurable aggregate DXF read-record resource ceiling without changing the format's semantic group-code limits.",
+      "scope": "DXF resource-limit hardening",
+      "targetBlob": "716307e131dc5fec27eb7bc54b5a782b63f1d08c",
+      "adaptedSha256": "77c6975b52a78eef3e09ea168b9e3ae577ed3fee430f3009de2594f438b6cde5"
+    },
+    {
+      "path": "src/intern/dxfreader.h",
+      "reason": "Expose the explicit standalone-safe versus LibreCAD-master legacy classifier profile and the last rejected handle-reference group code to the façade's diagnostic path without changing the public API.",
+      "scope": "DXF classifier compatibility probing",
+      "targetBlob": "bac140e1a647d86c8dd4f7f8e2fbbb995bcebe70",
+      "adaptedSha256": "e18754cf0891fbd3c343b0c56a2b37e4b5ea34b902f45d891c93149670bc53ae"
+    },
+    {
+      "path": "src/intern/dxfreader.cpp",
+      "reason": "Use the canonical DXF group-code table, preserve integer values in codes 260-269, fail closed on the unassigned 482-998 span, carry an explicit opt-in legacy classifier profile for compatibility probes, and retain the rejected handle-reference group code for façade diagnostics.",
+      "scope": "DXF classifier correctness",
+      "targetBlob": "29199a12f12b53bbcefb8abe61c362e3b1ad077e",
+      "adaptedSha256": "49683751065b36c50ee4f081b8fa0cc594621a7b0c73bb415ae1764d32ea73cc"
+    },
+    {
+      "path": "src/libdxfrw.cpp",
+      "reason": "Route raw DXF capture and replay through canonical or explicitly selected classifier profiles, expose an additive public compatibility-profile opt-in, preserve null/error compatibility, instrument stage-aware operation diagnostics including duplicate, malformed, and field-context raw-handle context across raw object, entity, and unknown-section paths, keep code-5 identity metadata out of proxy-host registration so raw replay remains authoritative, ignore inactive HATCH gradient carriers while retaining active-gradient validation, emit complete modern MULTILEADER DXF context geometry, transforms, and hard-pointer handles, and keep HandleAllocator implementation-only behind the façade.",
+      "scope": "DXF classifier correctness and MULTILEADER parity",
+      "targetBlob": "a091cd92e3914da6b227c1ae3fffcff3fc7676fe",
+      "adaptedSha256": "33bc7e176dd91e6edb7b523608982dbc4ec20381a6db5e5cd4ad55b783862604"
+    },
+    {
+      "path": "src/libdxfrw.h",
+      "reason": "Expose the structured operation-diagnostic snapshot while preserving the legacy dxfRW error and version API, add an explicitly documented public DXF compatibility-profile opt-in while retaining a safe default, centralize invalid raw-handle diagnostic propagation, and move HandleAllocator-dependent operations out of the public header.",
+      "scope": "diagnostic compatibility",
+      "targetBlob": "fd8fe1fc33175e268b477719452ed247dcdd2baf",
+      "adaptedSha256": "71d4d48a7bb740a4e9d751275f07fd9451b9b4b2254ad55d2b78223b968b22ec"
+    },
+    {
+      "path": "src/intern/dwg_dxf_output_transaction.cpp",
+      "reason": "Replace timestamp-plus-counter temporary names with OS-backed mkstemp creation on POSIX and randomized exclusive names on Windows; retain descriptor/path identity checks, synchronize the containing directory before and after rename where POSIX permits, publish with a retained-directory renameat to prevent parent-path redirection, and use descriptor-relative temporary identity/cleanup plus parent-directory identity checks to fail closed after a directory replacement.",
+      "scope": "output transaction temporary-name, identity, parent-race, cleanup, and durability hardening",
+      "targetBlob": "ab60082b5a27c7c876c95aeaab8c8eaf30b39200",
+      "adaptedSha256": "bc35572e5fa4c4ee94ae244a1a0a6333e0b987fd2e492f4756691afcfc984d12"
+    },
+    {
+      "path": "src/intern/dwg_dxf_output_transaction.h",
+      "reason": "Retain exclusive temporary and parent-directory descriptors through stream open and commit/abort identity checks, preventing substituted paths or swapped parent directories from being published or removed as if they were owned; expose descriptor-relative temporary identity/cleanup and parent-path identity helpers without changing the public API.",
+      "scope": "output transaction identity, parent-race, cleanup, and durability hardening",
+      "targetBlob": "c3ab578d52761c4cdfddb1288376a03bd44db86d",
+      "adaptedSha256": "14b322bb702a22cf9f977054cd38c9937e5c6ca88ea69a2a71a0c40ee3b7d105"
+    },
+    {
+      "path": "src/intern/drw_dbg.cpp",
+      "reason": "Make the documented setCustomDebugPrinter(nullptr) reset restore an owned default printer so later debug-level transitions cannot dereference null.",
+      "scope": "debug ownership/reset hardening",
+      "targetBlob": "7f50f284fbc2c443c9b7863636a8bd630b01e3bb",
+      "adaptedSha256": "aa4f9d0e4e2395364e207410d58505b92e52d8d93562f800ee29f63b7cb6b240"
+    }
+  ]
+}

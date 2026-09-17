@@ -1,0 +1,292 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://libdxfrw.example.invalid/schema/native-qualification-receipt-v1.json",
+  "title": "libdxfrw native qualification receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "kind",
+    "suite",
+    "generatedAtUtc",
+    "artifactPolicy",
+    "repository",
+    "workflow",
+    "run",
+    "platform",
+    "toolchain",
+    "environment",
+    "contracts",
+    "inventory",
+    "tests",
+    "summary",
+    "ctestExitCode",
+    "qualificationConclusion",
+    "observationSha256",
+    "qualificationDigests",
+    "suppliesIndependentSemanticEvidence"
+  ],
+  "properties": {
+    "schema": {"const": 1},
+    "kind": {"const": "libdxfrw-native-qualification-receipt"},
+    "suite": {"enum": ["focused", "final-broad"]},
+    "generatedAtUtc": {"type": "string", "format": "date-time"},
+    "artifactPolicy": {"type": "string", "minLength": 1},
+    "repository": {"$ref": "#/$defs/repository"},
+    "workflow": {"$ref": "#/$defs/workflow"},
+    "run": {"$ref": "#/$defs/run"},
+    "platform": {"$ref": "#/$defs/platform"},
+    "toolchain": {"$ref": "#/$defs/toolchain"},
+    "environment": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/environmentEntry"}
+    },
+    "contracts": {"$ref": "#/$defs/contracts"},
+    "inventory": {"$ref": "#/$defs/inventory"},
+    "tests": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/testResult"}
+    },
+    "summary": {"$ref": "#/$defs/summary"},
+    "ctestExitCode": {"type": "integer"},
+    "qualificationConclusion": {"enum": ["success", "failure"]},
+    "observationSha256": {"$ref": "#/$defs/sha256"},
+    "qualificationDigests": {"$ref": "#/$defs/qualificationDigests"},
+    "suppliesIndependentSemanticEvidence": {"const": false}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "gitObjectId": {"type": "string", "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"},
+    "nullableString": {"type": ["string", "null"]},
+    "repository": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["githubRepository", "githubRepositoryId", "checkedOutCommit"],
+      "properties": {
+        "githubRepository": {"$ref": "#/$defs/nullableString"},
+        "githubRepositoryId": {"$ref": "#/$defs/nullableString"},
+        "checkedOutCommit": {"$ref": "#/$defs/gitObjectId"}
+      }
+    },
+    "workflow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "gitBlobAtHead", "workingTreeGitBlob", "sha256"],
+      "properties": {
+        "path": {"const": ".github/workflows/build.yml"},
+        "gitBlobAtHead": {"$ref": "#/$defs/gitObjectId"},
+        "workingTreeGitBlob": {"$ref": "#/$defs/gitObjectId"},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "attempt", "number", "eventName", "job", "ref", "githubSha", "workflowRef"],
+      "properties": {
+        "id": {"$ref": "#/$defs/nullableString"},
+        "attempt": {"$ref": "#/$defs/nullableString"},
+        "number": {"$ref": "#/$defs/nullableString"},
+        "eventName": {"$ref": "#/$defs/nullableString"},
+        "job": {"$ref": "#/$defs/nullableString"},
+        "ref": {"$ref": "#/$defs/nullableString"},
+        "githubSha": {"$ref": "#/$defs/nullableString"},
+        "workflowRef": {"$ref": "#/$defs/nullableString"}
+      }
+    },
+    "platform": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "key", "declaredRunnerLabel", "declaredRunnerOS", "declaredRunnerArch",
+        "observedRunnerOS", "observedRunnerArch", "imageOS", "imageVersion",
+        "system", "release", "version", "machine"
+      ],
+      "properties": {
+        "key": {"enum": ["linux-gcc", "macos-clang", "windows-msvc"]},
+        "declaredRunnerLabel": {"enum": ["ubuntu-24.04", "macos-15", "windows-2022"]},
+        "declaredRunnerOS": {"enum": ["Linux", "macOS", "Windows"]},
+        "declaredRunnerArch": {"enum": ["X64", "ARM64"]},
+        "observedRunnerOS": {"$ref": "#/$defs/nullableString"},
+        "observedRunnerArch": {"$ref": "#/$defs/nullableString"},
+        "imageOS": {"$ref": "#/$defs/nullableString"},
+        "imageVersion": {"$ref": "#/$defs/nullableString"},
+        "system": {"type": "string"},
+        "release": {"type": "string"},
+        "version": {"type": "string"},
+        "machine": {"type": "string"}
+      }
+    },
+    "toolRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "versionOutput", "versionExitCode"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "versionOutput": {"type": "string", "minLength": 1},
+        "versionExitCode": {"type": "integer"}
+      }
+    },
+    "toolchain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "declared", "generator", "generatorPlatform", "generatorToolset",
+        "buildType", "cxxStandard", "cxxFlags", "cxxFlagsRelease",
+        "compilerPath", "compilerId", "compilerVersion", "compilerTarget",
+        "compilerArchitectureId", "pointerSize", "tools"
+      ],
+      "properties": {
+        "declared": {"type": "string", "minLength": 1},
+        "generator": {"$ref": "#/$defs/nullableString"},
+        "generatorPlatform": {"$ref": "#/$defs/nullableString"},
+        "generatorToolset": {"$ref": "#/$defs/nullableString"},
+        "buildType": {"$ref": "#/$defs/nullableString"},
+        "cxxStandard": {"type": "string", "minLength": 1},
+        "cxxFlags": {"$ref": "#/$defs/nullableString"},
+        "cxxFlagsRelease": {"$ref": "#/$defs/nullableString"},
+        "compilerPath": {"$ref": "#/$defs/nullableString"},
+        "compilerId": {"$ref": "#/$defs/nullableString"},
+        "compilerVersion": {"$ref": "#/$defs/nullableString"},
+        "compilerTarget": {"$ref": "#/$defs/nullableString"},
+        "compilerArchitectureId": {"$ref": "#/$defs/nullableString"},
+        "pointerSize": {"$ref": "#/$defs/nullableString"},
+        "tools": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["cmake", "ctest", "python", "git", "cxxCompiler"],
+          "properties": {
+            "cmake": {"$ref": "#/$defs/toolRecord"},
+            "ctest": {"$ref": "#/$defs/toolRecord"},
+            "python": {"$ref": "#/$defs/toolRecord"},
+            "git": {"$ref": "#/$defs/toolRecord"},
+            "cxxCompiler": {"$ref": "#/$defs/toolRecord"}
+          }
+        }
+      }
+    },
+    "environmentEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "present", "value"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "present": {"type": "boolean"},
+        "value": {"$ref": "#/$defs/nullableString"}
+      }
+    },
+    "contracts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requiredTestsPath", "requiredTestsSha256", "focusedNameDigest",
+        "broadNameDigest", "broadGeneratedAtCommit"
+      ],
+      "properties": {
+        "requiredTestsPath": {"const": "metadata/qualification-required-tests-v1.json"},
+        "requiredTestsSha256": {"$ref": "#/$defs/sha256"},
+        "focusedNameDigest": {"$ref": "#/$defs/sha256"},
+        "broadNameDigest": {"$ref": "#/$defs/sha256"},
+        "broadGeneratedAtCommit": {"$ref": "#/$defs/gitObjectId"}
+      }
+    },
+    "inventory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["count", "nameDigest", "names", "selectedCount", "selectedNameDigest", "focusedLabel"],
+      "properties": {
+        "count": {"type": "integer", "minimum": 1},
+        "nameDigest": {"$ref": "#/$defs/sha256"},
+        "names": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "selectedCount": {"type": "integer", "minimum": 1},
+        "selectedNameDigest": {"$ref": "#/$defs/sha256"},
+        "focusedLabel": {"const": "native-qualification-focused"}
+      }
+    },
+    "testResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "testId", "expectedExecutionMode", "observedExecutionMode",
+        "expectedCommandBasename", "observedCommandBasename", "commandShape",
+        "commandShapeDigest", "suppliesIndependentSemanticEvidence", "status"
+      ],
+      "properties": {
+        "testId": {"type": "string", "minLength": 1},
+        "expectedExecutionMode": {"enum": ["native-executable", "contract-self-test", "broad-inventory-test"]},
+        "observedExecutionMode": {"enum": ["native-executable", "contract-self-test", "broad-inventory-test"]},
+        "expectedCommandBasename": {"$ref": "#/$defs/nullableString"},
+        "observedCommandBasename": {"$ref": "#/$defs/nullableString"},
+        "commandShape": {
+          "oneOf": [
+            {"type": "array", "minItems": 1, "items": {"type": "string"}},
+            {"type": "null"}
+          ]
+        },
+        "commandShapeDigest": {
+          "oneOf": [
+            {"$ref": "#/$defs/sha256"},
+            {"type": "null"}
+          ]
+        },
+        "suppliesIndependentSemanticEvidence": {"const": false},
+        "status": {"enum": ["passed", "failed", "skipped", "notRun"]}
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total", "passed", "failed", "skipped", "notRun"],
+      "properties": {
+        "total": {"type": "integer", "minimum": 0},
+        "passed": {"type": "integer", "minimum": 0},
+        "failed": {"type": "integer", "minimum": 0},
+        "skipped": {"type": "integer", "minimum": 0},
+        "notRun": {"type": "integer", "minimum": 0}
+      }
+    },
+    "qualificationDigests": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["implementation", "immutableClaims", "receiptSchema"],
+      "properties": {
+        "implementation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["algorithm", "manifestPath", "manifestSha256", "value"],
+          "properties": {
+            "algorithm": {"const": "sha256-git-blob-records-v1"},
+            "manifestPath": {"const": "metadata/qualification-implementation-inputs-v1.json"},
+            "manifestSha256": {"$ref": "#/$defs/sha256"},
+            "value": {"$ref": "#/$defs/sha256"}
+          }
+        },
+        "immutableClaims": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "sha256"],
+          "properties": {
+            "path": {"const": "metadata/qualified-format-claims-v1.json"},
+            "sha256": {"$ref": "#/$defs/sha256"}
+          }
+        },
+        "receiptSchema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "sha256"],
+          "properties": {
+            "path": {"const": "metadata/native-qualification-receipt-schema-v1.json"},
+            "sha256": {"$ref": "#/$defs/sha256"}
+          }
+        }
+      }
+    }
+  }
+}

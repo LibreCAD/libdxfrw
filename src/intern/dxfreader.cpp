@@ -10,128 +10,232 @@
 **  along with this program.  If not, see <http://www.gnu.org/licenses/>.    **
 ******************************************************************************/
 
+#include <cerrno>
+#include <charconv>
+#include <cctype>
+#include <cmath>
 #include <cstdlib>
+#include <cstring>
+#include <cstdint>
 #include <fstream>
+#include <limits>
 #include <string>
 #include <sstream>
+#include <locale>
 #include "dxfreader.h"
+#include "dxfcode.h"
 #include "drw_textcodec.h"
 #include "drw_dbg.h"
+#include "drw_reserve.h"
+
+namespace {
+
+bool parseDxfHandle(const std::string &text, std::uint32_t &value) {
+    if (text.empty())
+        return false;
+    const char *begin = text.data();
+    const char *end = begin + text.size();
+    const auto result = std::from_chars(begin, end, value, 16);
+    return result.ec == std::errc{} && result.ptr == end;
+}
+
+bool parseDxfHandleLexeme(const std::string &text, std::uint64_t &value) {
+    // A DWG handle is at most eight bytes. Preserve that width for raw DXF
+    // replay, but do not let a value outside the typed 32-bit model leak into
+    // ordinary object/entity readers.
+    if (text.empty() || text.size() > 16)
+        return false;
+    const char *begin = text.data();
+    const char *end = begin + text.size();
+    const auto result = std::from_chars(begin, end, value, 16);
+    return result.ec == std::errc{} && result.ptr == end;
+}
+
+bool isDxfHexString(const std::string &text) {
+    if ((text.size() & 1u) != 0u || text.size() / 2u > 127u)
+        return false;
+    for (char ch : text) {
+        if (!std::isxdigit(static_cast<unsigned char>(ch)))
+            return false;
+    }
+    return true;
+}
+
+bool isUnambiguousDxfHandleCode(int code) {
+    return code == 105 || code == 1005 ||
+           (code >= 320 && code <= 369) ||
+           (code >= 390 && code <= 399) ||
+           (code >= 480 && code <= 481);
+}
+
+
+}  // namespace
 
 bool dxfReader::readRec(int *codeData) {
 //    std::string text;
     int code;
 
-    if (!readCode(&code))
+    if (codeData == nullptr || filestr == nullptr)
         return false;
+
+    auto invalidateRecord = [this]() {
+        type = INVALID;
+        strData.clear();
+        rawData.clear();
+        doubleData = 0.0;
+        intData = 0;
+        int64 = 0;
+        m_currentSelfHandle = 0;
+        m_currentSelfHandleRegistered = false;
+    };
+    m_lastInvalidHandleCode = 0;
+    invalidateRecord();
+
+    // Comments are ignored only after the first SECTION marker. Skip a run
+    // iteratively so hostile input cannot grow the call stack. Count each
+    // physical record before decoding its value so ignored comments cannot
+    // evade the aggregate work ceiling.
+    const auto consumeRecordBudget = [this]() {
+        if (m_recordCount >= m_recordBudget) {
+            m_recordBudgetExceeded = true;
+            return false;
+        }
+        ++m_recordCount;
+        return true;
+    };
+    do {
+        if (!consumeRecordBudget())
+            return false;
+        if (!readCode(&code))
+            return false;
+        if (code != 999 || !m_bIgnoreComments)
+            break;
+        if (!readString()) {
+            invalidateRecord();
+            return false;
+        }
+    } while (true);
+
     *codeData = code;
 
-    if (code < 10)
-        readString();
-    else if (code < 60)
-        readDouble();
-    else if (code < 80)
-        readInt16();
-    else if (code > 89 && code < 100) //TODO this is an int 32b
-        readInt32();
-    else if (code == 100 || code == 102 || code == 105)
-        readString();
-    else if (code > 109 && code < 150) //skip not used at the v2012
-        readDouble();
-    else if (code > 159 && code < 170) //skip not used at the v2012
-        readInt64();
-    else if (code < 180)
-        readInt16();
-    else if (code > 209 && code < 240) //skip not used at the v2012
-        readDouble();
-    else if (code > 269 && code < 290) //skip not used at the v2012
-        readInt16();
-    else if (code < 300) //TODO this is a boolean indicator, int in Binary?
-        readBool();
-    else if (code < 310)
-        readString();
-    else if (code < 320)
-        readBinary();
-    else if (code < 370)
-        readString();
-    else if (code < 390)
-        readInt16();
-    else if (code < 400)
-        readString();
-    else if (code < 410)
-        readInt16();
-    else if (code < 420)
-        readString();
-    else if (code < 430) //TODO this is an int 32b
-        readInt32();
-    else if (code < 440)
-        readString();
-    else if (code < 450) //TODO this is an int 32b
-        readInt32();
-    else if (code < 460) //TODO this is long??
-        readInt32();
-    else if (code < 470) //TODO this is a floating point double precision??
-        readDouble();
-    else if (code < 481)
-        readString();
-    else if( 999 == code && m_bIgnoreComments) {
-        readString();
-        return readRec( codeData);
-    }
-    else if (code == 1004)
-        readBinary();
-    else if (code > 998 && code < 1009) //skip not used at the v2012
-        readString();
-    else if (code < 1060) //TODO this is a floating point double precision??
-        readDouble();
-    else if (code < 1071)
-        readInt16();
-    else if (code == 1071) //TODO this is an int 32b
-        readInt32();
-    else if (skip)
-        //skip safely this dxf entry ( ok for ascii dxf)
-        readString();
-    else
+    bool valueOk = true;
+    switch (dxfValueKindForCode(code, m_classifierProfile)) {
+    case DxfValueKind::Str:    valueOk = readString(); break;
+    case DxfValueKind::Dbl:    valueOk = readDouble(); break;
+    case DxfValueKind::I16:    valueOk = readInt16();  break;
+    case DxfValueKind::I32:    valueOk = readInt32();  break;
+    case DxfValueKind::I64:    valueOk = readInt64();  break;
+    case DxfValueKind::Bln:    valueOk = readBool();   break;
+    case DxfValueKind::Bin:    valueOk = readBinary(); break;
+    case DxfValueKind::Unknown:
+        if (skip) {
+            //skip safely this dxf entry ( ok for ascii dxf)
+            valueOk = readString();
+            break;
+        }
         //break in binary files because the conduct is unpredictable
+        invalidateRecord();
         return false;
+    }
 
-    return (filestr->good());
+    // Use !fail() not good(): std::getline that reads a final record WITHOUT a
+    // trailing newline sets eofbit (good()==false) on an otherwise SUCCESSFUL
+    // extraction (fail()==false). good() would wrongly reject that last record;
+    // a genuine failed read sets failbit, which !fail() still catches. (Binary
+    // readers gate on their own good() check, so this is a no-op for them.)
+    if (!valueOk || filestr->fail()) {
+        invalidateRecord();
+        return false;
+    }
+    // Code 5 is intentionally excluded: DIMSTYLE uses it for a block-name
+    // string in valid files. All other pointer/handle ranges are unambiguous.
+    const bool validHandle = m_allowWideHandleLexemes
+        ? isValidHandleLexeme()
+        : isValidHandleString();
+    const bool dimstyleName = m_allowDimstyleNames
+        && (code == 340 || (code > 340 && code <= 344 && strData.empty()));
+    if (isUnambiguousDxfHandleCode(code) && !validHandle && !dimstyleName) {
+        m_lastInvalidHandleCode = code;
+        invalidateRecord();
+        return false;
+    }
+    return true;
 }
-int dxfReader::getHandleString(){
-    int res;
-#if defined(__APPLE__)
-    int Succeeded = sscanf ( strData.c_str(), "%x", &res );
-    if ( !Succeeded || Succeeded == EOF )
-        res = 0;
-#else
-    std::istringstream Convert(strData);
-    if ( !(Convert >> std::hex >>res) )
-        res = 0;
-#endif
-    return res;
+std::uint32_t dxfReader::getHandleString(){
+    std::uint32_t value = 0;
+    if (!parseDxfHandle(strData, value))
+        return 0;
+    return value;
+}
+
+bool dxfReader::isValidHandleString() const {
+    std::uint32_t value = 0;
+    return parseDxfHandle(strData, value);
+}
+
+bool dxfReader::isValidHandleLexeme() const {
+    std::uint64_t value = 0;
+    return parseDxfHandleLexeme(strData, value);
+}
+
+bool dxfReader::registerSelfHandle() {
+    std::uint64_t value = 0;
+    if (!parseDxfHandleLexeme(strData, value))
+        return false;
+    // Zero is the null handle, not a drawing object identity.
+    if (value == 0)
+        return true;
+    // Raw proxy entities admit code 5 once through their proxy host and once
+    // through the lossless carrier. Treat those two admissions of the same
+    // record as one registration, while still rejecting a later record.
+    if (m_currentSelfHandleRegistered && m_currentSelfHandle == value)
+        return true;
+    if (!m_selfHandles.insert(value).second)
+        return false;
+    m_currentSelfHandle = value;
+    m_currentSelfHandleRegistered = true;
+    return true;
 }
 
 bool dxfReaderBinary::readCode(int *code) {
-    unsigned short *int16p;
-    char buffer[2];
-    filestr->read(buffer,2);
-    int16p = (unsigned short *) buffer;
-//exist a 32bits int (code 90) with 2 bytes???
-    if ((*code == 90) && (*int16p>2000)){
-        DRW_DBG(*code); DRW_DBG(" de 16bits\n");
-        filestr->seekg(-4, std::ios_base::cur);
-        filestr->read(buffer,2);
-        int16p = (unsigned short *) buffer;
-    }
-    *code = *int16p;
+    unsigned char buffer[2] = {};
+    filestr->read(reinterpret_cast<char*>(buffer), 2);
+    if (!filestr->good())
+        return false;
+    *code = static_cast<int>(buffer[0])
+        | (static_cast<int>(buffer[1]) << 8);
     DRW_DBG(*code); DRW_DBG("\n");
 
-    return (filestr->good());
+    return true;
+}
+
+bool dxfReaderBinaryR12::readCode(int *code) {
+    unsigned char b = 0;
+    filestr->read(reinterpret_cast<char*>(&b), 1);
+    if (!filestr->good())
+        return false;
+    if (b == 255) {
+        // 0xFF is the extended-data escape: the real 16-bit LE group code
+        // follows in the next two bytes (R12 carries xdata codes >= 255 this
+        // way). Matches ezdxf binary_tags_loader.
+        unsigned char buffer[2] = {};
+        filestr->read(reinterpret_cast<char*>(buffer), 2);
+        if (!filestr->good())
+            return false;
+        *code = static_cast<int>(buffer[0])
+            | (static_cast<int>(buffer[1]) << 8);
+    } else {
+        *code = static_cast<int>(b);
+    }
+    DRW_DBG(*code); DRW_DBG("\n");
+
+    return true;
 }
 
 bool dxfReaderBinary::readString() {
     type = STRING;
     std::getline(*filestr, strData, '\0');
+    rawData = strData;
     DRW_DBG(strData); DRW_DBG("\n");
     return (filestr->good());
 }
@@ -139,84 +243,140 @@ bool dxfReaderBinary::readString() {
 bool dxfReaderBinary::readString(std::string *text) {
     type = STRING;
     std::getline(*filestr, *text, '\0');
+    rawData = *text;
     DRW_DBG(*text); DRW_DBG("\n");
     return (filestr->good());
 }
 
 bool dxfReaderBinary::readBinary() {
+    type = BINARY;
     unsigned char chunklen {0};
 
     filestr->read( reinterpret_cast<char *>(&chunklen), 1);
-    filestr->seekg( chunklen, std::ios_base::cur);
-    DRW_DBG( chunklen); DRW_DBG( " byte(s) binary data bypassed\n");
+    if (!filestr->good())
+        return false;
+    // Binary DXF stores binary chunks as a one-byte length, but the DXF
+    // format limits each 310-319/1004 chunk to 127 bytes.
+    if (chunklen > 127)
+        return false;
+    // Capture the chunk bytes as an upper-hex string — the canonical ASCII form
+    // of binary codes (310-319/1004) — so getString() returns the real data.
+    // Previously this seeked past the chunk and never wrote strData, so any
+    // binary group on a binary read (typed entity OR raw-net object) re-emitted
+    // a STALE strData (the previous record's value). Same net stream advance.
+    strData.clear();
+    if (!DRW::reserve(strData, static_cast<int>(chunklen) * 2))
+        return false;
+    static const char hex[] = "0123456789ABCDEF";
+    for (unsigned i = 0; i < chunklen; ++i) {
+        char b = 0;
+        filestr->read(&b, 1);
+        const unsigned char u = static_cast<unsigned char>(b);
+        strData.push_back(hex[(u >> 4) & 0xF]);
+        strData.push_back(hex[u & 0xF]);
+    }
+    rawData = strData;
+    DRW_DBG( chunklen); DRW_DBG( " byte(s) binary data read\n");
 
     return (filestr->good());
 }
 
 bool dxfReaderBinary::readInt16() {
     type = INT32;
-    char buffer[2];
-    filestr->read(buffer,2);
-    intData = (int)((buffer[1] << 8) | buffer[0]);
+    unsigned char buffer[2] = {};
+    filestr->read(reinterpret_cast<char*>(buffer), 2);
+    if (!filestr->good())
+        return false;
+    intData = static_cast<std::int16_t>((static_cast<unsigned char>(buffer[1]) << 8)
+                                  | static_cast<unsigned char>(buffer[0]));
     DRW_DBG(intData); DRW_DBG("\n");
-    return (filestr->good());
+    return true;
 }
 
 bool dxfReaderBinary::readInt32() {
     type = INT32;
-    unsigned int *int32p;
-    char buffer[4];
-    filestr->read(buffer,4);
-    int32p = (unsigned int *) buffer;
-    intData = *int32p;
+    unsigned char buffer[4] = {};
+    filestr->read(reinterpret_cast<char*>(buffer), 4);
+    if (!filestr->good())
+        return false;
+    std::uint32_t value = static_cast<std::uint32_t>(buffer[0])
+        | (static_cast<std::uint32_t>(buffer[1]) << 8)
+        | (static_cast<std::uint32_t>(buffer[2]) << 16)
+        | (static_cast<std::uint32_t>(buffer[3]) << 24);
+    intData = static_cast<std::int32_t>(value);
     DRW_DBG(intData); DRW_DBG("\n");
-    return (filestr->good());
+    return true;
 }
 
 bool dxfReaderBinary::readInt64() {
     type = INT64;
-    unsigned long long int *int64p; //64 bits integer pointer
-    char buffer[8];
-    filestr->read(buffer,8);
-    int64p = (unsigned long long int *) buffer;
-    int64 = *int64p;
+    unsigned char buffer[8] = {};
+    filestr->read(reinterpret_cast<char*>(buffer), 8);
+    if (!filestr->good())
+        return false;
+    std::uint64_t value = 0;
+    for (int i = 0; i < 8; ++i)
+        value |= static_cast<std::uint64_t>(buffer[i]) << (8 * i);
+    std::memcpy(&int64, &value, sizeof(int64));
     DRW_DBG(int64); DRW_DBG(" int64\n");
-    return (filestr->good());
+    return true;
 }
 
 bool dxfReaderBinary::readDouble() {
     type = DOUBLE;
-    double *result;
-    char buffer[8];
-    filestr->read(buffer,8);
-    result = (double *) buffer;
-    doubleData = *result;
+    unsigned char buffer[8] = {};
+    filestr->read(reinterpret_cast<char*>(buffer), 8);
+    if (!filestr->good())
+        return false;
+    std::uint64_t value = 0;
+    for (int i = 0; i < 8; ++i)
+        value |= static_cast<std::uint64_t>(buffer[i]) << (8 * i);
+    std::memcpy(&doubleData, &value, sizeof(doubleData));
     DRW_DBG(doubleData); DRW_DBG("\n");
-    return (filestr->good());
+    return std::isfinite(doubleData);
 }
 
 //saved as int or add a bool member??
 bool dxfReaderBinary::readBool() {
-    char buffer[1];
-    filestr->read(buffer,1);
-    intData = (int)(buffer[0]);
+    type = BOOL;
+    unsigned char buffer[1] = {};
+    filestr->read(reinterpret_cast<char*>(buffer), 1);
+    if (!filestr->good())
+        return false;
+    intData = static_cast<int>(buffer[0]);
     DRW_DBG(intData); DRW_DBG("\n");
-    return (filestr->good());
+    return true;
 }
 
 bool dxfReaderAscii::readCode(int *code) {
     std::string text;
     std::getline(*filestr, text);
-    *code = atoi(text.c_str());
+    if (filestr->fail())  // !fail(): accept a final newline-less line (eofbit set, fail() clear)
+        return false;
+    if (!text.empty() && text.at(text.size()-1) == '\r')
+        text.erase(text.size()-1);
+    char *end = nullptr;
+    errno = 0;
+    long parsed = std::strtol(text.c_str(), &end, 10);
+    while (end != nullptr && *end != '\0'
+           && std::isspace(static_cast<unsigned char>(*end))) {
+        ++end;
+    }
+    if (end == text.c_str() || end == nullptr || *end != '\0'
+        || errno == ERANGE || parsed < 0 || parsed > 1071) {
+        return false;
+    }
+    *code = static_cast<int>(parsed);
     DRW_DBG(*code); DRW_DBG("\n");
-    return (filestr->good());
+    return true;
 }
 bool dxfReaderAscii::readString(std::string *text) {
     type = STRING;
     std::getline(*filestr, *text);
     if (!text->empty() && text->at(text->size()-1) == '\r')
         text->erase(text->size()-1);
-    return (filestr->good());
+    rawData = *text;
+    return (!filestr->fail());
 }
 
 bool dxfReaderAscii::readString() {
@@ -224,65 +384,145 @@ bool dxfReaderAscii::readString() {
     std::getline(*filestr, strData);
     if (!strData.empty() && strData.at(strData.size()-1) == '\r')
         strData.erase(strData.size()-1);
+    rawData = strData;
     DRW_DBG(strData); DRW_DBG("\n");
-    return (filestr->good());
+    return (!filestr->fail());
 }
 
 bool dxfReaderAscii::readBinary() {
-    return readString();
+    if (!readString())
+        return false;
+    // ASCII DXF binary groups are complete hexadecimal byte pairs. Rejecting
+    // malformed data here keeps typed and raw record paths transactional.
+    if (!isDxfHexString(strData))
+        return false;
+    type = BINARY;
+    return true;
 }
 
 bool dxfReaderAscii::readInt16() {
-    type = INT32;
     std::string text;
     if (readString(&text)){
-        intData = atoi(text.c_str());
+        char *end = nullptr;
+        errno = 0;
+        const long long parsed = std::strtoll(text.c_str(), &end, 10);
+        while (end != nullptr && *end != '\0'
+               && std::isspace(static_cast<unsigned char>(*end))) {
+            ++end;
+        }
+        if (end == text.c_str() || end == nullptr || *end != '\0'
+            || errno == ERANGE
+            // DXF 16-bit flag fields may be written as an unsigned bit
+            // pattern (for example 0x8001). Keep both signed values and all
+            // values representable by the two-byte field.
+            || parsed < std::numeric_limits<std::int16_t>::min()
+            || parsed > std::numeric_limits<std::uint16_t>::max()) {
+            return false;
+        }
+        type = INT32;
+        intData = static_cast<int>(parsed);
         DRW_DBG(intData); DRW_DBG("\n");
         return true;
-    } else
-        return false;
+    }
+    return false;
 }
 
 bool dxfReaderAscii::readInt32() {
-    type = INT32;
-    return readInt16();
+    std::string text;
+    if (readString(&text)){
+        char *end = nullptr;
+        errno = 0;
+        const long long parsed = std::strtoll(text.c_str(), &end, 10);
+        while (end != nullptr && *end != '\0'
+               && std::isspace(static_cast<unsigned char>(*end))) {
+            ++end;
+        }
+        if (end == text.c_str() || end == nullptr || *end != '\0'
+            || errno == ERANGE
+            || parsed < std::numeric_limits<std::int32_t>::min()
+            || parsed > std::numeric_limits<std::int32_t>::max()) {
+            return false;
+        }
+        type = INT32;
+        intData = static_cast<int>(parsed);
+        DRW_DBG(intData); DRW_DBG("\n");
+        return true;
+    }
+    return false;
 }
 
 bool dxfReaderAscii::readInt64() {
-    type = INT64;
-    return readInt16();
+    std::string text;
+    if (readString(&text)){
+        char *end = nullptr;
+        errno = 0;
+        const long long parsed = std::strtoll(text.c_str(), &end, 10);
+        while (end != nullptr && *end != '\0'
+               && std::isspace(static_cast<unsigned char>(*end))) {
+            ++end;
+        }
+        if (end == text.c_str() || end == nullptr || *end != '\0'
+            || errno == ERANGE
+            || parsed < std::numeric_limits<std::int64_t>::min()
+            || parsed > std::numeric_limits<std::int64_t>::max()) {
+            return false;
+        }
+        type = INT64;
+        int64 = static_cast<std::int64_t>(parsed);
+        DRW_DBG(int64); DRW_DBG(" int64\n");
+        return true;
+    }
+    return false;
 }
 
 bool dxfReaderAscii::readDouble() {
-    type = DOUBLE;
     std::string text;
     if (readString(&text)){
-#if defined(__APPLE__)
-        int succeeded=sscanf( & (text[0]), "%lg", &doubleData);
-        if(succeeded != 1) {
+        char *end = nullptr;
+        errno = 0;
+        double parsed = std::strtod(text.c_str(), &end);
+        while (end != nullptr && *end != '\0'
+               && std::isspace(static_cast<unsigned char>(*end))) {
+            ++end;
+        }
+        // Underflow sets ERANGE but produces a valid tiny value; overflow is
+        // rejected by the finite check.
+        if (end == text.c_str() || end == nullptr || *end != '\0'
+            || !std::isfinite(parsed)) {
             DRW_DBG("dxfReaderAscii::readDouble(): reading double error: ");
             DRW_DBG(text);
             DRW_DBG('\n');
+            return false;
         }
-#else
-        std::istringstream sd(text);
-        sd >> doubleData;
+        type = DOUBLE;
+        doubleData = parsed;
         DRW_DBG(doubleData); DRW_DBG('\n');
-#endif
         return true;
-    } else
-        return false;
+    }
+    return false;
 }
 
 //saved as int or add a bool member??
 bool dxfReaderAscii::readBool() {
-    type = BOOL;
     std::string text;
     if (readString(&text)){
-        intData = atoi(text.c_str());
+        char *end = nullptr;
+        errno = 0;
+        long parsed = std::strtol(text.c_str(), &end, 10);
+        while (end != nullptr && *end != '\0'
+               && std::isspace(static_cast<unsigned char>(*end))) {
+            ++end;
+        }
+        if (end == text.c_str() || end == nullptr || *end != '\0'
+            || errno == ERANGE
+            || parsed < std::numeric_limits<std::int32_t>::min()
+            || parsed > std::numeric_limits<std::int32_t>::max()) {
+            return false;
+        }
+        type = BOOL;
+        intData = static_cast<int>(parsed);
         DRW_DBG(intData); DRW_DBG("\n");
         return true;
-    } else
-        return false;
+    }
+    return false;
 }
-

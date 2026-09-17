@@ -1,0 +1,103 @@
+{
+  "advisory": true,
+  "fixturePolicy": "external-only; never committed",
+  "inputCount": 9,
+  "oracle": "LibreDWG dwgread 0.14",
+  "rows": [
+    {
+      "exitStatus": 0,
+      "inputVersion": "AC1024",
+      "outputSha256": "f5c7e2db9c959041bd9179e2434782721c4af189dae518bbfb4e75b3cdda219b",
+      "outputSize": 4171694,
+      "sourceSha256": "0579e4b5746593ff41d9326e488b1faddc0f7cc10e7db5317fc1d5b86f0132c4",
+      "sourceSize": 973730,
+      "status": "converted"
+    },
+    {
+      "exitStatus": 0,
+      "inputVersion": "AC1024",
+      "outputSha256": "1636a7699809f3a69bfcefed85566b98e1c916eeeaa521ae3f84108a71d84bf2",
+      "outputSize": 6873942,
+      "sourceSha256": "1a94d2412b7aac3c1c3ab6fdb2b62c4e8b031e5868ad45d2169f571bfc7cf8d4",
+      "sourceSize": 1415699,
+      "status": "converted"
+    },
+    {
+      "exitStatus": 0,
+      "inputVersion": "AC1024",
+      "outputSha256": "e7f80af17e2f8041f32b0e1ef1ff50af1899b034750377848d80a5310615ddbf",
+      "outputSize": 844622,
+      "sourceSha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+      "sourceSize": 169592,
+      "status": "converted"
+    },
+    {
+      "exitStatus": 0,
+      "inputVersion": "AC1024",
+      "outputSha256": "32a04f8e1b4679c4c397fbedd9c7c20f7eaec487045dda9a53f7aed6fac7c4e3",
+      "outputSize": 918122,
+      "sourceSha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+      "sourceSize": 148638,
+      "status": "converted"
+    },
+    {
+      "exitStatus": 0,
+      "inputVersion": "AC1024",
+      "outputSha256": "4f5ed5ca697d5b4628ce8aa91ffb7a73330d3356a2ca732c7721e1ad34ef9c71",
+      "outputSize": 745014,
+      "sourceSha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+      "sourceSize": 126985,
+      "status": "converted"
+    },
+    {
+      "exitStatus": 0,
+      "inputVersion": "AC1024",
+      "outputSha256": "f1ec50fb698fe3f3c67ab4d87cc0950097a190b0eb934cd416fa5bff00e237d5",
+      "outputSize": 822111,
+      "sourceSha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+      "sourceSize": 142267,
+      "status": "converted"
+    },
+    {
+      "exitStatus": 0,
+      "inputVersion": "AC1024",
+      "outputSha256": "3304cb0b79e9b703e09052c7db3083bf11795c5ab047bbac247ce5c516772dfd",
+      "outputSize": 757878,
+      "sourceSha256": "b874d82c5ee04f8a4fa6e907408c4ed770ee8208740fe4e1eb0f96fb2f793bc2",
+      "sourceSize": 128233,
+      "status": "converted"
+    },
+    {
+      "exitStatus": 0,
+      "inputVersion": "AC1024",
+      "outputSha256": "d4dfb5ca0247a9524e3279e2f5ca1a48e4617f1e37ab620120a96ed8633e48b4",
+      "outputSize": 2165616,
+      "sourceSha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+      "sourceSize": 733036,
+      "status": "converted"
+    },
+    {
+      "exitStatus": 0,
+      "inputVersion": "AC1024",
+      "outputSha256": "540f3848da35ff9302dac62b8d67c57a55c6b9c6651789a7a574d1ecdbc581eb",
+      "outputSize": 2098809,
+      "sourceSha256": "fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881",
+      "sourceSize": 553297,
+      "status": "converted"
+    }
+  ],
+  "runner": {
+    "format": "minJSON",
+    "name": "dwgread",
+    "timeoutSeconds": 2,
+    "version": "0.14"
+  },
+  "schema": 1,
+  "sourceCorpus": {
+    "note": "source files remain outside repository; report retains hashes/statuses only",
+    "selection": "available external AC1024 DWG corpus"
+  },
+  "statusCounts": {
+    "converted": 9
+  }
+}
