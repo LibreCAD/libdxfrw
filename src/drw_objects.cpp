@@ -18080,7 +18080,7 @@ bool DRW_ImageDefinitionReactor::encodeDwg(DRW::Version version, dwgBufferW *buf
 bool DRW_SpatialFilter::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     // AcDbSpatialFilter / AcDbFilter DXF: the clip boundary polygon, the OCS
     // normal + origin, clip flags/distances, and the two 4x3 transform matrices.
-    constexpr std::size_t kMatrixValueCount = 24;
+    static constexpr std::size_t kMatrixValueCount = 24;
     auto parseCode40Stream = [this]() {
         if (m_dxfCode40Values.size() < kMatrixValueCount)
             return true;

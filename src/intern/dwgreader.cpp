@@ -4172,7 +4172,8 @@ dwgReader::stagePendingAttribute(std::shared_ptr<DRW_Attrib> attribute,
       m_invalidInsertOwners.find(attribute->parentHandle) !=
           m_invalidInsertOwners.end()) {
     (void)reportDwgFrameTransitionFailure(
-        DwgSourceFrameId{attribute ? attribute->handle : DRW::NoHandle});
+        DwgSourceFrameId{attribute ? attribute->handle
+                                   : static_cast<std::uint32_t>(DRW::NoHandle)});
     return DwgMappedEntityOutcome::Rejected;
   }
 
@@ -7536,7 +7537,10 @@ bool dwgReader::readDwgBlocks(DRW_Interface &intfa, dwgBuffer *dbuf,
         if (journalled) {
           journalled = walkJournalledBlockRecordEntities(
               bkr, dbuf, intfa, transaction,
-              deferredEntityWalk ? DRW::NoHandle : bk.parentHandle, bkr->handle,
+              deferredEntityWalk
+                  ? static_cast<std::uint32_t>(DRW::NoHandle)
+                  : bk.parentHandle,
+              bkr->handle,
               offsetSpace);
         }
         if (journalled && !deferredEntityWalk) {

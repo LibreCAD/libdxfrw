@@ -2562,6 +2562,33 @@ edit this block or commit the same slice concurrently.
   receipt gates pass, no drawing/oracle payload is added, and S388/J364.1 is
   READY as the sole remaining external execution lane.
 
+- Current checkpoint (2026-09-17): the first hosted S388/J364.1 run is
+  complete but non-promoting.  PR #93 run `35175061697` checked out the
+  frozen implementation commit `4b1fff977a5e2e2c087bef8e80cc1400cad0f1f1`;
+  the workflow-contract job and macOS/Clang focused job passed, while Linux/
+  GCC failed on two `-Werror=extra` enum/non-enum conditional expressions in
+  `src/intern/dwgreader.cpp` and Windows/MSVC failed on the local constexpr
+  `kMatrixValueCount` lambda capture in `src/drw_objects.cpp`.  No focused
+  receipt is accepted, the old implementation digest is invalidated by this
+  source repair, and no claim is promoted.  S388/J364.1 is `VERIFYING` and
+  S389/J364.3 is `ACTIVE` to repair the cross-platform compile contract before
+  rerunning native qualification; the macOS success remains historical and
+  cannot be reused for the repaired digest.
+
+- Current checkpoint (2026-09-17): S389/J364.3 repaired the hosted
+  cross-platform compile contract.  Explicit `std::uint32_t` sentinel
+  conversions remove the GCC `-Werror=extra` enum/non-enum diagnostics, and
+  the function-local `kMatrixValueCount` is now `static constexpr` so both
+  MSVC and Clang accept the lambda.  A fresh Clang Release build and the four
+  smallest focused tests (`libdxfrw_dwg_local_roundtrip`,
+  `libdxfrw_dwg_reader_matrix`, `libdxfrw_diagnostic`,
+  `libdxfrw_dwg_fixtures`) pass.  The implementation digest is recomputed as
+  `d8cae87cd5c72469d5aba2897230437d8c4285419b2c0bf2c2956f85d5cb281c` (165
+  inputs); the claims digest, support rows, fixtures, and immutable claim
+  ledger are unchanged.  Prior hosted receipts remain invalidated until the
+  replacement PR run is verified.  S389/J364.3 is committed in this repair
+  slice; S388/J364.1 remains `VERIFYING`.
+
 - Current checkpoint (2026-09-16): S329/J305 compound-entity graph ownership
   is committed.  Explicit copies now clone legacy POLYLINE vertices, SPLINE
   control/fit points, and INSERT attributes while resetting parser cursors;
@@ -4265,20 +4292,20 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 391 (`COMMITTED`).
-- Slice states: 1 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 391 COMMITTED.
-- Parent-item states: 1 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
+- Resolved slices: 392 (`COMMITTED`).
+- Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 1 VERIFYING / 0 VERIFIED /
+  0 BLOCKED_HARD / 0 SUPERSEDED / 392 COMMITTED.
+- Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 1 VERIFYING /
   0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 389 COMMITTED.
-- Expanded child-item states: 1 READY / 1 PLANNED / 0 ACTIVE / 0 VERIFYING /
-  0 BLOCKED_HARD / 0 VERIFIED / 0 SUPERSEDED / 494 COMMITTED; no child is
+- Expanded child-item states: 0 READY / 1 PLANNED / 0 ACTIVE / 1 VERIFYING /
+  0 BLOCKED_HARD / 0 VERIFIED / 0 SUPERSEDED / 495 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   7 DEFERRED_EXTERNAL / 365 EXPERIMENTAL / 0 PROMOTED / 8 NOT_APPLICABLE.
 - Active work: S01-S384 and J329/J329.1/J330/J330.1/J331/J331.1/J332/J332.1/
   J333/J333.1/J334/J334.1/J335/J335.1/J336/J336.1/J337/J337.1/J338/J338.1/
   J339/J339.1/J340/J340.1/J341/J341.1/J342/J342.1/J343/J343.1/J344/J344.1/
-  J345/J345.1/J346/J346.1/J347/J347.1/J348/J348.1/J349/J349.1/J350/J350.1/J351/J351.1/J352/J352.1/J353/J353.1/J354/J354.1/J355/J355.1/J356/J356.1/J357/J357.1/J358/J358.1/J359/J359.1/J359.2/J360/J360.1/J360.2/J360.3/J361/J361.1/J362/J362.1/J362.2/J362.3/J363/J363.0/J363.1/J363.2 and S384a/S385/S386/S386a/S386b/S387a/S387 are committed.  S388/J364.1 is READY as the API-verified hosted evidence gate; J364.2 follows only after its complete receipt set.
+  J345/J345.1/J346/J346.1/J347/J347.1/J348/J348.1/J349/J349.1/J350/J350.1/J351/J351.1/J352/J352.1/J353/J353.1/J354/J354.1/J355/J355.1/J356/J356.1/J357/J357.1/J358/J358.1/J359/J359.1/J359.2/J360/J360.1/J360.2/J360.3/J361/J361.1/J362/J362.1/J362.2/J362.3/J363/J363.0/J363.1/J363.2 and S384a/S385/S386/S386a/S386b/S387a/S387/S389 are committed.  S388/J364.1 is VERIFYING after the first hosted run exposed cross-platform compile defects; J364.2 remains planned until a complete focused receipt set is accepted.
   Keep the fast inner loop and do not promote support claims from
   self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -4724,7 +4751,8 @@ edit this block or commit the same slice concurrently.
 | S386b | J362: corrected RTEXT independent candidate fields | S386a | COMMITTED | immutable successor contract; `pt[0..2]` crosswalk; radians-to-degrees normalization; independently calibrated tolerance; repeated pinned-oracle/J360 bindings; focused tests; plan; fixture; diff | frozen digest …f667dd validates all 16 claims with zero exclusions; all 34 oracle outcomes and the repeated 17,304-exact/ten-known-diagnostic J360 report are bound; mutation/OFF/live gates pass, result remains field-scoped/non-promoting, and no payload is retained | report the committed corrected probe, then execute S387 |
 | S387a | J363: qualification framework and fixed focused topology | S385, S386b | COMMITTED | draft immutable-claim ledger/status join; receipt schema/emitter/API verifier; qualification runner; exact seven-test CTest label/topology; adversarial self-tests; plan; fixture; diff | 15 draft claims across two routes, four independently eligible AC1024 RTEXT fields, eleven correctly blocked AC1032 fields, zero advertised support, and 7/7 focused hosted-profile-equivalent tests; all freeze states and final digests remain deliberately draft/null; no payload retained | report the framework commit, then generate/freeze the broad inventory and final workflow/digests in S387 |
 | S387 | J363: qualified-support claims/status join, frozen workflow, and digests | S387a | COMMITTED | digest-scoped immutable claims plus mutable status overlay; authority reconciliation; receipt schema/emitter/API checker; full-length action SHAs; exact seven-test focused manifest and broad-inventory digest; one manual three-OS broad matrix; exact implementation/claims digests; release gate; plan; fixture; diff | 38-test inventory at topology commit …ab5b; workflow …f51473; claims …230f9; 165-input implementation …c17b9; four eligible fields PENDING_NATIVE, eleven blocked fields EXPERIMENTAL, zero advertised routes; strict gates and 7/7 focused tests pass | report the freeze commit, then execute S388 without changing any digest-scoped input |
-| S388 | J364: native qualification receipts and bounded promotion review | S387 | READY | unchanged implementation/claims-digest Ubuntu/GCC, macOS/Clang, Windows/MSVC receipts; GitHub run/job/artifact/test verification; focused hosted matrix; one accepted successful final-digest manual three-OS broad matrix; receipt and release gates; plan; fixture; diff | local authority is frozen and all pre-native gates pass; no hosted receipt exists yet | execute the unchanged digest on all three native platforms; promote only exact claims whose local and hosted gates all pass; retry recorded infrastructure failures, but on semantic failure append a repair/exclusion slice, invalidate stale receipts, and continue |
+| S388 | J364: native qualification receipts and bounded promotion review | S387 | VERIFYING | unchanged implementation/claims-digest Ubuntu/GCC, macOS/Clang, Windows/MSVC receipts; GitHub run/job/artifact/test verification; focused hosted matrix; one accepted successful final-digest manual three-OS broad matrix; receipt and release gates; plan; fixture; diff | PR #93 run `35175061697` passed the workflow contract and macOS/Clang but failed Linux/GCC and Windows/MSVC compilation; no focused receipt is accepted and the frozen implementation digest is invalidated pending repair | repair cross-platform compile defects in S389/J364.3, recompute the implementation digest, push a new commit, and rerun focused native qualification before resuming J364.1 |
+| S389 | J364.3: repair hosted cross-platform compile contract | S388 | COMMITTED | GCC `-Werror=extra` enum/non-enum conditional expressions in `src/intern/dwgreader.cpp`; MSVC lambda capture/use of local `kMatrixValueCount` in `src/drw_objects.cpp`; focused native build; plan; fixture; diff | explicit `std::uint32_t` sentinel conversions preserve handle semantics and `static constexpr kMatrixValueCount` is accepted by both MSVC and Clang; fresh Clang Release build plus four focused tests pass; implementation digest is `d8cae87cd5c72469d5aba2897230437d8c4285419b2c0bf2c2956f85d5cb281c` over 165 inputs; claims digest/status, fixtures, and immutable claims are unchanged; prior hosted receipts remain invalidated | push the committed repair slice to PR #93, then rerun S388 |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -5116,7 +5144,7 @@ edit this block or commit the same slice concurrently.
 | J361 | S385 | J360 | COMMITTED | EXPERIMENTAL | Establish admitted-fixture independent candidate fields | Pinned LibreDWG full JSON and J360 now bind the three admitted J284 hashes to 13 explicit claims: LARGE_RADIAL remains identity-only, MPOLYGON color remains excluded, ARCALIGNEDTEXT fields are selector-only/nonclaims, and exact scoped diagnostics keep every result reviewed/non-promoting pending native qualification |
 | J362 | S386 | J360 | COMMITTED | EXPERIMENTAL | Establish local-from-scratch AC1024 integrity and candidate fields | The high-bit CLASSES footer/CRC is independently correct; immutable v1 preserved four schema/unit exclusions and immutable v2 predeclared their corrections before a clean 16/16 rerun; all oracle/J360 discrepancies are exact-bound, results stay field-scoped/non-promoting, and no generated payload is retained |
 | J363 | S387 | J361, J362 | COMMITTED | EXPERIMENTAL | Freeze fail-closed support claims/status, native workflow, and implementation/claims digests | Frozen 38-test inventory, seven-test focused contract, full-SHA workflow, immutable claim ledger, mutable status overlay, authenticated receipt authority, claims digest …230f9, and implementation digest …c17b9 pass strict gates; four exact fields are PENDING_NATIVE, eleven remain EXPERIMENTAL, and no route is advertised |
-| J364 | S388 | J363 | READY | DEFERRED_EXTERNAL | Capture native-platform evidence and conduct the final bounded promotion review | Execute unchanged implementation/claims digests on Ubuntu/GCC, macOS/Clang, and Windows/MSVC; verify GitHub run/job/artifact, runner/environment, and exact no-skip test evidence; accept one successful final-digest manual three-OS broad matrix with recorded infrastructure retries, and promote only exact immutable claims while incomplete aggregate routes remain experimental |
+| J364 | S388 | J363 | VERIFYING | DEFERRED_EXTERNAL | Capture native-platform evidence and conduct the final bounded promotion review | First PR #93 focused run is non-promoting: workflow contract and macOS/Clang passed, Linux/GCC and Windows/MSVC failed to compile; J364.1 is VERIFYING while S389/J364.3 repairs the cross-platform compile contract, and J364.2 remains planned |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -5621,8 +5649,9 @@ edit this block or commit the same slice concurrently.
 | J363.0 | J363 / S387a | WP8, WP10; qualification framework and focused-topology prerequisite | J361, J362 | COMMITTED | EXPERIMENTAL | land draft claims/status/input manifests plus strict join, receipt schema/emitter/API verifier, local qualification runner, and the exact seven-test `native-qualification-focused` CTest label before generating the commit-bound broad inventory; keep all freeze states draft and all final digests null | 15 claims/two routes/zero advertised; four S386b fields are independently eligible but still blocked only on the final freeze, eleven S385 fields retain integrity/target-debt blockers, all six framework self-tests and 7/7 focused hosted-profile-equivalent tests pass, and no drawing/oracle payload is retained |
 | J363.1 | J363 / S387 | WP8, WP10; fail-closed immutable claims/status join and frozen digests | J363.0 | COMMITTED | EXPERIMENTAL | freeze digest-scoped `qualified-format-claims-v1.json` with canonical claims and non-empty per-route `requiredClaimIds`, digest-excluded `qualified-format-status-v1.json`, strict join/checker, non-self-referential implementation-input manifest/algorithm, content-resolved evidence IDs, canonical NUL-tuple claim IDs, exact status transition rules, release-readiness/support-matrix reconciliation, and native receipt schema/emitter/API checker; allow only `EXPERIMENTAL`/`PENDING_NATIVE` before hosted evidence | claims …230f9 and implementation …c17b9 are frozen; four exact AC1024 claims are PENDING_NATIVE, eleven AC1032 claims remain blocked, aggregate routes advertise nothing, and promotion requires recomputed digests plus complete authenticated live API/artifact replay |
 | J363.2 | J363 / S387 | WP8, WP10; focused native workflow freeze | J363.1 | COMMITTED | EXPERIMENTAL | pin third-party actions by full-length commit SHA, use explicit available Ubuntu/macOS/Windows labels, record label plus OS/architecture, `ImageOS`/`ImageVersion`, whitelisted build-affecting environment, and tool versions; register/freeze the seven named focused CTest IDs with expected count seven per platform and zero skipped/not-run, freeze the complete `ctest --show-only=json-v1` broad inventory/count digest, replace push/PR full suites with focused jobs, retain one manual/final three-OS broad matrix, and freeze both digests | workflow …f51473 and the 38-test inventory …1ef14 are frozen; single-/multi-config focused profiles pass 7/7, platform/action/checkout/artifact bindings are fail-closed, and no hosted result or drawing payload is claimed |
-| J364.1 | J364 / S388 | WP8, WP10; API-verified immutable-digest native receipts | J363 | READY | DEFERRED_EXTERNAL | execute unchanged implementation/claims digests on native Ubuntu/GCC, macOS/Clang, and Windows/MSVC; query GitHub run/jobs/artifacts APIs and verify repository, workflow path/blob, head commit, run ID/attempt/job, conclusion, digests, runner OS/architecture/image, whitelisted environment, all seven exact focused test IDs/count with zero skipped/not-run, artifact ID, downloaded archive SHA-256, and receipt content without changing scoped files or immutable claims | exactly one accepted focused receipt for each linux+gcc, macos+clang, windows+msvc key plus strict API/artifact/test-manifest checker; failed attempts are nonpromoting and any semantic mismatch spawns a repair slice |
+| J364.1 | J364 / S388 | WP8, WP10; API-verified immutable-digest native receipts | J363 | VERIFYING | DEFERRED_EXTERNAL | execute unchanged implementation/claims digests on native Ubuntu/GCC, macOS/Clang, and Windows/MSVC; query GitHub run/jobs/artifacts APIs and verify repository, workflow path/blob, head commit, run ID/attempt/job, conclusion, digests, runner OS/architecture/image, whitelisted environment, all seven exact focused test IDs/count with zero skipped/not-run, artifact ID, downloaded archive SHA-256, and receipt content without changing scoped files or immutable claims | PR #93 run `35175061697` is non-promoting: workflow contract and macOS/Clang passed; Linux/GCC failed at `dwgreader.cpp:4175,7539`, Windows/MSVC failed at `drw_objects.cpp:18085,18142`; no native receipt is accepted and the old implementation digest cannot be reused |
 | J364.2 | J364 / S388 | WP8, WP10; final bounded promotion review | J364.1 | PLANNED | DEFERRED_EXTERNAL | require three same-digest API-verified focused receipts, accept exactly one successful manual three-OS broad matrix for the final digest, permit and retain retries only for canceled/infrastructure-failed attempts, require a repair slice/new digest after any build/test semantic failure, and change only status/receipt references for exact complete claims | verified run/job/artifact IDs/digests plus one accepted broad result matching the frozen inventory with zero skipped/not-run; no aggregate external report can promote and only digest-excluded receipt/status metadata changes |
+| J364.3 | J364 / S389 | WP8, WP10; hosted compiler portability repair | J364.1 | COMMITTED | DEFERRED_EXTERNAL | repair the GCC `-Werror=extra` enum/non-enum conditionals in `src/intern/dwgreader.cpp` with explicit `std::uint32_t` sentinel conversions and repair the MSVC local constexpr `kMatrixValueCount` lambda capture in `src/drw_objects.cpp`; run focused compile/tests, recompute the implementation digest/status, and invalidate prior native receipts without changing claims or fixtures | fresh Clang Release build and four focused tests pass; digest `d8cae87cd5c72469d5aba2897230437d8c4285419b2c0bf2c2956f85d5cb281c` recomputed over 165 inputs; claims digest and support rows unchanged; no fixture or claim bytes changed; plan, workflow, support, fixture, and diff gates pass; committed in S389 and ready for PR push |
 | J313.1 | J313 / S337 | WP3.11-WP3.12, WP8, WP10; TABLE parser-state copy isolation | J312 | COMMITTED | EXPERIMENTAL | assert copied and assigned TABLE models accept fresh subclass/grid dimensions after a partial source parse while preserving public table content; keep all inputs in memory | focused `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures |
 
 <!-- UPGRADE_PROGRESS_END -->
