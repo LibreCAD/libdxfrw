@@ -62,6 +62,46 @@ bounded list of secondary cleanup entries. Diagnostics reset at the start of
 each read/write operation; the first failure wins, and support claims still
 require independent evidence.
 
-Known limitations remain visible in the plan: AC1032/R2018 remains a
-pass-through reader, and broad feature recognition exceeds independently
-qualified support.
+## AC1032/R2018 boundary
+
+AC1032 intentionally reuses the R2013 container reader.  Chapter 8 of the
+[ODA Open Design Specification](https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf)
+describes the R2018 container as structurally identical to R2013 and limits
+the documented deltas to specific payloads.  The implementation maps those
+deltas as follows:
+
+| Documented R2018 delta | Implementation boundary |
+| --- | --- |
+| three trailing zero `int16` values in the auxiliary header | `src/intern/dwgwriter18.cpp` |
+| proxy-entity version and maintenance fields | `src/drw_entities.cpp` |
+| ATTRIB/ATTDEF attribute type and embedded MTEXT | `src/drw_entities.cpp` |
+| MTEXT annotative, frame, redundant, and column data | `src/drw_entities.cpp` |
+| MLINESTYLE element linetype handle instead of index | `src/drw_objects.cpp` |
+
+`dwgReader32` therefore provides trace-visible R2018 dispatch while inheriting
+the R2013 container machinery; calling that architecture a pass-through gap
+was incorrect.  This source coverage does not itself promote broad AC1032
+support.  The claim remains experimental until eligible, independent,
+field-scoped evidence covers the relevant paths.
+
+## External advisory closure
+
+The historical external-only reports are closed archival inputs, not open
+implementation blockers:
+
+| Historical item | Durable successor | Closure |
+| --- | --- | --- |
+| J256, J260, J268, J293 | J359 | reproducible per-hash provenance, admission, deduplication, and non-promotion registry |
+| J284 | J361 | admitted-fixture, field-scoped independent-reader candidates |
+| J295 | J362 | reproducible local-from-scratch AC1024 candidates and exclusions |
+
+Their immutable `DEFERRED_EXTERNAL` dispositions remain accurate.  The
+[Autodesk sample index](https://www.autodesk.com/support/technical/article/caas/tsarticles/ts/01em4r6LLJgnQQVBlk5GqD.html)
+establishes public origin for some hashes but does not provide the explicit
+artifact-admission grant required by this repository.  LibreDWG's
+[`dwgread` output modes](https://www.gnu.org/software/libredwg/manual/html_node/Programs.html)
+and [JSON model](https://www.gnu.org/software/libredwg/manual/html_node/JSON.html)
+support independent semantic comparison, but tool success and `minJSON`
+status alone do not qualify a libdxfrw support claim.  J359-J362 retain the
+useful evidence without committing external drawings or weakening the
+promotion contract.

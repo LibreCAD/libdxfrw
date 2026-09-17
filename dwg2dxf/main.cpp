@@ -83,18 +83,16 @@ bool convertFile(std::string inName, std::string outName, DRW::Version ver, bool
     //class to store file read:
     dx_data fData;
     //First read a dwg or dxf file
-    dx_iface *input = new dx_iface();
-    badState = input->fileImport( inName, &fData, debug);
+    dx_iface input;
+    badState = input.fileImport( inName, &fData, debug);
     if (!badState) {
         std::cout << "Error reading file " << inName << std::endl;
         return false;
     }
 
     //And write a dxf file
-    dx_iface *output = new dx_iface();
-    badState = output->fileExport(outName, ver, binary, &fData, debug);
-    delete input;
-    delete output;
+    dx_iface output;
+    badState = output.fileExport(outName, ver, binary, &fData, debug);
 
     return badState;
 }
@@ -200,4 +198,3 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
-

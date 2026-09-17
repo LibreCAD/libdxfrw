@@ -19,6 +19,9 @@
 //#include "dwgbuffer.h"
 #include "dwgreader27.h"
 
+// The R2018 container layout is structurally identical to R2013.  The
+// documented R2018 payload deltas remain version-gated in the shared entity
+// and object codecs, so inheriting the R2013 reader is intentional.
 class dwgReader32 : public dwgReader27 {
 public:
     dwgReader32(std::unique_ptr<dwgBuffer> buffer, dwgRW *p)

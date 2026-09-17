@@ -121,7 +121,7 @@ private:
     std::uint32_t checksum(std::uint32_t seed, std::uint8_t* data, std::uint64_t sz);
 
 private:
-    std::uint32_t securityFlags;
+    std::uint32_t securityFlags {0};
 };
 
 #endif

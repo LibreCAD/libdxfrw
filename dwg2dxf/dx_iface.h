@@ -19,8 +19,8 @@
 
 class dx_iface : public DRW_Interface {
 public:
-    dx_iface(){dxfW = NULL;}
-    ~dx_iface(){}
+    dx_iface() = default;
+    ~dx_iface() = default;
     bool fileImport(const std::string& fileI, dx_data *fData, bool debug);
     bool fileExport(const std::string& file, DRW::Version v, bool binary, dx_data *fData, bool debug);
     void writeEntity(DRW_Entity* e);
@@ -274,9 +274,9 @@ public:
             dxfW->writeAppId(&(*it));
     }
 
-    dxfRW* dxfW; //pointer to writer, needed to send data
-    dx_data* cData; // class to store or read data
-    dx_ifaceBlock* currentBlock;
+    dxfRW* dxfW {nullptr}; //pointer to writer, needed to send data
+    dx_data* cData {nullptr}; // class to store or read data
+    dx_ifaceBlock* currentBlock {nullptr};
 
 private:
     static bool isFixedSpaceBlock(const dx_ifaceBlock* block) {
