@@ -5987,6 +5987,14 @@ int main(int argc, char** argv) {
             const DRW_OperationDiagnostic diagnostic = reader.getLastDiagnostic();
             std::cerr << "DWG self-read diagnostic" << suffix << ": "
                       << diagnostic.code << " / " << diagnostic.message << "\n";
+            std::ifstream published(output, std::ios::binary);
+            std::array<char, 6> magic{};
+            published.read(magic.data(), static_cast<std::streamsize>(magic.size()));
+            std::cerr << "DWG self-read output probe" << suffix << ": size="
+                      << std::filesystem::file_size(output, ec)
+                      << " magic="
+                      << std::string(magic.data(), static_cast<std::size_t>(published.gcount()))
+                      << "\n";
         }
         expect(readOk, ("local DWG reader self-read succeeds" + suffix).c_str(),
                failures);
