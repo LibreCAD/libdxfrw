@@ -2872,6 +2872,19 @@ edit this block or commit the same slice concurrently.
   digest and no claims, fixtures, or drawing bytes change.  Next action is to
   push S410, rerun focused, then repeat final-broad without stopping.
 
+- Current checkpoint (2026-09-17): final-broad run `35202352604` confirms the
+  optimizer flags do not cause the five-symbol failure: Windows/MSVC still
+  requests decorated names with public-member access (`QEAA`) while the
+  library declarations remain private (`AEAA`); Linux/GCC and macOS/Clang are
+  green.  S411/J364.25 makes exactly those five seam declarations conditionally
+  `public` when `LIBDXFRW_FORCE_TEST_SEAMS` is enabled for the MSVC library and
+  Wave 1 test target, restoring matching MSVC name decoration while preserving
+  private access for ordinary consumers and non-MSVC builds.  Local Wave 1,
+  DWG-roundtrip, writer-primitives, digest, support, fixture, workflow, plan,
+  and diff gates pass; all native receipts are invalidated for the new digest
+  and no claims, fixtures, or drawing bytes change.  Next action is to push
+  S411, rerun focused, then repeat final-broad without stopping.
+
 - Current checkpoint (2026-09-17): S400's replacement PR #93 run
   `35184950202` confirms Windows publishes the complete `13565`-byte AC1015
   file with `AC1015` magic, yet the reader still fails only in `read-entities`;
@@ -4601,13 +4614,13 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 410 (`COMMITTED`).
+- Resolved slices: 411 (`COMMITTED`).
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 1 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 410 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 411 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 1 VERIFYING /
   0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 389 COMMITTED.
 - Expanded child-item states: 0 READY / 1 PLANNED / 0 ACTIVE / 1 VERIFYING /
-  0 BLOCKED_HARD / 0 VERIFIED / 0 SUPERSEDED / 514 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 VERIFIED / 0 SUPERSEDED / 515 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   7 DEFERRED_EXTERNAL / 365 EXPERIMENTAL / 0 PROMOTED / 8 NOT_APPLICABLE.
@@ -5083,6 +5096,7 @@ edit this block or commit the same slice concurrently.
 | S408 | J364.22: record exact focused receipts after S407 | S407 | COMMITTED | successful push run `35198411392`; exact run/jobs/artifacts/workflow API captures; metadata-only archives; receipt verifier; qualification digest/status; plan; fixture; diff | all three focused native jobs pass exactly seven tests on the S407 commit; the three accepted focused references bind head `fd610dae54b3`, implementation digest `bb377e815df9c`, and the original artifact archives; no claim or drawing bytes change | finalize the receipt row, push the metadata-only evidence, then dispatch final-broad on this same digest |
 | S409 | J364.23: force MSVC test-seam symbol retention | S408 | COMMITTED | final-broad Windows link failure after noinline; test-only MSVC compile definition; five dxfRW seam declarations; local Wave 1 and focused fast tests; qualification digest/status; plan; fixture; diff | `__declspec(dllexport) __declspec(noinline)` is enabled only when `LIBDXFRW_FORCE_TEST_SEAMS` is defined for the library and Wave 1 test target; non-MSVC declarations remain unchanged and no claim or drawing bytes change | push S409, rerun focused, then repeat final-broad; accept metadata-only receipts only after exact API/artifact joins pass |
 | S410 | J364.24: disable MSVC whole-program optimization for seam archive | S409 | COMMITTED | final-broad Windows link failure after export/noinline; MSVC `/GL-` target containment; local Wave 1 and focused fast tests; qualification digest/status; plan; fixture; diff | `/GL-` is applied only to the MSVC `dxfrw` library target so the five test-seam symbols remain in the static archive; non-MSVC builds and public ABI are unchanged; no claim or drawing bytes change | push S410, rerun focused, then repeat final-broad; accept metadata-only receipts only after exact API/artifact joins pass |
+| S411 | J364.25: align MSVC seam access decoration | S410 | COMMITTED | final-broad Windows unresolved symbols after `/GL-`; MSVC public/private decorated-name mismatch; conditional access guard; local Wave 1 and focused fast tests; qualification digest/status; plan; fixture; diff | under `LIBDXFRW_FORCE_TEST_SEAMS`, the five seam declarations are public in both the library and Wave 1 translation units, matching MSVC `QEAA` names; ordinary consumers retain private access and non-MSVC builds are unchanged; no claim or drawing bytes change | push S411, rerun focused, then repeat final-broad; accept metadata-only receipts only after exact API/artifact joins pass |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -6002,6 +6016,7 @@ edit this block or commit the same slice concurrently.
 | J364.22 | J364 / S408 | WP8, WP10; exact focused receipt identity replay after S407 | J364.21 | COMMITTED | DEFERRED_EXTERNAL | capture the successful S407 push run's exact run/jobs/artifacts/workflow API responses and original metadata-only artifact archives; bind one accepted focused reference to each Linux/GCC, macOS/Clang, and Windows/MSVC job, commit, workflow blob, receipt digest, artifact digest, and seven-test result; keep claims unpromoted and retain the no-fixture policy | push run `35198411392` is green with 3 focused receipts and 0 broad receipts; `verify_native_qualification_receipts.py --pre-native` passes for implementation digest `bb377e815df9c342558a6384dc560cb6e8125b46bc8e07c74d1e6f0d62a599e1`; no claim or drawing bytes change |
 | J364.23 | J364 / S409 | WP8, WP10; test-only MSVC export retention for broad Wave 1 | J364.22 | COMMITTED | DEFERRED_EXTERNAL | define `LIBDXFRW_FORCE_TEST_SEAMS` only for the MSVC library and `libdxfrw_wave1_tests` targets; use it to add `__declspec(dllexport) __declspec(noinline)` to the five private dxfRW seam declarations; leave all non-MSVC declarations and ABI unchanged; rerun broad-link reproduction plus focused fast tests, recompute digest/status, invalidate prior receipts, and preserve the no-claim/no-fixture policy | final-broad run `35199586797` still fails only at the five unresolved MSVC seam symbols after noinline; local Wave 1, DWG-roundtrip, writer-primitives, digest, support, fixture, workflow, plan, and diff gates pass; no claim or drawing bytes change |
 | J364.24 | J364 / S410 | WP8, WP10; MSVC whole-program-optimization containment | J364.23 | COMMITTED | DEFERRED_EXTERNAL | add `/GL-` to the MSVC `dxfrw` library target alongside the test-only seam definition; keep non-MSVC builds and public ABI unchanged; rerun broad-link reproduction plus focused fast tests, recompute digest/status, invalidate prior receipts, and preserve the no-claim/no-fixture policy | final-broad run `35201148866` proves the five symbols remain unresolved after export/noinline while Linux/GCC and macOS/Clang pass; local fast tests and policy gates pass; no claim or drawing bytes change |
+| J364.25 | J364 / S411 | WP8, WP10; MSVC private/public seam name-decoration compatibility | J364.24 | COMMITTED | DEFERRED_EXTERNAL | make only the five test-seam declarations conditionally `public` under MSVC when `LIBDXFRW_FORCE_TEST_SEAMS` is defined, restoring public decorated names for the Wave 1 private-header view; keep ordinary-consumer access private and non-MSVC declarations unchanged; rerun broad-link reproduction plus focused fast tests, recompute digest/status, invalidate prior receipts, and preserve the no-claim/no-fixture policy | final-broad run `35202352604` shows export/noinline and `/GL-` do not address the MSVC `QEAA` versus private `AEAA` name mismatch; local fast tests and policy gates pass; no claim or drawing bytes change |
 | J313.1 | J313 / S337 | WP3.11-WP3.12, WP8, WP10; TABLE parser-state copy isolation | J312 | COMMITTED | EXPERIMENTAL | assert copied and assigned TABLE models accept fresh subclass/grid dimensions after a partial source parse while preserving public table content; keep all inputs in memory | focused `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures |
 
 <!-- UPGRADE_PROGRESS_END -->

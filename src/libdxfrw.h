@@ -386,6 +386,9 @@ private:
     };
 
     /// used by read() to parse the content of the file
+#if defined(_MSC_VER) && defined(LIBDXFRW_FORCE_TEST_SEAMS)
+public:
+#endif
     LIBDXFRW_TEST_SEAM_NOINLINE bool processDxf();
     bool processRawDxfSection(const std::string& sectionName);
     bool processHeader();
@@ -634,6 +637,9 @@ private:
     bool failDxfReadBudget();
 
     LIBDXFRW_TEST_SEAM_NOINLINE void beginOperationDiagnostic(DRW::OperationKind kind);
+#if defined(_MSC_VER) && defined(LIBDXFRW_FORCE_TEST_SEAMS)
+private:
+#endif
     void recordOperationDiagnostic(DRW::OperationPhase phase,
                                    DRW::OperationCause cause,
                                    const char* code,
