@@ -43,6 +43,11 @@ public:
     using DRW_Attrib::parseCode;
 };
 
+class ExposedPoint : public DRW_Point {
+public:
+    using DRW_Point::parseCode;
+};
+
 class ExposedGeoPositionMarker : public DRW_GeoPositionMarker {
 public:
     using DRW_GeoPositionMarker::parseCode;
@@ -2202,6 +2207,63 @@ void testDxfReadAsciiResetsFormatState(TestContext& t) {
              "ASCII raw capture retains source values after binary reuse");
 }
 
+// Regression coverage for LibreCAD/libdxfrw#87: the old parser loop tested
+// the original opener instead of each newly-read record, so its body never
+// consumed an entity's 102 application-group payload.
+void testEntityApplicationGroups(TestContext& t) {
+    ExposedPoint point;
+    const std::string nestedRecords =
+        "102\n{CUSTOM_CONTROL\n"
+        "1\nfixture payload\n"
+        "102\n{NESTED\n"
+        "481\nA\n"
+        "102\n}\n"
+        "102\n}\n"
+        "10\n1.25\n20\n-2.5\n";
+    const bool parsed = parseDxfRecords(point, nestedRecords);
+    t.expect(parsed && point.appData.size() == 1u
+                 && point.appData.front().size() == 6u
+                 && point.basePoint.x == 1.25
+                 && point.basePoint.y == -2.5,
+             "entity parser consumes a nested DXF 102 application group");
+
+    if (parsed && point.appData.size() == 1u) {
+        const int expectedCodes[] = {102, 1, 102, 481, 102, 102};
+        const char* expectedValues[] = {
+            "CUSTOM_CONTROL", "fixture payload", "{NESTED", "A", "}", "}"};
+        const auto& group = point.appData.front();
+        std::size_t index = 0;
+        bool shape = group.size() == 6u;
+        for (const DRW_Variant& value : group) {
+            if (index >= 6u || value.code() != expectedCodes[index]
+                || value.type() != DRW_Variant::STRING
+                || std::string(value.c_str()) != expectedValues[index]) {
+                shape = false;
+                break;
+            }
+            ++index;
+        }
+        t.expect(shape && index == 6u,
+                 "entity application-group payload and markers retain order");
+    }
+
+    ExposedPoint reactors;
+    const bool reactorsParsed = parseDxfRecords(
+        reactors,
+        "102\n{ACAD_REACTORS\n330\n80\n330\n81\n102\n}\n");
+    t.expect(reactorsParsed && reactors.appData.size() == 1u
+                 && reactors.reactorHandles.size() == 2u
+                 && reactors.reactorHandles[0] == 0x80u
+                 && reactors.reactorHandles[1] == 0x81u,
+             "entity parser extracts ACAD_REACTORS handles from application data");
+
+    ExposedPoint malformed;
+    t.expect(!parseDxfRecords(malformed,
+                              "102\n{UNTERMINATED\n1\npayload\n")
+                 && malformed.appData.empty(),
+             "entity parser rejects unterminated application groups transactionally");
+}
+
 void testDxfReadResetsHeaderState(TestContext& t) {
     std::string first =
         "999\nfirst-read-comment\n0\nSECTION\n2\nHEADER\n"
@@ -2716,6 +2778,7 @@ int main() {
     testDxfReadFuzzSmoke(context);
     testDwgReadFuzzSmoke(context);
     testDxfReadAsciiResetsFormatState(context);
+    testEntityApplicationGroups(context);
     testDxfReadResetsHeaderState(context);
     testDwgReadResetsVersionState(context);
     testDxfAggregateRecordBudget(context);
