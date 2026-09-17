@@ -4009,6 +4009,7 @@ public:
         textMove = d.textMove;
         copyExtDataFrom(d);
     }
+    DRW_Dimension& operator=(const DRW_Dimension&) = default;
     virtual ~DRW_Dimension() = default;
 
     void applyExtrusion() override {}

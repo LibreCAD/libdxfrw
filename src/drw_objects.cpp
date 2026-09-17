@@ -10683,7 +10683,7 @@ bool DRW_RenderSettings::parseDwg(DRW::Version version, dwgBuffer *buf,
 bool DRW_RenderSettings::encodeDwg(DRW::Version version, dwgBufferW *buf,
                                    dwgBufferW *strBuf,
                                    dwgBufferW *handleBuf) const {
-    const auto kind = rawEnumValue(m_kind);
+    auto kind = rawEnumValue(m_kind);
     if (buf == nullptr || version < DRW::AC1015
         || kind < static_cast<decltype(kind)>(Settings)
         || kind > static_cast<decltype(kind)>(MentalRay)
@@ -11158,7 +11158,7 @@ bool DRW_PointCloudDef::parseDwg(DRW::Version version, dwgBuffer *buf,
 bool DRW_PointCloudDef::encodeDwg(DRW::Version version, dwgBufferW *buf,
                                   dwgBufferW *strBuf,
                                   dwgBufferW *handleBuf) const {
-    const auto kind = rawEnumValue(m_kind);
+    auto kind = rawEnumValue(m_kind);
     const auto finiteCoord = [](const DRW_Coord& point) {
         return std::isfinite(point.x) && std::isfinite(point.y)
             && std::isfinite(point.z);
@@ -12915,7 +12915,7 @@ bool DRW_Background::encodeDwg(DRW::Version version, dwgBufferW *buf,
     const auto finite2D = [](const DRW_Coord& point) {
         return std::isfinite(point.x) && std::isfinite(point.y);
     };
-    const auto kind = rawEnumValue(m_kind);
+    auto kind = rawEnumValue(m_kind);
     if (buf == nullptr || version < DRW::AC1015
         || kind < static_cast<decltype(kind)>(Solid)
         || kind > static_cast<decltype(kind)>(Skylight)
