@@ -530,9 +530,18 @@ static bool extractAcisWireframeImpl(const DRW_AcisModel& model,
     bool grown = false;
     auto grow = [&](const DRW_Coord& p) {
         grown = true;
-        if (p.x < minX) minX = p.x; if (p.x > maxX) maxX = p.x;
-        if (p.y < minY) minY = p.y; if (p.y > maxY) maxY = p.y;
-        if (p.z < minZ) minZ = p.z; if (p.z > maxZ) maxZ = p.z;
+        if (p.x < minX)
+            minX = p.x;
+        if (p.x > maxX)
+            maxX = p.x;
+        if (p.y < minY)
+            minY = p.y;
+        if (p.y > maxY)
+            maxY = p.y;
+        if (p.z < minZ)
+            minZ = p.z;
+        if (p.z > maxZ)
+            maxZ = p.z;
     };
 
     // Vertices.
