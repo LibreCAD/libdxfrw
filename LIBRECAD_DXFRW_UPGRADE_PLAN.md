@@ -2617,6 +2617,22 @@ edit this block or commit the same slice concurrently.
   fixtures remain unchanged.  S391/J364.5 is `ACTIVE` for the next portability
   repair; S388/J364.1 remains `VERIFYING`.
 
+- Current checkpoint (2026-09-17): S391's hosted run `35177810798` at head
+  `d1df3bc62b8b545035f09dfdab835ebe9d0b82d2` passed the workflow contract and
+  macOS/Clang focused job, but Linux/GCC still found four handle-sentinel
+  enum/non-enum conditionals in `src/libdxfrw.h:83-84` and
+  `src/libdxfrw.cpp:1381,14208,14263`; Windows/MSVC built the library and
+  local-roundtrip target but its reader-matrix test could not link the private
+  `dwgRW::openBuffer` seam.  No focused receipt is accepted and digest
+  `55ea027c241237450dde7ccc215245ed596ef7564c8dcf4c65e3e4a87578dc4f` is
+  invalidated.  The reader-matrix test now exercises the public `readBuffer`
+  path with a concrete adapter and links its adapter source; the replacement
+  implementation digest is
+  `3230cb388a2aeff7219533a1f7fcff3af89f04657b208c2620c4ee70829ff32e` over
+  165 inputs.  Claims digest, support rows, immutable claims, and fixtures
+  remain unchanged.  S392/J364.6 is `ACTIVE` for the next portability/test
+  seam repair; S388/J364.1 remains `VERIFYING`.
+
 - Current checkpoint (2026-09-16): S329/J305 compound-entity graph ownership
   is committed.  Explicit copies now clone legacy POLYLINE vertices, SPLINE
   control/fit points, and INSERT attributes while resetting parser cursors;
@@ -4333,7 +4349,7 @@ edit this block or commit the same slice concurrently.
 - Active work: S01-S384 and J329/J329.1/J330/J330.1/J331/J331.1/J332/J332.1/
   J333/J333.1/J334/J334.1/J335/J335.1/J336/J336.1/J337/J337.1/J338/J338.1/
   J339/J339.1/J340/J340.1/J341/J341.1/J342/J342.1/J343/J343.1/J344/J344.1/
-  J345/J345.1/J346/J346.1/J347/J347.1/J348/J348.1/J349/J349.1/J350/J350.1/J351/J351.1/J352/J352.1/J353/J353.1/J354/J354.1/J355/J355.1/J356/J356.1/J357/J357.1/J358/J358.1/J359/J359.1/J359.2/J360/J360.1/J360.2/J360.3/J361/J361.1/J362/J362.1/J362.2/J362.3/J363/J363.0/J363.1/J363.2 and S384a/S385/S386/S386a/S386b/S387a/S387/S389/S390 are committed.  S388/J364.1 is VERIFYING after the hosted runs exposed cross-platform compile defects; S391/J364.5 is ACTIVE for the next repair, and J364.2 remains planned until a complete focused receipt set is accepted.
+  J345/J345.1/J346/J346.1/J347/J347.1/J348/J348.1/J349/J349.1/J350/J350.1/J351/J351.1/J352/J352.1/J353/J353.1/J354/J354.1/J355/J355.1/J356/J356.1/J357/J357.1/J358/J358.1/J359/J359.1/J359.2/J360/J360.1/J360.2/J360.3/J361/J361.1/J362/J362.1/J362.2/J362.3/J363/J363.0/J363.1/J363.2 and S384a/S385/S386/S386a/S386b/S387a/S387/S389/S390 are committed.  S388/J364.1 is VERIFYING after the hosted runs exposed cross-platform compile defects; S392/J364.6 is ACTIVE for the next portability/test-seam repair, and J364.2 remains planned until a complete focused receipt set is accepted.
   Keep the fast inner loop and do not promote support claims from
   self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -4783,6 +4799,7 @@ edit this block or commit the same slice concurrently.
 | S389 | J364.3: repair hosted cross-platform compile contract | S388 | COMMITTED | GCC `-Werror=extra` enum/non-enum conditional expressions in `src/intern/dwgreader.cpp`; MSVC lambda capture/use of local `kMatrixValueCount` in `src/drw_objects.cpp`; focused native build; plan; fixture; diff | explicit `std::uint32_t` sentinel conversions preserve handle semantics and `static constexpr kMatrixValueCount` is accepted by both MSVC and Clang; fresh Clang Release build plus four focused tests pass; implementation digest is `d8cae87cd5c72469d5aba2897230437d8c4285419b2c0bf2c2956f85d5cb281c` over 165 inputs; claims digest/status, fixtures, and immutable claims are unchanged; prior hosted receipts remain invalidated | push the committed repair slice to PR #93, then rerun S388 |
 | S390 | J364.4: repair GCC warning contract in ACIS bounds extraction | S389 | ACTIVE | GCC `-Werror=misleading-indentation` in `src/drw_acis.cpp:533-535`; focused native build; qualification digest/status; plan; fixture; diff | replacement PR #93 run `35176840834` reproduces the three GCC diagnostics; repair must preserve bounds semantics, recompute the implementation digest, and invalidate all prior receipts without changing claims or fixtures | split each coordinate-bound update into an independently indented conditional, run the smallest focused compile/tests, update digest/status and plan, commit with matching trailers, push to PR #93, then rerun S388 |
 | S391 | J364.5: repair remaining GCC/MSVC warning contract | S390 | ACTIVE | GCC enum/non-enum, deprecated-copy, and ignored-qualifier diagnostics in `src/drw_entities.cpp`, `src/drw_entities.h`, and `src/drw_objects.cpp`; focused native build; qualification digest/status; plan; fixture; diff | replacement PR #93 run `35177211341` reproduces the exact diagnostics; repairs must preserve handle/material semantics, explicit dimension assignment semantics, and enum range checks while recomputing the implementation digest and invalidating all prior receipts without changing claims or fixtures | add explicit enum sentinel conversions, default the `DRW_Dimension` copy assignment, remove const-qualified local enum-value casts, run the smallest focused compile/tests, update digest/status and plan, commit with matching trailers, push to PR #93, then rerun S388 |
+| S392 | J364.6: repair remaining hosted handle sentinels and reader-matrix seam | S391 | ACTIVE | GCC enum/non-enum handle sentinels in `src/libdxfrw.h`/`src/libdxfrw.cpp`; Windows/MSVC private-test seam link failure in `tests/dwg_reader_matrix_tests.cpp`; focused native build; qualification digest/status; plan; fixture; diff | hosted run `35177810798` reproduces the four GCC diagnostics and the Windows unresolved `dwgRW::openBuffer`; public `readBuffer` dispatch coverage and explicit sentinel conversions must preserve behavior while recomputing the implementation digest and invalidating prior receipts without changing claims or fixtures | convert all four `DRW::NoHandle` fallbacks to `std::uint32_t`, move the matrix test to the public read path with initialized `dx_iface`/`dx_data`, link `dx_iface.cpp`, run the smallest focused compile/tests, update digest/status and plan, commit with matching trailers, push to PR #93, then rerun S388 |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |

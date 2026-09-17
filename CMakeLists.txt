@@ -536,11 +536,13 @@ if(LIBDXFRW_BUILD_TESTS)
         COMMAND libdxfrw_dwg_local_roundtrip)
 
     add_executable(libdxfrw_dwg_reader_matrix_tests
-        tests/dwg_reader_matrix_tests.cpp)
+        tests/dwg_reader_matrix_tests.cpp
+        dwg2dxf/dx_iface.cpp)
     target_compile_features(libdxfrw_dwg_reader_matrix_tests PRIVATE cxx_std_17)
     target_include_directories(libdxfrw_dwg_reader_matrix_tests PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/intern)
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/intern
+        ${CMAKE_CURRENT_SOURCE_DIR}/dwg2dxf)
     target_link_libraries(libdxfrw_dwg_reader_matrix_tests PRIVATE dxfrw)
     add_test(NAME libdxfrw_dwg_reader_matrix
         COMMAND libdxfrw_dwg_reader_matrix_tests)

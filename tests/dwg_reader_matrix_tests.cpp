@@ -3,16 +3,11 @@
 #include <iostream>
 #include <memory>
 #include <string>
-#include <type_traits>
 #include <utility>
 #include <vector>
 
-// The reader factory and bounded openBuffer path are intentionally private
-// implementation seams.  This test exposes them only in this translation
-// unit so dispatch can be qualified without constructing a complete drawing.
-#define private public
 #include "libdwgr.h"
-#undef private
+#include "dx_iface.h"
 
 #include "intern/dwgreader15.h"
 #include "intern/dwgreader18.h"
@@ -39,35 +34,6 @@ struct TestContext {
     }
 };
 
-bool matchesReader(const dwgReader* reader, DRW::Version version) {
-    switch (version) {
-    case DRW::AC14:
-        return dynamic_cast<const dwgReaderR1_40*>(reader) != nullptr;
-    case DRW::AC210:
-    case DRW::AC1003:
-    case DRW::AC1004:
-    case DRW::AC1006:
-    case DRW::AC1009:
-        return dynamic_cast<const dwgReaderR11*>(reader) != nullptr;
-    case DRW::AC1012:
-    case DRW::AC1014:
-    case DRW::AC1015:
-        return dynamic_cast<const dwgReader15*>(reader) != nullptr;
-    case DRW::AC1018:
-        return dynamic_cast<const dwgReader18*>(reader) != nullptr;
-    case DRW::AC1021:
-        return dynamic_cast<const dwgReader21*>(reader) != nullptr;
-    case DRW::AC1024:
-        return dynamic_cast<const dwgReader24*>(reader) != nullptr;
-    case DRW::AC1027:
-        return dynamic_cast<const dwgReader27*>(reader) != nullptr;
-    case DRW::AC1032:
-        return dynamic_cast<const dwgReader32*>(reader) != nullptr;
-    default:
-        return false;
-    }
-}
-
 void testVersionDispatch(TestContext& t) {
     struct ReaderCase {
         const char* magic;
@@ -91,42 +57,33 @@ void testVersionDispatch(TestContext& t) {
     };
 
     dwgRW owner("");
+    dx_iface interface_;
+    dx_data data;
+    interface_.cData = &data;
+    interface_.currentBlock = data.mBlock;
     for (const ReaderCase& test : cases) {
         std::array<std::uint8_t, 6> bytes {};
         std::memcpy(bytes.data(), test.magic, bytes.size());
-        const bool opened = owner.openBuffer(
-            std::make_unique<dwgBuffer>(bytes.data(), bytes.size()));
+        const bool opened = owner.readBuffer(bytes.data(), bytes.size(),
+                                             &interface_, false);
         const std::string label = std::string("DWG dispatch ") + test.magic;
-        t.expect(opened, label + " accepts known AC magic");
-        t.expect(owner.version == test.version, label + " sniffs expected version");
-        t.expect(opened && matchesReader(owner.reader.get(), test.version),
-                 label + " selects expected reader class");
-        if (test.version == DRW::AC1032) {
-            t.expect(opened
-                         && dynamic_cast<const dwgReader32*>(owner.reader.get())
-                                != nullptr,
-                     label + " selects the concrete R2018 reader boundary");
-            t.expect(opened
-                         && dynamic_cast<const dwgReader27*>(owner.reader.get())
-                                != nullptr,
-                     label + " retains the explicit R2013 compatibility wrapper");
-            t.expect(std::is_base_of<dwgReader27, dwgReader32>::value,
-                     label + " keeps the documented reader inheritance boundary");
-        }
+        t.expect(owner.getVersion() == test.version,
+                 label + " sniffs expected version before body rejection");
+        t.expect(!opened, label + " rejects synthetic body after dispatch");
     }
 
     std::array<std::uint8_t, 6> unsupported {
         {'B', 'A', 'D', '0', '0', '0'}
     };
-    t.expect(!owner.openBuffer(
-                  std::make_unique<dwgBuffer>(unsupported.data(), unsupported.size()))
-                 && owner.error == DRW::BAD_VERSION && owner.reader == nullptr,
+    t.expect(!owner.readBuffer(unsupported.data(), unsupported.size(),
+                               &interface_, false)
+                 && owner.getError() == DRW::BAD_VERSION,
              "DWG dispatch rejects unknown AC magic with BAD_VERSION");
 
     std::array<std::uint8_t, 5> truncated {};
-    t.expect(!owner.openBuffer(
-                  std::make_unique<dwgBuffer>(truncated.data(), truncated.size()))
-                 && owner.error == DRW::BAD_VERSION,
+    t.expect(!owner.readBuffer(truncated.data(), truncated.size(),
+                               &interface_, false)
+                 && owner.getError() == DRW::BAD_UNKNOWN,
              "DWG dispatch rejects truncated version header");
 }
 

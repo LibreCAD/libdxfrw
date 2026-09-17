@@ -1378,7 +1378,8 @@ bool dxfRW::readAscii(DRW_Interface *interface_, bool ext, std::string& content)
 
 std::uint32_t dxfRW::getBlockRecordHandleToWrite(const std::string& blockName) const {
     auto it = blockMap.find(dxfSymbolNameKey(blockName));
-    return (it != blockMap.end()) ? it->second : DRW::NoHandle;
+    return (it != blockMap.end()) ? it->second
+                                  : static_cast<std::uint32_t>(DRW::NoHandle);
 }
 
 std::uint32_t dxfRW::preallocateEntityHandle(std::uint32_t sourceHandle) {
@@ -14206,7 +14207,7 @@ bool dxfRW::processProxyEntity() {
 
             entity.handle = raw.handle;
             entity.parentHandle = capture.hasOwner ? capture.ownerHandle
-                                                   : DRW::NoHandle;
+                                                   : static_cast<std::uint32_t>(DRW::NoHandle);
             raw.parentHandle = entity.parentHandle;
             if (!applyProxyDxfCapture(entity, std::move(capture)))
                 return setError(DRW::BAD_READ_ENTITIES);
@@ -14261,7 +14262,7 @@ bool dxfRW::processProxyObject() {
 
             object.handle = raw.handle;
             object.parentHandle = capture.hasOwner ? capture.ownerHandle
-                                                   : DRW::NoHandle;
+                                                   : static_cast<std::uint32_t>(DRW::NoHandle);
             raw.parentHandle = object.parentHandle;
             applyProxyDxfCapture(object, std::move(capture));
             iface->addProxyObject(object);
