@@ -2730,6 +2730,19 @@ edit this block or commit the same slice concurrently.
   inputs; claims digest, support rows, immutable claims, and fixtures remain
   unchanged.  S388/J364.1 remains `VERIFYING` and J364.2 remains planned.
 
+- Current checkpoint (2026-09-17): S401's replacement PR #93 run
+  `35185631469` confirms the AC1015 trace: the published `13565`-byte file is
+  parsed in different entity orders on libstdc++ and MSVC, and the MSVC order
+  leaves two compound frames unresolved before `readDwgEntities` returns
+  false.  S402/J364.16 makes the final `ObjectMap` sweep deterministic by
+  selecting the lowest source ordinal (then offset/handle), preserving the
+  existing deferred-state semantics without adding fixtures or changing
+  support claims.  No receipt is accepted.  S401/J364.15 is `COMMITTED`;
+  S402/J364.16 is `ACTIVE`.  The replacement implementation digest is
+  `cdcd2733565bdc42e047a04ff69f499781986a84847ce1e491d549c3b9e761d7` over
+  165 inputs; claims digest, support rows, immutable claims, and fixtures remain
+  unchanged.  S388/J364.1 remains `VERIFYING` and J364.2 remains planned.
+
 - Current checkpoint (2026-09-17): S400's replacement PR #93 run
   `35184950202` confirms Windows publishes the complete `13565`-byte AC1015
   file with `AC1015` magic, yet the reader still fails only in `read-entities`;
@@ -4459,20 +4472,20 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 399 (`COMMITTED`).
+- Resolved slices: 400 (`COMMITTED`).
 - Slice states: 0 READY / 0 PLANNED / 1 ACTIVE / 1 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 399 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 400 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 1 VERIFYING /
   0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 389 COMMITTED.
 - Expanded child-item states: 0 READY / 1 PLANNED / 1 ACTIVE / 1 VERIFYING /
-  0 BLOCKED_HARD / 0 VERIFIED / 0 SUPERSEDED / 504 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 VERIFIED / 0 SUPERSEDED / 505 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   7 DEFERRED_EXTERNAL / 365 EXPERIMENTAL / 0 PROMOTED / 8 NOT_APPLICABLE.
 - Active work: S01-S384 and J329/J329.1/J330/J330.1/J331/J331.1/J332/J332.1/
   J333/J333.1/J334/J334.1/J335/J335.1/J336/J336.1/J337/J337.1/J338/J338.1/
   J339/J339.1/J340/J340.1/J341/J341.1/J342/J342.1/J343/J343.1/J344/J344.1/
-  J345/J345.1/J346/J346.1/J347/J347.1/J348/J348.1/J349/J349.1/J350/J350.1/J351/J351.1/J352/J352.1/J353/J353.1/J354/J354.1/J355/J355.1/J356/J356.1/J357/J357.1/J358/J358.1/J359/J359.1/J359.2/J360/J360.1/J360.2/J360.3/J361/J361.1/J362/J362.1/J362.2/J362.3/J363/J363.0/J363.1/J363.2 and S384a/S385/S386/S386a/S386b/S387a/S387/S389/S390/S391/S392/S393/S394/S395/S396/S397/S398/S399/S400 are committed.  S388/J364.1 is VERIFYING after the hosted runs exposed cross-platform compile defects; S401/J364.15 is ACTIVE for the AC1015 debug trace, and J364.2 remains planned until a complete focused receipt set is accepted.
+  J345/J345.1/J346/J346.1/J347/J347.1/J348/J348.1/J349/J349.1/J350/J350.1/J351/J351.1/J352/J352.1/J353/J353.1/J354/J354.1/J355/J355.1/J356/J356.1/J357/J357.1/J358/J358.1/J359/J359.1/J359.2/J360/J360.1/J360.2/J360.3/J361/J361.1/J362/J362.1/J362.2/J362.3/J363/J363.0/J363.1/J363.2 and S384a/S385/S386/S386a/S386b/S387a/S387/S389/S390/S391/S392/S393/S394/S395/S396/S397/S398/S399/S400/S401 are committed.  S388/J364.1 is VERIFYING after the hosted runs exposed cross-platform compile defects; S402/J364.16 is ACTIVE for the deterministic entity sweep, and J364.2 remains planned until a complete focused receipt set is accepted.
   Keep the fast inner loop and do not promote support claims from
   self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -4931,7 +4944,8 @@ edit this block or commit the same slice concurrently.
 | S398 | J364.12: use native Windows file identity matching | S397 | COMMITTED | Windows transaction identity predicate; focused native build; qualification digest/status; plan; fixture; diff | compare the exclusive CRT descriptor and named temporary with native `GetFileInformationByHandle` volume-serial/file-index tuples while retaining POSIX checks and bounded diagnostics; local focused round-trip and fast policy gates pass; hosted run `35183487882` publishes Windows outputs and passes six of seven focused tests, with only AC1015 self-read failing; implementation digest `a50d6a63e3daa7ad56f52b2689e9b54f046618a7d98c49654a704c81faef1e41` is historical and superseded by S399; claims digest, support rows, immutable claims, and fixtures unchanged | inspect the bounded AC1015 reader diagnostic in S399, then implement the minimal reader repair and rerun S388 |
 | S399 | J364.13: diagnose Windows AC1015 self-read stage | S398 | COMMITTED | AC1015/format-15 self-read path; focused native build; qualification digest/status; plan; fixture; diff | add bounded `dwgRW::getLastDiagnostic()` output when the local round-trip reader rejects its just-published AC1015 file; hosted run `35184309688` reports `read-entities` / “the DWG entities could not be read” and 40 assertions only for version 13; no behavior, claim, or fixture bytes change; implementation digest `51db6eb4cd8cfa3e7d3ee68fbfe40e97226748171a07d2378818e929bdf53773` is historical and superseded by S400 | inspect the bounded AC1015 output probe in S400, then implement the minimal reader repair and rerun S388 |
 | S400 | J364.14: probe Windows AC1015 published output | S399 | COMMITTED | AC1015 output publication and entity-section boundary; focused native build; qualification digest/status; plan; fixture; diff | print only the published file byte size and six-byte magic when the existing local round-trip self-read fails; hosted run `35184950202` confirms publication succeeds with `size=13565 magic=AC1015` and the failure remains confined to `read-entities`; implementation digest `40dad0535f55f5af15f5a8ac73fc755566e668f874070d14c29de6c8ef64278c` is historical and superseded by S401; no drawing payload is retained | inspect the AC1015-only debug trace in S401, then implement the minimal reader repair and rerun S388 |
-| S401 | J364.15: trace Windows AC1015 self-read frames | S400 | ACTIVE | AC1015 reader entity/frame trace; focused native build; qualification digest/status; plan; fixture; diff | enable existing `DRW_DBG` only around the AC1015 local self-read and restore the previous debug level immediately afterward; no parser behavior, claim, or fixture bytes change; implementation digest `31c5e9b21748850cbb36735d62f03c2d1b766bd3d677c68b504015756d38e589` is staged | run focused validation, push the trace slice, inspect the first failing frame/offset, then add a targeted reader repair slice without stopping |
+| S401 | J364.15: trace Windows AC1015 self-read frames | S400 | COMMITTED | AC1015 reader entity/frame trace; focused native build; qualification digest/status; plan; fixture; diff | enable existing `DRW_DBG` only around the AC1015 local self-read and restore the previous debug level immediately afterward; hosted run `35185631469` shows MSVC’s unordered sweep order leaves two compound frames unresolved while GCC completes; no parser behavior, claim, or fixture bytes changed; implementation digest `31c5e9b21748850cbb36735d62f03c2d1b766bd3d677c68b504015756d38e589` is historical and superseded by S402 | select a stable source-ordinal order in the final entity sweep, run focused validation, update digest/status and plan, commit/push, then rerun S388 |
+| S402 | J364.16: make legacy entity sweep deterministic | S401 | ACTIVE | AC1015 cross-platform entity/frame ordering; focused native build; qualification digest/status; plan; fixture; diff | select the lowest `sourceOrdinal` (then source offset/handle) instead of `unordered_map::begin()` when sweeping `ObjectMap`; preserve deferred compound ownership semantics and no-claim/no-fixture policy; implementation digest `cdcd2733565bdc42e047a04ff69f499781986a84847ce1e491d549c3b9e761d7` is staged | run focused local round-trip plus fast policy gates, commit/push the repair, inspect Windows, and continue automatically if another deterministic defect appears |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -5842,7 +5856,8 @@ edit this block or commit the same slice concurrently.
 | J364.12 | J364 / S398 | WP8, WP10; Windows native file identity repair | J364.11 | COMMITTED | DEFERRED_EXTERNAL | replace the Windows `_fstat64`/`_wstat64` device/inode comparison with native `GetFileInformationByHandle` volume-serial/file-index matching for the open exclusive descriptor and named temporary; preserve POSIX identity, close-before-publish, bounded diagnostics, and the no-claim/no-fixture policy while recomputing the digest/status | local focused round-trip and fast policy gates pass; hosted run `35183487882` confirms Windows publication and six of seven focused tests, with AC1015 self-read as the only failure; digest `a50d6a63e3daa7ad56f52b2689e9b54f046618a7d98c49654a704c81faef1e41` is historical and superseded by S399 |
 | J364.13 | J364 / S399 | WP8, WP10; Windows AC1015 self-read diagnostic | J364.12 | COMMITTED | DEFERRED_EXTERNAL | print the public `dwgRW` self-read diagnostic only when the local round-trip test rejects an AC1015/format-15 output; keep diagnostics bounded and non-mutating, recompute digest/status, and preserve the no-claim/no-fixture policy | hosted run `35184309688` reports `read-entities` / “the DWG entities could not be read” and 40 AC1015 assertions after publication succeeds; no claim or fixture bytes changed; superseded by S400 |
 | J364.14 | J364 / S400 | WP8, WP10; Windows AC1015 output probe | J364.13 | COMMITTED | DEFERRED_EXTERNAL | print only the published AC1015 file byte size and six-byte magic when the existing local round-trip self-read fails; keep diagnostics bounded and non-mutating, recompute digest/status, and preserve the no-claim/no-fixture policy | hosted run `35184950202` confirms `size=13565 magic=AC1015` after publication; no drawing payload is retained; superseded by S401 |
-| J364.15 | J364 / S401 | WP8, WP10; Windows AC1015 reader trace | J364.14 | ACTIVE | DEFERRED_EXTERNAL | enable the existing `DRW_DBG` trace only around the AC1015 local self-read and restore the prior debug level immediately afterward; keep trace diagnostics bounded to the existing metadata-only artifact, change no parser behavior, and preserve the no-claim/no-fixture policy | local focused test passes with the trace path compiled; push and inspect the first failing frame/offset in the Windows artifact, then scope the minimal reader repair |
+| J364.15 | J364 / S401 | WP8, WP10; Windows AC1015 reader trace | J364.14 | COMMITTED | DEFERRED_EXTERNAL | enable the existing `DRW_DBG` trace only around the AC1015 local self-read and restore the prior debug level immediately afterward; keep trace diagnostics bounded to the existing metadata-only artifact, change no parser behavior, and preserve the no-claim/no-fixture policy | hosted run `35185631469` identifies compiler-dependent entity order and two unresolved compound frames; no parser behavior, claim, or fixture bytes changed; superseded by S402 |
+| J364.16 | J364 / S402 | WP8, WP10; deterministic legacy entity sweep | J364.15 | ACTIVE | DEFERRED_EXTERNAL | select `ObjectMap` entries by stable source ordinal, then source offset and handle, during the final entity sweep; preserve deferred compound-state semantics, keep platform-specific diagnostics bounded, recompute digest/status, and retain the no-claim/no-fixture policy | source patch is staged with implementation digest `cdcd2733565bdc42e047a04ff69f499781986a84847ce1e491d549c3b9e761d7`; run focused validation and replacement hosted qualification |
 | J313.1 | J313 / S337 | WP3.11-WP3.12, WP8, WP10; TABLE parser-state copy isolation | J312 | COMMITTED | EXPERIMENTAL | assert copied and assigned TABLE models accept fresh subclass/grid dimensions after a partial source parse while preserving public table content; keep all inputs in memory | focused `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures |
 
 <!-- UPGRADE_PROGRESS_END -->

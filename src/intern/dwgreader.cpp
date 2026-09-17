@@ -25,6 +25,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <functional>
+#include <iterator>
 #include <limits>
 #include <sstream>
 #include <stdexcept>
@@ -8788,6 +8789,23 @@ bool dwgReader::readDwgEntities(DRW_Interface &intfa, dwgBuffer *dbuf,
   rejectOwnedEntityInSweep = version > DRW::AC1015;
   while (!ObjectMap.empty()) {
     auto itB = ObjectMap.begin();
+    // The source map is an unordered container, but legacy compound entities
+    // (notably AC1015 POLYLINE/VERTEX/SEQEND chains) have deferred state that
+    // must be visited in a stable source order.  Relying on begin() made the
+    // result compiler/container dependent: libstdc++ happened to resolve the
+    // chain while MSVC left pending frames and failed the ENTITIES phase.
+    for (auto candidate = std::next(ObjectMap.begin());
+         candidate != ObjectMap.end(); ++candidate) {
+      const objHandle &current = itB->second;
+      const objHandle &observed = candidate->second;
+      const bool earlier = observed.sourceOrdinal < current.sourceOrdinal
+          || (observed.sourceOrdinal == current.sourceOrdinal
+              && (observed.loc < current.loc
+                  || (observed.loc == current.loc
+                      && observed.handle < current.handle)));
+      if (earlier)
+        itB = candidate;
+    }
     if (m_quarantinedEntityHandles.find(itB->first) !=
         m_quarantinedEntityHandles.end()) {
       if (!discardDwgSourceFrame(ObjectMap, itB)) {
