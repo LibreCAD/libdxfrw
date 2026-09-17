@@ -901,6 +901,11 @@ def self_test() -> None:
     frozen_partial["nativeReceiptRefs"] = [
         {"id": item} for item in sorted(receipt_ids)
     ]
+    # The partial-promotion vector intentionally replaces the native receipt
+    # set with opaque IDs; clear the broad references as well so this vector
+    # reaches the route-promotion assertion instead of failing the unrelated
+    # broad-subset invariant first.
+    frozen_partial["broadMatrixReceiptRefs"] = []
     for row in frozen_partial["claimStatus"]:
         claim = claim_by_id[row["claimId"]]
         if all(evidence[item]["qualificationEligible"] for item in claim["evidenceIds"]):
