@@ -2920,6 +2920,20 @@ edit this block or commit the same slice concurrently.
   explicitly `DEFERRED_EXTERNAL` and non-promoting.  Next action is to commit
   and push S413, rerun focused, then repeat final-broad without stopping.
 
+- Current checkpoint (2026-09-17): final-broad run `35207565369` passes 37/38
+  tests on every platform except one Windows bookkeeping assertion.  The
+  transaction correctly aborts and removes its owned temporary; the test
+  counted the intentionally retained attacker pathname first because that
+  pathname shares the transaction prefix.  S414/J364.28 removes the attacker
+  pathname before counting owned temporaries, preserving the security
+  assertion and destination-preservation check.  Local writer-primitives and
+  diff gates pass; the implementation digest is
+  `29cb1962006da5b3977982af093401608383622b7086165ce8346a2f0a00a4ce` over
+  166 inputs.  No claims, receipts, or drawing/oracle payloads change; the six
+  external-only items remain `DEFERRED_EXTERNAL` and non-promoting.  Next
+  action is to commit/push S414, rerun focused, and repeat final-broad without
+  stopping.
+
 - Current checkpoint (2026-09-17): S400's replacement PR #93 run
   `35184950202` confirms Windows publishes the complete `13565`-byte AC1015
   file with `AC1015` magic, yet the reader still fails only in `read-entities`;
@@ -4649,20 +4663,20 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 413 (`COMMITTED`).
+- Resolved slices: 414 (`COMMITTED`).
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 1 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 413 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 414 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 1 VERIFYING /
   0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 389 COMMITTED.
 - Expanded child-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 1 VERIFYING /
-  0 BLOCKED_HARD / 0 VERIFIED / 0 SUPERSEDED / 517 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 VERIFIED / 0 SUPERSEDED / 518 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   7 DEFERRED_EXTERNAL / 365 EXPERIMENTAL / 0 PROMOTED / 8 NOT_APPLICABLE.
 - Active work: S01-S384 and J329/J329.1/J330/J330.1/J331/J331.1/J332/J332.1/
   J333/J333.1/J334/J334.1/J335/J335.1/J336/J336.1/J337/J337.1/J338/J338.1/
   J339/J339.1/J340/J340.1/J341/J341.1/J342/J342.1/J343/J343.1/J344/J344.1/
-  J345/J345.1/J346/J346.1/J347/J347.1/J348/J348.1/J349/J349.1/J350/J350.1/J351/J351.1/J352/J352.1/J353/J353.1/J354/J354.1/J355/J355.1/J356/J356.1/J357/J357.1/J358/J358.1/J359/J359.1/J359.2/J360/J360.1/J360.2/J360.3/J361/J361.1/J362/J362.1/J362.2/J362.3/J363/J363.0/J363.1/J363.2/J364.18/J364.19/J364.20/J364.21/J364.22/J364.23/J364.24/J364.25/J364.26/J364.27 and S384a/S385/S386/S386a/S386b/S387a/S387/S389/S390/S391/S392/S393/S394/S395/S396/S397/S398/S399/S400/S401/S402/S403/S404/S405/S406/S407/S408/S409/S410/S411/S412/S413 are committed.  S388/J364.1 is VERIFYING until the complete final-broad matrix is accepted; J364.2 remains planned.
+  J345/J345.1/J346/J346.1/J347/J347.1/J348/J348.1/J349/J349.1/J350/J350.1/J351/J351.1/J352/J352.1/J353/J353.1/J354/J354.1/J355/J355.1/J356/J356.1/J357/J357.1/J358/J358.1/J359/J359.1/J359.2/J360/J360.1/J360.2/J360.3/J361/J361.1/J362/J362.1/J362.2/J362.3/J363/J363.0/J363.1/J363.2/J364.18/J364.19/J364.20/J364.21/J364.22/J364.23/J364.24/J364.25/J364.26/J364.27/J364.28 and S384a/S385/S386/S386a/S386b/S387a/S387/S389/S390/S391/S392/S393/S394/S395/S396/S397/S398/S399/S400/S401/S402/S403/S404/S405/S406/S407/S408/S409/S410/S411/S412/S413/S414 are committed.  S388/J364.1 is VERIFYING until the complete final-broad matrix is accepted; J364.2 remains planned.
   Keep the fast inner loop and do not promote support claims from
   self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -5134,6 +5148,7 @@ edit this block or commit the same slice concurrently.
 | S411 | J364.25: align MSVC seam access decoration | S410 | COMMITTED | final-broad Windows unresolved symbols after `/GL-`; MSVC public/private decorated-name mismatch; conditional access guard; local Wave 1 and focused fast tests; qualification digest/status; plan; fixture; diff | under `LIBDXFRW_FORCE_TEST_SEAMS`, the five seam declarations are public in both the library and Wave 1 translation units, matching MSVC `QEAA` names; ordinary consumers retain private access and non-MSVC builds are unchanged; no claim or drawing bytes change | push S411, rerun focused, then repeat final-broad; accept metadata-only receipts only after exact API/artifact joins pass |
 | S412 | J364.26: close final-broad cross-platform test defects | S411 | COMMITTED | final-broad run `35203654757`; Windows-only frozen-checker self-test adapter; mode-mutation portability; Python-script runner invocation; Windows transaction abort cleanup; local C++14/C++17 and fast policy gates; qualification digest/status; plan; fixture; diff | S411 now links on Windows; the broad matrix identifies seven test failures.  Keep the frozen AC1024 checker byte-identical while adapting only its Windows `/usr/bin/env` self-test probe; choose a mode mutation opposite to the platform's actual Git mode; invoke `.py` advisory runners through the active absolute Python interpreter; close the owned CRT descriptor before removing a Windows temporary.  Digest `e60e09c021e1c00853c27e6df83307c5c61f9e6d8b3c75ca25344d5453c4ea80` covers 166 inputs; no claims, receipts, or drawing bytes change | push S412, run the exact seven-test focused matrix, then repeat final-broad; record focused/broad metadata-only receipts only after exact API/artifact and digest joins pass |
 | S413 | J364.27: express Windows sharing identity-test contract | S412 | COMMITTED | final-broad run `35206139820`; Windows open-stream rename behavior; writer-primitives cleanup; local C++17 fast test; qualification digest/status; plan; fixture; diff | Windows sharing rejects replacement of an open CRT temporary, so the test now verifies abort cleanup and destination preservation on that path; POSIX retains the unowned-replacement identity-fail assertions.  Digest `d5b209cb181943458cf6251fea7538e2f60c37b74b42aeb024e9321051bafe0a` covers 166 inputs; no claim or drawing bytes change | push S413, run focused, then repeat final-broad; accept metadata-only receipts only after exact API/artifact and digest joins pass |
+| S414 | J364.28: exclude blocked attacker path from cleanup count | S413 | COMMITTED | final-broad run `35207565369`; Windows transaction-prefix bookkeeping; local C++17 writer-primitives fast test; qualification digest/status; plan; fixture; diff | remove the intentionally retained attacker pathname before counting transaction-prefix files after a blocked Windows rename; keep the owned-temporary cleanup and destination-preservation assertions intact.  Digest `29cb1962006da5b3977982af093401608383622b7086165ce8346a2f0a00a4ce` covers 166 inputs; no claim or drawing bytes change | push S414, run focused, then repeat final-broad; accept metadata-only receipts only after exact API/artifact and digest joins pass |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -6056,6 +6071,7 @@ edit this block or commit the same slice concurrently.
 | J364.25 | J364 / S411 | WP8, WP10; MSVC private/public seam name-decoration compatibility | J364.24 | COMMITTED | DEFERRED_EXTERNAL | make only the five test-seam declarations conditionally `public` under MSVC when `LIBDXFRW_FORCE_TEST_SEAMS` is defined, restoring public decorated names for the Wave 1 private-header view; keep ordinary-consumer access private and non-MSVC declarations unchanged; rerun broad-link reproduction plus focused fast tests, recompute digest/status, invalidate prior receipts, and preserve the no-claim/no-fixture policy | final-broad run `35202352604` shows export/noinline and `/GL-` do not address the MSVC `QEAA` versus private `AEAA` name mismatch; local fast tests and policy gates pass; no claim or drawing bytes change |
 | J364.26 | J364 / S412 | WP8, WP10; final-broad cross-platform self-test and cleanup portability | J364.25 | COMMITTED | DEFERRED_EXTERNAL | keep the frozen AC1024 checker byte-identical while adapting only its Windows `/usr/bin/env` self-test probe; make parity-input mode mutations opposite to the actual Git mode; invoke temporary Python advisory runners through the active interpreter; close an owned Windows CRT descriptor before removing its temporary pathname; recompute digest/status, invalidate prior receipts, and preserve the no-claim/no-fixture policy | final-broad run `35203654757` links Windows but fails seven tests for these four portability classes; local all-script and C++14/C++17 checks pass with digest `e60e09c021e1c00853c27e6df83307c5c61f9e6d8b3c75ca25344d5453c4ea80` over 166 inputs; no claim or drawing bytes change |
 | J364.27 | J364 / S413 | WP8, WP10; Windows open-stream sharing identity-test contract | J364.26 | COMMITTED | DEFERRED_EXTERNAL | express the platform contract in `tests/writer_primitives_tests.cpp`: Windows treats a blocked rename of an open CRT temporary as the safe path and verifies abort cleanup/destination preservation; POSIX keeps the replacement/identity-fail assertions; recompute digest/status, invalidate prior receipts, and preserve the no-claim/no-fixture policy | final-broad run `35206139820` passes 37/38 tests and fails only the Windows identity-substitution expectation; local writer-primitives and diff gates pass with digest `d5b209cb181943458cf6251fea7538e2f60c37b74b42aeb024e9321051bafe0a`; no claim or drawing bytes change |
+| J364.28 | J364 / S414 | WP8, WP10; Windows transaction-prefix cleanup bookkeeping | J364.27 | COMMITTED | DEFERRED_EXTERNAL | remove the intentionally retained attacker pathname before counting transaction-prefix files after a blocked Windows rename; preserve owned-temporary cleanup, identity coverage, destination preservation, digest/status invalidation, and the no-claim/no-fixture policy | final-broad run `35207565369` leaves only the bookkeeping assertion; local writer-primitives and diff gates pass with digest `29cb1962006da5b3977982af093401608383622b7086165ce8346a2f0a00a4ce`; no claim or drawing bytes change |
 | J313.1 | J313 / S337 | WP3.11-WP3.12, WP8, WP10; TABLE parser-state copy isolation | J312 | COMMITTED | EXPERIMENTAL | assert copied and assigned TABLE models accept fresh subclass/grid dimensions after a partial source parse while preserving public table content; keep all inputs in memory | focused `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures |
 
 <!-- UPGRADE_PROGRESS_END -->

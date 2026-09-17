@@ -339,9 +339,9 @@ void testOutputTransactionPublicationAndRollback(TestContext& t) {
             // the stream is open; verify the safe abort/cleanup contract and
             // leave the destination untouched.
             transaction.abort();
+            std::filesystem::remove(attacker, ignored);
             t.expect(transactionTemporaryCount(target) == 0,
                      "blocked replacement aborts and removes the owned temporary");
-            std::filesystem::remove(attacker, ignored);
         } else {
             t.expect(!transaction.commit(),
                      "identity-check replacement rejects commit");
