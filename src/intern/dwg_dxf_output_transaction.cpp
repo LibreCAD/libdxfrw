@@ -31,6 +31,7 @@
 #if defined(_WIN32)
 #  include <fcntl.h>
 #  include <io.h>
+#  include <share.h>
 #  include <sys/stat.h>
 #  include <windows.h>
 #else
@@ -69,10 +70,11 @@ bool DwgDxfOutputTransaction::createExclusiveTemporary() {
         m_temporary = directory /
             (name + ".libdxfrw-" + std::to_string(random()) + "-"
              + std::to_string(random()) + "-" + std::to_string(attempt));
-        const int descriptor = _wopen(
-            m_temporary.c_str(), _O_CREAT | _O_EXCL | _O_WRONLY | _O_BINARY,
-            _S_IREAD | _S_IWRITE);
-        if (descriptor < 0)
+        int descriptor = -1;
+        if (_wsopen_s(&descriptor, m_temporary.c_str(),
+                      _O_CREAT | _O_EXCL | _O_WRONLY | _O_BINARY,
+                      _SH_DENYNO, _S_IREAD | _S_IWRITE) != 0
+            || descriptor < 0)
             continue;
         m_exclusiveDescriptor = descriptor;
         return true;
