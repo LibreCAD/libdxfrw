@@ -580,7 +580,7 @@ public:
         ImageReactorInsert
     };
     struct DxfWriteMutation {
-        DxfWriteMutationKind kind;
+        DxfWriteMutationKind kind {DxfWriteMutationKind::BlockMapInsert};
         std::string key;
         std::uint32_t handle {0};
         std::uint32_t previousHandle {0};

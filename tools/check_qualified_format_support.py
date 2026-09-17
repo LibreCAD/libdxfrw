@@ -197,6 +197,26 @@ def _validate_committed_file(
         raise SupportError("%s digest does not match recorded commit" % label)
 
 
+def _validate_commit_reachable(root: Path, commit: str, label: str) -> None:
+    """Require evidence to be replayable from a clean checkout of HEAD.
+
+    ``git show`` alone is insufficient: a developer's object database can
+    retain commits from a rebased or squash-merged branch that a fresh clone
+    of the current branch cannot obtain.  Evidence provenance must therefore
+    name an ancestor of HEAD as well as bind the recorded file bytes.
+    """
+    try:
+        subprocess.run(
+            ["git", "merge-base", "--is-ancestor", commit, "HEAD"],
+            cwd=root,
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise SupportError("%s recorded commit is not reachable from HEAD" % label) from exc
+
+
 def _validate_authority(document: dict[str, Any]) -> None:
     authority = document.get("promotionAuthority")
     if not isinstance(authority, dict):
@@ -280,6 +300,7 @@ def _validate_evidence(
         recorded_commit = row.get("recordedByCommit")
         if not _is_hex40(recorded_commit):
             raise SupportError("%s has an invalid recorded commit" % evidence_id)
+        _validate_commit_reachable(root, recorded_commit, evidence_id)
         bound_files = (
             (row.get("artifactPath"), row.get("artifactSha256"), "artifact"),
             (row.get("checkerPath"), row.get("checkerSha256"), "checker"),
@@ -805,6 +826,14 @@ def self_test() -> None:
             )
         ),
         "unbound v2 recorded commit",
+    )
+    _expect_rejected(
+        lambda: invalid_claims(
+            lambda d: d["evidence"][v2_evidence_index].update(
+                recordedByCommit="b8d8a8296958ba0f9ff5c5a188d291a0a6f1a4ae"
+            )
+        ),
+        "non-ancestor v2 recorded commit",
     )
     _expect_rejected(
         lambda: invalid_claims(

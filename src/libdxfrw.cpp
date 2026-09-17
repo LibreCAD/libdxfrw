@@ -6975,6 +6975,7 @@ bool dxfRW::writeBlockRecord(
         record.insertHandles = insertHandles;
 
         if (m_collectingBlockRecords) {
+            const std::uint32_t recordHandle = record.handle;
             const std::size_t mutationCheckpoint = m_dxfWriteMutations.size();
             try {
                 if (m_recordStateScopeDepth != 0) {
@@ -6992,7 +6993,7 @@ bool dxfRW::writeBlockRecord(
             } catch (...) {
                 blockMap.erase(key);
                 if (m_pendingBlockRecords.size() > 0
-                    && m_pendingBlockRecords.back().handle == record.handle)
+                    && m_pendingBlockRecords.back().handle == recordHandle)
                     m_pendingBlockRecords.pop_back();
                 m_dxfWriteMutations.resize(mutationCheckpoint);
                 m_writeError = true;
