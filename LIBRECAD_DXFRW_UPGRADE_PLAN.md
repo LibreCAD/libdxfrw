@@ -2690,6 +2690,19 @@ edit this block or commit the same slice concurrently.
   verify explicit Windows sharing and rerun focused qualification;
   S388/J364.1 remains `VERIFYING`.
 
+- Current checkpoint (2026-09-17): S396's hosted run `35181837182` still
+  reports Windows `open-failure` before writer emission after the explicit
+  `_wsopen_s(..., _SH_DENYNO, ...)` repair.  S397/J364.11 adds a bounded
+  diagnostic of `stream-open`, `stream-good`, and temporary-identity results
+  plus `errno`/`GetLastError` to identify the failing predicate; no receipt is
+  accepted.  Digest
+  `4779fa1f812e235caccee44c199231bae1035bd335d089a2f025a450f0c08687` is
+  invalidated; replacement digest is
+  `10e791275071eadfd72980bc3d161b20d754153faccdbe2c6c1dec012b428b37` over
+  165 inputs.  Claims digest, support rows, immutable claims, and fixtures
+  remain unchanged.  S396/J364.10 is `COMMITTED`; S397/J364.11 is `ACTIVE` to
+  capture the exact Windows open predicate; S388/J364.1 remains `VERIFYING`.
+
 - Current checkpoint (2026-09-16): S329/J305 compound-entity graph ownership
   is committed.  Explicit copies now clone legacy POLYLINE vertices, SPLINE
   control/fit points, and INSERT attributes while resetting parser cursors;
@@ -4393,20 +4406,20 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 395 (`COMMITTED`).
+- Resolved slices: 396 (`COMMITTED`).
 - Slice states: 0 READY / 0 PLANNED / 1 ACTIVE / 1 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 395 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 396 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 1 VERIFYING /
   0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 389 COMMITTED.
 - Expanded child-item states: 0 READY / 1 PLANNED / 1 ACTIVE / 1 VERIFYING /
-  0 BLOCKED_HARD / 0 VERIFIED / 0 SUPERSEDED / 500 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 VERIFIED / 0 SUPERSEDED / 501 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   7 DEFERRED_EXTERNAL / 365 EXPERIMENTAL / 0 PROMOTED / 8 NOT_APPLICABLE.
 - Active work: S01-S384 and J329/J329.1/J330/J330.1/J331/J331.1/J332/J332.1/
   J333/J333.1/J334/J334.1/J335/J335.1/J336/J336.1/J337/J337.1/J338/J338.1/
   J339/J339.1/J340/J340.1/J341/J341.1/J342/J342.1/J343/J343.1/J344/J344.1/
-  J345/J345.1/J346/J346.1/J347/J347.1/J348/J348.1/J349/J349.1/J350/J350.1/J351/J351.1/J352/J352.1/J353/J353.1/J354/J354.1/J355/J355.1/J356/J356.1/J357/J357.1/J358/J358.1/J359/J359.1/J359.2/J360/J360.1/J360.2/J360.3/J361/J361.1/J362/J362.1/J362.2/J362.3/J363/J363.0/J363.1/J363.2 and S384a/S385/S386/S386a/S386b/S387a/S387/S389/S390/S391/S392/S393/S394/S395 are committed.  S388/J364.1 is VERIFYING after the hosted runs exposed cross-platform compile defects; S396/J364.10 is ACTIVE for the Windows temporary-sharing repair, and J364.2 remains planned until a complete focused receipt set is accepted.
+  J345/J345.1/J346/J346.1/J347/J347.1/J348/J348.1/J349/J349.1/J350/J350.1/J351/J351.1/J352/J352.1/J353/J353.1/J354/J354.1/J355/J355.1/J356/J356.1/J357/J357.1/J358/J358.1/J359/J359.1/J359.2/J360/J360.1/J360.2/J360.3/J361/J361.1/J362/J362.1/J362.2/J362.3/J363/J363.0/J363.1/J363.2 and S384a/S385/S386/S386a/S386b/S387a/S387/S389/S390/S391/S392/S393/S394/S395/S396 are committed.  S388/J364.1 is VERIFYING after the hosted runs exposed cross-platform compile defects; S397/J364.11 is ACTIVE for the Windows open-predicate diagnostic, and J364.2 remains planned until a complete focused receipt set is accepted.
   Keep the fast inner loop and do not promote support claims from
   self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -4860,7 +4873,8 @@ edit this block or commit the same slice concurrently.
 | S393 | J364.7: make raw-replay focused evidence compiler-independent | S392 | COMMITTED | GCC 6/7 focused result in `tests/dwg_local_roundtrip_tests.cpp`; raw-object event assertion must not depend on unordered-map traversal order; focused native build; qualification digest/status; plan; fixture; diff | hosted run `35178718521` builds all focused targets but Linux/GCC fails only `libdxfrw_dwg_local_roundtrip` because the expected raw event order differs; sorted canonical comparison preserves replay membership and section coverage; no claim or fixture bytes changed | compare filtered raw events in sorted canonical order, run the smallest focused compile/tests (including parallel CTest), update digest/status and plan, commit with matching trailers, push to PR #93, then rerun S388 |
 | S394 | J364.8: repair Windows atomic output publication | S393 | COMMITTED | Windows/MSVC focused run `35179556627` 6/7 with all targets built; `DwgDxfOutputTransaction::commit()` must close the CRT descriptor before `MoveFileExW` while retaining ownership checks; focused native build; qualification digest/status; plan; fixture; diff | replacement run `35180493247` confirms the descriptor-close source compiles and reaches focused execution; Windows local-roundtrip still fails and no receipt is accepted; digest `e64e8f2aa0e7c5aaae009a2f9cb542d283ff7e2589c9acba006408cda76c68c9` is superseded by S395; no fixture or claim bytes changed | verify ownership before close, close the Windows descriptor before publish, remove only the uniquely named temporary on failed publish, run focused local tests and parallel CTest, update digest/status and plan, commit with matching trailers, push to PR #93, then rerun S388 |
 | S395 | J364.9: expose Windows writer failure diagnostic | S394 | COMMITTED | Windows/MSVC run `35180493247` fails only `libdxfrw_dwg_local_roundtrip` with 1119 assertions across versions 13-18; focused test prints the public DWG operation diagnostic on write failure; focused native build; qualification digest/status; plan; fixture; diff | diagnostic run `35181235487` proves `open-failure` before writer emission for every Windows version; no fixture or claim bytes changed; digest `ac2200c7c8390bfa4b0909b0cd8f5635451122ed222e1b93cc42992798a7dc15` is superseded by S396 | print `getLastDiagnostic()` code/message for failed local DWG writes, run the smallest focused compile/test, update digest/status and plan, commit with matching trailers, push to PR #93, then rerun S388 |
-| S396 | J364.10: repair Windows temporary-file sharing | S395 | ACTIVE | Windows `_wopen`/`ofstream` open seam in `src/intern/dwg_dxf_output_transaction.cpp`; focused native build; qualification digest/status; plan; fixture; diff | explicit `_wsopen_s(..., _SH_DENYNO, ...)` preserves exclusive creation while permitting the stream reopen; POSIX path is unchanged; digest `4779fa1f812e235caccee44c199231bae1035bd335d089a2f025a450f0c08687` is staged for verification; no claim or fixture bytes changed | run the smallest focused compile/test, push to PR #93, inspect Windows diagnostics and receipt, then rerun S388; if a semantic test fails, add a new repair slice and invalidate this digest |
+| S396 | J364.10: repair Windows temporary-file sharing | S395 | COMMITTED | Windows `_wopen`/`ofstream` open seam in `src/intern/dwg_dxf_output_transaction.cpp`; focused native build; qualification digest/status; plan; fixture; diff | hosted run `35181837182` still reports open-failure before writer emission; explicit `_wsopen_s(..., _SH_DENYNO, ...)` source is superseded by S397 diagnostic instrumentation; no claim or fixture bytes changed | run the smallest focused compile/test, push to PR #93, inspect Windows diagnostics and receipt, then rerun S388; if a semantic test fails, add a new repair slice and invalidate this digest |
+| S397 | J364.11: diagnose Windows temporary open predicate | S396 | ACTIVE | Windows transaction open seam; focused native build; qualification digest/status; plan; fixture; diff | print stream-open/good/identity booleans and platform error values only when the Windows transaction open path fails; no behavior, claim, or fixture bytes change; digest `10e791275071eadfd72980bc3d161b20d754153faccdbe2c6c1dec012b428b37` is staged for hosted diagnosis | run the smallest focused compile/test, push to PR #93, inspect the diagnostic line, then implement the minimal open-path fix and rerun S388 |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -5766,7 +5780,8 @@ edit this block or commit the same slice concurrently.
 | J364.7 | J364 / S393 | WP8, WP10; compiler-independent raw replay | J364.6 | COMMITTED | DEFERRED_EXTERNAL | canonicalize filtered raw-replay events before comparison so unordered-map traversal order cannot change the semantic membership assertion; run focused native checks and update the digest/status without changing claims or fixtures | run `35179556627` passes the workflow contract and all seven focused tests on Linux/GCC and macOS/Clang; Windows passes six of seven because publication fails before this next repair; digest `a6fc2c2b23bfd08ce2384db070628ad805229a1e08da09db113640b3be9ffe74` is superseded by S394; no fixture or claim bytes changed |
 | J364.8 | J364 / S394 | WP8, WP10; Windows atomic output publication | J364.7 | COMMITTED | DEFERRED_EXTERNAL | close the Windows CRT descriptor after ownership verification and before `MoveFileExW`, remove only the uniquely named temporary on failed publish, preserve POSIX descriptor-relative behavior, recompute digest/status, and invalidate prior receipts without changing claims or fixtures | run `35180493247` confirms the descriptor-close source compiles and reaches focused execution; Windows local-roundtrip still fails 1119 assertions; digest `e64e8f2aa0e7c5aaae009a2f9cb542d283ff7e2589c9acba006408cda76c9` is superseded by S395; no fixture or claim bytes changed |
 | J364.9 | J364 / S395 | WP8, WP10; Windows writer diagnostic capture | J364.8 | ACTIVE | DEFERRED_EXTERNAL | print `dwgRW::getLastDiagnostic()` code/message for each failed local DWG write so the next Windows repair targets the actual failure stage; keep behavior, claims, and fixtures unchanged and recompute the digest/status | run `35180493247` isolates the failure to `libdxfrw_dwg_local_roundtrip` with six of seven Windows tests passing; Linux/GCC and macOS/Clang are green; next action is push and inspect the diagnostic lines |
-| J364.10 | J364 / S396 | WP8, WP10; Windows temporary-file sharing | J364.9 | ACTIVE | DEFERRED_EXTERNAL | use explicit `_wsopen_s(..., _SH_DENYNO, ...)` for exclusive temporary creation so the second `ofstream` can open the file; preserve identity checks, close-before-publish behavior, POSIX paths, and no-claim/no-fixture policy while recomputing the digest/status | S395 diagnostic run proves Windows `open-failure` before writer emission; S396 stages the sharing-mode repair with digest `4779fa1f812e235caccee44c199231bae1035bd335d089a2f025a450f0c08687`; next action is hosted verification |
+| J364.10 | J364 / S396 | WP8, WP10; Windows temporary-file sharing | J364.9 | COMMITTED | DEFERRED_EXTERNAL | use explicit `_wsopen_s(..., _SH_DENYNO, ...)` for exclusive temporary creation so the second `ofstream` can open the file; preserve identity checks, close-before-publish behavior, POSIX paths, and no-claim/no-fixture policy while recomputing the digest/status | hosted run `35181837182` still proves Windows `open-failure` before writer emission; S396 is superseded by S397 diagnostics; no fixture or claim bytes changed |
+| J364.11 | J364 / S397 | WP8, WP10; Windows open-stage diagnostic | J364.10 | ACTIVE | DEFERRED_EXTERNAL | report stream-open, stream-good, temporary-identity, `errno`, and `GetLastError` when the Windows transaction open path fails; keep diagnostics bounded and non-mutating, then recompute digest/status without changing claims or fixtures | S396 hosted output remains `open-failure` but does not identify the predicate; digest `10e791275071eadfd72980bc3d161b20d754153faccdbe2c6c1dec012b428b37` is staged for the next hosted run |
 | J313.1 | J313 / S337 | WP3.11-WP3.12, WP8, WP10; TABLE parser-state copy isolation | J312 | COMMITTED | EXPERIMENTAL | assert copied and assigned TABLE models accept fresh subclass/grid dimensions after a partial source parse while preserving public table content; keep all inputs in memory | focused `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures |
 
 <!-- UPGRADE_PROGRESS_END -->

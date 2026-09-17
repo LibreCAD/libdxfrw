@@ -23,7 +23,9 @@
 
 #include "dwg_dxf_output_transaction.h"
 
+#include <cerrno>
 #include <cstdint>
+#include <cstdio>
 #include <random>
 #include <string>
 #include <vector>
@@ -222,7 +224,18 @@ bool DwgDxfOutputTransaction::open() {
     // The file was created exclusively above.  Do not pass ios::trunc here:
     // reopening with truncation would reintroduce a race with a stale name.
     m_stream.open(m_temporary, m_mode | std::ios::out);
-    if (!m_stream.is_open() || !m_stream.good() || !temporaryIdentityMatches()) {
+    const bool streamOpen = m_stream.is_open();
+    const bool streamGood = m_stream.good();
+    const bool identityMatches = temporaryIdentityMatches();
+    if (!streamOpen || !streamGood || !identityMatches) {
+#if defined(_WIN32)
+        std::fprintf(stderr,
+                     "DwgDxfOutputTransaction open failed: stream=%d good=%d "
+                     "identity=%d errno=%d gle=%lu\n",
+                     streamOpen ? 1 : 0, streamGood ? 1 : 0,
+                     identityMatches ? 1 : 0, errno,
+                     static_cast<unsigned long>(GetLastError()));
+#endif
         abort();
         return false;
     }
