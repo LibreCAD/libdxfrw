@@ -1,0 +1,221 @@
+{
+  "schema": 2,
+  "kind": "libdxfrw-local-ac1024-independent-candidate-fields-successor",
+  "status": "EXPERIMENTAL",
+  "frozenBeforeOracle": true,
+  "fixturePolicy": "local-from-scratch-runtime-only; generated-dwg-dxf-and-json-temporary; no-generated-payloads",
+  "promotionBoundary": {
+    "promotesSupport": false,
+    "selfReadDisposition": "reachability-only",
+    "unlistedFieldDisposition": "excluded",
+    "wholeFixtureClaimsForbidden": true,
+    "wholeVersionClaimsForbidden": true
+  },
+  "predecessor": {
+    "recordedByCommit": "b957ab0adcec2eb60b39394525616bb9d8d3ec9c",
+    "manifest": {
+      "path": "metadata/ac1024-candidate-fields-v1.json",
+      "sha256": "e9f6d18df974e7cbc23701ad906fe33e4ca6542fa24861bef9b5d86a7a4764f0"
+    },
+    "checker": {
+      "path": "tools/check_ac1024_candidate_fields.py",
+      "sha256": "77b461e663a70ae29d632658636b28bf119132f085f6d14d1af9daf20f474c35"
+    },
+    "evidence": {
+      "bindingAlgorithm": "sha256(canonical-json(evidenceCore))",
+      "bindingSha256": "fc07381ab378229952861c6d46dc6b186f9b5c5e214d79174d23b8ebd8371aef",
+      "evidenceCore": {
+        "status": "new-child-required",
+        "promotesSupport": false,
+        "generatedPayloadsRetained": false,
+        "generatedInputSha256": "6acb7d4a0289d200d3dd448abc77082250f1678ec2ad815870e4617fa16abffd",
+        "oracleJsonSha256": "e5e7a39ccf2d005c117660f289ef1bd3c9339f2a1ba49657e1925aa8026b37b5",
+        "oracleDependencyDigest": "0ff71eff96ce45bd0fbbcc760741225936096437e3145f577c84e9408aab4af2",
+        "oracleDiscrepancyCount": 34,
+        "j360": {
+          "comparisonStatus": "mismatch",
+          "exactCount": 17304,
+          "mismatchCount": 10,
+          "bindingSha256": "cc08cc93aaa46bdcff05e54454daaade43931e8da7644b424594de278b69b63d"
+        },
+        "claimOutcomeCounts": {
+          "validated": 12,
+          "excluded": 4
+        },
+        "excludedClaimIds": [
+          "rtext-insertion-x",
+          "rtext-insertion-y",
+          "rtext-insertion-z",
+          "rtext-rotation"
+        ],
+        "boundedObservations": {
+          "oracleInsertion": {
+            "field": "pt",
+            "value": [
+              90.0,
+              91.0,
+              0.0
+            ],
+            "unit": "drawing-coordinate",
+            "canonicalValueSha256": "917befa123818f32c96b1ea653e641dbafba6d720d416e830a37f160ba67a12e"
+          },
+          "semanticInsertion": {
+            "field": "insertion",
+            "targetValue": {
+              "x": 90,
+              "y": 91,
+              "z": 0
+            },
+            "standaloneValue": {
+              "x": 90,
+              "y": 91,
+              "z": 0
+            },
+            "unit": "drawing-coordinate",
+            "canonicalValueSha256": "2f47adc42221d97c90fb2adaef7b88aecd70fe3f2df733e9c077c75aec521d78"
+          },
+          "oracleRotation": {
+            "field": "rotation",
+            "value": 0.26179938779915,
+            "unit": "radians",
+            "canonicalValueSha256": "7ed8ab4dd85c63445eac699c181f885124a840ccd1deadf502504058312b5a3d"
+          },
+          "semanticRotation": {
+            "field": "rotation",
+            "targetValue": 14.999999999999998,
+            "standaloneValue": 14.999999999999998,
+            "unit": "degrees",
+            "canonicalValueSha256": "33717919bd0c686dabffdd6ae4e9debd3869181c9a4a26580ea22036821507c8"
+          }
+        }
+      }
+    }
+  },
+  "contractReuse": {
+    "mode": "copy-v1-and-apply-exact-claim-overrides",
+    "inheritedTopLevelKeys": [
+      "frozenContract",
+      "oracle",
+      "sharedDifferential",
+      "records",
+      "discrepancyBinding"
+    ],
+    "expectedInheritedClaimIds": [
+      "line-record-class",
+      "line-start-x",
+      "line-start-y",
+      "line-start-z",
+      "line-end-x",
+      "line-end-y",
+      "line-end-z",
+      "rtext-record-class",
+      "rtext-text",
+      "rtext-flags",
+      "rtext-extrusion-z",
+      "rtext-height"
+    ],
+    "requiredOverrideClaimIds": [
+      "rtext-insertion-x",
+      "rtext-insertion-y",
+      "rtext-insertion-z",
+      "rtext-rotation"
+    ],
+    "expectedTotalClaimCount": 16,
+    "resolvedClaimSetSha256": "27f326633f773d4cd6337101359249563d3762475da593947440c84a09994dfd"
+  },
+  "normalizationDefinitions": {
+    "degreesFromRadians": {
+      "semanticUnit": "degrees",
+      "oracleUnit": "radians",
+      "transform": "oracleRadians * 180.0 / pi",
+      "comparison": "absolute-difference-in-degrees",
+      "fixedToleranceDegrees": 1e-12,
+      "justification": {
+        "oracleJsonDecimalQuantumRadians": 1e-14,
+        "halfQuantumConvertedToDegrees": 2.864788975654116e-13,
+        "binary64UlpBudgetAt15Degrees": 16,
+        "binary64BudgetDegrees": 2.842170943040401e-14,
+        "derivedUpperBoundDegrees": 3.149006069958156e-13,
+        "minimumSafetyFactor": 3.0,
+        "actualSafetyFactor": 3.175605183934396,
+        "rationale": "The fixed bound is derived before the successor oracle run from half of the predecessor's 1e-14-radian JSON quantum converted to degrees, plus sixteen binary64 ulps at 15 degrees; 1e-12 degrees exceeds that bound by more than 3x."
+      },
+      "sourceBindings": [
+        {
+          "path": "tests/dwg_local_roundtrip_tests.cpp",
+          "sha256": "354ec286f8c574ad9262b00dd135482d65914f16468a10c8112649de2ba39050",
+          "symbol": "LocalDwgInterface RTEXT construction",
+          "fact": "rtext.angle = 15.0"
+        },
+        {
+          "path": "src/drw_entities.cpp",
+          "sha256": "c2339aed6280472964526167b3b5eda3dcff90d25928d6ec14dd9881936966b6",
+          "symbol": "DRW_RText::encodeDwg/parseDwg",
+          "fact": "DWG rotation is encoded as angle / ARAD and decoded as radians * ARAD"
+        },
+        {
+          "path": "src/drw_base.h",
+          "sha256": "697b47b1a455bf7b863ca90d3a6cc1d6be0f7edb14c20e8d5b2118a4d8dbf4d4",
+          "symbol": "ARAD",
+          "fact": "ARAD = 180 / pi = 57.29577951308232"
+        },
+        {
+          "path": "tests/semantic_differential_adapter.cpp",
+          "sha256": "f2a2bf7ed759ff0afec89d352f124acc5f7f1e337e6efa80f45dbce5d982b05a",
+          "symbol": "SemanticCollector::addText",
+          "fact": "RTEXT semantic rotation is emitted from DRW_RText::angle in degrees"
+        }
+      ]
+    }
+  },
+  "claimOverrides": [
+    {
+      "id": "rtext-insertion-x",
+      "recordId": "rtext-ed00",
+      "semanticField": "insertion.x",
+      "oracleField": "pt[0]",
+      "expectedSemantic": 90.0,
+      "expectedOracle": 90.0,
+      "semanticUnit": "drawing-coordinate",
+      "oracleUnit": "drawing-coordinate",
+      "normalization": "finiteNumber",
+      "tolerance": 0.0
+    },
+    {
+      "id": "rtext-insertion-y",
+      "recordId": "rtext-ed00",
+      "semanticField": "insertion.y",
+      "oracleField": "pt[1]",
+      "expectedSemantic": 91.0,
+      "expectedOracle": 91.0,
+      "semanticUnit": "drawing-coordinate",
+      "oracleUnit": "drawing-coordinate",
+      "normalization": "finiteNumber",
+      "tolerance": 0.0
+    },
+    {
+      "id": "rtext-insertion-z",
+      "recordId": "rtext-ed00",
+      "semanticField": "insertion.z",
+      "oracleField": "pt[2]",
+      "expectedSemantic": 0.0,
+      "expectedOracle": 0.0,
+      "semanticUnit": "drawing-coordinate",
+      "oracleUnit": "drawing-coordinate",
+      "normalization": "finiteNumber",
+      "tolerance": 0.0
+    },
+    {
+      "id": "rtext-rotation",
+      "recordId": "rtext-ed00",
+      "semanticField": "rotation",
+      "oracleField": "rotation",
+      "expectedSemantic": 15.0,
+      "expectedOracle": 0.2617993877991494,
+      "semanticUnit": "degrees",
+      "oracleUnit": "radians",
+      "normalization": "degreesFromRadians",
+      "tolerance": 1e-12
+    }
+  ]
+}

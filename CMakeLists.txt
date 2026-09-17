@@ -114,6 +114,8 @@ if(LIBDXFRW_BUILD_TESTS)
         ${CMAKE_CURRENT_SOURCE_DIR}/metadata/admitted-candidate-fields-v1.json)
     set(LIBDXFRW_AC1024_CANDIDATE_FIELDS_CONTRACT
         ${CMAKE_CURRENT_SOURCE_DIR}/metadata/ac1024-candidate-fields-v1.json)
+    set(LIBDXFRW_AC1024_CANDIDATE_FIELDS_V2_CONTRACT
+        ${CMAKE_CURRENT_SOURCE_DIR}/metadata/ac1024-candidate-fields-v2.json)
 
     if(LIBDXFRW_BUILD_QUALIFICATION)
         if(NOT LIBDXFRW_BUILD_LIBRARY)
@@ -167,7 +169,9 @@ if(LIBDXFRW_BUILD_TESTS)
             ${CMAKE_CURRENT_SOURCE_DIR}/tools/check_admitted_candidate_fields.py
             ${LIBDXFRW_QUALIFIED_SEMANTIC_FIELDS_CONTRACT}
             ${CMAKE_CURRENT_SOURCE_DIR}/tools/check_ac1024_candidate_fields.py
-            ${LIBDXFRW_AC1024_CANDIDATE_FIELDS_CONTRACT})
+            ${LIBDXFRW_AC1024_CANDIDATE_FIELDS_CONTRACT}
+            ${CMAKE_CURRENT_SOURCE_DIR}/tools/check_ac1024_candidate_fields_v2.py
+            ${LIBDXFRW_AC1024_CANDIDATE_FIELDS_V2_CONTRACT})
 
         add_test(NAME libdxfrw_qualified_differential_v2_schema
             COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
@@ -354,6 +358,14 @@ if(LIBDXFRW_BUILD_TESTS)
                     rtext-insertion-y
                     rtext-insertion-z
                     rtext-rotation)
+        add_test(NAME libdxfrw_ac1024_candidate_fields_v2
+            COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+                ${CMAKE_CURRENT_SOURCE_DIR}/tools/check_ac1024_candidate_fields_v2.py
+                --manifest ${LIBDXFRW_AC1024_CANDIDATE_FIELDS_V2_CONTRACT}
+                --writer $<TARGET_FILE:libdxfrw_dwg_local_roundtrip>
+                --oracle ${LIBDXFRW_LIBREDWG_DWGREAD}
+                --target-receipt ${LIBDXFRW_SEMANTIC_TARGET_RECEIPT}
+                --standalone-receipt ${LIBDXFRW_SEMANTIC_STANDALONE_RECEIPT})
         set_tests_properties(
             libdxfrw_qualified_differential_v2
             libdxfrw_qualified_differential_v2_dxf_write
@@ -372,6 +384,10 @@ if(LIBDXFRW_BUILD_TESTS)
             DEPENDS libdxfrw_qualified_differential_v2_schema
             FIXTURES_REQUIRED libdxfrw_semantic_adapters_fixture
             LABELS qualification)
+        set_tests_properties(libdxfrw_ac1024_candidate_fields_v2 PROPERTIES
+            DEPENDS libdxfrw_qualified_differential_v2_schema
+            FIXTURES_REQUIRED libdxfrw_semantic_adapters_fixture
+            LABELS qualification)
     else()
         add_test(NAME libdxfrw_qualified_differential_v2
             COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
@@ -387,6 +403,11 @@ if(LIBDXFRW_BUILD_TESTS)
                 ${CMAKE_CURRENT_SOURCE_DIR}/tools/check_ac1024_candidate_fields.py
                 --self-test
                 --manifest ${LIBDXFRW_AC1024_CANDIDATE_FIELDS_CONTRACT})
+        add_test(NAME libdxfrw_ac1024_candidate_fields_v2
+            COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+                ${CMAKE_CURRENT_SOURCE_DIR}/tools/check_ac1024_candidate_fields_v2.py
+                --self-test
+                --manifest ${LIBDXFRW_AC1024_CANDIDATE_FIELDS_V2_CONTRACT})
     endif()
 
     add_test(NAME libdxfrw_parity_inventory_inputs
