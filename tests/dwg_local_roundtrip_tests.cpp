@@ -5567,6 +5567,11 @@ int main(int argc, char** argv) {
         const bool writeOk = writer.write(&writeIface, version, true);
         const std::string suffix =
             " version " + std::to_string(static_cast<int>(version));
+        if (!writeOk) {
+            const DRW_OperationDiagnostic diagnostic = writer.getLastDiagnostic();
+            std::cerr << "DWG write diagnostic" << suffix << ": "
+                      << diagnostic.code << " / " << diagnostic.message << "\n";
+        }
         expect(writeOk, ("local DWG writer succeeds" + suffix).c_str(), failures);
         expect(writeIface.wroteLine(),
                ("local DWG writer emitted a line" + suffix).c_str(), failures);
