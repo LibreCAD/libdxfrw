@@ -74,7 +74,11 @@ if(LIBDXFRW_BUILD_LIBRARY)
         # symbols externally emitted in MSVC static-library builds without
         # exporting them for ordinary consumers.
         target_compile_definitions(dxfrw PRIVATE LIBDXFRW_FORCE_TEST_SEAMS=1)
-        target_compile_options(dxfrw PRIVATE /bigobj)
+        # Visual Studio Release enables whole-program optimization for static
+        # libraries; disable it for the implementation TU so the explicitly
+        # exported seam declarations survive archive creation and can satisfy
+        # the broad Wave 1 executable's direct references.
+        target_compile_options(dxfrw PRIVATE /bigobj /GL-)
         # The Wave 1 seam intentionally exercises a handful of dxfRW
         # implementation methods through a test-only private->public view of
         # the header.  MSVC's default /Zc:inline may discard otherwise
