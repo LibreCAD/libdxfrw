@@ -2770,6 +2770,25 @@ edit this block or commit the same slice concurrently.
   added.  S403/J364.17 is `COMMITTED`; S388/J364.1 remains `VERIFYING` until
   the separate complete final-broad matrix is accepted.
 
+- Current checkpoint (2026-09-17): final-broad run `35189141173` exposed three
+  repairable cross-platform defects before any promotion review: both Linux
+  and macOS rejected the frozen AC1024 candidate-source checks because later
+  diagnostics had edited their pre-oracle generator/normalization inputs;
+  Linux rejected the writer-primitives destination-preservation probe because
+  its hard-coded macOS `/private/tmp` path did not seed a file; and Windows
+  failed to link the broad Wave 1 executable because MSVC discarded the
+  private dxfRW seam methods under `/Zc:inline`.  S404/J364.18 restores every
+  frozen source byte, makes the scratch rejection path use
+  `std::filesystem::temp_directory_path()`, and keeps only the implementation
+  TU's test-seam symbols with `/Zc:inline-`.  Local frozen-contract,
+  C++17/Wave-1/writer-primitives/AC1024-roundtrip, fixture, workflow, and
+  diff gates pass; no claim, receipt, or drawing bytes are retained.  The
+  previous focused receipts are invalidated by the implementation-digest
+  change; S404/J364.18 is `COMMITTED` after its narrow gates and push, while
+  S388/J364.1 remains `VERIFYING` and J364.2 remains planned.  Next action is
+  to recompute the digest/status with empty receipt references, run the
+  replacement focused matrix, and then repeat final-broad automatically.
+
 - Current checkpoint (2026-09-17): S400's replacement PR #93 run
   `35184950202` confirms Windows publishes the complete `13565`-byte AC1015
   file with `AC1015` magic, yet the reader still fails only in `read-entities`;
@@ -4499,20 +4518,20 @@ edit this block or commit the same slice concurrently.
   The target integration commit remains
   `6969e0a003414f9a7084349ac54bc2b32515e16b`; all in-horizon lanes are
   terminal only when their recorded gates pass.
-- Resolved slices: 402 (`COMMITTED`).
+- Resolved slices: 403 (`COMMITTED`).
 - Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 1 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 402 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 403 COMMITTED.
 - Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 1 VERIFYING /
   0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 389 COMMITTED.
 - Expanded child-item states: 0 READY / 1 PLANNED / 0 ACTIVE / 1 VERIFYING /
-  0 BLOCKED_HARD / 0 VERIFIED / 0 SUPERSEDED / 507 COMMITTED; no child is
+  0 BLOCKED_HARD / 0 VERIFIED / 0 SUPERSEDED / 508 COMMITTED; no child is
   anonymous.
 - Claim/evidence dispositions (parents): 10 NOT_EVALUATED / 0 SATISFIED /
   7 DEFERRED_EXTERNAL / 365 EXPERIMENTAL / 0 PROMOTED / 8 NOT_APPLICABLE.
 - Active work: S01-S384 and J329/J329.1/J330/J330.1/J331/J331.1/J332/J332.1/
   J333/J333.1/J334/J334.1/J335/J335.1/J336/J336.1/J337/J337.1/J338/J338.1/
   J339/J339.1/J340/J340.1/J341/J341.1/J342/J342.1/J343/J343.1/J344/J344.1/
-  J345/J345.1/J346/J346.1/J347/J347.1/J348/J348.1/J349/J349.1/J350/J350.1/J351/J351.1/J352/J352.1/J353/J353.1/J354/J354.1/J355/J355.1/J356/J356.1/J357/J357.1/J358/J358.1/J359/J359.1/J359.2/J360/J360.1/J360.2/J360.3/J361/J361.1/J362/J362.1/J362.2/J362.3/J363/J363.0/J363.1/J363.2 and S384a/S385/S386/S386a/S386b/S387a/S387/S389/S390/S391/S392/S393/S394/S395/S396/S397/S398/S399/S400/S401/S402/S403 are committed.  S388/J364.1 is VERIFYING until the complete final-broad matrix is accepted; J364.2 remains planned.
+  J345/J345.1/J346/J346.1/J347/J347.1/J348/J348.1/J349/J349.1/J350/J350.1/J351/J351.1/J352/J352.1/J353/J353.1/J354/J354.1/J355/J355.1/J356/J356.1/J357/J357.1/J358/J358.1/J359/J359.1/J359.2/J360/J360.1/J360.2/J360.3/J361/J361.1/J362/J362.1/J362.2/J362.3/J363/J363.0/J363.1/J363.2/J364.18 and S384a/S385/S386/S386a/S386b/S387a/S387/S389/S390/S391/S392/S393/S394/S395/S396/S397/S398/S399/S400/S401/S402/S403/S404 are committed.  S388/J364.1 is VERIFYING until the complete final-broad matrix is accepted; J364.2 remains planned.
   Keep the fast inner loop and do not promote support claims from
   self-read alone.
   S172/J148 preserved the legacy `BAD_CODE_PARSED` channel; S173/J149,
@@ -4974,6 +4993,7 @@ edit this block or commit the same slice concurrently.
 | S401 | J364.15: trace Windows AC1015 self-read frames | S400 | COMMITTED | AC1015 reader entity/frame trace; focused native build; qualification digest/status; plan; fixture; diff | enable existing `DRW_DBG` only around the AC1015 local self-read and restore the previous debug level immediately afterward; hosted run `35185631469` shows MSVC’s unordered sweep order leaves two compound frames unresolved while GCC completes; no parser behavior, claim, or fixture bytes changed; implementation digest `31c5e9b21748850cbb36735d62f03c2d1b766bd3d677c68b504015756d38e589` is historical and superseded by S402 | select a stable source-ordinal order in the final entity sweep, run focused validation, update digest/status and plan, commit/push, then rerun S388 |
 | S402 | J364.16: make legacy entity sweep deterministic | S401 | COMMITTED | AC1015 cross-platform entity/frame ordering; focused native build; qualification digest/status; plan; fixture; diff | select the lowest `sourceOrdinal` (then source offset/handle) instead of `unordered_map::begin()` when sweeping `ObjectMap`; preserve deferred compound ownership semantics and no-claim/no-fixture policy; implementation digest `cdcd2733565bdc42e047a04ff69f499781986a84847ce1e491d549c3b9e761d7` is unchanged; PR #93 focused run `35186358403` passes all three native platforms, but pull-request receipt identity is awaiting push-event replay | record the focused result without promoting claims, then execute S403/J364.17 for exact push-event API/artifact identity and continue automatically if a platform defect appears |
 | S403 | J364.17: exact push-event receipt identity replay | S402 | COMMITTED | push-event native receipt/API/artifact join; focused native build; qualification digest/status; plan; fixture; diff | replay the unchanged frozen implementation on a push event so API `head_sha`, artifact `workflow_run.head_sha`, and runner `checkedOutCommit` are one exact commit; retain metadata-only evidence, keep all six `DEFERRED_EXTERNAL` items non-promoting, and add no drawing/oracle payload; run `35187469093` from `dxli/libdxfrw` is success on all three focused platforms and its three accepted receipt references are recorded in the status overlay | local API/artifact verifier passes `3 focused; 0 broad; 3 attempts`; no claim promotion or drawing/oracle payload; final-broad J364.2 remains planned |
+| S404 | J364.18: repair final-broad source-freeze, portable scratch, and MSVC seam | S403 | COMMITTED | final-broad failure triage; frozen AC1024 candidate contracts; portable writer rejection probe; MSVC Wave 1 link closure; focused native build; plan; fixture; diff | final-broad run `35189141173` failed only the two frozen-source checks on Linux/macOS, the hard-coded `/private/tmp` writer-preservation probe on Linux, and the Windows Wave 1 link; restore the exact frozen generator/normalization sources, use `std::filesystem::temp_directory_path()`, and compile `src/libdxfrw.cpp` with `/Zc:inline-` on MSVC so test-only private seam methods remain linkable; local frozen-contract, AC1024 roundtrip, Wave 1, writer-primitives, fixture, workflow, and diff gates pass; no claim, receipt, or drawing bytes change | update the implementation digest/status with empty receipt references, commit/push this repair, rerun focused qualification, and then dispatch final-broad again |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -5885,7 +5905,8 @@ edit this block or commit the same slice concurrently.
 | J364.13 | J364 / S399 | WP8, WP10; Windows AC1015 self-read diagnostic | J364.12 | COMMITTED | DEFERRED_EXTERNAL | print the public `dwgRW` self-read diagnostic only when the local round-trip test rejects an AC1015/format-15 output; keep diagnostics bounded and non-mutating, recompute digest/status, and preserve the no-claim/no-fixture policy | hosted run `35184309688` reports `read-entities` / “the DWG entities could not be read” and 40 AC1015 assertions after publication succeeds; no claim or fixture bytes changed; superseded by S400 |
 | J364.14 | J364 / S400 | WP8, WP10; Windows AC1015 output probe | J364.13 | COMMITTED | DEFERRED_EXTERNAL | print only the published AC1015 file byte size and six-byte magic when the existing local round-trip self-read fails; keep diagnostics bounded and non-mutating, recompute digest/status, and preserve the no-claim/no-fixture policy | hosted run `35184950202` confirms `size=13565 magic=AC1015` after publication; no drawing payload is retained; superseded by S401 |
 | J364.15 | J364 / S401 | WP8, WP10; Windows AC1015 reader trace | J364.14 | COMMITTED | DEFERRED_EXTERNAL | enable the existing `DRW_DBG` trace only around the AC1015 local self-read and restore the prior debug level immediately afterward; keep trace diagnostics bounded to the existing metadata-only artifact, change no parser behavior, and preserve the no-claim/no-fixture policy | hosted run `35185631469` identifies compiler-dependent entity order and two unresolved compound frames; no parser behavior, claim, or fixture bytes changed; superseded by S402 |
-| J364.16 | J364 / S402 | WP8, WP10; deterministic legacy entity sweep | J364.15 | ACTIVE | DEFERRED_EXTERNAL | select `ObjectMap` entries by stable source ordinal, then source offset and handle, during the final entity sweep; preserve deferred compound-state semantics, keep platform-specific diagnostics bounded, recompute digest/status, and retain the no-claim/no-fixture policy | source patch is staged with implementation digest `cdcd2733565bdc42e047a04ff69f499781986a84847ce1e491d549c3b9e761d7`; run focused validation and replacement hosted qualification |
+| J364.16 | J364 / S402 | WP8, WP10; deterministic legacy entity sweep | J364.15 | COMMITTED | DEFERRED_EXTERNAL | select `ObjectMap` entries by stable source ordinal, then source offset and handle, during the final entity sweep; preserve deferred compound-state semantics, keep platform-specific diagnostics bounded, recompute digest/status, and retain the no-claim/no-fixture policy | source patch and focused cross-platform run `35186358403` pass; implementation digest `cdcd2733565bdc42e047a04ff69f499781986a84847ce1e491d549c3b9e761d7` is superseded by S404 after final-broad triage; no claim or fixture bytes changed |
+| J364.18 | J364 / S404 | WP8, WP10; final-broad repair closure | J364.16 | COMMITTED | DEFERRED_EXTERNAL | restore the byte-frozen AC1024 candidate generator and normalization sources after diagnostic-only edits; make the writer rejection scratch path portable across hosted OSes; keep MSVC’s test-only private dxfRW seam methods emitted with a TU-local `/Zc:inline-` option; invalidate prior receipts, recompute the implementation digest, and preserve the no-claim/no-fixture policy | final-broad run `35189141173` failure artifacts bind the two source-freeze failures, the Linux path failure, and five Windows unresolved dxfRW methods; local frozen-contract, AC1024 roundtrip, Wave 1, writer-primitives, fixture, workflow, and diff gates pass; no claim, receipt, or drawing bytes changed |
 | J313.1 | J313 / S337 | WP3.11-WP3.12, WP8, WP10; TABLE parser-state copy isolation | J312 | COMMITTED | EXPERIMENTAL | assert copied and assigned TABLE models accept fresh subclass/grid dimensions after a partial source parse while preserving public table content; keep all inputs in memory | focused `libdxfrw_hardening_tests` passes; no drawing bytes or derived fixtures |
 
 <!-- UPGRADE_PROGRESS_END -->

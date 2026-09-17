@@ -3817,8 +3817,7 @@ bool DRW_Entity::parseDwgEntHandle(
         return false;
 
     std::uint32_t newAcDbColorHandle = acDbColorHandle;
-    std::uint32_t newParentHandle = ownerHandle
-        ? parentHandle : static_cast<std::uint32_t>(DRW::NoHandle);
+    std::uint32_t newParentHandle = ownerHandle ? parentHandle : DRW::NoHandle;
     std::vector<std::uint32_t> newReactorHandles;
     const bool hasXDictionary = version <= DRW::AC1015 || xDictFlag != 1;
     std::uint32_t newXDictHandle = hasXDictionary ? xDictHandle : 0;
@@ -3828,8 +3827,8 @@ bool DRW_Entity::parseDwgEntHandle(
     std::uint32_t newPrevEntLink = prevEntLink;
     const DRW::ShadowMode newShadow = version > DRW::AC1018
         ? shadow : DRW::CastAndReceieveShadows;
-    std::uint32_t newMaterial = materialFlag == 3
-        ? material : static_cast<std::uint32_t>(DRW::MaterialByLayer);
+    std::uint32_t newMaterial = materialFlag == 3 ? material
+                                                  : DRW::MaterialByLayer;
     int newPlotStyle = plotFlags == 3 ? plotStyle
                                       : DRW::DefaultPlotStyle;
     std::uint32_t newShadowHandle = shadowFlag == 3 ? shadowHandle : 0;

@@ -188,13 +188,16 @@ void testFrameReceiptAndRollback(TestContext& t) {
 }
 
 void testWriteRejectionDoesNotTouchDestination(TestContext& t) {
-    const std::string path = "/private/tmp/libdxfrw-writer-failure-gate.dwg";
+    const std::filesystem::path path =
+        std::filesystem::temp_directory_path()
+        / "libdxfrw-writer-failure-gate.dwg";
+    const std::string pathString = path.string();
     {
         std::ofstream seed(path, std::ios::binary | std::ios::trunc);
         seed << "sentinel";
     }
 
-    dwgRW nullInterface(path.c_str());
+    dwgRW nullInterface(pathString.c_str());
     t.expect(!nullInterface.write(nullptr, DRW::AC1015, false)
                  && nullInterface.getError() == DRW::BAD_UNKNOWN,
              "supported-version write rejects null interface");
@@ -204,7 +207,7 @@ void testWriteRejectionDoesNotTouchDestination(TestContext& t) {
     t.expect(nullContents == "sentinel",
              "null-interface rejection leaves destination untouched");
 
-    dwgRW unsupported(path.c_str());
+    dwgRW unsupported(pathString.c_str());
     t.expect(!unsupported.write(nullptr, DRW::UNKNOWNV, false)
                  && unsupported.getError() == DRW::BAD_VERSION,
              "unsupported-version write rejects before opening destination");
@@ -215,7 +218,7 @@ void testWriteRejectionDoesNotTouchDestination(TestContext& t) {
     t.expect(versionContents == "sentinel",
              "unsupported-version rejection leaves destination untouched");
 
-    std::remove(path.c_str());
+    std::remove(pathString.c_str());
 }
 
 std::filesystem::path transactionTestPath(const char* suffix) {

@@ -70,6 +70,17 @@ if(LIBDXFRW_BUILD_LIBRARY)
     target_compile_options(dxfrw PRIVATE ${LIBDXFRW_WARNING_FLAGS})
     if(MSVC)
         target_compile_options(dxfrw PRIVATE /bigobj)
+        # The Wave 1 seam intentionally exercises a handful of dxfRW
+        # implementation methods through a test-only private->public view of
+        # the header.  MSVC's default /Zc:inline may discard otherwise
+        # unreferenced COMDAT methods while compiling libdxfrw.cpp, leaving
+        # those legitimate cross-translation-unit test references unresolved
+        # when the broad suite links.  Keep the implementation TU's symbols
+        # available without changing the public API or the other library
+        # translation units.
+        set_source_files_properties(
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/libdxfrw.cpp
+            PROPERTIES COMPILE_OPTIONS /Zc:inline-)
     endif()
     target_include_directories(dxfrw
         PUBLIC

@@ -18,7 +18,6 @@
 #include "libdwgr.h"
 #include "intern/dwgbufferw.h"
 #include "intern/dwg_fixed_handles.h"
-#include "intern/drw_dbg.h"
 
 namespace {
 
@@ -5370,11 +5369,10 @@ bool runRawDwgReplayContract() {
                 || event == "O:1798" || event == "S:LocalRawS110")
                 result.push_back(event);
         }
-        std::sort(result.begin(), result.end());
         return result;
     };
     const bool eventContract = writeIface.writeEvents_ == expectedWriteEvents
-        && rawEvents(readIface.readEvents_) == rawEvents(expectedReadEvents);
+        && rawEvents(readIface.readEvents_) == expectedReadEvents;
     bool rejectedMutation = false;
     std::ifstream encoded(output, std::ios::binary);
     std::vector<std::uint8_t> encodedBytes(
@@ -5568,11 +5566,6 @@ int main(int argc, char** argv) {
         const bool writeOk = writer.write(&writeIface, version, true);
         const std::string suffix =
             " version " + std::to_string(static_cast<int>(version));
-        if (!writeOk) {
-            const DRW_OperationDiagnostic diagnostic = writer.getLastDiagnostic();
-            std::cerr << "DWG write diagnostic" << suffix << ": "
-                      << diagnostic.code << " / " << diagnostic.message << "\n";
-        }
         expect(writeOk, ("local DWG writer succeeds" + suffix).c_str(), failures);
         expect(writeIface.wroteLine(),
                ("local DWG writer emitted a line" + suffix).c_str(), failures);
@@ -5983,25 +5976,7 @@ int main(int argc, char** argv) {
         dwgRW reader(output.string().c_str());
         LocalDwgInterface readIface(nullptr, version);
         readIface.setTableStyleExpected(version <= DRW::AC1021);
-        const bool traceLegacySelfRead = version == DRW::AC1015;
-        if (traceLegacySelfRead)
-            DRW_DBGSL(DRW_dbg::Level::Debug);
         const bool readOk = reader.read(&readIface, false);
-        if (traceLegacySelfRead)
-            DRW_DBGSL(DRW_dbg::Level::None);
-        if (!readOk) {
-            const DRW_OperationDiagnostic diagnostic = reader.getLastDiagnostic();
-            std::cerr << "DWG self-read diagnostic" << suffix << ": "
-                      << diagnostic.code << " / " << diagnostic.message << "\n";
-            std::ifstream published(output, std::ios::binary);
-            std::array<char, 6> magic{};
-            published.read(magic.data(), static_cast<std::streamsize>(magic.size()));
-            std::cerr << "DWG self-read output probe" << suffix << ": size="
-                      << std::filesystem::file_size(output, ec)
-                      << " magic="
-                      << std::string(magic.data(), static_cast<std::size_t>(published.gcount()))
-                      << "\n";
-        }
         expect(readOk, ("local DWG reader self-read succeeds" + suffix).c_str(),
                failures);
         expect(reader.getVersion() == version,
