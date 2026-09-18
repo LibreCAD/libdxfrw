@@ -72,10 +72,10 @@
   "focusedNameDigest": "645ee4628852bbd16cda76ef7fd94d82efac5b3ac2b7c328322c9beb3ca6eb79",
   "broadInventory": {
     "status": "FINAL",
-    "generatedAtCommit": "4b6df4b78d0d2a74feb7caa1e7355ab20703ab5b",
+    "generatedAtCommit": "c95134279d6d004bbd83fac3923b1616e6b7c039",
     "configurationDigest": "e98e9fe436af560be1bd1ab094dc9fdfb646c38aa9f5190b1f3e12a669963c64",
-    "count": 38,
-    "nameDigest": "0b84147089615530148d6bc0f0239eec0592b2e19f3a34c9ee0b58c614a1ef14",
+    "count": 40,
+    "nameDigest": "7e0a6fd89d5e1641a266561c94ebc9fb0c5275d4516113fac07ef6280a3f2ba4",
     "names": [
       "libdxfrw_ac1024_candidate_fields",
       "libdxfrw_ac1024_candidate_fields_v2",
@@ -91,6 +91,8 @@
       "libdxfrw_dxf_parity_lane",
       "libdxfrw_external_advisory_runner",
       "libdxfrw_external_evidence_resolution",
+      "libdxfrw_fast_focus",
+      "libdxfrw_gbk_codepage",
       "libdxfrw_graph_preservation",
       "libdxfrw_hardening",
       "libdxfrw_implementation_speed",
