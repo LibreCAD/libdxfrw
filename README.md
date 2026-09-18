@@ -12,10 +12,10 @@ contributors; historical project information remains at
 
 ## Build and install
 
-CMake is the supported 2.x build (CMake 3.28 or newer, C++17). The historical
-Autotools, MinGW, and Conan recipes are retained for reference and are
-deprecated until they consume the canonical source manifest and have a
-maintained C++17/CI lane.
+CMake is the supported 2.x build (CMake 3.28 or newer, C++17). The Conan 2
+recipe consumes the same canonical source manifest and disables tests and
+documentation for a small package build. Autotools and MinGW remain reference
+builds.
 
 ```sh
 cmake -S . -B build
@@ -39,10 +39,11 @@ own prefix can set it `OFF`, either on the command line or with
 cmake -S . -B build -DLIBDXFRW_INSTALL_DEV=OFF
 ```
 
-The historical Autotools, MinGW, and Conan recipes are retained for reference
-but are deprecated for the 2.x convergence until they consume the canonical
-source manifest and have a maintained C++17/CI lane. See
-`docs/UPGRADE_SUPPORT.md` for the support and release policy.
+For Conan 2, create the package directly from a checkout:
+
+`conan create . --name libdxfrw --version 2.0.0 -o '&:shared=False'`
+
+See `docs/UPGRADE_SUPPORT.md` for the support and release policy.
 
 ```sh
 python3 tools/run_fast_focus.py --build-dir build
@@ -51,6 +52,10 @@ python3 tools/run_fast_focus.py --build-dir build
 Installed consumers can use either `find_package(libdxfrw CONFIG REQUIRED)` and
 `libdxfrw::libdxfrw`, or `pkg-config --cflags --libs libdxfrw`. The package is
 relocatable and selects compatible package versions with `SameMajorVersion`.
+Packagers that need module-mode discovery can install the same development
+files and append the installed `${libdir}/cmake/libdxfrw` directory to
+`CMAKE_MODULE_PATH`; `find_package(Libdxfrw MODULE REQUIRED)` then provides the
+same `libdxfrw::libdxfrw` target.
 
 ## Support boundary
 

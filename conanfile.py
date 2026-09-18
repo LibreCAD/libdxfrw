@@ -1,33 +1,58 @@
-from conans import ConanFile, CMake
+from conan import ConanFile
+from conan.tools.cmake import CMake, CMakeToolchain, cmake_layout
 
 
 class LibdxfrwConan(ConanFile):
     name = "libdxfrw"
     version = "2.0.0"
-    license = "GPL2"
+    package_type = "library"
+    license = "GPL-2.0-or-later"
     url = "https://github.com/LibreCAD/libdxfrw"
-    description = "C++ library to read/write DXF files in binary and ascii form and to read DWG from r14 to v2015"
-    topics = ("dxf", "dwg")
-    settings = "os", "compiler", "build_type", "arch"
+    description = (
+        "C++17 library for reading and writing ASCII and binary DXF and "
+        "reading DWG files"
+    )
+    topics = ("dxf", "dwg", "cad")
+
+    settings = "os", "arch", "compiler", "build_type"
     options = {"shared": [True, False]}
     default_options = {"shared": False}
-    generators = "cmake"
 
-    def source(self):
-        self.run("git clone --branch master https://github.com/LibreCAD/libdxfrw.git")
+    # Keep the recipe self-contained for `conan create .`: no network clone is
+    # needed and the canonical CMake source manifest remains the single source
+    # of truth for the library translation units.
+    exports_sources = (
+        "CMakeLists.txt",
+        "cmake/**",
+        "src/**",
+        "dwg2dxf/**",
+        "libdxfrw_sources.cmake",
+        "libdxfrw.pc.in",
+        "COPYING",
+    )
+
+    def layout(self):
+        cmake_layout(self)
+
+    def generate(self):
+        toolchain = CMakeToolchain(self)
+        toolchain.variables["BUILD_SHARED_LIBS"] = bool(self.options.shared)
+        toolchain.variables["LIBDXFRW_BUILD_DOC"] = False
+        toolchain.variables["LIBDXFRW_BUILD_DWG2DXF"] = False
+        toolchain.variables["LIBDXFRW_BUILD_TESTS"] = False
+        toolchain.variables["LIBDXFRW_INSTALL_DEV"] = True
+        toolchain.generate()
 
     def build(self):
-        cmake = self._configure_cmake()
+        cmake = CMake(self)
+        cmake.configure()
         cmake.build()
 
     def package(self):
-        cmake = self._configure_cmake()
-        cmake.install()
-
-    def _configure_cmake(self):
         cmake = CMake(self)
-        cmake.configure(source_folder="libdxfrw")
-        return cmake
+        cmake.install()
 
     def package_info(self):
         self.cpp_info.libs = ["dxfrw"]
+        self.cpp_info.set_property("cmake_file_name", "libdxfrw")
+        self.cpp_info.set_property("cmake_target_name", "libdxfrw::libdxfrw")

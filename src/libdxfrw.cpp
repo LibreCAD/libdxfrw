@@ -4459,7 +4459,44 @@ bool dxfRW::writeDimension(DRW_Dimension *ent) {
         writer->writeDouble(11, ent->getTextPoint().x);
         writer->writeDouble(21, ent->getTextPoint().y);
         writer->writeDouble(31, ent->getTextPoint().z);
-        const int dimType = ent->type | 32;
+        // DRW_Dimension::type carries DXF flags, while the concrete C++
+        // subtype is represented by eType.  Callers historically assigned
+        // DRW::DIMENSION to type (the entity enum value) when constructing a
+        // DRW_DimLinear/DRW_DimAligned; trusting that low nibble emitted a
+        // different subtype (often DIAMETRIC) and made AutoCAD reject the
+        // record.  Derive the subtype bits from the concrete subtype and
+        // preserve all other flags supplied by the caller.
+        int subtype = ent->type & 0x07;
+        switch (ent->eType) {
+        case DRW::DIMLINEAR:
+            subtype = 0;
+            break;
+        case DRW::DIMALIGNED:
+            subtype = 1;
+            break;
+        case DRW::DIMANGULAR:
+            subtype = 2;
+            break;
+        case DRW::DIMDIAMETRIC:
+            subtype = 3;
+            break;
+        case DRW::DIMRADIAL:
+            subtype = 4;
+            break;
+        case DRW::DIMANGULAR3P:
+            subtype = 5;
+            break;
+        case DRW::DIMORDINATE:
+            subtype = 6;
+            break;
+        default:
+            break;
+        }
+        // Bits 0..3 are the DXF subtype nibble.  Clear all four bits so an
+        // accidental assignment of DRW::DIMENSION (the entity enum value 8)
+        // cannot leak into the emitted subtype; preserve the documented
+        // high flags (associativity, ordinate axis, and anonymous-block bit).
+        const int dimType = (ent->type & ~0x0F) | subtype | 32;
         writer->writeInt16(70, dimType);
         if ( !(ent->getText().empty()) )
             writer->writeUtf8String(1, ent->getText());
@@ -8397,9 +8434,11 @@ bool dxfRW::processBlockRecord() {
     int ignoredApplicationDepth = 0;
     std::uint32_t handle = DRW::NoHandle;
     DRW_ParsingContext::BlockRecordInfo record;
+    DRW_Block_Record publicRecord;
     std::unordered_set<std::uint32_t> recordInsertHandles;
     std::unordered_map<std::uint32_t, DRW_ParsingContext::BlockRecordInfo>
         pendingBlockRecords;
+    std::vector<DRW_Block_Record> pendingPublicBlockRecords;
 
     auto finishRecord = [&]() -> bool {
         if (!reading)
@@ -8417,6 +8456,19 @@ bool dxfRW::processBlockRecord() {
             if (!inserted.second)
                 return false;
         }
+        // Keep the full table entry, including XDATA, available to consumers
+        // without folding it into the BLOCK entity.  The latter is a distinct
+        // DXF record and must retain its own entity-level metadata.
+        publicRecord.name = record.name;
+        publicRecord.handle = handle;
+        publicRecord.insUnits = record.insUnits;
+        publicRecord.flags = record.insUnits;
+        publicRecord.canExplode = record.canExplode;
+        publicRecord.blockScaling = record.blockScaling;
+        publicRecord.layoutHandle = record.layoutHandle;
+        publicRecord.previewData = record.previewData;
+        publicRecord.insertHandles = record.insertHandles;
+        pendingPublicBlockRecords.push_back(std::move(publicRecord));
         return true;
     };
     const auto publishBlockRecords = [&]() -> bool {
@@ -8427,6 +8479,8 @@ bool dxfRW::processBlockRecord() {
         }
         for (const auto &entry : pendingBlockRecords)
             m_readingContext.blockRecordMap.emplace(entry.first, entry.second);
+        for (const DRW_Block_Record &entry : pendingPublicBlockRecords)
+            iface->addBlockRecord(entry);
         return true;
     };
 
@@ -8443,6 +8497,7 @@ bool dxfRW::processBlockRecord() {
                 ignoredApplicationDepth = 0;
                 handle = DRW::NoHandle;
                 record = DRW_ParsingContext::BlockRecordInfo{};
+                publicRecord.reset();
                 recordInsertHandles.clear();
             } else if (dxfKeywordEquals(sectionstr, "ENDTAB")) {
                 if (!publishBlockRecords())
@@ -8500,29 +8555,41 @@ bool dxfRW::processBlockRecord() {
                     if (!recordInsertHandles.insert(insertHandle).second)
                         return setError(DRW::BAD_CODE_PARSED);
                     record.insertHandles.push_back(insertHandle);
+                    publicRecord.insertHandles.push_back(insertHandle);
                 }
                 break;
             case 340:
                 if (!reader->isValidHandleString())
                     return setError(DRW::BAD_CODE_PARSED);
                 record.layoutHandle = reader->getHandleString();
+                publicRecord.layoutHandle = record.layoutHandle;
+                break;
+            case 330:
+                if (!reader->isValidHandleString())
+                    return setError(DRW::BAD_CODE_PARSED);
+                publicRecord.parentHandle = reader->getHandleString();
                 break;
             case 2:
                 record.name = reader->getUtf8String();
+                publicRecord.name = record.name;
                 break;
             case 5:
                 if (!reader->isValidHandleString())
                     return setError(DRW::BAD_CODE_PARSED);
                 handle = reader->getHandleString();
+                publicRecord.handle = handle;
                 break;
             case 70:
                 record.insUnits = reader->getInt32();
+                publicRecord.insUnits = record.insUnits;
+                publicRecord.flags = record.insUnits;
                 break;
             case 280: {
                 const std::int32_t canExplode = reader->getInt32();
                 if (canExplode < 0 || canExplode > 1)
                     return setError(DRW::BAD_CODE_PARSED);
                 record.canExplode = canExplode != 0;
+                publicRecord.canExplode = record.canExplode;
                 break;
             }
             case 281: {
@@ -8530,10 +8597,41 @@ bool dxfRW::processBlockRecord() {
                 if (blockScaling < 0 || blockScaling > 1)
                     return setError(DRW::BAD_CODE_PARSED);
                 record.blockScaling = static_cast<std::uint8_t>(blockScaling);
+                publicRecord.blockScaling = record.blockScaling;
                 break;
             }
-            case 310:
-                if (!appendDxfHexChunk(reader->getString(), record.previewData))
+            case 310: {
+                const std::string chunk = reader->getString();
+                if (!appendDxfHexChunk(chunk, record.previewData))
+                    return setError(DRW::BAD_CODE_PARSED);
+                if (!appendDxfHexChunk(chunk, publicRecord.previewData))
+                    return setError(DRW::BAD_CODE_PARSED);
+                break;
+            }
+            case 1000:
+            case 1001:
+            case 1002:
+            case 1003:
+            case 1004:
+            case 1005:
+            case 1010:
+            case 1011:
+            case 1012:
+            case 1013:
+            case 1020:
+            case 1021:
+            case 1022:
+            case 1023:
+            case 1030:
+            case 1031:
+            case 1032:
+            case 1033:
+            case 1040:
+            case 1041:
+            case 1042:
+            case 1070:
+            case 1071:
+                if (!publicRecord.parseCode(code, reader))
                     return setError(DRW::BAD_CODE_PARSED);
                 break;
             default:

@@ -209,6 +209,14 @@ public:
   virtual void addBlock(const DRW_Block &data) = 0;
 
   /**
+   * Called for every BLOCK_RECORD table entry.  The callback is optional so
+   * existing consumers that only model BLOCK entities remain source and ABI
+   * compatible; filters that preserve table metadata (including XDATA) can
+   * override it.
+   */
+  virtual void addBlockRecord(const DRW_Block_Record &data) { (void)data; }
+
+  /**
    * In DWG called when the following entities corresponding to a
    * block different from the current. Note: all entities added after this
    * command go into this block until setBlock() is called already.

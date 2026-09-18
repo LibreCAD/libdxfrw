@@ -1,6 +1,8 @@
 #include <cstddef>
 #include <filesystem>
+#include <fstream>
 #include <iostream>
+#include <iterator>
 #include <list>
 #include <string>
 #include <vector>
@@ -31,6 +33,11 @@ public:
     std::vector<DRW_Dictionary> dictionaries;
     std::vector<DRW_Material> materials;
     std::vector<DRW_XRecord> xrecords;
+    std::vector<DRW_Block_Record> blockRecords;
+
+    void addBlockRecord(const DRW_Block_Record& value) override {
+        blockRecords.push_back(value);
+    }
 
     void addRawDxfEntity(const DRW_RawDxfObject& value) override {
         rawEntities.push_back(value);
@@ -146,6 +153,60 @@ void testBlockPreview(TestContext& t) {
     t.expect(found, "BLOCK_RECORD preview retains the named block");
 }
 
+void testBlockRecordXdata(TestContext& t) {
+    std::ifstream input(fixturePath("block_record_preview_r2007.dxf"));
+    const std::string marker = "2\nPREVIEW_BLOCK\n";
+    const std::string xdata = "1001\nQCAD\n1000\nCAMTOOLPATH\n";
+    std::string contents((std::istreambuf_iterator<char>(input)),
+                         std::istreambuf_iterator<char>());
+    const std::size_t markerPosition = contents.find(marker);
+    t.expect(markerPosition != std::string::npos,
+             "BLOCK_RECORD XDATA test locates its source record");
+    if (markerPosition == std::string::npos)
+        return;
+    contents.insert(markerPosition, xdata);
+
+    const std::filesystem::path temporary =
+        std::filesystem::temp_directory_path()
+        / "libdxfrw-block-record-xdata-test.dxf";
+    std::error_code error;
+    std::filesystem::remove(temporary, error);
+    {
+        std::ofstream output(temporary);
+        output << contents;
+    }
+
+    FixtureInterface interface_;
+    dx_data data;
+    t.expect(interface_.fileImport(temporary.string(), &data, false),
+             "BLOCK_RECORD XDATA fixture imports");
+    std::filesystem::remove(temporary, error);
+
+    const DRW_Block_Record* record = nullptr;
+    for (const DRW_Block_Record& candidate : interface_.blockRecords) {
+        if (candidate.name == "PREVIEW_BLOCK") {
+            record = &candidate;
+            break;
+        }
+    }
+    bool foundApplication = false;
+    bool foundText = false;
+    if (record != nullptr) {
+        for (const DRW_Variant* value : record->extData) {
+            if (value == nullptr)
+                continue;
+            if (value->code() == 1001 && value->type() == DRW_Variant::STRING)
+                foundApplication = std::string(value->c_str()) == "QCAD";
+            if (value->code() == 1000 && value->type() == DRW_Variant::STRING)
+                foundText = std::string(value->c_str()) == "CAMTOOLPATH";
+        }
+    }
+    t.expect(record != nullptr,
+             "BLOCK_RECORD XDATA publishes the named table entry");
+    t.expect(foundApplication && foundText,
+             "BLOCK_RECORD XDATA preserves application and text items");
+}
+
 void testRawClassEntity(TestContext& t) {
     FixtureInterface interface_;
     dx_data data;
@@ -206,6 +267,7 @@ int main() {
     testBig5Hkscs(context);
     testUhc(context);
     testBlockPreview(context);
+    testBlockRecordXdata(context);
     testRawClassEntity(context);
     testEed(context);
     testRawControls(context);

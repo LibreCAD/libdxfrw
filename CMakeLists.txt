@@ -800,6 +800,7 @@ if(LIBDXFRW_BUILD_LIBRARY)
         install(FILES
                 ${CMAKE_CURRENT_BINARY_DIR}/libdxfrwConfig.cmake
                 ${CMAKE_CURRENT_BINARY_DIR}/libdxfrwConfigVersion.cmake
+                ${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindLibdxfrw.cmake
                 DESTINATION ${INSTALL_CONFIGDIR}
         )
     endif()
