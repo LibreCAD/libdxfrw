@@ -39,10 +39,8 @@ bool dwgReader15::readMetaData() {
     DRW_DBG("\nMEASUREMENT (0 = English, 1 = Metric)= "); DRW_DBG(meas);
     std::uint16_t cp = fileBuf->getRawShort16();
     DRW_DBG("\ncodepage= "); DRW_DBG(cp); DRW_DBG("\n");
-    if (const char* cpName = dwgCodePageName(cp)) {
-        decoder.setCodePage(cpName, false);
-        decoder.setByteCodePage(cpName);
-    }
+    if (!recordSourceCodePage(cp, true, true))
+        return false;
     return fileBuf->isGood();
 }
 

@@ -1,0 +1,35 @@
+{
+  "schema": "libdxfrw-release-readiness-report-v1",
+  "evidenceId": "release-package-s14-2026-09-18",
+  "sourceCommit": "6e700e3681e900b951938efcd3e6834bba3c7a61",
+  "originKind": "localFromScratch",
+  "externalBytesUsed": false,
+  "versionSurface": {
+    "project": "2.0.0",
+    "cxxStandard": "17",
+    "cmakeMinimum": "3.10",
+    "soversion": "2",
+    "packageCompatibility": "SameMajorVersion"
+  },
+  "packageChecks": {
+    "publicHeaders": "PASS",
+    "cmakeConsumer": "PASS",
+    "pkgConfigConsumer": "PASS",
+    "relocationSmoke": "PASS",
+    "profileSymbols": "PASS"
+  },
+  "libreCadSystemPackage": {
+    "filterSource": "rs_filterdxfrw.cpp",
+    "syntaxCompile": "PASS",
+    "bundledLibdxfrwIncludePaths": 0,
+    "checker": "tools/check_librecad_system_package.py"
+  },
+  "documentation": {
+    "readme": "updated",
+    "news": "updated",
+    "changeLog": "updated",
+    "syncRecord": "LIBRECAD_SYNC.md"
+  },
+  "supportDisposition": "EXPERIMENTAL",
+  "promotionBlockedBy": "Independent semantic evidence remains required for broad DWG, advanced DXF preservation, and writer support; J256/J260/J268/J284/J293/J295 remain DEFERRED_EXTERNAL."
+}

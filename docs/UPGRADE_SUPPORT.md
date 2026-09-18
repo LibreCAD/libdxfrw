@@ -51,9 +51,9 @@ release follow-ups.
 CMake is the supported 2.0.0 build and requires C++17. The historical
 Autotools, MinGW, and Conan recipes do not consume the canonical imported
 source manifest and are deprecated for the 2.x convergence until they gain a
-maintained C++17/CI lane; no qmake recipe is shipped. `DRW_VERSION` remains the
-legacy 0.6.3 DXF banner for source/byte compatibility, while the package and
-ABI release version is 2.0.0.
+maintained C++17/CI lane; no qmake recipe is shipped. `DRW_VERSION` and the
+package/ABI release version are both 2.0.0, so consumers should rebuild across
+this public ABI boundary.
 
 The public `dxfRW::getLastDiagnostic()` and `dwgRW::getLastDiagnostic()`
 snapshots retain the legacy `DRW::error` code while exposing the operation,

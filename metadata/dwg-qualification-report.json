@@ -1,0 +1,33 @@
+{
+  "schema": "libdxfrw-dwg-qualification-report-v1",
+  "evidenceId": "dwg-local-vectors-s09-2026-09-18",
+  "sourceCommit": "68333b8de9e8dd7ff2ce54d3c9a851a5aa023f7c",
+  "originKind": "localFromScratch",
+  "externalBytesUsed": false,
+  "vectors": {
+    "versionDispatch": {
+      "versions": ["AC1.40", "AC2.10", "AC1003", "AC1004", "AC1006", "AC1009", "AC1012", "AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+      "bodyRejectionAfterSniff": true,
+      "testedBy": "libdxfrw_dwg_reader_matrix_tests"
+    },
+    "sectionFraming": {
+      "knownSections": 17,
+      "unknownAndEmptyNamesExplicit": true,
+      "utf16OddLengthRejected": true,
+      "testedBy": "libdxfrw_dwg_reader_matrix_tests"
+    },
+    "ac1024ClassFooter": {
+      "highBitExtensionAccepted": true,
+      "overlongExtensionRejected": true,
+      "cursorAlignmentChecked": true,
+      "testedBy": "libdxfrw_dwg_reader_matrix_tests"
+    },
+    "boundedSafety": {
+      "nullAndShortReadBufferRejected": true,
+      "objectVectorsRejectInvalidHandlesAndNonFiniteValues": true,
+      "testedBy": "libdxfrw_dwg_reader_matrix_tests;libdxfrw_dwg_object_vectors_tests;libdxfrw_hardening_tests"
+    }
+  },
+  "supportDisposition": "EXPERIMENTAL",
+  "promotionBlockedBy": "Per-version eligible DWG fixtures, ODA-traced section evidence, and an independent semantic oracle are still required before any broad read/write support claim is promoted."
+}

@@ -594,7 +594,7 @@ public:
   /**
    * Called for PLOTSETTINGS object definition.
    */
-  virtual void addPlotSettings(const DRW_PlotSettings *data) = 0;
+  virtual void addPlotSettings(const DRW_PlotSettings *data) { (void)data; }
 
   virtual void writeHeader(DRW_Header &data) = 0;
   /** DWG-only pre-CLASSES callback. Implementations may register imported

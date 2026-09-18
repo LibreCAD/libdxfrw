@@ -3842,7 +3842,7 @@ bool dxfRW::writeHatch(DRW_Hatch *ent){
         writer->writeDouble(210, ent->extPoint.x);
         writer->writeDouble(220, ent->extPoint.y);
         writer->writeDouble(230, ent->extPoint.z);
-        writer->writeString(2, ent->name);
+        writer->writeUtf8String(2, ent->name);
         writer->writeInt16(70, ent->solid);
         writer->writeInt16(71, ent->associative);
         const int loopCount = static_cast<int>(ent->looplist.size());
@@ -4054,7 +4054,7 @@ bool dxfRW::writeMPolygon(DRW_MPolygon *ent){
         writer->writeDouble(210, ent->extPoint.x);
         writer->writeDouble(220, ent->extPoint.y);
         writer->writeDouble(230, ent->extPoint.z);
-        writer->writeString(2, ent->name);
+        writer->writeUtf8String(2, ent->name);
         writer->writeInt16(71, ent->associative);
         const int loopCount = static_cast<int>(ent->looplist.size());
         writer->writeInt32(91, loopCount);
@@ -4304,7 +4304,7 @@ bool dxfRW::writeArcDimension(DRW_DimArc *d) {
     if (version >= DRW::AC1024)
         writer->writeInt16(280, 0);   // AcDbDimension version, 0 = R2010+
     if (!d->getName().empty())
-        writer->writeString(2, d->getName());
+        writer->writeUtf8String(2, d->getName());
     writer->writeDouble(10, d->getArcDefPoint().x);
     writer->writeDouble(20, d->getArcDefPoint().y);
     writer->writeDouble(30, d->getArcDefPoint().z);
@@ -4363,7 +4363,7 @@ bool dxfRW::writeLargeRadialDimension(DRW_DimLargeRadial *d) {
     if (version >= DRW::AC1024)
         writer->writeInt16(280, 0);
     if (!d->getName().empty())
-        writer->writeString(2, d->getName());
+        writer->writeUtf8String(2, d->getName());
     writer->writeDouble(10, d->getCenterPoint().x);
     writer->writeDouble(20, d->getCenterPoint().y);
     writer->writeDouble(30, d->getCenterPoint().z);
@@ -4451,7 +4451,7 @@ bool dxfRW::writeDimension(DRW_Dimension *ent) {
         if (version >= DRW::AC1024)
             writer->writeInt16(280, 0);   // AcDbDimension version, 0 = R2010+
         if (!ent->getName().empty()){
-            writer->writeString(2, ent->getName());
+            writer->writeUtf8String(2, ent->getName());
         }
         writer->writeDouble(10, ent->getDefPoint().x);
         writer->writeDouble(20, ent->getDefPoint().y);
@@ -5295,7 +5295,7 @@ bool dxfRW::writeMText(DRW_MText *ent){
         for (std::size_t k = 0; k + 1 < chunks.size(); ++k)
             writer->writeString(3, chunks[k]);
         writer->writeString(1, chunks.back());
-        writer->writeString(7, ent->style);
+        writer->writeUtf8String(7, ent->style);
         writer->writeDouble(210, ent->extPoint.x);
         writer->writeDouble(220, ent->extPoint.y);
         writer->writeDouble(230, ent->extPoint.z);
@@ -7634,7 +7634,7 @@ bool dxfRW::writeObjects() {
     //each handle matches the verbatim code-5 of a dictionary re-emitted later in
     //this OBJECTS section. ACAD_GROUP / root / C-D collisions are excluded there.
     for (const std::pair<std::string, std::string> &entry : m_rootDictEntries) {
-        writer->writeString(3, entry.first);
+        writer->writeUtf8String(3, entry.first);
         writer->writeString(350, entry.second);
     }
     //F3: mint a fresh code-5 handle for each GROUP BEFORE the ACAD_GROUP D dict
@@ -7677,7 +7677,7 @@ bool dxfRW::writeObjects() {
             f1 = imageDef.at(i)->name.find_last_of("/\\");
             f2 =imageDef.at(i)->name.find_last_of('.');
             ++f1;
-            writer->writeString(3, imageDef.at(i)->name.substr(f1,f2-f1));
+            writer->writeUtf8String(3, imageDef.at(i)->name.substr(f1,f2-f1));
             writer->writeString(350, toHexStr(imageDef.at(i)->handle) );
         }
     }
@@ -9298,6 +9298,23 @@ bool dxfRW::processEntities(bool isblock) {
             return setError(DRW::BAD_READ_ENTITIES);
         }
 
+        class SemanticStringScope final {
+        public:
+            explicit SemanticStringScope(dxfReader* value) : reader(value) {
+                if (reader != nullptr)
+                    reader->setSemanticStringMode(true);
+            }
+            ~SemanticStringScope() {
+                if (reader != nullptr)
+                    reader->setSemanticStringMode(false);
+            }
+            SemanticStringScope(const SemanticStringScope&) = delete;
+            SemanticStringScope& operator=(const SemanticStringScope&) = delete;
+
+        private:
+            dxfReader* reader;
+        } semanticStrings(reader.get());
+
         bool processed {false};
         if (dxfKeywordEquals(nextentity, "POINT")) {
             processed = processPoint();
@@ -9408,9 +9425,11 @@ bool dxfRW::processEntities(bool isblock) {
         } else if (dxfKeywordEquals(nextentity, "TOLERANCE")) {
             processed = processTolerance();
         } else if (dxfKeywordEquals(nextentity, "ACAD_PROXY_ENTITY")) {
+            reader->setSemanticStringMode(false);
             processed = processProxyEntity();
         } else {
             // Slice A4: capture an unmodeled entity verbatim rather than dropping it.
+            reader->setSemanticStringMode(false);
             processed = processRawEntity();
         }
         if (!processed)
@@ -9881,6 +9900,10 @@ bool dxfRW::processMLine() {
                 return setError(DRW::BAD_READ_ENTITIES);
             if (!mline.validateDxf())
                 return setError(DRW::BAD_CODE_PARSED);
+            // MLINE group 2 is a semantic style name. The frozen parser
+            // retains its raw getString() call, so normalize once at the
+            // callback boundary using the active DXF code page.
+            mline.styleName = reader->toUtf8String(mline.styleName);
             iface->addMLine(&mline);
             return true;
         }
@@ -10943,6 +10966,11 @@ bool dxfRW::processDimension() {
             DRW_DBG(nextentity); DRW_DBG("\n");
             if (!acceptEntityCallbackBoundary())
                 return setError(DRW::BAD_READ_ENTITIES);
+            // DIMENSION group 2 is a semantic block name. The entity parser
+            // is bound by the frozen AC1024 candidate contract and therefore
+            // retains its raw getString() call; normalize at the callback
+            // boundary using the active DXF code page instead.
+            dim.setName(reader->toUtf8String(dim.getName()));
             int type = dim.type & 0x0F;
         switch (type) {
             case 0: {
@@ -11003,6 +11031,9 @@ bool dxfRW::processArcDimension() {
             DRW_DBG(nextentity); DRW_DBG("\n");
             if (!acceptEntityCallbackBoundary())
                 return setError(DRW::BAD_READ_ENTITIES);
+            // See processDimension(): the frozen parser stores group 2 raw,
+            // while the public callback contract carries UTF-8 model text.
+            d.setName(reader->toUtf8String(d.getName()));
             iface->addDimArc(&d);
             return true;
         }
@@ -11027,6 +11058,9 @@ bool dxfRW::processLargeRadialDimension() {
             DRW_DBG(nextentity); DRW_DBG("\n");
             if (!acceptEntityCallbackBoundary())
                 return setError(DRW::BAD_READ_ENTITIES);
+            // See processDimension(): preserve the callback's UTF-8 semantic
+            // string contract without rebinding the frozen parser source.
+            d.setName(reader->toUtf8String(d.getName()));
             iface->addDimRadial(&d);
             return true;
         }

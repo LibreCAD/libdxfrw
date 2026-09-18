@@ -15,7 +15,7 @@ from pathlib import Path
 import sys
 
 sys.path.insert(0, str(Path(__file__).parent))
-from update_upgrade_plan import validate  # noqa: E402
+from update_upgrade_plan import rows, validate  # noqa: E402
 from check_support_matrix import MatrixError, validate_matrix  # noqa: E402
 
 
@@ -71,25 +71,44 @@ def validate_documentation(root: Path) -> None:
 
 def validate_release(plan_path: Path, mapping_path: Path, registry_path: Path, manifest_path: Path, support_matrix_path: Path) -> None:
     validate_documentation(plan_path.parent)
-    slices, parents, children = validate(plan_path.read_text(encoding="utf-8"))
-    required_committed_slices = {"S%02d" % number for number in range(1, 23)}
-    missing_slices = sorted(item for item in required_committed_slices if slices.get(item, {}).get("state") != "COMMITTED")
+    plan_text = plan_path.read_text(encoding="utf-8")
+    diagnostics = validate(plan_text)
+    if diagnostics:
+        raise ReleaseError("plan validation: " + "; ".join(diagnostics))
+    parsed = rows(plan_text)
+    slices = {row.ident: row for row in parsed if row.kind == "slice"}
+    parents = {row.ident: row for row in parsed if row.kind == "parent"}
+    children = {row.ident: row for row in parsed if row.kind == "child"}
+    if not slices:
+        raise ReleaseError("plan contains no slices")
+    # The live plan is the source of truth for the release horizon.  Requiring
+    # every declared slice/parent/child to be committed (or explicitly
+    # superseded) prevents this gate from silently applying an obsolete
+    # hard-coded S01-S23/I0-I4 horizon after the plan is refined.
+    missing_slices = sorted(
+        item for item, row in slices.items()
+        if row.fields[3] not in {"COMMITTED", "SUPERSEDED"})
     if missing_slices:
-        raise ReleaseError("pre-S23 slices are not committed: %s" % ", ".join(missing_slices))
-    if slices.get("S23", {}).get("state") not in {"PLANNED", "ACTIVE", "VERIFIED", "COMMITTED"}:
-        raise ReleaseError("S23 has an invalid final-checkpoint state")
-    for item in ("I0", "I1", "I2", "I3", "I4"):
-        if parents.get(item, {}).get("state") != "COMMITTED":
-            raise ReleaseError("parent %s is not committed" % item)
+        raise ReleaseError("slices are not committed: %s" % ", ".join(missing_slices))
+    missing_parents = sorted(
+        item for item, row in parents.items()
+        if row.fields[3] not in {"COMMITTED", "SUPERSEDED"})
+    if missing_parents:
+        raise ReleaseError("parents are not committed: %s" % ", ".join(missing_parents))
+    missing_children = sorted(
+        item for item, row in children.items()
+        if row.fields[4] not in {"COMMITTED", "SUPERSEDED"})
+    if missing_children:
+        raise ReleaseError("children are not committed: %s" % ", ".join(missing_children))
     mapping_document = read_json(mapping_path)
     mapping = mapping_document.get("mapping", {})
-    rows = mapping.get("rows")
+    mapping_rows = mapping.get("rows")
     summary = mapping.get("summary", {})
-    if not isinstance(rows, list) or not rows:
+    if not isinstance(mapping_rows, list) or not mapping_rows:
         raise ReleaseError("mapping rows are empty")
     if summary.get("targetOnly") not in (0, "0"):
         raise ReleaseError("target-unmapped rows remain")
-    target_rows = [row for row in rows if row.get("facade") in {"dxfRW", "dwgRW"}]
+    target_rows = [row for row in mapping_rows if row.get("facade") in {"dxfRW", "dwgRW"}]
     if any(row.get("fixtureDisposition") != "no-drawing-fixture" for row in target_rows):
         raise ReleaseError("a façade row has a non-source-only fixture disposition")
     if any(row.get("disposition") == "promoted" for row in target_rows):

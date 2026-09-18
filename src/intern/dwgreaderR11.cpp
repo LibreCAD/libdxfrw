@@ -192,21 +192,29 @@ bool dwgReaderR11::readFileHeader() {
         return false;  // implausible header -> not a readable pre-R13 file
 
     // $DWGCODEPAGE (pre-R13): the codepage id lives at the FIXED file offset
-    // 0x3f9 (every preceding header var is fixed-width, so this is version-
-    // invariant across R10/R11), gated on numheader_vars@0x11 > 129. Seek both
-    // fields directly, map via the shared dwgCodePageName() table, and override
-    // readMetaData()'s ANSI_1252 default when a supported codepage is present.
-    // setPosition-guarded so a truncated file silently keeps the default. This
-    // runs before processDwg() reads any table/entity string, so the decoder is
-    // correct for all subsequent text. dwgread reports codepage 30 for ACEB10.
+    // 0x3f9 for the validated R10/R11 envelope (every preceding header var is
+    // fixed-width), gated on numheader_vars@0x11 > 129. Older R2.x/R9
+    // containers share this reader's structural family but their fixed-header
+    // code-page semantics are not independently established; do not inherit a
+    // CP936/source-code-page claim for them until a version-specific sample is
+    // qualified. setPosition-guarded reads keep a truncated R10/R11 file on
+    // the conservative default. dwgread reports codepage 30 for AC1009.
+    if (version != DRW::AC1006 && version != DRW::AC1009)
+        return recordSourceCodePage(0, false, true);
+
+    std::uint16_t cp = 0;
+    bool cpPresent = false;
     if (fileBuf->setPosition(0x11)) {
         const std::uint16_t numHeaderVars = fileBuf->getRawShort16();
-        if (fileBuf->setPosition(0x3f9)) {
-            const std::uint16_t cp = fileBuf->getRawShort16();
-            if (const char* name = preR13CodePageName(numHeaderVars, cp))
-                setCodePage(name);
-        }
+        cpPresent = numHeaderVars > 129;
+        if (cpPresent && fileBuf->setPosition(0x3f9))
+            cp = fileBuf->getRawShort16();
+        else
+            cpPresent = false;
     }
+    cpPresent = cpPresent && fileBuf->isGood();
+    if (!recordSourceCodePage(cp, cpPresent, true))
+        return false;
     return true;
 }
 

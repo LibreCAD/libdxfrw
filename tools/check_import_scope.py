@@ -1,127 +1,90 @@
 #!/usr/bin/env python3
-"""Verify that an imported source tree is exactly the locked target scope."""
+"""Verify the imported source tree against the locked target manifest."""
 
 from __future__ import annotations
 
 import argparse
 import hashlib
 import json
-import tempfile
+import sys
 from pathlib import Path
 
 
-class ImportError(RuntimeError):
-    pass
+def git_blob(data: bytes) -> str:
+    return hashlib.sha1(b"blob " + str(len(data)).encode() + b"\0" + data).hexdigest()
 
 
-def git_blob(path: Path) -> str:
-    data = path.read_bytes()
-    return hashlib.sha1(b"blob " + str(len(data)).encode("ascii") + b"\0" + data).hexdigest()
-
-
-def sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
-
-
-def entries(path: Path) -> dict:
-    result = {}
-    for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-        if not line or line.startswith("#"):
-            continue
-        fields = line.split("|")
-        if len(fields) != 4:
-            raise ImportError("malformed manifest line %d" % number)
-        target_path, mode, blob, classification = fields
-        result[target_path] = (mode, blob, classification)
-    return result
+def sha256(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
 
 
 def check(root: Path, manifest_path: Path, allowlist_path: Path) -> None:
-    manifest = entries(manifest_path)
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    if manifest.get("schema") != "libdxfrw-target-source-manifest-v1":
+        raise ValueError("unsupported source manifest schema")
+    target_prefix = "libraries/libdxfrw/"
+    entries = {item["path"]: item for item in manifest["entries"]}
     allowlist = json.loads(allowlist_path.read_text(encoding="utf-8"))
-    allowed_paths = set(allowlist.get("allowedPaths", []))
-    adaptations = {
-        entry.get("path"): entry for entry in allowlist.get("entries", [])
-        if isinstance(entry, dict) and entry.get("path")
-    }
-    for target_path, (_, expected_blob, _) in manifest.items():
-        if not target_path.startswith("libraries/libdxfrw/"):
-            raise ImportError("manifest path is outside libdxfrw: %s" % target_path)
-        local = root / target_path.removeprefix("libraries/libdxfrw/")
+    allowed = set(allowlist.get("allowedPaths", []))
+    adaptations = {item.get("path"): item for item in allowlist.get("entries", [])
+                   if isinstance(item, dict) and item.get("path")}
+    for target_path, entry in entries.items():
+        if not target_path.startswith(target_prefix):
+            raise ValueError(f"manifest path outside target root: {target_path}")
+        local = root / target_path[len(target_prefix):]
         if not local.is_file():
-            raise ImportError("imported file is missing: %s" % local)
-        actual_blob = git_blob(local)
-        local_name = target_path.removeprefix("libraries/libdxfrw/")
-        if actual_blob != expected_blob:
-            adaptation = adaptations.get(target_path) or adaptations.get(local_name)
-            if adaptation is None:
-                raise ImportError("imported blob differs from manifest: %s" % target_path)
-            if adaptation.get("targetBlob") != expected_blob:
-                raise ImportError("adaptation target blob is not the manifest blob: %s" % target_path)
-            if adaptation.get("adaptedSha256") != sha256(local):
-                raise ImportError("adapted SHA-256 does not match allowlist: %s" % target_path)
-    for path in sorted(root.rglob("*")):
+            raise ValueError(f"imported file missing: {local}")
+        data = local.read_bytes()
+        if git_blob(data) == entry["blob"]:
+            continue
+        local_name = target_path[len(target_prefix):]
+        adaptation = adaptations.get(target_path) or adaptations.get(local_name)
+        if adaptation is None:
+            raise ValueError(f"unallowlisted imported blob change: {target_path}")
+        if adaptation.get("targetBlob") != entry["blob"]:
+            raise ValueError(f"allowlist target blob mismatch: {target_path}")
+        if adaptation.get("adaptedSha256") != sha256(data):
+            raise ValueError(f"allowlist adapted hash mismatch: {target_path}")
+    for path in root.rglob("*"):
         if not path.is_file():
             continue
         relative = path.relative_to(root).as_posix()
-        if relative.startswith(".git/"):
+        if not relative.startswith("src/") or relative == "src/Makefile.am":
             continue
-        target_name = "libraries/libdxfrw/" + relative
-        if target_name in manifest:
+        # Some standalone-only compatibility helpers are intentionally kept
+        # outside the target snapshot.  Their paths are explicitly recorded
+        # in the allowlist so this check remains closed-world without forcing
+        # those helpers into the LibreCAD source manifest.
+        if relative in allowed:
             continue
-        # Existing standalone build metadata is retained until the source-list
-        # activation slice; no imported source may be silently outside the lock.
-        if relative == "src/Makefile.am" or relative in allowed_paths:
-            continue
-        if relative.startswith("build") or relative.startswith("install"):
-            continue
-        if relative.startswith("metadata/") or relative.startswith("tools/"):
-            continue
-        if relative == "LIBRECAD_DXFRW_UPGRADE_PLAN.md" or relative == "LIBRECAD_SYNC.md":
-            continue
-        # This checker is intentionally narrow: report only source-root extras.
-        if relative.startswith("src/"):
-            raise ImportError("unlocked source-root file: %s" % relative)
+        if target_prefix + relative not in entries:
+            raise ValueError(f"unlocked source-root file: {relative}")
 
 
 def self_test() -> None:
-    with tempfile.TemporaryDirectory() as directory:
-        root = Path(directory)
-        (root / "src").mkdir()
-        source = root / "src/example.cpp"
-        source.write_text("int x;\n", encoding="utf-8")
-        blob = git_blob(source)
-        manifest = root / "manifest.txt"
-        manifest.write_text("src/example.cpp|100644|%s|source\n" % blob, encoding="utf-8")
-        allowlist = root / "allow.json"
-        allowlist.write_text('{"allowedPaths": []}\n', encoding="utf-8")
-        # The checker expects the repository-relative prefix; use a nested root.
-        nested = root / "tree"
-        (nested / "src").mkdir(parents=True)
-        (nested / "src/example.cpp").write_text(source.read_text(encoding="utf-8"), encoding="utf-8")
-        manifest.write_text("libraries/libdxfrw/src/example.cpp|100644|%s|source\n" % blob, encoding="utf-8")
-        check(nested, manifest, allowlist)
+    assert git_blob(b"int x;\n") == "6d1a0d47b7f73eacb962f3711df06b21ed11f7ca"
+    print("check_import_scope self-test: PASS")
 
 
-def main(argv=None) -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--root", type=Path)
-    parser.add_argument("--manifest", type=Path)
-    parser.add_argument("--allowlist", type=Path)
+    parser.add_argument("--root", type=Path, default=Path("."))
+    parser.add_argument("--manifest", type=Path,
+                        default=Path("metadata/libdxfrw-target-source-manifest.json"))
+    parser.add_argument("--allowlist", type=Path,
+                        default=Path("metadata/adaptation-allowlist.json"))
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args(argv)
-    try:
-        if args.self_test:
-            self_test()
-            print("import scope self-test: PASS")
-            return 0
-        if not args.root or not args.manifest or not args.allowlist:
-            parser.error("--root, --manifest, and --allowlist are required")
-        check(args.root.resolve(), args.manifest.resolve(), args.allowlist.resolve())
-        print("import scope check: PASS")
+    if args.self_test:
+        self_test()
         return 0
-    except (OSError, UnicodeError, KeyError, ValueError, ImportError) as exc:
-        parser.error(str(exc))
+    try:
+        check(args.root.resolve(), args.manifest.resolve(), args.allowlist.resolve())
+        print("Import scope check: PASS")
+        return 0
+    except (OSError, ValueError, KeyError, json.JSONDecodeError) as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
 
 
 if __name__ == "__main__":

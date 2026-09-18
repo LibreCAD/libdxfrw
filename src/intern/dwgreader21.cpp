@@ -62,11 +62,8 @@ bool dwgReader21::readMetaData() {
     // BAD_READ_HEADER (systemic across all R2007 files).  reader21 is dispatched
     // only for AC1021, so this guard skips the override entirely; the clause
     // mirrors dwgReader18::readFileHeader for symmetry.
-    if (const char* cpName = dwgCodePageName(cp)) {
-        decoder.setByteCodePage(cpName);
-        if (version <= DRW::AC1018)
-            decoder.setCodePage(cpName, false);
-    }
+    if (!recordSourceCodePage(cp, true, version <= DRW::AC1018))
+        return false;
     /* UNKNOUWN SECTION 2 bytes*/
     DRW_DBG("\nUNKNOWN SECTION= "); DRW_DBG(fileBuf->getRawShort16());
     DRW_DBG("\nUNKNOUWN SECTION 3b= "); DRW_DBG(fileBuf->getRawChar8());

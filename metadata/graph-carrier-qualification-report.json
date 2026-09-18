@@ -1,0 +1,27 @@
+{
+  "schema": "libdxfrw-graph-carrier-qualification-report-v1",
+  "evidenceId": "graph-carrier-local-s10-2026-09-18",
+  "sourceCommit": "f8efe25a2e2673fea8ed6ac0c29d1f11a60b1b77",
+  "originKind": "localFromScratch",
+  "externalBytesUsed": false,
+  "vectors": {
+    "localRoundTrip": {
+      "target": "libdxfrw_dwg_local_roundtrip",
+      "result": "PASS",
+      "coverage": ["typed entities", "object carriers", "DataStorage", "raw DWG sections", "raw-object replay", "transactional rollback"]
+    },
+    "acisAndProxy": {
+      "textCarrier": "PASS",
+      "binarySabCarrier": "PASS",
+      "oddHexAndNonHexReject": "PASS",
+      "proxyBeforeAcis": "PASS"
+    },
+    "graphAccounting": {
+      "typedAndRawPairing": "PASS",
+      "invalidHandleAndMalformedObjectRollback": "PASS",
+      "fixtureBytes": 0
+    }
+  },
+  "supportDisposition": "EXPERIMENTAL",
+  "promotionBlockedBy": "Independent DWG semantic oracle and eligible per-version fixtures are still required; local writer self-read is not sufficient for broad format-support promotion."
+}

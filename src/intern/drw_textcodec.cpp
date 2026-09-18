@@ -3,6 +3,7 @@
 #include <sstream>
 #include <algorithm>
 #include <cstring>
+#include <utility>
 #include "../drw_base.h"
 #include "drw_cptables.h"
 #include "drw_cptable932.h"
@@ -17,6 +18,16 @@ DRW_TextCodec::DRW_TextCodec()
 }
 
 DRW_TextCodec::~DRW_TextCodec() = default;
+
+void DRW_TextCodec::swap(DRW_TextCodec& other) noexcept {
+    using std::swap;
+    swap(version, other.version);
+    swap(sourceVersion, other.sourceVersion);
+    swap(m_sourceVersionSet, other.m_sourceVersionSet);
+    swap(cp, other.cp);
+    swap(conv, other.conv);
+    swap(cp8Conv, other.cp8Conv);
+}
 
 void DRW_TextCodec::setVersion(DRW::Version v, bool dxfFormat){
     sourceVersion = v;
@@ -358,30 +369,60 @@ std::string DRW_Converter::encodeNum(int c){
     return std::string(reinterpret_cast<char*>(ret));
 }
 
-/** 's' is a string with at least 4 bytes length
-** returned 'b' is byte length of encoded char: 2,3 or 4
-**/
+/**
+ * Decode one UTF-8 code point.
+ *
+ * The caller passes a short view (at most four bytes) and uses @p b as the
+ * number of source bytes consumed.  Invalid or truncated input deliberately
+ * consumes one byte and returns -1.  That lets the code-page converters emit
+ * their existing '?' fallback without throwing or swallowing a following
+ * valid character.
+ */
 int DRW_Converter::decodeNum(const std::string &s, int *b){
-    int code= 0;
-    unsigned char c = s.at(0);
-    if ( (c& 0xE0)  == 0xC0) { //2 bytes
-        code = ( c&0x1F)<<6;
-        code = (s.at(1) &0x3F) | code;
-        *b = 2;
-    } else if ( (c& 0xF0)  == 0xE0) { //3 bytes
-        code = ( c&0x0F)<<12;
-        code = ((s.at(1) &0x3F)<<6) | code;
-        code = (s.at(2) &0x3F) | code;
-        *b = 3;
-    } else if ( (c& 0xF8)  == 0xF0) { //4 bytes
-        code = ( c&0x07)<<18;
-        code = ((s.at(1) &0x3F)<<12) | code;
-        code = ((s.at(2) &0x3F)<<6) | code;
-        code = (s.at(3) &0x3F) | code;
-        *b = 4;
+    if (b == nullptr)
+        return -1;
+    *b = 1;
+    if (s.empty())
+        return -1;
+
+    const auto continuation = [](unsigned char value) {
+        return (value & 0xC0U) == 0x80U;
+    };
+    const unsigned char c = static_cast<unsigned char>(s[0]);
+    std::size_t length = 0;
+    std::uint32_t code = 0;
+    std::uint32_t minimum = 0;
+
+    if (c >= 0xC2U && c <= 0xDFU) {
+        length = 2;
+        code = c & 0x1FU;
+        minimum = 0x80U;
+    } else if (c >= 0xE0U && c <= 0xEFU) {
+        length = 3;
+        code = c & 0x0FU;
+        minimum = 0x800U;
+    } else if (c >= 0xF0U && c <= 0xF4U) {
+        length = 4;
+        code = c & 0x07U;
+        minimum = 0x10000U;
+    } else {
+        return -1;
     }
 
-    return code;
+    if (s.size() < length)
+        return -1;
+    for (std::size_t index = 1; index < length; ++index) {
+        const unsigned char value = static_cast<unsigned char>(s[index]);
+        if (!continuation(value))
+            return -1;
+        code = (code << 6) | (value & 0x3FU);
+    }
+    if (code < minimum || code > 0x10FFFFU
+        || (code >= 0xD800U && code <= 0xDFFFU))
+        return -1;
+
+    *b = static_cast<int>(length);
+    return static_cast<int>(code);
 }
 
 
@@ -666,7 +707,7 @@ std::string DRW_TextCodec::correctCodePage(const std::string& s) {
                cp=="X-EUC-JP" || cp=="JIS7") {
         return "ANSI_932";
         //Chinese PRC GBK (XGB) simplified
-    } else if (cp=="ANSI_936" || cp=="GBK" || cp=="GB2312" || cp=="CHINESE" || cp=="CN-GB" ||
+    } else if (cp=="ANSI_936" || cp=="CP936" || cp=="GBK" || cp=="GB2312" || cp=="CHINESE" || cp=="CN-GB" ||
                cp=="CSGB2312" || cp=="CSGB231280" || cp=="CSISO58BG231280" ||
                cp=="GB_2312-80" || cp=="GB231280" || cp=="GB2312-80" ||
                cp=="ISO-IR-58" || cp=="GB18030") {

@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+#include "drw_header.h"
 #include "drw_entities.h"
 #include "dwg2dxf/dx_data.h"
 #include "dwg2dxf/dx_iface.h"
@@ -26,6 +27,8 @@ struct TestContext {
 
 class FixtureInterface final : public dx_iface {
 public:
+    std::size_t headerCount {0};
+    std::string sourceCodePage;
     bool sawRText {false};
     bool sawArcAlignedText {false};
     bool sawMPolygon {false};
@@ -38,6 +41,19 @@ public:
     DRW_Coord largeRadialJog;
     DRW_Coord largeRadialCenter;
     DRW_Coord largeRadialChord;
+
+    void addHeader(const DRW_Header* data) override {
+        ++headerCount;
+        sourceCodePage.clear();
+        if (data != nullptr) {
+            const auto it = data->vars.find("$DWGCODEPAGE");
+            if (it != data->vars.end() && it->second != nullptr
+                    && it->second->type() == DRW_Variant::STRING) {
+                sourceCodePage = it->second->c_str();
+            }
+        }
+        dx_iface::addHeader(data);
+    }
 
     void addText(const DRW_Text& data) override {
         if (const auto* value = dynamic_cast<const DRW_RText*>(&data)) {
@@ -92,7 +108,8 @@ std::vector<const DRW_Line*> linesIn(const dx_data& data) {
 }
 
 void testOrdinaryEncoding(TestContext& t, const char* name,
-                          bool extended, const char* expectedBookName) {
+                          bool extended, const char* expectedBookName,
+                          const char* expectedCodePage) {
     FixtureInterface interface_;
     dx_data data;
     const std::filesystem::path path = fixturePath(name);
@@ -101,6 +118,10 @@ void testOrdinaryEncoding(TestContext& t, const char* name,
         return;
     t.expect(interface_.fileImport(path.string(), &data, false),
              "ordinary ENC DWG imports through dx_iface");
+    t.expect(interface_.headerCount == 1u,
+             "ordinary ENC DWG publishes exactly one header callback");
+    t.expect(interface_.sourceCodePage == expectedCodePage,
+             "ordinary ENC DWG propagates its source code page");
     const std::vector<const DRW_Line*> lines = linesIn(data);
     t.expect(lines.size() == 3u,
              "ordinary ENC DWG publishes the three LINE records");
@@ -218,15 +239,16 @@ void testTruncatedTargetFixtures(TestContext& t) {
 
 int main() {
     TestContext context;
-    testOrdinaryEncoding(context, "ordinary_enc_AC1015.dwg", false, "");
+    testOrdinaryEncoding(context, "ordinary_enc_AC1015.dwg", false, "",
+                         "ANSI_1252");
     testOrdinaryEncoding(context, "ordinary_enc_AC1018.dwg", true,
-                         "Book$Entry");
+                         "Book$Entry", "ANSI_1252");
     testOrdinaryEncoding(context, "ordinary_enc_AC1021.dwg", true,
-                         "Book$Entry");
+                         "Book$Entry", "ANSI_1252");
     testOrdinaryEncoding(context, "ordinary_enc_AC1027.dwg", true,
-                         "Book$Entry");
+                         "Book$Entry", "ANSI_1252");
     testOrdinaryEncoding(context, "ordinary_enc_ac1027_ansi932.dwg", true,
-                         "Book$Ａ");
+                         "Book$Ａ", "ANSI_932");
     testAdvancedTargetFixtures(context);
     testTruncatedTargetFixtures(context);
     if (context.failures != 0) {

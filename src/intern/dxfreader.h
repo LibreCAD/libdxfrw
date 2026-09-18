@@ -53,7 +53,22 @@ public:
         return m_recordBudgetExceeded;
     }
 
-    std::string getString() {return strData;}
+    // EED/XDATA text values (1000-1003) use the drawing's active source
+    // code-page just like ordinary text strings. Keep code 1004 binary chunks
+    // and code 1005 handles in their canonical raw spelling. The current
+    // group code is latched by readRec(), so every typed parseCode path gets
+    // the same conversion without duplicating it in each entity/table.
+    std::string getString() {
+        // Group 430 is the common-entity color-book name. It is a semantic
+        // model string, unlike the raw handles/application markers handled by
+        // the other getString() callers. Decode it only while a typed entity
+        // parser has enabled semantic mode; raw DXF carriers must retain the
+        // source spelling for lossless replay.
+        if ((m_decodeSemanticStrings && m_currentCode == 430)
+            || (m_currentCode >= 1000 && m_currentCode <= 1003))
+            return decoder.toUtf8(strData);
+        return strData;
+    }
     const std::string& getRawValue() const { return rawData; }
     // Convert a validated hexadecimal handle string representable by the
     // legacy 32-bit object model. Typed records must use this form.
@@ -90,6 +105,9 @@ public:
     std::string getCodePage(){ return decoder.getCodePage();}
     DRW::Version getSourceVersion() const { return decoder.getSourceVersion(); }
     bool hasSourceVersion() const { return decoder.hasSourceVersion(); }
+    void setSemanticStringMode(bool enabled) noexcept {
+        m_decodeSemanticStrings = enabled;
+    }
     void setIgnoreComments(const bool bValue) {m_bIgnoreComments = bValue;}
     /// Select an explicit classifier profile for compatibility probes. The
     /// standalone-safe profile is the default; production callers must not
@@ -129,6 +147,7 @@ private:
         DxfClassifierProfile::StandaloneSafe};
     bool m_allowWideHandleLexemes {false};
     bool m_allowDimstyleNames {false};
+    bool m_decodeSemanticStrings {false};
     std::unordered_set<std::uint64_t> m_selfHandles;
     std::uint64_t m_currentSelfHandle {0};
     bool m_currentSelfHandleRegistered {false};
@@ -136,6 +155,7 @@ private:
     std::size_t m_recordBudget {DRW::kDefaultDxfReadRecordBudget};
     std::size_t m_recordCount {0};
     bool m_recordBudgetExceeded {false};
+    int m_currentCode {0};
 };
 
 class dxfReaderBinary : public dxfReader {

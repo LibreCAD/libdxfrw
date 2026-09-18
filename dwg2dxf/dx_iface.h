@@ -118,25 +118,32 @@ public:
         currentBlock->ent.push_back(new DRW_Text(data));
     }
     virtual void addDimAlign(const DRW_DimAligned *data){
-        currentBlock->ent.push_back(new DRW_DimAligned(*data));
+        currentBlock->ent.push_back(new DRW_DimAligned(
+            static_cast<const DRW_Dimension&>(*data)));
     }
     virtual void addDimLinear(const DRW_DimLinear *data){
-        currentBlock->ent.push_back(new DRW_DimLinear(*data));
+        currentBlock->ent.push_back(new DRW_DimLinear(
+            static_cast<const DRW_Dimension&>(*data)));
     }
     virtual void addDimRadial(const DRW_DimRadial *data){
-        currentBlock->ent.push_back(new DRW_DimRadial(*data));
+        currentBlock->ent.push_back(new DRW_DimRadial(
+            static_cast<const DRW_Dimension&>(*data)));
     }
     virtual void addDimDiametric(const DRW_DimDiametric *data){
-        currentBlock->ent.push_back(new DRW_DimDiametric(*data));
+        currentBlock->ent.push_back(new DRW_DimDiametric(
+            static_cast<const DRW_Dimension&>(*data)));
     }
     virtual void addDimAngular(const DRW_DimAngular *data){
-        currentBlock->ent.push_back(new DRW_DimAngular(*data));
+        currentBlock->ent.push_back(new DRW_DimAngular(
+            static_cast<const DRW_Dimension&>(*data)));
     }
     virtual void addDimAngular3P(const DRW_DimAngular3p *data){
-        currentBlock->ent.push_back(new DRW_DimAngular3p(*data));
+        currentBlock->ent.push_back(new DRW_DimAngular3p(
+            static_cast<const DRW_Dimension&>(*data)));
     }
     virtual void addDimOrdinate(const DRW_DimOrdinate *data){
-        currentBlock->ent.push_back(new DRW_DimOrdinate(*data));
+        currentBlock->ent.push_back(new DRW_DimOrdinate(
+            static_cast<const DRW_Dimension&>(*data)));
     }
     virtual void addLeader(const DRW_Leader *data){
         currentBlock->ent.push_back(new DRW_Leader(*data));

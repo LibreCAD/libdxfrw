@@ -602,7 +602,7 @@ public:
     /// compatibility channel.
     DRW_OperationDiagnostic getLastDiagnostic() const;
     /// The resolved source codepage name (e.g. "ANSI_1252"), captured from the
-    /// reader's DRW_TextCodec after a successful read. Empty before any read.
+    /// reader's DWG metadata after a successful read. Empty before any read.
     std::string getCodePage() const { return codePage; }
     /// Per-entity parseDwg failures accumulated during the load. These
     /// are warnings — the file still loads with the surviving entities.
@@ -697,7 +697,7 @@ private:
     [[nodiscard]] bool openFile(std::ifstream *filestr);
     [[nodiscard]] bool openBuffer(std::unique_ptr<dwgBuffer> buffer);
     [[nodiscard]] bool readInstalledReader();
-    void captureReaderDiagnostics();
+    void captureReaderDiagnostics(bool readSucceeded);
     void resetReadDiagnostics();
     void resetWriteSkipCounters();
     void beginOperationDiagnostic(DRW::OperationKind kind);
@@ -830,6 +830,7 @@ public:
     bool getPreview() { return implementation.getPreview(); }
     DRW::Version getVersion() const { return implementation.getVersion(); }
     DRW::error getError() const { return implementation.getError(); }
+    std::string getCodePage() const { return implementation.getCodePage(); }
     DRW_OperationDiagnostic getLastDiagnostic() const {
         return implementation.getLastDiagnostic();
     }

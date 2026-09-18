@@ -1941,7 +1941,6 @@ public:
         rawSectionHasValues = rawSectionHasValues || data.m_hasRawValues;
     }
     void addComment(const char*) override {}
-    void addPlotSettings(const DRW_PlotSettings*) override {}
     void writeHeader(DRW_Header&) override {}
     void writeBlocks() override {}
     void writeBlockRecords() override {}
@@ -1963,6 +1962,9 @@ public:
     DRW_ModelerGeometry lastModelerGeometry;
     DRW_Surface lastSurface;
 };
+
+static_assert(!std::is_abstract<FuzzInterface>::value,
+              "new optional callbacks must not make legacy sinks abstract");
 
 void testCheckedArithmetic(TestContext& t) {
     std::uint64_t result = 0;

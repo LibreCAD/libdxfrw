@@ -17,6 +17,7 @@ Makefile*
 *.dll
 *.exe
 *.cmake
+tools/__pycache__/
 *.patch
 *~
 *bz2

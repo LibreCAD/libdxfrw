@@ -47,6 +47,17 @@ public:
   DRW_DwgFrameOffsetSpace sourceOffsetSpace{DRW_DwgFrameOffsetSpace::Unknown};
 };
 
+/// File-level code-page identity captured from the DWG metadata envelope.
+/// `present` distinguishes a missing field from an explicit undefined id;
+/// `recognized` is true only when the id maps to a codec-backed ANSI_* name.
+struct DwgSourceCodePage {
+  bool present{false};
+  std::uint16_t rawId{0};
+  std::string name;
+  bool recognized{false};
+  bool primaryText{false};
+};
+
 struct DwgSourceFrameId {
   std::uint32_t handle{0};
   std::uint32_t offset{0};
@@ -211,10 +222,13 @@ public:
   std::list<std::uint32_t> handlesList;
 };
 
+class DwgCodePageTestAccess;
+
 class dwgReader {
   // friend the real class (not the legacy `using dwgR = dwgRW;` alias —
   // C++ does not allow `friend class <typedef-name>;`).
   friend class dwgRW;
+  friend class DwgCodePageTestAccess;
 
 public:
   using DwgObjectMap = std::unordered_map<std::uint32_t, objHandle>;
@@ -590,6 +604,26 @@ protected:
 
   void setCodePage(const std::string &c) { decoder.setCodePage(c, false); }
   std::string getCodePage() { return decoder.getCodePage(); }
+  /// Canonical source byte-code-page name, independent of the primary text
+  /// decoder (which remains UTF-16 for AC1021+).
+  const std::string& getSourceCodePageName() const noexcept {
+    return m_sourceCodePage.name;
+  }
+  /// Raw DWG envelope id. Valid only when hasSourceCodePageField() is true;
+  /// callers must use that presence predicate because zero is undefined.
+  std::uint16_t getSourceCodePageId() const noexcept {
+    return m_sourceCodePage.rawId;
+  }
+  bool hasSourceCodePageField() const noexcept {
+    return m_sourceCodePage.present;
+  }
+  bool hasSourceCodePage() const noexcept {
+    return m_sourceCodePage.recognized;
+  }
+  /// Record one metadata envelope code-page id and configure the secondary
+  /// byte codec. The state and codec are committed together on success.
+  bool recordSourceCodePage(std::uint16_t id, bool present,
+                            bool applyPrimaryCodec);
   [[nodiscard]] bool readDwgHeader(DRW_Header &hdr, dwgBuffer *buf,
                                    dwgBuffer *hBuf);
   [[nodiscard]] bool readDwgHandles(
@@ -1215,6 +1249,7 @@ protected:
   bool m_dwgClassCoveragePublished{false};
   bool m_dwgClassCoverageCaptureFailed{false};
   DRW_TextCodec decoder;
+  DwgSourceCodePage m_sourceCodePage;
 
 protected:
   //    std::uint32_t blockCtrl;

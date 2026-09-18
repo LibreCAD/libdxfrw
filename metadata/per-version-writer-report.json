@@ -1,0 +1,24 @@
+{
+  "schema": "libdxfrw-per-version-writer-report-v1",
+  "evidenceId": "per-version-feature-writer-s12-2026-09-18",
+  "sourceCommit": "221daa368ffe919208acc1121af616c607f4b9c4",
+  "originKind": "localFromScratch",
+  "externalBytesUsed": false,
+  "versions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+  "harness": "libdxfrw_dwg_local_roundtrip",
+  "featureFamilies": [
+    "core entities and blocks",
+    "spline and polyline alignment",
+    "camera/geoposition/shape/mline/light/mesh/wipeout",
+    "navisworks and underlay variants",
+    "surface and point-cloud variants",
+    "hatch/leader/tolerance/rtext/arc-aligned text",
+    "DIMASSOC/EVALUATION_GRAPH/BLOCKREPRESENTATIONDATA",
+    "group/dictionary/field/list/table-style and section objects",
+    "image and modern object carriers"
+  ],
+  "result": "PASS",
+  "malformedFeatureTransactions": "PASS",
+  "supportDisposition": "EXPERIMENTAL",
+  "promotionBlockedBy": "Self-read across local vectors does not replace an independent reader/oracle; each promoted feature/version row still needs eligible evidence."
+}

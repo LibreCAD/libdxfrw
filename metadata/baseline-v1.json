@@ -1,0 +1,34 @@
+{
+  "allPassed": true,
+  "buildDirectory": "/private/tmp/libdxfrw-baseline-s02.zjJ2kZ/build",
+  "schema": "libdxfrw-fast-baseline-v1",
+  "sourceCommit": "e83609dd27473c38272b790a843e54eded036bbc",
+  "targets": [
+    {
+      "command": [
+        "cmake",
+        "--build",
+        "/private/tmp/libdxfrw-baseline-s02.zjJ2kZ/build",
+        "--target",
+        "dxfrw",
+        "-j2"
+      ],
+      "exitStatus": 0,
+      "outputTail": "[100%] Built target dxfrw\n",
+      "target": "dxfrw"
+    },
+    {
+      "command": [
+        "cmake",
+        "--build",
+        "/private/tmp/libdxfrw-baseline-s02.zjJ2kZ/build",
+        "--target",
+        "dwg2dxf",
+        "-j2"
+      ],
+      "exitStatus": 0,
+      "outputTail": "[ 92%] Built target dxfrw\n[100%] Built target dwg2dxf\n",
+      "target": "dwg2dxf"
+    }
+  ]
+}
