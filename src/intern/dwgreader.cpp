@@ -932,8 +932,7 @@ bool dwgReader::restoreDwgSourceFrame(DwgFrameMapLease &lease) {
     return false;
   }
   if (!inserted.inserted) {
-    lease.node.reset();
-    lease.node.emplace(std::move(inserted.node));
+    lease.node = std::move(inserted.node);
     return reportDwgFrameTransitionFailure(lease.source, lease.object.loc,
                                            true);
   }
