@@ -8,6 +8,15 @@ option(LIBDXFRW_BUILD_LIBRARY "Build the libdxfrw library" ON)
 option(LIBDXFRW_BUILD_DOC "Build the documentation" ON)
 option(LIBDXFRW_BUILD_DWG2DXF "Build the dwg2dxf application" ON)
 option(LIBDXFRW_BUILD_TESTS "Build dependency-free Wave 1 tests" OFF)
+# Guarded rather than a bare option(): this project declares CMake 3.10, so
+# CMP0077 is left OLD and a bare option() would discard the value a parent set
+# with set(LIBDXFRW_INSTALL_DEV OFF) before add_subdirectory -- which is the
+# one consumer this option exists for.  Skipping option() when the variable is
+# already defined works on every version, without moving the minimum.
+if(NOT DEFINED LIBDXFRW_INSTALL_DEV)
+    option(LIBDXFRW_INSTALL_DEV
+        "Install headers, the pkg-config file and the CMake package" ON)
+endif()
 option(LIBDXFRW_BUILD_QUALIFICATION
     "Build the pinned target/standalone semantic qualification adapters" OFF)
 option(LIBDXFRW_BUILD_LONG_FUZZ
@@ -72,24 +81,34 @@ if(LIBDXFRW_BUILD_LIBRARY)
         # The broad Wave 1 seam reaches five private dxfRW methods directly
         # through its test-only private->public header view.  Keep their
         # symbols externally emitted in MSVC static-library builds without
-        # exporting them for ordinary consumers.
-        target_compile_definitions(dxfrw PRIVATE LIBDXFRW_FORCE_TEST_SEAMS=1)
+        # exporting them for ordinary consumers.  Gated on the tests: with it
+        # defined unconditionally, an ordinary consumer's DLL exported those
+        # five private methods and the class definition differed between the
+        # library's translation units and everyone else's.
+        if(LIBDXFRW_BUILD_TESTS)
+            target_compile_definitions(dxfrw PRIVATE LIBDXFRW_FORCE_TEST_SEAMS=1)
+        endif()
+        # libdxfrw.cpp exceeds MSVC's default section limit on its own, so
+        # /bigobj is needed whatever else is being built.
+        target_compile_options(dxfrw PRIVATE /bigobj)
+
+        # The two flags below exist for the Wave 1 test link, and are gated with
+        # the seams they protect.
+        #
         # Visual Studio Release enables whole-program optimization for static
-        # libraries; disable it for the implementation TU so the explicitly
-        # exported seam declarations survive archive creation and can satisfy
-        # the broad Wave 1 executable's direct references.
-        target_compile_options(dxfrw PRIVATE /bigobj /GL-)
-        # The Wave 1 seam intentionally exercises a handful of dxfRW
-        # implementation methods through a test-only private->public view of
-        # the header.  MSVC's default /Zc:inline may discard otherwise
-        # unreferenced COMDAT methods while compiling libdxfrw.cpp, leaving
-        # those legitimate cross-translation-unit test references unresolved
-        # when the broad suite links.  Keep the implementation TU's symbols
-        # available without changing the public API or the other library
-        # translation units.
-        set_source_files_properties(
-            ${CMAKE_CURRENT_SOURCE_DIR}/src/libdxfrw.cpp
-            PROPERTIES COMPILE_OPTIONS /Zc:inline-)
+        # libraries, which discards the explicitly exported seam declarations
+        # before the broad Wave 1 executable can reference them; /Zc:inline may
+        # discard otherwise unreferenced COMDAT methods from libdxfrw.cpp for
+        # the same reason.  With LIBDXFRW_FORCE_TEST_SEAMS undefined there are
+        # no such references, and leaving whole-program optimization off would
+        # be a pessimisation charged to every consumer who never builds the
+        # tests.
+        if(LIBDXFRW_BUILD_TESTS)
+            target_compile_options(dxfrw PRIVATE /GL-)
+            set_source_files_properties(
+                ${CMAKE_CURRENT_SOURCE_DIR}/src/libdxfrw.cpp
+                PROPERTIES COMPILE_OPTIONS /Zc:inline-)
+        endif()
     elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         # Keep the byte-frozen entity parser source identical to the
         # qualification oracle.  GCC diagnoses two legacy enum/integer
@@ -749,11 +768,13 @@ if(LIBDXFRW_BUILD_LIBRARY)
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     )
 
-    install(EXPORT libdxfrw-targets
-        FILE libdxfrwTargets.cmake
-        NAMESPACE libdxfrw::
-        DESTINATION ${INSTALL_CONFIGDIR}
-    )
+    if(LIBDXFRW_INSTALL_DEV)
+        install(EXPORT libdxfrw-targets
+            FILE libdxfrwTargets.cmake
+            NAMESPACE libdxfrw::
+            DESTINATION ${INSTALL_CONFIGDIR}
+        )
+    endif()
 
     include(CMakePackageConfigHelpers)
     configure_package_config_file(${CMAKE_CURRENT_LIST_DIR}/cmake/libdxfrwConfig.cmake
@@ -766,23 +787,25 @@ if(LIBDXFRW_BUILD_LIBRARY)
             COMPATIBILITY SameMajorVersion
     )
 
-    install(FILES
-            ${installdxfrw_hdrs}
-            DESTINATION ${LIBDXFRW_INSTALL_INCLUDEDIR}
-    )
-    # The imported public façades still expose these declarations.  Install
-    # only the narrow transitive closure; HandleAllocator is now internal and the
-    # DataStorage writer enum is declared by the installed foundational header.
-    install(FILES src/intern/dwgutil.h src/intern/dwg_fixed_handles.h
-                  src/intern/dwgbufferw.h src/intern/dwgsafety.h
-            DESTINATION ${LIBDXFRW_INSTALL_INCLUDEDIR}/intern)
-    install(FILES
-            ${CMAKE_CURRENT_BINARY_DIR}/libdxfrw.pc
-            DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
-    )
-    install(FILES
-            ${CMAKE_CURRENT_BINARY_DIR}/libdxfrwConfig.cmake
-            ${CMAKE_CURRENT_BINARY_DIR}/libdxfrwConfigVersion.cmake
-            DESTINATION ${INSTALL_CONFIGDIR}
-    )
+    if(LIBDXFRW_INSTALL_DEV)
+        install(FILES
+                ${installdxfrw_hdrs}
+                DESTINATION ${LIBDXFRW_INSTALL_INCLUDEDIR}
+        )
+        # The imported public façades still expose these declarations.  Install
+        # only the narrow transitive closure; HandleAllocator is now internal and the
+        # DataStorage writer enum is declared by the installed foundational header.
+        install(FILES src/intern/dwgutil.h src/intern/dwg_fixed_handles.h
+                      src/intern/dwgbufferw.h src/intern/dwgsafety.h
+                DESTINATION ${LIBDXFRW_INSTALL_INCLUDEDIR}/intern)
+        install(FILES
+                ${CMAKE_CURRENT_BINARY_DIR}/libdxfrw.pc
+                DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
+        )
+        install(FILES
+                ${CMAKE_CURRENT_BINARY_DIR}/libdxfrwConfig.cmake
+                ${CMAKE_CURRENT_BINARY_DIR}/libdxfrwConfigVersion.cmake
+                DESTINATION ${INSTALL_CONFIGDIR}
+        )
+    endif()
 endif()

@@ -64,6 +64,10 @@ private:
     std::ofstream m_stream;
     int m_exclusiveDescriptor {-1};
     int m_directoryDescriptor {-1};
+    // Mode of the file this write replaces, or -1 when it is a new file.
+    // Applied to the temporary immediately before the rename, so an overwrite
+    // keeps the permissions the target already had.
+    int m_targetMode {-1};
     bool m_committed {false};
 };
 

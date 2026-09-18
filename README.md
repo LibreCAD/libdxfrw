@@ -28,6 +28,22 @@ The default build produces `dxfrw` and `dwg2dxf`. Use
 `-DLIBDXFRW_BUILD_LONG_FUZZ=ON` for the opt-in, in-memory long fuzz lane. The
 documented fast selector is:
 
+`LIBDXFRW_INSTALL_DEV` (default `ON`) controls whether `cmake --install`
+deposits the development files -- the headers, `libdxfrw.pc`, and the CMake
+package -- alongside the library. Packagers want the default. An application
+that vendors libdxfrw with `add_subdirectory` and only needs the library in its
+own prefix can set it `OFF`, either on the command line or with
+`set(LIBDXFRW_INSTALL_DEV OFF)` before `add_subdirectory`:
+
+```
+cmake -S . -B build -DLIBDXFRW_INSTALL_DEV=OFF
+```
+
+The historical Autotools, MinGW, and Conan recipes are retained for reference
+but are deprecated for the 2.x convergence until they consume the canonical
+source manifest and have a maintained C++17/CI lane. See
+`docs/UPGRADE_SUPPORT.md` for the support and release policy.
+
 ```sh
 python3 tools/run_fast_focus.py --build-dir build
 ```

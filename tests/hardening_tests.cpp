@@ -1,5 +1,6 @@
 #include <array>
 #include <algorithm>
+#include <filesystem>
 #include <cstdint>
 #include <iostream>
 #include <limits>
@@ -7,6 +8,7 @@
 #include <sstream>
 #include <string>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 #include "drw_acis.h"
@@ -1879,10 +1881,12 @@ void testPublicOwnershipContracts(TestContext& t) {
              "DRW_Dimension copy isolates extended data");
 }
 
-// A callback sink for parser-fuzz inputs.  Keeping the sink dependency-free
+// A do-nothing DRW_Interface: originally a callback sink for parser-fuzz
+// inputs, and now also the base the round-trip cases below derive from, since
+// it already implements the write half as no-ops.  Keeping the sink dependency-free
 // makes this lane exercise the public dxfRW::readAscii path without coupling
 // hardening coverage to the dwg2dxf adapter's storage policy.
-class FuzzInterface final : public DRW_Interface {
+class FuzzInterface : public DRW_Interface {
 public:
     void addHeader(const DRW_Header* data) override {
         ++headerCount;
@@ -1940,6 +1944,8 @@ public:
         ++rawSectionCount;
         rawSectionHasValues = rawSectionHasValues || data.m_hasRawValues;
     }
+    void addProxyObject(const DRW_ProxyObject&) override { ++proxyObjectCount; }
+    void addRawDxfObject(const DRW_RawDxfObject&) override { ++rawObjectCount; }
     void addComment(const char*) override {}
     void writeHeader(DRW_Header&) override {}
     void writeBlocks() override {}
@@ -1953,6 +1959,8 @@ public:
     void writeObjects() override {}
     void writeAppId() override {}
 
+    std::size_t proxyObjectCount {0};
+    std::size_t rawObjectCount {0};
     std::size_t rawSectionCount {0};
     bool rawSectionHasValues {false};
     std::size_t headerCount {0};
@@ -2769,6 +2777,259 @@ void testMLeaderDxfContextRoundTrip(TestContext& t) {
              "AC1021 MULTILEADER writer rejects oversized block-label text");
 }
 
+// The linetype dash shape flag is a 4-bit field, and every validator has to
+// agree on that.
+//
+// DRW_LType::parseDwg bounded it at 0x07 while the DXF read path and
+// validatePayloadFields both bound it at 0x0F -- and parseDwg calls the latter
+// itself at the end, so it rejected mid-parse a value it would have accepted on
+// the way out. Rejecting one entry fails the LTYPE table, and a failed table
+// aborts the table phase, so a single such dash blacks out the whole drawing.
+//
+// The interesting path is the DWG parser, so this writes the file it needs
+// rather than waiting for a fixture to carry one: none of the tracked DWG
+// fixtures has a complex linetype, which is exactly why this went unnoticed.
+void testLinetypeDashFlagIsFourBits(TestContext& t) {
+    // A two-dash pattern whose second dash embeds text and carries 0x0A --
+    // within the four bits the format allows, above the three parseDwg read.
+    constexpr int kDashFlags = 0x0A;
+
+    struct DashFlagWriter final : public FuzzInterface {
+        explicit DashFlagWriter(dwgRW* target) : writer(target) {}
+        void writeLTypes() override {
+            DRW_LType lineType;
+            lineType.name = "GAS_LINE";
+            lineType.desc = "gas line ---- GAS ---- GAS ----";
+            lineType.size = 2;
+            lineType.length = 1.5;
+            lineType.path = {1.0, -0.5};
+
+            DRW_LTypeSegment dash;
+            dash.length = 1.0;
+            lineType.segments.push_back(dash);
+
+            DRW_LTypeSegment embeddedText;
+            embeddedText.length = -0.5;
+            embeddedText.shapeFlags = kDashFlags;
+            embeddedText.text = "GAS";
+            lineType.segments.push_back(embeddedText);
+
+            // update() is protected, so the derived fields are set by hand.
+            addLTypeSucceeded = writer->addLType(&lineType);
+        }
+        dwgRW* writer;
+        bool addLTypeSucceeded {false};
+    };
+
+    struct DashFlagReader final : public FuzzInterface {
+        void addLType(const DRW_LType& data) override {
+            lineTypes.push_back(data);
+        }
+        std::vector<DRW_LType> lineTypes;
+    };
+
+    const std::filesystem::path path = std::filesystem::temp_directory_path()
+                                       / "libdxfrw-ltype-dash-flags.dwg";
+    std::error_code ignored;
+    std::filesystem::remove(path, ignored);
+
+    dwgRW writer(path.string().c_str());
+    DashFlagWriter writeInterface(&writer);
+    const bool wrote = writer.write(&writeInterface, DRW::AC1015, false);
+    t.expect(wrote && writeInterface.addLTypeSucceeded,
+             "a linetype with a 4-bit dash flag can be written");
+
+    dwgRW reader(path.string().c_str());
+    DashFlagReader readInterface;
+    const bool read = reader.read(&readInterface, false);
+    t.expect(read && reader.getError() == DRW::BAD_NONE,
+             "reading it back succeeds: before the fix the LTYPE table failed "
+             "and took the rest of the drawing with it");
+
+    const auto entry = std::find_if(readInterface.lineTypes.cbegin(),
+                                    readInterface.lineTypes.cend(),
+                                    [](const DRW_LType& candidate) {
+                                        return candidate.name == "GAS_LINE";
+                                    });
+    t.expect(entry != readInterface.lineTypes.cend(),
+             "the complex linetype survives the round trip");
+    if (entry != readInterface.lineTypes.cend()) {
+        t.expect(entry->segments.size() == 2,
+                 "both dashes come back");
+        if (entry->segments.size() == 2) {
+            t.expect(entry->segments[1].shapeFlags == kDashFlags,
+                     "the dash flag comes back unchanged, not clamped");
+            t.expect(entry->segments[1].text == "GAS",
+                     "the text the flag describes comes back with it");
+        }
+    }
+
+    std::filesystem::remove(path, ignored);
+
+    // The bound itself, checked directly. Same wrapper idiom the parser-state
+    // cases above use: the validators are protected, and exposing one locally
+    // does not widen the installed API.
+    class ExposedLType : public DRW_LType {
+    public:
+        using DRW_LType::validatePayloadFields;
+    };
+
+    auto lineTypeWithDashFlag = [](int shapeFlags) {
+        ExposedLType lineType;
+        lineType.name = "GAS_LINE";
+        DRW_LTypeSegment segment;
+        segment.length = 1.0;
+        segment.shapeFlags = shapeFlags;
+        lineType.segments.push_back(segment);
+        // size counts the dashes, and path carries one length per dash.
+        lineType.path.push_back(segment.length);
+        lineType.size = static_cast<int>(lineType.segments.size());
+        return lineType;
+    };
+
+    t.expect(lineTypeWithDashFlag(0x0F).validatePayloadFields(),
+             "0x0F, the widest legal value, is accepted");
+    t.expect(!lineTypeWithDashFlag(0x10).validatePayloadFields(),
+             "0x10 is out of range and still rejected");
+    t.expect(!lineTypeWithDashFlag(-1).validatePayloadFields(),
+             "a negative dash flag is still rejected");
+}
+// Proxy payload codes belong to the proxy subclass, not to the whole record.
+//
+// A proxy record may carry further 100 subclass markers whose fields reuse the
+// payload codes -- ODA writes an inline AcDbEvalGraph for dynamic blocks, in
+// which 92 and 93 repeat many times. Interpreting those as proxy payload made
+// the second 92 look like a duplicate primary byte size and failed the whole
+// file with BAD_CODE_PARSED.
+void testProxyPayloadCodesAreScopedToTheProxySubclass(TestContext& t) {
+    FuzzInterface interface_;
+    dxfRW reader(nullptr);
+    std::string content =
+        "0\nSECTION\n2\nOBJECTS\n"
+        "0\nACAD_PROXY_OBJECT\n5\n2F0\n330\n2\n"
+        "100\nAcDbProxyObject\n"
+        "90\n500\n91\n1\n"
+        // A second subclass inside the same record, whose own fields reuse the
+        // proxy payload codes.
+        "100\nAcDbEvalGraph\n"
+        "92\n100\n93\n22\n92\n200\n93\n33\n"
+        "0\nENDSEC\n0\nEOF\n";
+    t.expect(reader.readAscii(&interface_, false, content),
+             "a proxy record carrying an inline AcDbEvalGraph reads");
+    t.expect(interface_.proxyObjectCount == 1u,
+             "the proxy object still reaches the caller");
+    t.expect(interface_.rawObjectCount == 1u,
+             "and its raw carrier does too");
+}
+
+// The same scoping must not be driven by a 100 that is somebody else's
+// application data. Inside a 102 group the code is opaque: honouring it would
+// turn payload interpretation back on inside another application's group, and
+// the foreign codes that follow would be misread.
+void testProxySubclassMarkerIsIgnoredInsideApplicationGroups(TestContext& t) {
+    FuzzInterface interface_;
+    dxfRW reader(nullptr);
+    std::string content =
+        "0\nSECTION\n2\nOBJECTS\n"
+        "0\nACAD_PROXY_OBJECT\n5\n2F1\n330\n2\n"
+        // The record's own subclass is not a proxy one, so payload
+        // interpretation is off.
+        "100\nAcDbEvalGraph\n"
+        "102\n{ACAD_XDICTIONARY\n"
+        "100\nAcDbProxyObject\n"
+        "102\n}\n"
+        // If the marker inside the group had been honoured, these would be read
+        // as proxy payload and the second 92 would fail as a duplicate.
+        "92\n100\n92\n200\n"
+        "0\nENDSEC\n0\nEOF\n";
+    t.expect(reader.readAscii(&interface_, false, content),
+             "a 100 inside a 102 group does not re-arm proxy payload reading");
+    t.expect(interface_.proxyObjectCount == 1u,
+             "the record still reaches the caller");
+}
+
+
+// $ACADVER handling.
+//
+// A file naming a revision this build does not know used to be refused
+// outright, which discarded the drawing and the version string with it -- while
+// a file naming no revision at all read fine. The first case pins the new
+// behaviour; the second pins the limit on it.
+void testUnrecognisedAcadVersionIsNotFatal(TestContext& t) {
+    FuzzInterface interface_;
+    dxfRW reader(nullptr);
+    std::string content =
+        "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC9999\n0\nENDSEC\n"
+        "0\nSECTION\n2\nENTITIES\n"
+        "0\nLINE\n8\n0\n10\n0\n20\n0\n30\n0\n11\n1\n21\n1\n31\n0\n"
+        "0\nENDSEC\n0\nEOF\n";
+    t.expect(reader.readAscii(&interface_, false, content),
+             "a file naming an unknown $ACADVER is read, not refused");
+    t.expect(interface_.headerCount == 1u,
+             "the header reaches the caller, carrying the $ACADVER string");
+    t.expect(reader.getVersion() == DRW::UNKNOWNV,
+             "the unknown revision is still reported as UNKNOWNV");
+}
+
+// A later $ACADVER may raise the revision but never lower it. Lowering it to
+// UNKNOWNV disables the R2000+ structural checks -- dxfTableEntryComplete and
+// requiresDxfSelfHandle both read UNKNOWNV as "pre-R2000, no handle required"
+// -- for the rest of the document, and appending four lines to a file is
+// cheap.
+//
+// There are two spellings and both have to be closed: a bare second group 1
+// continuing the same record, and a whole second 9/$ACADVER record. The second
+// is the easy one to miss, because its 9 re-assigns the variable name, so
+// consuming the name cannot stop it.
+void testStrayAcadVersionValueCannotDowngrade(TestContext& t) {
+    const auto versionAfter = [](const std::string& header) {
+        FuzzInterface interface_;
+        dxfRW reader(nullptr);
+        std::string content =
+            "0\nSECTION\n2\nHEADER\n" + header + "0\nENDSEC\n0\nEOF\n";
+        const bool read = reader.readAscii(&interface_, false, content);
+        return std::make_pair(read, reader.getVersion());
+    };
+
+    const auto trailingValue =
+        versionAfter("9\n$ACADVER\n1\nAC1015\n1\nAC9999\n");
+    t.expect(trailingValue.first, "the file is read");
+    t.expect(trailingValue.second == DRW::AC1015,
+             "a stray second $ACADVER value cannot downgrade the revision");
+
+    const auto repeatedRecord =
+        versionAfter("9\n$ACADVER\n1\nAC1015\n9\n$ACADVER\n1\nAC9999\n");
+    t.expect(repeatedRecord.first, "the file with a repeated record is read");
+    t.expect(repeatedRecord.second == DRW::AC1015,
+             "a repeated $ACADVER record cannot downgrade the revision either");
+
+    // The guard is monotone in strictness, not first-wins: a later revision
+    // this build knows may still raise the reading, because that can only turn
+    // structural checks on. Getting this wrong pins the document at the oldest
+    // revision it names, which is weaker than refusing the file ever was.
+    const auto recognisedUpgrade =
+        versionAfter("9\n$ACADVER\n1\nAC1009\n9\n$ACADVER\n1\nAC1015\n");
+    t.expect(recognisedUpgrade.first, "the file is read");
+    t.expect(recognisedUpgrade.second == DRW::AC1015,
+             "a later recognised revision may raise the reading");
+
+    const auto recognisedDowngrade =
+        versionAfter("9\n$ACADVER\n1\nAC1015\n9\n$ACADVER\n1\nAC1009\n");
+    t.expect(recognisedDowngrade.first, "the file is read");
+    t.expect(recognisedDowngrade.second == DRW::AC1015,
+             "but a later older revision may not lower it");
+
+    // The guard is one-directional on purpose: an unrecognised revision
+    // followed by one this build knows is still honoured, because that can
+    // only turn the structural checks on.
+    const auto upgrade =
+        versionAfter("9\n$ACADVER\n1\nAC9999\n9\n$ACADVER\n1\nAC1015\n");
+    t.expect(upgrade.first, "the file is read");
+    t.expect(upgrade.second == DRW::AC1015,
+             "an unrecognised revision may still be replaced by a known one");
+}
+
+
 } // namespace
 
 int main() {
@@ -2789,6 +3050,11 @@ int main() {
     testDimensionParserStateCopyIsolation(context);
     testDxfProxyGraphicsStayOutOfAcis(context);
     testMLeaderDxfContextRoundTrip(context);
+    testLinetypeDashFlagIsFourBits(context);
+    testProxyPayloadCodesAreScopedToTheProxySubclass(context);
+    testProxySubclassMarkerIsIgnoredInsideApplicationGroups(context);
+    testUnrecognisedAcadVersionIsNotFatal(context);
+    testStrayAcadVersionValueCannotDowngrade(context);
     if (context.failures != 0) {
         std::cerr << context.failures << " hardening assertion(s) failed\n";
         return 1;

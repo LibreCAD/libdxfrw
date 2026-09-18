@@ -22,6 +22,22 @@
 #include "intern/dwgbufferw.h"
 #include "intern/dwgsafety.h"
 
+namespace {
+
+/// Resolve a $ACADVER spelling without touching the reader's state.
+/// DRW::Version is ordered by release with UNKNOWNV lowest, so the result is
+/// directly comparable.  The table is keyed by const char*, so it is scanned
+/// rather than looked up -- setVersion() scans it the same way.
+DRW::Version dxfVersionFromName(const std::string& name) {
+    for (const auto& [spelling, identifier] : DRW::dwgVersionStrings) {
+        if (name == spelling)
+            return identifier;
+    }
+    return DRW::UNKNOWNV;
+}
+
+} // namespace
+
 DRW_Header::DRW_Header() {
     linetypeCtrl = layerCtrl = styleCtrl = dimstyleCtrl = appidCtrl = 0;
     blockCtrl = viewCtrl = ucsCtrl = vportCtrl = vpEntHeaderCtrl = 0;
@@ -52,13 +68,41 @@ bool DRW_Header::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     case 1:
         curr->addString(code, reader->getUtf8String());
         if (name =="$ACADVER") {
-            reader->setVersion(*curr->content.s, true);
-            version = reader->getVersion();
-            // An unrecognised $ACADVER is a format error, not an absent
-            // version.  Stop before the header callback can publish a
-            // partially interpreted document.
-            if (reader->getSourceVersion() == DRW::UNKNOWNV)
-                return false;
+            // An unrecognised $ACADVER is reported, not fatal.  A file with NO
+            // $ACADVER reads fine, so refusing one that merely names a revision
+            // this build does not know was inconsistent -- and it discarded the
+            // whole drawing, including the $ACADVER string itself, which is the
+            // one piece of evidence a caller needs to decide what to do.
+            // getVersion() still reports UNKNOWNV for the caller to act on.
+            //
+            // Not refusing the file must not open a way to weaken it.  A
+            // revision decides how strictly the rest of the document is read:
+            // dxfTableEntryComplete and requiresDxfSelfHandle both take
+            // UNKNOWNV to mean "pre-R2000, no handle required".  So a second
+            // $ACADVER may raise the revision but never lower it, and two
+            // appended lines cannot turn the R2000+ structural checks off for
+            // the remainder of the file.  Refusing the file used to hide that
+            // path; not refusing it must not open it.
+            //
+            // Comparing before calling matters, because setVersion() clears
+            // the recorded version before it looks the new spelling up -- an
+            // unrecognised one would otherwise erase a recognised one on its
+            // way to failing.  Both spellings of a repeat are covered: a bare
+            // second group 1 continuing this record, and a whole second
+            // 9/$ACADVER record, which re-assigns `name` and so cannot be
+            // stopped by consuming it.
+            // vars["$ACADVER"] still reports the last spelling the file
+            // carried, which for such a file is not the one that decided the
+            // version.  That is deliberate: the variable reports what was
+            // read, getVersion() reports what was applied, and rewriting the
+            // former would hide the malformation from a caller trying to
+            // diagnose it.
+            const DRW::Version candidate = dxfVersionFromName(*curr->content.s);
+            if (!reader->hasSourceVersion()
+                || candidate > reader->getSourceVersion()) {
+                reader->setVersion(*curr->content.s, true);
+                version = reader->getVersion();
+            }
         }
         break;
     case 2:

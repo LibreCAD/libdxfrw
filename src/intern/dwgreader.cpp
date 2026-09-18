@@ -296,7 +296,17 @@ bool dwgReader::DwgBlockJournalOutput::reserve(std::size_t eventCount) {
     return false;
   }
   try {
-    m_events.reserve(m_events.size() + eventCount);
+    // Same reason as reserveAdmissionImpl: an exact reserve sets capacity to
+    // precisely what was asked for, so reserving size()+eventCount once per
+    // admitted object reallocates and copies the whole event vector every
+    // time.  This is the journal the enclosing transaction is named for, and
+    // it is on the same per-object path.
+    const std::size_t needed = m_events.size() + eventCount;
+    if (needed > m_events.capacity()) {
+      m_events.reserve(std::min(
+          std::max(needed, m_events.capacity() * 2u),
+          static_cast<std::size_t>(dwgSafety::MaxBlockJournalEventCount)));
+    }
   } catch (...) {
     return false;
   }
@@ -360,8 +370,29 @@ bool dwgReader::DwgBlockScopeTransaction::reserveAdmissionImpl(
     return false;
   }
   try {
-    m_leases.reserve(m_leases.size() + sourceCount);
-    m_leaseIndexes.reserve(m_leaseIndexes.size() + sourceCount);
+    // Reserving exactly size()+sourceCount defeats geometric growth: this runs
+    // once per admitted object, so every admission reallocated and copied the
+    // whole vector, making a block's admission quadratic in its object count.
+    // Grow by at least a factor of two once the exact request exceeds what is
+    // already allocated, and leave the container alone otherwise.
+    const std::size_t neededLeases = m_leases.size() + sourceCount;
+    if (neededLeases > m_leases.capacity()) {
+      // Doubling is clamped to the ceiling this function already enforces, so
+      // growth cannot reserve for more objects than a block is allowed to own.
+      m_leases.reserve(
+          std::min(std::max(neededLeases, m_leases.capacity() * 2u), maxSources));
+    }
+
+    // unordered_map::reserve takes an element count, so the comparison has to
+    // be against the element capacity -- bucket_count() is buckets, and the two
+    // differ by the load factor.
+    const std::size_t indexCapacity = static_cast<std::size_t>(
+        m_leaseIndexes.bucket_count() * m_leaseIndexes.max_load_factor());
+    const std::size_t neededIndexes = m_leaseIndexes.size() + sourceCount;
+    if (neededIndexes > indexCapacity) {
+      m_leaseIndexes.reserve(
+          std::min(std::max(neededIndexes, indexCapacity * 2u), maxSources));
+    }
   } catch (...) {
     return false;
   }
@@ -932,8 +963,7 @@ bool dwgReader::restoreDwgSourceFrame(DwgFrameMapLease &lease) {
     return false;
   }
   if (!inserted.inserted) {
-    lease.node.reset();
-    lease.node.emplace(std::move(inserted.node));
+    lease.node = std::move(inserted.node);
     return reportDwgFrameTransitionFailure(lease.source, lease.object.loc,
                                            true);
   }

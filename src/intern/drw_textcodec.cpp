@@ -270,7 +270,11 @@ std::string DRW_ConvTable::toUtf8(std::string_view s) {
 std::string DRW_Converter::encodeText(const std::string &stmp){
     int code;
 #if defined(__APPLE__)
-    int Succeeded = sscanf (&( stmp.substr(3,4)[0]), "%x", &code );
+    // %x writes an unsigned int; scanning straight into `code` is undefined and
+    // GCC 16 rejects it under -Wformat.
+    unsigned int scanned = 0;
+    int Succeeded = sscanf (&( stmp.substr(3,4)[0]), "%x", &scanned );
+    code = static_cast<int>(scanned);
     if ( !Succeeded || Succeeded == EOF )
         code = 0;
 #else
@@ -295,9 +299,12 @@ std::string DRW_Converter::encodeMifText(const std::string &tok){
     }
     int code = 0;
 #if defined(__APPLE__)
-    int succeeded = sscanf(&(tok.substr(4,4)[0]), "%x", &code);
+    // As in encodeText: %x needs an unsigned int.
+    unsigned int scanned = 0;
+    int succeeded = sscanf(&(tok.substr(4,4)[0]), "%x", &scanned);
     if (!succeeded || succeeded == EOF)
         return std::string{};
+    code = static_cast<int>(scanned);
 #else
     std::istringstream sd(tok.substr(4, 4));
     sd >> std::hex >> code;

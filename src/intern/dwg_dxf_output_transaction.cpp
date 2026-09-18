@@ -28,7 +28,6 @@
 #include <cstdio>
 #include <random>
 #include <string>
-#include <vector>
 
 #if defined(_WIN32)
 #  include <fcntl.h>
@@ -92,13 +91,92 @@ bool DwgDxfOutputTransaction::createExclusiveTemporary() {
     m_directoryDescriptor = ::open(directory.c_str(), directoryFlags);
     if (m_directoryDescriptor < 0)
         return false;
-    std::string pattern =
-        (directory / (name + ".libdxfrw-XXXXXX")).string();
-    std::vector<char> mutablePattern(pattern.begin(), pattern.end());
-    mutablePattern.push_back('\0');
-    const int descriptor = ::mkstemp(mutablePattern.data());
-    if (descriptor >= 0) {
-        m_temporary = std::filesystem::path(mutablePattern.data());
+    // Remember what this write replaces, if anything.  The mode is applied to
+    // the temporary just before the rename, so an overwrite keeps the
+    // permissions the target already had rather than the temporary's.
+    //
+    // Resolved against the directory descriptor and without following a
+    // symlink, the same way temporaryIdentityMatches() below resolves its own
+    // name.  A plain stat() would follow a link and take the mode from a file
+    // this transaction is never going to touch -- renameat replaces the link
+    // itself -- which is how an attacker who can write the output directory
+    // would get to choose the permissions of somebody else's saved drawing.
+    // Only a regular file has a mode worth inheriting: for anything else the
+    // published file is treated as new.
+    struct stat existing {};
+    const std::filesystem::path targetName = m_target.filename();
+    const int targetFlags =
+#  if defined(AT_SYMLINK_NOFOLLOW)
+        AT_SYMLINK_NOFOLLOW;
+#  else
+        0;
+#  endif
+    if (!targetName.empty()
+        && ::fstatat(m_directoryDescriptor, targetName.c_str(), &existing,
+                     targetFlags) == 0
+        && S_ISREG(existing.st_mode)) {
+        // Permission bits only.  setuid, setgid and the sticky bit are not
+        // carried onto what is a newly created inode, possibly with a
+        // different owner -- replacing a file must not hand its privileges to
+        // the replacement.
+        m_targetMode = static_cast<int>(existing.st_mode & 0777);
+    }
+
+    // Create the temporary the same way the Windows branch above does, rather
+    // than with mkstemp.  mkstemp always requests 0600, which would have to be
+    // widened afterwards to what an ordinary open() would have produced -- and
+    // the only portable way to learn that is umask(0) followed by umask(mask),
+    // which is a process-global write.  A library cannot do that: between the
+    // two calls every other thread in the host process creates files with no
+    // umask applied at all.  Passing a mode to open() lets the kernel subtract
+    // the umask atomically, which is exactly the intent.
+    //
+    // Which mode depends on what this write replaces.  The temporary lives in
+    // the target's own directory for the whole duration of the write, so it
+    // must never be more permissive than what it is about to become: asking
+    // for 0666 while overwriting somebody's 0600 file would publish that
+    // file's new contents to every reader on the host until the rename.  A
+    // replacement therefore asks for the target's own bits, and only a genuinely
+    // new file asks for 0666 -- where there is no existing content to expose and
+    // 0666 & ~umask is the answer wanted anyway.
+    // Owner-write is always kept, whatever the target's own bits are: the
+    // stream below reopens this temporary by name, so creating it read-only
+    // would refuse the write outright -- and saving over a read-only drawing
+    // is something the previous implementation did happily.  It costs nothing
+    // to keep: publish() fchmods to the target's exact mode before the rename,
+    // and S_IWUSR is owner-only, so it widens none of the group or other bits
+    // this narrowing exists to withhold.
+    const mode_t creationMode =
+        m_targetMode >= 0 ? static_cast<mode_t>(m_targetMode) | S_IWUSR
+                          : mode_t{0666};
+    int openFlags = O_CREAT | O_EXCL | O_RDWR;
+#  if defined(O_CLOEXEC)
+    openFlags |= O_CLOEXEC;
+#  endif
+    // The suffix is the same sixteen bytes mkstemp produced -- ".libdxfrw-"
+    // and six random characters -- because its length is a limit on what can
+    // be written at all.  A longer suffix refuses basenames the previous
+    // implementation accepted, and refuses them with ENAMETOOLONG, which is
+    // not EEXIST and so ends the loop rather than retrying.  Six characters
+    // from this alphabet is also the entropy mkstemp itself used.
+    static constexpr char alphabet[] =
+        "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    static constexpr std::size_t alphabetSize = sizeof(alphabet) - 1u;
+    std::random_device random;
+    std::uniform_int_distribution<std::size_t> pick(0u, alphabetSize - 1u);
+    for (std::uint32_t attempt = 0; attempt != 128; ++attempt) {
+        std::string suffix(".libdxfrw-");
+        for (int character = 0; character != 6; ++character)
+            suffix.push_back(alphabet[pick(random)]);
+        const std::filesystem::path candidate = directory / (name + suffix);
+        const int descriptor = ::open(candidate.c_str(), openFlags, creationMode);
+        if (descriptor < 0) {
+            if (errno == EEXIST)
+                continue;
+            break;
+        }
+
+        m_temporary = candidate;
         m_exclusiveDescriptor = descriptor;
         return true;
     }
@@ -269,6 +347,17 @@ bool DwgDxfOutputTransaction::publish() {
 #else
     if (m_directoryDescriptor < 0)
         return false;
+    // An overwrite keeps the mode the target had, exactly.  The temporary was
+    // already created asking for those bits, but open() subtracts the umask
+    // from what it is asked for, so a target the umask would have masked --
+    // 0664 under umask 022, say -- still needs the difference restored here.
+    // That only ever widens within the target's own bits, and only at the
+    // instant the temporary becomes the target.  A failure is not fatal: the
+    // content is correct either way, and refusing to publish it over a
+    // permissions detail would lose the drawing.
+    if (m_targetMode >= 0 && m_exclusiveDescriptor >= 0)
+        ::fchmod(m_exclusiveDescriptor, static_cast<mode_t>(m_targetMode));
+
     const std::filesystem::path temporaryName = m_temporary.filename();
     const std::filesystem::path targetName = m_target.filename();
     return ::renameat(m_directoryDescriptor, temporaryName.c_str(),
