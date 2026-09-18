@@ -3592,7 +3592,7 @@ bool DRW_LType::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs)
             return fail();
         if (shapeCode < 0
             || shapeCode > std::numeric_limits<std::uint16_t>::max()
-            || dashFlags < 0 || dashFlags > 0x07)
+            || dashFlags < 0 || dashFlags > 0x0F)
             return fail();
         DRW_LTypeSegment segment;
         segment.length = dashLength;

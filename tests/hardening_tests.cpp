@@ -1,5 +1,6 @@
 #include <array>
 #include <algorithm>
+#include <filesystem>
 #include <cstdint>
 #include <iostream>
 #include <limits>
@@ -1879,10 +1880,12 @@ void testPublicOwnershipContracts(TestContext& t) {
              "DRW_Dimension copy isolates extended data");
 }
 
-// A callback sink for parser-fuzz inputs.  Keeping the sink dependency-free
+// A do-nothing DRW_Interface: originally a callback sink for parser-fuzz
+// inputs, and now also the base the round-trip cases below derive from, since
+// it already implements the write half as no-ops.  Keeping the sink dependency-free
 // makes this lane exercise the public dxfRW::readAscii path without coupling
 // hardening coverage to the dwg2dxf adapter's storage policy.
-class FuzzInterface final : public DRW_Interface {
+class FuzzInterface : public DRW_Interface {
 public:
     void addHeader(const DRW_Header* data) override {
         ++headerCount;
@@ -2769,6 +2772,123 @@ void testMLeaderDxfContextRoundTrip(TestContext& t) {
              "AC1021 MULTILEADER writer rejects oversized block-label text");
 }
 
+// The linetype dash shape flag is a 4-bit field, and every validator has to
+// agree on that.
+//
+// DRW_LType::parseDwg bounded it at 0x07 while the DXF read path and
+// validatePayloadFields both bound it at 0x0F -- and parseDwg calls the latter
+// itself at the end, so it rejected mid-parse a value it would have accepted on
+// the way out. Rejecting one entry fails the LTYPE table, and a failed table
+// aborts the table phase, so a single such dash blacks out the whole drawing.
+//
+// The interesting path is the DWG parser, so this writes the file it needs
+// rather than waiting for a fixture to carry one: none of the tracked DWG
+// fixtures has a complex linetype, which is exactly why this went unnoticed.
+void testLinetypeDashFlagIsFourBits(TestContext& t) {
+    // A two-dash pattern whose second dash embeds text and carries 0x0A --
+    // within the four bits the format allows, above the three parseDwg read.
+    constexpr int kDashFlags = 0x0A;
+
+    struct DashFlagWriter final : public FuzzInterface {
+        explicit DashFlagWriter(dwgRW* target) : writer(target) {}
+        void writeLTypes() override {
+            DRW_LType lineType;
+            lineType.name = "GAS_LINE";
+            lineType.desc = "gas line ---- GAS ---- GAS ----";
+            lineType.size = 2;
+            lineType.length = 1.5;
+            lineType.path = {1.0, -0.5};
+
+            DRW_LTypeSegment dash;
+            dash.length = 1.0;
+            lineType.segments.push_back(dash);
+
+            DRW_LTypeSegment embeddedText;
+            embeddedText.length = -0.5;
+            embeddedText.shapeFlags = kDashFlags;
+            embeddedText.text = "GAS";
+            lineType.segments.push_back(embeddedText);
+
+            // update() is protected, so the derived fields are set by hand.
+            addLTypeSucceeded = writer->addLType(&lineType);
+        }
+        dwgRW* writer;
+        bool addLTypeSucceeded {false};
+    };
+
+    struct DashFlagReader final : public FuzzInterface {
+        void addLType(const DRW_LType& data) override {
+            lineTypes.push_back(data);
+        }
+        std::vector<DRW_LType> lineTypes;
+    };
+
+    const std::filesystem::path path = std::filesystem::temp_directory_path()
+                                       / "libdxfrw-ltype-dash-flags.dwg";
+    std::error_code ignored;
+    std::filesystem::remove(path, ignored);
+
+    dwgRW writer(path.string().c_str());
+    DashFlagWriter writeInterface(&writer);
+    const bool wrote = writer.write(&writeInterface, DRW::AC1015, false);
+    t.expect(wrote && writeInterface.addLTypeSucceeded,
+             "a linetype with a 4-bit dash flag can be written");
+
+    dwgRW reader(path.string().c_str());
+    DashFlagReader readInterface;
+    const bool read = reader.read(&readInterface, false);
+    t.expect(read && reader.getError() == DRW::BAD_NONE,
+             "reading it back succeeds: before the fix the LTYPE table failed "
+             "and took the rest of the drawing with it");
+
+    const auto entry = std::find_if(readInterface.lineTypes.cbegin(),
+                                    readInterface.lineTypes.cend(),
+                                    [](const DRW_LType& candidate) {
+                                        return candidate.name == "GAS_LINE";
+                                    });
+    t.expect(entry != readInterface.lineTypes.cend(),
+             "the complex linetype survives the round trip");
+    if (entry != readInterface.lineTypes.cend()) {
+        t.expect(entry->segments.size() == 2,
+                 "both dashes come back");
+        if (entry->segments.size() == 2) {
+            t.expect(entry->segments[1].shapeFlags == kDashFlags,
+                     "the dash flag comes back unchanged, not clamped");
+            t.expect(entry->segments[1].text == "GAS",
+                     "the text the flag describes comes back with it");
+        }
+    }
+
+    std::filesystem::remove(path, ignored);
+
+    // The bound itself, checked directly. Same wrapper idiom the parser-state
+    // cases above use: the validators are protected, and exposing one locally
+    // does not widen the installed API.
+    class ExposedLType : public DRW_LType {
+    public:
+        using DRW_LType::validatePayloadFields;
+    };
+
+    auto lineTypeWithDashFlag = [](int shapeFlags) {
+        ExposedLType lineType;
+        lineType.name = "GAS_LINE";
+        DRW_LTypeSegment segment;
+        segment.length = 1.0;
+        segment.shapeFlags = shapeFlags;
+        lineType.segments.push_back(segment);
+        // size counts the dashes, and path carries one length per dash.
+        lineType.path.push_back(segment.length);
+        lineType.size = static_cast<int>(lineType.segments.size());
+        return lineType;
+    };
+
+    t.expect(lineTypeWithDashFlag(0x0F).validatePayloadFields(),
+             "0x0F, the widest legal value, is accepted");
+    t.expect(!lineTypeWithDashFlag(0x10).validatePayloadFields(),
+             "0x10 is out of range and still rejected");
+    t.expect(!lineTypeWithDashFlag(-1).validatePayloadFields(),
+             "a negative dash flag is still rejected");
+}
 } // namespace
 
 int main() {
@@ -2789,6 +2909,7 @@ int main() {
     testDimensionParserStateCopyIsolation(context);
     testDxfProxyGraphicsStayOutOfAcis(context);
     testMLeaderDxfContextRoundTrip(context);
+    testLinetypeDashFlagIsFourBits(context);
     if (context.failures != 0) {
         std::cerr << context.failures << " hardening assertion(s) failed\n";
         return 1;
