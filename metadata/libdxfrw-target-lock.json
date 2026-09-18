@@ -24,7 +24,7 @@
   },
   "schema": 1,
   "standalone": {
-    "commit": "d26c9018e7d047ceecb27adecbec1bbb1fd53675",
+    "commit": "085e5fe754ad229ed68599b7dc2e39195f8f9547",
     "ref": "origin/master",
     "repository": "git@github.com-librecad:LibreCAD/libdxfrw.git"
   }

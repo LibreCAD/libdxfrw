@@ -2401,7 +2401,7 @@ def _self_test_standalone_build(
     minimal_source = repository / "libraries/libdxfrw/src/minimal.cpp"
     minimal_include = repository / "libraries/libdxfrw/src"
     cmake_file.write_text(
-        "cmake_minimum_required(VERSION 3.10)\n"
+        "cmake_minimum_required(VERSION 3.28)\n"
         "project(semantic_standalone_self_test LANGUAGES CXX)\n"
         "set(CMAKE_CXX_STANDARD 17)\n"
         "set(CMAKE_CXX_STANDARD_REQUIRED ON)\n"

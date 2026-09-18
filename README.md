@@ -12,13 +12,13 @@ contributors; historical project information remains at
 
 ## Build and install
 
-CMake is the supported 2.x build (CMake 3.10 or newer, C++17). The historical
+CMake is the supported 2.x build (CMake 3.28 or newer, C++17). The historical
 Autotools, MinGW, and Conan recipes are retained for reference and are
 deprecated until they consume the canonical source manifest and have a
 maintained C++17/CI lane.
 
 ```sh
-cmake -S . -B build -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+cmake -S . -B build
 cmake --build build
 cmake --install build --prefix "$PWD/stage"
 ```

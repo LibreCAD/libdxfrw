@@ -242,7 +242,7 @@ The implementation strategy is therefore:
 Unless maintainers override one before Checkpoint A, execute these decisions
 without waiting for confirmation. Absence of an override is not a blocker:
 
-- C++17, libdxfrw 2.0.0, `cmake_minimum_required(VERSION 3.10)`, and an
+- C++17, libdxfrw 2.0.0, `cmake_minimum_required(VERSION 3.28)`, and an
   explicitly ABI-breaking release boundary.
 - One pinned LibreCAD SHA for checkpoints A-D; later `master` commits queue for
   a follow-up refresh.
@@ -1541,7 +1541,7 @@ edit this block or commit the same slice concurrently.
 | S00 | C0.1: target-only callback defaults | none | COMMITTED | old-sink concreteness; `lc3_compat_check` compile; diff check | `addDimArc` and `addPlotSettings` now default no-op; compatibility object builds | S01 |
 | S01 | A0: progress tooling, final target lock, Git path/blob/mode manifest | none | COMMITTED | updater self-test; deterministic lock/manifest | `update_upgrade_plan.py` self-test and `check_libdxfrw_sync.py` pass; 86 Git entries recorded and two target-list omissions explicit | S02 |
 | S02 | A1: baseline harness, normalization v1, fixture registry/admission guard | S01 | COMMITTED | pristine baseline; fixture guard positive/negative tests | Clean `e83609d` library/CLI fast baseline passes; oracle and guard self-tests pass; no drawing payloads admitted | S03, S07 evidence lane |
-| S03 | B0: C++17/CMake 3.10/libdxfrw 2.0.0 substrate | S02 | COMMITTED | old source builds/installs under C++17 | CMake/target/test surfaces use C++17 and 2.0.0; clean install/header smoke passes | S04 |
+| S03 | B0: C++17/CMake 3.28/libdxfrw 2.0.0 substrate | S02 | COMMITTED | old source builds/installs under C++17 | CMake/target/test surfaces use C++17 and 2.0.0; clean install/header smoke passes | S04 |
 | S04 | B1+B2+C0: atomic import, warning/header/build closure, essential compatibility shims | S03 | COMMITTED | source parity; default `-Werror` build; staged headers; baseline/target API | Imported target source, source-only focused tests, adaptation allowlist, `lc3_compat_check`, all test targets, Wave 1/hardening, install/header smoke, and fixture-policy checks pass; no DWG/DXF payloads staged | S05, S06 |
 | S05 | C1: CLI, LibreCAD source overlay, generic staged consumer | S04 | COMMITTED | CLI/filter/parser/package consumers | `dwg2dxf --help`, the pinned LibreCAD filter source-overlay compile, and staged CMake/pkg-config/relocation consumers pass; no drawing payloads | S06, S07 |
 | S06 | D0: Wave 1 dependency-free and focused tests | S04 | COMMITTED | all Wave 1 gates green | Seven dependency-free executables pass; `tools/run_fast_focus.py` and the CTest selector reproduce the same 0.62s fast lane; fixture-backed runs remain separately gated | S07 |
@@ -1558,7 +1558,7 @@ edit this block or commit the same slice concurrently.
 | --- | --- | --- | --- | --- | --- |
 | A0 | S01 | none | COMMITTED | NOT_APPLICABLE | Progress tooling, final lock, and source manifest; 86 entries with two explicit source-list omissions |
 | A1 | S02 | A0 | COMMITTED | NOT_APPLICABLE | Baseline, normalizer, fixture registry, and admission guard; clean baseline recorded at `e83609d` |
-| B0 | S03 | A1 | COMMITTED | NOT_APPLICABLE | C++17/CMake 3.10/2.0.0 substrate on baseline sources; fast build/install verified |
+| B0 | S03 | A1 | COMMITTED | NOT_APPLICABLE | C++17/CMake 3.28/2.0.0 substrate on baseline sources; fast build/install verified |
 | B1 | S04 | B0 | COMMITTED | NOT_APPLICABLE | Atomic pinned source and manifest activation; import scope and fixture policy are closed |
 | B2 | S04 | B1 | COMMITTED | NOT_APPLICABLE | Warning, header, build, and install closure under default `-Werror` |
 | C0 | S04 | B1 | COMMITTED | NOT_APPLICABLE | Essential public compatibility shims and compile-only LibreCAD_3 surface |
@@ -1613,7 +1613,7 @@ edit this block or commit the same slice concurrently.
 | G0.1 | G0 / S13 | WP6; R4/R6 | F1.3 | COMMITTED | NOT_EVALUATED | default hardening lane | `libdxfrw_hardening_tests` passes 2,048 deterministic DXF and 512 DWG malformed vectors with bounded budgets and stage-preserving diagnostics |
 | G0.2 | G0 / S13 | WP6; R4/R6 | G0.1 | COMMITTED | NOT_EVALUATED | long fuzz lane | Opt-in `libdxfrw_long_fuzz_tests` passes 8,192 generic, 65,536 DXF, and 16,384 DWG in-memory vectors; no payload files are emitted |
 | G0.3 | G0 / S13 | WP6/WP8; R4/R6 | G0.2 | COMMITTED | NOT_EVALUATED | sanitizer hardening lane | Focused ASan/UBSan `libdxfrw_hardening_tests` passes with macOS leak detection disabled by policy; report records exact flags and scope |
-| G1.1 | G1 / S14 | WP8; Phase 8 | G0.3 | COMMITTED | NOT_EVALUATED | version/documentation audit | C++17/2.0.0, CMake 3.10, SOVERSION 2, `SameMajorVersion`, README, NEWS, ChangeLog, and toolchain/package documentation agree |
+| G1.1 | G1 / S14 | WP8; Phase 8 | G0.3 | COMMITTED | NOT_EVALUATED | version/documentation audit | C++17/2.0.0, CMake 3.28, SOVERSION 2, `SameMajorVersion`, README, NEWS, ChangeLog, and toolchain/package documentation agree |
 | G1.2 | G1 / S14 | WP8; Phase 8; R5 | G1.1 | COMMITTED | NOT_EVALUATED | installed package consumers | Fresh-prefix public-header, CMake, pkg-config, relocation, and profile-symbol checks pass; no source-tree include leaks are present |
 | G1.3 | G1 / S14 | WP3; Phase 8 | G1.2 | COMMITTED | NOT_EVALUATED | LibreCAD system-package consumer | `rs_filterdxfrw.cpp` syntax-compiles against the staged package after removing bundled DXFRW include roots; checker reports zero bundled paths |
 | G1.4 | G1 / S14 | WP0/WP8; Phase 8 | G1.3 | COMMITTED | NOT_EVALUATED | provenance and fixture release audit | `LIBRECAD_SYNC.md`, release-readiness report, adaptation allowlist, and fixture guard are green; no external DWG/DXF payload is staged |
@@ -1925,10 +1925,9 @@ enter a slice commit unnoticed.
 1. Raise the CMake language feature requirement and all compile-check targets
    to C++17, and set the project/package version to 2.0.0 in the same commit so
    no merged revision advertises the incompatible interface as 1.x.
-2. Set the pinned target's CMake 3.10 minimum, which supports the required
-   `cxx_std_17` feature, and verify it on every supported CI image. Remove the
-   old policy workaround; raise the minimum only if a separately identified
-   required feature cannot be expressed safely at 3.10. Verify the initial
+2. Set the pinned target's CMake 3.28 minimum to match LibreCAD master and the
+   supported package/CI baseline, and verify it on every supported CI image.
+   Remove the obsolete policy workaround. Verify the initial
    compiler/standard-library floors from WP1:
    GCC/libstdc++ 9, Clang 10 with libstdc++ 9 or libc++ 10, Apple Clang 12,
    and MSVC 19.28. If GCC 8 remains supported, require a successful

@@ -7,7 +7,7 @@
   "versionSurface": {
     "project": "2.0.0",
     "cxxStandard": "17",
-    "cmakeMinimum": "3.10",
+    "cmakeMinimum": "3.28",
     "soversion": "2",
     "packageCompatibility": "SameMajorVersion"
   },
