@@ -8082,8 +8082,9 @@ bool dxfRW::processDxf() {
                         if (failDxfReadBudget())
                             return false;
                         // Keep the specific section error (for example
-                        // BAD_VERSION from an invalid $ACADVER) instead of
-                        // replacing it with the generic section failure.
+                        // BAD_READ_TABLES from a malformed table entry)
+                        // instead of replacing it with the generic section
+                        // failure.
                         return error == DRW::BAD_NONE
                             ? setError(DRW::BAD_READ_SECTION)
                             : false;
@@ -8175,9 +8176,12 @@ bool dxfRW::processHeader() {
         }
 
         if (!header.parseCode(code, reader)) {
-            return setError(reader->getSourceVersion() == DRW::UNKNOWNV
-                                ? DRW::BAD_VERSION
-                                : DRW::BAD_CODE_PARSED);
+            // An unrecognised $ACADVER no longer fails here, so a failure at
+            // this point is a malformed record rather than a version problem
+            // and must not be reported as BAD_VERSION: the source version is
+            // UNKNOWNV for every such file, and classifying on it would label
+            // any unrelated header parse failure a version failure.
+            return setError(DRW::BAD_CODE_PARSED);
         }
     }
     return setError(DRW::BAD_READ_HEADER);
@@ -13205,6 +13209,19 @@ bool requiresDxfSelfHandle(const dxfReader& reader) {
     return requiresDxfSelfHandle(reader.getSourceVersion());
 }
 
+// Proxy graphics are decoded with a bit layout chosen by the drawing's
+// revision -- DRW_ProxyGraphicDecoder reads two extra fields per polyline from
+// AC1024 on -- so an unrecognised revision is not a strictness question but a
+// layout one, and there is nothing to fall back on.  Decoding UNKNOWNV as if it
+// were pre-AC1024 misaligns the stream and emits the misread bits through the
+// ordinary entity callbacks as real geometry, which is worse than emitting
+// nothing: the caller cannot tell.  The bytes are still delivered verbatim in
+// proxyGraphics and through the raw carrier, so declining to decode loses only
+// the guess.
+bool canDecodeProxyGraphics(const dxfReader& reader) {
+    return reader.getSourceVersion() != DRW::UNKNOWNV;
+}
+
 bool updateRawDxfApplicationDepth(const DRW_Variant& value, int& depth) {
     if (value.code() != 102)
         return true;
@@ -14199,7 +14216,8 @@ bool dxfRW::processRawEntity() {
                 return setError(DRW::BAD_READ_ENTITIES);
             if (requiresDxfSelfHandle(*reader) && !hasRawDxfSelfHandle(ent))
                 return setError(DRW::BAD_READ_ENTITIES);
-            if (proxyHost.proxyGraphics.size() >= 16)
+            if (proxyHost.proxyGraphics.size() >= 16
+                && canDecodeProxyGraphics(*reader))
                 DRW_ProxyGraphicDecoder::decode(
                     proxyHost.proxyGraphics, reader->getSourceVersion(),
                     *iface, proxyHost);
@@ -14279,7 +14297,8 @@ bool dxfRW::processProxyEntity() {
             raw.parentHandle = entity.parentHandle;
             if (!applyProxyDxfCapture(entity, std::move(capture)))
                 return setError(DRW::BAD_READ_ENTITIES);
-            if (entity.proxyGraphics.size() >= 16)
+            if (entity.proxyGraphics.size() >= 16
+                && canDecodeProxyGraphics(*reader))
                 DRW_ProxyGraphicDecoder::decode(
                     entity.proxyGraphics, reader->getSourceVersion(),
                     *iface, entity);

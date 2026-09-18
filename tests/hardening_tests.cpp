@@ -8,6 +8,7 @@
 #include <sstream>
 #include <string>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 #include "drw_acis.h"
@@ -2948,6 +2949,87 @@ void testProxySubclassMarkerIsIgnoredInsideApplicationGroups(TestContext& t) {
 }
 
 
+// $ACADVER handling.
+//
+// A file naming a revision this build does not know used to be refused
+// outright, which discarded the drawing and the version string with it -- while
+// a file naming no revision at all read fine. The first case pins the new
+// behaviour; the second pins the limit on it.
+void testUnrecognisedAcadVersionIsNotFatal(TestContext& t) {
+    FuzzInterface interface_;
+    dxfRW reader(nullptr);
+    std::string content =
+        "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC9999\n0\nENDSEC\n"
+        "0\nSECTION\n2\nENTITIES\n"
+        "0\nLINE\n8\n0\n10\n0\n20\n0\n30\n0\n11\n1\n21\n1\n31\n0\n"
+        "0\nENDSEC\n0\nEOF\n";
+    t.expect(reader.readAscii(&interface_, false, content),
+             "a file naming an unknown $ACADVER is read, not refused");
+    t.expect(interface_.headerCount == 1u,
+             "the header reaches the caller, carrying the $ACADVER string");
+    t.expect(reader.getVersion() == DRW::UNKNOWNV,
+             "the unknown revision is still reported as UNKNOWNV");
+}
+
+// A later $ACADVER may raise the revision but never lower it. Lowering it to
+// UNKNOWNV disables the R2000+ structural checks -- dxfTableEntryComplete and
+// requiresDxfSelfHandle both read UNKNOWNV as "pre-R2000, no handle required"
+// -- for the rest of the document, and appending four lines to a file is
+// cheap.
+//
+// There are two spellings and both have to be closed: a bare second group 1
+// continuing the same record, and a whole second 9/$ACADVER record. The second
+// is the easy one to miss, because its 9 re-assigns the variable name, so
+// consuming the name cannot stop it.
+void testStrayAcadVersionValueCannotDowngrade(TestContext& t) {
+    const auto versionAfter = [](const std::string& header) {
+        FuzzInterface interface_;
+        dxfRW reader(nullptr);
+        std::string content =
+            "0\nSECTION\n2\nHEADER\n" + header + "0\nENDSEC\n0\nEOF\n";
+        const bool read = reader.readAscii(&interface_, false, content);
+        return std::make_pair(read, reader.getVersion());
+    };
+
+    const auto trailingValue =
+        versionAfter("9\n$ACADVER\n1\nAC1015\n1\nAC9999\n");
+    t.expect(trailingValue.first, "the file is read");
+    t.expect(trailingValue.second == DRW::AC1015,
+             "a stray second $ACADVER value cannot downgrade the revision");
+
+    const auto repeatedRecord =
+        versionAfter("9\n$ACADVER\n1\nAC1015\n9\n$ACADVER\n1\nAC9999\n");
+    t.expect(repeatedRecord.first, "the file with a repeated record is read");
+    t.expect(repeatedRecord.second == DRW::AC1015,
+             "a repeated $ACADVER record cannot downgrade the revision either");
+
+    // The guard is monotone in strictness, not first-wins: a later revision
+    // this build knows may still raise the reading, because that can only turn
+    // structural checks on. Getting this wrong pins the document at the oldest
+    // revision it names, which is weaker than refusing the file ever was.
+    const auto recognisedUpgrade =
+        versionAfter("9\n$ACADVER\n1\nAC1009\n9\n$ACADVER\n1\nAC1015\n");
+    t.expect(recognisedUpgrade.first, "the file is read");
+    t.expect(recognisedUpgrade.second == DRW::AC1015,
+             "a later recognised revision may raise the reading");
+
+    const auto recognisedDowngrade =
+        versionAfter("9\n$ACADVER\n1\nAC1015\n9\n$ACADVER\n1\nAC1009\n");
+    t.expect(recognisedDowngrade.first, "the file is read");
+    t.expect(recognisedDowngrade.second == DRW::AC1015,
+             "but a later older revision may not lower it");
+
+    // The guard is one-directional on purpose: an unrecognised revision
+    // followed by one this build knows is still honoured, because that can
+    // only turn the structural checks on.
+    const auto upgrade =
+        versionAfter("9\n$ACADVER\n1\nAC9999\n9\n$ACADVER\n1\nAC1015\n");
+    t.expect(upgrade.first, "the file is read");
+    t.expect(upgrade.second == DRW::AC1015,
+             "an unrecognised revision may still be replaced by a known one");
+}
+
+
 } // namespace
 
 int main() {
@@ -2971,6 +3053,8 @@ int main() {
     testLinetypeDashFlagIsFourBits(context);
     testProxyPayloadCodesAreScopedToTheProxySubclass(context);
     testProxySubclassMarkerIsIgnoredInsideApplicationGroups(context);
+    testUnrecognisedAcadVersionIsNotFatal(context);
+    testStrayAcadVersionValueCannotDowngrade(context);
     if (context.failures != 0) {
         std::cerr << context.failures << " hardening assertion(s) failed\n";
         return 1;
