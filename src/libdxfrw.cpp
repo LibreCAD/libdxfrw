@@ -13440,6 +13440,12 @@ enum class DxfProxyPayloadSlot { Primary, Body, Unknown };
 struct DxfProxyCapture {
     DxfProxyPayloadSlot slot = DxfProxyPayloadSlot::Primary;
     bool inProxyRecord = false;
+    // Which 100 subclass the following groups belong to.  A proxy record may
+    // carry additional subclasses -- ODA writes an inline AcDbEvalGraph for
+    // dynamic blocks -- whose group codes collide with the proxy payload codes
+    // (92/93/96 in particular).  Only the proxy subclass's own groups may be
+    // interpreted as payload; the rest are kept verbatim by the raw carrier.
+    bool inProxySubclass = true;
     int applicationDepth = 0;
     std::vector<std::string> applicationGroups;
     bool hasOwner = false;
@@ -13602,6 +13608,33 @@ bool collectProxyDxfGroup(DxfProxyCapture& capture,
         }
         return true;
     }
+
+    if (code == 100) {
+        if (value.type() != DRW_Variant::STRING || value.c_str() == nullptr)
+            return false;
+        // A 100 is a subclass marker only at record level.  Inside a 102
+        // application group it is opaque application data that happens to use
+        // the same code, and letting it move the subclass state would either
+        // disarm the payload interpretation for the rest of the record or
+        // re-arm it inside somebody else's group.  captureRawGroup has already
+        // kept it verbatim either way.
+        if (capture.applicationDepth != 0)
+            return true;
+        const std::string subclass(value.c_str());
+        capture.inProxySubclass =
+            dxfKeywordEquals(subclass, "AcDbProxyEntity")
+            || dxfKeywordEquals(subclass, "AcDbProxyObject")
+            || dxfKeywordEquals(subclass, "AcDbZombieEntity")
+            || dxfKeywordEquals(subclass, "AcDbZombieObject");
+        return true;
+    }
+
+    // Outside the proxy subclass every code below is somebody else's field.
+    // Accept it without interpreting it; captureRawGroup has already kept it.
+    // 102 and 100 have already returned above, so this cannot swallow a
+    // group marker.
+    if (!capture.inProxySubclass)
+        return true;
 
     if (code == 330 || code == 340 || code == 350 || code == 360) {
         std::uint64_t handle = 0;

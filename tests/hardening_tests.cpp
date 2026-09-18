@@ -1943,6 +1943,8 @@ public:
         ++rawSectionCount;
         rawSectionHasValues = rawSectionHasValues || data.m_hasRawValues;
     }
+    void addProxyObject(const DRW_ProxyObject&) override { ++proxyObjectCount; }
+    void addRawDxfObject(const DRW_RawDxfObject&) override { ++rawObjectCount; }
     void addComment(const char*) override {}
     void writeHeader(DRW_Header&) override {}
     void writeBlocks() override {}
@@ -1956,6 +1958,8 @@ public:
     void writeObjects() override {}
     void writeAppId() override {}
 
+    std::size_t proxyObjectCount {0};
+    std::size_t rawObjectCount {0};
     std::size_t rawSectionCount {0};
     bool rawSectionHasValues {false};
     std::size_t headerCount {0};
@@ -2889,6 +2893,61 @@ void testLinetypeDashFlagIsFourBits(TestContext& t) {
     t.expect(!lineTypeWithDashFlag(-1).validatePayloadFields(),
              "a negative dash flag is still rejected");
 }
+// Proxy payload codes belong to the proxy subclass, not to the whole record.
+//
+// A proxy record may carry further 100 subclass markers whose fields reuse the
+// payload codes -- ODA writes an inline AcDbEvalGraph for dynamic blocks, in
+// which 92 and 93 repeat many times. Interpreting those as proxy payload made
+// the second 92 look like a duplicate primary byte size and failed the whole
+// file with BAD_CODE_PARSED.
+void testProxyPayloadCodesAreScopedToTheProxySubclass(TestContext& t) {
+    FuzzInterface interface_;
+    dxfRW reader(nullptr);
+    std::string content =
+        "0\nSECTION\n2\nOBJECTS\n"
+        "0\nACAD_PROXY_OBJECT\n5\n2F0\n330\n2\n"
+        "100\nAcDbProxyObject\n"
+        "90\n500\n91\n1\n"
+        // A second subclass inside the same record, whose own fields reuse the
+        // proxy payload codes.
+        "100\nAcDbEvalGraph\n"
+        "92\n100\n93\n22\n92\n200\n93\n33\n"
+        "0\nENDSEC\n0\nEOF\n";
+    t.expect(reader.readAscii(&interface_, false, content),
+             "a proxy record carrying an inline AcDbEvalGraph reads");
+    t.expect(interface_.proxyObjectCount == 1u,
+             "the proxy object still reaches the caller");
+    t.expect(interface_.rawObjectCount == 1u,
+             "and its raw carrier does too");
+}
+
+// The same scoping must not be driven by a 100 that is somebody else's
+// application data. Inside a 102 group the code is opaque: honouring it would
+// turn payload interpretation back on inside another application's group, and
+// the foreign codes that follow would be misread.
+void testProxySubclassMarkerIsIgnoredInsideApplicationGroups(TestContext& t) {
+    FuzzInterface interface_;
+    dxfRW reader(nullptr);
+    std::string content =
+        "0\nSECTION\n2\nOBJECTS\n"
+        "0\nACAD_PROXY_OBJECT\n5\n2F1\n330\n2\n"
+        // The record's own subclass is not a proxy one, so payload
+        // interpretation is off.
+        "100\nAcDbEvalGraph\n"
+        "102\n{ACAD_XDICTIONARY\n"
+        "100\nAcDbProxyObject\n"
+        "102\n}\n"
+        // If the marker inside the group had been honoured, these would be read
+        // as proxy payload and the second 92 would fail as a duplicate.
+        "92\n100\n92\n200\n"
+        "0\nENDSEC\n0\nEOF\n";
+    t.expect(reader.readAscii(&interface_, false, content),
+             "a 100 inside a 102 group does not re-arm proxy payload reading");
+    t.expect(interface_.proxyObjectCount == 1u,
+             "the record still reaches the caller");
+}
+
+
 } // namespace
 
 int main() {
@@ -2910,6 +2969,8 @@ int main() {
     testDxfProxyGraphicsStayOutOfAcis(context);
     testMLeaderDxfContextRoundTrip(context);
     testLinetypeDashFlagIsFourBits(context);
+    testProxyPayloadCodesAreScopedToTheProxySubclass(context);
+    testProxySubclassMarkerIsIgnoredInsideApplicationGroups(context);
     if (context.failures != 0) {
         std::cerr << context.failures << " hardening assertion(s) failed\n";
         return 1;
