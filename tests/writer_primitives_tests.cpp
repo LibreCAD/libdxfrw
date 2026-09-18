@@ -15,6 +15,12 @@
 #include "intern/dwgwriter15.h"
 #include "libdwgr.h"
 
+#if !defined(_WIN32)
+#  include <sys/stat.h>
+#  include <sys/types.h>
+#  include <unistd.h>
+#endif
+
 namespace {
 
 struct TestContext {
@@ -483,6 +489,204 @@ void testOutputTransactionPublicationAndRollback(TestContext& t) {
     std::filesystem::remove(target, ignored);
 }
 
+
+#if !defined(_WIN32)
+
+// The mode the temporary carries is what the caller ends up with, because the
+// temporary is renamed over the target. So it is part of the library's
+// observable behaviour: a new file has to look like one an ordinary open()
+// would have produced, and overwriting an existing file must not change its
+// permissions.
+//
+// What this catches: the modes themselves. Against the implementation that
+// preceded it -- mkstemp, which always creates 0600, with nothing restoring
+// the mode -- every assertion below except the 0600 case fails.
+//
+// What it does not catch, and cannot: the reason the implementation creates
+// the temporary with open(..., 0666) rather than reading the umask. There is
+// no portable way to read the umask without setting it, and umask(0) followed
+// by umask(mask) is a process-global write -- during that window every other
+// thread in the host process creates files with no umask applied. That window
+// is invisible to a single-threaded test and racing it would be flaky. The
+// guard against it is structural: the implementation calls umask() nowhere.
+// The assertion below only catches a variant that sets it and fails to
+// restore it.
+void testOutputTransactionPreservesFileMode(TestContext& t) {
+    // Per-process directory: ctest may run this binary concurrently with another
+    // copy of itself, and both would otherwise iterate each other's temporaries.
+    const std::filesystem::path directory =
+        std::filesystem::temp_directory_path()
+        / ("libdxfrw-output-transaction-mode-" + std::to_string(::getpid()));
+    std::error_code ignored;
+    std::filesystem::remove_all(directory, ignored);
+    std::filesystem::create_directories(directory, ignored);
+
+    const auto writeThrough = [](const std::filesystem::path& target) {
+        DwgDxfOutputTransaction transaction(target.string(),
+                                            std::ios::out | std::ios::binary);
+        if (!transaction.open())
+            return false;
+        transaction.stream() << "0\nEOF\n";
+        return transaction.commit();
+    };
+    const auto modeOf = [](const std::filesystem::path& path) {
+        struct stat status {};
+        if (::stat(path.c_str(), &status) != 0)
+            return -1;
+        return static_cast<int>(status.st_mode & 07777);
+    };
+
+    // A new file gets the mode an ordinary open(..., 0666) would produce: the
+    // kernel subtracts the umask. Before this was fixed the temporary's own
+    // 0600 survived the rename and every written file was owner-only.
+    const mode_t previousMask = ::umask(022);
+    const std::filesystem::path fresh = directory / "fresh.dxf";
+    t.expect(writeThrough(fresh), "a new file publishes");
+    t.expect(modeOf(fresh) == 0644,
+             "a new file under umask 022 is 0644, not the temporary's 0600");
+
+    // The umask must be exactly what it was; see the note above for the part
+    // this cannot reach.
+    t.expect(::umask(previousMask) == 022,
+             "the write left the process umask alone");
+
+    // Overwriting keeps whatever mode the target already had, in both
+    // directions -- a write must neither tighten nor loosen someone's file.
+    struct ModeCase {
+        const char* name;
+        mode_t mode;
+        const char* published;
+        const char* preserved;
+    };
+    const ModeCase cases[] = {
+        {"overwrite-0644.dxf", 0644, "overwriting a 0644 file publishes",
+         "overwriting a 0644 file keeps it 0644"},
+        {"overwrite-0600.dxf", 0600, "overwriting a 0600 file publishes",
+         "overwriting a 0600 file keeps it 0600"},
+        {"overwrite-0640.dxf", 0640, "overwriting a 0640 file publishes",
+         "overwriting a 0640 file keeps it 0640"},
+        {"overwrite-0664.dxf", 0664, "overwriting a 0664 file publishes",
+         "overwriting a 0664 file keeps it 0664"},
+        // Read-only targets: reference drawings and files restored from backup
+        // are routinely 0444, and the previous implementation wrote them
+        // happily.  Creating the temporary with the target's exact mode does
+        // not -- the stream reopens it by name -- so these two pin the owner
+        // write bit that makes it work.
+        {"overwrite-0444.dxf", 0444, "overwriting a read-only file publishes",
+         "overwriting a 0444 file keeps it 0444"},
+        {"overwrite-0400.dxf", 0400, "overwriting an owner-read-only file publishes",
+         "overwriting a 0400 file keeps it 0400"},
+    };
+
+    for (const ModeCase& testCase : cases) {
+        const std::filesystem::path target = directory / testCase.name;
+        {
+            std::ofstream seed(target);
+            seed << "0\nEOF\n";
+        }
+        if (::chmod(target.c_str(), testCase.mode) != 0) {
+            t.expect(false, "seeding an existing target with a known mode");
+            continue;
+        }
+        t.expect(writeThrough(target), testCase.published);
+        t.expect(modeOf(target) == static_cast<int>(testCase.mode),
+                 testCase.preserved);
+    }
+
+    // The temporary lives in the target's own directory for the whole duration
+    // of the write, so it must never be more permissive than what it is about
+    // to replace. Creating it at 0666 & ~umask would publish a private file's
+    // new contents to every reader on the host until the rename lands.
+    {
+        // Its own directory, so "every file that is not the target" identifies
+        // the temporary without the test having to know how it is named.
+        const std::filesystem::path guardedDirectory = directory / "exposure";
+        std::filesystem::create_directories(guardedDirectory, ignored);
+        const std::filesystem::path guarded = guardedDirectory / "guarded.dxf";
+        {
+            std::ofstream seed(guarded);
+            seed << "0\nEOF\n";
+        }
+        if (::chmod(guarded.c_str(), 0600) != 0) {
+            t.expect(false, "seeding the 0600 target for the exposure check");
+        } else {
+            DwgDxfOutputTransaction transaction(
+                guarded.string(), std::ios::out | std::ios::binary);
+            t.expect(transaction.open(), "the overwrite transaction opens");
+            transaction.stream() << "0\nEOF\n";
+
+            // Mid-write: every file in the directory other than the target is
+            // this transaction's temporary.
+            int exposed = 0;
+            int temporaries = 0;
+            std::error_code walk;
+            // The error_code overload: the throwing one would abort the whole
+            // executable instead of failing this assertion.
+            for (std::filesystem::directory_iterator entry(guardedDirectory, walk),
+                     last;
+                 !walk && entry != last; entry.increment(walk)) {
+                if (entry->path() == guarded)
+                    continue;
+                struct stat status {};
+                if (::stat(entry->path().c_str(), &status) == 0) {
+                    ++temporaries;
+                    exposed |= static_cast<int>(status.st_mode) & 0077;
+                }
+            }
+            // Without this the assertion below passes for free if the walk
+            // found nothing at all.
+            t.expect(temporaries == 1,
+                     "exactly one in-progress temporary was observed");
+            t.expect(exposed == 0,
+                     "the in-progress temporary is not group- or world-readable "
+                     "while it replaces a 0600 file");
+            t.expect(transaction.commit(), "the overwrite publishes");
+            t.expect(modeOf(guarded) == 0600, "and the target is still 0600");
+        }
+    }
+
+    // A symlinked target must not lend its destination's permissions to the
+    // published file. renameat replaces the link itself, so the mode of the
+    // file it pointed at is not the mode of anything this write touches --
+    // and inheriting it would let anyone who can write the output directory
+    // choose the permissions of somebody else's saved drawing.
+    {
+        const std::filesystem::path linkDirectory = directory / "symlink";
+        std::filesystem::create_directories(linkDirectory, ignored);
+        const std::filesystem::path bait = linkDirectory / "bait";
+        {
+            std::ofstream seed(bait);
+            seed << "0\nEOF\n";
+        }
+        const std::filesystem::path link = linkDirectory / "link.dxf";
+        std::error_code linked;
+        std::filesystem::create_symlink(bait, link, linked);
+        if (linked || ::chmod(bait.c_str(), 0777) != 0) {
+            // Symlinks are not always available; skip rather than fail.
+        } else {
+            t.expect(writeThrough(link), "writing through a symlinked name publishes");
+            struct stat published {};
+            t.expect(::lstat(link.c_str(), &published) == 0
+                         && S_ISREG(published.st_mode),
+                     "the symlink is replaced by a regular file");
+            t.expect((published.st_mode & 07777) == 0644,
+                     "the published file takes the umask's mode, not the "
+                     "symlink destination's 0777");
+        }
+    }
+
+    // The content has to arrive too -- a permissions test that passes on an
+    // empty file is worth nothing.
+    std::ifstream written(fresh);
+    std::string firstLine;
+    std::getline(written, firstLine);
+    t.expect(firstLine == "0", "the published file holds what was written");
+
+    std::filesystem::remove_all(directory, ignored);
+}
+
+#endif // !_WIN32
+
 } // namespace
 
 int main() {
@@ -495,6 +699,11 @@ int main() {
     testFrameReceiptAndRollback(context);
     testWriteRejectionDoesNotTouchDestination(context);
     testOutputTransactionPublicationAndRollback(context);
+#if !defined(_WIN32)
+    // The _WIN32 branch creates its temporary in the target's own directory and
+    // inherits the directory ACL; there is no umask and no mode to carry.
+    testOutputTransactionPreservesFileMode(context);
+#endif
     if (context.failures != 0) {
         std::cerr << context.failures << " writer primitive assertion(s) failed\n";
         return 1;
