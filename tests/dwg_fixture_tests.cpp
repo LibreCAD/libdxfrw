@@ -7,9 +7,7 @@
 #include <string>
 #include <vector>
 
-#define private public
 #include "drw_header.h"
-#undef private
 #include "drw_entities.h"
 #include "dwg2dxf/dx_data.h"
 #include "dwg2dxf/dx_iface.h"
@@ -48,8 +46,11 @@ public:
         ++headerCount;
         sourceCodePage.clear();
         if (data != nullptr) {
-            DRW_Header copy(*data);
-            copy.getStr("$DWGCODEPAGE", &sourceCodePage);
+            const auto it = data->vars.find("$DWGCODEPAGE");
+            if (it != data->vars.end() && it->second != nullptr
+                    && it->second->type() == DRW_Variant::STRING) {
+                sourceCodePage = it->second->c_str();
+            }
         }
         dx_iface::addHeader(data);
     }
