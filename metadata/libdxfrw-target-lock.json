@@ -1,22 +1,31 @@
 {
-  "archiveSha256": "dea3718515a17a4baf9b3067091b554eb772fcb32d5a49b6ed5cf3adf9aab885",
-  "bundledSnapshotRevision": "89b762bef636c90eb370cb1af3cec80fe759cb32",
-  "manifestPath": "metadata/libdxfrw-target-source-manifest.json",
-  "manifestSha256": "283d85704195ce84f43f55244beddf037706fbb0f7d8d468012620df8636aaef",
-  "schema": "libdxfrw-target-lock-v1",
-  "sourceListExtras": [],
-  "sourceListOmissions": [
-    "src/intern/dwg_fixed_handles.h",
-    "src/intern/dxfparserlimits.h"
-  ],
-  "sourceManifestEntries": 86,
-  "standaloneCommit": "d26c9018e7d047ceecb27adecbec1bbb1fd53675",
-  "standaloneRepository": "LibreCAD/libdxfrw",
-  "targetCommit": "2043e5254fbf71729e97bd54e48a184153161ff2",
-  "targetRepository": "LibreCAD/LibreCAD",
-  "verification": {
-    "mode": "local-remote-tracking-ref",
-    "networkFetchRequiredBeforeImport": true,
-    "note": "Refresh and record live remote transport before Checkpoint A."
+  "archive": {
+    "format": "tar",
+    "prefix": "libdxfrw/",
+    "sha256": "7892fd2f35ff9ccf0b60eed13dfcb2bec818d40785b77661ddea86aa0a7d2139"
+  },
+  "libreCAD": {
+    "commit": "2043e5254fbf71729e97bd54e48a184153161ff2",
+    "ref": "origin/master",
+    "repository": "git@github.com-librecad:LibreCAD/LibreCAD.git",
+    "snapshotRevision": "89b762bef636c90eb370cb1af3cec80fe759cb32",
+    "sourceList": "libraries/libdxfrw/libdxfrw_sources.cmake",
+    "sourceRoot": "libraries/libdxfrw/src"
+  },
+  "lockedAt": "2026-09-18",
+  "manifest": {
+    "entries": 86,
+    "path": "metadata/libdxfrw-target-source-manifest.txt",
+    "sha256": "c4a9a0cf47b180e2ccdb4411bfdcd6c26d6c3085f2fb7e8c7a3b85f2d36f3fba"
+  },
+  "policy": {
+    "fixtureAdmission": "lockedRepositoryBlob-or-localFromScratch",
+    "targetRefresh": "separate-locked-refresh-after-convergence"
+  },
+  "schema": 1,
+  "standalone": {
+    "commit": "d26c9018e7d047ceecb27adecbec1bbb1fd53675",
+    "ref": "origin/master",
+    "repository": "git@github.com-librecad:LibreCAD/libdxfrw.git"
   }
 }

@@ -18,8 +18,9 @@ from pathlib import Path
 
 
 MANIFEST_SCHEMA = "libdxfrw-target-source-manifest-v1"
-LOCK_SCHEMA = "libdxfrw-target-lock-v1"
+LOCK_SCHEMA = 1
 TARGET_ROOT = "libraries/libdxfrw"
+SOURCE_MANIFEST_TEXT = "metadata/libdxfrw-target-source-manifest.txt"
 
 
 def git(git_dir: Path, *args: str, binary: bool = False) -> bytes | str:
@@ -76,8 +77,37 @@ def source_list(git_dir: Path, commit: str) -> tuple[list[str], list[str]]:
     return sorted(set(listed)), sorted(actual)
 
 
+def manifest_text(document: dict[str, object]) -> str:
+    """Render the legacy line manifest consumed by qualification helpers."""
+    source_list_data = document.get("sourceList")
+    if not isinstance(source_list_data, dict):
+        raise ValueError("manifest is missing source-list metadata")
+    listed = {
+        value if str(value).startswith(TARGET_ROOT + "/")
+        else f"{TARGET_ROOT}/{value}"
+        for value in source_list_data.get("listed", [])
+    }
+    rows = []
+    for item in document.get("entries", []):
+        if not isinstance(item, dict):
+            raise ValueError("manifest entry is not an object")
+        path = str(item["path"])
+        if path == f"{TARGET_ROOT}/libdxfrw_sources.cmake":
+            classification = "manifest"
+        elif path.endswith(".cpp"):
+            classification = "source"
+        elif path in listed:
+            classification = "header-listed"
+        else:
+            classification = "header-unlisted"
+        rows.append("%s|%s|%s|%s" % (
+            path, item["mode"], item["blob"], classification
+        ))
+    return "# path|mode|blob|classification\n" + "\n".join(rows) + "\n"
+
+
 def archive_sha256(git_dir: Path, commit: str) -> str:
-    data = bytes(git(git_dir, "archive", "--format=tar", commit,
+    data = bytes(git(git_dir, "archive", "--format=tar", "--prefix=libdxfrw/", commit,
                      f"{TARGET_ROOT}/src", f"{TARGET_ROOT}/libdxfrw_sources.cmake",
                      binary=True))
     return hashlib.sha256(data).hexdigest()
@@ -93,7 +123,7 @@ def write_json(path: Path, value: object) -> None:
                     encoding="utf-8")
 
 
-def generate(args: argparse.Namespace) -> tuple[dict[str, object], dict[str, object]]:
+def generate(args: argparse.Namespace) -> tuple[dict[str, object], dict[str, object], bytes]:
     target_git = Path(args.target_git_dir).resolve()
     standalone_git = Path(args.standalone_git_dir).resolve()
     target = args.target_commit or str(git(target_git, "rev-parse", "origin/master")).strip()
@@ -109,27 +139,40 @@ def generate(args: argparse.Namespace) -> tuple[dict[str, object], dict[str, obj
         "extraInList": extra_in_list,
     }
     manifest_bytes = json.dumps(generated, indent=2, sort_keys=True).encode() + b"\n"
-    manifest_hash = hashlib.sha256(manifest_bytes).hexdigest()
+    text_manifest = manifest_text(generated).encode()
+    manifest_hash = hashlib.sha256(text_manifest).hexdigest()
     lock = {
         "schema": LOCK_SCHEMA,
-        "standaloneRepository": "LibreCAD/libdxfrw",
-        "standaloneCommit": standalone,
-        "targetRepository": "LibreCAD/LibreCAD",
-        "targetCommit": target,
-        "bundledSnapshotRevision": snapshot_revision(target_git, target),
-        "archiveSha256": archive_sha256(target_git, target),
-        "manifestSha256": manifest_hash,
-        "manifestPath": args.manifest,
-        "sourceManifestEntries": len(generated["entries"]),
-        "sourceListOmissions": missing_from_list,
-        "sourceListExtras": extra_in_list,
-        "verification": {
-            "mode": "local-remote-tracking-ref",
-            "networkFetchRequiredBeforeImport": True,
-            "note": "Refresh and record live remote transport before Checkpoint A.",
+        "lockedAt": "2026-09-18",
+        "standalone": {
+            "repository": "git@github.com-librecad:LibreCAD/libdxfrw.git",
+            "ref": "origin/master",
+            "commit": standalone,
+        },
+        "libreCAD": {
+            "repository": "git@github.com-librecad:LibreCAD/LibreCAD.git",
+            "ref": "origin/master",
+            "commit": target,
+            "snapshotRevision": snapshot_revision(target_git, target),
+            "sourceRoot": f"{TARGET_ROOT}/src",
+            "sourceList": f"{TARGET_ROOT}/libdxfrw_sources.cmake",
+        },
+        "archive": {
+            "format": "tar",
+            "prefix": "libdxfrw/",
+            "sha256": archive_sha256(target_git, target),
+        },
+        "manifest": {
+            "path": SOURCE_MANIFEST_TEXT,
+            "sha256": manifest_hash,
+            "entries": len(generated["entries"]),
+        },
+        "policy": {
+            "fixtureAdmission": "lockedRepositoryBlob-or-localFromScratch",
+            "targetRefresh": "separate-locked-refresh-after-convergence",
         },
     }
-    return generated, lock
+    return generated, lock, text_manifest
 
 
 def load(path: Path) -> object:
@@ -137,14 +180,16 @@ def load(path: Path) -> object:
 
 
 def check(args: argparse.Namespace) -> int:
-    generated, lock = generate(args)
+    generated, lock, text_manifest = generate(args)
     manifest_path = Path(args.manifest)
     lock_path = Path(args.lock)
     if args.write:
         write_json(manifest_path, generated)
         write_json(lock_path, lock)
+        Path(SOURCE_MANIFEST_TEXT).write_bytes(text_manifest)
         print(f"Wrote {manifest_path} ({len(generated['entries'])} entries)")
         print(f"Wrote {lock_path}")
+        print(f"Wrote {SOURCE_MANIFEST_TEXT}")
         return 0
     if not manifest_path.exists() or not lock_path.exists():
         print("ERROR: manifest/lock missing; use --write", file=sys.stderr)
@@ -158,6 +203,10 @@ def check(args: argparse.Namespace) -> int:
         return 1
     if expected_lock != lock:
         print("ERROR: target lock differs from current commits/manifest", file=sys.stderr)
+        return 1
+    text_path = Path(SOURCE_MANIFEST_TEXT)
+    if not text_path.exists() or text_path.read_bytes() != text_manifest:
+        print("ERROR: target text manifest differs from Git object data", file=sys.stderr)
         return 1
     if not isinstance(expected_manifest, dict) or expected_manifest.get("schema") != MANIFEST_SCHEMA:
         print("ERROR: invalid manifest schema", file=sys.stderr)
