@@ -5,7 +5,7 @@
   "resultKind": "libdxfrw-semantic-adapter-result",
   "targetLock": {
     "path": "metadata/libdxfrw-target-lock.json",
-    "digest": "1a5c2c652c6cab29b7a594a0e8310d697082b8063cbf73d445bc11dad98b8609",
+    "digest": "63ab2633d638888a6f466e0226f4d55e4bfd9d36d083f1e4334ab15b013c426a",
     "targetCommit": "2043e5254fbf71729e97bd54e48a184153161ff2",
     "snapshotRevision": "89b762bef636c90eb370cb1af3cec80fe759cb32",
     "archiveDigest": "7892fd2f35ff9ccf0b60eed13dfcb2bec818d40785b77661ddea86aa0a7d2139",
