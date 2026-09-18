@@ -847,12 +847,12 @@ bool dwgRW::readInstalledReader() {
         recordOperationDiagnosticForError(error);
     }
 
-    captureReaderDiagnostics();
+    captureReaderDiagnostics(isOk);
     reader.reset();
     return isOk;
 }
 
-void dwgRW::captureReaderDiagnostics() {
+void dwgRW::captureReaderDiagnostics(bool readSucceeded) {
     if (!reader)
         return;
 
@@ -876,7 +876,10 @@ void dwgRW::captureReaderDiagnostics() {
     m_decodedProxyPrimitives = reader->m_decodedProxyPrimitives;
     m_layerNameOrder = reader->m_layerNameOrder;
     m_ltypeNameOrder = reader->m_ltypeNameOrder;
-    codePage = reader->getCodePage();
+    // Keep the public source-code-page snapshot transactional.  A reader may
+    // have decoded metadata before a later header/table/callback failure, but
+    // callers must not mistake that partial state for a successful document.
+    codePage = readSucceeded ? reader->getSourceCodePageName() : std::string{};
 }
 
 void dwgRW::resetReadDiagnostics() {
@@ -3498,6 +3501,13 @@ bool dwgRW::processDwg() {
     }
 
     if (ret) {
+    // The DWG header parser stores drawing variables, but $DWGCODEPAGE is a
+    // file-envelope identity rather than a bit-stream header variable. Add it
+    // immediately before publication so every DRW_Interface consumer receives
+    // the same canonical source name, including non-dwg2dxf adapters.
+    if (reader->hasSourceCodePage()) {
+        hdr.addStr("$DWGCODEPAGE", reader->getSourceCodePageName(), 3);
+    }
     try {
     iface->addHeader(&hdr);
     } catch (...) {

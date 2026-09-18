@@ -1,3 +1,14 @@
+2.0.0
+-----
+* C++17/public-ABI release with versioned CMake and pkg-config packages.
+* Ported the pinned LibreCAD DXFRW implementation, including DXF raw-carrier
+  preservation, DWG reader/writer paths, bounded diagnostics, and transaction
+  safety.
+* Added dependency-free fast tests, opt-in long fuzzing, sanitizer coverage,
+  installed-consumer checks, and an explicit LibreCAD system-package check.
+* DWG and advanced preservation claims remain experimental until independent
+  semantic evidence is available; external-only follow-ups remain deferred.
+
 0.6.0
 First  version with dwg read support
 

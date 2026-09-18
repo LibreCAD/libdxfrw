@@ -1,3 +1,10 @@
+2026-09-18
+----------
+* Prepared the 2.0.0 C++17/public-ABI release boundary.
+* Added pinned LibreCAD synchronization, staged-package relocation checks,
+  system-package filter compilation, bounded hardening/fuzz/sanitizer lanes,
+  and explicit support/evidence documentation.
+
 Author: Rallaz <rallazz@gmail.com>
 Date:   Mon Sep 10 17:39:05 2012 +0200
 

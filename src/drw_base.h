@@ -14,7 +14,7 @@
 #ifndef DRW_BASE_H
 #define DRW_BASE_H
 
-#define DRW_VERSION "0.6.3"
+#define DRW_VERSION "2.0.0"
 
 #include <array>
 #include <cstddef>

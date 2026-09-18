@@ -69,7 +69,31 @@ def build_queue(registry, advisory):
                     "path": entry.get("path"),
                 })
 
-    if not isinstance(advisory, dict) or advisory.get("advisory") is not True:
+    if not isinstance(advisory, dict):
+        raise QueueError("advisory report must be an object")
+    # The original queue contract used a row-oriented schema with an
+    # ``advisory: true`` marker.  The convergence plan now records the same
+    # non-promoting boundary in a compact, metadata-only S07 summary.  Accept
+    # both forms so the fast CTest gate cannot regress when the report is
+    # refreshed without reintroducing drawing bytes.
+    if advisory.get("schema") == "libdxfrw-external-advisory-report-v1":
+        run = advisory.get("run")
+        deferred = advisory.get("deferredExternal")
+        if not isinstance(run, dict) or run.get("ordinaryCiEligible") is not False:
+            raise QueueError("advisory report must be explicitly non-promoting")
+        if run.get("promotesSupportClaims") is not False:
+            raise QueueError("advisory report must not promote support claims")
+        if not isinstance(deferred, list):
+            raise QueueError("advisory report deferredExternal must be an array")
+        for row in deferred:
+            if not isinstance(row, dict):
+                raise QueueError("deferred advisory row must be an object")
+            if row.get("status") != "DEFERRED_EXTERNAL":
+                raise QueueError("deferred advisory row has an unknown status")
+            if row.get("promotesSupportClaims") is not False:
+                raise QueueError("deferred advisory row must be non-promoting")
+        return queue, deferred
+    if advisory.get("advisory") is not True:
         raise QueueError("advisory report must be explicitly non-promoting")
     rows = advisory.get("rows")
     if not isinstance(rows, list):
@@ -119,6 +143,17 @@ def self_test():
         queue, rows = build_queue(load_json(registry_path), load_json(advisory_path))
         assert len(queue) == 1 and queue[0]["entry"] == "e1"
         assert len(rows) == 1 and rows[0]["status"] == "timeout"
+        summary_path = root / "summary.json"
+        summary_path.write_text(json.dumps({
+            "schema": "libdxfrw-external-advisory-report-v1",
+            "run": {"ordinaryCiEligible": False,
+                    "promotesSupportClaims": False},
+            "deferredExternal": [
+                {"id": "J256", "status": "DEFERRED_EXTERNAL",
+                 "promotesSupportClaims": False}]}), encoding="utf-8")
+        _, summary_rows = build_queue(load_json(registry_path),
+                                      load_json(summary_path))
+        assert len(summary_rows) == 1
     print("check_runtime_evidence_queue self-test: PASS")
 
 

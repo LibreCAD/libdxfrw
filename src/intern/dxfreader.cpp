@@ -85,6 +85,7 @@ bool dxfReader::readRec(int *codeData) {
         doubleData = 0.0;
         intData = 0;
         int64 = 0;
+        m_currentCode = 0;
         m_currentSelfHandle = 0;
         m_currentSelfHandleRegistered = false;
     };
@@ -117,6 +118,7 @@ bool dxfReader::readRec(int *codeData) {
     } while (true);
 
     *codeData = code;
+    m_currentCode = code;
 
     bool valueOk = true;
     switch (dxfValueKindForCode(code, m_classifierProfile)) {

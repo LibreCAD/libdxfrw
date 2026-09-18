@@ -125,6 +125,11 @@ endif()
 
 if(LIBDXFRW_BUILD_TESTS)
     enable_testing()
+    # Keep the standalone compatibility and sample-driven harness in the
+    # dedicated tests/ directory.  It is added here (after dwg2dxf) so the
+    # compile-only LibreCAD_3 ABI gate can resolve the CLI target when sample
+    # tests are enabled, while remaining absent from normal library builds.
+    add_subdirectory(tests)
     find_program(LIBDXFRW_PYTHON_EXECUTABLE NAMES python3)
     if(NOT LIBDXFRW_PYTHON_EXECUTABLE)
         message(FATAL_ERROR "LIBDXFRW_BUILD_TESTS requires a Python 3 interpreter")
@@ -559,6 +564,10 @@ if(LIBDXFRW_BUILD_TESTS)
         COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
             ${CMAKE_CURRENT_SOURCE_DIR}/tools/check_qualified_format_support.py
             --self-test)
+    add_test(NAME libdxfrw_fast_focus
+        COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+            ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_fast_focus.py
+            --build-dir ${CMAKE_BINARY_DIR})
 
     add_executable(libdxfrw_wave1_tests tests/wave1_tests.cpp)
     target_compile_features(libdxfrw_wave1_tests PRIVATE cxx_std_17)
@@ -572,6 +581,20 @@ if(LIBDXFRW_BUILD_TESTS)
         ${CMAKE_CURRENT_SOURCE_DIR}/dwg2dxf)
     target_link_libraries(libdxfrw_wave1_tests PRIVATE dxfrw)
     add_test(NAME libdxfrw_wave1 COMMAND libdxfrw_wave1_tests)
+
+    add_executable(libdxfrw_gbk_codepage_tests
+        tests/gbk_codepage_tests.cpp
+        dwg2dxf/dx_iface.cpp)
+    target_compile_features(libdxfrw_gbk_codepage_tests PRIVATE cxx_std_17)
+    target_compile_definitions(libdxfrw_gbk_codepage_tests PRIVATE
+        LIBDXFRW_DWG_FIXTURE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/dwg")
+    target_include_directories(libdxfrw_gbk_codepage_tests PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/intern
+        ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(libdxfrw_gbk_codepage_tests PRIVATE dxfrw)
+    add_test(NAME libdxfrw_gbk_codepage
+        COMMAND libdxfrw_gbk_codepage_tests)
 
     add_executable(libdxfrw_dwg_local_roundtrip
         tests/dwg_local_roundtrip_tests.cpp

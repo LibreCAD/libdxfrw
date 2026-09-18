@@ -1,0 +1,32 @@
+{
+  "schema": "libdxfrw-writer-qualification-report-v1",
+  "evidenceId": "writer-local-vectors-s11-2026-09-18",
+  "sourceCommit": "3caf0534b37cc15a6c72349d524db64b8de6f99b",
+  "originKind": "localFromScratch",
+  "externalBytesUsed": false,
+  "vectors": {
+    "framing": {
+      "modularAndBitStreams": "PASS",
+      "rawEndianValues": "PASS",
+      "testedBy": "libdxfrw_writer_primitives_tests"
+    },
+    "handles": {
+      "allocatorReservationAndExhaustion": "PASS",
+      "fixedHandleOccurrenceRanges": "PASS",
+      "testedBy": "libdxfrw_writer_primitives_tests"
+    },
+    "versionMatrix": {
+      "versions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+      "primitiveAndObjectEncoders": "PASS",
+      "testedBy": "libdxfrw_writer_version_matrix_tests;libdxfrw_dwg_object_vectors_tests"
+    },
+    "secureTransaction": {
+      "invalidInputLeavesDestinationUntouched": "PASS",
+      "malformedObjectRollback": "PASS",
+      "roundTripOutputPublication": "PASS",
+      "testedBy": "libdxfrw_writer_primitives_tests;libdxfrw_dwg_local_roundtrip"
+    }
+  },
+  "supportDisposition": "EXPERIMENTAL",
+  "promotionBlockedBy": "Independent reader/oracle comparison and eligible versioned fixtures remain required before writer support claims are promoted."
+}

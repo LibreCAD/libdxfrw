@@ -35,6 +35,8 @@ bool dwgReaderR1_40::readMetaData() {
         return false;
     version = DRW::AC14;
     setCodePage("ANSI_1252");   // pure ASCII fixture; codepage is a follow-up
+    if (!recordSourceCodePage(0, false, true))
+        return false;
     return true;
 }
 

@@ -2822,6 +2822,72 @@ bool readDwgClassStringFooter(dwgBuffer &buffer, std::uint64_t footerEndBit,
   return true;
 }
 
+bool dwgReader::recordSourceCodePage(std::uint16_t id, bool present,
+                                     bool applyPrimaryCodec) {
+  DwgSourceCodePage staged;
+  staged.present = present;
+  staged.rawId = present ? id : 0;
+  staged.primaryText = applyPrimaryCodec;
+
+  const auto resetToVersionDefault = [this, applyPrimaryCodec]() {
+    try {
+      DRW_TextCodec candidate;
+      candidate.setVersion(version, false);
+      if (applyPrimaryCodec)
+        candidate.setCodePage("ANSI_1252", false);
+      candidate.swap(decoder);
+      return true;
+    } catch (...) {
+      return false;
+    }
+  };
+
+  if (!present || id == 0 || id == 0xff) {
+    // A reader instance is normally single-use, but keeping this explicit
+    // makes retries and test probes fail-safe: an undefined envelope must not
+    // reuse a byte codec captured from an earlier document.
+    if (!resetToVersionDefault())
+      return false;
+    m_sourceCodePage = std::move(staged);
+    return true;
+  }
+
+  const char *name = dwgCodePageName(id);
+  if (name == nullptr) {
+    // Keep the version-selected decoder for unknown code pages.  The raw id
+    // remains available to the bounded reader trace, but it is not a codec
+    // support claim and cannot be emitted as $DWGCODEPAGE.
+    if (!resetToVersionDefault())
+      return false;
+    m_sourceCodePage = std::move(staged);
+    return true;
+  }
+
+  try {
+    // Configure a complete candidate first.  This keeps both decoder state
+    // and source metadata unchanged if a codec allocation fails halfway
+    // through configuration.
+    DRW_TextCodec candidate;
+    candidate.setVersion(version, false);
+    candidate.setByteCodePage(name);
+    if (applyPrimaryCodec)
+      candidate.setCodePage(name, false);
+    candidate.swap(decoder);
+  } catch (...) {
+    return false;
+  }
+
+  staged.name = name;
+  staged.recognized = true;
+  m_sourceCodePage = std::move(staged);
+  DRW_DBG("source codepage id= ");
+  DRW_DBG(id);
+  DRW_DBG(" name= ");
+  DRW_DBG(name);
+  DRW_DBG("\n");
+  return true;
+}
+
 // DWG file-header codepage id -> DRW_TextCodec ANSI name (libreDWG
 // codepages.h:35-82). Only codec-recognized names are mapped; unknown/rare ids
 // (UTF-16, Johab, CP866, US-ASCII, ...) return nullptr so the caller keeps the

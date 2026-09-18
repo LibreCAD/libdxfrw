@@ -1,0 +1,33 @@
+{
+  "schema": "libdxfrw-oracle-v1",
+  "volatileFields": [
+    "elapsedMs",
+    "host",
+    "path",
+    "tempPath",
+    "timestamp"
+  ],
+  "numeric": {
+    "signedZero": "normalize-to-zero",
+    "nonFinite": "reject",
+    "absoluteTolerance": 1e-12,
+    "relativeTolerance": 1e-9
+  },
+  "handles": {
+    "canonicalize": true,
+    "preserveRelationships": true,
+    "firstSeenPrefix": "H"
+  },
+  "collections": {
+    "orderSensitive": ["entities", "records", "callbacks"],
+    "setLike": ["warnings", "diagnostics"]
+  },
+  "requiredEvidence": [
+    "tool",
+    "toolVersion",
+    "exitStatus",
+    "semanticCounts",
+    "relationships"
+  ],
+  "ruleChange": "increment-schema-version-and-revalidate"
+}

@@ -627,15 +627,11 @@ bool dwgReader18::readMetaData() {
     DRW_DBG("\napp maintenance version= "); DRW_DBGH(appMaintenanceVersion);
     std::uint16_t cp = fileBuf->getRawShort16();
     DRW_DBG("\ncodepage= "); DRW_DBG(cp);
-    // R2007+ (AC1021+) store ordinary text as UTF-16LE; applying the file
-    // codepage to the primary decoder would corrupt Unicode names. ENC names
-    // remain byte-oriented, however, so initialize their secondary codec for
-    // every version handled by this reader.
-    if (const char* cpName = dwgCodePageName(cp)) {
-        decoder.setByteCodePage(cpName);
-        if (version <= DRW::AC1018)
-            decoder.setCodePage(cpName, false);
-    }
+    // R2007+ (AC1021+) store ordinary text as UTF-16LE; the shared helper
+    // configures only the secondary byte codec for those versions. Applying
+    // the file codepage to the primary decoder would corrupt Unicode names.
+    if (!recordSourceCodePage(cp, true, version <= DRW::AC1018))
+        return false;
     DRW_DBG("\n3 0x00 bytes(seems 0x00, appDwgV & appMaintV) = "); DRW_DBGH(fileBuf->getRawChar8()); DRW_DBG(", ");
     DRW_DBGH(fileBuf->getRawChar8()); DRW_DBG(", "); DRW_DBGH(fileBuf->getRawChar8());
     securityFlags = fileBuf->getRawLong32();

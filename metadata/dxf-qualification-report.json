@@ -1,0 +1,33 @@
+{
+  "schema": "libdxfrw-dxf-qualification-report-v1",
+  "evidenceId": "dxf-local-vectors-s08-2026-09-18",
+  "sourceCommit": "da9dbfabff029276e5dc797a7cf58731bfffae9d",
+  "originKind": "localFromScratch",
+  "externalBytesUsed": false,
+  "vectors": {
+    "classifierProfiles": {
+      "safeDefault": "260=int32; 482-998=opaque/unknown with binary fail-closed behavior",
+      "explicitLegacy": "260=bool; 482-998=double-compatible route",
+      "testedBy": "libdxfrw_wave1_tests"
+    },
+    "rawReplay": {
+      "carriers": ["OBJECTS", "unmodeled ENTITIES/BLOCKS", "opaque sections"],
+      "typedAndRawAlignment": true,
+      "testedBy": "libdxfrw_wave1_tests"
+    },
+    "proxyAcisBoundary": {
+      "groupBudgets": [92, 160],
+      "proxyBeforeAcis": true,
+      "overBudgetAndTruncation": "bounded failure vectors",
+      "testedBy": "libdxfrw_hardening_tests"
+    },
+    "malformedNumericAndLifecycle": {
+      "asciiAndBinary": true,
+      "diagnosticStagePreserved": true,
+      "callbackPublicationSuppressedOnFailure": true,
+      "testedBy": "libdxfrw_wave1_tests;libdxfrw_hardening_tests"
+    }
+  },
+  "supportDisposition": "EXPERIMENTAL",
+  "promotionBlockedBy": "Independent semantic oracle and eligible cross-project fixtures are still required for broad DXF support claims, especially disputed 260-269 and 482-998 ranges."
+}

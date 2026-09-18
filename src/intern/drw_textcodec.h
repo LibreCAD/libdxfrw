@@ -14,6 +14,10 @@ class DRW_TextCodec
 public:
     DRW_TextCodec();
     ~DRW_TextCodec();
+    DRW_TextCodec(const DRW_TextCodec&) = delete;
+    DRW_TextCodec& operator=(const DRW_TextCodec&) = delete;
+    DRW_TextCodec(DRW_TextCodec&&) noexcept = default;
+    DRW_TextCodec& operator=(DRW_TextCodec&&) noexcept = default;
     std::string fromUtf8(std::string_view s);
     std::string toUtf8(std::string_view s);
     /// Convert byte-oriented DWG TV fields using the file codepage while the
@@ -28,6 +32,7 @@ public:
     void setCodePage(const std::string &c, bool dxfFormat);
     void setByteCodePage(const std::string &c);
     std::string getCodePage(){return cp;}
+    void swap(DRW_TextCodec& other) noexcept;
 
 private:
     std::string correctCodePage(const std::string& s);

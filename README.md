@@ -1,73 +1,72 @@
-libdxfrw [![Build status](https://github.com/LibreCAD/libdxfrw/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/LibreCAD/libdxfrw/actions/workflows/build.yml)
+libdxfrw ![Build status](https://api.travis-ci.org/LibreCAD/libdxfrw.svg?branch=master)
 ==========
 
-libdxfrw 2.x is a C++17 library for reading and writing DXF files in ASCII and
-binary form and for reading DWG files across the LibreCAD interoperability
-routes. The merged [PR #93](https://github.com/LibreCAD/libdxfrw/pull/93)
-adds the standalone DWG/DXF implementation aligned with the bundled code in
-current LibreCAD master.
+libdxfrw is LibreCAD's C++17 library for reading and writing ASCII and binary
+DXF, with DWG reader/writer and raw-carrier preservation paths. The 2.0.0
+release is an ABI boundary: it keeps the historical callback surface usable,
+but consumers should rebuild against the installed package.
 
-The DWG reader routes are AC1012, AC1014, AC1015, AC1018, AC1021, AC1024,
-AC1027, and AC1032. The DWG writer routes are AC1015, AC1018, AC1021, AC1024,
-AC1027, and AC1032. The DXF reader and writer handle ASCII and binary input and
-output. Individual rows remain explicitly supported, experimental, or
-unsupported according to the evidence-led support matrix; route recognition
-alone is not a format-support claim.
+The project is GPL-2.0-or-later. It was created by [LibreCAD](https://github.com/LibreCAD/LibreCAD)
+contributors; historical project information remains at
+[SourceForge](https://sourceforge.net/projects/libdxfrw).
 
-libdxfrw is licensed under the terms of the GNU General Public License version 2
-(or, at your option, any later version).
+## Build and install
 
+CMake is the supported 2.x build (CMake 3.10 or newer, C++17). The historical
+Autotools, MinGW, and Conan recipes are retained for reference and are
+deprecated until they consume the canonical source manifest and have a
+maintained C++17/CI lane.
 
-libdxfrw was created by [LibreCAD](https://github.com/LibreCAD/LibreCAD)
-contributors in the process of making LibreCAD. As the original code at
-[SourceForge](https://sourceforge.net/projects/libdxfrw) was no longer
-maintained by its original authors, this repository has become its successor.
-
-If you are looking for historical information about the project, it's still there:
-http://sourceforge.net/projects/libdxfrw
-
-
-Please note:
-----------
-When you clone or download this project to build
-[LibreCAD_3](https://github.com/LibreCAD/LibreCAD_3), use the branch
-**LibreCAD_3**. The `master` branch targets the current LibreCAD integration and
-may expose interface definitions that LibreCAD_3 does not yet implement.
-
-Building and installing the library
-==========
-
-CMake is the supported 2.x build. It requires CMake 3.10 or newer and C++17:
-When `LIBDXFRW_BUILD_TESTS=ON`, the test and qualification checks additionally
-require Python 3.10 or newer.
-
-```
-cmake -S . -B build \
-  -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DBUILD_SHARED_LIBS=OFF \
-  -DLIBDXFRW_BUILD_TESTS=ON \
-  -DLIBDXFRW_BUILD_DWG2DXF=ON \
-  -DLIBDXFRW_BUILD_DOC=OFF
-cmake --build build --parallel
-ctest --test-dir build --output-on-failure
-cmake --install build --prefix /tmp/libdxfrw-install
+```sh
+cmake -S . -B build -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+cmake --build build
+cmake --install build --prefix "$PWD/stage"
 ```
 
-The historical Autotools, MinGW, and Conan recipes are retained for reference
-but are deprecated for the 2.x convergence until they consume the canonical
-source manifest and have a maintained C++17/CI lane. See
-`docs/UPGRADE_SUPPORT.md` for the support and release policy.
+The default build produces `dxfrw` and `dwg2dxf`. Use
+`-DLIBDXFRW_BUILD_TESTS=ON` for the dependency-free regression targets and
+`-DLIBDXFRW_BUILD_LONG_FUZZ=ON` for the opt-in, in-memory long fuzz lane. The
+documented fast selector is:
 
-The optional `dwg2dxf` command-line converter is built by the configuration
-above:
-
-```
-build/dwg2dxf/dwg2dxf input.dwg -y -v2010 output.dxf
+```sh
+python3 tools/run_fast_focus.py --build-dir build
 ```
 
+Installed consumers can use either `find_package(libdxfrw CONFIG REQUIRED)` and
+`libdxfrw::libdxfrw`, or `pkg-config --cflags --libs libdxfrw`. The package is
+relocatable and selects compatible package versions with `SameMajorVersion`.
 
-Example usage of the library
-==========
+## Support boundary
 
-See how we use it in LibreCAD V3 : https://github.com/LibreCAD/LibreCAD_3/tree/master/persistence/libdxfrw
+| Capability | Status | Qualification boundary |
+| --- | --- | --- |
+| ASCII/binary DXF baseline read and write | supported | Public API and fast regression lane |
+| DXF raw sections, opaque objects, ACIS/SAB and proxy carriers | experimental | Local preservation vectors pass; independent semantic oracle still required |
+| DWG read across the dispatched AC versions | experimental | Reader and section safety matrices pass; eligible semantic fixtures remain required |
+| DWG writing and versioned feature families | experimental | Local six-version round-trips pass; self-read is not an independent oracle |
+| Derived rendering or CAD application policy | unsupported | Owned by the consumer, not this library |
+
+The six external-only follow-ups J256, J260, J268, J284, J293, and J295 are
+still `DEFERRED_EXTERNAL`. Their evidence is advisory and cannot promote any
+support claim. External DWG/DXF payloads are not committed; tests that need
+them use protected/local corpus paths, while committed malformed and fuzz
+vectors are generated in memory or from scratch.
+
+LibreCAD can compile its filter against this package with the system-package
+mode described in [LIBRECAD_SYNC.md](LIBRECAD_SYNC.md). The filter must not
+propagate the bundled `libraries/libdxfrw` include path when that mode is
+enabled. The standalone-safe DXF classifier is the default; consumers that
+need historical LibreCAD group-code behavior must opt in explicitly through
+`dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy`.
+
+## Development and provenance
+
+The source import, adaptation allowlist, pinned LibreCAD revision, package
+consumer checks, and fixture-admission policy are recorded in
+[LIBRECAD_SYNC.md](LIBRECAD_SYNC.md) and `metadata/`. Run
+`python3 tools/update_upgrade_plan.py --check` before committing a plan slice.
+Every committed slice carries a `Plan-Slice` trailer and records its focused
+evidence. See `tests/samples/README.md` for the policy governing local and
+external sample files.
+
+Example usage remains in the `dwg2dxf/` CLI and in LibreCAD's filter adapter.

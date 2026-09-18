@@ -1,0 +1,36 @@
+{
+  "schema": "libdxfrw-hardening-report-v1",
+  "evidenceId": "hardening-fuzz-s13-2026-09-18",
+  "sourceCommit": "442eb61a382a70f40cd618e6da8f9d1111ceccdf",
+  "originKind": "localFromScratch",
+  "externalBytesUsed": false,
+  "runs": {
+    "defaultFocused": {
+      "target": "libdxfrw_hardening_tests",
+      "result": "PASS",
+      "dxfVectors": 2048,
+      "dwgVectors": 512
+    },
+    "longFuzz": {
+      "target": "libdxfrw_long_fuzz_tests",
+      "result": "PASS",
+      "genericVectors": 8192,
+      "dxfVectors": 65536,
+      "dwgVectors": 16384
+    },
+    "sanitizer": {
+      "target": "libdxfrw_hardening_tests",
+      "flags": ["address", "undefined"],
+      "leakDetection": "disabled by macOS policy",
+      "result": "PASS"
+    }
+  },
+  "boundedSafety": {
+    "aggregateBudgets": "PASS",
+    "ownershipAndRollback": "PASS",
+    "diagnosticStagePreservation": "PASS",
+    "externalFixtureBytes": 0
+  },
+  "supportDisposition": "NOT_EVALUATED",
+  "promotionBlockedBy": "Hardening demonstrates safety properties only; format support remains governed by the feature/version evidence and independent-oracle gates."
+}
