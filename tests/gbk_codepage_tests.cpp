@@ -400,6 +400,11 @@ void testDxfModelRoundTrip(TestContext& t) {
             1004, std::vector<std::uint8_t>{0xDE, 0xAD, 0xBE, 0xEF}));
         source.mBlock->ent.push_back(text);
         auto* dimension = new DRW_DimLinear();
+        // Regression for issue #78: callers used the public entity enum in
+        // the code-70 field.  The writer must derive the subtype from the
+        // concrete DRW_DimLinear object instead of emitting that enum's low
+        // nibble as a diametric dimension.
+        dimension->type = DRW::DIMENSION;
         dimension->layer = layer.name;
         dimension->setDefPoint(DRW_Coord(2.0, 3.0, 0.0));
         dimension->setTextPoint(DRW_Coord(4.0, 5.0, 0.0));
