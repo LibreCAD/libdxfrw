@@ -1,4 +1,4 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.10)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.28)
 
 cmake_policy(SET CMP0048 NEW)
 project(DXFRW VERSION 2.0.0)
@@ -8,15 +8,10 @@ option(LIBDXFRW_BUILD_LIBRARY "Build the libdxfrw library" ON)
 option(LIBDXFRW_BUILD_DOC "Build the documentation" ON)
 option(LIBDXFRW_BUILD_DWG2DXF "Build the dwg2dxf application" ON)
 option(LIBDXFRW_BUILD_TESTS "Build dependency-free Wave 1 tests" OFF)
-# Guarded rather than a bare option(): this project declares CMake 3.10, so
-# CMP0077 is left OLD and a bare option() would discard the value a parent set
-# with set(LIBDXFRW_INSTALL_DEV OFF) before add_subdirectory -- which is the
-# one consumer this option exists for.  Skipping option() when the variable is
-# already defined works on every version, without moving the minimum.
-if(NOT DEFINED LIBDXFRW_INSTALL_DEV)
-    option(LIBDXFRW_INSTALL_DEV
-        "Install headers, the pkg-config file and the CMake package" ON)
-endif()
+# CMake 3.28 sets CMP0077 to NEW, so a parent project's normal variable is
+# preserved when this project is added as a subdirectory.
+option(LIBDXFRW_INSTALL_DEV
+    "Install headers, the pkg-config file and the CMake package" ON)
 option(LIBDXFRW_BUILD_QUALIFICATION
     "Build the pinned target/standalone semantic qualification adapters" OFF)
 option(LIBDXFRW_BUILD_LONG_FUZZ

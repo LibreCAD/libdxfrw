@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "language": "C++17",
-  "cmakeMinimum": "3.10",
+  "cmakeMinimum": "3.28",
   "requiredFloors": {
     "gcc": "9 with libstdc++ 9",
     "clang": "10 with libstdc++ 9 or libc++ 10",

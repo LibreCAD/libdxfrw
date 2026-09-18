@@ -322,7 +322,7 @@ def check_relocated_consumer(prefix: Path, cxx: str) -> None:
             encoding="utf-8")
         cmake = root / "CMakeLists.txt"
         cmake.write_text(
-            "cmake_minimum_required(VERSION 3.10)\n"
+            "cmake_minimum_required(VERSION 3.28)\n"
             "project(libdxfrw_relocated_consumer LANGUAGES CXX)\n"
             "set(CMAKE_CXX_STANDARD 17)\n"
             "find_package(libdxfrw CONFIG REQUIRED)\n"
@@ -331,8 +331,7 @@ def check_relocated_consumer(prefix: Path, cxx: str) -> None:
             encoding="utf-8")
         cmake_build = root / "cmake-build"
         run(["cmake", "-S", str(root), "-B", str(cmake_build),
-             "-DCMAKE_PREFIX_PATH=" + str(relocated),
-             "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"])
+             "-DCMAKE_PREFIX_PATH=" + str(relocated)])
         run(["cmake", "--build", str(cmake_build), "-j2"])
 
         pkgconfig = os.environ.copy()
@@ -432,7 +431,7 @@ def check(prefix: Path, cxx: str) -> None:
             encoding="utf-8")
         cmake = root / "CMakeLists.txt"
         cmake.write_text(
-            "cmake_minimum_required(VERSION 3.10)\n"
+            "cmake_minimum_required(VERSION 3.28)\n"
             "project(libdxfrw_staged_consumer LANGUAGES CXX)\n"
             "set(CMAKE_CXX_STANDARD 17)\n"
             "find_package(libdxfrw CONFIG REQUIRED)\n"
@@ -441,8 +440,7 @@ def check(prefix: Path, cxx: str) -> None:
             encoding="utf-8")
         cmake_build = root / "cmake-build"
         run(["cmake", "-S", str(root), "-B", str(cmake_build),
-             "-DCMAKE_PREFIX_PATH=" + str(prefix),
-             "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"])
+             "-DCMAKE_PREFIX_PATH=" + str(prefix)])
         run(["cmake", "--build", str(cmake_build), "-j2"])
 
         pkgconfig = os.environ.copy()

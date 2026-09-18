@@ -32,7 +32,7 @@ hooks before commit.
 The standard qualification loop is:
 
 ```sh
-cmake -S . -B build -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+cmake -S . -B build \
   -DLIBDXFRW_BUILD_TESTS=ON -DLIBDXFRW_BUILD_DOC=OFF
 cmake --build build
 ctest --test-dir build --output-on-failure
@@ -48,7 +48,7 @@ LibreCAD is recorded in `metadata/librecad-system-package-handoff.md`; the
 downstream sibling CMake change and hosted native-platform run remain external
 release follow-ups.
 
-CMake is the supported 2.0.0 build and requires C++17. The historical
+CMake 3.28 is the supported 2.0.0 build and requires C++17. The historical
 Autotools, MinGW, and Conan recipes do not consume the canonical imported
 source manifest and are deprecated for the 2.x convergence until they gain a
 maintained C++17/CI lane; no qmake recipe is shipped. `DRW_VERSION` and the

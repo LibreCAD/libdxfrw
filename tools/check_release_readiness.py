@@ -25,6 +25,7 @@ class ReleaseError(ValueError):
 
 DOCUMENTATION_REQUIREMENTS = {
     "docs/UPGRADE_SUPPORT.md": (
+        "CMake 3.28",
         "1,345 `dwgRW`",
         "1,475 `dxfRW`",
         "`QUALIFIED_FORMAT_PARITY`",
@@ -36,6 +37,7 @@ DOCUMENTATION_REQUIREMENTS = {
     ),
     "README.md": (
         "C++17",
+        "CMake 3.28",
         "CMake is the supported 2.x build",
         "LIBDXFRW_BUILD_TESTS=ON",
         "deprecated",
