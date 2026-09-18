@@ -1,7 +1,7 @@
 {
   "schema": "libdxfrw-release-readiness-report-v1",
   "evidenceId": "release-package-s14-2026-09-18",
-  "sourceCommit": "c4c60782b55b1b4ded9b087c61bb97e92850b2a2",
+  "sourceCommit": "6e700e3681e900b951938efcd3e6834bba3c7a61",
   "originKind": "localFromScratch",
   "externalBytesUsed": false,
   "versionSurface": {
