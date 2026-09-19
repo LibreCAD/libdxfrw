@@ -77,6 +77,26 @@ bool importFixture(const char* name, FixtureInterface& interface_,
     return interface_.fileImport(fixturePath(name).string(), &data, false);
 }
 
+bool importTemporaryDxf(const char* stem, const std::string& contents,
+                        FixtureInterface& interface_, dx_data& data) {
+    const std::filesystem::path temporary =
+        std::filesystem::temp_directory_path()
+        / (std::string("libdxfrw-") + stem + ".dxf");
+    std::error_code error;
+    std::filesystem::remove(temporary, error);
+    {
+        std::ofstream output(temporary, std::ios::binary);
+        if (!output)
+            return false;
+        output << contents;
+        if (!output)
+            return false;
+    }
+    const bool imported = interface_.fileImport(temporary.string(), &data, false);
+    std::filesystem::remove(temporary, error);
+    return imported;
+}
+
 const DRW_Layer* findNonDefaultLayer(const dx_data& data) {
     for (const DRW_Layer& layer : data.layers) {
         if (layer.name != "0")
@@ -166,21 +186,11 @@ void testBlockRecordXdata(TestContext& t) {
         return;
     contents.insert(markerPosition, xdata);
 
-    const std::filesystem::path temporary =
-        std::filesystem::temp_directory_path()
-        / "libdxfrw-block-record-xdata-test.dxf";
-    std::error_code error;
-    std::filesystem::remove(temporary, error);
-    {
-        std::ofstream output(temporary);
-        output << contents;
-    }
-
     FixtureInterface interface_;
     dx_data data;
-    t.expect(interface_.fileImport(temporary.string(), &data, false),
+    t.expect(importTemporaryDxf("block-record-xdata-test", contents,
+                                interface_, data),
              "BLOCK_RECORD XDATA fixture imports");
-    std::filesystem::remove(temporary, error);
 
     const DRW_Block_Record* record = nullptr;
     for (const DRW_Block_Record& candidate : interface_.blockRecords) {
@@ -259,6 +269,90 @@ void testRawControls(TestContext& t) {
              "raw control-group fixture publishes xrecord record");
 }
 
+void testDictionaryWithoutOwner(TestContext& t) {
+    FixtureInterface interface_;
+    dx_data data;
+    const std::string contents = R"DXF(0
+SECTION
+2
+HEADER
+9
+$ACADVER
+1
+AC1015
+0
+ENDSEC
+0
+SECTION
+2
+OBJECTS
+0
+DICTIONARY
+5
+C
+100
+AcDbDictionary
+281
+1
+3
+ACAD_MYAPP
+350
+1A
+0
+DICTIONARY
+5
+1A
+100
+AcDbDictionary
+281
+1
+3
+LC_ENTRY
+350
+1B
+0
+ACDBPLACEHOLDER
+5
+1B
+330
+1A
+0
+ENDSEC
+0
+EOF
+)DXF";
+    t.expect(importTemporaryDxf("dictionary-without-owner-r2000", contents,
+                                interface_, data),
+             "no-owner dictionary fixture imports");
+
+    // Code 330 is optional on a DICTIONARY and R2000-era writers routinely omit
+    // it. The root is told apart by its handle and its position, not by the
+    // absence of an owner group -- so the named dictionary at 1A has to reach
+    // the raw net, and the root at C must not, because the writer regenerates
+    // that one and a second copy would be a second NamedObjectsDictionary.
+    std::size_t rawDictionaries = 0;
+    bool rootRouted = false;
+    bool namedRouted = false;
+    for (const DRW_RawDxfObject& object : interface_.rawObjects) {
+        if (object.name != "DICTIONARY")
+            continue;
+        ++rawDictionaries;
+        if (object.handle == 0xCu)
+            rootRouted = true;
+        if (object.handle == 0x1Au)
+            namedRouted = true;
+    }
+
+    t.expect(interface_.dictionaries.size() == 2,
+             "both dictionaries reach the typed callback");
+    t.expect(namedRouted,
+             "a named dictionary with no owner group is preserved");
+    t.expect(!rootRouted,
+             "the root dictionary is not preserved, the writer regenerates it");
+    t.expect(rawDictionaries == 1,
+             "exactly one dictionary is routed to the raw net");
+}
+
 } // namespace
 
 int main() {
@@ -271,6 +365,7 @@ int main() {
     testRawClassEntity(context);
     testEed(context);
     testRawControls(context);
+    testDictionaryWithoutOwner(context);
     if (context.failures != 0) {
         std::cerr << context.failures << " DXF fixture assertion(s) failed\n";
         return 1;
