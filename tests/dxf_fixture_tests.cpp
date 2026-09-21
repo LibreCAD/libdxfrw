@@ -5,6 +5,7 @@
 #include <iterator>
 #include <list>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "drw_entities.h"
@@ -62,6 +63,12 @@ public:
     void addXRecord(const DRW_XRecord& value) override {
         xrecords.push_back(value);
     }
+
+    /// Point the writer at data that was just read, for a round trip.
+    void attach(dx_data* data) {
+        cData = data;
+        currentBlock = data != nullptr ? data->mBlock : nullptr;
+    }
 };
 
 std::filesystem::path fixturePath(const char* name) {
@@ -103,6 +110,70 @@ const DRW_Layer* findNonDefaultLayer(const dx_data& data) {
             return &layer;
     }
     return nullptr;
+}
+
+const DRW_MText* findMText(const dx_data& data) {
+    if (data.mBlock == nullptr)
+        return nullptr;
+    for (const DRW_Entity* entity : data.mBlock->ent) {
+        if (entity != nullptr && entity->eType == DRW::MTEXT)
+            return static_cast<const DRW_MText*>(entity);
+    }
+    return nullptr;
+}
+
+/// Every group of one record kind in a written DXF, as (code -> values).
+std::vector<std::pair<int, std::string>> groupsOfRecord(
+    const std::filesystem::path& path, const std::string& recordName) {
+    std::vector<std::pair<int, std::string>> groups;
+    std::ifstream file(path);
+    std::string code;
+    std::string value;
+    std::string record;
+
+    const auto trim = [](std::string& text) {
+        while (!text.empty() && (text.back() == '\r' || text.back() == ' '))
+            text.pop_back();
+        std::size_t start = text.find_first_not_of(" \t");
+        if (start == std::string::npos)
+            start = text.size();
+        text.erase(0, start);
+    };
+
+    while (std::getline(file, code) && std::getline(file, value)) {
+        trim(code);
+        trim(value);
+        if (code == "0") {
+            record = value;
+            continue;
+        }
+        if (record != recordName)
+            continue;
+        try {
+            groups.emplace_back(std::stoi(code), value);
+        } catch (const std::exception&) {
+            // not a numeric group code
+        }
+    }
+
+    return groups;
+}
+
+bool hasGroup(const std::vector<std::pair<int, std::string>>& groups, int code) {
+    for (const auto& group : groups) {
+        if (group.first == code)
+            return true;
+    }
+    return false;
+}
+
+std::string groupValue(const std::vector<std::pair<int, std::string>>& groups,
+                       int code) {
+    for (const auto& group : groups) {
+        if (group.first == code)
+            return group.second;
+    }
+    return {};
 }
 
 const DRW_Text* findText(const dx_data& data) {
@@ -353,6 +424,384 @@ EOF
              "exactly one dictionary is routed to the raw net");
 }
 
+void testMTextBackgroundFillAndDefinedHeight(TestContext& t) {
+    FixtureInterface interface_;
+    dx_data data;
+    // An R2007 MTEXT with a defined column height and a filled background,
+    // with the colour given three ways at once -- which is what the reference
+    // asks for: 63 is required even when 421 or 431 carries the answer.
+    const std::string contents = R"DXF(0
+SECTION
+2
+HEADER
+9
+$ACADVER
+1
+AC1021
+0
+ENDSEC
+0
+SECTION
+2
+ENTITIES
+0
+MTEXT
+5
+30
+8
+0
+10
+1.0
+20
+2.0
+30
+0.0
+40
+2.5
+41
+100.0
+46
+12.5
+71
+1
+72
+5
+1
+filled
+73
+1
+44
+1.0
+45
+1.5
+90
+1
+63
+5
+421
+3368601
+431
+my colour
+441
+25
+0
+ENDSEC
+0
+EOF
+)DXF";
+    t.expect(importTemporaryDxf("mtext-background-fill-r2007", contents,
+                                interface_, data),
+             "MTEXT background fill fixture imports");
+
+    const DRW_MText* mtext = findMText(data);
+    t.expect(mtext != nullptr, "the MTEXT reaches the interface");
+    if (mtext == nullptr)
+        return;
+
+    // Read. Code 46 had no case anywhere in the MTEXT -> TEXT -> LINE ->
+    // POINT -> ENTITY chain and fell to the default.
+    t.expect(mtext->m_definedHeight == 12.5,
+             "code 46, the defined column height, is read");
+    t.expect(mtext->m_backgroundFlags == 1, "code 90 is read");
+    t.expect(mtext->m_backgroundScale == 1.5, "code 45 is read");
+    // 63 and 421 shared one member, so whichever arrived last won.
+    t.expect(mtext->m_backgroundColor == 5,
+             "code 63 keeps the ACI index once 421 has its own field");
+    t.expect(mtext->m_backgroundColorTrue == 3368601,
+             "code 421 is read as a true colour of its own");
+    t.expect(mtext->m_backgroundColorName == "my colour",
+             "code 431 is read");
+    t.expect(mtext->m_backgroundTransparency == 25, "code 441 is read");
+
+    // Write. Every one of these was read and none of them was written, so a
+    // DXF-to-DXF pass produced an MTEXT with no fill and no defined height.
+    interface_.attach(&data);
+    const std::filesystem::path output =
+        std::filesystem::temp_directory_path() / "libdxfrw-mtext-background.dxf";
+    std::error_code error;
+    std::filesystem::remove(output, error);
+    const bool written = interface_.fileExport(output.string(), DRW::AC1021,
+                                               false, &data, false);
+    t.expect(written, "the MTEXT is written back out");
+    if (!written) {
+        std::filesystem::remove(output, error);
+        return;
+    }
+
+    const auto groups = groupsOfRecord(output, "MTEXT");
+    t.expect(!groups.empty(), "the written file holds an MTEXT");
+    t.expect(hasGroup(groups, 46), "code 46 is written back");
+    t.expect(groupValue(groups, 46) == "12.5", "code 46 keeps its value");
+    t.expect(hasGroup(groups, 45), "code 45 is written back");
+    t.expect(hasGroup(groups, 90), "code 90 is written back");
+    t.expect(hasGroup(groups, 63), "code 63 is written back");
+    t.expect(groupValue(groups, 63) == "5", "code 63 keeps the ACI index");
+    t.expect(hasGroup(groups, 421), "code 421 is written back");
+    t.expect(groupValue(groups, 421) == "3368601", "code 421 keeps its value");
+    t.expect(hasGroup(groups, 431), "code 431 is written back");
+    t.expect(groupValue(groups, 431) == "my colour", "code 431 keeps its value");
+    t.expect(hasGroup(groups, 441), "code 441 is written back");
+
+    std::filesystem::remove(output, error);
+}
+
+void testMTextWithoutBackgroundFillIsUnchanged(TestContext& t) {
+    FixtureInterface interface_;
+    dx_data data;
+    // The other half of the promise: an MTEXT that asks for none of this must
+    // not acquire any of it. The optional groups are written only when set.
+    const std::string contents = R"DXF(0
+SECTION
+2
+HEADER
+9
+$ACADVER
+1
+AC1021
+0
+ENDSEC
+0
+SECTION
+2
+ENTITIES
+0
+MTEXT
+5
+30
+8
+0
+10
+1.0
+20
+2.0
+30
+0.0
+40
+2.5
+41
+0.0
+71
+1
+72
+5
+1
+plain
+73
+1
+44
+1.0
+0
+ENDSEC
+0
+EOF
+)DXF";
+    t.expect(importTemporaryDxf("mtext-plain-r2007", contents, interface_, data),
+             "plain MTEXT fixture imports");
+
+    const DRW_MText* mtext = findMText(data);
+    t.expect(mtext != nullptr, "the MTEXT reaches the interface");
+    if (mtext == nullptr)
+        return;
+
+    interface_.attach(&data);
+    const std::filesystem::path output =
+        std::filesystem::temp_directory_path() / "libdxfrw-mtext-plain.dxf";
+    std::error_code error;
+    std::filesystem::remove(output, error);
+    t.expect(interface_.fileExport(output.string(), DRW::AC1021, false, &data, false),
+             "the plain MTEXT is written back out");
+
+    const auto groups = groupsOfRecord(output, "MTEXT");
+    t.expect(!groups.empty(), "the written file holds an MTEXT");
+    t.expect(!hasGroup(groups, 46), "no defined height is invented");
+    t.expect(!hasGroup(groups, 45), "no background scale is invented");
+    t.expect(!hasGroup(groups, 90), "no background flags are invented");
+    t.expect(!hasGroup(groups, 63), "no background colour is invented");
+    t.expect(!hasGroup(groups, 421), "no true colour is invented");
+    t.expect(!hasGroup(groups, 431), "no colour name is invented");
+    t.expect(!hasGroup(groups, 441), "no transparency is invented");
+
+    std::filesystem::remove(output, error);
+}
+
+void testMTextBackgroundModesWriteOnlyTheirOwnGroups(TestContext& t) {
+    // Group 90 says which background mode is in use. 45 (the fill box scale)
+    // and 63 (the fill colour) describe a COLOUR fill and belong only to the
+    // mode that has one. Writing them whenever 90 is non-zero turns "absent"
+    // into "present and zero": a text-frame-only MTEXT came out carrying a
+    // zero box scale, where the convention is that the tag is absent and the
+    // scale is 1.5.
+    struct {
+        const char* label;
+        const char* groups;
+        bool expectColourGroups;
+    } cases[] = {
+        {"colour fill (90 = 1)", "45\n1.5\n90\n1\n63\n5\n", true},
+        {"text frame only (90 = 16)", "90\n16\n", false},
+        {"drawing window colour (90 = 2)", "90\n2\n", false},
+        {"frame and fill (90 = 17)", "45\n1.5\n90\n17\n63\n5\n", true},
+    };
+
+    for (const auto& item : cases) {
+        FixtureInterface interface_;
+        dx_data data;
+        const std::string contents =
+            std::string("0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1021\n0\nENDSEC\n")
+            + "0\nSECTION\n2\nENTITIES\n"
+            + "0\nMTEXT\n5\n30\n8\n0\n10\n1.0\n20\n2.0\n30\n0.0\n"
+            + "40\n2.5\n41\n0.0\n1\nfilled\n71\n1\n72\n5\n73\n1\n44\n1.0\n"
+            + item.groups + "0\nENDSEC\n0\nEOF\n";
+        t.expect(importTemporaryDxf("mtext-background-mode", contents, interface_, data),
+                 "background mode fixture imports");
+        if (findMText(data) == nullptr) {
+            t.expect(false, "the MTEXT reaches the interface");
+            continue;
+        }
+
+        interface_.attach(&data);
+        const std::filesystem::path output =
+            std::filesystem::temp_directory_path() / "libdxfrw-mtext-background-mode.dxf";
+        std::error_code error;
+        std::filesystem::remove(output, error);
+        if (!interface_.fileExport(output.string(), DRW::AC1021, false, &data, false)) {
+            t.expect(false, "the MTEXT is written back out");
+            continue;
+        }
+
+        const auto groups = groupsOfRecord(output, "MTEXT");
+        t.expect(hasGroup(groups, 90), "the background mode itself is always written");
+        t.expect(hasGroup(groups, 45) == item.expectColourGroups,
+                 item.expectColourGroups ? "a colour fill writes its box scale"
+                                         : "a mode with no colour fill invents no box scale");
+        t.expect(hasGroup(groups, 63) == item.expectColourGroups,
+                 item.expectColourGroups ? "a colour fill writes its colour"
+                                         : "a mode with no colour fill invents no colour");
+        std::filesystem::remove(output, error);
+    }
+}
+
+void testMTextBlackBackgroundColourSurvives(TestContext& t) {
+    // 421 is a 24-bit RGB in which 0 is a legal value: pure black. A zero
+    // sentinel for "absent" silently dropped it -- the same class of loss this
+    // change exists to fix for 63. -1 is the sentinel, matching
+    // DRW_Entity::color24.
+    FixtureInterface interface_;
+    dx_data data;
+    const std::string contents = R"DXF(0
+SECTION
+2
+HEADER
+9
+$ACADVER
+1
+AC1021
+0
+ENDSEC
+0
+SECTION
+2
+ENTITIES
+0
+MTEXT
+5
+30
+8
+0
+10
+1.0
+20
+2.0
+30
+0.0
+40
+2.5
+41
+0.0
+1
+black
+71
+1
+72
+5
+73
+1
+44
+1.0
+45
+1.5
+90
+1
+63
+5
+421
+0
+0
+ENDSEC
+0
+EOF
+)DXF";
+    t.expect(importTemporaryDxf("mtext-black-background", contents, interface_, data),
+             "black background fixture imports");
+    const DRW_MText* mtext = findMText(data);
+    t.expect(mtext != nullptr, "the MTEXT reaches the interface");
+    if (mtext == nullptr)
+        return;
+    t.expect(mtext->m_backgroundColorTrue == 0,
+             "a true colour of 0 is read as black, not as absent");
+
+    interface_.attach(&data);
+    const std::filesystem::path output =
+        std::filesystem::temp_directory_path() / "libdxfrw-mtext-black-background.dxf";
+    std::error_code error;
+    std::filesystem::remove(output, error);
+    t.expect(interface_.fileExport(output.string(), DRW::AC1021, false, &data, false),
+             "the MTEXT is written back out");
+
+    const auto groups = groupsOfRecord(output, "MTEXT");
+    t.expect(hasGroup(groups, 421), "a black background colour is written back");
+    t.expect(groupValue(groups, 421) == "0", "and it is still black");
+
+    std::filesystem::remove(output, error);
+}
+
+void testMTextRejectsAnUnsafeBackgroundColourName(TestContext& t) {
+    // Group 431 is a string, and it reaches writeUtf8String, which refuses a
+    // string carrying a control character. That refusal is a STICKY write
+    // error: without screening the field in the write preflight, the record
+    // was dropped from the output while fileExport still reported success --
+    // a silently missing MTEXT in a file the caller was told was fine.
+    FixtureInterface interface_;
+    dx_data data;
+    std::string contents =
+        std::string("0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1021\n0\nENDSEC\n")
+        + "0\nSECTION\n2\nENTITIES\n"
+        + "0\nMTEXT\n5\n30\n8\n0\n10\n1.0\n20\n2.0\n30\n0.0\n"
+        + "40\n2.5\n41\n0.0\n1\nhi\n71\n1\n72\n5\n73\n1\n44\n1.0\n"
+        + "45\n1.5\n90\n1\n63\n5\n431\nmy";
+    contents += '\r';                 // an embedded CR, which readString keeps
+    contents += "colour\n0\nENDSEC\n0\nEOF\n";
+
+    t.expect(importTemporaryDxf("mtext-unsafe-colour-name", contents, interface_, data),
+             "the fixture still imports; the value is only unwritable, not unreadable");
+    const DRW_MText* mtext = findMText(data);
+    t.expect(mtext != nullptr, "the MTEXT reaches the interface");
+    if (mtext == nullptr)
+        return;
+
+    interface_.attach(&data);
+    const std::filesystem::path output =
+        std::filesystem::temp_directory_path() / "libdxfrw-mtext-unsafe-colour-name.dxf";
+    std::error_code error;
+    std::filesystem::remove(output, error);
+    const bool written =
+        interface_.fileExport(output.string(), DRW::AC1021, false, &data, false);
+
+    t.expect(!written,
+             "an unwritable colour name fails the export instead of deleting the record");
+
+    std::filesystem::remove(output, error);
+}
+
 } // namespace
 
 int main() {
@@ -366,6 +815,11 @@ int main() {
     testEed(context);
     testRawControls(context);
     testDictionaryWithoutOwner(context);
+    testMTextBackgroundFillAndDefinedHeight(context);
+    testMTextWithoutBackgroundFillIsUnchanged(context);
+    testMTextBackgroundModesWriteOnlyTheirOwnGroups(context);
+    testMTextBlackBackgroundColourSurvives(context);
+    testMTextRejectsAnUnsafeBackgroundColourName(context);
     if (context.failures != 0) {
         std::cerr << context.failures << " DXF fixture assertion(s) failed\n";
         return 1;

@@ -11899,16 +11899,26 @@ static bool parseEmbeddedMTextDwgFields(
             return false;
         if ((mtext.m_backgroundFlags & 0x01)
             || (version >= DRW::AC1032 && (mtext.m_backgroundFlags & 0x10))) {
+            // getCmColor answers an RGB background with the index 256 -- the
+            // ByLayer sentinel -- and hands the real colour back through
+            // rgb24, which this call used to discard. Now that group 421 has
+            // a member of its own, writing 63 without it would put ByLayer in
+            // the file for every true-colour background a DWG carries.
             std::uint32_t backgroundColor = 0;
+            std::int32_t backgroundRgb = 0;
+            bool backgroundHasRgb = false;
             if (!readBoundedBitDouble(*buf, bodyEndBit,
                                       mtext.m_backgroundScale)
                 || !readBoundedCmColor(*buf, sBuf, bodyEndBit, version,
-                                       backgroundColor, nullptr, nullptr,
+                                       backgroundColor, &backgroundRgb,
+                                       &backgroundHasRgb,
                                        nullptr, nullptr, stringEndBit)
                 || !readBoundedBitLong(*buf, bodyEndBit,
                                        mtext.m_backgroundTransparency))
                 return false;
             mtext.m_backgroundColor = static_cast<int>(backgroundColor);
+            mtext.m_backgroundColorTrue =
+                backgroundHasRgb ? (backgroundRgb & 0xFFFFFF) : -1;
         }
     }
 
@@ -12854,6 +12864,13 @@ bool DRW_MText::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     case 43:
         m_r2018ExtentsHeight = reader->getDouble();
         break;
+    // Defined height, R2007+. There was no case for it anywhere in the
+    // MTEXT -> TEXT -> LINE -> POINT -> ENTITY chain, so it fell to the
+    // default and the value was gone -- on the ATTRIB/ATTDEF embedded object
+    // too, since DRW_Attrib::parseCode routes MTEXT codes through here.
+    case 46:
+        m_definedHeight = reader->getDouble();
+        break;
     case 45:
         m_backgroundScale = reader->getDouble();
         break;
@@ -12863,8 +12880,15 @@ bool DRW_MText::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     case 90:
         m_backgroundFlags = reader->getInt32();
         break;
+    // 63 is an ACI index and 421 a 24-bit true colour: two groups a file can
+    // carry at the same time, which the reference in fact calls for. Both used
+    // to land in m_backgroundColor, so whichever came last won and was then
+    // read back as the wrong kind of colour.
     case 421:
-        m_backgroundColor = reader->getInt32();
+        m_backgroundColorTrue = reader->getInt32();
+        break;
+    case 431:
+        m_backgroundColorName = reader->getUtf8String();
         break;
     case 441:
         m_backgroundTransparency = reader->getInt32();
@@ -12880,9 +12904,12 @@ void DRW_MText::resetDwgState() {
     DRW_Text::resetDwgState();
     interlin = 1.0;
     linespacingStyle = 1;
+    m_definedHeight = 0.0;
     m_backgroundFlags = 0;
     m_backgroundScale = 0.0;
     m_backgroundColor = 0;
+    m_backgroundColorTrue = -1;
+    m_backgroundColorName.clear();
     m_backgroundTransparency = 0;
     hasXAxisVec = false;
     m_r2018IsNotAnnotative = false;

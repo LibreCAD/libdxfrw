@@ -2110,9 +2110,26 @@ protected:
 public:
     double interlin;              /*!< linespacing factor, code 44 */
     std::uint16_t linespacingStyle = 1; /*!< linespacing style, code 73 (1=at least, 2=exact) */
+    /** Defined height, code 46 (R2007+).
+     *
+     * The DXF reader fills this; the DWG reader fills m_r2018RectHeight from
+     * its own slot. They are the same group code, so dxfRW::writeMText and
+     * dxfRW::writeEmbeddedMText emit whichever the source supplied. */
+    double m_definedHeight = 0.0;
     std::int32_t m_backgroundFlags = 0;
-    double m_backgroundScale = 0.0; /*!< background-fill box scale (DWG BitDouble) */
-    int m_backgroundColor = 0;
+    double m_backgroundScale = 0.0; /*!< background-fill box scale, code 45 (DWG BitDouble) */
+    int m_backgroundColor = 0;      /*!< background fill colour as ACI, code 63 */
+    /** Background fill colour as a 24-bit true colour, code 421; -1 when absent.
+     *
+     * Separate from the ACI above because the two are separate groups that a
+     * file can carry together -- the reference calls 63 required even when a
+     * true colour is used. They shared one member, so whichever arrived last
+     * overwrote the other and was then read back as the wrong kind of colour.
+     *
+     * -1 rather than 0 for "absent", matching DRW_Entity::color24: 0 is a
+     * legal true colour (black), and a zero sentinel silently drops it. */
+    std::int32_t m_backgroundColorTrue = -1;
+    std::string m_backgroundColorName;  /*!< background fill colour by name, code 431 */
     std::int32_t m_backgroundTransparency = 0;
     bool m_r2018IsNotAnnotative = false;
     bool m_r2018ReallyLocked = false;

@@ -294,6 +294,22 @@ bool isValidDxfEntityFields(const DRW_Entity& entity) {
             || !isSafeDxfRecordText(text->style))
             return false;
     }
+    // MTEXT's own fields. m_backgroundColorName reaches writeUtf8String, which
+    // refuses a string carrying a control character -- and that refusal is a
+    // sticky write error that drops the whole record while fileExport still
+    // reports success. Every other string this entity writes (layer, lineType,
+    // colorName, text, style) is screened here instead; this one has to be too.
+    if (const auto *mtext = dynamic_cast<const DRW_MText*>(&entity)) {
+        if (!isSafeDxfRecordText(mtext->m_backgroundColorName)
+            || !std::isfinite(mtext->m_backgroundScale)
+            || !std::isfinite(mtext->m_definedHeight)
+            || !std::isfinite(mtext->interlin)
+            || mtext->m_backgroundColorTrue < -1
+            || mtext->m_backgroundColorTrue > 0xFFFFFF
+            || mtext->m_backgroundColor < -255
+            || mtext->m_backgroundColor > DRW::ColorByLayer)
+            return false;
+    }
     if (const auto *insert = dynamic_cast<const DRW_Insert*>(&entity)) {
         if (!std::isfinite(insert->xscale)
             || !std::isfinite(insert->yscale)
@@ -4812,6 +4828,40 @@ bool dxfRW::writeTable(DRW_Table *ent){
     return !writer->hasWriteError();
 }
 
+/**
+ * The background-fill groups of an MTEXT, for both writers that emit them.
+ *
+ * Group 90 says which background mode is in use; 45 and 63 describe a colour
+ * fill and belong only to the mode that has one. Writing them for every
+ * non-zero flag turns "absent" into "present and zero": a text-frame-only
+ * MTEXT (flag 16) came out carrying a zero box scale, where the convention is
+ * that the tag is absent and the scale is 1.5.
+ *
+ * R2007 is the floor for all of them. 421, 431 and 441 are optional and go out
+ * only when set, so an MTEXT that asks for none of this keeps its byte stream.
+ */
+bool dxfRW::writeMTextBackground(DRW_MText *ent) {
+    if (ent == nullptr || version < DRW::AC1021 || ent->m_backgroundFlags == 0)
+        return true;
+
+    const bool hasColourFill = (ent->m_backgroundFlags & 0x01) != 0;
+    if (hasColourFill)
+        writer->writeDouble(45, ent->m_backgroundScale);
+    writer->writeInt32(90, ent->m_backgroundFlags);
+    if (hasColourFill) {
+        // 63 is required even when the colour is given as a true colour or by
+        // name, so within this mode it goes out unconditionally.
+        writer->writeInt16(63, ent->m_backgroundColor);
+        if (ent->m_backgroundColorTrue >= 0)
+            writer->writeInt32(421, ent->m_backgroundColorTrue);
+        if (!ent->m_backgroundColorName.empty())
+            writer->writeUtf8String(431, ent->m_backgroundColorName);
+    }
+    if (ent->m_backgroundTransparency != 0)
+        writer->writeInt32(441, ent->m_backgroundTransparency);
+    return !writer->hasWriteError();
+}
+
 bool dxfRW::writeEmbeddedMText(DRW_MText *ent) {
     if (ent == nullptr)
         return false;
@@ -4822,8 +4872,14 @@ bool dxfRW::writeEmbeddedMText(DRW_MText *ent) {
     writer->writeDouble(30, ent->basePoint.z);
     writer->writeDouble(40, ent->height);
     writer->writeDouble(41, ent->widthscale);
-    if (ent->m_r2018RectHeight != 0.0)
-        writer->writeDouble(46, ent->m_r2018RectHeight);
+    // Group 46. DRW_Attrib::parseCode routes the embedded object's codes
+    // through DRW_MText::parseCode, which fills m_definedHeight; the DWG
+    // reader fills m_r2018RectHeight. Same group, two sources -- emitting only
+    // the DWG one meant an ATTRIB read from DXF lost its 46 on the way out.
+    const double definedHeight = ent->m_definedHeight != 0.0
+        ? ent->m_definedHeight : ent->m_r2018RectHeight;
+    if (definedHeight != 0.0)
+        writer->writeDouble(46, definedHeight);
     writer->writeInt16(71, ent->textgen);
     writer->writeInt16(72, ent->alignH);
     writer->writeUtf8String(1, ent->text);
@@ -4849,12 +4905,8 @@ bool dxfRW::writeEmbeddedMText(DRW_MText *ent) {
         writer->writeDouble(50, ent->angle);
     writer->writeInt16(73, ent->linespacingStyle);
     writer->writeDouble(44, ent->interlin);
-    if (ent->m_backgroundFlags != 0) {
-        writer->writeDouble(45, ent->m_backgroundScale);
-        writer->writeInt32(90, ent->m_backgroundFlags);
-        writer->writeInt16(63, ent->m_backgroundColor);
-        writer->writeInt32(441, ent->m_backgroundTransparency);
-    }
+    if (!writeMTextBackground(ent))
+        return false;
     if (!ent->extData.empty() && !writeExtData(ent->extData))
         return false;
     return !writer->hasWriteError();
@@ -5304,6 +5356,10 @@ bool dxfRW::writeMText(DRW_MText *ent){
         writer->writeDouble(30, ent->basePoint.z);
         writer->writeDouble(40, ent->height);
         writer->writeDouble(41, ent->widthscale);
+        // Defined height, R2007+. Read by DRW_MText and never written, so a
+        // DXF-to-DXF pass dropped it.
+        if (version >= DRW::AC1021 && ent->m_definedHeight != 0.0)
+            writer->writeDouble(46, ent->m_definedHeight);
         writer->writeInt16(71, ent->textgen);
         writer->writeInt16(72, ent->alignH);
         // Chunk on UTF-8 codepoint boundaries so a multi-byte character (or
@@ -5349,6 +5405,20 @@ bool dxfRW::writeMText(DRW_MText *ent){
         writer->writeInt16(73, ent->linespacingStyle);  // linespacing style (was: alignV)
         writer->writeDouble(44, ent->interlin);
 //RLZ ... 11, 21, 31 needed?
+        // Background fill. DRW_MText has always read 45, 63, 90, 421 and 441
+        // and this writer emitted none of them, so every MTEXT with a filled
+        // background came out of a DXF-to-DXF pass with the fill gone --
+        // silently, in a file that still held the text.
+        //
+        // 45, 90 and 63 travel together: the reference calls all three
+        // required once any of them is used, and 63 required even when the
+        // colour is given as a true colour or by name. The optional two are
+        // written only when set, so a plain MTEXT's byte stream is unchanged.
+        //
+        // R2007 is where background fill arrives; writing it into an older
+        // revision would produce groups that revision has no meaning for.
+        if (!writeMTextBackground(ent))
+            return false;
         if (!ent->extData.empty() && !writeExtData(ent->extData))
             return false;
     } else {
