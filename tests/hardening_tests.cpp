@@ -3030,11 +3030,26 @@ void testStrayAcadVersionValueCannotDowngrade(TestContext& t) {
 }
 
 
+void testEmbeddedAttributeTextRouting(TestContext& t) {
+    ExposedAttrib attribute;
+    t.expect(parseDxfRecords(attribute,
+        "100\nAcDbText\n1\nfallback\n"
+        "100\nEmbedded Object\n3\nfirst\\P\n3\nsecond\\P\n1\nthird\n"
+        "100\nAcDbAttribute\n2\nTAG\n70\n1\n280\n1\n"),
+        "ATTRIB accepts embedded text followed by its attribute subclass");
+    t.expect(attribute.mtext && attribute.mtext->text == "first\\Psecond\\Pthird",
+        "ATTRIB keeps every embedded MText continuation chunk");
+    t.expect(attribute.text == "fallback" && attribute.tag == "TAG"
+                 && attribute.attribFlags == 1 && attribute.lockPosition,
+        "ATTRIB subclass tail does not overwrite embedded text or fallback");
+}
+
 } // namespace
 
 int main() {
     TestContext context;
     testPublicOwnershipContracts(context);
+    testEmbeddedAttributeTextRouting(context);
     testCheckedArithmetic(context);
     testNullAndOwnershipContracts(context);
     testMalformedInMemoryInputs(context);
