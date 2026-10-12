@@ -2,6 +2,43 @@
 
 ## Status
 
+Consumer follow-up (2026-10-12, LibreCAD_3 Python binding / libdxfrw PR #103,
+updated onto current `origin/master` at `a05e4f0d`):
+the R2018 ATTRIB parser routes group-3 chunks to embedded MTEXT until the
+attribute subclass, then retains ATTRIB tail parsing. Deep review found the
+parallel ATTDEF override still consumed pre-subclass group-3 chunks as prompts;
+a locally generated in-memory regression reproduced the loss, and ATTDEF now
+delegates those chunks through the same embedded-MTEXT path. The hardening CTest
+passes 1/1 with both ATTRIB and ATTDEF vectors. No external drawing is added.
+
+The strict implementation digest at advanced head97a8bdba after integrating master was
+`f9b002171299729121eb036c56b269777a1bb9e7b725554cf7f68a4e07f80d3f` (244 inputs).
+The status overlay has no native receipt references for this new implementation;
+all six older references remain archived only. No support claim is promoted:
+experimental rows stay experimental and eligible rows stay pending native.
+Hosted focused qualification had passed Linux GCC, macOS Clang and Windows MSVC
+for the prior `ceaf641` head, but those receipts do not qualify this digest or
+the updated master base. The current focused workflow was retriggered by the PR
+update and its native results are pending; no native receipt references are
+accepted until they are bound to this digest.
+The hosted broad run for that prior head had 37/40 tests pass on Linux/macOS;
+Windows MSVC additionally failed while linking `libdxfrw_gbk_codepage_tests`, so
+its broad tests did not run. Native requalification of the current head remains
+required; pre-native validation and the prior focused receipts are not acceptance.
+The PR changes source, in-memory tests, this plan, and the mutable status overlay;
+no drawing payload or archived evidence file is removed or added.
+
+S15 UTF-8/native-filesystem follow-up (2026-10-12) is VERIFYING. Its strict
+244-input digest is
+`45690883cb101663b384d1ca952e622ecfa05e4b03f077e5df36feb1effa0f7e`.
+Only the digest-excluded mutable status overlay is refreshed; it still accepts
+zero native receipts. Frozen inputs, historical receipts and support statuses
+are unchanged. Portable native Mac and ARM Linux focused7/controls3 pass, but
+own hosted three-platform and LibreCAD ON/OFF consumer proof remain required.
+The unchanged baseline admission tool rejects the existing numeric registry
+schema before scanning candidate paths. This failure is retained, not waived
+or described as a passing fixture-admission gate; no drawing bytes are added.
+
 This document plans an upgrade of the standalone `libdxfrw` repository from
 `origin/master` to the implementation maintained in
 `LibreCAD/LibreCAD:master/libraries/libdxfrw`.
@@ -1510,9 +1547,9 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint: release-ready; S00 through S14 are committed; the
-  implementation target is complete and only future independent qualification
-  can change support dispositions.
+- Current checkpoint: S15 UTF-8/native filesystem follow-up is VERIFYING.
+  S00 through S14 remain historical committed slices, not qualification of
+  this new path behavior; independent support dispositions remain unchanged.
 - Authorized run horizon: active implementation objective; continue through the
   next dependency-ready slice until the user stops or the terminal release gate
   is satisfied.
@@ -1520,19 +1557,20 @@ edit this block or commit the same slice concurrently.
   `ACTIVE`; a general request to implement this whole plan means S14/G, and a
   PR boundary cannot silently shorten it.
 - Last committed slice: S14 (release/package readiness and LibreCAD system-package lane).
-- Resolved slices: 15/15 (`COMMITTED`, or `SUPERSEDED` after all replacements
+- Resolved slices: 15/16 (`COMMITTED`, or `SUPERSEDED` after all replacements
   commit).
-- Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
+- Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 1 VERIFYING / 0 VERIFIED /
   0 BLOCKED_HARD / 0 SUPERSEDED / 15 COMMITTED.
-- Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
+- Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 1 VERIFYING /
   0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 16 COMMITTED.
-- Expanded child-item states: 42 COMMITTED / 0 READY / 0 PLANNED; S12
+- Expanded child-item states: 42 COMMITTED / 1 VERIFIED / 1 VERIFYING /
+  0 READY / 0 PLANNED; S12
   version/feature coverage, S13 hardening, and S14 release evidence are explicit.
-- Parent claim/evidence dispositions: 4 NOT_EVALUATED / 0 SATISFIED /
+- Parent claim/evidence dispositions: 5 NOT_EVALUATED / 0 SATISFIED /
   0 DEFERRED_EXTERNAL / 5 EXPERIMENTAL / 0 PROMOTED / 7 NOT_APPLICABLE.
 - Child evidence dispositions: 1 DEFERRED_EXTERNAL (six named external
-  follow-ups) / 26 NOT_EVALUATED-or-NOT_APPLICABLE; none promote claims.
-- Next ready slice: none. S08-S12 local vectors, S13 hardening, and S14
+  follow-ups) / 28 NOT_EVALUATED-or-NOT_APPLICABLE; none promote claims.
+- Next active slice: S15. S08-S12 local vectors, S13 hardening, and S14
   package/integration checks are green, but all five support dispositions
   remain `EXPERIMENTAL` until independent semantic evidence exists.
 
@@ -1553,6 +1591,7 @@ edit this block or commit the same slice concurrently.
 | S12 | F1: per-version/per-feature writer qualification | S11 | COMMITTED | self-read for implemented paths; independent oracle for each `PROMOTED` row; every unqualified row explicitly deferred/experimental | Six-version local round-trip and expanded feature/rollback matrix passes; all rows remain `EXPERIMENTAL` without independent oracle | S13, S14 |
 | S13 | G0: diagnostics, aggregate budgets, ownership, fuzz/sanitizers | S10, S11 | COMMITTED | hardening matrix green | Default and opt-in long-fuzz vectors plus focused ASan/UBSan hardening pass; no external bytes; support claims unchanged | S14 |
 | S14 | G1: system-package LibreCAD mode, packaging, docs, release | S07, S12, S13 | COMMITTED | full acceptance criteria | Fresh install/package consumers, LibreCAD filter system-package compile, version/docs/sync audit, and fixture guard pass; claims remain bounded | terminal release checkpoint |
+| S15 | C2: UTF-8/native input and atomic-output paths | S11, S14 | VERIFYING | existing focused native suite on Linux/macOS/Windows; Unicode parent/basename/non-BMP DXF ASCII+binary/DWG; transaction commit/rollback/cleanup; existing hardening and writer controls; LibreCAD ON/OFF consumers | Exact97a8bdba baseline Mac7+3 PASS; pre-fix Unicode vectors8bea476f PASS on Mac, not native Windows red. Candidate four-code-path diffSHA c60d7ea8b79f557233cbbe5645d905fb0d524c9c628f1377de31e1f20f4d76ef passes focused7 and writer/hardening/DXF3 on native Mac and Ubuntu26/aarch64, including explicit UTF-8 filesystem paths PASS; no skips. Five input opens/output target use standard u8path; native temporary basename/ASCII suffix preserves atomic policy. Initial Linux prep128 occurred before CMake due copied ownership; corrected process-scoped exact-directory trust passes, with no global exception or source recopy. This is dirty-source portable proof, not clean-commit hosted receipt or native Windows fix proof. Native Windows/three-platform immutable qualification and LibreCAD consumer pin/ON-OFF proofs remain pending; no historical evidence, locale, defaults or support claims change. | own candidate qualification and LibreCAD consumer pin |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -1572,6 +1611,7 @@ edit this block or commit the same slice concurrently.
 | F1 | S12 | F0 | COMMITTED | EXPERIMENTAL | Per-version/per-feature local writer matrix is green; independent oracle remains open |
 | G0 | S13 | E2, F0 | COMMITTED | NOT_EVALUATED | Diagnostics, budgets, ownership, fuzzing, and sanitizers pass bounded local and sanitizer lanes |
 | G1 | S14 | D1, F1, G0 | COMMITTED | NOT_EVALUATED | Installed LibreCAD mode, packaging, documentation, and release checks pass; support claims remain governed by evidence ledger |
+| C2 | S15 | F0, G1 | VERIFYING | NOT_EVALUATED | Compact UTF-8/native filename contract; portable local vectors pass, own hosted Windows/three-platform and LibreCAD consumer qualification pending |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -1617,6 +1657,8 @@ edit this block or commit the same slice concurrently.
 | G1.2 | G1 / S14 | WP8; Phase 8; R5 | G1.1 | COMMITTED | NOT_EVALUATED | installed package consumers | Fresh-prefix public-header, CMake, pkg-config, relocation, and profile-symbol checks pass; no source-tree include leaks are present |
 | G1.3 | G1 / S14 | WP3; Phase 8 | G1.2 | COMMITTED | NOT_EVALUATED | LibreCAD system-package consumer | `rs_filterdxfrw.cpp` syntax-compiles against the staged package after removing bundled DXFRW include roots; checker reports zero bundled paths |
 | G1.4 | G1 / S14 | WP0/WP8; Phase 8 | G1.3 | COMMITTED | NOT_EVALUATED | provenance and fixture release audit | `LIBRECAD_SYNC.md`, release-readiness report, adaptation allowlist, and fixture guard are green; no external DWG/DXF payload is staged |
+| C2.1 | C2 / S15 | WP3/WP7/WP8; Phase 8 follow-up | F0.3, G1.4 | VERIFIED | NOT_EVALUATED | input/output/native-basename implementation and portable real-filesystem controls | Frozen97+c60d7ea8 passes focused7/controls3 on native Mac and Ubuntu26/aarch64; actual Unicode DWG/ASCII+binary DXF, exclusive temporary basename, precommit visibility, commit/rollback/cleanup pass. Logs under /private/tmp/librecad-windows-path.WXbCZP/utf8-candidate-*; no Windows or immutable receipt claim |
+| C2.2 | C2 / S15 | WP3/WP8; Phase 8 follow-up | C2.1 | VERIFYING | NOT_EVALUATED | own three-platform immutable hosted receipts and LibreCAD ON/OFF consumers | Existing focused workflow automatically selects the expanded fixture target; publish a draft verification checkpoint preserving advanced97, then require native Windows/Linux x64/Mac receipts and actual LibreCAD Unicode/persistence/full consumers on its updated pin. Oldceaf or pre-fix Mac proof cannot satisfy this gate |
 
 S04 implementation record (pre-commit): target source/build artifacts were
 imported from the locked target-derived archive with all standalone-only

@@ -47,6 +47,11 @@ public:
     using DRW_Attrib::parseCode;
 };
 
+class ExposedAttdef : public DRW_Attdef {
+public:
+    using DRW_Attdef::parseCode;
+};
+
 class ExposedPoint : public DRW_Point {
 public:
     using DRW_Point::parseCode;
@@ -4054,11 +4059,40 @@ void testStrayAcadVersionValueCannotDowngrade(TestContext& t) {
 }
 
 
+void testEmbeddedAttributeTextRouting(TestContext& t) {
+    ExposedAttrib attribute;
+    t.expect(parseDxfRecords(attribute,
+        "100\nAcDbText\n1\nfallback\n"
+        "100\nEmbedded Object\n3\nfirst\\P\n3\nsecond\\P\n1\nthird\n"
+        "100\nAcDbAttribute\n2\nTAG\n70\n1\n280\n1\n"),
+        "ATTRIB accepts embedded text followed by its attribute subclass");
+    t.expect(attribute.mtext && attribute.mtext->text == "first\\Psecond\\Pthird",
+        "ATTRIB keeps every embedded MText continuation chunk");
+    t.expect(attribute.text == "fallback" && attribute.tag == "TAG"
+                 && attribute.attribFlags == 1 && attribute.lockPosition,
+        "ATTRIB subclass tail does not overwrite embedded text or fallback");
+}
+
+void testEmbeddedAttributeDefinitionTextRouting(TestContext& t) {
+    ExposedAttdef attribute;
+    t.expect(parseDxfRecords(attribute,
+        "100\nAcDbText\n1\nfallback\n"
+        "100\nEmbedded Object\n3\nfirst\\P\n3\nsecond\\P\n1\nthird\n"
+        "100\nAcDbAttributeDefinition\n3\nPrompt\n2\nTAG\n70\n4\n"),
+        "ATTDEF accepts embedded text followed by its attribute-definition subclass");
+    t.expect(attribute.mtext && attribute.mtext->text == "first\\Psecond\\Pthird",
+        "ATTDEF keeps embedded MText continuation chunks ahead of its prompt");
+    t.expect(attribute.text == "fallback" && attribute.prompt == "Prompt"
+                 && attribute.tag == "TAG" && attribute.attribFlags == 4,
+        "ATTDEF prompt and subclass metadata remain distinct from embedded text");
+}
+
 } // namespace
 
 int main() {
     TestContext context;
     testPublicOwnershipContracts(context);
+    testEmbeddedAttributeTextRouting(context);
     testCheckedArithmetic(context);
     testNullAndOwnershipContracts(context);
     testMalformedInMemoryInputs(context);
@@ -4085,6 +4119,7 @@ int main() {
     testProxySubclassMarkerIsIgnoredInsideApplicationGroups(context);
     testUnrecognisedAcadVersionIsNotFatal(context);
     testStrayAcadVersionValueCannotDowngrade(context);
+    testEmbeddedAttributeDefinitionTextRouting(context);
     if (context.failures != 0) {
         std::cerr << context.failures << " hardening assertion(s) failed\n";
         return 1;
