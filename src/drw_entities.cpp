@@ -12599,6 +12599,11 @@ bool DRW_Attrib::encodeDwg(DRW::Version version, dwgBufferW *buf, std::uint32_t 
 bool DRW_Attdef::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     switch (code) {
     case 3:
+        // Before AcDbAttributeDefinition, group 3 is an embedded MTEXT
+        // continuation when the nested text object has begun. Once the
+        // attribute-definition subclass starts, group 3 is the ATTDEF prompt.
+        if (mtext && !dxfInAttributeSubclass)
+            return DRW_Attrib::parseCode(code, reader);
         prompt = reader->getUtf8String();
         break;
     default:

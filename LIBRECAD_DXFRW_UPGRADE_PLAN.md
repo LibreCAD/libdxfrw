@@ -2,31 +2,27 @@
 
 ## Status
 
-Consumer follow-up (2026-10-11, LibreCAD_3 Python binding / libdxfrw PR #103):
-the R2018 ATTRIB parser now keeps group-3 continuation chunks inside its
-embedded-MText scope and resumes attribute metadata routing at the attribute
-subclass. A locally generated in-memory hardening vector covers continuation,
-fallback text, tag, flags, and lock position; no external drawing is added.
-The implementation digest must be recomputed after this source/test change.
-All six prior native receipt references and the broad-matrix references are
-removed from the current status overlay because they bind the old implementation;
-their archived evidence files remain historical. No support claim is promoted:
-experimental rows stay experimental and eligible rows stay pending native.
-Native macOS arm64 builds `libdxfrw_hardening_tests` and its CTest passes 1/1,
-including the new in-memory vector. The first configure selected Apple's Python
-3.9 and failed the existing minimum-version guard; selecting
-`LIBDXFRW_PYTHON_EXECUTABLE=/opt/homebrew/bin/python3.14` fixes that setup issue.
+Consumer follow-up (2026-10-12, LibreCAD_3 Python binding / libdxfrw PR #103):
+the R2018 ATTRIB parser routes group-3 chunks to embedded MTEXT until the
+attribute subclass, then retains ATTRIB tail parsing. Deep review found the
+parallel ATTDEF override still consumed pre-subclass group-3 chunks as prompts;
+a locally generated in-memory regression reproduced the loss, and ATTDEF now
+delegates those chunks through the same embedded-MTEXT path. The hardening CTest
+passes 1/1 with both ATTRIB and ATTDEF vectors. No external drawing is added.
+
 The strict implementation digest is
-`66a232304b27242c1a3cd32652dbb7dab69d2d2a024f902db8d9d986974097ce` (174 inputs).
-Digest, qualified-support, pre-native receipt, workflow-contract, plan and
-whitespace checks pass; support remains 15 claims, 2 candidate routes, 0 advertised.
-Receipt-emitter/API-verifier and fixture-admission self-tests pass, and the
-external-fixture hook observes no external advisories. The legacy staged-fixture
-scanner rejects the existing registry's numeric schema; that guard is not claimed
-as passed. Only this plan, the status overlay and the in-memory C++ test are
-changed; no drawing payload or archived receipt is removed or added.
-Hosted native requalification remains the next acceptance check for this
-S14/G1.4 release-evidence follow-up; pre-native validation is not native acceptance.
+`ce4f212d19837320660f0669ddc002c28d0b40342891363fc6a2740a9a8eb8d9` (174 inputs).
+The status overlay has no native receipt references for this new implementation;
+all six older references remain archived only. No support claim is promoted:
+experimental rows stay experimental and eligible rows stay pending native.
+Hosted focused qualification had passed Linux GCC, macOS Clang and Windows MSVC
+for the prior `ceaf641` head, but those receipts do not qualify this new digest.
+The hosted broad run for that prior head had 37/40 tests pass on Linux/macOS;
+Windows MSVC additionally failed while linking `libdxfrw_gbk_codepage_tests`, so
+its broad tests did not run. Native requalification of the current head remains
+required; pre-native validation and the prior focused receipts are not acceptance.
+The PR changes source, in-memory tests, this plan, and the mutable status overlay;
+no drawing payload or archived evidence file is removed or added.
 
 This document plans an upgrade of the standalone `libdxfrw` repository from
 `origin/master` to the implementation maintained in
