@@ -725,7 +725,8 @@ void readSchemaIndex(const ByteReader& r, DRW_DataStorageSection& section) {
 void readSchemaNames(const ByteReader& r,
                      DRW_DataStorageSection& section,
                      std::uint64_t namesOffset,
-                     std::uint64_t segmentEnd) {
+                     std::uint64_t segmentEnd,
+                     std::vector<UTF8STRING>& nameTable) {
     if (namesOffset == segmentEnd)
         return;
     if (!isRangeWithin(namesOffset, 4, segmentEnd)
@@ -749,8 +750,7 @@ void readSchemaNames(const ByteReader& r,
         declaredCount,
         namesBase < segmentEnd ? segmentEnd - namesBase : 0, 1, section,
         "schemaPropertyNameCount");
-    if (!DRW::reserve(section.schemaPropertyNames,
-                      static_cast<int>(maxCount))) {
+    if (!DRW::reserve(nameTable, static_cast<int>(maxCount))) {
         pushDiag(section, "datastorage-schema-names-reserve-failed",
                  "DataStorage schema property-name reserve failed");
         return;
@@ -765,11 +765,11 @@ void readSchemaNames(const ByteReader& r,
                      0, false, cursor, true);
             break;
         }
-        section.schemaPropertyNames.push_back(std::move(name));
+        nameTable.push_back(std::move(name));
         std::uint64_t next = 0;
         if (!checkedAdd(cursor,
                         static_cast<std::uint64_t>(
-                            section.schemaPropertyNames.back().size())
+                            nameTable.back().size())
                             + 1u,
                         next)
             || next > segmentEnd) {
@@ -894,6 +894,7 @@ bool readSchema(const ByteReader& r,
                 const DRW_DataStorageSchemaIndexEntry& reference,
                 std::uint64_t payloadStart,
                 std::uint64_t schemaEnd,
+                const std::vector<UTF8STRING>& propertyNames,
                 DRW_DataStorageSchema& schema) {
     std::uint64_t schemaOffset = 0;
     if (!checkedAdd(payloadStart, reference.localOffset, schemaOffset)
@@ -1055,8 +1056,8 @@ bool readSchema(const ByteReader& r,
             cursor += property.typeSize;
         }
 
-        if (property.nameIndex < section.schemaPropertyNames.size()) {
-            property.name = section.schemaPropertyNames[property.nameIndex];
+        if (property.nameIndex < propertyNames.size()) {
+            property.name = propertyNames[property.nameIndex];
         } else if (property.nameIndex != SCHEMA_PROPERTY_NO_NAME) {
             pushDiag(section, "datastorage-schema-name-index-invalid",
                      "DataStorage schema property name index is outside the name table",
@@ -1111,7 +1112,12 @@ void readSchemaData(const ByteReader& r, DRW_DataStorageSection& section) {
 
         const std::uint64_t namesOffset = segment.systemDataAlignmentOffset
             == 0 ? segmentEnd : namesStart;
-        readSchemaNames(r, section, namesOffset, segmentEnd);
+        std::vector<UTF8STRING> propertyNameTable;
+        readSchemaNames(r, section, namesOffset, segmentEnd,
+                        propertyNameTable);
+        section.schemaPropertyNames.insert(
+            section.schemaPropertyNames.end(),
+            propertyNameTable.begin(), propertyNameTable.end());
 
         std::uint64_t firstSchemaOffset =
             std::numeric_limits<std::uint64_t>::max();
@@ -1137,7 +1143,7 @@ void readSchemaData(const ByteReader& r, DRW_DataStorageSection& section) {
                 continue;
             DRW_DataStorageSchema schema;
             if (readSchema(r, section, reference, payloadStart, namesStart,
-                           schema)) {
+                           propertyNameTable, schema)) {
                 section.schemas.push_back(std::move(schema));
             }
         }

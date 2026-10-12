@@ -2,7 +2,8 @@
 
 ## Status
 
-Consumer follow-up (2026-10-12, LibreCAD_3 Python binding / libdxfrw PR #103):
+Consumer follow-up (2026-10-12, LibreCAD_3 Python binding / libdxfrw PR #103,
+updated onto current `origin/master` at `a05e4f0d`):
 the R2018 ATTRIB parser routes group-3 chunks to embedded MTEXT until the
 attribute subclass, then retains ATTRIB tail parsing. Deep review found the
 parallel ATTDEF override still consumed pre-subclass group-3 chunks as prompts;
@@ -10,13 +11,16 @@ a locally generated in-memory regression reproduced the loss, and ATTDEF now
 delegates those chunks through the same embedded-MTEXT path. The hardening CTest
 passes 1/1 with both ATTRIB and ATTDEF vectors. No external drawing is added.
 
-The strict implementation digest is
-`ce4f212d19837320660f0669ddc002c28d0b40342891363fc6a2740a9a8eb8d9` (174 inputs).
+The strict implementation digest after integrating current master is
+`f9b002171299729121eb036c56b269777a1bb9e7b725554cf7f68a4e07f80d3f` (244 inputs).
 The status overlay has no native receipt references for this new implementation;
 all six older references remain archived only. No support claim is promoted:
 experimental rows stay experimental and eligible rows stay pending native.
 Hosted focused qualification had passed Linux GCC, macOS Clang and Windows MSVC
-for the prior `ceaf641` head, but those receipts do not qualify this new digest.
+for the prior `ceaf641` head, but those receipts do not qualify this digest or
+the updated master base. The current focused workflow was retriggered by the PR
+update and its native results are pending; no native receipt references are
+accepted until they are bound to this digest.
 The hosted broad run for that prior head had 37/40 tests pass on Linux/macOS;
 Windows MSVC additionally failed while linking `libdxfrw_gbk_codepage_tests`, so
 its broad tests did not run. Native requalification of the current head remains

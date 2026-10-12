@@ -1,0 +1,7 @@
+# Locally authored control geometry for LibreDWG dwgadd 0.14.
+# Generate with: dwgadd --as r2000 -o /tmp/libdxfrw_ac1015_3d_topology_control.dwg <this-file>
+# This is a cross-reader parser control, not an AutoCAD-authored fixture.
+#version 2000
+polyline_3d 2 ((3 1 0.5) (6 2 -0.75))
+polyline_mesh 3 2 ((0 0 0) (2 0 0) (4 0 1) (0 3 -1) (2 3 2) (4 3 0.25))
+polyline_pface 5 3 ((-2 0 1) (0 0 1.5) (1 2 0) (0 3 -0.5) (-1 1 2)) ((1 2 3 4) (2 3 -4 5) (3 -4 5 0))

@@ -60,7 +60,7 @@ def main() -> int:
         checker.self_test(args.manifest.resolve())
     else:
         checker = load_module(
-            ROOT / "tools/check_ac1024_candidate_fields_v2.py",
+            ROOT / "tests/ac1024_candidate_fields_v2_live.py",
             "ac1024_candidate_fields_v2_selftest",
         )
         predecessor = checker.load_predecessor_checker()

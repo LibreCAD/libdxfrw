@@ -510,7 +510,12 @@ double dwgBuffer::getBitDouble(){
         std::memcpy(&ret, buffer, 8);
         return ret;
     }
-    //    if (b == 2)
+    else if (b == 2)
+        return 0.0;
+
+    // ODA's bit-code table reserves 11; treating it as zero silently accepts
+    // an invalid field and can leave subsequent object fields misinterpreted.
+    invalidate();
     return 0.0;
 }
 

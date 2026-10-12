@@ -1,0 +1,490 @@
+  0
+SECTION
+  2
+HEADER
+  9
+$ACADVER
+  1
+AC1015
+  9
+$HANDSEED
+  5
+30
+  0
+ENDSEC
+  0
+SECTION
+  2
+TABLES
+  0
+TABLE
+  2
+LTYPE
+ 70
+1
+  0
+LTYPE
+  5
+20
+100
+AcDbSymbolTableRecord
+100
+AcDbLinetypeTableRecord
+  2
+CONTINUOUS
+ 70
+0
+  3
+Solid line
+ 72
+65
+ 73
+0
+ 40
+0.0
+  0
+ENDTAB
+  0
+TABLE
+  2
+LAYER
+ 70
+1
+  0
+LAYER
+  5
+21
+100
+AcDbSymbolTableRecord
+100
+AcDbLayerTableRecord
+  2
+0
+ 70
+0
+ 62
+7
+  6
+CONTINUOUS
+  0
+ENDTAB
+  0
+TABLE
+  2
+BLOCK_RECORD
+ 70
+2
+  0
+BLOCK_RECORD
+  5
+1
+330
+0
+100
+AcDbSymbolTableRecord
+100
+AcDbBlockTableRecord
+  2
+*Model_Space
+ 70
+0
+  0
+BLOCK_RECORD
+  5
+2
+330
+0
+100
+AcDbSymbolTableRecord
+100
+AcDbBlockTableRecord
+  2
+*Paper_Space
+ 70
+0
+  0
+ENDTAB
+  0
+ENDSEC
+  0
+SECTION
+  2
+BLOCKS
+  0
+BLOCK
+  5
+10
+330
+1
+100
+AcDbEntity
+  8
+0
+100
+AcDbBlockBegin
+  2
+*Model_Space
+ 70
+0
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+  3
+*Model_Space
+  1
+
+  0
+ENDBLK
+  5
+11
+330
+1
+100
+AcDbEntity
+  8
+0
+100
+AcDbBlockEnd
+  0
+BLOCK
+  5
+12
+330
+2
+100
+AcDbEntity
+  8
+0
+100
+AcDbBlockBegin
+  2
+*Paper_Space
+ 70
+0
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+  3
+*Paper_Space
+  1
+
+  0
+ENDBLK
+  5
+13
+330
+2
+100
+AcDbEntity
+  8
+0
+100
+AcDbBlockEnd
+  0
+ENDSEC
+  0
+SECTION
+  2
+ENTITIES
+  0
+SPLINE
+  5
+22
+330
+1
+100
+AcDbEntity
+  8
+0
+100
+AcDbSpline
+ 70
+0
+ 71
+3
+ 72
+8
+ 73
+4
+ 74
+0
+ 42
+0.0000001
+ 43
+0.0000001
+ 44
+0.0000000001
+ 40
+0.0
+ 40
+0.0
+ 40
+0.0
+ 40
+0.0
+ 40
+1.0
+ 40
+1.0
+ 40
+1.0
+ 40
+1.0
+ 10
+1.0
+ 20
+2.0
+ 30
+3.0
+ 10
+4.0
+ 20
+6.0
+ 30
+9.0
+ 10
+7.0
+ 20
+2.0
+ 30
+15.0
+ 10
+10.0
+ 20
+8.0
+ 30
+22.0
+  0
+SPLINE
+  5
+23
+330
+1
+100
+AcDbEntity
+  8
+0
+100
+AcDbSpline
+210
+0.4082482904638631
+220
+0.8164965809277261
+230
+-0.4082482904638631
+ 70
+8
+ 71
+3
+ 72
+8
+ 73
+4
+ 74
+0
+ 42
+0.0000001
+ 43
+0.0000001
+ 44
+0.0000000001
+ 40
+0.0
+ 40
+0.0
+ 40
+0.0
+ 40
+0.0
+ 40
+1.0
+ 40
+1.0
+ 40
+1.0
+ 40
+1.0
+ 10
+1.0
+ 20
+0.0
+ 30
+1.0
+ 10
+0.0
+ 20
+1.0
+ 30
+2.0
+ 10
+2.0
+ 20
+1.0
+ 30
+4.0
+ 10
+3.0
+ 20
+0.0
+ 30
+3.0
+  0
+SPLINE
+  5
+24
+330
+1
+100
+AcDbEntity
+  8
+0
+100
+AcDbSpline
+ 70
+0
+ 71
+3
+ 72
+0
+ 73
+0
+ 74
+4
+ 42
+0.0000001
+ 43
+0.0000001
+ 44
+0.0000000001
+ 12
+1.0
+ 22
+1.0
+ 32
+3.0
+ 13
+1.0
+ 23
+2.0
+ 33
+4.0
+ 11
+0.0
+ 21
+1.0
+ 31
+2.0
+ 11
+1.0
+ 21
+2.0
+ 31
+5.0
+ 11
+2.0
+ 21
+4.0
+ 31
+6.0
+ 11
+3.0
+ 21
+6.0
+ 31
+10.0
+  0
+SPLINE
+  5
+25
+330
+1
+100
+AcDbEntity
+  8
+0
+100
+AcDbSpline
+ 70
+0
+ 71
+3
+ 72
+8
+ 73
+4
+ 74
+0
+ 42
+0.0000001
+ 43
+0.0000001
+ 44
+0.0000000001
+ 40
+0.0
+ 40
+0.0
+ 40
+0.0
+ 40
+0.0
+ 40
+1.0
+ 40
+1.0
+ 40
+1.0
+ 40
+1.0
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+ 10
+1.0
+ 20
+0.0
+ 30
+0.0
+ 10
+1.0
+ 20
+1.0
+ 30
+2.0
+ 10
+0.0
+ 20
+1.0
+ 30
+2.00000001
+  0
+ENDSEC
+  0
+SECTION
+  2
+OBJECTS
+  0
+DICTIONARY
+  5
+16
+330
+0
+100
+AcDbDictionary
+280
+0
+281
+1
+  0
+ENDSEC
+  0
+EOF

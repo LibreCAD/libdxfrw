@@ -15,6 +15,7 @@
 #include "libdxfrw.h"
 
 #include <list>
+#include <vector>
 
 //class to store image data and path from DRW_ImageDef
 class dx_ifaceImg : public DRW_Image {
@@ -42,6 +43,7 @@ public:
 class dx_data {
 public:
     dx_data(){
+        sourceVersion = DRW::UNKNOWNV;
         mBlock = new dx_ifaceBlock();
     }
     ~dx_data(){
@@ -52,12 +54,31 @@ public:
     }
 
     DRW_Header headerC;                 //stores a copy of the header vars
+    DRW::Version sourceVersion;          //detected source DXF/DWG revision
     std::list<DRW_LType>lineTypes;      //stores a copy of all line types
     std::list<DRW_Layer>layers;         //stores a copy of all layers
     std::list<DRW_Dimstyle>dimStyles;   //stores a copy of all dimension styles
     std::list<DRW_Vport>VPorts;         //stores a copy of all vports
     std::list<DRW_Textstyle>textStyles; //stores a copy of all text styles
     std::list<DRW_AppId>appIds;         //stores a copy of all line types
+    std::list<DRW_Dictionary>dictionaries; //typed OBJECTS dictionaries
+    std::list<DRW_XRecord>xRecords;      //typed XRECORD objects
+    std::list<DRW_Material>materials;    //typed MATERIAL objects
+    std::list<DRW_ProxyObject>proxyObjects; //typed ACAD_PROXY_OBJECT records
+    std::list<DRW_RawDxfObject>rawProxyObjects; //lossless DXF proxy passthrough
+    std::vector<DRW_RawDxfSection> rawDxfSections; //opaque DXF section passthrough
+    std::vector<DRW_Class> dxfClasses; //readback of emitted CLASS metadata
+    DRW_DwgClassCoverageReport dwgClassCoverage; //source DWG class-number binding
+    std::vector<DRW_DataStorageSection> dataStorageSections; //typed DWG AcDs data
+    // Typed DWG callbacks needed to inspect bounded ACIS history closures.
+    // The unsupported-object companions are DWG frame bodies, not DXF groups;
+    // they are retained only for correlation/diagnostics, never DXF replay.
+    std::vector<DRW_EvaluationGraph> evaluationGraphs;
+    std::vector<DRW_AcShHistoryObject> acshHistoryObjects;
+    std::vector<DRW_UnsupportedObject> acdsHistoryDwgFrames;
+    // Retain dynamic-block callbacks so export can fail closed rather than
+    // silently discarding the graph. No dynamic-block DXF writer is qualified.
+    std::vector<DRW_DynamicBlockObject> dynamicBlockObjects;
     std::list<dx_ifaceBlock*>blocks;    //stores a copy of all blocks and the entities in it
     std::list<dx_ifaceImg*>images;      //temporary list to find images for link with DRW_ImageDef. Do not delete it!!
 

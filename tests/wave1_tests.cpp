@@ -954,6 +954,80 @@ void testDxfRawSectionCaptureReplay(TestContext& t) {
     }
 }
 
+void testDxfAcdsDataOpaqueSectionCaptureReplay(TestContext& t) {
+    // Deliberately orphaned, locally generated ACDSDATA-shaped tags exercise
+    // only the generic raw-section carrier. They are not a valid-schema or
+    // entity-association fixture and must not produce a typed 3DSOLID.
+    const std::string content =
+        "0\nSECTION\n2\nACDSDATA\n"
+        "0\nACDSRECORD\n90\n1\n2\nAcDbDs::ID\n280\n10\n"
+        "320\nD2\n2\nASM_Data\n280\n15\n94\n4\n310\n41424344\n"
+        "0\nENDSEC\n0\nEOF\n";
+    ProfileProbeInterface sourceInterface;
+    dxfRW reader("");
+    std::string input = content;
+    const bool sourceRead = reader.readAscii(
+        &sourceInterface, false, input);
+    t.expect(sourceRead && sourceInterface.sections.size() == 1,
+             "ACDSDATA DXF is delivered through raw-section callback");
+    if (!sourceRead || sourceInterface.sections.size() != 1)
+        return;
+
+    const DRW_RawDxfSection& captured = sourceInterface.sections.front();
+    const std::vector<int> expectedCodes {
+        0, 90, 2, 280, 320, 2, 280, 94, 310};
+    const std::vector<std::string> expectedRaw {
+        "ACDSRECORD", "1", "AcDbDs::ID", "10", "D2", "ASM_Data",
+        "15", "4", "41424344"};
+    bool payloadMatches = captured.m_name == "ACDSDATA"
+        && captured.m_hasRawValues
+        && captured.m_groups.size() == expectedCodes.size()
+        && captured.m_rawValues == expectedRaw;
+    for (std::size_t i = 0;
+         payloadMatches && i < expectedCodes.size(); ++i) {
+        payloadMatches = captured.m_groups[i].code() == expectedCodes[i];
+    }
+    t.expect(payloadMatches,
+             "ACDSDATA opaque capture preserves ordered tags and raw values");
+    t.expect(sourceInterface.storage.mBlock->ent.empty(),
+             "orphaned ACDS record creates no typed modeler entity");
+    if (!payloadMatches)
+        return;
+
+    std::ostringstream output;
+    dxfRW writer("");
+    writer.version = DRW::AC1027;
+    writer.binFile = false;
+    writer.writer = std::make_unique<dxfWriterAscii>(&output);
+    const bool replayWritten = writer.writeRawDxfSection(captured);
+    std::string replay = output.str() + "0\nEOF\n";
+    ProfileProbeInterface replayInterface;
+    dxfRW replayReader("");
+    const bool replayRead = replayWritten
+        && replayReader.readAscii(&replayInterface, false, replay);
+    t.expect(replayRead && replayInterface.sections.size() == 1,
+             "ACDSDATA opaque section replays and is readable again");
+    if (!replayRead || replayInterface.sections.size() != 1)
+        return;
+
+    const DRW_RawDxfSection& replayed = replayInterface.sections.front();
+    bool replayMatches = replayed.m_name == captured.m_name
+        && replayed.m_hasRawValues
+        && replayed.m_rawValues == captured.m_rawValues
+        && replayed.m_groups.size() == captured.m_groups.size();
+    for (std::size_t i = 0;
+         replayMatches && i < captured.m_groups.size(); ++i) {
+        replayMatches = replayed.m_groups[i].code()
+                == captured.m_groups[i].code()
+            && replayed.m_groups[i].type()
+                == captured.m_groups[i].type();
+    }
+    t.expect(replayMatches,
+             "ACDSDATA raw replay preserves ordered group types and spellings");
+    t.expect(replayInterface.storage.mBlock->ent.empty(),
+             "ACDSDATA raw replay remains distinct from entity association");
+}
+
 DRW_RawDxfObject rawBinaryBoundaryObject() {
     DRW_RawDxfObject object;
     object.name = "RAW_BINARY_BOUNDARY";
@@ -5461,6 +5535,22 @@ void testHatchValidationIgnoresInactiveGradient(TestContext& t) {
     hatch.isGradient = 1;
     t.expect(!owner.validateHatchPayload(&hatch),
              "active gradient still validates gradient carriers");
+
+    DRW_Hatch invalidElevation;
+    invalidElevation.basePoint = DRW_Coord{1.0, 0.0, 7.0};
+    t.expect(!owner.validateHatchPayload(&invalidElevation),
+             "HATCH writer rejects nonzero OCS elevation X instead of dropping it");
+    invalidElevation.basePoint = DRW_Coord{0.0, 1.0, 7.0};
+    t.expect(!owner.validateHatchPayload(&invalidElevation),
+             "HATCH writer rejects nonzero OCS elevation Y instead of dropping it");
+    invalidElevation.basePoint = DRW_Coord{0.0, 0.0, 7.0};
+    invalidElevation.extPoint = DRW_Coord{0.0, 0.0, 0.0};
+    t.expect(!owner.validateHatchPayload(&invalidElevation),
+             "HATCH writer rejects zero extrusion direction without an OCS frame");
+    DRW_MPolygon invalidMPolygon;
+    invalidMPolygon.extPoint = DRW_Coord{0.0, 0.0, 0.0};
+    t.expect(!owner.validateHatchPayload(&invalidMPolygon),
+             "MPOLYGON writer shares HATCH zero-extrusion validation");
 }
 
 void testFixedSpaceBlockClassification(TestContext& t) {
@@ -5621,6 +5711,7 @@ int main() {
     testDxfRawBoundaryReplay(context);
     testDxfRawSectionBoundaryReplay(context);
     testDxfRawSectionCaptureReplay(context);
+    testDxfAcdsDataOpaqueSectionCaptureReplay(context);
     testDxfBinaryRawBoundaryReplay(context);
     testDxfBinaryRawSectionCaptureReplay(context);
     testDxfBinaryRawObjectCaptureReplay(context);

@@ -150,6 +150,8 @@ public:
 
     [[nodiscard]] bool write(DRW_Interface *interface_, DRW::Version ver, bool bin);
     bool writeLineType(DRW_LType *ent);
+    bool writeDictionary(DRW_Dictionary *ent);
+    bool writeXRecord(DRW_XRecord *ent);
     bool writeLayer(DRW_Layer *ent);
     bool writeDimstyle(DRW_Dimstyle *ent);
     bool writeTextstyle(DRW_Textstyle *ent);
@@ -340,13 +342,16 @@ public:
      * no leading zeros), so a caller can build a 350/330 reference string that
      * byte-matches the re-emitted handle (e.g. a remapped root-dict entry). */
     std::string toHexStrHandle(std::uint32_t h) { return toHexStr(h); }
-    /*!< Register a handle-remap applied by writeRawDxfObject to every raw
-     * object/entity it emits: the object's own code-5/105 handle and every
-     * handle-reference group (codes 320-369, 1005, plus 102-group reactor 330s)
-     * whose value is a remapped handle is rewritten to the new handle. Empty by
-     * default (raw handles preserved verbatim). Keys/values are numeric handles. */
+    /*!< Register source-handle remaps applied to raw and typed DXF output.
+     * Empty by default (source handles are preserved verbatim). */
     void setHandleRemap(const std::map<std::uint32_t, std::uint32_t> &remap) {
         m_handleRemap = remap;
+    }
+    /*!< Register source linetypes so metadata attached to the three mandatory
+     * canonical rows can be emitted before the LTYPE table is closed. */
+    void setCanonicalLineTypeMetadata(
+        const std::vector<DRW_LType> &lineTypes) {
+        m_canonicalLineTypeMetadata = lineTypes;
     }
     std::uint32_t remapHandle(std::uint32_t handle) const {
         auto it = m_handleRemap.find(handle);
@@ -577,6 +582,8 @@ public:
         SourceHandleInsert,
         SourceHandleErase,
         AmbiguousSourceHandleInsert,
+        WrittenSourceEntityHandleInsert,
+        ModelerSourceHandleInsert,
         ImageReactorInsert
     };
     struct DxfWriteMutation {
@@ -613,6 +620,7 @@ public:
     /* Entity-flavoured overload: entities own extData via shared_ptr, table
      * records own raw pointers. Same DXF codes, different storage. */
     bool writeExtData(const std::vector<std::shared_ptr<DRW_Variant>> &ed);
+    bool writeMTextBackground(DRW_MText *ent);
     bool writeEmbeddedMText(DRW_MText *ent);
     bool writeAttributeR2018Features(DRW_Attrib *ent);
     /*!< F4 — emit a 330 owner handle for a typed data-only OBJECT (the record's
@@ -626,12 +634,14 @@ public:
                            bool remapSourceHandles = true,
                            bool useLegacyClassifier = false);
     LIBDXFRW_TEST_SEAM_NOINLINE bool writeRawDxfSection(const DRW_RawDxfSection &section);
+    bool remapAcdsAsmDataOwnerHandles(DRW_RawDxfSection &section);
     void writePlotSettingsFields(const DRW_PlotSettings *ent);
     /*use version from dwgutil.h*/
     std::string toHexStr(std::uint32_t n);
     std::string toHexStr(int n);// compatibility overload for legacy callers
     bool writeAppData(const std::list<std::list<DRW_Variant>> &appData);
     bool writeTableEntryAppData(const DRW_TableEntry& entry);
+    std::uint32_t remapObjectHandle(std::uint32_t handle) const noexcept;
 
     bool setError(const DRW::error lastError);
     bool failDxfReadBudget();
@@ -696,6 +706,8 @@ private:
     /// Populated via setNamedDictObjects; empty by default so a fresh write is
     /// byte-identical.
     std::vector<DRW_Dictionary> m_namedDictObjects;
+    /// Source linetypes used to attach metadata to canonical mandatory rows.
+    std::vector<DRW_LType> m_canonicalLineTypeMetadata;
     /// GROUP objects to typed-emit in writeObjects (DXF path). Populated via
     /// setGroups; empty by default so a fresh write is byte-identical.
     std::vector<DRW_Group> m_groups;

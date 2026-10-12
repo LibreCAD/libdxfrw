@@ -1,0 +1,5 @@
+# Locally authored control geometry for LibreDWG dwgadd 0.14.
+# Generate with: dwgadd --as r2000 -o /tmp/libdxfrw_ac1015_3d_line_control.dwg <this-file>
+# This is a generated cross-reader consumer control, not an AutoCAD-authored sample.
+#version 2000
+line (1 2 3) (4 6 9)

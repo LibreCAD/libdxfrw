@@ -1,0 +1,178 @@
+# Optional diagnostic for the MINSERT source in
+# fixtures/dxf/ac1015_minsert_freecad_control.dxf. The C++ importer currently
+# ignores the array counts; report converter correctness separately from that
+# downstream geometry result.
+
+import hashlib
+import json
+import os
+import platform
+import subprocess
+import sys
+
+import FreeCAD as App
+
+
+sample = os.environ.get("LIBDXFRW_FREECAD_DWG")
+if not sample or not os.path.isfile(sample):
+    raise RuntimeError("LIBDXFRW_FREECAD_DWG must name an existing generated DWG")
+
+sys.path.insert(0, os.path.join(App.getResourceDir(), "Mod", "Draft"))
+import importDWG
+import importDXF
+
+preferences = App.ParamGet("User parameter:BaseApp/Preferences/Mod/Draft")
+if preferences.GetBool("dxfUseLegacyImporter", False):
+    raise RuntimeError("This check requires FreeCAD's C++ DXF importer")
+
+captured = {}
+original_popen = subprocess.Popen
+original_open = importDXF.open
+original_reporter = importDXF.DxfImportReporter
+original_oda_converter = importDWG.get_oda_converter
+original_qcad_converter = importDWG.get_qcad_converter
+
+
+def capture_popen(*args, **kwargs):
+    process = original_popen(*args, **kwargs)
+    captured.setdefault("processes", []).append(process)
+    return process
+
+
+def capture_open(filename, *args, **kwargs):
+    captured["imported_dxf"] = filename
+    return original_open(filename, *args, **kwargs)
+
+
+class CapturingReporter(original_reporter):
+    def __init__(self, filename, stats, total_time=0.0):
+        captured["stats"] = stats
+        super().__init__(filename, stats, total_time)
+
+
+def same_path(left, right):
+    return os.path.normcase(os.path.abspath(left)) == os.path.normcase(os.path.abspath(right))
+
+
+def digest(path):
+    sha = hashlib.sha256()
+    with open(path, "rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            sha.update(chunk)
+    return sha.hexdigest()
+
+
+def sorted_edge(edge):
+    return sorted(
+        (float(vertex.Point.x), float(vertex.Point.y), float(vertex.Point.z))
+        for vertex in edge.Vertexes
+    )
+
+
+def close_point(actual, expected):
+    return len(actual) == 3 and all(abs(a - e) < 1e-8 for a, e in zip(actual, expected))
+
+
+subprocess.Popen = capture_popen
+importDWG.get_oda_converter = lambda: None
+importDWG.get_qcad_converter = lambda: None
+importDXF.open = capture_open
+importDXF.DxfImportReporter = CapturingReporter
+
+doc = None
+try:
+    doc = importDWG.open(sample)
+    if doc is None:
+        raise AssertionError("Draft.importDWG.open returned no document")
+
+    dxf_path = captured.get("imported_dxf")
+    if not dxf_path or not os.path.isfile(dxf_path):
+        raise AssertionError("FreeCAD did not import the converter's DXF output")
+    processes = captured.get("processes", [])
+    if len(processes) != 1:
+        raise AssertionError("expected exactly one LibreDWG converter process")
+
+    process = processes[0]
+    converter = importDWG.get_libredwg_converter("dwg2dxf")
+    args = process.args
+    if not converter or not isinstance(args, (list, tuple)) or len(args) != 4:
+        raise AssertionError("FreeCAD did not invoke the expected dwg2dxf command")
+    if not same_path(args[0], converter) or not same_path(args[1], sample):
+        raise AssertionError("FreeCAD invoked dwg2dxf with unexpected argv: %r" % (args,))
+    if args[2] != "-o" or not same_path(args[3], dxf_path):
+        raise AssertionError("FreeCAD used an unexpected output path: %r" % (args,))
+    if process.returncode != 0:
+        raise AssertionError("dwg2dxf exited with status %r" % process.returncode)
+
+    with open(dxf_path, "r", encoding="ascii", errors="replace") as stream:
+        dxf_text = stream.read().replace("\r", "")
+    required_fields = (
+        "\nAcDbMInsertBlock\n  2\nARRAY_CELL\n",
+        "\n 70\n    2\n 71\n    2\n 44\n5\n 45\n4\n",
+    )
+    if any(fragment not in dxf_text for fragment in required_fields):
+        raise AssertionError("dwg2dxf output did not preserve the MINSERT array fields")
+
+    links = [obj for obj in doc.Objects if obj.TypeId == "App::Link"]
+    edges = []
+    for link in links:
+        edges.extend(sorted_edge(edge) for edge in link.Shape.Edges)
+    expected = [
+        [(11.0, 22.0, 33.0), (14.0, 26.0, 39.0)],
+        [(16.0, 22.0, 33.0), (19.0, 26.0, 39.0)],
+        [(11.0, 26.0, 33.0), (14.0, 30.0, 39.0)],
+        [(16.0, 26.0, 33.0), (19.0, 30.0, 39.0)],
+    ]
+    edges.sort()
+    expected.sort()
+    full_array_imported = len(edges) == 4 and all(
+        all(close_point(actual_point, expected_point)
+            for actual_point, expected_point in zip(actual_edge, expected_edge))
+        for actual_edge, expected_edge in zip(edges, expected)
+    )
+    first_cell_only = len(edges) == 1 and all(
+        close_point(actual_point, expected_point)
+        for actual_point, expected_point in zip(
+            edges[0], [(11.0, 22.0, 33.0), (14.0, 26.0, 39.0)]
+        )
+    )
+
+    stats = captured.get("stats") or {}
+    entity_counts = stats.get("entityCounts", {})
+    if entity_counts.get("INSERT", 0) != 1 or entity_counts.get("LINE", 0) != 1:
+        raise AssertionError("FreeCAD did not report one INSERT and one LINE: %r" % entity_counts)
+
+    result = {
+        "freecad_version": list(App.Version()),
+        "platform": platform.platform(),
+        "architecture": platform.machine(),
+        "importer": "C++",
+        "import_mode": preferences.GetInt("DxfImportMode", 2),
+        "converter": converter,
+        "converter_sha256": digest(converter),
+        "converter_argv": args,
+        "converter_returncode": process.returncode,
+        "source_sha256": digest(sample),
+        "imported_dxf_path": dxf_path,
+        "imported_dxf_sha256": digest(dxf_path),
+        "entity_counts": entity_counts,
+        "link_count": len(links),
+        "imported_edge_count": len(edges),
+        "expected_minsert_cells": 4,
+        "full_array_imported": full_array_imported,
+        "first_cell_only": first_cell_only,
+        "semantic_status": (
+            "SUPPORTED" if full_array_imported
+            else "DOWNSTREAM_UNSUPPORTED_FIRST_CELL_ONLY" if first_cell_only
+            else "DOWNSTREAM_GEOMETRY_MISMATCH"
+        ),
+    }
+    print("FREECAD_MINSERT_DIAGNOSTIC=" + json.dumps(result, sort_keys=True))
+finally:
+    subprocess.Popen = original_popen
+    importDWG.get_oda_converter = original_oda_converter
+    importDWG.get_qcad_converter = original_qcad_converter
+    importDXF.open = original_open
+    importDXF.DxfImportReporter = original_reporter
+    if doc is not None and doc.Name in App.listDocuments():
+        App.closeDocument(doc.Name)

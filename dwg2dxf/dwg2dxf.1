@@ -1,18 +1,53 @@
-.TH DWG2DXF 1 "November 2015" "version 1.0"
+.TH DWG2DXF 1 "2026-09-23" "version 1.0"
 .SH NAME
 dwg2dxf \- Conversor from dwg/dxf to dxf
 .SH SYNOPSIS
 dwg2dxf <input> [-b] <-version> <output>
+.br
+dwg2dxf <input> -o <output> [-version] [-b] [-y]
 .SH DESCRIPTION
-dwg2dxf is a Console conversor from dwg/dxf to dxf. You can convert from dwg or dxf to another dxf version.
+dwg2dxf is a console converter from DWG/DXF to DXF. Either input format can
+be converted to another DXF version.
 .SH OPTIONS
 input      existing file to convert
    -b         optional, sets output as binary dxf
    -B         optional, batch mode reads a text file whit a list of full path input
                files and saves with the same name in the indicated folder as output
    -y -Y      optional, Warning! if output dxf exist overwrite without ask
-   -version   version output of dxf file
+   -version   version output of dxf file (required by the positional form,
+              optional with -o; otherwise the source revision is retained)
    output     output file name
+
+The -o form is compatible with FreeCAD's external DWG converter invocation.
+It writes ASCII DXF unless -b is specified and does not prompt. If the output
+already exists, conversion fails unless -y is specified. AC1012/R13 input is
+written as AC1014/R14 because AC1012 is not a supported output revision.
+.PP
+Install dwg2dxf and either place its bindir first on FreeCAD's PATH or select
+the LibreDWG-compatible converter in FreeCAD's DWG preferences and configure
+the full executable path. In automatic mode FreeCAD may try another converter
+after failure. A successful conversion means that DXF was produced; FreeCAD's
+DXF importer may still not support every preserved entity or 3D feature.
+.PP
+The end-to-end profile qualified by this project is FreeCAD 1.1.3 on macOS 27
+arm64 with the C++ DXF importer, using the installed converter for a generated
+AC1015 nonzero-Z LINE through both open and insert. Both Automatic
+(DWGConversion=0) and LibreDWG-only (DWGConversion=1) modes were checked with
+PATH discovery; the Automatic-mode control selected this executable first and
+did not run ODA/QCAD fallback. Automatic mode may still try another converter
+after failure. Native Linux and Windows profiles are not yet qualified; entity
+and version support remains specific to the published support matrix.
+.PP
+This package supplies the DWG-to-DXF import-side program for FreeCAD Draft's
+importDWG.open() and importDWG.insert() workflows only; it does not include
+FreeCAD's paired dxf2dwg program and does not provide LibreDWG-based DWG
+export. FreeCAD shares its TeighaFileConverter preference between import and
+export. If that preference names dwg2dxf, FreeCAD derives the sibling
+dxf2dwg path for export; when the sibling is missing, the current resolver
+does not fall back to PATH. To discover dwg2dxf from PATH without replacing a
+separate export setup, do not set the shared preference to either LibreDWG
+executable. If you configure this dwg2dxf path directly, route export through
+a separate converter that actually provides dxf2dwg.
 
      version can be:
         -R12   dxf release 12 version

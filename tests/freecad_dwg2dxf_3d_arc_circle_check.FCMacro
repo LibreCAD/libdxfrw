@@ -1,0 +1,243 @@
+# Optional end-to-end elevated ARC/CIRCLE DWG -> dwg2dxf -> FreeCAD check.
+#
+# Generate the input from the checked-in local recipe, put this build's
+# dwg2dxf directory first on PATH, and set LIBDXFRW_FREECAD_DWG to that DWG.
+# The generated control is not an AutoCAD-authored interoperability witness.
+
+import hashlib
+import json
+import os
+import platform
+import subprocess
+import sys
+
+import FreeCAD as App
+
+
+sample = os.environ.get("LIBDXFRW_FREECAD_DWG")
+if not sample or not os.path.isfile(sample):
+    raise RuntimeError("LIBDXFRW_FREECAD_DWG must name an existing generated DWG")
+
+draft_path = os.path.join(App.getResourceDir(), "Mod", "Draft")
+sys.path.insert(0, draft_path)
+
+import importDWG
+import importDXF
+
+
+preferences = App.ParamGet("User parameter:BaseApp/Preferences/Mod/Draft")
+if preferences.GetBool("dxfUseLegacyImporter", False):
+    raise RuntimeError("This check requires FreeCAD's default C++ DXF importer")
+
+captured = {}
+original_convert = importDWG.convertToDxf
+original_dxf_open = importDXF.open
+original_reporter = importDXF.DxfImportReporter
+original_popen = subprocess.Popen
+original_oda_converter = importDWG.get_oda_converter
+original_qcad_converter = importDWG.get_qcad_converter
+
+
+def capture_convert(filename):
+    processes = []
+
+    def capture_popen(*args, **kwargs):
+        process = original_popen(*args, **kwargs)
+        processes.append(process)
+        return process
+
+    subprocess.Popen = capture_popen
+    importDWG.get_oda_converter = lambda: None
+    importDWG.get_qcad_converter = lambda: None
+    try:
+        result = original_convert(filename)
+    finally:
+        subprocess.Popen = original_popen
+        importDWG.get_oda_converter = original_oda_converter
+        importDWG.get_qcad_converter = original_qcad_converter
+    captured["dxf"] = result
+    captured["converter_processes"] = processes
+    return result
+
+
+def assert_dwg2dxf_route(dxf_path):
+    processes = captured.get("converter_processes", [])
+    if len(processes) != 1:
+        raise AssertionError(
+            "expected exactly one converter subprocess with fallbacks disabled; got %d"
+            % len(processes)
+        )
+    process = processes[0]
+    args = process.args
+    converter = importDWG.get_libredwg_converter("dwg2dxf")
+    if not converter or not isinstance(args, (list, tuple)) or len(args) != 4:
+        raise AssertionError("FreeCAD did not invoke the expected dwg2dxf command")
+    if not same_path(args[0], converter):
+        raise AssertionError("FreeCAD invoked a different converter: %r" % (args,))
+    if not same_path(args[1], sample):
+        raise AssertionError("FreeCAD converted a different DWG input: %r" % (args,))
+    if args[2] != "-o" or not same_path(args[3], dxf_path):
+        raise AssertionError("FreeCAD did not import the dwg2dxf output: %r" % (args,))
+    if process.returncode != 0:
+        raise AssertionError("dwg2dxf exited with status %r" % process.returncode)
+    imported_path = captured.get("imported_dxf")
+    if not imported_path or not same_path(imported_path, dxf_path):
+        raise AssertionError("FreeCAD imported a different DXF than dwg2dxf produced")
+    return process
+
+
+def capture_dxf_open(filename, *args, **kwargs):
+    captured["imported_dxf"] = filename
+    return original_dxf_open(filename, *args, **kwargs)
+
+
+def same_path(left, right):
+    return os.path.normcase(os.path.abspath(left)) == os.path.normcase(os.path.abspath(right))
+
+
+class CapturingReporter(original_reporter):
+    def __init__(self, filename, stats_dict, total_time=0.0):
+        captured["stats"] = stats_dict
+        super().__init__(filename, stats_dict, total_time)
+
+
+def digest(path):
+    sha = hashlib.sha256()
+    with open(path, "rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            sha.update(chunk)
+    return sha.hexdigest()
+
+
+def close(actual, expected):
+    return abs(actual - expected) < 1e-8
+
+
+def point_tuple(point):
+    return (point.x, point.y, point.z)
+
+
+importDWG.convertToDxf = capture_convert
+importDXF.open = capture_dxf_open
+importDXF.DxfImportReporter = CapturingReporter
+
+doc = None
+try:
+    doc = importDWG.open(sample)
+    if doc is None:
+        raise AssertionError("Draft.importDWG.open returned no document")
+
+    dxf_path = captured.get("dxf")
+    if not dxf_path or not os.path.isfile(dxf_path):
+        raise AssertionError("Draft DWG conversion did not produce an auditable DXF")
+    converter_process = assert_dwg2dxf_route(dxf_path)
+
+    shapes = []
+    for obj in doc.Objects:
+        shape = getattr(obj, "Shape", None)
+        if shape is not None and not shape.isNull():
+            shapes.append((obj.TypeId, shape))
+    if len(shapes) != 2 or any(type_id != "Part::Feature" for type_id, _ in shapes):
+        raise AssertionError("expected exactly two imported ARC/CIRCLE Part::Feature shapes")
+
+    arc_candidates = []
+    circle_candidates = []
+    for _, shape in shapes:
+        if not shape.isValid() or len(shape.Edges) != 1 or shape.Faces:
+            raise AssertionError("expected each curve to be one valid edge with no faces")
+        edge = shape.Edges[0]
+        curve = edge.Curve
+        signature = {
+            "center": point_tuple(curve.Center),
+            "radius": float(curve.Radius),
+            "axis": point_tuple(curve.Axis),
+            "vertices": [point_tuple(vertex.Point) for vertex in edge.Vertexes],
+            "closed": bool(edge.isClosed()),
+        }
+        if len(edge.Vertexes) == 2:
+            arc_candidates.append(signature)
+        elif len(edge.Vertexes) == 1:
+            circle_candidates.append(signature)
+        else:
+            raise AssertionError("unexpected ARC/CIRCLE edge vertex count")
+
+    if len(arc_candidates) != 1 or len(circle_candidates) != 1:
+        raise AssertionError("could not distinguish one ARC and one CIRCLE edge")
+
+    arc = arc_candidates[0]
+    expected_arc_vertices = [(23.0, 30.0, 40.0), (20.0, 33.0, 40.0)]
+    if not all(
+        close(actual, expected)
+        for actual, expected in zip(arc["center"], (20.0, 30.0, 40.0))
+    ) or not close(arc["radius"], 3.0):
+        raise AssertionError("FreeCAD ARC center/radius mismatch: " + repr(arc))
+    if not all(close(a, e) for a, e in zip(arc["axis"], (0.0, 0.0, 1.0))):
+        raise AssertionError(
+            "FreeCAD ARC plane normal mismatch: " + repr(arc["axis"])
+        )
+    if len(arc["vertices"]) != 2 or any(
+        not all(close(a, e) for a, e in zip(actual, expected))
+        for actual, expected in zip(arc["vertices"], expected_arc_vertices)
+    ):
+        raise AssertionError(
+            "FreeCAD ARC endpoint mismatch: " + repr(arc["vertices"])
+        )
+
+    circle = circle_candidates[0]
+    if not all(
+        close(actual, expected)
+        for actual, expected in zip(circle["center"], (10.0, 20.0, 30.0))
+    ) or not close(circle["radius"], 5.0):
+        raise AssertionError("FreeCAD CIRCLE center/radius mismatch: " + repr(circle))
+    if not (
+        close(abs(circle["axis"][0]), 0.0)
+        and close(abs(circle["axis"][1]), 0.0)
+        and close(abs(circle["axis"][2]), 1.0)
+    ):
+        raise AssertionError(
+            "FreeCAD CIRCLE plane is not parallel to WCS XY: " + repr(circle["axis"])
+        )
+    if not circle["closed"] or len(circle["vertices"]) != 1:
+        raise AssertionError("FreeCAD CIRCLE was not imported as a closed edge")
+
+    stats = captured.get("stats") or {}
+    entity_counts = stats.get("entityCounts", {})
+    if entity_counts.get("ARC", 0) != 1 or entity_counts.get("CIRCLE", 0) != 1:
+        raise AssertionError(
+            "FreeCAD did not report exactly one ARC and CIRCLE: "
+            + repr(entity_counts)
+        )
+    unsupported = stats.get("unsupportedFeatures", {})
+    if unsupported.get("ARC") or unsupported.get("CIRCLE"):
+        raise AssertionError(
+            "FreeCAD reported ARC/CIRCLE unsupported: " + repr(unsupported)
+        )
+
+    result = {
+        "status": "pass",
+        "freecad_version": list(App.Version()),
+        "platform": platform.platform(),
+        "architecture": platform.machine(),
+        "importer": "C++",
+        "import_mode": preferences.GetInt("DxfImportMode", 2),
+        "converter": importDWG.get_libredwg_converter("dwg2dxf"),
+        "converter_argv": converter_process.args,
+        "converter_returncode": converter_process.returncode,
+        "imported_dxf_path": captured.get("imported_dxf"),
+        "source": os.path.basename(sample),
+        "source_sha256": digest(sample),
+        "dxf_size": os.path.getsize(dxf_path),
+        "dxf_sha256": digest(dxf_path),
+        "arc": arc,
+        "circle": circle,
+        "unsupported_features": {
+            key: len(values) for key, values in sorted(unsupported.items())
+        },
+    }
+    print("FREECAD_DWG2DXF_3D_ARC_CIRCLE_ASSERTIONS_PASS=" + json.dumps(result, sort_keys=True))
+finally:
+    importDWG.convertToDxf = original_convert
+    importDXF.open = original_dxf_open
+    importDXF.DxfImportReporter = original_reporter
+    if doc is not None and doc.Name in App.listDocuments():
+        App.closeDocument(doc.Name)

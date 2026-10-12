@@ -218,7 +218,7 @@ if(LIBDXFRW_BUILD_TESTS)
             ${LIBDXFRW_QUALIFIED_SEMANTIC_FIELDS_CONTRACT}
             ${CMAKE_CURRENT_SOURCE_DIR}/tools/check_ac1024_candidate_fields.py
             ${LIBDXFRW_AC1024_CANDIDATE_FIELDS_CONTRACT}
-            ${CMAKE_CURRENT_SOURCE_DIR}/tools/check_ac1024_candidate_fields_v2.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/tests/ac1024_candidate_fields_v2_live.py
             ${LIBDXFRW_AC1024_CANDIDATE_FIELDS_V2_CONTRACT})
 
         add_test(NAME libdxfrw_qualified_differential_v2_schema
@@ -408,7 +408,7 @@ if(LIBDXFRW_BUILD_TESTS)
                     rtext-rotation)
         add_test(NAME libdxfrw_ac1024_candidate_fields_v2
             COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
-                ${CMAKE_CURRENT_SOURCE_DIR}/tools/check_ac1024_candidate_fields_v2.py
+                ${CMAKE_CURRENT_SOURCE_DIR}/tests/ac1024_candidate_fields_v2_live.py
                 --manifest ${LIBDXFRW_AC1024_CANDIDATE_FIELDS_V2_CONTRACT}
                 --writer $<TARGET_FILE:libdxfrw_dwg_local_roundtrip>
                 --oracle ${LIBDXFRW_LIBREDWG_DWGREAD}
@@ -468,7 +468,7 @@ if(LIBDXFRW_BUILD_TESTS)
                     --manifest ${LIBDXFRW_AC1024_CANDIDATE_FIELDS_CONTRACT})
             add_test(NAME libdxfrw_ac1024_candidate_fields_v2
                 COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
-                    ${CMAKE_CURRENT_SOURCE_DIR}/tools/check_ac1024_candidate_fields_v2.py
+                    ${CMAKE_CURRENT_SOURCE_DIR}/tests/ac1024_candidate_fields_v2_live.py
                     --self-test
                     --manifest ${LIBDXFRW_AC1024_CANDIDATE_FIELDS_V2_CONTRACT})
         endif()

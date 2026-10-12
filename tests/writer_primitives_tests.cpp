@@ -109,6 +109,12 @@ void testBitAndRawVectors(TestContext& t) {
     t.expect(reader.getRawLong64() == 0x0123456789ABCDEFULL
                  && reader.isGood(),
              "RLL little-endian value");
+
+    std::uint8_t invalidBitDouble[] {0xC0};
+    dwgBuffer invalidReader(invalidBitDouble, sizeof(invalidBitDouble));
+    t.expect(invalidReader.getBitDouble() == 0.0
+                 && !invalidReader.isGood(),
+             "BD rejects reserved two-bit code 11");
 }
 
 void testHandleOccurrences(TestContext& t) {

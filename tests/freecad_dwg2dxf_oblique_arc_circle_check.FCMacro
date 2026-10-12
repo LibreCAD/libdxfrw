@@ -1,0 +1,409 @@
+# Optional isolated observation of oblique OCS ARC/CIRCLE import semantics.
+# The macro requires a DWG made by the opt-in ODA CTest and records downstream
+# FreeCAD geometry separately from dwg2dxf's group-code preservation result.
+
+import hashlib
+import json
+import math
+import os
+import platform
+import subprocess
+import sys
+import tempfile
+
+import FreeCAD as App
+
+
+sample = os.environ.get("LIBDXFRW_FREECAD_DWG")
+if not sample or not os.path.isfile(sample):
+    raise RuntimeError("LIBDXFRW_FREECAD_DWG must name an existing DWG control")
+if " " not in os.path.abspath(sample):
+    raise RuntimeError("OCS runtime qualification requires a path containing spaces")
+if App.GuiUp:
+    raise RuntimeError("This qualification requires headless freecadcmd")
+
+draft_path = os.path.join(App.getResourceDir(), "Mod", "Draft")
+sys.path.insert(0, draft_path)
+import importDWG
+import importDXF
+import Import
+
+preferences = App.ParamGet("User parameter:BaseApp/Preferences/Mod/Draft")
+if preferences.GetBool("dxfUseLegacyImporter", False):
+    raise RuntimeError("This check requires FreeCAD's default C++ DXF importer")
+
+
+def same_path(left, right):
+    return os.path.normcase(os.path.abspath(left)) == os.path.normcase(
+        os.path.abspath(right)
+    )
+
+
+def digest(path):
+    sha = hashlib.sha256()
+    with open(path, "rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            sha.update(chunk)
+    return sha.hexdigest()
+
+
+def vector_tuple(value):
+    return (float(value.x), float(value.y), float(value.z))
+
+
+def optional_vector(obj, name):
+    try:
+        return vector_tuple(getattr(obj, name))
+    except (AttributeError, RuntimeError, TypeError):
+        return None
+
+
+def optional_float(obj, name):
+    try:
+        return float(getattr(obj, name))
+    except (AttributeError, RuntimeError, TypeError, ValueError):
+        return None
+
+
+def close(actual, expected, tolerance=1e-7):
+    return actual is not None and abs(actual - expected) <= tolerance
+
+
+def tuple_close(actual, expected, tolerance=1e-7):
+    return actual is not None and len(actual) == len(expected) and all(
+        close(a, e, tolerance) for a, e in zip(actual, expected)
+    )
+
+
+def cross(left, right):
+    return (
+        left[1] * right[2] - left[2] * right[1],
+        left[2] * right[0] - left[0] * right[2],
+        left[0] * right[1] - left[1] * right[0],
+    )
+
+
+def normalize(vector):
+    magnitude = math.sqrt(sum(component * component for component in vector))
+    if magnitude == 0:
+        raise ValueError("zero vector in the independent OCS oracle")
+    return tuple(component / magnitude for component in vector)
+
+
+def ocs_axes(normal):
+    normal = normalize(normal)
+    if abs(normal[0]) < 1.0 / 64.0 and abs(normal[1]) < 1.0 / 64.0:
+        x_axis = normalize(cross((0.0, 1.0, 0.0), normal))
+    else:
+        x_axis = normalize(cross((0.0, 0.0, 1.0), normal))
+    y_axis = normalize(cross(normal, x_axis))
+    return x_axis, y_axis, normal
+
+
+def ocs_to_wcs(point, axes):
+    return tuple(
+        point[0] * axes[0][index]
+        + point[1] * axes[1][index]
+        + point[2] * axes[2][index]
+        for index in range(3)
+    )
+
+
+def arc_point(center_ocs, radius, angle_degrees, axes):
+    angle = math.radians(angle_degrees)
+    return tuple(
+        center_ocs[0] * axes[0][index]
+        + center_ocs[1] * axes[1][index]
+        + center_ocs[2] * axes[2][index]
+        + radius * math.cos(angle) * axes[0][index]
+        + radius * math.sin(angle) * axes[1][index]
+        for index in range(3)
+    )
+
+
+config_root = os.environ.get("LIBDXFRW_FREECAD_TEMP_ROOT")
+expected_user_cfg = os.environ.get("LIBDXFRW_FREECAD_USER_CFG")
+active_user_cfg = App.ConfigGet("UserParameter")
+if (
+    os.environ.get("LIBDXFRW_FREECAD_SEED_ISOLATED_PREFERENCES") != "1"
+    or not config_root
+    or not expected_user_cfg
+    or not active_user_cfg
+):
+    raise RuntimeError("an explicitly isolated FreeCAD --user-cfg is required")
+real_root = os.path.realpath(config_root)
+real_temp = os.path.realpath(tempfile.gettempdir())
+real_user_cfg = os.path.realpath(active_user_cfg)
+if (
+    not os.path.isdir(real_root)
+    or real_root == real_temp
+    or os.path.commonpath((real_temp, real_root)) != real_temp
+    or not same_path(active_user_cfg, expected_user_cfg)
+    or os.path.commonpath((real_root, real_user_cfg)) != real_root
+):
+    raise RuntimeError("FreeCAD did not load the requested isolated temp config")
+
+importDWG.params.set_param("DWGConversion", 1)
+importDWG.params.set_param("TeighaFileConverter", "")
+if importDWG.params.get_param("DWGConversion") != 1:
+    raise RuntimeError("isolated preferences did not enable DWG conversion")
+
+expected_binary = os.environ.get("LIBDXFRW_FREECAD_EXPECT_DWG2DXF")
+expected_hash = os.environ.get("LIBDXFRW_FREECAD_EXPECT_DWG2DXF_SHA256")
+if not expected_binary or not expected_hash:
+    raise RuntimeError("expected installed dwg2dxf path and SHA-256 are required")
+
+specs = [
+    {
+        "name": "oblique_arc",
+        "entity": "ARC",
+        "center_ocs": (10.0, 20.0, 30.0),
+        "normal": (0.6, 0.0, 0.8),
+        "radius": 5.0,
+        "start_degrees": 0.0,
+        "end_degrees": 90.0,
+    },
+    {
+        "name": "oblique_circle",
+        "entity": "CIRCLE",
+        "center_ocs": (-5.0, 4.0, 10.0),
+        "normal": (0.6, 0.0, 0.8),
+        "radius": 2.5,
+    },
+]
+for spec in specs:
+    spec["axes"] = ocs_axes(spec["normal"])
+    spec["center_wcs"] = ocs_to_wcs(spec["center_ocs"], spec["axes"])
+    if spec["entity"] == "ARC":
+        spec["start_wcs"] = arc_point(
+            spec["center_ocs"], spec["radius"], spec["start_degrees"], spec["axes"]
+        )
+        spec["end_wcs"] = arc_point(
+            spec["center_ocs"], spec["radius"], spec["end_degrees"], spec["axes"]
+        )
+
+captured = {}
+original_convert = importDWG.convertToDxf
+original_open = importDXF.open
+original_reporter = importDXF.DxfImportReporter
+original_popen = subprocess.Popen
+original_oda = importDWG.get_oda_converter
+original_qcad = importDWG.get_qcad_converter
+original_read_dxf = Import.readDXF
+
+
+def capture_read_dxf(filename, *args, **kwargs):
+    captured["cpp_import_dxf"] = filename
+    return original_read_dxf(filename, *args, **kwargs)
+
+
+def capture_open(filename, *args, **kwargs):
+    captured["open_handoff"] = filename
+    return original_open(filename, *args, **kwargs)
+
+
+def capture_convert(filename):
+    processes = []
+
+    def capture_popen(*args, **kwargs):
+        process = original_popen(*args, **kwargs)
+        processes.append(process)
+        return process
+
+    subprocess.Popen = capture_popen
+    importDWG.get_oda_converter = lambda: None
+    importDWG.get_qcad_converter = lambda: None
+    try:
+        result = original_convert(filename)
+    finally:
+        subprocess.Popen = original_popen
+        importDWG.get_oda_converter = original_oda
+        importDWG.get_qcad_converter = original_qcad
+    captured["converted_dxf"] = result
+    captured["converter_processes"] = processes
+    return result
+
+
+class CapturingReporter(original_reporter):
+    def __init__(self, filename, stats_dict, total_time=0.0):
+        captured["stats"] = stats_dict
+        super().__init__(filename, stats_dict, total_time)
+
+
+def edge_signature(obj, edge):
+    curve = edge.Curve
+    return {
+        "object_name": obj.Name,
+        "object_type": obj.TypeId,
+        "curve_type": type(curve).__name__,
+        "center": optional_vector(curve, "Center"),
+        "radius": optional_float(curve, "Radius"),
+        "axis": optional_vector(curve, "Axis"),
+        "x_axis": optional_vector(curve, "XAxis"),
+        "first_parameter": optional_float(edge, "FirstParameter"),
+        "last_parameter": optional_float(edge, "LastParameter"),
+        "closed": bool(edge.isClosed()),
+        "valid": bool(obj.Shape.isValid()),
+        "edge_count": len(obj.Shape.Edges),
+        "face_count": len(obj.Shape.Faces),
+        "endpoints": [vector_tuple(vertex.Point) for vertex in edge.Vertexes],
+    }
+
+
+def endpoint_order_matches(actual, expected):
+    return len(actual) == 2 and all(
+        tuple_close(left, right) for left, right in zip(actual, expected)
+    )
+
+
+importDWG.convertToDxf = capture_convert
+importDXF.open = capture_open
+importDXF.DxfImportReporter = CapturingReporter
+Import.readDXF = capture_read_dxf
+
+doc = None
+try:
+    doc = importDWG.open(sample)
+    if doc is None:
+        raise AssertionError("Draft.importDWG.open returned no document")
+    dxf_path = captured.get("converted_dxf")
+    if not dxf_path or not os.path.isfile(dxf_path):
+        raise AssertionError("Draft DWG conversion produced no DXF output")
+    processes = captured.get("converter_processes", [])
+    if len(processes) != 1:
+        raise AssertionError("expected one dwg2dxf process; got %d" % len(processes))
+    process = processes[0]
+    converter = importDWG.get_libredwg_converter("dwg2dxf")
+    args = process.args
+    if not converter or not isinstance(args, (list, tuple)) or len(args) != 4:
+        raise AssertionError("FreeCAD did not invoke the expected dwg2dxf command")
+    candidates = [
+        os.path.join(directory, name)
+        for directory in os.environ.get("PATH", "").split(os.pathsep)
+        if directory
+        for name in ("dwg2dxf", "dwg2dxf.exe")
+    ]
+    if not any(same_path(path, converter) for path in candidates):
+        raise AssertionError("FreeCAD did not resolve dwg2dxf through PATH")
+    if not same_path(converter, expected_binary) or digest(converter).lower() != expected_hash.lower():
+        raise AssertionError("FreeCAD resolved an unexpected dwg2dxf binary")
+    if not same_path(args[0], converter) or not same_path(args[1], sample):
+        raise AssertionError("FreeCAD invoked an unexpected converter/input: %r" % (args,))
+    if args[2] != "-o" or not same_path(args[3], dxf_path) or process.returncode != 0:
+        raise AssertionError("FreeCAD converter argv/status mismatch: %r" % (args,))
+    if not same_path(captured.get("open_handoff", ""), dxf_path):
+        raise AssertionError("Draft.importDWG.open imported a different DXF")
+    if not same_path(captured.get("cpp_import_dxf", ""), dxf_path):
+        raise AssertionError("C++ Import.readDXF received a different DXF")
+
+    stats = captured.get("stats") or {}
+    entity_counts = stats.get("entityCounts", {})
+    objects = []
+    signatures = []
+    for obj in doc.Objects:
+        shape = getattr(obj, "Shape", None)
+        has_shape = shape is not None and not shape.isNull()
+        objects.append({"name": obj.Name, "type": obj.TypeId, "has_shape": has_shape})
+        if has_shape:
+            for edge in shape.Edges:
+                signatures.append(edge_signature(obj, edge))
+
+    results = []
+    unmatched = set(range(len(signatures)))
+    for spec in specs:
+        expected_closed = spec["entity"] == "CIRCLE"
+        expected_count = 1 if expected_closed else 2
+        candidates = [
+            (index, signature)
+            for index, signature in enumerate(signatures)
+            if index in unmatched and len(signature["endpoints"]) == expected_count
+        ]
+        signature = candidates[0][1] if len(candidates) == 1 else None
+        if signature is not None:
+            unmatched.remove(candidates[0][0])
+        checks = {}
+        if signature is not None:
+            checks = {
+                "center_wcs": tuple_close(signature["center"], spec["center_wcs"]),
+                "radius": close(signature["radius"], spec["radius"]),
+                "plane_normal": (
+                    tuple_close(signature["axis"], spec["normal"])
+                    or tuple_close(
+                        signature["axis"], tuple(-value for value in spec["normal"])
+                    )
+                ),
+                "closure": signature["closed"] == expected_closed,
+                "valid": signature["valid"] and signature["face_count"] == 0,
+            }
+            if not expected_closed:
+                checks["directed_arc_endpoints"] = endpoint_order_matches(
+                    signature["endpoints"], (spec["start_wcs"], spec["end_wcs"])
+                )
+        results.append(
+            {
+                "name": spec["name"],
+                "entity": spec["entity"],
+                "expected_center_ocs": spec["center_ocs"],
+                "expected_center_wcs": spec["center_wcs"],
+                "expected_normal": spec["normal"],
+                "expected_radius": spec["radius"],
+                "expected_arc_endpoints_wcs": (
+                    (spec["start_wcs"], spec["end_wcs"])
+                    if not expected_closed
+                    else None
+                ),
+                "observed": signature,
+                "checks": checks,
+                "semantic_match": signature is not None and all(checks.values()),
+            }
+        )
+
+    result = {
+        "freecad_version": list(App.Version()),
+        "platform": platform.platform(),
+        "architecture": platform.machine(),
+        "importer_backend": "Import C++",
+        "import_mode": preferences.GetInt("DxfImportMode", 2),
+        "discovery": "PATH",
+        "converter": converter,
+        "converter_sha256": digest(converter),
+        "converter_argv": list(args),
+        "converter_returncode": process.returncode,
+        "source": os.path.abspath(sample),
+        "source_sha256": digest(sample),
+        "converted_dxf": os.path.abspath(dxf_path),
+        "converted_dxf_sha256": digest(dxf_path),
+        "same_output_handoff": True,
+        "entity_counts": {
+            name: entity_counts.get(name, 0) for name in ("ARC", "CIRCLE")
+        },
+        "unsupported_features": {
+            key: len(values) for key, values in sorted(
+                (stats.get("unsupportedFeatures", {}) or {}).items()
+            )
+        },
+        "objects": objects,
+        "edge_signatures": signatures,
+        "semantic_results": results,
+        "all_semantics_match": all(row["semantic_match"] for row in results),
+        "support_claim": "only rows whose semantic_match is true are positive",
+    }
+    print("FREECAD_DWG2DXF_OBLIQUE_ARC_CIRCLE_OBSERVATION=" + json.dumps(result, sort_keys=True))
+finally:
+    importDWG.convertToDxf = original_convert
+    importDXF.open = original_open
+    importDXF.DxfImportReporter = original_reporter
+    Import.readDXF = original_read_dxf
+    if doc is not None and doc.Name in App.listDocuments():
+        App.closeDocument(doc.Name)
+    dxf_path = captured.get("converted_dxf")
+    if dxf_path:
+        temp_root = os.path.realpath(tempfile.gettempdir())
+        output_dir = os.path.realpath(os.path.dirname(dxf_path))
+        if output_dir != temp_root and os.path.dirname(output_dir) == temp_root:
+            try:
+                if os.path.lexists(dxf_path):
+                    os.remove(dxf_path)
+                os.rmdir(output_dir)
+            except OSError as error:
+                print("FREECAD_DWG2DXF_OBLIQUE_CLEANUP_WARNING=" + str(error))

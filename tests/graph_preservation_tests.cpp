@@ -306,6 +306,24 @@ void testModelerLazyDecode(TestContext& t) {
                                   1, 2, 3),
              "modeler lazy decode is idempotent");
 
+    DRW_ModelerGeometry extracted(DRW::E3DSOLID);
+    extracted.m_objectSize = 16;
+    extracted.m_bodyBitSize = 8;
+    extracted.m_rawBytes = {'D', 'W', 'G', ' ', 'f', 'r', 'a', 'm', 'e'};
+    extracted.m_dwgAcisPayload = bytes;
+    t.expect(extracted.decodeWireframe()
+                 && extracted.m_wireframe.vertices.size() == 1
+                 && acisCoordNear(extracted.m_wireframe.vertices.front().point,
+                                  1, 2, 3),
+             "modeler lazy decode prefers the separately extracted DWG SAB carrier");
+
+    DRW_ModelerGeometry frameOnly(DRW::E3DSOLID);
+    frameOnly.m_objectSize = 16;
+    frameOnly.m_bodyBitSize = 8;
+    frameOnly.m_rawBytes = bytes;
+    t.expect(!frameOnly.decodeWireframe() && frameOnly.m_wireframe.empty(),
+             "modeler lazy decode never mistakes a DWG frame for ACIS bytes");
+
     DRW_ModelerGeometry garbage(DRW::E3DSOLID);
     garbage.m_rawBytes = {'n', 'o', 't', ' ', 'S', 'A', 'B'};
     t.expect(!garbage.decodeWireframe() && garbage.m_wireframeDecoded

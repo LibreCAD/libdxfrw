@@ -1,0 +1,5 @@
+# Locally authored FreeCAD DWG-to-DXF consumer control.
+# Generate with: dwgadd --as r2000 -o /tmp/libdxfrw_ac1015_3d_point_freecad_control.dwg <this-file>
+# This is generated control data, not an AutoCAD-authored interoperability sample.
+#version 2000
+point (10 20 30)

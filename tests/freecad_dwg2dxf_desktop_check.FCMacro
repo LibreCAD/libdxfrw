@@ -1,0 +1,72 @@
+# Optional end-to-end FreeCAD desktop application check.
+#
+# The wrapper runs freecad_dwg2dxf_import_check.FCMacro with its desktop
+# dispatch mode enabled, writes a pass/fail JSON result beneath the isolated
+# temporary root, and closes only this test's FreeCAD window.
+
+import json
+import os
+import runpy
+import traceback
+
+import FreeCAD as App
+
+
+initial_documents = set(App.listDocuments()) if App.GuiUp else set()
+result_path = os.environ.get("LIBDXFRW_FREECAD_RESULT_FILE")
+temp_root = os.environ.get("LIBDXFRW_FREECAD_TEMP_ROOT")
+check_macro = os.environ.get("LIBDXFRW_FREECAD_CHECK_MACRO")
+
+
+def write_result(status, payload):
+    if not result_path or not temp_root:
+        raise RuntimeError("desktop test result path and temp root are required")
+    real_root = os.path.realpath(temp_root)
+    real_result = os.path.realpath(result_path)
+    if os.path.commonpath((real_root, real_result)) != real_root:
+        raise RuntimeError("desktop test result file must stay under its temp root")
+    os.makedirs(os.path.dirname(real_result), exist_ok=True)
+    with open(real_result, "w", encoding="utf-8") as stream:
+        json.dump({"status": status, "payload": payload}, stream, sort_keys=True)
+        stream.write("\n")
+
+
+try:
+    if not App.GuiUp:
+        raise RuntimeError("desktop integration wrapper requires FreeCAD.GuiUp")
+    if not check_macro or not os.path.isfile(check_macro):
+        raise RuntimeError("LIBDXFRW_FREECAD_CHECK_MACRO must name the shared check macro")
+    os.environ["LIBDXFRW_FREECAD_DESKTOP_DISPATCH"] = "1"
+    namespace = runpy.run_path(check_macro, run_name="__main__")
+    result = namespace.get("result")
+    if not isinstance(result, dict) or not result.get("desktop_dispatch"):
+        raise AssertionError("shared FreeCAD check returned no desktop assertion result")
+    if result.get("selected_import_module") != "importDWG":
+        raise AssertionError("normal FreeCAD DWG dispatch did not select importDWG")
+    write_result("pass", result)
+    print("FREECAD_DWG_DESKTOP_ASSERTIONS_PASS=" + json.dumps(result, sort_keys=True))
+except BaseException:
+    failure = traceback.format_exc()
+    try:
+        write_result("fail", {"traceback": failure})
+    except BaseException:
+        pass
+    print("FREECAD_DWG_DESKTOP_ASSERTIONS_FAIL=" + failure)
+finally:
+    if App.GuiUp:
+        for document_name in set(App.listDocuments()) - initial_documents:
+            try:
+                App.closeDocument(document_name)
+            except BaseException as close_error:
+                print(
+                    "FREECAD_DWG_DESKTOP_DOCUMENT_CLOSE_WARNING="
+                    + str(close_error)
+                )
+        try:
+            import FreeCADGui as Gui
+
+            main_window = Gui.getMainWindow()
+            if main_window:
+                main_window.close()
+        except BaseException as close_error:
+            print("FREECAD_DWG_DESKTOP_CLOSE_WARNING=" + str(close_error))
