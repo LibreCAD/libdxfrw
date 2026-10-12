@@ -2,13 +2,19 @@
 #include <cstdint>
 #include <algorithm>
 #include <array>
+#include <cmath>
+#include <cctype>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <iterator>
 #include <limits>
+#include <sstream>
 #include <string>
+#include <tuple>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "drw_entities.h"
@@ -16,6 +22,8 @@
 #include "drw_header.h"
 #include "dwg2dxf/dx_iface.h"
 #include "libdwgr.h"
+#include "libdxfrw.h"
+#include "intern/dwgbuffer.h"
 #include "intern/dwgbufferw.h"
 #include "intern/dwg_fixed_handles.h"
 
@@ -706,6 +714,8 @@ public:
             dictionary.m_entries.push_back(
                 DRW_Dictionary::Entry{"LOCAL_SECTION_SETTINGS", 0xE800u});
         }
+        dictionary.m_entries.push_back(
+            DRW_Dictionary::Entry{"LOCAL_NULL_ENTRY", 0u});
         wroteDictionary_ = registeredDictionary_
             && writer_->writeDictionary(&dictionary)
             && dictionary.handle != 0;
@@ -911,7 +921,8 @@ public:
         dictionaryWithDefault.parentHandle = dictionary.handle;
         dictionaryWithDefault.cloning = 1;
         dictionaryWithDefault.hardOwner = 1;
-        dictionaryWithDefault.m_entries = {{"LOCAL_DEFAULT", 0xB000u}};
+        dictionaryWithDefault.m_entries = {
+            {"LOCAL_DEFAULT", 0xB000u}, {"LOCAL_NULL_DEFAULT_MEMBER", 0u}};
         dictionaryWithDefault.m_defaultEntryHandle = 0xB000u;
         wroteDictionaryWithDefault_ = registeredDictionaryWithDefault_
             && writer_->writeDictionaryWithDefault(&dictionaryWithDefault)
@@ -3135,7 +3146,7 @@ public:
             readDictionarySeen_ = data.parentHandle
                     == DRW::DwgNamedObjectsDictionaryHandle
                 && data.m_entries.size()
-                    == (expectedVersion_ >= DRW::AC1021 ? 54u : 52u)
+                    == (expectedVersion_ >= DRW::AC1021 ? 55u : 53u)
                 && data.m_entries[0].m_name == "LOCAL_XRECORD"
                 && data.m_entries[0].m_handle == 0xA602u
                 && data.m_entries[1].m_name == "LOCAL_PLOTSETTINGS"
@@ -3244,7 +3255,9 @@ public:
                     || (data.m_entries[52].m_name == "LOCAL_SECTION_MANAGER"
                         && data.m_entries[52].m_handle == 0xE700u
                         && data.m_entries[53].m_name == "LOCAL_SECTION_SETTINGS"
-                        && data.m_entries[53].m_handle == 0xE800u));
+                        && data.m_entries[53].m_handle == 0xE800u))
+                && data.m_entries.back().m_name == "LOCAL_NULL_ENTRY"
+                && data.m_entries.back().m_handle == 0u;
         }
     }
     void addXRecord(const DRW_XRecord& data) override {
@@ -3394,9 +3407,11 @@ public:
         const DRW_DictionaryWithDefault& data) override {
         if (data.handle == 0xB100u)
             readDictionaryWithDefaultSeen_ = data.parentHandle == 0xA601u
-                && data.m_entries.size() == 1
+                && data.m_entries.size() == 2
                 && data.m_entries.front().m_name == "LOCAL_DEFAULT"
                 && data.m_entries.front().m_handle == 0xB000u
+                && data.m_entries.back().m_name == "LOCAL_NULL_DEFAULT_MEMBER"
+                && data.m_entries.back().m_handle == 0u
                 && data.m_defaultEntryHandle == 0xB000u;
         if (data.handle == 0xB101u)
             readMalformedDictionaryWithDefaultSeen_ = true;
@@ -5063,16 +5078,3337 @@ bool runDxfModelerCarrierRoundTrip(DRW::Version version,
         return false;
     }
     bool found = false;
+    std::vector<std::uint8_t> expectedPayload = payload;
+    expectedPayload.push_back('\n');
     for (const DRW_Entity* entity : imported.mBlock->ent) {
         if (entity == nullptr || entity->eType != DRW::E3DSOLID)
             continue;
         const auto* decoded = static_cast<const DRW_ModelerGeometry*>(entity);
-        found = decoded->handle != 0
+        bool chunksValid = !decoded->m_dxfPayloadChunks.empty();
+        std::size_t expectedOffset = 0;
+        for (const DRW_ModelerPayloadChunk& chunk : decoded->m_dxfPayloadChunks) {
+            const bool textGroup = chunk.m_groupCode == 1 || chunk.m_groupCode == 3;
+            chunksValid = chunksValid && chunk.m_offset == expectedOffset
+                && chunk.m_offset <= decoded->m_rawBytes.size()
+                && chunk.m_length <= decoded->m_rawBytes.size() - chunk.m_offset
+                && textGroup;
+            expectedOffset += chunk.m_length;
+        }
+        found = chunksValid && expectedOffset + 1 == decoded->m_rawBytes.size()
+            && decoded->m_rawBytes.back() == '\n'
+            && decoded->handle != 0
             && decoded->m_modelerVersion == 7
-            && decoded->m_rawBytes == payload;
+            && decoded->m_rawBytes == expectedPayload;
     }
     std::filesystem::remove(output, ec);
     return found;
+}
+
+bool runDxfModelerEnvelopeRoundTrip(
+    bool binary, const std::filesystem::path& directory, bool keepOutput) {
+    const std::string encoding = binary ? "binary" : "ascii";
+    const std::filesystem::path output = directory
+        / ("libdxfrw-ac1027-modeler-envelope-" + encoding + ".dxf");
+    std::error_code ec;
+    std::filesystem::remove(output, ec);
+
+    dx_data source;
+    auto* historyTarget = new DRW_ModelerGeometry(DRW::E3DSOLID);
+    historyTarget->handle = 0xFC10u;
+    historyTarget->m_hasDxfModelerFlag = true;
+    historyTarget->m_dxfModelerFlag = false;
+    historyTarget->m_hasDxfModelerUid = true;
+    historyTarget->m_dxfModelerUid =
+        "{00000000-0000-0000-0000-000000000000}";
+    source.mBlock->ent.push_back(historyTarget);
+
+    auto* solid = new DRW_ModelerGeometry(DRW::E3DSOLID);
+    solid->handle = 0xFC11u;
+    solid->m_hasDxfModelerFlag = true;
+    solid->m_dxfModelerFlag = true;
+    solid->m_hasDxfModelerUid = true;
+    solid->m_dxfModelerUid =
+        "{1a113328-eb6d-d44d-824d-78b33668f9e7}";
+    solid->m_historyHandle = historyTarget->handle;
+    source.mBlock->ent.push_back(solid);
+
+    dx_iface exporter;
+    if (!exporter.fileExport(output.string(), DRW::AC1027, binary,
+                             &source, false)) {
+        std::filesystem::remove(output, ec);
+        return false;
+    }
+
+    bool omitsLegacyVersion = true;
+    if (!binary) {
+        std::ifstream input(output);
+        std::string codeLine;
+        std::string valueLine;
+        std::string section;
+        std::string currentRecord;
+        bool waitingForSectionName = false;
+        bool foundModeler = false;
+        bool foundVersionGroup = false;
+        const auto trim = [](std::string& value) {
+            const std::size_t first = value.find_first_not_of(" \t\r\n");
+            if (first == std::string::npos) {
+                value.clear();
+                return;
+            }
+            const std::size_t last = value.find_last_not_of(" \t\r\n");
+            value = value.substr(first, last - first + 1);
+        };
+        while (std::getline(input, codeLine)
+               && std::getline(input, valueLine)) {
+            trim(codeLine);
+            trim(valueLine);
+            if (waitingForSectionName && codeLine == "2") {
+                section = valueLine;
+                waitingForSectionName = false;
+                continue;
+            }
+            if (codeLine == "0" && valueLine == "SECTION") {
+                waitingForSectionName = true;
+                currentRecord.clear();
+                continue;
+            }
+            if (codeLine == "0" && valueLine == "ENDSEC") {
+                section.clear();
+                currentRecord.clear();
+                continue;
+            }
+            if (codeLine == "0")
+                currentRecord = valueLine;
+            if (section == "ENTITIES" && currentRecord == "3DSOLID") {
+                foundModeler = true;
+                if (codeLine == "70")
+                    foundVersionGroup = true;
+            }
+        }
+        omitsLegacyVersion = input.eof() && foundModeler
+            && !foundVersionGroup;
+    }
+
+    dx_data imported;
+    dx_iface importer;
+    const bool importOk = importer.fileImport(output.string(), &imported,
+                                               false);
+    const DRW_ModelerGeometry* importedTarget = nullptr;
+    const DRW_ModelerGeometry* importedSolid = nullptr;
+    if (importOk) {
+        for (const DRW_Entity* entity : imported.mBlock->ent) {
+            if (entity == nullptr || entity->eType != DRW::E3DSOLID)
+                continue;
+            const auto* modeler =
+                static_cast<const DRW_ModelerGeometry*>(entity);
+            if (importedTarget == nullptr)
+                importedTarget = modeler;
+            else if (importedSolid == nullptr)
+                importedSolid = modeler;
+        }
+    }
+    const bool result = importOk && omitsLegacyVersion
+        && importedTarget != nullptr && importedSolid != nullptr
+        && importedTarget->handle != 0xFC10u
+        && importedTarget->m_hasDxfModelerFlag
+        && !importedTarget->m_dxfModelerFlag
+        && importedTarget->m_hasDxfModelerUid
+        && importedTarget->m_dxfModelerUid
+            == "{00000000-0000-0000-0000-000000000000}"
+        && importedSolid->handle != 0xFC11u
+        && importedSolid->m_hasDxfModelerFlag
+        && importedSolid->m_dxfModelerFlag
+        && importedSolid->m_hasDxfModelerUid
+        && importedSolid->m_dxfModelerUid
+            == "{1a113328-eb6d-d44d-824d-78b33668f9e7}"
+        && importedSolid->m_historyHandle == importedTarget->handle;
+    if (!keepOutput || !result)
+        std::filesystem::remove(output, ec);
+    return result;
+}
+
+DRW_RawDxfSection makeLocalAcdsDataSection(
+    const std::string& modelerHandle, bool includeOwnerHandle = true,
+    bool duplicateOwnerHandle = false) {
+    DRW_RawDxfSection section;
+    section.m_name = "ACDSDATA";
+    section.m_version = DRW::AC1027;
+    section.m_groups.emplace_back(0, "ACDSSCHEMA");
+    section.m_groups.emplace_back(90, static_cast<std::int32_t>(7));
+    section.m_groups.emplace_back(1, "LocalGeneratedSchema");
+    section.m_groups.emplace_back(0, "ACDSRECORD");
+    section.m_groups.emplace_back(90, static_cast<std::int32_t>(9));
+    section.m_groups.emplace_back(2, "AcDbDs::ID");
+    section.m_groups.emplace_back(280, static_cast<std::int32_t>(10));
+    if (includeOwnerHandle)
+        section.m_groups.emplace_back(320, modelerHandle);
+    if (duplicateOwnerHandle)
+        section.m_groups.emplace_back(320, modelerHandle);
+    section.m_groups.emplace_back(2, "ASM_Data");
+    section.m_groups.emplace_back(280, static_cast<std::int32_t>(15));
+    section.m_groups.emplace_back(94, static_cast<std::int32_t>(4));
+    section.m_groups.emplace_back(310, std::string("41434453"));
+    section.m_groups.emplace_back(0, "ACDSRECORD");
+    section.m_groups.emplace_back(90, static_cast<std::int32_t>(10));
+    section.m_groups.emplace_back(2, "OpaqueRecord");
+    section.m_groups.emplace_back(320, std::string("FC21"));
+    return section;
+}
+
+DRW_DataStorageSection makeLocalDataStorageSection(
+    std::uint32_t handle, const std::vector<std::uint8_t>& payload) {
+    DRW_DataStorageSection section;
+    section.m_name = "AcDb:AcDsPrototype_1b";
+    section.m_version = DRW::AC1027;
+    section.payloadsRetained = true;
+    section.schemaCount = 6;
+    const std::array<const char*, 7> schemaPropertyNames = {
+        "AcDbDs::ID", "Thumbnail_Data", "ASM_Data",
+        "AcDbDs::TreatedAsObjectData", "AcDbDs::Legacy",
+        "AcDs:Indexable", "AcDbDs::HandleAttribute"};
+    section.schemaPropertyNameCount =
+        static_cast<std::uint32_t>(schemaPropertyNames.size());
+    for (const char* name : schemaPropertyNames)
+        section.schemaPropertyNames.emplace_back(name);
+    for (std::uint32_t index = 0; index < 6u; ++index) {
+        DRW_DataStorageSchema schema;
+        schema.index = index;
+        const auto property = [](std::uint32_t nameIndex, const char* name,
+                                 std::uint32_t type, std::uint32_t flags,
+                                 std::uint16_t valueCount,
+                                 std::vector<std::vector<std::uint8_t>> values) {
+            DRW_DataStorageSchemaProperty result;
+            result.nameIndex = nameIndex;
+            result.name = name;
+            result.type = type;
+            result.flags = flags;
+            result.valueCount = valueCount;
+            result.values = std::move(values);
+            return result;
+        };
+        switch (index) {
+        case 0:
+            schema.indexes = {4u, 5u};
+            schema.properties.push_back(property(
+                0u, schemaPropertyNames[0], 10u, 0u, 2u,
+                {{6u, 0u, 0u, 0u, 0u, 0u, 0u, 0u},
+                 {7u, 0u, 0u, 0u, 0u, 0u, 0u, 0u}}));
+            schema.properties.push_back(property(
+                1u, schemaPropertyNames[1], 15u, 0u, 0u, {}));
+            break;
+        case 1:
+            schema.indexes = {0u, 1u};
+            schema.properties.push_back(property(
+                0u, schemaPropertyNames[0], 10u, 0u, 2u,
+                {{2u, 0u, 0u, 0u, 0u, 0u, 0u, 0u},
+                 {3u, 0u, 0u, 0u, 0u, 0u, 0u, 0u}}));
+            schema.properties.push_back(property(
+                2u, schemaPropertyNames[2], 15u, 0u, 0u, {}));
+            break;
+        case 2:
+            schema.properties.push_back(property(
+                3u, schemaPropertyNames[3], 1u, 0u, 0u, {}));
+            break;
+        case 3:
+            schema.properties.push_back(property(
+                4u, schemaPropertyNames[4], 1u, 0u, 0u, {}));
+            break;
+        case 4:
+            schema.properties.push_back(property(
+                5u, schemaPropertyNames[5], 1u, 0u, 0u, {}));
+            break;
+        case 5:
+            schema.properties.push_back(property(
+                6u, schemaPropertyNames[6], 7u, 8u, 1u, {{0u}}));
+            break;
+        }
+        section.schemas.push_back(std::move(schema));
+    }
+    DRW_DataStorageRecord record;
+    record.handle = handle;
+    char handleText[9] = {};
+    std::snprintf(handleText, sizeof(handleText), "%X", handle);
+    record.handleKey = handleText;
+    record.isHandleSafe = true;
+    record.schemaIndex = 1;
+    record.dataByteLength = static_cast<std::uint32_t>(payload.size());
+    record.payload = payload;
+    record.hasPayloadMarker = true;
+    record.payloadMarkerOffset = 0;
+    record.payloadMarkerLength = 15;
+    record.payloadMarkerSection = "datastore";
+    section.records.push_back(std::move(record));
+    return section;
+}
+
+DRW_DataStorageSection makeLocalAcadSharpDataStorageSection(
+    std::uint32_t handle, const std::vector<std::uint8_t>& payload) {
+    DRW_DataStorageSection section =
+        makeLocalDataStorageSection(handle, payload);
+    static const std::array<const char*, 8> propertyNames = {
+        "AcDbDs::ID", "Thumbnail_Data", "AcDbDs::TreatedAsObjectData",
+        "AcDbDs::Legacy", "AcDs:Indexable", "AcDbDs::HandleAttribute",
+        "AcDbDs::ID", "ASM_Data"};
+    section.schemaPropertyNameCount = 2u;
+    section.schemaPropertyNames.clear();
+    for (const char* name : propertyNames)
+        section.schemaPropertyNames.emplace_back(name);
+    if (section.schemas.size() != 6u)
+        return section;
+
+    const auto property = [](std::uint32_t nameIndex, const char* name,
+                             std::uint32_t type, std::uint32_t flags,
+                             std::uint16_t valueCount,
+                             std::vector<std::vector<std::uint8_t>> values) {
+        DRW_DataStorageSchemaProperty result;
+        result.nameIndex = nameIndex;
+        result.name = name;
+        result.type = type;
+        result.flags = flags;
+        result.valueCount = valueCount;
+        result.values = std::move(values);
+        return result;
+    };
+    for (std::size_t index = 0; index < section.schemas.size(); ++index) {
+        DRW_DataStorageSchema& schema = section.schemas[index];
+        schema.segmentIndex = index == 5u ? 631u : 5u;
+        schema.indexes.clear();
+        schema.properties.clear();
+        switch (index) {
+        case 0:
+            schema.indexes = {0u, 1u};
+            schema.properties.push_back(property(
+                0u, propertyNames[0], 10u, 0u, 2u,
+                {{6u, 0u, 0u, 0u, 0u, 0u, 0u, 0u},
+                 {7u, 0u, 0u, 0u, 0u, 0u, 0u, 0u}}));
+            schema.properties.push_back(property(
+                1u, propertyNames[1], 15u, 0u, 0u, {}));
+            break;
+        case 1:
+            schema.properties.push_back(property(
+                2u, propertyNames[2], 1u, 0u, 0u, {}));
+            break;
+        case 2:
+            schema.properties.push_back(property(
+                3u, propertyNames[3], 1u, 0u, 0u, {}));
+            break;
+        case 3:
+            schema.properties.push_back(property(
+                4u, propertyNames[4], 1u, 0u, 0u, {}));
+            break;
+        case 4:
+            schema.properties.push_back(property(
+                5u, propertyNames[5], 7u, 8u, 1u, {{0u}}));
+            break;
+        case 5:
+            schema.indexes = {6u, 4u};
+            schema.properties.push_back(property(
+                0u, propertyNames[6], 10u, 0u, 2u,
+                {{2u, 0u, 0u, 0u, 0u, 0u, 0u, 0u},
+                 {3u, 0u, 0u, 0u, 0u, 0u, 0u, 0u}}));
+            schema.properties.push_back(property(
+                1u, propertyNames[7], 15u, 0u, 0u, {}));
+            break;
+        }
+    }
+    section.records.front().schemaIndex = 5u;
+    return section;
+}
+
+void addLocalAcdsHistoryClosure(dx_data& source,
+                               DRW_ModelerGeometry& modeler,
+                               std::uint32_t history = 0x20Eu,
+                               std::uint32_t evaluation = 0x20Du,
+                               std::uint32_t operation = 0x20Cu,
+                               std::uint16_t operationClassId = 519u,
+                               const char* operationRecordName =
+                                   "ACSH_CONE_CLASS",
+                               const char* operationClassName =
+                                   "AcDbShCone",
+                               const char* operationSubclass =
+                                   "cn:AcDbShCone") {
+    constexpr std::uint32_t material = 0x96u;
+    modeler.m_historyHandle = history;
+
+    const auto proxy = [](std::uint32_t handle, std::uint32_t owner,
+                          std::int32_t classId, std::uint32_t bitSize,
+                          const char* subclass, int referenceCode,
+                          std::uint32_t referenceHandle) {
+        DRW_ProxyObject value;
+        value.handle = handle;
+        value.parentHandle = owner;
+        value.m_hasProxyCarrierId = true;
+        value.m_proxyCarrierId = DRW_ProxyObject::kDwgType;
+        value.m_hasProxyClassId = true;
+        value.m_proxyClassId = classId;
+        value.m_proxySubclass = subclass;
+        value.m_hasProxyDrawingFormat = true;
+        value.m_proxyDrawingFormat = 983063u;
+        value.m_hasObjectDataBitSize = true;
+        value.m_objectDataBitSize = bitSize;
+        value.m_objectData.resize((bitSize + 7u) / 8u,
+                                  static_cast<std::uint8_t>(handle));
+        if ((bitSize & 7u) != 0u)
+            value.m_objectData.back() &= static_cast<std::uint8_t>(
+                0xFFu << (8u - (bitSize & 7u)));
+        DRW_ProxyObjectIdRef reference;
+        reference.m_dxfCode = referenceCode;
+        reference.m_handleCode = referenceCode == 340 ? 5 : 3;
+        reference.m_handle = referenceHandle;
+        reference.m_rawHandle = referenceHandle;
+        value.m_objectIdRefs.push_back(reference);
+        return value;
+    };
+    source.proxyObjects.push_back(proxy(history, modeler.handle, 521, 32,
+                                        "cn:AcDbShHistory",
+                                        360, evaluation));
+    source.proxyObjects.push_back(proxy(evaluation, history, 520, 190,
+                                        "cn:AcDbEvalGraph",
+                                        360, operation));
+    source.proxyObjects.push_back(proxy(operation, evaluation,
+                                        operationClassId, 558,
+                                        operationSubclass,
+                                        340, material));
+
+    source.dwgClassCoverage.m_status =
+        DRW_DwgClassCoverageStatus::FinalizedComplete;
+    source.dwgClassCoverage.m_complete = true;
+    const std::array<std::tuple<std::uint16_t, const char*, const char*>, 3>
+        classes {{
+            {521u, "ACSH_HISTORY_CLASS", "AcDbShHistory"},
+            {520u, "ACAD_EVALUATION_GRAPH", "AcDbEvalGraph"},
+            {operationClassId, operationRecordName, operationClassName}
+        }};
+    for (const auto& cls : classes) {
+        const bool exists = std::any_of(
+            source.dwgClassCoverage.m_entries.begin(),
+            source.dwgClassCoverage.m_entries.end(),
+            [&cls](const DRW_DwgClassCoverageEntry& entry) {
+                return entry.m_recordName == std::get<1>(cls)
+                    && entry.m_className == std::get<2>(cls);
+            });
+        if (exists)
+            continue;
+        DRW_DwgClassCoverageEntry entry;
+        entry.m_classNumber = std::get<0>(cls);
+        entry.m_recordName = std::get<1>(cls);
+        entry.m_className = std::get<2>(cls);
+        entry.m_entityFlagRaw = 0x1F3;
+        entry.m_state = DRW_DwgClassCoverageState::Published;
+        source.dwgClassCoverage.m_entries.push_back(std::move(entry));
+    }
+
+    const bool hasMaterialsDictionary = std::any_of(
+        source.dictionaries.begin(), source.dictionaries.end(),
+        [](const DRW_Dictionary& dictionary) {
+            return dictionary.handle == 0x72u;
+        });
+    if (!hasMaterialsDictionary) {
+        DRW_Dictionary materialsDictionary;
+        materialsDictionary.handle = 0x72u;
+        materialsDictionary.parentHandle = 0xCu;
+        materialsDictionary.cloning = 1;
+        materialsDictionary.m_entries.push_back({"ByLayer", 0x96u});
+        materialsDictionary.m_entries.push_back({"ByBlock", 0x97u});
+        materialsDictionary.m_entries.push_back({"Global", 0x98u});
+        source.dictionaries.push_back(std::move(materialsDictionary));
+    }
+    for (const auto& materialInfo : {
+             std::pair<std::uint32_t, const char*>{0x96u, "ByLayer"},
+             {0x97u, "ByBlock"}, {0x98u, "Global"}}) {
+        const bool exists = std::any_of(
+            source.materials.begin(), source.materials.end(),
+            [&materialInfo](const DRW_Material& materialRecord) {
+                return materialRecord.handle == materialInfo.first;
+            });
+        if (exists)
+            continue;
+        DRW_Material value;
+        value.handle = materialInfo.first;
+        value.parentHandle = 0x72u;
+        value.m_name = materialInfo.second;
+        source.materials.push_back(std::move(value));
+    }
+}
+
+DRW_ModelerGeometry* addLocalAcdsDataStorageModeler(
+    dx_data& source, std::uint32_t handle,
+    const std::vector<std::uint8_t>& payload,
+    DRW::ETYPE entityType = DRW::E3DSOLID,
+    bool addHistoryClosure = true) {
+    auto* modeler = new DRW_ModelerGeometry(entityType);
+    modeler->handle = handle;
+    modeler->m_modelerVersion = 2;
+    modeler->m_dwgSourceVersion = DRW::AC1027;
+    modeler->m_hasModelerData = true;
+    modeler->setHasDataStorageBinaryData(true);
+    modeler->hasDataStorageRecord = true;
+    modeler->dataStorageHandle = handle;
+    char handleText[9] = {};
+    std::snprintf(handleText, sizeof(handleText), "%X", handle);
+    modeler->dataStorageHandleKey = handleText;
+    modeler->dataStorageSchemaIndex = 1;
+    modeler->dataStorageData = payload;
+    if (addHistoryClosure)
+        addLocalAcdsHistoryClosure(source, *modeler);
+    source.mBlock->ent.push_back(modeler);
+    source.dataStorageSections.push_back(
+        makeLocalDataStorageSection(handle, payload));
+    return modeler;
+}
+
+bool findAcdsRecordPayload(const DRW_RawDxfSection& section,
+                           const std::string& recordName,
+                           std::string& ownerHandle,
+                           std::vector<std::uint8_t>& payload) {
+    const auto equalsAsciiCaseInsensitive = [](const std::string& lhs,
+                                                const char* rhs) {
+        if (rhs == nullptr || lhs.size() != std::strlen(rhs))
+            return false;
+        for (std::size_t index = 0; index < lhs.size(); ++index) {
+            if (std::toupper(static_cast<unsigned char>(lhs[index]))
+                != std::toupper(static_cast<unsigned char>(rhs[index])))
+                return false;
+        }
+        return true;
+    };
+    const auto nibble = [](unsigned char value) -> int {
+        if (value >= '0' && value <= '9')
+            return value - '0';
+        if (value >= 'A' && value <= 'F')
+            return value - 'A' + 10;
+        if (value >= 'a' && value <= 'f')
+            return value - 'a' + 10;
+        return -1;
+    };
+    for (std::size_t start = 0; start < section.m_groups.size();) {
+        const DRW_Variant& marker = section.m_groups[start];
+        if (marker.code() != 0 || marker.type() != DRW_Variant::STRING
+            || marker.c_str() == nullptr) {
+            ++start;
+            continue;
+        }
+        std::size_t end = start + 1u;
+        while (end < section.m_groups.size()
+               && section.m_groups[end].code() != 0)
+            ++end;
+        if (!equalsAsciiCaseInsensitive(marker.c_str(), "ACDSRECORD")) {
+            start = end;
+            continue;
+        }
+        bool inId = false;
+        bool hasPayloadName = false;
+        std::size_t ownerCount = 0;
+        std::string candidateOwner;
+        std::vector<std::uint8_t> candidatePayload;
+        for (std::size_t index = start + 1u; index < end; ++index) {
+            const DRW_Variant& group = section.m_groups[index];
+            if (group.code() == 2
+                && group.type() == DRW_Variant::STRING
+                && group.c_str() != nullptr) {
+                inId = equalsAsciiCaseInsensitive(group.c_str(),
+                                                  "AcDbDs::ID");
+                hasPayloadName = hasPayloadName
+                    || equalsAsciiCaseInsensitive(group.c_str(),
+                                                  recordName.c_str());
+            } else if (inId && group.code() == 320) {
+                ++ownerCount;
+                if (group.type() != DRW_Variant::STRING
+                    || group.c_str() == nullptr)
+                    return false;
+                candidateOwner = group.c_str();
+            } else if (hasPayloadName && group.code() == 310) {
+                if (group.type() != DRW_Variant::STRING
+                    || group.c_str() == nullptr)
+                    return false;
+                const std::string hex = group.c_str();
+                if ((hex.size() & 1u) != 0u)
+                    return false;
+                for (std::size_t offset = 0; offset < hex.size(); offset += 2u) {
+                    const int high = nibble(
+                        static_cast<unsigned char>(hex[offset]));
+                    const int low = nibble(
+                        static_cast<unsigned char>(hex[offset + 1u]));
+                    if (high < 0 || low < 0)
+                        return false;
+                    candidatePayload.push_back(static_cast<std::uint8_t>(
+                        (static_cast<unsigned int>(high) << 4u)
+                        | static_cast<unsigned int>(low)));
+                }
+            }
+        }
+        if (hasPayloadName) {
+            if (ownerCount != 1u)
+                return false;
+            ownerHandle = std::move(candidateOwner);
+            payload = std::move(candidatePayload);
+            return true;
+        }
+        start = end;
+    }
+    return false;
+}
+
+bool hasExpectedAcdsSchemaDefinitions(const DRW_RawDxfSection& section) {
+    using Field = std::pair<int, std::string>;
+    const std::array<std::vector<Field>, 6> expected = {{
+        {{0, "ACDSSCHEMA"}, {90, "0"}, {1, "AcDb_Thumbnail_Schema"},
+         {2, "AcDbDs::ID"}, {280, "10"}, {91, "8"},
+         {2, "Thumbnail_Data"}, {280, "15"}, {91, "0"}},
+        {{0, "ACDSSCHEMA"}, {90, "1"}, {1, "AcDb3DSolid_ASM_Data"},
+         {2, "AcDbDs::ID"}, {280, "10"}, {91, "8"},
+         {2, "ASM_Data"}, {280, "15"}, {91, "0"}},
+        {{0, "ACDSSCHEMA"}, {90, "2"},
+         {1, "AcDbDs::TreatedAsObjectDataSchema"},
+         {2, "AcDbDs::TreatedAsObjectData"}, {280, "1"}, {91, "0"}},
+        {{0, "ACDSSCHEMA"}, {90, "3"}, {1, "AcDbDs::LegacySchema"},
+         {2, "AcDbDs::Legacy"}, {280, "1"}, {91, "0"}},
+        {{0, "ACDSSCHEMA"}, {90, "4"},
+         {1, "AcDbDs::IndexedPropertySchema"},
+         {2, "AcDs:Indexable"}, {280, "1"}, {91, "0"}},
+        {{0, "ACDSSCHEMA"}, {90, "5"},
+         {1, "AcDbDs::HandleAttributeSchema"},
+         {2, "AcDbDs::HandleAttribute"}, {280, "7"}, {91, "1"},
+         {284, "1"}}
+    }};
+    std::size_t schemaIndex = 0;
+    for (std::size_t start = 0; start < section.m_groups.size();) {
+        const DRW_Variant& marker = section.m_groups[start];
+        if (marker.code() != 0 || marker.type() != DRW_Variant::STRING
+            || marker.c_str() == nullptr) {
+            ++start;
+            continue;
+        }
+        std::size_t end = start + 1u;
+        while (end < section.m_groups.size()
+               && section.m_groups[end].code() != 0)
+            ++end;
+        if (std::strcmp(marker.c_str(), "ACDSSCHEMA") == 0) {
+            if (schemaIndex >= expected.size())
+                return false;
+            std::size_t headerEnd = start + 1u;
+            while (headerEnd < end) {
+                const DRW_Variant& group = section.m_groups[headerEnd];
+                if (group.code() == 101
+                    && group.type() == DRW_Variant::STRING
+                    && group.c_str() != nullptr
+                    && std::strcmp(group.c_str(), "ACDSRECORD") == 0) {
+                    break;
+                }
+                ++headerEnd;
+            }
+            std::vector<Field> actual;
+            for (std::size_t index = start; index < headerEnd; ++index) {
+                const DRW_Variant& group = section.m_groups[index];
+                if (group.type() == DRW_Variant::STRING
+                    && group.c_str() != nullptr) {
+                    actual.emplace_back(group.code(), group.c_str());
+                } else if (group.type() == DRW_Variant::INTEGER) {
+                    actual.emplace_back(group.code(),
+                                        std::to_string(group.i_val()));
+                } else {
+                    return false;
+                }
+            }
+            if (actual != expected[schemaIndex])
+                return false;
+            ++schemaIndex;
+        }
+        start = end;
+    }
+    return schemaIndex == expected.size();
+}
+
+bool runDxfAcdsMultipleDataStorageProjection(
+    bool binary, const std::filesystem::path& directory, bool keepOutput) {
+    const std::filesystem::path output = directory /
+        (std::string("libdxfrw-ac1027-acds-multiple-")
+         + (binary ? "binary" : "ascii") + ".dxf");
+    std::error_code ec;
+    std::filesystem::remove(output, ec);
+
+    const auto sab = [](std::uint8_t suffix) {
+        return std::vector<std::uint8_t>{
+            'A', 'C', 'I', 'S', ' ', 'B', 'i', 'n', 'a', 'r', 'y', 'F', 'i', 'l', 'e',
+            suffix, static_cast<std::uint8_t>(suffix + 1u),
+            static_cast<std::uint8_t>(suffix + 2u)};
+    };
+    const std::vector<std::uint8_t> boxPayload = sab(0x21u);
+    const std::vector<std::uint8_t> extrusionPayload = sab(0x31u);
+    const std::vector<std::uint8_t> regionPayload = sab(0x41u);
+    const std::vector<std::uint8_t> pngPayload{
+        0x89u, 'P', 'N', 'G', 0x0Du, 0x0Au, 0x1Au, 0x0Au,
+        0x00u, 0x00u, 0x00u, 0x0Du, 'I', 'H', 'D', 'R',
+        0x00u, 0x00u, 0x00u, 0x01u, 0x00u, 0x00u, 0x00u, 0x01u,
+        0x08u, 0x06u, 0x00u, 0x00u, 0x00u, 0x1Fu, 0x15u, 0xC4u, 0x89u,
+        0x00u, 0x00u, 0x00u, 0x0Bu, 'I', 'D', 'A', 'T',
+        0x78u, 0xDAu, 0x63u, 0x64u, 0x00u, 0x02u, 0x00u, 0x00u,
+        0x05u, 0x00u, 0x01u, 0xA5u, 0x50u, 0x20u, 0xA6u,
+        0x00u, 0x00u, 0x00u, 0x00u, 'I', 'E', 'N', 'D',
+        0xAEu, 0x42u, 0x60u, 0x82u};
+
+    dx_data source;
+    const auto addModeler = [&source](
+        DRW::ETYPE type, std::uint32_t handle,
+        const std::vector<std::uint8_t>& payload) {
+        auto* modeler = new DRW_ModelerGeometry(type);
+        modeler->handle = handle;
+        modeler->m_modelerVersion = 2;
+        modeler->m_dwgSourceVersion = DRW::AC1027;
+        modeler->m_hasModelerData = true;
+        modeler->setHasDataStorageBinaryData(true);
+        modeler->hasDataStorageRecord = true;
+        modeler->dataStorageHandle = handle;
+        char handleText[9] = {};
+        std::snprintf(handleText, sizeof(handleText), "%X", handle);
+        modeler->dataStorageHandleKey = handleText;
+        // This is a DWG-internal lookup index, not the DXF ACDSRECORD code.
+        modeler->dataStorageSchemaIndex = 5u;
+        modeler->dataStorageData = payload;
+        source.mBlock->ent.push_back(modeler);
+        return modeler;
+    };
+    auto* box = addModeler(DRW::E3DSOLID, 0xFC20u, boxPayload);
+    auto* extrusion = addModeler(
+        DRW::E3DSOLID, 0xFC21u, extrusionPayload);
+    auto* region = addModeler(DRW::REGION, 0xFC22u, regionPayload);
+    addLocalAcdsHistoryClosure(source, *box, 0x30Eu, 0x30Du, 0x30Cu,
+                               546u, "ACSH_BOX_CLASS", "AcDbShBox",
+                               "cn:AcDbShBox");
+    addLocalAcdsHistoryClosure(source, *extrusion, 0x40Eu, 0x40Du, 0x40Cu,
+                               547u, "ACSH_EXTRUSION_CLASS",
+                               "AcDbShExtrusion", "cn:AcDbShExtrusion");
+
+    DRW_DataStorageSection storage = makeLocalAcadSharpDataStorageSection(
+        box->handle, boxPayload);
+    DRW_DataStorageRecord extrusionRecord =
+        makeLocalAcadSharpDataStorageSection(extrusion->handle, extrusionPayload)
+            .records.front();
+    storage.records.push_back(std::move(extrusionRecord));
+    DRW_DataStorageRecord regionRecord =
+        makeLocalAcadSharpDataStorageSection(region->handle, regionPayload)
+            .records.front();
+    storage.records.push_back(std::move(regionRecord));
+    for (const std::uint32_t handle : {0xA602u, 0xA770u}) {
+        DRW_DataStorageRecord thumbnail;
+        thumbnail.handle = handle;
+        char handleText[9] = {};
+        std::snprintf(handleText, sizeof(handleText), "%X", handle);
+        thumbnail.handleKey = handleText;
+        thumbnail.isHandleSafe = true;
+        thumbnail.schemaIndex = 0u;
+        thumbnail.dataByteLength =
+            static_cast<std::uint32_t>(pngPayload.size());
+        thumbnail.payload = pngPayload;
+        storage.records.push_back(std::move(thumbnail));
+    }
+    storage.orphanRecordCount = 2u;
+    source.dataStorageSections.push_back(std::move(storage));
+
+    dx_iface exporter;
+    if (!exporter.fileExport(output.string(), DRW::AC1027, binary,
+                             &source, false)) {
+        if (!keepOutput)
+            std::filesystem::remove(output, ec);
+        return false;
+    }
+    dx_data imported;
+    dx_iface importer;
+    if (!importer.fileImport(output.string(), &imported, false)
+        || imported.rawDxfSections.size() != 1u
+        || imported.rawDxfSections.front().m_name != "ACDSDATA") {
+        if (!keepOutput)
+            std::filesystem::remove(output, ec);
+        return false;
+    }
+
+    const auto decodeHex = [](const std::string& text,
+                              std::vector<std::uint8_t>& bytes) {
+        if ((text.size() & 1u) != 0u)
+            return false;
+        const auto nibble = [](unsigned char value) {
+            if (value >= '0' && value <= '9')
+                return static_cast<int>(value - '0');
+            if (value >= 'A' && value <= 'F')
+                return static_cast<int>(value - 'A' + 10);
+            if (value >= 'a' && value <= 'f')
+                return static_cast<int>(value - 'a' + 10);
+            return -1;
+        };
+        for (std::size_t index = 0; index < text.size(); index += 2u) {
+            const int high = nibble(static_cast<unsigned char>(text[index]));
+            const int low = nibble(static_cast<unsigned char>(text[index + 1u]));
+            if (high < 0 || low < 0)
+                return false;
+            bytes.push_back(static_cast<std::uint8_t>((high << 4) | low));
+        }
+        return true;
+    };
+    const std::map<std::string, std::vector<std::uint8_t>> expectedThumbnails{
+        {"A602", pngPayload}, {"A770", pngPayload}};
+    std::map<std::string, std::vector<std::uint8_t>> observedRecords;
+    const auto& groups = imported.rawDxfSections.front().m_groups;
+    bool recordsValid = true;
+    std::size_t asmRecordCount = 0;
+    std::size_t thumbnailRecordCount = 0;
+    for (std::size_t start = 0; start < groups.size();) {
+        if (groups[start].code() != 0
+            || groups[start].type() != DRW_Variant::STRING
+            || groups[start].c_str() == nullptr
+            || std::strcmp(groups[start].c_str(), "ACDSRECORD") != 0) {
+            ++start;
+            continue;
+        }
+        std::size_t end = start + 1u;
+        while (end < groups.size() && groups[end].code() != 0)
+            ++end;
+        std::string key;
+        std::string propertyName;
+        std::vector<std::uint8_t> payload;
+        std::uint32_t declaredLength = 0;
+        std::int32_t schemaCode = -1;
+        bool inId = false;
+        for (std::size_t index = start + 1u; index < end; ++index) {
+            const DRW_Variant& group = groups[index];
+            if (group.code() == 90
+                && group.type() == DRW_Variant::INTEGER) {
+                schemaCode = static_cast<std::int32_t>(group.i_val());
+            } else if (group.code() == 2
+                       && group.type() == DRW_Variant::STRING
+                       && group.c_str() != nullptr) {
+                inId = std::strcmp(group.c_str(), "AcDbDs::ID") == 0;
+                if (!inId)
+                    propertyName = group.c_str();
+            } else if (inId && group.code() == 320
+                       && group.type() == DRW_Variant::STRING
+                       && group.c_str() != nullptr) {
+                key = group.c_str();
+            } else if (group.code() == 94
+                       && group.type() == DRW_Variant::INTEGER
+                       && group.i_val() >= 0) {
+                declaredLength = static_cast<std::uint32_t>(group.i_val());
+            } else if ((propertyName == "ASM_Data"
+                        || propertyName == "Thumbnail_Data")
+                       && group.code() == 310
+                       && group.type() == DRW_Variant::STRING
+                       && group.c_str() != nullptr) {
+                recordsValid = recordsValid && decodeHex(group.c_str(), payload);
+            }
+        }
+        if (propertyName == "ASM_Data") {
+            ++asmRecordCount;
+            recordsValid = recordsValid && schemaCode == 1;
+        } else if (propertyName == "Thumbnail_Data") {
+            ++thumbnailRecordCount;
+            recordsValid = recordsValid && schemaCode == 0;
+        } else {
+            recordsValid = false;
+        }
+        if (key.empty() || payload.size() != declaredLength
+            || !observedRecords.emplace(key, std::move(payload)).second) {
+            recordsValid = false;
+        }
+        start = end;
+    }
+
+    std::vector<std::string> modelerHandleKeys;
+    std::size_t solidCount = 0;
+    std::size_t regionCount = 0;
+    for (const DRW_Entity* entity : imported.mBlock->ent) {
+        if (entity == nullptr)
+            continue;
+        if (entity->eType == DRW::E3DSOLID)
+            ++solidCount;
+        else if (entity->eType == DRW::REGION)
+            ++regionCount;
+        else
+            continue;
+        const auto* modeler = static_cast<const DRW_ModelerGeometry*>(entity);
+        char handleText[9] = {};
+        std::snprintf(handleText, sizeof(handleText), "%X", modeler->handle);
+        modelerHandleKeys.emplace_back(handleText);
+    }
+    std::sort(modelerHandleKeys.begin(), modelerHandleKeys.end());
+    std::vector<std::vector<std::uint8_t>> modelerSabPayloads;
+    bool modelerAssociationsMatch = modelerHandleKeys.size() == 3u;
+    for (const std::string& handleKey : modelerHandleKeys) {
+        const auto record = observedRecords.find(handleKey);
+        if (record == observedRecords.end()
+            || record->second.size() < 15u
+            || !std::equal(boxPayload.begin(), boxPayload.begin() + 15,
+                           record->second.begin())) {
+            modelerAssociationsMatch = false;
+            continue;
+        }
+        modelerSabPayloads.push_back(record->second);
+    }
+    std::sort(modelerSabPayloads.begin(), modelerSabPayloads.end());
+    std::vector<std::vector<std::uint8_t>> expectedModelerSabPayloads{
+        boxPayload, extrusionPayload, regionPayload};
+    std::sort(expectedModelerSabPayloads.begin(),
+              expectedModelerSabPayloads.end());
+    const bool thumbnailsMatch =
+        observedRecords.size() == modelerHandleKeys.size()
+                                  + expectedThumbnails.size()
+        && std::all_of(
+            expectedThumbnails.begin(), expectedThumbnails.end(),
+            [&observedRecords](const auto& expected) {
+                const auto record = observedRecords.find(expected.first);
+                return record != observedRecords.end()
+                    && record->second == expected.second;
+            });
+
+    const std::array<std::pair<const char*, int>, 5> expectedClasses{{
+        {"ACSH_HISTORY_CLASS", 2}, {"ACAD_EVALUATION_GRAPH", 2},
+        {"ACSH_BOX_CLASS", 1}, {"ACSH_EXTRUSION_CLASS", 1},
+        {"MATERIAL", 3}}};
+    bool classesMatch = imported.dxfClasses.size() == expectedClasses.size();
+    if (classesMatch) {
+        for (std::size_t index = 0; index < expectedClasses.size(); ++index) {
+            const DRW_Class& cls = imported.dxfClasses[index];
+            if (cls.recName != expectedClasses[index].first
+                || cls.instanceCount != expectedClasses[index].second) {
+                classesMatch = false;
+                break;
+            }
+        }
+    }
+    const bool result = recordsValid && observedRecords.size() == 5u
+        && asmRecordCount == 3u && thumbnailRecordCount == 2u
+        && solidCount == 2u && regionCount == 1u
+        && modelerAssociationsMatch
+        && modelerSabPayloads == expectedModelerSabPayloads
+        && thumbnailsMatch
+        && imported.proxyObjects.size() == 6u
+        && imported.rawProxyObjects.size() == 6u && classesMatch
+        && hasExpectedAcdsSchemaDefinitions(imported.rawDxfSections.front());
+    if (!result) {
+        std::cerr << "ACDS multi-projection details: recordsValid="
+                  << recordsValid << " observedRecords="
+                  << observedRecords.size() << " ASM=" << asmRecordCount
+                  << " thumbnails=" << thumbnailRecordCount
+                  << " solids=" << solidCount << " regions=" << regionCount
+                  << " modeler associations=" << modelerAssociationsMatch
+                  << " SABs=" << modelerSabPayloads.size() << " proxies="
+                  << imported.proxyObjects.size() << "/"
+                  << imported.rawProxyObjects.size() << " classes="
+                  << classesMatch << " schema="
+                  << hasExpectedAcdsSchemaDefinitions(
+                         imported.rawDxfSections.front()) << '\n';
+        std::cerr << "ACDS multi-projection entity types:";
+        for (const DRW_Entity* entity : imported.mBlock->ent) {
+            if (entity != nullptr)
+                std::cerr << ' ' << static_cast<int>(entity->eType)
+                          << ':' << entity->handle;
+        }
+        std::cerr << '\n';
+    }
+    if (!keepOutput)
+        std::filesystem::remove(output, ec);
+    return result;
+}
+
+bool runAcdsHistoryCallbackCapture() {
+    dx_data captured;
+    dx_iface iface;
+    iface.cData = &captured;
+
+    DRW_EvaluationGraph graph;
+    graph.handle = 0xD67u;
+    graph.parentHandle = 0xD66u;
+    graph.m_value96 = 96;
+    graph.m_value97 = 97;
+    DRW_EvaluationGraphNode node;
+    node.m_index = 0;
+    node.m_expressionHandle = 0xD68u;
+    graph.m_nodes.push_back(node);
+    iface.addEvaluationGraph(graph);
+
+    DRW_AcShHistoryObject history("ACSH_HISTORY_CLASS");
+    history.handle = 0xD66u;
+    history.parentHandle = 0xD65u;
+    // The common parent is the modeler object (DXF 330); the DWG class's
+    // additional owner handle maps to DXF 360 and links the graph.
+    history.m_ownerHandle = graph.handle;
+    history.m_historyNodeId = 329u;
+    history.m_evalExprPrefix.m_unknown = -1;
+    history.m_evalExprPrefix.m_value98 = 33;
+    history.m_evalExprPrefix.m_value99 = 329;
+    history.m_evalExprPrefix.m_id = 1;
+    history.m_evalExprPrefix.m_complete = true;
+    history.m_historyNodePrefix.m_major = 33;
+    history.m_historyNodePrefix.m_minor = 329;
+    history.m_historyNodePrefix.m_transform[0] = 1.0;
+    history.m_historyNodePrefix.m_colorIndex = 256;
+    history.m_historyNodePrefix.m_nodeValue = 3;
+    history.m_historyNodePrefix.m_handle = 0xD64u;
+    history.m_historyNodePrefix.m_complete = true;
+    iface.addAcShHistoryObject(history);
+
+    DRW_AcShHistoryObject box("ACSH_BOX_CLASS");
+    box.handle = 0xD68u;
+    box.parentHandle = 0xD67u;
+    box.m_shapeParams = {5.0, 5.0, 5.0};
+    iface.addAcShHistoryObject(box);
+
+    DRW_AcShHistoryObject extrusion("ACSH_EXTRUSION_CLASS");
+    extrusion.handle = 0xD6Du;
+    extrusion.parentHandle = 0xD6Cu;
+    extrusion.m_shapeParams = {4.38, 0.0, 0.0, 1.0};
+    iface.addAcShHistoryObject(extrusion);
+
+    DRW_UnsupportedObject graphFrame;
+    graphFrame.m_recordName = "ACAD_EVALUATION_GRAPH";
+    graphFrame.m_className = "AcDbEvalGraph";
+    graphFrame.m_handle = graph.handle;
+    graphFrame.m_objectSize = 3;
+    graphFrame.m_bodyBitSize = 20;
+    graphFrame.m_rawBytes = {0xA1u, 0xB2u, 0xC3u};
+    iface.addUnsupportedObject(graphFrame);
+
+    DRW_UnsupportedObject historyFrame;
+    historyFrame.m_recordName = "ACSH_HISTORY_CLASS";
+    historyFrame.m_className = "AcDbShHistory";
+    historyFrame.m_handle = history.handle;
+    historyFrame.m_objectSize = 2;
+    historyFrame.m_bodyBitSize = 15;
+    historyFrame.m_rawBytes = {0xD4u, 0xE5u};
+    iface.addUnsupportedObject(historyFrame);
+
+    DRW_UnsupportedObject unrelatedFrame;
+    unrelatedFrame.m_recordName = "ACDBASSOCNETWORK";
+    unrelatedFrame.m_className = "AcDbAssocNetwork";
+    unrelatedFrame.m_handle = 0xD70u;
+    unrelatedFrame.m_objectSize = 128;
+    unrelatedFrame.m_rawBytes.resize(unrelatedFrame.m_objectSize, 0xFFu);
+    iface.addUnsupportedObject(unrelatedFrame);
+
+    graph.m_nodes.front().m_expressionHandle = 0;
+    history.m_ownerHandle = 0;
+    history.m_evalExprPrefix.m_value98 = 0;
+    history.m_evalExprPrefix.m_complete = false;
+    history.m_historyNodePrefix.m_transform[0] = 0.0;
+    history.m_historyNodePrefix.m_complete = false;
+    box.m_shapeParams.clear();
+    graphFrame.m_rawBytes.clear();
+    historyFrame.m_rawBytes.clear();
+
+    return captured.evaluationGraphs.size() == 1u
+        && captured.evaluationGraphs.front().handle == 0xD67u
+        && captured.evaluationGraphs.front().parentHandle == history.handle
+        && captured.evaluationGraphs.front().m_nodes.size() == 1u
+        && captured.evaluationGraphs.front().m_nodes.front()
+               .m_expressionHandle == 0xD68u
+        && captured.acshHistoryObjects.size() == 3u
+        && captured.acshHistoryObjects[0].parentHandle == 0xD65u
+        && captured.acshHistoryObjects[0].m_ownerHandle == graph.handle
+        && captured.acshHistoryObjects[0].m_evalExprPrefix.m_complete
+        && captured.acshHistoryObjects[0].m_evalExprPrefix.m_value98 == 33
+        && captured.acshHistoryObjects[0].m_historyNodePrefix.m_complete
+        && captured.acshHistoryObjects[0].m_historyNodePrefix.m_minor == 329
+        && captured.acshHistoryObjects[0].m_historyNodePrefix.m_transform[0]
+               == 1.0
+        && captured.acshHistoryObjects[0].m_historyNodePrefix.m_handle
+               == 0xD64u
+        && captured.acshHistoryObjects[1].m_shapeParams
+               == std::vector<double>({5.0, 5.0, 5.0})
+        && captured.acshHistoryObjects[2].m_recordName
+               == "ACSH_EXTRUSION_CLASS"
+        && captured.acdsHistoryDwgFrames.size() == 2u
+        && captured.acdsHistoryDwgFrames[0].m_handle == 0xD67u
+        && captured.acdsHistoryDwgFrames[0].m_rawBytes
+               == std::vector<std::uint8_t>({0xA1u, 0xB2u, 0xC3u})
+        && captured.acdsHistoryDwgFrames[1].m_handle == 0xD66u
+        && captured.acdsHistoryDwgFrames[1].m_rawBytes
+               == std::vector<std::uint8_t>({0xD4u, 0xE5u});
+}
+
+bool runDxfAcShExtrusionProjectionCapture(
+        const std::filesystem::path& directory, bool duplicateTransformValue,
+        std::int32_t alignOption = 0, std::int32_t miterOption = 2) {
+    const std::filesystem::path output = directory /
+        (duplicateTransformValue
+             ? "libdxfrw-acsh-extrusion-projection-malformed.dxf"
+             : miterOption != 2
+                 ? "libdxfrw-acsh-extrusion-projection-wide-miter.dxf"
+                 : alignOption != 0
+                     ? "libdxfrw-acsh-extrusion-projection-invalid-align.dxf"
+                     : "libdxfrw-acsh-extrusion-projection.dxf");
+    std::error_code ec;
+    std::filesystem::remove(output, ec);
+    std::ofstream stream(output);
+    if (!stream)
+        return false;
+
+    stream << "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1027\n"
+              "0\nENDSEC\n0\nSECTION\n2\nOBJECTS\n"
+              "0\nACSH_EXTRUSION_CLASS\n5\nD6D\n330\nD6C\n"
+              "100\nAcDbShSweepBase\n";
+    stream << "90\n33\n91\n329\n10\n0.0\n20\n0.0\n30\n4.380487155114503\n"
+              "92\n77\n90\n32\n310\nA1B2C3D4\n93\n0\n"
+              "42\n0.0\n43\n0.0\n44\n0.0\n45\n0.0\n48\n1.0\n49\n0.0\n";
+    const std::array<double, 16> sweepTransform{{
+        1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0,
+        9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0}};
+    const std::array<double, 16> pathTransform{{
+        -1.0, -2.0, -3.0, -4.0, -5.0, -6.0, -7.0, -8.0,
+        -9.0, -10.0, -11.0, -12.0, -13.0, -14.0, -15.0, -16.0}};
+    for (double value : sweepTransform)
+        stream << "46\n" << value << '\n';
+    if (duplicateTransformValue)
+        stream << "46\n17.0\n";
+    for (double value : pathTransform)
+        stream << "47\n" << value << '\n';
+    stream << "70\n" << alignOption << "\n71\n" << miterOption << '\n'
+           << "290\n1\n292\n1\n293\n0\n294\n0\n295\n1\n296\n0\n"
+              "11\n3.5\n21\n-2.0\n31\n9.0\n"
+              "100\nAcDbShExtrusion\n0\nENDSEC\n0\nEOF\n";
+    stream.close();
+    if (!stream) {
+        std::filesystem::remove(output, ec);
+        return false;
+    }
+
+    class CaptureIface final : public dx_iface {
+    public:
+        std::vector<DRW_RawDxfObject> rawObjects;
+        void addRawDxfObject(const DRW_RawDxfObject& object) override {
+            rawObjects.push_back(object);
+            dx_iface::addRawDxfObject(object);
+        }
+    };
+    dx_data imported;
+    CaptureIface importer;
+    const bool readOk = importer.fileImport(output.string(), &imported, false);
+    std::filesystem::remove(output, ec);
+    if (!readOk || imported.acshHistoryObjects.size() != 1u
+        || importer.rawObjects.size() != 1u) {
+        return false;
+    }
+
+    const DRW_AcShHistoryObject& object = imported.acshHistoryObjects.front();
+    const auto& projection = object.m_extrusionDxfProjection;
+    const DRW_RawDxfObject& raw = importer.rawObjects.front();
+    const std::size_t transformCount = static_cast<std::size_t>(
+        std::count_if(raw.groups.begin(), raw.groups.end(),
+                      [](const DRW_Variant& value) {
+                          return value.code() == 46;
+                      }));
+    const bool rawOptionsPreserved =
+        std::any_of(raw.groups.begin(), raw.groups.end(),
+                    [alignOption](const DRW_Variant& value) {
+                        return value.code() == 70
+                            && value.type() == DRW_Variant::INTEGER
+                            && value.i_val() == alignOption;
+                    })
+        && std::any_of(raw.groups.begin(), raw.groups.end(),
+                       [miterOption](const DRW_Variant& value) {
+                           return value.code() == 71
+                               && value.type() == DRW_Variant::INTEGER
+                               && value.i_val() == miterOption;
+                       });
+    const auto hasIntegerGroup = [&raw](int code, std::int64_t expected) {
+        return std::any_of(raw.groups.begin(), raw.groups.end(),
+                           [code, expected](const DRW_Variant& value) {
+                               return value.code() == code
+                                   && value.type() == DRW_Variant::INTEGER
+                                   && value.i_val() == expected;
+                           });
+    };
+    const auto hasDoubleGroup = [&raw](int code, double expected) {
+        return std::any_of(raw.groups.begin(), raw.groups.end(),
+                           [code, expected](const DRW_Variant& value) {
+                               return value.code() == code
+                                   && value.type() == DRW_Variant::DOUBLE
+                                   && value.d_val() == expected;
+                           });
+    };
+    const bool rawUnprojectedFieldsPreserved =
+        std::count_if(raw.groups.begin(), raw.groups.end(),
+                      [](const DRW_Variant& value) {
+                          return value.code() == 90;
+                      }) == 2
+        && hasIntegerGroup(90, 33) && hasIntegerGroup(90, 32)
+        && hasIntegerGroup(91, 329) && hasIntegerGroup(92, 77)
+        && hasIntegerGroup(93, 0)
+        && hasDoubleGroup(10, 0.0) && hasDoubleGroup(20, 0.0)
+        && hasDoubleGroup(30, 4.380487155114503)
+        && hasDoubleGroup(42, 0.0) && hasDoubleGroup(43, 0.0)
+        && hasDoubleGroup(44, 0.0) && hasDoubleGroup(45, 0.0)
+        && hasDoubleGroup(48, 1.0) && hasDoubleGroup(49, 0.0)
+        && std::any_of(raw.groups.begin(), raw.groups.end(),
+                       [](const DRW_Variant& value) {
+                           return value.code() == 310
+                               && value.type() == DRW_Variant::STRING
+                               && value.c_str() != nullptr
+                               && std::strcmp(value.c_str(), "A1B2C3D4") == 0;
+                       });
+    if (object.m_recordName != "ACSH_EXTRUSION_CLASS"
+        || transformCount != 16u + (duplicateTransformValue ? 1u : 0u)
+        || !rawOptionsPreserved || !rawUnprojectedFieldsPreserved) {
+        return false;
+    }
+    if (duplicateTransformValue || alignOption < 0 || alignOption > 3) {
+        return !projection.m_transformAndOptionFieldsComplete
+            && std::all_of(projection.m_sweepEntityTransform.begin(),
+                           projection.m_sweepEntityTransform.end(),
+                           [](double value) { return value == 0.0; });
+    }
+
+    return projection.m_transformAndOptionFieldsComplete
+        && projection.m_sweepEntityTransform == sweepTransform
+        && projection.m_pathEntityTransform == pathTransform
+        && projection.m_alignOption == alignOption
+        && projection.m_miterOption == miterOption
+        && projection.m_isSolid && projection.m_hasAlignStart
+        && !projection.m_bank && !projection.m_basePointSet
+        && projection.m_sweepEntityTransformComputed
+        && !projection.m_pathEntityTransformComputed
+        && projection.m_point.x == 3.5 && projection.m_point.y == -2.0
+        && projection.m_point.z == 9.0;
+}
+
+bool runDxfTypedAcdsBoxRoundTrip(
+    bool binary, const std::filesystem::path& directory, bool keepOutput) {
+    const std::filesystem::path output = directory /
+        (std::string("libdxfrw-ac1027-typed-acds-box-")
+         + (binary ? "binary" : "ascii") + ".dxf");
+    std::error_code ec;
+    std::filesystem::remove(output, ec);
+
+    constexpr std::uint32_t modelerHandle = 0xFC20u;
+    constexpr std::uint32_t historyHandle = 0xFC21u;
+    constexpr std::uint32_t graphHandle = 0xFC22u;
+    constexpr std::uint32_t boxHandle = 0xFC23u;
+    constexpr std::uint32_t materialHandle = 0x96u;
+    const std::vector<std::uint8_t> payload{
+        'A', 'C', 'I', 'S', ' ', 'B', 'i', 'n', 'a', 'r', 'y', 'F', 'i', 'l', 'e',
+        0x21u, 0x22u, 0x23u};
+
+    dx_data source;
+    auto* modeler = new DRW_ModelerGeometry(DRW::E3DSOLID);
+    modeler->handle = modelerHandle;
+    modeler->m_modelerVersion = 2;
+    modeler->m_dwgSourceVersion = DRW::AC1027;
+    modeler->m_hasModelerData = true;
+    modeler->m_historyHandle = historyHandle;
+    modeler->setHasDataStorageBinaryData(true);
+    modeler->hasDataStorageRecord = true;
+    modeler->dataStorageHandle = modelerHandle;
+    modeler->dataStorageHandleKey = "FC20";
+    modeler->dataStorageSchemaIndex = 5u;
+    modeler->dataStorageData = payload;
+    source.mBlock->ent.push_back(modeler);
+    source.dataStorageSections.push_back(
+        makeLocalAcadSharpDataStorageSection(modelerHandle, payload));
+
+    source.dwgClassCoverage.m_status =
+        DRW_DwgClassCoverageStatus::FinalizedComplete;
+    source.dwgClassCoverage.m_complete = true;
+    const std::array<std::tuple<std::uint16_t, const char*, const char*>, 3>
+        classes{{
+            {521u, "ACSH_HISTORY_CLASS", "AcDbShHistory"},
+            {520u, "ACAD_EVALUATION_GRAPH", "AcDbEvalGraph"},
+            {546u, "ACSH_BOX_CLASS", "AcDbShBox"}}};
+    for (const auto& cls : classes) {
+        DRW_DwgClassCoverageEntry entry;
+        entry.m_classNumber = std::get<0>(cls);
+        entry.m_recordName = std::get<1>(cls);
+        entry.m_className = std::get<2>(cls);
+        entry.m_entityFlagRaw = 0x1F3u;
+        entry.m_state = DRW_DwgClassCoverageState::Published;
+        source.dwgClassCoverage.m_entries.push_back(std::move(entry));
+    }
+
+    const auto completePrefix = [](
+        DRW_AcShHistoryObject& object,
+        DRW_AssociativePrefixStatus::Kind kind) {
+        DRW_AssociativePrefixStatus status;
+        status.m_kind = kind;
+        status.m_status = DRW_AssociativePrefixStatus::ParseStatus::Complete;
+        object.m_prefixStatuses.push_back(std::move(status));
+    };
+    DRW_AcShHistoryObject history("ACSH_HISTORY_CLASS");
+    history.handle = historyHandle;
+    history.parentHandle = modelerHandle;
+    history.m_major = 33u;
+    history.m_minor = 329u;
+    history.m_historyNodeId = 1u;
+    history.m_ownerHandle = graphHandle;
+    completePrefix(history,
+                   DRW_AssociativePrefixStatus::Kind::AcDbShHistoryNode);
+    source.acshHistoryObjects.push_back(history);
+
+    DRW_EvaluationGraph graph;
+    graph.handle = graphHandle;
+    graph.parentHandle = historyHandle;
+    graph.m_value96 = 1;
+    graph.m_value97 = 1;
+    DRW_EvaluationGraphNode graphNode;
+    graphNode.m_index = 0;
+    graphNode.m_flags = 32;
+    graphNode.m_nextNodeIndex = 1;
+    graphNode.m_expressionHandle = boxHandle;
+    graphNode.m_data1 = -1;
+    graphNode.m_data2 = -1;
+    graphNode.m_data3 = -1;
+    graphNode.m_data4 = -1;
+    graph.m_nodes.push_back(graphNode);
+    source.evaluationGraphs.push_back(graph);
+
+    DRW_AcShHistoryObject box("ACSH_BOX_CLASS");
+    box.handle = boxHandle;
+    box.parentHandle = graphHandle;
+    box.m_evalExprPrefix.m_id = 1;
+    box.m_evalExprPrefix.m_value98 = 33;
+    box.m_evalExprPrefix.m_value99 = 329;
+    box.m_evalExprPrefix.m_complete = true;
+    completePrefix(box, DRW_AssociativePrefixStatus::Kind::AcDbEvalExpr);
+    box.m_historyNodePrefix.m_major = 33;
+    box.m_historyNodePrefix.m_minor = 329;
+    for (std::size_t index = 0; index < 4u; ++index)
+        box.m_historyNodePrefix.m_transform[index * 5u] = 1.0;
+    box.m_historyNodePrefix.m_colorIndex = 256u;
+    box.m_historyNodePrefix.m_nodeValue = 3;
+    box.m_historyNodePrefix.m_handle = materialHandle;
+    box.m_historyNodePrefix.m_complete = true;
+    completePrefix(box,
+                   DRW_AssociativePrefixStatus::Kind::AcDbShHistoryNode);
+    box.m_major = 33u;
+    box.m_minor = 329u;
+    box.m_shapeParams = {5.0, 5.0, 5.0};
+    completePrefix(box, DRW_AssociativePrefixStatus::Kind::AcShActionBody);
+    source.acshHistoryObjects.push_back(box);
+
+    DRW_Dictionary materialDictionary;
+    materialDictionary.handle = 0x72u;
+    materialDictionary.parentHandle = 0xCu;
+    materialDictionary.cloning = 1;
+    materialDictionary.m_entries = {
+        {"ByLayer", materialHandle}, {"ByBlock", 0x97u},
+        {"Global", 0x98u}};
+    source.dictionaries.push_back(materialDictionary);
+    for (const auto& materialInfo : {
+             std::pair<std::uint32_t, const char*>{materialHandle, "ByLayer"},
+             {0x97u, "ByBlock"}, {0x98u, "Global"}}) {
+        DRW_Material material;
+        material.handle = materialInfo.first;
+        material.parentHandle = materialDictionary.handle;
+        material.m_name = materialInfo.second;
+        source.materials.push_back(std::move(material));
+    }
+
+    dx_iface exporter;
+    if (!exporter.fileExport(output.string(), DRW::AC1027, binary,
+                             &source, false)) {
+        if (!keepOutput)
+            std::filesystem::remove(output, ec);
+        return false;
+    }
+
+    class RawCaptureIface final : public dx_iface {
+    public:
+        std::vector<DRW_RawDxfObject> objects;
+        void addRawDxfObject(const DRW_RawDxfObject& object) override {
+            objects.push_back(object);
+            dx_iface::addRawDxfObject(object);
+        }
+    };
+    dx_data imported;
+    RawCaptureIface importer;
+    const bool readOk = importer.fileImport(output.string(), &imported, false);
+    const auto findRaw = [&importer](const char* name, std::uint32_t handle)
+        -> const DRW_RawDxfObject* {
+        const DRW_RawDxfObject* found = nullptr;
+        for (const DRW_RawDxfObject& object : importer.objects) {
+            if (object.name != name || object.handle != handle)
+                continue;
+            if (found != nullptr)
+                return nullptr;
+            found = &object;
+        }
+        return found;
+    };
+    const auto hasInt = [](const DRW_RawDxfObject* object, int code,
+                           std::int32_t expected) {
+        return object != nullptr
+            && std::any_of(object->groups.begin(), object->groups.end(),
+                           [code, expected](const DRW_Variant& group) {
+                               return group.code() == code
+                                   && group.type() == DRW_Variant::INTEGER
+                                   && group.i_val() == expected;
+                           });
+    };
+    const auto hasString = [](const DRW_RawDxfObject* object, int code,
+                              const std::string& expected) {
+        return object != nullptr
+            && std::any_of(object->groups.begin(), object->groups.end(),
+                           [code, &expected](const DRW_Variant& group) {
+                               return group.code() == code
+                                   && group.type() == DRW_Variant::STRING
+                                   && group.c_str() != nullptr
+                                   && expected == group.c_str();
+                           });
+    };
+    const DRW_RawDxfObject* historyRaw =
+        findRaw("ACSH_HISTORY_CLASS", historyHandle);
+    const DRW_RawDxfObject* boxRaw =
+        findRaw("ACSH_BOX_CLASS", boxHandle);
+    const DRW_EvaluationGraph* importedGraph = nullptr;
+    for (const DRW_EvaluationGraph& value : imported.evaluationGraphs) {
+        if (value.handle == graphHandle)
+            importedGraph = &value;
+    }
+    std::vector<std::pair<std::string, int>> expectedClasses{
+        {"ACSH_HISTORY_CLASS", 1}, {"ACAD_EVALUATION_GRAPH", 1},
+        {"ACSH_BOX_CLASS", 1}, {"MATERIAL", 3}};
+    bool classesMatch = imported.dxfClasses.size() == expectedClasses.size();
+    if (classesMatch) {
+        for (std::size_t index = 0; index < expectedClasses.size(); ++index) {
+            const DRW_Class& value = imported.dxfClasses[index];
+            if (value.recName != expectedClasses[index].first
+                || value.instanceCount != expectedClasses[index].second
+                || value.wasaProxyFlag != 0) {
+                classesMatch = false;
+                break;
+            }
+        }
+    }
+    std::string acdsOwnerHandle;
+    std::vector<std::uint8_t> acdsPayload;
+    std::uint32_t importedModelerHandle = 0;
+    for (const DRW_Entity* entity : imported.mBlock->ent) {
+        if (entity != nullptr && entity->handle != 0
+            && entity->eType == DRW::E3DSOLID) {
+            importedModelerHandle = entity->handle;
+            break;
+        }
+    }
+    char expectedModelerHandle[9] = {};
+    std::snprintf(expectedModelerHandle, sizeof(expectedModelerHandle), "%X",
+                  importedModelerHandle);
+    const bool acdsPayloadMatches = imported.rawDxfSections.size() == 1u
+        && findAcdsRecordPayload(imported.rawDxfSections.front(), "ASM_Data",
+                                 acdsOwnerHandle, acdsPayload)
+        && importedModelerHandle != 0
+        && acdsOwnerHandle == expectedModelerHandle && acdsPayload == payload;
+    std::vector<std::string> boxSubclasses;
+    std::vector<double> boxTransform;
+    std::vector<double> boxDimensions;
+    bool inBoxShape = false;
+    if (boxRaw != nullptr) {
+        for (const DRW_Variant& group : boxRaw->groups) {
+            if (group.code() == 100
+                && group.type() == DRW_Variant::STRING
+                && group.c_str() != nullptr) {
+                boxSubclasses.emplace_back(group.c_str());
+                inBoxShape = std::strcmp(group.c_str(), "AcDbShBox") == 0;
+            } else if (group.code() >= 40 && group.code() <= 55
+                       && group.type() == DRW_Variant::DOUBLE
+                       && !inBoxShape) {
+                boxTransform.push_back(group.d_val());
+            } else if (group.code() >= 40 && group.code() <= 42
+                       && group.type() == DRW_Variant::DOUBLE
+                       && inBoxShape) {
+                boxDimensions.push_back(group.d_val());
+            }
+        }
+    }
+    const std::vector<std::string> expectedBoxSubclasses{
+        "AcDbEvalExpr", "AcDbShHistoryNode", "AcDbShPrimitive", "AcDbShBox"};
+    const std::vector<double> expectedBoxTransform{
+        1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0,
+        0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0};
+    const bool result = readOk && historyRaw != nullptr && boxRaw != nullptr
+        && hasInt(historyRaw, 90, 33) && hasInt(historyRaw, 91, 329)
+        && hasInt(historyRaw, 92, 1) && hasInt(historyRaw, 280, 0)
+        && hasInt(historyRaw, 281, 0)
+        && hasString(historyRaw, 330, expectedModelerHandle)
+        && hasString(historyRaw, 360, "FC22")
+        && hasInt(boxRaw, 90, 1) && hasInt(boxRaw, 91, 329)
+        && hasInt(boxRaw, 92, 3)
+        && hasString(boxRaw, 330, "FC22")
+        && boxSubclasses == expectedBoxSubclasses
+        && boxTransform == expectedBoxTransform
+        && boxDimensions == std::vector<double>({5.0, 5.0, 5.0})
+        && std::any_of(boxRaw->groups.begin(), boxRaw->groups.end(),
+                       [](const DRW_Variant& group) {
+                           return group.code() == 347
+                               && group.type() == DRW_Variant::STRING
+                               && group.c_str() != nullptr
+                               && std::strcmp(group.c_str(), "96") == 0;
+                       })
+        && importedGraph != nullptr && importedGraph->m_value96 == 1
+        && importedGraph->m_value97 == 1
+        && importedGraph->m_nodes.size() == 1u
+        && importedGraph->m_nodes.front().m_index == 0
+        && importedGraph->m_nodes.front().m_flags == 32
+        && importedGraph->m_nodes.front().m_nextNodeIndex == 1
+        && importedGraph->m_nodes.front().m_expressionHandle == boxHandle
+        && importedGraph->m_nodes.front().m_data1 == -1
+        && importedGraph->m_nodes.front().m_data2 == -1
+        && importedGraph->m_nodes.front().m_data3 == -1
+        && importedGraph->m_nodes.front().m_data4 == -1
+        && classesMatch && imported.materials.size() == 3u
+        && imported.rawDxfSections.size() == 1u
+        && imported.rawDxfSections.front().m_name == "ACDSDATA"
+        && acdsPayloadMatches;
+    if (!result) {
+        std::cerr << "Typed ACDS BOX round-trip ("
+                  << (binary ? "binary" : "ASCII") << "): read=" << readOk
+                  << " history=" << (historyRaw != nullptr)
+                  << " box=" << (boxRaw != nullptr)
+                  << " graph=" << (importedGraph != nullptr)
+                  << " classes=" << classesMatch
+                  << " materials=" << imported.materials.size()
+                  << " sections=" << imported.rawDxfSections.size()
+                  << " acdsPayload=" << acdsPayloadMatches
+                  << " payloadOwner=" << acdsOwnerHandle
+                  << " modeler=" << expectedModelerHandle
+                  << " payloadBytes=" << acdsPayload.size() << '\n';
+        if (!classesMatch) {
+            for (const DRW_Class& value : imported.dxfClasses)
+                std::cerr << "  CLASS " << value.recName << " count="
+                          << value.instanceCount << " proxy="
+                          << value.wasaProxyFlag << '\n';
+        }
+    }
+    if (!keepOutput)
+        std::filesystem::remove(output, ec);
+    return result;
+}
+
+const DRW_Variant* findDynamicDxfGroup(
+        const DRW_RawDxfObject& raw, const std::string& subclass, int code,
+        std::size_t occurrence = 0) {
+    std::string currentSubclass;
+    for (const DRW_Variant& group : raw.groups) {
+        if (group.code() == 100 && group.type() == DRW_Variant::STRING) {
+            currentSubclass = group.c_str();
+            continue;
+        }
+        if (currentSubclass == subclass && group.code() == code) {
+            if (occurrence == 0)
+                return &group;
+            --occurrence;
+        }
+    }
+    return nullptr;
+}
+
+bool dynamicDxfIntegerEquals(const DRW_RawDxfObject& raw,
+                             const std::string& subclass, int code,
+                             std::int64_t expected) {
+    const DRW_Variant* group = findDynamicDxfGroup(raw, subclass, code);
+    if (group == nullptr)
+        return false;
+    if (group->type() == DRW_Variant::INTEGER)
+        return group->i_val() == expected;
+    return group->type() == DRW_Variant::INTEGER64
+        && group->i64_val() == expected;
+}
+
+bool dynamicDxfDoubleEquals(const DRW_RawDxfObject& raw,
+                            const std::string& subclass, int code,
+                            double expected) {
+    const DRW_Variant* group = findDynamicDxfGroup(raw, subclass, code);
+    if (group == nullptr || group->type() != DRW_Variant::DOUBLE)
+        return false;
+    const double actual = group->d_val();
+    const double tolerance = std::max(1.0, std::abs(expected)) * 1e-12;
+    return std::abs(actual - expected) <= tolerance;
+}
+
+bool sameEvaluationGraph(const DRW_EvaluationGraph& left,
+                         const DRW_EvaluationGraph& right) {
+    if (left.handle != right.handle
+        || left.parentHandle != right.parentHandle
+        || left.m_value96 != right.m_value96
+        || left.m_value97 != right.m_value97
+        || left.m_nodes.size() != right.m_nodes.size()
+        || left.m_edges.size() != right.m_edges.size())
+        return false;
+    for (std::size_t i = 0; i < left.m_nodes.size(); ++i) {
+        const DRW_EvaluationGraphNode& a = left.m_nodes[i];
+        const DRW_EvaluationGraphNode& b = right.m_nodes[i];
+        if (a.m_index != b.m_index || a.m_flags != b.m_flags
+            || a.m_nextNodeIndex != b.m_nextNodeIndex
+            || a.m_expressionHandle != b.m_expressionHandle
+            || a.m_data1 != b.m_data1 || a.m_data2 != b.m_data2
+            || a.m_data3 != b.m_data3 || a.m_data4 != b.m_data4)
+            return false;
+    }
+    for (std::size_t i = 0; i < left.m_edges.size(); ++i) {
+        const DRW_EvaluationGraphEdge& a = left.m_edges[i];
+        const DRW_EvaluationGraphEdge& b = right.m_edges[i];
+        if (a.m_value92 != b.m_value92 || a.m_value93 != b.m_value93
+            || a.m_value94 != b.m_value94
+            || a.m_value91a != b.m_value91a
+            || a.m_value91b != b.m_value91b
+            || a.m_value92a != b.m_value92a
+            || a.m_value92b != b.m_value92b
+            || a.m_value92c != b.m_value92c
+            || a.m_value92d != b.m_value92d
+            || a.m_value92e != b.m_value92e)
+            return false;
+    }
+    return true;
+}
+
+struct DxfAsciiPair {
+    std::string codeText;
+    std::string valueText;
+    int code = -1;
+};
+
+std::string trimAsciiWhitespace(std::string value) {
+    const std::size_t first = value.find_first_not_of(" \t\r\n");
+    if (first == std::string::npos)
+        return {};
+    const std::size_t last = value.find_last_not_of(" \t\r\n");
+    return value.substr(first, last - first + 1u);
+}
+
+bool readDxfAsciiPairs(const std::filesystem::path& path,
+                       std::vector<DxfAsciiPair>& pairs) {
+    std::ifstream input(path);
+    if (!input)
+        return false;
+    std::string codeText;
+    std::string valueText;
+    while (std::getline(input, codeText)) {
+        if (!std::getline(input, valueText))
+            return false;
+        const std::string trimmedCode = trimAsciiWhitespace(codeText);
+        std::size_t parsed = 0;
+        int code = -1;
+        try {
+            code = std::stoi(trimmedCode, &parsed);
+        } catch (...) {
+            return false;
+        }
+        if (parsed != trimmedCode.size())
+            return false;
+        pairs.push_back({codeText, valueText, code});
+    }
+    return input.eof();
+}
+
+bool appendDxfSection(const std::vector<DxfAsciiPair>& pairs,
+                      const std::string& sectionName,
+                      std::ostringstream& output) {
+    for (std::size_t start = 0; start + 1u < pairs.size(); ++start) {
+        if (pairs[start].code != 0
+            || trimAsciiWhitespace(pairs[start].valueText) != "SECTION"
+            || pairs[start + 1u].code != 2
+            || trimAsciiWhitespace(pairs[start + 1u].valueText)
+                != sectionName)
+            continue;
+        for (std::size_t index = start; index < pairs.size(); ++index) {
+            output << pairs[index].codeText << '\n'
+                   << pairs[index].valueText << '\n';
+            if (pairs[index].code == 0
+                && trimAsciiWhitespace(pairs[index].valueText) == "ENDSEC")
+                return true;
+        }
+        return false;
+    }
+    return false;
+}
+
+bool appendSelectedDxfObjects(
+        const std::vector<DxfAsciiPair>& pairs,
+        const std::unordered_set<std::uint32_t>& selectedHandles,
+        std::ostringstream& output) {
+    for (std::size_t start = 0; start + 1u < pairs.size(); ++start) {
+        if (pairs[start].code != 0
+            || trimAsciiWhitespace(pairs[start].valueText) != "SECTION"
+            || pairs[start + 1u].code != 2
+            || trimAsciiWhitespace(pairs[start + 1u].valueText) != "OBJECTS")
+            continue;
+        output << pairs[start].codeText << '\n' << pairs[start].valueText
+               << '\n' << pairs[start + 1u].codeText << '\n'
+               << pairs[start + 1u].valueText << '\n';
+        std::vector<DxfAsciiPair> record;
+        const auto emitSelectedRecord = [&]() {
+            std::uint32_t handle = 0;
+            bool hasHandle = false;
+            for (const DxfAsciiPair& pair : record) {
+                if (pair.code != 5)
+                    continue;
+                const std::string text = trimAsciiWhitespace(pair.valueText);
+                try {
+                    std::size_t parsed = 0;
+                    const unsigned long value = std::stoul(text, &parsed, 16);
+                    if (parsed == text.size()
+                        && value <= std::numeric_limits<std::uint32_t>::max()) {
+                        handle = static_cast<std::uint32_t>(value);
+                        hasHandle = true;
+                    }
+                } catch (...) {
+                    return false;
+                }
+                break;
+            }
+            if (hasHandle && selectedHandles.count(handle) != 0) {
+                for (const DxfAsciiPair& pair : record)
+                    output << pair.codeText << '\n' << pair.valueText << '\n';
+            }
+            record.clear();
+            return true;
+        };
+        for (std::size_t index = start + 2u; index < pairs.size(); ++index) {
+            if (pairs[index].code == 0
+                && trimAsciiWhitespace(pairs[index].valueText) == "ENDSEC") {
+                if (!emitSelectedRecord())
+                    return false;
+                output << pairs[index].codeText << '\n'
+                       << pairs[index].valueText << '\n';
+                return true;
+            }
+            if (pairs[index].code == 0 && !record.empty()
+                && !emitSelectedRecord())
+                return false;
+            record.push_back(pairs[index]);
+        }
+        return false;
+    }
+    return false;
+}
+
+bool buildDynamicBlockOracleDxf(
+        const std::filesystem::path& path,
+        const std::unordered_set<std::uint32_t>& selectedHandles,
+        std::string& output) {
+    std::vector<DxfAsciiPair> pairs;
+    if (!readDxfAsciiPairs(path, pairs))
+        return false;
+    std::ostringstream projected;
+    if (!appendDxfSection(pairs, "HEADER", projected)
+        || !appendDxfSection(pairs, "CLASSES", projected)
+        || !appendSelectedDxfObjects(pairs, selectedHandles, projected))
+        return false;
+    projected << "  0\nEOF\n";
+    output = projected.str();
+    return true;
+}
+
+bool runDynamicBlockTypedDxfPairQualification(
+        const std::filesystem::path& dwgPath,
+        const std::filesystem::path& dxfPath) {
+    if (!std::filesystem::is_regular_file(dwgPath)
+        || !std::filesystem::is_regular_file(dxfPath))
+        return false;
+
+    class DwgCaptureIface final : public dx_iface {
+    public:
+        std::vector<DRW_DynamicBlockObject> dynamicObjects;
+        std::vector<DRW_DwgFramePublication> frames;
+        void addDynamicBlockObject(
+                const DRW_DynamicBlockObject& data) override {
+            dynamicObjects.push_back(data);
+        }
+        void addDwgFramePublication(
+                const DRW_DwgFramePublication& frame) override {
+            frames.push_back(frame);
+        }
+    } dwgIface;
+    dx_data dwgData;
+    dwgIface.cData = &dwgData;
+    dwgRW dwgReader(dwgPath.string().c_str());
+    if (!dwgReader.read(&dwgIface, false)
+        || dwgReader.getVersion() != DRW::AC1027) {
+        std::cerr << "dynamic-block DWG read/version failed\n";
+        return false;
+    }
+
+    class DxfCaptureIface final : public dx_iface {
+    public:
+        std::vector<DRW_RawDxfObject> dynamicRecords;
+        void addRawDxfObject(const DRW_RawDxfObject& data) override {
+            if (DRW_DynamicBlockObject::isDynamicBlockRecName(data.name))
+                dynamicRecords.push_back(data);
+            dx_iface::addRawDxfObject(data);
+        }
+    } dxfIface;
+    dx_data dxfData;
+    dxfIface.cData = &dxfData;
+    dxfRW dxfReader(dxfPath.string().c_str());
+
+    std::unordered_map<std::uint32_t, const DRW_DynamicBlockObject*> dwgByHandle;
+    for (const DRW_DynamicBlockObject& object : dwgIface.dynamicObjects) {
+        if (object.handle == 0
+            || !dwgByHandle.emplace(object.handle, &object).second) {
+            std::cerr << "duplicate/null DWG dynamic-block handle\n";
+            return false;
+        }
+    }
+    const DRW_EvaluationGraph* sourceDynamicGraph = nullptr;
+    std::size_t graphCandidates = 0;
+    for (const DRW_EvaluationGraph& graph : dwgData.evaluationGraphs) {
+        if (graph.m_nodes.size() != 12u || graph.m_edges.size() != 10u)
+            continue;
+        const bool allTargetsDynamic = std::all_of(
+            graph.m_nodes.begin(), graph.m_nodes.end(),
+            [&dwgByHandle](const DRW_EvaluationGraphNode& node) {
+                return dwgByHandle.count(node.m_expressionHandle) == 1u;
+            });
+        if (allTargetsDynamic) {
+            sourceDynamicGraph = &graph;
+            ++graphCandidates;
+        }
+    }
+    if (graphCandidates != 1u || sourceDynamicGraph == nullptr) {
+        std::cerr << "expected one 12-node/10-edge dynamic-block graph; found "
+                  << graphCandidates << '\n';
+        return false;
+    }
+
+    std::unordered_set<std::uint32_t> selectedHandles{
+        sourceDynamicGraph->handle};
+    for (const DRW_EvaluationGraphNode& node : sourceDynamicGraph->m_nodes)
+        selectedHandles.insert(node.m_expressionHandle);
+    std::string dxfProjection;
+    if (!buildDynamicBlockOracleDxf(dxfPath, selectedHandles,
+                                    dxfProjection)) {
+        std::cerr << "failed to isolate ODA HEADER/CLASSES and witnessed "
+                     "OBJECTS records\n";
+        return false;
+    }
+    const bool dxfReadOk = dxfReader.readAscii(
+        &dxfIface, false, dxfProjection);
+    if (!dxfReadOk) {
+        const DRW_OperationDiagnostic diagnostic =
+            dxfReader.getLastDiagnostic();
+        std::cerr << "dynamic-block ODA projection read/version failed: read="
+                  << dxfReadOk << " version="
+                  << static_cast<int>(dxfReader.getVersion()) << " error="
+                  << static_cast<int>(dxfReader.getError()) << " phase="
+                  << static_cast<int>(diagnostic.phase) << " code="
+                  << diagnostic.code << " message=" << diagnostic.message
+                  << '\n';
+        return false;
+    }
+    std::unordered_map<std::uint32_t, const DRW_RawDxfObject*> dxfByHandle;
+    for (const DRW_RawDxfObject& object : dxfIface.dynamicRecords) {
+        if (object.handle == 0
+            || !dxfByHandle.emplace(object.handle, &object).second) {
+            std::cerr << "duplicate/null ODA DXF dynamic-block handle\n";
+            return false;
+        }
+    }
+
+    const DRW_EvaluationGraph* odaDynamicGraph = nullptr;
+    for (const DRW_EvaluationGraph& graph : dxfData.evaluationGraphs) {
+        if (graph.handle == sourceDynamicGraph->handle) {
+            if (odaDynamicGraph != nullptr)
+                return false;
+            odaDynamicGraph = &graph;
+        }
+    }
+    const bool graphMatches = odaDynamicGraph != nullptr
+        && sameEvaluationGraph(*sourceDynamicGraph, *odaDynamicGraph);
+    if (!graphMatches) {
+        std::cerr << "dynamic-block EvaluationGraph differs at handle "
+                  << std::hex << sourceDynamicGraph->handle << std::dec << '\n';
+        return false;
+    }
+
+    std::size_t commonFieldsCompared = 0;
+    std::size_t selector40ValueMismatches = 0;
+    std::unordered_map<std::string, std::size_t> targetClassCounts;
+    bool targetStructureMatches = true;
+    for (const DRW_EvaluationGraphNode &node : sourceDynamicGraph->m_nodes) {
+      const DRW_DynamicBlockObject &source =
+          *dwgByHandle.at(node.m_expressionHandle);
+      const auto dxfIt = dxfByHandle.find(source.handle);
+      if (dxfIt == dxfByHandle.end()) {
+        targetStructureMatches = false;
+        std::cerr << "missing ODA DXF target " << std::hex << source.handle
+                  << std::dec << " (" << source.m_recordName << ")\n";
+        continue;
+      }
+      const DRW_RawDxfObject &raw = *dxfIt->second;
+      ++targetClassCounts[source.m_recordName];
+      const bool identityMatches = raw.name == source.m_recordName &&
+                                   raw.parentHandle == source.parentHandle;
+      const bool evalFieldsMatch =
+          source.m_evalExprParsed &&
+          dynamicDxfIntegerEquals(raw, "AcDbEvalExpr", 90, source.m_nodeId) &&
+          dynamicDxfIntegerEquals(raw, "AcDbEvalExpr", 98, source.m_major) &&
+          dynamicDxfIntegerEquals(raw, "AcDbEvalExpr", 99, source.m_minor) &&
+          (source.m_valueCode == -9999
+               ? findDynamicDxfGroup(raw, "AcDbEvalExpr", 70) == nullptr
+               : dynamicDxfIntegerEquals(raw, "AcDbEvalExpr", 70,
+                                         source.m_valueCode));
+      const bool evalValueMatches =
+          source.m_valueCode != 40 ||
+          (source.m_hasValueDouble &&
+           dynamicDxfDoubleEquals(raw, "AcDbEvalExpr", 140,
+                                  source.m_valueDouble));
+      bool typedFieldsMatch = identityMatches && evalFieldsMatch;
+      commonFieldsCompared +=
+          evalFieldsMatch ? 3u + (source.m_valueCode == -9999 ? 0u : 1u) : 0u;
+      commonFieldsCompared +=
+          evalValueMatches && source.m_valueCode == 40 ? 1u : 0u;
+      if (source.m_valueCode == 40 && !evalValueMatches) {
+        ++selector40ValueMismatches;
+        const DRW_Variant *dxfValue =
+            findDynamicDxfGroup(raw, "AcDbEvalExpr", 140);
+        std::cout.flush();
+        std::cerr << "dynamic EvalExpr selector-40 value differs @" << std::hex
+                  << source.handle << std::dec
+                  << " DWG=" << source.m_valueDouble << " DXF140=";
+        if (dxfValue != nullptr && dxfValue->type() == DRW_Variant::DOUBLE)
+          std::cerr << dxfValue->d_val();
+        else
+          std::cerr << "<absent-or-nondouble>";
+        std::cerr << '\n';
+      }
+      if (source.m_elementParsed) {
+        typedFieldsMatch =
+            typedFieldsMatch &&
+            findDynamicDxfGroup(raw, "AcDbBlockElement", 300) != nullptr &&
+            findDynamicDxfGroup(raw, "AcDbBlockElement", 300)->type() ==
+                DRW_Variant::STRING &&
+            findDynamicDxfGroup(raw, "AcDbBlockElement", 300)->c_str() ==
+                source.m_elementName &&
+            dynamicDxfIntegerEquals(raw, "AcDbBlockElement", 98,
+                                    source.m_elementMajor) &&
+            dynamicDxfIntegerEquals(raw, "AcDbBlockElement", 99,
+                                    source.m_elementMinor) &&
+            dynamicDxfIntegerEquals(raw, "AcDbBlockElement", 1071,
+                                    source.m_eed1071);
+        commonFieldsCompared += typedFieldsMatch ? 4u : 0u;
+      }
+      if (source.m_kind ==
+          DRW_DynamicBlockObject::Kind::GripLocationComponent) {
+        const DRW_Variant *gripExpr =
+            findDynamicDxfGroup(raw, "AcDbBlockGripExpr", 300);
+        const bool gripFieldsMatch =
+            source.m_bodyFullyDecoded &&
+            dynamicDxfIntegerEquals(raw, "AcDbBlockGripExpr", 91,
+                                    source.m_gripType) &&
+            gripExpr != nullptr && gripExpr->type() == DRW_Variant::STRING &&
+            gripExpr->c_str() == source.m_gripExpr;
+        typedFieldsMatch = typedFieldsMatch && gripFieldsMatch;
+        commonFieldsCompared += gripFieldsMatch ? 2u : 0u;
+      }
+      if (!typedFieldsMatch) {
+        targetStructureMatches = false;
+        std::cout.flush();
+        std::cerr << "typed common-field mismatch " << source.m_recordName
+                  << '@' << std::hex << source.handle << std::dec
+                  << " owner=" << std::hex << source.parentHandle << std::dec
+                  << " eval=" << source.m_evalExprParsed
+                  << " node/major/minor=" << source.m_nodeId << '/'
+                  << source.m_major << '/' << source.m_minor
+                  << " valueCode=" << source.m_valueCode
+                  << " hasValueDouble=" << source.m_hasValueDouble
+                  << " valueDouble=" << source.m_valueDouble
+                  << " bodyFullyDecoded=" << source.m_bodyFullyDecoded << '\n';
+      }
+      const DRW_Variant *valueSelector =
+          findDynamicDxfGroup(raw, "AcDbEvalExpr", 70);
+      std::cout << "  " << source.m_recordName << '@' << std::hex
+                << source.handle << std::dec
+                << " valueCode=" << source.m_valueCode << " dxf70=";
+      if (valueSelector != nullptr &&
+          valueSelector->type() == DRW_Variant::INTEGER)
+        std::cout << valueSelector->i_val();
+      else
+        std::cout << "<absent>";
+      std::cout << " bodyFullyDecoded=" << source.m_bodyFullyDecoded << '\n';
+    }
+    bool classesMatch = true;
+    for (const auto &expected : targetClassCounts) {
+      std::size_t matches = 0;
+      int declaredInstances = 0;
+      for (const DRW_Class &cls : dxfData.dxfClasses) {
+        if (cls.recName != expected.first)
+          continue;
+        ++matches;
+        declaredInstances = cls.instanceCount;
+      }
+      classesMatch = classesMatch && matches == 1u &&
+                     declaredInstances >= static_cast<int>(expected.second);
+    }
+    if (!classesMatch) {
+      std::cerr << "DXF CLASSES rows do not cover the dynamic-block closure\n";
+      return false;
+    }
+
+    std::cout << "dynamic-block typed-DXF correlation: graph=" << std::hex
+              << sourceDynamicGraph->handle << std::dec
+              << " nodes=" << sourceDynamicGraph->m_nodes.size()
+              << " edges=" << sourceDynamicGraph->m_edges.size()
+              << " targets=" << targetClassCounts.size()
+              << " classes=" << targetClassCounts.size()
+              << " common-fields=" << commonFieldsCompared
+              << " graph/owner/structure-match="
+              << (graphMatches && targetStructureMatches ? "yes" : "no")
+              << " classes-match=" << (classesMatch ? "yes" : "no")
+              << " selector40-value-mismatches=" << selector40ValueMismatches
+              << " DWG-records=" << dwgIface.dynamicObjects.size()
+              << " DXF-records=" << dxfIface.dynamicRecords.size()
+              << " (non-matching fields remain unqualified)\n";
+    for (const auto &entry : targetClassCounts)
+      std::cout << "  " << entry.first << ": " << entry.second << '\n';
+    return graphMatches && targetStructureMatches && classesMatch &&
+           selector40ValueMismatches == 0u;
+}
+
+bool runAcshPrefixSampleQualification(const std::filesystem::path& path) {
+    if (!std::filesystem::is_regular_file(path))
+        return false;
+
+    class FrameCaptureIface final : public dx_iface {
+    public:
+        std::vector<DRW_DwgFramePublication> frames;
+        void addDwgFramePublication(
+            const DRW_DwgFramePublication& frame) override {
+            frames.push_back(frame);
+        }
+    };
+    dx_data captured;
+    FrameCaptureIface iface;
+    iface.cData = &captured;
+    dwgRW reader(path.string().c_str());
+    const bool readOk = reader.read(&iface, false);
+    if (!readOk || reader.getVersion() != DRW::AC1027) {
+        std::cerr << "ACSH sample read/version: read=" << readOk
+                  << " version=" << static_cast<int>(reader.getVersion())
+                  << '\n';
+        return false;
+    }
+
+    const auto schemaByIndex = [&captured](std::uint32_t schemaIndex)
+        -> const DRW_DataStorageSchema* {
+        if (captured.dataStorageSections.size() != 1u)
+            return nullptr;
+        for (const DRW_DataStorageSchema& schema :
+             captured.dataStorageSections.front().schemas) {
+            if (schema.index == schemaIndex)
+                return &schema;
+        }
+        return nullptr;
+    };
+    const auto propertyMatches = [](const DRW_DataStorageSchema* schema,
+                                    std::size_t propertyIndex,
+                                    std::uint32_t nameIndex,
+                                    const char* name) {
+        return schema != nullptr && propertyIndex < schema->properties.size()
+            && schema->properties[propertyIndex].nameIndex == nameIndex
+            && schema->properties[propertyIndex].name == name;
+    };
+    bool acdsSchemasMatch = false;
+    if (captured.dataStorageSections.size() == 1u) {
+        const DRW_DataStorageSection& storage =
+            captured.dataStorageSections.front();
+        const DRW_DataStorageSchema* thumbnail = schemaByIndex(0u);
+        const DRW_DataStorageSchema* treated = schemaByIndex(1u);
+        const DRW_DataStorageSchema* legacy = schemaByIndex(2u);
+        const DRW_DataStorageSchema* indexable = schemaByIndex(3u);
+        const DRW_DataStorageSchema* handleAttribute = schemaByIndex(4u);
+        const DRW_DataStorageSchema* modeler = schemaByIndex(5u);
+        const std::array<UTF8STRING, 8> propertyNames{{
+            "AcDbDs::ID", "Thumbnail_Data", "AcDbDs::TreatedAsObjectData",
+            "AcDbDs::Legacy", "AcDs:Indexable", "AcDbDs::HandleAttribute",
+            "AcDbDs::ID", "ASM_Data"}};
+        bool namesMatch = storage.schemaPropertyNameCount == 2u
+            && storage.schemaPropertyNames.size() == 8u;
+        if (namesMatch) {
+            for (std::size_t index = 0; index < propertyNames.size(); ++index) {
+                namesMatch = namesMatch
+                    && storage.schemaPropertyNames[index]
+                        == propertyNames[index];
+            }
+        }
+        const bool propertiesMatch = namesMatch
+            && thumbnail != nullptr && treated != nullptr && legacy != nullptr
+            && indexable != nullptr && handleAttribute != nullptr
+            && modeler != nullptr
+            && thumbnail->segmentIndex == treated->segmentIndex
+            && thumbnail->segmentIndex == legacy->segmentIndex
+            && thumbnail->segmentIndex == indexable->segmentIndex
+            && thumbnail->segmentIndex == handleAttribute->segmentIndex
+            && thumbnail->segmentIndex != modeler->segmentIndex
+            && thumbnail->properties.size() == 2u
+            && propertyMatches(thumbnail, 0u, 0u, "AcDbDs::ID")
+            && propertyMatches(thumbnail, 1u, 1u, "Thumbnail_Data")
+            && treated != nullptr && treated->properties.size() == 1u
+            && propertyMatches(treated, 0u, 2u,
+                               "AcDbDs::TreatedAsObjectData")
+            && legacy != nullptr && legacy->properties.size() == 1u
+            && propertyMatches(legacy, 0u, 3u, "AcDbDs::Legacy")
+            && indexable != nullptr && indexable->properties.size() == 1u
+            && propertyMatches(indexable, 0u, 4u, "AcDs:Indexable")
+            && handleAttribute != nullptr
+            && handleAttribute->properties.size() == 1u
+            && propertyMatches(handleAttribute, 0u, 5u,
+                               "AcDbDs::HandleAttribute")
+            && modeler->properties.size() == 2u
+            && propertyMatches(modeler, 0u, 0u, "AcDbDs::ID")
+            && propertyMatches(modeler, 1u, 1u, "ASM_Data");
+        std::size_t thumbnailRecords = 0;
+        std::size_t modelerRecords = 0;
+        for (const DRW_DataStorageRecord& record : storage.records) {
+            const bool isThumbnail = record.schemaIndex == 0u
+                && !record.hasPayloadMarker && record.payload.size() >= 8u
+                && record.payload[0] == 0x89u && record.payload[1] == 'P'
+                && record.payload[2] == 'N' && record.payload[3] == 'G';
+            const bool isModeler = record.schemaIndex == 5u
+                && record.hasPayloadMarker
+                && record.payload.size() >= 15u
+                && std::equal(record.payload.begin(),
+                              record.payload.begin() + 15,
+                              "ACIS BinaryFile");
+            thumbnailRecords += isThumbnail ? 1u : 0u;
+            modelerRecords += isModeler ? 1u : 0u;
+        }
+        acdsSchemasMatch = storage.schemaCount == 6u && namesMatch
+            && propertiesMatch && thumbnailRecords == 5u
+            && modelerRecords == 3u;
+        if (!acdsSchemasMatch) {
+            std::cerr << "ACDS segment-local schema qualification failed: "
+                      << "sections=" << captured.dataStorageSections.size()
+                      << " schemas=" << storage.schemaCount
+                      << " names=" << storage.schemaPropertyNames.size()
+                      << " records=" << storage.records.size()
+                      << " thumbnails=" << thumbnailRecords
+                      << " modelers=" << modelerRecords
+                      << " properties=" << propertiesMatch << '\n';
+        }
+    }
+
+    const auto findObject = [&captured](const UTF8STRING& name,
+                                        std::uint32_t handle)
+        -> const DRW_AcShHistoryObject* {
+        const DRW_AcShHistoryObject* found = nullptr;
+        for (const DRW_AcShHistoryObject& object :
+             captured.acshHistoryObjects) {
+            if (object.m_recordName != name || object.handle != handle)
+                continue;
+            if (found != nullptr)
+                return nullptr;
+            found = &object;
+        }
+        return found;
+    };
+    const DRW_AcShHistoryObject* box =
+        findObject("ACSH_BOX_CLASS", 0xD68u);
+    const DRW_AcShHistoryObject* extrusion =
+        findObject("ACSH_EXTRUSION_CLASS", 0xD6Du);
+    const DRW_AcShHistoryObject* boxHistory =
+        findObject("ACSH_HISTORY_CLASS", 0xD66u);
+    const DRW_AcShHistoryObject* extrusionHistory =
+        findObject("ACSH_HISTORY_CLASS", 0xD6Bu);
+    const auto findGraph = [&captured](std::uint32_t handle)
+        -> const DRW_EvaluationGraph* {
+        const DRW_EvaluationGraph* found = nullptr;
+        for (const DRW_EvaluationGraph& graph : captured.evaluationGraphs) {
+            if (graph.handle != handle)
+                continue;
+            if (found != nullptr)
+                return nullptr;
+            found = &graph;
+        }
+        return found;
+    };
+    const DRW_EvaluationGraph* boxGraph = findGraph(0xD67u);
+    const DRW_EvaluationGraph* extrusionGraph = findGraph(0xD6Cu);
+    if (box == nullptr || extrusion == nullptr || boxHistory == nullptr
+        || extrusionHistory == nullptr || boxGraph == nullptr
+        || extrusionGraph == nullptr) {
+        std::cerr << "ACSH sample object lookup failed; retained"
+                  << captured.acshHistoryObjects.size() << " objects:";
+        for (const DRW_AcShHistoryObject& object :
+             captured.acshHistoryObjects) {
+            std::cerr << ' ' << object.m_recordName << '@' << std::hex
+                      << object.handle << std::dec;
+        }
+        std::cerr << '\n';
+        return false;
+    }
+
+    const auto findModeler = [&captured](std::uint32_t handle)
+        -> const DRW_ModelerGeometry* {
+        const DRW_ModelerGeometry* found = nullptr;
+        for (const DRW_Entity* entity : captured.mBlock->ent) {
+            if (entity == nullptr || entity->handle != handle
+                || (entity->eType != DRW::E3DSOLID
+                    && entity->eType != DRW::REGION))
+                continue;
+            if (found != nullptr)
+                return nullptr;
+            found = static_cast<const DRW_ModelerGeometry*>(entity);
+        }
+        return found;
+    };
+    const DRW_ModelerGeometry* boxModeler = findModeler(0xD65u);
+    const bool boxClosureLinksMatch = boxModeler != nullptr
+        && boxHistory->m_major == 33u && boxHistory->m_minor == 329u
+        && boxHistory->m_historyNodeId == 1u
+        && boxModeler->m_historyHandle == boxHistory->handle
+        && boxHistory->parentHandle == boxModeler->handle
+        && boxHistory->m_ownerHandle == boxGraph->handle
+        && boxGraph->parentHandle == boxHistory->handle
+        && boxGraph->m_value96 == 1 && boxGraph->m_value97 == 1
+        && boxGraph->m_nodes.size() == 1u
+        && boxGraph->m_nodes.front().m_index == 0
+        && boxGraph->m_nodes.front().m_flags == 32
+        && boxGraph->m_nodes.front().m_expressionHandle == box->handle
+        && boxGraph->m_edges.empty()
+        && box->parentHandle == boxGraph->handle
+        && box->m_historyNodePrefix.m_handle == 0x96u;
+    const DRW_ModelerGeometry* extrusionModeler = findModeler(0xD6Au);
+    const bool extrusionClosureLinksMatch = extrusionModeler != nullptr
+        && extrusionModeler->m_historyHandle == extrusionHistory->handle
+        && extrusionHistory->parentHandle == extrusionModeler->handle
+        && extrusionHistory->m_ownerHandle == extrusionGraph->handle
+        && extrusionGraph->parentHandle == extrusionHistory->handle
+        && extrusionGraph->m_nodes.size() == 1u
+        && extrusionGraph->m_nodes.front().m_expressionHandle
+            == extrusion->handle
+        && extrusion->parentHandle == extrusionGraph->handle;
+
+    const std::array<double, 16> boxTransform{{
+        1.0, 0.0, 0.0, 17.77672546982376,
+        0.0, 1.0, 0.0, -220.8501226607159,
+        0.0, 0.0, 1.0, 2.5,
+        0.0, 0.0, 0.0, 1.0}};
+    const std::array<double, 16> extrusionTransform{{
+        1.0, 0.0, 0.0, 15.27672546982376,
+        0.0, 1.0, 0.0, -223.3501226607159,
+        0.0, 0.0, 1.0, 0.0,
+        0.0, 0.0, 0.0, 1.0}};
+    const auto close = [](double left, double right) {
+        return std::abs(left - right) <= 1e-12;
+    };
+    const auto prefixMatches = [&close](
+        const DRW_AcShHistoryObject& object,
+        const std::array<double, 16>& expectedTransform,
+        std::int32_t expectedStep) {
+        if (!object.m_evalExprPrefix.m_complete
+            || object.m_evalExprPrefix.m_value98 != 33
+            || object.m_evalExprPrefix.m_value99 != 329
+            || object.m_evalExprPrefix.m_id != 1
+            || object.m_evalExprPrefix.m_hasEvaluatedValue
+            || !object.m_historyNodePrefix.m_complete
+            || object.m_historyNodePrefix.m_major != 33
+            || object.m_historyNodePrefix.m_minor != 329
+            || object.m_historyNodePrefix.m_colorIndex != 256
+            || object.m_historyNodePrefix.m_nodeValue != expectedStep
+            || object.m_historyNodePrefix.m_handle != 0x96u)
+            return false;
+        for (std::size_t index = 0; index < expectedTransform.size(); ++index) {
+            if (!close(object.m_historyNodePrefix.m_transform[index],
+                       expectedTransform[index]))
+                return false;
+        }
+        return true;
+    };
+    const bool prefixesMatch = prefixMatches(*box, boxTransform, 3)
+        && prefixMatches(*extrusion, extrusionTransform, 4);
+    if (!prefixesMatch) {
+        const auto printPrefix = [](const DRW_AcShHistoryObject& object) {
+            std::cerr << object.m_recordName << '@' << std::hex << object.handle
+                      << std::dec << " eval=" << object.m_evalExprPrefix.m_complete
+                      << ':' << object.m_evalExprPrefix.m_unknown << '/'
+                      << object.m_evalExprPrefix.m_value98 << '/'
+                      << object.m_evalExprPrefix.m_value99 << '/'
+                      << object.m_evalExprPrefix.m_valueCode << '/'
+                      << object.m_evalExprPrefix.m_id << " history="
+                      << object.m_historyNodePrefix.m_complete << ':'
+                      << object.m_historyNodePrefix.m_major << '/'
+                      << object.m_historyNodePrefix.m_minor << '/'
+                      << object.m_historyNodePrefix.m_colorIndex << '/'
+                      << object.m_historyNodePrefix.m_nodeValue << '/'
+                      << std::hex << object.m_historyNodePrefix.m_handle
+                      << std::dec << " transform:";
+            for (double value : object.m_historyNodePrefix.m_transform)
+                std::cerr << ' ' << value;
+            std::cerr << '\n';
+        };
+        printPrefix(*box);
+        printPrefix(*extrusion);
+    }
+    if (prefixesMatch && boxClosureLinksMatch && extrusionClosureLinksMatch) {
+        std::cout << "ACSH typed closure witness: modelers=2 graphs="
+                  << captured.evaluationGraphs.size() << " history="
+                  << captured.acshHistoryObjects.size() << " materials="
+                  << captured.materials.size() << " proxies="
+                  << captured.proxyObjects.size() << " linked-box=yes"
+                  << " linked-extrusion=yes box-history="
+                  << boxHistory->m_major << '/' << boxHistory->m_minor << '/'
+                  << boxHistory->m_historyNodeId << '\n';
+        for (const DRW_EvaluationGraph& graph : captured.evaluationGraphs) {
+            if (graph.handle == boxGraph->handle
+                || graph.handle == extrusionGraph->handle)
+                continue;
+            const bool parentIsHistory = std::any_of(
+                captured.acshHistoryObjects.begin(),
+                captured.acshHistoryObjects.end(),
+                [&graph](const DRW_AcShHistoryObject& object) {
+                    return object.handle == graph.parentHandle;
+                });
+            const bool parentIsModeler = std::any_of(
+                captured.mBlock->ent.begin(), captured.mBlock->ent.end(),
+                [&graph](const DRW_Entity* entity) {
+                    return entity != nullptr
+                        && entity->handle == graph.parentHandle;
+                });
+            std::cout << "ACSH additional graph: handle=" << std::hex
+                      << graph.handle << " parent=" << graph.parentHandle
+                      << std::dec << " parent-is-history=" << parentIsHistory
+                      << " parent-is-modeler=" << parentIsModeler
+                      << " nodes=" << graph.m_nodes.size()
+                      << " edges=" << graph.m_edges.size() << " targets=";
+            for (const DRW_EvaluationGraphNode& node : graph.m_nodes)
+                std::cout << ' ' << std::hex << node.m_expressionHandle
+                          << std::dec;
+            std::cout << '\n';
+            std::vector<std::uint32_t> associatedHandles{graph.parentHandle};
+            for (const DRW_DwgFramePublication& frame : iface.frames) {
+                if (frame.m_handle == graph.parentHandle
+                    && frame.m_parentHandle != DRW::NoHandle
+                    && frame.m_parentHandle != 0)
+                    associatedHandles.push_back(frame.m_parentHandle);
+            }
+            for (const DRW_EvaluationGraphNode& node : graph.m_nodes) {
+                if (node.m_expressionHandle != 0)
+                    associatedHandles.push_back(node.m_expressionHandle);
+            }
+            std::sort(associatedHandles.begin(), associatedHandles.end());
+            associatedHandles.erase(
+                std::unique(associatedHandles.begin(), associatedHandles.end()),
+                associatedHandles.end());
+            for (const std::uint32_t handle : associatedHandles) {
+                for (const DRW_DwgFramePublication& frame : iface.frames) {
+                    if (frame.m_handle != handle)
+                        continue;
+                    std::cout << "ACSH additional graph closure frame: handle="
+                              << std::hex << frame.m_handle << std::dec
+                              << " record=" << frame.m_recordName
+                              << " class=" << frame.m_className
+                              << " encoded-type=" << frame.m_encodedType
+                              << " resolved-type=" << frame.m_resolvedType
+                              << " parent=" << std::hex
+                              << frame.m_parentHandle << std::dec << '\n';
+                }
+            }
+        }
+    }
+    return acdsSchemasMatch && prefixesMatch && boxClosureLinksMatch
+        && extrusionClosureLinksMatch
+        && box->m_shapeParams == std::vector<double>({5.0, 5.0, 5.0})
+        && close(extrusion->m_direction.z, 4.380487155114503);
+}
+
+bool runDxfEvaluationGraphRoundTrip(
+    bool binary, const std::filesystem::path& directory, bool keepOutput) {
+    const std::string encoding = binary ? "binary" : "ascii";
+    const std::filesystem::path output = directory /
+        ("libdxfrw-ac1027-evaluation-graph-" + encoding + ".dxf");
+    const std::filesystem::path rejectedOutput = directory /
+        ("libdxfrw-ac1018-evaluation-graph-" + encoding + ".dxf");
+    std::error_code ec;
+    std::filesystem::remove(output, ec);
+    std::filesystem::remove(rejectedOutput, ec);
+
+    dx_data source;
+    auto* line = new DRW_Line();
+    line->handle = DRW::DwgNamedObjectsDictionaryHandle;
+    const std::uint32_t sourceLineHandle = line->handle;
+    line->basePoint = DRW_Coord(1.0, 2.0, 3.0);
+    line->secPoint = DRW_Coord(4.0, 5.0, 6.0);
+    source.mBlock->ent.push_back(line);
+
+    DRW_EvaluationGraph graph;
+    graph.handle = 0xD67u;
+    graph.m_value96 = 26;
+    graph.m_value97 = 26;
+    DRW_EvaluationGraphNode node;
+    node.m_index = 0;
+    node.m_flags = 32;
+    node.m_nextNodeIndex = 1;
+    node.m_expressionHandle = line->handle;
+    node.m_data1 = 2;
+    node.m_data2 = 5;
+    node.m_data3 = 0;
+    node.m_data4 = 6;
+    graph.m_nodes.push_back(node);
+    DRW_EvaluationGraphEdge edge;
+    edge.m_value92 = -1;
+    edge.m_value93 = -1;
+    edge.m_value94 = 2;
+    edge.m_value91a = 2;
+    edge.m_value91b = 2;
+    edge.m_value92a = 1;
+    edge.m_value92b = 2;
+    edge.m_value92c = 3;
+    edge.m_value92d = 4;
+    edge.m_value92e = 5;
+    graph.m_edges.push_back(edge);
+    source.evaluationGraphs.push_back(graph);
+
+    DRW_Class aliasClass;
+    if (!dxfRW::dxfClassForRecordName("EVALUATION_GRAPH", aliasClass))
+        return false;
+    aliasClass.instanceCount = 99;
+    source.dxfClasses.push_back(aliasClass);
+
+    dx_iface exporter;
+    if (!exporter.fileExport(output.string(), DRW::AC1027, binary,
+                             &source, false)) {
+        if (!keepOutput)
+            std::filesystem::remove(output, ec);
+        return false;
+    }
+    dx_data imported;
+    dx_iface importer;
+    if (!importer.fileImport(output.string(), &imported, false)) {
+        if (!keepOutput)
+            std::filesystem::remove(output, ec);
+        return false;
+    }
+
+    const DRW_Line* importedLine = nullptr;
+    for (const DRW_Entity* entity : imported.mBlock->ent) {
+        if (entity != nullptr && entity->eType == DRW::LINE) {
+            importedLine = static_cast<const DRW_Line*>(entity);
+            break;
+        }
+    }
+    const bool classesMatch = imported.dxfClasses.size() == 1u
+        && imported.dxfClasses.front().recName == "ACAD_EVALUATION_GRAPH"
+        && imported.dxfClasses.front().instanceCount == 1;
+    const bool graphMatch = imported.evaluationGraphs.size() == 1u
+        && imported.evaluationGraphs.front().handle == graph.handle
+        && imported.evaluationGraphs.front().parentHandle
+               == DRW::DwgNamedObjectsDictionaryHandle
+        && imported.evaluationGraphs.front().m_value96 == graph.m_value96
+        && imported.evaluationGraphs.front().m_value97 == graph.m_value97
+        && imported.evaluationGraphs.front().m_nodes.size() == 1u
+        && imported.evaluationGraphs.front().m_nodes.front().m_flags == 32
+        && imported.evaluationGraphs.front().m_nodes.front()
+               .m_expressionHandle != sourceLineHandle
+        && imported.evaluationGraphs.front().m_nodes.front()
+               .m_expressionHandle
+               == (importedLine == nullptr ? 0u : importedLine->handle)
+        && imported.evaluationGraphs.front().m_nodes.front().m_data4 == 6
+        && imported.evaluationGraphs.front().m_edges.size() == 1u
+        && imported.evaluationGraphs.front().m_edges.front().m_value92 == -1
+        && imported.evaluationGraphs.front().m_edges.front().m_value92e == 5;
+
+    // AC1021 is the minimum version for this typed OBJECT. A rejected older
+    // target must not publish a partial DXF at its final path.
+    dx_iface oldVersionExporter;
+    const bool oldVersionRejected =
+        !oldVersionExporter.fileExport(rejectedOutput.string(), DRW::AC1018,
+                                       binary, &source, false)
+        && !std::filesystem::exists(rejectedOutput);
+    if (!keepOutput)
+        std::filesystem::remove(output, ec);
+    if (!(importedLine != nullptr && classesMatch && graphMatch
+          && oldVersionRejected)) {
+        std::cerr << "EvaluationGraph round-trip details (" << encoding
+                  << "): line=" << (importedLine != nullptr)
+                  << " class=" << classesMatch << " graphs="
+                  << imported.evaluationGraphs.size() << " graph="
+                  << graphMatch << " old-version=" << oldVersionRejected
+                  << '\n';
+        if (!imported.evaluationGraphs.empty()) {
+            const DRW_EvaluationGraph& actual =
+                imported.evaluationGraphs.front();
+            std::cerr << "EvaluationGraph values: handle=" << actual.handle
+                      << " owner=" << actual.parentHandle << " nodes="
+                      << actual.m_nodes.size() << " edges="
+                      << actual.m_edges.size();
+            if (!actual.m_nodes.empty()) {
+                std::cerr << " expression="
+                          << actual.m_nodes.front().m_expressionHandle
+                          << " target="
+                          << (importedLine == nullptr
+                                  ? 0u : importedLine->handle);
+            }
+            std::cerr << '\n';
+        }
+    }
+    return importedLine != nullptr && classesMatch && graphMatch
+        && oldVersionRejected;
+}
+
+bool runDxfAcdsDataStorageProjection(
+    bool binary, const std::filesystem::path& directory, bool keepOutput,
+    bool reverseCallbackCollections = false,
+    bool reverseEntityOrder = false,
+    bool reassignedClassIds = false) {
+    const std::string encoding = binary ? "binary" : "ascii";
+    const std::filesystem::path output = directory /
+        ("libdxfrw-ac1027-acds-projection-" + encoding
+         + (reverseCallbackCollections ? "-reversed-callbacks" : "")
+         + (reverseEntityOrder ? "-reversed-entities" : "")
+         + (reassignedClassIds ? "-reassigned-classes" : "")
+         + ".dxf");
+    std::error_code ec;
+    std::filesystem::remove(output, ec);
+
+    constexpr std::uint32_t sourceHandle = 0xFC20u;
+    const std::vector<std::uint8_t> payload {
+        'A', 'C', 'I', 'S', ' ', 'B', 'i', 'n', 'a', 'r', 'y', 'F', 'i', 'l', 'e',
+        0x01u, 0x02u, 0x03u, 0x04u};
+    dx_data source;
+    auto* neighborLine = new DRW_Line();
+    neighborLine->basePoint = DRW_Coord(10.0, 20.0, 30.0);
+    neighborLine->secPoint = DRW_Coord(14.0, 25.0, 36.0);
+    if (!reverseEntityOrder)
+        source.mBlock->ent.push_back(neighborLine);
+    addLocalAcdsDataStorageModeler(source, sourceHandle, payload);
+    if (reassignedClassIds) {
+        const std::int32_t renumbered[] = {500, 501, 502};
+        std::size_t index = 0;
+        for (DRW_ProxyObject& proxy : source.proxyObjects)
+            proxy.m_proxyClassId = renumbered[index++];
+        index = 0;
+        for (DRW_DwgClassCoverageEntry& cls :
+             source.dwgClassCoverage.m_entries) {
+            cls.m_classNumber =
+                static_cast<std::uint16_t>(renumbered[index++]);
+        }
+    }
+    if (reverseEntityOrder)
+        source.mBlock->ent.push_back(neighborLine);
+    if (reverseCallbackCollections) {
+        source.proxyObjects.reverse();
+        source.materials.reverse();
+        source.dictionaries.reverse();
+    }
+
+    dx_iface exporter;
+    if (!exporter.fileExport(output.string(), DRW::AC1027, binary,
+                             &source, false)) {
+        if (!keepOutput)
+            std::filesystem::remove(output, ec);
+        return false;
+    }
+
+    dx_data imported;
+    dx_iface importer;
+    const bool readOk = importer.fileImport(output.string(), &imported, false);
+    const DRW_ModelerGeometry* importedModeler = nullptr;
+    if (readOk) {
+        for (const DRW_Entity* entity : imported.mBlock->ent) {
+            if (entity != nullptr && entity->eType == DRW::E3DSOLID) {
+                importedModeler =
+                    static_cast<const DRW_ModelerGeometry*>(entity);
+                break;
+            }
+        }
+    }
+    std::string linkedHandle;
+    std::vector<std::uint8_t> parsedPayload;
+    char expectedHandle[9] = {};
+    if (importedModeler != nullptr)
+        std::snprintf(expectedHandle, sizeof(expectedHandle), "%X",
+                      importedModeler->handle);
+    const bool schemaMatch = imported.rawDxfSections.size() == 1u
+        && imported.rawDxfSections.front().m_name == "ACDSDATA"
+        && hasExpectedAcdsSchemaDefinitions(imported.rawDxfSections.front());
+    const bool proxyTerminators = readOk
+        && std::all_of(imported.rawProxyObjects.begin(),
+                       imported.rawProxyObjects.end(),
+                       [](const DRW_RawDxfObject& object) {
+                           return std::count_if(
+                                      object.groups.begin(),
+                                      object.groups.end(),
+                                      [](const DRW_Variant& group) {
+                                          return group.code() == 94
+                                              && group.type()
+                                                     == DRW_Variant::INTEGER
+                                              && group.i_val() == 0;
+                                      }) == 1;
+                       });
+    const std::array<std::pair<const char*, int>, 4> expectedClasses {{
+        {"ACSH_HISTORY_CLASS", 1},
+        {"ACAD_EVALUATION_GRAPH", 1},
+        {"ACSH_CONE_CLASS", 1},
+        {"MATERIAL", 3}
+    }};
+    bool classesMatch = imported.dxfClasses.size() == expectedClasses.size();
+    if (classesMatch) {
+        for (std::size_t index = 0; index < expectedClasses.size(); ++index) {
+            const DRW_Class& cls = imported.dxfClasses[index];
+            if (cls.recName != expectedClasses[index].first
+                || cls.instanceCount != expectedClasses[index].second
+                || cls.wasaProxyFlag != (index < 3u ? 1 : 0)
+                || cls.entityFlag != 0) {
+                classesMatch = false;
+                break;
+            }
+        }
+    }
+    const bool neighborLineMatch = readOk
+        && std::any_of(imported.mBlock->ent.begin(), imported.mBlock->ent.end(),
+                       [](const DRW_Entity* entity) {
+                           if (entity == nullptr || entity->eType != DRW::LINE)
+                               return false;
+                           const auto* line =
+                               static_cast<const DRW_Line*>(entity);
+                           return line->basePoint.x == 10.0
+                               && line->basePoint.y == 20.0
+                               && line->basePoint.z == 30.0
+                               && line->secPoint.x == 14.0
+                               && line->secPoint.y == 25.0
+                               && line->secPoint.z == 36.0;
+                       });
+    bool result = importedModeler != nullptr
+        && neighborLineMatch
+        && importedModeler->handle != sourceHandle
+        && importedModeler->m_historyHandle == 0x20Eu
+        && schemaMatch
+        && classesMatch
+        && findAcdsRecordPayload(imported.rawDxfSections.front(), "ASM_Data",
+                                 linkedHandle, parsedPayload)
+        && linkedHandle == expectedHandle
+        && parsedPayload == payload
+        && imported.proxyObjects.size() == 3u
+        && imported.rawProxyObjects.size() == 3u
+        && proxyTerminators
+        && std::any_of(imported.dictionaries.begin(),
+                       imported.dictionaries.end(),
+                       [](const DRW_Dictionary& dictionary) {
+                           return dictionary.handle == 0x72u
+                               && dictionary.parentHandle == 0xCu
+                               && dictionary.m_entries.size() == 3u;
+                       })
+        && imported.materials.size() == 3u;
+    if (result) {
+        std::unordered_map<std::uint32_t, const DRW_ProxyObject*> proxies;
+        for (const DRW_ProxyObject& value : imported.proxyObjects)
+            proxies.emplace(value.handle, &value);
+        const auto history = proxies.find(0x20Eu);
+        const auto evaluation = proxies.find(0x20Du);
+        const auto operation = proxies.find(0x20Cu);
+        const auto hasReference = [](const DRW_ProxyObject* value,
+                                     int code, std::uint32_t handle) {
+            const std::uint8_t handleCode = code == 360 ? 3u : 5u;
+            return value != nullptr
+                && std::any_of(value->m_objectIdRefs.begin(),
+                               value->m_objectIdRefs.end(),
+                               [code, handle, handleCode](
+                                   const DRW_ProxyObjectIdRef& reference) {
+                                   return reference.m_dxfCode == code
+                                       && reference.m_handleCode == handleCode
+                                       && reference.m_handle == handle;
+                               });
+        };
+        const auto hasPayload = [](const DRW_ProxyObject* value,
+                                   std::uint32_t bits, std::uint8_t byte) {
+            if (value == nullptr || value->m_objectDataBitSize != bits
+                || value->m_objectData.size() != (bits + 7u) / 8u)
+                return false;
+            for (std::size_t index = 0; index < value->m_objectData.size();
+                 ++index) {
+                const std::uint8_t expected =
+                    (index + 1u == value->m_objectData.size()
+                     && (bits & 7u) != 0u)
+                        ? static_cast<std::uint8_t>(
+                              byte & (0xFFu << (8u - (bits & 7u))))
+                        : byte;
+                if (value->m_objectData[index] != expected)
+                    return false;
+            }
+            return true;
+        };
+        if (history == proxies.end() || evaluation == proxies.end()
+            || operation == proxies.end()
+            || history->second->parentHandle != importedModeler->handle
+            || evaluation->second->parentHandle != 0x20Eu
+            || operation->second->parentHandle != 0x20Du
+            || history->second->m_proxyClassId != 500
+            || evaluation->second->m_proxyClassId != 501
+            || operation->second->m_proxyClassId != 502
+            || !hasReference(history->second, 360, 0x20Du)
+            || !hasReference(evaluation->second, 360, 0x20Cu)
+            || !hasReference(operation->second, 340, 0x96u)
+            || !hasPayload(history->second, 32, 0x0Eu)
+            || !hasPayload(evaluation->second, 190, 0x0Du)
+            || !hasPayload(operation->second, 558, 0x0Cu)) {
+            std::filesystem::remove(output, ec);
+            return false;
+        }
+    }
+    if (result && !reverseCallbackCollections && !reverseEntityOrder) {
+        // Re-exporting DXF input uses the captured CLASS records, not the
+        // DWG DataStorage projection. Exercise that distinct writer branch.
+        const std::filesystem::path replay = directory /
+            (output.stem().string() + "-replay.dxf");
+        std::filesystem::remove(replay, ec);
+        dx_iface replayExporter;
+        dx_data replayed;
+        dx_iface replayImporter;
+        result = replayExporter.fileExport(replay.string(), DRW::AC1027,
+                                           binary, &imported, false)
+            && replayImporter.fileImport(replay.string(), &replayed, false)
+            && replayed.dxfClasses.size() == imported.dxfClasses.size()
+            && replayed.rawProxyObjects.size() == 3u
+            && replayed.rawDxfSections.size() == 1u;
+        if (result) {
+            for (std::size_t index = 0; index < imported.dxfClasses.size();
+                 ++index) {
+                const DRW_Class& before = imported.dxfClasses[index];
+                const DRW_Class& after = replayed.dxfClasses[index];
+                if (before.recName != after.recName
+                    || before.className != after.className
+                    || before.instanceCount != after.instanceCount
+                    || before.wasaProxyFlag != after.wasaProxyFlag) {
+                    result = false;
+                    break;
+                }
+            }
+        }
+        if (result) {
+            const DRW_ModelerGeometry* replayedModeler = nullptr;
+            for (const DRW_Entity* entity : replayed.mBlock->ent) {
+                if (entity != nullptr && entity->eType == DRW::E3DSOLID) {
+                    replayedModeler =
+                        static_cast<const DRW_ModelerGeometry*>(entity);
+                    break;
+                }
+            }
+            std::string replayedKey;
+            std::vector<std::uint8_t> replayedPayload;
+            char replayedExpectedHandle[9] = {};
+            if (replayedModeler != nullptr) {
+                std::snprintf(replayedExpectedHandle,
+                              sizeof(replayedExpectedHandle), "%X",
+                              replayedModeler->handle);
+            }
+            result = replayedModeler != nullptr
+                && replayedModeler->m_historyHandle == 0x20Eu
+                && findAcdsRecordPayload(replayed.rawDxfSections.front(),
+                                         "ASM_Data", replayedKey,
+                                         replayedPayload)
+                && replayedKey == replayedExpectedHandle
+                && replayedPayload == payload;
+        }
+        if (!keepOutput || !result)
+            std::filesystem::remove(replay, ec);
+    }
+    if (!keepOutput || !result)
+        std::filesystem::remove(output, ec);
+    return result;
+}
+
+bool runDxfAcdsRegionWithoutHistoryProjection(
+    bool binary, const std::filesystem::path& directory, bool keepOutputs) {
+    const std::string encoding = binary ? "binary" : "ascii";
+    const std::filesystem::path output = directory /
+        ("libdxfrw-ac1027-acds-region-no-history-" + encoding + ".dxf");
+    const std::filesystem::path replay = directory /
+        ("libdxfrw-ac1027-acds-region-no-history-replay-" + encoding
+         + ".dxf");
+    std::error_code ec;
+    std::filesystem::remove(output, ec);
+    std::filesystem::remove(replay, ec);
+
+    constexpr std::uint32_t sourceHandle = 0xFC20u;
+    // Deliberately opaque marker bytes: this regression checks the REGION /
+    // ACDSDATA transport and owner key only, not ACIS validity or geometry.
+    const std::vector<std::uint8_t> payload {
+        'A', 'C', 'I', 'S', ' ', 'B', 'i', 'n', 'a', 'r', 'y', 'F', 'i', 'l', 'e',
+        0x01u, 0x02u, 0x03u, 0x04u};
+    dx_data source;
+    addLocalAcdsDataStorageModeler(source, sourceHandle, payload,
+                                   DRW::REGION, false);
+
+    const auto hasExpectedRegionAndStorage = [&payload](const dx_data& data) {
+        if (data.mBlock == nullptr || data.rawDxfSections.size() != 1u
+            || data.rawDxfSections.front().m_name != "ACDSDATA"
+            || !hasExpectedAcdsSchemaDefinitions(
+                data.rawDxfSections.front())
+            || !data.proxyObjects.empty() || !data.rawProxyObjects.empty()
+            || !data.acshHistoryObjects.empty()
+            || !data.evaluationGraphs.empty()) {
+            std::cerr << "REGION ACDSDATA structure mismatch: block="
+                      << (data.mBlock != nullptr) << " sections="
+                      << data.rawDxfSections.size() << " proxy="
+                      << data.proxyObjects.size() << '/'
+                      << data.rawProxyObjects.size() << " history="
+                      << data.acshHistoryObjects.size() << " graphs="
+                      << data.evaluationGraphs.size() << '\n';
+            return false;
+        }
+
+        const DRW_ModelerGeometry* region = nullptr;
+        std::size_t regionCount = 0u;
+        std::size_t solidCount = 0u;
+        for (const DRW_Entity* entity : data.mBlock->ent) {
+            if (entity == nullptr)
+                continue;
+            if (entity->eType == DRW::REGION) {
+                ++regionCount;
+                region = static_cast<const DRW_ModelerGeometry*>(entity);
+            } else if (entity->eType == DRW::E3DSOLID) {
+                ++solidCount;
+            }
+        }
+        if (regionCount != 1u || solidCount != 0u || region == nullptr
+            || region->handle == 0u || region->m_historyHandle != 0u) {
+            std::cerr << "REGION ACDSDATA entity mismatch: regions="
+                      << regionCount << " solids=" << solidCount
+                      << " handle=" << (region == nullptr ? 0u
+                                                           : region->handle)
+                      << " history=" << (region == nullptr ? 0u
+                                                            : region->m_historyHandle)
+                      << '\n';
+            return false;
+        }
+
+        char expectedHandle[9] = {};
+        std::snprintf(expectedHandle, sizeof(expectedHandle), "%X",
+                      region->handle);
+        std::string linkedHandle;
+        std::vector<std::uint8_t> parsedPayload;
+        const bool recordMatches = findAcdsRecordPayload(
+            data.rawDxfSections.front(), "ASM_Data", linkedHandle,
+            parsedPayload)
+            && linkedHandle == expectedHandle && parsedPayload == payload;
+        if (!recordMatches) {
+            std::cerr << "REGION ACDSDATA record mismatch: expected owner="
+                      << expectedHandle << " actual owner=" << linkedHandle
+                      << " bytes=" << parsedPayload.size() << '\n';
+        }
+        return recordMatches;
+    };
+
+    dx_iface exporter;
+    dx_data imported;
+    dx_iface importer;
+    const bool exportOk = exporter.fileExport(output.string(), DRW::AC1027,
+                                              binary, &source, false);
+    const bool importOk = exportOk
+        && importer.fileImport(output.string(), &imported, false);
+    bool result = importOk && hasExpectedRegionAndStorage(imported);
+    if (!result) {
+        std::cerr << "REGION ACDSDATA first pass failed: export=" << exportOk
+                  << " import=" << importOk << '\n';
+    }
+
+    // Re-exporting imported DXF exercises the separate DXF ACDSDATA replay
+    // path, including the REGION handle-to-record owner mapping.
+    if (result) {
+        dx_iface replayExporter;
+        dx_data replayed;
+        dx_iface replayImporter;
+        result = replayExporter.fileExport(replay.string(), DRW::AC1027,
+                                           binary, &imported, false)
+            && replayImporter.fileImport(replay.string(), &replayed, false)
+            && hasExpectedRegionAndStorage(replayed);
+    }
+
+    if (!keepOutputs) {
+        std::filesystem::remove(output, ec);
+        std::filesystem::remove(replay, ec);
+    }
+    return result;
+}
+
+bool runDxfAcdsHistoryClosureRejectsAmbiguity(
+    const std::filesystem::path& directory, bool duplicateHistoryProxy,
+    bool duplicateMaterialDictionary) {
+    const std::string suffix = duplicateHistoryProxy
+        ? "duplicate-proxy" : "duplicate-material-dictionary";
+    const std::filesystem::path output = directory /
+        ("libdxfrw-ac1027-acds-" + suffix + ".dxf");
+    std::error_code ec;
+    std::filesystem::remove(output, ec);
+    const std::vector<std::uint8_t> payload {
+        'A', 'C', 'I', 'S', ' ', 'B', 'i', 'n', 'a', 'r', 'y', 'F', 'i', 'l', 'e',
+        0x01u, 0x02u, 0x03u, 0x04u};
+    dx_data source;
+    addLocalAcdsDataStorageModeler(source, 0xFC20u, payload);
+    if (duplicateHistoryProxy) {
+        source.proxyObjects.push_back(source.proxyObjects.front());
+    } else {
+        DRW_Dictionary duplicate = source.dictionaries.front();
+        duplicate.handle = 0x73u;
+        source.dictionaries.push_back(std::move(duplicate));
+    }
+
+    dx_iface exporter;
+    const bool exportOk = exporter.fileExport(
+        output.string(), DRW::AC1027, false, &source, false);
+    const bool rejectedWithoutPublication = !exportOk
+        && !std::filesystem::exists(output);
+    std::filesystem::remove(output, ec);
+    return rejectedWithoutPublication;
+}
+
+bool runDxfAcdsHistoryClosureRejectsMixedClasses(
+    const std::filesystem::path& directory) {
+    const std::vector<std::uint8_t> payload {
+        'A', 'C', 'I', 'S', ' ', 'B', 'i', 'n', 'a', 'r', 'y', 'F', 'i', 'l', 'e',
+        0x01u, 0x02u, 0x03u, 0x04u};
+    for (int mixed = 0; mixed < 2; ++mixed) {
+        const std::filesystem::path output = directory /
+            (mixed == 0 ? "libdxfrw-acds-mixed-raw-proxy.dxf"
+                        : "libdxfrw-acds-mixed-class.dxf");
+        std::error_code ec;
+        std::filesystem::remove(output, ec);
+        dx_data source;
+        addLocalAcdsDataStorageModeler(source, 0xFC20u, payload);
+        if (mixed == 0)
+            source.rawProxyObjects.emplace_back();
+        else
+            source.dxfClasses.emplace_back();
+        dx_iface exporter;
+        if (exporter.fileExport(output.string(), DRW::AC1027, false,
+                                &source, false)
+            || std::filesystem::exists(output)) {
+            std::filesystem::remove(output, ec);
+            return false;
+        }
+    }
+    return true;
+}
+
+bool runDxfAcdsSchemaFingerprintRejectsMismatch(
+    const std::filesystem::path& directory) {
+    const std::vector<std::uint8_t> payload {
+        'A', 'C', 'I', 'S', ' ', 'B', 'i', 'n', 'a', 'r', 'y', 'F', 'i', 'l', 'e',
+        0x01u, 0x02u, 0x03u, 0x04u};
+    for (int mismatch = 0; mismatch < 3; ++mismatch) {
+        const std::filesystem::path output = directory /
+            ("libdxfrw-ac1027-acds-schema-mismatch-"
+             + std::to_string(mismatch) + ".dxf");
+        std::error_code ec;
+        std::filesystem::remove(output, ec);
+        dx_data source;
+        addLocalAcdsDataStorageModeler(source, 0xFC20u, payload);
+        DRW_DataStorageSection& storage = source.dataStorageSections.front();
+        if (mismatch == 0) {
+            storage.schemaPropertyNames[2] = "Unqualified_Property";
+        } else if (mismatch == 1) {
+            storage.schemas[1].properties[1].type = 14u;
+        } else {
+            storage.schemas[0].indexes[0] = 5u;
+        }
+
+        dx_iface exporter;
+        const bool exportOk = exporter.fileExport(
+            output.string(), DRW::AC1027, false, &source, false);
+        const bool rejectedWithoutPublication = !exportOk
+            && !std::filesystem::exists(output);
+        std::filesystem::remove(output, ec);
+        if (!rejectedWithoutPublication)
+            return false;
+    }
+    return true;
+}
+
+bool runDxfAcdsHistoryClosureRejectsMalformedEdges(
+    const std::filesystem::path& directory) {
+    static const std::array<const char*, 11> cases = {
+        "missing-history", "wrong-class", "wrong-owner", "wrong-reference",
+        "missing-material", "wrong-subclass", "proxy-bit-size",
+        "proxy-padding", "missing-class-report", "duplicate-class-binding",
+        "wrong-class-name"};
+    const std::vector<std::uint8_t> payload {
+        'A', 'C', 'I', 'S', ' ', 'B', 'i', 'n', 'a', 'r', 'y', 'F', 'i', 'l', 'e',
+        0x01u, 0x02u, 0x03u, 0x04u};
+    for (std::size_t index = 0; index < cases.size(); ++index) {
+        const std::filesystem::path output = directory /
+            (std::string("libdxfrw-ac1027-acds-edge-") + cases[index]
+             + ".dxf");
+        std::error_code ec;
+        std::filesystem::remove(output, ec);
+        dx_data source;
+        addLocalAcdsDataStorageModeler(source, 0xFC20u, payload);
+        switch (index) {
+        case 0:
+            source.proxyObjects.pop_front();
+            break;
+        case 1:
+            source.proxyObjects.front().m_proxyClassId = 520;
+            break;
+        case 2:
+            source.proxyObjects.front().parentHandle = 0x1234u;
+            break;
+        case 3:
+            source.proxyObjects.front().m_objectIdRefs.front().m_dxfCode = 340;
+            break;
+        case 4:
+            source.materials.remove_if([](const DRW_Material& material) {
+                return material.handle == 0x96u;
+            });
+            break;
+        case 5:
+            source.proxyObjects.front().m_proxySubclass = "cn:Other";
+            break;
+        case 6:
+            ++source.proxyObjects.front().m_objectDataBitSize;
+            break;
+        case 7:
+            source.proxyObjects.back().m_objectData.back() |= 1u;
+            break;
+        case 8:
+            source.dwgClassCoverage.m_complete = false;
+            break;
+        case 9:
+            source.dwgClassCoverage.m_entries.push_back(
+                source.dwgClassCoverage.m_entries.front());
+            break;
+        case 10:
+            source.dwgClassCoverage.m_entries.front().m_className = "Other";
+            break;
+        }
+
+        dx_iface exporter;
+        const bool exportOk = exporter.fileExport(
+            output.string(), DRW::AC1027, false, &source, false);
+        const bool rejectedWithoutPublication = !exportOk
+            && !std::filesystem::exists(output);
+        std::filesystem::remove(output, ec);
+        if (!rejectedWithoutPublication)
+            return false;
+    }
+    return true;
+}
+
+bool findAcdsRecordOwner(const DRW_RawDxfSection& section,
+                         const std::string& recordPayloadName,
+                         std::string& ownerHandle) {
+    const auto equalsAsciiCaseInsensitive = [](const std::string& lhs,
+                                                const char* rhs) {
+        if (rhs == nullptr || lhs.size() != std::strlen(rhs))
+            return false;
+        for (std::size_t index = 0; index < lhs.size(); ++index) {
+            if (std::toupper(static_cast<unsigned char>(lhs[index]))
+                != std::toupper(static_cast<unsigned char>(rhs[index])))
+                return false;
+        }
+        return true;
+    };
+    const auto& groups = section.m_groups;
+    for (std::size_t recordStart = 0; recordStart < groups.size();) {
+        if (groups[recordStart].code() != 0
+            || groups[recordStart].type() != DRW_Variant::STRING
+            || groups[recordStart].c_str() == nullptr) {
+            ++recordStart;
+            continue;
+        }
+        std::size_t recordEnd = recordStart + 1;
+        while (recordEnd < groups.size() && groups[recordEnd].code() != 0)
+            ++recordEnd;
+        if (equalsAsciiCaseInsensitive(groups[recordStart].c_str(),
+                                       "ACDSRECORD")) {
+            bool inId = false;
+            bool hasPayload = false;
+            std::size_t ownerCount = 0;
+            std::string candidate;
+            for (std::size_t index = recordStart + 1; index < recordEnd;
+                 ++index) {
+                const DRW_Variant& group = groups[index];
+                if (group.code() == 2
+                    && group.type() == DRW_Variant::STRING
+                    && group.c_str() != nullptr) {
+                    inId = equalsAsciiCaseInsensitive(group.c_str(),
+                                                      "AcDbDs::ID");
+                    if (equalsAsciiCaseInsensitive(group.c_str(),
+                                                   recordPayloadName.c_str()))
+                        hasPayload = true;
+                } else if (group.code() == 320
+                           && (recordPayloadName != "ASM_Data" || inId)) {
+                    ++ownerCount;
+                    if (group.type() == DRW_Variant::STRING
+                        && group.c_str() != nullptr)
+                        candidate = group.c_str();
+                }
+            }
+            if (hasPayload) {
+                if (ownerCount != 1 || candidate.empty())
+                    return false;
+                ownerHandle = candidate;
+                return true;
+            }
+        }
+        recordStart = recordEnd;
+    }
+    return false;
+}
+
+bool runDxfDimstyleRejectsInvalidBooleans(
+    const std::filesystem::path& directory) {
+    for (bool binary : {false, true}) {
+        for (int code : {290, 295}) {
+            for (int value : {-1, 2}) {
+                const std::filesystem::path output = directory /
+                    ("libdxfrw-invalid-dimstyle-bool-"
+                     + std::to_string(code) + "-" + std::to_string(value)
+                     + (binary ? "-binary.dxf" : "-ascii.dxf"));
+                std::error_code ec;
+                std::filesystem::remove(output, ec);
+
+                dx_data source;
+                DRW_Dimstyle style;
+                style.name = "LOCAL_INVALID_DIMSTYLE";
+                if (code == 290)
+                    style.dimfxlon = value;
+                else
+                    style.add("$DIMTXTDIRECTION", code, value);
+                source.dimStyles.push_back(style);
+
+                dx_iface exporter;
+                const bool exported = exporter.fileExport(
+                    output.string(), DRW::AC1027, binary, &source, false);
+                const bool outputAbsent = !std::filesystem::exists(output);
+                std::filesystem::remove(output, ec);
+                if (exported || !outputAbsent)
+                    return false;
+            }
+        }
+    }
+    return true;
+}
+
+bool runDxfViewportLightingRoundTrip(
+    bool binary, const std::filesystem::path& directory) {
+    const std::filesystem::path output = directory /
+        (binary ? "libdxfrw-viewport-lighting-binary.dxf"
+                : "libdxfrw-viewport-lighting-ascii.dxf");
+    std::error_code ec;
+    std::filesystem::remove(output, ec);
+
+    dx_data source;
+    auto* viewport = new DRW_Viewport();
+    viewport->basePoint = DRW_Coord(10.0, 20.0, 30.0);
+    viewport->vpID = 7;
+    viewport->useDefaultLighting = false;
+    viewport->defaultLightingType = 2;
+    viewport->brightness = 0.25;
+    viewport->contrast = 0.75;
+    source.mBlock->ent.push_back(viewport);
+
+    dx_iface exporter;
+    const bool exportOk = exporter.fileExport(
+        output.string(), DRW::AC1027, binary, &source, false);
+    dx_data imported;
+    dx_iface importer;
+    const bool importOk = exportOk
+        && importer.fileImport(output.string(), &imported, false);
+    const DRW_Viewport* roundTripped = nullptr;
+    if (importOk) {
+        for (const DRW_Entity* entity : imported.mBlock->ent) {
+            if (entity != nullptr && entity->eType == DRW::VIEWPORT) {
+                roundTripped = static_cast<const DRW_Viewport*>(entity);
+                break;
+            }
+        }
+    }
+    const bool result = roundTripped != nullptr
+        && roundTripped->basePoint.x == 10.0
+        && roundTripped->basePoint.y == 20.0
+        && roundTripped->basePoint.z == 30.0
+        && roundTripped->vpID == 7
+        && !roundTripped->useDefaultLighting
+        && roundTripped->defaultLightingType == 2
+        && roundTripped->brightness == 0.25
+        && roundTripped->contrast == 0.75;
+    std::filesystem::remove(output, ec);
+    return result;
+}
+
+bool runDxfRayXlineRoundTrip(
+    bool binary, const std::filesystem::path& directory) {
+    const std::filesystem::path output = directory /
+        (binary ? "libdxfrw-ray-xline-binary.dxf"
+                : "libdxfrw-ray-xline-ascii.dxf");
+    std::error_code ec;
+    std::filesystem::remove(output, ec);
+
+    dx_data source;
+    auto* ray = new DRW_Ray();
+    ray->basePoint = DRW_Coord(1.0, 2.0, 3.0);
+    ray->secPoint = DRW_Coord(0.0, 0.0, 1.0);
+    source.mBlock->ent.push_back(ray);
+    auto* xline = new DRW_Xline();
+    xline->basePoint = DRW_Coord(4.0, 5.0, 6.0);
+    xline->secPoint = DRW_Coord(0.0, 0.6, 0.8);
+    source.mBlock->ent.push_back(xline);
+
+    dx_iface exporter;
+    const bool exportOk = exporter.fileExport(
+        output.string(), DRW::AC1027, binary, &source, false);
+    dx_data imported;
+    dx_iface importer;
+    const bool importOk = exportOk
+        && importer.fileImport(output.string(), &imported, false);
+    const DRW_Ray* roundTrippedRay = nullptr;
+    const DRW_Xline* roundTrippedXline = nullptr;
+    if (importOk) {
+        for (const DRW_Entity* entity : imported.mBlock->ent) {
+            if (entity == nullptr)
+                continue;
+            if (entity->eType == DRW::RAY)
+                roundTrippedRay = static_cast<const DRW_Ray*>(entity);
+            else if (entity->eType == DRW::XLINE)
+                roundTrippedXline = static_cast<const DRW_Xline*>(entity);
+        }
+    }
+    const bool result = roundTrippedRay != nullptr
+        && roundTrippedXline != nullptr
+        && roundTrippedRay->basePoint.x == 1.0
+        && roundTrippedRay->basePoint.y == 2.0
+        && roundTrippedRay->basePoint.z == 3.0
+        && roundTrippedRay->secPoint.x == 0.0
+        && roundTrippedRay->secPoint.y == 0.0
+        && roundTrippedRay->secPoint.z == 1.0
+        && roundTrippedXline->basePoint.x == 4.0
+        && roundTrippedXline->basePoint.y == 5.0
+        && roundTrippedXline->basePoint.z == 6.0
+        && roundTrippedXline->secPoint.x == 0.0
+        && roundTrippedXline->secPoint.y == 0.6
+        && roundTrippedXline->secPoint.z == 0.8;
+    std::filesystem::remove(output, ec);
+    return result;
+}
+
+bool runDxfAcdsModelerOwnerRemap(bool binary,
+                                 const std::filesystem::path& directory,
+                                 bool keepOutputs) {
+    const std::string encoding = binary ? "binary" : "ascii";
+    const std::filesystem::path output = directory
+        / ("libdxfrw-ac1027-acds-owner-" + encoding + ".dxf");
+    const std::filesystem::path output2 = directory
+        / ("libdxfrw-ac1027-acds-owner-second-" + encoding + ".dxf");
+    std::error_code ec;
+    std::filesystem::remove(output, ec);
+    std::filesystem::remove(output2, ec);
+
+    dx_data source;
+    auto* modeler = new DRW_ModelerGeometry(DRW::E3DSOLID);
+    modeler->handle = 0xFC20u;
+    source.mBlock->ent.push_back(modeler);
+    auto* line = new DRW_Line();
+    line->handle = 0xFC21u;
+    line->basePoint = DRW_Coord(1.0, 2.0, 3.0);
+    line->secPoint = DRW_Coord(4.0, 5.0, 6.0);
+    source.mBlock->ent.push_back(line);
+    source.rawDxfSections.push_back(makeLocalAcdsDataSection("FC20"));
+
+    dx_iface exporter;
+    std::string originalLinkedHandle;
+    if (!exporter.fileExport(output.string(), DRW::AC1027, binary,
+                             &source, false)
+        || !findAcdsRecordOwner(source.rawDxfSections.front(), "ASM_Data",
+                                originalLinkedHandle)
+        || originalLinkedHandle != "FC20") {
+        if (!keepOutputs) {
+            std::filesystem::remove(output, ec);
+            std::filesystem::remove(output2, ec);
+        }
+        return false;
+    }
+
+    dx_data imported;
+    dx_iface importer;
+    if (!importer.fileImport(output.string(), &imported, false)) {
+        if (!keepOutputs) {
+            std::filesystem::remove(output, ec);
+            std::filesystem::remove(output2, ec);
+        }
+        return false;
+    }
+    const DRW_ModelerGeometry* importedModeler = nullptr;
+    for (const DRW_Entity* entity : imported.mBlock->ent) {
+        if (entity != nullptr && entity->eType == DRW::E3DSOLID) {
+            importedModeler =
+                static_cast<const DRW_ModelerGeometry*>(entity);
+            break;
+        }
+    }
+    std::string linkedHandle;
+    std::string opaqueHandle;
+    const bool firstPassValid = importedModeler != nullptr
+        && importedModeler->handle != 0xFC20u
+        && !imported.rawDxfSections.empty()
+        && findAcdsRecordOwner(imported.rawDxfSections.front(), "ASM_Data",
+                               linkedHandle)
+        && findAcdsRecordOwner(imported.rawDxfSections.front(), "OpaqueRecord",
+                               opaqueHandle)
+        && std::stoul(linkedHandle, nullptr, 16) == importedModeler->handle
+        && opaqueHandle == "FC21";
+    if (!firstPassValid) {
+        if (!keepOutputs) {
+            std::filesystem::remove(output, ec);
+            std::filesystem::remove(output2, ec);
+        }
+        return false;
+    }
+
+    dx_iface secondExporter;
+    dx_data secondImported;
+    dx_iface secondImporter;
+    const bool secondPassValid =
+        secondExporter.fileExport(output2.string(), DRW::AC1027, binary,
+                                  &imported, false)
+        && secondImporter.fileImport(output2.string(), &secondImported,
+                                     false);
+    const DRW_ModelerGeometry* secondModeler = nullptr;
+    if (secondPassValid) {
+        for (const DRW_Entity* entity : secondImported.mBlock->ent) {
+            if (entity != nullptr && entity->eType == DRW::E3DSOLID) {
+                secondModeler =
+                    static_cast<const DRW_ModelerGeometry*>(entity);
+                break;
+            }
+        }
+    }
+    linkedHandle.clear();
+    opaqueHandle.clear();
+    const bool result = secondModeler != nullptr
+        && !secondImported.rawDxfSections.empty()
+        && findAcdsRecordOwner(secondImported.rawDxfSections.front(),
+                               "ASM_Data", linkedHandle)
+        && findAcdsRecordOwner(secondImported.rawDxfSections.front(),
+                               "OpaqueRecord", opaqueHandle)
+        && std::stoul(linkedHandle, nullptr, 16) == secondModeler->handle
+        && opaqueHandle == "FC21";
+    if (!keepOutputs) {
+        std::filesystem::remove(output, ec);
+        std::filesystem::remove(output2, ec);
+    }
+    return result;
+}
+
+bool runDxfAcdsModelerOwnerRejectsMalformed(
+    bool includeOwnerHandle, bool duplicateOwnerHandle,
+    const std::string& ownerHandle,
+    bool duplicateModelerSourceHandle = false) {
+    const std::filesystem::path output =
+        std::filesystem::temp_directory_path()
+        / "libdxfrw-acds-owner-malformed.dxf";
+    std::error_code ec;
+    std::filesystem::remove(output, ec);
+    dx_data source;
+    auto* modeler = new DRW_ModelerGeometry(DRW::E3DSOLID);
+    modeler->handle = 0xFC20u;
+    source.mBlock->ent.push_back(modeler);
+    if (duplicateModelerSourceHandle) {
+        auto* duplicate = new DRW_ModelerGeometry(DRW::REGION);
+        duplicate->handle = 0xFC20u;
+        source.mBlock->ent.push_back(duplicate);
+    }
+    source.rawDxfSections.push_back(makeLocalAcdsDataSection(
+        ownerHandle, includeOwnerHandle, duplicateOwnerHandle));
+    dx_iface exporter;
+    const bool exported = exporter.fileExport(output.string(), DRW::AC1027,
+                                               false, &source, false);
+    const bool outputAbsent = !std::filesystem::exists(output);
+    std::filesystem::remove(output, ec);
+    return !exported && outputAbsent;
 }
 
 bool runDxfMalformedModelerCarrier(const char* chunk) {
@@ -5092,6 +8428,744 @@ bool runDxfMalformedModelerCarrier(const char* chunk) {
     const bool importOk = importer.fileImport(output.string(), &imported, false);
     std::filesystem::remove(output, ec);
     return !importOk && imported.mBlock->ent.empty();
+}
+
+bool runDxfModelerRejectsUnassociatedSab(
+    const std::vector<std::uint8_t>& payload) {
+    const std::filesystem::path output = std::filesystem::temp_directory_path()
+        / "libdxfrw-modeler-unassociated-sab.dxf";
+    std::error_code ec;
+    std::filesystem::remove(output, ec);
+    dx_data source;
+    auto* modeler = new DRW_ModelerGeometry(DRW::E3DSOLID);
+    modeler->handle = 0xFC01u;
+    modeler->m_rawBytes = payload;
+    source.mBlock->ent.push_back(modeler);
+    dx_iface exporter;
+    const bool exportOk = exporter.fileExport(output.string(), DRW::AC1027,
+                                               false, &source, false);
+    std::filesystem::remove(output, ec);
+    return !exportOk;
+}
+
+bool runDxfModelerRejectsDwgFramePayload() {
+    const std::filesystem::path output = std::filesystem::temp_directory_path()
+        / "libdxfrw-modeler-dwg-frame.dxf";
+    std::error_code ec;
+    std::filesystem::remove(output, ec);
+    dx_data source;
+    auto* modeler = new DRW_ModelerGeometry(DRW::E3DSOLID);
+    modeler->handle = 0xFC02u;
+    modeler->m_rawBytes = {'A', 'B', 'C'};
+    modeler->m_bodyBitSize = 24;
+    modeler->m_objectSize = 3;
+    source.mBlock->ent.push_back(modeler);
+    dx_iface exporter;
+    const bool exportOk = exporter.fileExport(output.string(), DRW::AC1024,
+                                               false, &source, false);
+    std::filesystem::remove(output, ec);
+    if (exportOk)
+        return false;
+
+    dx_data extractedSource;
+    auto* extracted = new DRW_ModelerGeometry(DRW::E3DSOLID);
+    extracted->handle = 0xFC03u;
+    extracted->m_dwgAcisPayload = {
+        'A', 'C', 'I', 'S', ' ', 'B', 'i', 'n', 'a', 'r', 'y', 'F', 'i', 'l', 'e'};
+    extractedSource.mBlock->ent.push_back(extracted);
+    dx_iface extractedExporter;
+    const bool extractedExportOk = extractedExporter.fileExport(
+        output.string(), DRW::AC1024, false, &extractedSource, false);
+    std::filesystem::remove(output, ec);
+    return !extractedExportOk;
+}
+
+bool runDxfSurfaceSatCarrierRoundTrip() {
+    const std::filesystem::path output = std::filesystem::temp_directory_path()
+        / "libdxfrw-surface-sat-carrier.dxf";
+    std::error_code ec;
+    std::filesystem::remove(output, ec);
+    const std::vector<std::uint8_t> payload{
+        'A', 'C', 'I', 'S', ' ', 'S', 'A', 'T'};
+    dx_data source;
+    auto* surface = new DRW_PlaneSurface();
+    surface->handle = 0xFB10u;
+    surface->rawAcisData = payload;
+    source.mBlock->ent.push_back(surface);
+    dx_iface exporter;
+    if (!exporter.fileExport(output.string(), DRW::AC1024, false,
+                             &source, false)) {
+        std::filesystem::remove(output, ec);
+        return false;
+    }
+    dx_data imported;
+    dx_iface importer;
+    if (!importer.fileImport(output.string(), &imported, false)) {
+        std::filesystem::remove(output, ec);
+        return false;
+    }
+    std::filesystem::remove(output, ec);
+    for (const DRW_Entity* entity : imported.mBlock->ent) {
+        if (entity == nullptr || entity->eType != DRW::PLANESURFACE)
+            continue;
+        const auto* decoded = static_cast<const DRW_PlaneSurface*>(entity);
+        return decoded->rawAcisData == payload
+            && !decoded->dxfPayloadChunks.empty()
+            && std::all_of(decoded->dxfPayloadChunks.begin(),
+                           decoded->dxfPayloadChunks.end(),
+                           [](const DRW_ModelerPayloadChunk& chunk) {
+                               return chunk.m_groupCode == 1 || chunk.m_groupCode == 3;
+                           });
+    }
+    return false;
+}
+
+bool runDxfSurfaceRejectsUnassociatedSab(
+    const std::vector<std::uint8_t>& payload) {
+    const std::filesystem::path output = std::filesystem::temp_directory_path()
+        / "libdxfrw-surface-unassociated-sab.dxf";
+    std::error_code ec;
+    std::filesystem::remove(output, ec);
+    dx_data source;
+    auto* surface = new DRW_PlaneSurface();
+    surface->handle = 0xFB11u;
+    surface->rawAcisData = payload;
+    source.mBlock->ent.push_back(surface);
+    dx_iface exporter;
+    const bool exportOk = exporter.fileExport(output.string(), DRW::AC1027,
+                                               false, &source, false);
+    std::filesystem::remove(output, ec);
+    return !exportOk;
+}
+
+bool runDxfMixedModelerCarrierChunks() {
+    const std::filesystem::path output = std::filesystem::temp_directory_path()
+        / "libdxfrw-modeler-mixed-carrier.dxf";
+    std::error_code ec;
+    std::filesystem::remove(output, ec);
+    std::ofstream stream(output);
+    stream << "0\nSECTION\n2\nENTITIES\n"
+              "0\n3DSOLID\n5\n4A\n330\n1F\n100\nAcDbEntity\n"
+              "100\nAcDbModelerGeometry\n100\nAcDb3dSolid\n70\n1\n"
+              "1\nabc\n310\n4142\n"
+              "0\nENDSEC\n0\nEOF\n";
+    stream.close();
+
+    dx_data imported;
+    dx_iface importer;
+    const bool importOk = importer.fileImport(output.string(), &imported, false);
+    std::filesystem::remove(output, ec);
+    if (!importOk)
+        return false;
+
+    for (const DRW_Entity* entity : imported.mBlock->ent) {
+        if (entity == nullptr || entity->eType != DRW::E3DSOLID)
+            continue;
+        const auto* decoded = static_cast<const DRW_ModelerGeometry*>(entity);
+        const bool chunksPreserved =
+            decoded->m_rawBytes == std::vector<std::uint8_t>{'a', 'b', 'c', 0x41, 0x42}
+            && decoded->m_dxfPayloadChunks.size() == 2
+            && decoded->m_dxfPayloadChunks[0].m_groupCode == 1
+            && decoded->m_dxfPayloadChunks[0].m_offset == 0
+            && decoded->m_dxfPayloadChunks[0].m_length == 3
+            && decoded->m_dxfPayloadChunks[1].m_groupCode == 310
+            && decoded->m_dxfPayloadChunks[1].m_offset == 3
+            && decoded->m_dxfPayloadChunks[1].m_length == 2;
+        if (!chunksPreserved)
+            return false;
+        const std::filesystem::path rejectedOutput =
+            std::filesystem::temp_directory_path()
+            / "libdxfrw-modeler-mixed-carrier-reject.dxf";
+        std::filesystem::remove(rejectedOutput, ec);
+        dx_iface exporter;
+        const bool exportOk = exporter.fileExport(rejectedOutput.string(),
+            DRW::AC1024, false, &imported, false);
+        std::filesystem::remove(rejectedOutput, ec);
+        return !exportOk;
+    }
+    return false;
+}
+
+class LocalModelerGeometry final : public DRW_ModelerGeometry {
+public:
+    using DRW_ModelerGeometry::DRW_ModelerGeometry;
+    using DRW_ModelerGeometry::parseDwg;
+    using DRW_Entity::encodeDwgCommon;
+    using DRW_Entity::encodeDwgEntHandle;
+
+    void setDwgType(std::uint16_t type) { oType = type; }
+};
+
+bool patchModelerObjectSize(std::vector<std::uint8_t>& bytes,
+                            std::uint64_t sizeFieldBit,
+                            std::uint32_t objectSizeBits) {
+    const std::uint64_t totalBits =
+        static_cast<std::uint64_t>(bytes.size()) * 8u;
+    if (sizeFieldBit > totalBits || totalBits - sizeFieldBit < 32u)
+        return false;
+
+    // RL fields use little-endian bytes whose bits are stored most-significant
+    // bit first, including when the field begins at a non-byte boundary.
+    for (std::uint32_t byteIndex = 0; byteIndex < 4; ++byteIndex) {
+        const std::uint8_t rawByte = static_cast<std::uint8_t>(
+            objectSizeBits >> (byteIndex * 8u));
+        for (std::uint32_t bitIndex = 0; bitIndex < 8; ++bitIndex) {
+            const std::uint64_t destinationBit = sizeFieldBit
+                + byteIndex * 8u + bitIndex;
+            const std::uint8_t mask = static_cast<std::uint8_t>(
+                1u << (7u - static_cast<unsigned>(destinationBit & 7u)));
+            const std::uint8_t value = static_cast<std::uint8_t>(
+                (rawByte >> (7u - bitIndex)) & 1u);
+            std::uint8_t& destination =
+                bytes[static_cast<std::size_t>(destinationBit >> 3)];
+            destination = static_cast<std::uint8_t>(
+                (destination & static_cast<std::uint8_t>(~mask))
+                | (value != 0 ? mask : 0));
+        }
+    }
+    return true;
+}
+
+bool buildModelerVersionFrame(bool empty, std::uint16_t modelerVersion,
+                              std::vector<std::uint8_t>& bytes) {
+    constexpr DRW::Version version = DRW::AC1018;
+    constexpr std::uint16_t modelerObjectType = 38; // §20.4.41 3DSOLID
+    LocalModelerGeometry source(DRW::E3DSOLID);
+    source.setDwgType(modelerObjectType);
+    source.handle = 0x120u;
+
+    dwgBufferW frame;
+    if (!source.encodeDwgCommon(version, &frame))
+        return false;
+
+    frame.putBit(empty ? 1u : 0u);
+    frame.putBit(0u); // unknown bit
+    if (!empty) {
+        frame.putBitShort(modelerVersion);
+        if (modelerVersion == 1)
+            frame.putBitLong(0); // zero-length SAT block terminator
+        else if (modelerVersion == 2)
+            frame.putRawChar8(0xA5u); // bounded opaque test payload byte
+    }
+    if (!frame.isGood() || frame.bitCount() >
+            std::numeric_limits<std::uint32_t>::max())
+        return false;
+    const std::uint32_t objectSizeBits = frame.bitCount();
+
+    dwgBuffer typeReader(frame.data().data(), frame.data().size());
+    if (typeReader.getObjType(version) != modelerObjectType)
+        return false;
+    const std::uint64_t sizeFieldBit = typeReader.getPosition() * 8u
+        + typeReader.getBitPos();
+
+    if (!source.encodeDwgEntHandle(version, &frame)
+        || !frame.isGood())
+        return false;
+    bytes = frame.data();
+    return patchModelerObjectSize(bytes, sizeFieldBit, objectSizeBits);
+}
+
+bool buildModelerSatV1Frame(
+    DRW::Version version,
+    const std::vector<std::vector<std::uint8_t>>& blocks,
+    const std::vector<std::uint32_t>& declaredSizes,
+    bool includeTerminator, std::vector<std::uint8_t>& bytes) {
+    constexpr std::uint16_t modelerObjectType = 38; // §20.4.41 3DSOLID
+    if (blocks.size() != declaredSizes.size())
+        return false;
+    LocalModelerGeometry source(DRW::E3DSOLID);
+    source.setDwgType(modelerObjectType);
+    source.handle = 0x120u;
+
+    dwgBufferW frame;
+    if (!source.encodeDwgCommon(version, &frame))
+        return false;
+    frame.putBit(0); // non-empty ACIS body
+    frame.putBit(1); // opaque ODA “unknown” bit, also present in Cone.dwg
+    frame.putBitShort(1);
+    for (std::size_t block = 0; block < blocks.size(); ++block) {
+        if (declaredSizes[block] >
+            static_cast<std::uint32_t>(std::numeric_limits<std::int32_t>::max()))
+            return false;
+        frame.putBitLong(static_cast<std::int32_t>(declaredSizes[block]));
+        for (std::uint8_t value : blocks[block]) {
+            // ODA §20.4.41 SAT v1 character transform: preserve values at or
+            // below space; printable characters above space use 0x9F - byte.
+            const std::uint8_t encoded = value > 0x20u && value <= 0x7Eu
+                ? static_cast<std::uint8_t>(0x9Fu - value) : value;
+            frame.putRawChar8(encoded);
+        }
+    }
+    if (includeTerminator)
+        frame.putBitLong(0);
+    frame.putBit(0); // no DWG wireframe block in this generated control
+    frame.putBit(1); // empty wireframe-side ACIS body
+    if (!frame.isGood() || frame.bitCount() >
+            std::numeric_limits<std::uint32_t>::max())
+        return false;
+    const std::uint32_t objectSizeBits = frame.bitCount();
+
+    dwgBuffer typeReader(frame.data().data(), frame.data().size());
+    if (typeReader.getObjType(version) != modelerObjectType)
+        return false;
+    const std::uint64_t sizeFieldBit = typeReader.getPosition() * 8u
+        + typeReader.getBitPos();
+    if (!source.encodeDwgEntHandle(version, &frame) || !frame.isGood())
+        return false;
+    bytes = frame.data();
+    return patchModelerObjectSize(bytes, sizeFieldBit, objectSizeBits);
+}
+
+bool runModelerDwgSatV1Extraction() {
+    const auto failStage = [](const char *stage) {
+        std::cerr << "SAT v1 extraction check failed: " << stage << '\n';
+        return false;
+    };
+    std::vector<std::uint8_t> satText{
+        '4', '0', '0', ' ', '2', '7', ' ', '1', ' ', '0', '\n',
+        'A', 'C', 'I', 'S', ' ', 'S', 'A', 'T', '\t', 'C', 'O', 'N', 'T',
+        'R', 'O', 'L', ' ', '^', 'X'};
+    satText.insert(satText.end(), 280u, static_cast<std::uint8_t>('Z'));
+    satText.push_back('\n');
+    const std::vector<std::vector<std::uint8_t>> blocks{
+        std::vector<std::uint8_t>(satText.begin(), satText.begin() + 11),
+        std::vector<std::uint8_t>(satText.begin() + 11, satText.end())};
+    const std::vector<std::uint32_t> declaredSizes{
+        static_cast<std::uint32_t>(blocks[0].size()),
+        static_cast<std::uint32_t>(blocks[1].size())};
+    std::vector<std::uint8_t> frame;
+    if (!buildModelerSatV1Frame(DRW::AC1015, blocks, declaredSizes, true,
+                                frame))
+        return failStage("build AC1015 frame");
+
+    dwgBuffer buffer(frame.data(), frame.size());
+    LocalModelerGeometry parsed(DRW::E3DSOLID);
+    if (!parsed.parseDwg(DRW::AC1015, &buffer) || !buffer.isGood()
+        || parsed.handle != 0x120u || parsed.m_modelerVersion != 1
+        || !parsed.m_modelerDataUnknownBit
+        || parsed.m_dwgSourceVersion != DRW::AC1015
+        || parsed.m_dwgAcisPayload.size() != satText.size()
+        || parsed.m_payloadRanges.size() != 2)
+        return failStage("parse/qualify AC1015 SAT blocks");
+    if (parsed.m_objectSize != frame.size())
+        return failStage("complete DWG frame boundary");
+    // dwgReader attaches this complete frame after entity parsing so the
+    // adapter can preserve it for raw replay while the DXF writer uses only
+    // the separately-qualified SAT payload.
+    parsed.m_rawBytes = frame;
+    std::vector<std::uint8_t> expectedPayload = satText;
+    for (std::uint8_t& value : expectedPayload) {
+        if (value == '\t')
+            value = ' ';
+    }
+    if (parsed.m_dwgAcisPayload != expectedPayload)
+        return failStage("de-obfuscated payload bytes");
+    std::vector<std::uint8_t> expectedDxfPayload = expectedPayload;
+    for (std::uint8_t& value : expectedDxfPayload) {
+        if (value > 0x20u && value <= 0x7Eu)
+            value = static_cast<std::uint8_t>(0x9Fu - value);
+    }
+    std::size_t rangedBytes = 0;
+    for (const DRW_ModelerPayloadRange& range : parsed.m_payloadRanges) {
+        if (range.m_kind != DRW_ModelerPayloadRange::Kind::Sat
+            || range.m_section != DRW_ModelerPayloadRange::Section::Body
+            || range.m_consistency !=
+                DRW_ModelerPayloadRange::Consistency::Exact
+            || range.m_confidence !=
+                DRW_ModelerPayloadRange::Confidence::DeclaredSize
+            || range.m_declaredByteSize != range.m_length)
+            return failStage("payload range semantics");
+        rangedBytes += range.m_length;
+    }
+    if (rangedBytes != expectedPayload.size() || parsed.decodeWireframe()
+        || !parsed.m_wireframe.empty())
+        return failStage("range coverage or SAT/SAB decoder separation");
+
+    // The newly extracted SAT1 payload is emitted only in the exact source
+    // revision's text-carrier lane, then re-read through the public DXF path.
+    const std::filesystem::path output = std::filesystem::temp_directory_path()
+        / "libdxfrw-modeler-ac1015-satv1.dxf";
+    const std::filesystem::path rejectedOutput =
+        std::filesystem::temp_directory_path()
+        / "libdxfrw-modeler-ac1015-satv1-wrong-source.dxf";
+    const std::filesystem::path reexportOutput =
+        std::filesystem::temp_directory_path()
+        / "libdxfrw-modeler-ac1015-satv1-reexport.dxf";
+    std::error_code ec;
+    std::filesystem::remove(output, ec);
+    std::filesystem::remove(rejectedOutput, ec);
+    std::filesystem::remove(reexportOutput, ec);
+    dx_data source;
+    source.mBlock->ent.push_back(new DRW_ModelerGeometry(parsed));
+    dx_iface exporter;
+    const bool exportOk = exporter.fileExport(output.string(), DRW::AC1015,
+                                               false, &source, false);
+    if (!exportOk) {
+        std::filesystem::remove(output, ec);
+        return failStage("export AC1015 SAT text carrier");
+    }
+    dx_data imported;
+    dx_iface importer;
+    const bool importOk = importer.fileImport(output.string(), &imported, false);
+    bool found = false;
+    if (importOk) {
+        for (const DRW_Entity* entity : imported.mBlock->ent) {
+            if (entity == nullptr || entity->eType != DRW::E3DSOLID)
+                continue;
+            const auto* decoded =
+                static_cast<const DRW_ModelerGeometry*>(entity);
+            std::size_t textBytes = 0;
+            bool validChunks = !decoded->m_dxfPayloadChunks.empty();
+            for (const DRW_ModelerPayloadChunk& chunk :
+                 decoded->m_dxfPayloadChunks) {
+                if (chunk.m_groupCode == 1 && textBytes != 0) {
+                    validChunks = validChunks
+                        && textBytes < decoded->m_rawBytes.size()
+                        && decoded->m_rawBytes[textBytes] == '\n';
+                    ++textBytes;
+                }
+                validChunks = validChunks
+                    && (chunk.m_groupCode == 1 || chunk.m_groupCode == 3)
+                    && chunk.m_offset == textBytes
+                    && chunk.m_offset <= decoded->m_rawBytes.size()
+                    && chunk.m_length
+                        <= decoded->m_rawBytes.size() - chunk.m_offset;
+                textBytes += chunk.m_length;
+            }
+            found = validChunks && textBytes + 1 == expectedDxfPayload.size()
+                && decoded->m_rawBytes.back() == '\n'
+                && decoded->m_rawBytes == expectedDxfPayload
+                && decoded->m_modelerVersion == 1
+                && decoded->m_dwgAcisPayload.empty()
+                && decoded->m_dwgSourceVersion == DRW::UNKNOWNV;
+            break;
+        }
+    }
+    if (!found) {
+        std::cerr << "SAT v1 readback: import=" << importOk
+                  << " entities=" << imported.mBlock->ent.size()
+                  << " file=" << output.string() << '\n';
+        return failStage("DXF public readback semantics");
+    }
+
+    // Re-exporting an imported DXF must preserve group-1 SAT line starts,
+    // group-3 continuations, and the caret escape rather than flattening them.
+    dx_iface reExporter;
+    if (!reExporter.fileExport(reexportOutput.string(), DRW::AC1015, false,
+                               &imported, false))
+        return failStage("re-export grouped SAT DXF carrier");
+    dx_data reimported;
+    dx_iface reimporter;
+    if (!reimporter.fileImport(reexportOutput.string(), &reimported, false))
+        return failStage("re-import grouped SAT DXF carrier");
+    bool reimportedPayloadMatches = false;
+    for (const DRW_Entity* entity : reimported.mBlock->ent) {
+        if (entity != nullptr && entity->eType == DRW::E3DSOLID) {
+            const auto* decoded =
+                static_cast<const DRW_ModelerGeometry*>(entity);
+            reimportedPayloadMatches = decoded->m_rawBytes == expectedDxfPayload
+                && decoded->m_dxfPayloadChunks.size() == 3
+                && decoded->m_dxfPayloadChunks[0].m_groupCode == 1
+                && decoded->m_dxfPayloadChunks[1].m_groupCode == 1
+                && decoded->m_dxfPayloadChunks[2].m_groupCode == 3;
+            break;
+        }
+    }
+    if (!reimportedPayloadMatches)
+        return failStage("re-export/readback SAT text semantics");
+    std::filesystem::remove(output, ec);
+    std::filesystem::remove(reexportOutput, ec);
+
+    DRW_ModelerGeometry mismatched(parsed);
+    mismatched.m_dwgSourceVersion = DRW::AC1018;
+    dx_data rejectedSource;
+    rejectedSource.mBlock->ent.push_back(
+        new DRW_ModelerGeometry(mismatched));
+    dx_iface rejectedExporter;
+    const bool rejected = !rejectedExporter.fileExport(
+        rejectedOutput.string(), DRW::AC1015, false, &rejectedSource, false);
+    const bool noPartialOutput = !std::filesystem::exists(rejectedOutput);
+    std::filesystem::remove(rejectedOutput, ec);
+    if (!rejected || !noPartialOutput)
+        return failStage("reject source-version mismatch atomically");
+
+    // An incomplete SAT1 block sequence remains a successfully parsed typed
+    // entity but is not promoted to a qualified payload or writable DXF.
+    if (!buildModelerSatV1Frame(DRW::AC1015, blocks, declaredSizes, false,
+                                frame))
+        return failStage("build unterminated AC1015 frame");
+    dwgBuffer incompleteBuffer(frame.data(), frame.size());
+    LocalModelerGeometry incomplete(DRW::E3DSOLID);
+    if (!incomplete.parseDwg(DRW::AC1015, &incompleteBuffer)
+        || !incompleteBuffer.isGood()
+        || !incomplete.m_dwgAcisPayload.empty()
+        || !incomplete.m_payloadRanges.empty()
+        || incomplete.m_dwgSourceVersion != DRW::UNKNOWNV)
+        return failStage("keep unterminated carrier opaque");
+
+    // The same byte sequence is deliberately not interpreted using another
+    // revision's layout, even if the text resembles a valid SAT carrier.
+    if (!buildModelerSatV1Frame(DRW::AC1018, blocks, declaredSizes, true,
+                                frame))
+        return failStage("build AC1018 control frame");
+    dwgBuffer otherVersionBuffer(frame.data(), frame.size());
+    LocalModelerGeometry otherVersion(DRW::E3DSOLID);
+    const bool opaqueOtherVersion =
+        otherVersion.parseDwg(DRW::AC1018, &otherVersionBuffer)
+        && otherVersionBuffer.isGood()
+        && otherVersion.m_dwgAcisPayload.empty()
+        && otherVersion.m_payloadRanges.empty()
+        && otherVersion.m_dwgSourceVersion == DRW::UNKNOWNV;
+    return opaqueOtherVersion ? true : failStage("keep AC1018 carrier opaque");
+}
+
+bool buildModelerInlineSabFrame(DRW::Version version,
+                                const std::vector<std::uint8_t>& payload,
+                                std::vector<std::uint8_t>& bytes,
+                                std::uint32_t& handleBitSize) {
+    constexpr std::uint16_t modelerObjectType = 38; // §20.4.41 3DSOLID
+    LocalModelerGeometry source(DRW::E3DSOLID);
+    source.setDwgType(modelerObjectType);
+    source.handle = 0x120u;
+
+    dwgBufferW body;
+    dwgBufferW handles;
+    if (!source.encodeDwgCommon(version, &body))
+        return false;
+    body.putBit(0); // non-empty ACIS body
+    body.putBit(0); // modeler data unknown bit
+    body.putBitShort(2);
+    body.putBytes(payload.data(), payload.size());
+    body.putBit(0); // empty R2007+ string stream
+    body.alignToByte();
+    if (!body.isGood())
+        return false;
+
+    if (version == DRW::AC1021) {
+        if (body.bitCount() > std::numeric_limits<std::uint32_t>::max())
+            return false;
+        const std::uint32_t objectSizeBits =
+            static_cast<std::uint32_t>(body.bitCount());
+        dwgBuffer typeReader(body.data().data(), body.data().size());
+        if (typeReader.getObjType(version) != modelerObjectType)
+            return false;
+        const std::uint64_t sizeFieldBit = typeReader.getPosition() * 8u
+            + typeReader.getBitPos();
+        // R2007 carries the object-data bit size in its common prefix and
+        // appends handles in the same object body (R2010 splits them out).
+        if (!source.encodeDwgEntHandle(version, &body)
+            || !body.isGood())
+            return false;
+        bytes = body.data();
+        handleBitSize = 0;
+        return patchModelerObjectSize(bytes, sizeFieldBit, objectSizeBits);
+    }
+
+    if (version != DRW::AC1024
+        || !source.encodeDwgEntHandle(version, &body, &handles)
+        || !body.isGood() || !handles.isGood()
+        || body.size() > std::numeric_limits<std::uint32_t>::max() / 8u
+        || handles.size() > std::numeric_limits<std::uint32_t>::max() / 8u)
+        return false;
+
+    handleBitSize = static_cast<std::uint32_t>(handles.size() * 8u);
+    bytes = body.data();
+    bytes.insert(bytes.end(), handles.data().begin(), handles.data().end());
+    return true;
+}
+
+bool buildModelerExternalSabFrame(std::uint16_t entityModelerVersion,
+                                  bool hasDataStorage,
+                                  std::vector<std::uint8_t>& bytes,
+                                  std::uint32_t& handleBitSize) {
+    constexpr DRW::Version version = DRW::AC1027;
+    constexpr std::uint16_t modelerObjectType = 38; // §20.4.41 3DSOLID
+    LocalModelerGeometry source(DRW::E3DSOLID);
+    source.setDwgType(modelerObjectType);
+    source.handle = 0x120u;
+    source.setHasDataStorageBinaryData(hasDataStorage);
+
+    dwgBufferW body;
+    dwgBufferW handles;
+    if (!source.encodeDwgCommon(version, &body))
+        return false;
+    body.putBit(0); // nonempty ACIS body
+    body.putBit(1); // modeler-data unknown bit
+    body.putBitShort(entityModelerVersion);
+    body.putBit(0); // empty R2007+ string stream
+    body.alignToByte();
+    if (!body.isGood() || !source.encodeDwgEntHandle(version, &body, &handles)
+        || !body.isGood() || !handles.isGood()
+        || body.size() > std::numeric_limits<std::uint32_t>::max() / 8u
+        || handles.size() > std::numeric_limits<std::uint32_t>::max() / 8u)
+        return false;
+
+    handleBitSize = static_cast<std::uint32_t>(handles.size() * 8u);
+    bytes = body.data();
+    bytes.insert(bytes.end(), handles.data().begin(), handles.data().end());
+    return true;
+}
+
+bool parseModelerVersionFrame(bool empty, std::uint16_t modelerVersion,
+                              bool expectedSuccess) {
+    std::vector<std::uint8_t> bytes;
+    if (!buildModelerVersionFrame(empty, modelerVersion, bytes))
+        return false;
+
+    dwgBuffer buffer(bytes.data(), bytes.size());
+    LocalModelerGeometry parsed(DRW::E3DSOLID);
+    const bool parseSucceeded = parsed.parseDwg(DRW::AC1018, &buffer);
+    if (parseSucceeded != expectedSuccess)
+        return false;
+    if (!expectedSuccess) {
+        return !buffer.isGood() && parsed.handle == DRW::NoHandle
+            && parsed.m_modelerVersion == 0 && parsed.m_rawBytes.empty()
+            && parsed.m_dwgAcisPayload.empty()
+            && parsed.m_payloadRanges.empty();
+    }
+    if (parsed.m_isEmpty != empty || parsed.m_hasModelerData == empty)
+        return false;
+    return parsed.m_modelerVersion == (empty ? 0 : modelerVersion)
+        && parsed.handle == 0x120u && parsed.m_dwgAcisPayload.empty()
+        && parsed.m_payloadRanges.empty();
+}
+
+bool runModelerDwgVersionValidation() {
+    if (!(parseModelerVersionFrame(true, 0, true)
+        && parseModelerVersionFrame(false, 1, true)
+        && parseModelerVersionFrame(false, 2, true)
+        && parseModelerVersionFrame(false, 0, false)
+        && parseModelerVersionFrame(false, 3, false)))
+        return false;
+
+    // A 2013+ entity advertises an external AcDs/SAB carrier. Its entity-local
+    // BS must remain opaque rather than being mistaken for the SAB version;
+    // this mirrors the independently observed AC1027 Cover.dwg decode where
+    // the field reads as 168 and the linked AcDs record supplies SAB v2.
+    std::vector<std::uint8_t> externalFrame;
+    std::uint32_t externalHandleBits = 0;
+    if (!buildModelerExternalSabFrame(168, true, externalFrame,
+                                      externalHandleBits))
+        return false;
+    dwgBuffer externalBuffer(externalFrame.data(), externalFrame.size());
+    LocalModelerGeometry external(DRW::E3DSOLID);
+    if (!external.parseDwg(DRW::AC1027, &externalBuffer,
+                           externalHandleBits)
+        || !externalBuffer.isGood() || external.handle != 0x120u
+        || !external.hasDataStorageBinaryData() || external.m_isEmpty
+        || !external.m_hasModelerData || external.m_modelerVersion != 168
+        || !external.m_dwgAcisPayload.empty()
+        || !external.m_payloadRanges.empty()) {
+        std::cerr << "modeler AC1027 external-carrier parse/check failed: good="
+                  << externalBuffer.isGood()
+                  << " handle=" << external.handle
+                  << " hasDsData=" << external.hasDataStorageBinaryData()
+                  << " version=" << external.m_modelerVersion << '\n';
+        return false;
+    }
+
+    std::vector<std::uint8_t> unadvertisedFrame;
+    std::uint32_t unadvertisedHandleBits = 0;
+    if (!buildModelerExternalSabFrame(168, false, unadvertisedFrame,
+                                      unadvertisedHandleBits))
+        return false;
+    dwgBuffer unadvertisedBuffer(unadvertisedFrame.data(),
+                                 unadvertisedFrame.size());
+    LocalModelerGeometry unadvertised(DRW::E3DSOLID);
+    if (unadvertised.parseDwg(DRW::AC1027, &unadvertisedBuffer,
+                              unadvertisedHandleBits)
+        || unadvertisedBuffer.isGood()) {
+        std::cerr << "modeler AC1027 unadvertised external version was accepted\n";
+        return false;
+    }
+
+    static constexpr std::uint8_t marker[] = {
+        0x0E, 0x03, 'E', 'n', 'd', 0x0E, 0x02, 'o', 'f',
+        0x0E, 0x04, 'A', 'C', 'I', 'S', 0x0D, 0x04,
+        'd', 'a', 't', 'a'};
+    std::vector<std::uint8_t> sab = {
+        'A', 'C', 'I', 'S', ' ', 'B', 'i', 'n', 'a', 'r', 'y', 'F', 'i', 'l', 'e',
+        0xFC, 0x53, 0x00, 0x00};
+    sab.insert(sab.end(), std::begin(marker), std::end(marker));
+    const std::vector<std::uint8_t> exactSab = sab;
+    sab.insert(sab.end(), {0xA5, 0x5A}); // wireframe/body bytes after ACIS
+
+    const auto checkVersion = [&](DRW::Version version) {
+        std::vector<std::uint8_t> frame;
+        std::uint32_t handleBits = 0;
+        if (!buildModelerInlineSabFrame(version, sab, frame, handleBits)) {
+            std::cerr << "modeler inline SAB frame builder failed for version "
+                      << static_cast<int>(version) << '\n';
+            return false;
+        }
+        dwgBuffer buffer(frame.data(), frame.size());
+        LocalModelerGeometry parsed(DRW::E3DSOLID);
+        const bool parseSucceeded = parsed.parseDwg(version, &buffer, handleBits);
+        if (!parseSucceeded || parsed.m_modelerVersion != 2
+            || parsed.handle != 0x120u || parsed.m_dwgSourceVersion != version
+            || parsed.m_dwgAcisPayload != exactSab
+            || parsed.m_payloadRanges.size() != 1
+            || parsed.m_payloadRanges.front().m_kind
+                   != DRW_ModelerPayloadRange::Kind::Sab
+            || parsed.m_payloadRanges.front().m_consistency
+                   != DRW_ModelerPayloadRange::Consistency::Exact
+            || parsed.m_payloadRanges.front().m_confidence
+                   != DRW_ModelerPayloadRange::Confidence::Marker
+            || parsed.m_payloadRanges.front().m_length != exactSab.size()
+            || parsed.m_payloadRanges.front().m_bitOffset > 7) {
+            std::cerr << "modeler inline SAB parse/check failed: version="
+                      << static_cast<int>(version)
+                      << " parse=" << parseSucceeded
+                      << " modeler-version=" << parsed.m_modelerVersion
+                      << " handle=" << parsed.handle
+                      << " payload=" << parsed.m_dwgAcisPayload.size()
+                      << " expected=" << exactSab.size()
+                      << " ranges=" << parsed.m_payloadRanges.size()
+                      << " good=" << buffer.isGood() << '\n';
+            return false;
+        }
+
+        // A duplicate terminator makes the boundary ambiguous; absence also
+        // remains a successful typed read with no promoted payload.
+        std::vector<std::uint8_t> ambiguous = exactSab;
+        ambiguous.insert(ambiguous.end(), std::begin(marker), std::end(marker));
+        const auto rejectsExtraction = [version](
+            const std::vector<std::uint8_t>& body) {
+            std::vector<std::uint8_t> frameBytes;
+            std::uint32_t frameHandleBits = 0;
+            if (!buildModelerInlineSabFrame(version, body, frameBytes,
+                                            frameHandleBits)) {
+                std::cerr << "modeler negative frame builder failed for version "
+                          << static_cast<int>(version) << '\n';
+                return false;
+            }
+            dwgBuffer localBuffer(frameBytes.data(), frameBytes.size());
+            LocalModelerGeometry local(DRW::E3DSOLID);
+            const bool localParse = local.parseDwg(version, &localBuffer,
+                                                   frameHandleBits);
+            if (!localParse || !local.m_dwgAcisPayload.empty()
+                || !local.m_payloadRanges.empty()) {
+                std::cerr << "modeler negative parse failed: version="
+                          << static_cast<int>(version)
+                          << " parse=" << localParse
+                          << " payload=" << local.m_dwgAcisPayload.size()
+                          << " ranges=" << local.m_payloadRanges.size()
+                          << '\n';
+                return false;
+            }
+            // The dispatcher's opaque frame carrier must not be decoded as
+            // SAB when no exact inline carrier was extracted.
+            local.m_rawBytes = frameBytes;
+            const bool decodeRejected = !local.decodeWireframe()
+                && local.m_wireframe.empty();
+            if (!decodeRejected)
+                std::cerr << "modeler frame fallback was decoded\n";
+            return decodeRejected;
+        };
+        return rejectsExtraction(ambiguous)
+            && rejectsExtraction({0xFC, 0x53, 0x00, 0x00, 0xA5, 0x5A});
+    };
+    return checkVersion(DRW::AC1021) && checkVersion(DRW::AC1024);
 }
 
 dwgHandle localRawObjectHandle(std::uint8_t code, std::uint32_t ref) {
@@ -5448,55 +9522,130 @@ bool runRawDwgReplayContract() {
     return result;
 }
 
-bool runDxfSurfaceRoundTrip() {
+bool runDxfSurfaceRoundTrip(bool binary,
+                            const std::filesystem::path& directory,
+                            bool keepOutput) {
+    const std::string encoding = binary ? "binary" : "ascii";
     const std::filesystem::path output =
-        std::filesystem::temp_directory_path() / "libdxfrw-surface-roundtrip.dxf";
+        directory / ("libdxfrw-surface-roundtrip-" + encoding + ".dxf");
     std::error_code ec;
     std::filesystem::remove(output, ec);
 
     dx_data source;
     auto plane = new DRW_PlaneSurface();
     plane->handle = 0xFB00u;
+    plane->modelerFormatVersion = 1;
     plane->uIsolines = 2;
     plane->vIsolines = 3;
     source.mBlock->ent.push_back(plane);
     auto extruded = new DRW_ExtrudedSurface();
     extruded->handle = 0xFB01u;
+    extruded->modelerFormatVersion = 1;
     extruded->uIsolines = 4;
     extruded->vIsolines = 5;
+    extruded->classId = 2;
+    extruded->dxfBinaryData = {0x21u, 0x43u};
     extruded->sweepVector = DRW_Coord(0.0, 0.0, 1.0);
     extruded->draftAngle = 0.1;
+    extruded->draftStartDistance = 0.25;
+    extruded->draftEndDistance = 0.5;
+    extruded->twistAngle = 0.75;
     extruded->scaleFactor = 1.25;
+    extruded->alignAngle = 0.5;
+    extruded->solid = true;
+    extruded->sweepAlignmentFlags = 3;
+    extruded->pathFlags = 7;
+    extruded->alignStart = true;
+    extruded->bank = true;
+    extruded->basePointSet = true;
+    extruded->sweepEntityTransformComputed = true;
+    extruded->pathEntityTransformComputed = true;
+    extruded->referenceVector = DRW_Coord(1.0, 2.0, 3.0);
+    extruded->extrudedTransform[3] = 0.25;
+    extruded->extrudedTransform[7] = 0.5;
+    extruded->extrudedTransform[11] = 0.75;
+    extruded->sweepEntityTransform[3] = 1.25;
+    extruded->pathEntityTransform[7] = 1.5;
     source.mBlock->ent.push_back(extruded);
     auto revolved = new DRW_RevolvedSurface();
     revolved->handle = 0xFB02u;
+    revolved->modelerFormatVersion = 1;
     revolved->uIsolines = 6;
     revolved->vIsolines = 7;
-    revolved->classId = 2;
+    revolved->id = 2;
+    revolved->dxfBinaryData = {0x65u, 0x87u};
     revolved->axisPoint = DRW_Coord(1.0, 2.0, 3.0);
-    revolved->axisVector = DRW_Coord(0.0, 0.0, 1.0);
+    revolved->axisVector = DRW_Coord(0.0, 1.0, 2.0);
     revolved->revolveAngle = 1.5;
+    revolved->startAngle = 0.25;
+    revolved->draftAngle = 0.5;
+    revolved->draftStartDistance = 0.75;
+    revolved->draftEndDistance = 1.0;
+    revolved->twistAngle = 1.25;
+    revolved->solid = true;
+    revolved->closeToAxis = true;
+    revolved->transform[3] = 0.25;
+    revolved->transform[7] = 0.5;
+    revolved->transform[11] = 0.75;
     source.mBlock->ent.push_back(revolved);
     auto swept = new DRW_SweptSurface();
     swept->handle = 0xFB03u;
+    swept->modelerFormatVersion = 1;
     swept->uIsolines = 8;
     swept->vIsolines = 9;
-    swept->classVersion = 2;
     swept->sweepEntityId = 4;
+    swept->sweepData = {0x01u, 0xA5u};
     swept->pathEntityId = 5;
-    swept->referenceVector = DRW_Coord(1.0, 0.0, 0.0);
+    swept->pathData = {0xFEu, 0x7Fu};
+    swept->referenceVector = DRW_Coord(1.0, 2.0, 3.0);
+    swept->sweepEntityTransform[3] = 0.25;
+    swept->pathEntityTransform[7] = 0.5;
+    swept->sweepEntityTransformed[11] = 0.75;
+    swept->pathEntityTransformed[3] = 1.0;
+    swept->draftAngle = 0.125;
+    swept->draftStartDistance = 0.25;
+    swept->draftEndDistance = 0.5;
+    swept->twistAngle = 0.75;
     swept->scaleFactor = 1.1;
+    swept->alignAngle = 0.875;
+    swept->solid = true;
+    swept->sweepAlignmentFlags = 2;
+    swept->pathFlags = 9;
+    swept->alignStart = true;
+    swept->bank = true;
+    swept->basePointSet = true;
+    swept->sweepEntityTransformComputed = true;
+    swept->pathEntityTransformComputed = true;
     source.mBlock->ent.push_back(swept);
     auto lofted = new DRW_LoftedSurface();
     lofted->handle = 0xFB04u;
+    lofted->modelerFormatVersion = 1;
     lofted->uIsolines = 10;
     lofted->vIsolines = 11;
     lofted->planeNormalLoftingType = 1;
     lofted->startDraftAngle = 0.2;
     lofted->endDraftAngle = 0.3;
+    lofted->startDraftMagnitude = 0.4;
+    lofted->endDraftMagnitude = 0.5;
+    lofted->arcLengthParameterization = true;
+    lofted->noTwist = false;
+    lofted->alignDirection = false;
+    lofted->simpleSurfaces = false;
+    lofted->closedSurfaces = true;
+    lofted->solid = true;
+    lofted->ruledSurface = true;
+    lofted->virtualGuide = true;
+    lofted->pathCurveHandle = 0x1234u;
+    lofted->loftEntityTransform[3] = 0.25;
+    lofted->loftEntityTransform[7] = 0.5;
+    lofted->loftEntityTransform[11] = 0.75;
+    lofted->dxfReferenceData.emplace_back(90, std::int32_t{2});
+    lofted->dxfReferenceData.emplace_back(
+        310, std::vector<std::uint8_t>{0x12u, 0x34u});
     source.mBlock->ent.push_back(lofted);
     auto nurbs = new DRW_NurbsSurface();
     nurbs->handle = 0xFB05u;
+    nurbs->modelerFormatVersion = 1;
     nurbs->uIsolines = 12;
     nurbs->vIsolines = 13;
     nurbs->short170 = 14;
@@ -5508,33 +9657,2083 @@ bool runDxfSurfaceRoundTrip() {
     source.mBlock->ent.push_back(nurbs);
 
     dx_iface exporter;
-    if (!exporter.fileExport(output.string(), DRW::AC1027, false, &source,
+    if (!exporter.fileExport(output.string(), DRW::AC1027, binary, &source,
                              false)) {
-        std::filesystem::remove(output, ec);
+        std::cerr << "DXF surface export failed (" << encoding << ")\n";
+        if (!keepOutput)
+            std::filesystem::remove(output, ec);
         return false;
     }
     dx_data imported;
     dx_iface importer;
     if (!importer.fileImport(output.string(), &imported, false)) {
-        std::filesystem::remove(output, ec);
+        std::cerr << "DXF surface import failed (" << encoding << ")\n";
+        if (!keepOutput)
+            std::filesystem::remove(output, ec);
         return false;
     }
     std::array<bool, 6> seen{};
+    const auto sameCoord = [](const DRW_Coord& a, const DRW_Coord& b) {
+        return a.x == b.x && a.y == b.y && a.z == b.z;
+    };
+    const auto sameMatrix = [](const auto& a, const auto& b) {
+        return a == b;
+    };
+    bool fieldsMatch = true;
     for (const DRW_Entity* entity : imported.mBlock->ent) {
         if (entity == nullptr)
             continue;
         switch (entity->eType) {
-        case DRW::PLANESURFACE: seen[0] = true; break;
-        case DRW::EXTRUDEDSURFACE: seen[1] = true; break;
-        case DRW::REVOLVEDSURFACE: seen[2] = true; break;
-        case DRW::SWEPTSURFACE: seen[3] = true; break;
-        case DRW::LOFTEDSURFACE: seen[4] = true; break;
-        case DRW::NURBSURFACE: seen[5] = true; break;
+        case DRW::PLANESURFACE: {
+            seen[0] = true;
+            const auto* value = static_cast<const DRW_PlaneSurface*>(entity);
+            fieldsMatch = fieldsMatch
+                && value->modelerFormatVersion == plane->modelerFormatVersion
+                && value->uIsolines == plane->uIsolines
+                && value->vIsolines == plane->vIsolines;
+            break;
+        }
+        case DRW::EXTRUDEDSURFACE: {
+            seen[1] = true;
+            const auto* value = static_cast<const DRW_ExtrudedSurface*>(entity);
+            fieldsMatch = fieldsMatch
+                && value->modelerFormatVersion == extruded->modelerFormatVersion
+                && value->uIsolines == extruded->uIsolines
+                && value->vIsolines == extruded->vIsolines
+                && value->classId == extruded->classId
+                && value->dxfBinaryData == extruded->dxfBinaryData
+                && sameCoord(value->sweepVector, extruded->sweepVector)
+                && sameCoord(value->referenceVector, extruded->referenceVector)
+                && sameMatrix(value->extrudedTransform, extruded->extrudedTransform)
+                && sameMatrix(value->sweepEntityTransform, extruded->sweepEntityTransform)
+                && sameMatrix(value->pathEntityTransform, extruded->pathEntityTransform)
+                && value->draftAngle == extruded->draftAngle
+                && value->draftStartDistance == extruded->draftStartDistance
+                && value->draftEndDistance == extruded->draftEndDistance
+                && value->twistAngle == extruded->twistAngle
+                && value->scaleFactor == extruded->scaleFactor
+                && value->alignAngle == extruded->alignAngle
+                && value->solid == extruded->solid
+                && value->sweepAlignmentFlags == extruded->sweepAlignmentFlags
+                && value->pathFlags == extruded->pathFlags
+                && value->alignStart == extruded->alignStart
+                && value->bank == extruded->bank
+                && value->basePointSet == extruded->basePointSet
+                && value->sweepEntityTransformComputed
+                       == extruded->sweepEntityTransformComputed
+                && value->pathEntityTransformComputed
+                       == extruded->pathEntityTransformComputed;
+            break;
+        }
+        case DRW::REVOLVEDSURFACE: {
+            seen[2] = true;
+            const auto* value = static_cast<const DRW_RevolvedSurface*>(entity);
+            fieldsMatch = fieldsMatch
+                && value->modelerFormatVersion == revolved->modelerFormatVersion
+                && value->uIsolines == revolved->uIsolines
+                && value->vIsolines == revolved->vIsolines
+                && value->id == revolved->id
+                && value->dxfBinaryData == revolved->dxfBinaryData
+                && sameCoord(value->axisPoint, revolved->axisPoint)
+                && sameCoord(value->axisVector, revolved->axisVector)
+                && value->revolveAngle == revolved->revolveAngle
+                && value->startAngle == revolved->startAngle
+                && sameMatrix(value->transform, revolved->transform)
+                && value->draftAngle == revolved->draftAngle
+                && value->draftStartDistance == revolved->draftStartDistance
+                && value->draftEndDistance == revolved->draftEndDistance
+                && value->twistAngle == revolved->twistAngle
+                && value->solid == revolved->solid
+                && value->closeToAxis == revolved->closeToAxis;
+            break;
+        }
+        case DRW::SWEPTSURFACE: {
+            seen[3] = true;
+            const auto* value = static_cast<const DRW_SweptSurface*>(entity);
+            fieldsMatch = fieldsMatch
+                && value->modelerFormatVersion == swept->modelerFormatVersion
+                && value->uIsolines == swept->uIsolines
+                && value->vIsolines == swept->vIsolines
+                && value->sweepEntityId == swept->sweepEntityId
+                && value->sweepData == swept->sweepData
+                && value->pathEntityId == swept->pathEntityId
+                && value->pathData == swept->pathData
+                && sameCoord(value->referenceVector, swept->referenceVector)
+                && sameMatrix(value->sweepEntityTransform, swept->sweepEntityTransform)
+                && sameMatrix(value->pathEntityTransform, swept->pathEntityTransform)
+                && sameMatrix(value->sweepEntityTransformed, swept->sweepEntityTransformed)
+                && sameMatrix(value->pathEntityTransformed, swept->pathEntityTransformed)
+                && value->draftAngle == swept->draftAngle
+                && value->draftStartDistance == swept->draftStartDistance
+                && value->draftEndDistance == swept->draftEndDistance
+                && value->twistAngle == swept->twistAngle
+                && value->scaleFactor == swept->scaleFactor
+                && value->alignAngle == swept->alignAngle
+                && value->solid == swept->solid
+                && value->sweepAlignmentFlags == swept->sweepAlignmentFlags
+                && value->pathFlags == swept->pathFlags
+                && value->alignStart == swept->alignStart
+                && value->bank == swept->bank
+                && value->basePointSet == swept->basePointSet
+                && value->sweepEntityTransformComputed
+                       == swept->sweepEntityTransformComputed
+                && value->pathEntityTransformComputed
+                       == swept->pathEntityTransformComputed;
+            break;
+        }
+        case DRW::LOFTEDSURFACE: {
+            seen[4] = true;
+            const auto* value = static_cast<const DRW_LoftedSurface*>(entity);
+            fieldsMatch = fieldsMatch
+                && value->modelerFormatVersion == lofted->modelerFormatVersion
+                && value->uIsolines == lofted->uIsolines
+                && value->vIsolines == lofted->vIsolines
+                && value->planeNormalLoftingType == lofted->planeNormalLoftingType
+                && value->startDraftAngle == lofted->startDraftAngle
+                && value->endDraftAngle == lofted->endDraftAngle
+                && value->startDraftMagnitude == lofted->startDraftMagnitude
+                && value->endDraftMagnitude == lofted->endDraftMagnitude
+                && value->arcLengthParameterization == lofted->arcLengthParameterization
+                && value->noTwist == lofted->noTwist
+                && value->alignDirection == lofted->alignDirection
+                && value->simpleSurfaces == lofted->simpleSurfaces
+                && value->closedSurfaces == lofted->closedSurfaces
+                && value->solid == lofted->solid
+                && value->ruledSurface == lofted->ruledSurface
+                && value->virtualGuide == lofted->virtualGuide
+                && value->pathCurveHandle == lofted->pathCurveHandle
+                && sameMatrix(value->loftEntityTransform, lofted->loftEntityTransform)
+                && value->dxfReferenceData.size() == lofted->dxfReferenceData.size()
+                && value->dxfReferenceData[0].code() == 90
+                && value->dxfReferenceData[0].i_val() == 2
+                && value->dxfReferenceData[1].code() == 310
+                && value->dxfReferenceData[1].binary()
+                && *value->dxfReferenceData[1].binary()
+                       == std::vector<std::uint8_t>{0x12u, 0x34u};
+            break;
+        }
+        case DRW::NURBSURFACE: {
+            seen[5] = true;
+            const auto* value = static_cast<const DRW_NurbsSurface*>(entity);
+            fieldsMatch = fieldsMatch
+                && value->modelerFormatVersion == nurbs->modelerFormatVersion
+                && value->uIsolines == nurbs->uIsolines
+                && value->vIsolines == nurbs->vIsolines
+                && value->short170 == nurbs->short170
+                && value->cvHullDisplay == nurbs->cvHullDisplay
+                && sameCoord(value->uvec1, nurbs->uvec1)
+                && sameCoord(value->vvec1, nurbs->vvec1)
+                && sameCoord(value->uvec2, nurbs->uvec2)
+                && sameCoord(value->vvec2, nurbs->vvec2);
+            break;
+        }
         default: break;
         }
     }
+    if (!keepOutput)
+        std::filesystem::remove(output, ec);
+    const bool result =
+        std::all_of(seen.begin(), seen.end(), [](bool value) { return value; })
+        && fieldsMatch;
+    if (!result)
+        std::cerr << "DXF surface semantic mismatch (" << encoding
+                  << "), seen=" << seen[0] << seen[1] << seen[2]
+                  << seen[3] << seen[4] << seen[5]
+                  << ", fields=" << fieldsMatch << '\n';
+    return result;
+}
+
+bool runDxfSurfaceRejectsMalformed(const std::filesystem::path& directory) {
+    const std::filesystem::path sourcePath =
+        directory / "libdxfrw-surface-malformed-source.dxf";
+    std::error_code ec;
+    std::filesystem::remove(sourcePath, ec);
+
+    dx_data source;
+    auto* extruded = new DRW_ExtrudedSurface();
+    extruded->handle = 0xFBD0u;
+    extruded->classId = 7;
+    extruded->dxfBinaryData = {0x12u, 0x34u};
+    extruded->solid = true;
+    source.mBlock->ent.push_back(extruded);
+    auto* lofted = new DRW_LoftedSurface();
+    lofted->handle = 0xFBD1u;
+    lofted->loftEntityTransform[3] = 0.25;
+    source.mBlock->ent.push_back(lofted);
+
+    dx_iface exporter;
+    if (!exporter.fileExport(sourcePath.string(), DRW::AC1027, false, &source,
+                             false)) {
+        std::filesystem::remove(sourcePath, ec);
+        return false;
+    }
+    std::ifstream input(sourcePath, std::ios::binary);
+    if (!input) {
+        std::filesystem::remove(sourcePath, ec);
+        return false;
+    }
+    std::string original{std::istreambuf_iterator<char>{input},
+                         std::istreambuf_iterator<char>{}};
+    std::filesystem::remove(sourcePath, ec);
+
+    // Windows text-mode output expands LF to CRLF; normalize before the exact
+    // group-code edits below so the malformed cases are platform-independent.
+    original.erase(std::remove(original.begin(), original.end(), '\r'),
+                   original.end());
+
+    const auto writeText = [](const std::filesystem::path& path,
+                              const std::string& text) {
+        std::ofstream output(path, std::ios::binary | std::ios::trunc);
+        output.write(text.data(), static_cast<std::streamsize>(text.size()));
+        return output.good();
+    };
+    const auto rejects = [&](std::string text, const char* suffix) {
+        const std::filesystem::path malformed = directory /
+            (std::string("libdxfrw-surface-malformed-") + suffix + ".dxf");
+        std::filesystem::remove(malformed, ec);
+        if (!writeText(malformed, text)) {
+            std::filesystem::remove(malformed, ec);
+            return false;
+        }
+        dx_data imported;
+        dx_iface importer;
+        const bool rejected =
+            !importer.fileImport(malformed.string(), &imported, false);
+        std::filesystem::remove(malformed, ec);
+        return rejected;
+    };
+
+    std::string badSize = original;
+    const std::size_t extrudedAt = badSize.find("AcDbExtrudedSurface");
+    const std::string group90 = "\n 90\n";
+    const std::size_t classIdAt = extrudedAt == std::string::npos
+        ? std::string::npos : badSize.find(group90, extrudedAt);
+    const std::size_t sizeAt = classIdAt == std::string::npos
+        ? std::string::npos : badSize.find(group90, classIdAt + group90.size());
+    bool sizeChanged = false;
+    if (sizeAt != std::string::npos) {
+        const std::size_t valueStart = sizeAt + group90.size();
+        const std::size_t valueDigit = badSize.find_first_not_of(" \t", valueStart);
+        const std::size_t valueEnd = badSize.find('\n', valueStart);
+        if (valueDigit != std::string::npos && valueDigit < valueEnd
+            && badSize[valueDigit] == '2') {
+            badSize[valueDigit] = '3';
+            sizeChanged = true;
+        }
+    }
+
+    std::string badBoolean = original;
+    const std::size_t solidAt = badBoolean.find("\n290\n1\n", extrudedAt);
+    const bool booleanChanged = solidAt != std::string::npos
+        && (badBoolean[solidAt + 5] = '2') == '2';
+
+    std::string partialMatrix = original;
+    const std::size_t loftedAt = partialMatrix.find("AcDbLoftedSurface");
+    std::size_t matrixAt = loftedAt == std::string::npos
+        ? std::string::npos : partialMatrix.find("\n 40\n", loftedAt);
+    for (int index = 1; matrixAt != std::string::npos && index < 16; ++index)
+        matrixAt = partialMatrix.find("\n 40\n", matrixAt + 1);
+    bool matrixRemoved = false;
+    if (matrixAt != std::string::npos) {
+        const std::size_t valueEnd = partialMatrix.find('\n', matrixAt + 5);
+        if (valueEnd != std::string::npos) {
+            partialMatrix.erase(matrixAt, valueEnd - matrixAt + 1);
+            matrixRemoved = true;
+        }
+    }
+
+    return sizeChanged && booleanChanged && matrixRemoved
+        && rejects(std::move(badSize), "size")
+        && rejects(std::move(badBoolean), "boolean")
+        && rejects(std::move(partialMatrix), "matrix");
+}
+
+bool runDxfSplineSurfaceRejectsInvalidPayload(
+        const std::filesystem::path& directory) {
+    const auto rejects = [&](DRW_Entity* entity, const char* suffix) {
+        const std::filesystem::path output = directory /
+            (std::string("libdxfrw-invalid-3d-payload-") + suffix + ".dxf");
+        std::error_code ec;
+        std::filesystem::remove(output, ec);
+        dx_data source;
+        source.mBlock->ent.push_back(entity);
+        dx_iface exporter;
+        const bool rejected = !exporter.fileExport(output.string(),
+            DRW::AC1027, false, &source, false);
+        std::filesystem::remove(output, ec);
+        return rejected;
+    };
+
+    auto* invalidHelix = new DRW_Helix();
+    invalidHelix->degree = 2;
+    invalidHelix->knotslist = {0.0, 0.0, 0.0, 1.0, 1.0, 1.0};
+    invalidHelix->controllist = {
+        std::make_shared<DRW_Coord>(0.0, 0.0, 0.0),
+        std::make_shared<DRW_Coord>(1.0, 1.0, 1.0),
+        std::make_shared<DRW_Coord>(2.0, 2.0, 2.0)};
+    invalidHelix->constraintType = 3;
+
+    auto* partialWeights = new DRW_Spline();
+    partialWeights->degree = 2;
+    partialWeights->flags = 4;
+    partialWeights->knotslist = {0.0, 0.0, 0.0, 1.0, 1.0, 1.0};
+    partialWeights->controllist = {
+        std::make_shared<DRW_Coord>(0.0, 0.0, 0.0),
+        std::make_shared<DRW_Coord>(1.0, 1.0, 1.0),
+        std::make_shared<DRW_Coord>(2.0, 2.0, 2.0)};
+    partialWeights->weightlist = {1.0, 2.0};
+
+    auto* invalidSurface = new DRW_ExtrudedSurface();
+    invalidSurface->sweepAlignmentFlags = 4;
+
+    return rejects(invalidHelix, "helix-constraint")
+        && rejects(partialWeights, "spline-weights")
+        && rejects(invalidSurface, "surface-alignment");
+}
+
+bool runDxfSplineHelixRoundTrip(bool binary,
+                               const std::filesystem::path& directory,
+                               bool keepOutput) {
+    const std::string encoding = binary ? "binary" : "ascii";
+    const std::filesystem::path output = directory /
+        ("libdxfrw-spline-helix-" + encoding + ".dxf");
+    std::error_code ec;
     std::filesystem::remove(output, ec);
-    return std::all_of(seen.begin(), seen.end(), [](bool value) { return value; });
+
+    dx_data source;
+    auto* controlSpline = new DRW_Spline();
+    controlSpline->handle = 0xFC00u;
+    controlSpline->degree = 2;
+    controlSpline->flags = 4 | 8;
+    controlSpline->normalVec = DRW_Coord(0.0, 0.0, 1.0);
+    controlSpline->knotslist = {0.0, 0.0, 0.0, 0.5, 1.0, 1.0};
+    controlSpline->weightlist = {1.0, 0.5, 2.0};
+    controlSpline->tolknot = 0.125;
+    controlSpline->tolcontrol = 0.25;
+    controlSpline->tolfit = 0.5;
+    controlSpline->tgStart = DRW_Coord(1.0, 2.0, 3.0);
+    controlSpline->tgEnd = DRW_Coord(4.0, 5.0, 6.0);
+    controlSpline->controllist = {
+        std::make_shared<DRW_Coord>(1.0, 2.0, 3.0),
+        std::make_shared<DRW_Coord>(4.0, 5.0, 6.0),
+        std::make_shared<DRW_Coord>(7.0, 8.0, 9.0)};
+    source.mBlock->ent.push_back(controlSpline);
+
+    auto* fitSpline = new DRW_Spline();
+    fitSpline->handle = 0xFC01u;
+    fitSpline->degree = 3;
+    fitSpline->tgStart = DRW_Coord(0.25, 0.5, 0.75);
+    fitSpline->tgEnd = DRW_Coord(1.0, 1.25, 1.5);
+    fitSpline->fitlist = {
+        std::make_shared<DRW_Coord>(2.0, 3.0, 4.0),
+        std::make_shared<DRW_Coord>(5.0, 6.0, 7.0),
+        std::make_shared<DRW_Coord>(8.0, 9.0, 10.0),
+        std::make_shared<DRW_Coord>(11.0, 12.0, 13.0)};
+    source.mBlock->ent.push_back(fitSpline);
+
+    auto* helix = new DRW_Helix();
+    helix->handle = 0xFC02u;
+    helix->degree = 2;
+    helix->flags = 4;
+    helix->knotslist = {0.0, 0.0, 0.0, 1.0, 1.0, 1.0};
+    helix->weightlist = {1.0, 0.75, 1.5};
+    helix->controllist = {
+        std::make_shared<DRW_Coord>(14.0, 15.0, 16.0),
+        std::make_shared<DRW_Coord>(17.0, 18.0, 19.0),
+        std::make_shared<DRW_Coord>(20.0, 21.0, 22.0)};
+    helix->m_majorVersion = 1;
+    helix->m_maintVersion = 2;
+    helix->axisBasePt = DRW_Coord(3.0, 4.0, 5.0);
+    helix->startPt = DRW_Coord(6.0, 7.0, 8.0);
+    helix->axisVector = DRW_Coord(0.0, 0.0, 1.0);
+    helix->radius = 2.5;
+    helix->turns = 3.25;
+    helix->turnHeight = 4.5;
+    helix->handedness = true;
+    helix->constraintType = 2;
+    source.mBlock->ent.push_back(helix);
+
+    dx_iface exporter;
+    if (!exporter.fileExport(output.string(), DRW::AC1027, binary, &source,
+                             false)) {
+        std::cerr << "DXF spline/helix export failed (" << encoding << ")\n";
+        if (!keepOutput)
+            std::filesystem::remove(output, ec);
+        return false;
+    }
+    dx_data imported;
+    dx_iface importer;
+    if (!importer.fileImport(output.string(), &imported, false)) {
+        std::cerr << "DXF spline/helix import failed (" << encoding << ")\n";
+        if (!keepOutput)
+            std::filesystem::remove(output, ec);
+        return false;
+    }
+
+    const DRW_Spline* importedControl = nullptr;
+    const DRW_Spline* importedFit = nullptr;
+    const DRW_Helix* importedHelix = nullptr;
+    for (const DRW_Entity* entity : imported.mBlock->ent) {
+        if (entity == nullptr)
+            continue;
+        if (entity->eType == DRW::SPLINE) {
+            const auto* value = static_cast<const DRW_Spline*>(entity);
+            if (value->handle == controlSpline->handle)
+                importedControl = value;
+            else if (value->handle == fitSpline->handle)
+                importedFit = value;
+        } else if (entity->eType == DRW::HELIX) {
+            importedHelix = static_cast<const DRW_Helix*>(entity);
+        }
+    }
+    const auto sameCoord = [](const DRW_Coord& a, const DRW_Coord& b) {
+        return a.x == b.x && a.y == b.y && a.z == b.z;
+    };
+    const auto samePoints = [&sameCoord](const auto& a, const auto& b) {
+        if (a.size() != b.size())
+            return false;
+        for (std::size_t i = 0; i < a.size(); ++i) {
+            if (!a[i] || !b[i] || !sameCoord(*a[i], *b[i]))
+                return false;
+        }
+        return true;
+    };
+    const bool controlMatches = importedControl != nullptr
+        && importedControl->degree == controlSpline->degree
+        && importedControl->flags == controlSpline->flags
+        && sameCoord(importedControl->normalVec, controlSpline->normalVec)
+        && importedControl->knotslist == controlSpline->knotslist
+        && importedControl->weightlist == controlSpline->weightlist
+        && samePoints(importedControl->controllist, controlSpline->controllist)
+        && importedControl->fitlist.empty()
+        && importedControl->tolknot == controlSpline->tolknot
+        && importedControl->tolcontrol == controlSpline->tolcontrol
+        && importedControl->tolfit == controlSpline->tolfit
+        && sameCoord(importedControl->tgStart, controlSpline->tgStart)
+        && sameCoord(importedControl->tgEnd, controlSpline->tgEnd);
+    const bool fitMatches = importedFit != nullptr
+        && importedFit->degree == fitSpline->degree
+        && sameCoord(importedFit->normalVec, fitSpline->normalVec)
+        && importedFit->knotslist.empty()
+        && importedFit->weightlist.empty()
+        && importedFit->controllist.empty()
+        && samePoints(importedFit->fitlist, fitSpline->fitlist)
+        && sameCoord(importedFit->tgStart, fitSpline->tgStart)
+        && sameCoord(importedFit->tgEnd, fitSpline->tgEnd);
+    const bool helixMatches = importedHelix != nullptr
+        && importedHelix->m_majorVersion == helix->m_majorVersion
+        && importedHelix->m_maintVersion == helix->m_maintVersion
+        && importedHelix->degree == helix->degree
+        && importedHelix->flags == helix->flags
+        && importedHelix->knotslist == helix->knotslist
+        && importedHelix->weightlist == helix->weightlist
+        && samePoints(importedHelix->controllist, helix->controllist)
+        && sameCoord(importedHelix->axisBasePt, helix->axisBasePt)
+        && sameCoord(importedHelix->startPt, helix->startPt)
+        && sameCoord(importedHelix->axisVector, helix->axisVector)
+        && importedHelix->radius == helix->radius
+        && importedHelix->turns == helix->turns
+        && importedHelix->turnHeight == helix->turnHeight
+        && importedHelix->handedness == helix->handedness
+        && importedHelix->constraintType == helix->constraintType;
+    if (!keepOutput)
+        std::filesystem::remove(output, ec);
+    if (!controlMatches || !fitMatches || !helixMatches)
+        std::cerr << "DXF SPLINE/HELIX semantic mismatch (" << encoding
+                  << "): control=" << controlMatches << ", fit=" << fitMatches
+                  << ", helix=" << helixMatches << '\n';
+    if (!fitMatches && importedFit != nullptr)
+        std::cerr << "  fit spline: degree=" << importedFit->degree << "/"
+                  << fitSpline->degree << " normal=(" << importedFit->normalVec.x
+                  << "," << importedFit->normalVec.y << ","
+                  << importedFit->normalVec.z << ") expected=("
+                  << fitSpline->normalVec.x << "," << fitSpline->normalVec.y
+                  << "," << fitSpline->normalVec.z << ") points="
+                  << importedFit->fitlist.size() << "/" << fitSpline->fitlist.size()
+                  << " tangents=(" << importedFit->tgStart.x << ","
+                  << importedFit->tgStart.y << "," << importedFit->tgStart.z
+                  << ";" << importedFit->tgEnd.x << "," << importedFit->tgEnd.y
+                  << "," << importedFit->tgEnd.z << ") expected=("
+                  << fitSpline->tgStart.x << "," << fitSpline->tgStart.y << ","
+                  << fitSpline->tgStart.z << ";" << fitSpline->tgEnd.x << ","
+                  << fitSpline->tgEnd.y << "," << fitSpline->tgEnd.z << ")\n";
+    if (!controlMatches && importedControl != nullptr)
+        std::cerr << "  control spline: flags=" << importedControl->flags
+                  << "/" << controlSpline->flags
+                  << " normal=(" << importedControl->normalVec.x << ","
+                  << importedControl->normalVec.y << ","
+                  << importedControl->normalVec.z << ") knots="
+                  << importedControl->knotslist.size() << " weights="
+                  << importedControl->weightlist.size() << " controls="
+                  << importedControl->controllist.size() << " fit="
+                  << importedControl->fitlist.size() << " tolerances=("
+                  << importedControl->tolknot << ","
+                  << importedControl->tolcontrol << ","
+                  << importedControl->tolfit << ") tangents=("
+                  << importedControl->tgStart.x << ","
+                  << importedControl->tgStart.y << ","
+                  << importedControl->tgStart.z << ";"
+                  << importedControl->tgEnd.x << ","
+                  << importedControl->tgEnd.y << ","
+                  << importedControl->tgEnd.z << ")\n";
+    if (!helixMatches && importedHelix != nullptr)
+        std::cerr << "  helix: version="
+                  << importedHelix->m_majorVersion << "/"
+                  << helix->m_majorVersion << ","
+                  << importedHelix->m_maintVersion << "/"
+                  << helix->m_maintVersion << " degree="
+                  << importedHelix->degree << "/" << helix->degree
+                  << " flags=" << importedHelix->flags << "/"
+                  << helix->flags << " knots="
+                  << importedHelix->knotslist.size() << " weights="
+                  << importedHelix->weightlist.size() << " controls="
+                  << importedHelix->controllist.size() << " axisBase=("
+                  << importedHelix->axisBasePt.x << ","
+                  << importedHelix->axisBasePt.y << ","
+                  << importedHelix->axisBasePt.z << ") radius="
+                  << importedHelix->radius << "/" << helix->radius
+                  << " turns=" << importedHelix->turns << "/"
+                  << helix->turns << " height=" << importedHelix->turnHeight
+                  << "/" << helix->turnHeight << " handed="
+                  << importedHelix->handedness << "/" << helix->handedness
+                  << " constraint="
+                  << static_cast<int>(importedHelix->constraintType) << "/"
+                  << static_cast<int>(helix->constraintType) << " points="
+                  << samePoints(importedHelix->controllist, helix->controllist)
+                  << " knotsSame="
+                  << (importedHelix->knotslist == helix->knotslist)
+                  << " weightsSame="
+                  << (importedHelix->weightlist == helix->weightlist)
+                  << " start=" << importedHelix->startPt.x << ","
+                  << importedHelix->startPt.y << ","
+                  << importedHelix->startPt.z << "/" << helix->startPt.x
+                  << "," << helix->startPt.y << "," << helix->startPt.z
+                  << " axis=" << importedHelix->axisVector.x << ","
+                  << importedHelix->axisVector.y << ","
+                  << importedHelix->axisVector.z << "/" << helix->axisVector.x
+                  << "," << helix->axisVector.y << "," << helix->axisVector.z
+                  << '\n';
+    return controlMatches && fitMatches && helixMatches;
+}
+
+class DxfMeshCaptureIface final : public dx_iface {
+public:
+    void addMesh(const DRW_Mesh& data) override {
+        mesh = data;
+        seen = true;
+    }
+
+    DRW_Mesh mesh;
+    bool seen = false;
+};
+
+bool runDxfTopologyRoundTrip(bool binary, const std::filesystem::path& directory,
+                             bool keepOutput) {
+    const std::string encoding = binary ? "binary" : "ascii";
+    const std::filesystem::path output = directory /
+        ("libdxfrw-dxf-topology-" + encoding + ".dxf");
+    std::error_code ec;
+    std::filesystem::remove(output, ec);
+
+    dx_data source;
+    auto* face = new DRW_3Dface();
+    face->handle = 0xFA01u;
+    face->basePoint = DRW_Coord(1.0, 2.0, 3.0);
+    face->secPoint = DRW_Coord(4.0, 5.0, 6.0);
+    face->thirdPoint = DRW_Coord(7.0, 8.0, 9.0);
+    face->fourPoint = DRW_Coord(10.0, 11.0, 12.0);
+    face->invisibleflag = DRW_3Dface::FirstEdge | DRW_3Dface::ThirdEdge;
+    source.mBlock->ent.push_back(face);
+
+    auto* solid = new DRW_Solid();
+    solid->handle = 0xFA06u;
+    solid->basePoint = DRW_Coord(22.0, 23.0, 24.0);
+    solid->secPoint = DRW_Coord(25.0, 26.0, 27.0);
+    solid->thirdPoint = DRW_Coord(28.0, 29.0, 30.0);
+    solid->fourPoint = DRW_Coord(31.0, 32.0, 33.0);
+    source.mBlock->ent.push_back(solid);
+
+    auto* trace = new DRW_Trace();
+    trace->handle = 0xFA07u;
+    trace->basePoint = DRW_Coord(34.0, 35.0, 36.0);
+    trace->secPoint = DRW_Coord(37.0, 38.0, 39.0);
+    trace->thirdPoint = DRW_Coord(40.0, 41.0, 42.0);
+    trace->fourPoint = DRW_Coord(43.0, 44.0, 45.0);
+    trace->thickness = 2.5;
+    trace->extPoint = DRW_Coord(0.0, 0.0, -1.0);
+    source.mBlock->ent.push_back(trace);
+
+    auto* poly3d = new DRW_Polyline();
+    poly3d->handle = 0xFA02u;
+    poly3d->flags = 8;
+    poly3d->vertexcount = 3;
+    // DWG 3D polylines do not store a meaningful extrusion vector. A zero
+    // initialized DXF normal must not leak into WCS-only POLYLINE output.
+    poly3d->extPoint = DRW_Coord(0.0, 0.0, 0.0);
+    poly3d->addVertex(DRW_Vertex(13.0, 14.0, 15.0, 0.0));
+    poly3d->addVertex(DRW_Vertex(16.0, 17.0, 18.0, 0.0));
+    poly3d->addVertex(DRW_Vertex(19.0, 20.0, 21.0, 0.0));
+    for (const auto& vertex : poly3d->vertlist)
+        vertex->flags = 32;
+    source.mBlock->ent.push_back(poly3d);
+
+    auto* polyface = new DRW_Polyline();
+    polyface->handle = 0xFA03u;
+    polyface->flags = 64;
+    polyface->vertexcount = 4;
+    polyface->facecount = 1;
+    polyface->extPoint = DRW_Coord(0.0, 0.0, 0.0);
+    const std::array<DRW_Coord, 4> polyfacePoints{{
+        DRW_Coord(0.0, 0.0, 0.0), DRW_Coord(1.0, 0.0, 0.0),
+        DRW_Coord(1.0, 1.0, 0.0), DRW_Coord(0.0, 1.0, 0.0)}};
+    for (const DRW_Coord& point : polyfacePoints) {
+        DRW_Vertex vertex(point.x, point.y, point.z, 0.0);
+        vertex.flags = 192;
+        polyface->addVertex(vertex);
+    }
+    DRW_Vertex polyfaceFace;
+    // DWG PFACE face records carry indices but no flags field. The writer
+    // must recover the DXF face-record marker from this typed subtype.
+    polyfaceFace.setDwgSubtype(DRW_Vertex::DwgSubtype::PolyfaceFace);
+    polyfaceFace.vindex1 = 1;
+    polyfaceFace.vindex2 = -2;
+    polyfaceFace.vindex3 = 3;
+    polyfaceFace.vindex4 = -4;
+    polyface->addVertex(polyfaceFace);
+    source.mBlock->ent.push_back(polyface);
+
+    auto* polygonMesh = new DRW_Polyline();
+    polygonMesh->handle = 0xFA0Au;
+    polygonMesh->flags = 16;
+    polygonMesh->vertexcount = 2;
+    polygonMesh->facecount = 2;
+    polygonMesh->extPoint = DRW_Coord(0.0, 0.0, 0.0);
+    const std::array<DRW_Coord, 4> polygonMeshPoints{{
+        DRW_Coord(0.0, 0.0, 0.0), DRW_Coord(2.0, 0.0, 0.0),
+        DRW_Coord(2.0, 2.0, 4.0), DRW_Coord(0.0, 2.0, 0.0)}};
+    for (const DRW_Coord& point : polygonMeshPoints) {
+        DRW_Vertex vertex(point.x, point.y, point.z, 0.0);
+        vertex.flags = 64;
+        polygonMesh->addVertex(vertex);
+    }
+    source.mBlock->ent.push_back(polygonMesh);
+
+    auto* ocsClassicPolyline = new DRW_Polyline();
+    ocsClassicPolyline->handle = 0xFA0Bu;
+    ocsClassicPolyline->flags = 1;
+    ocsClassicPolyline->basePoint.z = 5.0;
+    ocsClassicPolyline->extPoint = DRW_Coord(0.0, 0.6, 0.8);
+    ocsClassicPolyline->addVertex(DRW_Vertex(2.0, 3.0, 0.0, 0.0));
+    ocsClassicPolyline->addVertex(DRW_Vertex(4.0, 5.0, 0.0, 0.0));
+    source.mBlock->ent.push_back(ocsClassicPolyline);
+
+    auto* ocsPolyline = new DRW_LWPolyline();
+    ocsPolyline->handle = 0xFA04u;
+    ocsPolyline->elevation = 5.0;
+    ocsPolyline->extPoint = DRW_Coord(0.0, 1.0, 0.0);
+    ocsPolyline->addVertex(DRW_Vertex2D(2.0, 3.0, 0.25));
+    ocsPolyline->addVertex(DRW_Vertex2D(4.0, 5.0, 0.0));
+    source.mBlock->ent.push_back(ocsPolyline);
+
+    auto* mesh = new DRW_Mesh();
+    mesh->handle = 0xFA05u;
+    mesh->version = 2;
+    mesh->blendCrease = true;
+    mesh->subdivisionLevel = 2;
+    mesh->vertices = {
+        DRW_Coord(0.0, 0.0, 0.0), DRW_Coord(2.0, 0.0, 0.0),
+        DRW_Coord(2.0, 2.0, 1.0), DRW_Coord(0.0, 2.0, 0.0)};
+    mesh->faces = {{0, 1, 2, 3}};
+    mesh->edges = {{0, 1}, {1, 2}};
+    mesh->creases = {0.25, 0.75};
+    source.mBlock->ent.push_back(mesh);
+
+    auto* hatch = new DRW_Hatch();
+    hatch->handle = 0xFA08u;
+    hatch->name = "SOLID";
+    auto hatchLoop = std::make_shared<DRW_HatchLoop>(0);
+    auto hatchArc = std::make_shared<DRW_Arc>();
+    hatchArc->basePoint = DRW_Coord(1.0, 2.0, 0.0);
+    hatchArc->radious = 3.0;
+    hatchArc->staangle = 0.25;
+    hatchArc->endangle = 1.5;
+    hatchArc->isccw = 0;
+    auto hatchEllipse = std::make_shared<DRW_Ellipse>();
+    hatchEllipse->basePoint = DRW_Coord(4.0, 5.0, 0.0);
+    hatchEllipse->secPoint = DRW_Coord(7.0, 9.0, 0.0);
+    hatchEllipse->ratio = 0.5;
+    hatchEllipse->staparam = 0.25;
+    hatchEllipse->endparam = 1.5;
+    hatchEllipse->isccw = 0;
+    hatchLoop->objlist.push_back(hatchArc);
+    hatchLoop->objlist.push_back(hatchEllipse);
+    hatchLoop->update();
+    hatch->appendLoop(hatchLoop);
+    source.mBlock->ent.push_back(hatch);
+
+    auto* mpolygon = new DRW_MPolygon();
+    mpolygon->handle = 0xFA09u;
+    mpolygon->name = "SOLID";
+    mpolygon->solid = 1;
+    mpolygon->annotatedBoundary = 1;
+    mpolygon->xDirX = 0.25;
+    mpolygon->xDirY = -0.5;
+    auto mpolygonLoop = std::make_shared<DRW_HatchLoop>(2);
+    auto mpolygonBoundary = std::make_shared<DRW_LWPolyline>();
+    mpolygonBoundary->flags = 1;
+    mpolygonBoundary->addVertex(DRW_Vertex2D(1.0, 2.0, 0.0));
+    mpolygonBoundary->addVertex(DRW_Vertex2D(4.0, 2.0, 0.0));
+    mpolygonBoundary->addVertex(DRW_Vertex2D(3.0, 5.0, 0.0));
+    mpolygonLoop->objlist.push_back(mpolygonBoundary);
+    mpolygonLoop->update();
+    mpolygon->appendLoop(mpolygonLoop);
+    source.mBlock->ent.push_back(mpolygon);
+
+    dx_iface exporter;
+    if (!exporter.fileExport(output.string(), DRW::AC1027, binary, &source,
+                             false)) {
+        std::cerr << "DXF topology export failed (" << encoding << "): "
+                  << output << '\n';
+        if (!keepOutput)
+            std::filesystem::remove(output, ec);
+        return false;
+    }
+
+    dx_data imported;
+    DxfMeshCaptureIface importer;
+    if (!importer.fileImport(output.string(), &imported, false)) {
+        std::cerr << "DXF topology import failed (" << encoding << "): "
+                  << output << '\n';
+        if (!keepOutput)
+            std::filesystem::remove(output, ec);
+        return false;
+    }
+    const DRW_3Dface* decodedFace = nullptr;
+    const DRW_Solid* decodedSolid = nullptr;
+    const DRW_Trace* decodedTrace = nullptr;
+    const DRW_Polyline* decodedPoly3d = nullptr;
+    const DRW_Polyline* decodedPolyface = nullptr;
+    const DRW_Polyline* decodedPolygonMesh = nullptr;
+    const DRW_Polyline* decodedOcsClassicPolyline = nullptr;
+    const DRW_LWPolyline* decodedOcsPolyline = nullptr;
+    const DRW_Hatch* decodedHatch = nullptr;
+    const DRW_MPolygon* decodedMPolygon = nullptr;
+    for (const DRW_Entity* entity : imported.mBlock->ent) {
+        if (entity == nullptr)
+            continue;
+        if (entity->eType == DRW::E3DFACE)
+            decodedFace = static_cast<const DRW_3Dface*>(entity);
+        else if (entity->eType == DRW::SOLID)
+            decodedSolid = static_cast<const DRW_Solid*>(entity);
+        else if (entity->eType == DRW::DXF_TRACE)
+            decodedTrace = static_cast<const DRW_Trace*>(entity);
+        else if (entity->eType == DRW::POLYLINE) {
+            const auto* polyline = static_cast<const DRW_Polyline*>(entity);
+            if (polyline->flags == 8)
+                decodedPoly3d = polyline;
+            else if (polyline->flags == 16)
+                decodedPolygonMesh = polyline;
+            else if (polyline->flags == 64)
+                decodedPolyface = polyline;
+            else if (polyline->flags == 1)
+                decodedOcsClassicPolyline = polyline;
+        } else if (entity->eType == DRW::LWPOLYLINE)
+            decodedOcsPolyline = static_cast<const DRW_LWPolyline*>(entity);
+        else if (entity->eType == DRW::HATCH)
+            decodedHatch = static_cast<const DRW_Hatch*>(entity);
+        else if (entity->eType == DRW::MPOLYGON)
+            decodedMPolygon = static_cast<const DRW_MPolygon*>(entity);
+    }
+
+    const bool faceValid = decodedFace != nullptr
+        && decodedFace->basePoint.x == 1.0
+        && decodedFace->basePoint.z == 3.0
+        && decodedFace->fourPoint.x == 10.0
+        && decodedFace->fourPoint.z == 12.0
+        && decodedFace->invisibleflag == (DRW_3Dface::FirstEdge
+                                           | DRW_3Dface::ThirdEdge);
+    const bool solidValid = decodedSolid != nullptr
+        && decodedSolid->basePoint.x == 22.0
+        && decodedSolid->basePoint.y == 23.0
+        && decodedSolid->basePoint.z == 24.0
+        && decodedSolid->secPoint.x == 25.0
+        && decodedSolid->secPoint.y == 26.0
+        && decodedSolid->secPoint.z == 27.0
+        && decodedSolid->thirdPoint.x == 28.0
+        && decodedSolid->thirdPoint.y == 29.0
+        && decodedSolid->thirdPoint.z == 30.0
+        && decodedSolid->fourPoint.x == 31.0
+        && decodedSolid->fourPoint.y == 32.0
+        && decodedSolid->fourPoint.z == 33.0;
+    const bool traceValid = decodedTrace != nullptr
+        && decodedTrace->basePoint.x == 34.0
+        && decodedTrace->basePoint.y == 35.0
+        && decodedTrace->basePoint.z == 36.0
+        && decodedTrace->secPoint.x == 37.0
+        && decodedTrace->secPoint.y == 38.0
+        && decodedTrace->secPoint.z == 39.0
+        && decodedTrace->thirdPoint.x == 40.0
+        && decodedTrace->thirdPoint.y == 41.0
+        && decodedTrace->thirdPoint.z == 42.0
+        && decodedTrace->fourPoint.x == 43.0
+        && decodedTrace->fourPoint.y == 44.0
+        && decodedTrace->fourPoint.z == 45.0
+        && decodedTrace->thickness == 2.5
+        && decodedTrace->extPoint.x == 0.0
+        && decodedTrace->extPoint.y == 0.0
+        && decodedTrace->extPoint.z == -1.0;
+    const bool poly3dValid = decodedPoly3d != nullptr
+        && decodedPoly3d->flags == 8 && decodedPoly3d->vertlist.size() == 3
+        && !decodedPoly3d->haveExtrusion
+        && decodedPoly3d->extPoint.x == 0.0
+        && decodedPoly3d->extPoint.y == 0.0
+        && decodedPoly3d->extPoint.z == 1.0
+        && decodedPoly3d->vertlist[1]->basePoint.x == 16.0
+        && decodedPoly3d->vertlist[1]->basePoint.z == 18.0;
+    const bool polygonMeshValid = decodedPolygonMesh != nullptr
+        && decodedPolygonMesh->flags == 16
+        && decodedPolygonMesh->vertexcount == 2
+        && decodedPolygonMesh->facecount == 2
+        && decodedPolygonMesh->vertlist.size() == 4
+        && !decodedPolygonMesh->haveExtrusion
+        && decodedPolygonMesh->extPoint.x == 0.0
+        && decodedPolygonMesh->extPoint.y == 0.0
+        && decodedPolygonMesh->extPoint.z == 1.0
+        && decodedPolygonMesh->vertlist[2]->basePoint.z == 4.0;
+    const bool polyfaceValid = decodedPolyface != nullptr
+        && decodedPolyface->flags == 64
+        && decodedPolyface->vertexcount == 4 && decodedPolyface->facecount == 1
+        && decodedPolyface->vertlist.size() == 5
+        && !decodedPolyface->haveExtrusion
+        && decodedPolyface->extPoint.x == 0.0
+        && decodedPolyface->extPoint.y == 0.0
+        && decodedPolyface->extPoint.z == 1.0
+        && decodedPolyface->vertlist[0]->flags == 192
+        && decodedPolyface->vertlist[4]->flags == 128
+        && decodedPolyface->vertlist[4]->vindex1 == 1
+        && decodedPolyface->vertlist[4]->vindex2 == -2
+        && decodedPolyface->vertlist[4]->vindex3 == 3
+        && decodedPolyface->vertlist[4]->vindex4 == -4;
+    const bool ocsClassicPolylineValid = decodedOcsClassicPolyline != nullptr
+        && decodedOcsClassicPolyline->flags == 1
+        && decodedOcsClassicPolyline->basePoint.z == 5.0
+        && decodedOcsClassicPolyline->haveExtrusion
+        && decodedOcsClassicPolyline->extPoint.x == 0.0
+        && decodedOcsClassicPolyline->extPoint.y == 0.6
+        && decodedOcsClassicPolyline->extPoint.z == 0.8
+        && decodedOcsClassicPolyline->vertlist.size() == 2
+        && decodedOcsClassicPolyline->vertlist[1]->basePoint.x == 4.0
+        && decodedOcsClassicPolyline->vertlist[1]->basePoint.y == 5.0;
+    const bool ocsValid = decodedOcsPolyline != nullptr
+        && decodedOcsPolyline->elevation == 5.0
+        && decodedOcsPolyline->extPoint.x == 0.0
+        && decodedOcsPolyline->extPoint.y == 1.0
+        && decodedOcsPolyline->extPoint.z == 0.0
+        && decodedOcsPolyline->vertlist.size() == 2
+        && decodedOcsPolyline->vertlist[0]->x == 2.0
+        && decodedOcsPolyline->vertlist[0]->y == 3.0
+        && decodedOcsPolyline->vertlist[0]->bulge == 0.25;
+    const bool meshValid = importer.seen && importer.mesh.version == 2
+        && importer.mesh.blendCrease
+        && importer.mesh.subdivisionLevel == 2
+        && importer.mesh.vertices.size() == mesh->vertices.size()
+        && std::equal(importer.mesh.vertices.begin(), importer.mesh.vertices.end(),
+                      mesh->vertices.begin(), [](const DRW_Coord& lhs,
+                                                 const DRW_Coord& rhs) {
+                          return lhs.x == rhs.x && lhs.y == rhs.y
+                              && lhs.z == rhs.z;
+                      })
+        && importer.mesh.faces == mesh->faces
+        && importer.mesh.edges == mesh->edges
+        && importer.mesh.creases == mesh->creases;
+    const DRW_Arc* decodedHatchArc = nullptr;
+    const DRW_Ellipse* decodedHatchEllipse = nullptr;
+    if (decodedHatch != nullptr && decodedHatch->looplist.size() == 1u
+        && decodedHatch->looplist.front()->objlist.size() == 2u) {
+        decodedHatchArc = dynamic_cast<const DRW_Arc*>(
+            decodedHatch->looplist.front()->objlist[0].get());
+        decodedHatchEllipse = dynamic_cast<const DRW_Ellipse*>(
+            decodedHatch->looplist.front()->objlist[1].get());
+    }
+    const bool hatchOrientationValid = decodedHatchArc != nullptr
+        && decodedHatchArc->isccw == 0
+        && decodedHatchArc->basePoint.x == 1.0
+        && decodedHatchArc->radious == 3.0
+        && decodedHatchEllipse != nullptr
+        && decodedHatchEllipse->isccw == 0
+        && decodedHatchEllipse->basePoint.x == 4.0
+        && decodedHatchEllipse->secPoint.x == 7.0
+        && decodedHatchEllipse->secPoint.y == 9.0
+        && decodedHatchEllipse->ratio == 0.5
+        && decodedHatchEllipse->staparam == 0.25
+        && decodedHatchEllipse->endparam == 1.5;
+    const DRW_LWPolyline* decodedMPolygonBoundary = nullptr;
+    if (decodedMPolygon != nullptr && decodedMPolygon->looplist.size() == 1u
+        && !decodedMPolygon->looplist.front()->objlist.empty()) {
+        decodedMPolygonBoundary = dynamic_cast<const DRW_LWPolyline*>(
+            decodedMPolygon->looplist.front()->objlist.front().get());
+    }
+    const bool mpolygonValid = decodedMPolygon != nullptr
+        && decodedMPolygon->annotatedBoundary == 1
+        && decodedMPolygon->xDirX == 0.25
+        && decodedMPolygon->xDirY == -0.5
+        && decodedMPolygonBoundary != nullptr
+        && (decodedMPolygonBoundary->flags & 1) != 0
+        && decodedMPolygonBoundary->vertlist.size() == 3u
+        && decodedMPolygonBoundary->vertlist[0]->x == 1.0
+        && decodedMPolygonBoundary->vertlist[1]->y == 2.0
+        && decodedMPolygonBoundary->vertlist[2]->x == 3.0
+        && decodedMPolygonBoundary->vertlist[2]->y == 5.0;
+    if (!keepOutput)
+        std::filesystem::remove(output, ec);
+    if (!(faceValid && solidValid && traceValid && poly3dValid
+          && polygonMeshValid && polyfaceValid && ocsClassicPolylineValid
+          && ocsValid && meshValid
+          && hatchOrientationValid
+          && mpolygonValid))
+        std::cerr << "DXF topology semantic mismatch (" << encoding
+                  << "): face=" << faceValid << " solid=" << solidValid
+                  << " trace=" << traceValid << " poly3d=" << poly3dValid
+                  << " polygon-mesh=" << polygonMeshValid
+                  << " polyface=" << polyfaceValid
+                  << " classic-ocs-polyline=" << ocsClassicPolylineValid
+                  << " ocs=" << ocsValid
+                  << " mesh=" << meshValid
+                  << " hatch-orientation=" << hatchOrientationValid
+                  << " mpolygon=" << mpolygonValid << '\n';
+    return faceValid && solidValid && traceValid && poly3dValid
+        && polygonMeshValid && polyfaceValid && ocsClassicPolylineValid
+        && ocsValid && meshValid
+        && hatchOrientationValid
+        && mpolygonValid;
+}
+
+bool runDxfLegacyEllipseDowngrade(const std::filesystem::path& directory,
+                                  bool keepOutput) {
+    const std::filesystem::path output = directory /
+        "libdxfrw-dxf-r12-ellipse-downgrade.dxf";
+    const std::filesystem::path invalidOutput = directory /
+        "libdxfrw-dxf-r12-invalid-ellipse.dxf";
+    std::error_code ec;
+    std::filesystem::remove(output, ec);
+    std::filesystem::remove(invalidOutput, ec);
+
+    dx_data source;
+    auto addEllipse = [&source](const DRW_Coord& center,
+                                const DRW_Coord& majorAxis,
+                                const DRW_Coord& normal,
+                                double ratio, double start, double end) {
+        auto* ellipse = new DRW_Ellipse();
+        ellipse->basePoint = center;
+        ellipse->secPoint = majorAxis;
+        ellipse->extPoint = normal;
+        ellipse->ratio = ratio;
+        ellipse->staparam = start;
+        ellipse->endparam = end;
+        source.mBlock->ent.push_back(ellipse);
+    };
+    const double fullTurn = 2.0 * std::acos(-1.0);
+    addEllipse(DRW_Coord(10.0, 20.0, 30.0),
+               DRW_Coord(2.0, 0.0, -1.5),
+               DRW_Coord(0.6, 0.0, 0.8),
+               0.5, 0.0, fullTurn);
+    addEllipse(DRW_Coord(0.0, 0.0, 0.0),
+               DRW_Coord(5.0, 0.0, 0.0),
+               DRW_Coord(0.0, 0.0, 1.0),
+               0.5, 0.0, fullTurn);
+    addEllipse(DRW_Coord(-10.0, 5.0, 2.0),
+               DRW_Coord(3.0, 0.0, 0.0),
+               DRW_Coord(0.0, 0.6, 0.8),
+               2.0, 0.25, 1.75);
+    addEllipse(DRW_Coord(20.0, -5.0, 3.0),
+               DRW_Coord(2.0, 0.0, 0.0),
+               DRW_Coord(0.0, 0.6, 0.8),
+               1.5, 1.75, 0.25);
+
+    dx_iface exporter;
+    if (!exporter.fileExport(output.string(), DRW::AC1009, false, &source,
+                             false)) {
+        std::cerr << "DXF R12 ellipse downgrade export failed: "
+                  << output << '\n';
+        if (!keepOutput)
+            std::filesystem::remove(output, ec);
+        return false;
+    }
+
+    dx_data imported;
+    dx_iface importer;
+    if (!importer.fileImport(output.string(), &imported, false)) {
+        std::cerr << "DXF R12 ellipse downgrade readback failed: "
+                  << output << '\n';
+        if (!keepOutput)
+            std::filesystem::remove(output, ec);
+        return false;
+    }
+
+    std::vector<const DRW_Polyline*> polylines;
+    for (const DRW_Entity* entity : imported.mBlock->ent) {
+        if (entity != nullptr && entity->eType == DRW::POLYLINE)
+            polylines.push_back(static_cast<const DRW_Polyline*>(entity));
+    }
+    const DRW_Polyline* tiltedFull = nullptr;
+    const DRW_Polyline* planarFull = nullptr;
+    std::vector<const DRW_Polyline*> tiltedArcs;
+    for (const DRW_Polyline* polyline : polylines) {
+        if (polyline->flags == 9)
+            tiltedFull = polyline;
+        else if (polyline->flags == 1)
+            planarFull = polyline;
+        else if (polyline->flags == 8)
+            tiltedArcs.push_back(polyline);
+    }
+
+    const auto near = [](double actual, double expected) {
+        return std::isfinite(actual)
+            && std::abs(actual - expected) < 1e-9;
+    };
+    const auto pointNear = [&near](const DRW_Coord& actual,
+                                   const DRW_Coord& expected) {
+        return near(actual.x, expected.x) && near(actual.y, expected.y)
+            && near(actual.z, expected.z);
+    };
+    const auto ellipsePoint = [](const DRW_Coord& center,
+                                 const DRW_Coord& major,
+                                 const DRW_Coord& normal,
+                                 double ratio, double parameter) {
+        const double normalLength = std::sqrt(
+            normal.x * normal.x + normal.y * normal.y
+            + normal.z * normal.z);
+        const DRW_Coord n(normal.x / normalLength,
+                          normal.y / normalLength,
+                          normal.z / normalLength);
+        const DRW_Coord minor(
+            (n.y * major.z - n.z * major.y) * ratio,
+            (n.z * major.x - n.x * major.z) * ratio,
+            (n.x * major.y - n.y * major.x) * ratio);
+        const double cosine = std::cos(parameter);
+        const double sine = std::sin(parameter);
+        return DRW_Coord(center.x + major.x * cosine + minor.x * sine,
+                         center.y + major.y * cosine + minor.y * sine,
+                         center.z + major.z * cosine + minor.z * sine);
+    };
+
+    bool tiltedFullValid = tiltedFull != nullptr
+        && tiltedFull->vertlist.size() == 128
+        && tiltedFull->vertlist.front() != nullptr
+        && tiltedFull->vertlist.front()->flags == 32
+        && pointNear(tiltedFull->vertlist[0]->basePoint,
+                     DRW_Coord(12.0, 20.0, 28.5))
+        && pointNear(tiltedFull->vertlist[32]->basePoint,
+                     DRW_Coord(10.0, 21.25, 30.0))
+        && pointNear(tiltedFull->vertlist[64]->basePoint,
+                     DRW_Coord(8.0, 20.0, 31.5))
+        && pointNear(tiltedFull->vertlist[96]->basePoint,
+                     DRW_Coord(10.0, 18.75, 30.0));
+    bool planarFullValid = planarFull != nullptr
+        && planarFull->vertlist.size() == 128
+        && planarFull->vertlist.front() != nullptr
+        && pointNear(planarFull->vertlist.front()->basePoint,
+                     DRW_Coord(5.0, 0.0, 0.0))
+        && std::all_of(planarFull->vertlist.cbegin(),
+                       planarFull->vertlist.cend(),
+                       [](const std::shared_ptr<DRW_Vertex>& vertex) {
+                           return vertex != nullptr
+                               && vertex->basePoint.z == 0.0
+                               && (vertex->flags & 32) == 0;
+                       });
+    const DRW_Polyline* tiltedArc = tiltedArcs.size() >= 1
+        ? tiltedArcs[0] : nullptr;
+    const DRW_Polyline* tiltedArcReverse = tiltedArcs.size() >= 2
+        ? tiltedArcs[1] : nullptr;
+    const DRW_Coord arcCenter(-10.0, 5.0, 2.0);
+    const DRW_Coord arcMajor(3.0, 0.0, 0.0);
+    const DRW_Coord arcNormal(0.0, 0.6, 0.8);
+    bool tiltedArcEndpointsValid = tiltedArc != nullptr
+        && tiltedArc->vertlist.size() == 32
+        && tiltedArc->vertlist.front() != nullptr
+        && tiltedArc->vertlist.back() != nullptr
+        && tiltedArc->vertlist.front()->flags == 32
+        && tiltedArc->vertlist.back()->flags == 32
+        && pointNear(tiltedArc->vertlist.front()->basePoint,
+                     ellipsePoint(arcCenter, arcMajor, arcNormal, 2.0, 0.25))
+        && pointNear(tiltedArc->vertlist.back()->basePoint,
+                     ellipsePoint(arcCenter, arcMajor, arcNormal, 2.0, 1.75))
+        && std::all_of(tiltedArc->vertlist.cbegin(),
+                       tiltedArc->vertlist.cend(),
+                       [](const std::shared_ptr<DRW_Vertex>& vertex) {
+                           return vertex != nullptr && vertex->flags == 32;
+                       });
+    bool tiltedArcSamplesValid = tiltedArcEndpointsValid;
+    if (tiltedArcSamplesValid) {
+        for (std::size_t i = 0; i < tiltedArc->vertlist.size(); ++i) {
+            const double parameter = 0.25 + 1.5
+                * static_cast<double>(i) / 31.0;
+            if (!pointNear(tiltedArc->vertlist[i]->basePoint,
+                           ellipsePoint(arcCenter, arcMajor, arcNormal,
+                                        2.0, parameter))) {
+                tiltedArcSamplesValid = false;
+                break;
+            }
+        }
+    }
+    const bool tiltedArcValid = tiltedArcSamplesValid;
+    const DRW_Coord reverseArcCenter(20.0, -5.0, 3.0);
+    const DRW_Coord reverseArcMajor(2.0, 0.0, 0.0);
+    const DRW_Coord reverseArcNormal(0.0, 0.6, 0.8);
+    bool tiltedReverseArcValid = tiltedArcReverse != nullptr
+        && tiltedArcReverse->vertlist.size() == 32
+        && tiltedArcReverse->vertlist.front() != nullptr
+        && tiltedArcReverse->vertlist.back() != nullptr
+        && pointNear(tiltedArcReverse->vertlist.front()->basePoint,
+                     ellipsePoint(reverseArcCenter, reverseArcMajor,
+                                  reverseArcNormal, 1.5, 1.75))
+        && pointNear(tiltedArcReverse->vertlist.back()->basePoint,
+                     ellipsePoint(reverseArcCenter, reverseArcMajor,
+                                  reverseArcNormal, 1.5, 0.25));
+    if (tiltedReverseArcValid) {
+        for (std::size_t i = 0; i < tiltedArcReverse->vertlist.size(); ++i) {
+            const double parameter = 1.75 - 1.5
+                * static_cast<double>(i) / 31.0;
+            if (!pointNear(tiltedArcReverse->vertlist[i]->basePoint,
+                           ellipsePoint(reverseArcCenter, reverseArcMajor,
+                                        reverseArcNormal, 1.5, parameter))) {
+                tiltedReverseArcValid = false;
+                break;
+            }
+        }
+    }
+
+    if (!keepOutput)
+        std::filesystem::remove(output, ec);
+    dx_data invalidSource;
+    auto* invalidEllipse = new DRW_Ellipse();
+    invalidEllipse->basePoint = DRW_Coord(1.0, 2.0, 3.0);
+    invalidEllipse->secPoint = DRW_Coord(4.0, 0.0, 0.0);
+    invalidEllipse->extPoint = DRW_Coord(0.0, 0.0, 0.0);
+    invalidSource.mBlock->ent.push_back(invalidEllipse);
+    dx_iface invalidExporter;
+    const bool invalidRejected = !invalidExporter.fileExport(
+        invalidOutput.string(), DRW::AC1009, false, &invalidSource, false)
+        && !std::filesystem::exists(invalidOutput);
+
+    const bool polylineCountValid = polylines.size() == 4
+        && tiltedArcs.size() == 2;
+    if (!(polylineCountValid && tiltedFullValid && planarFullValid
+          && tiltedArcValid && tiltedReverseArcValid && invalidRejected))
+        std::cerr << "DXF R12 ellipse downgrade mismatch: tilted-full="
+                  << tiltedFullValid << " planar-full=" << planarFullValid
+                  << " tilted-arc-ratio-over-one=" << tiltedArcValid
+                  << " polyline-count=" << polylines.size()
+                  << " tilted-reverse-arc=" << tiltedReverseArcValid
+                  << " invalid-rejected=" << invalidRejected << '\n';
+    return polylineCountValid && tiltedFullValid && planarFullValid
+        && tiltedArcValid && tiltedReverseArcValid && invalidRejected;
+}
+
+bool runDxfEllipseRejectsInvalidGeometry(
+        const std::filesystem::path& directory) {
+    const std::filesystem::path validPath = directory /
+        "libdxfrw-ellipse-normal-control.dxf";
+    const std::filesystem::path zeroNormalPath = directory /
+        "libdxfrw-ellipse-zero-normal.dxf";
+    const std::filesystem::path nonFiniteNormalPath = directory /
+        "libdxfrw-ellipse-nonfinite-normal.dxf";
+    const std::filesystem::path nonPerpendicularPath = directory /
+        "libdxfrw-ellipse-nonperpendicular-axis.dxf";
+    const std::filesystem::path zeroMajorAxisPath = directory /
+        "libdxfrw-ellipse-zero-major-axis.dxf";
+    const std::filesystem::path zeroRatioPath = directory /
+        "libdxfrw-ellipse-zero-ratio.dxf";
+    const std::filesystem::path negativeRatioPath = directory /
+        "libdxfrw-ellipse-negative-ratio.dxf";
+    std::error_code ec;
+    for (const std::filesystem::path& path :
+         {validPath, zeroNormalPath, nonFiniteNormalPath,
+          nonPerpendicularPath, zeroMajorAxisPath, zeroRatioPath,
+          negativeRatioPath})
+        std::filesystem::remove(path, ec);
+
+    dx_data source;
+    auto* defaultEllipse = new DRW_Ellipse();
+    defaultEllipse->basePoint = DRW_Coord(1.0, 2.0, 3.0);
+    defaultEllipse->secPoint = DRW_Coord(4.0, 0.0, 0.0);
+    defaultEllipse->ratio = 0.5;
+    defaultEllipse->staparam = 0.25;
+    defaultEllipse->endparam = 5.5;
+    source.mBlock->ent.push_back(defaultEllipse);
+
+    auto* obliqueEllipse = new DRW_Ellipse();
+    obliqueEllipse->basePoint = DRW_Coord(-2.0, 5.0, 7.0);
+    obliqueEllipse->secPoint = DRW_Coord(4.0, 0.0, -3.0);
+    obliqueEllipse->extPoint = DRW_Coord(0.6, 0.0, 0.8);
+    obliqueEllipse->ratio = 0.75;
+    obliqueEllipse->staparam = 0.5;
+    obliqueEllipse->endparam = 4.5;
+    source.mBlock->ent.push_back(obliqueEllipse);
+
+    dx_iface exporter;
+    if (!exporter.fileExport(validPath.string(), DRW::AC1027, false,
+                             &source, false)) {
+        std::filesystem::remove(validPath, ec);
+        return false;
+    }
+    std::ifstream input(validPath);
+    if (!input)
+        return false;
+    std::string validDxf{std::istreambuf_iterator<char>{input},
+                         std::istreambuf_iterator<char>{}};
+
+    const auto replaceEllipseGroupValue = [](std::string& text,
+                                            std::size_t ellipseIndex,
+                                            int groupCode,
+                                            const std::string& replacement) {
+        std::istringstream inputText(text);
+        std::vector<std::string> lines;
+        std::string line;
+        while (std::getline(inputText, line))
+            lines.push_back(line);
+        std::size_t currentEllipse = 0;
+        bool replaced = false;
+        for (std::size_t index = 0; index + 1u < lines.size(); index += 2u) {
+            std::string normalized = lines[index];
+            normalized.erase(std::remove_if(normalized.begin(), normalized.end(),
+                [](unsigned char value) {
+                    return value == ' ' || value == '\t' || value == '\r';
+                }), normalized.end());
+            std::string value = lines[index + 1u];
+            value.erase(std::remove_if(value.begin(), value.end(),
+                [](unsigned char character) {
+                    return character == ' ' || character == '\t'
+                        || character == '\r';
+                }), value.end());
+            if (normalized == "0" && value == "ELLIPSE") {
+                ++currentEllipse;
+                continue;
+            }
+            if (currentEllipse == ellipseIndex && !replaced
+                && normalized == std::to_string(groupCode)) {
+                lines[index + 1u] = replacement;
+                replaced = true;
+            }
+        }
+        if (!replaced)
+            return false;
+        std::ostringstream outputText;
+        for (const std::string& outputLine : lines)
+            outputText << outputLine << '\n';
+        text = outputText.str();
+        return true;
+    };
+    const auto writeText = [](const std::filesystem::path& path,
+                              const std::string& text) {
+        std::ofstream output(path, std::ios::binary | std::ios::trunc);
+        output << text;
+        return static_cast<bool>(output);
+    };
+
+    std::string zeroNormal = validDxf;
+    const bool zeroMutation =
+        replaceEllipseGroupValue(zeroNormal, 2u, 210, "0.0")
+        && replaceEllipseGroupValue(zeroNormal, 2u, 220, "0.0")
+        && replaceEllipseGroupValue(zeroNormal, 2u, 230, "0.0");
+    std::string nonFiniteNormal = validDxf;
+    const bool nonFiniteMutation =
+        replaceEllipseGroupValue(nonFiniteNormal, 2u, 220, "nan");
+    std::string nonPerpendicularAxis = validDxf;
+    const bool nonPerpendicularMutation =
+        replaceEllipseGroupValue(nonPerpendicularAxis, 2u, 31, "-2.0");
+    std::string zeroMajorAxis = validDxf;
+    const bool zeroMajorAxisMutation =
+        replaceEllipseGroupValue(zeroMajorAxis, 2u, 11, "0.0")
+        && replaceEllipseGroupValue(zeroMajorAxis, 2u, 21, "0.0")
+        && replaceEllipseGroupValue(zeroMajorAxis, 2u, 31, "0.0");
+    std::string zeroRatio = validDxf;
+    const bool zeroRatioMutation =
+        replaceEllipseGroupValue(zeroRatio, 2u, 40, "0.0");
+    std::string negativeRatio = validDxf;
+    const bool negativeRatioMutation =
+        replaceEllipseGroupValue(negativeRatio, 2u, 40, "-0.5");
+    if (!zeroMutation || !nonFiniteMutation
+        || !nonPerpendicularMutation || !zeroMajorAxisMutation
+        || !zeroRatioMutation || !negativeRatioMutation
+        || !writeText(zeroNormalPath, zeroNormal)
+        || !writeText(nonFiniteNormalPath, nonFiniteNormal)
+        || !writeText(nonPerpendicularPath, nonPerpendicularAxis)
+        || !writeText(zeroMajorAxisPath, zeroMajorAxis)
+        || !writeText(zeroRatioPath, zeroRatio)
+        || !writeText(negativeRatioPath, negativeRatio)) {
+        for (const std::filesystem::path& path :
+             {validPath, zeroNormalPath, nonFiniteNormalPath,
+              nonPerpendicularPath, zeroMajorAxisPath, zeroRatioPath,
+              negativeRatioPath})
+            std::filesystem::remove(path, ec);
+        return false;
+    }
+
+    class EllipseCaptureIface final : public dx_iface {
+    public:
+        std::size_t ellipseCount = 0;
+        void addEllipse(const DRW_Ellipse& data) override {
+            ++ellipseCount;
+            dx_iface::addEllipse(data);
+        }
+    };
+    const auto importedValidModes = [&validPath](bool applyExtrusion) {
+        dx_data imported;
+        EllipseCaptureIface importer;
+        const bool readOk = importer.fileImport(validPath.string(), &imported,
+                                                applyExtrusion);
+        if (!readOk || importer.ellipseCount != 2u
+            || imported.mBlock->ent.size() != 2u) {
+            std::cerr << "ELLIPSE valid read: ok=" << readOk
+                      << " callbacks=" << importer.ellipseCount
+                      << " entities=" << imported.mBlock->ent.size()
+                      << " applyExt=" << applyExtrusion << '\n';
+            return false;
+        }
+        const DRW_Ellipse* parsedDefault = nullptr;
+        const DRW_Ellipse* parsedOblique = nullptr;
+        for (const DRW_Entity* entity : imported.mBlock->ent) {
+            if (entity == nullptr || entity->eType != DRW::ELLIPSE)
+                return false;
+            const auto* ellipse = static_cast<const DRW_Ellipse*>(entity);
+            if (std::abs(ellipse->basePoint.x - 1.0) <= 1.0e-9)
+                parsedDefault = ellipse;
+            else if (std::abs(ellipse->basePoint.x + 2.0) <= 1.0e-9)
+                parsedOblique = ellipse;
+        }
+        const auto near = [](double value, double expected) {
+            return std::isfinite(value)
+                && std::abs(value - expected) <= 1.0e-9;
+        };
+        return parsedDefault != nullptr && parsedOblique != nullptr
+            && !parsedDefault->haveExtrusion
+            && parsedDefault->extPoint.x == 0.0
+            && parsedDefault->extPoint.y == 0.0
+            && parsedDefault->extPoint.z == 1.0
+            && parsedOblique->haveExtrusion
+            && near(parsedDefault->basePoint.x, 1.0)
+            && near(parsedDefault->basePoint.y, 2.0)
+            && near(parsedDefault->basePoint.z, 3.0)
+            && near(parsedDefault->secPoint.x, 4.0)
+            && near(parsedDefault->secPoint.y, 0.0)
+            && near(parsedDefault->secPoint.z, 0.0)
+            && near(parsedOblique->basePoint.x, -2.0)
+            && near(parsedOblique->basePoint.y, 5.0)
+            && near(parsedOblique->basePoint.z, 7.0)
+            && near(parsedOblique->secPoint.x, 4.0)
+            && near(parsedOblique->secPoint.y, 0.0)
+            && near(parsedOblique->secPoint.z, -3.0)
+            && near(parsedOblique->extPoint.x, 0.6)
+            && near(parsedOblique->extPoint.y, 0.0)
+            && near(parsedOblique->extPoint.z, 0.8);
+    };
+    const auto rejectedWithoutPublishingEllipse =
+        [](const std::filesystem::path& path) {
+        dx_data imported;
+        EllipseCaptureIface importer;
+        const bool importOk = importer.fileImport(path.string(), &imported,
+                                                  false);
+        const bool onlyEarlierValidEllipseWasPublished =
+            importer.ellipseCount == 1u && imported.mBlock->ent.size() == 1u
+            && imported.mBlock->ent.front() != nullptr
+            && imported.mBlock->ent.front()->eType == DRW::ELLIPSE;
+        if (importOk || !onlyEarlierValidEllipseWasPublished) {
+            std::cerr << "ELLIPSE malformed read: path=" << path.filename()
+                      << " ok=" << importOk
+                      << " callbacks=" << importer.ellipseCount;
+            std::cerr << '\n';
+        }
+        return !importOk && onlyEarlierValidEllipseWasPublished;
+    };
+
+    struct WriterNegative {
+        const char* name;
+        std::function<void(DRW_Ellipse&)> corrupt;
+    };
+    const std::vector<WriterNegative> writerNegatives = {
+        {"zero-normal", [](DRW_Ellipse& ellipse) {
+            ellipse.extPoint = DRW_Coord(0.0, 0.0, 0.0);
+        }},
+        {"nonfinite-center", [](DRW_Ellipse& ellipse) {
+            ellipse.basePoint.x = std::numeric_limits<double>::quiet_NaN();
+        }},
+        {"nonfinite-major-axis", [](DRW_Ellipse& ellipse) {
+            ellipse.secPoint.z = std::numeric_limits<double>::infinity();
+        }},
+        {"zero-major-axis", [](DRW_Ellipse& ellipse) {
+            ellipse.secPoint = DRW_Coord(0.0, 0.0, 0.0);
+        }},
+        {"nonperpendicular-axis", [](DRW_Ellipse& ellipse) {
+            ellipse.extPoint = DRW_Coord(0.6, 0.0, 0.8);
+        }},
+        {"zero-ratio", [](DRW_Ellipse& ellipse) {
+            ellipse.ratio = 0.0;
+        }},
+        {"negative-ratio", [](DRW_Ellipse& ellipse) {
+            ellipse.ratio = -0.5;
+        }}
+    };
+    bool writerNegativesPass = true;
+    for (const WriterNegative& invalid : writerNegatives) {
+        for (const auto& testCase :
+             {std::make_pair(DRW::AC1027, false),
+              std::make_pair(DRW::AC1027, true),
+              std::make_pair(DRW::AC1009, false)}) {
+            const std::string encoding = testCase.second ? "binary" : "ascii";
+            const std::filesystem::path output = directory /
+                (std::string("libdxfrw-ellipse-writer-") + invalid.name + "-"
+                 + encoding + "-"
+                 + std::to_string(static_cast<int>(testCase.first)) + ".dxf");
+            std::filesystem::remove(output, ec);
+            dx_data invalidSource;
+            auto* invalidEllipse = new DRW_Ellipse();
+            invalidEllipse->basePoint = DRW_Coord(1.0, 2.0, 3.0);
+            invalidEllipse->secPoint = DRW_Coord(4.0, 0.0, 0.0);
+            invalidEllipse->ratio = 0.5;
+            invalidEllipse->staparam = 0.25;
+            invalidEllipse->endparam = 5.5;
+            invalid.corrupt(*invalidEllipse);
+            invalidSource.mBlock->ent.push_back(invalidEllipse);
+            dx_iface invalidExporter;
+            const bool rejected = !invalidExporter.fileExport(
+                output.string(), testCase.first, testCase.second,
+                &invalidSource, false)
+                && !std::filesystem::exists(output);
+            if (!rejected) {
+                std::cerr << "ELLIPSE writer accepted invalid geometry: "
+                          << invalid.name << " version="
+                          << static_cast<int>(testCase.first)
+                          << " binary=" << testCase.second << '\n';
+            }
+            writerNegativesPass = writerNegativesPass && rejected;
+            std::filesystem::remove(output, ec);
+        }
+    }
+
+    const bool validDefaultMode = importedValidModes(false);
+    const bool validLegacyMode = importedValidModes(true);
+    const bool zeroRejected =
+        rejectedWithoutPublishingEllipse(zeroNormalPath);
+    const bool nonFiniteRejected =
+        rejectedWithoutPublishingEllipse(nonFiniteNormalPath);
+    const bool nonPerpendicularRejected =
+        rejectedWithoutPublishingEllipse(nonPerpendicularPath);
+    const bool zeroMajorAxisRejected =
+        rejectedWithoutPublishingEllipse(zeroMajorAxisPath);
+    const bool zeroRatioRejected =
+        rejectedWithoutPublishingEllipse(zeroRatioPath);
+    const bool negativeRatioRejected =
+        rejectedWithoutPublishingEllipse(negativeRatioPath);
+    const bool result = validDefaultMode && validLegacyMode && zeroRejected
+        && nonFiniteRejected && nonPerpendicularRejected
+        && zeroMajorAxisRejected && zeroRatioRejected && negativeRatioRejected
+        && writerNegativesPass;
+    if (!result) {
+        std::cerr << "ELLIPSE extrusion gate: default=" << validDefaultMode
+                  << " legacy=" << validLegacyMode << " zero="
+                  << zeroRejected << " non-finite=" << nonFiniteRejected
+                  << " non-perpendicular=" << nonPerpendicularRejected
+                  << " zero-axis=" << zeroMajorAxisRejected
+                  << " zero-ratio=" << zeroRatioRejected
+                  << " negative-ratio=" << negativeRatioRejected
+                  << " writer=" << writerNegativesPass << '\n';
+    }
+    for (const std::filesystem::path& path :
+         {validPath, zeroNormalPath, nonFiniteNormalPath,
+          nonPerpendicularPath, zeroMajorAxisPath, zeroRatioPath,
+          negativeRatioPath})
+        std::filesystem::remove(path, ec);
+    return result;
+}
+
+bool runDxfArcCircleThicknessRoundTrip(
+        bool binary, const std::filesystem::path& directory) {
+    const std::filesystem::path output = directory /
+        (binary ? "libdxfrw-arc-circle-thickness-binary.dxf"
+                : "libdxfrw-arc-circle-thickness-ascii.dxf");
+    std::error_code ec;
+    std::filesystem::remove(output, ec);
+
+    dx_data source;
+    auto* circle = new DRW_Circle();
+    circle->basePoint = DRW_Coord(2.0, 3.0, 4.0);
+    circle->extPoint = DRW_Coord(0.6, 0.0, 0.8);
+    circle->radious = 2.5;
+    circle->thickness = 3.75;
+    source.mBlock->ent.push_back(circle);
+
+    auto* arc = new DRW_Arc();
+    arc->basePoint = DRW_Coord(2.0, 3.0, 4.0);
+    arc->extPoint = DRW_Coord(0.6, 0.0, 0.8);
+    arc->radious = 1.75;
+    arc->thickness = 1.25;
+    arc->staangle = 0.25;
+    arc->endangle = 1.5;
+    source.mBlock->ent.push_back(arc);
+
+    dx_iface exporter;
+    if (!exporter.fileExport(output.string(), DRW::AC1027, binary,
+                             &source, false)) {
+        std::filesystem::remove(output, ec);
+        return false;
+    }
+
+    class ArcCircleCapture final : public dx_iface {
+    public:
+        dx_data data;
+        DRW_Circle circle;
+        DRW_Arc arc;
+        bool hasCircle = false;
+        bool hasArc = false;
+
+        ArcCircleCapture() {
+            cData = &data;
+            currentBlock = data.mBlock;
+        }
+
+        void addCircle(const DRW_Circle& value) override {
+            circle = value;
+            hasCircle = true;
+        }
+
+        void addArc(const DRW_Arc& value) override {
+            arc = value;
+            hasArc = true;
+        }
+    };
+
+    const auto readAndCheck = [&](bool applyExtrusion) {
+        const std::string outputName = output.string();
+        dxfRW reader(outputName.c_str());
+        ArcCircleCapture capture;
+        const bool readOk = reader.read(&capture, applyExtrusion);
+        if (!readOk || !capture.hasCircle || !capture.hasArc) {
+            std::cerr << "ARC/CIRCLE thickness read failed: binary=" << binary
+                      << " applyExt=" << applyExtrusion << " ok=" << readOk
+                      << " circle=" << capture.hasCircle
+                      << " arc=" << capture.hasArc << '\n';
+            return false;
+        }
+        const DRW_Circle* parsedCircle = &capture.circle;
+        const DRW_Arc* parsedArc = &capture.arc;
+        const auto near = [](double actual, double expected) {
+            return std::isfinite(actual)
+                && std::abs(actual - expected) <= 1.0e-9;
+        };
+        const auto pointNear = [&near](const DRW_Coord& actual,
+                                       const DRW_Coord& expected) {
+            return near(actual.x, expected.x)
+                && near(actual.y, expected.y)
+                && near(actual.z, expected.z);
+        };
+        const DRW_Coord expectedCenter = applyExtrusion
+            ? DRW_Coord(0.0, 2.0, 5.0)
+            : DRW_Coord(2.0, 3.0, 4.0);
+        const bool fieldsMatch = parsedCircle != nullptr && parsedArc != nullptr
+            && near(parsedCircle->thickness, 3.75)
+            && near(parsedArc->thickness, 1.25)
+            && near(parsedCircle->radious, 2.5)
+            && near(parsedArc->radious, 1.75)
+            && pointNear(parsedCircle->basePoint, expectedCenter)
+            && pointNear(parsedArc->basePoint, expectedCenter)
+            && pointNear(parsedCircle->extPoint, DRW_Coord(0.6, 0.0, 0.8))
+            && pointNear(parsedArc->extPoint, DRW_Coord(0.6, 0.0, 0.8))
+            && near(parsedArc->staangle, 0.25)
+            && near(parsedArc->endangle, 1.5);
+        if (!fieldsMatch) {
+            std::cerr << "ARC/CIRCLE thickness fields differ: binary=" << binary
+                      << " applyExt=" << applyExtrusion
+                      << " circle-thickness="
+                      << (parsedCircle ? parsedCircle->thickness : -999.0)
+                      << " arc-thickness="
+                      << (parsedArc ? parsedArc->thickness : -999.0)
+                      << " circle-center-x="
+                      << (parsedCircle ? parsedCircle->basePoint.x : -999.0)
+                      << " circle-center-y="
+                      << (parsedCircle ? parsedCircle->basePoint.y : -999.0)
+                      << " circle-center-z="
+                      << (parsedCircle ? parsedCircle->basePoint.z : -999.0)
+                      << " arc-center-x="
+                      << (parsedArc ? parsedArc->basePoint.x : -999.0)
+                      << " arc-center-y="
+                      << (parsedArc ? parsedArc->basePoint.y : -999.0)
+                      << " arc-center-z="
+                      << (parsedArc ? parsedArc->basePoint.z : -999.0)
+                      << '\n';
+        }
+        return fieldsMatch;
+    };
+
+    const bool valid = readAndCheck(false) && readAndCheck(true);
+    std::filesystem::remove(output, ec);
+    return valid;
+}
+
+bool runDxfRejectsInvalidFaceFlags(bool binary,
+                                   const std::filesystem::path& directory) {
+    const std::string encoding = binary ? "binary" : "ascii";
+    const std::array<int, 3> invalidFlags{{-1, 16, 65536}};
+    bool allRejected = true;
+    for (const int flags : invalidFlags) {
+        const std::filesystem::path output = directory /
+            ("libdxfrw-invalid-3dface-flags-" + encoding + "-"
+             + std::to_string(flags) + ".dxf");
+        std::error_code ec;
+        std::filesystem::remove(output, ec);
+
+        dx_data source;
+        auto* face = new DRW_3Dface();
+        face->basePoint = DRW_Coord(1.0, 2.0, 3.0);
+        face->secPoint = DRW_Coord(4.0, 5.0, 6.0);
+        face->thirdPoint = DRW_Coord(7.0, 8.0, 9.0);
+        face->fourPoint = DRW_Coord(10.0, 11.0, 12.0);
+        face->invisibleflag = flags;
+        source.mBlock->ent.push_back(face);
+
+        dx_iface exporter;
+        const bool writeSucceeded = exporter.fileExport(
+            output.string(), DRW::AC1027, binary, &source, false);
+        if (writeSucceeded || std::filesystem::exists(output))
+            allRejected = false;
+        std::filesystem::remove(output, ec);
+    }
+    return allRejected;
+}
+
+DRW_Coord referenceInsertTransform(const DRW_Coord& point,
+                                   const DRW_Coord& blockBase,
+                                   const DRW_Insert& insert) {
+    DRW_Coord normal = insert.extPoint;
+    const double normalLength = std::sqrt(normal.x * normal.x
+        + normal.y * normal.y + normal.z * normal.z);
+    if (!std::isfinite(normalLength) || normalLength == 0.0)
+        return DRW_Coord(std::numeric_limits<double>::quiet_NaN(), 0.0, 0.0);
+    normal.x /= normalLength;
+    normal.y /= normalLength;
+    normal.z /= normalLength;
+
+    DRW_Coord axisX;
+    if (std::abs(normal.x) < 1.0 / 64.0
+        && std::abs(normal.y) < 1.0 / 64.0) {
+        // Autodesk's arbitrary-axis rule uses Wy x N close to world Z.
+        axisX = DRW_Coord(normal.z, 0.0, -normal.x);
+    } else {
+        // Otherwise use Wz x N.
+        axisX = DRW_Coord(-normal.y, normal.x, 0.0);
+    }
+    const double axisLength = std::sqrt(axisX.x * axisX.x
+        + axisX.y * axisX.y + axisX.z * axisX.z);
+    if (!std::isfinite(axisLength) || axisLength == 0.0)
+        return DRW_Coord(std::numeric_limits<double>::quiet_NaN(), 0.0, 0.0);
+    axisX.x /= axisLength;
+    axisX.y /= axisLength;
+    axisX.z /= axisLength;
+    const DRW_Coord axisY(
+        normal.y * axisX.z - normal.z * axisX.y,
+        normal.z * axisX.x - normal.x * axisX.z,
+        normal.x * axisX.y - normal.y * axisX.x);
+
+    const double sx = (point.x - blockBase.x) * insert.xscale;
+    const double sy = (point.y - blockBase.y) * insert.yscale;
+    const double sz = (point.z - blockBase.z) * insert.zscale;
+    const double cosine = std::cos(insert.angle);
+    const double sine = std::sin(insert.angle);
+    const double rx = sx * cosine - sy * sine;
+    const double ry = sx * sine + sy * cosine;
+    return DRW_Coord(
+        insert.basePoint.x * axisX.x + insert.basePoint.y * axisY.x
+            + insert.basePoint.z * normal.x + rx * axisX.x + ry * axisY.x
+            + sz * normal.x,
+        insert.basePoint.x * axisX.y + insert.basePoint.y * axisY.y
+            + insert.basePoint.z * normal.y + rx * axisX.y + ry * axisY.y
+            + sz * normal.y,
+        insert.basePoint.x * axisX.z + insert.basePoint.y * axisY.z
+            + insert.basePoint.z * normal.z + rx * axisX.z + ry * axisY.z
+            + sz * normal.z);
+}
+
+bool nearDxfValue(double value, double expected) {
+    return std::isfinite(value)
+        && std::abs(value - expected) <= 1.0e-9;
+}
+
+class SplineBodyParserProbe : public DRW_Spline {
+public:
+    bool parseBody(DRW::Version version, dwgBuffer& buffer,
+                   std::uint64_t bodyEndBit) {
+        if (bodyEndBit > std::numeric_limits<std::uint32_t>::max())
+            return false;
+        objSize = static_cast<std::uint32_t>(bodyEndBit);
+        dwgDataEndBit = bodyEndBit;
+        return parseDwgSplineBody(version, &buffer);
+    }
+};
+
+bool runR2013SplineBitLongBoundaryTest() {
+    // ODA v5.4.1 §20.4.40 defines both R2013+ fields as BL. Build this
+    // scenario-2 body directly from bitstream primitives rather than through
+    // DRW_Spline::encodeDwgSplineBody(), then place a sentinel at the exact
+    // entity-body boundary to detect a field-width/cursor regression.
+    constexpr std::int32_t splineFlags1 = 13; // fit points, use knot param, closed
+    constexpr std::int32_t knotParameter = 2;
+    constexpr std::int32_t sentinel = 777;
+    const DRW_Coord startTangent(0.0, 0.0, 0.0);
+    const DRW_Coord endTangent(0.0, 0.0, 0.0);
+    const DRW_Coord firstFit(1.0, 2.0, 0.0);
+    const DRW_Coord secondFit(3.0, 0.0, 4.0);
+
+    dwgBufferW encoded;
+    encoded.putBitLong(2); // scenario
+    encoded.putBitLong(splineFlags1);
+    encoded.putBitLong(knotParameter);
+    encoded.putBitLong(1); // degree
+    encoded.putBitDouble(0.125); // fit tolerance
+    encoded.put3BitDouble(startTangent);
+    encoded.put3BitDouble(endTangent);
+    encoded.putBitLong(2); // fit-point count
+    encoded.put3BitDouble(firstFit);
+    encoded.put3BitDouble(secondFit);
+    if (!encoded.isGood())
+        return false;
+
+    const std::uint64_t encodedBits =
+        static_cast<std::uint64_t>(encoded.size()) * 8u;
+    const std::uint64_t bodyEndBit = encoded.bitPos() == 0
+        ? encodedBits
+        : encodedBits - (8u - encoded.bitPos());
+    if (bodyEndBit == 0
+        || bodyEndBit > std::numeric_limits<std::uint32_t>::max())
+        return false;
+    encoded.putBitLong(sentinel);
+    if (!encoded.isGood())
+        return false;
+
+    dwgBuffer input(encoded.data().data(), encoded.data().size());
+    SplineBodyParserProbe parsed;
+    if (!parsed.parseBody(DRW::AC1027, input, bodyEndBit))
+        return false;
+
+    const bool fieldsMatch = parsed.m_scenario == 2
+        && parsed.m_splineFlags1 == splineFlags1
+        && parsed.m_knotParam == knotParameter
+        && parsed.degree == 1 && parsed.flags == 1
+        && parsed.nfit == 2 && parsed.tolfit == 0.125
+        && parsed.tgStart.x == startTangent.x
+        && parsed.tgStart.y == startTangent.y
+        && parsed.tgStart.z == startTangent.z
+        && parsed.tgEnd.x == endTangent.x
+        && parsed.tgEnd.y == endTangent.y
+        && parsed.tgEnd.z == endTangent.z
+        && parsed.fitlist.size() == 2
+        && parsed.fitlist[0] != nullptr
+        && parsed.fitlist[0]->x == firstFit.x
+        && parsed.fitlist[0]->y == firstFit.y
+        && parsed.fitlist[0]->z == firstFit.z
+        && parsed.fitlist[1] != nullptr
+        && parsed.fitlist[1]->x == secondFit.x
+        && parsed.fitlist[1]->y == secondFit.y
+        && parsed.fitlist[1]->z == secondFit.z;
+    return fieldsMatch && input.isGood() && input.getBitLong() == sentinel
+        && input.isGood();
+}
+
+bool runAc1024SplineVersionBoundaryTest() {
+    // The R2013+ BL fields must not be consumed by AC1024. The three older
+    // scenario flags remain separate B fields immediately after degree.
+    constexpr std::int32_t sentinel = 509;
+    dwgBufferW encoded;
+    encoded.putBitLong(1); // control-point scenario
+    encoded.putBitLong(1); // degree
+    encoded.putBoolBit(true);  // rational
+    encoded.putBoolBit(true);  // closed
+    encoded.putBoolBit(false); // periodic
+    encoded.putBitDouble(0.125); // knot tolerance
+    encoded.putBitDouble(0.25);  // control-point tolerance
+    encoded.putBitLong(4); // knot count = control count + degree + 1
+    encoded.putBitLong(2); // control count
+    encoded.putBoolBit(true); // weights present
+    encoded.putBitDouble(0.0);
+    encoded.putBitDouble(0.0);
+    encoded.putBitDouble(1.0);
+    encoded.putBitDouble(1.0);
+    encoded.put3BitDouble(DRW_Coord(0.0, 0.0, 0.0));
+    encoded.putBitDouble(1.0);
+    encoded.put3BitDouble(DRW_Coord(2.0, 0.0, 0.0));
+    encoded.putBitDouble(1.5);
+    if (!encoded.isGood())
+        return false;
+
+    const std::uint64_t encodedBits =
+        static_cast<std::uint64_t>(encoded.size()) * 8u;
+    const std::uint64_t bodyEndBit = encoded.bitPos() == 0
+        ? encodedBits
+        : encodedBits - (8u - encoded.bitPos());
+    if (bodyEndBit == 0
+        || bodyEndBit > std::numeric_limits<std::uint32_t>::max())
+        return false;
+    encoded.putBitLong(sentinel);
+    if (!encoded.isGood())
+        return false;
+
+    dwgBuffer input(encoded.data().data(), encoded.data().size());
+    SplineBodyParserProbe parsed;
+    if (!parsed.parseBody(DRW::AC1024, input, bodyEndBit))
+        return false;
+
+    const bool fieldsMatch = parsed.m_scenario == 1
+        && parsed.m_splineFlags1 == 0 && parsed.m_knotParam == 15
+        && parsed.degree == 1 && parsed.flags == 5
+        && parsed.nknots == 4 && parsed.ncontrol == 2
+        && parsed.nfit == 0 && parsed.tolknot == 0.125
+        && parsed.tolcontrol == 0.25
+        && parsed.knotslist == std::vector<double>({0.0, 0.0, 1.0, 1.0})
+        && parsed.weightlist == std::vector<double>({1.0, 1.5})
+        && parsed.controllist.size() == 2
+        && parsed.controllist[0] != nullptr
+        && parsed.controllist[0]->x == 0.0
+        && parsed.controllist[0]->y == 0.0
+        && parsed.controllist[0]->z == 0.0
+        && parsed.controllist[1] != nullptr
+        && parsed.controllist[1]->x == 2.0
+        && parsed.controllist[1]->y == 0.0
+        && parsed.controllist[1]->z == 0.0;
+    return fieldsMatch && input.isGood() && input.getBitLong() == sentinel
+        && input.isGood();
+}
+
+bool runDxfInsertTransformRoundTrip(bool binary,
+                                    const std::filesystem::path& directory,
+                                    bool keepOutput) {
+    const std::string encoding = binary ? "binary" : "ascii";
+    const std::filesystem::path output = directory /
+        ("libdxfrw-dxf-insert-transform-" + encoding + ".dxf");
+    std::error_code ec;
+    std::filesystem::remove(output, ec);
+
+    dx_data source;
+    auto* innerBlock = new dx_ifaceBlock();
+    innerBlock->name = "LOCAL_INNER_3D";
+    innerBlock->basePoint = DRW_Coord(1.0, 2.0, 3.0);
+    auto* blockPoint = new DRW_Point();
+    blockPoint->basePoint = DRW_Coord(4.0, 6.0, 8.0);
+    innerBlock->ent.push_back(blockPoint);
+    source.blocks.push_back(innerBlock);
+
+    auto* outerBlock = new dx_ifaceBlock();
+    outerBlock->name = "LOCAL_OUTER_3D";
+    outerBlock->basePoint = DRW_Coord(2.0, -1.0, 3.0);
+    auto* nested = new DRW_Insert();
+    nested->name = innerBlock->name;
+    nested->basePoint = DRW_Coord(6.0, 7.0, 8.0);
+    nested->xscale = 2.0;
+    nested->yscale = 0.5;
+    nested->zscale = 1.0;
+    nested->angle = 1.57079632679489661923;
+    outerBlock->ent.push_back(nested);
+    source.blocks.push_back(outerBlock);
+
+    auto* root = new DRW_Insert();
+    root->name = outerBlock->name;
+    root->basePoint = DRW_Coord(10.0, 20.0, 30.0);
+    root->xscale = -2.0;
+    root->yscale = 3.0;
+    root->zscale = 0.5;
+    root->angle = 1.57079632679489661923;
+    const double rootNormalComponent = std::sqrt(0.5);
+    root->extPoint = DRW_Coord(0.0, rootNormalComponent,
+                               rootNormalComponent);
+    auto attribute = std::make_shared<DRW_Attrib>();
+    attribute->tag = "LOCAL_3D_TAG";
+    attribute->text = "LOCAL_3D_VALUE";
+    attribute->basePoint = DRW_Coord(11.0, 12.0, 13.0);
+    attribute->height = 1.25;
+    root->attlist.push_back(attribute);
+    source.mBlock->ent.push_back(root);
+
+    auto* array = new DRW_Insert();
+    array->name = outerBlock->name;
+    array->basePoint = DRW_Coord(-3.0, 4.0, 5.0);
+    array->xscale = 1.5;
+    array->yscale = -0.5;
+    array->zscale = 2.0;
+    array->angle = -1.04719755119659774615;
+    array->extPoint = DRW_Coord(0.0, 0.0, -1.0);
+    array->colcount = 3;
+    array->rowcount = 2;
+    array->colspace = 4.25;
+    array->rowspace = 6.5;
+    source.mBlock->ent.push_back(array);
+
+    dx_iface exporter;
+    if (!exporter.fileExport(output.string(), DRW::AC1027, binary, &source,
+                             false)) {
+        std::cerr << "DXF INSERT export failed (" << encoding << "): "
+                  << output << '\n';
+        if (!keepOutput)
+            std::filesystem::remove(output, ec);
+        return false;
+    }
+    dx_data imported;
+    dx_iface importer;
+    if (!importer.fileImport(output.string(), &imported, false)) {
+        std::cerr << "DXF INSERT import failed (" << encoding << "): "
+                  << output << '\n';
+        if (!keepOutput)
+            std::filesystem::remove(output, ec);
+        return false;
+    }
+
+    const dx_ifaceBlock* decodedInner = nullptr;
+    const dx_ifaceBlock* decodedOuter = nullptr;
+    for (const dx_ifaceBlock* block : imported.blocks) {
+        if (block->name == "LOCAL_INNER_3D")
+            decodedInner = block;
+        else if (block->name == "LOCAL_OUTER_3D")
+            decodedOuter = block;
+    }
+    const DRW_Point* decodedPoint = nullptr;
+    if (decodedInner != nullptr) {
+        for (const DRW_Entity* entity : decodedInner->ent) {
+            if (entity != nullptr && entity->eType == DRW::POINT)
+                decodedPoint = static_cast<const DRW_Point*>(entity);
+        }
+    }
+    const DRW_Insert* decodedNested = nullptr;
+    if (decodedOuter != nullptr) {
+        for (const DRW_Entity* entity : decodedOuter->ent) {
+            if (entity != nullptr && entity->eType == DRW::INSERT)
+                decodedNested = static_cast<const DRW_Insert*>(entity);
+        }
+    }
+    const DRW_Insert* decodedRoot = nullptr;
+    const DRW_Insert* decodedArray = nullptr;
+    for (const DRW_Entity* entity : imported.mBlock->ent) {
+        if (entity == nullptr || entity->eType != DRW::INSERT)
+            continue;
+        const auto* insert = static_cast<const DRW_Insert*>(entity);
+        if (insert->isMInsert())
+            decodedArray = insert;
+        else
+            decodedRoot = insert;
+    }
+
+    const bool blockFieldsValid = decodedInner != nullptr
+        && decodedOuter != nullptr && decodedPoint != nullptr
+        && decodedInner->basePoint.x == 1.0
+        && decodedInner->basePoint.y == 2.0
+        && decodedInner->basePoint.z == 3.0
+        && decodedPoint->basePoint.x == 4.0
+        && decodedPoint->basePoint.y == 6.0
+        && decodedPoint->basePoint.z == 8.0
+        && decodedOuter->basePoint.x == 2.0
+        && decodedOuter->basePoint.y == -1.0
+        && decodedOuter->basePoint.z == 3.0;
+    const bool nestedFieldsValid = decodedNested != nullptr
+        && decodedNested->name == "LOCAL_INNER_3D"
+        && decodedNested->basePoint.x == 6.0
+        && decodedNested->basePoint.y == 7.0
+        && decodedNested->basePoint.z == 8.0
+        && decodedNested->xscale == 2.0 && decodedNested->yscale == 0.5
+        && decodedNested->zscale == 1.0
+        && nearDxfValue(decodedNested->angle, 1.57079632679489661923);
+    const bool rootFieldsValid = decodedRoot != nullptr
+        && decodedRoot->name == "LOCAL_OUTER_3D"
+        && decodedRoot->basePoint.x == 10.0
+        && decodedRoot->basePoint.y == 20.0
+        && decodedRoot->basePoint.z == 30.0
+        && decodedRoot->xscale == -2.0 && decodedRoot->yscale == 3.0
+        && decodedRoot->zscale == 0.5
+        && nearDxfValue(decodedRoot->angle, 1.57079632679489661923)
+        && nearDxfValue(decodedRoot->extPoint.y, rootNormalComponent)
+        && nearDxfValue(decodedRoot->extPoint.z, rootNormalComponent)
+        && decodedRoot->attlist.size() == 1
+        && decodedRoot->attlist.front() != nullptr
+        && decodedRoot->attlist.front()->tag == "LOCAL_3D_TAG"
+        && decodedRoot->attlist.front()->text == "LOCAL_3D_VALUE"
+        && decodedRoot->attlist.front()->basePoint.x == 11.0
+        && decodedRoot->attlist.front()->basePoint.y == 12.0
+        && decodedRoot->attlist.front()->basePoint.z == 13.0;
+    const bool arrayFieldsValid = decodedArray != nullptr
+        && decodedArray->name == "LOCAL_OUTER_3D"
+        && decodedArray->basePoint.x == -3.0
+        && decodedArray->basePoint.y == 4.0
+        && decodedArray->basePoint.z == 5.0
+        && decodedArray->xscale == 1.5 && decodedArray->yscale == -0.5
+        && decodedArray->zscale == 2.0
+        && nearDxfValue(decodedArray->angle, -1.04719755119659774615)
+        && decodedArray->extPoint.z == -1.0
+        && decodedArray->colcount == 3 && decodedArray->rowcount == 2
+        && decodedArray->colspace == 4.25 && decodedArray->rowspace == 6.5;
+
+    bool oracleValid = false;
+    bool arrayOracleValid = false;
+    if (blockFieldsValid && nestedFieldsValid && rootFieldsValid) {
+        const DRW_Coord inOuter = referenceInsertTransform(
+            decodedPoint->basePoint, decodedInner->basePoint, *decodedNested);
+        const DRW_Coord inWorld = referenceInsertTransform(
+            inOuter, decodedOuter->basePoint, *decodedRoot);
+        oracleValid = nearDxfValue(inWorld.x, 32.0)
+            && nearDxfValue(inWorld.y, 19.0 / std::sqrt(2.0))
+            && nearDxfValue(inWorld.z, 51.0 / std::sqrt(2.0));
+        if (decodedArray != nullptr) {
+            DRW_Insert arrayCell = *decodedArray;
+            const double columnOffset = 2.0 * decodedArray->colspace;
+            const double rowOffset = decodedArray->rowspace;
+            const double cosine = std::cos(decodedArray->angle);
+            const double sine = std::sin(decodedArray->angle);
+            // MINSERT grid offsets are in OCS, rotate with the array, and are
+            // not scaled by the referenced block's scale factors.
+            arrayCell.basePoint.x += columnOffset * cosine - rowOffset * sine;
+            arrayCell.basePoint.y += columnOffset * sine + rowOffset * cosine;
+            const DRW_Coord arrayWorldPoint = referenceInsertTransform(
+                inOuter, decodedOuter->basePoint, arrayCell);
+            arrayOracleValid = nearDxfValue(
+                    arrayWorldPoint.x, (-11.0 + std::sqrt(3.0)) / 4.0)
+                && nearDxfValue(arrayWorldPoint.y,
+                                (15.0 - 23.0 * std::sqrt(3.0)) / 4.0)
+                && nearDxfValue(arrayWorldPoint.z, -25.0);
+        }
+    }
+    if (!keepOutput)
+        std::filesystem::remove(output, ec);
+    const bool valid = blockFieldsValid && nestedFieldsValid && rootFieldsValid
+        && arrayFieldsValid && oracleValid && arrayOracleValid;
+    if (!valid)
+        std::cerr << "DXF INSERT semantic mismatch (" << encoding
+                  << "): block=" << blockFieldsValid
+                  << " nested=" << nestedFieldsValid << " root=" << rootFieldsValid
+                  << " array=" << arrayFieldsValid << " oracle=" << oracleValid
+                  << " arrayOracle=" << arrayOracleValid
+                  << '\n';
+    return valid;
+}
+
+bool runDxfInsertRejectsInvalidPayload() {
+    const std::filesystem::path output =
+        std::filesystem::temp_directory_path()
+        / "libdxfrw-dxf-insert-invalid-payload.dxf";
+    const auto reject = [&](const DRW_Insert& invalid,
+                            const char* suffix) {
+        std::error_code ec;
+        const std::filesystem::path target = output.parent_path()
+            / (output.stem().string() + suffix + output.extension().string());
+        std::filesystem::remove(target, ec);
+        dx_data source;
+        source.mBlock->ent.push_back(new DRW_Insert(invalid));
+        dx_iface exporter;
+        const bool rejected = !exporter.fileExport(target.string(),
+            DRW::AC1027, false, &source, false);
+        std::filesystem::remove(target, ec);
+        return rejected;
+    };
+    DRW_Insert invalidCount;
+    invalidCount.name = "LOCAL_BAD_MINSERT";
+    invalidCount.colcount = std::numeric_limits<std::int16_t>::max() + 1;
+    DRW_Insert invalidPoint;
+    invalidPoint.name = "LOCAL_BAD_INSERT_POINT";
+    invalidPoint.basePoint.x = std::numeric_limits<double>::quiet_NaN();
+    return reject(invalidCount, "-count") && reject(invalidPoint, "-point");
 }
 
 } // namespace
@@ -5546,14 +11745,36 @@ int main(int argc, char** argv) {
         DRW::AC1024, DRW::AC1027, DRW::AC1032};
     std::filesystem::path directory = std::filesystem::temp_directory_path();
     bool keepOutputs = false;
-    if (argc == 3 && std::string(argv[1]) == "--keep-dir") {
+    if (argc == 3
+        && std::string(argv[1]) == "--verify-acsh-prefix-sample") {
+        const bool passed = runAcshPrefixSampleQualification(argv[2]);
+        std::cout << "ACSH pinned-sample prefix qualification: "
+                  << (passed ? "PASS" : "FAIL") << '\n';
+        return passed ? 0 : 1;
+    } else if (argc == 4
+        && std::string(argv[1]) == "--verify-dynamicblock-typed-pair") {
+        const bool passed = runDynamicBlockTypedDxfPairQualification(
+            argv[2], argv[3]);
+        std::cout << "dynamic-block typed-DXF pair qualification: "
+                  << (passed ? "PASS" : "FAIL") << '\n';
+        return passed ? 0 : 1;
+    } else if (argc == 3 && std::string(argv[1]) == "--keep-dir") {
         directory = argv[2];
         std::filesystem::create_directories(directory);
         keepOutputs = true;
     } else if (argc != 1) {
-        std::cerr << "usage: " << argv[0] << " [--keep-dir DIRECTORY]\n";
+        std::cerr << "usage: " << argv[0]
+                  << " [--keep-dir DIRECTORY]"
+                     " [--verify-acsh-prefix-sample DWG]"
+                     " [--verify-dynamicblock-typed-pair DWG DXF]\n";
         return 2;
     }
+    expect(runR2013SplineBitLongBoundaryTest(),
+           "synthetic AC1027 SPLINE BL fields preserve body-boundary alignment",
+           failures);
+    expect(runAc1024SplineVersionBoundaryTest(),
+           "synthetic AC1024 SPLINE excludes R2013+ fields and preserves alignment",
+           failures);
     std::error_code ec;
     for (const DRW::Version version : versions) {
         const std::filesystem::path output = directory /
@@ -6377,22 +12598,200 @@ int main(int argc, char** argv) {
         if (!keepOutputs)
             std::filesystem::remove(output, ec);
     }
-    expect(runDxfSurfaceRoundTrip(),
-           "local DXF SURFACE family round-trip", failures);
+    expect(runDxfSurfaceRoundTrip(false, directory, keepOutputs),
+           "local DXF ASCII SURFACE subtype semantic round-trip", failures);
+    expect(runDxfSurfaceRoundTrip(true, directory, keepOutputs),
+           "local DXF binary SURFACE subtype semantic round-trip", failures);
+    expect(runDxfSurfaceRejectsMalformed(directory),
+           "local DXF SURFACE rejects malformed size, boolean, and matrix fields",
+           failures);
+    expect(runDxfSplineSurfaceRejectsInvalidPayload(directory),
+           "local DXF HELIX/SPLINE/SURFACE writers reject invalid field values",
+           failures);
+    expect(runDxfSplineHelixRoundTrip(false, directory, keepOutputs),
+           "local DXF ASCII SPLINE fit/control and HELIX semantic round-trip",
+           failures);
+    expect(runDxfSplineHelixRoundTrip(true, directory, keepOutputs),
+           "local DXF binary SPLINE fit/control and HELIX semantic round-trip",
+           failures);
+    expect(runDxfTopologyRoundTrip(false, directory, keepOutputs),
+           "local DXF ASCII 3D topology and OCS/WCS round-trip", failures);
+    expect(runDxfTopologyRoundTrip(true, directory, keepOutputs),
+           "local DXF binary 3D topology and OCS/WCS round-trip", failures);
+    expect(runDxfLegacyEllipseDowngrade(directory, keepOutputs),
+           "local DXF R12 ellipse downgrade preserves 3D geometry", failures);
+    expect(runDxfEllipseRejectsInvalidGeometry(directory),
+           "local DXF ELLIPSE rejects undefined extrusion normals",
+           failures);
+    expect(runDxfArcCircleThicknessRoundTrip(false, directory),
+           "local DXF ASCII ARC/CIRCLE preserves thickness independently of OCS projection",
+           failures);
+    expect(runDxfArcCircleThicknessRoundTrip(true, directory),
+           "local DXF binary ARC/CIRCLE preserves thickness independently of OCS projection",
+           failures);
+    expect(runDxfRejectsInvalidFaceFlags(false, directory),
+           "local DXF ASCII writer rejects invalid 3DFACE edge flags", failures);
+    expect(runDxfRejectsInvalidFaceFlags(true, directory),
+           "local DXF binary writer rejects invalid 3DFACE edge flags", failures);
+    expect(runDxfInsertTransformRoundTrip(false, directory, keepOutputs),
+           "local DXF ASCII nested INSERT/MINSERT transform fields", failures);
+    expect(runDxfInsertTransformRoundTrip(true, directory, keepOutputs),
+           "local DXF binary nested INSERT/MINSERT transform fields", failures);
+    expect(runDxfInsertRejectsInvalidPayload(),
+           "local DXF INSERT rejects out-of-range MINSERT counts", failures);
     const std::vector<std::uint8_t> sabPayload = makeLocalSabPayload();
     expect(runAcisSabFastCheck(), "local ACIS SAB parser fast check", failures);
     const std::vector<std::uint8_t> textCarrier {
         'A', 'C', 'I', 'S', ' ', 'S', 'A', 'T', ' ', 'L', 'O', 'C', 'A', 'L'};
     expect(runDxfModelerCarrierRoundTrip(DRW::AC1018, textCarrier, "text", false),
-           "local DXF text modeler carrier round-trip", failures);
-    expect(runDxfModelerCarrierRoundTrip(DRW::AC1027, sabPayload, "binary", true),
-           "local DXF binary modeler carrier round-trip", failures);
+           "local DXF AC1018 text modeler carrier round-trip", failures);
+    expect(runDxfModelerCarrierRoundTrip(DRW::AC1015, textCarrier, "ac1015", false),
+           "local DXF AC1015 SAT text modeler carrier round-trip", failures);
+    expect(runDxfModelerCarrierRoundTrip(DRW::AC1021, textCarrier, "ac1021", true),
+           "local DXF AC1021 binary-file SAT text modeler carrier round-trip", failures);
+    expect(runDxfModelerCarrierRoundTrip(DRW::AC1024, textCarrier, "ac1024", false),
+           "local DXF AC1024 SAT text modeler carrier round-trip", failures);
+    expect(runDxfModelerEnvelopeRoundTrip(false, directory, keepOutputs),
+           "local DXF AC1027 modeler shell fields and history-handle remap",
+           failures);
+    expect(runDxfModelerEnvelopeRoundTrip(true, directory, keepOutputs),
+           "local binary DXF AC1027 modeler shell fields and history-handle remap",
+           failures);
+    expect(runDxfDimstyleRejectsInvalidBooleans(directory),
+           "local ASCII/binary DXF writers reject invalid DIMSTYLE booleans",
+           failures);
+    expect(runDxfViewportLightingRoundTrip(false, directory),
+           "local ASCII DXF viewport lighting round-trip", failures);
+    expect(runDxfViewportLightingRoundTrip(true, directory),
+           "local binary DXF viewport boolean-width round-trip", failures);
+    expect(runDxfRayXlineRoundTrip(false, directory),
+           "local ASCII DXF RAY/XLINE WCS round-trip", failures);
+    expect(runDxfRayXlineRoundTrip(true, directory),
+           "local binary DXF RAY/XLINE WCS round-trip", failures);
+    expect(runDxfAcdsModelerOwnerRemap(false, directory, keepOutputs),
+           "local ASCII DXF AC1027 ACDSDATA ASM_Data owner remap and second pass",
+           failures);
+    expect(runDxfAcdsModelerOwnerRemap(true, directory, keepOutputs),
+           "local binary DXF AC1027 ACDSDATA ASM_Data owner remap and second pass",
+           failures);
+    expect(runDxfAcdsDataStorageProjection(false, directory, keepOutputs),
+           "local ASCII DWG DataStorage to AC1027 ACDSDATA projection",
+           failures);
+    expect(runDxfAcdsDataStorageProjection(true, directory, keepOutputs),
+           "local binary DWG DataStorage to AC1027 ACDSDATA projection",
+           failures);
+    expect(runDxfAcdsRegionWithoutHistoryProjection(false, directory,
+                                                    keepOutputs),
+           "local ASCII AC1027 REGION ACDSDATA projection without history",
+           failures);
+    expect(runDxfAcdsRegionWithoutHistoryProjection(true, directory,
+                                                    keepOutputs),
+           "local binary AC1027 REGION ACDSDATA projection without history",
+           failures);
+    expect(runDxfAcdsMultipleDataStorageProjection(
+               false, directory, keepOutputs),
+           "local ASCII multi-modeler ACDS projection with thumbnails",
+           failures);
+    expect(runDxfAcdsMultipleDataStorageProjection(
+               true, directory, keepOutputs),
+           "local binary multi-modeler ACDS projection with thumbnails",
+           failures);
+    expect(runAcdsHistoryCallbackCapture(),
+           "local typed ACIS history/evaluation callback retention",
+           failures);
+    expect(runDxfAcShExtrusionProjectionCapture(directory, false),
+           "local DXF ACSH extrusion projection captures fixed fields atomically",
+           failures);
+    expect(runDxfAcShExtrusionProjectionCapture(directory, true),
+           "local DXF ACSH extrusion projection declines malformed transform count",
+           failures);
+    expect(runDxfAcShExtrusionProjectionCapture(directory, false, 0, 128),
+           "local DXF ACSH extrusion projection accepts int16 miter options",
+           failures);
+    expect(runDxfAcShExtrusionProjectionCapture(directory, false, 4, 2),
+           "local DXF ACSH extrusion projection rejects unknown alignment options",
+           failures);
+    expect(runDxfTypedAcdsBoxRoundTrip(false, directory, keepOutputs),
+           "local ASCII typed ACDS BOX closure round-trip", failures);
+    expect(runDxfTypedAcdsBoxRoundTrip(true, directory, keepOutputs),
+           "local binary typed ACDS BOX closure round-trip", failures);
+    expect(runDxfEvaluationGraphRoundTrip(false, directory, keepOutputs),
+           "local ASCII EvaluationGraph typed writer and handle remap",
+           failures);
+    expect(runDxfEvaluationGraphRoundTrip(true, directory, keepOutputs),
+           "local binary EvaluationGraph typed writer and handle remap",
+           failures);
+    expect(runDxfAcdsDataStorageProjection(false, directory, keepOutputs,
+                                           false, false, true),
+           "local AC1027 ACDS projection accepts ODA-reassigned DWG class IDs",
+           failures);
+    expect(runDxfAcdsDataStorageProjection(false, directory, keepOutputs,
+                                           true),
+           "local ASCII AC1027 ACDS projection with reversed object callbacks",
+           failures);
+    expect(runDxfAcdsDataStorageProjection(true, directory, keepOutputs,
+                                           true),
+           "local binary AC1027 ACDS projection with reversed object callbacks",
+           failures);
+    expect(runDxfAcdsDataStorageProjection(false, directory, keepOutputs,
+                                           false, true),
+           "local ASCII AC1027 ACDS projection with reversed entity order",
+           failures);
+    expect(runDxfAcdsDataStorageProjection(true, directory, keepOutputs,
+                                           false, true),
+           "local binary AC1027 ACDS projection with reversed entity order",
+           failures);
+    expect(runDxfAcdsHistoryClosureRejectsAmbiguity(directory, true, false),
+           "local DWG ACDS projection rejects duplicate history proxies",
+           failures);
+    expect(runDxfAcdsHistoryClosureRejectsAmbiguity(directory, false, true),
+           "local DWG ACDS projection rejects ambiguous material dictionaries",
+           failures);
+    expect(runDxfAcdsHistoryClosureRejectsMixedClasses(directory),
+           "local DWG ACDS projection rejects unrelated custom classes and raw proxies",
+           failures);
+    expect(runDxfAcdsSchemaFingerprintRejectsMismatch(directory),
+           "local DWG ACDS projection rejects unqualified schema fingerprints",
+           failures);
+    expect(runDxfAcdsHistoryClosureRejectsMalformedEdges(directory),
+           "local DWG ACDS projection rejects malformed history closure edges",
+           failures);
+    expect(runDxfAcdsModelerOwnerRejectsMalformed(false, false, "FC20"),
+           "local DXF rejects ASM_Data association without an owner key",
+           failures);
+    expect(runDxfAcdsModelerOwnerRejectsMalformed(true, true, "FC20"),
+           "local DXF rejects ambiguous duplicate ASM_Data owner keys",
+           failures);
+    expect(runDxfAcdsModelerOwnerRejectsMalformed(true, false, "FC99"),
+           "local DXF rejects orphan ASM_Data owner keys",
+           failures);
+    expect(runDxfAcdsModelerOwnerRejectsMalformed(true, false, "FC20", true),
+           "local DXF rejects ASM_Data keys ambiguous across modeler entities",
+           failures);
+    expect(runDxfAcdsModelerOwnerRejectsMalformed(true, false, "ZZ"),
+           "local DXF rejects malformed ASM_Data owner handles",
+           failures);
+    expect(runDxfModelerRejectsUnassociatedSab(sabPayload),
+           "local DXF rejects unassociated AC1027 SAB entity payload", failures);
+    expect(runDxfModelerRejectsDwgFramePayload(),
+           "local DXF rejects DWG modeler frame bytes as ACIS", failures);
+    expect(runDxfSurfaceSatCarrierRoundTrip(),
+           "local DXF AC1024 surface SAT text carrier round-trip", failures);
+    expect(runDxfSurfaceRejectsUnassociatedSab(sabPayload),
+           "local DXF rejects unassociated AC1027 surface SAB payload", failures);
     expect(runDxfMalformedModelerCarrier("ABC"),
            "local malformed DXF modeler odd hex rejection", failures);
     expect(runDxfMalformedModelerCarrier("GG"),
            "local malformed DXF modeler non-hex rejection", failures);
+    expect(runDxfMixedModelerCarrierChunks(),
+           "local mixed DXF modeler carrier chunk identity", failures);
     expect(runRawDwgReplayContract(),
            "local DWG raw-object/raw-section replay contract", failures);
+    expect(runModelerDwgVersionValidation(),
+           "local DWG modeler version range and empty-body validation", failures);
+    expect(runModelerDwgSatV1Extraction(),
+           "local AC1015 DWG SAT v1 bounded extraction and DXF text carrier",
+           failures);
     if (failures != 0) {
         std::cerr << failures << " local DWG round-trip assertion(s) failed\n";
         return 1;

@@ -1,0 +1,5 @@
+# Locally authored control geometry for LibreDWG dwgadd 0.14.
+# Generate with: dwgadd --as r2000 -o /tmp/libdxfrw_ac1015_pface_multiface_freecad_control.dwg <this-file>
+# This isolates FreeCAD's multi-face import failure; it is not an AutoCAD-authored sample.
+#version 2000
+polyline_pface 5 2 ((-2 0 1) (0 0 1.5) (1 2 0) (0 3 -0.5) (-1 1 2)) ((1 2 3 4) (2 3 4 5))

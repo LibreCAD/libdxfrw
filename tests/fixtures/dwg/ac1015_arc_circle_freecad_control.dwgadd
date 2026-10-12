@@ -1,0 +1,6 @@
+# Locally authored elevated ARC/CIRCLE FreeCAD route control.
+# Generate with: dwgadd --as r2000 -o /tmp/libdxfrw_ac1015_arc_circle_freecad_control.dwg <this-file>
+# This is generated control data, not an AutoCAD-authored interoperability sample.
+#version 2000
+arc (20 30 40) 3 0 90
+circle (10 20 30) 5

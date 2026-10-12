@@ -1,4 +1,8 @@
 #include <cstddef>
+#include <array>
+#include <charconv>
+#include <chrono>
+#include <memory>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -802,6 +806,345 @@ void testMTextRejectsAnUnsafeBackgroundColourName(TestContext& t) {
     std::filesystem::remove(output, error);
 }
 
+
+void testXRecordDataOrder(TestContext& t) {
+    FixtureInterface interface_;
+    dx_data data;
+    const std::string contents = R"DXF(0
+SECTION
+2
+HEADER
+9
+$ACADVER
+1
+AC1014
+0
+ENDSEC
+0
+SECTION
+2
+OBJECTS
+0
+XRECORD
+5
+210
+330
+200
+100
+AcDbXrecord
+102
+EXTNAMES
+1
+BYBLOCK
+2
+ByBlock
+0
+ENDSEC
+0
+EOF
+)DXF";
+    t.expect(importTemporaryDxf("xrecord-ordered-data-r14", contents,
+                                interface_, data),
+             "ordered XRECORD body fixture imports");
+    t.expect(interface_.xrecords.size() == 1,
+             "ordered XRECORD body reaches the typed callback");
+    if (interface_.xrecords.size() == 1) {
+        const DRW_XRecord& record = interface_.xrecords.front();
+        t.expect(record.m_dataEntries.size() == 3,
+                 "XRECORD callback retains its ordered body view");
+        t.expect(record.m_dataEntries.size() == 3
+                     && record.m_dataEntries[0].code() == 102
+                     && record.m_dataEntries[1].code() == 1
+                     && record.m_dataEntries[2].code() == 2,
+                 "XRECORD body pair order is retained across group 102");
+    }
+}
+
+void testLinetypeExtensionGraphRoundTrip(TestContext& t) {
+    dx_data source;
+    const std::array<std::string, 3> names = {
+        "ByBlock", "ByLayer", "Continuous"};
+    const std::array<std::uint32_t, 3> lineHandles = {
+        0x101u, 0x102u, 0x103u};
+    const std::array<std::uint32_t, 3> dictionaryHandles = {
+        0x14u, 0x202u, 0x203u};
+    const std::array<std::uint32_t, 3> recordHandles = {
+        0x15u, 0x302u, 0x303u};
+    for (std::size_t i = 0; i < names.size(); ++i) {
+        DRW_LType lineType;
+        lineType.handle = lineHandles[i];
+        lineType.name = names[i];
+        lineType.xDictHandle = dictionaryHandles[i];
+        source.lineTypes.push_back(lineType);
+
+        DRW_Dictionary dictionary;
+        dictionary.handle = dictionaryHandles[i];
+        dictionary.parentHandle = lineHandles[i];
+        dictionary.hardOwner = i == 0 ? 1 : 0;
+        dictionary.cloning = 1;
+        DRW_Dictionary::Entry entry;
+        entry.m_name = "ACAD_XREC_ROUNDTRIP";
+        entry.m_handle = recordHandles[i];
+        dictionary.m_entries.push_back(entry);
+        if (i == 0) {
+            auto xdataReference = std::make_unique<DRW_Variant>(
+                1005, std::string("15"));
+            t.expect(dictionary.addExtData(std::move(xdataReference)),
+                     "extension dictionary accepts a typed XDATA handle");
+        }
+        source.dictionaries.push_back(dictionary);
+
+        DRW_XRecord record;
+        record.handle = recordHandles[i];
+        record.parentHandle = dictionaryHandles[i];
+        record.reactorHandles.push_back(dictionaryHandles[i]);
+        record.m_dataEntries.emplace_back(102, std::string("EXTNAMES"));
+        record.m_dataEntries.emplace_back(1, names[i]);
+        record.m_dataEntries.emplace_back(2, names[i]);
+        source.xRecords.push_back(record);
+    }
+
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch()
+                           .count();
+    const std::filesystem::path output =
+        std::filesystem::temp_directory_path()
+        / ("libdxfrw-ltype-extension-" + std::to_string(nonce) + ".dxf");
+    struct OutputCleanup {
+        std::filesystem::path path;
+        ~OutputCleanup() {
+            std::error_code error;
+            std::filesystem::remove(path, error);
+        }
+    } cleanup{output};
+
+    dx_iface writerInterface;
+    t.expect(writerInterface.fileExport(output.string(), DRW::AC1014, false,
+                                        &source, false),
+             "R14 writer exports a closed linetype extension graph");
+    if (!std::filesystem::exists(output))
+        return;
+
+    FixtureInterface readerInterface;
+    dx_data roundTrip;
+    t.expect(readerInterface.fileImport(output.string(), &roundTrip, false),
+             "R14 extension graph output reads through the public DXF path");
+    t.expect(roundTrip.sourceVersion == DRW::AC1014,
+             "R14 extension graph output keeps AC1014 version");
+    for (std::size_t i = 0; i < names.size(); ++i) {
+        const DRW_LType* lineType = nullptr;
+        for (const DRW_LType& candidate : roundTrip.lineTypes) {
+            if (candidate.name == names[i])
+                lineType = &candidate;
+        }
+        t.expect(lineType != nullptr,
+                 "canonical mandatory linetype survives R14 readback");
+        if (lineType == nullptr)
+            continue;
+        const std::uint32_t outputDictionary = lineType->xDictHandle;
+        t.expect(outputDictionary != 0
+                     && (i == 0 ? outputDictionary != dictionaryHandles[i]
+                                : outputDictionary == dictionaryHandles[i]),
+                 "extension dictionary link applies only necessary remapping");
+
+        const DRW_Dictionary* dictionary = nullptr;
+        // FixtureInterface intercepts typed object callbacks for focused
+        // inspection instead of forwarding them into dx_data.
+        for (const DRW_Dictionary& candidate : readerInterface.dictionaries) {
+            if (candidate.handle == outputDictionary)
+                dictionary = &candidate;
+        }
+        t.expect(dictionary != nullptr,
+                 "linetype extension dictionary object is emitted");
+        if (dictionary == nullptr)
+            continue;
+        t.expect(dictionary->parentHandle == lineType->handle
+                     && dictionary->m_entries.size() == 1
+                     && dictionary->hardOwner == (i == 0 ? 1 : 0),
+                 "extension dictionary owner, membership, and hard-owner flag survive");
+
+        const DRW_XRecord* record = nullptr;
+        for (const DRW_XRecord& candidate : readerInterface.xrecords) {
+            if (!dictionary->m_entries.empty()
+                && candidate.handle == dictionary->m_entries.front().m_handle)
+                record = &candidate;
+        }
+        t.expect(record != nullptr,
+                 "dictionary entry resolves to an emitted XRECORD");
+        if (record == nullptr)
+            continue;
+        t.expect(record->parentHandle == dictionary->handle
+                     && record->reactorHandles.size() == 1
+                     && record->reactorHandles.front() == dictionary->handle,
+                 "XRECORD owner and reactor references survive");
+        t.expect(record->m_dataEntries.size() == 3
+                     && record->m_dataEntries[0].code() == 102
+                     && record->m_dataEntries[0].c_str() != nullptr
+                     && std::string(record->m_dataEntries[0].c_str()) == "EXTNAMES"
+                     && record->m_dataEntries[1].c_str() != nullptr
+                     && std::string(record->m_dataEntries[1].c_str()) == names[i]
+                     && record->m_dataEntries[2].c_str() != nullptr
+                     && std::string(record->m_dataEntries[2].c_str()) == names[i],
+                 "ordered XRECORD extension names survive R14 readback");
+        if (i == 0) {
+            std::uint32_t xdataHandle = 0;
+            bool xdataHandleMatchesRecord = false;
+            if (dictionary->extData.size() == 1
+                && dictionary->extData.front() != nullptr
+                && dictionary->extData.front()->c_str() != nullptr) {
+                const char* value = dictionary->extData.front()->c_str();
+                const char* end = value
+                    + std::char_traits<char>::length(value);
+                const auto parsed = std::from_chars(value, end, xdataHandle, 16);
+                xdataHandleMatchesRecord = parsed.ec == std::errc{}
+                    && parsed.ptr == end && xdataHandle == record->handle;
+            }
+            t.expect(xdataHandleMatchesRecord,
+                     "XDATA handle follows the remapped XRECORD handle");
+        }
+    }
+}
+
+void testIncompleteLinetypeExtensionGraphRejected(TestContext& t) {
+    dx_data source;
+    DRW_LType lineType;
+    lineType.handle = 0x101u;
+    lineType.name = "ByLayer";
+    lineType.xDictHandle = 0x201u;
+    source.lineTypes.push_back(lineType);
+    DRW_Dictionary dictionary;
+    dictionary.handle = 0x201u;
+    dictionary.parentHandle = lineType.handle;
+    DRW_Dictionary::Entry entry;
+    entry.m_name = "MISSING";
+    entry.m_handle = 0x202u;
+    dictionary.m_entries.push_back(entry);
+    source.dictionaries.push_back(dictionary);
+
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch()
+                           .count();
+    const std::filesystem::path output =
+        std::filesystem::temp_directory_path()
+        / ("libdxfrw-incomplete-extension-" + std::to_string(nonce) + ".dxf");
+    std::error_code error;
+    std::filesystem::remove(output, error);
+    dx_iface writerInterface;
+    t.expect(!writerInterface.fileExport(output.string(), DRW::AC1014, false,
+                                         &source, false),
+             "incomplete linetype extension graph is rejected");
+    t.expect(!std::filesystem::exists(output),
+             "rejected extension graph publishes no partial DXF");
+    std::filesystem::remove(output, error);
+}
+
+void expectExtensionGraphRejected(TestContext& t, dx_data& source,
+                                  const char* caseName,
+                                  const char* rejectedLabel,
+                                  const char* noOutputLabel) {
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch()
+                           .count();
+    const std::filesystem::path output =
+        std::filesystem::temp_directory_path()
+        / (std::string("libdxfrw-invalid-extension-") + caseName + "-"
+           + std::to_string(nonce) + ".dxf");
+    struct OutputCleanup {
+        std::filesystem::path path;
+        ~OutputCleanup() {
+            std::error_code error;
+            std::filesystem::remove(path, error);
+        }
+    } cleanup{output};
+
+    dx_iface writerInterface;
+    t.expect(!writerInterface.fileExport(output.string(), DRW::AC1014, false,
+                                         &source, false),
+             rejectedLabel);
+    t.expect(!std::filesystem::exists(output),
+             noOutputLabel);
+}
+
+void testUnsafeLinetypeExtensionGraphsRejected(TestContext& t) {
+    dx_data duplicateHandle;
+    DRW_LType lineType;
+    lineType.handle = 0x101u;
+    lineType.name = "ByLayer";
+    lineType.xDictHandle = 0x201u;
+    duplicateHandle.lineTypes.push_back(lineType);
+    DRW_Dictionary firstDictionary;
+    firstDictionary.handle = 0x201u;
+    firstDictionary.parentHandle = lineType.handle;
+    DRW_Dictionary::Entry entry;
+    entry.m_name = "CHILD";
+    entry.m_handle = 0x301u;
+    firstDictionary.m_entries.push_back(entry);
+    duplicateHandle.dictionaries.push_back(firstDictionary);
+    DRW_Dictionary duplicateDictionary;
+    duplicateDictionary.handle = firstDictionary.handle;
+    duplicateDictionary.parentHandle = lineType.handle;
+    duplicateHandle.dictionaries.push_back(duplicateDictionary);
+    DRW_XRecord child;
+    child.handle = entry.m_handle;
+    child.parentHandle = firstDictionary.handle;
+    duplicateHandle.xRecords.push_back(child);
+    expectExtensionGraphRejected(
+        t, duplicateHandle, "duplicate-handle",
+        "duplicate source handles are rejected",
+        "duplicate source handles publish no partial DXF");
+
+    dx_data danglingReference;
+    lineType.handle = 0x102u;
+    lineType.xDictHandle = 0x202u;
+    danglingReference.lineTypes.push_back(lineType);
+    DRW_Dictionary dictionary;
+    dictionary.handle = lineType.xDictHandle;
+    dictionary.parentHandle = lineType.handle;
+    entry.m_handle = 0x302u;
+    dictionary.m_entries.push_back(entry);
+    danglingReference.dictionaries.push_back(dictionary);
+    DRW_XRecord danglingRecord;
+    danglingRecord.handle = entry.m_handle;
+    danglingRecord.parentHandle = dictionary.handle;
+    danglingRecord.m_dataEntries.emplace_back(330, std::string("DEAD"));
+    danglingReference.xRecords.push_back(danglingRecord);
+    expectExtensionGraphRejected(t, danglingReference,
+                                 "unresolved-object-reference",
+                                 "unresolved object references are rejected",
+                                 "unresolved references publish no partial DXF");
+
+    dx_data danglingFallbackReference;
+    lineType.handle = 0x104u;
+    lineType.xDictHandle = 0x204u;
+    danglingFallbackReference.lineTypes.push_back(lineType);
+    dictionary.handle = lineType.xDictHandle;
+    dictionary.parentHandle = lineType.handle;
+    entry.m_handle = 0x304u;
+    dictionary.m_entries.clear();
+    dictionary.m_entries.push_back(entry);
+    danglingFallbackReference.dictionaries.push_back(dictionary);
+    DRW_XRecord fallbackRecord;
+    fallbackRecord.handle = entry.m_handle;
+    fallbackRecord.parentHandle = dictionary.handle;
+    fallbackRecord.m_handleValues.emplace_back(330, 0xDEADu);
+    danglingFallbackReference.xRecords.push_back(fallbackRecord);
+    expectExtensionGraphRejected(
+        t, danglingFallbackReference, "dangling-fallback-reference",
+        "unresolved fallback XRECORD handles are rejected",
+        "unresolved fallback handles publish no partial DXF");
+
+    dx_data nullChild;
+    lineType.handle = 0x105u;
+    lineType.xDictHandle = 0x205u;
+    nullChild.lineTypes.push_back(lineType);
+    DRW_Dictionary nullChildDictionary;
+    nullChildDictionary.handle = lineType.xDictHandle;
+    nullChildDictionary.parentHandle = lineType.handle;
+    entry.m_handle = DRW::NoHandle;
+    nullChildDictionary.m_entries.push_back(entry);
+    nullChild.dictionaries.push_back(nullChildDictionary);
+    expectExtensionGraphRejected(
+        t, nullChild, "null-dictionary-child",
+        "null dictionary children are rejected",
+        "null children publish no partial DXF");
+}
 } // namespace
 
 int main() {
@@ -815,6 +1158,10 @@ int main() {
     testEed(context);
     testRawControls(context);
     testDictionaryWithoutOwner(context);
+    testXRecordDataOrder(context);
+    testLinetypeExtensionGraphRoundTrip(context);
+    testIncompleteLinetypeExtensionGraphRejected(context);
+    testUnsafeLinetypeExtensionGraphsRejected(context);
     testMTextBackgroundFillAndDefinedHeight(context);
     testMTextWithoutBackgroundFillIsUnchanged(context);
     testMTextBackgroundModesWriteOnlyTheirOwnGroups(context);

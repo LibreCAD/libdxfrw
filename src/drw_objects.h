@@ -2944,6 +2944,7 @@ protected:
 public:
   struct Entry {
     UTF8STRING m_name;
+    // Some valid DWGs encode a dictionary entry with a null child reference.
     std::uint32_t m_handle = 0;
   };
   int cloning;                  /*!< duplicate-record handling (BS) */
@@ -5672,7 +5673,42 @@ protected:
                 std::uint32_t bs = 0) override;
 
 public:
+  //! Bounded, typed representation of the AcDbEvalExpr prefix used by the
+  //! observed ACSH history classes. A prefix is writable only when complete.
+  struct EvalExprPrefix {
+    std::int32_t m_unknown = 0;
+    std::int32_t m_value98 = 0;
+    std::int32_t m_value99 = 0;
+    std::int16_t m_valueCode = 0;
+    bool m_hasEvaluatedValue = false;
+    double m_doubleValue = 0.0;
+    DRW_Coord m_pointValue;
+    UTF8STRING m_textValue;
+    std::int32_t m_longValue = 0;
+    std::uint32_t m_handleValue = 0;
+    std::int16_t m_shortValue = 0;
+    std::int32_t m_id = 0;
+    bool m_complete = false;
+  };
+
+  //! Bounded, typed representation of the common AcDbShHistoryNode prefix.
+  struct HistoryNodePrefix {
+    std::int32_t m_major = 0;
+    std::int32_t m_minor = 0;
+    std::array<double, 16> m_transform{};
+    std::uint32_t m_colorIndex = 0;
+    std::int32_t m_rgbColor = -1;
+    bool m_hasRgbColor = false;
+    UTF8STRING m_colorName;
+    UTF8STRING m_colorBookName;
+    std::int32_t m_nodeValue = 0;
+    std::uint32_t m_handle = 0;
+    bool m_complete = false;
+  };
+
   UTF8STRING m_recordName;
+  EvalExprPrefix m_evalExprPrefix;
+  HistoryNodePrefix m_historyNodePrefix;
   std::uint32_t m_major = 0;
   std::uint32_t m_minor = 0;
   std::uint32_t m_ownerHandle = 0;
@@ -5721,6 +5757,25 @@ public:
   // --- ACSH_LOFT_CLASS body (AcDbShLoft) ---
   std::uint32_t m_numCrossSections = 0; //!< BL num_crosssects
   std::uint32_t m_numGuides = 0;        //!< BL num_guides
+
+  //! Exact DXF projection fields observed in AcDbShSweepBase for
+  //! ACSH_EXTRUSION_CLASS. This is a capture-only subset: it does not qualify
+  //! the DWG body layout or make the history object writable.
+  struct ExtrusionDxfProjection {
+    std::array<double, 16> m_sweepEntityTransform{};
+    std::array<double, 16> m_pathEntityTransform{};
+    std::int32_t m_alignOption = 0;
+    std::int32_t m_miterOption = 0;
+    bool m_isSolid = false;
+    bool m_hasAlignStart = false;
+    bool m_bank = false;
+    bool m_basePointSet = false;
+    bool m_sweepEntityTransformComputed = false;
+    bool m_pathEntityTransformComputed = false;
+    DRW_Coord m_point;
+    bool m_transformAndOptionFieldsComplete = false;
+  };
+  ExtrusionDxfProjection m_extrusionDxfProjection;
 
   std::vector<DRW_AssociativePrefixStatus> m_prefixStatuses;
 };
@@ -5818,6 +5873,8 @@ public:
   std::uint32_t m_minor = 0;    /*!< BL evalexpr.minor (DXF 99) */
   std::int16_t m_valueCode =
       0; /*!< BSd evalexpr.value_code (DXF 70; -9999 = none) */
+  double m_valueDouble = 0.0; /*!< selector-40 EvalExpr payload (DXF 140) */
+  bool m_hasValueDouble = false;
   std::uint32_t m_valueHandle = 0; /*!< handle value when m_valueCode == 91 */
   std::uint32_t m_nodeId = 0;      /*!< BL evalexpr.nodeid (DXF 90) */
 
@@ -6069,7 +6126,8 @@ public:
   UTF8STRING m_dependencyName;
   std::int32_t m_classVersion = 0;
 
-  //! True only when a full validation class (PointParameter /
+  //! True only when a full validation class (GripLocationComponent / Grip /
+  //! PointParameter /
   //! BasePointParameter / LookupParameter / FlipParameter /
   //! RotationParameter / LinearParameter / PolarParameter /
   //! AlignmentParameter / XYParameter / constraint parameters /
@@ -6767,6 +6825,14 @@ public:
    * writeEntity (writePolyline/writeInsert reuse ent->handle) keeps the
    * first-seen real source; stale minted-range keys are never queried. */
   std::map<std::uint32_t, std::uint32_t> sourceHandleToMintedMap;
+  /*!< DXF write: source modeler-entity handle -> minted code-5 handle.
+   * Used only to retarget the known ACDSDATA ASM_Data owner key when opaque
+   * sections are replayed after entity handles have been allocated. */
+  std::map<std::uint32_t, std::uint32_t>
+      modelerSourceHandleToMintedMap;
+  /*!< Source entity handles emitted during the current DXF write. Used to
+   * reject an ACDSDATA modeler key that is duplicated by any written entity. */
+  std::set<std::uint32_t> writtenSourceEntityHandles;
   /*!< DXF write: source handles seen on more than one entity. Such a handle
    * cannot identify a GROUP member or other deferred reference, so it is
    * deliberately absent from sourceHandleToMintedMap. */

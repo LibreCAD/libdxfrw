@@ -1,0 +1,8 @@
+# Locally authored planar ELLIPSE controls for the FreeCAD converter route.
+# Generate with: dwgadd --as r2000 -o /tmp/ac1015_ellipse_freecad_control.dwg <this-file>
+# This generated control is not an AutoCAD-authored interoperability sample.
+#version 2000
+ellipse (10 20 0) 5.0 0.5
+ellipse (1 2 0) 3.0 0.5
+ellipse.start_angle = 0.25
+ellipse.end_angle = 1.25

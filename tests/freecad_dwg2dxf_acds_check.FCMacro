@@ -1,0 +1,240 @@
+# Optional, external AC1027 3DSOLID/ACDSDATA converter-handoff qualification.
+# The CMake runner supplies a unique user profile and a caller-owned DWG. This
+# intentionally expects FreeCAD 1.1.3's C++ importer to report 3DSOLID as
+# unsupported; passing this check is not a FreeCAD solid-geometry claim.
+
+import hashlib
+import json
+import os
+import platform
+import subprocess
+import sys
+
+import FreeCAD as App
+
+
+def required(name):
+    value = os.environ.get(name)
+    if not value:
+        raise RuntimeError("%s is required" % name)
+    return value
+
+
+sample = required("LIBDXFRW_ACDS_SAMPLE")
+operation = required("LIBDXFRW_ACDS_OPERATION")
+expected_binary = required("LIBDXFRW_ACDS_BINARY")
+expected_sha = required("LIBDXFRW_ACDS_BINARY_SHA").lower()
+expected_revision = required("LIBDXFRW_ACDS_FREECAD_REVISION")
+expected_cfg = required("LIBDXFRW_ACDS_USER_CFG")
+temp_root = required("LIBDXFRW_ACDS_TEMP_ROOT")
+if operation not in ("open", "insert"):
+    raise RuntimeError("ACDS operation must be open or insert")
+if not os.path.isfile(sample) or not os.path.isfile(expected_binary):
+    raise RuntimeError("ACDS input and installed converter must exist")
+if os.path.realpath(App.ConfigGet("UserParameter")) != os.path.realpath(expected_cfg):
+    raise RuntimeError("FreeCAD did not load the isolated --user-cfg")
+version = list(App.Version())
+if (len(version) < 8 or tuple(version[:3]) != ("1", "1", "3")
+        or version[7] != expected_revision):
+    raise RuntimeError("negative 3DSOLID evidence requires pinned FreeCAD "
+                       "1.1.3 revision %s, got %r" % (expected_revision, version))
+if platform.system() != "Darwin" or platform.machine() != "arm64":
+    raise RuntimeError("negative 3DSOLID evidence is pinned to macOS arm64")
+
+
+def digest(path):
+    sha = hashlib.sha256()
+    with open(path, "rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            sha.update(chunk)
+    return sha.hexdigest()
+
+
+def same_path(left, right):
+    return os.path.normcase(os.path.realpath(left)) == os.path.normcase(
+        os.path.realpath(right))
+
+
+def assert_dxf_carriers(path):
+    with open(path, "rb") as stream:
+        raw = stream.read()
+    if raw.startswith(b"AutoCAD Binary DXF"):
+        raise AssertionError("ACDS handoff must be an ASCII DXF")
+    lines = raw.decode("utf-8-sig").splitlines()
+    if len(lines) % 2:
+        raise AssertionError("ACDS DXF has a truncated group-code pair")
+    pairs = [(int(lines[index].strip()), lines[index + 1].strip())
+             for index in range(0, len(lines), 2)]
+    if not pairs or pairs[-1] != (0, "EOF"):
+        raise AssertionError("ACDS handoff DXF is missing EOF")
+    if not any(left == (9, "$ACADVER") and right == (1, "AC1027")
+               for left, right in zip(pairs, pairs[1:])):
+        raise AssertionError("ACDS handoff DXF is not AC1027")
+    section = None
+    counts = {"3DSOLID": 0, "ACAD_PROXY_OBJECT": 0}
+    saw_acds = False
+    for index, pair in enumerate(pairs):
+        if pair == (0, "SECTION") and index + 1 < len(pairs):
+            if pairs[index + 1][0] != 2:
+                raise AssertionError("DXF SECTION lacks its name")
+            section = pairs[index + 1][1]
+            saw_acds = saw_acds or section == "ACDSDATA"
+        elif pair == (0, "ENDSEC"):
+            section = None
+        elif pair == (0, "3DSOLID") and section == "ENTITIES":
+            counts["3DSOLID"] += 1
+        elif pair == (0, "ACAD_PROXY_OBJECT") and section == "OBJECTS":
+            counts["ACAD_PROXY_OBJECT"] += 1
+    if not saw_acds or counts != {"3DSOLID": 1, "ACAD_PROXY_OBJECT": 3}:
+        raise AssertionError("AC1027 ACDSDATA/3DSOLID/proxy carriers missing: "
+                             "%r, ACDSDATA=%r" % (counts, saw_acds))
+    return counts
+
+
+if digest(expected_binary) != expected_sha:
+    raise AssertionError("installed dwg2dxf SHA-256 differs before FreeCAD import")
+sys.path.insert(0, os.path.join(App.getResourceDir(), "Mod", "Draft"))
+import importDWG
+import importDXF
+
+if App.ParamGet("User parameter:BaseApp/Preferences/Mod/Draft").GetBool(
+        "dxfUseLegacyImporter", False):
+    raise RuntimeError("ACDS check requires FreeCAD's C++ DXF importer")
+importDWG.params.set_param("DWGConversion", 1)
+importDWG.params.set_param("TeighaFileConverter", "")
+if importDWG.params.get_param("DWGConversion") != 1:
+    raise AssertionError("FreeCAD did not select its LibreDWG-only converter mode")
+if not same_path(importDWG.get_libredwg_converter("dwg2dxf"), expected_binary):
+    raise AssertionError("FreeCAD PATH discovery selected another dwg2dxf")
+
+captured = {"processes": [], "handoff": []}
+original = {
+    "popen": subprocess.Popen,
+    "open": importDXF.open,
+    "insert": importDXF.insert,
+    "reporter": importDXF.DxfImportReporter,
+    "oda": importDWG.get_oda_converter,
+    "qcad": importDWG.get_qcad_converter,
+}
+
+
+def capture_popen(*args, **kwargs):
+    child = original["popen"](*args, **kwargs)
+    captured["processes"].append(child)
+    return child
+
+
+def capture_open(path, *args, **kwargs):
+    captured["handoff"].append(("open", path))
+    return original["open"](path, *args, **kwargs)
+
+
+def capture_insert(path, docname, *args, **kwargs):
+    captured["handoff"].append(("insert", path, docname))
+    return original["insert"](path, docname, *args, **kwargs)
+
+
+class CapturingReporter(original["reporter"]):
+    def __init__(self, filename, stats_dict, total_time=0.0):
+        captured["statistics"] = stats_dict
+        super().__init__(filename, stats_dict, total_time)
+
+
+subprocess.Popen = capture_popen
+importDXF.open = capture_open
+importDXF.insert = capture_insert
+importDXF.DxfImportReporter = CapturingReporter
+importDWG.get_oda_converter = lambda: None
+importDWG.get_qcad_converter = lambda: None
+doc = None
+result = None
+try:
+    if operation == "open":
+        doc = importDWG.open(sample)
+        if doc is None:
+            raise AssertionError("FreeCAD open returned no document")
+    else:
+        doc = App.newDocument("FreeCADAcdsInsertCheck")
+        importDWG.insert(sample, doc.Name)
+    if len(captured["processes"]) != 1:
+        raise AssertionError("expected exactly one converter and no fallback")
+    child = captured["processes"][0]
+    argv = list(child.args)
+    if (child.returncode != 0 or len(argv) != 4
+            or not same_path(argv[0], expected_binary)
+            or not same_path(argv[1], sample) or argv[2] != "-o"):
+        raise AssertionError("FreeCAD converter argv/status differed: %r, %r" %
+                             (argv, child.returncode))
+    output = argv[3]
+    if not os.path.isfile(output):
+        raise AssertionError("converter output is absent: %r" % output)
+    if os.path.commonpath((os.path.realpath(temp_root), os.path.realpath(output))) \
+            != os.path.realpath(temp_root):
+        raise AssertionError("converter output escaped the isolated temp root")
+    if len(captured["handoff"]) != 1:
+        raise AssertionError("expected exactly one DXF importer handoff")
+    handoff = captured["handoff"][0]
+    if handoff[0] != operation or not same_path(handoff[1], output):
+        raise AssertionError("DXF importer did not receive converter output")
+    if operation == "insert" and handoff[2] != doc.Name:
+        raise AssertionError("insert targeted a different FreeCAD document")
+    carrier_counts = assert_dxf_carriers(output)
+    stats = captured.get("statistics")
+    if not isinstance(stats, dict):
+        raise AssertionError("FreeCAD C++ importer did not report statistics")
+    entity_counts = stats.get("entityCounts", {})
+    unsupported = stats.get("unsupportedFeatures", {})
+    if (entity_counts.get("3DSOLID") != 1
+            or stats.get("totalEntitiesCreated") != 0
+            or not isinstance(unsupported, dict)):
+        raise AssertionError("FreeCAD did not inspect exactly one 3DSOLID")
+    unsupported_count = sum(len(values) for key, values in unsupported.items()
+                            if "3DSOLID" in str(key).upper())
+    shape_count = 0
+    solid_count = 0
+    for obj in doc.Objects:
+        shape = getattr(obj, "Shape", None)
+        if shape is not None and not shape.isNull():
+            shape_count += 1
+            solid_count += len(shape.Solids)
+    if unsupported_count != 1 or shape_count != 0 or solid_count != 0:
+        raise AssertionError("pinned 3DSOLID importer outcome changed: "
+                             "%d unsupported, %d shapes, %d solids" %
+                             (unsupported_count, shape_count, solid_count))
+    if digest(expected_binary) != expected_sha:
+        raise AssertionError("installed converter changed during FreeCAD import")
+    result = {
+        "operation": operation,
+        "freecad_version": version,
+        "platform": platform.platform(),
+        "architecture": platform.machine(),
+        "importer": "C++",
+        "converter": os.path.realpath(expected_binary),
+        "converter_sha256": expected_sha,
+        "input": os.path.realpath(sample),
+        "input_sha256": digest(sample),
+        "argv": argv,
+        "returncode": child.returncode,
+        "output": os.path.realpath(output),
+        "output_sha256": digest(output),
+        "handoff": captured["handoff"],
+        "carrier_counts": carrier_counts,
+        "imported_entity_count": entity_counts["3DSOLID"],
+        "total_entities_created": stats["totalEntitiesCreated"],
+        "unsupported_3dsolid_count": unsupported_count,
+        "shape_count": shape_count,
+        "solid_count": solid_count,
+        "semantic_status": "unsupported_by_pinned_freecad_importer",
+        "support_level": "converter-integration-only",
+    }
+finally:
+    subprocess.Popen = original["popen"]
+    importDXF.open = original["open"]
+    importDXF.insert = original["insert"]
+    importDXF.DxfImportReporter = original["reporter"]
+    importDWG.get_oda_converter = original["oda"]
+    importDWG.get_qcad_converter = original["qcad"]
+    if doc is not None and doc.Name in App.listDocuments():
+        App.closeDocument(doc.Name)
+
+print("FREECAD_ACDS_HANDOFF_PASS=" + json.dumps(result, sort_keys=True))

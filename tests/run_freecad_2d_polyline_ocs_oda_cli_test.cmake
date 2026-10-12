@@ -1,0 +1,237 @@
+if(NOT DEFINED ODAFILECONVERTER OR NOT DEFINED DWG2DXF
+        OR NOT DEFINED SOURCE_DXF OR NOT DEFINED OUTPUT_DIR)
+    message(FATAL_ERROR
+        "ODAFILECONVERTER, DWG2DXF, SOURCE_DXF, and OUTPUT_DIR are required")
+endif()
+foreach(_required IN ITEMS ODAFILECONVERTER DWG2DXF SOURCE_DXF)
+    if(NOT EXISTS "${${_required}}")
+        message(FATAL_ERROR "${_required} does not exist: ${${_required}}")
+    endif()
+endforeach()
+
+set(_test_dir "${OUTPUT_DIR}/freecad 3d 2d-polyline ocs control")
+set(_oda_output_dir "${_test_dir}/oda dwg")
+file(MAKE_DIRECTORY "${_test_dir}" "${_oda_output_dir}")
+get_filename_component(_source_name "${SOURCE_DXF}" NAME)
+get_filename_component(_source_dir "${SOURCE_DXF}" DIRECTORY)
+set(_input "${_oda_output_dir}/ac1015_2d_polyline_ocs_freecad_control.dwg")
+set(_output "${_test_dir}/ac1015 2d polyline dwg2dxf.dxf")
+set(_roundtrip "${_test_dir}/ac1015 2d polyline readback.dxf")
+file(REMOVE "${_input}" "${_output}" "${_roundtrip}")
+
+# This locally-authored DXF is the only source fixture. ODA's independent DWG
+# output and both converter outputs remain in the ignored build directory.
+execute_process(
+    COMMAND "${ODAFILECONVERTER}" "${_source_dir}" "${_oda_output_dir}"
+        ACAD2000 DWG 0 1 "${_source_name}"
+    RESULT_VARIABLE _write_result
+    OUTPUT_VARIABLE _write_stdout
+    ERROR_VARIABLE _write_stderr
+    TIMEOUT 60
+)
+if(NOT "${_write_result}" STREQUAL "0" OR NOT EXISTS "${_input}")
+    message(FATAL_ERROR
+        "ODA could not create the AC1015 2D POLYLINE OCS control (${_write_result})\n"
+        "${_write_stdout}\n${_write_stderr}")
+endif()
+file(READ "${_input}" _magic_hex LIMIT 6 HEX)
+if(NOT "${_magic_hex}" STREQUAL "414331303135")
+    message(FATAL_ERROR "ODA control has unexpected DWG signature '${_magic_hex}'")
+endif()
+
+function(assert_2d_polyline_fields path)
+    file(STRINGS "${path}" _lines)
+    list(LENGTH _lines _line_count)
+    set(_index 0)
+    set(_acadver_pending FALSE)
+    set(_acadver_ok FALSE)
+    set(_entity "")
+    set(_polyline_count 0)
+    set(_vertex_count 0)
+    set(_seqend_count 0)
+    set(_polyline_subclass FALSE)
+    set(_vertex_subclass FALSE)
+    set(_flags -1)
+    set(_elevation "")
+    set(_normal_x "")
+    set(_normal_y "")
+    set(_normal_z "")
+    set(_vertex_x "")
+    set(_vertex_y "")
+    set(_vertex_z "")
+    set(_vertices)
+    set(_vertex_subclasses)
+
+    while(_index LESS _line_count)
+        math(EXPR _value_index "${_index} + 1")
+        if(_value_index GREATER_EQUAL _line_count)
+            message(FATAL_ERROR "Malformed DXF code/value pair in ${path}")
+        endif()
+        list(GET _lines ${_index} _code)
+        list(GET _lines ${_value_index} _value)
+        string(STRIP "${_code}" _code)
+        string(STRIP "${_value}" _value)
+
+        if(_acadver_pending)
+            if(_code STREQUAL "1" AND _value STREQUAL "AC1015")
+                set(_acadver_ok TRUE)
+            endif()
+            set(_acadver_pending FALSE)
+        endif()
+        if(_code STREQUAL "9" AND _value STREQUAL "$ACADVER")
+            set(_acadver_pending TRUE)
+        endif()
+
+        if(_code STREQUAL "0")
+            if(_entity STREQUAL "VERTEX")
+                list(APPEND _vertices "${_vertex_x}|${_vertex_y}|${_vertex_z}")
+                list(APPEND _vertex_subclasses "${_vertex_subclass}")
+            endif()
+            set(_entity "${_value}")
+            if(_entity STREQUAL "POLYLINE")
+                math(EXPR _polyline_count "${_polyline_count} + 1")
+            elseif(_entity STREQUAL "VERTEX")
+                math(EXPR _vertex_count "${_vertex_count} + 1")
+                set(_vertex_subclass FALSE)
+                set(_vertex_x "")
+                set(_vertex_y "")
+                set(_vertex_z "")
+            elseif(_entity STREQUAL "SEQEND")
+                math(EXPR _seqend_count "${_seqend_count} + 1")
+            endif()
+        elseif(_entity STREQUAL "POLYLINE")
+            if(_code STREQUAL "100" AND _value STREQUAL "AcDb2dPolyline")
+                set(_polyline_subclass TRUE)
+            elseif(_code STREQUAL "30")
+                set(_elevation "${_value}")
+            elseif(_code STREQUAL "70")
+                set(_flags "${_value}")
+            elseif(_code STREQUAL "210")
+                set(_normal_x "${_value}")
+            elseif(_code STREQUAL "220")
+                set(_normal_y "${_value}")
+            elseif(_code STREQUAL "230")
+                set(_normal_z "${_value}")
+            endif()
+        elseif(_entity STREQUAL "VERTEX")
+            if(_code STREQUAL "100" AND _value STREQUAL "AcDb2dVertex")
+                set(_vertex_subclass TRUE)
+            elseif(_code STREQUAL "10")
+                set(_vertex_x "${_value}")
+            elseif(_code STREQUAL "20")
+                set(_vertex_y "${_value}")
+            elseif(_code STREQUAL "30")
+                set(_vertex_z "${_value}")
+            endif()
+        endif()
+
+        math(EXPR _index "${_index} + 2")
+    endwhile()
+    if(_entity STREQUAL "VERTEX")
+        list(APPEND _vertices "${_vertex_x}|${_vertex_y}|${_vertex_z}")
+        list(APPEND _vertex_subclasses "${_vertex_subclass}")
+    endif()
+
+    if(NOT _acadver_ok)
+        message(FATAL_ERROR "${path} does not declare AC1015 in $ACADVER")
+    endif()
+    if(NOT _polyline_count EQUAL 1 OR NOT _vertex_count EQUAL 4
+            OR NOT _seqend_count EQUAL 1 OR NOT _polyline_subclass)
+        message(FATAL_ERROR
+            "Expected one 2D POLYLINE/four VERTEX/one SEQEND in ${path}; got ${_polyline_count}/${_vertex_count}/${_seqend_count}")
+    endif()
+    if(NOT _flags EQUAL 1)
+        message(FATAL_ERROR "Expected a closed 2D POLYLINE (flag 1) in ${path}; got ${_flags}")
+    endif()
+    if(NOT "${_elevation}" MATCHES "^5([.]0*)?$")
+        message(FATAL_ERROR "Expected POLYLINE elevation 5 in ${path}; got '${_elevation}'")
+    endif()
+    if(NOT "${_normal_x}" MATCHES "^[+-]?0([.]0*)?$")
+        message(FATAL_ERROR "Unexpected POLYLINE extrusion X in ${path}: '${_normal_x}'")
+    endif()
+    if(NOT "${_normal_y}" MATCHES "^0[.]6(0*)$")
+        message(FATAL_ERROR "Unexpected POLYLINE extrusion Y in ${path}: '${_normal_y}'")
+    endif()
+    if(NOT "${_normal_z}" MATCHES "^0[.]8(0*)$")
+        message(FATAL_ERROR "Unexpected POLYLINE extrusion Z in ${path}: '${_normal_z}'")
+    endif()
+
+    list(LENGTH _vertices _point_count)
+    list(LENGTH _vertex_subclasses _subclass_count)
+    if(NOT _point_count EQUAL 4 OR NOT _subclass_count EQUAL 4)
+        message(FATAL_ERROR "Expected four ordered OCS vertices in ${path}; got ${_vertices}")
+    endif()
+    foreach(_subclass IN LISTS _vertex_subclasses)
+        if(NOT _subclass)
+            message(FATAL_ERROR "A POLYLINE VERTEX lacks AcDb2dVertex in ${path}")
+        endif()
+    endforeach()
+    set(_expected "0|0|0" "4|0|0" "4|3|0" "0|3|0")
+    foreach(_point_index RANGE 0 3)
+        list(GET _vertices ${_point_index} _actual_point)
+        list(GET _expected ${_point_index} _expected_point)
+        string(REPLACE "|" ";" _actual_parts "${_actual_point}")
+        string(REPLACE "|" ";" _expected_parts "${_expected_point}")
+        list(GET _actual_parts 0 _actual_x)
+        list(GET _actual_parts 1 _actual_y)
+        list(GET _actual_parts 2 _actual_z)
+        list(GET _expected_parts 0 _expected_x)
+        list(GET _expected_parts 1 _expected_y)
+        list(GET _expected_parts 2 _expected_z)
+        foreach(_axis IN ITEMS x y z)
+            if(_axis STREQUAL "x")
+                set(_actual_number "${_actual_x}")
+                set(_expected_number "${_expected_x}")
+            elseif(_axis STREQUAL "y")
+                set(_actual_number "${_actual_y}")
+                set(_expected_number "${_expected_y}")
+            else()
+                set(_actual_number "${_actual_z}")
+                set(_expected_number "${_expected_z}")
+            endif()
+            if(_expected_number STREQUAL "0")
+                set(_number_pattern "^[+-]?0([.]0*)?$")
+            elseif(_expected_number STREQUAL "3")
+                set(_number_pattern "^3([.]0*)?$")
+            else()
+                set(_number_pattern "^4([.]0*)?$")
+            endif()
+            if(NOT "${_actual_number}" MATCHES "${_number_pattern}")
+                message(FATAL_ERROR
+                    "POLYLINE OCS vertex ${_point_index} ${_axis} changed in ${path}: expected ${_expected_number}, got ${_actual_number}")
+            endif()
+        endforeach()
+    endforeach()
+endfunction()
+
+# Match FreeCAD's Draft.importDWG invocation exactly.
+execute_process(
+    COMMAND "${DWG2DXF}" "${_input}" -o "${_output}"
+    RESULT_VARIABLE _convert_result
+    OUTPUT_VARIABLE _convert_stdout
+    ERROR_VARIABLE _convert_stderr
+    TIMEOUT 60
+)
+if(NOT "${_convert_result}" STREQUAL "0" OR NOT EXISTS "${_output}")
+    message(FATAL_ERROR
+        "FreeCAD-form POLYLINE conversion failed (${_convert_result})\n"
+        "${_convert_stdout}\n${_convert_stderr}")
+endif()
+assert_2d_polyline_fields("${_output}")
+
+execute_process(
+    COMMAND "${DWG2DXF}" "${_output}" -o "${_roundtrip}"
+    RESULT_VARIABLE _readback_result
+    OUTPUT_VARIABLE _readback_stdout
+    ERROR_VARIABLE _readback_stderr
+    TIMEOUT 60
+)
+if(NOT "${_readback_result}" STREQUAL "0" OR NOT EXISTS "${_roundtrip}")
+    message(FATAL_ERROR
+        "POLYLINE DXF readback failed (${_readback_result})\n"
+        "${_readback_stdout}\n${_readback_stderr}")
+endif()
+assert_2d_polyline_fields("${_roundtrip}")
+
+message(STATUS
+    "AC1015 closed OCS POLYLINE fields preserved through ODA, dwg2dxf, and DXF readback")

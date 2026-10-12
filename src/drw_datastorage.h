@@ -212,10 +212,14 @@ struct DRW_DataStorageSection {
     //! Unknown-property headers and schemas decoded from schdat.
     std::uint32_t schemaUnknownPropertyCount = 0;
     std::uint32_t schemaCount = 0;
+    //! Legacy count from the most recently parsed schdat segment.
     std::uint32_t schemaPropertyNameCount = 0;
     std::vector<DRW_DataStorageSchemaUnknownProperty>
         schemaUnknownProperties;
     std::vector<DRW_DataStorageSchema> schemas;
+    //! Compatibility projection: schema property names concatenated in
+    //! schdat segment order. DWG schema name indices are not offsets into this
+    //! flattened list when more than one schdat segment is present.
     std::vector<UTF8STRING> schemaPropertyNames;
     std::vector<DRW_DataStorageRecord> records;
     //! Preferred record for each referenced object handle. Duplicate records

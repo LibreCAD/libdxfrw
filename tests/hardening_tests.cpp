@@ -1,5 +1,6 @@
 #include <array>
 #include <algorithm>
+#include <cmath>
 #include <filesystem>
 #include <cstdint>
 #include <iostream>
@@ -16,6 +17,7 @@
 #include "drw_datastorage.h"
 #include "intern/dwgsafety.h"
 #include "intern/dwgreader15.h"
+#include "intern/dwgreader27.h"
 #include "intern/dxfreader.h"
 #include "intern/dxfwriter.h"
 #include "intern/proxygraphicdecoder.h"
@@ -961,23 +963,22 @@ void testPublicOwnershipContracts(TestContext& t) {
              "NURBSURFACE assignment starts a fresh coordinate parser walk");
 
     ExposedRevolvedSurface partialRevolvedSurface;
-    t.expect(parseDxfRecords(partialRevolvedSurface, "90\n1\n"),
+    t.expect(parseDxfRecords(partialRevolvedSurface,
+                              "100\nAcDbRevolvedSurface\n90\n1\n"),
              "REVOLVEDSURFACE parser state source setup");
     ExposedRevolvedSurface copiedRevolvedSurface(partialRevolvedSurface);
-    copiedRevolvedSurface.classId = 0;
     copiedRevolvedSurface.id = 0;
-    t.expect(parseDxfRecords(copiedRevolvedSurface, "90\n2\n")
-                 && copiedRevolvedSurface.classId == 2u
-                 && copiedRevolvedSurface.id == 0u,
-             "REVOLVEDSURFACE copy starts a fresh class-id parser walk");
+    t.expect(parseDxfRecords(copiedRevolvedSurface,
+                              "100\nAcDbRevolvedSurface\n90\n2\n")
+                 && copiedRevolvedSurface.id == 2u,
+             "REVOLVEDSURFACE copy starts a fresh subtype-ID parser walk");
     ExposedRevolvedSurface assignedRevolvedSurface;
     assignedRevolvedSurface = partialRevolvedSurface;
-    assignedRevolvedSurface.classId = 0;
     assignedRevolvedSurface.id = 0;
-    t.expect(parseDxfRecords(assignedRevolvedSurface, "90\n2\n")
-                 && assignedRevolvedSurface.classId == 2u
-                 && assignedRevolvedSurface.id == 0u,
-             "REVOLVEDSURFACE assignment starts a fresh class-id parser walk");
+    t.expect(parseDxfRecords(assignedRevolvedSurface,
+                              "100\nAcDbRevolvedSurface\n90\n2\n")
+                 && assignedRevolvedSurface.id == 2u,
+             "REVOLVEDSURFACE assignment starts a fresh subtype-ID parser walk");
 
     ExposedExtrudedSurface partialExtrudedSurface;
     t.expect(parseDxfRecords(partialExtrudedSurface,
@@ -1905,17 +1906,35 @@ public:
     void addLine(const DRW_Line&) override {}
     void addRay(const DRW_Ray&) override {}
     void addXline(const DRW_Xline&) override {}
-    void addArc(const DRW_Arc&) override {}
-    void addCircle(const DRW_Circle&) override {}
-    void addEllipse(const DRW_Ellipse&) override {}
+    void addArc(const DRW_Arc& data) override {
+        ++arcCount;
+        lastArc = data;
+    }
+    void addCircle(const DRW_Circle& data) override {
+        ++circleCount;
+        lastCircle = data;
+    }
+    void addEllipse(const DRW_Ellipse& data) override {
+        ++ellipseCount;
+        lastEllipse = data;
+    }
     void addLWPolyline(const DRW_LWPolyline&) override {}
     void addPolyline(const DRW_Polyline&) override {}
     void addSpline(const DRW_Spline*) override {}
     void addKnot(const DRW_Entity&) override {}
     void addInsert(const DRW_Insert&) override {}
-    void addTrace(const DRW_Trace&) override {}
-    void add3dFace(const DRW_3Dface&) override {}
-    void addSolid(const DRW_Solid&) override {}
+    void addTrace(const DRW_Trace& data) override {
+        ++traceCount;
+        lastTrace = data;
+    }
+    void add3dFace(const DRW_3Dface& data) override {
+        ++faceCount;
+        last3dFace = data;
+    }
+    void addSolid(const DRW_Solid& data) override {
+        ++solidCount;
+        lastSolid = data;
+    }
     void addMText(const DRW_MText&) override {}
     void addText(const DRW_Text&) override {}
     void addModelerGeometry(const DRW_ModelerGeometry& data) override {
@@ -1936,7 +1955,19 @@ public:
     void addDimAngular3P(const DRW_DimAngular3p*) override {}
     void addDimOrdinate(const DRW_DimOrdinate*) override {}
     void addLeader(const DRW_Leader*) override {}
-    void addHatch(const DRW_Hatch*) override {}
+    void addHatch(const DRW_Hatch* data) override {
+        if (data != nullptr) {
+            ++hatchCount;
+            lastHatch = *data;
+        }
+    }
+    void addMPolygon(const DRW_MPolygon* data) override {
+        if (data != nullptr) {
+            ++mpolygonCount;
+            lastMPolygon = *data;
+            addHatch(data);
+        }
+    }
     void addViewport(const DRW_Viewport&) override {}
     void addImage(const DRW_Image*) override {}
     void linkImage(const DRW_ImageDef*) override {}
@@ -1964,9 +1995,25 @@ public:
     std::size_t rawSectionCount {0};
     bool rawSectionHasValues {false};
     std::size_t headerCount {0};
+    std::size_t faceCount {0};
+    std::size_t ellipseCount {0};
+    std::size_t arcCount {0};
+    std::size_t circleCount {0};
+    std::size_t traceCount {0};
+    std::size_t solidCount {0};
+    std::size_t hatchCount {0};
+    std::size_t mpolygonCount {0};
     std::string headerComments;
     std::size_t modelerGeometryCount {0};
     std::size_t surfaceCount {0};
+    DRW_3Dface last3dFace;
+    DRW_Ellipse lastEllipse;
+    DRW_Arc lastArc;
+    DRW_Circle lastCircle;
+    DRW_Trace lastTrace;
+    DRW_Solid lastSolid;
+    DRW_Hatch lastHatch;
+    DRW_MPolygon lastMPolygon;
     DRW_ModelerGeometry lastModelerGeometry;
     DRW_Surface lastSurface;
 };
@@ -2365,6 +2412,86 @@ public:
     }
 };
 
+class ExposedDwgReader27 final : public dwgReader27 {
+public:
+    ExposedDwgReader27(std::unique_ptr<dwgBuffer> buffer, dwgRW* parent)
+        : dwgReader27(std::move(buffer), parent) {}
+
+    using dwgReader::linkDataStorage;
+    using dwgReader::finalizeDataStorageLinks;
+
+    void setFormatVersion(DRW::Version value) noexcept { version = value; }
+
+    void appendDataStorageSection(DRW_DataStorageSection section) {
+        m_dataStorageSections.push_back(std::move(section));
+    }
+
+    std::size_t linkFailures() const noexcept {
+        return m_dataStorageLinkFailures;
+    }
+
+    std::size_t linkedRecordCount() const noexcept {
+        return m_dataStorageLinkedRecords.size();
+    }
+};
+
+DRW_DataStorageRecord makeDataStorageTestRecord(
+    std::uint64_t handle, const UTF8STRING& handleKey,
+    std::vector<std::uint8_t> payload) {
+    DRW_DataStorageRecord record;
+    record.handle = handle;
+    record.handleKey = handleKey;
+    record.segmentIndex = 3;
+    record.schemaIndex = 5;
+    record.payload = std::move(payload);
+    static constexpr std::uint8_t signature[] = {
+        'A', 'C', 'I', 'S', ' ', 'B', 'i', 'n', 'a', 'r', 'y', 'F', 'i',
+        'l', 'e'};
+    record.hasPayloadMarker = record.payload.size() >= sizeof(signature)
+        && std::equal(std::begin(signature), std::end(signature),
+                      record.payload.begin());
+    record.payloadMarkerOffset = 0u;
+    record.payloadMarkerLength = record.hasPayloadMarker
+        ? static_cast<std::uint32_t>(sizeof(signature)) : 0u;
+    if (record.hasPayloadMarker)
+        record.payloadMarkerSection = "AcDb:AcDsPrototype_1b";
+    return record;
+}
+
+DRW_DataStorageSection makeDataStorageTestSection(
+    std::vector<DRW_DataStorageRecord> records) {
+    DRW_DataStorageSection section;
+    section.m_version = DRW::AC1027;
+    for (DRW_DataStorageRecord& record : records) {
+        const std::size_t index = section.records.size();
+        section.recordIndexByHandle.emplace(record.handle, index);
+        section.recordIndexByHandleKey.emplace(record.handleKey, index);
+        section.records.push_back(std::move(record));
+    }
+    return section;
+}
+
+std::vector<std::uint8_t> makeSabTestPayload(bool hasSignature = true) {
+    static constexpr std::uint8_t signature[] = {
+        'A', 'C', 'I', 'S', ' ', 'B', 'i', 'n', 'a', 'r', 'y', 'F', 'i',
+        'l', 'e'};
+    std::vector<std::uint8_t> payload;
+    if (hasSignature)
+        payload.assign(std::begin(signature), std::end(signature));
+    payload.insert(payload.end(), {0xFC, 0x53, 0x00, 0x00});
+    return payload;
+}
+
+std::vector<std::uint8_t> makeAsmTestPayload() {
+    static constexpr std::uint8_t signature[] = {
+        'A', 'S', 'M', ' ', 'B', 'i', 'n', 'a', 'r', 'y', 'F', 'i', 'l', 'e',
+        '4'};
+    std::vector<std::uint8_t> payload(std::begin(signature),
+                                      std::end(signature));
+    payload.insert(payload.end(), {0xFC, 0x53, 0x00, 0x00});
+    return payload;
+}
+
 std::vector<std::uint8_t> makeDwgHandleMapVector() {
     // One data group (size=4, handle/location deltas 1/1) followed by the
     // empty terminator group. CRCs cover each size/data span and are computed
@@ -2402,6 +2529,212 @@ void testDwgAggregateObjectBudget(TestContext& t) {
                  && retry.ObjectMap.size() == 1u
                  && !retry.readObjectBudgetExceeded(),
              "DWG object budget permits a bounded valid handle map");
+}
+
+void testDwgModelerDataStorageLinking(TestContext& t) {
+    std::vector<std::uint8_t> backing{0};
+    const std::vector<std::uint8_t> sab = makeSabTestPayload();
+
+    dwgRW validOwner(nullptr);
+    ExposedDwgReader27 validReader(
+        std::make_unique<dwgBuffer>(backing.data(), backing.size()),
+        &validOwner);
+    validReader.setFormatVersion(DRW::AC1027);
+    validReader.appendDataStorageSection(makeDataStorageTestSection(
+        {makeDataStorageTestRecord(0x6Fu, "6F", sab)}));
+    DRW_ModelerGeometry validModeler(DRW::E3DSOLID);
+    validModeler.handle = 0x6Fu;
+    validModeler.setHasDataStorageBinaryData(true);
+    validModeler.dataStorageHandle = 0x6Fu;
+    validModeler.dataStorageHandleKey = "6F";
+    validModeler.m_isEmpty = true;
+    validModeler.m_modelerVersion = 168;
+    validModeler.m_rawBytes = {0xA5u};
+    validModeler.m_dwgAcisPayload = {0x5Au};
+    validReader.linkDataStorage(validModeler);
+    t.expect(validModeler.hasDataStorageRecord
+                 && validModeler.dataStorageData == sab
+                 && validModeler.dataStorageSegmentIndex == 3u
+                 && validModeler.dataStorageSchemaIndex == 5u
+                 && validModeler.hasDataStoragePayloadMarker
+                 && validModeler.m_modelerVersion == 2
+                 && !validModeler.m_isEmpty
+                 && validModeler.m_rawBytes == std::vector<std::uint8_t>{0xA5u}
+                 && validModeler.m_dwgAcisPayload
+                        == std::vector<std::uint8_t>{0x5Au}
+                 && validReader.linkFailures() == 0u
+                 && validReader.linkedRecordCount() == 1u,
+             "unique AC1027 SAB record links without replacing frame carriers");
+    validReader.linkDataStorage(validModeler);
+    t.expect(validReader.linkFailures() == 0u
+                 && validReader.linkedRecordCount() == 1u,
+             "replaying the same DataStorage link is idempotent");
+
+    dwgRW fallbackOwner(nullptr);
+    ExposedDwgReader27 fallbackReader(
+        std::make_unique<dwgBuffer>(backing.data(), backing.size()),
+        &fallbackOwner);
+    fallbackReader.setFormatVersion(DRW::AC1027);
+    fallbackReader.appendDataStorageSection(makeDataStorageTestSection(
+        {makeDataStorageTestRecord(0x71u, "71", sab)}));
+    DRW_ModelerGeometry fallbackModeler(DRW::E3DSOLID);
+    fallbackModeler.handle = 0x71u;
+    fallbackModeler.setHasDataStorageBinaryData(true);
+    fallbackModeler.m_modelerVersion = 168;
+    fallbackReader.linkDataStorage(fallbackModeler);
+    t.expect(fallbackModeler.hasDataStorageRecord
+                 && fallbackModeler.dataStorageHandle == 0x71u
+                 && fallbackModeler.dataStorageHandleKey == "71"
+                 && fallbackModeler.dataStorageData == sab
+                 && fallbackModeler.m_modelerVersion == 2
+                 && fallbackReader.linkFailures() == 0u,
+             "entity-handle fallback links one uniquely keyed AcDs record");
+
+    dwgRW orderOwner(nullptr);
+    ExposedDwgReader27 orderReader(
+        std::make_unique<dwgBuffer>(backing.data(), backing.size()),
+        &orderOwner);
+    orderReader.setFormatVersion(DRW::AC1027);
+    std::vector<std::uint8_t> firstPayload = sab;
+    firstPayload.push_back(0x11u);
+    std::vector<std::uint8_t> secondPayload = sab;
+    secondPayload.push_back(0x22u);
+    orderReader.appendDataStorageSection(makeDataStorageTestSection(
+        {makeDataStorageTestRecord(0x81u, "81", firstPayload),
+         makeDataStorageTestRecord(0x82u, "82", secondPayload)}));
+    DRW_ModelerGeometry secondModeler(DRW::E3DSOLID);
+    secondModeler.handle = 0x82u;
+    secondModeler.setHasDataStorageBinaryData(true);
+    DRW_ModelerGeometry firstModeler(DRW::E3DSOLID);
+    firstModeler.handle = 0x81u;
+    firstModeler.setHasDataStorageBinaryData(true);
+    orderReader.linkDataStorage(secondModeler);
+    orderReader.linkDataStorage(firstModeler);
+    t.expect(secondModeler.dataStorageData == secondPayload
+                 && firstModeler.dataStorageData == firstPayload
+                 && secondModeler.m_modelerVersion == 2
+                 && firstModeler.m_modelerVersion == 2
+                 && orderReader.linkFailures() == 0u
+                 && orderReader.linkedRecordCount() == 2u,
+             "AcDs SAB records bind by entity handle independent of traversal order");
+
+    dwgRW mismatchOwner(nullptr);
+    ExposedDwgReader27 mismatchReader(
+        std::make_unique<dwgBuffer>(backing.data(), backing.size()),
+        &mismatchOwner);
+    mismatchReader.setFormatVersion(DRW::AC1027);
+    mismatchReader.appendDataStorageSection(makeDataStorageTestSection(
+        {makeDataStorageTestRecord(0xA1u, "A1", sab),
+         makeDataStorageTestRecord(0xA2u, "A2", sab)}));
+    DRW_ModelerGeometry mismatchModeler(DRW::E3DSOLID);
+    mismatchModeler.handle = 0xA1u;
+    mismatchModeler.setHasDataStorageBinaryData(true);
+    mismatchModeler.dataStorageHandle = 0xA1u;
+    mismatchModeler.dataStorageHandleKey = "A2";
+    mismatchModeler.m_modelerVersion = 168;
+    mismatchReader.linkDataStorage(mismatchModeler);
+    t.expect(!mismatchModeler.hasDataStorageRecord
+                 && mismatchModeler.dataStorageData.empty()
+                 && mismatchModeler.m_modelerVersion == 168
+                 && mismatchReader.linkFailures() == 1u
+                 && mismatchReader.linkedRecordCount() == 0u,
+             "disagreeing explicit DataStorage handle views never fall back");
+
+    dwgRW ambiguousOwner(nullptr);
+    ExposedDwgReader27 ambiguousReader(
+        std::make_unique<dwgBuffer>(backing.data(), backing.size()),
+        &ambiguousOwner);
+    ambiguousReader.setFormatVersion(DRW::AC1027);
+    const DRW_DataStorageRecord duplicateRecord =
+        makeDataStorageTestRecord(0xB1u, "B1", sab);
+    ambiguousReader.appendDataStorageSection(
+        makeDataStorageTestSection({duplicateRecord}));
+    ambiguousReader.appendDataStorageSection(
+        makeDataStorageTestSection({duplicateRecord}));
+    DRW_ModelerGeometry ambiguousModeler(DRW::E3DSOLID);
+    ambiguousModeler.handle = 0xB1u;
+    ambiguousModeler.setHasDataStorageBinaryData(true);
+    ambiguousModeler.dataStorageHandle = 0xB1u;
+    ambiguousModeler.dataStorageHandleKey = "B1";
+    ambiguousModeler.m_modelerVersion = 168;
+    ambiguousReader.linkDataStorage(ambiguousModeler);
+    t.expect(!ambiguousModeler.hasDataStorageRecord
+                 && ambiguousModeler.dataStorageData.empty()
+                 && ambiguousModeler.m_modelerVersion == 168
+                 && ambiguousReader.linkFailures() == 1u
+                 && ambiguousReader.linkedRecordCount() == 0u,
+             "duplicate matching DataStorage sections are rejected atomically");
+
+    dwgRW malformedOwner(nullptr);
+    ExposedDwgReader27 malformedReader(
+        std::make_unique<dwgBuffer>(backing.data(), backing.size()),
+        &malformedOwner);
+    malformedReader.setFormatVersion(DRW::AC1027);
+    malformedReader.appendDataStorageSection(makeDataStorageTestSection(
+        {makeDataStorageTestRecord(0xC1u, "C1",
+                                   makeSabTestPayload(false))}));
+    DRW_ModelerGeometry malformedModeler(DRW::E3DSOLID);
+    malformedModeler.handle = 0xC1u;
+    malformedModeler.setHasDataStorageBinaryData(true);
+    malformedModeler.dataStorageHandle = 0xC1u;
+    malformedModeler.dataStorageHandleKey = "C1";
+    malformedModeler.m_modelerVersion = 168;
+    malformedReader.linkDataStorage(malformedModeler);
+    t.expect(malformedModeler.hasDataStorageRecord
+                 && malformedModeler.dataStorageData
+                        == makeSabTestPayload(false)
+                 && !malformedModeler.hasDataStoragePayloadMarker
+                 && malformedModeler.m_modelerVersion == 168
+                 && malformedReader.linkFailures() == 0u,
+             "non-SAB AcDs record stays opaque and cannot normalize its version");
+
+    dwgRW asmOwner(nullptr);
+    ExposedDwgReader27 asmReader(
+        std::make_unique<dwgBuffer>(backing.data(), backing.size()),
+        &asmOwner);
+    asmReader.setFormatVersion(DRW::AC1027);
+    const std::vector<std::uint8_t> asmPayload = makeAsmTestPayload();
+    asmReader.appendDataStorageSection(makeDataStorageTestSection(
+        {makeDataStorageTestRecord(0xC2u, "C2", asmPayload)}));
+    DRW_ModelerGeometry asmModeler(DRW::E3DSOLID);
+    asmModeler.handle = 0xC2u;
+    asmModeler.setHasDataStorageBinaryData(true);
+    asmModeler.dataStorageHandle = 0xC2u;
+    asmModeler.dataStorageHandleKey = "C2";
+    asmModeler.m_modelerVersion = 168;
+    asmReader.linkDataStorage(asmModeler);
+    t.expect(asmModeler.hasDataStorageRecord
+                 && asmModeler.dataStorageData == asmPayload
+                 && !asmModeler.hasDataStoragePayloadMarker
+                 && asmModeler.m_modelerVersion == 168
+                 && asmReader.linkFailures() == 0u,
+             "ASM BinaryFile4 is retained but cannot promote the ACIS carrier version");
+
+    dwgRW versionOwner(nullptr);
+    ExposedDwgReader27 versionReader(
+        std::make_unique<dwgBuffer>(backing.data(), backing.size()),
+        &versionOwner);
+    versionReader.setFormatVersion(DRW::AC1027);
+    DRW_DataStorageSection laterVersion = makeDataStorageTestSection(
+        {makeDataStorageTestRecord(0xD1u, "D1", sab)});
+    laterVersion.m_version = DRW::AC1032;
+    versionReader.appendDataStorageSection(std::move(laterVersion));
+    DRW_ModelerGeometry versionModeler(DRW::E3DSOLID);
+    versionModeler.handle = 0xD1u;
+    versionModeler.setHasDataStorageBinaryData(true);
+    versionModeler.dataStorageHandle = 0xD1u;
+    versionModeler.dataStorageHandleKey = "D1";
+    versionModeler.m_modelerVersion = 168;
+    versionReader.linkDataStorage(versionModeler);
+    versionReader.finalizeDataStorageLinks();
+    t.expect(!versionModeler.hasDataStorageRecord
+                 && versionModeler.dataStorageData.empty()
+                 && versionModeler.m_modelerVersion == 168
+                 && versionReader.linkFailures() == 1u
+                 && versionReader.m_dataStorageOrphanRecords == 1u
+                 && versionReader.m_dataStorageSections[0].orphanRecordCount
+                        == 1u,
+             "wrong-version DataStorage remains unlinked and is reported orphaned");
 }
 
 class ExposedMLeader final : public DRW_MLeader {
@@ -2594,6 +2927,697 @@ void testDxfProxyGraphicsStayOutOfAcis(TestContext& t) {
                      && capture.lastSurface.vIsolines == 5
                      && capture.lastSurface.rawAcisData == expectedAcis,
                  "DXF façade keeps surface proxy graphics out of ACIS payload");
+    }
+}
+
+void testDxfThreeCornerFaceFallback(TestContext& t) {
+    const std::string facePrefix =
+        "0\nSECTION\n2\nENTITIES\n0\n3DFACE\n5\n701\n8\n0\n"
+        "10\n1\n20\n2\n30\n3\n"
+        "11\n4\n21\n5\n31\n6\n"
+        "12\n7\n22\n8\n32\n9\n";
+    const std::string suffix = "70\n15\n0\nENDSEC\n0\nEOF\n";
+
+    dxfRW validReader("");
+    FuzzInterface validCapture;
+    std::string validContent = facePrefix + suffix;
+    t.expect(validReader.readAscii(&validCapture, false, validContent)
+                 && validCapture.faceCount == 1u
+                 && validCapture.last3dFace.fourPoint.x == 7.0
+                 && validCapture.last3dFace.fourPoint.y == 8.0
+                 && validCapture.last3dFace.fourPoint.z == 9.0
+                 && validCapture.last3dFace.invisibleflag
+                        == DRW_3Dface::AllEdges,
+             "DXF 3DFACE without corner four duplicates corner three");
+
+    for (int edgeFlags = DRW_3Dface::NoEdge;
+         edgeFlags <= DRW_3Dface::AllEdges; ++edgeFlags) {
+        dxfRW flagsReader("");
+        FuzzInterface flagsCapture;
+        std::string flagsContent = facePrefix + "70\n"
+            + std::to_string(edgeFlags) + "\n0\nENDSEC\n0\nEOF\n";
+        t.expect(flagsReader.readAscii(&flagsCapture, false, flagsContent)
+                     && flagsCapture.faceCount == 1u
+                     && flagsCapture.last3dFace.invisibleflag == edgeFlags,
+                 "DXF 3DFACE accepts each documented edge-flag combination");
+    }
+
+    dxfRW malformedReader("");
+    FuzzInterface malformedCapture;
+    std::string malformedContent = facePrefix + "13\n10\n" + suffix;
+    t.expect(!malformedReader.readAscii(&malformedCapture, false,
+                                        malformedContent)
+                 && malformedCapture.faceCount == 0u,
+             "DXF 3DFACE rejects a half-present fourth corner");
+
+    for (const int invalidFlags : {-1, 16, 31}) {
+        dxfRW invalidFlagsReader("");
+        FuzzInterface invalidFlagsCapture;
+        std::string invalidFlagsContent = facePrefix + "70\n"
+            + std::to_string(invalidFlags) + "\n0\nENDSEC\n0\nEOF\n";
+        t.expect(!invalidFlagsReader.readAscii(&invalidFlagsCapture, false,
+                                               invalidFlagsContent)
+                     && invalidFlagsCapture.faceCount == 0u,
+                 "DXF 3DFACE rejects invisible-edge bits outside mask 0x0F");
+    }
+}
+
+void testDxfSolidTraceCornerMapping(TestContext& t) {
+    const std::string sectionStart = "0\nSECTION\n2\nENTITIES\n";
+    const std::string sectionEnd = "0\nENDSEC\n0\nEOF\n";
+    const std::string solidPrefix =
+        sectionStart + "0\nSOLID\n5\n702\n8\n0\n"
+        "10\n1\n20\n2\n30\n3\n"
+        "11\n4\n21\n5\n31\n6\n"
+        "12\n7\n22\n8\n32\n9\n";
+
+    dxfRW threeCornerReader("");
+    FuzzInterface threeCornerCapture;
+    std::string threeCornerContent = solidPrefix + sectionEnd;
+    t.expect(threeCornerReader.readAscii(&threeCornerCapture, false,
+                                         threeCornerContent)
+                 && threeCornerCapture.solidCount == 1u
+                 && threeCornerCapture.lastSolid.thirdPoint.x == 7.0
+                 && threeCornerCapture.lastSolid.thirdPoint.y == 8.0
+                 && threeCornerCapture.lastSolid.thirdPoint.z == 9.0
+                 && threeCornerCapture.lastSolid.fourPoint.x == 7.0
+                 && threeCornerCapture.lastSolid.fourPoint.y == 8.0
+                 && threeCornerCapture.lastSolid.fourPoint.z == 9.0,
+             "DXF three-corner SOLID duplicates corner three as corner four");
+
+    const std::string fourCornerSolid = solidPrefix
+        + "13\n10\n23\n11\n33\n12\n" + sectionEnd;
+    dxfRW solidReader("");
+    FuzzInterface solidCapture;
+    std::string solidContent = fourCornerSolid;
+    t.expect(solidReader.readAscii(&solidCapture, false, solidContent)
+                 && solidCapture.solidCount == 1u
+                 && solidCapture.lastSolid.basePoint.x == 1.0
+                 && solidCapture.lastSolid.secPoint.y == 5.0
+                 && solidCapture.lastSolid.thirdPoint.z == 9.0
+                 && solidCapture.lastSolid.fourPoint.x == 10.0
+                 && solidCapture.lastSolid.fourPoint.y == 11.0
+                 && solidCapture.lastSolid.fourPoint.z == 12.0,
+             "DXF SOLID keeps numbered corner groups in their indexed fields");
+
+    const std::string traceRecord = sectionStart
+        + "0\nTRACE\n5\n703\n8\n0\n"
+        "10\n1\n20\n2\n30\n3\n"
+        "11\n4\n21\n5\n31\n6\n"
+        "12\n7\n22\n8\n32\n9\n"
+        "13\n10\n23\n11\n33\n12\n"
+        "39\n2.5\n210\n0\n220\n0\n230\n-1\n" + sectionEnd;
+    dxfRW traceRawReader("");
+    FuzzInterface traceRawCapture;
+    std::string traceRawContent = traceRecord;
+    t.expect(traceRawReader.readAscii(&traceRawCapture, false,
+                                      traceRawContent)
+                 && traceRawCapture.traceCount == 1u
+                 && traceRawCapture.lastTrace.basePoint.x == 1.0
+                 && traceRawCapture.lastTrace.basePoint.y == 2.0
+                 && traceRawCapture.lastTrace.basePoint.z == 3.0
+                 && traceRawCapture.lastTrace.fourPoint.x == 10.0
+                 && traceRawCapture.lastTrace.fourPoint.y == 11.0
+                 && traceRawCapture.lastTrace.fourPoint.z == 12.0
+                 && traceRawCapture.lastTrace.thickness == 2.5
+                 && traceRawCapture.lastTrace.extPoint.z == -1.0,
+             "DXF TRACE ext=false preserves indexed OCS corners and extrusion");
+
+    dxfRW traceWcsReader("");
+    FuzzInterface traceWcsCapture;
+    std::string traceWcsContent = traceRecord;
+    t.expect(traceWcsReader.readAscii(&traceWcsCapture, true,
+                                      traceWcsContent)
+                 && traceWcsCapture.traceCount == 1u
+                 && traceWcsCapture.lastTrace.basePoint.x == -1.0
+                 && traceWcsCapture.lastTrace.basePoint.y == 2.0
+                 && traceWcsCapture.lastTrace.basePoint.z == -3.0
+                 && traceWcsCapture.lastTrace.fourPoint.x == -10.0
+                 && traceWcsCapture.lastTrace.fourPoint.y == 11.0
+                 && traceWcsCapture.lastTrace.fourPoint.z == -12.0
+                 && traceWcsCapture.lastTrace.extPoint.z == -1.0,
+             "DXF TRACE ext=true applies the negative-normal OCS basis once");
+
+    dxfRW malformedSolidReader("");
+    FuzzInterface malformedSolidCapture;
+    std::string malformedSolidContent = solidPrefix + "13\n10\n" + sectionEnd;
+    t.expect(!malformedSolidReader.readAscii(&malformedSolidCapture, false,
+                                             malformedSolidContent)
+                 && malformedSolidCapture.solidCount == 0u,
+             "DXF SOLID rejects a half-present fourth corner before callback");
+}
+
+void testDxfEllipseCoordinatesAreWcs(TestContext& t) {
+    const std::string content =
+        "0\nSECTION\n2\nENTITIES\n0\nELLIPSE\n5\n704\n8\n0\n"
+        "10\n2\n20\n3\n30\n4\n"
+        "11\n5\n21\n6\n31\n0\n"
+        "40\n0.5\n41\n0.25\n42\n2.5\n"
+        "210\n0\n220\n0\n230\n-1\n"
+        "0\nENDSEC\n0\nEOF\n";
+    const auto preservesWcsEllipse = [&content](bool applyExt) {
+        dxfRW reader("");
+        FuzzInterface capture;
+        std::string input = content;
+        return reader.readAscii(&capture, applyExt, input)
+            && capture.ellipseCount == 1u
+            && capture.lastEllipse.basePoint.x == 2.0
+            && capture.lastEllipse.basePoint.y == 3.0
+            && capture.lastEllipse.basePoint.z == 4.0
+            && capture.lastEllipse.secPoint.x == 5.0
+            && capture.lastEllipse.secPoint.y == 6.0
+            && capture.lastEllipse.secPoint.z == 0.0
+            && capture.lastEllipse.extPoint.x == 0.0
+            && capture.lastEllipse.extPoint.y == 0.0
+            && capture.lastEllipse.extPoint.z == -1.0
+            && capture.lastEllipse.ratio == 0.5
+            && capture.lastEllipse.staparam == 0.25
+            && capture.lastEllipse.endparam == 2.5;
+    };
+    t.expect(preservesWcsEllipse(false),
+             "DXF ELLIPSE ext=false preserves WCS center and major axis");
+    t.expect(preservesWcsEllipse(true),
+             "DXF ELLIPSE ext=true does not transform WCS coordinates twice");
+}
+
+void testDxfArcCircleRequireExtrusionDirection(TestContext& t) {
+    const std::string sectionStart = "0\nSECTION\n2\nENTITIES\n0\n";
+    const std::string sectionEnd = "0\nENDSEC\n0\nEOF\n";
+    const auto entityRecords = [&](bool arc, const std::string& normal,
+                                   const char* radius = "2.5") {
+        std::string records = sectionStart + (arc ? "ARC\n" : "CIRCLE\n")
+            + "5\n705\n8\n0\n10\n2\n20\n3\n30\n4\n40\n"
+            + radius + "\n";
+        if (arc)
+            records += "50\n15\n51\n75\n";
+        records += normal + sectionEnd;
+        return records;
+    };
+
+    for (bool arc : {false, true}) {
+        for (bool applyExt : {false, true}) {
+            for (const auto& invalidNormal : {
+                     std::pair<const char*, const char*>{
+                         "210\n0\n220\n0\n230\n0\n", "zero"},
+                     {"210\nnan\n220\n0\n230\n1\n", "non-finite"}}) {
+                FuzzInterface capture;
+                dxfRW reader("");
+                std::string malformed = entityRecords(arc, invalidNormal.first);
+                const bool read = reader.readAscii(&capture, applyExt, malformed);
+                t.expect(!read && capture.arcCount == 0u
+                             && capture.circleCount == 0u,
+                         arc ? "DXF ARC rejects an invalid extrusion direction before callback"
+                         : "DXF CIRCLE rejects an invalid extrusion direction before callback");
+            }
+
+            for (const auto& invalidRadius : {
+                     std::pair<const char*, const char*>{"0", "zero"},
+                     {"-2.5", "negative"}, {"nan", "non-finite"}}) {
+                FuzzInterface capture;
+                dxfRW reader("");
+                std::string malformed =
+                    entityRecords(arc, "", invalidRadius.first);
+                const bool read = reader.readAscii(&capture, applyExt, malformed);
+                t.expect(!read && capture.arcCount == 0u
+                             && capture.circleCount == 0u,
+                         arc ? "DXF ARC rejects a nonpositive or non-finite radius before callback"
+                             : "DXF CIRCLE rejects a nonpositive or non-finite radius before callback");
+            }
+        }
+
+        for (bool applyExt : {false, true}) {
+            FuzzInterface capture;
+            dxfRW reader("");
+            std::string valid = entityRecords(arc, "");
+            const bool read = reader.readAscii(&capture, applyExt, valid);
+            bool fieldsMatch = false;
+            if (arc) {
+                fieldsMatch = capture.arcCount == 1u
+                    && capture.circleCount == 0u
+                    && capture.lastArc.extPoint.x == 0.0
+                    && capture.lastArc.extPoint.y == 0.0
+                    && capture.lastArc.extPoint.z == 1.0
+                    && capture.lastArc.basePoint.x == 2.0
+                    && capture.lastArc.basePoint.y == 3.0
+                    && capture.lastArc.basePoint.z == 4.0
+                    && capture.lastArc.radious == 2.5
+                    && capture.lastArc.staangle == 15.0 / ARAD
+                    && capture.lastArc.endangle == 75.0 / ARAD;
+            } else {
+                fieldsMatch = capture.circleCount == 1u
+                    && capture.arcCount == 0u
+                    && capture.lastCircle.extPoint.x == 0.0
+                    && capture.lastCircle.extPoint.y == 0.0
+                    && capture.lastCircle.extPoint.z == 1.0
+                    && capture.lastCircle.basePoint.x == 2.0
+                    && capture.lastCircle.basePoint.y == 3.0
+                    && capture.lastCircle.basePoint.z == 4.0
+                    && capture.lastCircle.radious == 2.5;
+            }
+            t.expect(read && fieldsMatch,
+                     arc ? "DXF ARC accepts omitted default extrusion"
+                         : "DXF CIRCLE accepts omitted default extrusion");
+        }
+
+        for (bool applyExt : {false, true}) {
+            FuzzInterface capture;
+            dxfRW reader("");
+            std::string valid = entityRecords(
+                arc, "210\n0.6\n220\n0\n230\n0.8\n");
+            const bool read = reader.readAscii(&capture, applyExt, valid);
+            const DRW_Coord expectedCenter = applyExt
+                ? DRW_Coord(0.0, 2.0, 5.0)
+                : DRW_Coord(2.0, 3.0, 4.0);
+            bool fieldsMatch = false;
+            if (arc) {
+                fieldsMatch = capture.arcCount == 1u
+                    && capture.circleCount == 0u
+                    && capture.lastArc.extPoint.x == 0.6
+                    && capture.lastArc.extPoint.y == 0.0
+                    && capture.lastArc.extPoint.z == 0.8
+                    && std::abs(capture.lastArc.basePoint.x
+                                - expectedCenter.x) < 1.0e-12
+                    && std::abs(capture.lastArc.basePoint.y
+                                - expectedCenter.y) < 1.0e-12
+                    && std::abs(capture.lastArc.basePoint.z
+                                - expectedCenter.z) < 1.0e-12
+                    && capture.lastArc.staangle == 15.0 / ARAD
+                    && capture.lastArc.endangle == 75.0 / ARAD;
+            } else {
+                fieldsMatch = capture.circleCount == 1u
+                    && capture.arcCount == 0u
+                    && capture.lastCircle.extPoint.x == 0.6
+                    && capture.lastCircle.extPoint.y == 0.0
+                    && capture.lastCircle.extPoint.z == 0.8
+                    && std::abs(capture.lastCircle.basePoint.x
+                                - expectedCenter.x) < 1.0e-12
+                    && std::abs(capture.lastCircle.basePoint.y
+                                - expectedCenter.y) < 1.0e-12
+                    && std::abs(capture.lastCircle.basePoint.z
+                                - expectedCenter.z) < 1.0e-12;
+            }
+            t.expect(read && fieldsMatch,
+                     arc ? "DXF ARC retains a valid oblique OCS direction"
+                         : "DXF CIRCLE retains a valid oblique OCS direction");
+        }
+    }
+
+    const auto writerRejectsInvalidNormal = [](bool binary, bool arc,
+                                                bool nonfinite) {
+        std::ostringstream output(std::ios::binary);
+        dxfRW owner("");
+        owner.version = DRW::AC1015;
+        owner.binFile = binary;
+        if (binary)
+            owner.writer = std::make_unique<dxfWriterBinary>(&output);
+        else
+            owner.writer = std::make_unique<dxfWriterAscii>(&output);
+
+        DRW_Circle circle;
+        circle.basePoint = DRW_Coord(2.0, 3.0, 4.0);
+        circle.radious = 2.5;
+        circle.extPoint = nonfinite
+            ? DRW_Coord(std::numeric_limits<double>::quiet_NaN(), 0.0, 1.0)
+            : DRW_Coord(0.0, 0.0, 0.0);
+        if (!arc)
+            return !owner.writeCircle(&circle) && output.str().empty();
+
+        DRW_Arc value;
+        value.basePoint = circle.basePoint;
+        value.radious = circle.radious;
+        value.extPoint = circle.extPoint;
+        value.staangle = 15.0 / ARAD;
+        value.endangle = 75.0 / ARAD;
+        return !owner.writeArc(&value) && output.str().empty();
+    };
+    for (bool binary : {false, true}) {
+        for (bool nonfinite : {false, true}) {
+            t.expect(writerRejectsInvalidNormal(binary, false, nonfinite),
+                     binary ? "binary DXF writer rejects invalid-normal CIRCLE atomically"
+                            : "ASCII DXF writer rejects invalid-normal CIRCLE atomically");
+            t.expect(writerRejectsInvalidNormal(binary, true, nonfinite),
+                     binary ? "binary DXF writer rejects invalid-normal ARC atomically"
+                            : "ASCII DXF writer rejects invalid-normal ARC atomically");
+        }
+    }
+
+    const auto writerRejectsInvalidRadius = [](DRW::Version version,
+                                                bool binary, bool arc,
+                                                double radius) {
+        std::ostringstream output(std::ios::binary);
+        dxfRW owner("");
+        owner.version = version;
+        owner.binFile = binary;
+        if (binary)
+            owner.writer = std::make_unique<dxfWriterBinary>(&output);
+        else
+            owner.writer = std::make_unique<dxfWriterAscii>(&output);
+
+        DRW_Circle circle;
+        circle.basePoint = DRW_Coord(2.0, 3.0, 4.0);
+        circle.radious = radius;
+        if (!arc)
+            return !owner.writeCircle(&circle) && output.str().empty();
+
+        DRW_Arc value;
+        value.basePoint = circle.basePoint;
+        value.radious = circle.radious;
+        value.staangle = 15.0 / ARAD;
+        value.endangle = 75.0 / ARAD;
+        return !owner.writeArc(&value) && output.str().empty();
+    };
+    const std::vector<double> invalidRadii = {
+        0.0, -2.5, std::numeric_limits<double>::quiet_NaN(),
+        std::numeric_limits<double>::infinity()};
+    for (DRW::Version version : {DRW::AC1015, DRW::AC1009}) {
+        for (bool binary : {false, true}) {
+            if (version == DRW::AC1009 && binary)
+                continue;
+            for (double radius : invalidRadii) {
+                t.expect(writerRejectsInvalidRadius(
+                             version, binary, false, radius),
+                         binary ? "binary DXF writer rejects invalid CIRCLE radius before record output"
+                                : "ASCII DXF writer rejects invalid CIRCLE radius before record output");
+                t.expect(writerRejectsInvalidRadius(
+                             version, binary, true, radius),
+                         binary ? "binary DXF writer rejects invalid ARC radius before record output"
+                                : "ASCII DXF writer rejects invalid ARC radius before record output");
+            }
+        }
+    }
+}
+
+void testDxfHatchElevationAndOcsBoundary(TestContext& t) {
+    const std::string sectionStart =
+        "0\nSECTION\n2\nENTITIES\n0\nHATCH\n5\n705\n8\n0\n"
+        "100\nAcDbEntity\n100\nAcDbHatch\n";
+    const std::string elevationAndBoundary =
+        "10\n0\n20\n0\n30\n7\n"
+        "210\n0.6\n220\n0\n230\n0.8\n"
+        "2\nSOLID\n70\n1\n71\n0\n91\n1\n"
+        "92\n2\n72\n0\n73\n1\n93\n3\n"
+        "10\n1\n20\n2\n10\n4\n20\n2\n10\n1\n20\n5\n"
+        "97\n0\n75\n0\n76\n1\n78\n0\n"
+        "98\n1\n10\n8\n20\n9\n";
+    const std::string sectionEnd = "0\nENDSEC\n0\nEOF\n";
+    const std::string content = sectionStart + elevationAndBoundary + sectionEnd;
+
+    const auto preservesOcsBoundary = [&content](bool applyExt) {
+        FuzzInterface capture;
+        dxfRW reader("");
+        std::string input = content;
+        if (!reader.readAscii(&capture, applyExt, input)
+            || capture.hatchCount != 1u
+            || capture.lastHatch.basePoint.x != 0.0
+            || capture.lastHatch.basePoint.y != 0.0
+            || capture.lastHatch.basePoint.z != 7.0
+            || capture.lastHatch.extPoint.x != 0.6
+            || capture.lastHatch.extPoint.y != 0.0
+            || capture.lastHatch.extPoint.z != 0.8
+            || capture.lastHatch.seedPoints.size() != 1u
+            || capture.lastHatch.seedPoints.front().x != 8.0
+            || capture.lastHatch.seedPoints.front().y != 9.0
+            || capture.lastHatch.looplist.size() != 1u
+            || capture.lastHatch.looplist.front()->objlist.size() != 1u)
+            return false;
+
+        const auto boundary = std::dynamic_pointer_cast<DRW_LWPolyline>(
+            capture.lastHatch.looplist.front()->objlist.front());
+        if (!boundary || boundary->vertlist.size() != 3u)
+            return false;
+
+        // For N=(0.6,0,0.8), Autodesk's arbitrary-axis basis gives
+        // X=(0,1,0), Y=(-0.8,0,0.6). An OCS vertex (1,2) at elevation 7
+        // therefore corresponds to this independent WCS point. The callback
+        // must retain the OCS coordinates, not substitute that projection.
+        const double expectedWcsX = 0.6 * 7.0 - 0.8 * 2.0;
+        const double expectedWcsY = 1.0;
+        const double expectedWcsZ = 0.8 * 7.0 + 0.6 * 2.0;
+        return boundary->vertlist[0]->x == 1.0
+            && boundary->vertlist[0]->y == 2.0
+            && std::abs(expectedWcsX - 2.6) < 1.0e-12
+            && std::abs(expectedWcsY - 1.0) < 1.0e-12
+            && std::abs(expectedWcsZ - 6.8) < 1.0e-12;
+    };
+    t.expect(preservesOcsBoundary(false),
+             "HATCH retains elevation, extrusion, OCS loop, and seed data");
+    t.expect(preservesOcsBoundary(true),
+             "HATCH applyExt mode does not rewrite OCS boundary coordinates");
+
+    const std::string hatchHeader =
+        "10\n0\n20\n0\n30\n7\n210\n0\n220\n0\n230\n1\n"
+        "2\nSOLID\n70\n1\n71\n0\n";
+    const std::string hatchTrailer =
+        "97\n0\n75\n0\n76\n1\n78\n0\n98\n0\n";
+    const auto rejectsIncompleteBoundaryPair =
+        [&t, &sectionStart, &sectionEnd, &hatchHeader, &hatchTrailer](
+            const std::string& boundary, const char *description) {
+            std::string malformed = sectionStart + hatchHeader + "91\n1\n"
+                + boundary + hatchTrailer + sectionEnd;
+            FuzzInterface capture;
+            dxfRW reader("");
+            t.expect(!reader.readAscii(&capture, false, malformed)
+                         && capture.hatchCount == 0u,
+                     description);
+        };
+    rejectsIncompleteBoundaryPair(
+        "92\n2\n72\n0\n73\n1\n93\n1\n10\n1\n",
+        "HATCH rejects a polyline OCS vertex without its Y group");
+    rejectsIncompleteBoundaryPair(
+        "92\n0\n93\n1\n72\n1\n10\n1\n20\n2\n11\n4\n",
+        "HATCH rejects a line-edge endpoint without its Y group");
+    rejectsIncompleteBoundaryPair(
+        "92\n0\n93\n1\n72\n1\n20\n2\n",
+        "HATCH rejects a line-edge Y group without its X group");
+    rejectsIncompleteBoundaryPair(
+        "92\n0\n93\n1\n72\n2\n10\n1\n40\n2\n50\n0\n51\n90\n73\n1\n",
+        "HATCH rejects a circular-edge center without its Y group");
+    rejectsIncompleteBoundaryPair(
+        "92\n0\n93\n1\n72\n3\n10\n1\n20\n2\n11\n4\n40\n0.5\n"
+        "50\n0\n51\n90\n73\n1\n",
+        "HATCH rejects an elliptical-edge major-axis point without its Y group");
+    rejectsIncompleteBoundaryPair(
+        "92\n0\n93\n1\n72\n4\n94\n1\n73\n0\n74\n0\n95\n2\n"
+        "40\n0\n40\n1\n96\n1\n10\n1\n",
+        "HATCH rejects a spline control point without its Y group");
+    rejectsIncompleteBoundaryPair(
+        "92\n0\n93\n1\n72\n4\n94\n1\n73\n0\n74\n0\n95\n2\n"
+        "40\n0\n40\n1\n96\n1\n10\n1\n20\n2\n97\n1\n"
+        "11\n3\n21\n4\n12\n5\n13\n6\n",
+        "HATCH rejects a spline start tangent without its Y group");
+    rejectsIncompleteBoundaryPair(
+        "92\n0\n93\n1\n72\n4\n94\n1\n73\n0\n74\n0\n95\n2\n"
+        "40\n0\n40\n1\n96\n1\n10\n1\n20\n2\n97\n1\n"
+        "11\n3\n21\n4\n12\n5\n22\n6\n13\n7\n",
+        "HATCH rejects a spline end tangent without its Y group");
+
+    const auto acceptsCompleteBoundaryPair =
+        [&t, &sectionStart, &sectionEnd, &hatchHeader, &hatchTrailer](
+            const std::string& boundary, const char *description) {
+            std::string valid = sectionStart + hatchHeader + "91\n1\n"
+                + boundary + hatchTrailer + sectionEnd;
+            FuzzInterface capture;
+            dxfRW reader("");
+            t.expect(reader.readAscii(&capture, false, valid)
+                         && capture.hatchCount == 1u,
+                     description);
+        };
+    acceptsCompleteBoundaryPair(
+        "92\n2\n72\n0\n73\n1\n93\n1\n10\n1\n20\n2\n",
+        "HATCH accepts complete polyline OCS vertex pairs");
+    acceptsCompleteBoundaryPair(
+        "92\n0\n93\n1\n72\n1\n10\n1\n20\n2\n11\n4\n21\n5\n",
+        "HATCH accepts complete line-edge endpoint pairs");
+    acceptsCompleteBoundaryPair(
+        "92\n0\n93\n1\n72\n2\n10\n1\n20\n2\n40\n2\n50\n0\n51\n90\n73\n1\n",
+        "HATCH accepts complete circular-edge center pairs");
+    acceptsCompleteBoundaryPair(
+        "92\n0\n93\n1\n72\n3\n10\n1\n20\n2\n11\n4\n21\n5\n"
+        "40\n0.5\n50\n0\n51\n90\n73\n1\n",
+        "HATCH accepts complete elliptical-edge point pairs");
+    acceptsCompleteBoundaryPair(
+        "92\n0\n93\n1\n72\n4\n94\n1\n73\n0\n74\n0\n95\n2\n"
+        "40\n0\n40\n1\n96\n1\n10\n1\n20\n2\n97\n1\n"
+        "11\n3\n21\n4\n12\n5\n22\n6\n13\n7\n23\n8\n",
+        "HATCH accepts complete spline control, fit, and tangent pairs");
+
+    std::string clockwiseEllipse = sectionStart + hatchHeader
+        + "91\n1\n92\n0\n93\n1\n72\n3\n"
+        "10\n1\n20\n2\n11\n4\n21\n5\n40\n0.5\n"
+        "50\n15\n51\n120\n73\n0\n"
+        + hatchTrailer + sectionEnd;
+    FuzzInterface ellipseDirectionCapture;
+    dxfRW ellipseDirectionReader("");
+    const bool ellipseDirectionRead = ellipseDirectionReader.readAscii(
+        &ellipseDirectionCapture, false, clockwiseEllipse);
+    std::shared_ptr<DRW_Ellipse> clockwiseEllipseData;
+    if (ellipseDirectionRead && ellipseDirectionCapture.lastHatch.looplist.size() == 1u
+        && ellipseDirectionCapture.lastHatch.looplist.front()->objlist.size() == 1u) {
+        clockwiseEllipseData = std::dynamic_pointer_cast<DRW_Ellipse>(
+            ellipseDirectionCapture.lastHatch.looplist.front()->objlist.front());
+    }
+    const double pi = std::acos(-1.0);
+    t.expect(ellipseDirectionRead && ellipseDirectionCapture.hatchCount == 1u
+                 && clockwiseEllipseData
+                 && clockwiseEllipseData->basePoint.x == 1.0
+                 && clockwiseEllipseData->basePoint.y == 2.0
+                 && clockwiseEllipseData->secPoint.x == 4.0
+                 && clockwiseEllipseData->secPoint.y == 5.0
+                 && clockwiseEllipseData->ratio == 0.5
+                 && clockwiseEllipseData->isccw == 0
+                 && std::abs(clockwiseEllipseData->staparam - pi / 12.0) < 1.0e-12
+                 && std::abs(clockwiseEllipseData->endparam - 2.0 * pi / 3.0) < 1.0e-12,
+             "HATCH elliptic edge preserves group-73 direction and curve fields");
+
+    std::string incompleteSeed = sectionStart
+        + hatchHeader + "91\n0\n75\n0\n76\n1\n78\n0\n"
+        "98\n1\n10\n8\n" + sectionEnd;
+    FuzzInterface incompleteSeedCapture;
+    dxfRW incompleteSeedReader("");
+    t.expect(!incompleteSeedReader.readAscii(&incompleteSeedCapture, false,
+                                               incompleteSeed)
+                 && incompleteSeedCapture.hatchCount == 0u,
+             "HATCH rejects a seed point without its Y group");
+    std::string incompleteSeedX = sectionStart
+        + hatchHeader + "91\n0\n75\n0\n76\n1\n78\n0\n"
+        "98\n1\n20\n9\n" + sectionEnd;
+    FuzzInterface incompleteSeedXCapture;
+    dxfRW incompleteSeedXReader("");
+    t.expect(!incompleteSeedXReader.readAscii(&incompleteSeedXCapture, false,
+                                                incompleteSeedX)
+                 && incompleteSeedXCapture.hatchCount == 0u,
+             "HATCH rejects a seed-point Y group without its X group");
+    std::string incompleteElevation = sectionStart
+        + "10\n0\n30\n7\n210\n0.6\n220\n0\n230\n0.8\n"
+        "2\nSOLID\n70\n1\n71\n0\n91\n0\n75\n0\n76\n1\n78\n0\n98\n0\n"
+        + sectionEnd;
+    FuzzInterface incompleteElevationCapture;
+    dxfRW incompleteElevationReader("");
+    t.expect(!incompleteElevationReader.readAscii(
+                 &incompleteElevationCapture, false, incompleteElevation)
+                 && incompleteElevationCapture.hatchCount == 0u,
+             "HATCH rejects an elevation-point X group without its Y group");
+
+    for (const std::pair<std::string, std::string>& malformedElevation : {
+             std::make_pair("10\n0\n20\n0\n30\n7\n",
+                            "10\n1\n20\n0\n30\n7\n"),
+             std::make_pair("10\n0\n20\n0\n30\n7\n",
+                            "10\n0\n20\n1\n30\n7\n")}) {
+        std::string malformed = sectionStart + elevationAndBoundary;
+        const std::size_t offset = malformed.find(malformedElevation.first);
+        if (offset == std::string::npos) {
+            t.expect(false, "HATCH malformed elevation vector is constructed");
+            continue;
+        }
+        malformed.replace(offset, malformedElevation.first.size(),
+                          malformedElevation.second);
+        malformed += sectionEnd;
+        FuzzInterface capture;
+        dxfRW reader("");
+        t.expect(!reader.readAscii(&capture, false, malformed)
+                     && capture.hatchCount == 0u,
+                 "HATCH rejects nonzero elevation OCS X or Y before callback");
+    }
+
+    FuzzInterface malformedMPolygonCapture;
+    dxfRW malformedMPolygonReader("");
+    std::string malformedMPolygon =
+        "0\nSECTION\n2\nENTITIES\n0\nMPOLYGON\n5\n706\n8\n0\n"
+        "100\nAcDbEntity\n100\nAcDbMPolygon\n"
+        "10\n0\n20\n0\n30\n7\n210\n0\n220\n0\n230\n0\n"
+        "2\nSOLID\n70\n1\n71\n0\n91\n0\n75\n0\n76\n1\n78\n0\n"
+        "98\n0\n0\nENDSEC\n0\nEOF\n";
+    t.expect(!malformedMPolygonReader.readAscii(
+                 &malformedMPolygonCapture, false, malformedMPolygon)
+                 && malformedMPolygonCapture.hatchCount == 0u,
+             "MPOLYGON shares the HATCH nonzero-extrusion validation");
+
+    FuzzInterface incompleteMPolygonCapture;
+    dxfRW incompleteMPolygonReader("");
+    std::string incompleteMPolygon =
+        "0\nSECTION\n2\nENTITIES\n0\nMPOLYGON\n5\n707\n8\n0\n"
+        "100\nAcDbEntity\n100\nAcDbMPolygon\n"
+        "10\n0\n20\n0\n30\n7\n210\n0\n220\n0\n230\n1\n"
+        "2\nSOLID\n70\n1\n71\n0\n91\n1\n"
+        "92\n2\n72\n0\n73\n1\n93\n1\n10\n1\n42\n0\n"
+        "97\n0\n75\n0\n76\n1\n78\n0\n99\n0\n"
+        "0\nENDSEC\n0\nEOF\n";
+    t.expect(!incompleteMPolygonReader.readAscii(
+                 &incompleteMPolygonCapture, false, incompleteMPolygon)
+                 && incompleteMPolygonCapture.hatchCount == 0u,
+             "MPOLYGON rejects an incomplete boundary OCS pair via HATCH parser");
+
+    const std::string mpolygonSeedPrefix =
+        "0\nSECTION\n2\nENTITIES\n0\nMPOLYGON\n5\n708\n8\n0\n"
+        "100\nAcDbEntity\n100\nAcDbMPolygon\n"
+        "10\n0\n20\n0\n30\n7\n210\n0\n220\n0\n230\n1\n"
+        "2\nSOLID\n70\n1\n71\n0\n91\n0\n75\n0\n76\n1\n78\n0\n98\n1\n";
+    FuzzInterface interleavedMPolygonCapture;
+    dxfRW interleavedMPolygonReader("");
+    std::string interleavedMPolygon = mpolygonSeedPrefix
+        + "10\n8\n63\n3\n20\n9\n99\n0\n0\nENDSEC\n0\nEOF\n";
+    t.expect(!interleavedMPolygonReader.readAscii(
+                 &interleavedMPolygonCapture, false, interleavedMPolygon)
+                 && interleavedMPolygonCapture.hatchCount == 0u,
+             "MPOLYGON subclass fields cannot split an OCS coordinate pair");
+
+    FuzzInterface completeMPolygonCapture;
+    dxfRW completeMPolygonReader("");
+    std::string completeMPolygon = mpolygonSeedPrefix
+        + "10\n8\n20\n9\n63\n3\n99\n0\n0\nENDSEC\n0\nEOF\n";
+    t.expect(completeMPolygonReader.readAscii(
+                 &completeMPolygonCapture, false, completeMPolygon)
+                 && completeMPolygonCapture.hatchCount == 1u,
+             "MPOLYGON accepts a complete OCS pair before its fill-color trailer");
+
+    const auto makeMPolygon = [](int closed, int annotated, const char* xdir) {
+        return std::string(
+            "0\nSECTION\n2\nENTITIES\n0\nMPOLYGON\n5\n709\n8\n0\n"
+            "100\nAcDbEntity\n100\nAcDbMPolygon\n"
+            "10\n0\n20\n0\n30\n0\n210\n0\n220\n0\n230\n1\n"
+            "2\nSOLID\n70\n1\n71\n0\n91\n1\n"
+            "92\n2\n72\n0\n73\n")
+            + std::to_string(closed)
+            + "\n93\n1\n10\n1\n20\n2\n97\n0\n76\n1\n73\n"
+            + std::to_string(annotated)
+            + "\n78\n0\n" + xdir + "99\n0\n0\nENDSEC\n0\nEOF\n";
+    };
+    const auto preservesMPolygonFlags = [&t, &makeMPolygon](
+            int closed, int annotated, const char* description) {
+        FuzzInterface capture;
+        dxfRW reader("");
+        std::string input = makeMPolygon(closed, annotated,
+            "11\n0.25\n21\n-0.5\n");
+        const bool read = reader.readAscii(&capture, false, input);
+        bool closedFlag = false;
+        if (capture.lastMPolygon.looplist.size() == 1u
+            && !capture.lastMPolygon.looplist.front()->objlist.empty()) {
+            const auto boundary = std::dynamic_pointer_cast<DRW_LWPolyline>(
+                capture.lastMPolygon.looplist.front()->objlist.front());
+            closedFlag = boundary && (boundary->flags & 1) != 0;
+        }
+        t.expect(read && capture.mpolygonCount == 1u
+                     && capture.lastMPolygon.annotatedBoundary == annotated
+                     && closedFlag == (closed != 0)
+                     && capture.lastMPolygon.xDirX == 0.25
+                     && capture.lastMPolygon.xDirY == -0.5,
+                 description);
+    };
+    preservesMPolygonFlags(1, 0,
+        "MPOLYGON annotation zero preserves a closed boundary and x direction");
+    preservesMPolygonFlags(0, 1,
+        "MPOLYGON annotation one does not close an open boundary");
+
+    for (const auto& malformedExtension : {
+             std::make_pair(2, "78\n0\n"),
+             std::make_pair(0, "11\n0.25\n99\n0\n")}) {
+        FuzzInterface capture;
+        dxfRW reader("");
+        std::string input = makeMPolygon(1, malformedExtension.first,
+            malformedExtension.second);
+        t.expect(!reader.readAscii(&capture, false, input)
+                     && capture.mpolygonCount == 0u,
+                 "MPOLYGON rejects invalid annotation and incomplete x-direction");
     }
 }
 
@@ -3046,9 +4070,15 @@ int main() {
     testDwgReadResetsVersionState(context);
     testDxfAggregateRecordBudget(context);
     testDwgAggregateObjectBudget(context);
+    testDwgModelerDataStorageLinking(context);
     testMLeaderParserStateCopyIsolation(context);
     testDimensionParserStateCopyIsolation(context);
     testDxfProxyGraphicsStayOutOfAcis(context);
+    testDxfThreeCornerFaceFallback(context);
+    testDxfSolidTraceCornerMapping(context);
+    testDxfEllipseCoordinatesAreWcs(context);
+    testDxfArcCircleRequireExtrusionDirection(context);
+    testDxfHatchElevationAndOcsBoundary(context);
     testMLeaderDxfContextRoundTrip(context);
     testLinetypeDashFlagIsFourBits(context);
     testProxyPayloadCodesAreScopedToTheProxySubclass(context);

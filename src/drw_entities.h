@@ -809,6 +809,8 @@ struct DRW_ModelerPayloadRange {
     Kind m_kind = Kind::UnknownTail;
     Section m_section = Section::Unknown;
     size_t m_offset = 0;
+    //! Source bit offset within m_offset's byte (0..7), for DWG bit streams.
+    std::uint8_t m_bitOffset = 0;
     size_t m_length = 0;
     size_t m_declaredByteSize = 0;
     Consistency m_consistency = Consistency::Unknown;
@@ -817,6 +819,18 @@ struct DRW_ModelerPayloadRange {
 };
 
 //! Opaque ACIS/SAB modeler geometry entity shell (REGION, 3DSOLID, BODY).
+//! A DXF modeler payload chunk is a view into the owning entity's bounded ACIS
+//! byte buffer. Group-code/order metadata keeps text groups distinct from
+//! binary chunks without duplicating payload storage.
+struct DRW_ModelerPayloadChunk {
+    DRW_ModelerPayloadChunk(int code, std::size_t offset, std::size_t length)
+        : m_groupCode(code), m_offset(offset), m_length(length) {}
+
+    int m_groupCode;
+    std::size_t m_offset;
+    std::size_t m_length;
+};
+
 class DRW_ModelerGeometry : public DRW_Entity {
     SETENTFRIENDS
 public:
@@ -831,7 +845,22 @@ protected:
     bool parseDwg(DRW::Version v, dwgBuffer *buf, std::uint32_t bs=0) override;
 
 public:
+    //! Effective ACIS carrier version. For an exact handle-linked R2013+ SAB
+    //! record, this is normalized to 2 from its "ACIS BinaryFile" signature;
+    //! the complete DWG entity-frame bytes remain separately available below.
     std::uint16_t m_modelerVersion = 0;
+    //! Presence/value of the R2013+ AcDbModelerGeometry group-290 field.
+    //! Retained as a DXF shell field only; its producer-specific meaning is
+    //! intentionally not inferred here.
+    bool m_hasDxfModelerFlag = false;
+    bool m_dxfModelerFlag = false;
+    //! Presence/value of the R2013+ AcDbModelerGeometry group-2 identifier.
+    //! The identifier is preserved verbatim and is not treated as a handle.
+    bool m_hasDxfModelerUid = false;
+    std::string m_dxfModelerUid;
+    //! Source DWG revision for a payload extracted with an exact versioned
+    //! layout. UNKNOWN means no DWG payload has been qualified for re-emission.
+    DRW::Version m_dwgSourceVersion = DRW::UNKNOWNV;
     std::uint32_t m_bodyBitSize = 0;
     std::uint32_t m_objectSize = 0;
     bool m_isEmpty = false;
@@ -840,18 +869,45 @@ public:
     bool m_hasWireframe = false;
     std::uint32_t m_historyHandle = 0;
     std::vector<std::uint8_t> m_rawBytes;
+    //! Exact SAT/SAB bytes extracted from a qualified DWG modeler frame.
+    //! SAT v1 has its block obfuscation removed; SAB v2 is retained bytewise.
+    //! Kept separate from m_rawBytes, which may hold DXF text or the retained
+    //! complete DWG object frame (m_objectSize bytes) for replay.
+    std::vector<std::uint8_t> m_dwgAcisPayload;
+    //! DXF group order/type for m_rawBytes; does not classify DWG frame bytes.
+    std::vector<DRW_ModelerPayloadChunk> m_dxfPayloadChunks;
     std::vector<DRW_ModelerPayloadRange> m_payloadRanges;
 
-    //! Lazily-decoded ACIS wireframe (from m_rawBytes SAB payload).
+    //! Lazily-decoded ACIS wireframe from an identified payload carrier.
     DRW_AcisBrep m_wireframe;
     bool m_wireframeDecoded = false;
-    //! Decode the SAB wireframe from m_rawBytes on demand. Idempotent; never throws.
+    //! Decode an identified ACIS wireframe on demand. Idempotent; never throws.
     bool decodeWireframe() {
         if (!m_wireframeDecoded) {
             m_wireframeDecoded = true;
-            const std::vector<std::uint8_t>& payload =
-                hasDataStorageRecord ? dataStorageData : m_rawBytes;
-            drw_decodeAcisWireframe(payload, m_wireframe);
+            const std::vector<std::uint8_t>* payload = nullptr;
+            if (hasDataStorageRecord) {
+                payload = &dataStorageData;
+            } else if (!m_dwgAcisPayload.empty()) {
+                payload = &m_dwgAcisPayload;
+            } else if (m_objectSize == 0 && m_bodyBitSize == 0) {
+                // DXF owns an inline modeler payload in m_rawBytes. DWG
+                // payloads use m_dwgAcisPayload instead.
+                payload = &m_rawBytes;
+            }
+            static constexpr char sabSignature[] = "ACIS BinaryFile";
+            const std::size_t signatureSize = sizeof(sabSignature) - 1u;
+            bool isSab = payload != nullptr
+                && payload->size() >= signatureSize;
+            for (std::size_t i = 0; isSab && i < signatureSize; ++i) {
+                isSab = (*payload)[i]
+                    == static_cast<std::uint8_t>(sabSignature[i]);
+            }
+            // SAT text (including de-obfuscated DWG v1 blocks) is opaque to
+            // the SAB wireframe decoder. Only its explicit binary signature
+            // may enter that decoder.
+            if (isSab)
+                drw_decodeAcisWireframe(*payload, m_wireframe);
         }
         return !m_wireframe.empty();
     }
@@ -2566,7 +2622,9 @@ public:
 //    double ex;                /*!< normal vector x coordinate, code 210 */
 //    double ey;                /*!< normal vector y coordinate, code 220 */
 //    double ez;                /*!< normal vector z coordinate, code 230 */
-    DRW_Coord normalVec;      /*!< normal vector, code 210, 220, 230 */
+    // DXF's optional extrusion direction defaults to (0,0,1). DWG parsing
+    // initializes this independently in resetDwgState().
+    DRW_Coord normalVec{0.0, 0.0, 1.0}; /*!< normal vector, code 210, 220, 230 */
     DRW_Coord tgStart;        /*!< start tangent, code 12, 22, 32 */
 //    double tgsx;              /*!< start tangent x coordinate, code 12 */
 //    double tgsy;              /*!< start tangent y coordinate, code 22 */
@@ -2678,7 +2736,8 @@ public:
 *  Class to handle hatch entity
 *  @author Rallaz
 */
-//TODO: handle lwpolylines, splines and ellipses
+// TODO: broaden semantic and interoperability qualification for every HATCH
+// boundary edge form; typed path storage and coordinate-pair checks are partial.
 class DRW_Hatch : public DRW_Point {
     SETENTFRIENDS
 public:
@@ -2770,6 +2829,7 @@ protected:
         m_dxfPolylineVertexCountSeen = false;
         m_dxfPatternLineCountExpected = -1;
         m_dxfPatternLineCountSeen = false;
+        m_dxfPatternTypeSeen = false;
         m_dxfPatternDashCountExpected = -1;
         m_dxfPatternDashCountSeen = false;
         m_dxfGradientColorCountExpected = -1;
@@ -2779,10 +2839,17 @@ protected:
         m_dxfSplineFitCountExpected = -1;
         m_dxfSeedPointsExpected = -1;
         m_dxfSeedPointCountSeen = false;
+        m_dxfPendingCoordinateGroup = 0;
     }
 
     bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) override;
     bool validateDxf() const;
+    bool dxfPatternTypeSeen() const { return m_dxfPatternTypeSeen; }
+    bool isValidDxfCoordinateTransition(int code) const {
+        if (m_dxfPendingCoordinateGroup != 0)
+            return code == m_dxfPendingCoordinateGroup + 10;
+        return code < 20 || code > 23;
+    }
     virtual bool parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs=0) override;
     [[nodiscard]] virtual bool encodeDwg(DRW::Version version, dwgBufferW *buf, std::uint32_t bs=0, dwgBufferW *strBuf=nullptr, dwgBufferW *handleBuf=nullptr) override;
     // Shared DWG boundary-loop reader (loop count + per-loop path/edge/polyline
@@ -2857,12 +2924,14 @@ private:
         m_dxfPolylineVertexCountSeen = false;
         m_dxfPatternLineCountExpected = -1;
         m_dxfPatternLineCountSeen = false;
+        m_dxfPatternTypeSeen = false;
         m_dxfPatternDashCountExpected = -1;
         m_dxfPatternDashCountSeen = false;
         m_dxfGradientColorCountExpected = -1;
         m_dxfGradientColorCountSeen = false;
         m_dxfSeedPointsExpected = -1;
         m_dxfSeedPointCountSeen = false;
+        m_dxfPendingCoordinateGroup = 0;
     }
 
     void addLine() {
@@ -2923,6 +2992,7 @@ private:
     bool m_dxfPolylineVertexCountSeen = false;
     int m_dxfPatternLineCountExpected = -1;
     bool m_dxfPatternLineCountSeen = false;
+    bool m_dxfPatternTypeSeen = false;
     int m_dxfPatternDashCountExpected = -1;
     bool m_dxfPatternDashCountSeen = false;
     int m_dxfGradientColorCountExpected = -1;
@@ -2932,6 +3002,9 @@ private:
     int m_dxfSplineFitCountExpected = -1;
     int m_dxfSeedPointsExpected = -1;
     bool m_dxfSeedPointCountSeen = false;
+    // HATCH point/vector coordinates are adjacent X/Y group-code pairs
+    // (10/20 through 13/23). A dangling X or Y must not inherit a default.
+    int m_dxfPendingCoordinateGroup = 0;
 };
 
 //! Class to handle MPOLYGON (AcDbMPolygon) entity.
@@ -2939,11 +3012,12 @@ private:
 *  AcDbMPolygon is a hatch-derived filled polygon used mainly by AutoCAD Map 3D /
 *  Civil. Its boundary loops, solid flag and pattern share HATCH's representation,
 *  so it stores into a DRW_Hatch and renders through the existing addHatch path.
-*  It only adds a trailing fill-color, an x-direction vector and a degenerate-path
-*  count that plain HATCH does not carry. The DWG binary layout also differs from
-*  HATCH: a leading BS style field precedes the gradient block, and the trailing
-*  fields are a fill CMC + x-direction + degenerate-path count (not HATCH's pixel
-*  size + seed points). Both the DXF (dxfRW::processMPolygon) and DWG
+*  It also adds an annotated-boundary flag, fill color, x-direction vector and a
+*  degenerate-path count that plain HATCH does not carry. The DWG binary layout
+*  also differs from HATCH: a leading BS style field precedes the gradient
+*  block, and the trailing fields are a fill CMC + x-direction + degenerate-path
+*  count (not HATCH's pixel size + seed points). Both the DXF
+*  (dxfRW::processMPolygon) and DWG
 *  (DRW_MPolygon::parseDwg, routed by classesmap recName "MPOLYGON" / className
 *  "AcDbMPolygon") read paths are wired; both deliver via addMPolygon.
 */
@@ -2961,15 +3035,20 @@ public:
     int fillColorAci {0};      /*!< fill color ACI index, code 63 */
     int fillColorRgb {-1};     /*!< fill color 24-bit RGB, code 421 (-1 = unset) */
     UTF8STRING fillColorName;  /*!< fill color book/name, code 430 */
-    double xDirX {0.0};        /*!< boundary x-direction vector x, code 11 */
-    double xDirY {0.0};        /*!< boundary x-direction vector y, code 21 */
+    int annotatedBoundary {0}; /*!< MPOLYGON boundary annotation flag, DXF code 73 */
+    double xDirX {0.0};        /*!< MPOLYGON offset-vector X, DXF code 11 */
+    double xDirY {0.0};        /*!< MPOLYGON offset-vector Y, DXF code 21 */
     int degenerateLoops {0};   /*!< count of degenerate boundary paths, code 99 */
 
 protected:
     bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) override;
+    bool validateDxf() const;
     virtual bool parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs=0) override;
     [[nodiscard]] virtual bool encodeDwg(DRW::Version version, dwgBufferW *buf, std::uint32_t bs=0,
                            dwgBufferW *strBuf=nullptr, dwgBufferW *handleBuf=nullptr) override;
+
+private:
+    bool m_dxfOffsetVectorPending {false};
 };
 
 //! Class to handle image entity
@@ -3485,6 +3564,8 @@ public:
     bool acisEmpty = false;
     int acisVersion = 0;
     std::vector<std::uint8_t> rawAcisData;
+    //! DXF group order/type for rawAcisData; does not classify DWG body bytes.
+    std::vector<DRW_ModelerPayloadChunk> dxfPayloadChunks;
     //! Full bounded DWG body captured by parseDwg(), distinct from DXF ACIS data.
     bool hasRawDwgBody = false;
     std::uint32_t rawDwgBodyBitSize = 0;
@@ -3532,7 +3613,8 @@ public:
         pathEntityTransform = extrudedTransform;
     }
     DRW_ExtrudedSurface(const DRW_ExtrudedSurface& o): DRW_Surface(o),
-        classId(o.classId), sweepVector(o.sweepVector),
+        classId(o.classId), dxfBinaryData(o.dxfBinaryData),
+        sweepVector(o.sweepVector),
         extrudedTransform(o.extrudedTransform),
         sweepEntityTransform(o.sweepEntityTransform),
         pathEntityTransform(o.pathEntityTransform), draftAngle(o.draftAngle),
@@ -3552,6 +3634,7 @@ public:
         if (this != &o) {
             DRW_Surface::operator=(o);
             classId = o.classId;
+            dxfBinaryData = o.dxfBinaryData;
             sweepVector = o.sweepVector;
             extrudedTransform = o.extrudedTransform;
             sweepEntityTransform = o.sweepEntityTransform;
@@ -3583,6 +3666,7 @@ protected:
 
 public:
     std::uint32_t classId = 0;
+    std::vector<std::uint8_t> dxfBinaryData;
     DRW_Coord sweepVector;
     std::array<double, kTransformSize> extrudedTransform{};
     std::array<double, kTransformSize> sweepEntityTransform{};
@@ -3610,6 +3694,7 @@ private:
         m_dxfPathTransformCount = 0;
         m_dxfClassIdSeen = false;
         m_dxfDataSizeSeen = false;
+        m_dxfDeclaredDataSize = 0;
         m_dxfInSubtype = false;
     }
 
@@ -3618,6 +3703,7 @@ private:
     std::size_t m_dxfPathTransformCount = 0;
     bool m_dxfClassIdSeen = false;
     bool m_dxfDataSizeSeen = false;
+    std::uint32_t m_dxfDeclaredDataSize = 0;
     bool m_dxfInSubtype = false;
 };
 
@@ -3635,7 +3721,8 @@ public:
                      0.0, 0.0, 0.0, 1.0};
     }
     DRW_RevolvedSurface(const DRW_RevolvedSurface& o): DRW_Surface(o),
-        classId(o.classId), id(o.id), axisPoint(o.axisPoint),
+        classId(o.classId), id(o.id), dxfBinaryData(o.dxfBinaryData),
+        axisPoint(o.axisPoint),
         axisVector(o.axisVector), revolveAngle(o.revolveAngle),
         startAngle(o.startAngle), transform(o.transform),
         draftAngle(o.draftAngle), draftStartDistance(o.draftStartDistance),
@@ -3649,6 +3736,7 @@ public:
             DRW_Surface::operator=(o);
             classId = o.classId;
             id = o.id;
+            dxfBinaryData = o.dxfBinaryData;
             axisPoint = o.axisPoint;
             axisVector = o.axisVector;
             revolveAngle = o.revolveAngle;
@@ -3668,10 +3756,12 @@ public:
 
 protected:
     bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) override;
+    bool finalizeDxf() const override;
 
 public:
     std::uint32_t classId = 0;
     std::uint32_t id = 0;
+    std::vector<std::uint8_t> dxfBinaryData;
     DRW_Coord axisPoint;
     DRW_Coord axisVector;
     double revolveAngle = 0.0;
@@ -3687,11 +3777,17 @@ public:
 private:
     void resetDxfParserState() noexcept {
         m_dxfTransformCount = 0;
-        m_dxfClassIdSeen = false;
+        m_dxfIdSeen = false;
+        m_dxfDataSizeSeen = false;
+        m_dxfDeclaredDataSize = 0;
+        m_dxfInSubtype = false;
     }
 
     std::size_t m_dxfTransformCount = 0;
-    bool m_dxfClassIdSeen = false;
+    bool m_dxfIdSeen = false;
+    bool m_dxfDataSizeSeen = false;
+    std::uint32_t m_dxfDeclaredDataSize = 0;
+    bool m_dxfInSubtype = false;
 };
 
 class DRW_SweptSurface : public DRW_Surface {
@@ -3801,7 +3897,10 @@ private:
         m_dxfPathEntityTransformedCount = 0;
         m_dxfSweepEntityIdSeen = false;
         m_dxfPathEntityIdSeen = false;
-        m_dxfDataSizeCount = 0;
+        m_dxfSweepDataSizeSeen = false;
+        m_dxfPathDataSizeSeen = false;
+        m_dxfSweepDataSize = 0;
+        m_dxfPathDataSize = 0;
         m_dxfTypedFieldSeen = false;
         m_dxfInSubtype = false;
     }
@@ -3812,7 +3911,10 @@ private:
     std::size_t m_dxfPathEntityTransformedCount = 0;
     bool m_dxfSweepEntityIdSeen = false;
     bool m_dxfPathEntityIdSeen = false;
-    int m_dxfDataSizeCount = 0;
+    bool m_dxfSweepDataSizeSeen = false;
+    bool m_dxfPathDataSizeSeen = false;
+    std::uint32_t m_dxfSweepDataSize = 0;
+    std::uint32_t m_dxfPathDataSize = 0;
     bool m_dxfTypedFieldSeen = false;
     bool m_dxfInSubtype = false;
 };

@@ -138,8 +138,8 @@ void testDictionaryVectors(TestContext& t) {
     t.expect(!invalid.encodeDwg(DRW::AC1024, &body, &strings, &handles),
              "DICTIONARY rejects an empty entry name");
     invalid.m_entries = {{"VECTOR_ENTRY", DRW::NoHandle}};
-    t.expect(!invalid.encodeDwg(DRW::AC1024, &body, &strings, &handles),
-             "DICTIONARY rejects a null entry handle");
+    t.expect(invalid.encodeDwg(DRW::AC1024, &body, &strings, &handles),
+             "DICTIONARY preserves a valid null DWG child reference");
 }
 
 void testXRecordVectors(TestContext& t) {

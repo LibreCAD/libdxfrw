@@ -14,16 +14,19 @@
 #include <array>
 #include <cctype>
 #include <cerrno>
+#include <chrono>
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
+#include <filesystem>
 #include <iomanip>
 #include <iostream>
 #include <limits>
 #include <locale>
 #include <map>
+#include <memory>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -271,10 +274,13 @@ Field doubleField(const std::string& name, double value) {
 Field boolField(const std::string& name, bool value) {
     return Field{name, "bool", value ? "true" : "false"};
 }
+std::string pointJson(const DRW_Coord& value) {
+    return std::string("{\"x\":") + number(value.x) +
+           ",\"y\":" + number(value.y) + ",\"z\":" +
+           number(value.z) + "}";
+}
 Field pointField(const std::string& name, const DRW_Coord& value) {
-    return Field{name, "point3d", std::string("{\"x\":") + number(value.x) +
-                 ",\"y\":" + number(value.y) + ",\"z\":" +
-                 number(value.z) + "}"};
+    return Field{name, "point3d", pointJson(value)};
 }
 
 struct CallbackRow {
@@ -340,6 +346,10 @@ struct DiagnosticRow {
 
 class SemanticSink final : public DRW_Interface {
 public:
+    explicit SemanticSink(const std::string& facade = std::string(),
+                          const std::string& direction = std::string())
+        : facade_(facade), direction_(direction) {}
+
     std::vector<CallbackRow> callbacks;
     std::vector<RecordRow> records;
     std::vector<NodeRow> nodes;
@@ -359,6 +369,9 @@ public:
         writeRecipeSucceeded_ = true;
     }
     bool writeRecipeSucceeded() const { return writeRecipeSucceeded_; }
+#ifdef LIBDXFRW_SEMANTIC_3D_CONSUMER_PROBE
+    void enable3DConsumerProbe() { threeDConsumerProbe_ = true; }
+#endif
 
     void addHeader(const DRW_Header*) override {
         addCallback("addHeader");
@@ -469,13 +482,67 @@ public:
         fields.push_back(doubleField("thickness", d.thickness));
         addEntityRecord("addLine", "LINE", fields, d, false);
     }
-    SEMANTIC_OPAQUE_VALUE(add3DLine, DRW_3DLine, "3DLINE")
+    void add3DLine(const DRW_3DLine& d) override {
+        std::vector<Field> fields = entityFields(d, "3DLINE", "3DLINE");
+        fields.push_back(pointField("start", d.basePoint));
+        fields.push_back(pointField("end", d.secPoint));
+        fields.push_back(pointField("extrusion", d.extPoint));
+        fields.push_back(doubleField("thickness", d.thickness));
+        addEntityRecord("add3DLine", "3DLINE", fields, d, false);
+    }
     void addRay(const DRW_Ray& d) override { addLineLike("addRay", "RAY", d); }
     void addXline(const DRW_Xline& d) override { addLineLike("addXline", "XLINE", d); }
-    void addArc(const DRW_Arc& d) override { addBasicEntity("addArc", "ARC", d); }
-    void addCircle(const DRW_Circle& d) override { addBasicEntity("addCircle", "CIRCLE", d); }
-    void addEllipse(const DRW_Ellipse& d) override { addBasicEntity("addEllipse", "ELLIPSE", d); }
-    void addLWPolyline(const DRW_LWPolyline& d) override { addBasicEntity("addLWPolyline", "LWPOLYLINE", d); }
+    void addArc(const DRW_Arc& d) override {
+        std::vector<Field> fields = entityFields(d, "ARC", "ARC");
+        fields.push_back(pointField("center", d.basePoint));
+        fields.push_back(doubleField("radius", d.radious));
+        fields.push_back(doubleField("thickness", d.thickness));
+        fields.push_back(pointField("extrusion", d.extPoint));
+        fields.push_back(doubleField("startAngleRadians", d.staangle));
+        fields.push_back(doubleField("endAngleRadians", d.endangle));
+        addEntityRecord("addArc", "ARC", fields, d, false);
+    }
+    void addCircle(const DRW_Circle& d) override {
+        std::vector<Field> fields = entityFields(d, "CIRCLE", "CIRCLE");
+        fields.push_back(pointField("center", d.basePoint));
+        fields.push_back(doubleField("radius", d.radious));
+        fields.push_back(doubleField("thickness", d.thickness));
+        fields.push_back(pointField("extrusion", d.extPoint));
+        addEntityRecord("addCircle", "CIRCLE", fields, d, false);
+    }
+    void addEllipse(const DRW_Ellipse& d) override {
+        std::vector<Field> fields = entityFields(d, "ELLIPSE", "ELLIPSE");
+        fields.push_back(pointField("center", d.basePoint));
+        fields.push_back(pointField("majorAxis", d.secPoint));
+        fields.push_back(doubleField("ratio", d.ratio));
+        fields.push_back(doubleField("startParameter", d.staparam));
+        fields.push_back(doubleField("endParameter", d.endparam));
+        fields.push_back(pointField("extrusion", d.extPoint));
+        addEntityRecord("addEllipse", "ELLIPSE", fields, d, false);
+    }
+    void addLWPolyline(const DRW_LWPolyline& d) override {
+        std::vector<Field> fields = entityFields(d, "LWPOLYLINE", "LWPOLYLINE");
+        fields.push_back(intField("flags", d.flags));
+        fields.push_back(doubleField("elevation", d.elevation));
+        fields.push_back(pointField("extrusion", d.extPoint));
+        fields.push_back(doubleField("thickness", d.thickness));
+        fields.push_back(uintField("vertexCount", d.vertlist.size()));
+        for (std::size_t i = 0; i < d.vertlist.size(); ++i) {
+            const std::string prefix = "vertex." + std::to_string(i);
+            const auto& vertex = d.vertlist[i];
+            fields.push_back(boolField(prefix + ".present",
+                                       static_cast<bool>(vertex)));
+            if (!vertex)
+                continue;
+            fields.push_back(doubleField(prefix + ".x", vertex->x));
+            fields.push_back(doubleField(prefix + ".y", vertex->y));
+            fields.push_back(doubleField(prefix + ".startWidth", vertex->stawidth));
+            fields.push_back(doubleField(prefix + ".endWidth", vertex->endwidth));
+            fields.push_back(doubleField(prefix + ".bulge", vertex->bulge));
+            fields.push_back(intField(prefix + ".identifier", vertex->identifier));
+        }
+        addEntityRecord("addLWPolyline", "LWPOLYLINE", fields, d, false);
+    }
     SEMANTIC_OPAQUE_POINTER(addMLine, DRW_MLine, "MLINE")
     SEMANTIC_OPAQUE_POINTER(addUnderlay, DRW_Underlay, "UNDERLAY")
     SEMANTIC_OPAQUE_VALUE(addShape, DRW_Shape, "SHAPE")
@@ -483,16 +550,226 @@ public:
     SEMANTIC_OPAQUE_VALUE(addOleFrame, DRW_OleFrame, "OLEFRAME")
     SEMANTIC_OPAQUE_VALUE(addProxyEntity, DRW_ProxyEntity, "PROXY_ENTITY")
     SEMANTIC_OPAQUE_POINTER(linkUnderlay, DRW_UnderlayDefinition, "UNDERLAYDEFINITION")
-    void addPolyline(const DRW_Polyline& d) override { addBasicEntity("addPolyline", "POLYLINE", d); }
-    void addSpline(const DRW_Spline* d) override { addPointerEntity("addSpline", "SPLINE", d); }
-    SEMANTIC_OPAQUE_POINTER(addHelix, DRW_Helix, "HELIX")
-    SEMANTIC_OPAQUE_VALUE(addMesh, DRW_Mesh, "MESH")
+    void addPolyline(const DRW_Polyline& d) override {
+        std::vector<Field> fields = entityFields(d, "POLYLINE", "POLYLINE");
+        fields.push_back(pointField("basePoint", d.basePoint));
+        fields.push_back(pointField("extrusion", d.extPoint));
+        fields.push_back(doubleField("thickness", d.thickness));
+        fields.push_back(intField("flags", d.flags));
+        fields.push_back(doubleField("defaultStartWidth", d.defstawidth));
+        fields.push_back(doubleField("defaultEndWidth", d.defendwidth));
+        fields.push_back(intField("declaredVertexCount", d.vertexcount));
+        fields.push_back(intField("declaredFaceCount", d.facecount));
+        fields.push_back(intField("smoothM", d.smoothM));
+        fields.push_back(intField("smoothN", d.smoothN));
+        fields.push_back(intField("curveType", d.curvetype));
+        fields.push_back(uintField("vertexCount", d.vertlist.size()));
+        if (d.dwgSeqEndHandle() != DRW::NoHandle)
+            fields.push_back(handleField("seqEndHandle", d.dwgSeqEndHandle()));
+        for (std::size_t i = 0; i < d.vertlist.size(); ++i)
+            appendVertexFields(fields, d.vertlist[i].get(), i);
+        addEntityRecord("addPolyline", "POLYLINE", fields, d, false);
+    }
+    void addSpline(const DRW_Spline* d) override {
+        if (d == nullptr) { addNullDiagnostic("addSpline"); return; }
+        std::vector<Field> fields = entityFields(*d, "SPLINE", "SPLINE");
+        appendSplineFields(fields, *d);
+        addEntityRecord("addSpline", "SPLINE", fields, *d, false);
+    }
+    void addHelix(const DRW_Helix* d) override {
+        if (d == nullptr) { addNullDiagnostic("addHelix"); return; }
+        std::vector<Field> fields = entityFields(*d, "HELIX", "HELIX");
+        appendSplineFields(fields, *d);
+        fields.push_back(intField("helixMajorVersion", d->m_majorVersion));
+        fields.push_back(intField("helixMaintenanceVersion", d->m_maintVersion));
+        fields.push_back(pointField("axisBasePoint", d->axisBasePt));
+        fields.push_back(pointField("startPoint", d->startPt));
+        fields.push_back(pointField("axisVector", d->axisVector));
+        fields.push_back(doubleField("radius", d->radius));
+        fields.push_back(doubleField("turns", d->turns));
+        fields.push_back(doubleField("turnHeight", d->turnHeight));
+        fields.push_back(boolField("handedness", d->handedness));
+        fields.push_back(intField("constraintType", d->constraintType));
+        addEntityRecord("addHelix", "HELIX", fields, *d, false);
+    }
+    void addMesh(const DRW_Mesh& d) override {
+        std::vector<Field> fields = entityFields(d, "MESH", "MESH");
+        fields.push_back(intField("version", d.version));
+        fields.push_back(boolField("blendCrease", d.blendCrease));
+        fields.push_back(intField("subdivisionLevel", d.subdivisionLevel));
+        fields.push_back(intField("unknown", d.unknown));
+        fields.push_back(uintField("legacySubdivVertexCount", d.subdivVertices.size()));
+        for (std::size_t i = 0; i < d.subdivVertices.size(); ++i)
+            fields.push_back(pointField("legacySubdivVertex." + std::to_string(i),
+                                        d.subdivVertices[i]));
+        fields.push_back(uintField("vertexCount", d.vertices.size()));
+        for (std::size_t i = 0; i < d.vertices.size(); ++i)
+            fields.push_back(pointField("vertex." + std::to_string(i), d.vertices[i]));
+        fields.push_back(uintField("faceCount", d.faces.size()));
+        for (std::size_t i = 0; i < d.faces.size(); ++i) {
+            const std::string facePrefix = "face." + std::to_string(i);
+            fields.push_back(uintField(facePrefix + ".vertexCount", d.faces[i].size()));
+            for (std::size_t j = 0; j < d.faces[i].size(); ++j)
+                fields.push_back(intField(facePrefix + ".vertex." +
+                                          std::to_string(j), d.faces[i][j]));
+        }
+        fields.push_back(uintField("edgeCount", d.edges.size()));
+        for (std::size_t i = 0; i < d.edges.size(); ++i) {
+            const std::string edgePrefix = "edge." + std::to_string(i);
+            fields.push_back(intField(edgePrefix + ".start", d.edges[i].first));
+            fields.push_back(intField(edgePrefix + ".end", d.edges[i].second));
+        }
+        fields.push_back(uintField("creaseCount", d.creases.size()));
+        for (std::size_t i = 0; i < d.creases.size(); ++i)
+            fields.push_back(doubleField("crease." + std::to_string(i), d.creases[i]));
+        fields.push_back(uintField("propertyOverrideCount", d.propertyOverrides.size()));
+        for (std::size_t i = 0; i < d.propertyOverrides.size(); ++i) {
+            const std::string prefix = "propertyOverride." + std::to_string(i);
+            fields.push_back(intField(prefix + ".subEntityMarker",
+                                      d.propertyOverrides[i].subEntityMarker));
+            fields.push_back(uintField(prefix + ".propertyTypeCount",
+                                      d.propertyOverrides[i].propertyTypes.size()));
+            for (std::size_t j = 0; j < d.propertyOverrides[i].propertyTypes.size(); ++j)
+                fields.push_back(intField(prefix + ".propertyType." +
+                    std::to_string(j), d.propertyOverrides[i].propertyTypes[j]));
+        }
+        addEntityRecord("addMesh", "MESH", fields, d, false);
+    }
     void addKnot(const DRW_Entity& d) override { addBasicEntity("addKnot", "KNOT", d); }
-    void addInsert(const DRW_Insert& d) override { addBasicEntity("addInsert", "INSERT", d); }
+    void addInsert(const DRW_Insert& d) override {
+        std::vector<Field> fields = entityFields(d, "INSERT", "INSERT");
+        fields.push_back(stringField("blockName", d.name));
+        fields.push_back(pointField("insertionPoint", d.basePoint));
+        fields.push_back(pointField("extrusion", d.extPoint));
+        fields.push_back(doubleField("xScale", d.xscale));
+        fields.push_back(doubleField("yScale", d.yscale));
+        fields.push_back(doubleField("zScale", d.zscale));
+        fields.push_back(doubleField("rotationAngle", d.angle));
+        fields.push_back(intField("columnCount", d.colcount));
+        fields.push_back(intField("rowCount", d.rowcount));
+        fields.push_back(doubleField("columnSpacing", d.colspace));
+        fields.push_back(doubleField("rowSpacing", d.rowspace));
+        fields.push_back(uintField("attributeCount", d.attlist.size()));
+        for (std::size_t i = 0; i < d.attlist.size(); ++i) {
+            const std::string prefix = "attribute." + std::to_string(i);
+            if (!d.attlist[i]) {
+                fields.push_back(boolField(prefix + ".present", false));
+                continue;
+            }
+            fields.push_back(boolField(prefix + ".present", true));
+            if (d.attlist[i]->handle != DRW::NoHandle)
+                fields.push_back(handleField(prefix + ".handle", d.attlist[i]->handle));
+            fields.push_back(stringField(prefix + ".tag", d.attlist[i]->tag));
+            fields.push_back(stringField(prefix + ".text", d.attlist[i]->text));
+            fields.push_back(pointField(prefix + ".insertionPoint", d.attlist[i]->basePoint));
+            fields.push_back(pointField(prefix + ".extrusion", d.attlist[i]->extPoint));
+            fields.push_back(doubleField(prefix + ".height", d.attlist[i]->height));
+            fields.push_back(doubleField(prefix + ".rotationAngle", d.attlist[i]->angle));
+            fields.push_back(doubleField(prefix + ".widthScale", d.attlist[i]->widthscale));
+            fields.push_back(doubleField(prefix + ".oblique", d.attlist[i]->oblique));
+            fields.push_back(intField(prefix + ".textGeneration", d.attlist[i]->textgen));
+            fields.push_back(intField(prefix + ".horizontalAlignment",
+                                      static_cast<int>(d.attlist[i]->alignH)));
+            fields.push_back(intField(prefix + ".verticalAlignment",
+                                      static_cast<int>(d.attlist[i]->alignV)));
+            fields.push_back(stringField(prefix + ".style", d.attlist[i]->style));
+            fields.push_back(intField(prefix + ".flags", d.attlist[i]->attribFlags));
+            fields.push_back(intField(prefix + ".fieldLength", d.attlist[i]->m_fieldLength));
+            fields.push_back(boolField(prefix + ".lockPosition", d.attlist[i]->lockPosition));
+            fields.push_back(intField(prefix + ".attributeVersion", d.attlist[i]->attVersion));
+            fields.push_back(intField(prefix + ".attributeType",
+                                      d.attlist[i]->m_attributeType));
+            fields.push_back(boolField(prefix + ".hasMText",
+                                      static_cast<bool>(d.attlist[i]->mtext)));
+            if (d.attlist[i]->mtext) {
+                fields.push_back(stringField(prefix + ".mtext.text",
+                                             d.attlist[i]->mtext->text));
+                fields.push_back(doubleField(prefix + ".mtext.height",
+                                             d.attlist[i]->mtext->height));
+            }
+        }
+        addEntityRecord("addInsert", "INSERT", fields, d, false);
+    }
     SEMANTIC_OPAQUE_VALUE(addTable, DRW_Table, "TABLE")
     void addTrace(const DRW_Trace& d) override { addBasicEntity("addTrace", "TRACE", d); }
-    void add3dFace(const DRW_3Dface& d) override { addBasicEntity("add3dFace", "3DFACE", d); }
-    SEMANTIC_OPAQUE_VALUE(addModelerGeometry, DRW_ModelerGeometry, "MODELER_GEOMETRY")
+    void add3dFace(const DRW_3Dface& d) override {
+        std::vector<Field> fields = entityFields(d, "3DFACE", "3DFACE");
+        fields.push_back(pointField("corner.0", d.basePoint));
+        fields.push_back(pointField("corner.1", d.secPoint));
+        fields.push_back(pointField("corner.2", d.thirdPoint));
+        fields.push_back(pointField("corner.3", d.fourPoint));
+        fields.push_back(intField("invisibleEdgeFlags", d.invisibleflag));
+        fields.push_back(doubleField("thickness", d.thickness));
+        fields.push_back(pointField("extrusion", d.extPoint));
+        addEntityRecord("add3dFace", "3DFACE", fields, d, false);
+    }
+    void addModelerGeometry(const DRW_ModelerGeometry& d) override {
+        std::vector<Field> fields = entityFields(d, "MODELER_GEOMETRY",
+                                                 "MODELER_GEOMETRY");
+        fields.push_back(intField("entityType", static_cast<int>(d.eType)));
+        fields.push_back(intField("modelerVersion", d.m_modelerVersion));
+        fields.push_back(intField("dwgSourceVersion",
+                                  static_cast<int>(d.m_dwgSourceVersion)));
+        fields.push_back(uintField("bodyBitSize", d.m_bodyBitSize));
+        fields.push_back(uintField("objectSize", d.m_objectSize));
+        fields.push_back(boolField("isEmpty", d.m_isEmpty));
+        fields.push_back(boolField("hasModelerData", d.m_hasModelerData));
+        fields.push_back(boolField("modelerDataUnknownBit", d.m_modelerDataUnknownBit));
+        fields.push_back(boolField("hasWireframe", d.m_hasWireframe));
+        fields.push_back(handleField("historyHandle", d.m_historyHandle));
+        fields.push_back(boolField("hasRawBytes", !d.m_rawBytes.empty()));
+        fields.push_back(uintField("rawByteCount", d.m_rawBytes.size()));
+        fields.push_back(boolField("hasDwgInlineAcisPayload",
+                                   !d.m_dwgAcisPayload.empty()));
+        fields.push_back(uintField("dwgInlineAcisByteCount",
+                                   d.m_dwgAcisPayload.size()));
+        appendPayloadChunkFields(fields, "dxfPayloadChunk",
+                                 d.m_dxfPayloadChunks, d.m_rawBytes);
+        appendDataStorageFields(fields, d);
+        fields.push_back(stringField("rawByteCarrierKind",
+            facade_ == "dwgRW" && direction_ == "read"
+                ? "dwgObjectFrameBody-unclassified-payload"
+                : facade_ == "dxfRW"
+                    ? "dxfEntityInlineModelerPayload"
+                    : "unknown"));
+        fields.push_back(boolField("derivedWireframeDecoded", d.m_wireframeDecoded));
+        fields.push_back(uintField("derivedWireframeVertexCount", d.m_wireframe.vertices.size()));
+        fields.push_back(uintField("derivedWireframeEdgeCount", d.m_wireframe.edges.size()));
+        fields.push_back(uintField("derivedWireframeFaceCount", d.m_wireframe.faces.size()));
+        fields.push_back(uintField("payloadRangeCount", d.m_payloadRanges.size()));
+        for (std::size_t i = 0; i < d.m_payloadRanges.size(); ++i) {
+            const std::string prefix = "payloadRange." + std::to_string(i);
+            const DRW_ModelerPayloadRange& range = d.m_payloadRanges[i];
+            fields.push_back(intField(prefix + ".kind", static_cast<int>(range.m_kind)));
+            fields.push_back(intField(prefix + ".section", static_cast<int>(range.m_section)));
+            fields.push_back(uintField(prefix + ".offset", range.m_offset));
+            fields.push_back(uintField(prefix + ".bitOffset", range.m_bitOffset));
+            fields.push_back(uintField(prefix + ".length", range.m_length));
+            fields.push_back(uintField(prefix + ".declaredByteSize", range.m_declaredByteSize));
+            fields.push_back(intField(prefix + ".consistency", static_cast<int>(range.m_consistency)));
+            fields.push_back(intField(prefix + ".confidence", static_cast<int>(range.m_confidence)));
+            fields.push_back(stringField(prefix + ".markerText", range.m_markerText));
+        }
+        const std::size_t recordIndex = addEntityRecord(
+            "addModelerGeometry", "MODELER_GEOMETRY", fields, d, false);
+        if (!d.m_rawBytes.empty()) {
+            const std::string carrierName = facade_ == "dwgRW" && direction_ == "read"
+                ? "dwgModelerObjectFrameBody-unclassified-payload"
+                : facade_ == "dxfRW"
+                    ? "dxfModelerEntityInlinePayload"
+                    : "unclassifiedModelerBytes";
+            attachCarrierToRecord(recordIndex, carrierName,
+                                  d.m_rawBytes.data(), d.m_rawBytes.size());
+        }
+        if (!d.m_dwgAcisPayload.empty()) {
+            attachCarrierToRecord(recordIndex,
+                                  facade_ == "dwgRW" && direction_ == "read"
+                                      ? "dwgModelerInlineAcisPayload"
+                                      : "unclassifiedModelerInlineAcisPayload",
+                                  d.m_dwgAcisPayload.data(),
+                                  d.m_dwgAcisPayload.size());
+        }
+    }
     SEMANTIC_OPAQUE_VALUE(addLight, DRW_Light, "LIGHT")
     SEMANTIC_OPAQUE_VALUE(addCamera, DRW_Camera, "CAMERA")
     SEMANTIC_OPAQUE_VALUE(addGeoPositionMarker, DRW_GeoPositionMarker, "GEOPOSITIONMARKER")
@@ -599,7 +876,52 @@ public:
     SEMANTIC_OPAQUE_POINTER(addPointCloud, DRW_PointCloud, "POINTCLOUD")
     SEMANTIC_OPAQUE_POINTER(addPointCloudEx, DRW_PointCloudEx, "POINTCLOUDEX")
     SEMANTIC_OPAQUE_POINTER(addNavisworksModel, DRW_NavisworksModel, "NAVISWORKSMODEL")
-    SEMANTIC_OPAQUE_POINTER(addSurface, DRW_Surface, "SURFACE")
+    void addSurface(const DRW_Surface* d) override {
+        if (d == nullptr) { addNullDiagnostic("addSurface"); return; }
+        std::string entity = "SURFACE";
+        switch (d->eType) {
+        case DRW::PLANESURFACE: entity = "PLANESURFACE"; break;
+        case DRW::EXTRUDEDSURFACE: entity = "EXTRUDEDSURFACE"; break;
+        case DRW::REVOLVEDSURFACE: entity = "REVOLVEDSURFACE"; break;
+        case DRW::SWEPTSURFACE: entity = "SWEPTSURFACE"; break;
+        case DRW::LOFTEDSURFACE: entity = "LOFTEDSURFACE"; break;
+        case DRW::NURBSURFACE: entity = "NURBSURFACE"; break;
+        default: break;
+        }
+        std::vector<Field> fields = entityFields(*d, entity, entity);
+        appendSurfaceFields(fields, *d);
+        const std::size_t recordIndex = addEntityRecord(
+            "addSurface", entity, fields, *d, false);
+        if (!d->rawAcisData.empty()) {
+            const std::string carrierName = facade_ == "dwgRW" && direction_ == "read"
+                ? "dwgSurfaceReaderPayload-unclassified"
+                : facade_ == "dxfRW"
+                    ? "dxfSurfaceEntityInlineAcis"
+                    : "unclassifiedSurfaceBytes";
+            attachCarrierToRecord(recordIndex, carrierName,
+                                  d->rawAcisData.data(), d->rawAcisData.size());
+        }
+        if (const auto* swept = dynamic_cast<const DRW_SweptSurface*>(d)) {
+            if (!swept->sweepData.empty())
+                attachCarrierToRecord(recordIndex, "surfaceSweepData",
+                    swept->sweepData.data(), swept->sweepData.size());
+            if (!swept->pathData.empty())
+                attachCarrierToRecord(recordIndex, "surfacePathData",
+                    swept->pathData.data(), swept->pathData.size());
+        }
+        if (const auto* lofted = dynamic_cast<const DRW_LoftedSurface*>(d)) {
+            for (std::size_t i = 0; i < lofted->dxfReferenceData.size(); ++i) {
+                const DRW_Variant& value = lofted->dxfReferenceData[i];
+                if (value.type() == DRW_Variant::BINARY && value.binary() != nullptr &&
+                    !value.binary()->empty()) {
+                    const std::string carrierName = "loftDxfReference." +
+                        std::to_string(i) + ".group" + std::to_string(value.code());
+                    attachCarrierToRecord(recordIndex, carrierName,
+                        value.binary()->data(), value.binary()->size());
+                }
+            }
+        }
+    }
     SEMANTIC_OPAQUE_POINTER(addMLeader, DRW_MLeader, "MULTILEADER")
     SEMANTIC_OPAQUE_POINTER(addMLeaderStyle, DRW_MLeaderStyle, "MLEADERSTYLE")
     SEMANTIC_OPAQUE_VALUE(addDbColor, DRW_DbColor, "DBCOLOR")
@@ -712,6 +1034,148 @@ public:
     void writeBlockRecords() override { addCallback("writeBlockRecords"); }
     void writeEntities() override {
         addCallback("writeEntities");
+#ifdef LIBDXFRW_SEMANTIC_3D_CONSUMER_PROBE
+        if (threeDConsumerProbe_) {
+            if (dxfWriter_ == nullptr) {
+                writeRecipeSucceeded_ = false;
+                return;
+            }
+            bool wrote = true;
+            DRW_Circle defaultCircle;
+            defaultCircle.layer = "probe_circle_default";
+            defaultCircle.basePoint = DRW_Coord{6.0, -3.0, 1.5};
+            defaultCircle.radious = 2.5;
+            defaultCircle.thickness = 0.75;
+            wrote = dxfWriter_->writeCircle(&defaultCircle) && wrote;
+
+            DRW_Circle obliqueCircle;
+            obliqueCircle.layer = "probe_circle_oblique";
+            obliqueCircle.basePoint = DRW_Coord{2.0, 3.0, 5.0};
+            obliqueCircle.radious = 4.0;
+            obliqueCircle.thickness = 0.5;
+            obliqueCircle.extPoint = DRW_Coord{0.0, 1.0, 0.0};
+            wrote = dxfWriter_->writeCircle(&obliqueCircle) && wrote;
+
+            DRW_Arc negativeNormalArc;
+            negativeNormalArc.layer = "probe_arc_negative_normal";
+            negativeNormalArc.basePoint = DRW_Coord{2.0, 3.0, 4.0};
+            negativeNormalArc.radious = 7.0;
+            negativeNormalArc.thickness = 0.125;
+            negativeNormalArc.extPoint = DRW_Coord{0.0, 0.0, -1.0};
+            negativeNormalArc.staangle = 10.0 / ARAD;
+            negativeNormalArc.endangle = 70.0 / ARAD;
+            wrote = dxfWriter_->writeArc(&negativeNormalArc) && wrote;
+
+            DRW_Ellipse defaultEllipse;
+            defaultEllipse.layer = "probe_ellipse_default";
+            defaultEllipse.basePoint = DRW_Coord{1.0, 2.0, 3.0};
+            defaultEllipse.secPoint = DRW_Coord{5.0, 0.0, 0.0};
+            defaultEllipse.ratio = 0.5;
+            defaultEllipse.staparam = 0.0;
+            defaultEllipse.endparam = 2.0 * M_PI;
+            wrote = dxfWriter_->writeEllipse(&defaultEllipse) && wrote;
+
+            DRW_Ellipse tiltedEllipse;
+            tiltedEllipse.layer = "probe_ellipse_tilted_partial";
+            tiltedEllipse.basePoint = DRW_Coord{-2.0, 4.0, 6.0};
+            tiltedEllipse.secPoint = DRW_Coord{2.0, -1.0, 0.0};
+            tiltedEllipse.extPoint = DRW_Coord{1.0 / 3.0, 2.0 / 3.0,
+                                                2.0 / 3.0};
+            tiltedEllipse.ratio = 0.4;
+            tiltedEllipse.staparam = 0.25;
+            tiltedEllipse.endparam = 1.75;
+            wrote = dxfWriter_->writeEllipse(&tiltedEllipse) && wrote;
+
+            DRW_3Dface face;
+            face.basePoint = DRW_Coord{1.0, 2.0, 3.0};
+            face.secPoint = DRW_Coord{4.0, 5.0, 6.0};
+            face.thirdPoint = DRW_Coord{7.0, 8.0, 9.0};
+            face.fourPoint = DRW_Coord{10.0, 11.0, 12.0};
+            face.invisibleflag = DRW_3Dface::FirstEdge | DRW_3Dface::ThirdEdge;
+            wrote = dxfWriter_->write3dface(&face) && wrote;
+
+            DRW_Polyline polyline;
+            polyline.flags = 8;
+            polyline.vertexcount = 2;
+            polyline.addVertex(DRW_Vertex{13.0, 14.0, 15.0, 0.0});
+            polyline.addVertex(DRW_Vertex{16.0, 17.0, 18.0, 0.0});
+            for (const auto& vertex : polyline.vertlist)
+                vertex->flags = 32;
+            wrote = dxfWriter_->writePolyline(&polyline) && wrote;
+
+            DRW_Polyline polyface;
+            polyface.layer = "probe_pface";
+            polyface.flags = 64;
+            polyface.vertexcount = 4;
+            polyface.facecount = 1;
+            polyface.addVertex(DRW_Vertex{1.0, 2.0, 3.0, 0.0});
+            polyface.addVertex(DRW_Vertex{4.0, 5.0, 6.0, 0.0});
+            polyface.addVertex(DRW_Vertex{7.0, 8.0, 9.0, 0.0});
+            polyface.addVertex(DRW_Vertex{10.0, 11.0, 12.0, 0.0});
+            for (std::size_t i = 0; i < 4; ++i)
+                polyface.vertlist[i]->flags = 192;
+            DRW_Vertex faceRecord;
+            faceRecord.setDwgSubtype(DRW_Vertex::DwgSubtype::PolyfaceFace);
+            faceRecord.vindex1 = 1;
+            faceRecord.vindex2 = -2;
+            faceRecord.vindex3 = 3;
+            faceRecord.vindex4 = -4;
+            polyface.addVertex(faceRecord);
+            wrote = dxfWriter_->writePolyline(&polyface) && wrote;
+
+            DRW_Mesh mesh;
+            mesh.vertices = {DRW_Coord{20.0, 21.0, 22.0},
+                             DRW_Coord{23.0, 24.0, 25.0},
+                             DRW_Coord{26.0, 27.0, 28.0}};
+            mesh.faces = {{0, 1, 2}};
+            mesh.edges = {{0, 1}, {1, 2}};
+            mesh.creases = {0.25, 0.75};
+            wrote = dxfWriter_->writeMesh(&mesh) && wrote;
+
+            DRW_Insert insert;
+            insert.name = "PROBE_BLOCK";
+            insert.basePoint = DRW_Coord{30.0, 31.0, 32.0};
+            insert.extPoint = DRW_Coord{0.0, 1.0, 0.0};
+            insert.xscale = -2.0;
+            insert.yscale = 3.0;
+            insert.zscale = 4.0;
+            insert.angle = 0.5;
+            insert.colcount = 2;
+            insert.rowcount = 3;
+            insert.colspace = 7.0;
+            insert.rowspace = 8.0;
+            wrote = dxfWriter_->writeInsert(&insert) && wrote;
+
+            DRW_Spline spline;
+            spline.degree = 2;
+            spline.ncontrol = 3;
+            spline.knotslist = {0.0, 0.0, 0.0, 1.0, 1.0, 1.0};
+            spline.normalVec = DRW_Coord{0.0, 0.0, 1.0};
+            spline.controllist = {
+                std::make_shared<DRW_Coord>(40.0, 41.0, 42.0),
+                std::make_shared<DRW_Coord>(43.0, 44.0, 45.0),
+                std::make_shared<DRW_Coord>(46.0, 47.0, 48.0)};
+            wrote = dxfWriter_->writeSpline(&spline) && wrote;
+
+            DRW_LWPolyline ocsPolyline;
+            ocsPolyline.elevation = 5.0;
+            ocsPolyline.extPoint = DRW_Coord{0.0, 1.0, 0.0};
+            ocsPolyline.addVertex(DRW_Vertex2D{2.0, 3.0, 0.25});
+            ocsPolyline.addVertex(DRW_Vertex2D{4.0, 5.0, 0.0});
+            wrote = dxfWriter_->writeLWPolyline(&ocsPolyline) && wrote;
+
+            DRW_LoftedSurface lofted;
+            lofted.modelerFormatVersion = 1;
+            lofted.uIsolines = 10;
+            lofted.vIsolines = 11;
+            lofted.dxfReferenceData.emplace_back(90, std::int32_t{2});
+            lofted.dxfReferenceData.emplace_back(310,
+                std::vector<std::uint8_t>{0x12u, 0x34u, 0x56u});
+            wrote = dxfWriter_->writeSurface(&lofted) && wrote;
+            writeRecipeSucceeded_ = wrote && writeRecipeSucceeded_;
+            return;
+        }
+#endif
         DRW_Line line;
         line.layer = "0";
         line.basePoint = DRW_Coord{1.0, 2.0, 3.0};
@@ -872,9 +1336,10 @@ private:
         return fields;
     }
 
-    void addEntityRecord(const std::string& callback, const std::string& recordClass,
-                         std::vector<Field> fields, const DRW_Entity& d,
-                         bool hasExcludedFields) {
+    std::size_t addEntityRecord(const std::string& callback,
+                                const std::string& recordClass,
+                                std::vector<Field> fields, const DRW_Entity& d,
+                                bool hasExcludedFields) {
         (void)hasExcludedFields;
         const std::size_t recordIndex = addRecord(callback, "entity", recordClass,
                                                   std::move(fields));
@@ -887,11 +1352,12 @@ private:
             callbacks[callbackIndex].carrierIds.push_back(carrierId);
         }
         if (!d.dataStorageData.empty()) {
-            const std::string carrierId = addCarrier("entityDataStorage",
+            const std::string carrierId = addCarrier("dwgLinkedDataStoragePayload",
                 d.dataStorageData.data(), d.dataStorageData.size(), "preserved", record.id);
             callbacks[callbackIndex].carrierIds.push_back(carrierId);
         }
         addExcluded(record.id, "unmodeledCommonEntityOrSubtypeFields");
+        return recordIndex;
     }
 
     template <typename T>
@@ -906,6 +1372,311 @@ private:
                           const T* d) {
         if (d == nullptr) { addNullDiagnostic(callback); return; }
         addBasicEntity(callback, recordClass, *d);
+    }
+
+    void attachCarrierToRecord(std::size_t recordIndex, const std::string& source,
+                               const void* bytes, std::size_t size) {
+        if (recordIndex >= records.size())
+            return;
+        const std::string carrierId = addCarrier(source, bytes, size,
+                                                  "preserved",
+                                                  records[recordIndex].id);
+        const std::size_t callbackIndex = records[recordIndex].callbackOrdinal;
+        if (callbackIndex < callbacks.size())
+            callbacks[callbackIndex].carrierIds.push_back(carrierId);
+    }
+
+    void appendDataStorageFields(std::vector<Field>& fields,
+                                 const DRW_Entity& entity) const {
+        fields.push_back(boolField("hasDataStorageBinaryData",
+                                   entity.hasDataStorageBinaryData()));
+        fields.push_back(boolField("hasDataStorageRecord",
+                                   entity.hasDataStorageRecord));
+        fields.push_back(uintField("dataStorageByteCount",
+                                   entity.dataStorageData.size()));
+        fields.push_back(uintField("dataStorageHandle",
+                                   entity.dataStorageHandle));
+        fields.push_back(stringField("dataStorageHandleKey",
+                                     entity.dataStorageHandleKey));
+        fields.push_back(uintField("dataStorageSegmentIndex",
+                                   entity.dataStorageSegmentIndex));
+        fields.push_back(uintField("dataStorageSchemaIndex",
+                                   entity.dataStorageSchemaIndex));
+        fields.push_back(boolField("hasDataStoragePayloadMarker",
+                                   entity.hasDataStoragePayloadMarker));
+        fields.push_back(uintField("dataStoragePayloadMarkerOffset",
+                                   entity.dataStoragePayloadMarkerOffset));
+        fields.push_back(uintField("dataStoragePayloadMarkerLength",
+                                   entity.dataStoragePayloadMarkerLength));
+        fields.push_back(stringField("dataStoragePayloadMarkerSection",
+                                     entity.dataStoragePayloadMarkerSection));
+    }
+
+    void appendPayloadChunkFields(
+        std::vector<Field>& fields, const std::string& name,
+        const std::vector<DRW_ModelerPayloadChunk>& chunks,
+        const std::vector<std::uint8_t>& bytes) const {
+        fields.push_back(uintField(name + ".count", chunks.size()));
+        for (std::size_t i = 0; i < chunks.size(); ++i) {
+            const DRW_ModelerPayloadChunk& chunk = chunks[i];
+            const std::string prefix = name + "." + std::to_string(i);
+            const bool inBounds = chunk.m_offset <= bytes.size()
+                && chunk.m_length <= bytes.size() - chunk.m_offset;
+            fields.push_back(intField(prefix + ".groupCode", chunk.m_groupCode));
+            fields.push_back(uintField(prefix + ".offset", chunk.m_offset));
+            fields.push_back(uintField(prefix + ".length", chunk.m_length));
+            fields.push_back(boolField(prefix + ".inBounds", inBounds));
+        }
+    }
+
+    void appendVertexFields(std::vector<Field>& fields, const DRW_Vertex* vertex,
+                            std::size_t index) const {
+        const std::string prefix = "vertex." + std::to_string(index);
+        if (vertex == nullptr) {
+            fields.push_back(boolField(prefix + ".present", false));
+            return;
+        }
+        fields.push_back(boolField(prefix + ".present", true));
+        fields.push_back(pointField(prefix + ".position", vertex->basePoint));
+        fields.push_back(pointField(prefix + ".extrusion", vertex->extPoint));
+        fields.push_back(doubleField(prefix + ".startWidth", vertex->stawidth));
+        fields.push_back(doubleField(prefix + ".endWidth", vertex->endwidth));
+        fields.push_back(doubleField(prefix + ".bulge", vertex->bulge));
+        fields.push_back(intField(prefix + ".flags", vertex->flags));
+        fields.push_back(doubleField(prefix + ".tangentDirection", vertex->tgdir));
+        fields.push_back(intField(prefix + ".faceIndex1", vertex->vindex1));
+        fields.push_back(intField(prefix + ".faceIndex2", vertex->vindex2));
+        fields.push_back(intField(prefix + ".faceIndex3", vertex->vindex3));
+        fields.push_back(intField(prefix + ".faceIndex4", vertex->vindex4));
+        fields.push_back(intField(prefix + ".identifier", vertex->identifier));
+        fields.push_back(intField(prefix + ".dwgSubtype",
+                                  static_cast<int>(vertex->dwgSubtype())));
+        if (vertex->handle != DRW::NoHandle)
+            fields.push_back(handleField(prefix + ".handle", vertex->handle));
+        if (vertex->parentHandle != DRW::NoHandle)
+            fields.push_back(handleField(prefix + ".ownerHandle", vertex->parentHandle));
+    }
+
+    void appendSplineFields(std::vector<Field>& fields,
+                            const DRW_Spline& spline) const {
+        fields.push_back(pointField("normal", spline.normalVec));
+        fields.push_back(pointField("startTangent", spline.tgStart));
+        fields.push_back(pointField("endTangent", spline.tgEnd));
+        fields.push_back(intField("flags", spline.flags));
+        fields.push_back(intField("degree", spline.degree));
+        fields.push_back(intField("scenario", spline.m_scenario));
+        fields.push_back(intField("splineFlags1", spline.m_splineFlags1));
+        fields.push_back(intField("knotParameterization", spline.m_knotParam));
+        fields.push_back(intField("declaredKnotCount", spline.nknots));
+        fields.push_back(intField("declaredControlPointCount", spline.ncontrol));
+        fields.push_back(intField("declaredFitPointCount", spline.nfit));
+        fields.push_back(doubleField("knotTolerance", spline.tolknot));
+        fields.push_back(doubleField("controlTolerance", spline.tolcontrol));
+        fields.push_back(doubleField("fitTolerance", spline.tolfit));
+        fields.push_back(uintField("knotCount", spline.knotslist.size()));
+        for (std::size_t i = 0; i < spline.knotslist.size(); ++i)
+            fields.push_back(doubleField("knot." + std::to_string(i),
+                                         spline.knotslist[i]));
+        fields.push_back(uintField("weightCount", spline.weightlist.size()));
+        for (std::size_t i = 0; i < spline.weightlist.size(); ++i)
+            fields.push_back(doubleField("weight." + std::to_string(i),
+                                         spline.weightlist[i]));
+        fields.push_back(uintField("controlPointCount", spline.controllist.size()));
+        for (std::size_t i = 0; i < spline.controllist.size(); ++i) {
+            const std::string prefix = "controlPoint." + std::to_string(i);
+            fields.push_back(boolField(prefix + ".present",
+                                       static_cast<bool>(spline.controllist[i])));
+            if (spline.controllist[i])
+                fields.push_back(pointField(prefix + ".position",
+                                            *spline.controllist[i]));
+        }
+        fields.push_back(uintField("fitPointCount", spline.fitlist.size()));
+        for (std::size_t i = 0; i < spline.fitlist.size(); ++i) {
+            const std::string prefix = "fitPoint." + std::to_string(i);
+            fields.push_back(boolField(prefix + ".present",
+                                       static_cast<bool>(spline.fitlist[i])));
+            if (spline.fitlist[i])
+                fields.push_back(pointField(prefix + ".position", *spline.fitlist[i]));
+        }
+    }
+
+    template <std::size_t N>
+    void appendTransformFields(std::vector<Field>& fields,
+                               const std::string& name,
+                               const std::array<double, N>& values) const {
+        fields.push_back(uintField(name + ".count", values.size()));
+        for (std::size_t i = 0; i < values.size(); ++i)
+            fields.push_back(doubleField(name + "." + std::to_string(i), values[i]));
+    }
+
+    void appendHandleVector(std::vector<Field>& fields, const std::string& name,
+                            const std::vector<std::uint32_t>& handles) const {
+        fields.push_back(uintField(name + ".count", handles.size()));
+        for (std::size_t i = 0; i < handles.size(); ++i)
+            fields.push_back(handleField(name + "." + std::to_string(i), handles[i]));
+    }
+
+    void appendVariantFields(std::vector<Field>& fields, const std::string& name,
+                             const std::vector<DRW_Variant>& values) const {
+        fields.push_back(uintField(name + ".count", values.size()));
+        for (std::size_t i = 0; i < values.size(); ++i) {
+            const DRW_Variant& value = values[i];
+            const std::string prefix = name + "." + std::to_string(i);
+            fields.push_back(intField(prefix + ".groupCode", value.code()));
+            fields.push_back(intField(prefix + ".type", static_cast<int>(value.type())));
+            fields.push_back(boolField(prefix + ".layerReference", value.isLayerRef()));
+            switch (value.type()) {
+            case DRW_Variant::STRING:
+                fields.push_back(stringField(prefix + ".value", value.c_str()));
+                break;
+            case DRW_Variant::INTEGER:
+                fields.push_back(intField(prefix + ".value", value.i_val()));
+                break;
+            case DRW_Variant::INTEGER64:
+                fields.push_back(intField(prefix + ".value", value.i64_val()));
+                break;
+            case DRW_Variant::DOUBLE:
+                fields.push_back(doubleField(prefix + ".value", value.d_val()));
+                break;
+            case DRW_Variant::COORD:
+                if (value.coord() != nullptr)
+                    fields.push_back(pointField(prefix + ".value", *value.coord()));
+                break;
+            case DRW_Variant::BINARY:
+                fields.push_back(uintField(prefix + ".byteCount",
+                    value.binary() == nullptr ? 0 : value.binary()->size()));
+                break;
+            case DRW_Variant::INVALID:
+                break;
+            }
+        }
+    }
+
+    void appendSurfaceFields(std::vector<Field>& fields,
+                             const DRW_Surface& surface) const {
+        fields.push_back(intField("uIsolines", surface.uIsolines));
+        fields.push_back(intField("vIsolines", surface.vIsolines));
+        fields.push_back(intField("modelerFormatVersion", surface.modelerFormatVersion));
+        fields.push_back(boolField("acisEmpty", surface.acisEmpty));
+        fields.push_back(intField("acisVersion", surface.acisVersion));
+        fields.push_back(boolField("hasRawAcisData", !surface.rawAcisData.empty()));
+        fields.push_back(uintField("rawAcisByteCount", surface.rawAcisData.size()));
+        appendPayloadChunkFields(fields, "dxfAcisChunk", surface.dxfPayloadChunks,
+                                 surface.rawAcisData);
+        appendDataStorageFields(fields, surface);
+        fields.push_back(stringField("rawAcisCarrierKind",
+            facade_ == "dwgRW" && direction_ == "read"
+                ? "dwgSurfaceReaderPayload-unclassified"
+                : facade_ == "dxfRW"
+                    ? "dxfEntityInlineAcis"
+                    : "unknown"));
+        fields.push_back(boolField("hasRawDwgBody", surface.hasRawDwgBody));
+        fields.push_back(uintField("rawDwgBodyBitSize", surface.rawDwgBodyBitSize));
+        fields.push_back(intField("rawDwgBodyVersion",
+                                  static_cast<int>(surface.rawDwgBodyVersion)));
+        fields.push_back(uintField("dwgClassNum", surface.dwgClassNum));
+        fields.push_back(boolField("dwgPayloadDecoded", surface.dwgPayloadDecoded));
+        fields.push_back(boolField("derivedWireframeDecoded", surface.m_wireframeDecoded));
+        fields.push_back(uintField("derivedWireframeVertexCount",
+                                   surface.m_wireframe.vertices.size()));
+        fields.push_back(uintField("derivedWireframeEdgeCount",
+                                   surface.m_wireframe.edges.size()));
+        fields.push_back(uintField("derivedWireframeFaceCount",
+                                   surface.m_wireframe.faces.size()));
+        appendHandleVector(fields, "crossSectionHandle", surface.crossSectionHandles);
+        appendHandleVector(fields, "guideCurveHandle", surface.guideCurveHandles);
+
+        if (const auto* value = dynamic_cast<const DRW_ExtrudedSurface*>(&surface)) {
+            fields.push_back(uintField("classId", value->classId));
+            fields.push_back(pointField("sweepVector", value->sweepVector));
+            appendTransformFields(fields, "extrudedTransform", value->extrudedTransform);
+            appendTransformFields(fields, "sweepEntityTransform", value->sweepEntityTransform);
+            appendTransformFields(fields, "pathEntityTransform", value->pathEntityTransform);
+            fields.push_back(doubleField("draftAngle", value->draftAngle));
+            fields.push_back(doubleField("draftStartDistance", value->draftStartDistance));
+            fields.push_back(doubleField("draftEndDistance", value->draftEndDistance));
+            fields.push_back(doubleField("twistAngle", value->twistAngle));
+            fields.push_back(doubleField("scaleFactor", value->scaleFactor));
+            fields.push_back(doubleField("alignAngle", value->alignAngle));
+            fields.push_back(boolField("solid", value->solid));
+            fields.push_back(intField("sweepAlignmentFlags", value->sweepAlignmentFlags));
+            fields.push_back(intField("pathFlags", value->pathFlags));
+            fields.push_back(boolField("alignStart", value->alignStart));
+            fields.push_back(boolField("bank", value->bank));
+            fields.push_back(boolField("basePointSet", value->basePointSet));
+            fields.push_back(boolField("sweepEntityTransformComputed",
+                                       value->sweepEntityTransformComputed));
+            fields.push_back(boolField("pathEntityTransformComputed",
+                                       value->pathEntityTransformComputed));
+            fields.push_back(pointField("referenceVector", value->referenceVector));
+        } else if (const auto* value = dynamic_cast<const DRW_RevolvedSurface*>(&surface)) {
+            fields.push_back(uintField("classId", value->classId));
+            fields.push_back(uintField("id", value->id));
+            fields.push_back(pointField("axisPoint", value->axisPoint));
+            fields.push_back(pointField("axisVector", value->axisVector));
+            fields.push_back(doubleField("revolveAngle", value->revolveAngle));
+            fields.push_back(doubleField("startAngle", value->startAngle));
+            appendTransformFields(fields, "transform", value->transform);
+            fields.push_back(doubleField("draftAngle", value->draftAngle));
+            fields.push_back(doubleField("draftStartDistance", value->draftStartDistance));
+            fields.push_back(doubleField("draftEndDistance", value->draftEndDistance));
+            fields.push_back(doubleField("twistAngle", value->twistAngle));
+            fields.push_back(boolField("solid", value->solid));
+            fields.push_back(boolField("closeToAxis", value->closeToAxis));
+        } else if (const auto* value = dynamic_cast<const DRW_SweptSurface*>(&surface)) {
+            fields.push_back(uintField("classVersion", value->classVersion));
+            fields.push_back(uintField("sweepEntityId", value->sweepEntityId));
+            fields.push_back(uintField("sweepDataByteCount", value->sweepData.size()));
+            fields.push_back(uintField("pathEntityId", value->pathEntityId));
+            fields.push_back(uintField("pathDataByteCount", value->pathData.size()));
+            appendTransformFields(fields, "sweepEntityTransform", value->sweepEntityTransform);
+            appendTransformFields(fields, "pathEntityTransform", value->pathEntityTransform);
+            appendTransformFields(fields, "sweepEntityTransformed", value->sweepEntityTransformed);
+            appendTransformFields(fields, "pathEntityTransformed", value->pathEntityTransformed);
+            fields.push_back(doubleField("draftAngle", value->draftAngle));
+            fields.push_back(doubleField("draftStartDistance", value->draftStartDistance));
+            fields.push_back(doubleField("draftEndDistance", value->draftEndDistance));
+            fields.push_back(doubleField("twistAngle", value->twistAngle));
+            fields.push_back(doubleField("scaleFactor", value->scaleFactor));
+            fields.push_back(doubleField("alignAngle", value->alignAngle));
+            fields.push_back(boolField("solid", value->solid));
+            fields.push_back(intField("sweepAlignmentFlags", value->sweepAlignmentFlags));
+            fields.push_back(intField("pathFlags", value->pathFlags));
+            fields.push_back(boolField("alignStart", value->alignStart));
+            fields.push_back(boolField("bank", value->bank));
+            fields.push_back(boolField("basePointSet", value->basePointSet));
+            fields.push_back(boolField("sweepEntityTransformComputed",
+                                       value->sweepEntityTransformComputed));
+            fields.push_back(boolField("pathEntityTransformComputed",
+                                       value->pathEntityTransformComputed));
+            fields.push_back(pointField("referenceVector", value->referenceVector));
+        } else if (const auto* value = dynamic_cast<const DRW_LoftedSurface*>(&surface)) {
+            appendTransformFields(fields, "loftEntityTransform", value->loftEntityTransform);
+            fields.push_back(intField("planeNormalLoftingType", value->planeNormalLoftingType));
+            fields.push_back(doubleField("startDraftAngle", value->startDraftAngle));
+            fields.push_back(doubleField("endDraftAngle", value->endDraftAngle));
+            fields.push_back(doubleField("startDraftMagnitude", value->startDraftMagnitude));
+            fields.push_back(doubleField("endDraftMagnitude", value->endDraftMagnitude));
+            fields.push_back(boolField("arcLengthParameterization", value->arcLengthParameterization));
+            fields.push_back(boolField("noTwist", value->noTwist));
+            fields.push_back(boolField("alignDirection", value->alignDirection));
+            fields.push_back(boolField("simpleSurfaces", value->simpleSurfaces));
+            fields.push_back(boolField("closedSurfaces", value->closedSurfaces));
+            fields.push_back(boolField("solid", value->solid));
+            fields.push_back(boolField("ruledSurface", value->ruledSurface));
+            fields.push_back(boolField("virtualGuide", value->virtualGuide));
+            fields.push_back(intField("numCrossSections", value->numCrossSections));
+            fields.push_back(intField("numGuideCurves", value->numGuideCurves));
+            fields.push_back(handleField("pathCurveHandle", value->pathCurveHandle));
+            appendVariantFields(fields, "dxfReferenceData", value->dxfReferenceData);
+        } else if (const auto* value = dynamic_cast<const DRW_NurbsSurface*>(&surface)) {
+            fields.push_back(intField("short170", value->short170));
+            fields.push_back(boolField("cvHullDisplay", value->cvHullDisplay));
+            fields.push_back(pointField("uvec1", value->uvec1));
+            fields.push_back(pointField("vvec1", value->vvec1));
+            fields.push_back(pointField("uvec2", value->uvec2));
+            fields.push_back(pointField("vvec2", value->vvec2));
+        }
     }
 
     template <typename T>
@@ -1074,11 +1845,16 @@ private:
                        carrierId, std::string(), "preservedCanonical");
     }
 
+    std::string facade_;
+    std::string direction_;
     std::string currentBlockId_;
     std::map<std::string, bool> nodeIds_;
     dxfRW* dxfWriter_ = nullptr;
     dwgRW* dwgWriter_ = nullptr;
     bool writeRecipeSucceeded_ = true;
+#ifdef LIBDXFRW_SEMANTIC_3D_CONSUMER_PROBE
+    bool threeDConsumerProbe_ = false;
+#endif
 };
 
 struct Options {
@@ -1564,6 +2340,356 @@ void emitResult(std::ostream& out, const Options& options, const InputInfo& inpu
         << ",\"diagnosticCount\":" << sink.diagnostics.size() << "}}\n";
 }
 
+#ifdef LIBDXFRW_SEMANTIC_3D_CONSUMER_PROBE
+const Field* findEntityField(const SemanticSink& sink, const std::string& entity,
+                             const std::string& name) {
+    for (const RecordRow& record : sink.records) {
+        if (record.entity != entity)
+            continue;
+        for (const Field& field : record.fields) {
+            if (field.name == name)
+                return &field;
+        }
+    }
+    return nullptr;
+}
+
+const RecordRow* findEntityRecordByLayer(const SemanticSink& sink,
+                                         const std::string& entity,
+                                         const std::string& layer) {
+    for (const RecordRow& record : sink.records) {
+        if (record.entity != entity)
+            continue;
+        for (const Field& field : record.fields) {
+            if (field.name == "layer" && field.value == jsonString(layer))
+                return &record;
+        }
+    }
+    return nullptr;
+}
+
+const Field* findRecordField(const RecordRow* record, const std::string& name) {
+    if (record == nullptr)
+        return nullptr;
+    for (const Field& field : record->fields) {
+        if (field.name == name)
+            return &field;
+    }
+    return nullptr;
+}
+
+bool fieldEqualsForLayer(const SemanticSink& sink, const std::string& entity,
+                         const std::string& layer, const std::string& name,
+                         const std::string& expected) {
+    const Field* field = findRecordField(
+        findEntityRecordByLayer(sink, entity, layer), name);
+    return field != nullptr && field->value == expected;
+}
+
+bool doubleFieldEqualsForLayer(const SemanticSink& sink,
+                               const std::string& entity,
+                               const std::string& layer,
+                               const std::string& name, double expected) {
+    const Field* field = findRecordField(
+        findEntityRecordByLayer(sink, entity, layer), name);
+    if (field == nullptr)
+        return false;
+    try {
+        const double actual = std::stod(field->value);
+        return std::isfinite(actual)
+            && std::fabs(actual - expected) <= 1.0e-12;
+    } catch (const std::exception&) {
+        return false;
+    }
+}
+
+bool fieldEquals(const SemanticSink& sink, const std::string& entity,
+                 const std::string& name, const std::string& expected) {
+    const Field* field = findEntityField(sink, entity, name);
+    return field != nullptr && field->value == expected;
+}
+
+bool run3DConsumerProbe(bool binary) {
+    std::error_code error;
+    const std::filesystem::path temporaryRoot =
+        std::filesystem::temp_directory_path(error);
+    if (error)
+        return false;
+    std::filesystem::path directory;
+    const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
+    for (unsigned attempt = 0; attempt < 32; ++attempt) {
+        directory = temporaryRoot / ("libdxfrw-semantic-3d-consumer-"
+            + std::to_string(stamp) + "-" + std::to_string(attempt));
+        error.clear();
+        if (std::filesystem::create_directory(directory, error))
+            break;
+        if (error && error != std::errc::file_exists)
+            return false;
+        directory.clear();
+    }
+    if (directory.empty())
+        return false;
+
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() {
+            std::error_code cleanupError;
+            std::filesystem::remove_all(path, cleanupError);
+        }
+    } cleanup{directory};
+
+    const std::filesystem::path output = directory
+        / (binary ? "consumer-probe-binary.dxf" : "consumer-probe-ascii.dxf");
+    const std::string outputName = output.string();
+    SemanticSink producer("dxfRW", "write");
+    producer.enable3DConsumerProbe();
+    dxfRW writer(outputName.c_str());
+    producer.configureWrite(&writer);
+    if (!writer.write(&producer, DRW::AC1027, binary)
+        || !producer.writeRecipeSucceeded())
+        return false;
+
+    SemanticSink consumer("dxfRW", "read");
+    dxfRW reader(outputName.c_str());
+    if (!reader.read(&consumer, false) || !consumer.diagnostics.empty())
+        return false;
+
+    // Preserve the established 2D extrusion option independently of the
+    // unprojected callback values checked below. For this LWPOLYLINE,
+    // extrusion (0,1,0) gives arbitrary-axis Ax=(-1,0,0), Ay=(0,0,1);
+    // local (x,y,elevation) therefore maps to (-x,elevation,y):
+    // (2,3,5) -> (-2,5,3) and (4,5,5) -> (-4,5,5).
+    SemanticSink legacyConsumer("dxfRW", "read");
+    dxfRW legacyReader(outputName.c_str());
+    if (!legacyReader.read(&legacyConsumer, true)
+        || !legacyConsumer.diagnostics.empty())
+        return false;
+    const auto expectEntityField = [&](const SemanticSink& sink,
+                                       const std::string& entity,
+                                       const std::string& layer,
+                                       const std::string& name,
+                                       const std::string& expected) {
+        if (fieldEqualsForLayer(sink, entity, layer, name, expected))
+            return true;
+        const Field* field = findRecordField(
+            findEntityRecordByLayer(sink, entity, layer), name);
+        std::cerr << "3D consumer probe mismatch for " << entity
+                  << " layer " << layer << " field " << name << ": expected "
+                  << expected << ", got "
+                  << (field == nullptr ? "<missing>" : field->value) << '\n';
+        return false;
+    };
+    const auto expectEntityDouble = [&](const SemanticSink& sink,
+                                        const std::string& entity,
+                                        const std::string& layer,
+                                        const std::string& name,
+                                        double expected) {
+        if (doubleFieldEqualsForLayer(sink, entity, layer, name, expected))
+            return true;
+        const Field* field = findRecordField(
+            findEntityRecordByLayer(sink, entity, layer), name);
+        std::cerr << "3D consumer probe mismatch for " << entity
+                  << " layer " << layer << " field " << name << ": expected "
+                  << number(expected) << ", got "
+                  << (field == nullptr ? "<missing>" : field->value) << '\n';
+        return false;
+    };
+
+    // ARC/CIRCLE store planar centers in OCS. The default normal remains a
+    // no-op; an oblique normal uses the DXF arbitrary-axis basis; the legacy
+    // negative-Z ARC path also mirrors/swaps angles while retaining its normal.
+    const std::string defaultCircleLayer = "probe_circle_default";
+    const std::string obliqueCircleLayer = "probe_circle_oblique";
+    const std::string negativeArcLayer = "probe_arc_negative_normal";
+    const double rawArcStart = 10.0 / ARAD;
+    const double rawArcEnd = 70.0 / ARAD;
+    if (!expectEntityField(consumer, "CIRCLE", defaultCircleLayer, "center",
+                           "{\"x\":6,\"y\":-3,\"z\":1.5}")
+        || !expectEntityField(consumer, "CIRCLE", defaultCircleLayer, "extrusion",
+                              "{\"x\":0,\"y\":0,\"z\":1}")
+        || !expectEntityDouble(consumer, "CIRCLE", defaultCircleLayer, "radius", 2.5)
+        || !expectEntityDouble(consumer, "CIRCLE", defaultCircleLayer, "thickness", 0.75)
+        || !expectEntityField(consumer, "CIRCLE", obliqueCircleLayer, "center",
+                              "{\"x\":2,\"y\":3,\"z\":5}")
+        || !expectEntityField(consumer, "CIRCLE", obliqueCircleLayer, "extrusion",
+                              "{\"x\":0,\"y\":1,\"z\":0}")
+        || !expectEntityDouble(consumer, "CIRCLE", obliqueCircleLayer, "radius", 4.0)
+        || !expectEntityDouble(consumer, "CIRCLE", obliqueCircleLayer, "thickness", 0.5)
+        || !expectEntityField(consumer, "ARC", negativeArcLayer, "center",
+                              "{\"x\":2,\"y\":3,\"z\":4}")
+        || !expectEntityField(consumer, "ARC", negativeArcLayer, "extrusion",
+                              "{\"x\":0,\"y\":0,\"z\":-1}")
+        || !expectEntityDouble(consumer, "ARC", negativeArcLayer, "radius", 7.0)
+        || !expectEntityDouble(consumer, "ARC", negativeArcLayer, "thickness", 0.125)
+        || !expectEntityDouble(consumer, "ARC", negativeArcLayer,
+                               "startAngleRadians", rawArcStart)
+        || !expectEntityDouble(consumer, "ARC", negativeArcLayer,
+                               "endAngleRadians", rawArcEnd))
+        return false;
+
+    if (!expectEntityField(legacyConsumer, "CIRCLE", defaultCircleLayer, "center",
+                           "{\"x\":6,\"y\":-3,\"z\":1.5}")
+        || !expectEntityField(legacyConsumer, "CIRCLE", defaultCircleLayer, "extrusion",
+                              "{\"x\":0,\"y\":0,\"z\":1}")
+        || !expectEntityDouble(legacyConsumer, "CIRCLE", defaultCircleLayer,
+                               "radius", 2.5)
+        || !expectEntityDouble(legacyConsumer, "CIRCLE", defaultCircleLayer,
+                               "thickness", 0.75)
+        || !expectEntityField(legacyConsumer, "CIRCLE", obliqueCircleLayer, "center",
+                              "{\"x\":-2,\"y\":5,\"z\":3}")
+        || !expectEntityField(legacyConsumer, "CIRCLE", obliqueCircleLayer, "extrusion",
+                              "{\"x\":0,\"y\":1,\"z\":0}")
+        || !expectEntityDouble(legacyConsumer, "CIRCLE", obliqueCircleLayer,
+                               "radius", 4.0)
+        || !expectEntityDouble(legacyConsumer, "CIRCLE", obliqueCircleLayer,
+                               "thickness", 0.5)
+        || !expectEntityField(legacyConsumer, "ARC", negativeArcLayer, "center",
+                              "{\"x\":-2,\"y\":3,\"z\":-4}")
+        || !expectEntityField(legacyConsumer, "ARC", negativeArcLayer, "extrusion",
+                              "{\"x\":0,\"y\":0,\"z\":-1}")
+        || !expectEntityDouble(legacyConsumer, "ARC", negativeArcLayer,
+                               "radius", 7.0)
+        || !expectEntityDouble(legacyConsumer, "ARC", negativeArcLayer,
+                               "thickness", 0.125)
+        || !expectEntityDouble(legacyConsumer, "ARC", negativeArcLayer,
+                               "startAngleRadians", M_PI - rawArcEnd)
+        || !expectEntityDouble(legacyConsumer, "ARC", negativeArcLayer,
+                               "endAngleRadians", M_PI - rawArcStart))
+        return false;
+
+    // DXF ELLIPSE stores its center and major-axis vector in WCS. Unlike ARC
+    // and CIRCLE, the oblique-normal vector must not rotate those coordinates
+    // when the legacy 2D extrusion option is enabled.
+    const auto expectEllipses = [&](const SemanticSink& sink) {
+        const std::string defaultEllipseLayer = "probe_ellipse_default";
+        const std::string tiltedEllipseLayer = "probe_ellipse_tilted_partial";
+        return expectEntityField(
+                   sink, "ELLIPSE", defaultEllipseLayer, "center",
+                   pointJson(DRW_Coord{1.0, 2.0, 3.0}))
+            && expectEntityField(
+                   sink, "ELLIPSE", defaultEllipseLayer, "majorAxis",
+                   pointJson(DRW_Coord{5.0, 0.0, 0.0}))
+            && expectEntityField(
+                   sink, "ELLIPSE", defaultEllipseLayer, "extrusion",
+                   pointJson(DRW_Coord{0.0, 0.0, 1.0}))
+            && expectEntityDouble(
+                   sink, "ELLIPSE", defaultEllipseLayer, "ratio", 0.5)
+            && expectEntityDouble(
+                   sink, "ELLIPSE", defaultEllipseLayer,
+                   "startParameter", 0.0)
+            && expectEntityDouble(
+                   sink, "ELLIPSE", defaultEllipseLayer,
+                   "endParameter", 2.0 * M_PI)
+            && expectEntityField(
+                   sink, "ELLIPSE", tiltedEllipseLayer, "center",
+                   pointJson(DRW_Coord{-2.0, 4.0, 6.0}))
+            && expectEntityField(
+                   sink, "ELLIPSE", tiltedEllipseLayer, "majorAxis",
+                   pointJson(DRW_Coord{2.0, -1.0, 0.0}))
+            && expectEntityField(
+                   sink, "ELLIPSE", tiltedEllipseLayer, "extrusion",
+                   pointJson(DRW_Coord{1.0 / 3.0, 2.0 / 3.0, 2.0 / 3.0}))
+            && expectEntityDouble(
+                   sink, "ELLIPSE", tiltedEllipseLayer, "ratio", 0.4)
+            && expectEntityDouble(
+                   sink, "ELLIPSE", tiltedEllipseLayer,
+                   "startParameter", 0.25)
+            && expectEntityDouble(
+                   sink, "ELLIPSE", tiltedEllipseLayer,
+                   "endParameter", 1.75);
+    };
+    if (!expectEllipses(consumer) || !expectEllipses(legacyConsumer))
+        return false;
+
+    const auto expectPolyface = [&](const SemanticSink& sink) {
+        const std::string entity = "POLYLINE";
+        const std::string layer = "probe_pface";
+        return expectEntityField(sink, entity, layer, "flags", "64")
+            && expectEntityField(sink, entity, layer, "declaredVertexCount", "4")
+            && expectEntityField(sink, entity, layer, "declaredFaceCount", "1")
+            && expectEntityField(sink, entity, layer, "vertexCount", "5")
+            && expectEntityField(sink, entity, layer, "vertex.0.position",
+                                 "{\"x\":1,\"y\":2,\"z\":3}")
+            && expectEntityField(sink, entity, layer, "vertex.1.position",
+                                 "{\"x\":4,\"y\":5,\"z\":6}")
+            && expectEntityField(sink, entity, layer, "vertex.2.position",
+                                 "{\"x\":7,\"y\":8,\"z\":9}")
+            && expectEntityField(sink, entity, layer, "vertex.3.position",
+                                 "{\"x\":10,\"y\":11,\"z\":12}")
+            && expectEntityField(sink, entity, layer, "vertex.4.flags", "128")
+            && expectEntityField(sink, entity, layer, "vertex.4.faceIndex1", "1")
+            && expectEntityField(sink, entity, layer, "vertex.4.faceIndex2", "-2")
+            && expectEntityField(sink, entity, layer, "vertex.4.faceIndex3", "3")
+            && expectEntityField(sink, entity, layer, "vertex.4.faceIndex4", "-4");
+    };
+    if (!expectPolyface(consumer) || !expectPolyface(legacyConsumer))
+        return false;
+
+    const auto expectLegacyField = [&](const std::string& name,
+                                       const std::string& expected) {
+        const Field* field = findEntityField(legacyConsumer, "LWPOLYLINE", name);
+        if (field != nullptr && field->value == expected)
+            return true;
+        std::cerr << "2D extrusion probe mismatch for " << name << ": expected "
+                  << expected << ", got "
+                  << (field == nullptr ? "<missing>" : field->value) << '\n';
+        return false;
+    };
+    if (!expectLegacyField("vertex.0.x", "-2")
+        || !expectLegacyField("vertex.0.y", "5")
+        || !expectLegacyField("vertex.1.x", "-4")
+        || !expectLegacyField("vertex.1.y", "5")
+        || !expectLegacyField("elevation", "5")
+        || !expectLegacyField("extrusion", "{\"x\":0,\"y\":1,\"z\":0}")
+        || !fieldEquals(legacyConsumer, "3DFACE", "corner.3",
+                        "{\"x\":10,\"y\":11,\"z\":12}"))
+        return false;
+
+    if (!fieldEquals(consumer, "3DFACE", "corner.3",
+                     "{\"x\":10,\"y\":11,\"z\":12}")
+        || !fieldEquals(consumer, "3DFACE", "invisibleEdgeFlags", "5")
+        || !fieldEquals(consumer, "POLYLINE", "vertex.1.position",
+                        "{\"x\":16,\"y\":17,\"z\":18}")
+        || !fieldEquals(consumer, "MESH", "vertex.2",
+                        "{\"x\":26,\"y\":27,\"z\":28}")
+        || !fieldEquals(consumer, "MESH", "face.0.vertex.2", "2")
+        || !fieldEquals(consumer, "MESH", "edge.1.end", "2")
+        || !fieldEquals(consumer, "MESH", "crease.1", "0.75")
+        || !fieldEquals(consumer, "INSERT", "insertionPoint",
+                        "{\"x\":30,\"y\":31,\"z\":32}")
+        || !fieldEquals(consumer, "INSERT", "extrusion",
+                        "{\"x\":0,\"y\":1,\"z\":0}")
+        || !fieldEquals(consumer, "INSERT", "xScale", "-2")
+        || !fieldEquals(consumer, "INSERT", "zScale", "4")
+        || !fieldEquals(consumer, "INSERT", "columnCount", "2")
+        || !fieldEquals(consumer, "INSERT", "rowCount", "3")
+        || !fieldEquals(consumer, "SPLINE", "controlPoint.2.position",
+                        "{\"x\":46,\"y\":47,\"z\":48}")
+        || !fieldEquals(consumer, "SPLINE", "knotCount", "6")
+        || !fieldEquals(consumer, "LWPOLYLINE", "elevation", "5")
+        || !fieldEquals(consumer, "LWPOLYLINE", "extrusion",
+                        "{\"x\":0,\"y\":1,\"z\":0}")
+        || !fieldEquals(consumer, "LWPOLYLINE", "vertex.0.x", "2")
+        || !fieldEquals(consumer, "LWPOLYLINE", "vertex.0.y", "3")
+        || !fieldEquals(consumer, "LWPOLYLINE", "vertex.0.bulge", "0.25")
+        || !fieldEquals(consumer, "LOFTEDSURFACE", "uIsolines", "10")
+        || !fieldEquals(consumer, "LOFTEDSURFACE",
+                        "dxfReferenceData.1.byteCount", "3"))
+        return false;
+
+    bool foundBinaryReference = false;
+    const std::vector<std::uint8_t> expectedBytes{0x12u, 0x34u, 0x56u};
+    for (const CarrierRow& carrier : consumer.carriers) {
+        if (carrier.source.find("loftDxfReference.1.group310")
+                != std::string::npos
+            && carrier.size == expectedBytes.size()
+            && carrier.digest == sha256(expectedBytes.data(), expectedBytes.size()))
+            foundBinaryReference = true;
+    }
+    return foundBinaryReference;
+}
+#endif
+
 int selfTest() {
     if (sha256("abc") != "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad")
         return 1;
@@ -1609,6 +2735,116 @@ int selfTest() {
     if (failureStage(static_cast<int>(DRW::BAD_READ_SECTION)) != "section" ||
         failureStage(static_cast<int>(DRW::BAD_CODE_PARSED)) != "parseCode")
         return 1;
+
+#ifdef LIBDXFRW_SEMANTIC_3D_CONSUMER_PROBE
+    if (!run3DConsumerProbe(false) || !run3DConsumerProbe(true))
+        return 1;
+#endif
+
+    const auto fieldValue = [](const SemanticSink& sink, const std::string& name) {
+        if (sink.records.empty())
+            return std::string();
+        for (const Field& field : sink.records.front().fields) {
+            if (field.name == name)
+                return field.value;
+        }
+        return std::string();
+    };
+    DRW_Mesh firstMesh;
+    firstMesh.vertices.push_back(DRW_Coord{1.0, 2.0, 3.0});
+    firstMesh.faces.push_back({0, 0, 0});
+    SemanticSink firstMeshSink("dxfRW", "read");
+    firstMeshSink.addMesh(firstMesh);
+    DRW_Mesh changedMesh = firstMesh;
+    changedMesh.vertices[0].z = 4.0;
+    SemanticSink changedMeshSink("dxfRW", "read");
+    changedMeshSink.addMesh(changedMesh);
+    if (fieldValue(firstMeshSink, "vertex.0") == std::string()
+        || fieldValue(firstMeshSink, "vertex.0")
+            == fieldValue(changedMeshSink, "vertex.0")
+        || fieldValue(firstMeshSink, "face.0.vertex.2")
+            != "0")
+        return 1;
+
+    DRW_Insert insert;
+    insert.name = "block";
+    insert.basePoint = DRW_Coord{2.0, 3.0, 4.0};
+    insert.extPoint = DRW_Coord{0.0, 1.0, 0.0};
+    insert.xscale = -2.0;
+    auto attribute = std::make_shared<DRW_Attrib>();
+    attribute->tag = "TAG";
+    attribute->text = "value";
+    attribute->basePoint = DRW_Coord{5.0, 6.0, 7.0};
+    attribute->extPoint = DRW_Coord{0.0, 0.0, 1.0};
+    attribute->attribFlags = 4;
+    attribute->m_fieldLength = 12;
+    insert.attlist.push_back(attribute);
+    SemanticSink insertSink("dxfRW", "read");
+    insertSink.addInsert(insert);
+    if (fieldValue(insertSink, "insertionPoint") != "{\"x\":2,\"y\":3,\"z\":4}"
+        || fieldValue(insertSink, "xScale") != "-2"
+        || fieldValue(insertSink, "attribute.0.tag") != jsonString("TAG")
+        || fieldValue(insertSink, "attribute.0.extrusion")
+            != "{\"x\":0,\"y\":0,\"z\":1}"
+        || fieldValue(insertSink, "attribute.0.flags") != "4"
+        || fieldValue(insertSink, "attribute.0.fieldLength") != "12")
+        return 1;
+
+    DRW_LoftedSurface lofted;
+    lofted.dxfReferenceData.emplace_back(90, std::int32_t{3});
+    lofted.dxfReferenceData.emplace_back(310,
+        std::vector<std::uint8_t>{0x41, 0x42, 0x43});
+    SemanticSink loftedSink("dxfRW", "read");
+    loftedSink.addSurface(&lofted);
+    if (fieldValue(loftedSink, "dxfReferenceData.0.value") != "3"
+        || fieldValue(loftedSink, "dxfReferenceData.1.byteCount") != "3"
+        || loftedSink.carriers.size() != 1
+        || loftedSink.carriers.front().source.find("loftDxfReference.1.group310")
+            == std::string::npos
+        || loftedSink.carriers.front().digest
+            != sha256(lofted.dxfReferenceData[1].binary()->data(), 3))
+        return 1;
+
+    DRW_ModelerGeometry modeler(DRW::E3DSOLID);
+    modeler.m_rawBytes = {0x41, 0x42, 0x43};
+    modeler.m_dwgAcisPayload = {0x46, 0x47, 0x48};
+    modeler.hasDataStorageRecord = true;
+    modeler.dataStorageHandle = 0x123456789u;
+    modeler.dataStorageHandleKey = "123456789";
+    modeler.dataStorageData = {0x44, 0x45};
+    SemanticSink modelerSink("dwgRW", "read");
+    modelerSink.addModelerGeometry(modeler);
+    bool foundFrameCarrier = false;
+    bool foundInlineAcisCarrier = false;
+    bool foundDataStorageCarrier = false;
+    for (const CarrierRow& carrier : modelerSink.carriers) {
+        if (carrier.source.find("dwgModelerObjectFrameBody-unclassified-payload")
+            != std::string::npos) {
+            foundFrameCarrier = carrier.size == modeler.m_rawBytes.size()
+                && carrier.digest == sha256(modeler.m_rawBytes.data(),
+                                             modeler.m_rawBytes.size());
+        } else if (carrier.source.find("dwgModelerInlineAcisPayload")
+                   != std::string::npos) {
+            foundInlineAcisCarrier = carrier.size == modeler.m_dwgAcisPayload.size()
+                && carrier.digest == sha256(modeler.m_dwgAcisPayload.data(),
+                                             modeler.m_dwgAcisPayload.size());
+        } else if (carrier.source.find("dwgLinkedDataStoragePayload")
+                   != std::string::npos) {
+            foundDataStorageCarrier = carrier.size == modeler.dataStorageData.size()
+                && carrier.digest == sha256(modeler.dataStorageData.data(),
+                                             modeler.dataStorageData.size());
+        }
+    }
+    if (fieldValue(modelerSink, "rawByteCarrierKind")
+            != jsonString("dwgObjectFrameBody-unclassified-payload")
+        || fieldValue(modelerSink, "dwgInlineAcisByteCount") != "3"
+        || fieldValue(modelerSink, "dataStorageByteCount") != "2"
+        || fieldValue(modelerSink, "dataStorageHandle") != "4886718345"
+        || modelerSink.carriers.size() != 3
+        || !foundFrameCarrier || !foundInlineAcisCarrier
+        || !foundDataStorageCarrier)
+        return 1;
+
     SemanticSink failureSink;
     failureSink.addOperationFailure(2, "write", "/output", "write");
     if (failureSink.diagnostics.size() != 1 ||
@@ -1675,7 +2911,7 @@ int main(int argc, char** argv) {
         } else {
             input = inspectInput(options.input);
         }
-        SemanticSink sink;
+        SemanticSink sink(options.facade, options.direction);
         bool succeeded = false;
         int error = 1;
         std::string stage = "invocation";

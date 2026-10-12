@@ -84,11 +84,137 @@ constexpr std::int32_t kMaxMTextColumnHeights = 4096;
 constexpr std::int32_t kMaxMLeaderItems = 5000;
 constexpr std::int32_t kMaxLeaderVertices = 5000;
 constexpr std::uint16_t kMaxLoftedSurfaceModelerFormatVersion = 3;
+// Resource ceilings for the deliberately narrow AC1015 SAT v1 extraction
+// path. They are not DWG format maxima; oversized carriers stay opaque.
+constexpr std::size_t kMaxDwgSatV1Blocks = 65536;
 
 constexpr std::int32_t kSplineFlagMethodFitPoints = 1;
 constexpr std::int32_t kSplineFlagClosed = 4;
 constexpr std::int32_t kSplineFlagUseKnotParameter = 8;
 constexpr std::int32_t kSplineKnotParamCustom = 15;
+
+// DWG spline scenarios do not store DXF's planar bit or plane normal. Only
+// advertise a plane when the decoded geometry defines one unambiguously.
+bool deriveSplinePlaneNormal(
+    const std::vector<std::shared_ptr<DRW_Coord>>& points,
+    const DRW_Coord* startTangent, const DRW_Coord* endTangent,
+    DRW_Coord& normal) {
+    if (points.size() < 2 || points.front() == nullptr)
+        return false;
+
+    const DRW_Coord& origin = *points.front();
+    double coordinateScale = std::max({1.0, std::fabs(origin.x),
+                                       std::fabs(origin.y),
+                                       std::fabs(origin.z)});
+    for (const auto& point : points) {
+        if (point == nullptr || !std::isfinite(point->x)
+            || !std::isfinite(point->y) || !std::isfinite(point->z))
+            return false;
+        coordinateScale = std::max({coordinateScale, std::fabs(point->x),
+                                    std::fabs(point->y),
+                                    std::fabs(point->z)});
+    }
+    const double pointTolerance = std::numeric_limits<double>::epsilon()
+                                * coordinateScale * 64.0;
+
+    std::vector<DRW_Coord> directions;
+    directions.reserve(points.size() + 1);
+    for (std::size_t i = 1; i < points.size(); ++i) {
+        const double x = points[i]->x - origin.x;
+        const double y = points[i]->y - origin.y;
+        const double z = points[i]->z - origin.z;
+        const double length = std::hypot(x, y, z);
+        if (!std::isfinite(length))
+            return false;
+        if (length > pointTolerance)
+            directions.emplace_back(x / length, y / length, z / length);
+    }
+    const auto addTangentDirection = [&directions](const DRW_Coord* tangent) {
+        if (tangent == nullptr)
+            return true;
+        if (!std::isfinite(tangent->x) || !std::isfinite(tangent->y)
+            || !std::isfinite(tangent->z))
+            return false;
+        const double length = std::hypot(tangent->x, tangent->y, tangent->z);
+        if (!std::isfinite(length))
+            return false;
+        if (length > 0.0)
+            directions.emplace_back(tangent->x / length, tangent->y / length,
+                                    tangent->z / length);
+        return true;
+    };
+    if (!addTangentDirection(startTangent)
+        || !addTangentDirection(endTangent) || directions.size() < 2)
+        return false;
+
+    double nx = 0.0;
+    double ny = 0.0;
+    double nz = 0.0;
+    bool havePlane = false;
+    for (std::size_t i = 1; i < directions.size() && !havePlane; ++i) {
+        for (std::size_t j = 0; j < i; ++j) {
+            nx = directions[j].y * directions[i].z
+               - directions[j].z * directions[i].y;
+            ny = directions[j].z * directions[i].x
+               - directions[j].x * directions[i].z;
+            nz = directions[j].x * directions[i].y
+               - directions[j].y * directions[i].x;
+            const double normalLength = std::hypot(nx, ny, nz);
+            if (normalLength > 1e-12) {
+                nx /= normalLength;
+                ny /= normalLength;
+                nz /= normalLength;
+                havePlane = true;
+                break;
+            }
+        }
+    }
+    if (!havePlane)
+        return false;
+
+    const double absNx = std::fabs(nx);
+    const double absNy = std::fabs(ny);
+    const double absNz = std::fabs(nz);
+    const double dominant = absNx >= absNy && absNx >= absNz ? nx
+        : absNy >= absNz ? ny : nz;
+    if (dominant < 0.0) {
+        nx = -nx;
+        ny = -ny;
+        nz = -nz;
+    }
+
+    for (const auto& point : points) {
+        const double distance = (point->x - origin.x) * nx
+                              + (point->y - origin.y) * ny
+                              + (point->z - origin.z) * nz;
+        if (!std::isfinite(distance) || std::fabs(distance) > pointTolerance)
+            return false;
+    }
+
+    const auto tangentInPlane = [nx, ny, nz](const DRW_Coord* tangent) {
+        if (tangent == nullptr)
+            return true;
+        if (!std::isfinite(tangent->x) || !std::isfinite(tangent->y)
+            || !std::isfinite(tangent->z))
+            return false;
+        const double length = std::hypot(tangent->x, tangent->y, tangent->z);
+        if (!std::isfinite(length))
+            return false;
+        if (length == 0.0)
+            return true;
+        const double deviation = tangent->x * nx + tangent->y * ny
+                              + tangent->z * nz;
+        const double tangentTolerance = std::numeric_limits<double>::epsilon()
+                                      * length * 64.0;
+        return std::isfinite(deviation)
+            && std::fabs(deviation) <= tangentTolerance;
+    };
+    if (!tangentInPlane(startTangent) || !tangentInPlane(endTangent))
+        return false;
+
+    normal = DRW_Coord(nx, ny, nz);
+    return true;
+}
 
 bool isValidCount(std::int32_t count, std::int32_t maxCount) {
     return count >= 0 && count <= maxCount;
@@ -98,6 +224,20 @@ bool readDxfIntInRange(const std::unique_ptr<dxfReader>& reader,
                        int minimum, int maximum, int& value) {
     value = reader->getInt32();
     return value >= minimum && value <= maximum;
+}
+
+bool readDxfBool(const std::unique_ptr<dxfReader>& reader, bool& value) {
+    int parsed = 0;
+    if (!readDxfIntInRange(reader, 0, 1, parsed))
+        return false;
+    value = parsed != 0;
+    return true;
+}
+
+template <typename T>
+bool finiteSurfaceMatrix(const T& values) {
+    return std::all_of(values.begin(), values.end(),
+                       [](double value) { return std::isfinite(value); });
 }
 
 int hexNibble(char c) {
@@ -333,10 +473,10 @@ bool copyDwgBitRange(const dwgBuffer& source, std::uint64_t startBit,
     if (endBit > sourceEnd)
         return false;
     const std::uint64_t startByte = startBit >> 3;
-    const std::uint64_t endByte = (endBit >> 3) + ((endBit & 7u) != 0);
-    const std::uint64_t byteCount = endByte - startByte;
-    if (endByte < startByte
-        || byteCount > std::numeric_limits<std::size_t>::max()
+    const std::uint64_t bitCount = endBit - startBit;
+    const std::uint64_t byteCount = (bitCount >> 3)
+        + ((bitCount & 7u) != 0 ? 1u : 0u);
+    if (byteCount > std::numeric_limits<std::size_t>::max()
         || byteCount > static_cast<std::uint64_t>(std::numeric_limits<int>::max())
         || !DRW::resize(data, static_cast<int>(byteCount)))
         return false;
@@ -350,6 +490,94 @@ bool copyDwgBitRange(const dwgBuffer& source, std::uint64_t startBit,
     }
     return data.empty()
         || (copy.getBytes(data.data(), data.size()) && copy.isGood());
+}
+
+// Find an exact byte sequence in a DWG bit stream without materializing the
+// containing object body. Candidate positions stay byte-aligned relative to
+// startBit, as raw ACIS file bytes are read from the current bit cursor.
+bool findUniqueDwgBytePattern(const dwgBuffer& source,
+                              std::uint64_t startBit,
+                              std::uint64_t endBit,
+                              const std::uint8_t* pattern,
+                              std::size_t patternSize,
+                              std::size_t& matchCount,
+                              std::uint64_t& matchStartBit) {
+    matchCount = 0;
+    matchStartBit = 0;
+    if (pattern == nullptr || patternSize == 0 || startBit > endBit
+        || patternSize > std::numeric_limits<std::uint64_t>::max() / 8u
+        || patternSize > 64)
+        return false;
+    const std::uint64_t patternBits =
+        static_cast<std::uint64_t>(patternSize) * 8u;
+    const std::uint64_t searchableBytes = (endBit - startBit) / 8u;
+    if (patternBits > endBit - startBit || searchableBytes < patternSize)
+        return true;
+
+    dwgBuffer cursor = source.forkIndependent();
+    if (!cursor.setPosition(startBit >> 3))
+        return false;
+    cursor.setBitPos(static_cast<std::uint8_t>(startBit & 7u));
+    if (!cursor.isGood())
+        return false;
+
+    // KMP keeps the scan linear in the body size and avoids a seek/fork for
+    // each candidate byte. DWG object frames can carry multi-megabyte SABs.
+    std::array<std::size_t, 64> prefix{};
+    for (std::size_t i = 1, matched = 0; i < patternSize; ++i) {
+        while (matched != 0 && pattern[i] != pattern[matched])
+            matched = prefix[matched - 1];
+        if (pattern[i] == pattern[matched])
+            ++matched;
+        prefix[i] = matched;
+    }
+    std::size_t matched = 0;
+    for (std::uint64_t byteIndex = 0; byteIndex < searchableBytes;
+         ++byteIndex) {
+        const std::uint8_t byte = cursor.getRawChar8();
+        if (!cursor.isGood())
+            return false;
+        while (matched != 0 && byte != pattern[matched])
+            matched = prefix[matched - 1];
+        if (byte == pattern[matched])
+            ++matched;
+        if (matched == patternSize) {
+            if (matchCount == std::numeric_limits<std::size_t>::max())
+                return false;
+            ++matchCount;
+            matchStartBit = startBit
+                + (byteIndex + 1u - patternSize) * 8u;
+            if (matchCount > 1)
+                return true;
+            matched = prefix[matched - 1];
+        }
+    }
+    return true;
+}
+
+bool matchesDwgBytePatternAt(const dwgBuffer& source,
+                             std::uint64_t startBit,
+                             std::uint64_t endBit,
+                             const std::uint8_t* pattern,
+                             std::size_t patternSize) {
+    if (pattern == nullptr || patternSize == 0
+        || patternSize > std::numeric_limits<std::uint64_t>::max() / 8u)
+        return false;
+    const std::uint64_t patternBits =
+        static_cast<std::uint64_t>(patternSize) * 8u;
+    if (startBit > endBit || patternBits > endBit - startBit)
+        return false;
+    dwgBuffer probe = source.forkIndependent();
+    if (!probe.setPosition(startBit >> 3))
+        return false;
+    probe.setBitPos(static_cast<std::uint8_t>(startBit & 7u));
+    if (!probe.isGood())
+        return false;
+    for (std::size_t i = 0; i < patternSize; ++i) {
+        if (probe.getRawChar8() != pattern[i] || !probe.isGood())
+            return false;
+    }
+    return true;
 }
 
 bool readBoundedBitShort(dwgBuffer& buffer, std::uint64_t endBit,
@@ -1736,14 +1964,16 @@ bool readSurfaceDwgPayload(const std::vector<std::uint8_t>& data,
 }
 
 int proxyEntityDxfCode(std::uint8_t handleCode) {
+    // Same typed-handle mapping as ACAD_PROXY_OBJECT (ODA §2.13/§20.4.90).
     switch (handleCode) {
-    case 3: return 340;
+    case 2: return 350;
+    case 3: return 360;
+    case 5: return 340;
     case 4:
     case 6:
     case 8:
     case 10:
-    case 12: return 350;
-    case 5: return 360;
+    case 12: return 330;
     default: return 330;
     }
 }
@@ -1878,12 +2108,6 @@ bool putSurfaceRawBits(dwgBufferW *buf, const std::vector<std::uint8_t>& data,
 bool finiteSurfaceCoord(const DRW_Coord& value) {
     return std::isfinite(value.x) && std::isfinite(value.y)
         && std::isfinite(value.z);
-}
-
-template <std::size_t N>
-bool finiteSurfaceMatrix(const std::array<double, N>& values) {
-    return std::all_of(values.begin(), values.end(),
-                       [](double value) { return std::isfinite(value); });
 }
 
 std::uint16_t bitShortFromInt(int value) {
@@ -5161,8 +5385,10 @@ bool DRW_Spline::encodeDwg(DRW::Version version, dwgBufferW *buf, std::uint32_t 
 // carries here.
 void DRW_Spline::encodeDwgSplineBody(DRW::Version version, dwgBufferW *buf) const {
     // Scenario:
-    //   1 = control-point / rational / planar (uses knots + control + weights)
+    //   1 = control-point spline (uses knots + control points + weights)
     //   2 = fit-point (uses fit points + tangents + tolerance)
+// DWG does not store DXF's planar bit or optional normal here; derive those
+// only from the complete control/fit geometry when decoding.
     // When both lists are populated (e.g. DXF-sourced splines), prefer scenario 1
     // (ctrl + knots) and drop the fit list from the DWG stream — scenario 1 has no
     // fit-point section, so writing both would corrupt all subsequent entities.
@@ -6042,27 +6268,47 @@ void DRW_Ellipse::applyExtrusion(){
 
 //if ratio > 1 minor axis are greather than major axis, correct it
 void DRW_Ellipse::correctAxis(){
-    bool complete = false;
+    double sweep = endparam - staparam;
     if (staparam == endparam) {
         staparam = 0.0;
         endparam = M_PIx2; //2*M_PI;
-        complete = true;
+        sweep = M_PIx2;
     }
     if (ratio > 1){
-        if ( fabs(endparam - staparam - M_PIx2) < 1.0e-10)
-            complete = true;
-        double incX = secPoint.x;
-        secPoint.x = -(secPoint.y * ratio);
-        secPoint.y = incX*ratio;
-        ratio = 1/ratio;
-        if (!complete){
-            if (staparam < M_PI_2)
-                staparam += M_PI *2;
-            if (endparam < M_PI_2)
-                endparam += M_PI *2;
-            endparam -= M_PI_2;
-            staparam -= M_PI_2;
+        const double normalLength = std::sqrt(
+            extPoint.x * extPoint.x + extPoint.y * extPoint.y
+            + extPoint.z * extPoint.z);
+        const double majorLength = std::sqrt(
+            secPoint.x * secPoint.x + secPoint.y * secPoint.y
+            + secPoint.z * secPoint.z);
+        if (std::isfinite(normalLength) && normalLength > 0.0
+            && std::isfinite(majorLength) && majorLength > 0.0) {
+            const double nx = extPoint.x / normalLength;
+            const double ny = extPoint.y / normalLength;
+            const double nz = extPoint.z / normalLength;
+            const double minorX = ny * secPoint.z - nz * secPoint.y;
+            const double minorY = nz * secPoint.x - nx * secPoint.z;
+            const double minorZ = nx * secPoint.y - ny * secPoint.x;
+            const double minorLength = std::sqrt(
+                minorX * minorX + minorY * minorY + minorZ * minorZ);
+            const double targetLength = majorLength * ratio;
+            if (std::isfinite(minorLength) && minorLength > 0.0
+                && std::isfinite(targetLength)) {
+                const double axisScale = targetLength / minorLength;
+                secPoint.x = minorX * axisScale;
+                secPoint.y = minorY * axisScale;
+                secPoint.z = minorZ * axisScale;
+            }
         }
+        ratio = 1/ratio;
+        // Swapping the major/minor axes changes the parameter origin by
+        // -PI/2. Normalize only the start and preserve the signed sweep; the
+        // end may legitimately wrap past 2PI (or be less than the start for
+        // a clockwise partial ellipse).
+        staparam = std::fmod(staparam - M_PI_2, M_PIx2);
+        if (staparam < 0.0)
+            staparam += M_PIx2;
+        endparam = staparam + sweep;
     }
 }
 
@@ -6139,37 +6385,95 @@ bool DRW_Ellipse::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t b
 
 //parts are the number of vertex to split polyline, default 128
 void DRW_Ellipse::toPolyline(DRW_Polyline *pol, int parts){
-    double radMajor, radMinor, cosRot, sinRot, incAngle, curAngle;
-    double cosCurr, sinCurr;
-	radMajor = hypot(secPoint.x, secPoint.y);
-    radMinor = radMajor*ratio;
-    //calculate sin & cos of included angle
-    incAngle = atan2(secPoint.y, secPoint.x);
-    cosRot = cos(incAngle);
-    sinRot = sin(incAngle);
-    incAngle = M_PIx2 / parts;
-    curAngle = staparam;
-    int i = static_cast<int>(curAngle / incAngle);
-    do {
-        if (curAngle > endparam) {
-            curAngle = endparam;
-            i = parts+2;
-        }
-        cosCurr = cos(curAngle);
-        sinCurr = sin(curAngle);
-        double x = basePoint.x + (cosCurr*cosRot*radMajor) - (sinCurr*sinRot*radMinor);
-        double y = basePoint.y + (cosCurr*sinRot*radMajor) + (sinCurr*cosRot*radMinor);
-        pol->addVertex( DRW_Vertex(x, y, 0.0, 0.0));
-        curAngle = (++i)*incAngle;
-    } while (i<parts);
-    if ( fabs(endparam - staparam - M_PIx2) < 1.0e-10){
-        pol->flags = 1;
+    if (pol == nullptr)
+        return;
+    pol->vertlist.clear();
+    pol->flags = 0;
+    pol->basePoint = DRW_Coord(0.0, 0.0, 0.0);
+    pol->extPoint = DRW_Coord(0.0, 0.0, 1.0);
+
+    const double fullTurn = M_PIx2;
+    const double normalLength = std::sqrt(
+        extPoint.x * extPoint.x + extPoint.y * extPoint.y
+        + extPoint.z * extPoint.z);
+    const double majorLength = std::sqrt(
+        secPoint.x * secPoint.x + secPoint.y * secPoint.y
+        + secPoint.z * secPoint.z);
+    const double sweep = endparam - staparam;
+    if (parts <= 0 || !std::isfinite(basePoint.x)
+        || !std::isfinite(basePoint.y) || !std::isfinite(basePoint.z)
+        || !std::isfinite(secPoint.x) || !std::isfinite(secPoint.y)
+        || !std::isfinite(secPoint.z) || !std::isfinite(ratio)
+        || ratio <= 0.0 || !std::isfinite(staparam)
+        || !std::isfinite(endparam) || !std::isfinite(sweep)
+        || !std::isfinite(normalLength) || normalLength <= 0.0
+        || !std::isfinite(majorLength) || majorLength <= 0.0
+        || std::abs(sweep) > fullTurn + 1.0e-10)
+        return;
+
+    const double nx = extPoint.x / normalLength;
+    const double ny = extPoint.y / normalLength;
+    const double nz = extPoint.z / normalLength;
+    const double normalMajorDot = nx * secPoint.x + ny * secPoint.y
+        + nz * secPoint.z;
+    if (std::abs(normalMajorDot) > majorLength * 1.0e-8)
+        return;
+
+    double minorX = ny * secPoint.z - nz * secPoint.y;
+    double minorY = nz * secPoint.x - nx * secPoint.z;
+    double minorZ = nx * secPoint.y - ny * secPoint.x;
+    const double minorLength = std::sqrt(
+        minorX * minorX + minorY * minorY + minorZ * minorZ);
+    if (!std::isfinite(minorLength) || minorLength <= 0.0)
+        return;
+    const double minorScale = majorLength * ratio / minorLength;
+    minorX *= minorScale;
+    minorY *= minorScale;
+    minorZ *= minorScale;
+
+    double start = staparam;
+    double actualSweep = sweep;
+    bool closed = false;
+    if (std::abs(actualSweep) <= 1.0e-10) {
+        start = 0.0;
+        actualSweep = fullTurn;
+        closed = true;
+    } else if (std::abs(std::abs(actualSweep) - fullTurn) <= 1.0e-10) {
+        actualSweep = std::copysign(fullTurn, actualSweep);
+        closed = true;
     }
+
+    const bool planarDefaultXY = std::abs(nx) <= 1.0e-12
+        && std::abs(ny) <= 1.0e-12 && nz > 0.0
+        && std::abs(basePoint.z) <= 1.0e-12
+        && std::abs(secPoint.z) <= majorLength * 1.0e-12;
+    const bool is3d = !planarDefaultXY;
+    pol->flags = (closed ? 1 : 0) | (is3d ? 8 : 0);
+
+    const double scaledSegments = static_cast<double>(parts)
+        * std::abs(actualSweep) / fullTurn;
+    const int segments = closed
+        ? std::max(3, parts)
+        : std::max(1, static_cast<int>(std::ceil(scaledSegments)));
+    const int vertexCount = closed ? segments : segments + 1;
+    for (int i = 0; i < vertexCount; ++i) {
+        const double fraction = static_cast<double>(i) / segments;
+        const double parameter = start + actualSweep * fraction;
+        const double cosine = std::cos(parameter);
+        const double sine = std::sin(parameter);
+        const double x = basePoint.x + secPoint.x * cosine + minorX * sine;
+        const double y = basePoint.y + secPoint.y * cosine + minorY * sine;
+        const double z = basePoint.z + secPoint.z * cosine + minorZ * sine;
+        DRW_Vertex vertex(x, y, z, 0.0);
+        if (is3d)
+            vertex.flags = 32;
+        pol->addVertex(vertex);
+    }
+    pol->vertexcount = static_cast<int>(pol->vertlist.size());
     pol->layer = this->layer;
     pol->lineType = this->lineType;
     pol->color = this->color;
     pol->lWeight = this->lWeight;
-    pol->extPoint = this->extPoint;
 }
 
 void DRW_Trace::applyExtrusion(){
@@ -6283,14 +6587,16 @@ bool DRW_Solid::parseDwg(DRW::Version v, dwgBuffer *buf, std::uint32_t bs){
 
 bool DRW_3Dface::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     switch (code) {
-    case 70:
-        invisibleflag = reader->getInt32();
-        break;
+    case 70: {
+        const int parsedFlag = reader->getInt32();
+        if (parsedFlag < NoEdge || parsedFlag > AllEdges)
+            return false;
+        invisibleflag = parsedFlag;
+        return true;
+    }
     default:
         return DRW_Trace::parseCode(code, reader);
     }
-
-    return true;
 }
 
 bool DRW_3Dface::parseDwg(DRW::Version v, dwgBuffer *buf,
@@ -6397,6 +6703,11 @@ bool DRW_3Dface::parseDwg(DRW::Version v, dwgBuffer *buf,
 void DRW_ModelerGeometry::resetDwgState() {
     DRW_Entity::reset();
     m_modelerVersion = 0;
+    m_hasDxfModelerFlag = false;
+    m_dxfModelerFlag = false;
+    m_hasDxfModelerUid = false;
+    m_dxfModelerUid.clear();
+    m_dwgSourceVersion = DRW::UNKNOWNV;
     m_bodyBitSize = 0;
     m_objectSize = 0;
     m_isEmpty = false;
@@ -6405,6 +6716,8 @@ void DRW_ModelerGeometry::resetDwgState() {
     m_hasWireframe = false;
     m_historyHandle = 0;
     m_rawBytes.clear();
+    m_dwgAcisPayload.clear();
+    m_dxfPayloadChunks.clear();
     m_payloadRanges.clear();
     m_wireframe = DRW_AcisBrep();
     m_wireframeDecoded = false;
@@ -6449,8 +6762,160 @@ bool DRW_ModelerGeometry::parseDwg(DRW::Version v, dwgBuffer *buf, std::uint32_t
     if (parsedHasModelerData
         && !readBoundedBitShort(probe, bodyEndBit, parsedModelerVersion))
         return fail();
+    // ODA v5.4.1 §20.4.41 defines only modeler versions 1 and 2. The
+    // version field is absent for an empty ACIS body, so keep that case
+    // distinct instead of treating its default zero as malformed. R2013+
+    // entities with hasDsData store their SAB in AcDb:AcDsPrototype_1b;
+    // their entity-local BS is not the external carrier's format version
+    // (e.g. LibreDWG traces a local AC1027 sample as 168 before associating
+    // its ACIS BinaryFile record). Do not reject an otherwise valid external-
+    // payload entity for that value; once linked, the SAB signature supplies
+    // the effective modeler version while m_rawBytes retains the frame.
+    if (parsedHasModelerData
+        && parsedModelerVersion != 1 && parsedModelerVersion != 2
+        && !(v > DRW::AC1024 && hasDsData))
+        return fail();
     if (!probe.isGood() || (stringStream != nullptr && !stringStream->isGood()))
         return fail();
+
+    // ODA v5.4.1 §20.4.41: R2000 AC1015 modeler version 1 stores SAT in
+    // length-prefixed blocks; modeler version 2 carries an inline ACIS file
+    // bounded by its signature and tagged End-of-ACIS-data marker. The
+    // AC1021/R2007 and AC1024/R2010 layouts are qualified separately: their
+    // bounded entity bodies may also contain following wireframe fields.
+    // Other versions and ambiguous/incomplete carriers stay opaque; never
+    // treat the remainder of a DWG frame as ACIS data.
+    const std::uint64_t modelerPayloadStartBit = currentDwgBit(&probe);
+    std::vector<std::uint8_t> parsedInlineAcisPayload;
+    std::vector<DRW_ModelerPayloadRange> parsedAcisPayloadRanges;
+    bool hasParsedAcisPayload = false;
+    static constexpr std::uint8_t sabAcisEndMarker[] = {
+        0x0E, 0x03, 'E', 'n', 'd', 0x0E, 0x02, 'o', 'f',
+        0x0E, 0x04, 'A', 'C', 'I', 'S', 0x0D, 0x04,
+        'd', 'a', 't', 'a'};
+    static constexpr std::uint8_t sabHeaderSignature[] = {
+        'A', 'C', 'I', 'S', ' ', 'B', 'i', 'n', 'a', 'r', 'y', 'F', 'i', 'l', 'e'};
+    try {
+        if ((v == DRW::AC1021 || v == DRW::AC1024)
+            && parsedHasModelerData
+            && parsedModelerVersion == 2
+            && matchesDwgBytePatternAt(*sourceBuf, modelerPayloadStartBit,
+                                       bodyEndBit, sabHeaderSignature,
+                                       sizeof(sabHeaderSignature))) {
+            std::size_t markerCount = 0;
+            std::uint64_t markerStartBit = 0;
+            if (findUniqueDwgBytePattern(*sourceBuf, modelerPayloadStartBit,
+                                         bodyEndBit, sabAcisEndMarker,
+                                         sizeof(sabAcisEndMarker), markerCount,
+                                         markerStartBit)
+                && markerCount == 1) {
+                const std::uint64_t markerBits =
+                    static_cast<std::uint64_t>(sizeof(sabAcisEndMarker)) * 8u;
+                const std::uint64_t payloadEndBit = markerStartBit + markerBits;
+                if (payloadEndBit >= markerStartBit
+                    && copyDwgBitRange(*sourceBuf, modelerPayloadStartBit,
+                                       payloadEndBit,
+                                       parsedInlineAcisPayload)
+                    && !parsedInlineAcisPayload.empty()) {
+                    DRW_ModelerPayloadRange parsedInlineAcisRange;
+                    parsedInlineAcisRange.m_kind =
+                        DRW_ModelerPayloadRange::Kind::Sab;
+                    parsedInlineAcisRange.m_section =
+                        DRW_ModelerPayloadRange::Section::Body;
+                    parsedInlineAcisRange.m_offset = static_cast<std::size_t>(
+                        modelerPayloadStartBit >> 3);
+                    parsedInlineAcisRange.m_bitOffset =
+                        static_cast<std::uint8_t>(modelerPayloadStartBit & 7u);
+                    parsedInlineAcisRange.m_length =
+                        parsedInlineAcisPayload.size();
+                    parsedInlineAcisRange.m_consistency =
+                        DRW_ModelerPayloadRange::Consistency::Exact;
+                    parsedInlineAcisRange.m_confidence =
+                        DRW_ModelerPayloadRange::Confidence::Marker;
+                    parsedInlineAcisRange.m_markerText =
+                        "End-of-ACIS-data (tagged SAB marker; AC1021/AC1024)";
+                    parsedAcisPayloadRanges.push_back(
+                        std::move(parsedInlineAcisRange));
+                    hasParsedAcisPayload = true;
+                }
+            }
+        }
+
+        if (v == DRW::AC1015 && parsedHasModelerData
+            && parsedModelerVersion == 1) {
+            dwgBuffer satProbe = probe.forkIndependent();
+            std::vector<std::uint8_t> satPayload;
+            std::vector<DRW_ModelerPayloadRange> satRanges;
+            bool terminated = false;
+            std::size_t blockCount = 0;
+            while (currentDwgBit(&satProbe) < bodyEndBit) {
+                std::int32_t blockSize = 0;
+                if (!readBoundedBitLong(satProbe, bodyEndBit, blockSize))
+                    break;
+                if (blockSize == 0) {
+                    terminated = true;
+                    break;
+                }
+                if (blockSize < 0 || blockCount >= kMaxDwgSatV1Blocks)
+                    break;
+                const std::size_t byteCount =
+                    static_cast<std::size_t>(blockSize);
+                const std::uint64_t dataStartBit = currentDwgBit(&satProbe);
+                if (satPayload.size() > DRW::kMaxDxfBinaryPayloadBytes
+                    || byteCount > DRW::kMaxDxfBinaryPayloadBytes
+                        - satPayload.size()
+                    || dataStartBit > bodyEndBit
+                    || static_cast<std::uint64_t>(byteCount)
+                        > (bodyEndBit - dataStartBit) / 8u)
+                    break;
+
+                satPayload.reserve(satPayload.size() + byteCount);
+                for (std::size_t i = 0; i < byteCount; ++i) {
+                    std::uint8_t value = 0;
+                    if (!readBoundedRawChar8(satProbe, bodyEndBit, value)) {
+                        satPayload.clear();
+                        satRanges.clear();
+                        blockCount = kMaxDwgSatV1Blocks;
+                        break;
+                    }
+                    if (value > 0x20u && value <= 0x7Eu)
+                        value = static_cast<std::uint8_t>(0x9Fu - value);
+                    if (value == '\t')
+                        value = ' ';
+                    satPayload.push_back(value);
+                }
+                if (blockCount >= kMaxDwgSatV1Blocks)
+                    break;
+
+                DRW_ModelerPayloadRange range;
+                range.m_kind = DRW_ModelerPayloadRange::Kind::Sat;
+                range.m_section = DRW_ModelerPayloadRange::Section::Body;
+                range.m_offset = static_cast<std::size_t>(dataStartBit >> 3);
+                range.m_bitOffset =
+                    static_cast<std::uint8_t>(dataStartBit & 7u);
+                range.m_length = byteCount;
+                range.m_declaredByteSize = byteCount;
+                range.m_consistency =
+                    DRW_ModelerPayloadRange::Consistency::Exact;
+                range.m_confidence =
+                    DRW_ModelerPayloadRange::Confidence::DeclaredSize;
+                range.m_markerText = "ODA v5.4.1 §20.4.41 SAT v1 block";
+                satRanges.push_back(std::move(range));
+                ++blockCount;
+            }
+            if (terminated && !satPayload.empty() && !satRanges.empty()) {
+                parsedInlineAcisPayload = std::move(satPayload);
+                parsedAcisPayloadRanges = std::move(satRanges);
+                hasParsedAcisPayload = true;
+            }
+        }
+    } catch (...) {
+        // Exact extraction is optional: an allocation failure must not turn
+        // an otherwise valid typed entity into a failed DWG read.
+        parsedInlineAcisPayload.clear();
+        parsedAcisPayloadRanges.clear();
+        hasParsedAcisPayload = false;
+    }
 
     std::uint64_t handleEndBit = 0;
     if (!dwgHandleStreamEndBit(*sourceBuf, v, objSize, bs, handleEndBit))
@@ -6490,23 +6955,68 @@ bool DRW_ModelerGeometry::parseDwg(DRW::Version v, dwgBuffer *buf, std::uint32_t
     m_modelerDataUnknownBit = parsedUnknownBit;
     m_modelerVersion = parsedModelerVersion;
     m_historyHandle = parsedHistoryHandle;
+    if (hasParsedAcisPayload) {
+        m_payloadRanges = std::move(parsedAcisPayloadRanges);
+        m_dwgAcisPayload = std::move(parsedInlineAcisPayload);
+        m_dwgSourceVersion = v;
+        if (v == DRW::AC1015 && m_modelerVersion == 1) {
+            DRW_DBG("  AC1015 SAT v1 payload bytes: ");
+            DRW_DBG(m_dwgAcisPayload.size());
+            DRW_DBG(" unknown bit: ");
+            DRW_DBG(m_modelerDataUnknownBit);
+            DRW_DBG("\n");
+        }
+    } else if (v == DRW::AC1015 && parsedModelerVersion == 1) {
+        DRW_DBG("  AC1015 SAT v1 payload was not exactly bounded\n");
+    }
     *sourceBuf = handleProbe;
     return true;
 }
 
 bool DRW_ModelerGeometry::parseCode(int code, const std::unique_ptr<dxfReader>& reader) {
     switch (code) {
+    case 2:
+        m_dxfModelerUid = reader->getString();
+        m_hasDxfModelerUid = true;
+        break;
     case 1:
-    case 3:
-        if (!appendTextBytesChecked(m_rawBytes, reader->getString(),
+    case 3: {
+        const std::string text = reader->getString();
+        std::string decodedText;
+        decodedText.reserve(text.size());
+        for (std::size_t i = 0; i < text.size(); ++i) {
+            if (text[i] == '^' && i + 1 < text.size()
+                && text[i + 1] == ' ') {
+                decodedText.push_back('^');
+                ++i;
+            } else {
+                decodedText.push_back(text[i]);
+            }
+        }
+        if (code == 1 && !m_dxfPayloadChunks.empty()
+            && !appendTextBytesChecked(m_rawBytes, "\n",
+                                       dwgSafety::MaxBufferSize))
+            return false;
+        const std::size_t offset = m_rawBytes.size();
+        if (!appendTextBytesChecked(m_rawBytes, decodedText,
                                     dwgSafety::MaxBufferSize))
             return false;
+        m_dxfPayloadChunks.emplace_back(code, offset, decodedText.size());
         break;
+    }
     case 70: {
         const int value = reader->getInt32();
         if (value < 0 || value > std::numeric_limits<std::uint16_t>::max())
             return false;
         m_modelerVersion = static_cast<std::uint16_t>(value);
+        break;
+    }
+    case 290: {
+        const int value = reader->getInt32();
+        if (value != 0 && value != 1)
+            return false;
+        m_dxfModelerFlag = value != 0;
+        m_hasDxfModelerFlag = true;
         break;
     }
     case 350:
@@ -6523,9 +7033,12 @@ bool DRW_ModelerGeometry::parseCode(int code, const std::unique_ptr<dxfReader>& 
             std::vector<std::uint8_t> decoded;
             if (!decodeHexBytes(reader->getString(), decoded))
                 return false;
+            const std::size_t offset = m_rawBytes.size();
+            const std::size_t length = decoded.size();
             if (!appendBytesChecked(m_rawBytes, decoded,
                                     dwgSafety::MaxBufferSize))
                 return false;
+            m_dxfPayloadChunks.emplace_back(code, offset, length);
         }
         break;
     default:
@@ -13688,6 +14201,14 @@ bool DRW_Vertex::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs
 
 bool DRW_Hatch::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     try {
+    const bool isCoordinateX = code >= 10 && code <= 13;
+    if (!isValidDxfCoordinateTransition(code))
+        return false;
+    if (m_dxfPendingCoordinateGroup != 0)
+        m_dxfPendingCoordinateGroup = 0;
+    if (isCoordinateX)
+        m_dxfPendingCoordinateGroup = code;
+
     switch (code) {
     case 2:
         name = reader->getUtf8String();
@@ -13903,6 +14424,7 @@ bool DRW_Hatch::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
             break;
         }
         if (arc) arc->isccw = reader->getInt32();
+        else if (ellipse) ellipse->isccw = reader->getInt32();
         // polyline path: 73 is the is-closed flag -> set bit 0 only, leaving the
         // rest of pline->flags untouched (order-independent vs code 72).
         else if (pline) pline->flags = (pline->flags & ~1) | (reader->getInt32() ? 1 : 0);
@@ -14013,6 +14535,7 @@ bool DRW_Hatch::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         break;
     case 76:
         hpattern = reader->getInt32();
+        m_dxfPatternTypeSeen = true;
         break;
     case 77:
         doubleflag = reader->getInt32();
@@ -14201,7 +14724,8 @@ bool DRW_Hatch::validateCurrentPatternLineDxf() const {
 }
 
 bool DRW_Hatch::validateCurrentBoundaryPathDxf() const {
-    if (m_boundaryHandleCount != 0 || !validateCurrentSplineDxf())
+    if (m_boundaryHandleCount != 0 || m_dxfPendingCoordinateGroup != 0
+        || !validateCurrentSplineDxf())
         return false;
     if (!loop)
         return true;
@@ -14221,6 +14745,17 @@ bool DRW_Hatch::validateCurrentBoundaryPathDxf() const {
 }
 
 bool DRW_Hatch::validateDxf() const {
+    // DXF HATCH/MPolygon stores only the OCS elevation in group 30. The
+    // elevation point's group-10 X and group-20 Y components are fixed at
+    // zero; boundary and seed-point group-10/20 pairs are handled separately
+    // as two-dimensional OCS coordinates above.
+    if (m_dxfPendingCoordinateGroup != 0
+        || basePoint.x != 0.0 || basePoint.y != 0.0
+        || !std::isfinite(basePoint.z)
+        || !std::isfinite(extPoint.x) || !std::isfinite(extPoint.y)
+        || !std::isfinite(extPoint.z)
+        || (extPoint.x == 0.0 && extPoint.y == 0.0 && extPoint.z == 0.0))
+        return false;
     if (!validateCurrentBoundaryPathDxf()
         || !validateCurrentPatternLineDxf())
         return false;
@@ -14244,12 +14779,38 @@ bool DRW_MPolygon::parseCode(int code, const std::unique_ptr<dxfReader>& reader)
     // to DRW_Hatch::parseCode. It adds a trailer that plain HATCH never emits:
     //   63 / 421 / 430  fill color (ACI / RGB / book-name) — the filled area's
     //                   color, which may differ from the boundary outline color;
-    //   11 / 21         boundary x-direction vector (no render impact; left to
-    //                   the base, which ignores it outside an edge context);
+    //   11 / 21         MPOLYGON offset-vector components (not an edge point);
     //   99              count of degenerate boundary paths.
     // 63/421 are also gradient sub-codes in HATCH, so only claim them here when no
     // gradient is being accumulated (gradColors empty) — otherwise defer to base.
+    // The MPOLYGON group-11/21 offset vector is a top-level trailer field,
+    // whereas the same groups describe edge data inside boundary paths.
+    if (m_dxfOffsetVectorPending) {
+        if (code != 21)
+            return false;
+        xDirY = reader->getDouble();
+        m_dxfOffsetVectorPending = false;
+        return true;
+    }
+    if (dxfPatternTypeSeen() && code == 11) {
+        xDirX = reader->getDouble();
+        m_dxfOffsetVectorPending = true;
+        return true;
+    }
+    if (dxfPatternTypeSeen() && code == 21)
+        return false;
+    if (!isValidDxfCoordinateTransition(code))
+        return false;
     switch (code) {
+    case 73:
+        // Before top-level group 76 this code belongs to a boundary path
+        // (polyline closure or arc/ellipse direction); after it, Autodesk
+        // assigns group 73 to MPOLYGON's annotated-boundary flag.
+        if (dxfPatternTypeSeen()) {
+            annotatedBoundary = reader->getInt32();
+            return annotatedBoundary == 0 || annotatedBoundary == 1;
+        }
+        break;
     case 63:
         if (gradColors.empty()) { fillColorAci = reader->getInt32(); return true; }
         break;
@@ -14266,6 +14827,12 @@ bool DRW_MPolygon::parseCode(int code, const std::unique_ptr<dxfReader>& reader)
         break;
     }
     return DRW_Hatch::parseCode(code, reader);
+}
+
+bool DRW_MPolygon::validateDxf() const {
+    return DRW_Hatch::validateDxf() && !m_dxfOffsetVectorPending
+        && (annotatedBoundary == 0 || annotatedBoundary == 1)
+        && std::isfinite(xDirX) && std::isfinite(xDirY);
 }
 
 // DRW_MPolygon::parseDwg — AcDbMPolygon DWG body.
@@ -14293,8 +14860,10 @@ bool DRW_MPolygon::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t 
     fillColorAci = 0;
     fillColorRgb = -1;
     fillColorName.clear();
+    annotatedBoundary = 0;
     xDirX = 0.0;
     xDirY = 0.0;
+    m_dxfOffsetVectorPending = false;
     degenerateLoops = 0;
     dwgBuffer bodyProbe = sourceBuf->forkIndependent();
     dwgBuffer stringProbe = sourceBuf->forkIndependent();
@@ -15224,7 +15793,7 @@ bool DRW_Spline::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         if (m_dxfKnotCountSeen)
             return false;
         nknots = reader->getInt32();
-        if (!isValidCount(nknots, kMaxDxfItems))
+        if (!isValidCount(nknots, std::numeric_limits<std::int16_t>::max()))
             return false;
         m_dxfKnotCountSeen = true;
         break;
@@ -15232,7 +15801,7 @@ bool DRW_Spline::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         if (m_dxfControlCountSeen)
             return false;
         ncontrol = reader->getInt32();
-        if (!isValidCount(ncontrol, kMaxDxfItems))
+        if (!isValidCount(ncontrol, std::numeric_limits<std::int16_t>::max()))
             return false;
         m_dxfControlCountSeen = true;
         break;
@@ -15240,7 +15809,7 @@ bool DRW_Spline::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         if (m_dxfFitCountSeen)
             return false;
         nfit = reader->getInt32();
-        if (!isValidCount(nfit, kMaxDxfItems))
+        if (!isValidCount(nfit, std::numeric_limits<std::int16_t>::max()))
             return false;
         m_dxfFitCountSeen = true;
         break;
@@ -15309,6 +15878,8 @@ bool DRW_Spline::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
 }
 
 bool DRW_Spline::validateDxf() const {
+    if (flags > std::numeric_limits<std::int16_t>::max())
+        return false;
     if (m_dxfKnotCountSeen
         && knotslist.size() != static_cast<std::size_t>(nknots))
         return false;
@@ -15318,7 +15889,16 @@ bool DRW_Spline::validateDxf() const {
     if (m_dxfFitCountSeen
         && fitlist.size() != static_cast<std::size_t>(nfit))
         return false;
-    return validatePayloadFields(/*allowMixedLists=*/true);
+    if (!validatePayloadFields(/*allowMixedLists=*/true))
+        return false;
+    if (!weightlist.empty() && weightlist.size() != controllist.size())
+        return false;
+    if ((flags & 0x04) != 0
+        && (controllist.empty() || weightlist.size() != controllist.size()))
+        return false;
+    if (controllist.empty() && (!knotslist.empty() || !weightlist.empty()))
+        return false;
+    return true;
 }
 
 bool DRW_Spline::validatePayloadFields(bool allowMixedLists) const {
@@ -15380,7 +15960,7 @@ bool DRW_Helix::validateDxf() const {
     return DRW_Spline::validateDxf()
         && finite(axisBasePt) && finite(startPt) && finite(axisVector)
         && std::isfinite(radius) && std::isfinite(turns)
-        && std::isfinite(turnHeight);
+        && std::isfinite(turnHeight) && constraintType <= 2;
 }
 
 bool DRW_Helix::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
@@ -15447,7 +16027,7 @@ bool DRW_Helix::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     case 280:
         {
             int value = 0;
-            if (!readDxfIntInRange(reader, 0, 0xFF, value))
+            if (!readDxfIntInRange(reader, 0, 2, value))
                 return false;
             constraintType = static_cast<std::uint8_t>(value);
         }
@@ -15566,7 +16146,7 @@ bool DRW_Spline::parseDwgSplineBody(DRW::Version version, dwgBuffer *buf){
         return false;
     }
     if (scenario == 2) {
-        flags = 8;//scenario 2 = not rational & planar
+        flags = 0;
         if (m_splineFlags1 & kSplineFlagClosed)
             flags |= 1;
         if (!readBoundedBitDouble(*buf, bodyEndBit, tolfit)
@@ -15589,7 +16169,7 @@ bool DRW_Spline::parseDwgSplineBody(DRW::Version version, dwgBuffer *buf){
         }
         DRW_DBG("\nnumber of fit points: "); DRW_DBG(nfit);
     } else if (scenario == 1) {
-        flags = 8;//scenario 1 = rational & planar
+        flags = 0;
         bool rational = false;
         bool closed = false;
         bool periodic = false;
@@ -15625,8 +16205,10 @@ bool DRW_Spline::parseDwgSplineBody(DRW::Version version, dwgBuffer *buf){
         bool hasWeights = false;
         if (!readBoundedBit(*buf, bodyEndBit, hasWeights))
             return false;
-        weight = hasWeights ? 1 : 0; // flags bit 4: weights present (code 70)
-        if (weight) flags |= 0x10;
+        weight = hasWeights ? 1 : 0;
+        // DXF SPLINE group-70 bit 4 (0x04) means rational. Bit 16 (0x10)
+        // means linear and also implies planar; it is not the DWG weight flag.
+        if (weight) flags |= 0x04;
         if (!dwgSafety::multiply(static_cast<std::uint64_t>(ncontrol),
                                  weight ? 8u : 6u, controlBits))
             return false;
@@ -15703,6 +16285,18 @@ bool DRW_Spline::parseDwgSplineBody(DRW::Version version, dwgBuffer *buf){
             || !std::isfinite(fit.z))
             return false;
         parsedFits.push_back(std::make_shared<DRW_Coord>(fit));
+    }
+
+    DRW_Coord parsedNormal;
+    const bool hasPlanarControls = scenario == 1
+        && deriveSplinePlaneNormal(parsedControls, nullptr, nullptr,
+                                   parsedNormal);
+    const bool hasPlanarFitPoints = scenario == 2
+        && deriveSplinePlaneNormal(parsedFits, &tgStart, &tgEnd,
+                                   parsedNormal);
+    if (hasPlanarControls || hasPlanarFitPoints) {
+        flags |= 0x08;
+        normalVec = parsedNormal;
     }
 
     if (DRW_DBGGL == DRW_dbg::Level::Debug) {
@@ -17526,23 +18120,42 @@ bool DRW_PointCloudEx::encodeDwg(DRW::Version version, dwgBufferW *buf, std::uin
 bool DRW_Surface::parseCode(int code, const std::unique_ptr<dxfReader>& reader) {
     switch (code) {
     case 1:
-    case 3:
+    case 3: {
         // SURFACE ACIS payloads use text groups in the AcDbModelerGeometry
         // subclass. Keep the bytes verbatim; group 3 is a continuation of
         // the same payload and must not be interpreted as a surface field.
-        if (!appendTextBytesChecked(rawAcisData, reader->getString(),
+        const std::string text = reader->getString();
+        const std::size_t offset = rawAcisData.size();
+        if (!appendTextBytesChecked(rawAcisData, text,
                                     dwgSafety::MaxBufferSize))
             return false;
+        dxfPayloadChunks.emplace_back(code, offset, text.size());
         break;
-    case 70:
-        modelerFormatVersion = reader->getInt32();
+    }
+    case 70: {
+        int value = 0;
+        if (!readDxfIntInRange(reader, 0,
+                               std::numeric_limits<std::int16_t>::max(), value))
+            return false;
+        modelerFormatVersion = value;
         break;
-    case 71:
-        uIsolines = reader->getInt32();
+    }
+    case 71: {
+        int value = 0;
+        if (!readDxfIntInRange(reader, 0,
+                               std::numeric_limits<std::int16_t>::max(), value))
+            return false;
+        uIsolines = value;
         break;
-    case 72:
-        vIsolines = reader->getInt32();
+    }
+    case 72: {
+        int value = 0;
+        if (!readDxfIntInRange(reader, 0,
+                               std::numeric_limits<std::int16_t>::max(), value))
+            return false;
+        vIsolines = value;
         break;
+    }
     case 310:
         // AcDbEntity proxy graphics precede the AcDbModelerGeometry subclass,
         // so the announced bytes belong to the entity, not to the ACIS body.
@@ -17553,9 +18166,12 @@ bool DRW_Surface::parseCode(int code, const std::unique_ptr<dxfReader>& reader) 
             std::vector<std::uint8_t> decoded;
             if (!decodeHexBytes(reader->getString(), decoded))
                 return false;
+            const std::size_t offset = rawAcisData.size();
+            const std::size_t length = decoded.size();
             if (!appendBytesChecked(rawAcisData, decoded,
                                     dwgSafety::MaxBufferSize))
                 return false;
+            dxfPayloadChunks.emplace_back(code, offset, length);
         }
         break;
     default:
@@ -17577,22 +18193,38 @@ bool DRW_ExtrudedSurface::parseCode(
         break;
     }
     case 90:
+        if (!m_dxfInSubtype)
+            return DRW_Surface::parseCode(code, reader);
         {
-            // The class id, then the size of the following 310 data.
             const std::int32_t value = reader->getInt32();
-            if (value < 0 || m_dxfDataSizeSeen)
+            if (value < 0 || static_cast<std::size_t>(value) >
+                                 DRW::kMaxDxfBinaryPayloadBytes)
                 return false;
-            if (m_dxfClassIdSeen) {
+            if (!m_dxfClassIdSeen) {
+                classId = static_cast<std::uint32_t>(value);
+                m_dxfClassIdSeen = true;
+            } else if (!m_dxfDataSizeSeen) {
+                m_dxfDeclaredDataSize = static_cast<std::uint32_t>(value);
                 m_dxfDataSizeSeen = true;
-                break;
+            } else {
+                return false;
             }
-            classId = static_cast<std::uint32_t>(value);
-            m_dxfClassIdSeen = true;
         }
         break;
     case 310:
         if (!m_dxfInSubtype)
             return DRW_Surface::parseCode(code, reader);
+        {
+            std::vector<std::uint8_t> decoded;
+            if (!decodeHexBytes(reader->getString(), decoded)
+                || (m_dxfDataSizeSeen
+                    && (dxfBinaryData.size() > m_dxfDeclaredDataSize
+                        || decoded.size() > m_dxfDeclaredDataSize
+                               - dxfBinaryData.size()))
+                || !appendBytesChecked(dxfBinaryData, decoded,
+                                       DRW::kMaxDxfBinaryPayloadBytes))
+                return false;
+        }
         break;
     case 10:
         sweepVector.x = reader->getDouble();
@@ -17656,7 +18288,7 @@ bool DRW_ExtrudedSurface::parseCode(
             return DRW_Surface::parseCode(code, reader);
         {
             const std::int32_t value = reader->getInt32();
-            if (value < 0 || value > std::numeric_limits<std::uint16_t>::max())
+            if (value < 0 || value > 3)
                 return false;
             sweepAlignmentFlags = value;
         }
@@ -17666,28 +18298,35 @@ bool DRW_ExtrudedSurface::parseCode(
             return DRW_Surface::parseCode(code, reader);
         {
             const std::int32_t value = reader->getInt32();
-            if (value < 0 || value > std::numeric_limits<std::uint16_t>::max())
+            if (value < 0
+                || value > std::numeric_limits<std::int16_t>::max())
                 return false;
             pathFlags = value;
         }
         break;
     case 290:
-        solid = reader->getInt32() != 0;
+        if (!readDxfBool(reader, solid))
+            return false;
         break;
     case 292:
-        alignStart = reader->getInt32() != 0;
+        if (!readDxfBool(reader, alignStart))
+            return false;
         break;
     case 293:
-        bank = reader->getInt32() != 0;
+        if (!readDxfBool(reader, bank))
+            return false;
         break;
     case 294:
-        basePointSet = reader->getInt32() != 0;
+        if (!readDxfBool(reader, basePointSet))
+            return false;
         break;
     case 295:
-        sweepEntityTransformComputed = reader->getInt32() != 0;
+        if (!readDxfBool(reader, sweepEntityTransformComputed))
+            return false;
         break;
     case 296:
-        pathEntityTransformComputed = reader->getInt32() != 0;
+        if (!readDxfBool(reader, pathEntityTransformComputed))
+            return false;
         break;
     default:
         return DRW_Surface::parseCode(code, reader);
@@ -17696,12 +18335,24 @@ bool DRW_ExtrudedSurface::parseCode(
 }
 
 bool DRW_ExtrudedSurface::finalizeDxf() const {
-    if (!m_dxfClassIdSeen)
-        return true;
-    return m_dxfInSubtype
-        && m_dxfExtrudedTransformCount == extrudedTransform.size()
-        && m_dxfSweepTransformCount == sweepEntityTransform.size()
-        && m_dxfPathTransformCount == pathEntityTransform.size();
+    return m_dxfInSubtype && m_dxfClassIdSeen
+        && (!m_dxfDataSizeSeen
+            || dxfBinaryData.size() == m_dxfDeclaredDataSize)
+        && (m_dxfDataSizeSeen || dxfBinaryData.empty())
+        && (m_dxfExtrudedTransformCount == 0
+            || m_dxfExtrudedTransformCount == extrudedTransform.size())
+        && (m_dxfSweepTransformCount == 0
+            || m_dxfSweepTransformCount == sweepEntityTransform.size())
+        && (m_dxfPathTransformCount == 0
+            || m_dxfPathTransformCount == pathEntityTransform.size())
+        && finiteSurfaceCoord(sweepVector)
+        && finiteSurfaceCoord(referenceVector)
+        && finiteSurfaceMatrix(extrudedTransform)
+        && finiteSurfaceMatrix(sweepEntityTransform)
+        && finiteSurfaceMatrix(pathEntityTransform)
+        && std::isfinite(draftAngle) && std::isfinite(draftStartDistance)
+        && std::isfinite(draftEndDistance) && std::isfinite(twistAngle)
+        && std::isfinite(scaleFactor) && std::isfinite(alignAngle);
 }
 
 bool DRW_SweptSurface::parseCode(
@@ -17721,18 +18372,27 @@ bool DRW_SweptSurface::parseCode(
             return DRW_Surface::parseCode(code, reader);
         m_dxfTypedFieldSeen = true;
         {
-            // Each entity id may be followed by the size of its 310 data.
             const std::int32_t value = reader->getInt32();
-            if (value < 0)
+            if (value < 0 || static_cast<std::size_t>(value) >
+                                 DRW::kMaxDxfBinaryPayloadBytes)
                 return false;
-            if (m_dxfSweepEntityIdSeen) {
-                if (m_dxfDataSizeCount >= (m_dxfPathEntityIdSeen ? 2 : 1))
-                    return false;
-                ++m_dxfDataSizeCount;
-                break;
+            if (!m_dxfSweepEntityIdSeen) {
+                sweepEntityId = static_cast<std::uint32_t>(value);
+                m_dxfSweepEntityIdSeen = true;
+            } else if (!m_dxfSweepDataSizeSeen) {
+                m_dxfSweepDataSize = static_cast<std::uint32_t>(value);
+                m_dxfSweepDataSizeSeen = true;
+            } else if (!m_dxfPathEntityIdSeen
+                       && sweepData.size() == m_dxfSweepDataSize) {
+                pathEntityId = static_cast<std::uint32_t>(value);
+                m_dxfPathEntityIdSeen = true;
+            } else if (!m_dxfPathDataSizeSeen
+                       && m_dxfPathEntityIdSeen) {
+                m_dxfPathDataSize = static_cast<std::uint32_t>(value);
+                m_dxfPathDataSizeSeen = true;
+            } else {
+                return false;
             }
-            sweepEntityId = static_cast<std::uint32_t>(value);
-            m_dxfSweepEntityIdSeen = true;
         }
         break;
     case 91:
@@ -17743,7 +18403,9 @@ bool DRW_SweptSurface::parseCode(
         m_dxfTypedFieldSeen = true;
         {
             const std::int32_t value = reader->getInt32();
-            if (value < 0)
+            if (value < 0
+                || (m_dxfSweepDataSizeSeen
+                    && sweepData.size() != m_dxfSweepDataSize))
                 return false;
             pathEntityId = static_cast<std::uint32_t>(value);
             m_dxfPathEntityIdSeen = true;
@@ -17757,7 +18419,16 @@ bool DRW_SweptSurface::parseCode(
         if (!decodeHexBytes(reader->getString(), decoded))
             return false;
         auto& destination = m_dxfPathEntityIdSeen ? pathData : sweepData;
-        if (!appendBytesChecked(destination, decoded, kMaxSweepDataSize))
+        const bool hasDeclaredSize = m_dxfPathEntityIdSeen
+            ? m_dxfPathDataSizeSeen : m_dxfSweepDataSizeSeen;
+        const std::uint32_t declaredSize = m_dxfPathEntityIdSeen
+            ? m_dxfPathDataSize : m_dxfSweepDataSize;
+        if (hasDeclaredSize
+            && (destination.size() > declaredSize
+                || decoded.size() > declaredSize - destination.size()))
+            return false;
+        if (!appendBytesChecked(destination, decoded,
+                                DRW::kMaxDxfBinaryPayloadBytes))
             return false;
         break;
     }
@@ -17855,7 +18526,7 @@ bool DRW_SweptSurface::parseCode(
         m_dxfTypedFieldSeen = true;
         {
             const std::int32_t value = reader->getInt32();
-            if (value < 0 || value > std::numeric_limits<std::uint16_t>::max())
+            if (value < 0 || value > 3)
                 return false;
             sweepAlignmentFlags = value;
         }
@@ -17866,7 +18537,8 @@ bool DRW_SweptSurface::parseCode(
         m_dxfTypedFieldSeen = true;
         {
             const std::int32_t value = reader->getInt32();
-            if (value < 0 || value > std::numeric_limits<std::uint16_t>::max())
+            if (value < 0
+                || value > std::numeric_limits<std::int16_t>::max())
                 return false;
             pathFlags = value;
         }
@@ -17875,37 +18547,43 @@ bool DRW_SweptSurface::parseCode(
         if (!m_dxfInSubtype)
             return DRW_Surface::parseCode(code, reader);
         m_dxfTypedFieldSeen = true;
-        solid = reader->getInt32() != 0;
+        if (!readDxfBool(reader, solid))
+            return false;
         break;
     case 292:
         if (!m_dxfInSubtype)
             return DRW_Surface::parseCode(code, reader);
         m_dxfTypedFieldSeen = true;
-        alignStart = reader->getInt32() != 0;
+        if (!readDxfBool(reader, alignStart))
+            return false;
         break;
     case 293:
         if (!m_dxfInSubtype)
             return DRW_Surface::parseCode(code, reader);
         m_dxfTypedFieldSeen = true;
-        bank = reader->getInt32() != 0;
+        if (!readDxfBool(reader, bank))
+            return false;
         break;
     case 294:
         if (!m_dxfInSubtype)
             return DRW_Surface::parseCode(code, reader);
         m_dxfTypedFieldSeen = true;
-        basePointSet = reader->getInt32() != 0;
+        if (!readDxfBool(reader, basePointSet))
+            return false;
         break;
     case 295:
         if (!m_dxfInSubtype)
             return DRW_Surface::parseCode(code, reader);
         m_dxfTypedFieldSeen = true;
-        sweepEntityTransformComputed = reader->getInt32() != 0;
+        if (!readDxfBool(reader, sweepEntityTransformComputed))
+            return false;
         break;
     case 296:
         if (!m_dxfInSubtype)
             return DRW_Surface::parseCode(code, reader);
         m_dxfTypedFieldSeen = true;
-        pathEntityTransformComputed = reader->getInt32() != 0;
+        if (!readDxfBool(reader, pathEntityTransformComputed))
+            return false;
         break;
     default:
         return DRW_Surface::parseCode(code, reader);
@@ -17918,10 +18596,26 @@ bool DRW_SweptSurface::finalizeDxf() const {
         return true;
     return m_dxfInSubtype && m_dxfSweepEntityIdSeen
         && m_dxfPathEntityIdSeen
-        && m_dxfSweepTransformCount == sweepEntityTransformed.size()
-        && m_dxfPathTransformCount == pathEntityTransformed.size()
-        && m_dxfSweepEntityTransformedCount == sweepEntityTransform.size()
-        && m_dxfPathEntityTransformedCount == pathEntityTransform.size();
+        && (!m_dxfSweepDataSizeSeen
+            || sweepData.size() == m_dxfSweepDataSize)
+        && (!m_dxfPathDataSizeSeen
+            || pathData.size() == m_dxfPathDataSize)
+        && (m_dxfSweepTransformCount == 0
+            || m_dxfSweepTransformCount == sweepEntityTransformed.size())
+        && (m_dxfPathTransformCount == 0
+            || m_dxfPathTransformCount == pathEntityTransformed.size())
+        && (m_dxfSweepEntityTransformedCount == 0
+            || m_dxfSweepEntityTransformedCount == sweepEntityTransform.size())
+        && (m_dxfPathEntityTransformedCount == 0
+            || m_dxfPathEntityTransformedCount == pathEntityTransform.size())
+        && finiteSurfaceCoord(referenceVector)
+        && finiteSurfaceMatrix(sweepEntityTransformed)
+        && finiteSurfaceMatrix(pathEntityTransformed)
+        && finiteSurfaceMatrix(sweepEntityTransform)
+        && finiteSurfaceMatrix(pathEntityTransform)
+        && std::isfinite(draftAngle) && std::isfinite(draftStartDistance)
+        && std::isfinite(draftEndDistance) && std::isfinite(twistAngle)
+        && std::isfinite(scaleFactor) && std::isfinite(alignAngle);
 }
 
 bool DRW_LoftedSurface::parseCode(
@@ -18008,50 +18702,58 @@ bool DRW_LoftedSurface::parseCode(
     case 290:
         if (!m_dxfInSubtype)
             return DRW_Surface::parseCode(code, reader);
+        if (!readDxfBool(reader, arcLengthParameterization))
+            return false;
         m_dxfTypedFieldSeen = true;
-        arcLengthParameterization = reader->getInt32() != 0;
         break;
     case 291:
         if (!m_dxfInSubtype)
             return DRW_Surface::parseCode(code, reader);
+        if (!readDxfBool(reader, noTwist))
+            return false;
         m_dxfTypedFieldSeen = true;
-        noTwist = reader->getInt32() != 0;
         break;
     case 292:
         if (!m_dxfInSubtype)
             return DRW_Surface::parseCode(code, reader);
+        if (!readDxfBool(reader, alignDirection))
+            return false;
         m_dxfTypedFieldSeen = true;
-        alignDirection = reader->getInt32() != 0;
         break;
     case 293:
         if (!m_dxfInSubtype)
             return DRW_Surface::parseCode(code, reader);
+        if (!readDxfBool(reader, simpleSurfaces))
+            return false;
         m_dxfTypedFieldSeen = true;
-        simpleSurfaces = reader->getInt32() != 0;
         break;
     case 294:
         if (!m_dxfInSubtype)
             return DRW_Surface::parseCode(code, reader);
+        if (!readDxfBool(reader, closedSurfaces))
+            return false;
         m_dxfTypedFieldSeen = true;
-        closedSurfaces = reader->getInt32() != 0;
         break;
     case 295:
         if (!m_dxfInSubtype)
             return DRW_Surface::parseCode(code, reader);
+        if (!readDxfBool(reader, solid))
+            return false;
         m_dxfTypedFieldSeen = true;
-        solid = reader->getInt32() != 0;
         break;
     case 296:
         if (!m_dxfInSubtype)
             return DRW_Surface::parseCode(code, reader);
+        if (!readDxfBool(reader, ruledSurface))
+            return false;
         m_dxfTypedFieldSeen = true;
-        ruledSurface = reader->getInt32() != 0;
         break;
     case 297:
         if (!m_dxfInSubtype)
             return DRW_Surface::parseCode(code, reader);
+        if (!readDxfBool(reader, virtualGuide))
+            return false;
         m_dxfTypedFieldSeen = true;
-        virtualGuide = reader->getInt32() != 0;
         break;
     case 5:
         if (!m_dxfInSubtype)
@@ -18071,9 +18773,9 @@ bool DRW_LoftedSurface::finalizeDxf() const {
     if (!m_dxfTypedFieldSeen)
         return true;
     return m_dxfInSubtype
-        && m_dxfTransformCount == loftEntityTransform.size()
-        && std::all_of(loftEntityTransform.begin(), loftEntityTransform.end(),
-                       [](double value) { return std::isfinite(value); })
+        && (m_dxfTransformCount == 0
+            || m_dxfTransformCount == loftEntityTransform.size())
+        && finiteSurfaceMatrix(loftEntityTransform)
         && std::isfinite(startDraftAngle)
         && std::isfinite(endDraftAngle)
         && std::isfinite(startDraftMagnitude)
@@ -18097,7 +18799,8 @@ bool DRW_NurbsSurface::parseCode(
             return DRW_Surface::parseCode(code, reader);
         {
             const std::int32_t value = reader->getInt32();
-            if (value < 0 || value > std::numeric_limits<std::uint16_t>::max())
+            if (value < 0
+                || value > std::numeric_limits<std::int16_t>::max())
                 return false;
             short170 = static_cast<std::uint16_t>(value);
             m_dxfTypedFieldSeen = true;
@@ -18106,7 +18809,8 @@ bool DRW_NurbsSurface::parseCode(
     case 290:
         if (!m_dxfInSubtype)
             return DRW_Surface::parseCode(code, reader);
-        cvHullDisplay = reader->getInt32() != 0;
+        if (!readDxfBool(reader, cvHullDisplay))
+            return false;
         m_dxfTypedFieldSeen = true;
         break;
     case 10:
@@ -18224,22 +18928,47 @@ bool DRW_NurbsSurface::finalizeDxf() const {
 bool DRW_RevolvedSurface::parseCode(
         int code, const std::unique_ptr<dxfReader>& reader) {
     switch (code) {
+    case 100: {
+        const std::string marker = reader->getString();
+        if (marker == "AcDbRevolvedSurface")
+            m_dxfInSubtype = true;
+        else if (marker == "AcDbModelerGeometry"
+                 || marker == "AcDbSurface")
+            m_dxfInSubtype = false;
+        break;
+    }
     case 310:
-        if (!m_dxfClassIdSeen)
+        if (!m_dxfInSubtype)
             return DRW_Surface::parseCode(code, reader);
+        {
+            std::vector<std::uint8_t> decoded;
+            if (!decodeHexBytes(reader->getString(), decoded)
+                || (m_dxfDataSizeSeen
+                    && (dxfBinaryData.size() > m_dxfDeclaredDataSize
+                        || decoded.size() > m_dxfDeclaredDataSize
+                               - dxfBinaryData.size()))
+                || !appendBytesChecked(dxfBinaryData, decoded,
+                                       DRW::kMaxDxfBinaryPayloadBytes))
+                return false;
+        }
         break;
     case 90:
-        if (!m_dxfClassIdSeen) {
-            const std::int32_t value = reader->getInt32();
-            if (value < 0)
-                return false;
-            classId = static_cast<std::uint32_t>(value);
-            m_dxfClassIdSeen = true;
-        } else {
+        if (!m_dxfInSubtype)
+            return DRW_Surface::parseCode(code, reader);
+        if (!m_dxfIdSeen) {
             const std::int32_t value = reader->getInt32();
             if (value < 0)
                 return false;
             id = static_cast<std::uint32_t>(value);
+            m_dxfIdSeen = true;
+        } else {
+            const std::int32_t value = reader->getInt32();
+            if (value < 0 || static_cast<std::size_t>(value) >
+                                 DRW::kMaxDxfBinaryPayloadBytes
+                || m_dxfDataSizeSeen)
+                return false;
+            m_dxfDeclaredDataSize = static_cast<std::uint32_t>(value);
+            m_dxfDataSizeSeen = true;
         }
         break;
     case 10:
@@ -18284,15 +19013,31 @@ bool DRW_RevolvedSurface::parseCode(
         twistAngle = reader->getDouble();
         break;
     case 290:
-        solid = reader->getInt32() != 0;
+        if (!readDxfBool(reader, solid))
+            return false;
         break;
     case 291:
-        closeToAxis = reader->getInt32() != 0;
+        if (!readDxfBool(reader, closeToAxis))
+            return false;
         break;
     default:
         return DRW_Surface::parseCode(code, reader);
     }
     return true;
+}
+
+bool DRW_RevolvedSurface::finalizeDxf() const {
+    return m_dxfInSubtype && m_dxfIdSeen
+        && (!m_dxfDataSizeSeen
+            || dxfBinaryData.size() == m_dxfDeclaredDataSize)
+        && (m_dxfDataSizeSeen || dxfBinaryData.empty())
+        && (m_dxfTransformCount == 0
+            || m_dxfTransformCount == transform.size())
+        && finiteSurfaceCoord(axisPoint) && finiteSurfaceCoord(axisVector)
+        && finiteSurfaceMatrix(transform)
+        && std::isfinite(revolveAngle) && std::isfinite(startAngle)
+        && std::isfinite(draftAngle) && std::isfinite(draftStartDistance)
+        && std::isfinite(draftEndDistance) && std::isfinite(twistAngle);
 }
 
 void DRW_Surface::resetDwgState() {
@@ -18303,6 +19048,7 @@ void DRW_Surface::resetDwgState() {
     acisEmpty = false;
     acisVersion = 0;
     rawAcisData.clear();
+    dxfPayloadChunks.clear();
     hasRawDwgBody = false;
     rawDwgBodyBitSize = 0;
     rawDwgBodyVersion = DRW::UNKNOWNV;
@@ -18324,6 +19070,7 @@ void DRW_Surface::resetDwgState() {
     case DRW::EXTRUDEDSURFACE: {
         auto *surface = static_cast<DRW_ExtrudedSurface *>(this);
         surface->classId = 0;
+        surface->dxfBinaryData.clear();
         surface->sweepVector = DRW_Coord{0.0, 0.0, 0.0};
         surface->extrudedTransform = identity();
         surface->sweepEntityTransform = identity();
@@ -18349,6 +19096,7 @@ void DRW_Surface::resetDwgState() {
         auto *surface = static_cast<DRW_RevolvedSurface *>(this);
         surface->classId = 0;
         surface->id = 0;
+        surface->dxfBinaryData.clear();
         surface->axisPoint = DRW_Coord{0.0, 0.0, 0.0};
         surface->axisVector = DRW_Coord{0.0, 0.0, 0.0};
         surface->revolveAngle = 0.0;

@@ -1,0 +1,91 @@
+if(NOT DEFINED DWG2DXF OR NOT DEFINED SAMPLE
+        OR NOT DEFINED REFERENCE_DXF OR NOT DEFINED COMPARATOR
+        OR NOT DEFINED OUTPUT_DIR)
+    message(FATAL_ERROR
+        "DWG2DXF, SAMPLE, REFERENCE_DXF, COMPARATOR, and OUTPUT_DIR are required")
+endif()
+foreach(_required IN ITEMS DWG2DXF SAMPLE REFERENCE_DXF COMPARATOR)
+    if(NOT EXISTS "${${_required}}")
+        message(FATAL_ERROR "${_required} does not exist: ${${_required}}")
+    endif()
+endforeach()
+
+function(assert_ac1015_dxf path)
+    file(STRINGS "${path}" _lines)
+    list(LENGTH _lines _line_count)
+    set(_index 0)
+    set(_version_ok FALSE)
+    while(_index LESS _line_count)
+        math(EXPR _value_index "${_index} + 1")
+        if(_value_index GREATER_EQUAL _line_count)
+            break()
+        endif()
+        list(GET _lines ${_index} _code)
+        list(GET _lines ${_value_index} _value)
+        string(STRIP "${_code}" _code)
+        string(STRIP "${_value}" _value)
+        if(_code STREQUAL "9" AND _value STREQUAL "$ACADVER")
+            math(EXPR _version_code_index "${_index} + 2")
+            math(EXPR _version_value_index "${_index} + 3")
+            if(_version_value_index LESS _line_count)
+                list(GET _lines ${_version_code_index} _version_code)
+                list(GET _lines ${_version_value_index} _version_value)
+                string(STRIP "${_version_code}" _version_code)
+                string(STRIP "${_version_value}" _version_value)
+                if(_version_code STREQUAL "1"
+                        AND _version_value STREQUAL "AC1015")
+                    set(_version_ok TRUE)
+                    break()
+                endif()
+            endif()
+        endif()
+        math(EXPR _index "${_index} + 2")
+    endwhile()
+    if(NOT _version_ok)
+        message(FATAL_ERROR "${path} does not identify AC1015 in $ACADVER")
+    endif()
+endfunction()
+
+assert_ac1015_dxf("${REFERENCE_DXF}")
+
+set(_test_dir "${OUTPUT_DIR}/freecad external SAT v1")
+file(MAKE_DIRECTORY "${_test_dir}")
+set(_input "${_test_dir}/AC1015 modeler input.dwg")
+set(_output "${_test_dir}/AC1015 modeler output.dxf")
+file(REMOVE "${_input}" "${_output}")
+configure_file("${SAMPLE}" "${_input}" COPYONLY)
+
+file(READ "${_input}" _magic_hex LIMIT 6 HEX)
+if(NOT "${_magic_hex}" STREQUAL "414331303135")
+    message(FATAL_ERROR
+        "SAT-v1 integration sample must be AC1015; got '${_magic_hex}'")
+endif()
+
+# FreeCAD Draft's LibreDWG lane invokes exactly: dwg2dxf input -o output.
+execute_process(
+    COMMAND "${DWG2DXF}" "${_input}" -o "${_output}"
+    RESULT_VARIABLE _convert_result
+    OUTPUT_VARIABLE _convert_stdout
+    ERROR_VARIABLE _convert_stderr
+    TIMEOUT 60
+)
+if(NOT "${_convert_result}" STREQUAL "0" OR NOT EXISTS "${_output}")
+    message(FATAL_ERROR
+        "FreeCAD-form SAT-v1 conversion failed (${_convert_result})\n"
+        "${_convert_stdout}\n${_convert_stderr}")
+endif()
+assert_ac1015_dxf("${_output}")
+
+execute_process(
+    COMMAND "${COMPARATOR}" "${REFERENCE_DXF}" "${_output}"
+    RESULT_VARIABLE _compare_result
+    OUTPUT_VARIABLE _compare_stdout
+    ERROR_VARIABLE _compare_stderr
+    TIMEOUT 30
+)
+if(NOT "${_compare_result}" STREQUAL "0")
+    message(FATAL_ERROR
+        "SAT-v1 DXF carrier mismatch (${_compare_result})\n"
+        "${_compare_stdout}\n${_compare_stderr}")
+endif()
+message(STATUS "${_compare_stdout}")

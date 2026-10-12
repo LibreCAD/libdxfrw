@@ -108,6 +108,7 @@ OperationErrorMapping mapOperationError(DRW::error value) {
 }
 
 bool updateRawDxfApplicationDepth(const DRW_Variant& value, int& depth);
+bool isDxfHandleReferenceCode(int code);
 bool validateCapturedRawDxfObject(const DRW_RawDxfObject& object,
                                   bool binaryOutput,
                                   DxfClassifierProfile profile =
@@ -135,6 +136,129 @@ bool isDxfHexText(const std::string& text) {
     return std::all_of(text.begin(), text.end(), [](char value) {
         return std::isxdigit(static_cast<unsigned char>(value)) != 0;
     });
+}
+
+bool captureAcShExtrusionDxfProjection(
+        const DRW_RawDxfObject& raw,
+        DRW_AcShHistoryObject::ExtrusionDxfProjection& projection) {
+    if (raw.name != "ACSH_EXTRUSION_CLASS")
+        return false;
+
+    DRW_AcShHistoryObject::ExtrusionDxfProjection parsed;
+    std::array<std::size_t, 2> transformCounts{};
+    std::array<std::size_t, 2> optionCounts{};
+    std::array<std::size_t, 6> flagCounts{};
+    std::array<std::size_t, 3> pointCounts{};
+    double point[3] = {};
+    bool inSweepBase = false;
+    std::size_t sweepBaseMarkerCount = 0;
+
+    for (const DRW_Variant& group : raw.groups) {
+        if (group.code() == 100) {
+            if (group.type() != DRW_Variant::STRING || group.c_str() == nullptr)
+                return false;
+            inSweepBase = std::strcmp(group.c_str(), "AcDbShSweepBase") == 0;
+            if (inSweepBase && ++sweepBaseMarkerCount != 1u)
+                return false;
+            continue;
+        }
+        if (!inSweepBase)
+            continue;
+
+        if (group.code() == 46 || group.code() == 47) {
+            const std::size_t transformIndex =
+                group.code() == 46 ? 0u : 1u;
+            if (group.type() != DRW_Variant::DOUBLE
+                || transformCounts[transformIndex] >= 16u
+                || !std::isfinite(group.d_val())) {
+                return false;
+            }
+            auto& transform = transformIndex == 0u
+                ? parsed.m_sweepEntityTransform
+                : parsed.m_pathEntityTransform;
+            transform[transformCounts[transformIndex]++] = group.d_val();
+            continue;
+        }
+
+        if (group.code() == 70 || group.code() == 71) {
+            const std::size_t optionIndex = group.code() == 70 ? 0u : 1u;
+            // DXF group codes 60-79 are int16; do not apply the DWG RC width.
+            if (group.type() != DRW_Variant::INTEGER
+                || optionCounts[optionIndex] != 0u
+                || group.i_val() < std::numeric_limits<std::int16_t>::min()
+                || group.i_val() > std::numeric_limits<std::int16_t>::max()
+                || (group.code() == 70
+                    && (group.i_val() < 0 || group.i_val() > 3))) {
+                return false;
+            }
+            (optionIndex == 0u ? parsed.m_alignOption : parsed.m_miterOption) =
+                group.i_val();
+            ++optionCounts[optionIndex];
+            continue;
+        }
+
+        std::size_t flagIndex = flagCounts.size();
+        switch (group.code()) {
+        case 290: flagIndex = 0u; break;
+        case 292: flagIndex = 1u; break;
+        case 293: flagIndex = 2u; break;
+        case 294: flagIndex = 3u; break;
+        case 295: flagIndex = 4u; break;
+        case 296: flagIndex = 5u; break;
+        default: break;
+        }
+        if (flagIndex != flagCounts.size()) {
+            if (group.type() != DRW_Variant::INTEGER
+                || flagCounts[flagIndex] != 0u
+                || (group.i_val() != 0 && group.i_val() != 1)) {
+                return false;
+            }
+            const bool value = group.i_val() != 0;
+            switch (flagIndex) {
+            case 0: parsed.m_isSolid = value; break;
+            case 1: parsed.m_hasAlignStart = value; break;
+            case 2: parsed.m_bank = value; break;
+            case 3: parsed.m_basePointSet = value; break;
+            case 4: parsed.m_sweepEntityTransformComputed = value; break;
+            case 5: parsed.m_pathEntityTransformComputed = value; break;
+            default: return false;
+            }
+            ++flagCounts[flagIndex];
+            continue;
+        }
+
+        std::size_t pointIndex = pointCounts.size();
+        switch (group.code()) {
+        case 11: pointIndex = 0u; break;
+        case 21: pointIndex = 1u; break;
+        case 31: pointIndex = 2u; break;
+        default: break;
+        }
+        if (pointIndex != pointCounts.size()) {
+            if (group.type() != DRW_Variant::DOUBLE
+                || pointCounts[pointIndex] != 0u
+                || !std::isfinite(group.d_val())) {
+                return false;
+            }
+            point[pointIndex] = group.d_val();
+            ++pointCounts[pointIndex];
+        }
+    }
+
+    if (sweepBaseMarkerCount != 1u
+        || transformCounts[0] != 16u || transformCounts[1] != 16u
+        || optionCounts[0] != 1u || optionCounts[1] != 1u
+        || std::any_of(flagCounts.begin(), flagCounts.end(),
+                       [](std::size_t count) { return count != 1u; })
+        || std::any_of(pointCounts.begin(), pointCounts.end(),
+                       [](std::size_t count) { return count != 1u; })) {
+        return false;
+    }
+
+    parsed.m_point = DRW_Coord(point[0], point[1], point[2]);
+    parsed.m_transformAndOptionFieldsComplete = true;
+    projection = parsed;
+    return true;
 }
 
 bool isValidDxfEedVariant(const DRW_Variant *value) {
@@ -196,6 +320,59 @@ bool isSafeDxfRecordText(const std::string& text) {
 bool isFiniteDxfCoord(const DRW_Coord& point) {
     return std::isfinite(point.x) && std::isfinite(point.y)
         && std::isfinite(point.z);
+}
+
+bool isValidDxfExtrusionDirection(const DRW_Coord& direction) {
+    if (!isFiniteDxfCoord(direction))
+        return false;
+    const double magnitude = std::hypot(
+        std::hypot(direction.x, direction.y), direction.z);
+    return std::isfinite(magnitude) && magnitude > 0.0;
+}
+
+bool isValidDxfCircleGeometry(const DRW_Circle& circle) {
+    return isFiniteDxfCoord(circle.basePoint)
+        && std::isfinite(circle.thickness)
+        && std::isfinite(circle.radious) && circle.radious > 0.0
+        && isValidDxfExtrusionDirection(circle.extPoint);
+}
+
+bool isValidDxfArcGeometry(const DRW_Arc& arc) {
+    return isValidDxfCircleGeometry(arc)
+        && std::isfinite(arc.staangle)
+        && std::isfinite(arc.endangle);
+}
+
+bool isValidDxfEllipseGeometry(const DRW_Ellipse& ellipse) {
+    if (!isFiniteDxfCoord(ellipse.basePoint)
+        || !isFiniteDxfCoord(ellipse.secPoint)
+        || !std::isfinite(ellipse.ratio) || ellipse.ratio <= 0.0
+        || !std::isfinite(ellipse.staparam)
+        || !std::isfinite(ellipse.endparam)
+        || !isValidDxfExtrusionDirection(ellipse.extPoint))
+        return false;
+
+    const double majorLength = std::hypot(
+        std::hypot(ellipse.secPoint.x, ellipse.secPoint.y),
+        ellipse.secPoint.z);
+    const double normalLength = std::hypot(
+        std::hypot(ellipse.extPoint.x, ellipse.extPoint.y),
+        ellipse.extPoint.z);
+    if (!std::isfinite(majorLength) || majorLength == 0.0
+        || !std::isfinite(normalLength) || normalLength == 0.0)
+        return false;
+
+    const double alignment =
+        (ellipse.secPoint.x / majorLength)
+            * (ellipse.extPoint.x / normalLength)
+        + (ellipse.secPoint.y / majorLength)
+            * (ellipse.extPoint.y / normalLength)
+        + (ellipse.secPoint.z / majorLength)
+            * (ellipse.extPoint.z / normalLength);
+    // ObjectARX defines the major axis as perpendicular to the ellipse normal
+    // within 1e-6. Normalize both vectors first so scaled DXF normals do not
+    // change the geometric check.
+    return std::isfinite(alignment) && std::abs(alignment) <= 1.0e-6;
 }
 
 bool isValidDxfLineWeight(DRW_LW_Conv::lineWidth value) {
@@ -272,18 +449,15 @@ bool isValidDxfEntityFields(const DRW_Entity& entity) {
             return false;
     }
     if (const auto *circle = dynamic_cast<const DRW_Circle*>(&entity)) {
-        if (!std::isfinite(circle->radious))
+        if (!isValidDxfCircleGeometry(*circle))
             return false;
     }
     if (const auto *arc = dynamic_cast<const DRW_Arc*>(&entity)) {
-        if (!std::isfinite(arc->staangle)
-            || !std::isfinite(arc->endangle))
+        if (!isValidDxfArcGeometry(*arc))
             return false;
     }
     if (const auto *ellipse = dynamic_cast<const DRW_Ellipse*>(&entity)) {
-        if (!std::isfinite(ellipse->ratio)
-            || !std::isfinite(ellipse->staparam)
-            || !std::isfinite(ellipse->endparam))
+        if (!isValidDxfEllipseGeometry(*ellipse))
             return false;
     }
     if (const auto *text = dynamic_cast<const DRW_Text*>(&entity)) {
@@ -377,6 +551,10 @@ struct DxfDimstyleVariableSpec {
     DRW_Variant::TYPE type;
     DRW::Version minimumVersion;
 };
+
+bool dxfDimstyleVariableIsBoolean(int code) {
+    return code == 290 || code == 295;
+}
 
 // DIMSTYLE's dynamic map is an override mechanism, not an arbitrary DXF
 // record. Keep the type and version contract in one table so a malformed
@@ -519,6 +697,18 @@ std::string dxfSymbolNameKey(std::string value) {
                        return static_cast<char>(std::toupper(ch));
                    });
     return value;
+}
+
+bool isDxfFixedOutputHandle(std::uint32_t handle) {
+    switch (handle) {
+    case 0x1u: case 0x2u: case 0x3u: case 0x5u: case 0x6u: case 0x7u:
+    case 0x8u: case 0x9u: case 0xAu: case 0xCu: case 0xDu: case 0x10u:
+    case 0x12u: case 0x14u: case 0x15u: case 0x16u: case 0x1Cu:
+    case 0x1Du: case 0x1Eu: case 0x1Fu: case 0x20u: case 0x21u:
+        return true;
+    default:
+        return false;
+    }
 }
 
 bool isSafeDxfClassMetadata(const DRW_Class& cls) {
@@ -732,8 +922,12 @@ bool canWriteDxfFieldList(const DRW_FieldList& list) {
 }
 
 void writeDxfSplineBody(dxfWriter *writer, DRW_Spline *ent) {
-    // Normal vector is optional; omit when it is the default (0,0,1).
-    if (ent->normalVec.x != 0.0 || ent->normalVec.y != 0.0 || ent->normalVec.z != 1.0) {
+    // DXF omits the normal for nonplanar splines; the conventional planar
+    // default is (0,0,1), which is also omitted.
+    if ((ent->normalVec.x != 0.0 || ent->normalVec.y != 0.0
+         || ent->normalVec.z != 0.0)
+        && (ent->normalVec.x != 0.0 || ent->normalVec.y != 0.0
+            || ent->normalVec.z != 1.0)) {
         writer->writeDouble(210, ent->normalVec.x);
         writer->writeDouble(220, ent->normalVec.y);
         writer->writeDouble(230, ent->normalVec.z);
@@ -832,6 +1026,214 @@ bool isTextAcisPayload(const std::vector<std::uint8_t>& data) {
     });
 }
 
+bool hasDxfTextPayloadChunks(const std::vector<std::uint8_t>& data,
+                             const std::vector<DRW_ModelerPayloadChunk>& chunks) {
+    if (!isTextAcisPayload(data))
+        return false;
+    if (chunks.empty())
+        return true;
+
+    std::size_t expectedOffset = 0;
+    for (const DRW_ModelerPayloadChunk& chunk : chunks) {
+        if (chunk.m_groupCode == 1 && expectedOffset != 0) {
+            if (expectedOffset >= data.size() || data[expectedOffset] != '\n')
+                return false;
+            ++expectedOffset;
+        }
+        if ((chunk.m_groupCode != 1 && chunk.m_groupCode != 3)
+            || chunk.m_offset != expectedOffset
+            || chunk.m_offset > data.size()
+            || chunk.m_length > data.size() - chunk.m_offset)
+            return false;
+        expectedOffset += chunk.m_length;
+    }
+    if (expectedOffset < data.size() && data[expectedOffset] == '\n')
+        ++expectedOffset;
+    return expectedOffset == data.size();
+}
+
+bool hasQualifiedAc1015SatV1Payload(const DRW_ModelerGeometry& entity) {
+    const bool hasOnlyRetainedDwgFrame = entity.m_rawBytes.empty()
+        || (entity.m_dxfPayloadChunks.empty()
+            && entity.m_rawBytes.size() == entity.m_objectSize);
+    if (entity.m_dwgSourceVersion != DRW::AC1015
+        || entity.m_modelerVersion != 1 || entity.m_isEmpty
+        || !entity.m_hasModelerData
+        || entity.m_objectSize == 0 || entity.m_dwgAcisPayload.empty()
+        || entity.m_dwgAcisPayload.size() > DRW::kMaxDxfBinaryPayloadBytes
+        || entity.m_payloadRanges.empty() || !hasOnlyRetainedDwgFrame
+        || entity.hasDataStorageBinaryData() || entity.hasDataStorageRecord
+        || !entity.dataStorageData.empty())
+        return false;
+
+    std::size_t declaredTotal = 0;
+    for (const DRW_ModelerPayloadRange& range : entity.m_payloadRanges) {
+        if (range.m_kind != DRW_ModelerPayloadRange::Kind::Sat
+            || range.m_section != DRW_ModelerPayloadRange::Section::Body
+            || range.m_consistency !=
+                DRW_ModelerPayloadRange::Consistency::Exact
+            || range.m_confidence !=
+                DRW_ModelerPayloadRange::Confidence::DeclaredSize
+            || range.m_length == 0
+            || range.m_declaredByteSize != range.m_length
+            || range.m_length > entity.m_dwgAcisPayload.size() - declaredTotal)
+            return false;
+        declaredTotal += range.m_length;
+    }
+    return declaredTotal == entity.m_dwgAcisPayload.size();
+}
+
+bool hasSabBinaryFileSignature(const std::vector<std::uint8_t>& payload) {
+    static constexpr char signature[] = "ACIS BinaryFile";
+    return payload.size() >= sizeof(signature) - 1u
+        && std::equal(std::begin(signature), std::end(signature) - 1,
+                      payload.begin(), [](char expected, std::uint8_t actual) {
+                          return static_cast<std::uint8_t>(expected) == actual;
+                      });
+}
+
+bool hasQualifiedAc1027AcdsRecord(
+    const DRW_ModelerGeometry& entity,
+    const std::vector<DRW_RawDxfSection>& sections) {
+    if ((entity.eType != DRW::E3DSOLID && entity.eType != DRW::REGION)
+        || entity.m_dwgSourceVersion != DRW::AC1027
+        || entity.m_modelerVersion != 2 || entity.m_isEmpty
+        || !entity.m_hasModelerData || !entity.hasDataStorageBinaryData()
+        || !entity.hasDataStorageRecord || entity.dataStorageData.empty()
+        || entity.dataStorageData.size() > DRW_DataStorageConst::PAYLOAD_BLOB_SECTION_CAP
+        || !hasSabBinaryFileSignature(entity.dataStorageData)
+        || entity.dataStorageHandle != entity.handle
+        || entity.dataStorageHandleKey.empty()
+        || !entity.m_dwgAcisPayload.empty()
+        || !entity.m_payloadRanges.empty()) {
+        return false;
+    }
+
+    const DRW_RawDxfSection* acdsSection = nullptr;
+    for (const DRW_RawDxfSection& section : sections) {
+        if (!dxfKeywordEquals(section.m_name, "ACDSDATA"))
+            continue;
+        if (acdsSection != nullptr || section.m_version != DRW::AC1027)
+            return false;
+        acdsSection = &section;
+    }
+    if (acdsSection == nullptr)
+        return false;
+
+    bool matchedEntityRecord = false;
+    std::unordered_set<std::string> asmOwnerKeys;
+    const std::vector<DRW_Variant>& groups = acdsSection->m_groups;
+    for (std::size_t start = 0; start < groups.size();) {
+        const DRW_Variant& startGroup = groups[start];
+        if (startGroup.code() != 0 || startGroup.type() != DRW_Variant::STRING
+            || startGroup.c_str() == nullptr) {
+            ++start;
+            continue;
+        }
+        std::size_t end = start + 1u;
+        while (end < groups.size() && groups[end].code() != 0)
+            ++end;
+        if (!dxfKeywordEquals(startGroup.c_str(), "ACDSRECORD")) {
+            start = end;
+            continue;
+        }
+
+        bool inId = false;
+        bool hasAsmData = false;
+        std::size_t asmDataLabelCount = 0;
+        bool hasSchemaIndex = false;
+        std::uint32_t schemaIndex = 0;
+        std::size_t ownerCount = 0;
+        std::string owner;
+        bool hasLength = false;
+        std::uint64_t declaredLength = 0;
+        std::vector<std::uint8_t> payload;
+        for (std::size_t index = start + 1u; index < end; ++index) {
+            const DRW_Variant& group = groups[index];
+            if (!hasSchemaIndex && group.code() == 90) {
+                if (group.type() != DRW_Variant::INTEGER
+                    || group.i_val() < 0) {
+                    return false;
+                }
+                schemaIndex = static_cast<std::uint32_t>(group.i_val());
+                hasSchemaIndex = true;
+            } else if (group.code() == 2) {
+                if (group.type() != DRW_Variant::STRING
+                    || group.c_str() == nullptr) {
+                    inId = false;
+                    continue;
+                }
+                inId = dxfKeywordEquals(group.c_str(), "AcDbDs::ID");
+                if (dxfKeywordEquals(group.c_str(), "ASM_Data")) {
+                    hasAsmData = true;
+                    ++asmDataLabelCount;
+                }
+            } else if (inId && group.code() == 320) {
+                ++ownerCount;
+                if (group.type() == DRW_Variant::STRING
+                    && group.c_str() != nullptr)
+                    owner = group.c_str();
+            } else if (hasAsmData && group.code() == 94) {
+                if (hasLength || group.type() != DRW_Variant::INTEGER
+                    || group.i_val() < 0)
+                    return false;
+                declaredLength = static_cast<std::uint64_t>(group.i_val());
+                hasLength = true;
+            } else if (hasAsmData && group.code() == 310) {
+                if (group.type() != DRW_Variant::STRING
+                    || group.c_str() == nullptr)
+                    return false;
+                const std::string hex = group.c_str();
+                if ((hex.size() & 1u) != 0u)
+                    return false;
+                for (std::size_t offset = 0; offset < hex.size(); offset += 2u) {
+                    const auto digit = [](unsigned char value) -> int {
+                        if (value >= '0' && value <= '9')
+                            return value - '0';
+                        if (value >= 'A' && value <= 'F')
+                            return value - 'A' + 10;
+                        if (value >= 'a' && value <= 'f')
+                            return value - 'a' + 10;
+                        return -1;
+                    };
+                    const int high = digit(
+                        static_cast<unsigned char>(hex[offset]));
+                    const int low = digit(
+                        static_cast<unsigned char>(hex[offset + 1u]));
+                    if (high < 0 || low < 0
+                        || payload.size()
+                               >= DRW_DataStorageConst::PAYLOAD_BLOB_SECTION_CAP)
+                        return false;
+                    payload.push_back(static_cast<std::uint8_t>(
+                        (static_cast<unsigned int>(high) << 4u)
+                        | static_cast<unsigned int>(low)));
+                }
+            }
+        }
+        if (hasAsmData) {
+            if (asmDataLabelCount != 1u || !hasSchemaIndex
+                || schemaIndex != 1u || ownerCount != 1u
+                || owner.empty() || !asmOwnerKeys.insert(owner).second
+                || !hasLength
+                || declaredLength != payload.size()
+                || declaredLength > DRW_DataStorageConst::PAYLOAD_BLOB_SECTION_CAP
+                || payload.empty() || !hasSabBinaryFileSignature(payload)) {
+                return false;
+            }
+            if (owner == entity.dataStorageHandleKey) {
+                if (matchedEntityRecord
+                    || declaredLength != entity.dataStorageData.size()
+                    || payload != entity.dataStorageData) {
+                    return false;
+                }
+                matchedEntityRecord = true;
+            }
+        }
+        start = end;
+    }
+    return matchedEntityRecord;
+}
+
 void writeDxfTextChunks(dxfWriter *writer, const std::vector<std::uint8_t>& data) {
     const std::string text(data.begin(), data.end());
     constexpr std::size_t kChunkSize = 255;
@@ -839,6 +1241,91 @@ void writeDxfTextChunks(dxfWriter *writer, const std::vector<std::uint8_t>& data
         const std::size_t n = std::min(kChunkSize, text.size() - off);
         writer->writeString(off == 0 ? 1 : 3, text.substr(off, n));
     }
+}
+
+bool writeDxfSatTextValue(dxfWriter *writer, int groupCode,
+                          const std::uint8_t *data, std::size_t size,
+                          bool encryptSatV1 = false) {
+    if (writer == nullptr || (groupCode != 1 && groupCode != 3)
+        || (data == nullptr && size != 0))
+        return false;
+    constexpr std::size_t kChunkSize = 255;
+    std::string chunk;
+    chunk.reserve(kChunkSize);
+    int nextGroupCode = groupCode;
+    const auto flush = [&]() {
+        if (chunk.empty())
+            return true;
+        const bool written = writer->writeString(nextGroupCode, chunk);
+        nextGroupCode = 3;
+        chunk.clear();
+        return written;
+    };
+    for (std::size_t i = 0; i < size; ++i) {
+        std::uint8_t value = data[i];
+        if (value == '\r' || value == '\n' || value == '\0'
+            || value > 0x7Eu)
+            return false;
+        // ODA §20.4.41's SAT v1 transform is involutive. DWG parsing keeps
+        // decoded SAT; the DXF text carrier requires the encoded byte again.
+        if (encryptSatV1 && value > 0x20u)
+            value = static_cast<std::uint8_t>(0x9Fu - value);
+        if (value == '^') {
+            if (chunk.size() + 2u > kChunkSize && !flush())
+                return false;
+            chunk += "^ ";
+        } else {
+            if (chunk.size() + 1u > kChunkSize && !flush())
+                return false;
+            chunk.push_back(static_cast<char>(value));
+        }
+    }
+    return flush();
+}
+
+bool writeDxfSatV1Text(dxfWriter *writer,
+                       const std::vector<std::uint8_t>& data) {
+    if (data.empty())
+        return false;
+    std::size_t lineStart = 0;
+    bool wroteLine = false;
+    while (lineStart < data.size()) {
+        std::size_t lineEnd = lineStart;
+        while (lineEnd < data.size() && data[lineEnd] != '\n')
+            ++lineEnd;
+        std::size_t contentEnd = lineEnd;
+        if (contentEnd > lineStart && data[contentEnd - 1] == '\r')
+            --contentEnd;
+        if (contentEnd > lineStart) {
+            if (!writeDxfSatTextValue(writer, 1, data.data() + lineStart,
+                                      contentEnd - lineStart, true))
+                return false;
+            wroteLine = true;
+        }
+        if (lineEnd == data.size())
+            break;
+        lineStart = lineEnd + 1;
+    }
+    return wroteLine;
+}
+
+bool writeDxfSatTextPayloadChunks(
+    dxfWriter *writer, const std::vector<std::uint8_t>& data,
+    const std::vector<DRW_ModelerPayloadChunk>& chunks) {
+    if (!hasDxfTextPayloadChunks(data, chunks))
+        return false;
+    if (chunks.empty()) {
+        writeDxfTextChunks(writer, data);
+        return !writer->hasWriteError();
+    }
+    for (const DRW_ModelerPayloadChunk& chunk : chunks) {
+        const std::uint8_t *chunkData = chunk.m_length == 0
+            ? nullptr : data.data() + chunk.m_offset;
+        if (!writeDxfSatTextValue(writer, chunk.m_groupCode,
+                                  chunkData, chunk.m_length))
+            return false;
+    }
+    return true;
 }
 
 void writeDxfBinaryChunks(dxfWriter *writer, const std::vector<std::uint8_t>& data) {
@@ -1123,6 +1610,14 @@ private:
                 break;
             case DxfWriteMutationKind::AmbiguousSourceHandleInsert:
                 m_owner.m_writingContext.ambiguousSourceHandles.erase(
+                    mutation.handle);
+                break;
+            case DxfWriteMutationKind::WrittenSourceEntityHandleInsert:
+                m_owner.m_writingContext.writtenSourceEntityHandles.erase(
+                    mutation.handle);
+                break;
+            case DxfWriteMutationKind::ModelerSourceHandleInsert:
+                m_owner.m_writingContext.modelerSourceHandleToMintedMap.erase(
                     mutation.handle);
                 break;
             case DxfWriteMutationKind::ImageReactorInsert:
@@ -1554,6 +2049,8 @@ void dxfRW::resetDxfWriteSession() {
     writingBlock = false;
     currHandle = DRW::NoHandle;
     m_writingContext.sourceHandleToMintedMap.clear();
+    m_writingContext.modelerSourceHandleToMintedMap.clear();
+    m_writingContext.writtenSourceEntityHandles.clear();
     m_writingContext.ambiguousSourceHandles.clear();
     m_dxfClassesFrozen = false;
 }
@@ -1969,6 +2466,8 @@ bool dxfRW::validateHatchPayload(const DRW_Hatch *ent) const {
             || polygon->fillColorAci > std::numeric_limits<std::uint16_t>::max()
             || polygon->fillColorRgb < -1
             || polygon->fillColorRgb > 0xFFFFFF
+            || (polygon->annotatedBoundary != 0
+                && polygon->annotatedBoundary != 1)
             || polygon->degenerateLoops < 0
             || !isSafeDxfRecordText(polygon->fillColorName))
             return false;
@@ -2002,6 +2501,40 @@ bool dxfRW::writeEntity(DRW_Entity *ent, bool captureSourceHandle,
     // RS_Entity::sourceHandle() (getEntityAttributes). A unique source may
     // already have a planned handle so BLOCK_RECORD {BLKREFS} can refer to it.
     const std::uint32_t sourceHandle = ent->handle;
+    const bool isModelerEntity =
+        dynamic_cast<DRW_ModelerGeometry *>(ent) != nullptr;
+    if (captureSourceHandle && sourceHandle != 0) {
+        const bool alreadyWritten =
+            m_writingContext.writtenSourceEntityHandles.count(sourceHandle)
+            != 0;
+        if (alreadyWritten
+            && (isModelerEntity
+                || m_writingContext.modelerSourceHandleToMintedMap.count(
+                       sourceHandle) != 0)) {
+            // A code-320 key cannot disambiguate two emitted entities, even
+            // if source-handle planning reused the same output handle.
+            return failDxfWrite();
+        }
+        if (!alreadyWritten) {
+            const std::size_t mutationCheckpoint =
+                m_dxfWriteMutations.size();
+            if (m_recordStateScopeDepth != 0) {
+                m_dxfWriteMutations.push_back({
+                    DxfWriteMutationKind::WrittenSourceEntityHandleInsert,
+                    {}, sourceHandle, 0, false});
+            }
+            try {
+                const auto inserted =
+                    m_writingContext.writtenSourceEntityHandles.insert(
+                        sourceHandle);
+                if (!inserted.second)
+                    m_dxfWriteMutations.resize(mutationCheckpoint);
+            } catch (...) {
+                m_dxfWriteMutations.resize(mutationCheckpoint);
+                throw;
+            }
+        }
+    }
     std::uint32_t emittedHandle = 0;
     if (captureSourceHandle && sourceHandle != 0
         && m_writingContext.ambiguousSourceHandles.count(sourceHandle) == 0) {
@@ -2065,6 +2598,39 @@ bool dxfRW::writeEntity(DRW_Entity *ent, bool captureSourceHandle,
         } catch (...) {
             m_dxfWriteMutations.resize(mutationCheckpoint);
             throw;
+        }
+
+        if (isModelerEntity) {
+            const auto source =
+                m_writingContext.sourceHandleToMintedMap.find(sourceHandle);
+            if (source == m_writingContext.sourceHandleToMintedMap.end()
+                || source->second != ent->handle) {
+                return failDxfWrite();
+            }
+            const auto modeler =
+                m_writingContext.modelerSourceHandleToMintedMap.find(
+                    sourceHandle);
+            if (modeler !=
+                m_writingContext.modelerSourceHandleToMintedMap.end()) {
+                return failDxfWrite();
+            }
+            const std::size_t modelerMutationCheckpoint =
+                m_dxfWriteMutations.size();
+            if (m_recordStateScopeDepth != 0) {
+                m_dxfWriteMutations.push_back({
+                    DxfWriteMutationKind::ModelerSourceHandleInsert, {},
+                    sourceHandle, ent->handle, false});
+            }
+            try {
+                const auto inserted =
+                    m_writingContext.modelerSourceHandleToMintedMap.emplace(
+                        sourceHandle, ent->handle);
+                if (!inserted.second)
+                    m_dxfWriteMutations.resize(modelerMutationCheckpoint);
+            } catch (...) {
+                m_dxfWriteMutations.resize(modelerMutationCheckpoint);
+                throw;
+            }
         }
     }
     writer->writeString(5, toHexStr(ent->handle));
@@ -2186,8 +2752,7 @@ bool dxfRW::writeSequenceEnd(std::uint32_t ownerHandle) {
     }
     if (version > DRW::AC1009
         && (!writer->writeString(100, "AcDbEntity")
-            || !writer->writeString(8, "0")
-            || !writer->writeString(100, "AcDbSequenceEnd"))) {
+            || !writer->writeString(8, "0"))) {
         m_writeError = true;
         return false;
     }
@@ -2306,10 +2871,28 @@ bool dxfRW::writeAppData(const std::list<std::list<DRW_Variant>>& appData) {
 
             bool written = false;
             switch (data.type()) {
-            case DRW_Variant::STRING:
-                written = data.content.s != nullptr
-                    && writer->writeString(data.code(), *data.content.s);
+            case DRW_Variant::STRING: {
+                if (data.content.s == nullptr) {
+                    m_writeError = true;
+                    return false;
+                }
+                std::string value = *data.content.s;
+                if (isDxfHandleReferenceCode(data.code())) {
+                    std::uint64_t parsed = 0;
+                    const char* begin = value.data();
+                    const char* end = begin + value.size();
+                    const auto result = std::from_chars(begin, end, parsed, 16);
+                    if (result.ec == std::errc{} && result.ptr == end
+                        && parsed <= std::numeric_limits<std::uint32_t>::max()) {
+                        const std::uint32_t remapped = remapObjectHandle(
+                            static_cast<std::uint32_t>(parsed));
+                        if (remapped != parsed)
+                            value = toHexStr(remapped);
+                    }
+                }
+                written = writer->writeString(data.code(), value);
                 break;
+            }
             case DRW_Variant::INTEGER:
                 written = writer->writeInt32(data.code(), data.content.i);
                 break;
@@ -2379,7 +2962,8 @@ bool dxfRW::writeTableEntryAppData(const DRW_TableEntry& entry) {
             return false;
         }
         for (const std::uint32_t reactor : entry.reactorHandles) {
-            if (!writer->writeString(330, toHexStr(reactor))) {
+            if (!writer->writeString(330,
+                                     toHexStr(remapObjectHandle(reactor)))) {
                 m_writeError = true;
                 return false;
             }
@@ -2391,7 +2975,8 @@ bool dxfRW::writeTableEntryAppData(const DRW_TableEntry& entry) {
     }
     if (entry.xDictHandle != 0 && !hasAppGroup("ACAD_XDICTIONARY")) {
         if (!writer->writeString(102, "{ACAD_XDICTIONARY")
-            || !writer->writeString(360, toHexStr(entry.xDictHandle))
+            || !writer->writeString(
+                360, toHexStr(remapObjectHandle(entry.xDictHandle)))
             || !writer->writeString(102, "}")) {
             m_writeError = true;
             return false;
@@ -2415,11 +3000,24 @@ bool dxfRW::writeLineType(DRW_LType *ent){
               });
     //do not write linetypes handled by library
     if (strname == "BYLAYER" || strname == "BYBLOCK" || strname == "CONTINUOUS") {
-        // These mandatory records are emitted before the interface callback.
-        // Replaying application data here would otherwise report success while
-        // silently dropping the payload.
-        if (!ent->appData.empty() || !ent->extData.empty()
-            || !ent->reactorHandles.empty() || ent->xDictHandle != 0) {
+        const auto cached = std::find_if(
+            m_canonicalLineTypeMetadata.cbegin(),
+            m_canonicalLineTypeMetadata.cend(),
+            [&strname](const DRW_LType& candidate) {
+                return dxfSymbolNameKey(candidate.name) == strname;
+            });
+        const bool hasMetadata = !ent->appData.empty() || !ent->extData.empty()
+            || !ent->reactorHandles.empty() || ent->xDictHandle != 0;
+        if (hasMetadata && cached == m_canonicalLineTypeMetadata.cend()) {
+            m_writeError = true;
+            return false;
+        }
+        if (cached != m_canonicalLineTypeMetadata.cend()
+            && (cached->handle != ent->handle
+                || cached->xDictHandle != ent->xDictHandle
+                || cached->reactorHandles != ent->reactorHandles
+                || cached->appData.size() != ent->appData.size()
+                || cached->extData.size() != ent->extData.size())) {
             m_writeError = true;
             return false;
         }
@@ -2447,6 +3045,11 @@ bool dxfRW::writeLineType(DRW_LType *ent){
     std::uint32_t allocatedHandle = 0;
     if (version > DRW::AC1009 && !allocateDxfHandle(allocatedHandle))
         return false;
+    if (ent->handle != 0
+        && !bindSourceEntityHandle(ent->handle, allocatedHandle)) {
+        m_writeError = true;
+        return false;
+    }
     write(writer->writeString(0, "LTYPE"));
     if (version > DRW::AC1009) {
         write(writer->writeString(5, toHexStr(allocatedHandle)));
@@ -2776,6 +3379,11 @@ bool dxfRW::writeVport(DRW_Vport *ent){
 bool dxfRW::writeDimstyle(DRW_Dimstyle *ent){
     if (!preflightTableEntry(ent))
         return false;
+    if (version > DRW::AC1018
+        && ent->dimfxlon != 0 && ent->dimfxlon != 1) {
+        m_writeError = true;
+        return false;
+    }
 
     // Validate dynamic DIMSTYLE overrides before the record prefix is
     // emitted.  Unknown codes are rejected rather than silently dropped;
@@ -2800,6 +3408,11 @@ bool dxfRW::writeDimstyle(DRW_Dimstyle *ent){
                 && value->content.s == nullptr)
             || (value->type() == DRW_Variant::DOUBLE
                 && !std::isfinite(value->content.d))) {
+            m_writeError = true;
+            return false;
+        }
+        if (dxfDimstyleVariableIsBoolean(value->code())
+            && value->i_val() != 0 && value->i_val() != 1) {
             m_writeError = true;
             return false;
         }
@@ -2936,8 +3549,9 @@ bool dxfRW::writeDimstyle(DRW_Dimstyle *ent){
     if (version > DRW::AC1014) {
         wI(289, ent->dimatfit);
     }
-    if ( version > DRW::AC1018 && ent->dimfxlon !=0 )
-        wI(290, ent->dimfxlon);
+    if (version > DRW::AC1018 && ent->dimfxlon != 0
+        && !dimVarCodes.count(290))
+        writer->writeBool(290, ent->dimfxlon != 0);
     if (version > DRW::AC1009) {
         const std::string txstyname = dxfSymbolNameKey(ent->dimtxsty);
         if (!dimVarCodes.count(340) && textStyleMap.count(txstyname) > 0) {
@@ -2971,7 +3585,12 @@ bool dxfRW::writeDimstyle(DRW_Dimstyle *ent){
             continue;
         switch (v->type()) {
             case DRW_Variant::STRING:  writer->writeUtf8String(v->code(), v->c_str()); break;
-            case DRW_Variant::INTEGER: writer->writeInt16(v->code(), v->i_val()); break;
+            case DRW_Variant::INTEGER:
+                if (dxfDimstyleVariableIsBoolean(v->code()))
+                    writer->writeBool(v->code(), v->i_val() != 0);
+                else
+                    writer->writeInt16(v->code(), v->i_val());
+                break;
             case DRW_Variant::INTEGER64: writer->writeInt64(v->code(), v->i64_val()); break;
             case DRW_Variant::DOUBLE:  writer->writeDouble(v->code(), v->d_val()); break;
             default: break;
@@ -3206,6 +3825,15 @@ std::uint32_t dxfRW::remapEntityHandle(std::uint32_t sourceHandle) const {
     const auto it = m_writingContext.sourceHandleToMintedMap.find(sourceHandle);
     return it == m_writingContext.sourceHandleToMintedMap.end()
         ? sourceHandle : it->second;
+}
+
+std::uint32_t dxfRW::remapObjectHandle(std::uint32_t handle) const noexcept {
+    const auto structural = m_handleRemap.find(handle);
+    if (structural != m_handleRemap.end())
+        return structural->second;
+    const auto source = m_writingContext.sourceHandleToMintedMap.find(handle);
+    return source == m_writingContext.sourceHandleToMintedMap.end()
+        ? handle : source->second;
 }
 
 bool dxfRW::writePoint(DRW_Point *ent) {
@@ -3475,6 +4103,8 @@ bool dxfRW::writeEllipse(DRW_Ellipse *ent){
         DRW_Polyline pol;
         //RLZ: copy properties
         normalized.toPolyline(&pol, elParts);
+        if (pol.vertlist.empty())
+            return rejectUnsupportedDxfWrite();
         return writePolyline(&pol);
     }
     return !writer->hasWriteError();
@@ -3551,6 +4181,11 @@ bool dxfRW::writeSolid(DRW_Solid *ent){
 bool dxfRW::write3dface(DRW_3Dface *ent){
     if (!preflightEntity(ent))
         return false;
+    if (ent->invisibleflag < DRW_3Dface::NoEdge
+        || ent->invisibleflag > DRW_3Dface::AllEdges) {
+        m_writeError = true;
+        return false;
+    }
     EntityRecordScope scope(*this, ent);
     writer->writeString(0, "3DFACE");
     if (!writeEntity(ent))
@@ -3659,7 +4294,7 @@ bool dxfRW::writePolyline(DRW_Polyline *ent) {
     if (ent->defendwidth != 0) {
         writer->writeDouble(41, ent->defendwidth);
     }
-    if (ent->flags & 16 || ent->flags & 32) {
+    if (ent->flags & 16 || ent->flags & 32 || ent->flags & 64) {
         writer->writeInt16(71, ent->vertexcount);
         writer->writeInt16(72, ent->facecount);
     }
@@ -3673,7 +4308,14 @@ bool dxfRW::writePolyline(DRW_Polyline *ent) {
         writer->writeInt16(75, ent->curvetype);
     }
     DRW_Coord crd  = ent->extPoint;
-    if (crd.x != 0 || crd.y != 0 || crd.z != 1) {
+    // Classic 3D polylines, polygon meshes, and polyface meshes use WCS
+    // vertices; Autodesk's OCS rules do not define them as extrudable. DWG
+    // readers leave this unused field zero-initialized, which must not become
+    // an explicit zero-length DXF extrusion vector. Preserve extrusion only
+    // for the planar OCS polyline form.
+    constexpr int wcsPolylineFlags = 8 | 16 | 64;
+    const bool usesWcsVertices = (ent->flags & wcsPolylineFlags) != 0;
+    if (!usesWcsVertices && (crd.x != 0 || crd.y != 0 || crd.z != 1)) {
         writer->writeDouble(210, crd.x);
         writer->writeDouble(220, crd.y);
         writer->writeDouble(230, crd.z);
@@ -3684,6 +4326,12 @@ bool dxfRW::writePolyline(DRW_Polyline *ent) {
     const std::uint32_t parentHandle = ent->handle;
     for (const auto& vertex : ent->vertlist) {
         DRW_Vertex *v = vertex.get();
+        const bool polyfaceFace = (ent->flags & 64)
+            && (v->dwgSubtype() == DRW_Vertex::DwgSubtype::PolyfaceFace
+                || ((v->flags & 128) != 0 && (v->flags & 64) == 0));
+        // DWG VERTEX_PFACE_FACE has four indices but no flags field. The
+        // public typed subtype must supply DXF's required face-record bit.
+        const int dxfVertexFlags = polyfaceFace ? 128 : v->flags;
         writer->writeString(0, "VERTEX");
         if (!writeEntity(v, /*captureSourceHandle=*/true, parentHandle))
             return false;
@@ -3692,14 +4340,14 @@ bool dxfRW::writePolyline(DRW_Polyline *ent) {
             // AcDbVertex (a face record uses ONLY AcDbFaceRecord). Mirrors
             // ezdxf polyline.py vertex classification; without it AutoCAD/ezdxf
             // mis-type 3D/mesh/polyface vertices.
-            if ((v->flags & 128) && (v->flags & 64)) {
+            if (polyfaceFace) {
                 writer->writeString(100, "AcDbFaceRecord");
             } else {
                 writer->writeString(100, "AcDbVertex");
-                if (v->flags & 128)
+                if (dxfVertexFlags & 128)
                     writer->writeString(100, "AcDbPolyFaceMeshVertex");
                 else if (ent->flags & 16)
-                    writer->writeString(100, "AcDbPolyFaceMeshVertex");
+                    writer->writeString(100, "AcDbPolygonMeshVertex");
                 else if (ent->flags & 32)
                     writer->writeString(100, "AcDbPolygonMeshVertex");
                 else if (ent->flags & 8)
@@ -3708,14 +4356,22 @@ bool dxfRW::writePolyline(DRW_Polyline *ent) {
                     writer->writeString(100, "AcDb2dVertex");
             }
         }
-        if ( (v->flags & 128) && !(v->flags & 64) ) {
+        if (polyfaceFace) {
             writer->writeDouble(10, 0);
             writer->writeDouble(20, 0);
             writer->writeDouble(30, 0);
         } else {
             writer->writeDouble(10, v->basePoint.x);
             writer->writeDouble(20, v->basePoint.y);
-            writer->writeDouble(30, v->basePoint.z);
+            // The DWG reader folds a 2D POLYLINE's parent elevation into each
+            // typed Vertex2D for the public model. In DXF the parent POLYLINE
+            // owns that elevation; 2D VERTEX coordinates remain at OCS z=0.
+            // See ODA DWG spec §20.4.11/§20.4.16 and avoid duplicating it.
+            const double vertexZ =
+                v->dwgSubtype() == DRW_Vertex::DwgSubtype::Vertex2D
+                    ? 0.0
+                    : v->basePoint.z;
+            writer->writeDouble(30, vertexZ);
         }
         if (v->stawidth != 0)
             writer->writeDouble(40, v->stawidth);
@@ -3723,13 +4379,13 @@ bool dxfRW::writePolyline(DRW_Polyline *ent) {
             writer->writeDouble(41, v->endwidth);
         if (v->bulge != 0)
             writer->writeDouble(42, v->bulge);
-        if (v->flags != 0) {
-            writer->writeInt16(70, v->flags);
+        if (dxfVertexFlags != 0) {
+            writer->writeInt16(70, dxfVertexFlags);
         }
-        if (v->flags & 2) {
+        if (dxfVertexFlags & 2) {
             writer->writeDouble(50, v->tgdir);
         }
-        if ( v->flags & 128 ) {
+        if (dxfVertexFlags & 128) {
             if (v->vindex1 != 0) {
                 writer->writeInt16(71, v->vindex1);
             }
@@ -3742,7 +4398,7 @@ bool dxfRW::writePolyline(DRW_Polyline *ent) {
             if (v->vindex4 != 0) {
                 writer->writeInt16(74, v->vindex4);
             }
-            if ( !(v->flags & 64) ) {
+            if (!(ent->flags & 64)) {
                 writer->writeInt32(91, v->identifier);
             }
         }
@@ -3760,13 +4416,13 @@ bool dxfRW::writePolyline(DRW_Polyline *ent) {
 bool dxfRW::writeSpline(DRW_Spline *ent){
     if (version > DRW::AC1009) {
         if (writer == nullptr || ent == nullptr
-            || !ent->validatePayloadFields(/*allowMixedLists=*/true)
+            || !ent->validateDxf()
             || ent->knotslist.size()
-                   > static_cast<std::size_t>(std::numeric_limits<std::uint16_t>::max())
+                   > static_cast<std::size_t>(std::numeric_limits<std::int16_t>::max())
             || ent->controllist.size()
-                   > static_cast<std::size_t>(std::numeric_limits<std::uint16_t>::max())
+                   > static_cast<std::size_t>(std::numeric_limits<std::int16_t>::max())
             || ent->fitlist.size()
-                   > static_cast<std::size_t>(std::numeric_limits<std::uint16_t>::max())) {
+                   > static_cast<std::size_t>(std::numeric_limits<std::int16_t>::max())) {
             m_writeError = true;
             return false;
         }
@@ -3790,13 +4446,13 @@ bool dxfRW::writeHelix(DRW_Helix *ent){
         return rejectUnsupportedDxfWrite();
     if (version > DRW::AC1009) {
         if (writer == nullptr || ent == nullptr
-            || !ent->validatePayloadFields(/*allowMixedLists=*/true)
+            || !ent->validateDxf()
             || ent->knotslist.size()
-                   > static_cast<std::size_t>(std::numeric_limits<std::uint16_t>::max())
+                   > static_cast<std::size_t>(std::numeric_limits<std::int16_t>::max())
             || ent->controllist.size()
-                   > static_cast<std::size_t>(std::numeric_limits<std::uint16_t>::max())
+                   > static_cast<std::size_t>(std::numeric_limits<std::int16_t>::max())
             || ent->fitlist.size()
-                   > static_cast<std::size_t>(std::numeric_limits<std::uint16_t>::max())
+                   > static_cast<std::size_t>(std::numeric_limits<std::int16_t>::max())
             || !std::isfinite(ent->axisBasePt.x)
             || !std::isfinite(ent->axisBasePt.y)
             || !std::isfinite(ent->axisBasePt.z)
@@ -3808,7 +4464,8 @@ bool dxfRW::writeHelix(DRW_Helix *ent){
             || !std::isfinite(ent->axisVector.z)
             || !std::isfinite(ent->radius)
             || !std::isfinite(ent->turns)
-            || !std::isfinite(ent->turnHeight)) {
+            || !std::isfinite(ent->turnHeight)
+            || ent->constraintType > 2) {
             m_writeError = true;
             return false;
         }
@@ -4188,6 +4845,8 @@ bool dxfRW::writeMPolygon(DRW_MPolygon *ent){
             writer->writeDouble(41, ent->scale);
             writer->writeInt16(77, ent->doubleflag);
         }
+        if (ent->annotatedBoundary != 0)
+            writer->writeInt16(73, ent->annotatedBoundary);
         const int nDefLines = static_cast<int>(ent->patternLines.size());
         writer->writeInt16(78, nDefLines);
         for (const DRW_Hatch::PatternLine &pl : ent->patternLines) {
@@ -4664,8 +5323,8 @@ bool dxfRW::writeInsert(DRW_Insert *ent){
         || !isSafeDxfRecordText(ent->name)
         || ent->colcount <= 0
         || ent->rowcount <= 0
-        || ent->colcount > std::numeric_limits<std::uint16_t>::max()
-        || ent->rowcount > std::numeric_limits<std::uint16_t>::max()
+        || ent->colcount > std::numeric_limits<std::int16_t>::max()
+        || ent->rowcount > std::numeric_limits<std::int16_t>::max()
         || std::any_of(ent->attlist.cbegin(), ent->attlist.cend(),
                        [](const auto& attribute) {
                            return attribute == nullptr
@@ -5842,7 +6501,7 @@ bool dxfRW::writeViewport(DRW_Viewport *ent) {
     if (version > DRW::AC1015)
         writer->writeInt16(170, ent->shadePlotMode);
     if (version > DRW::AC1018) {
-        writer->writeInt16(292, ent->useDefaultLighting ? 1 : 0);
+        writer->writeBool(292, ent->useDefaultLighting);
         writer->writeInt16(282, ent->defaultLightingType);
         writer->writeDouble(141, ent->brightness);
         writer->writeDouble(142, ent->contrast);
@@ -6671,12 +7330,27 @@ bool dxfRW::writeSurface(DRW_Surface *ent){
     }
     if (version <= DRW::AC1018)
         return rejectUnsupportedDxfWrite();
-    if (!preflightEntity(ent))
+    if (!preflightEntity(ent)
+        || ent->modelerFormatVersion < 0
+        || ent->modelerFormatVersion > std::numeric_limits<std::int16_t>::max()
+        || ent->uIsolines < 0
+        || ent->uIsolines > std::numeric_limits<std::int16_t>::max()
+        || ent->vIsolines < 0
+        || ent->vIsolines > std::numeric_limits<std::int16_t>::max())
         return false;
     const auto fail = [this]() {
         m_writeError = true;
         return false;
     };
+    if (ent->hasRawDwgBody || ent->rawDwgBodyBitSize != 0
+        || ent->dwgPayloadDecoded || ent->dwgClassNum != 0
+        || ent->hasDataStorageBinaryData() || ent->hasDataStorageRecord
+        || !ent->dataStorageData.empty()
+        || (!ent->rawAcisData.empty()
+            && (version > DRW::AC1024
+                || !hasDxfTextPayloadChunks(ent->rawAcisData,
+                                            ent->dxfPayloadChunks))))
+        return fail();
     std::string entType;
     const char *subclassType = nullptr;
     switch (ent->eType) {
@@ -6709,12 +7383,8 @@ bool dxfRW::writeSurface(DRW_Surface *ent){
         return false;
     writer->writeString(100, "AcDbEntity");
     writer->writeString(100, "AcDbModelerGeometry");
-    if (!ent->rawAcisData.empty()) {
-        if (isTextAcisPayload(ent->rawAcisData))
-            writeDxfTextChunks(writer.get(), ent->rawAcisData);
-        else
-            writeDxfBinaryChunks(writer.get(), ent->rawAcisData);
-    }
+    if (!ent->rawAcisData.empty())
+        writeDxfTextChunks(writer.get(), ent->rawAcisData);
     writer->writeInt16(70, ent->modelerFormatVersion);
     writer->writeString(100, "AcDbSurface");
     writer->writeInt16(71, ent->uIsolines);
@@ -6724,8 +7394,10 @@ bool dxfRW::writeSurface(DRW_Surface *ent){
     if (ent->eType == DRW::REVOLVEDSURFACE) {
         const auto *revolved = dynamic_cast<const DRW_RevolvedSurface *>(ent);
         if (revolved == nullptr
-            || revolved->classId >
+            || revolved->id >
                    static_cast<std::uint32_t>(std::numeric_limits<std::int32_t>::max())
+            || revolved->dxfBinaryData.size() >
+                   DRW::kMaxDxfBinaryPayloadBytes
             || !std::isfinite(revolved->axisPoint.x)
             || !std::isfinite(revolved->axisPoint.y)
             || !std::isfinite(revolved->axisPoint.z)
@@ -6742,7 +7414,11 @@ bool dxfRW::writeSurface(DRW_Surface *ent){
                             [](double value) { return std::isfinite(value); })) {
             return fail();
         }
-        writer->writeInt32(90, static_cast<std::int32_t>(revolved->classId));
+        writer->writeInt32(90, static_cast<std::int32_t>(revolved->id));
+        writer->writeInt32(90,
+                           static_cast<std::int32_t>(revolved->dxfBinaryData.size()));
+        if (!revolved->dxfBinaryData.empty())
+            writeDxfBinaryChunks(writer.get(), revolved->dxfBinaryData);
         writer->writeDouble(10, revolved->axisPoint.x);
         writer->writeDouble(20, revolved->axisPoint.y);
         writer->writeDouble(30, revolved->axisPoint.z);
@@ -6757,25 +7433,28 @@ bool dxfRW::writeSurface(DRW_Surface *ent){
         writer->writeDouble(44, revolved->draftStartDistance);
         writer->writeDouble(45, revolved->draftEndDistance);
         writer->writeDouble(46, revolved->twistAngle);
-        writer->writeInt16(290, revolved->solid ? 1 : 0);
-        writer->writeInt16(291, revolved->closeToAxis ? 1 : 0);
+        writer->writeBool(290, revolved->solid);
+        writer->writeBool(291, revolved->closeToAxis);
     } else if (ent->eType == DRW::EXTRUDEDSURFACE) {
         const auto *extruded = dynamic_cast<const DRW_ExtrudedSurface *>(ent);
         const auto finiteCoord = [](const DRW_Coord& value) {
             return std::isfinite(value.x) && std::isfinite(value.y)
                 && std::isfinite(value.z);
         };
-        const auto validFlags = [](std::int32_t value) {
+        const auto validPathFlags = [](std::int32_t value) {
             return value >= 0 && value <=
-                static_cast<std::int32_t>(std::numeric_limits<std::uint16_t>::max());
+                static_cast<std::int32_t>(std::numeric_limits<std::int16_t>::max());
         };
         if (extruded == nullptr
             || extruded->classId >
                    static_cast<std::uint32_t>(std::numeric_limits<std::int32_t>::max())
+            || extruded->dxfBinaryData.size() >
+                   DRW::kMaxDxfBinaryPayloadBytes
             || !finiteCoord(extruded->sweepVector)
             || !finiteCoord(extruded->referenceVector)
-            || !validFlags(extruded->sweepAlignmentFlags)
-            || !validFlags(extruded->pathFlags)
+            || extruded->sweepAlignmentFlags < 0
+            || extruded->sweepAlignmentFlags > 3
+            || !validPathFlags(extruded->pathFlags)
             || !std::all_of(extruded->extrudedTransform.begin(),
                             extruded->extrudedTransform.end(),
                             [](double value) { return std::isfinite(value); })
@@ -6794,6 +7473,10 @@ bool dxfRW::writeSurface(DRW_Surface *ent){
             return fail();
         }
         writer->writeInt32(90, static_cast<std::int32_t>(extruded->classId));
+        writer->writeInt32(90,
+                           static_cast<std::int32_t>(extruded->dxfBinaryData.size()));
+        if (!extruded->dxfBinaryData.empty())
+            writeDxfBinaryChunks(writer.get(), extruded->dxfBinaryData);
         writer->writeDouble(10, extruded->sweepVector.x);
         writer->writeDouble(20, extruded->sweepVector.y);
         writer->writeDouble(30, extruded->sweepVector.z);
@@ -6809,14 +7492,14 @@ bool dxfRW::writeSurface(DRW_Surface *ent){
             writer->writeDouble(46, value);
         for (double value : extruded->pathEntityTransform)
             writer->writeDouble(47, value);
-        writer->writeInt16(290, extruded->solid ? 1 : 0);
+        writer->writeBool(290, extruded->solid);
         writer->writeInt16(70, extruded->sweepAlignmentFlags);
         writer->writeInt16(71, extruded->pathFlags);
-        writer->writeInt16(292, extruded->alignStart ? 1 : 0);
-        writer->writeInt16(293, extruded->bank ? 1 : 0);
-        writer->writeInt16(294, extruded->basePointSet ? 1 : 0);
-        writer->writeInt16(295, extruded->sweepEntityTransformComputed ? 1 : 0);
-        writer->writeInt16(296, extruded->pathEntityTransformComputed ? 1 : 0);
+        writer->writeBool(292, extruded->alignStart);
+        writer->writeBool(293, extruded->bank);
+        writer->writeBool(294, extruded->basePointSet);
+        writer->writeBool(295, extruded->sweepEntityTransformComputed);
+        writer->writeBool(296, extruded->pathEntityTransformComputed);
         writer->writeDouble(11, extruded->referenceVector.x);
         writer->writeDouble(21, extruded->referenceVector.y);
         writer->writeDouble(31, extruded->referenceVector.z);
@@ -6826,9 +7509,9 @@ bool dxfRW::writeSurface(DRW_Surface *ent){
             return std::isfinite(value.x) && std::isfinite(value.y)
                 && std::isfinite(value.z);
         };
-        const auto validFlags = [](std::int32_t value) {
+        const auto validPathFlags = [](std::int32_t value) {
             return value >= 0 && value <=
-                static_cast<std::int32_t>(std::numeric_limits<std::uint16_t>::max());
+                static_cast<std::int32_t>(std::numeric_limits<std::int16_t>::max());
         };
         const auto finiteMatrix = [](const auto& matrix) {
             return std::all_of(matrix.begin(), matrix.end(),
@@ -6839,11 +7522,12 @@ bool dxfRW::writeSurface(DRW_Surface *ent){
                    static_cast<std::uint32_t>(std::numeric_limits<std::int32_t>::max())
             || swept->pathEntityId >
                    static_cast<std::uint32_t>(std::numeric_limits<std::int32_t>::max())
-            || swept->sweepData.size() > DRW_SweptSurface::kMaxSweepDataSize
-            || swept->pathData.size() > DRW_SweptSurface::kMaxSweepDataSize
+            || swept->sweepData.size() > DRW::kMaxDxfBinaryPayloadBytes
+            || swept->pathData.size() > DRW::kMaxDxfBinaryPayloadBytes
             || !finiteCoord(swept->referenceVector)
-            || !validFlags(swept->sweepAlignmentFlags)
-            || !validFlags(swept->pathFlags)
+            || swept->sweepAlignmentFlags < 0
+            || swept->sweepAlignmentFlags > 3
+            || !validPathFlags(swept->pathFlags)
             || !finiteMatrix(swept->sweepEntityTransformed)
             || !finiteMatrix(swept->pathEntityTransformed)
             || !finiteMatrix(swept->sweepEntityTransform)
@@ -6857,9 +7541,13 @@ bool dxfRW::writeSurface(DRW_Surface *ent){
             return fail();
         }
         writer->writeInt32(90, static_cast<std::int32_t>(swept->sweepEntityId));
+        writer->writeInt32(90,
+                           static_cast<std::int32_t>(swept->sweepData.size()));
         if (!swept->sweepData.empty())
             writeDxfBinaryChunks(writer.get(), swept->sweepData);
-        writer->writeInt32(91, static_cast<std::int32_t>(swept->pathEntityId));
+        writer->writeInt32(90, static_cast<std::int32_t>(swept->pathEntityId));
+        writer->writeInt32(90,
+                           static_cast<std::int32_t>(swept->pathData.size()));
         if (!swept->pathData.empty())
             writeDxfBinaryChunks(writer.get(), swept->pathData);
         for (double value : swept->sweepEntityTransformed)
@@ -6876,14 +7564,14 @@ bool dxfRW::writeSurface(DRW_Surface *ent){
             writer->writeDouble(46, value);
         for (double value : swept->pathEntityTransform)
             writer->writeDouble(47, value);
-        writer->writeInt16(290, swept->solid ? 1 : 0);
+        writer->writeBool(290, swept->solid);
         writer->writeInt16(70, swept->sweepAlignmentFlags);
         writer->writeInt16(71, swept->pathFlags);
-        writer->writeInt16(292, swept->alignStart ? 1 : 0);
-        writer->writeInt16(293, swept->bank ? 1 : 0);
-        writer->writeInt16(294, swept->basePointSet ? 1 : 0);
-        writer->writeInt16(295, swept->sweepEntityTransformComputed ? 1 : 0);
-        writer->writeInt16(296, swept->pathEntityTransformComputed ? 1 : 0);
+        writer->writeBool(292, swept->alignStart);
+        writer->writeBool(293, swept->bank);
+        writer->writeBool(294, swept->basePointSet);
+        writer->writeBool(295, swept->sweepEntityTransformComputed);
+        writer->writeBool(296, swept->pathEntityTransformComputed);
         writer->writeDouble(11, swept->referenceVector.x);
         writer->writeDouble(21, swept->referenceVector.y);
         writer->writeDouble(31, swept->referenceVector.z);
@@ -6900,6 +7588,9 @@ bool dxfRW::writeSurface(DRW_Surface *ent){
                    static_cast<std::int32_t>(DRW_LoftedSurface::kMaxReferenceTokenCount)
             || lofted->numGuideCurves >
                    static_cast<std::int32_t>(DRW_LoftedSurface::kMaxReferenceTokenCount)
+            || lofted->planeNormalLoftingType < 0
+            || lofted->planeNormalLoftingType >
+                   std::numeric_limits<std::int16_t>::max()
             || lofted->dxfReferenceData.size() >
                    DRW_LoftedSurface::kMaxReferenceTokenCount
             || !finiteMatrix(lofted->loftEntityTransform)
@@ -6939,19 +7630,19 @@ bool dxfRW::writeSurface(DRW_Surface *ent){
             else
                 writeDxfBinaryChunks(writer.get(), *value.binary());
         }
-        writer->writeInt32(70, lofted->planeNormalLoftingType);
+        writer->writeInt16(70, lofted->planeNormalLoftingType);
         writer->writeDouble(41, lofted->startDraftAngle);
         writer->writeDouble(42, lofted->endDraftAngle);
         writer->writeDouble(43, lofted->startDraftMagnitude);
         writer->writeDouble(44, lofted->endDraftMagnitude);
-        writer->writeInt16(290, lofted->arcLengthParameterization ? 1 : 0);
-        writer->writeInt16(291, lofted->noTwist ? 1 : 0);
-        writer->writeInt16(292, lofted->alignDirection ? 1 : 0);
-        writer->writeInt16(293, lofted->simpleSurfaces ? 1 : 0);
-        writer->writeInt16(294, lofted->closedSurfaces ? 1 : 0);
-        writer->writeInt16(295, lofted->solid ? 1 : 0);
-        writer->writeInt16(296, lofted->ruledSurface ? 1 : 0);
-        writer->writeInt16(297, lofted->virtualGuide ? 1 : 0);
+        writer->writeBool(290, lofted->arcLengthParameterization);
+        writer->writeBool(291, lofted->noTwist);
+        writer->writeBool(292, lofted->alignDirection);
+        writer->writeBool(293, lofted->simpleSurfaces);
+        writer->writeBool(294, lofted->closedSurfaces);
+        writer->writeBool(295, lofted->solid);
+        writer->writeBool(296, lofted->ruledSurface);
+        writer->writeBool(297, lofted->virtualGuide);
         if (lofted->pathCurveHandle != 0)
             writer->writeString(5, toHexStr(lofted->pathCurveHandle));
     } else if (ent->eType == DRW::NURBSURFACE) {
@@ -6961,13 +7652,15 @@ bool dxfRW::writeSurface(DRW_Surface *ent){
                 && std::isfinite(value.z);
         };
         if (nurbs == nullptr
+            || nurbs->short170 >
+                   static_cast<std::uint16_t>(std::numeric_limits<std::int16_t>::max())
             || !finiteCoord(nurbs->uvec1) || !finiteCoord(nurbs->vvec1)
             || !finiteCoord(nurbs->uvec2) || !finiteCoord(nurbs->vvec2)) {
             return fail();
         }
         if (version >= DRW::AC1027) {
             writer->writeInt16(170, nurbs->short170);
-            writer->writeInt16(290, nurbs->cvHullDisplay ? 1 : 0);
+            writer->writeBool(290, nurbs->cvHullDisplay);
             writer->writeDouble(10, nurbs->uvec1.x);
             writer->writeDouble(20, nurbs->uvec1.y);
             writer->writeDouble(30, nurbs->uvec1.z);
@@ -6992,6 +7685,61 @@ bool dxfRW::writeModelerGeometry(DRW_ModelerGeometry *ent) {
         return rejectUnsupportedDxfWrite();
     if (!preflightEntity(ent))
         return false;
+    const bool writeAc1027Shell = version >= DRW::AC1027;
+    if ((!writeAc1027Shell
+         && (ent->m_hasDxfModelerFlag || ent->m_hasDxfModelerUid))
+        || (ent->m_hasDxfModelerUid
+            && !isSafeDxfRecordText(ent->m_dxfModelerUid)))
+        return rejectUnsupportedDxfWrite();
+    const bool writeAc1015SatV1 = version == DRW::AC1015
+        && hasQualifiedAc1015SatV1Payload(*ent);
+    const bool writeAc1027Sab = version == DRW::AC1027
+        && hasQualifiedAc1027AcdsRecord(*ent, m_rawDxfSections);
+    DRW_DBG("dxfRW::writeModelerGeometry AC1027 ACDSDATA SAB qualified: ");
+    DRW_DBG(writeAc1027Sab);
+    DRW_DBG("\n");
+    DRW_DBG("dxfRW::writeModelerGeometry AC1015 SAT v1 qualified: ");
+    DRW_DBG(writeAc1015SatV1);
+    DRW_DBG(" payload bytes: ");
+    DRW_DBG(ent->m_dwgAcisPayload.size());
+    DRW_DBG(" modeler version: ");
+    DRW_DBG(ent->m_modelerVersion);
+    DRW_DBG(" empty: ");
+    DRW_DBG(ent->m_isEmpty);
+    DRW_DBG(" has modeler data: ");
+    DRW_DBG(ent->m_hasModelerData);
+    DRW_DBG(" source version: ");
+    DRW_DBG(static_cast<int>(ent->m_dwgSourceVersion));
+    DRW_DBG(" object size: ");
+    DRW_DBG(ent->m_objectSize);
+    DRW_DBG(" retained raw frame bytes: ");
+    DRW_DBG(ent->m_rawBytes.size());
+    DRW_DBG(" ranges: ");
+    DRW_DBG(ent->m_payloadRanges.size());
+    DRW_DBG(" raw bytes: ");
+    DRW_DBG(ent->m_rawBytes.size());
+    DRW_DBG(" dxf chunks: ");
+    DRW_DBG(ent->m_dxfPayloadChunks.size());
+    DRW_DBG(" data-storage record: ");
+    DRW_DBG(ent->hasDataStorageRecord);
+    DRW_DBG(" unknown bit: ");
+    DRW_DBG(ent->m_modelerDataUnknownBit);
+    DRW_DBG("\n");
+    const bool hasUnqualifiedDwgPayload = !writeAc1015SatV1
+        && !writeAc1027Sab
+        && (ent->m_bodyBitSize != 0
+        || ent->m_objectSize != 0 || ent->m_hasModelerData
+        || ent->m_modelerDataUnknownBit || !ent->m_payloadRanges.empty()
+        || !ent->m_dwgAcisPayload.empty()
+        || ent->hasDataStorageBinaryData() || ent->hasDataStorageRecord
+        || !ent->dataStorageData.empty());
+    if (hasUnqualifiedDwgPayload
+        || (!writeAc1015SatV1 && !writeAc1027Sab
+            && !ent->m_rawBytes.empty()
+            && (version > DRW::AC1024
+                || !hasDxfTextPayloadChunks(ent->m_rawBytes,
+                                            ent->m_dxfPayloadChunks))))
+        return rejectUnsupportedDxfWrite();
 
     const char *recordName = modelerGeometryDxfName(ent->eType);
     const char *subclassName = modelerGeometryDxfSubclass(ent->eType);
@@ -7003,15 +7751,25 @@ bool dxfRW::writeModelerGeometry(DRW_ModelerGeometry *ent) {
     if (!writeEntity(ent))
         return false;
     writer->writeString(100, "AcDbModelerGeometry");
+    if (writeAc1027Shell) {
+        if (ent->m_hasDxfModelerFlag)
+            writer->writeBool(290, ent->m_dxfModelerFlag);
+        if (ent->m_hasDxfModelerUid)
+            writer->writeUtf8String(2, ent->m_dxfModelerUid);
+    }
     writer->writeString(100, subclassName);
-    writer->writeInt16(70, ent->m_modelerVersion);
+    if (!writeAc1027Shell)
+        writer->writeInt16(70, ent->m_modelerVersion);
     if (ent->m_historyHandle != 0)
-        writer->writeString(350, toHexStr(ent->m_historyHandle));
-    if (!ent->m_rawBytes.empty()) {
-        if (version <= DRW::AC1018 && isTextAcisPayload(ent->m_rawBytes))
-            writeDxfTextChunks(writer.get(), ent->m_rawBytes);
-        else
-            writeDxfBinaryChunks(writer.get(), ent->m_rawBytes);
+        writer->writeString(350,
+                            toHexStr(remapObjectHandle(ent->m_historyHandle)));
+    if (writeAc1015SatV1) {
+        if (!writeDxfSatV1Text(writer.get(), ent->m_dwgAcisPayload))
+            return failDxfWrite();
+    } else if (!writeAc1027Sab && !ent->m_rawBytes.empty()) {
+        if (!writeDxfSatTextPayloadChunks(writer.get(), ent->m_rawBytes,
+                                          ent->m_dxfPayloadChunks))
+            return failDxfWrite();
     }
     if (!ent->extData.empty() && !writeExtData(ent->extData))
         return false;
@@ -7301,11 +8059,43 @@ bool dxfRW::writeTables() {
     if (!writeEndTable())
         return false;
 /*** LTYPE ***/
+    std::map<std::string, const DRW_LType*> mandatoryLinetypes;
+    const auto mandatoryHandle = [](const std::string& name) {
+        const std::string key = dxfSymbolNameKey(name);
+        if (key == "BYBLOCK")
+            return 0x14u;
+        if (key == "BYLAYER")
+            return 0x15u;
+        if (key == "CONTINUOUS")
+            return 0x16u;
+        return 0u;
+    };
+    for (const DRW_LType& lineType : m_canonicalLineTypeMetadata) {
+        const std::uint32_t fixedHandle = mandatoryHandle(lineType.name);
+        if (fixedHandle == 0)
+            continue;
+        const std::string key = dxfSymbolNameKey(lineType.name);
+        if (!mandatoryLinetypes.emplace(key, &lineType).second
+            || (lineType.handle != 0
+                && !bindSourceEntityHandle(lineType.handle, fixedHandle))) {
+            m_writeError = true;
+            return false;
+        }
+    }
+    const auto writeMandatoryMetadata = [this, &mandatoryLinetypes](
+        const char* name) {
+        const auto found = mandatoryLinetypes.find(name);
+        if (found == mandatoryLinetypes.end())
+            return true;
+        const DRW_LType& lineType = *found->second;
+        return writeTableEntryAppData(lineType)
+            && (lineType.extData.empty() || writeExtData(lineType.extData));
+    };
     writer->writeString(0, "TABLE");
     writer->writeString(2, "LTYPE");
     if (version > DRW::AC1009) {
         writer->writeString(5, "5");
-        if (version > DRW::AC1014) {
+        if (version >= DRW::AC1014) {
             writer->writeString(330, "0");
         }
         writer->writeString(100, "AcDbSymbolTable");
@@ -7315,7 +8105,7 @@ bool dxfRW::writeTables() {
     writer->writeString(0, "LTYPE");
     if (version > DRW::AC1009) {
         writer->writeString(5, "14");
-        if (version > DRW::AC1014) {
+        if (version >= DRW::AC1014) {
             writer->writeString(330, "5");
         }
         writer->writeString(100, "AcDbSymbolTableRecord");
@@ -7328,11 +8118,13 @@ bool dxfRW::writeTables() {
     writer->writeInt16(72, 65);
     writer->writeInt16(73, 0);
     writer->writeDouble(40, 0.0);
+    if (!writeMandatoryMetadata("BYBLOCK"))
+        return false;
 
     writer->writeString(0, "LTYPE");
     if (version > DRW::AC1009) {
         writer->writeString(5, "15");
-        if (version > DRW::AC1014) {
+        if (version >= DRW::AC1014) {
             writer->writeString(330, "5");
 }
         writer->writeString(100, "AcDbSymbolTableRecord");
@@ -7345,11 +8137,13 @@ bool dxfRW::writeTables() {
     writer->writeInt16(72, 65);
     writer->writeInt16(73, 0);
     writer->writeDouble(40, 0.0);
+    if (!writeMandatoryMetadata("BYLAYER"))
+        return false;
 
     writer->writeString(0, "LTYPE");
     if (version > DRW::AC1009) {
         writer->writeString(5, "16");
-        if (version > DRW::AC1014) {
+        if (version >= DRW::AC1014) {
             writer->writeString(330, "5");
         }
         writer->writeString(100, "AcDbSymbolTableRecord");
@@ -7363,6 +8157,8 @@ bool dxfRW::writeTables() {
     writer->writeInt16(72, 65);
     writer->writeInt16(73, 0);
     writer->writeDouble(40, 0.0);
+    if (!writeMandatoryMetadata("CONTINUOUS"))
+        return false;
 //Application linetypes
     if (hasWriteFailure())
         return false;
@@ -8002,8 +8798,7 @@ bool dxfRW::writeExtData(const std::vector<DRW_Variant*> &ed){
                 case 1000:
                 case 1001:
                 case 1002:
-                case 1003:
-                case 1005: {
+                case 1003: {
                     const int cc = (*it)->code();
                     if ((*it)->type() != DRW_Variant::STRING
                         || (*it)->content.s == nullptr) {
@@ -8012,6 +8807,30 @@ bool dxfRW::writeExtData(const std::vector<DRW_Variant*> &ed){
                     }
                     recordResult(writer->writeUtf8String(
                         cc, *(*it)->content.s));
+                    break;
+                }
+                case 1005: {
+                    if ((*it)->type() != DRW_Variant::STRING
+                        || (*it)->content.s == nullptr) {
+                        recordResult(false);
+                        break;
+                    }
+                    const std::string& text = *(*it)->content.s;
+                    std::uint64_t sourceHandle = 0;
+                    const char* begin = text.data();
+                    const char* end = begin + text.size();
+                    const auto parsed = std::from_chars(
+                        begin, end, sourceHandle, 16);
+                    if (parsed.ec != std::errc{} || parsed.ptr != end
+                        || sourceHandle
+                            > std::numeric_limits<std::uint32_t>::max()) {
+                        recordResult(false);
+                        break;
+                    }
+                    const std::string outputHandle = toHexStr(
+                        remapObjectHandle(
+                            static_cast<std::uint32_t>(sourceHandle)));
+                    recordResult(writer->writeUtf8String(1005, outputHandle));
                     break;
                 }
                 case 1004:
@@ -9604,10 +10423,11 @@ bool dxfRW::processEntities(bool isblock) {
             reader->setSemanticStringMode(false);
             processed = processRawEntity();
         }
-        if (!processed)
+        if (!processed) {
             return error == DRW::BAD_NONE
                 ? setError(DRW::BAD_READ_ENTITIES)
                 : false;
+        }
 
         const DxfEntityBoundary nextBoundary = classifyEntityBoundary();
         if (nextBoundary == DxfEntityBoundary::Error)
@@ -9640,10 +10460,13 @@ bool dxfRW::processEllipse() {
             if (!acceptEntityCallbackBoundary())
                 return setError(DRW::BAD_READ_ENTITIES);
             if (!hasCenterX || !hasCenterY || !hasMajorAxisX
-                || !hasMajorAxisY || !hasRatio)
+                || !hasMajorAxisY || !hasRatio
+                || !isValidDxfEllipseGeometry(ellipse))
                 return setError(DRW::BAD_CODE_PARSED);
-            if (applyExt)
-                ellipse.applyExtrusion();
+            // DXF ELLIPSE center and major-axis vector are already WCS values.
+            // Unlike CIRCLE/ARC, its extrusion code supplies the plane normal;
+            // applying the OCS-to-WCS helper here would rotate valid WCS data
+            // a second time (notably in the legacy ext=true consumer path).
             iface->addEllipse(ellipse);
             return true;  //found new entity or ENDSEC, terminate
         }
@@ -10196,7 +11019,8 @@ bool dxfRW::processCircle() {
             DRW_DBG(nextentity); DRW_DBG("\n");
             if (!acceptEntityCallbackBoundary())
                 return setError(DRW::BAD_READ_ENTITIES);
-            if (!hasCenterX || !hasCenterY || !hasRadius)
+            if (!hasCenterX || !hasCenterY || !hasRadius
+                || !isValidDxfCircleGeometry(circle))
                 return setError(DRW::BAD_CODE_PARSED);
             if (applyExt)
                 circle.applyExtrusion();
@@ -10234,7 +11058,8 @@ bool dxfRW::processArc() {
             if (!acceptEntityCallbackBoundary())
                 return setError(DRW::BAD_READ_ENTITIES);
             if (!hasCenterX || !hasCenterY || !hasRadius
-                || !hasStartAngle || !hasEndAngle)
+                || !hasStartAngle || !hasEndAngle
+                || !isValidDxfArcGeometry(arc))
                 return setError(DRW::BAD_CODE_PARSED);
             if (applyExt)
                 arc.applyExtrusion();
@@ -11041,13 +11866,16 @@ bool dxfRW::processSurface() {
     while (reader->readRec(&code)) {
         DRW_DBG(code); DRW_DBG("\n");
         if (0 == code) {
-            if (setEntityBoundary(code) == DxfEntityBoundary::Error)
+            if (setEntityBoundary(code) == DxfEntityBoundary::Error) {
                 return setError(DRW::BAD_READ_ENTITIES);
+            }
             DRW_DBG(nextentity); DRW_DBG("\n");
-            if (!acceptEntityCallbackBoundary())
+            if (!acceptEntityCallbackBoundary()) {
                 return setError(DRW::BAD_READ_ENTITIES);
-            if (!surf->finalizeDxf())
+            }
+            if (!surf->finalizeDxf()) {
                 return setError(DRW::BAD_CODE_PARSED);
+            }
             iface->addSurface(surf.get());
             return true;
         }
@@ -11083,6 +11911,18 @@ bool dxfRW::processModelerGeometry() {
             DRW_DBG(nextentity); DRW_DBG("\n");
             if (!acceptEntityCallbackBoundary())
                 return setError(DRW::BAD_READ_ENTITIES);
+            if (!geom.m_dxfPayloadChunks.empty()
+                && (geom.m_dxfPayloadChunks.back().m_groupCode == 1
+                    || geom.m_dxfPayloadChunks.back().m_groupCode == 3)) {
+                if (geom.m_rawBytes.size()
+                    >= DRW::kMaxDxfBinaryPayloadBytes)
+                    return setError(DRW::BAD_CODE_PARSED);
+                try {
+                    geom.m_rawBytes.push_back('\n');
+                } catch (...) {
+                    return setError(DRW::BAD_CODE_PARSED);
+                }
+            }
             iface->addModelerGeometry(geom);
             return true;
         }
@@ -11654,6 +12494,12 @@ bool dxfRW::processAcShHistoryObject() {
                 return setError(DRW::BAD_CODE_PARSED);
             data.handle = raw.handle;
             data.parentHandle = raw.parentHandle;
+            // Retain only the bounded transform/option projection observed in
+            // AcDbShSweepBase. The full DXF object stays in `raw`; an
+            // incomplete projection is diagnostic-only and must not make an
+            // otherwise preservable raw object unreadable.
+            captureAcShExtrusionDxfProjection(raw,
+                                               data.m_extrusionDxfProjection);
             iface->addAcShHistoryObject(data);
             iface->addRawDxfObject(raw);
             return true;
@@ -13801,11 +14647,14 @@ bool validateProxyDxfPayloads(const DxfProxyCapture& capture) {
 }
 
 int proxyDxfHandleCode(int code) {
+    // Inverse of the DWG typed-handle/DXF group-code mapping (ODA §2.13;
+    // Autodesk DXF handle groups). DXF has absolute handles only, so code 4
+    // is the canonical soft-pointer representation on readback.
     switch (code) {
-    case 330: return 2;
-    case 340: return 3;
-    case 350: return 4;
-    case 360: return 5;
+    case 330: return 4;
+    case 340: return 5;
+    case 350: return 2;
+    case 360: return 3;
     default: return 0;
     }
 }
@@ -14764,6 +15613,95 @@ bool dxfRW::writeRawDxfObject(DRW_RawDxfObject *obj) {
     return true;
 }
 
+bool dxfRW::remapAcdsAsmDataOwnerHandles(
+    DRW_RawDxfSection &section) {
+    if (!dxfKeywordEquals(section.m_name, "ACDSDATA"))
+        return true;
+
+    const std::vector<DRW_Variant>& groups = section.m_groups;
+    for (std::size_t recordStart = 0; recordStart < groups.size();) {
+        if (groups[recordStart].code() != 0
+            || groups[recordStart].type() != DRW_Variant::STRING
+            || groups[recordStart].c_str() == nullptr) {
+            ++recordStart;
+            continue;
+        }
+
+        std::size_t recordEnd = recordStart + 1;
+        while (recordEnd < groups.size()
+               && groups[recordEnd].code() != 0)
+            ++recordEnd;
+
+        if (!dxfKeywordEquals(groups[recordStart].c_str(), "ACDSRECORD")) {
+            recordStart = recordEnd;
+            continue;
+        }
+
+        std::size_t idSectionCount = 0;
+        std::size_t asmDataCount = 0;
+        std::size_t ownerHandleCount = 0;
+        std::size_t ownerHandleIndex = groups.size();
+        std::uint64_t sourceHandle = 0;
+        bool ownerHandleIsString = false;
+        bool inIdSection = false;
+
+        for (std::size_t groupIndex = recordStart + 1;
+             groupIndex < recordEnd; ++groupIndex) {
+            const DRW_Variant& group = groups[groupIndex];
+            if (group.code() == 2) {
+                if (group.type() != DRW_Variant::STRING
+                    || group.c_str() == nullptr) {
+                    inIdSection = false;
+                    continue;
+                }
+                inIdSection = dxfKeywordEquals(group.c_str(), "AcDbDs::ID");
+                if (inIdSection)
+                    ++idSectionCount;
+                if (dxfKeywordEquals(group.c_str(), "ASM_Data"))
+                    ++asmDataCount;
+            } else if (inIdSection && group.code() == 320) {
+                ++ownerHandleCount;
+                ownerHandleIndex = groupIndex;
+                if (group.type() == DRW_Variant::STRING
+                    && group.c_str() != nullptr) {
+                    ownerHandleIsString = parseRawDxfHandleLexeme(
+                        group.c_str(), sourceHandle);
+                } else {
+                    ownerHandleIsString = false;
+                }
+            }
+        }
+
+        if (asmDataCount != 0) {
+            if (asmDataCount != 1 || idSectionCount != 1
+                || ownerHandleCount != 1 || !ownerHandleIsString
+                || sourceHandle == 0
+                || sourceHandle > std::numeric_limits<std::uint32_t>::max()) {
+                return failDxfWrite();
+            }
+            const std::uint32_t source =
+                static_cast<std::uint32_t>(sourceHandle);
+            if (m_writingContext.ambiguousSourceHandles.count(source) != 0)
+                return failDxfWrite();
+            const auto emitted =
+                m_writingContext.modelerSourceHandleToMintedMap.find(source);
+            if (emitted
+                == m_writingContext.modelerSourceHandleToMintedMap.end())
+                return failDxfWrite();
+
+            const std::string emittedHandle = toHexStr(emitted->second);
+            section.m_groups[ownerHandleIndex].addString(320, emittedHandle);
+            if (section.m_hasRawValues) {
+                if (ownerHandleIndex >= section.m_rawValues.size())
+                    return failDxfWrite();
+                section.m_rawValues[ownerHandleIndex] = emittedHandle;
+            }
+        }
+        recordStart = recordEnd;
+    }
+    return true;
+}
+
 bool dxfRW::writeRawDxfSection(const DRW_RawDxfSection &section) {
     if (writer == nullptr || section.m_name.empty()
         || dxfKeywordEquals(section.m_name, "HEADER")
@@ -14780,18 +15718,21 @@ bool dxfRW::writeRawDxfSection(const DRW_RawDxfSection &section) {
     const DxfClassifierProfile profile = m_useTargetLegacyClassifier
         ? DxfClassifierProfile::LibreCadMasterLegacy
         : DxfClassifierProfile::StandaloneSafe;
-    if (!validateRawDxfGroups(section.m_groups, section.m_rawValues,
-                              section.m_hasRawValues, binFile,
+    DRW_RawDxfSection output = section;
+    if (!validateRawDxfGroups(output.m_groups, output.m_rawValues,
+                              output.m_hasRawValues, binFile,
                               /*allowRecordBoundaries=*/true, profile)) {
         m_writeError = true;
         return false;
     }
+    if (!remapAcdsAsmDataOwnerHandles(output))
+        return false;
     DxfWriterRecordScope record(*writer);
     if (!writer->writeString(0, "SECTION")
-        || !writer->writeString(2, section.m_name)
-        || !writeRawDxfGroups(section.m_groups, section.m_rawValues,
-                              section.m_hasRawValues,
-                              section.m_version,
+        || !writer->writeString(2, output.m_name)
+        || !writeRawDxfGroups(output.m_groups, output.m_rawValues,
+                              output.m_hasRawValues,
+                              output.m_version,
                               /*remapSourceHandles=*/false,
                               m_useTargetLegacyClassifier)
         || !writer->writeString(0, "ENDSEC")) {
@@ -15275,12 +16216,229 @@ void dxfRW::writeObjectOwner(std::uint32_t parentHandle) {
         m_writeError = true;
         return;
     }
-    if (version <= DRW::AC1014)
-        return;  //pre-R2000 DXF has no 330 owner handles in OBJECTS
+    if (version < DRW::AC1014)
+        return;  // R14+ object records carry owner handles.
     if (parentHandle != 0)
-        writer->writeString(330, toHexStr(parentHandle));
+        writer->writeString(330, toHexStr(remapObjectHandle(parentHandle)));
     else
         writer->writeString(330, "C");
+}
+
+bool dxfRW::writeDictionary(DRW_Dictionary *ent) {
+    if (version < DRW::AC1014 || !preflightTableEntry(ent)
+        || ent->handle == 0 || ent->hardOwner < 0 || ent->hardOwner > 1
+        || ent->cloning < 0
+        || ent->cloning > std::numeric_limits<std::int16_t>::max()
+        || ent->m_entries.size() > DRW_Dictionary::kMaxEntries
+        || !ent->hasCompleteDxfEntries()) {
+        m_writeError = true;
+        return false;
+    }
+
+    const std::uint32_t handle = remapObjectHandle(ent->handle);
+    if (handle == 0 || isDxfFixedOutputHandle(handle)
+        || !reserveHandle(handle)) {
+        m_writeError = true;
+        return false;
+    }
+    RecordStateScope state(*this, ent);
+    DxfWriterRecordScope record(*writer);
+    if (!writer->writeString(0, "DICTIONARY")
+        || !writer->writeString(5, toHexStr(handle))
+        || !writeTableEntryAppData(*ent))
+        return false;
+    writeObjectOwner(static_cast<std::uint32_t>(ent->parentHandle));
+    writer->writeString(100, "AcDbDictionary");
+    writer->writeInt16(280, ent->hardOwner);
+    if (version > DRW::AC1014)
+        writer->writeInt16(281, ent->cloning);
+    for (const DRW_Dictionary::Entry& entry : ent->m_entries) {
+        if (entry.m_name.empty() || !isSafeDxfRecordText(entry.m_name)) {
+            m_writeError = true;
+            return false;
+        }
+        const std::uint32_t child = remapObjectHandle(entry.m_handle);
+        if (!writer->writeUtf8String(3, entry.m_name)
+            || !writer->writeString(ent->hardOwner == 1 ? 360 : 350,
+                                    toHexStr(child)))
+            return false;
+    }
+    if (!ent->extData.empty() && !writeExtData(ent->extData))
+        return false;
+    if (writer->hasWriteError() || !record.commit()) {
+        m_writeError = true;
+        return false;
+    }
+    state.commit();
+    return true;
+}
+
+bool dxfRW::writeXRecord(DRW_XRecord *ent) {
+    if (version < DRW::AC1014 || !preflightTableEntry(ent)
+        || ent->handle == 0 || ent->m_rawDataValid
+        || ent->m_dataEntries.size() > dwgSafety::MaxOwnedObjectCount
+        || ent->m_values.size() > dwgSafety::MaxOwnedObjectCount
+        || ent->m_handleValues.size() > dwgSafety::MaxOwnedObjectCount
+        || ent->m_cloning < 0
+        || ent->m_cloning > std::numeric_limits<std::int16_t>::max()
+        || std::any_of(ent->m_handleValues.cbegin(),
+                       ent->m_handleValues.cend(), [](const auto& value) {
+                           return value.first == 0;
+                       })) {
+        m_writeError = true;
+        return false;
+    }
+
+    const std::uint32_t handle = remapObjectHandle(ent->handle);
+    if (handle == 0 || isDxfFixedOutputHandle(handle)
+        || !reserveHandle(handle)) {
+        m_writeError = true;
+        return false;
+    }
+    RecordStateScope state(*this, ent);
+    DxfWriterRecordScope record(*writer);
+    if (!writer->writeString(0, "XRECORD")
+        || !writer->writeString(5, toHexStr(handle))
+        || !writeTableEntryAppData(*ent))
+        return false;
+    writeObjectOwner(static_cast<std::uint32_t>(ent->parentHandle));
+    writer->writeString(100, "AcDbXrecord");
+    if (version > DRW::AC1014 && ent->m_cloning != 0)
+        writer->writeInt16(280, ent->m_cloning);
+
+    const auto isHandleCode = [](int code) {
+        return (code >= 320 && code <= 369) || (code >= 390 && code <= 399)
+            || (code >= 480 && code <= 481) || code == 5 || code == 105
+            || (code >= 1005 && code <= 1009);
+    };
+    const auto isBinaryCode = [](int code) {
+        return (code >= 310 && code <= 319) || code == 1004;
+    };
+    const auto emitHandle = [this](int code, std::uint64_t value) {
+        if (value > std::numeric_limits<std::uint32_t>::max())
+            return false;
+        return writer->writeString(
+            code, toHexStr(remapObjectHandle(static_cast<std::uint32_t>(value))));
+    };
+    const auto emitValue = [&](const DRW_Variant& value) {
+        const int code = value.code();
+        if (code <= 0 || code > 1071)
+            return false;
+        if (isHandleCode(code)) {
+            switch (value.type()) {
+            case DRW_Variant::INTEGER:
+                if (value.i_val() < 0)
+                    return false;
+                return emitHandle(code,
+                                  static_cast<std::uint32_t>(value.i_val()));
+            case DRW_Variant::INTEGER64:
+                if (value.i64_val() < 0)
+                    return false;
+                return emitHandle(code,
+                                  static_cast<std::uint64_t>(value.i64_val()));
+            case DRW_Variant::STRING: {
+                const char* text = value.c_str();
+                if (text == nullptr || *text == '\0')
+                    return false;
+                std::uint64_t parsed = 0;
+                const char* end = text + std::char_traits<char>::length(text);
+                const auto result = std::from_chars(text, end, parsed, 16);
+                return result.ec == std::errc{} && result.ptr == end
+                    && emitHandle(code, parsed);
+            }
+            default:
+                return false;
+            }
+        }
+        if (isBinaryCode(code)) {
+            if (value.type() != DRW_Variant::BINARY)
+                return false;
+            const std::vector<std::uint8_t>* bytes = value.binary();
+            if (bytes == nullptr)
+                return false;
+            static constexpr char hex[] = "0123456789ABCDEF";
+            if (bytes->empty())
+                return writer->writeString(code, "");
+            for (std::size_t offset = 0; offset < bytes->size();) {
+                const std::size_t count = std::min<std::size_t>(
+                    127u, bytes->size() - offset);
+                std::string encoded;
+                encoded.reserve(count * 2u);
+                for (std::size_t i = 0; i < count; ++i) {
+                    const std::uint8_t byte = (*bytes)[offset + i];
+                    encoded.push_back(hex[byte >> 4u]);
+                    encoded.push_back(hex[byte & 0x0Fu]);
+                }
+                if (!writer->writeString(code, encoded))
+                    return false;
+                offset += count;
+            }
+            return true;
+        }
+        if (value.type() == DRW_Variant::COORD) {
+            DRW_Coord* point = value.coord();
+            if (point == nullptr || !std::isfinite(point->x)
+                || !std::isfinite(point->y) || !std::isfinite(point->z))
+                return false;
+            return writer->writeDouble(code, point->x)
+                && writer->writeDouble(code + 10, point->y)
+                && writer->writeDouble(code + 20, point->z);
+        }
+        const DxfClassifierProfile profile = m_useTargetLegacyClassifier
+            ? DxfClassifierProfile::LibreCadMasterLegacy
+            : DxfClassifierProfile::StandaloneSafe;
+        switch (value.type()) {
+        case DRW_Variant::STRING:
+            return classifyDxfCode(code, profile) == RawValType::Str
+                && value.content.s != nullptr
+                && writer->writeUtf8String(code, *value.content.s);
+        case DRW_Variant::INTEGER:
+            switch (classifyDxfCode(code, profile)) {
+            case RawValType::Int16:
+                return writer->writeInt16(code, value.i_val());
+            case RawValType::Int32:
+                return writer->writeInt32(code, value.i_val());
+            case RawValType::Bool:
+                return writer->writeBool(code, value.i_val() != 0);
+            default:
+                return false;
+            }
+        case DRW_Variant::INTEGER64:
+            return classifyDxfCode(code, profile) == RawValType::Int64
+                && writer->writeInt64(code, value.i64_val());
+        case DRW_Variant::DOUBLE:
+            return classifyDxfCode(code, profile) == RawValType::Dbl
+                && std::isfinite(value.d_val())
+                && writer->writeDouble(code, value.d_val());
+        default:
+            return false;
+        }
+    };
+
+    const std::vector<DRW_Variant>& values = ent->m_dataEntries.empty()
+        ? ent->m_values : ent->m_dataEntries;
+    for (const DRW_Variant& value : values) {
+        if (!emitValue(value)) {
+            m_writeError = true;
+            return false;
+        }
+    }
+    if (ent->m_dataEntries.empty()) {
+        for (const auto& handleValue : ent->m_handleValues) {
+            if (!emitHandle(handleValue.first, handleValue.second)) {
+                m_writeError = true;
+                return false;
+            }
+        }
+    }
+    if (!ent->extData.empty() && !writeExtData(ent->extData))
+        return false;
+    if (writer->hasWriteError() || !record.commit()) {
+        m_writeError = true;
+        return false;
+    }
+    state.commit();
+    return true;
 }
 
 bool dxfRW::writeSun(DRW_Sun *ent) {
@@ -16293,7 +17451,8 @@ bool dxfRW::writeEvaluationGraph(DRW_EvaluationGraph *ent,
     if (version > DRW::AC1014) {
         written = written && writeString(
             330, ent->parentHandle != 0
-                ? toHexStr(static_cast<std::uint32_t>(ent->parentHandle))
+                ? toHexStr(remapObjectHandle(
+                      static_cast<std::uint32_t>(ent->parentHandle)))
                 : "C");
     }
     written = written && writeString(100, "AcDbEvalGraph")
@@ -16305,7 +17464,8 @@ bool dxfRW::writeEvaluationGraph(DRW_EvaluationGraph *ent,
             && writer->writeInt32(93, node.m_flags)
             && writer->writeInt32(95, node.m_nextNodeIndex);
         written = written
-            && writeString(360, toHexStr(node.m_expressionHandle));
+            && writeString(360, toHexStr(
+                   remapObjectHandle(node.m_expressionHandle)));
         written = written
             && writer->writeInt32(92, node.m_data1)
             && writer->writeInt32(92, node.m_data2)

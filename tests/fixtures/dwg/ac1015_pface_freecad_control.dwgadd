@@ -1,0 +1,5 @@
+# Locally authored control geometry for LibreDWG dwgadd 0.14.
+# Generate with: dwgadd --as r2000 -o /tmp/libdxfrw_ac1015_pface_freecad_control.dwg <this-file>
+# This is a generated cross-reader consumer control, not an AutoCAD-authored sample.
+#version 2000
+polyline_pface 4 1 ((0 0 1) (2 0 2) (2 3 -1) (0 3 4)) ((1 2 3 4))

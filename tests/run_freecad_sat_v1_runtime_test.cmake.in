@@ -1,0 +1,136 @@
+foreach(_required IN ITEMS FREECADCMD DWG2DXF BUILD_DWG2DXF SAMPLE
+        REFERENCE_DXF COMPARATOR IMPORT_CHECK_MACRO OPERATION)
+    if(NOT DEFINED ${_required})
+        message(FATAL_ERROR "${_required} is required")
+    endif()
+endforeach()
+foreach(_path IN ITEMS FREECADCMD DWG2DXF BUILD_DWG2DXF SAMPLE
+        REFERENCE_DXF COMPARATOR IMPORT_CHECK_MACRO)
+    if(NOT EXISTS "${${_path}}")
+        message(FATAL_ERROR "${_path} does not exist: ${${_path}}")
+    endif()
+endforeach()
+if(NOT OPERATION STREQUAL "open" AND NOT OPERATION STREQUAL "insert")
+    message(FATAL_ERROR "OPERATION must be open or insert")
+endif()
+
+get_filename_component(_installed_converter "${DWG2DXF}" REALPATH)
+get_filename_component(_build_converter "${BUILD_DWG2DXF}" REALPATH)
+if(_installed_converter STREQUAL _build_converter)
+    message(FATAL_ERROR
+        "FreeCAD SAT-v1 integration must invoke the installed converter")
+endif()
+file(READ "${SAMPLE}" _magic_hex LIMIT 6 HEX)
+if(NOT "${_magic_hex}" STREQUAL "414331303135")
+    message(FATAL_ERROR "The external modeler witness must be AC1015")
+endif()
+
+string(RANDOM LENGTH 12 ALPHABET 0123456789abcdef _run_id)
+if(DEFINED ENV{TMPDIR} AND IS_DIRECTORY "$ENV{TMPDIR}")
+    set(_system_temp_base "$ENV{TMPDIR}")
+elseif(DEFINED ENV{TEMP} AND IS_DIRECTORY "$ENV{TEMP}")
+    set(_system_temp_base "$ENV{TEMP}")
+else()
+    message(FATAL_ERROR "TMPDIR or TEMP must identify the system temp directory")
+endif()
+set(_temp_parent "${_system_temp_base}/libdxfrw-freecad-sat-v1-${_run_id} with spaces")
+set(_test_root "${_temp_parent}/runtime")
+set(_input_dir "${_test_root}/input with spaces")
+set(_input "${_input_dir}/AC1015 modeler input.dwg")
+set(_profile "${_test_root}/profile-${OPERATION}")
+set(_user_cfg "${_profile}/user.cfg")
+set(_user_home "${_profile}/home")
+set(_user_data "${_profile}/data")
+set(_user_temp "${_profile}/temp")
+set(_system_temp "${_temp_parent}")
+file(MAKE_DIRECTORY "${_input_dir}" "${_user_home}" "${_user_data}"
+    "${_user_temp}" "${_system_temp}")
+get_filename_component(_temp_parent_real "${_temp_parent}" REALPATH)
+get_filename_component(_system_temp_base_real "${_system_temp_base}" REALPATH)
+string(FIND "${_temp_parent_real}/" "${_system_temp_base_real}/" _temp_prefix)
+if(NOT _temp_prefix EQUAL 0)
+    message(FATAL_ERROR
+        "Refusing to use a non-temporary FreeCAD SAT-v1 test root: ${_temp_parent_real}")
+endif()
+configure_file("${SAMPLE}" "${_input}" COPYONLY)
+file(WRITE "${_user_cfg}"
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+    "<FCParameters>\n"
+    "  <FCParamGroup Name=\"Root\">\n"
+    "    <FCParamGroup Name=\"BaseApp\"/>\n"
+    "  </FCParamGroup>\n"
+    "</FCParameters>\n")
+
+file(SHA256 "${_installed_converter}" _converter_sha256)
+get_filename_component(_converter_bin_dir "${_installed_converter}" DIRECTORY)
+if(WIN32)
+    set(_path_separator ";")
+else()
+    set(_path_separator ":")
+endif()
+set(_test_path "${_converter_bin_dir}${_path_separator}$ENV{PATH}")
+set(_environment
+    "LIBDXFRW_FREECAD_DWG=${_input}"
+    "LIBDXFRW_FREECAD_OPERATION=${OPERATION}"
+    "LIBDXFRW_FREECAD_DISCOVERY=path"
+    "LIBDXFRW_FREECAD_SEED_ISOLATED_PREFERENCES=1"
+    "LIBDXFRW_FREECAD_USER_CFG=${_user_cfg}"
+    "LIBDXFRW_FREECAD_TEMP_ROOT=${_test_root}"
+    "LIBDXFRW_FREECAD_EXPECT_DWG2DXF=${_installed_converter}"
+    "LIBDXFRW_FREECAD_EXPECT_DWG2DXF_SHA256=${_converter_sha256}"
+    "LIBDXFRW_FREECAD_EXPECT_MODELER=3DSOLID"
+    "LIBDXFRW_FREECAD_MODELER_REFERENCE_DXF=${REFERENCE_DXF}"
+    "LIBDXFRW_FREECAD_MODELER_COMPARATOR=${COMPARATOR}"
+    "PATH=${_test_path}"
+    "FREECAD_USER_HOME=${_user_home}"
+    "FREECAD_USER_DATA=${_user_data}"
+    "FREECAD_USER_TEMP=${_user_temp}"
+    "TMPDIR=${_system_temp}"
+    "TEMP=${_system_temp}"
+    "TMP=${_system_temp}")
+
+execute_process(
+    COMMAND "${CMAKE_COMMAND}" -E env ${_environment}
+        "${FREECADCMD}" --user-cfg "${_user_cfg}" "${IMPORT_CHECK_MACRO}"
+    RESULT_VARIABLE _freecad_result
+    OUTPUT_VARIABLE _freecad_stdout
+    ERROR_VARIABLE _freecad_stderr
+    TIMEOUT 120
+)
+if(NOT "${_freecad_result}" STREQUAL "0")
+    message(FATAL_ERROR
+        "FreeCAD ${OPERATION} failed (${_freecad_result}).\n"
+        "stdout:\n${_freecad_stdout}\nstderr:\n${_freecad_stderr}\n"
+        "Isolated evidence retained at ${_test_root}")
+endif()
+string(FIND "${_freecad_stdout}" "FREECAD_DWG_IMPORT_ASSERTIONS_PASS="
+    _pass_marker)
+string(FIND "${_freecad_stdout}" "\"support_level\": \"converter-integration-only\""
+    _support_level)
+string(FIND "${_freecad_stdout}" "\"modeler_entity\": \"3DSOLID\""
+    _modeler_entity)
+string(FIND "${_freecad_stdout}" "\"modeler_carrier_comparison\""
+    _carrier_comparison)
+string(FIND "${_freecad_stdout}" "\"importer_outcome\": \""
+    _importer_outcome)
+string(FIND "${_freecad_stdout}" "\"operation\": \"${OPERATION}\""
+    _observed_operation)
+string(FIND "${_freecad_stdout}" "${_test_root}"
+    _isolated_input)
+string(FIND "${_freecad_stdout}" "${_installed_converter}"
+    _installed_binary)
+if(_pass_marker EQUAL -1 OR _support_level EQUAL -1
+        OR _modeler_entity EQUAL -1 OR _carrier_comparison EQUAL -1
+        OR _importer_outcome EQUAL -1 OR _observed_operation EQUAL -1
+        OR _isolated_input EQUAL -1 OR _installed_binary EQUAL -1)
+    message(FATAL_ERROR
+        "FreeCAD ${OPERATION} output lacks a required integration assertion.\n"
+        "stdout:\n${_freecad_stdout}\nstderr:\n${_freecad_stderr}\n"
+        "Isolated evidence retained at ${_test_root}")
+endif()
+
+message(STATUS
+    "FreeCAD SAT-v1 ${OPERATION} converter/importer observation passed for "
+    "installed ${_installed_converter} (SHA-256 ${_converter_sha256}).\n"
+    "Importer output:\n${_freecad_stdout}\n${_freecad_stderr}")
+file(REMOVE_RECURSE "${_temp_parent}")

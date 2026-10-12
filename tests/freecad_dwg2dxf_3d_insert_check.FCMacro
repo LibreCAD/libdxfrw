@@ -1,0 +1,178 @@
+# Optional end-to-end ODA-authored DWG -> dwg2dxf -> FreeCAD INSERT check.
+# Generate the DWG from tests/fixtures/dxf/ac1015_insert_freecad_control.dxf
+# with the ODA-enabled CTest, set LIBDXFRW_FREECAD_DWG to that output, and put
+# this build's dwg2dxf directory first on PATH. The DWG stays in the build tree.
+
+import hashlib
+import json
+import os
+import platform
+import subprocess
+import sys
+
+import FreeCAD as App
+
+
+sample = os.environ.get("LIBDXFRW_FREECAD_DWG")
+if not sample or not os.path.isfile(sample):
+    raise RuntimeError("LIBDXFRW_FREECAD_DWG must name an existing generated DWG")
+
+draft_path = os.path.join(App.getResourceDir(), "Mod", "Draft")
+sys.path.insert(0, draft_path)
+
+import importDWG
+import importDXF
+
+
+preferences = App.ParamGet("User parameter:BaseApp/Preferences/Mod/Draft")
+if preferences.GetBool("dxfUseLegacyImporter", False):
+    raise RuntimeError("This check requires FreeCAD's default C++ DXF importer")
+
+captured = {}
+original_convert = importDWG.convertToDxf
+original_dxf_open = importDXF.open
+original_reporter = importDXF.DxfImportReporter
+original_popen = subprocess.Popen
+original_oda_converter = importDWG.get_oda_converter
+original_qcad_converter = importDWG.get_qcad_converter
+
+
+def capture_convert(filename):
+    processes = []
+
+    def capture_popen(*args, **kwargs):
+        process = original_popen(*args, **kwargs)
+        processes.append(process)
+        return process
+
+    subprocess.Popen = capture_popen
+    importDWG.get_oda_converter = lambda: None
+    importDWG.get_qcad_converter = lambda: None
+    try:
+        result = original_convert(filename)
+    finally:
+        subprocess.Popen = original_popen
+        importDWG.get_oda_converter = original_oda_converter
+        importDWG.get_qcad_converter = original_qcad_converter
+    captured["dxf"] = result
+    captured["converter_processes"] = processes
+    return result
+
+
+def capture_dxf_open(filename, *args, **kwargs):
+    captured["imported_dxf"] = filename
+    return original_dxf_open(filename, *args, **kwargs)
+
+
+def same_path(left, right):
+    return os.path.normcase(os.path.abspath(left)) == os.path.normcase(os.path.abspath(right))
+
+
+class CapturingReporter(original_reporter):
+    def __init__(self, filename, stats_dict, total_time=0.0):
+        captured["stats"] = stats_dict
+        super().__init__(filename, stats_dict, total_time)
+
+
+def digest(path):
+    sha = hashlib.sha256()
+    with open(path, "rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            sha.update(chunk)
+    return sha.hexdigest()
+
+
+def close(actual, expected):
+    return abs(actual - expected) < 1e-8
+
+
+importDWG.convertToDxf = capture_convert
+importDXF.open = capture_dxf_open
+importDXF.DxfImportReporter = CapturingReporter
+
+doc = None
+try:
+    doc = importDWG.open(sample)
+    if doc is None:
+        raise AssertionError("Draft.importDWG.open returned no document")
+
+    dxf_path = captured.get("dxf")
+    if not dxf_path or not os.path.isfile(dxf_path):
+        raise AssertionError("Draft DWG conversion did not produce an auditable DXF")
+
+    processes = captured.get("converter_processes", [])
+    if len(processes) != 1:
+        raise AssertionError(
+            "expected exactly one converter subprocess with fallbacks disabled; got %d"
+            % len(processes)
+        )
+    process = processes[0]
+    args = process.args
+    converter = importDWG.get_libredwg_converter("dwg2dxf")
+    if not converter or not isinstance(args, (list, tuple)) or len(args) != 4:
+        raise AssertionError("FreeCAD did not invoke the expected dwg2dxf command")
+    if not same_path(args[0], converter) or not same_path(args[1], sample):
+        raise AssertionError("FreeCAD invoked dwg2dxf with unexpected argv: %r" % (args,))
+    if args[2] != "-o" or not same_path(args[3], dxf_path):
+        raise AssertionError("FreeCAD did not use the expected dwg2dxf output: %r" % (args,))
+    if process.returncode != 0:
+        raise AssertionError("dwg2dxf exited with status %r" % process.returncode)
+    imported_path = captured.get("imported_dxf")
+    if not imported_path or not same_path(imported_path, dxf_path):
+        raise AssertionError("FreeCAD imported a different DXF than dwg2dxf produced")
+
+    links = [obj for obj in doc.Objects if obj.TypeId == "App::Link"]
+    if len(links) != 1:
+        raise AssertionError("expected one App::Link for the INSERT; got %d" % len(links))
+    shape = links[0].Shape
+    if shape.isNull() or not shape.isValid() or len(shape.Edges) != 1:
+        raise AssertionError("expected one valid transformed INSERT edge")
+    actual = sorted(
+        (float(vertex.Point.x), float(vertex.Point.y), float(vertex.Point.z))
+        for vertex in shape.Edges[0].Vertexes
+    )
+    expected = [(-8.0, 28.0, 66.0), (4.0, 22.0, 42.0)]
+    if len(actual) != 2 or any(
+        not all(close(a, e) for a, e in zip(actual_point, expected_point))
+        for actual_point, expected_point in zip(actual, expected)
+    ):
+        raise AssertionError(
+            "FreeCAD INSERT transform mismatch: expected %r, got %r" % (expected, actual)
+        )
+
+    stats = captured.get("stats") or {}
+    entity_counts = stats.get("entityCounts", {})
+    if entity_counts.get("INSERT", 0) != 1 or entity_counts.get("LINE", 0) != 1:
+        raise AssertionError("FreeCAD did not report one INSERT and LINE: %r" % entity_counts)
+    unsupported = stats.get("unsupportedFeatures", {})
+    if unsupported.get("INSERT") or unsupported.get("LINE"):
+        raise AssertionError("FreeCAD reported the INSERT control unsupported: %r" % unsupported)
+
+    result = {
+        "status": "pass",
+        "freecad_version": list(App.Version()),
+        "platform": platform.platform(),
+        "architecture": platform.machine(),
+        "importer": "C++",
+        "import_mode": preferences.GetInt("DxfImportMode", 2),
+        "converter": converter,
+        "converter_argv": args,
+        "converter_returncode": process.returncode,
+        "source": os.path.basename(sample),
+        "source_sha256": digest(sample),
+        "imported_dxf_path": imported_path,
+        "dxf_sha256": digest(imported_path),
+        "entity_counts": entity_counts,
+        "unsupported_features": {
+            key: len(values) for key, values in sorted(unsupported.items())
+        },
+        "insert_link": links[0].Name,
+        "edge_endpoints": actual,
+    }
+    print("FREECAD_DWG2DXF_3D_INSERT_ASSERTIONS_PASS=" + json.dumps(result, sort_keys=True))
+finally:
+    importDWG.convertToDxf = original_convert
+    importDXF.open = original_dxf_open
+    importDXF.DxfImportReporter = original_reporter
+    if doc is not None and doc.Name in App.listDocuments():
+        App.closeDocument(doc.Name)

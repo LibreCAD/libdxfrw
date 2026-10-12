@@ -16,6 +16,7 @@
 
 #include "dx_iface.h"
 #include "dx_data.h"
+#include "dx_cli.h"
 
 #ifndef S_ISDIR
 #define S_ISDIR(mode) (((mode) & S_IFMT) == S_IFDIR)
@@ -24,6 +25,7 @@
 void usage(){
     std::cout << "Usage: " << std::endl;
     std::cout << "   dwg2dxf <input> [-b] <-version> <output>" << std::endl << std::endl;
+    std::cout << "   dwg2dxf <input> -o <output> [-version] [-b] [-y]" << std::endl << std::endl;
     std::cout << "   input      existing file to convert" << std::endl;
     std::cout << "   -b         optional, sets output as binary dxf" << std::endl;
     std::cout << "   -B         optional, batch mode reads a text file whit a list of full path input" << std::endl;
@@ -31,6 +33,8 @@ void usage(){
     std::cout << "   -y -Y      optional, Warning! if output dxf exist overwrite without ask" << std::endl;
     std::cout << "   -version   version output of dxf file" << std::endl;
     std::cout << "   output     output file name" << std::endl << std::endl;
+    std::cout << "   -o         FreeCAD-compatible output path; defaults to the input revision" << std::endl;
+    std::cout << "              and never prompts. Use -y to replace an existing output." << std::endl;
     std::cout << "     version can be:" << std::endl;
     std::cout << "        -R12   dxf release 12 version" << std::endl;
     std::cout << "        -v2000 dxf version 2000" << std::endl;
@@ -53,7 +57,9 @@ DRW::Version checkVersion(std::string param){
     return DRW::UNKNOWNV;
 }
 
-bool convertFile(std::string inName, std::string outName, DRW::Version ver, bool binary, bool overwrite, bool debug){
+bool convertFile(std::string inName, std::string outName, DRW::Version ver,
+                 bool binary, bool overwrite, bool debug,
+                 bool nonInteractive = false){
     bool badState = false;
     //verify if input file exist
     std::ifstream ifs;
@@ -65,12 +71,15 @@ bool convertFile(std::string inName, std::string outName, DRW::Version ver, bool
         return false;
     }
     //verify if output file exist
-    std::ifstream ofs;
-    ofs.open (outName.c_str(), std::ifstream::in);
-    badState = ofs.fail();
-    ofs.close();
+    struct stat outStat;
+    badState = stat(outName.c_str(), &outStat) != 0;
     if (!badState) {
         if (!overwrite){
+            if (nonInteractive) {
+                std::cout << "File " << outName
+                          << " already exists; refusing to overwrite" << std::endl;
+                return false;
+            }
             std::cout << "File " << outName << " already exist, overwrite Y/N ?" << std::endl;
             int c = getchar();
             if (! ('y' == c || 'Y' == c)) {
@@ -90,6 +99,15 @@ bool convertFile(std::string inName, std::string outName, DRW::Version ver, bool
         return false;
     }
 
+    if (ver == DRW::UNKNOWNV && nonInteractive) {
+        ver = dwg2dxfCli::defaultOutputVersion(fData.sourceVersion);
+        if (ver == DRW::UNKNOWNV) {
+            std::cout << "Error: no supported default DXF version for source revision "
+                      << static_cast<int>(fData.sourceVersion) << std::endl;
+            return false;
+        }
+    }
+
     //And write a dxf file
     dx_iface output;
     badState = output.fileExport(outName, ver, binary, &fData, debug);
@@ -107,6 +125,64 @@ int main(int argc, char *argv[]) {
     DRW::Version ver = DRW::UNKNOWNV;
     if (argc < 3) {
         usage();
+        return 1;
+    }
+
+    bool freeCadMode = false;
+    for (int i = 2; i < argc; ++i) {
+        if (std::string(argv[i]) == "-o") {
+            freeCadMode = true;
+            break;
+        }
+    }
+
+    if (freeCadMode) {
+        const std::string fileName = argv[1];
+        bool haveOutput = false;
+        bool haveVersion = false;
+        bool freeCadBinary = false;
+        bool freeCadOverwrite = false;
+        bool freeCadDebug = false;
+        bool invalidOption = false;
+
+        for (int i = 2; i < argc; ++i) {
+            const std::string param = argv[i];
+            if (param == "-o") {
+                if (haveOutput || i + 1 >= argc) {
+                    invalidOption = true;
+                    break;
+                }
+                outName = argv[++i];
+                haveOutput = true;
+            } else if (param == "-b") {
+                freeCadBinary = true;
+            } else if (param == "-y" || param == "-Y") {
+                freeCadOverwrite = true;
+            } else if (param == "-d" || param == "-D") {
+                freeCadDebug = true;
+            } else {
+                ver = checkVersion(param);
+                if (ver == DRW::UNKNOWNV || haveVersion) {
+                    invalidOption = true;
+                    break;
+                }
+                haveVersion = true;
+            }
+        }
+
+        if (invalidOption || !haveOutput || outName.empty()) {
+            std::cout << "Bad options." << std::endl;
+            usage();
+            return 1;
+        }
+
+        const bool ok = convertFile(fileName, outName, ver, freeCadBinary,
+                                    freeCadOverwrite, freeCadDebug, true);
+        if (ok) {
+            std::cout << "Success: converted " << fileName << " to " << outName << std::endl;
+            return 0;
+        }
+        std::cout << "\nConversion failed" << std::endl;
         return 1;
     }
 

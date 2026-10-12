@@ -1,0 +1,190 @@
+"""Verify one isolated ACIS-218 SAB using InventorLoader + FreeCAD Part.
+
+Required environment variables:
+  LIBDXFRW_ACIS_WITNESS_SAB       locally generated SAB file
+  LIBDXFRW_ACIS_WITNESS_MANIFEST  matching JSON manifest
+  LIBDXFRW_INVENTORLOADER_ROOT    pinned InventorLoader checkout
+
+This is an opt-in external semantic check. It does not test AutoCAD authorship,
+DWG/ACDSDATA, or libdxfrw. Outputs and InventorLoader intermediates stay under a
+unique system-temp directory.
+"""
+
+import json
+import hashlib
+import math
+import os
+import shutil
+import sys
+import tempfile
+
+import FreeCAD as App
+import Part
+
+
+def require(condition, message):
+    if not condition:
+        raise RuntimeError(message)
+
+
+def close_tuple(actual, expected):
+    return len(actual) == len(expected) and all(
+        math.isclose(float(a), float(e), rel_tol=1e-8, abs_tol=1e-7)
+        for a, e in zip(actual, expected)
+    )
+
+
+sab_source = os.environ.get("LIBDXFRW_ACIS_WITNESS_SAB")
+manifest_path = os.environ.get("LIBDXFRW_ACIS_WITNESS_MANIFEST")
+loader_root = os.environ.get("LIBDXFRW_INVENTORLOADER_ROOT")
+require(sab_source and os.path.isfile(sab_source), "missing generated SAB input")
+require(manifest_path and os.path.isfile(manifest_path), "missing SAB manifest")
+require(
+    loader_root and os.path.isfile(os.path.join(loader_root, "importerSAT.py")),
+    "missing InventorLoader checkout",
+)
+
+with open(manifest_path, "r", encoding="utf-8") as stream:
+    manifest = json.load(stream)
+with open(sab_source, "rb") as stream:
+    sab_bytes = stream.read()
+require(sab_bytes.startswith(b"ACIS BinaryFile"), "input does not have the SAB signature")
+require(len(sab_bytes) == manifest.get("sab_bytes"), "SAB length does not match manifest")
+require(
+    hashlib.sha256(sab_bytes).hexdigest() == manifest.get("sab_sha256"),
+    "SAB hash does not match manifest",
+)
+
+sys.path.insert(0, loader_root)
+import Acis
+from Acis import createEntity
+
+with tempfile.TemporaryDirectory(prefix="libdxfrw-acis-reader-") as temp_root:
+    isolated_sab = os.path.join(temp_root, "witness.sab")
+    shutil.copyfile(sab_source, isolated_sab)
+    with open(isolated_sab, "rb") as stream:
+        reader = Acis.AcisReader(stream)
+        require(reader.readBinary(), "InventorLoader rejected SAB binary data")
+    Acis.setReader(reader)
+    scale = float(reader.header.scale)
+    require(math.isfinite(scale) and scale > 0, "invalid ACIS model-unit scale")
+    entities = []
+    for record in reader.getRecords():
+        if record.name in (
+            "Begin-of-ACIS-History-Data",
+            "End-of-ACIS-History-Section",
+            "End-of-ACIS-data",
+        ):
+            break
+        entities.append((record, createEntity(record)))
+    bodies = [entity for record, entity in entities if record.name == "body"]
+    require(len(bodies) == 1 and bodies[0] is not None, "expected exactly one decoded ACIS body")
+
+    # Mirror its body/lump/shell-to-Part geometry path, but measure in the ACIS
+    # body-local frame; the parsed placement is reported separately and never
+    # applied here. Avoid GUI-only preference/logging imports in FreeCADCmd.
+    solids = []
+    body = bodies[0]
+    transform = body.getTransform()
+    transform_record = None
+    if body._transform is not None:
+        transform_record = reader.getRecord(body._transform.index)
+    transform_info = {
+        "present": transform is not None,
+        "type": None if transform is None else type(transform).__name__,
+        "placement_base": None if transform is None else tuple(transform.getPlacement().Base),
+        "body_transform_record": None if body._transform is None else body._transform.index,
+        "matrix": None if transform is None else str(transform.matrix),
+        "record": None if transform_record is None else repr(transform_record),
+    }
+    for lump in body.getLumps():
+        for shell in lump.getShells():
+            faces = [face.build() for face in shell.getFaces()]
+            faces = [face for face in faces if face is not None]
+            if not faces:
+                continue
+            shell_shape = Part.Shell(faces)
+            require(shell_shape.isClosed(), "InventorLoader produced an open shell")
+            solids.append(Part.makeSolid(shell_shape))
+    require(len(solids) == 1, "expected exactly one reconstructed Part solid")
+    solid = solids[0]
+
+    require(
+        solid.ShapeType == "Solid" and solid.isValid() and solid.isClosed(),
+        "invalid reconstructed solid",
+    )
+    box = solid.BoundBox
+    actual_local_bounds = (box.XMin, box.YMin, box.ZMin, box.XMax, box.YMax, box.ZMax)
+    expected_local_bounds = (
+        tuple(manifest["expected_min_local"])
+        + tuple(manifest["expected_max_local"])
+    )
+    actual_volume = float(solid.Volume)
+    actual_area = float(solid.Area)
+    center = tuple(float(value) for value in manifest["center_acis_model_coordinates"])
+    placement_qualified = (
+        not any(not math.isclose(value, 0.0, abs_tol=1e-12) for value in center)
+        and not transform_info["present"]
+    )
+    measurements = {
+        "acis_header_scale": scale,
+        "geometry_frame": "ACIS body-local coordinates; transform intentionally not applied",
+        "body_transform": transform_info,
+        "bounds_acis_units": actual_local_bounds,
+        "expected_bounds_acis_units": expected_local_bounds,
+        "expected_embedded_transform_bounds_acis_model_coordinates": (
+            tuple(manifest["expected_min_acis_model_coordinates"])
+            + tuple(manifest["expected_max_acis_model_coordinates"])
+        ),
+        "volume_acis_units3": actual_volume,
+        "area_acis_units2": actual_area,
+        "faces": len(solid.Faces),
+        "edges": len(solid.Edges),
+        "placement_qualified": placement_qualified,
+    }
+    print("FREECAD_ACIS_WITNESS_MEASUREMENTS=" + json.dumps(measurements, sort_keys=True))
+    require(
+        close_tuple(actual_local_bounds, expected_local_bounds),
+        "local bounds differ from the authored manifest",
+    )
+    require(
+        math.isclose(
+            actual_volume,
+            manifest["expected_volume_acis_model_units3"],
+            rel_tol=1e-8,
+            abs_tol=1e-7,
+        ),
+        "volume differs from manifest",
+    )
+    require(
+        math.isclose(
+            actual_area,
+            manifest["expected_surface_area_acis_model_units2"],
+            rel_tol=1e-8,
+            abs_tol=1e-7,
+        ),
+        "area differs from manifest",
+    )
+    require(
+        len(solid.Faces) == 6 and len(solid.Edges) == 12,
+        "topology differs from the six-face box control",
+    )
+
+    result = {
+        "reader": "InventorLoader",
+        "freecad_version": App.Version(),
+        "sab_sha256": manifest["sab_sha256"],
+        "acis_header_scale": scale,
+        "bounds_acis_units": actual_local_bounds,
+        "volume_acis_units3": actual_volume,
+        "area_acis_units2": actual_area,
+        "faces": len(solid.Faces),
+        "edges": len(solid.Edges),
+        "valid_closed_solid": True,
+        "placement_qualified": placement_qualified,
+        "scope": (
+            "ACIS body-local geometry in raw model units only; no AutoCAD, DWG, "
+            "ACDSDATA, drawing-unit scale, or nonzero placement qualification"
+        ),
+    }
+    print("FREECAD_ACIS_WITNESS_LOCAL_GEOMETRY_PASS=" + json.dumps(result, sort_keys=True))

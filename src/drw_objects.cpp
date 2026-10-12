@@ -1251,12 +1251,18 @@ bool copyProxyBitRange(const dwgBuffer& source, std::uint64_t startBit,
         return false;
 
     const std::uint64_t startByte = startBit >> 3;
-    const std::uint64_t endByte = (endBit >> 3) + ((endBit & 7u) != 0);
-    const std::uint64_t byteCount = endByte - startByte;
-    if (endByte < startByte
-        || byteCount > std::numeric_limits<std::size_t>::max()
-        || byteCount > static_cast<std::uint64_t>(std::numeric_limits<int>::max())
-        || !DRW::resize(data, static_cast<int>(byteCount)))
+    const std::uint64_t bitCount = endBit - startBit;
+    const std::uint64_t byteCount = bitCount / 8u
+        + ((bitCount & 7u) != 0 ? 1u : 0u);
+    const std::uint64_t sourceEndByte =
+        (endBit >> 3) + ((endBit & 7u) != 0);
+    const std::uint64_t sourceByteCount = sourceEndByte - startByte;
+    if (sourceEndByte < startByte
+        || sourceByteCount > std::numeric_limits<std::size_t>::max()
+        || sourceByteCount
+               > static_cast<std::uint64_t>(std::numeric_limits<int>::max())
+        || byteCount > sourceByteCount
+        || !DRW::resize(data, static_cast<int>(sourceByteCount)))
         return false;
     dwgBuffer copy = source;
     if (!copy.setPosition(startByte)
@@ -1269,22 +1275,35 @@ bool copyProxyBitRange(const dwgBuffer& source, std::uint64_t startBit,
     }
     if (data.empty())
         return true;
-    return copy.getBytes(data.data(), data.size()) && copy.isGood();
+    if (!copy.getBytes(data.data(), data.size()) || !copy.isGood())
+        return false;
+    data.resize(static_cast<std::size_t>(byteCount));
+    // The DWG bit range may end inside a byte shared with the following
+    // stream. DXF proxy code 161 declares the significant bits; clear the
+    // unused low bits instead of leaking adjacent DWG bits into group 310.
+    if ((bitCount & 7u) != 0)
+        data.back() &= static_cast<std::uint8_t>(
+            0xFFu << (8u - (bitCount & 7u)));
+    return true;
 }
 
 int proxyDxfCode(std::uint8_t handleCode) {
+    // ODA DWG spec §2.13 / §20.4.90: proxy objids are typed handles.
+    // Autodesk DXF reference: 330 soft pointer, 340 hard pointer,
+    // 350 soft owner, 360 hard owner.
     switch (handleCode) {
+    case 2:
+        return 350;
     case 3:
+        return 360;
+    case 5:
         return 340;
     case 4:
     case 6:
     case 8:
     case 10:
     case 12:
-        return 350;
-    case 5:
-        return 360;
-    case 2:
+        return 330;
     default:
         return 330;
     }
@@ -1476,117 +1495,160 @@ bool skipAssocActionParamPrefix(DRW::Version version, dwgBuffer *buf,
     return good && buf->isGood() && textBuf->isGood();
 }
 
-bool skipEvalExpr(DRW::Version version, dwgBuffer *buf, dwgBuffer *sBuf,
-                  dwgBuffer *hBuff, std::uint32_t bodySize,
-                  std::uint32_t stringSize,
-                  std::uint64_t handleEndBit =
-                      std::numeric_limits<std::uint64_t>::max()) {
+bool readEvalExprPrefix(
+    DRW::Version version, dwgBuffer *buf, dwgBuffer *sBuf,
+    dwgBuffer *hBuff, std::uint32_t bodySize, std::uint32_t stringSize,
+    DRW_AcShHistoryObject::EvalExprPrefix& value,
+    std::uint64_t handleEndBit =
+        std::numeric_limits<std::uint64_t>::max()) {
     if (buf == nullptr || !buf->isGood() || (sBuf != nullptr && !sBuf->isGood())
         || (hBuff != nullptr && !hBuff->isGood()))
         return false;
+
+    dwgBuffer bodyProbe = buf->forkIndependent();
+    const bool separateStringBuffer = sBuf != nullptr && sBuf != buf;
+    dwgBuffer stringProbe = separateStringBuffer
+        ? sBuf->forkIndependent() : bodyProbe.forkIndependent();
+    dwgBuffer handleProbe = hBuff != nullptr
+        ? hBuff->forkIndependent() : bodyProbe.forkIndependent();
+    dwgBuffer *textBuf = separateStringBuffer ? &stringProbe : &bodyProbe;
+    DRW_AcShHistoryObject::EvalExprPrefix parsed;
 
     auto readLong = [&]() {
-        std::int32_t ignored = 0;
-        return readBitLongWithinBody(buf, version, bodySize, ignored);
+        return readBitLongWithinBody(&bodyProbe, version, bodySize,
+                                     parsed.m_unknown);
     };
-    auto readDouble = [&]() {
-        double ignored = 0.0;
-        return readBitDoubleWithinBody(buf, version, bodySize, ignored);
-    };
-    auto readPoint = [&]() {
-        DRW_Coord ignored;
-        return read2RawDoubleWithinBody(buf, version, bodySize, ignored);
-    };
-
-    if (!readLong() || !readLong() || !readLong())
+    if (!readLong())
+        return false;
+    // Preserve the DWG-only first field separately from DXF group 90, which
+    // is the trailing m_id. The shared version fields map to groups 98/99.
+    if (!readBitLongWithinBody(&bodyProbe, version, bodySize,
+                               parsed.m_value98)
+        || !readBitLongWithinBody(&bodyProbe, version, bodySize,
+                                  parsed.m_value99))
         return false;
     std::int32_t valueCode = 0;
-    if (!readSBitShortWithinBody(buf, version, bodySize, valueCode))
+    if (!readSBitShortWithinBody(&bodyProbe, version, bodySize, valueCode)
+        || valueCode < std::numeric_limits<std::int16_t>::min()
+        || valueCode > std::numeric_limits<std::int16_t>::max())
         return false;
-    switch (valueCode) {
-    case 40:
-        if (!readDouble())
+    parsed.m_valueCode = static_cast<std::int16_t>(valueCode);
+    parsed.m_hasEvaluatedValue = valueCode > 0;
+    if (parsed.m_hasEvaluatedValue) {
+        switch (valueCode) {
+        case 40:
+            if (!readBitDoubleWithinBody(&bodyProbe, version, bodySize,
+                                         parsed.m_doubleValue))
+                return false;
+            break;
+        case 10:
+        case 11:
+            // Current independent descriptions disagree on point storage
+            // (raw doubles versus compressed 3D points). Reject until an
+            // authoritative class-layout source or matching DWG witness
+            // resolves the width unambiguously.
             return false;
-        break;
-    case 10:
-    case 11:
-        if (!readPoint())
+        case 1:
+            if (!readVariableTextWithinBounds(&bodyProbe, textBuf, version,
+                                              bodySize, stringSize,
+                                              parsed.m_textValue))
+                return false;
+            break;
+        case 90:
+            if (!readBitLongWithinBody(&bodyProbe, version, bodySize,
+                                       parsed.m_longValue))
+                return false;
+            break;
+        case 91:
+            if (hBuff == nullptr
+                || !readObjectHandleRefTransactional(&handleProbe,
+                                                     parsed.m_handleValue,
+                                                     handleEndBit))
+                return false;
+            break;
+        case 70:
+            // Secondary layout references disagree on the value's bit width.
             return false;
-        break;
-    case 1: {
-        UTF8STRING ignoredText;
-        dwgBuffer *textBuf = sBuf ? sBuf : buf;
-        if (!readVariableTextWithinBounds(buf, textBuf, version, bodySize,
-                                          stringSize, ignoredText))
+        default:
+            // A positive group code with an unknown value encoding cannot be
+            // skipped safely: its byte width is needed to reach the next field.
             return false;
-        break;
+        }
     }
-    case 90:
-        if (!readLong())
-            return false;
-        break;
-    case 91: {
-        std::uint32_t ignoredHandle = 0;
-        if (hBuff == nullptr
-            || !readObjectHandleRefTransactional(hBuff, ignoredHandle,
-                                                 handleEndBit))
-            return false;
-        break;
-    }
-    case 70: {
-        std::int32_t ignoredShort = 0;
-        if (!readBitShortWithinBody(buf, version, bodySize, ignoredShort))
-            return false;
-        break;
-    }
-    default:
-        break;
-    }
-    return readLong() && buf->isGood() && (!sBuf || sBuf->isGood())
-        && (!hBuff || hBuff->isGood());
+    if (!readBitLongWithinBody(&bodyProbe, version, bodySize, parsed.m_id)
+        || !bodyProbe.isGood() || !textBuf->isGood()
+        || !objectBodyFitsSize(currentObjectDwgBit(&bodyProbe), bodySize)
+        || !objectBodyFitsSize(currentObjectDwgBit(textBuf), stringSize)
+        || (hBuff != nullptr && !handleProbe.isGood()))
+        return false;
+
+    parsed.m_complete = true;
+    *buf = bodyProbe;
+    if (separateStringBuffer)
+        *sBuf = stringProbe;
+    if (hBuff != nullptr)
+        *hBuff = handleProbe;
+    value = std::move(parsed);
+    return true;
 }
 
-bool skipShHistoryNode(DRW::Version version, dwgBuffer *buf, dwgBuffer *sBuf,
-                       dwgBuffer *hBuff, std::uint32_t bodySize,
-                       std::uint32_t stringSize, std::uint32_t *major = nullptr,
-                       std::uint32_t *minor = nullptr,
-                       std::uint64_t handleEndBit =
-                           std::numeric_limits<std::uint64_t>::max()) {
+bool readShHistoryNodePrefix(
+    DRW::Version version, dwgBuffer *buf, dwgBuffer *sBuf, dwgBuffer *hBuff,
+    std::uint32_t bodySize, std::uint32_t stringSize,
+    DRW_AcShHistoryObject::HistoryNodePrefix& value,
+    std::uint64_t handleEndBit =
+        std::numeric_limits<std::uint64_t>::max()) {
     if (buf == nullptr || !buf->isGood() || (sBuf != nullptr && !sBuf->isGood())
         || (hBuff != nullptr && !hBuff->isGood()))
         return false;
 
-    std::int32_t parsedMajor = 0;
-    std::int32_t parsedMinor = 0;
-    bool good = readBitLongWithinBody(buf, version, bodySize, parsedMajor);
+    if (hBuff == nullptr)
+        return false;
+    dwgBuffer bodyProbe = buf->forkIndependent();
+    const bool separateStringBuffer = sBuf != nullptr && sBuf != buf;
+    dwgBuffer stringProbe = separateStringBuffer
+        ? sBuf->forkIndependent() : bodyProbe.forkIndependent();
+    dwgBuffer handleProbe = hBuff->forkIndependent();
+    dwgBuffer *colorStringBuffer = separateStringBuffer
+        ? &stringProbe : &bodyProbe;
+    DRW_AcShHistoryObject::HistoryNodePrefix parsed;
+
+    bool good = readBitLongWithinBody(&bodyProbe, version, bodySize,
+                                      parsed.m_major)
+        && readBitLongWithinBody(&bodyProbe, version, bodySize,
+                                 parsed.m_minor);
+    for (double& value : parsed.m_transform) {
+        if (!good)
+            break;
+        good = readBitDoubleWithinBody(&bodyProbe, version, bodySize, value);
+    }
     if (good) {
-        good = readBitLongWithinBody(buf, version, bodySize, parsedMinor);
+        good = readCmColorWithinBounds(
+            &bodyProbe, colorStringBuffer, version, bodySize, stringSize,
+            parsed.m_colorIndex, &parsed.m_rgbColor, &parsed.m_colorName,
+            &parsed.m_colorBookName, &parsed.m_hasRgbColor);
     }
-    for (int i = 0; good && i < 16; ++i) {
-        double ignored = 0.0;
-        good = readBitDoubleWithinBody(buf, version, bodySize, ignored);
-    }
-    std::uint32_t ignoredColor = 0;
     if (good) {
-        good = readCmColorWithinBounds(buf, sBuf, version, bodySize, stringSize,
-                                       ignoredColor);
+        good = readBitLongWithinBody(&bodyProbe, version, bodySize,
+                                     parsed.m_nodeValue);
     }
-    std::int32_t ignoredLong = 0;
-    if (good) {
-        good = readBitLongWithinBody(buf, version, bodySize, ignoredLong);
-    }
-    std::uint32_t ignoredHandle = 0;
-    if (good && hBuff != nullptr)
-        good = readObjectHandleRefTransactional(hBuff, ignoredHandle,
+    if (good)
+        good = readObjectHandleRefTransactional(&handleProbe, parsed.m_handle,
                                                 handleEndBit);
-    if (good) {
-        if (major != nullptr)
-            *major = static_cast<std::uint32_t>(parsedMajor);
-        if (minor != nullptr)
-            *minor = static_cast<std::uint32_t>(parsedMinor);
-    }
-    return good && buf->isGood() && (!sBuf || sBuf->isGood())
-        && (!hBuff || hBuff->isGood());
+    if (!good || !bodyProbe.isGood() || !colorStringBuffer->isGood()
+        || !handleProbe.isGood()
+        || !objectBodyFitsSize(currentObjectDwgBit(&bodyProbe), bodySize)
+        || !objectBodyFitsSize(currentObjectDwgBit(colorStringBuffer),
+                               stringSize))
+        return false;
+
+    parsed.m_complete = true;
+    *buf = bodyProbe;
+    if (separateStringBuffer)
+        *sBuf = stringProbe;
+    *hBuff = handleProbe;
+    value = std::move(parsed);
+    return true;
 }
 
 std::int32_t visualStyleLong(double value) {
@@ -2855,6 +2917,8 @@ bool DRW_Dimstyle::parseCode(int code, const std::unique_ptr<dxfReader>& reader)
         break;
     case 290:
         dimfxlon = reader->getInt32();
+        if (dimfxlon != 0 && dimfxlon != 1)
+            return false;
         break;
     case 292: // Legacy LibreCAD compatibility spelling.
     case 294: // LibreDWG compatibility spelling.
@@ -8124,7 +8188,10 @@ bool DRW_Dictionary::parseDwgImpl(DRW::Version version, dwgBuffer *buf,
         dwgHandle itemH;
         if (!readDwgObjectHandleWithinFrame(version, *buf, true, itemH))
             return false;
-        if (names[i].empty() || itemH.ref == 0)
+        const bool nullItemHandleIsValid = itemH.ref == 0
+            && itemH.size == 0
+            && (itemH.code == 0 || itemH.code == dwgItemHandleCode());
+        if (names[i].empty() || (itemH.ref == 0 && !nullItemHandleIsValid))
             return false;
         entries.push_back({names[i], itemH.ref});
     }
@@ -8315,7 +8382,9 @@ bool DRW_XRecord::parseCode(int code,
     if (code == 100) {
         if (m_values.size() >= dwgSafety::MaxOwnedObjectCount)
             return false;
-        m_values.emplace_back(code, reader->getUtf8String());
+        DRW_Variant value(code, reader->getUtf8String());
+        m_values.push_back(value);
+        m_dataEntries.push_back(std::move(value));
         return true;
     }
     if (code == 280) {
@@ -8325,9 +8394,10 @@ bool DRW_XRecord::parseCode(int code,
     if (xRecordCodeIsHandle(code)) {
         if (m_handleValues.size() >= dwgSafety::MaxOwnedObjectCount)
             return false;
-        m_handleValues.emplace_back(code,
-                                    static_cast<std::uint32_t>(
-                                        reader->getHandleString()));
+        const std::uint64_t handle = reader->getHandleString();
+        m_handleValues.emplace_back(
+            code, static_cast<std::uint32_t>(handle));
+        m_dataEntries.emplace_back(code, handle);
         return true;
     }
     if (xRecordCodeIsBinary(code)) {
@@ -8336,7 +8406,9 @@ bool DRW_XRecord::parseCode(int code,
             return false;
         if (m_values.size() >= dwgSafety::MaxOwnedObjectCount)
             return false;
-        m_values.emplace_back(code, std::move(bytes));
+        DRW_Variant value(code, std::move(bytes));
+        m_values.push_back(value);
+        m_dataEntries.push_back(std::move(value));
         return true;
     }
     int xCode = 0;
@@ -8351,6 +8423,19 @@ bool DRW_XRecord::parseCode(int code,
                 m_values.back().coord()->y = value;
             else
                 m_values.back().coord()->z = value;
+            if (!m_dataEntries.empty()
+                && m_dataEntries.back().type() == DRW_Variant::COORD
+                && m_dataEntries.back().code() == xCode) {
+                if (component == 0)
+                    m_dataEntries.back().coord()->x = value;
+                else if (component == 1)
+                    m_dataEntries.back().coord()->y = value;
+                else
+                    m_dataEntries.back().coord()->z = value;
+            } else {
+                DRW_Coord point = *m_values.back().coord();
+                m_dataEntries.emplace_back(xCode, point);
+            }
         } else {
             if (m_values.size() >= dwgSafety::MaxOwnedObjectCount)
                 return false;
@@ -8362,34 +8447,43 @@ bool DRW_XRecord::parseCode(int code,
             else
                 point.z = value;
             m_values.emplace_back(xCode, point);
+            m_dataEntries.emplace_back(xCode, point);
         }
         return true;
     }
     if (xRecordCodeIsString(code)) {
         if (m_values.size() >= dwgSafety::MaxOwnedObjectCount)
             return false;
-        m_values.emplace_back(code, reader->getUtf8String());
+        DRW_Variant value(code, reader->getUtf8String());
+        m_values.push_back(value);
+        m_dataEntries.push_back(std::move(value));
         return true;
     }
     if (xRecordCodeIsDouble(code)) {
         if (m_values.size() >= dwgSafety::MaxOwnedObjectCount)
             return false;
-        m_values.emplace_back(code, reader->getDouble());
+        DRW_Variant value(code, reader->getDouble());
+        m_values.push_back(value);
+        m_dataEntries.push_back(std::move(value));
         return true;
     }
     if (xRecordCodeIsBool(code) || xRecordCodeIsByte(code)
         || xRecordCodeIsInt16(code) || xRecordCodeIsInt32(code)) {
         if (m_values.size() >= dwgSafety::MaxOwnedObjectCount)
             return false;
-        m_values.emplace_back(code, static_cast<std::int32_t>(
+        DRW_Variant value(code, static_cast<std::int32_t>(
             reader->getInt32()));
+        m_values.push_back(value);
+        m_dataEntries.push_back(std::move(value));
         return true;
     }
     if (code >= 160 && code <= 169) {
         if (m_values.size() >= dwgSafety::MaxOwnedObjectCount)
             return false;
-        m_values.emplace_back(code, static_cast<std::int64_t>(
+        DRW_Variant value(code, static_cast<std::int64_t>(
             reader->getInt64()));
+        m_values.push_back(value);
+        m_dataEntries.push_back(std::move(value));
         return true;
     }
     return false;
@@ -15277,7 +15371,7 @@ bool DRW_Dictionary::isDwgPayloadValidImpl(
     }
     return std::all_of(m_entries.cbegin(), m_entries.cend(),
                        [](const Entry &entry) {
-                         return !entry.m_name.empty() && entry.m_handle != 0;
+                         return !entry.m_name.empty();
                        });
 }
 
@@ -19510,9 +19604,14 @@ bool DRW_ProxyObject::parseDwg(DRW::Version version, dwgBuffer *buf,
     if (!readProxyOptionalBitLong(*buf, dataEndBit, present, value))
         return fail();
     if (present) {
-        m_hasProxyCarrierId = true;
-        m_proxyCarrierId = value;
+        // DXF group 90 is the fixed internal DWG object typecode (0x1F3 for
+        // ACAD_PROXY_OBJECT); the DWG object's class ID is serialized here
+        // and maps to DXF group 91.
+        m_hasProxyClassId = true;
+        m_proxyClassId = value;
     }
+    m_hasProxyCarrierId = true;
+    m_proxyCarrierId = kDwgType;
 
     if (version >= DRW::AC1018 && proxyHasBits(*stringBuf, stringEndBit, 2)) {
         if (dataEndBit > std::numeric_limits<std::uint32_t>::max()
@@ -19573,6 +19672,7 @@ bool DRW_ProxyObject::parseDwg(DRW::Version version, dwgBuffer *buf,
         return fail();
     m_objectDataBitSize = static_cast<std::uint32_t>(dataEndBit
                                                      - payloadStartBit);
+    m_hasObjectDataBitSize = true;
 
     dwgBuffer handleBuffer = *buf;
     seekObjectHandleStream(version, &handleBuffer, objSize,
@@ -20852,6 +20952,8 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
 void DRW_AcShHistoryObject::reset() {
     DRW_TableEntry::reset();
     tType = DRW::ACSHHISTORYOBJECT;
+    m_evalExprPrefix = EvalExprPrefix{};
+    m_historyNodePrefix = HistoryNodePrefix{};
     m_major = 0;
     m_minor = 0;
     m_ownerHandle = 0;
@@ -20889,6 +20991,7 @@ void DRW_AcShHistoryObject::reset() {
     m_isCloseToAxis = false;
     m_numCrossSections = 0;
     m_numGuides = 0;
+    m_extrusionDxfProjection = ExtrusionDxfProjection{};
     m_prefixStatuses.clear();
 }
 
@@ -21037,21 +21140,26 @@ bool DRW_AcShHistoryObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
         // undocumented embedded sweep/path entity blob + SweepOptions and is
         // best-effort only (matches dwgTs parseAcshSweepBaseBody).
         const std::uint64_t evalStartBit = currentObjectDwgBit(buf);
-        const bool evalParsed = skipEvalExpr(
+        const bool evalParsed = readEvalExprPrefix(
             version, buf, sBuf, &hBuff, boundedBodyEnd, objSize,
-            handleEndBit);
+            m_evalExprPrefix, handleEndBit);
         appendPrefixStatus(
             DRW_AssociativePrefixStatus::Kind::AcDbEvalExpr, evalStartBit,
-            prefixStatusFromGood(evalParsed && bodyFits()), 0, 1, 1, 0);
+            prefixStatusFromGood(evalParsed && bodyFits()), 0,
+            evalParsed && m_evalExprPrefix.m_valueCode == 91 ? 1u : 0u,
+            evalParsed && m_evalExprPrefix.m_hasEvaluatedValue ? 1u : 0u,
+            evalParsed ? m_evalExprPrefix.m_valueCode : 0);
         const std::uint64_t historyStartBit = currentObjectDwgBit(buf);
         const bool historyParsed = evalParsed
-            && skipShHistoryNode(version, buf, sBuf, &hBuff,
-                                 boundedBodyEnd, objSize, nullptr, nullptr,
-                                 handleEndBit);
+            && readShHistoryNodePrefix(version, buf, sBuf, &hBuff,
+                                       boundedBodyEnd, objSize,
+                                       m_historyNodePrefix, handleEndBit);
         appendPrefixStatus(
             DRW_AssociativePrefixStatus::Kind::AcDbShHistoryNode,
             historyStartBit,
-            prefixStatusFromGood(historyParsed && bodyFits()), 0, 1, 0, 0);
+            prefixStatusFromGood(historyParsed && bodyFits()), 0,
+            historyParsed ? 1u : 0u, historyParsed ? 20u : 0u,
+            historyParsed ? m_historyNodePrefix.m_nodeValue : 0);
         if (evalParsed && historyParsed) {
             const std::uint64_t actionBodyStartBit = currentObjectDwgBit(buf);
             std::int32_t major = 0;
@@ -21119,21 +21227,26 @@ bool DRW_AcShHistoryObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
         // skips from the SWEEP arm; matches dwgTs parseAcshBoxOrWedgeBody /
         // parseAcshSphereClass / parseAcshCylinderOrConeBody.
         const std::uint64_t evalStartBit = currentObjectDwgBit(buf);
-        const bool evalParsed = skipEvalExpr(
+        const bool evalParsed = readEvalExprPrefix(
             version, buf, sBuf, &hBuff, boundedBodyEnd, objSize,
-            handleEndBit);
+            m_evalExprPrefix, handleEndBit);
         appendPrefixStatus(
             DRW_AssociativePrefixStatus::Kind::AcDbEvalExpr, evalStartBit,
-            prefixStatusFromGood(evalParsed && bodyFits()), 0, 1, 1, 0);
+            prefixStatusFromGood(evalParsed && bodyFits()), 0,
+            evalParsed && m_evalExprPrefix.m_valueCode == 91 ? 1u : 0u,
+            evalParsed && m_evalExprPrefix.m_hasEvaluatedValue ? 1u : 0u,
+            evalParsed ? m_evalExprPrefix.m_valueCode : 0);
         const std::uint64_t historyStartBit = currentObjectDwgBit(buf);
         const bool historyParsed = evalParsed
-            && skipShHistoryNode(version, buf, sBuf, &hBuff,
-                                 boundedBodyEnd, objSize, nullptr, nullptr,
-                                 handleEndBit);
+            && readShHistoryNodePrefix(version, buf, sBuf, &hBuff,
+                                       boundedBodyEnd, objSize,
+                                       m_historyNodePrefix, handleEndBit);
         appendPrefixStatus(
             DRW_AssociativePrefixStatus::Kind::AcDbShHistoryNode,
             historyStartBit,
-            prefixStatusFromGood(historyParsed && bodyFits()), 0, 1, 0, 0);
+            prefixStatusFromGood(historyParsed && bodyFits()), 0,
+            historyParsed ? 1u : 0u, historyParsed ? 20u : 0u,
+            historyParsed ? m_historyNodePrefix.m_nodeValue : 0);
         if (evalParsed && historyParsed && buf->isGood()) {
             const std::uint64_t shapeStartBit = currentObjectDwgBit(buf);
             std::int32_t major = 0;
@@ -21182,21 +21295,27 @@ bool DRW_AcShHistoryObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
         //  "major // also in DWG?" — so it stays prefix-only + raw-shelved.)
         auto parseSharedPrefix = [&]() -> bool {
             const std::uint64_t evalStartBit = currentObjectDwgBit(buf);
-            const bool evalParsed = skipEvalExpr(
+            const bool evalParsed = readEvalExprPrefix(
                 version, buf, sBuf, &hBuff, boundedBodyEnd, objSize,
-                handleEndBit);
+                m_evalExprPrefix, handleEndBit);
             appendPrefixStatus(
                 DRW_AssociativePrefixStatus::Kind::AcDbEvalExpr, evalStartBit,
-                prefixStatusFromGood(evalParsed && bodyFits()), 0, 1, 1, 0);
+                prefixStatusFromGood(evalParsed && bodyFits()), 0,
+                evalParsed && m_evalExprPrefix.m_valueCode == 91 ? 1u : 0u,
+                evalParsed && m_evalExprPrefix.m_hasEvaluatedValue ? 1u : 0u,
+                evalParsed ? m_evalExprPrefix.m_valueCode : 0);
             const std::uint64_t historyStartBit = currentObjectDwgBit(buf);
             const bool historyParsed = evalParsed
-                && skipShHistoryNode(version, buf, sBuf, &hBuff,
-                                     boundedBodyEnd, objSize, nullptr, nullptr,
-                                     handleEndBit);
+                && readShHistoryNodePrefix(version, buf, sBuf, &hBuff,
+                                           boundedBodyEnd, objSize,
+                                           m_historyNodePrefix,
+                                           handleEndBit);
             appendPrefixStatus(
                 DRW_AssociativePrefixStatus::Kind::AcDbShHistoryNode,
                 historyStartBit,
-                prefixStatusFromGood(historyParsed && bodyFits()), 0, 1, 0, 0);
+                prefixStatusFromGood(historyParsed && bodyFits()), 0,
+                historyParsed ? 1u : 0u, historyParsed ? 20u : 0u,
+                historyParsed ? m_historyNodePrefix.m_nodeValue : 0);
             return evalParsed && historyParsed && buf->isGood();
         };
         // Bounded vector<double> reader (BD elements), graceful on short read.
@@ -21495,6 +21614,8 @@ void DRW_DynamicBlockObject::reset() {
     m_major = 0;
     m_minor = 0;
     m_valueCode = 0;
+    m_valueDouble = 0.0;
+    m_hasValueDouble = false;
     m_valueHandle = 0;
     m_nodeId = 0;
     m_purgeFlag = 0;
@@ -21691,7 +21812,9 @@ void DRW_DynamicBlockObject::reset() {
 // (AcDbEvalExpr_fields / AcDbBlockElement_fields / AcDbBlockParameter_fields /
 // AcDbBlockAction_fields / BLOCKVISIBILITYPARAMETER / verified
 // BLOCK*ACTION subclasses),
-// ground-truthed against dwgread -O JSON.  Handle-reference vectors (deps /
+// cross-checked against LibreDWG on the pinned AC1027 sample. Its JSON and DXF
+// exporters disagree on some dynamic-block numeric fields, so neither is yet
+// a field-level oracle for serialization. Handle-reference vectors (deps /
 // blocks / params) live in the handle stream: their COUNT is read inline in
 // the data stream, then the handles are decoded after common handles.  Every
 // read is isGood()-guarded and every count is bounded.  A short body still
@@ -21900,6 +22023,8 @@ bool DRW_DynamicBlockObject::parseDwg(DRW::Version version, dwgBuffer *buf, std:
     std::int32_t valueCode = 0;
     std::int32_t nodeId = 0;
     std::uint32_t valueHandle = 0;
+    double valueDouble = 0.0;
+    bool hasValueDouble = false;
     UTF8STRING valueText;
     if (!readBitLongWithinBody(&bodyProbe, version, dynamicBodyEnd, parentId)
         || !readBitLongWithinBody(&bodyProbe, version, dynamicBodyEnd, major)
@@ -21910,10 +22035,10 @@ bool DRW_DynamicBlockObject::parseDwg(DRW::Version version, dwgBuffer *buf, std:
 
     switch (valueCode) { // value-code switch
     case 40: {
-        double value = 0.0;
         if (!readBitDoubleWithinBody(&bodyProbe, version, dynamicBodyEnd,
-                                     value))
+                                     valueDouble))
             return fail();
+        hasValueDouble = true;
         break;
     }
     case 10:
@@ -21965,6 +22090,8 @@ bool DRW_DynamicBlockObject::parseDwg(DRW::Version version, dwgBuffer *buf, std:
     m_major = static_cast<std::uint32_t>(major);
     m_minor = static_cast<std::uint32_t>(minor);
     m_valueCode = static_cast<std::int16_t>(valueCode);
+    m_valueDouble = valueDouble;
+    m_hasValueDouble = hasValueDouble;
     m_valueHandle = valueHandle;
     m_nodeId = static_cast<std::uint32_t>(nodeId);
     m_evalExprParsed = true;
@@ -21990,6 +22117,12 @@ bool DRW_DynamicBlockObject::parseDwg(DRW::Version version, dwgBuffer *buf, std:
             *sBuf = gripStringProbe;
         m_gripType = gripType;
         m_gripExpr = std::move(gripExpr);
+        const std::uint64_t bodyPosition =
+            currentObjectDwgBit(&gripBodyProbe);
+        const std::uint64_t stringPosition = version > DRW::AC1018
+            ? currentObjectDwgBit(&gripStringProbe) : bodyPosition;
+        m_bodyFullyDecoded = bodyPosition == dynamicBodyEnd
+            && stringPosition == dynamicStringEnd;
         return true;
     }
 

@@ -1,0 +1,236 @@
+# Optional audit of the real FreeCAD Draft DWG -> DXF -> C++ importer route.
+#
+# Run with LIBDXFRW_FREECAD_DWG set to a tracked fixture and this build's
+# dwg2dxf directory first on PATH. Use an isolated --user-cfg. The macro prints
+# one JSON summary containing converter output record counts, importer stats,
+# and created FreeCAD object types; it does not download the legacy DXF parser.
+
+import collections
+import hashlib
+import json
+import os
+import platform
+import subprocess
+import sys
+
+import FreeCAD as App
+
+
+sample = os.environ.get("LIBDXFRW_FREECAD_DWG")
+if not sample:
+    raise RuntimeError("LIBDXFRW_FREECAD_DWG must name a DWG sample")
+
+draft_path = os.path.join(App.getResourceDir(), "Mod", "Draft")
+sys.path.insert(0, draft_path)
+
+import importDWG
+import importDXF
+
+
+captured = {}
+original_convert = importDWG.convertToDxf
+original_dxf_open = importDXF.open
+original_reporter = importDXF.DxfImportReporter
+
+
+def capture_convert(filename):
+    processes = []
+    original_popen = subprocess.Popen
+
+    def capture_popen(*args, **kwargs):
+        process = original_popen(*args, **kwargs)
+        processes.append(process)
+        return process
+
+    subprocess.Popen = capture_popen
+    try:
+        result = original_convert(filename)
+    finally:
+        subprocess.Popen = original_popen
+    captured["dxf"] = result
+    captured["converter_processes"] = processes
+    return result
+
+
+class CapturingReporter(original_reporter):
+    def __init__(self, filename, stats_dict, total_time=0.0):
+        captured["stats"] = stats_dict
+        super().__init__(filename, stats_dict, total_time)
+
+
+def digest(path):
+    sha = hashlib.sha256()
+    with open(path, "rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            sha.update(chunk)
+    return sha.hexdigest()
+
+
+def count_dxf_records(path):
+    counts = collections.Counter()
+    with open(path, "r", encoding="utf-8", errors="replace") as stream:
+        lines = stream.read().splitlines()
+    for index in range(0, len(lines) - 1, 2):
+        if lines[index].strip() == "0":
+            counts[lines[index + 1].strip()] += 1
+    return dict(sorted(counts.items()))
+
+
+def converter_output_path(process):
+    args = process.args
+    if not isinstance(args, (list, tuple)) or not args:
+        return None
+    executable = os.path.basename(args[0]).lower()
+    if executable.startswith("dwg2dxf") and "-o" in args:
+        return args[args.index("-o") + 1]
+    if "odafileconverter" in executable and len(args) >= 8:
+        return os.path.join(
+            args[2], os.path.splitext(os.path.basename(args[-1]))[0] + ".dxf"
+        )
+    if "-f" in args and "-o" in args and len(args) > args.index("-o") + 1:
+        return args[args.index("-o") + 1]
+    return None
+
+
+def capture_dxf_open(filename, *args, **kwargs):
+    captured["imported_dxf"] = filename
+    return original_dxf_open(filename, *args, **kwargs)
+
+
+def point_tuple(vertex):
+    point = vertex.Point
+    return (float(point.x), float(point.y), float(point.z))
+
+
+def shape_details(document, max_objects=64, max_components=256):
+    """Return bounded topology/coordinate details for small control files."""
+    details = []
+    truncated = False
+    for obj in document.Objects:
+        shape = getattr(obj, "Shape", None)
+        if shape is None or shape.isNull():
+            continue
+        if len(details) >= max_objects:
+            truncated = True
+            break
+
+        vertices = list(shape.Vertexes)
+        edges = list(shape.Edges)
+        faces = list(shape.Faces)
+        detail = {
+            "name": obj.Name,
+            "type": obj.TypeId,
+            "valid": shape.isValid(),
+            "vertex_count": len(vertices),
+            "edge_count": len(edges),
+            "face_count": len(faces),
+        }
+        if len(vertices) <= max_components and len(edges) <= max_components:
+            detail["vertices"] = sorted(point_tuple(vertex) for vertex in vertices)
+            detail["edges"] = [
+                sorted(point_tuple(vertex) for vertex in edge.Vertexes)
+                for edge in edges
+            ]
+        else:
+            detail["coordinates_truncated"] = True
+        details.append(detail)
+    return details, truncated
+
+
+legacy = App.ParamGet(
+    "User parameter:BaseApp/Preferences/Mod/Draft"
+).GetBool("dxfUseLegacyImporter", False)
+if legacy:
+    raise RuntimeError(
+        "This audit requires the default C++ importer; use an isolated user config"
+    )
+
+importDWG.convertToDxf = capture_convert
+importDXF.open = capture_dxf_open
+importDXF.DxfImportReporter = CapturingReporter
+
+doc = None
+try:
+    doc = importDWG.open(sample)
+    if doc is None:
+        raise AssertionError("Draft.importDWG.open returned no document")
+
+    converted_path = captured.get("dxf")
+    dxf_path = captured.get("imported_dxf")
+    if not dxf_path or not os.path.isfile(dxf_path):
+        raise AssertionError("Draft DWG conversion did not leave its DXF for audit")
+    if (
+        not converted_path
+        or os.path.normcase(os.path.abspath(converted_path))
+        != os.path.normcase(os.path.abspath(dxf_path))
+    ):
+        raise AssertionError(
+            "Draft.importDWG.open did not pass the converted DXF to importDXF.open"
+        )
+
+    stats = captured.get("stats") or {}
+    unsupported = stats.get("unsupportedFeatures", {})
+    object_types = collections.Counter(obj.TypeId for obj in doc.Objects)
+    processes = captured.get("converter_processes", [])
+    normalized_dxf_path = os.path.normcase(os.path.abspath(dxf_path))
+    converter_attempts = []
+    imported_converter = None
+    for process in processes:
+        candidate = converter_output_path(process)
+        imported = bool(
+            candidate
+            and os.path.normcase(os.path.abspath(candidate)) == normalized_dxf_path
+        )
+        if imported:
+            imported_converter = os.path.basename(process.args[0])
+        converter_attempts.append(
+            {
+                "argv": process.args,
+                "returncode": process.returncode,
+                "output_path": candidate,
+                "output_exists": bool(candidate and os.path.isfile(candidate)),
+                "imported_by_freecad": imported,
+            }
+        )
+    include_shape_details = os.environ.get("LIBDXFRW_FREECAD_SHAPE_DETAIL") == "1"
+    shape_detail_values = []
+    shape_detail_truncated = False
+    if include_shape_details:
+        shape_detail_values, shape_detail_truncated = shape_details(doc)
+    result = {
+        "freecad_version": list(App.Version()),
+        "platform": platform.platform(),
+        "architecture": platform.machine(),
+        "importer": "C++",
+        "import_mode": App.ParamGet(
+            "User parameter:BaseApp/Preferences/Mod/Draft"
+        ).GetInt("DxfImportMode", 2),
+        "dwg_conversion_preference": importDWG.params.get_param("DWGConversion"),
+        "dwg2dxf_resolved_path": importDWG.get_libredwg_converter("dwg2dxf"),
+        "converter_attempts": converter_attempts,
+        "converted_dxf_path": converted_path,
+        "imported_dxf_path": dxf_path,
+        "imported_dxf_converter": imported_converter,
+        "source": os.path.basename(sample),
+        "source_sha256": digest(sample),
+        "dxf_size": os.path.getsize(dxf_path),
+        "dxf_sha256": digest(dxf_path),
+        "dxf_record_counts": count_dxf_records(dxf_path),
+        "import_entity_counts": stats.get("entityCounts", {}),
+        "import_created_count": stats.get("totalEntitiesCreated", 0),
+        "unsupported_features": {
+            key: len(values) for key, values in sorted(unsupported.items())
+        },
+        "freecad_object_types": dict(sorted(object_types.items())),
+        "settings": stats.get("importSettings", {}),
+        "shape_detail_enabled": include_shape_details,
+        "shape_details": shape_detail_values if include_shape_details else None,
+        "shape_detail_truncated": shape_detail_truncated,
+    }
+    print("FREECAD_DWG2DXF_FEATURE_AUDIT=" + json.dumps(result, sort_keys=True))
+finally:
+    importDWG.convertToDxf = original_convert
+    importDXF.open = original_dxf_open
+    importDXF.DxfImportReporter = original_reporter
+    if doc is not None and doc.Name in App.listDocuments():
+        App.closeDocument(doc.Name)

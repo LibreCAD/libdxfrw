@@ -1,0 +1,283 @@
+# Pinned FreeCAD C++ importer probe for a closed 2D POLYLINE in an elevated,
+# oblique OCS. Generated DWG/DXF and the isolated profile stay outside source.
+
+import hashlib
+import json
+import os
+import platform
+import subprocess
+import sys
+import tempfile
+
+import FreeCAD as App
+
+
+sample = os.environ.get("LIBDXFRW_FREECAD_DWG")
+if not sample or not os.path.isfile(sample):
+    raise RuntimeError("LIBDXFRW_FREECAD_DWG must name an existing DWG sample")
+if " " not in os.path.abspath(sample):
+    raise RuntimeError("2D POLYLINE OCS qualification requires a path with spaces")
+if App.GuiUp:
+    raise RuntimeError("This check requires FreeCADCmd and the C++ Import backend")
+
+preferences = App.ParamGet("User parameter:BaseApp/Preferences/Mod/Draft")
+if preferences.GetBool("dxfUseLegacyImporter", False):
+    raise RuntimeError("This check requires FreeCAD's default C++ DXF importer")
+expected_revision = os.environ.get("LIBDXFRW_FREECAD_EXPECT_REVISION")
+freecad_version = App.Version()
+if (
+    not expected_revision
+    or len(freecad_version) < 8
+    or freecad_version[7] != expected_revision
+):
+    raise RuntimeError("FreeCAD revision does not match the requested qualification pin")
+
+temp_root = os.environ.get("LIBDXFRW_FREECAD_TEMP_ROOT")
+expected_user_cfg = os.environ.get("LIBDXFRW_FREECAD_USER_CFG")
+active_user_cfg = App.ConfigGet("UserParameter")
+if (
+    os.environ.get("LIBDXFRW_FREECAD_SEED_ISOLATED_PREFERENCES") != "1"
+    or not temp_root
+    or not expected_user_cfg
+    or not active_user_cfg
+):
+    raise RuntimeError("an isolated FreeCAD --user-cfg and temp root are required")
+real_root = os.path.realpath(temp_root)
+real_temp = os.path.realpath(tempfile.gettempdir())
+real_user_cfg = os.path.realpath(active_user_cfg)
+if (
+    not os.path.isdir(real_root)
+    or real_root == real_temp
+    or os.path.commonpath((real_temp, real_root)) != real_temp
+    or os.path.normcase(real_user_cfg)
+    != os.path.normcase(os.path.realpath(expected_user_cfg))
+    or os.path.commonpath((real_root, real_user_cfg)) != real_root
+):
+    raise RuntimeError("FreeCAD did not load the requested isolated user config")
+
+draft_path = os.path.join(App.getResourceDir(), "Mod", "Draft")
+sys.path.insert(0, draft_path)
+import importDWG
+import importDXF
+
+if os.environ.get("LIBDXFRW_FREECAD_DISCOVERY") != "path":
+    raise RuntimeError("this probe requires the attributed PATH discovery lane")
+importDWG.params.set_param("DWGConversion", 1)
+importDWG.params.set_param("TeighaFileConverter", "")
+if (
+    importDWG.params.get_param("DWGConversion") != 1
+    or importDWG.params.get_param("TeighaFileConverter")
+):
+    raise RuntimeError("isolated FreeCAD preferences did not select PATH discovery")
+
+expected_binary = os.environ.get("LIBDXFRW_FREECAD_EXPECT_DWG2DXF")
+expected_hash = os.environ.get("LIBDXFRW_FREECAD_EXPECT_DWG2DXF_SHA256")
+if not expected_binary or not expected_hash:
+    raise RuntimeError("expected dwg2dxf path and SHA-256 are required")
+
+
+def same_path(left, right):
+    return os.path.normcase(os.path.realpath(left)) == os.path.normcase(
+        os.path.realpath(right)
+    )
+
+
+def digest(path):
+    sha = hashlib.sha256()
+    with open(path, "rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            sha.update(chunk)
+    return sha.hexdigest()
+
+
+def close(actual, expected):
+    return abs(float(actual) - float(expected)) <= 1e-7
+
+
+captured = {}
+original_convert = importDWG.convertToDxf
+original_open = importDXF.open
+original_reporter = importDXF.DxfImportReporter
+original_popen = subprocess.Popen
+original_oda = importDWG.get_oda_converter
+original_qcad = importDWG.get_qcad_converter
+
+
+def capture_convert(filename):
+    processes = []
+
+    def capture_popen(*args, **kwargs):
+        process = original_popen(*args, **kwargs)
+        processes.append(process)
+        return process
+
+    subprocess.Popen = capture_popen
+    importDWG.get_oda_converter = lambda: None
+    importDWG.get_qcad_converter = lambda: None
+    try:
+        result = original_convert(filename)
+    finally:
+        subprocess.Popen = original_popen
+        importDWG.get_oda_converter = original_oda
+        importDWG.get_qcad_converter = original_qcad
+    captured["converted_dxf"] = result
+    captured["converter_processes"] = processes
+    return result
+
+
+def capture_open(filename, *args, **kwargs):
+    captured["imported_dxf"] = filename
+    return original_open(filename, *args, **kwargs)
+
+
+class CapturingReporter(original_reporter):
+    def __init__(self, filename, stats_dict, total_time=0.0):
+        captured["stats"] = stats_dict
+        super().__init__(filename, stats_dict, total_time)
+
+
+importDWG.convertToDxf = capture_convert
+importDXF.open = capture_open
+importDXF.DxfImportReporter = CapturingReporter
+doc = None
+try:
+    doc = importDWG.open(sample)
+    if doc is None:
+        raise AssertionError("Draft.importDWG.open() returned no document")
+
+    processes = captured.get("converter_processes", [])
+    if len(processes) != 1:
+        raise AssertionError("expected one dwg2dxf subprocess with fallbacks disabled")
+    process = processes[0]
+    args = process.args
+    converter = importDWG.get_libredwg_converter("dwg2dxf")
+    if not converter or not isinstance(args, (list, tuple)) or len(args) != 4:
+        raise AssertionError("FreeCAD did not invoke the expected dwg2dxf command")
+    if not same_path(converter, expected_binary) or not same_path(args[0], expected_binary):
+        raise AssertionError("FreeCAD resolved or invoked an unexpected converter")
+    if not same_path(args[1], sample) or args[2] != "-o":
+        raise AssertionError("FreeCAD used unexpected dwg2dxf input/option argv: %r" % (args,))
+    if process.returncode != 0:
+        raise AssertionError("dwg2dxf exited with status %r" % process.returncode)
+    if digest(expected_binary) != expected_hash:
+        raise AssertionError("dwg2dxf SHA-256 differs from expectation")
+
+    dxf_path = captured.get("converted_dxf")
+    imported_path = captured.get("imported_dxf")
+    if not dxf_path or not os.path.isfile(dxf_path):
+        raise AssertionError("dwg2dxf did not produce its expected DXF")
+    if not same_path(args[3], dxf_path) or not same_path(imported_path or "", dxf_path):
+        raise AssertionError("FreeCAD did not import the exact successful converter output")
+
+    shape_objects = []
+    for obj in doc.Objects:
+        shape = getattr(obj, "Shape", None)
+        if shape is not None and not shape.isNull():
+            shape_objects.append(obj)
+    if len(shape_objects) != 1:
+        raise AssertionError("expected one shape object; got %d" % len(shape_objects))
+    obj = shape_objects[0]
+    shape = obj.Shape
+    if not shape.isValid() or len(shape.Edges) != 4 or len(shape.Wires) != 1:
+        raise AssertionError(
+            "expected one valid four-edge wire; valid=%r edges=%d wires=%d"
+            % (shape.isValid(), len(shape.Edges), len(shape.Wires))
+        )
+    wire = shape.Wires[0]
+    if not wire.isClosed():
+        raise AssertionError("FreeCAD did not preserve the POLYLINE closed flag")
+
+    actual_vertices = sorted(
+        {
+            (
+                round(float(vertex.Point.x), 7),
+                round(float(vertex.Point.y), 7),
+                round(float(vertex.Point.z), 7),
+            )
+            for vertex in shape.Vertexes
+        }
+    )
+    expected_world_vertices = [
+        (-4.0, 0.6, 5.8),
+        (-4.0, 3.0, 4.0),
+        (0.0, 0.6, 5.8),
+        (0.0, 3.0, 4.0),
+    ]
+    observed_flat_vertices = [
+        (0.0, 0.0, 0.0),
+        (0.0, 3.0, 0.0),
+        (4.0, 0.0, 0.0),
+        (4.0, 3.0, 0.0),
+    ]
+    if actual_vertices != observed_flat_vertices:
+        raise AssertionError(
+            "pinned FreeCAD 1.1.3 POLYLINE OCS behavior changed; review the new "
+            "geometry before updating the qualification: got %r" % actual_vertices
+        )
+
+    bounds = shape.BoundBox
+    actual_bounds = (
+        float(bounds.XMin), float(bounds.YMin), float(bounds.ZMin),
+        float(bounds.XMax), float(bounds.YMax), float(bounds.ZMax),
+    )
+    observed_flat_bounds = (0.0, 0.0, 0.0, 4.0, 3.0, 0.0)
+    if not all(
+        close(actual, expected)
+        for actual, expected in zip(actual_bounds, observed_flat_bounds)
+    ):
+        raise AssertionError(
+            "pinned FreeCAD 1.1.3 POLYLINE OCS bounds changed; review the new "
+            "geometry before updating the qualification: got %r" % (actual_bounds,)
+        )
+
+    stats = captured.get("stats") or {}
+    entity_counts = stats.get("entityCounts", {})
+    if entity_counts.get("POLYLINE", 0) != 1:
+        raise AssertionError("FreeCAD did not report one POLYLINE: %r" % entity_counts)
+    unsupported = stats.get("unsupportedFeatures", {})
+    if unsupported:
+        raise AssertionError("FreeCAD reported unsupported entities: %r" % unsupported)
+    unsupported_counts = {
+        key: len(values) for key, values in sorted(unsupported.items())
+    }
+
+    result = {
+        "status": "pass",
+        "freecad_version": list(freecad_version),
+        "platform": platform.platform(),
+        "architecture": platform.machine(),
+        "importer": "C++",
+        "import_mode": preferences.GetInt("DxfImportMode", 2),
+        "converter": converter,
+        "converter_sha256": digest(expected_binary),
+        "converter_argv": args,
+        "converter_returncode": process.returncode,
+        "source_sha256": digest(sample),
+        "dxf_path": dxf_path,
+        "dxf_sha256": digest(dxf_path),
+        "entity_counts": entity_counts,
+        "unsupported_features": unsupported_counts,
+        "shape_object": obj.Name,
+        "shape_valid": shape.isValid(),
+        "wire_count": len(shape.Wires),
+        "edge_count": len(shape.Edges),
+        "wire_closed": wire.isClosed(),
+        "expected_world_vertices": expected_world_vertices,
+        "actual_vertices": actual_vertices,
+        "expected_world_bounds": (-4.0, 0.6, 4.0, 0.0, 3.0, 5.8),
+        "actual_bounds": actual_bounds,
+        "semantic_status": "unsupported_by_pinned_importer_ocs_elevation_lost",
+    }
+    print(
+        "FREECAD_DWG2DXF_2D_POLYLINE_OCS_LIMITATION_CONFIRMED="
+        + json.dumps(result, sort_keys=True)
+    )
+finally:
+    importDWG.convertToDxf = original_convert
+    importDXF.open = original_open
+    importDXF.DxfImportReporter = original_reporter
+    importDWG.get_oda_converter = original_oda
+    importDWG.get_qcad_converter = original_qcad
+    subprocess.Popen = original_popen
+    if doc is not None and doc.Name in App.listDocuments():
+        App.closeDocument(doc.Name)

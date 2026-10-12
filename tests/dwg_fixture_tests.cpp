@@ -1,5 +1,6 @@
 #include <cstdint>
 #include <cmath>
+#include <chrono>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -69,12 +70,16 @@ public:
     }
 
     void addHatch(const DRW_Hatch* data) override {
-        if (const auto* value = dynamic_cast<const DRW_MPolygon*>(data)) {
-            sawMPolygon = true;
-            mpolygonSolid = value->solid;
-            mpolygonFillAci = value->fillColorAci;
-        }
         dx_iface::addHatch(data);
+    }
+
+    void addMPolygon(const DRW_MPolygon* data) override {
+        if (data != nullptr) {
+            sawMPolygon = true;
+            mpolygonSolid = data->solid;
+            mpolygonFillAci = data->fillColorAci;
+        }
+        dx_iface::addMPolygon(data);
     }
 
     void addDimRadial(const DRW_DimRadial* data) override {
@@ -94,6 +99,14 @@ std::filesystem::path fixturePath(const char* name) {
 #else
     return std::filesystem::path("tests/fixtures/dwg") / name;
 #endif
+}
+
+std::filesystem::path temporaryDxfPath(const char* label) {
+    const auto nonce = std::chrono::steady_clock::now()
+                           .time_since_epoch().count();
+    return std::filesystem::temp_directory_path()
+           / (std::string("libdxfrw-freecad-") + label + "-"
+              + std::to_string(nonce) + ".dxf");
 }
 
 std::vector<const DRW_Line*> linesIn(const dx_data& data) {
@@ -196,6 +209,64 @@ void testAdvancedTargetFixtures(TestContext& t) {
     }
 }
 
+void testTypedEntitiesSurviveDxfConversion(TestContext& t) {
+    {
+        FixtureInterface sourceInterface;
+        dx_data sourceData;
+        t.expect(sourceInterface.fileImport(
+                      fixturePath("rtext_arctext.dwg").string(), &sourceData,
+                      false),
+                 "RTEXT/ARCALIGNEDTEXT fixture imports before DXF conversion");
+
+        const std::filesystem::path output = temporaryDxfPath("rtext");
+        FixtureInterface dxfInterface;
+        dx_data dxfData;
+        const bool exported = sourceInterface.fileExport(
+            output.string(), DRW::AC1027, false, &sourceData, false);
+        t.expect(exported,
+                 "RTEXT/ARCALIGNEDTEXT fixture exports to DXF");
+        if (exported) {
+            t.expect(dxfInterface.fileImport(output.string(), &dxfData, false),
+                     "RTEXT/ARCALIGNEDTEXT converted DXF reads back");
+            t.expect(dxfInterface.sawRText
+                         && dxfInterface.rtext == "RTEXT-DIESEL-TEST",
+                     "RTEXT type and payload survive the DXF conversion");
+            t.expect(dxfInterface.sawArcAlignedText
+                         && dxfInterface.arcAlignedText == "ARC-TEXT-TEST"
+                         && std::fabs(dxfInterface.arcRadius - 25.0) < 1e-12,
+                     "ARCALIGNEDTEXT type, payload and radius survive conversion");
+        }
+        std::error_code ec;
+        std::filesystem::remove(output, ec);
+    }
+
+    {
+        FixtureInterface sourceInterface;
+        dx_data sourceData;
+        t.expect(sourceInterface.fileImport(
+                      fixturePath("mpolygon_solid.dwg").string(), &sourceData,
+                      false),
+                 "MPOLYGON fixture imports before DXF conversion");
+
+        const std::filesystem::path output = temporaryDxfPath("mpolygon");
+        FixtureInterface dxfInterface;
+        dx_data dxfData;
+        const bool exported = sourceInterface.fileExport(
+            output.string(), DRW::AC1027, false, &sourceData, false);
+        t.expect(exported, "MPOLYGON fixture exports to DXF");
+        if (exported) {
+            t.expect(dxfInterface.fileImport(output.string(), &dxfData, false),
+                     "MPOLYGON converted DXF reads back");
+            t.expect(dxfInterface.sawMPolygon
+                         && dxfInterface.mpolygonSolid == 1
+                         && dxfInterface.mpolygonFillAci == 256,
+                     "MPOLYGON type, solid flag and fill ACI survive conversion");
+        }
+        std::error_code ec;
+        std::filesystem::remove(output, ec);
+    }
+}
+
 void testTruncatedTargetFixtures(TestContext& t) {
     const char* names[] = {
         "ordinary_enc_AC1021.dwg",
@@ -250,6 +321,7 @@ int main() {
     testOrdinaryEncoding(context, "ordinary_enc_ac1027_ansi932.dwg", true,
                          "Book$Ａ", "ANSI_932");
     testAdvancedTargetFixtures(context);
+    testTypedEntitiesSurviveDxfConversion(context);
     testTruncatedTargetFixtures(context);
     if (context.failures != 0) {
         std::cerr << context.failures << " DWG fixture assertion(s) failed\n";
