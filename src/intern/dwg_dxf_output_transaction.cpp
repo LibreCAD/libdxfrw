@@ -43,7 +43,7 @@
 
 DwgDxfOutputTransaction::DwgDxfOutputTransaction(
     const std::string& target, std::ios::openmode mode)
-    : m_target(std::filesystem::path(target)), m_mode(mode) {}
+    : m_target(std::filesystem::u8path(target)), m_mode(mode) {}
 
 DwgDxfOutputTransaction::~DwgDxfOutputTransaction() {
     if (!m_committed)
@@ -61,16 +61,17 @@ bool DwgDxfOutputTransaction::createExclusiveTemporary() {
     const std::filesystem::path directory =
         m_target.parent_path().empty() ? std::filesystem::path(".")
                                        : m_target.parent_path();
-    const std::string name = m_target.filename().string();
+    // Keep the basename native (UTF-16 on Windows); append only ASCII suffixes.
+    const std::filesystem::path name = m_target.filename();
     if (name.empty())
         return false;
 
 #if defined(_WIN32)
     std::random_device random;
     for (std::uint32_t attempt = 0; attempt != 128; ++attempt) {
-        m_temporary = directory /
-            (name + ".libdxfrw-" + std::to_string(random()) + "-"
-             + std::to_string(random()) + "-" + std::to_string(attempt));
+        m_temporary = directory / name;
+        m_temporary += ".libdxfrw-" + std::to_string(random()) + "-"
+                       + std::to_string(random()) + "-" + std::to_string(attempt);
         int descriptor = -1;
         if (_wsopen_s(&descriptor, m_temporary.c_str(),
                       _O_CREAT | _O_EXCL | _O_WRONLY | _O_BINARY,
@@ -168,7 +169,8 @@ bool DwgDxfOutputTransaction::createExclusiveTemporary() {
         std::string suffix(".libdxfrw-");
         for (int character = 0; character != 6; ++character)
             suffix.push_back(alphabet[pick(random)]);
-        const std::filesystem::path candidate = directory / (name + suffix);
+        std::filesystem::path candidate = directory / name;
+        candidate += suffix;
         const int descriptor = ::open(candidate.c_str(), openFlags, creationMode);
         if (descriptor < 0) {
             if (errno == EEXIST)

@@ -1792,7 +1792,8 @@ bool dxfRW::read(DRW_Interface *interface_, bool ext){
     // from a previous document into this read session.
     header = DRW_Header{};
     DRW_DBG("dxfRW::read 1def\n");
-    filestr.open (fileName.c_str(), std::ios_base::in | std::ios::binary);
+    // Public filenames are UTF-8, not the Windows process code page.
+    filestr.open (std::filesystem::u8path(fileName), std::ios_base::in | std::ios::binary);
     if (!filestr.is_open()
         || !filestr.good()) {
         return setError(DRW::BAD_OPEN);
@@ -1812,7 +1813,7 @@ bool dxfRW::read(DRW_Interface *interface_, bool ext){
     // length to avoid strcmp reading past the buffer when the sentinel
     // bytes don't include an embedded NUL.
     if (std::memcmp(line, line2, 22) == 0) {
-        filestr.open (fileName.c_str(), std::ios_base::in | std::ios::binary);
+        filestr.open (std::filesystem::u8path(fileName), std::ios_base::in | std::ios::binary);
         if (!filestr.is_open() || !filestr.good())
             return setError(DRW::BAD_OPEN);
         binFile = true;
@@ -1832,7 +1833,7 @@ bool dxfRW::read(DRW_Interface *interface_, bool ext){
         DRW_DBG("dxfRW::read binary file\n");
     } else {
         binFile = false;
-        filestr.open (fileName.c_str(), std::ios_base::in);
+        filestr.open (std::filesystem::u8path(fileName), std::ios_base::in);
         if (!filestr.is_open() || !filestr.good())
             return setError(DRW::BAD_OPEN);
         reader = std::make_unique<dxfReaderAscii>(&filestr);
