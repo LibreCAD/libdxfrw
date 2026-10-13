@@ -3223,7 +3223,7 @@ bool dxfRW::writeTextstyle(DRW_Textstyle *ent){
         }
 
     if (version > DRW::AC1012) {
-        write(writer->writeString(330, "2"));
+        write(writer->writeString(330, "3"));
     }
     if (version > DRW::AC1009) {
         write(writer->writeString(100, "AcDbSymbolTableRecord"));
@@ -3282,7 +3282,7 @@ bool dxfRW::writeVport(DRW_Vport *ent){
     if (version > DRW::AC1009) {
         writer->writeString(5, toHexStr(allocatedHandle));
         if (version > DRW::AC1012)
-            writer->writeString(330, "2");
+            writer->writeString(330, "8");
         writer->writeString(100, "AcDbSymbolTableRecord");
         writer->writeString(100, "AcDbViewportTableRecord");
         writer->writeUtf8String(2, emittedName);

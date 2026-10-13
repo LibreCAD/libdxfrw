@@ -9,6 +9,7 @@
 #include <iostream>
 #include <iterator>
 #include <list>
+#include <map>
 #include <string>
 #include <utility>
 #include <vector>
@@ -17,6 +18,7 @@
 #include "drw_objects.h"
 #include "dwg2dxf/dx_data.h"
 #include "dwg2dxf/dx_iface.h"
+#include "intern/dxfreader.h"
 
 namespace {
 
@@ -164,12 +166,209 @@ std::vector<std::pair<int, std::string>> groupsOfRecord(
     return groups;
 }
 
+std::string groupValue(const std::vector<std::pair<int, std::string>>& groups,
+                       int code);
+
 bool hasGroup(const std::vector<std::pair<int, std::string>>& groups, int code) {
     for (const auto& group : groups) {
         if (group.first == code)
             return true;
     }
     return false;
+}
+
+// Generate from public models, rather than checking in a drawing. The same
+// sentinel is available to independent readers through main's generator mode.
+bool generateTableOwnerDxf(const std::filesystem::path& output,
+                           DRW::Version version, bool binary) {
+    class TableOwnerInterface final : public dx_iface {
+    public:
+        void writeViews() override {
+            DRW_View view;
+            view.name = "OWNER_VIEW";
+            dxfW->writeView(&view);
+        }
+        void writeUCSs() override {
+            DRW_UCS ucs;
+            ucs.name = "OWNER_UCS";
+            dxfW->writeUCS(&ucs);
+        }
+    } interface_;
+    dx_data data;
+    DRW_LType lineType;
+    lineType.name = "OWNER_LTYPE";
+    data.lineTypes.push_back(lineType);
+    DRW_Layer layer;
+    layer.name = "OWNER_LAYER";
+    data.layers.push_back(layer);
+    DRW_Textstyle style;
+    style.name = "OWNER_STYLE";
+    style.parentHandle = 0xDEADu; // The emitted table, not a source owner, wins.
+    style.reactorHandles.push_back(0x12u); // Distinct from the STYLE owner.
+    data.textStyles.push_back(style);
+    DRW_Vport active;
+    active.name = "*ACTIVE";
+    data.VPorts.push_back(active);
+    DRW_Vport viewport;
+    viewport.name = "OWNER_VPORT";
+    viewport.parentHandle = 0xDEADu;
+    data.VPorts.push_back(viewport);
+    DRW_Dimstyle dimstyle;
+    dimstyle.name = "OWNER_DIMSTYLE";
+    data.dimStyles.push_back(dimstyle);
+    DRW_AppId appId;
+    appId.name = "OWNER_APPID";
+    data.appIds.push_back(appId);
+    auto block = std::make_unique<dx_ifaceBlock>();
+    block->name = "OWNER_BLOCK";
+    data.blocks.push_back(block.release());
+    return interface_.fileExport(output.string(), version, binary, &data,
+                                 false);
+}
+
+struct TableOwnerRecord {
+    std::string kind;
+    std::vector<std::pair<int, std::string>> groups;
+};
+
+// Decode framing only: no document reader can repair, create or re-parent the
+// table records before these literal graph assertions see them.
+bool readTableOwnerRecords(const std::filesystem::path& path, bool binary,
+                           std::vector<TableOwnerRecord>& records) {
+    std::ifstream stream(path, std::ios::binary);
+    if (!stream)
+        return false;
+    std::unique_ptr<dxfReader> reader;
+    if (binary) {
+        constexpr char signature[] = "AutoCAD Binary DXF\r\n\x1a";
+        std::array<char, sizeof(signature)> actual{};
+        stream.read(actual.data(), actual.size());
+        if (!stream || !std::equal(actual.begin(), actual.end(), signature))
+            return false;
+        reader = std::make_unique<dxfReaderBinary>(&stream);
+    } else {
+        reader = std::make_unique<dxfReaderAscii>(&stream);
+    }
+    int code = 0;
+    while (reader->readRec(&code)) {
+        if (code == 0) {
+            const std::string kind = reader->getString();
+            if (kind == "EOF")
+                return true;
+            records.push_back({kind, {}});
+        } else if (!records.empty()) {
+            // Only these string tags are relevant to table graph identity.
+            if (code == 2 || code == 5 || code == 105 || code == 100
+                || code == 102 || code == 330)
+                records.back().groups.emplace_back(code, reader->getString());
+        }
+    }
+    return false;
+}
+
+std::vector<std::string> tableRecordOwners(const TableOwnerRecord& record) {
+    std::vector<std::string> owners;
+    int appDepth = 0;
+    for (const auto& group : record.groups) {
+        if (group.first == 102) {
+            if (!group.second.empty() && group.second.front() == '{')
+                ++appDepth;
+            else if (group.second == "}" && appDepth > 0)
+                --appDepth;
+        } else if (group.first == 330 && appDepth == 0) {
+            owners.push_back(group.second);
+        }
+    }
+    return owners;
+}
+
+void testTableRecordOwners(TestContext& t) {
+    const TableOwnerRecord scopedControl{
+        "STYLE", {{330, "3"}, {102, "{ACAD_REACTORS"}, {330, "2"},
+                  {330, "0"}, {102, "}"}}};
+    t.expect(tableRecordOwners(scopedControl)
+                 == std::vector<std::string>{"3"},
+             "table owner extraction excludes application pointers and nulls");
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch()
+                           .count();
+    const std::array<DRW::Version, 4> versions{
+        DRW::AC1014, DRW::AC1015, DRW::AC1021, DRW::AC1032};
+    for (const DRW::Version version : versions) {
+        for (const bool binary : {false, true}) {
+            const auto path = std::filesystem::temp_directory_path()
+                / ("libdxfrw-table-owners-" + std::to_string(nonce) + "-"
+                   + std::to_string(static_cast<int>(version))
+                   + (binary ? "-binary.dxf" : "-ascii.dxf"));
+            struct Cleanup {
+                std::filesystem::path path;
+                ~Cleanup() {
+                    std::error_code error;
+                    std::filesystem::remove(path, error);
+                }
+            } cleanup{path};
+            const bool written = generateTableOwnerDxf(path, version, binary);
+            t.expect(written, "table owner sentinel writes from scratch");
+            if (!written)
+                continue;
+            std::vector<TableOwnerRecord> records;
+            const bool decoded = readTableOwnerRecords(path, binary, records);
+            t.expect(decoded, "table owner raw framing reaches EOF");
+            if (!decoded)
+                continue;
+            std::map<std::string, std::string> tableHandles;
+            std::map<std::string, std::size_t> recordCounts;
+            std::string table;
+            for (const auto& record : records) {
+                if (record.kind == "TABLE") {
+                    table = groupValue(record.groups, 2);
+                    tableHandles[table] = groupValue(record.groups, 5);
+                    t.expect(!tableHandles[table].empty(),
+                             "each emitted table has an identity");
+                    const auto owners = tableRecordOwners(record);
+                    t.expect(version == DRW::AC1014
+                                 ? (owners.empty()
+                                    || owners == std::vector<std::string>{"0"})
+                                 : owners == std::vector<std::string>{"0"},
+                             "TABLE control root is null, not an entry owner");
+                } else if (record.kind == "ENDTAB") {
+                    table.clear();
+                } else if (!table.empty() && record.kind == table) {
+                    ++recordCounts[table];
+                    const auto owners = tableRecordOwners(record);
+                    // Existing R14 output omits owners for BLOCK_RECORD and
+                    // APPID. Keep that version policy in
+                    // this narrow correction; every emitted owner must agree.
+                    const bool legacyOwnerOmitted = version == DRW::AC1014
+                        && (table == "BLOCK_RECORD" || table == "APPID");
+                    t.expect(legacyOwnerOmitted
+                                 ? owners.empty()
+                                 : owners == std::vector<std::string>{
+                                       tableHandles[table]},
+                             "table record owner equals its emitted TABLE");
+                    const int selfCode = table == "DIMSTYLE" ? 105 : 5;
+                    t.expect(!groupValue(record.groups, selfCode).empty(),
+                             "table entry uses its correct self handle code");
+                    if (table == "STYLE"
+                        && groupValue(record.groups, 2) == "OWNER_STYLE") {
+                        t.expect(std::find(record.groups.begin(),
+                                           record.groups.end(),
+                                           std::make_pair(330,
+                                                          std::string("12")))
+                                     != record.groups.end(),
+                                 "STYLE reactor remains distinct from its owner");
+                    }
+                }
+            }
+            t.expect(tableHandles.size() == 9 && recordCounts.size() == 9,
+                     "owner matrix covers every emitted table family");
+            const std::map<std::string, std::size_t> expectedCounts{
+                {"VPORT", 2}, {"LTYPE", 4}, {"LAYER", 2}, {"STYLE", 2},
+                {"VIEW", 1}, {"UCS", 1}, {"APPID", 2}, {"DIMSTYLE", 2},
+                {"BLOCK_RECORD", 3}};
+            t.expect(recordCounts == expectedCounts,
+                     "custom and default table records are all retained");
+        }
+    }
 }
 
 std::string groupValue(const std::vector<std::pair<int, std::string>>& groups,
@@ -1372,8 +1571,23 @@ void testUnsafeLinetypeExtensionGraphsRejected(TestContext& t) {
 }
 } // namespace
 
-int main() {
+int main(int argc, char** argv) {
+    if (argc == 5 && std::string(argv[1]) == "--generate-table-owners") {
+        const std::map<std::string, DRW::Version> versions{
+            {"R14", DRW::AC1014}, {"R2000", DRW::AC1015},
+            {"R2007", DRW::AC1021}, {"R2018", DRW::AC1032}};
+        const auto version = versions.find(argv[3]);
+        const std::string encoding = argv[4];
+        if (version == versions.end()
+            || (encoding != "ascii" && encoding != "binary"))
+            return 2;
+        return generateTableOwnerDxf(argv[2], version->second,
+                                     encoding == "binary") ? 0 : 1;
+    }
+    if (argc != 1)
+        return 2;
     TestContext context;
+    testTableRecordOwners(context);
     testBig5(context);
     testBig5Hkscs(context);
     testUhc(context);
