@@ -13873,6 +13873,60 @@ bool DRW_Polyline::validatePayloadFields() const {
                        [](const auto& vertex) { return vertex != nullptr; });
 }
 
+DRW_Polyline::PolyfaceVertexRole DRW_Polyline::polyfaceVertexRole(
+        const DRW_Vertex& vertex) noexcept {
+    switch (vertex.dwgSubtype()) {
+    case DRW_Vertex::DwgSubtype::Polyface:
+        return PolyfaceVertexRole::Coordinate;
+    case DRW_Vertex::DwgSubtype::PolyfaceFace:
+        return PolyfaceVertexRole::Face;
+    case DRW_Vertex::DwgSubtype::Auto:
+        if ((vertex.flags & 128) != 0)
+            return (vertex.flags & 64) != 0
+                ? PolyfaceVertexRole::Coordinate : PolyfaceVertexRole::Face;
+        return PolyfaceVertexRole::Invalid;
+    default:
+        return PolyfaceVertexRole::Invalid;
+    }
+}
+
+bool DRW_Polyline::validatePolyfaceDxf() const noexcept {
+    if ((flags & 64) == 0)
+        return true;
+    std::size_t coordinateCount = 0;
+    for (const auto& vertex : vertlist) {
+        if (!vertex)
+            return false;
+        const auto role = polyfaceVertexRole(*vertex);
+        if (role == PolyfaceVertexRole::Invalid)
+            return false;
+        if (role == PolyfaceVertexRole::Coordinate)
+            ++coordinateCount;
+    }
+    // Header 71/72 counts are advisory. Resolve against the completed actual
+    // pool, tolerating interleaving and resolvable forward faces as a reader
+    // robustness policy. Coordinate record order defines the one-based IDs.
+    for (const auto& vertex : vertlist) {
+        if (polyfaceVertexRole(*vertex) != PolyfaceVertexRole::Face)
+            continue;
+        const std::array<int, 4> indices {{vertex->vindex1, vertex->vindex2,
+                                          vertex->vindex3, vertex->vindex4}};
+        for (int index : indices) {
+            if (index == 0)
+                break; // The first zero ends the face; later tags are inactive.
+            const std::int64_t signedIndex = index;
+            const std::uint64_t magnitude = signedIndex < 0
+                ? static_cast<std::uint64_t>(-signedIndex)
+                : static_cast<std::uint64_t>(signedIndex);
+            if (magnitude > coordinateCount)
+                return false;
+        }
+    }
+    // One-/two-index records are legal point/wireframe primitives. No
+    // manifoldness, closed-solid or three-corner requirement belongs here.
+    return true;
+}
+
 bool DRW_Polyline::isDwgVertexCompatible(
     const DRW_Vertex& vertex) const noexcept {
     if ((flags & 64) != 0) {

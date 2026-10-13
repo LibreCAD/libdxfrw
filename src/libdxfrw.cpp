@@ -4264,6 +4264,7 @@ bool dxfRW::writeLWPolyline(DRW_LWPolyline *ent){
 
 bool dxfRW::writePolyline(DRW_Polyline *ent) {
     if (writer == nullptr || ent == nullptr || !ent->validatePayloadFields()
+        || !ent->validatePolyfaceDxf()
         || std::any_of(ent->vertlist.cbegin(), ent->vertlist.cend(),
                        [](const auto& vertex) {
                            return vertex == nullptr
@@ -4278,7 +4279,9 @@ bool dxfRW::writePolyline(DRW_Polyline *ent) {
     if (!writeEntity(ent))
         return false;
     if (version > DRW::AC1009) {
-        if (ent->flags & 8 || ent->flags & 16)
+        if (ent->flags & 64)
+            writer->writeString(100, "AcDbPolyFaceMesh");
+        else if (ent->flags & 8 || ent->flags & 16)
             writer->writeString(100, "AcDb3dPolyline");
         else
             writer->writeString(100, "AcDb2dPolyline");
@@ -4327,14 +4330,16 @@ bool dxfRW::writePolyline(DRW_Polyline *ent) {
         return false;
 
     const std::uint32_t parentHandle = ent->handle;
-    for (const auto& vertex : ent->vertlist) {
+    const bool isPolyface = (ent->flags & 64) != 0;
+    const auto emitVertex = [&](const std::shared_ptr<DRW_Vertex>& vertex) {
         DRW_Vertex *v = vertex.get();
-        const bool polyfaceFace = (ent->flags & 64)
-            && (v->dwgSubtype() == DRW_Vertex::DwgSubtype::PolyfaceFace
-                || ((v->flags & 128) != 0 && (v->flags & 64) == 0));
+        const bool polyfaceFace = isPolyface
+            && DRW_Polyline::polyfaceVertexRole(*v)
+                == DRW_Polyline::PolyfaceVertexRole::Face;
         // DWG VERTEX_PFACE_FACE has four indices but no flags field. The
         // public typed subtype must supply DXF's required face-record bit.
-        const int dxfVertexFlags = polyfaceFace ? 128 : v->flags;
+        const int dxfVertexFlags = polyfaceFace ? 128
+            : isPolyface ? v->flags | 192 : v->flags;
         writer->writeString(0, "VERTEX");
         if (!writeEntity(v, /*captureSourceHandle=*/true, parentHandle))
             return false;
@@ -4389,21 +4394,29 @@ bool dxfRW::writePolyline(DRW_Polyline *ent) {
             writer->writeDouble(50, v->tgdir);
         }
         if (dxfVertexFlags & 128) {
-            if (v->vindex1 != 0) {
-                writer->writeInt16(71, v->vindex1);
-            }
-            if (v->vindex2 != 0) {
-                writer->writeInt16(72, v->vindex2);
-            }
-            if (v->vindex3 != 0) {
-                writer->writeInt16(73, v->vindex3);
-            }
-            if (v->vindex4 != 0) {
-                writer->writeInt16(74, v->vindex4);
+            const std::array<int, 4> indices {{v->vindex1, v->vindex2,
+                                              v->vindex3, v->vindex4}};
+            for (std::size_t i = 0; i != indices.size(); ++i) {
+                if (polyfaceFace && indices[i] == 0)
+                    break;
+                if (indices[i] != 0)
+                    writer->writeInt16(static_cast<int>(71 + i), indices[i]);
             }
             if (!(ent->flags & 64)) {
                 writer->writeInt32(91, v->identifier);
             }
+        }
+        return true;
+    };
+    // Keep each coordinate/face pool stable, preserving IDs, winding and
+    // per-face metadata without reordering the caller-owned vertex vector.
+    for (int pass = 0; pass != (isPolyface ? 2 : 1); ++pass) {
+        for (const auto& vertex : ent->vertlist) {
+            const bool face = isPolyface
+                && DRW_Polyline::polyfaceVertexRole(*vertex)
+                    == DRW_Polyline::PolyfaceVertexRole::Face;
+            if ((!isPolyface || face == (pass == 1)) && !emitVertex(vertex))
+                return false;
         }
     }
     if (!writeSequenceEnd(parentHandle))
@@ -11318,6 +11331,8 @@ bool dxfRW::processPolyline() {
             if (consumeEntityFooter() == DxfEntityBoundary::Error
                 || !acceptEntityCallbackBoundary())
                 return setError(DRW::BAD_READ_ENTITIES);
+            if (!pl.validatePolyfaceDxf())
+                return setError(DRW::BAD_CODE_PARSED);
             iface->addPolyline(pl);
             return true;
         }

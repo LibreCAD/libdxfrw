@@ -235,6 +235,18 @@ the index groups. A fast runtime-generated ASCII/binary test covers that
 normalization from a subtype-only vertex. This is a regression check for the
 conversion path, not an independent DWG writer/interoperability claim.
 
+DXF PFACE reads validate active signed one-based indices against the completed
+coordinate pool, not the advisory header counts. Unusual/interleaved ordering
+is retained; accepting resolvable forward indices is a robustness extension,
+not a claim of normative producer validity. The first zero ends a face, so
+later index tags are inactive. One-/two-index point/wireframe faces remain
+accepted. DXF output uses stable coordinate-first/face-second ordering and
+omits inactive index tails without reordering caller-owned records or changing
+their source flags and index arrays. Existing writer handle assignment still applies.
+These rules follow the [VERTEX grammar](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0741E831-599E-4CBF-91E1-8ADBCFD6556D.htm)
+and [POLYFACE ordering/count rules](https://help.autodesk.com/cloudhelp/2016/ENU/AutoCAD-DXF/files/GUID-96B6288E-F413-46C0-968A-A314171C0AAE.htm);
+they do not qualify a complete mesh family or impose manifoldness.
+
 ## Adapter requirements
 
 - Keep the existing 2D adapter lane intact. Projection, curve approximation,

@@ -10776,6 +10776,245 @@ public:
     bool seen = false;
 };
 
+bool runDxfPolyfaceCompletedPool(bool binary,
+                                 const std::filesystem::path& directory,
+                                 bool keepOutput) {
+    const std::string encoding = binary ? "binary" : "ascii";
+    const std::array<DRW_Coord, 4> points {{
+        {0, 0, 2}, {2, 0, 2}, {2, 1, 2}, {0, 1, 2}}};
+    const std::array<std::array<int, 4>, 5> indices {{
+        {{1, 2, -3, 0}}, {{1, -2, 3, -4}}, {{-2, 0, 0, 0}},
+        {{1, -3, 0, 0}}, {{1, -2, 0, 99}}}};
+    const auto writeLiteral = [&](const std::filesystem::path& path, int variant) {
+        std::ofstream stream(path, std::ios::binary | std::ios::trunc);
+        if (binary)
+            stream.write("AutoCAD Binary DXF\r\n\032\0", 22);
+        std::unique_ptr<dxfWriter> tags;
+        if (binary) tags = std::make_unique<dxfWriterBinary>(&stream);
+        else tags = std::make_unique<dxfWriterAscii>(&stream);
+        tags->setVersion("AC1027", true);
+        tags->writeString(0, "SECTION"); tags->writeString(2, "HEADER");
+        tags->writeString(9, "$ACADVER"); tags->writeString(1, "AC1027");
+        tags->writeString(0, "ENDSEC");
+        tags->writeString(0, "SECTION"); tags->writeString(2, "TABLES");
+        tags->writeString(0, "TABLE"); tags->writeString(2, "LAYER");
+        tags->writeString(5, "C0"); tags->writeString(100, "AcDbSymbolTable");
+        tags->writeInt16(70, 1);
+        tags->writeString(0, "LAYER"); tags->writeString(5, "C1");
+        tags->writeString(330, "C0"); tags->writeString(100, "AcDbSymbolTableRecord");
+        tags->writeString(100, "AcDbLayerTableRecord");
+        tags->writeString(2, "FACE_LAYER"); tags->writeInt16(70, 0);
+        tags->writeInt16(62, 7); tags->writeString(6, "CONTINUOUS");
+        tags->writeString(0, "ENDTAB"); tags->writeString(0, "ENDSEC");
+        tags->writeString(0, "SECTION"); tags->writeString(2, "ENTITIES");
+        tags->writeString(0, "POLYLINE"); tags->writeString(5, "A0");
+        tags->writeString(100, "AcDbEntity"); tags->writeString(8, "0");
+        tags->writeString(100, "AcDbPolyFaceMesh");
+        tags->writeDouble(10, 0); tags->writeDouble(20, 0); tags->writeDouble(30, 5);
+        tags->writeInt16(70, 64);
+        // Header counts are advisory for PFACE: neither zero nor stale 99
+        // may replace the actual coordinate pool used to resolve indices.
+        tags->writeInt16(71, variant == 1 ? 99 : 0);
+        tags->writeInt16(72, variant == 1 ? 99 : 0);
+        const auto vertex = [&](std::size_t i) {
+            tags->writeString(0, "VERTEX");
+            tags->writeString(5, std::to_string(200 + i));
+            tags->writeString(330, "A0"); tags->writeString(100, "AcDbEntity");
+            tags->writeString(8, "0"); tags->writeString(100, "AcDbVertex");
+            tags->writeString(100, "AcDbPolyFaceMeshVertex");
+            tags->writeDouble(10, points[i].x); tags->writeDouble(20, points[i].y);
+            tags->writeDouble(30, points[i].z); tags->writeInt16(70, 192);
+        };
+        const auto face = [&](std::size_t i) {
+            tags->writeString(0, "VERTEX");
+            tags->writeString(5, std::to_string(300 + i));
+            tags->writeString(330, "A0"); tags->writeString(100, "AcDbEntity");
+            tags->writeString(8, "FACE_LAYER"); tags->writeInt16(62, static_cast<int>(i) + 2);
+            tags->writeString(100, "AcDbFaceRecord");
+            tags->writeDouble(10, 0); tags->writeDouble(20, 0); tags->writeDouble(30, 0);
+            tags->writeInt16(70, 128);
+            for (std::size_t j = 0; j != 4u; ++j) {
+                int value = indices[i][j];
+                if (i == 1u && j == 2u && variant >= 3 && variant <= 5)
+                    value = variant == 3 ? 99 : variant == 4 ? -99
+                        : std::numeric_limits<std::int16_t>::min();
+                // Include explicit zero and inactive tail 99 to exercise the
+                // normative first-zero rule, not a peer's filter-all-zeros rule.
+                tags->writeInt16(static_cast<int>(71 + j), value);
+            }
+        };
+        if (variant == 0) {
+            vertex(0); vertex(1); vertex(2); face(0); vertex(3); face(1);
+        } else if (variant == 1) {
+            for (std::size_t i = 0; i != 4u; ++i) vertex(i);
+            face(0); face(1);
+        } else {
+            // Resolvable forward faces are an explicit robustness control,
+            // not a claim that every CAD producer accepts this ordering.
+            face(0); face(1);
+            for (std::size_t i = 0; i != 4u; ++i) vertex(i);
+        }
+        face(2); face(3); face(4);
+        tags->writeString(0, "SEQEND"); tags->writeString(5, "A1");
+        tags->writeString(330, "A0"); tags->writeString(100, "AcDbEntity");
+        tags->writeString(8, "0");
+        tags->writeString(0, "ENDSEC"); tags->writeString(0, "EOF");
+        return !tags->hasWriteError() && stream.good();
+    };
+    const auto geometryMatches = [&](const DRW_Polyline& polyline, bool canonical) {
+        std::size_t coordinate = 0, face = 0;
+        bool facesStarted = false;
+        for (const auto& value : polyline.vertlist) {
+            if (!value) return false;
+            const bool coordinateRecord = (value->flags & 192) == 192
+                || value->dwgSubtype() == DRW_Vertex::DwgSubtype::Polyface;
+            if (coordinateRecord) {
+                if (coordinate == 4u || (canonical && facesStarted)) return false;
+                if (canonical && value->flags != 192) return false;
+                const auto& expected = points[coordinate++];
+                if (value->basePoint.x != expected.x || value->basePoint.y != expected.y
+                    || value->basePoint.z != expected.z) return false;
+            } else {
+                facesStarted = true;
+                if ((value->flags != 128
+                     && value->dwgSubtype() != DRW_Vertex::DwgSubtype::PolyfaceFace)
+                    || (canonical && value->flags != 128) || face == 5u
+                    || value->layer != "FACE_LAYER" || value->color != static_cast<int>(face) + 2)
+                    return false;
+                const std::array<int, 4> actual {{value->vindex1, value->vindex2,
+                                                value->vindex3, value->vindex4}};
+                auto expected = indices[face];
+                if (canonical && face == 4u) expected[3] = 0;
+                if (actual != expected) return false;
+                ++face;
+            }
+        }
+        // Distinct nonzero WCS z coordinates must not inherit the dummy
+        // parent elevation. Triangle/quad order has positive-Z winding.
+        const double ax = points[1].x - points[0].x;
+        const double ay = points[1].y - points[0].y;
+        const double bx = points[2].x - points[0].x;
+        const double by = points[2].y - points[0].y;
+        return coordinate == 4u && face == 5u && ax * by - ay * bx == 2.0;
+    };
+    bool valid = true;
+    std::error_code ec;
+    for (int variant = 0; variant != 7; ++variant) {
+        const auto input = directory / ("libdxfrw-polyface-pool-input-" + encoding
+            + "-" + std::to_string(variant) + ".dxf");
+        dx_data imported;
+        dx_iface importer;
+        const bool read = writeLiteral(input, variant)
+            && importer.fileImport(input.string(), &imported, false);
+        const bool negative = variant >= 3 && variant <= 5;
+        bool matches = negative ? !read && imported.mBlock->ent.empty()
+            : read && imported.mBlock->ent.size() == 1u;
+        if (matches && !negative) {
+            const auto* polyline = dynamic_cast<const DRW_Polyline*>(imported.mBlock->ent.front());
+            matches = polyline && polyline->flags == 64
+                && polyline->vertexcount == (variant == 1 ? 99 : 0)
+                && polyline->facecount == (variant == 1 ? 99 : 0)
+                && geometryMatches(*polyline, false);
+        }
+        if (!matches)
+            std::cerr << "PFACE completed-pool input variant " << variant << " failed ("
+                      << encoding << ") read=" << read << '\n';
+        valid = matches && valid;
+        if (read && !negative) {
+            auto* polyline = static_cast<DRW_Polyline*>(imported.mBlock->ent.front());
+            // DWG's typed PFACE records can carry no DXF flags. Export must
+            // supply the wire role bits without mutating the source model.
+            if (variant == 6) {
+                for (auto& vertex : polyline->vertlist) {
+                    vertex->setDwgSubtype((vertex->flags & 64) != 0
+                        ? DRW_Vertex::DwgSubtype::Polyface
+                        : DRW_Vertex::DwgSubtype::PolyfaceFace);
+                    vertex->flags = 0;
+                }
+            }
+            std::vector<std::pair<const DRW_Vertex*, int>> originalOrder;
+            for (const auto& vertex : polyline->vertlist)
+                originalOrder.emplace_back(vertex.get(), vertex->flags);
+            const auto output = directory / ("libdxfrw-polyface-pool-output-" + encoding
+                + "-" + std::to_string(variant) + ".dxf");
+            dx_iface exporter;
+            const bool written = exporter.fileExport(output.string(), DRW::AC1027,
+                                                     binary, &imported, false);
+            std::ifstream rawOutput(output, std::ios::binary);
+            const std::string rawBytes((std::istreambuf_iterator<char>(rawOutput)), {});
+            const std::string parentMarker = binary
+                ? std::string("AcDbPolyFaceMesh\0", 17) : "AcDbPolyFaceMesh\n";
+            const bool correctSubclass = rawBytes.find(parentMarker) != std::string::npos;
+            dx_data reopened;
+            dx_iface reimporter;
+            bool canonical = written && correctSubclass
+                && reimporter.fileImport(output.string(), &reopened, false)
+                && reopened.mBlock->ent.size() == 1u;
+            if (canonical) {
+                const auto* decoded = dynamic_cast<const DRW_Polyline*>(reopened.mBlock->ent.front());
+                canonical = decoded && geometryMatches(*decoded, true);
+            }
+            for (std::size_t i = 0; i != originalOrder.size(); ++i)
+                canonical = canonical && originalOrder[i].first == polyline->vertlist[i].get()
+                    && originalOrder[i].second == polyline->vertlist[i]->flags;
+            canonical = canonical && geometryMatches(*polyline, false);
+            if (!canonical)
+                std::cerr << "PFACE canonical output/caller preservation failed ("
+                          << encoding << ", variant " << variant << ")\n";
+            valid = canonical && valid;
+            // Invalid output must not replace an existing destination.
+            for (int corruption = 0; corruption != 3; ++corruption) {
+                dx_data invalid;
+                auto* bad = new DRW_Polyline(*polyline);
+                for (auto& vertex : bad->vertlist) {
+                    if (vertex->flags == 128
+                        || vertex->dwgSubtype() == DRW_Vertex::DwgSubtype::PolyfaceFace) {
+                        vertex->vindex1 = corruption == 0 ? 99 : corruption == 1 ? -99
+                            : std::numeric_limits<std::int16_t>::min();
+                        break;
+                    }
+                }
+                invalid.mBlock->ent.push_back(bad);
+                const auto destination = directory / ("libdxfrw-polyface-pool-rejected-"
+                    + encoding + ".dxf");
+                const std::string sentinel = "POLYFACE prior destination\n";
+                { std::ofstream stream(destination, std::ios::binary | std::ios::trunc);
+                  stream << sentinel; }
+                dx_iface invalidExporter;
+                const bool rejected = !invalidExporter.fileExport(destination.string(),
+                    DRW::AC1027, binary, &invalid, false);
+                std::ifstream saved(destination, std::ios::binary);
+                const std::string bytes((std::istreambuf_iterator<char>(saved)), {});
+                valid = rejected && bytes == sentinel && valid;
+                if (!rejected || bytes != sentinel)
+                    std::cerr << "PFACE dangling model index was not rejected transactionally\n";
+                saved.close();
+                std::filesystem::remove(destination, ec);
+            }
+            if (!keepOutput) std::filesystem::remove(output, ec);
+        }
+        if (!keepOutput || negative) std::filesystem::remove(input, ec);
+    }
+    // Small bounded in-memory boundary check: signed int16 minimum denotes
+    // coordinate32768, not an overflow or a negative array offset. This is a
+    // validator control only, not a 32768-record file/consumer qualification.
+    struct PolyfacePoolProbe : DRW_Polyline {
+        bool validPool() const { return validatePolyfaceDxf(); }
+    } pool;
+    pool.flags = 64;
+    auto coordinate = std::make_shared<DRW_Vertex>();
+    coordinate->flags = 192;
+    auto face = std::make_shared<DRW_Vertex>();
+    face->flags = 128;
+    face->vindex1 = std::numeric_limits<std::int16_t>::min();
+    pool.vertlist.assign(32767u, coordinate);
+    pool.vertlist.push_back(face);
+    valid = !pool.validPool() && valid;
+    pool.vertlist.push_back(coordinate);
+    valid = pool.validPool() && valid;
+    return valid;
+}
+
 bool runDxfTopologyRoundTrip(bool binary, const std::filesystem::path& directory,
                              bool keepOutput) {
     const std::string encoding = binary ? "binary" : "ascii";
@@ -13305,6 +13544,12 @@ int main(int argc, char** argv) {
            "local DXF ASCII 3D topology and OCS/WCS round-trip", failures);
     expect(runDxfTopologyRoundTrip(true, directory, keepOutputs),
            "local DXF binary 3D topology and OCS/WCS round-trip", failures);
+    expect(runDxfPolyfaceCompletedPool(false, directory, keepOutputs),
+           "local DXF ASCII POLYFACE completed-pool indices and canonical output",
+           failures);
+    expect(runDxfPolyfaceCompletedPool(true, directory, keepOutputs),
+           "local DXF binary POLYFACE completed-pool indices and canonical output",
+           failures);
     expect(runDxfLegacyEllipseDowngrade(directory, keepOutputs),
            "local DXF R12 ellipse downgrade preserves 3D geometry", failures);
     expect(runDxfEllipseRejectsInvalidGeometry(directory),
