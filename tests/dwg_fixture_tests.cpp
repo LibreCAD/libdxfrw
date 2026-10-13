@@ -10,6 +10,7 @@
 
 #include "drw_header.h"
 #include "drw_entities.h"
+#include "intern/dwg_dxf_output_transaction.h"
 #include "dwg2dxf/dx_data.h"
 #include "dwg2dxf/dx_iface.h"
 
@@ -306,6 +307,89 @@ void testTruncatedTargetFixtures(TestContext& t) {
     }
 }
 
+void testUtf8FilesystemPaths(TestContext& t) {
+    namespace fs = std::filesystem;
+    const int before = t.failures;
+    const auto root = fs::temp_directory_path() / fs::u8path(
+        std::string(u8"libdxfrw paths \u03a9 \u4e2d \U0001f4d0 ")
+        + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::error_code error;
+    const bool created = fs::create_directory(root, error);
+    t.expect(created && !error, "create a fresh native Unicode parent directory");
+    if (!created || error)
+        return;
+    struct Cleanup {
+        fs::path root;
+        ~Cleanup() { std::error_code ignored; fs::remove_all(root, ignored); }
+    } cleanup {root};
+
+    const auto dwg = root / fs::u8path(u8"drawing \u03a9 \u4e2d \U0001f4d0.dwg");
+    fs::copy_file(fixturePath("ordinary_enc_AC1015.dwg"), dwg, error);
+    t.expect(!error, "copy the admitted DWG to its exact native Unicode path");
+    if (error)
+        return;
+    FixtureInterface source;
+    dx_data data;
+    const bool imported = source.fileImport(dwg.u8string(), &data, false);
+    t.expect(imported && linesIn(data).size() == 3u,
+             "UTF-8 DWG input reads all three lines from the native filename");
+    if (imported) {
+        for (bool binary : {false, true}) {
+            const auto dxf = root / fs::u8path(binary
+                ? u8"binary \u03a9 \u4e2d \U0001f4d0.dxf"
+                : u8"ascii \u03a9 \u4e2d \U0001f4d0.dxf");
+            const bool written = source.fileExport(dxf.u8string(), DRW::AC1015,
+                                                    binary, &data, false);
+            t.expect(written && fs::is_regular_file(dxf),
+                     "UTF-8 DXF output preserves the exact native filename");
+            if (written) {
+                FixtureInterface reader;
+                dx_data restored;
+                t.expect(reader.fileImport(dxf.u8string(), &restored, false)
+                             && linesIn(restored).size() == 3u,
+                         "ASCII and binary DXF reopen through UTF-8 paths");
+            }
+        }
+    }
+
+    const auto target = root / fs::u8path(u8"atomic \u03a9 \u4e2d \U0001f4d0.bin");
+    { std::ofstream seed(target, std::ios::binary); seed << "original"; }
+    const auto readTarget = [&] {
+        std::ifstream input(target, std::ios::binary);
+        return std::string(std::istreambuf_iterator<char>(input), {});
+    };
+    const auto temporaryCount = [&] {
+        int count = 0;
+        const auto prefix = target.filename().u8string() + ".libdxfrw-";
+        for (const auto& entry : fs::directory_iterator(root))
+            if (entry.path().filename().u8string().rfind(prefix, 0) == 0)
+                ++count;
+        return count;
+    };
+    {
+        DwgDxfOutputTransaction transaction(target.u8string(), std::ios::binary);
+        t.expect(transaction.open(), "Unicode transaction opens an exclusive temporary");
+        t.expect(temporaryCount() == 1, "temporary keeps the exact native Unicode basename");
+        transaction.stream() << "replacement";
+        t.expect(readTarget() == "original", "Unicode output remains atomic before commit");
+        t.expect(transaction.commit(), "Unicode transaction publishes successfully");
+    }
+    t.expect(readTarget() == "replacement" && temporaryCount() == 0,
+             "Unicode commit preserves content and removes its temporary");
+    {
+        DwgDxfOutputTransaction transaction(target.u8string(), std::ios::binary);
+        t.expect(transaction.open(), "Unicode rollback opens an exclusive temporary");
+        transaction.stream() << "discarded";
+    }
+    t.expect(readTarget() == "replacement" && temporaryCount() == 0,
+             "Unicode destructor rollback preserves destination and cleans up");
+    for (const auto& entry : fs::directory_iterator(root))
+        t.expect(entry.path().filename().u8string().find(".libdxfrw-") == std::string::npos,
+                 "no wrongly encoded transaction temporary is left behind");
+    if (t.failures == before)
+        std::cout << "UTF-8 filesystem paths: PASS\n";
+}
+
 } // namespace
 
 int main() {
@@ -323,6 +407,7 @@ int main() {
     testAdvancedTargetFixtures(context);
     testTypedEntitiesSurviveDxfConversion(context);
     testTruncatedTargetFixtures(context);
+    testUtf8FilesystemPaths(context);
     if (context.failures != 0) {
         std::cerr << context.failures << " DWG fixture assertion(s) failed\n";
         return 1;

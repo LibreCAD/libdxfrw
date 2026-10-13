@@ -12848,9 +12848,12 @@ bool DRW_Attrib::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
             return true;
         }
     }
-    // Inside the embedded MText scope, route MTEXT-owned codes to mtext but
-    // keep ATTRIB-specific tail codes for ATTRIB / ATTDEF handling below.
-    if (mtext) {
+    // Inside the embedded MText scope, route MText codes (including group 3
+    // continuation chunks) to mtext until the AcDbAttribute subclass begins;
+    // only then do codes 2/3/70/280 belong to ATTRIB / ATTDEF.
+    if (mtext && !dxfInAttributeSubclass)
+        return mtext->parseCode(code, reader);
+    if (mtext && dxfInAttributeSubclass) {
         switch (code) {
         case 2:    // tag (ATTRIB-specific; group 1 in MText is text body)
         case 3:    // prompt (ATTDEF-specific)
@@ -13119,6 +13122,11 @@ bool DRW_Attrib::encodeDwg(DRW::Version version, dwgBufferW *buf, std::uint32_t 
 bool DRW_Attdef::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     switch (code) {
     case 3:
+        // Before AcDbAttributeDefinition, group 3 is an embedded MTEXT
+        // continuation when the nested text object has begun. Once the
+        // attribute-definition subclass starts, group 3 is the ATTDEF prompt.
+        if (mtext && !dxfInAttributeSubclass)
+            return DRW_Attrib::parseCode(code, reader);
         prompt = reader->getUtf8String();
         break;
     default:

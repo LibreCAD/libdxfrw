@@ -14,6 +14,7 @@
 
 #include "libdwgr.h"
 #include <cstdio>
+#include <filesystem>
 #include <fstream>
 #include <algorithm>
 #include <cstring>
@@ -713,7 +714,7 @@ bool dwgRW::testReader(){
     beginOperationDiagnostic(DRW::OperationKind::Read);
 
     std::ifstream filestr;
-    filestr.open (fileName.c_str(), std::ios_base::in | std::ios::binary);
+    filestr.open (std::filesystem::u8path(fileName), std::ios_base::in | std::ios::binary);
     if (!filestr.is_open() || !filestr.good() ){
         error = DRW::BAD_OPEN;
         recordOperationDiagnosticForError(error);
@@ -3355,7 +3356,7 @@ std::unique_ptr<dwgReader> dwgRW::createReaderForVersion(
 bool dwgRW::openFile(std::ifstream *filestr){
     bool isOk = false;
     DRW_DBG("dwgRW::read 1\n");
-    filestr->open (fileName.c_str(), std::ios_base::in | std::ios::binary);
+    filestr->open (std::filesystem::u8path(fileName), std::ios_base::in | std::ios::binary);
     if (!filestr->is_open() || !filestr->good() ){
         error = DRW::BAD_OPEN;
         recordOperationDiagnosticForError(error);

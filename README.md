@@ -10,6 +10,14 @@ The project is GPL-2.0-or-later. It was created by [LibreCAD](https://github.com
 contributors; historical project information remains at
 [SourceForge](https://sourceforge.net/projects/libdxfrw).
 
+## Upstream and contributing
+
+`LibreCAD/libdxfrw` is the standalone integration branch and recommended upstream for generally applicable library changes. Please send shared fixes and features here so they are reviewed against the standalone build, package, and compatibility consumers.
+
+LibreCAD's bundled `libraries/libdxfrw/` tree remains a consumer snapshot updated through pinned, reviewed sync points documented in [`LIBRECAD_SYNC.md`](LIBRECAD_SYNC.md). Other forks remain independently maintained: changes here do not automatically update or unify them; that requires coordination with those projects' maintainers.
+
+
+
 ## Build and install
 
 CMake is the supported 2.x build (CMake 3.28 or newer, C++17). The Conan 2

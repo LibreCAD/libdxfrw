@@ -12,12 +12,14 @@
 
 **Implementation branch:** `codex/dwg-dxf-open-source-parity`
 
+**Integrated upstream base:** `d68fb1ed937ad2a74a54f6208277ec10a1b031b0`
+
 ## Implementation progress
 
 | Item | State | Evidence / next action |
 | --- | --- | --- |
 | Slice 0 baseline | RECORDED | Base `547b808d1557c2a8a8d47ffb87ced6cadc957723`; clean-checkout claim/digest checks passed during research. CMake 4.4.4, Apple clang 21.0.0, current C++17 build policy. User-owned untracked samples remain outside commits/qualification. |
-| Slice 0 upstream reconciliation | READY | Local `origin/master` is `a05e4f0`; its tracked tree equals original baseline `547b808`. Live master adds merged #103 (`8bdaf90`) and #104 (`d68fb1e`). Preserve their fixes and refresh source/evidence bindings before integrating local slices. No rebase was performed during this research update. |
+| Slice 0 upstream reconciliation | COMMITTED | Fetched and merged `d68fb1e`, retaining upstream #103/#104 and local 7A/7I. Conflicts came from equivalent pre-squash history; reviewed final source deltas against both parents. Focused hardening/Wave1/DXF-fixtures/DWG-fixtures/local-roundtrip pass 5/5 in 6.28s. Receipt binding remains invalidated pending refresh; no native/support promotion. Merge identified by `Plan-Slice: 0-upstream`. |
 | Slice 4 thin independent DXF lane | IN_PROGRESS | Isolated ezdxf 1.4.4/Python 3.12 runtime provisioned. Ordinary-read controls now expose header loss and incorrect table ownership despite an empty audit result. Commit a reusable focused runner next. |
 | 7A handle roles | COMMITTED | `403013c`: shared lexical/self/arbitrary/pointer/owner policy; 320–329 bypass remapping and closure checks, including wide arbitrary values. Six red ASCII/binary matrix assertions reproduced first. Raw, application, typed XRECORD, section, XDATA-reference and converter closure controls pass: Wave 1 + DXF fixtures, 2/2 in 0.71s. |
 | 7B XRECORD grammar | ISOLATED_COMMIT | Worker commit `5158c7c`; focused DXF/hardening 2/2 and six independent version/encoding combinations reported passing. Not yet integrated into the local research revision. |
@@ -25,7 +27,7 @@
 | 7D MTEXT height | ISOLATED_COMMIT | Worker commit `1b55ad1`; focused local-roundtrip/DXF checks and independent defined-height projection reported passing. Main rectangle height and redundant R2018 context height are distinct. |
 | 7E MTEXT columns | ISOLATED_WIP | Uncommitted worker changes pass two local focused targets, but independent column evidence and long embedded-attribute coverage are incomplete. Reconcile with merged #103; not complete. |
 | 7H geometry gates | ISOLATED_COMMIT | Worker commit `2b43670`, after 7I; real extrusion-mode, normalized temporary basis, quarter-circle and nondegenerate face controls pass in the isolated checkout. Not yet integrated. |
-| 7I implicit SPLINE weights | COMMITTED | Preservation commit identified by trailer `Plan-Slice: 7I`, based on worker `280df90`, with an explicit modern identity on the locally authored literal input. Read/write implicit units, explicit units and partial/knot/nonfinite negatives pass local-roundtrip 1/1 in 1.27s. Recheck after upstream integration. This does not fix HATCH's separate grammar (PAR-30) or promote support. |
+| 7I implicit SPLINE weights | COMMITTED | `7f44182`, based on worker `280df90`, with an explicit modern identity on the locally authored literal input. Read/write implicit units, explicit units and partial/knot/nonfinite negatives pass local-roundtrip 1/1 in 1.27s; also passes the post-master integration run. This does not fix HATCH's separate grammar (PAR-30) or promote support. |
 | PAR-25 / PAR-27 / PAR-33 research controls | REPRODUCED | Locally authored ASCII inputs and rebuilt CLI: valid wide self handle rejected with exit 1/no output; `$ACADMAINTVER=70001` becomes 0 with exit 0; output STYLE/VPORT owners differ from their table handles. ezdxf 1.4.4 ordinary reads confirm the scoped observations. |
 
 Each implementation commit appends its focused validation result and remaining
