@@ -4,7 +4,7 @@
 
 **Original baseline:** `547b808` (`codex/pr100-clean`)
 
-**Local research revisions:** original semantic review `196d2b0`; latest tracked integration `c429ff795abc1835d29463632dd8baa9c95131c0` on `codex/dwg-dxf-open-source-parity`. Staged and isolated work is distinguished below.
+**Local research revisions:** original semantic review `196d2b0`; broader snapshot `c429ff7`; current implementation progress is authoritative in the ledger below. Branch `codex/dwg-dxf-open-source-parity`.
 
 **Live upstream checked:** `d68fb1ed937ad2a74a54f6208277ec10a1b031b0` (`master`, 2026-10-13); integrated by `cae9590`
 
@@ -22,7 +22,7 @@
 | Slice 0 upstream reconciliation | COMMITTED | `cae9590`: fetched and merged `d68fb1e`, retaining upstream #103/#104 and local 7A/7I. Conflicts came from equivalent pre-squash history; reviewed final source deltas against both parents. Focused hardening/Wave1/DXF-fixtures/DWG-fixtures/local-roundtrip pass 5/5 in 6.28s. Receipt binding remains invalidated pending refresh; no native/support promotion. |
 | Slice 0.1 fixture admission | COMMITTED | `59eef4b`: numeric-v1 schema adaptation with strict aliases/types/provenance; default scan reads registry and payload blobs from the index, NUL-delimited literal paths, excludes deletions and rejects symlink/unmerged entries. Dependency-free temporary-repository self-test passes (index/worktree/registry disagreements, missing worktree, odd paths, archive and symlink negatives); actual tracked registry/staged scan passes. No fixture admitted or user sample changed. |
 | Slice 1 public claims | COMMITTED | `Plan-Slice: 1`: README baseline DXF wording is now implemented/experimental, with explicit per-version/family evidence boundary. Metadata validator passes 15 claims, 2 candidate routes, 0 advertised routes; no qualification promoted. |
-| Slice 4 thin independent DXF lane | ISOLATED_WIP / GRAPH_PENDING | ezdxf 1.4.4/Python 3.12 provisioned; dependency-free self-test passes and 1.4.3 is rejected. Twelve valid core/header/MTEXT routes expose literal owner loss hidden by ordinary loading/audit. An initial invalid spline generator is excluded; correct its explicit degree before reuse. Preserve the off-by-default, non-promoting runner and complete 7G.1 before expecting its raw-owner gate to pass. |
+| Slice 4 thin independent DXF lane | ISOLATED_WIP / READY_RECHECK | ezdxf 1.4.4/Python 3.12 provisioned; dependency-free self-test passes and 1.4.3 is rejected. Initial raw-owner failures led to committed 7G.1. Correct the excluded invalid spline generator's explicit degree, then rerun all routes on current main before integrating the off-by-default, non-promoting runner. Full resource closure remains separate. |
 | 7A handle roles | COMMITTED | `403013c`: shared lexical/self/arbitrary/pointer/owner policy; 320–329 bypass remapping and closure checks, including wide arbitrary values. Six red ASCII/binary matrix assertions reproduced first. Raw, application, typed XRECORD, section, XDATA-reference and converter closure controls pass: Wave 1 + DXF fixtures, 2/2 in 0.71s. |
 | 7B XRECORD grammar | COMMITTED | `2fb759c`, integrated worker `5158c7c` onto current master. R14 payload, R2000+ explicit-zero header, repeated body 280, omitted-header and duplicate-marker controls pass; unknown-source 280 remains application data. DXF/hardening 2/2 in 0.77s, then unknown-version control passes DXF fixtures 1/1 in 0.32s. Worker six ordinary ezdxf projections remain supplemental, not receipts. |
 | 7C XRECORD replay | COMMITTED / GRAPH_PENDING | `32f0cf3`, from worker `2e96d08` after 18 reproduced guard failures. Source-version/immutable-record snapshot guards reject byte/prefix/identity/common-link/cloning edits and clearing raw-valid without explicit reset. Main object-vectors/local-roundtrip pass 2/2 in 2.17s; lc3_compat_check builds. Same-version raw and typed cross-version controls pass; rejected output preserves destination. Whole-document target closure/remapping remains with 7G/7R (7C.2); this does not qualify arbitrary opaque cloning. |
@@ -46,6 +46,7 @@
 | 7G.0 optional DIMSTYLE references | COMMITTED | `Plan-Slice: 7G.0`, integrated `cae4c55`: omit unset optional STRING references 341–347, retaining explicit 0/nonempty lexemes and separate 340/resource policy. Fresh main direct vars, two real ASCII/binary repeat-CLI controls and Wave1 pass 4/4 in 1.05s. No reference closure/support promotion. Next ready 7AB / corrected 7G.1. |
 | 7G.1 structural owners | COMMITTED | `Plan-Slice: 7G.1`, integrates `df2d9c8` plus `dcac191`: source BLOCK_RECORD identity is planned before output; minted overrides/sequence owners bypass source remapping. CLI rejects unresolved/ambiguous explicit owners transactionally, legacy adapter fallback remains. Actual DWG repeat uncovered uppercase fixed-space duplicates; reserved ASCII names now classify correctly without weakening ambiguity guards. Fresh main 17 scoped tests pass in 4.06s, including repeated owner/metadata/FreeCAD CLI controls; lc3 source check builds. Full roots/resources/layout closure remains 7G.2/3. |
 | 7G.1 supplemental native handoff | WORKER_EVIDENCE / NONPROMOTING | Isolated `dcac191`, installed byte-identical converter SHA-256 `032548f5ed2678ef8fa768900e759ddd1f466ec2626d3d76ab55d4368aad1b91`, passes generated AC1015 LINE open+insert in macOS ARM64 FreeCAD 1.1.4 / `4fd3bf320d9566a27e60069fc8387448aaa3a094`, C++ backend/mode 2. Exact four-argv handoff and 3D bounds retained. Initial sandbox Qt detection failed; identical isolated-profile checks passed outside it. Metadata `/private/tmp/libdxfrw-parity-work.k7hiK2/block-owners/build/freecad-g1-native-summary.json` is explicitly qualificationEligible=false: not current-main, Linux/Windows, general 3D, latest source-pin or ACIS evidence. |
+| 7AD CI readiness | COMMITTED / HOSTED_PENDING | `Plan-Slice: 7AD`: clean tracked `15c38c5` fixed Release profile legitimately freezes 60 tests, digest `d8829532173592b6d9aeb537e0ef32046015ce1324641f645e5d3f84ffbf53d0`, with unchanged seven focused IDs/labels. Full inventory/command validation passes; clean focused regression 7/7 passes in 2.34s (three are contract self-tests, not semantic oracles). Separate read-only Linux PR workflow extends existing fast runner: seven executables + 21 required CTests pass locally; CTests take 2.68s. Missing/duplicate/unbuilt registrations fail closed; actionlint/tool/workflow-contract checks pass. Immutable qualification workflow/cadence is unchanged; no hosted run, receipt or support promotion asserted. Next ready 7P.4 / thin independent lane. |
 | 7AB completed knots | COMMITTED | `Plan-Slice: 7AB`, integrated `a35db09` after 36 reproduced malformed-domain acceptances. Fresh main local-roundtrip/3D probe pass 2/2 in 1.37s; lc3 source check builds. Full-DXF order/[U[p],U[c]], periodic/fit-only/repeated/tiny-domain and caller-copy controls retained. Worker 72 curve/four fit-only projections remain supplemental, with comparator-only affine evaluation mapping. No DWG byte-layout/support promotion; next ready 7AF. |
 | 7AF zero-fit HATCH tangents | COMMITTED | `Plan-Slice: 7AF`, integrated `dd7a313`: first fit-count consumption no longer clears zero-fit edges before optional tangents; extra fits beyond declared zero reject. Main local-roundtrip/hardening/DXF fixtures and two repeated CLI controls pass 5/5 in 1.96s; lc3 source check builds. Worker 48 documents/58 independent edge projections are supplemental. Whole-zero tangent presence/associations remain unqualified; next ready 7P.2 / corrected 7G.1. |
 | Deeper/broader research refresh | PLAN_UPDATED | Seven additional findings PAR-50–56: CI inventory/fast-test reachability, repeated-conversion null references, locale-sensitive string casing, HATCH zero-fit tangents, common-object metadata loss, current consumer pin/mirror readiness and typed-layout handoff. PAR-39 now includes reproduced dynamic appData corruption. No main production changes, new support claims, fixture admission or external writes in this pass. |
@@ -605,11 +606,11 @@ and next unblocked step; do not mark a parent complete from one partial fix.
 
 The progress ledger supersedes the original integration queue: Slice 0.1,
 7L.1, 7H/7P.1/7Q.0/7N and 7V are now committed. Preserve staged 7X.3 and
-isolated WIP from the research-only pass. The active implementation continuation
-first makes CI ready (7AD), finishes 7X's dynamic writers, and implements
-7G.0's small null-reference guard so the existing owner work can be integrated
-with a repeat-conversion gate. Then prioritize 7G.1 structural owners and
-7P.2/4 common carriers before expecting the thin Slice 4 raw-graph lane to pass.
+isolated WIP from the research-only pass. The continuation has integrated
+7X.3/4/5, 7G.0/1, 7AB/7AF and 7P.2 with focused gates; 7AD repairs current
+inventory/fast-lane reachability. Next integrate 7P.4's omitted common carriers
+and recheck the thin Slice 4 lane with corrected generators; then complete
+7G.2/3 resource/root closure rather than declaring full graph support.
 7Y.1 numeric locale, 7AE string casing, 7AF HATCH tangent state and 7Z fill are
 independent bounded corrections; share builds, not production edit ownership.
 Reconcile 7AB's isolated completed-validator work without changing DWG bodies.
@@ -628,7 +629,7 @@ integrated sequentially, not edited concurrently in the primary checkout.
 | 7D — MTEXT height | COMMITTED | main/context heights remain distinct; next 7E/7M | `libdxfrw_dwg_local_roundtrip`, `libdxfrw_dxf_fixtures` |
 | 7E — MTEXT embedded columns | ISOLATED_WIP | 7D/7M; independent evidence; 7K for older linkage | `libdxfrw_dxf_fixtures`, one independent column projection |
 | 7F — CLI callback retention | REPRO_READY | callback/storage inventory; 7A for raw references | existing generated CLI harness pattern |
-| 7G — CLI graph/layout closure | ISOLATED_WIP / REPEAT_BLOCKED | 7G.0 null guard → 7G.1 space identity; 7G.2 typed resources; 7G.3 full layout/root closure | raw owners, two CLI conversions + third read, then valid closed graphs |
+| 7G — CLI graph/layout closure | COMMITTED / PARTIAL | 7G.0/1 complete with reserved-name repeat correction; 7G.2 typed resources and 7G.3 full roots remain | raw owners, two CLI conversions + third read, then valid closed graphs |
 | 7H — geometry gate/input policy | COMMITTED | 7I retained; scaled/unit/reflected and real-mode controls pass | `libdxfrw_dwg_local_roundtrip`, `libdxfrw_3d_consumer_probe` |
 | 7I — implicit spline weights | COMMITTED | preservation commit before upstream integration; retain focused controls | `libdxfrw_dwg_local_roundtrip`, one independent curve point |
 | 7J — dimension overrides | REPRO_READY | 7K; 7G for picture-block closure | DXF fixture plus independent override dictionary |
@@ -637,7 +638,7 @@ integrated sequentially, not edited concurrently in the primary checkout.
 | 7M — canonical embedded attributes/loss | REPRO_READY | merged #103, 7D; share 7E scopes | `libdxfrw_hardening`, `libdxfrw_dxf_fixtures`, CLI |
 | 7N — HATCH spline weights | COMMITTED | completed bounded weights/auxiliary fits; MPOLYGON grammar remains 7Z | `libdxfrw_dwg_local_roundtrip`, independent edge point |
 | 7O — dimension coordinate frames | REPRO_READY | direct-reader geometry capture; complement 7J | `libdxfrw_dxf_fixtures`, independent dimension fields |
-| 7P — common scope/owners/resources | COMMITTED / PARTIAL | 7P.1 owner fix 2be4b72; reproduced 7P.2 placement and 7P.4 omitted object carriers; 7X dynamic kinds before composed metadata | DXF fixtures, complete ordered tags, carrier matrix then closed graph |
+| 7P — common scope/owners/resources | COMMITTED / ISOLATED_READY | 7P.1/2 committed; 7P.4 `c78faed` ready for 33 typed routes; generated/named 7P.5 and typed resources remain | DXF fixtures, complete ordered tags, carrier matrix then closed graph |
 | 7Q — gradient DXF types/versions | REPRO_READY | Slice 2 classifier as guard, not disputed-range resolution | `libdxfrw_wave1`, `libdxfrw_dwg_local_roundtrip` |
 | 7R — associative boundary references | REPRO_READY | 7A/7G, planned entity identities | `libdxfrw_graph_preservation`, CLI graph vector |
 | 7S — token/aggregate byte budgets | AUDIT_READY | reuse existing limits/diagnostics; explicit accounting design | `libdxfrw_hardening` with small configured caps |
@@ -645,15 +646,15 @@ integrated sequentially, not edited concurrently in the primary checkout.
 | 7U — unknown nested tables | POLICY_READY | explicit skip vs bounded retention; Slice 2 unknown widths | `libdxfrw_hardening`, `libdxfrw_dxf_fixtures` |
 | 7V — POLYFACE completed-pool topology | COMMITTED | source counts/order tolerated; active indices checked against actual pool | `libdxfrw_dwg_local_roundtrip`, `libdxfrw_3d_consumer_probe` |
 | 7W — MESH DWG override loss guard | REPRO_READY | narrow rejection before any new DWG layout | `libdxfrw_dwg_local_roundtrip`, transactional negative |
-| 7X — remaining assigned numeric widths | COMMITTED / STAGED / DYNAMIC_OPEN | 7X.1/2 twenty-nine literal calls committed; two images staged; DIMSTYLE90 staged in isolation; appData corruption reproduced | Wave1 ordered raw tags, assigned-kind/range controls |
+| 7X — assigned numeric widths | COMMITTED / GUARD_PENDING | All 31 literal calls and dynamic DIMSTYLE/appData are corrected; gradient431 and shared kind guard remain 7Q/7X | Wave1 ordered raw tags, assigned-kind/range controls |
 | 7Y.1/2 — numeric locale / precision | REPRODUCED / POLICY | 7Y.1 independent; 7Y.2 precision/underflow policy | low-level ASCII/raw tests, binary positive control |
 | 7Z — MPOLYGON header/feature scope | REPRODUCED | additive version state; 7N weights do not resolve fill | polyline/bulge ASCII/binary projection |
 | 7AA.1/2 — DIMASSOC / MLEADER meaning | SOURCE_CONFIRMED | 7X for binary framing; 7G for links, ODA for DWG changes | literal annotated vectors, independent fields |
-| 7AB — completed NURBS knot validity | ISOLATED_WIP / FOCUSED_PASS | full DXF [U[p], U[c]]; periodic/fit-only and HATCH exceptions; reconcile current main before integration | local-roundtrip/3D probe, raw knots plus mapped peer evaluation |
+| 7AB — completed NURBS knot validity | COMMITTED | full DXF [U[p], U[c]]; periodic/fit-only and HATCH exceptions; retain controls | local-roundtrip/3D probe, raw knots plus mapped peer evaluation |
 | 7AC — Windows/Qt UTF-8 migration bridge | SOURCE_CONFIRMED / NATIVE_PENDING | keep #103 UTF-8 contract; consumer patch and argv/preflight are distinct | portable path bridge tests, then native Unicode CLI/Qt controls |
-| 7AD — CI inventory and fast PR gates | REPRODUCED / READY | clean fixed profile; preserve immutable qualification contract; freeze once registrations settle | inventory/contract self-tests, exact nonempty fast test selection |
+| 7AD — CI inventory and fast PR gates | COMMITTED / HOSTED_PENDING | clean inventory60/focused7 passes; separate Linux fast PR lane; refresh inventory with newly registered tests | inventory/contract self-tests, seven executables + 21 required CTests |
 | 7AE — symbol/string case policy | REPRODUCED_HELPER / POLICY_SCOPED | independent of numeric locale; preserve bytes first, producer-scoped Unicode equivalence | isolated CTYPE process, typed names/refs and R12 font controls |
-| 7AF — zero-fit HATCH tangent state | REPRODUCED / READY | separate spline-fit and loop-boundary counts; no DWG layout dependency | literal/API ASCII/binary, zero/one fit and successive edges |
+| 7AF — zero-fit HATCH tangent state | COMMITTED | separate spline-fit and loop-boundary counts; whole-zero absence policy unchanged | literal/API ASCII/binary, zero/one fit and successive edges |
 | 7AG.1/2 — current consumer contracts | SOURCE_CONFIRMED / SUB-SLICES | exact LC3 pin/source mirror first; typed/raw retention identity contract separately | source compile + callback transcript, then consumer edit/save graph |
 
 `REPRO_READY` means the source path and a small reproduction are identified;
