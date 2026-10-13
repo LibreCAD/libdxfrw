@@ -1427,6 +1427,97 @@ void testCustomTextNumericWireKinds(TestContext& t) {
     }
 }
 
+void testLayoutStyleNumericWireKinds(TestContext& t) {
+    expectTypedNumericWire(t, [](dxfRW& writer) {
+        DRW_Layout layout;
+        layout.handle = 0x210u;
+        layout.name = "WIRE_LAYOUT";
+        layout.tabOrder = 3;
+        layout.limMinX = 1.25;
+        return writer.writeLayout(&layout);
+    }, {"71:3", "10:0x1.4p+0"}, "LAYOUT typed numeric sentinel writes");
+    expectTypedNumericWire(t, [](dxfRW& writer) {
+        DRW_MLeaderStyle style;
+        style.handle = 0x211u;
+        style.name = "WIRE_MLEADERSTYLE";
+        style.styleVersion = 2;
+        style.contentType = 2;
+        style.drawMLeaderOrder = 1;
+        style.drawLeaderOrder = 1;
+        style.maxLeaderPoints = 70001;
+        style.leaderType = 1;
+        style.leftAttachment = 3;
+        style.rightAttachment = 4;
+        style.textAngleType = 2;
+        style.textAlignmentType = 1;
+        style.blockConnectionType = 1;
+        style.attachmentDirection = 1;
+        style.topAttachment = 9;
+        style.bottomAttachment = 10;
+        style.textExtended = true;
+        return writer.writeMLeaderStyle(&style);
+    }, {"179:2", "170:2", "171:1", "172:1", "90:70001", "173:1",
+        "174:3", "178:4", "175:2", "176:1", "177:1", "271:1",
+        "273:9", "272:10", "298:1"},
+       "MLEADERSTYLE typed numeric sentinel writes");
+    for (const int invalid : {-32769, 65536})
+        expectTypedNumericRangeRejected(t, [invalid](dxfRW& writer) {
+            DRW_Layout layout;
+            layout.handle = 0x212u;
+            layout.tabOrder = invalid;
+            return writer.writeLayout(&layout);
+        });
+}
+
+void testEntityNumericWireKinds(TestContext& t) {
+    expectTypedNumericWire(t, [](dxfRW& writer) {
+        DRW_SectionObject section;
+        section.m_state = 1;
+        section.m_flags = 2;
+        section.m_name = "WIRE_SECTION";
+        section.m_indicatorAlpha = 64;
+        section.m_indicatorColor = 231;
+        section.m_verts.emplace_back(1.0, 2.0, 3.0);
+        return writer.writeSectionObject(&section);
+    }, {"62:231", "92:1", "11:0x1p+0", "93:0"},
+       "SECTIONOBJECT typed numeric sentinel writes");
+    expectTypedNumericWire(t, [](dxfRW& writer) {
+        DRW_MLeader leader;
+        DRW_MLeaderRoot root;
+        DRW_MLeaderLeaderLine line;
+        line.points.emplace_back(1.0, 2.0, 3.0);
+        line.lineWeight = 35;
+        line.arrowSize = 1.25;
+        root.leaderLines.push_back(line);
+        leader.context.roots.push_back(root);
+        return writer.writeMultiLeader(&leader);
+    }, {"171:35", "40:0x1.4p+0", "305:}"},
+       "MLEADER context typed numeric sentinel writes");
+    expectTypedNumericWire(t, [](dxfRW& writer) {
+        DRW_NavisworksModel model;
+        model.flags = 0x1234u;
+        model.unitFactor = 0.5;
+        return writer.writeNavisworksModel(&model);
+    }, {"70:4660", "40:0x1p-1"},
+       "coordination model typed numeric sentinel writes");
+    for (const std::uint32_t invalid : {65536u, 0xffffffffu})
+        expectTypedNumericRangeRejected(t, [invalid](dxfRW& writer) {
+            DRW_SectionObject section;
+            section.m_indicatorColor = invalid;
+            return writer.writeSectionObject(&section);
+        });
+    for (const int invalid : {-32769, 65536})
+        expectTypedNumericRangeRejected(t, [invalid](dxfRW& writer) {
+            DRW_MLeader leader;
+            DRW_MLeaderRoot root;
+            DRW_MLeaderLeaderLine line;
+            line.lineWeight = invalid;
+            root.leaderLines.push_back(line);
+            leader.context.roots.push_back(root);
+            return writer.writeMultiLeader(&leader);
+        });
+}
+
 void testDxfBinaryRawBoundaryReplay(TestContext& t) {
     const DRW_RawDxfObject object = rawBinaryBoundaryObject();
     std::string output;
@@ -6269,6 +6360,8 @@ int main() {
     testViewFlagWireKinds(context);
     testIntegerValuedBooleanWireKinds(context);
     testCustomTextNumericWireKinds(context);
+    testLayoutStyleNumericWireKinds(context);
+    testEntityNumericWireKinds(context);
     testDxfBinaryRawSectionCaptureReplay(context);
     testDxfBinaryRawObjectCaptureReplay(context);
     testDxfRawObjectHandleScope(context);

@@ -6215,7 +6215,8 @@ bool dxfRW::writeSectionObject(DRW_SectionObject *ent) {
         return false;
     if (version < DRW::AC1021)
         return rejectUnsupportedDxfWrite();
-    if (ent->m_verts.size() > DRW_SectionObject::kMaxVertices
+    if (ent->m_indicatorColor > std::numeric_limits<std::uint16_t>::max()
+        || ent->m_verts.size() > DRW_SectionObject::kMaxVertices
         || ent->m_blVerts.size() > DRW_SectionObject::kMaxVertices) {
         m_writeError = true;
         return false;
@@ -6234,7 +6235,7 @@ bool dxfRW::writeSectionObject(DRW_SectionObject *ent) {
     writer->writeDouble(40, ent->m_topHeight);
     writer->writeDouble(41, ent->m_bottomHeight);
     writer->writeInt16(70, static_cast<int>(ent->m_indicatorAlpha));
-    writer->writeInt32(62, static_cast<int>(ent->m_indicatorColor));
+    writer->writeInt16(62, static_cast<int>(ent->m_indicatorColor));
     writer->writeInt32(92, static_cast<int>(ent->m_verts.size()));
     for (const DRW_Coord& point : ent->m_verts) {
         writer->writeDouble(11, point.x);
@@ -6810,7 +6811,7 @@ bool dxfRW::writeMultiLeader(DRW_MLeader *ent){
                 writer->writeInt32(93, line.overrideFlags);
                 writer->writeInt16(170, line.leaderType);
                 writer->writeInt32(92, line.color);
-                writer->writeInt32(171, line.lineWeight);
+                writer->writeInt16(171, line.lineWeight);
                 writer->writeDouble(40, line.arrowSize);
                 if (line.lineTypeHandle.ref != 0)
                     writer->writeString(340,
@@ -7332,7 +7333,7 @@ bool dxfRW::writeNavisworksModel(DRW_NavisworksModel *ent) {
     if (!writeEntity(ent))
         return false;
     writer->writeString(100, "AcDbNavisworksModel");
-    writer->writeInt32(70, static_cast<std::int32_t>(ent->flags));
+    writer->writeInt16(70, ent->flags);
     if (ent->definitionHandle != 0)
         writer->writeString(340, toHexStr(ent->definitionHandle));
     for (double value : ent->transform)
@@ -16124,6 +16125,11 @@ void dxfRW::writePlotSettingsFields(const DRW_PlotSettings *ent) {
 bool dxfRW::writeLayout(DRW_Layout *ent) {
     if (!preflightTableEntry(ent))
         return false;
+    if (ent->tabOrder < std::numeric_limits<std::int16_t>::min()
+        || ent->tabOrder > std::numeric_limits<std::uint16_t>::max()) {
+        m_writeError = true;
+        return false;
+    }
     std::uint32_t handle = static_cast<std::uint32_t>(ent->handle);
     if (handle != 0) {
         if (!reserveHandle(handle))
@@ -16171,7 +16177,7 @@ bool dxfRW::writeLayout(DRW_Layout *ent) {
     writer->writeString(100, "AcDbLayout");
     writer->writeUtf8String(1, ent->name);
     writer->writeInt16(70, ent->layoutFlags);
-    writer->writeInt32(71, ent->tabOrder);
+    writer->writeInt16(71, ent->tabOrder);
     writer->writeDouble(10, ent->limMinX);
     writer->writeDouble(20, ent->limMinY);
     writer->writeDouble(11, ent->limMaxX);
@@ -16874,14 +16880,14 @@ bool dxfRW::writeMLeaderStyle(DRW_MLeaderStyle *ent) {
     writer->writeString(100, "AcDbMLeaderStyle");
     writer->writeUtf8String(2, ent->name);
     writer->writeInt16(70, ent->flags);
-    writer->writeInt32(179, ent->styleVersion);
-    writer->writeInt32(170, ent->contentType);
-    writer->writeInt32(171, ent->drawMLeaderOrder);
-    writer->writeInt32(172, ent->drawLeaderOrder);
+    writer->writeInt16(179, ent->styleVersion);
+    writer->writeInt16(170, ent->contentType);
+    writer->writeInt16(171, ent->drawMLeaderOrder);
+    writer->writeInt16(172, ent->drawLeaderOrder);
     writer->writeInt32(90, ent->maxLeaderPoints);
     writer->writeDouble(40, ent->firstSegmentAngle);
     writer->writeDouble(41, ent->secondSegmentAngle);
-    writer->writeInt32(173, ent->leaderType);
+    writer->writeInt16(173, ent->leaderType);
     writer->writeInt32(91, ent->leaderColor);
     if (ent->leaderLineTypeHandle.ref != 0)
     writer->writeString(340, toHexStr(ent->leaderLineTypeHandle.ref));
@@ -16897,10 +16903,10 @@ bool dxfRW::writeMLeaderStyle(DRW_MLeaderStyle *ent) {
     writer->writeUtf8String(300, ent->textDefault);
     if (ent->textStyleHandle.ref != 0)
     writer->writeString(342, toHexStr(ent->textStyleHandle.ref));
-    writer->writeInt32(174, ent->leftAttachment);
-    writer->writeInt32(178, ent->rightAttachment);
-    writer->writeInt32(175, ent->textAngleType);
-    writer->writeInt32(176, ent->textAlignmentType);
+    writer->writeInt16(174, ent->leftAttachment);
+    writer->writeInt16(178, ent->rightAttachment);
+    writer->writeInt16(175, ent->textAngleType);
+    writer->writeInt16(176, ent->textAlignmentType);
     writer->writeInt32(93, ent->textColor);
     writer->writeDouble(45, ent->textHeight);
     writer->writeBool(292, ent->textFrameEnabled);
@@ -16915,14 +16921,14 @@ bool dxfRW::writeMLeaderStyle(DRW_MLeaderStyle *ent) {
     writer->writeBool(293, ent->blockScaleEnabled);
     writer->writeDouble(141, ent->blockRotation);
     writer->writeBool(294, ent->blockRotationEnabled);
-    writer->writeInt32(177, ent->blockConnectionType);
+    writer->writeInt16(177, ent->blockConnectionType);
     writer->writeDouble(142, ent->scaleFactor);
     writer->writeBool(295, ent->propertyChanged);
     writer->writeBool(296, ent->isAnnotative);
     writer->writeDouble(143, ent->breakSize);
-    writer->writeInt32(271, ent->attachmentDirection);
-    writer->writeInt32(273, ent->topAttachment);
-    writer->writeInt32(272, ent->bottomAttachment);
+    writer->writeInt16(271, ent->attachmentDirection);
+    writer->writeInt16(273, ent->topAttachment);
+    writer->writeInt16(272, ent->bottomAttachment);
     writer->writeBool(298, ent->textExtended);
     if (!ent->extData.empty() && !writeExtData(ent->extData))
         return false;
