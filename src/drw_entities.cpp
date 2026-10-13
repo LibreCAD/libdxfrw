@@ -15893,8 +15893,10 @@ bool DRW_Spline::validateDxf() const {
         return false;
     if (!weightlist.empty() && weightlist.size() != controllist.size())
         return false;
-    if ((flags & 0x04) != 0
-        && (controllist.empty() || weightlist.size() != controllist.size()))
+    // DXF group 41 may be omitted when every control-point weight is 1,
+    // including when the rational flag is retained. A nonempty weight array
+    // still has to describe every control point, as checked above.
+    if ((flags & 0x04) != 0 && controllist.empty())
         return false;
     if (controllist.empty() && (!knotslist.empty() || !weightlist.empty()))
         return false;

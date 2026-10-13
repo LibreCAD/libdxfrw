@@ -25,7 +25,7 @@
 | 7D MTEXT height | ISOLATED_COMMIT | Worker commit `1b55ad1`; focused local-roundtrip/DXF checks and independent defined-height projection reported passing. Main rectangle height and redundant R2018 context height are distinct. |
 | 7E MTEXT columns | ISOLATED_WIP | Uncommitted worker changes pass two local focused targets, but independent column evidence and long embedded-attribute coverage are incomplete. Reconcile with merged #103; not complete. |
 | 7H geometry gates | ISOLATED_COMMIT | Worker commit `2b43670`, after 7I; real extrusion-mode, normalized temporary basis, quarter-circle and nondegenerate face controls pass in the isolated checkout. Not yet integrated. |
-| 7I implicit SPLINE weights | STAGED_FOCUSED_PASS | Worker commit `280df90` is applied without commit locally; local-roundtrip passes 1/1 in 3.12s. Preserve staged changes while reconciling upstream. This does not fix HATCH's separate spline grammar (PAR-30). |
+| 7I implicit SPLINE weights | COMMITTED | Preservation commit identified by trailer `Plan-Slice: 7I`, based on worker `280df90`, with an explicit modern identity on the locally authored literal input. Read/write implicit units, explicit units and partial/knot/nonfinite negatives pass local-roundtrip 1/1 in 1.27s. Recheck after upstream integration. This does not fix HATCH's separate grammar (PAR-30) or promote support. |
 | PAR-25 / PAR-27 / PAR-33 research controls | REPRODUCED | Locally authored ASCII inputs and rebuilt CLI: valid wide self handle rejected with exit 1/no output; `$ACADMAINTVER=70001` becomes 0 with exit 0; output STYLE/VPORT owners differ from their table handles. ezdxf 1.4.4 ordinary reads confirm the scoped observations. |
 
 Each implementation commit appends its focused validation result and remaining
@@ -367,7 +367,7 @@ integrated sequentially, not edited concurrently in the primary checkout.
 | 7F — CLI callback retention | REPRO_READY | callback/storage inventory; 7A for raw references | existing generated CLI harness pattern |
 | 7G — CLI graph/layout closure | REPRO_READY | 7A/7B/7K and retained callback roots | CLI graph sentinel, object/layout vectors |
 | 7H — geometry gate/input policy | ISOLATED_COMMIT | 7I; integrate 2b43670 | `libdxfrw_dwg_local_roundtrip`, `libdxfrw_3d_consumer_probe` |
-| 7I — implicit spline weights | STAGED_FOCUSED_PASS | preserve local staging; finish reviewed commit | `libdxfrw_dwg_local_roundtrip`, one independent curve point |
+| 7I — implicit spline weights | COMMITTED | preservation commit before upstream integration; retain focused controls | `libdxfrw_dwg_local_roundtrip`, one independent curve point |
 | 7J — dimension overrides | REPRO_READY | 7K; 7G for picture-block closure | DXF fixture plus independent override dictionary |
 | 7K — XDATA/APPID validation | REPRO_READY | 7A reference roles, writer preflight policy | `libdxfrw_dxf_fixtures`, `libdxfrw_wave1` |
 | 7L — header widths/preservation | REPRODUCED | live-master reconciliation; narrow 90 fix first | `libdxfrw_wave1`, one CLI header projection |

@@ -26,6 +26,7 @@
 #include "intern/dwgbuffer.h"
 #include "intern/dwgbufferw.h"
 #include "intern/dwg_fixed_handles.h"
+#include "intern/dxfwriter.h"
 
 namespace {
 
@@ -9991,6 +9992,156 @@ bool runDxfSplineSurfaceRejectsInvalidPayload(
         && rejects(invalidSurface, "surface-alignment");
 }
 
+bool runDxfSplineImplicitUnitWeights(bool binary,
+                                     const std::filesystem::path& directory,
+                                     bool keepOutput) {
+    const std::string encoding = binary ? "binary" : "ascii";
+    const std::filesystem::path input = directory /
+        ("libdxfrw-spline-unit-weights-input-" + encoding + ".dxf");
+    const std::filesystem::path output = directory /
+        ("libdxfrw-spline-unit-weights-output-" + encoding + ".dxf");
+    const std::filesystem::path rejected = directory /
+        ("libdxfrw-spline-partial-weights-" + encoding + ".dxf");
+    std::error_code ec;
+    // Write literal tags rather than using writeSpline(): the input must test
+    // reading omitted unit weights independently of the entity writer gate.
+    {
+        std::ofstream stream(input, std::ios::binary | std::ios::trunc);
+        if (binary)
+            stream.write("AutoCAD Binary DXF\r\n\032\0", 22);
+        std::unique_ptr<dxfWriter> tags;
+        if (binary)
+            tags = std::make_unique<dxfWriterBinary>(&stream);
+        else
+            tags = std::make_unique<dxfWriterAscii>(&stream);
+        tags->setVersion("AC1027", true);
+        tags->writeString(0, "SECTION");
+        tags->writeString(2, "HEADER");
+        tags->writeString(9, "$ACADVER");
+        tags->writeString(1, "AC1027");
+        tags->writeString(0, "ENDSEC");
+        tags->writeString(0, "SECTION");
+        tags->writeString(2, "ENTITIES");
+        tags->writeString(0, "SPLINE");
+        tags->writeString(5, "FC09");
+        tags->writeString(100, "AcDbEntity");
+        tags->writeString(8, "0");
+        tags->writeString(100, "AcDbSpline");
+        tags->writeInt16(70, 4);
+        tags->writeInt16(71, 2);
+        tags->writeInt16(72, 6);
+        tags->writeInt16(73, 3);
+        tags->writeInt16(74, 0);
+        for (double knot : {0.0, 0.0, 0.0, 1.0, 1.0, 1.0})
+            tags->writeDouble(40, knot);
+        for (const DRW_Coord point : {DRW_Coord(0.0, 0.0, 0.0),
+                                      DRW_Coord(1.0, 1.0, 0.0),
+                                      DRW_Coord(2.0, 0.0, 0.0)}) {
+            tags->writeDouble(10, point.x);
+            tags->writeDouble(20, point.y);
+            tags->writeDouble(30, point.z);
+        }
+        tags->writeString(0, "ENDSEC");
+        tags->writeString(0, "EOF");
+        if (tags->hasWriteError() || !stream.good())
+            return false;
+    }
+
+    dx_data source;
+    dx_iface importer;
+    const bool readOk = importer.fileImport(input.string(), &source, false);
+    const auto cleanup = [&]() {
+        if (!keepOutput) {
+            std::filesystem::remove(input, ec);
+            std::filesystem::remove(output, ec);
+        }
+        std::filesystem::remove(rejected, ec);
+    };
+    if (!readOk || source.mBlock->ent.size() != 1u
+        || source.mBlock->ent.front()->eType != DRW::SPLINE) {
+        std::cerr << "omitted unit SPLINE weights rejected on read: "
+                  << encoding << '\n';
+        cleanup();
+        return false;
+    }
+    auto* implicit = static_cast<DRW_Spline*>(source.mBlock->ent.front());
+    if (implicit->flags != 4 || !implicit->weightlist.empty()) {
+        cleanup();
+        return false;
+    }
+    auto* explicitUnits = new DRW_Spline(*implicit);
+    explicitUnits->handle = 0;
+    explicitUnits->weightlist = {1.0, 1.0, 1.0};
+    source.mBlock->ent.push_back(explicitUnits);
+    dx_iface exporter;
+    const bool writeOk = exporter.fileExport(output.string(), DRW::AC1027,
+                                              binary, &source, false);
+    dx_data reopened;
+    dx_iface reimporter;
+    bool valid = writeOk
+        && reimporter.fileImport(output.string(), &reopened, false)
+        && reopened.mBlock->ent.size() == 2u;
+    std::size_t splineIndex = 0;
+    for (const DRW_Entity* entity : reopened.mBlock->ent) {
+        if (!valid)
+            break;
+        if (entity == nullptr || entity->eType != DRW::SPLINE) {
+            valid = false;
+            break;
+        }
+        const auto& spline = *static_cast<const DRW_Spline*>(entity);
+        valid = spline.flags == 4 && spline.degree == 2
+            && spline.knotslist == std::vector<double>({0, 0, 0, 1, 1, 1})
+            && spline.controllist.size() == 3u
+            && spline.weightlist == (splineIndex == 0u ? std::vector<double>{}
+                                             : std::vector<double>{1, 1, 1});
+        // Independent quadratic Bernstein basis at t=.5. Missing group 41
+        // means unit weights, so both encodings describe exactly this point.
+        DRW_Coord numerator;
+        double denominator = 0.0;
+        for (std::size_t j = 0; valid && j < 3u; ++j) {
+            const double basis = j == 1u ? 0.5 : 0.25;
+            const double weight = spline.weightlist.empty()
+                ? 1.0 : spline.weightlist[j];
+            valid = spline.controllist[j] != nullptr;
+            if (!valid)
+                break;
+            numerator.x += basis * weight * spline.controllist[j]->x;
+            numerator.y += basis * weight * spline.controllist[j]->y;
+            numerator.z += basis * weight * spline.controllist[j]->z;
+            denominator += basis * weight;
+        }
+        valid = valid && std::abs(numerator.x / denominator - 1.0) < 1e-12
+            && std::abs(numerator.y / denominator - 0.5) < 1e-12
+            && std::abs(numerator.z / denominator) < 1e-12;
+        ++splineIndex;
+    }
+    // Absence means implicit units; a nonempty incomplete array is malformed.
+    // Retain the count and finite-value checks when widening that one case.
+    for (int corruption = 0; corruption < 3; ++corruption) {
+        dx_data invalidSource;
+        auto* invalid = new DRW_Spline(*implicit);
+        if (corruption == 0)
+            invalid->weightlist = {1.0, 2.0};
+        else if (corruption == 1)
+            invalid->knotslist.pop_back();
+        else
+            invalid->weightlist = {1.0,
+                std::numeric_limits<double>::quiet_NaN(), 1.0};
+        invalidSource.mBlock->ent.push_back(invalid);
+        std::filesystem::remove(rejected, ec);
+        dx_iface invalidExporter;
+        valid = !invalidExporter.fileExport(rejected.string(), DRW::AC1027,
+                                            binary, &invalidSource, false)
+            && !std::filesystem::exists(rejected) && valid;
+    }
+    if (!valid)
+        std::cerr << "implicit/explicit unit SPLINE weights differ: "
+                  << encoding << '\n';
+    cleanup();
+    return valid;
+}
+
 bool runDxfSplineHelixRoundTrip(bool binary,
                                const std::filesystem::path& directory,
                                bool keepOutput) {
@@ -12607,6 +12758,12 @@ int main(int argc, char** argv) {
            failures);
     expect(runDxfSplineSurfaceRejectsInvalidPayload(directory),
            "local DXF HELIX/SPLINE/SURFACE writers reject invalid field values",
+           failures);
+    expect(runDxfSplineImplicitUnitWeights(false, directory, keepOutputs),
+           "local DXF ASCII SPLINE implicit and explicit unit weights agree",
+           failures);
+    expect(runDxfSplineImplicitUnitWeights(true, directory, keepOutputs),
+           "local DXF binary SPLINE implicit and explicit unit weights agree",
            failures);
     expect(runDxfSplineHelixRoundTrip(false, directory, keepOutputs),
            "local DXF ASCII SPLINE fit/control and HELIX semantic round-trip",
