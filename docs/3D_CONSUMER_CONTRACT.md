@@ -78,6 +78,15 @@ target evidence before they are promoted.
 
 ## Consumer compatibility and probe evidence
 
+Completed DXF SPLINE/HELIX control-point payloads and HATCH spline boundaries
+require nondecreasing finite knots and a nonempty active parameter interval.
+For the full DXF vector with degree `p` and `c` controls, that interval is
+`[U[p], U[c]]`; repeated clamped/interior knots and small positive domains
+remain accepted. Fit-only SPLINE data have no explicit interval to check, and
+a HATCH auxiliary fit point does not replace an otherwise valid control/knot
+definition. This bounded validity check neither evaluates curves nor imposes
+strictly positive weights, geometric closure, or a new DWG layout policy.
+
 The `lc3_compat_check` compile target verifies that the older LibreCAD-style
 2D callback implementation remains concrete and can still read the public
 fields it uses. New optional callbacks remain non-pure. This is a source-level

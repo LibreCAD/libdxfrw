@@ -2035,6 +2035,25 @@ bool isValidFitSplineLayout(int degree, std::int32_t fitCount) {
            fitCount >= 2;
 }
 
+bool isValidDxfControlKnotDomain(const DRW_Spline& spline) {
+    if (spline.controllist.empty())
+        return true; // Fit-only data have no explicit control-knot domain.
+    if (spline.knotslist.size() > static_cast<std::size_t>(kMaxSplineItems)
+        || spline.controllist.size() > static_cast<std::size_t>(kMaxSplineItems)
+        || !isValidControlSplineLayout(spline.degree,
+               static_cast<std::int32_t>(spline.knotslist.size()),
+               static_cast<std::int32_t>(spline.controllist.size())))
+        return false;
+    // DXF stores the full c+p+1 knot vector: the active parameter interval is
+    // [U[p], U[c]], for degree p and c controls. OpenNURBS omits two end knots
+    // and therefore uses different indices. Finite/count checks precede this
+    // completed-payload check; repeated knots and arbitrarily small positive
+    // intervals are valid here, without a tolerance-based domain collapse.
+    return std::is_sorted(spline.knotslist.cbegin(), spline.knotslist.cend())
+        && spline.knotslist[static_cast<std::size_t>(spline.degree)]
+            < spline.knotslist[spline.controllist.size()];
+}
+
 bool isValidSplinePayloadData(const DRW_Spline& spline) {
     const auto finite = [](double value) { return std::isfinite(value); };
     const auto finiteCoord = [&finite](const DRW_Coord& point) {
@@ -16021,7 +16040,8 @@ bool DRW_Spline::validateDxf() const {
     if (m_dxfFitCountSeen
         && fitlist.size() != static_cast<std::size_t>(nfit))
         return false;
-    if (!validatePayloadFields(/*allowMixedLists=*/true))
+    if (!validatePayloadFields(/*allowMixedLists=*/true)
+        || !isValidDxfControlKnotDomain(*this))
         return false;
     if (!weightlist.empty() && weightlist.size() != controllist.size())
         return false;
@@ -16069,9 +16089,7 @@ bool DRW_Spline::validateHatchBoundaryDxf() const {
     if (controllist.empty())
         return isValidFitSplineLayout(
             degree, static_cast<std::int32_t>(fitlist.size()));
-    return isValidControlSplineLayout(
-        degree, static_cast<std::int32_t>(knotslist.size()),
-        static_cast<std::int32_t>(controllist.size()));
+    return isValidDxfControlKnotDomain(*this);
 }
 
 bool DRW_Helix::validateDxf() const {

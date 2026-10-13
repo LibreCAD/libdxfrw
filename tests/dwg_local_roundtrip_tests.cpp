@@ -10502,6 +10502,256 @@ bool runDxfHatchSplineWeights(bool binary,
     return valid;
 }
 
+bool runDxfNurbsKnotDomains(bool binary,
+                            const std::filesystem::path& directory,
+                            bool keepOutput) {
+    struct KnotCase {
+        const char* name;
+        int degree;
+        int flags;
+        std::vector<double> knots;
+        std::vector<DRW_Coord> controls;
+        std::vector<DRW_Coord> fits;
+        std::vector<double> weights;
+        bool valid;
+    };
+    const std::vector<DRW_Coord> quadratic {{0, 0, 0}, {1, 1, 0}, {2, 0, 0}};
+    const std::vector<KnotCase> cases {
+        {"clamped", 2, 4, {0, 0, 0, 1, 1, 1}, quadratic, {}, {}, true},
+        {"periodic", 2, 7, {-2, -1, 0, 1, 2, 3, 4, 5},
+            {{0, 0, 0}, {1, 0, 0}, {0, 1, 0}, {0, 0, 0}, {1, 0, 0}}, {}, {}, true},
+        {"repeated-interior", 2, 4, {0, 0, 0, .5, .5, 1, 1, 1},
+            {{0, 0, 0}, {1, 1, 0}, {2, 0, 0}, {3, -1, 0}, {4, 0, 0}}, {}, {}, true},
+        {"fit-only", 3, 0, {}, {}, {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}, {}, true},
+        {"decreasing", 2, 4, {0, 0, 0, 1, .5, 1}, quadratic, {}, {}, false},
+        {"zero-domain", 2, 4, {0, 0, 0, 0, 0, 0}, quadratic, {}, {}, false},
+        {"empty-active-domain", 2, 4, {0, 0, 1, 1, 1, 2}, quadratic, {}, {}, false},
+        {"small-domain", 2, 4, {0, 0, 0, 1e-12, 1e-12, 1e-12}, quadratic, {}, {}, true},
+        {"zero-weight", 2, 4, {0, 0, 0, 1, 1, 1}, quadratic, {}, {1, 0, 1}, true},
+        {"negative-weight", 2, 4, {0, 0, 0, 1, 1, 1}, quadratic, {}, {1, -.25, 1}, true}
+    };
+    const std::string encoding = binary ? "binary" : "ascii";
+    const auto makeCurve = [&](const KnotCase& control, int family) {
+        DRW_Spline* spline = family == 1
+            ? static_cast<DRW_Spline*>(new DRW_Helix()) : new DRW_Spline();
+        spline->degree = control.degree;
+        spline->flags = family == 2 ? control.flags & 6 : control.flags;
+        spline->knotslist = control.knots;
+        spline->weightlist = control.weights;
+        for (const auto& point : control.controls)
+            spline->controllist.push_back(std::make_shared<DRW_Coord>(point));
+        for (const auto& point : control.fits)
+            spline->fitlist.push_back(std::make_shared<DRW_Coord>(point));
+        if (family == 2) // Auxiliary fit metadata, not a one-point fit-only curve.
+            spline->fitlist.push_back(std::make_shared<DRW_Coord>(control.controls.front()));
+        if (family == 1) {
+            auto* helix = static_cast<DRW_Helix*>(spline);
+            helix->axisVector = DRW_Coord(0, 0, 1);
+            helix->radius = helix->turns = helix->turnHeight = 1.0;
+        }
+        return spline;
+    };
+    const auto makeEntity = [&](const KnotCase& control, int family) -> DRW_Entity* {
+        auto* spline = makeCurve(control, family);
+        if (family != 2) return spline;
+        auto* hatch = new DRW_Hatch();
+        hatch->name = "SOLID"; hatch->solid = 1;
+        auto loop = std::make_shared<DRW_HatchLoop>(1);
+        loop->objlist.push_back(std::shared_ptr<DRW_Spline>(spline));
+        if ((control.flags & 2) == 0) {
+            auto line = std::make_shared<DRW_Line>();
+            line->basePoint = control.controls.back();
+            line->secPoint = control.controls.front();
+            loop->objlist.push_back(line);
+        }
+        loop->update(); hatch->appendLoop(loop);
+        return hatch;
+    };
+    const auto curveOf = [](const DRW_Entity* entity, int family) -> const DRW_Spline* {
+        if (family != 2) return dynamic_cast<const DRW_Spline*>(entity);
+        const auto* hatch = dynamic_cast<const DRW_Hatch*>(entity);
+        if (!hatch || hatch->looplist.size() != 1u
+            || hatch->looplist.front()->objlist.empty()) return nullptr;
+        return dynamic_cast<const DRW_Spline*>(hatch->looplist.front()->objlist.front().get());
+    };
+    const auto matches = [&](const DRW_Spline* spline, const KnotCase& control, int family) {
+        if (!spline || spline->degree != control.degree
+            || spline->flags != (family == 2 ? control.flags & 6 : control.flags)
+            || spline->knotslist != control.knots || spline->weightlist != control.weights
+            || spline->controllist.size() != control.controls.size()
+            || spline->fitlist.size() != (family == 2 ? 1u : control.fits.size())) return false;
+        for (std::size_t i = 0; i != control.controls.size(); ++i) {
+            const auto& point = spline->controllist[i];
+            if (!point || point->x != control.controls[i].x
+                || point->y != control.controls[i].y || point->z != control.controls[i].z)
+                return false;
+        }
+        if (family == 2) {
+            const auto& auxiliaryFit = spline->fitlist.front();
+            if (!auxiliaryFit || auxiliaryFit->x != control.controls.front().x
+                || auxiliaryFit->y != control.controls.front().y
+                || auxiliaryFit->z != control.controls.front().z)
+                return false;
+        }
+        if (control.controls.empty()) {
+            for (std::size_t i = 0; i != control.fits.size(); ++i) {
+                const auto& point = spline->fitlist[i];
+                if (!point || point->x != control.fits[i].x
+                    || point->y != control.fits[i].y || point->z != control.fits[i].z)
+                    return false;
+            }
+            return true;
+        }
+        // Independent quadratic basis on the named span: periodic t=1.5,
+        // repeated-interior t=.25, otherwise the clamped-domain midpoint.
+        const bool periodic = (control.flags & 2) != 0;
+        const std::array<double, 3> basis = periodic
+            ? std::array<double, 3>{{.125, .75, .125}}
+            : std::array<double, 3>{{.25, .5, .25}};
+        double x = 0, y = 0, denominator = 0;
+        for (std::size_t j = 0; j != 3u; ++j) {
+            const std::size_t index = j + (periodic ? 1u : 0u);
+            const double factor = basis[j]
+                * (spline->weightlist.empty() ? 1.0 : spline->weightlist[index]);
+            x += factor * spline->controllist[index]->x;
+            y += factor * spline->controllist[index]->y;
+            denominator += factor;
+        }
+        const double middleWeight = control.weights.empty() ? 1.0 : control.weights[1];
+        const double expectedX = periodic ? .125 : 1.0;
+        const double expectedY = periodic ? .75 : .5 * middleWeight / (.5 + .5 * middleWeight);
+        return std::abs(x / denominator - expectedX) < 1e-12
+            && std::abs(y / denominator - expectedY) < 1e-12;
+    };
+    const auto literal = [&](const std::filesystem::path& path,
+                              const KnotCase& control, int family) {
+        std::ofstream stream(path, std::ios::binary | std::ios::trunc);
+        if (binary) stream.write("AutoCAD Binary DXF\r\n\032\0", 22);
+        std::unique_ptr<dxfWriter> tags;
+        if (binary) tags = std::make_unique<dxfWriterBinary>(&stream);
+        else tags = std::make_unique<dxfWriterAscii>(&stream);
+        tags->setVersion("AC1027", true);
+        tags->writeString(0, "SECTION"); tags->writeString(2, "HEADER");
+        tags->writeString(9, "$ACADVER"); tags->writeString(1, "AC1027");
+        tags->writeString(0, "ENDSEC");
+        tags->writeString(0, "SECTION"); tags->writeString(2, "ENTITIES");
+        tags->writeString(0, family == 2 ? "HATCH" : family == 1 ? "HELIX" : "SPLINE");
+        tags->writeString(5, "A0"); tags->writeString(100, "AcDbEntity"); tags->writeString(8, "0");
+        tags->writeString(100, family == 2 ? "AcDbHatch" : "AcDbSpline");
+        if (family == 2) {
+            tags->writeDouble(10, 0); tags->writeDouble(20, 0); tags->writeDouble(30, 0);
+            tags->writeString(2, "SOLID"); tags->writeInt16(70, 1); tags->writeInt16(71, 0);
+            tags->writeInt32(91, 1); tags->writeInt32(92, 1);
+            tags->writeInt32(93, (control.flags & 2) != 0 ? 1 : 2);
+            tags->writeInt16(72, 4); tags->writeInt32(94, control.degree);
+            tags->writeInt16(73, (control.flags & 4) != 0 ? 1 : 0);
+            tags->writeInt16(74, (control.flags & 2) != 0 ? 1 : 0);
+            tags->writeInt32(95, static_cast<int>(control.knots.size()));
+            tags->writeInt32(96, static_cast<int>(control.controls.size()));
+        } else {
+            tags->writeInt16(70, control.flags); tags->writeInt16(71, control.degree);
+            tags->writeInt16(72, static_cast<int>(control.knots.size()));
+            tags->writeInt16(73, static_cast<int>(control.controls.size()));
+            tags->writeInt16(74, static_cast<int>(control.fits.size()));
+        }
+        // Complete-control vectors arrive before knots; early validation at
+        // counts or point arrival would incorrectly reject these records.
+        for (std::size_t i = 0; i != control.controls.size(); ++i) {
+            tags->writeDouble(10, control.controls[i].x); tags->writeDouble(20, control.controls[i].y);
+            if (family != 2) tags->writeDouble(30, control.controls[i].z);
+            if (!control.weights.empty()) tags->writeDouble(family == 2 ? 42 : 41, control.weights[i]);
+        }
+        for (double knot : control.knots) tags->writeDouble(40, knot);
+        if (family == 2) {
+            tags->writeInt32(97, 1);
+            tags->writeDouble(11, control.controls.front().x);
+            tags->writeDouble(21, control.controls.front().y);
+            if ((control.flags & 2) == 0) {
+                tags->writeInt16(72, 1);
+                tags->writeDouble(10, control.controls.back().x); tags->writeDouble(20, control.controls.back().y);
+                tags->writeDouble(11, control.controls.front().x); tags->writeDouble(21, control.controls.front().y);
+            }
+            tags->writeInt32(97, 0); tags->writeInt16(75, 0);
+            tags->writeInt16(76, 1); tags->writeInt32(98, 0);
+        } else {
+            for (const auto& point : control.fits) {
+                tags->writeDouble(11, point.x); tags->writeDouble(21, point.y); tags->writeDouble(31, point.z);
+            }
+            if (family == 1) {
+                tags->writeString(100, "AcDbHelix"); tags->writeInt32(90, 1); tags->writeInt32(91, 0);
+                tags->writeDouble(10, 0); tags->writeDouble(20, 0); tags->writeDouble(30, 0);
+                tags->writeDouble(11, 0); tags->writeDouble(21, 0); tags->writeDouble(31, 0);
+                tags->writeDouble(12, 0); tags->writeDouble(22, 0); tags->writeDouble(32, 1);
+                tags->writeDouble(40, 1); tags->writeDouble(41, 1); tags->writeDouble(42, 1);
+                tags->writeBool(290, false); tags->writeInt16(280, 0);
+            }
+        }
+        tags->writeString(0, "ENDSEC"); tags->writeString(0, "EOF");
+        return !tags->hasWriteError() && stream.good();
+    };
+    bool valid = true;
+    std::error_code ec;
+    for (int family = 0; family != 3; ++family) {
+        const std::string name = family == 2 ? "hatch" : family == 1 ? "helix" : "spline";
+        for (const auto& control : cases) {
+            if (control.controls.empty() && family != 0) continue;
+            const std::string stem = "libdxfrw-knot-domain-" + name + "-" + encoding + "-" + control.name;
+            const auto input = directory / (stem + "-input.dxf");
+            const auto output = directory / (stem + "-output.dxf");
+            dx_data parsed;
+            dx_iface reader;
+            const bool read = literal(input, control, family)
+                && reader.fileImport(input.string(), &parsed, false);
+            const bool readMatches = control.valid
+                ? read && parsed.mBlock->ent.size() == 1u
+                    && matches(curveOf(parsed.mBlock->ent.front(), family), control, family)
+                : !read && parsed.mBlock->ent.empty();
+            if (!readMatches)
+                std::cerr << "NURBS literal " << name << '/' << control.name << ' ' << encoding
+                          << " unexpected read=" << read << '\n';
+            valid = readMatches && valid;
+            dx_data source;
+            source.mBlock->ent.push_back(makeEntity(control, family));
+            const DRW_Spline copied(*curveOf(source.mBlock->ent.front(), family));
+            DRW_Spline assigned;
+            assigned = copied;
+            const bool copiedFieldsMatch = matches(&copied, control, family)
+                && matches(&assigned, control, family);
+            const std::string sentinel = "prior NURBS destination\n";
+            if (!control.valid) {
+                std::ofstream previous(output, std::ios::binary | std::ios::trunc);
+                previous << sentinel;
+            }
+            dx_iface writer;
+            const bool written = writer.fileExport(output.string(), DRW::AC1027, binary, &source, false);
+            bool writeMatches;
+            if (control.valid) {
+                dx_data reopened;
+                dx_iface reimporter;
+                writeMatches = written && reimporter.fileImport(output.string(), &reopened, false)
+                    && reopened.mBlock->ent.size() == 1u
+                    && matches(curveOf(reopened.mBlock->ent.front(), family), control, family);
+            } else {
+                std::ifstream saved(output, std::ios::binary);
+                const std::string bytes((std::istreambuf_iterator<char>(saved)), {});
+                writeMatches = !written && bytes == sentinel;
+            }
+            if (!writeMatches)
+                std::cerr << "NURBS model " << name << '/' << control.name << ' ' << encoding
+                          << " unexpected write=" << written << '\n';
+            // Writer normalization must not change the caller's curve tuples,
+            // arrays or flags; handle allocation is outside this comparison.
+            valid = copiedFieldsMatch && writeMatches
+                && matches(curveOf(source.mBlock->ent.front(), family), control, family)
+                && valid;
+            if (!keepOutput || !control.valid) {
+                std::filesystem::remove(input, ec); std::filesystem::remove(output, ec);
+            }
+        }
+    }
+    return valid;
+}
+
 bool runDxfSplineHelixRoundTrip(bool binary,
                                const std::filesystem::path& directory,
                                bool keepOutput) {
@@ -13534,6 +13784,10 @@ int main(int argc, char** argv) {
     expect(runDxfHatchSplineWeights(true, directory, keepOutputs),
            "local DXF binary HATCH/MPOLYGON spline optional weights and bounded layouts",
            failures);
+    expect(runDxfNurbsKnotDomains(false, directory, keepOutputs),
+           "local DXF ASCII completed NURBS knot order and active domains", failures);
+    expect(runDxfNurbsKnotDomains(true, directory, keepOutputs),
+           "local DXF binary completed NURBS knot order and active domains", failures);
     expect(runDxfSplineHelixRoundTrip(false, directory, keepOutputs),
            "local DXF ASCII SPLINE fit/control and HELIX semantic round-trip",
            failures);
