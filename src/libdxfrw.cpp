@@ -16460,6 +16460,13 @@ bool dxfRW::writeDictionary(DRW_Dictionary *ent) {
 }
 
 bool dxfRW::writeXRecord(DRW_XRecord *ent) {
+    if (ent != nullptr && !ent->hasExactDxfCoordinateTuples()) {
+        recordOperationDiagnostic(DRW::OperationPhase::Validation,
+            DRW::OperationCause::ValidationFailure, "xrecord-coordinate-order",
+            "inexact DXF coordinate tuples require raw replay or explicit reconstruction");
+        m_writeError = true;
+        return false;
+    }
     if (version < DRW::AC1014 || !preflightTableEntry(ent)
         || ent->handle == 0 || ent->m_rawDataValid
         || ent->m_dataEntries.size() > dwgSafety::MaxOwnedObjectCount

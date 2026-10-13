@@ -3049,6 +3049,7 @@ public:
       m_handleValues(o.m_handleValues), m_dataEntries(o.m_dataEntries),
       m_rawData(o.m_rawData), m_rawDataValid(o.m_rawDataValid),
       m_dxfBodySeen(false), m_dxfHeaderPending(false),
+      m_dxfCoordinatesExact(o.hasExactDxfCoordinateTuples()),
       m_rawDataVersion(o.m_rawDataVersion),
       m_rawDataSourceRecord(o.m_rawDataSourceRecord) {
     tType = o.tType;
@@ -3064,6 +3065,8 @@ public:
       m_rawDataValid = o.m_rawDataValid;
       m_dxfBodySeen = false;
       m_dxfHeaderPending = false;
+      m_dxfCoordinateMask = 0;
+      m_dxfCoordinatesExact = o.hasExactDxfCoordinateTuples();
       m_rawDataVersion = o.m_rawDataVersion;
       m_rawDataSourceRecord = o.m_rawDataSourceRecord;
       tType = o.tType;
@@ -3080,6 +3083,8 @@ public:
     m_rawDataValid = false;
     m_dxfBodySeen = false;
     m_dxfHeaderPending = false;
+    m_dxfCoordinateMask = 0;
+    m_dxfCoordinatesExact = true;
     m_rawDataVersion = DRW::UNKNOWNV;
     m_rawDataSourceRecord.reset();
     DRW_TableEntry::reset();
@@ -3116,9 +3121,20 @@ public:
   // not silently discard the unsupported part of a parsed record.
   [[nodiscard]] bool canReplayDwgRawData(DRW::Version version) const noexcept;
 
+  // Canonical complete XYZ tuples fit COORD exactly. Partial, repeated or
+  // reordered physical components remain tolerant-readable, with their exact
+  // spelling in the raw companion, but cannot be emitted through this typed
+  // carrier without an explicit reconstruction. reset() before replacing an
+  // inexact parsed payload; editing the vectors does not clear its provenance.
+  [[nodiscard]] bool hasExactDxfCoordinateTuples() const noexcept {
+    return m_dxfCoordinatesExact && m_dxfCoordinateMask == 0;
+  }
+
 private:
   bool m_dxfBodySeen = false;
   bool m_dxfHeaderPending = false;
+  std::uint8_t m_dxfCoordinateMask = 0;
+  bool m_dxfCoordinatesExact = true;
   DRW::Version m_rawDataVersion = DRW::UNKNOWNV;
   // Copies share this immutable snapshot, while all editable public payloads
   // remain deep copies. The snapshot itself has no snapshot pointer/cycle.

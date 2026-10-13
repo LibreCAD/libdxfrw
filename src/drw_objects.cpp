@@ -8404,6 +8404,8 @@ bool sameXRecordValues(const std::vector<DRW_Variant>& left,
 }
 
 bool DRW_XRecord::canReplayDwgRawData(DRW::Version version) const noexcept {
+    if (!hasExactDxfCoordinateTuples())
+        return false;
     if (!m_rawDataValid)
         return m_rawDataSourceRecord == nullptr;
     if (version == DRW::UNKNOWNV || m_rawDataVersion != version
@@ -8423,6 +8425,14 @@ bool DRW_XRecord::canReplayDwgRawData(DRW::Version version) const noexcept {
 
 bool DRW_XRecord::parseCode(int code,
                             const std::unique_ptr<dxfReader>& reader) {
+    int xCode = 0;
+    int component = 0;
+    const bool coordinate = xRecordCoordinateCode(code, xCode, component);
+    if (!coordinate) {
+        if (m_dxfCoordinateMask != 0)
+            m_dxfCoordinatesExact = false;
+        m_dxfCoordinateMask = 0;
+    }
     if (!m_dxfBodySeen) {
         if (code == 100 && reader->getString() == "AcDbXrecord") {
             m_dxfBodySeen = true;
@@ -8473,44 +8483,42 @@ bool DRW_XRecord::parseCode(int code,
         m_dataEntries.push_back(std::move(value));
         return true;
     }
-    int xCode = 0;
-    int component = 0;
-    if (xRecordCoordinateCode(code, xCode, component)) {
+    if (coordinate) {
         const double value = reader->getDouble();
-        if (!m_values.empty() && m_values.back().type() == DRW_Variant::COORD
-            && m_values.back().code() == xCode) {
-            if (component == 0)
-                m_values.back().coord()->x = value;
-            else if (component == 1)
-                m_values.back().coord()->y = value;
-            else
-                m_values.back().coord()->z = value;
-            if (!m_dataEntries.empty()
-                && m_dataEntries.back().type() == DRW_Variant::COORD
-                && m_dataEntries.back().code() == xCode) {
-                if (component == 0)
-                    m_dataEntries.back().coord()->x = value;
-                else if (component == 1)
-                    m_dataEntries.back().coord()->y = value;
-                else
-                    m_dataEntries.back().coord()->z = value;
-            } else {
-                DRW_Coord point = *m_values.back().coord();
-                m_dataEntries.emplace_back(xCode, point);
-            }
-        } else {
-            if (m_values.size() >= dwgSafety::MaxOwnedObjectCount)
+        const auto present = static_cast<std::uint8_t>(1u << component);
+        const bool matching = m_dxfCoordinateMask != 0 && !m_values.empty()
+            && m_values.back().type() == DRW_Variant::COORD
+            && m_values.back().code() == xCode && !m_dataEntries.empty()
+            && m_dataEntries.back().type() == DRW_Variant::COORD
+            && m_dataEntries.back().code() == xCode;
+        // Every new X starts a distinct application tuple, including after a
+        // completed same-code point. Never mutate a completed/interrupted
+        // point or join a different family merely because it is the last one.
+        const bool startsPoint = component == 0 || !matching
+            || (m_dxfCoordinateMask & present) != 0;
+        if (startsPoint) {
+            if (m_dxfCoordinateMask != 0 || component != 0)
+                m_dxfCoordinatesExact = false;
+            if (m_values.size() >= dwgSafety::MaxOwnedObjectCount
+                || m_dataEntries.size() >= dwgSafety::MaxOwnedObjectCount)
                 return false;
-            DRW_Coord point;
-            if (component == 0)
-                point.x = value;
-            else if (component == 1)
-                point.y = value;
-            else
-                point.z = value;
-            m_values.emplace_back(xCode, point);
-            m_dataEntries.emplace_back(xCode, point);
+            m_values.emplace_back(xCode, DRW_Coord(0, 0, 0));
+            m_dataEntries.emplace_back(xCode, DRW_Coord(0, 0, 0));
+            m_dxfCoordinateMask = 0;
         }
+        if (m_dxfCoordinateMask != static_cast<std::uint8_t>((1u << component) - 1u))
+            m_dxfCoordinatesExact = false;
+        for (DRW_Variant* point : {&m_values.back(), &m_dataEntries.back()}) {
+            if (component == 0)
+                point->setCoordX(value);
+            else if (component == 1)
+                point->setCoordY(value);
+            else
+                point->setCoordZ(value);
+        }
+        m_dxfCoordinateMask |= present;
+        if (m_dxfCoordinateMask == 7)
+            m_dxfCoordinateMask = 0;
         return true;
     }
     if (xRecordCodeIsString(code)) {

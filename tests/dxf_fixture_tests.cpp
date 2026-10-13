@@ -19,6 +19,8 @@
 #include "dwg2dxf/dx_data.h"
 #include "dwg2dxf/dx_iface.h"
 #include "intern/dxfreader.h"
+#include "intern/dxfwriter.h"
+#include "intern/dwgbufferw.h"
 
 namespace {
 
@@ -1142,6 +1144,271 @@ EOF
     }
 }
 
+std::string xRecordCoordinateSource(const std::vector<DRW_Variant>& payload,
+                                    bool binary, int cloning = 2) {
+    std::ostringstream bytes;
+    if (binary)
+        bytes.write("AutoCAD Binary DXF\r\n\x1A\0", 22);
+    std::unique_ptr<dxfWriter> writer;
+    if (binary)
+        writer = std::make_unique<dxfWriterBinary>(&bytes);
+    else
+        writer = std::make_unique<dxfWriterAscii>(&bytes);
+    for (const auto& field : std::vector<std::pair<int, std::string>>{
+             {0, "SECTION"}, {2, "HEADER"}, {9, "$ACADVER"}, {1, "AC1015"},
+             {0, "ENDSEC"}, {0, "SECTION"}, {2, "OBJECTS"}, {0, "XRECORD"},
+             {5, "210"}, {330, "200"}, {100, "AcDbXrecord"}})
+        writer->writeString(field.first, field.second);
+    writer->writeInt16(280, cloning);
+    for (const auto& tag : payload) {
+        if (tag.type() == DRW_Variant::DOUBLE)
+            writer->writeDouble(tag.code(), tag.d_val());
+        else if (tag.type() == DRW_Variant::INTEGER)
+            writer->writeInt16(tag.code(), tag.i_val());
+        else
+            writer->writeString(tag.code(), tag.c_str());
+    }
+    writer->writeString(0, "ENDSEC");
+    writer->writeString(0, "EOF");
+    return writer->hasWriteError() ? std::string{} : bytes.str();
+}
+
+bool xRecordPointsEqual(const std::vector<DRW_Variant>& values) {
+    const std::array<DRW_Coord, 3> expected{{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}};
+    if (values.size() != 5 || values[2].code() != 1 || values[4].code() != 280
+        || values[4].i_val() != 9)
+        return false;
+    const std::array<std::size_t, 3> indices{{0, 1, 3}};
+    for (std::size_t index = 0; index < indices.size(); ++index) {
+        const auto& value = values[indices[index]];
+        const auto& point = expected[index];
+        if (value.type() != DRW_Variant::COORD || value.code() != 10
+            || value.coord()->x != point.x || value.coord()->y != point.y
+            || value.coord()->z != point.z)
+            return false;
+    }
+    return std::string(values[2].c_str()) == "boundary";
+}
+
+class XRecordCoordinateWriter final : public dx_iface {
+public:
+    DRW_XRecord value;
+    bool wrote = false;
+    void writeObjects() override { wrote = dxfW->writeXRecord(&value); }
+};
+
+class XRecordCoordinateProbe : public DRW_XRecord {
+public:
+    XRecordCoordinateProbe() = default;
+    explicit XRecordCoordinateProbe(const DRW_XRecord& value) : DRW_XRecord(value) {}
+    using DRW_XRecord::encodeDwg;
+};
+
+bool generateXRecordCoordinateDxf(const std::filesystem::path& path,
+                                   bool sourceBinary, bool outputBinary) {
+    const std::vector<DRW_Variant> payload{
+        {10, 1.0}, {20, 2.0}, {30, 3.0}, {10, 4.0}, {20, 5.0}, {30, 6.0},
+        {1, std::string("boundary")}, {10, 7.0}, {20, 8.0}, {30, 9.0}, {280, 9}};
+    FixtureInterface interface_;
+    dx_data imported;
+    if (!importTemporaryDxf("xrecord-coordinate-generator",
+            xRecordCoordinateSource(payload, sourceBinary), interface_, imported)
+        || interface_.xrecords.size() != 1)
+        return false;
+    XRecordCoordinateWriter writer;
+    writer.value = interface_.xrecords.front();
+    writer.value.parentHandle = 0;
+    dx_data output;
+    return writer.fileExport(path.string(), DRW::AC1015, outputBinary, &output, false)
+        && writer.wrote;
+}
+
+void testXRecordCoordinateTuples(TestContext& t) {
+    const std::vector<DRW_Variant> payload{
+        {10, 1.0}, {20, 2.0}, {30, 3.0}, {10, 4.0}, {20, 5.0}, {30, 6.0},
+        {1, std::string("boundary")}, {10, 7.0}, {20, 8.0}, {30, 9.0}, {280, 9}};
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    for (const bool binary : {false, true}) {
+        FixtureInterface interface_;
+        dx_data data;
+        t.expect(importTemporaryDxf(binary ? "xrecord-coordinate-binary" : "xrecord-coordinate-ascii",
+                     xRecordCoordinateSource(payload, binary), interface_, data)
+                     && interface_.xrecords.size() == 1,
+                 "literal ASCII/binary repeated XRECORD coordinates import");
+        if (interface_.xrecords.size() != 1)
+            continue;
+        const auto& record = interface_.xrecords.front();
+        t.expect(record.hasExactDxfCoordinateTuples()
+                     && record.m_cloning == 2 && xRecordPointsEqual(record.m_values)
+                     && xRecordPointsEqual(record.m_dataEntries),
+                 "both typed XRECORD views retain three distinct same-code tuples");
+        bool rawComplete = false;
+        for (const auto& raw : interface_.rawObjects) {
+            if (raw.name != "XRECORD")
+                continue;
+            std::vector<double> coordinates;
+            for (const auto& tag : raw.groups)
+                if (tag.code() == 10 || tag.code() == 20 || tag.code() == 30)
+                    coordinates.push_back(tag.d_val());
+            rawComplete = coordinates == std::vector<double>{1, 2, 3, 4, 5, 6, 7, 8, 9};
+        }
+        t.expect(rawComplete, "raw companion retains all nine physical coordinate tags");
+        DRW_XRecord copied(record);
+        DRW_XRecord assigned;
+        assigned = record;
+        t.expect(xRecordPointsEqual(copied.m_values) && xRecordPointsEqual(copied.m_dataEntries)
+                     && xRecordPointsEqual(assigned.m_values) && xRecordPointsEqual(assigned.m_dataEntries),
+                 "XRECORD tuple identity survives both deep-copy routes");
+        for (const bool outputBinary : {false, true}) {
+            const auto path = std::filesystem::temp_directory_path()
+                / ("libdxfrw-xrecord-coordinate-" + std::to_string(nonce)
+                   + (binary ? "-binary" : "-ascii")
+                   + (outputBinary ? "-to-binary.dxf" : "-to-ascii.dxf"));
+            XRecordCoordinateWriter writer;
+            writer.value = copied;
+            writer.value.parentHandle = 0; // isolated API record, not a graph qualification
+            dx_data output;
+            const bool written = writer.fileExport(path.string(), DRW::AC1015,
+                outputBinary, &output, false);
+            FixtureInterface rereader;
+            dx_data reread;
+            t.expect(written && writer.wrote
+                         && rereader.fileImport(path.string(), &reread, false)
+                         && rereader.xrecords.size() == 1
+                         && xRecordPointsEqual(rereader.xrecords.front().m_values)
+                         && xRecordPointsEqual(rereader.xrecords.front().m_dataEntries),
+                     "typed XRECORD emits all tuples in ASCII/binary without whole-CLI graph masking");
+            std::error_code error;
+            std::filesystem::remove(path, error);
+        }
+    }
+}
+
+void testXRecordCoordinateBoundaries(TestContext& t) {
+    const std::vector<std::vector<DRW_Variant>> negatives{
+        {{10, 1.0}}, // end-of-record partial
+        {{10, 1.0}, {20, 2.0}, {1, std::string("interrupt")}, {30, 3.0}},
+        {{10, 1.0}, {10, 4.0}, {20, 5.0}, {30, 6.0}},
+        {{10, 1.0}, {20, 2.0}, {20, 8.0}, {30, 3.0}},
+        {{10, 1.0}, {30, 3.0}, {20, 2.0}},
+        {{20, 2.0}, {30, 3.0}, {10, 1.0}},
+        {{10, 1.0}, {21, 2.0}, {31, 3.0}},
+        {{20, 2.0}, {30, 3.0}}, // completed preceding tuple cannot be reused
+        {{10, 1.0}, {20, 2.0}, {330, std::string("101")}, {30, 3.0}}};
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    unsigned number = 0;
+    for (const bool binary : {false, true}) {
+        for (const auto& negative : negatives) {
+            std::vector<DRW_Variant> payload{{10, 91.0}, {20, 92.0}, {30, 93.0}};
+            payload.insert(payload.end(), negative.begin(), negative.end());
+            FixtureInterface interface_;
+            dx_data data;
+            t.expect(importTemporaryDxf("xrecord-coordinate-boundary",
+                         xRecordCoordinateSource(payload, binary), interface_, data)
+                         && interface_.xrecords.size() == 1,
+                     "partial/repeated/unordered XRECORD remains tolerant-readable");
+            if (interface_.xrecords.size() != 1)
+                continue;
+            const auto& record = interface_.xrecords.front();
+            const auto stableFirst = [](const std::vector<DRW_Variant>& values) {
+                return !values.empty() && values.front().type() == DRW_Variant::COORD
+                    && values.front().coord()->x == 91 && values.front().coord()->y == 92
+                    && values.front().coord()->z == 93;
+            };
+            t.expect(!record.hasExactDxfCoordinateTuples()
+                         && stableFirst(record.m_values) && stableFirst(record.m_dataEntries),
+                     "inexact tuples never mutate an earlier complete coordinate");
+            DRW_XRecord copied(record);
+            DRW_XRecord assigned;
+            assigned = copied;
+            DRW_XRecord moved(std::move(assigned));
+            DRW_XRecord moveAssigned;
+            moveAssigned = std::move(moved);
+            t.expect(!copied.hasExactDxfCoordinateTuples()
+                         && !moveAssigned.hasExactDxfCoordinateTuples(),
+                     "copy/move retains inexact disposition without retaining parser cursors");
+            bool rawComplete = false;
+            for (const auto& raw : interface_.rawObjects) {
+                if (raw.name != "XRECORD")
+                    continue;
+                std::vector<std::pair<int, double>> rawPoints, expected;
+                for (const auto& tag : raw.groups) {
+                    if (tag.type() == DRW_Variant::DOUBLE)
+                        rawPoints.emplace_back(tag.code(), tag.d_val());
+                }
+                for (const auto& tag : payload) {
+                    if (tag.type() == DRW_Variant::DOUBLE)
+                        expected.emplace_back(tag.code(), tag.d_val());
+                }
+                rawComplete = rawPoints == expected;
+            }
+            t.expect(rawComplete, "raw companion retains inexact physical order and absent components");
+
+            XRecordCoordinateProbe probe(copied);
+            dwgBufferW body, strings, handles;
+            t.expect(!probe.encodeDwg(DRW::AC1015, &body, &strings, &handles)
+                         && body.data().empty() && strings.data().empty() && handles.data().empty(),
+                     "typed DWG loss guard rejects partial coordinates before bytes are emitted");
+            for (const bool outputBinary : {false, true}) {
+                const auto path = std::filesystem::temp_directory_path()
+                    / ("libdxfrw-xrecord-inexact-" + std::to_string(nonce)
+                       + "-" + std::to_string(number++) + ".dxf");
+                const std::string sentinel("original destination\n");
+                { std::ofstream stream(path, std::ios::binary); stream << sentinel; }
+                XRecordCoordinateWriter writer;
+                writer.value = copied;
+                writer.value.parentHandle = 0;
+                dx_data output;
+                const bool written = writer.fileExport(path.string(), DRW::AC1015,
+                    outputBinary, &output, false);
+                std::ifstream stream(path, std::ios::binary);
+                const std::string actual((std::istreambuf_iterator<char>(stream)), {});
+                t.expect(!written && !writer.wrote && actual == sentinel,
+                         "typed DXF rejects inexact coordinates transactionally instead of inventing components");
+                writer.value.reset();
+                writer.value.handle = 0x210;
+                writer.value.m_values.emplace_back(10, DRW_Coord(1, 2, 3));
+                writer.value.m_dataEntries = writer.value.m_values;
+                t.expect(writer.fileExport(path.string(), DRW::AC1015, outputBinary, &output, false)
+                             && writer.wrote && writer.value.hasExactDxfCoordinateTuples(),
+                         "failed-then-reset/from-API DXF write clears prior rejection state");
+                std::error_code error;
+                std::filesystem::remove(path, error);
+            }
+            // Explicit reconstruction is intentional, not a silent repair of
+            // source presence/order. Clearing the public views alone retains
+            // the original inexact disposition until reset().
+            copied.m_values.clear();
+            copied.m_dataEntries.clear();
+            t.expect(!copied.hasExactDxfCoordinateTuples(),
+                     "vector replacement alone cannot hide inexact source provenance");
+            copied.reset();
+            copied.handle = 0x210;
+            copied.m_values.emplace_back(10, DRW_Coord(1, 2, 3));
+            copied.m_dataEntries = copied.m_values;
+            t.expect(copied.hasExactDxfCoordinateTuples(),
+                     "reset and explicit from-API reconstruction clears prior disposition");
+            XRecordCoordinateProbe restored(copied);
+            dwgBufferW restoredBody;
+            t.expect(restored.encodeDwg(DRW::AC1015, &restoredBody)
+                         && !restoredBody.data().empty(),
+                     "reset reconstruction restores typed write eligibility");
+        }
+        FixtureInterface reuse;
+        dx_data reused;
+        t.expect(!importTemporaryDxf("xrecord-coordinate-invalid-header",
+                     xRecordCoordinateSource({{10, 1.0}}, binary, 6), reuse, reused)
+                     && reuse.xrecords.empty(),
+                 "invalid cloning header publishes no partial XRECORD");
+        t.expect(importTemporaryDxf("xrecord-coordinate-valid-reuse",
+                     xRecordCoordinateSource({{10, 1.0}, {20, 2.0}, {30, 3.0}, {280, 9}}, binary),
+                     reuse, reused) && reuse.xrecords.size() == 1
+                     && reuse.xrecords.front().hasExactDxfCoordinateTuples()
+                     && reuse.xrecords.front().m_cloning == 2,
+                 "failed-then-valid import does not retain tuple/header failure state");
+    }
+}
+
 void testXRecordVersionedHeaderAndPayload(TestContext& t) {
     const std::array<std::pair<DRW::Version, const char*>, 4> versions = {{
         {DRW::AC1014, "AC1014"}, {DRW::AC1015, "AC1015"},
@@ -1961,6 +2228,14 @@ void testUnsafeLinetypeExtensionGraphsRejected(TestContext& t) {
 } // namespace
 
 int main(int argc, char** argv) {
+    if (argc == 5 && std::string(argv[1]) == "--generate-xrecord-coordinates") {
+        const std::string inputMode(argv[3]), outputMode(argv[4]);
+        if ((inputMode != "ascii" && inputMode != "binary")
+            || (outputMode != "ascii" && outputMode != "binary"))
+            return 2;
+        return generateXRecordCoordinateDxf(argv[2], inputMode == "binary",
+                                             outputMode == "binary") ? 0 : 1;
+    }
     if (argc == 5 && (std::string(argv[1]) == "--generate-table-owners"
                      || std::string(argv[1]) == "--generate-common-scopes"
                      || std::string(argv[1]) == "--generate-object-common-graphs"
@@ -2002,6 +2277,8 @@ int main(int argc, char** argv) {
     testRawControls(context);
     testDictionaryWithoutOwner(context);
     testXRecordDataOrder(context);
+    testXRecordCoordinateTuples(context);
+    testXRecordCoordinateBoundaries(context);
     testXRecordVersionedHeaderAndPayload(context);
     testLinetypeExtensionGraphRoundTrip(context);
     testCanonicalLinetypeCommonScope(context);
