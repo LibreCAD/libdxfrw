@@ -4399,8 +4399,10 @@ bool dxfRW::writePolyline(DRW_Polyline *ent) {
     if (version > DRW::AC1009) {
         if (ent->flags & 64)
             writer->writeString(100, "AcDbPolyFaceMesh");
-        else if (ent->flags & 8 || ent->flags & 16)
+        else if (ent->flags & 8)
             writer->writeString(100, "AcDb3dPolyline");
+        else if (ent->flags & 16)
+            writer->writeString(100, "AcDbPolygonMesh");
         else
             writer->writeString(100, "AcDb2dPolyline");
     } else

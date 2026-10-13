@@ -27,6 +27,7 @@
 #include "intern/dwgbufferw.h"
 #include "intern/dwg_fixed_handles.h"
 #include "intern/dxfwriter.h"
+#include "intern/dxfreader.h"
 #include "xrecord_test_helpers.h"
 
 namespace {
@@ -11497,6 +11498,195 @@ bool runDxfPolyfaceCompletedPool(bool binary,
     return valid;
 }
 
+bool runDxfPolygonMeshModes(bool binary, const std::filesystem::path& directory,
+                            bool keepOutput) {
+    struct Mode {
+        const char* name;
+        int flags;
+        int count;
+        int smooth;
+        const char* marker;
+    };
+    const std::array<Mode, 10> modes {{
+        {"open", 16, 6, 0, "AcDbPolygonMesh"},
+        {"closed-m", 17, 6, 0, "AcDbPolygonMesh"},
+        {"closed-n", 48, 6, 0, "AcDbPolygonMesh"},
+        {"closed-both", 49, 6, 0, "AcDbPolygonMesh"},
+        {"incomplete", 16, 5, 0, "AcDbPolygonMesh"},
+        {"surface-density", 16, 6, 6, "AcDbPolygonMesh"},
+        {"2d", 0, 6, 0, "AcDb2dPolyline"},
+        {"3d", 8, 6, 0, "AcDb3dPolyline"},
+        {"conflicting-3d", 8 | 16, 6, 0, "AcDb3dPolyline"},
+        {"polyface-precedence", 64 | 16 | 8, 6, 0, "AcDbPolyFaceMesh"}
+    }};
+    const std::array<DRW_Coord, 6> points {{
+        {0, 0, 1}, {0, 2, 3}, {4, 0, 5},
+        {4, 2, 7}, {9, 0, 11}, {9, 2, 13}
+    }};
+    const auto rawMatches = [binary](const std::filesystem::path& path,
+                                     const DRW_Polyline& expected,
+                                     const char* marker) {
+        std::ifstream stream(path, std::ios::binary);
+        std::unique_ptr<dxfReader> tags;
+        if (binary) {
+            stream.seekg(22);
+            tags = std::make_unique<dxfReaderBinary>(&stream);
+        } else {
+            tags = std::make_unique<dxfReaderAscii>(&stream);
+        }
+        std::string record;
+        std::string parentHandle;
+        std::vector<std::string> parentMarkers;
+        std::vector<std::string> vertexMarkers;
+        std::vector<std::string> vertexOwners;
+        std::vector<int> vertexFlags;
+        std::vector<DRW_Coord> rawPoints;
+        std::string seqEndOwner;
+        bool valid = true;
+        int parentFlags = -1, m = 0, n = 0, sm = 0, sn = 0, type = 0;
+        bool seqEnd = false;
+        int code = 0;
+        while (tags->readRec(&code)) {
+            if (code == 0) {
+                record = tags->getString();
+                if (record == "VERTEX") {
+                    rawPoints.emplace_back();
+                    vertexOwners.emplace_back();
+                    vertexFlags.push_back(0);
+                }
+                if (record == "SEQEND") seqEnd = true;
+            } else if (record == "POLYLINE") {
+                if (code == 5) parentHandle = tags->getString();
+                if (code == 100) parentMarkers.push_back(tags->getString());
+                if (code == 70) parentFlags = tags->getInt32();
+                if (code == 71) m = tags->getInt32();
+                if (code == 72) n = tags->getInt32();
+                if (code == 73) sm = tags->getInt32();
+                if (code == 74) sn = tags->getInt32();
+                if (code == 75) type = tags->getInt32();
+                if (code == 210 || code == 220 || code == 230) valid = false;
+            } else if (record == "VERTEX") {
+                if (code == 100 && tags->getString() != "AcDbEntity"
+                    && tags->getString() != "AcDbVertex")
+                    vertexMarkers.push_back(tags->getString());
+                if (code == 330) vertexOwners.back() = tags->getString();
+                if (code == 70) vertexFlags.back() = tags->getInt32();
+                if (code == 10) rawPoints.back().x = tags->getDouble();
+                if (code == 20) rawPoints.back().y = tags->getDouble();
+                if (code == 30) rawPoints.back().z = tags->getDouble();
+            } else if (record == "SEQEND" && code == 330) {
+                seqEndOwner = tags->getString();
+            }
+        }
+        const bool hasGridCounts = (expected.flags & (16 | 32 | 64)) != 0;
+        valid = valid && seqEnd && !parentHandle.empty() && seqEndOwner == parentHandle
+            && parentMarkers == std::vector<std::string>{"AcDbEntity", marker}
+            && parentFlags == expected.flags
+            && m == (hasGridCounts ? expected.vertexcount : 0)
+            && n == (hasGridCounts ? expected.facecount : 0)
+            && sm == expected.smoothM && sn == expected.smoothN
+            && type == expected.curvetype
+            && rawPoints.size() == expected.vertlist.size()
+            && vertexMarkers.size() == expected.vertlist.size();
+        for (std::size_t i = 0; valid && i != rawPoints.size(); ++i) {
+            const auto& vertex = *expected.vertlist[i];
+            const bool face = (expected.flags & 64) != 0;
+            const char* vertexMarker = face ? "AcDbPolyFaceMeshVertex"
+                : (expected.flags & 16) != 0 ? "AcDbPolygonMeshVertex"
+                : (expected.flags & 8) != 0 ? "AcDb3dPolylineVertex" : "AcDb2dVertex";
+            valid = vertexMarkers[i] == vertexMarker && vertexOwners[i] == parentHandle
+                && vertexFlags[i] == vertex.flags
+                && rawPoints[i].x == vertex.basePoint.x
+                && rawPoints[i].y == vertex.basePoint.y
+                && rawPoints[i].z == vertex.basePoint.z;
+        }
+        if (!valid)
+            std::cerr << "raw POLYLINE fields: record=" << record << " code=" << code
+                      << " parent=" << parentHandle << " flags=" << parentFlags
+                      << " points=" << rawPoints.size() << " markers=" << parentMarkers.size()
+                      << " vertex-markers=" << vertexMarkers.size() << " seqend=" << seqEnd
+                      << " grid=" << m << "," << n << " smooth=" << sm << "," << sn
+                      << " type=" << type << '\n';
+        return valid;
+    };
+    bool valid = true;
+    const std::string encoding = binary ? "binary" : "ascii";
+    std::error_code ec;
+    for (const auto& mode : modes) {
+        dx_data source;
+        auto* polyline = new DRW_Polyline();
+        polyline->flags = mode.flags;
+        polyline->vertexcount = mode.smooth ? 2 : 3;
+        polyline->facecount = 2;
+        polyline->smoothM = mode.smooth ? 3 : 0;
+        polyline->smoothN = mode.smooth ? 2 : 0;
+        polyline->curvetype = mode.smooth;
+        polyline->extPoint = mode.flags == 0 ? DRW_Coord(0, 0, 1)
+                                            : DRW_Coord(0, .6, .8);
+        for (int i = 0; i != mode.count; ++i) {
+            DRW_Vertex vertex(points[i].x, points[i].y,
+                              mode.flags == 0 ? 0 : points[i].z, 0);
+            vertex.flags = (mode.flags & 64) != 0 ? 192
+                : (mode.flags & 16) != 0 ? 64 : (mode.flags & 8) != 0 ? 32 : 0;
+            polyline->addVertex(vertex);
+        }
+        source.mBlock->ent.push_back(polyline);
+        const DRW_Polyline original = *polyline;
+        std::vector<const DRW_Vertex*> originalOrder;
+        std::vector<int> originalVertexFlags;
+        for (const auto& vertex : polyline->vertlist) {
+            originalOrder.push_back(vertex.get());
+            originalVertexFlags.push_back(vertex->flags);
+        }
+        const auto input = directory / ("libdxfrw-polygon-mesh-" + encoding
+                                       + "-" + mode.name + "-first.dxf");
+        const auto output = directory / ("libdxfrw-polygon-mesh-" + encoding
+                                        + "-" + mode.name + "-second.dxf");
+        dx_iface exporter;
+        dx_data reopened;
+        dx_iface importer;
+        bool matches = exporter.fileExport(input.string(), DRW::AC1027, binary,
+                                            &source, false)
+            && rawMatches(input, original, mode.marker)
+            && importer.fileImport(input.string(), &reopened, false)
+            && reopened.mBlock->ent.size() == 1u;
+        if (matches) {
+            const auto* decoded = dynamic_cast<DRW_Polyline*>(reopened.mBlock->ent.front());
+            matches = decoded && decoded->flags == original.flags
+                && decoded->vertlist.size() == original.vertlist.size();
+            dx_iface repeat;
+            matches = repeat.fileExport(output.string(), DRW::AC1027, binary,
+                                         &reopened, false)
+                && rawMatches(output, original, mode.marker) && matches;
+        }
+        // Existing writer handle assignment is allowed; caller geometry,
+        // flags, vertex order and the unused WCS normal are not modified.
+        matches = matches && polyline->flags == original.flags
+            && polyline->vertexcount == original.vertexcount
+            && polyline->facecount == original.facecount
+            && polyline->smoothM == original.smoothM && polyline->smoothN == original.smoothN
+            && polyline->curvetype == original.curvetype
+            && polyline->extPoint.x == original.extPoint.x
+            && polyline->extPoint.y == original.extPoint.y
+            && polyline->extPoint.z == original.extPoint.z;
+        for (std::size_t i = 0; i != original.vertlist.size(); ++i)
+            matches = matches && polyline->vertlist[i].get() == originalOrder[i]
+                && polyline->vertlist[i]->flags == originalVertexFlags[i]
+                && polyline->vertlist[i]->basePoint.x == points[i].x
+                && polyline->vertlist[i]->basePoint.y == points[i].y
+                && polyline->vertlist[i]->basePoint.z == (mode.flags == 0 ? 0 : points[i].z);
+        if (!matches)
+            std::cerr << "POLYLINE parent/grid mode failed: " << mode.name
+                      << " (" << encoding << ")\n";
+        valid = matches && valid;
+        if (!keepOutput) {
+            std::filesystem::remove(input, ec);
+            std::filesystem::remove(output, ec);
+        }
+    }
+    return valid;
+}
+
 bool runDxfTopologyRoundTrip(bool binary, const std::filesystem::path& directory,
                              bool keepOutput) {
     const std::string encoding = binary ? "binary" : "ascii";
@@ -14042,6 +14232,10 @@ int main(int argc, char** argv) {
            "local DXF ASCII 3D topology and OCS/WCS round-trip", failures);
     expect(runDxfTopologyRoundTrip(true, directory, keepOutputs),
            "local DXF binary 3D topology and OCS/WCS round-trip", failures);
+    expect(runDxfPolygonMeshModes(false, directory, keepOutputs),
+           "local DXF ASCII polygon-mesh parent/grid modes and caller state", failures);
+    expect(runDxfPolygonMeshModes(true, directory, keepOutputs),
+           "local DXF binary polygon-mesh parent/grid modes and caller state", failures);
     expect(runDxfPolyfaceCompletedPool(false, directory, keepOutputs),
            "local DXF ASCII POLYFACE completed-pool indices and canonical output",
            failures);
