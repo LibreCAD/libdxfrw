@@ -1597,6 +1597,115 @@ void testTypedObjectCommonMetadata(TestContext& t) {
     exercise("EVALUATIONGRAPH", DRW_EvaluationGraph{}, [](auto& w, auto& e) { return w.writeEvaluationGraph(&e, "ACAD_EVALUATION_GRAPH"); });
 }
 
+void testGeneratedDictionaryGroupCommonMetadata(TestContext& t) {
+    for (const DRW::Version version : {DRW::AC1014, DRW::AC1015,
+                                       DRW::AC1021, DRW::AC1032}) {
+        for (const bool binary : {false, true}) {
+            for (const bool metadata : {false, true}) {
+                for (const bool retained : {false, true}) {
+                    const auto configure = [metadata, retained](auto& entry) {
+                        if (!metadata)
+                            return true;
+                        entry.reactorHandles = {0x1110u};
+                        entry.xDictHandle = 0x2110u;
+                        entry.appData.push_back({{102, std::string("{GENERATED_META")},
+                            {1, std::string("alpha")}, {70, 7},
+                            {320, std::string("1110")}, {102, std::string("}")}});
+                        if (retained) {
+                            entry.appData.push_back({{102, std::string("ACAD_REACTORS")},
+                                {330, std::string("1110")}, {102, std::string("}")}});
+                            entry.appData.push_back({{102, std::string("ACAD_XDICTIONARY")},
+                                {360, std::string("2110")}, {102, std::string("}")}});
+                        }
+                        return entry.addExtData(std::make_unique<DRW_Variant>(
+                                   1001, std::string("GENERATED_META_APP")))
+                            && entry.addExtData(std::make_unique<DRW_Variant>(
+                                   1000, std::string("trailing")));
+                    };
+                    DRW_Dictionary dictionary;
+                    dictionary.handle = 0x500u;
+                    dictionary.parentHandle = 0xCu;
+                    dictionary.m_entries.push_back({"CHILD", 0x700u});
+                    DRW_Group group;
+                    group.handle = 0x600u;
+                    group.name = "GENERATED_GROUP";
+                    group.m_entityHandles = {0x900u};
+                    t.expect(configure(dictionary) && configure(group),
+                             "generated object carriers accept common metadata");
+                    std::ostringstream output;
+                    dxfRW owner("");
+                    owner.version = version;
+                    owner.binFile = binary;
+                    owner.setNamedDictObjects({dictionary});
+                    owner.setGroups({group});
+                    owner.setHandleRemap({{0x1110u, 0xA110u}, {0x2110u, 0xB110u}});
+                    owner.m_writingContext.sourceHandleToMintedMap.emplace(0x900u, 0x901u);
+                    if (binary)
+                        owner.writer = std::make_unique<dxfWriterBinary>(&output);
+                    else
+                        owner.writer = std::make_unique<dxfWriterAscii>(&output);
+                    ProfileProbeInterface interface_;
+                    owner.iface = &interface_;
+                    interface_.dxfW = &owner;
+                    t.expect(owner.writeObjects() && owner.writer->writeString(0, "WIRE_END"),
+                             "actual generated dictionary/GROUP writer publishes");
+                    bool ended = false;
+                    const auto tags = numericWireProjection(output.str(), binary, ended);
+                    t.expect(ended, "generated object metadata preserves next record");
+                    std::vector<std::vector<std::string>> records;
+                    for (const auto& tag : tags) {
+                        if (tag.rfind("0:", 0) == 0)
+                            records.emplace_back();
+                        if (!records.empty())
+                            records.back().push_back(tag);
+                    }
+                    int selected = 0;
+                    for (const auto& record : records) {
+                        const bool named = std::find(record.begin(), record.end(), "5:500") != record.end();
+                        const bool grouped = !record.empty() && record.front() == "0:GROUP";
+                        if (!named && !grouped)
+                            continue;
+                        ++selected;
+                        const auto subclass = std::find_if(record.begin(), record.end(),
+                            [](const auto& tag) { return tag.rfind("100:", 0) == 0; });
+                        if (metadata) {
+                            for (const char* marker : {"102:{GENERATED_META", "102:{ACAD_REACTORS",
+                                                       "102:{ACAD_XDICTIONARY"}) {
+                                const auto value = std::find(record.begin(), record.end(), marker);
+                                t.expect(value != record.end() && value < subclass
+                                             && std::count(record.begin(), record.end(), marker) == 1,
+                                         "generated common groups emit once before subclasses");
+                            }
+                            for (const char* value : {"1:alpha", "70:7", "320:1110",
+                                                      "330:A110", "360:B110"})
+                                t.expect(std::find(record.begin(), record.end(), value) < subclass,
+                                         "generated common fields preserve arbitrary/remapped values");
+                            const auto xdata = std::find(record.begin(), record.end(),
+                                                         "1001:GENERATED_META_APP");
+                            t.expect(xdata != record.end() && record.end() - xdata == 2
+                                         && *(xdata + 1) == "1000:trailing",
+                                     "generated objects keep XDATA trailing after body");
+                        } else {
+                            t.expect(std::none_of(record.begin(), record.end(), [](const auto& tag) {
+                                return tag.rfind("102:", 0) == 0 || tag.rfind("1001:", 0) == 0;
+                            }), "default generated objects gain no metadata groups");
+                        }
+                        t.expect(named
+                                     ? (std::find(record.begin(), record.end(),
+                                          "281:" + std::to_string(dictionary.cloning)) != record.end()
+                                        && std::find(record.begin(), record.end(), "350:700") != record.end())
+                                     : (std::find(record.begin(), record.end(), "70:0") != record.end()
+                                        && std::find(record.begin(), record.end(), "71:1") != record.end()
+                                        && std::find(record.begin(), record.end(), "340:901") != record.end()),
+                                 "generated dictionary/GROUP defaults and member mapping stay intact");
+                    }
+                    t.expect(selected == 2, "generated path checks named dictionary and GROUP separately");
+                }
+            }
+        }
+    }
+}
+
 void testCustomTextNumericWireKinds(TestContext& t) {
     expectTypedNumericWire(t, [](dxfRW& writer) {
         DRW_RText text;
@@ -6776,6 +6885,7 @@ int main() {
     testImageObjectNumericWireKinds(context);
     testCommonAppDataBaseScope(context);
     testTypedObjectCommonMetadata(context);
+    testGeneratedDictionaryGroupCommonMetadata(context);
     testDxfBinaryRawSectionCaptureReplay(context);
     testDxfBinaryRawObjectCaptureReplay(context);
     testDxfRawObjectHandleScope(context);

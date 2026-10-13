@@ -8781,6 +8781,8 @@ bool dxfRW::writeObjects() {
     for (const DRW_Dictionary &dict : m_namedDictObjects) {
         writer->writeString(0, "DICTIONARY");
         writer->writeString(5, toHexStr(dict.handle));
+        if (!writeTableEntryAppData(dict))
+            return false;
         writeObjectOwner(dict.parentHandle != 0
                              ? static_cast<std::uint32_t>(dict.parentHandle)
                              : 0);
@@ -8793,6 +8795,8 @@ bool dxfRW::writeObjects() {
             writer->writeUtf8String(3, entry.m_name);
             writer->writeString(350, toHexStr(entry.m_handle));
         }
+        if (!dict.extData.empty() && !writeExtData(dict.extData))
+            return false;
     }
 
     //F3: emit each GROUP object, owned by the ACAD_GROUP D dict (which already
@@ -8805,6 +8809,8 @@ bool dxfRW::writeObjects() {
         const DRW_Group &grp = m_groups[i];
         writer->writeString(0, "GROUP");
         writer->writeString(5, toHexStr(groupHandles[i]));
+        if (!writeTableEntryAppData(grp))
+            return false;
         writer->writeString(330, "D");
         writer->writeString(100, "AcDbGroup");
         writer->writeUtf8String(300, grp.m_description);
@@ -8816,6 +8822,8 @@ bool dxfRW::writeObjects() {
                 continue;  // member not written -> skip (no dangling 340)
             writer->writeString(340, toHexStr(it->second));
         }
+        if (!grp.extData.empty() && !writeExtData(grp.extData))
+            return false;
     }
 
     if (m_writeError || writer->hasWriteError()) {

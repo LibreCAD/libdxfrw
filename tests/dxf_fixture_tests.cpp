@@ -44,6 +44,7 @@ public:
     std::vector<DRW_Block_Record> blockRecords;
     std::vector<DRW_Scale> scales;
     std::vector<DRW_DictionaryVar> dictionaryVars;
+    std::vector<DRW_Group> groups;
 
     void addBlockRecord(const DRW_Block_Record& value) override {
         blockRecords.push_back(value);
@@ -79,6 +80,10 @@ public:
 
     void addDictionaryVar(const DRW_DictionaryVar& value) override {
         dictionaryVars.push_back(value);
+    }
+
+    void addGroup(const DRW_Group& value) override {
+        groups.push_back(value);
     }
 
     /// Point the writer at data that was just read, for a round trip.
@@ -1657,6 +1662,161 @@ void testTypedObjectCommonGraphs(TestContext& t) {
     }
 }
 
+bool generateGeneratedObjectCommonCarriers(const std::filesystem::path& output,
+                                           DRW::Version version, bool binary) {
+    class GeneratedCommonInterface final : public dx_iface {
+    public:
+        bool emitted{true};
+        void writeHeader(DRW_Header& header) override {
+            dx_iface::writeHeader(header);
+            dxfW->setRootDictEntries({{"COMMON_NAMED", "800"}});
+            // The caller explicitly supplies these translations. GROUP's
+            // generated identity is not assumed by the extension owner graph.
+            dxfW->setHandleRemap({{0x1110u, 0x800u}, {0x1111u, 0xDu},
+                                  {0x2110u, 0x802u}});
+            const auto common = [](auto& entry, const std::string& reactor) {
+                entry.reactorHandles = {static_cast<std::uint32_t>(
+                    std::stoul(reactor, nullptr, 16))};
+                entry.appData.push_back({{102, std::string("{GENERATED_META")},
+                    {1, std::string("alpha")}, {70, 7},
+                    {330, reactor}, {320, std::string("DEAD")},
+                    {102, std::string("}")}});
+                entry.appData.push_back({{102, std::string("ACAD_REACTORS")},
+                    {330, reactor}, {102, std::string("}")}});
+                return entry.addExtData(std::make_unique<DRW_Variant>(
+                           1001, std::string("GENERATED_META_APP")))
+                    && entry.addExtData(std::make_unique<DRW_Variant>(
+                           1000, std::string("trailing")));
+            };
+            DRW_Dictionary dictionary;
+            dictionary.handle = 0x800u;
+            dictionary.parentHandle = 0xCu;
+            dictionary.cloning = 2;
+            dictionary.m_entries.push_back({"CHILD", 0x804u});
+            dictionary.xDictHandle = 0x2110u;
+            emitted = common(dictionary, "1111") && emitted;
+            dictionary.appData.push_back({{102, std::string("ACAD_XDICTIONARY")},
+                {360, std::string("2110")}, {102, std::string("}")}});
+            dxfW->setNamedDictObjects({dictionary});
+            DRW_Group group;
+            group.handle = 0x600u;
+            group.name = "GENERATED_GROUP";
+            group.m_description = "retained generated group";
+            // Carrier-only control: the generated GROUP identity is allocated
+            // after ENTITIES. Reciprocal member reactors need the separate
+            // source-identity planning contract, not a guessed future handle.
+            emitted = common(group, "1110") && emitted;
+            dxfW->setGroups({group});
+        }
+        void writeEntities() override {
+            DRW_Line line;
+            line.handle = 0x900u;
+            line.basePoint = DRW_Coord(1.0, 2.0, 3.0);
+            line.secPoint = DRW_Coord(4.0, 6.0, 8.0);
+            emitted = dxfW->writeLine(&line) && emitted;
+        }
+        void writeObjects() override {
+            DRW_Dictionary extension;
+            extension.handle = 0x802u;
+            extension.parentHandle = 0x800u;
+            extension.hardOwner = 1;
+            extension.m_entries.push_back({"SENTINEL", 0x803u});
+            emitted = dxfW->writeDictionary(&extension) && emitted;
+            DRW_XRecord record;
+            record.handle = 0x803u;
+            record.parentHandle = 0x802u;
+            record.m_dataEntries = {{102, std::string("EXTNAMES")},
+                {1, std::string("ordered-body")}, {320, std::string("DEAD")}};
+            emitted = dxfW->writeXRecord(&record) && emitted;
+            record.handle = 0x804u;
+            record.parentHandle = 0x800u;
+            record.m_dataEntries = {{1, std::string("named-child")}};
+            emitted = dxfW->writeXRecord(&record) && emitted;
+        }
+    } interface_;
+    dx_data source;
+    DRW_AppId application;
+    application.name = "GENERATED_META_APP";
+    source.appIds.push_back(application);
+    return interface_.fileExport(output.string(), version, binary, &source, false)
+        && interface_.emitted;
+}
+
+void testGeneratedObjectCommonCarriers(TestContext& t) {
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    for (const DRW::Version version : {DRW::AC1021, DRW::AC1032}) {
+        for (const bool binary : {false, true}) {
+            const auto path = std::filesystem::temp_directory_path()
+                / ("libdxfrw-generated-common-" + std::to_string(nonce) + "-"
+                   + std::to_string(static_cast<int>(version))
+                   + (binary ? "-binary.dxf" : "-ascii.dxf"));
+            struct Cleanup {
+                std::filesystem::path path;
+                ~Cleanup() {
+                    std::error_code error;
+                    std::filesystem::remove(path, error);
+                }
+            } cleanup{path};
+            t.expect(generateGeneratedObjectCommonCarriers(path, version, binary),
+                     "generated named-dictionary and GROUP carriers export");
+            FixtureInterface reader;
+            dx_data readback;
+            t.expect(reader.fileImport(path.string(), &readback, false),
+                     "generated common carriers import through public callbacks");
+            const auto named = std::find_if(reader.dictionaries.begin(),
+                reader.dictionaries.end(), [](const auto& d) { return d.handle == 0x800u; });
+            const auto extension = std::find_if(reader.dictionaries.begin(),
+                reader.dictionaries.end(), [](const auto& d) { return d.handle == 0x802u; });
+            t.expect(named != reader.dictionaries.end() && named->parentHandle == 0xCu
+                         && named->cloning == 2 && named->m_entries.size() == 1
+                         && named->m_entries.front().m_handle == 0x804u,
+                     "generated named dictionary keeps ownership cloning and child");
+            t.expect(extension != reader.dictionaries.end()
+                         && extension->parentHandle == 0x800u
+                         && extension->m_entries.size() == 1
+                         && extension->m_entries.front().m_handle == 0x803u,
+                     "named dictionary extension resolves to owned sentinel");
+            const auto checkCommon = [&t](const auto& entry, std::uint32_t reactor,
+                                          std::uint32_t xdict, std::size_t groupCount) {
+                t.expect(entry.reactorHandles == std::vector<std::uint32_t>{reactor}
+                             && entry.xDictHandle == xdict && entry.appData.size() == groupCount,
+                         "generated route emits translated common carriers exactly once");
+                t.expect(entry.extData.size() == 2 && entry.extData[0]->code() == 1001
+                             && std::string(entry.extData[0]->c_str()) == "GENERATED_META_APP"
+                             && entry.extData[1]->code() == 1000
+                             && std::string(entry.extData[1]->c_str()) == "trailing",
+                         "generated route preserves trailing registered XDATA");
+            };
+            if (named != reader.dictionaries.end())
+                checkCommon(*named, 0xDu, 0x802u, 3);
+            t.expect(reader.groups.size() == 1,
+                     "generated GROUP reaches typed callback exactly once");
+            if (reader.groups.size() == 1) {
+                const auto& group = reader.groups.front();
+                checkCommon(group, 0x800u, 0u, 2);
+                t.expect(group.parentHandle == 0xDu && group.m_entityHandles.empty()
+                             && readback.mBlock != nullptr && readback.mBlock->ent.size() == 1
+                             && readback.mBlock->ent.front()->eType == DRW::LINE,
+                         "carrier-only GROUP is empty and leaves unrelated LINE intact");
+            }
+            const auto sentinel = std::find_if(reader.xrecords.begin(), reader.xrecords.end(),
+                [](const auto& r) { return r.handle == 0x803u; });
+            const auto child = std::find_if(reader.xrecords.begin(), reader.xrecords.end(),
+                [](const auto& r) { return r.handle == 0x804u; });
+            t.expect(sentinel != reader.xrecords.end() && sentinel->parentHandle == 0x802u
+                         && sentinel->m_dataEntries.size() == 3
+                         && sentinel->m_dataEntries[0].code() == 102
+                         && sentinel->m_dataEntries[1].code() == 1
+                         && sentinel->m_dataEntries[2].code() == 320,
+                     "generated common graph leaves XRECORD body102 ordering untouched");
+            t.expect(child != reader.xrecords.end() && child->parentHandle == 0x800u
+                         && child->m_dataEntries.size() == 1
+                         && std::string(child->m_dataEntries.front().c_str()) == "named-child",
+                     "generated named dictionary body child resolves");
+        }
+    }
+}
+
 void testIncompleteLinetypeExtensionGraphRejected(TestContext& t) {
     dx_data source;
     DRW_LType lineType;
@@ -1803,7 +1963,8 @@ void testUnsafeLinetypeExtensionGraphsRejected(TestContext& t) {
 int main(int argc, char** argv) {
     if (argc == 5 && (std::string(argv[1]) == "--generate-table-owners"
                      || std::string(argv[1]) == "--generate-common-scopes"
-                     || std::string(argv[1]) == "--generate-object-common-graphs")) {
+                     || std::string(argv[1]) == "--generate-object-common-graphs"
+                     || std::string(argv[1]) == "--generate-generated-common-carriers")) {
         const std::map<std::string, DRW::Version> versions{
             {"R14", DRW::AC1014}, {"R2000", DRW::AC1015},
             {"R2007", DRW::AC1021}, {"R2018", DRW::AC1032}};
@@ -1818,6 +1979,9 @@ int main(int argc, char** argv) {
         if (std::string(argv[1]) == "--generate-object-common-graphs")
             return generateTypedObjectCommonGraphs(argv[2], version->second,
                                                      encoding == "binary") ? 0 : 1;
+        if (std::string(argv[1]) == "--generate-generated-common-carriers")
+            return generateGeneratedObjectCommonCarriers(argv[2], version->second,
+                                                        encoding == "binary") ? 0 : 1;
         TestContext context;
         const std::filesystem::path output(argv[2]);
         testLinetypeExtensionGraphRoundTrip(context, &output, version->second,
@@ -1842,6 +2006,7 @@ int main(int argc, char** argv) {
     testLinetypeExtensionGraphRoundTrip(context);
     testCanonicalLinetypeCommonScope(context);
     testTypedObjectCommonGraphs(context);
+    testGeneratedObjectCommonCarriers(context);
     testIncompleteLinetypeExtensionGraphRejected(context);
     testUnsafeLinetypeExtensionGraphsRejected(context);
     testMTextBackgroundFillAndDefinedHeight(context);
