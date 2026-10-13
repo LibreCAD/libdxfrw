@@ -10,9 +10,10 @@ import sys
 import tempfile
 import time
 import unittest
+from unittest.mock import Mock, patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
-from bounded_process import OutputLimitExceeded, run_bounded
+from bounded_process import OutputLimitExceeded, ProcessCapabilityError, _PosixChild, run_bounded
 
 
 class BoundedProcessTests(unittest.TestCase):
@@ -66,6 +67,32 @@ class BoundedProcessTests(unittest.TestCase):
         result = self.python("import os; os.write(1,b'a'*128); os.write(2,b'b'*128)",
                              output_limit=128)
         self.assertEqual((result.stdout, result.stderr), (b"a" * 128, b"b" * 128))
+
+    def test_fast_exit_overflow(self):
+        for descriptor in (1, 2):
+            for attempt in range(3):
+                with self.subTest(stream=descriptor, attempt=attempt):
+                    with self.assertRaises(OutputLimitExceeded) as context:
+                        self.python("import os; os.write(%d,b'x'*4096)" % descriptor,
+                                    output_limit=128)
+                    self.assertLessEqual(len(context.exception.stdout), 128)
+                    self.assertLessEqual(len(context.exception.stderr), 128)
+
+    @unittest.skipUnless(os.name == "posix", "POSIX cleanup capability control")
+    def test_permission_retry_still_fails_closed(self):
+        child = _PosixChild.__new__(_PosixChild)
+        child.process = Mock(pid=123)
+        child.process.wait.return_value = 0
+        with patch("bounded_process.os.killpg", side_effect=PermissionError("denied")) as kill:
+            with self.assertRaises(ProcessCapabilityError):
+                child.cleanup()
+        self.assertEqual(kill.call_count, 2)
+        self.assertTrue(child.process.wait.called)
+        child.process.wait.side_effect = subprocess.TimeoutExpired(["control"], .25)
+        with patch("bounded_process.os.killpg", side_effect=PermissionError("denied")) as kill:
+            with self.assertRaises(ProcessCapabilityError):
+                child.cleanup()
+        self.assertEqual(kill.call_count, 1)
 
     def descendant(self, wait_parent):
         # The child's file lock proves resource cleanup, not merely an early

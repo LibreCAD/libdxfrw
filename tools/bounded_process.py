@@ -56,14 +56,29 @@ class _PosixChild:
     def cleanup(self):
         # This process group was created solely for the requested invocation.
         # Kill it even after the direct child exits: descendants may retain logs.
+        # Darwin can return EPERM while an exiting direct child is still an
+        # unreaped group member. Reap and retry within the same cleanup budget;
+        # never ignore a permission failure that could leave descendants alive.
+        deadline = time.monotonic() + CLEANUP_SECONDS
+        def reap():
+            try:
+                self.process.wait(timeout=max(0, deadline - time.monotonic()))
+            except subprocess.TimeoutExpired as exc:
+                raise ProcessCapabilityError("owned POSIX process could not be reaped within cleanup budget") from exc
+        self.process.poll()
         try:
             os.killpg(self.process.pid, signal.SIGKILL)
         except ProcessLookupError:
             pass
-        try:
-            self.process.wait(timeout=CLEANUP_SECONDS)
-        except subprocess.TimeoutExpired as exc:
-            raise ProcessCapabilityError("owned POSIX process could not be reaped within cleanup budget") from exc
+        except PermissionError:
+            reap()
+            try:
+                os.killpg(self.process.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+            except PermissionError as exc:
+                raise ProcessCapabilityError("owned POSIX process group cleanup was denied") from exc
+        reap()
 
 
 def _windows_child(command, stdout, stderr, stdin, cwd, env):
