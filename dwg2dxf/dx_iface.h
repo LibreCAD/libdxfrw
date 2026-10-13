@@ -18,6 +18,7 @@
 #include "dx_data.h"
 
 #include <cstdint>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -26,7 +27,8 @@ public:
     dx_iface() = default;
     ~dx_iface() = default;
     bool fileImport(const std::string& fileI, dx_data *fData, bool debug);
-    bool fileExport(const std::string& file, DRW::Version v, bool binary, dx_data *fData, bool debug);
+    bool fileExport(const std::string& file, DRW::Version v, bool binary,
+                    dx_data *fData, bool debug, bool requireResolvedOwners = false);
     void writeEntity(DRW_Entity* e);
 
 //reimplement virtual DRW_Interface functions
@@ -61,6 +63,9 @@ public:
     }
     virtual void addAppId(const DRW_AppId& data) override{
         cData->appIds.push_back(data);
+    }
+    void addBlockRecord(const DRW_Block_Record& data) override {
+        cData->blockRecords.push_back(data);
     }
     virtual void addDictionary(const DRW_Dictionary& data) override {
         cData->dictionaries.push_back(data);
@@ -329,18 +334,34 @@ public:
                 writeEntity(*it);
         }
     }
-    //only send the name, needed by the reader to prepare handles of blocks & blockRecords
+    // Preplan emitted block identities while retaining source table metadata.
     virtual void writeBlockRecords() override{
+        std::unordered_map<std::uint32_t, const DRW_Block_Record*> records;
+        for (const DRW_Block_Record& record : cData->blockRecords)
+            records.emplace(record.handle, &record);
         for (std::list<dx_ifaceBlock*>::iterator it=cData->blocks.begin(); it != cData->blocks.end(); ++it) {
             if (isFixedSpaceBlock(*it))
                 continue;
-            dxfW->writeBlockRecord((*it)->name);
+            const auto metadata = records.find((*it)->parentHandle);
+            if (metadata != records.end())
+                dxfW->writeBlockRecord((*it)->name, metadata->second->insUnits,
+                                      metadata->second->previewData);
+            else
+                dxfW->writeBlockRecord((*it)->name);
         }
     }
     //write entities of model space and first paper_space
     virtual void writeEntities() override{
         for (std::list<DRW_Entity*>::const_iterator it=cData->mBlock->ent.begin(); it!=cData->mBlock->ent.end(); ++it)
             writeEntity(*it);
+        // Fixed space BLOCK/ENDBLK records are regenerated, but their owned
+        // source entities are not previews and must not disappear with them.
+        for (const dx_ifaceBlock* block : cData->blocks) {
+            if (!isFixedSpaceBlock(block))
+                continue;
+            for (DRW_Entity* entity : block->ent)
+                writeEntity(entity);
+        }
     }
     virtual void writeLTypes() override{
         for (std::list<DRW_LType>::iterator it=cData->lineTypes.begin(); it != cData->lineTypes.end(); ++it)
@@ -470,9 +491,16 @@ private:
     std::vector<std::uint32_t> m_extensionXRecordHandles;
 
     static bool isFixedSpaceBlock(const dx_ifaceBlock* block) {
-        return block != nullptr
-            && (block->name == "*Model_Space"
-                || block->name == "*Paper_Space");
+        if (block == nullptr)
+            return false;
+        // DWG producers also use the uppercase reserved spellings. Match
+        // only these ASCII names, without locale-dependent UTF-8 casing.
+        std::string name = block->name;
+        for (char& ch : name) {
+            if (ch >= 'a' && ch <= 'z')
+                ch = static_cast<char>(ch - 'a' + 'A');
+        }
+        return name == "*MODEL_SPACE" || name == "*PAPER_SPACE";
     }
 };
 

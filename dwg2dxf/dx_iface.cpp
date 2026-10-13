@@ -1703,7 +1703,8 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug){
     return false;
 }
 
-bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary, dx_data *fData, bool debug){
+bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
+                          dx_data *fData, bool debug, bool requireResolvedOwners){
     cData = fData;
     m_acdsHistoryObjects.clear();
     m_acdsTypedHistoryObjects.clear();
@@ -1732,6 +1733,18 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary, 
         return false;
     }
     dxfW = new dxfRW(file.c_str());
+    std::vector<DRW_Block_Record> sourceBlockRecords = cData->blockRecords;
+    for (const dx_ifaceBlock* block : cData->blocks) {
+        if (block == nullptr || block->parentHandle == DRW::NoHandle)
+            continue;
+        // DWG currently delivers the record identity on BLOCK.parentHandle.
+        // Keep that structural alias without inventing missing table metadata.
+        DRW_Block_Record identity;
+        identity.handle = block->parentHandle;
+        identity.name = block->name;
+        sourceBlockRecords.push_back(std::move(identity));
+    }
+    dxfW->setSourceBlockRecords(sourceBlockRecords, requireResolvedOwners);
     std::vector<DRW_LType> lineTypes(cData->lineTypes.begin(),
                                      cData->lineTypes.end());
     dxfW->setCanonicalLineTypeMetadata(lineTypes);
@@ -2084,7 +2097,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary, 
     }
     dxfW->setHandleRemap(handleRemap);
     bool success = dxfW->write(this, v, binary);
-    if (!success && debug) {
+    if (!success && (debug || requireResolvedOwners)) {
         const DRW_OperationDiagnostic diagnostic = dxfW->getLastDiagnostic();
         std::cerr << "DXF export failed: " << diagnostic.code << ": "
                   << diagnostic.message << '\n';

@@ -347,6 +347,15 @@ public:
     void setHandleRemap(const std::map<std::uint32_t, std::uint32_t> &remap) {
         m_handleRemap = remap;
     }
+    //! Plan source BLOCK_RECORD identities independently of minted entities.
+    //! The records are copied; this does not emit their layout/resource edges.
+    //! Strict mode rejects an explicit non-null entity owner without a binding.
+    //! Legacy writers without this metadata retain their existing fallback.
+    void setSourceBlockRecords(const std::vector<DRW_Block_Record>& records,
+                               bool requireResolvedOwners = false) {
+        m_sourceBlockRecords = records;
+        m_requireResolvedBlockOwners = requireResolvedOwners;
+    }
     /*!< Register source linetypes so metadata attached to the three mandatory
      * canonical rows can be emitted before the LTYPE table is closed. */
     void setCanonicalLineTypeMetadata(
@@ -595,6 +604,7 @@ public:
         DRW_ImageDef *imageDef {nullptr};
     };
     bool emitBlockRecord(const PendingDxfBlockRecord& record);
+    bool planSourceBlockRecordHandles();
     // captureSourceHandle=false on the VERTEX/SEQEND parent re-entries
     // (writePolyline/writeInsert) so they do not pollute the source->minted map.
     bool rejectUnsupportedDxfWrite() noexcept;
@@ -723,6 +733,9 @@ private:
     int elParts {128};  /*!< parts number when convert ellipse to polyline */
     std::unordered_map<std::string,std::uint32_t> blockMap;
     std::vector<PendingDxfBlockRecord> m_pendingBlockRecords;
+    std::vector<DRW_Block_Record> m_sourceBlockRecords;
+    std::map<std::uint32_t, std::uint32_t> m_sourceBlockRecordHandles;
+    bool m_requireResolvedBlockOwners {false};
     std::unordered_map<std::string,std::uint32_t> textStyleMap;
     std::vector<DRW_ImageDef*> imageDef;  /*!< imageDef list */
 

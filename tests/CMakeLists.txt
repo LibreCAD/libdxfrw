@@ -97,6 +97,44 @@ target_include_directories(libdxfrw_dwg2dxf_adapter_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
 )
 target_link_libraries(libdxfrw_dwg2dxf_adapter_tests PRIVATE dxfrw)
+add_executable(libdxfrw_block_owner_tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/block_owner_tests.cpp
+    ${CMAKE_SOURCE_DIR}/dwg2dxf/dx_iface.cpp)
+target_compile_features(libdxfrw_block_owner_tests PRIVATE cxx_std_17)
+target_compile_options(libdxfrw_block_owner_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+target_include_directories(libdxfrw_block_owner_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/dwg2dxf ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(libdxfrw_block_owner_tests PRIVATE dxfrw)
+add_test(NAME libdxfrw_block_owners COMMAND libdxfrw_block_owner_tests)
+set_tests_properties(libdxfrw_block_owners PROPERTIES LABELS "fast;dxf;graph;adapter" TIMEOUT 30)
+add_test(NAME dwg2dxf_block_owner_rejection_cli
+    COMMAND ${CMAKE_COMMAND}
+        "-DADAPTER_TEST=$<TARGET_FILE:libdxfrw_block_owner_tests>"
+        "-DDWG2DXF=$<TARGET_FILE:dwg2dxf>"
+        "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}"
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/run_block_owner_rejection_test.cmake)
+set_tests_properties(dwg2dxf_block_owner_rejection_cli PROPERTIES
+    LABELS "fast;dxf;graph;cli" TIMEOUT 30)
+foreach(_owner_mode IN ITEMS ascii binary)
+    set(_owner_generate --generate)
+    set(_owner_options "")
+    if(_owner_mode STREQUAL "binary")
+        set(_owner_generate --generate-binary)
+        set(_owner_options -b)
+    endif()
+    add_test(NAME dwg2dxf_block_owners_${_owner_mode}_cli
+        COMMAND ${CMAKE_COMMAND}
+            "-DADAPTER_TEST=$<TARGET_FILE:libdxfrw_block_owner_tests>"
+            "-DDWG2DXF=$<TARGET_FILE:dwg2dxf>"
+            "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}"
+            "-DCASE_NAME=block-owners-${_owner_mode}"
+            "-DGENERATE_MODE=${_owner_generate}"
+            "-DVERIFY_MODE=--verify"
+            "-DCONVERSION_OPTIONS=${_owner_options}"
+            -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg2dxf_image_path_test.cmake)
+    set_tests_properties(dwg2dxf_block_owners_${_owner_mode}_cli PROPERTIES
+        LABELS "fast;dxf;graph;cli" TIMEOUT 30)
+endforeach()
 add_test(
     NAME dwg2dxf_image_path_cli
     COMMAND ${CMAKE_COMMAND}

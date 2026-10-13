@@ -61,6 +61,7 @@ public:
     std::list<DRW_Vport>VPorts;         //stores a copy of all vports
     std::list<DRW_Textstyle>textStyles; //stores a copy of all text styles
     std::list<DRW_AppId>appIds;         //stores a copy of all line types
+    std::vector<DRW_Block_Record> blockRecords; //owned source identity/metadata
     std::list<DRW_Dictionary>dictionaries; //typed OBJECTS dictionaries
     std::list<DRW_XRecord>xRecords;      //typed XRECORD objects
     std::list<DRW_Material>materials;    //typed MATERIAL objects

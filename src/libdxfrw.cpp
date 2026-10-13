@@ -2046,6 +2046,7 @@ void dxfRW::resetDxfWriteSession() {
     m_writingContext.lineTypesMap.clear();
     textStyleMap.clear();
     m_pendingBlockRecords.clear();
+    m_sourceBlockRecordHandles.clear();
     m_collectingBlockRecords = false;
     writingBlock = false;
     currHandle = DRW::NoHandle;
@@ -2132,6 +2133,8 @@ bool dxfRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) try {
         if (m_writeError || writer->hasWriteError()) {
             return failWrite();
         }
+        if (!planSourceBlockRecordHandles())
+            return failWrite();
         blockRecordState.commit();
     }
 
@@ -2359,6 +2362,49 @@ bool dxfRW::rejectUnsupportedDxfWrite() noexcept {
 bool dxfRW::failDxfWrite() noexcept {
     m_writeError = true;
     return false;
+}
+
+bool dxfRW::planSourceBlockRecordHandles() {
+    std::map<std::string, std::uint32_t> sourceNames;
+    std::map<std::uint32_t, std::string> sourceHandles;
+    for (const DRW_Block_Record& record : m_sourceBlockRecords) {
+        const std::string key = dxfSymbolNameKey(record.name);
+        if (record.handle == DRW::NoHandle || key.empty()) {
+            recordOperationDiagnostic(DRW::OperationPhase::Blocks,
+                DRW::OperationCause::ValidationFailure, "block-source-identity",
+                "source BLOCK_RECORD identity is null or unnamed");
+            return failDxfWrite();
+        }
+        const auto name = sourceNames.emplace(key, record.handle);
+        const auto handle = sourceHandles.emplace(record.handle, key);
+        if ((!name.second && name.first->second != record.handle)
+            || (!handle.second && handle.first->second != key)) {
+            recordOperationDiagnostic(DRW::OperationPhase::Blocks,
+                DRW::OperationCause::ValidationFailure, "block-source-identity",
+                "source BLOCK_RECORD identity is ambiguous", 0, false,
+                record.handle, true);
+            return failDxfWrite();
+        }
+        std::uint32_t emitted = DRW::NoHandle;
+        if (key == "*MODEL_SPACE")
+            emitted = DRW::DxfModelSpaceBlockRecordHandle;
+        else if (key == "*PAPER_SPACE")
+            emitted = DRW::DxfPaperSpaceBlockRecordHandle;
+        else {
+            const auto planned = blockMap.find(key);
+            if (planned != blockMap.end())
+                emitted = planned->second;
+        }
+        if (emitted == DRW::NoHandle) {
+            recordOperationDiagnostic(DRW::OperationPhase::Blocks,
+                DRW::OperationCause::ValidationFailure, "block-source-target",
+                "source BLOCK_RECORD has no emitted block definition", 0,
+                false, record.handle, true);
+            return failDxfWrite();
+        }
+        m_sourceBlockRecordHandles.emplace(record.handle, emitted);
+    }
+    return true;
 }
 
 bool dxfRW::validateHatchPayload(const DRW_Hatch *ent) const {
@@ -2638,14 +2684,30 @@ bool dxfRW::writeEntity(DRW_Entity *ent, bool captureSourceHandle,
     // R2000+ DXF requires a code-330 owner handle (soft-pointer to the owning
     // BLOCK_RECORD) on every entity. Without it ezdxf/AutoCAD treat the entity
     // as an orphan and emit a recover/audit warning. Resolution priority:
-    //   1) ent->parentHandle when explicitly seeded (e.g. raw-replay paths);
+    //   1) an already-minted ownerOverride, or a translated source parent;
     //   2) the active BLOCK_RECORD (currHandle) while writingBlock is true --
     //      writeBlock() latches it for every user block in the BLOCKS section;
     //   3) the fixed Model_Space (0x1F) / Paper_Space (0x1E) BLOCK_RECORD
     //      handles by ent->space, for entities in the ENTITIES section.
     if (version > DRW::AC1014) {
-        std::uint32_t ownerHandle = ownerOverride != DRW::NoHandle
-            ? ownerOverride : ent->parentHandle;
+        // ownerOverride and currHandle are already output identities. Only a
+        // source parentHandle is translated: a source may numerically equal
+        // a fixed/minted handle, so applying the map twice changes ownership.
+        std::uint32_t ownerHandle = ownerOverride;
+        if (ownerOverride == DRW::NoHandle && ent->parentHandle != DRW::NoHandle) {
+            const auto sourceOwner = m_sourceBlockRecordHandles.find(ent->parentHandle);
+            if (sourceOwner != m_sourceBlockRecordHandles.end()) {
+                ownerHandle = sourceOwner->second;
+            } else if (m_requireResolvedBlockOwners) {
+                recordOperationDiagnostic(DRW::OperationPhase::Entities,
+                    DRW::OperationCause::ValidationFailure, "unresolved-block-owner",
+                    "explicit source entity owner has no emitted BLOCK_RECORD", 0,
+                    false, ent->parentHandle, true);
+                return failDxfWrite();
+            } else {
+                ownerHandle = ent->parentHandle;
+            }
+        }
         if (ownerHandle == 0) {
             if (writingBlock)
                 ownerHandle = static_cast<std::uint32_t>(currHandle);

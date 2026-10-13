@@ -110,7 +110,7 @@ bool convertFile(std::string inName, std::string outName, DRW::Version ver,
 
     //And write a dxf file
     dx_iface output;
-    badState = output.fileExport(outName, ver, binary, &fData, debug);
+    badState = output.fileExport(outName, ver, binary, &fData, debug, true);
 
     return badState;
 }
