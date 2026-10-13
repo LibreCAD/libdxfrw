@@ -62,6 +62,31 @@ See `docs/UPGRADE_SUPPORT.md` for the support and release policy.
 python3 tools/run_fast_focus.py --build-dir build
 ```
 
+### Advisory independent DXF checks
+
+The dependency-free `libdxfrw_independent_dxf_selftest` checks the comparison
+contract. Optional semantic checks require an existing Python 3.10+ environment
+with **ezdxf exactly 1.4.4**; configuration never installs it:
+
+```sh
+cmake -S . -B build -DLIBDXFRW_BUILD_TESTS=ON \
+  -DLIBDXFRW_ENABLE_INDEPENDENT_DXF_ORACLE=ON \
+  -DLIBDXFRW_EZDXF_PYTHON_EXECUTABLE=/absolute/path/to/pinned/python
+cmake --build build --target dwg2dxf --parallel 2
+ctest --test-dir build -R '^libdxfrw_independent_dxf' --output-on-failure
+```
+
+The runner uses an isolated interpreter and private configuration, verifies
+effective options/native-module selection and before/after package/helper
+content, and checks four generated sentinel
+families across 16 ASCII/binary routes. It compares ordinary reads before
+separate audits, with bounded byte/tag admission and converter capture. Direct
+invocations also require `python -I -B tools/run_independent_dxf.py ...`.
+These locally generated controls are advisory (`qualificationEligible:false`),
+not full drawing/resource-graph, native CAD, or format-support qualification.
+Broad/untrusted oracle inputs remain out of scope pending worker resource gates.
+Reported dependency versions are metadata, not loaded-dependency attestation.
+
 ### Using `dwg2dxf` from FreeCAD
 
 The installed `dwg2dxf` executable can serve as FreeCAD Draft's external

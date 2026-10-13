@@ -16,6 +16,10 @@ option(LIBDXFRW_BUILD_QUALIFICATION
     "Build the pinned target/standalone semantic qualification adapters" OFF)
 option(LIBDXFRW_BUILD_LONG_FUZZ
     "Build the opt-in extended deterministic parser fuzz target" OFF)
+option(LIBDXFRW_ENABLE_INDEPENDENT_DXF_ORACLE
+    "Enable advisory generated DXF comparisons with an explicitly pinned ezdxf runtime" OFF)
+set(LIBDXFRW_EZDXF_PYTHON_EXECUTABLE "" CACHE FILEPATH
+    "Existing Python interpreter with ezdxf exactly 1.4.4 (never auto-installed)")
 set(LIBDXFRW_TARGET_GIT_DIR "" CACHE PATH
     "Git directory for the pinned LibreCAD target qualification build")
 set(LIBDXFRW_LIBREDWG_DWGREAD "" CACHE FILEPATH
@@ -29,6 +33,10 @@ if(LIBDXFRW_BUILD_LONG_FUZZ AND NOT LIBDXFRW_BUILD_TESTS)
 endif()
 if(LIBDXFRW_BUILD_QUALIFICATION AND NOT LIBDXFRW_BUILD_TESTS)
     message(FATAL_ERROR "LIBDXFRW_BUILD_QUALIFICATION requires LIBDXFRW_BUILD_TESTS")
+endif()
+if(LIBDXFRW_ENABLE_INDEPENDENT_DXF_ORACLE AND
+        (NOT LIBDXFRW_BUILD_TESTS OR NOT LIBDXFRW_BUILD_DWG2DXF))
+    message(FATAL_ERROR "Independent DXF oracle requires tests and dwg2dxf")
 endif()
 
 # Keep warnings target-local so consumers are not forced to inherit the
@@ -161,6 +169,39 @@ if(LIBDXFRW_BUILD_TESTS)
             ${CMAKE_CURRENT_SOURCE_DIR}/tests/bounded_process_tests.py)
     set_tests_properties(libdxfrw_bounded_process PROPERTIES
         LABELS "fast;tools;process" TIMEOUT 15)
+    add_test(NAME libdxfrw_independent_dxf_selftest
+        COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -I -B
+            ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_independent_dxf.py --self-test)
+    set_tests_properties(libdxfrw_independent_dxf_selftest PROPERTIES
+        LABELS "fast;tools;dxf" TIMEOUT 15)
+    if(LIBDXFRW_ENABLE_INDEPENDENT_DXF_ORACLE)
+        if(NOT EXISTS "${LIBDXFRW_EZDXF_PYTHON_EXECUTABLE}")
+            message(FATAL_ERROR "Set an existing LIBDXFRW_EZDXF_PYTHON_EXECUTABLE explicitly")
+        endif()
+        execute_process(COMMAND "${LIBDXFRW_EZDXF_PYTHON_EXECUTABLE}" -I -B
+            ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_independent_dxf.py --check-runtime
+            RESULT_VARIABLE _dxfrw_ezdxf_runtime_ok TIMEOUT 15)
+        if(NOT "${_dxfrw_ezdxf_runtime_ok}" STREQUAL "0")
+            message(FATAL_ERROR "Independent DXF oracle requires an isolated Python>=3.10 with ezdxf exactly1.4.4")
+        endif()
+        add_test(NAME libdxfrw_independent_dxf_runtime
+            COMMAND "${LIBDXFRW_PYTHON_EXECUTABLE}" -I -B
+                ${CMAKE_CURRENT_SOURCE_DIR}/tests/independent_dxf_runtime_tests.py
+                --oracle-python "${LIBDXFRW_EZDXF_PYTHON_EXECUTABLE}"
+                --runner ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_independent_dxf.py)
+        set_tests_properties(libdxfrw_independent_dxf_runtime PROPERTIES
+            LABELS "advisory;independent;dxf;tools" TIMEOUT 60)
+        foreach(_dxfrw_family IN ITEMS core spline-unit mtext-height header90)
+            add_test(NAME libdxfrw_independent_dxf_${_dxfrw_family}
+                COMMAND "${LIBDXFRW_EZDXF_PYTHON_EXECUTABLE}" -I -B
+                    ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_independent_dxf.py
+                    --converter $<TARGET_FILE:dwg2dxf> --family ${_dxfrw_family}
+                    --timeout 5 --output
+                    "${CMAKE_CURRENT_BINARY_DIR}/independent-dxf-${_dxfrw_family}.json")
+            set_tests_properties(libdxfrw_independent_dxf_${_dxfrw_family} PROPERTIES
+                LABELS "advisory;independent;dxf" TIMEOUT 60)
+        endforeach()
+    endif()
     set(LIBDXFRW_QUALIFIED_DIFFERENTIAL_MANIFEST
         ${CMAKE_CURRENT_SOURCE_DIR}/metadata/qualified-differential-v2.json)
     set(LIBDXFRW_QUALIFIED_SEMANTIC_FIELDS_CONTRACT
