@@ -18,18 +18,61 @@
 #include "dx_data.h"
 
 #include <cstdint>
+#include <cstddef>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
 class dx_iface : public DRW_Interface {
 public:
+    // Converter resource policy, not a DXF nesting/size restriction. Separate
+    // limits also provide a small deterministic boundary-test seam.
+    struct ExtensionGraphLimits {
+        std::size_t maxNodes{1000000u};
+        std::size_t maxEdges{4000000u};
+        std::size_t maxStagedHandles{1000000u};
+        // Bound inventory indexing independently of reachable traversal.
+        std::size_t maxSourceRecords{4u * 1024u * 1024u};
+    };
+    enum class ExtensionGraphFailure {
+        None, InvalidGraph, NodeLimit, EdgeLimit, StagedHandleLimit, SourceRecordLimit
+    };
+    struct ExtensionGraphStats {
+        // Accepted work before success/failure; these are not live output sizes.
+        std::size_t visitedNodes{0};
+        // Reference slots, including owners and validated XRECORD pointers.
+        std::size_t examinedEdges{0};
+        // Prepared dictionary/XRECORD handle-list entries, not payload bytes.
+        std::size_t stagedHandles{0};
+        std::size_t sourceRecords{0};
+    };
+
     dx_iface() = default;
     ~dx_iface() = default;
     bool fileImport(const std::string& fileI, dx_data *fData, bool debug);
     bool fileExport(const std::string& file, DRW::Version v, bool binary,
                     dx_data *fData, bool debug, bool requireResolvedOwners = false);
     void writeEntity(DRW_Entity* e);
+    void setExtensionGraphLimits(const ExtensionGraphLimits& limits) noexcept {
+        m_extensionGraphLimits = limits;
+    }
+    ExtensionGraphStats extensionGraphStats() const noexcept {
+        return m_extensionGraphStats;
+    }
+    ExtensionGraphFailure extensionGraphFailure() const noexcept {
+        return m_extensionGraphFailure;
+    }
+    const char* extensionGraphFailureName() const noexcept {
+        switch (m_extensionGraphFailure) {
+        case ExtensionGraphFailure::None: return "none";
+        case ExtensionGraphFailure::InvalidGraph: return "invalid-graph";
+        case ExtensionGraphFailure::NodeLimit: return "node-limit";
+        case ExtensionGraphFailure::EdgeLimit: return "edge-limit";
+        case ExtensionGraphFailure::StagedHandleLimit: return "staged-handle-limit";
+        case ExtensionGraphFailure::SourceRecordLimit: return "source-record-limit";
+        }
+        return "invalid-graph";
+    }
 
 //reimplement virtual DRW_Interface functions
 
@@ -489,6 +532,9 @@ private:
 
     std::vector<std::uint32_t> m_extensionDictionaryHandles;
     std::vector<std::uint32_t> m_extensionXRecordHandles;
+    ExtensionGraphLimits m_extensionGraphLimits;
+    ExtensionGraphStats m_extensionGraphStats;
+    ExtensionGraphFailure m_extensionGraphFailure{ExtensionGraphFailure::None};
 
     static bool isFixedSpaceBlock(const dx_ifaceBlock* block) {
         if (block == nullptr)

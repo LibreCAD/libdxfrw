@@ -16,7 +16,6 @@
 #include <array>
 #include <cctype>
 #include <cmath>
-#include <functional>
 #include <limits>
 #include <map>
 #include <set>
@@ -1401,8 +1400,30 @@ bool dx_iface::collectAcdsTypedBoxHistoryObjects(
 bool dx_iface::prepareExtensionObjectGraph(dx_data* data) {
     m_extensionDictionaryHandles.clear();
     m_extensionXRecordHandles.clear();
-    if (data == nullptr)
+    m_extensionGraphStats = {};
+    m_extensionGraphFailure = ExtensionGraphFailure::None;
+    const auto reject = [this](ExtensionGraphFailure reason = ExtensionGraphFailure::InvalidGraph) {
+        // No partial traversal result may leak into a later export attempt.
+        m_extensionDictionaryHandles.clear();
+        m_extensionXRecordHandles.clear();
+        if (m_extensionGraphFailure == ExtensionGraphFailure::None)
+            m_extensionGraphFailure = reason;
         return false;
+    };
+    const auto examineEdge = [this, &reject]() {
+        if (m_extensionGraphStats.examinedEdges >= m_extensionGraphLimits.maxEdges)
+            return reject(ExtensionGraphFailure::EdgeLimit);
+        ++m_extensionGraphStats.examinedEdges;
+        return true;
+    };
+    const auto examineSourceRecord = [this, &reject]() {
+        if (m_extensionGraphStats.sourceRecords >= m_extensionGraphLimits.maxSourceRecords)
+            return reject(ExtensionGraphFailure::SourceRecordLimit);
+        ++m_extensionGraphStats.sourceRecords;
+        return true;
+    };
+    if (data == nullptr)
+        return reject();
 
     try {
         std::unordered_map<std::uint32_t, const DRW_Dictionary*> dictionaries;
@@ -1410,166 +1431,178 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data) {
         std::unordered_set<std::uint32_t> sourceHandles;
         std::unordered_set<std::uint32_t> linetypeHandles;
         for (const DRW_LType& lineType : data->lineTypes) {
+            if (!examineSourceRecord())
+                return false;
             if (lineType.handle == 0)
                 continue;
             if (!sourceHandles.insert(lineType.handle).second)
-                return false;
+                return reject();
             linetypeHandles.insert(lineType.handle);
         }
         for (const DRW_Dictionary& dictionary : data->dictionaries) {
+            if (!examineSourceRecord())
+                return false;
             if (dictionary.handle == 0)
                 continue;
             if (!sourceHandles.insert(dictionary.handle).second
                 || !dictionaries.emplace(dictionary.handle, &dictionary).second)
-                return false;
+                return reject();
         }
         for (const DRW_XRecord& record : data->xRecords) {
+            if (!examineSourceRecord())
+                return false;
             if (record.handle == 0)
                 continue;
             if (!sourceHandles.insert(record.handle).second
                 || !xrecords.emplace(record.handle, &record).second)
-                return false;
+                return reject();
         }
         for (const DRW_EvaluationGraph& graph : data->evaluationGraphs) {
+            if (!examineSourceRecord())
+                return false;
             if (graph.handle == 0
                 || !sourceHandles.insert(graph.handle).second)
-                return false;
+                return reject();
         }
 
         std::unordered_set<std::uint32_t> visiting;
         std::unordered_set<std::uint32_t> visitedDictionaries;
         std::unordered_set<std::uint32_t> visitedXRecords;
-        std::function<bool(std::uint32_t)> visitDictionary;
-        std::function<bool(std::uint32_t)> visitXRecord;
-        visitXRecord = [&](std::uint32_t handle) {
-            const auto found = xrecords.find(handle);
-            if (found == xrecords.end())
-                return false;
-            if (visiting.count(handle) != 0)
-                return false;
-            if (visitedXRecords.count(handle) != 0)
+        enum class Phase { Enter, ExtensionDictionary, Reactors, Entries, Leave };
+        struct Frame {
+            std::uint32_t handle;
+            const DRW_Dictionary* dictionary{nullptr};
+            const DRW_XRecord* record{nullptr};
+            Phase phase{Phase::Enter};
+            std::size_t index{0};
+        };
+        std::vector<Frame> frames;
+        const auto queueTarget = [&](std::uint32_t handle, bool requireDictionary) {
+            const auto dictionary = dictionaries.find(handle);
+            if (dictionary != dictionaries.end()) {
+                if (handle == 0xCu || handle == 0xDu)
+                    return reject();
+                frames.push_back({handle, dictionary->second, nullptr, Phase::Enter, 0});
                 return true;
-            if (found->second->m_rawDataValid
-                || (!found->second->m_handleValues.empty()
-                    && std::any_of(found->second->m_handleValues.cbegin(),
-                                   found->second->m_handleValues.cend(),
-                                   [](const auto& value) {
-                                       return value.first == 0;
-                                   })))
-                return false;
-            visiting.insert(handle);
-            m_extensionXRecordHandles.push_back(handle);
-            if (found->second->xDictHandle != 0
-                && !visitDictionary(found->second->xDictHandle)) {
-                visiting.erase(handle);
-                return false;
             }
-            for (const std::uint32_t reactor : found->second->reactorHandles) {
-                if (reactor == 0) {
-                    visiting.erase(handle);
-                    return false;
-                }
-                if (linetypeHandles.count(reactor) != 0)
-                    continue;
-                // Reactors are non-owning back-references; an object already
-                // on the containment walk is present in the output closure.
-                if (visiting.count(reactor) != 0)
-                    continue;
-                if (dictionaries.count(reactor) != 0) {
-                    if (!visitDictionary(reactor)) {
-                        visiting.erase(handle);
-                        return false;
-                    }
-                } else if (xrecords.count(reactor) == 0
-                           || !visitXRecord(reactor)) {
-                    visiting.erase(handle);
-                    return false;
-                }
-            }
-            visiting.erase(handle);
-            visitedXRecords.insert(handle);
+            const auto record = xrecords.find(handle);
+            if (requireDictionary || record == xrecords.end())
+                return reject();
+            frames.push_back({handle, nullptr, record->second, Phase::Enter, 0});
             return true;
         };
-        visitDictionary = [&](std::uint32_t handle) {
-            const auto found = dictionaries.find(handle);
-            if (found == dictionaries.end() || handle == 0xCu || handle == 0xDu)
+        const auto visit = [&](std::uint32_t handle, bool requireDictionary) {
+            if (!queueTarget(handle, requireDictionary))
                 return false;
-            if (visiting.count(handle) != 0)
-                return false;
-            if (visitedDictionaries.count(handle) != 0)
-                return true;
-            if (!visiting.insert(handle).second)
-                return false;
-            if (!found->second->hasCompleteDwgEntries()
-                && !found->second->hasCompleteDxfEntries()) {
-                visiting.erase(handle);
-                return false;
-            }
-            m_extensionDictionaryHandles.push_back(handle);
-            if (found->second->xDictHandle != 0
-                && !visitDictionary(found->second->xDictHandle)) {
-                visiting.erase(handle);
-                return false;
-            }
-            for (const std::uint32_t reactor : found->second->reactorHandles) {
-                if (reactor == 0) {
-                    visiting.erase(handle);
-                    return false;
-                }
-                if (linetypeHandles.count(reactor) != 0
-                    || visiting.count(reactor) != 0)
-                    continue;
-                if (dictionaries.count(reactor) != 0) {
-                    if (!visitDictionary(reactor)) {
-                        visiting.erase(handle);
-                        return false;
+            while (!frames.empty()) {
+                Frame& frame = frames.back();
+                const DRW_TableEntry& entry = frame.dictionary != nullptr
+                    ? static_cast<const DRW_TableEntry&>(*frame.dictionary)
+                    : static_cast<const DRW_TableEntry&>(*frame.record);
+                switch (frame.phase) {
+                case Phase::Enter: {
+                    if (visiting.count(frame.handle) != 0)
+                        return reject(); // Containment/extension edge, not a reactor.
+                    const bool visited = frame.dictionary != nullptr
+                        ? visitedDictionaries.count(frame.handle) != 0
+                        : visitedXRecords.count(frame.handle) != 0;
+                    if (visited) {
+                        frames.pop_back();
+                        break;
                     }
-                } else if (xrecords.count(reactor) == 0
-                           || !visitXRecord(reactor)) {
-                    visiting.erase(handle);
-                    return false;
+                    if (m_extensionGraphStats.visitedNodes >= m_extensionGraphLimits.maxNodes)
+                        return reject(ExtensionGraphFailure::NodeLimit);
+                    ++m_extensionGraphStats.visitedNodes;
+                    if (frame.dictionary != nullptr) {
+                        // Completeness checks inspect every entry before the
+                        // DFS consumes its edge. Bound that preliminary scan.
+                        if (frame.dictionary->m_entries.size()
+                            > m_extensionGraphLimits.maxEdges - m_extensionGraphStats.examinedEdges)
+                            return reject(ExtensionGraphFailure::EdgeLimit);
+                        if (!frame.dictionary->hasCompleteDwgEntries()
+                            && !frame.dictionary->hasCompleteDxfEntries())
+                            return reject();
+                    } else {
+                        if (frame.record->m_rawDataValid)
+                            return reject();
+                        for (const auto& value : frame.record->m_handleValues) {
+                            if (!examineEdge())
+                                return false;
+                            if (value.first == 0)
+                                return reject();
+                        }
+                    }
+                    if (m_extensionGraphStats.stagedHandles >= m_extensionGraphLimits.maxStagedHandles)
+                        return reject(ExtensionGraphFailure::StagedHandleLimit);
+                    ++m_extensionGraphStats.stagedHandles;
+                    visiting.insert(frame.handle);
+                    if (frame.dictionary != nullptr)
+                        m_extensionDictionaryHandles.push_back(frame.handle);
+                    else
+                        m_extensionXRecordHandles.push_back(frame.handle);
+                    frame.phase = Phase::ExtensionDictionary;
+                    break;
+                }
+                case Phase::ExtensionDictionary:
+                    frame.phase = Phase::Reactors;
+                    if (entry.xDictHandle != 0
+                        && (!examineEdge() || !queueTarget(entry.xDictHandle, true)))
+                        return false;
+                    break;
+                case Phase::Reactors:
+                    if (frame.index < entry.reactorHandles.size()) {
+                        const std::uint32_t reactor = entry.reactorHandles[frame.index++];
+                        if (!examineEdge())
+                            return false;
+                        if (reactor == 0)
+                            return reject();
+                        // Non-owning back-edges may refer to gray containment
+                        // nodes. Both soft/hard dictionary entries remain owning.
+                        if (linetypeHandles.count(reactor) == 0 && visiting.count(reactor) == 0
+                            && !queueTarget(reactor, false))
+                            return false;
+                    } else {
+                        frame.index = 0;
+                        frame.phase = Phase::Entries;
+                    }
+                    break;
+                case Phase::Entries:
+                    if (frame.dictionary != nullptr
+                        && frame.index < frame.dictionary->m_entries.size()) {
+                        const std::uint32_t child = frame.dictionary->m_entries[frame.index++].m_handle;
+                        if (!examineEdge() || !queueTarget(child, false))
+                            return false;
+                    } else {
+                        frame.phase = Phase::Leave;
+                    }
+                    break;
+                case Phase::Leave:
+                    visiting.erase(frame.handle);
+                    if (frame.dictionary != nullptr)
+                        visitedDictionaries.insert(frame.handle);
+                    else
+                        visitedXRecords.insert(frame.handle);
+                    frames.pop_back();
+                    break;
                 }
             }
-            for (const DRW_Dictionary::Entry& entry : found->second->m_entries) {
-                if (entry.m_handle == 0)
-                    return false;
-                if (dictionaries.count(entry.m_handle) != 0) {
-                    if (!visitDictionary(entry.m_handle)) {
-                        visiting.erase(handle);
-                        return false;
-                    }
-                } else if (xrecords.count(entry.m_handle) != 0) {
-                    if (!visitXRecord(entry.m_handle)) {
-                        visiting.erase(handle);
-                        return false;
-                    }
-                } else {
-                    visiting.erase(handle);
-                    return false;
-                }
-            }
-            visiting.erase(handle);
-            visitedDictionaries.insert(handle);
             return true;
         };
 
         for (const DRW_LType& lineType : data->lineTypes) {
             if (lineType.xDictHandle != 0
-                && !visitDictionary(lineType.xDictHandle))
+                && (!examineEdge() || !visit(lineType.xDictHandle, true)))
                 return false;
             for (const std::uint32_t reactor : lineType.reactorHandles) {
-                if (reactor == 0)
+                if (!examineEdge())
                     return false;
+                if (reactor == 0)
+                    return reject();
                 if (linetypeHandles.count(reactor) != 0
                     || visiting.count(reactor) != 0)
                     continue;
-                if (dictionaries.count(reactor) != 0) {
-                    if (!visitDictionary(reactor))
-                        return false;
-                } else if (xrecords.count(reactor) == 0
-                           || !visitXRecord(reactor)) {
+                if (!visit(reactor, false))
                     return false;
-                }
             }
         }
 
@@ -1584,13 +1617,17 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data) {
         };
         for (std::uint32_t handle : m_extensionDictionaryHandles) {
             const DRW_Dictionary* dictionary = dictionaries.at(handle);
-            if (!hasParent(dictionary->parentHandle))
+            if (!examineEdge())
                 return false;
+            if (!hasParent(dictionary->parentHandle))
+                return reject();
         }
         for (std::uint32_t handle : m_extensionXRecordHandles) {
             const DRW_XRecord* record = xrecords.at(handle);
-            if (!hasParent(record->parentHandle))
+            if (!examineEdge())
                 return false;
+            if (!hasParent(record->parentHandle))
+                return reject();
             const auto isHandleCode = [](int code) {
                 return isDxfTranslatedHandleCode(code);
             };
@@ -1609,11 +1646,13 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data) {
                         || visitedXRecords.count(targetHandle) != 0;
                 };
             const auto validateHandleValue =
-                [&isHandleCode, &validateHandleTarget](
+                [&isHandleCode, &validateHandleTarget, &examineEdge](
                     const DRW_Variant& value) {
                     const int code = value.code();
                     if (!isHandleCode(code))
                         return true;
+                    if (!examineEdge())
+                        return false;
                     std::uint64_t target = 0;
                     if (value.type() == DRW_Variant::INTEGER) {
                         if (value.i_val() < 0)
@@ -1640,24 +1679,23 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data) {
             if (!record->m_dataEntries.empty()) {
                 for (const DRW_Variant& value : record->m_dataEntries) {
                     if (!validateHandleValue(value))
-                        return false;
+                        return reject();
                 }
             } else {
                 for (const DRW_Variant& value : record->m_values) {
                     if (!validateHandleValue(value))
-                        return false;
+                        return reject();
                 }
                 for (const auto& value : record->m_handleValues) {
+                    // Already counted during the bounded entry validation.
                     if (!validateHandleTarget(value.first, value.second))
-                        return false;
+                        return reject();
                 }
             }
         }
         return true;
     } catch (...) {
-        m_extensionDictionaryHandles.clear();
-        m_extensionXRecordHandles.clear();
-        return false;
+        return reject();
     }
 }
 
@@ -1722,6 +1760,13 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     }
     if (!prepareExtensionObjectGraph(cData)) {
         reportPreflightFailure("extension-object graph validation");
+        if (debug) {
+            std::cerr << "Extension graph diagnostic: " << extensionGraphFailureName()
+                      << " nodes=" << m_extensionGraphStats.visitedNodes
+                      << " edges=" << m_extensionGraphStats.examinedEdges
+                      << " staged-handles=" << m_extensionGraphStats.stagedHandles
+                      << " source-records=" << m_extensionGraphStats.sourceRecords << '\n';
+        }
         return false;
     }
     if (!cData->dataStorageSections.empty()

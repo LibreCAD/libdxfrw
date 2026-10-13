@@ -97,6 +97,14 @@ target_include_directories(libdxfrw_dwg2dxf_adapter_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
 )
 target_link_libraries(libdxfrw_dwg2dxf_adapter_tests PRIVATE dxfrw)
+add_test(NAME libdxfrw_extension_graph_limits
+    COMMAND ${CMAKE_COMMAND}
+        "-DADAPTER_TEST=$<TARGET_FILE:libdxfrw_dwg2dxf_adapter_tests>"
+        "-DDWG2DXF=$<TARGET_FILE:dwg2dxf>"
+        "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}"
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/run_extension_graph_limits_test.cmake)
+set_tests_properties(libdxfrw_extension_graph_limits PROPERTIES
+    LABELS "fast;dxf;graph;adapter;cli" TIMEOUT 30)
 add_executable(libdxfrw_block_owner_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/block_owner_tests.cpp
     ${CMAKE_SOURCE_DIR}/dwg2dxf/dx_iface.cpp)
