@@ -1,5 +1,8 @@
 #include <cstdint>
+#include <array>
+#include <algorithm>
 #include <initializer_list>
+#include <functional>
 #include <iostream>
 #include <map>
 #include <sstream>
@@ -1294,6 +1297,133 @@ void testIntegerValuedBooleanWireKinds(TestContext& t) {
                              "MLEADER integer attachment framing is complete");
             }
         }
+    }
+}
+
+std::vector<std::string> numericWireProjection(const std::string& bytes,
+                                                bool binary, bool& ended) {
+    std::istringstream input(bytes);
+    std::unique_ptr<dxfReader> reader;
+    if (binary)
+        reader = std::make_unique<dxfReaderBinary>(&input);
+    else
+        reader = std::make_unique<dxfReaderAscii>(&input);
+    std::vector<std::string> result;
+    int code = 0;
+    ended = false;
+    while (reader->readRec(&code)) {
+        std::ostringstream value;
+        value << code << ':';
+        switch (reader->type) {
+        case dxfReader::INT32:
+        case dxfReader::BOOL: value << reader->getInt32(); break;
+        case dxfReader::INT64: value << reader->getInt64(); break;
+        case dxfReader::DOUBLE: value << std::hexfloat << reader->getDouble(); break;
+        case dxfReader::STRING:
+        case dxfReader::BINARY: value << reader->getString(); break;
+        default: return {};
+        }
+        result.push_back(value.str());
+        if (code == 0 && reader->getString() == "WIRE_END") {
+            ended = true;
+            break;
+        }
+    }
+    return result;
+}
+
+void expectTypedNumericWire(TestContext& t,
+                           const std::function<bool(dxfRW&)>& emit,
+                           const std::vector<std::string>& expected,
+                           const char* family) {
+    std::vector<std::string> asciiProjection;
+    for (const bool binary : {false, true}) {
+        std::ostringstream output;
+        dxfRW owner("");
+        owner.version = DRW::AC1032;
+        owner.binFile = binary;
+        if (binary)
+            owner.writer = std::make_unique<dxfWriterBinary>(&output);
+        else
+            owner.writer = std::make_unique<dxfWriterAscii>(&output);
+        const bool written = emit(owner);
+        t.expect(written && owner.writer->writeString(0, "WIRE_END"), family);
+        bool ended = false;
+        const auto projection = numericWireProjection(output.str(), binary,
+                                                       ended);
+        t.expect(ended, "typed numeric widths preserve the following record");
+        for (const auto& tag : expected)
+            t.expect(std::find(projection.begin(), projection.end(), tag)
+                         != projection.end(),
+                     "typed numeric output retains the literal field value");
+        if (!binary)
+            asciiProjection = projection;
+        else
+            t.expect(projection == asciiProjection,
+                     "typed ASCII/binary tag order and values agree exactly");
+    }
+}
+
+void expectTypedNumericRangeRejected(
+    TestContext& t, const std::function<bool(dxfRW&)>& emit) {
+    for (const bool binary : {false, true}) {
+        std::ostringstream output;
+        dxfRW owner("");
+        owner.version = DRW::AC1032;
+        owner.binFile = binary;
+        if (binary)
+            owner.writer = std::make_unique<dxfWriterBinary>(&output);
+        else
+            owner.writer = std::make_unique<dxfWriterAscii>(&output);
+        t.expect(!emit(owner) && output.str().empty(),
+                 "unrepresentable typed I16 fails without publishing a record");
+    }
+}
+
+void testCustomTextNumericWireKinds(TestContext& t) {
+    expectTypedNumericWire(t, [](dxfRW& writer) {
+        DRW_RText text;
+        text.text = "RTEXT_AFTER_FLAGS";
+        text.m_rTextFlags = 3;
+        return writer.writeRText(&text);
+    }, {"70:3", "1:RTEXT_AFTER_FLAGS"}, "RTEXT typed numeric sentinel writes");
+    expectTypedNumericWire(t, [](dxfRW& writer) {
+        DRW_ArcAlignedText text;
+        text.text = "ARC_FLAGS";
+        text.m_rawColor = 70001;
+        text.m_characterSet = 2;
+        text.m_pitchAndFamily = 3;
+        text.m_isShx = text.m_isBold = text.m_isItalic = text.m_isUnderlined = 1;
+        text.m_alignment = 2;
+        text.m_isReverse = 1;
+        text.m_wizardFlag = 3;
+        text.m_textPosition = 2;
+        text.m_textDirection = 1;
+        return writer.writeArcAlignedText(&text);
+    }, {"90:70001", "77:2", "78:3", "79:1", "74:1", "75:1", "76:1",
+        "72:2", "70:1", "280:3", "73:2", "71:1", "210:0x0p+0"},
+       "ARCALIGNEDTEXT typed numeric sentinel writes");
+    for (const int invalid : {-32769, 65536}) {
+        expectTypedNumericRangeRejected(t, [invalid](dxfRW& writer) {
+            DRW_RText text;
+            text.m_rTextFlags = invalid;
+            return writer.writeRText(&text);
+        });
+        const std::array<int DRW_ArcAlignedText::*, 11> fields{
+            &DRW_ArcAlignedText::m_characterSet,
+            &DRW_ArcAlignedText::m_pitchAndFamily,
+            &DRW_ArcAlignedText::m_isShx, &DRW_ArcAlignedText::m_isBold,
+            &DRW_ArcAlignedText::m_isItalic, &DRW_ArcAlignedText::m_isUnderlined,
+            &DRW_ArcAlignedText::m_alignment, &DRW_ArcAlignedText::m_isReverse,
+            &DRW_ArcAlignedText::m_wizardFlag,
+            &DRW_ArcAlignedText::m_textPosition,
+            &DRW_ArcAlignedText::m_textDirection};
+        for (const auto field : fields)
+            expectTypedNumericRangeRejected(t, [invalid, field](dxfRW& writer) {
+                DRW_ArcAlignedText text;
+                text.*field = invalid;
+                return writer.writeArcAlignedText(&text);
+            });
     }
 }
 
@@ -6138,6 +6268,7 @@ int main() {
     testDxfBinaryRawBoundaryReplay(context);
     testViewFlagWireKinds(context);
     testIntegerValuedBooleanWireKinds(context);
+    testCustomTextNumericWireKinds(context);
     testDxfBinaryRawSectionCaptureReplay(context);
     testDxfBinaryRawObjectCaptureReplay(context);
     testDxfRawObjectHandleScope(context);
