@@ -2404,7 +2404,7 @@ bool dxfRW::validateHatchPayload(const DRW_Hatch *ent) const {
         case DRW::SPLINE: {
             const auto *spline = dynamic_cast<const DRW_Spline*>(value.get());
             return spline != nullptr
-                && spline->validatePayloadFields(/*allowMixedLists=*/true);
+                && spline->validateHatchBoundaryDxf();
         }
         default:
             return false;
@@ -4599,7 +4599,12 @@ bool dxfRW::writeHatch(DRW_Hatch *ent){
                         writer->writeInt16(72, 4);
                             DRW_Spline* sp = (DRW_Spline*)loop->objlist.at(j).get();
                         writer->writeInt32(94, sp->degree);
-                            const bool rational = (sp->flags & 0x4) != 0;
+                            // Unlike standalone SPLINE, HATCH emits weights
+                            // only when its rational flag is set. Infer that
+                            // wire flag for every supplied complete array so
+                            // even a nearly-unit weight is never discarded.
+                            const bool rational = (sp->flags & 0x4) != 0
+                                || !sp->weightlist.empty();
                             const bool periodic = (sp->flags & 0x2) != 0;
                         writer->writeInt16(73, rational ? 1 : 0);
                         writer->writeInt16(74, periodic ? 1 : 0);
@@ -4613,9 +4618,8 @@ bool dxfRW::writeHatch(DRW_Hatch *ent){
                                 if (!cp) continue;
                             writer->writeDouble(10, cp->x);
                             writer->writeDouble(20, cp->y);
-                                if (rational) {
-                                    double w = (k < sp->weightlist.size()) ? sp->weightlist[k] : 1.0;
-                                writer->writeDouble(42, w);
+                                if (!sp->weightlist.empty()) {
+                                writer->writeDouble(42, sp->weightlist[k]);
                                 }
                             }
                         writer->writeInt32(97, static_cast<int>(sp->fitlist.size()));
@@ -4799,7 +4803,10 @@ bool dxfRW::writeMPolygon(DRW_MPolygon *ent){
                         writer->writeInt16(72, 4);
                         DRW_Spline* sp = (DRW_Spline*)loop->objlist.at(j).get();
                         writer->writeInt32(94, sp->degree);
-                        const bool rational = (sp->flags & 0x4) != 0;
+                        // MPOLYGON uses the same boundary spline grammar and
+                        // must not drop supplied weights when flag 4 is clear.
+                        const bool rational = (sp->flags & 0x4) != 0
+                            || !sp->weightlist.empty();
                         const bool periodic = (sp->flags & 0x2) != 0;
                         writer->writeInt16(73, rational ? 1 : 0);
                         writer->writeInt16(74, periodic ? 1 : 0);
@@ -4812,9 +4819,8 @@ bool dxfRW::writeMPolygon(DRW_MPolygon *ent){
                             if (!cp) continue;
                             writer->writeDouble(10, cp->x);
                             writer->writeDouble(20, cp->y);
-                            if (rational) {
-                                double w = (k < sp->weightlist.size()) ? sp->weightlist[k] : 1.0;
-                                writer->writeDouble(42, w);
+                            if (!sp->weightlist.empty()) {
+                                writer->writeDouble(42, sp->weightlist[k]);
                             }
                         }
                         writer->writeInt32(97, static_cast<int>(sp->fitlist.size()));

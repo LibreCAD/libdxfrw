@@ -10252,6 +10252,256 @@ bool runDxfSplineImplicitUnitWeights(bool binary,
     return valid;
 }
 
+bool runDxfHatchSplineWeights(bool binary,
+                              const std::filesystem::path& directory,
+                              bool keepOutput) {
+    const std::string encoding = binary ? "binary" : "ascii";
+    const double quarterWeight = std::sqrt(0.5);
+    const std::vector<double> knots {0, 0, 0, 1, 1, 1};
+    const auto makeBoundary = [&](bool mpolygon, int variant) {
+        DRW_Hatch* hatch = mpolygon
+            ? static_cast<DRW_Hatch*>(new DRW_MPolygon()) : new DRW_Hatch();
+        hatch->handle = 0xA0u + static_cast<std::uint32_t>(variant);
+        hatch->name = "SOLID";
+        hatch->solid = 1;
+        // Weight output qualification is deliberately non-associative. The
+        // separate handle-remapping slice owns exported boundary330 closure.
+        hatch->associative = 0;
+        hatch->basePoint.z = 5.0;
+        hatch->extPoint = DRW_Coord(0.0, 0.6, 0.8);
+        auto loop = std::make_shared<DRW_HatchLoop>(17);
+        auto spline = std::make_shared<DRW_Spline>();
+        spline->degree = 2;
+        spline->flags = variant < 2 ? 4 : 0;
+        spline->knotslist = knots;
+        spline->controllist = {
+            std::make_shared<DRW_Coord>(1.0, 0.0, 0.0),
+            std::make_shared<DRW_Coord>(1.0, 1.0, 0.0),
+            std::make_shared<DRW_Coord>(0.0, 1.0, 0.0)};
+        if (variant != 0 && variant != 5)
+            spline->weightlist = {1.0, variant == 2 ? quarterWeight
+                : variant == 3 ? 1.0 - 1e-13 : 1.0, 1.0};
+        auto line = std::make_shared<DRW_Line>();
+        line->basePoint = DRW_Coord(0.0, 1.0, 0.0);
+        line->secPoint = DRW_Coord(1.0, 0.0, 0.0);
+        loop->objlist = {spline, line};
+        loop->update();
+        hatch->appendLoop(loop);
+        return hatch;
+    };
+    const auto validBoundary = [&](const DRW_Hatch& hatch,
+                                    const std::vector<double>& weights,
+                                    bool rational = true,
+                                    bool associative = true) {
+        if (hatch.associative != (associative ? 1 : 0) || hatch.basePoint.z != 5.0
+            || hatch.extPoint.x != 0.0 || hatch.extPoint.y != 0.6
+            || hatch.extPoint.z != 0.8 || hatch.looplist.size() != 1u)
+            return false;
+        const auto& loop = hatch.looplist.front();
+        if (!loop || loop->type != 17 || loop->objlist.size() != 2u
+            || loop->m_boundaryHandles != (associative
+                ? std::vector<std::uint32_t>{0xB0u} : std::vector<std::uint32_t>{}))
+            return false;
+        const auto* spline = dynamic_cast<const DRW_Spline*>(loop->objlist[0].get());
+        const auto* line = dynamic_cast<const DRW_Line*>(loop->objlist[1].get());
+        if (!spline || !line || spline->degree != 2
+            || spline->flags != (rational ? 4 : 0)
+            || spline->knotslist != knots || spline->controllist.size() != 3u
+            || spline->weightlist != weights
+            || line->basePoint.x != 0.0 || line->basePoint.y != 1.0
+            || line->secPoint.x != 1.0 || line->secPoint.y != 0.0)
+            return false;
+        // Independent quadratic Bernstein evaluation, not a libdxfrw curve
+        // evaluator. Omitted group 42 is precisely the explicit-unit curve.
+        double x = 0.0, y = 0.0, denominator = 0.0;
+        for (std::size_t i = 0; i != 3u; ++i) {
+            if (!spline->controllist[i]
+                || spline->controllist[i]->x != (i == 2u ? 0.0 : 1.0)
+                || spline->controllist[i]->y != (i == 0u ? 0.0 : 1.0)
+                || spline->controllist[i]->z != 0.0)
+                return false;
+            const double factor = (i == 1u ? 0.5 : 0.25)
+                * (weights.empty() ? 1.0 : weights[i]);
+            x += factor * spline->controllist[i]->x;
+            y += factor * spline->controllist[i]->y;
+            denominator += factor;
+        }
+        const bool quarter = weights.size() == 3u && weights[1] == quarterWeight;
+        const double expected = quarter ? quarterWeight
+            : weights.size() == 3u && weights[1] != 1.0
+                ? (0.25 + 0.5 * weights[1]) / (0.5 + 0.5 * weights[1]) : 0.75;
+        return std::abs(x / denominator - expected) < 1e-12
+            && std::abs(y / denominator - expected) < 1e-12;
+    };
+    const auto writeLiteral = [&](const std::filesystem::path& path,
+                                   bool mpolygon, int variant) {
+        std::ofstream stream(path, std::ios::binary | std::ios::trunc);
+        if (binary)
+            stream.write("AutoCAD Binary DXF\r\n\032\0", 22);
+        std::unique_ptr<dxfWriter> tags;
+        if (binary)
+            tags = std::make_unique<dxfWriterBinary>(&stream);
+        else
+            tags = std::make_unique<dxfWriterAscii>(&stream);
+        tags->setVersion("AC1027", true);
+        tags->writeString(0, "SECTION"); tags->writeString(2, "HEADER");
+        tags->writeString(9, "$ACADVER"); tags->writeString(1, "AC1027");
+        tags->writeString(0, "ENDSEC");
+        tags->writeString(0, "SECTION"); tags->writeString(2, "ENTITIES");
+        tags->writeString(0, mpolygon ? "MPOLYGON" : "HATCH");
+        tags->writeString(5, "A0");
+        tags->writeString(100, "AcDbEntity"); tags->writeString(8, "0");
+        tags->writeString(100, mpolygon ? "AcDbMPolygon" : "AcDbHatch");
+        tags->writeDouble(10, 0.0); tags->writeDouble(20, 0.0);
+        tags->writeDouble(30, 5.0);
+        tags->writeDouble(210, 0.0); tags->writeDouble(220, 0.6);
+        tags->writeDouble(230, 0.8); tags->writeString(2, "SOLID");
+        tags->writeInt16(70, 1); tags->writeInt16(71, 1);
+        tags->writeInt32(91, 1); tags->writeInt32(92, 17);
+        tags->writeInt32(93, 2); tags->writeInt16(72, 4);
+        tags->writeInt32(94, variant == 6 ? 3 : 2);
+        tags->writeInt16(73, variant == 8 ? 0 : 1);
+        tags->writeInt16(74, 0);
+        tags->writeInt32(95, variant == 5 ? 4 : 6);
+        tags->writeInt32(96, 3);
+        // Control/weight pairs before knots are legitimate; validate only
+        // when the edge is complete, not upon seeing the declared counts.
+        for (std::size_t i = 0; i != 3u; ++i) {
+            tags->writeDouble(10, i == 2u ? 0.0 : 1.0);
+            tags->writeDouble(20, i == 0u ? 0.0 : 1.0);
+            if (variant != 0 && !(variant == 4 && i == 2u))
+                tags->writeDouble(42, i == 1u && (variant == 2 || variant == 8)
+                    ? quarterWeight : 1.0);
+        }
+        for (std::size_t i = 0; i != (variant == 5 ? 4u : 6u); ++i)
+            tags->writeDouble(40, knots[i]);
+        const int fits = variant == 3 ? 3 : variant == 7 ? 1 : variant == 9 ? 2 : 0;
+        tags->writeInt32(97, fits);
+        for (int i = 0; i != (variant == 9 ? 1 : fits); ++i) {
+            tags->writeDouble(11, i == 2 ? 0.0 : 1.0);
+            tags->writeDouble(21, i == 0 ? 0.0 : 1.0);
+        }
+        if (fits != 0) {
+            tags->writeDouble(12, 0.0); tags->writeDouble(22, 1.0);
+            tags->writeDouble(13, -1.0); tags->writeDouble(23, 0.0);
+        }
+        tags->writeInt16(72, 1);
+        tags->writeDouble(10, 0.0); tags->writeDouble(20, 1.0);
+        tags->writeDouble(11, 1.0); tags->writeDouble(21, 0.0);
+        tags->writeInt32(97, 1); tags->writeString(330, "B0");
+        tags->writeInt16(75, 0); tags->writeInt16(76, 1);
+        tags->writeInt32(98, 0);
+        tags->writeString(0, "LINE"); tags->writeString(5, "B0");
+        tags->writeString(100, "AcDbEntity"); tags->writeString(8, "0");
+        tags->writeString(100, "AcDbLine");
+        // Associated source line is the return edge in WCS for this OCS.
+        tags->writeDouble(10, 0.0); tags->writeDouble(20, 2.2);
+        tags->writeDouble(30, 4.6); tags->writeDouble(11, -1.0);
+        tags->writeDouble(21, 3.0); tags->writeDouble(31, 4.0);
+        tags->writeString(0, "ENDSEC"); tags->writeString(0, "EOF");
+        return !tags->hasWriteError() && stream.good();
+    };
+    bool valid = true;
+    std::error_code ec;
+    for (bool mpolygon : {false, true}) {
+        const std::string family = mpolygon ? "mpolygon" : "hatch";
+        for (int variant = 0; variant != 10; ++variant) {
+            const auto input = directory / ("libdxfrw-" + family + "-spline-input-"
+                + encoding + "-" + std::to_string(variant) + ".dxf");
+            const bool written = writeLiteral(input, mpolygon, variant);
+            dx_data imported;
+            dx_iface reader;
+            const bool read = written && reader.fileImport(input.string(), &imported, false);
+            const bool negative = variant >= 4 && variant != 7;
+            bool matches = negative ? !read && imported.mBlock->ent.empty()
+                : read && imported.mBlock->ent.size() == 2u;
+            if (matches && !negative) {
+                const auto* hatch = dynamic_cast<const DRW_Hatch*>(imported.mBlock->ent.front());
+                const std::vector<double> weights = variant == 0 ? std::vector<double>{}
+                    : std::vector<double>{1.0, variant == 2 ? quarterWeight : 1.0, 1.0};
+                matches = hatch && hatch->eType == (mpolygon ? DRW::MPOLYGON : DRW::HATCH)
+                    && validBoundary(*hatch, weights);
+                if (matches && (variant == 3 || variant == 7)) {
+                    const auto* spline = dynamic_cast<const DRW_Spline*>(
+                        hatch->looplist.front()->objlist.front().get());
+                    matches = spline && spline->fitlist.size() == (variant == 3 ? 3u : 1u)
+                        && spline->tgStart.y == 1.0 && spline->tgEnd.x == -1.0;
+                }
+            }
+            if (!matches)
+                std::cerr << family << " spline literal variant " << variant
+                          << " failed (" << encoding << ") read=" << read << '\n';
+            valid = matches && valid;
+            if (!keepOutput || negative)
+                std::filesystem::remove(input, ec);
+        }
+        const auto output = directory / ("libdxfrw-" + family
+            + "-spline-output-" + encoding + ".dxf");
+        dx_data source;
+        for (int variant = 0; variant != 6; ++variant)
+            source.mBlock->ent.push_back(makeBoundary(mpolygon, variant));
+        auto* boundarySource = new DRW_Line();
+        boundarySource->handle = 0xB0u;
+        boundarySource->basePoint = DRW_Coord(0.0, 2.2, 4.6);
+        boundarySource->secPoint = DRW_Coord(-1.0, 3.0, 4.0);
+        source.mBlock->ent.push_back(boundarySource);
+        dx_iface writer;
+        const bool written = writer.fileExport(output.string(), DRW::AC1027,
+                                               binary, &source, false);
+        auto original = source.mBlock->ent.cbegin();
+        bool sourceUnchanged = true;
+        for (int i = 0; i != 6; ++i, ++original) {
+            const auto* hatch = static_cast<const DRW_Hatch*>(*original);
+            const auto* spline = static_cast<const DRW_Spline*>(
+                hatch->looplist.front()->objlist.front().get());
+            sourceUnchanged = sourceUnchanged && spline->flags == (i < 2 ? 4 : 0);
+        }
+        dx_data reopened;
+        dx_iface reader;
+        bool matches = written && sourceUnchanged
+            && reader.fileImport(output.string(), &reopened, false)
+            && reopened.mBlock->ent.size() == 7u;
+        auto entity = reopened.mBlock->ent.cbegin();
+        for (std::size_t i = 0; matches && i != 6u; ++i, ++entity) {
+            const auto* hatch = dynamic_cast<const DRW_Hatch*>(*entity);
+            const std::vector<double> weights = i == 0 || i == 5 ? std::vector<double>{}
+                : std::vector<double>{1.0, i == 2 ? quarterWeight
+                    : i == 3 ? 1.0 - 1e-13 : 1.0, 1.0};
+            matches = hatch && validBoundary(*hatch, weights, i != 5, false);
+        }
+        if (!matches)
+            std::cerr << family << " spline writer lost optional/nonunit weights ("
+                      << encoding << ") written=" << written << '\n';
+        valid = matches && valid;
+        if (!keepOutput)
+            std::filesystem::remove(output, ec);
+        // Preflight must reject a partial array, not silently fill it with units.
+        for (int corruption = 0; corruption != 4; ++corruption) {
+            dx_data invalid;
+            auto* hatch = makeBoundary(mpolygon, 1);
+            auto* spline = static_cast<DRW_Spline*>(hatch->looplist[0]->objlist[0].get());
+            if (corruption == 0) spline->weightlist.pop_back();
+            else if (corruption == 1) spline->knotslist.pop_back();
+            else if (corruption == 2) spline->degree = 3;
+            else spline->weightlist[1] = std::numeric_limits<double>::quiet_NaN();
+            invalid.mBlock->ent.push_back(hatch);
+            const auto rejected = directory / ("libdxfrw-" + family
+                + "-spline-rejected-" + encoding + ".dxf");
+            std::filesystem::remove(rejected, ec);
+            dx_iface exporter;
+            const bool rejectedCleanly = !exporter.fileExport(rejected.string(),
+                DRW::AC1027, binary, &invalid, false)
+                && !std::filesystem::exists(rejected);
+            if (!rejectedCleanly)
+                std::cerr << family << " spline model corruption " << corruption
+                          << " was not rejected transactionally\n";
+            valid = rejectedCleanly && valid;
+            std::filesystem::remove(rejected, ec);
+        }
+    }
+    return valid;
+}
+
 bool runDxfSplineHelixRoundTrip(bool binary,
                                const std::filesystem::path& directory,
                                bool keepOutput) {
@@ -13038,6 +13288,12 @@ int main(int argc, char** argv) {
            failures);
     expect(runDxfSplineImplicitUnitWeights(true, directory, keepOutputs),
            "local DXF binary SPLINE implicit and explicit unit weights agree",
+           failures);
+    expect(runDxfHatchSplineWeights(false, directory, keepOutputs),
+           "local DXF ASCII HATCH/MPOLYGON spline optional weights and bounded layouts",
+           failures);
+    expect(runDxfHatchSplineWeights(true, directory, keepOutputs),
+           "local DXF binary HATCH/MPOLYGON spline optional weights and bounded layouts",
            failures);
     expect(runDxfSplineHelixRoundTrip(false, directory, keepOutputs),
            "local DXF ASCII SPLINE fit/control and HELIX semantic round-trip",

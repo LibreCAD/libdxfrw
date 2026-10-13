@@ -2035,6 +2035,36 @@ bool isValidFitSplineLayout(int degree, std::int32_t fitCount) {
            fitCount >= 2;
 }
 
+bool isValidSplinePayloadData(const DRW_Spline& spline) {
+    const auto finite = [](double value) { return std::isfinite(value); };
+    const auto finiteCoord = [&finite](const DRW_Coord& point) {
+        return finite(point.x) && finite(point.y) && finite(point.z);
+    };
+    const auto validCount = [](std::size_t count) {
+        return count <= static_cast<std::size_t>(kMaxSplineItems)
+            && count <= static_cast<std::size_t>(
+                std::numeric_limits<std::int32_t>::max());
+    };
+    const auto validPointList = [&finiteCoord, &validCount](const auto& points) {
+        return validCount(points.size())
+            && std::all_of(points.cbegin(), points.cend(),
+                           [&finiteCoord](const auto& point) {
+                               return point != nullptr && finiteCoord(*point);
+                           });
+    };
+    return isValidSplineDegree(spline.degree)
+        && spline.flags >= 0 && spline.flags <= 0xFFFF
+        && finiteCoord(spline.normalVec) && finiteCoord(spline.tgStart)
+        && finiteCoord(spline.tgEnd) && finite(spline.tolknot)
+        && finite(spline.tolcontrol) && finite(spline.tolfit)
+        && validCount(spline.knotslist.size())
+        && std::all_of(spline.knotslist.cbegin(), spline.knotslist.cend(), finite)
+        && validCount(spline.weightlist.size())
+        && std::all_of(spline.weightlist.cbegin(), spline.weightlist.cend(), finite)
+        && validPointList(spline.controllist) && validPointList(spline.fitlist)
+        && spline.weightlist.size() <= spline.controllist.size();
+}
+
 bool differsFromUnitWeight(double weight) {
     return std::fabs(weight - 1.0) > 1e-12;
 }
@@ -14755,11 +14785,13 @@ bool DRW_Hatch::validateCurrentSplineDxf() const {
         && spline->fitlist.size()
             != static_cast<std::size_t>(m_dxfSplineFitCountExpected))
         return false;
-    if (spline->flags & 0x4)
-        return m_dxfSplineControlCountExpected < 0
-            || spline->weightlist.size()
-                == static_cast<std::size_t>(m_dxfSplineControlCountExpected);
-    return spline->weightlist.empty();
+    // This is called only at an edge/path boundary, after legitimately
+    // interleaved control points, weights, knots and optional fit data have
+    // arrived. Reuse the complete spline layout/finite-value checks, including
+    // rejection of nonempty partial weight arrays. HATCH group 42 can be
+    // omitted even for rational edges: all missing weights then mean 1.
+    return spline->validateHatchBoundaryDxf()
+        && ((spline->flags & 0x4) != 0 || spline->weightlist.empty());
 }
 
 bool DRW_Hatch::validateCurrentPatternLineDxf() const {
@@ -15950,35 +15982,8 @@ bool DRW_Spline::validateDxf() const {
 }
 
 bool DRW_Spline::validatePayloadFields(bool allowMixedLists) const {
-    const auto finite = [](double value) { return std::isfinite(value); };
-    const auto finiteCoord = [&finite](const DRW_Coord& point) {
-        return finite(point.x) && finite(point.y) && finite(point.z);
-    };
-    const auto validCount = [](std::size_t count) {
-        return count <= static_cast<std::size_t>(kMaxSplineItems)
-            && count <= static_cast<std::size_t>(
-                std::numeric_limits<std::int32_t>::max());
-    };
-    const auto validPointList = [&finiteCoord, &validCount](const auto& points) {
-        return validCount(points.size())
-            && std::all_of(points.cbegin(), points.cend(),
-                           [&finiteCoord](const auto& point) {
-                               return point != nullptr && finiteCoord(*point);
-                           });
-    };
-
-    if (!isValidSplineDegree(degree)
-        // AutoCAD 2013+ fit spline flags include bits 32 and 1024.
-        || flags < 0 || flags > 0xFFFF
-        || !finiteCoord(normalVec) || !finiteCoord(tgStart)
-        || !finiteCoord(tgEnd) || !finite(tolknot)
-        || !finite(tolcontrol) || !finite(tolfit)
-        || !validCount(knotslist.size())
-        || !std::all_of(knotslist.cbegin(), knotslist.cend(), finite)
-        || !validCount(weightlist.size())
-        || !std::all_of(weightlist.cbegin(), weightlist.cend(), finite)
-        || !validPointList(controllist) || !validPointList(fitlist)
-        || weightlist.size() > controllist.size())
+    // AutoCAD 2013+ fit spline flags include bits 32 and 1024.
+    if (!isValidSplinePayloadData(*this))
         return false;
 
     // The DWG body has disjoint control-point and fit-point scenarios.  When
@@ -15993,6 +15998,21 @@ bool DRW_Spline::validatePayloadFields(bool allowMixedLists) const {
             && isValidFitSplineLayout(
                    degree, static_cast<std::int32_t>(fitlist.size()));
     if (!fitlist.empty())
+        return isValidFitSplineLayout(
+            degree, static_cast<std::int32_t>(fitlist.size()));
+    return isValidControlSplineLayout(
+        degree, static_cast<std::int32_t>(knotslist.size()),
+        static_cast<std::int32_t>(controllist.size()));
+}
+
+bool DRW_Spline::validateHatchBoundaryDxf() const {
+    if (!isValidSplinePayloadData(*this)
+        || (!weightlist.empty() && weightlist.size() != controllist.size()))
+        return false;
+    // HATCH fit data are auxiliary when a complete control/knot definition
+    // exists; a single auxiliary fit point does not invalidate that curve.
+    // With no controls, retain the existing fit-only structural contract.
+    if (controllist.empty())
         return isValidFitSplineLayout(
             degree, static_cast<std::int32_t>(fitlist.size()));
     return isValidControlSplineLayout(

@@ -2536,6 +2536,8 @@ private:
 */
 class DRW_Spline : public DRW_Entity {
     SETENTFRIENDS
+    // HATCH/MPOLYGON boundary splines reuse the completed DXF payload checks.
+    friend class DRW_Hatch;
 public:
     DRW_Spline() {
         eType = DRW::SPLINE;
@@ -2610,6 +2612,7 @@ protected:
     void resetDwgState();
     bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) override;
     [[nodiscard]] bool validatePayloadFields(bool allowMixedLists = false) const;
+    [[nodiscard]] bool validateHatchBoundaryDxf() const;
     virtual bool validateDxf() const;
     virtual bool parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs=0) override;
     [[nodiscard]] virtual bool encodeDwg(DRW::Version version, dwgBufferW *buf, std::uint32_t bs=0, dwgBufferW *strBuf=nullptr, dwgBufferW *handleBuf=nullptr) override;
