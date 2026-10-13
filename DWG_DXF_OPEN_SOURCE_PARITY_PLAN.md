@@ -1,10 +1,10 @@
 # DWG/DXF open-source implementation comparison and fix plan
 
-**Status:** Implementation active; 62 findings tracked, with research, isolated implementation, integration and qualification states kept separate. Focused implementation does not promote support or close external qualification.
+**Status:** Implementation active after expanded research; 71 findings tracked, with research, isolated implementation, integration and qualification states kept separate. Focused implementation does not promote support or close external qualification.
 
 **Original baseline:** `547b808` (`codex/pr100-clean`)
 
-**Local research revisions:** original semantic review `196d2b0`; broader snapshot `c429ff7`; current composed-workflow review `8306162`. Current implementation progress is authoritative in the ledger below. Branch `codex/dwg-dxf-open-source-parity`.
+**Local research revisions:** original semantic review `196d2b0`; broader snapshot `c429ff7`; composed-workflow review `8306162`; latest research at `42caf961c1fe35a04413c24824cd7f1d3a3997ff` plus the explicitly recorded staged MPOLYGON metadata split. Current implementation progress is authoritative in the ledger below. Branch `codex/dwg-dxf-open-source-parity`.
 
 **Live upstream checked:** `d68fb1ed937ad2a74a54f6208277ec10a1b031b0` (`master`, 2026-10-13); integrated by `cae9590`
 
@@ -22,7 +22,7 @@
 | Slice 0 upstream reconciliation | COMMITTED | `cae9590`: fetched and merged `d68fb1e`, retaining upstream #103/#104 and local 7A/7I. Conflicts came from equivalent pre-squash history; reviewed final source deltas against both parents. Focused hardening/Wave1/DXF-fixtures/DWG-fixtures/local-roundtrip pass 5/5 in 6.28s. Receipt binding remains invalidated pending refresh; no native/support promotion. |
 | Slice 0.1 fixture admission | COMMITTED | `59eef4b`: numeric-v1 schema adaptation with strict aliases/types/provenance; default scan reads registry and payload blobs from the index, NUL-delimited literal paths, excludes deletions and rejects symlink/unmerged entries. Dependency-free temporary-repository self-test passes (index/worktree/registry disagreements, missing worktree, odd paths, archive and symlink negatives); actual tracked registry/staged scan passes. No fixture admitted or user sample changed. |
 | Slice 1 public claims | COMMITTED | `Plan-Slice: 1`: README baseline DXF wording is now implemented/experimental, with explicit per-version/family evidence boundary. Metadata validator passes 15 claims, 2 candidate routes, 0 advertised routes; no qualification promoted. |
-| Slice 4 thin independent DXF lane | ISOLATED_WIP / READY_RECHECK | ezdxf 1.4.4/Python 3.12 provisioned; dependency-free self-test passes and 1.4.3 is rejected. Initial raw-owner failures led to committed 7G.1. Correct the excluded invalid spline generator's explicit degree, then rerun all routes on current main before integrating the off-by-default, non-promoting runner. Full resource closure remains separate. |
+| Slice 4 thin independent DXF lane | MAIN_WIP / PROCESS_PENDING | Corrected explicit-degree source, strict decoding, generator eligibility and scoped comparison preview match16/16 routes with zero source/output/repeated audit findings. This is not an integrated lane or receipt. A retained-descendant probe exposes the threaded capture's4.054s delay despite0.25s timeout; isolated bounded helper7daa4c0 has seven macOS POSIX controls, not native Windows evidence. Integrate helper and bounded file/hash/tag admission for this generated lane; require bounded oracle-worker isolation before broader/untrusted inputs. Rebind final converter/helper digests. Full resource closure remains separate. |
 | 7A handle roles | COMMITTED | `403013c`: shared lexical/self/arbitrary/pointer/owner policy; 320–329 bypass remapping and closure checks, including wide arbitrary values. Six red ASCII/binary matrix assertions reproduced first. Raw, application, typed XRECORD, section, XDATA-reference and converter closure controls pass: Wave 1 + DXF fixtures, 2/2 in 0.71s. |
 | 7B XRECORD grammar | COMMITTED | `2fb759c`, integrated worker `5158c7c` onto current master. R14 payload, R2000+ explicit-zero header, repeated body 280, omitted-header and duplicate-marker controls pass; unknown-source 280 remains application data. DXF/hardening 2/2 in 0.77s, then unknown-version control passes DXF fixtures 1/1 in 0.32s. Worker six ordinary ezdxf projections remain supplemental, not receipts. |
 | 7C XRECORD replay | COMMITTED / GRAPH_PENDING | `32f0cf3`, from worker `2e96d08` after 18 reproduced guard failures. Source-version/immutable-record snapshot guards reject byte/prefix/identity/common-link/cloning edits and clearing raw-valid without explicit reset. Main object-vectors/local-roundtrip pass 2/2 in 2.17s; lc3_compat_check builds. Same-version raw and typed cross-version controls pass; rejected output preserves destination. Whole-document target closure/remapping remains with 7G/7R (7C.2); this does not qualify arbitrary opaque cloning. |
@@ -58,6 +58,9 @@
 | 7P.4 common typed-object carriers | COMMITTED | `Plan-Slice: 7P.4`, integrates `c78faed`: 33 routes use one common-metadata helper before subclasses, replacing six manual routes and preserving existing positives/trailing XDATA. Main Wave1/DXF fixtures/local-roundtrip/graph pass4/4 in2.16s; 132 carrier combinations and closed-graph controls retained. Four worker ordinary-reader projections are supplemental. Generated named/image carriers and object-specific edges remain7P.5/7G; no support promotion. Next ready7P.5a/7AJ. |
 | 7P.5a generated named carriers | COMMITTED / GRAPH_PENDING | `Plan-Slice: 7P.5a`, integrates `2ad96be`: generated named DICTIONARY/GROUP paths now emit common metadata before subclasses and XDATA afterward. Main Wave1/DXF/local pass3/3; carrier-only empty-GROUP control avoids an invalid reciprocity assumption while separate legacy member mapping stays tested. Worker four ordinary projections are supplemental; full GROUP/NOD identity/reciprocity, dictionary roles and IMAGEDEF remain7G/7P.5b/c. No support promotion. Next ready7AJ/7Y.1/7AI. |
 | 7AJ polygon-mesh subclass | COMMITTED | `Plan-Slice: 7AJ`, integrates `ffc3463`: ordinary flag16 now emits AcDbPolygonMesh, preserving64-first and8|16 compatibility. Main local/3D probes pass2/2 and lc3 source-check builds. Non-square/closure/incomplete/surface-fit, WCS/caller-state and repeated raw-marker controls retained; worker40 raw/32 ordinary projections are supplemental, with mixed flags explicitly excluded from normative agreement. No DWG layout/support promotion. Next ready7Y.1/7Z.1. |
+| 7Z metadata split | STAGED / NOT_COMMITTED | Safe pixel47/seed98/10/20 split22b0a72 is staged in four main files and builds; main acceptance/commit remains unfinished. This research does not complete or commit it. Edge/source arrays and inherited API behavior remain unchanged. |
+| Isolated integration queue | READY / NOT_MAIN | 7AI417001dd, 7AK.1b26b5cd8, 7AK.2eb5969d3 and 7O9ad79b41 are preserved isolated commits. 7G.2 STYLE-only WIP passes isolated focused/repeat controls but remains uncommitted in its clone. Worker results must be reviewed/rechecked on main; Conan, native Windows and general graph/semantic support remain unqualified. |
+| Broader preservation / attribution review | PLAN_UPDATED / NONPROMOTING | Adds PAR-63–71: ordered table XDATA, cross-encoding XDATA text, specialized BLOCK/ENDBLK/XREF preservation, LAYER field policy, shared runtime attribution, package license delivery, ARC_DIMENSION flags, common clone elevation and anonymous dimension-block placement. Main-generated controls and ODA page review are separated from source-only leads; VIEWPORT wrong-type edges enrich existing PAR-40. Staged source, fixtures, support metadata and remote state are preserved. |
 | PAR-25 / PAR-27 / PAR-33 research controls | REPRODUCED | Locally authored ASCII inputs and rebuilt CLI: valid wide self handle rejected with exit 1/no output; `$ACADMAINTVER=70001` becomes 0 with exit 0; output STYLE/VPORT owners differ from their table handles. ezdxf 1.4.4 ordinary reads confirm the scoped observations. |
 
 Each implementation commit appends its focused validation result and remaining
@@ -418,6 +421,90 @@ existing local document links, balanced code fences and clean whitespace.
 No full CTest suite, dependency install, fixture admission or remote write was
 needed for this documentation refresh.
 
+### Broader preservation and runtime-attribution review at `42caf96`
+
+This research turn preserves the already-staged MPOLYGON pixel/seed work in
+`src/libdxfrw.cpp`, `tests/CMakeLists.txt`,
+`tests/dwg_local_roundtrip_tests.cpp` and `docs/3D_CONSUMER_CONTRACT.md`, plus
+the untracked thin runner. It changes only this plan. The live upstream check
+still resolves `d68fb1e`; no rebase, remote write, fixture admission or full
+format suite is part of this pass. Research against a dirty build is advisory:
+the actual CLI SHA-256 is
+`dc022c9bf507d2b8c43f30bdc16cbcece69e87ca126f6d2689b99809fc21bfa3`,
+not an inferred clean-HEAD receipt.
+
+| Control / review | Observation | Evidence boundary |
+| --- | --- | --- |
+| Locally generated R2018 LAYER and LINE, two registered applications and seven distinct1010–1013 points, ASCII/binary | Both CLI conversions exit0; LAYER retains one point with the last point's coordinates, losing the other six and original coordinate kinds. LINE retains all seven. Fresh source/output audits each report0/0. | Executed main defect PAR-63; ordered typed tags are compared without treating ASCII numeric whitespace as a semantic difference. |
+| Locally generated R2004 CP1252/CP1251 XDATA1000 plus TEXT, ASCII/binary | Four same-version routes preserve the scoped strings with source/output audits0/0. Four R2007 upgrades exit0 but strict ordinary output reads fail on legacy bytes in the UTF-8 drawing. Sources audit0/0. | Executed main defect PAR-64 at the encoding boundary, not a claim that every string or same-version route fails. |
+| R2007 named BLOCK/ENDBLK metadata and separate XREF, ASCII/binary | CLI exits0/audits0/0. BLOCK layer becomes0, description/XDATA disappear, base102 groups survive in the wrong subclass scope with stale links; ENDBLK metadata disappears. XREF flag4 survives but its path becomes empty. | Executed main defect PAR-65; distinguishes omission from scope/identity corruption. No XREF file is fetched. |
+| R2007 paper VIEWPORT with frozen layer, named UCS and nonrectangular clipping entity | CLI exits0/audits0/0.331 keeps a missing layer identity;345 resolves to VPORT rather than UCS;340 resolves to LAYER rather than clipping entity. Ordinary ezdxf drops the unresolved frozen-layer name before audit. | Executed expansion of PAR-40/7G.2/3, not a new duplicate finding. Existence-only graph validation is insufficient. |
+| Deliberately malformed LAYER controls:62=0/256/-256 or370=-1/-2 | Main accepts and emits all five; ezdxf ordinary loading retains them and its source audit reports0/0 although its explicit layer validators reject them. | PAR-66 writer-policy/validation reproduction; invalid sources are excluded from valid-input interoperability denominators. No native application rejection was run. |
+| Shared FreeCAD harness / installed artifacts | Executable hashing permits install-time RPATH rewriting but does not bind the loaded libdxfrw; inherited loader overrides are not isolated for its converter child. A fresh isolated static install contains no license file. | Source-confirmed PAR-67 and executed installation/source-confirmed PAR-68; no wrong-library native run or actual Conan execution. |
+| ODA specification §20.4.19 and §20.4.22, visual/text review of complete pages123,125–126 | ARC_DIMENSION's subclass flags disagree with local DXF member routing. Common DIMENSION elevation is not assigned to cloneZ; anonymous picture-block scale/rotation are consumed and replaced by defaults on write. | Source/spec-confirmed PAR-69–71; dedicated red byte/field controls still required. No DWG byte-layout code changed. |
+
+Root generators and hash-bound reports remain under
+`/private/tmp/libdxfrw-broad-research.YDUqF8`; block/VIEWPORT source-only recipes
+and executed projections from locally generated inputs remain under
+`/private/tmp/libdxfrw-table-resources.veulJk`. No drawing payload was committed.
+The initial research command incorrectly used the unsupported CLI spelling
+`-v2018`; it was corrected to the existing `input -o output` source-version
+route before observing conversion results. Such harness errors never count as
+library failures. Preserve reproducible recipes in focused tests when fixing
+the findings; temporary runtime artifacts are not qualification receipts.
+
+**Oracle/specification corrections**
+
+- [Autodesk XDATA](https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-A2A628B0-3699-4740-A215-C560E7242F63.htm)
+  makes repetition, ordering and coordinate roles material. The existing7K
+  writer validation is not a substitute for a reader that retains every point.
+  [String storage](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm)
+  and [ezdxf's encoding contract](https://ezdxf.readthedocs.io/en/stable/dxfinternals/fileencoding.html)
+  require a version-aware text representation, not legacy bytes relabelled UTF-8.
+- A zero audit does not establish validity, even without recovery: the
+  [pinned VIEWPORT loader](https://github.com/mozman/ezdxf/blob/dd7f6cc34983fdbf0b2b910f2497e0720d06dd16/src/ezdxf/entities/viewport.py)
+  removes missing frozen-layer targets during ordinary load. Keep raw target
+  type/role and pre-load projections alongside peer semantics. The malformed
+  LAYER controls show a different blind spot: no automatic repair occurs.
+- The isolated7O independent clone12/oblique52 controls are raw-only where
+  the peer's subclass model disagrees with the primary aligned-dimension
+  table. Do not move valid tags merely to satisfy that peer. ARC optional
+  leader semantics were excluded from7O, so PAR-69 remains open independently.
+- Large-radial point order is a reconciliation task, not a proven new defect:
+  the retained ODA27.1.0 producer trace disagrees with the older generic table.
+  Preserve the current path until exact bytes/scenario resolve it. A zero-jog
+  fixture cannot qualify nonzero jog angles. Similarly, ezdxf's R2018 ARC
+  subtype8 lead needs primary/producer evidence before changing subtype bits.
+- [LibreDWG issue1415](https://github.com/LibreDWG/libredwg/issues/1415)
+  and [pinned CMC code](https://github.com/LibreDWG/libredwg/blob/f860b0fb76d5f8effb5a70769a3389cb1e0308c8/src/bits.c)
+  expose a color-comparison hazard. Its later author comment retracts the
+  first suggested fix. Do not port either patch blindly or use palette-derived
+  RGB as an exact ACI oracle; compare stored method/index/RGB independently.
+  This is peer-source review, not a locally executed LibreDWG defect or a
+  newly demonstrated libdxfrw CMC defect.
+
+**Readiness and cost:** review preserved isolated commits rather than rebuild
+their fixes from scratch. Serially integrate shared writers/adapter changes;
+run only each affected focused target and one small independent projection.
+One clean test-inventory refresh follows settled registrations. Converter
+process caps do not cover in-process oracle loading/audit or whole-file reads:
+7AH.6 below bounds those separately before broader corpus use. Native/shared
+runtime binding and actual Conan checks remain at their affected platform/
+package gates. J256/J260/J268/J284/J293/J295 remain `DEFERRED_EXTERNAL` and
+cannot promote support claims.
+
+**Latest research validation:** strict normalizer/differential self-tests pass;
+claim validation still reports15 claims/two candidates/zero advertised routes.
+Index-bound fixture admission and external-fixture-hook checks pass without
+admitting payloads. Structural checks pass71 ordered unique findings,41 unique
+subplan headings, local links and balanced fences; whitespace is clean.
+Research report checks distinguish the two point-loss routes, four same-version
+text positives and four upgrade failures. Independent plan QA corrected the
+mirrored ARC hardening test, runtime-only package gate, controlled loader route
+and reproduced-versus-source-only VIEWPORT scope. The pre-existing staged
+diff digest and untracked thin-runner digest are unchanged; only this plan is
+edited unstaged. No full format suite or dependency install was required.
+
 ## Historical baseline corrections and checks
 
 - The current build requests **C++17** (`CMakeLists.txt:49,73`), while the
@@ -702,6 +789,15 @@ revision unless a live-upstream correction is named explicitly.
 | **PAR-60** | P2 | Source-confirmed / isolated-output-reproduced polygon-mesh subclass mismatch: flag16 parent `src/libdxfrw.cpp:4402` emits AcDb3dPolyline while vertices emit AcDbPolygonMeshVertex. Pinned peers emit AcDbPolygonMesh; ezdxf accepts the inconsistent output using flags. Existing topology tests omit the parent-marker assertion. | Implement narrow 7AJ after retaining the primary class/peer evidence: fix the mesh parent marker, preserve other POLYLINE modes, add non-square/closure/raw-marker controls. Incomplete grids are permitted by primary documentation; do not add an unjustified M×N equality rejection. No ordinary-reader/native failure is claimed. |
 | **PAR-61** | P1 | Executed install-interface mismatch: `libdxfrw.pc.in:1–4` bakes configure-time full paths. Plain pkg-config3.0.8 after `cmake --install --prefix` reports `/usr/local`, contrary to README's plain-command/relocation claim. `tools/check_staged_package.py:337–356,446–470` always supplies `--define-prefix`, masking this path. | Implement 7AK.1: derive relocatable relative layout, explicitly handle absolute install destinations and test plain consumer flags plus compile/link/run after overridden-prefix and moved installs. Retain explicit-override tests as additional coverage, not the only acceptance path. |
 | **PAR-62** | P2 | Source-confirmed Conan consumer-header mismatch, with equivalent installed-header compile reproduction: `conanfile.py:55–58` leaves includedirs at `include`; CMake installs/exposes `include/libdxfrw`. `#include <libdxfrw.h>` fails under the default path. No `test_package` exists; Conan is not installed locally. | Implement 7AK.2: explicit consumer include metadata, C++17 validation and a tiny CMakeDeps test_package using the canonical target. Run actual static/shared Conan consumer checks when the tool is available; do not relabel the compile probe as `conan create` success. |
+| **PAR-63** | P1 | Executed ordered table-XDATA loss: main ASCII/binary conversions collapse seven1010–1013 points in two APPID groups into one1010 with the final coordinates; LINE control retains all seven, audits0/0. `DRW_TableEntry::parseCode`, `src/drw_objects.cpp:2311–2363`, reuses `curr` across complete points/application boundaries. | Implement7AL.1 before claiming7K completeness: explicit point lifecycle/code family, ordered tuple preservation and malformed-pair policy, without overwriting earlier points. Test table/entity, repeated same/mixed kinds and two APPIDs, not only type-valid writer variants. |
+| **PAR-64** | P1 | Executed XDATA text upgrade failure: four R2004 CP1252/CP1251 ASCII/binary sources audit0/0, CLI upgrades exit0, strict R2007 output reads reject legacy bytes. Same-version controls pass. Entity/table parsers retain string bytes via `getString`; `writeExtData` treats them as UTF-8. | Implement7AL.2's explicit semantic-text/source-encoding contract; transcode1000/1001/1003 once, preserve binary/control/handle roles, and distinguish raw replay. Add version/codepage transition controls and transactional unsupported-text policy; do not close it by allowing surrogateescape. |
+| **PAR-65** | P1 | Executed specialized BLOCK/ENDBLK loss: main `writeBlock`, `src/libdxfrw.cpp:8141–8162`, hardcodes layer0/path empty, misplaces102 groups and omits XDATA/description. `processBlock` consumes an ENDBLK carrier but publishes only `endBlock()`, losing footer metadata. ASCII/binary outputs audit0/0 despite these losses. | Implement7AM: narrow BLOCK fields/base scope first, then an additive footer retention/writer contract, followed by7G root/identity closure. Preserve distinct BLOCK_RECORD/BLOCK/ENDBLK identities and source-compatible legacy callbacks. Do not fetch external XREF files. |
+| **PAR-66** | P2 | Executed LAYER policy gap: all five malformed inheritance controls are emitted successfully; `validatePayloadFields`/`validateDxf`, `src/drw_objects.cpp:6665–6688`, admits color0/±256 and layer lineweightByLayer/ByBlock. Pinned ezdxf's explicit validators reject them but ordinary loading/audit reports no repairs. | Implement7AN with layer-specific writer validation and explicit tolerant-reader policy. Retain valid signed on/off colors, true-color fallback index and entity ByLayer/ByBlock positives. Confirm any producer exception rather than globally adopting peer repair behavior. |
+| **PAR-67** | P1 | Source-confirmed shared native attribution gap: `tests/run_freecad_installed_3d_line_test.cmake:72–86` hashes only executable, allows RPATH rewrite and inherits loader overrides188–223. Shared wrapper/macros bind no installed/resolved libdxfrw content. An executable digest alone does not identify the shared implementation. No wrong-library FreeCAD run executed. | Implement7AO: isolate only converter-child loader overrides in a labelled controlled harness route, bind installed/resolved library bytes and loader-relevant environment, negative same-SONAME shadow control, then existing shared native tests at the platform gate. Keep natural inherited-env evidence, FreeCAD bootstrap dependencies and platform-specific evidence distinct. |
+| **PAR-68** | P2 | Executed fresh static-install scan contains no COPYING/LICENSE; `CMakeLists.txt:753–807` has no license rule. `conanfile.py:24–32` exportsCOPYING as source but package51–53 only calls `cmake.install`. Actual Conan unavailable. | Implement7AK.4: deliver existing COPYING for runtime and development installs/Conan and verify exact content in the staged-package checker. This is package-content readiness, not a legal-compliance conclusion or semantic-support claim. |
+| **PAR-69** | P1 | Source/spec-confirmed ARC_DIMENSION mapping error: `src/drw_entities.cpp:21097–21098` maps subclass70 to `arcSymbol`,71 to `isPartial`; `src/libdxfrw.cpp:5165–5170` mirrors it and may substitute extension points for leaders. ODA§20.4.19 p123 and pinned ezdxf assign70 partial/71 leader. Dedicated red control pending. | Implement7AA.3 without deleting/repurposing public `arcSymbol`: independent partial/leader fields, distinct leader points, all four combinations and repeat CLI. Keep version subtype and leader-frame qualification separately unresolved. |
+| **PAR-70** | P1 | Source/spec-confirmed common DWG DIMENSION loss: parser `src/drw_entities.cpp:20231–20235` forces cloneZ=0 although ODA§20.4.22 p125–126 shares the decoded elevation with ECS clone point12. TextZ retains that elevation. No dedicated byte reproduction yet. | Implement7O.2 after a generated red control: restore shared elevation without reading another DWG coordinate; test zero/nonzero/tilted normals and both actual read modes. Preserve mixed WCS/OCS meaning and2D adapter ownership. |
+| **PAR-71** | P2 | Source-confirmed anonymous dimension-picture placement loss: common DWG parser20158–20199 consumes scale/rotation into ignored state; encoder20873–20875 replaces them with unit scale/zero. ODA§20.4.22 p125–126 distinguishes this from insertion translation and reuses DXF41/42 in other scopes. Producer byte witness pending. | Implement7O.3 additive state/reset/copy and same-version DWG preservation, then producer-backed DXF translation or explicit loss disposition. Do not blindly emit41/42 over spacing/measurement or claim picture rendering/association from retained fields. |
 
 ## Implementation slices
 
@@ -713,23 +809,24 @@ and next unblocked step; do not mark a parent complete from one partial fix.
 
 ### Execution order and readiness
 
-The progress ledger supersedes historical queues: 7X.3/4/5, 7G.0/1,
-7AB/7AF, 7P.2 and 7AD are committed, in addition to the earlier fixes.
-Research-only work preserves isolated commits/WIP; it does not cherry-pick them.
-The implementation continuation has repaired the dependency-free 7AH.1–4
-comparator contract; retain its new strict/default-v2 and historical-v1 gates.
-Next review/integrate 7P.4, 7Y.1 and 7Z.1 as separate
-slices. Split the unreviewed 7Z.2 rejection policy from pixel/seed retention.
-Recheck the thin Slice4 lane with corrected generators and 7AH semantics;
-then complete 7G.2/3 resource/root closure, 7P.5 source identities and 7AI
-bounded traversal rather than declaring full graph support. 7AJ's marker fix
-and 7AK's package metadata are independently implementable. Share builds,
-not ownership of the same production file. Then complete canonical attributes
-(7M/7E), gradient semantics (7Q), DIMENSION frames (7O) and 7AA annotations.
-7K still supplies application-data rules for 7J and older MTEXT linkage;
-7F/7G plus 7R close converter callbacks/graphs/associations. Safety 7S and narrow
-loss guards can proceed independently. Shared writers and `dx_iface.*` are
-integrated sequentially, not edited concurrently in the primary checkout.
+The progress ledger supersedes historical queues: 7P.4/5a,7Y.1,7Z.1,7AJ
+and strict/default-v2 comparison are now committed in addition to earlier
+7X/7G.0/1/7AB/7AF/7P.2/7AD work. Do not redo these fixes. This research-only
+turn preserves staged/untracked work and isolated commits without integrating.
+
+On implementation resumption: finish the staged safe7Z metadata split, then
+review/recheck isolated7AI,7AK.1/2 and7O.1 commits independently. Integrate
+bounded process/oracle work7AH.5/6 and rebind the16 thin routes. Refreeze the
+clean default test inventory once registrations settle. In parallel isolated
+checkouts, reproduce/fix7AL XDATA,7AM BLOCK,7AA.3 ARC flags and7AN LAYER policy;
+these do not need broad external/native qualification first.7AL supplies data
+retention before7K structured rules/7J overrides;7AM supplies block carriers
+before7G.3 complete roots. Preserve STYLE-only7G.2 WIP, then extend typed
+resources to VIEWPORT targets and IMAGEDEF7P.5b. Complete7M/7E,7Q,7AA.1/2,
+7O.2/3 and7G.3→7R with their own small gates. Package license7AK.4 is independent;
+shared runtime7AO stays at the affected install/native gate. No unavailable
+Conan/native/ACIS cell blocks unrelated work. Integrate shared writers and
+`dx_iface.*` serially; share builds, not simultaneous ownership of one file.
 
 | Sub-slice | Current readiness | Main dependency | Smallest existing validation lane |
 | --- | --- | --- | --- |
@@ -747,7 +844,7 @@ integrated sequentially, not edited concurrently in the primary checkout.
 | 7L — header widths/preservation | COMMITTED / PARTIAL | 7L.1 narrow 90 complete; group 160/handles/unknowns/custom properties still queued | Wave1 and exact ASCII/binary maintenance CLI tests |
 | 7M — canonical embedded attributes/loss | REPRO_READY | merged #103, 7D; share 7E scopes | `libdxfrw_hardening`, `libdxfrw_dxf_fixtures`, CLI |
 | 7N — HATCH spline weights | COMMITTED | completed bounded weights/auxiliary fits; MPOLYGON grammar remains 7Z | `libdxfrw_dwg_local_roundtrip`, independent edge point |
-| 7O — dimension coordinate frames | REPRO_READY | direct-reader geometry capture; complement 7J | `libdxfrw_dxf_fixtures`, independent dimension fields |
+| 7O.1/2/3 — dimension frames/placement | ISOLATED_READY / REPRO_PENDING |9ad79b41 normal/CLI subtype retention ready; common clone elevation and picture scale/rotation still separate | local/DXF/3D/repeat CLI, raw-only peer-excluded fields; DWG red vectors for2/3 |
 | 7P — common scope/owners/resources | COMMITTED / PARTIAL | 7P.1/2/4 committed; generated/named/image7P.5 and typed resources remain | DXF fixtures, complete ordered tags, carrier matrix then closed graph |
 | 7Q — gradient DXF types/versions | REPRO_READY | Slice 2 classifier as guard, not disputed-range resolution | `libdxfrw_wave1`, `libdxfrw_dwg_local_roundtrip` |
 | 7R — associative boundary references | REPRO_READY | 7A/7G, planned entity identities | `libdxfrw_graph_preservation`, CLI graph vector |
@@ -767,9 +864,13 @@ integrated sequentially, not edited concurrently in the primary checkout.
 | 7AF — zero-fit HATCH tangent state | COMMITTED | separate spline-fit and loop-boundary counts; whole-zero absence policy unchanged | literal/API ASCII/binary, zero/one fit and successive edges |
 | 7AG.1/2 — current consumer contracts | SOURCE_CONFIRMED / SUB-SLICES | exact LC3 pin/source mirror first; typed/raw retention identity contract separately | source compile + callback transcript, then consumer edit/save graph |
 | 7AH — semantic comparator contract | COMMITTED / THIN_PENDING | 7AH.1–4 default-v2 migration complete; thin runner16-route/process integration remains7AH.5 | normalizer/differential mutation self-tests; two main CTests |
-| 7AI — bounded graph walk | SOURCE_CONFIRMED / DESIGN_READY | reuse 7G handle roles/roots; no DWG byte-layout changes | adapter limit-boundary / cycle tests, unchanged destination |
+| 7AI — bounded graph walk | ISOLATED_READY |417001dd iterative/budget controls; review/recheck main, no DWG byte-layout changes | adapter limit-boundary / cycle tests, unchanged destination |
 | 7AJ — polygon-mesh subclass | COMMITTED | ordinary flag16 marker fixed; vertex/grid and compatibility policy unchanged | local/3D main probes; raw-marker/mode controls retained |
-| 7AK.1/2 — installed package interfaces | REPRODUCED / TOOL_PARTIAL | pkg-config runtime available; Conan execution remains named optional gate | staged-package plain flags/consumer; actual Conan test_package separately |
+| 7AK.1/2/4 — installed package interfaces | ISOLATED_READY / TOOL_PARTIAL |b26b5cd8/eb5969d3 ready; license delivery newly queued, actual Conan remains pending | staged-package plain flags/consumer/license; actual Conan test_package separately |
+| 7AL.1/2 — ordered/text XDATA | REPRODUCED / READY | reuse table/entity variants and7K boundaries; no new dependency | DXF fixtures, seven-point/two-APPID and codepage/version sentinels |
+| 7AM.1/2 — BLOCK/ENDBLK carriers | REPRODUCED / API_DESIGN | BLOCK fields/base scope first; additive footer hook then7G closure | source-only ASCII/binary repeat CLI, exact ordered carrier tags |
+| 7AN — LAYER field policy | REPRODUCED / POLICY_SCOPED | explicit malformed-input disposition; preserve entity inheritance | DXF fixture/API writer negatives, signed-color positives |
+| 7AO — shared runtime attribution | SOURCE_CONFIRMED / GATE_READY | installed library binding and converter-child environment | tiny shadow-library negative, existing shared native open/insert once |
 
 `REPRO_READY` means the source path and a small reproduction are identified;
 it does not mean the reproduction ran or the defect was repaired. Promote each
@@ -1268,6 +1369,17 @@ Split implementation to keep a small critical path:
    controls. [Autodesk DIMSTYLE](https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-F2FAD36F-0CE3-4943-9DAD-A9BCD2AE81DA.htm)
    and [pinned LibreCAD deferred arrow-block resolution](https://github.com/LibreCAD/LibreCAD/blob/17cc6a5ae35354eb3e8ec38545a2d5dc298ea146/librecad/src/lib/filters/rs_filterdxfrw.cpp#L33318)
    provide primary grammar and a related-consumer pattern, respectively.
+   Add the reproduced VIEWPORT composition explicitly:331 frozen LAYER,345
+   named UCS and340 clipping boundary must resolve to the intended typed
+   target, not merely an existing numeric handle. Retain UCS/VIEW callbacks
+   through7F where needed; adapter no-ops cannot satisfy the graph. Exercise
+   paper-layout owner, nonrectangular boundary flag, forward callback order,
+   reserved collisions and repeated conversion. Record raw331 before ordinary
+   loading because the peer may erase an unresolved frozen-layer name.
+   [Primary VIEWPORT fields](https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-2602B0FB-02E4-4B9A-B03C-B1D904753D34.htm)
+   define the target roles; do not normalize them into untyped pointer sets.
+   Add346 base-UCS as source-backed coverage still to reproduce; the executed
+   named-UCS control does not establish that cell.
 3. **7G.3 complete roots/layouts:** retain LAYOUT/BLOCK_RECORD metadata, NOD and
    supported object closures, then compose HATCH associations via 7R. Reject
    unresolved explicit source owners in complete CLI conversion before atomic
@@ -1461,9 +1573,13 @@ claim producer-supported MPOLYGON edge export or fill behavior from 7N.
 
 ### 7O — Preserve DIMENSION coordinate frames
 
-**Scope:** PAR-31, complementary to 7J; shared dimension parser, per-subtype
+**Scope:** PAR-31/70/71, complementary to 7J/7AA.3; shared dimension parser, per-subtype
 delivery and semantic adapter. [Autodesk's dimension fields](https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-EDD54EAC-A339-4EBA-AEA6-EC8066505E2B.htm)
 distinguish WCS definition points from OCS text/clone/arc points.
+
+**7O.1 — DXF normals and delivery:** isolated9ad79b41 is ready for review/main
+recheck, not reinvention. Its worker5/5 focused tests and source-compile pass
+are not main or native evidence. Preserve explicit peer-excluded raw fields.
 
 Parse 210/220/230 once without altering unrelated points. Add aligned and
 angular cases with +Z omitted, reflected -Z and oblique `(0,.6,.8)` normals;
@@ -1475,6 +1591,28 @@ ASCII/binary and the CLI. Extend the adapter beyond opaque/basic dimensions.
 computed world text positions match the documented field contract; no double
 projection by LibreCAD. DXF fixtures + one independent dimension projection;
 no new dimension rendering engine or global coordinate conversion is implied.
+
+**7O.2 — DWG clone elevation (PAR-70):** first generate an aligned dimension
+with text/cloneZ=4, distinctXY and an oblique normal, encode AC1015 DWG, and
+inspect the decoded fields through both real read modes and DXF export. The
+expected red assertion is cloneZ=0 versus the common decoded elevation4;
+retain zero-elevation and reflected-normal controls. ODA§20.4.22, complete
+printed/PDF pages125–126, supplies one elevation for the ECS fields: restore
+that value, do not read an extra Z coordinate or move the following cursor.
+Run local-roundtrip/object-vector plus the affected3D/2D delivery controls.
+Authentic later-version producer/independent semantics remain separate.
+
+**7O.3 — anonymous picture-block scale/rotation (PAR-71):** before changing
+encoding, capture a nondefault producer/local byte witness with distinctXYZ
+scale and rotation and verify the exact version's ODA stream. Add narrowly
+named state with identity defaults, reset/copy/move and finite validation;
+retain source same-version DWG values instead of writing unit/zero defaults.
+Keep this distinct from clone translation, text rotation and insertion point.
+First acceptance is field/byte preservation with unchanged subsequent fields,
+not successful picture rendering. Resolve DXF scope/version representation
+before translation: generic41/42 already carry line spacing/measurement.
+Unsupported nondefault conversion needs an explicit transactional disposition;
+producer evidence and native rendering must not be inferred from a self-round-trip.
 
 ### 7P — Repair symbol-table scopes, owners and resource edges
 
@@ -1512,9 +1650,10 @@ identify plotstyle/material references.
    does not independently fix all object-specific typed pointers or CLI routes.
 5. **7P.5a generated named DICTIONARY/GROUP carriers:** cover `writeObjects`
    routes separately from the direct typed writers. Reuse common base metadata
-   exactly once and retain trailing XDATA. The isolated three-file WIP is not
-   committed/main-complete; repair its reciprocal GROUP source control before
-   acceptance. Preplan source GROUP→emitted identities before ENTITIES so member
+   exactly once and retain trailing XDATA. Carrier-only7P.5a is now committed;
+   retain its corrected empty-GROUP control and separate member-mapping test.
+   Complete reciprocal nonempty GROUP graphs before graph acceptance.
+   Preplan source GROUP→emitted identities before ENTITIES so member
    reactors and GROUP340 links resolve both ways. An unresolved member in a
    complete conversion must not be silently dropped merely to avoid dangling
    handles; keep any legacy lossy API behavior explicitly scoped.
@@ -1836,7 +1975,7 @@ but cannot qualify MPOLYGON rendering or general HATCH-equivalent semantics.
 
 ### 7AA — Repair annotation meaning separately from binary framing
 
-**Scope:** PAR-45/46, complementary to 7F/7G/7J/7O. Complete each mini-slice
+**Scope:** PAR-45/46/69, complementary to 7F/7G/7J/7O. Complete each mini-slice
 independently; read the applicable ODA chapter before any DWG-body change.
 
 **7AA.1 — DIMASSOC field mapping**
@@ -1869,6 +2008,31 @@ independently; read the applicable ODA chapter before any DWG-body change.
 3. Cover block-label indices/handles, style/resource links and context overrides
    in the annotation route inventory, but do not expand this fix into a text
    renderer or speculative annotation rewrite.
+
+**7AA.3 — ARC_DIMENSION subclass flags (PAR-69)**
+
+1. Reproduce70 partial versus71 leader independently: all four Boolean
+   combinations, distinct extension/leader points and a following entity.
+   Use literal subclass-local tags, not a self-writer that mirrors the error.
+   ODA§20.4.19 p123 and
+   [pinned ezdxf](https://github.com/mozman/ezdxf/blob/dd7f6cc34983fdbf0b2b910f2497e0720d06dd16/src/ezdxf/entities/dimension.py#L904)
+   agree on the fields. Malformed literal integers need a deliberately scoped
+   read-policy diagnostic/disposition; this mapping fix does not reject an
+   unrelated public `arcSymbol` value such as3.
+2. Route DXF70 to `isPartial`,71 to `hasLeader`, preserve distinct leader
+   coordinates and emit the same meanings. Do not delete or repurpose public
+   `arcSymbol`; its display policy belongs to dimension-style/override research,
+   not this Boolean mapping. Audit copy/reset and DWG→DXF delivery without
+   changing the already-distinct DWG flags or introducing another bit read.
+   Migrate `tests/hardening_tests.cpp:2814–2828`, whose copied parser-state test
+   currently authors70=3 and asserts the incorrect `arcSymbol` routing. Use
+   valid independent0/1 flag controls; retain `arcSymbol` copy/move coverage
+   through direct API assignment instead of treating the mirrored test as a
+   normative compatibility rule. Include the existing hardening focused target.
+3. Run ASCII/binary API and two actual CLI conversions/third read after7O.1's
+   subtype retention. Check literal fields and peer projection before audit.
+   Keep optional leader coordinate-frame, R2018 subtype8 versus5 and producer
+   rendering/association qualification outside this bounded fix until resolved.
 
 **Acceptance / fast gate:** literal ASCII/binary fields, independent decoded
 meaning where the comparator models it, version-boundary/loss negatives and
@@ -2121,6 +2285,23 @@ the first commit. Reuse the existing normalization/runner contracts where safe.
    `qualificationEligible:false`, no automatic dependency install and no
    committed/admitted drawing payload artifacts. Scratch inputs/outputs outside
    Git are permitted. A peer's own-source audit bug is not a library mismatch.
+   Review isolated7daa4c0 before integration: kill owned process descendants on
+   success/error, cap stdout/stderr and test retained log handles after parent
+   exit, timeout and output overflow. Threaded pipe readers with a blocking
+   close/join are not a bounded implementation. Its seven macOS POSIX tests
+   do not qualify Windows Job Objects; keep capability failures explicit.
+6. **7AH.6 oracle resource boundary:** converter timeout/log caps do not bound
+   hashing, tag loading, ordinary reading or audit in the parent. Add an
+   explicit small drawing-byte limit before each generated source/output1/
+   output2 read, chunked hashes and limit−1/limit/limit+1 controls. Use strict
+   result JSON and name source-generator versus converter-output over-budget
+   failures separately. Check growth/replacement across validation/read/hash;
+   a pre-read `stat` alone is not a durable size/identity guarantee. Before
+   admitting broad/untrusted corpus inputs, isolate projection/audit in a
+   bounded worker with its own timeout and platform resource/capability
+   disposition. Do not call a5ms capture-size poll a hard disk quota or the
+   child timeout an absolute OS-process-creation deadline. Preserve logs and
+   non-promoting scope; do not build another generic oracle framework.
 
 **Fast gate:** dependency-free normalizer/differential self-tests plus negative
 mutation controls. Then only the four thin families × four encoding routes on
@@ -2243,9 +2424,180 @@ not DWG/DXF semantic qualification.
   remain relevant. No binary-ABI or native-platform claim follows from a mirror
   compile or CMake export flag; keep J platform dispositions unchanged.
 
+**7AK.4 — license material in installed packages (PAR-68)**
+
+Install the existing tracked `COPYING` in a documented package data/license
+location even when development headers are disabled; do not create a new
+license or infer a license change. Ensure Conan's resulting package contains
+it, either through the shared CMake install policy or explicit recipe copying.
+Exporting it into Conan's source cache is not package delivery, as
+[Conan's package guidance](https://docs.conan.io/2/tutorial/creating_packages/package_method.html#use-conan-tools-files-copy-in-the-package-method-and-packaging-licenses)
+distinguishes. Extend the staged-package checker with existence and exact
+source-content digest assertions for runtime-only/development and moved-prefix
+installs. Runtime-only profiles require license/manifest checks; the tiny
+compile/link consumer runs in the development-enabled profile. Reuse that
+existing checkpoint; no CAD/format suite is
+needed. Actual Conan package inspection remains TOOL_PENDING until executed;
+this check is not a comprehensive legal-compliance assessment.
+
 **Fast gate:** staged-package self-tests and the tiny installed consumer. Run
 actual Conan/native/shared variants once at the affected package/platform gate,
 not after every format-field edit; record unavailable tools explicitly.
+
+### 7AL — Preserve ordered XDATA points and versioned text
+
+**Scope:** PAR-63/64; `DRW_TableEntry::parseCode`, the entity counterpart,
+`writeExtData`, existing variants/codecs and focused DXF tests. Complements7K's
+structured APPID/brace/size rules and7S's resource accounting; it is not another
+XRECORD parser or a global DWG layout change.
+
+**7AL.1 — explicit coordinate lifecycle**
+
+1. Turn the valid research recipe into a source-only regression: seven
+   distinct points across two APPIDs, repeated1010 and mixed1011/1012/1013,
+   interleaved text and signed coordinates, on LAYER and LINE. Add STYLE or
+   another inherited table route to prove the shared-base fix. Verify complete
+   ordered typed tags and callback variants before/after ASCII/binary output.
+2. Replace the reusable `curr` behavior with one point identity per new X
+   marker; bind Y/Z to that point's code family and end its lifetime on
+   completion/application/noncoordinate boundary. Never mutate a completed
+   earlier tuple or carry it into the next APPID. Define tolerated component
+   order/incomplete-point behavior explicitly before tightening legacy reads;
+   malformed/duplicate/mismatched components get a deliberate diagnostic or
+   bounded rejection, not silent merging. Retain original vector order.
+3. Exercise incomplete/truncated pairs, next record/operation reuse and copied
+   objects so no parser-owned pointer survives a reset. Run the existing DXF
+   fixture target and one independent seven-point projection. No new binary
+   fixture, broad matrix or native application is required for this fix.
+
+**7AL.2 — semantic strings versus encoded/raw bytes**
+
+1. Preserve four same-version positive controls and four failing R2004→R2007
+   CP1252/CP1251 ASCII/binary cases. Inspect actual emitted revision and encoding,
+   not requested argv alone. Add UTF-8→legacy and mixed text/layer-name1003
+   boundary controls, plus escaped Unicode, before declaring conversion complete.
+2. Pin the public variant contract: textual1000/1001/1003 should reach the
+   existing codec/writer as semantic UTF-8, decoded exactly once.1002 controls,
+   1004 bytes/hex and1005 handles must not undergo text transcoding. Audit DWG
+   EED publication and existing caller-created UTF-8 variants to avoid double
+   conversion. If exact raw-string preservation is needed, bind its bytes to
+   source version/codepage and explicit replay/mutation rules rather than
+   silently treating a STRING as both UTF-8 and arbitrary legacy bytes.
+3. Apply encoded-byte limits after the selected conversion, retain structured
+   APPID/reference roles through7K/7G and make unrepresentable-text policy
+   observable before complete CLI publication. Keep library tolerant reading
+   available. Strict independent ordinary reads must succeed without
+   surrogateescape/recovery for this semantic scope; same-version byte retention
+   alone is not cross-version text correctness.
+
+**Acceptance / fast gate:** DXF fixtures/Wave1 where shared variants change,
+ordered per-APPID points/strings, unaffected binary/control/handle payloads and
+destination preservation on rejected conversion. Commit points and text as
+separate slices; neither waits for missing legacy-codepage support in Slice3.
+
+### 7AM — Preserve specialized BLOCK and ENDBLK carriers
+
+**Scope:** PAR-65; specialized core writers/parsers and converter storage.
+Reuse7P's common scope and7G's identity plan; `writeEntity` fixes do not cover
+routes bypassing that helper. [BLOCK fields](https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-66D32572-005A-4E23-8B8B-8726E8C14302.htm),
+[BLOCKS/XREF grammar](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-9DDFC343-6C87-4AF8-B3B9-77E0AB5A3031.htm)
+and [ENDBLK](https://help.autodesk.com/cloudhelp/2019/ENU/AutoCAD-DXF/files/GUID-27F7CC8A-E340-4C7F-A77F-5AF139AD502D.htm)
+define distinct records, common data and external-path storage.
+
+1. **7AM.1 BLOCK fields/base scope:** retain explicit layer names (including0),
+   XREF relative path, description and trailing XDATA. Add description storage/
+   parsing with reset/copy behavior; the current BLOCK model lacks that field.
+   Put retained app/reactor/xDict groups in
+   base scope exactly once. Test named/anonymous/fixed-space blocks separately,
+   unchanged base point/flags and an INSERT reference. Preserve both shared
+   block identity and source-versus-minted handles. Resolve historical
+   description/version behavior with producer controls; ezdxf's R2000 gate
+   alone does not justify rejecting earlier inputs or inventing consensus.
+   Initial XDATA carrier tests are same-version; cross-version text acceptance
+   depends on7AL.2 rather than merely emitting retained bytes.
+2. **7AM.2 footer contract:** decide an additive optional ENDBLK-carrier callback/
+   retained-state writer path before implementing it. Keep existing pure
+   `endBlock()` invocation exactly once and balanced, new callbacks non-pure,
+   and callers without metadata compatible. Do not attach ENDBLK self handle,
+   layer, appData or XDATA to BLOCK/BLOCK_RECORD. Core-generated footers must
+   consume a retained carrier once, not serialize a second footer. Add missing/
+   duplicate/unbalanced footer controls and reset/copy/operation-reuse coverage;
+   rebuild LibreCAD/LC3 source adapters when this contract changes.
+   Retain full common footer metadata, including reactors/xDict, and route fixed
+   model/paper-space carriers through generated headers/footers too. Preplan
+   distinct BLOCK_RECORD/BLOCK/ENDBLK identities before any reference emission.
+3. **7AM.3 closure composition:** discover roots from both delimiters, translate
+   typed reactor/extension edges through7G and preserve arbitrary320 values.
+   Use valid closed source graphs and two conversions/third read; reject
+   unresolved explicit links transactionally. Base-scope relocation alone does
+   not close the graph. XREF path retention never authorizes network access,
+   external-file loading or embedding customer drawings.
+
+**Fast gate:** existing DXF fixtures/adapter/graph targets plus one generated
+ASCII/binary repeat-CLI recipe. Inspect raw records before ordinary load/audit;
+retain BLOCK_RECORD units/layout links as a separate7G.3 requirement.
+Reuse existing `libdxfrw_block_owners`, ASCII/binary block-owner CLI, rejection
+CLI and image-path controls as adjacent regressions. Dedicated BLOCK-metadata/
+VIEWPORT repeat-CLI tests are new work, not already passing registrations.
+
+### 7AN — Separate LAYER validation from entity inheritance
+
+**Scope:** PAR-66; DXF-specific structured writer validation and read-policy
+diagnostics. [Primary LAYER fields](https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-D94802B0-8BE8-4AC9-8054-17197688AFDB.htm)
+and [pinned explicit validators](https://github.com/mozman/ezdxf/blob/dd7f6cc34983fdbf0b2b910f2497e0720d06dd16/src/ezdxf/entities/layer.py)
+are context references, not evidence of native acceptance/rejection.
+
+1. Add direct-API writer negatives for color0/±256 and layer lineweightByLayer/
+   ByBlock, retaining signed±1/±255, default/numeric lineweights and true-color
+   controls. Contrast valid entity ByLayer/ByBlock values so the change cannot
+   globally tighten the common entity classifier. Keep malformed-input tests
+   outside valid-source parity denominators.
+2. Put DXF layer-specific policy in the DXF validation/preflight path. Do not
+   tighten shared DWG CMC validation without ODA/version evidence: a raw or
+   vestigial color index is not automatically a displayed layer ACI. Preserve
+   true color independently from signed off-state/fallback ACI; never derive
+   an exact ACI by nearest/first matching palette RGB. Investigate any authentic
+   producer exception explicitly before rejecting it globally.
+3. Preserve compatibility reading under an explicit warn/preserve policy;
+   structured output rejects or requires a deliberately selected repair before
+   atomic publication. Do not silently borrow ezdxf's default-color repair or
+   count an empty audit as validation. Test existing-destination preservation,
+   unaffected subsequent records and caller state after rejection.
+
+**Fast gate:** DXF fixture/API controls plus ASCII/binary emitted-tag checks.
+No native CAD run or full suite is required for the bounded policy fix; native
+color/display and broader material/plotstyle semantics remain separate.
+
+### 7AO — Bind shared consumer evidence to the loaded implementation
+
+**Scope:** PAR-67; installed shared CLI/native harness and receipt attribution,
+not a new DWG/DXF support criterion. Keep existing immutable qualification
+contracts; introduce a reviewed additive binding/schema if required.
+
+1. Extend the install manifest with installed libdxfrw path/content digest,
+   relevant soname/install-name and converter dependency/RPATH information.
+   Record both build and installed executable identities where CMake rewrites
+   RPATH. Bind actual resolved library identity in the converter child; hashing
+   any convenient library in the prefix is not proof that it was loaded.
+   Static builds retain their existing executable-contained identity contract.
+2. Isolate only converter-child loader overrides and record the relevant
+   loader variables/discovery path, not the full environment or unrelated
+   secrets. Label this explicitly as a controlled harness route; keep natural
+   inherited-environment attribution separate. Do not globally clear FreeCAD's bootstrap
+   library paths or remove dependencies its application runtime needs.
+   [Linux loader precedence](https://man7.org/linux/man-pages/man8/ld.so.8.html)
+   makes inherited overrides relevant; macOS/Windows need their own native
+   resolution evidence, not a relabelled Linux rule or source-only pass.
+3. First run a tiny installed-CLI negative with a competing same-SONAME library
+   outside the isolated prefix. It must fail attribution or select the intended
+   installed bytes, never silently credit another implementation. Test moved
+   prefix/paths with spaces, missing library and permitted RPATH rewrite.
+4. Then run existing shared-installed FreeCAD open/insert tests once at the
+   affected platform gate and preserve independent geometry assertions. Update
+   only affected evidence bindings; no broad format-suite rerun per manifest
+   edit. Source review, dependency listing and a static consumer build cannot
+   substitute for actual shared native execution. J platform gates stay deferred
+   until their exact acceptance criteria are met.
 
 ### Slice 8 — Integrate ACIS/3D comparison with the existing plan
 
@@ -2401,10 +2753,10 @@ work on the critical path.
 
 | Batch | Dependency-ready work | Validation boundary |
 | --- | --- | --- |
-| A — oracle/readiness integration | Dependency-free 7AH first; review/integrate 7P.4, 7Y.1, 7Z.1; split 7Z.2 safe retention from rejection policy; correct/recheck thin Slice4. Prior 7AD/7X/7G.0/1/7AB/7AF/7P.2 fixes stay committed | Tool mutation self-tests; touched focused targets per commit; clean inventory refreeze once new registrations settle; no repeated master merge/full suite |
-| B — narrow independent corrections | 7AE string bytes, 7AJ polygon-mesh marker, 7O normal, 7W loss guard, 7L.4 custom properties; parallel 7AK package metadata in an isolated checkout | Red/green literal control + one scoped projection; tiny installed consumer for packaging; separate commits/plan/progress |
-| C — grammar and graph composition | 7G.2 typed resources; 7P.5a/b/c generated objects/image identity/dictionary roles; 7F.1 diagnostics; 7M/7E, 7K→7J, 7AA, 7G.3→7R; 7AG handoff | Focused targets per slice; one shared-change checkpoint; raw graph/reciprocity checks; valid source versus oracle limitation recorded separately |
-| D — explicit policy/safety/platform boundaries | 7Q complete gradients, 7AI traversal/7S byte budgets, 7T narrowing, 7U retention, 7Y.2 precision, 7AE.2 Unicode policy, 7AC bridges; 7AG/7AK native/shared dispositions | Small configured-limit negatives; sanitizer at shared unsafe-boundary gate; portable/source tests separate from native Windows/application evidence; scheduled broad fuzz |
+| A — preserved integration queue | Finish staged safe7Z metadata; review/recheck isolated7AI,7AK.1/2,7O.1 and process helper; integrate7AH.5/6/thin Slice4. Retain committed7P.4/5a,7Y.1,7Z.1,7AJ and earlier fixes | Tool mutation/process self-tests; touched focused targets per commit; clean inventory refreeze once registrations settle; no repeated master merge/full suite |
+| B — narrow independent corrections |7AL.1 ordered points then7AL.2 text;7AA.3 ARC flags;7AE string bytes,7W loss guard,7L.4 custom properties; parallel package license7AK.4 | Red/green literal control + one scoped projection; reuse pinned runtime/source-only recipes; tiny package-content check; separate commits/plan/progress |
+| C — grammar and graph composition | Preserved7G.2 STYLE WIP→VIEWPORT/resources;7AM BLOCK/footer→7G.3;7P.5b/c image identity/dictionary roles and remaining GROUP reciprocity;7F.1;7M/7E,7AL→7K→7J,7AA.1/2,7O.2/3,7G.3→7R;7AG handoff | Focused targets per slice; one shared-change checkpoint; exact raw graph target types/reciprocity and before-load fields; valid source versus oracle limitation separately |
+| D — explicit policy/safety/platform boundaries |7AN LAYER policy,7Q complete gradients,7S byte budgets,7T narrowing,7U retention,7Y.2 precision,7AE.2 Unicode,7AC bridges;7AG/7AK PIC/DLL and7AO shared-runtime attribution | Small configured-limit negatives; sanitizer at shared unsafe-boundary gate; tiny installed shadow-library control before native shared gate; portable/source tests separate from native evidence; scheduled broad fuzz |
 | E — qualification closeout | Slices 4–6/8/9, final binding, docs/consumer/platform dispositions | Required fresh final-broad/receipt checks once the candidate is stable; external-only gates remain separately deferred |
 
 Use pairwise feature compositions for additional discovery after mandatory
@@ -2447,6 +2799,13 @@ checks and scoped read-only probes, not the full CTest suite. Do not silently
 finish or commit previously staged implementation work in a research-only pass.
 The persistent implementation objective remains incomplete and can resume
 from the recorded ready work when implementation is requested again.
+
+The latest research promotes no source-only lead into an implemented fix:
+PAR-63/64/65 have valid-source main reproductions; PAR-66 has deliberate
+malformed-input controls; PAR-67/69/70/71 still need dedicated runtime/byte
+reproductions. PAR-68's CMake installation observation is not an actual Conan
+run. This classification controls the next cheapest action and prevents
+unnecessary external setup from becoming the critical path.
 
 `libdxfrw_dwg_local_roundtrip` currently runs its ordinary cases together;
 there is no general family selector. A reference to a local-roundtrip case
@@ -2579,6 +2938,17 @@ external evidence remains visible; it is never counted as a passing test.
   and [current import path](https://github.com/LibreCAD/LibreCAD_3/blob/55d6bb0f858af1a6281f38c944bd964ce1cf23c3/persistence/file.cpp)
   supply PAR-55/56 source-readiness evidence. They are neither a native run nor
   a substitute for a same-revision consumer rebuild/edit/save check.
+- PAR-63/64: [primary XDATA roles/order](https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-A2A628B0-3699-4740-A215-C560E7242F63.htm)
+  and [primary string storage/version boundary](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm),
+  with executed local-from-scratch CP1252/CP1251 and ordered-point controls.
+- PAR-65/66/67/68: primary BLOCK/ENDBLK/LAYER and pinned VIEWPORT/validator
+  sources, Linux loader and Conan package-delivery references are linked beside
+  their subplans. These establish grammar/readiness, not native acceptance,
+  a legal assessment or actual Conan qualification.
+- PAR-69/70/71: authoritative local ODAv5.4.1§20.4.19 and§20.4.22,
+  complete printed/PDF pages123,125–126, independently rendered/read in this
+  turn; pinned ezdxf ARC field model is linked in7AA.3. The large-radial
+  producer conflict and R2018 subtype lead remain explicitly unresolved.
 
 ## Local evidence reviewed
 
@@ -2617,6 +2987,10 @@ external evidence remains visible; it is never counted as a passing test.
 - `tools/normalize_drawing_result.py`, `tools/run_parity_differential.py`,
   `libdxfrw.pc.in`, `tools/check_staged_package.py` and `conanfile.py`:
   executed bounded comparator/package controls and the new7AH/7AK contracts.
+- Table/entity XDATA parse lifecycles, specialized BLOCK/ENDBLK paths,
+  VIEWPORT typed links, common DIMENSION/ARC_DIMENSION fields and shared native
+  harness/package installation paths: latest PAR-63–71 research controls and
+  primary/pinned sources are linked in the new review and7AL–7AO/7O/7AA/7AK.
 - `docs/UPGRADE_SUPPORT.md`, `docs/3D_SUPPORT_STATUS.md`,
   `metadata/qualified-format-status-v1.json`, and
   `README.md` support claims.
