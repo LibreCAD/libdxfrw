@@ -5802,6 +5802,112 @@ void testHandlesAndHeader(TestContext& t) {
              "RS codec invalid configuration fails closed");
 }
 
+void testHeaderMaintenanceWidths(TestContext& t) {
+    class HeaderProbe final : public DRW_Header {
+    public:
+        using DRW_Header::parseCode;
+    };
+    struct Control {
+        const char* version;
+        DRW::Version target;
+        int code;
+        int value;
+        bool present;
+    };
+    const Control controls[] = {
+        {"AC1032", DRW::AC1032, 90, 70001, true},
+        {"AC1032", DRW::AC1032, 90, 0, true},
+        {"AC1032", DRW::AC1032, 90, 2147483647, true},
+        {"AC1032", DRW::AC1032, 90, 0, false},
+        {"AC1027", DRW::AC1027, 70, 12345, true},
+        {"AC1027", DRW::AC1027, 70, 0, true},
+        {"AC1027", DRW::AC1027, 70, 0, false},
+    };
+    for (bool binary : {false, true}) {
+        for (const Control& control : controls) {
+            std::ostringstream source;
+            std::unique_ptr<dxfWriter> sourceWriter;
+            if (binary)
+                sourceWriter = std::make_unique<dxfWriterBinary>(&source);
+            else
+                sourceWriter = std::make_unique<dxfWriterAscii>(&source);
+            sourceWriter->setVersion(control.version, true);
+            sourceWriter->writeString(9, "$ACADVER");
+            sourceWriter->writeString(1, control.version);
+            if (control.present) {
+                sourceWriter->writeString(9, "$ACADMAINTVER");
+                if (control.code == 90)
+                    sourceWriter->writeInt32(90, control.value);
+                else
+                    sourceWriter->writeInt16(70, control.value);
+            }
+            t.expect(!sourceWriter->hasWriteError(),
+                     "literal header-width control encodes");
+            std::istringstream input(source.str());
+            std::unique_ptr<dxfReader> reader;
+            if (binary)
+                reader = std::make_unique<dxfReaderBinary>(&input);
+            else
+                reader = std::make_unique<dxfReaderAscii>(&input);
+            HeaderProbe parsed;
+            int code = 0;
+            while (reader->readRec(&code))
+                t.expect(parsed.parseCode(code, reader),
+                         "header-width control parses");
+            const auto found = parsed.vars.find("$ACADMAINTVER");
+            if (control.present) {
+                t.expect(found != parsed.vars.end() && found->second != nullptr
+                             && found->second->type() == DRW_Variant::INTEGER
+                             && found->second->code() == control.code
+                             && found->second->i_val() == control.value,
+                         "header retains source integer width and full value");
+            } else {
+                t.expect(found == parsed.vars.end(),
+                         "absent maintenance variable stays absent on read");
+            }
+            DRW_Header copied(parsed);
+            const auto copiedValue = copied.vars.find("$ACADMAINTVER");
+            if (control.present)
+                t.expect(copiedValue != copied.vars.end()
+                             && copiedValue->second != found->second
+                             && copiedValue->second->i_val() == control.value,
+                         "header copy owns an independent full-width value");
+
+            std::ostringstream destination;
+            std::unique_ptr<dxfWriter> writer;
+            if (binary)
+                writer = std::make_unique<dxfWriterBinary>(&destination);
+            else
+                writer = std::make_unique<dxfWriterAscii>(&destination);
+            copied.write(writer, control.target);
+            t.expect(!writer->hasWriteError(),
+                     "maintenance header output is representable");
+            std::istringstream output(destination.str());
+            if (binary)
+                reader = std::make_unique<dxfReaderBinary>(&output);
+            else
+                reader = std::make_unique<dxfReaderAscii>(&output);
+            std::string name;
+            bool maintenanceSeen = false;
+            while (reader->readRec(&code)) {
+                if (code == 9)
+                    name = reader->getString();
+                else if (name == "$ACADMAINTVER") {
+                    maintenanceSeen = true;
+                    t.expect(code == control.code
+                                 && reader->getInt32() == control.value,
+                             "serialized maintenance code/value matches target width");
+                }
+            }
+            t.expect(maintenanceSeen,
+                     "writer retains existing zero default for absent maintenance");
+            static_cast<DRW_Header&>(parsed) = DRW_Header{};
+            t.expect(parsed.vars.count("$ACADMAINTVER") == 0,
+                     "reset header assignment clears prior integer state");
+        }
+    }
+}
+
 }  // namespace
 
 int main() {
@@ -5898,6 +6004,7 @@ int main() {
     testR2007StringFooterBounds(context);
     testDecompressor(context);
     testHandlesAndHeader(context);
+    testHeaderMaintenanceWidths(context);
     if (context.failures != 0) {
         std::cerr << context.failures << " Wave 1 assertion(s) failed\n";
         return 1;

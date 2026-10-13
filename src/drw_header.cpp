@@ -143,6 +143,7 @@ bool DRW_Header::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         curr->addInt(code, reader->getInt32());
         break;
     case 70:
+    case 90:
         curr->addInt(code, reader->getInt32());
         break;
     case 280:

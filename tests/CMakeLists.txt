@@ -110,6 +110,34 @@ set_tests_properties(dwg2dxf_image_path_cli PROPERTIES
     TIMEOUT 30
 )
 
+# HEADER group 90 is 32-bit in AC1032. Generate the literal source without
+# DRW_Header, then exercise two real converter invocations and public readback.
+foreach(_header_mode IN ITEMS ascii binary)
+    set(_header_generate_mode --generate-maintenance-header)
+    set(_header_conversion_options "")
+    if(_header_mode STREQUAL "binary")
+        set(_header_generate_mode --generate-maintenance-header-binary)
+        set(_header_conversion_options -b)
+    endif()
+    add_test(
+        NAME dwg2dxf_header_maintenance_${_header_mode}_cli
+        COMMAND ${CMAKE_COMMAND}
+            "-DADAPTER_TEST=$<TARGET_FILE:libdxfrw_dwg2dxf_adapter_tests>"
+            "-DDWG2DXF=$<TARGET_FILE:dwg2dxf>"
+            "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}"
+            "-DCASE_NAME=header-maintenance-${_header_mode}"
+            "-DGENERATE_MODE=${_header_generate_mode}"
+            "-DVERIFY_MODE=--verify-maintenance-header"
+            "-DNEGATIVE_MODE=--reject-maintenance-downgrade"
+            "-DCONVERSION_OPTIONS=${_header_conversion_options}"
+            -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg2dxf_image_path_test.cmake
+    )
+    set_tests_properties(dwg2dxf_header_maintenance_${_header_mode}_cli PROPERTIES
+        LABELS "cli;fast;dxf;header;adapter"
+        TIMEOUT 30
+    )
+endforeach()
+
 # Dynamic-block objects are retained by the converter adapter and must block
 # publication until a semantics-qualified DXF writer exists.
 add_test(

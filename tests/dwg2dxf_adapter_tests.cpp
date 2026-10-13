@@ -1,4 +1,5 @@
 #include "dx_iface.h"
+#include "intern/dxfwriter.h"
 
 #include <chrono>
 #include <filesystem>
@@ -108,6 +109,77 @@ bool verify3DLine(const std::string& path) {
     return true;
 }
 
+bool generateMaintenanceHeader(const std::string& path, bool binary) {
+    // From-scratch wire control: bypass the HEADER parser/writer so a paired
+    // bug cannot turn the large source value into a self-consistent zero.
+    std::ofstream output(path, std::ios::binary);
+    if (!output)
+        return fail("could not create maintenance-header control");
+    std::unique_ptr<dxfWriter> writer;
+    if (binary) {
+        output.write("AutoCAD Binary DXF\r\n\x1A\0", 22);
+        writer = std::make_unique<dxfWriterBinary>(&output);
+    } else {
+        writer = std::make_unique<dxfWriterAscii>(&output);
+    }
+    writer->setVersion("AC1032", true);
+    writer->writeString(0, "SECTION");
+    writer->writeString(2, "HEADER");
+    writer->writeString(9, "$ACADVER");
+    writer->writeString(1, "AC1032");
+    writer->writeString(9, "$ACADMAINTVER");
+    writer->writeInt32(90, 70001);
+    writer->writeString(0, "ENDSEC");
+    writer->writeString(0, "SECTION");
+    writer->writeString(2, "ENTITIES");
+    writer->writeString(0, "LINE");
+    writer->writeString(5, "A0");
+    writer->writeString(100, "AcDbEntity");
+    writer->writeString(8, "0");
+    writer->writeString(100, "AcDbLine");
+    writer->writeDouble(10, 1.25);
+    writer->writeDouble(20, -2.5);
+    writer->writeDouble(30, 3.75);
+    writer->writeDouble(11, -4.5);
+    writer->writeDouble(21, 5.25);
+    writer->writeDouble(31, -6.75);
+    writer->writeString(0, "ENDSEC");
+    writer->writeString(0, "EOF");
+    return !writer->hasWriteError() && output.good();
+}
+
+bool verifyMaintenanceHeader(const std::string& path) {
+    dx_data data;
+    dx_iface iface;
+    if (!iface.fileImport(path, &data, false))
+        return fail("could not read maintenance-header control");
+    const auto found = data.headerC.vars.find("$ACADMAINTVER");
+    if (found == data.headerC.vars.end() || found->second == nullptr
+        || found->second->type() != DRW_Variant::INTEGER
+        || found->second->code() != 90 || found->second->i_val() != 70001
+        || data.sourceVersion != DRW::AC1032)
+        return fail("AC1032 maintenance integer or declared version changed");
+    if (data.mBlock->ent.size() != 1)
+        return fail("maintenance-header LINE count changed");
+    const auto* line = dynamic_cast<const DRW_Line*>(data.mBlock->ent.front());
+    if (line == nullptr || line->basePoint.x != 1.25
+        || line->basePoint.y != -2.5 || line->basePoint.z != 3.75
+        || line->secPoint.x != -4.5 || line->secPoint.y != 5.25
+        || line->secPoint.z != -6.75)
+        return fail("maintenance-header LINE coordinates changed");
+    return true;
+}
+
+bool rejectMaintenanceDowngrade(const std::string& path) {
+    dx_data data;
+    dx_iface iface;
+    data.headerC.addInt("$ACADMAINTVER", 70001, 90);
+    if (iface.fileExport(path, DRW::AC1027, false, &data, false)
+        || std::filesystem::exists(path))
+        return fail("unrepresentable maintenance downgrade published output");
+    return true;
+}
+
 bool reject3DLineBeforeAC1015(const std::string& path) {
     dx_data data;
     dx_iface iface;
@@ -182,6 +254,14 @@ int main(int argc, char** argv) {
         return generate3DLine(path, true) ? 0 : 1;
     if (mode == "--verify-3dline")
         return verify3DLine(path) ? 0 : 1;
+    if (mode == "--generate-maintenance-header")
+        return generateMaintenanceHeader(path, false) ? 0 : 1;
+    if (mode == "--generate-maintenance-header-binary")
+        return generateMaintenanceHeader(path, true) ? 0 : 1;
+    if (mode == "--verify-maintenance-header")
+        return verifyMaintenanceHeader(path) ? 0 : 1;
+    if (mode == "--reject-maintenance-downgrade")
+        return rejectMaintenanceDowngrade(path) ? 0 : 1;
     if (mode == "--reject-3dline-ac1014")
         return reject3DLineBeforeAC1015(path) ? 0 : 1;
     std::cerr << "unknown mode: " << mode << '\n';
