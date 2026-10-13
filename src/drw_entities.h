@@ -2212,6 +2212,26 @@ public:
     std::uint32_t m_r2018AnnotativeAppHandle = 0;
 private:
     bool hasXAxisVec; /* renamed by djm for better description */
+    enum class DxfOrientationMode { LegacyApi, Rotation, Direction };
+    [[nodiscard]] DxfOrientationMode dxfOrientationForOutput() const;
+    bool m_dxfOrientationSeen = false;
+    bool m_dxfOrientationSnapshotValid = false;
+    double m_dxfAngleSnapshot = 0.0;
+    DRW_Coord m_dxfDirectionSnapshot;
+    // Parser scope is transient; copied/moved models retain orientation
+    // provenance but must not resume parsing inside a redundant column body.
+    struct DxfOrientationScope {
+        bool redundantColumn = false;
+        DxfOrientationScope() = default;
+        DxfOrientationScope(const DxfOrientationScope&) noexcept {}
+        DxfOrientationScope(DxfOrientationScope&&) noexcept {}
+        DxfOrientationScope& operator=(const DxfOrientationScope&) noexcept {
+            redundantColumn = false; return *this;
+        }
+        DxfOrientationScope& operator=(DxfOrientationScope&&) noexcept {
+            redundantColumn = false; return *this;
+        }
+    } m_dxfOrientationScope;
 };
 
 //! Class to handle RTEXT (RText, AutoCAD Express Tools "reactive text").

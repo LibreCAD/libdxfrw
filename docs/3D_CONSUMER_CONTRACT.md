@@ -44,6 +44,25 @@ callback order alone is a stable ownership contract.
 
 ## Field and coordinate contract
 
+DXF MTEXT orientation reads retain the last supplied main direction vector
+(11/21/31) or rotation (50). Unchanged parsed records write only that active
+representation; an earlier inactive vector cannot override a later rotation.
+Direct edits to a parsed vector select direction, angle-only edits select
+rotation, and simultaneous edits select the nonzero vector. Selection does not
+mutate either public field. Fresh API objects retain legacy behavior: the
+standalone writer places a nonzero vector after rotation; the existing embedded
+writer keeps its vector-before-nonzero-angle ordering. Copy/move preserves
+read provenance while parser-only redundant-column scope is reset.
+
+The known group101 redundant-context direction/height fields do not select the
+main orientation. This narrow guard is not full column grammar or canonical
+embedded-attribute marker support. Existing legacy embedded ATTRIB/ATTDEF core
+routes finalize their own orientation; the CLI ATTDEF retention route remains
+separate. Public angle conventions are unchanged, and this DXF correction
+does not qualify disputed wire units, DXF-to-DWG orientation conversion, native
+text rendering or general column support. Consumers must rebuild after public
+class-layout additions; source compatibility is not a binary-ABI claim.
+
 The [Autodesk DXF OCS reference](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-D99F1509-E4E4-47A3-8691-92EA07DC88F5.htm)
 distinguishes WCS coordinates for 3D entities such as POINT, LINE, 3DFACE, 3D
 POLYLINE, and 3D mesh from OCS coordinates for planar entities such as CIRCLE,

@@ -78,6 +78,13 @@ public:
     using DRW_MLine::parseCode;
 };
 
+class ExposedMText : public DRW_MText {
+public:
+    using DRW_MText::parseCode;
+    using DRW_MText::updateAngle;
+    using DRW_MText::resetDwgState;
+};
+
 class ExposedTable : public DRW_Table {
 public:
     using DRW_Table::parseCode;
@@ -2800,6 +2807,33 @@ void testMLeaderParserStateCopyIsolation(TestContext& t) {
              "MULTILEADER copy keeps context graph value ownership isolated");
 }
 
+void testMTextOrientationState(TestContext& t) {
+    ExposedMText text;
+    t.expect(parseDxfRecords(text,
+        "11\n0\n21\n1\n31\n0\n50\n30\n101\nEmbedded Object\n"
+        "11\n1\n21\n0\n31\n0\n50\n2\n50\n18\n50\n24\n"),
+        "MTEXT orientation and redundant-context parser control succeeds");
+    text.updateAngle();
+    t.expect(text.angle == 30 && text.secPoint.y == 1 && text.m_r2018XAxisDir.x == 1,
+        "MTEXT redundant direction/column heights do not override main orientation");
+    ExposedMText copied(text), assigned;
+    assigned = text;
+    ExposedMText moved(std::move(copied)), moveAssigned;
+    moveAssigned = std::move(assigned);
+    for (auto* value : {&moved, &moveAssigned}) {
+        t.expect(parseDxfRecords(*value, "50\n15\n"), "copied MTEXT accepts new main orientation");
+        value->updateAngle();
+        t.expect(value->angle == 15 && value->secPoint.y == 1,
+                 "MTEXT copy/move resets transient redundant-column parser scope");
+    }
+    text.resetDwgState();
+    t.expect(parseDxfRecords(text, "11\n0\n21\n-1\n31\n0\n"),
+             "MTEXT reset accepts a fresh vector orientation");
+    text.updateAngle();
+    t.expect(text.angle == -90 && text.secPoint.y == -1 && text.m_r2018XAxisDir.x == 0,
+             "MTEXT reset clears prior orientation/cache/context state");
+}
+
 void testDimensionParserStateCopyIsolation(TestContext& t) {
     static_assert(std::is_copy_constructible<DRW_DimArc>::value,
                   "DRW_DimArc copy contract");
@@ -4108,6 +4142,7 @@ int main() {
     testDwgAggregateObjectBudget(context);
     testDwgModelerDataStorageLinking(context);
     testMLeaderParserStateCopyIsolation(context);
+    testMTextOrientationState(context);
     testDimensionParserStateCopyIsolation(context);
     testDxfProxyGraphicsStayOutOfAcis(context);
     testDxfThreeCornerFaceFallback(context);

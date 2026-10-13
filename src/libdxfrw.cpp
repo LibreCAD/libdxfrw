@@ -5715,8 +5715,11 @@ bool dxfRW::writeEmbeddedMText(DRW_MText *ent) {
         writer->writeDouble(220, ent->extPoint.y);
         writer->writeDouble(230, ent->extPoint.z);
     }
-    if (ent->secPoint.x != 0.0 || ent->secPoint.y != 0.0
-        || ent->secPoint.z != 0.0) {
+    const auto orientation = ent->dxfOrientationForOutput();
+    const bool legacyOrientation = orientation == DRW_MText::DxfOrientationMode::LegacyApi;
+    if (orientation == DRW_MText::DxfOrientationMode::Direction
+        || (legacyOrientation && (ent->secPoint.x != 0.0 || ent->secPoint.y != 0.0
+                                   || ent->secPoint.z != 0.0))) {
         writer->writeDouble(11, ent->secPoint.x);
         writer->writeDouble(21, ent->secPoint.y);
         writer->writeDouble(31, ent->secPoint.z);
@@ -5725,7 +5728,8 @@ bool dxfRW::writeEmbeddedMText(DRW_MText *ent) {
         writer->writeDouble(42, ent->m_r2018ExtentsWidth);
     if (ent->m_r2018ExtentsHeight != 0.0)
         writer->writeDouble(43, ent->m_r2018ExtentsHeight);
-    if (ent->angle != 0.0)
+    if (orientation == DRW_MText::DxfOrientationMode::Rotation
+        || (legacyOrientation && ent->angle != 0.0))
         writer->writeDouble(50, ent->angle);
     writer->writeInt16(73, ent->linespacingStyle);
     writer->writeDouble(44, ent->interlin);
@@ -6216,12 +6220,16 @@ bool dxfRW::writeMText(DRW_MText *ent){
         writer->writeDouble(210, ent->extPoint.x);
         writer->writeDouble(220, ent->extPoint.y);
         writer->writeDouble(230, ent->extPoint.z);
-        writer->writeDouble(50, ent->angle);
+        const auto orientation = ent->dxfOrientationForOutput();
+        const bool legacyOrientation = orientation == DRW_MText::DxfOrientationMode::LegacyApi;
+        if (orientation != DRW_MText::DxfOrientationMode::Direction)
+            writer->writeDouble(50, ent->angle);
         // MTEXT may carry an explicit WCS x-axis direction (groups 11/21/31)
         // instead of deriving its rotation from group 50. Preserve it when
         // present; a zero vector means the optional field was absent.
-        if (ent->secPoint.x != 0.0 || ent->secPoint.y != 0.0
-            || ent->secPoint.z != 0.0) {
+        if (orientation == DRW_MText::DxfOrientationMode::Direction
+            || (legacyOrientation && (ent->secPoint.x != 0.0 || ent->secPoint.y != 0.0
+                                       || ent->secPoint.z != 0.0))) {
             writer->writeDouble(11, ent->secPoint.x);
             writer->writeDouble(21, ent->secPoint.y);
             writer->writeDouble(31, ent->secPoint.z);
@@ -11388,12 +11396,14 @@ bool dxfRW::processAttrib(DRW_Insert *insert) {
             if (dxfKeywordEquals(nextentity, "SEQEND")) {
                 if (!validAttribute())
                     return setError(DRW::BAD_CODE_PARSED);
+                if (att->mtext) att->mtext->updateAngle();
                 insert->attlist.push_back(att);
                 return true;  //found SEQEND, no more attribs, terminate
             }
             if (dxfKeywordEquals(nextentity, "ATTRIB")) {
                 if (!validAttribute())
                     return setError(DRW::BAD_CODE_PARSED);
+                if (att->mtext) att->mtext->updateAngle();
                 insert->attlist.push_back(att);
                 att = std::make_shared<DRW_Attrib>(); //another attrib
                 hasText = false;
@@ -11440,6 +11450,7 @@ bool dxfRW::processAttdef() {
             if (!hasText || !hasTag || attdef.tag.empty() || !hasInsertionX
                 || !hasInsertionY || !hasHeight)
                 return setError(DRW::BAD_CODE_PARSED);
+            if (attdef.mtext) attdef.mtext->updateAngle();
             if (applyExt)
                 attdef.applyExtrusion();
             iface->addAttDef(attdef);

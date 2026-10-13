@@ -13436,6 +13436,21 @@ bool DRW_Attdef::encodeDwg(DRW::Version version, dwgBufferW *buf, std::uint32_t 
 }
 
 bool DRW_MText::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
+    if (code == 101 && reader->getString() == "Embedded Object") {
+        m_dxfOrientationScope.redundantColumn = true;
+        return true;
+    }
+    if (m_dxfOrientationScope.redundantColumn) {
+        // Narrow orientation guard only: full column parsing is separate.
+        // Redundant WCS direction and column-height50 must not replace the
+        // main orientation, including when main rotation was supplied last.
+        switch (code) {
+        case 11: m_r2018XAxisDir.x = reader->getDouble(); return true;
+        case 21: m_r2018XAxisDir.y = reader->getDouble(); return true;
+        case 31: m_r2018XAxisDir.z = reader->getDouble(); return true;
+        case 50: (void)reader->getDouble(); return true;
+        }
+    }
     switch (code) {
     case 1:
         text += reader->getString();
@@ -13443,6 +13458,8 @@ bool DRW_MText::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         break;
     case 11:
         hasXAxisVec = true;
+        m_dxfOrientationSeen = true;
+        m_dxfOrientationSnapshotValid = false;
         return DRW_Text::parseCode(code, reader);
     case 3:
         text += reader->getString();
@@ -13452,6 +13469,8 @@ bool DRW_MText::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         break;
     case 50: // djm: per dxf docs, last of code 11 or code 50 prevails
         hasXAxisVec = false;
+        m_dxfOrientationSeen = true;
+        m_dxfOrientationSnapshotValid = false;
         angle = reader->getDouble();
         break;
     case 73: {
@@ -13517,6 +13536,11 @@ void DRW_MText::resetDwgState() {
     m_backgroundColorName.clear();
     m_backgroundTransparency = 0;
     hasXAxisVec = false;
+    m_dxfOrientationSeen = false;
+    m_dxfOrientationSnapshotValid = false;
+    m_dxfAngleSnapshot = 0.0;
+    m_dxfDirectionSnapshot = {};
+    m_dxfOrientationScope.redundantColumn = false;
     m_r2018IsNotAnnotative = false;
     m_r2018ReallyLocked = false;
     m_r2018Version = 0;
@@ -13814,6 +13838,30 @@ void DRW_MText::updateAngle() {
     if (hasXAxisVec) {
         angle = atan2(secPoint.y, secPoint.x) * ARAD;
     }
+    if (m_dxfOrientationSeen) {
+        m_dxfAngleSnapshot = angle;
+        m_dxfDirectionSnapshot = secPoint;
+        m_dxfOrientationSnapshotValid = true;
+    }
+}
+
+DRW_MText::DxfOrientationMode DRW_MText::dxfOrientationForOutput() const {
+    if (!m_dxfOrientationSeen)
+        return DxfOrientationMode::LegacyApi;
+    const bool nonzeroDirection = secPoint.x != 0.0 || secPoint.y != 0.0 || secPoint.z != 0.0;
+    if (!nonzeroDirection)
+        return DxfOrientationMode::Rotation;
+    if (m_dxfOrientationSnapshotValid) {
+        // Exact comparisons detect direct public-field edits, not geometric
+        // approximation. If both are edited, retain legacy vector priority.
+        if (secPoint.x != m_dxfDirectionSnapshot.x
+            || secPoint.y != m_dxfDirectionSnapshot.y
+            || secPoint.z != m_dxfDirectionSnapshot.z)
+            return DxfOrientationMode::Direction;
+        if (angle != m_dxfAngleSnapshot)
+            return DxfOrientationMode::Rotation;
+    }
+    return hasXAxisVec ? DxfOrientationMode::Direction : DxfOrientationMode::Rotation;
 }
 
 bool DRW_Polyline::parseCode(int code, const std::unique_ptr<dxfReader>& reader){

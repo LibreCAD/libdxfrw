@@ -329,6 +329,31 @@ foreach(_dimension_encoding IN ITEMS ascii binary)
     )
 endforeach()
 
+foreach(_mtext_encoding IN ITEMS ascii binary)
+    set(_mtext_generate_mode --generate-mtext-orientation)
+    set(_mtext_conversion_options "")
+    if(_mtext_encoding STREQUAL "binary")
+        set(_mtext_generate_mode --generate-mtext-orientation-binary)
+        set(_mtext_conversion_options -b)
+    endif()
+    add_test(
+        NAME dwg2dxf_mtext_orientation_${_mtext_encoding}_cli
+        COMMAND ${CMAKE_COMMAND}
+            "-DADAPTER_TEST=$<TARGET_FILE:libdxfrw_dxf_fixture_tests>"
+            "-DDWG2DXF=$<TARGET_FILE:dwg2dxf>"
+            "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}"
+            "-DCASE_NAME=mtext-orientation-${_mtext_encoding}"
+            "-DGENERATE_MODE=${_mtext_generate_mode}"
+            "-DVERIFY_MODE=--verify-mtext-orientation"
+            "-DCONVERSION_OPTIONS=${_mtext_conversion_options}"
+            -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg2dxf_image_path_test.cmake
+    )
+    set_tests_properties(dwg2dxf_mtext_orientation_${_mtext_encoding}_cli PROPERTIES
+        LABELS "cli;fast;dxf;adapter;mtext"
+        TIMEOUT 30
+    )
+endforeach()
+
 # Match FreeCAD's Draft/importDWG.py subprocess contract without requiring a
 # FreeCAD installation. The DWG fixture is already tracked in this repository.
 set(_freecad_cli_sample

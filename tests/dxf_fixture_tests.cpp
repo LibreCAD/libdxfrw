@@ -3,6 +3,7 @@
 #include <array>
 #include <charconv>
 #include <chrono>
+#include <cmath>
 #include <memory>
 #include <filesystem>
 #include <fstream>
@@ -241,6 +242,278 @@ bool generateTableOwnerDxf(const std::filesystem::path& output,
     data.blocks.push_back(block.release());
     return interface_.fileExport(output.string(), version, binary, &data,
                                  false);
+}
+
+bool generateMTextOrientationDxf(const std::filesystem::path& path, bool binary,
+                                 bool redundantScope = false) {
+    std::ofstream stream(path, std::ios::binary | std::ios::trunc);
+    if (binary) stream.write("AutoCAD Binary DXF\r\n\032\0", 22);
+    std::unique_ptr<dxfWriter> tags;
+    if (binary) tags = std::make_unique<dxfWriterBinary>(&stream);
+    else tags = std::make_unique<dxfWriterAscii>(&stream);
+    tags->setVersion("AC1032", true);
+    const auto point = [&](int code, DRW_Coord p) {
+        tags->writeDouble(code, p.x); tags->writeDouble(code + 10, p.y);
+        tags->writeDouble(code + 20, p.z);
+    };
+    tags->writeString(0, "SECTION"); tags->writeString(2, "HEADER");
+    tags->writeString(9, "$ACADVER"); tags->writeString(1, "AC1032");
+    tags->writeString(0, "ENDSEC"); tags->writeString(0, "SECTION");
+    tags->writeString(2, "ENTITIES");
+    for (int id = 0; id != 8; ++id) {
+        const int order = id % 4;
+        const DRW_Coord direction = id < 4 ? DRW_Coord{0, 1, 0} : DRW_Coord{0, -.8, .6};
+        tags->writeString(0, "MTEXT"); tags->writeString(5, std::to_string(1000 + id));
+        tags->writeString(100, "AcDbEntity"); tags->writeString(8, "0");
+        tags->writeString(100, "AcDbMText"); point(10, {1, 2, 3});
+        tags->writeDouble(40, 2); tags->writeDouble(41, 10);
+        tags->writeInt16(71, 1); tags->writeInt16(72, 1);
+        tags->writeString(1, "ORIENT_" + std::to_string(id));
+        if (id >= 4) point(210, {0, .6, .8});
+        if (order == 1 || order == 2) point(11, direction);
+        if (order != 1) tags->writeDouble(50, 30);
+        if (order == 3) point(11, direction);
+        if (redundantScope) {
+            tags->writeString(101, "Embedded Object");
+            // These are redundant column-context values, not main orientation.
+            point(11, {1, 0, 0}); tags->writeDouble(50, 2);
+            tags->writeDouble(50, 18); tags->writeDouble(50, 24);
+        }
+    }
+    tags->writeString(0, "LINE"); tags->writeString(5, "2000");
+    tags->writeString(100, "AcDbEntity"); tags->writeString(8, "0");
+    tags->writeString(100, "AcDbLine"); point(10, {71, 72, 73}); point(11, {74, 75, 76});
+    tags->writeString(0, "ENDSEC"); tags->writeString(0, "EOF");
+    return !tags->hasWriteError() && stream.good();
+}
+
+bool mtextOrientationMatches(const dx_data& data, bool edited = false) {
+    if (data.mBlock->ent.size() != 9u) return false;
+    int id = 0;
+    for (const auto* entity : data.mBlock->ent) {
+        if (id == 8) {
+            const auto* line = dynamic_cast<const DRW_Line*>(entity);
+            return line && line->basePoint.x == 71 && line->secPoint.z == 76;
+        }
+        const auto* text = dynamic_cast<const DRW_MText*>(entity);
+        const int order = id % 4;
+        double expected = order == 0 || order == 2 ? 30 : id < 4 ? 90 : -90;
+        if (edited && id == 1) expected = 45;  // angle-only edit wins over retained vector
+        if (edited && id == 2) expected = 0;   // vector-only edit wins over retained angle
+        if (edited && id == 3) expected = 45;  // simultaneous edits use vector priority
+        if (!text || text->text != "ORIENT_" + std::to_string(id)
+            || std::abs(text->angle - expected) > 1e-10
+            || text->basePoint.x != 1 || text->height != 2) return false;
+        if (!edited && (order == 1 || order == 3)) {
+            const DRW_Coord expectedDirection = id < 4 ? DRW_Coord{0, 1, 0} : DRW_Coord{0, -.8, .6};
+            if (text->secPoint.x != expectedDirection.x || text->secPoint.y != expectedDirection.y
+                || text->secPoint.z != expectedDirection.z) return false;
+        }
+        ++id;
+    }
+    return false;
+}
+
+bool verifyMTextOrientationDxf(const std::filesystem::path& path, bool edited = false) {
+    dx_data data;
+    dx_iface reader;
+    return reader.fileImport(path.string(), &data, false) && mtextOrientationMatches(data, edited);
+}
+
+std::vector<DRW_MText*> embeddedOrientationTexts(dx_data& data) {
+    std::vector<DRW_MText*> result;
+    for (auto* entity : data.mBlock->ent) {
+        if (auto* insert = dynamic_cast<DRW_Insert*>(entity)) {
+            for (auto& attribute : insert->attlist)
+                if (attribute && attribute->mtext) result.push_back(attribute->mtext.get());
+        } else if (auto* attribute = dynamic_cast<DRW_Attdef*>(entity)) {
+            if (attribute->mtext) result.push_back(attribute->mtext.get());
+        }
+    }
+    return result;
+}
+
+// Exercise the core ATTDEF callback/writer explicitly: the CLI's absent
+// ATTDEF cache/emission route is separate7F work, not this orientation fix.
+class EmbeddedOrientationInterface final : public dx_iface {
+public:
+    void addAttDef(const DRW_Attdef& value) override {
+        currentBlock->ent.push_back(new DRW_Attdef(value));
+    }
+    void writeEntities() override {
+        for (auto* entity : cData->mBlock->ent) {
+            if (auto* attribute = dynamic_cast<DRW_Attdef*>(entity))
+                dxfW->writeAttdef(attribute);
+            else writeEntity(entity);
+        }
+    }
+};
+
+void testEmbeddedMTextOrientation(TestContext& t, bool binary,
+                                  const std::filesystem::path& output) {
+    std::string source = "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1032\n0\nENDSEC\n"
+        "0\nSECTION\n2\nBLOCKS\n0\nBLOCK\n5\n3000\n100\nAcDbEntity\n8\n0\n"
+        "100\nAcDbBlockBegin\n2\nORIENT_BLOCK\n70\n0\n10\n0\n20\n0\n30\n0\n"
+        "3\nORIENT_BLOCK\n0\nENDBLK\n5\n3001\n100\nAcDbEntity\n8\n0\n"
+        "100\nAcDbBlockEnd\n0\nENDSEC\n0\nSECTION\n2\nENTITIES\n"
+        "0\nINSERT\n5\n3002\n100\nAcDbEntity\n8\n0\n100\nAcDbBlockReference\n"
+        "66\n1\n2\nORIENT_BLOCK\n10\n0\n20\n0\n30\n0\n";
+    for (int id = 0; id != 8; ++id) {
+        if (id == 4) source += "0\nSEQEND\n5\n3003\n100\nAcDbEntity\n8\n0\n";
+        source += std::string("0\n") + (id < 4 ? "ATTRIB" : "ATTDEF")
+            + "\n5\n" + std::to_string(4000 + id)
+            + "\n100\nAcDbEntity\n8\n0\n100\nAcDbText\n10\n4\n20\n5\n30\n6\n"
+              "40\n2\n1\nfallback\n100\nEmbedded Object\n10\n1\n20\n2\n30\n3\n"
+              "40\n2\n41\n10\n71\n1\n72\n1\n1\nEMBED_" + std::to_string(id) + "\n";
+        const int order = id % 4;
+        if (order == 1 || order == 2) source += "11\n0\n21\n1\n31\n0\n";
+        if (order != 1) source += "50\n30\n";
+        if (order == 3) source += "11\n0\n21\n1\n31\n0\n";
+        source += std::string("100\n") + (id < 4 ? "AcDbAttribute" : "AcDbAttributeDefinition")
+            + "\n2\nTAG" + std::to_string(id) + "\n70\n0\n";
+        if (id >= 4) source += "3\nprompt\n";
+    }
+    source += "0\nENDSEC\n0\nEOF\n";
+    EmbeddedOrientationInterface reader;
+    dx_data data;
+    const auto input = std::filesystem::path(output.string() + "-embedded-input.dxf");
+    { std::ofstream file(input, std::ios::binary); file << source; }
+    const bool imported = reader.fileImport(input.string(), &data, false);
+    std::error_code error;
+    std::filesystem::remove(input, error);
+    const auto texts = embeddedOrientationTexts(data);
+    bool sourceValid = imported && texts.size() == 8u;
+    int id = 0;
+    for (const auto* text : texts) {
+        const int order = id++ % 4;
+        sourceValid = text->angle == (order == 0 || order == 2 ? 30 : 90) && sourceValid;
+    }
+    t.expect(sourceValid, "legacy embedded ATTRIB/ATTDEF routes finalize their own last-wins orientation");
+    EmbeddedOrientationInterface writer;
+    const bool written = writer.fileExport(output.string(), DRW::AC1032, binary, &data, false);
+    dx_data decoded;
+    EmbeddedOrientationInterface outputReader;
+    bool retained = written && outputReader.fileImport(output.string(), &decoded, false);
+    const auto decodedTexts = embeddedOrientationTexts(decoded);
+    retained = decodedTexts.size() == 8u && retained;
+    id = 0;
+    for (const auto* text : decodedTexts) {
+        const int order = id++ % 4;
+        retained = text->angle == (order == 0 || order == 2 ? 30 : 90) && retained;
+    }
+    t.expect(retained, "embedded MTEXT writer shares parsed active-orientation selection");
+    for (auto* text : texts) {
+        *text = DRW_MText{};
+        text->text = "FRESH_EMBEDDED"; text->height = 2;
+        text->angle = 30; text->secPoint = {0, 1, 0};
+    }
+    EmbeddedOrientationInterface freshWriter;
+    const bool freshWritten = freshWriter.fileExport(output.string(), DRW::AC1032, binary, &data, false);
+    dx_data freshDecoded;
+    EmbeddedOrientationInterface freshReader;
+    bool freshValid = freshWritten && freshReader.fileImport(output.string(), &freshDecoded, false);
+    const auto freshTexts = embeddedOrientationTexts(freshDecoded);
+    freshValid = freshTexts.size() == 8u && freshValid;
+    for (const auto* text : freshTexts) freshValid = text->angle == 30 && freshValid;
+    for (const auto* text : texts) freshValid = text->angle == 30 && text->secPoint.y == 1 && freshValid;
+    t.expect(freshValid, "fresh embedded API objects retain legacy vector-before-angle ordering without mutation");
+}
+
+void testMTextOrientationPrecedence(TestContext& t) {
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    for (bool binary : {false, true}) {
+        const auto stem = std::filesystem::temp_directory_path()
+            / ("libdxfrw-mtext-orientation-" + std::to_string(nonce)
+               + (binary ? "-binary" : "-ascii"));
+        const auto source = std::filesystem::path(stem.string() + "-source.dxf");
+        const auto output = std::filesystem::path(stem.string() + "-output.dxf");
+        t.expect(generateMTextOrientationDxf(source, binary)
+                     && verifyMTextOrientationDxf(source),
+                 "literal MTEXT four orientation orders retain public angle and tilted WCS vector");
+        dx_data data;
+        dx_iface reader;
+        const bool read = reader.fileImport(source.string(), &data, false);
+        std::vector<std::pair<double, DRW_Coord>> before;
+        for (const auto* entity : data.mBlock->ent)
+            if (const auto* text = dynamic_cast<const DRW_MText*>(entity))
+                before.emplace_back(text->angle, text->secPoint);
+        dx_iface writer;
+        t.expect(read && writer.fileExport(output.string(), DRW::AC1032, binary, &data, false)
+                     && verifyMTextOrientationDxf(output),
+                 "MTEXT API export preserves parsed last-wins orientation");
+        std::size_t id = 0;
+        bool unchanged = true;
+        for (const auto* entity : data.mBlock->ent) {
+            if (const auto* text = dynamic_cast<const DRW_MText*>(entity)) {
+                const auto& snapshot = before.at(id++);
+                unchanged = text->angle == snapshot.first && text->secPoint.x == snapshot.second.x
+                    && text->secPoint.y == snapshot.second.y && text->secPoint.z == snapshot.second.z && unchanged;
+            }
+        }
+        t.expect(unchanged, "MTEXT orientation selection never mutates caller geometry");
+        dx_data copies;
+        for (const auto* entity : data.mBlock->ent) {
+            if (const auto* text = dynamic_cast<const DRW_MText*>(entity)) {
+                DRW_MText copied(*text);
+                DRW_MText moved(std::move(copied));
+                DRW_MText assigned;
+                assigned = moved;
+                DRW_MText moveAssigned;
+                moveAssigned = std::move(assigned);
+                copies.mBlock->ent.push_back(new DRW_MText(moveAssigned));
+            } else if (const auto* line = dynamic_cast<const DRW_Line*>(entity)) {
+                copies.mBlock->ent.push_back(new DRW_Line(*line));
+            }
+        }
+        dx_iface copyWriter;
+        t.expect(copyWriter.fileExport(output.string(), DRW::AC1032, binary, &copies, false)
+                     && verifyMTextOrientationDxf(output),
+                 "MTEXT copy/move/assignment retain parsed orientation provenance");
+        id = 0;
+        for (auto* entity : data.mBlock->ent) {
+            if (auto* text = dynamic_cast<DRW_MText*>(entity)) {
+                if (id == 1) text->angle = 45;
+                if (id == 2) text->secPoint = {1, 0, 0};
+                if (id == 3) { text->angle = 60; text->secPoint = {1, 1, 0}; }
+                ++id;
+            }
+        }
+        dx_iface editWriter;
+        t.expect(editWriter.fileExport(output.string(), DRW::AC1032, binary, &data, false)
+                     && verifyMTextOrientationDxf(output, true),
+                 "MTEXT read-then-edit angle/vector/both selection is deterministic");
+        t.expect(generateMTextOrientationDxf(source, binary, true)
+                     && verifyMTextOrientationDxf(source),
+                 "redundant column scope direction/height50 cannot change main MTEXT orientation");
+        dx_data fresh;
+        for (int kind = 0; kind != 3; ++kind) {
+            auto* text = new DRW_MText();
+            text->text = "FRESH_" + std::to_string(kind); text->height = 2;
+            if (kind != 1) text->angle = 30;
+            if (kind != 0) text->secPoint = {0, 1, 0};
+            fresh.mBlock->ent.push_back(text);
+        }
+        dx_iface freshWriter;
+        const bool freshWritten = freshWriter.fileExport(output.string(), DRW::AC1032, binary, &fresh, false);
+        dx_data freshDecoded;
+        dx_iface freshReader;
+        bool freshValid = freshWritten && freshReader.fileImport(output.string(), &freshDecoded, false)
+            && freshDecoded.mBlock->ent.size() == 3u;
+        int freshId = 0;
+        for (const auto* entity : freshDecoded.mBlock->ent) {
+            const auto* text = dynamic_cast<const DRW_MText*>(entity);
+            freshValid = text && text->angle == (freshId++ == 0 ? 30 : 90) && freshValid;
+        }
+        freshId = 0;
+        for (const auto* entity : fresh.mBlock->ent) {
+            const auto* text = static_cast<const DRW_MText*>(entity);
+            freshValid = text->angle == (freshId++ == 1 ? 0 : 30) && freshValid;
+        }
+        t.expect(freshValid, "fresh API MTEXT angle/vector/conflicting fields retain legacy behavior without mutation");
+        testEmbeddedMTextOrientation(t, binary, output);
+        std::error_code error;
+        std::filesystem::remove(source, error); std::filesystem::remove(output, error);
+    }
 }
 
 struct TableOwnerRecord {
@@ -2410,6 +2683,11 @@ int main(int argc, char** argv) {
         return generateXRecordCoordinateDxf(argv[2], inputMode == "binary",
                                              outputMode == "binary") ? 0 : 1;
     }
+    if (argc == 3 && (std::string(argv[1]) == "--generate-mtext-orientation"
+                     || std::string(argv[1]) == "--generate-mtext-orientation-binary"))
+        return generateMTextOrientationDxf(argv[2], std::string(argv[1]) == "--generate-mtext-orientation-binary") ? 0 : 1;
+    if (argc == 3 && std::string(argv[1]) == "--verify-mtext-orientation")
+        return verifyMTextOrientationDxf(argv[2]) ? 0 : 1;
     if (argc == 5 && (std::string(argv[1]) == "--generate-table-owners"
                      || std::string(argv[1]) == "--generate-common-scopes"
                      || std::string(argv[1]) == "--generate-object-common-graphs"
@@ -2441,6 +2719,7 @@ int main(int argc, char** argv) {
         return 2;
     TestContext context;
     testClassicVertexXdata(context);
+    testMTextOrientationPrecedence(context);
     testTableRecordOwners(context);
     testBig5(context);
     testBig5Hkscs(context);
