@@ -3402,17 +3402,17 @@ void testDxfHatchElevationAndOcsBoundary(TestContext& t) {
         "50\n0\n51\n90\n73\n1\n",
         "HATCH rejects an elliptical-edge major-axis point without its Y group");
     rejectsIncompleteBoundaryPair(
-        "92\n0\n93\n1\n72\n4\n94\n1\n73\n0\n74\n0\n95\n2\n"
-        "40\n0\n40\n1\n96\n1\n10\n1\n",
+        "92\n0\n93\n1\n72\n4\n94\n1\n73\n0\n74\n0\n95\n4\n"
+        "40\n0\n40\n0\n40\n1\n40\n1\n96\n2\n10\n0\n20\n0\n10\n1\n",
         "HATCH rejects a spline control point without its Y group");
     rejectsIncompleteBoundaryPair(
-        "92\n0\n93\n1\n72\n4\n94\n1\n73\n0\n74\n0\n95\n2\n"
-        "40\n0\n40\n1\n96\n1\n10\n1\n20\n2\n97\n1\n"
+        "92\n0\n93\n1\n72\n4\n94\n1\n73\n0\n74\n0\n95\n4\n"
+        "40\n0\n40\n0\n40\n1\n40\n1\n96\n2\n10\n0\n20\n0\n10\n1\n20\n2\n97\n1\n"
         "11\n3\n21\n4\n12\n5\n13\n6\n",
         "HATCH rejects a spline start tangent without its Y group");
     rejectsIncompleteBoundaryPair(
-        "92\n0\n93\n1\n72\n4\n94\n1\n73\n0\n74\n0\n95\n2\n"
-        "40\n0\n40\n1\n96\n1\n10\n1\n20\n2\n97\n1\n"
+        "92\n0\n93\n1\n72\n4\n94\n1\n73\n0\n74\n0\n95\n4\n"
+        "40\n0\n40\n0\n40\n1\n40\n1\n96\n2\n10\n0\n20\n0\n10\n1\n20\n2\n97\n1\n"
         "11\n3\n21\n4\n12\n5\n22\n6\n13\n7\n",
         "HATCH rejects a spline end tangent without its Y group");
 
@@ -3440,9 +3440,11 @@ void testDxfHatchElevationAndOcsBoundary(TestContext& t) {
         "92\n0\n93\n1\n72\n3\n10\n1\n20\n2\n11\n4\n21\n5\n"
         "40\n0.5\n50\n0\n51\n90\n73\n1\n",
         "HATCH accepts complete elliptical-edge point pairs");
+    // A degree-one control spline needs two controls/four full DXF knots.
+    // Keep the layout valid so these controls isolate coordinate-pair grammar.
     acceptsCompleteBoundaryPair(
-        "92\n0\n93\n1\n72\n4\n94\n1\n73\n0\n74\n0\n95\n2\n"
-        "40\n0\n40\n1\n96\n1\n10\n1\n20\n2\n97\n1\n"
+        "92\n0\n93\n1\n72\n4\n94\n1\n73\n0\n74\n0\n95\n4\n"
+        "40\n0\n40\n0\n40\n1\n40\n1\n96\n2\n10\n0\n20\n0\n10\n1\n20\n2\n97\n1\n"
         "11\n3\n21\n4\n12\n5\n22\n6\n13\n7\n23\n8\n",
         "HATCH accepts complete spline control, fit, and tangent pairs");
 
