@@ -3619,7 +3619,17 @@ bool dxfRW::writeDimstyle(DRW_Dimstyle *ent){
         if (spec == nullptr || version < spec->minimumVersion)
             continue;
         switch (v->type()) {
-            case DRW_Variant::STRING:  writer->writeUtf8String(v->code(), v->c_str()); break;
+            case DRW_Variant::STRING:
+                // syncStructToVars() supplies empty optional references for
+                // unset fields. Match the POD path's omission policy instead
+                // of emitting an invalid empty handle. Explicit "0" and
+                // nonempty source lexemes keep their existing semantics;
+                // resource identity resolution is a separate concern.
+                if (v->code() >= 341 && v->code() <= 347
+                    && v->c_str()[0] == '\0')
+                    break;
+                writer->writeUtf8String(v->code(), v->c_str());
+                break;
             case DRW_Variant::INTEGER:
                 if (dxfDimstyleVariableIsBoolean(v->code()))
                     writer->writeBool(v->code(), v->i_val() != 0);

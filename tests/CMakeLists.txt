@@ -1008,6 +1008,42 @@ if(EXISTS "${_dxf_roundtrip_spline_sample}")
     )
 endif()
 
+# Empty optional DIMSTYLE reference vars must not corrupt a repeated CLI pass.
+# Explicit null/nonempty lexemes are checked directly, without claiming their
+# target closure is qualified. All drawing controls are generated at runtime.
+add_executable(libdxfrw_dimstyle_optional_handle_tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/dimstyle_optional_handle_tests.cpp
+    ${CMAKE_SOURCE_DIR}/dwg2dxf/dx_iface.cpp)
+target_compile_features(libdxfrw_dimstyle_optional_handle_tests PRIVATE cxx_std_17)
+target_compile_options(libdxfrw_dimstyle_optional_handle_tests
+    PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+target_include_directories(libdxfrw_dimstyle_optional_handle_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/dwg2dxf ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(libdxfrw_dimstyle_optional_handle_tests PRIVATE dxfrw)
+add_test(NAME libdxfrw_dimstyle_optional_handles
+    COMMAND libdxfrw_dimstyle_optional_handle_tests)
+set_tests_properties(libdxfrw_dimstyle_optional_handles PROPERTIES
+    LABELS "dxf;fast;adapter")
+foreach(_encoding IN ITEMS ascii binary)
+    set(_dimstyle_generate --generate)
+    set(_dimstyle_options "")
+    if(_encoding STREQUAL "binary")
+        set(_dimstyle_generate --generate-binary)
+        set(_dimstyle_options -b)
+    endif()
+    add_test(NAME dwg2dxf_dimstyle_optional_handles_${_encoding}_cli
+        COMMAND ${CMAKE_COMMAND}
+            -DADAPTER_TEST=$<TARGET_FILE:libdxfrw_dimstyle_optional_handle_tests>
+            -DDWG2DXF=$<TARGET_FILE:dwg2dxf>
+            -DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}
+            -DCASE_NAME=dimstyle-optional-handles-${_encoding}
+            -DGENERATE_MODE=${_dimstyle_generate}
+            -DCONVERSION_OPTIONS=${_dimstyle_options}
+            -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg2dxf_image_path_test.cmake)
+    set_tests_properties(dwg2dxf_dimstyle_optional_handles_${_encoding}_cli
+        PROPERTIES LABELS "dxf;fast;adapter;cli")
+endforeach()
+
 set(_dwg_test_versions AC1021 AC1024 AC1027 AC1032)
 set(_dwg_test_outputs R12 v2000 v2010)
 
