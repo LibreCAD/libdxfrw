@@ -22,8 +22,8 @@
 | Slice 0 upstream reconciliation | COMMITTED | Fetched and merged `d68fb1e`, retaining upstream #103/#104 and local 7A/7I. Conflicts came from equivalent pre-squash history; reviewed final source deltas against both parents. Focused hardening/Wave1/DXF-fixtures/DWG-fixtures/local-roundtrip pass 5/5 in 6.28s. Receipt binding remains invalidated pending refresh; no native/support promotion. Merge identified by `Plan-Slice: 0-upstream`. |
 | Slice 4 thin independent DXF lane | IN_PROGRESS | Isolated ezdxf 1.4.4/Python 3.12 runtime provisioned. Ordinary-read controls now expose header loss and incorrect table ownership despite an empty audit result. Commit a reusable focused runner next. |
 | 7A handle roles | COMMITTED | `403013c`: shared lexical/self/arbitrary/pointer/owner policy; 320–329 bypass remapping and closure checks, including wide arbitrary values. Six red ASCII/binary matrix assertions reproduced first. Raw, application, typed XRECORD, section, XDATA-reference and converter closure controls pass: Wave 1 + DXF fixtures, 2/2 in 0.71s. |
-| 7B XRECORD grammar | COMMITTED | Integrated worker `5158c7c` onto current master. R14 payload, R2000+ explicit-zero header, repeated body 280, omitted-header and duplicate-marker controls pass; unknown-source 280 remains application data. DXF/hardening 2/2 in 0.77s, then added unknown-version control passes DXF fixtures 1/1 in 0.32s. Worker six ordinary ezdxf projections remain supplemental, not receipts. Commit identified by `Plan-Slice: 7B`; next 7C. |
-| 7C XRECORD replay | ISOLATED_COMMIT | Worker commit `2e96d08`, after 7B; 18 guard failures reproduced first, then object-vectors/local-roundtrip/hardening/DXF-fixtures 4/4 pass. Source-version and immutable snapshot guards; integrate and rerun affected checks. |
+| 7B XRECORD grammar | COMMITTED | `2fb759c`, integrated worker `5158c7c` onto current master. R14 payload, R2000+ explicit-zero header, repeated body 280, omitted-header and duplicate-marker controls pass; unknown-source 280 remains application data. DXF/hardening 2/2 in 0.77s, then unknown-version control passes DXF fixtures 1/1 in 0.32s. Worker six ordinary ezdxf projections remain supplemental, not receipts. |
+| 7C XRECORD replay | COMMITTED / GRAPH_PENDING | Integrated worker `2e96d08` after 18 reproduced guard failures. Source-version/immutable-record snapshot guards reject byte/prefix/identity/common-link/cloning edits and clearing raw-valid without explicit reset. Main object-vectors/local-roundtrip pass 2/2 in 2.17s; lc3_compat_check builds. Same-version raw and typed cross-version controls pass; rejected output preserves destination. Trailer `Plan-Slice: 7C.1`. Whole-document target closure/remapping remains with 7G/7R (7C.2); this does not qualify arbitrary opaque cloning. |
 | 7D MTEXT height | ISOLATED_COMMIT | Worker commit `1b55ad1`; focused local-roundtrip/DXF checks and independent defined-height projection reported passing. Main rectangle height and redundant R2018 context height are distinct. |
 | 7E MTEXT columns | ISOLATED_WIP | Uncommitted worker changes pass two local focused targets, but independent column evidence and long embedded-attribute coverage are incomplete. Reconcile with merged #103; not complete. |
 | 7H geometry gates | ISOLATED_COMMIT | Worker commit `2b43670`, after 7I; real extrusion-mode, normalized temporary basis, quarter-circle and nondegenerate face controls pass in the isolated checkout. Not yet integrated. |
@@ -363,7 +363,7 @@ integrated sequentially, not edited concurrently in the primary checkout.
 | --- | --- | --- | --- |
 | 7A — handle roles | COMMITTED | retained during upstream integration | `libdxfrw_wave1`, `libdxfrw_dxf_fixtures` |
 | 7B — XRECORD header/data | COMMITTED | integrated with unknown-source preservation control | `libdxfrw_dxf_fixtures` |
-| 7C — opaque XRECORD replay | ISOLATED_COMMIT | 7B; integrate 2e96d08 | `libdxfrw_dwg_object_vectors`, `libdxfrw_dwg_local_roundtrip` |
+| 7C — opaque XRECORD replay | COMMITTED / GRAPH_PENDING | 7C.1 record guards complete; 7C.2 document dependencies with 7G/7R | `libdxfrw_dwg_object_vectors`, `libdxfrw_dwg_local_roundtrip` |
 | 7D — MTEXT height | ISOLATED_COMMIT | integrate 1b55ad1, preserve distinct context height | `libdxfrw_dwg_local_roundtrip`, `libdxfrw_dxf_fixtures` |
 | 7E — MTEXT embedded columns | ISOLATED_WIP | 7D/7M; independent evidence; 7K for older linkage | `libdxfrw_dxf_fixtures`, one independent column projection |
 | 7F — CLI callback retention | REPRO_READY | callback/storage inventory; 7A for raw references | existing generated CLI harness pattern |
@@ -712,6 +712,12 @@ same-version replay, R2004↔R2007 boundary rejection, unchanged destination on
 failure, and typed-string conversion as a positive control. Extend
 `libdxfrw_dwg_object_vectors` and the relevant local round-trip case. Reuse the
 existing generic raw-object version guard and transactional writer behavior.
+
+7C.1 binds the record itself, not the entire drawing. 7C.2 must verify emitted
+target identity/closure and reject an unsupported document remap through 7G/7R;
+unchanged opaque bytes cannot prove their hidden references are safe in a new
+graph. Keep this dependency open rather than qualifying generic clone support
+from the same-record replay control.
 
 ### 7D — Preserve MTEXT defined height across DWG/DXF handoff
 

@@ -2422,6 +2422,10 @@ bool dwgWriter15::emitXRecordObject(std::uint32_t handle,
 }
 
 bool dwgWriter15::writeXRecord(const DRW_XRecord& xrecord) {
+    // Check before allocation, preamble emission, or deferred handle work.
+    // Unknown application bytes cannot be converted or patched as typed data.
+    if (!xrecord.canReplayDwgRawData(m_version))
+        return false;
     DRW_XRecord object = xrecord;
     if (!prepareDwgCommonObjectState(object, m_version))
         return false;

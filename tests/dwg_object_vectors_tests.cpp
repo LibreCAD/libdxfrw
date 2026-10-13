@@ -6,7 +6,9 @@
 #include <vector>
 
 #include "drw_objects.h"
+#include "intern/dwgbuffer.h"
 #include "intern/dwgbufferw.h"
+#include "xrecord_test_helpers.h"
 
 namespace {
 
@@ -35,10 +37,7 @@ public:
     using DRW_Dictionary::encodeDwg;
 };
 
-class XRecordEncodeProbe final : public DRW_XRecord {
-public:
-    using DRW_XRecord::encodeDwg;
-};
+using XRecordEncodeProbe = xrecord_test::CodecProbe;
 
 class PlotSettingsEncodeProbe final : public DRW_PlotSettings {
 public:
@@ -174,6 +173,121 @@ void testXRecordVectors(TestContext& t) {
     t.expect(body.data().empty() && strings.data().empty() &&
                  handles.data().empty(),
              "XRECORD rejection emits no partial bytes");
+}
+
+void testOpaqueXRecordReplayGuards(TestContext& t) {
+    for (const auto version : {DRW::AC1018, DRW::AC1021}) {
+        DRW_TextCodec codec;
+        codec.setVersion(version, false);
+        auto frame = xrecord_test::frame(version);
+        dwgBuffer input(frame.data(), frame.size(), &codec);
+        XRecordEncodeProbe parsed;
+        const bool read = parsed.parseDwg(version, &input);
+        t.expect(read && parsed.m_rawDataValid
+                     && parsed.m_rawData == xrecord_test::data(version)
+                     && parsed.m_dataEntries.size() == 2u,
+                 "from-scratch XRECORD frame retains a bounded opaque block and typed prefix");
+        if (!read)
+            continue;
+        dwgBufferW body;
+        dwgBufferW handles;
+        const bool replayed = parsed.encodeDwg(version, &body, nullptr, &handles);
+        dwgBufferW expected;
+        const auto data = xrecord_test::data(version);
+        expected.putBitLong(static_cast<std::int32_t>(data.size()));
+        expected.putBytes(data.data(), data.size());
+        expected.putBitShort(0);
+        t.expect(replayed && body.data() == expected.data()
+                     && body.bitCount() == expected.bitCount(),
+                 "same-version opaque XRECORD replay keeps exact packed data bytes");
+        t.expect(parsed.dwgRawDataVersion() == version,
+                 "opaque XRECORD captures the exact source DWG version");
+        const auto rejectsWithoutChangingBuffers = [&](
+                const XRecordEncodeProbe& object, DRW::Version target) {
+            dwgBufferW destination;
+            dwgBufferW links;
+            destination.putRawChar8(0xA5u);
+            links.putRawChar8(0x5Au);
+            const auto originalBody = destination.data();
+            const auto originalLinks = links.data();
+            return !object.encodeDwg(target, &destination, nullptr, &links)
+                && destination.data() == originalBody
+                && links.data() == originalLinks;
+        };
+        const auto other = version == DRW::AC1018 ? DRW::AC1021 : DRW::AC1018;
+        t.expect(rejectsWithoutChangingBuffers(parsed, other),
+                 "opaque XRECORD rejects conversion across the R2004/R2007 string boundary");
+        t.expect(rejectsWithoutChangingBuffers(parsed, DRW::UNKNOWNV),
+                 "opaque XRECORD rejects unknown output version");
+        auto changed = parsed;
+        changed.m_rawData.back() ^= 1u;
+        t.expect(rejectsWithoutChangingBuffers(changed, version),
+                 "opaque XRECORD rejects modified carrier bytes");
+        changed = parsed;
+        changed.m_dataEntries.front().addString(1, "changed");
+        t.expect(rejectsWithoutChangingBuffers(changed, version),
+                 "opaque XRECORD rejects edits hidden by raw replay");
+        changed = parsed;
+        changed.m_values.front().addString(1, "changed compatibility view");
+        t.expect(rejectsWithoutChangingBuffers(changed, version),
+                 "opaque XRECORD rejects edits to its compatibility value view");
+        changed = parsed;
+        changed.m_handleValues.front().second = 0x4321u;
+        t.expect(rejectsWithoutChangingBuffers(changed, version),
+                 "opaque XRECORD rejects handle remapping hidden by raw bytes");
+        changed = parsed;
+        changed.handle += 1u;
+        t.expect(rejectsWithoutChangingBuffers(changed, version),
+                 "opaque XRECORD rejects a changed source identity");
+        changed = parsed;
+        changed.parentHandle += 1u;
+        t.expect(rejectsWithoutChangingBuffers(changed, version),
+                 "opaque XRECORD rejects a changed ownership context");
+        changed = parsed;
+        changed.reactorHandles.push_back(0x99u);
+        t.expect(rejectsWithoutChangingBuffers(changed, version),
+                 "opaque XRECORD rejects a changed reactor dependency");
+        changed = parsed;
+        changed.m_cloning = 1;
+        t.expect(rejectsWithoutChangingBuffers(changed, version),
+                 "opaque XRECORD rejects an incompatible metadata edit");
+        changed = parsed;
+        changed.m_rawDataValid = false;
+        t.expect(rejectsWithoutChangingBuffers(changed, version),
+                 "disabling an opaque carrier cannot silently serialize only the decoded prefix");
+        XRecordEncodeProbe unbound;
+        unbound.m_rawData = data;
+        unbound.m_rawDataValid = true;
+        t.expect(rejectsWithoutChangingBuffers(unbound, version),
+                 "manually supplied opaque bytes require parser-validated provenance");
+        changed = parsed;
+        changed.reset();
+        t.expect(changed.dwgRawDataVersion() == DRW::UNKNOWNV
+                     && !changed.m_rawDataValid && changed.m_rawData.empty(),
+                 "XRECORD reset clears opaque source provenance");
+        changed.m_values.emplace_back(1, UTF8STRING("replacement"));
+        dwgBufferW replacement;
+        dwgBufferW replacementHandles;
+        t.expect(changed.encodeDwg(other, &replacement, nullptr,
+                                   &replacementHandles),
+                 "a reset complete typed replacement can use another DWG version");
+
+        auto typedFrame = xrecord_test::frame(version, false);
+        dwgBuffer typedInput(typedFrame.data(), typedFrame.size(), &codec);
+        XRecordEncodeProbe typed;
+        t.expect(typed.parseDwg(version, &typedInput) && !typed.m_rawDataValid,
+                 "fully decoded XRECORD does not require opaque replay provenance");
+        dwgBufferW converted;
+        dwgBufferW convertedHandles;
+        const auto convertedData = xrecord_test::data(other, false);
+        dwgBufferW expectedConversion;
+        expectedConversion.putBitLong(static_cast<std::int32_t>(convertedData.size()));
+        expectedConversion.putBytes(convertedData.data(), convertedData.size());
+        expectedConversion.putBitShort(0);
+        t.expect(typed.encodeDwg(other, &converted, nullptr, &convertedHandles)
+                     && converted.data() == expectedConversion.data(),
+                 "fully decoded XRECORD text converts across the string encoding boundary");
+    }
 }
 
 void populatePlotSettings(DRW_PlotSettings& object) {
@@ -476,6 +590,7 @@ int main() {
     testGroupVectors(context);
     testDictionaryVectors(context);
     testXRecordVectors(context);
+    testOpaqueXRecordReplayGuards(context);
     testPlotSettingsVectors(context);
     testLayoutVectors(context);
     testOptionalStreamFallbacks(context);

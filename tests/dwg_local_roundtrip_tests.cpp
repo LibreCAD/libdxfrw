@@ -27,6 +27,7 @@
 #include "intern/dwgbufferw.h"
 #include "intern/dwg_fixed_handles.h"
 #include "intern/dxfwriter.h"
+#include "xrecord_test_helpers.h"
 
 namespace {
 
@@ -9380,6 +9381,109 @@ public:
     dx_data data_;
 };
 
+class LocalXRecordReplayInterface final : public dx_iface {
+public:
+    explicit LocalXRecordReplayInterface(dwgRW* writer = nullptr,
+                                         const DRW_XRecord* record = nullptr)
+        : writer_(writer), record_(record) {
+        cData = &data_;
+        currentBlock = data_.mBlock;
+    }
+    void writeHeader(DRW_Header& header) override { header.vars.clear(); }
+    void writeObjects() override {
+        if (writer_ == nullptr || record_ == nullptr)
+            return;
+        DRW_XRecord copy = *record_;
+        wrote = writer_->writeXRecord(&copy);
+        if (!wrote)
+            writer_->markDwgWriteFailure();
+    }
+    void addXRecord(const DRW_XRecord& record) override {
+        records.push_back(record);
+    }
+    bool wrote = false;
+    std::vector<DRW_XRecord> records;
+
+private:
+    dwgRW* writer_ = nullptr;
+    const DRW_XRecord* record_ = nullptr;
+    dx_data data_;
+};
+
+bool runXRecordRawReplayVersionContract() {
+    const auto directory = std::filesystem::temp_directory_path();
+    const auto output = directory / "libdxfrw-xrecord-replay-contract.dwg";
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() {
+            std::error_code error;
+            std::filesystem::remove(path, error);
+        }
+    } cleanup{output};
+    const auto readBytes = [&]() {
+        std::ifstream stream(output, std::ios::binary);
+        return std::string(std::istreambuf_iterator<char>{stream},
+                           std::istreambuf_iterator<char>{});
+    };
+    for (const auto sourceVersion : {DRW::AC1018, DRW::AC1021}) {
+        DRW_TextCodec codec;
+        codec.setVersion(sourceVersion, false);
+        auto frame = xrecord_test::frame(sourceVersion);
+        dwgBuffer input(frame.data(), frame.size(), &codec);
+        xrecord_test::CodecProbe opaque;
+        if (!opaque.parseDwg(sourceVersion, &input) || !opaque.m_rawDataValid)
+            return false;
+        dwgRW replayWriter(output.string().c_str());
+        LocalXRecordReplayInterface replay(&replayWriter, &opaque);
+        if (!replayWriter.write(&replay, sourceVersion, true) || !replay.wrote)
+            return false;
+        dwgRW replayReader(output.string().c_str());
+        LocalXRecordReplayInterface reread;
+        if (!replayReader.read(&reread, false) || reread.records.size() != 1u
+            || !reread.records.front().m_rawDataValid
+            || reread.records.front().m_rawData != opaque.m_rawData
+            || reread.records.front().dwgRawDataVersion() != sourceVersion)
+            return false;
+
+        const auto targetVersion = sourceVersion == DRW::AC1018
+            ? DRW::AC1021 : DRW::AC1018;
+        const std::string sentinel = "keep existing XRECORD destination";
+        {
+            std::ofstream previous(output, std::ios::binary | std::ios::trunc);
+            previous << sentinel;
+            if (!previous)
+                return false;
+        }
+        dwgRW rejectWriter(output.string().c_str());
+        LocalXRecordReplayInterface rejected(&rejectWriter, &opaque);
+        if (rejectWriter.write(&rejected, targetVersion, true) || rejected.wrote
+            || rejectWriter.getWriteSkipCounters().objectWrites != 1u
+            || readBytes() != sentinel)
+            return false;
+
+        auto typedFrame = xrecord_test::frame(sourceVersion, false);
+        dwgBuffer typedInput(typedFrame.data(), typedFrame.size(), &codec);
+        xrecord_test::CodecProbe typed;
+        if (!typed.parseDwg(sourceVersion, &typedInput) || typed.m_rawDataValid)
+            return false;
+        dwgRW typedWriter(output.string().c_str());
+        LocalXRecordReplayInterface converted(&typedWriter, &typed);
+        if (!typedWriter.write(&converted, targetVersion, true) || !converted.wrote)
+            return false;
+        dwgRW typedReader(output.string().c_str());
+        LocalXRecordReplayInterface typedRead;
+        if (!typedReader.read(&typedRead, false) || typedRead.records.size() != 1u
+            || typedRead.records.front().m_rawDataValid
+            || typedRead.records.front().m_dataEntries.size() != 2u
+            || typedRead.records.front().m_dataEntries.front().type()
+                   != DRW_Variant::STRING
+            || std::string(typedRead.records.front().m_dataEntries.front().c_str())
+                   != "seed")
+            return false;
+    }
+    return true;
+}
+
 bool runRawDwgReplayContract() {
     const std::filesystem::path output =
         std::filesystem::temp_directory_path() / "libdxfrw-s110-raw-replay.dwg";
@@ -12944,6 +13048,9 @@ int main(int argc, char** argv) {
            "local mixed DXF modeler carrier chunk identity", failures);
     expect(runRawDwgReplayContract(),
            "local DWG raw-object/raw-section replay contract", failures);
+    expect(runXRecordRawReplayVersionContract(),
+           "opaque XRECORD replay binds source version and preserves a rejected destination",
+           failures);
     expect(runModelerDwgVersionValidation(),
            "local DWG modeler version range and empty-body validation", failures);
     expect(runModelerDwgSatV1Extraction(),

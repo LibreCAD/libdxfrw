@@ -8367,6 +8367,58 @@ bool decodeXRecordBinary(const std::string& text,
     return true;
 }
 
+bool sameXRecordValue(const DRW_Variant& left,
+                      const DRW_Variant& right) noexcept {
+    if (left.code() != right.code() || left.type() != right.type())
+        return false;
+    switch (left.type()) {
+    case DRW_Variant::STRING:
+        return left.content.s != nullptr && right.content.s != nullptr
+            && *left.content.s == *right.content.s;
+    case DRW_Variant::INTEGER:
+        return left.i_val() == right.i_val();
+    case DRW_Variant::INTEGER64:
+        return left.i64_val() == right.i64_val();
+    case DRW_Variant::DOUBLE:
+        return left.d_val() == right.d_val();
+    case DRW_Variant::COORD:
+        return left.coord() != nullptr && right.coord() != nullptr
+            && left.coord()->x == right.coord()->x
+            && left.coord()->y == right.coord()->y
+            && left.coord()->z == right.coord()->z;
+    case DRW_Variant::BINARY:
+        return left.binary() != nullptr && right.binary() != nullptr
+            && *left.binary() == *right.binary();
+    default:
+        return false;
+    }
+}
+
+bool sameXRecordValues(const std::vector<DRW_Variant>& left,
+                       const std::vector<DRW_Variant>& right) noexcept {
+    return left.size() == right.size()
+        && std::equal(left.cbegin(), left.cend(), right.cbegin(),
+                      sameXRecordValue);
+}
+
+}
+
+bool DRW_XRecord::canReplayDwgRawData(DRW::Version version) const noexcept {
+    if (!m_rawDataValid)
+        return m_rawDataSourceRecord == nullptr;
+    if (version == DRW::UNKNOWNV || m_rawDataVersion != version
+        || m_rawDataSourceRecord == nullptr)
+        return false;
+    const DRW_XRecord& source = *m_rawDataSourceRecord;
+    return handle == source.handle && parentHandle == source.parentHandle
+        && xDictHandle == source.xDictHandle
+        && reactorHandles == source.reactorHandles
+        && numReactors == source.numReactors && xDictFlag == source.xDictFlag
+        && hasDsData == source.hasDsData && m_cloning == source.m_cloning
+        && m_rawData == source.m_rawData
+        && m_handleValues == source.m_handleValues
+        && sameXRecordValues(m_values, source.m_values)
+        && sameXRecordValues(m_dataEntries, source.m_dataEntries);
 }
 
 bool DRW_XRecord::parseCode(int code,
@@ -8672,6 +8724,7 @@ bool DRW_XRecord::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t b
                 return fail();
             m_rawData = std::move(rawData);
             m_rawDataValid = true;
+            m_rawDataVersion = version;
             if (!seekToBit(dataEndBit))
                 return fail();
             break;
@@ -8723,8 +8776,11 @@ bool DRW_XRecord::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t b
 
     DRW_DBG("xrecord values: "); DRW_DBG(static_cast<int>(m_values.size()));
     DRW_DBG(" handles: "); DRW_DBG(static_cast<int>(m_handleValues.size())); DRW_DBG("\n");
-    return buf->isGood() && bodyBuf->isGood() && handleBuf->isGood()
-        ? true : fail();
+    if (!buf->isGood() || !bodyBuf->isGood() || !handleBuf->isGood())
+        return fail();
+    if (m_rawDataValid)
+        m_rawDataSourceRecord = std::make_shared<DRW_XRecord>(*this);
+    return true;
     } catch (...) {
         return fail();
     }
@@ -8815,7 +8871,8 @@ static bool writeXRecordText(DRW::Version version, dwgBufferW *buf,
 bool DRW_XRecord::encodeDwg(DRW::Version version, dwgBufferW *buf,
                              dwgBufferW *strBuf,
                              dwgBufferW *handleBuf) const {
-    if (buf == nullptr || !dwgSafety::validReactorCount(numReactors)
+    if (buf == nullptr || !canReplayDwgRawData(version)
+        || !dwgSafety::validReactorCount(numReactors)
         || reactorHandles.size() > dwgSafety::MaxReactorCount
         || xDictFlag > 1
         || (version > DRW::AC1014 && !validUnsignedBitShort(m_cloning)))

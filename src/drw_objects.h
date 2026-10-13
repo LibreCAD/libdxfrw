@@ -3048,7 +3048,9 @@ public:
       m_cloning(o.m_cloning), m_values(o.m_values),
       m_handleValues(o.m_handleValues), m_dataEntries(o.m_dataEntries),
       m_rawData(o.m_rawData), m_rawDataValid(o.m_rawDataValid),
-      m_dxfBodySeen(false), m_dxfHeaderPending(false) {
+      m_dxfBodySeen(false), m_dxfHeaderPending(false),
+      m_rawDataVersion(o.m_rawDataVersion),
+      m_rawDataSourceRecord(o.m_rawDataSourceRecord) {
     tType = o.tType;
   }
   DRW_XRecord& operator=(const DRW_XRecord& o) {
@@ -3062,6 +3064,8 @@ public:
       m_rawDataValid = o.m_rawDataValid;
       m_dxfBodySeen = false;
       m_dxfHeaderPending = false;
+      m_rawDataVersion = o.m_rawDataVersion;
+      m_rawDataSourceRecord = o.m_rawDataSourceRecord;
       tType = o.tType;
     }
     return *this;
@@ -3076,6 +3080,8 @@ public:
     m_rawDataValid = false;
     m_dxfBodySeen = false;
     m_dxfHeaderPending = false;
+    m_rawDataVersion = DRW::UNKNOWNV;
+    m_rawDataSourceRecord.reset();
     DRW_TableEntry::reset();
   }
 
@@ -3101,9 +3107,22 @@ public:
   std::vector<std::uint8_t> m_rawData;
   bool m_rawDataValid = false;
 
+  [[nodiscard]] DRW::Version dwgRawDataVersion() const noexcept {
+    return m_rawDataVersion;
+  }
+  // An opaque block can contain undiscovered references and versioned text.
+  // Replay requires the parser's exact source state; reset() before replacing
+  // it with a complete typed payload. Clearing the validity flag alone must
+  // not silently discard the unsupported part of a parsed record.
+  [[nodiscard]] bool canReplayDwgRawData(DRW::Version version) const noexcept;
+
 private:
   bool m_dxfBodySeen = false;
   bool m_dxfHeaderPending = false;
+  DRW::Version m_rawDataVersion = DRW::UNKNOWNV;
+  // Copies share this immutable snapshot, while all editable public payloads
+  // remain deep copies. The snapshot itself has no snapshot pointer/cycle.
+  std::shared_ptr<const DRW_XRecord> m_rawDataSourceRecord;
 };
 
 //! Value payload used by FIELD and TABLE/TABLECONTENT objects.
