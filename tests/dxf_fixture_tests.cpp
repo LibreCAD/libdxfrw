@@ -1,4 +1,5 @@
 #include <cstddef>
+#include <algorithm>
 #include <array>
 #include <charconv>
 #include <chrono>
@@ -860,6 +861,147 @@ EOF
     }
 }
 
+void testXRecordVersionedHeaderAndPayload(TestContext& t) {
+    const std::array<std::pair<DRW::Version, const char*>, 4> versions = {{
+        {DRW::AC1014, "AC1014"}, {DRW::AC1015, "AC1015"},
+        {DRW::AC1021, "AC1021"}, {DRW::AC1032, "AC1032"}}};
+    for (const auto& version : versions) {
+        const bool hasCloningHeader = version.first >= DRW::AC1015;
+        const std::string contents =
+            std::string("0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\n")
+            + version.second + "\n0\nENDSEC\n0\nSECTION\n2\nOBJECTS\n"
+            + "0\nXRECORD\n5\n210\n330\n200\n100\nAcDbXrecord\n"
+            + (hasCloningHeader ? "280\n0\n" : "")
+            + "280\n7\n1\nfirst\n280\n9\n330\n101\n1\nlast\n"
+            + "0\nENDSEC\n0\nEOF\n";
+        FixtureInterface capture;
+        dx_data imported;
+        t.expect(importTemporaryDxf("xrecord-header-payload", contents,
+                                    capture, imported),
+                 "versioned XRECORD header/payload fixture imports");
+        if (capture.xrecords.size() != 1u) {
+            t.expect(false, "versioned XRECORD reaches its typed callback");
+            continue;
+        }
+        const DRW_XRecord& record = capture.xrecords.front();
+        const auto hasExpectedPayload = [](const DRW_XRecord& value) {
+            return value.m_cloning == 0 && value.m_values.size() == 4u
+                && value.m_handleValues.size() == 1u
+                && value.m_dataEntries.size() == 5u
+                && value.m_dataEntries[0].code() == 280
+                && value.m_dataEntries[0].i_val() == 7
+                && value.m_dataEntries[1].code() == 1
+                && std::string(value.m_dataEntries[1].c_str()) == "first"
+                && value.m_dataEntries[2].code() == 280
+                && value.m_dataEntries[2].i_val() == 9
+                && value.m_dataEntries[3].code() == 330
+                && value.m_dataEntries[4].code() == 1
+                && std::string(value.m_dataEntries[4].c_str()) == "last";
+        };
+        t.expect(hasExpectedPayload(record),
+                 "XRECORD keeps application 280 fields and ordered compatibility views");
+
+        dx_data source;
+        DRW_LType lineType;
+        lineType.handle = 0x101u;
+        lineType.name = "ByLayer";
+        lineType.xDictHandle = 0x200u;
+        source.lineTypes.push_back(lineType);
+        DRW_Dictionary dictionary;
+        dictionary.handle = 0x200u;
+        dictionary.parentHandle = lineType.handle;
+        dictionary.m_entries.push_back({"LOCAL_XRECORD", 0x210u});
+        source.dictionaries.push_back(dictionary);
+        source.xRecords.push_back(record);
+        for (const bool binary : {false, true}) {
+            const auto output = std::filesystem::temp_directory_path()
+                / (std::string("libdxfrw-xrecord-versioned-") + version.second
+                   + (binary ? "-binary.dxf" : "-ascii.dxf"));
+            std::error_code error;
+            std::filesystem::remove(output, error);
+            dx_iface exporter;
+            const bool written = exporter.fileExport(
+                output.string(), version.first, binary, &source, false);
+            t.expect(written, "versioned XRECORD payload exports");
+            if (written) {
+                FixtureInterface reread;
+                dx_data roundTrip;
+                t.expect(reread.fileImport(output.string(), &roundTrip, false)
+                             && reread.xrecords.size() == 1u
+                             && hasExpectedPayload(reread.xrecords.front()),
+                         "ASCII/binary XRECORD readback retains header and application order");
+                if (!binary) {
+                    const auto groups = groupsOfRecord(output, "XRECORD");
+                    const auto marker = std::find(
+                        groups.begin(), groups.end(),
+                        std::make_pair(100, std::string("AcDbXrecord")));
+                    const std::vector<std::pair<int, std::string>> expected =
+                        hasCloningHeader
+                            ? std::vector<std::pair<int, std::string>>{
+                                  {280, "0"}, {280, "7"}, {1, "first"},
+                                  {280, "9"}, {330, "15"}, {1, "last"}}
+                            : std::vector<std::pair<int, std::string>>{
+                                  {280, "7"}, {1, "first"}, {280, "9"},
+                                  {330, "15"}, {1, "last"}};
+                    t.expect(marker != groups.end()
+                                 && std::vector<std::pair<int, std::string>>(
+                                        marker + 1, groups.end()) == expected,
+                             "literal XRECORD wire tags distinguish explicit zero header from payload");
+                }
+            }
+            std::filesystem::remove(output, error);
+        }
+    }
+
+    const std::string prefix =
+        "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1015\n0\nENDSEC\n"
+        "0\nSECTION\n2\nOBJECTS\n0\nXRECORD\n5\n210\n330\n200\n"
+        "100\nAcDbXrecord\n";
+    const std::string suffix = "0\nENDSEC\n0\nEOF\n";
+    FixtureInterface malformed;
+    dx_data malformedData;
+    t.expect(!importTemporaryDxf("xrecord-invalid-cloning",
+                                 prefix + "280\n6\n" + suffix,
+                                 malformed, malformedData)
+                 && malformed.xrecords.empty(),
+             "invalid XRECORD cloning header is rejected before publication");
+    FixtureInterface omitted;
+    dx_data omittedData;
+    t.expect(importTemporaryDxf("xrecord-omitted-cloning",
+                                prefix + "1\nlegacy\n280\n7\n" + suffix,
+                                omitted, omittedData)
+                 && omitted.xrecords.size() == 1u
+                 && omitted.xrecords.front().m_cloning == 0
+                 && omitted.xrecords.front().m_dataEntries.size() == 2u
+                 && omitted.xrecords.front().m_dataEntries[1].code() == 280,
+             "legacy omitted header does not consume a later application 280");
+    FixtureInterface repeatedMarker;
+    dx_data repeatedMarkerData;
+    t.expect(importTemporaryDxf(
+                 "xrecord-payload-subclass-marker",
+                 prefix + "280\n0\n100\nAcDbXrecord\n280\n7\n" + suffix,
+                 repeatedMarker, repeatedMarkerData)
+                 && repeatedMarker.xrecords.size() == 1u
+                 && repeatedMarker.xrecords.front().m_dataEntries.size() == 2u
+                 && repeatedMarker.xrecords.front().m_dataEntries[0].code() == 100
+                 && repeatedMarker.xrecords.front().m_dataEntries[1].code() == 280,
+             "application subclass-marker spelling cannot reopen the XRECORD header");
+    FixtureInterface unknownVersion;
+    dx_data unknownVersionData;
+    t.expect(importTemporaryDxf(
+                 "xrecord-unknown-version",
+                 "0\nSECTION\n2\nOBJECTS\n0\nXRECORD\n5\n210\n"
+                 "100\nAcDbXrecord\n280\n2\n1\napplication\n"
+                 "0\nENDSEC\n0\nEOF\n",
+                 unknownVersion, unknownVersionData)
+                 && unknownVersion.xrecords.size() == 1u
+                 && unknownVersion.xrecords.front().m_cloning == 0
+                 && unknownVersion.xrecords.front().m_dataEntries.size() == 2u
+                 && unknownVersion.xrecords.front().m_dataEntries[0].code() == 280
+                 && unknownVersion.xrecords.front().m_dataEntries[0].i_val() == 2,
+             "unknown source version preserves ambiguous leading 280 as application data");
+}
+
 void testLinetypeExtensionGraphRoundTrip(TestContext& t) {
     dx_data source;
     DRW_AppId application;
@@ -1176,6 +1318,7 @@ int main() {
     testRawControls(context);
     testDictionaryWithoutOwner(context);
     testXRecordDataOrder(context);
+    testXRecordVersionedHeaderAndPayload(context);
     testLinetypeExtensionGraphRoundTrip(context);
     testIncompleteLinetypeExtensionGraphRejected(context);
     testUnsafeLinetypeExtensionGraphsRejected(context);

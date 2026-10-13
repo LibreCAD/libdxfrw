@@ -8374,21 +8374,31 @@ bool DRW_XRecord::parseCode(int code,
     if (!m_dxfBodySeen) {
         if (code == 100 && reader->getString() == "AcDbXrecord") {
             m_dxfBodySeen = true;
+            m_dxfHeaderPending = true;
             return true;
         }
         return DRW_TableEntry::parseCode(code, reader);
     }
 
+    // Only the first tag after AcDbXrecord can be cloning metadata, and
+    // R13/R14 have no such header. Later 280 tags belong to the application
+    // data stream just like the other supported byte-valued codes.
+    if (m_dxfHeaderPending) {
+        m_dxfHeaderPending = false;
+        if (code == 280 && reader->getSourceVersion() >= DRW::AC1015) {
+            const int cloning = reader->getInt32();
+            if (cloning < 0 || cloning > 5)
+                return false;
+            m_cloning = cloning;
+            return true;
+        }
+    }
     if (code == 100) {
         if (m_values.size() >= dwgSafety::MaxOwnedObjectCount)
             return false;
         DRW_Variant value(code, reader->getUtf8String());
         m_values.push_back(value);
         m_dataEntries.push_back(std::move(value));
-        return true;
-    }
-    if (code == 280) {
-        m_cloning = reader->getInt32();
         return true;
     }
     if (xRecordCodeIsHandle(code)) {

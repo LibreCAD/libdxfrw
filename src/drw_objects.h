@@ -3048,7 +3048,7 @@ public:
       m_cloning(o.m_cloning), m_values(o.m_values),
       m_handleValues(o.m_handleValues), m_dataEntries(o.m_dataEntries),
       m_rawData(o.m_rawData), m_rawDataValid(o.m_rawDataValid),
-      m_dxfBodySeen(false) {
+      m_dxfBodySeen(false), m_dxfHeaderPending(false) {
     tType = o.tType;
   }
   DRW_XRecord& operator=(const DRW_XRecord& o) {
@@ -3061,6 +3061,7 @@ public:
       m_rawData = o.m_rawData;
       m_rawDataValid = o.m_rawDataValid;
       m_dxfBodySeen = false;
+      m_dxfHeaderPending = false;
       tType = o.tType;
     }
     return *this;
@@ -3074,6 +3075,7 @@ public:
     m_rawData.clear();
     m_rawDataValid = false;
     m_dxfBodySeen = false;
+    m_dxfHeaderPending = false;
     DRW_TableEntry::reset();
   }
 
@@ -3101,6 +3103,7 @@ public:
 
 private:
   bool m_dxfBodySeen = false;
+  bool m_dxfHeaderPending = false;
 };
 
 //! Value payload used by FIELD and TABLE/TABLECONTENT objects.

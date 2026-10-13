@@ -16278,7 +16278,7 @@ bool dxfRW::writeXRecord(DRW_XRecord *ent) {
         || ent->m_values.size() > dwgSafety::MaxOwnedObjectCount
         || ent->m_handleValues.size() > dwgSafety::MaxOwnedObjectCount
         || ent->m_cloning < 0
-        || ent->m_cloning > std::numeric_limits<std::int16_t>::max()
+        || ent->m_cloning > 5
         || std::any_of(ent->m_handleValues.cbegin(),
                        ent->m_handleValues.cend(), [](const auto& value) {
                            return value.first == 0;
@@ -16301,7 +16301,9 @@ bool dxfRW::writeXRecord(DRW_XRecord *ent) {
         return false;
     writeObjectOwner(static_cast<std::uint32_t>(ent->parentHandle));
     writer->writeString(100, "AcDbXrecord");
-    if (version > DRW::AC1014 && ent->m_cloning != 0)
+    // Keep the versioned header explicit even for zero, so a leading
+    // application 280 cannot be mistaken for cloning metadata on re-read.
+    if (version > DRW::AC1014)
         writer->writeInt16(280, ent->m_cloning);
 
     const auto isHandleCode = [](int code) {

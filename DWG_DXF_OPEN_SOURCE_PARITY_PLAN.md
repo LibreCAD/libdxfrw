@@ -22,7 +22,7 @@
 | Slice 0 upstream reconciliation | COMMITTED | Fetched and merged `d68fb1e`, retaining upstream #103/#104 and local 7A/7I. Conflicts came from equivalent pre-squash history; reviewed final source deltas against both parents. Focused hardening/Wave1/DXF-fixtures/DWG-fixtures/local-roundtrip pass 5/5 in 6.28s. Receipt binding remains invalidated pending refresh; no native/support promotion. Merge identified by `Plan-Slice: 0-upstream`. |
 | Slice 4 thin independent DXF lane | IN_PROGRESS | Isolated ezdxf 1.4.4/Python 3.12 runtime provisioned. Ordinary-read controls now expose header loss and incorrect table ownership despite an empty audit result. Commit a reusable focused runner next. |
 | 7A handle roles | COMMITTED | `403013c`: shared lexical/self/arbitrary/pointer/owner policy; 320–329 bypass remapping and closure checks, including wide arbitrary values. Six red ASCII/binary matrix assertions reproduced first. Raw, application, typed XRECORD, section, XDATA-reference and converter closure controls pass: Wave 1 + DXF fixtures, 2/2 in 0.71s. |
-| 7B XRECORD grammar | ISOLATED_COMMIT | Worker commit `5158c7c`; focused DXF/hardening 2/2 and six independent version/encoding combinations reported passing. Not yet integrated into the local research revision. |
+| 7B XRECORD grammar | COMMITTED | Integrated worker `5158c7c` onto current master. R14 payload, R2000+ explicit-zero header, repeated body 280, omitted-header and duplicate-marker controls pass; unknown-source 280 remains application data. DXF/hardening 2/2 in 0.77s, then added unknown-version control passes DXF fixtures 1/1 in 0.32s. Worker six ordinary ezdxf projections remain supplemental, not receipts. Commit identified by `Plan-Slice: 7B`; next 7C. |
 | 7C XRECORD replay | ISOLATED_COMMIT | Worker commit `2e96d08`, after 7B; 18 guard failures reproduced first, then object-vectors/local-roundtrip/hardening/DXF-fixtures 4/4 pass. Source-version and immutable snapshot guards; integrate and rerun affected checks. |
 | 7D MTEXT height | ISOLATED_COMMIT | Worker commit `1b55ad1`; focused local-roundtrip/DXF checks and independent defined-height projection reported passing. Main rectangle height and redundant R2018 context height are distinct. |
 | 7E MTEXT columns | ISOLATED_WIP | Uncommitted worker changes pass two local focused targets, but independent column evidence and long embedded-attribute coverage are incomplete. Reconcile with merged #103; not complete. |
@@ -362,7 +362,7 @@ integrated sequentially, not edited concurrently in the primary checkout.
 | Sub-slice | Current readiness | Main dependency | Smallest existing validation lane |
 | --- | --- | --- | --- |
 | 7A — handle roles | COMMITTED | retained during upstream integration | `libdxfrw_wave1`, `libdxfrw_dxf_fixtures` |
-| 7B — XRECORD header/data | ISOLATED_COMMIT | version-aware grammar; integrate 5158c7c | `libdxfrw_dxf_fixtures` |
+| 7B — XRECORD header/data | COMMITTED | integrated with unknown-source preservation control | `libdxfrw_dxf_fixtures` |
 | 7C — opaque XRECORD replay | ISOLATED_COMMIT | 7B; integrate 2e96d08 | `libdxfrw_dwg_object_vectors`, `libdxfrw_dwg_local_roundtrip` |
 | 7D — MTEXT height | ISOLATED_COMMIT | integrate 1b55ad1, preserve distinct context height | `libdxfrw_dwg_local_roundtrip`, `libdxfrw_dxf_fixtures` |
 | 7E — MTEXT embedded columns | ISOLATED_WIP | 7D/7M; independent evidence; 7K for older linkage | `libdxfrw_dxf_fixtures`, one independent column projection |
