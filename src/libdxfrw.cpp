@@ -2764,7 +2764,10 @@ bool dxfRW::writeAppData(const std::list<std::list<DRW_Variant>>& appData) {
     // Validate every application-data group before writing its opener.  This
     // keeps malformed nesting or union storage from producing a partial 102
     // group in the containing record.
-    const auto validGroup = [](const std::list<DRW_Variant>& group) {
+    const DxfClassifierProfile profile = m_useTargetLegacyClassifier
+        ? DxfClassifierProfile::LibreCadMasterLegacy
+        : DxfClassifierProfile::StandaloneSafe;
+    const auto validGroup = [this, profile](const std::list<DRW_Variant>& group) {
         bool opened = false;
         int depth = 0;
         for (const DRW_Variant& data : group) {
@@ -2789,18 +2792,37 @@ bool dxfRW::writeAppData(const std::list<std::list<DRW_Variant>>& appData) {
                 }
                 continue;
             }
-            if (!opened || depth == 0)
+            if (!opened || depth == 0 || data.code() <= 0 || data.code() > 1071)
                 return false;
+            const DxfValueKind kind = dxfValueKindForCode(data.code(), profile);
             switch (data.type()) {
             case DRW_Variant::STRING:
-                if (data.content.s == nullptr)
+                if (data.content.s == nullptr
+                    || (kind != DxfValueKind::Str && kind != DxfValueKind::Bin
+                        && !(kind == DxfValueKind::Unknown && !binFile)))
                     return false;
                 break;
-            case DRW_Variant::INTEGER:
+            case DRW_Variant::INTEGER: {
+                const int value = data.i_val();
+                if (kind == DxfValueKind::I16) {
+                    // Preserve existing signed values and unsigned flag bits.
+                    if (value < std::numeric_limits<std::int16_t>::min()
+                        || value > std::numeric_limits<std::uint16_t>::max())
+                        return false;
+                } else if (kind == DxfValueKind::Bln) {
+                    if (value != 0 && value != 1)
+                        return false;
+                } else if (kind != DxfValueKind::I32) {
+                    return false;
+                }
+                break;
+            }
             case DRW_Variant::INTEGER64:
+                if (kind != DxfValueKind::I64)
+                    return false;
                 break;
             case DRW_Variant::DOUBLE:
-                if (!std::isfinite(data.content.d))
+                if (kind != DxfValueKind::Dbl || !std::isfinite(data.content.d))
                     return false;
                 break;
             default:
@@ -2895,7 +2917,19 @@ bool dxfRW::writeAppData(const std::list<std::list<DRW_Variant>>& appData) {
                 break;
             }
             case DRW_Variant::INTEGER:
-                written = writer->writeInt32(data.code(), data.content.i);
+                switch (dxfValueKindForCode(data.code(), profile)) {
+                case DxfValueKind::I16:
+                    written = writer->writeInt16(data.code(), data.i_val());
+                    break;
+                case DxfValueKind::I32:
+                    written = writer->writeInt32(data.code(), data.i_val());
+                    break;
+                case DxfValueKind::Bln:
+                    written = writer->writeBool(data.code(), data.i_val() != 0);
+                    break;
+                default:
+                    break; // Every group was validated before any output.
+                }
                 break;
             case DRW_Variant::INTEGER64:
                 written = writer->writeInt64(data.code(), data.content.i64);

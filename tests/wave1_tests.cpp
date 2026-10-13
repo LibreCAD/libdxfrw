@@ -1301,13 +1301,16 @@ void testIntegerValuedBooleanWireKinds(TestContext& t) {
 }
 
 std::vector<std::string> numericWireProjection(const std::string& bytes,
-                                                bool binary, bool& ended) {
+                                                bool binary, bool& ended,
+                                                DxfClassifierProfile profile =
+                                                    DxfClassifierProfile::StandaloneSafe) {
     std::istringstream input(bytes);
     std::unique_ptr<dxfReader> reader;
     if (binary)
         reader = std::make_unique<dxfReaderBinary>(&input);
     else
         reader = std::make_unique<dxfReaderAscii>(&input);
+    reader->setClassifierProfile(profile);
     std::vector<std::string> result;
     int code = 0;
     ended = false;
@@ -6234,6 +6237,118 @@ void testDecompressor(TestContext& t) {
              "R2004 decompressor rejects null input");
 }
 
+void testTypedAppDataNumericWireKinds(TestContext& t) {
+    const std::list<DRW_Variant> group{
+        {102, std::string("{APP_NUMERIC")}, {70, 7}, {280, 2}, {290, 1},
+        {90, 70001}, {160, std::int64_t(1099511627777LL)}, {40, 1.25},
+        {1, std::string("AFTER")}, {102, std::string("}")}};
+    const std::vector<std::string> expected{
+        "102:{APP_NUMERIC", "70:7", "280:2", "290:1", "90:70001",
+        "160:1099511627777", "40:0x1.4p+0", "1:AFTER", "102:}",
+        "0:WIRE_END"};
+    for (const bool binary : {false, true}) {
+        std::ostringstream output;
+        dxfRW owner("");
+        owner.version = DRW::AC1032;
+        owner.binFile = binary;
+        if (binary)
+            owner.writer = std::make_unique<dxfWriterBinary>(&output);
+        else
+            owner.writer = std::make_unique<dxfWriterAscii>(&output);
+        t.expect(owner.writeAppData({group})
+                     && owner.writer->writeString(0, "WIRE_END"),
+                 "typed application data numeric sentinel writes");
+        bool ended = false;
+        t.expect(numericWireProjection(output.str(), binary, ended) == expected
+                     && ended,
+                 "typed appData has complete ordered assigned-width tags");
+    }
+
+    // The existing I16 writer also accepts unsigned flag bit patterns. Test
+    // their literal representations explicitly, not by normalizing every
+    // signed semantic field in the general projection.
+    for (const int value : {-32768, 32767, 32768, 65535}) {
+        for (const bool binary : {false, true}) {
+            std::ostringstream output;
+            dxfRW owner("");
+            owner.version = DRW::AC1032;
+            owner.binFile = binary;
+            if (binary)
+                owner.writer = std::make_unique<dxfWriterBinary>(&output);
+            else
+                owner.writer = std::make_unique<dxfWriterAscii>(&output);
+            const std::list<DRW_Variant> flags{
+                {102, std::string("{APP_FLAGS")}, {70, value},
+                {1, std::string("AFTER_FLAGS")}, {102, std::string("}")}};
+            t.expect(owner.writeAppData({flags})
+                         && owner.writer->writeString(0, "WIRE_END"),
+                     "application I16 flag bit pattern remains representable");
+            const int wireValue = binary && value > 32767 ? value - 65536 : value;
+            bool ended = false;
+            const std::vector<std::string> literal{
+                "102:{APP_FLAGS", "70:" + std::to_string(wireValue),
+                "1:AFTER_FLAGS", "102:}", "0:WIRE_END"};
+            t.expect(numericWireProjection(output.str(), binary, ended) == literal
+                         && ended,
+                     "I16 flag encoding retains signed/unsigned wire bits exactly");
+        }
+    }
+
+    const std::vector<DRW_Variant> invalid{
+        {70, -32769}, {70, 65536}, {280, 65536}, {290, -1}, {290, 2},
+        {160, 7}, {90, std::int64_t(70001)}, {70, std::string("7")},
+        {40, 7}, {70, 1.25}, {0, std::string("LINE")},
+        {-1, std::string("outside")}, {1072, std::string("outside")}};
+    for (const auto& value : invalid) {
+        for (const bool binary : {false, true}) {
+            std::ostringstream output;
+            dxfRW owner("");
+            owner.version = DRW::AC1032;
+            owner.binFile = binary;
+            if (binary)
+                owner.writer = std::make_unique<dxfWriterBinary>(&output);
+            else
+                owner.writer = std::make_unique<dxfWriterAscii>(&output);
+            const std::list<DRW_Variant> bad{
+                {102, std::string("{APP_BAD")}, value,
+                {102, std::string("}")}};
+            t.expect(!owner.writeAppData({group, bad}) && output.str().empty(),
+                     "appData validates every kind/range before any group opener");
+        }
+    }
+    for (const bool binary : {false, true}) {
+        for (const bool legacy : {false, true}) {
+            std::ostringstream output;
+            dxfRW owner("");
+            owner.setDxfCompatibilityProfile(legacy
+                ? dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy
+                : dxfRW::DxfCompatibilityProfile::StandaloneSafe);
+            owner.version = DRW::AC1032;
+            owner.binFile = binary;
+            if (binary)
+                owner.writer = std::make_unique<dxfWriterBinary>(&output);
+            else
+                owner.writer = std::make_unique<dxfWriterAscii>(&output);
+            const int value = legacy ? 1 : 2;
+            const std::list<DRW_Variant> compatible{
+                {102, std::string("{APP_PROFILE")}, {260, value},
+                {1, std::string("AFTER_PROFILE")}, {102, std::string("}")}};
+            t.expect(owner.writeAppData({compatible})
+                         && owner.writer->writeString(0, "WIRE_END"),
+                     "typed appData retains explicit compatibility profile");
+            bool ended = false;
+            const std::vector<std::string> literal{
+                "102:{APP_PROFILE", "260:" + std::to_string(value),
+                "1:AFTER_PROFILE", "102:}", "0:WIRE_END"};
+            t.expect(numericWireProjection(output.str(), binary, ended,
+                         legacy ? DxfClassifierProfile::LibreCadMasterLegacy
+                                : DxfClassifierProfile::StandaloneSafe) == literal
+                         && ended,
+                     "profile-specific appData width preserves following tags");
+        }
+    }
+}
+
 void testDynamicDimstyleNumericWireKinds(TestContext& t) {
     for (const int value : {std::numeric_limits<int>::min(), -32769, 0, 1,
                             65536, 70001, std::numeric_limits<int>::max()}) {
@@ -6524,6 +6639,7 @@ int main() {
     testHandlesAndHeader(context);
     testHeaderMaintenanceWidths(context);
     testDynamicDimstyleNumericWireKinds(context);
+    testTypedAppDataNumericWireKinds(context);
     if (context.failures != 0) {
         std::cerr << context.failures << " Wave 1 assertion(s) failed\n";
         return 1;
