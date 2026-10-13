@@ -41,6 +41,11 @@ bool generate(const std::string& path, bool binary, bool dangling = false,
     section("HEADER");
     text(9, "$ACADVER"); text(1, "AC1027"); text(0, "ENDSEC");
     section("TABLES");
+    text(0, "TABLE"); text(2, "APPID"); text(5, "9");
+    text(330, "0"); text(100, "AcDbSymbolTable"); writer->writeInt16(70, 1);
+    text(0, "APPID"); text(5, "D0"); text(330, "9");
+    text(100, "AcDbSymbolTableRecord"); text(100, "AcDbRegAppTableRecord");
+    text(2, "VERTEX_APP"); writer->writeInt16(70, 0); text(0, "ENDTAB");
     text(0, "TABLE"); text(2, "BLOCK_RECORD"); text(5, "1");
     text(330, "0"); text(100, "AcDbSymbolTable"); writer->writeInt16(70, 5);
     const std::pair<const char*, const char*> records[] = {
@@ -94,12 +99,16 @@ bool generate(const std::string& path, bool binary, bool dangling = false,
     text(100, "AcDbEntity"); text(8, "0"); text(100, "AcDb3dPolyline");
     writer->writeInt16(66, 1); writer->writeInt16(70, 8);
     writer->writeDouble(10, 0); writer->writeDouble(20, 0); writer->writeDouble(30, 0);
+    text(1001, "VERTEX_APP"); text(1000, "parent-xdata");
     for (int vertex = 0; vertex != 2; ++vertex) {
         text(0, "VERTEX"); text(5, vertex == 0 ? "A4" : "A5"); text(330, "A3");
+        text(102, "{VERTEX_META"); text(1, "vertex-application-" + std::to_string(vertex));
+        text(320, "DEADBEEF"); text(102, "}");
         text(100, "AcDbEntity"); text(8, "0"); text(100, "AcDbVertex");
         text(100, "AcDb3dPolylineVertex"); writer->writeInt16(70, 32);
         writer->writeDouble(10, vertex + 1); writer->writeDouble(20, vertex + 2);
         writer->writeDouble(30, vertex + 3);
+        text(1001, "VERTEX_APP"); text(1000, "vertex-xdata-" + std::to_string(vertex));
     }
     text(0, "SEQEND"); text(5, "A6"); text(330, "A3");
     text(100, "AcDbEntity"); text(8, "0");
@@ -108,6 +117,7 @@ bool generate(const std::string& path, bool binary, bool dangling = false,
     text(2, "Named"); writer->writeInt16(66, 1);
     writer->writeDouble(10, 501.25); writer->writeDouble(20, 2.5);
     writer->writeDouble(30, -3.75);
+    text(1001, "VERTEX_APP"); text(1000, "next-record-xdata");
     text(0, "ATTRIB"); text(5, "A8"); text(330, "A7");
     text(100, "AcDbEntity"); text(8, "0"); text(100, "AcDbText");
     writer->writeDouble(10, 501.25); writer->writeDouble(20, 2.5);
@@ -123,6 +133,8 @@ bool generate(const std::string& path, bool binary, bool dangling = false,
 struct Record {
     std::string type, handle, owner, name;
     double x {0};
+    std::vector<std::pair<int, std::string>> xdata;
+    std::vector<std::string> appData;
 };
 
 bool verify(const std::string& path) {
@@ -148,6 +160,10 @@ bool verify(const std::string& path) {
         else if (code == 330) current.owner = reader->getString();
         else if (code == 2) current.name = reader->getString();
         else if (code == 10) current.x = reader->getDouble();
+        else if (code == 1000 || code == 1001)
+            current.xdata.emplace_back(code, reader->getString());
+        else if (code == 102 || code == 1 || code == 320)
+            current.appData.push_back(reader->getString());
     }
     if (!eof) {
         std::cerr << "Raw scan stopped at code " << code << " in " << path << '\n';
@@ -180,6 +196,11 @@ bool verify(const std::string& path) {
             if (record.owner != blocks["*Model_Space"])
                 return fail("sequence parent owner does not name modelspace");
             if (record.type == "INSERT") ++inserts;
+            const std::vector<std::pair<int, std::string>> expected{
+                {1001, "VERTEX_APP"}, {1000, record.type == "POLYLINE"
+                    ? "parent-xdata" : "next-record-xdata"}};
+            if (record.xdata != expected)
+                return fail("parent/next-record XDATA scope changed");
         }
         if (record.type == "LINE") {
             const std::string owner = record.x == 1.25 || record.x == 301.25 ? blocks["*Model_Space"]
@@ -193,7 +214,16 @@ bool verify(const std::string& path) {
                    || record.type == "SEQEND") {
             if (sequenceParent.empty() || record.owner != sequenceParent)
                 return fail("minted sequence-child owner was remapped twice");
-            if (record.type == "VERTEX") ++vertices;
+            if (record.type == "VERTEX") {
+                const std::string index = std::to_string(vertices);
+                if (record.xdata != std::vector<std::pair<int, std::string>>{
+                        {1001, "VERTEX_APP"}, {1000, "vertex-xdata-" + index}})
+                    return fail("distinct classic VERTEX XDATA is missing or merged");
+                if (record.appData != std::vector<std::string>{"{VERTEX_META",
+                        "vertex-application-" + index, "DEADBEEF", "}"})
+                    return fail("VERTEX common application scope changed");
+                ++vertices;
+            }
             else if (record.type == "ATTRIB") ++attributes;
             else ++sequences;
         }

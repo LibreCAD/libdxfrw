@@ -4392,6 +4392,20 @@ bool dxfRW::writePolyline(DRW_Polyline *ent) {
     }
     RecordStateScope state(*this, ent);
     DxfWriterRecordScope record(*writer);
+    // Child records share this parent transaction. Keep the existing minted
+    // handle assignment on success, but restore every emitted prefix when a
+    // later child (including its trailing XDATA) rejects the compound record.
+    struct VertexHandleRollback {
+        std::vector<std::pair<DRW_Vertex*, std::uint32_t>> handles;
+        bool committed {false};
+        ~VertexHandleRollback() {
+            if (!committed) {
+                for (auto saved = handles.rbegin(); saved != handles.rend(); ++saved)
+                    saved->first->handle = saved->second;
+            }
+        }
+    } vertexState;
+    vertexState.handles.reserve(ent->vertlist.size());
     writer->writeString(0, "POLYLINE");
     if (!writeEntity(ent))
         return false;
@@ -4452,6 +4466,7 @@ bool dxfRW::writePolyline(DRW_Polyline *ent) {
     const bool isPolyface = (ent->flags & 64) != 0;
     const auto emitVertex = [&](const std::shared_ptr<DRW_Vertex>& vertex) {
         DRW_Vertex *v = vertex.get();
+        vertexState.handles.emplace_back(v, v->handle);
         const bool polyfaceFace = isPolyface
             && DRW_Polyline::polyfaceVertexRole(*v)
                 == DRW_Polyline::PolyfaceVertexRole::Face;
@@ -4525,6 +4540,8 @@ bool dxfRW::writePolyline(DRW_Polyline *ent) {
                 writer->writeInt32(91, v->identifier);
             }
         }
+        if (!v->extData.empty() && !writeExtData(v->extData))
+            return false;
         return true;
     };
     // Keep each coordinate/face pool stable, preserving IDs, winding and
@@ -4545,6 +4562,7 @@ bool dxfRW::writePolyline(DRW_Polyline *ent) {
         return false;
     }
     state.commit();
+    vertexState.committed = true;
     return true;
 }
 

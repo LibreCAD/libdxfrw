@@ -2225,6 +2225,180 @@ void testUnsafeLinetypeExtensionGraphsRejected(TestContext& t) {
         "null dictionary children are rejected",
         "null children publish no partial DXF");
 }
+void testClassicVertexXdata(TestContext& t) {
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    const auto output = std::filesystem::temp_directory_path()
+        / ("libdxfrw-vertex-xdata-" + std::to_string(nonce) + ".dxf");
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() { std::error_code error; std::filesystem::remove(path, error); }
+    } cleanup{output};
+    const auto xdata = [](DRW_Entity& entity, const std::string& marker) {
+        entity.extData.push_back(std::make_shared<DRW_Variant>(1001, "VERTEX_APP"));
+        entity.extData.push_back(std::make_shared<DRW_Variant>(1000, marker));
+        entity.extData.push_back(std::make_shared<DRW_Variant>(1070, -7));
+    };
+    const auto populate = [&xdata](dx_data& data, int flags, bool modern) {
+        DRW_AppId app;
+        app.name = "VERTEX_APP";
+        data.appIds.push_back(app);
+        auto* poly = new DRW_Polyline;
+        poly->flags = flags;
+        poly->handle = 0x900u;
+        poly->layer = "0";
+        xdata(*poly, "parent-xdata");
+        const int count = flags == 64 ? 4 : 2;
+        for (int index = 0; index < count; ++index) {
+            DRW_Vertex vertex;
+            vertex.handle = static_cast<std::uint32_t>(0x901u + index);
+            vertex.basePoint = DRW_Coord(index + 1.25, index - 2.5, flags == 0 ? 0.0 : index + 3.75);
+            vertex.flags = flags == 8 ? 32 : (flags == 64 ? (index == 0 ? 128 : 192) : 0);
+            if (flags == 64 && index == 0) {
+                vertex.vindex1 = -1;
+                vertex.vindex2 = 2;
+                vertex.vindex3 = 3;
+                vertex.basePoint = DRW_Coord(0, 0, 0);
+            }
+            const std::string marker = "vertex-xdata-" + std::to_string(index);
+            xdata(vertex, marker);
+            if (modern) {
+                vertex.appData.push_back({{102, std::string("{VERTEX_META")},
+                    {1, marker}, {320, std::string("DEADBEEF")}, {102, std::string("}")}});
+            }
+            poly->addVertex(vertex);
+        }
+        if (flags == 64) {
+            poly->vertexcount = 3;
+            poly->facecount = 1;
+        }
+        data.mBlock->ent.push_back(poly);
+        auto* next = new DRW_Line;
+        next->basePoint = DRW_Coord(100, 200, 300);
+        next->secPoint = DRW_Coord(101, 202, 303);
+        xdata(*next, "next-record-xdata");
+        data.mBlock->ent.push_back(next);
+        return poly;
+    };
+    const auto marker = [](const DRW_Entity& entity) {
+        return entity.extData.size() == 3u && entity.extData[0]
+            && entity.extData[0]->code() == 1001
+            && std::string(entity.extData[0]->c_str()) == "VERTEX_APP"
+            && entity.extData[1] && entity.extData[1]->code() == 1000
+            && entity.extData[2] && entity.extData[2]->code() == 1070
+            && entity.extData[2]->i_val() == -7
+                ? std::string(entity.extData[1]->c_str()) : std::string{};
+    };
+    for (const DRW::Version version : {DRW::AC1009, DRW::AC1021}) {
+        for (const bool binary : {false, true}) {
+            for (const int flags : {0, 8, 64}) {
+                dx_data source;
+                auto* poly = populate(source, flags, version > DRW::AC1009);
+                const auto vertices = poly->vertlist;
+                const DRW_Polyline before(*poly);
+                dx_iface writer;
+                t.expect(writer.fileExport(output.string(), version, binary, &source, false),
+                         "classic VERTEX XDATA matrix exports");
+                t.expect(poly->vertlist == vertices && marker(*poly) == "parent-xdata",
+                         "VERTEX emission leaves caller vector and parent metadata intact");
+                for (std::size_t index = 0; index < vertices.size(); ++index) {
+                    t.expect(vertices[index]->handle != 0
+                                 && vertices[index]->handle != before.vertlist[index]->handle,
+                             "successful VERTEX emission retains the existing minted-handle assignment");
+                    t.expect(marker(*vertices[index]) == "vertex-xdata-" + std::to_string(index)
+                                 && vertices[index]->basePoint.x == before.vertlist[index]->basePoint.x
+                                 && vertices[index]->vindex1 == before.vertlist[index]->vindex1,
+                             "VERTEX caller geometry, signed visibility and metadata are not reordered");
+                }
+                dx_data decoded;
+                dx_iface reader;
+                t.expect(reader.fileImport(output.string(), &decoded, false),
+                         "classic VERTEX ordered XDATA reads back");
+                t.expect(decoded.mBlock->ent.size() == 2u,
+                         "VERTEX parent and following entity remain separate");
+                if (decoded.mBlock->ent.size() != 2u) continue;
+                const auto* decodedPoly = dynamic_cast<const DRW_Polyline*>(decoded.mBlock->ent.front());
+                t.expect(decodedPoly && marker(*decodedPoly) == "parent-xdata"
+                             && marker(*decoded.mBlock->ent.back()) == "next-record-xdata",
+                         "parent and next-record XDATA do not absorb child data");
+                if (!decodedPoly) continue;
+                t.expect(decodedPoly->vertlist.size() == vertices.size(),
+                         "VERTEX XDATA does not change child count");
+                for (std::size_t wireIndex = 0; wireIndex < decodedPoly->vertlist.size(); ++wireIndex) {
+                    const auto& vertex = decodedPoly->vertlist[wireIndex];
+                    // Interleaved caller-side polyface order is a robustness
+                    // control; canonical output keeps coordinates before faces.
+                    const std::size_t sourceIndex = flags == 64
+                        ? (wireIndex + 1u) % vertices.size() : wireIndex;
+                    t.expect(marker(*vertex) == "vertex-xdata-" + std::to_string(sourceIndex),
+                             "each classic VERTEX retains distinct ordered XDATA");
+                    if (version > DRW::AC1009) {
+                        t.expect(vertex->parentHandle == decodedPoly->handle && vertex->appData.size() == 1u,
+                                 "VERTEX common application group and authoritative parent owner survive");
+                    }
+                    if (flags == 64 && sourceIndex == 0)
+                        t.expect(vertex->flags == 128 && vertex->vindex1 == -1
+                                     && vertex->vindex2 == 2 && vertex->vindex3 == 3,
+                                 "polyface XDATA preserves signed invisible edges and face role");
+                }
+                if (version > DRW::AC1009) {
+                    std::vector<TableOwnerRecord> raw;
+                    t.expect(readTableOwnerRecords(output, binary, raw),
+                             "VERTEX XDATA raw framing reaches the next record and EOF");
+                    for (const TableOwnerRecord& record : raw) {
+                        if (record.kind != "VERTEX") continue;
+                        const auto xdataStart = std::find_if(record.groups.begin(), record.groups.end(),
+                            [](const auto& tag) { return tag.first == 1001; });
+                        t.expect(xdataStart != record.groups.end()
+                                     && std::none_of(xdataStart, record.groups.end(), [](const auto& tag) {
+                                         return tag.first == 100 || tag.first == 102;
+                                     }), "VERTEX XDATA follows subtype and common application groups");
+                    }
+                }
+            }
+            dx_data bad;
+            auto* poly = populate(bad, 8, version > DRW::AC1009);
+            poly->vertlist.back()->extData.back() = std::make_shared<DRW_Variant>(1070, 70001);
+            const auto vertices = poly->vertlist;
+            const auto originalParent = poly->handle;
+            const std::array<std::uint32_t, 2> originalHandles{{vertices[0]->handle, vertices[1]->handle}};
+            { std::ofstream original(output); original << "existing vertex destination\n"; }
+            dx_iface rejecting;
+            rejecting.cData = &bad;
+            rejecting.currentBlock = bad.mBlock;
+            const std::string fileName = output.string();
+            dxfRW codec(fileName.c_str());
+            rejecting.dxfW = &codec;
+            t.expect(!codec.write(&rejecting, version, binary),
+                     "invalid child XDATA write failure propagates to the parent transaction");
+            std::ifstream bytes(output, std::ios::binary);
+            t.expect(std::string(std::istreambuf_iterator<char>(bytes), {}) == "existing vertex destination\n",
+                     "rejected child XDATA preserves the existing destination");
+            t.expect(poly->handle == originalParent && poly->vertlist == vertices
+                         && vertices[0]->handle == originalHandles[0] && vertices[1]->handle == originalHandles[1]
+                         && vertices[1]->extData.back()->i_val() == 70001,
+                     "failed parent transaction restores child identities without editing caller metadata");
+            t.expect(codec.remapEntityHandle(originalParent) == originalParent
+                         && codec.remapEntityHandle(originalHandles[0]) == originalHandles[0]
+                         && codec.remapEntityHandle(originalHandles[1]) == originalHandles[1],
+                     "failed child XDATA rolls back source-to-emitted handle bindings");
+            bytes.close();
+            vertices[1]->extData.back() = std::make_shared<DRW_Variant>(1070, -7);
+            t.expect(codec.write(&rejecting, version, binary),
+                     "same codec succeeds after rejected child XDATA is corrected");
+            dx_data reused;
+            dx_iface reusedReader;
+            t.expect(reusedReader.fileImport(fileName, &reused, false),
+                     "failed-then-valid compound output reads back");
+            const auto* reusedPoly = reused.mBlock->ent.empty() ? nullptr
+                : dynamic_cast<const DRW_Polyline*>(reused.mBlock->ent.front());
+            t.expect(reusedPoly && reusedPoly->vertlist.size() == 2u
+                         && marker(*reusedPoly->vertlist[0]) == "vertex-xdata-0"
+                         && marker(*reusedPoly->vertlist[1]) == "vertex-xdata-1",
+                     "failed-then-valid reuse retains both child XDATA scopes");
+            rejecting.dxfW = nullptr;
+        }
+    }
+}
 } // namespace
 
 int main(int argc, char** argv) {
@@ -2266,6 +2440,7 @@ int main(int argc, char** argv) {
     if (argc != 1)
         return 2;
     TestContext context;
+    testClassicVertexXdata(context);
     testTableRecordOwners(context);
     testBig5(context);
     testBig5Hkscs(context);
