@@ -753,6 +753,38 @@ endif()
 # INSTALLATION
 set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/libdxfrw)
 
+# A .pc file must resolve the install it lives in, including --install --prefix
+# and later relocation. GNUInstallDirs may use lib64 or a multiarch libdir, so
+# derive the path back to the prefix instead of assuming ../.. . Absolute
+# destinations deliberately remain absolute and are not relocation promises.
+if(IS_ABSOLUTE "${CMAKE_INSTALL_LIBDIR}")
+    set(LIBDXFRW_PC_PREFIX "${CMAKE_INSTALL_PREFIX}")
+    set(LIBDXFRW_PC_LIBDIR "${CMAKE_INSTALL_LIBDIR}")
+else()
+    file(RELATIVE_PATH LIBDXFRW_PC_PREFIX_RELATIVE
+        "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/pkgconfig"
+        "${CMAKE_INSTALL_PREFIX}")
+    set(LIBDXFRW_PC_PREFIX "\${pcfiledir}/${LIBDXFRW_PC_PREFIX_RELATIVE}")
+    # --define-prefix implementations may guess the wrong prefix for a nested
+    # libdir. Keep flags independent of that optional override's heuristic.
+    set(LIBDXFRW_PC_LIBDIR "\${pcfiledir}/..")
+endif()
+if(IS_ABSOLUTE "${CMAKE_INSTALL_INCLUDEDIR}")
+    set(LIBDXFRW_PC_INCLUDEDIR "${CMAKE_INSTALL_INCLUDEDIR}")
+else()
+    if(IS_ABSOLUTE "${CMAKE_INSTALL_LIBDIR}")
+        set(_dxfrw_pc_directory "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
+    else()
+        set(_dxfrw_pc_directory "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/pkgconfig")
+    endif()
+    file(RELATIVE_PATH LIBDXFRW_PC_INCLUDE_RELATIVE
+        "${_dxfrw_pc_directory}"
+        "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}")
+    set(LIBDXFRW_PC_INCLUDEDIR "\${pcfiledir}/${LIBDXFRW_PC_INCLUDE_RELATIVE}")
+endif()
+foreach(_dxfrw_pc_path IN ITEMS LIBDXFRW_PC_PREFIX LIBDXFRW_PC_LIBDIR LIBDXFRW_PC_INCLUDEDIR)
+    string(REPLACE " " "\\ " ${_dxfrw_pc_path} "${${_dxfrw_pc_path}}")
+endforeach()
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libdxfrw.pc.in libdxfrw.pc @ONLY)
 
 if(LIBDXFRW_BUILD_LIBRARY)

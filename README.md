@@ -103,6 +103,13 @@ correctly by `dwg2dxf` while FreeCAD reports it as unsupported.
 Installed consumers can use either `find_package(libdxfrw CONFIG REQUIRED)` and
 `libdxfrw::libdxfrw`, or `pkg-config --cflags --libs libdxfrw`. The package is
 relocatable and selects compatible package versions with `SameMajorVersion`.
+Relocation applies to relative GNUInstallDirs include/library destinations;
+explicit absolute destinations retain their configured paths and are not
+relocatable. The pkg-config file derives its prefix from its installed location,
+including non-default relative `lib64` or multiarch library directories.
+Plain pkg-config flags do not require `--define-prefix`; implementations may
+guess a different prefix variable for nested layouts when that override is
+requested, so include/library flags use independently derived paths.
 Packagers that need module-mode discovery can install the same development
 files and append the installed `${libdir}/cmake/libdxfrw` directory to
 `CMAKE_MODULE_PATH`; `find_package(Libdxfrw MODULE REQUIRED)` then provides the

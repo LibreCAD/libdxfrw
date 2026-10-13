@@ -75,6 +75,151 @@ def assert_reported_prefix(reported: str, prefix: Path) -> None:
             % reported)
 
 
+def layout_root(prefix: Path, destination: str) -> Path:
+    relative = Path(destination)
+    if relative.is_absolute() or ".." in relative.parts:
+        raise RuntimeError("relocation check requires a relative in-prefix destination: %s"
+                           % destination)
+    return prefix / relative
+
+
+def pkg_config_environment(prefix: Path, libdir: str) -> dict:
+    environment = {key: value for key, value in os.environ.items()
+                   if not key.startswith("PKG_CONFIG_")}
+    directory = str(layout_root(prefix, libdir) / "pkgconfig")
+    environment["PKG_CONFIG_PATH"] = directory
+    environment["PKG_CONFIG_LIBDIR"] = directory
+    return environment
+
+
+def pkg_config_path_value(value: str) -> str:
+    # pkgconf escapes spaces in --variable output; other implementations may
+    # print the raw value. Resolve the path, without shell evaluation, first.
+    if Path(value).exists():
+        return value
+    fragments = shlex.split(value)
+    return fragments[0] if len(fragments) == 1 else value
+
+
+def run_consumer(executable: Path, prefix: Path, libdir: str,
+                 *, direct_link: bool = False) -> None:
+    environment = os.environ.copy()
+    for key in ("LD_LIBRARY_PATH", "DYLD_LIBRARY_PATH", "DYLD_FALLBACK_LIBRARY_PATH"):
+        environment.pop(key, None)
+    # Direct pkg-config link flags intentionally do not promise a runtime RPATH.
+    # Restrict its loader override to this install; CONFIG consumers use their
+    # imported-target build RPATH with no developer loader paths.
+    if direct_link:
+        environment["LD_LIBRARY_PATH"] = str(layout_root(prefix, libdir))
+        environment["DYLD_LIBRARY_PATH"] = str(layout_root(prefix, libdir))
+    run([str(executable)], env=environment)
+
+
+def check_consumer_routes(prefix: Path, cxx: str, root: Path,
+                          consumer: Path, libdir: str, includedir: str) -> None:
+    prefix = prefix.resolve()
+    config_root = layout_root(prefix, libdir) / "cmake" / "libdxfrw"
+    pkgconfig = pkg_config_environment(prefix, libdir)
+    version = run(["pkg-config", "--modversion", "libdxfrw"],
+                  env=pkgconfig).stdout.strip()
+    major, minor, patch = (int(part) for part in version.split("."))
+    for override in (False, True):
+        options = ["--define-prefix"] if override else []
+        reported_prefix = run(
+            ["pkg-config", *options, "--variable=prefix", "libdxfrw"],
+            env=pkgconfig).stdout.strip()
+        if not override:
+            assert_reported_prefix(pkg_config_path_value(reported_prefix), prefix)
+        elif Path(pkg_config_path_value(reported_prefix)).resolve() != prefix:
+            # The optional override has a two-parent heuristic in some tools.
+            # Flags must still bind correctly via independent pcfiledir paths.
+            print("pkg-config --define-prefix guessed %s; checking independent flags"
+                  % reported_prefix)
+        reported_directory = run(
+            ["pkg-config", *options, "--variable=pcfiledir", "libdxfrw"],
+            env=pkgconfig).stdout.strip()
+        if Path(pkg_config_path_value(reported_directory)).resolve() != (layout_root(prefix, libdir)
+                                                   / "pkgconfig").resolve():
+            raise RuntimeError("pkg-config loaded another package: %s" % reported_directory)
+        flags = shlex.split(run(
+            ["pkg-config", *options, "--cflags", "--libs", "libdxfrw"],
+            env=pkgconfig).stdout)
+        assert_staged_flags(flags, prefix)
+        for kind, expected in (("-I", layout_root(prefix, includedir) / "libdxfrw"),
+                               ("-L", layout_root(prefix, libdir))):
+            actual = {Path(flag[2:]).resolve() for flag in flags if flag.startswith(kind)}
+            if expected.resolve() not in actual:
+                raise RuntimeError("pkg-config omitted expected %s path: %s" % (kind, expected))
+        executable = root / ("pkgconfig-override" if override else "pkgconfig-plain")
+        run([cxx, "-std=c++17", "-Wall", "-Wextra", "-Werror",
+             str(consumer), "-o", str(executable)] + flags)
+        run_consumer(executable, prefix, libdir, direct_link=True)
+
+    cmake = root / "CMakeLists.txt"
+    cmake.write_text(
+        "cmake_minimum_required(VERSION 3.28)\n"
+        "project(libdxfrw_staged_consumer LANGUAGES CXX)\n"
+        # Both installed targets must propagate C++17, not rely on this probe.
+        "set(CMAKE_CXX_STANDARD 14)\n"
+        "set(CMAKE_CXX_STANDARD_REQUIRED ON)\n"
+        "if(DISCOVERY STREQUAL MODULE)\n"
+        "  list(PREPEND CMAKE_MODULE_PATH \"${PACKAGE_CONFIG}\")\n"
+        "  find_package(Libdxfrw MODULE REQUIRED)\n"
+        "else()\n"
+        "  find_package(libdxfrw ${REQUESTED_VERSION} CONFIG REQUIRED\n"
+        "    PATHS \"${PACKAGE_CONFIG}\" NO_DEFAULT_PATH)\n"
+        "endif()\n"
+        "add_executable(staged_consumer consumer.cpp)\n"
+        "target_link_libraries(staged_consumer PRIVATE libdxfrw::libdxfrw)\n"
+        "file(GENERATE OUTPUT \"${CMAKE_BINARY_DIR}/binding.txt\" CONTENT\n"
+        "  \"$<TARGET_FILE:libdxfrw::libdxfrw>\\n"
+        "$<TARGET_PROPERTY:libdxfrw::libdxfrw,INTERFACE_INCLUDE_DIRECTORIES>\\n\")\n",
+        encoding="utf-8")
+    for discovery in ("CONFIG", "MODULE"):
+        build = root / ("cmake-" + discovery.lower())
+        configure = ["cmake", "-S", str(root), "-B", str(build),
+                     "-DPACKAGE_CONFIG=" + str(config_root),
+                     "-DDISCOVERY=" + discovery,
+                     "-DREQUESTED_VERSION=%d.0" % major,
+                     "-DCMAKE_PREFIX_PATH=" + str(prefix),
+                     # Module discovery needs ordinary search hints for custom
+                     # GNUInstallDirs layouts, not pre-filled found variables.
+                     "-DCMAKE_LIBRARY_PATH=" + str(layout_root(prefix, libdir)),
+                     "-DCMAKE_INCLUDE_PATH=" + str(layout_root(prefix, includedir)),
+                     "-DCMAKE_FIND_ROOT_PATH=" + str(prefix),
+                     "-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY",
+                     "-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY",
+                     "-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER",
+                     "-DCMAKE_CXX_COMPILER=" + cxx]
+        run(configure)
+        binding = (build / "binding.txt").read_text(encoding="utf-8").splitlines()
+        if len(binding) != 2:
+            raise RuntimeError("CMake did not report its package binding")
+        assert_staged_flags(["-L" + str(Path(binding[0]).parent)]
+                            + ["-I" + item for item in binding[1].split(";")], prefix)
+        expected_include = layout_root(prefix, includedir) / "libdxfrw"
+        if binding[1] != str(expected_include):
+            raise RuntimeError("CMake include binding differs: %s" % binding[1])
+        run(["cmake", "--build", str(build), "-j2"])
+        run_consumer(build / "staged_consumer", prefix, libdir)
+
+    rejected_versions = ["%d.0" % (major + 1),
+                         "%d.%d.%d" % (major, minor, patch + 1)]
+    if major > 0:
+        rejected_versions.append("%d.0" % (major - 1))
+    for requested in rejected_versions:
+        build = root / ("reject-version-" + requested)
+        try:
+            run(["cmake", "-S", str(root), "-B", str(build),
+                 "-DPACKAGE_CONFIG=" + str(config_root), "-DDISCOVERY=CONFIG",
+                 "-DREQUESTED_VERSION=" + requested, "-DCMAKE_CXX_COMPILER=" + cxx])
+        except subprocess.CalledProcessError as error:
+            if "version" not in error.stdout or requested not in error.stdout:
+                raise RuntimeError("version rejection failed for another reason") from error
+        else:
+            raise RuntimeError("CMake accepted incompatible package version: %s" % requested)
+
+
 def self_test_staged_flags() -> None:
     prefix = Path(tempfile.gettempdir()) / "libdxfrw-staged-prefix"
     assert_staged_flags(
@@ -138,6 +283,30 @@ def self_test_package_root_identity() -> None:
                     % stale_prefix)
 
 
+def self_test_layout_and_discovery() -> None:
+    with tempfile.TemporaryDirectory(prefix="libdxfrw-layout-self-test-") as directory:
+        prefix = Path(directory) / "prefix with spaces"
+        prefix.mkdir()
+        for destination in ("lib", "lib64", "lib/vendor/arm64", "headers/public"):
+            expected = prefix / destination
+            if layout_root(prefix, destination) != expected:
+                raise RuntimeError("relative package layout changed")
+        for invalid in ("/usr/local/lib", "../lib", "lib/../../lib"):
+            try:
+                layout_root(prefix, invalid)
+            except RuntimeError:
+                pass
+            else:
+                raise RuntimeError("relocation checker accepted absolute/escaping layout")
+        for spelling in (str(prefix), shlex.quote(str(prefix)),
+                         str(prefix).replace(" ", "\\ ")):
+            assert_reported_prefix(pkg_config_path_value(spelling), prefix)
+        environment = pkg_config_environment(prefix, "lib/vendor/arm64")
+        expected = str(prefix / "lib/vendor/arm64/pkgconfig")
+        if environment["PKG_CONFIG_PATH"] != expected or environment["PKG_CONFIG_LIBDIR"] != expected:
+            raise RuntimeError("pkg-config discovery is not isolated to the staged package")
+
+
 def self_test_fast_command_scope() -> None:
     global _FAST_COMMAND_GUARD
     _FAST_COMMAND_GUARD = True
@@ -157,10 +326,11 @@ def self_test_fast_command_scope() -> None:
         _FAST_COMMAND_GUARD = False
 
 
-def assert_profile_symbols(prefix: Path) -> None:
-    library_candidates = sorted((prefix / "lib").glob("libdxfrw.a"))
+def assert_profile_symbols(prefix: Path, libdir: str = "lib") -> None:
+    library_root = layout_root(prefix, libdir)
+    library_candidates = sorted(library_root.glob("libdxfrw.a"))
     if not library_candidates:
-        library_candidates = sorted((prefix / "lib").glob("libdxfrw.*"))
+        library_candidates = sorted(library_root.glob("libdxfrw.*"))
     if not library_candidates:
         raise RuntimeError("staged prefix has no libdxfrw library")
     nm = shutil.which("nm")
@@ -184,13 +354,14 @@ def assert_profile_symbols(prefix: Path) -> None:
             + ", ".join(missing))
 
 
-def assert_relocatable_cmake_export(prefix: Path) -> None:
-    config_root = prefix / "lib" / "cmake" / "libdxfrw"
+def assert_relocatable_cmake_export(prefix: Path, libdir: str = "lib",
+                                    includedir: str = "include") -> None:
+    config_root = layout_root(prefix, libdir) / "cmake" / "libdxfrw"
     export = config_root / "libdxfrwTargets.cmake"
     if not export.is_file():
         raise RuntimeError("CMake export is missing libdxfrwTargets.cmake")
     text = export.read_text(encoding="utf-8")
-    if '"${_IMPORT_PREFIX}/include/libdxfrw"' not in text:
+    if '"${_IMPORT_PREFIX}/%s/libdxfrw"' % includedir not in text:
         raise RuntimeError("CMake export does not use a relocatable include root")
     source_root = str(Path(__file__).resolve().parents[1])
     target_exports = sorted(config_root.glob("libdxfrwTargets*.cmake"))
@@ -302,14 +473,15 @@ def self_test_relocatable_cmake_export() -> None:
                 "CMake export self-test accepted stale path: %s" % stale_path)
 
 
-def check_relocated_consumer(prefix: Path, cxx: str) -> None:
+def check_relocated_consumer(prefix: Path, cxx: str, libdir: str = "lib",
+                             includedir: str = "include") -> None:
     """Build one minimal consumer after copying the install to a new root."""
     prefix = prefix.resolve()
-    if not (prefix / "include" / "libdxfrw").is_dir():
+    if not (layout_root(prefix, includedir) / "libdxfrw").is_dir():
         raise RuntimeError("relocation source is missing installed headers")
     with tempfile.TemporaryDirectory(prefix="libdxfrw-relocated-") as directory:
         root = Path(directory)
-        relocated = root / "prefix"
+        relocated = root / "moved prefix with spaces"
         shutil.copytree(prefix, relocated)
         consumer = root / "consumer.cpp"
         consumer.write_text(
@@ -320,38 +492,15 @@ def check_relocated_consumer(prefix: Path, cxx: str) -> None:
             "      dxfRW::DxfCompatibilityProfile::StandaloneSafe ? 0 : 1;\n"
             "}\n",
             encoding="utf-8")
-        cmake = root / "CMakeLists.txt"
-        cmake.write_text(
-            "cmake_minimum_required(VERSION 3.28)\n"
-            "project(libdxfrw_relocated_consumer LANGUAGES CXX)\n"
-            "set(CMAKE_CXX_STANDARD 17)\n"
-            "find_package(libdxfrw CONFIG REQUIRED)\n"
-            "add_executable(relocated_consumer consumer.cpp)\n"
-            "target_link_libraries(relocated_consumer PRIVATE libdxfrw::libdxfrw)\n",
-            encoding="utf-8")
-        cmake_build = root / "cmake-build"
-        run(["cmake", "-S", str(root), "-B", str(cmake_build),
-             "-DCMAKE_PREFIX_PATH=" + str(relocated)])
-        run(["cmake", "--build", str(cmake_build), "-j2"])
-
-        pkgconfig = os.environ.copy()
-        pkgconfig["PKG_CONFIG_PATH"] = str(relocated / "lib" / "pkgconfig")
-        reported_prefix = run(
-            ["pkg-config", "--define-prefix", "--variable=prefix", "libdxfrw"],
-            env=pkgconfig).stdout.strip()
-        assert_reported_prefix(reported_prefix, relocated)
-        flags = shlex.split(run(
-            ["pkg-config", "--define-prefix", "--cflags", "--libs", "libdxfrw"],
-            env=pkgconfig).stdout)
-        assert_staged_flags(flags, relocated)
-        run([cxx, "-std=c++17", "-Wall", "-Wextra", "-Werror",
-             str(consumer), "-o", str(root / "pkgconfig-consumer")] + flags)
+        assert_relocatable_cmake_export(relocated, libdir, includedir)
+        check_consumer_routes(relocated, cxx, root, consumer, libdir, includedir)
 
 
-def check(prefix: Path, cxx: str) -> None:
+def check(prefix: Path, cxx: str, libdir: str = "lib",
+          includedir: str = "include") -> None:
     prefix = prefix.resolve()
-    include_root = prefix / "include" / "libdxfrw"
-    config_root = prefix / "lib" / "cmake" / "libdxfrw"
+    include_root = layout_root(prefix, includedir) / "libdxfrw"
+    config_root = layout_root(prefix, libdir) / "cmake" / "libdxfrw"
     if not include_root.is_dir() or not config_root.is_dir():
         raise RuntimeError("prefix is missing installed headers or CMake package")
     hidden_allocator = include_root / "handle_allocator.h"
@@ -373,8 +522,8 @@ def check(prefix: Path, cxx: str) -> None:
         raise RuntimeError(
             "installed libdxfrw.h is missing profile documentation: "
             + ", ".join(missing_docs))
-    assert_profile_symbols(prefix)
-    assert_relocatable_cmake_export(prefix)
+    assert_profile_symbols(prefix, libdir)
+    assert_relocatable_cmake_export(prefix, libdir, includedir)
 
     with tempfile.TemporaryDirectory(prefix="libdxfrw-package-") as directory:
         root = Path(directory)
@@ -394,7 +543,7 @@ def check(prefix: Path, cxx: str) -> None:
             source_text += "int main() { return 0; }\n"
             source.write_text(source_text, encoding="utf-8")
             run([cxx, "-std=c++17", "-Wall", "-Wextra", "-Werror",
-                 "-I", str(prefix / "include"), "-c", str(source),
+                 "-I", str(layout_root(prefix, includedir)), "-c", str(source),
                  "-o", str(source.with_suffix(".o"))])
 
         consumer = root / "consumer.cpp"
@@ -429,31 +578,7 @@ def check(prefix: Path, cxx: str) -> None:
             "  return writer.getError();\n"
             "}\n",
             encoding="utf-8")
-        cmake = root / "CMakeLists.txt"
-        cmake.write_text(
-            "cmake_minimum_required(VERSION 3.28)\n"
-            "project(libdxfrw_staged_consumer LANGUAGES CXX)\n"
-            "set(CMAKE_CXX_STANDARD 17)\n"
-            "find_package(libdxfrw CONFIG REQUIRED)\n"
-            "add_executable(staged_consumer consumer.cpp)\n"
-            "target_link_libraries(staged_consumer PRIVATE libdxfrw::libdxfrw)\n",
-            encoding="utf-8")
-        cmake_build = root / "cmake-build"
-        run(["cmake", "-S", str(root), "-B", str(cmake_build),
-             "-DCMAKE_PREFIX_PATH=" + str(prefix)])
-        run(["cmake", "--build", str(cmake_build), "-j2"])
-
-        pkgconfig = os.environ.copy()
-        pkgconfig["PKG_CONFIG_PATH"] = str(prefix / "lib" / "pkgconfig")
-        reported_prefix = run(
-            ["pkg-config", "--define-prefix", "--variable=prefix", "libdxfrw"],
-            env=pkgconfig).stdout.strip()
-        assert_reported_prefix(reported_prefix, prefix)
-        flags = shlex.split(run(["pkg-config", "--define-prefix", "--cflags", "--libs",
-                                 "libdxfrw"], env=pkgconfig).stdout)
-        assert_staged_flags(flags, prefix)
-        run([cxx, "-std=c++17", "-Wall", "-Wextra", "-Werror",
-             str(consumer), "-o", str(root / "pkgconfig-consumer")] + flags)
+        check_consumer_routes(prefix, cxx, root, consumer, libdir, includedir)
 
 
 def main() -> int:
@@ -465,10 +590,15 @@ def main() -> int:
     parser.add_argument("--relocation-smoke", action="store_true",
                         help="copy one staged prefix and build relocated consumers")
     parser.add_argument("--cxx", default=os.environ.get("CXX", "c++"))
+    parser.add_argument("--libdir", default="lib",
+                        help="relative GNUInstallDirs library destination")
+    parser.add_argument("--includedir", default="include",
+                        help="relative GNUInstallDirs header destination")
     args = parser.parse_args()
     if args.self_test:
         self_test_staged_flags()
         self_test_package_root_identity()
+        self_test_layout_and_discovery()
         self_test_relocatable_cmake_export()
         self_test_fast_command_scope()
         print("staged package checker self-test: PASS")
@@ -481,11 +611,12 @@ def main() -> int:
         parser.error("--prefix values must identify distinct staged roots")
     try:
         for prefix in prefixes:
-            check(prefix, args.cxx)
+            check(prefix, args.cxx, args.libdir, args.includedir)
         if args.relocation_smoke:
             if len(prefixes) != 1:
                 parser.error("--relocation-smoke requires exactly one --prefix")
-            check_relocated_consumer(prefixes[0], args.cxx)
+            check_relocated_consumer(prefixes[0], args.cxx,
+                                     args.libdir, args.includedir)
     except subprocess.CalledProcessError as error:
         if error.output:
             print(error.output, end="")
