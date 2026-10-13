@@ -10502,6 +10502,238 @@ bool runDxfHatchSplineWeights(bool binary,
     return valid;
 }
 
+// Runtime-authored HATCH controls. Variants 0..7 are valid, 8..14 malformed.
+// Explicit whole-zero tangents retain the existing absent/default policy;
+// individual zero components must remain usable in otherwise nonzero vectors.
+std::unique_ptr<DRW_Hatch> makeHatchTangentControl(int variant) {
+    auto hatch = std::make_unique<DRW_Hatch>();
+    hatch->name = "SOLID";
+    hatch->solid = 1;
+    hatch->basePoint.z = 5;
+    hatch->extPoint = DRW_Coord(0, .6, .8);
+    auto loop = std::make_shared<DRW_HatchLoop>(1);
+    const int splineCount = variant == 5 ? 2 : 1;
+    for (int i = 0; i != splineCount; ++i) {
+        auto spline = std::make_shared<DRW_Spline>();
+        spline->degree = 2;
+        spline->flags = 4; // Rational with omitted, implicitly unit weights.
+        spline->knotslist = {0, 0, 0, 1, 1, 1};
+        spline->controllist = {
+            std::make_shared<DRW_Coord>(2 * i, 0, 0),
+            std::make_shared<DRW_Coord>(2 * i + 1, 1, 0),
+            std::make_shared<DRW_Coord>(variant == 6 ? 0 : 2 * i + 2, 0, 0)};
+        if (variant == 4 || i == 1)
+            spline->fitlist.push_back(std::make_shared<DRW_Coord>(2 * i, 0, 0));
+        if (variant != 1 && variant != 3 && variant != 7)
+            spline->tgStart = DRW_Coord(variant == 2 || i == 1 ? 0 : 2,
+                                       i == 1 ? 7 : 3, 0);
+        if (variant != 1 && variant != 2 && variant != 7)
+            spline->tgEnd = DRW_Coord(i == 1 ? -2 : 4,
+                                     variant == 3 || i == 1 ? 0 : 5, 0);
+        loop->objlist.push_back(spline);
+    }
+    if (variant == 6) {
+        // Native count/routing control only: 7R owns export remapping and
+        // association closure. This vector is never used for API/CLI export.
+        loop->m_boundaryHandles = {0xB0u};
+    } else {
+        auto line = std::make_shared<DRW_Line>();
+        line->basePoint = DRW_Coord(2 * splineCount, 0, 0);
+        line->secPoint = DRW_Coord(0, 0, 0);
+        loop->objlist.push_back(line);
+    }
+    loop->update();
+    hatch->appendLoop(loop);
+    return hatch;
+}
+
+bool matchesHatchTangentControl(const DRW_Hatch& hatch, int variant) {
+    const auto expected = makeHatchTangentControl(variant);
+    const auto samePoint = [](const DRW_Coord& a, const DRW_Coord& b) {
+        return a.x == b.x && a.y == b.y && a.z == b.z;
+    };
+    if (!samePoint(hatch.basePoint, expected->basePoint)
+        || !samePoint(hatch.extPoint, expected->extPoint)
+        || hatch.looplist.size() != 1 || !hatch.looplist.front())
+        return false;
+    const auto& actualLoop = *hatch.looplist.front();
+    const auto& expectedLoop = *expected->looplist.front();
+    if (actualLoop.type != expectedLoop.type
+        || actualLoop.m_boundaryHandles != expectedLoop.m_boundaryHandles
+        || actualLoop.objlist.size() != expectedLoop.objlist.size())
+        return false;
+    for (std::size_t i = 0; i != actualLoop.objlist.size(); ++i) {
+        const auto* spline = dynamic_cast<const DRW_Spline*>(actualLoop.objlist[i].get());
+        const auto* wanted = dynamic_cast<const DRW_Spline*>(expectedLoop.objlist[i].get());
+        if (wanted) {
+            if (!spline || spline->degree != wanted->degree || spline->flags != wanted->flags
+                || spline->knotslist != wanted->knotslist || !spline->weightlist.empty()
+                || !samePoint(spline->tgStart, wanted->tgStart)
+                || !samePoint(spline->tgEnd, wanted->tgEnd)
+                || spline->controllist.size() != wanted->controllist.size()
+                || spline->fitlist.size() != wanted->fitlist.size())
+                return false;
+            for (std::size_t p = 0; p != spline->controllist.size(); ++p)
+                if (!spline->controllist[p]
+                    || !samePoint(*spline->controllist[p], *wanted->controllist[p]))
+                    return false;
+            for (std::size_t p = 0; p != spline->fitlist.size(); ++p)
+                if (!spline->fitlist[p] || !samePoint(*spline->fitlist[p], *wanted->fitlist[p]))
+                    return false;
+        } else {
+            const auto* line = dynamic_cast<const DRW_Line*>(actualLoop.objlist[i].get());
+            const auto* expectedLine = dynamic_cast<const DRW_Line*>(expectedLoop.objlist[i].get());
+            if (!line || !expectedLine || !samePoint(line->basePoint, expectedLine->basePoint)
+                || !samePoint(line->secPoint, expectedLine->secPoint))
+                return false;
+        }
+    }
+    return true;
+}
+
+bool writeHatchTangentLiteral(const std::filesystem::path& path, bool binary, int variant) {
+    const auto hatch = makeHatchTangentControl(variant);
+    std::ofstream stream(path, std::ios::binary | std::ios::trunc);
+    if (binary) stream.write("AutoCAD Binary DXF\r\n\032\0", 22);
+    std::unique_ptr<dxfWriter> tags;
+    if (binary) tags = std::make_unique<dxfWriterBinary>(&stream);
+    else tags = std::make_unique<dxfWriterAscii>(&stream);
+    tags->setVersion("AC1027", true);
+    tags->writeString(0, "SECTION"); tags->writeString(2, "HEADER");
+    tags->writeString(9, "$ACADVER"); tags->writeString(1, "AC1027");
+    tags->writeString(0, "ENDSEC");
+    tags->writeString(0, "SECTION"); tags->writeString(2, "ENTITIES");
+    tags->writeString(0, "HATCH"); tags->writeString(5, "A0");
+    tags->writeString(100, "AcDbEntity"); tags->writeString(8, "0");
+    tags->writeString(100, "AcDbHatch");
+    tags->writeDouble(10, 0); tags->writeDouble(20, 0); tags->writeDouble(30, 5);
+    tags->writeDouble(210, 0); tags->writeDouble(220, .6); tags->writeDouble(230, .8);
+    tags->writeString(2, "SOLID"); tags->writeInt16(70, 1); tags->writeInt16(71, 0);
+    tags->writeInt32(91, 1); tags->writeInt32(92, 1);
+    tags->writeInt32(93, static_cast<int>(hatch->looplist.front()->objlist.size()));
+    for (const auto& edge : hatch->looplist.front()->objlist) {
+        const auto* spline = dynamic_cast<const DRW_Spline*>(edge.get());
+        if (spline) {
+            tags->writeInt16(72, 4); tags->writeInt32(94, 2);
+            tags->writeInt16(73, 1); tags->writeInt16(74, 0);
+            tags->writeInt32(95, 6); tags->writeInt32(96, 3);
+            for (double knot : spline->knotslist) tags->writeDouble(40, knot);
+            for (const auto& point : spline->controllist) {
+                tags->writeDouble(10, point->x); tags->writeDouble(20, point->y);
+            }
+            tags->writeInt32(97, variant == 10 ? 1 : static_cast<int>(spline->fitlist.size()));
+            for (const auto& point : spline->fitlist) {
+                tags->writeDouble(11, point->x); tags->writeDouble(21, point->y);
+            }
+            if (variant == 14) {
+                tags->writeDouble(11, 0); tags->writeDouble(21, 0); // Exceeds declared zero.
+            }
+            if (variant == 9) tags->writeDouble(22, 3); // Orphan Y, not a default X.
+            if (spline->tgStart.x != 0 || spline->tgStart.y != 0 || variant == 7) {
+                tags->writeDouble(12, spline->tgStart.x);
+                if (variant == 12) return !tags->hasWriteError() && stream.good();
+                if (variant != 8) tags->writeDouble(22, spline->tgStart.y);
+            }
+            if (spline->tgEnd.x != 0 || spline->tgEnd.y != 0 || variant == 7) {
+                tags->writeDouble(13, spline->tgEnd.x); tags->writeDouble(23, spline->tgEnd.y);
+            }
+        } else {
+            const auto& line = *static_cast<const DRW_Line*>(edge.get());
+            tags->writeInt16(72, 1);
+            tags->writeDouble(10, line.basePoint.x); tags->writeDouble(20, line.basePoint.y);
+            tags->writeDouble(11, line.secPoint.x); tags->writeDouble(21, line.secPoint.y);
+        }
+    }
+    const bool hasBoundaryHandle = variant == 6;
+    tags->writeInt32(97, hasBoundaryHandle || variant == 11 ? 1 : 0);
+    if (hasBoundaryHandle) tags->writeString(330, "B0");
+    if (variant == 13) tags->writeInt32(97, 0); // Repeated loop boundary count.
+    tags->writeInt16(75, 0); tags->writeInt16(76, 1); tags->writeInt32(98, 0);
+    if (hasBoundaryHandle) {
+        tags->writeString(0, "LINE"); tags->writeString(5, "B0");
+        tags->writeString(100, "AcDbEntity"); tags->writeString(8, "0");
+        tags->writeString(100, "AcDbLine");
+        tags->writeDouble(10, 0); tags->writeDouble(20, 3); tags->writeDouble(30, 4);
+        tags->writeDouble(11, -2); tags->writeDouble(21, 3); tags->writeDouble(31, 4);
+    }
+    tags->writeString(0, "ENDSEC"); tags->writeString(0, "EOF");
+    return !tags->hasWriteError() && stream.good();
+}
+
+bool verifyHatchTangentFile(const std::filesystem::path& path, int variant) {
+    dx_data data;
+    dx_iface reader;
+    if (!reader.fileImport(path.string(), &data, false)
+        || data.mBlock->ent.size() != (variant == 6 ? 2u : 1u))
+        return false;
+    const auto* hatch = dynamic_cast<const DRW_Hatch*>(data.mBlock->ent.front());
+    return hatch && matchesHatchTangentControl(*hatch, variant);
+}
+
+bool runDxfHatchTangents(bool binary, const std::filesystem::path& directory, bool keepOutput) {
+    const std::string encoding = binary ? "binary" : "ascii";
+    bool valid = true;
+    std::error_code ec;
+    for (int variant = 0; variant != 15; ++variant) {
+        const std::string stem = "libdxfrw-hatch-tangents-" + encoding + "-" + std::to_string(variant);
+        const auto input = directory / (stem + "-input.dxf");
+        const bool created = writeHatchTangentLiteral(input, binary, variant);
+        bool readMatches;
+        if (variant < 8) readMatches = created && verifyHatchTangentFile(input, variant);
+        else {
+            dx_data rejected;
+            dx_iface reader;
+            readMatches = created && !reader.fileImport(input.string(), &rejected, false)
+                && rejected.mBlock->ent.empty();
+        }
+        if (!readMatches)
+            std::cerr << "HATCH tangent literal " << variant << ' ' << encoding << " failed\n";
+        valid = readMatches && valid;
+        if (variant < 8 && variant != 6) {
+            auto source = std::make_unique<dx_data>();
+            source->mBlock->ent.push_back(makeHatchTangentControl(variant).release());
+            for (int pass = 0; pass != 2; ++pass) {
+                const auto output = directory / (stem + "-pass" + std::to_string(pass) + ".dxf");
+                dx_iface writer;
+                const bool written = writer.fileExport(output.string(), DRW::AC1027, binary, source.get(), false);
+                const auto* original = dynamic_cast<const DRW_Hatch*>(source->mBlock->ent.front());
+                const bool matches = written && original && matchesHatchTangentControl(*original, variant)
+                    && verifyHatchTangentFile(output, variant);
+                if (!matches)
+                    std::cerr << "HATCH tangent model " << variant << ' ' << encoding
+                              << " pass " << pass << " failed\n";
+                valid = matches && valid;
+                if (pass == 0 && written) {
+                    source = std::make_unique<dx_data>();
+                    dx_iface reader;
+                    valid = reader.fileImport(output.string(), source.get(), false) && valid;
+                }
+                if (!keepOutput) std::filesystem::remove(output, ec);
+                if (!written || source->mBlock->ent.empty()) break;
+            }
+        }
+        if (!keepOutput || variant >= 8) std::filesystem::remove(input, ec);
+    }
+    for (int tangent = 0; tangent != 2; ++tangent) {
+        dx_data source;
+        auto hatch = makeHatchTangentControl(0);
+        auto* spline = static_cast<DRW_Spline*>(hatch->looplist.front()->objlist.front().get());
+        if (tangent == 0) spline->tgStart.x = std::numeric_limits<double>::quiet_NaN();
+        else spline->tgEnd.y = std::numeric_limits<double>::infinity();
+        source.mBlock->ent.push_back(hatch.release());
+        const auto output = directory / ("libdxfrw-hatch-tangents-invalid-" + encoding + ".dxf");
+        const std::string sentinel = "prior HATCH tangent destination\n";
+        { std::ofstream previous(output, std::ios::binary | std::ios::trunc); previous << sentinel; }
+        dx_iface writer;
+        const bool written = writer.fileExport(output.string(), DRW::AC1027, binary, &source, false);
+        std::ifstream saved(output, std::ios::binary);
+        const std::string bytes((std::istreambuf_iterator<char>(saved)), {});
+        valid = !written && bytes == sentinel && valid;
+        std::filesystem::remove(output, ec);
+    }
+    return valid;
+}
+
 bool runDxfNurbsKnotDomains(bool binary,
                             const std::filesystem::path& directory,
                             bool keepOutput) {
@@ -12909,7 +13141,13 @@ int main(int argc, char** argv) {
         DRW::AC1024, DRW::AC1027, DRW::AC1032};
     std::filesystem::path directory = std::filesystem::temp_directory_path();
     bool keepOutputs = false;
-    if (argc == 3
+    if (argc == 3 && (std::string(argv[1]) == "--generate-hatch-tangents"
+                      || std::string(argv[1]) == "--generate-hatch-tangents-binary")) {
+        return writeHatchTangentLiteral(argv[2],
+            std::string(argv[1]) == "--generate-hatch-tangents-binary", 5) ? 0 : 1;
+    } else if (argc == 3 && std::string(argv[1]) == "--verify-hatch-tangents") {
+        return verifyHatchTangentFile(argv[2], 5) ? 0 : 1;
+    } else if (argc == 3
         && std::string(argv[1]) == "--verify-acsh-prefix-sample") {
         const bool passed = runAcshPrefixSampleQualification(argv[2]);
         std::cout << "ACSH pinned-sample prefix qualification: "
@@ -12930,6 +13168,8 @@ int main(int argc, char** argv) {
         std::cerr << "usage: " << argv[0]
                   << " [--keep-dir DIRECTORY]"
                      " [--verify-acsh-prefix-sample DWG]"
+                     " [--generate-hatch-tangents[-binary] DXF]"
+                     " [--verify-hatch-tangents DXF]"
                      " [--verify-dynamicblock-typed-pair DWG DXF]\n";
         return 2;
     }
@@ -13784,6 +14024,10 @@ int main(int argc, char** argv) {
     expect(runDxfHatchSplineWeights(true, directory, keepOutputs),
            "local DXF binary HATCH/MPOLYGON spline optional weights and bounded layouts",
            failures);
+    expect(runDxfHatchTangents(false, directory, keepOutputs),
+           "local DXF ASCII HATCH zero-fit tangent state and completed edges", failures);
+    expect(runDxfHatchTangents(true, directory, keepOutputs),
+           "local DXF binary HATCH zero-fit tangent state and completed edges", failures);
     expect(runDxfNurbsKnotDomains(false, directory, keepOutputs),
            "local DXF ASCII completed NURBS knot order and active domains", failures);
     expect(runDxfNurbsKnotDomains(true, directory, keepOutputs),

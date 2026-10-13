@@ -187,6 +187,33 @@ set_tests_properties(dwg2dxf_3dline_binary_adapter_cli PROPERTIES
     TIMEOUT 30
 )
 
+# Retain zero-fit HATCH tangent metadata through two exact-argv CLI passes.
+# The local-roundtrip executable authors both encodings at runtime.
+foreach(_hatch_encoding IN ITEMS ascii binary)
+    set(_hatch_generate_mode "--generate-hatch-tangents")
+    set(_hatch_conversion_options "")
+    if(_hatch_encoding STREQUAL "binary")
+        set(_hatch_generate_mode "--generate-hatch-tangents-binary")
+        set(_hatch_conversion_options "-b")
+    endif()
+    add_test(
+        NAME dwg2dxf_hatch_tangents_${_hatch_encoding}_cli
+        COMMAND ${CMAKE_COMMAND}
+            "-DADAPTER_TEST=$<TARGET_FILE:libdxfrw_dwg_local_roundtrip>"
+            "-DDWG2DXF=$<TARGET_FILE:dwg2dxf>"
+            "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}"
+            "-DCASE_NAME=hatch-tangents-${_hatch_encoding}"
+            "-DGENERATE_MODE=${_hatch_generate_mode}"
+            "-DVERIFY_MODE=--verify-hatch-tangents"
+            "-DCONVERSION_OPTIONS=${_hatch_conversion_options}"
+            -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg2dxf_image_path_test.cmake
+    )
+    set_tests_properties(dwg2dxf_hatch_tangents_${_hatch_encoding}_cli PROPERTIES
+        LABELS "cli;fast;dxf;adapter;hatch"
+        TIMEOUT 30
+    )
+endforeach()
+
 # Match FreeCAD's Draft/importDWG.py subprocess contract without requiring a
 # FreeCAD installation. The DWG fixture is already tracked in this repository.
 set(_freecad_cli_sample

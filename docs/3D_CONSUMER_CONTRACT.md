@@ -87,6 +87,13 @@ a HATCH auxiliary fit point does not replace an otherwise valid control/knot
 definition. This bounded validity check neither evaluates curves nor imposes
 strictly positive weights, geometric closure, or a new DWG layout policy.
 
+HATCH spline edges retain nonzero optional start/end tangents independently
+of fit-point count, including zero fit points. Individual zero components are
+preserved. The shared `DRW_Spline` fields still use a whole-zero vector as the
+absent/default value, so explicit all-zero tangent presence is not retained
+by the writer. This state fix does not qualify associative boundary remapping,
+MPOLYGON feature support, or a DWG spline layout.
+
 The `lc3_compat_check` compile target verifies that the older LibreCAD-style
 2D callback implementation remains concrete and can still read the public
 fields it uses. New optional callbacks remain non-pure. This is a source-level

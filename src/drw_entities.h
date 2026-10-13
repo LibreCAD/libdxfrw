@@ -2983,7 +2983,8 @@ private:
     std::shared_ptr<DRW_Point> pt;
     std::shared_ptr<DRW_Vertex2D> plvert;
     bool ispol = false;
-    /* True after the first code-97 in the current spline edge (= nfit set);
+    /* True after the first code-97 in the current spline edge (= nfit set),
+       including zero: optional tangents can still follow that count;
        the second code-97 while spline is active is the per-loop boundary
        handle count, not another nfit.  Reset by clearEntities(). */
     bool m_splineNfitSet = false;

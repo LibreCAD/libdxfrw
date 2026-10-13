@@ -14628,16 +14628,11 @@ bool DRW_Hatch::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
                 m_dxfSplineFitCountExpected = spline->nfit;
                 if (!DRW::reserve(spline->fitlist, spline->nfit))
                     return false;
-                if (spline->nfit == 0) {
-                    if (!validateCurrentSplineDxf())
-                        return false;
-                    // No fit points or tangents follow; safe to clear spline
-                    // so the next code-97 (loop boundary count) is not
-                    // misinterpreted as another nfit.
-                    spline.reset();
-                } else {
-                    m_splineNfitSet = true;
-                }
+                // Fit-count consumption is independent of edge lifetime.
+                // Optional tangents may follow even when nfit is zero. Keep
+                // the spline active until a new edge or the second group 97
+                // ends it, then validate the completed control/fit payload.
+                m_splineNfitSet = true;
             } else {
                 // Second 97 while spline is active = loop boundary handle count.
                 if (!validateCurrentSplineDxf())
