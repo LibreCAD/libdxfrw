@@ -5502,6 +5502,8 @@ bool DRW_Helix::encodeDwg(DRW::Version version, dwgBufferW *buf, std::uint32_t b
 
 bool DRW_MText::encodeDwg(DRW::Version version, dwgBufferW *buf, std::uint32_t bs, dwgBufferW *strBuf, dwgBufferW *handleBuf) {
     (void)bs;
+    if (version > DRW::AC1018 && !std::isfinite(m_definedHeight))
+        return false;
     oType = 44;  // MTEXT class id — see dwgreader.cpp:1215
     if (!encodeDwgCommon(version, buf)) return false;
 
@@ -5511,7 +5513,7 @@ bool DRW_MText::encodeDwg(DRW::Version version, dwgBufferW *buf, std::uint32_t b
     buf->put3BitDouble(secPoint);           // X-axis dir
     buf->putBitDouble(widthscale);          // rect width
     if (version > DRW::AC1018) {
-        buf->putBitDouble(0.0);             // rect height, R2007+
+        buf->putBitDouble(m_definedHeight); // main reference rectangle height
     }
     buf->putBitDouble(height);              // text height
     buf->putBitShort(static_cast<std::uint16_t>(textgen));  // attachment
@@ -12376,10 +12378,10 @@ static bool parseEmbeddedMTextDwgFields(
     if (!readBoundedBitDouble(*buf, bodyEndBit, mtext.widthscale))
         return false;
     if (version > DRW::AC1018) {
-        double ignoredRectangleHeight = 0.0;
         if (!readBoundedBitDouble(*buf, bodyEndBit,
-                                  ignoredRectangleHeight))
+                                  mtext.m_definedHeight))
             return false;
+        mtext.m_definedHeightPresent = true;
     }
     if (!readBoundedBitDouble(*buf, bodyEndBit, mtext.height))
         return false;
@@ -12703,6 +12705,8 @@ static bool encodeEmbeddedMTextEntityMode(DRW::Version version, dwgBufferW *buf,
 static bool encodeEmbeddedMTextDwg(DRW::Version version, dwgBufferW *buf,
                                    dwgBufferW *strBuf, dwgBufferW *handleBuf,
                                    const DRW_MText& mtext) {
+    if (!std::isfinite(mtext.m_definedHeight))
+        return false;
     if (!encodeEmbeddedMTextEntityMode(version, buf, mtext))
         return false;
 
@@ -12710,7 +12714,7 @@ static bool encodeEmbeddedMTextDwg(DRW::Version version, dwgBufferW *buf,
     buf->put3BitDouble(mtext.extPoint);
     buf->put3BitDouble(mtext.secPoint);
     buf->putBitDouble(mtext.widthscale);
-    buf->putBitDouble(mtext.m_r2018RectHeight);
+    buf->putBitDouble(mtext.m_definedHeight);
     buf->putBitDouble(mtext.height);
     buf->putBitShort(static_cast<std::uint16_t>(mtext.textgen));
     buf->putBitShort(static_cast<std::uint16_t>(mtext.alignH));
@@ -13391,6 +13395,7 @@ bool DRW_MText::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     // too, since DRW_Attrib::parseCode routes MTEXT codes through here.
     case 46:
         m_definedHeight = reader->getDouble();
+        m_definedHeightPresent = true;
         break;
     case 45:
         m_backgroundScale = reader->getDouble();
@@ -13426,6 +13431,7 @@ void DRW_MText::resetDwgState() {
     interlin = 1.0;
     linespacingStyle = 1;
     m_definedHeight = 0.0;
+    m_definedHeightPresent = false;
     m_backgroundFlags = 0;
     m_backgroundScale = 0.0;
     m_backgroundColor = 0;
@@ -13689,6 +13695,8 @@ bool DRW_MText::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs)
     secPoint = parsedXAxisDirection;
     hasXAxisVec = true;
     widthscale = parsedWidthScale;
+    m_definedHeight = parsedRectangleHeight;
+    m_definedHeightPresent = version > DRW::AC1018;
     height = parsedHeight;
     angle = atan2(secPoint.y, secPoint.x) * ARAD;
     textgen = parsedAttachment;

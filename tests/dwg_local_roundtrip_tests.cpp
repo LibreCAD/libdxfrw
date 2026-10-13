@@ -2028,6 +2028,7 @@ public:
         mtext.basePoint = DRW_Coord(23.0, 24.0, 25.0);
         mtext.height = 1.5;
         mtext.text = "MTEXT";
+        mtext.m_definedHeight = 12.5;
         wroteMText_ = writer_->writeMText(&mtext) && mtext.handle != 0;
 
         DRW_Ellipse ellipse;
@@ -2729,7 +2730,12 @@ public:
                 && data.height == 2.0;
         }
     }
-    void addMText(const DRW_MText&) override { readMTextSeen_ = true; }
+    void addMText(const DRW_MText& data) override {
+        readMTextSeen_ = data.height == 1.5
+            && data.basePoint.z == 25.0
+            && data.m_definedHeight
+                   == (expectedVersion_ >= DRW::AC1021 ? 12.5 : 0.0);
+    }
     void addEllipse(const DRW_Ellipse&) override { readEllipseSeen_ = true; }
     void addTrace(const DRW_Trace&) override { readTraceSeen_ = true; }
     void addSolid(const DRW_Solid&) override { readSolidSeen_ = true; }

@@ -550,6 +550,72 @@ EOF
     std::filesystem::remove(output, error);
 }
 
+void testMTextDefinedHeightPresence(TestContext& t) {
+    // Authored here from scratch: an explicit zero is distinct from an absent
+    // height, and a redundant R2018 context height is not the main group 46.
+    const std::string prefix =
+        "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1032\n0\nENDSEC\n"
+        "0\nSECTION\n2\nENTITIES\n0\nMTEXT\n10\n11\n20\n22\n"
+        "40\n2.5\n41\n35\n1\nheight control\n";
+    for (const bool explicitZero : {false, true}) {
+        FixtureInterface interface_;
+        dx_data data;
+        t.expect(importTemporaryDxf("mtext-defined-height-presence",
+                     prefix + (explicitZero ? "46\n0\n" : "")
+                         + "0\nENDSEC\n0\nEOF\n", interface_, data),
+                 "MTEXT height presence control imports");
+        const DRW_MText* parsed = findMText(data);
+        if (parsed == nullptr) {
+            t.expect(false, "MTEXT height presence control is published");
+            continue;
+        }
+        auto* text = const_cast<DRW_MText*>(parsed);
+        text->m_r2018RectHeight = 99.0;
+        t.expect(text->m_definedHeightPresent == explicitZero,
+                 "MTEXT records the source's defined-height presence");
+        const DRW_MText copied(*text);
+        t.expect(copied.m_definedHeightPresent == explicitZero,
+                 "MTEXT copy retains defined-height presence");
+        interface_.attach(&data);
+        const auto output = std::filesystem::temp_directory_path()
+            / "libdxfrw-mtext-height-presence-output.dxf";
+        for (const bool binary : {false, true}) {
+            t.expect(interface_.fileExport(output.string(), DRW::AC1032,
+                                           binary, &data, false),
+                     "MTEXT height presence control exports");
+            if (!binary) {
+                const auto groups = groupsOfRecord(output, "MTEXT");
+                t.expect(hasGroup(groups, 46) == explicitZero,
+                         "MTEXT distinguishes explicit zero height from absence");
+                if (explicitZero && hasGroup(groups, 46))
+                    t.expect(std::stod(groupValue(groups, 46)) == 0.0,
+                             "MTEXT zero is not the redundant context height");
+            }
+            FixtureInterface readback;
+            dx_data reread;
+            t.expect(readback.fileImport(output.string(), &reread, false),
+                     "MTEXT height presence output reopens");
+            const DRW_MText* reopened = findMText(reread);
+            t.expect(reopened != nullptr
+                         && reopened->m_definedHeightPresent == explicitZero
+                         && reopened->m_definedHeight == 0.0,
+                     "ASCII/binary MTEXT preserves zero versus absent height");
+        }
+        std::error_code error;
+        std::filesystem::remove(output, error);
+    }
+    class ResetProbe final : public DRW_MText {
+    public:
+        using DRW_MText::resetDwgState;
+    };
+    ResetProbe reset;
+    reset.m_definedHeight = 9.0;
+    reset.m_definedHeightPresent = true;
+    reset.resetDwgState();
+    t.expect(reset.m_definedHeight == 0.0 && !reset.m_definedHeightPresent,
+             "MTEXT reset clears defined-height source state");
+}
+
 void testMTextWithoutBackgroundFillIsUnchanged(TestContext& t) {
     FixtureInterface interface_;
     dx_data data;
@@ -1323,6 +1389,7 @@ int main() {
     testIncompleteLinetypeExtensionGraphRejected(context);
     testUnsafeLinetypeExtensionGraphsRejected(context);
     testMTextBackgroundFillAndDefinedHeight(context);
+    testMTextDefinedHeightPresence(context);
     testMTextWithoutBackgroundFillIsUnchanged(context);
     testMTextBackgroundModesWriteOnlyTheirOwnGroups(context);
     testMTextBlackBackgroundColourSurvives(context);

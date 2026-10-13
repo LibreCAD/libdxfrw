@@ -5532,14 +5532,11 @@ bool dxfRW::writeEmbeddedMText(DRW_MText *ent) {
     writer->writeDouble(30, ent->basePoint.z);
     writer->writeDouble(40, ent->height);
     writer->writeDouble(41, ent->widthscale);
-    // Group 46. DRW_Attrib::parseCode routes the embedded object's codes
-    // through DRW_MText::parseCode, which fills m_definedHeight; the DWG
-    // reader fills m_r2018RectHeight. Same group, two sources -- emitting only
-    // the DWG one meant an ATTRIB read from DXF lost its 46 on the way out.
-    const double definedHeight = ent->m_definedHeight != 0.0
-        ? ent->m_definedHeight : ent->m_r2018RectHeight;
-    if (definedHeight != 0.0)
-        writer->writeDouble(46, definedHeight);
+    // Main MTEXT group 46 is separate from the R2018 context's group 41.
+    // The presence bit keeps a source-supplied zero distinct from absence;
+    // nonzero direct assignments remain compatible with existing callers.
+    if (ent->m_definedHeightPresent || ent->m_definedHeight != 0.0)
+        writer->writeDouble(46, ent->m_definedHeight);
     writer->writeInt16(71, ent->textgen);
     writer->writeInt16(72, ent->alignH);
     writer->writeUtf8String(1, ent->text);
@@ -6018,7 +6015,8 @@ bool dxfRW::writeMText(DRW_MText *ent){
         writer->writeDouble(41, ent->widthscale);
         // Defined height, R2007+. Read by DRW_MText and never written, so a
         // DXF-to-DXF pass dropped it.
-        if (version >= DRW::AC1021 && ent->m_definedHeight != 0.0)
+        if (version >= DRW::AC1021
+            && (ent->m_definedHeightPresent || ent->m_definedHeight != 0.0))
             writer->writeDouble(46, ent->m_definedHeight);
         writer->writeInt16(71, ent->textgen);
         writer->writeInt16(72, ent->alignH);

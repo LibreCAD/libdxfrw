@@ -2168,10 +2168,11 @@ public:
     std::uint16_t linespacingStyle = 1; /*!< linespacing style, code 73 (1=at least, 2=exact) */
     /** Defined height, code 46 (R2007+).
      *
-     * The DXF reader fills this; the DWG reader fills m_r2018RectHeight from
-     * its own slot. They are the same group code, so dxfRW::writeMText and
-     * dxfRW::writeEmbeddedMText emit whichever the source supplied. */
+     * Both DXF and the R2007+ DWG main MTEXT fields fill this slot.
+     * m_r2018RectHeight belongs to the separate R2018 redundant context
+     * (embedded DXF group 41) and must not substitute for this value. */
     double m_definedHeight = 0.0;
+    bool m_definedHeightPresent = false; /*!< Preserve an explicitly supplied zero. */
     std::int32_t m_backgroundFlags = 0;
     double m_backgroundScale = 0.0; /*!< background-fill box scale, code 45 (DWG BitDouble) */
     int m_backgroundColor = 0;      /*!< background fill colour as ACI, code 63 */
