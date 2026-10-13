@@ -56,6 +56,16 @@ OCS conversion depends on the entity normal/extrusion vector, elevation, and
 the arbitrary-axis algorithm. The table below records what a consumer should
 preserve; DWG coordinate interpretation remains version-qualified separately.
 
+DXF dimensions retain mixed coordinate frames under both read modes. Their
+definition points (groups 10/13/14/15) are WCS, while text (11), aligned clone
+insertion (12), and ordinary angular arc location (16) are OCS. Use the retained
+210/220/230 vector to project individual OCS fields; do not transform every
+dimension point or apply the drawing UCS as another entity transform. This
+preserves the existing 2D consumer's field contract. ARC_DIMENSION's optional
+leader grammar is distinct from ordinary angular group 16 and remains a
+separate metadata qualification; field preservation and picture-block retention
+do not establish native dimension rendering or live associativity.
+
 | Family | Public callback and fields | Coordinate handling for a 3D consumer | Default / boundary |
 | --- | --- | --- | --- |
 | WCS point and line primitives | `addPoint(DRW_Point)`, `addLine(DRW_Line)`, `addRay(DRW_Ray)`, `addXline(DRW_Xline)`; `basePoint`, `secPoint`, `extPoint`, `thickness`, `xAxisAngle` | Preserve XYZ endpoints and direction vectors; DXF POINT/LINE locations are WCS. Keep extrusion/thickness as separate fields rather than folding them into endpoints. | Existing required callbacks. DWG interpretation still needs per-version evidence. |

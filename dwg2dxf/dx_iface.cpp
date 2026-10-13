@@ -2228,6 +2228,7 @@ void dx_iface::writeEntity(DRW_Entity* e){
     case DRW::DIMRADIAL:
     case DRW::DIMDIAMETRIC:
     case DRW::DIMORDINATE:
+    case DRW::DIMARC:
         dxfW->writeDimension(static_cast<DRW_Dimension*>(e));
         break;
     case DRW::LEADER:

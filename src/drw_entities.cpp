@@ -20053,6 +20053,20 @@ bool DRW_Dimension::parseCode(int code, const std::unique_ptr<dxfReader>& reader
     case 84:
         textMove = reader->getInt32();
         break;
+    // DIMENSION mixes WCS definition points with OCS text/clone/arc points.
+    // Retain its frame without applying one transform to all stored points.
+    case 210:
+        haveExtrusion = true;
+        extPoint.x = reader->getDouble();
+        break;
+    case 220:
+        haveExtrusion = true;
+        extPoint.y = reader->getDouble();
+        break;
+    case 230:
+        haveExtrusion = true;
+        extPoint.z = reader->getDouble();
+        break;
     default:
         return DRW_Entity::parseCode(code, reader);
     }

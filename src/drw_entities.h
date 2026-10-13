@@ -4172,6 +4172,9 @@ public:
     DRW_Dimension& operator=(const DRW_Dimension&) = default;
     virtual ~DRW_Dimension() = default;
 
+    // Definition points are WCS, while text/clone/angular-arc points are OCS.
+    // Both DXF read modes retain these native frames and the extrusion vector;
+    // consumers project individual OCS fields, not the complete dimension.
     void applyExtrusion() override {}
 
 protected:

@@ -250,8 +250,11 @@ public:
             static_cast<const DRW_Dimension&>(*data)));
     }
     virtual void addDimRadial(const DRW_DimRadial *data) override{
-        currentBlock->ent.push_back(new DRW_DimRadial(
-            static_cast<const DRW_Dimension&>(*data)));
+        if (const auto* large = dynamic_cast<const DRW_DimLargeRadial*>(data))
+            currentBlock->ent.push_back(new DRW_DimLargeRadial(*large));
+        else
+            currentBlock->ent.push_back(new DRW_DimRadial(
+                static_cast<const DRW_Dimension&>(*data)));
     }
     virtual void addDimDiametric(const DRW_DimDiametric *data) override{
         currentBlock->ent.push_back(new DRW_DimDiametric(
@@ -268,6 +271,9 @@ public:
     virtual void addDimOrdinate(const DRW_DimOrdinate *data) override{
         currentBlock->ent.push_back(new DRW_DimOrdinate(
             static_cast<const DRW_Dimension&>(*data)));
+    }
+    void addDimArc(const DRW_DimArc *data) override{
+        currentBlock->ent.push_back(new DRW_DimArc(*data));
     }
     virtual void addLeader(const DRW_Leader *data) override{
         currentBlock->ent.push_back(new DRW_Leader(*data));

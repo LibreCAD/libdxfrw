@@ -825,12 +825,12 @@ public:
         addEntityRecord("addText", "TEXT", fields, d, false);
     }
     SEMANTIC_OPAQUE_VALUE(addAttDef, DRW_Attdef, "ATTDEF")
-    void addDimAlign(const DRW_DimAligned* d) override { addPointerEntity("addDimAlign", "DIMALIGNED", d); }
-    void addDimLinear(const DRW_DimLinear* d) override { addPointerEntity("addDimLinear", "DIMLINEAR", d); }
+    void addDimAlign(const DRW_DimAligned* d) override { addDimension("addDimAlign", "DIMALIGNED", d); }
+    void addDimLinear(const DRW_DimLinear* d) override { addDimension("addDimLinear", "DIMLINEAR", d); }
     void addDimRadial(const DRW_DimRadial* d) override {
         if (d == nullptr) { addNullDiagnostic("addDimRadial"); return; }
         if (const auto* value = dynamic_cast<const DRW_DimLargeRadial*>(d)) {
-            std::vector<Field> fields = entityFields(*value, "LARGE_RADIAL", "LARGE_RADIAL");
+            std::vector<Field> fields = dimensionFields(*value, "LARGE_RADIAL");
             fields.push_back(pointField("center", value->getCenterPoint()));
             fields.push_back(pointField("chord", value->getChordPoint()));
             fields.push_back(pointField("overrideCenter", value->overrideCenterPoint));
@@ -840,13 +840,13 @@ public:
             addEntityRecord("addDimRadial", "LARGE_RADIAL", fields, *value, false);
             return;
         }
-        addPointerEntity("addDimRadial", "DIMRADIAL", d);
+        addDimension("addDimRadial", "DIMRADIAL", d);
     }
-    void addDimDiametric(const DRW_DimDiametric* d) override { addPointerEntity("addDimDiametric", "DIMDIAMETRIC", d); }
-    void addDimAngular(const DRW_DimAngular* d) override { addPointerEntity("addDimAngular", "DIMANGULAR", d); }
-    void addDimAngular3P(const DRW_DimAngular3p* d) override { addPointerEntity("addDimAngular3P", "DIMANGULAR3P", d); }
-    void addDimOrdinate(const DRW_DimOrdinate* d) override { addPointerEntity("addDimOrdinate", "DIMORDINATE", d); }
-    void addDimArc(const DRW_DimArc* d) override { addPointerEntity("addDimArc", "DIMARC", d); }
+    void addDimDiametric(const DRW_DimDiametric* d) override { addDimension("addDimDiametric", "DIMDIAMETRIC", d); }
+    void addDimAngular(const DRW_DimAngular* d) override { addDimension("addDimAngular", "DIMANGULAR", d); }
+    void addDimAngular3P(const DRW_DimAngular3p* d) override { addDimension("addDimAngular3P", "DIMANGULAR3P", d); }
+    void addDimOrdinate(const DRW_DimOrdinate* d) override { addDimension("addDimOrdinate", "DIMORDINATE", d); }
+    void addDimArc(const DRW_DimArc* d) override { addDimension("addDimArc", "DIMARC", d); }
     void addLeader(const DRW_Leader* d) override { addPointerEntity("addLeader", "LEADER", d); }
     void addHatch(const DRW_Hatch* d) override { addPointerEntity("addHatch", "HATCH", d); }
     void addMPolygon(const DRW_MPolygon* d) override {
@@ -1372,6 +1372,55 @@ private:
                           const T* d) {
         if (d == nullptr) { addNullDiagnostic(callback); return; }
         addBasicEntity(callback, recordClass, *d);
+    }
+
+    std::vector<Field> dimensionFields(const DRW_Dimension& d,
+                                       const std::string& recordClass) {
+        auto fields = entityFields(d, recordClass, recordClass);
+        fields.push_back(pointField("definitionPointWcs", d.getDefPoint()));
+        fields.push_back(pointField("textPointOcs", d.getTextPoint()));
+        fields.push_back(pointField("extrusion", d.getExtrusion()));
+        fields.push_back(intField("dimensionType", d.type));
+        fields.push_back(stringField("text", d.getText()));
+        fields.push_back(stringField("style", d.getStyle()));
+        if (const auto* aligned = dynamic_cast<const DRW_DimAligned*>(&d)) {
+            fields.push_back(pointField("clonePointOcs", aligned->getClonepoint()));
+            fields.push_back(pointField("definition1Wcs", aligned->getDef1Point()));
+            fields.push_back(pointField("definition2Wcs", aligned->getDef2Point()));
+        } else if (const auto* angular = dynamic_cast<const DRW_DimAngular*>(&d)) {
+            fields.push_back(pointField("firstLine1Wcs", angular->getFirstLine1()));
+            fields.push_back(pointField("firstLine2Wcs", angular->getFirstLine2()));
+            fields.push_back(pointField("secondLine1Wcs", angular->getSecondLine1()));
+            fields.push_back(pointField("arcPointOcs", angular->getDimPoint()));
+        } else if (const auto* angular = dynamic_cast<const DRW_DimAngular3p*>(&d)) {
+            fields.push_back(pointField("firstLineWcs", angular->getFirstLine()));
+            fields.push_back(pointField("secondLineWcs", angular->getSecondLine()));
+            fields.push_back(pointField("vertexWcs", angular->getVertexPoint()));
+        } else if (const auto* radial = dynamic_cast<const DRW_DimRadial*>(&d)) {
+            if (dynamic_cast<const DRW_DimLargeRadial*>(radial) == nullptr)
+                fields.push_back(pointField("diameterPointWcs", radial->getDiameterPoint()));
+        } else if (const auto* diametric = dynamic_cast<const DRW_DimDiametric*>(&d)) {
+            fields.push_back(pointField("diameter1Wcs", diametric->getDiameter1Point()));
+        } else if (const auto* ordinate = dynamic_cast<const DRW_DimOrdinate*>(&d)) {
+            fields.push_back(pointField("featureWcs", ordinate->getFirstLine()));
+            fields.push_back(pointField("leaderEndWcs", ordinate->getSecondLine()));
+        } else if (const auto* arc = dynamic_cast<const DRW_DimArc*>(&d)) {
+            fields.push_back(pointField("extension1Wcs", arc->getExtLine1()));
+            fields.push_back(pointField("extension2Wcs", arc->getExtLine2()));
+            fields.push_back(pointField("arcCenterWcs", arc->getArcCenter()));
+            // ARC_DIMENSION's optional leader grammar is distinct from the
+            // ordinary angular dimension's OCS group16; preserve raw fields
+            // without inferring a coordinate conversion or flag qualification.
+            fields.push_back(pointField("leader1Stored", arc->getLeaderPt1()));
+            fields.push_back(pointField("leader2Stored", arc->leaderPt2));
+        }
+        return fields;
+    }
+
+    void addDimension(const std::string& callback, const std::string& recordClass,
+                      const DRW_Dimension* d) {
+        if (d == nullptr) { addNullDiagnostic(callback); return; }
+        addEntityRecord(callback, recordClass, dimensionFields(*d, recordClass), *d, true);
     }
 
     void attachCarrierToRecord(std::size_t recordIndex, const std::string& source,
@@ -2691,6 +2740,18 @@ bool run3DConsumerProbe(bool binary) {
 #endif
 
 int selfTest() {
+    SemanticSink dimensionSink("dxfRW", "read");
+    DRW_DimAligned dimension;
+    dimension.setDefPoint({-3, -4, 8});
+    dimension.setTextPoint({2, 3, 4});
+    dimension.setClonePoint({1, -2, 4});
+    dimension.setExtrusion({0, 1, 0});
+    dimensionSink.addDimAlign(&dimension);
+    if (!fieldEquals(dimensionSink, "DIMALIGNED", "definitionPointWcs", "{\"x\":-3,\"y\":-4,\"z\":8}")
+        || !fieldEquals(dimensionSink, "DIMALIGNED", "textPointOcs", "{\"x\":2,\"y\":3,\"z\":4}")
+        || !fieldEquals(dimensionSink, "DIMALIGNED", "clonePointOcs", "{\"x\":1,\"y\":-2,\"z\":4}")
+        || !fieldEquals(dimensionSink, "DIMALIGNED", "extrusion", "{\"x\":0,\"y\":1,\"z\":0}"))
+        return 1;
     if (sha256("abc") != "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad")
         return 1;
     if (jsonString("a\n\"b") != "\"a\\n\\\"b\"")

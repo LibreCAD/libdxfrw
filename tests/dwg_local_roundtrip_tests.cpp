@@ -13619,6 +13619,224 @@ bool runDxfInsertRejectsInvalidPayload() {
     return reject(invalidCount, "-count") && reject(invalidPoint, "-point");
 }
 
+DRW_Coord dimensionFrameWcs(int normal, DRW_Coord point) {
+    if (normal == 1) return {-point.x, point.y, -point.z};
+    if (normal == 2) return {-point.x, -.8 * point.y + .6 * point.z,
+                            .6 * point.y + .8 * point.z};
+    if (normal == 3) return {-.8 * point.y + .6 * point.z, point.x,
+                            .6 * point.y + .8 * point.z};
+    return point;
+}
+
+bool writeDimensionFrameLiteral(const std::filesystem::path& path, bool binary) {
+    std::ofstream stream(path, std::ios::binary | std::ios::trunc);
+    if (binary) stream.write("AutoCAD Binary DXF\r\n\032\0", 22);
+    std::unique_ptr<dxfWriter> tags;
+    if (binary) tags = std::make_unique<dxfWriterBinary>(&stream);
+    else tags = std::make_unique<dxfWriterAscii>(&stream);
+    tags->setVersion("AC1027", true);
+    const auto point = [&](int code, DRW_Coord value) {
+        tags->writeDouble(code, value.x); tags->writeDouble(code + 10, value.y);
+        tags->writeDouble(code + 20, value.z);
+    };
+    tags->writeString(0, "SECTION"); tags->writeString(2, "HEADER");
+    tags->writeString(9, "$ACADVER"); tags->writeString(1, "AC1027");
+    tags->writeString(9, "$UCSORG"); point(10, {100, 200, 300});
+    tags->writeString(9, "$UCSXDIR"); point(10, {0, 1, 0});
+    tags->writeString(9, "$UCSYDIR"); point(10, {-1, 0, 0});
+    tags->writeString(9, "$INSUNITS"); tags->writeInt16(70, 4);
+    tags->writeString(0, "ENDSEC");
+    // Each dimension has an existing distinct picture block. These small
+    // field controls do not claim whole-resource/native rendering closure.
+    tags->writeString(0, "SECTION"); tags->writeString(2, "BLOCKS");
+    for (int normal = 0; normal != 4; ++normal) {
+        for (int kind = 0; kind != 9; ++kind) {
+            const int id = normal * 9 + kind;
+            const auto name = "*D7O_" + std::to_string(normal) + "_" + std::to_string(kind);
+            tags->writeString(0, "BLOCK"); tags->writeString(5, DRW::toHexStr(0xB000u + id));
+            tags->writeString(100, "AcDbEntity"); tags->writeString(8, "0");
+            tags->writeString(100, "AcDbBlockBegin"); tags->writeString(2, name);
+            tags->writeInt16(70, 1); point(10, {0, 0, 0}); tags->writeString(3, name);
+            tags->writeString(0, "LINE"); tags->writeString(5, DRW::toHexStr(0xC000u + id));
+            tags->writeString(100, "AcDbEntity"); tags->writeString(8, "0");
+            tags->writeString(100, "AcDbLine"); point(10, {100.0 + id, 200, 300});
+            point(11, {101.0 + id, 202, 303});
+            tags->writeString(0, "ENDBLK"); tags->writeString(5, DRW::toHexStr(0xD000u + id));
+            tags->writeString(100, "AcDbEntity"); tags->writeString(8, "0");
+            tags->writeString(100, "AcDbBlockEnd");
+        }
+    }
+    tags->writeString(0, "ENDSEC");
+    tags->writeString(0, "SECTION"); tags->writeString(2, "ENTITIES");
+    for (int normal = 0; normal != 4; ++normal) {
+        for (int kind = 0; kind != 9; ++kind) {
+            tags->writeString(0, kind == 7 ? "ARC_DIMENSION"
+                                          : kind == 8 ? "LARGE_RADIAL_DIMENSION" : "DIMENSION");
+            tags->writeString(5, DRW::toHexStr(0xE000u + normal * 9 + kind));
+            tags->writeString(100, "AcDbEntity"); tags->writeString(8, "0");
+            tags->writeString(100, "AcDbDimension"); tags->writeInt16(280, 0);
+            tags->writeString(2, "*D7O_" + std::to_string(normal) + "_" + std::to_string(kind));
+            point(10, dimensionFrameWcs(normal, {3, 8, 4}));
+            point(11, {2, 3, 4}); // OCS text, not a WCS definition point
+            tags->writeInt16(70, 32 | (kind == 7 ? 5 : kind == 8 ? 4 : kind) | (kind == 6 ? 64 : 0));
+            tags->writeString(1, "F" + std::to_string(normal) + "-" + std::to_string(kind));
+            tags->writeString(3, "STANDARD"); tags->writeInt16(71, 5);
+            if (normal == 1) point(210, {0, 0, -1});
+            if (normal == 2) point(210, {0, .6, .8});
+            if (normal == 3) point(210, {.6, 0, .8});
+            const auto first = dimensionFrameWcs(normal, {1, 2, 4});
+            const auto second = dimensionFrameWcs(normal, {7, 6, 4});
+            const auto circle = dimensionFrameWcs(normal, {4, 5, 4});
+            switch (kind) {
+            case 0: case 1:
+                tags->writeString(100, "AcDbAlignedDimension");
+                point(12, {1, -2, 4}); point(13, first); point(14, second);
+                if (kind == 0) {
+                    tags->writeDouble(50, 35); tags->writeDouble(52, 10);
+                    tags->writeString(100, "AcDbRotatedDimension");
+                }
+                break;
+            case 2:
+                tags->writeString(100, "AcDb2LineAngularDimension");
+                point(13, first); point(14, second); point(15, circle);
+                point(16, {5, 6, 4}); // angular arc location is OCS
+                break;
+            case 3: case 4:
+                tags->writeString(100, kind == 3 ? "AcDbDiametricDimension" : "AcDbRadialDimension");
+                point(15, circle); tags->writeDouble(40, .25); break;
+            case 5:
+                tags->writeString(100, "AcDb3PointAngularDimension");
+                point(13, first); point(14, second); point(15, circle); break;
+            case 6:
+                tags->writeString(100, "AcDbOrdinateDimension");
+                point(13, first); point(14, second); break;
+            case 7:
+                tags->writeString(100, "AcDbArcDimension");
+                point(13, first); point(14, second); point(15, circle);
+                tags->writeDouble(40, .25); tags->writeDouble(41, 1.75);
+                tags->writeInt16(70, 0); tags->writeInt16(71, 0);
+                // Optional leader flags/coordinates have a separate existing
+                // metadata contract; this slice does not qualify that mapping.
+                break;
+            case 8:
+                tags->writeString(100, "AcDbRadialDimensionLarge");
+                point(13, circle); point(14, dimensionFrameWcs(normal, {2, 4, 4}));
+                point(15, dimensionFrameWcs(normal, {6, 7, 4}));
+                tags->writeDouble(40, .75); break;
+            }
+        }
+    }
+    tags->writeString(0, "ENDSEC"); tags->writeString(0, "EOF");
+    return !tags->hasWriteError() && stream.good();
+}
+
+class DimensionFrameCapture final : public dx_iface {
+public:
+    explicit DimensionFrameCapture(dx_data& data) { cData = &data; currentBlock = data.mBlock; }
+    // Capture the actual public callback payload before the converter cache;
+    // separate CLI tests verify that cache does not slice these subtypes.
+    void addDimArc(const DRW_DimArc* data) override { currentBlock->ent.push_back(new DRW_DimArc(*data)); }
+    void addDimRadial(const DRW_DimRadial* data) override {
+        if (const auto* large = dynamic_cast<const DRW_DimLargeRadial*>(data))
+            currentBlock->ent.push_back(new DRW_DimLargeRadial(*large));
+        else dx_iface::addDimRadial(data);
+    }
+};
+
+bool dimensionFrameMatches(dx_data& data) {
+    const std::array<DRW_Coord, 4> normals {{{0, 0, 1}, {0, 0, -1}, {0, .6, .8}, {.6, 0, .8}}};
+    const std::array<DRW_Coord, 4> worldText {{{2, 3, 4}, {-2, 3, -4}, {-2, 0, 5}, {0, 2, 5}}};
+    const auto same = [](DRW_Coord a, DRW_Coord b) {
+        return nearDxfValue(a.x, b.x) && nearDxfValue(a.y, b.y) && nearDxfValue(a.z, b.z);
+    };
+    const std::array<DRW::ETYPE, 9> types {{DRW::DIMLINEAR, DRW::DIMALIGNED, DRW::DIMANGULAR,
+        DRW::DIMDIAMETRIC, DRW::DIMRADIAL, DRW::DIMANGULAR3P, DRW::DIMORDINATE, DRW::DIMARC, DRW::DIMRADIAL}};
+    bool valid = data.mBlock->ent.size() == 36u;
+    int id = 0;
+    for (auto* entity : data.mBlock->ent) {
+        const int normal = id / 9, kind = id % 9;
+        auto* dimension = dynamic_cast<DRW_Dimension*>(entity);
+        if (normal >= 4 || !dimension) return false;
+        bool matches = dimension->eType == types[kind]
+            && dimension->getText() == "F" + std::to_string(normal) + "-" + std::to_string(kind)
+            && same(dimension->getExtrusion(), normals[normal])
+            && same(dimension->getTextPoint(), {2, 3, 4})
+            && same(dimension->getDefPoint(), dimensionFrameWcs(normal, {3, 8, 4}));
+        DRW_Insert basis;
+        basis.extPoint = dimension->getExtrusion();
+        matches = matches && same(referenceInsertTransform(dimension->getTextPoint(), {0, 0, 0}, basis), worldText[normal]);
+        const auto first = dimensionFrameWcs(normal, {1, 2, 4});
+        const auto second = dimensionFrameWcs(normal, {7, 6, 4});
+        const auto circle = dimensionFrameWcs(normal, {4, 5, 4});
+        if (auto* aligned = dynamic_cast<DRW_DimAligned*>(dimension)) {
+            matches = matches && same(aligned->getClonepoint(), {1, -2, 4})
+                && same(aligned->getDef1Point(), first) && same(aligned->getDef2Point(), second);
+        } else if (auto* angular = dynamic_cast<DRW_DimAngular*>(dimension)) {
+            matches = matches && same(angular->getFirstLine1(), first)
+                && same(angular->getFirstLine2(), second) && same(angular->getSecondLine1(), circle)
+                && same(angular->getDimPoint(), {5, 6, 4});
+        } else if (auto* angular = dynamic_cast<DRW_DimAngular3p*>(dimension)) {
+            matches = matches && same(angular->getFirstLine(), first)
+                && same(angular->getSecondLine(), second) && same(angular->getVertexPoint(), circle);
+        } else if (auto* large = dynamic_cast<DRW_DimLargeRadial*>(dimension)) {
+            matches = matches && same(large->getChordPoint(), circle)
+                && same(large->overrideCenterPoint, dimensionFrameWcs(normal, {2, 4, 4}))
+                && same(large->jogPoint, dimensionFrameWcs(normal, {6, 7, 4})) && large->jogAngle == .75;
+        } else if (auto* radial = dynamic_cast<DRW_DimRadial*>(dimension)) {
+            matches = matches && same(radial->getDiameterPoint(), circle);
+        } else if (auto* diametric = dynamic_cast<DRW_DimDiametric*>(dimension)) {
+            matches = matches && same(diametric->getDiameter1Point(), circle);
+        } else if (auto* ordinate = dynamic_cast<DRW_DimOrdinate*>(dimension)) {
+            matches = matches && same(ordinate->getFirstLine(), first) && same(ordinate->getSecondLine(), second);
+        } else if (auto* arc = dynamic_cast<DRW_DimArc*>(dimension)) {
+            matches = matches && same(arc->getExtLine1(), first) && same(arc->getExtLine2(), second)
+                && same(arc->getArcCenter(), circle) && arc->arcStartAngle == .25 && arc->arcEndAngle == 1.75;
+        }
+        bool pictureFound = false;
+        for (const auto* block : data.blocks) {
+            if (block->name != dimension->getName()) continue;
+            const auto* line = block->ent.size() == 1u ? dynamic_cast<DRW_Line*>(block->ent.front()) : nullptr;
+            pictureFound = line && same(line->basePoint, {100.0 + id, 200, 300});
+        }
+        matches = matches && pictureFound;
+        if (!matches) std::cerr << "DIMENSION frame F" << normal << '-' << kind << " not retained\n";
+        valid = matches && valid;
+        ++id;
+    }
+    return valid;
+}
+
+bool verifyDimensionFrameFile(const std::filesystem::path& path, bool applyExtrusion) {
+    dx_data data;
+    DimensionFrameCapture capture(data);
+    const auto name = path.string();
+    dxfRW reader(name.c_str());
+    return reader.read(&capture, applyExtrusion) && dimensionFrameMatches(data);
+}
+
+bool runDxfDimensionFrames(bool binary, const std::filesystem::path& directory, bool keepOutput) {
+    const auto encoding = binary ? "binary" : "ascii";
+    const auto input = directory / (std::string("libdxfrw-dimension-frames-") + encoding + "-input.dxf");
+    bool valid = writeDimensionFrameLiteral(input, binary);
+    for (bool applyExtrusion : {false, true}) {
+        valid = verifyDimensionFrameFile(input, applyExtrusion) && valid;
+        dx_data data;
+        DimensionFrameCapture capture(data);
+        const auto name = input.string();
+        dxfRW reader(name.c_str());
+        bool matches = reader.read(&capture, applyExtrusion);
+        const auto output = directory / (std::string("libdxfrw-dimension-frames-") + encoding
+            + (applyExtrusion ? "-ext-output.dxf" : "-raw-output.dxf"));
+        dx_iface writer;
+        matches = writer.fileExport(output.string(), DRW::AC1027, binary, &data, false)
+            && dimensionFrameMatches(data) && verifyDimensionFrameFile(output, applyExtrusion) && matches;
+        valid = matches && valid;
+        if (!keepOutput) { std::error_code ec; std::filesystem::remove(output, ec); }
+    }
+    if (!keepOutput) { std::error_code ec; std::filesystem::remove(input, ec); }
+    return valid;
+}
+
 } // namespace
 
 int main(int argc, char** argv) {
@@ -13640,6 +13858,11 @@ int main(int argc, char** argv) {
             std::string(argv[1]) == "--generate-mpolygon-header-binary") ? 0 : 1;
     } else if (argc == 3 && std::string(argv[1]) == "--verify-mpolygon-header") {
         return verifyMPolygonHeaderFile(argv[2]) ? 0 : 1;
+    } else if (argc == 3 && (std::string(argv[1]) == "--generate-dimension-frames"
+                      || std::string(argv[1]) == "--generate-dimension-frames-binary")) {
+        return writeDimensionFrameLiteral(argv[2], std::string(argv[1]) == "--generate-dimension-frames-binary") ? 0 : 1;
+    } else if (argc == 3 && std::string(argv[1]) == "--verify-dimension-frames") {
+        return verifyDimensionFrameFile(argv[2], false) && verifyDimensionFrameFile(argv[2], true) ? 0 : 1;
     } else if (argc == 3 && (std::string(argv[1]) == "--generate-hatch-tangents"
                       || std::string(argv[1]) == "--generate-hatch-tangents-binary")) {
         return writeHatchTangentLiteral(argv[2],
@@ -13671,6 +13894,8 @@ int main(int argc, char** argv) {
                      " [--verify-mpolygon-header DXF]"
                      " [--generate-mpolygon-metadata[-binary] DXF]"
                      " [--verify-mpolygon-metadata DXF]"
+                     " [--generate-dimension-frames[-binary] DXF]"
+                     " [--verify-dimension-frames DXF]"
                      " [--generate-hatch-tangents[-binary] DXF]"
                      " [--verify-hatch-tangents DXF]"
                      " [--verify-dynamicblock-typed-pair DWG DXF]\n";
@@ -14505,6 +14730,10 @@ int main(int argc, char** argv) {
         if (!keepOutputs)
             std::filesystem::remove(output, ec);
     }
+    expect(runDxfDimensionFrames(false, directory, keepOutputs),
+           "local DXF ASCII DIMENSION mixed coordinate frames in both read modes", failures);
+    expect(runDxfDimensionFrames(true, directory, keepOutputs),
+           "local DXF binary DIMENSION mixed coordinate frames in both read modes", failures);
     expect(runDxfSurfaceRoundTrip(false, directory, keepOutputs),
            "local DXF ASCII SURFACE subtype semantic round-trip", failures);
     expect(runDxfSurfaceRoundTrip(true, directory, keepOutputs),
