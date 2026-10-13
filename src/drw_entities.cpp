@@ -36,6 +36,27 @@
 
 namespace {
 
+DRW_Coord extrusionUnitVector(DRW_Coord direction) {
+    // The arbitrary-axis rule assumes a unit normal. Keep its original
+    // direction in the public entity, but normalize the temporary basis for
+    // accepted non-unit input. Scale first to avoid overflow/underflow.
+    if (std::hypot(direction.x, direction.y, direction.z) == 1.0)
+        return direction;
+    const double scale = std::max({std::fabs(direction.x),
+                                   std::fabs(direction.y),
+                                   std::fabs(direction.z)});
+    if (!std::isfinite(scale) || scale == 0.0)
+        return direction;
+    direction.x /= scale;
+    direction.y /= scale;
+    direction.z /= scale;
+    const double length = std::hypot(direction.x, direction.y, direction.z);
+    direction.x /= length;
+    direction.y /= length;
+    direction.z /= length;
+    return direction;
+}
+
 struct EmbeddedMTextHandleInfo {
     bool m_ownerHandle = false;
     int m_numReactors = 0;
@@ -3358,6 +3379,7 @@ void DRW_Entity::copyExtDataFrom(const DRW_Entity& source) {
 *  @author Rallaz
 */
 void DRW_Entity::calculateAxis(DRW_Coord extPoint){
+    extPoint = extrusionUnitVector(extPoint);
     //Follow the arbitrary DXF definitions for extrusion axes.
     if (fabs(extPoint.x) < 0.015625 && fabs(extPoint.y) < 0.015625) {
         //If we get here, implement Ax = Wy x N where Wy is [0,1,0] per the DXF spec.
@@ -3390,7 +3412,14 @@ void DRW_Entity::calculateAxis(DRW_Coord extPoint){
 *   apply extrusion in a point using arbitrary axis (previous calculated)
 *  @author Rallaz
 */
-void DRW_Entity::extrudePoint(DRW_Coord extPoint, DRW_Coord *point){
+void DRW_Entity::extrudePoint(DRW_Coord, DRW_Coord *point){
+    // Ax and Ay are unit axes computed once for the entity. Their cross
+    // product supplies the unit Az without renormalizing every polyline
+    // vertex or changing the source extrusion vector.
+    const DRW_Coord extPoint(
+        extAxisX.y * extAxisY.z - extAxisX.z * extAxisY.y,
+        extAxisX.z * extAxisY.x - extAxisX.x * extAxisY.z,
+        extAxisX.x * extAxisY.y - extAxisX.y * extAxisY.x);
     double px, py, pz;
     px = (extAxisX.x*point->x)+(extAxisY.x*point->y)+(extPoint.x*point->z);
     py = (extAxisX.y*point->x)+(extAxisY.y*point->y)+(extPoint.y*point->z);
@@ -6141,7 +6170,8 @@ void DRW_Arc::applyExtrusion(){
         // Note that the following code only handles the special case where there is a 2D
         // drawing with the z axis heading into the paper (or rather screen). An arbitrary
         // extrusion axis (with x and y values greater than 1/64) may still have issues.
-        if (fabs(extPoint.x) < 0.015625 && fabs(extPoint.y) < 0.015625 && extPoint.z < 0.0) {
+        const DRW_Coord normal = extrusionUnitVector(extPoint);
+        if (fabs(normal.x) < 0.015625 && fabs(normal.y) < 0.015625 && normal.z < 0.0) {
             staangle=M_PI-staangle;
             endangle=M_PI-endangle;
 

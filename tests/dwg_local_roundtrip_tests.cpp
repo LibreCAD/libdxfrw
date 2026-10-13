@@ -10292,6 +10292,18 @@ bool runDxfSplineHelixRoundTrip(bool binary,
         std::make_shared<DRW_Coord>(11.0, 12.0, 13.0)};
     source.mBlock->ent.push_back(fitSpline);
 
+    auto* quarterCircle = new DRW_Spline();
+    quarterCircle->handle = 0xFC03u;
+    quarterCircle->degree = 2;
+    quarterCircle->flags = 4 | 8;
+    quarterCircle->knotslist = {0, 0, 0, 1, 1, 1};
+    quarterCircle->weightlist = {1.0, std::sqrt(0.5), 1.0};
+    quarterCircle->controllist = {
+        std::make_shared<DRW_Coord>(1.0, 0.0, 0.0),
+        std::make_shared<DRW_Coord>(1.0, 1.0, 0.0),
+        std::make_shared<DRW_Coord>(0.0, 1.0, 0.0)};
+    source.mBlock->ent.push_back(quarterCircle);
+
     auto* helix = new DRW_Helix();
     helix->handle = 0xFC02u;
     helix->degree = 2;
@@ -10333,6 +10345,7 @@ bool runDxfSplineHelixRoundTrip(bool binary,
 
     const DRW_Spline* importedControl = nullptr;
     const DRW_Spline* importedFit = nullptr;
+    const DRW_Spline* importedQuarterCircle = nullptr;
     const DRW_Helix* importedHelix = nullptr;
     for (const DRW_Entity* entity : imported.mBlock->ent) {
         if (entity == nullptr)
@@ -10343,6 +10356,8 @@ bool runDxfSplineHelixRoundTrip(bool binary,
                 importedControl = value;
             else if (value->handle == fitSpline->handle)
                 importedFit = value;
+            else if (value->handle == quarterCircle->handle)
+                importedQuarterCircle = value;
         } else if (entity->eType == DRW::HELIX) {
             importedHelix = static_cast<const DRW_Helix*>(entity);
         }
@@ -10397,12 +10412,35 @@ bool runDxfSplineHelixRoundTrip(bool binary,
         && importedHelix->turnHeight == helix->turnHeight
         && importedHelix->handedness == helix->handedness
         && importedHelix->constraintType == helix->constraintType;
+    bool quarterCircleMatches = importedQuarterCircle != nullptr
+        && importedQuarterCircle->degree == 2
+        && importedQuarterCircle->flags == (4 | 8)
+        && importedQuarterCircle->knotslist == quarterCircle->knotslist
+        && importedQuarterCircle->weightlist == quarterCircle->weightlist
+        && samePoints(importedQuarterCircle->controllist,
+                      quarterCircle->controllist);
+    if (quarterCircleMatches) {
+        // The quadratic Bernstein basis at .5 is (1/4,1/2,1/4).
+        // This checks represented geometry without a library curve evaluator.
+        const double denominator = 0.5
+            + 0.5 * importedQuarterCircle->weightlist[1];
+        const auto& points = importedQuarterCircle->controllist;
+        const double x = (0.25 * points[0]->x
+            + 0.5 * importedQuarterCircle->weightlist[1] * points[1]->x
+            + 0.25 * points[2]->x) / denominator;
+        const double y = (0.25 * points[0]->y
+            + 0.5 * importedQuarterCircle->weightlist[1] * points[1]->y
+            + 0.25 * points[2]->y) / denominator;
+        quarterCircleMatches = std::abs(x - std::sqrt(0.5)) < 1e-12
+            && std::abs(y - std::sqrt(0.5)) < 1e-12;
+    }
     if (!keepOutput)
         std::filesystem::remove(output, ec);
-    if (!controlMatches || !fitMatches || !helixMatches)
+    if (!controlMatches || !fitMatches || !helixMatches || !quarterCircleMatches)
         std::cerr << "DXF SPLINE/HELIX semantic mismatch (" << encoding
                   << "): control=" << controlMatches << ", fit=" << fitMatches
-                  << ", helix=" << helixMatches << '\n';
+                  << ", helix=" << helixMatches
+                  << ", quarter-circle=" << quarterCircleMatches << '\n';
     if (!fitMatches && importedFit != nullptr)
         std::cerr << "  fit spline: degree=" << importedFit->degree << "/"
                   << fitSpline->degree << " normal=(" << importedFit->normalVec.x
@@ -10474,7 +10512,7 @@ bool runDxfSplineHelixRoundTrip(bool binary,
                   << importedHelix->axisVector.z << "/" << helix->axisVector.x
                   << "," << helix->axisVector.y << "," << helix->axisVector.z
                   << '\n';
-    return controlMatches && fitMatches && helixMatches;
+    return controlMatches && fitMatches && helixMatches && quarterCircleMatches;
 }
 
 class DxfMeshCaptureIface final : public dx_iface {
@@ -10499,10 +10537,10 @@ bool runDxfTopologyRoundTrip(bool binary, const std::filesystem::path& directory
     dx_data source;
     auto* face = new DRW_3Dface();
     face->handle = 0xFA01u;
-    face->basePoint = DRW_Coord(1.0, 2.0, 3.0);
-    face->secPoint = DRW_Coord(4.0, 5.0, 6.0);
-    face->thirdPoint = DRW_Coord(7.0, 8.0, 9.0);
-    face->fourPoint = DRW_Coord(10.0, 11.0, 12.0);
+    face->basePoint = DRW_Coord(0.0, 0.0, 0.0);
+    face->secPoint = DRW_Coord(2.0, 0.0, 0.0);
+    face->thirdPoint = DRW_Coord(2.0, 1.0, 0.0);
+    face->fourPoint = DRW_Coord(0.0, 1.0, 0.0);
     face->invisibleflag = DRW_3Dface::FirstEdge | DRW_3Dface::ThirdEdge;
     source.mBlock->ent.push_back(face);
 
@@ -10707,10 +10745,19 @@ bool runDxfTopologyRoundTrip(bool binary, const std::filesystem::path& directory
     }
 
     const bool faceValid = decodedFace != nullptr
-        && decodedFace->basePoint.x == 1.0
-        && decodedFace->basePoint.z == 3.0
-        && decodedFace->fourPoint.x == 10.0
-        && decodedFace->fourPoint.z == 12.0
+        && decodedFace->basePoint.x == 0.0 && decodedFace->basePoint.y == 0.0
+        && decodedFace->basePoint.z == 0.0
+        && decodedFace->secPoint.x == 2.0 && decodedFace->secPoint.y == 0.0
+        && decodedFace->secPoint.z == 0.0
+        && decodedFace->thirdPoint.x == 2.0 && decodedFace->thirdPoint.y == 1.0
+        && decodedFace->thirdPoint.z == 0.0
+        && decodedFace->fourPoint.x == 0.0 && decodedFace->fourPoint.y == 1.0
+        && decodedFace->fourPoint.z == 0.0
+        // Ordered adjacent edges define the known +Z normal and area 2.
+        && (decodedFace->secPoint.x - decodedFace->basePoint.x)
+                * (decodedFace->thirdPoint.y - decodedFace->secPoint.y)
+            - (decodedFace->secPoint.y - decodedFace->basePoint.y)
+                * (decodedFace->thirdPoint.x - decodedFace->secPoint.x) == 2.0
         && decodedFace->invisibleflag == (DRW_3Dface::FirstEdge
                                            | DRW_3Dface::ThirdEdge);
     const bool solidValid = decodedSolid != nullptr
@@ -11233,6 +11280,10 @@ bool runDxfEllipseRejectsInvalidGeometry(
 
     class EllipseCaptureIface final : public dx_iface {
     public:
+        explicit EllipseCaptureIface(dx_data& data) {
+            cData = &data;
+            currentBlock = data.mBlock;
+        }
         std::size_t ellipseCount = 0;
         void addEllipse(const DRW_Ellipse& data) override {
             ++ellipseCount;
@@ -11241,9 +11292,10 @@ bool runDxfEllipseRejectsInvalidGeometry(
     };
     const auto importedValidModes = [&validPath](bool applyExtrusion) {
         dx_data imported;
-        EllipseCaptureIface importer;
-        const bool readOk = importer.fileImport(validPath.string(), &imported,
-                                                applyExtrusion);
+        EllipseCaptureIface importer(imported);
+        const std::string path = validPath.string();
+        dxfRW reader(path.c_str());
+        const bool readOk = reader.read(&importer, applyExtrusion);
         if (!readOk || importer.ellipseCount != 2u
             || imported.mBlock->ent.size() != 2u) {
             std::cerr << "ELLIPSE valid read: ok=" << readOk
@@ -11292,7 +11344,7 @@ bool runDxfEllipseRejectsInvalidGeometry(
     const auto rejectedWithoutPublishingEllipse =
         [](const std::filesystem::path& path) {
         dx_data imported;
-        EllipseCaptureIface importer;
+        EllipseCaptureIface importer(imported);
         const bool importOk = importer.fileImport(path.string(), &imported,
                                                   false);
         const bool onlyEarlierValidEllipseWasPublished =
@@ -11406,6 +11458,118 @@ bool runDxfEllipseRejectsInvalidGeometry(
           negativeRatioPath})
         std::filesystem::remove(path, ec);
     return result;
+}
+
+bool runDxfNonUnitExtrusionPolicy(
+        bool binary, const std::filesystem::path& directory, bool keepOutput) {
+    const std::filesystem::path output = directory /
+        (binary ? "libdxfrw-extrusion-policy-binary.dxf"
+                : "libdxfrw-extrusion-policy-ascii.dxf");
+    const double capZ = std::sqrt(1.0 - 0.01 * 0.01);
+    const std::vector<DRW_Coord> normals {
+        {0.6, 0.0, 0.8}, {1.2, 0.0, 1.6},
+        {0.01, 0.0, capZ}, {0.02, 0.0, 2.0 * capZ},
+        {0.01, 0.0, -capZ}, {0.02, 0.0, -2.0 * capZ}};
+    const std::array<DRW_Coord, 3> converted {{
+        {0.0, 2.0, 5.0},
+        {2.0 * capZ + 0.04, 3.0, -0.02 + 4.0 * capZ},
+        {-2.0 * capZ + 0.04, 3.0, -0.02 - 4.0 * capZ}}};
+    dx_data source;
+    for (const DRW_Coord& normal : normals) {
+        auto* arc = new DRW_Arc();
+        arc->basePoint = DRW_Coord(2.0, 3.0, 4.0);
+        arc->extPoint = normal;
+        arc->radious = 1.75;
+        arc->staangle = 0.25;
+        arc->endangle = 1.5;
+        arc->thickness = 2.5;
+        source.mBlock->ent.push_back(arc);
+        auto* polyline = new DRW_LWPolyline();
+        polyline->elevation = 4.0;
+        polyline->extPoint = normal;
+        polyline->addVertex(DRW_Vertex2D(2.0, 3.0, 0.25));
+        polyline->addVertex(DRW_Vertex2D(4.0, 5.0, 0.0));
+        source.mBlock->ent.push_back(polyline);
+    }
+    auto* reflected = new DRW_LWPolyline();
+    reflected->extPoint = DRW_Coord(0.0, 0.0, -1.0);
+    reflected->addVertex(DRW_Vertex2D(2.0, 3.0, 0.25));
+    reflected->addVertex(DRW_Vertex2D(4.0, 5.0, 0.0));
+    source.mBlock->ent.push_back(reflected);
+    dx_iface exporter;
+    if (!exporter.fileExport(output.string(), DRW::AC1027, binary,
+                             &source, false))
+        return false;
+
+    class Capture final : public dx_iface {
+    public:
+        explicit Capture(dx_data& data) {
+            cData = &data;
+            currentBlock = data.mBlock;
+        }
+    };
+    const auto near = [](double actual, double expected) {
+        return std::isfinite(actual) && std::abs(actual - expected) < 1e-9;
+    };
+    const auto samePoint = [&near](const DRW_Coord& a, const DRW_Coord& b) {
+        return near(a.x, b.x) && near(a.y, b.y) && near(a.z, b.z);
+    };
+    bool valid = true;
+    for (bool applyExtrusion : {false, true}) {
+        dx_data imported;
+        Capture capture(imported);
+        const std::string path = output.string();
+        dxfRW reader(path.c_str());
+        bool modeValid = reader.read(&capture, applyExtrusion)
+            && imported.mBlock->ent.size() == normals.size() * 2u + 1u;
+        std::size_t entityIndex = 0;
+        for (const DRW_Entity* entity : imported.mBlock->ent) {
+            if (!modeValid)
+                break;
+            if (entityIndex == normals.size() * 2u) {
+                const auto* polyline = dynamic_cast<const DRW_LWPolyline*>(entity);
+                // LibreCAD owns the reflected bulge sign policy. Preserve the
+                // callback's old axial projection and the original bulge.
+                modeValid = polyline != nullptr && polyline->vertlist.size() == 2u
+                    && near(polyline->vertlist[0]->x, applyExtrusion ? -2.0 : 2.0)
+                    && near(polyline->vertlist[0]->y, 3.0)
+                    && polyline->vertlist[0]->bulge == 0.25
+                    && samePoint(polyline->extPoint, DRW_Coord(0.0, 0.0, -1.0));
+            } else {
+                const std::size_t normalIndex = entityIndex / 2u;
+                const DRW_Coord expected = applyExtrusion
+                    ? converted[normalIndex / 2u] : DRW_Coord(2.0, 3.0, 4.0);
+                if ((entityIndex & 1u) == 0u) {
+                    const auto* arc = dynamic_cast<const DRW_Arc*>(entity);
+                    const bool mirrored = applyExtrusion && normalIndex >= 4u;
+                    modeValid = arc != nullptr && samePoint(arc->basePoint, expected)
+                        && samePoint(arc->extPoint, normals[normalIndex])
+                        && arc->radious == 1.75 && arc->thickness == 2.5
+                        && near(arc->staangle, mirrored ? M_PI - 1.5 : 0.25)
+                        && near(arc->endangle, mirrored ? M_PI - 0.25 : 1.5);
+                } else {
+                    const auto* polyline = dynamic_cast<const DRW_LWPolyline*>(entity);
+                    modeValid = polyline != nullptr && polyline->vertlist.size() == 2u
+                        && near(polyline->vertlist[0]->x, expected.x)
+                        && near(polyline->vertlist[0]->y, expected.y)
+                        && samePoint(polyline->extPoint, normals[normalIndex])
+                        && polyline->elevation == 4.0
+                        && polyline->vertlist[0]->bulge == 0.25;
+                }
+            }
+            ++entityIndex;
+        }
+        if (!modeValid)
+            std::cerr << "DXF accepted-normal policy mismatch: binary=" << binary
+                      << " applyExt=" << applyExtrusion
+                      << " entity=" << entityIndex << '\n';
+        valid = modeValid && valid;
+    }
+    if (!keepOutput) {
+        std::error_code ec;
+        std::filesystem::remove(output, ec);
+    }
+    return valid;
 }
 
 bool runDxfArcCircleThicknessRoundTrip(
@@ -12889,6 +13053,12 @@ int main(int argc, char** argv) {
            "local DXF R12 ellipse downgrade preserves 3D geometry", failures);
     expect(runDxfEllipseRejectsInvalidGeometry(directory),
            "local DXF ELLIPSE rejects undefined extrusion normals",
+           failures);
+    expect(runDxfNonUnitExtrusionPolicy(false, directory, keepOutputs),
+           "local DXF ASCII accepted normals use a temporary unit conversion basis",
+           failures);
+    expect(runDxfNonUnitExtrusionPolicy(true, directory, keepOutputs),
+           "local DXF binary accepted normals use a temporary unit conversion basis",
            failures);
     expect(runDxfArcCircleThicknessRoundTrip(false, directory),
            "local DXF ASCII ARC/CIRCLE preserves thickness independently of OCS projection",

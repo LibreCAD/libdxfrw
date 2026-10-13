@@ -27,6 +27,14 @@ audited LibreCAD filter currently calls both readers with `ext == true`; the
 3D lane is an opt-in `ext == false` path, not an automatic mode switch based on
 entity type.
 
+For accepted finite nonzero extrusion directions, the optional DXF `ext ==
+true` conversion uses a temporary unit basis for the arbitrary-axis algorithm.
+Multiplying a normal by a positive scalar therefore does not rescale elevation
+or select a different basis. The original extrusion vector remains available
+in the callback, and `ext == false` preserves the original coordinate tuples.
+This input-robustness policy does not move LibreCAD's reflected-polyline bulge
+handling into the library or turn the legacy option into a full 3D projection.
+
 Callbacks expose borrowed objects as references or pointers. The interface does
 not specify that callback object addresses remain valid after the callback
 returns. A consumer that retains a scene/document model must copy the needed
