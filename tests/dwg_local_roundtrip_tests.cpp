@@ -10634,6 +10634,119 @@ bool verifyMPolygonHeaderFile(const std::filesystem::path& path, int polygonVers
     return true;
 }
 
+bool writeMPolygonMetadataFile(const std::filesystem::path& path, bool binary) {
+    dx_data source;
+    auto polygon = makeMPolygonHeaderControl(1);
+    polygon->pixelSize = .125;
+    polygon->seedPoints = {DRW_Coord(.5, .25, 0), DRW_Coord(1, .75, 0)};
+    const auto* original = polygon.get();
+    source.mBlock->ent.push_back(polygon.release());
+    dx_iface writer;
+    return writer.fileExport(path.string(), DRW::AC1027, binary, &source, false)
+        && original->pixelSize == .125 && original->seedPoints.size() == 2u
+        && original->seedPoints[0].x == .5 && original->seedPoints[0].y == .25
+        && original->seedPoints[1].x == 1 && original->seedPoints[1].y == .75;
+}
+
+bool verifyMPolygonMetadataFile(const std::filesystem::path& path) {
+    dx_data source;
+    dx_iface reader;
+    if (!reader.fileImport(path.string(), &source, false) || source.mBlock->ent.size() != 1)
+        return false;
+    const auto* polygon = dynamic_cast<const DRW_MPolygon*>(source.mBlock->ent.front());
+    return polygon && polygon->dxfVersion == 1 && polygon->solid == 1
+        && polygon->pixelSize == .125 && polygon->basePoint.z == 5
+        && polygon->extPoint.x == 0 && polygon->extPoint.y == .6 && polygon->extPoint.z == .8
+        && polygon->seedPoints.size() == 2
+        && polygon->seedPoints[0].x == .5 && polygon->seedPoints[0].y == .25 && polygon->seedPoints[0].z == 0
+        && polygon->seedPoints[1].x == 1 && polygon->seedPoints[1].y == .75 && polygon->seedPoints[1].z == 0;
+}
+
+bool runDxfMPolygonMetadata(bool binary, const std::filesystem::path& directory, bool keepOutput) {
+    const std::string encoding = binary ? "binary" : "ascii";
+    const auto metadata = directory / ("libdxfrw-mpolygon-metadata-" + encoding + ".dxf");
+    bool valid = writeMPolygonMetadataFile(metadata, binary) && verifyMPolygonMetadataFile(metadata);
+    if (!valid) std::cerr << "MPOLYGON pixel/seed metadata lost " << encoding << '\n';
+    std::error_code ec;
+    if (!keepOutput) std::filesystem::remove(metadata, ec);
+    // The shared boundary grammar already represents edge paths and source
+    // arrays. Keep those export paths compatible while adding metadata;
+    // these field-level controls do not qualify live boundary associations.
+    for (int variant = 0; variant != 2; ++variant) {
+        auto polygon = makeMPolygonHeaderControl(1);
+        polygon->pixelSize = .125;
+        polygon->seedPoints = {DRW_Coord(.5, .25, 0), DRW_Coord(1, .75, 0)};
+        if (variant == 0) {
+            auto& loop = *polygon->looplist.front();
+            loop.type = 1; loop.objlist.clear();
+            const std::array<DRW_Coord, 3> corners {{{0, 0, 0}, {2, 0, 0}, {1, 2, 0}}};
+            for (std::size_t i = 0; i != corners.size(); ++i) {
+                auto edge = std::make_shared<DRW_Line>();
+                edge->basePoint = corners[i]; edge->secPoint = corners[(i + 1) % corners.size()];
+                loop.objlist.push_back(edge);
+            }
+            loop.update();
+        } else polygon->looplist.front()->m_boundaryHandles = {0xB0u};
+        dx_data source;
+        if (variant == 1) {
+            auto* boundary = new DRW_LWPolyline(*static_cast<DRW_LWPolyline*>(
+                polygon->looplist.front()->objlist.front().get()));
+            boundary->handle = 0xB0u;
+            boundary->elevation = 5; boundary->extPoint = polygon->extPoint;
+            source.mBlock->ent.push_back(boundary);
+        }
+        source.mBlock->ent.push_back(polygon.release());
+        const auto output = directory / ("libdxfrw-mpolygon-boundary-metadata-" + encoding
+            + "-" + std::to_string(variant) + ".dxf");
+        dx_iface writer;
+        dx_data imported;
+        dx_iface reader;
+        bool retained = writer.fileExport(output.string(), DRW::AC1027, binary, &source, false)
+            && reader.fileImport(output.string(), &imported, false)
+            && imported.mBlock->ent.size() == (variant == 0 ? 1u : 2u);
+        const auto* decoded = retained ? dynamic_cast<const DRW_MPolygon*>(
+            imported.mBlock->ent.back()) : nullptr;
+        retained = retained && decoded && decoded->pixelSize == .125
+            && decoded->seedPoints.size() == 2u && decoded->looplist.size() == 1u;
+        if (retained) {
+            const auto& loop = *decoded->looplist.front();
+            retained = decoded->seedPoints[0].x == .5 && decoded->seedPoints[0].y == .25
+                && decoded->seedPoints[1].x == 1 && decoded->seedPoints[1].y == .75;
+            if (variant == 0) {
+                retained = retained && loop.type == 1 && loop.objlist.size() == 3u;
+                const auto* first = dynamic_cast<const DRW_Line*>(loop.objlist.front().get());
+                retained = retained && first && first->basePoint.x == 0
+                    && first->basePoint.y == 0 && first->secPoint.x == 2 && first->secPoint.y == 0;
+            } else {
+                retained = retained && loop.type == 2
+                    && loop.m_boundaryHandles == std::vector<std::uint32_t>{0xB0u};
+            }
+        }
+        if (!retained) std::cerr << "MPOLYGON boundary metadata " << variant
+                                << " not retained " << encoding << '\n';
+        valid = retained && valid;
+        if (!keepOutput) std::filesystem::remove(output, ec);
+    }
+    for (int invalid = 0; invalid != 2; ++invalid) {
+        dx_data source;
+        auto polygon = makeMPolygonHeaderControl(1);
+        if (invalid == 0) polygon->pixelSize = std::numeric_limits<double>::quiet_NaN();
+        else polygon->seedPoints = {DRW_Coord(0, std::numeric_limits<double>::infinity(), 0)};
+        source.mBlock->ent.push_back(polygon.release());
+        const auto output = directory / ("libdxfrw-mpolygon-metadata-rejected-" + encoding + ".dxf");
+        const std::string sentinel = "prior MPOLYGON metadata destination\n";
+        { std::ofstream previous(output, std::ios::binary | std::ios::trunc); previous << sentinel; }
+        dx_iface writer;
+        const bool rejected = !writer.fileExport(output.string(), DRW::AC1027, binary, &source, false);
+        std::ifstream previous(output, std::ios::binary);
+        const std::string bytes((std::istreambuf_iterator<char>(previous)), {});
+        valid = rejected && bytes == sentinel && valid;
+        previous.close();
+        std::filesystem::remove(output, ec);
+    }
+    return valid;
+}
+
 bool runDxfMPolygonHeader(bool binary, const std::filesystem::path& directory, bool keepOutput) {
     const std::string encoding = binary ? "binary" : "ascii";
     const auto input = directory / ("libdxfrw-mpolygon-header-" + encoding + "-input.dxf");
@@ -13515,7 +13628,13 @@ int main(int argc, char** argv) {
         DRW::AC1024, DRW::AC1027, DRW::AC1032};
     std::filesystem::path directory = std::filesystem::temp_directory_path();
     bool keepOutputs = false;
-    if (argc == 3 && (std::string(argv[1]) == "--generate-mpolygon-header"
+    if (argc == 3 && (std::string(argv[1]) == "--generate-mpolygon-metadata"
+                      || std::string(argv[1]) == "--generate-mpolygon-metadata-binary")) {
+        return writeMPolygonMetadataFile(argv[2],
+            std::string(argv[1]) == "--generate-mpolygon-metadata-binary") ? 0 : 1;
+    } else if (argc == 3 && std::string(argv[1]) == "--verify-mpolygon-metadata") {
+        return verifyMPolygonMetadataFile(argv[2]) ? 0 : 1;
+    } else if (argc == 3 && (std::string(argv[1]) == "--generate-mpolygon-header"
                       || std::string(argv[1]) == "--generate-mpolygon-header-binary")) {
         return writeMPolygonHeaderLiteral(argv[2],
             std::string(argv[1]) == "--generate-mpolygon-header-binary") ? 0 : 1;
@@ -13550,6 +13669,8 @@ int main(int argc, char** argv) {
                      " [--verify-acsh-prefix-sample DWG]"
                      " [--generate-mpolygon-header[-binary] DXF]"
                      " [--verify-mpolygon-header DXF]"
+                     " [--generate-mpolygon-metadata[-binary] DXF]"
+                     " [--verify-mpolygon-metadata DXF]"
                      " [--generate-hatch-tangents[-binary] DXF]"
                      " [--verify-hatch-tangents DXF]"
                      " [--verify-dynamicblock-typed-pair DWG DXF]\n";
@@ -14406,6 +14527,10 @@ int main(int argc, char** argv) {
     expect(runDxfHatchSplineWeights(true, directory, keepOutputs),
            "local DXF binary HATCH/MPOLYGON spline optional weights and bounded layouts",
            failures);
+    expect(runDxfMPolygonMetadata(false, directory, keepOutputs),
+           "local DXF ASCII MPOLYGON pixel/seed metadata and boundary compatibility", failures);
+    expect(runDxfMPolygonMetadata(true, directory, keepOutputs),
+           "local DXF binary MPOLYGON pixel/seed metadata and boundary compatibility", failures);
     expect(runDxfMPolygonHeader(false, directory, keepOutputs),
            "local DXF ASCII MPOLYGON version/fill and OCS/bulge fields", failures);
     expect(runDxfMPolygonHeader(true, directory, keepOutputs),

@@ -100,6 +100,12 @@ read group 71 as HATCH associativity. Bounded unknown source versions remain
 available to a consumer, but structured DXF export rejects versions other
 than 1 without replacing an existing destination. Native polyline/bulge field
 and fill-state controls are not a rendering or general MPOLYGON qualification.
+Pixel size and ordered 2D OCS seed points are retained alongside annotation,
+offset and degenerate-loop count. Existing shared boundary edge paths and
+source-boundary arrays remain representable; comparator export limitations
+do not narrow this API contract. Field retention does not qualify live
+boundary association, native rendering, all target versions or unknown fields.
+Existing color, pattern and gradient qualification remains separate.
 
 The `lc3_compat_check` compile target verifies that the older LibreCAD-style
 2D callback implementation remains concrete and can still read the public

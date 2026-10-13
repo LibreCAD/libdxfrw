@@ -5002,12 +5002,19 @@ bool dxfRW::writeMPolygon(DRW_MPolygon *ent){
             for (double d : pl.dashList)
                 writer->writeDouble(49, d);
         }
+        if (ent->pixelSize != 0.0)
+            writer->writeDouble(47, ent->pixelSize);
         if (ent->fillColorAci != 0)
             writer->writeInt16(63, ent->fillColorAci);
         if (ent->fillColorRgb >= 0)
             writer->writeInt32(421, ent->fillColorRgb);
         if (!ent->fillColorName.empty())
             writer->writeUtf8String(430, ent->fillColorName);
+        writer->writeInt32(98, static_cast<int>(ent->seedPoints.size()));
+        for (const DRW_Coord& point : ent->seedPoints) {
+            writer->writeDouble(10, point.x);
+            writer->writeDouble(20, point.y);
+        }
         writer->writeDouble(11, ent->xDirX);
         writer->writeDouble(21, ent->xDirY);
         writer->writeInt32(99, ent->degenerateLoops);

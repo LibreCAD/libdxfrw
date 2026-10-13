@@ -277,6 +277,23 @@ foreach(_mpolygon_encoding IN ITEMS ascii binary)
         LABELS "cli;fast;dxf;adapter;mpolygon"
         TIMEOUT 30
     )
+    string(REPLACE "header" "metadata" _mpolygon_metadata_mode "${_mpolygon_generate_mode}")
+    add_test(
+        NAME dwg2dxf_mpolygon_metadata_${_mpolygon_encoding}_cli
+        COMMAND ${CMAKE_COMMAND}
+            "-DADAPTER_TEST=$<TARGET_FILE:libdxfrw_dwg_local_roundtrip>"
+            "-DDWG2DXF=$<TARGET_FILE:dwg2dxf>"
+            "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}"
+            "-DCASE_NAME=mpolygon-metadata-${_mpolygon_encoding}"
+            "-DGENERATE_MODE=${_mpolygon_metadata_mode}"
+            "-DVERIFY_MODE=--verify-mpolygon-metadata"
+            "-DCONVERSION_OPTIONS=${_mpolygon_conversion_options}"
+            -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg2dxf_image_path_test.cmake
+    )
+    set_tests_properties(dwg2dxf_mpolygon_metadata_${_mpolygon_encoding}_cli PROPERTIES
+        LABELS "cli;fast;dxf;adapter;mpolygon"
+        TIMEOUT 30
+    )
 endforeach()
 
 # Match FreeCAD's Draft/importDWG.py subprocess contract without requiring a
