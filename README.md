@@ -112,13 +112,18 @@ same `libdxfrw::libdxfrw` target.
 
 | Capability | Status | Qualification boundary |
 | --- | --- | --- |
-| ASCII/binary DXF baseline read and write | supported | Public API and fast regression lane |
+| ASCII/binary DXF baseline read and write | implemented; experimental | Public API and fast regression lane; not broad independent format qualification |
 | DXF raw sections, opaque objects, ACIS/SAB and proxy carriers | experimental | Local preservation vectors pass; independent semantic oracle still required |
 | DWG read across the dispatched AC versions | experimental | Reader and section safety matrices pass; eligible semantic fixtures remain required |
 | DWG writing and versioned feature families | experimental | Local six-version round-trips pass; self-read is not an independent oracle |
 | Existing 2D consumer compatibility | checked narrowly | `lc3_compat_check` verifies the LibreCAD-style source callback surface, and one generated DXF vector guards legacy `ext=true` LWPOLYLINE behavior; not a binary-ABI or UI guarantee |
 | 3D consumer typed-data access | experimental DXF subset; exact opaque SAB carriers in four AC1024 and one AC1027 DWG samples | AC1027 ASCII/binary callback probe covers listed DXF fields/families; local DWG samples establish only exact SAB byte extraction/association for 129 AC1024 inline solids and one AC1027 handle-linked solid. No general DWG modeler semantics, renderer, or geometry kernel is included |
 | Derived rendering or CAD application policy | unsupported | Owned by the consumer, not this library |
+
+Status is scoped by version and feature family. The current qualification
+ledger has no advertised format routes; parser acceptance and self-round-trip
+tests alone do not promote support. See [support and release notes](docs/UPGRADE_SUPPORT.md)
+for the evidence policy.
 
 The 3D consumer lane exposes typed XYZ, OCS/elevation, topology, placement, and
 selected surface-reference data through the opt-in `ext=false` path, without
