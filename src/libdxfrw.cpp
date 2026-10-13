@@ -3589,6 +3589,8 @@ bool dxfRW::writeDimstyle(DRW_Dimstyle *ent){
             case DRW_Variant::INTEGER:
                 if (dxfDimstyleVariableIsBoolean(v->code()))
                     writer->writeBool(v->code(), v->i_val() != 0);
+                else if (v->code() == 90)
+                    writer->writeInt32(v->code(), v->i_val());
                 else
                     writer->writeInt16(v->code(), v->i_val());
                 break;

@@ -6234,6 +6234,62 @@ void testDecompressor(TestContext& t) {
              "R2004 decompressor rejects null input");
 }
 
+void testDynamicDimstyleNumericWireKinds(TestContext& t) {
+    for (const int value : {std::numeric_limits<int>::min(), -32769, 0, 1,
+                            65536, 70001, std::numeric_limits<int>::max()}) {
+        expectTypedNumericWire(t, [value](dxfRW& writer) {
+            DRW_Dimstyle style;
+            style.name = "DYNAMIC_WIRE";
+            style.add("WIRE90", 90, value);
+            style.add("FOLLOWING_I16", 371, 25);
+            style.add("FOLLOWING_BOOL", 295, 1);
+            return writer.writeDimstyle(&style);
+        }, {"90:" + std::to_string(value), "371:25", "295:1"},
+           "dynamic DIMSTYLE I32 preserves values and following fields");
+    }
+    for (const int value : {-32768, 32767}) {
+        expectTypedNumericWire(t, [value](dxfRW& writer) {
+            DRW_Dimstyle style;
+            style.name = "DYNAMIC_I16";
+            style.add("WIRE371", 371, value);
+            return writer.writeDimstyle(&style);
+        }, {"371:" + std::to_string(value)},
+           "dynamic DIMSTYLE I16 retains the signed range");
+    }
+    for (const int value : {-32769, 65536}) {
+        expectTypedNumericRangeRejected(t, [value](dxfRW& writer) {
+            DRW_Dimstyle style;
+            style.add("WIRE371", 371, value);
+            return writer.writeDimstyle(&style);
+        });
+    }
+    for (const bool binary : {false, true}) {
+        std::ostringstream output;
+        dxfRW owner("");
+        owner.version = DRW::AC1015; // Keep the existing R2007 group-90 gate.
+        owner.binFile = binary;
+        if (binary)
+            owner.writer = std::make_unique<dxfWriterBinary>(&output);
+        else
+            owner.writer = std::make_unique<dxfWriterAscii>(&output);
+        DRW_Dimstyle style;
+        style.add("WIRE90", 90, 70001);
+        t.expect(owner.writeDimstyle(&style)
+                     && owner.writer->writeString(0, "WIRE_END"),
+                 "pre-R2007 DIMSTYLE keeps existing inactive-variable policy");
+        bool ended = false;
+        const auto tags = numericWireProjection(output.str(), binary, ended);
+        t.expect(ended && std::none_of(tags.begin(), tags.end(),
+                     [](const auto& tag) { return tag.rfind("90:", 0) == 0; }),
+                 "pre-R2007 dynamic DIMSTYLE does not emit group 90");
+    }
+    expectTypedNumericRangeRejected(t, [](dxfRW& writer) {
+        DRW_Dimstyle style;
+        style.add("WIRE90", 90, std::string("70001"));
+        return writer.writeDimstyle(&style);
+    });
+}
+
 void testHandlesAndHeader(TestContext& t) {
     HandleAllocator allocator;
     allocator.seedReserved();
@@ -6467,6 +6523,7 @@ int main() {
     testDecompressor(context);
     testHandlesAndHeader(context);
     testHeaderMaintenanceWidths(context);
+    testDynamicDimstyleNumericWireKinds(context);
     if (context.failures != 0) {
         std::cerr << context.failures << " Wave 1 assertion(s) failed\n";
         return 1;
