@@ -1,0 +1,27 @@
+{
+  "schema": 2,
+  "name": "libdxfrw semantic oracle normalization",
+  "volatileEnvelopePaths": ["/timestamp", "/date", "/generatedAt", "/toolInvocation"],
+  "requiredFields": ["format", "version", "toolVersion", "exitStatus", "diagnostics", "entities", "objects", "relationships", "opaquePayloadHashes"],
+  "optionalFields": ["schema", "callbacks", "header", "semanticCounts", "exactReplayBytes", "projectionScope", "provenance"],
+  "unknownEnvelopeFields": "reject; declare a new projection before comparing it",
+  "nestedFields": "preserve and compare every semantic field and its JSON type",
+  "ordering": {
+    "entities": "preserve-input-order",
+    "objects": "preserve-input-order",
+    "relationships": "sort-by-from-kind-to-and-full-JSON; preserve duplicates",
+    "diagnostics": "preserve-severity-and-order",
+    "callbacks": "preserve-input-order"
+  },
+  "numbers": {
+    "equality": "exact value and JSON numeric type; Boolean is not integer",
+    "signedZero": "equal",
+    "nonfinite": "reject; never replace with application strings",
+    "tolerance": "none; derived geometry needs its own field-specific policy"
+  },
+  "provenance": "record each toolVersion/provenance independently, not as semantic equality",
+  "strictJSON": "reject duplicate keys, NaN, Infinity, exponent overflow and non-JSON values",
+  "legacy": "schema1 available only by explicit --comparison-schema 1; prior receipts unchanged",
+  "promotesSupport": false,
+  "rule": "Normalized hashes cannot replace scope, coverage, diagnostics or independent evidence. Any rule change increments schema."
+}

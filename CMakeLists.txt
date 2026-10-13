@@ -490,7 +490,7 @@ if(LIBDXFRW_BUILD_TESTS)
         COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE}
             ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_parity_differential.py
             --manifest
-            ${CMAKE_CURRENT_SOURCE_DIR}/metadata/parity-differential-runners-v1.json)
+            ${CMAKE_CURRENT_SOURCE_DIR}/metadata/parity-differential-runners-v2.json)
     add_test(NAME libdxfrw_json_target_package_differential
         COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE}
             ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_json_target_package_differential.py

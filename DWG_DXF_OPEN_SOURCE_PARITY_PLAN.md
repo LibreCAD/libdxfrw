@@ -1,6 +1,6 @@
 # DWG/DXF open-source implementation comparison and fix plan
 
-**Status:** Implementation objective active; 62 findings tracked, with research, isolated implementation, integration and qualification states kept separate. This refresh is research/planning only; it does not integrate pending code or promote support.
+**Status:** Implementation active; 62 findings tracked, with research, isolated implementation, integration and qualification states kept separate. Focused implementation does not promote support or close external qualification.
 
 **Original baseline:** `547b808` (`codex/pr100-clean`)
 
@@ -53,6 +53,7 @@
 | Composed-workflow / packaging research | PLAN_UPDATED / NONPROMOTING | Current-main review adds PAR-57–62: comparator false matches, unbounded recursive graph walking, IMAGEDEF identity/metadata loss, polygon-mesh subclass discrepancy, relocated pkg-config paths and Conan include metadata. Refreshed consumer source refs preserve the prior relevant blobs. Research corrects the overly broad isolated MPOLYGON rejection policy; six external-only J items remain deferred. No main production code, fixture payload, support status or remote state changed. |
 | 7Y.1 numeric locale | ISOLATED_COMMIT / INTEGRATION_PENDING | `3e0665c64da757849c54d0f1ed3e7cc176360565`, base `7b9c503`, is preserved separately. Worker focused 6/6 and four ordinary ezdxf encoding projections pass; C++17/-Werror source mirror builds. Four new CTests are not registered in main yet. Review POSIX/Windows explicit-locale portability, integrate sequentially, then refreeze the actual clean inventory. 16-digit output and typed/raw underflow policy remain 7Y.2; not current-main/platform qualification. |
 | 7Z MPOLYGON | ISOLATED_COMMIT / POLICY_REWORK | Header mapping `c200065bcbbdadd6f9df5c1154c509d20d728f4a` is separately reviewable. `5d87e36feff197462a026d2dd0679fea9973d3c5` combines useful pixel/seed retention with blanket edge/source-link rejection that is not justified by a peer export limitation. Split that commit, retain existing valid edge behavior, and apply the corrected 7Z acceptance policy below before integration. Worker passes bind only to the isolated checkout. |
+| 7AH.1–4 semantic comparison | COMMITTED / THIN_PENDING | `Plan-Slice: 7AH.1-4`: four false-match controls reproduced first; default schema2 now preserves nested application keys, compares JSON types/presence exactly, rejects undeclared envelope scopes/nonfinite/duplicate JSON keys and records each oracle's provenance separately. New v2 manifests/contracts route current CTest calls; v1 files/receipt records are unchanged and historical replay requires explicit schema1. One representative historical report is byte/value-compatible; default rejects the v1 manifest. Tool self-tests plus main differential/manifest CTests pass 2/2. Thin-lane generator/process/16-route integration remains7AH.5/Slice4; no support promotion. Next ready7P.4/7AJ/7Y.1. |
 | PAR-25 / PAR-27 / PAR-33 research controls | REPRODUCED | Locally authored ASCII inputs and rebuilt CLI: valid wide self handle rejected with exit 1/no output; `$ACADMAINTVER=70001` becomes 0 with exit 0; output STYLE/VPORT owners differ from their table handles. ezdxf 1.4.4 ordinary reads confirm the scoped observations. |
 
 Each implementation commit appends its focused validation result and remaining
@@ -404,7 +405,7 @@ dimensions/units, exact ACDS linkage and the existing independent semantic /
 Linux/Windows native gates remain the work—not finding another README claim.
 J256/J260/J268/J284/J293/J295 remain `DEFERRED_EXTERNAL`.
 
-**Research-only validation:** current normalizer, differential-runner and
+**Validation at the research boundary:** the then-current normalizer, differential-runner and
 staged-package self-tests pass; the four additional false-match probes still
 reproduce and the package defect remains unfixed. Support-claim validation
 passes15 claims/two candidates/zero advertised routes, with no promotion.
@@ -711,8 +712,9 @@ and next unblocked step; do not mark a parent complete from one partial fix.
 The progress ledger supersedes historical queues: 7X.3/4/5, 7G.0/1,
 7AB/7AF, 7P.2 and 7AD are committed, in addition to the earlier fixes.
 Research-only work preserves isolated commits/WIP; it does not cherry-pick them.
-At the next implementation continuation, first repair the dependency-free
-7AH comparator contract, then review/integrate 7P.4, 7Y.1 and 7Z.1 as separate
+The implementation continuation has repaired the dependency-free 7AH.1–4
+comparator contract; retain its new strict/default-v2 and historical-v1 gates.
+Next review/integrate 7P.4, 7Y.1 and 7Z.1 as separate
 slices. Split the unreviewed 7Z.2 rejection policy from pixel/seed retention.
 Recheck the thin Slice4 lane with corrected generators and 7AH semantics;
 then complete 7G.2/3 resource/root closure, 7P.5 source identities and 7AI
@@ -760,7 +762,7 @@ integrated sequentially, not edited concurrently in the primary checkout.
 | 7AE — symbol/string case policy | REPRODUCED_HELPER / POLICY_SCOPED | independent of numeric locale; preserve bytes first, producer-scoped Unicode equivalence | isolated CTYPE process, typed names/refs and R12 font controls |
 | 7AF — zero-fit HATCH tangent state | COMMITTED | separate spline-fit and loop-boundary counts; whole-zero absence policy unchanged | literal/API ASCII/binary, zero/one fit and successive edges |
 | 7AG.1/2 — current consumer contracts | SOURCE_CONFIRMED / SUB-SLICES | exact LC3 pin/source mirror first; typed/raw retention identity contract separately | source compile + callback transcript, then consumer edit/save graph |
-| 7AH — semantic comparator contract | REPRODUCED / READY | dependency-free; versioned schema migration before broader Slice4 | normalizer/differential self-tests and field-deletion controls |
+| 7AH — semantic comparator contract | COMMITTED / THIN_PENDING | 7AH.1–4 default-v2 migration complete; thin runner16-route/process integration remains7AH.5 | normalizer/differential mutation self-tests; two main CTests |
 | 7AI — bounded graph walk | SOURCE_CONFIRMED / DESIGN_READY | reuse 7G handle roles/roots; no DWG byte-layout changes | adapter limit-boundary / cycle tests, unchanged destination |
 | 7AJ — polygon-mesh subclass | SOURCE_CONFIRMED / REPRODUCED_ISOLATED | small DXF-only marker fix; keep vertex/grid policy unchanged | local-roundtrip raw markers + one independent mesh projection |
 | 7AK.1/2 — installed package interfaces | REPRODUCED / TOOL_PARTIAL | pkg-config runtime available; Conan execution remains named optional gate | staged-package plain flags/consumer; actual Conan test_package separately |
