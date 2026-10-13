@@ -19,6 +19,7 @@ import sys
 import tempfile
 from pathlib import Path
 
+from bounded_process import run_bounded
 from normalize_drawing_result import (COMPARISON_SCHEMA, NormalizationError,
                                       loads_json, normalize, typed_equal)
 
@@ -234,7 +235,8 @@ def validate_manifest(manifest: object, *, comparison_schema=SCHEMA) -> list[dic
     return runners
 
 
-def run_runner(runner: dict, input_value: object, *, comparison_schema=SCHEMA) -> dict:
+def run_runner(runner: dict, input_value: object, *, comparison_schema=SCHEMA,
+               timeout=15.0, output_limit=4 * 1024 * 1024) -> dict:
     if runner["inputMode"] != "local-from-scratch-json":
         raise DifferentialError("external-path runners require an explicit runtime invocation")
     with tempfile.TemporaryDirectory(prefix="libdxfrw-parity-") as directory:
@@ -244,13 +246,15 @@ def run_runner(runner: dict, input_value: object, *, comparison_schema=SCHEMA) -
         environment = os.environ.copy()
         environment["LIBDXFRW_PARITY_OPTIONS"] = json.dumps(runner["options"], separators=(",", ":"))
         try:
-            completed = subprocess.run(command, check=True, capture_output=True, text=True, env=environment)
-        except (OSError, subprocess.CalledProcessError) as exc:
+            completed = run_bounded(command, timeout, output_limit, env=environment)
+            completed.check_returncode()
+        except (OSError, ValueError, subprocess.SubprocessError) as exc:
             raise DifferentialError("runner %s failed: %s" % (runner["id"], exc)) from exc
         try:
-            value = (loads_json(completed.stdout) if comparison_schema == 2
-                     else json.loads(completed.stdout))
-        except (json.JSONDecodeError, NormalizationError) as exc:
+            source = completed.stdout.decode("utf-8", "strict")
+            value = (loads_json(source) if comparison_schema == 2
+                     else json.loads(source))
+        except (UnicodeError, json.JSONDecodeError, NormalizationError) as exc:
             raise DifferentialError("runner %s did not emit JSON" % runner["id"]) from exc
         return validate_result(value, runner["id"], comparison_schema=comparison_schema)
 
@@ -375,6 +379,18 @@ def self_test() -> None:
             pass
         else:
             raise AssertionError("malformed subprocess JSON escaped strict schema-v2 loading")
+    for source, timeout, limit in (
+            ("import sys; sys.exit(7)", 2, 65536),
+            ("import time; time.sleep(10)", .1, 65536),
+            ("import os; os.write(1,b'x'*4096)", 2, 128),
+            ("import os; os.write(1,bytes([255]))", 2, 65536)):
+        broken = {**runners[0], "command": [python, "-c", source, "{input}"]}
+        try:
+            run_runner(broken, base, timeout=timeout, output_limit=limit)
+        except DifferentialError:
+            pass
+        else:
+            raise AssertionError("invalid/over-budget subprocess escaped runner admission")
     print("run_parity_differential self-test: PASS")
 
 

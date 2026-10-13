@@ -156,6 +156,11 @@ if(LIBDXFRW_BUILD_TESTS)
     if(NOT "${LIBDXFRW_PYTHON_VERSION_OK}" STREQUAL "0")
         message(FATAL_ERROR "LIBDXFRW_BUILD_TESTS requires Python 3.10 or newer")
     endif()
+    add_test(NAME libdxfrw_bounded_process
+        COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+            ${CMAKE_CURRENT_SOURCE_DIR}/tests/bounded_process_tests.py)
+    set_tests_properties(libdxfrw_bounded_process PROPERTIES
+        LABELS "fast;tools;process" TIMEOUT 15)
     set(LIBDXFRW_QUALIFIED_DIFFERENTIAL_MANIFEST
         ${CMAKE_CURRENT_SOURCE_DIR}/metadata/qualified-differential-v2.json)
     set(LIBDXFRW_QUALIFIED_SEMANTIC_FIELDS_CONTRACT
