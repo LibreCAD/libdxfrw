@@ -13,8 +13,8 @@
 | Item | State | Evidence / next action |
 | --- | --- | --- |
 | Slice 0 baseline | RECORDED | Base `547b808d1557c2a8a8d47ffb87ced6cadc957723`; clean-checkout claim/digest checks passed during research. CMake 4.4.4, Apple clang 21.0.0, current C++17 build policy. User-owned untracked samples remain outside commits/qualification. |
-| Slice 4 thin independent DXF lane | IN_PROGRESS | Locate or provision a pinned isolated ezdxf runtime; generate inputs locally from scratch. |
-| 7A handle roles | IN_PROGRESS | Reproduce raw/application/XRECORD arbitrary-handle remapping; implement shared role policy. |
+| Slice 4 thin independent DXF lane | IN_PROGRESS | Isolated ezdxf 1.4.4/Python 3.12 runtime provisioned; workers are comparing runtime-generated outputs before audit/recovery. Commit a reusable focused runner next. |
+| 7A handle roles | COMMITTED | Shared lexical/self/arbitrary/pointer/owner policy; 320–329 bypass remapping and closure checks, including wide arbitrary values. Six red ASCII/binary matrix assertions reproduced first. Raw, application, typed XRECORD, section, XDATA-reference and converter closure controls pass: Wave 1 + DXF fixtures, 2/2 in 0.71s. Commit message: `fix: preserve arbitrary DXF handles during remapping`. |
 | 7B/7C XRECORD grammar/replay | IN_PROGRESS | Isolated worker; versioned grammar, ordered payload, raw provenance. |
 | 7D/7E MTEXT height/columns | IN_PROGRESS | Isolated worker; source-presence handoff then scoped grammar. |
 | 7H/7I geometry/spline | IN_PROGRESS | Isolated worker; omitted weights and real extrusion-mode coverage first. |
@@ -22,6 +22,13 @@
 Each implementation commit appends its focused validation result and remaining
 evidence impact here. All other slices remain queued; the full objective stays
 active until the plan's requirements and qualification dispositions are audited.
+
+7A also corrected the existing XDATA graph fixture to include APPID/1001 and
+split an inconsistent ACDSDATA test into unknown opaque-data replay versus
+transactional rejection of orphaned ASM_Data. The schema-specific modeler
+association rule is preserved. Structured XDATA validation (7K) remains queued.
+Implementation changes invalidate affected frozen evidence until refreshed;
+no route or semantic-support claim is promoted by these focused results.
 
 This plan records a comparative review of the current standalone libdxfrw
 implementation against open-source DWG and DXF implementations, then turns

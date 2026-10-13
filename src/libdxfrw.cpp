@@ -2877,7 +2877,7 @@ bool dxfRW::writeAppData(const std::list<std::list<DRW_Variant>>& appData) {
                     return false;
                 }
                 std::string value = *data.content.s;
-                if (isDxfHandleReferenceCode(data.code())) {
+                if (isDxfTranslatedHandleCode(data.code())) {
                     std::uint64_t parsed = 0;
                     const char* begin = value.data();
                     const char* end = begin + value.size();
@@ -14239,10 +14239,7 @@ RawValType classifyDxfCode(int code,
 }
 
 bool isDxfHandleReferenceCode(int code) {
-    return code == 5 || code == 105 || code == 1005 ||
-           (code >= 320 && code <= 369) ||
-           (code >= 390 && code <= 399) ||
-           (code >= 480 && code <= 481);
+    return isDxfHandleCode(code);
 }
 
 bool parseRawDxfHandleLexeme(const std::string& text, std::uint64_t& value) {
@@ -15497,7 +15494,7 @@ bool dxfRW::writeRawDxfGroups(
         // the replacement so this object (and every reference to a remapped
         // object) stays internally consistent.
         if (v.type() == DRW_Variant::STRING
-            && isDxfHandleReferenceCode(v.code())) {
+            && isDxfTranslatedHandleCode(v.code())) {
             std::string s = v.c_str();
             std::uint32_t parsed = 0;
             const char* begin = s.data();
@@ -16307,14 +16304,19 @@ bool dxfRW::writeXRecord(DRW_XRecord *ent) {
         writer->writeInt16(280, ent->m_cloning);
 
     const auto isHandleCode = [](int code) {
-        return (code >= 320 && code <= 369) || (code >= 390 && code <= 399)
-            || (code >= 480 && code <= 481) || code == 5 || code == 105
-            || (code >= 1005 && code <= 1009);
+        return isDxfHandleCode(code);
     };
     const auto isBinaryCode = [](int code) {
         return (code >= 310 && code <= 319) || code == 1004;
     };
     const auto emitHandle = [this](int code, std::uint64_t value) {
+        if (dxfHandleRoleForCode(code) == DxfHandleRole::Arbitrary) {
+            std::ostringstream encoded;
+            encoded << std::uppercase << std::hex << value;
+            return writer->writeString(code, encoded.str());
+        }
+        if (!isDxfTranslatedHandleCode(code))
+            return false;
         if (value > std::numeric_limits<std::uint32_t>::max())
             return false;
         return writer->writeString(
@@ -16332,7 +16334,8 @@ bool dxfRW::writeXRecord(DRW_XRecord *ent) {
                 return emitHandle(code,
                                   static_cast<std::uint32_t>(value.i_val()));
             case DRW_Variant::INTEGER64:
-                if (value.i64_val() < 0)
+                if (value.i64_val() < 0
+                    && dxfHandleRoleForCode(code) != DxfHandleRole::Arbitrary)
                     return false;
                 return emitHandle(code,
                                   static_cast<std::uint64_t>(value.i64_val()));

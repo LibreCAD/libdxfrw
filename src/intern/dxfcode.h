@@ -10,6 +10,45 @@
 // readers fail closed instead of guessing a floating-point representation.
 enum class DxfValueKind { Str, Dbl, I16, I32, I64, Bln, Bin, Unknown };
 
+// Handle spelling does not determine reference semantics. In particular,
+// 320-329 are application values taken as-is during INSERT/XREF/WBLOCK;
+// they must never follow a source-object or structural-collision remap.
+enum class DxfHandleRole {
+    None,
+    Self,
+    Arbitrary,
+    SoftPointer,
+    HardPointer,
+    SoftOwner,
+    HardOwner
+};
+
+inline constexpr DxfHandleRole dxfHandleRoleForCode(int code) {
+    if (code == 5 || code == 105)
+        return DxfHandleRole::Self;
+    if (code >= 320 && code <= 329)
+        return DxfHandleRole::Arbitrary;
+    if ((code >= 330 && code <= 339) || code == 1005)
+        return DxfHandleRole::SoftPointer;
+    if ((code >= 340 && code <= 349) || (code >= 390 && code <= 399)
+        || (code >= 480 && code <= 481))
+        return DxfHandleRole::HardPointer;
+    if (code >= 350 && code <= 359)
+        return DxfHandleRole::SoftOwner;
+    if (code >= 360 && code <= 369)
+        return DxfHandleRole::HardOwner;
+    return DxfHandleRole::None;
+}
+
+inline constexpr bool isDxfHandleCode(int code) {
+    return dxfHandleRoleForCode(code) != DxfHandleRole::None;
+}
+
+inline constexpr bool isDxfTranslatedHandleCode(int code) {
+    const DxfHandleRole role = dxfHandleRoleForCode(code);
+    return role != DxfHandleRole::None && role != DxfHandleRole::Arbitrary;
+}
+
 // The pinned LibreCAD tree predates the standalone safety correction for two
 // disputed ranges.  Keep that legacy interpretation available to an explicit
 // compatibility probe without changing the standalone-safe default used by

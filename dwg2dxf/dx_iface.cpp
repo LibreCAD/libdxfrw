@@ -26,6 +26,7 @@
 #include "libdwgr.h"
 #include "libdxfrw.h"
 #include "intern/dxfparserlimits.h"
+#include "intern/dxfcode.h"
 
 namespace {
 
@@ -1591,11 +1592,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data) {
             if (!hasParent(record->parentHandle))
                 return false;
             const auto isHandleCode = [](int code) {
-                return (code >= 320 && code <= 369)
-                    || (code >= 390 && code <= 399)
-                    || (code >= 480 && code <= 481)
-                    || code == 5 || code == 105
-                    || (code >= 1005 && code <= 1009);
+                return isDxfTranslatedHandleCode(code);
             };
             const auto validateHandleTarget =
                 [&isHandleCode, &linetypeHandles, &visitedDictionaries,

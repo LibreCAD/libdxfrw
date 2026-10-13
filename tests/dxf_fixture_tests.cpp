@@ -862,6 +862,9 @@ EOF
 
 void testLinetypeExtensionGraphRoundTrip(TestContext& t) {
     dx_data source;
+    DRW_AppId application;
+    application.name = "LOCAL_HANDLE_APP";
+    source.appIds.push_back(application);
     const std::array<std::string, 3> names = {
         "ByBlock", "ByLayer", "Continuous"};
     const std::array<std::uint32_t, 3> lineHandles = {
@@ -887,6 +890,9 @@ void testLinetypeExtensionGraphRoundTrip(TestContext& t) {
         entry.m_handle = recordHandles[i];
         dictionary.m_entries.push_back(entry);
         if (i == 0) {
+            t.expect(dictionary.addExtData(std::make_unique<DRW_Variant>(
+                         1001, std::string("LOCAL_HANDLE_APP"))),
+                     "extension dictionary begins registered XDATA application");
             auto xdataReference = std::make_unique<DRW_Variant>(
                 1005, std::string("15"));
             t.expect(dictionary.addExtData(std::move(xdataReference)),
@@ -901,6 +907,8 @@ void testLinetypeExtensionGraphRoundTrip(TestContext& t) {
         record.m_dataEntries.emplace_back(102, std::string("EXTNAMES"));
         record.m_dataEntries.emplace_back(1, names[i]);
         record.m_dataEntries.emplace_back(2, names[i]);
+        record.m_dataEntries.emplace_back(320, std::string("DEAD"));
+        record.m_dataEntries.emplace_back(329, std::string("14"));
         source.xRecords.push_back(record);
     }
 
@@ -976,7 +984,7 @@ void testLinetypeExtensionGraphRoundTrip(TestContext& t) {
                      && record->reactorHandles.size() == 1
                      && record->reactorHandles.front() == dictionary->handle,
                  "XRECORD owner and reactor references survive");
-        t.expect(record->m_dataEntries.size() == 3
+        t.expect(record->m_dataEntries.size() == 5
                      && record->m_dataEntries[0].code() == 102
                      && record->m_dataEntries[0].c_str() != nullptr
                      && std::string(record->m_dataEntries[0].c_str()) == "EXTNAMES"
@@ -985,13 +993,22 @@ void testLinetypeExtensionGraphRoundTrip(TestContext& t) {
                      && record->m_dataEntries[2].c_str() != nullptr
                      && std::string(record->m_dataEntries[2].c_str()) == names[i],
                  "ordered XRECORD extension names survive R14 readback");
+        if (record->m_dataEntries.size() == 5) {
+            t.expect(record->m_dataEntries[3].code() == 320
+                         && record->m_dataEntries[3].i64_val() == 0xDEAD
+                         && record->m_dataEntries[4].code() == 329
+                         && record->m_dataEntries[4].i64_val() == 0x14,
+                     "arbitrary XRECORD handles need no closure target and ignore collisions");
+        }
         if (i == 0) {
             std::uint32_t xdataHandle = 0;
             bool xdataHandleMatchesRecord = false;
-            if (dictionary->extData.size() == 1
-                && dictionary->extData.front() != nullptr
-                && dictionary->extData.front()->c_str() != nullptr) {
-                const char* value = dictionary->extData.front()->c_str();
+            if (dictionary->extData.size() == 2
+                && dictionary->extData[0] != nullptr
+                && dictionary->extData[0]->code() == 1001
+                && dictionary->extData[1] != nullptr
+                && dictionary->extData[1]->c_str() != nullptr) {
+                const char* value = dictionary->extData[1]->c_str();
                 const char* end = value
                     + std::char_traits<char>::length(value);
                 const auto parsed = std::from_chars(value, end, xdataHandle, 16);

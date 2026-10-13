@@ -955,13 +955,13 @@ void testDxfRawSectionCaptureReplay(TestContext& t) {
 }
 
 void testDxfAcdsDataOpaqueSectionCaptureReplay(TestContext& t) {
-    // Deliberately orphaned, locally generated ACDSDATA-shaped tags exercise
-    // only the generic raw-section carrier. They are not a valid-schema or
-    // entity-association fixture and must not produce a typed 3DSOLID.
+    // Locally generated, unknown ACDSDATA-shaped tags exercise only the
+    // generic raw-section carrier. An ASM_Data record instead requires an
+    // emitted modeler owner; check that orphan separately below.
     const std::string content =
         "0\nSECTION\n2\nACDSDATA\n"
         "0\nACDSRECORD\n90\n1\n2\nAcDbDs::ID\n280\n10\n"
-        "320\nD2\n2\nASM_Data\n280\n15\n94\n4\n310\n41424344\n"
+        "320\nD2\n2\nOpaqueData\n280\n15\n94\n4\n310\n41424344\n"
         "0\nENDSEC\n0\nEOF\n";
     ProfileProbeInterface sourceInterface;
     dxfRW reader("");
@@ -977,7 +977,7 @@ void testDxfAcdsDataOpaqueSectionCaptureReplay(TestContext& t) {
     const std::vector<int> expectedCodes {
         0, 90, 2, 280, 320, 2, 280, 94, 310};
     const std::vector<std::string> expectedRaw {
-        "ACDSRECORD", "1", "AcDbDs::ID", "10", "D2", "ASM_Data",
+        "ACDSRECORD", "1", "AcDbDs::ID", "10", "D2", "OpaqueData",
         "15", "4", "41424344"};
     bool payloadMatches = captured.m_name == "ACDSDATA"
         && captured.m_hasRawValues
@@ -993,6 +993,17 @@ void testDxfAcdsDataOpaqueSectionCaptureReplay(TestContext& t) {
              "orphaned ACDS record creates no typed modeler entity");
     if (!payloadMatches)
         return;
+
+    DRW_RawDxfSection orphanedAsm = captured;
+    orphanedAsm.m_groups[5].addString(2, "ASM_Data");
+    orphanedAsm.m_rawValues[5] = "ASM_Data";
+    std::ostringstream rejected;
+    dxfRW rejectingWriter("");
+    rejectingWriter.version = DRW::AC1027;
+    rejectingWriter.writer = std::make_unique<dxfWriterAscii>(&rejected);
+    t.expect(!rejectingWriter.writeRawDxfSection(orphanedAsm)
+                 && rejected.str().empty(),
+             "orphaned ASM_Data rejects transactionally without weakening owner association");
 
     std::ostringstream output;
     dxfRW writer("");
@@ -2205,7 +2216,7 @@ void testDxfRawEntityApplicationGroupReferenceMatrix(TestContext& t) {
         {0, "LOCAL_REFERENCE_MATRIX_ENTITY"},
         {5, "3A"},
         {102, "{REFERENCE_MATRIX"},
-        {320, "4A"},
+        {320, "2A"},
         {330, "5A"},
         {350, "6A"},
         {390, "7A"},
@@ -5021,7 +5032,7 @@ void testDxfRawObjectApplicationGroupReferenceMatrix(TestContext& t) {
         {0x4Au, 0x6Au}, {0x5Au, 0x7Au}, {0x6Au, 0x8Au}};
     const std::vector<std::pair<int, std::string>> expected = {
         {0, object.name}, {5, "3A"}, {102, "{REFERENCE_MATRIX"},
-        {320, "4A"}, {330, "5A"}, {350, "6A"}, {390, "7A"},
+        {320, "2A"}, {330, "5A"}, {350, "6A"}, {390, "7A"},
         {399, "8A"}, {480, "3A"}, {481, "4A"}, {102, "}"}};
 
     std::ostringstream asciiOutput;
@@ -5434,7 +5445,7 @@ void testDxfRawSectionApplicationGroupReferenceMatrix(TestContext& t) {
         {0, "SECTION"},
         {2, "LOCAL_SECTION_REFERENCE_MATRIX"},
         {102, "{SECTION_REFERENCE_MATRIX"},
-        {320, "4A"},
+        {320, "2A"},
         {330, "5A"},
         {350, "6A"},
         {390, "7A"},
@@ -5490,6 +5501,103 @@ void testDxfRawSectionApplicationGroupReferenceMatrix(TestContext& t) {
     }
     t.expect(binaryShape,
              "DXF binary raw section reference-code matrix preserves framing");
+}
+
+void testDxfArbitraryHandlePayloads(TestContext& t) {
+    // Autodesk's 320-329 values are carried as-is, even if they happen to
+    // equal a remapped source handle. Pointer/owner codes still translate.
+    std::vector<DRW_Variant> payload;
+    std::vector<std::pair<int, std::string>> expected;
+    for (int code = 320; code <= 329; ++code) {
+        payload.emplace_back(code, std::string("14"));
+        expected.emplace_back(code, "14");
+    }
+    payload.emplace_back(320, std::string("DEAD"));
+    payload.emplace_back(329, std::string("FEDCBA9876543210"));
+    expected.emplace_back(320, "DEAD");
+    expected.emplace_back(329, "FEDCBA9876543210");
+    for (const int code : {330, 340, 350, 360, 390, 480}) {
+        payload.emplace_back(code, std::string("14"));
+        expected.emplace_back(code, "200");
+    }
+    const auto handles = [](const std::string& bytes, bool binary,
+                            bool xrecordBody) {
+        std::stringstream records(bytes);
+        std::unique_ptr<dxfReader> reader = binary
+            ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&records))
+            : std::unique_ptr<dxfReader>(new dxfReaderAscii(&records));
+        reader->setAllowWideHandleLexemes(true);
+        std::vector<std::pair<int, std::string>> result;
+        bool inBody = !xrecordBody;
+        int code = 0;
+        while (reader->readRec(&code)) {
+            if (xrecordBody && code == 100
+                && reader->getString() == "AcDbXrecord")
+                inBody = true;
+            if (inBody && ((code >= 320 && code <= 369)
+                           || code == 390 || code == 480 || code == 1005))
+                result.emplace_back(code, reader->getString());
+        }
+        return result;
+    };
+    for (const bool binary : {false, true}) {
+        for (int route = 0; route < 4; ++route) {
+            std::ostringstream output;
+            dxfRW writer("");
+            writer.version = DRW::AC1027;
+            writer.binFile = binary;
+            if (binary)
+                writer.writer = std::make_unique<dxfWriterBinary>(&output);
+            else
+                writer.writer = std::make_unique<dxfWriterAscii>(&output);
+            writer.setHandleRemap({{0x14u, 0x200u}});
+            bool written = false;
+            if (route == 0) {
+                DRW_RawDxfObject object;
+                object.name = "LOCAL_ARBITRARY_HANDLES";
+                object.m_version = DRW::AC1027;
+                object.groups.emplace_back(5, std::string("70"));
+                object.groups.insert(object.groups.end(), payload.begin(),
+                                     payload.end());
+                written = writer.writeRawDxfObject(&object);
+            } else if (route == 1) {
+                std::list<DRW_Variant> group;
+                group.emplace_back(102, std::string("{LOCAL_HANDLES"));
+                group.insert(group.end(), payload.begin(), payload.end());
+                group.emplace_back(102, std::string("}"));
+                written = writer.writeAppData({group});
+            } else if (route == 2) {
+                DRW_XRecord record;
+                record.handle = 0x70u;
+                record.m_dataEntries = payload;
+                written = writer.writeXRecord(&record);
+            } else {
+                DRW_RawDxfSection section;
+                section.m_name = "LOCAL_ARBITRARY_HANDLES";
+                section.m_version = DRW::AC1027;
+                section.m_groups = payload;
+                written = writer.writeRawDxfSection(section);
+            }
+            t.expect(written && handles(output.str(), binary, route == 2)
+                                    == expected,
+                     "arbitrary handles survive raw/app/XRECORD/section replay while references remap");
+        }
+        std::ostringstream output;
+        dxfRW writer("");
+        writer.version = DRW::AC1027;
+        writer.binFile = binary;
+        if (binary)
+            writer.writer = std::make_unique<dxfWriterBinary>(&output);
+        else
+            writer.writer = std::make_unique<dxfWriterAscii>(&output);
+        writer.setHandleRemap({{0x14u, 0x200u}});
+        DRW_Variant app(1001, std::string("LOCAL_HANDLES"));
+        DRW_Variant reference(1005, std::string("14"));
+        t.expect(writer.writeExtData({&app, &reference})
+                     && handles(output.str(), binary, false)
+                        == std::vector<std::pair<int, std::string>>{{1005, "200"}},
+                 "XDATA handle follows reference remapping within its application group");
+    }
 }
 
 void testRawCapture(TestContext& t) {
@@ -5783,6 +5891,7 @@ int main() {
     testDxfRawObjectWideHandleReplay(context);
     testDxfRawObjectMalformedHandle(context);
     testDxfRawSectionApplicationGroupReferenceMatrix(context);
+    testDxfArbitraryHandlePayloads(context);
     testRawCapture(context);
     testHatchValidationIgnoresInactiveGradient(context);
     testFixedSpaceBlockClassification(context);
