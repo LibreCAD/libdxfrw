@@ -3653,7 +3653,9 @@ bool dxfRW::writeView(DRW_View *ent){
     writer->writeInt16(71, ent->viewMode);
     if (version > DRW::AC1009) {
         writer->writeInt16(281, static_cast<int>(ent->renderMode));
-        writer->writeBool(72, ent->hasUCS);
+        // Boolean semantics do not change the 60-79 DXF wire width: these
+        // flags are 16-bit integers, including in binary DXF.
+        writer->writeInt16(72, ent->hasUCS ? 1 : 0);
         if (ent->hasUCS) {
             writer->writeDouble(110, ent->ucsOrigin.x);
             writer->writeDouble(120, ent->ucsOrigin.y);
@@ -3668,7 +3670,7 @@ bool dxfRW::writeView(DRW_View *ent){
             writer->writeDouble(146, ent->ucsElevation);
         }
         if (version > DRW::AC1018)
-            writer->writeBool(73, ent->cameraPlottable);
+            writer->writeInt16(73, ent->cameraPlottable ? 1 : 0);
     }
     if (version > DRW::AC1018) {
         writer->writeBool(292, ent->m_useDefaultLights);

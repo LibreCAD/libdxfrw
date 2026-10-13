@@ -1088,6 +1088,74 @@ bool writeRawBinaryBoundarySection(const DRW_RawDxfSection& source,
     return written;
 }
 
+void testViewFlagWireKinds(TestContext& t) {
+    for (const DRW::Version version : {DRW::AC1014, DRW::AC1015,
+                                       DRW::AC1021, DRW::AC1032}) {
+        for (const bool binary : {false, true}) {
+            for (const bool hasUcs : {false, true}) {
+                std::ostringstream output;
+                dxfRW owner("");
+                owner.version = version;
+                owner.binFile = binary;
+                if (binary)
+                    owner.writer = std::make_unique<dxfWriterBinary>(&output);
+                else
+                    owner.writer = std::make_unique<dxfWriterAscii>(&output);
+                DRW_View view;
+                view.name = "WIRE_VIEW";
+                view.hasUCS = hasUcs;
+                view.cameraPlottable = !hasUcs;
+                view.ucsOrigin = DRW_Coord(11.0, 12.0, 13.0);
+                view.m_brightness = 1.25;
+                t.expect(owner.writeView(&view)
+                             && owner.writer->writeString(0, "ENDTAB"),
+                         "VIEW flag sentinel writes without a full document");
+                std::istringstream input(output.str());
+                std::unique_ptr<dxfReader> reader;
+                if (binary)
+                    reader = std::make_unique<dxfReaderBinary>(&input);
+                else
+                    reader = std::make_unique<dxfReaderAscii>(&input);
+                int code = 0;
+                int ucsFlags = 0;
+                int cameraFlags = 0;
+                int origins = 0;
+                int brightness = 0;
+                bool ended = false;
+                while (reader->readRec(&code)) {
+                    if (code == 72) {
+                        ++ucsFlags;
+                        t.expect(reader->type == dxfReader::INT32
+                                     && reader->getInt32() == (hasUcs ? 1 : 0),
+                                 "VIEW 72 is a 16-bit integer flag on the wire");
+                    } else if (code == 73) {
+                        ++cameraFlags;
+                        t.expect(reader->type == dxfReader::INT32
+                                     && reader->getInt32() == (hasUcs ? 0 : 1),
+                                 "VIEW 73 is a 16-bit integer flag on the wire");
+                    } else if (code == 110) {
+                        ++origins;
+                        t.expect(reader->getDouble() == 11.0,
+                                 "VIEW flag width preserves following UCS data");
+                    } else if (code == 141) {
+                        ++brightness;
+                        t.expect(reader->getDouble() == 1.25,
+                                 "VIEW camera width preserves later light data");
+                    } else if (code == 0 && reader->getString() == "ENDTAB") {
+                        ended = true;
+                        break;
+                    }
+                }
+                const bool modern = version > DRW::AC1018;
+                t.expect(ucsFlags == 1 && cameraFlags == (modern ? 1 : 0)
+                             && origins == (hasUcs ? 1 : 0)
+                             && brightness == (modern ? 1 : 0) && ended,
+                         "VIEW flags preserve complete ASCII/binary framing");
+            }
+        }
+    }
+}
+
 void testDxfBinaryRawBoundaryReplay(TestContext& t) {
     const DRW_RawDxfObject object = rawBinaryBoundaryObject();
     std::string output;
@@ -5927,6 +5995,7 @@ int main() {
     testDxfRawSectionCaptureReplay(context);
     testDxfAcdsDataOpaqueSectionCaptureReplay(context);
     testDxfBinaryRawBoundaryReplay(context);
+    testViewFlagWireKinds(context);
     testDxfBinaryRawSectionCaptureReplay(context);
     testDxfBinaryRawObjectCaptureReplay(context);
     testDxfRawObjectHandleScope(context);
