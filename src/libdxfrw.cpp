@@ -4849,6 +4849,8 @@ bool dxfRW::writeHatch(DRW_Hatch *ent){
 bool dxfRW::writeMPolygon(DRW_MPolygon *ent){
     if (version <= DRW::AC1009)
         return rejectUnsupportedDxfWrite();
+    if (ent != nullptr && ent->dxfVersion != 1)
+        return rejectUnsupportedDxfWrite();
     if (version > DRW::AC1009) {
         if (!preflightEntity(ent) || !validateHatchPayload(ent)) {
             m_writeError = true;
@@ -4859,7 +4861,7 @@ bool dxfRW::writeMPolygon(DRW_MPolygon *ent){
         if (!writeEntity(ent))
             return false;
         writer->writeString(100, "AcDbMPolygon");
-        writer->writeInt16(70, ent->solid);
+        writer->writeInt16(70, ent->dxfVersion);
         writer->writeDouble(10, 0.0);
         writer->writeDouble(20, 0.0);
         writer->writeDouble(30, ent->basePoint.z);
@@ -4867,7 +4869,7 @@ bool dxfRW::writeMPolygon(DRW_MPolygon *ent){
         writer->writeDouble(220, ent->extPoint.y);
         writer->writeDouble(230, ent->extPoint.z);
         writer->writeUtf8String(2, ent->name);
-        writer->writeInt16(71, ent->associative);
+        writer->writeInt16(71, ent->solid);
         const int loopCount = static_cast<int>(ent->looplist.size());
         writer->writeInt32(91, loopCount);
         for (int i = 0; i < loopCount; ++i) {
@@ -12107,8 +12109,9 @@ bool dxfRW::processModelerGeometry() {
     return setError(DRW::BAD_READ_ENTITIES);
 }
 
-// MPOLYGON (AcDbMPolygon) DXF read.  Boundary loops, solid flag and pattern share
-// HATCH's group codes; DRW_MPolygon::parseCode delegates those to DRW_Hatch and
+// MPOLYGON (AcDbMPolygon) DXF read. Boundary loops and patterns share HATCH's
+// grammar, but groups 70/71 mean version/fill rather than fill/associativity.
+// DRW_MPolygon::parseCode delegates the shared groups to DRW_Hatch and
 // additionally captures the MPOLYGON-only fill-color / degenerate-count trailer.
 // Delivered via addMPolygon (defaults to addHatch, so it renders as a hatch).
 bool dxfRW::processMPolygon() {

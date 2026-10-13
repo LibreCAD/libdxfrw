@@ -252,6 +252,33 @@ foreach(_hatch_encoding IN ITEMS ascii binary)
     )
 endforeach()
 
+# Independently authored version/fill pairs with polyline/bulge boundaries.
+# Read back after both exact-argv CLI passes; no drawing payload is vendored.
+foreach(_mpolygon_encoding IN ITEMS ascii binary)
+    set(_mpolygon_generate_mode "--generate-mpolygon-header")
+    set(_mpolygon_conversion_options "")
+    if(_mpolygon_encoding STREQUAL "binary")
+        set(_mpolygon_generate_mode "--generate-mpolygon-header-binary")
+        set(_mpolygon_conversion_options "-b")
+    endif()
+    add_test(
+        NAME dwg2dxf_mpolygon_header_${_mpolygon_encoding}_cli
+        COMMAND ${CMAKE_COMMAND}
+            "-DADAPTER_TEST=$<TARGET_FILE:libdxfrw_dwg_local_roundtrip>"
+            "-DDWG2DXF=$<TARGET_FILE:dwg2dxf>"
+            "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}"
+            "-DCASE_NAME=mpolygon-header-${_mpolygon_encoding}"
+            "-DGENERATE_MODE=${_mpolygon_generate_mode}"
+            "-DVERIFY_MODE=--verify-mpolygon-header"
+            "-DCONVERSION_OPTIONS=${_mpolygon_conversion_options}"
+            -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg2dxf_image_path_test.cmake
+    )
+    set_tests_properties(dwg2dxf_mpolygon_header_${_mpolygon_encoding}_cli PROPERTIES
+        LABELS "cli;fast;dxf;adapter;mpolygon"
+        TIMEOUT 30
+    )
+endforeach()
+
 # Match FreeCAD's Draft/importDWG.py subprocess contract without requiring a
 # FreeCAD installation. The DWG fixture is already tracked in this repository.
 set(_freecad_cli_sample

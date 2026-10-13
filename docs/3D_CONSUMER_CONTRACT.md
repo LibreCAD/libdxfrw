@@ -94,6 +94,13 @@ absent/default value, so explicit all-zero tangent presence is not retained
 by the writer. This state fix does not qualify associative boundary remapping,
 MPOLYGON feature support, or a DWG spline layout.
 
+MPOLYGON keeps DXF group 70 in its distinct `dxfVersion` field (default 1)
+and maps group 71 to the existing inherited `solid` fill state. It does not
+read group 71 as HATCH associativity. Bounded unknown source versions remain
+available to a consumer, but structured DXF export rejects versions other
+than 1 without replacing an existing destination. Native polyline/bulge field
+and fill-state controls are not a rendering or general MPOLYGON qualification.
+
 The `lc3_compat_check` compile target verifies that the older LibreCAD-style
 2D callback implementation remains concrete and can still read the public
 fields it uses. New optional callbacks remain non-pure. This is a source-level

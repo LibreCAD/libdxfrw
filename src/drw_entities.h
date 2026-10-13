@@ -3035,8 +3035,34 @@ public:
     DRW_MPolygon() {
         eType = DRW::MPOLYGON;
     }
+    DRW_MPolygon(const DRW_MPolygon& rhs): DRW_Hatch(rhs),
+        dxfVersion(rhs.dxfVersion), fillColorAci(rhs.fillColorAci),
+        fillColorRgb(rhs.fillColorRgb), fillColorName(rhs.fillColorName),
+        annotatedBoundary(rhs.annotatedBoundary), xDirX(rhs.xDirX),
+        xDirY(rhs.xDirY), degenerateLoops(rhs.degenerateLoops) {}
+    DRW_MPolygon& operator=(const DRW_MPolygon& rhs) {
+        if (this != &rhs) {
+            DRW_Hatch::operator=(rhs);
+            dxfVersion = rhs.dxfVersion;
+            fillColorAci = rhs.fillColorAci;
+            fillColorRgb = rhs.fillColorRgb;
+            fillColorName = rhs.fillColorName;
+            annotatedBoundary = rhs.annotatedBoundary;
+            xDirX = rhs.xDirX; xDirY = rhs.xDirY;
+            degenerateLoops = rhs.degenerateLoops;
+            m_dxfOffsetVectorPending = false;
+        }
+        return *this;
+    }
+    DRW_MPolygon(DRW_MPolygon&&) noexcept = default;
+    DRW_MPolygon& operator=(DRW_MPolygon&&) noexcept = default;
 
     static constexpr std::uint16_t kDwgClassNum = 518; /*!< AcDbMPolygon DWG custom class id */
+
+    // Unlike HATCH, DXF 70 is a version and 71 is the inherited solid flag.
+    // Version 1 is the structured writer's supported profile. Unknown bounded
+    // source versions remain observable on read, but are not rewritten.
+    int dxfVersion {1};        /*!< MPOLYGON DXF version, code 70 (not a DWG field) */
 
     /* MPOLYGON-only fill color (DXF 63 ACI / 421 RGB / 430 name). Distinct from
        the entity color: the fill may differ from the boundary outline color. */
@@ -3049,6 +3075,13 @@ public:
     int degenerateLoops {0};   /*!< count of degenerate boundary paths, code 99 */
 
 protected:
+    void resetDwgState() {
+        DRW_Hatch::resetDwgState();
+        dxfVersion = 1;
+        fillColorAci = 0; fillColorRgb = -1; fillColorName.clear();
+        annotatedBoundary = 0; xDirX = xDirY = 0.0; degenerateLoops = 0;
+        m_dxfOffsetVectorPending = false;
+    }
     bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) override;
     bool validateDxf() const;
     virtual bool parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs=0) override;

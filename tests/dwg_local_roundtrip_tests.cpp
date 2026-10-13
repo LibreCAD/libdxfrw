@@ -26,6 +26,7 @@
 #include "intern/dwgbuffer.h"
 #include "intern/dwgbufferw.h"
 #include "intern/dwg_fixed_handles.h"
+#include "intern/dxfreader.h"
 #include "intern/dxfwriter.h"
 #include "intern/dxfreader.h"
 #include "xrecord_test_helpers.h"
@@ -10293,14 +10294,15 @@ bool runDxfHatchSplineWeights(bool binary,
     const auto validBoundary = [&](const DRW_Hatch& hatch,
                                     const std::vector<double>& weights,
                                     bool rational = true,
-                                    bool associative = true) {
+                                    bool associative = true,
+                                    bool boundaryReference = true) {
         if (hatch.associative != (associative ? 1 : 0) || hatch.basePoint.z != 5.0
             || hatch.extPoint.x != 0.0 || hatch.extPoint.y != 0.6
             || hatch.extPoint.z != 0.8 || hatch.looplist.size() != 1u)
             return false;
         const auto& loop = hatch.looplist.front();
         if (!loop || loop->type != 17 || loop->objlist.size() != 2u
-            || loop->m_boundaryHandles != (associative
+            || loop->m_boundaryHandles != (boundaryReference
                 ? std::vector<std::uint32_t>{0xB0u} : std::vector<std::uint32_t>{}))
             return false;
         const auto* spline = dynamic_cast<const DRW_Spline*>(loop->objlist[0].get());
@@ -10421,7 +10423,7 @@ bool runDxfHatchSplineWeights(bool binary,
                 const std::vector<double> weights = variant == 0 ? std::vector<double>{}
                     : std::vector<double>{1.0, variant == 2 ? quarterWeight : 1.0, 1.0};
                 matches = hatch && hatch->eType == (mpolygon ? DRW::MPOLYGON : DRW::HATCH)
-                    && validBoundary(*hatch, weights);
+                    && validBoundary(*hatch, weights, true, !mpolygon);
                 if (matches && (variant == 3 || variant == 7)) {
                     const auto* spline = dynamic_cast<const DRW_Spline*>(
                         hatch->looplist.front()->objlist.front().get());
@@ -10468,7 +10470,7 @@ bool runDxfHatchSplineWeights(bool binary,
             const std::vector<double> weights = i == 0 || i == 5 ? std::vector<double>{}
                 : std::vector<double>{1.0, i == 2 ? quarterWeight
                     : i == 3 ? 1.0 - 1e-13 : 1.0, 1.0};
-            matches = hatch && validBoundary(*hatch, weights, i != 5, false);
+            matches = hatch && validBoundary(*hatch, weights, i != 5, false, false);
         }
         if (!matches)
             std::cerr << family << " spline writer lost optional/nonunit weights ("
@@ -10499,6 +10501,188 @@ bool runDxfHatchSplineWeights(bool binary,
             valid = rejectedCleanly && valid;
             std::filesystem::remove(rejected, ec);
         }
+    }
+    return valid;
+}
+
+std::unique_ptr<DRW_MPolygon> makeMPolygonHeaderControl(int fill) {
+    auto polygon = std::make_unique<DRW_MPolygon>();
+    polygon->solid = fill;
+    polygon->associative = 0; // MPOLYGON has no HATCH associativity field.
+    polygon->color = 2;
+    polygon->fillColorAci = 4;
+    polygon->name = fill ? "SOLID" : "LOCAL_PATTERN";
+    polygon->basePoint.z = 5;
+    polygon->extPoint = DRW_Coord(0, .6, .8);
+    polygon->annotatedBoundary = 1;
+    polygon->xDirX = .25;
+    polygon->xDirY = -.5;
+    if (!fill) {
+        polygon->hpattern = 0;
+        polygon->angle = 22.5;
+        polygon->scale = 1;
+        DRW_Hatch::PatternLine pattern;
+        pattern.angle = 30;
+        pattern.offsetY = 2;
+        pattern.dashList = {1, -1};
+        polygon->patternLines.push_back(pattern);
+    }
+    auto loop = std::make_shared<DRW_HatchLoop>(2);
+    auto polyline = std::make_shared<DRW_LWPolyline>();
+    polyline->flags = 1;
+    polyline->addVertex(DRW_Vertex2D(0, 0, .5));
+    polyline->addVertex(DRW_Vertex2D(2, 0, 0));
+    polyline->addVertex(DRW_Vertex2D(1, 2, 0));
+    loop->objlist.push_back(polyline);
+    loop->update(); polygon->appendLoop(loop);
+    return polygon;
+}
+
+bool writeMPolygonHeaderLiteral(const std::filesystem::path& path, bool binary, int polygonVersion = 1) {
+    std::ofstream stream(path, std::ios::binary | std::ios::trunc);
+    if (binary) stream.write("AutoCAD Binary DXF\r\n\032\0", 22);
+    std::unique_ptr<dxfWriter> tags;
+    if (binary) tags = std::make_unique<dxfWriterBinary>(&stream);
+    else tags = std::make_unique<dxfWriterAscii>(&stream);
+    tags->setVersion("AC1027", true);
+    tags->writeString(0, "SECTION"); tags->writeString(2, "HEADER");
+    tags->writeString(9, "$ACADVER"); tags->writeString(1, "AC1027");
+    tags->writeString(0, "ENDSEC");
+    tags->writeString(0, "SECTION"); tags->writeString(2, "ENTITIES");
+    for (int fill : {0, 1}) {
+        tags->writeString(0, "MPOLYGON"); tags->writeString(5, fill ? "A1" : "A0");
+        tags->writeString(100, "AcDbEntity"); tags->writeString(8, "0"); tags->writeInt16(62, 2);
+        tags->writeString(100, "AcDbMPolygon");
+        if (polygonVersion >= 0) tags->writeInt16(70, polygonVersion);
+        tags->writeDouble(10, 0); tags->writeDouble(20, 0); tags->writeDouble(30, 5);
+        tags->writeDouble(210, 0); tags->writeDouble(220, .6); tags->writeDouble(230, .8);
+        tags->writeString(2, fill ? "SOLID" : "LOCAL_PATTERN"); tags->writeInt16(71, fill);
+        tags->writeInt32(91, 1); tags->writeInt32(92, 2);
+        tags->writeInt16(72, 1); tags->writeInt16(73, 1); tags->writeInt32(93, 3);
+        tags->writeDouble(10, 0); tags->writeDouble(20, 0); tags->writeDouble(42, .5);
+        tags->writeDouble(10, 2); tags->writeDouble(20, 0); tags->writeDouble(42, 0);
+        tags->writeDouble(10, 1); tags->writeDouble(20, 2); tags->writeDouble(42, 0);
+        tags->writeInt32(97, 0); tags->writeInt16(76, fill ? 1 : 0);
+        if (!fill) {
+            tags->writeDouble(52, 22.5); tags->writeDouble(41, 1); tags->writeInt16(77, 0);
+        }
+        tags->writeInt16(73, 1); tags->writeInt16(78, fill ? 0 : 1);
+        if (!fill) {
+            tags->writeDouble(53, 30); tags->writeDouble(43, 0); tags->writeDouble(44, 0);
+            tags->writeDouble(45, 0); tags->writeDouble(46, 2); tags->writeInt16(79, 2);
+            tags->writeDouble(49, 1); tags->writeDouble(49, -1);
+        }
+        tags->writeInt16(63, 4); tags->writeDouble(11, .25); tags->writeDouble(21, -.5);
+        tags->writeInt32(99, 0);
+    }
+    tags->writeString(0, "ENDSEC"); tags->writeString(0, "EOF");
+    return !tags->hasWriteError() && stream.good();
+}
+
+bool mpolygonWireHeaderMatches(const std::filesystem::path& path, bool binary) {
+    std::ifstream stream(path, std::ios::binary);
+    if (binary) stream.seekg(22);
+    std::unique_ptr<dxfReader> tags;
+    if (binary) tags = std::make_unique<dxfReaderBinary>(&stream);
+    else tags = std::make_unique<dxfReaderAscii>(&stream);
+    bool inPolygon = false;
+    int polygonCount = 0, versionCount = 0, fillCount = 0, code = 0;
+    while (tags->readRec(&code)) {
+        if (code == 0) {
+            inPolygon = tags->getString() == "MPOLYGON";
+            if (inPolygon) ++polygonCount;
+        } else if (inPolygon && code == 70) {
+            if (tags->getInt32() != 1) return false;
+            ++versionCount;
+        } else if (inPolygon && code == 71) {
+            if (tags->getInt32() != polygonCount - 1) return false;
+            ++fillCount;
+        }
+    }
+    return polygonCount == 2 && versionCount == 2 && fillCount == 2;
+}
+
+bool verifyMPolygonHeaderFile(const std::filesystem::path& path, int polygonVersion = 1) {
+    dx_data data;
+    dx_iface reader;
+    if (!reader.fileImport(path.string(), &data, false) || data.mBlock->ent.size() != 2)
+        return false;
+    int fill = 0;
+    for (const auto* entity : data.mBlock->ent) {
+        const auto* polygon = dynamic_cast<const DRW_MPolygon*>(entity);
+        if (!polygon || polygon->dxfVersion != polygonVersion
+            || polygon->solid != fill || polygon->associative != 0
+            || polygon->color != 2 || polygon->fillColorAci != 4
+            || polygon->basePoint.z != 5 || polygon->extPoint.x != 0
+            || polygon->extPoint.y != .6 || polygon->extPoint.z != .8
+            || polygon->annotatedBoundary != 1 || polygon->xDirX != .25 || polygon->xDirY != -.5
+            || polygon->looplist.size() != 1 || polygon->looplist.front()->objlist.size() != 1)
+            return false;
+        const auto* polyline = dynamic_cast<const DRW_LWPolyline*>(polygon->looplist.front()->objlist.front().get());
+        if (!polyline || polyline->flags != 1 || polyline->vertlist.size() != 3
+            || polyline->vertlist[0]->x != 0 || polyline->vertlist[0]->y != 0 || polyline->vertlist[0]->bulge != .5
+            || polyline->vertlist[1]->x != 2 || polyline->vertlist[1]->y != 0
+            || polyline->vertlist[2]->x != 1 || polyline->vertlist[2]->y != 2)
+            return false;
+        if (!fill && (polygon->hpattern != 0 || polygon->angle != 22.5 || polygon->scale != 1
+            || polygon->patternLines.size() != 1 || polygon->patternLines.front().angle != 30
+            || polygon->patternLines.front().offsetY != 2
+            || polygon->patternLines.front().dashList != std::vector<double>{1, -1}))
+            return false;
+        ++fill;
+    }
+    return true;
+}
+
+bool runDxfMPolygonHeader(bool binary, const std::filesystem::path& directory, bool keepOutput) {
+    const std::string encoding = binary ? "binary" : "ascii";
+    const auto input = directory / ("libdxfrw-mpolygon-header-" + encoding + "-input.dxf");
+    bool valid = writeMPolygonHeaderLiteral(input, binary) && verifyMPolygonHeaderFile(input);
+    dx_data source;
+    for (int fill : {0, 1}) source.mBlock->ent.push_back(makeMPolygonHeaderControl(fill).release());
+    const auto output = directory / ("libdxfrw-mpolygon-header-" + encoding + "-output.dxf");
+    dx_iface writer;
+    valid = writer.fileExport(output.string(), DRW::AC1027, binary, &source, false)
+        && mpolygonWireHeaderMatches(output, binary) && verifyMPolygonHeaderFile(output) && valid;
+    std::error_code ec;
+    struct ResetProbe : DRW_MPolygon {
+        void resetMetadata() { resetDwgState(); }
+    };
+    for (int polygonVersion : {-1, 0, 2}) {
+        const auto versionInput = directory / ("libdxfrw-mpolygon-version-" + encoding
+            + "-" + std::to_string(polygonVersion) + ".dxf");
+        valid = writeMPolygonHeaderLiteral(versionInput, binary, polygonVersion)
+            && verifyMPolygonHeaderFile(versionInput, polygonVersion < 0 ? 1 : polygonVersion) && valid;
+        std::filesystem::remove(versionInput, ec);
+        if (polygonVersion < 0) continue; // Missing version retains the version-1 default.
+        auto unknown = makeMPolygonHeaderControl(1);
+        unknown->dxfVersion = polygonVersion;
+        const DRW_MPolygon copied(*unknown);
+        DRW_MPolygon assigned;
+        assigned = copied;
+        valid = copied.dxfVersion == polygonVersion && assigned.dxfVersion == polygonVersion
+            && copied.solid == 1 && assigned.solid == 1 && copied.fillColorAci == 4
+            && assigned.xDirX == .25 && assigned.annotatedBoundary == 1 && valid;
+        ResetProbe reset;
+        reset.DRW_MPolygon::operator=(copied);
+        reset.resetMetadata();
+        valid = reset.dxfVersion == 1 && reset.solid == 1 && reset.fillColorAci == 0
+            && reset.xDirX == 0 && reset.xDirY == 0 && reset.annotatedBoundary == 0
+            && reset.looplist.empty() && valid;
+        dx_data unsupported;
+        unsupported.mBlock->ent.push_back(unknown.release());
+        const auto rejected = directory / ("libdxfrw-mpolygon-version-rejected-" + encoding + ".dxf");
+        const std::string sentinel = "prior MPOLYGON version destination\n";
+        { std::ofstream previous(rejected, std::ios::binary | std::ios::trunc); previous << sentinel; }
+        dx_iface exporter;
+        const bool written = exporter.fileExport(rejected.string(), DRW::AC1027, binary, &unsupported, false);
+        std::ifstream previous(rejected, std::ios::binary);
+        const std::string bytes((std::istreambuf_iterator<char>(previous)), {});
+        valid = !written && bytes == sentinel && valid;
+        std::filesystem::remove(rejected, ec);
+    }
+    if (!keepOutput) {
+        std::filesystem::remove(input, ec); std::filesystem::remove(output, ec);
     }
     return valid;
 }
@@ -13331,7 +13515,13 @@ int main(int argc, char** argv) {
         DRW::AC1024, DRW::AC1027, DRW::AC1032};
     std::filesystem::path directory = std::filesystem::temp_directory_path();
     bool keepOutputs = false;
-    if (argc == 3 && (std::string(argv[1]) == "--generate-hatch-tangents"
+    if (argc == 3 && (std::string(argv[1]) == "--generate-mpolygon-header"
+                      || std::string(argv[1]) == "--generate-mpolygon-header-binary")) {
+        return writeMPolygonHeaderLiteral(argv[2],
+            std::string(argv[1]) == "--generate-mpolygon-header-binary") ? 0 : 1;
+    } else if (argc == 3 && std::string(argv[1]) == "--verify-mpolygon-header") {
+        return verifyMPolygonHeaderFile(argv[2]) ? 0 : 1;
+    } else if (argc == 3 && (std::string(argv[1]) == "--generate-hatch-tangents"
                       || std::string(argv[1]) == "--generate-hatch-tangents-binary")) {
         return writeHatchTangentLiteral(argv[2],
             std::string(argv[1]) == "--generate-hatch-tangents-binary", 5) ? 0 : 1;
@@ -13358,6 +13548,8 @@ int main(int argc, char** argv) {
         std::cerr << "usage: " << argv[0]
                   << " [--keep-dir DIRECTORY]"
                      " [--verify-acsh-prefix-sample DWG]"
+                     " [--generate-mpolygon-header[-binary] DXF]"
+                     " [--verify-mpolygon-header DXF]"
                      " [--generate-hatch-tangents[-binary] DXF]"
                      " [--verify-hatch-tangents DXF]"
                      " [--verify-dynamicblock-typed-pair DWG DXF]\n";
@@ -14214,6 +14406,10 @@ int main(int argc, char** argv) {
     expect(runDxfHatchSplineWeights(true, directory, keepOutputs),
            "local DXF binary HATCH/MPOLYGON spline optional weights and bounded layouts",
            failures);
+    expect(runDxfMPolygonHeader(false, directory, keepOutputs),
+           "local DXF ASCII MPOLYGON version/fill and OCS/bulge fields", failures);
+    expect(runDxfMPolygonHeader(true, directory, keepOutputs),
+           "local DXF binary MPOLYGON version/fill and OCS/bulge fields", failures);
     expect(runDxfHatchTangents(false, directory, keepOutputs),
            "local DXF ASCII HATCH zero-fit tangent state and completed edges", failures);
     expect(runDxfHatchTangents(true, directory, keepOutputs),

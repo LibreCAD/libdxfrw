@@ -14920,7 +14920,8 @@ bool DRW_Hatch::validateDxf() const {
 }
 
 bool DRW_MPolygon::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
-    // MPOLYGON shares HATCH's boundary/pattern/gradient codes, so delegate those
+    // MPOLYGON has distinct version/fill groups 70/71. It shares HATCH's
+    // boundary/pattern/gradient codes, so delegate those
     // to DRW_Hatch::parseCode. It adds a trailer that plain HATCH never emits:
     //   63 / 421 / 430  fill color (ACI / RGB / book-name) — the filled area's
     //                   color, which may differ from the boundary outline color;
@@ -14947,6 +14948,13 @@ bool DRW_MPolygon::parseCode(int code, const std::unique_ptr<dxfReader>& reader)
     if (!isValidDxfCoordinateTransition(code))
         return false;
     switch (code) {
+    case 70:
+        dxfVersion = reader->getInt32();
+        return dxfVersion >= 0
+            && dxfVersion <= std::numeric_limits<std::int16_t>::max();
+    case 71:
+        solid = reader->getInt32();
+        return solid == 0 || solid == 1;
     case 73:
         // Before top-level group 76 this code belongs to a boundary path
         // (polyline closure or arc/ellipse direction); after it, Autodesk
@@ -14976,6 +14984,8 @@ bool DRW_MPolygon::parseCode(int code, const std::unique_ptr<dxfReader>& reader)
 
 bool DRW_MPolygon::validateDxf() const {
     return DRW_Hatch::validateDxf() && !m_dxfOffsetVectorPending
+        && dxfVersion >= 0 && dxfVersion <= std::numeric_limits<std::int16_t>::max()
+        && (solid == 0 || solid == 1)
         && (annotatedBoundary == 0 || annotatedBoundary == 1)
         && std::isfinite(xDirX) && std::isfinite(xDirY);
 }
