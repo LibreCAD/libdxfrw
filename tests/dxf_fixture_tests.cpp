@@ -258,8 +258,9 @@ bool readTableOwnerRecords(const std::filesystem::path& path, bool binary,
             records.push_back({kind, {}});
         } else if (!records.empty()) {
             // Only these string tags are relevant to table graph identity.
-            if (code == 2 || code == 5 || code == 105 || code == 100
-                || code == 102 || code == 330)
+            if (code == 1 || code == 2 || code == 5 || code == 105
+                || code == 100 || code == 102 || code == 330 || code == 360
+                || code == 1000 || code == 1001)
                 records.back().groups.emplace_back(code, reader->getString());
         }
     }
@@ -1267,7 +1268,9 @@ void testXRecordVersionedHeaderAndPayload(TestContext& t) {
              "unknown source version preserves ambiguous leading 280 as application data");
 }
 
-void testLinetypeExtensionGraphRoundTrip(TestContext& t) {
+void testLinetypeExtensionGraphRoundTrip(
+    TestContext& t, const std::filesystem::path* generatedOutput = nullptr,
+    DRW::Version version = DRW::AC1014, bool binary = false) {
     dx_data source;
     DRW_AppId application;
     application.name = "LOCAL_HANDLE_APP";
@@ -1285,6 +1288,14 @@ void testLinetypeExtensionGraphRoundTrip(TestContext& t) {
         lineType.handle = lineHandles[i];
         lineType.name = names[i];
         lineType.xDictHandle = dictionaryHandles[i];
+        lineType.appData.push_back({{102, std::string("{SCOPE_TEST")},
+                                   {1, names[i]}, {330, std::string("0")},
+                                   {102, std::string("}")}});
+        t.expect(lineType.addExtData(std::make_unique<DRW_Variant>(
+                     1001, std::string("LOCAL_HANDLE_APP")))
+                     && lineType.addExtData(std::make_unique<DRW_Variant>(
+                         1000, std::string("trailing"))),
+                 "canonical linetype retains registered trailing XDATA");
         source.lineTypes.push_back(lineType);
 
         DRW_Dictionary dictionary;
@@ -1318,25 +1329,39 @@ void testLinetypeExtensionGraphRoundTrip(TestContext& t) {
         record.m_dataEntries.emplace_back(329, std::string("14"));
         source.xRecords.push_back(record);
     }
+    auto line = std::make_unique<DRW_Line>();
+    line->basePoint = DRW_Coord(1, 2, 3);
+    line->secPoint = DRW_Coord(4, 6, 8);
+    line->appData.push_back({{102, std::string("{SCOPE_TEST")},
+                             {1, std::string("alpha")},
+                             {330, std::string("0")},
+                             {102, std::string("}")}});
+    line->extData.push_back(std::make_shared<DRW_Variant>(
+        1001, std::string("LOCAL_HANDLE_APP")));
+    line->extData.push_back(std::make_shared<DRW_Variant>(
+        1000, std::string("trailing")));
+    source.mBlock->ent.push_back(line.release());
 
     const auto nonce = std::chrono::steady_clock::now().time_since_epoch()
                            .count();
-    const std::filesystem::path output =
-        std::filesystem::temp_directory_path()
-        / ("libdxfrw-ltype-extension-" + std::to_string(nonce) + ".dxf");
+    const std::filesystem::path output = generatedOutput != nullptr
+        ? *generatedOutput : std::filesystem::temp_directory_path()
+            / ("libdxfrw-ltype-extension-" + std::to_string(nonce) + ".dxf");
     struct OutputCleanup {
         std::filesystem::path path;
+        bool remove;
         ~OutputCleanup() {
             std::error_code error;
-            std::filesystem::remove(path, error);
+            if (remove)
+                std::filesystem::remove(path, error);
         }
-    } cleanup{output};
+    } cleanup{output, generatedOutput == nullptr};
 
     dx_iface writerInterface;
-    t.expect(writerInterface.fileExport(output.string(), DRW::AC1014, false,
+    t.expect(writerInterface.fileExport(output.string(), version, binary,
                                         &source, false),
-             "R14 writer exports a closed linetype extension graph");
-    if (!std::filesystem::exists(output))
+             "writer exports the canonical linetype extension graph");
+    if (generatedOutput != nullptr || !std::filesystem::exists(output))
         return;
 
     FixtureInterface readerInterface;
@@ -1424,6 +1449,58 @@ void testLinetypeExtensionGraphRoundTrip(TestContext& t) {
             }
             t.expect(xdataHandleMatchesRecord,
                      "XDATA handle follows the remapped XRECORD handle");
+        }
+    }
+}
+
+void testCanonicalLinetypeCommonScope(TestContext& t) {
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    for (const DRW::Version version : {DRW::AC1014, DRW::AC1015,
+                                       DRW::AC1021, DRW::AC1032}) {
+        for (const bool binary : {false, true}) {
+            const auto path = std::filesystem::temp_directory_path()
+                / ("libdxfrw-common-scope-" + std::to_string(nonce) + "-"
+                   + std::to_string(static_cast<int>(version))
+                   + (binary ? "-binary.dxf" : "-ascii.dxf"));
+            struct Cleanup {
+                std::filesystem::path path;
+                ~Cleanup() {
+                    std::error_code error;
+                    std::filesystem::remove(path, error);
+                }
+            } cleanup{path};
+            testLinetypeExtensionGraphRoundTrip(t, &path, version, binary);
+            std::vector<TableOwnerRecord> records;
+            t.expect(readTableOwnerRecords(path, binary, records),
+                     "canonical common-scope raw framing reaches EOF");
+            int selected = 0;
+            for (const auto& record : records) {
+                if (record.kind != "LTYPE" && record.kind != "LINE")
+                    continue;
+                ++selected;
+                const auto firstSubclass = std::find_if(
+                    record.groups.begin(), record.groups.end(),
+                    [](const auto& tag) { return tag.first == 100; });
+                const auto app = std::find(record.groups.begin(), record.groups.end(),
+                    std::make_pair(102, std::string("{SCOPE_TEST")));
+                t.expect(app != record.groups.end() && app < firstSubclass,
+                         "canonical linetype/LINE application data is in base scope");
+                const auto xdata = std::find(record.groups.begin(), record.groups.end(),
+                    std::make_pair(1001, std::string("LOCAL_HANDLE_APP")));
+                t.expect(xdata != record.groups.end() && xdata > firstSubclass
+                             && record.groups.end() - xdata == 2
+                             && (xdata + 1)->first == 1000
+                             && (xdata + 1)->second == "trailing",
+                         "canonical linetype/LINE XDATA remains trailing");
+                if (record.kind == "LTYPE") {
+                    const auto xdict = std::find(record.groups.begin(), record.groups.end(),
+                        std::make_pair(102, std::string("{ACAD_XDICTIONARY")));
+                    t.expect(xdict != record.groups.end() && xdict < firstSubclass,
+                             "mandatory linetype extension dictionary precedes subclasses");
+                }
+            }
+            t.expect(selected == 4,
+                     "common-scope graph covers all three mandatory linetypes and LINE");
         }
     }
 }
@@ -1572,7 +1649,8 @@ void testUnsafeLinetypeExtensionGraphsRejected(TestContext& t) {
 } // namespace
 
 int main(int argc, char** argv) {
-    if (argc == 5 && std::string(argv[1]) == "--generate-table-owners") {
+    if (argc == 5 && (std::string(argv[1]) == "--generate-table-owners"
+                     || std::string(argv[1]) == "--generate-common-scopes")) {
         const std::map<std::string, DRW::Version> versions{
             {"R14", DRW::AC1014}, {"R2000", DRW::AC1015},
             {"R2007", DRW::AC1021}, {"R2018", DRW::AC1032}};
@@ -1581,8 +1659,14 @@ int main(int argc, char** argv) {
         if (version == versions.end()
             || (encoding != "ascii" && encoding != "binary"))
             return 2;
-        return generateTableOwnerDxf(argv[2], version->second,
-                                     encoding == "binary") ? 0 : 1;
+        if (std::string(argv[1]) == "--generate-table-owners")
+            return generateTableOwnerDxf(argv[2], version->second,
+                                         encoding == "binary") ? 0 : 1;
+        TestContext context;
+        const std::filesystem::path output(argv[2]);
+        testLinetypeExtensionGraphRoundTrip(context, &output, version->second,
+                                           encoding == "binary");
+        return context.failures == 0 ? 0 : 1;
     }
     if (argc != 1)
         return 2;
@@ -1600,6 +1684,7 @@ int main(int argc, char** argv) {
     testXRecordDataOrder(context);
     testXRecordVersionedHeaderAndPayload(context);
     testLinetypeExtensionGraphRoundTrip(context);
+    testCanonicalLinetypeCommonScope(context);
     testIncompleteLinetypeExtensionGraphRejected(context);
     testUnsafeLinetypeExtensionGraphsRejected(context);
     testMTextBackgroundFillAndDefinedHeight(context);

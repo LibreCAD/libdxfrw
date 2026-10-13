@@ -1383,6 +1383,104 @@ void expectTypedNumericRangeRejected(
     }
 }
 
+void testCommonAppDataBaseScope(TestContext& t) {
+    const auto configure = [](auto& entry, bool retainedCommonGroups) {
+        entry.appData.push_back({{102, std::string("{SCOPE_TEST")},
+                                 {1, std::string("alpha")},
+                                 {330, std::string("0")},
+                                 {102, std::string("}")}});
+        entry.reactorHandles = {0x1234u};
+        entry.xDictHandle = 0x2345u;
+        if (retainedCommonGroups) {
+            entry.appData.push_back({{102, std::string("{ACAD_REACTORS")},
+                                     {330, std::string("1234")},
+                                     {102, std::string("}")}});
+            entry.appData.push_back({{102, std::string("{ACAD_XDICTIONARY")},
+                                     {360, std::string("2345")},
+                                     {102, std::string("}")}});
+        }
+    };
+    const auto emitTable = [&configure](dxfRW& owner, auto& entry,
+                                        bool retainedCommonGroups,
+                                        auto write) {
+        entry.name = "SCOPE_SENTINEL";
+        configure(entry, retainedCommonGroups);
+        if (!entry.addExtData(std::make_unique<DRW_Variant>(
+                1001, std::string("SCOPE_APP")))
+            || !entry.addExtData(std::make_unique<DRW_Variant>(
+                1000, std::string("trailing"))))
+            return false;
+        return (owner.*write)(&entry);
+    };
+    for (const DRW::Version version : {DRW::AC1014, DRW::AC1015,
+                                       DRW::AC1021, DRW::AC1032}) {
+        for (const bool binary : {false, true}) {
+            for (const bool retained : {false, true}) {
+                for (int kind = 0; kind < 10; ++kind) {
+                    std::ostringstream output;
+                    dxfRW owner("");
+                    owner.version = version;
+                    owner.binFile = binary;
+                    if (binary)
+                        owner.writer = std::make_unique<dxfWriterBinary>(&output);
+                    else
+                        owner.writer = std::make_unique<dxfWriterAscii>(&output);
+                    bool written = false;
+                    switch (kind) {
+                    case 0: { DRW_LType e; written = emitTable(owner, e, retained, &dxfRW::writeLineType); break; }
+                    case 1: { DRW_Layer e; written = emitTable(owner, e, retained, &dxfRW::writeLayer); break; }
+                    case 2: { DRW_Textstyle e; written = emitTable(owner, e, retained, &dxfRW::writeTextstyle); break; }
+                    case 3: { DRW_Vport e; written = emitTable(owner, e, retained, &dxfRW::writeVport); break; }
+                    case 4: { DRW_Dimstyle e; written = emitTable(owner, e, retained, &dxfRW::writeDimstyle); break; }
+                    case 5: { DRW_View e; written = emitTable(owner, e, retained, &dxfRW::writeView); break; }
+                    case 6: { DRW_UCS e; written = emitTable(owner, e, retained, &dxfRW::writeUCS); break; }
+                    case 7: { DRW_AppId e; written = emitTable(owner, e, retained, &dxfRW::writeAppId); break; }
+                    case 8: {
+                        DRW_Line e;
+                        configure(e, retained);
+                        e.secPoint = DRW_Coord(4, 6, 8);
+                        e.extData.push_back(std::make_shared<DRW_Variant>(
+                            1001, std::string("SCOPE_APP")));
+                        e.extData.push_back(std::make_shared<DRW_Variant>(
+                            1000, std::string("trailing")));
+                        written = owner.writeLine(&e);
+                        break;
+                    }
+                    case 9: { DRW_PlotSettings e; written = emitTable(owner, e, retained, &dxfRW::writePlotSettings); break; }
+                    }
+                    t.expect(written && owner.writer->writeString(0, "WIRE_END"),
+                             "common-scope typed sentinel writes");
+                    bool ended = false;
+                    const auto tags = numericWireProjection(output.str(), binary,
+                                                             ended);
+                    t.expect(ended, "common-scope framing reaches next record");
+                    const auto firstSubclass = std::find_if(tags.begin(), tags.end(),
+                        [](const auto& tag) { return tag.rfind("100:", 0) == 0; });
+                    const auto xdata = std::find(tags.begin(), tags.end(),
+                                                 "1001:SCOPE_APP");
+                    t.expect(firstSubclass != tags.end() && xdata != tags.end(),
+                             "common-scope record keeps subclasses and XDATA");
+                    for (const auto& marker : {"102:{SCOPE_TEST", "102:{ACAD_REACTORS",
+                                               "102:{ACAD_XDICTIONARY"}) {
+                        const auto group = std::find(tags.begin(), tags.end(), marker);
+                        t.expect(group < firstSubclass && group != tags.end(),
+                                 "common application group precedes first subclass");
+                        t.expect(std::count(tags.begin(), tags.end(), marker) == 1,
+                                 "retained and typed common groups emit exactly once");
+                    }
+                    t.expect(std::find(tags.begin(), tags.end(), "1:alpha") < firstSubclass
+                                 && std::find(tags.begin(), tags.end(), "360:2345") < firstSubclass,
+                             "common group payload remains in base scope");
+                    t.expect(xdata != tags.end() && xdata > firstSubclass
+                                 && tags.end() - xdata == 3
+                                 && *(xdata + 1) == "1000:trailing",
+                             "XDATA remains trailing after subclass body");
+                }
+            }
+        }
+    }
+}
+
 void testCustomTextNumericWireKinds(TestContext& t) {
     expectTypedNumericWire(t, [](dxfRW& writer) {
         DRW_RText text;
@@ -6560,6 +6658,7 @@ int main() {
     testLayoutStyleNumericWireKinds(context);
     testEntityNumericWireKinds(context);
     testImageObjectNumericWireKinds(context);
+    testCommonAppDataBaseScope(context);
     testDxfBinaryRawSectionCaptureReplay(context);
     testDxfBinaryRawObjectCaptureReplay(context);
     testDxfRawObjectHandleScope(context);
