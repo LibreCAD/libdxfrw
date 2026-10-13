@@ -65,7 +65,13 @@ def _normalize_v1(value):
 
 def canonical(value, path="result"):
     """Copy strict JSON values without deleting any nested semantic fields."""
-    if value is None or type(value) in (str, bool, int):
+    if type(value) is str:
+        try:
+            value.encode("utf-8", "strict")
+        except UnicodeError as exc:
+            raise NormalizationError(path + " contains a non-scalar Unicode string") from exc
+        return value
+    if value is None or type(value) in (bool, int):
         return value
     if type(value) is float:
         if not math.isfinite(value):
@@ -77,6 +83,8 @@ def canonical(value, path="result"):
     if type(value) is dict:
         if any(type(key) is not str for key in value):
             raise NormalizationError(path + " has a non-string JSON key")
+        for key in value:
+            canonical(key, path + ".<key>")
         return {key: canonical(item, path + "." + key) for key, item in value.items()}
     raise NormalizationError(path + " contains a non-JSON value")
 
@@ -192,13 +200,15 @@ def self_test():
     assert not typed_equal(1, 1.0)
     assert not typed_equal(2**60, 2**60 + 1)
     for invalid in ('{"x":1,"x":2}', '{"x":{"y":1,"y":2}}',
-                    '{"x":NaN}', '{"x":Infinity}', '{"x":1e999}'):
+                    '{"x":NaN}', '{"x":Infinity}', '{"x":1e999}',
+                    '{"x":"\\ud800"}', '{"\\udfff":1}'):
         try:
             loads_json(invalid)
         except NormalizationError:
             pass
         else:
             raise AssertionError("invalid JSON was admitted: " + invalid)
+    assert loads_json('{"x":"\\ud83d\\ude00"}')["x"] == "😀"
     for invalid in ({**source, "unknownSemantic": {}},
                     {**source, "schema": 1}, {**source, "exitStatus": True},
                     {**source, "entities": [{"value": float("nan")}]},

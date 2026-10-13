@@ -234,12 +234,12 @@ def validate_manifest(manifest: object, *, comparison_schema=SCHEMA) -> list[dic
     return runners
 
 
-def run_runner(runner: dict, input_value: object) -> dict:
+def run_runner(runner: dict, input_value: object, *, comparison_schema=SCHEMA) -> dict:
     if runner["inputMode"] != "local-from-scratch-json":
         raise DifferentialError("external-path runners require an explicit runtime invocation")
     with tempfile.TemporaryDirectory(prefix="libdxfrw-parity-") as directory:
         input_path = Path(directory) / "input.json"
-        input_path.write_text(json.dumps(input_value, sort_keys=True), encoding="utf-8")
+        input_path.write_text(json.dumps(input_value, sort_keys=True, allow_nan=False), encoding="utf-8")
         command = [argument.replace("{input}", str(input_path)) for argument in runner["command"]]
         environment = os.environ.copy()
         environment["LIBDXFRW_PARITY_OPTIONS"] = json.dumps(runner["options"], separators=(",", ":"))
@@ -248,10 +248,11 @@ def run_runner(runner: dict, input_value: object) -> dict:
         except (OSError, subprocess.CalledProcessError) as exc:
             raise DifferentialError("runner %s failed: %s" % (runner["id"], exc)) from exc
         try:
-            value = json.loads(completed.stdout)
-        except json.JSONDecodeError as exc:
+            value = (loads_json(completed.stdout) if comparison_schema == 2
+                     else json.loads(completed.stdout))
+        except (json.JSONDecodeError, NormalizationError) as exc:
             raise DifferentialError("runner %s did not emit JSON" % runner["id"]) from exc
-        return validate_result(value, runner["id"])
+        return validate_result(value, runner["id"], comparison_schema=comparison_schema)
 
 
 def self_test() -> None:
@@ -363,6 +364,17 @@ def self_test() -> None:
     validate_manifest(manifest)
     output = run_runner(runners[0], base)
     assert output["entities"] == base["entities"]
+    duplicate_stdout = json.dumps(base)[:-1] + ', "entities": []}'
+    surrogate_stdout = json.dumps({**base, "objects": [{"value": "\ud800"}]})
+    for malformed in (duplicate_stdout, surrogate_stdout):
+        broken = {**runners[0], "command": [python, "-c", "import sys; print(sys.argv[1])",
+                                            malformed, "{input}"]}
+        try:
+            run_runner(broken, base)
+        except DifferentialError:
+            pass
+        else:
+            raise AssertionError("malformed subprocess JSON escaped strict schema-v2 loading")
     print("run_parity_differential self-test: PASS")
 
 
