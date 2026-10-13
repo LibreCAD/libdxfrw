@@ -18,7 +18,9 @@
 #include <limits>
 #include <string>
 #include <algorithm>
+#include <charconv>
 #include "dxfwriter.h"
+#include "dxfnumber.h"
 
 namespace {
 
@@ -45,14 +47,25 @@ bool isDxfInt16Value(int value) {
         && value <= static_cast<int>(std::numeric_limits<std::uint16_t>::max());
 }
 
+bool writeAsciiDxfIntegerValue(std::ostream* stream, std::int64_t value,
+                               std::size_t width) {
+    char buffer[32];
+    const auto result = std::to_chars(buffer, buffer + sizeof buffer, value);
+    if (result.ec != std::errc{})
+        return false;
+    const auto length = static_cast<std::size_t>(result.ptr - buffer);
+    if (length < width)
+        stream->write("     ", static_cast<std::streamsize>(width - length));
+    stream->write(buffer, static_cast<std::streamsize>(length));
+    stream->put('\n');
+    return stream->good();
+}
+
 bool writeAsciiDxfInteger(std::ostream *stream, int code, std::int64_t value) {
     if (stream == nullptr || !isAsciiDxfCode(code))
         return false;
-    stream->width(3);
-    *stream << std::right << code << '\n';
-    stream->width(5);
-    *stream << value << '\n';
-    return stream->good();
+    return writeAsciiDxfIntegerValue(stream, code, 3)
+        && writeAsciiDxfIntegerValue(stream, value, 5);
 }
 
 bool writeBinaryDxfCode(std::ostream *stream, int code) {
@@ -301,20 +314,15 @@ bool dxfWriterBinaryR12::writeCode(int code) {
     return writeBinaryDxfR12Code(filestr, code);
 }
 
-dxfWriterAscii::dxfWriterAscii(std::ostream *stream):dxfWriter(stream){
-    filestr->precision(16);
-}
+dxfWriterAscii::dxfWriterAscii(std::ostream *stream):dxfWriter(stream){}
 
 bool dxfWriterAscii::writeString(int code, std::string text) {
-    if (!isAsciiDxfCode(code) || !isSafeAsciiDxfString(text))
+    if (filestr == nullptr || !isAsciiDxfCode(code) || !isSafeAsciiDxfString(text))
         return recordWriteResult(false);
-//    *filestr << code << std::endl << text << std::endl ;
-    filestr->width(3);
-    *filestr << std::right << code << '\n';
-    filestr->width(0);
-    *filestr << std::left << text << '\n';
-    /*    std::getline(*filestr, strData, '\0');
-    DBG(strData); DBG("\n");*/
+    if (!writeAsciiDxfIntegerValue(filestr, code, 3))
+        return recordWriteResult(false);
+    filestr->write(text.data(), static_cast<std::streamsize>(text.size()));
+    filestr->put('\n');
     return recordWriteResult(filestr->good());
 }
 
@@ -333,22 +341,20 @@ bool dxfWriterAscii::writeInt64(int code, std::int64_t data) {
 }
 
 bool dxfWriterAscii::writeDouble(int code, double data) {
-    if (!isAsciiDxfCode(code) || !std::isfinite(data))
+    if (filestr == nullptr || !isAsciiDxfCode(code) || !std::isfinite(data))
         return recordWriteResult(false);
-//    std::streamsize prec = filestr->precision();
-//    filestr->precision(12);
-//    *filestr << code << std::endl << data << std::endl;
-    filestr->width(3);
-    *filestr << std::right << code << '\n';
-    *filestr << data << '\n';
-//    filestr->precision(prec);
+    if (!writeAsciiDxfIntegerValue(filestr, code, 3))
+        return recordWriteResult(false);
+    const std::string text = DxfNumeric::formatDouble(data);
+    filestr->write(text.data(), static_cast<std::streamsize>(text.size()));
+    filestr->put('\n');
     return recordWriteResult(filestr->good());
 }
 
 //saved as int or add a bool member??
 bool dxfWriterAscii::writeBool(int code, bool data) {
-    if (!isAsciiDxfCode(code))
+    if (filestr == nullptr || !isAsciiDxfCode(code))
         return recordWriteResult(false);
-    *filestr << code << '\n' << data << '\n';
-    return recordWriteResult(filestr->good());
+    return recordWriteResult(writeAsciiDxfIntegerValue(filestr, code, 0)
+        && writeAsciiDxfIntegerValue(filestr, data ? 1 : 0, 0));
 }

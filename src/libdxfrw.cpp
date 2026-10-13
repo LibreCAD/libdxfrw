@@ -33,6 +33,7 @@
 #include "intern/drw_textcodec.h"
 #include "intern/dxfparserlimits.h"
 #include "intern/dxfreader.h"
+#include "intern/dxfnumber.h"
 #include "intern/dxfcode.h"
 #include "intern/dxfwriter.h"
 #include "intern/drw_dbg.h"
@@ -765,9 +766,7 @@ void writeDxfBinaryChunks(dxfWriter* writer,
                           const std::vector<std::uint8_t>& data);
 
 std::string dxfFieldHandleText(std::uint32_t handle) {
-    std::ostringstream stream;
-    stream << std::uppercase << std::hex << handle;
-    return stream.str();
+    return DxfNumeric::formatHex(handle);
 }
 
 bool dxfFieldValuePayloadIsSuppressed(
@@ -5901,11 +5900,8 @@ bool dxfRW::writeText(DRW_Text *ent) {
 static double arcAlignedDxfValue(const UTF8STRING& value, double fallback) {
     if (value.empty())
         return fallback;
-    try {
-        return std::stod(value);
-    } catch (...) {
-        return fallback;
-    }
+    double parsed = 0.0;
+    return DxfNumeric::parsePrefix(value, parsed) ? parsed : fallback;
 }
 
 bool dxfRW::writeRText(DRW_RText *ent) {
@@ -14502,9 +14498,9 @@ bool parseDxfIntegerString(const std::string& text, std::int64_t minimum,
                            std::int64_t maximum) {
     const char* begin = text.data();
     const char* end = begin + text.size();
-    while (begin != end && std::isspace(static_cast<unsigned char>(*begin)))
+    while (begin != end && DxfNumeric::isSpace(*begin))
         ++begin;
-    while (end != begin && std::isspace(static_cast<unsigned char>(end[-1])))
+    while (end != begin && DxfNumeric::isSpace(end[-1]))
         --end;
     if (begin == end)
         return false;
@@ -14522,12 +14518,12 @@ bool parseDxfIntegerString(const std::string& text, std::int64_t minimum,
 bool isValidDxfDoubleString(const std::string& text) {
     char* end = nullptr;
     errno = 0;
-    const double value = std::strtod(text.c_str(), &end);
+    const double value = DxfNumeric::strtodC(text.c_str(), &end);
     while (end != nullptr && *end != '\0'
-           && std::isspace(static_cast<unsigned char>(*end))) {
+           && DxfNumeric::isSpace(*end)) {
         ++end;
     }
-    return end != text.c_str() && end != nullptr && *end == '\0'
+    return end != text.c_str() && end != nullptr && end == text.c_str() + text.size()
         && errno != ERANGE && std::isfinite(value);
 }
 
@@ -16496,9 +16492,7 @@ bool dxfRW::writeXRecord(DRW_XRecord *ent) {
     };
     const auto emitHandle = [this](int code, std::uint64_t value) {
         if (dxfHandleRoleForCode(code) == DxfHandleRole::Arbitrary) {
-            std::ostringstream encoded;
-            encoded << std::uppercase << std::hex << value;
-            return writer->writeString(code, encoded.str());
+            return writer->writeString(code, DxfNumeric::formatHex(value));
         }
         if (!isDxfTranslatedHandleCode(code))
             return false;
@@ -17664,15 +17658,7 @@ bool dxfRW::writeEvaluationGraph(DRW_EvaluationGraph *ent,
  * convert a int to string in hex
  **/
 std::string dxfRW::toHexStr(std::uint32_t n){
-#if defined(__APPLE__)
-    char buffer[9]= {'\0'};
-    snprintf(buffer,9, "%X", static_cast<unsigned int>(n));
-    return std::string(buffer);
-#else
-    std::ostringstream Convert;
-    Convert << std::uppercase << std::hex << n;
-    return Convert.str();
-#endif
+    return DxfNumeric::formatHex(n);
 }
 
 std::string dxfRW::toHexStr(int n){

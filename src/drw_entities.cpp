@@ -25,6 +25,7 @@
 #include <vector>
 #include "drw_entities.h"
 #include "intern/dxfreader.h"
+#include "intern/dxfnumber.h"
 #include "intern/dxfparserlimits.h"
 #include "intern/dwgbuffer.h"
 #include "intern/dwgbufferw.h"
@@ -11849,7 +11850,7 @@ void DRW_ArcAlignedText::applyArcApproximation(){
     // Height from the text-size D2T string when parseable, else a fraction of
     // the radius so the approximation is at least visible.
     double h = 0.0;
-    try { h = std::stod(m_textSize); } catch (...) { h = 0.0; }
+    if (!DxfNumeric::parsePrefix(m_textSize, h)) h = 0.0;
     if (h > 0.0)
         height = h;
     else if (height <= 0.0)
@@ -11860,11 +11861,9 @@ void DRW_ArcAlignedText::applyArcApproximation(){
 // it: the DWG body carries these as text ("2.5", "1", "0"), while the DXF path
 // reads them as doubles (group codes 41-46 fall in the double range, so the
 // reader populates doubleData and leaves strData stale — getString() is unsafe
-// here).  %g reproduces the same compact textual form.
+// here). Keep the historical six-significant-digit compact textual form.
 static std::string arcAlignedD2T(double v){
-    char buf[32];
-    std::snprintf(buf, sizeof(buf), "%g", v);
-    return std::string(buf);
+    return DxfNumeric::formatDouble(v, 6);
 }
 
 static std::string arcAlignedStringOrDefault(const UTF8STRING& value,

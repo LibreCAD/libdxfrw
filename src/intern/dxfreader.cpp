@@ -23,6 +23,7 @@
 #include <sstream>
 #include <locale>
 #include "dxfreader.h"
+#include "dxfnumber.h"
 #include "dxfcode.h"
 #include "drw_textcodec.h"
 #include "drw_dbg.h"
@@ -359,12 +360,12 @@ bool dxfReaderAscii::readCode(int *code) {
         text.erase(text.size()-1);
     char *end = nullptr;
     errno = 0;
-    long parsed = std::strtol(text.c_str(), &end, 10);
+    long parsed = DxfNumeric::strtolC(text.c_str(), &end);
     while (end != nullptr && *end != '\0'
-           && std::isspace(static_cast<unsigned char>(*end))) {
+           && DxfNumeric::isSpace(*end)) {
         ++end;
     }
-    if (end == text.c_str() || end == nullptr || *end != '\0'
+    if (end == text.c_str() || end == nullptr || end != text.c_str() + text.size()
         || errno == ERANGE || parsed < 0 || parsed > 1071) {
         return false;
     }
@@ -407,12 +408,12 @@ bool dxfReaderAscii::readInt16() {
     if (readString(&text)){
         char *end = nullptr;
         errno = 0;
-        const long long parsed = std::strtoll(text.c_str(), &end, 10);
+        const long long parsed = DxfNumeric::strtollC(text.c_str(), &end);
         while (end != nullptr && *end != '\0'
-               && std::isspace(static_cast<unsigned char>(*end))) {
+               && DxfNumeric::isSpace(*end)) {
             ++end;
         }
-        if (end == text.c_str() || end == nullptr || *end != '\0'
+        if (end == text.c_str() || end == nullptr || end != text.c_str() + text.size()
             || errno == ERANGE
             // DXF 16-bit flag fields may be written as an unsigned bit
             // pattern (for example 0x8001). Keep both signed values and all
@@ -434,12 +435,12 @@ bool dxfReaderAscii::readInt32() {
     if (readString(&text)){
         char *end = nullptr;
         errno = 0;
-        const long long parsed = std::strtoll(text.c_str(), &end, 10);
+        const long long parsed = DxfNumeric::strtollC(text.c_str(), &end);
         while (end != nullptr && *end != '\0'
-               && std::isspace(static_cast<unsigned char>(*end))) {
+               && DxfNumeric::isSpace(*end)) {
             ++end;
         }
-        if (end == text.c_str() || end == nullptr || *end != '\0'
+        if (end == text.c_str() || end == nullptr || end != text.c_str() + text.size()
             || errno == ERANGE
             || parsed < std::numeric_limits<std::int32_t>::min()
             || parsed > std::numeric_limits<std::int32_t>::max()) {
@@ -458,12 +459,12 @@ bool dxfReaderAscii::readInt64() {
     if (readString(&text)){
         char *end = nullptr;
         errno = 0;
-        const long long parsed = std::strtoll(text.c_str(), &end, 10);
+        const long long parsed = DxfNumeric::strtollC(text.c_str(), &end);
         while (end != nullptr && *end != '\0'
-               && std::isspace(static_cast<unsigned char>(*end))) {
+               && DxfNumeric::isSpace(*end)) {
             ++end;
         }
-        if (end == text.c_str() || end == nullptr || *end != '\0'
+        if (end == text.c_str() || end == nullptr || end != text.c_str() + text.size()
             || errno == ERANGE
             || parsed < std::numeric_limits<std::int64_t>::min()
             || parsed > std::numeric_limits<std::int64_t>::max()) {
@@ -482,14 +483,14 @@ bool dxfReaderAscii::readDouble() {
     if (readString(&text)){
         char *end = nullptr;
         errno = 0;
-        double parsed = std::strtod(text.c_str(), &end);
+        double parsed = DxfNumeric::strtodC(text.c_str(), &end);
         while (end != nullptr && *end != '\0'
-               && std::isspace(static_cast<unsigned char>(*end))) {
+               && DxfNumeric::isSpace(*end)) {
             ++end;
         }
         // Underflow sets ERANGE but produces a valid tiny value; overflow is
         // rejected by the finite check.
-        if (end == text.c_str() || end == nullptr || *end != '\0'
+        if (end == text.c_str() || end == nullptr || end != text.c_str() + text.size()
             || !std::isfinite(parsed)) {
             DRW_DBG("dxfReaderAscii::readDouble(): reading double error: ");
             DRW_DBG(text);
@@ -510,12 +511,12 @@ bool dxfReaderAscii::readBool() {
     if (readString(&text)){
         char *end = nullptr;
         errno = 0;
-        long parsed = std::strtol(text.c_str(), &end, 10);
+        long parsed = DxfNumeric::strtolC(text.c_str(), &end);
         while (end != nullptr && *end != '\0'
-               && std::isspace(static_cast<unsigned char>(*end))) {
+               && DxfNumeric::isSpace(*end)) {
             ++end;
         }
-        if (end == text.c_str() || end == nullptr || *end != '\0'
+        if (end == text.c_str() || end == nullptr || end != text.c_str() + text.size()
             || errno == ERANGE
             || parsed < std::numeric_limits<std::int32_t>::min()
             || parsed > std::numeric_limits<std::int32_t>::max()) {

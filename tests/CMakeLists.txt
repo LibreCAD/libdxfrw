@@ -1109,6 +1109,40 @@ foreach(_encoding IN ITEMS ascii binary)
         PROPERTIES LABELS "dxf;fast;adapter;cli")
 endforeach()
 
+add_executable(libdxfrw_numeric_locale_tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/numeric_locale_tests.cpp
+    ${CMAKE_SOURCE_DIR}/dwg2dxf/dx_iface.cpp)
+target_compile_features(libdxfrw_numeric_locale_tests PRIVATE cxx_std_17)
+target_compile_options(libdxfrw_numeric_locale_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+target_include_directories(libdxfrw_numeric_locale_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/dwg2dxf ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(libdxfrw_numeric_locale_tests PRIVATE dxfrw)
+add_test(NAME libdxfrw_numeric_locale COMMAND libdxfrw_numeric_locale_tests)
+add_test(NAME libdxfrw_numeric_process_locale
+    COMMAND libdxfrw_numeric_locale_tests --process-locale)
+set_tests_properties(libdxfrw_numeric_locale libdxfrw_numeric_process_locale
+    PROPERTIES LABELS "dxf;numeric;fast" TIMEOUT 30)
+set_tests_properties(libdxfrw_numeric_process_locale PROPERTIES SKIP_RETURN_CODE 77)
+foreach(_numeric_encoding IN ITEMS ascii binary)
+    set(_numeric_generate --generate)
+    set(_numeric_options "")
+    if(_numeric_encoding STREQUAL "binary")
+        set(_numeric_generate --generate-binary)
+        set(_numeric_options -b)
+    endif()
+    add_test(NAME dwg2dxf_numeric_locale_${_numeric_encoding}_cli
+        COMMAND ${CMAKE_COMMAND}
+            -DADAPTER_TEST=$<TARGET_FILE:libdxfrw_numeric_locale_tests>
+            -DDWG2DXF=$<TARGET_FILE:dwg2dxf>
+            -DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}
+            -DCASE_NAME=numeric-locale-${_numeric_encoding}
+            -DGENERATE_MODE=${_numeric_generate}
+            -DCONVERSION_OPTIONS=${_numeric_options}
+            -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg2dxf_image_path_test.cmake)
+    set_tests_properties(dwg2dxf_numeric_locale_${_numeric_encoding}_cli
+        PROPERTIES LABELS "dxf;numeric;cli;fast" TIMEOUT 30)
+endforeach()
+
 set(_dwg_test_versions AC1021 AC1024 AC1027 AC1032)
 set(_dwg_test_outputs R12 v2000 v2010)
 
