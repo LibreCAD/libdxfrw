@@ -8586,7 +8586,7 @@ bool dxfRW::writeObjects() {
             writer->writeString(5, (*it).first);
             writer->writeString(330, (*it).second);
             writer->writeString(100, "AcDbRasterImageDefReactor");
-            writer->writeInt16(90, 2); //version 2=R14 to v2010
+            writer->writeInt32(90, 2); //version 2=R14 to v2010
             writer->writeString(330, (*it).second);
         }
     }
@@ -8621,7 +8621,7 @@ bool dxfRW::writeObjects() {
         }
         writer->writeString(102, "}");
         writer->writeString(100, "AcDbRasterImageDef");
-        writer->writeInt16(90, id->imgVersion);
+        writer->writeInt32(90, id->imgVersion);
         writer->writeUtf8String(1, id->name);
         writer->writeDouble(10, id->u);
         writer->writeDouble(20, id->v);

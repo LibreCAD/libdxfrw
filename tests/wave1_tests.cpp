@@ -1518,6 +1518,32 @@ void testEntityNumericWireKinds(TestContext& t) {
         });
 }
 
+void testImageObjectNumericWireKinds(TestContext& t) {
+    // Version 0 is the ordinary IMAGEDEF value. Retaining a larger caller-
+    // supplied integer tests the I32 carrier, not native support for that
+    // hypothetical image-definition revision.
+    for (const int imageVersion : {0, 70001, 2147483647}) {
+        expectTypedNumericWire(t, [imageVersion](dxfRW& writer) {
+            ProfileProbeInterface interface_;
+            writer.iface = &interface_;
+            interface_.dxfW = &writer;
+            auto definition = std::make_unique<DRW_ImageDef>();
+            definition->handle = 0x300u;
+            definition->name = "runtime-only.png";
+            definition->imgVersion = imageVersion;
+            definition->u = 32.0;
+            definition->v = 16.0;
+            definition->up = 1.0;
+            definition->vp = 1.0;
+            definition->reactors.emplace("301", "302");
+            writer.imageDef.push_back(definition.release());
+            return writer.writeObjects();
+        }, {"90:2", "330:302", "90:" + std::to_string(imageVersion),
+            "1:runtime-only.png", "10:0x1p+5", "20:0x1p+4"},
+           "generated image OBJECTS typed numeric sentinel writes");
+    }
+}
+
 void testDxfBinaryRawBoundaryReplay(TestContext& t) {
     const DRW_RawDxfObject object = rawBinaryBoundaryObject();
     std::string output;
@@ -6362,6 +6388,7 @@ int main() {
     testCustomTextNumericWireKinds(context);
     testLayoutStyleNumericWireKinds(context);
     testEntityNumericWireKinds(context);
+    testImageObjectNumericWireKinds(context);
     testDxfBinaryRawSectionCaptureReplay(context);
     testDxfBinaryRawObjectCaptureReplay(context);
     testDxfRawObjectHandleScope(context);
