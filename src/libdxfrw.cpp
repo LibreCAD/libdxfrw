@@ -6129,6 +6129,8 @@ bool dxfRW::writeUnderlayDefinition(DRW_UnderlayDefinition *ent) {
     EntityRecordScope scope(*this, ent);
     writer->writeString(0, tag);
     writer->writeString(5, toHexStr(ent->handle));
+    if (!writeTableEntryAppData(*ent))
+        return false;
     writeObjectOwner(static_cast<std::uint32_t>(ent->parentHandle));
     writer->writeString(100, "AcDbUnderlayDefinition");
     writer->writeUtf8String(1, ent->filename);
@@ -7316,6 +7318,8 @@ bool dxfRW::writePointCloudDef(DRW_PointCloudDef *ent) {
     EntityRecordScope scope(*this, ent);
     writer->writeString(0, recordName);
     writer->writeString(5, toHexStr(ent->handle));
+    if (!writeTableEntryAppData(*ent))
+        return false;
     writeObjectOwner(static_cast<std::uint32_t>(ent->parentHandle));
     writer->writeString(100, subclassName);
     writer->writeInt32(90, ent->m_classVersion);
@@ -7349,6 +7353,8 @@ bool dxfRW::writeNavisworksModelDef(DRW_NavisworksModelDef *ent) {
     EntityRecordScope scope(*this, ent);
     writer->writeString(0, "NAVISWORKSMODELDEF");
     writer->writeString(5, toHexStr(ent->handle));
+    if (!writeTableEntryAppData(*ent))
+        return false;
     writeObjectOwner(static_cast<std::uint32_t>(ent->parentHandle));
     writer->writeString(100, "AcDbNavisworksModelDef");
     writer->writeInt16(70, static_cast<std::int16_t>(ent->m_flags));
@@ -7395,6 +7401,8 @@ bool dxfRW::writePointCloudColorMap(DRW_PointCloudColorMap *ent) {
     EntityRecordScope scope(*this, ent);
     writer->writeString(0, "POINTCLOUDCOLORMAP");
     writer->writeString(5, toHexStr(ent->handle));
+    if (!writeTableEntryAppData(*ent))
+        return false;
     writeObjectOwner(static_cast<std::uint32_t>(ent->parentHandle));
     writer->writeString(100, "AcDbPointCloudColorMap");
     writer->writeInt32(90, ent->m_classVersion);
@@ -16274,6 +16282,8 @@ bool dxfRW::writeLayout(DRW_Layout *ent) {
     }
     writer->writeString(0, "LAYOUT");
     writer->writeString(5, toHexStr(handle));
+    if (!writeTableEntryAppData(*ent))
+        return false;
     writeObjectOwner(static_cast<std::uint32_t>(ent->parentHandle));
     writer->writeString(100, "AcDbPlotSettings");
     DRW_PlotSettings plotSettings;
@@ -16615,6 +16625,8 @@ bool dxfRW::writeSun(DRW_Sun *ent) {
     DxfWriterRecordScope record(*writer);
     writer->writeString(0, "SUN");
     writer->writeString(5, toHexStr(ent->handle));
+    if (!writeTableEntryAppData(*ent))
+        return false;
     writeObjectOwner(static_cast<std::uint32_t>(ent->parentHandle));
     writer->writeString(100, "AcDbSun");
     writer->writeInt32(90, static_cast<int>(ent->m_classVersion));
@@ -16649,6 +16661,8 @@ bool dxfRW::writeScale(DRW_Scale *ent) {
     DxfWriterRecordScope record(*writer);
     writer->writeString(0, "SCALE");
     writer->writeString(5, toHexStr(ent->handle));
+    if (!writeTableEntryAppData(*ent))
+        return false;
     writeObjectOwner(static_cast<std::uint32_t>(ent->parentHandle));
     writer->writeString(100, "AcDbScale");
     writer->writeInt16(70, static_cast<int>(ent->flag));
@@ -16675,6 +16689,8 @@ bool dxfRW::writeDictionaryVar(DRW_DictionaryVar *ent) {
     DxfWriterRecordScope record(*writer);
     writer->writeString(0, "DICTIONARYVAR");
     writer->writeString(5, toHexStr(ent->handle));
+    if (!writeTableEntryAppData(*ent))
+        return false;
     writeObjectOwner(static_cast<std::uint32_t>(ent->parentHandle));
     //DICTIONARYVAR uses the literal subclass marker "DictionaryVariables"
     //(NOT "AcDbDictionaryVar"); confirmed against ezdxf 1.4.4.
@@ -16700,6 +16716,8 @@ bool dxfRW::writeRasterVariables(DRW_RasterVariables *ent) {
     DxfWriterRecordScope record(*writer);
     writer->writeString(0, "RASTERVARIABLES");
     writer->writeString(5, toHexStr(ent->handle));
+    if (!writeTableEntryAppData(*ent))
+        return false;
     writeObjectOwner(static_cast<std::uint32_t>(ent->parentHandle));
     writer->writeString(100, "AcDbRasterVariables");
     writer->writeInt32(90, ent->m_classVersion);
@@ -16726,6 +16744,8 @@ bool dxfRW::writeGeoData(DRW_GeoData *ent) {
         return false;
     writer->writeString(0, "GEODATA");
     writer->writeString(5, toHexStr(ent->handle));
+    if (!writeTableEntryAppData(*ent))
+        return false;
     writeObjectOwner(static_cast<std::uint32_t>(ent->parentHandle));
     writer->writeString(100, "AcDbGeoData");
     writer->writeInt32(90, ent->m_version != 0 ? ent->m_version : 3);
@@ -16795,6 +16815,8 @@ bool dxfRW::writeSpatialFilter(DRW_SpatialFilter *ent) {
         return false;
     writer->writeString(0, "SPATIAL_FILTER");
     writer->writeString(5, toHexStr(ent->handle));
+    if (!writeTableEntryAppData(*ent))
+        return false;
     writeObjectOwner(static_cast<std::uint32_t>(ent->parentHandle));
     writer->writeString(100, "AcDbFilter");
     writer->writeString(100, "AcDbSpatialFilter");
@@ -16844,6 +16866,8 @@ bool dxfRW::writeSortEntsTable(DRW_SortEntsTable *ent) {
         return false;
     writer->writeString(0, "SORTENTSTABLE");
     writer->writeString(5, toHexStr(ent->handle));
+    if (!writeTableEntryAppData(*ent))
+        return false;
     writeObjectOwner(static_cast<std::uint32_t>(ent->parentHandle));
     writer->writeString(100, "AcDbSortentsTable");
     writer->writeString(330, toHexStr(ent->m_blockOwnerHandle));
@@ -17011,6 +17035,8 @@ bool dxfRW::writeMLeaderStyle(DRW_MLeaderStyle *ent) {
         return false;
     writer->writeString(0, "MLEADERSTYLE");
     writer->writeString(5, toHexStr(ent->handle));
+    if (!writeTableEntryAppData(*ent))
+        return false;
     writeObjectOwner(static_cast<std::uint32_t>(ent->parentHandle));
     writer->writeString(100, "AcDbMLeaderStyle");
     writer->writeUtf8String(2, ent->name);
@@ -17080,6 +17106,8 @@ bool dxfRW::writeMLineStyle(DRW_MLineStyle *ent) {
         return false;
     writer->writeString(0, "MLINESTYLE");
     writer->writeString(5, toHexStr(ent->handle));
+    if (!writeTableEntryAppData(*ent))
+        return false;
     writeObjectOwner(static_cast<std::uint32_t>(ent->parentHandle));
     writer->writeString(100, "AcDbMlineStyle");
     writer->writeUtf8String(2, ent->name);
@@ -17106,6 +17134,8 @@ bool dxfRW::writeWipeoutVariables(DRW_WipeoutVariables *ent) {
         return false;
     writer->writeString(0, "WIPEOUTVARIABLES");
     writer->writeString(5, toHexStr(ent->handle));
+    if (!writeTableEntryAppData(*ent))
+        return false;
     writeObjectOwner(static_cast<std::uint32_t>(ent->parentHandle));
     writer->writeString(100, "AcDbWipeoutVariables");
     writer->writeInt16(70, ent->m_displayFrame);
@@ -17119,6 +17149,8 @@ bool dxfRW::writeMaterial(DRW_Material *ent) {
         return false;
     writer->writeString(0, "MATERIAL");
     writer->writeString(5, toHexStr(ent->handle));
+    if (!writeTableEntryAppData(*ent))
+        return false;
     writeObjectOwner(static_cast<std::uint32_t>(ent->parentHandle));
     writer->writeString(100, "AcDbMaterial");
     writer->writeUtf8String(1, ent->m_name);
@@ -17136,6 +17168,8 @@ bool dxfRW::writeBackground(DRW_Background *ent, const char *recordName) {
     DxfWriterRecordScope record(*writer);
     writer->writeString(0, recordName);
     writer->writeString(5, toHexStr(ent->handle));
+    if (!writeTableEntryAppData(*ent))
+        return false;
     writeObjectOwner(static_cast<std::uint32_t>(ent->parentHandle));
     switch (ent->m_kind) {
     case DRW_Background::Gradient:
@@ -17218,17 +17252,8 @@ bool dxfRW::writeSunStudy(DRW_SunStudy *ent) {
     writer->writeString(0, "SUNSTUDY");
     writer->writeString(5, toHexStr(ent->handle));
     writeObjectOwner(static_cast<std::uint32_t>(ent->parentHandle));
-    if (!ent->reactorHandles.empty()) {
-        writer->writeString(102, "{ACAD_REACTORS");
-        for (const std::uint32_t reactor : ent->reactorHandles)
-            writer->writeString(330, toHexStr(reactor));
-        writer->writeString(102, "}");
-    }
-    if (ent->xDictHandle != 0) {
-        writer->writeString(102, "{ACAD_XDICTIONARY");
-        writer->writeString(360, toHexStr(ent->xDictHandle));
-        writer->writeString(102, "}");
-    }
+    if (!writeTableEntryAppData(*ent))
+        return false;
     writer->writeString(100, "AcDbSunStudy");
     writer->writeInt32(90, ent->m_classVersion);
     writer->writeUtf8String(1, ent->m_setupName);
@@ -17280,17 +17305,8 @@ bool dxfRW::writeMotionPath(DRW_MotionPath *ent) {
     writer->writeString(0, "MOTIONPATH");
     writer->writeString(5, toHexStr(ent->handle));
     writeObjectOwner(static_cast<std::uint32_t>(ent->parentHandle));
-    if (!ent->reactorHandles.empty()) {
-        writer->writeString(102, "{ACAD_REACTORS");
-        for (const std::uint32_t reactor : ent->reactorHandles)
-            writer->writeString(330, toHexStr(reactor));
-        writer->writeString(102, "}");
-    }
-    if (ent->xDictHandle != 0) {
-        writer->writeString(102, "{ACAD_XDICTIONARY");
-        writer->writeString(360, toHexStr(ent->xDictHandle));
-        writer->writeString(102, "}");
-    }
+    if (!writeTableEntryAppData(*ent))
+        return false;
     writer->writeString(100, "AcDbMotionPath");
     writer->writeInt32(90, ent->m_classVersion);
     writer->writeString(340, toHexStr(ent->m_cameraPathHandle));
@@ -17310,17 +17326,8 @@ bool dxfRW::writeCurvePath(DRW_CurvePath *ent) {
     writer->writeString(0, "ACDBCURVEPATH");
     writer->writeString(5, toHexStr(ent->handle));
     writeObjectOwner(static_cast<std::uint32_t>(ent->parentHandle));
-    if (!ent->reactorHandles.empty()) {
-        writer->writeString(102, "{ACAD_REACTORS");
-        for (const std::uint32_t reactor : ent->reactorHandles)
-            writer->writeString(330, toHexStr(reactor));
-        writer->writeString(102, "}");
-    }
-    if (ent->xDictHandle != 0) {
-        writer->writeString(102, "{ACAD_XDICTIONARY");
-        writer->writeString(360, toHexStr(ent->xDictHandle));
-        writer->writeString(102, "}");
-    }
+    if (!writeTableEntryAppData(*ent))
+        return false;
     writer->writeString(100, "AcDbCurvePath");
     writer->writeInt32(90, ent->m_classVersion);
     writer->writeString(340, toHexStr(ent->m_entityHandle));
@@ -17335,17 +17342,8 @@ bool dxfRW::writePointPath(DRW_PointPath *ent) {
     writer->writeString(0, "ACDBPOINTPATH");
     writer->writeString(5, toHexStr(ent->handle));
     writeObjectOwner(static_cast<std::uint32_t>(ent->parentHandle));
-    if (!ent->reactorHandles.empty()) {
-        writer->writeString(102, "{ACAD_REACTORS");
-        for (const std::uint32_t reactor : ent->reactorHandles)
-            writer->writeString(330, toHexStr(reactor));
-        writer->writeString(102, "}");
-    }
-    if (ent->xDictHandle != 0) {
-        writer->writeString(102, "{ACAD_XDICTIONARY");
-        writer->writeString(360, toHexStr(ent->xDictHandle));
-        writer->writeString(102, "}");
-    }
+    if (!writeTableEntryAppData(*ent))
+        return false;
     writer->writeString(100, "AcDbPointPath");
     writer->writeInt32(90, ent->m_classVersion);
     writer->writeDouble(10, ent->m_point.x);
@@ -17362,17 +17360,8 @@ bool dxfRW::writeObjectPtr(DRW_ObjectPtr *ent) {
     writer->writeString(0, "OBJECTPTR");
     writer->writeString(5, toHexStr(ent->handle));
     writeObjectOwner(static_cast<std::uint32_t>(ent->parentHandle));
-    if (!ent->reactorHandles.empty()) {
-        writer->writeString(102, "{ACAD_REACTORS");
-        for (const std::uint32_t reactor : ent->reactorHandles)
-            writer->writeString(330, toHexStr(reactor));
-        writer->writeString(102, "}");
-    }
-    if (ent->xDictHandle != 0) {
-        writer->writeString(102, "{ACAD_XDICTIONARY");
-        writer->writeString(360, toHexStr(ent->xDictHandle));
-        writer->writeString(102, "}");
-    }
+    if (!writeTableEntryAppData(*ent))
+        return false;
     writer->writeString(100, "AcDbObjectPtr");
     if (!ent->extData.empty() && !writeExtData(ent->extData))
         return false;
@@ -17385,17 +17374,8 @@ bool dxfRW::writePartialViewingIndex(DRW_PartialViewingIndex *ent) {
     writer->writeString(0, "PARTIALVIEWINGINDEX");
     writer->writeString(5, toHexStr(ent->handle));
     writeObjectOwner(static_cast<std::uint32_t>(ent->parentHandle));
-    if (!ent->reactorHandles.empty()) {
-        writer->writeString(102, "{ACAD_REACTORS");
-        for (const std::uint32_t reactor : ent->reactorHandles)
-            writer->writeString(330, toHexStr(reactor));
-        writer->writeString(102, "}");
-    }
-    if (ent->xDictHandle != 0) {
-        writer->writeString(102, "{ACAD_XDICTIONARY");
-        writer->writeString(360, toHexStr(ent->xDictHandle));
-        writer->writeString(102, "}");
-    }
+    if (!writeTableEntryAppData(*ent))
+        return false;
     writer->writeString(100, "AcDbPartialViewingIndex");
     for (const DRW_PartialViewingIndexEntry& entry : ent->m_entries) {
         writer->writeDouble(10, entry.extentsMin.x);
@@ -17420,6 +17400,8 @@ bool dxfRW::writeRenderSettings(DRW_RenderSettings *ent,
         return failDxfWrite();
     writer->writeString(0, recordName);
     writer->writeString(5, toHexStr(ent->handle));
+    if (!writeTableEntryAppData(*ent))
+        return false;
     writeObjectOwner(static_cast<std::uint32_t>(ent->parentHandle));
     switch (ent->m_kind) {
     case DRW_RenderSettings::Global:
@@ -17463,6 +17445,8 @@ bool dxfRW::writeSection(DRW_Section *ent, const char *recordName) {
         return failDxfWrite();
     writer->writeString(0, recordName);
     writer->writeString(5, toHexStr(ent->handle));
+    if (!writeTableEntryAppData(*ent))
+        return false;
     writeObjectOwner(static_cast<std::uint32_t>(ent->parentHandle));
     if (ent->m_kind == DRW_Section::Manager) {
         writer->writeString(100, "AcDbSectionManager");
@@ -17542,6 +17526,8 @@ bool dxfRW::writeDbColor(DRW_DbColor *ent, const char *recordName) {
         return failDxfWrite();
     writer->writeString(0, recordName);
     writer->writeString(5, toHexStr(ent->handle));
+    if (!writeTableEntryAppData(*ent))
+        return false;
     writeObjectOwner(static_cast<std::uint32_t>(ent->parentHandle));
     writer->writeString(100, "AcDbColor");
     if (ent->rgb >= 0)
@@ -17581,6 +17567,8 @@ bool dxfRW::writeDimensionAssociation(DRW_DimensionAssociation *ent) {
                 ? toHexStr(static_cast<std::uint32_t>(ent->parentHandle))
                 : "C");
     }
+    if (!written || !writeTableEntryAppData(*ent))
+        return failDxfWrite();
     written = written && writeString(100, "AcDbDimAssoc");
     if (ent->m_dimensionHandle != 0)
         written = written && writeString(330, toHexStr(ent->m_dimensionHandle));
@@ -17623,6 +17611,8 @@ bool dxfRW::writeEvaluationGraph(DRW_EvaluationGraph *ent,
                       static_cast<std::uint32_t>(ent->parentHandle)))
                 : "C");
     }
+    if (!written || !writeTableEntryAppData(*ent))
+        return failDxfWrite();
     written = written && writeString(100, "AcDbEvalGraph")
         && writer->writeInt32(96, ent->m_value96)
         && writer->writeInt32(97, ent->m_value97);

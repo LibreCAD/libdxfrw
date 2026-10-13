@@ -1481,6 +1481,122 @@ void testCommonAppDataBaseScope(TestContext& t) {
     }
 }
 
+void testTypedObjectCommonMetadata(TestContext& t) {
+    const auto exercise = [&t](const char* family, auto entry, auto emit) {
+        for (const bool binary : {false, true}) {
+            for (const bool retainedGroups : {false, true}) {
+                auto object = entry;
+                object.handle = 0x500u;
+                object.parentHandle = 0x600u;
+                object.reactorHandles = {0x1110u, 0x1111u};
+                object.xDictHandle = 0x2110u;
+                object.appData.push_back({{102, std::string("{OBJECT_META")},
+                    {1, std::string("alpha")}, {70, 7},
+                    {330, std::string("0")}, {320, std::string("1110")},
+                    {340, std::string("2110")}, {102, std::string("}")}});
+                if (retainedGroups) {
+                    // Typed DXF parsing stores an opener without its brace.
+                    // The retained groups must suppress the typed fallbacks.
+                    object.appData.push_back({{102, std::string("ACAD_REACTORS")},
+                        {330, std::string("1110")}, {330, std::string("1111")},
+                        {102, std::string("}")}});
+                    object.appData.push_back({{102, std::string("ACAD_XDICTIONARY")},
+                        {360, std::string("2110")}, {102, std::string("}")}});
+                }
+                t.expect(object.addExtData(std::make_unique<DRW_Variant>(
+                             1001, std::string("OBJECT_META_APP")))
+                             && object.addExtData(std::make_unique<DRW_Variant>(
+                                 1000, std::string("trailing"))),
+                         "object carrier accepts trailing XDATA");
+                std::ostringstream output;
+                dxfRW owner("");
+                owner.version = DRW::AC1032;
+                owner.binFile = binary;
+                owner.setHandleRemap({{0x1110u, 0xA110u}, {0x1111u, 0xA111u},
+                                       {0x2110u, 0xB110u}});
+                if (binary)
+                    owner.writer = std::make_unique<dxfWriterBinary>(&output);
+                else
+                    owner.writer = std::make_unique<dxfWriterAscii>(&output);
+                t.expect(emit(owner, object)
+                             && owner.writer->writeString(0, "WIRE_END"), family);
+                bool ended = false;
+                const auto tags = numericWireProjection(output.str(), binary, ended);
+                t.expect(ended, "common object metadata preserves next-record framing");
+                const auto subclass = std::find_if(tags.begin(), tags.end(),
+                    [](const auto& tag) { return tag.rfind("100:", 0) == 0; });
+                t.expect(subclass != tags.end(), "common object keeps first subclass");
+                for (const char* marker : {"102:{OBJECT_META", "102:{ACAD_REACTORS",
+                                           "102:{ACAD_XDICTIONARY"}) {
+                    const auto found = std::find(tags.begin(), tags.end(), marker);
+                    t.expect(found != tags.end() && found < subclass
+                                 && std::count(tags.begin(), tags.end(), marker) == 1,
+                             "common object group emits once in base scope");
+                }
+                for (const char* value : {"1:alpha", "70:7", "330:0", "320:1110",
+                                          "340:B110", "330:A110", "330:A111",
+                                          "360:B110"}) {
+                    const auto found = std::find(tags.begin(), tags.end(), value);
+                    t.expect(found != tags.end() && found < subclass,
+                             "object common references remap while arbitrary handles do not");
+                }
+                for (const char* stale : {"330:1110", "330:1111", "360:2110", "340:2110"})
+                    t.expect(std::find(tags.begin(), tags.end(), stale) == tags.end(),
+                             "object common metadata contains no stale reference identity");
+                const auto xdata = std::find(tags.begin(), tags.end(),
+                                             "1001:OBJECT_META_APP");
+                t.expect(xdata != tags.end() && xdata > subclass
+                             && tags.end() - xdata == 3
+                             && *(xdata + 1) == "1000:trailing",
+                         "object XDATA remains trailing after body");
+                if (std::string(family) == "XRECORD") {
+                    const auto body = std::find(tags.begin(), tags.end(), "102:EXTNAMES");
+                    t.expect(body != tags.end() && body > subclass && body < xdata
+                                 && *(body + 1) == "1:ordered-body",
+                             "XRECORD body 102 remains application payload in order");
+                }
+            }
+        }
+    };
+    exercise("UNDERLAYDEFINITION", DRW_UnderlayDefinition{}, [](auto& w, auto& e) { return w.writeUnderlayDefinition(&e); });
+    exercise("POINTCLOUDDEF", DRW_PointCloudDef{}, [](auto& w, auto& e) { return w.writePointCloudDef(&e); });
+    exercise("NAVISWORKSMODELDEF", DRW_NavisworksModelDef{}, [](auto& w, auto& e) { return w.writeNavisworksModelDef(&e); });
+    exercise("POINTCLOUDCOLORMAP", DRW_PointCloudColorMap{}, [](auto& w, auto& e) { return w.writePointCloudColorMap(&e); });
+    exercise("PLOTSETTINGS", DRW_PlotSettings{}, [](auto& w, auto& e) { return w.writePlotSettings(&e); });
+    exercise("LAYOUT", DRW_Layout{}, [](auto& w, auto& e) { return w.writeLayout(&e); });
+    exercise("DICTIONARY", DRW_Dictionary{}, [](auto& w, auto& e) { return w.writeDictionary(&e); });
+    DRW_XRecord record;
+    record.m_dataEntries = {{102, std::string("EXTNAMES")}, {1, std::string("ordered-body")}};
+    exercise("XRECORD", record, [](auto& w, auto& e) { return w.writeXRecord(&e); });
+    exercise("SUN", DRW_Sun{}, [](auto& w, auto& e) { return w.writeSun(&e); });
+    exercise("SCALE", DRW_Scale{}, [](auto& w, auto& e) { return w.writeScale(&e); });
+    exercise("DICTIONARYVAR", DRW_DictionaryVar{}, [](auto& w, auto& e) { return w.writeDictionaryVar(&e); });
+    exercise("RASTERVARIABLES", DRW_RasterVariables{}, [](auto& w, auto& e) { return w.writeRasterVariables(&e); });
+    exercise("GEODATA", DRW_GeoData{}, [](auto& w, auto& e) { return w.writeGeoData(&e); });
+    exercise("SPATIAL_FILTER", DRW_SpatialFilter{}, [](auto& w, auto& e) { return w.writeSpatialFilter(&e); });
+    DRW_SortEntsTable sort;
+    sort.m_blockOwnerHandle = 0x600u;
+    exercise("SORTENTSTABLE", sort, [](auto& w, auto& e) { return w.writeSortEntsTable(&e); });
+    exercise("FIELD", DRW_Field{}, [](auto& w, auto& e) { return w.writeField(&e); });
+    exercise("FIELDLIST", DRW_FieldList{}, [](auto& w, auto& e) { return w.writeFieldList(&e); });
+    exercise("MLEADERSTYLE", DRW_MLeaderStyle{}, [](auto& w, auto& e) { return w.writeMLeaderStyle(&e); });
+    exercise("MLINESTYLE", DRW_MLineStyle{}, [](auto& w, auto& e) { return w.writeMLineStyle(&e); });
+    exercise("WIPEOUTVARIABLES", DRW_WipeoutVariables{}, [](auto& w, auto& e) { return w.writeWipeoutVariables(&e); });
+    exercise("MATERIAL", DRW_Material{}, [](auto& w, auto& e) { return w.writeMaterial(&e); });
+    exercise("BACKGROUND", DRW_Background{}, [](auto& w, auto& e) { return w.writeBackground(&e, "SOLIDBACKGROUND"); });
+    exercise("SUNSTUDY", DRW_SunStudy{}, [](auto& w, auto& e) { return w.writeSunStudy(&e); });
+    exercise("MOTIONPATH", DRW_MotionPath{}, [](auto& w, auto& e) { return w.writeMotionPath(&e); });
+    exercise("CURVEPATH", DRW_CurvePath{}, [](auto& w, auto& e) { return w.writeCurvePath(&e); });
+    exercise("POINTPATH", DRW_PointPath{}, [](auto& w, auto& e) { return w.writePointPath(&e); });
+    exercise("OBJECTPTR", DRW_ObjectPtr{}, [](auto& w, auto& e) { return w.writeObjectPtr(&e); });
+    exercise("PARTIALVIEWINGINDEX", DRW_PartialViewingIndex{}, [](auto& w, auto& e) { return w.writePartialViewingIndex(&e); });
+    exercise("RENDERSETTINGS", DRW_RenderSettings{}, [](auto& w, auto& e) { return w.writeRenderSettings(&e, "RENDERSETTINGS"); });
+    exercise("SECTION", DRW_Section{}, [](auto& w, auto& e) { return w.writeSection(&e, "SECTIONMANAGER"); });
+    exercise("DBCOLOR", DRW_DbColor{}, [](auto& w, auto& e) { return w.writeDbColor(&e, "DBCOLOR"); });
+    exercise("DIMASSOC", DRW_DimensionAssociation{}, [](auto& w, auto& e) { return w.writeDimensionAssociation(&e); });
+    exercise("EVALUATIONGRAPH", DRW_EvaluationGraph{}, [](auto& w, auto& e) { return w.writeEvaluationGraph(&e, "ACAD_EVALUATION_GRAPH"); });
+}
+
 void testCustomTextNumericWireKinds(TestContext& t) {
     expectTypedNumericWire(t, [](dxfRW& writer) {
         DRW_RText text;
@@ -6659,6 +6775,7 @@ int main() {
     testEntityNumericWireKinds(context);
     testImageObjectNumericWireKinds(context);
     testCommonAppDataBaseScope(context);
+    testTypedObjectCommonMetadata(context);
     testDxfBinaryRawSectionCaptureReplay(context);
     testDxfBinaryRawObjectCaptureReplay(context);
     testDxfRawObjectHandleScope(context);

@@ -42,6 +42,8 @@ public:
     std::vector<DRW_Material> materials;
     std::vector<DRW_XRecord> xrecords;
     std::vector<DRW_Block_Record> blockRecords;
+    std::vector<DRW_Scale> scales;
+    std::vector<DRW_DictionaryVar> dictionaryVars;
 
     void addBlockRecord(const DRW_Block_Record& value) override {
         blockRecords.push_back(value);
@@ -69,6 +71,14 @@ public:
 
     void addXRecord(const DRW_XRecord& value) override {
         xrecords.push_back(value);
+    }
+
+    void addScale(const DRW_Scale& value) override {
+        scales.push_back(value);
+    }
+
+    void addDictionaryVar(const DRW_DictionaryVar& value) override {
+        dictionaryVars.push_back(value);
     }
 
     /// Point the writer at data that was just read, for a round trip.
@@ -1505,6 +1515,148 @@ void testCanonicalLinetypeCommonScope(TestContext& t) {
     }
 }
 
+bool generateTypedObjectCommonGraphs(const std::filesystem::path& output,
+                                     DRW::Version version, bool binary) {
+    class CommonObjectInterface final : public dx_iface {
+    public:
+        bool emitted{true};
+        void writeHeader(DRW_Header& header) override {
+            dx_iface::writeHeader(header);
+            dxfW->setRootDictEntries({{"COMMON_SCALE", "800"},
+                                      {"COMMON_VARIABLE", "810"}});
+            // Explicit caller-provided translations, not automatic source
+            // identity planning or qualification of the converter's closure.
+            dxfW->setHandleRemap({{0x1110u, 0x800u}, {0x2110u, 0x802u},
+                                  {0x1111u, 0x810u}, {0x2111u, 0x812u}});
+        }
+        void writeObjects() override {
+            for (int branch = 0; branch < 2; ++branch) {
+                const std::uint32_t root = branch == 0 ? 0x800u : 0x810u;
+                DRW_Dictionary dictionary;
+                dictionary.handle = root;
+                dictionary.parentHandle = 0xCu;
+                dictionary.hardOwner = 1;
+                dictionary.m_entries.push_back({"LEAF", root + 1u});
+                emitted = dxfW->writeDictionary(&dictionary) && emitted;
+
+                const auto common = [branch, root](auto& leaf) {
+                    leaf.handle = root + 1u;
+                    leaf.parentHandle = root;
+                    leaf.name = "COMMON_LEAF";
+                    leaf.reactorHandles = {0x1110u + static_cast<std::uint32_t>(branch)};
+                    leaf.xDictHandle = 0x2110u + static_cast<std::uint32_t>(branch);
+                    leaf.appData.push_back({{102, std::string("{OBJECT_META")},
+                        {1, std::string("alpha")}, {70, 7},
+                        {330, branch == 0 ? std::string("1110") : std::string("1111")},
+                        {320, std::string("DEAD")}, {102, std::string("}")}});
+                    if (branch == 1) {
+                        leaf.appData.push_back({{102, std::string("ACAD_REACTORS")},
+                            {330, std::string("1111")}, {102, std::string("}")}});
+                        leaf.appData.push_back({{102, std::string("ACAD_XDICTIONARY")},
+                            {360, std::string("2111")}, {102, std::string("}")}});
+                    }
+                    return leaf.addExtData(std::make_unique<DRW_Variant>(
+                               1001, std::string("OBJECT_META_APP")))
+                        && leaf.addExtData(std::make_unique<DRW_Variant>(
+                               1000, std::string("trailing")));
+                };
+                if (branch == 0) {
+                    DRW_Scale leaf;
+                    leaf.paperUnits = 2.0;
+                    leaf.drawingUnits = 5.0;
+                    emitted = common(leaf) && dxfW->writeScale(&leaf) && emitted;
+                } else {
+                    DRW_DictionaryVar leaf;
+                    leaf.m_value = "COMMON_VALUE";
+                    emitted = common(leaf) && dxfW->writeDictionaryVar(&leaf) && emitted;
+                }
+                DRW_Dictionary extension;
+                extension.handle = root + 2u;
+                extension.parentHandle = root + 1u;
+                extension.hardOwner = 1;
+                extension.m_entries.push_back({"SENTINEL", root + 3u});
+                emitted = dxfW->writeDictionary(&extension) && emitted;
+                DRW_XRecord record;
+                record.handle = root + 3u;
+                record.parentHandle = root + 2u;
+                record.m_cloning = 1;
+                record.m_dataEntries = {{102, std::string("EXTNAMES")},
+                    {1, std::string("ordered-body")}, {320, std::string("DEAD")}};
+                emitted = dxfW->writeXRecord(&record) && emitted;
+            }
+        }
+    } interface_;
+    dx_data source;
+    DRW_AppId application;
+    application.name = "OBJECT_META_APP";
+    source.appIds.push_back(application);
+    for (const char* kind : {"SCALE", "DICTIONARYVAR"}) {
+        DRW_Class definition;
+        if (!dxfRW::dxfClassForRecordName(kind, definition))
+            return false;
+        definition.instanceCount = 1;
+        source.dxfClasses.push_back(definition);
+    }
+    return interface_.fileExport(output.string(), version, binary, &source, false)
+        && interface_.emitted;
+}
+
+void testTypedObjectCommonGraphs(TestContext& t) {
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    for (const DRW::Version version : {DRW::AC1021, DRW::AC1032}) {
+        for (const bool binary : {false, true}) {
+            const auto path = std::filesystem::temp_directory_path()
+                / ("libdxfrw-object-common-" + std::to_string(nonce) + "-"
+                   + std::to_string(static_cast<int>(version))
+                   + (binary ? "-binary.dxf" : "-ascii.dxf"));
+            struct Cleanup {
+                std::filesystem::path path;
+                ~Cleanup() {
+                    std::error_code error;
+                    std::filesystem::remove(path, error);
+                }
+            } cleanup{path};
+            t.expect(generateTypedObjectCommonGraphs(path, version, binary),
+                     "two explicitly mapped common-object graphs export");
+            FixtureInterface reader;
+            dx_data readback;
+            t.expect(reader.fileImport(path.string(), &readback, false),
+                     "closed common-object graphs read through public callbacks");
+            t.expect(reader.scales.size() == 1 && reader.dictionaryVars.size() == 1,
+                     "both graph leaves reach their typed callbacks exactly once");
+            const auto checkLeaf = [&t, &reader](const auto& leaf, std::uint32_t root) {
+                t.expect(leaf.handle == root + 1u && leaf.parentHandle == root
+                             && leaf.reactorHandles == std::vector<std::uint32_t>{root}
+                             && leaf.xDictHandle == root + 2u && leaf.appData.size() == 3,
+                         "common metadata carries translated existing identities once");
+                t.expect(leaf.extData.size() == 2 && leaf.extData[0]->code() == 1001
+                             && leaf.extData[1]->code() == 1000
+                             && std::string(leaf.extData[1]->c_str()) == "trailing",
+                         "closed graph leaf preserves trailing registered XDATA");
+                const auto extension = std::find_if(reader.dictionaries.begin(),
+                    reader.dictionaries.end(), [root](const auto& d) { return d.handle == root + 2u; });
+                t.expect(extension != reader.dictionaries.end()
+                             && extension->parentHandle == leaf.handle
+                             && extension->m_entries.size() == 1
+                             && extension->m_entries.front().m_handle == root + 3u,
+                         "leaf extension resolves to its owned dictionary and child");
+                const auto record = std::find_if(reader.xrecords.begin(), reader.xrecords.end(),
+                    [root](const auto& r) { return r.handle == root + 3u; });
+                t.expect(record != reader.xrecords.end() && record->parentHandle == root + 2u
+                             && record->m_dataEntries.size() == 3
+                             && record->m_dataEntries[0].code() == 102
+                             && record->m_dataEntries[1].code() == 1
+                             && record->m_dataEntries[2].code() == 320,
+                         "closed graph preserves XRECORD body ordering and arbitrary handle");
+            };
+            if (reader.scales.size() == 1)
+                checkLeaf(reader.scales.front(), 0x800u);
+            if (reader.dictionaryVars.size() == 1)
+                checkLeaf(reader.dictionaryVars.front(), 0x810u);
+        }
+    }
+}
+
 void testIncompleteLinetypeExtensionGraphRejected(TestContext& t) {
     dx_data source;
     DRW_LType lineType;
@@ -1650,7 +1802,8 @@ void testUnsafeLinetypeExtensionGraphsRejected(TestContext& t) {
 
 int main(int argc, char** argv) {
     if (argc == 5 && (std::string(argv[1]) == "--generate-table-owners"
-                     || std::string(argv[1]) == "--generate-common-scopes")) {
+                     || std::string(argv[1]) == "--generate-common-scopes"
+                     || std::string(argv[1]) == "--generate-object-common-graphs")) {
         const std::map<std::string, DRW::Version> versions{
             {"R14", DRW::AC1014}, {"R2000", DRW::AC1015},
             {"R2007", DRW::AC1021}, {"R2018", DRW::AC1032}};
@@ -1662,6 +1815,9 @@ int main(int argc, char** argv) {
         if (std::string(argv[1]) == "--generate-table-owners")
             return generateTableOwnerDxf(argv[2], version->second,
                                          encoding == "binary") ? 0 : 1;
+        if (std::string(argv[1]) == "--generate-object-common-graphs")
+            return generateTypedObjectCommonGraphs(argv[2], version->second,
+                                                     encoding == "binary") ? 0 : 1;
         TestContext context;
         const std::filesystem::path output(argv[2]);
         testLinetypeExtensionGraphRoundTrip(context, &output, version->second,
@@ -1685,6 +1841,7 @@ int main(int argc, char** argv) {
     testXRecordVersionedHeaderAndPayload(context);
     testLinetypeExtensionGraphRoundTrip(context);
     testCanonicalLinetypeCommonScope(context);
+    testTypedObjectCommonGraphs(context);
     testIncompleteLinetypeExtensionGraphRejected(context);
     testUnsafeLinetypeExtensionGraphsRejected(context);
     testMTextBackgroundFillAndDefinedHeight(context);
