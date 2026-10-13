@@ -1,4 +1,5 @@
 from conan import ConanFile
+from conan.tools.build import check_min_cppstd
 from conan.tools.cmake import CMake, CMakeToolchain, cmake_layout
 
 
@@ -34,6 +35,11 @@ class LibdxfrwConan(ConanFile):
     def layout(self):
         cmake_layout(self)
 
+    def validate(self):
+        # Public headers use C++17 types; reject older or unspecified consumer
+        # profiles instead of relying on the library's own CMake standard.
+        check_min_cppstd(self, "17")
+
     def generate(self):
         toolchain = CMakeToolchain(self)
         toolchain.variables["BUILD_SHARED_LIBS"] = bool(self.options.shared)
@@ -53,6 +59,7 @@ class LibdxfrwConan(ConanFile):
         cmake.install()
 
     def package_info(self):
+        self.cpp_info.includedirs = ["include/libdxfrw"]
         self.cpp_info.libs = ["dxfrw"]
         self.cpp_info.set_property("cmake_file_name", "libdxfrw")
         self.cpp_info.set_property("cmake_target_name", "libdxfrw::libdxfrw")

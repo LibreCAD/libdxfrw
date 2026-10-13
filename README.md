@@ -49,7 +49,12 @@ cmake -S . -B build -DLIBDXFRW_INSTALL_DEV=OFF
 
 For Conan 2, create the package directly from a checkout:
 
-`conan create . --name libdxfrw --version 2.0.0 -o '&:shared=False'`
+`conan create . --name libdxfrw --version 2.0.0 -s compiler.cppstd=17 -o '&:shared=False'`
+
+The package requires an explicit C++17-or-newer compiler profile. `conan create`
+also builds and, when runnable, executes the fixture-free `test_package`
+consumer through CMakeDeps. Check the shared package separately by selecting
+`-o '&:shared=True'`; a cross-built consumer is not a native runtime result.
 
 See `docs/UPGRADE_SUPPORT.md` for the support and release policy.
 

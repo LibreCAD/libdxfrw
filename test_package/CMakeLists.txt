@@ -1,0 +1,13 @@
+cmake_minimum_required(VERSION 3.28)
+project(libdxfrw_package_test LANGUAGES CXX)
+
+find_package(libdxfrw CONFIG REQUIRED)
+add_executable(package_consumer src/package_consumer.cpp)
+target_link_libraries(package_consumer PRIVATE libdxfrw::libdxfrw)
+target_compile_features(package_consumer PRIVATE cxx_std_17)
+set_target_properties(package_consumer PROPERTIES CXX_EXTENSIONS OFF)
+if(MSVC)
+    target_compile_options(package_consumer PRIVATE /W3 /WX /bigobj)
+else()
+    target_compile_options(package_consumer PRIVATE -Wall -Wextra -pedantic -Werror)
+endif()
