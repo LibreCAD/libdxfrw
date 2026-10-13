@@ -1156,6 +1156,147 @@ void testViewFlagWireKinds(TestContext& t) {
     }
 }
 
+void testIntegerValuedBooleanWireKinds(TestContext& t) {
+    // Preserve the public model's existing values here; this checks wire
+    // framing, not the separate DIMASSOC/MLEADER field-mapping questions.
+    for (int kind = 0; kind != 5; ++kind) {
+        for (const bool binary : {false, true}) {
+            for (const bool flag : {false, true}) {
+                std::ostringstream output;
+                dxfRW owner("");
+                owner.version = kind == 4 ? DRW::AC1021 : DRW::AC1032;
+                owner.binFile = binary;
+                if (binary)
+                    owner.writer = std::make_unique<dxfWriterBinary>(&output);
+                else
+                    owner.writer = std::make_unique<dxfWriterAscii>(&output);
+                bool written = false;
+                int flagCode = 0;
+                int followingCode = 0;
+                if (kind < 2) {
+                    DRW_PointCloudDef definition;
+                    definition.m_kind = kind == 0
+                        ? DRW_PointCloudDef::Definition
+                        : DRW_PointCloudDef::DefinitionEx;
+                    definition.handle = 0x201u;
+                    definition.m_isLoaded = flag;
+                    definition.m_pointCount = 0x123456789abcdefULL;
+                    written = owner.writePointCloudDef(&definition);
+                    flagCode = 280;
+                    followingCode = 160;
+                } else if (kind == 2) {
+                    DRW_Section section;
+                    section.handle = 0x202u;
+                    section.m_kind = DRW_Section::Manager;
+                    section.m_isLive = flag;
+                    section.m_sectionCount = 1;
+                    section.m_sectionHandles.push_back(0x456u);
+                    written = owner.writeSection(&section, "SECTIONMANAGER");
+                    flagCode = 70;
+                    followingCode = 90;
+                } else if (kind == 3) {
+                    DRW_DimensionAssociation association;
+                    association.handle = 0x203u;
+                    association.m_isTransSpace = flag;
+                    association.m_rotatedDimensionType = 2;
+                    association.m_associativityFlags = 1;
+                    DRW_DimensionAssociationOsnapRef ref;
+                    ref.m_className = "AcDbOsnapPointRef";
+                    ref.m_objectHandle = 0x456u;
+                    association.m_osnapRefs.push_back(ref);
+                    written = owner.writeDimensionAssociation(&association);
+                    flagCode = 71;
+                    followingCode = 1;
+                } else {
+                    DRW_MLeader leader;
+                    leader.styleRightAttach = 3;
+                    leader.styleTextAngleType = 2;
+                    DRW_MLeader::ArrowHeadEntry arrow;
+                    arrow.isDefault = flag;
+                    arrow.handle.ref = 0x456u;
+                    arrow.handle.ref64 = arrow.handle.ref;
+                    leader.arrowHeads.push_back(arrow);
+                    written = owner.writeMultiLeader(&leader);
+                    flagCode = 94;
+                    followingCode = 345;
+                }
+                t.expect(written
+                             && owner.writer->writeString(0, "WIRE_END"),
+                         "integer-valued Boolean sentinel writes a full record");
+                std::istringstream input(output.str());
+                std::unique_ptr<dxfReader> reader;
+                if (binary)
+                    reader = std::make_unique<dxfReaderBinary>(&input);
+                else
+                    reader = std::make_unique<dxfReaderAscii>(&input);
+                int code = 0;
+                int seenFlags = 0;
+                bool needFollowing = false;
+                bool sawFollowing = false;
+                bool needAttachmentFollowing = false;
+                bool sawAttachment = false;
+                bool sawAttachmentFollowing = false;
+                bool ended = false;
+                while (reader->readRec(&code)) {
+                    if (needAttachmentFollowing) {
+                        sawAttachmentFollowing = code == 174
+                            && reader->getInt32() == 2;
+                        t.expect(sawAttachmentFollowing,
+                                 "MLEADER 95 width preserves the next attachment tag");
+                        needAttachmentFollowing = false;
+                    }
+                    if (kind == 4 && code == 95) {
+                        sawAttachment = reader->type == dxfReader::INT32
+                            && reader->getInt32() == 3;
+                        t.expect(sawAttachment,
+                                 "MLEADER 95 retains its literal 32-bit value");
+                        needAttachmentFollowing = true;
+                    }
+                    if (needFollowing) {
+                        t.expect(code == followingCode,
+                                 "integer flag width preserves the next group code");
+                        const bool valueMatches = kind < 2
+                            ? reader->type == dxfReader::INT64
+                                && reader->getInt64() == 0x123456789abcdefLL
+                            : kind == 2
+                                ? reader->type == dxfReader::INT32
+                                    && reader->getInt32() == 1
+                                : reader->type == dxfReader::STRING
+                                    && reader->getString()
+                                        == (kind == 3 ? "AcDbOsnapPointRef"
+                                                      : "456");
+                        t.expect(valueMatches,
+                                 "integer flag width preserves the next value");
+                        sawFollowing = code == followingCode && valueMatches;
+                        needFollowing = false;
+                    }
+                    if (code == flagCode) {
+                        ++seenFlags;
+                        t.expect(reader->type == dxfReader::INT32
+                                     && reader->getInt32() == (flag ? 1 : 0),
+                                 "Boolean-valued integer tag retains its literal value");
+                        needFollowing = true;
+                    } else if (code == 0 && reader->getString() == "WIRE_END") {
+                        ended = true;
+                        break;
+                    }
+                }
+                if (seenFlags != 1 || !sawFollowing || !ended)
+                    std::cerr << "integer flag framing: kind=" << kind
+                              << " binary=" << binary << " flag=" << flag
+                              << " flags=" << seenFlags
+                              << " next=" << sawFollowing
+                              << " end=" << ended << '\n';
+                t.expect(seenFlags == 1 && sawFollowing && ended,
+                         "integer-valued Boolean preserves ASCII/binary framing");
+                if (kind == 4)
+                    t.expect(sawAttachment && sawAttachmentFollowing,
+                             "MLEADER integer attachment framing is complete");
+            }
+        }
+    }
+}
+
 void testDxfBinaryRawBoundaryReplay(TestContext& t) {
     const DRW_RawDxfObject object = rawBinaryBoundaryObject();
     std::string output;
@@ -5996,6 +6137,7 @@ int main() {
     testDxfAcdsDataOpaqueSectionCaptureReplay(context);
     testDxfBinaryRawBoundaryReplay(context);
     testViewFlagWireKinds(context);
+    testIntegerValuedBooleanWireKinds(context);
     testDxfBinaryRawSectionCaptureReplay(context);
     testDxfBinaryRawObjectCaptureReplay(context);
     testDxfRawObjectHandleScope(context);

@@ -6833,7 +6833,7 @@ bool dxfRW::writeMultiLeader(DRW_MLeader *ent){
     if (ent->styleBlockHandle.ref != 0)
         writer->writeString(344, toHexStr(ent->styleBlockHandle.ref));
     writer->writeInt16(173, ent->styleLeftAttach);
-    writer->writeInt16(95, ent->styleRightAttach);
+    writer->writeInt32(95, ent->styleRightAttach);
     writer->writeInt16(174, ent->styleTextAngleType);
     writer->writeInt16(175, ent->unknown175);
     writer->writeInt32(92, ent->styleTextColor);
@@ -6860,7 +6860,7 @@ bool dxfRW::writeMultiLeader(DRW_MLeader *ent){
         writer->writeInt16(270, ent->classVersion);
     if (version <= DRW::AC1021) {
         for (const DRW_MLeader::ArrowHeadEntry &entry : ent->arrowHeads) {
-            writer->writeBool(94, entry.isDefault);
+            writer->writeInt32(94, entry.isDefault ? 1 : 0);
             if (entry.handle.ref != 0)
                 writer->writeString(345, toHexStr(entry.handle.ref));
         }
@@ -7184,7 +7184,7 @@ bool dxfRW::writePointCloudDef(DRW_PointCloudDef *ent) {
     if (ent->m_kind == DRW_PointCloudDef::Definition
         || ent->m_kind == DRW_PointCloudDef::DefinitionEx) {
         writer->writeUtf8String(1, ent->m_sourceFilename);
-        writer->writeBool(280, ent->m_isLoaded);
+        writer->writeInt16(280, ent->m_isLoaded ? 1 : 0);
         writer->writeInt64(160, static_cast<std::int64_t>(ent->m_pointCount));
         writer->writeDouble(10, ent->m_extentsMin.x);
         writer->writeDouble(20, ent->m_extentsMin.y);
@@ -17304,7 +17304,7 @@ bool dxfRW::writeSection(DRW_Section *ent, const char *recordName) {
     writeObjectOwner(static_cast<std::uint32_t>(ent->parentHandle));
     if (ent->m_kind == DRW_Section::Manager) {
         writer->writeString(100, "AcDbSectionManager");
-        writer->writeBool(70, ent->m_isLive);
+        writer->writeInt16(70, ent->m_isLive ? 1 : 0);
         writer->writeInt32(90, ent->m_sectionCount);
         for (std::uint32_t handle : ent->m_sectionHandles)
             if (handle != 0)
@@ -17425,7 +17425,7 @@ bool dxfRW::writeDimensionAssociation(DRW_DimensionAssociation *ent) {
     written = written
         && writer->writeInt32(90, static_cast<int>(ent->m_associativityFlags))
         && writer->writeInt16(70, static_cast<int>(ent->m_rotatedDimensionType))
-        && writer->writeBool(71, ent->m_isTransSpace);
+        && writer->writeInt16(71, ent->m_isTransSpace ? 1 : 0);
     for (const DRW_DimensionAssociationOsnapRef &ref : ent->m_osnapRefs) {
         written = written && writeUtf8String(1, ref.m_className)
             && writer->writeInt16(72, static_cast<int>(ref.m_objectOsnapType));
