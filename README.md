@@ -67,6 +67,9 @@ The package requires an explicit C++17-or-newer compiler profile. `conan create`
 also builds and, when runnable, executes the fixture-free `test_package`
 consumer through CMakeDeps. Check the shared package separately by selecting
 `-o '&:shared=True'`; a cross-built consumer is not a native runtime result.
+The CMakeDeps bridge resolves the standard platform Threads dependency.
+Non-CMake Conan generators must provide their platform's threading flags;
+their metadata and native variants remain separately unqualified.
 
 See `docs/UPGRADE_SUPPORT.md` for the support and release policy.
 
@@ -147,6 +150,17 @@ correctly by `dwg2dxf` while FreeCAD reports it as unsupported.
 Installed consumers can use either `find_package(libdxfrw CONFIG REQUIRED)` and
 `libdxfrw::libdxfrw`, or `pkg-config --cflags --libs libdxfrw`. The package is
 relocatable and selects compatible package versions with `SameMajorVersion`.
+For static linking, use `pkg-config --static --cflags --libs libdxfrw` to include
+private platform thread dependencies. CONFIG/MODULE targets propagate Threads.
+`--static` requests dependency closure; it does not force archive selection.
+The staged-package checker requires a fresh single-profile Unix install,
+explicitly binds static consumer links and symbol checks to its archive, and
+tests a generated missing-private-library negative. Versioned shared-library
+symlink aliases are permitted; mixed static/shared prefixes are rejected as a
+checker policy, not a library defect. Runtime-only checks remain compiler-free.
+The opt-in `python3 tools/check_staged_package.py --thread-metadata-self-test`
+checks three forced FindThreads metadata branches with configure/pkg-config
+queries only; it does not build the library or qualify a native platform.
 Relocation applies to relative GNUInstallDirs include/library destinations;
 explicit absolute destinations retain their configured paths and are not
 relocatable. The pkg-config file derives its prefix from its installed location,
