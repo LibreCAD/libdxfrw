@@ -120,6 +120,13 @@ public:
           name(std::move(h.name)),
           curr(h.curr),
           version(h.version),
+          m_dxfHeaderFinalized(h.m_dxfHeaderFinalized),
+          m_dxfSourceVersion(h.m_dxfSourceVersion),
+          m_hasDerivedDimunitAlias(h.m_hasDerivedDimunitAlias),
+          m_dimunitSourceCode(h.m_dimunitSourceCode),
+          m_dimunitSourceValue(h.m_dimunitSourceValue),
+          m_dimunitAliasCode(h.m_dimunitAliasCode),
+          m_dimunitAliasValue(h.m_dimunitAliasValue),
           linetypeCtrl(h.linetypeCtrl),
           layerCtrl(h.layerCtrl),
           styleCtrl(h.styleCtrl),
@@ -133,6 +140,9 @@ public:
           handSeed(h.handSeed),
           m_dwgHandseedBitOffset(h.m_dwgHandseedBitOffset) {
         h.curr = nullptr;
+        h.m_dxfHeaderFinalized = false;
+        h.m_dxfSourceVersion = DRW::UNKNOWNV;
+        h.clearDxfDimunitAliasProvenance();
     }
 
     DRW_Header& operator=(const DRW_Header &h) {
@@ -186,6 +196,27 @@ public:
 
     static int measurement(const int unit);
 
+    /// Highest recognized source DXF declaration accepted during this read.
+    /// A later lower/unknown $ACADVER remains visible in vars but cannot lower
+    /// this value or the reader's structural checks. Fresh/API/DWG headers
+    /// have no DXF declaration and report UNKNOWNV.
+    DRW::Version dxfSourceVersion() const noexcept { return m_dxfSourceVersion; }
+
+    enum class DxfDimunitAliasState {
+        None,        ///< No unchanged derived alias; a present alias is explicit.
+        Derived,     ///< Both legacy source and compatibility alias match capture.
+        StaleSource  ///< Alias is unchanged but its legacy source changed/disappeared.
+    };
+    /// Legacy DXF keeps $DIMUNIT and exposes a derived $DIMLUNIT for existing
+    /// 2D consumers. This is not the split-variable semantic conversion.
+    DxfDimunitAliasState dxfDimunitAliasState() const;
+    /// Public vars permits direct edits. A changed alias is automatically
+    /// explicit; call this for same-value edits that assert modern meaning.
+    /// addInt/addStr/etc. for $DIMLUNIT do this automatically.
+    void clearDxfDimunitAliasProvenance() noexcept {
+        m_hasDerivedDimunitAlias = false;
+    }
+
 protected:
     bool parseCode(int code, const std::unique_ptr<dxfReader>& reader);
     [[nodiscard]] bool parseDwgImpl(DRW::Version version, dwgBuffer *buf,
@@ -201,6 +232,11 @@ protected:
     [[nodiscard]] bool encodeDwg(DRW::Version version, dwgBufferW *buf, dwgBufferW *hBbuf,
                    dwgBufferW *strBuf = nullptr);
 private:
+    bool parseCodeImpl(int code, const std::unique_ptr<dxfReader>& reader,
+                       bool deferText);
+    void finalizeDxfHeader(const std::unique_ptr<dxfReader>& reader);
+    static bool matchesIntVar(const std::unordered_map<std::string, DRW_Variant*>& values,
+                              const char* key, int code, int value);
     template <typename Map>
     static void copyVariantMap(Map& destination, const Map& source) {
         try {
@@ -222,6 +258,13 @@ private:
     void copyScalarStateFrom(const DRW_Header& h) {
         comments = h.comments;
         version = h.version;
+        m_dxfHeaderFinalized = h.m_dxfHeaderFinalized;
+        m_dxfSourceVersion = h.m_dxfSourceVersion;
+        m_hasDerivedDimunitAlias = h.m_hasDerivedDimunitAlias;
+        m_dimunitSourceCode = h.m_dimunitSourceCode;
+        m_dimunitSourceValue = h.m_dimunitSourceValue;
+        m_dimunitAliasCode = h.m_dimunitAliasCode;
+        m_dimunitAliasValue = h.m_dimunitAliasValue;
         linetypeCtrl = h.linetypeCtrl;
         layerCtrl = h.layerCtrl;
         styleCtrl = h.styleCtrl;
@@ -243,6 +286,13 @@ private:
         swap(name, other.name);
         swap(curr, other.curr);
         swap(version, other.version);
+        swap(m_dxfHeaderFinalized, other.m_dxfHeaderFinalized);
+        swap(m_dxfSourceVersion, other.m_dxfSourceVersion);
+        swap(m_hasDerivedDimunitAlias, other.m_hasDerivedDimunitAlias);
+        swap(m_dimunitSourceCode, other.m_dimunitSourceCode);
+        swap(m_dimunitSourceValue, other.m_dimunitSourceValue);
+        swap(m_dimunitAliasCode, other.m_dimunitAliasCode);
+        swap(m_dimunitAliasValue, other.m_dimunitAliasValue);
         swap(linetypeCtrl, other.linetypeCtrl);
         swap(layerCtrl, other.layerCtrl);
         swap(styleCtrl, other.styleCtrl);
@@ -268,6 +318,9 @@ private:
         for (auto it=customVars.begin(); it!=customVars.end(); ++it)
             delete it->second;
         customVars.clear();
+        m_dxfHeaderFinalized = false;
+        m_dxfSourceVersion = DRW::UNKNOWNV;
+        clearDxfDimunitAliasProvenance();
     }
     /// Store v under key in vars, freeing any previously-stored variant
     /// (avoids a leak when a header variable appears more than once).
@@ -277,6 +330,8 @@ private:
             curr = nullptr;
             return;
         }
+        if (key == "$DIMLUNIT")
+            clearDxfDimunitAliasProvenance();
         std::unique_ptr<DRW_Variant> replacement(v);
         auto it = vars.find(key);
         if (it == vars.end()) {
@@ -314,6 +369,13 @@ private:
     std::string name;
     DRW_Variant* curr {nullptr};
     int version; //to use on read
+    bool m_dxfHeaderFinalized {false};
+    DRW::Version m_dxfSourceVersion {DRW::UNKNOWNV};
+    bool m_hasDerivedDimunitAlias {false};
+    int m_dimunitSourceCode {0};
+    int m_dimunitSourceValue {0};
+    int m_dimunitAliasCode {0};
+    int m_dimunitAliasValue {0};
 
     std::uint32_t linetypeCtrl;
     std::uint32_t layerCtrl;

@@ -51,6 +51,11 @@ void DRW_Header::addComment(std::string c){
 }
 
 bool DRW_Header::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
+    return parseCodeImpl(code, reader, false);
+}
+
+bool DRW_Header::parseCodeImpl(int code, const std::unique_ptr<dxfReader>& reader,
+                               bool deferText) {
     if (nullptr == curr && 9 != code) {
         DRW_DBG("invalid header code: ");
         DRW_DBG(code);
@@ -61,12 +66,11 @@ bool DRW_Header::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     switch (code) {
     case 9:
         name = reader->getString();
-        if (version < DRW::AC1015 && name == "$DIMUNIT")
-            name="$DIMLUNIT";
         storeVar(name, new DRW_Variant());
         break;
     case 1:
-        curr->addString(code, reader->getUtf8String());
+        curr->addString(code, deferText && name != "$ACADVER"
+            ? reader->getRawValue() : reader->getUtf8String());
         if (name =="$ACADVER") {
             // An unrecognised $ACADVER is reported, not fatal.  A file with NO
             // $ACADVER reads fine, so refusing one that merely names a revision
@@ -106,23 +110,24 @@ bool DRW_Header::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         }
         break;
     case 2:
-        curr->addString(code, reader->getUtf8String());
+        curr->addString(code, deferText ? reader->getRawValue() : reader->getUtf8String());
         break;
     case 3:
-        curr->addString(code, reader->getUtf8String());
+        curr->addString(code, deferText && name != "$DWGCODEPAGE"
+            ? reader->getRawValue() : reader->getUtf8String());
         if (name =="$DWGCODEPAGE") {
             reader->setCodePage(*curr->content.s);
             curr->addString(code, reader->getCodePage());
         }
         break;
     case 6:
-        curr->addString(code, reader->getUtf8String());
+        curr->addString(code, deferText ? reader->getRawValue() : reader->getUtf8String());
         break;
     case 7:
-        curr->addString(code, reader->getUtf8String());
+        curr->addString(code, deferText ? reader->getRawValue() : reader->getUtf8String());
         break;
     case 8:
-        curr->addString(code, reader->getUtf8String());
+        curr->addString(code, deferText ? reader->getRawValue() : reader->getUtf8String());
         break;
     case 10:
         curr->addCoord(code, DRW_Coord(reader->getDouble(), 0.0, 0.0));
@@ -166,6 +171,67 @@ bool DRW_Header::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     }
 
     return true;
+}
+
+bool DRW_Header::matchesIntVar(
+    const std::unordered_map<std::string, DRW_Variant*>& values,
+    const char* key, int code, int value) {
+    const auto found = values.find(key);
+    return found != values.end() && found->second != nullptr
+        && found->second->type() == DRW_Variant::INTEGER
+        && found->second->code() == code && found->second->content.i == value;
+}
+
+DRW_Header::DxfDimunitAliasState DRW_Header::dxfDimunitAliasState() const {
+    if (!m_hasDerivedDimunitAlias
+        || !matchesIntVar(vars, "$DIMLUNIT", m_dimunitAliasCode, m_dimunitAliasValue))
+        return DxfDimunitAliasState::None;
+    return matchesIntVar(vars, "$DIMUNIT", m_dimunitSourceCode, m_dimunitSourceValue)
+        ? DxfDimunitAliasState::Derived : DxfDimunitAliasState::StaleSource;
+}
+
+void DRW_Header::finalizeDxfHeader(const std::unique_ptr<dxfReader>& reader) {
+    m_dxfSourceVersion = reader->getSourceVersion();
+    // Repeated HEADER sections are invalid source but have historically been
+    // tolerated. Their values keep the old eager interpretation; never decode
+    // already-finalized strings again or fabricate a new source alias.
+    if (m_dxfHeaderFinalized)
+        return;
+    // A legacy version declaration resets the codec. Reapply the final page
+    // after metadata discovery, then decode retained semantic HEADER strings
+    // exactly once. R2007+ DXF still uses UTF-8 regardless of this legacy page.
+    const auto page = vars.find("$DWGCODEPAGE");
+    if (page != vars.end() && page->second != nullptr
+        && page->second->type() == DRW_Variant::STRING)
+        reader->setCodePage(*page->second->content.s);
+    for (auto& item : vars) {
+        DRW_Variant* value = item.second;
+        if (value == nullptr || value->type() != DRW_Variant::STRING
+            || item.first == "$ACADVER" || item.first == "$DWGCODEPAGE")
+            continue;
+        const int code = value->code();
+        if (code == 1 || code == 2 || code == 3 || code == 6 || code == 7 || code == 8)
+            value->addString(code, reader->toUtf8String(*value->content.s));
+    }
+
+    // Preserve physical legacy presence and expose the historical 2D alias
+    // only after the final accepted source revision is known. An explicit
+    // modern field wins even when it happens to equal a default or the alias.
+    clearDxfDimunitAliasProvenance();
+    const auto legacy = vars.find("$DIMUNIT");
+    if (m_dxfSourceVersion != DRW::UNKNOWNV && m_dxfSourceVersion < DRW::AC1015
+        && legacy != vars.end() && legacy->second != nullptr
+        && legacy->second->type() == DRW_Variant::INTEGER
+        && vars.find("$DIMLUNIT") == vars.end()) {
+        const DRW_Variant source(*legacy->second);
+        storeVar("$DIMLUNIT", new DRW_Variant(source));
+        m_dimunitSourceCode = source.code();
+        m_dimunitSourceValue = source.content.i;
+        m_dimunitAliasCode = curr->code();
+        m_dimunitAliasValue = curr->content.i;
+        m_hasDerivedDimunitAlias = true;
+    }
+    m_dxfHeaderFinalized = true;
 }
 
 void DRW_Header::write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ver){

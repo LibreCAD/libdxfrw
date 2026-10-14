@@ -150,18 +150,8 @@ void formatNamedDwgObservations(DwgReadReportBuffer& buffer, const char* label,
 
 DRW::Version sourceVersionFromDxfHeader(
     const DRW_Header& header, DRW::Version fallback) {
-    const auto acadVersion = header.vars.find("$ACADVER");
-    if (acadVersion == header.vars.end() || acadVersion->second == nullptr
-            || acadVersion->second->type() != DRW_Variant::STRING) {
-        return fallback;
-    }
-
-    const std::string value = acadVersion->second->c_str();
-    for (const auto& versionEntry : DRW::dwgVersionStrings) {
-        if (versionEntry.first != nullptr && value == versionEntry.first)
-            return versionEntry.second;
-    }
-    return fallback;
+    const DRW::Version accepted = header.dxfSourceVersion();
+    return accepted == DRW::UNKNOWNV ? fallback : accepted;
 }
 
 void addAcdsSchemaHeader(DRW_RawDxfSection& section, int index,

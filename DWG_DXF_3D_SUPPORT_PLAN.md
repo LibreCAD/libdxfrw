@@ -12,7 +12,8 @@ gate while retaining Declared as the default mode, independently repairing
 declared-codepage decoding/HEADER authority; export encoding and2D projection
 are not recovery switches. The reviewed isolated2f7cc65 chain includes those
 separate prerequisites, exact typed/raw XDATA/APPID assertions and the current
-facade compile, but still needs serial main integration/composed MIF gates.
+facade compile. Canonical codec/HEADER/CLI prerequisites are now integrated;
+the input-mode API still needs its own composed main/facade/MIF gate.
 BLOCK callback and narrow WIPEOUT payload/CLI preservation are integrated;
 the clean bc8f45f composed ASan cohort passes4/4 at its focused scope, not
 native/semantic/ABI qualification or a future-source guarantee.
@@ -42,9 +43,12 @@ current-LibreCAD API chain, with composed MIF controls and no native promotion.
 
 The canonical declared-codec/XDATA prerequisite is now integrated with exact
 raw-count/order negatives and main six-test/strict/lc3/MIF evidence. It does
-not supply the still-isolated HEADER authority or current-LibreCAD input-mode
+not itself supply the separate HEADER authority or current-LibreCAD input-mode
 API. Preserve2D defaults/raw carriers/export roles; the parity ledger binds
 this source separately from bc8 ASan and native/ACDS/semantic evidence.
+HEADER finalization/alias provenance and the accepted-source CLI accessor now
+also pass current-main six focused tests/strict/lc3/MIF gates. The remaining
+input-mode API stays isolated; no native or binary-ABI claim follows.
 
 **Local DXF transport regression (2026-09-28; S2.3.9.4.24):** added a
 runtime-generated AC1027 ASCII and binary REGION-without-history

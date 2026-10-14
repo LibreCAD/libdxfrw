@@ -9,8 +9,8 @@ by current LibreCAD but missing standalone;7AG.1b/Slice3 owns that compile
 gap. Narrow MIF literal/exact-hex, BLOCK callback and WIPEOUT payload/CLI
 preservation are integrated; their clean-checkout ASan cohort passes4/4.
 Narrow authored dictionary admission and canonical declared-codec/XDATA repair
-are integrated with current-main gates; HEADER authority and the input-mode
-API successor still need serial integration.
+and HEADER/accepted-source CLI authority are integrated with current-main
+gates; the reviewed input-mode API successor still needs integration.
 Gates and
 original evidence bindings are recorded below.
 7F.1a observations,7A.2 sort/carrier roles,7AE.1 ASCII-safe bytes,7AV.5
@@ -248,6 +248,7 @@ Its historical binary diff SHA-256 is
 | Current-source readiness research | PLAN_UPDATED / NONPROMOTING | At bc8f45f, records reviewed isolated7AL.2→7L.5→accepted-version CLI→7AG.1b chain and narrow7P.5c admission handoff without integrating them. Extends existing geometry, decoded-modeler budget, qualification-number and external evidence subplans. Exact-count/order/APPID assertions replace a vacuous XDATA preservation test in the isolated chain.118 findings/67 subplans,84/45/exact7 inventories and all six deferred J dispositions remain unchanged. |
 | 7P.5c authored dictionary admission | COMMITTED / ADMISSION_ONLY | `Plan-Slice:7P.5c.admission`, integrates independently reviewed e97769fe on2611ee2. Private ASCII-folded key/nonzero-owning-target preflight covers direct remapped targets, named arrays and authored root/fixed keys before affected mutation. Tolerant raw/import/non-ASCII bytes/null policy retained. Only int-main test-mode conflict; all WIPEOUT modes/ordinary calls preserved. Main seven-step affected library/DXF/graph/CLI build, strict two TUs/lc3, dictionary/WIPEOUT/IMAGE modes and exact DXF/graph2/2 pass2.52s. Report `/private/tmp/libdxfrw-main-dictionary.H3W7D5/report.json` SHA256`f0b9e30efd381eaf1ba6edbdb4540f063103f7df75d268204440606d3c05d460` binds current source/artifacts/patch/JUnit and corrected harness include.68 writes/24 rejection-retry pairs/44 readbacks remain; no registration/payload/API/DWG layout/receipt/support promotion. Generated image/GROUP identities, per-entry roles, Unicode and full graph closure remain open. bc8 ASan stays historical; next reviewed codec/HEADER/current-API chain with composed MIF gates. |
 | 7AL.2 canonical declared encoding | COMMITTED / CODEC_AND_XDATA_SCOPED | `Plan-Slice:7AL.2`, integrates reviewed012ac211 plus test-correction000dc37 on e7618dd. Real CP1252 conversion/modern DXF UTF8 precedence, typed1000/1001/1003 UTF8/scalar/encoded-byte/loss preflight and raw source-byte capture preserve distinct control/binary/handle roles. Exact raw count/order negatives prevent vacuous retention passes. Main41-step affected build plus local/Wave1 targets, strict three TUs/lc3, MIF/dictionary modes and exact six GBK/DXF/hardening/diagnostic/Wave1/local CTests pass5.20s. Report `/private/tmp/libdxfrw-main-text.eeYkHb/canonical-report.json` SHA256`2d3edce16fc4a1c9e871f6ebb22132a6681eddceb5f318c91ebaf2a27c7f330b` binds current source/artifacts/patch/JUnit. Current MIF/BLOCK/WIPEOUT/dictionary controls retained; no new registration/payload/DWG layout/receipt/support promotion. HEADER order, accepted-source CLI and explicit recovery/API remain next serial commits; general CIF/charset/XDATA grammar/native/ABI remain open. |
+| 7L.5 HEADER authority and accepted source | COMMITTED / HEADER_API_SCOPED | `Plan-Slice:7L.5/CLI.source-version`, integrates reviewed32837b1c→30c3649f on4b0e687, retaining canonical/MIF/BLOCK/WIPEOUT/dictionary work. First HEADER text finalizes once after metadata; physical DIMUNIT stays distinct from derived alias with owned provenance/copy/move/reset/edit controls. CLI adapter uses highest accepted source accessor, not last raw spelling. Main43-step affected build/current CLI/lc3, strict four TUs, MIF/dictionary modes and exact six focused CTests pass5.24s. Report `/private/tmp/libdxfrw-main-text.eeYkHb/header-report.json` SHA256`1056928ccf37050d99d0526150b3ecda89af9a96dcf9ad32a6909a433363655f` binds source/artifacts/patch/JUnit; eight version controls exercise actual adapter fileImport, not a separate CLI/native process. Invalid duplicate/unknown HEADER controls remain robustness, not format qualification. Public layout requires consumer rebuild; no new registration/payload/DWG layout/receipt/native/ABI/support promotion. Recovery/API remains next; physical HEADER order/raw spelling/full DIMUNIT split conversion remain separate. |
 
 Each implementation commit appends its focused validation result and remaining
 evidence impact here. All other slices remain queued; the full objective stays
@@ -2590,8 +2591,8 @@ immutable and refresh current bindings at a stable checkpoint.
 
 At bc8f45f the preservation checkpoint is complete: do not rerun it for this
 plan-only update. Narrow7P.5c e97769fe is now integrated with main gates.
-Canonical012ac211/000dc37 is now integrated with main6/6. Next integrate the
-remaining HEADER/accepted-source CLI/current-API commits in reviewed2f7cc65,
+Canonical012ac211/000dc37 and HEADER32837b1c/CLI30c3649f now pass main6/6.
+Next integrate the remaining input-mode API/test successors in reviewed2f7cc65,
 retaining existing MIF/BLOCK/WIPEOUT tests.
 Their shared writer/test hunks require serial composition, not parallel
 cherry-picks. Rebind only affected main fast gates and exact source contracts;
@@ -2610,7 +2611,7 @@ failure does not prevent completing them:
 | --- | --- | --- |
 | 7AG.3a/7BC/MIF, integrated | Preserve typed BLOCK staging, WIPEOUT CLI dispatch and literal MIF behavior; focused composed ASan4/4 binds bc8f45f. | No repeat suite for plan edits. Changed writer/codec integrations retain their affected positive/negative controls; later safety checks need their own source binding. |
 | 7P.5c narrow admission, integrated | Preserve duplicate ASCII-folded key/owning-target rejection in authored direct/named/root routes; per-entry roles/full graph closure remain separate. | Main DXF/graph2/2, strict two TUs/lc3 and dictionary/WIPEOUT/IMAGE modes pass; no peer/native invalid-API prerequisite. |
-| 7AL.2→7L.5→7AG.1b | Canonical codec and exact raw assertions integrated; reviewed remaining HEADER authority, accepted-version CLI and input-only recovery commits stay isolated. Declared remains the default mode; recovery is not a no-op. | Main canonical6/6 and MIF modes pass; affected main HEADER/API/source gates still required. No Qt/native rebuild per codec edit. |
+| 7AL.2→7L.5→7AG.1b | Canonical codec/exact raw assertions and HEADER/accepted-source CLI integrated; reviewed input-only recovery/API successor stays isolated. Declared remains the default mode; recovery is not a no-op. | Main canonical/HEADER6/6 and MIF modes pass; current API/facade gates still required. No Qt/native rebuild per codec edit. |
 | 7AG.1a, integrated | Preserve current common-source cleanup; do not reimplement50157be. | Main ordinary/3D TU/self-tests and170 inventory pass; known two supplements/six target capabilities remain explicit. |
 | 7AG.4 plus7AG.1 capability profile | Preserve committed direct predicates; attest effective driver context, declare/check capabilities, then add the two audited supplementary callbacks. | Direct102 controls pass; controlled-build provenance/header negatives before one paired build. No existing-binary ambient-only proof or blind target-lock/170→172 update. |
 | 7F.1b /7AH | Migrate the typed result/runner together, including optional modeler source presence and readable bounded observations. | Frozen-schema compatibility plus unknown/zero/presence/omission mutations, then clean/partial/opaque read/readback sentinels. |
@@ -2658,7 +2659,7 @@ failure does not prevent completing them:
 | 7AI — bounded graph walk | COUNTS_COMMITTED / PAYLOAD_WORK_ROOTS_PENDING | node/edge/staged/source limits integrated; separate XRECORD slot-inspection allowance pending;7G root expansion separate | tiny fixed-graph/varying-payload cap controls, existing cycle/unchanged-destination tests |
 | 7AJ — polygon-mesh subclass | COMMITTED | ordinary flag16 marker fixed; vertex/grid and compatibility policy unchanged | local/3D main probes; raw-marker/mode controls retained |
 | 7AK.1/2/4/5/6/7 — package and build contracts | COMMITTED / EXTERNAL_PACKAGE_GATES |1/2/4/5/6/7 integrated;6 includes policy-aware/first-discovery selection, not old333-only logic | current-source20-component original/moved static/shared checkpoint passes; native older CMake/Conan/PIC/DLL/ABI gates separately pending |
-| 7AL.1/2 and7L.5 — XDATA text / HEADER order | POINTS_CODEC_COMMITTED / HEADER_API_REVIEWED | point lifecycle/canonical codec/exact raw retention integrated; remaining HEADER/CLI/API chain2f7cc65 reviewed;7K separate | main canonical6/6/strict/lc3/MIF pass; subsequent HEADER/API current-main gates still required |
+| 7AL.1/2 and7L.5 — XDATA text / HEADER order | POINTS_CODEC_HEADER_COMMITTED / INPUT_API_REVIEWED | point lifecycle/canonical codec/exact raw retention and HEADER/CLI source authority integrated; recovery/API chain2f7cc65 reviewed;7K separate | main canonical/HEADER6/6/strict/lc3/MIF pass; current input-API/facade gates still required |
 | 7AM.1/2 — BLOCK/ENDBLK carriers | ISOLATED_COMMIT / API_DESIGN | BLOCK98176504; additive footer design coordinated with7AS.2 | source-only repeat CLI, exact ordered carriers/legacy callback count |
 | 7AN — LAYER field policy | ISOLATED_WIP / MAIN_PENDING | narrow DXF-only validation; shared DWG CMC untouched | DXF/Wave1 signed-color/inheritance/transaction negatives |
 | 7AO — shared runtime attribution | SOURCE_CONFIRMED / GATE_READY | installed library binding and converter-child environment | tiny shadow-library negative, existing shared native open/insert once |
@@ -3630,6 +3631,17 @@ provide an independent version/type cross-check.
    to7BB. A one-pass deferred HEADER design can reuse existing variants without
    a second header-sized raw mirror or rereading the physical record budget.
    Do not weaken highest-known-version structural protection.
+
+   Reviewed successors32837b1c/30c3649f are now integrated on4b0e687, with
+   main six focused tests5.24s, four strict TUs/lc3 and MIF/dictionary modes.
+   Report `/private/tmp/libdxfrw-main-text.eeYkHb/header-report.json`, SHA256
+   `1056928ccf37050d99d0526150b3ecda89af9a96dcf9ad32a6909a433363655f`,
+   binds current source/artifacts/patch/JUnit. Eight actual adapter-import
+   controls retain last raw metadata while using highest accepted source;
+   they are not eight separate CLI process/native runs. Preserve first-HEADER
+   one-pass semantics and explicit invalid repeated-HEADER tolerance. Public
+   layout requires rebuild; recovery/current consumer API is next, not closed
+   by these prerequisites. Historical isolated evidence below is unchanged.
 
    Isolated `e90b9f57` atop canonical7AL.2 `302ce6a7` implements this narrow
    contract: finalize first valid HEADER semantic strings once using the

@@ -3247,6 +3247,381 @@ void testRawXdataTextBytes(TestContext& t) {
     }
 }
 
+class HeaderOrderCapture final : public dx_iface {
+public:
+    DRW_Header value;
+    std::vector<std::string> texts;
+    std::vector<DRW_Line> lines;
+    int headerCount = 0;
+    void addHeader(const DRW_Header* data) override {
+        value = *data;
+        ++headerCount;
+    }
+    void addText(const DRW_Text& data) override { texts.push_back(data.text); }
+    void addLine(const DRW_Line& data) override { lines.push_back(data); }
+};
+
+std::string headerOrderBytes(
+    bool binary, const std::vector<std::pair<int, std::string>>& fields,
+    const std::string& text = "", const std::string& version = "AC1018") {
+    std::ostringstream bytes;
+    if (binary)
+        bytes.write("AutoCAD Binary DXF\r\n\x1A\0", 22);
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&bytes))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&bytes));
+    writer->setVersion(version, true);
+    writer->writeString(0, "SECTION");
+    writer->writeString(2, "HEADER");
+    for (const auto& field : fields) {
+        if (field.first == 70)
+            writer->writeInt16(field.first, std::stoi(field.second));
+        else
+            writer->writeString(field.first, field.second);
+    }
+    writer->writeString(0, "ENDSEC");
+    if (!text.empty()) {
+        writer->writeString(0, "SECTION");
+        writer->writeString(2, "ENTITIES");
+        writer->writeString(0, "TEXT");
+        writer->writeString(5, "A0");
+        writer->writeString(8, "0");
+        writer->writeDouble(10, 1.0);
+        writer->writeDouble(20, 2.0);
+        writer->writeDouble(30, 3.0);
+        writer->writeDouble(40, 2.5);
+        writer->writeString(1, text);
+        writer->writeString(0, "LINE");
+        writer->writeString(5, "A1");
+        writer->writeString(8, "0");
+        writer->writeDouble(10, 4.0);
+        writer->writeDouble(20, 5.0);
+        writer->writeDouble(30, 6.0);
+        writer->writeDouble(11, 7.0);
+        writer->writeDouble(21, 8.0);
+        writer->writeDouble(31, 9.0);
+        writer->writeString(0, "ENDSEC");
+    }
+    writer->writeString(0, "EOF");
+    return bytes.str();
+}
+
+bool headerStringIs(const DRW_Header& header, const char* key,
+                    const std::string& expected) {
+    const auto found = header.vars.find(key);
+    return found != header.vars.end() && found->second != nullptr
+        && found->second->type() == DRW_Variant::STRING
+        && *found->second->content.s == expected;
+}
+
+bool headerIntIs(const DRW_Header& header, const char* key, int expected) {
+    const auto found = header.vars.find(key);
+    return found != header.vars.end() && found->second != nullptr
+        && found->second->type() == DRW_Variant::INTEGER
+        && found->second->content.i == expected;
+}
+
+bool readHeaderOrderFile(const std::string& bytes, HeaderOrderCapture& capture) {
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    const auto path = std::filesystem::temp_directory_path()
+        / ("libdxfrw-header-order-" + std::to_string(nonce) + ".dxf");
+    { std::ofstream output(path, std::ios::binary); output << bytes; }
+    dxfRW reader(path.string().c_str());
+    const bool read = reader.read(&capture, false);
+    std::error_code error;
+    std::filesystem::remove(path, error);
+    return read;
+}
+
+void testHeaderMetadataOrder(TestContext& t) {
+    const std::string legacy("\xC6");
+    const std::string semantic("\xD0\x96");
+    const std::vector<std::vector<std::pair<int, std::string>>> headers{
+        {{9, "$ACADVER"}, {1, "AC1018"}, {9, "$DWGCODEPAGE"}, {3, "ANSI_1251"},
+         {9, "$CLAYER"}, {8, legacy}},
+        {{9, "$DWGCODEPAGE"}, {3, "ANSI_1251"}, {9, "$ACADVER"}, {1, "AC1018"},
+         {9, "$CLAYER"}, {8, legacy}},
+        {{9, "$CLAYER"}, {8, legacy}, {9, "$ACADVER"}, {1, "AC1018"},
+         {9, "$DWGCODEPAGE"}, {3, "ANSI_1251"}},
+        {{9, "$CLAYER"}, {8, semantic}, {9, "$DWGCODEPAGE"}, {3, "ANSI_1251"},
+         {9, "$ACADVER"}, {1, "AC1021"}},
+        {{9, "$DWGCODEPAGE"}, {3, "ANSI_1252"}, {9, "$CLAYER"}, {8, legacy},
+         {9, "$DWGCODEPAGE"}, {3, "ANSI_1251"}, {9, "$ACADVER"}, {1, "AC1018"}}};
+    for (bool binary : {false, true}) {
+        for (std::size_t index = 0; index < headers.size(); ++index) {
+            const bool modern = index == 3;
+            std::string bytes = headerOrderBytes(binary, headers[index],
+                modern ? semantic : legacy, modern ? "AC1021" : "AC1018");
+            HeaderOrderCapture capture;
+            bool read = false;
+            read = readHeaderOrderFile(bytes, capture);
+            t.expect(read && capture.headerCount == 1
+                         && headerStringIs(capture.value, "$CLAYER", semantic)
+                         && capture.texts == std::vector<std::string>{semantic},
+                     "file HEADER text and later TEXT use final metadata in any valid order");
+            t.expect(read && capture.lines.size() == 1
+                         && capture.lines.front().basePoint.x == 4.0
+                         && capture.lines.front().secPoint.z == 9.0,
+                     "file HEADER metadata finalization preserves geometry");
+            if (!binary) {
+                HeaderOrderCapture memory;
+                dxfRW reader(nullptr);
+                t.expect(reader.readAscii(&memory, false, bytes)
+                             && headerStringIs(memory.value, "$CLAYER", semantic)
+                             && memory.texts == std::vector<std::string>{semantic},
+                         "readAscii HEADER and later TEXT agree with file route");
+            }
+        }
+    }
+    for (const std::string version : {"AC1009", "AC1014"}) {
+        for (bool before : {false, true}) {
+            std::vector<std::pair<int, std::string>> fields{
+                {9, "$ACADVER"}, {1, version}};
+            const std::vector<std::pair<int, std::string>> legacyUnit{
+                {9, "$DIMUNIT"}, {70, "4"}};
+            fields.insert(before ? fields.begin() : fields.end(),
+                          legacyUnit.begin(), legacyUnit.end());
+            for (bool binary : {false, true}) {
+                std::string bytes = headerOrderBytes(binary, fields, "", version);
+                HeaderOrderCapture capture;
+                t.expect(readHeaderOrderFile(bytes, capture)
+                             && headerIntIs(capture.value, "$DIMUNIT", 4)
+                             && headerIntIs(capture.value, "$DIMLUNIT", 4)
+                             && capture.value.dxfSourceVersion()
+                                    == (version == "AC1009" ? DRW::AC1009 : DRW::AC1014)
+                             && capture.value.dxfDimunitAliasState()
+                                    == DRW_Header::DxfDimunitAliasState::Derived,
+                         "legacy source and derived alias are independent of HEADER order and wire encoding");
+            }
+        }
+    }
+}
+
+void testHeaderMetadataBoundaries(TestContext& t) {
+    using AliasState = DRW_Header::DxfDimunitAliasState;
+    const std::string legacy("\xC6");
+    const std::string semantic("\xD0\x96");
+    for (bool binary : {false, true}) {
+        // Every currently supported semantic HEADER string role is deferred;
+        // handle390 is deliberately not a text-codepage field.
+        std::vector<std::pair<int, std::string>> fields;
+        const std::vector<int> codes{1, 2, 3, 6, 7, 8};
+        for (int code : codes) {
+            fields.emplace_back(9, "$LOCAL_TEXT_" + std::to_string(code));
+            fields.emplace_back(code, legacy);
+        }
+        fields.insert(fields.end(), {{9, "$ACADVER"}, {1, "AC1018"},
+            {9, "$DWGCODEPAGE"}, {3, "ANSI_1251"},
+            {9, "$LOCAL_HANDLE"}, {390, "A0"}});
+        HeaderOrderCapture capture;
+        t.expect(readHeaderOrderFile(headerOrderBytes(binary, fields), capture),
+                 "all supported HEADER text roles parse with late metadata");
+        for (int code : codes)
+            t.expect(headerStringIs(capture.value,
+                         ("$LOCAL_TEXT_" + std::to_string(code)).c_str(), semantic),
+                     "each deferred semantic HEADER field decodes exactly once");
+        t.expect(headerStringIs(capture.value, "$LOCAL_HANDLE", "A0"),
+                 "HEADER handle spelling is not transcoded as semantic text");
+
+        std::vector<std::pair<int, std::string>> lateMetadata{{9, "$CLAYER"}, {8, legacy}};
+        for (const char* key : {"$PROJECTNAME", "$HYPERLINKBASE", "$MENU", "$STYLESHEET", "$LASTSAVEDBY"}) {
+            lateMetadata.emplace_back(9, key);
+            lateMetadata.emplace_back(1, std::string(230, 'x'));
+        }
+        lateMetadata.insert(lateMetadata.end(), {{9, "$ACADVER"}, {1, "AC1018"},
+            {9, "$DWGCODEPAGE"}, {3, "ANSI_1251"}});
+        HeaderOrderCapture lateCapture;
+        t.expect(readHeaderOrderFile(headerOrderBytes(binary, lateMetadata, legacy), lateCapture)
+                     && headerStringIs(lateCapture.value, "$CLAYER", semantic)
+                     && lateCapture.texts == std::vector<std::string>{semantic},
+                 "metadata beyond independent binary oracle prescan still finalizes local HEADER and TEXT");
+
+        const std::string western("\xE9");
+        HeaderOrderCapture noPage;
+        t.expect(readHeaderOrderFile(headerOrderBytes(binary,
+                     {{9, "$CLAYER"}, {8, western}, {9, "$ACADVER"}, {1, "AC1018"}}, western), noPage)
+                     && headerStringIs(noPage.value, "$CLAYER", u8"é")
+                     && noPage.texts == std::vector<std::string>{u8"é"},
+                 "known legacy source without codepage keeps existing CP1252 fallback");
+
+        // Repeated HEADER sections are invalid DXF, but historically tolerated.
+        // Previously finalized strings must not be decoded a second time.
+        std::string firstHeader = headerOrderBytes(binary,
+            {{9, "$ACADVER"}, {1, "AC1018"}, {9, "$DWGCODEPAGE"}, {3, "ANSI_1251"},
+             {9, "$CLAYER"}, {8, legacy}});
+        const std::string secondHeader = headerOrderBytes(binary,
+            {{9, "$PROJECTNAME"}, {1, legacy}});
+        firstHeader.resize(firstHeader.size() - (binary ? 6u : 8u));
+        firstHeader += secondHeader.substr(binary ? 22u : 0u);
+        HeaderOrderCapture repeated;
+        t.expect(readHeaderOrderFile(firstHeader, repeated) && repeated.headerCount == 2
+                     && headerStringIs(repeated.value, "$CLAYER", semantic)
+                     && headerStringIs(repeated.value, "$PROJECTNAME", semantic),
+                 "tolerated duplicate HEADER does not re-decode prior semantic strings");
+
+        for (int modernValue : {0, 2, 4}) {
+            for (bool modernFirst : {false, true}) {
+                std::vector<std::pair<int, std::string>> units{
+                    {9, "$ACADVER"}, {1, "AC1014"},
+                    {9, "$DIMUNIT"}, {70, "6"}, {9, "$DIMUNIT"}, {70, "4"}};
+                const std::vector<std::pair<int, std::string>> modern{
+                    {9, "$DIMLUNIT"}, {70, std::to_string(modernValue)}};
+                units.insert(modernFirst ? units.begin() : units.end(),
+                             modern.begin(), modern.end());
+                HeaderOrderCapture explicitModern;
+                t.expect(readHeaderOrderFile(headerOrderBytes(binary, units, "", "AC1014"),
+                                               explicitModern)
+                             && headerIntIs(explicitModern.value, "$DIMUNIT", 4)
+                             && headerIntIs(explicitModern.value, "$DIMLUNIT", modernValue)
+                             && explicitModern.value.dxfDimunitAliasState() == AliasState::None,
+                         "last legacy value is retained and explicit modern always wins including zero/default/equal alias");
+            }
+        }
+        for (const std::string finalVersion : {"AC9999", "AC1009"}) {
+            const std::vector<std::pair<int, std::string>> protectedVersion{
+                {9, "$ACADVER"}, {1, "AC1021"}, {9, "$ACADVER"}, {1, finalVersion},
+                {9, "$DIMUNIT"}, {70, "4"}};
+            HeaderOrderCapture protectedCapture;
+            t.expect(readHeaderOrderFile(headerOrderBytes(binary, protectedVersion, "", "AC1021"),
+                                           protectedCapture)
+                         && protectedCapture.value.dxfSourceVersion() == DRW::AC1021
+                         && headerStringIs(protectedCapture.value, "$ACADVER", finalVersion)
+                         && protectedCapture.value.vars.count("$DIMLUNIT") == 0,
+                     "lower/unknown duplicate source declarations cannot fabricate legacy alias interpretation");
+        }
+        for (const std::vector<std::pair<int, std::string>>& metadata : {
+                std::vector<std::pair<int, std::string>>{},
+                std::vector<std::pair<int, std::string>>{{9, "$ACADVER"}, {1, "AC9999"}}}) {
+            auto fieldsWithoutVersion = metadata;
+            fieldsWithoutVersion.insert(fieldsWithoutVersion.end(),
+                {{9, "$DIMUNIT"}, {70, "4"}, {9, "$CLAYER"}, {8, legacy},
+                 {9, "$DWGCODEPAGE"}, {3, "ANSI_1251"}});
+            HeaderOrderCapture unknownCapture;
+            t.expect(readHeaderOrderFile(headerOrderBytes(binary, fieldsWithoutVersion), unknownCapture)
+                         && unknownCapture.value.dxfSourceVersion() == DRW::UNKNOWNV
+                         && unknownCapture.value.vars.count("$DIMLUNIT") == 0
+                         && headerStringIs(unknownCapture.value, "$CLAYER", semantic),
+                     "missing/unknown metadata preserves existing codepage fallback without guessing legacy alias");
+        }
+    }
+
+    dxfRW reusable(nullptr);
+    std::string complete = headerOrderBytes(false, {{9, "$CLAYER"}, {8, legacy},
+        {9, "$DWGCODEPAGE"}, {3, "ANSI_1251"}, {9, "$ACADVER"}, {1, "AC1018"}});
+    const std::size_t records = static_cast<std::size_t>(std::count(complete.begin(), complete.end(), '\n') / 2);
+    for (std::size_t budget : {records - 1, records, records + 1}) {
+        HeaderOrderCapture capture;
+        std::string bytes = complete;
+        reusable.setDxfReadRecordBudget(budget);
+        const bool read = reusable.readAscii(&capture, false, bytes);
+        t.expect(read == (budget >= records),
+                 "one-pass HEADER finalization consumes each physical record exactly once");
+        if (read)
+            t.expect(headerStringIs(capture.value, "$CLAYER", semantic),
+                     "exact record budget still produces finalized callback text");
+    }
+    HeaderOrderCapture partial;
+    std::string truncated = "0\nSECTION\n2\nHEADER\n9\n$CLAYER\n8\n" + legacy + "\n";
+    reusable.setDxfReadRecordBudget(records + 1);
+    t.expect(!reusable.readAscii(&partial, false, truncated) && partial.headerCount == 0,
+             "incomplete HEADER publishes no partial decoded state");
+    HeaderOrderCapture retried;
+    t.expect(reusable.readAscii(&retried, false, complete)
+                 && headerStringIs(retried.value, "$CLAYER", semantic),
+             "failed then successful read reuses no stale deferred HEADER state");
+}
+
+void testHeaderAliasProvenance(TestContext& t) {
+    using AliasState = DRW_Header::DxfDimunitAliasState;
+    std::string bytes = headerOrderBytes(false, {{9, "$DIMUNIT"}, {70, "4"},
+        {9, "$ACADVER"}, {1, "AC1014"}}, "", "AC1014");
+    HeaderOrderCapture capture;
+    dxfRW reader(nullptr);
+    t.expect(reader.readAscii(&capture, false, bytes), "alias provenance source imports");
+    const DRW_Header original(capture.value);
+    DRW_Header copied(original);
+    DRW_Header assigned;
+    assigned = original;
+    DRW_Header moved(std::move(copied));
+    DRW_Header moveAssigned;
+    moveAssigned = std::move(assigned);
+    for (const DRW_Header* value : std::array<const DRW_Header*, 3>{&original, &moved, &moveAssigned})
+        t.expect(value->dxfSourceVersion() == DRW::AC1014
+                     && value->dxfDimunitAliasState() == AliasState::Derived
+                     && headerIntIs(*value, "$DIMUNIT", 4)
+                     && headerIntIs(*value, "$DIMLUNIT", 4),
+                 "copy/move/assignment retain source and alias provenance independently");
+    t.expect(copied.dxfSourceVersion() == DRW::UNKNOWNV
+                 && copied.dxfDimunitAliasState() == AliasState::None
+                 && assigned.dxfSourceVersion() == DRW::UNKNOWNV,
+             "moved-from header does not retain a source/alias claim");
+
+    DRW_Header edited(original);
+    edited.vars.at("$DIMUNIT")->addInt(70, 6);
+    t.expect(edited.dxfDimunitAliasState() == AliasState::StaleSource,
+             "direct legacy edit does not silently promote stale derived alias");
+    edited = original;
+    edited.addInt("$DIMUNIT", 6, 70);
+    t.expect(edited.dxfDimunitAliasState() == AliasState::StaleSource,
+             "helper legacy replacement invalidates source snapshot without guessing alias meaning");
+    edited = original;
+    delete edited.vars.at("$DIMUNIT");
+    edited.vars.erase("$DIMUNIT");
+    t.expect(edited.dxfDimunitAliasState() == AliasState::StaleSource,
+             "removed legacy source is visible as stale derived alias");
+    edited = original;
+    edited.vars.at("$DIMLUNIT")->addInt(70, 2);
+    t.expect(edited.dxfDimunitAliasState() == AliasState::None,
+             "changed direct alias is explicit modern input");
+    edited = original;
+    edited.addInt("$DIMLUNIT", 4, 70);
+    t.expect(edited.dxfDimunitAliasState() == AliasState::None,
+             "same-value helper alias replacement explicitly asserts modern meaning");
+    edited = original;
+    edited.clearDxfDimunitAliasProvenance();
+    t.expect(edited.dxfDimunitAliasState() == AliasState::None
+                 && headerIntIs(edited, "$DIMUNIT", 4) && headerIntIs(edited, "$DIMLUNIT", 4),
+             "same-value direct edit has explicit opt-in without deleting source data");
+    edited = original;
+    edited = DRW_Header{};
+    t.expect(edited.vars.empty() && edited.dxfSourceVersion() == DRW::UNKNOWNV
+                 && edited.dxfDimunitAliasState() == AliasState::None,
+             "reset/from-API header carries no stale DXF provenance");
+}
+
+void testAdapterAcceptedDxfVersion(TestContext& t) {
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    const auto path = std::filesystem::temp_directory_path()
+        / ("libdxfrw-accepted-source-version-" + std::to_string(nonce) + ".dxf");
+    for (const bool binary : {false, true}) {
+        for (const std::string last : {"AC1009", "AC9999", "AC1032"}) {
+            const auto expected = last == "AC1032" ? DRW::AC1032 : DRW::AC1021;
+            const std::string bytes = headerOrderBytes(binary,
+                {{9, "$ACADVER"}, {1, "AC1021"}, {9, "$ACADVER"}, {1, last}},
+                "source-version-control", "AC1021");
+            { std::ofstream output(path, std::ios::binary); output << bytes; }
+            dx_iface adapter;
+            dx_data data;
+            t.expect(adapter.fileImport(path.string(), &data, false)
+                         && data.sourceVersion == expected
+                         && data.headerC.dxfSourceVersion() == expected
+                         && headerStringIs(data.headerC, "$ACADVER", last)
+                         && data.mBlock->ent.size() == 2,
+                     "CLI adapter uses accepted highest source version while retaining last raw metadata");
+        }
+        { std::ofstream output(path, std::ios::binary);
+          output << headerOrderBytes(binary, {}, "absent-source-version"); }
+        dx_iface adapter;
+        dx_data data;
+        t.expect(adapter.fileImport(path.string(), &data, false)
+                     && data.headerC.dxfSourceVersion() == DRW::UNKNOWNV
+                     && data.sourceVersion == DRW::AC1021,
+                 "absent source declaration retains explicit reader-version fallback");
+    }
+    std::error_code error;
+    std::filesystem::remove(path, error);
+}
+
 void testXdataTextWritePolicy(TestContext& t) {
     struct TextPolicyCase {
         int code;
@@ -6771,6 +7146,10 @@ int main(int argc, char** argv) {
     testXdataTextCodecs(context);
     testNamedColorCodecs(context);
     testRawXdataTextBytes(context);
+    testHeaderMetadataOrder(context);
+    testHeaderMetadataBoundaries(context);
+    testHeaderAliasProvenance(context);
+    testAdapterAcceptedDxfVersion(context);
     testXdataTextWritePolicy(context);
     testRawClassEntity(context);
     testEed(context);

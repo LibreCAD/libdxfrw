@@ -9701,6 +9701,7 @@ bool dxfRW::processHeader() {
             sectionstr = reader->getString();
             DRW_DBG(sectionstr); DRW_DBG(" processHeader\n\n");
             if (dxfKeywordEquals(sectionstr, "ENDSEC")) {
+                header.finalizeDxfHeader(reader);
                 iface->addHeader(&header);
                 return true;  //found ENDSEC terminate
             }
@@ -9709,7 +9710,7 @@ bool dxfRW::processHeader() {
             return setError(DRW::BAD_READ_HEADER);
         }
 
-        if (!header.parseCode(code, reader)) {
+        if (!header.parseCodeImpl(code, reader, !header.m_dxfHeaderFinalized)) {
             // An unrecognised $ACADVER no longer fails here, so a failure at
             // this point is a malformed record rather than a version problem
             // and must not be reported as BAD_VERSION: the source version is
