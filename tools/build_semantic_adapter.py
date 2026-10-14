@@ -974,6 +974,137 @@ def _verify_link_closure(
     }
 
 
+def _validate_adapter_compile_options(
+    flag_values: list[str],
+    defines_value: list[object],
+    *,
+    side: str,
+    required_defines: set[str],
+    msvc_style: bool,
+) -> set[str]:
+    """Validate the declared direct option channels, not a compiler engine.
+
+    No downgrade is admitted even if a later flag might reverse it. Critical
+    definitions belong only to the codemodel's defines list: a second -D/-U
+    channel or opaque forwarding/response channel cannot attest that profile.
+    """
+    if side not in {"target", "standalone"}:
+        raise BuildError("semantic adapter compile side is invalid")
+    known_critical = {
+        "LIBDXFRW_SEMANTIC_SIDE_TARGET",
+        "LIBDXFRW_SEMANTIC_SIDE_STANDALONE",
+        "LIBDXFRW_SEMANTIC_ADAPTER_NAME",
+        "LIBDXFRW_SEMANTIC_ADAPTER_PACKAGE",
+        "LIBDXFRW_SEMANTIC_ADAPTER_COMMIT",
+        "LIBDXFRW_SEMANTIC_ADAPTER_SOURCE_DIGEST",
+        "LIBDXFRW_SEMANTIC_ADAPTER_CONFIG_DIGEST",
+        "LIBDXFRW_SEMANTIC_ADAPTER_STATIC_LIBRARY_DIGEST",
+        "LIBDXFRW_SEMANTIC_ADAPTER_BINARY_DIGEST",
+        "LIBDXFRW_SEMANTIC_ADAPTER_LINKED_CLOSURE_DIGEST",
+        "LIBDXFRW_SEMANTIC_3D_CONSUMER_PROBE",
+    }
+    defines: set[str] = set()
+    critical: dict[str, str] = {}
+    for row in defines_value:
+        if not isinstance(row, dict) or not isinstance(row.get("define"), str):
+            raise BuildError("semantic adapter compile definition is malformed")
+        define = row["define"]
+        key = define.partition("=")[0]
+        if not re.fullmatch(r"[A-Za-z_]\w*", key) or "\x00" in define or "\n" in define:
+            raise BuildError("semantic adapter compile definition is malformed")
+        if key.startswith("LIBDXFRW_SEMANTIC_"):
+            if key not in known_critical:
+                raise BuildError("semantic adapter has an undeclared critical definition")
+            if key in critical:
+                raise BuildError("semantic adapter has duplicate critical definitions")
+            critical[key] = define
+        defines.add(define)
+    expected_side = "LIBDXFRW_SEMANTIC_SIDE_" + side.upper()
+    side_keys = {key for key in critical if key.startswith("LIBDXFRW_SEMANTIC_SIDE_")}
+    if side_keys != {expected_side} or critical[expected_side] != expected_side + "=1":
+        raise BuildError("semantic adapter compile side definition is not exclusive")
+    probe = critical.get("LIBDXFRW_SEMANTIC_3D_CONSUMER_PROBE")
+    if probe is not None and probe != "LIBDXFRW_SEMANTIC_3D_CONSUMER_PROBE=1":
+        raise BuildError("semantic adapter probe definition has an unsupported value")
+    if not required_defines.issubset(defines):
+        raise BuildError("semantic adapter compile definitions are stale")
+
+    tokens: list[str] = []
+    for index, fragment in enumerate(flag_values):
+        tokens.extend(_split_command_fragment(
+            fragment, f"adapter compile fragment {index}", reject_ambiguous_quotes=True,
+        ))
+    # Response expansion precedes ordinary option-operand parsing, including
+    # a response token that appears where an include path would otherwise be.
+    if any(token.startswith("@") for token in tokens):
+        raise BuildError("semantic adapter has an unsupported response-file channel")
+    # Only known operand-taking direct options are interpreted. Forwarding,
+    # forced macro inputs and response/config files need another reviewed
+    # contract; never mistake their operands for compiler warning switches.
+    operand_options = {
+        "-I", "-isystem", "-iquote", "-idirafter", "-isysroot", "--sysroot",
+        "-B", "-o", "-arch", "-target", "--target", "-x", "-MF", "-MT", "-MQ", "-MJ",
+        "/I", "/Fo", "-Fo", "/Fd", "-Fd", "/Fp", "-Fp", "/Fe", "-Fe",
+    }
+    direct_options: list[str] = []
+    index = 0
+    while index < len(tokens):
+        token = tokens[index]
+        if (token.startswith(("@", "-Wp,", "-X", "-include", "--include", "-imacros", "--imacros",
+                              "--config", "/FI", "-FI"))
+                or token.lower().startswith(("/clang:", "-clang:"))
+                or token.partition("=")[0] in {
+                    "-Wp", "--for-linker", "--for-assembler",
+                }
+                or token.lower() in {"/link", "-link"}):
+            raise BuildError("semantic adapter has an unsupported opaque compile-option channel")
+        argument = None
+        consumed = 1
+        for prefix in ("-D", "-U", "/D", "/U", "--define-macro", "--undefine-macro"):
+            if token == prefix:
+                if index + 1 >= len(tokens):
+                    raise BuildError("semantic adapter has an incomplete definition option")
+                argument = tokens[index + 1]
+                consumed = 2
+                break
+            attached = prefix + "=" if prefix.startswith("--") else prefix
+            if token.startswith(attached):
+                argument = token[len(attached):]
+                break
+        if argument is not None:
+            key = re.match(r"\s*([A-Za-z_]\w*)", argument)
+            if key is None:
+                raise BuildError("semantic adapter has an unsupported definition operand")
+            if key.group(1).startswith("LIBDXFRW_SEMANTIC_"):
+                raise BuildError("semantic adapter critical definition in compile flags is unsupported")
+            index += consumed
+            continue
+        if token in operand_options:
+            if index + 1 >= len(tokens):
+                raise BuildError("semantic adapter has an incomplete compile-option operand")
+            index += 2
+            continue
+        direct_options.append(token)
+        index += 1
+
+    for token in direct_options:
+        if (token.startswith("-Wno-error")
+                or token in {"-w", "--no-warnings", "-Wno-everything"}
+                or token in {"/WX-", "-WX-", "/w", "/W0", "-W0"}):
+            raise BuildError("semantic adapter compile flags downgrade warning enforcement")
+        if ((token.lower().startswith("/wx") and token != "/WX")
+                or token.startswith("-WX")):
+            raise BuildError("semantic adapter has an unsupported warning-error option")
+        if token.startswith("-Werror") and token != "-Werror" and not token.startswith("-Werror="):
+            raise BuildError("semantic adapter has an unsupported warning-error option")
+    if msvc_style:
+        if "/WX" not in direct_options or "/bigobj" not in direct_options:
+            raise BuildError("MSVC-style semantic adapter lacks exact /WX or /bigobj")
+    elif "-Werror" not in direct_options:
+        raise BuildError("semantic adapter compile lacks exact global -Werror")
+    return defines
+
+
 def _verify_adapter_compile_contract(
     *,
     build_tree: Path,
@@ -1030,31 +1161,18 @@ def _verify_adapter_compile_contract(
     fragments = group.get("compileCommandFragments")
     if not isinstance(fragments, list):
         raise BuildError("semantic adapter compile flags are absent")
-    flag_values = [
-        row.get("fragment")
-        for row in fragments
-        if isinstance(row, dict) and isinstance(row.get("fragment"), str)
-    ]
-    combined_flags = " ".join(flag_values)
+    if any(not isinstance(row, dict) or not isinstance(row.get("fragment"), str)
+           for row in fragments):
+        raise BuildError("semantic adapter compile fragment is malformed")
+    flag_values = [row["fragment"] for row in fragments]
     cmake_identity = _cmake_metadata(build_tree, cmake_program, configuration)
     msvc_style = (
         cmake_identity["compilerId"] == "MSVC"
         or cmake_identity["compilerFrontendVariant"] == "MSVC"
     )
-    lower_flags = combined_flags.lower()
-    if msvc_style:
-        if "/wx" not in lower_flags or "/bigobj" not in lower_flags:
-            raise BuildError("MSVC-style semantic adapter lacks /WX or /bigobj")
-    elif "-Werror" not in combined_flags:
-        raise BuildError("semantic adapter compile does not enforce warning errors")
     defines_value = group.get("defines")
     if not isinstance(defines_value, list):
         raise BuildError("semantic adapter compile definitions are absent")
-    defines = {
-        row.get("define")
-        for row in defines_value
-        if isinstance(row, dict) and isinstance(row.get("define"), str)
-    }
     side_macro = (
         "LIBDXFRW_SEMANTIC_SIDE_TARGET=1"
         if side == "target"
@@ -1072,8 +1190,10 @@ def _verify_adapter_compile_contract(
         required_defines.add(
             f'LIBDXFRW_SEMANTIC_ADAPTER_CONFIG_DIGEST="{config_digest}"'
         )
-    if not required_defines.issubset(defines):
-        raise BuildError("semantic adapter compile definitions are stale")
+    defines = _validate_adapter_compile_options(
+        flag_values, defines_value, side=side,
+        required_defines=required_defines, msvc_style=msvc_style,
+    )
     identity = {
         "schema": 1,
         "sourceDigest": _sha256_file(adapter_source),
@@ -1185,11 +1305,21 @@ def _verify_interface_contract(interface_header: Path,
     }
 
 
-def _split_command_fragment(fragment: str, label: str) -> list[str]:
+def _split_command_fragment(fragment: str, label: str, *,
+                            reject_ambiguous_quotes: bool = False) -> list[str]:
     try:
         tokens = shlex.split(fragment, posix=os.name != "nt")
     except ValueError as exc:
         raise BuildError(f"cannot parse {label}: {exc}") from exc
+    # shlex's non-POSIX mode is not a Windows compiler command-line parser:
+    # joined quoted /D or /I operands containing spaces can be split apart.
+    # Decline that ambiguity and escaped-quote forms for compile attestation,
+    # before stripping quotes; a backslash-quote may be literal on Windows.
+    # Existing identity/profile callers retain their historical tokenization.
+    if (reject_ambiguous_quotes and os.name == "nt"
+            and (re.search(r'\\+"', fragment)
+                 or any(token.count('"') % 2 for token in tokens))):
+        raise BuildError(f"cannot attest ambiguous Windows quoting in {label}")
     return [token.strip('"') if os.name == "nt" else token for token in tokens]
 
 
@@ -2469,7 +2599,174 @@ def _self_test_standalone_build(
     return cmake_file, build_tree, executable, library
 
 
+def _self_test_adapter_compile_options() -> None:
+    name = 'LIBDXFRW_SEMANTIC_ADAPTER_NAME="probe"'
+    target = "LIBDXFRW_SEMANTIC_SIDE_TARGET=1"
+    standalone = "LIBDXFRW_SEMANTIC_SIDE_STANDALONE=1"
+    base = [{"define": target}, {"define": name}]
+
+    def validate(flags: list[str], rows: list[object] | None = None,
+                 *, side: str = "target", msvc: bool = False) -> set[str]:
+        expected_side = "LIBDXFRW_SEMANTIC_SIDE_" + side.upper() + "=1"
+        return _validate_adapter_compile_options(
+            flags, base if rows is None else rows, side=side,
+            required_defines={expected_side, name}, msvc_style=msvc,
+        )
+
+    valid = [
+        ("GNU ordinary", ["-O3 -DNDEBUG -Wall -Wextra -Werror -std=c++17"], False),
+        ("GNU ordered", ["-Werror -O0 -Werror=unused-variable -Wno-unused-parameter"], False),
+        ("ordinary warning not MSVC WX", ["-Werror -Wextra -Wxor-used-as-pow"], False),
+        ("quoted path", ['-I "/tmp/SDK with spaces" -Werror'], False),
+        ("embedded text plus real flag", ['-D NOTE="-Werror" -Werror'], False),
+        ("long ordinary define", ["--define-macro=NOTE=-Werror -Werror"], False),
+        ("split ordinary define", ["-D", "NOTE=ok -Werror"], False),
+        ("cross-fragment quoted path", ["-I", '"/tmp/SDK with spaces"', "-Werror"], False),
+        ("MSVC ordinary", ["/W3 /WX /bigobj /EHsc /MD /O2"], True),
+        ("MSVC ordered", ["/bigobj /O2 /WX /diagnostics:caret /DNOTE=/WX"], True),
+        ("MSVC quoted path", ['/I "C:\\SDK with spaces" /WX /bigobj'], True),
+    ]
+    for label, flags, msvc in valid:
+        if validate(flags, msvc=msvc) != {target, name}:
+            raise BuildError(f"self-test changed valid compile identity: {label}")
+    for msvc, flags in ((False, ["-Werror"]), (True, ["/WX /bigobj"])):
+        if validate(flags, [{"define": standalone}, {"define": name}],
+                    side="standalone", msvc=msvc) != {standalone, name}:
+            raise BuildError("self-test changed valid standalone compile identity")
+    if validate(["-Werror"], base + [{"define": "NDEBUG"}, {"define": "NDEBUG"}]) != {
+        target, name, "NDEBUG"
+    }:
+        raise BuildError("self-test changed noncritical definition normalization")
+
+    bad_definitions = [
+        ("both side macros", base + [{"define": standalone}]),
+        ("opposite side zero", base + [{"define": "LIBDXFRW_SEMANTIC_SIDE_STANDALONE=0"}]),
+        ("wrong side only", [{"define": standalone}, {"define": name}]),
+        ("side zero", [{"define": "LIBDXFRW_SEMANTIC_SIDE_TARGET=0"}, {"define": name}]),
+        ("side absent", [{"define": name}]),
+        ("duplicate side", base + [{"define": target}]),
+        ("conflicting side", base + [{"define": "LIBDXFRW_SEMANTIC_SIDE_TARGET=0"}]),
+        ("duplicate name", base + [{"define": name}]),
+        ("conflicting name", base + [{"define": 'LIBDXFRW_SEMANTIC_ADAPTER_NAME="other"'}]),
+        ("unknown side", base + [{"define": "LIBDXFRW_SEMANTIC_SIDE_OTHER=1"}]),
+        ("unknown profile", base + [{"define": "LIBDXFRW_SEMANTIC_PROFILE_OTHER=1"}]),
+        ("unknown identity key", base + [{"define": "LIBDXFRW_SEMANTIC_ADAPTER_OTHER=1"}]),
+        ("probe zero", base + [{"define": "LIBDXFRW_SEMANTIC_3D_CONSUMER_PROBE=0"}]),
+        ("malformed row", base + [None]),
+        ("malformed value", base + [{"define": 1}]),
+        ("missing value", base + [{}]),
+        ("whitespace critical key", base + [{"define": " LIBDXFRW_SEMANTIC_SIDE_STANDALONE=1"}]),
+    ]
+    for label, rows in bad_definitions:
+        try:
+            validate(["-Werror"], rows)
+        except BuildError:
+            pass
+        else:
+            raise BuildError(f"self-test accepted invalid compile definitions: {label}")
+
+    bad_flags = [
+        ("global absent", ["-Wall"], False),
+        ("specific only", ["-Werror=unused-variable"], False),
+        ("embedded only", ["-DNOTE=-Werror"], False),
+        ("split embedded only", ["-D", '"-Werror"'], False),
+        ("path operand only", ["-I", '"-Werror"'], False),
+        ("global demotion", ["-Werror -Wno-error"], False),
+        ("reordered global demotion", ["-Wno-error -Werror"], False),
+        ("specific demotion", ["-Werror -Wno-error=unused-variable"], False),
+        ("reordered specific demotion", ["-Wno-error=unused-variable -Werror"], False),
+        ("global suppression", ["-Werror -w"], False),
+        ("long global suppression", ["-Werror --no-warnings"], False),
+        ("Clang global suppression", ["-Werror -Wno-everything"], False),
+        ("unknown error switch", ["-Werror -Werror-other"], False),
+        ("MSVC negative only", ["/WX- /bigobj"], True),
+        ("MSVC demotion", ["/WX /WX- /bigobj"], True),
+        ("MSVC reordered demotion", ["/WX- /WX /bigobj"], True),
+        ("MSVC dash demotion", ["/WX -WX- /bigobj"], True),
+        ("MSVC suppression", ["/WX /w /bigobj"], True),
+        ("MSVC level zero", ["/WX /W0 /bigobj"], True),
+        ("MSVC wrong case", ["/wx /bigobj"], True),
+        ("MSVC unknown case with real flag", ["/WX /wx /bigobj"], True),
+        ("MSVC bigobj wrong case", ["/WX /BIGOBJ"], True),
+        ("MSVC undocumented plus", ["/WX+ /bigobj"], True),
+        ("linker specific setting", ["/WX /WX:4001 /bigobj"], True),
+        ("MSVC embedded only", ["/DNOTE=/WX /bigobj"], True),
+        ("MSVC linker boundary", ["/link /WX /bigobj"], True),
+        ("linker operand", ["-Xlinker -Werror"], False),
+        ("long linker operand", ["--for-linker -Werror"], False),
+        ("joined long linker operand", ["--for-linker=-Werror"], False),
+        ("assembler operand", ["-Xassembler -Werror"], False),
+        ("long assembler operand", ["--for-assembler -Werror"], False),
+        ("joined assembler without global", ["--for-assembler=-Werror"], False),
+        ("joined assembler with global", ["-Werror --for-assembler=-Wno-error"], False),
+        ("critical joined define", ["-DLIBDXFRW_SEMANTIC_SIDE_TARGET=0 -Werror"], False),
+        ("critical split define", ["-D", "LIBDXFRW_SEMANTIC_SIDE_TARGET=1 -Werror"], False),
+        ("critical joined undefine", ["-ULIBDXFRW_SEMANTIC_SIDE_TARGET -Werror"], False),
+        ("critical split undefine", ["-U LIBDXFRW_SEMANTIC_ADAPTER_NAME -Werror"], False),
+        ("critical long define", ["--define-macro=LIBDXFRW_SEMANTIC_SIDE_TARGET=1 -Werror"], False),
+        ("critical long undefine", ["--undefine-macro LIBDXFRW_SEMANTIC_SIDE_TARGET -Werror"], False),
+        ("critical MSVC define", ["/DLIBDXFRW_SEMANTIC_SIDE_TARGET=0 /WX /bigobj"], True),
+        ("critical MSVC undefine", ["/U", "LIBDXFRW_SEMANTIC_ADAPTER_NAME /WX /bigobj"], True),
+        ("response file", ["@options.rsp -Werror"], False),
+        ("response in path operand", ["-I @options.rsp -Werror"], False),
+        ("preprocessor forwarding", ["-Wp,-DLIBDXFRW_SEMANTIC_SIDE_TARGET=0 -Werror"], False),
+        ("preprocessor operand", ["-Xpreprocessor -Werror"], False),
+        ("compiler forwarding", ["-Xclang -Werror"], False),
+        ("joined compiler forwarding", ["-Werror -Xclang=-Wno-error"], False),
+        ("compiler assembler forwarding", ["-Xclangas -Werror"], False),
+        ("architecture-scoped forwarding", ["-Xarch_x86_64 -Werror"], False),
+        ("offload-target forwarding", ["-Xopenmp-target=x86_64 -Werror"], False),
+        ("unknown forwarding channel", ["-Werror -Xunreviewed=options"], False),
+        ("clang-cl late forwarding", ["/WX /bigobj /clang:-Wno-error"], True),
+        ("clang-cl dash late forwarding", ["/WX /bigobj -clang:-Wno-error"], True),
+        ("forced include", ["-include macros.h -Werror"], False),
+        ("long forced include", ["--include=macros.h -Werror"], False),
+        ("forced macros", ["-imacros macros.h -Werror"], False),
+        ("MSVC forced include", ["/FImacros.h /WX /bigobj"], True),
+        ("opaque configuration", ["--config=options.cfg -Werror"], False),
+        ("incomplete define", ["-Werror -D"], False),
+        ("incomplete path", ["-Werror -I"], False),
+    ]
+    for label, flags, msvc in bad_flags:
+        try:
+            validate(flags, msvc=msvc)
+        except BuildError:
+            pass
+        else:
+            raise BuildError(f"self-test accepted invalid compile flags: {label}")
+    try:
+        validate(["-Werror"], side="other")
+    except BuildError:
+        pass
+    else:
+        raise BuildError("self-test accepted an invalid compile side")
+
+    # Exercise the Windows splitter on every host, not just MSVC-looking
+    # flags passed through the current host's POSIX grammar. No native build
+    # or Windows execution is implied by these dependency-free controls.
+    from unittest.mock import patch
+    with patch.object(os, "name", "nt"):
+        for flags in (["/WX /bigobj"],
+                      ['/I "C:\\SDK with spaces" /WX /bigobj'],
+                      ['"/WX" "/bigobj"'],
+                      ['/DNOTE="/WX" /WX /bigobj']):
+            validate(flags, msvc=True)
+        for flags in (['/DNOTE="/WX /bigobj" /WX'],
+                      [r'/DNOTE="a\" /WX /bigobj b\"" /WX'],
+                      ['/I"C:\\SDK /WX /bigobj" /WX'],
+                      ['/I "C:\\SDK /WX /bigobj" /WX'],
+                      ['/DNOTE="/WX" /bigobj'],
+                      ['/I @options.rsp /WX /bigobj']):
+            try:
+                validate(flags, msvc=True)
+            except BuildError:
+                pass
+            else:
+                raise BuildError("self-test accepted a Windows operand as compile enforcement")
+
+
 def self_test(git_program: str, cmake_program: str) -> None:
+    _self_test_adapter_compile_options()
     # Exercise the actual source, not only the synthetic one-callback fixture.
     # This slice preserves the frozen common170 surface; the two additive
     # standalone callbacks need a separately versioned inventory contract.
