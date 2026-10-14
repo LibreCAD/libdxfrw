@@ -999,7 +999,8 @@ struct TableOwnerRecord {
 bool readTableOwnerRecords(const std::filesystem::path& path, bool binary,
                            std::vector<TableOwnerRecord>& records,
                            bool retainCoordinatePresence = false,
-                           bool allowWideHandles = false) {
+                           bool allowWideHandles = false,
+                           bool retainDictionaryEntries = false) {
     std::ifstream stream(path, std::ios::binary);
     if (!stream)
         return false;
@@ -1033,13 +1034,203 @@ bool readTableOwnerRecords(const std::filesystem::path& path, bool binary,
                 // defaults or repair an object graph.
                 records.back().groups.emplace_back(
                     code, std::to_string(reader->getInt32()));
-            } else if (code == 1 || code == 2 || code == 5 || code == 105
+            } else if ((retainDictionaryEntries && (code == 3 || code == 350))
+                || code == 1 || code == 2 || code == 5 || code == 105
                 || code == 100 || code == 102 || code == 330 || code == 331 || code == 340 || code == 360
                 || code == 1000 || code == 1001 || code == 1005)
                 records.back().groups.emplace_back(code, reader->getString());
         }
     }
     return false;
+}
+
+void testDictionaryKeyAdmission(TestContext& t) {
+    class DictionaryInterface final : public dx_iface {
+    public:
+        void attach(dx_data& data) { cData = &data; currentBlock = data.mBlock; }
+        void writeEntities() override {
+            if (withImage) {
+                DRW_Image image;
+                image.sizeu = image.sizev = 8;
+                image.secPoint = {1, 0, 0};
+                image.vVector = {0, 1, 0};
+                imageWritten = dxfW->writeImage(&image, "dictionary-key-control.png") != nullptr;
+            }
+        }
+        void writeObjects() override {
+            ++objectCalls;
+            before = dxfW->highWaterHandle();
+            if (route == 0) written = dxfW->writeDictionary(&dictionary);
+            else if (rawRoute) written = dxfW->writeRawDxfObject(&raw);
+            else written = true;
+            after = dxfW->highWaterHandle();
+            if (!written) return;
+            std::set<std::uint32_t> emitted;
+            for (const auto& entry : dictionary.m_entries) {
+                if (!emitted.insert(entry.m_handle).second) continue;
+                DRW_Scale scale;
+                scale.handle = entry.m_handle;
+                scale.parentHandle = route == 2 ? 0xCu : dictionary.handle;
+                scale.name = "target label " + std::to_string(entry.m_handle);
+                written = dxfW->writeScale(&scale) && written;
+            }
+        }
+        DRW_Dictionary dictionary;
+        DRW_RawDxfObject raw;
+        int route = 0, objectCalls = 0;
+        bool written = false, withImage = false, imageWritten = true, rawRoute = false;
+        std::uint32_t before = 0, after = 0;
+    };
+    const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
+    const auto path = std::filesystem::temp_directory_path()
+        / ("libdxfrw-dictionary-keys-" + std::to_string(stamp) + ".dxf");
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() { std::error_code error; std::filesystem::remove(path, error); }
+    } cleanup{path};
+    const auto contents = [&]() {
+        std::ifstream input(path, std::ios::binary);
+        return std::string(std::istreambuf_iterator<char>(input), {});
+    };
+    const auto entriesOf = [](const std::vector<TableOwnerRecord>& records,
+                              const std::string& handle) {
+        std::vector<std::pair<int, std::string>> entries;
+        for (const auto& record : records) {
+            if (record.kind != "DICTIONARY" || groupValue(record.groups, 5) != handle) continue;
+            for (const auto& group : record.groups)
+                if (group.first == 3 || group.first == 350 || group.first == 360)
+                    entries.push_back(group);
+        }
+        return entries;
+    };
+    for (bool binary : {false, true}) {
+        for (int route : {0, 1, 2}) {
+            const int caseCount = route == 2 ? 8 : route == 0 ? 6 : 5;
+            for (int kind = 0; kind != caseCount; ++kind) {
+                const std::string cell = " route" + std::to_string(route) + " case" + std::to_string(kind)
+                    + (binary ? " binary" : " ASCII");
+                dx_data data;
+                DictionaryInterface adapter;
+                adapter.attach(data);
+                adapter.route = route;
+                adapter.dictionary.handle = 0x900u;
+                adapter.dictionary.parentHandle = 0xCu;
+                adapter.dictionary.hardOwner = 1;
+                adapter.dictionary.m_entries = {{"Alpha", 0x901u}, {"Beta", 0x902u}};
+                if (kind == 1) adapter.dictionary.m_entries[1].m_name = "Alpha";
+                if (kind == 2) adapter.dictionary.m_entries[1].m_name = "aLPHa";
+                if (kind == 3) adapter.dictionary.m_entries[1].m_handle = 0x901u;
+                if (kind == 4) {
+                    adapter.dictionary.m_entries[0].m_name = "É";
+                    adapter.dictionary.m_entries[1].m_name = "é";
+                }
+                if (route == 2 && kind >= 5)
+                    adapter.dictionary.m_entries[0].m_name = kind == 5 ? "acad_group" : "acad_image_dict";
+                adapter.withImage = route == 2 && kind == 6;
+                const auto original = adapter.dictionary;
+                const std::string filename = path.string();
+                dxfRW writer(filename.c_str());
+                adapter.dxfW = &writer;
+                const auto configure = [&]() {
+                    std::vector<std::pair<std::string, std::string>> roots;
+                    if (route == 2) {
+                        for (const auto& entry : adapter.dictionary.m_entries)
+                            roots.emplace_back(entry.m_name, writer.toHexStrHandle(entry.m_handle));
+                    } else {
+                        roots.emplace_back("DictionaryAlias", "900");
+                    }
+                    writer.setRootDictEntries(roots);
+                    writer.setNamedDictObjects(route == 1 ? std::vector<DRW_Dictionary>{adapter.dictionary}
+                                                          : std::vector<DRW_Dictionary>{});
+                };
+                configure();
+                if (route == 0 && kind == 5)
+                    writer.setHandleRemap({{0x901u, 0xA00u}, {0x902u, 0xA00u}});
+                const bool invalid = kind == 1 || kind == 2 || kind == 3
+                    || (route == 2 && (kind == 5 || kind == 6)) || (route == 0 && kind == 5);
+                { std::ofstream output(path, std::ios::binary); output << "dictionary destination\n"; }
+                const bool result = writer.write(&adapter, DRW::AC1027, binary);
+                t.expect(result == !invalid, ("authored dictionary admission distinguishes unique/colliding keys and owning targets" + cell).c_str());
+                t.expect(adapter.dictionary.handle == original.handle
+                             && adapter.dictionary.parentHandle == original.parentHandle
+                             && adapter.dictionary.m_entries[0].m_name == original.m_entries[0].m_name
+                             && adapter.dictionary.m_entries[1].m_name == original.m_entries[1].m_name
+                             && adapter.dictionary.m_entries[1].m_handle == original.m_entries[1].m_handle,
+                         "dictionary admission preserves caller identities and key spelling");
+                if (invalid) {
+                    t.expect(contents() == "dictionary destination\n"
+                                 && (route == 0 ? adapter.objectCalls == 1 && !adapter.written && adapter.before == adapter.after
+                                                : adapter.objectCalls == 0),
+                             "dictionary rejection precedes record/identity mutation and preserves destination");
+                    adapter.dictionary.m_entries = {{"Alpha", 0x901u}, {"Beta", 0x902u}};
+                    writer.setHandleRemap({});
+                    configure();
+                    adapter.objectCalls = 0;
+                    t.expect(writer.write(&adapter, DRW::AC1027, binary),
+                             "corrected dictionary retries on the same writer without consumed identity");
+                }
+                if (result || invalid) {
+                    std::vector<TableOwnerRecord> records;
+                    t.expect(readTableOwnerRecords(path, binary, records, false, false, true),
+                             "dictionary admission output has complete literal framing");
+                    const auto entries = entriesOf(records, route == 2 ? "C" : "900");
+                    const auto& expected = adapter.dictionary.m_entries;
+                    t.expect(entries.size() >= 4
+                                 && entries[entries.size() - 4].second == expected[0].m_name
+                                 && entries[entries.size() - 3].second == writer.toHexStrHandle(expected[0].m_handle)
+                                 && entries[entries.size() - 2].second == expected[1].m_name
+                                 && entries.back().second == writer.toHexStrHandle(expected[1].m_handle),
+                             "literal dictionary output retains distinct original keys and target identities");
+                    FixtureInterface reader;
+                    dx_data imported;
+                    t.expect(reader.fileImport(path.string(), &imported, false) && reader.scales.size() == 2
+                                 && reader.scales[0].name == "target label 2305"
+                                 && reader.scales[1].name == "target label 2306",
+                             ("dictionary keys remain independent of target object names" + cell).c_str());
+                }
+                adapter.dxfW = nullptr;
+            }
+        }
+        // Raw carriers and tolerant imports retain repeated keys/targets and
+        // mixed350/360 spelling; they are not authored-dictionary admission.
+        for (int kind : {0, 1, 2}) {
+            dx_data data;
+            DictionaryInterface adapter;
+            adapter.attach(data);
+            adapter.route = 1;
+            adapter.rawRoute = true;
+            adapter.dictionary.handle = 0x900u;
+            adapter.dictionary.m_entries = {{"Alias", 0x901u},
+                {kind == 1 ? "Alias" : "Other", kind == 2 ? 0x901u : 0x902u}};
+            adapter.raw.name = "DICTIONARY";
+            adapter.raw.handle = 0x900u;
+            adapter.raw.parentHandle = 0xCu;
+            adapter.raw.groups = {{5, std::string("900")}, {330, std::string("C")},
+                {100, std::string("AcDbDictionary")}, {280, 0}, {281, 1},
+                {3, adapter.dictionary.m_entries[0].m_name}, {350, std::string("901")},
+                {3, adapter.dictionary.m_entries[1].m_name},
+                {360, kind == 2 ? std::string("901") : std::string("902")}};
+            const std::string filename = path.string();
+            dxfRW writer(filename.c_str());
+            adapter.dxfW = &writer;
+            writer.setRootDictEntries({{"RawAlias", "900"}});
+            t.expect(writer.write(&adapter, DRW::AC1027, binary) && adapter.written,
+                     "raw dictionary replay preserves malformed-but-bounded aliases without authored-key tightening");
+            FixtureInterface reader;
+            dx_data imported;
+            t.expect(reader.fileImport(path.string(), &imported, false), "dictionary import remains tolerant of key/target aliases");
+            const auto raw = std::find_if(reader.rawObjects.begin(), reader.rawObjects.end(),
+                                         [](const auto& value) { return value.handle == 0x900u; });
+            t.expect(raw != reader.rawObjects.end(), "named dictionary retains its raw companion");
+            std::vector<TableOwnerRecord> records;
+            t.expect(readTableOwnerRecords(path, binary, records, false, false, true), "raw dictionary framing reaches EOF");
+            t.expect(entriesOf(records, "900") == std::vector<std::pair<int, std::string>>{
+                         {3, adapter.dictionary.m_entries[0].m_name}, {350, "901"},
+                         {3, adapter.dictionary.m_entries[1].m_name}, {360, kind == 2 ? "901" : "902"}},
+                     "raw dictionary keys, cardinality and mixed ownership codes remain exact");
+            adapter.dxfW = nullptr;
+        }
+    }
 }
 
 void testImageAdjustmentAdmission(TestContext& t,
@@ -6143,6 +6334,12 @@ int main(int argc, char** argv) {
         return (std::string(argv[1]) == "--verify-wipeout-block-payload"
             ? verifyWipeoutBlockPayload(argv[2], binary) : verifyWipeoutPayload(argv[2], binary)) ? 0 : 1;
     }
+    if (argc == 2 && std::string(argv[1]) == "--dictionary-key-admission") {
+        TestContext context;
+        testDictionaryKeyAdmission(context);
+        std::cout << "Dictionary key admission: " << (context.failures == 0 ? "PASS" : "FAIL") << '\n';
+        return context.failures == 0 ? 0 : 1;
+    }
     if (argc == 2 && std::string(argv[1]) == "--image-adjustment-admission") {
         TestContext context;
         testImageAdjustmentAdmission(context);
@@ -6250,6 +6447,7 @@ int main(int argc, char** argv) {
     if (argc != 1)
         return 2;
     TestContext context;
+    testDictionaryKeyAdmission(context);
     testImageAdjustmentAdmission(context);
     testWipeoutSubclassPayload(context);
     testAsciiOnlySymbolCasing(context);

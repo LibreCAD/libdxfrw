@@ -745,6 +745,22 @@ std::string dxfSymbolNameKey(std::string value) {
     return value;
 }
 
+// Authored DICTIONARY entries require unique keys and objects. Groups350/360
+// are owning roles, not arbitrary references. Keep this writer-only: tolerant
+// parsing/raw replay and non-ASCII equivalence remain separate policies.
+class DxfDictionaryEntryAdmission {
+public:
+    bool accept(const std::string& key, std::uint64_t target) {
+        return m_keys.insert(dxfSymbolNameKey(key)).second
+            && (target == 0 || m_targets.insert(target).second);
+    }
+private:
+    std::unordered_set<std::string> m_keys;
+    std::unordered_set<std::uint64_t> m_targets;
+};
+
+bool parseRawDxfHandleLexeme(const std::string& text, std::uint64_t& value);
+
 bool isDxfFixedOutputHandle(std::uint32_t handle) {
     switch (handle) {
     case 0x1u: case 0x2u: case 0x3u: case 0x5u: case 0x6u: case 0x7u:
@@ -8973,6 +8989,34 @@ bool dxfRW::writeBlocks() {
 bool dxfRW::writeObjects() {
     if (!preflightDxfWrite())
         return false;
+    // Validate registered authored dictionaries before allocating generated
+    // image/GROUP identities or entering the OBJECTS record transaction.
+    try {
+        DxfDictionaryEntryAdmission root;
+        root.accept("ACAD_GROUP", 0xDu);
+        if (!imageDef.empty())
+            root.accept("ACAD_IMAGE_DICT", 0);
+        for (const auto& entry : m_rootDictEntries) {
+            std::uint64_t target = 0;
+            if (!parseRawDxfHandleLexeme(entry.second, target)
+                || !root.accept(entry.first, target)) {
+                m_writeError = true;
+                return false;
+            }
+        }
+        for (const auto& dictionary : m_namedDictObjects) {
+            DxfDictionaryEntryAdmission entries;
+            for (const auto& entry : dictionary.m_entries) {
+                if (!entries.accept(entry.m_name, entry.m_handle)) {
+                    m_writeError = true;
+                    return false;
+                }
+            }
+        }
+    } catch (...) {
+        m_writeError = true;
+        return false;
+    }
     RecordStateScope state(*this);
     DxfWriterRecordScope record(*writer);
     std::string imgDictH;
@@ -16963,6 +17007,20 @@ bool dxfRW::writeDictionary(DRW_Dictionary *ent) {
         return false;
     }
 
+    try {
+        DxfDictionaryEntryAdmission entries;
+        for (const auto& entry : ent->m_entries) {
+            // Remapping can collapse distinct source targets; check the
+            // actual emitted identity without changing either namespace.
+            if (!entries.accept(entry.m_name, remapObjectHandle(entry.m_handle))) {
+                m_writeError = true;
+                return false;
+            }
+        }
+    } catch (...) {
+        m_writeError = true;
+        return false;
+    }
     const std::uint32_t handle = remapObjectHandle(ent->handle);
     if (handle == 0 || isDxfFixedOutputHandle(handle)
         || !reserveHandle(handle)) {

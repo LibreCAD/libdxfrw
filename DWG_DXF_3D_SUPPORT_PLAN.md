@@ -33,6 +33,13 @@ near-polar bases and rotated bounds; uncalibrated derived peer projections
 cannot qualify3D geometry. These refinements require small local counters/
 analytic controls, not native evidence before safe local implementation.
 
+**Current local integration:** narrow authored dictionary key/owning-target
+admission is integrated with main DXF/graph2/2, strict/lc3 and retained raster
+controls. It does not close ACDS association, per-entry roles or full ownership
+graphs. The parity ledger binds its exact source/report; bc8 ASan remains a
+historical checkpoint. Next local work is the reviewed separate codec/HEADER/
+current-LibreCAD API chain, with composed MIF controls and no native promotion.
+
 **Local DXF transport regression (2026-09-28; S2.3.9.4.24):** added a
 runtime-generated AC1027 ASCII and binary REGION-without-history
 ACDSDATA export/import/re-export regression. It checks REGION identity,
