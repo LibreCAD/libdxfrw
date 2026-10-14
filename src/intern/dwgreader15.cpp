@@ -159,9 +159,10 @@ bool dwgReader15::readDwgHeader(DRW_Header& hdr){
         return false;
     dwgBuffer buff(tmpByteStr.data(), si.size, &decoder);
     DRW_DBG("Header section sentinel= ");
-    if (!checkSentinel(&buff, secEnum::HEADER, true))
+    if (!checkSentinel(&buff, secEnum::HEADER, true) && version != DRW::AC1015)
         return false;
-    bool ret = dwgReader::readDwgHeader(hdr, &buff, &buff);
+    bool ret = dwgReader::readDwgHeader(hdr, &buff, &buff,
+        DwgIntegrityAddressSpace::PhysicalFile, si.Id, si.address);
     return ret;
 }
 

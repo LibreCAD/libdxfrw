@@ -19,6 +19,7 @@
 #include "dwgobjectframe.h"
 #include "dwgsafety.h"
 #include "proxygraphicdecoder.h"
+#include "dwgheadersection.h"
 #include <algorithm>
 #include <array>
 #include <cctype>
@@ -5936,13 +5937,71 @@ std::string dwgReader::findTableName(DRW::TTYPE table, std::int32_t handle) {
 }
 
 bool dwgReader::readDwgHeader(DRW_Header &hdr, dwgBuffer *buf,
-                              dwgBuffer *hBuf) {
+                              dwgBuffer *hBuf,
+                              DwgIntegrityAddressSpace offsetSpace,
+                              std::int32_t sectionId,
+                              std::uint64_t sectionOffset) {
   // The R2010+ bitsize_hi gate inside parseDwg keys off the APP maintenance
   // version (byte 0x12), not byte 0x0B — see appMaintenanceVersion in
   // dwgreader.h.
-  bool ret = hdr.parseDwg(version, buf, hBuf, appMaintenanceVersion);
-  // RLZ: copy objectControl handles
-  return ret;
+  if (version != DRW::AC1015 || buf == nullptr || hBuf == nullptr)
+    return hdr.parseDwg(version, buf, hBuf, appMaintenanceVersion);
+
+  const auto report = [&](DwgIntegrityCheckKind kind,
+                          DwgIntegritySeverity severity,
+                          const DwgHeaderEnvelope &envelope,
+                          std::uint64_t expected, std::uint64_t observed,
+                          bool hasValues) noexcept {
+    std::uint64_t location = 0;
+    const bool hasLocation = dwgSafety::add(
+        sectionOffset, envelope.offset, location);
+    recordIntegrityDiagnostic(
+        severity, offsetSpace, DwgIntegrityPhase::SectionParser, kind,
+        secEnum::HEADER, sectionId, "AcDb:Header", 0u, false,
+        location, hasLocation, 0u, false, expected, observed, hasValues);
+  };
+  try {
+    const auto envelope = inspectLegacyDwgHeader(*buf);
+    const bool ret = hdr.parseDwg(version, buf, hBuf, appMaintenanceVersion);
+    if (!ret) {
+      const bool sentinel = envelope.error == DwgHeaderEnvelopeError::BeginSentinel
+          || envelope.error == DwgHeaderEnvelopeError::EndSentinel;
+      report(sentinel ? DwgIntegrityCheckKind::HeaderSectionSentinel
+                      : DwgIntegrityCheckKind::HeaderSectionBounds,
+             DwgIntegritySeverity::Error, envelope,
+             envelope.expected, envelope.observed, envelope.hasValues);
+      return false;
+    }
+    if (!envelope.compact) {
+      auto probe = buf->forkIndependent();
+      const auto calculated = probe.crc8(0xC0C1u,
+          static_cast<std::int32_t>(envelope.start),
+          static_cast<std::int32_t>(envelope.payloadEnd));
+      if (!probe.isGood()) {
+        hdr.clearVars();
+        hdr.curr = nullptr;
+        hdr.name.clear();
+        report(DwgIntegrityCheckKind::HeaderSectionBounds,
+               DwgIntegritySeverity::Error, envelope, 0u, 0u, false);
+        return false;
+      }
+      if (calculated != envelope.storedCrc) {
+        auto crcEnvelope = envelope;
+        crcEnvelope.offset = envelope.payloadEnd;
+        report(DwgIntegrityCheckKind::HeaderSectionCrc,
+               DwgIntegritySeverity::Warning, crcEnvelope,
+               envelope.storedCrc, calculated, true);
+      }
+    }
+    return true;
+  } catch (...) {
+    hdr.clearVars();
+    hdr.curr = nullptr;
+    hdr.name.clear();
+    report(DwgIntegrityCheckKind::HeaderSectionBounds,
+           DwgIntegritySeverity::Error, {}, 0u, 0u, false);
+    return false;
+  }
 }
 
 bool dwgReader::checkSentinel(dwgBuffer *buf, enum secEnum::DWGSection sec,

@@ -156,7 +156,10 @@ enum class DwgIntegrityCheckKind : std::uint8_t {
     FrameLedgerTransition,
     TemplateMissing,
     TemplateMalformed,
-    TemplateDescriptionUnsupported
+    TemplateDescriptionUnsupported,
+    HeaderSectionBounds,
+    HeaderSectionSentinel,
+    HeaderSectionCrc
 };
 
 /// Version of the field and enum contract carried by DwgIntegrityDiagnostic.

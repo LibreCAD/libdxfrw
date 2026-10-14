@@ -33,6 +33,7 @@
 #include "intern/dwgutil.h"
 #include "intern/drw_textcodec.h"
 #include "intern/dwgtemplate.h"
+#include "intern/dwgheadersection.h"
 #include "intern/dwgwriter15.h"
 #include "intern/dwgwriter18.h"
 #include "intern/dwgwriter21.h"
@@ -41,6 +42,13 @@
 #include "intern/dwgwriter32.h"
 
 namespace {
+
+static_assert(static_cast<unsigned>(DwgIntegrityCheckKind::TemplateDescriptionUnsupported) == 20u,
+              "existing Template integrity categories must not be renumbered");
+static_assert(static_cast<unsigned>(DwgIntegrityCheckKind::HeaderSectionBounds) == 21u
+                  && static_cast<unsigned>(DwgIntegrityCheckKind::HeaderSectionSentinel) == 22u
+                  && static_cast<unsigned>(DwgIntegrityCheckKind::HeaderSectionCrc) == 23u,
+              "HEADER integrity categories append to the stable diagnostic contract");
 
 struct TestContext {
     int failures {0};
@@ -361,6 +369,365 @@ void testDwgOperationAdmission(TestContext& t) {
             std::error_code ignored;
             std::filesystem::remove(std::filesystem::u8path(missingName), ignored);
         }
+    }
+}
+
+class HeaderSectionReader final : public dwgReader15 {
+public:
+    explicit HeaderSectionReader(std::vector<std::uint8_t>& bytes,
+                                 std::uint32_t address = 0)
+        : dwgReader15(std::make_unique<dwgBuffer>(bytes.data(), bytes.size()), nullptr) {
+        version = DRW::AC1015;
+        dwgSectionInfo section;
+        section.Id = 0;
+        section.size = bytes.size() - address;
+        section.address = address;
+        sections.emplace(secEnum::HEADER, section);
+    }
+    const auto& diagnostics() const { return m_integrityDiagnostics; }
+    std::size_t dropped() const { return m_integrityDiagnosticsDropped; }
+    void fillDiagnostics() {
+        for (std::size_t i = 0; i < dwgSafety::MaxIntegrityDiagnostics; ++i)
+            addIntegrityDiagnostic({});
+    }
+};
+
+class HeaderBodyProbe final : public DRW_Header {
+public:
+    using DRW_Header::parseDwg;
+};
+
+std::uint16_t headerTestCrc(const std::vector<std::uint8_t>& bytes,
+                           std::size_t start, std::size_t end) {
+    // Bit-wise CRC from ODA's reflected CRC16 table, independent of the
+    // production writer/buffer checksum helpers (not a drawing oracle).
+    std::uint16_t crc = 0xC0C1u;
+    for (auto i = start; i < end; ++i) {
+        crc ^= bytes[i];
+        for (unsigned int bit = 0; bit < 8u; ++bit)
+            crc = static_cast<std::uint16_t>((crc >> 1u)
+                ^ ((crc & 1u) != 0u ? 0xA001u : 0u));
+    }
+    return crc;
+}
+
+void testBoundedFork(TestContext& t) {
+    std::array<std::uint8_t, 4> bytes{{0xB5, 0x6A, 0xCC, 0xDD}};
+    DRW_TextCodec codec;
+    dwgBuffer parent(bytes.data(), bytes.size(), &codec);
+    t.expect(parent.get3Bits() == 5u, "bounded fork source has a cached partial byte");
+    auto bounded = parent.forkBounded(1u);
+    t.expect(bounded.decoder == &codec && bounded.getBitPos() == 3u
+                 && bounded.getPosition() == 0u && bounded.size() == 1u,
+             "bounded fork preserves same-origin cursor/cache/decoder");
+    unsigned int tail = 0;
+    for (unsigned int i = 0; i < 5u; ++i)
+        tail = (tail << 1u) | bounded.getBit();
+    t.expect(tail == 21u && bounded.isGood() && bounded.getPosition() == 1u,
+             "bounded fork reads remaining cached bits through its exact ceiling");
+    (void)bounded.getBit();
+    t.expect(!bounded.isGood() && parent.isGood() && parent.getBitPos() == 3u,
+             "bounded stream exhaustion cannot read a following byte or move its parent");
+
+    auto shared = parent.forkBounded(2u);
+    auto copied = shared;
+    copied.invalidate();
+    t.expect(!parent.isGood() && !shared.isGood(),
+             "related bounded/copy cursors intentionally share structural invalidation");
+    dwgBuffer independentParent(bytes.data(), bytes.size());
+    auto speculative = independentParent.forkIndependent().forkBounded(2u);
+    speculative.invalidate();
+    t.expect(independentParent.isGood(), "speculative independent fork isolates structural invalidation");
+
+    auto nested = independentParent.forkBounded(2u).forkBounded(99u);
+    t.expect(nested.size() == 2u && nested.getRawShort16() == 0x6AB5u,
+             "nested ceilings intersect rather than expanding source access");
+    t.expect(!nested.setPosition(3u) && !nested.isGood(),
+             "bounded seek cannot escape the intersected ceiling");
+    auto copySource = independentParent.forkBounded(2u);
+    (void)copySource.get3Bits();
+    auto cachedCopy = copySource;
+    t.expect(cachedCopy.getBitPos() == 3u && cachedCopy.get2Bits() == 2u
+                 && copySource.getBitPos() == 3u,
+             "copy clones partial-byte state and cursor independently");
+    auto excludedCache = copySource.forkBounded(0u);
+    t.expect(!excludedCache.isGood() && excludedCache.getBit() == 0u,
+             "a ceiling excluding the cached byte cannot expose its bits");
+    auto mixed = independentParent.forkBounded(2u);
+    (void)mixed.get3Bits();
+    std::uint8_t mixedByte = 0;
+    t.expect(mixed.getBytes(&mixedByte, 1u) && mixedByte == 0xABu
+                 && mixed.getBitPos() == 3u && mixed.getPosition() == 1u,
+             "raw byte reads preserve cached partial-byte alignment at a ceiling");
+    unsigned int mixedTail = 0;
+    for (unsigned int i = 0; i < 5u; ++i)
+        mixedTail = (mixedTail << 1u) | mixed.getBit();
+    t.expect(mixedTail == 10u && mixed.isGood(),
+             "raw byte reads leave the remaining cached bits available");
+    (void)mixed.getBit();
+    t.expect(!mixed.isGood(), "mixed raw/bit reads cannot borrow a byte beyond the ceiling");
+
+    std::array<std::uint8_t, 3> destination{{0xEE, 0xEE, 0xEE}};
+    auto byteRead = independentParent.forkBounded(2u);
+    t.expect(!byteRead.getBytes(destination.data(), destination.size())
+                 && destination == std::array<std::uint8_t, 3>{{0xEE, 0xEE, 0xEE}},
+             "out-of-window raw read does not expose even a partial prefix");
+    auto crcRead = independentParent.forkBounded(2u);
+    (void)crcRead.crc8(0xC0C1u, 0, 4);
+    t.expect(!crcRead.isGood(), "CRC direct-pointer/fallback paths cannot escape a ceiling");
+    auto validCrc = independentParent.forkBounded(2u);
+    std::vector<std::uint8_t> prefix{bytes[0], bytes[1]};
+    t.expect(validCrc.crc8(0xC0C1u, 0, 2) == headerTestCrc(prefix, 0, 2)
+                 && validCrc.isGood() && validCrc.getPosition() == 0u,
+             "bounded valid CRC preserves its source cursor");
+    auto survivor = [&bytes]() {
+        dwgBuffer temporary(bytes.data(), bytes.size());
+        return temporary.forkBounded(2u);
+    }();
+    t.expect(survivor.getRawShort16() == 0x6AB5u && survivor.isGood(),
+             "bounded fork owns its stream after parent expiry with backing storage alive");
+    const std::vector<std::uint8_t> zeroCrc{{0xC1, 0xC0}};
+    t.expect(headerTestCrc(zeroCrc, 0, 2) == 0u,
+             "a calculated zero CRC is a real checksum value, not absence");
+}
+
+void testHeaderSectionBounds(TestContext& t) {
+    DRW_Header source;
+    source.addInt("LUNITS", 4, 70);
+    dwgWriter15 writer(nullptr, &source);
+    t.expect(writer.writeDwgHeader(), "full AC1015 HEADER generation succeeds");
+    const auto original = writer.buffer();
+    const std::uint32_t declared = original[16]
+        | (std::uint32_t(original[17]) << 8u)
+        | (std::uint32_t(original[18]) << 16u)
+        | (std::uint32_t(original[19]) << 24u);
+    const std::size_t crcOffset = 20u + declared;
+    t.expect(crcOffset + 18u == original.size(),
+             "HEADER RL delimits the complete payload before CRC and sentinel");
+    t.expect(headerTestCrc(original, 16u, crcOffset)
+                 == (original[crcOffset] | (std::uint16_t(original[crcOffset + 1u]) << 8u)),
+             "literal bit-wise CRC confirms the generated full HEADER span");
+    for (const std::string name : {"valid", "crc-flip", "crc-zero", "end-first",
+            "end-zero", "begin-first", "truncated", "declared-zero",
+            "declared-short", "declared-max", "declared-large"}) {
+        auto bytes = original;
+        if (name == "crc-flip") bytes[crcOffset] ^= 1u;
+        if (name == "crc-zero") bytes[crcOffset] = bytes[crcOffset + 1u] = 0u;
+        if (name == "end-first") bytes[crcOffset + 2u] ^= 1u;
+        if (name == "end-zero") std::fill(bytes.begin() + crcOffset + 2u, bytes.end(), 0u);
+        if (name == "begin-first") bytes[0] ^= 1u;
+        if (name == "truncated") bytes.pop_back();
+        std::uint32_t count = declared;
+        if (name == "declared-zero") count = 0u;
+        if (name == "declared-short") count -= 1u;
+        if (name == "declared-max") count = 0xFFFFFFFFu;
+        if (name == "declared-large") count += 1u;
+        if (name.rfind("declared-", 0u) == 0u)
+            for (std::size_t i = 0u; i < 4u; ++i)
+                bytes[16u + i] = static_cast<std::uint8_t>(count >> (8u * i));
+        HeaderSectionReader reader(bytes);
+        DRW_Header header;
+        header.addInt("stale", 99, 70);
+        const bool accepted = reader.readDwgHeader(header);
+        const bool warning = name == "crc-flip" || name == "crc-zero";
+        const bool valid = name == "valid" || warning;
+        t.expect(accepted == valid, "HEADER outcome: " + name);
+        if (valid) {
+            const auto entry = header.vars.find("LUNITS");
+            t.expect(entry != header.vars.end() && entry->second->content.i == 4,
+                     "bounded HEADER retains semantic values: " + name);
+            t.expect(reader.diagnostics().size() == (warning ? 1u : 0u),
+                     "HEADER checksum warnings remain observable: " + name);
+            if (warning && !reader.diagnostics().empty())
+                t.expect(reader.diagnostics()[0].severity == DwgIntegritySeverity::Warning,
+                         "HEADER checksum corruption is not a structural failure");
+        } else {
+            t.expect(header.vars.empty(), "failed HEADER publishes no variables: " + name);
+        }
+    }
+
+    // A canonical envelope is insufficient if the body itself is truncated.
+    std::vector<std::uint8_t> shortBody(original.begin(), original.begin() + 36u);
+    shortBody[16] = 16u;
+    shortBody[17] = shortBody[18] = shortBody[19] = 0u;
+    const auto shortCrc = headerTestCrc(shortBody, 16u, shortBody.size());
+    shortBody.push_back(static_cast<std::uint8_t>(shortCrc));
+    shortBody.push_back(static_cast<std::uint8_t>(shortCrc >> 8u));
+    shortBody.insert(shortBody.end(), std::begin(dwgSentinels::HEADER_END),
+                     std::end(dwgSentinels::HEADER_END));
+    HeaderSectionReader shortReader(shortBody);
+    DRW_Header shortHeader;
+    t.expect(!shortReader.readDwgHeader(shortHeader) && shortHeader.vars.empty()
+                 && shortReader.diagnostics().size() == 1u
+                 && shortReader.diagnostics()[0].kind == DwgIntegrityCheckKind::HeaderSectionBounds,
+             "valid CRC/sentinel cannot let a truncated body borrow trailer bytes");
+
+    std::vector<std::uint8_t> compact(original.begin() + 16u, original.begin() + crcOffset);
+    HeaderBodyProbe body;
+    dwgBuffer compactBuffer(compact.data(), compact.size());
+    t.expect(body.parseDwg(DRW::AC1015, &compactBuffer, &compactBuffer)
+                 && body.vars.count("LUNITS") == 1u,
+             "exact compact body-only HEADER remains readable without a trailer");
+    compact.pop_back();
+    dwgBuffer truncatedCompact(compact.data(), compact.size());
+    t.expect(!body.parseDwg(DRW::AC1015, &truncatedCompact, &truncatedCompact)
+                 && body.vars.empty(), "truncated compact data cannot bypass full-section admission");
+
+    auto reuseBytes = original;
+    HeaderSectionReader reuse(reuseBytes);
+    DRW_Header reused;
+    t.expect(reuse.readDwgHeader(reused), "same HEADER reader starts with valid data");
+    reuseBytes[crcOffset + 2u] ^= 1u;
+    t.expect(!reuse.readDwgHeader(reused) && reused.vars.empty(),
+             "same HEADER reader clears rejected replacement data");
+    std::copy(original.begin(), original.end(), reuseBytes.begin());
+    t.expect(reuse.readDwgHeader(reused) && reused.vars.count("LUNITS") == 1u,
+             "same HEADER reader can reread corrected data without stale parser state");
+
+    std::vector<std::uint8_t> prefixed(64u, 0u);
+    prefixed.insert(prefixed.end(), original.begin(), original.end());
+    prefixed[64u + crcOffset] ^= 1u;
+    HeaderSectionReader located(prefixed, 64u);
+    DRW_Header locatedHeader;
+    t.expect(located.readDwgHeader(locatedHeader) && located.diagnostics().size() == 1u,
+             "physical HEADER checksum warning survives a nonzero section address");
+    if (!located.diagnostics().empty()) {
+        const auto& diagnostic = located.diagnostics()[0];
+        t.expect(diagnostic.kind == DwgIntegrityCheckKind::HeaderSectionCrc
+                     && diagnostic.phase == DwgIntegrityPhase::SectionParser
+                     && diagnostic.offsetSpace == DwgIntegrityAddressSpace::PhysicalFile
+                     && diagnostic.logicalSectionId == secEnum::HEADER
+                     && diagnostic.sectionDescriptorId == 0
+                     && diagnostic.hasFileOffset && diagnostic.fileOffset == 64u + crcOffset
+                     && diagnostic.hasExpected && diagnostic.hasObserved,
+                 "HEADER diagnostics bind exact section/address/value presence");
+    }
+    HeaderSectionReader saturated(prefixed, 64u);
+    saturated.fillDiagnostics();
+    DRW_Header saturatedHeader;
+    t.expect(saturated.readDwgHeader(saturatedHeader) && saturated.dropped() == 1u
+                 && saturated.diagnostics().size() == dwgSafety::MaxIntegrityDiagnostics,
+             "dropped checksum diagnostics retain warning-only read behavior");
+
+    // Fixed finite USERR1 bits give a genuinely zero checksum for this
+    // generated full section; no search loop or opaque payload is needed.
+    DRW_Header zeroSource;
+    zeroSource.addInt("LUNITS", 4, 70);
+    constexpr std::uint64_t zeroBits = UINT64_C(0x400d8939b2fec9f5);
+    double zeroValue = 0;
+    std::memcpy(&zeroValue, &zeroBits, sizeof zeroValue);
+    zeroSource.addDouble("USERR1", zeroValue, 40);
+    dwgWriter15 zeroWriter(nullptr, &zeroSource);
+    t.expect(zeroWriter.writeDwgHeader(), "zero-CRC full HEADER generation succeeds");
+    auto zeroBytes = zeroWriter.buffer();
+    const auto zeroOffset = zeroBytes.size() - 18u;
+    t.expect(headerTestCrc(zeroBytes, 16u, zeroOffset) == 0u
+                 && zeroBytes[zeroOffset] == 0u && zeroBytes[zeroOffset + 1u] == 0u,
+             "full HEADER's independently calculated and stored CRC are both zero");
+    HeaderSectionReader zeroReader(zeroBytes);
+    DRW_Header zeroHeader;
+    t.expect(zeroReader.readDwgHeader(zeroHeader) && zeroReader.diagnostics().empty()
+                 && zeroHeader.vars.count("USERR1") == 1u
+                 && zeroHeader.vars.at("USERR1")->content.d == zeroValue,
+             "a matching zero CRC is accepted cleanly with exact semantic data");
+}
+
+class FullHeaderWriterProbe final : public dwgWriter15 {
+public:
+    FullHeaderWriterProbe(std::ofstream* stream, DRW_Header* header)
+        : dwgWriter15(stream, header) {}
+    std::size_t headerAddress() const { return m_sectionOffsets.at(0); }
+    std::size_t classesAddress() const { return m_sectionOffsets.at(1); }
+};
+
+class HeaderPublicationSink final : public dx_iface {
+public:
+    HeaderPublicationSink() {
+        cData = &data;
+        currentBlock = data.mBlock;
+    }
+    void addHeader(const DRW_Header*) override { ++headers; }
+    std::size_t headers{0};
+    dx_data data;
+};
+
+void testHeaderPublicRead(TestContext& t) {
+    // The legacy writer takes an ofstream; its ostream buffer can be owned
+    // memory, so complete-file controls need no fixture file or filesystem.
+    std::stringbuf output(std::ios::out | std::ios::binary);
+    std::ofstream stream;
+    static_cast<std::ostream&>(stream).rdbuf(&output);
+    DRW_Header source;
+    FullHeaderWriterProbe writer(&stream, &source);
+    auto phase = [&t](bool result, const std::string& name) {
+        t.expect(result, "complete AC1015 memory writer phase: " + name);
+        return result;
+    };
+    const bool generated = phase(writer.prepareDwgClassManifest(), "class manifest")
+        && phase(writer.writeFileHeaderStub(), "file header")
+        && phase(writer.writeDwgHeader(), "HEADER")
+        && phase(writer.writeDwgClasses(), "CLASSES")
+        && phase(writer.writeDwgObjects(), "objects")
+        && phase(writer.emitDeferredBlockControl(), "block control")
+        && phase(writer.finalizeHeaderHandseed(), "header HANDSEED")
+        && phase(writer.writeDwgHandles(), "handles")
+        && phase(writer.writeSecondHeader(), "second header")
+        && phase(writer.finalize(), "finalize");
+    t.expect(generated, "complete from-scratch AC1015 source writes to an owned memory stream");
+    if (!generated) return;
+    const auto data = output.str();
+    std::vector<std::uint8_t> original(data.begin(), data.end());
+    const auto headerStart = writer.headerAddress();
+    const auto classesStart = writer.classesAddress();
+    const auto count = std::uint32_t(original[headerStart + 16u])
+        | (std::uint32_t(original[headerStart + 17u]) << 8u)
+        | (std::uint32_t(original[headerStart + 18u]) << 16u)
+        | (std::uint32_t(original[headerStart + 19u]) << 24u);
+    const auto crc = headerStart + 20u + count;
+    const auto writerStoredCrc = std::uint16_t(original[crc])
+        | (std::uint16_t(original[crc + 1u]) << 8u);
+    const auto correctedCrc = headerTestCrc(original, headerStart + 16u, crc);
+    HeaderPublicationSink unmodifiedSink;
+    dwgRW unmodifiedReader("");
+    const bool unmodifiedAccepted = unmodifiedReader.readBuffer(
+        original.data(), original.size(), &unmodifiedSink, false);
+    const auto unmodifiedDiagnostics = unmodifiedReader.getIntegrityDiagnostics();
+    const auto unmodifiedWarnings = std::count_if(
+        unmodifiedDiagnostics.begin(), unmodifiedDiagnostics.end(), [](const auto& entry) {
+            return entry.kind == DwgIntegrityCheckKind::HeaderSectionCrc;
+        });
+    t.expect(unmodifiedAccepted && unmodifiedSink.headers == 1u
+                 && unmodifiedWarnings == (writerStoredCrc == correctedCrc ? 0 : 1),
+             "unmodified writer output retains checksum-warning compatibility");
+    // finalizeHeaderHandseed() edits the already-sealed HEADER. Normalize
+    // this generated control's checksum explicitly; writer resealing is a
+    // separate concern from the reader's warning/structural policy here.
+    original[crc] = static_cast<std::uint8_t>(correctedCrc);
+    original[crc + 1u] = static_cast<std::uint8_t>(correctedCrc >> 8u);
+    dwgRW reader("");
+    for (const std::string name : {"valid", "crc", "end-and-classes", "valid-again"}) {
+        auto bytes = original;
+        if (name == "crc") bytes[crc] ^= 1u;
+        if (name == "end-and-classes") {
+            bytes[crc + 2u] ^= 1u;
+            std::fill(bytes.begin() + classesStart + 16u,
+                      bytes.begin() + classesStart + 20u, 0xFFu);
+        }
+        HeaderPublicationSink sink;
+        const bool accepted = reader.readBuffer(bytes.data(), bytes.size(), &sink, false);
+        const bool structural = name == "end-and-classes";
+        t.expect(accepted == !structural && sink.headers == (structural ? 0u : 1u),
+                 "public HEADER success/publication boundary: " + name
+                     + " (error=" + std::to_string(reader.getError())
+                     + ", callbacks=" + std::to_string(sink.headers) + ")");
+        t.expect(reader.getError() == (structural ? DRW::BAD_READ_HEADER : DRW::BAD_NONE),
+                 "public first HEADER error remains sticky and resets on reuse: " + name);
+        const auto diagnostics = reader.getIntegrityDiagnostics();
+        const auto warnings = std::count_if(diagnostics.begin(), diagnostics.end(), [](const auto& entry) {
+            return entry.kind == DwgIntegrityCheckKind::HeaderSectionCrc;
+        });
+        t.expect(warnings == (name == "crc" ? 1 : 0),
+                 "public HEADER diagnostics reset between read operations: " + name);
     }
 }
 
@@ -779,6 +1146,9 @@ void testTemplatePublicMatrix(TestContext& t) {
 
 int main() {
     TestContext context;
+    testBoundedFork(context);
+    testHeaderSectionBounds(context);
+    testHeaderPublicRead(context);
     testDwgOperationAdmission(context);
     testVersionDispatch(context);
     testReadBufferRejection(context);

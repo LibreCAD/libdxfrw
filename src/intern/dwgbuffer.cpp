@@ -18,6 +18,7 @@
 #include "drw_reserve.h"
 #include "dwgsafety.h"
 #include <cstring>
+#include <algorithm>
 #include <limits>
 #include <vector>
 //#include <bitset>
@@ -205,6 +206,56 @@ dwgBuffer::dwgBuffer( const dwgBuffer& org )
 dwgBuffer dwgBuffer::forkIndependent() const {
     dwgBuffer copy(*this);
     copy.invalidState = std::make_shared<bool>(*invalidState);
+    return copy;
+}
+
+namespace {
+class DwgBoundedStream final : public dwgBasicStream {
+public:
+    DwgBoundedStream(std::unique_ptr<dwgBasicStream> source,
+                     std::uint64_t endByte)
+        : source_(std::move(source)), end_(std::min(endByte, source_->size())),
+          good_(source_->getPos() <= end_) {}
+    bool read(std::uint8_t* data, std::uint64_t count) override {
+        if (!good() || count > end_ || source_->getPos() > end_ - count) {
+            good_ = false;
+            return false;
+        }
+        return source_->read(data, count);
+    }
+    std::uint64_t size() const override { return end_; }
+    std::uint64_t getPos() const override { return source_->getPos(); }
+    bool setPos(std::uint64_t position) override {
+        if (position > end_) {
+            good_ = false;
+            return false;
+        }
+        return source_->setPos(position);
+    }
+    bool good() const override { return good_ && source_->good(); }
+    dwgBasicStream* clone() const override {
+        auto copy = std::make_unique<DwgBoundedStream>(
+            std::unique_ptr<dwgBasicStream>(source_->clone()), end_);
+        copy->good_ = good_;
+        return copy.release();
+    }
+    const std::uint8_t* directPointer(std::uint64_t position,
+                                      std::uint64_t count) const override {
+        return good() && count <= end_ && position <= end_ - count
+            ? source_->directPointer(position, count) : nullptr;
+    }
+private:
+    std::unique_ptr<dwgBasicStream> source_;
+    std::uint64_t end_;
+    bool good_;
+};
+} // namespace
+
+dwgBuffer dwgBuffer::forkBounded(std::uint64_t endByte) const {
+    dwgBuffer copy(*this);
+    copy.filestr = std::make_unique<DwgBoundedStream>(
+        std::move(copy.filestr), endByte);
+    copy.maxSize = copy.filestr->size();
     return copy;
 }
 

@@ -21,6 +21,7 @@
 #include "intern/dwgbuffer.h"
 #include "intern/dwgbufferw.h"
 #include "intern/dwgsafety.h"
+#include "intern/dwgheadersection.h"
 
 namespace {
 
@@ -2003,6 +2004,33 @@ bool DRW_Header::parseDwg(DRW::Version version, dwgBuffer *buf,
 bool DRW_Header::parseDwgImpl(DRW::Version version, dwgBuffer *buf,
                               dwgBuffer *hBbuf,
                               std::uint8_t maintenanceVersion) {
+    if (version != DRW::AC1015)
+        return parseDwgBody(version, buf, hBbuf, maintenanceVersion, true);
+    const auto envelope = inspectLegacyDwgHeader(*buf);
+    if (envelope.error != DwgHeaderEnvelopeError::None)
+        return false;
+    if (envelope.compact)
+        return parseDwgBody(version, buf, hBbuf, maintenanceVersion, true);
+    auto data = buf->forkBounded(envelope.payloadEnd);
+    if (hBbuf == buf) {
+        if (!parseDwgBody(version, &data, &data, maintenanceVersion, false)
+            || !data.isGood())
+            return false;
+    } else {
+        auto handles = hBbuf->forkBounded(envelope.payloadEnd);
+        if (!parseDwgBody(version, &data, &handles, maintenanceVersion, false)
+            || !data.isGood() || !handles.isGood()
+            || !hBbuf->setPosition(handles.getPosition()))
+            return false;
+        hBbuf->setBitPos(handles.getBitPos());
+    }
+    return buf->setPosition(envelope.trailerEnd);
+}
+
+bool DRW_Header::parseDwgBody(DRW::Version version, dwgBuffer *buf,
+                              dwgBuffer *hBbuf,
+                              std::uint8_t maintenanceVersion,
+                              bool consumeTrailer) {
     bool result = true;
     const std::uint64_t headerStart = buf->getPosition();
     std::uint32_t size = buf->getRawLong32();
@@ -2603,6 +2631,8 @@ bool DRW_Header::parseDwgImpl(DRW::Version version, dwgBuffer *buf,
             return false;
         return result;
     }
+    if (!consumeTrailer)
+        return result;
 
     if (DRW_DBGGL == DRW_dbg::Level::Debug){
         for (auto it=vars.begin(); it!=vars.end(); ++it){
@@ -2632,7 +2662,12 @@ bool DRW_Header::parseDwgImpl(DRW::Version version, dwgBuffer *buf,
     // The section RL includes every field after the RL itself, including the
     // optional R2010+/R2018 high-size field.  Therefore its CRC is always at
     // the end of the declared payload; do not skip hSize a second time.
-    buf->setPosition(size + 16 + 4);
+    std::uint64_t crcOffset = 0;
+    if (!dwgSafety::add(headerStart, 4u, crcOffset)
+        || !dwgSafety::add(crcOffset, size, crcOffset)
+        || !dwgSafety::range(crcOffset, 18u, buf->size())
+        || !buf->setPosition(crcOffset))
+        return false;
     DRW_DBG("\nsetting position to: "); DRW_DBG(buf->getPosition());
     DRW_DBG("\nHeader CRC: "); DRW_DBGH(buf->getRawShort16());
     DRW_DBG("\nbuf position: "); DRW_DBG(buf->getPosition());

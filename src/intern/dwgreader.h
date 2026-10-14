@@ -626,7 +626,11 @@ protected:
   bool recordSourceCodePage(std::uint16_t id, bool present,
                             bool applyPrimaryCodec);
   [[nodiscard]] bool readDwgHeader(DRW_Header &hdr, dwgBuffer *buf,
-                                   dwgBuffer *hBuf);
+                                   dwgBuffer *hBuf,
+                                   DwgIntegrityAddressSpace offsetSpace =
+                                       DwgIntegrityAddressSpace::DecodedBuffer,
+                                   std::int32_t sectionId = -1,
+                                   std::uint64_t sectionOffset = 0);
   [[nodiscard]] bool decodeDwgTemplate(DRW_Header& hdr,
                                        const std::uint8_t* data,
                                        std::size_t size,

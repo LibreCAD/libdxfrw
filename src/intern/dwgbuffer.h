@@ -121,6 +121,12 @@ public:
     //! Use for bounded speculative reads that must not poison the publishing
     //! cursor when a probe reaches a truncated field.
     [[nodiscard]] dwgBuffer forkIndependent() const;
+    //! Clone the same-origin cursor with an exclusive byte ceiling. Nested
+    //! ceilings intersect; cached partial-byte state and decoder are retained.
+    //! Owns a cloned stream, not a pointer to the parent dwgBuffer. Structural
+    //! invalid-state sharing follows ordinary copying; stream failures remain
+    //! observable through the bounded cursor's isGood().
+    [[nodiscard]] dwgBuffer forkBounded(std::uint64_t endByte) const;
     virtual ~dwgBuffer() = default;
     std::uint64_t size() const {return filestr->size();}
     bool setPosition(std::uint64_t pos);

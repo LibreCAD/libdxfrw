@@ -49,6 +49,7 @@ set(LIBDXFRW_PRIVATE_HEADERS
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dwgbuffer.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dwgobjectframe.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dwgsafety.h"
+    "${CMAKE_CURRENT_LIST_DIR}/src/intern/dwgheadersection.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dwgtemplate.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dwgbufferw.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dwgwriter.h"
