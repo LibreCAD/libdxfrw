@@ -12,6 +12,7 @@
 ******************************************************************************/
 
 #include "dwgwriter15.h"
+#include "dwgtemplate.h"
 
 #include <algorithm>
 #include <cctype>
@@ -379,6 +380,9 @@ bool dwgWriter15::canWriteDwgDataStorageOperation(
 }
 
 bool dwgWriter15::writeFileHeaderStub() {
+    std::uint16_t measurement = 0;
+    if (!dwgTemplate::headerMeasurement(m_header, measurement))
+        return false;
     // Bytes 0x00-0x05: version string "AC1015".
     for (int i = 0; i < 6; ++i)
         m_buf.putRawChar8(static_cast<std::uint8_t>(dwgVersionString::R2000[i]));
@@ -5805,14 +5809,15 @@ bool dwgWriter15::validateDwgClassInstanceFrames() const {
 
 bool dwgWriter15::writeSecondHeader() {
     if (m_version == DRW::AC1015) {
-        // R2000 keeps an empty four-byte Template record in the locator table.
-        // Leaving its address and size at zero makes libreDWG decode the file
-        // header as a T16 description instead of treating the record as empty.
-        static constexpr std::uint8_t emptyTemplate[] = {0, 0, 0, 0};
+        std::uint16_t measurement = 0;
+        if (!dwgTemplate::headerMeasurement(m_header, measurement))
+            return false;
+        const auto templateData = dwgTemplate::emptyDescription(measurement);
         m_sectionOffsets[recno::TEMPLATE] =
             static_cast<std::uint32_t>(m_buf.size());
-        m_buf.putBytes(emptyTemplate, sizeof(emptyTemplate));
-        m_sectionSizes[recno::TEMPLATE] = sizeof(emptyTemplate);
+        m_buf.putBytes(templateData.data(), templateData.size());
+        m_sectionSizes[recno::TEMPLATE] =
+            static_cast<std::uint32_t>(templateData.size());
     }
 
     const std::vector<std::uint8_t> auxHeader = buildR2000AuxHeaderContent(m_header);

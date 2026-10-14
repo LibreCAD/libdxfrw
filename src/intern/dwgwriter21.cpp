@@ -18,6 +18,7 @@
 ******************************************************************************/
 
 #include "dwgwriter21.h"
+#include "dwgtemplate.h"
 
 #include <algorithm>
 #include <array>
@@ -1077,7 +1078,10 @@ bool dwgWriter21::finalize() {
     const auto objFreeSpace = emptyObjFreeSpace();
     const auto auxHeader = emptyAuxHeader();
     const std::array<std::uint8_t, 1> appInfoHistory{0};
-    const std::array<std::uint8_t, 6> templateData{1, 0, 0, 0, 0, 0};
+    std::uint16_t measurement = 0;
+    if (!dwgTemplate::headerMeasurement(m_header, measurement))
+        return false;
+    const auto templateData = dwgTemplate::emptyDescription(measurement);
     if (!appendSection("AcDb:Header", raw.data() + headerOffset->second,
                        headerSize->second, 4, 0, 0)
         || !appendSection("AcDb:Classes", raw.data() + classesOffset->second,

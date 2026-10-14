@@ -18,6 +18,7 @@
 #include <limits>
 #include <string_view>
 #include "dwgwriter18.h"
+#include "dwgtemplate.h"
 #include "drw_reserve.h"
 #include "dwgsafety.h"
 #include "dwgutil.h"
@@ -80,6 +81,11 @@ using DataSectionDesc = dwgWriterLayoutValidation::R2004Section;
 using R2004PhysicalPageReceipt =
     dwgWriterLayoutValidation::R2004PhysicalPage;
 using R2004LayoutReceipt = dwgWriterLayoutValidation::R2004LayoutReceipt;
+
+bool dwgWriter18::writeFileHeaderStub() {
+    std::uint16_t measurement = 0;
+    return dwgTemplate::headerMeasurement(m_header, measurement);
+}
 
 constexpr std::uint32_t kR2004DefaultDataPageSize = 0x7400;
 constexpr std::uint32_t kR2004AppInfoPageSize = 0x80;
@@ -145,18 +151,6 @@ static std::uint32_t dataPageSizeFor(const std::string& name) {
 
 static bool validR2004SectionEncoding(std::uint64_t encoding) {
     return encoding == 1 || encoding == 2;
-}
-
-static std::uint16_t headerMeasurement(const DRW_Header* header) {
-    if (header == nullptr)
-        return 0;
-    auto it = header->vars.find("MEASUREMENT");
-    if (it == header->vars.end())
-        it = header->vars.find("$MEASUREMENT");
-    if (it == header->vars.end() || it->second == nullptr
-        || it->second->type() != DRW_Variant::INTEGER)
-        return 0;
-    return static_cast<std::uint16_t>(it->second->i_val() & 1);
 }
 
 static void alignSectionPage(std::vector<std::uint8_t>& page) {
@@ -843,18 +837,15 @@ bool dwgWriter18::finalize() {
             return false;
     }
 
-    // R2007+ requires the Template section. It carries MEASUREMENT, which is
+    // R2004+ requires the Template section. It carries MEASUREMENT, which is
     // intentionally absent from AcDb:Header.
-    if (m_version >= DRW::AC1021) {
-        const std::uint16_t measurement = headerMeasurement(m_header);
-        const std::uint8_t templateData[] = {
-            1, 0,
-            0, 0,
-            static_cast<std::uint8_t>(measurement & 0xffu),
-            static_cast<std::uint8_t>(measurement >> 8),
-        };
-        if (!appendDataSection("AcDb:Template", templateData,
-                               static_cast<std::uint32_t>(sizeof(templateData))))
+    if (m_version >= DRW::AC1018) {
+        std::uint16_t measurement = 0;
+        if (!dwgTemplate::headerMeasurement(m_header, measurement))
+            return false;
+        const auto templateData = dwgTemplate::emptyDescription(measurement);
+        if (!appendDataSection("AcDb:Template", templateData.data(),
+                               static_cast<std::uint32_t>(templateData.size())))
             return false;
     }
 

@@ -1,5 +1,7 @@
 #include <cstdint>
 #include <iostream>
+#include <limits>
+#include <memory>
 #include <string>
 #include <type_traits>
 #include <vector>
@@ -14,6 +16,7 @@
 #include "intern/dwgwriter24.h"
 #include "intern/dwgwriter27.h"
 #include "intern/dwgwriter32.h"
+#include "intern/dwgtemplate.h"
 #include "libdwgr.h"
 
 namespace {
@@ -188,6 +191,68 @@ void testCapabilityInventory(TestContext& t) {
     }
 }
 
+std::unique_ptr<dwgWriter> templateWriter(DRW::Version version,
+                                         DRW_Header& header) {
+    switch (version) {
+    case DRW::AC1015: return std::make_unique<dwgWriter15>(nullptr, &header);
+    case DRW::AC1018: return std::make_unique<dwgWriter18>(nullptr, &header);
+    case DRW::AC1021: return std::make_unique<dwgWriter21>(nullptr, &header);
+    case DRW::AC1024: return std::make_unique<dwgWriter24>(nullptr, &header);
+    case DRW::AC1027: return std::make_unique<dwgWriter27>(nullptr, &header);
+    case DRW::AC1032: return std::make_unique<dwgWriter32>(nullptr, &header);
+    default: return nullptr;
+    }
+}
+
+void testTemplateMeasurementAdmission(TestContext& t) {
+    for (const auto version : {DRW::AC1015, DRW::AC1018, DRW::AC1021,
+                               DRW::AC1024, DRW::AC1027, DRW::AC1032}) {
+        for (int value : {0, 1}) {
+            DRW_Header header;
+            header.addInt("$MEASUREMENT", value, 70);
+            header.addInt("$INSUNITS", value == 0 ? 4 : 1, 70);
+            std::uint16_t measurement = 99;
+            const auto count = header.vars.size();
+            t.expect(dwgTemplate::headerMeasurement(&header, measurement)
+                         && measurement == value && header.vars.size() == count,
+                     "explicit Template measurement is independent of INSUNITS");
+            t.expect(dwgTemplate::emptyDescription(measurement)
+                         == std::array<std::uint8_t, 4>{{0, 0,
+                                static_cast<std::uint8_t>(value), 0}},
+                     "Template canonical empty-description field bytes");
+            auto writer = templateWriter(version, header);
+            t.expect(writer && writer->writeFileHeaderStub(),
+                     "all six writer targets admit explicit0/1 measurement");
+        }
+        for (int value : {-1, 2, (std::numeric_limits<int>::max)()}) {
+            DRW_Header header;
+            header.addInt("MEASUREMENT", value, 70);
+            auto writer = templateWriter(version, header);
+            const auto before = writer->buffer();
+            t.expect(writer && !writer->writeFileHeaderStub()
+                         && writer->buffer() == before,
+                     "invalid explicit measurement rejects before writer bytes");
+            header.addInt("MEASUREMENT", 1, 70);
+            t.expect(writer->writeFileHeaderStub(),
+                     "corrected measurement retries on the same untouched writer");
+        }
+    }
+    DRW_Header absent;
+    absent.addInt("INSUNITS", 4, 70);
+    std::uint16_t measurement = 99;
+    t.expect(dwgTemplate::headerMeasurement(&absent, measurement)
+                 && measurement == 0,
+             "absent measurement retains the existing DWG fallback");
+    absent.addStr("MEASUREMENT", "1", 1);
+    t.expect(!dwgTemplate::headerMeasurement(&absent, measurement),
+             "explicit noninteger measurement is not treated as absent");
+    DRW_Header aliases;
+    aliases.addInt("MEASUREMENT", 0, 70);
+    aliases.addInt("$MEASUREMENT", 1, 70);
+    t.expect(!dwgTemplate::headerMeasurement(&aliases, measurement),
+             "conflicting measurement aliases reject deterministically");
+}
+
 } // namespace
 
 int main() {
@@ -197,6 +262,7 @@ int main() {
     testOverflowIsFailClosed(context);
     testWriterInheritanceMatrix(context);
     testCapabilityInventory(context);
+    testTemplateMeasurementAdmission(context);
     if (context.failures != 0) {
         std::cerr << context.failures << " writer version assertion(s) failed\n";
         return 1;
