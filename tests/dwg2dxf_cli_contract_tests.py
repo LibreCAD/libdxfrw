@@ -217,6 +217,29 @@ def check_batch(converter, root):
     return checked
 
 
+def check_read_observations(converter, root):
+    checked = 0
+    for label, payload, version in (("short modern header", b"AC1027\n", b"AC1027"),
+                                    ("invalid magic", b"BAD000\n", b"unknown")):
+        source = root / (label + ".dwg")
+        output = root / (label + ".dxf")
+        source.write_bytes(payload)
+        output.write_bytes(SENTINEL)
+        result = run_bounded([str(converter), str(source), "-o", str(output),
+                              "-v2010", "-y"], 5, 65536, cwd=root)
+        if result.returncode != 1 or source.read_bytes() != payload or output.read_bytes() != SENTINEL:
+            raise AssertionError(f"{label}: failed DWG import changed Boolean/atomic output contract")
+        required = (b"DWG read observations: schema=1 operationSucceeded=false",
+                    b"sourceVersion=" + version, b"frameSourceDenominator=unknown",
+                    b"uniqueSkippedRecordTotal=unknown", b"reportedUpstreamDroppedLowerBound=0")
+        if any(value not in result.stderr for value in required):
+            raise AssertionError(f"{label}: missing bounded read observations: {result.stderr!r}")
+        if len(result.stderr) > 32768 or any(byte > 127 or byte == 0 for byte in result.stderr):
+            raise AssertionError(f"{label}: observation report escaped its ASCII/byte contract")
+        checked += 1
+    return checked
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--converter", required=True, type=Path)
@@ -226,8 +249,9 @@ def main():
         root = Path(directory)
         checked = check_options(converter, root)
         batch_checked = check_batch(converter, root)
+        observation_checked = check_read_observations(converter, root)
     print(f"CLI contract: PASS ({checked} option/filename and "
-          f"{batch_checked} batch controls, bounded subprocesses)")
+          f"{batch_checked} batch controls, {observation_checked} read-observation controls, bounded subprocesses)")
 
 
 if __name__ == "__main__":

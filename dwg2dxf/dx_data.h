@@ -13,9 +13,26 @@
 #ifndef DX_DATA_H
 #define DX_DATA_H
 #include "libdxfrw.h"
+#include "libdwgr.h"
 
 #include <list>
 #include <vector>
+
+// Read result and observations have separate meanings. This envelope belongs
+// to one CLI import, not a support claim or an output-completeness verdict.
+struct dx_dwgReadOutcome {
+    bool attempted{false};
+    bool operationSucceeded{false};
+    DRW::Version sourceVersion{DRW::UNKNOWNV};
+    DRW::error error{DRW::BAD_NONE};
+    DwgReadObservations observations;
+    // Receipt callbacks precede some companion callbacks and final ledger
+    // marking. These are observed deliveries, not unique terminal counts.
+    std::array<std::size_t, 4> observedReceiptCarriers{};
+    std::size_t opaqueViewCallbacks{0};
+    std::size_t opaqueFramesRetainedByAdapter{0};
+    bool callbackCountsSaturated{false};
+};
 
 //class to store image data and path from DRW_ImageDef
 class dx_ifaceImg : public DRW_Image {
@@ -55,6 +72,7 @@ public:
 
     DRW_Header headerC;                 //stores a copy of the header vars
     DRW::Version sourceVersion;          //detected source DXF/DWG revision
+    dx_dwgReadOutcome dwgReadOutcome;     //bounded most-recent-import evidence
     std::list<DRW_LType>lineTypes;      //stores a copy of all line types
     std::list<DRW_Layer>layers;         //stores a copy of all layers
     std::list<DRW_Dimstyle>dimStyles;   //stores a copy of all dimension styles

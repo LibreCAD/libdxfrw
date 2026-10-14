@@ -11230,6 +11230,252 @@ bool matchesHatchTangentControl(const DRW_Hatch& hatch, int variant) {
     return true;
 }
 
+class ReadOutcomeControl final : public dx_iface {
+public:
+    ReadOutcomeControl(dwgRW* writer, int kind, dwgRW* reader = nullptr)
+        : writer_(writer), reader_(reader), kind_(kind),
+          opaque_(makeLocalRawReplayObject(DRW::AC1027, 500, 0x700u)) {
+        cData = &owned_;
+        currentBlock = owned_.mBlock;
+    }
+    void writeHeader(DRW_Header& header) override { header.vars.clear(); }
+    void writeBlocks() override {}
+    void writeBlockRecords() override {}
+    void writeLTypes() override {}
+    void writeLayers() override {}
+    void writeTextstyles() override {}
+    void writeVports() override {}
+    void writeDimstyles() override {}
+    void writeAppId() override {}
+    void writeDwgClasses() override {
+        if (kind_ == 2) wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
+    }
+    void writeObjects() override {
+        if (kind_ == 2) wrote = writer_->writeRawDwgObject(&opaque_) && wrote;
+    }
+    void writeEntities() override {
+        if (kind_ == 1) {
+            // Existing zero-fit writer/reader disagreement is only a partial
+            // read sentinel. This is not valid-format HATCH qualification and
+            // must not resolve the separately gated 7N.3 layout question.
+            const auto hatch = makeHatchTangentControl(0);
+            auto& spline = static_cast<DRW_Spline&>(*hatch->looplist.front()->objlist.front());
+            spline.flags = 0;
+            spline.weightlist = {1, .7071067811865476, 1};
+            wrote = writer_->writeHatch(hatch.get()) && wrote;
+        }
+        DRW_Line line;
+        line.basePoint = {11, 12, 13}; line.secPoint = {21, 22, 23};
+        wrote = writer_->writeLine(&line) && wrote;
+    }
+    void addLine(const DRW_Line& line) override { ++lines; dx_iface::addLine(line); }
+    void addHatch(const DRW_Hatch* hatch) override { ++hatches; dx_iface::addHatch(hatch); }
+    void addDwgFramePublication(const DRW_DwgFramePublication& frame) override {
+        dx_iface::addDwgFramePublication(frame);
+        if (reader_ != nullptr) {
+            const auto observations = reader_->getReadObservations();
+            liveObserved = liveObserved
+                || (observations.frames.status == DRW_DwgFrameCoverageStatus::InProgress
+                    && observations.frames.sourceFrames != 0);
+        }
+    }
+    bool wrote{true};
+    bool liveObserved{false};
+    std::size_t lines{0}, hatches{0};
+private:
+    dwgRW* writer_;
+    dwgRW* reader_;
+    int kind_;
+    DRW_UnsupportedObject opaque_;
+    dx_data owned_;
+};
+
+bool runDwgReadOutcomeControls(const std::filesystem::path& directory) {
+    std::array<std::filesystem::path, 3> paths;
+    for (int kind = 0; kind != 3; ++kind) {
+        paths[kind] = directory / ("read-outcome-" + std::to_string(kind) + ".dwg");
+        dwgRW writer(paths[kind].string().c_str());
+        ReadOutcomeControl producer(&writer, kind);
+        if (!writer.write(&producer, DRW::AC1027, true) || !producer.wrote) {
+            std::cerr << "Read-outcome control generation failed: kind=" << kind << '\n';
+            return false;
+        }
+    }
+    struct Capture {
+        std::ostringstream errors, messages;
+        std::streambuf* previousErrors{std::cerr.rdbuf(errors.rdbuf())};
+        std::streambuf* previousMessages{std::cout.rdbuf(messages.rdbuf())};
+        ~Capture() { std::cerr.rdbuf(previousErrors); std::cout.rdbuf(previousMessages); }
+        void clear() { errors.str({}); errors.clear(); messages.str({}); messages.clear(); }
+    } capture;
+    int stage = -1;
+    bool completed = false;
+    struct FailureTrace {
+        Capture& capture;
+        int& stage;
+        bool& completed;
+        ~FailureTrace() {
+            if (!completed) {
+                std::ostream output(capture.previousErrors);
+                output << "Read-outcome control failed at stage " << stage << '\n'
+                    << capture.errors.str() << capture.messages.str();
+            }
+        }
+    } trace{capture, stage, completed};
+    dx_data data;
+    ReadOutcomeControl importer(nullptr, 0);
+    for (int kind : {1, 2, 0}) {
+        stage = kind;
+        capture.clear();
+        if (!importer.fileImport(paths[kind].string(), &data, false)) return false;
+        const auto& outcome = data.dwgReadOutcome;
+        const auto& value = outcome.observations;
+        if (!outcome.attempted || !outcome.operationSucceeded
+                || outcome.error != DRW::BAD_NONE || outcome.sourceVersion != DRW::AC1027
+                || value.frames.sourceFrames == 0 || value.objectParseFailures != 0)
+            return false;
+        const auto report = capture.errors.str();
+        if (report.size() > dx_iface::DwgReadReportMaxBytes) return false;
+        if (kind == 1) {
+            if (value.entityParseFailures != 1 || importer.lines != 1 || importer.hatches != 0
+                    || value.frames.status != DRW_DwgFrameCoverageStatus::FinalizedPartial
+                    || value.frames.dispositions[static_cast<std::size_t>(DRW_DwgFrameDisposition::Failed)] != 1
+                    || report.find("operationSucceeded=true") == std::string::npos
+                    || report.find("entityParseFailures=1") == std::string::npos) {
+                std::ostream diagnostics(capture.previousErrors);
+                diagnostics << "Read-outcome partial sentinel: lines=" << importer.lines
+                    << " hatches=" << importer.hatches << " parseFailures=" << value.entityParseFailures
+                    << " status=" << static_cast<int>(value.frames.status) << '\n' << report;
+                return false;
+            }
+        } else if (kind == 2) {
+            if (value.entityParseFailures != 0 || value.skippedCustomClasses.instances != 1
+                    || value.skippedUnsupportedObjects.instances != 1
+                    || outcome.observedReceiptCarriers[1] != 1
+                    || outcome.opaqueViewCallbacks < 1 || outcome.opaqueFramesRetainedByAdapter != 0
+                    || value.frames.status != DRW_DwgFrameCoverageStatus::FinalizedComplete
+                    || report.find("Observations overlap") == std::string::npos
+                    || report.find("Opaque callbacks are not CLI retention/export") == std::string::npos)
+                return false;
+        } else if (value.entityParseFailures != 0 || value.skippedCustomClasses.sourceNames != 0
+                || value.skippedUnsupportedObjects.sourceNames != 0 || !report.empty()
+                || outcome.observedReceiptCarriers[1] != 0)
+            return false;
+    }
+    dwgRW liveReader(paths[0].string().c_str());
+    stage = 3;
+    ReadOutcomeControl liveConsumer(nullptr, 0, &liveReader);
+    if (!liveReader.read(&liveConsumer, false) || !liveConsumer.liveObserved) return false;
+    const auto final = liveReader.getReadObservations();
+    if (final.frames.status != DRW_DwgFrameCoverageStatus::FinalizedComplete
+            || final.frames.dispositions[static_cast<std::size_t>(DRW_DwgFrameDisposition::Published)]
+                != final.frames.sourceFrames) return false;
+    capture.clear();
+    stage = 4;
+    if (importer.fileImport((directory / "absent-read-outcome.dwg").string(), &data, false)
+            || !data.dwgReadOutcome.attempted || data.dwgReadOutcome.operationSucceeded
+            || data.dwgReadOutcome.error != DRW::BAD_OPEN
+            || data.dwgReadOutcome.observations.frames.sourceFrames != 0
+            || data.dwgReadOutcome.opaqueViewCallbacks != 0) return false;
+    capture.clear();
+    stage = 5;
+    if (importer.fileImport((directory / "absent-read-outcome.other").string(), &data, false)
+            || data.dwgReadOutcome.attempted || !capture.errors.str().empty()) return false;
+    // Requested export revision and the captured DWG source outcome are
+    // separate. A successful export must not erase observed partial coverage.
+    stage = 6;
+    dx_data exportData;
+    dx_iface exportImporter;
+    dx_iface exporter;
+    if (!exportImporter.fileImport(paths[1].string(), &exportData, false)) return false;
+    const auto sourceOutcome = exportData.dwgReadOutcome;
+    if (!exporter.fileExport((directory / "read-outcome-export.dxf").string(),
+                             DRW::AC1018, false, &exportData, false)
+            || exportData.dwgReadOutcome.sourceVersion != sourceOutcome.sourceVersion
+            || exportData.dwgReadOutcome.sourceVersion != DRW::AC1027
+            || exportData.dwgReadOutcome.operationSucceeded != sourceOutcome.operationSucceeded
+            || exportData.dwgReadOutcome.error != sourceOutcome.error
+            || exportData.dwgReadOutcome.observations.entityParseFailures != 1
+            || exportData.dwgReadOutcome.observations.frames.status != sourceOutcome.observations.frames.status
+            || exportData.dwgReadOutcome.observedReceiptCarriers != sourceOutcome.observedReceiptCarriers)
+        return false;
+    const auto dxfPath = directory / "read-outcome-reset.dxf";
+    stage = 7;
+    // fileImport historically appends callbacks to the supplied model. Do
+    // not confuse duplicate accumulated handles with outcome-reset behavior.
+    dx_data freshDxf;
+    if (!exporter.fileExport(dxfPath.string(), DRW::AC1027, false, &freshDxf, false)
+            || !importer.fileImport(dxfPath.string(), &data, false)
+            || data.dwgReadOutcome.attempted) return false;
+    completed = true;
+    return true;
+}
+
+bool runDwgReadReportBounds() {
+    dx_dwgReadOutcome outcome;
+    outcome.attempted = true;
+    outcome.operationSucceeded = true;
+    outcome.sourceVersion = DRW::AC1027;
+    const auto maximum = std::numeric_limits<std::size_t>::max();
+    for (auto* named : {&outcome.observations.skippedCustomClasses,
+                        &outcome.observations.skippedUnsupportedObjects}) {
+        named->retained = maximum; // Public-input clamp, not trusted array length.
+        named->sourceNames = maximum;
+        named->instances = maximum;
+        named->omittedNames = maximum;
+        named->omittedInstances = maximum;
+        named->truncatedRetainedNames = maximum;
+        named->omittedNameBytes = maximum;
+        named->aggregateSaturated = true;
+        for (auto& row : named->rows) {
+            row.name.bytes.fill(0xff);
+            row.name.bytes[0] = 0; row.name.bytes[1] = '\n';
+            row.name.length = maximum;
+            row.name.sourceBytes = maximum;
+            row.instances = maximum;
+        }
+    }
+    auto& integrity = outcome.observations.integrity;
+    integrity.retained = maximum;
+    integrity.sourceRecorded = maximum;
+    integrity.extractionOmitted = maximum;
+    integrity.reportedUpstreamDropped = maximum;
+    integrity.truncatedRetainedNames = maximum;
+    integrity.omittedNameBytes = maximum;
+    for (auto& row : integrity.rows) {
+        row.sectionName = outcome.observations.skippedCustomClasses.rows[0].name;
+        row.logicalSectionId = std::numeric_limits<std::int32_t>::min();
+        row.sectionDescriptorId = std::numeric_limits<std::int32_t>::min();
+        row.pageId = row.fileOffset = row.expected = row.observed =
+            std::numeric_limits<std::uint64_t>::max();
+        row.logicalHandle = std::numeric_limits<std::uint32_t>::max();
+        row.hasPageId = row.hasFileOffset = row.hasLogicalHandle =
+            row.hasExpected = row.hasObserved = true;
+    }
+    std::ostringstream report;
+    dx_iface::reportDwgReadOutcome(report, outcome);
+    const auto text = report.str();
+    if (text.empty() || text.size() > dx_iface::DwgReadReportMaxBytes
+            || text.find("\\x00\\x0a\\xff") == std::string::npos
+            || text.find("fileOffset=18446744073709551615") == std::string::npos
+            || std::any_of(text.begin(), text.end(), [](unsigned char byte) { return byte > 127 || byte == 0; }))
+        return false;
+    outcome.sourceVersion = DRW::AC14;
+    std::ostringstream legacyReport;
+    dx_iface::reportDwgReadOutcome(legacyReport, outcome);
+    if (legacyReport.str().find("sourceVersion=AC1.40 sourceVersionEnum=3") == std::string::npos)
+        return false;
+    struct FailingBuffer : std::streambuf {
+        std::streamsize xsputn(const char*, std::streamsize) override {
+            throw std::ios_base::failure("optional report sink failed");
+        }
+    } failingBuffer;
+    std::ostream throwing(&failingBuffer);
+    throwing.exceptions(std::ios::badbit | std::ios::failbit);
+    dx_iface::reportDwgReadOutcome(throwing, outcome);
+    return true;
+}
+
 bool writeHatchTangentLiteral(const std::filesystem::path& path, bool binary, int variant) {
     const auto hatch = makeHatchTangentControl(variant);
     std::ofstream stream(path, std::ios::binary | std::ios::trunc);
@@ -15599,6 +15845,10 @@ int main(int argc, char** argv) {
            "local mixed DXF modeler carrier chunk identity", failures);
     expect(runRawDwgReplayContract(),
            "local DWG raw-object/raw-section replay contract", failures);
+    expect(runDwgReadOutcomeControls(directory),
+           "bounded DWG partial/opaque/clean import observations and reset", failures);
+    expect(runDwgReadReportBounds(),
+           "DWG observation report bounds binary prefixes and optional stream failure", failures);
     expect(runXRecordRawReplayVersionContract(),
            "opaque XRECORD replay binds source version and preserves a rejected destination",
            failures);

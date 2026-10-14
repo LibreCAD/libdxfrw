@@ -29,6 +29,125 @@
 
 namespace {
 
+// A fixed buffer independently bounds the formatter, including future added
+// fields. Reserve a footer so truncation never masquerades as a full report.
+class DwgReadReportBuffer {
+public:
+    void append(const char* text) noexcept {
+        const std::size_t count = std::char_traits<char>::length(text);
+        const std::size_t copied = std::min(count, contentLimit - used);
+        std::copy_n(text, copied, bytes.begin() + used);
+        used += copied;
+        truncated = truncated || copied != count;
+    }
+    template<typename Integer> void integer(Integer value) noexcept {
+        std::array<char, 32> text{};
+        const auto result = std::to_chars(text.data(), text.data() + text.size() - 1,
+                                          value);
+        if (result.ec == std::errc{}) {
+            *result.ptr = '\0';
+            append(text.data());
+        }
+    }
+    template<typename Integer> void field(const char* name, Integer value) noexcept {
+        append(name); append("="); integer(static_cast<std::uint64_t>(value)); append(" ");
+    }
+    void prefix(const DwgReadBytePrefix& value) noexcept {
+        static constexpr char hex[] = "0123456789abcdef";
+        append("raw-prefix=\"");
+        // Values from the public struct may be caller-constructed. Clamp the
+        // length even though the core extractor always obeys this invariant.
+        const std::size_t renderedBytes = std::min(value.length, value.bytes.size());
+        for (std::size_t index = 0; index < renderedBytes;
+             ++index) {
+            const unsigned byte = value.bytes[index];
+            const char escaped[] = {'\\', 'x', hex[byte >> 4], hex[byte & 15], '\0'};
+            append(escaped);
+        }
+        append("\" ");
+        field("prefixBytes", renderedBytes);
+        field("sourceBytes", value.sourceBytes);
+        append(renderedBytes != value.sourceBytes || value.length > value.bytes.size()
+            ? "nameTruncated=true " : "nameTruncated=false ");
+    }
+    void write(std::ostream& output) const {
+        output.write(bytes.data(), static_cast<std::streamsize>(used));
+        if (truncated)
+            output.write(footer, sizeof(footer) - 1);
+    }
+private:
+    static constexpr char footer[] =
+        "\nDWG read report: truncated=true (report-byte-limit)\n";
+    static constexpr std::size_t contentLimit =
+        dx_iface::DwgReadReportMaxBytes - (sizeof(footer) - 1);
+    std::array<char, dx_iface::DwgReadReportMaxBytes> bytes{};
+    std::size_t used{0};
+    bool truncated{false};
+};
+
+bool observedDwgSemanticGaps(const DwgReadObservations& value) noexcept {
+    return value.entityParseFailures != 0 || value.objectParseFailures != 0
+        || value.skippedCustomClasses.sourceNames != 0
+        || value.skippedUnsupportedObjects.sourceNames != 0
+        || value.dataStorageLinkFailures != 0;
+}
+
+bool hasDwgReadWarning(const dx_dwgReadOutcome& outcome) noexcept {
+    const DwgReadObservations& value = outcome.observations;
+    return !outcome.operationSucceeded || observedDwgSemanticGaps(value)
+        || value.classesCrcMismatch != 0 || value.reader21CrcMismatch != 0
+        || value.reader18HeaderCrcMismatch != 0
+        || value.dataStorageOrphanRecords != 0
+        || value.integrity.sourceRecorded != 0
+        || value.integrity.reportedUpstreamDropped != 0
+        || value.frames.status == DRW_DwgFrameCoverageStatus::FinalizedPartial;
+}
+
+const char* canonicalDwgReadVersion(DRW::Version version) noexcept {
+    switch (version) {
+    case DRW::MC00: return "MC0.0";
+    case DRW::AC12: return "AC1.2";
+    case DRW::AC14: return "AC1.40";
+    case DRW::AC150: return "AC1.50";
+    case DRW::AC210: return "AC2.10";
+    case DRW::AC1002: return "AC1002";
+    case DRW::AC1003: return "AC1003";
+    case DRW::AC1004: return "AC1004";
+    case DRW::AC1006: return "AC1006";
+    case DRW::AC1009: return "AC1009";
+    case DRW::AC1012: return "AC1012";
+    case DRW::AC1014: return "AC1014";
+    case DRW::AC1015: return "AC1015";
+    case DRW::AC1018: return "AC1018";
+    case DRW::AC1021: return "AC1021";
+    case DRW::AC1024: return "AC1024";
+    case DRW::AC1027: return "AC1027";
+    case DRW::AC1032: return "AC1032";
+    default: return "unknown";
+    }
+}
+
+void formatNamedDwgObservations(DwgReadReportBuffer& buffer, const char* label,
+                                 const DwgReadNamedObservations& value) noexcept {
+    buffer.append(label); buffer.append(": ");
+    buffer.field("sourceNames", value.sourceNames);
+    buffer.field("observedInstances", value.instances);
+    buffer.field("retainedRows", value.retained);
+    buffer.field("omittedNames", value.omittedNames);
+    buffer.field("omittedRowInstances", value.omittedInstances);
+    buffer.field("truncatedRetainedNames", value.truncatedRetainedNames);
+    buffer.field("omittedNameBytes", value.omittedNameBytes);
+    buffer.append(value.aggregateSaturated ? "aggregateSaturated=true\n"
+                                          : "aggregateSaturated=false\n");
+    for (std::size_t index = 0; index < std::min(value.retained, value.rows.size());
+         ++index) {
+        buffer.append(label); buffer.append(" row: ");
+        buffer.prefix(value.rows[index].name);
+        buffer.field("instances", value.rows[index].instances);
+        buffer.append("\n");
+    }
+}
+
 DRW::Version sourceVersionFromDxfHeader(
     const DRW_Header& header, DRW::Version fallback) {
     const auto acadVersion = header.vars.find("$ACADVER");
@@ -1700,7 +1819,91 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data) {
 }
 
 
+void dx_iface::reportDwgReadOutcome(std::ostream& output,
+                                   const dx_dwgReadOutcome& outcome) try {
+    if (!outcome.attempted)
+        return;
+    DwgReadReportBuffer buffer;
+    buffer.append("DWG read observations: schema=1 ");
+    buffer.append(outcome.operationSucceeded ? "operationSucceeded=true "
+                                             : "operationSucceeded=false ");
+    buffer.append("sourceVersion=");
+    buffer.append(canonicalDwgReadVersion(outcome.sourceVersion));
+    buffer.append(" sourceVersionEnum="); buffer.integer(static_cast<int>(outcome.sourceVersion));
+    buffer.append(" legacyError="); buffer.integer(static_cast<int>(outcome.error));
+    buffer.append(observedDwgSemanticGaps(outcome.observations)
+        ? " semanticCoverage=partial-observed\n" : " semanticCoverage=unknown\n");
+    buffer.append("Observations overlap; decodedRecordTotal=unknown "
+                  "uniqueSkippedRecordTotal=unknown carrierLossTotal=unknown "
+                  "exportCompleteness=unknown\n");
+    buffer.append("Raw name prefixes can collide and are not complete identities.\n");
+    const DwgReadObservations& value = outcome.observations;
+    buffer.field("entityParseFailures", value.entityParseFailures);
+    buffer.field("objectParseFailures", value.objectParseFailures);
+    buffer.field("classesCrcMismatch", value.classesCrcMismatch);
+    buffer.field("reader21Ac1021CrcMismatch", value.reader21CrcMismatch);
+    buffer.field("reader18FamilyHeaderCrcMismatch", value.reader18HeaderCrcMismatch);
+    buffer.field("dataStorageLinkFailures", value.dataStorageLinkFailures);
+    buffer.field("dataStorageOrphanRecords", value.dataStorageOrphanRecords);
+    buffer.field("decodedProxyPrimitives", value.decodedProxyPrimitives);
+    buffer.append("\n");
+    formatNamedDwgObservations(buffer, "skippedCustomClasses", value.skippedCustomClasses);
+    formatNamedDwgObservations(buffer, "skippedUnsupportedObjects", value.skippedUnsupportedObjects);
+    buffer.field("frameCoverageStatus", static_cast<std::size_t>(value.frames.status));
+    buffer.append(value.frames.status == DRW_DwgFrameCoverageStatus::NotAvailable
+        ? "frameSourceDenominator=unknown " : "frameSourceDenominator=observed ");
+    buffer.field("sourceFrames", value.frames.sourceFrames);
+    static constexpr std::array<const char*, 7> dispositions{{
+        "pending", "deferred", "staged", "published", "quarantined", "failed", "unresolved"}};
+    for (std::size_t index = 0; index < dispositions.size(); ++index)
+        buffer.field(dispositions[index], value.frames.dispositions[index]);
+    buffer.field("unrecognizedDispositions", value.frames.unrecognizedDispositions);
+    buffer.append("\nObserved receipt callbacks (not terminal delivery): ");
+    static constexpr std::array<const char*, 4> carriers{{
+        "typed", "raw", "typedAndRaw", "control"}};
+    for (std::size_t index = 0; index < carriers.size(); ++index)
+        buffer.field(carriers[index], outcome.observedReceiptCarriers[index]);
+    buffer.append("\nOpaque callbacks are not CLI retention/export: ");
+    buffer.field("opaqueViewCallbacks", outcome.opaqueViewCallbacks);
+    buffer.field("opaqueFramesRetainedForCorrelation", outcome.opaqueFramesRetainedByAdapter);
+    buffer.append(outcome.callbackCountsSaturated ? "callbackCountsSaturated=true\n"
+                                                : "callbackCountsSaturated=false\n");
+    buffer.append("Integrity observations: ");
+    buffer.field("sourceRecorded", value.integrity.sourceRecorded);
+    buffer.field("retainedRows", value.integrity.retained);
+    buffer.field("extractionOmitted", value.integrity.extractionOmitted);
+    buffer.field("reportedUpstreamDroppedLowerBound", value.integrity.reportedUpstreamDropped);
+    buffer.field("truncatedRetainedNames", value.integrity.truncatedRetainedNames);
+    buffer.field("omittedNameBytes", value.integrity.omittedNameBytes);
+    buffer.append(value.integrity.aggregateSaturated ? "aggregateSaturated=true\n"
+                                                    : "aggregateSaturated=false\n");
+    for (std::size_t index = 0;
+         index < std::min(value.integrity.retained, value.integrity.rows.size()); ++index) {
+        const DwgReadIntegrityObservation& row = value.integrity.rows[index];
+        buffer.append("integrity row: version="); buffer.integer(static_cast<int>(row.version));
+        buffer.append(" ");
+        buffer.field("severity", static_cast<std::size_t>(row.severity));
+        buffer.field("phase", static_cast<std::size_t>(row.phase));
+        buffer.field("kind", static_cast<std::size_t>(row.kind));
+        buffer.field("offsetSpace", static_cast<std::size_t>(row.offsetSpace));
+        buffer.append("logicalSectionId="); buffer.integer(row.logicalSectionId);
+        buffer.append(" sectionDescriptorId="); buffer.integer(row.sectionDescriptorId);
+        buffer.append(" "); buffer.prefix(row.sectionName);
+        buffer.field("hasPageId", row.hasPageId); buffer.field("pageId", row.pageId);
+        buffer.field("hasFileOffset", row.hasFileOffset); buffer.field("fileOffset", row.fileOffset);
+        buffer.field("hasLogicalHandle", row.hasLogicalHandle); buffer.field("logicalHandle", row.logicalHandle);
+        buffer.field("hasExpected", row.hasExpected); buffer.field("expected", row.expected);
+        buffer.field("hasObserved", row.hasObserved); buffer.field("observed", row.observed);
+        buffer.append("\n");
+    }
+    buffer.write(output);
+} catch (...) {
+    // Optional reporting must not change the legacy import Boolean/error or
+    // output-publication policy, even when the caller's stream throws.
+}
+
 bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug){
+    fData->dwgReadOutcome = {};
     unsigned int found = fileI.find_last_of(".");
     std::string fileExt = fileI.substr(found+1);
     std::transform(fileExt.begin(), fileExt.end(),fileExt.begin(), ::toupper);
@@ -1724,17 +1927,23 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug){
         return success;
     } else if (fileExt == "DWG"){
         //loads dwg
-        dwgR* dwg = new dwgR(fileI.c_str());
+        dwgRW dwg(fileI.c_str());
+        fData->dwgReadOutcome.attempted = true;
         if (debug) {
-            dwg->setDebug(DRW::DebugLevel::Debug);
+            dwg.setDebug(DRW::DebugLevel::Debug);
         }
-        bool success = dwg->read(this, false);
+        const bool success = dwg.read(this, false);
+        fData->dwgReadOutcome.operationSucceeded = success;
+        fData->dwgReadOutcome.error = dwg.getError();
+        fData->dwgReadOutcome.sourceVersion = dwg.getVersion();
+        fData->dwgReadOutcome.observations = dwg.getReadObservations();
         if (success)
-            fData->sourceVersion = dwg->getVersion();
+            fData->sourceVersion = dwg.getVersion();
         if (!success) {
-            std::cout << "DWG file error: format " << dwg->getVersion() << " error " << dwg->getError() << std::endl;
+            std::cout << "DWG file error: format " << dwg.getVersion() << " error " << dwg.getError() << std::endl;
         }
-        delete dwg;
+        if (debug || hasDwgReadWarning(fData->dwgReadOutcome))
+            reportDwgReadOutcome(std::cerr, fData->dwgReadOutcome);
         return success;
     }
     std::cout << "file extension can be dxf or dwg" << std::endl;

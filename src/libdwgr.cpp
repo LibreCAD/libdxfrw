@@ -51,6 +51,137 @@
 
 namespace {
 
+void addObservationCount(std::size_t& total, std::size_t value,
+                         bool& saturated) noexcept {
+    const auto maximum = std::numeric_limits<std::size_t>::max();
+    if (value > maximum - total) {
+        total = maximum;
+        saturated = true;
+    } else {
+        total += value;
+    }
+}
+
+DwgReadBytePrefix observationPrefix(const std::string& source) noexcept {
+    DwgReadBytePrefix result;
+    result.sourceBytes = source.size();
+    result.length = std::min(source.size(), result.bytes.size());
+    for (std::size_t index = 0; index < result.length; ++index)
+        result.bytes[index] = static_cast<std::uint8_t>(source[index]);
+    return result;
+}
+
+DwgReadNamedObservations summarizeNamedObservations(
+        const std::unordered_map<std::string, std::size_t>& source) noexcept {
+    using Entry = std::unordered_map<std::string, std::size_t>::value_type;
+    std::array<const Entry*, DwgReadObservationMaxRows> selected{};
+    DwgReadNamedObservations result;
+    result.sourceNames = source.size();
+    const auto before = [](const Entry* lhs, const Entry* rhs) noexcept {
+        return std::lexicographical_compare(
+            lhs->first.begin(), lhs->first.end(),
+            rhs->first.begin(), rhs->first.end(), [](char a, char b) noexcept {
+                return static_cast<unsigned char>(a)
+                    < static_cast<unsigned char>(b);
+            });
+    };
+    for (const Entry& entry : source) {
+        addObservationCount(result.instances, entry.second,
+                            result.aggregateSaturated);
+        std::size_t position = 0;
+        while (position < result.retained
+                && before(selected[position], &entry))
+            ++position;
+        if (position == selected.size())
+            continue;
+        const std::size_t last = std::min(result.retained, selected.size() - 1);
+        for (std::size_t index = last; index > position; --index)
+            selected[index] = selected[index - 1];
+        selected[position] = &entry;
+        if (result.retained < selected.size())
+            ++result.retained;
+    }
+    result.omittedNames = source.size() - result.retained;
+    for (std::size_t index = 0; index < result.retained; ++index) {
+        result.rows[index].name = observationPrefix(selected[index]->first);
+        result.rows[index].instances = selected[index]->second;
+        if (result.rows[index].name.truncated())
+            ++result.truncatedRetainedNames;
+    }
+    for (const Entry& entry : source) {
+        const auto end = selected.begin() + result.retained;
+        const bool retained = std::find(selected.begin(), end, &entry) != end;
+        const std::size_t retainedBytes = retained
+            ? std::min(entry.first.size(), DwgReadObservationMaxNameBytes) : 0;
+        addObservationCount(result.omittedNameBytes,
+                            entry.first.size() - retainedBytes,
+                            result.aggregateSaturated);
+        if (!retained)
+            addObservationCount(result.omittedInstances, entry.second,
+                                result.aggregateSaturated);
+    }
+    return result;
+}
+
+DwgReadIntegrityObservations summarizeIntegrityObservations(
+        const std::vector<DwgIntegrityDiagnostic>& source,
+        std::size_t upstreamDropped) noexcept {
+    DwgReadIntegrityObservations result;
+    result.sourceRecorded = source.size();
+    result.retained = std::min(source.size(), result.rows.size());
+    result.extractionOmitted = source.size() - result.retained;
+    result.reportedUpstreamDropped = upstreamDropped;
+    for (std::size_t index = 0; index < source.size(); ++index) {
+        const DwgIntegrityDiagnostic& value = source[index];
+        const auto retainedBytes = index < result.retained
+            ? std::min(value.sectionName.size(), DwgReadObservationMaxNameBytes)
+            : 0;
+        addObservationCount(result.omittedNameBytes,
+                            value.sectionName.size() - retainedBytes,
+                            result.aggregateSaturated);
+        if (index >= result.retained)
+            continue;
+        DwgReadIntegrityObservation& row = result.rows[index];
+        row.version = value.version;
+        row.severity = value.severity;
+        row.offsetSpace = value.offsetSpace;
+        row.phase = value.phase;
+        row.kind = value.kind;
+        row.logicalSectionId = value.logicalSectionId;
+        row.sectionDescriptorId = value.sectionDescriptorId;
+        row.sectionName = observationPrefix(value.sectionName);
+        row.pageId = value.pageId;
+        row.fileOffset = value.fileOffset;
+        row.logicalHandle = value.logicalHandle;
+        row.expected = value.expected;
+        row.observed = value.observed;
+        row.hasPageId = value.hasPageId;
+        row.hasFileOffset = value.hasFileOffset;
+        row.hasLogicalHandle = value.hasLogicalHandle;
+        row.hasExpected = value.hasExpected;
+        row.hasObserved = value.hasObserved;
+        if (row.sectionName.truncated())
+            ++result.truncatedRetainedNames;
+    }
+    return result;
+}
+
+DwgReadFrameObservations summarizeFrameObservations(
+        const std::vector<DRW_DwgFrameCoverageEntry>& source,
+        DRW_DwgFrameCoverageStatus status) noexcept {
+    DwgReadFrameObservations result;
+    result.status = status;
+    result.sourceFrames = source.size();
+    for (const DRW_DwgFrameCoverageEntry& entry : source) {
+        const auto index = static_cast<std::size_t>(entry.m_disposition);
+        if (index < result.dispositions.size())
+            ++result.dispositions[index];
+        else
+            ++result.unrecognizedDispositions;
+    }
+    return result;
+}
+
 struct OperationErrorMapping {
     DRW::OperationPhase phase;
     DRW::OperationCause cause;
@@ -907,6 +1038,8 @@ void dwgRW::captureReaderDiagnostics(bool readSucceeded) {
     m_integrityDiagnosticsDropped = reader->m_integrityDiagnosticsDropped;
     m_dataStorageLinkFailures = reader->m_dataStorageLinkFailures;
     m_dataStorageOrphanRecords = reader->m_dataStorageOrphanRecords;
+    m_readFrameObservations = summarizeFrameObservations(
+        reader->m_dwgSourceFrameLedger, reader->m_dwgFrameCoverageStatus);
     m_skippedCustomClasses = reader->m_skippedCustomClasses;
     m_skippedUnsupportedObjects = reader->m_skippedUnsupportedObjects;
     m_decodedProxyPrimitives = reader->m_decodedProxyPrimitives;
@@ -926,6 +1059,7 @@ void dwgRW::resetReadDiagnostics() {
     m_r2004CrcMismatch = 0;
     m_integrityDiagnostics.clear();
     m_integrityDiagnosticsDropped = 0;
+    m_readFrameObservations = {};
     m_dataStorageLinkFailures = 0;
     m_dataStorageOrphanRecords = 0;
     m_skippedCustomClasses.clear();
@@ -1046,6 +1180,30 @@ std::unordered_map<std::string, size_t> dwgRW::getSkippedCustomClasses() const {
 
 std::unordered_map<std::string, size_t> dwgRW::getSkippedUnsupportedObjects() const {
     return reader ? reader->m_skippedUnsupportedObjects : m_skippedUnsupportedObjects;
+}
+
+DwgReadObservations dwgRW::getReadObservations() const noexcept {
+    DwgReadObservations result;
+    result.entityParseFailures = getEntityParseFailures();
+    result.objectParseFailures = getObjectParseFailures();
+    result.classesCrcMismatch = getClassesCrcMismatch();
+    result.reader21CrcMismatch = getR2007CrcMismatch();
+    result.reader18HeaderCrcMismatch = getR2004CrcMismatch();
+    result.dataStorageLinkFailures = getDataStorageLinkFailures();
+    result.dataStorageOrphanRecords = getDataStorageOrphanRecords();
+    result.decodedProxyPrimitives = reader
+        ? reader->m_decodedProxyPrimitives : m_decodedProxyPrimitives;
+    result.skippedCustomClasses = summarizeNamedObservations(reader
+        ? reader->m_skippedCustomClasses : m_skippedCustomClasses);
+    result.skippedUnsupportedObjects = summarizeNamedObservations(reader
+        ? reader->m_skippedUnsupportedObjects : m_skippedUnsupportedObjects);
+    result.integrity = summarizeIntegrityObservations(reader
+        ? reader->m_integrityDiagnostics : m_integrityDiagnostics,
+        getIntegrityDiagnosticsDropped());
+    result.frames = reader ? summarizeFrameObservations(
+        reader->m_dwgSourceFrameLedger, reader->m_dwgFrameCoverageStatus)
+        : m_readFrameObservations;
+    return result;
 }
 
 void dwgRW::resetWriteSkipCounters() {

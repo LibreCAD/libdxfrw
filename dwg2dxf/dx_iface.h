@@ -19,6 +19,8 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <iosfwd>
+#include <limits>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -50,6 +52,9 @@ public:
     dx_iface() = default;
     ~dx_iface() = default;
     bool fileImport(const std::string& fileI, dx_data *fData, bool debug);
+    static constexpr std::size_t DwgReadReportMaxBytes = 32u * 1024u;
+    static void reportDwgReadOutcome(std::ostream& output,
+                                     const dx_dwgReadOutcome& outcome);
     bool fileExport(const std::string& file, DRW::Version v, bool binary,
                     dx_data *fData, bool debug, bool requireResolvedOwners = false);
     void writeEntity(DRW_Entity* e);
@@ -141,8 +146,20 @@ public:
         if (cData != nullptr)
             cData->acshHistoryObjects.push_back(data);
     }
+    void addDwgFramePublication(const DRW_DwgFramePublication& data) override {
+        if (cData == nullptr || !cData->dwgReadOutcome.attempted)
+            return;
+        const auto index = static_cast<std::size_t>(data.m_carrier);
+        if (index < cData->dwgReadOutcome.observedReceiptCarriers.size())
+            countDwgReadCallback(
+                cData->dwgReadOutcome.observedReceiptCarriers[index]);
+    }
     virtual void addUnsupportedObject(const DRW_UnsupportedObject& data) override {
-        if (cData == nullptr || data.m_isEntity)
+        if (cData == nullptr)
+            return;
+        if (cData->dwgReadOutcome.attempted)
+            countDwgReadCallback(cData->dwgReadOutcome.opaqueViewCallbacks);
+        if (data.m_isEntity)
             return;
         // Preserve only raw frames paired with this bounded AC1027 projection
         // profile. m_rawBytes are DWG object-body bits, not DXF group data;
@@ -155,8 +172,12 @@ public:
             data.m_recordName == "ACSH_HISTORY_CLASS"
             || data.m_recordName == "ACSH_BOX_CLASS"
             || data.m_recordName == "ACSH_EXTRUSION_CLASS";
-        if (evaluationGraph || historyObject)
+        if (evaluationGraph || historyObject) {
             cData->acdsHistoryDwgFrames.push_back(data);
+            if (cData->dwgReadOutcome.attempted)
+                countDwgReadCallback(
+                    cData->dwgReadOutcome.opaqueFramesRetainedByAdapter);
+        }
     }
 
     //blocks
@@ -523,6 +544,12 @@ public:
     dx_ifaceBlock* currentBlock {nullptr};
 
 private:
+    void countDwgReadCallback(std::size_t& count) noexcept {
+        if (count != std::numeric_limits<std::size_t>::max())
+            ++count;
+        else
+            cData->dwgReadOutcome.callbackCountsSaturated = true;
+    }
     bool prepareExtensionObjectGraph(dx_data* data);
     static bool collectAcdsHistoryProxyObjects(
         const dx_data& data, std::vector<DRW_RawDxfObject>& objects,

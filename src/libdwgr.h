@@ -28,6 +28,7 @@
 # endif
 #endif
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <functional>
@@ -49,6 +50,7 @@ class dwgBuffer;
 class dwgWriter;
 class DwgCompoundWriteTestAccess;
 class DwgWriteFailureTestAccess;
+class DwgReadObservationTestAccess;
 
 /// Closed identity for a typed OBJECTS writer that can carry the AC1027+
 /// DataStorage presence bit.  The identity is deliberately separate from a
@@ -185,6 +187,102 @@ struct DwgIntegrityDiagnostic {
     bool hasLogicalHandle {false};
     bool hasExpected {false};
     bool hasObserved {false};
+};
+
+/// Reporting limits, not DWG format limits. Prefixes are arbitrary source
+/// bytes, not necessarily complete UTF-8 strings or unique class identities.
+constexpr std::size_t DwgReadObservationMaxRows = 16;
+constexpr std::size_t DwgReadObservationMaxNameBytes = 64;
+
+struct DwgReadBytePrefix {
+    std::array<std::uint8_t, DwgReadObservationMaxNameBytes> bytes{};
+    std::size_t length{0};
+    std::size_t sourceBytes{0};
+    bool truncated() const noexcept { return length != sourceBytes; }
+};
+
+struct DwgReadNamedObservation {
+    DwgReadBytePrefix name;
+    std::size_t instances{0};
+};
+
+/// The lexical first full source keys are selected before prefix copying.
+/// Instance counts in different summaries may describe the same record.
+struct DwgReadNamedObservations {
+    std::array<DwgReadNamedObservation, DwgReadObservationMaxRows> rows{};
+    std::size_t retained{0};
+    std::size_t sourceNames{0};
+    std::size_t instances{0};
+    std::size_t omittedNames{0};
+    std::size_t omittedInstances{0};
+    std::size_t truncatedRetainedNames{0};
+    /// Excluded names plus suffix bytes of retained prefixes, once per key.
+    std::size_t omittedNameBytes{0};
+    bool aggregateSaturated{false};
+};
+
+/// Allocation-free projection of an integrity row. Presence flags, version
+/// and address space retain their original diagnostic meanings.
+struct DwgReadIntegrityObservation {
+    DRW::Version version{DRW::UNKNOWNV};
+    DwgIntegritySeverity severity{DwgIntegritySeverity::Error};
+    DwgIntegrityAddressSpace offsetSpace{DwgIntegrityAddressSpace::None};
+    DwgIntegrityPhase phase{DwgIntegrityPhase::FileHeader};
+    DwgIntegrityCheckKind kind{DwgIntegrityCheckKind::PageRange};
+    std::int32_t logicalSectionId{-1};
+    std::int32_t sectionDescriptorId{-1};
+    DwgReadBytePrefix sectionName;
+    std::uint64_t pageId{0};
+    std::uint64_t fileOffset{0};
+    std::uint32_t logicalHandle{0};
+    std::uint64_t expected{0};
+    std::uint64_t observed{0};
+    bool hasPageId{false};
+    bool hasFileOffset{false};
+    bool hasLogicalHandle{false};
+    bool hasExpected{false};
+    bool hasObserved{false};
+};
+
+struct DwgReadIntegrityObservations {
+    std::array<DwgReadIntegrityObservation, DwgReadObservationMaxRows> rows{};
+    std::size_t retained{0};
+    std::size_t sourceRecorded{0};
+    std::size_t extractionOmitted{0};
+    /// Upstream reports this count; diagnostic-construction failures may not
+    /// be counted, so it is lower-bound evidence, not a complete loss total.
+    std::size_t reportedUpstreamDropped{0};
+    std::size_t truncatedRetainedNames{0};
+    std::size_t omittedNameBytes{0};
+    bool aggregateSaturated{false};
+};
+
+/// Unique HANDLE-map frame dispositions, not semantic decode counts. A
+/// published opaque frame can still have unmodeled fields or be discarded by
+/// a consumer. Status NotAvailable leaves the source denominator unknown.
+struct DwgReadFrameObservations {
+    DRW_DwgFrameCoverageStatus status{DRW_DwgFrameCoverageStatus::NotAvailable};
+    std::size_t sourceFrames{0};
+    std::array<std::size_t, 7> dispositions{};
+    std::size_t unrecognizedDispositions{0};
+};
+
+/// Named observations are not disjoint record populations. Never sum skipped
+/// categories, parse failures, opaque callbacks or frame dispositions into a
+/// unique semantic-loss count. Zero observations do not prove completeness.
+struct DwgReadObservations {
+    std::size_t entityParseFailures{0};
+    std::size_t objectParseFailures{0};
+    std::size_t classesCrcMismatch{0};
+    std::size_t reader21CrcMismatch{0};
+    std::size_t reader18HeaderCrcMismatch{0};
+    std::size_t dataStorageLinkFailures{0};
+    std::size_t dataStorageOrphanRecords{0};
+    std::size_t decodedProxyPrimitives{0};
+    DwgReadNamedObservations skippedCustomClasses;
+    DwgReadNamedObservations skippedUnsupportedObjects;
+    DwgReadIntegrityObservations integrity;
+    DwgReadFrameObservations frames;
 };
 
 /// Executable capability metadata for one low-level typed writer.  A zero
@@ -640,10 +738,11 @@ public:
     /// CRC fields are treated as absent for legacy writers; non-zero
     /// mismatches are surfaced as a non-fatal diagnostic.
     size_t getClassesCrcMismatch() const;
-    /// AC1027+ header, system-page, and data-page CRC/checksum mismatches.
+    /// AC1021 reader21 header, system-page and data-page CRC/checksum mismatches.
     /// These diagnostics do not include structural parse failures.
     size_t getR2007CrcMismatch() const;
-    /// AC1018 encrypted file-header CRC mismatches. These are non-fatal
+    /// Reader18-family encrypted file-header CRC mismatches (AC1018 and the
+    /// AC1024/AC1027/AC1032 readers inheriting that path). These are non-fatal
     /// diagnostics; structural section/page failures still fail the read.
     size_t getR2004CrcMismatch() const;
     /// AC1027+ modeler/surface entities that advertised a DataStorage payload
@@ -675,6 +774,13 @@ public:
     /// Unsupported OBJECTS-section records encountered during read. Keyed by
     /// DXF recName for custom classes or by fixed type code for fixed objects.
     std::unordered_map<std::string, size_t> getSkippedUnsupportedObjects() const;
+    /// Bounded, allocation-free observations from the most recent full read.
+    /// During a read this exposes its live best-effort prefix. Existing read
+    /// caches survive write()/getPreview(); callers must separately capture
+    /// the actual read Boolean, error and source version at read completion.
+    /// This adds no whole-map/vector/string copy and leaves legacy getters
+    /// unchanged. It does not bound the existing reader's own allocations.
+    DwgReadObservations getReadObservations() const noexcept;
     /// Number of render primitives recovered by decoding the cached proxy
     /// graphics of raw-net custom entities (STDPART2D, AEC_*, …). Non-zero
     /// means previously-invisible geometry now renders.
@@ -694,6 +800,7 @@ bool testReader();
 private:
     friend class DwgCompoundWriteTestAccess;
     friend class DwgWriteFailureTestAccess;
+    friend class DwgReadObservationTestAccess;
 
     enum class DwgWriteFailurePoint : std::uint8_t {
         AfterFirstDeferredTableRecord = 1,
@@ -807,6 +914,7 @@ private:
     /// Captured location-bearing integrity diagnostics before reader.reset().
     std::vector<DwgIntegrityDiagnostic> m_integrityDiagnostics;
     std::size_t m_integrityDiagnosticsDropped {0};
+    DwgReadFrameObservations m_readFrameObservations;
     /// Captured from reader->m_dataStorageLinkFailures before reader.reset().
     size_t m_dataStorageLinkFailures { 0 };
     /// Captured from reader->m_dataStorageOrphanRecords before reader.reset().
