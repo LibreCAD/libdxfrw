@@ -7,9 +7,10 @@ calibrations refine existing findings rather than add more IDs.
 Current LibreCAD's nonvirtual text-encoding API gap is owned by7AG.1b/Slice3.
 Its input-only recovery/API successor is now integrated with seven composed
 main tests and the exact encoding-facade compile passing. Under7AG.1c, the
-source-version/reservation queries, phase-scoped BLOCK_RECORD remap, and
-terminal DXF reference resolver are committed; truthful omission reporting is
-the remaining facade method. Full adapter compatibility is not established.
+source-version/reservation queries, phase-scoped BLOCK_RECORD remap, terminal
+DXF reference resolver, and truthful target-gated omission reporting are
+committed. The last reports attempted target-version rejections without
+relaxing strict write failure. Full adapter compatibility is not established.
 Declared remains the default.
 Narrow MIF literal/exact-hex, BLOCK callback and WIPEOUT payload/CLI
 preservation are integrated. The newer clean-checkout ASan cohort at25adc7f
@@ -28,8 +29,22 @@ Slice8/S3.7 separates their fixes from DWG carrier and native qualification.
 The latest research refresh sharpens the AC1027+ ACDS plan from “retain an SAB
 blob” to bounded segment/index parsing and handle-keyed association, and adds a
 separate SAT/SAB reader candidate without treating it as independent-kernel or
-native-FreeCAD evidence. No new local defect ID is justified; 118 findings/67
-subplans and all six external J dispositions remain unchanged.
+native-FreeCAD evidence. The broader peer/consumer refresh below further pins
+the FreeCAD converter/import route, exposes conflicting public peer capability
+statements, and tightens the gates for a genuine semantic handoff. No new local
+defect ID is justified; 118 findings/67 subplans and all six external J
+dispositions remain unchanged.
+The deeper source pass below also separates AcDs index decoding from payload
+extraction, records current ACadSharp parser/writer maturity separately, and
+adds LibreCAD's bundled source inventory as a consumer-parity—not conformance—
+reference. It sharpens existing Slice8 handle-order, nested-block omission,
+and 2D graph/context checks without treating mutable peer branches, issue
+reports, or self-round-trips as independent semantic evidence.
+The newest cross-project regression-process review adds targeted checks for
+terminal DXF framing, signed EED values, relative child handles, model/paper
+publication and reference-preserving version conversions. It also tightens
+the boundaries of LibreDWG render/fuzz tools and IxMilia's version/entity
+coverage; these are test-selection leads, not newly reproduced libdxfrw bugs.
 Next retain the remaining per-container real-file HEADER witnesses, complete
 the remaining 7AG.1c omission-reporting method, and continue dependency-ready
 resource work. Declared text remains the default; peer HATCH transforms and
@@ -54,9 +69,14 @@ reader/package work does not wait for external qualification.
 
 **Research snapshot:** 2026-10-14
 
-**Latest research boundary:** `cf6466b` (2026-10-14), broadening the prior
-research boundary `6426f0c703d14cd63b2c7780558ba11f83bfd220`. This plan-only
-refresh reviewed ODA v5.4.1 §7/§24 (printed
+**Latest research boundary:** implementation HEAD `acad148` (2026-10-14),
+with the earlier `cf6466b` findings and the plan-only peer/consumer,
+implementation-source, and cross-project regression-process reviews recorded
+below. These documentation-only reviews do not change implementation HEAD.
+That refresh uses exact read-only peer pins where available; it does not
+relabel the previously executed comparator runtime pins. FreeCAD `main` was
+read as a mutable source snapshot and must be pinned again before a native
+run. The earlier `cf6466b` refresh reviewed ODA v5.4.1 §7/§24 (printed
 pp.68–69, 252–262; local PDF SHA256
 `1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7`),
 Autodesk's 3DSOLID DXF contract, current LibreDWG/ACadSharp reports, the
@@ -71,24 +91,27 @@ is independently recorded in the ledger below.
 No generated drawing was added, no dependency/native run or fixture admission
 occurred, and support metadata, receipts, source status and remote state are
 unchanged. 118 findings/67 top-level subplans remain; J256/J260/J268/J284/
-J293/J295 stay `DEFERRED_EXTERNAL` and non-promoting.
+J293/J295 stay `DEFERRED_EXTERNAL` and non-promoting. The follow-up source
+refresh is documentation-only as well: it adds no fixtures, dependencies,
+peer builds, external executions, registrations, or support claims.
 
-**Latest implementation checkpoint:** `06b051c`
-(`Plan-Slice: 7AG.1c.resolver`), 2026-10-14. It adds an owned setup-only
-reference resolver whose outputs are terminal: optional entity/table
-reactor/xDictionary references and recognized `ACAD_REACTORS`/
-`ACAD_XDICTIONARY` 102 groups resolve once; zero drops those optional links;
-foreign groups remain opaque. Typed XDATA1005 resolves valid nonzero handles,
-retains literal zero and resolver-mode opaque spellings, and does not re-enter
-generic remapping. With no resolver, each existing route's mapping behavior is
-unchanged. Callback throw, replacement/clear, active-write/finalizer mutation,
-and destination-preserving retry are covered. Current fixture/hardening/
-diagnostic pass3/3 without skips in2.95s; `lc3_compat_check` builds. No
-fixture was added, no full adapter/native compatibility is established, and no
-support claim is promoted. The getter/reservation pair remains at `1ade4c6`;
-phase-scoped remapping remains at `bc659d8`. Truthful omission reporting is
-the only remaining method in this facade set. Previous HEADER checkpoints
-remain separately recorded below.
+**Latest implementation checkpoint:** `bf1113c`
+(`Plan-Slice: 7BO.2.name-index`), 2026-10-14. The companion exact-name index
+removes the remaining quadratic duplicate scan from R2004/R2007 unknown
+section descriptors while retaining the source-ordered descriptor vector and
+the existing first-duplicate diagnostic. Common-prefix 128/512
+ascending/descending/shuffled comparison bounds, case-distinct names,
+early/late duplicates and injected allocator failure/retry pass. Along with
+the range index at`31f7cfd`, the reader-matrix + hardening pair passes2/2 in
+1.71s; the reader-matrix code uses generated component controls, while a
+negative end-to-end section-map publication/reuse witness remains open. The
+broader local `dwg_read` filter was diagnostic only: AC1021/AC1024 reads
+completed before38/53 conversions failed later in strict DXF emission, so it
+does not qualify writer output or establish a regression. No local DWG/DXF
+sample was committed. The prior nonvirtual `leftOut()` report is committed at
+`2623d4a` and retains strict failure/destination preservation. Counts remain
+118/67; six external J items, full adapter/native compatibility, and support
+claims are unchanged.
 
 **Previous research boundary:** `25adc7f5201a101f5298394aa0f37796b43d2b91`
 (2026-10-14). Tracked worktree/index were clean at entry. This update changes
@@ -227,9 +250,10 @@ Its historical binary diff SHA-256 is
 | 7BE.1 bounded HEADER reader | COMMITTED / MODERN_SAMPLE_WITNESS_OPEN | `bcc1c93` (`Plan-Slice: 7BE.1`): reviewed11-path reader composition integrated after current-main acceptance. Strict affected targets/test-TU, reader-matrix/hardening/local-roundtrip3/3 and combined cursor-window ASan passed at their recorded checkpoints. Preserves legacy CRC-warning and compact-body exceptions. Generated AC1018/1021/1024/1027/1032 logical-envelope, maintenance and explicit R13/R14 read-only controls were completed separately in7BE.8. Still obtain bounded real-file logical-boundary/maintenance witnesses for each distinct container lineage and complete R13/R14 section-path negative/read-only evidence before broad HEADER coverage claims. AC1024 sample conversion reaches complete DWG read with operation success but is currently blocked at dynamic-block DXF serializer preflight, so it is not an end-to-end positive. No fixture admission or support promotion. |
 | 7BE.7 final HEADER writer sealing | COMMITTED / READER_BOUNDARIES_OPEN | `bde5409` (`Plan-Slice: 7BE.7`): validates the writer-owned HEADER locator/RL/sentinels and the unaligned HANDSEED range before mutation, then reseals CRC after the final seed patch. Independent bitwise CRC/readback, preserved neighboring bits/high-water seeds, repeat sealing, all six writer versions, full in-memory publication/following LINE, and malformed-range rejection/retry controls pass. Strict affected targets and strict test-TU syntax check pass; reader-matrix/hardening/local-roundtrip pass3/3, no skips,3.63s; combined reader matrix AddressSanitizer passes1/1 with no skips. Modern reader boundary and R13/R14 admission partners remain open. No drawing fixture or support promotion. |
 | 7BE.8 versioned logical HEADER envelopes | COMMITTED / GENERATED_PROFILE_EVIDENCE | `9048257` (`Plan-Slice: 7BE.8`): shared admission selects optional high-size word only for AC1024/1027 app-maintenance>3 and AC1032+, enforces exact logical RL/trailer length, validates prefix/end sentinels before publishing variables, and records CRC mismatch as warning. Generated writer-backed sections and independently modified maintenance profiles cover AC1015/1018/1021/1024/1027/1032; AC1012/1014 are envelope-only read-only controls. Maintenance mismatches, extra decoded padding, CRC mutation, end-sentinel mutation and stale-header clearing pass reader-matrix/hardening/local-roundtrip3/3 in2.89s, no skips. Does not prove every real producer's logical page length, R13/R14 body semantics, broad DWG version support, or full-file success. No DWG/DXF fixture committed. |
-| 7AG.1c source/reservation facade queries | COMMITTED / OMISSION_REPORTING_OPEN | `1ade4c6` (`Plan-Slice: 7AG.1c`): adds exact-source-version provenance and a read-only query of explicit handle reservations, excluding generated handles; no virtual/interface layout change. Corrected the invalid test premise (required LINE end-Y omission, not absent self-handle). Current fixture/hardening/diagnostic tests pass3/3, no skips,3.35s; LC3 source-compatibility target builds. Coverage includes file/readAscii version normalization and repeat declarations, returned parse failure, callback exception/nested operation timing, reservation vs fixed/generated/BLOCK handles, failure/retry and ASCII/binary R12/modern output. Does not prove full adapter/native compatibility. No fixture or support claim. |
-| 7AG.1c phase-scoped BLOCK_RECORD remaps | COMMITTED / OMISSION_REPORTING_OPEN | `bc659d8` (`Plan-Slice: 7AG.1c.remap`): adds transient derived remaps only during the consumer `writeBlocks()` callback, after BLOCK_RECORD precollection. Explicit caller maps win collisions; equal derived duplicates are idempotent; conflicting duplicates, null source/target and earlier `writeBlockRecords()` calls reject the transaction. Derived maps are separate from caller state and clear on failed write/retry and next operation. Generated dictionary-owner output checks prove remapObjectHandle reaches serialized code330; phase, reuse, exception, conflict and explicit-precedence controls pass the current fixture/hardening/diagnostic cohort3/3 in2.92s, no skips; LC3 exact signature/call target builds. No full adapter/native compatibility, fixture admission or support claim. |
-| 7AG.1c terminal reference resolver | COMMITTED / OMITTED_COUNTER_OPEN | `06b051c` (`Plan-Slice: 7AG.1c.resolver`): owns the callable and rejects setup/replacement/clear while a write or finalizer is active. Absent resolver preserves route-specific behavior. When set, typed entity/table reactors and xDictionary references plus known ACAD 102 groups use one terminal callback result; zero removes optional links/empty known groups, foreign app groups remain opaque, and no generic second map is applied. Typed XDATA1005 maps valid nonzero references once, preserves literal-zero spelling, writes callback-zero as `0`, and preserves malformed spellings per the bundled writer contract; that malformed-output control is byte inspection only, not parse-validity evidence. Non-idempotent mapping, explicit-map precedence, callback counts, ASCII/binary output, replacement/clear, callback throw/retry, closure release, active-write/finalizer mutation rejection and destination preservation pass fixture/hardening/diagnostic3/3 in2.95s, no skips; `lc3_compat_check` builds. No fixture, full adapter/native compatibility or support claim. |
+| 7AG.1c source/reservation facade queries | COMMITTED | `1ade4c6` (`Plan-Slice: 7AG.1c`): adds exact-source-version provenance and a read-only query of explicit handle reservations, excluding generated handles; no virtual/interface layout change. Corrected the invalid test premise (required LINE end-Y omission, not absent self-handle). Current fixture/hardening/diagnostic tests pass3/3, no skips,3.35s; LC3 source-compatibility target builds. Coverage includes file/readAscii version normalization and repeat declarations, returned parse failure, callback exception/nested operation timing, reservation vs fixed/generated/BLOCK handles, failure/retry and ASCII/binary R12/modern output. Does not prove full adapter/native compatibility. No fixture or support claim. |
+| 7AG.1c phase-scoped BLOCK_RECORD remaps | COMMITTED | `bc659d8` (`Plan-Slice: 7AG.1c.remap`): adds transient derived remaps only during the consumer `writeBlocks()` callback, after BLOCK_RECORD precollection. Explicit caller maps win collisions; equal derived duplicates are idempotent; conflicting duplicates, null source/target and earlier `writeBlockRecords()` calls reject the transaction. Derived maps are separate from caller state and clear on failed write/retry and next operation. Generated dictionary-owner output checks prove remapObjectHandle reaches serialized code330; phase, reuse, exception, conflict and explicit-precedence controls pass the current fixture/hardening/diagnostic cohort3/3 in2.92s, no skips; LC3 exact signature/call target builds. No full adapter/native compatibility, fixture admission or support claim. |
+| 7AG.1c terminal reference resolver | COMMITTED | `06b051c` (`Plan-Slice: 7AG.1c.resolver`): owns the callable and rejects setup/replacement/clear while a write or finalizer is active. Absent resolver preserves route-specific behavior. When set, typed entity/table reactors and xDictionary references plus known ACAD 102 groups use one terminal callback result; zero removes optional links/empty known groups, foreign app groups remain opaque, and no generic second map is applied. Typed XDATA1005 maps valid nonzero references once, preserves literal-zero spelling, writes callback-zero as `0`, and preserves malformed spellings per the bundled writer contract; that malformed-output control is byte inspection only, not parse-validity evidence. Non-idempotent mapping, explicit-map precedence, callback counts, ASCII/binary output, replacement/clear, callback throw/retry, closure release, active-write/finalizer mutation rejection and destination preservation pass fixture/hardening/diagnostic3/3 in2.95s, no skips; `lc3_compat_check` builds. No fixture, full adapter/native compatibility or support claim. |
+| 7AG.1c truthful omission reporting | COMMITTED / STRICT_REJECTION_PRESERVED | `2623d4a` (`Plan-Slice: 7AG.1c.omissions`): adds a stable nonvirtual `leftOut()` map reporting only named target-version gates observed during an admitted write attempt; generic malformed/incompatible-payload failures and direct writer calls are not attributed to an attempt. An unsupported record remains a strict write failure, never a successful lossy output. Counts are best-effort under allocation failure, saturate at `size_t` max, reset at next admitted attempt and survive failed-attempt cleanup. Generated test covers two record types/multiplicity, early invalid-version reset, retry/reuse, borrowed map address, direct-call exclusion and unchanged preexisting destination. Existing fixture/hardening/diagnostic tests pass3/3 without skips in2.91s; `lc3_compat_check` builds. No fixture, CTest registration, full adapter/native compatibility or support claim. |
 | 7P.1 table owners | COMMITTED | `Plan-Slice: 7P.1`, integrated `f8fbe07`: STYLE/VPORT owners bound to actual table handles 3/8. Main DXF fixtures pass 1/1 in 0.36s with nine-family raw owner/framing matrix and a runtime generator. Worker eight version/encoding ordinary-reader projections are supplemental; R14's existing owner omissions remain scoped. Common metadata placement/resources remain 7P.2/3; next ready five-field widths. |
 | 7P.2 common base scopes | COMMITTED | `Plan-Slice: 7P.2`, integrated `2e7d861`: common metadata precedes subclasses for eight tables, retained entity appData and PLOTSETTINGS; mandatory LTYPE XDATA stays trailing. Main Wave1/DXF fixtures/local-roundtrip pass 3/3 in 2.12s; all versioned XRECORD regressions retained during conflict resolution. Worker eight independent projections are supplemental. Omitted object carriers/typed resources remain 7P.4/7G.2; next ready corrected 7G.1. |
 | 7Q.0 narrow wire kinds | COMMITTED | VIEW `22e2b97`, plus `Plan-Slice: 7Q.0b` from `7ad567d`: PointCloudDef 280, SectionManager 70 and DIMASSOC 71 use I16; MLEADER 94/95 use I32. Main Wave1/DXF fixtures pass 2/2 in 0.96s with following-field/record controls. Widths do not fix PAR-45/46 semantics or gradient 431; wider 31-call inventory remains 7X. Next ready 7N. |
@@ -325,6 +349,12 @@ Its historical binary diff SHA-256 is
 | Wider downgrade / application-data / compound-state review | PLAN_UPDATED / NONPROMOTING | Adds PAR-80–85: R12 ellipse metadata/space loss, group102 string transcoding, INSERT child-handle rollback, classic VERTEX identifiers, per-child coordinate-presence leakage and valid CIF semantic idempotence. Extends existing PAR-64 with named-color counterevidence instead of duplicating a codec finding. Adds ready7AT/7AU and small7AS/7AR follow-ups; preserves isolated commits and main WIP. No newly executed DWG layout/native/ACIS qualification, drawing admission or remote mutation. |
 | PAR-25 / PAR-27 / PAR-33 research controls | REPRODUCED | Locally authored ASCII inputs and rebuilt CLI: valid wide self handle rejected with exit 1/no output; `$ACADMAINTVER=70001` becomes 0 with exit 0; output STYLE/VPORT owners differ from their table handles. ezdxf 1.4.4 ordinary reads confirm the scoped observations. |
 | Broader callback / text / comparator readiness review | PLAN_UPDATED / NONPROMOTING | At25d951c, adds reproduced PAR-118 under7AG.3a/S8.1a, raising118 findings/67 subplans. Root repeats24 source-bound safe callback rows;34 codec rows refine existing MIF/codepage findings. Primary ACadSharp/ezdxf/Assimp source checks refine projection exclusions. Corrects committed Template/package queue state and records the staged optional checker’s ordinary81-pass/isolated-import failure. Root checkpoint `/private/tmp/libdxfrw-research-plan-20261014.o22JFn/research-report.json` SHA256`550663ba235a882e18a68f4e5adbf13c923147d2b37db87035dd5b53911da1c6` binds the read-only probes; the separate PAR-118 report retains its own bindings. Only two plans change; staged code, fixtures, receipts, default registrations, remote state and six deferred J dispositions remain unchanged. |
+| Broader peer / consumer refresh | PLAN_UPDATED / NONPROMOTING | Against local HEAD `acad148`, pins LibreDWG `34f02f54`, ezdxf development `d6f2ac10` plus executed 1.4.4 `dd7f6cc`, and ACadSharp `f6a7f1e`; records conflicting LibreDWG version claims and ezdxf SAT/SAB documentation, and audits FreeCAD's converter→DXF→standard-importer path/fallback/false-success boundary. 7AQ, Slice8 and Slice9 now require actual peer output versions, fresh-file/reopen/semantic outcomes, pinned converter identity and exact native 2D assertions. No new local finding, production/test change, peer execution, fixture/dependency/registration change or support promotion; six J items stay `DEFERRED_EXTERNAL`. FreeCAD `main` remains mutable and must be pinned before platform qualification. |
+| Cross-project regression-process refresh | PLAN_UPDATED / NONPROMOTING | Read-only review of LibreDWG's current manual/workflow/fuzz documentation, pinned IxMilia.Dxf changelog `3ab0f9d`, and ACadSharp issue #1131's user-reported EntityMode/publication path. Adds terminal-pair/no-final-newline, signed EED, relative SEQEND handle, scoped XDATA/handle assignment, and model/paper publication controls to existing Slice4–7F/7G/7AH owners; prohibits treating LibreDWG's limited SVG projection or fuzz success as semantic acceptance. No peer run, dependency, fixture, finding/subplan, support claim or remote state change; count stays118/67 and all six J items remain `DEFERRED_EXTERNAL`. |
+| 7BO.1 R2004/R2007 interval admission | COMMITTED / NEGATIVE_MAP_WITNESS_OPEN | `31f7cfd` replaces vector-vs-all-prior comparisons with a shared ordered disjoint-range index; ODA windows remain format-specific. Generated matrix coverage includes9,261 triples, adjacency/equal/contained/partial overlaps, zero/overflow, ascending/descending/shuffled128/512 work bounds, and injected allocator failure/recovery. Reader-matrix+hardening pass2/2 in1.73s. No negative full-section-map publication/reuse witness, sample, registration or support claim. |
+| 7BO.2 exact unknown-section names | COMMITTED / NEGATIVE_MAP_WITNESS_OPEN | `bf1113c` uses a staged case-sensitive ordered set for exact unknown-name duplicate admission while retaining the source-ordered vector. Common-prefix128/512 comparison bounds in three insertion orders, case-distinct positives, exact early/late duplicate rejection and allocation-failure/retry pass in the existing matrix. Reader-matrix+hardening pass2/2 in1.71s. A generated full-map duplicate/overlap diagnostic, no-partial-publication and same-reader-reuse witness remains open; no sample or CTest was added. |
+| Deeper/broader implementation-source review | PLAN_UPDATED / NONPROMOTING | Against the same `acad148` boundary, audits pinned LibreDWG `34f02f54` AcDs internals, ACadSharp v3.6.51+ Prototype1b parser PR #1154 versus open ACIS DXF writer PR #1240, acadrust `e1f6c0b` fabricated/self-roundtrip SAB tests, LibreCAD fork inventory and current peer graph/context leads. Corrects “LibreDWG does not parse AcDs” to partial index parsing plus unhandled `_data_`/`blob01` and sequential marker-scan fallback; tightens S8.2 order permutations, Blob01/schema gates, nested-block route accounting and per-stage omission outcomes. Adds no PAR ID/subplan, peer run, fixture, production change or claim; remains118/67 and all six J items `DEFERRED_EXTERNAL`. |
+| Cross-project regression-process refresh | PLAN_UPDATED / NONPROMOTING | Read-only review of LibreDWG's current manual/workflow/fuzz documentation, pinned IxMilia.Dxf changelog `3ab0f9d`, and ACadSharp issue #1131's user-reported EntityMode/publication path. Adds terminal-pair/no-final-newline, signed EED, relative SEQEND handle, scoped XDATA/handle assignment, and model/paper publication controls to existing Slice4–7F/7G/7AH owners; prohibits treating LibreDWG's limited SVG projection or fuzz success as semantic acceptance. No peer run, dependency, fixture, finding/subplan, support claim or remote state change; count stays118/67 and all six J items remain `DEFERRED_EXTERNAL`. |
 | 7BI raster admission integration | COMMITTED / DXF_API_SCOPED | `Plan-Slice:7BI`, integrates independently reviewed3df3386c. IMAGE/WIPEOUT adjustment0..100 admission precedes record/identity/reactor mutation, with shared DWG byte carriers and readers unchanged. Main strict production/fixture TUs and affected/lc3/CLI build pass; existing DXF/hardening2/2 pass2.98s with72 writer/36 parser controls. Fresh main report065afd76 binds three actual valid converter handoffs and unchanged source hashes. No new registration, drawing fixture, dependency, receipt or support promotion. Next7AG.3a queue correction and optional verifier integration;7BC/7P.5b remain separate. |
 | Slice8 optional box-verifier integration | COMMITTED / CONTRACT_SCOPED | Integrates reviewed30343a00→e8fd3b82 plus independently reviewed self-test-only helper loading. Named v2 observations separate geometry, units/default scale, typed topology, raw/diagnostic coverage and eligibility; qualificationEligible is always false. Fresh81-control ordinary/isolated CPython3.9/3.12 passes bind source01eaf368/report374341fe. Actual local regular-file/FIFO admission is POSIX-only; mocks are not geometry evidence. No CAD dependency/parser/kernel, new registration, fixture or receipt changed. Native/producer/ACDS/independent-kernel gates and six deferred J items stay open. Next7AG.3a and MIF correction. |
 | Reviewed preservation handoffs at970fef0 | HISTORICAL_PENDING | MIF8a82d7bb→f4d2cb44 was staged on dfcfceb, with main focused/strict gates and corrected physical chunk assertions; BLOCKc89aa592 and four-file WIPEOUT patchcafe011e were isolated. That research-only update integrated no implementation. Subsequent entries carry the actual implementation state; original reports are immutable. |
@@ -451,6 +481,119 @@ The header output SHA-256 is
 `2586c6aa9adccfbf8ea92fdc6e93e011367a838a63da137904d2df29b57c62a8`.
 These temporary controls need committed runtime generators and binary/version
 partners during implementation; they are research observations, not receipts.
+
+### Broader peer and consumer refresh (2026-10-14; plan-only)
+
+This read-only refresh expands the peer comparison across current DWG readers/
+writers, DXF document libraries, and the actual FreeCAD DWG handoff. It updates
+existing owners 7AQ, Slice8 and Slice9; it does not add a local defect finding
+or treat another project's issue report as a libdxfrw reproduction.
+
+| Source snapshot | New evidence from the source review | Limit / plan consequence |
+| --- | --- | --- |
+| [LibreDWG `34f02f54b9aacb5708c1d3d2070efb3e4b2d8c43`](https://github.com/LibreDWG/libredwg/commit/34f02f54b9aacb5708c1d3d2070efb3e4b2d8c43) | The repository's `NEWS` records a new R2004 DWG encoder in 0.14 and later security work around R2004/R2007 decompression bounds, SAT block-size arithmetic and non-finite writer inputs. The [README](https://github.com/LibreDWG/libredwg) says DWG write reaches “until r2004”, while the [package description](https://github.com/LibreDWG/libredwg/blob/master/libredwg.spec#L705-L714) still says the writer is good through R2000. | These are peer hardening leads and out-of-sync capability statements, not libdxfrw defects or a reliable version matrix. Keep checked-length/cumulative-work owners 7S.2/7S.3; add no parallel framework. For each executed peer route capture exact release/build flags, return code, output magic and `$ACADVER`, ordinary reopen, and field/graph result. Never infer actual target version from requested CLI arguments or a broad README claim. |
+| [ezdxf development snapshot `d6f2ac10caeddc712ed1824aaeb3b9c050de4a04`](https://github.com/mozman/ezdxf/commit/d6f2ac10caeddc712ed1824aaeb3b9c050de4a04), with executed [1.4.4 pin `dd7f6cc34983fdbf0b2b910f2497e0720d06dd16`](https://github.com/mozman/ezdxf/tree/dd7f6cc34983fdbf0b2b910f2497e0720d06dd16) | The [1.4.4 API documentation](https://ezdxf.readthedocs.io/en/stable/acis.html) exposes SAT/SAB load/export functions, but its [FAQ](https://ezdxf.readthedocs.io/en/stable/faq.html) broadly says read SAT/SAB and write SAT only. Its mesh extraction documents that curved ACIS faces are not tessellated by this non-kernel path. | Resolve the documentation mismatch from the exact pinned API/runtime and inspect generated payload headers; do not use prose alone to claim a SAB generator/runtime profile. Existing 1.4.4 local-generated SAB controls remain bound to their source/report. ezdxf is a useful DXF/raw-ACIS structural comparator and limited planar projection, not an independent general ACIS kernel or curved-surface semantic oracle. |
+| [ACadSharp source snapshot `f6a7f1e7e502c6fe9d1e840e576b6124ec0ded11`](https://github.com/DomCR/ACadSharp/commit/f6a7f1e7e502c6fe9d1e840e576b6124ec0ded11); [issue #1195](https://github.com/DomCR/ACadSharp/issues/1195) | The open omission report specifically describes package version 3.4.9 and claims DWG `3DSOLID`/`REGION` reads followed by DXF writer omission; its source drawings are not attached. The current source snapshot is newer. | Preserve the issue as a route-selection/test-design lead only. Inspect and, if used, execute an exact current pinned reader/writer pair before describing current peer behavior. Regardless, retain the local S8 modelspace-plus-BLOCK/INSERT route census and explicit omission outcome; do not use ACadSharp issue text as a libdxfrw finding or as evidence of the latest ACadSharp behavior. |
+| [FreeCAD `importDWG.py` current `main` snapshot](https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py), [DWG import documentation](https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md), and [DXF limits](https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Manual_Import_and_export_to_other_filetypes.md) | `Draft.importDWG.open/insert` converts to DXF and delegates to `importDXF.open/insert`. The current converter selector's automatic mode may try LibreDWG, ODA, then QCAD; the LibreDWG path reports conversion success when the output path exists after `communicate()`, without checking the subprocess return code. DWG export similarly writes DXF, calls the selected converter, and returns the requested path. The manual says the stock DXF/DWG route is limited to 2D, and identifies CADExchanger as the current 3D-DWG route. | The source URL is mutable: pin its blob/revision and the actual FreeCAD release before qualification. Native FreeCAD through stock `importDWG` can qualify only the specific converter→DXF→standard-importer handoff and supported 2D entities; it cannot close ACIS/ACDS geometry semantics. Prevent false positives by isolating converter choice, using a fresh output path, capturing process status, verifying output signature/version and semantic content, and asserting what the FreeCAD document actually imported. |
+
+**Readiness changes applied below:** (1) 7AQ now requires peer identity,
+version, feature configuration, requested-versus-actual output version, and
+semantic outcome to be separate report fields; (2) Slice8's end-to-end route
+acceptance explicitly rejects output-exists/entity-count-only passes and
+rechecks ACadSharp at a current pinned revision; (3) Slice9's native FreeCAD
+gate must isolate the intended converter, inspect a fresh valid conversion,
+and assert imported 2D semantics. If the native FreeCAD workflow cannot force
+and attest the intended converter, report it as unqualified rather than
+silently accepting an ODA/QCAD fallback. FreeCAD remains a 2D consumer gate;
+the independent two-reader/two-kernel ACIS/ACDS and native producer evidence in
+the existing 3D plan remain mandatory and unchanged.
+
+No peer was installed or executed for this refresh. No report, support
+metadata, receipt, fixture admission, production source or remote state
+changed. All six J items remain `DEFERRED_EXTERNAL` and non-promoting.
+
+### Deeper and broader implementation-source review (2026-10-14; plan-only)
+
+This additional read-only pass compares implementation paths, not project
+feature lists. Exact source pins are used where available; default-branch,
+issue, and pull-request pages are discovery snapshots and must be re-resolved
+before an executable comparison. The results refine existing PAR/7A*/Slice8
+owners only. No additional libdxfrw defect is asserted from a peer report.
+
+| Area | Source evidence | Implementation/readiness consequence |
+| --- | --- | --- |
+| R2013+ AcDs in LibreDWG | At pinned source snapshot [`34f02f54`](https://github.com/LibreDWG/libredwg/tree/34f02f54b9aacb5708c1d3d2070efb3e4b2d8c43), [`acds.spec`](https://github.com/LibreDWG/libredwg/blob/34f02f54b9aacb5708c1d3d2070efb3e4b2d8c43/src/acds.spec) parses segment names/metadata and several `datidx`, schema-index, schema-data and search structures. The `_data_` and `blob01` segments are still unhandled; a later decoder block searches decompressed bytes for ACIS start/end markers and shifts queued solid handles in encounter order. | Correct the shorthand that LibreDWG “does not read AcDs” to “partial structural parsing with an unhandled payload/blob path and marker-scan association fallback.” Retain it as a useful reader, but not as sole evidence for arbitrary record-order or handle-link correctness. Issue [#1411](https://github.com/LibreDWG/libredwg/issues/1411) reports end-to-end loss for a specific 0.14.8593 build; it is not a characterization of every source snapshot. |
+| AcDs implementation split in ACadSharp | ACadSharp release notes list [PR #1154](https://github.com/DomCR/ACadSharp/pull/1154), a full Prototype1b parser, in the v3.6.51 line. Separately, current [PR #1240](https://github.com/DomCR/ACadSharp/pull/1240) proposes DXF ACIS-entity writing for issue #1195 and depends on schema/storage work (#1174); it remains an unmerged branch in this snapshot. | Keep section/header parsing, modeler payload extraction, DXF carrier writing, and geometry interpretation as separate milestones. If ACadSharp is run, identify the exact release/branch and test whether its writer PR is in that binary; do not infer modern DXF output support from the merged reader parser. |
+| Acadrust order and semantics | The reviewed [`e1f6c0b` round-trip tests](https://github.com/hakanaktt/acadrust/blob/e1f6c0b8816aeaed81a877e6b5209dd386224fd6/tests/roundtrip.rs) explicitly fabricate marker-bearing fake SAB bytes to exercise AcDs association and separately write/read a locally constructed planar body using the same implementation. The tests themselves explain the bug class: handle-sorted order can differ from object-stream order. | Use these as precise test-design signals for two-handle, two-body, permuted-order controls. They are internal transport/self-consistency tests—not independent producer, SAB grammar, AutoCAD acceptance, or second-kernel evidence. Preserve the plan's requirement for independent source geometry and external semantic decoding. |
+| LibreCAD compatibility fork | The [generated fork inventory](https://github.com/LibreCAD/LibreCAD/blob/master/libraries/libdxfrw/DWG_DXF_COVERAGE_INVENTORY.md) marks fixed DWG REGION/3DSOLID and DXF SOLID3D/REGION routes as typed, but marks them `fixture-needed` and explicitly disclaims byte-level conformance. | Add/retain this as a migration-compatibility lane: keep LibreCAD and LibreCAD_3's existing 2D callbacks and consumer behavior stable while planning richer 3D carriers. The inventory does not promote any 3D support claim or replace a fixture, reader, or native application check. |
+| Cross-cutting 2D/object leads in LibreDWG | The current 0.14.1 milestone lists reports for [XREF BLOCK flags/path](https://github.com/LibreDWG/libredwg/issues/1431), [annotation-scale context import](https://github.com/LibreDWG/libredwg/issues/1432), [DIMASSOC reference/order handling](https://github.com/LibreDWG/libredwg/issues/1434), and [R2007+ material/plotstyle handle confusion](https://github.com/LibreDWG/libredwg/issues/1436). The same peer docs identify some objects, including DIMASSOC and annotative context classes, as unstable or incompletely tested. | Map #1431 to existing PAR-65, #1434 to PAR-45, and #1436 to PAR-33 as comparator-calibration/test-shaping leads. Put #1432 through PAR-06/7F.1's source inventory before assigning a libdxfrw finding: verify version dispatch, object handle/type, context scale values, graph ownership, callback/raw outcome, and DXF handoff. A peer's unstable decoder cannot validate these semantics by itself. |
+| ACadSharp's geometry projections | Its [current pull-request list](https://github.com/DomCR/ACadSharp/pulls) includes clusters of independently reported INSERT base-point and OCS/WCS bounding-box corrections. | Continue to compare raw entity fields/topology before bounds. Bounds remain a calibrated projection (PAR-07/7AH); agreement between two implementations is not a geometry oracle when either uses two-corner transforms, omits a base point, or repairs/normalizes the input. Do not add a new finding from a peer PR title without reproducing a local mismatch. |
+
+**Readiness changes applied:** Slice8 now requires three separately observable
+stages for each AC1027+ sample: (a) section/index structure and bounds,
+(b) handle→record/blob association independent of traversal order, and
+(c) parsed ACIS shape projection with source denominators and omission status.
+For stage (b), permute entity traversal, segment ordering, index ordering, and
+body ordering independently; include duplicate, missing, orphan, wrong-type,
+and unreferenced records. Include a second valid schema and both inline and
+Blob01-sized controls before claiming general record support. For stage (c),
+compare two distinct bodies by stable source identity and independent geometry,
+not marker count or repeated cubes. These vectors remain locally generated in
+existing test executables; do not add test drawing payloads to the repository.
+
+Extend the end-to-end matrix to retain per-owner losses for modelspace and
+nested BLOCK definitions, plus INSERT reachability. Track `seen → typed/raw
+callback → writer accepted/skipped → output record → independent reopen` as
+separate checkpoints; require a non-silent loss diagnostic for intentionally
+unsupported entities. Recheck ACadSharp #1195/#1240 only at the exact release or
+branch used, and do not count its self-round-trip as external validation.
+Keep the 2D consumer/API gate independent of 3D support gates. LibreCAD's
+source inventory and the LibreDWG/ACadSharp issue stream prioritize tests but
+do not create or close local findings without source/spec review and a
+reproducible local witness.
+
+No peer executable was built or run, and no external DWG/DXF, generated fixture,
+receipt, dependency, registration, support row, or production source changed.
+Findings/subplans remain118/67 and J256/J260/J268/J284/J293/J295 remain
+`DEFERRED_EXTERNAL` and non-promoting.
+
+### Cross-project regression-process refresh (2026-10-14; plan-only)
+
+This read-only pass looks beyond advertised feature matrices at the regression
+methods and narrow failure modes recorded by other open-source DWG/DXF
+implementations. Mutable default-branch pages are discovery evidence only;
+resolve exact revisions before any peer execution. These observations refine
+existing owners and do not create a libdxfrw finding without a local
+reproduction.
+
+| Source | Evidence | Plan consequence and limit |
+| --- | --- | --- |
+| LibreDWG manual and ODA workflow | The current [manual](https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi) publishes explicit unhandled/no-test-coverage lists and describes `dwg2svg2` limits: INSERT is not exploded and UCS/paper-space transformations are not applied. The current [ODA workflow](https://github.com/LibreDWG/libredwg/actions/workflows/oda.yml) shows narrow regressions for signed EED 1070/1071, relative SEQEND handles, a valid final DXF group pair without a trailing newline, and MTEXT group 50. | Use the class census and narrow tests as test-selection ideas, not as a completeness oracle or proof of this library's defects. For equivalent local paths, retain raw tags and relative-handle edges before a peer repair/audit. Do not use SVG/render output to qualify INSERT graphs, UCS, or paper-space placement. The workflow is mutable and is not an executed comparator result. |
+| IxMilia.Dxf changelog | The [changelog](https://github.com/ixmilia/dxf/blob/main/CHANGELOG.md) records fixes across versions for BLOCK-local handle resolution, valid handles after save, R12 BLOCK/INSERT, XDATA on entities and objects, MTEXT R14, TEXT alignment, DIMENSION output, and spline weights. | Promote these to a compact cross-version sentinel set under existing 7A/7G/7AS/7J/7E owners: check relative child handles, handle assignment, XDATA placement, R12 block/insert and annotation-specific fields. A changelog records engineering history; it does not demonstrate present correctness or AutoCAD acceptance. IxMilia remains a secondary comparator only within its documented version/entity support. |
+| ACadSharp issue #1131 | The [issue's submitted investigation](https://github.com/DomCR/ACadSharp/issues/1131) reports DWG entity-mode 1/2 values being accumulated into model/paper collections and questions whether the DWG builder consumes them. The issue is user-authored, uses a customer drawing that is not attached, and is not an independently verified current-release result. | Treat it as a precise publication-boundary lead, not a statement of ACadSharp's current behavior. In Slice5/7F/7G, keep decoded record identity, decoded owner/space mode, chosen model/paper/BLOCK collection, callback result, CLI handoff and output record count separate. Only create a synthetic mode control when the normative layout and a traced sample establish that field; do not infer a missing mode from null owner data. |
+
+**Implementation-readiness changes:** Slice4 now carries two generated input
+controls in the existing fast DXF test executable: a final group pair with
+and without trailing newline, plus signed EED 1070/1071 values checked from
+literal tags. Run them only when the shared pair parser/writer or EED route is
+touched; do not add one CTest for every scalar. Slice5's per-record observation
+now separates decoded type/value from publication into modelspace, each paper
+layout, or a named BLOCK, and records typed/raw callback and diagnostic
+disposition. Slice6 keeps source and emitted child-handle namespaces explicit
+for VERTEX/ATTRIB/SEQEND paths and checks the reopened parent/sequence relation
+instead of relying on entity count or a repaired peer model. Slice8 remains
+the exact modelspace+nested-BLOCK+INSERT route census for 3D; the 2D publication
+controls are independent and must not wait for ACIS or native FreeCAD.
+
+To keep validation fast, add these as generated rows in the already-owned
+tests and run only the affected fast CTests plus the relevant strict compile
+and LibreCAD/LibreCAD_3 source check. Run LibreDWG `dxf-check` or a peer reopen
+only for a changed route and an available pinned build. Keep scheduled fuzzing,
+full multi-version suites, ODA/native application checks and broad corpus runs
+at the existing phase gates. No peer was built or executed in this refresh;
+no fixture, dependency, registration, receipt, production change or support
+claim was added. Findings remain118/67 and all six J items remain
+`DEFERRED_EXTERNAL` and non-promoting.
 
 ### Deeper research round: pinned sources and corrected assumptions
 
@@ -1737,7 +1880,7 @@ The following results are scoped to their named API/format routes:
 | SORTENTSTABLE typed/raw, two targets/two encodings/six key policies:48 cases |24 numeric order inversions despite ordinary reads and fresh audits0/0. Coincident body5 keys are selectively remapped; a sparse-table case also reverses order when an unlisted entity's implicit key changes. | PAR-114/7A.2 separates contextual key retention from7G's complete-block effective-order policy. Fixing explicit-key substitution alone cannot close sparse ordering. |
 | Independently read DWG HATCH rational controls: AC1018 zero-fit and AC1027 one-fit | Wire weights1/√0.5/1 become absent in ASCII/binary DXF and repeats; analytic midpoint√0.5/√0.5 becomes0.75/0.75. | PAR-115/7N.2 repairs canonical weight handoff and preserves legacy consumer Z mirrors deliberately. |
 | Matched generated AC1027 zero/one-fit HATCH, with following LINE | Zero-fit conversion exits0 but emits HATCH0/LINE1; one-fit emits HATCH1/LINE1. AC1018 partners retain HATCH. | PAR-116/7N.3 resolves the writer/reader tangent-layout disagreement against ODA and producer evidence before changing bytes; it is not another DXF7AF fix. |
-| reader18/21 section-map overlap loops | Every admitted nonoverlapping page compares against all preceding ranges: p(p−1)/2 comparisons. MaxPageCount is1,048,576. | PAR-117/7BO: incremental ordered intervals with deterministic first-offender diagnostics. Source/work analysis, not measured end-to-end timing or an executed exhaustion test. |
+| reader18/21 section-map overlap loops | Before`31f7cfd`, every admitted page compared against all preceding ranges: p(p−1)/2 comparisons. MaxPageCount is1,048,576. | PAR-117/7BO now uses ordered interval admission. Component work bounds are tested; a negative full-section-map diagnostic/publication/reuse witness remains open. No end-to-end timing or hostile-file claim. |
 
 [Autodesk RAY](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-638B9F01-5D86-408E-A2DE-FA5D6ADBD415.htm)
 and [XLINE](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-55080553-34B6-40AA-9EE2-3F3A3A2A5C0A.htm)
@@ -2269,7 +2412,7 @@ GDAL9c9d722b; no dependency is installed or made mandatory.
 | 7AD/Slice9 | Portable probe candidate requires bothb912a963 andcb22907f; source correction, not native qualification. | Existing compiler-free self-test, one14-child compiler/configure profile and actual main CLI1/1; do not rebuild the library. |
 | 7BE.1/.7/.8 | Reader7BE.1 (`bcc1c93`), writer7BE.7 (`bde5409`) and generated versioned-envelope7BE.8 (`9048257`) are separately committed; focused gates and the recorded combined matrix sanitizer pass. | Use bounded existing real-file traces/reads to witness logical section lengths and maintenance profiles per container lineage, plus R13/R14 section-path controls; do not add untracked user samples. Cursor/window ASan need not repeat unless lifetime code changes. |
 | 7AG.1c | Getter/reservation at `1ade4c6`, phase-scoped remap at `bc659d8`, and terminal resolver at `06b051c` are integrated. Only truthful omission reporting remains. | Inventory attempted-versus-published/failure/reset semantics and current target-version omission routes; add truthful per-write leftOut labels without relaxing reject policy. Reuse existing fixture/hardening/LC3 gates; no no-op aliases or native Qt prerequisite. |
-| 7BO/7S.3 | Unknown-name duplicate scans remain quadratic; HANDLE metadata peaks/outcome propagation are separate from payload limits. | Deterministic tiny index/budget controls in actual reader18/21 and existing hardening targets; preserve first diagnostics and callback prefixes. |
+| 7BO/7S.3 | R2004/R2007 section ranges and exact unknown-section-name duplicates are indexed at `31f7cfd`/`bf1113c`; HANDLE metadata peaks/outcome propagation are separate from payload limits. | Construct one bounded negative full-map publication/reuse witness without bypassing file-envelope/checksum validation; continue the independent7S.2/7S.3 retention/metadata work. |
 | 7AH.1/.5/7AQ | Duplicate source identities can collapse in lookup maps; loader warnings and audit fixes describe different phases. | Ordered role-aware identity inventory and bounded warning controls; four ordinary-load calibrations, not a new full corpus. |
 | Slice4/7X/7AH | Optional JS scanner loses exact strings/int64; GDAL direct tags offer a narrower binary lane with correlated range lineage/error limits. | Named capabilities/exclusions and tiny raw/type/EOF controls only if that optional lane is enabled. No installation or semantic support promotion. |
 | S8.9/7AC/7BH | FreeCAD executable classification and Windows argument framing need source-pinned preflight before native evidence. | Resolver path/name and semicolon argv controls first; actual native receipts remain separately required. |
@@ -2384,12 +2527,13 @@ scratch.
 | Project | Format and advertised reach | Comparative value | Important caveat |
 | --- | --- | --- | --- |
 | **This libdxfrw checkout** | DWG reader dispatch includes early releases through AC1032; DWG writer accepts AC1015, AC1018, AC1021, AC1024, AC1027, AC1032. DXF writer accepts AC1009, AC1014, AC1015, AC1018, AC1021, AC1024, AC1027, AC1032. | Direct target; contains a strong callback API, per-version routes, typed 2D/3D subsets, diagnostics, raw preservation, a pinned-target differential adapter, semantic receipts, and scheduled hardening/fuzz checks. | Route presence and local self-round-trip do not qualify format support. Existing pinned-target comparisons establish source/consumer parity, not independent format truth; the semantic lane is narrow. Current support policy marks broad DWG/DXF claims experimental or pending. AC1012 DXF output is not accepted by the writer gate. |
-| **[LibreDWG](https://github.com/LibreDWG/libredwg)** | C implementation; project README says its reader handles all DWG versions with some advanced R2010+ objects skipped. README/manual document writer limits: no R2007 writer and R2010–R2018 output may fail CRC/audit checks. It also reads/writes DXF and offers conversion and structured output tools. | Best broad independent DWG reader and DWG↔DXF semantic/differential comparator available in this set; useful for handle-joined read comparisons and class/object inventories. | Do not use it as the sole modern DWG writer oracle. Its own documentation reports material writer caveats and unknown third-party objects may be retained as opaque blobs rather than decoded. |
-| **[ACadSharp](https://github.com/DomCR/ACadSharp)** | Managed C# reader/writer for DWG and ASCII/binary DXF. Its README matrix lists DWG read AC1014–AC1032 except no stated pre-R14 support, and DWG write AC1014/1015/1018/1024/1027/1032 (no AC1021 writer); its DXF table includes AC1012 read/write. | Independent structured-document reader/writer; useful for checking objects, tables, layouts, references, and output reopen behavior where supported. | Issue #1133's dynamic-block serialization gap was addressed by [merged PR #1151](https://github.com/DomCR/ACadSharp/pull/1151), which added substantial DWG/DXF IO; its PR description still records parameter-relationship loss on modified instances. [Issue #1195](https://github.com/DomCR/ACadSharp/issues/1195) reports 3DSOLID/REGION omission during DXF output for a 3.4.9 build; treat it as a route-specific test lead, not current-master evidence or a libdxfrw defect. The older 15-digit output report [#1179](https://github.com/DomCR/ACadSharp/issues/1179) was addressed by [merged PR #1186](https://github.com/DomCR/ACadSharp/pull/1186), which added configurable precision; pin both the writer version and precision configuration for numeric comparisons. Issue #558's older writer-stability report remains historical, not proof of current status. |
-| **[acadrust](https://github.com/hakanaktt/acadrust)** | At this research snapshot, its README advertises DWG/DXF read/write through R2018+, broad entities/objects, roughly 40 legacy codepages, SAT/SAB parsing/writing with B-rep topology, optional failsafe diagnostics, and Linux/Windows/macOS CI. | Candidate comparison for modern 3D carriers, ACIS semantics, diagnostics, and a Rust implementation with extensive locally generated round-trip tests. | Treat feature-list and self-test statements as project claims until paired with independently authored files and another reader/kernel. SAB tests include fabricated payloads and internal round-trips, useful for carrier/link mechanics but not general ACIS semantic interoperability. Recent reports against 0.6.3 (#123/#124) describe malformed-input count/length safety problems; #123 references a later bounds fix. Verify current peer behavior before citing it, and use the failure modes only to guide libdxfrw's own bounded tests. |
+| **[LibreDWG](https://github.com/LibreDWG/libredwg)** | C implementation; project README says its reader handles all DWG versions with some advanced R2010+ objects skipped. README/manual document writer limits: no R2007 writer and R2010–R2018 output may fail CRC/audit checks. It also reads/writes DXF and offers conversion, structural checking, and fuzz targets. | Best broad independent DWG reader and DWG↔DXF semantic/differential comparator available in this set; useful for handle-joined read comparisons and class/object inventories. Its `dxf-check`/round-trip and crash-regression workflows are useful patterns for narrowly selected checks. | Do not use it as the sole modern DWG writer or AC1027+ AcDs-link oracle. In inspected `acds.spec` source, it decodes segment metadata and several index/schema/search structures, but `_data_`/`blob01` remain unhandled and a later fallback scans for SAB markers and consumes queued solid handles in sequence. Its manual explicitly lists unhandled/untested classes, and `dwg2svg2` does not explode INSERTs or apply UCS/paper-space transforms; SVG output is therefore not a general graph/placement oracle. Pin and inspect the exact source/runtime before a route comparison. |
+| **[ACadSharp](https://github.com/DomCR/ACadSharp)** | Managed C# reader/writer for DWG and ASCII/binary DXF. Its current release matrix lists DWG read AC1014–AC1032 except no stated pre-R14 support, and DWG write AC1014/1015/1018/1024/1027/1032 (no AC1021 writer); its DXF table includes AC1012 read/write. | Independent structured-document reader/writer; useful for checking objects, tables, layouts, references, and output reopen behavior where supported. | Dynamic-block serialization was expanded by [PR #1151](https://github.com/DomCR/ACadSharp/pull/1151), with residual modified-instance relationship caveats. [PR #1154](https://github.com/DomCR/ACadSharp/pull/1154) adds full Prototype1b parsing and appears in release notes, but that does not qualify its SAB geometry semantics. [Issue #1195](https://github.com/DomCR/ACadSharp/issues/1195) reports 3DSOLID/REGION DXF-writer omission in 3.4.9 (252 model-space solids and 51 solids + 3 regions in nested furniture blocks); linked [PR #1240](https://github.com/DomCR/ACadSharp/pull/1240) is still open in this research snapshot, depends on schema/storage work, and is not a current-release acceptance result. The 15-digit output report [#1179](https://github.com/DomCR/ACadSharp/issues/1179) was addressed by [PR #1186](https://github.com/DomCR/ACadSharp/pull/1186); pin writer version and precision configuration for numeric comparisons. |
+| **[acadrust](https://github.com/hakanaktt/acadrust)** | At reviewed source snapshot `e1f6c0b` (2026-09-10), its README advertises DWG/DXF read/write through R2018+, broad entities/objects, roughly 40 legacy codepages, SAT/SAB parsing/writing with B-rep topology, optional failsafe diagnostics, and Linux/Windows/macOS CI. | Candidate comparison for modern 3D carriers, ACIS semantics, diagnostics, and a Rust implementation with extensive locally generated round-trip tests. | Current roundtrip tests deliberately fabricate minimal SAB markers and include an internal R2018 write/read test; they are useful for carrier/link test design, but cannot establish producer-accepted SAB or independent geometry semantics. Current issue reports #133–#135 also illustrate version/object-specific reader regressions; treat them as peer leads only and pin the exact executable before comparison. |
+| **[LibreCAD bundled libdxfrw inventory](https://github.com/LibreCAD/LibreCAD/blob/master/libraries/libdxfrw/DWG_DXF_COVERAGE_INVENTORY.md)** | The current fork's generated source inventory reports typed routes for fixed DWG REGION/3DSOLID codes and DXF SOLID3D/REGION spellings. | Essential source/API and migration compatibility target for LibreCAD and LibreCAD_3; helps find callbacks/routes that the standalone upstream surface must preserve. | The inventory explicitly says it is deterministic source inventory, not byte-level conformance; these 3D routes are marked `fixture-needed`. It is not an independent reader or semantic support receipt. Re-resolve/pin the fork revision before runtime comparisons. |
 | **[ezdxf](https://ezdxf.readthedocs.io/en/stable/)** | DXF-only. Version 1.4.4 documents ASCII and binary read/write for R12, R2000, R2004, R2007, R2010, R2013, and R2018; it reads older R13/R14 and upgrades them. It preserves third-party DXF content in a structure-preserving model. | Primary independent DXF reader/writer comparator for normalized semantic comparisons, legacy encodings, unknown/application data retention, and version conversion. | Not a DWG implementation, CAD kernel, or authoritative AutoCAD audit. R13/R14 are documented as read-only/upgraded output, unlike ACadSharp's advertised AC1012 DXF writer. |
 | **[FreeCAD InventorLoader](https://github.com/jmplonka/InventorLoader)** | Optional LGPL-3.0-or-later FreeCAD add-on; its documentation advertises standalone SAT/SAB and DXF 3D-solid import. `Acis.py` contains a separate SAT/SAB parser and reconstructs shapes through FreeCAD `Part`. | Candidate independent parser lineage for a small extracted SAT/SAB witness, if FreeCAD and the add-on are already available; optional secondary route only. | Not stock FreeCAD DXF import, does not parse DWG `AcDb:AcDsPrototype_1b`, does not export, and shares FreeCAD's OCCT geometry kernel. The project documents unsupported blend/helix/law cases and sparse maintenance; FreeCAD's Addon Report flags a possibly unsafe `eval` use in `Acis.py`. Pin and audit exact source before use; never feed it untrusted blobs or count it as a second independent kernel/native qualification. |
-| **[IxMilia.Dxf](https://github.com/ixmilia/dxf)** | .NET DXF/DXB library; README claims DXF support from R10 through R2014 with named exclusions including MESH, MLEADER, SURFACE, TABLE, and VIEWPORT. | Secondary DXF parser/writer for core geometry, code-page, and version cross-checks; its compatibility notes are candid about consumer acceptance. | Its README says AutoCAD may reject some otherwise emitted entity types and R13 output. Pinned spline projection substitutes weights on count mismatch and can return unavailable bounds for control-only curves; calibrate those fields before use. Neither its parser nor bounds replace application audit or ezdxf. |
+| **[IxMilia.Dxf](https://github.com/ixmilia/dxf)** | .NET DXF/DXB library; README claims DXF support from R10 through R2014 with named exclusions including MESH, MLEADER, SURFACE, TABLE, and VIEWPORT. Its changelog records fixes for block-handle resolution, R12 BLOCK/INSERT output, 64-bit handles, handle assignment, XDATA placement, MTEXT R14 and DIMENSION writing. | Secondary DXF parser/writer for core geometry, code-page, and version cross-checks; its compatibility notes are candid about consumer acceptance. | The changelog is a change history, not a current test result or a support guarantee. Its README says AutoCAD may reject some otherwise emitted entity types and R13 output. Pinned spline projection substitutes weights on count mismatch and can return unavailable bounds for control-only curves; calibrate those fields before use. Neither its parser nor bounds replace application audit or ezdxf. |
 | **[dwg-rs](https://github.com/DrunkOnJava/dwg-rs)** | Apache-2.0 Rust reader built from the ODA-published specification; covers container/section/object-stream parsing across R13–R2018, with a pre-alpha per-entity decoder. It publishes explicit decoded/skipped/error coverage and boundary checks. | Independent, spec-first structural cross-check for file headers, section maps, decompression, object boundaries, and parser diagnostics. Its transparent per-file coverage summary is a useful reporting pattern. | The project explicitly says not to use it in production yet; its real-file entity/object paths have named errors/gaps, and it has no DWG writer interoperability qualification. Treat it as a structural/experimental comparator only, not an entity semantic oracle. |
 | **[ezdwg](https://github.com/monozukuri-ai/ezdwg)** | Its project docs describe a read-focused R13–R2018 DWG parser, DXF export through ezdxf, and a native AC1015 writer for a small basic-entity set. | Optional supplementary DWG reader for a low-cost disagreement check if its current build and install path are practical. | Its narrow writer and limited published evidence do not make it an output-acceptance gate or a required dependency. Record exact revision and decoded/skipped/error coverage before using any result. |
 | **libopencad (historical reference)** | LibreDWG's 0.13.4 overview describes it as an R2000 DWG reader. | Useful only as a historical narrow-version reference; it does not add an independent modern-version comparison beyond LibreDWG/ACadSharp. | The source is an older manual entry rather than a current support guarantee; omit it from acceptance gates. |
@@ -2673,7 +2817,7 @@ revision unless a live-upstream correction is named explicitly.
 | **PAR-114** | P1 | Executed SORTENTSTABLE role/order loss: typed resolveSort and generic raw code5 remapping treat body sort keys as identities.48 typed/raw/two-version/two-encoding controls produce24 independently projected order inversions/audits0/0. A sparse-table inversion remains even when its explicit key is unchanged, because an unlisted entity's implicit handle changes. |7A.2 fixes contextual header5 versus body5 and331 roles, pair preflight and exact-key retention. Separately7G.3 must preserve complete-block effective order across explicit/implicit/shared/zero keys and traversal ties. Never close full draw-order preservation from the narrow key patch or globally exempt all group5 values. |
 | **PAR-115** | P1 | Executed DWG HATCH weight handoff loss: parser stores BD weights in control.z but leaves canonical weightlist empty; encoder reads only z/flags, while DXF uses weightlist. Independent LibreDWG exposes1/√0.5/1 in AC1018 zero-fit/AC1027 one-fit source controls; ASCII/binary conversion/repeat emits no weights and changes midpoint√0.5→0.75 with audits0/0. |7N.2 populates canonical weights while preserving legacy mirrors, defines vector/mirror authority for old and fresh API models, and validates complete arrays before emission. Cover inferred rationality/near-unit/omitted units and both directions. Separate invalid zero-weight API output from valid weighted-source loss; do not reopen completed DXF7N or promote MPOLYGON support. |
 | **PAR-116** | P1 | Executed modern HATCH zero-fit mismatch: encodeDwgBoundaryData emits two tangent pairs unconditionally after fitCount; parser reads them only for positive fitCount. AC1027 zero-fit CLI succeeds with HATCH0/LINE1, versus one-fit HATCH1/LINE1; AC1018 partners retain HATCH. ODA p196 and producer-trace/peer conditional layouts disagree. |7N.3 resolves the exact version/profile exception with ODA review and a named producer witness before altering bytes. Preserve compatible reading, add zero/one-fit literal writer controls followed by edges/loops/seeds/patterns and observable parse-loss diagnostics through7F.1. Completed DXF7AF does not close this DWG layout gate. |
-| **PAR-117** | P1 | Source-confirmed section-map work gap: reader18 and independent reader21 validate every page range against a vector of preceding ranges. Nonoverlapping p-page input costs p(p−1)/2 comparisons; MaxPageCount permits1,048,576. Existing size/page/count caps remain present. No large-file timing, OOM or crash experiment was run. |7BO uses per-section ordered intervals with predecessor/successor overlap checks in original input order. Preserve version-specific window definitions, adjacency, checked arithmetic, first-offender diagnostics, duplicate ownership policy and allocation rollback. Validate work counters and small generated section maps, not fragile wall-time ratios; this is distinct from7AW residual-object and7BA child work. |
+| **PAR-117** | P1 | Source-confirmed section-map work gap: reader18 and independent reader21 validated every page range against a vector of preceding ranges. Nonoverlapping p-page input costs p(p−1)/2 comparisons; MaxPageCount permits1,048,576. Existing size/page/count caps remain present. No large-file timing, OOM or crash experiment was run. | `31f7cfd` installs per-section ordered intervals with predecessor/successor overlap checks; `bf1113c` adds exact unknown-name indexing without changing order. The 9,261-triple range differential, common-prefix128/512 name/range work envelopes, duplicate/case controls and allocation-failure/retry checks pass. Preserve version-specific range rules, checked arithmetic, first-offender diagnostics, separate page ownership, and exact case-sensitive names. Remaining: negative full-map publication/reuse witness, not wall-time ratios. This is distinct from7AW residual-object and7BA child work. |
 | **PAR-118** | P1 | Reproduced context-dependent callback loss at25d951c: DxfBlockEventSink copies addSurface as DRW_Surface, retaining derived eType but slicing dynamic type. Identical PLANESURFACE/REVOLVEDSURFACE records reach concrete callbacks in ENTITIES and base-only callbacks in BLOCKS. TOLERANCE/CAMERA callbacks fall1→0 in BLOCKS; reads still succeed with both suffix LINEs. Source dx_iface.h317–343 then downcasts by eType; those unsafe casts were not executed. |7AG.3a preserves concrete surface types in queued copies and covers every entity callback reachable in BLOCKS. Retain ENDBLK atomicity, callback lifetime/order, existing read exception propagation, 2D defaults and corrected reuse. This is callback-contract evidence, not a DWG layout or independently validated B-rep result. |
 
 ## Implementation slices
@@ -2841,7 +2985,7 @@ failure does not prevent completing them:
 | 7AH.3 qualification numeric admission | Integrated528e37ae rejects overflow/nonfinite/Boolean tolerance values without changing frozen evidence authority or schema1. | Main eight methods/support/JSON/normalizer pass9.43s;122 frozen inputs unchanged. No C++ rebuild or new CTest. |
 | Slice9/S8.9.5 FreeCAD preflight | Integrated e6e4e78→c2a9772c supplies strict LINE predicates, Linux temp mapping and corrected Python registration order; do not reapply older partial candidate. | Main CLI1/1,32 mocked controls and fresh discovered/explicit cache/argv gates pass at report300abd08. No native pass or new registration is inferred. |
 | 7AD portable Python probe, integrated | Preserve bothb912a963→cb22907f; never reintegrate the GNU-only first helper alone. | Main compiler-free self-test/14-child selected-compiler controls, reconfigure and actual CLI1/1 pass. No library/full-suite rebuild or native claim. |
-| 7AG.1c current facade surface | Source-version getter/reservation query at1ade4c6, phase-scoped BLOCK_RECORD remap atbc659d8, and terminal resolver at06b051c are committed. One nonvirtual method remains: truthful omission counts. | Source-pinned call-phase controls, then the affected fixture/hardening/LC3 gate; pin attempted-versus-published/failure/reset behavior, preserve strict rejection and borrowed-map lifetime. No full Qt/native prerequisite. |
+| 7AG.1c current facade surface | Source-version getter/reservation query at1ade4c6, phase-scoped BLOCK_RECORD remap atbc659d8, terminal resolver at06b051c, and truthful omission report at2623d4a are committed. | Preserve strict rejection and stable borrowed-map lifetime. Next work is independent of this completed API set; full Qt/native adapter evidence remains separate and is not a prerequisite for unrelated local fixes. |
 | 7AG.1a, integrated | Preserve current common-source cleanup; do not reimplement50157be. | Main ordinary/3D TU/self-tests and170 inventory pass; known two supplements/six target capabilities remain explicit. |
 | 7AG.4 plus7AG.1 capability profile | Preserve committed direct predicates; attest effective driver context, declare/check capabilities, then add the two audited supplementary callbacks. | Direct102 controls pass; controlled-build provenance/header negatives before one paired build. No existing-binary ambient-only proof or blind target-lock/170→172 update. |
 | 7F.1b /7AH | Migrate the typed result/runner together, including optional modeler source presence and readable bounded observations. | Frozen-schema compatibility plus unknown/zero/presence/omission mutations, then clean/partial/opaque read/readback sentinels. |
@@ -2918,7 +3062,7 @@ failure does not prevent completing them:
 | 7BL — X11 header coexistence | COMMITTED / SOURCE_CONTRACT | macro shielding/safe aliases; configured MSVC consumer preserves toolchain context, native MSVC unexecuted; one new fast registration | main registered/source/actual-X11/installed-header controls pass; no format rebuild or ABI/native application claim |
 | 7BM — active plot-DPI admission | COMMITTED / DXF_API_CONTRACT | shared R2004+ mode-aware preflight; inactive zero and tolerant parsers retained; DWG/native/full-layout gates unchanged | main strict TUs/lc3 and existing DXF CTest pass;288 writer/48 parser controls, no new registration |
 | 7BN — same-instance operation admission | COMMITTED / LIFETIME_SCOPED |1 DXF and2 DWG integrated; composed d49 ASan2/2 pass; no thread-safety/ABI guarantee | main reader-matrix/local/diagnostic3/3 and strict/lc3 pass; refresh affected safety gate only after later changes |
-| 7BO — section overlap work | SOURCE_CONFIRMED / INDEX_READY | per-section ordered ranges preserve input-order failure identity and version-specific windows; not7AW/7BA | small interval/map vectors and operation counters; one touched reader-matrix/hardening checkpoint |
+| 7BO — section-map work | COMMITTED / NEGATIVE_MAP_WITNESS_OPEN | range index at`31f7cfd`; exact unknown-name index at`bf1113c`; source order, format-specific windows, exact casing and first-offender policy retained | reader-matrix component vectors/comparison bounds/allocation retries + hardening2/2; full-map negative publication/reuse vector remains |
 
 `REPRO_READY` means the source path and a small reproduction are identified;
 it does not mean the reproduction ran or the defect was repaired. Promote each
@@ -3184,6 +3328,13 @@ text changes settle, not a second encoding framework or automatic heuristic.
   owners before ordinary loading; both generators and readers can silently
   change fields. Include a deliberately malformed generator/unsupported
   comparator-version self-test without counting it as a library failure.
+- Add two cheap framing/value controls to the existing generated DXF lane:
+  a valid final group pair with and without a trailing newline, and signed
+  EED integer groups 1070/1071 at negative and positive boundaries. Compare
+  literal tags before ordinary load so a permissive parser/audit cannot mask
+  loss or sign extension. Keep these as rows in existing test executables,
+  not one CTest registration per scalar; run them when the touched reader,
+  writer, or common pair loop changes.
 - Compare all model/paper layouts and block definitions relevant to the
   sentinel. Keep literal tags for XRECORD/unknown data and distinguish cached
   measurements from source fields. Use field-specific numeric tolerances and
@@ -3245,6 +3396,13 @@ text changes settle, not a second encoding framework or automatic heuristic.
   text/dimensions, layouts/viewports, and common object references.
 - Resolve PAR-06/PAR-08/PAR-10 by recording parsed value, publication callback,
   opaque fallback, and error/diagnostic separately for every vector.
+- For any version/sample whose traced parser distinguishes owner-relative
+  entities from model/paper-space entity modes, record the source record
+  identity, decoded mode, resolved owner/space, selected publication
+  collection, and callback/raw disposition as distinct fields. Add a mode
+  sentinel only when the ODA layout and a named sample establish that field;
+  never infer an undocumented mode from a missing owner. Keep modelspace,
+  each paper layout, and BLOCK contents separate through the CLI handoff.
 - Reuse the implemented `DRW_DwgFrameCoverageReport` and independent
   `DRW_DwgClassCoverageReport` callbacks instead of inventing a second frame
   ledger or treating the legacy warning counters as complete coverage.
@@ -3308,6 +3466,10 @@ text changes settle, not a second encoding framework or automatic heuristic.
   and negative cases (unsupported version, feature, reference, or unrepresentable
   text) and assert transactional failure where the output would otherwise be
   misleadingly partial.
+- Include one compound-child handle control on a block/insert route: relative
+  VERTEX/ATTRIB/SEQEND links must bind to the emitted parent/sequence in the
+  target namespace exactly once. Retain literal source and output tags plus
+  reopened relationships; a zero-count audit after a peer repair is not enough.
 - Assert actual emitted DWG magic/DXF `$ACADVER` against the requested target;
   comparator version fallback is an explicit mismatch, not target success.
   Never use a writer's requested CLI version as the recorded actual version.
@@ -5253,18 +5415,22 @@ scoped consumer handoff. LibreCAD and LibreCAD_3 stay valid 2D consumers; new
    | `bool isReservedHandle(uint32_t) const` | Report the explicit reservation set, including existing codec fixed-literal reservations after seeding, not the union with generated handles. Test caller/fixed/generated/unreserved, before/after first-write seeding and repeated-write/failure boundaries without altering allocation policy. |
    | `void addDxfWriteHandleRemap(uint32_t,uint32_t)` | Separate per-write derived remaps from caller setHandleRemap inputs. Retain explicit inputs across operations, clear derived state on failure/new write, preserve existing duplicate/remap precedence. Actual LibreCAD calls it from writeBlocks after block-record precollection, not writeBlockRecords; a collection-only guard would reject the real consumer. Permit that admitted phase, not stale/finalizer mutation. |
    | `void setReferenceResolver(std::function<uint32_t(uint32_t)>)` | Own the callable and treat its result as final emitted identity at audited routes, without a second remap. Absent resolver preserves each route's current priority. Zero drops optional known reactor/xDict references, but bundled XDATA1005 retains literal0; required owners/arbitrary handles have separate rules. Define setup/replacement/lifetime/throw/reset admission, and test non-idempotent chains/conflicts plus destination-preserving retry. |
-   | `const std::map<std::string,std::size_t>& leftOut() const` | Publish truthful per-write omission/simplification counts under Slice6/7M's chosen policies. Cover clean0, an intentionally unsupported target, multiple counts and failure/reuse. An always-empty map is not compatibility; adding reporting must not silently turn existing strict rejection into lossy success. |
+   | `const std::map<std::string,std::size_t>& leftOut() const` | Implemented in `2623d4a`: return a stable codec-owned map of named target-version-gated writer calls from the latest admitted attempt, even when strict output fails. Count repeated calls by record/reason; do not label malformed payload or direct calls outside an attempt. Reset on the next admitted attempt; preserve counts through failed-attempt cleanup. Allocation failure may omit diagnostics but may not soften failure. A strict rejection must never become a successful lossy write. |
 
-   Call-shape and lifecycle evidence is now integrated for the getter,
-   reservation query, transient BLOCK_RECORD remap and owned reference
-   resolver. Exact consumer signatures are checked against the LC3 source
-   target; the getter/reservation have direct round-trip/lifecycle controls,
-   remap has a real writeBlocks-phase/output-owner control, and resolver has
-   ASCII/binary entity/table/app-data/XDATA plus callback lifecycle controls.
-   Next inventory target-version omission labels/routes and pin
-   attempted-versus-published, failure, reset and borrowed-map lifetime before
-   exposing truthful leftOut counts; keep each preserve/reject/explicit-loss
-   decision under Slice6/7M.
+   Call-shape and lifecycle evidence is integrated for all five contracts.
+   Exact consumer signatures are checked against the LC3 source target; the
+   getter/reservation have round-trip/lifecycle controls, remap has a real
+   writeBlocks-phase/output-owner control, and resolver has ASCII/binary
+   entity/table/app-data/XDATA plus callback lifecycle controls. The omission
+   report now pins attempt-vs-publication: counts describe attempted calls,
+   not published loss; unsupported target calls still abort publication and
+   preserve the previous destination. It also pins repeated counts, early
+   rejected-version reset, failed attempt/reuse, borrowed-map object lifetime,
+   direct-call exclusion, and saturating/best-effort allocation behavior.
+   The matrix is intentionally not a claim that every possible writer branch
+   has already been inventoried; remaining branches must add a stable label
+   only when their rejection is specifically target-version policy. Keep each
+   preserve/reject/explicit-loss decision under Slice6/7M.
    Reuse existing DXF/graph/local/CLI targets and exact current-LibreCAD/LC3
    source gates; rebuild only affected targets and run one composed checkpoint
    after shared writer/lifecycle changes settle. No new pure virtual, automatic
@@ -5272,6 +5438,19 @@ scoped consumer handoff. LibreCAD and LibreCAD_3 stay valid 2D consumers; new
    Correct residual compile-only ABI labels and README input-mode usage in
    the documentation slice; preserve the2.0 consumer-rebuild boundary. Full
    adapter compile/link and native edit/save remain separate acceptance steps.
+
+   **Omission reporting integrated:** `2623d4a` completes the fifth facade
+   method without changing `DRW_Interface`, relaxing strict output policy, or
+   introducing successful lossy publication. The generated fixture test
+   reports LIGHT twice and MPOLYGON once for R12, keeps the original
+   destination bytes after failure, checks report-object stability and reset
+   on a successful retry, and verifies the early UNKNOWNV rejection does not
+   retain stale counts. A direct out-of-attempt writer call is rejected but
+   not counted. The existing fixture/hardening/diagnostic cohort passes3/3 in
+   2.91s without skips; `lc3_compat_check` builds. No test fixture, registration,
+   full Qt/native adapter result, or support claim follows. Continue with the
+   next independently ready implementation slice rather than reopening this
+   facade contract absent a reproduced gap.
 
    **Getter/reservation pair integrated:** `1ade4c6` is based on current
    `c6c00c5`; its source/API/test patch was built in isolated candidate
@@ -6552,6 +6731,16 @@ framework. Package version/content hashes remain necessary but insufficient.
    README example to build `dwg2dxf` before its CTests. Reuse the optional
    runtime registration; no second broad framework or new mandatory oracle
    dependency is required.
+6. For each peer observation, bind the exact source revision, release/runtime
+   binary and content hash, read/write direction, feature/build options,
+   command line, requested target version, actual output signature and
+   `$ACADVER`, fresh-output status, ordinary reopen, raw/semantic projection,
+   and audit/recovery status as separate fields. A README matrix, successful
+   process exit, output-path existence or entity count is not a semantic pass.
+   When public documents conflict (including ACIS API capability claims), use
+   the exact pinned implementation/runtime control and inspect its actual
+   output profile; do not silently select whichever documentation agrees with
+   the expected result.
 
 **Cross-comparator extension, no new mandatory dependency:** for ACadSharp,
 attest effective Failsafe, KeepUnknownEntities, KeepUnknownNonGraphicalObjects,
@@ -7989,55 +8178,55 @@ tests for7BN.2, not a claimed proof from the DXF-only reproduction.
 **Scope:** PAR-117; reader18 and independent reader21 logical section-page
 range admission. Existing page/size/count checks stay in force.
 
-1. Read complete relevant ODA R2004/R2007 organization chapters and later
-   version deltas before changing dwgreader code. Preserve each path's actual
-   logical window: reader18 pageWindow is not interchangeable with reader21
-   uSize. Keep checked start+length and logical-capacity checks before indexing;
-   do not unify the compressors or invent new magic numbers.
-2. Replace the per-section vector scan with an ordered disjoint interval index.
-   Process source entries in their original order; compare lower_bound's
-   successor and predecessor, reject overlap before insertion, and accept
-   exact adjacency/gaps. This retains the same first-arriving offending-page
-   identity/offset/phase rather than selecting a new offender after sorting.
+1. **Done before implementation:** read the relevant ODA R2004 and R2007
+   organization chapters from the local authoritative v5.4.1 PDF. Preserve
+   each path's actual logical window: reader18 pageWindow is not interchangeable
+   with reader21 uSize. The format-specific selection remains at each caller;
+   the shared helper owns checked half-open interval admission only.
+2. **Implemented in `31f7cfd`:** replace the per-section vector scan with an
+   ordered disjoint interval index. Process source entries in original order;
+   compare lower_bound's successor and predecessor, reject overlap before
+   insertion, and accept exact adjacency/gaps. This retains the same
+   first-arriving offending-page identity/offset/phase rather than selecting a
+   new offender after sorting.
 3. Preserve page-ID/ownership and duplicate-section admission independently of
    geometric overlap. A range index must not authorize an otherwise invalid
    repeated page ID. Preserve staged-map publication, allocation-failure
    recovery and first-stage diagnostics; clear the index per logical section
    and operation. Bound index entries with the existing page count.
-4. Use a small private helper only if both readers can share these semantics;
-   keep version-specific ranges at their callers. Add any new private header
-   to the canonical source manifest. No public callback or API is required.
+4. Use the shared helper in `dwgsafety.h`; no new source/header manifest entry,
+   public callback or API is needed. The existing reader matrix contains the
+   component and comparison-count tests.
 
-5. Index unknown-section names separately from page ranges. Both current
-   readers linearly scan parsedUnknownSections for each unknown descriptor
-   (reader18:1151, reader21:1253); u distinct names therefore require
-   u(u−1)/2 equality checks. Reader21 allows65,536 descriptions, so the
-   page-range index does not close this source-confirmed residual work.
-   Maintain a staged ordered name set alongside the source-ordered vector;
-   preserve exact decoded-name equality, first duplicate offender, page
-   ownership and swap-only publication. Do not case-fold or reject unknown
-   names. ACadSharp's [keyed descriptor admission](https://github.com/DomCR/ACadSharp/blob/12f836af8cd7b470ee6883a9ccc51a22dee66e24/src/ACadSharp/IO/DwgReader.cs#L868)
-   is an implementation alternative, not its name/policy contract to copy.
-   Use128/512 unique names, common prefixes and case-distinct positives,
-   early/late exact duplicates, deterministic comparison bounds, unchanged
-   raw/source order and failure-then-reuse in actual reader18/21 controls.
-   No timing, OOM, exploit or valid-producer-file result was executed here.
+5. **Implemented in `bf1113c`:** index unknown-section names independently
+   from page ranges. Both readers previously linearly scanned
+   parsedUnknownSections for each unknown descriptor, requiring u(u−1)/2
+   equality checks. Reader21 allows65,536 descriptions. They now maintain a
+   staged ordered exact-name set alongside the unchanged source-ordered
+   vector; names are not case-folded or rejected merely for being unknown.
+   Duplicate diagnostics retain their original first-offender category, and
+   allocation failure remains pre-publication. ACadSharp's [keyed descriptor
+   admission](https://github.com/DomCR/ACadSharp/blob/12f836af8cd7b470ee6883a9ccc51a22dee66e24/src/ACadSharp/IO/DwgReader.cs#L868)
+   was an algorithm alternative, not its name/policy contract to copy.
+   Existing matrix controls cover common-prefix128/512 names, three insertion
+   orders, case-distinct positives, exact duplicates and allocation failure;
+   source order remains owned by the vector.
 
-**Fast gate:** ascending/descending/shuffled disjoint ranges, adjacency,
-containment/partial overlap/equal starts, zero/overflow boundaries and allocation
-failure. Measure deterministic comparisons with128/512 small ranges against
-work envelopes consistent with ordered-container complexity, then generated
-reader18/21 section-map controls for diagnostic
-identity, no partial publication and same-reader reuse. Run existing reader-
-matrix/hardening targets once per integration; one sanitizer checkpoint if
-lifetime/ownership changes. No enormous file, fragile timing ratio, new CTest,
-independent native app or prerequisite7AW/7BA rewrite.
+**Completed component gates (`31f7cfd`, `bf1113c`):** ascending/descending/shuffled
+disjoint ranges, adjacency, containment/partial overlap/equal starts,
+zero/overflow boundaries, common-prefix128/512 exact-name insertion, case
+distinctions, early/late duplicates and injected allocation failure/recovery.
+The existing reader-matrix + hardening targets pass2/2. A negative
+full-section-map vector that proves the reader-level diagnostic identity, no
+partial publication and same-reader reuse is still open. Add it to an existing
+matrix route only when it can be constructed without weakening the actual
+file envelope/checksum rules. No enormous file, fragile timing ratio, new
+CTest, independent native app or prerequisite7AW/7BA rewrite.
 
 The26,952-case scratch differential above reduces algorithm-design risk only.
-Port its small deterministic recipes into the existing unit target; do not
-reuse its implementation-specific counts as portable/asymptotic proof, a
-production-reader pass, or omit the actual
-reader18/21 integration vectors and allocation/publication controls.
+The focused port is now in the existing unit target; do not reuse its
+implementation-specific counts as portable/asymptotic proof or as a complete
+reader-envelope/admission pass.
 
 ### Slice 8 — Integrate ACIS/3D comparison with the existing plan
 
@@ -8059,15 +8248,21 @@ reader18/21 integration vectors and allocation/publication controls.
   orphaned and wrong-type links distinctly; then attach records only to the
   matching modeler entity handle. Schema-search data is optional for this
   read path per ODA; do not make parsing it a prerequisite. Generated tests
-  must permute record/segment order and use two different handles and bodies.
+  must independently permute entity traversal, segment order, index-entry
+  order and body order with two different handles and geometrically distinct
+  bodies. Add duplicate, missing, orphan, wrong-type and unreferenced-record
+  negatives. Do not copy marker scanning plus sequential queued-handle
+  association from a peer fallback; preserve the ODA index/handle relationship.
 - **S8.3 / Large records as a separate bounded step:** first accept/reject
   inline records around the ODA `0x40000` byte threshold. Only after that path
   is stable, implement blob references and Blob01 pages for payloads above
   that size; check total-size/page-count/page-size/last-page-size consistency,
   segment references, per-page maximum `0xFFFB0`, checked sum/offsets, and
   streaming/cumulative-byte budget before concatenation. Keep source-created
-  vectors in memory; do not commit generated binary drawings. Reuse7S.3
-  accounting rather than add a second budget framework.
+  vectors in memory; do not commit generated binary drawings. Include a second
+  schema and distinguish index-addressed inline data from Blob01 pages before
+  claiming general record support. Reuse7S.3 accounting rather than add a
+  second budget framework.
 - **S8.4 / Keep the carriers versioned and distinct:** cover pre-R2013 DWG
   inline modeler payloads separately from AC1027+ external DataStorage, and
   DXF's `AcDbModelerGeometry` group70 plus group1/group3 SAT/SAB payload lines
@@ -8078,12 +8273,22 @@ reader18/21 integration vectors and allocation/publication controls.
 - **S8.5 / End-to-end route census:** use the existing focused executable(s)
   for DXF→DXF, DWG→DXF and (where a writer path exists) DXF→DWG/DWG→DWG.
   Include at least one 3DSOLID in modelspace and one inside a BLOCK definition
-  referenced by INSERT; compare source/output entity handles/owners, exact
-  payload bytes or explicitly transformed payload identity, callback/omission
-  outcomes, and independent geometry facts. This targets the writer-stage
-  omission reported for ACadSharp3.4.9 as well as LibreDWG's separate AcDs
-  loss report; neither issue counts as a libdxfrw reproduction. Do not use
-  entity counts alone or accept a successful process exit as content parity.
+  referenced by INSERT; include a block whose only geometry is modeler data
+  and one with mixed 2D/3D children. Compare per-owner entity identity and
+  counts, exact payload bytes or explicitly transformed payload identity,
+  callback/omission outcomes, and independent geometry facts. Record the route
+  checkpoints separately: source entity seen, callback/raw carrier published,
+  writer accepted or skipped it, record emitted, and independent reader reopened
+  it. An intentional skip must produce an observable bounded loss outcome.
+  This targets the writer-stage omission reported for ACadSharp3.4.9 as well as
+  LibreDWG's separate AcDs loss report; neither issue counts as a libdxfrw
+  reproduction. Do not use entity counts alone or accept a successful process
+  exit as content parity.
+  Require a fresh output, the actual file signature/version, successful
+  ordinary reopen and the field/graph assertions. Record requested and actual
+  output versions separately. Recheck ACadSharp at an exact current pin before
+  using it as a runtime comparator: issue #1195 reports version3.4.9 and does
+  not establish current-branch behavior.
 - Compare carrier extraction, SAT/SAB identity, entity-to-DataStorage linking,
   and decoded topology separately. Use acadrust only as an additional
   implementation candidate; require files created by independent producers
@@ -8102,8 +8307,16 @@ reader18/21 integration vectors and allocation/publication controls.
 - Specifically detect silent carrier loss: verify `AcDb:AcDsPrototype_1b`
   retention, each modeler entity's ACDSDATA record/handle association, and
   non-empty expected B-rep geometry through a separate reader or geometry
-  kernel. LibreDWG alone cannot be the R2013+ ACIS acceptance oracle because
-  the cited issue reports this path losing SAB while retaining REGION records.
+  kernel. Source-review correction: pinned LibreDWG `acds.spec` parses part of
+  the section indexes/metadata, but leaves `_data_`/`blob01` unhandled and then
+  uses marker scanning with sequential queued solid handles. It is therefore
+  not a sole oracle for arbitrary index-to-handle association. Issue #1411
+  reports end-to-end SAB loss for one specific build; do not generalize that
+  report to every LibreDWG revision or to source-level absence of all AcDs
+  parsing. [ACadSharp PR #1154](https://github.com/DomCR/ACadSharp/pull/1154)
+  provides a current full Prototype1b parser reference, while its [PR #1240](https://github.com/DomCR/ACadSharp/pull/1240)
+  remains separate open DXF writer work in this snapshot. Neither substitutes
+  for exact runtime output and independent shape validation.
 - Treat Autodesk's [3DSOLID DXF group-code contract](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm)
   as a separate wire route: group1/3 contain split proprietary payload text
   and group350 carries the history-object handle. Test split/join ordering,
@@ -8113,11 +8326,30 @@ reader18/21 integration vectors and allocation/publication controls.
   and creation order to catch positional association errors. Check their
   transformed bounds, topology and, where independently available, volume;
   equal payload counts or one repeated cube cannot expose swapped links.
+- The stock FreeCAD Draft DWG path is a converter→DXF→`importDXF.open/insert`
+  pipeline, not a native DWG semantic reader. In current `importDWG.py`,
+  automatic converter mode can fall through LibreDWG→ODA→QCAD; the LibreDWG
+  branch treats an existing output path as success after `communicate()` and
+  does not check its process return code. The export helper likewise returns
+  the requested DWG path after conversion without reopening it. For a native
+  Linux/Windows qualification of this project's converter, pin the exact
+  FreeCAD source/release, set the converter preference to LibreDWG-only, attest
+  the resolved executable path/hash, use a fresh absent output path, capture
+  process status, validate the produced DXF signature/version and ordinary
+  semantics, then assert the imported FreeCAD document's expected 2D objects
+  and coordinates. If the intended converter cannot be selected and attested,
+  the run is not qualified; do not accept an automatic ODA/QCAD fallback.
+  For an export claim, verify a fresh DWG's actual magic/version and reopen its
+  intended fields/graph; the returned pathname is not a success criterion.
 - [FreeCAD's standard DXF manual](https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Manual_Import_and_export_to_other_filetypes.md)
-  says its built-in DXF route cannot import proprietary ACIS 3D data, and
+  says its built-in DXF and converter-based DWG routes are limited to 2D, and
   [FreeCAD issue #18454](https://github.com/FreeCAD/FreeCAD/issues/18454)
-  calls that limitation not planned. Keep stock FreeCAD DXF qualification
-  separate from an optional add-on. [InventorLoader](https://github.com/jmplonka/InventorLoader)
+  documents the ACIS blob limitation as not planned. Native FreeCAD through
+  stock Draft/importDXF therefore qualifies only the supported 2D handoff; it
+  cannot qualify ACIS/ACDS 3D geometry or satisfy the independent semantic
+  reader/kernel gate. Keep any optional 3D add-on/workbench or CADExchanger
+  route separate, with its own pinned executable, input/output format and
+  native acceptance. [InventorLoader](https://github.com/jmplonka/InventorLoader)
   is a candidate SAT/SAB reader only: it uses FreeCAD `Part`/OCCT (shared
   kernel lineage), does not read DWG AcDs or export, documents unsupported
   surfaces/law cases, and must not receive untrusted payloads until its exact
@@ -8334,7 +8566,21 @@ alone, expiring after14 days, is not that packet. The existing standard receipt
 verifier intentionally accepts only build.yml; do not weaken it to accept
 arbitrary logs. These two FreeCAD controls cover three planar LINEs only, not
 nonzero-Z/OCS/INSERT/ACIS. Extend scope separately using existing recipes.
-Run neither hosted jobs nor proprietary witness tools merely for a plan edit.
+For qualification of this repository's `dwg2dxf`, set FreeCAD's DWG converter
+preference to LibreDWG-only (currently `DWGConversion=1`), not automatic mode
+(`0`), which may fall through to ODA or QCAD. Attest that FreeCAD resolved the
+expected executable by absolute path and content hash. The `importDWG.py`
+wrapper's current success test is output-path existence rather than process
+return code; therefore use a fresh output path and independently require a
+zero process status, valid actual DXF signature/version, ordinary parser
+success and exact imported entity/coordinate postconditions. A pre-existing or
+partial file, a fallback converter, or a returned pathname is a failed or
+unqualified cell. If testing export, independently inspect actual DWG magic/
+version and reopen its expected fields rather than trusting the returned name.
+Re-pin the mutable FreeCAD source and release before dispatch. Stock FreeCAD
+qualification is 2D-only under its documented DXF route; ACIS/ACDS 3D remains
+on Slice8's separate semantic-reader/kernel gates. Run neither hosted jobs nor
+proprietary witness tools merely for a plan edit.
 
 The integrated preflight closes two source-confirmed local gaps: the Linux
 workflow now maps TMPDIR to owned runner temp, and the LINE branch now checks
@@ -8573,14 +8819,16 @@ the prerequisite set. Reconcile each ready handoff's base, affected files,
 test registrations and evidence binding once; retain recorded isolated results
 as historical evidence and run only the affected current-main gate on integration.
 
-Apply this rule after06b051c: preserve the committed portable probe and HEADER
+Apply this rule afterbf1113c: preserve the committed portable probe and HEADER
 reader/writer/generated-profile slices; use bounded existing real-file traces
-for remaining HEADER witnesses before broader reader claims. Continue7AG.1c
-with truthful per-write omission reporting; the invalid test premise is
-corrected and the getter/reservation, writeBlocks remap and resolver methods
-are integrated.7BO indexing,
-S3.7 decoder admission/finite
-controls and typed tool reporting can proceed without native FreeCAD/ACIS.
+for remaining HEADER witnesses before broader reader claims. The corrected
+7AG.1c facade inventory is complete; the invalid test premise is corrected
+and all five getter/reservation, writeBlocks remap, resolver and omission
+contracts are integrated.7BO range and exact-name indexing are integrated;
+the bounded negative full-map publication/reuse witness is still local ready
+work, not an external/platform blocker. Next independent owners include7S.2
+input/retention accounting and S3.7 decoder admission/finite controls; they
+can proceed without native FreeCAD/ACIS.
 Resolve only each slice's actual
 policy prerequisite. Reuse the settled25adc7f sanitizer binding for unchanged
 source, not later parser/cursor edits; comments/plans do not justify rerunning
@@ -8592,7 +8840,7 @@ when their lanes are enabled, not mandatory setup or another full matrix.
 | Batch | Small deliverable and dependency | Fast acceptance |
 | --- | --- | --- |
 | HEADER reader then sealing | Extend committed7BE.1 with named modern logical-boundary/maintenance and R13/R14 read-only partners;7BE.7 writer sealing is committed. | Tiny affected reader gate for each change; the combined reader matrix already passes one cursor-window sanitizer checkpoint. Run another only if later edits change cursor/window lifetime. |
-| Current consumer facade | Getter/reservation pair, real writeBlocks remaps and terminal resolver are committed under7AG.1c; implement only truthful omission reporting. | Affected fixture plus named main gates; source-pinned call phases, attempted/published counts, failure/reset and borrowed-map controls. Do not redo cold library builds or demand native Qt per method. |
+| Current consumer facade | Getter/reservation pair, real writeBlocks remaps, terminal resolver, and strict-preserving truthful omission reporting are committed under7AG.1c. | No remaining method in this facade slice. Continue with the next dependency-ready reader/resource item; do not demand a cold full build or native Qt run for unrelated local work. |
 | SAB decoder | S3.7a count/completion and S3.7b valid finite projection; explicit body/WCS policy follows separately. Coordinate actual append budgets with7S.3 without changing DWG layouts. | Tiny known producer/components in existing local/hardening tests; assert valid points/bounds/placement, not counts alone. No real-kernel/native or broad corpus prerequisite for these fixes. |
 | Sparse graph order | DXF-first7G.3a SORT store/closure, then reviewed7G.3b existing-table policy with bounded derived entries; no-table policy and DWG fallback receipt adaptation separate. |3–4 source-authored entities/tiny limit controls and one repeated ASCII/binary CLI cohort; source pairs before peer maps. |
 | Oracle framing/reporting | Known lazy parser-error normalization, strict terminal/presence predicates and final-artifact exact integer preservation under7AH/7AQ. | Dependency-free mutations first, then only8 binary/10 order calibration rows when their corresponding lane changes; no C++ rebuild/new runtime/full matrix. |
@@ -8670,23 +8918,41 @@ external evidence remains visible; it is never counted as a passing test.
 - [LibreDWG repository and README](https://github.com/LibreDWG/libredwg) and
   [LibreDWG manual](https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi)
   for its documented DWG/DXF version, object, reader, writer, and codepage
-  boundaries.
+  boundaries. Also compare its [pinned NEWS snapshot at
+  `34f02f54`](https://github.com/LibreDWG/libredwg/blob/34f02f54b9aacb5708c1d3d2070efb3e4b2d8c43/NEWS)
+  with the current README/package wording; these document peer maturity and
+  security work, not a capability guarantee for an unexecuted build. The
+  similarly pinned [`src/acds.spec`](https://github.com/LibreDWG/libredwg/blob/34f02f54b9aacb5708c1d3d2070efb3e4b2d8c43/src/acds.spec)
+  is the basis for the partial-index/marker-scan distinction in Slice8; current
+  [0.14.1 milestone issues](https://github.com/LibreDWG/libredwg/milestone/23)
+  are peer-reported calibration leads, not libdxfrw findings.
 - [ACadSharp repository](https://github.com/DomCR/ACadSharp) for its stated
   version matrix and reader/writer architecture; [dynamic-block writer issue
   #1133](https://github.com/DomCR/ACadSharp/issues/1133) and [writer maturity
   issue #558](https://github.com/DomCR/ACadSharp/issues/558) for concrete
   limitations behind the matrix; [merged PR #1151](https://github.com/DomCR/ACadSharp/pull/1151)
   for the resulting dynamic-block IO changes and residual modified-instance
-  caveat.
+  caveat. [PR #1154](https://github.com/DomCR/ACadSharp/pull/1154) is the full
+  Prototype1b parser change; [issue #1152](https://github.com/DomCR/ACadSharp/issues/1152)
+  records the source-review concern that prompted it. [Issue #1195](https://github.com/DomCR/ACadSharp/issues/1195)
+  and its still-open [writer PR #1240](https://github.com/DomCR/ACadSharp/pull/1240)
+  show separate DXF ACIS write maturity; never bind a branch's result to a
+  release binary without checking ancestry.
 - [acadrust repository](https://github.com/hakanaktt/acadrust) and its
-  [round-trip tests](https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs)
+  [pinned 2026-09-10 round-trip tests](https://github.com/hakanaktt/acadrust/blob/e1f6c0b8816aeaed81a877e6b5209dd386224fd6/tests/roundtrip.rs)
   for project-stated DWG/DXF/ACIS reach and the difference between fabricated
   carrier tests and independent producer evidence; its [malformed object-data
   report #123](https://github.com/hakanaktt/acadrust/issues/123), [malformed
   header report #124](https://github.com/hakanaktt/acadrust/issues/124), and
   [DXF angular-unit report #125](https://github.com/hakanaktt/acadrust/issues/125)
   are peer-reported examples used to design local tests, not claims of matching
-  libdxfrw defects.
+  libdxfrw defects. Its [current issue list](https://github.com/hakanaktt/acadrust/issues)
+  adds AC1024/AC1032 regression and orphan-owner leads (#133–#135); re-pin the
+  tested revision before comparing any of these reports.
+- [LibreCAD's bundled-fork coverage inventory](https://github.com/LibreCAD/LibreCAD/blob/master/libraries/libdxfrw/DWG_DXF_COVERAGE_INVENTORY.md)
+  is a source-route and consumer-compatibility checklist only. Its own header
+  says it is not byte-level conformance evidence and marks REGION/3DSOLID
+  fixture coverage as needed; resolve the branch before executing it.
 - [acad-ts](https://github.com/node-projects/acad-ts) for the explicit
   ACadSharp port/upstream revision lineage; do not count it as an independent
   DWG semantic oracle.
@@ -8729,7 +8995,10 @@ external evidence remains visible; it is never counted as a passing test.
 - [ezdxf ACIS tools](https://ezdxf.readthedocs.io/en/stable/acis.html) for a
   reproducible polyhedron producer and its stated semantic limits; record
   unsupported-node outcomes and use a capable separate reader/kernel for
-  broader geometry claims (PAR-07/Slice 8).
+  broader geometry claims (PAR-07/Slice 8). Read alongside the [FAQ](https://ezdxf.readthedocs.io/en/stable/faq.html)
+  because its “write SAT only” summary conflicts with the detailed API's
+  `export_sab` entry; the exact pinned 1.4.4 runtime/output profile, not either
+  statement in isolation, is the generator evidence.
 - ODA Open Design Specification v5.4.1 §7/§24, printed pp.68–69 and252–262,
   read locally from `/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf`
   (SHA256`1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7`),
@@ -8741,8 +9010,11 @@ external evidence remains visible; it is never counted as a passing test.
   history reference. Keep these DXF rules distinct from DWG DataStorage.
 - ACIS cross-route reports: [LibreDWG issue #1411](https://github.com/LibreDWG/libredwg/issues/1411)
   (AC1027+ AcDs carrier loss reported) and [ACadSharp issue #1195](https://github.com/DomCR/ACadSharp/issues/1195)
-  (read-side recognition but DXF-writer omission reported for3.4.9). These are
-  test-shaping peer reports, not current-peer or local reproductions.
+  (read-side recognition but DXF-writer omission reported for3.4.9), with
+  [ACadSharp PR #1240](https://github.com/DomCR/ACadSharp/pull/1240) as the
+  follow-on implementation still under review. These are test-shaping peer
+  reports, not current-peer or local reproductions; issue #1195 is not evidence
+  about the later pinned ACadSharp source snapshot.
 - The [ACadSharp precision report #1179](https://github.com/DomCR/ACadSharp/issues/1179)
   and [merged fix PR #1186](https://github.com/DomCR/ACadSharp/pull/1186)
   document a resolved peer numeric-fidelity issue; the merge added configurable
@@ -8757,7 +9029,11 @@ external evidence remains visible; it is never counted as a passing test.
   security review are prerequisites to execution; mutable `master` is discovery
   only.
 - [FreeCAD DWG importer](https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py)
-  for the current converter invocation and output-path handoff contract.
+  for converter selection, subprocess invocation and output-path handoff.
+  `main` is mutable: pin the exact blob/release before native execution. The
+  import wrapper delegates converted output to `importDXF`; automatic fallback
+  and output-exists-only success make executable identity, process status,
+  fresh-output checks and actual FreeCAD semantic postconditions mandatory.
 - [IxMilia.Dxf](https://github.com/ixmilia/dxf) for its documented DXF/DXB
   version/family limits and AutoCAD compatibility warnings.
 - [dwg-rs](https://github.com/DrunkOnJava/dwg-rs) for a specification-first,
