@@ -3,26 +3,26 @@
 Status: implementation in progress; DWG reader edits remain evidence-gated.
 Review date: 2026-10-14. Historical evidence retains its original date/source.
 
-**Current consumer-readiness update:** the parity plan's7AG.1b identifies a
-nonvirtual source-compatibility gap: current LibreCAD requires
-`DRW::DxfTextEncoding`/`dxfRW::setDxfTextEncoding`, absent standalone. A tiny
-strict compile reproduces the missing names; the LC3 callback mirror cannot
-cover that API. Add the explicit input-only recovery contract and its fast
-gate while retaining Declared as the default mode, independently repairing
-declared-codepage decoding/HEADER authority; export encoding and2D projection
-are not recovery switches. The reviewed isolated2f7cc65 chain includes those
-separate prerequisites, exact typed/raw XDATA/APPID assertions and the current
-facade compile. Canonical codec/HEADER/CLI prerequisites are now integrated;
-the input-mode API still needs its own composed main/facade/MIF gate.
-BLOCK callback and narrow WIPEOUT payload/CLI preservation are integrated;
-the clean bc8f45f composed ASan cohort passes4/4 at its focused scope, not
-native/semantic/ABI qualification or a future-source guarantee.
-Narrow MIF literal/exact-hex preservation is integrated with fresh main fast
-checks recorded in the parity ledger. Current FreeCAD preference/
-post-processing source calibrations refine future native packets, not earlier
-pinned runtime results. All six external J items remain DEFERRED_EXTERNAL and
-cannot promote support claims. The detailed research and integration order
-remain in [the parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md).
+**Current consumer readiness:** canonical declared-codec/XDATA repair,
+HEADER finalization/alias provenance and accepted-source CLI authority are
+committed. The reviewed input-only `DRW::DxfTextEncoding`/
+`dxfRW::setDxfTextEncoding` successor is staged on736ae70, with seven focused
+main tests, strict five-TU/current-LibreCAD facade/lc3 and retained MIF modes
+passing. It is not committed by this plan-only update. Declared remains the
+default; recovery changes eligible input interpretation, not export encoding
+or2D projection. Public/private layout changes require consumer rebuild and
+do not establish binary ABI or native edit/save compatibility.
+
+BLOCK callbacks, narrow WIPEOUT payload/CLI, MIF literal/exact-hex preservation
+and authored dictionary admission are committed. Dictionary admission does
+not close ACDS association, per-entry roles or whole ownership graphs.
+The bc8f45f ASan4/4 checkpoint remains bound to its older source; later
+dictionary/text/API changes are not covered by that sanitizer report.
+Current FreeCAD preference/post-processing and strict LINE/fresh-cache
+preflight refinements govern future native packets, not earlier pinned runs.
+All six external J items remain DEFERRED_EXTERNAL and cannot promote support
+claims. Exact integration and research bindings are in
+[the parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md).
 
 **Broader resource and oracle readiness:** parity7S.3 now inventories optional
 in-library SAB token/model-copy/output storage and aggregate shared-graph work,
@@ -34,21 +34,14 @@ near-polar bases and rotated bounds; uncalibrated derived peer projections
 cannot qualify3D geometry. These refinements require small local counters/
 analytic controls, not native evidence before safe local implementation.
 
-**Current local integration:** narrow authored dictionary key/owning-target
-admission is integrated with main DXF/graph2/2, strict/lc3 and retained raster
-controls. It does not close ACDS association, per-entry roles or full ownership
-graphs. The parity ledger binds its exact source/report; bc8 ASan remains a
-historical checkpoint. Next local work is the reviewed separate codec/HEADER/
-current-LibreCAD API chain, with composed MIF controls and no native promotion.
-
-The canonical declared-codec/XDATA prerequisite is now integrated with exact
-raw-count/order negatives and main six-test/strict/lc3/MIF evidence. It does
-not itself supply the separate HEADER authority or current-LibreCAD input-mode
-API. Preserve2D defaults/raw carriers/export roles; the parity ledger binds
-this source separately from bc8 ASan and native/ACDS/semantic evidence.
-HEADER finalization/alias provenance and the accepted-source CLI accessor now
-also pass current-main six focused tests/strict/lc3/MIF gates. The remaining
-input-mode API stays isolated; no native or binary-ABI claim follows.
+**Next local handoffs:** commit the validated staged API without reapplying
+its prerequisites; then integrate separately reviewed qualification-number
+admission and corrected FreeCAD preflight with their tiny Python/configure/
+CLI gates. External platform/ACIS qualification does not block these local
+steps. Broader geometry comparison must preserve pattern phase as well as
+HATCH boundary geometry, and a strict declared-encoding oracle profile is
+needed for literal legacy ASCII text. Neither requires new native tooling,
+an oracle upgrade or a full suite per field edit.
 
 **Local DXF transport regression (2026-09-28; S2.3.9.4.24):** added a
 runtime-generated AC1027 ASCII and binary REGION-without-history
@@ -1692,6 +1685,19 @@ already-qualified macOS results closed and qualify Linux and Windows only on
 native hosts with the actual FreeCAD release and importer named for each
 claim. Execute the same short sequence on each platform; do not repeat the
 entity matrix or full repository test suite:
+
+The reviewed isolated e6e4e78→c2a9772c preflight successor first needs main
+integration with its affected CLI/configure gates. It supplies Linux TMPDIR,
+strict finite straight-LINE/two-endpoint validation and authored endpoint
+expectations, with32 mocked controls but no native FreeCAD execution. The
+correction registers tests only after Python discovery: fresh automatic and
+explicit configure profiles both capture the selected absolute interpreter.
+The prior explicit-Python pass hid a prelaunch empty-argument failure; unchanged
+84 names were insufficient. Inspect required command roles without rejecting
+legitimate empty options elsewhere, and label prebuilt-CLI substitutions as
+harness checks, not fresh-build CTests. Parity7AD/Slice9 records exact report/
+review hashes and the separate configure-probe timeout follow-up. These local
+gates do not close native selection, durable packet or platform qualification.
 
 1. Build and install `dwg2dxf` into a fresh prefix outside the build tree,
    including a prefix and source path with spaces. Test the static artifact;
@@ -3358,6 +3364,19 @@ input flag-range guard. Their evidence remains vector/family-specific; S7/S8
 independently gate broader semantic claims and blocked DWG lanes.
 
 Dependencies: S0, S1. Keep DWG-specific parser changes in S3.
+
+**Pattern-phase comparison continuation:** boundary geometry alone does not
+qualify patterned HATCH. Parity7AH/7AQ with7N now requires explicit line
+base43/44 versus repeat-vector45/46, angle53, ordered dash49/count79 and
+separate global41/52 retention before transformed comparisons. Six actual
+installed ezdxf1.4.4 component controls find four identity/affine phase
+discrepancies and two untransformed/vector positives; newer7c64 source is
+inspected only and still excludes nonuniform pattern scaling. Current
+libdxfrw already stores/copies/emits the fields, so first add typed/ordered
+physical-tag retention and comparator mutations in existing tests. Do not
+assume a HATCH raw companion, rewrite the parser to match an uncalibrated
+peer, add a renderer or weaken2D behavior. The parity report b9ac5f77 binds
+these non-native controls; no new S5 implementation failure is established.
 
 Files: `src/drw_entities.{h,cpp}`; `src/libdxfrw.cpp`;
 `tests/dwg_local_roundtrip_tests.cpp`; field serializers.
