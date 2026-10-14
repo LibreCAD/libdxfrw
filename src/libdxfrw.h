@@ -162,6 +162,8 @@ public:
     /// successful prefix. No borrowed callback records are retained for undo.
     /// On any failed attempt, derived output maps are empty; persistent caller
     /// registrations/remaps/reservations remain available for the next attempt.
+    /// finalizeDxfWrite runs after emission, before publication; facade record
+    /// writes and output setup mutations are rejected in that final phase.
     [[nodiscard]] bool write(DRW_Interface *interface_, DRW::Version ver, bool bin);
     bool writeLineType(DRW_LType *ent);
     bool writeDictionary(DRW_Dictionary *ent);
@@ -296,6 +298,8 @@ public:
      * filter supplies source definitions and recomputes instance counts from
      * raw and typed records selected for output. */
     void setDxfClasses(const std::vector<DRW_Class> &classes) {
+        if (!preflightDxfSetup())
+            return;
         // Class metadata is immutable once a write has reached its CLASSES
         // section. The writer is reset after each attempt, so callers can
         // replace the persistent input before the next write.
@@ -308,6 +312,8 @@ public:
     }
     /*!< Register unmodeled DXF sections for same-version raw replay. */
     void setRawDxfSections(const std::vector<DRW_RawDxfSection> &sections) {
+        if (!preflightDxfSetup())
+            return;
         m_rawDxfSections = sections;
     }
     /*!< Canonical DXF CLASS metadata (recName/className/appName/proxyFlag/
@@ -321,6 +327,8 @@ public:
      * are reachable from the root and not pruned as orphans. The filter builds
      * this from the source root dict before write(); empty by default. */
     void setRootDictEntries(const std::vector<std::pair<std::string, std::string>> &entries) {
+        if (!preflightDxfSetup())
+            return;
         m_rootDictEntries = entries;
     }
     /*!< Register named-dictionary OBJECTS to emit verbatim in the regenerated
@@ -332,6 +340,8 @@ public:
      * as reachable objects with a valid owner — clearing the INVALID_OWNER_HANDLE
      * fixes ezdxf applies for the dangling 350 references. Empty by default. */
     void setNamedDictObjects(const std::vector<DRW_Dictionary> &dicts) {
+        if (!preflightDxfSetup())
+            return;
         m_namedDictObjects = dicts;
     }
     /*!< Register GROUP objects to typed-emit in the regenerated OBJECTS section
@@ -343,6 +353,8 @@ public:
      * or filtered entities — are skipped, never emitted as a dangling 340).
      * Empty by default. */
     void setGroups(const std::vector<DRW_Group> &groups) {
+        if (!preflightDxfSetup())
+            return;
         m_groups = groups;
     }
     /*!< Allocate a fresh, collision-free code-5 handle from the codec's
@@ -361,6 +373,8 @@ public:
     /*!< Register source-handle remaps applied to raw and typed DXF output.
      * Empty by default (source handles are preserved verbatim). */
     void setHandleRemap(const std::map<std::uint32_t, std::uint32_t> &remap) {
+        if (!preflightDxfSetup())
+            return;
         m_handleRemap = remap;
     }
     //! Plan source BLOCK_RECORD identities independently of minted entities.
@@ -369,6 +383,8 @@ public:
     //! Legacy writers without this metadata retain their existing fallback.
     void setSourceBlockRecords(const std::vector<DRW_Block_Record>& records,
                                bool requireResolvedOwners = false) {
+        if (!preflightDxfSetup())
+            return;
         m_sourceBlockRecords = records;
         m_requireResolvedBlockOwners = requireResolvedOwners;
     }
@@ -376,6 +392,8 @@ public:
      * canonical rows can be emitted before the LTYPE table is closed. */
     void setCanonicalLineTypeMetadata(
         const std::vector<DRW_LType> &lineTypes) {
+        if (!preflightDxfSetup())
+            return;
         m_canonicalLineTypeMetadata = lineTypes;
     }
     std::uint32_t remapHandle(std::uint32_t handle) const {
@@ -409,6 +427,8 @@ public:
     DRW_ParsingContext* getReadingContext() { return &m_readingContext; }
     //! DXF-derived fields are cleared by a failed write attempt. Direct context
     //! access does not itself certify that any referenced object was published.
+    //! Do not mutate this context, including a previously retained alias, from
+    //! finalizeDxfWrite; the facade cannot guard writes through caller aliases.
     DRW_WritingContext* getWritingContext() { return &m_writingContext; }
 
 private:
@@ -632,6 +652,7 @@ public:
     bool writeRequiredString(int code, const std::string& value);
     bool allocateDxfHandle(std::uint32_t& handle) noexcept;
     bool preflightDxfWrite() noexcept;
+    bool preflightDxfSetup() noexcept;
     void discardDxfWriteResults() noexcept;
     void resetDxfWriteSession();
     class WholeOperationScope;
@@ -736,6 +757,9 @@ private:
     std::uint64_t m_consumedReservationFailureGeneration {0};
     DRW_OperationDiagnostic m_lastDiagnostic;
     bool m_wholeOperationActive {false};
+    // Closed after emission, including the consumer veto and publication.
+    // WholeOperationScope releases this phase on every admitted exit.
+    bool m_dxfWriteFinalizing {false};
     std::vector<DRW_Class> m_dxfClasses;
     bool m_dxfClassesFrozen {false};
     std::vector<DRW_RawDxfSection> m_rawDxfSections;

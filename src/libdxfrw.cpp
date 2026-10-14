@@ -1703,8 +1703,10 @@ public:
             m_owner.m_wholeOperationActive = true;
     }
     ~WholeOperationScope() noexcept {
-        if (m_admitted)
+        if (m_admitted) {
+            m_owner.m_dxfWriteFinalizing = false;
             m_owner.m_wholeOperationActive = false;
+        }
     }
     bool admitted() const noexcept { return m_admitted; }
     WholeOperationScope(const WholeOperationScope&) = delete;
@@ -1815,6 +1817,8 @@ dxfRW::~dxfRW(){
 }
 
 bool dxfRW::reserveHandle(std::uint32_t h) {
+    if (!preflightDxfSetup())
+        return false;
     try {
         m_handleAllocator->reserve(h);
         return true;
@@ -2010,8 +2014,10 @@ std::uint32_t dxfRW::preallocateEntityHandle(std::uint32_t sourceHandle) {
 
 bool dxfRW::allocateDxfHandle(std::uint32_t& handle) noexcept {
     handle = 0;
-    // allocHandle() is also a pre-write setup API. Only an active failed
-    // emission is blocked; persistent caller reservations remain independent.
+    if (!preflightDxfSetup())
+        return false;
+    // Outside finalization, allocHandle() is also a pre-write setup API. Only
+    // an active failed emission is blocked; caller reservations are independent.
     if (writer != nullptr && !preflightDxfWrite())
         return false;
     try {
@@ -2089,6 +2095,8 @@ bool dxfRW::bindSourceEntityHandle(std::uint32_t sourceHandle,
 }
 
 void dxfRW::markSourceHandleAmbiguous(std::uint32_t sourceHandle) {
+    if (!preflightDxfSetup())
+        return;
     if (writer != nullptr && !preflightDxfWrite())
         return;
     if (sourceHandle == 0)
@@ -2321,10 +2329,23 @@ bool dxfRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) {
             return failWrite();
     }
     filestr.flush();
-    const bool isOk = filestr.good() && !writer->hasWriteError();
+    const bool isOk = filestr.good() && !m_writeError && !writer->hasWriteError();
     writer.reset();
     if (!isOk)
         return failWrite();
+    // Borrowed callback records have expired and the HANDSEED patch is final.
+    // Keep the closed phase through publication/catches; the admitted whole-
+    // operation scope releases it without retaining any caller records.
+    m_dxfWriteFinalizing = true;
+    const bool accepted = iface->finalizeDxfWrite();
+    if (!accepted || m_writeError) {
+        recordOperationDiagnostic(
+            DRW::OperationPhase::Callback, DRW::OperationCause::WriteFailure,
+            "dxf-finalize-rejected", "the consumer did not accept the completed DXF write");
+        output.abort();
+        m_writeError = true;
+        return setError(DRW::BAD_OPEN);
+    }
     if (!output.commit()) {
         recordOperationDiagnostic(
             DRW::OperationPhase::Commit, DRW::OperationCause::CommitFailure,
@@ -2406,6 +2427,13 @@ bool dxfRW::preflightDxfWrite() noexcept {
         return false;
     }
     return true;
+}
+
+bool dxfRW::preflightDxfSetup() noexcept {
+    if (!m_dxfWriteFinalizing)
+        return true;
+    m_writeError = true;
+    return false;
 }
 
 bool dxfRW::preflightEntity(const DRW_Entity *ent) {

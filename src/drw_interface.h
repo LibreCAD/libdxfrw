@@ -630,6 +630,12 @@ public:
   /** Called after deferred BLOCK_CONTROL and BLOCK_RECORD objects have
    * been emitted. Returning false aborts the DWG transaction. */
   virtual bool finalizeDwgWriteStructure() { return true; }
+  /** Called once after DXF emission and flush, before publishing the output.
+   * Returning false aborts the transaction. Inspect results only: record
+   * writes, handle allocation and output registrations are closed, and returned
+   * mutable context/result aliases must not be mutated. Existing consumers may
+   * omit this callback, but must rebuild against the changed interface. */
+  virtual bool finalizeDxfWrite() { return true; }
   virtual void writeAppId() = 0;
   /** Called when the writer wants the implementation to emit named VIEW
    * records. Default-empty for ABI compatibility with consumers (LibreCAD_3,

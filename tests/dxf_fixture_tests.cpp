@@ -4978,6 +4978,341 @@ void testAsciiOnlySymbolCasing(TestContext& t) {
     }
 }
 
+void testDxfConsumerFinalization(TestContext& t) {
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    const auto directory = std::filesystem::temp_directory_path()
+        / ("libdxfrw-finalize-" + std::to_string(nonce));
+    std::filesystem::create_directory(directory);
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() { std::error_code error; std::filesystem::remove_all(path, error); }
+    } cleanup{directory};
+    const auto contents = [](const std::filesystem::path& path) {
+        std::ifstream stream(path, std::ios::binary);
+        return std::string(std::istreambuf_iterator<char>(stream), {});
+    };
+    const auto temporaryCount = [](const std::filesystem::path& path) {
+        std::size_t count = 0;
+        for (const auto& entry : std::filesystem::directory_iterator(path))
+            if (entry.path().filename().string().find(".libdxfrw-") != std::string::npos)
+                ++count;
+        return count;
+    };
+    class FinalizeInterface final : public dx_iface {
+    public:
+        enum class Mode {
+            Accept, Reject, StandardThrow, UnknownThrow, LateRecord, Allocate,
+            Reserve, Ambiguous, Classes, RawSections, RootEntries, NamedDicts,
+            Groups, Remap, SourceBlocks, CanonicalLTypes, Bind, Nested, NestedLateSetup
+        };
+        FinalizeInterface(dx_data& data, TestContext& context)
+            : test(context) {
+            cData = &data;
+            currentBlock = data.mBlock;
+        }
+        void writeEntities() override {
+            // The finalizer runs after this borrowed record has expired. It
+            // must never restore it during rejection/exception cleanup.
+            {
+                DRW_Line prefix;
+                prefix.handle = 0xB100u;
+                prefix.parentHandle = unresolvedOwner ? 0xDEADu : 0;
+                prefix.secPoint = {1, 2, 3};
+                prefixResult = dxfW->writeLine(&prefix);
+                prefixHandle = prefix.handle;
+            }
+            prefixExpired = true;
+            if (earlyFailure)
+                test.expect(!dxfW->writeLine(nullptr), "early invalid record latches write failure");
+        }
+        bool finalizeDxfWrite() override {
+            ++calls;
+            test.expect(prefixExpired && prefixResult
+                            && dxfW->remapEntityHandle(0xB100u) == prefixHandle,
+                        "finalizer inspects completed results after stack-local prefix expiry");
+            if (!finalPath.empty()) {
+                std::ifstream destination(finalPath, std::ios::binary);
+                const std::string bytes(std::istreambuf_iterator<char>(destination), {});
+                test.expect(std::filesystem::exists(finalPath) == destinationExisted
+                                && (!destinationExisted || bytes == "finalize sentinel\n"),
+                            "consumer finalization precedes destination publication");
+                const std::string prefix = finalPath.filename().string() + ".libdxfrw-";
+                std::size_t pending = 0;
+                for (const auto& entry : std::filesystem::directory_iterator(finalPath.parent_path())) {
+                    if (entry.path().filename().string().find(prefix) != 0) continue;
+                    ++pending;
+                    FixtureInterface reader;
+                    dx_data decoded;
+                    reader.attach(&decoded);
+                    const std::string pendingName = entry.path().string();
+                    dxfRW pendingReader(pendingName.c_str());
+                    test.expect(pendingReader.read(&reader, false)
+                                    && decoded.mBlock->ent.size() == 1u,
+                                "consumer sees a flushed complete readable temporary before commit");
+                }
+                test.expect(pending == 1, "finalization owns exactly one unpublished temporary");
+            }
+            const auto before = dxfW->highWaterHandle();
+            switch (mode) {
+            case Mode::Reject: return false;
+            case Mode::StandardThrow: throw std::runtime_error("finalize standard exception");
+            case Mode::UnknownThrow: throw 7;
+            case Mode::LateRecord: {
+                DRW_Line late;
+                late.handle = 0xB200u;
+                test.expect(!dxfW->writeLine(&late) && late.handle == 0xB200u,
+                            "finalizer rejects record emission without caller mutation");
+                break;
+            }
+            case Mode::Allocate:
+                test.expect(dxfW->allocHandle() == 0, "finalizer cannot advance HANDSEED by allocating");
+                break;
+            case Mode::Reserve:
+                test.expect(!dxfW->reserveHandle((std::numeric_limits<std::uint32_t>::max)()),
+                            "finalizer rejects even an overflowing reservation before generation mutation");
+                break;
+            case Mode::Ambiguous: {
+                const auto count = dxfW->getWritingContext()->ambiguousSourceHandles.size();
+                dxfW->markSourceHandleAmbiguous(0xB100u);
+                test.expect(dxfW->getWritingContext()->ambiguousSourceHandles.size() == count
+                                && dxfW->remapEntityHandle(0xB100u) == prefixHandle,
+                            "finalizer cannot mark an emitted source identity ambiguous");
+                break;
+            }
+            case Mode::Classes: {
+                DRW_Class value;
+                test.expect(dxfRW::dxfClassForRecordName("SUN", value), "known CLASS control exists");
+                dxfW->setDxfClasses({value});
+                break;
+            }
+            case Mode::RawSections: {
+                DRW_RawDxfSection value;
+                value.m_name = "FINALIZE_SECTION";
+                value.m_version = DRW::AC1027;
+                value.m_groups = {{0, std::string("FINALIZE_RECORD")}};
+                dxfW->setRawDxfSections({value});
+                break;
+            }
+            case Mode::RootEntries: dxfW->setRootDictEntries({{"FINALIZE_DICT", "F100"}}); break;
+            case Mode::NamedDicts: {
+                DRW_Dictionary value;
+                value.handle = 0xF100u;
+                value.parentHandle = 0xCu;
+                dxfW->setNamedDictObjects({value});
+                break;
+            }
+            case Mode::Groups: {
+                DRW_Group value;
+                value.name = "FINALIZE_GROUP";
+                value.m_entityHandles = {0xB100u};
+                dxfW->setGroups({value});
+                break;
+            }
+            case Mode::Remap:
+                dxfW->setHandleRemap({{0xE100u, 0xE102u}});
+                test.expect(dxfW->remapHandle(0xE100u) == 0xE101u,
+                            "finalizer leaves caller's explicit remaps unchanged");
+                break;
+            case Mode::SourceBlocks: {
+                DRW_Block_Record value;
+                value.handle = 0xF200u;
+                value.name = "FINALIZE_BLOCK";
+                dxfW->setSourceBlockRecords({value}, true);
+                break;
+            }
+            case Mode::CanonicalLTypes: {
+                DRW_LType value;
+                value.name = "CONTINUOUS";
+                value.desc = "late metadata";
+                dxfW->setCanonicalLineTypeMetadata({value});
+                break;
+            }
+            case Mode::Bind:
+                test.expect(dxfW->preallocateEntityHandle(0xB200u) == 0
+                                && !dxfW->bindSourceEntityHandle(0xB200u, 0xF300u),
+                            "finalizer cannot preallocate or bind a source entity");
+                break;
+            case Mode::Nested:
+            case Mode::NestedLateSetup: {
+                const auto diagnostic = dxfW->getLastDiagnostic();
+                std::string content = "0\nEOF\n";
+                test.expect(!dxfW->write(this, DRW::AC1027, false)
+                                && !dxfW->read(this, false)
+                                && !dxfW->readAscii(this, false, content)
+                                && dxfW->getError() == DRW::BAD_NONE
+                                && dxfW->getLastDiagnostic().code == diagnostic.code,
+                            "same-facade nested whole operations cannot disturb finalization");
+                dx_data otherData;
+                FinalizeInterface other(otherData, test);
+                dxfRW otherWriter(otherFile.c_str());
+                other.dxfW = &otherWriter;
+                test.expect(otherWriter.write(&other, DRW::AC1027, false) && other.calls == 1,
+                            "a different facade may complete inside finalization");
+                other.dxfW = nullptr;
+                if (mode == Mode::NestedLateSetup)
+                    test.expect(dxfW->allocHandle() == 0,
+                                "rejected nested operations cannot reopen the finalization phase");
+                break;
+            }
+            case Mode::Accept: break;
+            }
+            test.expect(dxfW->highWaterHandle() == before,
+                        "finalizer never advances completed output's handle high-water mark");
+            return true; // A forbidden mutation must still veto publication.
+        }
+        TestContext& test;
+        Mode mode {Mode::Accept};
+        int calls {0};
+        bool earlyFailure {false}, unresolvedOwner {false};
+        bool prefixResult {false}, prefixExpired {false};
+        std::uint32_t prefixHandle {0};
+        std::string otherFile;
+        std::filesystem::path finalPath;
+        bool destinationExisted {false};
+    };
+    using Mode = FinalizeInterface::Mode;
+    const auto prepare = [&t](dxfRW& writer) {
+        t.expect(writer.reserveHandle(0xE200u), "between-operation reservation is still accepted");
+        writer.setHandleRemap({{0xE100u, 0xE101u}});
+    };
+    const auto emptyResults = [](dxfRW& writer) {
+        const auto& state = *writer.getWritingContext();
+        return state.sourceHandleToMintedMap.empty() && state.writtenSourceEntityHandles.empty()
+            && state.ambiguousSourceHandles.empty() && state.lineTypesMap.empty();
+    };
+    const auto target = directory / "finalize.dxf";
+    const std::string filename = target.string();
+    for (const auto version : {DRW::AC1009, DRW::AC1027}) {
+        for (const bool binary : {false, true}) {
+            for (const bool existing : {false, true}) {
+                for (const auto mode : {Mode::Accept, Mode::Reject, Mode::StandardThrow,
+                                        Mode::UnknownThrow, Mode::LateRecord, Mode::Nested,
+                                        Mode::NestedLateSetup}) {
+                    std::error_code error;
+                    std::filesystem::remove(target, error);
+                    if (existing) { std::ofstream seed(target, std::ios::binary); seed << "finalize sentinel\n"; }
+                    dx_data data;
+                    FinalizeInterface adapter(data, t);
+                    adapter.mode = mode;
+                    adapter.finalPath = target;
+                    adapter.destinationExisted = existing;
+                    adapter.otherFile = (directory / "nested.dxf").string();
+                    dxfRW writer(filename.c_str());
+                    adapter.dxfW = &writer;
+                    prepare(writer);
+                    const bool accepted = mode == Mode::Accept || mode == Mode::Nested;
+                    t.expect(writer.write(&adapter, version, binary) == accepted && adapter.calls == 1,
+                             "DXF finalizer runs exactly once across revisions and encodings");
+                    if (!accepted) {
+                        const auto diagnostic = writer.getLastDiagnostic();
+                        const bool throwing = mode == Mode::StandardThrow || mode == Mode::UnknownThrow;
+                        t.expect(writer.getError() == DRW::BAD_OPEN && emptyResults(writer)
+                                     && diagnostic.phase == DRW::OperationPhase::Callback
+                                     && diagnostic.cause == (throwing ? DRW::OperationCause::CallbackException
+                                                                      : DRW::OperationCause::WriteFailure)
+                                     && diagnostic.code == (throwing ? "callback-exception" : "dxf-finalize-rejected"),
+                                 "veto/exception keeps the first structured cause and clears derived identities");
+                        t.expect(existing ? contents(target) == "finalize sentinel\n"
+                                          : !std::filesystem::exists(target),
+                                 "consumer rejection preserves every destination byte or creates no destination");
+                        adapter.mode = Mode::Accept;
+                        adapter.finalPath.clear(); // Retry has its own already-checked pre-commit boundary.
+                        prepare(writer);
+                        t.expect(writer.write(&adapter, version, binary) && adapter.calls == 2
+                                     && writer.getError() == DRW::BAD_NONE,
+                                 "same writer retries from pristine stack-local source identities after finalization failure");
+                    }
+                    t.expect(temporaryCount(directory) == 0, "finalization leaves no transaction temporary");
+                    adapter.dxfW = nullptr;
+                }
+            }
+            // Existing adapters inherit the no-op acceptance callback.
+            dx_data legacyData;
+            FixtureInterface legacy;
+            legacy.attach(&legacyData);
+            dxfRW writer(filename.c_str());
+            legacy.dxfW = &writer;
+            t.expect(writer.write(&legacy, version, binary), "adapter without finalizer override retains old behavior");
+            legacy.dxfW = nullptr;
+            dx_data earlyData;
+            FinalizeInterface early(earlyData, t);
+            early.earlyFailure = true;
+            dxfRW earlyWriter(filename.c_str());
+            early.dxfW = &earlyWriter;
+            t.expect(!earlyWriter.write(&early, version, binary) && early.calls == 0,
+                     "R12 and modern earlier record failures invoke no finalizer");
+            early.dxfW = nullptr;
+        }
+    }
+    for (const bool binary : {false, true}) {
+        for (const auto mode : {Mode::Allocate, Mode::Reserve, Mode::Ambiguous, Mode::Classes,
+                                Mode::RawSections, Mode::RootEntries, Mode::NamedDicts, Mode::Groups,
+                                Mode::Remap, Mode::SourceBlocks, Mode::CanonicalLTypes, Mode::Bind}) {
+            dx_data data;
+            FinalizeInterface adapter(data, t);
+            adapter.mode = mode;
+            dxfRW writer(filename.c_str());
+            adapter.dxfW = &writer;
+            prepare(writer);
+            { std::ofstream seed(target, std::ios::binary); seed << "setup sentinel\n"; }
+            t.expect(!writer.write(&adapter, DRW::AC1027, binary) && adapter.calls == 1
+                         && writer.getLastDiagnostic().code == "dxf-finalize-rejected"
+                         && contents(target) == "setup sentinel\n" && emptyResults(writer),
+                     "each finalizer-only setup mutation latches rejection even when callback returns true");
+            adapter.mode = Mode::Accept;
+            prepare(writer);
+            t.expect(writer.write(&adapter, DRW::AC1027, binary) && adapter.calls == 2,
+                     "forbidden finalizer setup does not poison retry or reservation generations");
+            const std::string retried = contents(target);
+            dx_data freshData;
+            FinalizeInterface fresh(freshData, t);
+            dxfRW freshWriter(filename.c_str());
+            fresh.dxfW = &freshWriter;
+            prepare(freshWriter);
+            t.expect(freshWriter.write(&fresh, DRW::AC1027, binary) && contents(target) == retried,
+                     "rejected finalizer registrations leave pristine retry byte-identical to fresh writer");
+            fresh.dxfW = nullptr;
+            adapter.dxfW = nullptr;
+            t.expect(temporaryCount(directory) == 0, "late setup rejection/retry cleans its temporary");
+        }
+        for (const bool structured : {false, true}) {
+            dx_data data;
+            FinalizeInterface adapter(data, t);
+            adapter.earlyFailure = !structured;
+            adapter.unresolvedOwner = structured;
+            dxfRW writer(filename.c_str());
+            adapter.dxfW = &writer;
+            if (structured) writer.setSourceBlockRecords({}, true);
+            t.expect(!writer.write(&adapter, DRW::AC1027, binary) && adapter.calls == 0,
+                     "earlier emission failure never invokes consumer finalization");
+            if (structured)
+                t.expect(writer.getLastDiagnostic().code == "unresolved-block-owner",
+                         "skipping finalization preserves the first earlier diagnostic");
+            adapter.dxfW = nullptr;
+        }
+        const auto commitTarget = directory / "destination-directory";
+        std::filesystem::create_directory(commitTarget);
+        dx_data data;
+        FinalizeInterface adapter(data, t);
+        const std::string commitName = commitTarget.string();
+        dxfRW writer(commitName.c_str());
+        adapter.dxfW = &writer;
+        t.expect(!writer.write(&adapter, DRW::AC1027, binary) && adapter.calls == 1
+                     && writer.getLastDiagnostic().phase == DRW::OperationPhase::Commit
+                     && writer.getLastDiagnostic().code == "commit-failure" && emptyResults(writer)
+                     && std::filesystem::is_directory(commitTarget) && temporaryCount(directory) == 0,
+                 "consumer acceptance does not override a later publication failure");
+        std::error_code error;
+        t.expect(std::filesystem::remove(commitTarget, error), "commit-failure test removes only its empty blocker");
+        prepare(writer);
+        t.expect(writer.write(&adapter, DRW::AC1027, binary) && adapter.calls == 2
+                     && writer.getError() == DRW::BAD_NONE && temporaryCount(directory) == 0,
+                 "same writer recovers after accepted finalization and failed publication");
+        std::filesystem::remove(commitTarget, error);
+        adapter.dxfW = nullptr;
+    }
+}
+
 // The operation owns emitted identities, not the lifetime of borrowed callback
 // records. A failed operation must not publish suffix mutations or its maps.
 void testDxfWriteAttemptFailure(TestContext& t) {
@@ -5382,6 +5717,7 @@ int main(int argc, char** argv) {
         return 2;
     TestContext context;
     testAsciiOnlySymbolCasing(context);
+    testDxfConsumerFinalization(context);
     testInfiniteLineDirections(context);
     testSortEntsKeyRoles(context);
     testSortEntsCarrierAgreement(context);
