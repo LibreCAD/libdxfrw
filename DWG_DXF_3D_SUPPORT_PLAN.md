@@ -1,7 +1,20 @@
 # DWG/DXF 3D Support Review and Fix Plan
 
 Status: implementation in progress; DWG reader edits remain evidence-gated.
-Review date: 2026-09-28.
+Review date: 2026-10-14. Historical evidence retains its original date/source.
+
+**Current consumer-readiness update:** the parity plan's7AG.1b identifies a
+nonvirtual source-compatibility gap: current LibreCAD requires
+`DRW::DxfTextEncoding`/`dxfRW::setDxfTextEncoding`, absent standalone. A tiny
+strict compile reproduces the missing names; the LC3 callback mirror cannot
+cover that API. Add the explicit input-only recovery contract and its fast
+gate without changing default decoding, export encoding or2D projection.
+Reviewed BLOCK callback and WIPEOUT converter candidates remain isolated;
+the MIF candidate remains staged, not committed. Current FreeCAD preference/
+post-processing source calibrations refine future native packets, not earlier
+pinned runtime results. All six external J items remain DEFERRED_EXTERNAL and
+cannot promote support claims. The detailed research and integration order
+remain in [the parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md).
 
 **Local DXF transport regression (2026-09-28; S2.3.9.4.24):** added a
 runtime-generated AC1027 ASCII and binary REGION-without-history
@@ -1283,6 +1296,23 @@ Broader platform claims require native install/dependency/discovery and
 FreeCAD-process evidence under S8.9.5. Continue those existing work items
 rather than creating a duplicate FreeCAD harness or treating a CLI-only pass
 as application integration.
+
+**Effective importer profile and final-document gate:** current source at
+`3c0324a7c868e066320e78b0d8943835e8cd56f8`
+[overwrites DxfImportMode from preference booleans](https://github.com/FreeCAD/FreeCAD/blob/3c0324a7c868e066320e78b0d8943835e8cd56f8/src/Mod/Draft/importDXF.py#L4355-L4370).
+For new mode0/1/2/3 cells, capture requested/pre-seeded booleans and effective
+post-read mode; setting only the integer is insufficient. C++ importer
+statistics precede [post-processing](https://github.com/FreeCAD/FreeCAD/blob/3c0324a7c868e066320e78b0d8943835e8cd56f8/src/Mod/Draft/importDXF.py#L5071-L5118),
+which converts, filters, reparents/deletes objects and catches an abort path.
+Keep those statistics separate from final-document type/shape/block-link
+sentinels and explicit post-processing outcome. These are source-only
+calibrations, not an executed FreeCAD failure or retraction of historical
+1.1.3/1.1.4 mode2 LINE results. First add dependency-free packet/predicate
+controls; run a newly enabled native mode only at its existing capability gate.
+Consumer report
+`/private/tmp/libdxfrw-consumer-contract-research.D7GLxg/research-report.json`,
+SHA256`1dfd3fe353ae5db033147be84d78d67ba018592d0fb23c8464cad3c27d2238b3`,
+binds this source revision separately from native evidence.
 
 **FreeCAD support ledger and implementation priority:** treat usable FreeCAD
 integration as a short, separately releasable converter lane—not as the end of
@@ -3667,6 +3697,17 @@ Steps:
    Run existing affected DXF/hardening/lc3 gates and one composed sanitizer/
    converter checkpoint, not another full suite or external witness search.
 
+   Reviewed c89aa592 on25d951c remains isolated. Report
+   `/private/tmp/libdxfrw-block-replay-7ag3a.MLIuEu/candidate-report.json`, SHA256
+   `355f8ea635b0585f1f0de5c7c54136eb3b471c66ce086f693319a2c0bf314f3a`,
+   records104 ASCII/binary/ext-mode read operations, six concrete owned copies,
+   omitted typed events, malformed/footer/reuse and exception controls; three
+   focused tests pass2.89s. Footer/map allocation throws are source-reviewed,
+   not fault-injected. The actual CLI controls cover supported empty surface
+   shells only, not full binary carriers/B-rep or every converter callback.
+   Rebind on main with7BI preserved; one composed current-source sanitizer
+   checkpoint remains after the related queue/storage integrations.
+
 2. **S8.2 — Existing 2D source-compatibility gate (required after each API
    slice).** Compile the locked `lc3_compat_check` consumer and representative
    library/test adapters after callback or public-field changes. Preserve
@@ -3677,6 +3718,15 @@ Steps:
    checkout or require a migration as part of this library lane. Treat this
    as a source-compatibility check only; it does not establish binary ABI or
    LibreCAD runtime/UI behavior.
+   Add the independently named current LibreCAD nonvirtual facade gate from
+   parity7AG.1b: pinned bf58e1e8 unconditionally selects Declared or
+   LegacyLibreCadUtf8 before DXF import. Use persistent next-read configuration
+   copied to new readers, with no active-reader/export mutation or automatic
+   detection. Coordinate declared codec/HEADER-order and explicit recovery
+   tests; the172-callback inventory and old locked LC3 mirror alone cannot
+   validate this source surface. Keep historical source checks under their
+   original pins; the strict current-call compile failure is a locally
+   actionable compatibility gap, not an external-platform blocker.
 3. **S8.2a — Legacy 2D read-mode regression guard.** Add a fast, runtime-
    generated DXF contrast through a test `DRW_Interface` sink: `ext == true`
    must retain the existing callback values for the covered planar/OCS case,
@@ -5288,6 +5338,9 @@ checkpoints and release review.
    locally from scratch. Preserve all pre-existing untracked user files and
    do not stage the current untracked `tests/samples/AC1021/` or
    `tests/samples/AC1024/` paths as part of this plan.
+   Encoding third-party drawing bytes as base64/source literals or archives
+   does not change their provenance. Review embedded payloads/generators under
+   the same rule; do not treat a peer's fixture embedding as local authorship.
 5. If an external reader or authentic DWG file is unavailable, continue
    independent DXF/static/vector tasks, record the missing witness, and keep
    affected support rows unqualified. Do not let a missing oracle halt
