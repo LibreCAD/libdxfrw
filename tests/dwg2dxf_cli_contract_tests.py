@@ -2,6 +2,7 @@
 """Bounded, fixture-free CLI authorization and process-contract regressions."""
 
 import argparse
+import os
 from pathlib import Path
 import sys
 import tempfile
@@ -106,14 +107,127 @@ def check_options(converter, root):
     return checked
 
 
+def check_batch(converter, root):
+    source_dir = root / "batch inputs"
+    source_dir.mkdir()
+    source = source_dir / " leading é trailing .dxf"
+    source.write_bytes(SOURCE)
+    list_path = root / "batch list.txt"
+    checked = 0
+
+    def invoke(payload, label, expected, inputs=(source,), overwrite=True,
+               existing=False):
+        nonlocal checked
+        output_dir = root / ("batch result " + label)
+        output_dir.mkdir()
+        if existing:
+            (output_dir / source.name).write_bytes(SENTINEL)
+        list_path.write_bytes(payload)
+        before = {path: path.read_bytes() for path in inputs}
+        args = [str(converter), str(list_path), "-B", "-v2007"]
+        if overwrite:
+            args.append("-y")
+        args.append(str(output_dir))
+        result = run_bounded(args, 5, 131072, cwd=root)
+        if result.returncode != expected:
+            raise AssertionError(f"batch {label}: exit {result.returncode}, "
+                                 f"expected {expected}: {result.stdout[:2048]!r} "
+                                 f"{result.stderr[:2048]!r}")
+        if list_path.read_bytes() != payload:
+            raise AssertionError(f"batch {label}: changed list file")
+        if any(path.read_bytes() != value for path, value in before.items()):
+            raise AssertionError(f"batch {label}: changed source")
+        checked += 1
+        return output_dir, result
+
+    for label, ending in (("LF", b"\n"), ("CRLF", b"\r\n"), ("no newline", b"")):
+        output, result = invoke(str(source).encode("utf-8") + ending, label, 0)
+        if not (output / source.name).is_file() or b"Success:" not in result.stdout:
+            raise AssertionError(f"batch {label}: lost input whitespace/UTF-8 or outcome")
+
+    missing = source_dir / "missing.dxf"
+    mixed = (str(missing) + "\n" + str(source) + "\n").encode("utf-8")
+    output, result = invoke(mixed, "mixed missing first", 1)
+    if not (output / source.name).is_file() or b"Failed:" not in result.stdout:
+        raise AssertionError("mixed batch did not continue/report independent item")
+    output, _ = invoke((str(missing) + "\n").encode(), "missing only", 1)
+    if list(output.iterdir()):
+        raise AssertionError("missing-only batch published output")
+    output, result = invoke(str(source).encode() + b"\n", "existing no overwrite", 1,
+                            overwrite=False, existing=True)
+    if (output / source.name).read_bytes() != SENTINEL or b"refusing to overwrite" not in result.stdout:
+        raise AssertionError("batch prompted or modified an unauthorized destination")
+    for label, payload in (("empty", b""), ("blank", b"\n\r\n"),
+                           ("NUL", str(source).encode() + b"\x00\n"),
+                           ("long line", b"x" * (128 * 1024 + 1) + b"\n"),
+                           ("many items", (str(source).encode() + b"\n") * 10001)):
+        output, _ = invoke(payload, label, 2)
+        if list(output.iterdir()):
+            raise AssertionError(f"batch {label}: published before list admission")
+
+    output, _ = invoke(str(source).encode() + b"\n" + b"x" * (128 * 1024 + 1),
+                       "valid prefix then oversized", 2)
+    if list(output.iterdir()):
+        raise AssertionError("oversized later line published an earlier item")
+
+    for label, path, expected in (("missing list", root / "absent list", 2),
+                                   ("directory list", source_dir, 2)):
+        output = root / ("batch result " + label)
+        output.mkdir()
+        result = run_bounded([str(converter), str(path), "-B", "-v2007", "-y",
+                              str(output)], 5, 131072, cwd=root)
+        if result.returncode != expected or list(output.iterdir()):
+            raise AssertionError(f"batch {label}: wrong I/O outcome")
+        checked += 1
+
+    if hasattr(os, "mkfifo"):
+        fifo = source_dir / "pipe.dxf"
+        os.mkfifo(fifo)
+        output, _ = invoke((str(fifo) + "\n" + str(source) + "\n").encode(),
+                           "FIFO input", 1)
+        if not (output / source.name).is_file() or (output / fifo.name).exists():
+            raise AssertionError("special input blocked/lost a later independent item")
+        output = root / "batch result FIFO list"
+        output.mkdir()
+        result = run_bounded([str(converter), str(fifo), "-B", "-v2007", "-y",
+                              str(output)], 5, 131072, cwd=root)
+        if result.returncode != 2 or list(output.iterdir()):
+            raise AssertionError("special list input was opened as a stream")
+        checked += 1
+
+    output = root / "missing batch version"
+    output.mkdir()
+    list_path.write_text(str(source) + "\n", encoding="utf-8")
+    result = run_bounded([str(converter), str(list_path), "-B", "-y", str(output)],
+                          5, 131072, cwd=root)
+    if result.returncode != 1 or b"Bad options." not in result.stdout or list(output.iterdir()):
+        raise AssertionError("batch did not retain explicit version requirement")
+    checked += 1
+
+    output = root / "batch source alias"
+    output.mkdir()
+    alias_source = output / "source.dxf"
+    alias_source.write_bytes(SOURCE)
+    list_path.write_text(str(alias_source) + "\n", encoding="utf-8")
+    result = run_bounded([str(converter), str(list_path), "-B", "-v2007", "-y",
+                          str(output)], 5, 131072, cwd=root)
+    if result.returncode != 2 or alias_source.read_bytes() != SOURCE:
+        raise AssertionError("batch -y authorized an input alias")
+    checked += 1
+    return checked
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--converter", required=True, type=Path)
     args = parser.parse_args()
     converter = args.converter.resolve(strict=True)
     with tempfile.TemporaryDirectory(prefix="libdxfrw-cli-contract-") as directory:
-        checked = check_options(converter, Path(directory))
-    print(f"CLI contract: PASS ({checked} bounded option/filename controls)")
+        root = Path(directory)
+        checked = check_options(converter, root)
+        batch_checked = check_batch(converter, root)
+    print(f"CLI contract: PASS ({checked} option/filename and "
+          f"{batch_checked} batch controls, bounded subprocesses)")
 
 
 if __name__ == "__main__":

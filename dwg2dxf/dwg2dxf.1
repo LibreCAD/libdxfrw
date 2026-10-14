@@ -1,4 +1,4 @@
-.TH DWG2DXF 1 "2026-09-23" "version 1.0"
+.TH DWG2DXF 1 "2026-10-14" "version 1.0"
 .SH NAME
 dwg2dxf \- Conversor from dwg/dxf to dxf
 .SH SYNOPSIS
@@ -14,6 +14,7 @@ input      existing file to convert
    -B         optional, batch mode reads a text file whit a list of full path input
                files and saves with the same name in the indicated folder as output
    -y -Y      optional, Warning! if output dxf exist overwrite without ask
+   -d -D      optional, enables debug tracing
    -version   version output of dxf file (required by the positional form,
               optional with -o; otherwise the source revision is retained)
    output     output file name
@@ -22,6 +23,16 @@ The -o form is compatible with FreeCAD's external DWG converter invocation.
 It writes ASCII DXF unless -b is specified and does not prompt. If the output
 already exists, conversion fails unless -y is specified. AC1012/R13 input is
 written as AC1014/R14 because AC1012 is not a supported output revision.
+.PP
+Batch mode requires an explicit output version and an existing output
+directory. Its regular-file list accepts LF, CRLF and a final line without a
+newline. Empty lines are ignored; filename spaces and UTF-8 bytes are retained.
+The limits are 128 KiB per filename, 16 MiB of physical list bytes and 10000
+inputs. Invalid lists or identity collisions reject before conversion. Batch
+mode never prompts: replacing an existing destination requires -y or -Y.
+Independent items continue after ordinary conversion failures, but the process
+returns nonzero if any item fails. Each file is published atomically; a failed
+batch does not roll back files already converted successfully.
 .PP
 Install dwg2dxf and either place its bindir first on FreeCAD's PATH or select
 the LibreDWG-compatible converter in FreeCAD's DWG preferences and configure

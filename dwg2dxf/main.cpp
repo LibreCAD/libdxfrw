@@ -12,15 +12,14 @@
 
 #include <iostream>
 #include <fstream>
+#include <filesystem>
+#include <set>
 #include <sys/stat.h>
 
 #include "dx_iface.h"
 #include "dx_data.h"
 #include "dx_cli.h"
-
-#ifndef S_ISDIR
-#define S_ISDIR(mode) (((mode) & S_IFMT) == S_IFDIR)
-#endif
+#include "dx_batch_input.h"
 
 void usage(){
     std::cout << "Usage: " << std::endl;
@@ -30,6 +29,8 @@ void usage(){
     std::cout << "   -b         optional, sets output as binary dxf" << std::endl;
     std::cout << "   -B         optional, batch mode reads a text file whit a list of full path input" << std::endl;
     std::cout << "               files and saves with the same name in the indicated folder as output" << std::endl;
+    std::cout << "               LF/CRLF lists; 128 KiB filename, 16 MiB list, 10000 inputs maximum" << std::endl;
+    std::cout << "               requires -version, never prompts, returns failure if any item fails" << std::endl;
     std::cout << "   -y -Y      optional, Warning! if output dxf exist overwrite without ask" << std::endl;
     std::cout << "   -d -D      optional, enable debug trace" << std::endl;
     std::cout << "   -version   version output of dxf file" << std::endl;
@@ -166,7 +167,8 @@ int main(int argc, char *argv[]) {
             badState = true;
     }
 
-    if (badState || fileName.empty() || outName.empty()) {
+    if (badState || fileName.empty() || outName.empty()
+        || (options.batch && !options.haveVersion)) {
         std::cout << "Bad options." << std::endl;
         usage();
         return 1;
@@ -186,46 +188,97 @@ int main(int argc, char *argv[]) {
 
     }
 
- //batch mode, prepare input file and output folder.
-    //verify if input file exist
-    std::ifstream ifs;
-    ifs.open (fileName.c_str(), std::ifstream::in);
-    badState = ifs.fail();
-    ifs.close();
-    if (badState) {
-        std::cout << "Batch mode, Error can't open " << fileName << std::endl;
+    // List acquisition and name/identity preflight complete before any output.
+    // File conversions remain independent transactions, not a batch rollback.
+    try {
+        namespace fs = std::filesystem;
+        const auto listPath = fs::u8path(fileName);
+        std::error_code ec;
+        if (!fs::is_regular_file(listPath, ec) || ec) {
+            std::cout << "Batch mode: input list must be a regular file\n";
+            return 2;
+        }
+        std::ifstream list(listPath, std::ios::binary);
+        std::vector<std::string> inputs;
+        std::string error;
+        if (!list.is_open() || !dwg2dxfCli::readBatchList(list, inputs, error)) {
+            std::cout << "Batch mode: "
+                      << (list.is_open() ? error : "cannot open input list") << '\n';
+            return 2;
+        }
+        const auto directory = fs::u8path(outName);
+        ec.clear();
+        if (!fs::is_directory(directory, ec) || ec) {
+            std::cout << "Batch mode: output must be an existing directory\n";
+            return 4;
+        }
+        std::vector<fs::path> sources;
+        std::vector<fs::path> outputs;
+        std::set<fs::path> sourceNames;
+        std::set<fs::path> outputNames;
+        const auto normalized = [](const fs::path& path) {
+            return fs::weakly_canonical(fs::absolute(path));
+        };
+        sourceNames.insert(normalized(fs::u8path(fileName)));
+        for (const auto& name : inputs) {
+            const auto source = fs::u8path(name);
+            const auto output = directory / source.filename();
+            if (source.filename().empty() || !outputNames.insert(normalized(output)).second) {
+                std::cout << "Batch mode: invalid or colliding output names\n";
+                return 2;
+            }
+            sourceNames.insert(normalized(source));
+            sources.push_back(source);
+            outputs.push_back(output);
+        }
+        for (const auto& output : outputs) {
+            if (sourceNames.count(normalized(output))) {
+                std::cout << "Batch mode: output aliases an input/list\n";
+                return 2;
+            }
+            ec.clear();
+            const bool exists = fs::exists(output, ec);
+            if (ec) {
+                std::cout << "Batch mode: cannot inspect output identity\n";
+                return 2;
+            }
+            if (!exists)
+                continue;
+            for (const auto& source : sources) {
+                ec.clear();
+                const bool same = fs::equivalent(source, output, ec);
+                // A nonexistent source is an independent conversion failure.
+                if (same) {
+                    std::cout << "Batch mode: output aliases an input\n";
+                    return 2;
+                }
+                if (ec && ec != std::errc::no_such_file_or_directory) {
+                    std::cout << "Batch mode: cannot inspect input identity\n";
+                    return 2;
+                }
+            }
+            ec.clear();
+            if (fs::equivalent(fs::u8path(fileName), output, ec) || ec) {
+                std::cout << "Batch mode: output aliases list or identity check failed\n";
+                return 2;
+            }
+        }
+        bool allOk = true;
+        for (std::size_t index = 0; index < inputs.size(); ++index) {
+            const std::string output = outputs[index].u8string();
+            ec.clear();
+            const bool regular = fs::is_regular_file(sources[index], ec);
+            const bool ok = regular && !ec
+                && convertFile(inputs[index], output, options.version,
+                               options.binary, options.overwrite,
+                               options.debug, true);
+            std::cout << (ok ? "Success: " : "Failed: ") << inputs[index]
+                      << " -> " << output << '\n';
+            allOk = ok && allOk;
+        }
+        return allOk ? 0 : 1;
+    } catch (const std::exception& exception) {
+        std::cout << "Batch mode: preflight/conversion error: " << exception.what() << '\n';
         return 2;
     }
-
-    //verify existence of output directory
-    struct stat statBuf;
-    int dirStat = stat(outName.c_str(), &statBuf);
-    if(dirStat != 0 || S_ISDIR(statBuf.st_mode) == 0) {
-        std::cout << "Batch mode: " << outName << " must be an existing directory" << std::endl;
-        usage();
-        return 4;
-    }
-    outName+="/";
-    //create a list with the files to convert.
-    std::ifstream bfs;
-    bfs.open (fileName.c_str(), std::ifstream::in);
-    std::list<std::string>inList;
-    std::string line;
-    while ( bfs.good() ){
-        std::getline(bfs, line);
-        if(!line.empty())
-            inList.push_back(line);
-    }
-    for (std::list<std::string>::const_iterator it=inList.begin(); it!=inList.end(); ++it){
-        std::string input = *it;
-        unsigned found = input.find_last_of("/\\");
-        std::string output = outName + input.substr(found+1);
-        std::cout << "Converting file " << input << " to " << output << std::endl;
-        bool ok = convertFile(input, output, options.version, options.binary,
-                              options.overwrite, options.debug);
-        if (!ok)
-            std::cout << "Failed" << std::endl;
-    }
-
-    return 0;
 }
