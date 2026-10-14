@@ -1038,6 +1038,7 @@ bool dwgReader21::readFileHeader() {
     dwgBuffer SectionsMapBuf( &SectionsMapData.front(), SectionsMapSizeUncompressed, &decoder);
     std::unordered_map<int, dwgSectionInfo> parsedSections;
     std::vector<dwgSectionInfo> parsedUnknownSections;
+    dwgSafety::ExactNameIndex<> parsedUnknownSectionNames;
     std::unordered_set<std::uint32_t> claimedSectionPages;
     const bool reservedMapPages =
         PagesMapId <= std::numeric_limits<std::uint32_t>::max()
@@ -1235,14 +1236,17 @@ bool dwgReader21::readFileHeader() {
 
         const int sectionId = secEnum::getEnum(secInfo.name);
         if (sectionId == secEnum::UNKNOWNS) {
-            const auto duplicate = std::find_if(
-                parsedUnknownSections.cbegin(), parsedUnknownSections.cend(),
-                [&secInfo](const dwgSectionInfo& existing) {
-                    return existing.name == secInfo.name;
-                });
-            if (duplicate != parsedUnknownSections.cend()) {
+            const auto inserted = dwgSafety::tryInsertExactName(
+                parsedUnknownSectionNames, secInfo.name);
+            if (inserted == dwgSafety::ExactNameInsertResult::Duplicate) {
                 recordFailure(DwgIntegrityCheckKind::SectionPageReference,
                               DwgIntegrityPhase::SectionMap);
+                return false;
+            }
+            if (inserted == dwgSafety::ExactNameInsertResult::ResourceFailure) {
+                recordFailure(DwgIntegrityCheckKind::PageGeometry,
+                              DwgIntegrityPhase::SectionMap,
+                              sectionId, secInfo.Id);
                 return false;
             }
         } else if (parsedSections.find(sectionId) != parsedSections.end()) {
@@ -1260,10 +1264,19 @@ bool dwgReader21::readFileHeader() {
         }
         secInfo.Id = nextId++;
         DRW_DBG("Saved section Name= "); DRW_DBG( secInfo.name.c_str() ); DRW_DBG("\n");
-        if (sectionId == secEnum::UNKNOWNS)
-            parsedUnknownSections.push_back(std::move(secInfo));
-        else
+        if (sectionId == secEnum::UNKNOWNS) {
+            const std::int32_t descriptorId = secInfo.Id;
+            try {
+                parsedUnknownSections.push_back(std::move(secInfo));
+            } catch (...) {
+                recordFailure(DwgIntegrityCheckKind::PageGeometry,
+                              DwgIntegrityPhase::SectionMap,
+                              sectionId, descriptorId);
+                return false;
+            }
+        } else {
             parsedSections.emplace(sectionId, std::move(secInfo));
+        }
     }
 
     // SectionsAmount includes the empty descriptor that terminates the map.

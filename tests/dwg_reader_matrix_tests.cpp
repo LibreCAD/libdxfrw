@@ -73,6 +73,16 @@ struct RangeComparisonCounter {
     std::size_t* count;
 };
 
+struct NameComparisonCounter {
+    explicit NameComparisonCounter(std::size_t* count = nullptr) : count(count) {}
+    bool operator()(const std::string& lhs, const std::string& rhs) const noexcept {
+        if (count != nullptr)
+            ++*count;
+        return lhs < rhs;
+    }
+    std::size_t* count;
+};
+
 struct RangeAllocationFailure {
     static bool failNext;
 };
@@ -202,6 +212,80 @@ void testDisjointRangeIndex(TestContext& t) {
     t.expect(firstInserted && reportedResourceFailure && retainedAfterFailure && recovered
                  && insertedAfterRecovery && recoverable.empty(),
              "allocation failure leaves the staged range index reusable and clearable");
+}
+
+void testExactUnknownSectionNames(TestContext& t) {
+    const auto makeName = [](std::size_t index) {
+        return std::string("Vendor.CommonPrefix.UnknownSection.")
+            + std::to_string(index);
+    };
+    const auto compareWork = [&makeName](std::size_t count, int order) {
+        std::size_t comparisons = 0;
+        dwgSafety::ExactNameIndex<NameComparisonCounter> index(
+            NameComparisonCounter{&comparisons});
+        bool admitted = true;
+        for (std::size_t i = 0; i < count; ++i) {
+            std::size_t slot = i;
+            if (order == 1)
+                slot = count - i - 1;
+            else if (order == 2)
+                slot = (i * 197u) % count;
+            admitted = admitted
+                && dwgSafety::tryInsertExactName(index, makeName(slot))
+                    == dwgSafety::ExactNameInsertResult::Inserted;
+        }
+        return std::make_pair(comparisons, admitted && index.size() == count);
+    };
+    for (int order = 0; order < 3; ++order) {
+        const auto small = compareWork(128, order);
+        const auto large = compareWork(512, order);
+        t.expect(small.second && large.second
+                     && small.first < 128u * 48u
+                     && large.first < 512u * 48u
+                     && large.first < small.first * 8u,
+                 "128/512 exact unknown-name admission stays ordered-logarithmic with common prefixes");
+    }
+
+    dwgSafety::ExactNameIndex<> names;
+    const std::string early = makeName(0);
+    const std::string late = makeName(511);
+    bool uniqueRows = true;
+    for (std::size_t i = 0; i < 512; ++i) {
+        uniqueRows = uniqueRows
+            && dwgSafety::tryInsertExactName(names, makeName(i))
+                == dwgSafety::ExactNameInsertResult::Inserted;
+    }
+    const auto duplicateEarly = dwgSafety::tryInsertExactName(names, early);
+    const auto duplicateLate = dwgSafety::tryInsertExactName(names, late);
+    dwgSafety::ExactNameIndex<> caseDistinct;
+    const bool casesRemainDistinct = dwgSafety::tryInsertExactName(
+            caseDistinct, "Vendor:Context")
+            == dwgSafety::ExactNameInsertResult::Inserted
+        && dwgSafety::tryInsertExactName(caseDistinct, "vendor:Context")
+            == dwgSafety::ExactNameInsertResult::Inserted;
+    t.expect(uniqueRows && duplicateEarly
+                     == dwgSafety::ExactNameInsertResult::Duplicate
+                 && duplicateLate == dwgSafety::ExactNameInsertResult::Duplicate
+                 && casesRemainDistinct,
+             "unknown-name admission rejects exact early/late duplicates but preserves case-distinct names");
+
+    using FailingNameIndex = dwgSafety::ExactNameIndex<
+        std::less<std::string>, ThrowOnceAllocator<std::string>>;
+    FailingNameIndex recoverable;
+    const bool firstInserted = dwgSafety::tryInsertExactName(
+        recoverable, "Vendor:Stable")
+        == dwgSafety::ExactNameInsertResult::Inserted;
+    RangeAllocationFailure::failNext = true;
+    const bool resourceReported = dwgSafety::tryInsertExactName(
+        recoverable, "Vendor:Retry")
+        == dwgSafety::ExactNameInsertResult::ResourceFailure;
+    const bool retainedAfterFailure = recoverable.size() == 1;
+    const bool retried = dwgSafety::tryInsertExactName(
+        recoverable, "Vendor:Retry")
+        == dwgSafety::ExactNameInsertResult::Inserted;
+    t.expect(firstInserted && resourceReported && retainedAfterFailure
+                 && retried && recoverable.size() == 2,
+             "unknown-name index handles node-allocation failure without losing prior staged names");
 }
 
 void appendAdmissionDiagnostic(std::ostream& out, const DRW_OperationDiagnostic& value) {
@@ -1669,6 +1753,7 @@ void testTemplatePublicMatrix(TestContext& t) {
 int main() {
     TestContext context;
     testDisjointRangeIndex(context);
+    testExactUnknownSectionNames(context);
     testBoundedFork(context);
     testHeaderSectionBounds(context);
     testHeaderVersionEnvelopes(context);

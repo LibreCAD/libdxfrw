@@ -20,6 +20,8 @@
 #include <limits>
 #include <map>
 #include <memory>
+#include <set>
+#include <string>
 #include <utility>
 
 namespace dwgSafety {
@@ -59,6 +61,31 @@ public:
 
 private:
     Map m_ranges;
+};
+
+/// Exact, case-sensitive name admission for unknown section descriptors.
+/// The caller keeps its source-ordered vector separately for later replay.
+template <typename Compare = std::less<std::string>,
+          typename Allocator = std::allocator<std::string>>
+class ExactNameIndex {
+public:
+    using Set = std::set<std::string, Compare, Allocator>;
+
+    explicit ExactNameIndex(
+        const Compare& compare = Compare{},
+        const Allocator& allocator = Allocator{})
+        : m_names(compare, allocator) {}
+
+    bool insert(const std::string& name) {
+        return m_names.insert(name).second;
+    }
+
+    std::size_t size() const noexcept { return m_names.size(); }
+    bool empty() const noexcept { return m_names.empty(); }
+    void clear() noexcept { m_names.clear(); }
+
+private:
+    Set m_names;
 };
 
 constexpr std::uint64_t MaxBufferSize = 0x2f000000;
@@ -146,6 +173,24 @@ SectionPageRangeResult tryInsertSectionPageRange(
             : SectionPageRangeResult::Overlap;
     } catch (...) {
         return SectionPageRangeResult::ResourceFailure;
+    }
+}
+
+enum class ExactNameInsertResult : std::uint8_t {
+    Inserted,
+    Duplicate,
+    ResourceFailure
+};
+
+template <typename Index>
+ExactNameInsertResult tryInsertExactName(
+    Index& index, const std::string& name) noexcept {
+    try {
+        return index.insert(name)
+            ? ExactNameInsertResult::Inserted
+            : ExactNameInsertResult::Duplicate;
+    } catch (...) {
+        return ExactNameInsertResult::ResourceFailure;
     }
 }
 
