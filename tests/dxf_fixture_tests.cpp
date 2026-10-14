@@ -3907,6 +3907,200 @@ void testExplicitReservationQuery(TestContext& t) {
              "reservation admission failure does not invent an explicit reservation or source version");
 }
 
+void testDxfWriteBlockRemapPhase(TestContext& t) {
+    constexpr std::uint32_t sourceBlockRecord = 0xA200u;
+    constexpr std::uint32_t dictionaryHandle = 0xB100u;
+    constexpr std::uint32_t callerOverride = 0xC100u;
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    const auto path = std::filesystem::temp_directory_path()
+        / ("libdxfrw-block-remap-" + std::to_string(nonce) + ".dxf");
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() { std::error_code error; std::filesystem::remove(path, error); }
+    } cleanup{path};
+
+    class BlockRemapWriter final : public dx_iface {
+    public:
+        void writeBlockRecords() override {
+            precollected = dxfW->writeBlockRecord("MappedBlock");
+            if (registerTooEarly)
+                dxfW->addDxfWriteHandleRemap(sourceHandle, 0x555u);
+        }
+
+        void writeBlocks() override {
+            const auto target = dxfW->getBlockRecordHandleToWrite("MappedBlock");
+            targetHandle = target;
+            beforeRegistration = dxfW->remapHandle(sourceHandle);
+            if (registerMapping) {
+                const std::uint32_t source = invalidSource ? 0u : sourceHandle;
+                const std::uint32_t emitted = invalidTarget ? 0u : target;
+                dxfW->addDxfWriteHandleRemap(source, emitted);
+                if (duplicate)
+                    dxfW->addDxfWriteHandleRemap(sourceHandle, target);
+                if (conflict)
+                    dxfW->addDxfWriteHandleRemap(sourceHandle, target + 1u);
+            }
+            afterRegistration = dxfW->remapHandle(sourceHandle);
+            DRW_Block block;
+            block.name = "MappedBlock";
+            blockWritten = dxfW->writeBlock(&block);
+            if (failAfterRegistration)
+                (void)dxfW->writeLine(nullptr);
+            if (throwAfterRegistration)
+                throw std::runtime_error("block-remap callback failure");
+        }
+
+        void writeEntities() override {}
+
+        std::uint32_t sourceHandle{0xA200u};
+        bool registerMapping{true};
+        bool registerTooEarly{false};
+        bool duplicate{false};
+        bool conflict{false};
+        bool invalidSource{false};
+        bool invalidTarget{false};
+        bool failAfterRegistration{false};
+        bool throwAfterRegistration{false};
+        bool precollected{false};
+        bool blockWritten{false};
+        std::uint32_t targetHandle{DRW::NoHandle};
+        std::uint32_t beforeRegistration{0};
+        std::uint32_t afterRegistration{0};
+    };
+
+    const auto dictionary = [=]() {
+        DRW_Dictionary value;
+        value.handle = dictionaryHandle;
+        value.parentHandle = static_cast<int>(sourceBlockRecord);
+        return value;
+    };
+    const auto ownerOfDictionary = [&path](const std::string& handle) {
+        std::ifstream input(path, std::ios::binary);
+        dxfReaderAscii reader(&input);
+        int code = 0;
+        bool inDictionary = false;
+        bool matchingHandle = false;
+        while (reader.readRec(&code)) {
+            const std::string value = reader.getRawValue();
+            if (code == 0) {
+                inDictionary = value == "DICTIONARY";
+                matchingHandle = false;
+            } else if (inDictionary && code == 5) {
+                matchingHandle = value == handle;
+            } else if (inDictionary && matchingHandle && code == 330) {
+                return value;
+            }
+        }
+        return std::string{};
+    };
+    const auto configure = [&dictionary](dxfRW& codec) {
+        codec.setNamedDictObjects({dictionary()});
+    };
+
+    dxfRW codec(path.string().c_str());
+    configure(codec);
+    dx_data data;
+    BlockRemapWriter adapter;
+    adapter.cData = &data;
+    adapter.currentBlock = data.mBlock;
+    adapter.dxfW = &codec;
+    adapter.duplicate = true;
+    const bool firstWrite = codec.write(&adapter, DRW::AC1024, false);
+    t.expect(firstWrite && adapter.precollected && adapter.blockWritten
+                 && adapter.targetHandle != DRW::NoHandle
+                 && adapter.beforeRegistration == sourceBlockRecord
+                 && adapter.afterRegistration == adapter.targetHandle
+                 && codec.remapHandle(sourceBlockRecord) == adapter.targetHandle
+                 && ownerOfDictionary(codec.toHexStrHandle(dictionaryHandle))
+                        == codec.toHexStrHandle(adapter.targetHandle),
+             "derived block remap is accepted after BLOCK_RECORD precollection and rewrites object owners");
+
+    adapter.registerMapping = false;
+    const bool nextWrite = codec.write(&adapter, DRW::AC1024, false);
+    t.expect(nextWrite && adapter.beforeRegistration == sourceBlockRecord
+                 && adapter.afterRegistration == sourceBlockRecord
+                 && ownerOfDictionary(codec.toHexStrHandle(dictionaryHandle))
+                        == codec.toHexStrHandle(sourceBlockRecord),
+             "a new write clears prior derived mappings while preserving caller setup");
+
+    adapter.registerMapping = true;
+    adapter.failAfterRegistration = true;
+    const bool failedWrite = codec.write(&adapter, DRW::AC1024, false);
+    t.expect(!failedWrite
+                 && codec.remapHandle(sourceBlockRecord) == sourceBlockRecord,
+             "failed block emission discards its derived handle remaps");
+    adapter.failAfterRegistration = false;
+    const bool retryWrite = codec.write(&adapter, DRW::AC1024, false);
+    t.expect(retryWrite && adapter.beforeRegistration == sourceBlockRecord
+                 && adapter.afterRegistration == adapter.targetHandle,
+             "same-writer retry starts with a clean derived-remap generation");
+
+    adapter.conflict = true;
+    const bool conflictWrite = codec.write(&adapter, DRW::AC1024, false);
+    t.expect(!conflictWrite
+                 && codec.remapHandle(sourceBlockRecord) == sourceBlockRecord,
+             "conflicting duplicate derived mappings reject transactionally");
+    adapter.conflict = false;
+    adapter.registerTooEarly = true;
+    const bool earlyWrite = codec.write(&adapter, DRW::AC1024, false);
+    t.expect(!earlyWrite,
+             "writeBlockRecords cannot register BLOCK_RECORD handle remaps before writeBlocks");
+    adapter.registerTooEarly = false;
+    adapter.invalidSource = true;
+    t.expect(!codec.write(&adapter, DRW::AC1024, false),
+             "null source handle cannot be registered as a block remap");
+    adapter.invalidSource = false;
+    adapter.invalidTarget = true;
+    t.expect(!codec.write(&adapter, DRW::AC1024, false),
+             "null emitted handle cannot be registered as a block remap");
+    adapter.invalidTarget = false;
+    const bool recoveredWrite = codec.write(&adapter, DRW::AC1024, false);
+    t.expect(recoveredWrite,
+             "phase rejection does not poison a subsequent valid write");
+
+    dxfRW explicitCodec(path.string().c_str());
+    configure(explicitCodec);
+    explicitCodec.setHandleRemap({{sourceBlockRecord, callerOverride}});
+    dx_data explicitData;
+    BlockRemapWriter explicitAdapter;
+    explicitAdapter.cData = &explicitData;
+    explicitAdapter.currentBlock = explicitData.mBlock;
+    explicitAdapter.dxfW = &explicitCodec;
+    const bool explicitWrite = explicitCodec.write(
+        &explicitAdapter, DRW::AC1024, false);
+    t.expect(explicitWrite && explicitAdapter.targetHandle != callerOverride
+                 && explicitAdapter.afterRegistration == callerOverride
+                 && explicitCodec.remapHandle(sourceBlockRecord) == callerOverride
+                 && ownerOfDictionary(explicitCodec.toHexStrHandle(dictionaryHandle))
+                        == explicitCodec.toHexStrHandle(callerOverride),
+             "caller-supplied remap wins a collision with derived BLOCK_RECORD identity");
+    explicitAdapter.registerMapping = false;
+    const bool explicitRetry = explicitCodec.write(
+        &explicitAdapter, DRW::AC1024, false);
+    t.expect(explicitRetry
+                 && explicitAdapter.beforeRegistration == callerOverride
+                 && explicitCodec.remapHandle(sourceBlockRecord) == callerOverride
+                 && ownerOfDictionary(explicitCodec.toHexStrHandle(dictionaryHandle))
+                        == explicitCodec.toHexStrHandle(callerOverride),
+             "caller remaps persist across writes independently of derived-map reset");
+
+    dxfRW throwingCodec(path.string().c_str());
+    configure(throwingCodec);
+    dx_data throwingData;
+    BlockRemapWriter throwingAdapter;
+    throwingAdapter.cData = &throwingData;
+    throwingAdapter.currentBlock = throwingData.mBlock;
+    throwingAdapter.dxfW = &throwingCodec;
+    throwingAdapter.throwAfterRegistration = true;
+    t.expect(!throwingCodec.write(&throwingAdapter, DRW::AC1024, false)
+                 && throwingCodec.remapHandle(sourceBlockRecord)
+                        == sourceBlockRecord,
+             "callback exception releases the phase guard and derived map");
+    throwingAdapter.throwAfterRegistration = false;
+    t.expect(throwingCodec.write(&throwingAdapter, DRW::AC1024, false),
+             "same writer recovers after a throwing remap callback");
+}
+
 using TextEncoding = DRW::DxfTextEncoding;
 
 void testDxfTextEncodingCodecs(TestContext& t) {
@@ -7830,6 +8024,7 @@ int main(int argc, char** argv) {
     testAdapterAcceptedDxfVersion(context);
     testConsumerSourceVersionSnapshot(context);
     testExplicitReservationQuery(context);
+    testDxfWriteBlockRemapPhase(context);
     testDxfTextEncodingCodecs(context);
     testDxfTextEncodingReads(context);
     testDxfTextEncodingLifecycle(context);

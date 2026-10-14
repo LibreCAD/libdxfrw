@@ -1921,6 +1921,32 @@ bool dxfRW::reserveHandle(std::uint32_t h) {
     }
 }
 
+void dxfRW::addDxfWriteHandleRemap(std::uint32_t sourceHandle,
+                                  std::uint32_t emittedHandle) {
+    if (!preflightDxfWrite())
+        return;
+    if (!m_dxfWriteBlockRemapPhase || sourceHandle == 0
+        || sourceHandle == DRW::NoHandle || emittedHandle == 0
+        || emittedHandle == DRW::NoHandle) {
+        m_writeError = true;
+        return;
+    }
+
+    // Explicit caller policy remains authoritative if the same source is also
+    // reported by the consumer's per-write BLOCK_RECORD discovery.
+    if (m_handleRemap.find(sourceHandle) != m_handleRemap.end())
+        return;
+
+    try {
+        const auto inserted = m_dxfWriteHandleRemap.emplace(
+            sourceHandle, emittedHandle);
+        if (!inserted.second && inserted.first->second != emittedHandle)
+            m_writeError = true;
+    } catch (...) {
+        m_writeError = true;
+    }
+}
+
 std::uint32_t dxfRW::highWaterHandle() const {
     return m_handleAllocator->current();
 }
@@ -2256,8 +2282,10 @@ void dxfRW::discardDxfWriteResults() noexcept {
     m_pendingBlockRecords.clear();
     m_sourceBlockRecordHandles.clear();
     m_collectingBlockRecords = false;
+    m_dxfWriteBlockRemapPhase = false;
     writingBlock = false;
     currHandle = DRW::NoHandle;
+    m_dxfWriteHandleRemap.clear();
     m_writingContext.sourceHandleToMintedMap.clear();
     m_writingContext.modelerSourceHandleToMintedMap.clear();
     m_writingContext.writtenSourceEntityHandles.clear();
@@ -4193,6 +4221,9 @@ std::uint32_t dxfRW::remapObjectHandle(std::uint32_t handle) const noexcept {
     const auto structural = m_handleRemap.find(handle);
     if (structural != m_handleRemap.end())
         return structural->second;
+    const auto blockRecord = m_dxfWriteHandleRemap.find(handle);
+    if (blockRecord != m_dxfWriteHandleRemap.end())
+        return blockRecord->second;
     const auto source = m_writingContext.sourceHandleToMintedMap.find(handle);
     return source == m_writingContext.sourceHandleToMintedMap.end()
         ? handle : source->second;
@@ -8995,7 +9026,18 @@ bool dxfRW::writeBlocks() {
         return false;
     }
     writingBlock = false;
-    iface->writeBlocks();
+    {
+        struct BlockRemapPhaseScope final {
+            explicit BlockRemapPhaseScope(bool& phase) noexcept
+                : active(phase), previous(phase) {
+                active = true;
+            }
+            ~BlockRemapPhaseScope() noexcept { active = previous; }
+            bool& active;
+            bool previous;
+        } remapPhase(m_dxfWriteBlockRemapPhase);
+        iface->writeBlocks();
+    }
     if (m_writeError || writer->hasWriteError())
         return false;
     if (writingBlock) {
@@ -16356,10 +16398,20 @@ bool dxfRW::writeRawDxfGroups(
                 std::from_chars(begin, end, parsed, 16);
             if (result.ec == std::errc{} && result.ptr == end) {
                 std::uint32_t remapped = parsed;
+                bool hasStructuralRemap = false;
                 const auto structural = m_handleRemap.find(parsed);
                 if (structural != m_handleRemap.end()) {
                     remapped = structural->second;
-                } else if (remapSourceHandles) {
+                    hasStructuralRemap = true;
+                } else {
+                    const auto blockRecord =
+                        m_dxfWriteHandleRemap.find(parsed);
+                    if (blockRecord != m_dxfWriteHandleRemap.end()) {
+                        remapped = blockRecord->second;
+                        hasStructuralRemap = true;
+                    }
+                }
+                if (!hasStructuralRemap && remapSourceHandles) {
                     const auto source =
                         m_writingContext.sourceHandleToMintedMap.find(parsed);
                     if (source != m_writingContext.sourceHandleToMintedMap.end())
@@ -17576,6 +17628,11 @@ bool dxfRW::resolveSortEntsEntityHandle(std::uint32_t source,
     const auto explicitMap = m_handleRemap.find(source);
     if (explicitMap != m_handleRemap.end()) {
         resolved = explicitMap->second;
+        return resolved != 0;
+    }
+    const auto blockRecord = m_dxfWriteHandleRemap.find(source);
+    if (blockRecord != m_dxfWriteHandleRemap.end()) {
+        resolved = blockRecord->second;
         return resolved != 0;
     }
     const auto& sources = m_writingContext.sourceHandleToMintedMap;

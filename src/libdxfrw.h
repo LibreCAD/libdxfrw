@@ -399,6 +399,11 @@ public:
             return;
         m_handleRemap = remap;
     }
+    //! Add one derived source-handle mapping while the consumer's writeBlocks
+    //! callback is active. Caller mappings installed by setHandleRemap win;
+    //! repeated identical derived mappings are harmless, conflicts fail write.
+    void addDxfWriteHandleRemap(std::uint32_t sourceHandle,
+                                std::uint32_t emittedHandle);
     //! Plan source BLOCK_RECORD identities independently of minted entities.
     //! The records are copied; this does not emit their layout/resource edges.
     //! Strict mode rejects an explicit non-null entity owner without a binding.
@@ -420,7 +425,11 @@ public:
     }
     std::uint32_t remapHandle(std::uint32_t handle) const {
         auto it = m_handleRemap.find(handle);
-        return it == m_handleRemap.end() ? handle : it->second;
+        if (it != m_handleRemap.end())
+            return it->second;
+        const auto writeIt = m_dxfWriteHandleRemap.find(handle);
+        return writeIt == m_dxfWriteHandleRemap.end()
+            ? handle : writeIt->second;
     }
     //! Resolve a source entity during or after a successful write. A failed
     //! attempt clears derived bindings, so an unbound source is returned as-is;
@@ -812,11 +821,15 @@ private:
     /// few raw objects whose original handle collides with a fixed structural
     /// literal. Empty by default (raw handles emitted verbatim).
     std::map<std::uint32_t, std::uint32_t> m_handleRemap;
+    // Consumer-derived BLOCK_RECORD mappings live for one write attempt and
+    // never overwrite the caller-owned setHandleRemap map above.
+    std::map<std::uint32_t, std::uint32_t> m_dxfWriteHandleRemap;
     bool wlayer0 {false};
     bool dimstyleStd {false};
     bool applyExt {false};
     bool writingBlock {false};
     bool m_collectingBlockRecords {false};
+    bool m_dxfWriteBlockRemapPhase {false};
     int elParts {128};  /*!< parts number when convert ellipse to polyline */
     std::unordered_map<std::string,std::uint32_t> blockMap;
     std::vector<PendingDxfBlockRecord> m_pendingBlockRecords;

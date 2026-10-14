@@ -53,7 +53,7 @@ static_assert(noexcept(std::declval<dxfRW&>().setDxfTextEncoding(
 }
 
 // Additional unconditional calls in the same current consumer source. These
-// two signatures are source coverage only; the other three facade gaps and a
+// three signatures are source coverage only; the other two facade gaps and a
 // full external adapter build remain separate acceptance work.
 static_assert(std::is_same<decltype(&dxfRW::getSourceVersion),
                   DRW::Version (dxfRW::*)() const>::value,
@@ -61,12 +61,20 @@ static_assert(std::is_same<decltype(&dxfRW::getSourceVersion),
 static_assert(std::is_same<decltype(&dxfRW::isReservedHandle),
                   bool (dxfRW::*)(std::uint32_t) const>::value,
               "LibreCAD explicit reservation query must retain its exact signature");
+static_assert(std::is_same<decltype(&dxfRW::addDxfWriteHandleRemap),
+                  void (dxfRW::*)(std::uint32_t, std::uint32_t)>::value,
+              "LibreCAD BLOCK_RECORD remap callback must retain its exact signature");
 [[maybe_unused]] DRW::Version currentLibreCadSource(const dxfRW& reader) {
     return reader.getSourceVersion();
 }
 [[maybe_unused]] bool currentLibreCadGroupReservation(const dxfRW& writer,
                                                      std::uint32_t handle) {
     return !writer.isReservedHandle(handle);
+}
+[[maybe_unused]] void currentLibreCadBlockRemap(dxfRW& writer,
+                                                std::uint32_t source,
+                                                std::uint32_t emitted) {
+    writer.addDxfWriteHandleRemap(source, emitted);
 }
 
 class LC3CompatCheck : public DRW_Interface {
