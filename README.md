@@ -47,6 +47,18 @@ own prefix can set it `OFF`, either on the command line or with
 cmake -S . -B build -DLIBDXFRW_INSTALL_DEV=OFF
 ```
 
+Every install includes the unchanged source `COPYING` at
+`${CMAKE_INSTALL_DATADIR}/licenses/libdxfrw/COPYING` (normally
+`share/licenses/libdxfrw/COPYING`), including runtime-only installs and Conan
+packages produced through the same CMake install rules. The staged-package
+checker verifies exact source content as well as development consumers. For a
+runtime-only prefix, skip compilation and check its install manifest instead:
+
+```sh
+python3 tools/check_staged_package.py --prefix /absolute/runtime-prefix \
+  --runtime-only --install-manifest build/install_manifest.txt --relocation-smoke
+```
+
 For Conan 2, create the package directly from a checkout:
 
 `conan create . --name libdxfrw --version 2.0.0 -s compiler.cppstd=17 -o '&:shared=False'`

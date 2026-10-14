@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Compile installed libdxfrw headers and consumers without source-tree paths."""
+"""Check installed license content and optional development consumer interfaces."""
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import os
 import shlex
 import shutil
@@ -24,6 +25,9 @@ PUBLIC_HEADERS = (
     "libdwgr.h",
     "libdxfrw.h",
 )
+
+LICENSE_RELATIVE = Path("licenses") / "libdxfrw" / "COPYING"
+LICENSE_SOURCE = Path(__file__).resolve().parents[1] / "COPYING"
 
 FAST_FORBIDDEN_COMMANDS = frozenset({
     "ctest", "curl", "wget", "git", "pip", "pip3", "brew", "apt", "apt-get",
@@ -81,6 +85,56 @@ def layout_root(prefix: Path, destination: str) -> Path:
         raise RuntimeError("relocation check requires a relative in-prefix destination: %s"
                            % destination)
     return prefix / relative
+
+
+def assert_installed_license(prefix: Path, datadir: str = "share") -> str:
+    license_path = layout_root(prefix.resolve(), datadir) / LICENSE_RELATIVE
+    if not license_path.is_file():
+        raise RuntimeError("installed COPYING is missing: %s" % license_path)
+    try:
+        license_path.resolve().relative_to(prefix.resolve())
+    except ValueError as error:
+        raise RuntimeError("installed COPYING resolves outside staged prefix") from error
+    expected = LICENSE_SOURCE.read_bytes()
+    actual = license_path.read_bytes()
+    expected_digest = hashlib.sha256(expected).hexdigest()
+    if actual != expected or hashlib.sha256(actual).hexdigest() != expected_digest:
+        raise RuntimeError("installed COPYING differs from source content: %s" % license_path)
+    return expected_digest
+
+
+def assert_install_manifest(manifest: Path, prefix: Path, datadir: str = "share",
+                            *, recorded_prefix: Path | None = None) -> None:
+    """Check actual installed files, rebasing the original manifest after a move."""
+    prefix = prefix.resolve()
+    recorded = (recorded_prefix or prefix).resolve()
+    expected_license = layout_root(prefix, datadir) / LICENSE_RELATIVE
+    paths = []
+    for entry in manifest.read_text(encoding="utf-8").splitlines():
+        path = Path(entry)
+        if not path.is_absolute():
+            raise RuntimeError("install manifest contains a nonabsolute path: %s" % entry)
+        try:
+            # Normalize parent aliases (e.g. macOS /var -> /private/var), but
+            # keep a library symlink's own filename as a manifest identity.
+            relative = (path.parent.resolve() / path.name).relative_to(recorded)
+            installed = prefix / relative
+            installed.resolve().relative_to(prefix)
+        except ValueError as error:
+            raise RuntimeError("install manifest path escapes staged prefix: %s" % entry) from error
+        if not installed.is_file():
+            raise RuntimeError("install manifest file is missing: %s" % installed)
+        paths.append(installed)
+    if expected_license not in paths:
+        raise RuntimeError("install manifest omits installed COPYING")
+
+
+def assert_runtime_only_package(prefix: Path, libdir: str, includedir: str) -> None:
+    for path in (layout_root(prefix, includedir) / "libdxfrw",
+                 layout_root(prefix, libdir) / "cmake" / "libdxfrw",
+                 layout_root(prefix, libdir) / "pkgconfig" / "libdxfrw.pc"):
+        if path.exists():
+            raise RuntimeError("runtime-only install contains development files: %s" % path)
 
 
 def pkg_config_environment(prefix: Path, libdir: str) -> dict:
@@ -307,6 +361,59 @@ def self_test_layout_and_discovery() -> None:
             raise RuntimeError("pkg-config discovery is not isolated to the staged package")
 
 
+def self_test_installed_license() -> None:
+    expected = LICENSE_SOURCE.read_bytes()
+    with tempfile.TemporaryDirectory(prefix="libdxfrw-license-self-test-") as directory:
+        root = Path(directory)
+        prefix = root / "original prefix"
+        license_path = prefix / "share" / LICENSE_RELATIVE
+        license_path.parent.mkdir(parents=True)
+        manifest = root / "install_manifest.txt"
+        manifest.write_text(str(license_path) + "\n", encoding="utf-8")
+        for bad_content in (None, expected[:-1], expected + b"\n",
+                            expected.replace(b"\n", b"\r\n")):
+            if bad_content is not None:
+                license_path.write_bytes(bad_content)
+            try:
+                assert_installed_license(prefix)
+            except RuntimeError:
+                pass
+            else:
+                raise RuntimeError("license checker accepted missing/modified COPYING")
+        license_path.write_bytes(expected)
+        assert assert_installed_license(prefix) == hashlib.sha256(expected).hexdigest()
+        assert_install_manifest(manifest, prefix)
+        assert_runtime_only_package(prefix, "lib", "include")
+        moved = root / "moved prefix"
+        shutil.copytree(prefix, moved)
+        assert_installed_license(moved)
+        assert_install_manifest(manifest, moved, recorded_prefix=prefix)
+        for invalid in ("", "relative/COPYING\n", str(root / "outside") + "\n"):
+            manifest.write_text(invalid, encoding="utf-8")
+            try:
+                assert_install_manifest(manifest, prefix)
+            except RuntimeError:
+                pass
+            else:
+                raise RuntimeError("license checker accepted an invalid/missing manifest entry")
+        manifest.write_text(str(license_path) + "\n" + str(prefix / "missing") + "\n",
+                            encoding="utf-8")
+        try:
+            assert_install_manifest(manifest, prefix)
+        except RuntimeError:
+            pass
+        else:
+            raise RuntimeError("license checker accepted a missing manifest file")
+        leaked = prefix / "include" / "libdxfrw"
+        leaked.mkdir(parents=True)
+        try:
+            assert_runtime_only_package(prefix, "lib", "include")
+        except RuntimeError:
+            pass
+        else:
+            raise RuntimeError("runtime-only checker accepted installed development headers")
+
+
 def self_test_fast_command_scope() -> None:
     global _FAST_COMMAND_GUARD
     _FAST_COMMAND_GUARD = True
@@ -474,15 +581,23 @@ def self_test_relocatable_cmake_export() -> None:
 
 
 def check_relocated_consumer(prefix: Path, cxx: str, libdir: str = "lib",
-                             includedir: str = "include") -> None:
+                             includedir: str = "include", datadir: str = "share",
+                             *, runtime_only: bool = False,
+                             manifest: Path | None = None) -> None:
     """Build one minimal consumer after copying the install to a new root."""
     prefix = prefix.resolve()
-    if not (layout_root(prefix, includedir) / "libdxfrw").is_dir():
+    if not runtime_only and not (layout_root(prefix, includedir) / "libdxfrw").is_dir():
         raise RuntimeError("relocation source is missing installed headers")
     with tempfile.TemporaryDirectory(prefix="libdxfrw-relocated-") as directory:
         root = Path(directory)
         relocated = root / "moved prefix with spaces"
         shutil.copytree(prefix, relocated)
+        assert_installed_license(relocated, datadir)
+        if manifest is not None:
+            assert_install_manifest(manifest, relocated, datadir, recorded_prefix=prefix)
+        if runtime_only:
+            assert_runtime_only_package(relocated, libdir, includedir)
+            return
         consumer = root / "consumer.cpp"
         consumer.write_text(
             "#include <libdxfrw.h>\n"
@@ -497,8 +612,16 @@ def check_relocated_consumer(prefix: Path, cxx: str, libdir: str = "lib",
 
 
 def check(prefix: Path, cxx: str, libdir: str = "lib",
-          includedir: str = "include") -> None:
+          includedir: str = "include", datadir: str = "share",
+          *, runtime_only: bool = False, manifest: Path | None = None) -> None:
     prefix = prefix.resolve()
+    license_digest = assert_installed_license(prefix, datadir)
+    if manifest is not None:
+        assert_install_manifest(manifest, prefix, datadir)
+    print("installed COPYING SHA-256: " + license_digest)
+    if runtime_only:
+        assert_runtime_only_package(prefix, libdir, includedir)
+        return
     include_root = layout_root(prefix, includedir) / "libdxfrw"
     config_root = layout_root(prefix, libdir) / "cmake" / "libdxfrw"
     if not include_root.is_dir() or not config_root.is_dir():
@@ -594,12 +717,19 @@ def main() -> int:
                         help="relative GNUInstallDirs library destination")
     parser.add_argument("--includedir", default="include",
                         help="relative GNUInstallDirs header destination")
+    parser.add_argument("--datadir", default="share",
+                        help="relative GNUInstallDirs data destination")
+    parser.add_argument("--runtime-only", action="store_true",
+                        help="check license/manifest and absent development files without compiling")
+    parser.add_argument("--install-manifest", type=Path,
+                        help="CMake install_manifest.txt for exactly one staged prefix")
     args = parser.parse_args()
     if args.self_test:
         self_test_staged_flags()
         self_test_package_root_identity()
         self_test_layout_and_discovery()
         self_test_relocatable_cmake_export()
+        self_test_installed_license()
         self_test_fast_command_scope()
         print("staged package checker self-test: PASS")
         if not args.prefix:
@@ -609,14 +739,21 @@ def main() -> int:
     prefixes = [prefix.resolve() for prefix in args.prefix]
     if len(prefixes) != len(set(prefixes)):
         parser.error("--prefix values must identify distinct staged roots")
+    if args.runtime_only and args.install_manifest is None:
+        parser.error("--runtime-only requires --install-manifest")
+    if args.install_manifest is not None and len(prefixes) != 1:
+        parser.error("--install-manifest requires exactly one --prefix")
     try:
         for prefix in prefixes:
-            check(prefix, args.cxx, args.libdir, args.includedir)
+            check(prefix, args.cxx, args.libdir, args.includedir, args.datadir,
+                  runtime_only=args.runtime_only, manifest=args.install_manifest)
         if args.relocation_smoke:
             if len(prefixes) != 1:
                 parser.error("--relocation-smoke requires exactly one --prefix")
             check_relocated_consumer(prefixes[0], args.cxx,
-                                     args.libdir, args.includedir)
+                                     args.libdir, args.includedir, args.datadir,
+                                     runtime_only=args.runtime_only,
+                                     manifest=args.install_manifest)
     except subprocess.CalledProcessError as error:
         if error.output:
             print(error.output, end="")
