@@ -1,13 +1,13 @@
 # DWG/DXF open-source implementation comparison and fix plan
 
 **Status:**118 findings tracked across67 top-level implementation subplans.
-PAR-118 adds the reproduced BLOCK callback/subtype defect to7AG.3a; it takes
-priority over optional comparator expansion. MIF decoding and peer graph
+PAR-118's BLOCK callback/subtype correction is integrated under7AG.3a, with
+the composed safety checkpoint pending. MIF decoding and peer graph
 calibrations refine existing findings rather than add more IDs.
 The latest consumer audit also finds a nonvirtual text-encoding API required
 by current LibreCAD but missing standalone;7AG.1b/Slice3 owns that compile
-gap. Narrow MIF literal/exact-hex preservation is integrated; reviewed BLOCK
-and isolated WIPEOUT candidates still await main integration. Their gates and
+gap. Narrow MIF literal/exact-hex and BLOCK callback preservation are integrated;
+the isolated WIPEOUT candidate still awaits main integration. Their gates and
 original evidence bindings are recorded below.
 7F.1a observations,7A.2 sort/carrier roles,7AE.1 ASCII-safe bytes,7AV.5
 finalization, corrected7S.1 acquisition and7AG.1a preflight are integrated.
@@ -229,6 +229,7 @@ Its historical binary diff SHA-256 is
 | Slice8 optional box-verifier integration | COMMITTED / CONTRACT_SCOPED | Integrates reviewed30343a00→e8fd3b82 plus independently reviewed self-test-only helper loading. Named v2 observations separate geometry, units/default scale, typed topology, raw/diagnostic coverage and eligibility; qualificationEligible is always false. Fresh81-control ordinary/isolated CPython3.9/3.12 passes bind source01eaf368/report374341fe. Actual local regular-file/FIFO admission is POSIX-only; mocks are not geometry evidence. No CAD dependency/parser/kernel, new registration, fixture or receipt changed. Native/producer/ACDS/independent-kernel gates and six deferred J items stay open. Next7AG.3a and MIF correction. |
 | Reviewed preservation handoffs at970fef0 | HISTORICAL_PENDING | MIF8a82d7bb→f4d2cb44 was staged on dfcfceb, with main focused/strict gates and corrected physical chunk assertions; BLOCKc89aa592 and four-file WIPEOUT patchcafe011e were isolated. That research-only update integrated no implementation. Subsequent entries carry the actual implementation state; original reports are immutable. |
 | Slice3 /7AR.1 MIF preservation | COMMITTED / MIF_ONLY | `Plan-Slice:3.MIF/7AR.1`, integrates independently reviewed8a82d7bb→f4d2cb44 on970fef0. Exact eight-byte/four-ASCII-hex admission preserves malformed tokens, and unavailable Johab selector4 stays literal instead of CP1252 substitution. Source/archive/CLI/GBK hashes remain identical to reportd232fbb9; fresh strict codec/fixture TUs and exact GBK/DXF2/2 pass2.85s, affected/lc3/CLI build has no work.128 codec rows/eight corrected physical chunk assertions/eight repeated model handoffs are retained. No new decoder/API/registration/payload/receipt or semantic-support promotion. Complete codepages, CIF syntax/idempotence and7AG.1b remain open; next reviewed BLOCK then WIPEOUT and one composed safety checkpoint. |
+| 7AG.3a queued BLOCK callbacks | COMMITTED / COMPOSED_SAFETY_PENDING | `Plan-Slice:7AG.3a`, integrates root/two-independently reviewedc89aa592 on878d00e, retaining7BI/MIF. Six dynamic_cast-checked concrete surface copies and four missing typed events preserve subtype metadata/owned arrays and typed/raw order; post-addBlock cleanup balances once while preserving primary exceptions. Main strict production/block TUs and affected/lc3/CLI build pass; exact block/DXF/hardening3/3 pass2.99s with104 read operations. Fresh reportd051b2ca binds four actual CLI conversions and unchanged source/artifacts, scoped to six supported empty surface shells/two LINEs; no B-rep/full binary-carrier or TOLERANCE/CAMERA converter-storage claim. Footer/map allocation throw paths remain source-reviewed, not fault-injected. No public API/registration/payload/receipt or support promotion. Next7BC integration and one composed current-source sanitizer checkpoint;7AG.1b/capability/typed-result gates stay open. |
 
 Each implementation commit appends its focused validation result and remaining
 evidence impact here. All other slices remain queued; the full objective stays
@@ -2599,7 +2600,7 @@ failure does not prevent completing them:
 | 7AD — CI inventory and fast PR gates | COMMITTED / FAST_CHECKPOINT_PASS | clean inventory84; seven executables/45 required CTests and exact focused7 pass at ca8a7fd, no skips/receipt/promotion | current clean local checkpoint plus tool/contract self-tests; hosted/final-broad/native gates remain separate |
 | 7AE — symbol/string case policy | COMMITTED_1 / WIDER_POLICY |1 ASCII-safe bytes integrated;2Unicode equivalence/3filename policy separate | main3/3 plus four owned locale controls, typed names/refs and R12 font controls |
 | 7AF — zero-fit HATCH tangent state | COMMITTED | separate spline-fit and loop-boundary counts; whole-zero absence policy unchanged | literal/API ASCII/binary, zero/one fit and successive edges |
-| 7AG.1/2/3a — current consumer contracts | COMMITTED_1a / BLOCK_ISOLATED_REVIEWED / CURRENT_API_GAP | Integrate reviewed BLOCK correction and add7AG.1b current LibreCAD encoding API; target170/current172 still needs named supplements/capabilities/effective-driver attestation before new receipts | actual facade and callback gates separately; affected main fast tests/composed sanitizer; named profile mutations before one paired build |
+| 7AG.1/2/3a — current consumer contracts | COMMITTED_1a_3a / SAFETY_PENDING / CURRENT_API_GAP | Preserve BLOCK correction; add7AG.1b current LibreCAD encoding API; target170/current172 still needs named supplements/capabilities/effective-driver attestation before new receipts | actual facade/callback gates separately; main3/3 and four CLI conversions pass, composed sanitizer after7BC; named profile mutations before one paired build |
 | 7AH — semantic comparator contract | COMMITTED / CALIBRATION_WORK_PENDING | v2/process/scoped thin integrated; MINSERT/raw-load repair calibrations and bounded broad-oracle worker7AH.6 remain | tool mutations, current16-route evidence historical; tiny raw/preload controls, no broad corpus |
 | 7AI — bounded graph walk | COUNTS_COMMITTED / PAYLOAD_WORK_ROOTS_PENDING | node/edge/staged/source limits integrated; separate XRECORD slot-inspection allowance pending;7G root expansion separate | tiny fixed-graph/varying-payload cap controls, existing cycle/unchanged-destination tests |
 | 7AJ — polygon-mesh subclass | COMMITTED | ordinary flag16 marker fixed; vertex/grid and compatibility policy unchanged | local/3D main probes; raw-marker/mode controls retained |
@@ -4710,8 +4711,8 @@ scoped consumer handoff. LibreCAD and LibreCAD_3 stay valid 2D consumers; new
    external drawing, new CTest, renderer, native app or receipt migration is
    a prerequisite for this private implementation correction.
 
-   Reviewed candidatec89aa5928c4013126fe348e81d0fa84bb74e9861 remains isolated
-   on25d951c. Report
+   Reviewed candidatec89aa5928c4013126fe348e81d0fa84bb74e9861, originally isolated
+   on25d951c, is integrated on878d00e. Its historical report
    `/private/tmp/libdxfrw-block-replay-7ag3a.MLIuEu/candidate-report.json`, SHA256
    `355f8ea635b0585f1f0de5c7c54136eb3b471c66ce086f693319a2c0bf314f3a`,
    binds104 read operations, six concrete owned copies, four formerly omitted
@@ -4720,10 +4721,14 @@ scoped consumer handoff. LibreCAD and LibreCAD_3 stay valid 2D consumers; new
    exception boundary also covers footer/map publication, but allocation
    throws there were not fault-injected. Four real CLI conversions cover
    supported empty modeler shells only, not binary payload/B-rep semantics or
-   TOLERANCE/CAMERA converter retention. Rebind the two-file patch on main
-   while retaining7BI, then run the affected gate and one shared current-source
-   sanitizer checkpoint. Neither its isolated success nor historical b4/d49
-   sanitizers close that remaining composed-main gate.
+   TOLERANCE/CAMERA converter retention. Main integration retains7BI/MIF;
+   strict changed TUs, affected/lc3/CLI build and exact block/DXF/hardening3/3
+   pass2.99s. Fresh report
+   `/private/tmp/libdxfrw-main-preservation.vlmZ5v/block-main-report.json`, SHA256
+   `d051b2ca3296e6199afa5e1fe79e3a6f2b737add867c14ed20fd2d602f4ab3c2`,
+   binds four actual main CLI conversions and source/artifact bytes. One shared
+   current-source sanitizer checkpoint remains after7BC; isolated success and
+   historical b4/d49 sanitizers do not close that composed-main gate.
 
 4. **7AG.4 compile/profile attestation before receipts:** direct-option
    predicates are committed; effective-context provenance remains open. Keep

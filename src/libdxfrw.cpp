@@ -1490,6 +1490,10 @@ public:
     DRW_BLOCK_EVENT_VALUE(addMText, DRW_MText)
     DRW_BLOCK_EVENT_VALUE(addText, DRW_Text)
     DRW_BLOCK_EVENT_VALUE(addAttDef, DRW_Attdef)
+    DRW_BLOCK_EVENT_VALUE(addTolerance, DRW_Tolerance)
+    DRW_BLOCK_EVENT_VALUE(addCamera, DRW_Camera)
+    DRW_BLOCK_EVENT_VALUE(addGeoPositionMarker, DRW_GeoPositionMarker)
+    DRW_BLOCK_EVENT_VALUE(addSectionObject, DRW_SectionObject)
     DRW_BLOCK_EVENT_POINTER(addDimAlign, DRW_DimAligned)
     DRW_BLOCK_EVENT_POINTER(addDimLinear, DRW_DimLinear)
     DRW_BLOCK_EVENT_POINTER(addDimRadial, DRW_DimRadial)
@@ -1507,7 +1511,23 @@ public:
     DRW_BLOCK_EVENT_POINTER(addPointCloud, DRW_PointCloud)
     DRW_BLOCK_EVENT_POINTER(addPointCloudEx, DRW_PointCloudEx)
     DRW_BLOCK_EVENT_POINTER(addNavisworksModel, DRW_NavisworksModel)
-    DRW_BLOCK_EVENT_POINTER(addSurface, DRW_Surface)
+    void addSurface(const DRW_Surface* data) override {
+        if (data == nullptr) {
+            m_failed = true;
+            return;
+        }
+        // The public callback is polymorphic. Copying its static base type
+        // loses subtype fields while retaining a misleading derived eType.
+        switch (data->eType) {
+        case DRW::PLANESURFACE: recordSurface<DRW_PlaneSurface>(data); break;
+        case DRW::EXTRUDEDSURFACE: recordSurface<DRW_ExtrudedSurface>(data); break;
+        case DRW::REVOLVEDSURFACE: recordSurface<DRW_RevolvedSurface>(data); break;
+        case DRW::SWEPTSURFACE: recordSurface<DRW_SweptSurface>(data); break;
+        case DRW::LOFTEDSURFACE: recordSurface<DRW_LoftedSurface>(data); break;
+        case DRW::NURBSURFACE: recordSurface<DRW_NurbsSurface>(data); break;
+        default: m_failed = true; break;
+        }
+    }
     DRW_BLOCK_EVENT_POINTER(addMLeader, DRW_MLeader)
     DRW_BLOCK_EVENT_VALUE(addModelerGeometry, DRW_ModelerGeometry)
     DRW_BLOCK_EVENT_VALUE(addRawDxfEntity, DRW_RawDxfObject)
@@ -1532,6 +1552,18 @@ public:
 
 private:
     using Event = std::function<void(DRW_Interface&)>;
+
+    template <typename T>
+    void recordSurface(const DRW_Surface* data) {
+        const auto* typed = dynamic_cast<const T*>(data);
+        if (typed == nullptr) {
+            m_failed = true;
+            return;
+        }
+        recordPointer(typed, [](DRW_Interface& target, const T* value) {
+            target.addSurface(value);
+        });
+    }
 
     template <typename T, typename Callback>
     void recordValue(const T& data, Callback callback) {
@@ -10496,8 +10528,16 @@ bool dxfRW::processBlock() {
     const auto closePublishedBlock = [&]() {
         if (!blockPublished)
             return;
-        iface->endBlock();
         blockPublished = false;
+        iface->endBlock();
+    };
+    const auto closePublishedBlockAfterException = [&]() noexcept {
+        try {
+            closePublishedBlock();
+        } catch (...) {
+            // Cleanup must not replace the parse/replay exception already
+            // being propagated. The public block scope is closed only once.
+        }
     };
     const auto publishBlockRecord = [&]() {
         if (hasStagedBlockRecord) {
@@ -10655,52 +10695,59 @@ bool dxfRW::processBlock() {
                 iface->addBlock(block);
                 blockPublished = true;
             }
-            if (boundary == DxfEntityBoundary::EndBlock) {
-                if (!consumeEndBlock()) {
+            // Every throwing operation after addBlock has established a
+            // public scope must balance it, including footer parsing and
+            // BLOCK_RECORD publication, not only queued callback replay.
+            try {
+                if (boundary == DxfEntityBoundary::EndBlock) {
+                    if (!consumeEndBlock()) {
+                        closePublishedBlock();
+                        return setError(DRW::BAD_READ_BLOCKS);
+                    }
+                    publishBlockRecord();
                     closePublishedBlock();
-                    return setError(DRW::BAD_READ_BLOCKS);
-                }
-                publishBlockRecord();
-                closePublishedBlock();
-                return true;  //found ENDBLK, terminate
-            } else {
-                const bool previousBlockContext = m_readingBlockEntities;
-                DRW_Interface *const previousInterface = iface;
-                DxfBlockEventSink blockEvents(*previousInterface);
-                m_readingBlockEntities = true;
-                iface = &blockEvents;
-                bool entitiesProcessed = false;
-                try {
-                    entitiesProcessed = processEntities(true);
-                } catch (...) {
+                    return true;  //found ENDBLK, terminate
+                } else {
+                    const bool previousBlockContext = m_readingBlockEntities;
+                    DRW_Interface *const previousInterface = iface;
+                    DxfBlockEventSink blockEvents(*previousInterface);
+                    m_readingBlockEntities = true;
+                    iface = &blockEvents;
+                    bool entitiesProcessed = false;
+                    try {
+                        entitiesProcessed = processEntities(true);
+                    } catch (...) {
+                        iface = previousInterface;
+                        m_readingBlockEntities = previousBlockContext;
+                        throw;
+                    }
                     iface = previousInterface;
                     m_readingBlockEntities = previousBlockContext;
+                    if (!entitiesProcessed || blockEvents.failed()) {
+                        closePublishedBlock();
+                        return setError(DRW::BAD_READ_BLOCKS);
+                    }
+                    if (classifyEntityBoundary() != DxfEntityBoundary::EndBlock) {
+                        closePublishedBlock();
+                        return setError(DRW::BAD_READ_BLOCKS);
+                    }
+                    if (!consumeEndBlock()) {
+                        closePublishedBlock();
+                        return setError(DRW::BAD_READ_BLOCKS);
+                    }
+                    if (!dropBlock && !blockEvents.flush()) {
+                        closePublishedBlock();
+                        return setError(DRW::BAD_READ_BLOCKS);
+                    }
+                    publishBlockRecord();
                     closePublishedBlock();
-                    throw;
+                    return true;  //found ENDBLK, terminate
                 }
-                iface = previousInterface;
-                m_readingBlockEntities = previousBlockContext;
-                if (!entitiesProcessed || blockEvents.failed()) {
-                    closePublishedBlock();
-                    return setError(DRW::BAD_READ_BLOCKS);
-                }
-                if (classifyEntityBoundary() != DxfEntityBoundary::EndBlock) {
-                    closePublishedBlock();
-                    return setError(DRW::BAD_READ_BLOCKS);
-                }
-                if (!consumeEndBlock()) {
-                    closePublishedBlock();
-                    return setError(DRW::BAD_READ_BLOCKS);
-                }
-                if (!dropBlock && !blockEvents.flush()) {
-                    closePublishedBlock();
-                    return setError(DRW::BAD_READ_BLOCKS);
-                }
-                publishBlockRecord();
-                closePublishedBlock();
-                return true;  //found ENDBLK, terminate
+            } catch (...) {
+                closePublishedBlockAfterException();
+                throw;
             }
-            }
+        }
 
         if (code == 2)
             hasName = true;

@@ -9,7 +9,8 @@ nonvirtual source-compatibility gap: current LibreCAD requires
 strict compile reproduces the missing names; the LC3 callback mirror cannot
 cover that API. Add the explicit input-only recovery contract and its fast
 gate without changing default decoding, export encoding or2D projection.
-Reviewed BLOCK callback and WIPEOUT converter candidates remain isolated;
+BLOCK callback preservation is integrated; the WIPEOUT converter candidate
+remains isolated and a composed safety checkpoint is pending.
 narrow MIF literal/exact-hex preservation is integrated with fresh main fast
 checks recorded in the parity ledger. Current FreeCAD preference/
 post-processing source calibrations refine future native packets, not earlier
@@ -3657,8 +3658,8 @@ sample cannot promote a semantic read/write claim.
 
 ### S8 — Preserve 2D consumers and enable 3D-aware consumers
 
-State: ongoing consumer-enablement lane. PAR-118 reopens the specific queued
-BLOCK callback contract below, not every historical field-level result.
+State: ongoing consumer-enablement lane. PAR-118's specific queued BLOCK
+callback correction is integrated; composed safety validation remains pending.
 It is independent of GUI/rendering
 work and can proceed for generated DXF vectors while versioned DWG evidence is
 blocked. No support claim is promoted by the adapter alone.
@@ -3698,7 +3699,7 @@ Steps:
    Run existing affected DXF/hardening/lc3 gates and one composed sanitizer/
    converter checkpoint, not another full suite or external witness search.
 
-   Reviewed c89aa592 on25d951c remains isolated. Report
+   Reviewed c89aa592, originally on25d951c, is integrated on878d00e. Historical report
    `/private/tmp/libdxfrw-block-replay-7ag3a.MLIuEu/candidate-report.json`, SHA256
    `355f8ea635b0585f1f0de5c7c54136eb3b471c66ce086f693319a2c0bf314f3a`,
    records104 ASCII/binary/ext-mode read operations, six concrete owned copies,
@@ -3706,8 +3707,12 @@ Steps:
    focused tests pass2.89s. Footer/map allocation throws are source-reviewed,
    not fault-injected. The actual CLI controls cover supported empty surface
    shells only, not full binary carriers/B-rep or every converter callback.
-   Rebind on main with7BI preserved; one composed current-source sanitizer
-   checkpoint remains after the related queue/storage integrations.
+   Main retains7BI/MIF; strict changed TUs, affected/lc3/CLI build and exact
+   block/DXF/hardening3/3 pass2.99s. Fresh source-bound main report
+   `/private/tmp/libdxfrw-main-preservation.vlmZ5v/block-main-report.json`, SHA256
+   `d051b2ca3296e6199afa5e1fe79e3a6f2b737add867c14ed20fd2d602f4ab3c2`,
+   records four actual CLI conversions at the same empty-shell scope. One
+   composed current-source sanitizer checkpoint remains after7BC.
 
 2. **S8.2 — Existing 2D source-compatibility gate (required after each API
    slice).** Compile the locked `lc3_compat_check` consumer and representative
