@@ -35,10 +35,11 @@ near-polar bases and rotated bounds; uncalibrated derived peer projections
 cannot qualify3D geometry. These refinements require small local counters/
 analytic controls, not native evidence before safe local implementation.
 
-**Next local handoffs:** preserve the integrated API and its prerequisites;
-integrate separately reviewed qualification-number
-admission and corrected FreeCAD preflight with their tiny Python/configure/
-CLI gates. External platform/ACIS qualification does not block these local
+**Next local handoffs:** preserve the integrated API and its prerequisites.
+Numeric qualification admission is integrated with fresh eight-method/support/
+JSON/normalizer Python gates and122 frozen inputs unchanged; it promotes no
+claim. Integrate corrected FreeCAD preflight with its tiny configure/CLI gates.
+External platform/ACIS qualification does not block these local
 steps. Broader geometry comparison must preserve pattern phase as well as
 HATCH boundary geometry, and a strict declared-encoding oracle profile is
 needed for literal legacy ASCII text. Neither requires new native tooling,
