@@ -3623,6 +3623,290 @@ void testAdapterAcceptedDxfVersion(TestContext& t) {
     std::filesystem::remove(path, error);
 }
 
+void testConsumerSourceVersionSnapshot(TestContext& t) {
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    const auto path = std::filesystem::temp_directory_path()
+        / ("libdxfrw-consumer-source-version-" + std::to_string(nonce) + ".dxf");
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() { std::error_code error; std::filesystem::remove(path, error); }
+    } cleanup{path};
+    dxfRW codec(path.string().c_str());
+    t.expect(codec.getSourceVersion() == DRW::UNKNOWNV,
+             "new facade has no invented source declaration");
+    struct VersionCase {
+        const char* first;
+        const char* last;
+        DRW::Version source;
+        DRW::Version decoded;
+    };
+    const VersionCase cases[]{
+        {"AC1006", "", DRW::AC1006, DRW::AC1009},
+        {"AC1009", "", DRW::AC1009, DRW::AC1009},
+        {"AC1012", "", DRW::AC1012, DRW::AC1015},
+        {"AC1014", "", DRW::AC1014, DRW::AC1015},
+        {"AC1015", "", DRW::AC1015, DRW::AC1015},
+        {"AC1018", "", DRW::AC1018, DRW::AC1015},
+        {"AC1021", "", DRW::AC1021, DRW::AC1021},
+        {"AC1024", "", DRW::AC1024, DRW::AC1021},
+        {"AC1027", "", DRW::AC1027, DRW::AC1021},
+        {"AC1032", "", DRW::AC1032, DRW::AC1021},
+        {"AC9999", "", DRW::UNKNOWNV, DRW::UNKNOWNV},
+        {"", "", DRW::UNKNOWNV, DRW::AC1021},
+        // Repeats are robustness controls, not valid-file qualification.
+        {"AC1024", "AC1009", DRW::AC1024, DRW::AC1021},
+        {"AC1024", "AC9999", DRW::AC1024, DRW::AC1021},
+        {"AC1018", "AC1032", DRW::AC1032, DRW::AC1021},
+        {"AC9999", "AC1018", DRW::AC1018, DRW::AC1015}
+    };
+    for (const auto& item : cases) {
+        std::vector<std::pair<int, std::string>> fields;
+        if (*item.first != '\0')
+            fields = {{9, "$ACADVER"}, {1, item.first}};
+        if (*item.last != '\0') {
+            fields.emplace_back(9, "$ACADVER");
+            fields.emplace_back(1, item.last);
+        }
+        for (int entry = 0; entry != 3; ++entry) {
+            // headerOrderBytes uses the R13+ binary tag width. Actual R12
+            // binary writer/readback is checked with the reservation cases.
+            if (entry == 2 && item.source != DRW::UNKNOWNV
+                && item.source <= DRW::AC1009)
+                continue;
+            std::string bytes = headerOrderBytes(entry == 2, fields);
+            HeaderOrderCapture capture;
+            if (entry != 0) {
+                std::ofstream output(path, std::ios::binary);
+                output << bytes;
+            }
+            const bool accepted = entry == 0
+                ? codec.readAscii(&capture, false, bytes)
+                : codec.read(&capture, false);
+            t.expect(accepted && capture.headerCount == 1
+                         && capture.value.dxfSourceVersion() == item.source
+                         && codec.getSourceVersion() == item.source
+                         && codec.getVersion() == item.decoded,
+                     "source getter retains accepted revision, not normalized codec version, on every read entry");
+        }
+    }
+    std::string known = headerOrderBytes(false,
+        {{9, "$ACADVER"}, {1, "AC1024"}}, "source-version-callback");
+    HeaderOrderCapture capture;
+    t.expect(codec.readAscii(&capture, false, known)
+                 && codec.getSourceVersion() == DRW::AC1024,
+             "known source snapshot is available after reader cleanup");
+    t.expect(!codec.readAscii(nullptr, false, known)
+                 && codec.getSourceVersion() == DRW::AC1024,
+             "null ASCII pre-session rejection preserves the previous snapshot");
+    t.expect(!codec.read(nullptr, false)
+                 && codec.getSourceVersion() == DRW::UNKNOWNV,
+             "admitted file read clears source before null interface rejection");
+    t.expect(codec.readAscii(&capture, false, known), "source restored before open failure");
+    std::error_code error;
+    std::filesystem::remove(path, error);
+    t.expect(!codec.read(&capture, false)
+                 && codec.getError() == DRW::BAD_OPEN
+                 && codec.getSourceVersion() == DRW::UNKNOWNV,
+             "missing file does not expose the previous source snapshot");
+    std::string beforeHeader = "not-a-group\nvalue\n";
+    t.expect(!codec.readAscii(&capture, false, beforeHeader)
+                 && codec.getSourceVersion() == DRW::UNKNOWNV,
+             "failure before an accepted declaration reports unknown source");
+    std::string afterHeader =
+        "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1024\n0\nENDSEC\n"
+        "0\nSECTION\n2\nENTITIES\n0\nLINE\n10\n0\n20\n0\n11\n1\n"
+        "0\nENDSEC\n0\nEOF\n"; // The LINE is invalid: required end-Y group 21 is absent.
+    for (const bool file : {false, true}) {
+        if (file) { std::ofstream output(path, std::ios::binary); output << afterHeader; }
+        HeaderOrderCapture rejected;
+        const bool accepted = file ? codec.read(&rejected, false)
+            : codec.readAscii(&rejected, false, afterHeader);
+        t.expect(!accepted && rejected.headerCount == 1 && rejected.lines.empty()
+                     && codec.getSourceVersion() == DRW::AC1024,
+                 "returned parse failure snapshots accepted source without claiming read success");
+    }
+    class CallbackCapture final : public dx_iface {
+    public:
+        CallbackCapture(dxfRW& owner, TestContext& context)
+            : codec(owner), test(context) {}
+        void addHeader(const DRW_Header* header) override {
+            test.expect(header->dxfSourceVersion() == DRW::AC1024
+                            && codec.getSourceVersion() == DRW::UNKNOWNV,
+                        "HEADER knows accepted source while facade snapshot is not yet published");
+        }
+        void addText(const DRW_Text&) override {}
+        void addLine(const DRW_Line&) override {
+            ++lines;
+            test.expect(codec.getSourceVersion() == DRW::UNKNOWNV,
+                        "callback-time facade getter follows bundled post-parse snapshot timing");
+            if (throwing)
+                throw std::runtime_error("source-version callback");
+            std::string nested = headerOrderBytes(false, {{9, "$ACADVER"}, {1, "AC1018"}});
+            const auto error = codec.getError();
+            const auto diagnostic = codec.getLastDiagnostic();
+            test.expect(!codec.readAscii(this, false, nested)
+                            && !codec.read(this, false)
+                            && !codec.write(this, DRW::AC1018, false)
+                            && codec.getSourceVersion() == DRW::UNKNOWNV
+                            && codec.getError() == error
+                            && codec.getLastDiagnostic().code == diagnostic.code,
+                        "rejected nested operations leave the active source generation untouched");
+            dxfRW other(nullptr);
+            HeaderOrderCapture otherCapture;
+            test.expect(other.readAscii(&otherCapture, false, nested)
+                            && other.getSourceVersion() == DRW::AC1018
+                            && codec.getSourceVersion() == DRW::UNKNOWNV,
+                        "different facade snapshots independently during the outer callback");
+        }
+        dxfRW& codec;
+        TestContext& test;
+        bool throwing{false};
+        int lines{0};
+    };
+    for (const bool file : {false, true}) {
+        { std::ofstream output(path, std::ios::binary); output << known; }
+        CallbackCapture nested(codec, t);
+        t.expect((file ? codec.read(&nested, false) : codec.readAscii(&nested, false, known))
+                     && nested.lines == 1 && codec.getSourceVersion() == DRW::AC1024,
+                 "completed outer read publishes its source after nested rejection");
+        CallbackCapture throwing(codec, t);
+        throwing.throwing = true;
+        bool caught = false;
+        try {
+            if (file) (void)codec.read(&throwing, false);
+            else (void)codec.readAscii(&throwing, false, known);
+        } catch (const std::runtime_error&) { caught = true; }
+        t.expect(caught && throwing.lines == 1
+                     && codec.getSourceVersion() == DRW::UNKNOWNV,
+                 "callback exception preserves propagation but publishes no completed source snapshot");
+        t.expect(!codec.readAscii(nullptr, false, known)
+                     && codec.getSourceVersion() == DRW::UNKNOWNV,
+                 "early rejection does not inspect an interrupted owned reader");
+        HeaderOrderCapture retry;
+        t.expect(codec.readAscii(&retry, false, known)
+                     && retry.lines.size() == 1
+                     && codec.getSourceVersion() == DRW::AC1024,
+                 "same facade recovers its source snapshot after callback failure");
+    }
+}
+
+void testExplicitReservationQuery(TestContext& t) {
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    const auto path = std::filesystem::temp_directory_path()
+        / ("libdxfrw-reservation-query-" + std::to_string(nonce) + ".dxf");
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() { std::error_code error; std::filesystem::remove(path, error); }
+    } cleanup{path};
+    class ReservationWriter final : public dx_iface {
+    public:
+        ReservationWriter(dx_data& data, TestContext& context) : test(context) {
+            cData = &data;
+            currentBlock = data.mBlock;
+        }
+        void writeEntities() override {
+            const auto block = dxfW->getBlockRecordHandleToWrite("QueryBlock");
+            test.expect(dxfW->isReservedHandle(0x10u)
+                            && (modern ? (block != 0 && !dxfW->isReservedHandle(block)
+                                && dxfW->isReservedHandle(block + 1)
+                                && dxfW->isReservedHandle(block + 2)) : block == 0),
+                        "query includes internal fixed/BLOCK reservations but excludes minted BLOCK_RECORD");
+            generated = dxfW->allocHandle();
+            DRW_Line line;
+            line.secPoint = {1, 2, 3};
+            record = dxfW->writeLine(&line);
+            emitted = line.handle;
+            const auto before = dxfW->highWaterHandle();
+            test.expect(generated != 0 && emitted != 0 && record
+                            && !dxfW->isReservedHandle(generated)
+                            && !dxfW->isReservedHandle(emitted)
+                            && dxfW->isReservedHandle(0xD000u)
+                            && !dxfW->isReservedHandle(before + 10)
+                            && dxfW->highWaterHandle() == before,
+                        "reservation query distinguishes explicit/generated/unreserved without advancing allocation");
+            if (fail)
+                (void)dxfW->writeLine(nullptr);
+        }
+        bool finalizeDxfWrite() override {
+            ++finalizers;
+            test.expect(dxfW->isReservedHandle(0xD000u)
+                            && !dxfW->isReservedHandle(emitted),
+                        "read-only reservation query remains available during finalization");
+            return true;
+        }
+        TestContext& test;
+        bool modern{false};
+        bool fail{false};
+        bool record{false};
+        std::uint32_t generated{0};
+        std::uint32_t emitted{0};
+        int finalizers{0};
+    };
+    for (const auto version : {DRW::AC1009, DRW::AC1024}) {
+        for (const bool binary : {false, true}) {
+            dxfRW codec(path.string().c_str());
+            const dxfRW& query = codec;
+            t.expect(!query.isReservedHandle(0x10u) && !query.isReservedHandle(0xD000u),
+                     "fresh allocator has no inferred high-water or fixed reservations");
+            t.expect(codec.reserveHandle(0xD000u) && codec.reserveHandle(0xD000u),
+                     "explicit reservation remains idempotent");
+            const auto before = codec.highWaterHandle();
+            const auto generated = codec.allocHandle();
+            t.expect(query.isReservedHandle(0xD000u) && generated == before
+                         && !query.isReservedHandle(generated)
+                         && !query.isReservedHandle(1u),
+                     "pre-write minted handles are not explicit reservations");
+            t.expect(codec.reserveHandle(generated) && query.isReservedHandle(generated),
+                     "an explicit reservation can promote a previously minted handle");
+            std::string source = headerOrderBytes(false, {{9, "$ACADVER"}, {1, "AC1018"}});
+            HeaderOrderCapture sourceCapture;
+            t.expect(codec.readAscii(&sourceCapture, false, source),
+                     "reservation writer has a distinct accepted source revision");
+            dx_data data;
+            auto* block = new dx_ifaceBlock();
+            block->name = "QueryBlock";
+            data.blocks.push_back(block);
+            ReservationWriter adapter(data, t);
+            adapter.dxfW = &codec;
+            adapter.modern = version > DRW::AC1009;
+            for (const bool fail : {false, true, false}) {
+                adapter.fail = fail;
+                const auto finalizers = adapter.finalizers;
+                t.expect(codec.write(&adapter, version, binary) == !fail
+                             && adapter.record
+                             && adapter.finalizers == finalizers + (fail ? 0 : 1)
+                             && query.isReservedHandle(0xD000u)
+                             && query.isReservedHandle(generated)
+                             && !query.isReservedHandle(adapter.generated)
+                             && !query.isReservedHandle(adapter.emitted)
+                             && codec.getSourceVersion() == DRW::AC1018,
+                         "success/failure/corrected same-writer retry preserve explicit reservations and last read source");
+            }
+            FixtureInterface capture;
+            dx_data readback;
+            capture.attach(&readback);
+            dxfRW rereader(path.string().c_str());
+            t.expect(rereader.read(&capture, false)
+                         && rereader.getSourceVersion() == version,
+                     "actual R12/modern ASCII/binary writer output retains declared source revision");
+        }
+    }
+    dxfRW exhausted(path.string().c_str());
+    const auto before = exhausted.highWaterHandle();
+    const auto maximum = (std::numeric_limits<std::uint32_t>::max)();
+    t.expect(!exhausted.reserveHandle(maximum)
+                 && !exhausted.isReservedHandle(maximum)
+                 && exhausted.highWaterHandle() == before,
+             "failed reservation is not recorded or inferred from the high-water mark");
+    dx_data data;
+    FixtureInterface adapter;
+    adapter.attach(&data);
+    t.expect(!exhausted.write(&adapter, DRW::AC1024, false)
+                 && !exhausted.isReservedHandle(maximum)
+                 && exhausted.getSourceVersion() == DRW::UNKNOWNV,
+             "reservation admission failure does not invent an explicit reservation or source version");
+}
+
 using TextEncoding = DRW::DxfTextEncoding;
 
 void testDxfTextEncodingCodecs(TestContext& t) {
@@ -7544,6 +7828,8 @@ int main(int argc, char** argv) {
     testHeaderMetadataBoundaries(context);
     testHeaderAliasProvenance(context);
     testAdapterAcceptedDxfVersion(context);
+    testConsumerSourceVersionSnapshot(context);
+    testExplicitReservationQuery(context);
     testDxfTextEncodingCodecs(context);
     testDxfTextEncodingReads(context);
     testDxfTextEncodingLifecycle(context);

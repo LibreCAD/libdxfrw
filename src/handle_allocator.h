@@ -126,6 +126,11 @@ public:
     /// High-water mark.  Used to populate the HANDSEED header variable.
     std::uint32_t current() const { return m_next; }
 
+    /// Explicit reserve() calls only; handles minted by next() are excluded.
+    bool isExplicitlyReserved(std::uint32_t h) const {
+        return m_explicitReserved.count(h) != 0;
+    }
+
 private:
     /// First candidate for user-allocated handles.  All canonical
     /// reserved handles are below 0x30, so seeding starts here.

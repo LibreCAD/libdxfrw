@@ -313,6 +313,9 @@ public:
      * reserved or minted so far). Used to populate $HANDSEED. Mirrors
      * dwgWriter::highWaterHandle. */
     std::uint32_t highWaterHandle() const;
+    //! Explicit allocator reservations, including codec-fixed/BLOCK ranges;
+    //! handles merely minted during a write are excluded.
+    bool isReservedHandle(std::uint32_t h) const;
     /*!< Register the CLASS records to emit in the DXF CLASSES section. The
      * filter supplies source definitions and recomputes instance counts from
      * raw and typed records selected for output. */
@@ -435,6 +438,13 @@ public:
     void markSourceHandleAmbiguous(std::uint32_t sourceHandle);
 
     DRW::Version getVersion() const;
+    //! Accepted declared DXF source revision, not getVersion()'s codec version.
+    //! UNKNOWNV until parsing returns, also after a callback throws. A returned
+    //! parse failure retains an accepted declaration; missing/unknown metadata
+    //! remains UNKNOWNV. A new file read clears it even on argument/open failure;
+    //! readAscii(nullptr) and rejected nesting preserve the previous snapshot.
+    //! Writes leave this last-read snapshot unchanged. Consumer rebuild required.
+    DRW::Version getSourceVersion() const;
     DRW::error getError() const;
     /// Snapshot the first failure and bounded cleanup evidence from the most
     /// recent read/write operation.  The legacy getError() value remains the
@@ -741,6 +751,7 @@ private:
 
 private:
     DRW::Version version { DRW::UNKNOWNV };
+    DRW::Version m_sourceVersion { DRW::UNKNOWNV };
     DRW::error error {DRW::BAD_NONE};
     bool m_writeError {false};
     // Internal compatibility-probe switch. The standalone-safe classifier

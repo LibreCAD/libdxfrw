@@ -52,6 +52,23 @@ static_assert(noexcept(std::declval<dxfRW&>().setDxfTextEncoding(
     return reader.readAscii(adapter, true, content);
 }
 
+// Additional unconditional calls in the same current consumer source. These
+// two signatures are source coverage only; the other three facade gaps and a
+// full external adapter build remain separate acceptance work.
+static_assert(std::is_same<decltype(&dxfRW::getSourceVersion),
+                  DRW::Version (dxfRW::*)() const>::value,
+              "LibreCAD accepted source-version getter must retain its exact signature");
+static_assert(std::is_same<decltype(&dxfRW::isReservedHandle),
+                  bool (dxfRW::*)(std::uint32_t) const>::value,
+              "LibreCAD explicit reservation query must retain its exact signature");
+[[maybe_unused]] DRW::Version currentLibreCadSource(const dxfRW& reader) {
+    return reader.getSourceVersion();
+}
+[[maybe_unused]] bool currentLibreCadGroupReservation(const dxfRW& writer,
+                                                     std::uint32_t handle) {
+    return !writer.isReservedHandle(handle);
+}
+
 class LC3CompatCheck : public DRW_Interface {
 public:
     // ===== READ FUNCTIONALITY =====
