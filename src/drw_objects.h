@@ -15,6 +15,19 @@
 #ifndef DRW_OBJECTS_H
 #define DRW_OBJECTS_H
 
+// X11's object-like None macro must not alter public enum definitions.
+// Save it locally; callers retain their exact macro after this header.
+// Coverage reason enums provide NoReason as their macro-safe zero spelling.
+#if defined(None)
+# if defined(_MSC_VER) || defined(__GNUC__) || defined(__clang__)
+#  pragma push_macro("None")
+#  undef None
+#  define LIBDXFRW_DRW_OBJECTS_RESTORE_NONE
+# else
+#  error "libdxfrw requires push_macro/pop_macro support with a caller None macro"
+# endif
+#endif
+
 #include "drw_base.h"
 #include <array>
 #include <cstddef>
@@ -654,6 +667,7 @@ enum class DRW_DwgFrameDisposition : std::uint8_t {
 //! Stable reason for the latest source-frame disposition.
 enum class DRW_DwgFrameCoverageReason : std::uint8_t {
   None,
+  NoReason = None,
   ReceiptPublished,
   CompoundDeferred,
   CompoundStaged,
@@ -718,6 +732,7 @@ enum class DRW_DwgClassCoverageState : std::uint8_t {
 //! Reason a CLASSES stream record did not become usable for DWG dispatch.
 enum class DRW_DwgClassCoverageReason : std::uint8_t {
   None,
+  NoReason = None,
   Parse,
   Bounds,
   Duplicate,
@@ -7005,6 +7020,11 @@ const unsigned char dxfColors[][3] = {
 };
 
 } // namespace DRW
+
+#ifdef LIBDXFRW_DRW_OBJECTS_RESTORE_NONE
+# pragma pop_macro("None")
+# undef LIBDXFRW_DRW_OBJECTS_RESTORE_NONE
+#endif
 
 #endif
 

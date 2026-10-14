@@ -170,6 +170,38 @@ if(LIBDXFRW_BUILD_TESTS)
     if(NOT "${LIBDXFRW_PYTHON_VERSION_OK}" STREQUAL "0")
         message(FATAL_ERROR "LIBDXFRW_BUILD_TESTS requires Python 3.10 or newer")
     endif()
+    # This compiler-only contract needs no library build or X11 dependency.
+    # An explicit include root adds an actual X11 header control when available.
+    set(LIBDXFRW_HEADER_X11_INCLUDE_DIR "" CACHE PATH
+        "Optional X11 include root for public-header macro coexistence tests")
+    set(_libdxfrw_header_x11_args "")
+    if(LIBDXFRW_HEADER_X11_INCLUDE_DIR)
+        list(APPEND _libdxfrw_header_x11_args --x11-include
+            "${LIBDXFRW_HEADER_X11_INCLUDE_DIR}")
+    endif()
+    add_test(NAME libdxfrw_public_header_hygiene
+        COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+            ${CMAKE_CURRENT_SOURCE_DIR}/tests/public_header_hygiene_tests.py
+            --compiler "${CMAKE_CXX_COMPILER}"
+            --compiler-id "${CMAKE_CXX_COMPILER_ID}"
+            --frontend-variant "${CMAKE_CXX_COMPILER_FRONTEND_VARIANT}"
+            --compiler-target "${CMAKE_CXX_COMPILER_TARGET}"
+            --sysroot "${CMAKE_SYSROOT}"
+            --cmake "${CMAKE_COMMAND}"
+            --generator "${CMAKE_GENERATOR}"
+            --generator-platform "${CMAKE_GENERATOR_PLATFORM}"
+            --generator-toolset "${CMAKE_GENERATOR_TOOLSET}"
+            --generator-instance "${CMAKE_GENERATOR_INSTANCE}"
+            --toolchain "${CMAKE_TOOLCHAIN_FILE}"
+            --make-program "${CMAKE_MAKE_PROGRAM}"
+            --system-name "${CMAKE_SYSTEM_NAME}"
+            --system-version "${CMAKE_SYSTEM_VERSION}"
+            --system-processor "${CMAKE_SYSTEM_PROCESSOR}"
+            --configuration "$<CONFIG>"
+            --include-root "${CMAKE_CURRENT_SOURCE_DIR}/src"
+            ${_libdxfrw_header_x11_args})
+    set_tests_properties(libdxfrw_public_header_hygiene PROPERTIES
+        LABELS "fast;headers;consumer" TIMEOUT 90)
     add_test(NAME libdxfrw_bounded_process
         COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
             ${CMAKE_CURRENT_SOURCE_DIR}/tests/bounded_process_tests.py)

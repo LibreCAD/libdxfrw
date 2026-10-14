@@ -14,6 +14,20 @@
 #ifndef LIBDWGR_H
 #define LIBDWGR_H
 
+// X11's object-like None macro must not alter public enum definitions.
+// Save it locally; callers retain their exact macro after this header.
+// Use NoBinding/NoAddressSpace instead of the legacy None enumerators when
+// that caller macro is active.
+#if defined(None)
+# if defined(_MSC_VER) || defined(__GNUC__) || defined(__clang__)
+#  pragma push_macro("None")
+#  undef None
+#  define LIBDXFRW_LIBDWGR_RESTORE_NONE
+# else
+#  error "libdxfrw requires push_macro/pop_macro support with a caller None macro"
+# endif
+#endif
+
 #include <cstddef>
 #include <cstdint>
 #include <functional>
@@ -42,6 +56,7 @@ class DwgWriteFailureTestAccess;
 /// classes collide in one output file.
 enum class DwgDataStorageWriterBinding : std::uint8_t {
     None,
+    NoBinding = None,
     MLeaderStyle,
     TableStyle,
     Material,
@@ -100,6 +115,7 @@ enum class DwgIntegritySeverity : std::uint8_t {
 /// seeking to a buffer-local position in the source DWG.
 enum class DwgIntegrityAddressSpace : std::uint8_t {
     None,
+    NoAddressSpace = None,
     PhysicalFile,
     DecodedBuffer
 };
@@ -851,5 +867,10 @@ public:
 private:
     dwgRW implementation;
 };
+
+#ifdef LIBDXFRW_LIBDWGR_RESTORE_NONE
+# pragma pop_macro("None")
+# undef LIBDXFRW_LIBDWGR_RESTORE_NONE
+#endif
 
 #endif

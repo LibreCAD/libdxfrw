@@ -14,6 +14,20 @@
 #ifndef DRW_BASE_H
 #define DRW_BASE_H
 
+// X11's object-like None macro must not alter public enum definitions.
+// Save it locally; callers retain their exact macro after this header.
+// With that macro active, use NoOperation/NoPhase/NoCause/Disabled instead of
+// the legacy None enumerators. The aliases preserve their types and values.
+#if defined(None)
+# if defined(_MSC_VER) || defined(__GNUC__) || defined(__clang__)
+#  pragma push_macro("None")
+#  undef None
+#  define LIBDXFRW_DRW_BASE_RESTORE_NONE
+# else
+#  error "libdxfrw requires push_macro/pop_macro support with a caller None macro"
+# endif
+#endif
+
 #define DRW_VERSION "2.0.0"
 
 #include <array>
@@ -65,6 +79,7 @@ typedef long double ddouble80;
 /// include the implementation-only DWG utility header.
 enum class DwgDataStorageWriterOperation : std::uint8_t {
     None,
+    NoOperation = None, //!< Macro-safe spelling when X11 defines None.
     WriteMLeaderStyle,
     WriteTableStyle,
     WriteMaterial,
@@ -199,6 +214,7 @@ BAD_CODE_PARSED,      /*!< error in any parseCodes() method. */
 //! Which public operation produced an operation diagnostic.
 enum class OperationKind : std::uint8_t {
     None,
+    NoOperation = None,
     Read,
     Write
 };
@@ -208,6 +224,7 @@ enum class OperationKind : std::uint8_t {
 //! where its first failure occurred.
 enum class OperationPhase : std::uint8_t {
     None,
+    NoPhase = None,
     Argument,
     Open,
     Metadata,
@@ -234,6 +251,7 @@ enum class OperationPhase : std::uint8_t {
 //! Structured cause for the first failure in one public operation.
 enum class OperationCause : std::uint8_t {
     None,
+    NoCause = None,
     InvalidArgument,
     UnsupportedVersion,
     CallbackException,
@@ -284,6 +302,7 @@ struct OperationDiagnostic {
 
 enum class DebugLevel {
     None,
+    Disabled = None,
     Debug
 };
 
@@ -976,5 +995,10 @@ public:
         return widthDefault;
     }
 };
+
+#ifdef LIBDXFRW_DRW_BASE_RESTORE_NONE
+# pragma pop_macro("None")
+# undef LIBDXFRW_DRW_BASE_RESTORE_NONE
+#endif
 
 #endif

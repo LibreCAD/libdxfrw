@@ -15,6 +15,19 @@
 #ifndef DRW_HEADER_H
 #define DRW_HEADER_H
 
+// X11's object-like None macro must not alter public enum definitions.
+// Save it locally; callers retain their exact macro after this header.
+// Units::Unitless is the macro-safe spelling of the legacy Units::None.
+#if defined(None)
+# if defined(_MSC_VER) || defined(__GNUC__) || defined(__clang__)
+#  pragma push_macro("None")
+#  undef None
+#  define LIBDXFRW_DRW_HEADER_RESTORE_NONE
+# else
+#  error "libdxfrw requires push_macro/pop_macro support with a caller None macro"
+# endif
+#endif
+
 #include <map>
 #include <memory>
 #include <limits>
@@ -55,6 +68,7 @@ public:
     enum Units {
         /** $ISUNITS header variable, since ACAD2000/AC1015 */
         None = 0,               ///< No unit (unit from parent)
+        Unitless = None,        ///< Macro-safe spelling for X11 consumers
         Inch = 1,               ///< 25.4 mm
         Foot = 2,               ///< 12 Inches = 0.3048 m
         Mile = 3,               ///< 1760 Yards = 1609 m
@@ -323,5 +337,10 @@ private:
 
 
 };
+
+#ifdef LIBDXFRW_DRW_HEADER_RESTORE_NONE
+# pragma pop_macro("None")
+# undef LIBDXFRW_DRW_HEADER_RESTORE_NONE
+#endif
 
 #endif
