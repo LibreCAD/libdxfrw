@@ -60,14 +60,15 @@ remain unchanged. No drawing fixture, dependency, native/hosted run, receipt,
 support status or remote write is part of this update; all six J items remain
 DEFERRED_EXTERNAL/non-promoting.
 
-**Latest implementation checkpoint:** `bcc1c93` (`Plan-Slice: 7BE.1`),
-2026-10-14. The composed HEADER reader was built on the current checkout with
-the affected strict production targets; strict test-TU syntax checking passed;
-the exact reader-matrix, hardening and local-roundtrip CTests passed3/3 with no
-skips in3.71s. Modern version-boundary and R13/R14 admission controls and the
-cursor-window sanitizer checkpoint remain open. The writer-sealing candidate
-is separate. This commit admits no drawing fixture and promotes no support
-claim.
+**Latest implementation checkpoint:** `bde5409` (`Plan-Slice: 7BE.7`),
+2026-10-14. Reader7BE.1 and final writer sealing are separate committed
+slices. The six writer-version CRC/readback and malformed-range/retry controls
+pass in the current reader matrix; strict affected targets and strict test-TU
+syntax checking pass; reader-matrix/hardening/local-roundtrip pass3/3 with no
+skips in3.63s. The combined reader matrix passes under AddressSanitizer with
+use-after-scope instrumentation,1/1 and no skips. Modern version-boundary and
+R13/R14 admission controls remain open. These commits admit no drawing fixture
+and promote no support claim.
 
 **Previous research boundary:** `25adc7f5201a101f5298394aa0f37796b43d2b91`
 (2026-10-14). Tracked worktree/index were clean at entry. This update changes
@@ -203,7 +204,8 @@ Its historical binary diff SHA-256 is
 | 7H geometry gates | COMMITTED | `Plan-Slice: 7H`, integrated `2b43670` after 7I. Temporary unit extrusion basis, actual ELLIPSE read modes, rational quarter-circle and nondegenerate winding controls; main local-roundtrip/3D consumer probe pass 2/2 in 1.57s and lc3_compat_check builds. Original normals/ext=false tuples and consumer-owned bulge policy retained; no support promotion. Next ready VIEW wire widths. |
 | 7I implicit SPLINE weights | COMMITTED | `7f44182`, based on worker `280df90`, with an explicit modern identity on the locally authored literal input. Read/write implicit units, explicit units and partial/knot/nonfinite negatives pass local-roundtrip 1/1 in 1.27s; also passes the post-master integration run. This does not fix HATCH's separate grammar (PAR-30) or promote support. |
 | 7L.1 HEADER group 90 | COMMITTED | `Plan-Slice: 7L.1`, from isolated `cf6a83d`. Fresh main Wave1/version-policy and actual ASCII/binary maintenance CLI checks pass 4/4 in 1.69s. Worker ordinary ezdxf confirms 70001/unchanged LINE. Group 160, header references, unknown fields and ordered custom properties remain 7L.2/3/4. No support promotion; next ready 7H. |
-| 7BE.1 bounded HEADER reader | COMMITTED / MODERN_BOUNDARIES_OPEN | `bcc1c93` (`Plan-Slice: 7BE.1`): the reviewed11-path reader composition is integrated after current-main acceptance. Affected strict targets build; strict syntax-only test-TU check passes; reader-matrix/hardening/local-roundtrip pass3/3, no skips,3.71s. Preserves legacy CRC warning and compact-body exception. AC1018/1021/1024/1027/1032 logical-boundary/maintenance partners, explicit R13/R14 read-only partners and one cursor-window sanitizer checkpoint remain required before broad HEADER claims;7BE.7 writer sealing stays separate. No fixture admission or support promotion. |
+| 7BE.1 bounded HEADER reader | COMMITTED / MODERN_BOUNDARIES_OPEN | `bcc1c93` (`Plan-Slice: 7BE.1`): the reviewed11-path reader composition is integrated after current-main acceptance. Affected strict targets build; strict syntax-only test-TU check passes; reader-matrix/hardening/local-roundtrip pass3/3, no skips,3.71s. Preserves legacy CRC warning and compact-body exception. AC1018/1021/1024/1027/1032 logical-boundary/maintenance partners and explicit R13/R14 read-only partners remain required before broad HEADER claims; the combined cursor-window sanitizer checkpoint is recorded under7BE.7. No fixture admission or support promotion. |
+| 7BE.7 final HEADER writer sealing | COMMITTED / READER_BOUNDARIES_OPEN | `bde5409` (`Plan-Slice: 7BE.7`): validates the writer-owned HEADER locator/RL/sentinels and the unaligned HANDSEED range before mutation, then reseals CRC after the final seed patch. Independent bitwise CRC/readback, preserved neighboring bits/high-water seeds, repeat sealing, all six writer versions, full in-memory publication/following LINE, and malformed-range rejection/retry controls pass. Strict affected targets and strict test-TU syntax check pass; reader-matrix/hardening/local-roundtrip pass3/3, no skips,3.63s; combined reader matrix AddressSanitizer passes1/1 with no skips. Modern reader boundary and R13/R14 admission partners remain open. No drawing fixture or support promotion. |
 | 7P.1 table owners | COMMITTED | `Plan-Slice: 7P.1`, integrated `f8fbe07`: STYLE/VPORT owners bound to actual table handles 3/8. Main DXF fixtures pass 1/1 in 0.36s with nine-family raw owner/framing matrix and a runtime generator. Worker eight version/encoding ordinary-reader projections are supplemental; R14's existing owner omissions remain scoped. Common metadata placement/resources remain 7P.2/3; next ready five-field widths. |
 | 7P.2 common base scopes | COMMITTED | `Plan-Slice: 7P.2`, integrated `2e7d861`: common metadata precedes subclasses for eight tables, retained entity appData and PLOTSETTINGS; mandatory LTYPE XDATA stays trailing. Main Wave1/DXF fixtures/local-roundtrip pass 3/3 in 2.12s; all versioned XRECORD regressions retained during conflict resolution. Worker eight independent projections are supplemental. Omitted object carriers/typed resources remain 7P.4/7G.2; next ready corrected 7G.1. |
 | 7Q.0 narrow wire kinds | COMMITTED | VIEW `22e2b97`, plus `Plan-Slice: 7Q.0b` from `7ad567d`: PointCloudDef 280, SectionManager 70 and DIMASSOC 71 use I16; MLEADER 94/95 use I32. Main Wave1/DXF fixtures pass 2/2 in 0.96s with following-field/record controls. Widths do not fix PAR-45/46 semantics or gradient 431; wider 31-call inventory remains 7X. Next ready 7N. |
@@ -2203,7 +2205,7 @@ GDAL9c9d722b; no dependency is installed or made mandatory.
 | Existing owner | Refined implementation boundary | Next small gate |
 | --- | --- | --- |
 | 7AD/Slice9 | Portable probe candidate requires bothb912a963 andcb22907f; source correction, not native qualification. | Existing compiler-free self-test, one14-child compiler/configure profile and actual main CLI1/1; do not rebuild the library. |
-| 7BE.1/.7 | Reader7BE.1 is committed as `bcc1c93` with its exact current-main3/3 gate; writer7BE.7 remains isolated. | Add version-gated AC1018/1021/1024/1027/1032 logical-boundary/maintenance partners and explicit R13/R14 read-only controls; run one cursor-window sanitizer checkpoint after reader changes settle. Keep writer sealing a separate commit. |
+| 7BE.1/.7 | Reader7BE.1 (`bcc1c93`) and writer7BE.7 (`bde5409`) are separately committed; their current-main focused gates and combined matrix sanitizer pass. | Add version-gated AC1018/1021/1024/1027/1032 logical-boundary/maintenance partners and explicit R13/R14 read-only controls. The cursor/window sanitizer checkpoint now covers the combined reader/writer state; rerun only if later reader changes alter cursor/window lifetime. |
 | 7AG.1c | Five further nonvirtual consumer methods remain missing despite the encoding/finalizer proof. | Source-pinned call-shape gate, real getter/reservation/remap/resolver/omission behavior and reuse; never no-op aliases. |
 | 7BO/7S.3 | Unknown-name duplicate scans remain quadratic; HANDLE metadata peaks/outcome propagation are separate from payload limits. | Deterministic tiny index/budget controls in actual reader18/21 and existing hardening targets; preserve first diagnostics and callback prefixes. |
 | 7AH.1/.5/7AQ | Duplicate source identities can collapse in lookup maps; loader warnings and audit fixes describe different phases. | Ordered role-aware identity inventory and bounded warning controls; four ordinary-load calibrations, not a new full corpus. |
@@ -7409,14 +7411,17 @@ was then an11-path staged patch, `b8712389`, with independent source approval.
 HeaderSection categories were appended after TemplateDescriptionUnsupported;
 decodeDwgTemplate/missingDwgTemplate/current controls were retained, and
 dwgheadersection.h was added to LIBDXFRW_PRIVATE_HEADERS. The complete relevant
-ODA chapters were read. This handoff is now committed as `bcc1c93`; its current
-main strict build, strict test-TU syntax check and exact reader-matrix,
-hardening/local-roundtrip gate passed3/3 with no skipped cells. Writer child
-5860915d remains isolated. Modern version-boundary and R13/R14 partners remain
-open. Next add those generated logical-section controls and maintenance
-partners, then run one cursor-window sanitizer checkpoint after unsafe reader
-edits settle. Test-normalized stale CRCs are reader inputs only; they do not
-validate writer sealing. Do not run a full corpus for each substep.
+ODA chapters were read. Reader integration `bcc1c93` passed its current-main
+strict build, strict test-TU syntax check and exact reader-matrix,
+hardening/local-roundtrip gate3/3 with no skipped cells. Writer sealing is now
+separately integrated as `bde5409`; all six writer versions passed their
+independent CRC/readback and malformed-range/retry controls, and the same exact
+3/3 gate passed. The combined reader matrix passes AddressSanitizer with
+use-after-scope instrumentation1/1, no skips. Modern version-boundary and
+R13/R14 partners remain open. Next add generated logical-section controls and
+maintenance partners; rerun the sanitizer only if those edits change
+cursor/window lifetime. Test-normalized stale CRCs are reader inputs only;
+they do not validate writer sealing. Do not run a full corpus per substep.
 
 ### 7BF — Resolve LTYPE units and preserve bounded editable payloads
 
@@ -8447,9 +8452,9 @@ the prerequisite set. Reconcile each ready handoff's base, affected files,
 test registrations and evidence binding once; retain recorded isolated results
 as historical evidence and run only the affected current-main gate on integration.
 
-Apply this rule atbcc1c93: preserve the committed portable probe and reader;
-add the named modern/R13/R14 HEADER boundaries before broader reader claims,
-and integrate writer5860915d separately with its exact sealing vectors.
+Apply this rule atbde5409: preserve the committed portable probe and HEADER
+reader/writer slices; add the named modern/R13/R14 HEADER boundaries before
+broader reader claims.
 Correct7AG.1c's local test premise before its focused gate, then add the real
 writeBlocks/resolver contracts.7BO indexing, S3.7 decoder admission/finite
 controls and typed tool reporting can proceed without native FreeCAD/ACIS.
@@ -8463,7 +8468,7 @@ when their lanes are enabled, not mandatory setup or another full matrix.
 
 | Batch | Small deliverable and dependency | Fast acceptance |
 | --- | --- | --- |
-| HEADER reader then sealing | Extend committed7BE.1 with named modern logical-boundary/maintenance and R13/R14 read-only partners; integrate7BE.7 writer separately. | Tiny affected reader gate for each change; one cursor-window sanitizer checkpoint after unsafe edits settle; six exact writer CRC vectors for the writer slice. |
+| HEADER reader then sealing | Extend committed7BE.1 with named modern logical-boundary/maintenance and R13/R14 read-only partners;7BE.7 writer sealing is committed. | Tiny affected reader gate for each change; the combined reader matrix already passes one cursor-window sanitizer checkpoint. Run another only if later edits change cursor/window lifetime. |
 | Current consumer facade | Fix only the isolated getter/reservation test premise, then real writeBlocks remaps, terminal resolver and chosen omission reporting. | Affected fixture plus named main gates; adapter-shaped phases, non-idempotent mapping/zero/throw/retry controls. Do not redo cold library builds or demand native Qt per method. |
 | SAB decoder | S3.7a count/completion and S3.7b valid finite projection; explicit body/WCS policy follows separately. Coordinate actual append budgets with7S.3 without changing DWG layouts. | Tiny known producer/components in existing local/hardening tests; assert valid points/bounds/placement, not counts alone. No real-kernel/native or broad corpus prerequisite for these fixes. |
 | Sparse graph order | DXF-first7G.3a SORT store/closure, then reviewed7G.3b existing-table policy with bounded derived entries; no-table policy and DWG fallback receipt adaptation separate. |3–4 source-authored entities/tiny limit controls and one repeated ASCII/binary CLI cohort; source pairs before peer maps. |
