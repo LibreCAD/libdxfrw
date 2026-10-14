@@ -1229,16 +1229,20 @@ bool dwgReader18::readDwgHeader(DRW_Header& hdr){
     if (ret) {
         dwgBuffer dataBuf(objData.get(), si.size, &decoder);
         DRW_DBG("Header section sentinel= ");
-        if (!checkSentinel(&dataBuf, secEnum::HEADER, true)) {
-            ret = false;
-        } else if (version == DRW::AC1018){
-            ret = dwgReader::readDwgHeader(hdr, &dataBuf, &dataBuf);
+        // Shared HEADER admission owns exact logical length, sentinel and CRC
+        // checks. Consume the beginning sentinel here for the parser cursor,
+        // but let that admission publish the specific failure diagnostic.
+        (void)checkSentinel(&dataBuf, secEnum::HEADER, true);
+        if (version == DRW::AC1018) {
+            ret = dwgReader::readDwgHeader(
+                hdr, &dataBuf, &dataBuf, DwgIntegrityAddressSpace::DecodedBuffer,
+                si.Id, 0u);
         } else {
             dwgBuffer handleBuf(objData.get(), si.size, &decoder);
-            ret = dwgReader::readDwgHeader(hdr, &dataBuf, &handleBuf);
+            ret = dwgReader::readDwgHeader(
+                hdr, &dataBuf, &handleBuf, DwgIntegrityAddressSpace::DecodedBuffer,
+                si.Id, 0u);
         }
-        if (!ret)
-            recordFailure(DwgIntegrityCheckKind::PageGeometry, si.Id);
     }
     // Cleanup: global store for uncompressed data of all pages.
     objData.reset();

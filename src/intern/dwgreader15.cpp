@@ -159,8 +159,10 @@ bool dwgReader15::readDwgHeader(DRW_Header& hdr){
         return false;
     dwgBuffer buff(tmpByteStr.data(), si.size, &decoder);
     DRW_DBG("Header section sentinel= ");
-    if (!checkSentinel(&buff, secEnum::HEADER, true) && version != DRW::AC1015)
-        return false;
+    // The shared HEADER admission reports precise sentinel/bounds diagnostics
+    // for AC1012 through AC1015. Keep this read to position the parser after
+    // the beginning sentinel even when it is malformed.
+    (void)checkSentinel(&buff, secEnum::HEADER, true);
     bool ret = dwgReader::readDwgHeader(hdr, &buff, &buff,
         DwgIntegrityAddressSpace::PhysicalFile, si.Id, si.address);
     return ret;

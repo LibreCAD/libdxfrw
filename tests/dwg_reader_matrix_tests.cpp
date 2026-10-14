@@ -375,14 +375,45 @@ void testDwgOperationAdmission(TestContext& t) {
 class HeaderSectionReader final : public dwgReader15 {
 public:
     explicit HeaderSectionReader(std::vector<std::uint8_t>& bytes,
-                                 std::uint32_t address = 0)
+                                 std::uint32_t address = 0,
+                                 DRW::Version headerVersion = DRW::AC1015,
+                                 std::uint8_t appMaintenance = 0)
         : dwgReader15(std::make_unique<dwgBuffer>(bytes.data(), bytes.size()), nullptr) {
-        version = DRW::AC1015;
+        version = headerVersion;
+        appMaintenanceVersion = appMaintenance;
+        decoder.setVersion(headerVersion, false);
         dwgSectionInfo section;
         section.Id = 0;
         section.size = bytes.size() - address;
         section.address = address;
         sections.emplace(secEnum::HEADER, section);
+    }
+    bool readDwgHeader(DRW_Header& hdr) override {
+        const auto sectionIt = sections.find(secEnum::HEADER);
+        if (sectionIt == sections.end() || sectionIt->second.Id < 0)
+            return false;
+        const auto& section = sectionIt->second;
+        if (section.size == 0 || section.size > std::numeric_limits<int>::max()
+            || !dwgSafety::range(section.address, section.size, fileBuf->size())
+            || !fileBuf->setPosition(section.address))
+            return false;
+        std::vector<std::uint8_t> data(static_cast<std::size_t>(section.size));
+        if (!fileBuf->getBytes(data.data(), data.size()))
+            return false;
+        dwgBuffer dataBuffer(data.data(), data.size(), &decoder);
+        (void)checkSentinel(&dataBuffer, secEnum::HEADER, true);
+        const auto addressSpace = version == DRW::AC1015
+            ? DwgIntegrityAddressSpace::PhysicalFile
+            : DwgIntegrityAddressSpace::DecodedBuffer;
+        if (version > DRW::AC1018) {
+            dwgBuffer handleBuffer(data.data(), data.size(), &decoder);
+            return dwgReader::readDwgHeader(
+                hdr, &dataBuffer, &handleBuffer, addressSpace, section.Id,
+                section.address);
+        }
+        return dwgReader::readDwgHeader(
+            hdr, &dataBuffer, &dataBuffer, addressSpace, section.Id,
+            section.address);
     }
     const auto& diagnostics() const { return m_integrityDiagnostics; }
     std::size_t dropped() const { return m_integrityDiagnosticsDropped; }
@@ -630,6 +661,178 @@ void testHeaderSectionBounds(TestContext& t) {
                  && zeroHeader.vars.count("USERR1") == 1u
                  && zeroHeader.vars.at("USERR1")->content.d == zeroValue,
              "a matching zero CRC is accepted cleanly with exact semantic data");
+}
+
+void setHeaderHighSizeWord(std::vector<std::uint8_t>& bytes, bool present) {
+    const std::uint32_t oldCount = std::uint32_t(bytes[16])
+        | (std::uint32_t(bytes[17]) << 8u)
+        | (std::uint32_t(bytes[18]) << 16u)
+        | (std::uint32_t(bytes[19]) << 24u);
+    if (present) {
+        bytes.insert(bytes.begin() + 20, 4u, 0u);
+    } else {
+        bytes.erase(bytes.begin() + 20, bytes.begin() + 24);
+    }
+    const std::uint32_t newCount = present ? oldCount + 4u : oldCount - 4u;
+    for (std::size_t i = 0; i < 4u; ++i)
+        bytes[16u + i] = static_cast<std::uint8_t>(newCount >> (i * 8u));
+    const std::size_t crcOffset = 20u + newCount;
+    const std::uint16_t crc = headerTestCrc(bytes, 16u, crcOffset);
+    bytes[crcOffset] = static_cast<std::uint8_t>(crc);
+    bytes[crcOffset + 1u] = static_cast<std::uint8_t>(crc >> 8u);
+}
+
+template<class Writer>
+std::vector<std::uint8_t> makeHeaderSection(TestContext& t,
+                                             const std::string& label) {
+    DRW_Header source;
+    source.addInt("LUNITS", 4, 70);
+    Writer writer(nullptr, &source);
+    t.expect(writer.writeDwgHeader(), "generated HEADER section: " + label);
+    return writer.buffer();
+}
+
+void checkHeaderVersionProfile(TestContext& t,
+                               std::vector<std::uint8_t> bytes,
+                               DRW::Version version, std::uint8_t maintenance,
+                               bool highSizePresent, const std::string& label) {
+    dwgBuffer view(bytes.data(), bytes.size());
+    const bool positioned = view.setPosition(16u);
+    const auto envelope = positioned
+        ? inspectDwgHeaderEnvelope(view, version, maintenance)
+        : DwgHeaderEnvelope{};
+    t.expect(envelope.error == DwgHeaderEnvelopeError::None
+                 && envelope.hasHighSizeWord == highSizePresent
+                 && (!highSizePresent || envelope.highSizeWord == 0u)
+                 && envelope.payloadEnd + 18u == bytes.size(),
+             "versioned logical HEADER boundary/profile: " + label);
+
+    HeaderSectionReader reader(bytes, 0u, version, maintenance);
+    DRW_Header parsed;
+    parsed.addInt("stale", 99, 70);
+    t.expect(reader.readDwgHeader(parsed) && parsed.vars.count("LUNITS") == 1u
+                 && reader.diagnostics().empty(),
+             "versioned HEADER variables and CRC are accepted: " + label);
+
+    auto trailing = bytes;
+    trailing.push_back(0u);
+    HeaderSectionReader trailingReader(trailing, 0u, version, maintenance);
+    DRW_Header trailingHeader;
+    trailingHeader.addInt("stale", 99, 70);
+    t.expect(!trailingReader.readDwgHeader(trailingHeader)
+                 && trailingHeader.vars.empty()
+                 && trailingReader.diagnostics().size() == 1u
+                 && trailingReader.diagnostics()[0].kind
+                        == DwgIntegrityCheckKind::HeaderSectionBounds,
+             "decoded page padding cannot extend the logical HEADER: " + label);
+
+    auto crcMutation = bytes;
+    const auto crcOffset = static_cast<std::size_t>(envelope.payloadEnd);
+    crcMutation[crcOffset] ^= 1u;
+    HeaderSectionReader crcReader(crcMutation, 0u, version, maintenance);
+    DRW_Header crcHeader;
+    t.expect(crcReader.readDwgHeader(crcHeader)
+                 && crcReader.diagnostics().size() == 1u
+                 && crcReader.diagnostics()[0].kind
+                        == DwgIntegrityCheckKind::HeaderSectionCrc
+                 && crcReader.diagnostics()[0].severity
+                        == DwgIntegritySeverity::Warning,
+             "versioned HEADER CRC mismatch remains warning-only: " + label);
+
+    auto endMutation = bytes;
+    endMutation[static_cast<std::size_t>(envelope.payloadEnd) + 2u] ^= 1u;
+    HeaderSectionReader endReader(endMutation, 0u, version, maintenance);
+    DRW_Header endHeader;
+    endHeader.addInt("stale", 99, 70);
+    t.expect(!endReader.readDwgHeader(endHeader) && endHeader.vars.empty()
+                 && endReader.diagnostics().size() == 1u
+                 && endReader.diagnostics()[0].kind
+                        == DwgIntegrityCheckKind::HeaderSectionSentinel,
+             "versioned HEADER end sentinel is checked before publication: " + label);
+}
+
+void testHeaderVersionEnvelopes(TestContext& t) {
+    checkHeaderVersionProfile(t,
+        makeHeaderSection<dwgWriter15>(t, "AC1015"), DRW::AC1015, 0u, false,
+        "AC1015");
+    checkHeaderVersionProfile(t,
+        makeHeaderSection<dwgWriter18>(t, "AC1018"), DRW::AC1018, 0u, false,
+        "AC1018");
+    checkHeaderVersionProfile(t,
+        makeHeaderSection<dwgWriter21>(t, "AC1021"), DRW::AC1021, 0u, false,
+        "AC1021");
+
+    auto ac1021 = makeHeaderSection<dwgWriter21>(t, "AC1021");
+    checkHeaderVersionProfile(t, ac1021, DRW::AC1021, 6u, false,
+                              "AC1021 app maintenance does not add a high-size word");
+
+    auto ac1024Low = makeHeaderSection<dwgWriter24>(t, "AC1024 MV<=3");
+    checkHeaderVersionProfile(t, ac1024Low, DRW::AC1024, 3u,
+                                           false, "AC1024 MV<=3");
+    auto ac1024High = ac1024Low;
+    setHeaderHighSizeWord(ac1024High, true);
+    checkHeaderVersionProfile(t, ac1024High, DRW::AC1024, 4u,
+                                           true, "AC1024 MV>3");
+    for (const auto& mismatch : {
+             std::pair<const std::vector<std::uint8_t>*, std::uint8_t>{&ac1024High, 3u},
+             {&ac1024Low, 4u}}) {
+        auto mismatchBytes = *mismatch.first;
+        HeaderSectionReader reader(mismatchBytes, 0u, DRW::AC1024, mismatch.second);
+        DRW_Header header;
+        header.addInt("stale", 99, 70);
+        t.expect(!reader.readDwgHeader(header) && header.vars.empty(),
+                 "AC1024 maintenance gate must match actual optional word presence");
+    }
+
+    auto ac1027High = makeHeaderSection<dwgWriter27>(t, "AC1027 MV>3");
+    checkHeaderVersionProfile(t, ac1027High, DRW::AC1027, 6u,
+                                           true, "AC1027 MV>3");
+    auto ac1027Low = ac1027High;
+    setHeaderHighSizeWord(ac1027Low, false);
+    checkHeaderVersionProfile(t, ac1027Low, DRW::AC1027, 3u,
+                                           false, "AC1027 MV<=3");
+    for (const auto& mismatch : {
+             std::pair<const std::vector<std::uint8_t>*, std::uint8_t>{&ac1027High, 3u},
+             {&ac1027Low, 4u}}) {
+        auto mismatchBytes = *mismatch.first;
+        HeaderSectionReader reader(mismatchBytes, 0u, DRW::AC1027, mismatch.second);
+        DRW_Header header;
+        header.addInt("stale", 99, 70);
+        t.expect(!reader.readDwgHeader(header) && header.vars.empty(),
+                 "AC1027 maintenance gate must match actual optional word presence");
+    }
+
+    const auto ac1032 = makeHeaderSection<dwgWriter32>(t, "AC1032");
+    checkHeaderVersionProfile(t, ac1032, DRW::AC1032, 0u,
+                                           true, "AC1032 always");
+
+    // R13/R14 are separate reader15 admission profiles. This envelope-only
+    // partner checks their shared on-disk sentinels/RL/CRC layout without
+    // treating AC1015 body semantics as R13/R14 qualification.
+    auto ac1015 = makeHeaderSection<dwgWriter15>(t, "R13/R14 envelope basis");
+    for (const DRW::Version version : {DRW::AC1012, DRW::AC1014}) {
+        dwgBuffer view(ac1015.data(), ac1015.size());
+        const bool positioned = view.setPosition(16u);
+        const auto envelope = positioned
+            ? inspectDwgHeaderEnvelope(view, version, 0u)
+            : DwgHeaderEnvelope{};
+        t.expect(envelope.error == DwgHeaderEnvelopeError::None
+                     && !envelope.hasHighSizeWord
+                     && envelope.payloadEnd + 18u == ac1015.size(),
+                 "R13/R14 read-only HEADER section envelope: "
+                     + std::string(version == DRW::AC1012 ? "AC1012" : "AC1014"));
+        auto malformed = ac1015;
+        malformed.front() ^= 1u;
+        HeaderSectionReader reader(malformed, 0u, version, 0u);
+        DRW_Header header;
+        header.addInt("stale", 99, 70);
+        t.expect(!reader.readDwgHeader(header) && header.vars.empty()
+                     && reader.diagnostics().size() == 1u
+                     && reader.diagnostics()[0].kind
+                            == DwgIntegrityCheckKind::HeaderSectionSentinel,
+                 "R13/R14 malformed HEADER sentinel rejects before parse: "
+                     + std::string(version == DRW::AC1012 ? "AC1012" : "AC1014"));
+    }
 }
 
 class FullHeaderWriterProbe final : public dwgWriter15 {
@@ -1324,6 +1527,7 @@ int main() {
     TestContext context;
     testBoundedFork(context);
     testHeaderSectionBounds(context);
+    testHeaderVersionEnvelopes(context);
     testHeaderPublicRead(context);
     testHeaderWriters(context);
     testHeaderWriterSealingFailures(context);

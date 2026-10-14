@@ -1411,16 +1411,13 @@ bool dwgReader21::readDwgHeader(DRW_Header& hdr){
     dwgBuffer dataBuf(tmpHeaderData.data(), si.size, &decoder);
     dwgBuffer handleBuf(tmpHeaderData.data(), si.size, &decoder);
     DRW_DBG("Header section sentinel= ");
-    if (!checkSentinel(&dataBuf, secEnum::HEADER, true)) {
-        recordFailure(DwgIntegrityCheckKind::PageGeometry, si.Id);
-        return false;
-    }
+    // The shared HEADER admission reports its exact logical boundary and
+    // sentinel category. Consume the prefix here to retain the parser cursor.
+    (void)checkSentinel(&dataBuf, secEnum::HEADER, true);
 
-    if (!dwgReader::readDwgHeader(hdr, &dataBuf, &handleBuf)) {
-        recordFailure(DwgIntegrityCheckKind::PageGeometry, si.Id);
-        return false;
-    }
-    return true;
+    return dwgReader::readDwgHeader(
+        hdr, &dataBuf, &handleBuf, DwgIntegrityAddressSpace::DecodedBuffer,
+        si.Id, 0u);
 }
 
 bool dwgReader21::readDwgTemplate(DRW_Header& hdr) {

@@ -5941,11 +5941,8 @@ bool dwgReader::readDwgHeader(DRW_Header &hdr, dwgBuffer *buf,
                               DwgIntegrityAddressSpace offsetSpace,
                               std::int32_t sectionId,
                               std::uint64_t sectionOffset) {
-  // The R2010+ bitsize_hi gate inside parseDwg keys off the APP maintenance
-  // version (byte 0x12), not byte 0x0B — see appMaintenanceVersion in
-  // dwgreader.h.
-  if (version != DRW::AC1015 || buf == nullptr || hBuf == nullptr)
-    return hdr.parseDwg(version, buf, hBuf, appMaintenanceVersion);
+  if (buf == nullptr || hBuf == nullptr)
+    return false;
 
   const auto report = [&](DwgIntegrityCheckKind kind,
                           DwgIntegritySeverity severity,
@@ -5960,16 +5957,31 @@ bool dwgReader::readDwgHeader(DRW_Header &hdr, dwgBuffer *buf,
         secEnum::HEADER, sectionId, "AcDb:Header", 0u, false,
         location, hasLocation, 0u, false, expected, observed, hasValues);
   };
+  const auto clearHeader = [&hdr]() noexcept {
+    hdr.clearVars();
+    hdr.curr = nullptr;
+    hdr.name.clear();
+  };
   try {
-    const auto envelope = inspectLegacyDwgHeader(*buf);
-    const bool ret = hdr.parseDwg(version, buf, hBuf, appMaintenanceVersion);
-    if (!ret) {
+    // The R2010/R2013 optional word is selected by APP maintenance version
+    // (file byte 0x12), not the maintenance value at byte 0x0B.
+    const auto envelope = inspectDwgHeaderEnvelope(
+        *buf, version, appMaintenanceVersion);
+    if (envelope.error != DwgHeaderEnvelopeError::None) {
       const bool sentinel = envelope.error == DwgHeaderEnvelopeError::BeginSentinel
           || envelope.error == DwgHeaderEnvelopeError::EndSentinel;
+      clearHeader();
       report(sentinel ? DwgIntegrityCheckKind::HeaderSectionSentinel
                       : DwgIntegrityCheckKind::HeaderSectionBounds,
              DwgIntegritySeverity::Error, envelope,
              envelope.expected, envelope.observed, envelope.hasValues);
+      return false;
+    }
+    const bool ret = hdr.parseDwg(version, buf, hBuf, appMaintenanceVersion);
+    if (!ret) {
+      clearHeader();
+      report(DwgIntegrityCheckKind::HeaderSectionBounds,
+             DwgIntegritySeverity::Error, envelope, 0u, 0u, false);
       return false;
     }
     if (!envelope.compact) {

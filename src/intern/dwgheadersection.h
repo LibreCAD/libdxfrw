@@ -20,20 +20,32 @@
 #include "dwgsafety.h"
 #include <limits>
 
-// ODA v5.4.1 section 9, pp.72/83. This strict envelope is implemented/tested
-// only for AC1015 here. Modern boundaries remain gated.
+// ODA v5.4.1 section 9, pp.72-85. The four-byte high-size field is inside the
+// outer RL's declared payload. Its presence is version/maintenance dependent;
+// the RL therefore still locates the CRC for every supported version.
 enum class DwgHeaderEnvelopeError { None, Bounds, BeginSentinel, EndSentinel };
 
 struct DwgHeaderEnvelope {
     DwgHeaderEnvelopeError error{DwgHeaderEnvelopeError::Bounds};
     bool compact{false};
+    bool hasHighSizeWord{false};
+    std::uint32_t highSizeWord{0};
     std::uint64_t start{0}, payloadEnd{0}, trailerEnd{0}, offset{0};
     std::uint64_t expected{0}, observed{0};
     bool hasValues{false};
     std::uint16_t storedCrc{0};
 };
 
-inline DwgHeaderEnvelope inspectLegacyDwgHeader(const dwgBuffer& input) {
+inline bool dwgHeaderHasHighSizeWord(DRW::Version version,
+                                     std::uint8_t appMaintenanceVersion) noexcept {
+    return ((version == DRW::AC1024 || version == DRW::AC1027)
+            && appMaintenanceVersion > 3u)
+        || version >= DRW::AC1032;
+}
+
+inline DwgHeaderEnvelope inspectDwgHeaderEnvelope(
+    const dwgBuffer& input, DRW::Version version,
+    std::uint8_t appMaintenanceVersion) {
     DwgHeaderEnvelope result;
     result.start = result.offset = input.getPosition();
     if (!input.isGood() || input.getBitPos() != 0u
@@ -47,15 +59,19 @@ inline DwgHeaderEnvelope inspectLegacyDwgHeader(const dwgBuffer& input) {
     if (!dwgSafety::add(result.start, 4u, dataStart)
         || !dwgSafety::add(dataStart, count, result.payloadEnd))
         return result;
-    if (result.start == 0u && result.payloadEnd == input.size()) {
+    if (version == DRW::AC1015 && result.start == 0u
+        && result.payloadEnd == input.size()) {
         result.compact = true;
         result.trailerEnd = result.payloadEnd;
         result.error = DwgHeaderEnvelopeError::None;
         return result;
     }
+    result.hasHighSizeWord = dwgHeaderHasHighSizeWord(version,
+                                                       appMaintenanceVersion);
     if (result.start != 16u || count == 0u
+        || (result.hasHighSizeWord && count < sizeof(std::uint32_t))
         || !dwgSafety::add(result.payloadEnd, 18u, result.trailerEnd)
-        || result.trailerEnd > input.size()
+        || result.trailerEnd != input.size()
         || result.payloadEnd > std::numeric_limits<std::int32_t>::max())
         return result;
     probe.setPosition(0u);
@@ -84,8 +100,19 @@ inline DwgHeaderEnvelope inspectLegacyDwgHeader(const dwgBuffer& input) {
             return result;
         }
     }
+    if (result.hasHighSizeWord) {
+        if (!probe.setPosition(dataStart))
+            return result;
+        result.highSizeWord = probe.getRawLong32();
+        if (!probe.isGood())
+            return result;
+    }
     result.error = DwgHeaderEnvelopeError::None;
     return result;
+}
+
+inline DwgHeaderEnvelope inspectLegacyDwgHeader(const dwgBuffer& input) {
+    return inspectDwgHeaderEnvelope(input, DRW::AC1015, 0u);
 }
 
 #endif
