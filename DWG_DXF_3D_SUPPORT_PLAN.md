@@ -9,8 +9,8 @@ nonvirtual source-compatibility gap: current LibreCAD requires
 strict compile reproduces the missing names; the LC3 callback mirror cannot
 cover that API. Add the explicit input-only recovery contract and its fast
 gate without changing default decoding, export encoding or2D projection.
-BLOCK callback preservation is integrated; the WIPEOUT converter candidate
-remains isolated and a composed safety checkpoint is pending.
+BLOCK callback and narrow WIPEOUT payload/CLI preservation are integrated;
+a composed current-source safety checkpoint is pending.
 narrow MIF literal/exact-hex preservation is integrated with fresh main fast
 checks recorded in the parity ledger. Current FreeCAD preference/
 post-processing source calibrations refine future native packets, not earlier

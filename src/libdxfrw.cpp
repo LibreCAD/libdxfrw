@@ -7320,8 +7320,10 @@ bool dxfRW::writeMultiLeader(DRW_MLeader *ent){
 bool dxfRW::writeWipeout(DRW_Wipeout *ent) {
     if (!preflightDxfWrite())
         return false;
-    // WIPEOUT inherits AcDbRasterImage's group codes plus an AcDbWipeout
-    // subclass marker carrying the polygon (91 + 14/24) and frame flag (290).
+    // WIPEOUT has one complete raster payload, not a second subclass at the
+    // clipping boundary. Autodesk's DXF table names AcDbRasterImage; the
+    // interoperable writer layout used here follows the independent writers'
+    // AcDbWipeout marker. The reader still tolerates either and old split input.
     // No AcDbRasterImageDef is written: WIPEOUT carries no actual raster.
     if (version <= DRW::AC1009)
         return rejectUnsupportedDxfWrite();
@@ -7330,11 +7332,16 @@ bool dxfRW::writeWipeout(DRW_Wipeout *ent) {
         m_writeError = true;
         return false;
     }
+    // Our pre-R2010 output layout does not emit the inversion flag. Reject
+    // rather than silently change the masking area: an output-support policy.
+    if (ent->clipMode && version <= DRW::AC1021)
+        return rejectUnsupportedDxfWrite();
     EntityRecordScope scope(*this, ent);
     writer->writeString(0, "WIPEOUT");
     if (!writeEntity(ent))
         return false;
-    writer->writeString(100, "AcDbRasterImage");
+    writer->writeString(100, "AcDbWipeout");
+    writer->writeInt32(90, 0);             // existing class-version policy
     writer->writeDouble(10, ent->basePoint.x);
     writer->writeDouble(20, ent->basePoint.y);
     writer->writeDouble(30, ent->basePoint.z);
@@ -7346,15 +7353,13 @@ bool dxfRW::writeWipeout(DRW_Wipeout *ent) {
     writer->writeDouble(32, ent->vVector.z);
     writer->writeDouble(13, ent->sizeu);
     writer->writeDouble(23, ent->sizev);
-    writer->writeInt16(70, ent->m_displayProps);
     writer->writeString(340, toHexStr(ent->ref));
-    writer->writeString(360, toHexStr(ent->m_imageDefReactorHandle));
+    writer->writeInt16(70, ent->m_displayProps);
     writer->writeInt16(280, ent->clip);    // 1 = clipping enabled
     writer->writeInt16(281, ent->brightness);
     writer->writeInt16(282, ent->contrast);
     writer->writeInt16(283, ent->fade);
-    writer->writeString(100, "AcDbWipeout");
-    writer->writeInt32(90, 0);             // class version
+    writer->writeString(360, toHexStr(ent->m_imageDefReactorHandle));
     writer->writeInt16(71, ent->m_clipBoundaryType);
     writer->writeInt32(91, static_cast<std::int32_t>(ent->clipPath.size()));
     for (const DRW_Coord& v : ent->clipPath) {

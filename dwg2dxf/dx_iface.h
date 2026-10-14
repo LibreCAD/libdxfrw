@@ -314,6 +314,15 @@ public:
         cData->images.push_back(img);
     }
 
+    void addWipeout(const DRW_Wipeout *data) override {
+        // WIPEOUT owns a masking boundary, not a raster file/IMAGEDEF link.
+        if (data == nullptr || currentBlock == nullptr)
+            return;
+        auto copy = std::make_unique<DRW_Wipeout>(*data);
+        currentBlock->ent.push_back(copy.get());
+        copy.release();
+    }
+
     virtual void addSurface(const DRW_Surface *data) override{
         if (data == nullptr || currentBlock == nullptr)
             return;

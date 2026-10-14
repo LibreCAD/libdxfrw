@@ -1191,6 +1191,359 @@ void testImageAdjustmentAdmission(TestContext& t,
     }
 }
 
+std::vector<DRW_Wipeout> wipeoutPayloadControls() {
+    std::vector<DRW_Wipeout> masks;
+    for (const bool polygon : {false, true}) for (const bool inverted : {false, true}) {
+        DRW_Wipeout mask;
+        const double index = static_cast<double>(masks.size());
+        mask.handle = 0xC100u + static_cast<std::uint32_t>(masks.size());
+        mask.basePoint = {13 + index, 17, 19};
+        mask.secPoint = {8, 1, 2}; mask.vVector = {3, 6, 4};
+        mask.sizeu = 16; mask.sizev = 12; mask.m_displayProps = 7;
+        mask.clip = 1; mask.brightness = 59; mask.contrast = 61; mask.fade = 7;
+        mask.m_clipBoundaryType = polygon ? 2 : 1; mask.clipMode = inverted;
+        mask.clipPath = polygon
+            ? std::vector<DRW_Coord>{{-0.5, -0.5}, {8.5, -0.5}, {5.5, 10.5}, {-0.5, -0.5}}
+            : std::vector<DRW_Coord>{{1.5, 2.5}, {9.5, 8.5}};
+        mask.appData = {{{102, std::string("{MASK_METADATA")},
+            {100, std::string("AcDbRasterImage")}, {1, std::string("owned application data")},
+            {102, std::string("}")}}};
+        mask.extData.push_back(std::make_shared<DRW_Variant>(1001, "MASK_APP"));
+        mask.extData.push_back(std::make_shared<DRW_Variant>(1000, "mask " + std::to_string(masks.size())));
+        masks.push_back(mask);
+    }
+    return masks;
+}
+
+class WipeoutPayloadWriter final : public dx_iface {
+public:
+    void writeEntities() override {
+        before = dxfW->highWaterHandle();
+        accepted = true;
+        for (auto& mask : masks) accepted = dxfW->writeWipeout(&mask) && accepted;
+        after = dxfW->highWaterHandle();
+        if (withImage) {
+            DRW_Image image;
+            image.m_classVersion = 6; image.secPoint = {1, 0, 0}; image.vVector = {0, 1, 0};
+            image.sizeu = 16; image.sizev = 12;
+            image.clipPath = {{1.5, 2.5}, {9.5, 8.5}};
+            accepted = (dxfW->writeImage(&image, "image-control.png") != nullptr) && accepted;
+        }
+        suffixAccepted = dxfW->writeLine(&suffix);
+    }
+    std::vector<DRW_Wipeout> masks {wipeoutPayloadControls()};
+    DRW_Line suffix;
+    bool withImage {true}, accepted {false}, suffixAccepted {false};
+    std::uint32_t before {0}, after {0};
+};
+
+bool generateWipeoutPayload(const std::filesystem::path& path, bool binary) {
+    dx_data data;
+    DRW_AppId app; app.name = "MASK_APP"; data.appIds.push_back(app);
+    WipeoutPayloadWriter sink;
+    sink.suffix.basePoint = {34, 35, 36}; sink.suffix.secPoint = {37, 38, 39};
+    sink.cData = &data; sink.currentBlock = data.mBlock;
+    const std::string name = path.string(); dxfRW writer(name.c_str()); sink.dxfW = &writer;
+    return writer.write(&sink, DRW::AC1024, binary) && sink.accepted && sink.suffixAccepted;
+}
+
+bool generateWipeoutBlockPayload(const std::filesystem::path& path, bool binary) {
+    dx_data data;
+    DRW_AppId app; app.name = "MASK_APP"; data.appIds.push_back(app);
+    DRW_Block_Record record; record.handle = 0xC600u; record.name = "MaskBlock";
+    data.blockRecords.push_back(record);
+    auto* block = new dx_ifaceBlock;
+    block->name = record.name; block->handle = 0xC500u; block->parentHandle = record.handle;
+    data.blocks.push_back(block);
+    for (auto mask : wipeoutPayloadControls()) {
+        mask.parentHandle = record.handle;
+        block->ent.push_back(new DRW_Wipeout(mask));
+    }
+    auto* inside = new DRW_Line;
+    inside->basePoint = {34, 35, 36}; inside->secPoint = {37, 38, 39};
+    inside->parentHandle = record.handle; block->ent.push_back(inside);
+    auto* insert = new DRW_Insert; insert->name = record.name; data.mBlock->ent.push_back(insert);
+    auto* outside = new DRW_Line;
+    outside->basePoint = {44, 45, 46}; outside->secPoint = {47, 48, 49}; data.mBlock->ent.push_back(outside);
+    dx_iface exporter;
+    return exporter.fileExport(path.string(), DRW::AC1024, binary, &data, false);
+}
+
+// Physical tags before document loading/audit can repair or default values.
+struct RasterPayloadTags {
+    std::string kind;
+    std::vector<std::string> markers;
+    std::vector<int> codes;
+    int classVersion {-1}, boundaryType {-1}, count {-1}, clipMode {-1};
+};
+
+bool rasterPayloadTags(const std::filesystem::path& path, bool binary,
+                       std::vector<RasterPayloadTags>& records, int& definitions) {
+    std::ifstream input(path, std::ios::binary);
+    if (!input) return false;
+    std::unique_ptr<dxfReader> reader;
+    if (binary) { input.seekg(22); reader = std::make_unique<dxfReaderBinary>(&input); }
+    else reader = std::make_unique<dxfReaderAscii>(&input);
+    int code = 0, appDepth = 0;
+    bool payload = false;
+    RasterPayloadTags* current = nullptr;
+    while (reader->readRec(&code)) {
+        if (code == 0) {
+            const std::string kind = reader->getString();
+            if (kind == "EOF") return true;
+            if (kind == "IMAGEDEF" || kind == "IMAGEDEF_REACTOR") ++definitions;
+            current = nullptr; appDepth = 0; payload = false;
+            if (kind == "WIPEOUT" || kind == "IMAGE") {
+                records.push_back({kind, {}, {}}); current = &records.back();
+            }
+        } else if (current != nullptr) {
+            if (code == 102) {
+                const std::string value = reader->getString();
+                if (!value.empty() && value.front() == '{') ++appDepth;
+                else if (value == "}") --appDepth;
+                continue;
+            }
+            if (appDepth != 0) continue;
+            if (code == 100) {
+                const std::string marker = reader->getString();
+                if (marker != "AcDbEntity") { current->markers.push_back(marker); payload = true; }
+            } else if (payload) {
+                current->codes.push_back(code);
+                if (code == 90) current->classVersion = reader->getInt32();
+                else if (code == 71) current->boundaryType = reader->getInt32();
+                else if (code == 91) current->count = reader->getInt32();
+                else if (code == 290) current->clipMode = reader->getBool() ? 1 : 0;
+            }
+        }
+    }
+    return false;
+}
+
+bool sameWipeoutPayload(const DRW_Wipeout& value, const DRW_Wipeout& expected) {
+    const auto sameCoord = [](const DRW_Coord& a, const DRW_Coord& b) {
+        return a.x == b.x && a.y == b.y && a.z == b.z;
+    };
+    if (!sameCoord(value.basePoint, expected.basePoint) || !sameCoord(value.secPoint, expected.secPoint)
+        || !sameCoord(value.vVector, expected.vVector) || value.sizeu != expected.sizeu
+        || value.sizev != expected.sizev || value.m_displayProps != expected.m_displayProps
+        || value.clip != expected.clip || value.brightness != expected.brightness
+        || value.contrast != expected.contrast || value.fade != expected.fade
+        || value.m_clipBoundaryType != expected.m_clipBoundaryType || value.clipMode != expected.clipMode
+        || value.clipPath.size() != expected.clipPath.size() || value.ref != 0
+        || value.m_imageDefReactorHandle != 0 || value.appData.size() != expected.appData.size()
+        || value.extData.size() != expected.extData.size()) return false;
+    for (std::size_t i = 0; i != value.clipPath.size(); ++i)
+        if (!sameCoord(value.clipPath[i], expected.clipPath[i])) return false;
+    for (std::size_t i = 0; i != value.extData.size(); ++i)
+        if (value.extData[i]->code() != expected.extData[i]->code()
+            || std::string(value.extData[i]->c_str()) != expected.extData[i]->c_str()) return false;
+    auto actualGroup = value.appData.begin();
+    for (const auto& expectedGroup : expected.appData) {
+        if (actualGroup->size() != expectedGroup.size()) return false;
+        auto actual = actualGroup->begin();
+        for (const auto& wanted : expectedGroup) {
+            std::string actualText = actual->c_str(), expectedText = wanted.c_str();
+            // The established model strips the opening brace from the first
+            // 102 application name and the writer restores it on output.
+            if (actual->code() == 102 && !actualText.empty() && actualText.front() == '{') actualText.erase(0, 1);
+            if (wanted.code() == 102 && !expectedText.empty() && expectedText.front() == '{') expectedText.erase(0, 1);
+            if (actual->code() != wanted.code() || actualText != expectedText) return false;
+            ++actual;
+        }
+        ++actualGroup;
+    }
+    return true;
+}
+
+bool coherentRasterTags(const RasterPayloadTags& record, const DRW_Wipeout* mask) {
+    const std::size_t vertices = mask != nullptr ? mask->clipPath.size() : 2;
+    std::vector<int> expected {90, 10, 20, 30, 11, 21, 31, 12, 22, 32, 13, 23,
+                              340, 70, 280, 281, 282, 283, 360, 71, 91};
+    for (std::size_t j = 0; j != vertices; ++j) { expected.push_back(14); expected.push_back(24); }
+    expected.push_back(290);
+    if (mask != nullptr) { expected.push_back(1001); expected.push_back(1000); }
+    return record.markers == std::vector<std::string>{mask != nullptr ? "AcDbWipeout" : "AcDbRasterImage"}
+        && record.codes == expected && record.classVersion == (mask != nullptr ? 0 : 6)
+        && record.boundaryType == (mask != nullptr ? mask->m_clipBoundaryType : 1)
+        && record.count == int(vertices) && record.clipMode == (mask != nullptr ? int(mask->clipMode) : 0);
+}
+
+bool verifyWipeoutPayload(const std::filesystem::path& path, bool binary) {
+    std::vector<RasterPayloadTags> records;
+    int definitions = 0;
+    if (!rasterPayloadTags(path, binary, records, definitions) || records.size() != 5 || definitions != 2)
+        return false; // Only the positive IMAGE control owns a definition/reactor.
+    const auto masks = wipeoutPayloadControls();
+    for (std::size_t i = 0; i != records.size(); ++i) {
+        if (!coherentRasterTags(records[i], i < masks.size() ? &masks[i] : nullptr)) return false;
+    }
+    dx_data data; dx_iface reader;
+    if (!reader.fileImport(path.string(), &data, false) || data.mBlock->ent.size() != 6) return false;
+    auto entity = data.mBlock->ent.begin();
+    for (const auto& expected : masks) {
+        const auto* mask = dynamic_cast<const DRW_Wipeout*>(*entity++);
+        if (mask == nullptr || !sameWipeoutPayload(*mask, expected)) return false;
+    }
+    const auto* image = dynamic_cast<const DRW_Image*>(*entity++);
+    const auto* suffix = dynamic_cast<const DRW_Line*>(*entity);
+    return image != nullptr && image->eType == DRW::IMAGE && suffix != nullptr
+        && suffix->eType == DRW::LINE && suffix->basePoint.x == 34 && suffix->secPoint.z == 39;
+}
+
+bool verifyWipeoutBlockPayload(const std::filesystem::path& path, bool binary) {
+    std::vector<RasterPayloadTags> records; int definitions = 0;
+    const auto masks = wipeoutPayloadControls();
+    if (!rasterPayloadTags(path, binary, records, definitions) || records.size() != 4 || definitions != 0) return false;
+    for (std::size_t i = 0; i != records.size(); ++i)
+        if (!coherentRasterTags(records[i], &masks[i])) return false;
+    dx_data data; dx_iface reader;
+    if (!reader.fileImport(path.string(), &data, false) || data.mBlock->ent.size() != 2 || !data.images.empty()) return false;
+    const auto block = std::find_if(data.blocks.begin(), data.blocks.end(), [](const auto* value) {
+        return value->name == "MaskBlock";
+    });
+    const auto record = std::find_if(data.blockRecords.begin(), data.blockRecords.end(), [](const auto& value) {
+        return value.name == "MaskBlock";
+    });
+    if (block == data.blocks.end() || record == data.blockRecords.end() || (*block)->ent.size() != 5) return false;
+    auto entity = (*block)->ent.begin();
+    for (const auto& expected : masks) {
+        const auto* mask = dynamic_cast<const DRW_Wipeout*>(*entity++);
+        if (mask == nullptr || !sameWipeoutPayload(*mask, expected) || mask->parentHandle != record->handle) return false;
+    }
+    const auto* inside = dynamic_cast<const DRW_Line*>(*entity);
+    const auto* outside = dynamic_cast<const DRW_Line*>(data.mBlock->ent.back());
+    return inside != nullptr && inside->basePoint.x == 34 && outside != nullptr && outside->basePoint.x == 44;
+}
+
+bool generateLegacyWipeoutPayload(const std::filesystem::path& path, bool binary, bool split) {
+    std::ofstream output(path, std::ios::binary);
+    if (!output) return false;
+    std::unique_ptr<dxfWriter> writer;
+    if (binary) {
+        output.write("AutoCAD Binary DXF\r\n\x1a\0", 22);
+        writer = std::make_unique<dxfWriterBinary>(&output);
+    } else writer = std::make_unique<dxfWriterAscii>(&output);
+    writer->setVersion("AC1024", true);
+    const auto text = [&writer](int code, const std::string& value) { writer->writeString(code, value); };
+    const auto integer = [&writer](int code, int value) { writer->writeInt16(code, value); };
+    const auto real = [&writer](int code, double value) { writer->writeDouble(code, value); };
+    const auto mask = wipeoutPayloadControls()[3];
+    text(0, "SECTION"); text(2, "HEADER"); text(9, "$ACADVER"); text(1, "AC1024"); text(0, "ENDSEC");
+    text(0, "SECTION"); text(2, "ENTITIES"); text(0, "WIPEOUT"); text(5, "C103");
+    text(100, "AcDbEntity"); text(8, "0");
+    text(102, "{MASK_METADATA"); text(100, "AcDbRasterImage");
+    text(1, "owned application data"); text(102, "}");
+    text(100, "AcDbRasterImage");
+    if (!split) writer->writeInt32(90, 0);
+    real(10, mask.basePoint.x); real(20, mask.basePoint.y); real(30, mask.basePoint.z);
+    real(11, mask.secPoint.x); real(21, mask.secPoint.y); real(31, mask.secPoint.z);
+    real(12, mask.vVector.x); real(22, mask.vVector.y); real(32, mask.vVector.z);
+    real(13, mask.sizeu); real(23, mask.sizev); text(340, "0"); integer(70, mask.m_displayProps);
+    integer(280, mask.clip); integer(281, mask.brightness); integer(282, mask.contrast);
+    integer(283, mask.fade); text(360, "0");
+    if (split) { text(100, "AcDbWipeout"); writer->writeInt32(90, 0); }
+    integer(71, mask.m_clipBoundaryType); writer->writeInt32(91, static_cast<std::int32_t>(mask.clipPath.size()));
+    for (const auto& point : mask.clipPath) { real(14, point.x); real(24, point.y); }
+    writer->writeBool(290, mask.clipMode); text(1001, "MASK_APP"); text(1000, "mask 3");
+    text(0, "LINE"); text(5, "C200"); text(100, "AcDbEntity"); text(8, "0"); text(100, "AcDbLine");
+    real(10, 34); real(20, 35); real(30, 36); real(11, 37); real(21, 38); real(31, 39);
+    text(0, "ENDSEC"); text(0, "EOF");
+    return !writer->hasWriteError() && output.good();
+}
+
+void testWipeoutSubclassPayload(TestContext& t) {
+    const int initialFailures = t.failures;
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    const auto directory = std::filesystem::temp_directory_path()
+        / ("libdxfrw-wipeout-payload-" + std::to_string(nonce));
+    std::filesystem::create_directory(directory);
+    for (const bool binary : {false, true}) {
+        const auto path = directory / "source.dxf";
+        t.expect(generateWipeoutPayload(path, binary), "generated WIPEOUT masking payload writes");
+        t.expect(verifyWipeoutPayload(path, binary),
+                 "WIPEOUT owns one ordered payload with rectangle/polygon/mode/XDATA and IMAGE unchanged");
+        auto input = path;
+        for (int pass = 0; pass != 2; ++pass) {
+            dx_data data; dx_iface converter;
+            const auto output = directory / ("repeat" + std::to_string(pass) + ".dxf");
+            t.expect(converter.fileImport(input.string(), &data, false)
+                         && converter.fileExport(output.string(), DRW::AC1024, binary, &data, false)
+                         && verifyWipeoutPayload(output, binary),
+                     "two WIPEOUT conversions retain literal scope and exact pixel-space masking payload");
+            input = output;
+        }
+        const auto blockInput = directory / "named block.dxf";
+        t.expect(generateWipeoutBlockPayload(blockInput, binary) && verifyWipeoutBlockPayload(blockInput, binary),
+                 "concrete WIPEOUT callback retains named BLOCK ownership outside the image-link list");
+        input = blockInput;
+        for (int pass = 0; pass != 2; ++pass) {
+            dx_data data; dx_iface converter;
+            const auto output = directory / ("block repeat" + std::to_string(pass) + ".dxf");
+            t.expect(converter.fileImport(input.string(), &data, false)
+                         && converter.fileExport(output.string(), DRW::AC1024, binary, &data, false)
+                         && verifyWipeoutBlockPayload(output, binary),
+                     "two actual adapter conversions retain BLOCK masks, raw scope, ownership and following LINE");
+            input = output;
+        }
+        for (const bool split : {false, true}) {
+            const auto legacy = directory / "legacy layout.dxf";
+            const auto canonical = directory / "canonical layout.dxf";
+            dx_data data; dx_iface converter;
+            t.expect(generateLegacyWipeoutPayload(legacy, binary, split)
+                         && converter.fileImport(legacy.string(), &data, false)
+                         && data.mBlock->ent.size() == 2,
+                     "documented RasterImage and old split WIPEOUT input remain readable in both encodings");
+            const auto* mask = data.mBlock->ent.empty() ? nullptr
+                : dynamic_cast<const DRW_Wipeout*>(data.mBlock->ent.front());
+            t.expect(mask != nullptr && sameWipeoutPayload(*mask, wipeoutPayloadControls()[3]),
+                     "old WIPEOUT layouts retain polygon/inversion and common application/XDATA payload");
+            std::vector<RasterPayloadTags> tags; int definitions = 0;
+            t.expect(converter.fileExport(canonical.string(), DRW::AC1024, binary, &data, false)
+                         && rasterPayloadTags(canonical, binary, tags, definitions) && tags.size() == 1
+                         && tags.front().markers == std::vector<std::string>{"AcDbWipeout"}
+                         && tags.front().count == 4 && tags.front().clipMode == 1 && definitions == 0,
+                     "old WIPEOUT layouts canonicalize to one complete marker without IMAGE objects");
+        }
+        for (const DRW::Version version : {DRW::AC1015, DRW::AC1018, DRW::AC1021, DRW::AC1024}) {
+            dx_data data; WipeoutPayloadWriter sink;
+            sink.withImage = false; sink.masks = {wipeoutPayloadControls()[1]};
+            sink.suffix.handle = 0xC200u;
+            sink.cData = &data; sink.currentBlock = data.mBlock;
+            const auto output = directory / "older target.dxf";
+            { std::ofstream seed(output, std::ios::binary); seed << "mask destination sentinel\n"; }
+            const std::string name = output.string(); dxfRW writer(name.c_str()); sink.dxfW = &writer;
+            t.expect(writer.reserveHandle(0xE200u), "WIPEOUT old-target control reserves persistent identity");
+            writer.setHandleRemap({{0xE100u, 0xE101u}});
+            const auto original = sink.masks.front();
+            const bool modern = version > DRW::AC1021;
+            t.expect(writer.write(&sink, version, binary) == modern && sink.accepted == modern
+                         && sink.suffixAccepted == modern,
+                     "inverted WIPEOUT explicitly rejects pre-R2010 output rather than omitting mode");
+            if (!modern) {
+                std::ifstream stream(output, std::ios::binary);
+                const auto* context = writer.getWritingContext();
+                t.expect(std::string(std::istreambuf_iterator<char>(stream), {}) == "mask destination sentinel\n"
+                             && sink.before == sink.after && sink.masks.front().handle == original.handle
+                             && sameWipeoutPayload(sink.masks.front(), original)
+                             && sink.suffix.handle == 0xC200u && context->sourceHandleToMintedMap.empty()
+                             && context->writtenSourceEntityHandles.empty() && writer.remapHandle(0xE100u) == 0xE101u,
+                         "older inverted WIPEOUT rejection preserves caller/allocator/maps/destination");
+                sink.masks.front().clipMode = false;
+                t.expect(writer.write(&sink, version, binary) && sink.accepted && sink.suffixAccepted,
+                         "same writer accepts corrected normal WIPEOUT on the older target");
+                std::vector<RasterPayloadTags> tags; int definitions = 0;
+                t.expect(rasterPayloadTags(output, binary, tags, definitions) && tags.size() == 1
+                             && tags.front().markers == std::vector<std::string>{"AcDbWipeout"}
+                             && tags.front().clipMode == -1 && definitions == 0,
+                         "older normal WIPEOUT keeps coherent payload without mode or IMAGEDEF synthesis");
+            }
+        }
+    }
+    if (t.failures == initialFailures) {
+        std::error_code error; std::filesystem::remove_all(directory, error);
+    } else std::cerr << "WIPEOUT evidence: " << directory << '\n';
+}
+
 void testSortEntsKeyRoles(TestContext& t) {
     class SortInterface final : public dx_iface {
     public:
@@ -5773,6 +6126,23 @@ void testDxfWriteAttemptFailure(TestContext& t) {
 } // namespace
 
 int main(int argc, char** argv) {
+    if (argc == 2 && std::string(argv[1]) == "--wipeout-subclass-payload") {
+        TestContext context; testWipeoutSubclassPayload(context);
+        return context.failures == 0 ? 0 : 1;
+    }
+    if (argc == 3 && (std::string(argv[1]) == "--generate-wipeout-payload"
+                     || std::string(argv[1]) == "--generate-wipeout-payload-binary"))
+        return generateWipeoutPayload(argv[2], std::string(argv[1]) == "--generate-wipeout-payload-binary") ? 0 : 1;
+    if (argc == 3 && (std::string(argv[1]) == "--generate-wipeout-block-payload"
+                     || std::string(argv[1]) == "--generate-wipeout-block-payload-binary"))
+        return generateWipeoutBlockPayload(argv[2], std::string(argv[1]) == "--generate-wipeout-block-payload-binary") ? 0 : 1;
+    if (argc == 3 && (std::string(argv[1]) == "--verify-wipeout-payload"
+                     || std::string(argv[1]) == "--verify-wipeout-block-payload")) {
+        std::ifstream stream(argv[2], std::ios::binary); char prefix[22]{}; stream.read(prefix, sizeof(prefix));
+        const bool binary = std::string(prefix, sizeof(prefix)) == std::string("AutoCAD Binary DXF\r\n\x1a\0", 22);
+        return (std::string(argv[1]) == "--verify-wipeout-block-payload"
+            ? verifyWipeoutBlockPayload(argv[2], binary) : verifyWipeoutPayload(argv[2], binary)) ? 0 : 1;
+    }
     if (argc == 2 && std::string(argv[1]) == "--image-adjustment-admission") {
         TestContext context;
         testImageAdjustmentAdmission(context);
@@ -5881,6 +6251,7 @@ int main(int argc, char** argv) {
         return 2;
     TestContext context;
     testImageAdjustmentAdmission(context);
+    testWipeoutSubclassPayload(context);
     testAsciiOnlySymbolCasing(context);
     testDxfConsumerFinalization(context);
     testInfiniteLineDirections(context);
