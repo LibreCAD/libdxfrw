@@ -369,9 +369,7 @@ public:
         writeRecipeSucceeded_ = true;
     }
     bool writeRecipeSucceeded() const { return writeRecipeSucceeded_; }
-#ifdef LIBDXFRW_SEMANTIC_3D_CONSUMER_PROBE
     void enable3DConsumerProbe() { threeDConsumerProbe_ = true; }
-#endif
 
     void addHeader(const DRW_Header*) override {
         addCallback("addHeader");
@@ -1032,163 +1030,7 @@ public:
     void collectDwgAppIds() override { addCallback("collectDwgAppIds"); }
     void writeBlocks() override { addCallback("writeBlocks"); }
     void writeBlockRecords() override { addCallback("writeBlockRecords"); }
-    void writeEntities() override {
-        addCallback("writeEntities");
-#ifdef LIBDXFRW_SEMANTIC_3D_CONSUMER_PROBE
-        if (threeDConsumerProbe_) {
-            if (dxfWriter_ == nullptr) {
-                writeRecipeSucceeded_ = false;
-                return;
-            }
-            bool wrote = true;
-            DRW_Circle defaultCircle;
-            defaultCircle.layer = "probe_circle_default";
-            defaultCircle.basePoint = DRW_Coord{6.0, -3.0, 1.5};
-            defaultCircle.radious = 2.5;
-            defaultCircle.thickness = 0.75;
-            wrote = dxfWriter_->writeCircle(&defaultCircle) && wrote;
-
-            DRW_Circle obliqueCircle;
-            obliqueCircle.layer = "probe_circle_oblique";
-            obliqueCircle.basePoint = DRW_Coord{2.0, 3.0, 5.0};
-            obliqueCircle.radious = 4.0;
-            obliqueCircle.thickness = 0.5;
-            obliqueCircle.extPoint = DRW_Coord{0.0, 1.0, 0.0};
-            wrote = dxfWriter_->writeCircle(&obliqueCircle) && wrote;
-
-            DRW_Arc negativeNormalArc;
-            negativeNormalArc.layer = "probe_arc_negative_normal";
-            negativeNormalArc.basePoint = DRW_Coord{2.0, 3.0, 4.0};
-            negativeNormalArc.radious = 7.0;
-            negativeNormalArc.thickness = 0.125;
-            negativeNormalArc.extPoint = DRW_Coord{0.0, 0.0, -1.0};
-            negativeNormalArc.staangle = 10.0 / ARAD;
-            negativeNormalArc.endangle = 70.0 / ARAD;
-            wrote = dxfWriter_->writeArc(&negativeNormalArc) && wrote;
-
-            DRW_Ellipse defaultEllipse;
-            defaultEllipse.layer = "probe_ellipse_default";
-            defaultEllipse.basePoint = DRW_Coord{1.0, 2.0, 3.0};
-            defaultEllipse.secPoint = DRW_Coord{5.0, 0.0, 0.0};
-            defaultEllipse.ratio = 0.5;
-            defaultEllipse.staparam = 0.0;
-            defaultEllipse.endparam = 2.0 * M_PI;
-            wrote = dxfWriter_->writeEllipse(&defaultEllipse) && wrote;
-
-            DRW_Ellipse tiltedEllipse;
-            tiltedEllipse.layer = "probe_ellipse_tilted_partial";
-            tiltedEllipse.basePoint = DRW_Coord{-2.0, 4.0, 6.0};
-            tiltedEllipse.secPoint = DRW_Coord{2.0, -1.0, 0.0};
-            tiltedEllipse.extPoint = DRW_Coord{1.0 / 3.0, 2.0 / 3.0,
-                                                2.0 / 3.0};
-            tiltedEllipse.ratio = 0.4;
-            tiltedEllipse.staparam = 0.25;
-            tiltedEllipse.endparam = 1.75;
-            wrote = dxfWriter_->writeEllipse(&tiltedEllipse) && wrote;
-
-            DRW_3Dface face;
-            face.basePoint = DRW_Coord{1.0, 2.0, 3.0};
-            face.secPoint = DRW_Coord{4.0, 5.0, 6.0};
-            face.thirdPoint = DRW_Coord{7.0, 8.0, 9.0};
-            face.fourPoint = DRW_Coord{10.0, 11.0, 12.0};
-            face.invisibleflag = DRW_3Dface::FirstEdge | DRW_3Dface::ThirdEdge;
-            wrote = dxfWriter_->write3dface(&face) && wrote;
-
-            DRW_Polyline polyline;
-            polyline.flags = 8;
-            polyline.vertexcount = 2;
-            polyline.addVertex(DRW_Vertex{13.0, 14.0, 15.0, 0.0});
-            polyline.addVertex(DRW_Vertex{16.0, 17.0, 18.0, 0.0});
-            for (const auto& vertex : polyline.vertlist)
-                vertex->flags = 32;
-            wrote = dxfWriter_->writePolyline(&polyline) && wrote;
-
-            DRW_Polyline polyface;
-            polyface.layer = "probe_pface";
-            polyface.flags = 64;
-            polyface.vertexcount = 4;
-            polyface.facecount = 1;
-            polyface.addVertex(DRW_Vertex{1.0, 2.0, 3.0, 0.0});
-            polyface.addVertex(DRW_Vertex{4.0, 5.0, 6.0, 0.0});
-            polyface.addVertex(DRW_Vertex{7.0, 8.0, 9.0, 0.0});
-            polyface.addVertex(DRW_Vertex{10.0, 11.0, 12.0, 0.0});
-            for (std::size_t i = 0; i < 4; ++i)
-                polyface.vertlist[i]->flags = 192;
-            DRW_Vertex faceRecord;
-            faceRecord.setDwgSubtype(DRW_Vertex::DwgSubtype::PolyfaceFace);
-            faceRecord.vindex1 = 1;
-            faceRecord.vindex2 = -2;
-            faceRecord.vindex3 = 3;
-            faceRecord.vindex4 = -4;
-            polyface.addVertex(faceRecord);
-            wrote = dxfWriter_->writePolyline(&polyface) && wrote;
-
-            DRW_Mesh mesh;
-            mesh.vertices = {DRW_Coord{20.0, 21.0, 22.0},
-                             DRW_Coord{23.0, 24.0, 25.0},
-                             DRW_Coord{26.0, 27.0, 28.0}};
-            mesh.faces = {{0, 1, 2}};
-            mesh.edges = {{0, 1}, {1, 2}};
-            mesh.creases = {0.25, 0.75};
-            wrote = dxfWriter_->writeMesh(&mesh) && wrote;
-
-            DRW_Insert insert;
-            insert.name = "PROBE_BLOCK";
-            insert.basePoint = DRW_Coord{30.0, 31.0, 32.0};
-            insert.extPoint = DRW_Coord{0.0, 1.0, 0.0};
-            insert.xscale = -2.0;
-            insert.yscale = 3.0;
-            insert.zscale = 4.0;
-            insert.angle = 0.5;
-            insert.colcount = 2;
-            insert.rowcount = 3;
-            insert.colspace = 7.0;
-            insert.rowspace = 8.0;
-            wrote = dxfWriter_->writeInsert(&insert) && wrote;
-
-            DRW_Spline spline;
-            spline.degree = 2;
-            spline.ncontrol = 3;
-            spline.knotslist = {0.0, 0.0, 0.0, 1.0, 1.0, 1.0};
-            spline.normalVec = DRW_Coord{0.0, 0.0, 1.0};
-            spline.controllist = {
-                std::make_shared<DRW_Coord>(40.0, 41.0, 42.0),
-                std::make_shared<DRW_Coord>(43.0, 44.0, 45.0),
-                std::make_shared<DRW_Coord>(46.0, 47.0, 48.0)};
-            wrote = dxfWriter_->writeSpline(&spline) && wrote;
-
-            DRW_LWPolyline ocsPolyline;
-            ocsPolyline.elevation = 5.0;
-            ocsPolyline.extPoint = DRW_Coord{0.0, 1.0, 0.0};
-            ocsPolyline.addVertex(DRW_Vertex2D{2.0, 3.0, 0.25});
-            ocsPolyline.addVertex(DRW_Vertex2D{4.0, 5.0, 0.0});
-            wrote = dxfWriter_->writeLWPolyline(&ocsPolyline) && wrote;
-
-            DRW_LoftedSurface lofted;
-            lofted.modelerFormatVersion = 1;
-            lofted.uIsolines = 10;
-            lofted.vIsolines = 11;
-            lofted.dxfReferenceData.emplace_back(90, std::int32_t{2});
-            lofted.dxfReferenceData.emplace_back(310,
-                std::vector<std::uint8_t>{0x12u, 0x34u, 0x56u});
-            wrote = dxfWriter_->writeSurface(&lofted) && wrote;
-            writeRecipeSucceeded_ = wrote && writeRecipeSucceeded_;
-            return;
-        }
-#endif
-        DRW_Line line;
-        line.layer = "0";
-        line.basePoint = DRW_Coord{1.0, 2.0, 3.0};
-        line.secPoint = DRW_Coord{4.0, 5.0, 6.0};
-        line.extPoint = DRW_Coord{0.0, 0.0, 1.0};
-        line.thickness = 0.25;
-        if (dxfWriter_ != nullptr)
-            writeRecipeSucceeded_ = dxfWriter_->writeLine(&line) && writeRecipeSucceeded_;
-        else if (dwgWriter_ != nullptr)
-            writeRecipeSucceeded_ = dwgWriter_->writeLine(&line) && writeRecipeSucceeded_;
-        else
-            writeRecipeSucceeded_ = false;
-    }
+    void writeEntities() override;
     void writeLTypes() override { addCallback("writeLTypes"); }
     void writeLayers() override { addCallback("writeLayers"); }
     void writeTextstyles() override { addCallback("writeTextstyles"); }
@@ -1903,10 +1745,166 @@ private:
     dxfRW* dxfWriter_ = nullptr;
     dwgRW* dwgWriter_ = nullptr;
     bool writeRecipeSucceeded_ = true;
-#ifdef LIBDXFRW_SEMANTIC_3D_CONSUMER_PROBE
     bool threeDConsumerProbe_ = false;
-#endif
 };
+
+void SemanticSink::writeEntities() {
+    addCallback("writeEntities");
+#ifdef LIBDXFRW_SEMANTIC_3D_CONSUMER_PROBE
+    if (threeDConsumerProbe_) {
+        if (dxfWriter_ == nullptr) {
+            writeRecipeSucceeded_ = false;
+            return;
+        }
+        bool wrote = true;
+        DRW_Circle defaultCircle;
+        defaultCircle.layer = "probe_circle_default";
+        defaultCircle.basePoint = DRW_Coord{6.0, -3.0, 1.5};
+        defaultCircle.radious = 2.5;
+        defaultCircle.thickness = 0.75;
+        wrote = dxfWriter_->writeCircle(&defaultCircle) && wrote;
+
+        DRW_Circle obliqueCircle;
+        obliqueCircle.layer = "probe_circle_oblique";
+        obliqueCircle.basePoint = DRW_Coord{2.0, 3.0, 5.0};
+        obliqueCircle.radious = 4.0;
+        obliqueCircle.thickness = 0.5;
+        obliqueCircle.extPoint = DRW_Coord{0.0, 1.0, 0.0};
+        wrote = dxfWriter_->writeCircle(&obliqueCircle) && wrote;
+
+        DRW_Arc negativeNormalArc;
+        negativeNormalArc.layer = "probe_arc_negative_normal";
+        negativeNormalArc.basePoint = DRW_Coord{2.0, 3.0, 4.0};
+        negativeNormalArc.radious = 7.0;
+        negativeNormalArc.thickness = 0.125;
+        negativeNormalArc.extPoint = DRW_Coord{0.0, 0.0, -1.0};
+        negativeNormalArc.staangle = 10.0 / ARAD;
+        negativeNormalArc.endangle = 70.0 / ARAD;
+        wrote = dxfWriter_->writeArc(&negativeNormalArc) && wrote;
+
+        DRW_Ellipse defaultEllipse;
+        defaultEllipse.layer = "probe_ellipse_default";
+        defaultEllipse.basePoint = DRW_Coord{1.0, 2.0, 3.0};
+        defaultEllipse.secPoint = DRW_Coord{5.0, 0.0, 0.0};
+        defaultEllipse.ratio = 0.5;
+        defaultEllipse.staparam = 0.0;
+        defaultEllipse.endparam = 2.0 * M_PI;
+        wrote = dxfWriter_->writeEllipse(&defaultEllipse) && wrote;
+
+        DRW_Ellipse tiltedEllipse;
+        tiltedEllipse.layer = "probe_ellipse_tilted_partial";
+        tiltedEllipse.basePoint = DRW_Coord{-2.0, 4.0, 6.0};
+        tiltedEllipse.secPoint = DRW_Coord{2.0, -1.0, 0.0};
+        tiltedEllipse.extPoint = DRW_Coord{1.0 / 3.0, 2.0 / 3.0,
+                                            2.0 / 3.0};
+        tiltedEllipse.ratio = 0.4;
+        tiltedEllipse.staparam = 0.25;
+        tiltedEllipse.endparam = 1.75;
+        wrote = dxfWriter_->writeEllipse(&tiltedEllipse) && wrote;
+
+        DRW_3Dface face;
+        face.basePoint = DRW_Coord{1.0, 2.0, 3.0};
+        face.secPoint = DRW_Coord{4.0, 5.0, 6.0};
+        face.thirdPoint = DRW_Coord{7.0, 8.0, 9.0};
+        face.fourPoint = DRW_Coord{10.0, 11.0, 12.0};
+        face.invisibleflag = DRW_3Dface::FirstEdge | DRW_3Dface::ThirdEdge;
+        wrote = dxfWriter_->write3dface(&face) && wrote;
+
+        DRW_Polyline polyline;
+        polyline.flags = 8;
+        polyline.vertexcount = 2;
+        polyline.addVertex(DRW_Vertex{13.0, 14.0, 15.0, 0.0});
+        polyline.addVertex(DRW_Vertex{16.0, 17.0, 18.0, 0.0});
+        for (const auto& vertex : polyline.vertlist)
+            vertex->flags = 32;
+        wrote = dxfWriter_->writePolyline(&polyline) && wrote;
+
+        DRW_Polyline polyface;
+        polyface.layer = "probe_pface";
+        polyface.flags = 64;
+        polyface.vertexcount = 4;
+        polyface.facecount = 1;
+        polyface.addVertex(DRW_Vertex{1.0, 2.0, 3.0, 0.0});
+        polyface.addVertex(DRW_Vertex{4.0, 5.0, 6.0, 0.0});
+        polyface.addVertex(DRW_Vertex{7.0, 8.0, 9.0, 0.0});
+        polyface.addVertex(DRW_Vertex{10.0, 11.0, 12.0, 0.0});
+        for (std::size_t i = 0; i < 4; ++i)
+            polyface.vertlist[i]->flags = 192;
+        DRW_Vertex faceRecord;
+        faceRecord.setDwgSubtype(DRW_Vertex::DwgSubtype::PolyfaceFace);
+        faceRecord.vindex1 = 1;
+        faceRecord.vindex2 = -2;
+        faceRecord.vindex3 = 3;
+        faceRecord.vindex4 = -4;
+        polyface.addVertex(faceRecord);
+        wrote = dxfWriter_->writePolyline(&polyface) && wrote;
+
+        DRW_Mesh mesh;
+        mesh.vertices = {DRW_Coord{20.0, 21.0, 22.0},
+                         DRW_Coord{23.0, 24.0, 25.0},
+                         DRW_Coord{26.0, 27.0, 28.0}};
+        mesh.faces = {{0, 1, 2}};
+        mesh.edges = {{0, 1}, {1, 2}};
+        mesh.creases = {0.25, 0.75};
+        wrote = dxfWriter_->writeMesh(&mesh) && wrote;
+
+        DRW_Insert insert;
+        insert.name = "PROBE_BLOCK";
+        insert.basePoint = DRW_Coord{30.0, 31.0, 32.0};
+        insert.extPoint = DRW_Coord{0.0, 1.0, 0.0};
+        insert.xscale = -2.0;
+        insert.yscale = 3.0;
+        insert.zscale = 4.0;
+        insert.angle = 0.5;
+        insert.colcount = 2;
+        insert.rowcount = 3;
+        insert.colspace = 7.0;
+        insert.rowspace = 8.0;
+        wrote = dxfWriter_->writeInsert(&insert) && wrote;
+
+        DRW_Spline spline;
+        spline.degree = 2;
+        spline.ncontrol = 3;
+        spline.knotslist = {0.0, 0.0, 0.0, 1.0, 1.0, 1.0};
+        spline.normalVec = DRW_Coord{0.0, 0.0, 1.0};
+        spline.controllist = {
+            std::make_shared<DRW_Coord>(40.0, 41.0, 42.0),
+            std::make_shared<DRW_Coord>(43.0, 44.0, 45.0),
+            std::make_shared<DRW_Coord>(46.0, 47.0, 48.0)};
+        wrote = dxfWriter_->writeSpline(&spline) && wrote;
+
+        DRW_LWPolyline ocsPolyline;
+        ocsPolyline.elevation = 5.0;
+        ocsPolyline.extPoint = DRW_Coord{0.0, 1.0, 0.0};
+        ocsPolyline.addVertex(DRW_Vertex2D{2.0, 3.0, 0.25});
+        ocsPolyline.addVertex(DRW_Vertex2D{4.0, 5.0, 0.0});
+        wrote = dxfWriter_->writeLWPolyline(&ocsPolyline) && wrote;
+
+        DRW_LoftedSurface lofted;
+        lofted.modelerFormatVersion = 1;
+        lofted.uIsolines = 10;
+        lofted.vIsolines = 11;
+        lofted.dxfReferenceData.emplace_back(90, std::int32_t{2});
+        lofted.dxfReferenceData.emplace_back(310,
+            std::vector<std::uint8_t>{0x12u, 0x34u, 0x56u});
+        wrote = dxfWriter_->writeSurface(&lofted) && wrote;
+        writeRecipeSucceeded_ = wrote && writeRecipeSucceeded_;
+        return;
+    }
+#endif
+    DRW_Line line;
+    line.layer = "0";
+    line.basePoint = DRW_Coord{1.0, 2.0, 3.0};
+    line.secPoint = DRW_Coord{4.0, 5.0, 6.0};
+    line.extPoint = DRW_Coord{0.0, 0.0, 1.0};
+    line.thickness = 0.25;
+    if (dxfWriter_ != nullptr)
+        writeRecipeSucceeded_ = dxfWriter_->writeLine(&line) && writeRecipeSucceeded_;
+    else if (dwgWriter_ != nullptr)
+        writeRecipeSucceeded_ = dwgWriter_->writeLine(&line) && writeRecipeSucceeded_;
+    else
+        writeRecipeSucceeded_ = false;
+}
 
 struct Options {
     std::string input;
@@ -2391,7 +2389,6 @@ void emitResult(std::ostream& out, const Options& options, const InputInfo& inpu
         << ",\"diagnosticCount\":" << sink.diagnostics.size() << "}}\n";
 }
 
-#ifdef LIBDXFRW_SEMANTIC_3D_CONSUMER_PROBE
 const Field* findEntityField(const SemanticSink& sink, const std::string& entity,
                              const std::string& name) {
     for (const RecordRow& record : sink.records) {
@@ -2405,6 +2402,13 @@ const Field* findEntityField(const SemanticSink& sink, const std::string& entity
     return nullptr;
 }
 
+bool fieldEquals(const SemanticSink& sink, const std::string& entity,
+                 const std::string& name, const std::string& expected) {
+    const Field* field = findEntityField(sink, entity, name);
+    return field != nullptr && field->value == expected;
+}
+
+#ifdef LIBDXFRW_SEMANTIC_3D_CONSUMER_PROBE
 const RecordRow* findEntityRecordByLayer(const SemanticSink& sink,
                                          const std::string& entity,
                                          const std::string& layer) {
@@ -2452,12 +2456,6 @@ bool doubleFieldEqualsForLayer(const SemanticSink& sink,
     } catch (const std::exception&) {
         return false;
     }
-}
-
-bool fieldEquals(const SemanticSink& sink, const std::string& entity,
-                 const std::string& name, const std::string& expected) {
-    const Field* field = findEntityField(sink, entity, name);
-    return field != nullptr && field->value == expected;
 }
 
 bool run3DConsumerProbe(bool binary) {

@@ -2470,6 +2470,29 @@ def _self_test_standalone_build(
 
 
 def self_test(git_program: str, cmake_program: str) -> None:
+    # Exercise the actual source, not only the synthetic one-callback fixture.
+    # This slice preserves the frozen common170 surface; the two additive
+    # standalone callbacks need a separately versioned inventory contract.
+    real_methods = _adapter_override_methods(DEFAULT_ADAPTER)
+    common_identity = {"schema": 1, "methods": real_methods}
+    if len(real_methods) != 170 or _canonical_digest(common_identity) != (
+        "894c58db480ef3f5c7e25a9066ca9a178ecf5e41137a9e709a1144f340faba7a"
+    ):
+        raise BuildError("real semantic adapter common170 inventory changed")
+    try:
+        _verify_interface_contract(
+            REPOSITORY_ROOT / "src/drw_interface.h", DEFAULT_ADAPTER,
+        )
+    except BuildError as exc:
+        expected = (
+            "semantic adapter does not cover the complete DRW_Interface callback "
+            "surface (missing=['addBlockRecord', 'finalizeDxfWrite'], extra=[])"
+        )
+        if str(exc) != expected:
+            raise BuildError("real adapter has an unexpected interface gap") from exc
+    else:
+        raise BuildError("real adapter additive inventory gap changed unexpectedly")
+
     with tempfile.TemporaryDirectory(prefix="semantic-adapter-self-test-") as directory:
         root = Path(directory)
         git_dir, commit, _, adapter = _self_test_repository(root, git_program)
