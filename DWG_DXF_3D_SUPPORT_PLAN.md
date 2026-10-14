@@ -8,15 +8,30 @@ nonvirtual source-compatibility gap: current LibreCAD requires
 `DRW::DxfTextEncoding`/`dxfRW::setDxfTextEncoding`, absent standalone. A tiny
 strict compile reproduces the missing names; the LC3 callback mirror cannot
 cover that API. Add the explicit input-only recovery contract and its fast
-gate without changing default decoding, export encoding or2D projection.
+gate while retaining Declared as the default mode, independently repairing
+declared-codepage decoding/HEADER authority; export encoding and2D projection
+are not recovery switches. The reviewed isolated2f7cc65 chain includes those
+separate prerequisites, exact typed/raw XDATA/APPID assertions and the current
+facade compile, but still needs serial main integration/composed MIF gates.
 BLOCK callback and narrow WIPEOUT payload/CLI preservation are integrated;
-a composed current-source safety checkpoint is pending.
-narrow MIF literal/exact-hex preservation is integrated with fresh main fast
+the clean bc8f45f composed ASan cohort passes4/4 at its focused scope, not
+native/semantic/ABI qualification or a future-source guarantee.
+Narrow MIF literal/exact-hex preservation is integrated with fresh main fast
 checks recorded in the parity ledger. Current FreeCAD preference/
 post-processing source calibrations refine future native packets, not earlier
 pinned runtime results. All six external J items remain DEFERRED_EXTERNAL and
 cannot promote support claims. The detailed research and integration order
 remain in [the parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md).
+
+**Broader resource and oracle readiness:** parity7S.3 now inventories optional
+in-library SAB token/model-copy/output storage and aggregate shared-graph work,
+with eight tiny source-bound component controls and separate admission/work/
+retry substeps. Raw payload ceilings are not decoded-memory or kernel limits.
+Preserve cached lazy-failure/no-throw/2D behavior deliberately. Parity7AH/7AQ
+also calibrates peer MINSERT multiplicity, nonzero block-base placement,
+near-polar bases and rotated bounds; uncalibrated derived peer projections
+cannot qualify3D geometry. These refinements require small local counters/
+analytic controls, not native evidence before safe local implementation.
 
 **Local DXF transport regression (2026-09-28; S2.3.9.4.24):** added a
 runtime-generated AC1027 ASCII and binary REGION-without-history
@@ -555,6 +570,38 @@ and pin the ACadrust save-version mapping/terminator behavior in an isolated
 Rust-enabled generator, validate its 21800 output with ODA and a second
 independent reader, then obtain the separate AutoCAD/authorized external
 measurement packet only if the ASM-230 contract remains unresolved.
+
+**Generator and independence successor review (2026-10-14):** keep the
+0.5.5 observations above historical. Pinned
+[acadrust0.6.4 writer](https://github.com/hakanaktt/acadrust/blob/8d5c46d423941ad96575760bf77979f8c46156fb/src/entities/acis/sab.rs#L108-L163)
+now selects the ASM terminator for numeric save version21800 or greater;
+the old unconditional-marker blocker is not current. Its
+[V21_0 mapping](https://github.com/hakanaktt/acadrust/blob/8d5c46d423941ad96575760bf77979f8c46156fb/src/entities/acis/types.rs#L55-L71)
+still yields2100. Preflight literal21800 from from_sat_number(21800), record
+all three encoded header doubles, and include V21_0 as a negative control
+before any generator execution. Self-roundtrip tests/reference-application
+comments are not native producer receipts or unit truth.
+
+Separately, [cq-acis0.3.11's source-free BoxSpec](https://github.com/monozukuri-ai/cq-acis/blob/c460afe89ab66820536220bc4e3e9805c3fb5e43/crates/acis-core/README.md#experimental-source-free-sab-authoring)
+is an optional asymmetric translated-box calibration, explicitly experimental
+ASM23200/width4/scale10 with86 active entities. It is not the ACIS218/ASM230
+witness and must not silently broaden the current checker. Prefer recorded
+analytic dimensions/minimum corner over same-CadQuery roundtrip; inspect
+original bytes/profile, independently expected placement/volume and unsupported
+outcomes before geometry. No runtime/install/generator execution occurred.
+
+[cq-acis's pinned notices](https://github.com/monozukuri-ai/cq-acis/blob/c460afe89ab66820536220bc4e3e9805c3fb5e43/THIRD_PARTY_NOTICES.md)
+identify consulted cadmpeg Rust/grammar and ezdxf grammar/fixtures; the notice
+blob is unchanged from0.3.8. Keep producer, parser-code implementation,
+consulted grammar/reference and geometry-kernel lineage as separate evidence
+edges. Distinct binaries are not uncorrelated format assumptions; shared OCCT
+does not supply a second kernel. Original-hash observations remain valid at
+their scope, but agreement cannot replace producer-native dimensions/units.
+cadmpeg0.6.1's documented binary-centimetre rule is its pinned dialect claim,
+not a newly executed result or normative embedded-AutoCAD contract. Report
+`/private/tmp/libdxfrw-external-unblock-20261014.udGP7J/research-report.json`,
+SHA256`bdd4c9747dfbd2017f0226545d94971f3058304d6b11a92008c4b174482f7807`,
+binds primary blobs, readiness steps and explicit unqualified boundaries.
 
 **Native-platform unblock research (2026-09-27; S8.9.5):** the plan's native-CI
 option is immediately actionable on the existing project workflow matrix:
@@ -3659,7 +3706,7 @@ sample cannot promote a semantic read/write claim.
 ### S8 — Preserve 2D consumers and enable 3D-aware consumers
 
 State: ongoing consumer-enablement lane. PAR-118's specific queued BLOCK
-callback correction is integrated; composed safety validation remains pending.
+callback correction is integrated; focused composed safety passes at bc8f45f.
 It is independent of GUI/rendering
 work and can proceed for generated DXF vectors while versioned DWG evidence is
 blocked. No support claim is promoted by the adapter alone.
@@ -3711,8 +3758,16 @@ Steps:
    block/DXF/hardening3/3 pass2.99s. Fresh source-bound main report
    `/private/tmp/libdxfrw-main-preservation.vlmZ5v/block-main-report.json`, SHA256
    `d051b2ca3296e6199afa5e1fe79e3a6f2b737add867c14ed20fd2d602f4ab3c2`,
-   records four actual CLI conversions at the same empty-shell scope. One
-   composed current-source sanitizer checkpoint remains after7BC.
+   records four actual CLI conversions at the same empty-shell scope. The clean
+   tracked bc8f45f MIF/BLOCK/WIPEOUT checkpoint now instruments36 production
+   TUs with C++17/Werror/ASan/frame pointers and passes exact GBK/hardening/DXF/
+   BLOCK4/4 in5.60s, retaining84 default registrations. Report
+   `/private/tmp/libdxfrw-preservation-asan.0rZGDJ/report.json`, SHA256
+   `e530588b4cc4072671e8c70dcd65ba58e19a310654cdc11609129503f47fe84a`,
+   binds source/artifacts/runtime and exact JUnit outcomes. Stack-use-after-
+   return is enabled; leak detection is explicitly off. This is not the full
+   suite, native CAD, B-rep/ACDS semantics or ABI qualification, and does not
+   bind later encoding/dictionary integrations. Historical reports stay intact.
 
 2. **S8.2 — Existing 2D source-compatibility gate (required after each API
    slice).** Compile the locked `lc3_compat_check` consumer and representative
@@ -4336,6 +4391,13 @@ is verified using the actual installed artifact, not a build-tree executable.
       insertion and no unsupported LINE report. Successful child execution
       from FreeCAD also proves that the installed artifact's runtime
       dependencies resolve in this profile.
+      Tighten the current macro before a new packet: its Part::Feature/bounds
+      check does not establish valid straight-edge topology, and nonfinite
+      values can evade `abs(a-e) >= tolerance`. Require exactly one valid
+      straight edge/two finite expected endpoints per authored LINE, exact
+      final feature/count coverage and finite-only PASS JSON. Cheap mocked
+      NaN/same-bounds-wrong-topology negatives calibrate the predicate; only
+      the subsequent pinned native run qualifies this consumer tuple.
    4. Keep the check optional and run it only for a new installed-artifact
       profile or changes to packaging, CLI, discovery, or converter/importer
       handoff. The dependency-free exact-argv/readback CTest remains the fast
@@ -4343,6 +4405,12 @@ is verified using the actual installed artifact, not a build-tree executable.
       mode, operation, installed binary hash, and result. A pass qualifies
       only that tuple and one generated AC1015 LINE; it does not close
       S8.9.5's Linux/Windows gates or promote other DWG families/versions.
+      Before Linux dispatch, explicitly map TMPDIR to the runner-owned
+      temporary directory: the installed-line wrapper requires TMPDIR/TEMP,
+      while the workflow currently supplies only RUNNER_TEMP. Locally test
+      unset/invalid/explicit mappings; absence is a readiness gap, not an
+      executed hosted failure. Preserve1.1.3's frozen release/revision/hash;
+      any newer FreeCAD release needs a separately pinned successor tuple.
 
    Negative gate: build-tree binary, same-named competing PATH binary,
    fallback conversion, nonzero status, missing/mismatched handoff, wrong

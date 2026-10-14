@@ -2,12 +2,14 @@
 
 **Status:**118 findings tracked across67 top-level implementation subplans.
 PAR-118's BLOCK callback/subtype correction is integrated under7AG.3a, with
-the composed safety checkpoint pending. MIF decoding and peer graph
+the focused composed safety checkpoint passing at bc8f45f. MIF decoding and peer graph
 calibrations refine existing findings rather than add more IDs.
 The latest consumer audit also finds a nonvirtual text-encoding API required
 by current LibreCAD but missing standalone;7AG.1b/Slice3 owns that compile
 gap. Narrow MIF literal/exact-hex, BLOCK callback and WIPEOUT payload/CLI
-preservation are integrated; their combined sanitizer checkpoint is pending. Gates and
+preservation are integrated; their clean-checkout ASan cohort passes4/4.
+Reviewed isolated encoding/API and dictionary-admission successors still need
+serial main integration and their affected fast gates. Gates and
 original evidence bindings are recorded below.
 7F.1a observations,7A.2 sort/carrier roles,7AE.1 ASCII-safe bytes,7AV.5
 finalization, corrected7S.1 acquisition and7AG.1a preflight are integrated.
@@ -28,7 +30,16 @@ reader/package work does not wait for external qualification.
 
 **Research snapshot:** 2026-10-14
 
-**Latest research boundary:** `dfcfceb48d6b3243a02d4edf82b0118f9eaf0725`
+**Latest research boundary:** `bc8f45f69a692c2e14b094c19b7fb3a68fc8ded9`
+(2026-10-14). Tracked worktree/index were clean at entry. This pass updates
+only the two plans; source-created scratch controls and isolated candidates
+are not main implementation. Live upstream master remains d68fb1e. It records
+the completed focused composed ASan checkpoint, refines existing owners rather
+than adds finding IDs, and makes ready handoff dependencies/current-source
+gates explicit. User-owned untracked files, fixture admission, registrations,
+frozen receipts/support metadata and remote state remain unchanged.
+
+**Previous research boundary:** `dfcfceb48d6b3243a02d4edf82b0118f9eaf0725`
 (2026-10-14; plan update committed as970fef0). That pass changed plans only.
 Upstream master was rechecked at unchanged `d68fb1e`. At entry, the pre-existing
 staged MIF candidate changed only
@@ -231,6 +242,8 @@ Its historical binary diff SHA-256 is
 | Slice3 /7AR.1 MIF preservation | COMMITTED / MIF_ONLY | `Plan-Slice:3.MIF/7AR.1`, integrates independently reviewed8a82d7bb→f4d2cb44 on970fef0. Exact eight-byte/four-ASCII-hex admission preserves malformed tokens, and unavailable Johab selector4 stays literal instead of CP1252 substitution. Source/archive/CLI/GBK hashes remain identical to reportd232fbb9; fresh strict codec/fixture TUs and exact GBK/DXF2/2 pass2.85s, affected/lc3/CLI build has no work.128 codec rows/eight corrected physical chunk assertions/eight repeated model handoffs are retained. No new decoder/API/registration/payload/receipt or semantic-support promotion. Complete codepages, CIF syntax/idempotence and7AG.1b remain open; next reviewed BLOCK then WIPEOUT and one composed safety checkpoint. |
 | 7AG.3a queued BLOCK callbacks | COMMITTED / COMPOSED_SAFETY_PENDING | `Plan-Slice:7AG.3a`, integrates root/two-independently reviewedc89aa592 on878d00e, retaining7BI/MIF. Six dynamic_cast-checked concrete surface copies and four missing typed events preserve subtype metadata/owned arrays and typed/raw order; post-addBlock cleanup balances once while preserving primary exceptions. Main strict production/block TUs and affected/lc3/CLI build pass; exact block/DXF/hardening3/3 pass2.99s with104 read operations. Fresh reportd051b2ca binds four actual CLI conversions and unchanged source/artifacts, scoped to six supported empty surface shells/two LINEs; no B-rep/full binary-carrier or TOLERANCE/CAMERA converter-storage claim. Footer/map allocation throw paths remain source-reviewed, not fault-injected. No public API/registration/payload/receipt or support promotion. Next7BC integration and one composed current-source sanitizer checkpoint;7AG.1b/capability/typed-result gates stay open. |
 | 7BC WIPEOUT payload and CLI retention | COMMITTED / COMPOSED_SAFETY_PENDING | `Plan-Slice:7BC`, integrates reviewed patchcafe011e on e9fe7f6. Single ordered AcDbWipeout payload and minimal owned capture/dispatch preserve rectangles/polygons/inversion/metadata/named-BLOCK ownership, with7BI/IMAGE/BLOCK/MIF retained. Older inversion rejects before mutation through AC1021; declared class/minimum-version policy remains separate. Main strict three TUs and affected/lc3/CLI build pass; exact block/DXF/hardening/local4/4 pass4.70s. Fresh report5c807f4c binds eight actual CLI handoffs and12 pre-audit ezdxf file cases, each four exact masks/audits0/0. No new registration/drawing fixture/dependency/receipt or support promotion; normative marker, arbitrary open-polygon and native masking remain unqualified. Next one clean current-source ASan checkpoint, then ready7BE and canonical encoding/current consumer API work; dictionary admission proceeds independently. |
+| MIF/BLOCK/WIPEOUT composed safety | VERIFIED / FOCUSED_ASAN | Clean tracked bc8f45f checkout,36 production TUs instrumented with C++17/Werror/ASan/frame pointers. Exact GBK/hardening/DXF/BLOCK cohort passes4/4, CTest5.60s;84 default inventory unchanged. Report `/private/tmp/libdxfrw-preservation-asan.0rZGDJ/report.json` SHA256`e530588b4cc4072671e8c70dcd65ba58e19a310654cdc11609129503f47fe84a` binds source/archive/four executables/CLI/runtime and exact JUnit names/statuses. Stack-use-after-return enabled; leak detection explicitly off. Inventory-capture, macOS @rpath and summary-string harness corrections are recorded; no parser failure or suppressed warning. No full84 suite/native CAD/B-rep/ABI/receipt or support promotion. This closes the preceding pending focused safety gate only at bc8f45f, not future source changes. |
+| Current-source readiness research | PLAN_UPDATED / NONPROMOTING | At bc8f45f, records reviewed isolated7AL.2→7L.5→accepted-version CLI→7AG.1b chain and narrow7P.5c admission handoff without integrating them. Extends existing geometry, decoded-modeler budget, qualification-number and external evidence subplans. Exact-count/order/APPID assertions replace a vacuous XDATA preservation test in the isolated chain.118 findings/67 subplans,84/45/exact7 inventories and all six deferred J dispositions remain unchanged. |
 
 Each implementation commit appends its focused validation result and remaining
 evidence impact here. All other slices remain queued; the full objective stays
@@ -2025,6 +2038,27 @@ The single current-source sanitizer checkpoint follows
 their serial shared-writer integration; historical sanitizer results remain
 historical. All six external J items stay DEFERRED_EXTERNAL/non-promoting.
 
+### Broader resource and oracle readiness at bc8f45f
+
+The118 findings/67 implementation owners remain unchanged. The new research
+narrows four existing boundaries rather than creates another prerequisite
+framework: optional SAB decoded owners/revisit work7S.3; peer INSERT/MINSERT
+projection capability7AH/7AQ; qualification JSON/tolerance admission7AH.3;
+and generator lineage/nondefault source sensitivity/native packets Slice8/9.
+Each owning section specifies a tiny discriminating positive/negative and the
+next implementable step. Peer source inferences stay distinct from eight
+executed SAB components and root's qualification-loader/predicate controls.
+
+Ready e97769fe dictionary admission and2f7cc65 codec/HEADER/current-API
+handoffs remain isolated; current-source integration gates are mandatory,
+not a reason to repeat full suites or native CAD per scalar edit. The completed
+bc8f45f ASan4/4 checkpoint is recorded separately from future source changes.
+Upstream master remains d68fb1e, and the native FreeCAD workflow run-list API
+again returns total_count0. No hosted dispatch, parser/kernel installation,
+downloaded drawing admission, main production edit or support promotion is
+part of this plan-only update; six historical external J dispositions stay
+DEFERRED_EXTERNAL.
+
 ## Historical baseline corrections and checks
 
 - The current build requests **C++17** (`CMakeLists.txt:49,73`), while the
@@ -2392,7 +2426,7 @@ revision unless a live-upstream correction is named explicitly.
 | **PAR-91** | P2 | Reproduced package acceptance gap: `check_staged_package.py:180–210` never requests static dependency closure. A scratch copy of pending7AX's actual static install with broken `Libs.private` passes its full checker, while explicit `--static` compile/link fails. Archive symbol inspection and `-ldxfrw` link selection can also diverge in a mixed prefix (source-only). | Add7AK.5 plain/override static dependency checks, actual archive binding and a missing-private-library negative; retain shared/moved-prefix routes. Do not call valid empty macOS flags a defect or claim native Linux/Windows/Conan qualification. |
 | **PAR-92** | P1 | Source-confirmed compound work gap: POLYLINE staging scans declared/staged children (`dwgreader.cpp:4787–4827`), orphan adoption counts each handle over the declared list (`4440–4452`), and commit repeatedly searches staged/ordered arrays (`4940–4954`). Child-first `reserve(size+1)` additionally grows per child in the tested libc++; parent-first pre-reservation is counterevidence. | Implement7BA bounded child membership/order/conflict indexes and amortized orphan growth, separately from residual7AW. Preserve source order, duplicates, parent ownership, frame leases/terminalization and allocation rollback; measure work counts/allocations with small controls, not blanket wall-time claims. |
 | **PAR-93** | P1 | Executed R14 dimension-variable migration loss: DIMUNIT6/DIMFIT4 convert to R2000 HEADER6/0/3/0 and named DIMSTYLE2/0/3/0, rather than documented DIMLUNIT/DIMFRAC/DIMATFIT/DIMTMOVE4/2/3/1. Both source encodings exit0/ordinary output audits0/0. Header renaming alone and independent default fields do not implement the split-variable mapping. | Implement7BB shared explicit versioned mapping/presence policy for HEADER and DIMSTYLE, including inverse representability and modern/legacy conflicts. Extend7L.5 alias finalization without treating renaming as conversion. No DWG byte-layout or native dimension-rendering claim. |
-| **PAR-94** | P1 | Historical WIPEOUT losses: split writer scopes made ordinary ezdxf project a default rectangle/mode0; dfcfceb CLI separately dropped all masks.7BC now integrates coherent output/minimal owned CLI capture/dispatch with focused main evidence. Peer acceptance still cannot settle the documented marker disagreement. | Preserve7BC/IMAGE/7BI, legacy input, named-BLOCK ownership and explicit older-target inversion rejection. Main4/4/eight CLI handoffs/12 pre-audit file cases pass; one composed safety checkpoint remains. ACadSharp omits290 and is not an inversion oracle. No arbitrary polygon/native mask/rendering claim. |
+| **PAR-94** | P1 | Historical WIPEOUT losses: split writer scopes made ordinary ezdxf project a default rectangle/mode0; dfcfceb CLI separately dropped all masks.7BC now integrates coherent output/minimal owned CLI capture/dispatch with focused main evidence. Peer acceptance still cannot settle the documented marker disagreement. | Preserve7BC/IMAGE/7BI, legacy input, named-BLOCK ownership and explicit older-target inversion rejection. Main4/4/eight CLI handoffs/12 pre-audit file cases and clean bc8 composed ASan4/4 pass. ACadSharp omits290 and is not an inversion oracle. No arbitrary polygon/native mask/rendering claim. |
 | **PAR-95** | P1 | Executed DWG/DXF oblique-unit mismatch: independently authored AC1015 TEXT/ATTRIB/ATTDEF bodies withπ/6 decode to public0.523598 instead30, while rotationπ/4 correctly becomes45. Actual generated TEXT/STYLE wireπ/6/π/12 is independently read as radians by installed LibreDWG0.14, but main ASCII/binary conversion/repeat emits0.523598/0.261799 degrees with audits0/0. Converse public0.5/0.25degrees writes those raw radians. | Implement7BD public degree semantics at DWG boundaries: convert both text read paths, shared attribute body, all corresponding encoders and STYLE. Preserve the existing DXF/LibreCAD degree contract. Mirrored self-round-trip success masks the writer error; no global angle rewrite or consumer API migration. |
 | **PAR-96** | P1 | Executed full AC1015 HEADER integrity/length gap: reader15 accepts CRC flip/zero, ending-sentinel mutations, RL0/290 and RL0xffffffff with174 variables/zero diagnostics; valid RL291/CRC52484 is separately recomputed with the existing helper. Beginning-sentinel mutation, truncation and RL292 already reject. drw_header.cpp2569 computes size+16+4 in32 bits, wrapping UINT_MAX to19; CRC/end bytes are only traced. No OOB/crash is claimed. | Implement7BE checked declared body/trailer ranges before parsing, bounded shared trailer validation, checksum warnings and structural size/sentinel rejection without HEADER publication. Retain the compact body-only API exception. Verify each modern decoded-section/MV boundary before extending strict checks; HEADER-variable CRC is distinct from file/page/CLASSES CRCs. |
 | **PAR-97** | P2 | Executed package request-contract gap: actual staged2.0.0 CONFIG/MODULE discovery both accept REQUIRED COMPONENTS nonexistent_libdxfrw_component. MODULE also accepts99.0 and99.0EXACT with no version, while CONFIG rejects99.0. FindLibdxfrw lacks VERSION_VAR/HANDLE_COMPONENTS; Config lacks required-component checks; checker strips MODULE requests. | Implement7AK.6 componentless-package semantics and explicit MODULE version policy. Reject unknown required components, retain unknown optional-component/unversioned use; align declared version compatibility without silently replacing SameMajorVersion with minimum-only comparison. Extend configure-only package negatives, not format suites or support claims. |
@@ -2447,9 +2481,11 @@ shared composed acceptance. Do not reintegrate older partial fixes or repeat
 its format-independent checkpoint for every field edit.
 Integrate STYLE9c3a74c7 only after reconciling
 its new derived resource map with7AV cleanup; preserve caller registration
-inputs. Review canonical7AL.2 `302ce6a7` and BLOCK98176504 independently;
-HEADER-order/alias `e90b9f57` follows canonical7AL.2; LAYER policy remains
-separate WIP. The HEADER commit is isolated, not a main integration result.
+inputs. The reviewed canonical7AL.2/HEADER7L.5/current-LibreCAD chain is now
+frozen as2f7cc65; integrate its separate prerequisite commits serially,
+preserving current MIF controls. The original302ce6a7/e90b9f57 reports remain
+historical, not main integration results. Review specialized BLOCK98176504
+independently; LAYER policy remains separate WIP.
 
 Committed fast-CI refresh composes`d9cd48ea` with the committed ARC/LEADER/debug/
 CLI/header additions:45 fast IDs. The clean d7174d1 inventory is84,24 added/
@@ -2480,7 +2516,7 @@ Share one additive-footer design review between7AM.2 ENDBLK and7AS.2 SEQEND;
 implement separately so legacy callback/public state behavior stays testable.
 Then extend7G.2 STYLE resources to VIEWPORT/IMAGEDEF7P.5b and7G.3 full roots.
 7AL→7K→7J,7M/7E,7Q,7AA.1/2,7O.2/3 and7G.3→7R retain their own small gates.
-Place narrow7BC WIPEOUT scope in the next field batch;7BD is now integrated
+Preserve the integrated narrow7BC WIPEOUT scope;7BD is also integrated
 with literal and independent field evidence. Neither waits for whole-graph
 closure or new native tooling.7BE checked HEADER
 size/legacy integrity is a separate reader batch with modern strict checks
@@ -2547,6 +2583,15 @@ the preserved resource queue with affected-target gates. One failing
 external/platform gate does not block these steps. Keep historical receipts
 immutable and refresh current bindings at a stable checkpoint.
 
+At bc8f45f the preservation checkpoint is complete: do not rerun it for this
+plan-only update. Next integrate the independently reviewed narrow7P.5c
+candidate e97769fe, then the separate commits in the reviewed2f7cc65
+encoding/HEADER/current-API chain, retaining existing MIF/BLOCK/WIPEOUT tests.
+Their shared writer/test hunks require serial composition, not parallel
+cherry-picks. Rebind only affected main fast gates and exact source contracts;
+the bc8f45f ASan report cannot attest those future sources. Ready7BE work and
+dependency-free7AG/7F tooling continue independently of native evidence.
+
 Current LibreCAD source compatibility needs7AG.1b's nonvirtual encoding API
 gate, independently of the170/172 callback bridge. A green LC3 mirror does
 not close that compile gap. Keep declared-decoding repair7AL.2/7L.5 separate
@@ -2557,8 +2602,9 @@ failure does not prevent completing them:
 
 | Step | Implementable boundary | Smallest gate before proceeding |
 | --- | --- | --- |
-| 7AG.3a BLOCK callbacks | Preserve six concrete surface types in the queue; add missing reachable typed events without changing public virtuals. | Direct/BLOCK dynamic-type and field contrasts, both read modes/encodings, suffix records and malformed ENDBLK zero-publication; then affected DXF/hardening and lc3 source gate. |
-| 7AG.1b current LibreCAD API | Add the required input-only encoding selection with declared behavior unchanged and an explicit recovery profile. | Tiny current-consumer facade compile first; file/readAscii, eligible/ineligible encodings, reset/reuse and export-isolation controls after implementation. No Qt/native rebuild per codec edit. |
+| 7AG.3a/7BC/MIF, integrated | Preserve typed BLOCK staging, WIPEOUT CLI dispatch and literal MIF behavior; focused composed ASan4/4 binds bc8f45f. | No repeat suite for plan edits. Changed writer/codec integrations retain their affected positive/negative controls; later safety checks need their own source binding. |
+| 7P.5c narrow admission | Reviewed isolated e97769fe rejects duplicate ASCII-folded keys/owning targets in authored direct/named/root routes before mutation. Per-entry roles/full graph closure remain separate. | Current-main DXF/graph gate plus strict changed TUs/lc3; retain WIPEOUT test modes during the shared-main conflict resolution. No peer/native runtime needed for invalid-API cases. |
+| 7AL.2→7L.5→7AG.1b | Reviewed isolated2f7cc65 contains separate canonical codec, HEADER authority, accepted-version CLI and input-only recovery commits. Declared remains the default mode; declared-decoding repair is not a no-op recovery implementation. | Current-main codec/DXF/hardening/diagnostic gates, strict changed TUs/lc3 and tiny pinned facade compile; composed MIF mode/chunk controls mandatory. No Qt/native rebuild per codec edit. |
 | 7AG.1a, integrated | Preserve current common-source cleanup; do not reimplement50157be. | Main ordinary/3D TU/self-tests and170 inventory pass; known two supplements/six target capabilities remain explicit. |
 | 7AG.4 plus7AG.1 capability profile | Preserve committed direct predicates; attest effective driver context, declare/check capabilities, then add the two audited supplementary callbacks. | Direct102 controls pass; controlled-build provenance/header negatives before one paired build. No existing-binary ambient-only proof or blind target-lock/170→172 update. |
 | 7F.1b /7AH | Migrate the typed result/runner together, including optional modeler source presence and readable bounded observations. | Frozen-schema compatibility plus unknown/zero/presence/omission mutations, then clean/partial/opaque read/readback sentinels. |
@@ -2583,7 +2629,7 @@ failure does not prevent completing them:
 | 7M — canonical embedded attributes/loss | REPRO_READY | merged #103, 7D; share 7E scopes | `libdxfrw_hardening`, `libdxfrw_dxf_fixtures`, CLI |
 | 7N — HATCH spline weights | DXF_COMMITTED / DWG_HANDOFF_PENDING |2a canonical read weights ready,2b legacy Z/vector authority explicit;3 zero-fit ODA/producer layout disagreement unresolved; MPOLYGON remains7Z | existing local/object vectors, wire weights and one analytic point; named zero/one-fit witness before byte change |
 | 7O.1/2/3 — dimension frames/placement | COMMITTED / REPRO_PENDING | normal/CLI subtype retention integrated; common clone elevation and picture scale/rotation still separate | local/DXF/3D/repeat CLI, raw-only peer-excluded fields; DWG red vectors for2/3 |
-| 7P — common scope/owners/resources | COMMITTED / PARTIAL | 7P.1/2/4 committed; generated/named/image7P.5 and typed resources remain | DXF fixtures, complete ordered tags, carrier matrix then closed graph |
+| 7P — common scope/owners/resources | COMMITTED / PARTIAL / ADMISSION_REVIEWED | 7P.1/2/4 committed; narrow authored-key/owning-target e97769fe reviewed but isolated; image/per-entry-role/full reciprocal graph remain | affected DXF/graph/strict/lc3 on integration; complete ordered tags then closed graphs |
 | 7Q — gradient DXF types/versions | REPRO_READY | Slice 2 classifier as guard, not disputed-range resolution | `libdxfrw_wave1`, `libdxfrw_dwg_local_roundtrip` |
 | 7R — associative boundary references | REPRO_READY | 7A/7G, planned entity identities | `libdxfrw_graph_preservation`, CLI graph vector |
 | 7S — token/aggregate byte budgets | COMMITTED_1 / ACCOUNTING_2_3 |1 bounded acquisition and explicit corrected failure policy integrated;2 DXF copies/3 DWG live/work owners remain independent | main3/3 plus composed b4 ASan3/3; two-STL component rows historical; no native app/exhaustion prerequisite |
@@ -2601,12 +2647,12 @@ failure does not prevent completing them:
 | 7AD — CI inventory and fast PR gates | COMMITTED / FAST_CHECKPOINT_PASS | clean inventory84; seven executables/45 required CTests and exact focused7 pass at ca8a7fd, no skips/receipt/promotion | current clean local checkpoint plus tool/contract self-tests; hosted/final-broad/native gates remain separate |
 | 7AE — symbol/string case policy | COMMITTED_1 / WIDER_POLICY |1 ASCII-safe bytes integrated;2Unicode equivalence/3filename policy separate | main3/3 plus four owned locale controls, typed names/refs and R12 font controls |
 | 7AF — zero-fit HATCH tangent state | COMMITTED | separate spline-fit and loop-boundary counts; whole-zero absence policy unchanged | literal/API ASCII/binary, zero/one fit and successive edges |
-| 7AG.1/2/3a — current consumer contracts | COMMITTED_1a_3a / SAFETY_PENDING / CURRENT_API_GAP | Preserve BLOCK correction; add7AG.1b current LibreCAD encoding API; target170/current172 still needs named supplements/capabilities/effective-driver attestation before new receipts | actual facade/callback gates separately; main3/3 and four CLI conversions pass, composed sanitizer after7BC; named profile mutations before one paired build |
+| 7AG.1/2/3a — current consumer contracts | COMMITTED_1a_3a / FOCUSED_SAFETY_PASS / API_HANDOFF_REVIEWED | Preserve BLOCK correction; reviewed2f7cc65 adds current LibreCAD encoding API but remains isolated; target170/current172 still needs named supplements/capabilities/effective-driver attestation before new receipts | actual facade/callback gates separately; composed bc8 ASan4/4; current-main MIF/codec/source gates at API integration; named profile mutations before one paired build |
 | 7AH — semantic comparator contract | COMMITTED / CALIBRATION_WORK_PENDING | v2/process/scoped thin integrated; MINSERT/raw-load repair calibrations and bounded broad-oracle worker7AH.6 remain | tool mutations, current16-route evidence historical; tiny raw/preload controls, no broad corpus |
 | 7AI — bounded graph walk | COUNTS_COMMITTED / PAYLOAD_WORK_ROOTS_PENDING | node/edge/staged/source limits integrated; separate XRECORD slot-inspection allowance pending;7G root expansion separate | tiny fixed-graph/varying-payload cap controls, existing cycle/unchanged-destination tests |
 | 7AJ — polygon-mesh subclass | COMMITTED | ordinary flag16 marker fixed; vertex/grid and compatibility policy unchanged | local/3D main probes; raw-marker/mode controls retained |
 | 7AK.1/2/4/5/6/7 — package and build contracts | COMMITTED / EXTERNAL_PACKAGE_GATES |1/2/4/5/6/7 integrated;6 includes policy-aware/first-discovery selection, not old333-only logic | current-source20-component original/moved static/shared checkpoint passes; native older CMake/Conan/PIC/DLL/ABI gates separately pending |
-| 7AL.1/2 and7L.5 — XDATA text / HEADER order | COMMITTED / ISOLATED_COMMITS | point lifecycle integrated; canonical encoding302ce6a7→HEADER e90b9f57 ready for serial review;7K separate | DXF fixtures/four point routes; isolated encoding/header16-route checks require current integration binding |
+| 7AL.1/2 and7L.5 — XDATA text / HEADER order | POINTS_COMMITTED / ENCODING_HANDOFF_REVIEWED | point lifecycle integrated; canonical codec/HEADER/CLI/API chain2f7cc65 reviewed with exact typed/raw XDATA/APPID assertions;7K separate | isolated5/5 plus independent3/3 pass; current-main affected/MIF checks still required, no binding to main yet |
 | 7AM.1/2 — BLOCK/ENDBLK carriers | ISOLATED_COMMIT / API_DESIGN | BLOCK98176504; additive footer design coordinated with7AS.2 | source-only repeat CLI, exact ordered carriers/legacy callback count |
 | 7AN — LAYER field policy | ISOLATED_WIP / MAIN_PENDING | narrow DXF-only validation; shared DWG CMC untouched | DXF/Wave1 signed-color/inheritance/transaction negatives |
 | 7AO — shared runtime attribution | SOURCE_CONFIRMED / GATE_READY | installed library binding and converter-child environment | tiny shadow-library negative, existing shared native open/insert once |
@@ -2623,7 +2669,7 @@ failure does not prevent completing them:
 | 7AZ — SHAPE glyph/file identity | SOURCE_CONFIRMED / DESIGN_READY | additive explicit identity/provenance and legacy alias migration before narrow output guard;7F CLI retention separate | API/raw DXF name and explicit unresolved conversion; authentic SHX/native later |
 | 7BA — compound child work bounds | COMPONENT_PROFILED / INDEX_DESIGN | preserve ownership/leases/order; bounded declared/staged/reverse indexes and orphan growth | small comparison/allocation counts, parent/child-first and rollback transcripts |
 | 7BB — legacy dimension-variable conversion | REPRODUCED / MAPPING_READY | explicit source/target/presence shared helper;7L.5 alias finalization,7J overrides separate | exhaustive tiny mapping table, HEADER/DIMSTYLE raw fields and four encoding routes |
-| 7BC — WIPEOUT subclass payload | COMMITTED / SAFETY_PENDING | coherent payload/minimal actual CLI capture/dispatch, tolerated old input and old-target inversion rejection; IMAGEDEF/proxy/rendering separate | main4/4/eight CLI handoffs/12 pre-audit file cases pass; shared safety checkpoint pending |
+| 7BC — WIPEOUT subclass payload | COMMITTED / FOCUSED_SAFETY_PASS | coherent payload/minimal actual CLI capture/dispatch, tolerated old input and old-target inversion rejection; IMAGEDEF/proxy/rendering separate | main4/4/eight CLI handoffs/12 pre-audit file cases pass; clean bc8 composed ASan4/4, no native rendering claim |
 | 7BD — TEXT/STYLE oblique units | COMMITTED / FIELD_EVIDENCE | literal R14/six-version vectors and current-main four repeated CLI routes preserve public degrees; SHAPE radians unchanged | main DXF/local2/2, strict local TU/lc3/current CLI pass; eight ordinary projections/audits0/0, no native promotion |
 | 7BE — HEADER bounds/integrity | ISOLATED_COMMITS / MAIN_PENDING |1 `80eca35a` includes bounded/ASan controls;7 `5860915d` adds six-target resealing/transaction controls; R13/R14 and modern strict reader admission remain gated | main reader-matrix/hardening, six small writer CRC vectors; one composed sanitizer checkpoint |
 | 7BF — LTYPE units/text/mirror authority | TEXT_COMMITTED / POLICY_PARTIAL |2 fixed-area preflight integrated with main2/2 focused passes;1 units disputed,3 legacy path/segment authority needs explicit decision | retain object-vector/local boundaries; path-only real consumer contracts and conflicting edits for3 |
@@ -3874,6 +3920,27 @@ identify plotstyle/material references.
    collapse duplicate keys or change key spelling/350–360 roles, so compare
    literal ordered entries before loading and after each conversion.
 
+   **Reviewed narrow authored-admission handoff:** e97769fe189803d85a1a8f2f4d6ca23c962ffeee,
+   base dfcfceb, changes only libdxfrw.cpp and the existing DXF test source.
+   Report `/private/tmp/libdxfrw-dictionary-keys.35HFH4/candidate-report.json`,
+   SHA256`e9f42b23dda2032124b3e9527cf337adbd45661552aaf35bc89ad85197ca54d3`,
+   binds68 writes/44 readbacks,24 rejection/corrected-retry pairs, tolerant raw
+   key/target/mixed-role controls and existing DXF/graph2/2 pass2.47s. Root's
+   independent review is complete; the immutable author report's pending
+   disposition is historical. Before identity/output mutation, direct targets
+   are checked after read-only remapping, named arrays individually, and
+   authored root entries against emitted fixed keys plus ACAD_IMAGE_DICT only
+   when actually generated. Repeated nonzero targets reject only within the
+   dictionary's owning entries, not arbitrary references or separate graphs.
+   Preserve spelling/raw input/Unicode byte distinctions and existing null
+   policies. Generated GROUP/image names, generated image-target planning,
+   cross-dictionary ownership/cycles, duplicate named self IDs, per-entry roles
+   and full reciprocity remain open. Integrate the three small production
+   hunks serially, retain WIPEOUT mode dispatch/ordinary tests at the likely
+   shared-main test conflict, then rebind affected main DXF/graph/strict/lc3
+   gates. No native peer run, new CTest or full suite is required for this
+   local invalid-API admission boundary.
+
 **Acceptance / fast gate:** raw-tag owner equals the correct table identity;
 every required nonnull resource resolves to the intended type; common groups
 are in the correct scope. DXF fixtures + graph vector, before-load tags and
@@ -4047,6 +4114,51 @@ DWG page/object/block caps before extending any uncovered aggregate scope.
    Use small injected page-capacity/budget controls, not a large hostile
    allocation. Do not change valid page padding or reject it as malformed
    merely to enforce an independently chosen resource policy.
+
+   **7S.3 decoded-SAB owner/work refinement:** optional in-library wireframe
+   decoding is a separate allocating owner, not covered by raw carrier limits
+   or external-kernel sandboxing. Eight tiny controls compile the unchanged
+   drw_acis.cpp directly with strict C++17/LLVM coverage.16→128 one-byte
+   Boolean fields use119→231 input bytes but retain4,080→30,960 bytes of
+   simultaneous parsed/copied token-array capacity on this runtime; this
+   excludes strings/nodes/raw/output and is not RSS or a portable multiplier.
+   Shared malformed face/coedge4×4/8×4/4×8/8×8 components execute the actual
+   coedge-loop body16/32/32/64 times. Per-walk cycle sets still repeat work.
+   Report `/private/tmp/libdxfrw-sab-resource-research.rLNa1N/research-report.md`,
+   SHA256`dad6216e94805c79df3a19b8e6c0d5800eb5edb5288e83cedaa277d75e279729`,
+   binds source/probe/profiles and eight bounded executions0.803s. These are
+   codec/shared-graph components, not an authentic B-rep or file-level exploit.
+   [Pinned ezdxf SAB storage](https://github.com/mozman/ezdxf/blob/dd7f6cc34983fdbf0b2b910f2497e0720d06dd16/src/ezdxf/acis/sab.py#L124-L188)
+   is grammar triangulation, not a memory-policy oracle;
+   [LibreDWG's capacity/overflow regression notes](https://github.com/LibreDWG/libredwg/blob/f860b0fb76d5f8effb5a70769a3389cb1e0308c8/NEWS#L8-L38)
+   are peer leads, not additional libdxfrw findings.
+
+   Implement in three small steps under this existing owner:
+
+   - Settle one shared budget/outcome context and fresh independent-stage
+     behavior. Preflight aligned payload copies, record/token/type strings,
+     copied model/refs, output geometry/diagnostics and temporary vectors/sets
+     before growth. Convenience parse→build→extract shares one aggregate;
+     do not reset at each public stage. Charge true copies/capacity peaks,
+     transfer moves/shared backing, and preserve legacy signatures/no-throw behavior
+     unless a separately reviewed additive contract is needed.
+   - Count token/reference scans and loop/coedge transitions cumulatively,
+     including revisits. Safe memoization may preserve output/diagnostics;
+     a global seen set must not suppress legitimate repeated output. Keep
+     malformed graph versus budget exhaustion versus allocation failure
+     distinguishable, with source carriers unchanged and no partial geometry.
+   - Add tiny cap−1/cap/cap+1, aggregate-owner, shared4×4/8×8, truncation,
+     late-failure/reset and existing vertex-positive cases to current local/
+     hardening targets. Assert deterministic counters, not capacities/RSS/
+     timing/coverage tools. Lazy entity flags are set before decode: explicitly
+     preserve cached-failure idempotence or design reset/raised-budget retry;
+     never assume retry on the same cached object. Run one affected sanitizer
+     checkpoint at integration, not a new corpus/full suite per owner.
+
+   This helper can be requested by2D consumers but is not automatically run
+   by normal parsing. Defaults/outcome exposure/cached failure are the concrete
+   readiness decisions; neither native B-rep evidence nor a DWG layout change
+   is a prerequisite for this local resource boundary.
 
 Include cumulative raw-section retention in reader18/21 captureRawDwgDataSections
 and genuine DataStorage payload copies. Per-section MaxBufferSize is not an
@@ -4650,6 +4762,31 @@ scoped consumer handoff. LibreCAD and LibreCAD_3 stay valid 2D consumers; new
    source gate, not full adapter linkage, ABI, filename compatibility or
    native LibreCAD/LibreCAD_3 edit/save evidence. No new virtual is required.
 
+   **Reviewed isolated handoff, not main completion:** exact2f7cc65f11a299594acb2fbfe93f1648a80ef7f7,
+   base dfcfceb, contains seven separate commits: canonical codec012ac211,
+   HEADER32837b1c, accepted-source CLI30c3649f, input-mode APIca7db684,
+   then test-only raw-count/order000dc37, typed1000/1003 getter90319104 and
+   explicit APPID2f7cc65 successors. Report
+   `/private/tmp/libdxfrw-text-mode-7ag1b.q2m3uW/candidate-report.json`, SHA256
+   `6fc866eabb761735935fddf7269e3cc6b00132d8d5d7636774ba73d8f8ab0e6b`,
+   binds96 paired codec controls,240 local reads, eight export/finalizer cases,
+   eight CLI version controls, strict six-TU/lc3/facade red/green and isolated
+   five-test pass3.34s. Final independent bounded DXF/GBK/hardening3/3 passes
+   2.62s with unchanged report/source/artifacts. Its author-time review-pending
+   disposition remains immutable; this later review is not an integration.
+   The four-route version/wire cross-product includes robustness/profile
+   calibration, not wholesale valid-format or native consumer qualification.
+   Review repaired a raw-XDATA test that previously checked values only if
+   tags survived. Exact filtered count/order/value assertions plus deletion,
+   duplicate and reversal negatives now prevent vacuous preservation passes;
+   the same240 reads additionally assert typed1000/1003 and registered APPIDs.
+   Integrate prerequisites separately, retaining newer DPI/BLOCK/WIPEOUT
+   helper/test hunks. Then run the affected main codec/DXF/hardening/diagnostic
+   gates and current facade/lc3 source checks, including committed MIF literal/
+   malformed/chunk modes absent from the isolated base. Source/API recovery,
+   codepage correctness and HEADER authority remain distinct contracts; no
+   virtual/registration/dependency/native/ABI or support claim follows.
+
 2. **7AG.2 bounded handoff design:** [current LC3 LAYOUT](https://github.com/LibreCAD/LibreCAD_3/blob/3dcdc4009546b8c9b2aa9605c52e2434bece6901/persistence/libdxfrw/dxfimpl.h#L194)
    and [PLOTSETTINGS callbacks](https://github.com/LibreCAD/LibreCAD_3/blob/3dcdc4009546b8c9b2aa9605c52e2434bece6901/persistence/libdxfrw/dxfimpl.h#L340)
    report rather than preserve typed LAYOUT/PLOTSETTINGS. Choose consumer typed
@@ -4727,9 +4864,10 @@ scoped consumer handoff. LibreCAD and LibreCAD_3 stay valid 2D consumers; new
    pass2.99s. Fresh report
    `/private/tmp/libdxfrw-main-preservation.vlmZ5v/block-main-report.json`, SHA256
    `d051b2ca3296e6199afa5e1fe79e3a6f2b737add867c14ed20fd2d602f4ab3c2`,
-   binds four actual main CLI conversions and source/artifact bytes. One shared
-   current-source sanitizer checkpoint remains after7BC; isolated success and
-   historical b4/d49 sanitizers do not close that composed-main gate.
+   binds four actual main CLI conversions and source/artifact bytes. The
+   composed bc8f45f ASan4/4 checkpoint now closes the focused pending safety
+   gate at that revision; see the ledger/reporte530588b. It does not bind
+   later dictionary/encoding integrations or close native/modeler semantics.
 
 4. **7AG.4 compile/profile attestation before receipts:** direct-option
    predicates are committed; effective-context provenance remains open. Keep
@@ -4859,6 +4997,25 @@ the first commit. Reuse the existing normalization/runner contracts where safe.
    Reuse existing strict JSON helpers where practical. [Python's JSON defaults](https://docs.python.org/3.13/library/json.html)
    and [Boolean numeric inheritance](https://docs.python.org/3/library/stdtypes.html#boolean-type-bool)
    explain why ordinary parsing/equality is insufficient here.
+   Extend the same finite/type contract to qualification admission, not only
+   default-v2 drawing results. At bc8f45f, actual
+   check_qualified_format_support._read_json accepts nested JSON1e999 as
+   infinity despite parse_constant; the current v2 normalizer rejects those
+   same bytes. Eight component rows for the exact AST-extracted
+   floatTolerance predicate at lines510–512 admit false/true/NaN/+infinity,
+   while rejecting negative values. This is a loader/predicate refinement,
+   not an end-to-end promoted-claim bypass: current frozen evidence crosswalks
+   and fixed tolerance definitions were neither mutated nor admitted.
+   Report `/private/tmp/libdxfrw-research-readiness-20261014.MprZPP/numeric-report.json`,
+   SHA256`5c029a3258eb9d867958cfb8f6bc8a1c7860535a3f1f17d6bfd3b40f2d19fe52`,
+   preserves source hashes and the corrected harness scope. Require non-Boolean,
+   finite, nonnegative absolute/relative values; reject exponent overflow at
+   every nesting level using a finite parse_float or recursive strict helper.
+   Retain valid0/1e-12 controls, scalar-normalization behavior and existing
+   frozen hashes/contracts. Add actual loader and full validator negatives
+   without mocked evidence authorization before claiming the complete gate
+   closed. This dependency-free tooling slice needs no C++/CAD rebuild or new
+   receipt, and must not silently rewrite schema1 historical semantics.
 4. **7AH.4 contract migration:** inspect current consumers/bindings first. If
    meaning changes, introduce a versioned comparison policy and explicit
    migration rather than silently rewriting schema-v1 receipts/digests. Tool
@@ -4929,6 +5086,25 @@ Calibrate only the affected optional runtime with tiny positive/negative
 controls; do not install .NET or require a new generic framework for ready
 local dictionary/ownership fixes. For FreeCAD, final-document semantics are
 separate from pre-postprocessing importer statistics and requested settings.
+
+The broader source review supplies three small peer-calibration controls,
+not new standalone geometry defects:
+
+| Projection | Pinned limitation | Discriminating control and disposition |
+| --- | --- | --- |
+| [netDxf ordinary INSERT](https://github.com/haplokuon/netDxf/blob/3d24d7c23418bd3a077d0e32a639f2ffe95bff51/netDxf/IO/DxfReader.cs#L7976-L8097) | ReadInsert skips70/71/44/45 and WriteInsert omits them; its loaded model cannot represent MINSERT multiplicity. | Source-authored nonzero-spacing2×3 versus1×1 plus zero-spacing2×3. Keep literal counts/spacings; peer fields unavailable, not inferred1/1/0. Exclude this projection from multiplicity qualification. |
+| [ACadSharp transform](https://github.com/DomCR/ACadSharp/blob/12f836af8cd7b470ee6883a9ccc51a22dee66e24/src/ACadSharp/Entities/Insert.cs#L381-L389) and [its exact CSUtilities basis](https://github.com/DomCR/CSUtilities/blob/b1f53ee2c68143173100d031adcdb275f524aea9/CSMath/Matrix4.cs#L424-L449) | Source algebra subtracts untransformed block base; dependency uses integer1/64=0 for the polar cap. | B=(1,2,3), I=(10,20,30), S=(2,3,4), +Z/zero rotation requires T(B)=I; pinned expression infers(11,24,39). N=(.001,0,sqrt(1−.001²)) distinguishes bases. Include zero-base/identity-scale/+Z positives; do not change standalone to match an uncalibrated peer. |
+| [ACadSharp bounds](https://github.com/DomCR/ACadSharp/blob/12f836af8cd7b470ee6883a9ccc51a22dee66e24/src/ACadSharp/Entities/Insert.cs#L364-L373) / [IxMilia bounds](https://github.com/IxMilia/Dxf/blob/3ab0f9d6d3f14a6f6fa924e111e8e3af1065c567/src/IxMilia.Dxf/Entities/DxfInsert.cs#L47-L67) | Only two opposite corners are transformed; IxMilia also omits rotation/base/normal/array placement. | Unit-scale/+Z/B=0,2×1 rectangle rotated45° has XY bounds(−1/√2,0)..(√2,3/√2), not the opposite-corner result. Zero-rotation positive first; use capable analytic endpoints/native fields or an explicit exclusion, never null-as-zero geometry. |
+
+Report `/private/tmp/libdxfrw-geometry-oracle-research.lTED3H/research-report.json`,
+SHA256`054c9494a171c4eda324d72ebbeb1225f47abe11680c465b7981f3c29863090b`,
+binds exact pins/gitlink and normalized review copies. These are source-derived
+peer inferences, not executed .NET failures. Current standalone parses all four
+MINSERT groups and retains independent base-point/near-polar/array analytic
+controls. First port only the tiny predicates into existing tooling; execute
+an optional peer cell only when its runtime is available. Attest the actual
+CSUtilities assembly/dependency alongside the parent version. No .NET install,
+new mandatory comparator/CTest or broad matrix is on the local critical path.
 
 **Fast gate:** dependency-free normalizer/differential self-tests plus negative
 mutation controls. Then only the four thin families × four encoding routes on
@@ -6339,7 +6515,8 @@ and exact block/DXF/hardening/local4/4 pass4.70s. Fresh report
 `/private/tmp/libdxfrw-main-preservation.vlmZ5v/wipeout-main-report.json`, SHA256
 `5c807f4c88f4f73186f2de0b785eaac94a196b57010c32f1a90c873ee9f9f4c2`,
 binds eight actual main CLI handoffs and12 pre-audit file cases with four masks
-each/audits0/0. One composed current-source safety checkpoint remains.
+each/audits0/0. Clean bc8f45f composed ASan4/4 now passes at the ledger's
+focused scope; future source changes require their own affected checkpoints.
 No native mask-rendering or general polygon-support result is claimed.
 The pending report's pre-review status is immutable. Subsequent scoped approval
 is bound separately by
@@ -7154,6 +7331,14 @@ reader18/21 integration vectors and allocation/publication controls.
   the kernel. Do not lower the acceptance requirement because one runtime is
   unavailable. Requesting AC1027 SaveAs does not force ACIS218/ASM230: inspect
   each extracted SAB header/profile before assigning it to that witness lane.
+  Include consulted grammar/reference lineage, not just executable identity:
+  cq-acis0.3.8/0.3.11's notices identify cadmpeg/ezdxf influences. Keep actual
+  original-hash observations, but do not count their agreement as independent
+  producer-native unit truth. The3D plan's2026-10-14 generator successor
+  supersedes acadrust0.5.5's always-ACIS terminator obstacle with pinned0.6.4
+  literal21800/ASM preflight; V21_0 still maps2100. Optional cq0.3.11 BoxSpec
+  emits experimental ASM23200, not the current ACIS218 witness. Neither route
+  needs installation/execution for ready local fixes or permits a profile swap.
 - A successful conversion or matching entity count is not a pass if the SAB
   payload, link, topology, or resulting shape is missing.
 - Existing DWG/DXF 2D consumer behavior remains covered and unchanged.
@@ -7188,6 +7373,20 @@ reader18/21 integration vectors and allocation/publication controls.
 | J284 | J361's three admitted fixtures are the successor; preserve the11 field claims' target-debt/integrity blockers and ARCALIGNEDTEXT/LARGE_RADIAL payload/MPOLYGON color exclusions. |
 | J295 | J362's locally authored AC1024 recipe/frozen fields are the successor. Four RTEXT position/rotation claims need native receipts; nine minJSON successes are reachability only. |
 
+Calibrate source sensitivity before broadening successor claims: J362's
+RTEXT insertion.z=0 and six J361 MPOLYGON expectations equal constructor
+defaults. Exact-vector observations remain unchanged, but do not prove those
+fields decoded from source. Start with a separately named locally authored
+RTEXTZ7 companion: source expectation, both adapters and admitted full-JSON
+oracle must agree on7; either/both adapters or oracle returning0 must reject
+even when the compared readers agree. Later add only source-authorable
+nondefault MPOLYGON companions. Keep integrity/target-debt/native blockers and
+frozen files intact; do not rewrite old expected values or call minJSON
+reachability semantic evidence. The source-only external review report
+`/private/tmp/libdxfrw-external-unblock-20261014.udGP7J/research-report.json`,
+SHA256`bdd4c9747dfbd2017f0226545d94971f3058304d6b11a92008c4b174482f7807`,
+binds this refinement, generator lineage/pins and native pre-dispatch gaps.
+
 The current overlay has11 EXPERIMENTAL/four PENDING_NATIVE claims and empty
 native/broad receipt references. Its digests are not refreshed by this plan
 change; it advertises no promoted claim. A green
@@ -7207,6 +7406,20 @@ verifier intentionally accepts only build.yml; do not weaken it to accept
 arbitrary logs. These two FreeCAD controls cover three planar LINEs only, not
 nonzero-Z/OCS/INSERT/ACIS. Extend scope separately using existing recipes.
 Run neither hosted jobs nor proprietary witness tools merely for a plan edit.
+
+Before dispatch, close two source-confirmed packet gaps. The installed-LINE
+wrapper requires an existing TMPDIR or TEMP, but the Linux workflow supplies
+RUNNER_TEMP without mapping either required variable. Explicitly map
+TMPDIR to the owned runner-temp directory; test unset/invalid and explicit
+temporary-directory cases locally. This is a missing workflow contract, not
+an observed hosted failure. The current macro's LINE branch checks only
+Part::Feature count/bounds; NaN makes its `abs(a-e) >= tolerance` comparison
+nonrejecting. Require exact LINE counts, one valid straight edge/two finite
+expected endpoints per LINE, no unexpected final features and strict finite
+JSON, before emitting PASS. Add dependency-free NaN/wrong-topology/same-bounds
+negatives and a finite valid positive; source/predicate tests are not native
+FreeCAD runs. Keep frozen1.1.3 release/revision/hash together; a newer release
+is a separately pinned successor tuple, not a relabelled historical receipt.
 
 Correct source-compatibility labels on lc3_compat_check/CMake when touching the
 consumer gate: a compile-only mirror is not an ABI check. Preserve the pinned
@@ -7318,8 +7531,8 @@ work on the critical path.
 
 | Batch | Dependency-ready work | Validation boundary |
 | --- | --- | --- |
-| A — preserved integration queue |7AY/7AV.1–3/7AX/7AK.5/7BH.1 and policy-aware7AK.6 are committed. Review canonical7AL.2 encoding302ce6a7→HEADER e90b9f57 with accepted-source accessor, residual7AW0ee3bff2. Preserve7AK.6’s exact current-source acceptance; older/native/Conan/ABI cells remain separate. Reconcile STYLE9c3a74c7 with7AV cleanup; review BLOCK98176504.7AD ca8a7fd refresh/clean checkpoint complete; do not reintegrate | Touched targets per commit.38→45 required tests refresh and clean84 inventory are verified; debug/numeric build targets included. Enumerate only new registrations; exact focused7 unchanged; no user-sample glob/full suite per edit |
-| B — narrow independent corrections | Preserve committed MIF/7BI/7AG.3a/7BC/7BJ.1/2,7AK.6,7AG.4 direct predicates and optional box-verifier contract. Complete the one clean composed safety checkpoint, then review7BE `80eca35a`→`5860915d`.7AG.1b restores current LibreCAD's input-mode source surface alongside canonical7AL.2/7L.5;7BH.3/7BG/7N.2a remain local. Effective-driver/capability gates precede new receipts, not these fixes;7N.3 still needs its witness. | Reuse recorded reds/reports; rebind each affected main fast gate without replaying every isolated control. One composed sanitizer checkpoint after queue/storage integrations settle; no repeated native/full suite. Historical b4/d49 results retain their actual bindings. |
+| A — preserved integration queue |7AY/7AV.1–3/7AX/7AK.5/7BH.1 and policy-aware7AK.6 are committed. Integrate separately reviewed canonical codec/HEADER/accepted-version/current-API chain2f7cc65; residual7AW0ee3bff2 remains independent. Preserve7AK.6’s exact current-source acceptance; older/native/Conan/ABI cells remain separate. Reconcile STYLE9c3a74c7 with7AV cleanup; review BLOCK98176504.7AD ca8a7fd refresh/clean checkpoint complete; do not reintegrate | Touched targets per commit, including composed MIF modes/chunks for encoding.38→45 required tests refresh and clean84 inventory are verified; debug/numeric build targets included. Enumerate only new registrations; exact focused7 unchanged; no user-sample glob/full suite per edit |
+| B — narrow independent corrections | Preserve committed MIF/7BI/7AG.3a/7BC/7BJ.1/2,7AK.6,7AG.4 direct predicates and optional box-verifier contract. Clean bc8 composed safety passes; integrate reviewed e97769fe dictionary admission and review7BE `80eca35a`→`5860915d`.7BH.3/7BG/7N.2a remain local. Effective-driver/capability gates precede new receipts, not these fixes;7N.3 still needs its witness. | Reuse recorded reds/reports; rebind each affected main fast gate without replaying every isolated control. Refresh sanitizer once after later unsafe-boundary changes settle, not per documentation/admission edit. Historical b4/d49/bc8 results retain their actual bindings; no repeated native/full suite. |
 | C — grammar and graph composition | Shared7AM.2/7AS.2 footer design, implemented separately;7G.2 STYLE→VIEWPORT/resources;7P.5b/c image/dictionary/GROUP reciprocity, with narrow duplicate-key admission first;7F.1;7M/7E.1,7AL→7K→7J,7AA.1/2,7O.2/3,7G.3 effective explicit/implicit draw order→7R;7AG handoff | Touched targets per slice; raw types/reciprocity/child counts/pre-load fields and corrected retry. Optional-peer phase calibration only when that projection is enabled. Exact nonvirtual and callback consumer gates on public changes; sparse order/subtype1/oracle limits separate |
 | D — explicit policy/safety/platform boundaries |7BK transparency representation;7BF.1 LTYPE unit witness and7BF.3 indexed-edit/mirror authority; optional7AV.4 caller-memory guarantee;7AP cache safety;7Q gradients,7S.2/3 retention/work accounting,7T narrowing,7U retention,7Y.2 precision,7AE.2/3 Unicode/filename policy,7AC bridges;7AG/7AK PIC/DLL/release ABI and7AO attribution | Resolve only the named decision/witness without blocking ready local fixes. Small configured-limit negatives; ASan/TSan once at touched unsafe boundaries, not full suites per edit. No expired-pointer journals/unconditional cache replay; source/native and release/per-commit gates stay distinct |
 | E — qualification closeout | Slices 4–6/8/9, final binding, docs/consumer/platform dispositions | Required fresh final-broad/receipt checks once the candidate is stable; external-only gates remain separately deferred |
