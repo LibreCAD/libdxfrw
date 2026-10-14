@@ -8,6 +8,7 @@
 #include "drw_objects.h"
 #include "intern/dwgbuffer.h"
 #include "intern/dwgbufferw.h"
+#include "ltype_string_area_test_helpers.h"
 #include "xrecord_test_helpers.h"
 
 namespace {
@@ -583,6 +584,145 @@ void testOptionalStreamFallbacks(TestContext& t) {
     }
 }
 
+void testLtypeTextAreaVectors(TestContext& t) {
+    std::vector<DRW::Version> versions = kVersions;
+    versions.push_back(DRW::AC1012); // Direct bodies only, not writer targets.
+    versions.push_back(DRW::AC1014);
+    for (const DRW::Version version : versions) {
+        const bool unicode = version >= DRW::AC1021;
+        const std::size_t maximum = version <= DRW::AC1014 ? 254u : 255u;
+        const std::string suffix = " version " + std::to_string(version);
+        DRW_TextCodec codec;
+        codec.setVersion(version, false);
+        codec.setCodePage("ANSI_1252", false);
+        const auto accept = [&](const std::vector<std::string>& texts,
+                                const std::vector<std::vector<std::uint8_t>>& expected,
+                                const char* label) {
+            const DRW_LType object = ltype_area_test::make(texts);
+            DRW_LType copied(object);
+            dwgBufferW body(&codec), strings(&codec), handles(&codec);
+            const bool encoded = copied.encodeDwg(version, &body, &strings, &handles);
+            t.expect(encoded && body.isGood() && strings.isGood() && handles.isGood(),
+                     std::string(label) + " encodes" + suffix);
+            t.expect(encoded && ltype_area_test::matches(
+                         ltype_area_test::inspect(version, body.data()), version, expected),
+                     std::string(label) + " literal offsets/area" + suffix);
+            for (std::size_t i = 0; i < texts.size(); ++i)
+                t.expect(copied.segments[i].text == texts[i]
+                             && object.segments[i].text == texts[i],
+                         "LTYPE encode preserves source/copy text" + suffix);
+        };
+        const auto acceptAscii = [&](const std::vector<std::string>& texts,
+                                     const char* label) {
+            std::vector<std::vector<std::uint8_t>> expected;
+            for (const auto& text : texts)
+                expected.push_back(ltype_area_test::asciiBytes(text, unicode));
+            accept(texts, expected, label);
+        };
+        const auto reject = [&](const std::vector<std::string>& texts,
+                                 const char* label) {
+            DRW_LType object = ltype_area_test::make(texts);
+            object.handle = 0xB100u;
+            dwgBufferW body(&codec), strings(&codec), handles(&codec);
+            body.putBit(1);
+            strings.putRawChar8(0x5Au);
+            handles.putRawChar8(0xC3u);
+            const auto bodyBefore = body.data();
+            const auto stringsBefore = strings.data();
+            const auto handlesBefore = handles.data();
+            const auto bodyBitsBefore = body.bitCount();
+            const auto stringsBitsBefore = strings.bitCount();
+            const auto handlesBitsBefore = handles.bitCount();
+            t.expect(!object.encodeDwg(version, &body, &strings, &handles),
+                     std::string(label) + " rejects" + suffix);
+            t.expect(body.data() == bodyBefore && strings.data() == stringsBefore
+                         && handles.data() == handlesBefore
+                         && body.bitCount() == bodyBitsBefore
+                         && strings.bitCount() == stringsBitsBefore
+                         && handles.bitCount() == handlesBitsBefore
+                         && body.isGood() && strings.isGood() && handles.isGood(),
+                     std::string(label) + " preserves all destination buffers" + suffix);
+            t.expect(object.handle == 0xB100u && object.segments.size() == texts.size(),
+                     "LTYPE failed text preflight preserves caller identity" + suffix);
+            for (std::size_t i = 0; i < texts.size(); ++i)
+                t.expect(object.segments[i].text == texts[i],
+                         "LTYPE failed text preflight preserves caller text" + suffix);
+            t.expect(!object.encodeDwg(version, &body, &body, &body)
+                         && body.data() == bodyBefore
+                         && body.bitCount() == bodyBitsBefore && body.isGood(),
+                     "LTYPE rejection preserves aliased optional streams" + suffix);
+            object = ltype_area_test::make({"retry"});
+            t.expect(object.encodeDwg(version, &body, &strings, &handles),
+                     "LTYPE corrected retry can reuse the same buffers" + suffix);
+        };
+
+        acceptAscii({"A", ""}, "A followed by empty LTYPE text");
+        acceptAscii({"", "B"}, "empty followed by B LTYPE text");
+        acceptAscii({"", "", ""}, "repeated empty LTYPE text");
+        acceptAscii({std::string(maximum, 'B')}, "single exact-capacity LTYPE text");
+        acceptAscii({"A", std::string(maximum - 2u, 'B')},
+                    "cumulative exact-capacity LTYPE text");
+        reject({std::string(maximum + 1u, 'B')}, "single overflowing LTYPE text");
+        reject({std::string(maximum, 'B'), ""}, "empty terminator after a full LTYPE area");
+        reject({std::string(4096, 'B')}, "bounded temporary LTYPE conversion");
+        reject({"A", std::string(maximum - 1u, 'B')},
+               "cumulative overflowing LTYPE text");
+        reject({std::string("A\0B", 3u)}, "embedded NUL LTYPE text");
+
+        std::string euros;
+        for (std::size_t i = 0; i < maximum; ++i)
+            euros += u8"\u20ac";
+        std::vector<std::uint8_t> encodedEuros;
+        for (std::size_t i = 0; i < maximum; ++i) {
+            encodedEuros.push_back(unicode ? 0xACu : 0x80u);
+            if (unicode)
+                encodedEuros.push_back(0x20u);
+        }
+        accept({euros}, {encodedEuros}, "target-encoded Euro byte boundary");
+        reject({euros + u8"\u20ac"}, "target-encoded Euro overflow");
+        if (unicode) {
+            accept({u8"\U00010000"}, {{0x00u, 0xD8u, 0x00u, 0xDCu}},
+                   "supplementary non-NUL UTF16 code units");
+            std::string supplementary;
+            std::vector<std::uint8_t> units;
+            for (unsigned i = 0; i < 127u; ++i) {
+                supplementary += u8"\U0001f600";
+                units.insert(units.end(), {0x3Du, 0xD8u, 0x00u, 0xDEu});
+            }
+            accept({supplementary}, {units}, "supplementary UTF16 boundary");
+            reject({supplementary + u8"\U0001f600"}, "supplementary UTF16 overflow");
+        } else {
+            // Existing pre-Unicode codepage fallback, not exact semantic
+            // preservation of the unrepresentable supplementary character.
+            accept({u8"\U0001f600"}, {{static_cast<std::uint8_t>('?')}},
+                   "legacy supplementary fallback bytes remain explicit");
+        }
+
+        DRW_LType simple;
+        simple.name = "SIMPLE_AREA_CONTROL";
+        simple.size = 1;
+        simple.length = 2;
+        simple.path = {2};
+        dwgBufferW simpleBody(&codec), simpleStrings(&codec), simpleHandles(&codec);
+        t.expect(simple.encodeDwg(version, &simpleBody, &simpleStrings, &simpleHandles),
+                 "simple LTYPE area control still encodes" + suffix);
+        const auto simpleWire = ltype_area_test::inspect(version, simpleBody.data());
+        t.expect(simpleWire.valid && simpleWire.offsets == std::vector<std::uint16_t>{0}
+                     && (unicode ? simpleWire.bytes.empty() : simpleWire.bytes.size() == 256u),
+                 "simple LTYPE keeps its versioned fixed-area presence" + suffix);
+        DRW_LType shape = ltype_area_test::make({"unused text"});
+        shape.segments[0].shapeFlags = 4;
+        shape.segments[0].complexShapeCode = 17;
+        dwgBufferW shapeBody(&codec), shapeStrings(&codec), shapeHandles(&codec);
+        t.expect(shape.encodeDwg(version, &shapeBody, &shapeStrings, &shapeHandles),
+                 "shape-only LTYPE does not plan an unused text payload" + suffix);
+        const auto wire = ltype_area_test::inspect(version, shapeBody.data());
+        t.expect(wire.valid && wire.offsets == std::vector<std::uint16_t>{17}
+                     && (unicode ? wire.bytes.empty() : wire.bytes.size() == 256u),
+                 "shape-only LTYPE preserves code and versioned area presence" + suffix);
+    }
+}
+
 } // namespace
 
 int main() {
@@ -594,6 +734,7 @@ int main() {
     testPlotSettingsVectors(context);
     testLayoutVectors(context);
     testOptionalStreamFallbacks(context);
+    testLtypeTextAreaVectors(context);
     if (context.failures != 0) {
         std::cerr << context.failures << " DWG object vector assertion(s) failed\n";
         return 1;

@@ -29,6 +29,7 @@
 #include "intern/dxfreader.h"
 #include "intern/dxfwriter.h"
 #include "intern/dxfreader.h"
+#include "ltype_string_area_test_helpers.h"
 #include "xrecord_test_helpers.h"
 
 namespace {
@@ -13992,6 +13993,128 @@ bool runDxfArcDimensionFlags(bool binary, const std::filesystem::path& directory
     return valid;
 }
 
+class LtypeAreaInterface final : public dx_iface {
+public:
+    explicit LtypeAreaInterface(dwgRW* writer = nullptr) : writer_(writer) {
+        cData = &data_;
+        currentBlock = data_.mBlock;
+        line.basePoint = {11, 12, 13};
+        line.secPoint = {21, 22, 23};
+    }
+    void writeHeader(DRW_Header&) override {}
+    void writeLTypes() override {
+        registered = writer_ != nullptr && writer_->addLType(&lineType);
+        registeredHandle = lineType.handle;
+    }
+    void writeEntities() override {
+        wroteLine = writer_ != nullptr && writer_->writeLine(&line);
+    }
+    void addLType(const DRW_LType& value) override {
+        if (value.name == "LTYPE_AREA")
+            captured.push_back(value);
+    }
+    void addLine(const DRW_Line& value) override { lines.push_back(value); }
+
+    DRW_LType lineType;
+    DRW_Line line;
+    bool registered = false;
+    bool wroteLine = false;
+    std::uint32_t registeredHandle = 0;
+    std::vector<DRW_LType> captured;
+    std::vector<DRW_Line> lines;
+private:
+    dwgRW* writer_;
+    dx_data data_;
+};
+
+bool runDwgLtypeTextAreaContract(const std::filesystem::path& directory,
+                               bool keepOutput) {
+    const auto readBytes = [](const std::filesystem::path& path) {
+        std::ifstream stream(path, std::ios::binary);
+        return std::string(std::istreambuf_iterator<char>{stream},
+                           std::istreambuf_iterator<char>{});
+    };
+    const auto matches = [](const DRW_LType& object,
+                             const std::vector<std::string>& texts) {
+        if (object.segments.size() != texts.size())
+            return false;
+        for (std::size_t i = 0; i < texts.size(); ++i)
+            if (object.segments[i].text != texts[i])
+                return false;
+        return true;
+    };
+    const auto readFile = [&matches](const std::filesystem::path& path,
+                                      const std::vector<std::string>& texts) {
+        dwgRW reader(path.string().c_str());
+        LtypeAreaInterface sink;
+        return reader.read(&sink, false) && sink.captured.size() == 1u
+            && matches(sink.captured.front(), texts) && sink.lines.size() == 1u
+            && sink.lines.front().basePoint.x == 11
+            && sink.lines.front().secPoint.z == 23;
+    };
+    bool valid = true;
+    for (const auto version : {DRW::AC1015, DRW::AC1018, DRW::AC1021,
+                               DRW::AC1024, DRW::AC1027, DRW::AC1032}) {
+        const auto path = directory / ("libdxfrw-ltype-area-"
+            + std::to_string(version) + ".dwg");
+        for (const std::vector<std::string>& texts : {
+                 std::vector<std::string>{"A", ""}, {"", "B"}, {"", "", ""},
+                 {"A", std::string(253, 'B')}, {std::string(255, 'B')}}) {
+            dwgRW writer(path.string().c_str());
+            LtypeAreaInterface source(&writer);
+            source.lineType = ltype_area_test::make(texts);
+            const bool result = writer.write(&source, version, true)
+                && source.registered && source.wroteLine
+                && matches(source.lineType, texts) && readFile(path, texts);
+            if (!result)
+                std::cerr << "LTYPE fixed-area file failed version " << version
+                          << " text count " << texts.size() << '\n';
+            valid = result && valid;
+        }
+        for (const std::vector<std::string>& texts : {
+                 std::vector<std::string>{"A", std::string(254, 'B')},
+                 {std::string(256, 'B')}, {std::string("A\0B", 3u)}}) {
+            const std::string sentinel = "unchanged rejected LTYPE destination";
+            {
+                std::ofstream stream(path, std::ios::binary | std::ios::trunc);
+                stream << sentinel;
+                if (!stream)
+                    return false;
+            }
+            dwgRW writer(path.string().c_str());
+            LtypeAreaInterface source(&writer);
+            source.lineType = ltype_area_test::make(texts);
+            source.lineType.handle = 0xB100u;
+            source.line.handle = 0xB200u;
+            const bool rejected = !writer.write(&source, version, true)
+                && source.registered && !source.wroteLine
+                // Registration succeeded before encoding failed. Whole-file
+                // destination atomicity does not roll back caller mutations
+                // from successful DWG registrations; the suffix is untouched.
+                && source.lineType.handle == source.registeredHandle
+                && source.registeredHandle != DRW::NoHandle
+                && source.line.handle == 0xB200u
+                && matches(source.lineType, texts) && readBytes(path) == sentinel;
+            std::vector<std::string> corrected(texts.size());
+            corrected.front() = "retry";
+            for (std::size_t i = 0; i < corrected.size(); ++i)
+                source.lineType.segments[i].text = corrected[i];
+            const bool retried = writer.write(&source, version, true)
+                && source.registered && source.wroteLine
+                && readFile(path, corrected);
+            if (!rejected || !retried)
+                std::cerr << "LTYPE fixed-area rejection/retry failed version "
+                          << version << '\n';
+            valid = rejected && retried && valid;
+        }
+        if (!keepOutput) {
+            std::error_code ec;
+            std::filesystem::remove(path, ec);
+        }
+    }
+    return valid;
+}
+
 } // namespace
 
 int main(int argc, char** argv) {
@@ -15135,6 +15258,9 @@ int main(int argc, char** argv) {
            "local DWG raw-object/raw-section replay contract", failures);
     expect(runXRecordRawReplayVersionContract(),
            "opaque XRECORD replay binds source version and preserves a rejected destination",
+           failures);
+    expect(runDwgLtypeTextAreaContract(directory, keepOutputs),
+           "DWG LTYPE fixed text areas preserve empty/boundary text and reject overflow transactionally",
            failures);
     expect(runModelerDwgVersionValidation(),
            "local DWG modeler version range and empty-body validation", failures);

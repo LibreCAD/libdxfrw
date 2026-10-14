@@ -6519,13 +6519,6 @@ bool DRW_LType::encodeDwg(DRW::Version version, dwgBufferW *buf,
     dwgBufferW *sb = (strBuf && version > DRW::AC1018) ? strBuf : buf;
     dwgBufferW *hb = (hdlBuf && version > DRW::AC1014) ? hdlBuf : buf;
 
-    sb->putVariableText(version, name);
-    putTableEntryXrefFlags(version, *buf, flags);
-    sb->putVariableText(version, desc);
-    buf->putBitDouble(length);
-    buf->putRawChar8(static_cast<std::uint8_t>(alignment));
-    buf->putRawChar8(static_cast<std::uint8_t>(size));
-
     const bool useSegments = !segments.empty();
     std::vector<std::uint8_t> stringArea;
     bool haveStrArea = false;
@@ -6536,42 +6529,63 @@ bool DRW_LType::encodeDwg(DRW::Version version, dwgBufferW *buf,
     if (version < DRW::AC1021 || haveStrArea) {
         stringArea.assign(stringAreaSize, 0);
     }
+    // ODA 20.4.58 fixes this area at 256/512 bytes. Plan every text offset
+    // before touching any output stream: offset zero is valid content, not
+    // a fallback when a later string does not fit. Empty strings also occupy
+    // a terminator so they cannot alias an earlier non-empty string.
+    std::vector<std::uint16_t> shapeCodes;
+    shapeCodes.reserve(static_cast<std::size_t>(size));
     std::size_t textOffset = version <= DRW::AC1014 ? 1u : 0u;
+    const DRW_LTypeSegment simpleSegment;
     for (int i = 0; i < size; ++i) {
-        DRW_LTypeSegment segment;
-        if (useSegments) {
-            segment = segments[static_cast<std::size_t>(i)];
-        } else {
-            segment.length = path[static_cast<std::size_t>(i)];
-        }
-
+        const DRW_LTypeSegment& segment = useSegments
+            ? segments[static_cast<std::size_t>(i)] : simpleSegment;
         std::uint16_t shapeCode = static_cast<std::uint16_t>(
             segment.complexShapeCode);
         if ((segment.shapeFlags & 0x02) != 0) {
-            shapeCode = 0;
-            if (!segment.text.empty() && !stringArea.empty()) {
-                std::string encoded =
-                    sb->encodeTextAreaString(segment.text, unicodeStringArea);
-                const std::size_t terminatorSize = unicodeStringArea ? 2u : 1u;
-                if (textOffset <= stringArea.size()
-                    && terminatorSize <= stringArea.size() - textOffset
-                    && encoded.size() <=
-                           stringArea.size() - textOffset - terminatorSize) {
-                    shapeCode = static_cast<std::uint16_t>(textOffset);
-                    std::copy(encoded.begin(), encoded.end(),
-                              stringArea.begin() +
-                                  static_cast<std::vector<std::uint8_t>::difference_type>(
-                                      textOffset));
-                    textOffset += encoded.size();
-                    if (unicodeStringArea)
-                        textOffset += 2u;
-                    else
-                        ++textOffset;
-                }
+            const std::size_t terminatorSize = unicodeStringArea ? 2u : 1u;
+            if (textOffset > stringArea.size()
+                || terminatorSize > stringArea.size() - textOffset)
+                return false;
+            const std::size_t remaining = stringArea.size() - textOffset - terminatorSize;
+            // A valid UTF-8 scalar consumes at most four input bytes and at
+            // least one target byte. This conservative bound limits temporary
+            // conversion storage; the actual budget below is encoded bytes.
+            if (segment.text.size() > remaining * 4u)
+                return false;
+            const std::string encoded =
+                sb->encodeTextAreaString(segment.text, unicodeStringArea);
+            if (encoded.size() > remaining
+                || encoded.size() % terminatorSize != 0)
+                return false;
+            // A NUL inside the encoded payload cannot be distinguished from
+            // its terminator. Reject it rather than silently truncating text.
+            for (std::size_t pos = 0; pos < encoded.size(); pos += terminatorSize) {
+                if (encoded[pos] == '\0'
+                    && (!unicodeStringArea || encoded[pos + 1u] == '\0'))
+                    return false;
             }
+            shapeCode = static_cast<std::uint16_t>(textOffset);
+            std::copy(encoded.begin(), encoded.end(),
+                      stringArea.begin() +
+                          static_cast<std::vector<std::uint8_t>::difference_type>(textOffset));
+            textOffset += encoded.size() + terminatorSize;
         }
-        buf->putBitDouble(segment.length);
-        buf->putBitShort(shapeCode);
+        shapeCodes.push_back(shapeCode);
+    }
+
+    sb->putVariableText(version, name);
+    putTableEntryXrefFlags(version, *buf, flags);
+    sb->putVariableText(version, desc);
+    buf->putBitDouble(length);
+    buf->putRawChar8(static_cast<std::uint8_t>(alignment));
+    buf->putRawChar8(static_cast<std::uint8_t>(size));
+    for (int i = 0; i < size; ++i) {
+        const DRW_LTypeSegment& segment = useSegments
+            ? segments[static_cast<std::size_t>(i)] : simpleSegment;
+        buf->putBitDouble(useSegments ? segment.length
+                         : path[static_cast<std::size_t>(i)]);
+        buf->putBitShort(shapeCodes[static_cast<std::size_t>(i)]);
         buf->putRawDouble(segment.xOffset);
         buf->putRawDouble(segment.yOffset);
         buf->putBitDouble(segment.scale);
