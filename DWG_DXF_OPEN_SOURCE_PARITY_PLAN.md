@@ -6,9 +6,11 @@ the focused composed safety checkpoint passing at bc8f45f. MIF decoding and peer
 calibrations refine existing findings rather than add more IDs.
 Current LibreCAD's nonvirtual text-encoding API gap is owned by7AG.1b/Slice3.
 Its input-only recovery/API successor is now integrated with seven composed
-main tests and the exact encoding-facade compile passing. Five additional
-current consumer facade methods are queued under7AG.1c; full adapter
-compatibility is not established. Declared remains the default.
+main tests and the exact encoding-facade compile passing. Under7AG.1c, the
+source-version/reservation queries, phase-scoped BLOCK_RECORD remap, and
+terminal DXF reference resolver are committed; truthful omission reporting is
+the remaining facade method. Full adapter compatibility is not established.
+Declared remains the default.
 Narrow MIF literal/exact-hex, BLOCK callback and WIPEOUT payload/CLI
 preservation are integrated. The newer clean-checkout ASan cohort at25adc7f
 covers the settled dictionary/text/HEADER/API composition and passes4/4.
@@ -28,11 +30,11 @@ blob” to bounded segment/index parsing and handle-keyed association, and adds 
 separate SAT/SAB reader candidate without treating it as independent-kernel or
 native-FreeCAD evidence. No new local defect ID is justified; 118 findings/67
 subplans and all six external J dispositions remain unchanged.
-Next is current-main HEADER validation, ready resource work and correction of
-the isolated consumer facade test generator before its integration. Declared
-text remains the default; peer HATCH transforms and legacy-ASCII oracle input
-need their named calibrations before broader comparison. Evidence bindings
-and bounded acceptance steps are recorded below.
+Next retain the remaining per-container real-file HEADER witnesses, complete
+the remaining 7AG.1c omission-reporting method, and continue dependency-ready
+resource work. Declared text remains the default; peer HATCH transforms and
+legacy-ASCII oracle input need their named calibrations before broader
+comparison. Evidence bindings and bounded acceptance steps are recorded below.
 7F.1a observations,7A.2 sort/carrier roles,7AE.1 ASCII-safe bytes,7AV.5
 finalization, corrected7S.1 acquisition and7AG.1a preflight are integrated.
 7BJ.1/2 writer/read publication and canonical description decoding are now
@@ -52,8 +54,9 @@ reader/package work does not wait for external qualification.
 
 **Research snapshot:** 2026-10-14
 
-**Latest research boundary:** `6426f0c703d14cd63b2c7780558ba11f83bfd220`
-(2026-10-14). This plan-only refresh reviewed ODA v5.4.1 §7/§24 (printed
+**Latest research boundary:** `cf6466b` (2026-10-14), broadening the prior
+research boundary `6426f0c703d14cd63b2c7780558ba11f83bfd220`. This plan-only
+refresh reviewed ODA v5.4.1 §7/§24 (printed
 pp.68–69, 252–262; local PDF SHA256
 `1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7`),
 Autodesk's 3DSOLID DXF contract, current LibreDWG/ACadSharp reports, the
@@ -61,26 +64,31 @@ ACadSharp precision-fix PR, FreeCAD's stock DXF-import limits, and the
 InventorLoader SAT/SAB parser as a bounded optional reader candidate. Slice8
 now orders ACDS preflight, handle-keyed inline-record admission, bounded blob
 pages, and end-to-end route/omission checks; opaque preservation remains
-distinct from shape semantics. The six-path uncommitted 7BE modern-HEADER
-reader/test work is preserved and was not reviewed as peer-research evidence.
+distinct from shape semantics. At that research boundary, the six-path 7BE
+modern-HEADER reader/test work was still uncommitted and was not reviewed as
+peer-research evidence; the subsequent 7BE.8 generated-profile implementation
+is independently recorded in the ledger below.
 No generated drawing was added, no dependency/native run or fixture admission
 occurred, and support metadata, receipts, source status and remote state are
 unchanged. 118 findings/67 top-level subplans remain; J256/J260/J268/J284/
 J293/J295 stay `DEFERRED_EXTERNAL` and non-promoting.
 
-**Latest implementation checkpoint:** `bc659d8`
-(`Plan-Slice: 7AG.1c.remap`), 2026-10-14. The getter/reservation pair remains
-at `1ade4c6`; this slice adds the nonvirtual per-write BLOCK_RECORD remap API,
-admitted only during `writeBlocks()` after record precollection. Caller
-`setHandleRemap` entries take precedence; identical repeats are idempotent,
-conflicting/invalid registrations fail closed, and derived mappings clear on
-failed/retried or next writes. A generated dictionary owner proves the remap
-reaches serialized output. Current fixture/hardening/diagnostic pass3/3 without
-skips in2.92s; the LC3 signature/call target builds. This is source-level
-compatibility plus local behavior, not a full LibreCAD adapter/native run.
-Resolver semantics and truthful omission reporting remain open. No fixture was
-added; no support claim is promoted. Previous HEADER checkpoints remain
-separately recorded below.
+**Latest implementation checkpoint:** `06b051c`
+(`Plan-Slice: 7AG.1c.resolver`), 2026-10-14. It adds an owned setup-only
+reference resolver whose outputs are terminal: optional entity/table
+reactor/xDictionary references and recognized `ACAD_REACTORS`/
+`ACAD_XDICTIONARY` 102 groups resolve once; zero drops those optional links;
+foreign groups remain opaque. Typed XDATA1005 resolves valid nonzero handles,
+retains literal zero and resolver-mode opaque spellings, and does not re-enter
+generic remapping. With no resolver, each existing route's mapping behavior is
+unchanged. Callback throw, replacement/clear, active-write/finalizer mutation,
+and destination-preserving retry are covered. Current fixture/hardening/
+diagnostic pass3/3 without skips in2.95s; `lc3_compat_check` builds. No
+fixture was added, no full adapter/native compatibility is established, and no
+support claim is promoted. The getter/reservation pair remains at `1ade4c6`;
+phase-scoped remapping remains at `bc659d8`. Truthful omission reporting is
+the only remaining method in this facade set. Previous HEADER checkpoints
+remain separately recorded below.
 
 **Previous research boundary:** `25adc7f5201a101f5298394aa0f37796b43d2b91`
 (2026-10-14). Tracked worktree/index were clean at entry. This update changes
@@ -219,8 +227,9 @@ Its historical binary diff SHA-256 is
 | 7BE.1 bounded HEADER reader | COMMITTED / MODERN_SAMPLE_WITNESS_OPEN | `bcc1c93` (`Plan-Slice: 7BE.1`): reviewed11-path reader composition integrated after current-main acceptance. Strict affected targets/test-TU, reader-matrix/hardening/local-roundtrip3/3 and combined cursor-window ASan passed at their recorded checkpoints. Preserves legacy CRC-warning and compact-body exceptions. Generated AC1018/1021/1024/1027/1032 logical-envelope, maintenance and explicit R13/R14 read-only controls were completed separately in7BE.8. Still obtain bounded real-file logical-boundary/maintenance witnesses for each distinct container lineage and complete R13/R14 section-path negative/read-only evidence before broad HEADER coverage claims. AC1024 sample conversion reaches complete DWG read with operation success but is currently blocked at dynamic-block DXF serializer preflight, so it is not an end-to-end positive. No fixture admission or support promotion. |
 | 7BE.7 final HEADER writer sealing | COMMITTED / READER_BOUNDARIES_OPEN | `bde5409` (`Plan-Slice: 7BE.7`): validates the writer-owned HEADER locator/RL/sentinels and the unaligned HANDSEED range before mutation, then reseals CRC after the final seed patch. Independent bitwise CRC/readback, preserved neighboring bits/high-water seeds, repeat sealing, all six writer versions, full in-memory publication/following LINE, and malformed-range rejection/retry controls pass. Strict affected targets and strict test-TU syntax check pass; reader-matrix/hardening/local-roundtrip pass3/3, no skips,3.63s; combined reader matrix AddressSanitizer passes1/1 with no skips. Modern reader boundary and R13/R14 admission partners remain open. No drawing fixture or support promotion. |
 | 7BE.8 versioned logical HEADER envelopes | COMMITTED / GENERATED_PROFILE_EVIDENCE | `9048257` (`Plan-Slice: 7BE.8`): shared admission selects optional high-size word only for AC1024/1027 app-maintenance>3 and AC1032+, enforces exact logical RL/trailer length, validates prefix/end sentinels before publishing variables, and records CRC mismatch as warning. Generated writer-backed sections and independently modified maintenance profiles cover AC1015/1018/1021/1024/1027/1032; AC1012/1014 are envelope-only read-only controls. Maintenance mismatches, extra decoded padding, CRC mutation, end-sentinel mutation and stale-header clearing pass reader-matrix/hardening/local-roundtrip3/3 in2.89s, no skips. Does not prove every real producer's logical page length, R13/R14 body semantics, broad DWG version support, or full-file success. No DWG/DXF fixture committed. |
-| 7AG.1c source/reservation facade queries | COMMITTED / NEXT_FACADE_METHODS_OPEN | `1ade4c6` (`Plan-Slice: 7AG.1c`): adds exact-source-version provenance and a read-only query of explicit handle reservations, excluding generated handles; no virtual/interface layout change. Corrected the invalid test premise (required LINE end-Y omission, not absent self-handle). Current fixture/hardening/diagnostic tests pass3/3, no skips,3.35s; LC3 source-compatibility target builds. Coverage includes file/readAscii version normalization and repeat declarations, returned parse failure, callback exception/nested operation timing, reservation vs fixed/generated/BLOCK handles, failure/retry and ASCII/binary R12/modern output. Does not prove full adapter/native compatibility. No fixture or support claim. |
-| 7AG.1c phase-scoped BLOCK_RECORD remaps | COMMITTED / RESOLVER_OMISSION_OPEN | `bc659d8` (`Plan-Slice: 7AG.1c.remap`): adds transient derived remaps only during the consumer `writeBlocks()` callback, after BLOCK_RECORD precollection. Explicit caller maps win collisions; equal derived duplicates are idempotent; conflicting duplicates, null source/target and earlier `writeBlockRecords()` calls reject the transaction. Derived maps are separate from caller state and clear on failed write/retry and next operation. Generated dictionary-owner output checks prove remapObjectHandle reaches serialized code330; phase, reuse, exception, conflict and explicit-precedence controls pass the current fixture/hardening/diagnostic cohort3/3 in2.92s, no skips; LC3 exact signature/call target builds. No full adapter/native compatibility, fixture admission or support claim. |
+| 7AG.1c source/reservation facade queries | COMMITTED / OMISSION_REPORTING_OPEN | `1ade4c6` (`Plan-Slice: 7AG.1c`): adds exact-source-version provenance and a read-only query of explicit handle reservations, excluding generated handles; no virtual/interface layout change. Corrected the invalid test premise (required LINE end-Y omission, not absent self-handle). Current fixture/hardening/diagnostic tests pass3/3, no skips,3.35s; LC3 source-compatibility target builds. Coverage includes file/readAscii version normalization and repeat declarations, returned parse failure, callback exception/nested operation timing, reservation vs fixed/generated/BLOCK handles, failure/retry and ASCII/binary R12/modern output. Does not prove full adapter/native compatibility. No fixture or support claim. |
+| 7AG.1c phase-scoped BLOCK_RECORD remaps | COMMITTED / OMISSION_REPORTING_OPEN | `bc659d8` (`Plan-Slice: 7AG.1c.remap`): adds transient derived remaps only during the consumer `writeBlocks()` callback, after BLOCK_RECORD precollection. Explicit caller maps win collisions; equal derived duplicates are idempotent; conflicting duplicates, null source/target and earlier `writeBlockRecords()` calls reject the transaction. Derived maps are separate from caller state and clear on failed write/retry and next operation. Generated dictionary-owner output checks prove remapObjectHandle reaches serialized code330; phase, reuse, exception, conflict and explicit-precedence controls pass the current fixture/hardening/diagnostic cohort3/3 in2.92s, no skips; LC3 exact signature/call target builds. No full adapter/native compatibility, fixture admission or support claim. |
+| 7AG.1c terminal reference resolver | COMMITTED / OMITTED_COUNTER_OPEN | `06b051c` (`Plan-Slice: 7AG.1c.resolver`): owns the callable and rejects setup/replacement/clear while a write or finalizer is active. Absent resolver preserves route-specific behavior. When set, typed entity/table reactors and xDictionary references plus known ACAD 102 groups use one terminal callback result; zero removes optional links/empty known groups, foreign app groups remain opaque, and no generic second map is applied. Typed XDATA1005 maps valid nonzero references once, preserves literal-zero spelling, writes callback-zero as `0`, and preserves malformed spellings per the bundled writer contract; that malformed-output control is byte inspection only, not parse-validity evidence. Non-idempotent mapping, explicit-map precedence, callback counts, ASCII/binary output, replacement/clear, callback throw/retry, closure release, active-write/finalizer mutation rejection and destination preservation pass fixture/hardening/diagnostic3/3 in2.95s, no skips; `lc3_compat_check` builds. No fixture, full adapter/native compatibility or support claim. |
 | 7P.1 table owners | COMMITTED | `Plan-Slice: 7P.1`, integrated `f8fbe07`: STYLE/VPORT owners bound to actual table handles 3/8. Main DXF fixtures pass 1/1 in 0.36s with nine-family raw owner/framing matrix and a runtime generator. Worker eight version/encoding ordinary-reader projections are supplemental; R14's existing owner omissions remain scoped. Common metadata placement/resources remain 7P.2/3; next ready five-field widths. |
 | 7P.2 common base scopes | COMMITTED | `Plan-Slice: 7P.2`, integrated `2e7d861`: common metadata precedes subclasses for eight tables, retained entity appData and PLOTSETTINGS; mandatory LTYPE XDATA stays trailing. Main Wave1/DXF fixtures/local-roundtrip pass 3/3 in 2.12s; all versioned XRECORD regressions retained during conflict resolution. Worker eight independent projections are supplemental. Omitted object carriers/typed resources remain 7P.4/7G.2; next ready corrected 7G.1. |
 | 7Q.0 narrow wire kinds | COMMITTED | VIEW `22e2b97`, plus `Plan-Slice: 7Q.0b` from `7ad567d`: PointCloudDef 280, SectionManager 70 and DIMASSOC 71 use I16; MLEADER 94/95 use I32. Main Wave1/DXF fixtures pass 2/2 in 0.96s with following-field/record controls. Widths do not fix PAR-45/46 semantics or gradient 431; wider 31-call inventory remains 7X. Next ready 7N. |
@@ -2259,7 +2268,7 @@ GDAL9c9d722b; no dependency is installed or made mandatory.
 | --- | --- | --- |
 | 7AD/Slice9 | Portable probe candidate requires bothb912a963 andcb22907f; source correction, not native qualification. | Existing compiler-free self-test, one14-child compiler/configure profile and actual main CLI1/1; do not rebuild the library. |
 | 7BE.1/.7/.8 | Reader7BE.1 (`bcc1c93`), writer7BE.7 (`bde5409`) and generated versioned-envelope7BE.8 (`9048257`) are separately committed; focused gates and the recorded combined matrix sanitizer pass. | Use bounded existing real-file traces/reads to witness logical section lengths and maintenance profiles per container lineage, plus R13/R14 section-path controls; do not add untracked user samples. Cursor/window ASan need not repeat unless lifetime code changes. |
-| 7AG.1c | Getter/reservation at `1ade4c6` and phase-scoped remap at `bc659d8` are integrated. Reference resolver and omission reporting remain. | Resolver final-output/no-double-map/route-zero/lifetime/retry, then truthful per-write leftOut labels without relaxing reject policy. Reuse existing fixture/hardening/LC3 gates; no no-op aliases or native Qt prerequisite. |
+| 7AG.1c | Getter/reservation at `1ade4c6`, phase-scoped remap at `bc659d8`, and terminal resolver at `06b051c` are integrated. Only truthful omission reporting remains. | Inventory attempted-versus-published/failure/reset semantics and current target-version omission routes; add truthful per-write leftOut labels without relaxing reject policy. Reuse existing fixture/hardening/LC3 gates; no no-op aliases or native Qt prerequisite. |
 | 7BO/7S.3 | Unknown-name duplicate scans remain quadratic; HANDLE metadata peaks/outcome propagation are separate from payload limits. | Deterministic tiny index/budget controls in actual reader18/21 and existing hardening targets; preserve first diagnostics and callback prefixes. |
 | 7AH.1/.5/7AQ | Duplicate source identities can collapse in lookup maps; loader warnings and audit fixes describe different phases. | Ordered role-aware identity inventory and bounded warning controls; four ordinary-load calibrations, not a new full corpus. |
 | Slice4/7X/7AH | Optional JS scanner loses exact strings/int64; GDAL direct tags offer a narrower binary lane with correlated range lineage/error limits. | Named capabilities/exclusions and tiny raw/type/EOF controls only if that optional lane is enabled. No installation or semantic support promotion. |
@@ -2828,11 +2837,11 @@ failure does not prevent completing them:
 | --- | --- | --- |
 | 7AG.3a/7BC/MIF, integrated | Preserve typed BLOCK staging, WIPEOUT CLI dispatch and literal MIF behavior; focused composed ASan4/4 binds bc8f45f. | No repeat suite for plan edits. Changed writer/codec integrations retain their affected positive/negative controls; later safety checks need their own source binding. |
 | 7P.5c narrow admission, integrated | Preserve duplicate ASCII-folded key/owning-target rejection in authored direct/named/root routes; per-entry roles/full graph closure remain separate. | Main DXF/graph2/2, strict two TUs/lc3 and dictionary/WIPEOUT/IMAGE modes pass; no peer/native invalid-API prerequisite. |
-| 7AL.2→7L.5→7AG.1b | Canonical codec/exact raw assertions and HEADER/accepted-source CLI committed; reviewed input-only recovery/API successor integrated. Declared remains the default; recovery is not a no-op. | Main API7/7 in5.71s, strict five TUs/current encoding facade/lc3 and MIF/dictionary/WIPEOUT modes pass at the exact staged patch. Preserve unchanged gates; five other facade methods/full adapter/native/ABI remain separate. |
+| 7AL.2→7L.5→7AG.1b | Canonical codec/exact raw assertions and HEADER/accepted-source CLI committed; reviewed input-only recovery/API successor integrated. Declared remains the default; recovery is not a no-op. | Main API7/7 in5.71s, strict five TUs/current encoding facade/lc3 and MIF/dictionary/WIPEOUT modes pass at the exact staged patch. Preserve unchanged gates; one 7AG.1c facade method remains, with full adapter/native/ABI acceptance separate. |
 | 7AH.3 qualification numeric admission | Integrated528e37ae rejects overflow/nonfinite/Boolean tolerance values without changing frozen evidence authority or schema1. | Main eight methods/support/JSON/normalizer pass9.43s;122 frozen inputs unchanged. No C++ rebuild or new CTest. |
 | Slice9/S8.9.5 FreeCAD preflight | Integrated e6e4e78→c2a9772c supplies strict LINE predicates, Linux temp mapping and corrected Python registration order; do not reapply older partial candidate. | Main CLI1/1,32 mocked controls and fresh discovered/explicit cache/argv gates pass at report300abd08. No native pass or new registration is inferred. |
 | 7AD portable Python probe, integrated | Preserve bothb912a963→cb22907f; never reintegrate the GNU-only first helper alone. | Main compiler-free self-test/14-child selected-compiler controls, reconfigure and actual CLI1/1 pass. No library/full-suite rebuild or native claim. |
-| 7AG.1c current facade surface | Source-version getter and explicit-reservation query committed at1ade4c6; derived writeBlocks-phase remap committed and green atbc659d8. Two nonvirtual methods remain: terminal reference resolver and truthful omission counts. | Source-pinned call-phase controls, then each affected fixture/hardening/LC3 gate; preserve default route-specific mapping, zero and failure policy. One composed checkpoint after shared writer/lifecycle edits settle; no full Qt/native prerequisite per method. |
+| 7AG.1c current facade surface | Source-version getter/reservation query at1ade4c6, phase-scoped BLOCK_RECORD remap atbc659d8, and terminal resolver at06b051c are committed. One nonvirtual method remains: truthful omission counts. | Source-pinned call-phase controls, then the affected fixture/hardening/LC3 gate; pin attempted-versus-published/failure/reset behavior, preserve strict rejection and borrowed-map lifetime. No full Qt/native prerequisite. |
 | 7AG.1a, integrated | Preserve current common-source cleanup; do not reimplement50157be. | Main ordinary/3D TU/self-tests and170 inventory pass; known two supplements/six target capabilities remain explicit. |
 | 7AG.4 plus7AG.1 capability profile | Preserve committed direct predicates; attest effective driver context, declare/check capabilities, then add the two audited supplementary callbacks. | Direct102 controls pass; controlled-build provenance/header negatives before one paired build. No existing-binary ambient-only proof or blind target-lock/170→172 update. |
 | 7F.1b /7AH | Migrate the typed result/runner together, including optional modeler source presence and readable bounded observations. | Frozen-schema compatibility plus unknown/zero/presence/omission mutations, then clean/partial/opaque read/readback sentinels. |
@@ -5247,13 +5256,15 @@ scoped consumer handoff. LibreCAD and LibreCAD_3 stay valid 2D consumers; new
    | `const std::map<std::string,std::size_t>& leftOut() const` | Publish truthful per-write omission/simplification counts under Slice6/7M's chosen policies. Cover clean0, an intentionally unsupported target, multiple counts and failure/reuse. An always-empty map is not compatibility; adding reporting must not silently turn existing strict rejection into lossy success. |
 
    Call-shape and lifecycle evidence is now integrated for the getter,
-   reservation query and transient BLOCK_RECORD remap. The three methods' exact
-   signatures are checked against the current LC3 source target; the first two
-   have direct round-trip/lifecycle controls and the remap has an actual
-   writeBlocks-phase/output-owner control. Next implement the owned reference
-   resolver, then inventory target-version omission labels/routes before
-   exposing truthful leftOut counts; keep each
-   preserve/reject/explicit-loss decision under Slice6/7M.
+   reservation query, transient BLOCK_RECORD remap and owned reference
+   resolver. Exact consumer signatures are checked against the LC3 source
+   target; the getter/reservation have direct round-trip/lifecycle controls,
+   remap has a real writeBlocks-phase/output-owner control, and resolver has
+   ASCII/binary entity/table/app-data/XDATA plus callback lifecycle controls.
+   Next inventory target-version omission labels/routes and pin
+   attempted-versus-published, failure, reset and borrowed-map lifetime before
+   exposing truthful leftOut counts; keep each preserve/reject/explicit-loss
+   decision under Slice6/7M.
    Reuse existing DXF/graph/local/CLI targets and exact current-LibreCAD/LC3
    source gates; rebuild only affected targets and run one composed checkpoint
    after shared writer/lifecycle changes settle. No new pure virtual, automatic
@@ -8484,7 +8495,7 @@ work on the critical path.
 
 | Batch | Dependency-ready work | Validation boundary |
 | --- | --- | --- |
-| A — preserved integration queue | Canonical codec/HEADER/accepted-version prerequisites committed; encoding-API successors integrated with7/7/tiny facade/MIF; do not reapply. Numeric and corrected FreeCAD preflight/HATCH retention integrated; composed25adc7f safety4/4 complete. Full portableb912a963→cb22907f probe chain now integrated; 7BE generated gates and three 7AG.1c facade methods (source getter, reservation query, BLOCK_RECORD remap) are committed. Next7BE real-file witnesses,7AG resolver/omission, and resource work. Residual7AW0ee3bff2 remains independent. Preserve committed7AY/7AV/7AX/7AK/7BH/7AD; reconcile STYLE9c3a74c7 with cleanup and review BLOCK98176504 | Reuse exact unchanged API/numeric/FreeCAD/HATCH bindings. Main probe14-child controls/reconfigure/CLI1/1 pass without production/full rebuild.84/45/exact7 unchanged; enumerate only actual registration changes; no user-sample glob/native/full suite per edit |
+| A — preserved integration queue | Canonical codec/HEADER/accepted-version prerequisites committed; encoding-API successors integrated with7/7/tiny facade/MIF; do not reapply. Numeric and corrected FreeCAD preflight/HATCH retention integrated; composed25adc7f safety4/4 complete. Full portableb912a963→cb22907f probe chain now integrated; 7BE generated gates and four 7AG.1c facade methods (source getter, reservation query, BLOCK_RECORD remap, reference resolver) are committed. Next7BE real-file witnesses,7AG omission reporting, and resource work. Residual7AW0ee3bff2 remains independent. Preserve committed7AY/7AV/7AX/7AK/7BH/7AD; reconcile STYLE9c3a74c7 with cleanup and review BLOCK98176504 | Reuse exact unchanged API/numeric/FreeCAD/HATCH bindings. Main probe14-child controls/reconfigure/CLI1/1 pass without production/full rebuild.84/45/exact7 unchanged; enumerate only actual registration changes; no user-sample glob/native/full suite per edit |
 | B — narrow independent corrections | Preserve committed MIF/7BI/7AG.3a/7BC/7BJ.1/2,7P.5c authored admission,7AK.6,7AG.4 direct predicates and optional box-verifier contract. Clean bc8 composed safety passes at its source; review7BE `80eca35a`→`5860915d`.7BH.3/7BG/7N.2a remain local. Effective-driver/capability gates precede new receipts, not these fixes;7N.3 still needs its witness. | Reuse recorded reds/reports; rebind each affected main fast gate without replaying every isolated control. Refresh sanitizer once after later unsafe-boundary changes settle, not per documentation/admission edit. Historical b4/d49/bc8 results retain their actual bindings; no repeated native/full suite. |
 | C — grammar and graph composition | Shared7AM.2/7AS.2 footer design, implemented separately;7G.2 STYLE→VIEWPORT/resources;7P.5b/c image/dictionary/GROUP reciprocity, with narrow duplicate-key admission first;7F.1;7M/7E.1,7AL→7K→7J,7AA.1/2,7O.2/3,7G.3 effective explicit/implicit draw order→7R;7AG handoff | Touched targets per slice; raw types/reciprocity/child counts/pre-load fields and corrected retry. Optional-peer phase calibration only when that projection is enabled. Exact nonvirtual and callback consumer gates on public changes; sparse order/subtype1/oracle limits separate |
 | D — explicit policy/safety/platform boundaries |7BK transparency representation;7BF.1 LTYPE unit witness and7BF.3 indexed-edit/mirror authority; optional7AV.4 caller-memory guarantee;7AP cache safety;7Q gradients,7S.2/3 retention/work accounting,7T narrowing,7U retention,7Y.2 precision,7AE.2/3 Unicode/filename policy,7AC bridges;7AG/7AK PIC/DLL/release ABI and7AO attribution | Resolve only the named decision/witness without blocking ready local fixes. Small configured-limit negatives; ASan/TSan once at touched unsafe boundaries, not full suites per edit. No expired-pointer journals/unconditional cache replay; source/native and release/per-commit gates stay distinct |
@@ -8562,11 +8573,12 @@ the prerequisite set. Reconcile each ready handoff's base, affected files,
 test registrations and evidence binding once; retain recorded isolated results
 as historical evidence and run only the affected current-main gate on integration.
 
-Apply this rule after1ade4c6: preserve the committed portable probe and HEADER
+Apply this rule after06b051c: preserve the committed portable probe and HEADER
 reader/writer/generated-profile slices; use bounded existing real-file traces
 for remaining HEADER witnesses before broader reader claims. Continue7AG.1c
-with the real writeBlocks remap/resolver/omission contracts; the invalid test
-premise is corrected and its first two methods are integrated.7BO indexing,
+with truthful per-write omission reporting; the invalid test premise is
+corrected and the getter/reservation, writeBlocks remap and resolver methods
+are integrated.7BO indexing,
 S3.7 decoder admission/finite
 controls and typed tool reporting can proceed without native FreeCAD/ACIS.
 Resolve only each slice's actual
@@ -8580,7 +8592,7 @@ when their lanes are enabled, not mandatory setup or another full matrix.
 | Batch | Small deliverable and dependency | Fast acceptance |
 | --- | --- | --- |
 | HEADER reader then sealing | Extend committed7BE.1 with named modern logical-boundary/maintenance and R13/R14 read-only partners;7BE.7 writer sealing is committed. | Tiny affected reader gate for each change; the combined reader matrix already passes one cursor-window sanitizer checkpoint. Run another only if later edits change cursor/window lifetime. |
-| Current consumer facade | Getter/reservation pair committed at7AG.1c; implement real writeBlocks remaps, terminal resolver and chosen omission reporting. | Affected fixture plus named main gates; adapter-shaped phases, non-idempotent mapping/zero/throw/retry controls. Do not redo cold library builds or demand native Qt per method. |
+| Current consumer facade | Getter/reservation pair, real writeBlocks remaps and terminal resolver are committed under7AG.1c; implement only truthful omission reporting. | Affected fixture plus named main gates; source-pinned call phases, attempted/published counts, failure/reset and borrowed-map controls. Do not redo cold library builds or demand native Qt per method. |
 | SAB decoder | S3.7a count/completion and S3.7b valid finite projection; explicit body/WCS policy follows separately. Coordinate actual append budgets with7S.3 without changing DWG layouts. | Tiny known producer/components in existing local/hardening tests; assert valid points/bounds/placement, not counts alone. No real-kernel/native or broad corpus prerequisite for these fixes. |
 | Sparse graph order | DXF-first7G.3a SORT store/closure, then reviewed7G.3b existing-table policy with bounded derived entries; no-table policy and DWG fallback receipt adaptation separate. |3–4 source-authored entities/tiny limit controls and one repeated ASCII/binary CLI cohort; source pairs before peer maps. |
 | Oracle framing/reporting | Known lazy parser-error normalization, strict terminal/presence predicates and final-artifact exact integer preservation under7AH/7AQ. | Dependency-free mutations first, then only8 binary/10 order calibration rows when their corresponding lane changes; no C++ rebuild/new runtime/full matrix. |
