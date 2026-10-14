@@ -172,6 +172,14 @@ if(LIBDXFRW_BUILD_TESTS)
             ${CMAKE_CURRENT_SOURCE_DIR}/tests/bounded_process_tests.py)
     set_tests_properties(libdxfrw_bounded_process PROPERTIES
         LABELS "fast;tools;process" TIMEOUT 15)
+    if(LIBDXFRW_BUILD_DWG2DXF)
+        add_test(NAME dwg2dxf_cli_contract
+            COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+                ${CMAKE_CURRENT_SOURCE_DIR}/tests/dwg2dxf_cli_contract_tests.py
+                --converter $<TARGET_FILE:dwg2dxf>)
+        set_tests_properties(dwg2dxf_cli_contract PROPERTIES
+            LABELS "fast;cli;process" TIMEOUT 30)
+    endif()
     add_test(NAME libdxfrw_independent_dxf_selftest
         COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -I -B
             ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_independent_dxf.py --self-test)

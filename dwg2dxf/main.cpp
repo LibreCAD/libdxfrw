@@ -31,6 +31,7 @@ void usage(){
     std::cout << "   -B         optional, batch mode reads a text file whit a list of full path input" << std::endl;
     std::cout << "               files and saves with the same name in the indicated folder as output" << std::endl;
     std::cout << "   -y -Y      optional, Warning! if output dxf exist overwrite without ask" << std::endl;
+    std::cout << "   -d -D      optional, enable debug trace" << std::endl;
     std::cout << "   -version   version output of dxf file" << std::endl;
     std::cout << "   output     output file name" << std::endl << std::endl;
     std::cout << "   -o         FreeCAD-compatible output path; defaults to the input revision" << std::endl;
@@ -41,20 +42,6 @@ void usage(){
     std::cout << "        -v2004 dxf version 2004" << std::endl;
     std::cout << "        -v2007 dxf version 2007" << std::endl;
     std::cout << "        -v2010 dxf version 2010" << std::endl;
-}
-
-DRW::Version checkVersion(std::string param){
-    if (param == "-R12")
-        return DRW::AC1009;
-    else if (param == "-v2000")
-        return DRW::AC1015;
-    else if (param == "-v2004")
-        return DRW::AC1018;
-    else if (param == "-v2007")
-        return DRW::AC1021;
-    else if (param == "-v2010")
-        return DRW::AC1024;
-    return DRW::UNKNOWNV;
 }
 
 bool convertFile(std::string inName, std::string outName, DRW::Version ver,
@@ -117,12 +104,8 @@ bool convertFile(std::string inName, std::string outName, DRW::Version ver,
 
 int main(int argc, char *argv[]) {
     bool badState = false;
-    bool binary = false;
-    bool overwrite = false;
-    bool batch = false;
-    bool debug = false;
+    dwg2dxfCli::Options options;
     std::string outName;
-    DRW::Version ver = DRW::UNKNOWNV;
     if (argc < 3) {
         usage();
         return 1;
@@ -139,10 +122,6 @@ int main(int argc, char *argv[]) {
     if (freeCadMode) {
         const std::string fileName = argv[1];
         bool haveOutput = false;
-        bool haveVersion = false;
-        bool freeCadBinary = false;
-        bool freeCadOverwrite = false;
-        bool freeCadDebug = false;
         bool invalidOption = false;
 
         for (int i = 2; i < argc; ++i) {
@@ -154,30 +133,21 @@ int main(int argc, char *argv[]) {
                 }
                 outName = argv[++i];
                 haveOutput = true;
-            } else if (param == "-b") {
-                freeCadBinary = true;
-            } else if (param == "-y" || param == "-Y") {
-                freeCadOverwrite = true;
-            } else if (param == "-d" || param == "-D") {
-                freeCadDebug = true;
-            } else {
-                ver = checkVersion(param);
-                if (ver == DRW::UNKNOWNV || haveVersion) {
-                    invalidOption = true;
-                    break;
-                }
-                haveVersion = true;
+            } else if (!dwg2dxfCli::applyOption(param, options, false)) {
+                invalidOption = true;
+                break;
             }
         }
 
-        if (invalidOption || !haveOutput || outName.empty()) {
+        if (invalidOption || !haveOutput || fileName.empty() || outName.empty()) {
             std::cout << "Bad options." << std::endl;
             usage();
             return 1;
         }
 
-        const bool ok = convertFile(fileName, outName, ver, freeCadBinary,
-                                    freeCadOverwrite, freeCadDebug, true);
+        const bool ok = convertFile(fileName, outName, options.version,
+                                    options.binary, options.overwrite,
+                                    options.debug, true);
         if (ok) {
             std::cout << "Success: converted " << fileName << " to " << outName << std::endl;
             return 0;
@@ -192,35 +162,19 @@ int main(int argc, char *argv[]) {
         std::string param = argv[i];
         if (i == (argc - 1) )
             outName = param;
-        else {
-            if (param.at(0) == '-') {
-                if (param.at(1) == 'b')
-                    binary = true;
-                else if (param.at(1) == 'y')
-                    overwrite = true;
-                else if (param.at(1) == 'B')
-                    batch = true;
-                else if (tolower(param.at(1)) == 'd')
-                    debug = true;
-                else {
-                    ver = checkVersion(param);
-                    if (ver == DRW::UNKNOWNV) {
-                        badState = true;
-                    }
-                }
-            } else
-                badState = true;
-        }
+        else if (!dwg2dxfCli::applyOption(param, options, true))
+            badState = true;
     }
 
-    if (badState) {
+    if (badState || fileName.empty() || outName.empty()) {
         std::cout << "Bad options." << std::endl;
         usage();
         return 1;
     }
 
-    if (!batch){ //no batch mode, only one file
-        bool ok = convertFile(fileName, outName, ver, binary, overwrite, debug);
+    if (!options.batch){ //no batch mode, only one file
+        bool ok = convertFile(fileName, outName, options.version, options.binary,
+                              options.overwrite, options.debug);
         if (ok) {
             std::cout << "Success: converted " << fileName << " to " << outName << std::endl;
             return 0;
@@ -267,7 +221,8 @@ int main(int argc, char *argv[]) {
         unsigned found = input.find_last_of("/\\");
         std::string output = outName + input.substr(found+1);
         std::cout << "Converting file " << input << " to " << output << std::endl;
-        bool ok = convertFile(input, output, ver, binary, overwrite, debug);
+        bool ok = convertFile(input, output, options.version, options.binary,
+                              options.overwrite, options.debug);
         if (!ok)
             std::cout << "Failed" << std::endl;
     }
