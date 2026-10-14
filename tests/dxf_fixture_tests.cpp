@@ -10,6 +10,7 @@
 #include <iostream>
 #include <iterator>
 #include <list>
+#include <limits>
 #include <map>
 #include <string>
 #include <utility>
@@ -511,6 +512,175 @@ void testMTextOrientationPrecedence(TestContext& t) {
         }
         t.expect(freshValid, "fresh API MTEXT angle/vector/conflicting fields retain legacy behavior without mutation");
         testEmbeddedMTextOrientation(t, binary, output);
+        std::error_code error;
+        std::filesystem::remove(source, error); std::filesystem::remove(output, error);
+    }
+}
+
+const std::vector<int>& expectedClassicVertexIdentifiers() {
+    static const std::vector<int> values {
+        0, 70001, std::numeric_limits<std::int32_t>::max(),
+        80001, 80002, 0, 90001, 90002, 90003, 90004,
+        100001, 100002, 100003, 100010, 100011};
+    return values;
+}
+
+// Literal modern DXF controls, independent of writePolyline's emission rules.
+bool generateClassicVertexIdentifiers(const std::filesystem::path& path, bool binary) {
+    std::ofstream stream(path, std::ios::binary | std::ios::trunc);
+    if (binary) stream.write("AutoCAD Binary DXF\r\n\032\0", 22);
+    std::unique_ptr<dxfWriter> tags;
+    if (binary) tags = std::make_unique<dxfWriterBinary>(&stream);
+    else tags = std::make_unique<dxfWriterAscii>(&stream);
+    tags->setVersion("AC1024", true);
+    const auto point = [&](int code, DRW_Coord value) {
+        tags->writeDouble(code, value.x); tags->writeDouble(code + 10, value.y);
+        tags->writeDouble(code + 20, value.z);
+    };
+    tags->writeString(0, "SECTION"); tags->writeString(2, "HEADER");
+    tags->writeString(9, "$ACADVER"); tags->writeString(1, "AC1024");
+    tags->writeString(0, "ENDSEC"); tags->writeString(0, "SECTION");
+    tags->writeString(2, "ENTITIES");
+    std::size_t identifierIndex = 0;
+    for (int family : {0, 8, 16, 64}) {
+        tags->writeString(0, "POLYLINE"); tags->writeString(100, "AcDbEntity");
+        tags->writeString(8, "0");
+        tags->writeString(100, family == 0 ? "AcDb2dPolyline" : family == 8
+            ? "AcDb3dPolyline" : family == 16 ? "AcDbPolygonMesh" : "AcDbPolyFaceMesh");
+        point(10, {0, 0, family == 0 ? 3.0 : 0.0}); tags->writeInt16(70, family);
+        if (family == 0) point(210, {0, .6, .8});
+        if (family == 16) { tags->writeInt16(71, 2); tags->writeInt16(72, 2); }
+        if (family == 64) { tags->writeInt16(71, 3); tags->writeInt16(72, 2); }
+        const int count = family == 16 ? 4 : family == 64 ? 5 : 3;
+        for (int index = 0; index != count; ++index) {
+            const bool face = family == 64 && index >= 3;
+            tags->writeString(0, "VERTEX"); tags->writeString(100, "AcDbEntity");
+            tags->writeString(8, "0");
+            if (!face) tags->writeString(100, "AcDbVertex");
+            tags->writeString(100, face ? "AcDbFaceRecord" : family == 0
+                ? "AcDb2dVertex" : family == 8 ? "AcDb3dPolylineVertex"
+                : family == 16 ? "AcDbPolygonMeshVertex" : "AcDbPolyFaceMeshVertex");
+            point(10, face ? DRW_Coord{} : DRW_Coord{index + 1.0, index == 1 ? 4.0 : index + 2.0,
+                  family == 0 ? 0.0 : index + 3.0});
+            tags->writeInt16(70, face ? 128 : family == 0 ? 0 : family == 8 ? 32
+                                            : family == 16 ? 64 : 192);
+            if (face) {
+                tags->writeInt16(71, index == 3 ? 1 : 2);
+                tags->writeInt16(72, index == 3 ? -2 : 0);
+                tags->writeInt16(73, index == 3 ? 3 : 123); // inactive after first zero
+            }
+            const int identifier = expectedClassicVertexIdentifiers()[identifierIndex++];
+            if (identifier != 0) tags->writeInt32(91, identifier);
+        }
+        tags->writeString(0, "SEQEND"); tags->writeString(8, "0");
+    }
+    tags->writeString(0, "LINE"); tags->writeString(100, "AcDbEntity");
+    tags->writeString(8, "0"); tags->writeString(100, "AcDbLine");
+    point(10, {71, 72, 73}); point(11, {74, 75, 76});
+    tags->writeString(0, "ENDSEC"); tags->writeString(0, "EOF");
+    return !tags->hasWriteError() && stream.good();
+}
+
+std::vector<int> classicVertexIdentifiers(const dx_data& data) {
+    std::vector<int> identifiers;
+    for (const auto* entity : data.mBlock->ent)
+        if (const auto* polyline = dynamic_cast<const DRW_Polyline*>(entity))
+            for (const auto& vertex : polyline->vertlist)
+                identifiers.push_back(vertex->identifier);
+    return identifiers;
+}
+
+bool verifyClassicVertexIdentifiers(const std::filesystem::path& path) {
+    dx_data data; dx_iface reader;
+    if (!reader.fileImport(path.string(), &data, false)
+        || data.mBlock->ent.size() != 5u
+        || classicVertexIdentifiers(data) != expectedClassicVertexIdentifiers()) return false;
+    const std::vector<DRW_Entity*> entities(data.mBlock->ent.begin(), data.mBlock->ent.end());
+    const auto* planar = dynamic_cast<const DRW_Polyline*>(entities[0]);
+    const auto* spatial = dynamic_cast<const DRW_Polyline*>(entities[1]);
+    const auto* mesh = dynamic_cast<const DRW_Polyline*>(entities[2]);
+    const auto* polyface = dynamic_cast<const DRW_Polyline*>(entities[3]);
+    return planar && planar->flags == 0 && planar->basePoint.z == 3
+        && planar->extPoint.y == .6 && planar->extPoint.z == .8
+        && spatial && spatial->flags == 8 && spatial->vertlist[2]->basePoint.z == 5
+        && mesh && mesh->flags == 16 && mesh->vertexcount == 2 && mesh->facecount == 2
+        && polyface && polyface->flags == 64 && polyface->vertlist.size() == 5u
+        && polyface->vertlist[3]->vindex1 == 1 && polyface->vertlist[3]->vindex2 == -2
+        && polyface->vertlist[3]->vindex3 == 3 && polyface->vertlist[3]->vindex4 == 0
+        && polyface->vertlist[4]->vindex1 == 2 && polyface->vertlist[4]->vindex2 == 0
+        && data.mBlock->ent.back()->eType == DRW::LINE;
+}
+
+bool literalClassicIdentifiersMatch(const std::filesystem::path& path, bool binary,
+                                    const std::vector<int>& expected,
+                                    DRW::Version version = DRW::AC1024) {
+    std::ifstream stream(path, std::ios::binary);
+    if (binary) stream.seekg(22);
+    std::unique_ptr<dxfReader> tags;
+    if (binary && version <= DRW::AC1009) tags = std::make_unique<dxfReaderBinaryR12>(&stream);
+    else if (binary) tags = std::make_unique<dxfReaderBinary>(&stream);
+    else tags = std::make_unique<dxfReaderAscii>(&stream);
+    std::vector<int> identifiers;
+    bool vertex = false;
+    int identifier = 0, code = 0;
+    while (tags->readRec(&code)) {
+        if (code == 0) {
+            if (vertex) identifiers.push_back(identifier);
+            vertex = tags->getString() == "VERTEX";
+            identifier = 0;
+            if (tags->getString() == "EOF") return identifiers == expected;
+        } else if (vertex && code == 91) identifier = tags->getInt32();
+    }
+    return false;
+}
+
+void testClassicVertexIdentifierRetention(TestContext& t) {
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    for (bool binary : {false, true}) {
+        const auto source = std::filesystem::temp_directory_path()
+            / ("libdxfrw-vertex-ids-" + std::to_string(nonce) + (binary ? "-bin.dxf" : "-asc.dxf"));
+        const auto output = source.parent_path() / (source.stem().string() + "-out.dxf");
+        t.expect(generateClassicVertexIdentifiers(source, binary)
+                     && verifyClassicVertexIdentifiers(source),
+                 "literal classic VERTEX identifiers and geometry are parsed");
+        dx_data data; dx_iface reader, writer;
+        t.expect(reader.fileImport(source.string(), &data, false), "classic ID input imports");
+        for (auto version : {DRW::AC1024, DRW::AC1032}) {
+            t.expect(writer.fileExport(output.string(), version, binary, &data, false)
+                         && verifyClassicVertexIdentifiers(output)
+                         && literalClassicIdentifiersMatch(output, binary, expectedClassicVertexIdentifiers()),
+                     "modern classic IDs survive public and literal read-back with full I32 width");
+            t.expect(classicVertexIdentifiers(data) == expectedClassicVertexIdentifiers(),
+                     "identifier serialization does not mutate caller IDs");
+        }
+        const auto* sourcePolyface = static_cast<const DRW_Polyline*>(*std::next(data.mBlock->ent.begin(), 3));
+        t.expect(sourcePolyface->vertlist[4]->vindex3 == 123,
+                 "identifier emission preserves inactive caller face indices");
+        dx_data copied;
+        for (const auto* entity : data.mBlock->ent)
+            if (const auto* polyline = dynamic_cast<const DRW_Polyline*>(entity))
+                copied.mBlock->ent.push_back(new DRW_Polyline(*polyline));
+        auto* edited = static_cast<DRW_Polyline*>(copied.mBlock->ent.front());
+        edited->vertlist[1]->identifier = 80002;
+        auto expected = expectedClassicVertexIdentifiers(); expected[1] = 80002;
+        t.expect(writer.fileExport(output.string(), DRW::AC1024, binary, &copied, false)
+                     && literalClassicIdentifiersMatch(output, binary, expected)
+                     && classicVertexIdentifiers(data) == expectedClassicVertexIdentifiers(),
+                 "copied/read-edited IDs serialize without modifying original children");
+        for (auto older : {DRW::AC1009, DRW::AC1014, DRW::AC1021}) {
+            { std::ofstream sentinel(output, std::ios::binary | std::ios::trunc); sentinel << "unchanged"; }
+            t.expect(!writer.fileExport(output.string(), older, binary, &data, false),
+                     "unqualified older target explicitly rejects nonzero modern VERTEX IDs");
+            std::ifstream preserved(output, std::ios::binary);
+            t.expect(std::string(std::istreambuf_iterator<char>(preserved), {}) == "unchanged"
+                         && classicVertexIdentifiers(data) == expectedClassicVertexIdentifiers(),
+                     "older-target identifier rejection preserves destination and caller IDs");
+        }
+        for (auto* entity : copied.mBlock->ent)
+            for (const auto& vertex : static_cast<DRW_Polyline*>(entity)->vertlist) vertex->identifier = 0;
+        t.expect(writer.fileExport(output.string(), DRW::AC1009, binary, &copied, false)
+                     && literalClassicIdentifiersMatch(output, binary, std::vector<int>(expected.size(), 0), DRW::AC1009),
+                 "default-ID older geometry remains supported after rejected export");
         std::error_code error;
         std::filesystem::remove(source, error); std::filesystem::remove(output, error);
     }
@@ -2623,7 +2793,7 @@ void testClassicVertexXdata(TestContext& t) {
                             [](const auto& tag) { return tag.first == 1001; });
                         t.expect(xdataStart != record.groups.end()
                                      && std::none_of(xdataStart, record.groups.end(), [](const auto& tag) {
-                                         return tag.first == 100 || tag.first == 102;
+                                         return tag.first == 100 || tag.first == 102 || tag.first == 91;
                                      }), "VERTEX XDATA follows subtype and common application groups");
                     }
                 }
@@ -2838,6 +3008,11 @@ int main(int argc, char** argv) {
         return generateXRecordCoordinateDxf(argv[2], inputMode == "binary",
                                              outputMode == "binary") ? 0 : 1;
     }
+    if (argc == 3 && (std::string(argv[1]) == "--generate-classic-vertex-ids"
+                     || std::string(argv[1]) == "--generate-classic-vertex-ids-binary"))
+        return generateClassicVertexIdentifiers(argv[2], std::string(argv[1]) == "--generate-classic-vertex-ids-binary") ? 0 : 1;
+    if (argc == 3 && std::string(argv[1]) == "--verify-classic-vertex-ids")
+        return verifyClassicVertexIdentifiers(argv[2]) ? 0 : 1;
     if (argc == 3 && (std::string(argv[1]) == "--generate-mtext-orientation"
                      || std::string(argv[1]) == "--generate-mtext-orientation-binary"))
         return generateMTextOrientationDxf(argv[2], std::string(argv[1]) == "--generate-mtext-orientation-binary") ? 0 : 1;
@@ -2874,6 +3049,7 @@ int main(int argc, char** argv) {
         return 2;
     TestContext context;
     testClassicVertexXdata(context);
+    testClassicVertexIdentifierRetention(context);
     testMTextOrientationPrecedence(context);
     testInsertChildHandleRollback(context);
     testTableRecordOwners(context);

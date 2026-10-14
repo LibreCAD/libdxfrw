@@ -44,6 +44,17 @@ callback order alone is a stable ownership contract.
 
 ## Field and coordinate contract
 
+Classic POLYLINE/VERTEX group91 identifiers are independent signed-I32 model
+fields, not signed one-based POLYFACE indices. Nonzero identifiers are retained
+for AC1024 and newer DXF output across 2D/3D polylines and mesh records. Older
+output with nonzero identifiers is explicitly unsupported, before publication,
+pending older-producer qualification; this conservative output-support boundary
+is not an earliest-release or older-format-invalidity claim. Geometry with
+default zero identifiers remains available on older targets. The current API
+does not distinguish absent group91 from explicit zero, so zero is omitted.
+Identifier retention alone does not qualify topology, native rendering or DWG
+identifier conversion.
+
 DXF MTEXT orientation reads retain the last supplied main direction vector
 (11/21/31) or rotation (50). Unchanged parsed records write only that active
 representation; an earlier inactive vector cannot override a later rotation.

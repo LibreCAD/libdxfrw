@@ -108,6 +108,7 @@ bool generate(const std::string& path, bool binary, bool dangling = false,
         text(100, "AcDb3dPolylineVertex"); writer->writeInt16(70, 32);
         writer->writeDouble(10, vertex + 1); writer->writeDouble(20, vertex + 2);
         writer->writeDouble(30, vertex + 3);
+        writer->writeInt32(91, vertex + 70001);
         text(1001, "VERTEX_APP"); text(1000, "vertex-xdata-" + std::to_string(vertex));
     }
     text(0, "SEQEND"); text(5, "A6"); text(330, "A3");
@@ -133,6 +134,7 @@ bool generate(const std::string& path, bool binary, bool dangling = false,
 struct Record {
     std::string type, handle, owner, name;
     double x {0};
+    std::int32_t identifier {0};
     std::vector<std::pair<int, std::string>> xdata;
     std::vector<std::string> appData;
 };
@@ -160,6 +162,7 @@ bool verify(const std::string& path) {
         else if (code == 330) current.owner = reader->getString();
         else if (code == 2) current.name = reader->getString();
         else if (code == 10) current.x = reader->getDouble();
+        else if (code == 91) current.identifier = reader->getInt32();
         else if (code == 1000 || code == 1001)
             current.xdata.emplace_back(code, reader->getString());
         else if (code == 102 || code == 1 || code == 320)
@@ -216,6 +219,8 @@ bool verify(const std::string& path) {
                 return fail("minted sequence-child owner was remapped twice");
             if (record.type == "VERTEX") {
                 const std::string index = std::to_string(vertices);
+                if (record.identifier != vertices + 70001)
+                    return fail("classic VERTEX I32 identifier changed through conversion");
                 if (record.xdata != std::vector<std::pair<int, std::string>>{
                         {1001, "VERTEX_APP"}, {1000, "vertex-xdata-" + index}})
                     return fail("distinct classic VERTEX XDATA is missing or merged");

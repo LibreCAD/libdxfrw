@@ -4390,6 +4390,14 @@ bool dxfRW::writePolyline(DRW_Polyline *ent) {
         m_writeError = true;
         return false;
     }
+    // Nonzero classic VERTEX identifiers are implemented for AC1024+ output.
+    // Older primary tables omit this field; do not silently lose it or infer
+    // an earlier legal version from peers that emit it without a version gate.
+    // This is an output-support policy, not a claim of older-format invalidity.
+    if (version < DRW::AC1024
+        && std::any_of(ent->vertlist.cbegin(), ent->vertlist.cend(),
+                       [](const auto& vertex) { return vertex->identifier != 0; }))
+        return rejectUnsupportedDxfWrite();
     RecordStateScope state(*this, ent);
     DxfWriterRecordScope record(*writer);
     // Child records share this parent transaction. Keep the existing minted
@@ -4536,10 +4544,11 @@ bool dxfRW::writePolyline(DRW_Polyline *ent) {
                 if (indices[i] != 0)
                     writer->writeInt16(static_cast<int>(71 + i), indices[i]);
             }
-            if (!(ent->flags & 64)) {
-                writer->writeInt32(91, v->identifier);
-            }
         }
+        // Identifier is an independent I32 field, not a face index or a
+        // POLYFACE coordinate-pool position. Zero/absence share the API default.
+        if (version >= DRW::AC1024 && v->identifier != 0)
+            writer->writeInt32(91, v->identifier);
         if (!v->extData.empty() && !writeExtData(v->extData))
             return false;
         return true;
