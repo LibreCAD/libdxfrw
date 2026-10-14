@@ -11,7 +11,6 @@
 ******************************************************************************/
 
 #include <cstdlib>
-#include <cctype>
 #include <cmath>
 #include <cstring>
 #include <fstream>
@@ -23,6 +22,13 @@
 #include "dxfnumber.h"
 
 namespace {
+
+// Uppercase ASCII only, before text encoding. Bytes outside the ASCII lower-
+// case range belong to the source spelling, not the process CTYPE locale.
+constexpr unsigned char dxfAsciiUpper(unsigned char value) {
+    return value >= 'a' && value <= 'z'
+        ? static_cast<unsigned char>(value - 'a' + 'A') : value;
+}
 
 bool isAsciiDxfCode(int code) {
     return code >= 0 && code <= 1071;
@@ -193,7 +199,7 @@ bool dxfWriter::writeUtf8Caps(int code, std::string text) {
     std::string strname = text;
     std::transform(strname.begin(), strname.end(), strname.begin(),
                    [](unsigned char ch) {
-                       return static_cast<char>(std::toupper(ch));
+                       return static_cast<char>(dxfAsciiUpper(ch));
                    });
     std::string t = encoder.fromUtf8(strname);
     return writeString(code, t);
@@ -207,7 +213,7 @@ bool dxfWriterBinary::writeString(int code, std::string text) {
             unsigned char c = static_cast<unsigned char>(ch);
             if (c >= '0' && c <= '9')
                 return c - '0';
-            c = static_cast<unsigned char>(std::toupper(c));
+            c = dxfAsciiUpper(c);
             if (c >= 'A' && c <= 'F')
                 return c - 'A' + 10;
             return -1;

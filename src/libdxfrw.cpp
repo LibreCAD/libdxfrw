@@ -47,6 +47,13 @@
 
 namespace {
 
+// DXF syntax and legacy symbol capitalization are ASCII policies. Applying
+// process CTYPE to individual UTF-8 bytes can corrupt a valid source string.
+constexpr unsigned char dxfAsciiUpper(unsigned char value) {
+    return value >= 'a' && value <= 'z'
+        ? static_cast<unsigned char>(value - 'a' + 'A') : value;
+}
+
 struct OperationErrorMapping {
     DRW::OperationPhase phase;
     DRW::OperationCause cause;
@@ -706,7 +713,7 @@ bool dxfKeywordEquals(const std::string& value, const char* keyword) {
             static_cast<unsigned char>(value[i]);
         const unsigned char keywordChar =
             static_cast<unsigned char>(keyword[i]);
-        if (std::toupper(valueChar) != std::toupper(keywordChar))
+        if (dxfAsciiUpper(valueChar) != dxfAsciiUpper(keywordChar))
             return false;
     }
     return true;
@@ -724,7 +731,7 @@ bool dxfTableEntryComplete(const DRW_TableEntry& entry,
 std::string dxfSymbolNameKey(std::string value) {
     std::transform(value.begin(), value.end(), value.begin(),
                    [](unsigned char ch) {
-                       return static_cast<char>(std::toupper(ch));
+                       return static_cast<char>(dxfAsciiUpper(ch));
                    });
     return value;
 }
@@ -3191,12 +3198,7 @@ bool dxfRW::writeTableEntryAppData(const DRW_TableEntry& entry) {
 bool dxfRW::writeLineType(DRW_LType *ent){
     if (!preflightTableEntry(ent))
         return false;
-    std::string strname = ent->name;
-
-    transform(strname.begin(), strname.end(), strname.begin(),
-              [](unsigned char ch) {
-                  return static_cast<char>(std::toupper(ch));
-              });
+    const std::string strname = dxfSymbolNameKey(ent->name);
     //do not write linetypes handled by library
     if (strname == "BYLAYER" || strname == "BYBLOCK" || strname == "CONTINUOUS") {
         const auto cached = std::find_if(
@@ -3628,11 +3630,7 @@ bool dxfRW::writeDimstyle(DRW_Dimstyle *ent){
         return false;
     writer->writeString(0, "DIMSTYLE");
     if (!dimstyleStd) {
-        std::string name = ent->name;
-        std::transform(name.begin(), name.end(), name.begin(),
-                       [](unsigned char ch) {
-                           return static_cast<char>(std::toupper(ch));
-                       });
+        const std::string name = dxfSymbolNameKey(ent->name);
         if (name == "STANDARD")
             dimstyleStd = true;
     }
@@ -3998,11 +3996,7 @@ bool dxfRW::writeAppId(DRW_AppId *ent){
         m_writeError = true;
         return false;
     }
-    std::string strname = ent->name;
-    transform(strname.begin(), strname.end(), strname.begin(),
-              [](unsigned char ch) {
-                  return static_cast<char>(std::toupper(ch));
-              });
+    const std::string strname = dxfSymbolNameKey(ent->name);
     //do not write mandatory ACAD appId, handled by library
     if (strname == "ACAD")
         return true;

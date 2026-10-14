@@ -3,6 +3,7 @@
 #include <array>
 #include <charconv>
 #include <chrono>
+#include <clocale>
 #include <cmath>
 #include <memory>
 #include <filesystem>
@@ -4826,6 +4827,157 @@ void testInfiniteLineDirections(TestContext& t) {
     }
 }
 
+void testAsciiOnlySymbolCasing(TestContext& t) {
+    // Two-, three- and four-byte UTF-8 sequences must reach the codec intact.
+    const std::string suffix = "_\xC2\xA2_\xC3\xA9_\xCE\xA9_\xE2\x82\xAC_\xE4\xB8\xAD_\xF0\x9F\x98\x80";
+    const std::string input = "abcdefghijklmnopqrstuvwxyz_09_.Z" + suffix;
+    const std::string expected = "ABCDEFGHIJKLMNOPQRSTUVWXYZ_09_.Z" + suffix;
+    for (const bool binary : {false, true}) {
+        for (const char* version : {"AC1009", "AC1021"}) {
+            std::ostringstream actualBytes, expectedBytes;
+            std::unique_ptr<dxfWriter> actual, reference;
+            if (binary) {
+                actual = std::make_unique<dxfWriterBinary>(&actualBytes);
+                reference = std::make_unique<dxfWriterBinary>(&expectedBytes);
+            } else {
+                actual = std::make_unique<dxfWriterAscii>(&actualBytes);
+                reference = std::make_unique<dxfWriterAscii>(&expectedBytes);
+            }
+            actual->setVersion(version, true);
+            reference->setVersion(version, true);
+            t.expect(actual->writeUtf8Caps(2, input)
+                         && reference->writeUtf8String(2, expected)
+                         && actualBytes.str() == expectedBytes.str(),
+                     "legacy caps changes only ASCII before either target codec");
+            t.expect(input == "abcdefghijklmnopqrstuvwxyz_09_.Z" + suffix,
+                     "UTF-8 capitalization never edits the caller's string");
+            if (std::string(version) == "AC1021")
+                t.expect(actualBytes.str().find(expected) != std::string::npos,
+                         "modern output contains the exact valid UTF-8 byte sequence");
+        }
+    }
+    std::ostringstream hexBytes;
+    dxfWriterBinary hex(&hexBytes);
+    const std::string hexExpected("\x36\x01\x08\xAB\xCD\xEF\x01\x23\x45\x67\x89", 11);
+    t.expect(hex.writeString(310, "abcdef0123456789")
+                 && hexBytes.str() == hexExpected,
+             "binary hex digits retain deterministic ASCII case acceptance");
+    std::string lowerKeywords =
+        "0\nsection\n2\nheader\n9\n$ACADVER\n1\nAC1021\n0\nendsec\n"
+        "0\nsection\n2\nentities\n0\nline\n8\n0\n10\n1\n20\n2\n"
+        "11\n3\n21\n4\n0\nendsec\n0\neof\n";
+    const std::string originalKeywords(lowerKeywords);
+    FixtureInterface keywordReader;
+    dx_data keywordData;
+    keywordReader.attach(&keywordData);
+    dxfRW keywordCodec("unused-ascii-casing.dxf");
+    t.expect(keywordCodec.readAscii(&keywordReader, false, lowerKeywords)
+                 && keywordData.mBlock->ent.size() == 1
+                 && keywordData.mBlock->ent.front()->eType == DRW::LINE
+                 && lowerKeywords == originalKeywords,
+             "ASCII keyword comparison and entity dispatch ignore process CTYPE");
+
+    class CasingInterface final : public dx_iface {
+    public:
+        void writeEntities() override {
+            const std::string lower = "\xC3\xA9", upper = "\xC3\x89";
+            const auto firstStyle = dxfW->getTextStyleHandle("MIX_" + lower);
+            const auto secondStyle = dxfW->getTextStyleHandle("MIX_" + upper);
+            const auto firstBlock = dxfW->getBlockRecordHandleToWrite("MIX_" + lower);
+            const auto secondBlock = dxfW->getBlockRecordHandleToWrite("MIX_" + upper);
+            lookups = firstStyle != 0 && secondStyle != 0 && firstStyle != secondStyle
+                && firstBlock != 0 && secondBlock != 0 && firstBlock != secondBlock;
+            DRW_Text text;
+            text.text = "case sentinel";
+            text.style = "MIX_" + lower;
+            text.height = 1.0;
+            DRW_Insert insert;
+            insert.name = "MIX_" + upper;
+            writes = dxfW->writeText(&text) && dxfW->writeInsert(&insert);
+            sourceStrings = text.style == "MIX_" + lower && insert.name == "MIX_" + upper;
+        }
+        bool lookups {false};
+        bool writes {false};
+        bool sourceStrings {false};
+    };
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    for (const bool binary : {false, true}) {
+        const auto path = std::filesystem::temp_directory_path()
+            / ("libdxfrw-ascii-casing-" + std::to_string(nonce)
+               + (binary ? "-binary.dxf" : "-ascii.dxf"));
+        dx_data data;
+        DRW_LType canonicalLineType;
+        canonicalLineType.name = "continuous";
+        data.lineTypes.push_back(canonicalLineType);
+        for (const char* ending : {"\xC3\xA9", "\xC3\x89"}) {
+            DRW_Textstyle style;
+            style.name = std::string("mix_") + ending;
+            style.font = "CustomFont.ttf";
+            data.textStyles.push_back(style);
+            auto block = std::make_unique<dx_ifaceBlock>();
+            block->name = style.name;
+            data.blocks.push_back(block.release());
+        }
+        CasingInterface adapter;
+        t.expect(adapter.fileExport(path.string(), DRW::AC1021, binary, &data, false)
+                     && adapter.lookups && adapter.writes && adapter.sourceStrings,
+                 "typed STYLE/BLOCK lookups fold ASCII without merging non-ASCII names");
+        auto block = data.blocks.begin();
+        for (const DRW_Textstyle& style : data.textStyles) {
+            t.expect(style.name == (*block)->name && style.name.substr(0, 4) == "mix_"
+                         && style.font == "CustomFont.ttf",
+                     "typed writer retains source symbol and modern font spelling");
+            ++block;
+        }
+        FixtureInterface reader;
+        dx_data imported;
+        t.expect(reader.fileImport(path.string(), &imported, false),
+                 "mixed-case UTF-8 typed output reads without recovery");
+        std::size_t found = 0;
+        for (const DRW_Textstyle& style : imported.textStyles) {
+            if (style.name == "mix_\xC3\xA9" || style.name == "mix_\xC3\x89") {
+                ++found;
+                t.expect(style.font == "CustomFont.ttf",
+                         "modern STYLE filename keeps its original case");
+            }
+        }
+        t.expect(found == 2, "distinct non-ASCII source names survive typed round trip");
+        std::size_t continuous = 0;
+        for (const DRW_LType& item : imported.lineTypes) {
+            if (item.name == "Continuous" || item.name == "CONTINUOUS" || item.name == "continuous")
+                ++continuous;
+        }
+        t.expect(continuous == 1 && data.lineTypes.front().name == "continuous",
+                 "default LTYPE comparison does not duplicate or rename the source record");
+        std::error_code error;
+        std::filesystem::remove(path, error);
+
+        dx_data legacy;
+        DRW_Textstyle style;
+        style.name = "MixStyle";
+        style.font = "CustomFont.ttf";
+        style.bigFont = "BigFont.shx";
+        legacy.textStyles.push_back(style);
+        FixtureInterface legacyWriter;
+        t.expect(legacyWriter.fileExport(path.string(), DRW::AC1009, binary, &legacy, false),
+                 "R12 STYLE capitalization compatibility control writes");
+        FixtureInterface legacyReader;
+        dx_data legacyRead;
+        t.expect(legacyReader.fileImport(path.string(), &legacyRead, false),
+                 "R12 STYLE capitalization compatibility control reads");
+        bool legacyFound = false;
+        for (const DRW_Textstyle& item : legacyRead.textStyles) {
+            if (item.name == "MIXSTYLE")
+                legacyFound = item.font == "CUSTOMFONT.TTF" && item.bigFont == "BIGFONT.SHX";
+        }
+        t.expect(legacyFound && legacy.textStyles.front().name == "MixStyle"
+                     && legacy.textStyles.front().font == "CustomFont.ttf"
+                     && legacy.textStyles.front().bigFont == "BigFont.shx",
+                 "R12 paths keep legacy ASCII caps without mutating caller fields");
+        std::filesystem::remove(path, error);
+    }
+}
+
 // The operation owns emitted identities, not the lifetime of borrowed callback
 // records. A failed operation must not publish suffix mutations or its maps.
 void testDxfWriteAttemptFailure(TestContext& t) {
@@ -5136,6 +5288,23 @@ void testDxfWriteAttemptFailure(TestContext& t) {
 } // namespace
 
 int main(int argc, char** argv) {
+    // Invoked only as an owned bounded child by the focused locale check.
+    // Never change CTYPE during the ordinary registered test invocation.
+    if (argc == 3 && std::string(argv[1]) == "--ascii-folding-locale") {
+        const char* selected = std::setlocale(LC_CTYPE, argv[2]);
+        if (selected == nullptr) {
+            std::cout << "CTYPE unavailable: " << argv[2] << '\n';
+            return 77;
+        }
+        const std::string initial(selected);
+        TestContext context;
+        testAsciiOnlySymbolCasing(context);
+        context.expect(initial == std::setlocale(LC_CTYPE, nullptr),
+                       "drawing operations leave the selected process CTYPE unchanged");
+        std::cout << "CTYPE " << initial << ": "
+                  << (context.failures == 0 ? "PASS" : "FAIL") << '\n';
+        return context.failures == 0 ? 0 : 1;
+    }
     if (argc == 3 && (std::string(argv[1]) == "--generate-leader-advisory-counts"
                      || std::string(argv[1]) == "--generate-leader-advisory-counts-binary"))
         return generateLeaderAdvisoryCounts(argv[2], std::string(argv[1]) == "--generate-leader-advisory-counts-binary") ? 0 : 1;
@@ -5212,6 +5381,7 @@ int main(int argc, char** argv) {
     if (argc != 1)
         return 2;
     TestContext context;
+    testAsciiOnlySymbolCasing(context);
     testInfiniteLineDirections(context);
     testSortEntsKeyRoles(context);
     testSortEntsCarrierAgreement(context);
