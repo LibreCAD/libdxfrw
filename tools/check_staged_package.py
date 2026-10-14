@@ -275,6 +275,633 @@ def check_private_dependency_negative(prefix: Path, cxx: str, root: Path,
     print("pkg-config missing-private-library controls: PASS (plain/override)")
 
 
+def check_package_requests(prefix: Path, cxx: str, root: Path,
+                           libdir: str, includedir: str, library: Path,
+                           version: str) -> None:
+    """Configure request controls against this install; no library rebuild."""
+    directory = root / "package-requests"
+    directory.mkdir()
+    (directory / "CMakeLists.txt").write_text(
+        "cmake_minimum_required(VERSION 3.28)\n"
+        "project(package_requests LANGUAGES CXX)\n"
+        "if(DISCOVERY STREQUAL MODULE)\n"
+        " list(PREPEND CMAKE_MODULE_PATH \"${PACKAGE_CONFIG}\")\n"
+        " find_package(Libdxfrw ${REQUESTED_VERSION} ${EXACT_ARGUMENT}\n"
+        "   MODULE ${REQUIREMENT} ${COMPONENT_ARGUMENT})\n"
+        " set(request_found ${Libdxfrw_FOUND})\n"
+        "else()\n"
+        " find_package(libdxfrw ${REQUESTED_VERSION} ${EXACT_ARGUMENT}\n"
+        "   CONFIG ${REQUIREMENT} ${COMPONENT_ARGUMENT}\n"
+        "   PATHS \"${PACKAGE_CONFIG}\" NO_DEFAULT_PATH)\n"
+        " set(request_found ${libdxfrw_FOUND})\n"
+        "endif()\n"
+        "if(EXPECT_NOT_FOUND)\n"
+        " if(request_found)\n"
+        "  message(FATAL_ERROR \"unexpected accepted package request\")\n"
+        " endif()\n"
+        " message(STATUS \"request-not-found\")\n"
+        " return()\n"
+        "endif()\n"
+        "if(NOT request_found)\n"
+        " message(FATAL_ERROR \"valid package request rejected\")\n"
+        "endif()\n"
+        "if(DISCOVERY STREQUAL MODULE)\n"
+        " if(NOT TARGET Libdxfrw::Libdxfrw)\n"
+        "  message(FATAL_ERROR \"missing module target alias\")\n"
+        " endif()\n"
+        " file(GENERATE OUTPUT \"${CMAKE_BINARY_DIR}/alias.txt\" CONTENT\n"
+        "   \"$<TARGET_FILE:Libdxfrw::Libdxfrw>\\n\")\n"
+        "endif()\n"
+        "file(GENERATE OUTPUT \"${CMAKE_BINARY_DIR}/binding.txt\" CONTENT\n"
+        " \"$<TARGET_FILE:libdxfrw::libdxfrw>\\n"
+        "$<TARGET_PROPERTY:libdxfrw::libdxfrw,INTERFACE_INCLUDE_DIRECTORIES>\\n\")\n",
+        encoding="utf-8")
+    major, minor, patch = (int(part) for part in version.split("."))
+    cases = [
+        ("unversioned", "", "", "", True),
+        ("compatible", "%d.0" % major, "", "", True),
+        ("exact", version, "EXACT", "", True),
+        ("short-exact", "%d.%d" % (major, minor), "EXACT", "", False),
+        ("newer-major", "%d.0" % (major + 1), "", "", False),
+        ("newer-patch", "%d.%d.%d" % (major, minor, patch + 1), "", "", False),
+        ("wrong-exact", "%d.%d.%d" % (major, minor, patch + 1), "EXACT", "", False),
+        ("inclusive", version + "..." + version, "", "", True),
+        ("exclusive-next-major", version + "...<%d.0" % (major + 1), "", "", True),
+        ("inclusive-next-major", version + "...%d.0" % (major + 1), "", "", False),
+        ("required-component", "", "", "COMPONENTS;nonexistent_libdxfrw_component", False),
+        ("optional-component", "", "", "OPTIONAL_COMPONENTS;nonexistent_libdxfrw_component", True),
+    ]
+    if major > 0:
+        cases += [("older-major", "%d.0" % (major - 1), "", "", False),
+                  ("zero-version", "0.0", "", "", False)]
+    for discovery in ("CONFIG", "MODULE"):
+        build = directory / discovery.lower()
+        for name, requested, exact, component, expected in cases:
+            for requirement in (("REQUIRED",) if expected else ("REQUIRED", "QUIET")):
+                command = ["cmake", "-S", str(directory), "-B", str(build),
+                    "-DPACKAGE_CONFIG=" + str(layout_root(prefix, libdir) / "cmake/libdxfrw"),
+                    "-DDISCOVERY=" + discovery, "-DREQUESTED_VERSION=" + requested,
+                    "-DEXACT_ARGUMENT=" + exact, "-DCOMPONENT_ARGUMENT=" + component,
+                    "-DREQUIREMENT=" + requirement,
+                    "-DEXPECT_NOT_FOUND=" + ("OFF" if expected else "ON"),
+                    "-DCMAKE_CXX_COMPILER=" + cxx,
+                    "-DCMAKE_LIBRARY_PATH=" + str(layout_root(prefix, libdir)),
+                    "-DCMAKE_INCLUDE_PATH=" + str(layout_root(prefix, includedir)),
+                    "-DCMAKE_FIND_ROOT_PATH=" + str(prefix),
+                    "-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY",
+                    "-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY",
+                    "-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER"]
+                try:
+                    result = run(command)
+                except subprocess.CalledProcessError as error:
+                    if expected or requirement != "REQUIRED":
+                        raise
+                    token = "nonexistent_libdxfrw_component" if component else requested
+                    if token not in error.stdout or "unexpected accepted" in error.stdout:
+                        raise RuntimeError("package request failed for another reason: " + name) from error
+                    continue
+                if not expected:
+                    if requirement == "REQUIRED" or "request-not-found" not in result.stdout:
+                        raise RuntimeError("package accepted invalid request: " + name)
+                    continue
+                binding = (build / "binding.txt").read_text(encoding="utf-8").splitlines()
+                if (len(binding) != 2 or Path(binding[0]).resolve() != library.resolve()
+                    or binding[1] != str(layout_root(prefix, includedir) / "libdxfrw")):
+                    raise RuntimeError("request control selected another package: " + name)
+                if discovery == "MODULE" and Path((build / "alias.txt").read_text().strip()).resolve() != library.resolve():
+                    raise RuntimeError("module alias selected another library")
+        print("CMake %s package requests: PASS (%d controls, required/quiet negatives)"
+              % (discovery, len(cases)))
+    check_package_request_boundaries(prefix, cxx, directory, libdir, includedir, library)
+
+
+def check_package_request_boundaries(prefix: Path, cxx: str, root: Path,
+                                     libdir: str, includedir: str, library: Path) -> None:
+    """Identity/cache/quiet controls; mutate only owned copies of one install."""
+    source = root / "boundaries"
+    source.mkdir()
+    (source / "CMakeLists.txt").write_text('''cmake_minimum_required(VERSION 3.28)
+project(package_boundaries LANGUAGES CXX)
+set(libdxfrw_DIR "${HOST_DIR}" CACHE PATH "host sentinel" FORCE)
+set(PACKAGE_FIND_VERSION "caller-version-sentinel")
+set(PACKAGE_VERSION_COMPATIBLE "caller-compat-sentinel")
+set(PACKAGE_VERSION_EXACT TRUE CACHE BOOL "caller exact sentinel" FORCE)
+set(Libdxfrw_VERSION "caller cached version" CACHE STRING "caller version sentinel" FORCE)
+set(libdxfrw_FIND_REQUIRED "caller-required-sentinel")
+if(COLLISION)
+ add_library(${COLLISION} UNKNOWN IMPORTED)
+ set_target_properties(${COLLISION} PROPERTIES IMPORTED_LOCATION "${HOST_DIR}/wrong.a"
+   INTERFACE_INCLUDE_DIRECTORIES "${HOST_DIR}/wrong-include")
+endif()
+if(DISABLE_THREADS)
+ set(CMAKE_DISABLE_FIND_PACKAGE_Threads TRUE)
+endif()
+if(NEW_MANUAL_MAP)
+ set(CMAKE_BUILD_TYPE Debug)
+ if(NEW_MANUAL_MAP STREQUAL empty)
+  set(CMAKE_MAP_IMPORTED_CONFIG_DEBUG "")
+ else()
+  set(CMAKE_MAP_IMPORTED_CONFIG_DEBUG UNAVAILABLE)
+ endif()
+endif()
+if(DISCOVERY STREQUAL MODULE)
+ list(PREPEND CMAKE_MODULE_PATH "${PACKAGE_CONFIG}")
+ find_package(Libdxfrw ${REQUESTED_VERSION} ${EXACT_ARGUMENT} MODULE QUIET)
+ set(request_found ${Libdxfrw_FOUND})
+ if(REPEAT AND request_found)
+  find_package(Libdxfrw MODULE REQUIRED OPTIONAL_COMPONENTS nonexistent_libdxfrw_component)
+  find_package(Libdxfrw MODULE REQUIRED)
+  if(NOT Libdxfrw_FOUND OR Libdxfrw_nonexistent_libdxfrw_component_FOUND)
+   message(FATAL_ERROR "repeat component state leaked")
+  endif()
+ endif()
+else()
+ # CONFIG itself owns its DIR variable; MODULE must leave the host cache alone.
+ set(libdxfrw_DIR "${PACKAGE_CONFIG}" CACHE PATH "host sentinel" FORCE)
+ find_package(libdxfrw CONFIG QUIET PATHS "${PACKAGE_CONFIG}" NO_DEFAULT_PATH)
+ set(request_found ${libdxfrw_FOUND})
+ if(REPEAT AND request_found)
+  find_package(libdxfrw CONFIG REQUIRED OPTIONAL_COMPONENTS nonexistent_libdxfrw_component)
+  find_package(libdxfrw CONFIG REQUIRED)
+  if(NOT libdxfrw_FOUND OR libdxfrw_nonexistent_libdxfrw_component_FOUND)
+   message(FATAL_ERROR "repeat component state leaked")
+  endif()
+ endif()
+endif()
+if(DISCOVERY STREQUAL MODULE)
+ get_property(dir_value CACHE libdxfrw_DIR PROPERTY VALUE)
+ get_property(dir_type CACHE libdxfrw_DIR PROPERTY TYPE)
+ get_property(dir_help CACHE libdxfrw_DIR PROPERTY HELPSTRING)
+ if(NOT dir_value STREQUAL HOST_DIR OR NOT dir_type STREQUAL "PATH"
+    OR NOT dir_help STREQUAL "host sentinel")
+  message(FATAL_ERROR "module changed caller DIR cache")
+ endif()
+ if(NOT PACKAGE_FIND_VERSION STREQUAL "caller-version-sentinel"
+    OR NOT PACKAGE_VERSION_COMPATIBLE STREQUAL "caller-compat-sentinel"
+    OR NOT libdxfrw_FIND_REQUIRED STREQUAL "caller-required-sentinel")
+  message(FATAL_ERROR "module leaked version/config variables")
+ endif()
+ get_property(cached_exact CACHE PACKAGE_VERSION_EXACT PROPERTY VALUE)
+ get_property(cached_version CACHE Libdxfrw_VERSION PROPERTY VALUE)
+ if(NOT cached_exact OR NOT cached_version STREQUAL "caller cached version")
+  message(FATAL_ERROR "module changed caller version cache")
+ endif()
+ if(MISSING_METADATA AND NOT "${Libdxfrw_VERSION}" STREQUAL "")
+  message(FATAL_ERROR "manual fallback advertised inherited cached version")
+ endif()
+endif()
+if(EXPECT_FOUND)
+ if(NOT request_found)
+  message(FATAL_ERROR "valid boundary request rejected")
+ endif()
+else()
+ if(request_found)
+  message(FATAL_ERROR "unexpected accepted boundary request")
+ endif()
+endif()
+message(STATUS "boundary-control-pass")
+''', encoding="utf-8")
+    host = root / "host sentinel"
+    host.mkdir()
+    (host / "libdxfrwConfig.cmake").write_text(
+        'message(FATAL_ERROR "host package executed")\n', encoding="utf-8")
+    manual = root / "manual prefix"
+    copy_staged_install(prefix, manual)
+    manual_config = layout_root(manual, libdir) / "cmake/libdxfrw"
+    (manual_config / "libdxfrwConfigVersion.cmake").unlink()
+    unsuitable = root / "unsuitable prefix"
+    copy_staged_install(prefix, unsuitable)
+    unsuitable_version = layout_root(unsuitable, libdir) / "cmake/libdxfrw/libdxfrwConfigVersion.cmake"
+    unsuitable_version.write_text(unsuitable_version.read_text(encoding="utf-8")
+                                  + '\nset(PACKAGE_VERSION_UNSUITABLE TRUE)\n', encoding="utf-8")
+    contract = root / "version contract prefix"
+    copy_staged_install(prefix, contract)
+    contract_version = layout_root(contract, libdir) / "cmake/libdxfrw/libdxfrwConfigVersion.cmake"
+    version = run(["pkg-config", "--modversion", "libdxfrw"],
+                  env=pkg_config_environment(prefix, libdir)).stdout.strip()
+    major, minor, patch = (int(value) for value in version.split("."))
+    lower = version + ".0"
+    upper = "%d.0.0.0" % (major + 1)
+    complete = lower + "...<" + upper
+    contract_fields = {
+        "NAME": "libdxfrw", "VERSION": lower, "VERSION_COMPLETE": complete,
+        "VERSION_MAJOR": str(major), "VERSION_MINOR": str(minor),
+        "VERSION_PATCH": str(patch), "VERSION_TWEAK": "0", "VERSION_COUNT": "4",
+        "VERSION_RANGE": complete, "VERSION_RANGE_MIN": "INCLUDE", "VERSION_RANGE_MAX": "EXCLUDE",
+        "VERSION_MIN": lower, "VERSION_MIN_MAJOR": str(major), "VERSION_MIN_MINOR": str(minor),
+        "VERSION_MIN_PATCH": str(patch), "VERSION_MIN_TWEAK": "0", "VERSION_MIN_COUNT": "4",
+        "VERSION_MAX": upper, "VERSION_MAX_MAJOR": str(major + 1), "VERSION_MAX_MINOR": "0",
+        "VERSION_MAX_PATCH": "0", "VERSION_MAX_TWEAK": "0", "VERSION_MAX_COUNT": "4",
+    }
+    contract_checks = "".join(
+        'if(NOT "${PACKAGE_FIND_%s}" STREQUAL "%s")\n'
+        ' message(FATAL_ERROR "version contract input %s differs")\nendif()\n' % (key, value, key)
+        for key, value in contract_fields.items())
+    contract_version.write_text(contract_checks + contract_version.read_text(encoding="utf-8"), encoding="utf-8")
+    mixed_headers = host / "headers"
+    mixed_headers.mkdir()
+    shutil.copyfile(layout_root(prefix, includedir) / "libdxfrw/drw_base.h", mixed_headers / "drw_base.h")
+    cases = [
+        ("host-repeat", prefix, "MODULE", "", "", False, True, True),
+        ("config-repeat", prefix, "CONFIG", "", "", False, True, True),
+        ("canonical-module-collision", prefix, "MODULE", "", "libdxfrw::libdxfrw", False, False, False),
+        ("alias-module-collision", prefix, "MODULE", "", "Libdxfrw::Libdxfrw", False, False, False),
+        ("canonical-config-collision", prefix, "CONFIG", "", "libdxfrw::libdxfrw", False, False, False),
+        ("alias-config-collision", prefix, "CONFIG", "", "Libdxfrw::Libdxfrw", False, False, False),
+        ("missing-version-unversioned", manual, "MODULE", "", "", False, True, True),
+        ("missing-version-request", manual, "MODULE", "2.0", "", False, False, False),
+        ("missing-version-zero", manual, "MODULE", "0.0", "", False, False, False),
+        ("manual-target-collision", manual, "MODULE", "", "libdxfrw::libdxfrw", False, False, False),
+        ("unsuitable-unversioned", unsuitable, "MODULE", "", "", False, False, False),
+        ("threads-quiet", prefix, "MODULE", "", "", True, False, False),
+        ("version-contract", contract, "MODULE", complete, "", False, False, True),
+        ("mixed-headers", prefix, "MODULE", "", "", False, False, False),
+        ("stale-exact-cache", prefix, "MODULE", "%d.%d" % (major, minor), "", False, False, False),
+        ("new-manual-empty-map", manual, "MODULE", "", "", False, True, True),
+        ("new-manual-unavailable-map", manual, "MODULE", "", "", False, False, False),
+    ]
+    for name, selected, discovery, requested, collision, disabled, repeat, expected in cases:
+        result = run(["cmake", "-S", str(source), "-B", str(source / name),
+            "-DPACKAGE_CONFIG=" + str(layout_root(selected, libdir) / "cmake/libdxfrw"),
+            "-DDISCOVERY=" + discovery, "-DREQUESTED_VERSION=" + requested,
+            "-DEXACT_ARGUMENT=" + ("EXACT" if name == "stale-exact-cache" else ""),
+            "-DMISSING_METADATA=" + ("ON" if selected == manual else "OFF"),
+            "-DHOST_DIR=" + str(host), "-DCOLLISION=" + collision,
+            "-DDISABLE_THREADS=" + ("ON" if disabled else "OFF"),
+            "-DNEW_MANUAL_MAP=" + ("empty" if name == "new-manual-empty-map" else
+                                   "unavailable" if name == "new-manual-unavailable-map" else ""),
+            "-DREPEAT=" + ("ON" if repeat else "OFF"),
+            "-DEXPECT_FOUND=" + ("ON" if expected else "OFF"),
+            "-DLibdxfrw_INCLUDE_DIR=" + str(mixed_headers if name == "mixed-headers"
+                                           else layout_root(selected, includedir) / "libdxfrw"),
+            "-DLibdxfrw_LIBRARY=" + str(layout_root(selected, libdir) / library.name),
+            "-DCMAKE_CXX_COMPILER=" + cxx])
+        if "boundary-control-pass" not in result.stdout or "host package executed" in result.stdout:
+            raise RuntimeError("package boundary control did not complete: " + name)
+    print("CMake package boundaries: PASS (%d controls; cache/quiet/identity/repeat)" % len(cases))
+    check_package_mapping_boundaries(prefix, cxx, root, libdir, includedir, library)
+
+
+def check_package_mapping_boundaries(prefix: Path, cxx: str, root: Path,
+                                     libdir: str, includedir: str, library: Path) -> None:
+    """Retain OLD mappings, with consensus admission on capable runtimes."""
+    source = root / "mapping-boundaries"
+    source.mkdir()
+    installed = prefix
+    manual = source / "legacy manual prefix"
+    copy_staged_install(prefix, manual)
+    (layout_root(manual, libdir) / "cmake/libdxfrw/libdxfrwConfigVersion.cmake").unlink()
+    prefix = manual
+    library = layout_root(prefix, libdir) / library.name
+    (source / "CMakeLists.txt").write_text('''cmake_minimum_required(VERSION 3.28)
+project(package_mapping LANGUAGES CXX)
+cmake_policy(SET CMP0111 OLD) # Observe missing locations without generating uses.
+if(POLICY CMP0200)
+ cmake_policy(SET CMP0200 OLD)
+endif()
+add_library(libdxfrw::libdxfrw UNKNOWN IMPORTED)
+set(CMAKE_BUILD_TYPE Debug)
+set_target_properties(libdxfrw::libdxfrw PROPERTIES
+ INTERFACE_INCLUDE_DIRECTORIES "${Libdxfrw_INCLUDE_DIR}"
+ IMPORTED_CONFIGURATIONS RELEASE
+ IMPORTED_LOCATION "${SELECTED_LIBRARY}"
+ IMPORTED_LOCATION_RELEASE "${SELECTED_LIBRARY}")
+if(MAPPING_CASE STREQUAL unavailable)
+ set_property(TARGET libdxfrw::libdxfrw PROPERTY MAP_IMPORTED_CONFIG_DEBUG UNAVAILABLE)
+elseif(MAPPING_CASE STREQUAL default-first OR MAPPING_CASE STREQUAL release-first
+       OR MAPPING_CASE STREQUAL middle-empty)
+ set_property(TARGET libdxfrw::libdxfrw PROPERTY IMPORTED_LOCATION_RELEASE "${WRONG_LIBRARY}")
+ if(MAPPING_CASE STREQUAL default-first)
+  set(_mapping ";RELEASE")
+ elseif(MAPPING_CASE STREQUAL release-first)
+  set(_mapping "RELEASE;")
+ else()
+  set(_mapping "UNAVAILABLE;;RELEASE")
+ endif()
+ set_property(TARGET libdxfrw::libdxfrw PROPERTY MAP_IMPORTED_CONFIG_DEBUG "${_mapping}")
+elseif(MAPPING_CASE STREQUAL lowercase)
+ set_property(TARGET libdxfrw::libdxfrw PROPERTY MAP_IMPORTED_CONFIG_DEBUG release)
+ set_property(TARGET libdxfrw::libdxfrw PROPERTY IMPORTED_LOCATION "${WRONG_LIBRARY}")
+elseif(MAPPING_CASE STREQUAL empty OR MAPPING_CASE STREQUAL empty-no-default)
+ set_property(TARGET libdxfrw::libdxfrw PROPERTY MAP_IMPORTED_CONFIG_DEBUG "")
+ if(MAPPING_CASE STREQUAL empty-no-default)
+  set_property(TARGET libdxfrw::libdxfrw PROPERTY IMPORTED_LOCATION)
+ else()
+  set_property(TARGET libdxfrw::libdxfrw PROPERTY IMPORTED_LOCATION_RELEASE "${WRONG_LIBRARY}")
+ endif()
+elseif(MAPPING_CASE STREQUAL unmapped-default)
+ set_property(TARGET libdxfrw::libdxfrw PROPERTY IMPORTED_LOCATION_RELEASE "${WRONG_LIBRARY}")
+elseif(MAPPING_CASE STREQUAL unmapped-exact OR MAPPING_CASE STREQUAL noconfig)
+ if(MAPPING_CASE STREQUAL noconfig)
+  set(CMAKE_BUILD_TYPE "")
+  set(_config NOCONFIG)
+ else()
+  set(_config DEBUG)
+ endif()
+ set_property(TARGET libdxfrw::libdxfrw PROPERTY IMPORTED_LOCATION_${_config} "${SELECTED_LIBRARY}")
+ set_property(TARGET libdxfrw::libdxfrw PROPERTY IMPORTED_LOCATION "${WRONG_LIBRARY}")
+ set_property(TARGET libdxfrw::libdxfrw PROPERTY IMPORTED_LOCATION_RELEASE "${WRONG_LIBRARY}")
+elseif(MAPPING_CASE STREQUAL noconfig-map)
+ set(CMAKE_BUILD_TYPE "")
+ set_property(TARGET libdxfrw::libdxfrw PROPERTY MAP_IMPORTED_CONFIG_NOCONFIG Release)
+ set_property(TARGET libdxfrw::libdxfrw PROPERTY IMPORTED_LOCATION "${WRONG_LIBRARY}")
+elseif(MAPPING_CASE STREQUAL empty-location)
+ set_property(TARGET libdxfrw::libdxfrw PROPERTY MAP_IMPORTED_CONFIG_DEBUG "DEBUG;RELEASE")
+ set_property(TARGET libdxfrw::libdxfrw PROPERTY IMPORTED_LOCATION_DEBUG "")
+endif()
+list(PREPEND CMAKE_MODULE_PATH "${PACKAGE_CONFIG}")
+find_package(Libdxfrw MODULE QUIET)
+_libdxfrw_target_artifact(libdxfrw::libdxfrw DEBUG OLD selected_old)
+if(MAPPING_CASE STREQUAL noconfig OR MAPPING_CASE STREQUAL noconfig-map)
+ _libdxfrw_target_artifact(libdxfrw::libdxfrw NOCONFIG OLD selected_old)
+endif()
+if(EXPECT_OLD AND NOT selected_old STREQUAL SELECTED_LIBRARY)
+ message(FATAL_ERROR "OLD selector lost its accepted mapping: ${MAPPING_CASE}")
+elseif(NOT EXPECT_OLD AND selected_old STREQUAL SELECTED_LIBRARY)
+ message(FATAL_ERROR "OLD selector accepted an invalid mapping: ${MAPPING_CASE}")
+endif()
+if(POLICY CMP0200)
+ set(expected ${EXPECT_CONSENSUS})
+else()
+ set(expected ${EXPECT_OLD})
+endif()
+if(NOT "${Libdxfrw_FOUND}" STREQUAL "${expected}")
+ message(FATAL_ERROR "mapping request result differs: ${MAPPING_CASE}")
+endif()
+if(Libdxfrw_FOUND)
+ file(GENERATE OUTPUT "${CMAKE_BINARY_DIR}/mapping-binding.txt"
+  CONTENT "$<TARGET_FILE:libdxfrw::libdxfrw>\\n$<TARGET_FILE:Libdxfrw::Libdxfrw>\\n")
+endif()
+message(STATUS "mapping-control-pass")
+''', encoding="utf-8")
+    wrong = source / "wrong.a"
+    wrong.write_bytes(b"identity sentinel, never linked\n")
+    cases = (("unavailable", False, False), ("default-first", True, False),
+             ("release-first", False, False), ("middle-empty", True, False),
+             ("lowercase", True, True), ("empty", True, False),
+             ("empty-no-default", False, False), ("unmapped-default", True, False),
+             ("unmapped-exact", True, False), ("noconfig", True, False),
+             ("noconfig-map", True, True), ("empty-location", False, False))
+    build = source / "build"
+    for name, old, consensus in cases:
+        result = run(["cmake", "-S", str(source), "-B", str(build),
+            "-DPACKAGE_CONFIG=" + str(Path(__file__).resolve().parents[1] / "cmake"),
+            "-DSELECTED_LIBRARY=" + str(library.resolve()), "-DWRONG_LIBRARY=" + str(wrong.resolve()),
+            "-DMAPPING_CASE=" + name, "-DEXPECT_OLD=" + ("TRUE" if old else "FALSE"),
+            "-DEXPECT_CONSENSUS=" + ("TRUE" if consensus else "FALSE"),
+            "-DLibdxfrw_LIBRARY=" + str(library),
+            "-DLibdxfrw_INCLUDE_DIR=" + str(layout_root(prefix, includedir) / "libdxfrw"),
+            "-DCMAKE_CXX_COMPILER=" + cxx])
+        if "mapping-control-pass" not in result.stdout:
+            raise RuntimeError("mapping control did not complete: " + name)
+        if consensus:
+            locations = (build / "mapping-binding.txt").read_text(encoding="utf-8").splitlines()
+            if len(locations) != 2 or any(Path(value).resolve() != library.resolve() for value in locations):
+                raise RuntimeError("mapping control selected another library: " + name)
+    print("CMake legacy manual mappings: PASS (%d OLD controls; policy-consensus admission)" % len(cases))
+    check_package_policy_boundaries(manual, installed, cxx, root, libdir, includedir, library)
+
+
+def check_package_policy_boundaries(manual: Path, installed: Path, cxx: str, root: Path,
+                                    libdir: str, includedir: str, library: Path) -> None:
+    """Native creation-policy observations plus narrow artifact admission."""
+    source = root / "policy-boundaries"
+    source.mkdir()
+    (source / "CMakeLists.txt").write_text('''cmake_minimum_required(VERSION 3.28)
+project(package_policy LANGUAGES CXX)
+cmake_policy(SET CMP0111 OLD) # Test-only missing-location observations.
+set(CMAKE_BUILD_TYPE Debug)
+set(_config DEBUG)
+if(POLICY CMP0200)
+ cmake_policy(SET CMP0200 ${CREATION})
+endif()
+if(EXPORTED)
+ find_package(libdxfrw CONFIG REQUIRED PATHS "${PACKAGE_CONFIG}" NO_DEFAULT_PATH)
+ set(_target libdxfrw::libdxfrw)
+elseif(ALIAS_CONTROL)
+ add_library(underlying ${KIND} IMPORTED)
+ add_library(libdxfrw::libdxfrw ALIAS underlying)
+ set(_target underlying)
+else()
+ add_library(libdxfrw::libdxfrw ${KIND} IMPORTED)
+ set(_target libdxfrw::libdxfrw)
+endif()
+set_target_properties(${_target} PROPERTIES
+ INTERFACE_INCLUDE_DIRECTORIES "${Libdxfrw_INCLUDE_DIR}"
+ IMPORTED_LOCATION "${SELECTED_LIBRARY}")
+if(NOT SCENARIO STREQUAL default-only AND NOT SCENARIO STREQUAL no-list-map)
+ set_target_properties(${_target} PROPERTIES IMPORTED_CONFIGURATIONS RELEASE
+  IMPORTED_LOCATION_RELEASE "${WRONG_LIBRARY}")
+endif()
+if(SCENARIO STREQUAL leading-empty)
+ set_property(TARGET ${_target} PROPERTY MAP_IMPORTED_CONFIG_DEBUG ";RELEASE")
+elseif(SCENARIO STREQUAL mapped-provided OR SCENARIO STREQUAL no-list-map)
+ set_property(TARGET ${_target} PROPERTY MAP_IMPORTED_CONFIG_DEBUG release)
+ set_property(TARGET ${_target} PROPERTY IMPORTED_LOCATION "${WRONG_LIBRARY}")
+ set_property(TARGET ${_target} PROPERTY IMPORTED_LOCATION_RELEASE "${SELECTED_LIBRARY}")
+elseif(SCENARIO STREQUAL unavailable)
+ set_property(TARGET ${_target} PROPERTY MAP_IMPORTED_CONFIG_DEBUG UNAVAILABLE)
+elseif(SCENARIO STREQUAL new-default-fallback OR SCENARIO STREQUAL empty-list)
+ set_property(TARGET ${_target} PROPERTY MAP_IMPORTED_CONFIG_DEBUG RELEASE)
+ set_property(TARGET ${_target} PROPERTY IMPORTED_LOCATION_RELEASE)
+ if(SCENARIO STREQUAL empty-list)
+  set_property(TARGET ${_target} PROPERTY IMPORTED_CONFIGURATIONS "")
+ endif()
+elseif(SCENARIO STREQUAL empty-location)
+ set_property(TARGET ${_target} PROPERTY IMPORTED_CONFIGURATIONS "DEBUG;RELEASE")
+ set_property(TARGET ${_target} PROPERTY MAP_IMPORTED_CONFIG_DEBUG "DEBUG;RELEASE")
+ set_property(TARGET ${_target} PROPERTY IMPORTED_LOCATION_DEBUG "")
+ set_property(TARGET ${_target} PROPERTY IMPORTED_LOCATION_RELEASE "${SELECTED_LIBRARY}")
+elseif(SCENARIO STREQUAL noconfig)
+ set(CMAKE_BUILD_TYPE "")
+ set(_config NOCONFIG)
+ set_property(TARGET ${_target} PROPERTY IMPORTED_LOCATION "${WRONG_LIBRARY}")
+ set_property(TARGET ${_target} PROPERTY IMPORTED_LOCATION_NOCONFIG "${SELECTED_LIBRARY}")
+elseif(SCENARIO STREQUAL unadvertised-map)
+ set_property(TARGET ${_target} PROPERTY MAP_IMPORTED_CONFIG_DEBUG DEBUG)
+ set_property(TARGET ${_target} PROPERTY IMPORTED_LOCATION_DEBUG "${SELECTED_LIBRARY}")
+elseif(SCENARIO STREQUAL same-artifact)
+ set_property(TARGET ${_target} PROPERTY IMPORTED_LOCATION_RELEASE "${SELECTED_LIBRARY}")
+elseif(SCENARIO STREQUAL shared-importlib)
+ set_property(TARGET ${_target} PROPERTY IMPORTED_CONFIGURATIONS "")
+ set_property(TARGET ${_target} PROPERTY IMPORTED_LOCATION "${WRONG_LIBRARY}")
+ set_property(TARGET ${_target} PROPERTY IMPORTED_IMPLIB "${SELECTED_LIBRARY}")
+elseif(SCENARIO STREQUAL wrong-importlib OR SCENARIO STREQUAL ignored-importlib)
+ set_property(TARGET ${_target} PROPERTY IMPORTED_CONFIGURATIONS "")
+ set_property(TARGET ${_target} PROPERTY IMPORTED_IMPLIB "${WRONG_LIBRARY}")
+elseif(SCENARIO STREQUAL dll-no-importlib OR SCENARIO STREQUAL empty-compat)
+ set_property(TARGET ${_target} PROPERTY IMPORTED_CONFIGURATIONS "")
+elseif(SCENARIO STREQUAL separators-list)
+ set_property(TARGET ${_target} PROPERTY IMPORTED_CONFIGURATIONS ";;")
+ set_property(TARGET ${_target} PROPERTY MAP_IMPORTED_CONFIG_DEBUG RELEASE)
+ set_property(TARGET ${_target} PROPERTY IMPORTED_LOCATION_RELEASE "${SELECTED_LIBRARY}")
+elseif(SCENARIO STREQUAL multi-good OR SCENARIO STREQUAL multi-bad)
+ set_property(TARGET ${_target} PROPERTY IMPORTED_CONFIGURATIONS "DEBUG;RELEASE")
+ set_property(TARGET ${_target} PROPERTY IMPORTED_LOCATION_DEBUG "${SELECTED_LIBRARY}")
+ if(SCENARIO STREQUAL multi-good)
+  set_property(TARGET ${_target} PROPERTY IMPORTED_LOCATION_RELEASE "${SELECTED_LIBRARY}")
+ endif()
+endif()
+if(OLD_EMPTY_IMPLEMENTATION)
+ set(CMAKE_VERSION 4.4.3) # Source-derived implementation branch, not that runtime.
+endif()
+if(POLICY CMP0200 AND CMAKE_VERSION VERSION_LESS 4.4.4)
+ get_target_property(_advertised ${_target} IMPORTED_CONFIGURATIONS)
+ if(_advertised STREQUAL "")
+  set(EXPECT_NEW MISSING)
+  set(EXPECT_CONSENSUS FALSE)
+ endif()
+endif()
+if(POLICY CMP0200)
+ if(CREATION STREQUAL OLD)
+  cmake_policy(SET CMP0200 NEW)
+ else()
+  cmake_policy(SET CMP0200 OLD)
+ endif()
+endif()
+if(WINDOWS_METADATA)
+ set(WIN32 TRUE) # Typed artifact branch only; no native Windows qualification.
+endif()
+list(PREPEND CMAKE_MODULE_PATH "${MODULE_DIR}")
+find_package(Libdxfrw MODULE QUIET)
+foreach(policy OLD NEW)
+ if(policy STREQUAL NEW AND NOT POLICY CMP0200)
+  continue()
+ endif()
+ _libdxfrw_target_artifact(${_target} "${_config}" ${policy} artifact)
+ set(expected "${EXPECT_${policy}}")
+ if(expected STREQUAL A)
+  set(expected "${SELECTED_LIBRARY}")
+ elseif(expected STREQUAL B)
+  set(expected "${WRONG_LIBRARY}")
+ else()
+  set(expected "")
+ endif()
+ if(NOT artifact STREQUAL expected)
+  message(FATAL_ERROR "selector mismatch ${SCENARIO}/${policy}: ${artifact} != ${expected}")
+ endif()
+endforeach()
+if(OLD_ONLY_CONTROL OR NOT POLICY CMP0200)
+ set(expected_found ${EXPECT_OLD_FOUND})
+else()
+ set(expected_found ${EXPECT_CONSENSUS})
+endif()
+if(NOT "${Libdxfrw_FOUND}" STREQUAL "${expected_found}")
+ message(FATAL_ERROR "admission mismatch ${SCENARIO}: ${Libdxfrw_FOUND}")
+endif()
+if(NATIVE_OBSERVATION OR (EXPORTED AND POLICY CMP0200 AND NOT EXPECT_NEW STREQUAL MISSING))
+ get_target_property(native ${_target} LOCATION_${_config})
+ if(POLICY CMP0200)
+  set(expected "${EXPECT_${CREATION}}")
+ else()
+  set(expected "${EXPECT_OLD}")
+ endif()
+ if(expected STREQUAL A)
+  set(expected "${SELECTED_LIBRARY}")
+ elseif(expected STREQUAL B)
+  set(expected "${WRONG_LIBRARY}")
+ elseif(native MATCHES "-NOTFOUND$")
+  set(expected "${native}")
+ else()
+  message(FATAL_ERROR "native missing-location observation differs")
+ endif()
+ if(NOT native STREQUAL expected)
+  message(FATAL_ERROR "native creation policy differs ${SCENARIO}/${CREATION}")
+ endif()
+endif()
+if(Libdxfrw_FOUND)
+ find_package(Libdxfrw MODULE REQUIRED)
+ if(NOT TARGET Libdxfrw::Libdxfrw)
+  message(FATAL_ERROR "missing accepted alias")
+ endif()
+endif()
+message(STATUS "policy-control-pass ${SCENARIO}/${CREATION}")
+if(POLICY CMP0200)
+ message(STATUS "policy-capable-runtime")
+endif()
+''', encoding="utf-8")
+    wrong = source / "unrelated.a"
+    wrong.write_bytes(b"identity sentinel, never linked\n")
+    references = (("default-only", "A", "A"), ("default-vs-release", "A", "B"),
+                  ("leading-empty", "A", "B"), ("mapped-provided", "A", "A"),
+                  ("unavailable", "MISSING", "MISSING"),
+                  ("new-default-fallback", "MISSING", "A"),
+                  ("empty-location", "MISSING", "MISSING"),
+                  ("noconfig", "A", "B"), ("empty-list", "MISSING", "A"))
+    module = Path(__file__).resolve().parents[1] / "cmake"
+    old_only = source / "old-only-module"
+    old_only.mkdir()
+    module_text = (module / "FindLibdxfrw.cmake").read_text(encoding="utf-8")
+    capability_branch = "        if(POLICY CMP0200)\n"
+    if module_text.count(capability_branch) != 1:
+        raise RuntimeError("cannot isolate the no-CMP0200 capability branch")
+    (old_only / "FindLibdxfrw.cmake").write_text(
+        module_text.replace(capability_branch, "        if(FALSE)\n"), encoding="utf-8")
+    cases = [(name, creation, old, new, "UNKNOWN", False, False, False, True)
+             for name, old, new in references for creation in ("OLD", "NEW")]
+    cases += [(name, creation, old, new, kind, alias, exported, windows, False)
+              for name, old, new, kind, alias, exported, windows in (
+                  ("unadvertised-map", "A", "MISSING", "UNKNOWN", False, False, False),
+                  ("no-list-map", "A", "A", "UNKNOWN", False, False, False),
+                  ("separators-list", "A", "MISSING", "UNKNOWN", False, False, False),
+                  ("same-artifact", "A", "A", "UNKNOWN", True, False, False),
+                  ("shared-importlib", "A", "A", "SHARED", False, False, True),
+                  ("wrong-importlib", "B", "B", "SHARED", False, False, True),
+                  ("ignored-importlib", "A", "A", "STATIC", False, False, True),
+                  ("ignored-importlib", "A", "A", "UNKNOWN", True, False, True),
+                  ("dll-no-importlib", "MISSING", "MISSING", "SHARED", False, False, True))
+              for creation in ("OLD", "NEW")]
+    cases += [("empty-compat", "OLD", "A", "MISSING", "UNKNOWN", False, False, False, False)]
+    # Use the real current installed export, not a guessed policy upper bound.
+    cases += [(name, "NEW", old, new, "STATIC", False, True, False, False)
+              for name, old, new in (("same-artifact", "A", "A"),
+                                     ("leading-empty", "A", "B"),
+                                     ("unavailable", "MISSING", "MISSING"),
+                                     ("new-default-fallback", "MISSING", "A"))]
+    cases += [("oldonly-" + name, "OLD", old, new, "UNKNOWN", False, False, False, True)
+              for name, old, new in (("leading-empty", "A", "B"),
+                                     ("default-only", "A", "A"),
+                                     ("unavailable", "MISSING", "MISSING"))]
+    if shutil.which("ninja"):
+        cases += [("multi-good", "NEW", "A", "A", "STATIC", False, False, False, False),
+                  ("multi-bad", "NEW", "A", "A", "STATIC", False, False, False, False)]
+    for name, creation, old, new, kind, alias, actual, windows, native in cases:
+        selected = installed if actual else manual
+        selected_library = layout_root(selected, libdir) / library.name
+        multi = name.startswith("multi-")
+        old_branch = name.startswith("oldonly-")
+        scenario = name.removeprefix("oldonly-")
+        extra = (["-G", "Ninja Multi-Config", "-DCMAKE_CONFIGURATION_TYPES=Debug;Release"]
+                 if multi else [])
+        # The Debug reference still agrees in multi-bad: only Release differs.
+        # Admission must examine all enabled configurations, not just Debug.
+        good = name != "multi-bad"
+        result = run(["cmake", "-S", str(source), "-B", str(source / ("multi" if multi else "build")),
+            "-DMODULE_DIR=" + str(old_only if old_branch else module),
+            "-DPACKAGE_CONFIG=" + str(layout_root(selected, libdir) / "cmake/libdxfrw"),
+            "-DLibdxfrw_INCLUDE_DIR=" + str(layout_root(selected, includedir) / "libdxfrw"),
+            "-DLibdxfrw_LIBRARY=" + str(selected_library),
+            "-DSELECTED_LIBRARY=" + str(selected_library.resolve()),
+            "-DWRONG_LIBRARY=" + str(wrong.resolve()), "-DCREATION=" + creation,
+            "-DSCENARIO=" + scenario, "-DKIND=" + kind,
+            "-DOLD_ONLY_CONTROL=" + ("ON" if old_branch else "OFF"),
+            "-DOLD_EMPTY_IMPLEMENTATION=" + ("ON" if name == "empty-compat" else "OFF"),
+            "-DALIAS_CONTROL=" + ("ON" if alias else "OFF"),
+            "-DEXPORTED=" + ("ON" if actual else "OFF"),
+            "-DWINDOWS_METADATA=" + ("ON" if windows else "OFF"),
+            "-DNATIVE_OBSERVATION=" + ("ON" if native else "OFF"),
+            "-DEXPECT_OLD=" + old, "-DEXPECT_NEW=" + new,
+            "-DEXPECT_OLD_FOUND=" + ("TRUE" if good and old == "A" else "FALSE"),
+            "-DEXPECT_CONSENSUS=" + ("TRUE" if good and old == new == "A" else "FALSE"),
+            "-DCMAKE_CXX_COMPILER=" + cxx] + extra)
+        if "policy-control-pass " + scenario + "/" + creation not in result.stdout:
+            raise RuntimeError("policy control did not complete: " + name)
+    native_scope = ("18 opposite-caller native observations" if "policy-capable-runtime" in result.stdout
+                    else "OLD-only runtime; NEW/opposite-caller unavailable")
+    print("CMake policy/artifact controls: PASS (%d; %s; 4 forced capability/implementation-branch controls are not older-runtime runs; Windows metadata only)"
+          % (len(cases), native_scope))
+
+
 def check_consumer_routes(prefix: Path, cxx: str, root: Path,
                           consumer: Path, libdir: str, includedir: str) -> None:
     prefix = prefix.resolve()
@@ -340,7 +967,7 @@ def check_consumer_routes(prefix: Path, cxx: str, root: Path,
         "set(CMAKE_CXX_STANDARD_REQUIRED ON)\n"
         "if(DISCOVERY STREQUAL MODULE)\n"
         "  list(PREPEND CMAKE_MODULE_PATH \"${PACKAGE_CONFIG}\")\n"
-        "  find_package(Libdxfrw MODULE REQUIRED)\n"
+        "  find_package(Libdxfrw ${REQUESTED_VERSION} MODULE REQUIRED)\n"
         "else()\n"
         "  find_package(libdxfrw ${REQUESTED_VERSION} CONFIG REQUIRED\n"
         "    PATHS \"${PACKAGE_CONFIG}\" NO_DEFAULT_PATH)\n"
@@ -381,21 +1008,7 @@ def check_consumer_routes(prefix: Path, cxx: str, root: Path,
         run(["cmake", "--build", str(build), "-j2"])
         run_consumer(build / "staged_consumer", prefix, libdir)
 
-    rejected_versions = ["%d.0" % (major + 1),
-                         "%d.%d.%d" % (major, minor, patch + 1)]
-    if major > 0:
-        rejected_versions.append("%d.0" % (major - 1))
-    for requested in rejected_versions:
-        build = root / ("reject-version-" + requested)
-        try:
-            run(["cmake", "-S", str(root), "-B", str(build),
-                 "-DPACKAGE_CONFIG=" + str(config_root), "-DDISCOVERY=CONFIG",
-                 "-DREQUESTED_VERSION=" + requested, "-DCMAKE_CXX_COMPILER=" + cxx])
-        except subprocess.CalledProcessError as error:
-            if "version" not in error.stdout or requested not in error.stdout:
-                raise RuntimeError("version rejection failed for another reason") from error
-        else:
-            raise RuntimeError("CMake accepted incompatible package version: %s" % requested)
+    check_package_requests(prefix, cxx, root, libdir, includedir, library, version)
 
 
 def self_test_staged_flags() -> None:

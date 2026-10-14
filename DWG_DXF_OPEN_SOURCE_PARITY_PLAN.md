@@ -8,8 +8,8 @@ committed with focused current-main/CLI evidence; raw-description policy and
 absent-value fallback remain separate. Composed finalizer/token ASan3/3 still
 binds b4f74be, not later source.7AG capability/profile/effective-driver/typed
 result gates,7S.2/3 accounting,7G.3 sparse order and7AE.2/3 remain open.
-7AK.6's policy-aware successor remains isolated pending its exact composed
-acceptance/review; the OLD-only correction must not stand alone. Independent
+7AK.6 policy-aware requests/binding are committed after exact current-source
+composed acceptance; the OLD-only correction must not stand alone. Independent
 reader/package work does not wait for external qualification.
 
 **Original baseline:** `547b808` (`codex/pr100-clean`)
@@ -182,6 +182,7 @@ Its historical binary diff SHA-256 is
 | 7BJ.1 Template writer integration | COMMITTED / WRITER_SCOPED | `Plan-Slice:7BJ.1`, integrates reviewed e6a6a24c with private-header source listing and corrected stub comment. All six writers preserve explicit0/1 independently of INSUNITS, reject wrong types/conflicting aliases/out-of-range values before stub bytes, retain absent fallback0 and emit canonical four-byte Template including AC1018. Current-main strict four-TU checks and affected/lc3/CLI build pass; fresh exact3/3 writer/reader/local CTests pass2.87s. Existing twelve-route independent LibreDWG Template report521c1bb0 and every source/archive/converter/probe binding revalidate unchanged at9002a4b; its4.18s observations retain their original530a0aa base. Reader publication/CLI preservation remain7BJ.2 until corrected integration. No new callbacks/registration/fixture/dependency/receipt or support promotion. Next corrected6b527e0c reader plus focused end-to-end readback. |
 | 7BJ.2 canonical Template reader integration | COMMITTED / HEADER_AND_CLI_SCOPED | `Plan-Slice:7BJ.2/3`, integrates reviewed6b527e0c→cc66363 narrow hunks on c8a7add, retaining current facade lifecycle/observations and all admission tests. Canonical signed byte-count descriptions parse in all versions; only exact AC1021+ six-byte NUL is a compatibility exception. Logical-section boundaries, invalid values, signed maximum/negative lengths, missing/unsupported diagnostics, sole header callback, reuse and18 actual destination-preservation/retry cases are covered. Main six strict TUs, affected/lc3/CLI build and exact4/4 writer/reader/local/diagnostic CTests pass3.54s. Report`/private/tmp/libdxfrw-template-main2.2u6g0h/report.json` SHA256`86226837cb932866d9ac330704e8802a92e4950610fb3c0ba291fdbfe56b58c4` binds current source/archive/CLI/probe/oracle:12 generated memory reads,12 independent LibreDWG Template fields and48 ordinary pure-Python DXF projections preserve measurement/units/LINE across six versions, two encodings and two CLI passes in2.71s. No recovery/audit/native/mask0/whole-format claim. New warnings remain visible; old exact-zero-warning evidence is not rebound. No new callback/registration/fixture/dependency/receipt or support promotion. Raw description retention3, survey fallback4 and page-capacity accounting7S.3 remain open. Next7AG.4 direct predicates and reviewed package acceptance. |
 | 7AG.4 direct-option integration | COMMITTED / EFFECTIVE_CONTEXT_OPEN | `Plan-Slice:7AG.4.direct`, integrates independently reviewedc95a5949 on8fd11bd. Exact expected-side value1, raw critical duplicate/conflict/unknown checks, ordered global warning enforcement and explicit opaque/operand/ambiguous-quote rejection now include both assembler aliases. Main isolated-Python builder and v2 self-tests pass; unchanged source28364c10 matches ready report`/private/tmp/libdxfrw-preflight-7ag1a.hdw4MP/direct-options-7ag4-ready-report.json` SHA256`f4d9381d8b0c42571ff43ea67e0124063d82ec94f6ab04dbcc94f6b85caeb268`, binding102 controls, tiny actual CMake builds and three valid old/new identities. Historical727/d3c unready report stays unchanged. This repairs declared direct-option admission only: existing-binary/incremental caches do not attest prior ambient/config/launcher context. No production library/API/schema/lock/receipt/registration/fixture change or paired/native qualification. Next named capability/inventory and controlled-build successor; continue independent package work. |
+| 7AK.6 policy-aware package integration | COMMITTED / CMAKE_PACKAGE_SCOPED | `Plan-Slice:7AK.6`, integrates fully root/independently reviewed8e624052, rebound as24e3b508 on exact9cb78f5. Required/optional components, selected-prefix SameMajorVersion/EXACT/ranges, cache/quiet/repeat behavior, OLD/NEW consensus, typed artifacts, aliases/all consumer configurations and first-discovery manual targets are covered. Main compiler-free self-test and CMake regeneration pass; only the three package files differ from the tested current-production checkout. Frozen report`/private/tmp/libdxfrw-package-current.4sa7Hp/current-production-report.json` SHA256`995b3911594ddb34d135c285ae4321ebb747df4df6a4b00ff741bec7e719fce2` binds two fresh36-TU C++17/Werror static/shared builds and20 original/moved/static/shared-nested components, all PASS_COMPOSED in162.63s/max23.00s per60s child. Each profile executes14+14 requests/17 boundaries/12 OLD/46 policy-artifact controls plus installed-header/license/manifest/private-closure/native tiny consumers. Report5a644387 and unchanged stage/source hashes retain exact bindings. This is composed acceptance, not a monolithic-wrapper pass; prior60s timeout/partial reports remain unchanged. No source/API/registration/fixture/dependency/receipt or format-support promotion. Actual older CMake, Windows DLL, Conan/PIC/ABI/native CAD gates remain separate. Next independent7BI and optional verifier corrections, then capability/controlled-build successor. |
 | 7AD clean inventory / mandatory-result refresh | COMMITTED / FAST_CHECKPOINT_PASS | `ca8a7fde44d5b9dc32a22b44a4057d9c4d48c127` / `Plan-Slice:7AD.refresh`: clean d7174d1 enumeration finds84 default CTests,24 additions/zero removals versus60; name digest`45fa729700500688f366ec0f7276a87e003f9eb19423bf3598ee0568abaf66df`. Clean tracked checkout rebound to ca8a7fd, supported Python3.12/Release/static/optional oraclesOFF: seven fast executables and exact45 executed CTests pass, CTest30.82s/zero skips. Separate exact7 focused checks pass4.78s; live84 inventory, labels, modes and JUnit outcomes validate. Qualification workflow SHA256 unchanged`72c3c75af1d3a8836564bc11ac695d787f9c8fe0f9e132b8c0571d3542f51473`; focused IDs/digest unchanged. Test-only startup/one-ULP corrections retain production deadlines, exact anchors/zeros and tight unit norm. Empty argv option values are admitted; missing/duplicate/unbuilt and skipped/disabled/nonpassing required cells reject. Four real configure-option profiles/tool self-tests pass under supported Python. Names remain generated at the unchanged-CMake ancestor d7174d1; no user samples entered. No full84 suite, hosted/native consumer run, native receipt or support promotion. Next reviewed7A.2,7BN.2 and ready7F.1/7BE/7BJ; broad/ASan/final binding gates remain separate. |
 | Linetype / UCS / CLI / raster admission review | PLAN_UPDATED / NONPROMOTING | Adds PAR-98–105 and7BF/7BG/7BH/7BI. Reproduces fixed-area text aliasing, UCS tuple loss, three CLI process-contract defects, conflicting LTYPE mirror behavior and invalid IMAGE writer admission. LTYPE units have contradictory primary/peer evidence and require a producer witness. Existing7L.5 consumer source-version and7BE boundary gates are sharpened. No main implementation, index, drawing admission or support claim changes in this pass. |
 | Masking / angle / HEADER integrity / package requests | PLAN_UPDATED / NONPROMOTING | Adds PAR-94–97 and ready7BC/7BD/7BE/7AK.6 controls. Generated ASCII/binary WIPEOUT outputs lose polygon/clip mode in an ordinary independent read; full AC1015 HEADER CRC/end mutations remain unreported; tiny package requests accept absent required components. Oblique-unit probes are recorded below. Expands existing7G ownership and7AX thread metadata gates without duplicating findings. No main implementation integration, drawing admission or support promotion in this research pass. |
@@ -2325,10 +2326,11 @@ committed as `70e1d4c`, with4/4 focused passes.7AK.5 `586813df` plus shared-alia
 `59dcaf8f` and thread-metadata checker controls are also committed with fresh
 static/moved acceptance; do not reintegrate either slice.
 7AK.6 package request commit `2be123e8` and OLD-only correction333cdaad must
-not be integrated alone: actual exports create CMP0200 NEW targets. A newer
-isolated policy-aware candidate also validates first-discovery manual targets;
-its final complete original/moved gate and independent code review remain
-pending. Reuse its configure-level controls without a format rebuild.
+not be integrated alone: actual exports create CMP0200 NEW targets. The
+policy-aware successor8e624052/24e3b508, including first-discovery manual
+targets, is now committed with exact current-source original/moved static/
+shared composed acceptance. Do not reintegrate older partial fixes or repeat
+its format-independent checkpoint for every field edit.
 Integrate STYLE9c3a74c7 only after reconciling
 its new derived resource map with7AV cleanup; preserve caller registration
 inputs. Review canonical7AL.2 `302ce6a7` and BLOCK98176504 independently;
@@ -2438,7 +2440,7 @@ failure does not prevent completing them:
 | 7AG.1a, integrated | Preserve current common-source cleanup; do not reimplement50157be. | Main ordinary/3D TU/self-tests and170 inventory pass; known two supplements/six target capabilities remain explicit. |
 | 7AG.4 plus7AG.1 capability profile | Preserve committed direct predicates; attest effective driver context, declare/check capabilities, then add the two audited supplementary callbacks. | Direct102 controls pass; controlled-build provenance/header negatives before one paired build. No existing-binary ambient-only proof or blind target-lock/170→172 update. |
 | 7F.1b /7AH | Migrate the typed result/runner together, including optional modeler source presence and readable bounded observations. | Frozen-schema compatibility plus unknown/zero/presence/omission mutations, then clean/partial/opaque read/readback sentinels. |
-| 7AK.6 | Review isolated policy-aware binding plus first-discovery manual-target validation, separately from format/adapter changes. | Preserve completed components; finish one exact-candidate original/moved checkpoint. Monolithic timeout is pending, not pass or proof of a code defect. |
+| 7AK.6, integrated | Preserve policy-aware binding/first-discovery validation and exact current-source package acceptance. |20 composed original/moved static/shared components pass; old timeout remains historical. Actual older/native/Conan/ABI cells stay separate. |
 | Slice8 verifier contract | Separate scoped geometry from units/coverage/eligibility using the existing optional tool. | Dependency-free mocked predicates and one optional projection calibration; native producer/second-kernel evidence remains deferred. |
 | 7S.2a–d | Implement input bytes, owned snapshot, live retention and revisit work as separate commits. | Tiny caps/counters/retry controls in existing hardening targets; one sanitizer checkpoint after shared storage/lifetime changes settle. |
 
@@ -2481,7 +2483,7 @@ failure does not prevent completing them:
 | 7AH — semantic comparator contract | COMMITTED / CALIBRATION_WORK_PENDING | v2/process/scoped thin integrated; MINSERT/raw-load repair calibrations and bounded broad-oracle worker7AH.6 remain | tool mutations, current16-route evidence historical; tiny raw/preload controls, no broad corpus |
 | 7AI — bounded graph walk | COUNTS_COMMITTED / PAYLOAD_WORK_ROOTS_PENDING | node/edge/staged/source limits integrated; separate XRECORD slot-inspection allowance pending;7G root expansion separate | tiny fixed-graph/varying-payload cap controls, existing cycle/unchanged-destination tests |
 | 7AJ — polygon-mesh subclass | COMMITTED | ordinary flag16 marker fixed; vertex/grid and compatibility policy unchanged | local/3D main probes; raw-marker/mode controls retained |
-| 7AK.1/2/4/5/6/7 — package and build contracts | COMMITTED / ISOLATED_POLICY_CORRECTION |1/2/4/5/7 integrated;6 now has a policy-aware isolated successor, not a main integration; final whole gate/review pending; old333-only correction remains invalid for NEW exports | component configure controls include first discovery/multi-config/typed artifacts; exact original/moved checkpoint still required, Conan/PIC/DLL separately |
+| 7AK.1/2/4/5/6/7 — package and build contracts | COMMITTED / EXTERNAL_PACKAGE_GATES |1/2/4/5/6/7 integrated;6 includes policy-aware/first-discovery selection, not old333-only logic | current-source20-component original/moved static/shared checkpoint passes; native older CMake/Conan/PIC/DLL/ABI gates separately pending |
 | 7AL.1/2 and7L.5 — XDATA text / HEADER order | COMMITTED / ISOLATED_COMMITS | point lifecycle integrated; canonical encoding302ce6a7→HEADER e90b9f57 ready for serial review;7K separate | DXF fixtures/four point routes; isolated encoding/header16-route checks require current integration binding |
 | 7AM.1/2 — BLOCK/ENDBLK carriers | ISOLATED_COMMIT / API_DESIGN | BLOCK98176504; additive footer design coordinated with7AS.2 | source-only repeat CLI, exact ordered carriers/legacy callback count |
 | 7AN — LAYER field policy | ISOLATED_WIP / MAIN_PENDING | narrow DXF-only validation; shared DWG CMC untouched | DXF/Wave1 signed-color/inheritance/transaction negatives |
@@ -4902,7 +4904,8 @@ this check is not a comprehensive legal-compliance assessment.
    distinct; a forced metadata branch does not execute an older CMake binary.
    Then run one current-source original/moved tiny-consumer checkpoint. No
    full format suite or native CAD dependency is required; native Windows
-   DLL acceptance remains separate.7AK.6 stays unready until these gates pass.
+   DLL acceptance remains separate. These gates are now satisfied by the
+   current-source composed checkpoint recorded below and in the ledger.
 
 6. **First discovery and bounded package checkpoint:** create/inspect the
    selected manual imported target before final FPHSA success, after binding
@@ -4937,7 +4940,7 @@ this check is not a comprehensive legal-compliance assessment.
    rebuild is needed merely to align a docs-only ancestor; disclose actual
    bases and preserve prior evidence instead.
 
-   Isolated successor8e624052b07471bc48e1d1f0932f91eb2e6e46bb on907b77
+   Historical isolated successor8e624052b07471bc48e1d1f0932f91eb2e6e46bb on907b77
    changes only the two package modules and existing checker. Frozen report
    `/private/tmp/libdxfrw-package-ak6.6LpW43/candidate-report.json`
    SHA256`6d2346095f30577fa1942a079db7015427115d97d99d376af3b07c746c8f32a4`
@@ -4948,6 +4951,22 @@ this check is not a comprehensive legal-compliance assessment.
    SHA256`5d92d0300e130f2a0fc69ef58f4723b1dda25a6760cffe42c8d3ba848ad71250`
    is source-only. Original5d53ff8 on e46717d is preserved; a docs-only rebase
    changed ancestry, not package/source hashes or historical test bindings.
+
+   Current-source successor24e3b5080c6e70456249827108e3304c227b4a96 on
+   9cb78f5 closes that review/acceptance gate with the same three package
+   content hashes. Two fresh static/shared-nested installs execute all20
+   bounded components across original/moved prefixes. Independently reviewed
+   AST-guarded terminal delegation preserves every checker assertion and
+   meaningful side effect; only an expired scratch root is replaced.
+   Component report
+   `/private/tmp/libdxfrw-package-current.4sa7Hp/acceptance/composed-report.json`
+   SHA256`5a644387bdace6bb66b22c14b52287bdb01b7484d6b788e8d3125a3fb8e3b65b`
+   records PASS_COMPOSED, not a monolithic pass. The handoff995b3911 binds
+   preserved Template/private-header/7AG source, full staged trees, all
+  36-TU Werror/C++17 flags, artifacts and consumer executions. Root integration
+   changes only those reviewed package files plus this progress record;
+   CMake regeneration needs no production rebuild. No native older-CMake,
+   Windows/DLL, Conan or CAD result is inferred from forced branches.
 
 **7AK.7 — build-option dependency admission (PAR-110), committed**
 
