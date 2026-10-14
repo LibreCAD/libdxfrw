@@ -399,6 +399,15 @@ public:
             return;
         m_handleRemap = remap;
     }
+    /*!< Install an owned reference resolver for selected DXF references.
+     * Its result is the final emitted identity (it is not remapped again).
+     * Zero omits optional reactor/extension-dictionary references; XDATA
+     * handle zero is retained as a literal. The callback and its closure are
+     * owned/copied by the codec, but objects referenced by closure captures
+     * remain the caller's lifetime responsibility. Setup, replacement, and
+     * clearing are rejected during a write or finalization. */
+    void setReferenceResolver(
+        std::function<std::uint32_t(std::uint32_t)> resolver);
     //! Add one derived source-handle mapping while the consumer's writeBlocks
     //! callback is active. Caller mappings installed by setHandleRemap win;
     //! repeated identical derived mappings are harmless, conflicts fail write.
@@ -737,6 +746,9 @@ public:
     std::string toHexStr(int n);// compatibility overload for legacy callers
     bool writeAppData(const std::list<std::list<DRW_Variant>> &appData);
     bool writeTableEntryAppData(const DRW_TableEntry& entry);
+    std::uint32_t resolveReference(std::uint32_t handle) const;
+    std::list<std::list<DRW_Variant>> resolveAppDataReferences(
+        const std::list<std::list<DRW_Variant>> &appData);
     std::uint32_t remapObjectHandle(std::uint32_t handle) const noexcept;
 
     bool setError(const DRW::error lastError);
@@ -824,6 +836,7 @@ private:
     // Consumer-derived BLOCK_RECORD mappings live for one write attempt and
     // never overwrite the caller-owned setHandleRemap map above.
     std::map<std::uint32_t, std::uint32_t> m_dxfWriteHandleRemap;
+    std::function<std::uint32_t(std::uint32_t)> m_referenceResolver;
     bool wlayer0 {false};
     bool dimstyleStd {false};
     bool applyExt {false};

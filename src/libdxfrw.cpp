@@ -1947,6 +1947,19 @@ void dxfRW::addDxfWriteHandleRemap(std::uint32_t sourceHandle,
     }
 }
 
+void dxfRW::setReferenceResolver(
+    std::function<std::uint32_t(std::uint32_t)> resolver) {
+    if (!preflightDxfSetup())
+        return;
+    // Replacing or clearing a std::function from inside its own callback can
+    // destroy the active target. Keep this setup-only, including finalization.
+    if (writer != nullptr) {
+        m_writeError = true;
+        return;
+    }
+    m_referenceResolver = std::move(resolver);
+}
+
 std::uint32_t dxfRW::highWaterHandle() const {
     return m_handleAllocator->current();
 }
@@ -2998,16 +3011,29 @@ bool dxfRW::writeEntity(DRW_Entity *ent, bool captureSourceHandle,
         writer->writeString(330, toHexStr(ownerHandle));
     }
     if (!ent->reactorHandles.empty() && !hasReactorsAppGroup) {
-        writer->writeString(102, "{ACAD_REACTORS");
-        for (const std::uint32_t reactor : ent->reactorHandles) {
-            writer->writeString(330, toHexStr(reactor));
+        std::vector<std::uint32_t> reactors;
+        reactors.reserve(ent->reactorHandles.size());
+        for (const std::uint32_t source : ent->reactorHandles) {
+            const std::uint32_t emitted = m_referenceResolver
+                ? resolveReference(source) : source;
+            if (!m_referenceResolver || emitted != 0)
+                reactors.push_back(emitted);
         }
-        writer->writeString(102, "}");
+        if (!reactors.empty()) {
+            writer->writeString(102, "{ACAD_REACTORS");
+            for (const std::uint32_t reactor : reactors)
+                writer->writeString(330, toHexStr(reactor));
+            writer->writeString(102, "}");
+        }
     }
     if (ent->xDictHandle != 0 && !hasXDictionaryAppGroup) {
-        writer->writeString(102, "{ACAD_XDICTIONARY");
-        writer->writeString(360, toHexStr(ent->xDictHandle));
-        writer->writeString(102, "}");
+        const std::uint32_t emitted = m_referenceResolver
+            ? resolveReference(ent->xDictHandle) : ent->xDictHandle;
+        if (!m_referenceResolver || emitted != 0) {
+            writer->writeString(102, "{ACAD_XDICTIONARY");
+            writer->writeString(360, toHexStr(emitted));
+            writer->writeString(102, "}");
+        }
     }
     if (version >= DRW::AC1014 && !writeAppData(ent->appData)) {
         m_writeError = true;
@@ -3181,7 +3207,13 @@ bool dxfRW::writeAppData(const std::list<std::list<DRW_Variant>>& appData) {
         }
     }
 
-    for (const auto &group : appData) {
+    // Validate caller structure before invoking user code. Resolution may
+    // remove optional references/groups, but cannot repair malformed nesting.
+    const std::list<std::list<DRW_Variant>> resolvedAppData =
+        m_referenceResolver ? resolveAppDataReferences(appData) : appData;
+    const auto& outputAppData = resolvedAppData;
+
+    for (const auto &group : outputAppData) {
         bool opened = false;
         int depth = 0;
 
@@ -3242,7 +3274,14 @@ bool dxfRW::writeAppData(const std::list<std::list<DRW_Variant>>& appData) {
                     return false;
                 }
                 std::string value = *data.content.s;
-                if (isDxfTranslatedHandleCode(data.code())) {
+                // With a consumer resolver installed, recognized app-data
+                // references were already resolved above, while foreign
+                // groups are opaque and must remain unchanged. Do not pass
+                // either class through the generic map a second time.
+                const bool preserveApplicationReference =
+                    m_referenceResolver && depth > 0;
+                if (isDxfTranslatedHandleCode(data.code())
+                    && !preserveApplicationReference) {
                     std::uint64_t parsed = 0;
                     const char* begin = value.data();
                     const char* end = begin + value.size();
@@ -3336,29 +3375,42 @@ bool dxfRW::writeTableEntryAppData(const DRW_TableEntry& entry) {
     };
 
     if (!entry.reactorHandles.empty() && !hasAppGroup("ACAD_REACTORS")) {
-        if (!writer->writeString(102, "{ACAD_REACTORS")) {
-            m_writeError = true;
-            return false;
-        }
+        std::vector<std::uint32_t> reactors;
+        reactors.reserve(entry.reactorHandles.size());
         for (const std::uint32_t reactor : entry.reactorHandles) {
-            if (!writer->writeString(330,
-                                     toHexStr(remapObjectHandle(reactor)))) {
+            const std::uint32_t emitted = m_referenceResolver
+                ? resolveReference(reactor) : remapObjectHandle(reactor);
+            if (!m_referenceResolver || emitted != 0)
+                reactors.push_back(emitted);
+        }
+        if (!reactors.empty()) {
+            if (!writer->writeString(102, "{ACAD_REACTORS")) {
+                m_writeError = true;
+                return false;
+            }
+            for (const std::uint32_t reactor : reactors) {
+                if (!writer->writeString(330, toHexStr(reactor))) {
+                    m_writeError = true;
+                    return false;
+                }
+            }
+            if (!writer->writeString(102, "}")) {
                 m_writeError = true;
                 return false;
             }
         }
-        if (!writer->writeString(102, "}")) {
-            m_writeError = true;
-            return false;
-        }
     }
     if (entry.xDictHandle != 0 && !hasAppGroup("ACAD_XDICTIONARY")) {
-        if (!writer->writeString(102, "{ACAD_XDICTIONARY")
-            || !writer->writeString(
-                360, toHexStr(remapObjectHandle(entry.xDictHandle)))
-            || !writer->writeString(102, "}")) {
-            m_writeError = true;
-            return false;
+        const std::uint32_t emitted = m_referenceResolver
+            ? resolveReference(entry.xDictHandle)
+            : remapObjectHandle(entry.xDictHandle);
+        if (!m_referenceResolver || emitted != 0) {
+            if (!writer->writeString(102, "{ACAD_XDICTIONARY")
+                || !writer->writeString(360, toHexStr(emitted))
+                || !writer->writeString(102, "}")) {
+                m_writeError = true;
+                return false;
+            }
         }
     }
     if (!writeAppData(entry.appData)) {
@@ -4227,6 +4279,92 @@ std::uint32_t dxfRW::remapObjectHandle(std::uint32_t handle) const noexcept {
     const auto source = m_writingContext.sourceHandleToMintedMap.find(handle);
     return source == m_writingContext.sourceHandleToMintedMap.end()
         ? handle : source->second;
+}
+
+std::uint32_t dxfRW::resolveReference(std::uint32_t handle) const {
+    if (handle == 0 || !m_referenceResolver)
+        return handle;
+    return m_referenceResolver(handle);
+}
+
+std::list<std::list<DRW_Variant>> dxfRW::resolveAppDataReferences(
+    const std::list<std::list<DRW_Variant>>& appData) {
+    const auto parseHandle = [](const DRW_Variant& value,
+                                std::uint32_t& handle) {
+        if (value.type() == DRW_Variant::INTEGER) {
+            handle = static_cast<std::uint32_t>(value.i_val());
+            return true;
+        }
+        if (value.type() != DRW_Variant::STRING || value.content.s == nullptr)
+            return false;
+        const std::string& text = *value.content.s;
+        std::uint64_t parsedHandle = 0;
+        const auto parsed = std::from_chars(text.data(),
+                                            text.data() + text.size(),
+                                            parsedHandle, 16);
+        if (parsed.ec != std::errc{} || parsed.ptr != text.data() + text.size()
+            || parsedHandle > std::numeric_limits<std::uint32_t>::max())
+            return false;
+        handle = static_cast<std::uint32_t>(parsedHandle);
+        return true;
+    };
+
+    std::list<std::list<DRW_Variant>> resolved;
+    for (const auto& group : appData) {
+        const DRW_Variant* opener = group.empty() ? nullptr : &group.front();
+        const std::string marker = opener != nullptr && opener->code() == 102
+                && opener->type() == DRW_Variant::STRING
+                && opener->content.s != nullptr
+            ? *opener->content.s : std::string{};
+        const std::string name = !marker.empty() && marker.front() == '{'
+            ? marker.substr(1) : marker;
+        const int referenceCode = name == "ACAD_REACTORS" ? 330
+                                : name == "ACAD_XDICTIONARY" ? 360 : 0;
+        if (referenceCode == 0) {
+            resolved.push_back(group);
+            continue;
+        }
+
+        std::list<DRW_Variant> rewritten;
+        bool namesSomething = false;
+        int depth = 0;
+        for (const DRW_Variant& value : group) {
+            if (value.code() == 102 && value.type() == DRW_Variant::STRING
+                && value.content.s != nullptr) {
+                const std::string& nested = *value.content.s;
+                if (depth == 0)
+                    depth = 1;
+                else if (nested == "}")
+                    --depth;
+                else if (!nested.empty() && nested.front() == '{')
+                    ++depth;
+                rewritten.push_back(value);
+                continue;
+            }
+            if (depth == 1 && value.code() == referenceCode) {
+                std::uint32_t sourceHandle = 0;
+                if (!parseHandle(value, sourceHandle)) {
+                    rewritten.push_back(value);
+                    namesSomething = true;
+                    continue;
+                }
+                const std::uint32_t emittedHandle =
+                    resolveReference(sourceHandle);
+                if (emittedHandle == 0)
+                    continue;
+                rewritten.emplace_back(referenceCode,
+                                       toHexStr(emittedHandle));
+                namesSomething = true;
+                continue;
+            }
+            rewritten.push_back(value);
+        }
+        // Known reactor/xDictionary groups with no remaining target do not
+        // emit empty 102 wrappers. Opaque/unparseable values remain intact.
+        if (namesSomething)
+            resolved.push_back(std::move(rewritten));
+    }
+    return resolved;
 }
 
 bool dxfRW::writePoint(DRW_Point *ent) {
@@ -9481,6 +9619,23 @@ bool dxfRW::writeExtData(const std::vector<DRW_Variant*> &ed){
                     const char* end = begin + text.size();
                     const auto parsed = std::from_chars(
                         begin, end, sourceHandle, 16);
+                    if (m_referenceResolver) {
+                        if (parsed.ec == std::errc{} && parsed.ptr == end
+                            && sourceHandle != 0
+                            && sourceHandle
+                                <= std::numeric_limits<std::uint32_t>::max()) {
+                            const std::uint32_t emitted = resolveReference(
+                                static_cast<std::uint32_t>(sourceHandle));
+                            recordResult(writer->writeString(
+                                1005, toHexStr(emitted)));
+                        } else {
+                            // A literal zero is not an absent optional edge;
+                            // malformed legacy spellings are opaque data.
+                            // Match the bundled facade's resolver contract.
+                            recordResult(writer->writeString(1005, text));
+                        }
+                        break;
+                    }
                     if (parsed.ec != std::errc{} || parsed.ptr != end
                         || sourceHandle
                             > std::numeric_limits<std::uint32_t>::max()) {

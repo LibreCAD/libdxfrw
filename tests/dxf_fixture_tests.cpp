@@ -3907,6 +3907,386 @@ void testExplicitReservationQuery(TestContext& t) {
              "reservation admission failure does not invent an explicit reservation or source version");
 }
 
+void testDxfReferenceResolver(TestContext& t) {
+    class ResolverInterface final : public dx_iface {
+    public:
+        void attach(dx_data& data) {
+            cData = &data;
+            currentBlock = data.mBlock;
+        }
+        void writeEntities() override {
+            DRW_Line direct;
+            direct.layer = "RESOLVER_LAYER";
+            direct.secPoint = {1, 2, 3};
+            direct.reactorHandles = {0x10u, 0x20u};
+            direct.xDictHandle = 0x20u;
+            direct.extData.push_back(std::make_shared<DRW_Variant>(
+                1001, std::string("RESOLVER_APP")));
+            for (const std::string& value : {"0", "0000", "10"})
+                direct.extData.push_back(
+                    std::make_shared<DRW_Variant>(1005, value));
+            if (includeMalformedXdata)
+                direct.extData.push_back(
+                    std::make_shared<DRW_Variant>(1005, "not-hex"));
+            directWritten = dxfW->writeLine(&direct);
+
+            DRW_Line grouped;
+            grouped.layer = "RESOLVER_LAYER";
+            grouped.basePoint = {4, 5, 6};
+            grouped.secPoint = {7, 8, 9};
+            grouped.appData.push_back({
+                {102, std::string("{ACAD_REACTORS")},
+                {330, std::string("10")}, {330, std::string("20")},
+                {102, std::string("}")}});
+            grouped.appData.push_back({
+                {102, std::string("{ACAD_XDICTIONARY")},
+                {360, std::string("21")}, {102, std::string("}")}});
+            grouped.appData.push_back({
+                {102, std::string("{FOREIGN_META")},
+                {330, std::string("10")}, {102, std::string("}")}});
+            groupedWritten = dxfW->writeLine(&grouped);
+        }
+        bool directWritten {false};
+        bool groupedWritten {false};
+        bool includeMalformedXdata {false};
+    };
+
+    const auto stamp = std::chrono::steady_clock::now()
+                           .time_since_epoch().count();
+    for (const bool binary : {false, true}) {
+        const auto path = std::filesystem::temp_directory_path()
+            / ("libdxfrw-reference-resolver-" + std::to_string(stamp)
+               + (binary ? "-binary.dxf" : "-ascii.dxf"));
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                std::error_code error;
+                std::filesystem::remove(path, error);
+            }
+        } cleanup{path};
+
+        dx_data data;
+        DRW_Layer layer;
+        layer.name = "RESOLVER_LAYER";
+        layer.reactorHandles = {0x10u, 0x20u};
+        layer.xDictHandle = 0x20u;
+        data.layers.push_back(layer);
+        DRW_Layer groupedLayer;
+        groupedLayer.name = "RESOLVER_GROUPED_LAYER";
+        groupedLayer.appData.push_back({
+            {102, std::string("{ACAD_REACTORS")},
+            {330, std::string("10")}, {330, std::string("20")},
+            {102, std::string("}")}});
+        groupedLayer.appData.push_back({
+            {102, std::string("{ACAD_XDICTIONARY")},
+            {360, std::string("21")}, {102, std::string("}")}});
+        data.layers.push_back(groupedLayer);
+        ResolverInterface adapter;
+        adapter.attach(data);
+        const std::string filename = path.string();
+        dxfRW writer(filename.c_str());
+        adapter.dxfW = &writer;
+
+        std::map<std::uint32_t, std::size_t> calls;
+        const auto firstResolver = [](std::uint32_t) { return 0x99u; };
+        writer.setReferenceResolver(firstResolver);
+        writer.setHandleRemap(
+            {{0x10u, 0x44u}, {0x22u, 0x44u}, {0x32u, 0x55u}});
+        writer.setReferenceResolver([&calls](std::uint32_t source) {
+            ++calls[source];
+            if (source == 0x10u) return 0x22u;
+            if (source == 0x20u) return 0u;
+            if (source == 0x21u) return 0x32u;
+            if (source == 0x22u || source == 0x32u) return 0x33u;
+            return source;
+        });
+
+        t.expect(writer.write(&adapter, DRW::AC1027, binary)
+                     && adapter.directWritten && adapter.groupedWritten,
+                 "reference resolver writes direct, app-data and table edges");
+        std::vector<TableOwnerRecord> records;
+        t.expect(readTableOwnerRecords(path, binary, records),
+                 "reference resolver output has complete literal framing");
+        std::vector<const TableOwnerRecord*> lines;
+        const TableOwnerRecord* resolvedLayer = nullptr;
+        const TableOwnerRecord* resolvedGroupedLayer = nullptr;
+        for (const TableOwnerRecord& record : records) {
+            if (record.kind == "LINE")
+                lines.push_back(&record);
+            if (record.kind == "LAYER"
+                && groupValue(record.groups, 2) == "RESOLVER_LAYER")
+                resolvedLayer = &record;
+            if (record.kind == "LAYER"
+                && groupValue(record.groups, 2) == "RESOLVER_GROUPED_LAYER")
+                resolvedGroupedLayer = &record;
+        }
+        const auto appValues = [](const TableOwnerRecord& record,
+                                  const std::string& opener, int code) {
+            std::vector<std::string> values;
+            bool inside = false;
+            for (const auto& group : record.groups) {
+                if (group.first == 102 && group.second == opener) {
+                    inside = true;
+                    continue;
+                }
+                if (inside && group.first == 102 && group.second == "}") {
+                    inside = false;
+                    continue;
+                }
+                if (inside && group.first == code)
+                    values.push_back(group.second);
+            }
+            return values;
+        };
+        if (lines.size() == 2) {
+            t.expect(appValues(*lines[0], "{ACAD_REACTORS", 330)
+                         == std::vector<std::string>{"22"}
+                         && appValues(*lines[0], "{ACAD_XDICTIONARY", 360).empty(),
+                     "direct optional references map once and omit zero targets");
+            t.expect(appValues(*lines[1], "{ACAD_REACTORS", 330)
+                         == std::vector<std::string>{"22"}
+                         && appValues(*lines[1], "{ACAD_XDICTIONARY", 360)
+                             == std::vector<std::string>{"32"}
+                         && appValues(*lines[1], "{FOREIGN_META", 330)
+                             == std::vector<std::string>{"10"},
+                     "only known 102 reference groups resolve; outputs are terminal");
+            std::vector<std::string> xdata;
+            for (const auto& group : lines[0]->groups)
+                if (group.first == 1005)
+                    xdata.push_back(group.second);
+            t.expect(xdata == std::vector<std::string>{"0", "0000", "22"},
+                     "XDATA retains literal zero spellings and resolves valid nonzero handles");
+        } else {
+            t.expect(false, "resolver sentinel contains both entity records");
+        }
+        t.expect(resolvedLayer != nullptr
+                     && appValues(*resolvedLayer, "{ACAD_REACTORS", 330)
+                         == std::vector<std::string>{"22"}
+                     && appValues(*resolvedLayer, "{ACAD_XDICTIONARY", 360).empty(),
+                 "table-record optional references resolve and omit absent targets");
+        t.expect(resolvedGroupedLayer != nullptr
+                     && appValues(*resolvedGroupedLayer, "{ACAD_REACTORS", 330)
+                         == std::vector<std::string>{"22"}
+                     && appValues(*resolvedGroupedLayer,
+                                  "{ACAD_XDICTIONARY", 360)
+                         == std::vector<std::string>{"32"},
+                 "table-record known application groups resolve exactly once");
+        t.expect(calls == std::map<std::uint32_t, std::size_t>{
+                     {0x10u, 5u}, {0x20u, 6u}, {0x21u, 2u}},
+                 "reference callbacks run once per nonzero audited reference only");
+
+        const auto opaquePath = std::filesystem::temp_directory_path()
+            / ("libdxfrw-reference-resolver-opaque-" + std::to_string(stamp)
+               + (binary ? "-binary.dxf" : "-ascii.dxf"));
+        struct OpaqueCleanup {
+            std::filesystem::path path;
+            ~OpaqueCleanup() {
+                std::error_code error;
+                std::filesystem::remove(path, error);
+            }
+        } opaqueCleanup{opaquePath};
+        dx_data opaqueData;
+        ResolverInterface opaqueAdapter;
+        opaqueAdapter.attach(opaqueData);
+        opaqueAdapter.includeMalformedXdata = true;
+        const std::string opaqueFilename = opaquePath.string();
+        dxfRW opaqueWriter(opaqueFilename.c_str());
+        opaqueAdapter.dxfW = &opaqueWriter;
+        opaqueWriter.setReferenceResolver(
+            [](std::uint32_t source) { return source; });
+        const bool opaqueWritten = opaqueWriter.write(
+            &opaqueAdapter, DRW::AC1027, binary);
+        std::ifstream opaqueStream(opaquePath, std::ios::binary);
+        const std::string opaqueBytes(
+            std::istreambuf_iterator<char>(opaqueStream), {});
+        t.expect(opaqueWritten
+                     && opaqueBytes.find("not-hex") != std::string::npos,
+                 "resolver mode preserves malformed opaque XDATA spellings verbatim");
+    }
+
+    // A resolver cannot destroy or replace itself while executing inside a
+    // write. The failed attempt leaves the old callback available for retry.
+    const auto mutationPath = std::filesystem::temp_directory_path()
+        / ("libdxfrw-reference-resolver-mutation-" + std::to_string(stamp)
+           + ".dxf");
+    struct MutationCleanup {
+        std::filesystem::path path;
+        ~MutationCleanup() {
+            std::error_code error;
+            std::filesystem::remove(path, error);
+        }
+    } mutationCleanup{mutationPath};
+    class OneEdgeInterface final : public dx_iface {
+    public:
+        void writeEntities() override {
+            DRW_Line line;
+            line.secPoint = {1, 2, 3};
+            line.reactorHandles = {0x10u};
+            written = dxfW->writeLine(&line);
+        }
+        bool written {false};
+    } activeAdapter;
+    dx_data activeData;
+    activeAdapter.cData = &activeData;
+    activeAdapter.currentBlock = activeData.mBlock;
+    const std::string mutationFilename = mutationPath.string();
+    dxfRW mutationWriter(mutationFilename.c_str());
+    activeAdapter.dxfW = &mutationWriter;
+    bool replaceDuringCallback = true;
+    mutationWriter.setReferenceResolver([&](std::uint32_t source) {
+        if (replaceDuringCallback)
+            mutationWriter.setReferenceResolver({});
+        return source == 0x10u ? 0x20u : source;
+    });
+    {
+        std::ofstream destination(mutationPath, std::ios::binary);
+        destination << "resolver mutation sentinel\n";
+    }
+    t.expect(!mutationWriter.write(&activeAdapter, DRW::AC1027, false),
+             "attempted resolver replacement during callback rejects write");
+    {
+        std::ifstream destination(mutationPath, std::ios::binary);
+        t.expect(std::string(std::istreambuf_iterator<char>(destination), {})
+                     == "resolver mutation sentinel\n",
+                 "active resolver mutation preserves the published destination");
+    }
+    replaceDuringCallback = false;
+    t.expect(mutationWriter.write(&activeAdapter, DRW::AC1027, false)
+                 && activeAdapter.written,
+             "failed active-mutation attempt retries with the original resolver");
+    mutationWriter.setReferenceResolver({});
+    t.expect(mutationWriter.write(&activeAdapter, DRW::AC1027, false),
+             "resolver may be cleared between writes");
+
+    const auto exceptionPath = std::filesystem::temp_directory_path()
+        / ("libdxfrw-reference-resolver-exception-" + std::to_string(stamp)
+           + ".dxf");
+    struct ExceptionCleanup {
+        std::filesystem::path path;
+        ~ExceptionCleanup() {
+            std::error_code error;
+            std::filesystem::remove(path, error);
+        }
+    } exceptionCleanup{exceptionPath};
+    OneEdgeInterface exceptionAdapter;
+    dx_data exceptionData;
+    exceptionAdapter.cData = &exceptionData;
+    exceptionAdapter.currentBlock = exceptionData.mBlock;
+    const std::string exceptionFilename = exceptionPath.string();
+    dxfRW exceptionWriter(exceptionFilename.c_str());
+    exceptionAdapter.dxfW = &exceptionWriter;
+    bool throwFromResolver = true;
+    std::size_t oldResolverCalls = 0;
+    std::size_t replacementResolverCalls = 0;
+    auto ownedCapture = std::make_shared<int>(7);
+    std::weak_ptr<int> observedCapture = ownedCapture;
+    exceptionWriter.setReferenceResolver(
+        [capture = ownedCapture, &throwFromResolver, &oldResolverCalls](
+            std::uint32_t source) {
+            (void)capture;
+            ++oldResolverCalls;
+            if (throwFromResolver)
+                throw std::runtime_error("resolver sentinel");
+            return source == 0x10u ? 0x20u : source;
+        });
+    ownedCapture.reset();
+    {
+        std::ofstream destination(exceptionPath, std::ios::binary);
+        destination << "resolver exception sentinel\n";
+    }
+    t.expect(!exceptionWriter.write(&exceptionAdapter, DRW::AC1027, false)
+                 && oldResolverCalls == 1u && !observedCapture.expired(),
+             "throwing resolver fails transaction while codec owns its closure");
+    {
+        std::ifstream destination(exceptionPath, std::ios::binary);
+        t.expect(std::string(std::istreambuf_iterator<char>(destination), {})
+                     == "resolver exception sentinel\n",
+                 "resolver exception preserves the published destination");
+    }
+    exceptionWriter.setReferenceResolver(
+        [&replacementResolverCalls](std::uint32_t source) {
+            ++replacementResolverCalls;
+            return source == 0x10u ? 0x33u : source;
+        });
+    t.expect(observedCapture.expired(),
+             "replacing a resolver releases the prior owned closure");
+    t.expect(exceptionWriter.write(&exceptionAdapter, DRW::AC1027, false)
+                 && replacementResolverCalls == 1u,
+             "replacement resolver supports retry after callback exception");
+    std::vector<TableOwnerRecord> retryRecords;
+    t.expect(readTableOwnerRecords(exceptionPath, false, retryRecords),
+             "resolver exception retry produces complete DXF framing");
+    const auto retryLine = std::find_if(retryRecords.begin(), retryRecords.end(),
+        [](const TableOwnerRecord& record) { return record.kind == "LINE"; });
+    if (retryLine != retryRecords.end()) {
+        bool insideReactors = false;
+        std::vector<std::string> resolvedHandles;
+        for (const auto& group : retryLine->groups) {
+            if (group.first == 102 && group.second == "{ACAD_REACTORS")
+                insideReactors = true;
+            else if (insideReactors && group.first == 102 && group.second == "}")
+                insideReactors = false;
+            else if (insideReactors && group.first == 330)
+                resolvedHandles.push_back(group.second);
+        }
+        t.expect(resolvedHandles == std::vector<std::string>{"33"},
+                 "retry emits the replacement resolver result, not stale callback state");
+    } else {
+        t.expect(false, "resolver exception retry contains its LINE record");
+    }
+
+    const auto finalizePath = std::filesystem::temp_directory_path()
+        / ("libdxfrw-reference-resolver-finalize-" + std::to_string(stamp)
+           + ".dxf");
+    struct FinalizeCleanup {
+        std::filesystem::path path;
+        ~FinalizeCleanup() {
+            std::error_code error;
+            std::filesystem::remove(path, error);
+        }
+    } finalizeCleanup{finalizePath};
+    class FinalizeResolverInterface final : public dx_iface {
+    public:
+        void writeEntities() override {
+            DRW_Line line;
+            line.secPoint = {1, 2, 3};
+            line.reactorHandles = {0x10u};
+            written = dxfW->writeLine(&line);
+        }
+        bool finalizeDxfWrite() override {
+            if (attemptResolverChange)
+                dxfW->setReferenceResolver({});
+            return true;
+        }
+        bool attemptResolverChange {true};
+        bool written {false};
+    } finalizeAdapter;
+    dx_data finalizeData;
+    finalizeAdapter.cData = &finalizeData;
+    finalizeAdapter.currentBlock = finalizeData.mBlock;
+    const std::string finalizeFilename = finalizePath.string();
+    dxfRW finalizeWriter(finalizeFilename.c_str());
+    finalizeAdapter.dxfW = &finalizeWriter;
+    finalizeWriter.setReferenceResolver(
+        [](std::uint32_t source) { return source == 0x10u ? 0x20u : source; });
+    {
+        std::ofstream destination(finalizePath, std::ios::binary);
+        destination << "resolver finalize sentinel\n";
+    }
+    t.expect(!finalizeWriter.write(&finalizeAdapter, DRW::AC1027, false),
+             "resolver cannot be changed during publication finalization");
+    {
+        std::ifstream destination(finalizePath, std::ios::binary);
+        t.expect(std::string(std::istreambuf_iterator<char>(destination), {})
+                     == "resolver finalize sentinel\n",
+                 "finalizer resolver mutation preserves the published destination");
+    }
+    finalizeAdapter.attemptResolverChange = false;
+    t.expect(finalizeWriter.write(&finalizeAdapter, DRW::AC1027, false)
+                 && finalizeAdapter.written,
+             "finalizer mutation rejection does not prevent a later write retry");
+}
+
 void testDxfWriteBlockRemapPhase(TestContext& t) {
     constexpr std::uint32_t sourceBlockRecord = 0xA200u;
     constexpr std::uint32_t dictionaryHandle = 0xB100u;
@@ -8024,6 +8404,7 @@ int main(int argc, char** argv) {
     testAdapterAcceptedDxfVersion(context);
     testConsumerSourceVersionSnapshot(context);
     testExplicitReservationQuery(context);
+    testDxfReferenceResolver(context);
     testDxfWriteBlockRemapPhase(context);
     testDxfTextEncodingCodecs(context);
     testDxfTextEncodingReads(context);
