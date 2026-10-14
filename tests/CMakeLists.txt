@@ -283,6 +283,29 @@ foreach(_hatch_encoding IN ITEMS ascii binary)
     )
 endforeach()
 
+# LEADER group76 is advisory on OPEN; literal source counts differ from the
+# actual arrays and must canonicalize through two real CLI passes.
+foreach(_leader_encoding IN ITEMS ascii binary)
+    set(_leader_generate_mode --generate-leader-advisory-counts)
+    set(_leader_options "")
+    if(_leader_encoding STREQUAL "binary")
+        set(_leader_generate_mode --generate-leader-advisory-counts-binary)
+        set(_leader_options -b)
+    endif()
+    add_test(NAME dwg2dxf_leader_advisory_count_${_leader_encoding}_cli
+        COMMAND ${CMAKE_COMMAND}
+            -DADAPTER_TEST=$<TARGET_FILE:libdxfrw_dxf_fixture_tests>
+            -DDWG2DXF=$<TARGET_FILE:dwg2dxf>
+            -DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}
+            -DCASE_NAME=leader-advisory-count-${_leader_encoding}
+            -DGENERATE_MODE=${_leader_generate_mode}
+            -DVERIFY_MODE=--verify-leader-advisory-counts
+            -DCONVERSION_OPTIONS=${_leader_options}
+            -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg2dxf_image_path_test.cmake)
+    set_tests_properties(dwg2dxf_leader_advisory_count_${_leader_encoding}_cli
+        PROPERTIES LABELS "cli;fast;dxf;adapter;leader" TIMEOUT 30)
+endforeach()
+
 # Independently authored version/fill pairs with polyline/bulge boundaries.
 # Read back after both exact-argv CLI passes; no drawing payload is vendored.
 foreach(_mpolygon_encoding IN ITEMS ascii binary)

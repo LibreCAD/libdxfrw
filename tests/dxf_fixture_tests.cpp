@@ -817,6 +817,164 @@ void testClassicVertexPresenceBoundaries(TestContext& t) {
     }
 }
 
+// Author group76 independently of the production writer, which canonicalizes
+// it from the actual array. Stale values exercise documented OPEN tolerance.
+bool generateLeaderAdvisoryCounts(const std::filesystem::path& path, bool binary,
+                                  int limitCount = -1) {
+    std::ofstream stream(path, std::ios::binary | std::ios::trunc);
+    if (binary) stream.write("AutoCAD Binary DXF\r\n\032\0", 22);
+    std::unique_ptr<dxfWriter> tags;
+    if (binary) tags = std::make_unique<dxfWriterBinary>(&stream);
+    else tags = std::make_unique<dxfWriterAscii>(&stream);
+    tags->setVersion("AC1024", true);
+    const auto point = [&](int code, DRW_Coord value) {
+        tags->writeDouble(code, value.x); tags->writeDouble(code + 10, value.y);
+        tags->writeDouble(code + 20, value.z);
+    };
+    tags->writeString(0, "SECTION"); tags->writeString(2, "HEADER");
+    tags->writeString(9, "$ACADVER"); tags->writeString(1, "AC1024");
+    tags->writeString(0, "ENDSEC"); tags->writeString(0, "SECTION");
+    tags->writeString(2, "ENTITIES");
+    const std::array<int, 5> declared {{2, 0, 99, -1, 99}};
+    for (int index = 0; index != (limitCount < 0 ? 5 : 1); ++index) {
+        tags->writeString(0, "LEADER"); tags->writeString(100, "AcDbEntity");
+        tags->writeString(8, "0"); tags->writeInt16(62, 2 + index);
+        tags->writeString(100, "AcDbLeader"); tags->writeString(3, "STANDARD");
+        tags->writeInt16(71, 1); tags->writeInt16(72, index == 4 ? 1 : 0);
+        tags->writeInt16(73, 3); tags->writeInt16(74, 1); tags->writeInt16(75, 0);
+        tags->writeDouble(40, 2); tags->writeDouble(41, 4);
+        if (limitCount >= 0) tags->writeInt16(76, 0); // independent of actual payload limit
+        else if (declared[index] >= 0) tags->writeInt16(76, declared[index]);
+        if (limitCount >= 0) {
+            for (int vertex = 0; vertex != limitCount; ++vertex)
+                point(10, {vertex + 1.0, 2, 3});
+        } else {
+            point(10, {1, 2, 3}); point(10, {4, 6, 0});
+            if (index == 4) point(10, {8, 9, -2.25});
+        }
+        tags->writeInt16(77, 7); point(210, {0, .6, .8}); point(211, {1, 0, 0});
+    }
+    tags->writeString(0, "LINE"); tags->writeString(100, "AcDbEntity");
+    tags->writeString(8, "0"); tags->writeString(100, "AcDbLine");
+    point(10, {71, 72, 73}); point(11, {74, 75, 76});
+    tags->writeString(0, "ENDSEC"); tags->writeString(0, "EOF");
+    return !tags->hasWriteError() && stream.good();
+}
+
+bool leaderAdvisoryCountsMatch(const dx_data& data, bool canonical) {
+    if (data.mBlock->ent.size() != 6u) return false;
+    const std::array<int, 5> declared {{2, 0, 99, 0, 99}};
+    int index = 0;
+    for (const auto* entity : data.mBlock->ent) {
+        if (index == 5) {
+            const auto* line = dynamic_cast<const DRW_Line*>(entity);
+            return entity->eType == DRW::LINE && line && line->basePoint.x == 71
+                && line->basePoint.y == 72 && line->basePoint.z == 73
+                && line->secPoint.x == 74 && line->secPoint.y == 75 && line->secPoint.z == 76;
+        }
+        const auto* leader = dynamic_cast<const DRW_Leader*>(entity);
+        const int actual = index == 4 ? 3 : 2;
+        if (!leader || leader->vertexlist.size() != static_cast<std::size_t>(actual)
+            || leader->vertnum != (canonical ? actual : declared[index])
+            || leader->style != "STANDARD" || leader->color != 2 + index
+            || leader->arrow != 1 || leader->leadertype != (index == 4 ? 1 : 0)
+            || leader->flag != 3 || leader->hookline != 1 || leader->hookflag != 0
+            || leader->textheight != 2 || leader->textwidth != 4 || leader->coloruse != 7
+            || leader->extrusionPoint.x != 0 || leader->extrusionPoint.y != .6
+            || leader->extrusionPoint.z != .8 || leader->horizdir.x != 1
+            || leader->horizdir.y != 0 || leader->horizdir.z != 0) return false;
+        const std::array<DRW_Coord, 3> expected {{{1, 2, 3}, {4, 6, 0}, {8, 9, -2.25}}};
+        for (int vertex = 0; vertex != actual; ++vertex) {
+            const auto& point = *leader->vertexlist[vertex];
+            if (point.x != expected[vertex].x || point.y != expected[vertex].y
+                || point.z != expected[vertex].z) return false;
+        }
+        ++index;
+    }
+    return false;
+}
+
+bool verifyLeaderAdvisoryCounts(const std::filesystem::path& path) {
+    dx_data data; dx_iface reader;
+    return reader.fileImport(path.string(), &data, false) && leaderAdvisoryCountsMatch(data, true);
+}
+
+bool literalLeaderCountsMatch(const std::filesystem::path& path, bool binary) {
+    std::ifstream stream(path, std::ios::binary);
+    if (binary) stream.seekg(22);
+    std::unique_ptr<dxfReader> tags;
+    if (binary) tags = std::make_unique<dxfReaderBinary>(&stream);
+    else tags = std::make_unique<dxfReaderAscii>(&stream);
+    std::vector<int> counts;
+    bool leader = false; int code = 0;
+    while (tags->readRec(&code)) {
+        if (code == 0) {
+            leader = tags->getString() == "LEADER";
+            if (tags->getString() == "EOF") return counts == std::vector<int>{2, 2, 2, 2, 3};
+        } else if (leader && code == 76) counts.push_back(tags->getInt32());
+    }
+    return false;
+}
+
+void testLeaderAdvisoryCounts(TestContext& t) {
+    for (const std::string& body : {
+            std::string("76\nnot-an-integer\n10\n1\n20\n2\n"),
+            std::string("76\n2147483648\n10\n1\n20\n2\n"),
+            std::string("76\n0\n10\nnan\n20\n2\n")}) {
+        std::string contents = "0\nSECTION\n2\nENTITIES\n0\nLEADER\n8\n0\n3\nSTANDARD\n"
+            + body + "0\nENDSEC\n0\nEOF\n";
+        dx_data invalid; FixtureInterface capture; capture.attach(&invalid); dxfRW reader("");
+        t.expect(!reader.readAscii(&capture, false, contents) && invalid.mBlock->ent.empty(),
+                 "advisory LEADER count preserves lexical/width and finite-coordinate rejection");
+    }
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    for (bool binary : {false, true}) {
+        const auto path = std::filesystem::temp_directory_path()
+            / ("libdxfrw-leader-count-" + std::to_string(nonce) + (binary ? "-bin.dxf" : "-asc.dxf"));
+        const auto output = path.parent_path() / (path.stem().string() + "-out.dxf");
+        t.expect(generateLeaderAdvisoryCounts(path, binary), "generate literal advisory LEADER counts");
+        for (bool applyExt : {false, true}) {
+            dx_data data; FixtureInterface capture; capture.attach(&data);
+            const std::string filename = path.string(); dxfRW reader(filename.c_str());
+            t.expect(reader.read(&capture, applyExt) && leaderAdvisoryCountsMatch(data, false),
+                     "exact/stale/absent LEADER counts retain actual geometry under both extrusion modes");
+        }
+        auto data = std::make_unique<dx_data>(); dx_iface reader, writer;
+        t.expect(reader.fileImport(path.string(), data.get(), false), "advisory LEADER source imports");
+        for (int pass = 0; pass != 2; ++pass) {
+            t.expect(writer.fileExport(output.string(), DRW::AC1024, binary, data.get(), false)
+                         && verifyLeaderAdvisoryCounts(output) && literalLeaderCountsMatch(output, binary),
+                     "LEADER writes canonical actual counts while retaining tested fields through repeat conversion");
+            if (pass == 0) t.expect(leaderAdvisoryCountsMatch(*data, false), "canonical output does not overwrite caller declared counts");
+            auto reopened = std::make_unique<dx_data>();
+            t.expect(reader.fileImport(output.string(), reopened.get(), false), "canonical LEADER output reopens");
+            data = std::move(reopened);
+        }
+        for (int count : {4999, 5000, 5001}) {
+            t.expect(generateLeaderAdvisoryCounts(path, binary, count), "generate actual LEADER payload limit control");
+            dx_data limited; FixtureInterface capture; capture.attach(&limited);
+            const std::string filename = path.string(); dxfRW reused(filename.c_str());
+            const bool imported = reused.read(&capture, false);
+            if (count > 5000) {
+                t.expect(!imported && reused.getError() == DRW::BAD_CODE_PARSED && limited.mBlock->ent.empty(),
+                         "over-limit actual LEADER payload rejects before parent or following LINE callback");
+            } else {
+                const auto* leader = limited.mBlock->ent.empty() ? nullptr
+                    : dynamic_cast<const DRW_Leader*>(limited.mBlock->ent.front());
+                t.expect(imported && limited.mBlock->ent.size() == 2u && leader
+                             && leader->vertnum == 0 && leader->vertexlist.size() == static_cast<std::size_t>(count),
+                         "actual LEADER limit-minus-one/limit ignores stale declared count");
+            }
+            dx_data complete; capture.attach(&complete);
+            t.expect(generateLeaderAdvisoryCounts(path, binary) && reused.read(&capture, false)
+                         && leaderAdvisoryCountsMatch(complete, false),
+                     "same reader accepts complete advisory LEADER controls after limit read/failure");
+        }
+        std::error_code error;
+        std::filesystem::remove(path, error); std::filesystem::remove(output, error);
+    }
+}
+
 struct TableOwnerRecord {
     std::string kind;
     std::vector<std::pair<int, std::string>> groups;
@@ -3622,6 +3780,11 @@ void testLegacyEllipseCarrierTransfer(TestContext& t) {
 } // namespace
 
 int main(int argc, char** argv) {
+    if (argc == 3 && (std::string(argv[1]) == "--generate-leader-advisory-counts"
+                     || std::string(argv[1]) == "--generate-leader-advisory-counts-binary"))
+        return generateLeaderAdvisoryCounts(argv[2], std::string(argv[1]) == "--generate-leader-advisory-counts-binary") ? 0 : 1;
+    if (argc == 3 && std::string(argv[1]) == "--verify-leader-advisory-counts")
+        return verifyLeaderAdvisoryCounts(argv[2]) ? 0 : 1;
     if (argc == 5 && std::string(argv[1]) == "--generate-xrecord-coordinates") {
         const std::string inputMode(argv[3]), outputMode(argv[4]);
         if ((inputMode != "ascii" && inputMode != "binary")
@@ -3693,6 +3856,7 @@ int main(int argc, char** argv) {
     if (argc != 1)
         return 2;
     TestContext context;
+    testLeaderAdvisoryCounts(context);
     testClassicVertexXdata(context);
     testClassicVertexPresenceBoundaries(context);
     testClassicVertexIdentifierRetention(context);

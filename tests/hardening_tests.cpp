@@ -70,6 +70,7 @@ public:
 class ExposedLeader : public DRW_Leader {
 public:
     using DRW_Leader::parseCode;
+    using DRW_Leader::resetDwgState;
     using DRW_Leader::validateDxf;
 };
 
@@ -318,6 +319,36 @@ bool parseDxfRecords(Entity& entity, const std::string& source) {
     while (reader->readRec(&code))
         ok = entity.parseCode(code, reader) && ok;
     return ok;
+}
+
+void testLeaderAdvisoryCountState(TestContext& t) {
+    ExposedLeader source;
+    t.expect(parseDxfRecords(source, "76\n99\n10\n1\n20\n2\n30\n3\n10\n4\n20\n6\n30\n0\n")
+                 && source.vertnum == 99 && source.vertexlist.size() == 2u && source.validateDxf(),
+             "LEADER declared count is advisory and retains its public source value");
+    ExposedLeader copied(source), assigned;
+    assigned = source;
+    ExposedLeader moved(std::move(copied)), moveAssigned;
+    moveAssigned = std::move(assigned);
+    for (auto* value : {&moved, &moveAssigned}) {
+        t.expect(value->vertnum == 99 && value->vertexlist.size() == 2u && value->validateDxf()
+                     && value->vertexlist.front() != source.vertexlist.front(),
+                 "LEADER copy/move preserves advisory count and owns independent geometry");
+        t.expect(parseDxfRecords(*value, "20\n999\n") && value->vertexlist.back()->y == 6,
+                 "copied LEADER has no live source parser cursor");
+    }
+    ExposedLeader bounded;
+    bounded.vertexlist.assign(5000u, std::make_shared<DRW_Coord>(1, 2, 3));
+    t.expect(!parseDxfRecords(bounded, "10\n4\n") && bounded.vertexlist.size() == 5000u
+                 && bounded.vertexlist.back()->x == 1,
+             "LEADER rejects actual vertex cap before allocating/appending another point");
+    bounded.resetDwgState();
+    t.expect(bounded.vertnum == 0 && bounded.vertexlist.empty()
+                 && parseDxfRecords(bounded, "76\n0\n10\n1\n20\n2\n30\n3\n")
+                 && bounded.vertexlist.size() == 1u && bounded.validateDxf(),
+             "LEADER reset reuses parser without introducing a new minimum-vertex rule");
+    t.expect(parseDxfRecords(bounded, "73\n9\n") && !bounded.validateDxf(),
+             "advisory LEADER count does not bypass existing field validation");
 }
 
 void testPublicOwnershipContracts(TestContext& t) {
@@ -784,15 +815,15 @@ void testPublicOwnershipContracts(TestContext& t) {
     ExposedLeader partialLeader;
     partialLeader.vertnum = 2;
     t.expect(parseDxfRecords(partialLeader, "76\n2\n")
-                 && !partialLeader.validateDxf(),
-             "LEADER parser count marker source setup");
+                 && partialLeader.vertnum == 2 && partialLeader.validateDxf(),
+             "LEADER parser retains advisory count without defining geometry completeness");
     ExposedLeader copiedLeaderState(partialLeader);
-    t.expect(copiedLeaderState.validateDxf(),
-             "LEADER copy resets vertex-count parser state");
+    t.expect(copiedLeaderState.validateDxf() && copiedLeaderState.vertnum == 2,
+             "LEADER copy retains advisory count independently of parser state");
     ExposedLeader assignedLeaderState;
     assignedLeaderState = partialLeader;
-    t.expect(assignedLeaderState.validateDxf(),
-             "LEADER assignment resets vertex-count parser state");
+    t.expect(assignedLeaderState.validateDxf() && assignedLeaderState.vertnum == 2,
+             "LEADER assignment retains advisory count independently of parser state");
 
     ExposedMLine partialMLine;
     partialMLine.numVerts = 1;
@@ -4154,6 +4185,7 @@ void testEmbeddedAttributeDefinitionTextRouting(TestContext& t) {
 
 int main() {
     TestContext context;
+    testLeaderAdvisoryCountState(context);
     testPublicOwnershipContracts(context);
     testEmbeddedAttributeTextRouting(context);
     testCheckedArithmetic(context);

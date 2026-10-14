@@ -65,6 +65,15 @@ canonical zero XYZ. Completed-pool index validation, winding and first-zero
 termination are unchanged. Omitted-coordinate robustness tests are not evidence
 of valid-format or native geometry qualification.
 
+DXF LEADER group76 is advisory on import, as
+[Autodesk's OPEN rule](https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-396B2369-F89F-47D7-8223-8B7FB794F9F3.htm) specifies.
+The public declared count remains available, but actual vertices define the
+array; output writes its canonical actual count. The existing 5000-vertex
+implementation cap is checked before append and is not a normative geometry
+maximum. This does not change DWG structural counts, minimum-vertex/normal
+policy, coordinate projection or annotation/DSTYLE graph handling. Stale-count
+controls establish import tolerance, not native-producer qualification.
+
 DXF MTEXT orientation reads retain the last supplied main direction vector
 (11/21/31) or rotation (50). Unchanged parsed records write only that active
 representation; an earlier inactive vector cannot override a later rotation.

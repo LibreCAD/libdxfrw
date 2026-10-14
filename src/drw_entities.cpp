@@ -21357,6 +21357,8 @@ bool DRW_Leader::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         textwidth = reader->getDouble();
         break;
     case 10:
+        if (vertexlist.size() >= static_cast<std::size_t>(kMaxLeaderVertices))
+            return false;
         vertexpoint= std::make_shared<DRW_Coord>();
         vertexlist.push_back(vertexpoint);
         vertexpoint->x = reader->getDouble();
@@ -21440,11 +21442,13 @@ bool DRW_Leader::validatePayloadFields() const {
 bool DRW_Leader::validateDxf() const {
     if (!validatePayloadFields())
         return false;
-    if (!hasVertexCount)
-        return true;
-    return vertnum >= 0
-        && vertnum <= kMaxLeaderVertices
-        && static_cast<std::size_t>(vertnum) == vertexlist.size();
+    // Autodesk specifies group76 as ignored for OPEN. Keep its source value
+    // and presence for compatibility, but actual bounded vertices determine
+    // the geometry. The writer already emits the canonical actual count.
+    if (hasVertexCount && (vertnum < 0
+        || static_cast<std::size_t>(vertnum) != vertexlist.size()))
+        DRW_DBG("Ignoring advisory DXF LEADER vertex count\n");
+    return true;
 }
 
 void DRW_Leader::resetDwgState() {
@@ -23822,8 +23826,8 @@ DRW_Leader::DRW_Leader(const DRW_Leader& o)
       coloruse(o.coloruse), annotHandle(o.annotHandle), origin(o.origin),
       extrusionPoint(o.extrusionPoint), horizdir(o.horizdir),
       offsetblock(o.offsetblock), offsettext(o.offsettext),
-      // The count-seen marker belongs to an in-progress DXF parse and must
-      // not make a copied, otherwise complete model fail validation.
+      // The count-seen marker belongs to an in-progress DXF parse. The
+      // advisory declared count remains available in the copied public model.
       hasVertexCount(false), dimStyleH(o.dimStyleH),
       AnnotH(o.AnnotH) {
     eType = DRW::LEADER;
