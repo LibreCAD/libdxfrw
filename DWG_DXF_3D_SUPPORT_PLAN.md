@@ -14,11 +14,24 @@ default; recovery changes eligible input interpretation, not export encoding
 or2D projection. Public/private layout changes require consumer rebuild and
 do not establish binary ABI or native edit/save compatibility.
 
+The current broader facade audit is parity7AG.1c, not closed by that encoding
+gate: LibreCADa2514b7f's unchanged filter additionally calls getSourceVersion,
+isReservedHandle, addDxfWriteHandleRemap, setReferenceResolver and leftOut,
+all missing from standalone's public facade at25adc7f. Strict five-call syntax
+failure is source evidence, not a full Qt/native result. Implement genuine
+source-version, explicit-reservation, per-write remap, reference omission and
+loss-reporting semantics in small slices, preserving current2D defaults,
+operation/retry rules and the no-new-pure-callback contract. Keep the pinned
+LC3 source gate separately; full consumer compatibility remains open.
+
 BLOCK callbacks, narrow WIPEOUT payload/CLI, MIF literal/exact-hex preservation
 and authored dictionary admission are committed. Dictionary admission does
 not close ACDS association, per-entry roles or whole ownership graphs.
-The bc8f45f ASan4/4 checkpoint remains bound to its older source; later
-dictionary/text/API changes are not covered by that sanitizer report.
+The newer clean25adc7f ASan4/4 checkpoint covers the settled
+dictionary/text/HEADER/API memory-lifetime composition. It does not execute
+HATCH-local-roundtrip or qualify native/semantic support. The parity ledger
+binds all36 production TUs, source/artifacts, runtime and executed JUnit cells;
+the older bc8f45f report retains its original source binding.
 Current FreeCAD preference/post-processing and strict LINE/fresh-cache
 preflight refinements govern future native packets, not earlier pinned runs.
 All six external J items remain DEFERRED_EXTERNAL and cannot promote support
@@ -44,12 +57,27 @@ CLI CTest pass. The parity ledger binds its source/report; native selection,
 durable packets and platform execution remain open. HATCH pattern retention
 tests are also integrated with exact typed/physical tags and model/named
 owner checks; strict TU/DXF-local2/2/eight CLI handoffs pass without production
-changes. Next configure-probe timeout work uses small local gates.
+changes. Next configure-probe timeout work requires the complete portable
+b912a963→cb22907f chain, not its GNU-only first helper build. It remains
+isolated; one compiler-free/self-test and selected-compiler configure profile
+plus the affected CLI test suffice at integration. No library/full-suite
+rebuild or native claim is required by that tooling slice.
 External platform/ACIS qualification does not block these local
 steps. Broader geometry comparison must preserve pattern phase as well as
 HATCH boundary geometry, and a strict declared-encoding oracle profile is
 needed for literal legacy ASCII text. Neither requires new native tooling,
 an oracle upgrade or a full suite per field edit.
+
+**Research boundary at25adc7f:** this update changes plans only. Broader
+resource accounting includes HANDLE staging/frame-ledger metadata peaks and
+an operation-owned exhaustion latch, not raw payload bytes alone. Preserve
+earlier callback prefixes, first diagnostics, rejected-nesting isolation and
+next-read reset. Section-map work also needs a separate unknown-name index;
+a page-range index does not eliminate the current linear duplicate-name scan.
+These refine parity7S.3/7BO without changing byte layouts or adding findings.
+Optional comparators must pass their field/identity calibrations before
+extending3D evidence. The six historical J dispositions, frozen metadata,
+84/45/exact7 inventories and fixture policy remain unchanged.
 
 **Local DXF transport regression (2026-09-28; S2.3.9.4.24):** added a
 runtime-generated AC1027 ASCII and binary REGION-without-history
@@ -1707,6 +1735,44 @@ harness checks, not fresh-build CTests. Main CLI CTest1/1 passes0.23s; report
 300abd08 and parity7AD/Slice9 bind exact hashes and the separate configure-probe
 timeout follow-up. These local
 gates do not close native selection, durable packet or platform qualification.
+
+Two further pre-dispatch checks refine existing S8.9/7AC/7BH, not platform
+qualification. Pinned FreeCAD1.1.3's
+[converter resolver](https://github.com/FreeCAD/FreeCAD/blob/145529fe741292ff0b3977a01195bf0247425794/src/Mod/Draft/importDWG.py#L138-L179)
+classifies the full configured path using case-sensitive `dwg2dxf`/`dxf2dwg`
+substrings, not basename identity. Parent-directory tokens and uppercase
+Windows spellings can therefore change the chosen branch. Calibrate canonical
+path/PATH lookup, opposite-converter basename, parent-token collisions,
+uppercase and missing files with the source-pinned resolver before choosing
+the documented route. Do not alter FreeCAD or infer that every arbitrary
+configured filename is supported. Assert the actual selected path/hash and
+argv at the native gate; Automatic fallback remains unattributable.
+
+The failure-path CMake wrapper builds a semicolon-containing Windows PATH
+inside `_environment`, then expands that list unquoted. The installed LINE
+wrapper already escapes semicolons before this boundary. Add a narrow
+argv-framing regression and the same reviewed escaping to the failure route;
+require one exact PATH assignment and unchanged arguments with spaces/Unicode.
+A host-independent CMake list control is readiness evidence only, not native
+Windows execution or a FreeCAD failure-path pass. Audit the similar optional
+ACDS wrapper when enabling its platform lane; do not widen native claims or
+run the entity/full suite to fix environment framing.
+
+Source/compile evidence is frozen in
+`/private/tmp/libdxfrw-consumer-readiness-20261014.5paYEy/consumer-readiness-report.json`,
+SHA256`eb0b275d5c7d4edd81e72fa8becf01da81e65bfd74303a75b7fde86fc3b734a2`.
+Resolver path behavior remains source-only. The separate
+`/private/tmp/libdxfrw-cmake-semicolon-control.IQomVa/semicolon-report.json`,
+SHA256`e68a9c43fd78334bca5f8cc4d3b20378f74290524d095f973c8dddd30772b35a`,
+binds two actual CMake4.4.4/macOS lanes: unescaped PATH splits into three
+arguments and prevents intended launch; escaped PATH is one assignment and
+the intended child receives exact PATH/argv. It does not execute the complete
+wrapper or native Windows/FreeCAD. Extend the dedicated packet with attempted
+argv and a separate launch-exception outcome (null PID/status, no handoff):
+the macro currently records a process only after successful Popen. Existing
+failure handling rejects the run, so this is missing diagnostic attribution,
+not false conversion success. One mock launch-exception/control suffices
+before a native failure-path run.
 
 1. Build and install `dwg2dxf` into a fresh prefix outside the build tree,
    including a prefix and source path with spaces. Test the static artifact;

@@ -6,9 +6,12 @@ the focused composed safety checkpoint passing at bc8f45f. MIF decoding and peer
 calibrations refine existing findings rather than add more IDs.
 Current LibreCAD's nonvirtual text-encoding API gap is owned by7AG.1b/Slice3.
 Its input-only recovery/API successor is now integrated with seven composed
-main tests and the exact facade compile passing. Declared remains the default.
+main tests and the exact encoding-facade compile passing. Five additional
+current consumer facade methods are queued under7AG.1c; full adapter
+compatibility is not established. Declared remains the default.
 Narrow MIF literal/exact-hex, BLOCK callback and WIPEOUT payload/CLI
-preservation are integrated; their clean-checkout ASan cohort passes4/4.
+preservation are integrated. The newer clean-checkout ASan cohort at25adc7f
+covers the settled dictionary/text/HEADER/API composition and passes4/4.
 Narrow authored dictionary admission and canonical declared-codec/XDATA repair
 and HEADER/accepted-source CLI authority are committed with current-main
 gates. Numeric qualification admission is also integrated with affected Python
@@ -16,7 +19,7 @@ gates and122 bound inputs unchanged during that gate. Corrected FreeCAD prefligh
 integrated with strict LINE/endpoint controls, Linux temp mapping and fresh
 Python discovery checks. HATCH physical/typed pattern retention is now covered
 in existing tests; projection migration/affine phase stays separate. Next is
-the configure-probe timeout follow-up, alongside ready reader/resource work. Declared
+the full portable configure-probe timeout handoff, alongside ready reader/resource work. Declared
 text remains the default; peer HATCH transforms and legacy-ASCII oracle input
 need their named calibrations before broader comparison. Evidence bindings
 and bounded acceptance steps are recorded below.
@@ -39,7 +42,18 @@ reader/package work does not wait for external qualification.
 
 **Research snapshot:** 2026-10-14
 
-**Latest research boundary:** `736ae70d93bda337a383f4513986e4f91493ef04`
+**Latest research boundary:** `25adc7f5201a101f5298394aa0f37796b43d2b91`
+(2026-10-14). Tracked worktree/index were clean at entry. This update changes
+only the two plans; the API, numeric, corrected FreeCAD and test-only HATCH
+slices are already committed. It records the exact composed sanitizer result,
+reconciles isolated handoff dependencies and extends existing resource/oracle/
+consumer owners without increasing118 findings/67 subplans. A fresh branch
+API read retains upstream master d68fb1e. Source pins and read-only evidence
+are recorded below; user files/samples, registrations, frozen receipts/support
+metadata and remote state remain unchanged. All six J items stay
+DEFERRED_EXTERNAL/non-promoting.
+
+**Previous research boundary:** `736ae70d93bda337a383f4513986e4f91493ef04`
 (2026-10-14), plus the pre-existing staged eight-path7AG.1b candidate,
 binary-diff SHA256
 `9cb97192132c248c292d69d1e1c47a24759cc0b8bc411cf54873fd532a767e72`.
@@ -289,6 +303,21 @@ producer/native format qualification. No new registration/payload/receipt,
 fresh sanitizer or support promotion follows. Integration on the docs-only
 d33e7ec ancestor preserves all29 bound source/artifact hashes and patch9cb971;
 no unchanged test matrix is rerun or historical sanitizer evidence rebound.
+
+**Composed safety checkpoint at25adc7f, scoped:** clean tracked checkout
+`/private/tmp/libdxfrw-composed-asan.300DW4/repo` and its external Debug/static
+build pass exact GBK/hardening/DXF/BLOCK4/4 in7.34s. Report
+`/private/tmp/libdxfrw-composed-asan.300DW4/report.json`, SHA256
+`31e76e54a624ff92d41c5925b57c19b9c32e1bb55b939b08e742cfd647110c83`,
+binds101 source files, nine artifacts, all36 actual strict C++17 ASan production
+commands/objects and the loaded runtime. Root's read-only binding verifier
+passes; four JUnit cells genuinely ran without skip/failure/error. The84-name
+clean inventory is enumeration, not a full-suite pass. ASAN_OPTIONS enables
+stack-use-after-return/halt-on-error but disables leak detection. This is the
+settled dictionary/codec/HEADER/API memory-lifetime checkpoint at25adc7f,
+not future reader/source, native, binary-ABI or semantic qualification.
+HATCH-local-roundtrip was not executed in this four-test cohort; its functional
+checkpoint remains separate. Historical bc8/b4/d49 reports keep their bindings.
 
 Each implementation commit appends its focused validation result and remaining
 evidence impact here. All other slices remain queued; the full objective stays
@@ -2129,6 +2158,36 @@ full84 suite, native consumer rerun, oracle upgrade, drawing admission or
 hosted dispatch is required by this plan edit. All six historical external J
 items remain DEFERRED_EXTERNAL/non-promoting.
 
+### Broader implementation and comparator readiness at25adc7f
+
+This plan-only pass preserves118 findings/67 owners and the frozen84 default/
+45 fast/exact7 selections. Upstream master is unchanged atd68fb1e. Fresh
+LibreCAD discovery advances toa2514b7f; the inspected filter and bundled
+facade/interface blobs are identical tobf58e1e8, preserving the narrow prior
+proof without upgrading it to full adapter compatibility. LC3 remains3dcdc400,
+FreeCAD3c0324a7, LibreDWGf860b0fb, ACadSharp12f836af and ezdxf7c64bce5.
+Executed ordinary-reader controls still use the attested1.4.4 runtime, not
+master source. New optional discovery pins are dxf-parser0df7a37a and
+GDAL9c9d722b; no dependency is installed or made mandatory.
+
+| Existing owner | Refined implementation boundary | Next small gate |
+| --- | --- | --- |
+| 7AD/Slice9 | Portable probe candidate requires bothb912a963 andcb22907f; source correction, not native qualification. | Existing compiler-free self-test, one14-child compiler/configure profile and actual main CLI1/1; do not rebuild the library. |
+| 7BE.1/.7 | Reader/writer candidates remain isolated; current Template enum/declarations and source manifest need composition. | Required ODA reading, separate reader/writer commits, exact matrix/hardening/local3/3; one new cursor-lifetime sanitizer checkpoint. |
+| 7AG.1c | Five further nonvirtual consumer methods remain missing despite the encoding/finalizer proof. | Source-pinned call-shape gate, real getter/reservation/remap/resolver/omission behavior and reuse; never no-op aliases. |
+| 7BO/7S.3 | Unknown-name duplicate scans remain quadratic; HANDLE metadata peaks/outcome propagation are separate from payload limits. | Deterministic tiny index/budget controls in actual reader18/21 and existing hardening targets; preserve first diagnostics and callback prefixes. |
+| 7AH.1/.5/7AQ | Duplicate source identities can collapse in lookup maps; loader warnings and audit fixes describe different phases. | Ordered role-aware identity inventory and bounded warning controls; four ordinary-load calibrations, not a new full corpus. |
+| Slice4/7X/7AH | Optional JS scanner loses exact strings/int64; GDAL direct tags offer a narrower binary lane with correlated range lineage/error limits. | Named capabilities/exclusions and tiny raw/type/EOF controls only if that optional lane is enabled. No installation or semantic support promotion. |
+| S8.9/7AC/7BH | FreeCAD executable classification and Windows argument framing need source-pinned preflight before native evidence. | Resolver path/name and semicolon argv controls first; actual native receipts remain separately required. |
+
+The root source review and read-only safety rebinding are recorded in
+`/private/tmp/libdxfrw-broad-plan-20261014.iiEab6/research-report.md`, SHA256
+`668af151fbb47452b5563e3ec0508dd05816c5fc23bc46c9fba6e607693f4dc1`.
+The existing25adc7f ASan4/4 result is now recorded, not rerun for this plan edit.
+Peer limitations/robustness cells are not new libdxfrw defects or valid-format
+qualification. Every refinement has a local next action; none changes the six
+external J dispositions or allows their evidence to promote support claims.
+
 ## Historical baseline corrections and checks
 
 - The current build requests **C++17** (`CMakeLists.txt:49,73`), while the
@@ -2663,15 +2722,17 @@ Canonical012ac211/000dc37 and HEADER32837b1c/CLI30c3649f now pass main6/6.
 The input-mode API/test successors in reviewed2f7cc65 are integrated with
 their exact composed main7/7/facade/MIF gate. Do not reapply the chain or rerun
 its entire isolated matrix for documentation edits. Retain MIF/BLOCK/WIPEOUT
-tests; continue the numeric and corrected FreeCAD tooling handoffs.
-Their shared writer/test hunks require serial composition, not parallel
-cherry-picks. Rebind only affected main fast gates and exact source contracts;
-the bc8f45f ASan report cannot attest those future sources. Ready7BE work and
+tests; numeric admission and corrected FreeCAD tooling are also integrated.
+Continue the complete portable configure-probe handoff and ready reader/resource work.
+Shared writer/test hunks require serial composition, not parallel cherry-picks.
+Rebind only affected main fast gates and exact source contracts. The newer
+25adc7f ASan checkpoint covers the settled dictionary/text/HEADER/API source,
+not future reader/writer changes. Ready7BE work and
 dependency-free7AG/7F tooling continue independently of native evidence.
 
-Current LibreCAD source compatibility needs7AG.1b's nonvirtual encoding API
+Current LibreCAD source compatibility now includes7AG.1b's nonvirtual encoding API
 gate, independently of the170/172 callback bridge. A green LC3 mirror does
-not close that compile gap. Keep declared-decoding repair7AL.2/7L.5 separate
+not cover that contract alone. Keep declared-decoding repair7AL.2/7L.5 separate
 from explicit legacy recovery; do not satisfy the API with a no-op setter.
 
 The next local steps have these bounded gates; an external qualification
@@ -2681,9 +2742,11 @@ failure does not prevent completing them:
 | --- | --- | --- |
 | 7AG.3a/7BC/MIF, integrated | Preserve typed BLOCK staging, WIPEOUT CLI dispatch and literal MIF behavior; focused composed ASan4/4 binds bc8f45f. | No repeat suite for plan edits. Changed writer/codec integrations retain their affected positive/negative controls; later safety checks need their own source binding. |
 | 7P.5c narrow admission, integrated | Preserve duplicate ASCII-folded key/owning-target rejection in authored direct/named/root routes; per-entry roles/full graph closure remain separate. | Main DXF/graph2/2, strict two TUs/lc3 and dictionary/WIPEOUT/IMAGE modes pass; no peer/native invalid-API prerequisite. |
-| 7AL.2→7L.5→7AG.1b | Canonical codec/exact raw assertions and HEADER/accepted-source CLI committed; reviewed input-only recovery/API successor integrated. Declared remains the default; recovery is not a no-op. | Main API7/7 in5.71s, strict five TUs/current facade/lc3 and MIF/dictionary/WIPEOUT modes pass at the exact staged patch. Preserve unchanged gates; broader consumer/native/ABI remain separate. |
+| 7AL.2→7L.5→7AG.1b | Canonical codec/exact raw assertions and HEADER/accepted-source CLI committed; reviewed input-only recovery/API successor integrated. Declared remains the default; recovery is not a no-op. | Main API7/7 in5.71s, strict five TUs/current encoding facade/lc3 and MIF/dictionary/WIPEOUT modes pass at the exact staged patch. Preserve unchanged gates; five other facade methods/full adapter/native/ABI remain separate. |
 | 7AH.3 qualification numeric admission | Integrated528e37ae rejects overflow/nonfinite/Boolean tolerance values without changing frozen evidence authority or schema1. | Main eight methods/support/JSON/normalizer pass9.43s;122 frozen inputs unchanged. No C++ rebuild or new CTest. |
 | Slice9/S8.9.5 FreeCAD preflight | Integrated e6e4e78→c2a9772c supplies strict LINE predicates, Linux temp mapping and corrected Python registration order; do not reapply older partial candidate. | Main CLI1/1,32 mocked controls and fresh discovered/explicit cache/argv gates pass at report300abd08. No native pass or new registration is inferred. |
+| 7AD portable Python probe | Integrate bothb912a963→cb22907f; never the GNU-only first helper alone. | Compiler-free self-test, one selected-compiler14-child optional configure control, main reconfigure and actual CLI1/1; no library/full-suite rebuild. |
+| 7AG.1c current facade surface | Five further missing methods need actual semantics; getter/reservation first, then transient remaps/resolver/loss reporting. | Source-pinned call-shape gate and tiny behavior/retry cases in affected DXF/graph/local targets. Existing encoding/finalizer checks remain narrow; no full Qt/native prerequisite for each method. |
 | 7AG.1a, integrated | Preserve current common-source cleanup; do not reimplement50157be. | Main ordinary/3D TU/self-tests and170 inventory pass; known two supplements/six target capabilities remain explicit. |
 | 7AG.4 plus7AG.1 capability profile | Preserve committed direct predicates; attest effective driver context, declare/check capabilities, then add the two audited supplementary callbacks. | Direct102 controls pass; controlled-build provenance/header negatives before one paired build. No existing-binary ambient-only proof or blind target-lock/170→172 update. |
 | 7F.1b /7AH | Migrate the typed result/runner together, including optional modeler source presence and readable bounded observations. | Frozen-schema compatibility plus unknown/zero/presence/omission mutations, then clean/partial/opaque read/readback sentinels. |
@@ -2958,7 +3021,8 @@ retains that retraction and directly verifies the corrected token starts247,
 group3 has250 bytes ending`\M+`, and group1 starts`48861`. Do not relabel the
 new physical-chunk assertion as an original red test. Fresh integration checks
 confirm unchanged source/artifact hashes, strict codec/fixture TUs and exact
-GBK/DXF2/2 in2.85s. The broader codepage/CIF/API-recovery work stays open.
+GBK/DXF2/2 in2.85s. Broader codepage/CIF policy stays open; the narrow
+input-only API-recovery successor is now integrated under7AG.1b.
 
 The34 executed codec rows are bound in
 `/private/tmp/libdxfrw-string-research.89p7nq/research-report.json`, SHA256
@@ -2967,9 +3031,11 @@ They use a retained isolated archive with byte-identical codec source at the
 original researched revision, before the staged MIF changes—not current
 worktree source, a fresh main build or drawing-reader qualification. ezdxf1.4.4's explicit
 helper retains selector4 literally; it is not a Johab semantic oracle.
-Current LibreCAD's separate explicit recovery API is7AG.1b: add its compile
-gate and input-only mode without equating recovery with correct declared
-codepage decoding. Reuse these codec targets after canonical
+Current LibreCAD's separate explicit recovery API is integrated under7AG.1b;
+preserve its exact compile gate/input-only mode without equating recovery with
+correct declared-codepage decoding. Document the declared default, eligible
+legacy input and next-read snapshot lifecycle in README without changing the
+export policy or claiming auto-detection. Reuse these codec targets after canonical
 text changes settle, not a second encoding framework or automatic heuristic.
 
 **Acceptance**
@@ -3036,6 +3102,21 @@ text changes settle, not a second encoding framework or automatic heuristic.
 - Each mismatch is classified as implementation defect, documented version
   conversion, comparator limitation, or intentional unsupported behavior.
 - A successful parse alone is not considered semantic equality.
+- Optional GDAL3.12+ direct binary→ASCII translation is a tag/framing lane,
+  not the ordinary tessellating geometry writer. At pinned9c9d722b, the
+  [direct route](https://github.com/OSGeo/gdal/blob/9c9d722b8090ede7a17a142076662833c5d2802b/ogr/ogrsf_frmts/dxf/ogrdxfdriver.cpp#L116-L227)
+  accepts only `-f`/`-of` option pairs and uses a4096-byte value buffer.
+  Its [binary reader](https://github.com/OSGeo/gdal/blob/9c9d722b8090ede7a17a142076662833c5d2802b/ogr/ogrsf_frmts/dxf/ogrdxfreader.cpp#L281-L437)
+  credits ezdxf for width ranges, so agreement cannot resolve undocumented
+  ranges independently. Before using an already available runtime, calibrate
+  R12/modern framing, signed16/32/64 and adjacent integers above2^53, doubles,
+  Boolean/chunks, a following record and exact terminal EOF. Add4095/4096-byte
+  string and truncated-value robustness controls: the tag loop stops on a
+  negative read without separately testing its terminal reason. Require
+  complete output and diagnostics, not status/reopen alone; no implicit
+  geometry-route fallback. No GDAL executable was found here, so these are
+  source-derived readiness conditions, not executed failures or a dependency
+  on the local critical path. This lane cannot qualify HATCH phase or ACIS.
 - The first thin lane is explicitly AC1032 core/implicit-unit SPLINE/main
   MTEXT height/header90 × ASCII/binary input × ASCII/binary output. Its 16
   routes are diagnostic only, `qualificationEligible:false`; the original
@@ -4205,6 +4286,24 @@ DWG page/object/block caps before extending any uncovered aggregate scope.
    reserve their bytes. Cumulative decompressed work is separate from live
    storage released on rollback. Keep byte-layout changes outside this slice.
 
+   Include HANDLE metadata peaks, not just section/payload bytes:
+   readDwgHandles simultaneously owns stagedMap, stagedOffsets, stagedEntries,
+   the destination ObjectMap and the final frame index/ledger. The existing
+   m_readObjectBudget bounds entry/work count, not these retained bytes.
+   Define a nonthrowing operation-owned exhaustion latch before adding owner
+   charges; only an admitted operation may reset it. Every later budgeted
+   acquisition must observe it. Current processDwg maps HANDLE count
+   exhaustion specifically to ResourceLimit, while generic stage/callback
+   failures have other causes. Preserve the first diagnostic and distinguish
+   quota exhaustion, allocation failure and a real callback exception across
+   BLOCK/OBJECT soft recovery. Earlier callbacks form an observable prefix:
+   do not promise whole-read rollback or globally tighten malformed-record
+   tolerance. Add tiny exact/over-limit metadata, early-zero-callback and
+   late-prefix/no-suffix controls, rejected nesting and next-read/raised-budget
+   reuse on the same facade. Separate-reader zero/one-entry tests alone do not
+   establish the reset contract. Charge actual simultaneous owners under the
+   chosen byte/capacity policy, not portable guessed node-size multipliers.
+
    Include small logical sections backed by larger decoded page capacity.
    The corrected7BJ candidate rejects logical Template sizes above65,538,
    but reader18/21's shared parseDataPage paths allocate from page geometry
@@ -4714,6 +4813,32 @@ Independent review/report
 binds the old failure, corrected fresh0.659s configure and32 mocked predicate
 checks; none executes native FreeCAD or builds a project target.
 
+**Portable probe handoff, pending main integration:** use the complete chain
+`b912a963d9c3f400017fd9765564b9d43726f155`→
+`cb22907f7a2c3d45d38182b2d27a194b75751fa0`, based on correctedc2a9772c.
+The first commit alone introduces a GNU-style sentinel compile and is not the
+portable candidate. The successor uses a tiny owned CMake3.28 C++17 project,
+warning-as-error policy and generated `$<TARGET_FILE:python_probe>` path,
+without compiler-flag/suffix/config-directory guessing. Preserve the named5s
+probe deadline and exact return0/old-version1/launch-timeout-other distinction;
+[CMake3.28 execute_process](https://cmake.org/cmake/help/v3.28/command/execute_process.html)
+documents numeric exit codes versus error strings. The warning property is
+[compiler-dependent and overrideable](https://cmake.org/cmake/help/v3.28/prop_tgt/COMPILE_WARNING_AS_ERROR.html);
+inspect actual flags for the selected supported driver rather than infer
+effective policy on every compiler.
+
+Report `/private/tmp/libdxfrw-python-probe-7ad.VwzYCX/portable-successor-report.json`,
+SHA256`ed52abf6c9f2714ebe94febfda2951de96eb74c0aef0642d2073a7c35d171f46`,
+binds two compiler profiles on one macOS host. Each optional build-options run
+has14 bounded children: four old profiles, sentinel configure/build and eight
+probe controls. This is not native MSVC/Windows qualification. Integration
+needs only the existing compiler-free self-test, one selected-compiler
+build-options run, main reconfigure and actual affected FreeCAD CLI CTest1/1.
+Check fresh discovered/explicit command roles; no C++ library rebuild, full
+suite, second-compiler repeat, new registration or frozen receipt refresh is
+required. Preserve historical first-report/source hashes; neither candidate
+is main implementation until the complete chain and current-main gate land.
+
 ### 7AE — Separate keyword, symbol-key and filesystem string casing
 
 **Scope:** PAR-52; `dxfSymbolNameKey`, `writeUtf8Caps`, table/default-name
@@ -4926,6 +5051,50 @@ scoped consumer handoff. LibreCAD and LibreCAD_3 stay valid 2D consumers; new
    isolated report. Do not reapply the chain or prerequisites. Source/API recovery,
    codepage correctness and HEADER authority remain distinct contracts; no
    virtual/registration/dependency/native/ABI or support claim follows.
+
+   **7AG.1c — complete the actual nonvirtual facade inventory.** Fresh
+   LibreCAD discovery HEAD is a2514b7fe0ffee5e09979c45206f350cc924300f.
+   Its filter/source-contract blobs match recordedbf58e1e8, so the narrow
+   encoding/finalizer proof remains valid; neither proof covers all calls.
+   A mechanical106-name m_dxfR/m_dxfW inventory exposes at least five further missing public
+   members. A strict current25adc7f source TU reproduces five missing-member
+   errors, not a full Qt adapter/native failure. The remaining names have not
+   thereby passed overload/signature/behavior checks. Source references:
+   [actual import/export calls](https://github.com/LibreCAD/LibreCAD/blob/a2514b7fe0ffee5e09979c45206f350cc924300f/librecad/src/lib/filters/rs_filterdxfrw.cpp#L4443)
+   and [bundled facade contracts](https://github.com/LibreCAD/LibreCAD/blob/a2514b7fe0ffee5e09979c45206f350cc924300f/libraries/libdxfrw/src/libdxfrw.h#L259-L379).
+
+   Implement in small behavioral slices under existing PAR-55/56, not a
+   second adapter or a no-op compatibility shim:
+
+   | Facade contract | Required implementation and small gate |
+   | --- | --- |
+   | `DRW::Version getSourceVersion() const` | Expose accepted source-version provenance, not normalized decoder/output version. Reuse7L.5's authority; test file/readAscii, legacy/modern aliases, documented failed-read availability/reset and sequential reuse. Do not invent a declaration for unknown source. |
+   | `bool isReservedHandle(uint32_t) const` | Report explicit caller reservations as bundled contract specifies, not the private allocator's union of explicit and generated handles. Test reserved/generated/unreserved and repeated-write/failure boundaries without altering allocation or fixed-handle policy. |
+   | `void addDxfWriteHandleRemap(uint32_t,uint32_t)` | Separate per-write derived remaps from caller setHandleRemap inputs. Retain explicit inputs across operations, clear derived state on failure/new write, preserve existing duplicate/remap precedence. The consumer calls this during writeBlockRecords; allow only the intended admitted write callback phase, not arbitrary nested/stale mutation or an indiscriminate setup guard. |
+   | `void setReferenceResolver(std::function<uint32_t(uint32_t)>)` | Apply the actual callback at named reactor/extension-reference boundaries; absent resolver preserves legacy behavior and zero means omission. Keep ownership/identity and arbitrary application handles distinct. Test mapped/unchanged/zero references, no double remap, callback exception and destination-preserving retry; specify resolver ownership/lifetime/reset explicitly. |
+   | `const std::map<std::string,std::size_t>& leftOut() const` | Publish truthful per-write omission/simplification counts under Slice6/7M's chosen policies. Cover clean0, an intentionally unsupported target, multiple counts and failure/reuse. An always-empty map is not compatibility; adding reporting must not silently turn existing strict rejection into lossy success. |
+
+   First freeze call shapes/constness/types and representative active call
+   sites, inspect the bundled corresponding definitions and reconcile their
+   failure/reset semantics with current7AV/7BN contracts. Then implement
+   getter/reservation, transient remaps, resolver/reporting. Inventory the
+   target-version omission labels/routes before exposing counts; keep each
+   preserve/reject/explicit-loss decision under Slice6/7M.
+   Reuse existing DXF/graph/local/CLI targets and exact current-LibreCAD/LC3
+   source gates; rebuild only affected targets and run one composed checkpoint
+   after shared writer/lifecycle changes settle. No new pure virtual, automatic
+   projection, target-lock refresh or native prerequisite is justified.
+   Correct residual compile-only ABI labels and README input-mode usage in
+   the documentation slice; preserve the2.0 consumer-rebuild boundary. Full
+   adapter compile/link and native edit/save remain separate acceptance steps.
+
+   Report
+   `/private/tmp/libdxfrw-consumer-readiness-20261014.5paYEy/consumer-readiness-report.json`,
+   SHA256`eb0b275d5c7d4edd81e72fa8becf01da81e65bfd74303a75b7fde86fc3b734a2`,
+   binds four exact unchanged Git blobs, representative unconditional calls,
+   constness/signatures and the actual strict five-error0.764s source probe.
+   It also binds the FreeCAD resolver/source-only and environment-framing
+   controls below; no full adapter, native or binary-ABI pass is inferred.
 
 2. **7AG.2 bounded handoff design:** [current LC3 LAYOUT](https://github.com/LibreCAD/LibreCAD_3/blob/3dcdc4009546b8c9b2aa9605c52e2434bece6901/persistence/libdxfrw/dxfimpl.h#L194)
    and [PLOTSETTINGS callbacks](https://github.com/LibreCAD/LibreCAD_3/blob/3dcdc4009546b8c9b2aa9605c52e2434bece6901/persistence/libdxfrw/dxfimpl.h#L340)
@@ -5231,6 +5400,31 @@ the first commit. Reuse the existing normalization/runner contracts where safe.
    R2004↔R2007 and both wire encodings; separate raw bytes, semantic Unicode,
    export metadata and fresh audit. This is oracle readiness, not an unproved
    library codec defect or automatic support promotion.
+
+   Before broader graph evidence, retain an ordered source identity inventory
+   before constructing handle→type/name/semantic-ID maps. Current
+   raw_observations at399 and project at438 overwrite duplicate keys; the
+   existing raw.entities list still preserves both sentinel records. Use
+   section/record ordinal and the existing self-handle role rules, not every
+   group5 nested in application payload. Record missing/null and duplicate/
+   ambiguous identities distinctly, and reject ambiguity for graph
+   qualification rather than trusting the last target type.
+
+   Four controlled ezdxf1.4.4 ASCII/binary ordinary-load cells distinguish a
+   valid LINE2F/POINT30 pair from malformed POINT30→2F. The positive retains
+   two identities with no warning/audit fix; the duplicate retains two model
+   entities but entitydb points to the last POINT, emits one load warning,
+   and fresh audit fixes one/leaves one POINT. The existing run_case audit
+   gate already rejects it: this is not a full-gate bypass or valid-file
+   libdxfrw defect. Capture bounded ordinary-load diagnostics separately from
+   fresh audit, restore logger/runtime context, and classify omitted/truncated
+   diagnostics explicitly. Do not make every benign warning fatal. First add
+   dependency-free inventory/diagnostic deletion and ambiguity mutations;
+   replay only these four existing-runtime cells when touching the projection.
+   No C++ rebuild, new runtime/CTest or broad corpus is needed.
+   [Pinned loader](https://github.com/mozman/ezdxf/blob/dd7f6cc34983fdbf0b2b910f2497e0720d06dd16/src/ezdxf/lldxf/loader.py#L141-L156)
+   and [database](https://github.com/mozman/ezdxf/blob/dd7f6cc34983fdbf0b2b910f2497e0720d06dd16/src/ezdxf/entitydb.py#L85-L95)
+   corroborate the phase distinction; the report below binds actual controls.
 6. **7AH.6 oracle resource boundary:** converter timeout/log caps do not bound
    hashing, tag loading, ordinary reading or audit in the parent. Add an
    explicit small drawing-byte limit before each generated source/output1/
@@ -5286,6 +5480,29 @@ controls. First port only the tiny predicates into existing tooling; execute
 an optional peer cell only when its runtime is available. Attest the actual
 CSUtilities assembly/dependency alongside the parent version. No .NET install,
 new mandatory comparator/CTest or broad matrix is on the local critical path.
+
+**Optional JavaScript comparator calibration, not a new required lane:**
+dxf-parser0df7a37a's [scanner](https://github.com/gdsestimating/dxf-parser/blob/0df7a37a4207a1f925b8d0bfffc270ff121446b4/src/DxfArrayScanner.ts#L39-L138)
+trims value strings and uses Number/parseInt for group160. Twelve actual
+unmodified scanner-component calls under existing Node26.11.1 confirm padded
+text/1000 loss,9007199254740992/+1 collision, malformed90 suffix acceptance
+and actual Infinity becoming JSON null. Safe integers, handle strings and
+Boolean0/1 supply positives. This is not full-parser execution. Its
+[common helper](https://github.com/gdsestimating/dxf-parser/blob/0df7a37a4207a1f925b8d0bfffc270ff121446b4/src/ParseHelpers.ts#L77-L142)
+also assigns each330 as owner without102 scope; unsupported skipping and
+missing-handle synthesis are source-only leads. If enabling this optional
+ASCII lane, preserve original string/int64 lexemes or exclude those fields;
+converting rounded Number back to text cannot restore them. Validate finite
+typed values before serialization, retain raw counts/scope-aware edges and
+diagnostics, and test deletion/rounding/null substitutions before any claim.
+Do not change standalone's exact string/int64 behavior to match this peer or
+install Node/parser dependencies on the critical path.
+
+Report `/private/tmp/libdxfrw-semantic-peer-research.BMVZfS/research-report.json`,
+SHA256`9e7650b65afa8e7875851fa1e577467aa63c0eeab42402a7e0e7e00948ad5665`,
+binds the four ezdxf phase cells, twelve scanner components, source copies and
+current25adc7f tooling. No drawing payload was saved, library mismatch
+reproduced or qualification promoted; these refine existing7AH/7AQ/Slice4.
 
 **Fast gate:** dependency-free normalizer/differential self-tests plus negative
 mutation controls. Then only the four thin families × four encoding routes on
@@ -6962,6 +7179,20 @@ local-roundtrip once at the shared-parser checkpoint. Small generated section
 mutations and operation counters suffice; run sanitizer checks once where
 cursor/window lifetime changes, not a full corpus per edit.
 
+**Current-main composition checklist at25adc7f:** reader80eca35a and its
+writer child5860915d remain isolated. Resolve only the conflicting reader
+declarations/diagnostic/test contexts: append HeaderSection categories after
+the current TemplateDescriptionUnsupported value, retain decodeDwgTemplate/
+missingDwgTemplate and every current matrix control, and list the new
+dwgheadersection.h in LIBDXFRW_PRIVATE_HEADERS. Keep reader and final writer
+sealing as separate commits. Saved historical logs are not an immutable
+standalone readiness report or a current-main pass. After the required full
+ODA reading, build/strict-check affected targets and run exact reader-matrix,
+hardening and local-roundtrip3/3 with non-skipped executed cells. Add one
+sanitizer matrix checkpoint for changed cursor/window lifetime, not the full
+corpus. Test-normalized stale CRCs are reader inputs only; they do not validate
+writer sealing. Modern strict admission and R13/R14 partners remain open.
+
 ### 7BF — Resolve LTYPE units and preserve bounded editable payloads
 
 **Scope:** PAR-98/99/104; three independently reviewable substeps. Text-capacity
@@ -7481,6 +7712,21 @@ range admission. Existing page/size/count checks stay in force.
    keep version-specific ranges at their callers. Add any new private header
    to the canonical source manifest. No public callback or API is required.
 
+5. Index unknown-section names separately from page ranges. Both current
+   readers linearly scan parsedUnknownSections for each unknown descriptor
+   (reader18:1151, reader21:1253); u distinct names therefore require
+   u(u−1)/2 equality checks. Reader21 allows65,536 descriptions, so the
+   page-range index does not close this source-confirmed residual work.
+   Maintain a staged ordered name set alongside the source-ordered vector;
+   preserve exact decoded-name equality, first duplicate offender, page
+   ownership and swap-only publication. Do not case-fold or reject unknown
+   names. ACadSharp's [keyed descriptor admission](https://github.com/DomCR/ACadSharp/blob/12f836af8cd7b470ee6883a9ccc51a22dee66e24/src/ACadSharp/IO/DwgReader.cs#L868)
+   is an implementation alternative, not its name/policy contract to copy.
+   Use128/512 unique names, common prefixes and case-distinct positives,
+   early/late exact duplicates, deterministic comparison bounds, unchanged
+   raw/source order and failure-then-reuse in actual reader18/21 controls.
+   No timing, OOM, exploit or valid-producer-file result was executed here.
+
 **Fast gate:** ascending/descending/shuffled disjoint ranges, adjacency,
 containment/partial overlap/equal starts, zero/overflow boundaries and allocation
 failure. Measure deterministic comparisons with128/512 small ranges against
@@ -7740,6 +7986,16 @@ execution. Main user sample registrations are not refrozen or called84.
 exact-two-native-test selection, dedicated
 packet/stats, release/hash and actual Linux/Windows execution gates open.
 
+The3D plan's S8.9 continuation adds two cheap pre-dispatch gates: source-pinned
+FreeCAD full-path/case-sensitive converter classification, and escaped Windows
+PATH framing in the failure wrapper. The resolver observation is source-only;
+two actual host-independent CMake lanes reproduce split versus intact argv
+without native Windows/FreeCAD. Reporteb0b275d in7AG.1c binds those sources;
+semicolon reporte68a9c43 binds the execution. Fix framing and retain attempted
+argv/launch-exception attribution before extending native packets, not a new
+hosted trigger or another entity/full-suite run. Existing failure handling
+fails closed; no false-success or support promotion is established.
+
 Correct source-compatibility labels on lc3_compat_check/CMake when touching the
 consumer gate: a compile-only mirror is not an ABI check. Preserve the pinned
 consumer-source review and2.0 rebuild boundary. Pin generator dependencies to
@@ -7850,7 +8106,7 @@ work on the critical path.
 
 | Batch | Dependency-ready work | Validation boundary |
 | --- | --- | --- |
-| A — preserved integration queue | Canonical codec/HEADER/accepted-version prerequisites committed; current-API successors integrated with validated7/7/current facade/MIF; do not reapply. Numeric528e37ae and corrected e6e4e78→c2a9772c FreeCAD preflight integrated; HATCH retention tests integrated; next configure-probe timeout and composed safety checkpoint. Residual7AW0ee3bff2 remains independent. Preserve committed7AY/7AV/7AX/7AK/7BH/7AD; reconcile STYLE9c3a74c7 with cleanup and review BLOCK98176504 | Reuse exact staged API gate; numeric main Python gates pass. FreeCAD main/fresh discovery/32-predicate/CLI gates pass; native CAD remains separate.84/45/exact7 unchanged; enumerate only actual registration changes; no user-sample glob/full suite per edit |
+| A — preserved integration queue | Canonical codec/HEADER/accepted-version prerequisites committed; encoding-API successors integrated with7/7/tiny facade/MIF; do not reapply. Numeric and corrected FreeCAD preflight/HATCH retention integrated; composed25adc7f safety4/4 complete. Next full portableb912a963→cb22907f configure-probe chain; five further consumer methods are7AG.1c. Residual7AW0ee3bff2 remains independent. Preserve committed7AY/7AV/7AX/7AK/7BH/7AD; reconcile STYLE9c3a74c7 with cleanup and review BLOCK98176504 | Reuse exact unchanged API/numeric/FreeCAD/HATCH bindings. Probe uses one compiler/configure profile and CLI1/1, not production/full rebuild.84/45/exact7 unchanged; enumerate only actual registration changes; no user-sample glob/native/full suite per edit |
 | B — narrow independent corrections | Preserve committed MIF/7BI/7AG.3a/7BC/7BJ.1/2,7P.5c authored admission,7AK.6,7AG.4 direct predicates and optional box-verifier contract. Clean bc8 composed safety passes at its source; review7BE `80eca35a`→`5860915d`.7BH.3/7BG/7N.2a remain local. Effective-driver/capability gates precede new receipts, not these fixes;7N.3 still needs its witness. | Reuse recorded reds/reports; rebind each affected main fast gate without replaying every isolated control. Refresh sanitizer once after later unsafe-boundary changes settle, not per documentation/admission edit. Historical b4/d49/bc8 results retain their actual bindings; no repeated native/full suite. |
 | C — grammar and graph composition | Shared7AM.2/7AS.2 footer design, implemented separately;7G.2 STYLE→VIEWPORT/resources;7P.5b/c image/dictionary/GROUP reciprocity, with narrow duplicate-key admission first;7F.1;7M/7E.1,7AL→7K→7J,7AA.1/2,7O.2/3,7G.3 effective explicit/implicit draw order→7R;7AG handoff | Touched targets per slice; raw types/reciprocity/child counts/pre-load fields and corrected retry. Optional-peer phase calibration only when that projection is enabled. Exact nonvirtual and callback consumer gates on public changes; sparse order/subtype1/oracle limits separate |
 | D — explicit policy/safety/platform boundaries |7BK transparency representation;7BF.1 LTYPE unit witness and7BF.3 indexed-edit/mirror authority; optional7AV.4 caller-memory guarantee;7AP cache safety;7Q gradients,7S.2/3 retention/work accounting,7T narrowing,7U retention,7Y.2 precision,7AE.2/3 Unicode/filename policy,7AC bridges;7AG/7AK PIC/DLL/release ABI and7AO attribution | Resolve only the named decision/witness without blocking ready local fixes. Small configured-limit negatives; ASan/TSan once at touched unsafe boundaries, not full suites per edit. No expired-pointer journals/unconditional cache replay; source/native and release/per-commit gates stay distinct |
@@ -7927,6 +8183,15 @@ Research should shrink implementation uncertainty, not indefinitely enlarge
 the prerequisite set. Reconcile each ready handoff's base, affected files,
 test registrations and evidence binding once; retain recorded isolated results
 as historical evidence and run only the affected current-main gate on integration.
+
+Apply this rule to the25adc7f refinements: finish the portable probe chain,
+then reader80eca35a and writer5860915d separately with their named gates;
+independent7AG.1c getters/7BO name indexing/tool identity controls can proceed
+without waiting for native FreeCAD or ACIS. Resolve only each slice's actual
+policy prerequisite. Reuse the settled25adc7f sanitizer binding for unchanged
+source, not later parser/cursor edits; comments/plans do not justify rerunning
+it. Optional JS/GDAL discoveries add capability exclusions/calibrations only
+when their lanes are enabled, not mandatory setup or another full matrix.
 
 For the current research refinements, run the real adapter-inventory preflight
 before invoking either expensive adapter build. Preserve frozen-v2 controls,
