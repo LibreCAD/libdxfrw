@@ -333,6 +333,8 @@ public:
       0};          /*!< Soft-pointer ID/handle to owner object, code 330 */
   UTF8STRING name; /*!< entry name, code 2 */
   int flags{0};    /*!< Flags relevant to entry, code 70 */
+  // Ordered typed XDATA: strings1000/1001/1003 are semantic UTF-8;
+  // controls1002, binary1004 and handle1005 retain their distinct roles.
   std::vector<DRW_Variant *>
       extData; /*!< FIFO list of extended data, codes 1000 to 1071*/
   std::list<std::list<DRW_Variant>> appData; /*!< application data, code 102 */
@@ -1039,6 +1041,8 @@ void populateVbaProjectSectionView(DRW_RawDwgSection &section);
 //! with its typed value; rawValues, when populated by an ASCII reader, retain
 //! the original value spelling for same-format replay. Binary writers use the
 //! typed value.
+//! String-valued groups retain source-encoding bytes (not semantic UTF-8),
+//! including XDATA strings; version-bound raw replay must not transcode them.
 struct DRW_RawDxfObject {
   UTF8STRING name;                 /*!< object type name (the code-0 string) */
   std::uint32_t handle = 0;        /*!< code 5 (for dedup vs typed writers) */

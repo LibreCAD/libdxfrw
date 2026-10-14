@@ -40,6 +40,12 @@ graphs. The parity ledger binds its exact source/report; bc8 ASan remains a
 historical checkpoint. Next local work is the reviewed separate codec/HEADER/
 current-LibreCAD API chain, with composed MIF controls and no native promotion.
 
+The canonical declared-codec/XDATA prerequisite is now integrated with exact
+raw-count/order negatives and main six-test/strict/lc3/MIF evidence. It does
+not supply the still-isolated HEADER authority or current-LibreCAD input-mode
+API. Preserve2D defaults/raw carriers/export roles; the parity ledger binds
+this source separately from bc8 ASan and native/ACDS/semantic evidence.
+
 **Local DXF transport regression (2026-09-28; S2.3.9.4.24):** added a
 runtime-generated AC1027 ASCII and binary REGION-without-history
 ACDSDATA export/import/re-export regression. It checks REGION identity,

@@ -105,7 +105,17 @@ void DRW_TextCodec::setVersion(const std::string &v, bool dxfFormat){
 void DRW_TextCodec::setCodePage(const std::string &c, bool dxfFormat){
     cp = correctCodePage(c);
     conv.reset();
-    if (cp == "ANSI_874")
+    // R2007+ DXF string bytes are UTF-8 independently of the retained
+    // $DWGCODEPAGE header. That legacy metadata must not switch either the
+    // reader or writer back to a byte-codepage converter. Keep DWG TV/TU
+    // selection (dxfFormat=false) entirely separate.
+    if (dxfFormat && m_sourceVersionSet && sourceVersion >= DRW::AC1021) {
+        if (cp == "UTF-8")
+            cp = "ANSI_1252"; // preserve the established header spelling
+        conv.reset(new DRW_Converter(nullptr, 0));
+    } else if (cp == "ANSI_1252")
+        conv.reset(new DRW_ConvTable(DRW_Table1252, CPLENGTHCOMMON));
+    else if (cp == "ANSI_874")
         conv.reset( new DRW_ConvTable(DRW_Table874, CPLENGTHCOMMON) );
     else if (cp == "ANSI_932")
         conv.reset( new DRW_Conv932Table() );

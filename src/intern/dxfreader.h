@@ -66,8 +66,9 @@ public:
             || (m_previousCode >= 1030 && m_previousCode <= 1033);
     }
 
-    // EED/XDATA text values (1000-1003) use the drawing's active source
-    // code-page just like ordinary text strings. Keep code 1004 binary chunks
+    // Semantic EED/XDATA text values (1000/1001/1003) use the drawing's
+    // version-aware source codec just like ordinary text strings. Keep code
+    // 1002 control strings, 1004 binary chunks
     // and code 1005 handles in their canonical raw spelling. The current
     // group code is latched by readRec(), so every typed parseCode path gets
     // the same conversion without duplicating it in each entity/table.
@@ -78,7 +79,8 @@ public:
         // parser has enabled semantic mode; raw DXF carriers must retain the
         // source spelling for lossless replay.
         if ((m_decodeSemanticStrings && m_currentCode == 430)
-            || (m_currentCode >= 1000 && m_currentCode <= 1003))
+            || m_currentCode == 1000 || m_currentCode == 1001
+            || m_currentCode == 1003)
             return decoder.toUtf8(strData);
         return strData;
     }

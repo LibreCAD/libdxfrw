@@ -356,6 +356,8 @@ public:
     }
 
 	bool haveExtrusion = false;        /*!< set to true if the entity have extrusion*/
+    // Ordered typed XDATA: strings1000/1001/1003 are semantic UTF-8;
+    // controls1002, binary1004 and handle1005 retain their distinct roles.
 	std::vector<std::shared_ptr<DRW_Variant>> extData; /*!< FIFO list of extended data, codes 1000 to 1071*/
 
     /*!< Pending DWG-EED handle resolutions, populated by parseDwg() and

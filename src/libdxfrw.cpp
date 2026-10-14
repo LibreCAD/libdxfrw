@@ -354,6 +354,38 @@ bool isValidDxfPlotCustomDpi(DRW::Version version, int resolution, int dpi) {
         || (dpi >= 100 && dpi <= 32767);
 }
 
+bool isUtf8ScalarText(const std::string& text) {
+    for (std::size_t index = 0; index < text.size();) {
+        const auto lead = static_cast<unsigned char>(text[index++]);
+        if (lead < 0x80)
+            continue;
+        unsigned count = 0;
+        std::uint32_t scalar = 0;
+        std::uint32_t minimum = 0;
+        if (lead >= 0xC2 && lead <= 0xDF) {
+            count = 1; scalar = lead & 0x1Fu; minimum = 0x80;
+        } else if (lead >= 0xE0 && lead <= 0xEF) {
+            count = 2; scalar = lead & 0x0Fu; minimum = 0x800;
+        } else if (lead >= 0xF0 && lead <= 0xF4) {
+            count = 3; scalar = lead & 0x07u; minimum = 0x10000;
+        } else {
+            return false;
+        }
+        if (count > text.size() - index)
+            return false;
+        for (unsigned part = 0; part < count; ++part) {
+            const auto next = static_cast<unsigned char>(text[index++]);
+            if ((next & 0xC0u) != 0x80u)
+                return false;
+            scalar = (scalar << 6u) | (next & 0x3Fu);
+        }
+        if (scalar < minimum || scalar > 0x10FFFFu
+            || (scalar >= 0xD800u && scalar <= 0xDFFFu))
+            return false;
+    }
+    return true;
+}
+
 bool isFiniteDxfCoord(const DRW_Coord& point) {
     return std::isfinite(point.x) && std::isfinite(point.y)
         && std::isfinite(point.z);
@@ -9295,6 +9327,49 @@ bool dxfRW::writeExtData(const std::vector<DRW_Variant*> &ed){
         }
     }
 
+    // The public typed XDATA strings are semantic UTF-8, not source bytes.
+    // Validate the selected encoded representation before the first group is
+    // emitted: source-codepage bytes and lossy supplementary fallbacks cannot
+    // be silently published as successful text conversion. Tolerant reading
+    // and opaque raw replay remain separate contracts.
+    try {
+        DRW_TextCodec verification;
+        verification.setVersion(version, true);
+        verification.setCodePage(writer->getCodePage(), true);
+        for (const DRW_Variant* value : ed) {
+            const int code = value->code();
+            if (code != 1000 && code != 1001 && code != 1003)
+                continue;
+            const std::string& text = *value->content.s;
+            if (!isUtf8ScalarText(text) || !isSafeDxfRecordText(text)) {
+                recordOperationDiagnostic(DRW::OperationPhase::Validation,
+                    DRW::OperationCause::ValidationFailure, "xdata-text-encoding",
+                    "typed XDATA text must contain valid UTF-8 scalar values");
+                m_writeError = true;
+                return false;
+            }
+            const std::string encoded = writer->fromUtf8String(text);
+            if ((code == 1000 && encoded.size() > 255u)
+                || (code == 1001 && encoded.size() > 31u)) {
+                recordOperationDiagnostic(DRW::OperationPhase::Validation,
+                    DRW::OperationCause::ValidationFailure, "xdata-text-length",
+                    "encoded XDATA text exceeds its group byte limit");
+                m_writeError = true;
+                return false;
+            }
+            if (verification.toUtf8(encoded) != text) {
+                recordOperationDiagnostic(DRW::OperationPhase::Validation,
+                    DRW::OperationCause::ValidationFailure, "xdata-text-encoding",
+                    "typed XDATA text cannot be represented losslessly by the target codec");
+                m_writeError = true;
+                return false;
+            }
+        }
+    } catch (...) {
+        m_writeError = true;
+        return false;
+    }
+
     bool success = true;
     const auto recordResult = [&success, this](bool result) {
         if (!result) {
@@ -9307,11 +9382,11 @@ bool dxfRW::writeExtData(const std::vector<DRW_Variant*> &ed){
             || hex.size() / 2u > DRW::kMaxDxfBinaryPayloadBytes)
             return false;
         if (hex.empty())
-            return writer->writeUtf8String(1004, std::string{});
+            return writer->writeString(1004, std::string{});
         constexpr std::size_t kHexChunkLength = 2u * 127u;
         for (std::size_t offset = 0; offset < hex.size();
              offset += kHexChunkLength) {
-            if (!writer->writeUtf8String(
+            if (!writer->writeString(
                     1004, hex.substr(offset, kHexChunkLength)))
                 return false;
         }
@@ -9328,7 +9403,6 @@ bool dxfRW::writeExtData(const std::vector<DRW_Variant*> &ed){
             switch ((*it)->code()) {
                 case 1000:
                 case 1001:
-                case 1002:
                 case 1003: {
                     const int cc = (*it)->code();
                     if ((*it)->type() != DRW_Variant::STRING
@@ -9340,6 +9414,9 @@ bool dxfRW::writeExtData(const std::vector<DRW_Variant*> &ed){
                         cc, *(*it)->content.s));
                     break;
                 }
+                case 1002:
+                    recordResult(writer->writeString(1002, *(*it)->content.s));
+                    break;
                 case 1005: {
                     if ((*it)->type() != DRW_Variant::STRING
                         || (*it)->content.s == nullptr) {
@@ -9361,7 +9438,7 @@ bool dxfRW::writeExtData(const std::vector<DRW_Variant*> &ed){
                     const std::string outputHandle = toHexStr(
                         remapObjectHandle(
                             static_cast<std::uint32_t>(sourceHandle)));
-                    recordResult(writer->writeUtf8String(1005, outputHandle));
+                    recordResult(writer->writeString(1005, outputHandle));
                     break;
                 }
                 case 1004:
@@ -15764,7 +15841,11 @@ bool dxfRW::captureRawGroup(DRW_RawDxfObject &obj, int code,
             break;
         case RawValType::Str:
         default:
-            obj.groups.emplace_back(code, reader->getString());
+            // Raw carrier strings are source bytes, including XDATA text.
+            // Typed parseCode gets semantic UTF-8 separately; using getString
+            // here would decode only selected group codes and corrupt binary
+            // or cross-encoding raw replay without a matching encode step.
+            obj.groups.emplace_back(code, reader->getRawValue());
             break;
         }
         obj.rawValues.emplace_back(binFile ? std::string{}

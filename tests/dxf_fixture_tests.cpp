@@ -2844,7 +2844,8 @@ public:
 // component order, code families and interrupted tuples remain literal.
 template<class Parser>
 bool parsePointTags(Parser& parser, const std::vector<DRW_Variant>& tags,
-                    bool binary) {
+                    bool binary, const std::string& version = "AC1032",
+                    const std::string& codepage = "ANSI_1252") {
     std::ostringstream bytes;
     std::unique_ptr<dxfWriter> writer;
     if (binary)
@@ -2877,6 +2878,8 @@ bool parsePointTags(Parser& parser, const std::vector<DRW_Variant>& tags,
         reader = std::make_unique<dxfReaderBinary>(&input);
     else
         reader = std::make_unique<dxfReaderAscii>(&input);
+    reader->setVersion(version, true);
+    reader->setCodePage(codepage);
     int code = 0;
     while (reader->readRec(&code)) {
         if (!parser.parseValue(code, reader))
@@ -3034,6 +3037,300 @@ void testOrderedPointXdata(TestContext& t) {
                      "LINE callback remains an unaffected ordered control");
         }
         std::filesystem::remove(path, error);
+    }
+}
+
+void testXdataTextCodecs(TestContext& t) {
+    struct TextCase {
+        std::string codepage;
+        std::string legacy;
+        std::string utf8;
+    };
+    const std::array<TextCase, 2> cases{{
+        {"ANSI_1252", std::string("caf\xE9"), u8"café"},
+        {"ANSI_1251", std::string("\xC6\xB8\xEB\xF2\xFB\xE9"), u8"Жёлтый"}}};
+    for (const auto& item : cases) {
+        for (const bool modern : {false, true}) {
+            const std::string source = modern ? item.utf8 : item.legacy;
+            const std::vector<DRW_Variant> physical{
+                {1001, std::string("STRINGS")}, {1000, source + "\\U+4E00"},
+                {1003, source}, {1002, std::string("{")},
+                {1004, std::string("00E9FF")}, {1005, std::string("0")},
+                {1002, std::string("}")}};
+            const std::vector<DRW_Variant> semantic{
+                {1001, std::string("STRINGS")}, {1000, item.utf8 + u8"一"},
+                {1003, item.utf8}, {1002, std::string("{")},
+                {1004, std::string("00E9FF")}, {1005, std::string("0")},
+                {1002, std::string("}")}};
+            for (const bool binary : {false, true}) {
+                TablePointParser table;
+                EntityPointParser entity;
+                const std::string version = modern ? "AC1021" : "AC1018";
+                t.expect(parsePointTags(table, physical, binary, version, item.codepage)
+                             && equalPointXdata(table.extData, semantic),
+                         "table XDATA decodes source text once by DXF version/codepage");
+                t.expect(parsePointTags(entity, physical, binary, version, item.codepage)
+                             && equalPointXdata(entity.extData, semantic),
+                         "entity XDATA decodes text without changing control/binary/handles");
+                std::ostringstream bytes;
+                std::unique_ptr<dxfWriter> writer;
+                if (binary)
+                    writer = std::make_unique<dxfWriterBinary>(&bytes);
+                else
+                    writer = std::make_unique<dxfWriterAscii>(&bytes);
+                writer->setVersion(version, true);
+                writer->setCodePage(item.codepage);
+                t.expect(writer->writeUtf8String(1, item.utf8 + u8"一")
+                             && writer->writeUtf8String(1000, item.utf8 + u8"一"),
+                         "ordinary TEXT and XDATA use the same semantic UTF8 encoding contract");
+                std::istringstream input(bytes.str());
+                std::unique_ptr<dxfReader> reader;
+                if (binary)
+                    reader = std::make_unique<dxfReaderBinary>(&input);
+                else
+                    reader = std::make_unique<dxfReaderAscii>(&input);
+                const std::string encoded = modern ? item.utf8 + u8"一"
+                    : item.legacy + "\\U+4E00";
+                for (const int wanted : {1, 1000}) {
+                    int code = 0;
+                    t.expect(reader->readRec(&code) && code == wanted
+                                 && reader->getRawValue() == encoded,
+                             "emitted text bytes follow revision rather than legacy modern header codepage");
+                }
+            }
+        }
+    }
+}
+
+void testNamedColorCodecs(TestContext& t) {
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    unsigned index = 0;
+    for (const bool modern : {false, true}) {
+        for (const bool binary : {false, true}) {
+            dx_data data;
+            data.headerC.addStr("$DWGCODEPAGE", "ANSI_1251", 3);
+            auto line = std::make_unique<DRW_Line>();
+            line->secPoint.x = 1;
+            line->colorName = u8"BOOK$Ж";
+            line->color24 = 0x123456;
+            data.mBlock->ent.push_back(line.release());
+            const auto path = std::filesystem::temp_directory_path()
+                / ("libdxfrw-color-codec-" + std::to_string(nonce)
+                   + "-" + std::to_string(index++) + ".dxf");
+            dx_iface writer;
+            t.expect(writer.fileExport(path.string(), modern ? DRW::AC1021 : DRW::AC1018,
+                                       binary, &data, false), "named color writes through versioned codec");
+            std::ifstream stream(path, std::ios::binary);
+            if (binary) stream.seekg(22);
+            std::unique_ptr<dxfReader> tags = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&stream))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&stream));
+            int code = 0;
+            bool found = false;
+            while (tags->readRec(&code)) {
+                if (code == 430) {
+                    found = true;
+                    t.expect(tags->getRawValue() == (modern ? u8"BOOK$Ж" : "BOOK$\xC6"),
+                             "named color literal bytes follow target revision, not legacy metadata");
+                }
+            }
+            t.expect(found, "named color raw control is present");
+            tags.reset(); stream.close();
+            dx_data read;
+            dx_iface reader;
+            const bool imported = reader.fileImport(path.string(), &read, false);
+            t.expect(imported && read.mBlock->ent.size() == 1
+                         && read.mBlock->ent.front()->colorName == u8"BOOK$Ж",
+                     "typed named color decodes exactly once");
+            std::error_code error; std::filesystem::remove(path, error);
+        }
+    }
+}
+
+void testRawXdataTextBytes(TestContext& t) {
+    class RawTextWriter final : public dx_iface {
+    public:
+        DRW_RawDxfObject value;
+        bool wrote = false;
+        void writeEntities() override { wrote = dxfW->writeRawDxfObject(&value); }
+    };
+    const auto textTagsMatch = [](const DRW_RawDxfObject& carrier,
+                                  const std::string& legacy) {
+        std::vector<std::pair<int, std::string>> values;
+        for (const auto& group : carrier.groups) {
+            if (group.code() == 1000 || group.code() == 1003) {
+                if (group.type() != DRW_Variant::STRING)
+                    return false;
+                values.emplace_back(group.code(), group.c_str());
+            }
+        }
+        return values == std::vector<std::pair<int, std::string>>{
+            {1000, legacy + "\\U+4E00"}, {1003, legacy}};
+    };
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    for (const bool binary : {false, true}) {
+        std::ostringstream bytes;
+        if (binary)
+            bytes.write("AutoCAD Binary DXF\r\n\x1A\0", 22);
+        std::unique_ptr<dxfWriter> writer;
+        if (binary)
+            writer = std::make_unique<dxfWriterBinary>(&bytes);
+        else
+            writer = std::make_unique<dxfWriterAscii>(&bytes);
+        const std::string legacy("\xC6\xB8\xEB\xF2\xFB\xE9");
+        const std::vector<std::pair<int, std::string>> fields{
+            {0, "SECTION"}, {2, "HEADER"}, {9, "$ACADVER"}, {1, "AC1018"},
+            {9, "$DWGCODEPAGE"}, {3, "ANSI_1251"}, {0, "ENDSEC"},
+            {0, "SECTION"}, {2, "ENTITIES"}, {0, "LOCAL_RAW_TEXT"},
+            {5, "A0"}, {1001, "STRINGS"}, {1000, legacy + "\\U+4E00"},
+            {1003, legacy}, {1002, "{"}, {1004, "00E9FF"}, {1005, "0"},
+            {1002, "}"}, {0, "ENDSEC"}, {0, "EOF"}};
+        bool written = true;
+        for (const auto& field : fields)
+            written = writer->writeString(field.first, field.second) && written;
+        writer.reset();
+        const auto path = std::filesystem::temp_directory_path()
+            / ("libdxfrw-raw-xdata-text-" + std::to_string(nonce)
+               + (binary ? "-binary.dxf" : "-ascii.dxf"));
+        { std::ofstream stream(path, std::ios::binary); stream << bytes.str(); }
+        FixtureInterface interface_;
+        dx_data data;
+        const bool read = written && interface_.fileImport(path.string(), &data, false);
+        t.expect(read && interface_.rawEntities.size() == 1,
+                 "raw XDATA encoding carrier imports without semantic coercion");
+        if (read && interface_.rawEntities.size() == 1) {
+            const auto& carrier = interface_.rawEntities.front();
+            t.expect(textTagsMatch(carrier, legacy),
+                     "raw XDATA retains exactly one ordered 1000/1003 pair and literal source bytes");
+            for (const int missing : {1000, 1003}) {
+                DRW_RawDxfObject mutation(carrier);
+                mutation.groups.erase(std::remove_if(mutation.groups.begin(),
+                    mutation.groups.end(), [missing](const DRW_Variant& value) {
+                        return value.code() == missing;
+                    }), mutation.groups.end());
+                t.expect(!textTagsMatch(mutation, legacy),
+                         "raw text retention predicate rejects a missing semantic tag");
+            }
+            DRW_RawDxfObject duplicate(carrier);
+            duplicate.groups.emplace_back(1000, legacy + "\\U+4E00");
+            t.expect(!textTagsMatch(duplicate, legacy),
+                     "raw text retention predicate rejects duplicate semantic tags");
+            DRW_RawDxfObject reordered(carrier);
+            std::reverse(reordered.groups.begin(), reordered.groups.end());
+            t.expect(!textTagsMatch(reordered, legacy),
+                     "raw text retention predicate rejects reversed semantic tag order");
+            for (const bool outputBinary : {false, true}) {
+                const auto output = std::filesystem::path(path.string()
+                    + (outputBinary ? "-to-binary.dxf" : "-to-ascii.dxf"));
+                RawTextWriter replay;
+                replay.value = interface_.rawEntities.front();
+                dx_data outputData;
+                outputData.headerC.addStr("$DWGCODEPAGE", "ANSI_1251", 3);
+                const bool exported = replay.fileExport(output.string(), DRW::AC1018,
+                    outputBinary, &outputData, false);
+                FixtureInterface rereader;
+                dx_data reread;
+                t.expect(exported && replay.wrote
+                             && rereader.fileImport(output.string(), &reread, false)
+                             && rereader.rawEntities.size() == 1,
+                         "version-bound raw carrier replays across both wire encodings");
+                if (rereader.rawEntities.size() == 1) {
+                    t.expect(textTagsMatch(rereader.rawEntities.front(), legacy),
+                             "raw replay retains exact semantic tag count/order and source bytes");
+                }
+                std::error_code error;
+                std::filesystem::remove(output, error);
+            }
+        }
+        std::error_code error;
+        std::filesystem::remove(path, error);
+    }
+}
+
+void testXdataTextWritePolicy(TestContext& t) {
+    struct TextPolicyCase {
+        int code;
+        std::string value;
+        bool legacy;
+        bool modern;
+    };
+    std::string e127, e128, cjk36, cjk37;
+    for (int i = 0; i < 128; ++i) e128 += u8"é";
+    e127 = e128.substr(0, 254) + "A";
+    for (int i = 0; i < 37; ++i) cjk37 += u8"一";
+    cjk36 = cjk37.substr(0, 108);
+    const std::vector<TextPolicyCase> cases{
+        {1000, std::string(255, 'x'), true, true},
+        {1000, std::string(256, 'x'), false, false},
+        {1000, e127, true, true}, {1000, e128, true, false},
+        {1000, cjk36, true, true}, {1000, cjk37, false, true},
+        {1001, std::string(31, 'A'), true, true},
+        {1001, std::string(32, 'A'), false, false},
+        {1000, u8"😀", false, true}, {1003, u8"😀", false, true},
+        {1000, "ordinary backslash \\path", true, true},
+        // Literal CIF-looking semantic text cannot round-trip under the
+        // current escape contract. Reject that typed route observably rather
+        // than silently reinterpret it; PAR-85/7AR owns the eventual policy.
+        {1000, "literal \\U+0041", false, false},
+        {1000, std::string("\xE9"), false, false},
+        {1000, std::string("\xED\xA0\x80"), false, false},
+        {1000, std::string("\xC0\xAF"), false, false},
+        {1000, std::string("\xE2\x82"), false, false}};
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    unsigned index = 0;
+    for (const auto& item : cases) {
+        for (const bool modern : {false, true}) {
+            for (const bool binary : {false, true}) {
+                for (const bool table : {false, true}) {
+                    dx_data data;
+                    DRW_AppId app;
+                    app.name = item.code == 1001 ? item.value : "STRINGS";
+                    data.appIds.push_back(app);
+                    const DRW_Variant application(1001, app.name);
+                    const DRW_Variant value(item.code, item.value);
+                    if (table) {
+                        DRW_Layer layer;
+                        layer.name = "XDATA_TEXT";
+                        t.expect(layer.addExtData(std::make_unique<DRW_Variant>(application)),
+                                 "table text policy installs application");
+                        if (item.code != 1001)
+                            t.expect(layer.addExtData(std::make_unique<DRW_Variant>(value)),
+                                     "table text policy installs text");
+                        data.layers.push_back(layer);
+                    } else {
+                        auto line = std::make_unique<DRW_Line>();
+                        line->secPoint.x = 1;
+                        line->extData.push_back(std::make_shared<DRW_Variant>(application));
+                        if (item.code != 1001)
+                            line->extData.push_back(std::make_shared<DRW_Variant>(value));
+                        data.mBlock->ent.push_back(line.release());
+                    }
+                    const auto path = std::filesystem::temp_directory_path()
+                        / ("libdxfrw-xdata-text-policy-" + std::to_string(nonce)
+                           + "-" + std::to_string(index++) + ".dxf");
+                    const std::string sentinel("original destination\n");
+                    { std::ofstream stream(path, std::ios::binary); stream << sentinel; }
+                    FixtureInterface interface_;
+                    const bool written = interface_.fileExport(path.string(),
+                        modern ? DRW::AC1021 : DRW::AC1018, binary, &data, false);
+                    const bool wanted = modern ? item.modern : item.legacy;
+                    t.expect(written == wanted,
+                             "XDATA text policy uses scalar validity/loss and encoded-byte limits");
+                    const DRW_Variant* retained = table ? data.layers.front().extData.back()
+                        : data.mBlock->ent.front()->extData.back().get();
+                    t.expect(retained != nullptr && std::string(retained->c_str()) == item.value,
+                             "text validation does not mutate caller XDATA on success/rejection");
+                    if (!wanted) {
+                        std::ifstream stream(path, std::ios::binary);
+                        const std::string actual((std::istreambuf_iterator<char>(stream)), {});
+                        t.expect(actual == sentinel,
+                                 "rejected XDATA text preserves existing destination transactionally");
+                    }
+                    std::error_code error;
+                    std::filesystem::remove(path, error);
+                }
+            }
+        }
     }
 }
 
@@ -6471,6 +6768,10 @@ int main(int argc, char** argv) {
     testBlockPreview(context);
     testBlockRecordXdata(context);
     testOrderedPointXdata(context);
+    testXdataTextCodecs(context);
+    testNamedColorCodecs(context);
+    testRawXdataTextBytes(context);
+    testXdataTextWritePolicy(context);
     testRawClassEntity(context);
     testEed(context);
     testRawControls(context);
