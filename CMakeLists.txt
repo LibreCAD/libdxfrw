@@ -72,6 +72,8 @@ set(libdxfrw_transitive_hdrs
 set(LIBDXFRW_INSTALL_INCLUDEDIR ${CMAKE_INSTALL_INCLUDEDIR}/libdxfrw)
 
 if(LIBDXFRW_BUILD_LIBRARY)
+    set(THREADS_PREFER_PTHREAD_FLAG TRUE)
+    find_package(Threads REQUIRED)
     add_library(dxfrw ${libdxfrw_srcs} ${libdxfrw_hdrs})
     set_target_properties(dxfrw PROPERTIES
         VERSION "${PROJECT_VERSION}"
@@ -80,6 +82,7 @@ if(LIBDXFRW_BUILD_LIBRARY)
     )
     target_compile_features(dxfrw PUBLIC cxx_std_17)
     target_compile_options(dxfrw PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+    target_link_libraries(dxfrw PUBLIC Threads::Threads)
     if(MSVC)
         # The broad Wave 1 seam reaches five private dxfRW methods directly
         # through its test-only private->public header view.  Keep their
@@ -719,6 +722,19 @@ if(LIBDXFRW_BUILD_TESTS)
     add_test(NAME libdxfrw_hardening
         COMMAND libdxfrw_hardening_tests)
 
+    add_executable(libdxfrw_debug_state_tests
+        tests/debug_state_tests.cpp dwg2dxf/dx_iface.cpp)
+    target_compile_features(libdxfrw_debug_state_tests PRIVATE cxx_std_17)
+    target_compile_options(libdxfrw_debug_state_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+    target_compile_definitions(libdxfrw_debug_state_tests PRIVATE
+        LIBDXFRW_DWG_FIXTURE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/dwg")
+    target_include_directories(libdxfrw_debug_state_tests PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(libdxfrw_debug_state_tests PRIVATE dxfrw Threads::Threads)
+    add_test(NAME libdxfrw_debug_state COMMAND libdxfrw_debug_state_tests)
+    set_tests_properties(libdxfrw_debug_state PROPERTIES
+        LABELS "fast;hardening;debug" TIMEOUT 30)
+
     if(LIBDXFRW_BUILD_LONG_FUZZ)
         add_executable(libdxfrw_long_fuzz_tests
             tests/hardening_tests.cpp)
@@ -836,6 +852,12 @@ endif()
 foreach(_dxfrw_pc_path IN ITEMS LIBDXFRW_PC_PREFIX LIBDXFRW_PC_LIBDIR LIBDXFRW_PC_INCLUDEDIR)
     string(REPLACE " " "\\ " ${_dxfrw_pc_path} "${${_dxfrw_pc_path}}")
 endforeach()
+# FindThreads' flag branch requires -pthread during compilation too. Do not
+# copy a link-only library (such as -lpthread), or invent flags for libc threads.
+set(LIBDXFRW_PC_THREAD_CFLAGS "")
+if(LIBDXFRW_BUILD_LIBRARY AND THREADS_HAVE_PTHREAD_ARG)
+    set(LIBDXFRW_PC_THREAD_CFLAGS "-pthread")
+endif()
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libdxfrw.pc.in libdxfrw.pc @ONLY)
 
 if(LIBDXFRW_BUILD_LIBRARY)
@@ -884,6 +906,7 @@ if(LIBDXFRW_BUILD_LIBRARY)
                 ${CMAKE_CURRENT_BINARY_DIR}/libdxfrwConfig.cmake
                 ${CMAKE_CURRENT_BINARY_DIR}/libdxfrwConfigVersion.cmake
                 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindLibdxfrw.cmake
+                ${CMAKE_CURRENT_SOURCE_DIR}/cmake/libdxfrwConanThreads.cmake
                 DESTINATION ${INSTALL_CONFIGDIR}
         )
     endif()

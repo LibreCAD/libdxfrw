@@ -291,6 +291,11 @@ enum class DebugLevel {
  * Interface for debug printers.
  *
  * The base class is silent and ignores all debugging.
+ * Debug settings are process-global, not per reader/writer. Custom printers
+ * can receive overlapping calls and must synchronize their own mutable state.
+ * Calls run without the debug service's state lock and may reenter its setters;
+ * callback exceptions propagate to the caller as before. This narrow debug
+ * contract does not make reader/writer instances generally thread-safe.
  */
 class DebugPrinter {
 public:
@@ -309,7 +314,13 @@ public:
 /**
  * Sets a custom debug printer to use when outputting debug messages.
  *
- * Ownership of `printer` is transferred.
+ * Ownership of `printer` is transferred; nullptr restores the built-in printer.
+ * Replacement is synchronized. An active call retains the old printer until
+ * it returns, so destruction may occur on that calling thread and may reenter
+ * the service. The built-in printer writes individually serialized fragments
+ * using classic-locale formatting without changing std::cerr formatting state;
+ * a multi-call trace is not one atomic message. Concurrent external std::cerr
+ * reconfiguration and shared active codec/interface use are not covered.
  */
 void setCustomDebugPrinter( DebugPrinter* printer );
 

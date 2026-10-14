@@ -63,3 +63,12 @@ class LibdxfrwConan(ConanFile):
         self.cpp_info.libs = ["dxfrw"]
         self.cpp_info.set_property("cmake_file_name", "libdxfrw")
         self.cpp_info.set_property("cmake_target_name", "libdxfrw::libdxfrw")
+        # CMakeDeps does not load the installed CONFIG target and otherwise
+        # loses its Threads::Threads dependency. The longstanding build-module
+        # hook resolves the consumer platform's flags without hardcoding them.
+        self.cpp_info.set_property("cmake_build_modules", [
+            "lib/cmake/libdxfrw/libdxfrwConanThreads.cmake"
+        ])
+        # Actual Conan/native variants remain separately qualified. Non-CMake
+        # generators must supply their platform's standard threading flags;
+        # this CMake bridge is not generic cpp_info system-library metadata.

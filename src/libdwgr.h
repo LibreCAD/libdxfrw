@@ -662,6 +662,8 @@ public:
     const std::vector<std::string>& getLayerNameOrder() const { return m_layerNameOrder; }
     const std::vector<std::string>& getLtypeNameOrder() const { return m_ltypeNameOrder; }
 bool testReader();
+    /** Set process-global debugging. Constructing any DXF/DWG codec resets it
+     * to None for compatibility; this is not a per-instance setting. */
     void setDebug(DRW::DebugLevel lvl);
 
     friend class dwgReader;

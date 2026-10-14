@@ -110,6 +110,8 @@ public:
     dxfRW(dxfRW&&) = delete;
     dxfRW& operator=(dxfRW&&) = delete;
     ~dxfRW();
+    /** Set process-global debugging. Constructing any DXF/DWG codec resets it
+     * to None for compatibility; this is not a per-instance setting. */
     void setDebug(DRW::DebugLevel lvl);
     /**
      * Select the DXF classifier profile used by subsequent read, write, and

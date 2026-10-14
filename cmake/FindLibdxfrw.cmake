@@ -13,19 +13,22 @@ find_library(Libdxfrw_LIBRARY
 )
 
 include(FindPackageHandleStandardArgs)
+set(THREADS_PREFER_PTHREAD_FLAG TRUE)
+find_package(Threads QUIET)
 find_package_handle_standard_args(Libdxfrw
-    REQUIRED_VARS Libdxfrw_LIBRARY Libdxfrw_INCLUDE_DIR
+    REQUIRED_VARS Libdxfrw_LIBRARY Libdxfrw_INCLUDE_DIR Threads_FOUND
 )
 
 if(Libdxfrw_FOUND)
     set(Libdxfrw_INCLUDE_DIRS "${Libdxfrw_INCLUDE_DIR}")
-    set(Libdxfrw_LIBRARIES "${Libdxfrw_LIBRARY}")
+    set(Libdxfrw_LIBRARIES "${Libdxfrw_LIBRARY}" Threads::Threads)
     if(NOT TARGET libdxfrw::libdxfrw)
         add_library(libdxfrw::libdxfrw UNKNOWN IMPORTED)
         set_target_properties(libdxfrw::libdxfrw PROPERTIES
             IMPORTED_LOCATION "${Libdxfrw_LIBRARY}"
             INTERFACE_INCLUDE_DIRECTORIES "${Libdxfrw_INCLUDE_DIR}"
             INTERFACE_COMPILE_FEATURES cxx_std_17
+            INTERFACE_LINK_LIBRARIES Threads::Threads
         )
     endif()
     if(NOT TARGET Libdxfrw::Libdxfrw)

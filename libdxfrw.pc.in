@@ -7,4 +7,5 @@ Name: libdxfrw
 Description: c++ library to read/write dxf files in binary and ascii form
 Version: @PROJECT_VERSION@
 Libs: -L@LIBDXFRW_PC_LIBDIR@ -ldxfrw
-Cflags: -I@LIBDXFRW_PC_INCLUDEDIR@/libdxfrw
+Libs.private: @CMAKE_THREAD_LIBS_INIT@
+Cflags: -I@LIBDXFRW_PC_INCLUDEDIR@/libdxfrw @LIBDXFRW_PC_THREAD_CFLAGS@
