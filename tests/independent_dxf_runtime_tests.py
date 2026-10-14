@@ -16,6 +16,7 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+import shutil
 
 # -I excludes the script directory. Load only the committed, trusted helper;
 # neither the working directory nor PYTHONPATH is a helper import authority.
@@ -90,6 +91,17 @@ def read_report(path, scratch, *, controls_executed=False):
             "host TEST_FILES escaped configuration isolation")
     require(configuration["pythonIsolated"] is True,
             "runtime report was not produced by an isolated Python")
+    require(type(configuration["pythonOptimize"]) is int
+            and configuration["pythonOptimize"] == 0,
+            "runtime controls ran with assertions disabled")
+    bytecode = configuration["bytecode"]
+    cache_prefix = Path(bytecode["prefix"])
+    require(bytecode["cacheWrites"] is False
+            and bytecode["cacheReads"] == "fresh private prefix only"
+            and cache_prefix.is_absolute()
+            and cache_prefix.name.startswith("libdxfrw-oracle-bytecode-")
+            and not cache_prefix.is_relative_to(scratch),
+            "runtime could use an existing source-tree bytecode cache")
     loaded = configuration["loadedConfigs"]
     require(type(loaded) is list and len(loaded) == 1,
             "oracle loaded more than its private profile")
@@ -116,8 +128,10 @@ def read_report(path, scratch, *, controls_executed=False):
     return configuration
 
 
-def invoke(python, runner, arguments, *, cwd, env, isolated=True):
+def invoke(python, runner, arguments, *, cwd, env, isolated=True, optimized=False):
     command = [str(python)] + (["-I"] if isolated else [])
+    if optimized:
+        command.append("-O")
     command += ["-B", str(runner)] + arguments
     return run_bounded(command, TIMEOUT_SECONDS, output_limit=65536,
                        cwd=str(cwd), env=env)
@@ -199,6 +213,56 @@ def run_controls(python, runner):
                     and b"invoke Python with -I" in result.stderr
                     and not rejected_report.exists(),
                     "non-isolated runtime check was not explicitly rejected before output")
+            optimized_report = scratch / "optimized.json"
+            for arguments in (["--check-runtime", "--output", str(optimized_report)],
+                              ["--runtime-self-test"], ["--self-test"]):
+                result = invoke(python, runner, arguments, cwd=cwd, env=environment,
+                                optimized=True)
+                require(result.returncode != 0
+                        and b"without -O or -OO" in result.stderr
+                        and not optimized_report.exists(),
+                        "optimized Python silently skipped assertion-based controls")
+            # A valid timestamp/size cache contains different executable code
+            # from the intact helper source. Prove it is selected normally,
+            # then prove our bootstrap ignores it without modifying any real
+            # repository or installed cache.
+            copied = scratch / "copied tools"
+            copied.mkdir()
+            for name in (runner.name, "bounded_process.py", "normalize_drawing_result.py"):
+                shutil.copy2(runner.with_name(name), copied / name)
+            helper = copied / "bounded_process.py"
+            original_size = helper.stat().st_size
+            bad = scratch / "cache-payload.py"
+            payload = b"raise RuntimeError('stale-bytecode-sentinel')\n"
+            require(len(payload) < original_size, "helper is too small for cache control")
+            bad.write_bytes(payload + b" " * (original_size - len(payload)))
+            os.utime(bad, ns=(helper.stat().st_atime_ns, helper.stat().st_mtime_ns))
+            # Build with the selected oracle interpreter: its cache tag/magic
+            # may differ from the normal test interpreter running this wrapper.
+            built_cache = run_bounded([str(python), "-I", "-B", "-c",
+                "import importlib.util,json,py_compile,sys; from pathlib import Path; "
+                "p=Path(importlib.util.cache_from_source(sys.argv[2])); p.parent.mkdir(); "
+                "py_compile.compile(sys.argv[1],cfile=str(p),dfile=sys.argv[2],doraise=True); "
+                "print(json.dumps(str(p)))", str(bad), str(helper)],
+                TIMEOUT_SECONDS, output_limit=65536, cwd=str(cwd), env=environment)
+            require_success(built_cache, "matching-interpreter bytecode control")
+            cache = Path(json.loads(built_cache.stdout.decode("utf-8")))
+            require(cache.is_file() and cache.is_relative_to(copied),
+                    "bytecode control escaped its generated helper directory")
+            ordinary = run_bounded([str(python), "-I", "-B", "-c",
+                "import sys; sys.path.insert(0, %r); import bounded_process" % str(copied)],
+                TIMEOUT_SECONDS, output_limit=65536, cwd=str(cwd), env=environment)
+            require(ordinary.returncode != 0
+                    and b"stale-bytecode-sentinel" in ordinary.stderr,
+                    "negative bytecode cache was not actually selected")
+            cache_before = snapshot((helper, cache))
+            cache_report = scratch / "private-cache.json"
+            result = invoke(python, copied / runner.name,
+                ["--check-runtime", "--output", str(cache_report)], cwd=cwd, env=environment)
+            require_success(result, "private bytecode cache bootstrap")
+            read_report(cache_report, scratch)
+            require(snapshot((helper, cache)) == cache_before,
+                    "oracle bootstrap changed the existing helper source/cache")
             require(snapshot(host_paths) == host_before and not marker.exists()
                     and sorted(str(path.relative_to(host)) for path in host.rglob("*"))
                     == host_tree_before, "runtime checks modified host files or imported the shadow")
@@ -223,7 +287,8 @@ def main(argv=None):
         print("independent DXF runtime isolation: FAIL: %s" % exc, file=sys.stderr)
         return 1
     print("independent DXF runtime isolation: PASS (host on/off, malformed configs, "
-          "shadow import, native disable, non-isolated rejection; supplemental only)")
+          "shadow import, native disable, non-isolated/optimized rejection, "
+          "stale bytecode ignored; supplemental only)")
     return 0
 
 

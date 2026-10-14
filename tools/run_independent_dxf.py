@@ -28,6 +28,13 @@ import struct
 import sys
 import tempfile
 
+# -B prevents cache writes, not reads. Select an empty private cache prefix
+# before importing repository helpers or ezdxf so stale installed bytecode
+# cannot stand in for the source content attested below.
+_ORACLE_CACHE_ROOT = tempfile.TemporaryDirectory(prefix="libdxfrw-oracle-bytecode-")
+sys.pycache_prefix = _ORACLE_CACHE_ROOT.name
+sys.dont_write_bytecode = True
+
 # -I excludes the script directory too. Add only this trusted helper directory,
 # never cwd/PYTHONPATH, before loading our hash-bound repository helpers.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -78,6 +85,15 @@ def require_context_unchanged(before, after):
         raise ValueError("oracle content or configuration changed during comparison")
 
 
+def bytecode_profile():
+    prefix = Path(_ORACLE_CACHE_ROOT.name).resolve()
+    if (sys.pycache_prefix != _ORACLE_CACHE_ROOT.name or not sys.dont_write_bytecode
+            or not prefix.is_dir() or any(prefix.rglob("*.pyc"))):
+        raise ValueError("oracle bytecode cache policy changed")
+    return {"prefix": str(prefix), "cacheReads": "fresh private prefix only",
+            "cacheWrites": False}
+
+
 def effective_profile(ezdxf, config_path):
     values = {key: getattr(ezdxf.options, key) for key in ORACLE_PROFILE}
     loaded = [str(Path(path).resolve()) for path in ezdxf.options.loaded_config_files]
@@ -103,6 +119,8 @@ def effective_profile(ezdxf, config_path):
             "fullOptionsSha256": hashlib.sha256(encoded.encode("utf-8")).hexdigest(),
             "loadedConfigs": [{"path": str(config_path), **digest(config_path)}],
             "pythonIsolated": bool(sys.flags.isolated),
+            "pythonOptimize": sys.flags.optimize,
+            "bytecode": bytecode_profile(),
             "accelerator": {"requested": "disabled-before-import", "inUse": False,
                             "directNativeImports": "blocked for ezdxf.acc.*",
                             "vectorImplementation": Vec3.__module__,
@@ -117,6 +135,8 @@ def controlled_runtime():
         raise ValueError("oracle requires Python 3.10 or newer")
     if not sys.flags.isolated:
         raise ValueError("oracle requires a fresh isolated interpreter; invoke Python with -I")
+    if sys.flags.optimize:
+        raise ValueError("oracle controls require Python without -O or -OO")
     if any(name == "ezdxf" or name.startswith("ezdxf.") for name in sys.modules):
         raise ValueError("oracle was imported before controlled configuration bootstrap")
     original_directory = Path.cwd()
@@ -783,6 +803,8 @@ def main(argv=None):
     parser.add_argument("--output", type=Path)
     parser.add_argument("--timeout", type=float, default=15.0)
     args = parser.parse_args(argv)
+    if sys.flags.optimize:
+        parser.error("oracle controls require Python without -O or -OO")
     if args.self_test:
         self_test()
         return 0

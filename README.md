@@ -78,7 +78,8 @@ ctest --test-dir build -R '^libdxfrw_independent_dxf' --output-on-failure
 
 The runner uses an isolated interpreter and private configuration, verifies
 effective options/native-module selection and before/after package/helper
-content, and checks four generated sentinel
+content, ignores existing bytecode caches through a fresh private prefix, and
+checks four generated sentinel
 families across 16 ASCII/binary routes. It compares ordinary reads before
 separate audits, with bounded byte/tag admission and converter capture. Direct
 invocations also require `python -I -B tools/run_independent_dxf.py ...`.
@@ -86,6 +87,7 @@ These locally generated controls are advisory (`qualificationEligible:false`),
 not full drawing/resource-graph, native CAD, or format-support qualification.
 Broad/untrusted oracle inputs remain out of scope pending worker resource gates.
 Reported dependency versions are metadata, not loaded-dependency attestation.
+Optimized Python (`-O`/`-OO`) is rejected so assertions cannot be skipped.
 
 ### Using `dwg2dxf` from FreeCAD
 
