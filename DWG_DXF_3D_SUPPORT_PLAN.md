@@ -206,6 +206,51 @@ ACDS association, independent-kernel or AutoCAD dimensional semantics. Reuse
 the existing optional checker/runtime; no new dependency, fixture or default
 CTest is required. J256/J260/J268/J284/J293/J295 remain DEFERRED_EXTERNAL.
 
+**Successor verifier readiness and broader geometry controls (2026-10-14):**
+isolated30343a00f7184c1e07a278e4a0b4815ce97fe24e on907b77 implements the
+named v2 box-observation contract in the existing optional checker. Its62
+mocked controls pass in two existing Python3.12.15 environments. Independent
+code review and main integration remain pending; no parser/kernel executes in
+those tests, and cq_acis is absent in the inspected oracle environment. Report
+`/private/tmp/libdxfrw-acis-contract.W0dRdz/slice-report.json`, SHA256
+`0cc8ffbc7d32b3dbbfdf236afc21ab80b58fbd11f18a15efb0843fa1969aef00`, binds
+source`a1d940b2015d1f140be02c2533c1f8a8c974bb180867d933f753396108898697`.
+Review that candidate rather than starting another verifier. Bounded input/
+observation caps are not an external-parser/kernel time or memory sandbox;
+version strings alone do not attest loaded code. No fixture or frozen receipt
+changes are implied.
+
+Keep its box-only acceptance narrow. Exact analytic calibration constructs a
+10×8×6 region with a2×2 through-hole centered at(3,3) versus(7,3). Both have
+volume456, area416, identical bounds and boundary counts; their uniform-volume
+centroids and interior occupancy differ. This is mathematical calibration,
+not a SAB decoder result, kernel execution or failure of the existing box
+checker. Report`/private/tmp/libdxfrw-broad-readiness.GqVreo/geometry-report.json`,
+SHA256`af64288b79f3c29eb40cc0ee27fdc87bdc0db76fb1ffb57d43be06cf93ccfed2`,
+binds the exact rational recipe and current tool/runtime bytes.
+
+Before a broader asymmetric/cavity witness can support geometric equivalence,
+capture source-authored per-body placement/centroid and a few discriminating
+interior/boundary points alongside bounds/area/volume/topology. Use inertia or
+directed surface-distance checks only when needed and independently expected;
+no finite metric set establishes arbitrary shape equality. Preserve source
+topology denominators separately from reconstructed seam/split topology and
+declare any permitted resegmentation. The
+[OCCT7.8.1 validity contract](https://github.com/Open-Cascade-SAS/OCCT/blob/V7_8_1/src/BRepCheck/BRepCheck_Analyzer.hxx#L107-L150)
+checks internal consistency at represented tolerances, not the intended shape.
+Its [mass-property contract](https://github.com/Open-Cascade-SAS/OCCT/blob/V7_8_1/src/BRepGProp/BRepGProp.hxx#L147-L191)
+assumes coherently oriented closed solids. Keep validity/solid/shell/orientation
+checks before mass properties and bind kernel version/mode/tolerances. These
+future controls do not block the narrow box-contract correction or require
+expensive Boolean/meshing tests after every field edit.
+
+A current attempt to import the installed FreeCAD modules ends134 with Qt's
+NEON-requirement diagnostic before shape creation. It is unavailable in that
+attempt, not a new native pass or a hardware diagnosis. Preserve earlier
+exact-runtime FreeCAD observations; neither this failure nor the analytic
+calibration promotes or invalidates them. All six historical J items remain
+DEFERRED_EXTERNAL/non-promoting.
+
 The hash-pinned
 [cadmpeg 0.6.0](https://github.com/cadmpeg/cadmpeg/releases/tag/v0.6.0)
 reader was then run on those exact SABs. It reports successful geometry
