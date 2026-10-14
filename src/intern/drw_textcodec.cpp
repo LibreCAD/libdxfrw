@@ -286,14 +286,26 @@ std::string DRW_Converter::encodeText(const std::string &stmp){
 
 std::string DRW_Converter::encodeMifText(const std::string &tok){
     // tok layout: "\M+cXXXX" — selector at index 3, 4 hex digits at [4..8).
-    if (tok.size() < 8 || tok[0] != '\\' || tok[1] != 'M' || tok[2] != '+')
+    if (tok.size() != 8 || tok[0] != '\\' || tok[1] != 'M' || tok[2] != '+')
         return std::string{};
+    // Numeric stream/scanf conversion accepts signs, whitespace and partial
+    // hex. Validate the complete ASCII payload first on every platform, so a
+    // malformed escape stays literal in the caller instead of creating a
+    // partially decoded character (including TAB/CR).
+    for (std::size_t i = 4; i < 8; ++i) {
+        const unsigned char ch = static_cast<unsigned char>(tok[i]);
+        if (!((ch >= '0' && ch <= '9') || (ch >= 'A' && ch <= 'F')
+              || (ch >= 'a' && ch <= 'f')))
+            return std::string{};
+    }
     const char* cpName = nullptr;
     switch (tok[3]) {
         case '1': cpName = "ANSI_932"; break; // Shift-JIS
         case '2': cpName = "ANSI_950"; break; // Big5
         case '3': cpName = "ANSI_949"; break; // EUC-KR
-        case '4': cpName = "ANSI_1252"; break; // Johab — fallback (no codec)
+        // Selector4 names Johab1361, not CP1252. There is no Johab decoder
+        // here; let the existing callers preserve the original MIF spelling.
+        case '4': return std::string{};
         case '5': cpName = "ANSI_936"; break; // GB18030/GBK
         default:  return std::string{};
     }

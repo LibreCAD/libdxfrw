@@ -73,7 +73,8 @@ public:
     /// Decode a `\M+cXXXX` MIF escape (8 chars; c=selector 1..5, XXXX=hex
     /// of a 2-byte sequence in the selector's codepage) to UTF-8.
     /// Selector mapping: 1→ANSI_932, 2→ANSI_950, 3→ANSI_949,
-    /// 4→Johab(fallback ANSI_1252), 5→ANSI_936. Returns empty on invalid.
+    /// 4→Johab(unavailable), 5→ANSI_936. Returns empty on invalid or
+    /// unavailable conversion so the caller retains the original token.
     std::string encodeMifText(const std::string& tok);
     const int *table{nullptr};
     int cpLength;

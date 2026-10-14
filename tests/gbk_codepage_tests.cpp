@@ -13,15 +13,14 @@
 #include <vector>
 
 #include "drw_base.h"
-#define private public
 #include "drw_header.h"
-#undef private
 #include "intern/drw_textcodec.h"
 #include "intern/dwgreader18.h"
 #include "intern/dwgreader21.h"
 #include "intern/dwgreader15.h"
 #include "intern/dwgreaderR11.h"
 #include "intern/dwgbuffer.h"
+#include "intern/dxfreader.h"
 #include "intern/dxfwriter.h"
 #include "libdwgr.h"
 #include "dwg2dxf/dx_data.h"
@@ -103,6 +102,13 @@ struct TestContext {
     }
 };
 
+std::string headerString(const DRW_Header& header, const char* key) {
+    const auto found = header.vars.find(key);
+    return found != header.vars.end() && found->second != nullptr
+        && found->second->type() == DRW_Variant::STRING
+        ? std::string(found->second->c_str()) : std::string{};
+}
+
 std::string makeMalformedBytes(std::initializer_list<unsigned int> values) {
     std::string result;
     result.reserve(values.size());
@@ -160,6 +166,46 @@ bool validateBinaryDxfStructure(const std::string& bytes) {
         && bytes.find("EOF") != std::string::npos;
 }
 
+struct MTextWireChunk {
+    int code;
+    std::string value;
+};
+
+bool readMTextWireChunks(const std::filesystem::path& path, bool binary,
+                        std::vector<MTextWireChunk>& chunks) {
+    std::ifstream input(path, std::ios::binary);
+    if (!input)
+        return false;
+    std::unique_ptr<dxfReader> reader;
+    if (binary) {
+        static constexpr char sentinel[] = "AutoCAD Binary DXF\r\n\x1a\0";
+        std::string signature(sizeof(sentinel) - 1, '\0');
+        input.read(signature.data(), static_cast<std::streamsize>(signature.size()));
+        if (!input || signature != std::string(sentinel, sizeof(sentinel) - 1))
+            return false;
+        reader = std::make_unique<dxfReaderBinary>(&input);
+    } else {
+        reader = std::make_unique<dxfReaderAscii>(&input);
+    }
+    bool inMText = false;
+    unsigned int mtextCount = 0;
+    int code = 0;
+    while (reader->readRec(&code)) {
+        if (code == 0) {
+            const std::string type = reader->getString();
+            if (type == "EOF")
+                return mtextCount == 1;
+            inMText = type == "MTEXT";
+            if (inMText)
+                ++mtextCount;
+        } else if (inMText && (code == 3 || code == 1)) {
+            // Read the physical string payload without semantic MIF decoding.
+            chunks.push_back({code, reader->getString()});
+        }
+    }
+    return false;
+}
+
 void testCodePageAliases(TestContext& t) {
     t.expect(std::string(dwgCodePageName(31)) == "ANSI_936",
              "DWG codepage id 31 maps to ANSI_936");
@@ -202,6 +248,116 @@ void testCodePageAliases(TestContext& t) {
              "truncated CP936 lead byte is bounded");
     t.expect(codec.fromUtf8("\xF0\xA0\x80\xA1") == "?",
              "valid supplementary codepoint keeps documented fallback");
+}
+
+void testMifEscapePolicy(TestContext& t) {
+    struct MifCase { const char* source; const char* expected; };
+    const std::vector<MifCase> cases{
+        {"\\M+193FA", "日"}, {"\\M+2A4A4", "中"},
+        {"\\M+3B0A1", "가"}, {"\\M+5D6D0", "中"},
+        {"\\M+193fa", "日"}, {"\\M+2a4a4", "中"},
+        {"\\M+3b0a1", "가"}, {"\\M+5d6d0", "中"},
+        {"\\M+193FAB", "日B"}, {"\\M+193FA\\M+5D6D0", "日中"},
+        {"\\M+48861", "\\M+48861"},
+        {"X\\M+48861Y", "X\\M+48861Y"},
+        {"\\M+48861\\M+48861", "\\M+48861\\M+48861"},
+        {"\\M+193FA\\M+48861\\M+5D6D0", "日\\M+48861中"},
+        {"\\M+193FG", "\\M+193FG"}, {"\\M+5D6DG", "\\M+5D6DG"},
+        {"\\M+193F ", "\\M+193F "}, {"\\M+1 3FA", "\\M+1 3FA"},
+        {"\\M+1+3FA", "\\M+1+3FA"}, {"\\M+1-3FA", "\\M+1-3FA"},
+        {"\\M+1ZZZZ", "\\M+1ZZZZ"}, {"\\M+5    ", "\\M+5    "},
+        {"\\M+4886G", "\\M+4886G"}, {"\\M+10041", "\\M+10041"},
+        {"\\M+68861", "\\M+68861"}, {"\\M+08861", "\\M+08861"},
+        {"\\M+", "\\M+"}, {"\\M+1", "\\M+1"},
+        {"\\M+193F", "\\M+193F"}, {"\\m+193FA", "\\m+193FA"},
+        {"ordinary\\path", "ordinary\\path"}, {"", ""}
+    };
+    // Cover each existing caller family: pass-through, single-byte table,
+    // generic DBCS and specialized Shift-JIS. The selector's page is not the
+    // outer drawing page. Unavailable Johab remains literal, not CP1252 text.
+    for (const char* page : {"ANSI_1252", "ANSI_1251", "ANSI_936", "ANSI_932"}) {
+        DRW_TextCodec codec;
+        codec.setVersion(DRW::AC1018, true);
+        codec.setCodePage(page, true);
+        for (const auto& row : cases) {
+            const std::string source(row.source);
+            t.expect(codec.toUtf8(source) == row.expected,
+                     "MIF exact-hex decoding preserves unsupported/malformed spelling in every codec family");
+            t.expect(source == row.source, "MIF decoding does not mutate caller text");
+        }
+    }
+    DRW_Converter token(nullptr, 0);
+    t.expect(token.encodeMifText("\\M+193FA") == "日"
+                 && token.encodeMifText("\\M+193FAB").empty(),
+             "the internal MIF helper admits exactly one eight-byte token");
+}
+
+void testMifLiteralModelRoundTrip(TestContext& t) {
+    const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
+    const std::string literal = "before\\M+48861after";
+    // The six-byte "before" prefix starts the token at offset247, splitting
+    // "\\M+" from "48861" at the MTEXT250-byte chunk boundary. This checks
+    // payload preservation and stored command text, not text rendering.
+    const std::string multiline = std::string(241, 'A') + literal + "\\Ptail";
+    for (const DRW::Version version : {DRW::AC1018, DRW::AC1021}) {
+        for (const bool binary : {false, true}) {
+            const auto path = std::filesystem::temp_directory_path()
+                / ("libdxfrw-mif-literal-" + std::to_string(stamp) + "-"
+                   + std::to_string(static_cast<int>(version))
+                   + (binary ? "-binary.dxf" : "-ascii.dxf"));
+            struct Cleanup {
+                std::filesystem::path path;
+                ~Cleanup() { std::error_code error; std::filesystem::remove(path, error); }
+            } cleanup{path};
+            auto source = std::make_unique<dx_data>();
+            source->headerC.addStr("$DWGCODEPAGE", "ANSI_1252", 3);
+            auto* text = new DRW_Text();
+            text->height = 1;
+            text->text = literal;
+            source->mBlock->ent.push_back(text);
+            auto* mtext = new DRW_MText();
+            mtext->height = 1;
+            mtext->text = multiline;
+            source->mBlock->ent.push_back(mtext);
+            auto* line = new DRW_Line();
+            line->basePoint = {34, 35, 36};
+            line->secPoint = {37, 38, 39};
+            source->mBlock->ent.push_back(line);
+            for (int pass = 0; pass != 2; ++pass) {
+                PreparedDxInterface exporter;
+                exporter.attach(source.get());
+                t.expect(exporter.fileExport(path.string(), version, binary, source.get(), false),
+                         "literal unavailable MIF exports in legacy/UTF8 ASCII/binary drawings");
+                std::vector<MTextWireChunk> chunks;
+                t.expect(readMTextWireChunks(path, binary, chunks) && chunks.size() == 2
+                             && chunks[0].code == 3 && chunks[0].value.size() == 250
+                             && chunks[0].value == multiline.substr(0, 250)
+                             && chunks[0].value.substr(247) == "\\M+"
+                             && chunks[1].code == 1 && chunks[1].value == multiline.substr(250)
+                             && chunks[1].value.compare(0, 5, "48861") == 0,
+                         "actual MTEXT group3/group1 payloads straddle the unavailable MIF token before readback");
+                auto imported = std::make_unique<dx_data>();
+                PreparedDxInterface reader;
+                reader.attach(imported.get());
+                const bool read = reader.fileImport(path.string(), imported.get(), false);
+                t.expect(read && imported->mBlock != nullptr && imported->mBlock->ent.size() == 3,
+                         "repeated MIF handoff retains both text records and the following LINE");
+                if (!read || imported->mBlock == nullptr || imported->mBlock->ent.size() != 3)
+                    break;
+                auto entity = imported->mBlock->ent.begin();
+                const auto* decodedText = dynamic_cast<const DRW_Text*>(*entity++);
+                const auto* decodedMText = dynamic_cast<const DRW_MText*>(*entity++);
+                const auto* decodedLine = dynamic_cast<const DRW_Line*>(*entity);
+                t.expect(decodedText != nullptr && decodedText->eType == DRW::TEXT
+                             && decodedText->text == literal && decodedMText != nullptr
+                             && decodedMText->text == multiline && decodedLine != nullptr
+                             && decodedLine->eType == DRW::LINE && decodedLine->basePoint.x == 34
+                             && decodedLine->secPoint.z == 39,
+                         "literal MIF remains exact through TEXT/MTEXT chunk assembly and successive reads");
+                source = std::move(imported);
+            }
+        }
+    }
 }
 
 void testMalformedUtf8(TestContext& t) {
@@ -359,8 +515,7 @@ void testDxfWriters(TestContext& t) {
     DRW_Header header;
     header.addStr("$DWGCODEPAGE", "ANSI_1252", 3);
     header.addStr("$DWGCODEPAGE", "ANSI_936", 3);
-    std::string value;
-    t.expect(header.getStr("$DWGCODEPAGE", &value) && value == "ANSI_936",
+    t.expect(headerString(header, "$DWGCODEPAGE") == "ANSI_936",
              "duplicate DWG codepage header is replaced deterministically");
 }
 
@@ -493,8 +648,7 @@ void testDxfModelRoundTrip(TestContext& t) {
         const bool readOk = importer.fileImport(path.string(), &imported, false);
         t.expect(readOk, binary ? "binary CP936 model import succeeds"
                                 : "ASCII CP936 model import succeeds");
-        std::string codePage;
-        imported.headerC.getStr("$DWGCODEPAGE", &codePage);
+        const std::string codePage = headerString(imported.headerC, "$DWGCODEPAGE");
         t.expect(codePage == "ANSI_936",
                  binary ? "binary round-trip preserves ANSI_936 header"
                         : "ASCII round-trip preserves ANSI_936 header");
@@ -645,8 +799,16 @@ void testPublicDwgCodePageSnapshot(TestContext& t) {
 
 } // namespace
 
-int main() {
+int main(int argc, char** argv) {
     TestContext context;
+    testMifEscapePolicy(context);
+    testMifLiteralModelRoundTrip(context);
+    if (argc == 2 && std::string(argv[1]) == "--mif-policy") {
+        std::cout << "MIF policy controls: " << (context.failures == 0 ? "PASS" : "FAIL") << '\n';
+        return context.failures == 0 ? 0 : 1;
+    }
+    if (argc != 1)
+        return 2;
     testCodePageAliases(context);
     testMalformedUtf8(context);
     testReaderSourceState(context);

@@ -10,7 +10,8 @@ strict compile reproduces the missing names; the LC3 callback mirror cannot
 cover that API. Add the explicit input-only recovery contract and its fast
 gate without changing default decoding, export encoding or2D projection.
 Reviewed BLOCK callback and WIPEOUT converter candidates remain isolated;
-the MIF candidate remains staged, not committed. Current FreeCAD preference/
+narrow MIF literal/exact-hex preservation is integrated with fresh main fast
+checks recorded in the parity ledger. Current FreeCAD preference/
 post-processing source calibrations refine future native packets, not earlier
 pinned runtime results. All six external J items remain DEFERRED_EXTERNAL and
 cannot promote support claims. The detailed research and integration order
