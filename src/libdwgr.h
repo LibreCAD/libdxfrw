@@ -228,6 +228,13 @@ class dwgRW {
 public:
     explicit dwgRW(const char* name);
     ~dwgRW();
+    /// Whole-document read/readBuffer/write/getPreview/testReader operations
+    /// are not reentrant on one instance. A nested call returns false without
+    /// changing the active operation's error, diagnostic or destination. Use
+    /// another facade for nested work. Getters, record writers, registration
+    /// and DataStorage hooks retain their existing phase contracts. This is
+    /// not a thread-safety guarantee. Binary consumers must rebuild against
+    /// the updated headers; the private admission state changes object layout.
     //read: return true if all ok
     [[nodiscard]] bool read(DRW_Interface *interface_, bool ext);
     [[nodiscard]] bool readBuffer(const std::uint8_t *data, std::uint64_t size,
@@ -700,6 +707,7 @@ private:
     bool writeDwgObjectsForTest();
     bool emitDeferredBlockControlForTest();
 
+    class WholeOperationScope;
     struct DwgWriteTransaction;
 
     enum class WriteSkipKind {
@@ -832,12 +840,14 @@ private:
     bool m_failNextFieldClassRegistrationForTest { false };
     bool m_failAfterFirstBlockOwnedEntityForTest { false };
     DRW_OperationDiagnostic m_lastDiagnostic;
+    bool m_wholeOperationActive {false};
 
 };
 
 /// Deprecated read-only façade retained for source compatibility.  It owns
 /// the new implementation rather than inheriting from a class with a
 /// non-virtual destructor, and forwards the complete historical read surface.
+/// Its owned implementation also rejects overlapping whole-document calls.
 class dwgR {
 public:
     explicit dwgR(const char* name);

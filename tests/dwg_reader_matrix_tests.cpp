@@ -1,7 +1,16 @@
 #include <array>
+#include <chrono>
 #include <cstring>
+#include <filesystem>
+#include <fstream>
+#include <functional>
+#include <iomanip>
 #include <iostream>
+#include <iterator>
+#include <map>
 #include <memory>
+#include <sstream>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
@@ -33,6 +42,317 @@ struct TestContext {
         }
     }
 };
+
+void appendAdmissionDiagnostic(std::ostream& out, const DRW_OperationDiagnostic& value) {
+    out << static_cast<int>(value.operation) << ':';
+    const auto append = [&out](const auto& entry) {
+        out << static_cast<int>(entry.phase) << ':' << static_cast<int>(entry.cause)
+            << ':' << std::quoted(entry.code) << ':' << std::quoted(entry.message)
+            << ':' << entry.offset << ':' << entry.handle << ':' << entry.hasOffset
+            << ':' << entry.hasHandle << ';';
+    };
+    append(value);
+    out << value.secondary.size() << ':';
+    for (const auto& entry : value.secondary) append(entry);
+}
+
+// Public snapshots plus physical prefix/suffix readback avoid a private-member
+// macro or a new production test-access API at this lifecycle boundary.
+std::string admissionState(dwgRW& owner) {
+    std::ostringstream out;
+    appendAdmissionDiagnostic(out, owner.getLastDiagnostic());
+    const auto skip = owner.getWriteSkipCounters();
+    out << owner.getError() << ':' << owner.getVersion() << ':' << std::quoted(owner.getCodePage())
+        << ':' << owner.dwgReadObjectBudget() << ':' << owner.hasDwgWriteFailure()
+        << ':' << owner.getSuccessfulEntityWriteCount() << ':' << owner.getLastSuccessfulEntityHandle()
+        << ':' << skip.entityWrites << ':' << skip.tableRecordWrites << ':' << skip.objectWrites
+        << ':' << skip.classRegistrations << ':' << skip.rawObjectWrites << ':' << skip.rawSectionWrites
+        << ':' << skip.blockDefinitions << ':' << owner.getEntityParseFailures()
+        << ':' << owner.getObjectParseFailures() << ':' << owner.getClassesCrcMismatch()
+        << ':' << owner.getR2007CrcMismatch() << ':' << owner.getR2004CrcMismatch()
+        << ':' << owner.getDataStorageLinkFailures() << ':' << owner.getDataStorageOrphanRecords()
+        << ':' << owner.getDecodedProxyPrimitives() << ':' << owner.getIntegrityDiagnosticsDropped();
+    for (const auto& diagnostic : owner.getIntegrityDiagnostics()) {
+        out << '|' << diagnostic.version << ':' << static_cast<int>(diagnostic.severity)
+            << ':' << static_cast<int>(diagnostic.offsetSpace) << ':' << static_cast<int>(diagnostic.phase)
+            << ':' << static_cast<int>(diagnostic.kind) << ':' << diagnostic.logicalSectionId
+            << ':' << diagnostic.sectionDescriptorId << ':' << std::quoted(diagnostic.sectionName)
+            << ':' << diagnostic.pageId << ':' << diagnostic.fileOffset << ':' << diagnostic.logicalHandle
+            << ':' << diagnostic.expected << ':' << diagnostic.observed << ':' << diagnostic.hasPageId
+            << ':' << diagnostic.hasFileOffset << ':' << diagnostic.hasLogicalHandle
+            << ':' << diagnostic.hasExpected << ':' << diagnostic.hasObserved;
+    }
+    const auto appendMap = [&out](const auto& values) {
+        out << '|';
+        for (const auto& entry : std::map<std::string, std::size_t>(values.begin(), values.end()))
+            out << std::quoted(entry.first) << ':' << entry.second << ';';
+    };
+    appendMap(owner.getSkippedCustomClasses());
+    appendMap(owner.getSkippedUnsupportedObjects());
+    out << '|';
+    for (const auto& name : owner.getLayerNameOrder()) out << std::quoted(name) << ';';
+    out << '|';
+    for (const auto& name : owner.getLtypeNameOrder()) out << std::quoted(name) << ';';
+    std::vector<std::uint32_t> handles;
+    out << '|' << owner.getEmittedDwgTableRecordHandles(handles) << ':';
+    for (const auto handle : handles) out << handle << ';';
+    DRW::DwgObjectFrameReceipt frame;
+    out << '|' << owner.getLastDwgObjectFrame(frame) << ':' << frame.valid << ':' << frame.generation
+        << ':' << frame.objectHandle << ':' << frame.version << ':' << frame.dataBitSize
+        << ':' << frame.handleBitSize << ':' << frame.classNumber << ':' << frame.writerOperation
+        << ':' << frame.admissionToken;
+    for (const auto& occurrence : frame.occurrences) {
+        out << '|' << occurrence.objectHandle << ':' << static_cast<int>(occurrence.stream)
+            << ':' << static_cast<int>(occurrence.serializedSegment) << ':' << occurrence.segmentOrdinal
+            << ':' << static_cast<int>(occurrence.token.code) << ':' << occurrence.token.reference
+            << ':' << occurrence.token.startBit << ':' << occurrence.token.endBit;
+    }
+    return out.str();
+}
+
+class AdmissionInterface final : public dx_iface {
+public:
+    explicit AdmissionInterface(dwgRW* owner = nullptr) : codec(owner) {
+        cData = &data;
+        currentBlock = data.mBlock;
+        layer.name = "ADMISSION_LAYER";
+        app.name = "ADMISSION_APP";
+        for (int i = 0; i < 2; ++i) {
+            input[i].layer = layer.name;
+            input[i].basePoint = {1.0 + i * 6, 2.0 + i * 6, 3.0 + i * 6};
+            input[i].secPoint = {4.0 + i * 6, 5.0 + i * 6, 6.0 + i * 6};
+        }
+    }
+    void addLine(const DRW_Line& line) override {
+        lines.push_back(line);
+        if (lines.size() == 1u && callback) callback();
+    }
+    void addHeader(const DRW_Header* value) override {
+        dx_iface::addHeader(value);
+        if (headerCallback) headerCallback();
+    }
+    void writeHeader(DRW_Header&) override {}
+    void writeDwgClasses() override { ++phaseHooks; }
+    void collectDwgAppIds() override { ++phaseHooks; }
+    void writeBlocks() override {}
+    void writeBlockRecords() override {}
+    void writeLTypes() override {}
+    void writeLayers() override { recordsOkay = codec->addLayer(&layer) && recordsOkay; }
+    void writeTextstyles() override {}
+    void writeVports() override {}
+    void writeDimstyles() override {}
+    void writeObjects() override {}
+    void writeAppId() override { recordsOkay = codec->addAppId(&app) && recordsOkay; }
+    void writeEntities() override {
+        ++writeCalls;
+        const auto transaction = codec->beginDwgWriteTransaction();
+        recordsOkay = transaction != 0 && recordsOkay;
+        for (int i = 0; i < 2; ++i) {
+            // Exercise provenance hooks without qualifying DataStorage payloads.
+            recordsOkay = codec->setDwgObjectFrameProvenance(0, 0, 0) && recordsOkay;
+            codec->clearDwgObjectFrameProvenance();
+            recordsOkay = codec->writeLine(&input[i]) && recordsOkay;
+            if (i == 0 && callback) callback();
+        }
+        recordsOkay = codec->commitDwgWriteTransaction(transaction) && recordsOkay;
+    }
+    dwgRW* codec;
+    std::function<void()> callback;
+    std::function<void()> headerCallback;
+    std::vector<DRW_Line> lines;
+    bool recordsOkay {true};
+    int writeCalls {0}, phaseHooks {0};
+private:
+    dx_data data;
+    DRW_Layer layer;
+    DRW_AppId app;
+    std::array<DRW_Line, 2> input;
+};
+
+bool admissionLinesMatch(const AdmissionInterface& sink) {
+    return sink.lines.size() == 2u && sink.lines[0].basePoint.x == 1
+        && sink.lines[0].secPoint.z == 6 && sink.lines[1].basePoint.x == 7
+        && sink.lines[1].secPoint.z == 12 && sink.lines[0].layer == "ADMISSION_LAYER"
+        && sink.lines[1].layer == "ADMISSION_LAYER";
+}
+
+void testDwgOperationAdmission(TestContext& t) {
+    const auto root = std::filesystem::temp_directory_path()
+        / ("libdxfrw-dwg-admission-" + std::to_string(
+            std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::error_code error;
+    if (!std::filesystem::create_directory(root, error)) {
+        t.expect(false, "DWG admission owns an exclusive scratch directory");
+        return;
+    }
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() { std::error_code ignored; std::filesystem::remove_all(path, ignored); }
+    } cleanup{root};
+    const auto bytes = [](const std::filesystem::path& path) {
+        std::ifstream stream(path, std::ios::binary);
+        return std::string(std::istreambuf_iterator<char>(stream), {});
+    };
+    for (const auto version : {DRW::AC1015, DRW::AC1027}) {
+        const auto path = root / (std::to_string(static_cast<int>(version)) + ".dwg");
+        const auto otherPath = root / "other.dwg";
+        const std::string filename = path.u8string();
+        dwgRW generator(filename.c_str());
+        AdmissionInterface source(&generator);
+        t.expect(generator.write(&source, version, true) && source.recordsOkay && source.phaseHooks == 2,
+                 "DWG lifecycle source uses ordinary table, provenance and record hooks");
+        const std::string original = bytes(path);
+        const std::vector<std::uint8_t> buffer(original.begin(), original.end());
+        const auto restore = [&](const std::filesystem::path& target) {
+            std::ofstream stream(target, std::ios::binary | std::ios::trunc);
+            stream.write(original.data(), static_cast<std::streamsize>(original.size()));
+            return stream.good();
+        };
+        for (int outer = 0; outer < 3; ++outer) {
+            for (int nested = 0; nested < 5; ++nested) {
+                t.expect(restore(path), "DWG admission restores only its generated input");
+                dwgRW owner(filename.c_str());
+                AdmissionInterface sink(&owner);
+                int attempts = 0;
+                sink.callback = [&]() {
+                    ++attempts;
+                    const std::string state = admissionState(owner), destination = bytes(path);
+                    AdmissionInterface rejected(&owner);
+                    const bool accepted = nested == 0 ? owner.read(&rejected, true)
+                        : nested == 1 ? owner.readBuffer(buffer.data(), buffer.size(), &rejected, true)
+                        : nested == 2 ? owner.write(&rejected, version, false)
+                        : nested == 3 ? owner.getPreview() : owner.testReader();
+                    t.expect(!accepted && rejected.lines.empty() && rejected.writeCalls == 0,
+                             "same DWG facade rejects each whole-operation entry before callbacks");
+                    t.expect(!owner.read(nullptr, true)
+                                 && !owner.readBuffer(nullptr, 6, nullptr, true)
+                                 && !owner.write(nullptr, DRW::UNKNOWNV, false),
+                             "DWG admission precedes nested argument and version validation");
+                    t.expect(admissionState(owner) == state && bytes(path) == destination,
+                             "nested DWG rejection preserves live results, diagnostics and destination");
+                    t.expect(restore(otherPath), "different-facade source is independent of outer output");
+                    const std::string otherName = otherPath.u8string();
+                    dwgRW other(otherName.c_str());
+                    AdmissionInterface independent(&other);
+                    const bool otherOkay = nested == 0 ? other.read(&independent, false)
+                        : nested == 2 ? other.write(&independent, version, true)
+                        : nested == 1 ? other.readBuffer(buffer.data(), buffer.size(), &independent, false)
+                        : nested == 3 ? other.getPreview() : other.testReader();
+                    const bool otherResult = nested < 3
+                        ? otherOkay && (nested == 2 ? independent.recordsOkay : admissionLinesMatch(independent))
+                        : !otherOkay && other.getLastDiagnostic().operation == DRW::OperationKind::Read
+                            && (nested == 3 ? other.getError() == DRW::BAD_READ_METADATA && other.getVersion() == version
+                                            : other.getError() == DRW::BAD_NONE && other.getVersion() == DRW::UNKNOWNV);
+                    t.expect(otherResult, "another DWG facade retains each entry's normal callback-time contract");
+                    t.expect(admissionState(owner) == state && bytes(path) == destination,
+                             "independent callback work does not change the outer DWG facade");
+                };
+                const bool okay = outer == 0 ? owner.read(&sink, false)
+                    : outer == 1 ? owner.readBuffer(buffer.data(), buffer.size(), &sink, false)
+                                 : owner.write(&sink, version, true);
+                t.expect(okay && attempts == 1 && owner.getError() == DRW::BAD_NONE
+                             && (outer == 2 ? sink.recordsOkay : admissionLinesMatch(sink)),
+                         "DWG outer operation retains both records after rejected nesting");
+                AdmissionInterface sequential(&owner);
+                t.expect(owner.read(&sequential, false) && admissionLinesMatch(sequential),
+                         "DWG operation releases admission for sequential file reuse");
+            }
+        }
+        // Preview has no consumer callback in the current implementation.
+        // Preserve its unsupported-preview result, not an invented outer matrix.
+        dwgRW preview(filename.c_str());
+        t.expect(!preview.getPreview() && preview.getError() == DRW::BAD_READ_METADATA,
+                 "generated DWG retains the existing unsupported-preview contract");
+        AdmissionInterface afterPreview(&preview);
+        t.expect(preview.read(&afterPreview, false) && admissionLinesMatch(afterPreview),
+                 "unsupported preview releases admission for a full read");
+        dwgRW diagnosticReader(filename.c_str());
+        t.expect(!diagnosticReader.testReader() && diagnosticReader.getError() == DRW::BAD_NONE,
+                 "legacy diagnostic reader retains its false-without-parse-error result");
+        AdmissionInterface afterDiagnostic(&diagnosticReader);
+        t.expect(diagnosticReader.read(&afterDiagnostic, false) && admissionLinesMatch(afterDiagnostic),
+                 "legacy diagnostic entry releases admission for a full read");
+
+        for (int nested = 0; nested < 3; ++nested) {
+            dwgR legacy(filename.c_str());
+            AdmissionInterface sink;
+            int attempts = 0;
+            sink.callback = [&]() {
+                ++attempts;
+                std::ostringstream before;
+                appendAdmissionDiagnostic(before, legacy.getLastDiagnostic());
+                const auto errorBefore = legacy.getError();
+                const auto versionBefore = legacy.getVersion();
+                const auto codePage = legacy.getCodePage(), destination = bytes(path);
+                AdmissionInterface rejected;
+                const bool accepted = nested == 0 ? legacy.read(&rejected, true)
+                    : nested == 1 ? legacy.getPreview() : legacy.testReader();
+                std::ostringstream after;
+                appendAdmissionDiagnostic(after, legacy.getLastDiagnostic());
+                t.expect(!accepted && before.str() == after.str() && legacy.getError() == errorBefore
+                             && legacy.getVersion() == versionBefore && legacy.getCodePage() == codePage
+                             && bytes(path) == destination,
+                         "deprecated DWG forwarding shares implementation admission exactly once");
+            };
+            t.expect(legacy.read(&sink, false) && attempts == 1 && admissionLinesMatch(sink),
+                     "deprecated DWG facade continues its outer callbacks");
+            sink.callback = {};
+            sink.lines.clear();
+            t.expect(legacy.read(&sink, false) && admissionLinesMatch(sink),
+                     "deprecated DWG facade releases admission for sequential reuse");
+        }
+        dwgRW reusable(filename.c_str());
+        AdmissionInterface reuse(&reusable);
+        t.expect(!reusable.read(nullptr, false), "DWG null-interface read rejects");
+        t.expect(reusable.read(&reuse, false), "DWG early read failure releases admission");
+        t.expect(!reusable.readBuffer(nullptr, 6, &reuse, false), "DWG invalid-buffer read rejects");
+        reuse.lines.clear();
+        t.expect(reusable.readBuffer(buffer.data(), buffer.size(), &reuse, false) && admissionLinesMatch(reuse),
+                 "DWG early buffer failure releases admission");
+        t.expect(!reusable.write(&reuse, DRW::UNKNOWNV, true), "DWG unsupported write rejects");
+        t.expect(reusable.write(&reuse, version, true) && reuse.recordsOkay,
+                 "DWG early write failure releases admission");
+        for (const bool memory : {false, true}) {
+            reuse.lines.clear();
+            reuse.headerCallback = []() { throw std::runtime_error("DWG header admission callback"); };
+            bool caught = false;
+            bool readOkay = true;
+            try {
+                readOkay = memory ? reusable.readBuffer(buffer.data(), buffer.size(), &reuse, false)
+                                  : reusable.read(&reuse, false);
+            } catch (const std::runtime_error&) { caught = true; }
+            t.expect(!caught && !readOkay && reusable.getError() == DRW::BAD_READ_HEADER
+                         && reusable.getLastDiagnostic().cause == DRW::OperationCause::CallbackException,
+                     "DWG header callback retains existing contained-exception classification");
+            reuse.headerCallback = {};
+            reuse.lines.clear();
+            t.expect(reusable.readBuffer(buffer.data(), buffer.size(), &reuse, false) && admissionLinesMatch(reuse),
+                     "DWG read callback exception releases admission");
+        }
+        const std::string previous = bytes(path);
+        reuse.callback = []() { throw std::runtime_error("DWG write admission callback"); };
+        t.expect(!reusable.write(&reuse, version, true)
+                     && reusable.getLastDiagnostic().cause == DRW::OperationCause::CallbackException
+                     && bytes(path) == previous,
+                 "DWG write callback failure retains classification and atomic destination");
+        reuse.callback = {};
+        t.expect(reusable.write(&reuse, version, true) && reuse.recordsOkay,
+                 "DWG write catch releases admission for reuse");
+        for (int entry = 0; entry < 3; ++entry) {
+            const std::string missingName = (root / ("missing-" + std::to_string(entry) + ".dwg")).u8string();
+            dwgRW missing(missingName.c_str());
+            AdmissionInterface afterMissing(&missing);
+            const bool opened = entry == 0 ? missing.read(&afterMissing, false)
+                : entry == 1 ? missing.getPreview() : missing.testReader();
+            t.expect(!opened && missing.getError() == DRW::BAD_OPEN,
+                     "DWG file-backed entry preserves its missing-file failure");
+            t.expect(missing.write(&afterMissing, version, true) && afterMissing.recordsOkay,
+                     "DWG missing-file failure releases admission for subsequent output");
+            std::error_code ignored;
+            std::filesystem::remove(std::filesystem::u8path(missingName), ignored);
+        }
+    }
+}
 
 void testVersionDispatch(TestContext& t) {
     struct ReaderCase {
@@ -212,6 +532,7 @@ void testR2007ClassStringFooter(TestContext& t) {
 
 int main() {
     TestContext context;
+    testDwgOperationAdmission(context);
     testVersionDispatch(context);
     testReadBufferRejection(context);
     testSectionNameMatrix(context);

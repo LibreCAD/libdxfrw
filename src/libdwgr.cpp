@@ -457,6 +457,29 @@ dwgR::dwgR(const char* name)
 
 dwgR::~dwgR() = default;
 
+// Public entries acquire this before diagnostics or session mutation. Private
+// read delegation and callback-driven record operations share the admitted
+// lifetime without acquiring a second scope.
+class dwgRW::WholeOperationScope final {
+public:
+    explicit WholeOperationScope(dwgRW& owner) noexcept
+        : m_owner(owner), m_admitted(!owner.m_wholeOperationActive) {
+        if (m_admitted)
+            m_owner.m_wholeOperationActive = true;
+    }
+    ~WholeOperationScope() noexcept {
+        if (m_admitted)
+            m_owner.m_wholeOperationActive = false;
+    }
+    bool admitted() const noexcept { return m_admitted; }
+    WholeOperationScope(const WholeOperationScope&) = delete;
+    WholeOperationScope& operator=(const WholeOperationScope&) = delete;
+
+private:
+    dwgRW& m_owner;
+    const bool m_admitted;
+};
+
 dwgRW::DwgEntityWriteState dwgRW::captureEntityWriteState(
     DRW_Entity *entity) const {
     DwgEntityWriteState state;
@@ -681,6 +704,9 @@ void dwgRW::setDebug(DRW::DebugLevel lvl){
 
 /*reads metadata and loads image preview*/
 bool dwgRW::getPreview(){
+    WholeOperationScope operation(*this);
+    if (!operation.admitted())
+        return false;
     bool isOk = false;
     beginOperationDiagnostic(DRW::OperationKind::Read);
     error = DRW::BAD_NONE;
@@ -710,6 +736,9 @@ bool dwgRW::getPreview(){
 }
 
 bool dwgRW::testReader(){
+    WholeOperationScope operation(*this);
+    if (!operation.admitted())
+        return false;
     bool isOk = false;
     beginOperationDiagnostic(DRW::OperationKind::Read);
 
@@ -775,6 +804,9 @@ bool dwgRW::testReader(){
 
 /*start reading dwg file header and, if can read it, continue reading all*/
 bool dwgRW::read(DRW_Interface *interface_, bool ext){
+    WholeOperationScope operation(*this);
+    if (!operation.admitted())
+        return false;
     bool isOk = false;
     beginOperationDiagnostic(DRW::OperationKind::Read);
     error = DRW::BAD_NONE;
@@ -805,6 +837,9 @@ bool dwgRW::read(DRW_Interface *interface_, bool ext){
 
 bool dwgRW::readBuffer(const std::uint8_t *data, std::uint64_t size,
                        DRW_Interface *interface_, bool ext) {
+    WholeOperationScope operation(*this);
+    if (!operation.admitted())
+        return false;
     beginOperationDiagnostic(DRW::OperationKind::Read);
     error = DRW::BAD_NONE;
     version = DRW::UNKNOWNV;
@@ -1344,7 +1379,11 @@ bool dwgRW::encodeEntityForWrite(DRW_Entity *ent,
     return recordWriteResult(WriteSkipKind::Entity, true);
 }
 
-bool dwgRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) try {
+bool dwgRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) {
+    WholeOperationScope operation(*this);
+    if (!operation.admitted())
+        return false;
+    try {
     // The 'bin' parameter is accepted only for signature symmetry with
     // dxfRW::write — DWG is always binary on disk.
     (void)bin;
@@ -1545,6 +1584,8 @@ catch (...) {
         "callback-exception", "a consumer callback threw during DWG write");
     error = DRW::BAD_OPEN;
     return false;
+}
+
 }
 
 // Per-entity write API — invoked from the caller's `writeEntities`
