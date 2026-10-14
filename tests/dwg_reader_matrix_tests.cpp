@@ -11,6 +11,7 @@
 #include <limits>
 #include <map>
 #include <memory>
+#include <new>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -40,6 +41,7 @@
 #include "intern/dwgwriter24.h"
 #include "intern/dwgwriter27.h"
 #include "intern/dwgwriter32.h"
+#include "intern/dwgsafety.h"
 
 namespace {
 
@@ -60,6 +62,147 @@ struct TestContext {
         }
     }
 };
+
+struct RangeComparisonCounter {
+    explicit RangeComparisonCounter(std::size_t* count = nullptr) : count(count) {}
+    bool operator()(std::uint64_t lhs, std::uint64_t rhs) const noexcept {
+        if (count != nullptr)
+            ++*count;
+        return lhs < rhs;
+    }
+    std::size_t* count;
+};
+
+struct RangeAllocationFailure {
+    static bool failNext;
+};
+
+bool RangeAllocationFailure::failNext = false;
+
+template <typename T>
+struct ThrowOnceAllocator {
+    using value_type = T;
+    template <typename U> struct rebind { using other = ThrowOnceAllocator<U>; };
+    ThrowOnceAllocator() = default;
+    template <typename U>
+    ThrowOnceAllocator(const ThrowOnceAllocator<U>&) noexcept {}
+
+    T* allocate(std::size_t count) {
+        if (RangeAllocationFailure::failNext) {
+            RangeAllocationFailure::failNext = false;
+            throw std::bad_alloc();
+        }
+        return std::allocator<T>{}.allocate(count);
+    }
+    void deallocate(T* value, std::size_t count) noexcept {
+        std::allocator<T>{}.deallocate(value, count);
+    }
+    template <typename U> bool operator==(const ThrowOnceAllocator<U>&) const noexcept {
+        return true;
+    }
+    template <typename U> bool operator!=(const ThrowOnceAllocator<U>&) const noexcept {
+        return false;
+    }
+};
+
+void testDisjointRangeIndex(TestContext& t) {
+    using Range = std::pair<std::uint64_t, std::uint64_t>;
+    std::vector<Range> candidates;
+    for (std::uint64_t start = 0; start < 6; ++start) {
+        for (std::uint64_t end = start + 1; end <= 6; ++end)
+            candidates.emplace_back(start, end);
+    }
+
+    bool differentialMatch = true;
+    for (const auto& first : candidates) {
+        for (const auto& second : candidates) {
+            for (const auto& third : candidates) {
+                dwgSafety::DisjointRangeIndex<> index;
+                std::vector<Range> reference;
+                for (const auto& range : {first, second, third}) {
+                    const bool expected = std::none_of(
+                        reference.cbegin(), reference.cend(),
+                        [&range](const Range& existing) {
+                            return range.first < existing.second
+                                && existing.first < range.second;
+                        });
+                    const bool observed = dwgSafety::tryInsertSectionPageRange(
+                        index, range.first, range.second - range.first)
+                        == dwgSafety::SectionPageRangeResult::Inserted;
+                    differentialMatch = differentialMatch
+                        && (observed == expected);
+                    if (expected)
+                        reference.push_back(range);
+                }
+            }
+        }
+    }
+    t.expect(differentialMatch,
+             "ordered interval admission matches first-arrival vector semantics for 9,261 triples");
+
+    dwgSafety::DisjointRangeIndex<> boundaries;
+    t.expect(dwgSafety::tryInsertSectionPageRange(boundaries, 0, 4)
+                     == dwgSafety::SectionPageRangeResult::Inserted
+                 && dwgSafety::tryInsertSectionPageRange(boundaries, 4, 5)
+                     == dwgSafety::SectionPageRangeResult::Inserted
+                 && dwgSafety::tryInsertSectionPageRange(boundaries, 3, 2)
+                     == dwgSafety::SectionPageRangeResult::Overlap
+                 && dwgSafety::tryInsertSectionPageRange(boundaries, 0, 1)
+                     == dwgSafety::SectionPageRangeResult::Overlap
+                 && dwgSafety::tryInsertSectionPageRange(boundaries, 8, 2)
+                     == dwgSafety::SectionPageRangeResult::Overlap
+                 && dwgSafety::tryInsertSectionPageRange(boundaries, 7, 0)
+                     == dwgSafety::SectionPageRangeResult::Empty,
+             "interval index accepts adjacency and rejects predecessor/successor overlap and empty ranges");
+    t.expect(dwgSafety::tryInsertSectionPageRange(
+                 boundaries, (std::numeric_limits<std::uint64_t>::max)(), 1)
+                 == dwgSafety::SectionPageRangeResult::Overflow,
+             "checked section range admission rejects overflowing interval ends");
+
+    const auto compareWork = [](std::size_t count, int order) {
+        std::size_t comparisons = 0;
+        dwgSafety::DisjointRangeIndex<RangeComparisonCounter> index(
+            RangeComparisonCounter{&comparisons});
+        for (std::size_t i = 0; i < count; ++i) {
+            std::size_t slot = i;
+            if (order == 1)
+                slot = count - i - 1;
+            else if (order == 2)
+                slot = (i * 197u) % count;
+            if (!index.insert(slot * 4u, slot * 4u + 2u))
+                return std::numeric_limits<std::size_t>::max();
+        }
+        return comparisons;
+    };
+    for (int order = 0; order < 3; ++order) {
+        const std::size_t small = compareWork(128, order);
+        const std::size_t large = compareWork(512, order);
+        t.expect(small < 128u * 40u && large < 512u * 40u
+                     && large < small * 8u,
+                 "128/512 interval comparison envelopes remain ordered-logarithmic across insertion orders");
+    }
+
+    using FailingRangeIndex = dwgSafety::DisjointRangeIndex<
+        std::less<std::uint64_t>,
+        ThrowOnceAllocator<std::pair<const std::uint64_t, std::uint64_t>>>;
+    FailingRangeIndex recoverable;
+    const bool firstInserted = dwgSafety::tryInsertSectionPageRange(
+        recoverable, 0, 2)
+        == dwgSafety::SectionPageRangeResult::Inserted;
+    RangeAllocationFailure::failNext = true;
+    const bool reportedResourceFailure = dwgSafety::tryInsertSectionPageRange(
+        recoverable, 4, 6)
+        == dwgSafety::SectionPageRangeResult::ResourceFailure;
+    const bool retainedAfterFailure = recoverable.size() == 1;
+    const bool recovered = dwgSafety::tryInsertSectionPageRange(
+        recoverable, 4, 6)
+        == dwgSafety::SectionPageRangeResult::Inserted;
+    const bool insertedAfterRecovery = recoverable.size() == 2;
+    recoverable.clear();
+    t.expect(firstInserted && reportedResourceFailure && retainedAfterFailure && recovered
+                 && insertedAfterRecovery && recoverable.empty(),
+             "allocation failure leaves the staged range index reusable and clearable");
+}
 
 void appendAdmissionDiagnostic(std::ostream& out, const DRW_OperationDiagnostic& value) {
     out << static_cast<int>(value.operation) << ':';
@@ -1525,6 +1668,7 @@ void testTemplatePublicMatrix(TestContext& t) {
 
 int main() {
     TestContext context;
+    testDisjointRangeIndex(context);
     testBoundedFork(context);
     testHeaderSectionBounds(context);
     testHeaderVersionEnvelopes(context);

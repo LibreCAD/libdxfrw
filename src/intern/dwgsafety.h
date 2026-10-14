@@ -15,9 +15,51 @@
 #define DWGSAFETY_H
 
 #include <cstdint>
+#include <functional>
+#include <iterator>
 #include <limits>
+#include <map>
+#include <memory>
+#include <utility>
 
 namespace dwgSafety {
+
+/// Ordered set of disjoint, non-empty half-open intervals [start, end).
+/// Insertions preserve adjacency and reject any overlap in O(log n). The
+/// comparator/allocator template parameters keep the helper independently
+/// testable without changing reader policy or format-specific window checks.
+template <typename Compare = std::less<std::uint64_t>,
+          typename Allocator = std::allocator<
+              std::pair<const std::uint64_t, std::uint64_t>>>
+class DisjointRangeIndex {
+public:
+    using Map = std::map<std::uint64_t, std::uint64_t, Compare, Allocator>;
+
+    explicit DisjointRangeIndex(
+        const Compare& compare = Compare{},
+        const Allocator& allocator = Allocator{})
+        : m_ranges(compare, allocator) {}
+
+    bool insert(std::uint64_t start, std::uint64_t end) {
+        if (start >= end)
+            return false;
+        const auto successor = m_ranges.lower_bound(start);
+        if (successor != m_ranges.end() && successor->first < end)
+            return false;
+        if (successor != m_ranges.begin()
+            && std::prev(successor)->second > start)
+            return false;
+        m_ranges.emplace_hint(successor, start, end);
+        return true;
+    }
+
+    std::size_t size() const noexcept { return m_ranges.size(); }
+    bool empty() const noexcept { return m_ranges.empty(); }
+    void clear() noexcept { m_ranges.clear(); }
+
+private:
+    Map m_ranges;
+};
 
 constexpr std::uint64_t MaxBufferSize = 0x2f000000;
 // ODS describes HANDLES groups as 2032 bytes, but real legacy files and
@@ -76,6 +118,35 @@ inline bool add(std::uint64_t lhs, std::uint64_t rhs, std::uint64_t& result) {
         return false;
     result = lhs + rhs;
     return true;
+}
+
+enum class SectionPageRangeResult : std::uint8_t {
+    Inserted,
+    Empty,
+    Overflow,
+    Overlap,
+    ResourceFailure
+};
+
+/// Validate and add one version-specific logical section window. Callers pass
+/// R2004's maxSize/size window or R2007's page uncompressed size; this helper
+/// only owns checked half-open interval admission and allocation-failure
+/// classification.
+template <typename Index>
+SectionPageRangeResult tryInsertSectionPageRange(
+    Index& index, std::uint64_t start, std::uint64_t length) noexcept {
+    if (length == 0)
+        return SectionPageRangeResult::Empty;
+    std::uint64_t end = 0;
+    if (!add(start, length, end))
+        return SectionPageRangeResult::Overflow;
+    try {
+        return index.insert(start, end)
+            ? SectionPageRangeResult::Inserted
+            : SectionPageRangeResult::Overlap;
+    } catch (...) {
+        return SectionPageRangeResult::ResourceFailure;
+    }
 }
 
 inline bool multiply(std::uint64_t lhs, std::uint64_t rhs,

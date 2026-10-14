@@ -1076,16 +1076,7 @@ bool dwgReader18::readFileHeader() {
                           secEnum::getEnum(secInfo.name), secInfo.Id);
             return false;
         }
-        std::vector<std::pair<std::uint64_t, std::uint64_t>> pageRanges;
-        if (secInfo.pageCount
-                > static_cast<std::uint64_t>(std::numeric_limits<int>::max())
-            || !DRW::reserve(pageRanges,
-                              static_cast<int>(secInfo.pageCount))) {
-            recordFailure(DwgIntegrityCheckKind::PageGeometry,
-                          DwgIntegrityPhase::SectionMap,
-                          secEnum::getEnum(secInfo.name), secInfo.Id);
-            return false;
-        }
+        dwgSafety::DisjointRangeIndex<> pageRanges;
         for (unsigned int i = 0; i < secInfo.pageCount; i++){
             std::uint32_t pn = buff3.getRawLong32();
             auto pageIt = sectionPageMapTmp.find(pn);
@@ -1119,24 +1110,18 @@ bool dwgReader18::readFileHeader() {
                               pn, true, pi.address, true);
                 return false;
             }
-            std::uint64_t pageEnd = 0;
-            if (!dwgSafety::add(pi.startOffset, pageWindow, pageEnd)) {
-                recordFailure(DwgIntegrityCheckKind::PageRange,
-                              DwgIntegrityPhase::SectionMap,
+            const auto admitted = dwgSafety::tryInsertSectionPageRange(
+                pageRanges, pi.startOffset, pageWindow);
+            if (admitted != dwgSafety::SectionPageRangeResult::Inserted) {
+                const auto kind = admitted
+                        == dwgSafety::SectionPageRangeResult::ResourceFailure
+                    ? DwgIntegrityCheckKind::PageGeometry
+                    : DwgIntegrityCheckKind::PageRange;
+                recordFailure(kind, DwgIntegrityPhase::SectionMap,
                               secEnum::getEnum(secInfo.name), secInfo.Id,
                               pn, true, pi.startOffset, true);
                 return false;
             }
-            for (const auto& range : pageRanges) {
-                if (pi.startOffset < range.second && range.first < pageEnd) {
-                    recordFailure(DwgIntegrityCheckKind::PageRange,
-                                  DwgIntegrityPhase::SectionMap,
-                                  secEnum::getEnum(secInfo.name), secInfo.Id,
-                                  pn, true, pi.startOffset, true);
-                    return false;
-                }
-            }
-            pageRanges.emplace_back(pi.startOffset, pageEnd);
             DRW_DBG("\n    Page number= "); DRW_DBGH(secInfo.pages[pn].Id);
             DRW_DBG("\n    size in file= "); DRW_DBGH(secInfo.pages[pn].size);
             DRW_DBG("\n    address in file= "); DRW_DBGH(secInfo.pages[pn].address);
