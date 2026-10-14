@@ -14,8 +14,9 @@ and HEADER/accepted-source CLI authority are committed with current-main
 gates. Numeric qualification admission is also integrated with affected Python
 gates and122 bound inputs unchanged during that gate. Corrected FreeCAD preflight is now
 integrated with strict LINE/endpoint controls, Linux temp mapping and fresh
-Python discovery checks. Next are the independent HATCH preservation test and
-configure-probe timeout follow-up, alongside ready reader/resource work. Declared
+Python discovery checks. HATCH physical/typed pattern retention is now covered
+in existing tests; projection migration/affine phase stays separate. Next is
+the configure-probe timeout follow-up, alongside ready reader/resource work. Declared
 text remains the default; peer HATCH transforms and legacy-ASCII oracle input
 need their named calibrations before broader comparison. Evidence bindings
 and bounded acceptance steps are recorded below.
@@ -271,6 +272,7 @@ Its historical binary diff SHA-256 is
 | 7AG.1b input-only LibreCAD text API | COMMITTED / SOURCE_API_SCOPED | `Plan-Slice:7AG.1b`, integrates reviewed ca7db684/90319104/2f7cc65 on d33e7ec, preserving committed canonical/HEADER/CLI/MIF/BLOCK/WIPEOUT/dictionary source. Declared default and persistent next-read snapshot apply to all four routes; callbacks/finalizers cannot reconfigure active reads or export. Exact seven-test/strict/facade source/artifact gate dbb4ec32 below remains unchanged after the documentation-only ancestor advance;29 source/artifact hashes and original patch9cb971 are rechecked, not retested/relabelled. Existing16-route/32-CLI/96-ordinary-load checkpoint is supplemental. No new virtual/registration/payload/dependency/receipt/native/ABI/support promotion. Broader capability/profile/effective-driver/typed-result and grammar/charset gates remain open; next numeric admission and corrected FreeCAD preflight. |
 | 7AH.3 qualification numeric admission | COMMITTED / NUMERIC_SCOPED | `Plan-Slice:7AH.3`, integrates independently reviewed528e37ae on243ed78. Recursive exponent-overflow/nonfinite JSON rejection and exact finite/non-Boolean/nonnegative tolerance admission run before immutable crosswalk equality; huge integer overflow rejects safely. Main CPython3.12 eight methods/72 reviewed cells and existing support/JSON/normalizer gates pass in9.43s total, with15 claims/two routes/zero advertised. Report9877485c below binds patch06857e6b and122 unchanged frozen inputs. New detailed unittest adds no CTest registration. No C++/CAD/second-interpreter rebuild, receipt refresh or support promotion. Broad schema/worker/native semantics stay open; next corrected FreeCAD preflight. |
 | Slice9/S8.9.5 local FreeCAD preflight | COMMITTED / LOCAL_PREFLIGHT_ONLY | `Plan-Slice:S8.9.preflight`, integrates reviewed e6e4e78→c2a9772c on f7cbcae: Linux TMPDIR, exact finite straight-LINE/authored endpoint validation and Python-before-registration order. Main reconfigure0.8s/no C++ rebuild; report300abd08 below binds32 mocked controls, exact executed CLI CTest1/1 in0.23s plus fresh discovered/explicit cache/argv and disclosed prebuilt-harness substitutions. Gateee51 rejects skipped/disabled/inverted outcomes and binds helper/tool/source/cache bytes. Main user sample inventory is not frozen. Installed clean-loader inspected only; native Linux/Windows, exact-two-native selection and durable packet remain open. No new registration/payload/dependency/receipt/support promotion; next configure-probe timeout and HATCH test controls. |
+| 7AH/7AQ/7N patterned-HATCH retention controls | COMMITTED / TEST_ONLY | `Plan-Slice:7AH.pattern-retention`, integrates independently approved owner-corrected e1bf40af on087c330, only the existing local-roundtrip test file. Two explicit nondefault lines per model/named HATCH,21 ordered physical pairs, typed fields/frame/closed boundary and actual unique model/named owners survive library/CLI handoffs without flattening.47 private predicate negatives are not migrated semantic comparison. Two-step affected build, strict TU/DXF-local2/2/four CLI routes/eight handoffs pass22 commands6.54s; reportbb3ffad3 below binds exact main source/artifacts/JUnit. Corrected5c0 candidate report preserves historical metadata error. No production red/fix, new registration/payload/API/renderer/native/support claim. Step2 profile migration and transformed-phase calibration remain separate; next configure-probe timeout and one composed safety checkpoint. |
 
 **API source checkpoint before integration:** reviewed
 ca7db684/90319104/2f7cc65 formed the eight-path patch on736ae70 bound above.
@@ -5311,11 +5313,30 @@ physical tags, not a nonexistent HATCH raw companion. The semantic adapter's
 generic HATCH projection excludes subtype data, so it is not pattern evidence.
 The next steps are deliberately test/oracle work, not a speculative parser fix:
 
-1. Add one custom two-line HATCH with distinct nonzero bases/offsets,
+1. **Retention step integrated:** add one custom two-line HATCH with distinct nonzero bases/offsets,
    positive/negative/zero ordered dashes and nondefault41/52. Compare exact
    typed fields/counts and ordered physical tags through ASCII/binary and
    source→output1→output2; include a named-BLOCK CLI path without flattening.
-   Use existing DXF/local executables. Change production only if a red appears.
+   Use existing DXF/local executables. No production red appeared; the
+   reviewed e1bf40af test-only slice is now integrated on087c330. It binds
+   two model/named HATCHs to unique actual model/named BLOCK_RECORDs and
+   retains the unexpanded BLOCK/INSERT definition.47 private deletion/value/
+   count/order predicate negatives prevent vacuity; these do not implement
+   step2's semantic profile/schema migration. Main two-step affected build,
+   strict TU and exact DXF/local2/2 plus four ASCII/binary CLI routes/eight
+   handoffs pass,22 bounded commands6.54s. Report
+   `/private/tmp/libdxfrw-continue-implementation.ZthU9a/hatch-main/checkpoint-report.json`,
+   SHA256`bb3ffad3a9acf695ba897dc115d72a6f8785c20e53d526ba9b4d038ba213b585`,
+   binds current source/test/archive/CLI and executed JUnit. Generated
+   snapshots remain scratch-only. Corrected candidate report
+   `/private/tmp/libdxfrw-hatch-pattern-preserve.baf4xX/candidate-report-corrected.json`,
+   SHA256`5c0c0779916011e93939d151afc60fac176407edbd6a45d7afb8638c8ae29a03`,
+   retracts only the earlier report's incorrect default-output-version label;
+   no source/results are changed or rerun by that report correction. The
+   independent owner-correction approval follows its immutable pending flag.
+   This is exact unexpanded OCS numeric/tag/owner preservation, not lexical
+   byte equality, ext=true/default2D behavior, renderer or independent-format
+   qualification. No production/API/registration/drawing fixture is added.
 2. When enabling a pattern projection, add base/offset/dash/global metadata
    deletion/change and line/dash reorder/count negatives through the named
    profile/schema migration. Preserve existing explicit subtype exclusions
@@ -7829,7 +7850,7 @@ work on the critical path.
 
 | Batch | Dependency-ready work | Validation boundary |
 | --- | --- | --- |
-| A — preserved integration queue | Canonical codec/HEADER/accepted-version prerequisites committed; current-API successors integrated with validated7/7/current facade/MIF; do not reapply. Numeric528e37ae and corrected e6e4e78→c2a9772c FreeCAD preflight integrated; next HATCH preservation tests/configure-probe timeout. Residual7AW0ee3bff2 remains independent. Preserve committed7AY/7AV/7AX/7AK/7BH/7AD; reconcile STYLE9c3a74c7 with cleanup and review BLOCK98176504 | Reuse exact staged API gate; numeric main Python gates pass. FreeCAD main/fresh discovery/32-predicate/CLI gates pass; native CAD remains separate.84/45/exact7 unchanged; enumerate only actual registration changes; no user-sample glob/full suite per edit |
+| A — preserved integration queue | Canonical codec/HEADER/accepted-version prerequisites committed; current-API successors integrated with validated7/7/current facade/MIF; do not reapply. Numeric528e37ae and corrected e6e4e78→c2a9772c FreeCAD preflight integrated; HATCH retention tests integrated; next configure-probe timeout and composed safety checkpoint. Residual7AW0ee3bff2 remains independent. Preserve committed7AY/7AV/7AX/7AK/7BH/7AD; reconcile STYLE9c3a74c7 with cleanup and review BLOCK98176504 | Reuse exact staged API gate; numeric main Python gates pass. FreeCAD main/fresh discovery/32-predicate/CLI gates pass; native CAD remains separate.84/45/exact7 unchanged; enumerate only actual registration changes; no user-sample glob/full suite per edit |
 | B — narrow independent corrections | Preserve committed MIF/7BI/7AG.3a/7BC/7BJ.1/2,7P.5c authored admission,7AK.6,7AG.4 direct predicates and optional box-verifier contract. Clean bc8 composed safety passes at its source; review7BE `80eca35a`→`5860915d`.7BH.3/7BG/7N.2a remain local. Effective-driver/capability gates precede new receipts, not these fixes;7N.3 still needs its witness. | Reuse recorded reds/reports; rebind each affected main fast gate without replaying every isolated control. Refresh sanitizer once after later unsafe-boundary changes settle, not per documentation/admission edit. Historical b4/d49/bc8 results retain their actual bindings; no repeated native/full suite. |
 | C — grammar and graph composition | Shared7AM.2/7AS.2 footer design, implemented separately;7G.2 STYLE→VIEWPORT/resources;7P.5b/c image/dictionary/GROUP reciprocity, with narrow duplicate-key admission first;7F.1;7M/7E.1,7AL→7K→7J,7AA.1/2,7O.2/3,7G.3 effective explicit/implicit draw order→7R;7AG handoff | Touched targets per slice; raw types/reciprocity/child counts/pre-load fields and corrected retry. Optional-peer phase calibration only when that projection is enabled. Exact nonvirtual and callback consumer gates on public changes; sparse order/subtype1/oracle limits separate |
 | D — explicit policy/safety/platform boundaries |7BK transparency representation;7BF.1 LTYPE unit witness and7BF.3 indexed-edit/mirror authority; optional7AV.4 caller-memory guarantee;7AP cache safety;7Q gradients,7S.2/3 retention/work accounting,7T narrowing,7U retention,7Y.2 precision,7AE.2/3 Unicode/filename policy,7AC bridges;7AG/7AK PIC/DLL/release ABI and7AO attribution | Resolve only the named decision/witness without blocking ready local fixes. Small configured-limit negatives; ASan/TSan once at touched unsafe boundaries, not full suites per edit. No expired-pointer journals/unconditional cache replay; source/native and release/per-commit gates stay distinct |

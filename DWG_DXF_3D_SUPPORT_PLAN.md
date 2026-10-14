@@ -41,8 +41,10 @@ JSON/normalizer Python gates and122 bound inputs unchanged during that gate; it 
 claim. Corrected FreeCAD preflight is also integrated:32 distinct mocked LINE
 controls, fresh Python discovery/override command roles and one actual main
 CLI CTest pass. The parity ledger binds its source/report; native selection,
-durable packets and platform execution remain open. Next HATCH preservation
-tests and configure-probe timeout work use the same small local gates.
+durable packets and platform execution remain open. HATCH pattern retention
+tests are also integrated with exact typed/physical tags and model/named
+owner checks; strict TU/DXF-local2/2/eight CLI handoffs pass without production
+changes. Next configure-probe timeout work uses small local gates.
 External platform/ACIS qualification does not block these local
 steps. Broader geometry comparison must preserve pattern phase as well as
 HATCH boundary geometry, and a strict declared-encoding oracle profile is
@@ -3379,8 +3381,13 @@ separate global41/52 retention before transformed comparisons. Six actual
 installed ezdxf1.4.4 component controls find four identity/affine phase
 discrepancies and two untransformed/vector positives; newer7c64 source is
 inspected only and still excludes nonuniform pattern scaling. Current
-libdxfrw already stores/copies/emits the fields, so first add typed/ordered
-physical-tag retention and comparator mutations in existing tests. Do not
+libdxfrw already stores/copies/emits the fields. The reviewed test-only
+e1bf40af retention step is now integrated on087c330: two explicit pattern lines,
+21 ordered physical pairs per HATCH, model/named ownership and unexpanded
+BLOCK/INSERT persist through both encodings and repeated CLI. Main strict
+TU/DXF-local2/2/eight handoffs pass; reportbb3ffad3 in the parity plan binds
+source/artifacts.47 private retention negatives are not semantic-schema
+migration; that comparator scope and transformed phase remain open. Do not
 assume a HATCH raw companion, rewrite the parser to match an uncalibrated
 peer, add a renderer or weaken2D behavior. The parity report b9ac5f77 binds
 these non-native controls; no new S5 implementation failure is established.

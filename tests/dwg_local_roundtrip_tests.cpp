@@ -10846,6 +10846,256 @@ bool runDxfHatchSplineWeights(bool binary,
     return valid;
 }
 
+// Pattern fields are already-defined data, not a request to regenerate a
+// catalog pattern from global41/52. This tests preservation, not rendering or
+// an affine/INSERT expansion (which has a separate peer-calibration gate).
+std::unique_ptr<DRW_Hatch> makePatternedHatchControl() {
+    auto hatch = std::make_unique<DRW_Hatch>();
+    hatch->name = "LOCAL_PHASE";
+    hatch->solid = 0;
+    hatch->associative = 0;
+    hatch->hpattern = 2;
+    hatch->angle = 17;
+    hatch->scale = 2.5;
+    hatch->basePoint.z = 5;
+    hatch->extPoint = {0, .6, .8};
+    hatch->deflines = 2;
+    hatch->patternLines = {{30, 2, 3, 4, 7, {1, -2, 0}},
+                           {120, -5, 11, 9, -6, {3, 0, -4}}};
+    auto loop = std::make_shared<DRW_HatchLoop>(2);
+    auto boundary = std::make_shared<DRW_LWPolyline>();
+    boundary->flags = 1;
+    for (const auto& point : std::array<std::array<double, 2>, 4>{{
+             {{2, 3}}, {{10, 3}}, {{10, 10}}, {{2, 10}}}})
+        boundary->addVertex(DRW_Vertex2D(point[0], point[1], 0));
+    loop->objlist.push_back(boundary);
+    loop->update();
+    hatch->appendLoop(loop);
+    hatch->loopsnum = 1;
+    return hatch;
+}
+
+bool patternedHatchMatches(const DRW_Hatch& value) {
+    const auto expected = makePatternedHatchControl();
+    if (value.eType != DRW::HATCH || value.name != expected->name
+        || value.solid != 0 || value.associative != 0 || value.hpattern != 2
+        || value.angle != 17 || value.scale != 2.5 || value.deflines != 2
+        || value.basePoint.x != 0 || value.basePoint.y != 0 || value.basePoint.z != 5
+        || value.extPoint.x != 0 || value.extPoint.y != .6 || value.extPoint.z != .8
+        || value.patternLines.size() != 2 || value.loopsnum != 1
+        || value.looplist.size() != 1 || value.looplist.front()->objlist.size() != 1)
+        return false;
+    for (std::size_t i = 0; i != 2; ++i) {
+        const auto& line = value.patternLines[i];
+        const auto& wanted = expected->patternLines[i];
+        if (line.angle != wanted.angle || line.baseX != wanted.baseX
+            || line.baseY != wanted.baseY || line.offsetX != wanted.offsetX
+            || line.offsetY != wanted.offsetY || line.dashList != wanted.dashList)
+            return false;
+    }
+    const auto* boundary = dynamic_cast<const DRW_LWPolyline*>(
+        value.looplist.front()->objlist.front().get());
+    const auto* wanted = static_cast<const DRW_LWPolyline*>(
+        expected->looplist.front()->objlist.front().get());
+    if (boundary == nullptr || boundary->flags != 1 || boundary->vertlist.size() != 4)
+        return false;
+    for (std::size_t i = 0; i != 4; ++i)
+        if (boundary->vertlist[i]->x != wanted->vertlist[i]->x
+            || boundary->vertlist[i]->y != wanted->vertlist[i]->y
+            || boundary->vertlist[i]->bulge != 0)
+            return false;
+    return true;
+}
+
+using HatchPatternTags = std::vector<std::pair<int, double>>;
+
+HatchPatternTags expectedHatchPatternTags() {
+    // Independent literal denominator includes exact field presence, counts,
+    // line order and signed/zero dash order, not only peer/typed defaults.
+    return {{52, 17}, {41, 2.5}, {78, 2},
+            {53, 30}, {43, 2}, {44, 3}, {45, 4}, {46, 7}, {79, 3},
+            {49, 1}, {49, -2}, {49, 0},
+            {53, 120}, {43, -5}, {44, 11}, {45, 9}, {46, -6}, {79, 3},
+            {49, 3}, {49, 0}, {49, -4}};
+}
+
+bool hatchPatternTagsMatch(const HatchPatternTags& tags) {
+    return tags == expectedHatchPatternTags();
+}
+
+struct HatchPatternWireRecord {
+    std::string section, block;
+    std::uint32_t owner{0};
+    int ownerCount{0};
+    HatchPatternTags tags;
+};
+
+bool readHatchPatternWire(const std::filesystem::path& path,
+                         std::vector<HatchPatternWireRecord>& records) {
+    std::ifstream input(path, std::ios::binary);
+    char prefix[22]{};
+    input.read(prefix, sizeof(prefix));
+    if (input.gcount() != sizeof(prefix)) return false;
+    const bool binary = std::memcmp(prefix, "AutoCAD Binary DXF\r\n\032\0", 22) == 0;
+    input.clear();
+    input.seekg(binary ? 22 : 0);
+    std::unique_ptr<dxfReader> reader = binary
+        ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+        : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+    std::string kind, section, block;
+    int code = 0;
+    while (reader->readRec(&code)) {
+        if (code == 0) {
+            kind = reader->getString();
+            if (kind == "EOF") return records.size() == 2;
+            if (kind == "ENDSEC") section.clear();
+            if (kind == "ENDBLK") block.clear();
+            if (kind == "HATCH") records.push_back({section, block, 0, 0, {}});
+        } else if (code == 2 && kind == "SECTION") section = reader->getString();
+        else if (code == 2 && kind == "BLOCK") block = reader->getString();
+        else if (kind == "HATCH") {
+            if (code == 330) {
+                records.back().owner = reader->getHandleString();
+                ++records.back().ownerCount;
+            } else if (code == 78 || code == 79)
+                records.back().tags.emplace_back(code, reader->getInt32());
+            else if (code == 41 || code == 52 || code == 53 || code == 43
+                     || code == 44 || code == 45 || code == 46 || code == 49)
+                records.back().tags.emplace_back(code, reader->getDouble());
+        }
+    }
+    return false; // A successful physical scan must reach the actual EOF tag.
+}
+
+bool writePatternedHatchFile(const std::filesystem::path& path, bool binary) {
+    dx_data source;
+    DRW_Block_Record record;
+    record.name = "PHASE_BLOCK";
+    record.handle = 0xC600u;
+    source.blockRecords.push_back(record);
+    auto* block = new dx_ifaceBlock;
+    block->name = record.name;
+    block->handle = 0xC500u;
+    block->parentHandle = record.handle;
+    block->basePoint = {1, 2, 3};
+    source.blocks.push_back(block);
+    auto inside = makePatternedHatchControl();
+    inside->parentHandle = record.handle;
+    const auto* insideBefore = inside.get();
+    block->ent.push_back(inside.release());
+    auto outside = makePatternedHatchControl();
+    const auto* outsideBefore = outside.get();
+    source.mBlock->ent.push_back(outside.release());
+    auto* insert = new DRW_Insert;
+    insert->name = record.name;
+    insert->basePoint = {37.5, 11, 2};
+    insert->xscale = 2;
+    insert->yscale = 3;
+    source.mBlock->ent.push_back(insert);
+    dx_iface writer;
+    return writer.fileExport(path.string(), DRW::AC1027, binary, &source, false)
+        && patternedHatchMatches(*insideBefore) && patternedHatchMatches(*outsideBefore);
+}
+
+bool verifyPatternedHatchFile(const std::filesystem::path& path) {
+    std::vector<HatchPatternWireRecord> physical;
+    if (!readHatchPatternWire(path, physical)) return false;
+    for (const auto& record : physical)
+        if (!hatchPatternTagsMatch(record.tags) || record.ownerCount != 1 || record.owner == 0)
+            return false;
+    if (physical[0].section != "BLOCKS" || physical[0].block != "PHASE_BLOCK"
+        || physical[1].section != "ENTITIES" || !physical[1].block.empty())
+        return false;
+    dx_data imported;
+    dx_iface reader;
+    if (!reader.fileImport(path.string(), &imported, false)
+        || imported.mBlock->ent.size() != 2)
+        return false;
+    const auto block = std::find_if(imported.blocks.begin(), imported.blocks.end(),
+        [](const auto* value) { return value->name == "PHASE_BLOCK"; });
+    const auto record = std::find_if(imported.blockRecords.begin(), imported.blockRecords.end(),
+        [](const auto& value) { return value.name == "PHASE_BLOCK"; });
+    const auto modelRecord = std::find_if(imported.blockRecords.begin(), imported.blockRecords.end(),
+        [](const auto& value) { return value.name == "*Model_Space"; });
+    if (block == imported.blocks.end() || record == imported.blockRecords.end()
+        || modelRecord == imported.blockRecords.end() || record->handle == modelRecord->handle
+        || std::count_if(imported.blockRecords.begin(), imported.blockRecords.end(),
+             [](const auto& value) { return value.name == "PHASE_BLOCK"; }) != 1
+        || std::count_if(imported.blockRecords.begin(), imported.blockRecords.end(),
+             [](const auto& value) { return value.name == "*Model_Space"; }) != 1
+        || (*block)->ent.size() != 1 || (*block)->basePoint.x != 1
+        || (*block)->basePoint.y != 2 || (*block)->basePoint.z != 3
+        || (*block)->parentHandle != record->handle
+        || std::count_if(imported.blocks.begin(), imported.blocks.end(),
+             [](const auto* value) { return value->name == "PHASE_BLOCK"; }) != 1)
+        return false;
+    const auto* inside = dynamic_cast<const DRW_Hatch*>((*block)->ent.front());
+    const auto* outside = dynamic_cast<const DRW_Hatch*>(imported.mBlock->ent.front());
+    const auto* insert = dynamic_cast<const DRW_Insert*>(imported.mBlock->ent.back());
+    return inside && outside && insert && patternedHatchMatches(*inside)
+        && patternedHatchMatches(*outside) && inside->parentHandle == record->handle
+        && physical[0].owner == record->handle && physical[1].owner == modelRecord->handle
+        && outside->parentHandle == modelRecord->handle && insert->parentHandle == modelRecord->handle
+        && insert->name == "PHASE_BLOCK" && insert->basePoint.x == 37.5
+        && insert->basePoint.y == 11 && insert->basePoint.z == 2
+        && insert->xscale == 2 && insert->yscale == 3 && insert->zscale == 1;
+}
+
+bool runHatchPatternPredicateControls() {
+    const auto expected = expectedHatchPatternTags();
+    if (!hatchPatternTagsMatch(expected)) return false;
+    for (std::size_t i = 0; i != expected.size(); ++i) {
+        auto changed = expected;
+        changed.erase(changed.begin() + static_cast<std::ptrdiff_t>(i));
+        if (hatchPatternTagsMatch(changed)) return false;
+        changed = expected;
+        changed[i].second += 1;
+        if (hatchPatternTagsMatch(changed)) return false;
+    }
+    auto changed = expected;
+    std::swap_ranges(changed.begin() + 3, changed.begin() + 12, changed.begin() + 12);
+    if (hatchPatternTagsMatch(changed)) return false;
+    changed = expected;
+    std::swap(changed[9], changed[10]);
+    if (hatchPatternTagsMatch(changed)) return false;
+    auto typed = makePatternedHatchControl();
+    if (!patternedHatchMatches(*typed)) return false;
+    typed->patternLines[0].baseX += 1;
+    if (patternedHatchMatches(*typed)) return false;
+    typed = makePatternedHatchControl();
+    std::swap(typed->patternLines[0], typed->patternLines[1]);
+    if (patternedHatchMatches(*typed)) return false;
+    typed = makePatternedHatchControl();
+    typed->patternLines[1].dashList.pop_back();
+    return !patternedHatchMatches(*typed);
+}
+
+bool runDxfHatchPatternPreservation(bool binary, const std::filesystem::path& directory,
+                                    bool keepOutput) {
+    const std::string encoding = binary ? "binary" : "ascii";
+    const auto source = directory / ("libdxfrw-hatch-pattern-" + encoding + ".dxf");
+    bool valid = writePatternedHatchFile(source, binary) && verifyPatternedHatchFile(source);
+    auto previous = source;
+    std::vector<std::filesystem::path> outputs{source};
+    for (int pass = 1; pass != 3 && valid; ++pass) {
+        const auto output = directory / ("libdxfrw-hatch-pattern-" + encoding
+            + "-pass" + std::to_string(pass) + ".dxf");
+        dx_data imported;
+        dx_iface reader, writer;
+        valid = reader.fileImport(previous.string(), &imported, false)
+            && writer.fileExport(output.string(), DRW::AC1027, binary, &imported, false)
+            && verifyPatternedHatchFile(output);
+        outputs.push_back(output);
+        previous = output;
+    }
+    if (!valid) std::cerr << "HATCH explicit pattern fields/order or block placement lost " << encoding << '\n';
+    if (!keepOutput) {
+        std::error_code error;
+        for (const auto& output : outputs) std::filesystem::remove(output, error);
+    }
+    return valid;
+}
+
 std::unique_ptr<DRW_MPolygon> makeMPolygonHeaderControl(int fill) {
     auto polygon = std::make_unique<DRW_MPolygon>();
     polygon->solid = fill;
@@ -14710,7 +14960,20 @@ int main(int argc, char** argv) {
         DRW::AC1024, DRW::AC1027, DRW::AC1032};
     std::filesystem::path directory = std::filesystem::temp_directory_path();
     bool keepOutputs = false;
-    if (argc == 3 && (std::string(argv[1]) == "--generate-mpolygon-metadata"
+    if (argc == 2 && std::string(argv[1]) == "--hatch-pattern-preservation") {
+        const bool passed = runHatchPatternPredicateControls()
+            && runDxfHatchPatternPreservation(false, directory, false)
+            && runDxfHatchPatternPreservation(true, directory, false);
+        std::cout << "HATCH pattern preservation: " << (passed ? "PASS" : "FAIL") << '\n';
+        return passed ? 0 : 1;
+    } else if (argc == 3 && (std::string(argv[1]) == "--generate-hatch-pattern"
+                         || std::string(argv[1]) == "--generate-hatch-pattern-binary")) {
+        return writePatternedHatchFile(argv[2],
+                   std::string(argv[1]) == "--generate-hatch-pattern-binary")
+            && verifyPatternedHatchFile(argv[2]) ? 0 : 1;
+    } else if (argc == 3 && std::string(argv[1]) == "--verify-hatch-pattern") {
+        return verifyPatternedHatchFile(argv[2]) ? 0 : 1;
+    } else if (argc == 3 && (std::string(argv[1]) == "--generate-mpolygon-metadata"
                       || std::string(argv[1]) == "--generate-mpolygon-metadata-binary")) {
         return writeMPolygonMetadataFile(argv[2],
             std::string(argv[1]) == "--generate-mpolygon-metadata-binary") ? 0 : 1;
@@ -14758,6 +15021,9 @@ int main(int argc, char** argv) {
     } else if (argc != 1) {
         std::cerr << "usage: " << argv[0]
                   << " [--keep-dir DIRECTORY]"
+                     " [--hatch-pattern-preservation]"
+                     " [--generate-hatch-pattern[-binary] DXF]"
+                     " [--verify-hatch-pattern DXF]"
                      " [--verify-acsh-prefix-sample DWG]"
                      " [--generate-mpolygon-header[-binary] DXF]"
                      " [--verify-mpolygon-header DXF]"
@@ -15634,6 +15900,12 @@ int main(int argc, char** argv) {
     expect(runDxfHatchSplineWeights(true, directory, keepOutputs),
            "local DXF binary HATCH/MPOLYGON spline optional weights and bounded layouts",
            failures);
+    expect(runHatchPatternPredicateControls(),
+           "HATCH pattern retention predicates reject field/count/order mutations", failures);
+    expect(runDxfHatchPatternPreservation(false, directory, keepOutputs),
+           "local DXF ASCII explicit HATCH patterns and named BLOCK remain untransformed", failures);
+    expect(runDxfHatchPatternPreservation(true, directory, keepOutputs),
+           "local DXF binary explicit HATCH patterns and named BLOCK remain untransformed", failures);
     expect(runDxfMPolygonMetadata(false, directory, keepOutputs),
            "local DXF ASCII MPOLYGON pixel/seed metadata and boundary compatibility", failures);
     expect(runDxfMPolygonMetadata(true, directory, keepOutputs),
