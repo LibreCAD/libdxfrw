@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check installed license content and optional development consumer interfaces."""
+"""Check installed licenses/consumer interfaces and opt-in configure contracts."""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ import os
 import shlex
 import shutil
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -663,6 +664,97 @@ def self_test_thread_metadata(cxx: str) -> None:
     print("thread metadata self-test: PASS (no native platform qualification)")
 
 
+BUILD_OPTION_CASES = (
+    ("tests-without-library", False, False, True,
+     "LIBDXFRW_BUILD_TESTS requires LIBDXFRW_BUILD_LIBRARY"),
+    ("tests-with-library", True, False, True, None),
+    ("all-disabled", False, False, False, None),
+    ("cli-without-library", False, True, False,
+     "LIBDXFRW_BUILD_DWG2DXF requires LIBDXFRW_BUILD_LIBRARY"),
+)
+
+
+def build_option_command(source: Path, build: Path, cxx: str, python: str,
+                         library: bool, cli: bool, tests: bool) -> list[str]:
+    def option(value: bool) -> str:
+        return "ON" if value else "OFF"
+    return ["cmake", "-S", str(source), "-B", str(build),
+            "-DCMAKE_CXX_COMPILER=" + cxx,
+            "-DLIBDXFRW_PYTHON_EXECUTABLE=" + python,
+            "-DLIBDXFRW_BUILD_LIBRARY=" + option(library),
+            "-DLIBDXFRW_BUILD_DWG2DXF=" + option(cli),
+            "-DLIBDXFRW_BUILD_TESTS=" + option(tests),
+            "-DLIBDXFRW_BUILD_DOC=OFF", "-DLIBDXFRW_BUILD_LONG_FUZZ=OFF",
+            "-DLIBDXFRW_BUILD_QUALIFICATION=OFF",
+            "-DLIBDXFRW_ENABLE_INDEPENDENT_DXF_ORACLE=OFF"]
+
+
+def assert_build_option_outcome(status: int, output: str,
+                                diagnostic: str | None) -> None:
+    if diagnostic is None:
+        if status != 0 or "Generating done" not in output:
+            raise RuntimeError("supported build options did not configure/generate successfully")
+    elif (status == 0 or diagnostic not in output
+          or any(marker in output for marker in
+                 ("Configuring done", "Generating done", "CMake Generate step failed"))):
+        raise RuntimeError("build options did not fail early with: " + diagnostic)
+
+
+def self_test_build_option_contract() -> None:
+    """Test the configure-result contract without invoking any compiler/tool."""
+    for _, library, cli, tests, diagnostic in BUILD_OPTION_CASES:
+        command = build_option_command(Path("source with spaces"), Path("build with spaces"),
+                                       "nonexistent cxx", "explicit python", library, cli, tests)
+        if command[:5] != ["cmake", "-S", "source with spaces", "-B", "build with spaces"]:
+            raise RuntimeError("build-option configure command split a path")
+        for control in ("-DCMAKE_CXX_COMPILER=nonexistent cxx",
+                        "-DLIBDXFRW_PYTHON_EXECUTABLE=explicit python",
+                        "-DLIBDXFRW_BUILD_DOC=OFF", "-DLIBDXFRW_BUILD_LONG_FUZZ=OFF",
+                        "-DLIBDXFRW_BUILD_QUALIFICATION=OFF",
+                        "-DLIBDXFRW_ENABLE_INDEPENDENT_DXF_ORACLE=OFF"):
+            if control not in command:
+                raise RuntimeError("build-option configure command lost: " + control)
+        assert_build_option_outcome(1 if diagnostic else 0,
+                                    diagnostic or "Configuring done\nGenerating done", diagnostic)
+    diagnostic = BUILD_OPTION_CASES[0][-1]
+    for status, output, expected in (
+            (0, diagnostic, diagnostic), (1, "unrelated compiler failure", diagnostic),
+            (1, diagnostic + "\nConfiguring done", diagnostic),
+            (1, diagnostic + "\nCMake Generate step failed", diagnostic),
+            (1, "Generating done", None), (0, "configure incomplete", None)):
+        try:
+            assert_build_option_outcome(status, output, expected)
+        except RuntimeError:
+            continue
+        raise RuntimeError("build-option checker accepted an incorrect configure outcome")
+
+
+def self_test_build_options(cxx: str) -> None:
+    """Exercise four real configure-only option profiles; never build targets."""
+    # Keep ordinary --self-test compiler-free. Only this explicit opt-in runs
+    # CMake/compiler discovery, using the invoking Python rather than PATH's
+    # possibly older python3 when the tests-enabled positive is configured.
+    from bounded_process import run_bounded
+    source = Path(__file__).resolve().parents[1]
+    with tempfile.TemporaryDirectory(prefix="libdxfrw-build-options-") as directory:
+        for name, library, cli, tests, diagnostic in BUILD_OPTION_CASES:
+            build = Path(directory) / name
+            command = build_option_command(source, build, cxx, sys.executable, library, cli, tests)
+            result = run_bounded(command, timeout=60, output_limit=131072)
+            output = (result.stdout + result.stderr).decode("utf-8", "replace")
+            try:
+                assert_build_option_outcome(result.returncode, output, diagnostic)
+                if diagnostic is not None and any(path.exists() for path in (
+                        build / "CMakeFiles" / "TargetDirectories.txt",
+                        build / "CTestTestfile.cmake")):
+                    raise RuntimeError("rejected options created a target/test graph")
+            except RuntimeError:
+                print(output, end="")
+                raise
+            print("build options %s: PASS (configure-only control)" % name)
+    print("build options self-test: PASS (4 profiles; no library/format build)")
+
+
 def assert_profile_symbols(prefix: Path, libdir: str = "lib", *,
                            library: Path | None = None) -> None:
     selected, _ = select_package_library(prefix, libdir)
@@ -939,6 +1031,8 @@ def main() -> int:
                         help="exercise staged-path acceptance and rejection")
     parser.add_argument("--thread-metadata-self-test", action="store_true",
                         help="opt-in configure/pkg-config checks for three forced thread branches")
+    parser.add_argument("--build-options-self-test", action="store_true",
+                        help="opt-in configure-only checks for four library/CLI/test profiles")
     parser.add_argument("--relocation-smoke", action="store_true",
                         help="copy one staged prefix and build relocated consumers")
     parser.add_argument("--cxx", default=os.environ.get("CXX", "c++"))
@@ -957,8 +1051,13 @@ def main() -> int:
         if args.runtime_only:
             parser.error("thread metadata controls cannot be combined with --runtime-only")
         self_test_thread_metadata(args.cxx)
-        if not args.prefix and not args.self_test:
-            return 0
+    if args.build_options_self_test:
+        if args.runtime_only:
+            parser.error("build option controls cannot be combined with --runtime-only")
+        self_test_build_options(args.cxx)
+    if ((args.thread_metadata_self_test or args.build_options_self_test)
+            and not args.prefix and not args.self_test):
+        return 0
     if args.self_test:
         self_test_staged_flags()
         self_test_package_root_identity()
@@ -967,6 +1066,7 @@ def main() -> int:
         self_test_relocatable_cmake_export()
         self_test_installed_license()
         self_test_fast_command_scope()
+        self_test_build_option_contract()
         print("staged package checker self-test: PASS")
         if not args.prefix:
             return 0
