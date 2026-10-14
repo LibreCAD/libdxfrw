@@ -12,6 +12,7 @@
 #include <list>
 #include <limits>
 #include <map>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -50,6 +51,17 @@ public:
     std::vector<DRW_Scale> scales;
     std::vector<DRW_DictionaryVar> dictionaryVars;
     std::vector<DRW_Group> groups;
+    std::vector<DRW_PlotSettings> plotSettings;
+    std::vector<DRW_Layout> layouts;
+
+    void addPlotSettings(const DRW_PlotSettings* value) override {
+        if (value != nullptr)
+            plotSettings.push_back(*value);
+    }
+
+    void addLayout(const DRW_Layout& value) override {
+        layouts.push_back(value);
+    }
 
     void addBlockRecord(const DRW_Block_Record& value) override {
         blockRecords.push_back(value);
@@ -1007,14 +1019,271 @@ bool readTableOwnerRecords(const std::filesystem::path& path, bool binary,
                 return true;
             records.push_back({kind, {}});
         } else if (!records.empty()) {
-            // Only these string tags are relevant to table graph identity.
-            if (code == 1 || code == 2 || code == 5 || code == 105
+            if (code == 77 || code == 78) {
+                // Literal plot values, before a document reader can supply
+                // defaults or repair an object graph.
+                records.back().groups.emplace_back(
+                    code, std::to_string(reader->getInt32()));
+            } else if (code == 1 || code == 2 || code == 5 || code == 105
                 || code == 100 || code == 102 || code == 330 || code == 340 || code == 360
                 || code == 1000 || code == 1001 || code == 1005)
                 records.back().groups.emplace_back(code, reader->getString());
         }
     }
     return false;
+}
+
+void testPlotCustomDpiAdmission(TestContext& t) {
+    class PlotInterface final : public dx_iface {
+    public:
+        void writeHeader(DRW_Header& header) override {
+            dx_iface::writeHeader(header);
+            dxfW->setRootDictEntries({
+                {layoutObject ? "ACAD_LAYOUT" : "ACAD_PLOTSETTINGS", "900"}});
+        }
+
+        void writeEntities() override {
+            // Ordinary geometry remains in ENTITIES, not smuggled into
+            // OBJECTS as a purported next-record framing control.
+            for (const double x : {12.0, 34.0}) {
+                DRW_Line line;
+                line.basePoint = DRW_Coord(x, 2, 3);
+                line.secPoint = DRW_Coord(x + 1, 4, 5);
+                geometryWritten = dxfW->writeLine(&line) && geometryWritten;
+            }
+        }
+
+        void writeObjects() override {
+            // Make the record reachable through a defined named dictionary.
+            // Reserving only the owner leaves the leaf reservation/allocation
+            // itself observable at the typed writer's admission boundary.
+            if (!dxfW->reserveHandle(0x900u))
+                return;
+            emittedHandle = inputHandle != 0 ? inputHandle : dxfW->highWaterHandle();
+            DRW_Dictionary dictionary;
+            dictionary.handle = 0x900u;
+            dictionary.parentHandle = 0xCu;
+            dictionary.hardOwner = 1;
+            dictionary.m_entries.push_back({"DPI_CONTROL", emittedHandle});
+            dictionaryWritten = dxfW->writeDictionary(&dictionary);
+            before = dxfW->highWaterHandle();
+            objectWritten = layoutObject ? dxfW->writeLayout(&layout)
+                                         : dxfW->writePlotSettings(&plot);
+            after = dxfW->highWaterHandle();
+        }
+
+        DRW_PlotSettings plot;
+        DRW_Layout layout;
+        bool layoutObject{false};
+        std::uint32_t inputHandle{0}, emittedHandle{0}, before{0}, after{0};
+        bool objectWritten{false}, dictionaryWritten{false}, geometryWritten{true};
+    } adapter;
+
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    const auto path = std::filesystem::temp_directory_path()
+        / ("libdxfrw-plot-dpi-" + std::to_string(nonce) + ".dxf");
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() {
+            std::error_code error;
+            std::filesystem::remove(path, error);
+        }
+    } cleanup{path};
+    const std::string filename = path.string();
+    const auto configure = [&t](auto& entry, int resolution, int dpi,
+                                std::uint32_t handle) {
+        entry.reset();
+        entry.handle = handle;
+        entry.parentHandle = 0x900u;
+        entry.name = "DPI_CONTROL";
+        entry.shadePlotResLevel = resolution;
+        entry.shadePlotCustomDPI = dpi;
+        entry.reactorHandles = {0x900u};
+        entry.appData.push_back({{102, std::string("{DPI_META")},
+            {1, std::string("caller-plot-metadata")}, {102, std::string("}")}});
+        t.expect(entry.addExtData(std::make_unique<DRW_Variant>(
+                     1001, std::string("DPI_APP")))
+                     && entry.addExtData(std::make_unique<DRW_Variant>(
+                         1000, std::string("trailing-dpi-metadata"))),
+                 "plot DPI control registers its common metadata");
+    };
+
+    for (const DRW::Version version : {DRW::AC1015, DRW::AC1018, DRW::AC1024}) {
+        for (const bool binary : {false, true}) {
+            for (const bool layoutObject : {false, true}) {
+                for (const int resolution : {2, 5}) {
+                    for (const int dpi : {-1, 0, 99, 100, 32767, 32768}) {
+                        for (const std::uint32_t handle : {0u, 0xA000u}) {
+                            dx_data source;
+                            DRW_AppId app;
+                            app.name = "DPI_APP";
+                            source.appIds.push_back(app);
+                            adapter.cData = &source;
+                            adapter.currentBlock = source.mBlock;
+                            adapter.layoutObject = layoutObject;
+                            adapter.inputHandle = handle;
+                            adapter.objectWritten = false;
+                            adapter.dictionaryWritten = false;
+                            adapter.geometryWritten = true;
+                            configure(adapter.plot, resolution, dpi, handle);
+                            configure(adapter.layout, resolution, dpi, handle);
+                            adapter.layout.paperSpaceBlockRecordHandle.ref = 0x1Eu;
+                            const bool emitted = version > DRW::AC1015;
+                            const bool rejected = emitted && resolution == 5
+                                && (dpi < 100 || dpi > 32767);
+                            {
+                                std::ofstream original(path, std::ios::binary);
+                                original << "existing plot destination\n";
+                            }
+                            dxfRW writer(filename.c_str());
+                            adapter.dxfW = &writer;
+                            const bool written = writer.write(&adapter, version, binary);
+                            t.expect(written == !rejected && adapter.objectWritten == !rejected
+                                         && adapter.geometryWritten && adapter.dictionaryWritten,
+                                     "only emitted Custom DPI outside 100..32767 rejects");
+                            const auto unchanged = [handle, resolution](const auto& entry, int expectedDpi) {
+                                return entry.handle == handle && entry.parentHandle == 0x900u
+                                    && entry.shadePlotResLevel == resolution
+                                    && entry.shadePlotCustomDPI == expectedDpi
+                                    && entry.name == "DPI_CONTROL"
+                                    && entry.reactorHandles == std::vector<std::uint32_t>{0x900u}
+                                    && entry.appData.size() == 1 && entry.appData.front().size() == 3
+                                    && entry.extData.size() == 2 && entry.extData[1] != nullptr
+                                    && entry.extData[1]->c_str() != nullptr
+                                    && std::string(entry.extData[1]->c_str()) == "trailing-dpi-metadata";
+                            };
+                            t.expect(unchanged(adapter.plot, dpi) && unchanged(adapter.layout, dpi),
+                                     "plot admission never modifies caller identity, fields or carriers");
+                            int expectedDpi = dpi;
+                            if (rejected) {
+                                t.expect(adapter.before == adapter.after,
+                                         "invalid Custom DPI cannot reserve or allocate a leaf handle");
+                                std::ifstream preserved(path, std::ios::binary);
+                                t.expect(std::string(std::istreambuf_iterator<char>(preserved), {})
+                                             == "existing plot destination\n",
+                                         "invalid Custom DPI leaves the existing destination byte-identical");
+                                preserved.close();
+                                adapter.plot.shadePlotCustomDPI = 100;
+                                adapter.layout.shadePlotCustomDPI = 100;
+                                expectedDpi = 100;
+                                t.expect(writer.write(&adapter, version, binary) && adapter.objectWritten,
+                                         "correcting only DPI permits exact same-writer same-model retry");
+                                t.expect(unchanged(adapter.plot, 100) && unchanged(adapter.layout, 100),
+                                         "corrected retry retains caller identity and common metadata");
+                            }
+                            adapter.dxfW = nullptr;
+
+                            std::vector<TableOwnerRecord> records;
+                            t.expect(readTableOwnerRecords(path, binary, records),
+                                     "literal plot DPI record framing reaches the final EOF");
+                            const std::string kind = layoutObject ? "LAYOUT" : "PLOTSETTINGS";
+                            const auto record = std::find_if(records.begin(), records.end(),
+                                [&kind](const auto& value) { return value.kind == kind; });
+                            t.expect(record != records.end(), "accepted plot DPI writes its actual typed record");
+                            // Inactive 32768 is deliberately NOT a valid-format or
+                            // semantic-parity positive: preserve 7X's existing
+                            // unsigned-bit-pattern policy without imposing the
+                            // Custom minimum on inactive metadata.
+                            const int wireDpi = binary && expectedDpi == 32768 ? -32768 : expectedDpi;
+                            if (record != records.end()) {
+                                t.expect(emitted
+                                    ? groupValue(record->groups, 77) == std::to_string(resolution)
+                                        && groupValue(record->groups, 78) == std::to_string(wireDpi)
+                                    : !hasGroup(record->groups, 77) && !hasGroup(record->groups, 78),
+                                    "literal active fields obey emitted-version policy; inactive overflow is legacy counterevidence");
+                                t.expect(groupValue(record->groups, 5) == writer.toHexStrHandle(adapter.emittedHandle)
+                                             && groupValue(record->groups, 1001) == "DPI_APP"
+                                             && groupValue(record->groups, 1000) == "trailing-dpi-metadata"
+                                             && hasGroup(record->groups, 102),
+                                         "accepted plot DPI retains identity and trailing common carriers");
+                            }
+
+                            FixtureInterface reader;
+                            dx_data decoded;
+                            t.expect(reader.fileImport(filename, &decoded, false),
+                                     "accepted plot DPI reads through public document callbacks");
+                            const auto verify = [&t, emitted, resolution, wireDpi, &adapter](const auto& values) {
+                                t.expect(values.size() == 1, "plot DPI callback is delivered exactly once");
+                                if (values.size() != 1)
+                                    return;
+                                const auto& value = values.front();
+                                t.expect(value.shadePlotResLevel == (emitted ? resolution : 0)
+                                             && value.shadePlotCustomDPI == (emitted ? wireDpi : 0)
+                                             && value.handle == adapter.emittedHandle
+                                             && value.parentHandle == 0x900u
+                                             && value.reactorHandles == std::vector<std::uint32_t>{0x900u}
+                                             && value.extData.size() == 2,
+                                         "public plot callback preserves stored values, owner and common metadata");
+                            };
+                            if (layoutObject)
+                                verify(reader.layouts);
+                            else
+                                verify(reader.plotSettings);
+                            const auto owner = std::find_if(reader.dictionaries.begin(), reader.dictionaries.end(),
+                                [](const auto& value) { return value.handle == 0x900u; });
+                            t.expect(owner != reader.dictionaries.end() && owner->parentHandle == 0xCu
+                                         && owner->m_entries.size() == 1
+                                         && owner->m_entries.front().m_handle == adapter.emittedHandle,
+                                     "plot DPI control has a defined root-owned dictionary edge");
+                            t.expect(decoded.mBlock->ent.size() == 2
+                                         && decoded.mBlock->ent.back()->eType == DRW::LINE
+                                         && static_cast<const DRW_Line*>(decoded.mBlock->ent.back())->basePoint.x == 34,
+                                     "plot DPI admission preserves the suffix LINE's actual geometry");
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Typed writer admission is not reader validation. Feed stored group
+    // values directly to the existing DXF parsers, including invalid active
+    // API values, to protect tolerant import from an accidental shared guard.
+    class PlotParser final : public DRW_PlotSettings {
+    public:
+        using DRW_PlotSettings::parseCode;
+    };
+    class LayoutParser final : public DRW_Layout {
+    public:
+        using DRW_Layout::parseCode;
+    };
+    for (const bool binary : {false, true}) {
+        for (const int resolution : {2, 5}) {
+            for (const int dpi : {-1, 0, 99, 100, 32767, 32768}) {
+                std::ostringstream bytes;
+                std::unique_ptr<dxfWriter> tags;
+                if (binary)
+                    tags = std::make_unique<dxfWriterBinary>(&bytes);
+                else
+                    tags = std::make_unique<dxfWriterAscii>(&bytes);
+                t.expect(tags->writeString(100, "AcDbPlotSettings")
+                             && tags->writeInt16(77, resolution)
+                             && tags->writeInt16(78, dpi),
+                         "stored plot DPI control encodes literal DXF fields");
+                std::istringstream input(bytes.str());
+                std::unique_ptr<dxfReader> reader;
+                if (binary)
+                    reader = std::make_unique<dxfReaderBinary>(&input);
+                else
+                    reader = std::make_unique<dxfReaderAscii>(&input);
+                PlotParser plot;
+                LayoutParser layout;
+                int code = 0;
+                int count = 0;
+                while (reader->readRec(&code)) {
+                    t.expect(plot.parseCode(code, reader) && layout.parseCode(code, reader),
+                             "DXF plot and layout import stay tolerant of stored active/inactive DPI");
+                    ++count;
+                }
+                const int storedDpi = binary && dpi == 32768 ? -32768 : dpi;
+                t.expect(count == 3 && plot.shadePlotResLevel == resolution
+                             && layout.shadePlotResLevel == resolution
+                             && plot.shadePlotCustomDPI == storedDpi
+                             && layout.shadePlotCustomDPI == storedDpi,
+                         "DXF parsers retain stored DPI instead of clamping, defaulting or discarding");
+            }
+        }
+    }
 }
 
 std::vector<std::string> tableRecordOwners(const TableOwnerRecord& record) {
@@ -4165,6 +4434,7 @@ int main(int argc, char** argv) {
     if (argc != 1)
         return 2;
     TestContext context;
+    testPlotCustomDpiAdmission(context);
     testLeaderAdvisoryCounts(context);
     testDxfWriteAttemptFailure(context);
     testClassicVertexXdata(context);

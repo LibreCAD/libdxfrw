@@ -318,6 +318,14 @@ bool isSafeDxfRecordText(const std::string& text) {
         && text.find('\n') == std::string::npos;
 }
 
+bool isValidDxfPlotCustomDpi(DRW::Version version, int resolution, int dpi) {
+    // DXF group 78 applies only to Custom resolution (group 77 == 5).
+    // Pre-R2004 output omits both fields; inactive stored values must not
+    // acquire the Custom minimum. Assigned I16 width policy is separate.
+    return version <= DRW::AC1015 || resolution != 5
+        || (dpi >= 100 && dpi <= 32767);
+}
+
 bool isFiniteDxfCoord(const DRW_Coord& point) {
     return std::isfinite(point.x) && std::isfinite(point.y)
         && std::isfinite(point.z);
@@ -16384,6 +16392,9 @@ bool dxfRW::dxfClassForRecordName(const std::string &recName, DRW_Class &out) {
 bool dxfRW::writePlotSettings(DRW_PlotSettings *ent) {
     if (!preflightTableEntry(ent))
         return false;
+    if (!isValidDxfPlotCustomDpi(version, ent->shadePlotResLevel,
+                               ent->shadePlotCustomDPI))
+        return failDxfWrite();
     std::uint32_t handle = static_cast<std::uint32_t>(ent->handle);
     if (handle != 0) {
         if (!reserveHandle(handle))
@@ -16453,6 +16464,9 @@ void dxfRW::writePlotSettingsFields(const DRW_PlotSettings *ent) {
 bool dxfRW::writeLayout(DRW_Layout *ent) {
     if (!preflightTableEntry(ent))
         return false;
+    if (!isValidDxfPlotCustomDpi(version, ent->shadePlotResLevel,
+                               ent->shadePlotCustomDPI))
+        return failDxfWrite();
     if (ent->tabOrder < std::numeric_limits<std::int16_t>::min()
         || ent->tabOrder > std::numeric_limits<std::uint16_t>::max()) {
         m_writeError = true;
