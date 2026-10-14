@@ -3128,6 +3128,243 @@ void testInsertChildHandleRollback(TestContext& t) {
         }
     }
 }
+
+void populateLegacyEllipseCarriers(dx_data& data, bool includeControls = true) {
+    DRW_AppId app;
+    app.name = "ELLIPSE_APP";
+    data.appIds.push_back(app);
+    DRW_Layer layer;
+    layer.name = "ELLIPSE_META";
+    data.layers.push_back(layer);
+    const auto metadata = [](DRW_Entity& entity, const std::string& label,
+                             const char* reference) {
+        entity.layer = "ELLIPSE_META";
+        entity.lineType = "CONTINUOUS";
+        entity.extData.push_back(std::make_shared<DRW_Variant>(1001, "ELLIPSE_APP"));
+        entity.extData.push_back(std::make_shared<DRW_Variant>(1000, label));
+        entity.extData.push_back(std::make_shared<DRW_Variant>(1011, DRW_Coord(7, 8, 9)));
+        entity.extData.push_back(std::make_shared<DRW_Variant>(1070, -7));
+        entity.extData.push_back(std::make_shared<DRW_Variant>(1000, "ordered-tail"));
+        entity.extData.push_back(std::make_shared<DRW_Variant>(1005, reference));
+    };
+    for (const bool paper : {false, true}) {
+        auto* ellipse = new DRW_Ellipse;
+        ellipse->handle = paper ? 0xA300u : 0xA200u;
+        ellipse->space = paper ? DRW::PaperSpace : DRW::ModelSpace;
+        ellipse->basePoint = paper ? DRW_Coord(110, 120, 130) : DRW_Coord(10, 20, 30);
+        ellipse->secPoint = DRW_Coord(4, 0, 0);
+        ellipse->extPoint = DRW_Coord(0, 0.6, 0.8);
+        ellipse->ratio = 0.5;
+        ellipse->staparam = paper ? 0.25 : 0;
+        ellipse->endparam = paper ? 1.75 : 2 * std::acos(-1.0);
+        ellipse->color = paper ? 4 : 3;
+        metadata(*ellipse, paper ? "ellipse-paper" : "ellipse-model", paper ? "A300" : "A200");
+        data.mBlock->ent.push_back(ellipse);
+        if (includeControls) {
+            auto* control = new DRW_Polyline;
+            ellipse->toPolyline(control, 128);
+            control->space = ellipse->space;
+            control->handle = paper ? 0xA301u : 0xA201u;
+            metadata(*control, paper ? "control-paper" : "control-model", paper ? "A301" : "A201");
+            data.mBlock->ent.push_back(control);
+        }
+    }
+    auto* next = new DRW_Line;
+    next->handle = 0xA400u;
+    next->secPoint = DRW_Coord(1, 2, 3);
+    metadata(*next, "next-record", "A200");
+    data.mBlock->ent.push_back(next);
+}
+
+bool verifyLegacyEllipseCarriers(const std::filesystem::path& path, bool includeControls = true) {
+    dx_data decoded;
+    dx_iface adapter;
+    adapter.cData = &decoded;
+    adapter.currentBlock = decoded.mBlock;
+    const std::string fileName = path.string();
+    dxfRW codec(fileName.c_str());
+    const std::vector<const char*> labels = includeControls
+        ? std::vector<const char*>{"ellipse-model", "control-model", "ellipse-paper", "control-paper", "next-record"}
+        : std::vector<const char*>{"ellipse-model", "ellipse-paper", "next-record"};
+    if (!codec.read(&adapter, false) || codec.getVersion() != DRW::AC1009
+        || decoded.mBlock->ent.size() != labels.size())
+        return false;
+    std::uint32_t modelEllipseHandle = 0;
+    auto current = decoded.mBlock->ent.cbegin();
+    for (std::size_t index = 0; index < labels.size(); ++index) {
+        const DRW_Entity* entity = *current++;
+        if (!entity || entity->layer != "ELLIPSE_META" || entity->lineType != "CONTINUOUS"
+            || entity->extData.size() != 6u)
+            return false;
+        const auto& xdata = entity->extData;
+        const std::array<int, 6> codes{{1001, 1000, 1011, 1070, 1000, 1005}};
+        for (std::size_t field = 0; field < codes.size(); ++field) {
+            if (!xdata[field] || xdata[field]->code() != codes[field]) return false;
+        }
+        if (std::string(xdata[0]->c_str()) != "ELLIPSE_APP"
+            || std::string(xdata[1]->c_str()) != labels[index]
+            || xdata[2]->type() != DRW_Variant::COORD
+            || xdata[2]->content.v->x != 7 || xdata[2]->content.v->y != 8
+            || xdata[2]->content.v->z != 9 || xdata[3]->i_val() != -7
+            || std::string(xdata[4]->c_str()) != "ordered-tail")
+            return false;
+        std::uint32_t reference = 0;
+        const std::string handle = xdata[5]->c_str();
+        const auto parsed = std::from_chars(handle.data(), handle.data() + handle.size(), reference, 16);
+        if (parsed.ec != std::errc{} || parsed.ptr != handle.data() + handle.size()) return false;
+        if (index == 0) modelEllipseHandle = entity->handle;
+        const bool next = index + 1u == labels.size();
+        if (reference != (next ? modelEllipseHandle : entity->handle)) return false;
+        if (next) {
+            if (entity->eType != DRW::LINE) return false;
+            continue;
+        }
+        const bool paper = std::string(labels[index]).find("-paper") != std::string::npos;
+        const auto* poly = dynamic_cast<const DRW_Polyline*>(entity);
+        if (!poly || poly->space != (paper ? DRW::PaperSpace : DRW::ModelSpace)
+            || poly->color != (paper ? 4 : 3)
+            || poly->flags != (paper ? 8 : 9)
+            || poly->vertlist.size() != (paper ? 32u : 128u)
+            || poly->vertlist.front()->basePoint.z == 0)
+            return false;
+    }
+    // Read literal R12 framing separately, without document re-parenting.
+    std::ifstream stream(path, std::ios::binary);
+    char prefix[22]{};
+    stream.read(prefix, sizeof(prefix));
+    const bool binary = std::string(prefix, sizeof(prefix)) == std::string("AutoCAD Binary DXF\r\n\032\0", 22);
+    stream.clear();
+    stream.seekg(binary ? 22 : 0);
+    std::unique_ptr<dxfReader> tags;
+    if (binary) tags = std::make_unique<dxfReaderBinaryR12>(&stream);
+    else tags = std::make_unique<dxfReaderAscii>(&stream);
+    bool poly = false;
+    std::size_t parent = 0, paperFlags = 0, xdataParents = 0;
+    int code = 0;
+    while (tags->readRec(&code)) {
+        if (code == 0) {
+            const std::string kind = tags->getString();
+            if (kind == "EOF") return parent == labels.size() - 1u
+                && paperFlags == (includeControls ? 2u : 1u) && xdataParents == parent;
+            if (kind == "ELLIPSE") return false;
+            poly = kind == "POLYLINE";
+            if (poly) ++parent;
+        } else if (poly && code == 67) {
+            if (tags->getInt32() != 1 || parent < (includeControls ? 3u : 2u)) return false;
+            ++paperFlags;
+        } else if (poly && code == 1001) {
+            if (tags->getString() != "ELLIPSE_APP") return false;
+            ++xdataParents;
+        }
+    }
+    return false;
+}
+
+bool generateLegacyEllipseCarriers(const std::filesystem::path& path, bool binary) {
+    dx_data source;
+    populateLegacyEllipseCarriers(source);
+    dx_iface adapter;
+    return adapter.fileExport(path.string(), DRW::AC1018, binary, &source, false);
+}
+
+void testLegacyEllipseCarrierTransfer(TestContext& t) {
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    const auto output = std::filesystem::temp_directory_path()
+        / ("libdxfrw-r12-ellipse-carriers-" + std::to_string(nonce) + ".dxf");
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() { std::error_code error; std::filesystem::remove(path, error); }
+    } cleanup{output};
+    for (const bool binary : {false, true}) {
+        dx_data source;
+        populateLegacyEllipseCarriers(source);
+        auto* ellipse = static_cast<DRW_Ellipse*>(source.mBlock->ent.front());
+        const DRW_Ellipse before(*ellipse);
+        dx_iface adapter;
+        adapter.cData = &source;
+        adapter.currentBlock = source.mBlock;
+        const std::string filename = output.string();
+        dxfRW codec(filename.c_str());
+        adapter.dxfW = &codec;
+        t.expect(codec.write(&adapter, DRW::AC1009, binary), "R12 derived ellipse carrier export succeeds");
+        t.expect(verifyLegacyEllipseCarriers(output), "R12 ellipse and ordinary POLYLINE retain space, ordered XDATA and identities");
+        t.expect(ellipse->handle == before.handle && ellipse->eType == DRW::ELLIPSE
+                     && ellipse->basePoint.z == before.basePoint.z && ellipse->secPoint.x == before.secPoint.x
+                     && ellipse->extPoint.y == before.extPoint.y && ellipse->ratio == before.ratio
+                     && ellipse->extData.size() == before.extData.size()
+                     && std::string(ellipse->extData.back()->c_str()) == "A200",
+                 "successful legacy derivation keeps the original ellipse caller state");
+        t.expect(codec.remapEntityHandle(0xA200u) != 0xA200u,
+                 "R12 derived parent captures the original ellipse source identity");
+        adapter.dxfW = nullptr;
+
+        for (int unsupported = 0; unsupported < 15; ++unsupported) {
+            dx_data bad;
+            // Keep rollback/reuse scoped to derived parents. Unrelated ordinary
+            // POLYLINE caller-state rollback is a separate file-level issue.
+            populateLegacyEllipseCarriers(bad, false);
+            auto* invalid = static_cast<DRW_Ellipse*>(bad.mBlock->ent.front());
+            const DRW_Ellipse clean(*invalid);
+            switch (unsupported) {
+            case 0: invalid->appData.push_back({{102, std::string("{META")}, {102, std::string("}")}}); break;
+            case 1: invalid->reactorHandles = {0xDEADu}; break;
+            case 2: invalid->xDictHandle = 0xBEEFu; break;
+            case 3: invalid->numProxyGraph = 5; invalid->proxyGraphics = "stale"; break;
+            case 4: invalid->material = 0x123u; break;
+            case 5: invalid->plotStyle = 0x124; break;
+            case 6: invalid->fullVisualStyleHandle = 0x125u; break;
+            case 7: invalid->faceVisualStyleHandle = 0x126u; break;
+            case 8: invalid->edgeVisualStyleHandle = 0x127u; break;
+            case 9: invalid->shadowHandle = 0x128u; break;
+            case 10: invalid->hasDataStorageRecord = true; invalid->dataStorageData = {1, 2}; break;
+            case 11: invalid->setHasDataStorageBinaryData(true); break;
+            case 12: invalid->proxyGraphics = "stale"; break;
+            case 13: invalid->setDwgAcDbColorHandle(true, 0x129u); break;
+            case 14: invalid->dataStorageHandleKey = "orphan"; invalid->dataStorageData = {3, 4}; break;
+            }
+            { std::ofstream previous(output); previous << "ellipse destination\n"; }
+            dx_iface rejecting;
+            rejecting.cData = &bad;
+            rejecting.currentBlock = bad.mBlock;
+            dxfRW retry(filename.c_str());
+            rejecting.dxfW = &retry;
+            t.expect(!retry.write(&rejecting, DRW::AC1009, binary), "R12 ellipse rejects unsupported carriers/resources explicitly");
+            t.expect(retry.getLastDiagnostic().code == "ellipse-r12-carrier",
+                     "unsupported ellipse carrier has a bounded observable diagnostic");
+            std::ifstream bytes(output, std::ios::binary);
+            t.expect(std::string(std::istreambuf_iterator<char>(bytes), {}) == "ellipse destination\n"
+                         && invalid->handle == clean.handle && invalid->ratio == clean.ratio
+                         && retry.remapEntityHandle(clean.handle) == clean.handle,
+                     "rejected R12 derivation preserves destination, caller identity and source map");
+            bytes.close();
+            *invalid = clean;
+            t.expect(retry.write(&rejecting, DRW::AC1009, binary) && verifyLegacyEllipseCarriers(output, false),
+                     "same writer succeeds after removing only the unsupported carrier");
+            rejecting.dxfW = nullptr;
+        }
+        dx_data bad;
+        populateLegacyEllipseCarriers(bad, false);
+        auto* invalid = static_cast<DRW_Ellipse*>(bad.mBlock->ent.front());
+        invalid->extData[3] = std::make_shared<DRW_Variant>(1070, 70001);
+        { std::ofstream previous(output); previous << "ellipse metadata destination\n"; }
+        dx_iface rejecting;
+        rejecting.cData = &bad;
+        rejecting.currentBlock = bad.mBlock;
+        dxfRW retry(filename.c_str());
+        rejecting.dxfW = &retry;
+        t.expect(!retry.write(&rejecting, DRW::AC1009, binary), "late derived ellipse XDATA error rejects atomically");
+        std::ifstream bytes(output, std::ios::binary);
+        t.expect(std::string(std::istreambuf_iterator<char>(bytes), {}) == "ellipse metadata destination\n"
+                     && invalid->handle == 0xA200u && invalid->extData[3]->i_val() == 70001
+                     && retry.remapEntityHandle(0xA200u) == 0xA200u,
+                 "derived parent metadata failure rolls back identity and preserves caller/destination");
+        bytes.close();
+        invalid->extData[3] = std::make_shared<DRW_Variant>(1070, -7);
+        t.expect(retry.write(&rejecting, DRW::AC1009, binary) && verifyLegacyEllipseCarriers(output, false),
+                 "R12 derivation supports failed-then-valid metadata reuse");
+        rejecting.dxfW = nullptr;
+    }
+}
 } // namespace
 
 int main(int argc, char** argv) {
@@ -3159,6 +3396,13 @@ int main(int argc, char** argv) {
         return generateMTextOrientationDxf(argv[2], std::string(argv[1]) == "--generate-mtext-orientation-binary") ? 0 : 1;
     if (argc == 3 && std::string(argv[1]) == "--verify-mtext-orientation")
         return verifyMTextOrientationDxf(argv[2]) ? 0 : 1;
+    if (argc == 3) {
+        const std::string mode(argv[1]);
+        if (mode == "--generate-ellipse-carriers" || mode == "--generate-ellipse-carriers-binary")
+            return generateLegacyEllipseCarriers(argv[2], mode == "--generate-ellipse-carriers-binary") ? 0 : 1;
+        if (mode == "--verify-ellipse-carriers")
+            return verifyLegacyEllipseCarriers(argv[2]) ? 0 : 1;
+    }
     if (argc == 5 && (std::string(argv[1]) == "--generate-table-owners"
                      || std::string(argv[1]) == "--generate-common-scopes"
                      || std::string(argv[1]) == "--generate-object-common-graphs"
@@ -3194,6 +3438,7 @@ int main(int argc, char** argv) {
     testClassicVertexIdentifierRetention(context);
     testMTextOrientationPrecedence(context);
     testInsertChildHandleRollback(context);
+    testLegacyEllipseCarrierTransfer(context);
     testTableRecordOwners(context);
     testBig5(context);
     testBig5Hkscs(context);

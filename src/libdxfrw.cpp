@@ -4220,11 +4220,44 @@ bool dxfRW::writeEllipse(DRW_Ellipse *ent){
         if (!ent->extData.empty() && !writeExtData(ent->extData))
             return false;
     } else {
+        // Derivation cannot replay an ellipse's opaque caches or modern
+        // object/application carriers on a different R12 entity. Keep that
+        // loss observable instead of copying stale data or silently dropping it.
+        if (!ent->appData.empty() || !ent->reactorHandles.empty()
+            || ent->xDictHandle != 0 || ent->numProxyGraph != 0
+            || !ent->proxyGraphics.empty()
+            || ent->material != DRW::MaterialByLayer
+            || ent->plotStyle != DRW::DefaultPlotStyle
+            || ent->shadowHandle != 0 || ent->fullVisualStyleHandle != 0
+            || ent->faceVisualStyleHandle != 0 || ent->edgeVisualStyleHandle != 0
+            || ent->hasDwgAcDbColorHandle()
+            || ent->hasDataStorageBinaryData() || ent->hasDataStorageRecord
+            || ent->dataStorageHandle != 0 || !ent->dataStorageHandleKey.empty()
+            || !ent->dataStorageData.empty() || ent->dataStorageSegmentIndex != 0
+            || ent->dataStorageSchemaIndex != 0 || ent->hasDataStoragePayloadMarker
+            || ent->dataStoragePayloadMarkerOffset != 0
+            || ent->dataStoragePayloadMarkerLength != 0
+            || !ent->dataStoragePayloadMarkerSection.empty()) {
+            recordOperationDiagnostic(DRW::OperationPhase::Entities,
+                DRW::OperationCause::ValidationFailure, "ellipse-r12-carrier",
+                "R12 ellipse derivation cannot preserve object/application or opaque carriers",
+                0, false, ent->handle, ent->handle != DRW::NoHandle);
+            return rejectUnsupportedDxfWrite();
+        }
         DRW_Polyline pol;
-        //RLZ: copy properties
         normalized.toPolyline(&pol, elParts);
         if (pol.vertlist.empty())
             return rejectUnsupportedDxfWrite();
+        // Explicit common-state whitelist, separate from derived geometry and
+        // parser cursors. toPolyline already retains layer/linetype/ACI/weight.
+        // R12 visibility/linetype-scale and wider appearance policy are shared
+        // writer concerns, not a reason to copy the whole polymorphic base.
+        pol.handle = ent->handle;
+        pol.parentHandle = ent->parentHandle;
+        pol.space = ent->space;
+        pol.extData = ent->extData;
+        // writePolyline journals the source->derived identity and rolls it
+        // back on failure. Legacy success leaves the caller ellipse unchanged.
         return writePolyline(&pol);
     }
     return !writer->hasWriteError();

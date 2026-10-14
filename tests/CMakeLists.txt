@@ -184,6 +184,29 @@ foreach(_header_mode IN ITEMS ascii binary)
     )
 endforeach()
 
+# Source-generated model/paper ellipses downgrade to R12 through two actual
+# CLI passes; ordinary POLYLINE controls distinguish derivation from policy.
+foreach(_ellipse_mode IN ITEMS ascii binary)
+    set(_ellipse_generate --generate-ellipse-carriers)
+    set(_ellipse_options -R12)
+    if(_ellipse_mode STREQUAL "binary")
+        set(_ellipse_generate --generate-ellipse-carriers-binary)
+        list(APPEND _ellipse_options -b)
+    endif()
+    add_test(NAME dwg2dxf_r12_ellipse_carriers_${_ellipse_mode}_cli
+        COMMAND ${CMAKE_COMMAND}
+            "-DADAPTER_TEST=$<TARGET_FILE:libdxfrw_dxf_fixture_tests>"
+            "-DDWG2DXF=$<TARGET_FILE:dwg2dxf>"
+            "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}"
+            "-DCASE_NAME=r12-ellipse-carriers-${_ellipse_mode}"
+            "-DGENERATE_MODE=${_ellipse_generate}"
+            "-DVERIFY_MODE=--verify-ellipse-carriers"
+            "-DCONVERSION_OPTIONS=${_ellipse_options}"
+            -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg2dxf_image_path_test.cmake)
+    set_tests_properties(dwg2dxf_r12_ellipse_carriers_${_ellipse_mode}_cli PROPERTIES
+        LABELS "fast;dxf;cli;ellipse" TIMEOUT 30)
+endforeach()
+
 # Dynamic-block objects are retained by the converter adapter and must block
 # publication until a semantics-qualified DXF writer exists.
 add_test(
