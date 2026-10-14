@@ -24,6 +24,17 @@ loss-reporting semantics in small slices, preserving current2D defaults,
 operation/retry rules and the no-new-pure-callback contract. Keep the pinned
 LC3 source gate separately; full consumer compatibility remains open.
 
+Current first7AG.1c getter/reservation candidate remains isolated and
+NOT_INTEGRATION_READY: strict API/TU gates pass, but two new DXF negatives
+incorrectly assume an omitted LINE self-handle forces failure. Correct the
+generator, not tolerant production input, before the small integration gate.
+Remaining methods must match actual consumer sequencing: derived remaps are
+installed during writeBlocks; a reference resolver returns final emitted
+identity and must not be remapped twice. Known optional102 omission and
+XDATA1005 literal0 differ. Choose callable mutation/lifetime and truthful
+attempted/published omission-count policies while retaining strict rejection
+and2D defaults. Exact source pins/reports and substeps are parity7AG.1c.
+
 BLOCK callbacks, narrow WIPEOUT payload/CLI, MIF literal/exact-hex preservation
 and authored dictionary admission are committed. Dictionary admission does
 not close ACDS association, per-entry roles or whole ownership graphs.
@@ -80,6 +91,32 @@ These refine parity7S.3/7BO without changing byte layouts or adding findings.
 Optional comparators must pass their field/identity calibrations before
 extending3D evidence. The six historical J dispositions, frozen metadata,
 84/45/exact7 inventories and fixture policy remain unchanged.
+
+**Latest research boundary at86198a7:** this update changes only the two plans
+and preserves the staged11-path HEADER patch
+`b8712389bd02800d0789287d705254e2ed032b3551c88301993d3fc3873525a7`.
+S3.7 now separates actual SAB decoder count/terminal, finite projection and
+body-placement repairs from S3's qualified opaque carrier extraction. An
+ordinary public ezdxf1.4.4 box SAB with count0 is rejected; a count-only
+diagnostic mutation reveals centered rather than placed bounds. Five tiny
+codec partners distinguish finite valid projection, missing marker, ignored
+suffix, NaN admission and truncated-marker rejection. These seven source-bound
+rows are neither native DWG/DXF evidence nor independent ACIS semantics.
+The parity plan records the exact report/source bindings and remaining
+consumer/comparator calibrations. No fixture, receipt, support claim, frozen
+inventory or six-J disposition changes.
+
+Comparator/graph readiness also stays phase-specific. Parity7AH.5 now
+requires named strict EOF/tail evidence and staged known binary-iterator
+failures; ordinary peer load success is not complete framing. Verify adjacent
+I64 values in the final saved artifact with an exact parser, preserving raw
+JSON/decimal lexemes across JavaScript orchestration. Parity7G.3 adds a
+DXF-first CLI SORT callback/closure, bounded output-only sparse-key policy
+and independent zero-bucket/tie checks. DWG's null-sort→entity-key receipt
+needs separate adaptation; it must not become DXF zero-last. Eight
+binary-phase and ten draw-order component controls do not execute the current
+converter, native application or full valid graph. They refine existing
+owners and keep all external qualification requirements intact.
 
 **Local DXF transport regression (2026-09-28; S2.3.9.4.24):** added a
 runtime-generated AC1027 ASCII and binary REGION-without-history
@@ -3374,6 +3411,58 @@ Steps:
    or unsupported. Treat the open [LibreDWG ACDS/ACIS report](https://github.com/LibreDWG/libredwg/issues/1411)
    as an investigation lead only. Confirm any R2013+ `AcDb:AcDsPrototype_1b`
    behavior against ODA and local bytes before changing carrier rules.
+7. **S3.7 — repair the optional in-library SAB decoder independently.** This
+   is a local parser/projection contract, not a change to DWG byte layouts or
+   automatic2D behavior. Source-bound report
+   `/private/tmp/libdxfrw-research-depth-20261014.iPFjzP/sab-report.json`, SHA256
+   `d71155ea0dc756893f368794e3f545fa982488f55126d2d9132f16c82fac29b0`,
+   records seven actual bounded controls against unchanged drw_acis.cpp.
+   A public ezdxf-produced5576-byte SAB21800 box centered at(10,-20,30)
+   reloads as8 vertices/6 faces with bounds(9,-21.5,28)..(11,-18.5,32), but
+   local parsing rejects its count0. A diagnostic count-only mutation to88
+   records admits it yet returns centered bounds(-1,-1.5,-2)..(1,1.5,2).
+   Synthetic vertex→point components admit no-marker EOF, a garbage suffix
+   and NaN as valid/hasBBox with no diagnostic; a truncated marker rejects.
+
+   - **S3.7a counts and completion:** define profile-aware unspecified0 versus
+     explicit counts, marker inclusion, end-of-data/history state and exact
+     consumed spans before coding. Use the bounded known21800 producer as a
+     decoder interoperability control, not native producer truth; settle
+     positive-count/history/alternate-signature conventions from applicable
+     evidence before enabling them. Require the chosen terminal contract,
+     distinguish complete records from complete streams and retain suffixes
+     explicitly. Preserve an embedded-prefix finder only with named
+     span/suffix outcomes; do not silently make it a whole-blob verifier.
+     Reserve actual records/tokens/work through parity7S.3 before appending;
+     unspecified count is not unbounded admission or an allocation hint.
+   - **S3.7b finite typed projection:** validate coordinates/analytic parameters
+     before marking vertices/curves/surfaces or bounds available. Keep malformed
+     numeric data separate from unsupported projection and from allocation/
+     resource failure; preserve raw payloads and no-throw behavior. Strengthen
+     makeLocalSabPayload/runAcisSabFastCheck: the current vector directly in
+     vertex yields an unresolved point and the test checks cardinality only.
+     Use an actual vertex→point positive and assert valid/finite bounds, plus
+     NaN/infinity and missing/wrong-type reference partners. Do not reinterpret
+     every unknown tag or pointer while fixing numeric publication.
+   - **S3.7c roots and coordinate policy:** explicitly retain legacy local
+     coordinates or add a separately named body/WCS projection. Follow typed
+     body/lump/shell/face connectivity and body transforms only under that
+     reviewed policy; report unreachable/orphan and unsupported projections
+     instead of collecting every matching node as one complete solid. Test
+     centered/translated asymmetric boxes, two differently placed bodies,
+     orphan vertices and unsupported transforms with independently expected
+     placement. Preserve source units separately; no silent rescaling, B-rep
+     validity claim, cache-policy reset or source-carrier rewrite. If existing
+     Boolean results cannot express partial/unsupported versus complete, use
+     a source-compatible additive outcome while preserving legacy signatures.
+
+   [Pinned header](https://github.com/mozman/ezdxf/blob/dd7f6cc34983fdbf0b2b910f2497e0720d06dd16/src/ezdxf/acis/hdr.py#L34-L74)
+   and [body traversal/transform](https://github.com/mozman/ezdxf/blob/dd7f6cc34983fdbf0b2b910f2497e0720d06dd16/src/ezdxf/acis/mesh.py#L61-L136)
+   are primary implementation cross-checks; ezdxf is not a general ACIS kernel.
+   Port the tiny recipes to current local/hardening targets, run their affected
+   tests and one sanitizer checkpoint after related ownership edits settle.
+   External known-size/native/cross-kernel gates remain separate; neither
+   opaque carrier support nor the six historical J statuses is promoted.
 
 Positive gate: local-from-scratch parser vectors and any available authentic
 sample agree on declared lengths, payload identity, data/handle boundaries,
