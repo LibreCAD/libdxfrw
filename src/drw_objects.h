@@ -190,12 +190,13 @@ public:
         pendingLayerRefResolutions(std::move(e.pendingLayerRefResolutions)),
         xDictFlag(e.xDictFlag), numReactors(e.numReactors),
         commonLinkTailValidated(e.commonLinkTailValidated),
-        hasDsData(e.hasDsData), curr(e.curr) {
+        hasDsData(e.hasDsData), curr(e.curr), currCoordMask(e.currCoordMask) {
     oType = e.oType;
     objSize = e.objSize;
     handleStreamBitSize = e.handleStreamBitSize;
     e.extData.clear();
     e.curr = nullptr;
+    e.currCoordMask = 0;
   }
 
   // Clone before replacing owned variants so allocation failure does not
@@ -249,8 +250,10 @@ public:
     objSize = e.objSize;
     handleStreamBitSize = e.handleStreamBitSize;
     curr = e.curr;
+    currCoordMask = e.currCoordMask;
     e.extData.clear();
     e.curr = nullptr;
+    e.currCoordMask = 0;
     return *this;
   }
 
@@ -307,6 +310,7 @@ protected:
     objSize = 0;
     handleStreamBitSize = 0;
     curr = nullptr;
+    currCoordMask = 0;
   }
 
 public:
@@ -397,6 +401,8 @@ private:
     for (DRW_Variant *value : extData)
       delete value;
     extData.clear();
+    curr = nullptr;
+    currCoordMask = 0;
   }
 
   void copyExtDataFrom(const DRW_TableEntry &source) {
@@ -416,6 +422,7 @@ private:
   void installExtData(std::vector<std::unique_ptr<DRW_Variant>> copies,
                       const DRW_TableEntry &source) {
     curr = nullptr;
+    currCoordMask = 0;
     extData.reserve(copies.size());
     for (std::size_t i = 0; i < copies.size(); ++i) {
       DRW_Variant *value = copies[i].get();
@@ -424,9 +431,12 @@ private:
         curr = value;
       copies[i].release();
     }
+    if (curr != nullptr)
+      currCoordMask = source.currCoordMask;
   }
 
   DRW_Variant *curr{nullptr};
+  std::uint8_t currCoordMask{0}; // transient X/Y/Z presence for one XDATA tuple
 };
 
 //! What the reader established about the common owner/reactor/xdictionary

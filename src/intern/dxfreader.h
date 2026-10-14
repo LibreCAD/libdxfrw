@@ -52,6 +52,13 @@ public:
     bool recordBudgetExceeded() const noexcept {
         return m_recordBudgetExceeded;
     }
+    // A derived parser may consume a non-XDATA field without calling its
+    // base. Coordinate assembly must still stop at that physical boundary.
+    bool followsXdataPointComponent() const noexcept {
+        return (m_previousCode >= 1010 && m_previousCode <= 1013)
+            || (m_previousCode >= 1020 && m_previousCode <= 1023)
+            || (m_previousCode >= 1030 && m_previousCode <= 1033);
+    }
 
     // EED/XDATA text values (1000-1003) use the drawing's active source
     // code-page just like ordinary text strings. Keep code 1004 binary chunks
@@ -156,6 +163,7 @@ private:
     std::size_t m_recordCount {0};
     bool m_recordBudgetExceeded {false};
     int m_currentCode {0};
+    int m_previousCode {0};
 };
 
 class dxfReaderBinary : public dxfReader {

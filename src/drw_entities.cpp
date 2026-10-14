@@ -3410,6 +3410,7 @@ void DRW_Entity::init(DRW_Entity const& rhs) {
     extAxisX = rhs.extAxisX;
     extAxisY = rhs.extAxisY;
     curr.reset();
+    currCoordMask = 0;
     copyExtDataFrom(rhs);
 }
 
@@ -3482,6 +3483,14 @@ void DRW_Entity::extrudePoint(DRW_Coord, DRW_Coord *point){
 
 bool DRW_Entity::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     try {
+    const bool coordinate = (code >= 1010 && code <= 1013)
+        || (code >= 1020 && code <= 1023) || (code >= 1030 && code <= 1033);
+    if (!coordinate || !reader->followsXdataPointComponent()) {
+        if (curr)
+            DRW_DBG("WARNING: incomplete entity XDATA point retained with zero defaults\n");
+        curr.reset();
+        currCoordMask = 0;
+    }
     switch (code) {
     case DRW::dxfCode::HANDLE:
         // A damaged file's empty or repeated handle on a typed entity is
@@ -3606,28 +3615,43 @@ bool DRW_Entity::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     case 1011:
     case 1012:
     case 1013:
-        if (extData.size() >= DRW_TableEntry::kMaxExtendedDataItems)
-            return false;
-        curr = std::make_shared<DRW_Variant>(
-            code, DRW_Coord(reader->getDouble(), 0.0, 0.0));
-        extData.push_back(curr);
-        break;
     case 1020:
     case 1021:
     case 1022:
     case 1023:
-        // Repeated Y/Z components after a point's Z are tolerated.
-        if (curr)
-            curr->setCoordY(reader->getDouble());
-        break;
     case 1030:
     case 1031:
     case 1032:
-    case 1033:
-        if (curr)
+    case 1033: {
+        const int component = (code - 1010) / 10;
+        const int pointCode = code - component * 10;
+        const auto present = static_cast<std::uint8_t>(1u << component);
+        // Match the table parser's tolerant, bounded tuple policy: no earlier
+        // coordinate is overwritten and different roles/APPIDs never merge.
+        if (!curr || curr->code() != pointCode
+            || (currCoordMask & present) != 0) {
+            if (curr || component != 0)
+                DRW_DBG("WARNING: unordered/incomplete entity XDATA point retained\n");
+            if (extData.size() >= DRW_TableEntry::kMaxExtendedDataItems)
+                return false;
+            curr = std::make_shared<DRW_Variant>(
+                pointCode, DRW_Coord(0.0, 0.0, 0.0));
+            currCoordMask = 0;
+            extData.push_back(curr);
+        }
+        if (component == 0)
+            curr->setCoordX(reader->getDouble());
+        else if (component == 1)
+            curr->setCoordY(reader->getDouble());
+        else
             curr->setCoordZ(reader->getDouble());
-        curr.reset();
+        currCoordMask |= present;
+        if (currCoordMask == 7) {
+            curr.reset();
+            currCoordMask = 0;
+        }
         break;
+    }
     case 1040:
     case 1041:
     case 1042:

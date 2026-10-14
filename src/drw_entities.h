@@ -217,11 +217,12 @@ public:
 		dwgDataEndBit = 0;
 		oType = 0;
 		curr.reset();
+		currCoordMask = 0;
 	}
 
 	// Copies published by compound entities retain decoded entity metadata;
 	// only the parser's transient cursor must be discarded.
-	void clearParserCursor() { curr.reset(); }
+	void clearParserCursor() { curr.reset(); currCoordMask = 0; }
 
     virtual void applyExtrusion() = 0;
 
@@ -419,6 +420,7 @@ private:
 	DRW_Coord extAxisX;
     DRW_Coord extAxisY;
 	std::shared_ptr<DRW_Variant> curr;
+    std::uint8_t currCoordMask{0}; // transient X/Y/Z presence for one XDATA tuple
 };
 
 //! Typed metadata carrier for an ACAD_PROXY_ENTITY (DWG type 498).

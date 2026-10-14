@@ -2282,6 +2282,14 @@ void populateVbaProjectSectionView(DRW_RawDwgSection& section) {
 */
 bool DRW_TableEntry::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     try {
+    const bool coordinate = (code >= 1010 && code <= 1013)
+        || (code >= 1020 && code <= 1023) || (code >= 1030 && code <= 1033);
+    if (!coordinate || !reader->followsXdataPointComponent()) {
+        if (curr != nullptr)
+            DRW_DBG("WARNING: incomplete table XDATA point retained with zero defaults\n");
+        curr = nullptr;
+        currCoordMask = 0;
+    }
     switch (code) {
     case DRW::dxfCode::HANDLE:
         if (!reader->isValidHandleString() || !reader->registerSelfHandle())
@@ -2312,56 +2320,48 @@ bool DRW_TableEntry::parseCode(int code, const std::unique_ptr<dxfReader>& reade
     case 1011:
     case 1012:
     case 1013:
-        // don't trust in X, Y, Z order!
-        if (nullptr != curr) {
-            curr->setCoordX( reader->getDouble());
-        }
-        else {
-            auto value = std::make_unique<DRW_Variant>(
-                code, DRW_Coord(reader->getDouble(), 0.0, 0.0));
-            curr = value.get();
-            if (!appendExtData(std::move(value))) {
-                curr = nullptr;
-                return false;
-            }
-        }
-        break;
     case 1020:
     case 1021:
     case 1022:
     case 1023:
-        // don't trust in X, Y, Z order!
-        if (nullptr != curr) {
-            curr->setCoordY( reader->getDouble());
-        }
-        else {
-            auto value = std::make_unique<DRW_Variant>(
-                code, DRW_Coord(0.0, reader->getDouble(), 0.0));
-            curr = value.get();
-            if (!appendExtData(std::move(value))) {
-                curr = nullptr;
-                return false;
-            }
-        }
-        break;
     case 1030:
     case 1031:
     case 1032:
-    case 1033:
-        // don't trust in X, Y, Z order!
-        if (nullptr != curr) {
-            curr->setCoordZ( reader->getDouble());
-        }
-        else {
+    case 1033: {
+        const int component = (code - 1010) / 10;
+        const int pointCode = code - component * 10;
+        const auto present = static_cast<std::uint8_t>(1u << component);
+        // Preserve legacy out-of-order components, but never overwrite an
+        // earlier tuple, merge different coordinate roles, or cross an APPID.
+        // Incomplete/duplicate components remain bounded zero-filled tuples
+        // under tolerant reading, with a diagnostic trace instead of a new
+        // record-level rejection policy.
+        if (curr == nullptr || curr->code() != pointCode
+            || (currCoordMask & present) != 0) {
+            if (curr != nullptr || component != 0)
+                DRW_DBG("WARNING: unordered/incomplete table XDATA point retained\n");
             auto value = std::make_unique<DRW_Variant>(
-                code, DRW_Coord(0.0, 0.0, reader->getDouble()));
+                pointCode, DRW_Coord(0.0, 0.0, 0.0));
             curr = value.get();
+            currCoordMask = 0;
             if (!appendExtData(std::move(value))) {
                 curr = nullptr;
                 return false;
             }
         }
+        if (component == 0)
+            curr->setCoordX(reader->getDouble());
+        else if (component == 1)
+            curr->setCoordY(reader->getDouble());
+        else
+            curr->setCoordZ(reader->getDouble());
+        currCoordMask |= present;
+        if (currCoordMask == 7) {
+            curr = nullptr;
+            currCoordMask = 0;
+        }
         break;
+    }
     case 1040:
     case 1041:
     case 1042:

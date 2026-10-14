@@ -1084,6 +1084,260 @@ void testBlockRecordXdata(TestContext& t) {
              "BLOCK_RECORD XDATA preserves application and text items");
 }
 
+std::vector<DRW_Variant> orderedPointXdata() {
+    return {{1001, std::string("POINTS_A")},
+            {1010, DRW_Coord(1, 2, 3)}, {1010, DRW_Coord(4, 5, 6)},
+            {1000, std::string("sentinel")},
+            {1011, DRW_Coord(7, 8, 9)}, {1012, DRW_Coord(-2, 4, 8)},
+            {1013, DRW_Coord(0, 1, 0)},
+            {1001, std::string("POINTS_B")},
+            {1010, DRW_Coord(11, 12, 13)}, {1010, DRW_Coord(14, 15, 16)}};
+}
+
+const DRW_Variant* xdataPointer(const DRW_Variant* value) { return value; }
+const DRW_Variant* xdataPointer(const std::shared_ptr<DRW_Variant>& value) {
+    return value.get();
+}
+
+template<class Values>
+bool equalPointXdata(const Values& actual,
+                     const std::vector<DRW_Variant>& expected) {
+    if (actual.size() != expected.size())
+        return false;
+    for (std::size_t index = 0; index < expected.size(); ++index) {
+        const DRW_Variant* value = xdataPointer(actual[index]);
+        const DRW_Variant& wanted = expected[index];
+        if (value == nullptr || value->type() != wanted.type()
+            || value->code() != wanted.code())
+            return false;
+        if (wanted.type() == DRW_Variant::STRING) {
+            if (std::string(value->c_str()) != wanted.c_str())
+                return false;
+        } else if (wanted.type() == DRW_Variant::COORD) {
+            const DRW_Coord& a = *value->coord();
+            const DRW_Coord& b = *wanted.coord();
+            if (a.x != b.x || a.y != b.y || a.z != b.z)
+                return false;
+        } else {
+            return false;
+        }
+    }
+    return true;
+}
+
+class TablePointParser : public DRW_Layer {
+public:
+    bool parseValue(int code, const std::unique_ptr<dxfReader>& reader) {
+        return DRW_Layer::parseCode(code, reader);
+    }
+    void resetValues() { DRW_TableEntry::reset(); }
+};
+
+class EntityPointParser : public DRW_Line {
+public:
+    bool parseValue(int code, const std::unique_ptr<dxfReader>& reader) {
+        return DRW_Line::parseCode(code, reader);
+    }
+    void resetValues() { DRW_Entity::reset(); }
+};
+
+// These are physical wire tags, not a semantic writer round-trip: coordinate
+// component order, code families and interrupted tuples remain literal.
+template<class Parser>
+bool parsePointTags(Parser& parser, const std::vector<DRW_Variant>& tags,
+                    bool binary) {
+    std::ostringstream bytes;
+    std::unique_ptr<dxfWriter> writer;
+    if (binary)
+        writer = std::make_unique<dxfWriterBinary>(&bytes);
+    else
+        writer = std::make_unique<dxfWriterAscii>(&bytes);
+    for (const DRW_Variant& tag : tags) {
+        if (tag.type() == DRW_Variant::STRING) {
+            if (!writer->writeString(tag.code(), tag.c_str()))
+                return false;
+        } else if (tag.type() == DRW_Variant::DOUBLE) {
+            if (!writer->writeDouble(tag.code(), tag.d_val()))
+                return false;
+        } else if (tag.type() == DRW_Variant::INTEGER) {
+            if (!writer->writeInt16(tag.code(), tag.i_val()))
+                return false;
+        } else if (tag.type() == DRW_Variant::COORD) {
+            const DRW_Coord& point = *tag.coord();
+            if (!writer->writeDouble(tag.code(), point.x)
+                || !writer->writeDouble(tag.code() + 10, point.y)
+                || !writer->writeDouble(tag.code() + 20, point.z))
+                return false;
+        } else {
+            return false;
+        }
+    }
+    std::istringstream input(bytes.str());
+    std::unique_ptr<dxfReader> reader;
+    if (binary)
+        reader = std::make_unique<dxfReaderBinary>(&input);
+    else
+        reader = std::make_unique<dxfReaderAscii>(&input);
+    int code = 0;
+    while (reader->readRec(&code)) {
+        if (!parser.parseValue(code, reader))
+            return false;
+    }
+    return true;
+}
+
+bool generatePointXdataDxf(const std::filesystem::path& path, bool binary) {
+    dx_data data;
+    for (const char* name : {"POINTS_A", "POINTS_B"}) {
+        DRW_AppId app;
+        app.name = name;
+        data.appIds.push_back(app);
+    }
+    DRW_Layer layer;
+    layer.name = "XDATA_POINTS";
+    layer.color = 3;
+    DRW_Textstyle style;
+    style.name = "XDATA_STYLE";
+    style.font = "txt";
+    auto line = std::make_unique<DRW_Line>();
+    line->layer = layer.name;
+    line->basePoint = DRW_Coord(1, 2, 3);
+    line->secPoint = DRW_Coord(5, 8, 13);
+    for (const DRW_Variant& value : orderedPointXdata()) {
+        if (!layer.addExtData(std::make_unique<DRW_Variant>(value))
+            || !style.addExtData(std::make_unique<DRW_Variant>(value)))
+            return false;
+        line->extData.push_back(std::make_shared<DRW_Variant>(value));
+    }
+    data.layers.push_back(layer);
+    data.textStyles.push_back(style);
+    data.mBlock->ent.push_back(line.release());
+    FixtureInterface interface_;
+    interface_.attach(&data);
+    return interface_.fileExport(path.string(), DRW::AC1032, binary, &data, false);
+}
+
+template<class Parser>
+void testPointCursorTolerance(TestContext& t, bool binary) {
+    Parser parser;
+    const std::vector<DRW_Variant> unordered{
+        {1021, 2.0}, {1031, 3.0}, {1011, 1.0},
+        {1032, 6.0}, {1022, 5.0}, {1012, 4.0}};
+    t.expect(parsePointTags(parser, unordered, binary)
+                 && equalPointXdata(parser.extData,
+                     {{1011, DRW_Coord(1, 2, 3)}, {1012, DRW_Coord(4, 5, 6)}}),
+             "out-of-order XDATA components retain their coordinate family");
+
+    // Malformed sources are tolerance controls, not valid-input parity cells.
+    parser.resetValues();
+    const std::vector<DRW_Variant> interrupted{
+        {1010, 1.0}, {1021, 2.0}, {1031, 3.0},
+        {1001, std::string("NEXT_APP")}, {1031, 4.0},
+        {1000, std::string("boundary")}, {1021, 5.0},
+        {1011, 6.0}, {1021, 7.0}, {1031, 8.0},
+        {1012, 9.0}, {1012, 10.0}, {1022, 11.0}, {1032, 12.0},
+        {1010, 13.0}, {10, 80.0}, {1020, 14.0},
+        {62, 3}, {1030, 15.0}};
+    const std::vector<DRW_Variant> preserved{
+        {1010, DRW_Coord(1, 0, 0)}, {1011, DRW_Coord(0, 2, 3)},
+        {1001, std::string("NEXT_APP")}, {1011, DRW_Coord(0, 0, 4)},
+        {1000, std::string("boundary")}, {1011, DRW_Coord(6, 5, 0)},
+        {1011, DRW_Coord(0, 7, 8)}, {1012, DRW_Coord(9, 0, 0)},
+        {1012, DRW_Coord(10, 11, 12)}, {1010, DRW_Coord(13, 0, 0)},
+        {1010, DRW_Coord(0, 14, 0)}, {1010, DRW_Coord(0, 0, 15)}};
+    t.expect(parsePointTags(parser, interrupted, binary)
+                 && equalPointXdata(parser.extData, preserved),
+             "incomplete/mixed/duplicate points never mutate earlier tuples or APPIDs");
+    parser.resetValues();
+    t.expect(parsePointTags(parser, {{1010, 90.0}}, binary),
+             "truncated point remains tolerated");
+    parser.resetValues();
+    t.expect(parsePointTags(parser, {{1033, 3.0}, {1023, 2.0}, {1013, 1.0}}, binary)
+                 && equalPointXdata(parser.extData, {{1013, DRW_Coord(1, 2, 3)}}),
+             "reset clears incomplete XDATA cursor before operation reuse");
+}
+
+void testPointCursorCopies(TestContext& t, bool binary) {
+    TablePointParser original;
+    t.expect(parsePointTags(original, {{1010, 1.0}, {1020, 2.0}}, binary),
+             "partial table point parses before copy");
+    TablePointParser copied(original);
+    TablePointParser assigned;
+    assigned = original;
+    original.resetValues();
+    t.expect(parsePointTags(copied, {{1030, 3.0}}, binary)
+                 && equalPointXdata(copied.extData,
+                     {{1010, DRW_Coord(1, 2, 0)}, {1010, DRW_Coord(0, 0, 3)}})
+                 && parsePointTags(assigned, {{1030, 4.0}}, binary)
+                 && equalPointXdata(assigned.extData,
+                     {{1010, DRW_Coord(1, 2, 0)}, {1010, DRW_Coord(0, 0, 4)}}),
+             "copied table data owns its partial tuple without crossing read operations");
+    TablePointParser moved;
+    t.expect(parsePointTags(moved, {{1012, 5.0}}, binary),
+             "partial table point parses before move");
+    TablePointParser destination(std::move(moved));
+    moved.resetValues();
+    t.expect(parsePointTags(destination, {{1032, 7.0}, {1022, 6.0}}, binary)
+                 && equalPointXdata(destination.extData,
+                     {{1012, DRW_Coord(5, 0, 0)}, {1012, DRW_Coord(0, 6, 7)}}),
+             "moved table data cannot carry its point cursor into a new reader");
+    EntityPointParser entity;
+    t.expect(parsePointTags(entity, {{1010, 8.0}}, binary),
+             "partial entity point parses before copy");
+    EntityPointParser entityCopy(entity);
+    entity.resetValues();
+    t.expect(parsePointTags(entityCopy, {{1030, 9.0}}, binary)
+                 && equalPointXdata(entityCopy.extData,
+                     {{1010, DRW_Coord(8, 0, 0)}, {1010, DRW_Coord(0, 0, 9)}}),
+             "entity copy discards transient cursor without aliasing source data");
+}
+
+void testOrderedPointXdata(TestContext& t) {
+    const auto expected = orderedPointXdata();
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    for (const bool binary : {false, true}) {
+        testPointCursorTolerance<TablePointParser>(t, binary);
+        testPointCursorTolerance<EntityPointParser>(t, binary);
+        testPointCursorCopies(t, binary);
+        TablePointParser table;
+        EntityPointParser entity;
+        t.expect(parsePointTags(table, expected, binary)
+                     && equalPointXdata(table.extData, expected),
+                 "table XDATA retains seven ordered points and two APPIDs");
+        t.expect(parsePointTags(entity, expected, binary)
+                     && equalPointXdata(entity.extData, expected),
+                 "entity XDATA retains seven ordered points and two APPIDs");
+
+        const auto path = std::filesystem::temp_directory_path()
+            / ("libdxfrw-ordered-xdata-" + std::to_string(nonce)
+               + (binary ? "-binary.dxf" : "-ascii.dxf"));
+        std::error_code error;
+        const bool written = generatePointXdataDxf(path, binary);
+        t.expect(written, "ordered XDATA source writes from scratch");
+        FixtureInterface interface_;
+        dx_data imported;
+        const bool read = written
+            && interface_.fileImport(path.string(), &imported, false);
+        t.expect(read, "ordered XDATA source imports");
+        if (read) {
+            const DRW_Layer* layer = findNonDefaultLayer(imported);
+            t.expect(layer != nullptr && equalPointXdata(layer->extData, expected),
+                     "LAYER callback retains ordered XDATA point roles");
+            bool styleFound = false;
+            for (const DRW_Textstyle& style : imported.textStyles) {
+                if (style.name == "XDATA_STYLE")
+                    styleFound = equalPointXdata(style.extData, expected);
+            }
+            t.expect(styleFound, "STYLE callback inherits ordered XDATA fix");
+            const DRW_Entity* line = imported.mBlock->ent.empty()
+                ? nullptr : imported.mBlock->ent.front();
+            t.expect(line != nullptr && equalPointXdata(line->extData, expected),
+                     "LINE callback remains an unaffected ordered control");
+        }
+        std::filesystem::remove(path, error);
+    }
+}
+
 void testRawClassEntity(TestContext& t) {
     FixtureInterface interface_;
     dx_data data;
@@ -3403,6 +3657,12 @@ int main(int argc, char** argv) {
         if (mode == "--verify-ellipse-carriers")
             return verifyLegacyEllipseCarriers(argv[2]) ? 0 : 1;
     }
+    if (argc == 4 && std::string(argv[1]) == "--generate-xdata-points") {
+        const std::string encoding(argv[3]);
+        if (encoding != "ascii" && encoding != "binary")
+            return 2;
+        return generatePointXdataDxf(argv[2], encoding == "binary") ? 0 : 1;
+    }
     if (argc == 5 && (std::string(argv[1]) == "--generate-table-owners"
                      || std::string(argv[1]) == "--generate-common-scopes"
                      || std::string(argv[1]) == "--generate-object-common-graphs"
@@ -3445,6 +3705,7 @@ int main(int argc, char** argv) {
     testUhc(context);
     testBlockPreview(context);
     testBlockRecordXdata(context);
+    testOrderedPointXdata(context);
     testRawClassEntity(context);
     testEed(context);
     testRawControls(context);
