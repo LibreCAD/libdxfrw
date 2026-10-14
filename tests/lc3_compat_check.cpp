@@ -32,9 +32,25 @@
 
 #include <drw_interface.h>
 #include <drw_base.h>
+#include <libdxfrw.h>
 #include <type_traits>
+#include <utility>
 
 namespace {
+
+// Separate from the older LibreCAD_3 callback surface above: this is the
+// actual current LibreCAD bf58e1e878f71d6c5c051ccd3dd3d0981c19644a facade
+// call (rs_filterdxfrw.cpp:4418), including its input-only enum spellings.
+static_assert(noexcept(std::declval<dxfRW&>().setDxfTextEncoding(
+                  DRW::DxfTextEncoding::Declared)),
+              "LibreCAD text interpretation setter must remain noexcept");
+[[maybe_unused]] bool currentLibreCadRead(dxfRW& reader,
+    DRW_Interface* adapter, bool legacyRecovery, std::string& content) {
+    reader.setDxfTextEncoding(legacyRecovery
+        ? DRW::DxfTextEncoding::LegacyLibreCadUtf8
+        : DRW::DxfTextEncoding::Declared);
+    return reader.readAscii(adapter, true, content);
+}
 
 class LC3CompatCheck : public DRW_Interface {
 public:

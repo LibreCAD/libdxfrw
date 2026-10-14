@@ -30,12 +30,17 @@ public:
     void setVersion(const std::string &v, bool dxfFormat);
     void setVersion(DRW::Version v, bool dxfFormat);
     void setCodePage(const std::string &c, bool dxfFormat);
+    void setDxfTextEncoding(DRW::DxfTextEncoding encoding) noexcept {
+        m_dxfTextEncoding = encoding;
+    }
     void setByteCodePage(const std::string &c);
     std::string getCodePage(){return cp;}
     void swap(DRW_TextCodec& other) noexcept;
 
 private:
     std::string correctCodePage(const std::string& s);
+    void configureCodePage(const std::string& c, bool dxfFormat,
+                           bool explicitDeclaration = false);
 
 private:
     DRW::Version version{DRW::UNKNOWNV};
@@ -48,6 +53,9 @@ private:
     // table records legitimately carry no handle.
     DRW::Version sourceVersion{DRW::UNKNOWNV};
     bool m_sourceVersionSet { false };
+    DRW::DxfTextEncoding m_dxfTextEncoding {DRW::DxfTextEncoding::Declared};
+    bool m_legacyDxfInputEligible {false};
+    bool m_legacyDxfCodePageAllowed {true};
     std::string cp;
     std::unique_ptr< DRW_Converter> conv;
     std::unique_ptr< DRW_Converter> cp8Conv;

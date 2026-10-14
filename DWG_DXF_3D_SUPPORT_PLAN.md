@@ -6,9 +6,10 @@ Review date: 2026-10-14. Historical evidence retains its original date/source.
 **Current consumer readiness:** canonical declared-codec/XDATA repair,
 HEADER finalization/alias provenance and accepted-source CLI authority are
 committed. The reviewed input-only `DRW::DxfTextEncoding`/
-`dxfRW::setDxfTextEncoding` successor is staged on736ae70, with seven focused
+`dxfRW::setDxfTextEncoding` successor is integrated on d33e7ec, with seven focused
 main tests, strict five-TU/current-LibreCAD facade/lc3 and retained MIF modes
-passing. It is not committed by this plan-only update. Declared remains the
+passing. Its source/artifact bytes match the original gate after the docs-only
+ancestor advance; unchanged tests are not repeated. Declared remains the
 default; recovery changes eligible input interpretation, not export encoding
 or2D projection. Public/private layout changes require consumer rebuild and
 do not establish binary ABI or native edit/save compatibility.
@@ -34,8 +35,8 @@ near-polar bases and rotated bounds; uncalibrated derived peer projections
 cannot qualify3D geometry. These refinements require small local counters/
 analytic controls, not native evidence before safe local implementation.
 
-**Next local handoffs:** commit the validated staged API without reapplying
-its prerequisites; then integrate separately reviewed qualification-number
+**Next local handoffs:** preserve the integrated API and its prerequisites;
+integrate separately reviewed qualification-number
 admission and corrected FreeCAD preflight with their tiny Python/configure/
 CLI gates. External platform/ACIS qualification does not block these local
 steps. Broader geometry comparison must preserve pattern phase as well as

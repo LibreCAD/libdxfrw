@@ -2021,6 +2021,7 @@ bool dxfRW::read(DRW_Interface *interface_, bool ext){
         reader->setRecordBudget(m_dxfReadRecordBudget);
         reader->setTokenByteBudget(m_dxfReadTokenByteBudget);
     }
+    reader->setDxfTextEncoding(m_dxfTextEncoding);
     reader->setClassifierProfile(
         m_useTargetLegacyClassifier
             ? DxfClassifierProfile::LibreCadMasterLegacy
@@ -2069,6 +2070,7 @@ bool dxfRW::readAscii(DRW_Interface *interface_, bool ext, std::string& content)
     reader = std::make_unique<dxfReaderAscii>(&strstream);
     reader->setRecordBudget(m_dxfReadRecordBudget);
     reader->setTokenByteBudget(m_dxfReadTokenByteBudget);
+    reader->setDxfTextEncoding(m_dxfTextEncoding);
     reader->setClassifierProfile(
         m_useTargetLegacyClassifier
             ? DxfClassifierProfile::LibreCadMasterLegacy

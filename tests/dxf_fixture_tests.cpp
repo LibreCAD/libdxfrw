@@ -25,6 +25,7 @@
 #include "dwg2dxf/dx_iface.h"
 #include "intern/dxfreader.h"
 #include "intern/dxfwriter.h"
+#include "intern/drw_textcodec.h"
 #include "intern/dwgbufferw.h"
 
 namespace {
@@ -3622,6 +3623,399 @@ void testAdapterAcceptedDxfVersion(TestContext& t) {
     std::filesystem::remove(path, error);
 }
 
+using TextEncoding = DRW::DxfTextEncoding;
+
+void testDxfTextEncodingCodecs(TestContext& t) {
+    const std::string source = u8"café";
+    const std::string declared = u8"cafÃ©";
+    const std::string escaped = source + "\\U+4E2D\\M+5D6D0";
+    for (const DRW::Version version : {DRW::UNKNOWNV, DRW::AC1004,
+            DRW::AC1006, DRW::AC1009, DRW::AC1012, DRW::AC1014,
+            DRW::AC1015, DRW::AC1018, DRW::AC1021, DRW::AC1024,
+            DRW::AC1027, DRW::AC1032}) {
+        for (const std::string page : {"", "ANSI_1252", "ANSI_1251", "ANSI_936"}) {
+            for (const bool dxf : {false, true}) {
+                DRW_TextCodec ordinary;
+                DRW_TextCodec recovery;
+                recovery.setDxfTextEncoding(TextEncoding::LegacyLibreCadUtf8);
+                ordinary.setVersion(version, dxf);
+                recovery.setVersion(version, dxf);
+                if (!page.empty()) {
+                    ordinary.setCodePage(page, dxf);
+                    recovery.setCodePage(page, dxf);
+                }
+                const bool eligible = dxf && version >= DRW::AC1006
+                    && version <= DRW::AC1018
+                    && (page.empty() || page == "ANSI_1252");
+                const std::string ordinaryValue = ordinary.toUtf8(escaped);
+                t.expect(recovery.toUtf8(escaped)
+                             == (eligible ? source + u8"中中" : ordinaryValue),
+                         "recovery applies only to known legacy default/1252 DXF, not DWG or other pages");
+                if (eligible)
+                    t.expect(ordinaryValue == declared + u8"中中",
+                             "Declared remains actual CP1252, visibly distinct from opt-in recovery");
+                t.expect(recovery.getSourceVersion() == ordinary.getSourceVersion()
+                             && recovery.hasSourceVersion() == ordinary.hasSourceVersion()
+                             && recovery.getCodePage() == ordinary.getCodePage()
+                             && recovery.fromUtf8(source) == ordinary.fromUtf8(source),
+                         "input mode leaves source metadata and output conversion unchanged");
+            }
+        }
+    }
+
+    DRW_TextCodec recovery;
+    recovery.setDxfTextEncoding(TextEncoding::LegacyLibreCadUtf8);
+    recovery.setCodePage("ANSI_1251", true);
+    recovery.setVersion(DRW::AC1018, true);
+    t.expect(recovery.toUtf8(source) == declared,
+             "internal version default cannot enable recovery after explicit non-1252 page");
+    recovery.setCodePage("ANSI_1252", true);
+    t.expect(recovery.toUtf8(source) == source,
+             "later explicit 1252 declaration enables recovery again");
+    DRW_TextCodec ordinary;
+    ordinary.setVersion(DRW::AC1018, true);
+    ordinary.swap(recovery);
+    t.expect(ordinary.toUtf8(source) == source && recovery.toUtf8(source) == declared,
+             "codec swap carries mode and eligibility together");
+    DRW_TextCodec moved(std::move(ordinary));
+    t.expect(moved.toUtf8(source) == source,
+             "codec move preserves mode and eligibility");
+}
+
+class TextEncodingCapture final : public dx_iface {
+public:
+    DRW_Header value;
+    std::vector<std::string> texts;
+    std::vector<std::pair<int, std::string>> xdataText;
+    std::vector<std::string> appIds;
+    std::vector<DRW_RawDxfObject> raw;
+    dxfRW* facade {nullptr};
+    bool switchAtHeader {false};
+    bool throwAtText {false};
+    bool nested {false};
+    bool nestedPreserved {true};
+    bool nestedResult {true};
+    unsigned nestedCalls {0};
+
+    void addHeader(const DRW_Header* header) override {
+        value = *header;
+        if (switchAtHeader)
+            facade->setDxfTextEncoding(TextEncoding::Declared);
+    }
+    void addText(const DRW_Text& text) override {
+        texts.push_back(text.text);
+        for (const auto& value : text.extData) {
+            if (value != nullptr && (value->code() == 1000 || value->code() == 1003)
+                && value->type() == DRW_Variant::STRING)
+                xdataText.emplace_back(value->code(), value->c_str());
+        }
+        if (nested) {
+            ++nestedCalls;
+            const auto before = facade->getLastDiagnostic();
+            const auto beforeError = facade->getError();
+            std::string invalid("not a DXF");
+            nestedResult = facade->readAscii(nullptr, false, invalid);
+            const auto after = facade->getLastDiagnostic();
+            nestedPreserved = nestedPreserved && before.operation == after.operation
+                && before.phase == after.phase && before.cause == after.cause
+                && before.code == after.code && before.message == after.message
+                && before.offset == after.offset && before.handle == after.handle
+                && before.hasOffset == after.hasOffset && before.hasHandle == after.hasHandle
+                && before.secondary.size() == after.secondary.size()
+                && beforeError == facade->getError();
+        }
+        if (throwAtText) {
+            facade->setDxfTextEncoding(TextEncoding::LegacyLibreCadUtf8);
+            throw std::runtime_error("text-mode callback sentinel");
+        }
+    }
+    void addRawDxfEntity(const DRW_RawDxfObject& entity) override {
+        raw.push_back(entity);
+    }
+    void addAppId(const DRW_AppId& app) override { appIds.push_back(app.name); }
+};
+
+std::string textEncodingBytes(unsigned route,
+    const std::vector<std::pair<int, std::string>>& metadata,
+    const std::string& source) {
+    std::ostringstream bytes;
+    if (route >= 2)
+        bytes.write("AutoCAD Binary DXF\r\n\x1A\0", 22);
+    std::unique_ptr<dxfWriter> writer;
+    if (route == 3)
+        writer = std::make_unique<dxfWriterBinaryR12>(&bytes);
+    else if (route == 2)
+        writer = std::make_unique<dxfWriterBinary>(&bytes);
+    else
+        writer = std::make_unique<dxfWriterAscii>(&bytes);
+    writer->writeString(0, "SECTION");
+    writer->writeString(2, "HEADER");
+    // Deliberately before all metadata: deferred HEADER interpretation must
+    // use the same input mode and final metadata as later typed TEXT.
+    writer->writeString(9, "$CLAYER");
+    writer->writeString(8, source);
+    for (const auto& field : metadata)
+        writer->writeString(field.first, field.second);
+    writer->writeString(0, "ENDSEC");
+    writer->writeString(0, "SECTION");
+    writer->writeString(2, "TABLES");
+    writer->writeString(0, "TABLE");
+    writer->writeString(2, "APPID");
+    writer->writeString(5, "C0");
+    writer->writeString(330, "0");
+    writer->writeString(100, "AcDbSymbolTable");
+    writer->writeInt16(70, 2);
+    unsigned appHandle = 0xC1u;
+    for (const char* app : {"TEXT_MODE_TYPED", "TEXT_MODE_RAW"}) {
+        writer->writeString(0, "APPID");
+        writer->writeString(5, appHandle++ == 0xC1u ? "C1" : "C2");
+        writer->writeString(330, "C0");
+        writer->writeString(100, "AcDbSymbolTableRecord");
+        writer->writeString(100, "AcDbRegAppTableRecord");
+        writer->writeString(2, app);
+        writer->writeInt16(70, 0);
+    }
+    writer->writeString(0, "ENDTAB");
+    writer->writeString(0, "ENDSEC");
+    writer->writeString(0, "SECTION");
+    writer->writeString(2, "ENTITIES");
+    for (const char* handle : {"A0", "A1"}) {
+        writer->writeString(0, "TEXT");
+        writer->writeString(5, handle);
+        writer->writeString(8, "0");
+        writer->writeDouble(10, 1.0);
+        writer->writeDouble(20, 2.0);
+        writer->writeDouble(40, 2.5);
+        writer->writeString(1, source);
+        writer->writeString(1001, "TEXT_MODE_TYPED");
+        writer->writeString(1000, source);
+        writer->writeString(1003, source);
+    }
+    writer->writeString(0, "LOCAL_ENCODING_RAW");
+    writer->writeString(5, "B0");
+    writer->writeString(1001, "TEXT_MODE_RAW");
+    writer->writeString(1000, source);
+    writer->writeString(0, "ENDSEC");
+    writer->writeString(0, "EOF");
+    return bytes.str();
+}
+
+bool readTextEncodingBytes(dxfRW& reader, TextEncodingCapture& capture,
+    unsigned route, std::string bytes, const std::filesystem::path& path) {
+    capture.facade = &reader;
+    if (route == 0)
+        return reader.readAscii(&capture, false, bytes);
+    { std::ofstream output(path, std::ios::binary); output << bytes; }
+    return reader.read(&capture, false);
+}
+
+void testDxfTextEncodingReads(TestContext& t) {
+    struct EncodingCase {
+        std::vector<std::pair<int, std::string>> metadata;
+        std::string declared;
+        bool eligible;
+        DRW::Version version;
+        std::string page;
+    };
+    const std::string source = u8"café";
+    const std::string declared = u8"cafÃ©";
+    DRW_TextCodec cyrillic;
+    cyrillic.setCodePage("ANSI_1251", true);
+    const std::string cp1251 = cyrillic.toUtf8(source);
+    const std::vector<EncodingCase> cases{
+        {{{9, "$ACADVER"}, {1, "AC1018"}}, declared, true, DRW::AC1018, ""},
+        {{{9, "$DWGCODEPAGE"}, {3, "ANSI_1252"}, {9, "$ACADVER"}, {1, "AC1018"}},
+         declared, true, DRW::AC1018, "ANSI_1252"},
+        {{{9, "$ACADVER"}, {1, "AC1018"}, {9, "$DWGCODEPAGE"}, {3, "ANSI_1252"}},
+         declared, true, DRW::AC1018, "ANSI_1252"},
+        {{{9, "$DWGCODEPAGE"}, {3, "ANSI_1251"}, {9, "$ACADVER"}, {1, "AC1018"}},
+         cp1251, false, DRW::AC1018, "ANSI_1251"},
+        {{{9, "$ACADVER"}, {1, "AC1018"}, {9, "$DWGCODEPAGE"}, {3, "ANSI_1251"}},
+         cp1251, false, DRW::AC1018, "ANSI_1251"},
+        {{{9, "$DWGCODEPAGE"}, {3, "ANSI_1251"}, {9, "$DWGCODEPAGE"}, {3, "ANSI_1252"},
+          {9, "$ACADVER"}, {1, "AC1018"}}, declared, true, DRW::AC1018, "ANSI_1252"},
+        {{{9, "$DWGCODEPAGE"}, {3, "ANSI_1252"}, {9, "$DWGCODEPAGE"}, {3, "ANSI_1251"},
+          {9, "$ACADVER"}, {1, "AC1018"}}, cp1251, false, DRW::AC1018, "ANSI_1251"},
+        {{{9, "$DWGCODEPAGE"}, {3, "ANSI_1251"}, {9, "$ACADVER"}, {1, "AC1021"}},
+         source, false, DRW::AC1021, "ANSI_1251"},
+        {{{9, "$ACADVER"}, {1, "AC1009"}}, declared, true, DRW::AC1009, ""},
+        {{{9, "$DWGCODEPAGE"}, {3, "ANSI_1251"}, {9, "$ACADVER"}, {1, "AC1009"}},
+         cp1251, false, DRW::AC1009, "ANSI_1251"},
+        {{{9, "$ACADVER"}, {1, "AC1021"}, {9, "$ACADVER"}, {1, "AC1009"},
+          {9, "$DWGCODEPAGE"}, {3, "ANSI_1252"}}, source, false, DRW::AC1021, "ANSI_1252"},
+        {{{9, "$ACADVER"}, {1, "AC1018"}, {9, "$ACADVER"}, {1, "AC9999"},
+          {9, "$DWGCODEPAGE"}, {3, "ANSI_1252"}}, declared, true, DRW::AC1018, "ANSI_1252"},
+        {{{9, "$ACADVER"}, {1, "AC1004"}, {9, "$DWGCODEPAGE"}, {3, "ANSI_1252"}},
+         declared, false, DRW::AC1004, "ANSI_1252"},
+        {{{9, "$ACADVER"}, {1, "AC9999"}, {9, "$DWGCODEPAGE"}, {3, "ANSI_1252"}},
+         declared, false, DRW::UNKNOWNV, "ANSI_1252"},
+        {{{9, "$DWGCODEPAGE"}, {3, "ANSI_1252"}},
+         declared, false, DRW::UNKNOWNV, "ANSI_1252"}};
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    const auto path = std::filesystem::temp_directory_path()
+        / ("libdxfrw-text-encoding-" + std::to_string(nonce) + ".dxf");
+    for (unsigned route = 0; route != 4; ++route) {
+        for (const auto& item : cases) {
+            const std::string bytes = textEncodingBytes(route, item.metadata, source);
+            // Fresh facade proves default Declared; same facade then proves
+            // persistence and explicit switching in both directions.
+            dxfRW reader(path.string().c_str());
+            for (unsigned mode = 0; mode != 4; ++mode) {
+                if (mode != 0)
+                    reader.setDxfTextEncoding(mode <= 2
+                        ? TextEncoding::LegacyLibreCadUtf8 : TextEncoding::Declared);
+                TextEncodingCapture capture;
+                const std::string expected = mode == 1 || mode == 2
+                    ? (item.eligible ? source : item.declared) : item.declared;
+                const bool read = readTextEncodingBytes(reader, capture, route, bytes, path);
+                t.expect(read && capture.texts == std::vector<std::string>(2, expected)
+                             && headerStringIs(capture.value, "$CLAYER", expected),
+                         "all four reader routes snapshot persistent input mode and finalize HEADER consistently");
+                t.expect(capture.xdataText == std::vector<std::pair<int, std::string>>{
+                             {1000, expected}, {1003, expected},
+                             {1000, expected}, {1003, expected}},
+                         "typed XDATA semantic getter uses the same mode exactly once with exact count/order");
+                t.expect(capture.appIds == std::vector<std::string>{"TEXT_MODE_TYPED", "TEXT_MODE_RAW"},
+                         "typed and raw XDATA applications are explicitly registered in source tables");
+                t.expect(capture.value.dxfSourceVersion() == item.version
+                             && (item.page.empty()
+                                 ? capture.value.vars.count("$DWGCODEPAGE") == 0
+                                 : headerStringIs(capture.value, "$DWGCODEPAGE", item.page)),
+                         "mode does not rewrite source version or codepage metadata");
+                bool retained = capture.raw.size() == 1;
+                if (retained) {
+                    bool found = false;
+                    for (std::size_t index = 0; index < capture.raw.front().groups.size(); ++index) {
+                        const auto& group = capture.raw.front().groups[index];
+                        if (group.code() == 1000) {
+                            found = std::string(group.c_str()) == source;
+                            if (route < 2)
+                                found = found && capture.raw.front().rawValues[index] == source;
+                        }
+                    }
+                    retained = found;
+                }
+                t.expect(retained, "input recovery never transcodes opaque raw carrier bytes");
+            }
+        }
+    }
+    std::error_code error;
+    std::filesystem::remove(path, error);
+}
+
+void testDxfTextEncodingLifecycle(TestContext& t) {
+    const std::string source = u8"café";
+    const std::string declared = u8"cafÃ©";
+    const std::vector<std::pair<int, std::string>> metadata{
+        {9, "$ACADVER"}, {1, "AC1018"}, {9, "$DWGCODEPAGE"}, {3, "ANSI_1252"}};
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    const auto path = std::filesystem::temp_directory_path()
+        / ("libdxfrw-text-mode-lifecycle-" + std::to_string(nonce) + ".dxf");
+    for (unsigned route = 0; route != 4; ++route) {
+        const std::string bytes = textEncodingBytes(route, metadata, source);
+        dxfRW reader(path.string().c_str());
+        reader.setDxfTextEncoding(TextEncoding::LegacyLibreCadUtf8);
+        TextEncodingCapture first;
+        first.switchAtHeader = true;
+        first.nested = true;
+        t.expect(readTextEncodingBytes(reader, first, route, bytes, path)
+                     && first.texts == std::vector<std::string>(2, source)
+                     && first.nestedCalls == 2 && !first.nestedResult && first.nestedPreserved,
+                 "callback mode change and rejected nested read cannot reconfigure active reader");
+        TextEncodingCapture next;
+        t.expect(readTextEncodingBytes(reader, next, route, bytes, path)
+                     && next.texts == std::vector<std::string>(2, declared),
+                 "callback setter persists for next admitted read");
+        TextEncodingCapture throwing;
+        throwing.throwAtText = true;
+        bool caught = false;
+        try {
+            readTextEncodingBytes(reader, throwing, route, bytes, path);
+        } catch (const std::runtime_error& error) {
+            caught = std::string(error.what()) == "text-mode callback sentinel";
+        }
+        t.expect(caught && throwing.texts == std::vector<std::string>{declared},
+                 "callback exception propagates while preserving requested next-read mode");
+        std::string invalid("invalid DXF");
+        t.expect(!reader.readAscii(nullptr, false, invalid),
+                 "early failed read after exception cannot erase requested input mode");
+        TextEncodingCapture failed;
+        t.expect(!readTextEncodingBytes(reader, failed, route, "invalid DXF", path),
+                 "ordinary failed read cannot erase requested input mode");
+        TextEncodingCapture recovered;
+        t.expect(readTextEncodingBytes(reader, recovered, route, bytes, path)
+                     && recovered.texts == std::vector<std::string>(2, source),
+                 "same facade recovers after throwing and failed reads with persistent selected mode");
+    }
+    std::error_code error;
+    std::filesystem::remove(path, error);
+}
+
+void testDxfTextEncodingExportIsolation(TestContext& t) {
+    class EncodingWriter final : public dx_iface {
+    public:
+        dxfRW* facade {nullptr};
+        DRW_Text text;
+        bool emitted {false};
+        bool configureDuringWrite {false};
+        bool finalizeDxfWrite() override {
+            if (configureDuringWrite)
+                facade->setDxfTextEncoding(TextEncoding::LegacyLibreCadUtf8);
+            return true;
+        }
+        void writeHeader(DRW_Header& header) override {
+            header.addStr("$DWGCODEPAGE", "ANSI_1252", 3);
+            if (configureDuringWrite)
+                facade->setDxfTextEncoding(TextEncoding::Declared);
+        }
+        void writeEntities() override { emitted = facade->writeText(&text); }
+    } adapter;
+    adapter.text.text = u8"café";
+    adapter.text.height = 1;
+    dx_data data;
+    adapter.cData = &data;
+    adapter.currentBlock = data.mBlock;
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    const auto path = std::filesystem::temp_directory_path()
+        / ("libdxfrw-text-mode-export-" + std::to_string(nonce) + ".dxf");
+    dxfRW facade(path.string().c_str());
+    adapter.facade = &facade;
+    for (const bool binary : {false, true}) {
+      for (const bool configure : {false, true}) {
+        adapter.configureDuringWrite = configure;
+        for (const auto mode : {TextEncoding::Declared, TextEncoding::LegacyLibreCadUtf8}) {
+            facade.setDxfTextEncoding(mode);
+            t.expect(facade.write(&adapter, DRW::AC1018, binary) && adapter.emitted,
+                     "input mode and callback/finalizer setters never alter export encoding");
+            std::ifstream stream(path, std::ios::binary);
+            if (binary) stream.seekg(22);
+            std::unique_ptr<dxfReader> tags = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&stream))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&stream));
+            int code = 0;
+            bool text = false;
+            while (tags->readRec(&code)) {
+                if (code == 1 && tags->getRawValue() == std::string("caf\xE9"))
+                    text = true;
+            }
+            t.expect(text && adapter.text.text == u8"café",
+                     "export emits declared CP1252 bytes without mutating caller semantic text");
+            tags.reset();
+            stream.close();
+            TextEncodingCapture next;
+            const std::string expected = configure
+                || mode == TextEncoding::LegacyLibreCadUtf8 ? u8"café" : u8"cafÃ©";
+            t.expect(readTextEncodingBytes(facade, next, 0,
+                         textEncodingBytes(0, {{9, "$ACADVER"}, {1, "AC1018"}}, u8"café"), path)
+                         && next.texts == std::vector<std::string>(2, expected),
+                     "write finalizer configures only a subsequent read");
+        }
+      }
+    }
+    std::error_code error;
+    std::filesystem::remove(path, error);
+}
+
 void testXdataTextWritePolicy(TestContext& t) {
     struct TextPolicyCase {
         int code;
@@ -7150,6 +7544,10 @@ int main(int argc, char** argv) {
     testHeaderMetadataBoundaries(context);
     testHeaderAliasProvenance(context);
     testAdapterAcceptedDxfVersion(context);
+    testDxfTextEncodingCodecs(context);
+    testDxfTextEncodingReads(context);
+    testDxfTextEncodingLifecycle(context);
+    testDxfTextEncodingExportIsolation(context);
     testXdataTextWritePolicy(context);
     testRawClassEntity(context);
     testEed(context);

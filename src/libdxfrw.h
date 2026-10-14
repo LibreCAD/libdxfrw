@@ -123,6 +123,15 @@ public:
     void setDxfCompatibilityProfile(DxfCompatibilityProfile profile) noexcept;
     /** Return the currently selected DXF compatibility profile. */
     DxfCompatibilityProfile dxfCompatibilityProfile() const noexcept;
+    /** Select input text interpretation for subsequent read/readAscii calls.
+     * Declared is the default. Recovery applies only to known AC1006..AC1018
+     * sources using the default/ANSI_1252 page, never an active non-1252 page.
+     * Each admitted read snapshots this persistent setting into its reader;
+     * calls during callbacks affect the next read, not the current operation.
+     * Source metadata, raw carriers and export encoding are not changed. */
+    void setDxfTextEncoding(DRW::DxfTextEncoding encoding) noexcept {
+        m_dxfTextEncoding = encoding;
+    }
     /**
      * Set the aggregate record ceiling for each subsequent DXF read.
      *
@@ -737,6 +746,7 @@ private:
     // Internal compatibility-probe switch. The standalone-safe classifier
     // remains the default for all public read/write calls.
     bool m_useTargetLegacyClassifier {false};
+    DRW::DxfTextEncoding m_dxfTextEncoding {DRW::DxfTextEncoding::Declared};
     std::string fileName;
     std::string codePage;
     bool binFile {false};

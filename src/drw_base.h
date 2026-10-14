@@ -136,6 +136,14 @@ enum class DwgDataStorageWriterOperation : std::uint8_t {
 
 namespace DRW {
 
+/// Input interpretation only; never changes DXF export encoding. Recovery is
+/// an explicit choice for known pre-R2007 default/ANSI_1252 files mislabeled
+/// with UTF-8 text, not automatic detection or mixed-encoding repair.
+enum class DxfTextEncoding {
+    Declared,
+    LegacyLibreCadUtf8
+};
+
 //! Version numbers for the DXF Format.
 enum Version {
     UNKNOWNV,     //!< UNKNOWN VERSION.
