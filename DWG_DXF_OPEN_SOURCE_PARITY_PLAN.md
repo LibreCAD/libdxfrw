@@ -12,8 +12,10 @@ preservation are integrated; their clean-checkout ASan cohort passes4/4.
 Narrow authored dictionary admission and canonical declared-codec/XDATA repair
 and HEADER/accepted-source CLI authority are committed with current-main
 gates. Numeric qualification admission is also integrated with affected Python
-gates and122 frozen bindings unchanged. The next handoff is corrected FreeCAD
-preflight. Declared
+gates and122 bound inputs unchanged during that gate. Corrected FreeCAD preflight is now
+integrated with strict LINE/endpoint controls, Linux temp mapping and fresh
+Python discovery checks. Next are the independent HATCH preservation test and
+configure-probe timeout follow-up, alongside ready reader/resource work. Declared
 text remains the default; peer HATCH transforms and legacy-ASCII oracle input
 need their named calibrations before broader comparison. Evidence bindings
 and bounded acceptance steps are recorded below.
@@ -268,6 +270,7 @@ Its historical binary diff SHA-256 is
 
 | 7AG.1b input-only LibreCAD text API | COMMITTED / SOURCE_API_SCOPED | `Plan-Slice:7AG.1b`, integrates reviewed ca7db684/90319104/2f7cc65 on d33e7ec, preserving committed canonical/HEADER/CLI/MIF/BLOCK/WIPEOUT/dictionary source. Declared default and persistent next-read snapshot apply to all four routes; callbacks/finalizers cannot reconfigure active reads or export. Exact seven-test/strict/facade source/artifact gate dbb4ec32 below remains unchanged after the documentation-only ancestor advance;29 source/artifact hashes and original patch9cb971 are rechecked, not retested/relabelled. Existing16-route/32-CLI/96-ordinary-load checkpoint is supplemental. No new virtual/registration/payload/dependency/receipt/native/ABI/support promotion. Broader capability/profile/effective-driver/typed-result and grammar/charset gates remain open; next numeric admission and corrected FreeCAD preflight. |
 | 7AH.3 qualification numeric admission | COMMITTED / NUMERIC_SCOPED | `Plan-Slice:7AH.3`, integrates independently reviewed528e37ae on243ed78. Recursive exponent-overflow/nonfinite JSON rejection and exact finite/non-Boolean/nonnegative tolerance admission run before immutable crosswalk equality; huge integer overflow rejects safely. Main CPython3.12 eight methods/72 reviewed cells and existing support/JSON/normalizer gates pass in9.43s total, with15 claims/two routes/zero advertised. Report9877485c below binds patch06857e6b and122 unchanged frozen inputs. New detailed unittest adds no CTest registration. No C++/CAD/second-interpreter rebuild, receipt refresh or support promotion. Broad schema/worker/native semantics stay open; next corrected FreeCAD preflight. |
+| Slice9/S8.9.5 local FreeCAD preflight | COMMITTED / LOCAL_PREFLIGHT_ONLY | `Plan-Slice:S8.9.preflight`, integrates reviewed e6e4e78→c2a9772c on f7cbcae: Linux TMPDIR, exact finite straight-LINE/authored endpoint validation and Python-before-registration order. Main reconfigure0.8s/no C++ rebuild; report300abd08 below binds32 mocked controls, exact executed CLI CTest1/1 in0.23s plus fresh discovered/explicit cache/argv and disclosed prebuilt-harness substitutions. Gateee51 rejects skipped/disabled/inverted outcomes and binds helper/tool/source/cache bytes. Main user sample inventory is not frozen. Installed clean-loader inspected only; native Linux/Windows, exact-two-native selection and durable packet remain open. No new registration/payload/dependency/receipt/support promotion; next configure-probe timeout and HATCH test controls. |
 
 **API source checkpoint before integration:** reviewed
 ca7db684/90319104/2f7cc65 formed the eight-path patch on736ae70 bound above.
@@ -2678,7 +2681,7 @@ failure does not prevent completing them:
 | 7P.5c narrow admission, integrated | Preserve duplicate ASCII-folded key/owning-target rejection in authored direct/named/root routes; per-entry roles/full graph closure remain separate. | Main DXF/graph2/2, strict two TUs/lc3 and dictionary/WIPEOUT/IMAGE modes pass; no peer/native invalid-API prerequisite. |
 | 7AL.2→7L.5→7AG.1b | Canonical codec/exact raw assertions and HEADER/accepted-source CLI committed; reviewed input-only recovery/API successor integrated. Declared remains the default; recovery is not a no-op. | Main API7/7 in5.71s, strict five TUs/current facade/lc3 and MIF/dictionary/WIPEOUT modes pass at the exact staged patch. Preserve unchanged gates; broader consumer/native/ABI remain separate. |
 | 7AH.3 qualification numeric admission | Integrated528e37ae rejects overflow/nonfinite/Boolean tolerance values without changing frozen evidence authority or schema1. | Main eight methods/support/JSON/normalizer pass9.43s;122 frozen inputs unchanged. No C++ rebuild or new CTest. |
-| Slice9/S8.9.5 FreeCAD preflight | Reviewed e6e4e78→c2a9772c adds strict LINE predicates, Linux temp mapping and fixes fresh-cache Python registration order. Old e6e4e78 alone is not ready. | Fresh no-override discovery and explicit override must capture the exact absolute interpreter in generated argv; existing CLI gate and32 mocked controls. No native pass or new registration is inferred. |
+| Slice9/S8.9.5 FreeCAD preflight | Integrated e6e4e78→c2a9772c supplies strict LINE predicates, Linux temp mapping and corrected Python registration order; do not reapply older partial candidate. | Main CLI1/1,32 mocked controls and fresh discovered/explicit cache/argv gates pass at report300abd08. No native pass or new registration is inferred. |
 | 7AG.1a, integrated | Preserve current common-source cleanup; do not reimplement50157be. | Main ordinary/3D TU/self-tests and170 inventory pass; known two supplements/six target capabilities remain explicit. |
 | 7AG.4 plus7AG.1 capability profile | Preserve committed direct predicates; attest effective driver context, declare/check capabilities, then add the two audited supplementary callbacks. | Direct102 controls pass; controlled-build provenance/header negatives before one paired build. No existing-binary ambient-only proof or blind target-lock/170→172 update. |
 | 7F.1b /7AH | Migrate the typed result/runner together, including optional modeler source presence and readable bounded observations. | Frozen-schema compatibility plus unknown/zero/presence/omission mutations, then clean/partial/opaque read/readback sentinels. |
@@ -7677,21 +7680,16 @@ arbitrary logs. These two FreeCAD controls cover three planar LINEs only, not
 nonzero-Z/OCS/INSERT/ACIS. Extend scope separately using existing recipes.
 Run neither hosted jobs nor proprietary witness tools merely for a plan edit.
 
-Before dispatch, close two source-confirmed packet gaps. The installed-LINE
-wrapper requires an existing TMPDIR or TEMP, but the Linux workflow supplies
-RUNNER_TEMP without mapping either required variable. Explicitly map
-TMPDIR to the owned runner-temp directory; test unset/invalid and explicit
-temporary-directory cases locally. This is a missing workflow contract, not
-an observed hosted failure. The current macro's LINE branch checks only
-Part::Feature count/bounds; NaN makes its `abs(a-e) >= tolerance` comparison
-nonrejecting. Require exact LINE counts, one valid straight edge/two finite
-expected endpoints per LINE, no unexpected final features and strict finite
-JSON, before emitting PASS. Add dependency-free NaN/wrong-topology/same-bounds
-negatives and a finite valid positive; source/predicate tests are not native
+The integrated preflight closes two source-confirmed local gaps: the Linux
+workflow now maps TMPDIR to owned runner temp, and the LINE branch now checks
+exact source/final counts, a valid straight edge/two finite authored endpoints,
+topology and strict finite JSON before PASS. Earlier bounds-only checks could
+accept NaN or same-bounds wrong endpoints. Dependency-free NaN/wrong-topology/
+same-bounds negatives and valid positives retain that distinction; they are not native
 FreeCAD runs. Keep frozen1.1.3 release/revision/hash together; a newer release
 is a separately pinned successor tuple, not a relabelled historical receipt.
 
-**Reviewed pre-dispatch candidate, not native qualification:** isolated
+**Integrated pre-dispatch correction, not native qualification:** reviewed
 e6e4e78c20d272ec2e6824abfea623a1db2bd42e→
 c2a9772ce7e5c24f63c80cd1ba08e899e3487503 on bc8f45f implements Linux TMPDIR
 mapping, strict finite straight-LINE/endpoint predicates and source-authored
@@ -7701,12 +7699,24 @@ older e6e4e78 alone: its explicit-Python pass hid a fresh no-override failure.
 Successor report
 `/private/tmp/libdxfrw-freecad-readiness-s89.mxeJbV/successor-report.json`,
 SHA256`63a12a05f0a9944947aa867e9b8ffe652fb12029e056a26cd06c3f6fd014ea0a`,
-records fresh discovered/explicit interpreter command checks, preserved old-
+records historical isolated discovered/explicit interpreter command checks, preserved old-
 version rejection and actual harness runs with an explicitly substituted
 prebuilt CLI. Independent review3027de3d above approves the corrected order;
-32 mocked geometry controls pass without FreeCAD/Part. Main integration still
-needs its affected CLI/configure gates;84 default/86 optional name enumeration
-is not test/native execution. Keep exact-two-native-test selection, dedicated
+32 distinct mocked geometry controls pass without FreeCAD/Part. Main
+integration on f7cbcae includes all six files; main reconfigure passes0.8s
+without a C++ rebuild. Report
+`/private/tmp/libdxfrw-freecad-main-gate.xfgjPd/main-run/report.json`, SHA256
+`300abd08e5c42fc6e8aa3f9b095d4febd8a7bce5465eae70766a541c8e82a03a`,
+binds actual source/CLI/cache/tool hashes, exact command roles,32 pure controls,
+one genuinely executed registered main CLI CTest1/1 in0.23s and two fresh
+discovered/explicit cache/argv checks. Each fresh harness explicitly substitutes
+only the prebuilt main CLI; it is not a fresh-build CTest/native pass. The
+installed clean-loader route is inspected converter-only, not installed/run.
+Gateee51aa78 rejects skipped/disabled/inverted results and requires one run
+non-skipped JUnit cell; earlier scratch gate defects were corrected before
+execution. Main user sample registrations are not refrozen or called84.
+84 default/86 optional clean name enumeration is not native execution. Keep
+exact-two-native-test selection, dedicated
 packet/stats, release/hash and actual Linux/Windows execution gates open.
 
 Correct source-compatibility labels on lc3_compat_check/CMake when touching the
@@ -7819,7 +7829,7 @@ work on the critical path.
 
 | Batch | Dependency-ready work | Validation boundary |
 | --- | --- | --- |
-| A — preserved integration queue | Canonical codec/HEADER/accepted-version prerequisites committed; current-API successors integrated with validated7/7/current facade/MIF; do not reapply. Numeric528e37ae integrated; next e6e4e78→c2a9772c FreeCAD preflight. Residual7AW0ee3bff2 remains independent. Preserve committed7AY/7AV/7AX/7AK/7BH/7AD; reconcile STYLE9c3a74c7 with cleanup and review BLOCK98176504 | Reuse exact staged API gate; numeric main Python gates pass. FreeCAD needs fresh discovered/explicit command-role checks,32 mocked predicates and affected CLI, not native CAD.84/45/exact7 unchanged; enumerate only actual registration changes; no user-sample glob/full suite per edit |
+| A — preserved integration queue | Canonical codec/HEADER/accepted-version prerequisites committed; current-API successors integrated with validated7/7/current facade/MIF; do not reapply. Numeric528e37ae and corrected e6e4e78→c2a9772c FreeCAD preflight integrated; next HATCH preservation tests/configure-probe timeout. Residual7AW0ee3bff2 remains independent. Preserve committed7AY/7AV/7AX/7AK/7BH/7AD; reconcile STYLE9c3a74c7 with cleanup and review BLOCK98176504 | Reuse exact staged API gate; numeric main Python gates pass. FreeCAD main/fresh discovery/32-predicate/CLI gates pass; native CAD remains separate.84/45/exact7 unchanged; enumerate only actual registration changes; no user-sample glob/full suite per edit |
 | B — narrow independent corrections | Preserve committed MIF/7BI/7AG.3a/7BC/7BJ.1/2,7P.5c authored admission,7AK.6,7AG.4 direct predicates and optional box-verifier contract. Clean bc8 composed safety passes at its source; review7BE `80eca35a`→`5860915d`.7BH.3/7BG/7N.2a remain local. Effective-driver/capability gates precede new receipts, not these fixes;7N.3 still needs its witness. | Reuse recorded reds/reports; rebind each affected main fast gate without replaying every isolated control. Refresh sanitizer once after later unsafe-boundary changes settle, not per documentation/admission edit. Historical b4/d49/bc8 results retain their actual bindings; no repeated native/full suite. |
 | C — grammar and graph composition | Shared7AM.2/7AS.2 footer design, implemented separately;7G.2 STYLE→VIEWPORT/resources;7P.5b/c image/dictionary/GROUP reciprocity, with narrow duplicate-key admission first;7F.1;7M/7E.1,7AL→7K→7J,7AA.1/2,7O.2/3,7G.3 effective explicit/implicit draw order→7R;7AG handoff | Touched targets per slice; raw types/reciprocity/child counts/pre-load fields and corrected retry. Optional-peer phase calibration only when that projection is enabled. Exact nonvirtual and callback consumer gates on public changes; sparse order/subtype1/oracle limits separate |
 | D — explicit policy/safety/platform boundaries |7BK transparency representation;7BF.1 LTYPE unit witness and7BF.3 indexed-edit/mirror authority; optional7AV.4 caller-memory guarantee;7AP cache safety;7Q gradients,7S.2/3 retention/work accounting,7T narrowing,7U retention,7Y.2 precision,7AE.2/3 Unicode/filename policy,7AC bridges;7AG/7AK PIC/DLL/release ABI and7AO attribution | Resolve only the named decision/witness without blocking ready local fixes. Small configured-limit negatives; ASan/TSan once at touched unsafe boundaries, not full suites per edit. No expired-pointer journals/unconditional cache replay; source/native and release/per-commit gates stay distinct |

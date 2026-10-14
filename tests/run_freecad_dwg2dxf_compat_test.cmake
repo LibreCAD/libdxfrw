@@ -5,6 +5,29 @@ if(NOT DEFINED RTEXT_SAMPLE OR NOT DEFINED MPOLYGON_SAMPLE)
     message(FATAL_ERROR "RTEXT_SAMPLE and MPOLYGON_SAMPLE are required")
 endif()
 
+# The registered fast test supplies Python for the macro's actual pure
+# predicates. The installed clean-loader wrapper intentionally remains a
+# converter-only gate and does not add Python to that environment.
+if(DEFINED PYTHON)
+    if(NOT IS_ABSOLUTE "${PYTHON}" OR NOT EXISTS "${PYTHON}")
+        message(FATAL_ERROR "PYTHON must be an existing absolute path for LINE predicate controls")
+    endif()
+    execute_process(
+        COMMAND "${PYTHON}" -I -B
+            "${CMAKE_CURRENT_LIST_DIR}/freecad_dwg2dxf_import_check.FCMacro" --self-test
+        RESULT_VARIABLE _predicate_result
+        OUTPUT_VARIABLE _predicate_stdout
+        ERROR_VARIABLE _predicate_stderr
+        TIMEOUT 15
+    )
+    if(NOT "${_predicate_result}" STREQUAL "0"
+            OR NOT _predicate_stdout MATCHES "FreeCAD LINE predicate controls: PASS")
+        message(FATAL_ERROR
+            "Dependency-free LINE predicate controls failed (${_predicate_result}).\n"
+            "${_predicate_stdout}\n${_predicate_stderr}")
+    endif()
+endif()
+
 set(_test_dir "${OUTPUT_DIR}/freecad dwg2dxf cli test")
 file(MAKE_DIRECTORY "${_test_dir}")
 set(_input "${_test_dir}/source drawing AC1027.dwg")

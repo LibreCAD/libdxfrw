@@ -17,6 +17,10 @@
 # DWG/DXF files should remain outside the source tree.
 # In the actual FreeCAD GUI, set LIBDXFRW_FREECAD_DESKTOP_DISPATCH=1 to use
 # the same registered-importer dispatch path as the desktop open/import UI.
+# The installed LINE wrapper supplies explicit authored endpoint pairs through
+# LIBDXFRW_FREECAD_EXPECT_LINE_ENDPOINTS as well as the existing bounds. Bounds
+# alone cannot distinguish negative-slope diagonals. Run this file with ordinary
+# Python and --self-test for dependency-free predicate controls (not FreeCAD).
 
 import hashlib
 import json
@@ -27,6 +31,205 @@ import re
 import subprocess
 import sys
 import tempfile
+
+
+def finite_values(values, size, label):
+    if len(values) != size:
+        raise AssertionError("%s must contain %d coordinates" % (label, size))
+    result = []
+    for value in values:
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise AssertionError("%s must contain numeric coordinates" % label)
+        try:
+            value = float(value)
+        except (ValueError, OverflowError):
+            raise AssertionError("%s coordinates must be finite" % label)
+        if not math.isfinite(value):
+            raise AssertionError("%s coordinates must be finite" % label)
+        result.append(value)
+    return tuple(result)
+
+
+def coordinates_match(actual, expected):
+    return all(abs(a - e) < 1e-9 for a, e in zip(actual, expected))
+
+
+def assert_line_geometry(document, stats, expected_bounds, expected_endpoints,
+                         line_type):
+    """Check this LINE-only witness; no FreeCAD import is needed by the predicate.
+
+    Endpoint pairs are authored expectations, not inferred from bounding boxes.
+    Native callers pass Part.Line: the pinned FreeCAD edge Curve API maps an
+    OCCT straight line to that type, not to the distinct Part.LineSegment type.
+    Benign wire/compound wrappers are allowed if they contain exactly one edge.
+    """
+    count = len(expected_bounds)
+    if count == 0 or len(expected_endpoints) != count:
+        raise AssertionError("LINE endpoint and bounds expectations must agree")
+    line_count = stats.get("entityCounts", {}).get("LINE", 0)
+    if type(line_count) is not int or line_count != count:
+        raise AssertionError("expected exactly %d source LINE records" % count)
+    expected = []
+    for bounds, pair in zip(expected_bounds, expected_endpoints):
+        bounds = finite_values(bounds, 6, "expected LINE bounds")
+        if len(pair) != 2:
+            raise AssertionError("expected LINE must have exactly two endpoints")
+        points = tuple(sorted(finite_values(point, 3, "expected LINE endpoint")
+                              for point in pair))
+        if coordinates_match(points[0], points[1]):
+            raise AssertionError("expected LINE must not be degenerate")
+        point_bounds = tuple(min(a, b) for a, b in zip(*points)) + tuple(
+            max(a, b) for a, b in zip(*points))
+        if not coordinates_match(bounds, point_bounds):
+            raise AssertionError("authored LINE endpoints disagree with bounds")
+        expected.append((bounds, points))
+
+    features = []
+    for obj in document.Objects:
+        if obj.TypeId == "Part::Feature":
+            features.append(obj)
+        elif getattr(obj, "Shape", None) is not None and not obj.Shape.isNull():
+            raise AssertionError("unexpected shaped object in LINE-only witness")
+    if len(features) != count:
+        raise AssertionError("expected exactly %d imported LINE features" % count)
+    observed = []
+    for obj in features:
+        shape = obj.Shape
+        if shape.isNull() or shape.isValid() is not True:
+            raise AssertionError("imported LINE shape must be non-null and valid")
+        if (len(shape.Edges) != 1 or len(shape.Vertexes) != 2
+                or shape.Faces or shape.Shells or shape.Solids):
+            raise AssertionError("imported LINE must have one edge/two vertices only")
+        edge = shape.Edges[0]
+        if (edge.isValid() is not True or not isinstance(edge.Curve, line_type)
+                or len(edge.Vertexes) != 2):
+            raise AssertionError("imported LINE must contain one valid straight edge")
+        points = tuple(sorted(finite_values(
+            (vertex.Point.x, vertex.Point.y, vertex.Point.z), 3,
+            "observed LINE endpoint") for vertex in edge.Vertexes))
+        box = shape.BoundBox
+        bounds = finite_values((box.XMin, box.YMin, box.ZMin,
+                                box.XMax, box.YMax, box.ZMax),
+                               6, "observed LINE bounds")
+        observed.append((bounds, points))
+    expected.sort()
+    observed.sort()
+    for (bounds, points), (wanted_bounds, wanted_points) in zip(observed, expected):
+        if not coordinates_match(bounds, wanted_bounds):
+            raise AssertionError("FreeCAD LINE bounds differ from authored values")
+        if not all(coordinates_match(point, wanted)
+                   for point, wanted in zip(points, wanted_points)):
+            raise AssertionError("FreeCAD LINE endpoints differ from authored values")
+    return {"line_bounds": [row[0] for row in observed],
+            "line_endpoints": [row[1] for row in observed]}
+
+
+def line_pass_json(result):
+    # Preserve the established JSON spelling/keys, but never publish NaN/Inf
+    # as a successful LINE-profile observation. Other outcome lanes stay separate.
+    return json.dumps(result, sort_keys=True, default=str, allow_nan=False)
+
+
+def line_predicate_self_test():
+    """Dependency-free controls of the actual predicate; no CAD kernel executes."""
+    from copy import deepcopy
+    from types import SimpleNamespace as Object
+
+    class Line:
+        pass
+
+    def document(points):
+        vertices = [Object(Point=Object(x=x, y=y, z=z)) for x, y, z in points]
+        bounds = tuple(min(p[i] for p in points) for i in range(3)) + tuple(
+            max(p[i] for p in points) for i in range(3))
+        box = Object(**dict(zip(("XMin", "YMin", "ZMin", "XMax", "YMax", "ZMax"), bounds)))
+        edge = Object(Curve=Line(), Vertexes=vertices, isValid=lambda: True)
+        shape = Object(Edges=[edge], Vertexes=vertices, Faces=[], Shells=[], Solids=[],
+                       BoundBox=box, isNull=lambda: False, isValid=lambda: True)
+        return Object(Objects=[Object(TypeId="Part::Feature", Shape=shape)])
+
+    checks = 0
+    for points in [((1, 2, 0), (3, 4, 0)), ((1, 2, 3), (4, 6, 9)),
+                   ((4, 6, 9), (1, 2, 3)), ((1, 6, 3), (4, 2, 9))]:
+        doc = document(points)
+        box = doc.Objects[0].Shape.BoundBox
+        bounds = tuple(getattr(box, key) for key in
+                       ("XMin", "YMin", "ZMin", "XMax", "YMax", "ZMax"))
+        value = assert_line_geometry(doc, {"entityCounts": {"LINE": 1}},
+                                     [bounds], [points], Line)
+        assert value["line_endpoints"] == [tuple(sorted(points))]
+        checks += 1
+    pairs = [((1, 2, 0), (3, 4, 0)), ((5, 6, 0), (7, 8, 0)),
+             ((9, 10, 0), (11, 12, 0))]
+    doc = Object(Objects=[document(pair).Objects[0] for pair in reversed(pairs)])
+    doc.Objects[0].Shape.ShapeType = "Wire"
+    doc.Objects.append(Object(TypeId="App::DocumentObjectGroup"))
+    assert_line_geometry(doc, {"entityCounts": {"LINE": 3}},
+                         [a + b for a, b in pairs], pairs, Line)
+    checks += 1
+    points = ((1, 2, 3), (4, 6, 9))
+    bounds = (1, 2, 3, 4, 6, 9)
+    base = document(points)
+    mutations = [
+        ("null shape", lambda d: setattr(d.Objects[0].Shape, "isNull", lambda: True)),
+        ("invalid shape", lambda d: setattr(d.Objects[0].Shape, "isValid", lambda: False)),
+        ("invalid edge", lambda d: setattr(d.Objects[0].Shape.Edges[0], "isValid", lambda: False)),
+        ("non-line curve", lambda d: setattr(d.Objects[0].Shape.Edges[0], "Curve", object())),
+        ("extra edge", lambda d: d.Objects[0].Shape.Edges.append(d.Objects[0].Shape.Edges[0])),
+        ("missing vertex", lambda d: d.Objects[0].Shape.Vertexes.pop()),
+        ("extra vertex", lambda d: d.Objects[0].Shape.Vertexes.append(d.Objects[0].Shape.Vertexes[0])),
+        ("missing edge-only vertex", lambda d: setattr(
+            d.Objects[0].Shape.Edges[0], "Vertexes", d.Objects[0].Shape.Vertexes[:1])),
+        ("extra edge-only vertex", lambda d: setattr(
+            d.Objects[0].Shape.Edges[0], "Vertexes",
+            d.Objects[0].Shape.Vertexes + [d.Objects[0].Shape.Vertexes[0]])),
+        ("face", lambda d: d.Objects[0].Shape.Faces.append(object())),
+        ("shell", lambda d: d.Objects[0].Shape.Shells.append(object())),
+        ("solid", lambda d: d.Objects[0].Shape.Solids.append(object())),
+        ("extra feature", lambda d: d.Objects.append(deepcopy(d.Objects[0]))),
+        ("other shaped object", lambda d: setattr(d.Objects[0], "TypeId", "Part::FeaturePython")),
+        ("NaN bounds", lambda d: setattr(d.Objects[0].Shape.BoundBox, "XMin", float("nan"))),
+        ("Inf bounds", lambda d: setattr(d.Objects[0].Shape.BoundBox, "XMax", float("inf"))),
+        ("NaN endpoint", lambda d: setattr(d.Objects[0].Shape.Edges[0].Vertexes[0].Point, "x", float("nan"))),
+        ("Inf endpoint", lambda d: setattr(d.Objects[0].Shape.Edges[0].Vertexes[0].Point, "z", float("inf"))),
+        ("Boolean endpoint", lambda d: setattr(d.Objects[0].Shape.Edges[0].Vertexes[0].Point, "x", True)),
+        ("same bounds wrong endpoints", lambda d: (
+            setattr(d.Objects[0].Shape.Edges[0].Vertexes[0].Point, "y", 6),
+            setattr(d.Objects[0].Shape.Edges[0].Vertexes[1].Point, "y", 2))),
+    ]
+    for label, mutate in mutations:
+        doc = deepcopy(base)
+        mutate(doc)
+        try:
+            assert_line_geometry(doc, {"entityCounts": {"LINE": 1}},
+                                 [bounds], [points], Line)
+        except AssertionError:
+            checks += 1
+        else:
+            raise AssertionError("predicate accepted " + label)
+    for count in (0, 2, True):
+        try:
+            assert_line_geometry(base, {"entityCounts": {"LINE": count}},
+                                 [bounds], [points], Line)
+        except AssertionError:
+            checks += 1
+        else:
+            raise AssertionError("predicate accepted incorrect LINE count")
+    for value in (float("nan"), float("inf"), -float("inf")):
+        try:
+            line_pass_json({"line_bounds": [value]})
+        except ValueError:
+            checks += 1
+        else:
+            raise AssertionError("LINE PASS JSON accepted a nonfinite number")
+    assert json.loads(line_pass_json({"line_bounds": [bounds]}))["line_bounds"] == [list(bounds)]
+    checks += 1
+    print("FreeCAD LINE predicate controls: PASS (%d mocked checks; no native runtime)" % checks)
+
+
+if __name__ == "__main__" and sys.argv[1:] == ["--self-test"]:
+    line_predicate_self_test()
+    sys.exit(0)
 
 import FreeCAD as App
 
@@ -391,24 +594,6 @@ def assert_failed_converter_route():
     }
 
 
-def bounds_for_document(document):
-    features = sorted(
-        (obj for obj in document.Objects if obj.TypeId == "Part::Feature"),
-        key=lambda obj: obj.Shape.BoundBox.XMin,
-    )
-    return [
-        (
-            obj.Shape.BoundBox.XMin,
-            obj.Shape.BoundBox.YMin,
-            obj.Shape.BoundBox.ZMin,
-            obj.Shape.BoundBox.XMax,
-            obj.Shape.BoundBox.YMax,
-            obj.Shape.BoundBox.ZMax,
-        )
-        for obj in features
-    ]
-
-
 def assert_3dface_unsupported(document, stats, unsupported):
     expected_revision = os.environ.get("LIBDXFRW_FREECAD_EXPECT_REVISION", "")
     actual_version = list(App.Version())
@@ -732,18 +917,19 @@ try:
             }
         )
     else:
-        actual_bounds = bounds_for_document(doc)
-        if len(actual_bounds) != len(expected_bounds):
-            raise AssertionError(
-                "expected %d imported LINE features, got %r"
-                % (len(expected_bounds), actual_bounds)
-            )
-        for observed, expected in zip(actual_bounds, expected_bounds):
-            if any(abs(a - e) >= 1e-9 for a, e in zip(observed, expected)):
-                raise AssertionError(
-                    "FreeCAD LINE bounds differ: expected %r, got %r"
-                    % (expected, observed)
-                )
+        import Part
+
+        endpoints_json = os.environ.get("LIBDXFRW_FREECAD_EXPECT_LINE_ENDPOINTS")
+        if endpoints_json:
+            expected_endpoints = json.loads(endpoints_json)
+        elif expected_bounds_json:
+            raise RuntimeError("explicit LINE bounds require authored endpoint pairs")
+        else:
+            expected_endpoints = [((1, 2, 0), (3, 4, 0)),
+                                  ((5, 6, 0), (7, 8, 0)),
+                                  ((9, 10, 0), (11, 12, 0))]
+        geometry = assert_line_geometry(doc, stats, expected_bounds,
+                                        expected_endpoints, Part.Line)
         if unsupported:
             raise AssertionError(
                 "FreeCAD reported unsupported features: %r" % unsupported
@@ -752,12 +938,16 @@ try:
         result.update(
             {
                 "expected_line_bounds": expected_bounds,
-                "line_bounds": actual_bounds,
+                "expected_line_endpoints": expected_endpoints,
+                "line_bounds": geometry["line_bounds"],
+                "line_endpoints": geometry["line_endpoints"],
             }
         )
+    result_json = (line_pass_json(result) if not expected_modeler and expect_3dface != "unsupported"
+                   else json.dumps(result, sort_keys=True, default=str))
     print(
         "FREECAD_DWG_IMPORT_ASSERTIONS_PASS="
-        + json.dumps(result, sort_keys=True, default=str)
+        + result_json
     )
 except ExpectedConversionFailureHandled:
     pass

@@ -37,8 +37,12 @@ analytic controls, not native evidence before safe local implementation.
 
 **Next local handoffs:** preserve the integrated API and its prerequisites.
 Numeric qualification admission is integrated with fresh eight-method/support/
-JSON/normalizer Python gates and122 frozen inputs unchanged; it promotes no
-claim. Integrate corrected FreeCAD preflight with its tiny configure/CLI gates.
+JSON/normalizer Python gates and122 bound inputs unchanged during that gate; it promotes no
+claim. Corrected FreeCAD preflight is also integrated:32 distinct mocked LINE
+controls, fresh Python discovery/override command roles and one actual main
+CLI CTest pass. The parity ledger binds its source/report; native selection,
+durable packets and platform execution remain open. Next HATCH preservation
+tests and configure-probe timeout work use the same small local gates.
 External platform/ACIS qualification does not block these local
 steps. Broader geometry comparison must preserve pattern phase as well as
 HATCH boundary geometry, and a strict declared-encoding oracle profile is
@@ -1688,17 +1692,18 @@ native hosts with the actual FreeCAD release and importer named for each
 claim. Execute the same short sequence on each platform; do not repeat the
 entity matrix or full repository test suite:
 
-The reviewed isolated e6e4e78→c2a9772c preflight successor first needs main
-integration with its affected CLI/configure gates. It supplies Linux TMPDIR,
+The reviewed e6e4e78→c2a9772c preflight successor is integrated on f7cbcae
+with its affected CLI/configure gates passing. It supplies Linux TMPDIR,
 strict finite straight-LINE/two-endpoint validation and authored endpoint
-expectations, with32 mocked controls but no native FreeCAD execution. The
+expectations, with32 distinct mocked controls but no native FreeCAD execution. The
 correction registers tests only after Python discovery: fresh automatic and
 explicit configure profiles both capture the selected absolute interpreter.
 The prior explicit-Python pass hid a prelaunch empty-argument failure; unchanged
 84 names were insufficient. Inspect required command roles without rejecting
 legitimate empty options elsewhere, and label prebuilt-CLI substitutions as
-harness checks, not fresh-build CTests. Parity7AD/Slice9 records exact report/
-review hashes and the separate configure-probe timeout follow-up. These local
+harness checks, not fresh-build CTests. Main CLI CTest1/1 passes0.23s; report
+300abd08 and parity7AD/Slice9 bind exact hashes and the separate configure-probe
+timeout follow-up. These local
 gates do not close native selection, durable packet or platform qualification.
 
 1. Build and install `dwg2dxf` into a fresh prefix outside the build tree,

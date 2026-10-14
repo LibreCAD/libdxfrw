@@ -446,6 +446,7 @@ if(EXISTS "${_freecad_cli_sample}"
             -DSAMPLE=${_freecad_cli_sample}
             -DRTEXT_SAMPLE=${_freecad_cli_rtext_sample}
             -DMPOLYGON_SAMPLE=${_freecad_cli_mpolygon_sample}
+            "-DPYTHON=${LIBDXFRW_PYTHON_EXECUTABLE}"
             -DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}
             -P ${CMAKE_CURRENT_SOURCE_DIR}/run_freecad_dwg2dxf_compat_test.cmake
     )
@@ -771,6 +772,7 @@ if(LIBDXFRW_ENABLE_FREECAD_TRACKED_AC1027_LINE_CONTROL)
                 -DINPUT_PATH_UNICODE=ON
                 -DEXPECTED_FREECAD_REVISION=145529fe741292ff0b3977a01195bf0247425794
                 -DEXPECTED_LINE_BOUNDS=[[1,2,0,3,4,0],[5,6,0,7,8,0],[9,10,0,11,12,0]]
+                -DEXPECTED_LINE_ENDPOINTS=[[[1,2,0],[3,4,0]],[[5,6,0],[7,8,0]],[[9,10,0],[11,12,0]]]
                 -P ${CMAKE_CURRENT_SOURCE_DIR}/run_freecad_installed_3d_line_test.cmake
         )
         set_tests_properties(dwg2dxf_freecad_tracked_ac1027_line_${_operation}

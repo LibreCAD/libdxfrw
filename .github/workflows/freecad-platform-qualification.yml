@@ -40,6 +40,8 @@ jobs:
 
       - name: Build, install, and qualify the Linux handoff
         shell: bash
+        env:
+          TMPDIR: ${{ runner.temp }}
         run: |
           set -euo pipefail
           cmake -S . -B build -G Ninja \

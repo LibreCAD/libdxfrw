@@ -157,7 +157,7 @@ if(LIBDXFRW_BUILD_TESTS)
     # dedicated tests/ directory.  It is added here (after dwg2dxf) so the
     # compile-only LibreCAD_3 ABI gate can resolve the CLI target when sample
     # tests are enabled, while remaining absent from normal library builds.
-    add_subdirectory(tests)
+    # Resolve and validate Python before tests/ captures it in command vectors.
     find_program(LIBDXFRW_PYTHON_EXECUTABLE NAMES python3)
     if(NOT LIBDXFRW_PYTHON_EXECUTABLE)
         message(FATAL_ERROR "LIBDXFRW_BUILD_TESTS requires a Python 3 interpreter")
@@ -170,6 +170,7 @@ if(LIBDXFRW_BUILD_TESTS)
     if(NOT "${LIBDXFRW_PYTHON_VERSION_OK}" STREQUAL "0")
         message(FATAL_ERROR "LIBDXFRW_BUILD_TESTS requires Python 3.10 or newer")
     endif()
+    add_subdirectory(tests)
     # This compiler-only contract needs no library build or X11 dependency.
     # An explicit include root adds an actual X11 header control when available.
     set(LIBDXFRW_HEADER_X11_INCLUDE_DIR "" CACHE PATH
