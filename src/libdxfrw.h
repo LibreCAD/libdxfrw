@@ -477,6 +477,15 @@ public:
     //! Do not mutate this context, including a previously retained alias, from
     //! finalizeDxfWrite; the facade cannot guard writes through caller aliases.
     DRW_WritingContext* getWritingContext() { return &m_writingContext; }
+    /** Return target-version omissions observed during the most recent
+     * admitted write attempt. Unsupported target records still make write()
+     * fail and are never silently published as a lossy file; their counts are
+     * retained for diagnostics after failure. The map object is owned by this
+     * codec and lives until destruction; its contents reset at the beginning
+     * of the next admitted write attempt. This is not thread-safe. */
+    const std::map<std::string, std::size_t>& leftOut() const {
+        return m_leftOut;
+    }
 
 private:
     enum class DxfEntityBoundary {
@@ -694,7 +703,9 @@ public:
     bool planSourceBlockRecordHandles();
     // captureSourceHandle=false on the VERTEX/SEQEND parent re-entries
     // (writePolyline/writeInsert) so they do not pollute the source->minted map.
-    bool rejectUnsupportedDxfWrite() noexcept;
+    // recordName is supplied only for a known target-version limitation; the
+    // attempted omission is counted, but the standalone writer remains strict.
+    bool rejectUnsupportedDxfWrite(const char* recordName = nullptr) noexcept;
     bool failDxfWrite() noexcept;
     bool writeRequiredString(int code, const std::string& value);
     bool allocateDxfHandle(std::uint32_t& handle) noexcept;
@@ -813,6 +824,7 @@ private:
     std::uint64_t m_consumedReservationFailureGeneration {0};
     DRW_OperationDiagnostic m_lastDiagnostic;
     bool m_wholeOperationActive {false};
+    bool m_dxfWriteAttemptActive {false};
     // Closed after emission, including the consumer veto and publication.
     // WholeOperationScope releases this phase on every admitted exit.
     bool m_dxfWriteFinalizing {false};
@@ -837,6 +849,8 @@ private:
     // never overwrite the caller-owned setHandleRemap map above.
     std::map<std::uint32_t, std::uint32_t> m_dxfWriteHandleRemap;
     std::function<std::uint32_t(std::uint32_t)> m_referenceResolver;
+    // Attempted target-version omissions from the most recent admitted write.
+    std::map<std::string, std::size_t> m_leftOut;
     bool wlayer0 {false};
     bool dimstyleStd {false};
     bool applyExt {false};

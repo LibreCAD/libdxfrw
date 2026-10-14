@@ -4481,6 +4481,72 @@ void testDxfWriteBlockRemapPhase(TestContext& t) {
              "same writer recovers after a throwing remap callback");
 }
 
+void testDxfWriteLeftOutReporting(TestContext& t) {
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    const auto path = std::filesystem::temp_directory_path()
+        / ("libdxfrw-left-out-" + std::to_string(nonce) + ".dxf");
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() { std::error_code error; std::filesystem::remove(path, error); }
+    } cleanup{path};
+
+    class OmissionAdapter final : public dx_iface {
+    public:
+        void writeEntities() override {
+            if (!emitUnsupported)
+                return;
+            (void)dxfW->writeLight(&light);
+            (void)dxfW->writeLight(&light);
+            (void)dxfW->writeMPolygon(&polygon);
+        }
+
+        bool emitUnsupported {true};
+        DRW_Light light;
+        DRW_MPolygon polygon;
+    };
+
+    {
+        std::ofstream previous(path, std::ios::binary | std::ios::trunc);
+        previous << "previous published drawing\n";
+    }
+
+    dxfRW codec(path.string().c_str());
+    dx_data data;
+    OmissionAdapter adapter;
+    adapter.cData = &data;
+    adapter.currentBlock = data.mBlock;
+    adapter.dxfW = &codec;
+
+    t.expect(!codec.writeLight(nullptr) && codec.leftOut().empty(),
+             "a rejected direct writer call outside an admitted attempt is not reported as an omission");
+    const bool rejected = !codec.write(&adapter, DRW::AC1009, false);
+    const auto& report = codec.leftOut();
+    const auto light = report.find("LIGHT (not in this DXF version)");
+    const auto mp = report.find("MPOLYGON (not in this DXF version)");
+    t.expect(rejected && report.size() == 2
+                 && light != report.end() && light->second == 2
+                 && mp != report.end() && mp->second == 1,
+             "strict target rejection reports each encountered omission by record and count");
+    {
+        std::ifstream previous(path, std::ios::binary);
+        t.expect(std::string(std::istreambuf_iterator<char>(previous), {})
+                     == "previous published drawing\n",
+                 "omission diagnostics do not publish a lossy or partial destination");
+    }
+
+    const auto* reportAddress = &report;
+    adapter.emitUnsupported = false;
+    t.expect(codec.write(&adapter, DRW::AC1015, false)
+                 && reportAddress == &codec.leftOut() && report.empty(),
+             "the borrowed report object remains stable and resets on the next admitted write");
+
+    adapter.emitUnsupported = true;
+    t.expect(!codec.write(&adapter, DRW::AC1009, false) && report.size() == 2,
+             "a later failed attempt publishes only its own observed omissions");
+    t.expect(!codec.write(&adapter, DRW::UNKNOWNV, false) && report.empty(),
+             "an early rejected attempt clears stale omission counts");
+}
+
 using TextEncoding = DRW::DxfTextEncoding;
 
 void testDxfTextEncodingCodecs(TestContext& t) {
@@ -8406,6 +8472,7 @@ int main(int argc, char** argv) {
     testExplicitReservationQuery(context);
     testDxfReferenceResolver(context);
     testDxfWriteBlockRemapPhase(context);
+    testDxfWriteLeftOutReporting(context);
     testDxfTextEncodingCodecs(context);
     testDxfTextEncodingReads(context);
     testDxfTextEncodingLifecycle(context);

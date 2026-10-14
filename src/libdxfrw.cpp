@@ -1812,7 +1812,13 @@ private:
 // Outlives all record scopes, but owns no borrowed caller records.
 class dxfRW::WriteAttemptScope final {
 public:
-    explicit WriteAttemptScope(dxfRW& owner) noexcept : m_owner(owner) {}
+    explicit WriteAttemptScope(dxfRW& owner) noexcept : m_owner(owner) {
+        // A rejected nested operation is never admitted to this scope, so it
+        // cannot erase the last report. Every admitted attempt, including an
+        // early validation failure, starts with a fresh omission snapshot.
+        m_owner.m_leftOut.clear();
+        m_owner.m_dxfWriteAttemptActive = true;
+    }
     ~WriteAttemptScope() noexcept {
         if (!m_committed) {
             // Constructed before any record scope: their journals and borrowed
@@ -1822,6 +1828,7 @@ public:
             m_owner.m_writeError = true;
             m_owner.discardDxfWriteResults();
         }
+        m_owner.m_dxfWriteAttemptActive = false;
     }
     void commit() noexcept { m_committed = true; }
     WriteAttemptScope(const WriteAttemptScope&) = delete;
@@ -2284,7 +2291,8 @@ std::uint32_t dxfRW::getTextStyleHandle(const std::string& styleName) const {
 
 void dxfRW::discardDxfWriteResults() noexcept {
     // Only traversal-derived results, never caller registrations/reservations
-    // or diagnostics. All record scopes must have unwound before this cleanup.
+    // or the per-attempt omission report. All record scopes must have unwound
+    // before this cleanup.
     m_dxfWriteMutations.clear();
     for (DRW_ImageDef *id : imageDef)
         delete id;
@@ -2646,8 +2654,20 @@ bool dxfRW::preflightDxfClasses() {
     return true;
 }
 
-bool dxfRW::rejectUnsupportedDxfWrite() noexcept {
+bool dxfRW::rejectUnsupportedDxfWrite(const char* recordName) noexcept {
     m_writeError = true;
+    if (recordName != nullptr && m_dxfWriteAttemptActive) {
+        try {
+            const std::string label = std::string(recordName)
+                + " (not in this DXF version)";
+            std::size_t& count = m_leftOut[label];
+            if (count != std::numeric_limits<std::size_t>::max())
+                ++count;
+        } catch (...) {
+            // Reporting is best-effort under allocation failure; the strict
+            // write failure remains set and no output can be published.
+        }
+    }
     return false;
 }
 
@@ -4447,7 +4467,7 @@ bool dxfRW::write3DLine(DRW_3DLine *ent) {
     if (!preflightEntity(ent))
         return false;
     if (version < DRW::AC1015)
-        return rejectUnsupportedDxfWrite();
+        return rejectUnsupportedDxfWrite("3DLINE");
 
     EntityRecordScope scope(*this, ent);
     writer->writeString(0, "3DLINE");
@@ -4655,7 +4675,7 @@ bool dxfRW::writeEllipse(DRW_Ellipse *ent){
                 DRW::OperationCause::ValidationFailure, "ellipse-r12-carrier",
                 "R12 ellipse derivation cannot preserve object/application or opaque carriers",
                 0, false, ent->handle, ent->handle != DRW::NoHandle);
-            return rejectUnsupportedDxfWrite();
+            return rejectUnsupportedDxfWrite("ELLIPSE");
         }
         DRW_Polyline pol;
         normalized.toPolyline(&pol, elParts);
@@ -4781,7 +4801,7 @@ bool dxfRW::writeLWPolyline(DRW_LWPolyline *ent){
     if (!preflightDxfWrite())
         return false;
     if (version <= DRW::AC1009)
-        return rejectUnsupportedDxfWrite();
+        return rejectUnsupportedDxfWrite("LWPOLYLINE");
     if (writer == nullptr || ent == nullptr || !ent->validatePayloadFields()) {
         m_writeError = true;
         return false;
@@ -4847,7 +4867,7 @@ bool dxfRW::writePolyline(DRW_Polyline *ent) {
     if (version < DRW::AC1024
         && std::any_of(ent->vertlist.cbegin(), ent->vertlist.cend(),
                        [](const auto& vertex) { return vertex->identifier != 0; }))
-        return rejectUnsupportedDxfWrite();
+        return rejectUnsupportedDxfWrite("POLYLINE");
     RecordStateScope state(*this, ent);
     DxfWriterRecordScope record(*writer);
     // Child records share this parent transaction. Keep the existing minted
@@ -5050,7 +5070,7 @@ bool dxfRW::writeSpline(DRW_Spline *ent){
             return false;
     } else {
         // R12 has no SPLINE record and this writer does not approximate it.
-        return rejectUnsupportedDxfWrite();
+        return rejectUnsupportedDxfWrite("SPLINE");
     }
     return !writer->hasWriteError();
 }
@@ -5059,7 +5079,7 @@ bool dxfRW::writeHelix(DRW_Helix *ent){
     if (!preflightDxfWrite())
         return false;
     if (version <= DRW::AC1009)
-        return rejectUnsupportedDxfWrite();
+        return rejectUnsupportedDxfWrite("HELIX");
     if (version > DRW::AC1009) {
         if (writer == nullptr || ent == nullptr
             || !ent->validateDxf()
@@ -5322,14 +5342,14 @@ bool dxfRW::writeHatch(DRW_Hatch *ent){
         if (!ent->extData.empty() && !writeExtData(ent->extData))
             return false;
     } else {
-        return rejectUnsupportedDxfWrite();
+        return rejectUnsupportedDxfWrite("HATCH");
     }
     return !writer->hasWriteError();
 }
 
 bool dxfRW::writeMPolygon(DRW_MPolygon *ent){
     if (version <= DRW::AC1009)
-        return rejectUnsupportedDxfWrite();
+        return rejectUnsupportedDxfWrite("MPOLYGON");
     if (ent != nullptr && ent->dxfVersion != 1)
         return rejectUnsupportedDxfWrite();
     if (version > DRW::AC1009) {
@@ -5532,7 +5552,7 @@ bool dxfRW::writeLeader(DRW_Leader *ent){
     if (!preflightDxfWrite())
         return false;
     if (version <= DRW::AC1009)
-        return rejectUnsupportedDxfWrite();
+        return rejectUnsupportedDxfWrite("LEADER");
     if (writer == nullptr || ent == nullptr || !ent->validatePayloadFields()
         || ent->vertexlist.size()
                > static_cast<std::size_t>(std::numeric_limits<std::int16_t>::max())) {
@@ -5601,7 +5621,7 @@ bool dxfRW::writeLeader(DRW_Leader *ent){
 }
 bool dxfRW::writeArcDimension(DRW_DimArc *d) {
     if (version <= DRW::AC1009)
-        return rejectUnsupportedDxfWrite();
+        return rejectUnsupportedDxfWrite("ARC_DIMENSION");
     if (!preflightEntity(d))
         return false;
     EntityRecordScope scope(*this, d);
@@ -5662,7 +5682,7 @@ bool dxfRW::writeArcDimension(DRW_DimArc *d) {
 
 bool dxfRW::writeLargeRadialDimension(DRW_DimLargeRadial *d) {
     if (version <= DRW::AC1009)
-        return rejectUnsupportedDxfWrite();
+        return rejectUnsupportedDxfWrite("LARGE_RADIAL_DIMENSION");
     if (!preflightEntity(d))
         return false;
     EntityRecordScope scope(*this, d);
@@ -5947,7 +5967,7 @@ bool dxfRW::writeDimension(DRW_Dimension *ent) {
         if (!ent->extData.empty() && !writeExtData(ent->extData))
             return false;
     } else  {
-        return rejectUnsupportedDxfWrite();
+        return rejectUnsupportedDxfWrite("DIMENSION");
     }
     return !writer->hasWriteError();
 }
@@ -6422,7 +6442,7 @@ static double arcAlignedDxfValue(const UTF8STRING& value, double fallback) {
 
 bool dxfRW::writeRText(DRW_RText *ent) {
     if (version <= DRW::AC1009)
-        return rejectUnsupportedDxfWrite();
+        return rejectUnsupportedDxfWrite("RTEXT");
     if (!preflightEntity(ent))
         return false;
     EntityRecordScope scope(*this, ent);
@@ -6448,7 +6468,7 @@ bool dxfRW::writeRText(DRW_RText *ent) {
 
 bool dxfRW::writeArcAlignedText(DRW_ArcAlignedText *ent) {
     if (version <= DRW::AC1009)
-        return rejectUnsupportedDxfWrite();
+        return rejectUnsupportedDxfWrite("ARCALIGNEDTEXT");
     if (!preflightEntity(ent))
         return false;
     EntityRecordScope scope(*this, ent);
@@ -6524,7 +6544,7 @@ bool dxfRW::writeTolerance(DRW_Tolerance *ent){
 bool dxfRW::writeMLine(DRW_MLine *ent) {
     if (!preflightDxfWrite())
         return false;
-    if (version <= DRW::AC1009) return rejectUnsupportedDxfWrite();
+    if (version <= DRW::AC1009) return rejectUnsupportedDxfWrite("MLINE");
     if (ent == nullptr || writer == nullptr || !ent->validatePayloadFields()) {
         m_writeError = true;
         return false;
@@ -6580,7 +6600,7 @@ bool dxfRW::writeMLine(DRW_MLine *ent) {
 bool dxfRW::writeUnderlay(DRW_Underlay *ent) {
     if (!preflightDxfWrite())
         return false;
-    if (version <= DRW::AC1009) return rejectUnsupportedDxfWrite();
+    if (version <= DRW::AC1009) return rejectUnsupportedDxfWrite("UNDERLAY");
     if (ent == nullptr || writer == nullptr || !ent->validatePayloadFields()
         || ent->clipBoundary.size() > DRW_Underlay::kMaxClipVertices
         || ent->inverseClipBoundary.size() > DRW_Underlay::kMaxClipVertices
@@ -6638,7 +6658,8 @@ bool dxfRW::writeUnderlay(DRW_Underlay *ent) {
 }
 
 bool dxfRW::writeUnderlayDefinition(DRW_UnderlayDefinition *ent) {
-    if (version <= DRW::AC1009) return rejectUnsupportedDxfWrite();
+    if (version <= DRW::AC1009)
+        return rejectUnsupportedDxfWrite("UNDERLAY definition");
     if (!preflightTableEntry(ent))
         return false;
     const char* tag = (ent->kind == DRW_UnderlayDefinition::DGN) ? "DGNDEFINITION"
@@ -6743,7 +6764,7 @@ bool dxfRW::writeMText(DRW_MText *ent){
         if (!ent->extData.empty() && !writeExtData(ent->extData))
             return false;
     } else {
-        return rejectUnsupportedDxfWrite();
+        return rejectUnsupportedDxfWrite("MTEXT");
     }
     return !writer->hasWriteError();
 }
@@ -6754,7 +6775,7 @@ bool dxfRW::writeLight(DRW_Light *ent) {
     // from a DWG are carried on LibreCAD's metadata shelf and would otherwise be
     // dropped on DWG->DXF export; this re-emits them (D4 write-path preservation).
     if (version < DRW::AC1021)
-        return rejectUnsupportedDxfWrite();
+        return rejectUnsupportedDxfWrite("LIGHT");
     if (!preflightEntity(ent))
         return false;
     EntityRecordScope scope(*this, ent);
@@ -6798,7 +6819,7 @@ bool dxfRW::writeCamera(DRW_Camera *ent) {
     if (!preflightEntity(ent))
         return false;
     if (version < DRW::AC1015)
-        return rejectUnsupportedDxfWrite();
+        return rejectUnsupportedDxfWrite("CAMERA");
     EntityRecordScope scope(*this, ent);
     writer->writeString(0, "CAMERA");
     if (!writeEntity(ent))
@@ -6815,7 +6836,7 @@ bool dxfRW::writeGeoPositionMarker(DRW_GeoPositionMarker *ent) {
     if (!preflightEntity(ent))
         return false;
     if (version < DRW::AC1027)
-        return rejectUnsupportedDxfWrite();
+        return rejectUnsupportedDxfWrite("GEOPOSITIONMARKER");
     if (ent->m_enableFrameText && ent->mtext == nullptr) {
         m_writeError = true;
         return false;
@@ -6856,7 +6877,7 @@ bool dxfRW::writeSectionObject(DRW_SectionObject *ent) {
     if (!preflightEntity(ent))
         return false;
     if (version < DRW::AC1021)
-        return rejectUnsupportedDxfWrite();
+        return rejectUnsupportedDxfWrite("SECTIONOBJECT");
     if (ent->m_indicatorColor > std::numeric_limits<std::uint16_t>::max()
         || ent->m_verts.size() > DRW_SectionObject::kMaxVertices
         || ent->m_blVerts.size() > DRW_SectionObject::kMaxVertices) {
@@ -6901,7 +6922,7 @@ bool dxfRW::writeMesh(DRW_Mesh *ent) {
     if (!preflightDxfWrite())
         return false;
     if (version <= DRW::AC1009)
-        return rejectUnsupportedDxfWrite();
+        return rejectUnsupportedDxfWrite("MESH");
     if (ent == nullptr || writer == nullptr || !ent->validateDxfOutput()) {
         m_writeError = true;
         return false;
@@ -7205,7 +7226,7 @@ bool dxfRW::writeViewport(DRW_Viewport *ent) {
 
 DRW_ImageDef* dxfRW::writeImage(DRW_Image *ent, std::string name){
     if (version <= DRW::AC1009) {
-        m_writeError = true;
+        rejectUnsupportedDxfWrite("IMAGE");
         return nullptr; // IMAGE is not available in ACAD R12 / earlier.
     }
     if (!preflightEntity(ent))
@@ -7363,7 +7384,7 @@ bool dxfRW::writeMultiLeader(DRW_MLeader *ent){
         return false;
     }
     if (version <= DRW::AC1009)
-        return rejectUnsupportedDxfWrite();
+        return rejectUnsupportedDxfWrite("MULTILEADER");
     EntityRecordScope scope(*this, ent);
     writer->writeString(0, "MULTILEADER");
     if (!writeEntity(ent))
@@ -7553,7 +7574,7 @@ bool dxfRW::writeWipeout(DRW_Wipeout *ent) {
     // AcDbWipeout marker. The reader still tolerates either and old split input.
     // No AcDbRasterImageDef is written: WIPEOUT carries no actual raster.
     if (version <= DRW::AC1009)
-        return rejectUnsupportedDxfWrite();
+        return rejectUnsupportedDxfWrite("WIPEOUT");
     if (ent == nullptr || writer == nullptr || !ent->validatePayloadFields()
         || !isValidDxfRasterAdjustments(*ent) || !ent->hasValidBoundary()) {
         m_writeError = true;
@@ -7562,7 +7583,7 @@ bool dxfRW::writeWipeout(DRW_Wipeout *ent) {
     // Our pre-R2010 output layout does not emit the inversion flag. Reject
     // rather than silently change the masking area: an output-support policy.
     if (ent->clipMode && version <= DRW::AC1021)
-        return rejectUnsupportedDxfWrite();
+        return rejectUnsupportedDxfWrite("WIPEOUT");
     EntityRecordScope scope(*this, ent);
     writer->writeString(0, "WIPEOUT");
     if (!writeEntity(ent))
@@ -7819,7 +7840,7 @@ bool dxfRW::writePointCloudDef(DRW_PointCloudDef *ent) {
     if (!preflightTableEntry(ent))
         return false;
     if (version <= DRW::AC1009)
-        return rejectUnsupportedDxfWrite();
+        return rejectUnsupportedDxfWrite("POINTCLOUDDEFINITION");
 
     const char *recordName = "POINTCLOUDDEFINITION";
     const char *subclassName = "AcDbPointCloudDef";
@@ -7878,7 +7899,7 @@ bool dxfRW::writeNavisworksModelDef(DRW_NavisworksModelDef *ent) {
     if (!preflightTableEntry(ent))
         return false;
     if (version <= DRW::AC1009)
-        return rejectUnsupportedDxfWrite();
+        return rejectUnsupportedDxfWrite("NAVISWORKSMODELDEF");
     if (ent->m_flags < 0 || ent->m_flags > DRW_NavisworksModelDef::kMaxFlags
         || ent->m_path.size() > DRW_NavisworksModelDef::kMaxPathLength) {
         m_writeError = true;
@@ -7910,7 +7931,7 @@ bool dxfRW::writePointCloudColorMap(DRW_PointCloudColorMap *ent) {
     if (!preflightTableEntry(ent))
         return false;
     if (version <= DRW::AC1009)
-        return rejectUnsupportedDxfWrite();
+        return rejectUnsupportedDxfWrite("POINTCLOUDCOLORMAP");
     if (ent->m_classVersion < 0
         || ent->m_classVersion > DRW_PointCloudColorMap::kMaxClassVersion
         || ent->m_colorRamps.size() > DRW_PointCloudColorMap::kMaxRamps
@@ -7981,7 +8002,7 @@ bool dxfRW::writeNavisworksModel(DRW_NavisworksModel *ent) {
     if (!preflightEntity(ent))
         return false;
     if (version < DRW::AC1015)
-        return rejectUnsupportedDxfWrite();
+        return rejectUnsupportedDxfWrite("NAVISWORKSMODEL");
     if (!std::isfinite(ent->unitFactor)
         || !std::all_of(ent->transform.begin(), ent->transform.end(),
                         [](double value) { return std::isfinite(value); })) {
@@ -8010,7 +8031,7 @@ bool dxfRW::writeSurface(DRW_Surface *ent){
         return false;
     }
     if (version <= DRW::AC1018)
-        return rejectUnsupportedDxfWrite();
+        return rejectUnsupportedDxfWrite("SURFACE");
     if (!preflightEntity(ent)
         || ent->modelerFormatVersion < 0
         || ent->modelerFormatVersion > std::numeric_limits<std::int16_t>::max()
@@ -8363,15 +8384,18 @@ bool dxfRW::writeSurface(DRW_Surface *ent){
 
 bool dxfRW::writeModelerGeometry(DRW_ModelerGeometry *ent) {
     if (version <= DRW::AC1009)
-        return rejectUnsupportedDxfWrite();
+        return rejectUnsupportedDxfWrite("3DSOLID/REGION/BODY");
     if (!preflightEntity(ent))
         return false;
     const bool writeAc1027Shell = version >= DRW::AC1027;
-    if ((!writeAc1027Shell
-         && (ent->m_hasDxfModelerFlag || ent->m_hasDxfModelerUid))
-        || (ent->m_hasDxfModelerUid
-            && !isSafeDxfRecordText(ent->m_dxfModelerUid)))
-        return rejectUnsupportedDxfWrite();
+    if (!writeAc1027Shell
+        && (ent->m_hasDxfModelerFlag || ent->m_hasDxfModelerUid))
+        return rejectUnsupportedDxfWrite("3DSOLID/REGION/BODY");
+    if (ent->m_hasDxfModelerUid
+        && !isSafeDxfRecordText(ent->m_dxfModelerUid)) {
+        m_writeError = true;
+        return false;
+    }
     const bool writeAc1015SatV1 = version == DRW::AC1015
         && hasQualifiedAc1015SatV1Payload(*ent);
     const bool writeAc1027Sab = version == DRW::AC1027
@@ -17962,7 +17986,7 @@ bool dxfRW::writeFieldList(DRW_FieldList *ent) {
 // fields, and handle references 340-343.
 bool dxfRW::writeMLeaderStyle(DRW_MLeaderStyle *ent) {
     if (version < DRW::AC1021)
-        return rejectUnsupportedDxfWrite();
+        return rejectUnsupportedDxfWrite("MLEADERSTYLE");
     if (!preflightTableEntry(ent))
         return false;
     writer->writeString(0, "MLEADERSTYLE");
