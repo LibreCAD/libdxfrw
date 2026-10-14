@@ -996,7 +996,8 @@ struct TableOwnerRecord {
 // Decode framing only: no document reader can repair, create or re-parent the
 // table records before these literal graph assertions see them.
 bool readTableOwnerRecords(const std::filesystem::path& path, bool binary,
-                           std::vector<TableOwnerRecord>& records) {
+                           std::vector<TableOwnerRecord>& records,
+                           bool retainCoordinatePresence = false) {
     std::ifstream stream(path, std::ios::binary);
     if (!stream)
         return false;
@@ -1019,7 +1020,11 @@ bool readTableOwnerRecords(const std::filesystem::path& path, bool binary,
                 return true;
             records.push_back({kind, {}});
         } else if (!records.empty()) {
-            if (code == 77 || code == 78) {
+            if (retainCoordinatePresence && (code == 30 || code == 31)) {
+                // Presence only, not a numeric coordinate projection. Opt in
+                // so graph-only callers keep their original field inventory.
+                records.back().groups.emplace_back(code, "present");
+            } else if (code == 77 || code == 78) {
                 // Literal plot values, before a document reader can supply
                 // defaults or repair an object graph.
                 records.back().groups.emplace_back(
@@ -4048,6 +4053,208 @@ void testLegacyEllipseCarrierTransfer(TestContext& t) {
     }
 }
 
+// RAY/XLINE directions are WCS vectors, not second points. Their DXF fields
+// must be unit vectors even when callers supply finite non-unit magnitudes.
+void testInfiniteLineDirections(TestContext& t) {
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    const auto output = std::filesystem::temp_directory_path()
+        / ("libdxfrw-directions-" + std::to_string(nonce) + ".dxf");
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() { std::error_code error; std::filesystem::remove(path, error); }
+    } cleanup{output};
+    const std::string filename = output.string();
+    const auto contents = [&output]() {
+        std::ifstream stream(output, std::ios::binary);
+        return std::string(std::istreambuf_iterator<char>(stream), {});
+    };
+    class DirectionInterface final : public dx_iface {
+    public:
+        explicit DirectionInterface(dx_data& data, bool xline) : isXline(xline) {
+            cData = &data;
+            currentBlock = data.mBlock;
+            ray.basePoint = xLine.basePoint = {11, 12, 13};
+            ray.layer = xLine.layer = "0";
+            suffix.basePoint = {21, 22, 23};
+            suffix.secPoint = {31, 32, 33};
+            suffix.handle = 0xA200u;
+        }
+        DRW_Line& entity() { return isXline ? static_cast<DRW_Line&>(xLine) : ray; }
+        void writeEntities() override {
+            callbackVisited = true;
+            before = dxfW->highWaterHandle();
+            recordWritten = isXline ? dxfW->writeXline(&xLine) : dxfW->writeRay(&ray);
+            after = dxfW->highWaterHandle();
+            suffixWritten = dxfW->writeLine(&suffix);
+            afterSuffix = dxfW->highWaterHandle();
+        }
+        DRW_Ray ray;
+        DRW_Xline xLine;
+        DRW_Line suffix;
+        bool isXline, callbackVisited {false}, recordWritten {false}, suffixWritten {false};
+        std::uint32_t before {0}, after {0}, afterSuffix {0};
+    };
+    const double maximum = (std::numeric_limits<double>::max)();
+    const double denormal = std::numeric_limits<double>::denorm_min();
+    const double tiny = (std::numeric_limits<double>::min)();
+    const double inv3 = 1.0 / std::sqrt(3.0);
+    const double inv21 = 1.0 / std::sqrt(21.0);
+    const double inv5 = 1.0 / std::sqrt(5.0);
+    struct DirectionCase { DRW_Coord input, expected; };
+    // Analytic expected vectors avoid overflow-prone peer factory normalization.
+    const DirectionCase positives[] = {
+        {{3, 4, 0}, {.6, .8, 0}}, {{0, .6, .8}, {0, .6, .8}},
+        {{maximum, maximum, maximum}, {inv3, inv3, inv3}},
+        {{denormal, 0, 0}, {1, 0, 0}},
+        {{denormal, -denormal, denormal}, {inv3, -inv3, inv3}},
+        {{maximum, -maximum / 2, maximum / 4}, {4 * inv21, -2 * inv21, inv21}},
+        {{-2, 0, 0}, {-1, 0, 0}}, {{-0.0, 0, -1}, {-0.0, 0, -1}},
+        {{maximum, 0, 0}, {1, 0, 0}}, {{0, 0, denormal}, {0, 0, 1}},
+        {{1, 0, 0}, {1, 0, 0}}, {{tiny, tiny / 2, 0}, {2 * inv5, inv5, 0}}
+    };
+    const auto equalComponent = [](double actual, double expected) {
+        return (std::isnan(actual) && std::isnan(expected))
+            || (actual == expected && (actual != 0 || std::signbit(actual) == std::signbit(expected)));
+    };
+    const auto unchangedDirection = [&equalComponent](const DRW_Coord& actual, const DRW_Coord& input) {
+        return equalComponent(actual.x, input.x) && equalComponent(actual.y, input.y)
+            && equalComponent(actual.z, input.z);
+    };
+    const auto verifyOutput = [&t, &output](bool xline, const DRW_Coord& expected,
+                                          double anchorZ, bool binary) {
+        dx_data data;
+        FixtureInterface reader;
+        t.expect(reader.fileImport(output.string(), &data, false), "direction output imports normally");
+        t.expect(data.mBlock->ent.size() == 2u, "direction record and following LINE are both retained");
+        if (data.mBlock->ent.size() != 2u) return;
+        const auto* direction = dynamic_cast<const DRW_Line*>(data.mBlock->ent.front());
+        const auto* suffix = dynamic_cast<const DRW_Line*>(data.mBlock->ent.back());
+        t.expect(direction && direction->eType == (xline ? DRW::XLINE : DRW::RAY)
+                     && direction->basePoint.x == 11 && direction->basePoint.y == 12
+                     && direction->basePoint.z == anchorZ,
+                 "direction record preserves its WCS anchor and entity type");
+        if (direction) {
+            const DRW_Coord& actual = direction->secPoint;
+            t.expect(std::isfinite(actual.x) && std::isfinite(actual.y) && std::isfinite(actual.z)
+                         && std::abs(actual.x - expected.x) < 2e-14
+                         && std::abs(actual.y - expected.y) < 2e-14
+                         && std::abs(actual.z - expected.z) < 2e-14
+                         && std::abs(actual.x * actual.x + actual.y * actual.y
+                                     + actual.z * actual.z - 1) < 4e-14,
+                     "finite accepted direction serializes to its analytic signed unit vector");
+        }
+        t.expect(suffix && suffix->eType == DRW::LINE && suffix->basePoint.x == 21
+                     && suffix->secPoint.z == 33, "following LINE coordinates are not normalized");
+        std::vector<TableOwnerRecord> records;
+        t.expect(readTableOwnerRecords(output, binary, records, true),
+                 "direction output frames through EOF with literal coordinate presence retained");
+        const auto record = std::find_if(records.begin(), records.end(), [xline](const auto& item) {
+            return item.kind == (xline ? "XLINE" : "RAY");
+        });
+        const bool writesZ = anchorZ != 0 || expected.z != 0;
+        t.expect(record != records.end() && hasGroup(record->groups, 30) == writesZ
+                     && hasGroup(record->groups, 31) == writesZ,
+                 "planar zero-Z omission and nonplanar explicit-Z positive use actual raw tags");
+    };
+    for (const DRW::Version version : {DRW::AC1015, DRW::AC1024, DRW::AC1032}) {
+        for (const bool binary : {false, true}) {
+            for (const bool xline : {false, true}) {
+                for (const auto& value : positives) {
+                    dx_data data;
+                    DirectionInterface adapter(data, xline);
+                    adapter.entity().secPoint = value.input;
+                    const double anchorZ = value.input.z == 0 ? 0 : 13;
+                    adapter.entity().basePoint.z = anchorZ;
+                    adapter.entity().handle = 0xA100u;
+                    dxfRW writer(filename.c_str());
+                    adapter.dxfW = &writer;
+                    t.expect(writer.write(&adapter, version, binary) && adapter.callbackVisited && adapter.recordWritten
+                                 && adapter.suffixWritten,
+                             "finite nonzero API direction writes across DXF revisions and encodings");
+                    t.expect(unchangedDirection(adapter.entity().secPoint, value.input)
+                                 && adapter.entity().basePoint.x == 11 && adapter.entity().basePoint.z == anchorZ
+                                 && adapter.entity().layer == "0",
+                             "normalization never edits caller geometry or metadata");
+                    adapter.dxfW = nullptr;
+                    verifyOutput(xline, value.expected, anchorZ, binary);
+                }
+            }
+        }
+    }
+    const double nan = std::numeric_limits<double>::quiet_NaN();
+    const double inf = std::numeric_limits<double>::infinity();
+    const DRW_Coord negatives[] = {
+        {0, 0, 0}, {-0.0, 0, -0.0}, {nan, 1, 2}, {1, nan, 2}, {1, 2, nan},
+        {inf, 1, 2}, {1, -inf, 2}, {1, 2, inf}
+    };
+    for (const bool binary : {false, true}) {
+        for (const bool xline : {false, true}) {
+            // Keep tolerant reading separate from the stricter writer contract.
+            // Author tags directly so the writer under test cannot sanitize them.
+            {
+                std::ofstream stream(output, std::ios::binary | std::ios::trunc);
+                if (binary) stream.write("AutoCAD Binary DXF\r\n\032\0", 22);
+                std::unique_ptr<dxfWriter> tags;
+                if (binary) tags = std::make_unique<dxfWriterBinary>(&stream);
+                else tags = std::make_unique<dxfWriterAscii>(&stream);
+                tags->setVersion("AC1024", true);
+                tags->writeString(0, "SECTION"); tags->writeString(2, "HEADER");
+                tags->writeString(9, "$ACADVER"); tags->writeString(1, "AC1024");
+                tags->writeString(0, "ENDSEC"); tags->writeString(0, "SECTION");
+                tags->writeString(2, "ENTITIES"); tags->writeString(0, xline ? "XLINE" : "RAY");
+                tags->writeString(8, "0"); tags->writeDouble(10, 11); tags->writeDouble(20, 12);
+                tags->writeDouble(30, 13); tags->writeDouble(11, 0); tags->writeDouble(21, 0);
+                tags->writeDouble(31, 0); tags->writeString(0, "ENDSEC"); tags->writeString(0, "EOF");
+                t.expect(!tags->hasWriteError(), "literal zero direction control writes its raw tags");
+            }
+            dx_data tolerantData;
+            FixtureInterface tolerantReader;
+            t.expect(tolerantReader.fileImport(output.string(), &tolerantData, false)
+                         && tolerantData.mBlock->ent.size() == 1u,
+                     "existing tolerant reader still accepts a literal zero direction");
+            if (!tolerantData.mBlock->ent.empty()) {
+                const auto* direction = dynamic_cast<const DRW_Line*>(tolerantData.mBlock->ent.front());
+                t.expect(direction && direction->eType == (xline ? DRW::XLINE : DRW::RAY)
+                             && direction->secPoint.x == 0 && direction->secPoint.y == 0 && direction->secPoint.z == 0,
+                         "tolerant reading preserves the literal zero rather than inventing a direction");
+            }
+            for (const std::uint32_t handle : {0u, 0xA100u}) {
+                for (const DRW_Coord& input : negatives) {
+                    dx_data data;
+                    DirectionInterface adapter(data, xline);
+                    adapter.entity().secPoint = input;
+                    adapter.entity().handle = handle;
+                    dxfRW writer(filename.c_str());
+                    adapter.dxfW = &writer;
+                    t.expect(writer.reserveHandle(0xD000u), "direction test reserves an allocator control");
+                    writer.setHandleRemap({{0xE100u, 0xE101u}});
+                    { std::ofstream original(output, std::ios::binary); original << "direction destination\n"; }
+                    t.expect(!writer.write(&adapter, DRW::AC1024, binary) && adapter.callbackVisited && !adapter.recordWritten
+                                 && !adapter.suffixWritten,
+                             "zero and nonfinite directions reject and latch suffix writes");
+                    t.expect(adapter.before > 0 && adapter.before == adapter.after && adapter.after == adapter.afterSuffix
+                                 && adapter.entity().handle == handle && adapter.suffix.handle == 0xA200u
+                                 && unchangedDirection(adapter.entity().secPoint, input),
+                             "direction rejection precedes identity allocation and caller mutation");
+                    t.expect(contents() == "direction destination\n"
+                                 && writer.remapHandle(0xE100u) == 0xE101u
+                                 && writer.getWritingContext()->sourceHandleToMintedMap.empty()
+                                 && writer.getWritingContext()->writtenSourceEntityHandles.empty(),
+                             "direction rejection preserves destination and persistent remaps without derived maps");
+                    adapter.entity().secPoint = {3, 4, 0};
+                    t.expect(writer.write(&adapter, DRW::AC1024, binary) && adapter.recordWritten
+                                 && adapter.suffixWritten,
+                             "correcting only direction permits same-writer same-model retry");
+                    t.expect(unchangedDirection(adapter.entity().secPoint, {3, 4, 0}),
+                             "retry normalization retains caller nonunit direction");
+                    adapter.dxfW = nullptr;
+                    verifyOutput(xline, {.6, .8, 0}, 13, binary);
+                }
+            }
+        }
+    }
+}
+
 // The operation owns emitted identities, not the lifetime of borrowed callback
 // records. A failed operation must not publish suffix mutations or its maps.
 void testDxfWriteAttemptFailure(TestContext& t) {
@@ -4434,6 +4641,7 @@ int main(int argc, char** argv) {
     if (argc != 1)
         return 2;
     TestContext context;
+    testInfiniteLineDirections(context);
     testPlotCustomDpiAdmission(context);
     testLeaderAdvisoryCounts(context);
     testDxfWriteAttemptFailure(context);

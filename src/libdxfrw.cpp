@@ -131,6 +131,27 @@ bool isSupportedDxfWriteVersion(DRW::Version version) {
     }
 }
 
+bool normalizedDxfInfiniteLineDirection(const DRW_Coord& input,
+                                        DRW_Coord& unit) noexcept {
+    if (!std::isfinite(input.x) || !std::isfinite(input.y)
+        || !std::isfinite(input.z))
+        return false;
+    const double scale = std::max({std::abs(input.x), std::abs(input.y),
+                                   std::abs(input.z)});
+    if (scale == 0.0)
+        return false;
+
+    // Scaling first prevents subnormal or DBL_MAX inputs from acquiring a zero
+    // or infinite length. At least one scaled component has magnitude one, so
+    // the remaining length calculation is bounded to [1, sqrt(3)].
+    const double x = input.x / scale;
+    const double y = input.y / scale;
+    const double z = input.z / scale;
+    const double length = std::sqrt(x * x + y * y + z * z);
+    unit = {x / length, y / length, z / length};
+    return true;
+}
+
 bool isDxfHexText(const std::string& text) {
     if ((text.size() & 1u) != 0)
         return false;
@@ -4109,6 +4130,9 @@ bool dxfRW::write3DLine(DRW_3DLine *ent) {
 bool dxfRW::writeRay(DRW_Ray *ent) {
     if (!preflightEntity(ent))
         return false;
+    DRW_Coord crd;
+    if (!normalizedDxfInfiniteLineDirection(ent->secPoint, crd))
+        return failDxfWrite();
     EntityRecordScope scope(*this, ent);
     writer->writeString(0, "RAY");
     if (!writeEntity(ent))
@@ -4116,8 +4140,6 @@ bool dxfRW::writeRay(DRW_Ray *ent) {
     if (version > DRW::AC1009) {
         writer->writeString(100, "AcDbRay");
     }
-    DRW_Coord crd = ent->secPoint;
-    crd.unitize();
     writer->writeDouble(10, ent->basePoint.x);
     writer->writeDouble(20, ent->basePoint.y);
     if (ent->basePoint.z != 0.0 || ent->secPoint.z != 0.0) {
@@ -4137,6 +4159,9 @@ bool dxfRW::writeRay(DRW_Ray *ent) {
 bool dxfRW::writeXline(DRW_Xline *ent) {
     if (!preflightEntity(ent))
         return false;
+    DRW_Coord crd;
+    if (!normalizedDxfInfiniteLineDirection(ent->secPoint, crd))
+        return failDxfWrite();
     EntityRecordScope scope(*this, ent);
     writer->writeString(0, "XLINE");
     if (!writeEntity(ent))
@@ -4144,8 +4169,6 @@ bool dxfRW::writeXline(DRW_Xline *ent) {
     if (version > DRW::AC1009) {
         writer->writeString(100, "AcDbXline");
     }
-    DRW_Coord crd = ent->secPoint;
-    crd.unitize();
     writer->writeDouble(10, ent->basePoint.x);
     writer->writeDouble(20, ent->basePoint.y);
     if (ent->basePoint.z != 0.0 || ent->secPoint.z != 0.0) {
