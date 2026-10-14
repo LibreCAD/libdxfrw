@@ -1,9 +1,13 @@
 #include <cstdint>
+#include <chrono>
 #include <array>
 #include <algorithm>
 #include <initializer_list>
 #include <functional>
+#include <filesystem>
+#include <fstream>
 #include <iostream>
+#include <iterator>
 #include <map>
 #include <sstream>
 #include <string>
@@ -5345,10 +5349,10 @@ void testDxfRawSectionWriterStickyError(TestContext& t) {
     asciiWriter.binFile = false;
     asciiWriter.writer = std::make_unique<dxfWriterAscii>(&output);
     asciiWriter.writer->markWriteError();
-    t.expect(asciiWriter.writeRawDxfSection(section)
+    t.expect(!asciiWriter.writeRawDxfSection(section)
                  && asciiWriter.writer->hasWriteError()
-                 && !output.str().empty(),
-             "DXF ASCII raw section preserves a pre-existing writer error");
+                 && output.str().empty(),
+             "DXF ASCII raw section rejects a pre-existing writer error without appending");
 
     DRW_RawDxfSection binarySection = section;
     binarySection.m_hasRawValues = false;
@@ -5359,10 +5363,87 @@ void testDxfRawSectionWriterStickyError(TestContext& t) {
     binaryWriter.binFile = true;
     binaryWriter.writer = std::make_unique<dxfWriterBinary>(&binaryOutput);
     binaryWriter.writer->markWriteError();
-    t.expect(binaryWriter.writeRawDxfSection(binarySection)
+    t.expect(!binaryWriter.writeRawDxfSection(binarySection)
                  && binaryWriter.writer->hasWriteError()
-                 && !binaryOutput.str().empty(),
-             "DXF binary raw section preserves a pre-existing writer error");
+                 && binaryOutput.str().empty(),
+             "DXF binary raw section rejects a pre-existing writer error without appending");
+}
+
+void testDxfOperationShortWriteFailure(TestContext& t) {
+    class ShortWriteInterface final : public dx_iface {
+    public:
+        ShortWriteInterface() : rejectedOutput(&rejecting) {
+            cData = &storage;
+            currentBlock = storage.mBlock;
+            poly.handle = 0xB100u;
+            poly.addVertex(DRW_Vertex(1, 2, 0, 0));
+            poly.addVertex(DRW_Vertex(3, 4, 0, 0));
+            poly.vertlist[0]->handle = 0xB101u;
+            poly.vertlist[1]->handle = 0xB102u;
+            late.handle = 0xB200u;
+            late.secPoint = DRW_Coord(7, 8, 9);
+        }
+        void writeEntities() override {
+            // This callback-local prefix is dead before the later short write.
+            emitPrefix();
+            std::ostream* original = dxfW->writer->stream();
+            if (reject)
+                dxfW->writer->setStream(&rejectedOutput);
+            polyResult = dxfW->writePolyline(&poly);
+            const auto before = dxfW->highWaterHandle();
+            lateResult = dxfW->writeLine(&late);
+            lateAllocated = dxfW->highWaterHandle() != before;
+            dxfW->writer->setStream(original);
+        }
+        void emitPrefix() {
+            DRW_Line prefix;
+            prefix.handle = 0xA100u;
+            prefix.secPoint = DRW_Coord(4, 5, 6);
+            prefixResult = dxfW->writeLine(&prefix);
+        }
+        dx_data storage;
+        RejectingStreambuf rejecting;
+        std::ostream rejectedOutput;
+        DRW_Polyline poly;
+        DRW_Line late;
+        bool reject {true}, prefixResult {false}, polyResult {false};
+        bool lateResult {false}, lateAllocated {false};
+    };
+    const auto output = std::filesystem::temp_directory_path()
+        / ("libdxfrw-short-write-" + std::to_string(
+            std::chrono::steady_clock::now().time_since_epoch().count()) + ".dxf");
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() { std::error_code error; std::filesystem::remove(path, error); }
+    } cleanup{output};
+    const std::string fileName = output.string();
+    for (const bool binary : {false, true}) {
+        { std::ofstream original(output); original << "short write sentinel\n"; }
+        ShortWriteInterface adapter;
+        dxfRW codec(fileName.c_str());
+        adapter.dxfW = &codec;
+        t.expect(!codec.write(&adapter, DRW::AC1027, binary)
+                     && adapter.prefixResult && !adapter.polyResult
+                     && !adapter.lateResult && !adapter.lateAllocated,
+                 "actual short append stops all later emission after a successful stack-local prefix");
+        std::ifstream preserved(output, std::ios::binary);
+        t.expect(std::string(std::istreambuf_iterator<char>(preserved), {}) == "short write sentinel\n"
+                     && adapter.poly.handle == 0xB100u
+                     && adapter.poly.vertlist[0]->handle == 0xB101u
+                     && adapter.poly.vertlist[1]->handle == 0xB102u
+                     && adapter.late.handle == 0xB200u,
+                 "short append rolls back its compound caller state and preserves the destination/suffix");
+        t.expect(codec.getWritingContext()->sourceHandleToMintedMap.empty()
+                     && codec.getWritingContext()->writtenSourceEntityHandles.empty()
+                     && codec.getLastDiagnostic().code == "emit-failure",
+                 "short-write failure discards derived maps without undoing expired prefix records");
+        preserved.close();
+        adapter.reject = false;
+        t.expect(codec.write(&adapter, DRW::AC1027, binary)
+                     && adapter.polyResult && adapter.lateResult,
+                 "same writer and unchanged failed compound recover after the sink is corrected");
+        adapter.dxfW = nullptr;
+    }
 }
 
 void testDxfRawSectionAppendFailure(TestContext& t) {
@@ -6940,6 +7021,7 @@ int main() {
     testDxfRawSectionApplicationGroupMarker(context);
     testDxfRawSectionWriterPreflight(context);
     testDxfRawSectionWriterStickyError(context);
+    testDxfOperationShortWriteFailure(context);
     testDxfRawSectionAppendFailure(context);
     testDxfRawObjectAppendFailure(context);
     testDxfRawObjectWriterPreflight(context);

@@ -148,6 +148,12 @@ public:
     [[nodiscard]] bool readAscii(DRW_Interface *interface_, bool ext, std::string& content);
     void setBinary(bool b) {binFile = b;}
 
+    /// Publish a complete DXF, preserving the destination on failure. Successful
+    /// record calls may assign caller handles/names; a later file failure does
+    /// not roll those calls back. Retry with pristine source identities after a
+    /// successful prefix. No borrowed callback records are retained for undo.
+    /// On any failed attempt, derived output maps are empty; persistent caller
+    /// registrations/remaps/reservations remain available for the next attempt.
     [[nodiscard]] bool write(DRW_Interface *interface_, DRW::Version ver, bool bin);
     bool writeLineType(DRW_LType *ent);
     bool writeDictionary(DRW_Dictionary *ent);
@@ -206,6 +212,8 @@ public:
     bool writeShape(DRW_Shape *ent);
     bool writeOle2Frame(DRW_Ole2Frame *ent);
     bool writeOleFrame(DRW_OleFrame *ent);
+    /// The returned definition is writer-owned. It is invalidated by failure of
+    /// the enclosing write, the next write attempt, or destruction of this codec.
     DRW_ImageDef *writeImage(DRW_Image *ent, std::string name);
     bool writeWipeout(DRW_Wipeout *ent);
     bool writePointCloud(DRW_PointCloud *ent);
@@ -366,7 +374,9 @@ public:
         auto it = m_handleRemap.find(handle);
         return it == m_handleRemap.end() ? handle : it->second;
     }
-    //! Resolve a source entity handle after writeEntity() minted its DXF handle.
+    //! Resolve a source entity during or after a successful write. A failed
+    //! attempt clears derived bindings, so an unbound source is returned as-is;
+    //! that fallback is not evidence that an object was published.
     std::uint32_t remapEntityHandle(std::uint32_t sourceHandle) const;
     //! Reserve the future code-5 handle for a source entity before table
     //! records are emitted. Returns zero for a zero source handle.
@@ -389,6 +399,8 @@ public:
     std::uint32_t getBlockRecordHandleToWrite(const std::string& blockName) const;
     std::uint32_t getTextStyleHandle(const std::string& styleName) const;
     DRW_ParsingContext* getReadingContext() { return &m_readingContext; }
+    //! DXF-derived fields are cleared by a failed write attempt. Direct context
+    //! access does not itself certify that any referenced object was published.
     DRW_WritingContext* getWritingContext() { return &m_writingContext; }
 
 private:
@@ -611,7 +623,10 @@ public:
     bool failDxfWrite() noexcept;
     bool writeRequiredString(int code, const std::string& value);
     bool allocateDxfHandle(std::uint32_t& handle) noexcept;
+    bool preflightDxfWrite() noexcept;
+    void discardDxfWriteResults() noexcept;
     void resetDxfWriteSession();
+    class WriteAttemptScope;
     class RecordStateScope;
     class EntityRecordScope;
     bool preflightEntity(const DRW_Entity *ent);

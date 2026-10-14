@@ -12,6 +12,7 @@
 #include <list>
 #include <limits>
 #include <map>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
@@ -1008,8 +1009,8 @@ bool readTableOwnerRecords(const std::filesystem::path& path, bool binary,
         } else if (!records.empty()) {
             // Only these string tags are relevant to table graph identity.
             if (code == 1 || code == 2 || code == 5 || code == 105
-                || code == 100 || code == 102 || code == 330 || code == 360
-                || code == 1000 || code == 1001)
+                || code == 100 || code == 102 || code == 330 || code == 340 || code == 360
+                || code == 1000 || code == 1001 || code == 1005)
                 records.back().groups.emplace_back(code, reader->getString());
         }
     }
@@ -3777,6 +3778,314 @@ void testLegacyEllipseCarrierTransfer(TestContext& t) {
         rejecting.dxfW = nullptr;
     }
 }
+
+// The operation owns emitted identities, not the lifetime of borrowed callback
+// records. A failed operation must not publish suffix mutations or its maps.
+void testDxfWriteAttemptFailure(TestContext& t) {
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    const auto directory = std::filesystem::temp_directory_path()
+        / ("libdxfrw-write-attempt-" + std::to_string(nonce));
+    std::filesystem::create_directory(directory);
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() { std::error_code error; std::filesystem::remove_all(path, error); }
+    } cleanup{directory};
+    const auto output = directory / "attempt.dxf";
+    const std::string fileName = output.string();
+    const auto contents = [](const std::filesystem::path& path) {
+        std::ifstream stream(path, std::ios::binary);
+        return std::string(std::istreambuf_iterator<char>(stream), {});
+    };
+    const auto emptyResults = [](dxfRW& codec) {
+        const auto& context = *codec.getWritingContext();
+        return context.lineTypesMap.empty()
+            && context.sourceHandleToMintedMap.empty()
+            && context.modelerSourceHandleToMintedMap.empty()
+            && context.writtenSourceEntityHandles.empty()
+            && context.ambiguousSourceHandles.empty()
+            && codec.getTextStyleHandle("STANDARD") == DRW::NoHandle
+            && codec.getBlockRecordHandleToWrite("ATTEMPT_BLOCK") == DRW::NoHandle;
+    };
+    class AttemptInterface final : public dx_iface {
+    public:
+        explicit AttemptInterface(dx_data& data) {
+            cData = &data;
+            currentBlock = data.mBlock;
+            bad.text = "prefix";
+            bad.m_backgroundColorName = "unsafe\nname";
+            line.handle = 0xB200u;
+            line.secPoint = DRW_Coord(1, 2, 3);
+            poly.handle = 0xB100u;
+            poly.addVertex(DRW_Vertex(1, 2, 0, 0));
+            poly.addVertex(DRW_Vertex(3, 4, 0, 0));
+            poly.vertlist[0]->handle = 0xB101u;
+            poly.vertlist[1]->handle = 0xB102u;
+            poly.extData.push_back(std::make_shared<DRW_Variant>(1001, "ATTEMPT_APP"));
+            poly.extData.push_back(std::make_shared<DRW_Variant>(1005, "B100"));
+            insert.handle = 0xB300u;
+            insert.name = "ATTEMPT_BLOCK";
+            auto attribute = std::make_shared<DRW_Attrib>();
+            attribute->handle = 0xB301u;
+            attribute->tag = "CHILD";
+            attribute->text = "child";
+            attribute->height = 1;
+            insert.attlist.push_back(attribute);
+            layer.name = "ATTEMPT_LAYER";
+            layer.handle = 0xB400u;
+            sun.handle = 0xB500u;
+            raw.name = "ATTEMPT_RAW";
+            raw.groups.emplace_back(5, std::string("B600"));
+            raw.groups.emplace_back(1, std::string("raw payload"));
+        }
+
+        void ephemeralPrefix() {
+            DRW_Line temporary;
+            temporary.handle = 0xC100u;
+            temporary.secPoint = DRW_Coord(4, 5, 6);
+            prefixResult = dxfW->writeLine(&temporary);
+            DRW_Image image;
+            image.handle = 0xC200u;
+            image.secPoint = DRW_Coord(1, 0, 0);
+            image.vVector = DRW_Coord(0, 1, 0);
+            image.sizeu = image.sizev = 1;
+            prefixResult = (dxfW->writeImage(&image, "attempt-image.png") != nullptr)
+                && prefixResult;
+        }
+
+        void writeEntities() override {
+            if (ephemeral) {
+                ephemeralPrefix(); // both temporary records are now dead
+                if (structuredFailure) {
+                    DRW_Line unresolved;
+                    unresolved.parentHandle = 0xFFFFu;
+                    unresolved.secPoint = DRW_Coord(9, 8, 7);
+                    badResult = dxfW->writeLine(&unresolved);
+                    throw std::runtime_error("failure after a structured first cause");
+                }
+                if (throwAfterPrefix)
+                    throw std::runtime_error("intentional callback failure");
+            } else if (successfulPrefix) {
+                prefixResult = dxfW->writePolyline(&poly);
+            }
+            if (!successfulOnly)
+                badResult = dxfW->writeMText(&bad);
+            if (ephemeral || successfulPrefix)
+                return;
+            beforeSuffix = dxfW->highWaterHandle();
+            switch (suffix) {
+            case 0: suffixResult = dxfW->writePolyline(&poly); break;
+            case 1: suffixResult = dxfW->writeLine(&line); break;
+            case 2: suffixResult = dxfW->writeInsert(&insert); break;
+            case 3: suffixResult = dxfW->writeLayer(&layer); break;
+            case 4: suffixResult = dxfW->writeRawDxfObject(&raw); break;
+            case 5: suffixResult = dxfW->writeSun(&sun); break;
+            case 6: suffixResult = dxfW->writeBlockRecord("LATE_BLOCK"); break;
+            }
+            afterSuffix = dxfW->highWaterHandle();
+            if (!badResult && !successfulOnly) {
+                plannedAfterFailure = dxfW->preallocateEntityHandle(0xD100u);
+                boundAfterFailure = dxfW->bindSourceEntityHandle(0xD200u, 0xD201u);
+            }
+        }
+
+        void writeBlockRecords() override {
+            dx_iface::writeBlockRecords();
+            if (badBlockPlanning)
+                dxfW->writeBlockRecord("ATTEMPT_BLOCK"); // duplicate while outer state scope is live
+        }
+
+        DRW_MText bad;
+        DRW_Line line;
+        DRW_Polyline poly;
+        DRW_Insert insert;
+        DRW_Layer layer;
+        DRW_Sun sun;
+        DRW_RawDxfObject raw;
+        int suffix {0};
+        bool successfulPrefix {false}, successfulOnly {false};
+        bool ephemeral {false}, throwAfterPrefix {false}, badBlockPlanning {false};
+        bool structuredFailure {false};
+        bool badResult {false}, suffixResult {false}, prefixResult {false};
+        bool boundAfterFailure {false};
+        std::uint32_t plannedAfterFailure {0}, beforeSuffix {0}, afterSuffix {0};
+    };
+    const auto populate = [](dx_data& data) {
+        DRW_AppId app;
+        app.name = "ATTEMPT_APP";
+        data.appIds.push_back(app);
+        auto* block = new dx_ifaceBlock;
+        block->name = "ATTEMPT_BLOCK";
+        data.blocks.push_back(block);
+    };
+    const auto rawSelfReference = [&t, &output](bool binary) {
+        std::vector<TableOwnerRecord> records;
+        t.expect(readTableOwnerRecords(output, binary, records),
+                 "retry raw framing reaches EOF");
+        bool found = false;
+        for (const auto& record : records) {
+            if (record.kind != "POLYLINE") continue;
+            found = true;
+            t.expect(groupValue(record.groups, 5) == groupValue(record.groups, 1005),
+                     "retry raw self-XDATA equals the actual emitted POLYLINE identity");
+        }
+        t.expect(found, "retry emits the POLYLINE control");
+    };
+    for (const bool binary : {false, true}) {
+        for (int suffix = 0; suffix != 7; ++suffix) {
+            dx_data data;
+            populate(data);
+            AttemptInterface adapter(data);
+            adapter.suffix = suffix;
+            dxfRW codec(fileName.c_str());
+            adapter.dxfW = &codec;
+            codec.setHandleRemap({{0xE100u, 0xE101u}});
+            t.expect(codec.reserveHandle(0xE200u), "caller reservation is accepted before emission");
+            if (suffix == 0) {
+                DRW_Class cls;
+                t.expect(dxfRW::dxfClassForRecordName("SUN", cls), "persistent class control is available");
+                codec.setDxfClasses({cls});
+                DRW_RawDxfSection section;
+                section.m_name = "ATTEMPT_SECTION";
+                section.m_version = DRW::AC1027;
+                section.m_groups = {{0, std::string("ATTEMPT_RECORD")}, {1, std::string("persistent payload")}};
+                codec.setRawDxfSections({section});
+                DRW_Dictionary dictionary;
+                dictionary.handle = 0xE300u;
+                dictionary.parentHandle = 0xCu;
+                codec.setNamedDictObjects({dictionary});
+                codec.setRootDictEntries({{"ATTEMPT_DICTIONARY", "E300"}});
+                t.expect(codec.reserveHandle(dictionary.handle), "persistent dictionary identity is reserved");
+                DRW_Group group;
+                group.name = "ATTEMPT_GROUP";
+                group.m_entityHandles = {0xB100u};
+                codec.setGroups({group});
+                DRW_Block_Record model;
+                model.name = "*Model_Space";
+                model.handle = 0xE400u;
+                codec.setSourceBlockRecords({model}, true);
+                adapter.poly.parentHandle = model.handle;
+            }
+            { std::ofstream seed(output); seed << "attempt sentinel\n"; }
+            t.expect(!codec.write(&adapter, DRW::AC1027, binary) && !adapter.badResult,
+                     "rejected prefix fails the complete DXF attempt");
+            t.expect(!adapter.suffixResult && adapter.beforeSuffix == adapter.afterSuffix
+                         && adapter.plannedAfterFailure == 0 && !adapter.boundAfterFailure,
+                     "latched facade failure stops suffix writes and identity planning before mutation");
+            t.expect(adapter.poly.handle == 0xB100u
+                         && adapter.poly.vertlist[0]->handle == 0xB101u
+                         && adapter.poly.vertlist[1]->handle == 0xB102u
+                         && adapter.line.handle == 0xB200u && adapter.insert.handle == 0xB300u
+                         && adapter.insert.attlist[0]->handle == 0xB301u
+                         && adapter.layer.handle == 0xB400u && adapter.layer.name == "ATTEMPT_LAYER",
+                     "rejected-prefix suffix preserves caller and child identities");
+            t.expect(emptyResults(codec) && codec.remapEntityHandle(0xB100u) == 0xB100u,
+                     "failed attempts expose no derived identity results");
+            t.expect(codec.remapHandle(0xE100u) == 0xE101u
+                         && contents(output) == "attempt sentinel\n",
+                     "failure preserves explicit remaps and the existing destination");
+            if (suffix == 0) {
+                adapter.bad.m_backgroundColorName.clear();
+                t.expect(codec.write(&adapter, DRW::AC1027, binary),
+                         "correcting only the rejected prefix permits same-model same-writer retry");
+                t.expect(adapter.poly.handle > 0xE200u
+                             && codec.remapEntityHandle(0xB100u) == adapter.poly.handle,
+                         "retry preserves caller reservations and successful handle/map behavior");
+                rawSelfReference(binary);
+                std::vector<TableOwnerRecord> persistent;
+                t.expect(readTableOwnerRecords(output, binary, persistent), "retry persistent registrations frame correctly");
+                bool cls = false, section = false, dictionary = false, group = false, owner = false;
+                for (const auto& record : persistent) {
+                    cls = cls || (record.kind == "CLASS" && groupValue(record.groups, 1) == "SUN");
+                    section = section || (record.kind == "SECTION" && groupValue(record.groups, 2) == "ATTEMPT_SECTION");
+                    dictionary = dictionary || (record.kind == "DICTIONARY" && groupValue(record.groups, 5) == "E300");
+                    group = group || (record.kind == "GROUP" && groupValue(record.groups, 340)
+                        == codec.toHexStrHandle(adapter.poly.handle));
+                    owner = owner || (record.kind == "POLYLINE" && groupValue(record.groups, 330)
+                        == codec.toHexStrHandle(DRW::DxfModelSpaceBlockRecordHandle));
+                }
+                t.expect(cls && section && dictionary && group && owner,
+                         "failed attempt retains classes/raw sections/named dictionaries/groups/source-owner registrations");
+                const auto expectEarlyRejection = [&](DRW::Version version, DRW_Interface* iface,
+                                                       const char* diagnostic) {
+                    const std::string successfulFile = contents(output);
+                    t.expect(!codec.write(iface, version, binary) && emptyResults(codec)
+                                 && codec.getLastDiagnostic().code == diagnostic
+                                 && contents(output) == successfulFile,
+                             "pre-session rejection discards previous results but preserves first cause and output");
+                };
+                expectEarlyRejection(DRW::UNKNOWNV, &adapter, "unsupported-version");
+                // Restore the pristine source identity before another complete
+                // export; successful writes intentionally mutate caller handles.
+                adapter.poly.handle = 0xB100u;
+                t.expect(codec.write(&adapter, DRW::AC1027, binary), "writer can recover after version rejection");
+                expectEarlyRejection(DRW::AC1027, nullptr, "invalid-argument");
+                adapter.poly.handle = 0xB100u;
+                t.expect(codec.write(&adapter, DRW::AC1027, binary), "writer can recover after null-interface rejection");
+                t.expect(!codec.reserveHandle((std::numeric_limits<std::uint32_t>::max)()),
+                         "overflowing reservation supplies an early-admission negative");
+                expectEarlyRejection(DRW::AC1027, &adapter, "handle-reservation");
+            }
+            adapter.dxfW = nullptr;
+        }
+        {
+            dx_data data;
+            populate(data);
+            AttemptInterface adapter(data);
+            adapter.badBlockPlanning = true;
+            dxfRW codec(fileName.c_str());
+            adapter.dxfW = &codec;
+            { std::ofstream seed(output); seed << "planning sentinel\n"; }
+            t.expect(!codec.write(&adapter, DRW::AC1027, binary)
+                         && emptyResults(codec) && contents(output) == "planning sentinel\n",
+                     "failed pre-collection unwinds its state scope before session-result cleanup");
+            adapter.badBlockPlanning = false;
+            adapter.bad.m_backgroundColorName.clear();
+            t.expect(codec.write(&adapter, DRW::AC1027, binary),
+                     "same writer recovers after failed block pre-collection");
+            rawSelfReference(binary);
+            adapter.dxfW = nullptr;
+        }
+        // A successful prefix remains a committed call; automatic whole-file
+        // restoration of borrowed records is deliberately not promised.
+        for (int mode = 0; mode != 5; ++mode) {
+            dx_data data;
+            populate(data);
+            AttemptInterface adapter(data);
+            adapter.successfulPrefix = mode == 0;
+            adapter.ephemeral = mode != 0;
+            adapter.throwAfterPrefix = mode == 2;
+            adapter.successfulOnly = mode == 3;
+            adapter.structuredFailure = mode == 4;
+            const auto commitTarget = directory / "destination-directory";
+            if (mode == 3) std::filesystem::create_directory(commitTarget);
+            const std::string target = mode == 3 ? commitTarget.string() : fileName;
+            dxfRW codec(target.c_str());
+            if (mode == 4)
+                codec.setSourceBlockRecords({}, true);
+            adapter.dxfW = &codec;
+            t.expect(!codec.write(&adapter, DRW::AC1027, binary) && adapter.prefixResult,
+                     "later validation/exception/publication failure follows a successful prefix");
+            t.expect(emptyResults(codec), "later failure clears all derived results after callback records expire");
+            if (mode == 0)
+                t.expect(adapter.poly.handle != 0xB100u,
+                         "whole-file failure does not claim rollback of an earlier successful caller record");
+            if (mode >= 2)
+                t.expect(codec.getLastDiagnostic().code == (mode == 2 ? "callback-exception"
+                    : mode == 3 ? "commit-failure" : "unresolved-block-owner"),
+                         "cleanup preserves the exception/publication first diagnostic");
+            adapter.dxfW = nullptr;
+        }
+        dx_data pristine;
+        populate(pristine);
+        AttemptInterface fresh(pristine);
+        fresh.bad.m_backgroundColorName.clear();
+        dxfRW freshCodec(fileName.c_str());
+        fresh.dxfW = &freshCodec;
+        t.expect(freshCodec.write(&fresh, DRW::AC1027, binary), "pristine model fresh-writer control succeeds");
+        rawSelfReference(binary);
+        fresh.dxfW = nullptr;
+    }
+}
 } // namespace
 
 int main(int argc, char** argv) {
@@ -3857,6 +4166,7 @@ int main(int argc, char** argv) {
         return 2;
     TestContext context;
     testLeaderAdvisoryCounts(context);
+    testDxfWriteAttemptFailure(context);
     testClassicVertexXdata(context);
     testClassicVertexPresenceBoundaries(context);
     testClassicVertexIdentifierRetention(context);
