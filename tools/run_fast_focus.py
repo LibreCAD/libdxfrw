@@ -14,6 +14,7 @@ import json
 import re
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 
@@ -30,6 +31,11 @@ TARGETS = (
 # Fixed, bounded PR integration controls. Fixture-backed tests deliberately
 # remain outside the default dependency-free executable lane above.
 CTEST_REGRESSIONS = (
+    "libdxfrw_public_header_hygiene",
+    "libdxfrw_bounded_process",
+    "libdxfrw_independent_dxf_selftest",
+    "libdxfrw_debug_state",
+    "dwg2dxf_cli_contract",
     "libdxfrw_dxf_fixtures",
     "libdxfrw_dwg_local_roundtrip",
     "libdxfrw_3d_consumer_probe",
@@ -37,6 +43,10 @@ CTEST_REGRESSIONS = (
     "dwg2dxf_image_path_cli",
     "dwg2dxf_header_maintenance_ascii_cli",
     "dwg2dxf_header_maintenance_binary_cli",
+    "libdxfrw_numeric_locale",
+    "libdxfrw_numeric_process_locale",
+    "dwg2dxf_numeric_locale_ascii_cli",
+    "dwg2dxf_numeric_locale_binary_cli",
     "dwg2dxf_3dline_adapter_cli",
     "dwg2dxf_3dline_binary_adapter_cli",
     "dwg2dxf_dynamic_block_fail_closed",
@@ -44,11 +54,26 @@ CTEST_REGRESSIONS = (
     "dwg2dxf_dimstyle_optional_handles_ascii_cli",
     "dwg2dxf_dimstyle_optional_handles_binary_cli",
     "libdxfrw_block_owners",
+    "libdxfrw_extension_graph_limits",
     "dwg2dxf_block_owner_rejection_cli",
     "dwg2dxf_block_owners_ascii_cli",
     "dwg2dxf_block_owners_binary_cli",
     "dwg2dxf_hatch_tangents_ascii_cli",
     "dwg2dxf_hatch_tangents_binary_cli",
+    "dwg2dxf_mpolygon_header_ascii_cli",
+    "dwg2dxf_mpolygon_header_binary_cli",
+    "dwg2dxf_mpolygon_metadata_ascii_cli",
+    "dwg2dxf_mpolygon_metadata_binary_cli",
+    "dwg2dxf_dimension_frames_ascii_cli",
+    "dwg2dxf_dimension_frames_binary_cli",
+    "dwg2dxf_arc_dimension_flags_ascii_cli",
+    "dwg2dxf_arc_dimension_flags_binary_cli",
+    "dwg2dxf_leader_advisory_count_ascii_cli",
+    "dwg2dxf_leader_advisory_count_binary_cli",
+    "dwg2dxf_mtext_orientation_ascii_cli",
+    "dwg2dxf_mtext_orientation_binary_cli",
+    "dwg2dxf_r12_ellipse_carriers_ascii_cli",
+    "dwg2dxf_r12_ellipse_carriers_binary_cli",
     "dwg2dxf_freecad_cli_compat",
     "dwg2dxf_freecad_installed_cli_compat",
 )
@@ -71,10 +96,24 @@ def ctest_selector(inventory: dict) -> str:
     for name in CTEST_REGRESSIONS:
         command = by_name[name].get("command")
         if (not isinstance(command, list) or not command
-                or any(not isinstance(arg, str) or not arg for arg in command)):
+                or not isinstance(command[0], str) or not command[0]
+                or any(not isinstance(arg, str) for arg in command)):
             raise ValueError(f"required fast CTest {name!r} has no built command")
     # CTest uses extended POSIX regex, not Python's non-capturing groups.
     return "^(" + "|".join(re.escape(name) for name in CTEST_REGRESSIONS) + ")$"
+
+
+def require_ctest_passes(junit_path: Path) -> None:
+    # Reuse the exact-set/duplicate/status validation without producing or
+    # weakening native qualification receipts. This lane is regression-only.
+    from run_native_qualification import QualificationError, parse_junit
+    try:
+        _, summary = parse_junit(junit_path, list(CTEST_REGRESSIONS))
+    except QualificationError as exc:
+        raise ValueError(str(exc)) from exc
+    if summary["passed"] != len(CTEST_REGRESSIONS):
+        raise ValueError("required fast CTests did not all execute and pass: "
+                         + json.dumps(summary, sort_keys=True))
 
 
 def run_ctest_regressions(build_dir: Path, configuration: str | None) -> None:
@@ -84,8 +123,12 @@ def run_ctest_regressions(build_dir: Path, configuration: str | None) -> None:
     inventory = json.loads(subprocess.check_output(
         [*command, "-N", "--show-only=json-v1"], text=True))
     selector = ctest_selector(inventory)
-    subprocess.run([*command, "-R", selector, "--no-tests=error",
-                    "--timeout", "60", "--output-on-failure"], check=True)
+    with tempfile.TemporaryDirectory(prefix="libdxfrw fast ctest ") as directory:
+        junit_path = Path(directory) / "ctest.xml"
+        subprocess.run([*command, "-R", selector, "--no-tests=error",
+                        "--timeout", "60", "--output-on-failure",
+                        "--output-junit", str(junit_path)], check=True)
+        require_ctest_passes(junit_path)
 
 
 def executable(build_dir: Path, target: str, configuration: str | None) -> Path:
@@ -127,6 +170,15 @@ def self_test() -> None:
     selector = ctest_selector(inventory)
     assert all(re.fullmatch(selector, name) for name in CTEST_REGRESSIONS)
     assert re.fullmatch(selector, CTEST_REGRESSIONS[0] + "_extra") is None
+    # The default self-test needs no independent-reader package. Optional
+    # runtime/family qualification and arbitrary user samples stay unselected.
+    for excluded in (
+        "libdxfrw_independent_dxf_runtime", "libdxfrw_independent_dxf_core",
+        "libdxfrw_independent_dxf_spline-unit", "libdxfrw_independent_dxf_mtext-height",
+        "libdxfrw_independent_dxf_header90", "dwg_read_user_sample",
+        "libdxfrw_target_differential_advisory",
+    ):
+        assert re.fullmatch(selector, excluded) is None
     for bad in (
         {}, {"tests": []}, {"tests": inventory["tests"][:-1]},
         {"tests": [*inventory["tests"], inventory["tests"][0]]},
@@ -141,6 +193,58 @@ def self_test() -> None:
             raise AssertionError("invalid fast CTest inventory accepted")
     assert ctest_selector({"tests": [*inventory["tests"],
                                      {"name": "unselected-advisory"}]}) == selector
+    # CMake preserves empty option values, e.g. an unset compiler target or
+    # sysroot in the header harness. Only argv[0] must be nonempty.
+    optional_empty = {"tests": [dict(row) for row in inventory["tests"]]}
+    optional_empty["tests"][0]["command"] = ["generated-test", "--sysroot", ""]
+    assert ctest_selector(optional_empty) == selector
+    for name in CTEST_REGRESSIONS:
+        missing = {"tests": [row for row in inventory["tests"] if row["name"] != name]}
+        try:
+            ctest_selector(missing)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError(f"missing required fast CTest {name!r} accepted")
+    for command in (None, [], [""], ["", "--sentinel"], ["ctest", None]):
+        unbuilt = {"tests": [dict(row) for row in inventory["tests"]]}
+        unbuilt["tests"][0]["command"] = command
+        try:
+            ctest_selector(unbuilt)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("required fast CTest with invalid built command accepted")
+    with tempfile.TemporaryDirectory(prefix="libdxfrw fast results ") as directory:
+        junit_path = Path(directory) / "ctest.xml"
+        passed = [f'<testcase name="{name}" status="run"/>'
+                  for name in CTEST_REGRESSIONS]
+        def write_results(cases: list[str]) -> None:
+            junit_path.write_text("<testsuite>" + "".join(cases) + "</testsuite>",
+                                  encoding="utf-8")
+        write_results(passed)
+        require_ctest_passes(junit_path)
+        for invalid in (
+            passed[:-1], [*passed, passed[0]],
+            [*passed, '<testcase name="unselected" status="run"/>'],
+            *[[f'<testcase name="{CTEST_REGRESSIONS[0]}" {status}>{body}</testcase>',
+               *passed[1:]] for status, body in (
+                   ('status="run"', '<skipped/>'),
+                   ('status="run"', '<failure/>'),
+                   ('status="run"', '<error/>'),
+                   ('status="disabled"', ''),
+                   ('status="notrun"', ''),
+                   ('status="skipped"', ''),
+                   ('', ''),
+               )],
+        ):
+            write_results(invalid)
+            try:
+                require_ctest_passes(junit_path)
+            except ValueError:
+                pass
+            else:
+                raise AssertionError("incomplete/nonpassing required CTest result accepted")
     print("run_fast_focus self-test: PASS")
 
 

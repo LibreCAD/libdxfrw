@@ -33,6 +33,8 @@ jobs:
           python3 -B tools/run_fast_focus.py --self-test
           && python3 -B tools/check_fixture_admission.py --self-test
           && python3 -B tools/check_external_fixture_hook.py
+          && python3 -B tools/check_staged_package.py --self-test
+          --build-options-self-test --cxx g++-13
 
       - name: Configure ordinary regression profile
         run: >-
@@ -42,6 +44,7 @@ jobs:
           -DLIBDXFRW_BUILD_DOC=OFF -DLIBDXFRW_BUILD_DWG2DXF=ON
           -DLIBDXFRW_BUILD_TESTS=ON -DLIBDXFRW_BUILD_QUALIFICATION=OFF
           -DLIBDXFRW_BUILD_LONG_FUZZ=OFF
+          -DLIBDXFRW_ENABLE_INDEPENDENT_DXF_ORACLE=OFF
 
       - name: Build bounded fast targets and source compatibility check
         run: >-
@@ -53,6 +56,8 @@ jobs:
           libdxfrw_dwg_local_roundtrip libdxfrw_3d_consumer_probe
           lc3_compat_check libdxfrw_dwg2dxf_adapter_tests
           libdxfrw_dimstyle_optional_handle_tests libdxfrw_block_owner_tests
+          libdxfrw_numeric_locale_tests
+          libdxfrw_debug_state_tests
           libdxfrw_dwg2dxf_version_tests dwg2dxf
 
       - name: Run fast vectors and required CLI regressions

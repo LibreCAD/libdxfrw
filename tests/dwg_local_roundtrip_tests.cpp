@@ -8301,8 +8301,15 @@ bool runDxfRayXlineRoundTrip(
         && roundTrippedXline->basePoint.y == 5.0
         && roundTrippedXline->basePoint.z == 6.0
         && roundTrippedXline->secPoint.x == 0.0
-        && roundTrippedXline->secPoint.y == 0.6
-        && roundTrippedXline->secPoint.z == 0.8;
+        // Overflow-safe normalization may round an already-unit component
+        // by one ULP. Keep exact anchors/zero axes and a tight unit check.
+        && std::abs(roundTrippedXline->secPoint.y - 0.6)
+            <= 4.0 * std::numeric_limits<double>::epsilon()
+        && std::abs(roundTrippedXline->secPoint.z - 0.8)
+            <= 4.0 * std::numeric_limits<double>::epsilon()
+        && std::abs(roundTrippedXline->secPoint.y * roundTrippedXline->secPoint.y
+                    + roundTrippedXline->secPoint.z * roundTrippedXline->secPoint.z
+                    - 1.0) <= 8.0 * std::numeric_limits<double>::epsilon();
     std::filesystem::remove(output, ec);
     return result;
 }

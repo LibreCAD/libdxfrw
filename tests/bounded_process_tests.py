@@ -119,15 +119,20 @@ os.write(1,b'descendant-ready\\n'); os.replace(t,p); time.sleep(10)
                 "exec('while not p.exists(): time.sleep(.001)'); "
                 + ("time.sleep(10)" if wait_parent else "sys.exit(0)"))
             command = [sys.executable, "-c", parent, child, str(ready), str(lock)]
+            # The budget includes two interpreter startups and the child's
+            # lock/readiness handshake, not just its intentional sleep. Keep
+            # a bounded cleanup margin well inside the 15-second CTest limit.
+            timeout_seconds = 2
             started = time.monotonic()
             if wait_parent:
-                with self.assertRaises(subprocess.TimeoutExpired):
-                    run_bounded(command, .1)
+                with self.assertRaises(subprocess.TimeoutExpired) as context:
+                    run_bounded(command, timeout_seconds)
+                self.assertIn(b"descendant-ready", context.exception.stdout)
             else:
-                result = run_bounded(command, .1)
+                result = run_bounded(command, timeout_seconds)
                 self.assertEqual(result.returncode, 0)
                 self.assertIn(b"descendant-ready", result.stdout)
-            self.assertLess(time.monotonic() - started, 1)
+            self.assertLess(time.monotonic() - started, timeout_seconds + 1)
             metadata = json.loads(ready.read_text())
             released = False
             deadline = time.monotonic() + .25
