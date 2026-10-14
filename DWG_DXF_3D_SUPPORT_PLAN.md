@@ -210,13 +210,31 @@ CTest is required. J256/J260/J268/J284/J293/J295 remain DEFERRED_EXTERNAL.
 isolated30343a00f7184c1e07a278e4a0b4815ce97fe24e on907b77 implements the
 named v2 box-observation contract in the existing optional checker. Its62
 mocked controls pass in two existing Python3.12.15 environments. Independent
-code review and main integration remain pending; no parser/kernel executes in
-those tests, and cq_acis is absent in the inspected oracle environment. Report
+review of that original candidate led to correction `e8fd3b82`; main integration
+remains pending. No parser/kernel executes in those tests, and cq_acis is
+absent in the inspected oracle environment. Report
 `/private/tmp/libdxfrw-acis-contract.W0dRdz/slice-report.json`, SHA256
 `0cc8ffbc7d32b3dbbfdf236afc21ab80b58fbd11f18a15efb0843fa1969aef00`, binds
 source`a1d940b2015d1f140be02c2533c1f8a8c974bb180867d933f753396108898697`.
-Review that candidate rather than starting another verifier. Bounded input/
-observation caps are not an external-parser/kernel time or memory sandbox;
+Correction `e8fd3b82377fdfbb69531f3672a9f2fb1a09ae9e` is reviewed and staged
+with source SHA256 `6c68e91ce4dea056fd18f05fb892b98bcc74518f5c82f3fb333841d100499a8c`.
+It adds observed typed body/lump/shell/face inventory and reachable counts,
+separate from reconstructed geometry and the unavailable original SAB wire
+denominator. Its81 controls pass under ordinary CPython3.9/3.12; actual local
+file/FIFO controls do not become independent geometry evidence. Report
+`/private/tmp/libdxfrw-acis-contract.W0dRdz/correction-report.json`, SHA256
+`82476f315f5f74293da15905a238d3436d0b81d1668a51c52258dad587de1814`,
+preserves the historical62-control binding. Input admission intentionally
+requires POSIX nonblocking regular-file checks; non-POSIX capability rejects,
+without changing library/dwg2dxf/FreeCAD Windows behavior.
+
+A fresh staged-source Python3.12 probe passes81 controls with `-B`, while
+`-I -B --self-test` fails at the sibling `bounded_process` import (line778).
+Fix that self-test-only loading seam before integration and retest both modes;
+do not relax runtime isolation or change geometry predicates. No implementation
+change is made in this plan-only pass. Review the staged candidate rather than
+starting another verifier. Bounded input and observation caps are not an
+external-parser/kernel time or memory sandbox;
 version strings alone do not attest loaded code. No fixture or frozen receipt
 changes are implied.
 
@@ -3601,7 +3619,9 @@ sample cannot promote a semantic read/write claim.
 
 ### S8 — Preserve 2D consumers and enable 3D-aware consumers
 
-State: newly added consumer-enablement lane. It is independent of GUI/rendering
+State: ongoing consumer-enablement lane. PAR-118 reopens the specific queued
+BLOCK callback contract below, not every historical field-level result.
+It is independent of GUI/rendering
 work and can proceed for generated DXF vectors while versioned DWG evidence is
 blocked. No support claim is promoted by the adapter alone.
 
@@ -3618,6 +3638,28 @@ Steps:
    (`no-op`, delegation, or required override) and pointer lifetime/copying
    expectations. Reuse the S0 family inventory; do not duplicate parser
    qualification. Keep unverified coordinate interpretations marked unknown.
+
+   **S8.1a — concrete types and callbacks survive BLOCK staging (PAR-118).**
+   A source-bound24-row AC1027 ASCII observer at25d951c shows PLANESURFACE
+   and REVOLVEDSURFACE retain derived eType but arrive as base DRW_Surface
+   inside BLOCKS; identical ENTITIES controls retain concrete type/subtype
+   fields. TOLERANCE/CAMERA callbacks fall1→0 in BLOCKS. Both ext modes still
+   report success and preserve suffix LINEs. Eight missing-ENDBLK negatives
+   retain balanced block scope and zero child publication. Report
+   `/private/tmp/libdxfrw-block-callback-research.jrwS8e/report.json`, SHA256
+   `3d5574f387968bb4fced83e9590caac9dfc4541ca49f0644a145b45089a69adc`,
+   binds the current-source archive and safe dynamic_cast observer; no unsafe
+   converter cast, DWG parser, ACIS kernel or native app was executed.
+
+   Follow7AG.3a in the parity plan: private type-preserving copies for all six
+   surface subtypes, exhaustive BLOCK-reachable callback coverage, typed/raw
+   order, owned-copy lifetime and unchanged ENDBLK publication boundaries.
+   Add both encodings/modes, subtype-field sentinels, corrected reuse and a
+   source-led replay-exception cleanup control. Keep2D no-op defaults and
+   legacy projection; no public clone virtual or consumer migration is needed.
+   Run existing affected DXF/hardening/lc3 gates and one composed sanitizer/
+   converter checkpoint, not another full suite or external witness search.
+
 2. **S8.2 — Existing 2D source-compatibility gate (required after each API
    slice).** Compile the locked `lc3_compat_check` consumer and representative
    library/test adapters after callback or public-field changes. Preserve
