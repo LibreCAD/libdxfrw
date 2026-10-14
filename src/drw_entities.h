@@ -2043,7 +2043,7 @@ public:
     UTF8STRING text;           /*!< text string, code 1 */
     double angle;              /*!< rotation angle in degrees (360), code 50 */
     double widthscale;         /*!< width factor, code 41 */
-    double oblique;            /*!< oblique angle, code 51 */
+    double oblique;            /*!< oblique angle in degrees, code 51 (DWG radians converted at the boundary) */
     UTF8STRING style;          /*!< style name, code 7 */
     int textgen;               /*!< text generation, code 71 */
     enum HAlign alignH;        /*!< horizontal align, code 72 */

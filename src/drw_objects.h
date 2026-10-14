@@ -2185,7 +2185,7 @@ public:
                                dwgBufferW *hdlBuf = nullptr) const;
   double height;      /*!< Fixed text height (0 not set), code 40 */
   double width;       /*!< Width factor, code 41 */
-  double oblique;     /*!< Oblique angle, code 50 */
+  double oblique;     /*!< Oblique angle in degrees, code 50 (DWG radians converted at the boundary) */
   int genFlag;        /*!< Text generation flags, code 71 */
   double lastHeight;  /*!< Last height used, code 42 */
   UTF8STRING font;    /*!< primary font file name, code 3 */

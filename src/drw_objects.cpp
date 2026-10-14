@@ -4466,6 +4466,9 @@ bool DRW_Textstyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t
         || !readRawCharWithinBody(buf, version, bodyEnd, parsedGenFlag)
         || !readFiniteDouble(parsedLastHeight))
         return fail();
+    parsedOblique *= ARAD; // DWG radians to the public DXF degrees
+    if (!std::isfinite(parsedOblique))
+        return fail();
 
     UTF8STRING parsedFont;
     UTF8STRING parsedBigFont;
@@ -6783,7 +6786,7 @@ bool DRW_Textstyle::encodeDwg(DRW::Version version, dwgBufferW *buf,
     }
     buf->putBitDouble(height);
     buf->putBitDouble(width);
-    buf->putBitDouble(oblique);
+    buf->putBitDouble(oblique / ARAD); // ODA20.4.56 stores radians
     buf->putRawChar8(static_cast<std::uint8_t>(genFlag));
     buf->putBitDouble(lastHeight);
     sb->putVariableText(version, font);

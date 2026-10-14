@@ -123,6 +123,28 @@ public:
         return readRawShort(value);
     }
 
+    bool readRawDouble(double& value) {
+        std::uint64_t bits = 0;
+        for (unsigned index = 0; index < 8; ++index) {
+            std::uint8_t byte = 0;
+            if (!readRawByte(byte)) return false;
+            bits |= static_cast<std::uint64_t>(byte) << (index * 8u);
+        }
+        static_assert(sizeof(value) == sizeof(bits), "DWG uses IEEE binary64");
+        std::memcpy(&value, &bits, sizeof(value));
+        return true;
+    }
+
+    bool readBitDouble(double& value) {
+        std::uint8_t first = 0, second = 0;
+        if (!readBit(first) || !readBit(second)) return false;
+        const unsigned code = (first << 1) | second;
+        if (code == 0) return readRawDouble(value);
+        if (code == 3) return false;
+        value = code == 1 ? 1.0 : 0.0;
+        return true;
+    }
+
 private:
     const std::vector<std::uint8_t>& m_bytes;
     std::uint64_t m_bitOffset {0};
@@ -7927,8 +7949,7 @@ bool runDxfAcdsRegionWithoutHistoryProjection(
 }
 
 bool runDxfAcdsHistoryClosureRejectsAmbiguity(
-    const std::filesystem::path& directory, bool duplicateHistoryProxy,
-    bool duplicateMaterialDictionary) {
+    const std::filesystem::path& directory, bool duplicateHistoryProxy) {
     const std::string suffix = duplicateHistoryProxy
         ? "duplicate-proxy" : "duplicate-material-dictionary";
     const std::filesystem::path output = directory /
@@ -8635,6 +8656,318 @@ bool patchModelerObjectSize(std::vector<std::uint8_t>& bytes,
         }
     }
     return true;
+}
+
+template<class T> class ObliqueCodecProbe final : public T {
+public:
+    using T::parseCode;
+    using T::parseDwg;
+    using T::encodeDwg;
+    using T::encodeDwgCommon;
+    using T::encodeDwgEntHandle;
+    void prepare(int type) {
+        this->oType = type;
+        this->handle = 0x120;
+        this->parentHandle = DRW::DwgModelSpaceBlockRecordHandle;
+        this->layerH.ref = 0x12;
+        this->basePoint = {1, 2, 3};
+        this->secPoint = {1, 2, 3};
+        this->height = 2.5;
+        this->widthscale = 1.25;
+        this->angle = 45;
+        this->text = "OBLIQUE";
+    }
+};
+
+class ObliqueStyleProbe final : public DRW_Textstyle {
+public:
+    using DRW_Textstyle::parseCode;
+    using DRW_Textstyle::parseDwg;
+};
+
+class ObliqueShapeProbe final : public DRW_Shape {
+public:
+    using DRW_Shape::parseCode;
+};
+
+struct ObliqueLiteralFrame {
+    std::vector<std::uint8_t> bytes;
+    std::uint32_t handleBits = 0;
+    std::uint64_t obliqueBit = 0;
+};
+
+void putObliqueHandle(dwgBufferW& buffer, int code, std::uint32_t reference) {
+    dwgHandle value;
+    value.code = code;
+    value.ref = reference;
+    buffer.putHandle(value);
+}
+
+// ODA20.4.3–5 and20.4.56. The semantic bodies below are independently
+// authored: no production text/STYLE encoder generates the input angle.
+// R2007+ detached strings use the documented short-size footer, with a
+// bounded, byte-aligned data portion and seven padding bits in its size.
+bool finishObliqueLiteral(DRW::Version version, dwgBufferW& body,
+                          dwgBufferW& strings, dwgBufferW& handles,
+                          std::uint64_t sizeBit, ObliqueLiteralFrame& result) {
+    if (version > DRW::AC1018) {
+        body.alignToByte();
+        body.putBytes(strings.data().data(), strings.size());
+        for (int bit = 0; bit < 7; ++bit) body.putBit(0);
+        body.putRawShort16(static_cast<std::uint16_t>(strings.size() * 8u + 7u));
+        body.putBit(1);
+    }
+    const auto bodyBits = body.bitCount();
+    if (version >= DRW::AC1024) {
+        result.handleBits = static_cast<std::uint32_t>(handles.size() * 8u);
+        result.bytes = body.data();
+        result.bytes.insert(result.bytes.end(), handles.data().begin(), handles.data().end());
+    } else {
+        for (std::uint64_t index = 0; index < handles.bitCount(); ++index)
+            body.putBit(static_cast<std::uint8_t>((handles.data()[index / 8u]
+                >> (7u - (index & 7u))) & 1u));
+        result.bytes = body.data();
+    }
+    if (version < DRW::AC1024
+        && !patchModelerObjectSize(result.bytes, sizeBit,
+                                  static_cast<std::uint32_t>(bodyBits)))
+        return false;
+    return body.isGood() && strings.isGood() && handles.isGood();
+}
+
+template<class T> bool makeObliqueTextLiteral(DRW::Version version, int type,
+                                             double radians, bool omitted,
+                                             ObliqueLiteralFrame& result) {
+    ObliqueCodecProbe<T> source;
+    source.prepare(type);
+    dwgBufferW body, strings, handles;
+    std::uint64_t sizeBit = 0;
+    if (version < DRW::AC1015) {
+        body.putObjType(version, static_cast<std::uint16_t>(type));
+        putObliqueHandle(body, 0, source.handle);
+        body.putBitShort(0); // no EED
+        body.putBit(0); // no graphic
+        sizeBit = body.bitCount(); body.putRawLong32(0);
+        body.put2Bits(2); // fixed model space; no owner handle
+        body.putBitLong(0); body.putBit(1); body.putBit(1); // reactors/bylayer/nolinks
+        body.putBitShort(256); body.putBitDouble(1); body.putBitShort(0);
+        putObliqueHandle(handles, 3, 0); // xdictionary
+        putObliqueHandle(handles, 5, 0x12); // layer
+    } else {
+        if (!source.encodeDwgCommon(version, &body)
+            || !source.encodeDwgEntHandle(version, &body, &handles)) return false;
+        dwgBuffer prefix(body.data().data(), body.size());
+        if (prefix.getObjType(version) != type) return false;
+        sizeBit = prefix.getPosition() * 8u + prefix.getBitPos();
+    }
+    if (version >= DRW::AC1015) body.putRawChar8(omitted ? 0x04 : 0);
+    if (version < DRW::AC1015) body.putBitDouble(3); else body.putRawDouble(3);
+    body.putRawDouble(1); body.putRawDouble(2);
+    if (version < DRW::AC1015) {
+        body.putRawDouble(1); body.putRawDouble(2);
+        body.put3BitDouble({0, 0, 1}); body.putBitDouble(0);
+    } else {
+        body.putDefaultDouble(1, 1); body.putDefaultDouble(2, 2);
+        body.putExtrusion({0, 0, 1}, true); body.putThickness(0, true);
+    }
+    result.obliqueBit = body.bitCount();
+    if (version < DRW::AC1015) {
+        body.putBitDouble(radians); body.putBitDouble(M_PI / 4);
+        body.putBitDouble(2.5); body.putBitDouble(1.25);
+    } else {
+        if (!omitted) body.putRawDouble(radians);
+        body.putRawDouble(M_PI / 4); body.putRawDouble(2.5); body.putRawDouble(1.25);
+    }
+    dwgBufferW& text = version > DRW::AC1018 ? strings : body;
+    text.putVariableText(version, "OBLIQUE");
+    body.putBitShort(6); body.putBitShort(0); body.putBitShort(0);
+    if (type != 1) {
+        if (version >= DRW::AC1024) body.putRawChar8(0);
+        if (version >= DRW::AC1032) body.putRawChar8(1);
+        text.putVariableText(version, "TAG");
+        body.putBitShort(0); body.putRawChar8(0);
+        if (version >= DRW::AC1021) body.putBit(0);
+        if (type == 3) text.putVariableText(version, "PROMPT");
+    }
+    putObliqueHandle(handles, 5, 0x13);
+    return finishObliqueLiteral(version, body, strings, handles, sizeBit, result);
+}
+
+bool makeObliqueStyleLiteral(DRW::Version version, double radians,
+                             ObliqueLiteralFrame& result) {
+    dwgBufferW body, strings, handles;
+    body.putObjType(version, 53);
+    std::uint64_t sizeBit = 0;
+    if (version >= DRW::AC1015 && version < DRW::AC1024) {
+        sizeBit = body.bitCount(); body.putRawLong32(0);
+    }
+    putObliqueHandle(body, 0, 0x130);
+    body.putBitShort(0);
+    if (version < DRW::AC1015) { sizeBit = body.bitCount(); body.putRawLong32(0); }
+    body.putBitLong(0);
+    if (version > DRW::AC1015) body.putBit(1);
+    if (version > DRW::AC1024) body.putBit(0);
+    dwgBufferW& text = version > DRW::AC1018 ? strings : body;
+    text.putVariableText(version, "OBLIQUE_STYLE");
+    if (version > DRW::AC1018) body.putBitShort(0x40);
+    else { body.putBit(0); body.putBitShort(0); body.putBit(0); }
+    body.putBit(0); body.putBit(0); // vertical/shape flags are both unset
+    body.putBitDouble(2.5); body.putBitDouble(1.25);
+    result.obliqueBit = body.bitCount();
+    body.putBitDouble(radians); body.putRawChar8(6); body.putBitDouble(3.5);
+    text.putVariableText(version, "txt.shx"); text.putVariableText(version, "big.shx");
+    putObliqueHandle(handles, 4, 3);
+    if (version <= DRW::AC1015) putObliqueHandle(handles, 3, 0);
+    putObliqueHandle(handles, 5, 0);
+    return finishObliqueLiteral(version, body, strings, handles, sizeBit, result);
+}
+
+bool obliqueNear(double actual, double expected) {
+    return std::abs(actual - expected) <= 4 * std::numeric_limits<double>::epsilon()
+        * std::max(1.0, std::abs(expected));
+}
+
+template<class T> bool checkObliqueTextUnits(DRW::Version version, int type) {
+    bool okay = true;
+    DRW_TextCodec codec;
+    codec.setVersion(version, false);
+    for (double degrees : {-30.0, 0.0, 30.0}) {
+        ObliqueLiteralFrame literal;
+        if (!makeObliqueTextLiteral<T>(version, type, degrees / ARAD, false, literal)) return false;
+        dwgBuffer buffer(literal.bytes.data(), literal.bytes.size(), &codec);
+        ObliqueCodecProbe<T> parsed;
+        const bool read = parsed.parseDwg(version, &buffer, literal.handleBits);
+        okay = okay && read && obliqueNear(parsed.oblique, degrees)
+            && obliqueNear(parsed.angle, 45) && parsed.height == 2.5
+            && parsed.widthscale == 1.25 && parsed.basePoint.z == 3
+            && parsed.extPoint.z == 1 && parsed.text == "OBLIQUE" && parsed.textgen == 6;
+        if (!read) {
+            std::cerr << "Oblique literal read failed version=" << version << " type=" << type << '\n';
+            return false;
+        }
+        const ObliqueCodecProbe<T> copied(parsed);
+        ObliqueCodecProbe<T> assigned; assigned = copied;
+        okay = okay && assigned.oblique == parsed.oblique;
+        std::array<std::uint8_t, 1> invalid{0};
+        dwgBuffer bad(invalid.data(), invalid.size(), &codec);
+        okay = !parsed.parseDwg(version, &bad, literal.handleBits) && parsed.oblique == 0 && okay;
+        dwgBuffer retry(literal.bytes.data(), literal.bytes.size(), &codec);
+        okay = parsed.parseDwg(version, &retry, literal.handleBits)
+            && obliqueNear(parsed.oblique, degrees) && okay;
+        if (version >= DRW::AC1015) {
+            ObliqueCodecProbe<T> source;
+            source.prepare(type); source.oblique = degrees;
+            dwgBufferW body, strings, handles;
+            if (!source.encodeDwg(version, &body, 0,
+                    version > DRW::AC1018 ? &strings : nullptr, &handles)) return false;
+            IndependentBitReader wire(body.data(), literal.obliqueBit);
+            double angle = 0, rotation = 0;
+            okay = wire.readRawDouble(angle) && wire.readRawDouble(rotation)
+                && obliqueNear(angle, degrees / ARAD) && obliqueNear(rotation, M_PI / 4)
+                && source.oblique == degrees && okay;
+        }
+    }
+    if (version >= DRW::AC1015) {
+        ObliqueLiteralFrame omitted;
+        if (!makeObliqueTextLiteral<T>(version, type, M_PI / 6, true, omitted)) return false;
+        dwgBuffer buffer(omitted.bytes.data(), omitted.bytes.size(), &codec);
+        ObliqueCodecProbe<T> parsed;
+        okay = parsed.parseDwg(version, &buffer, omitted.handleBits)
+            && parsed.oblique == 0 && obliqueNear(parsed.angle, 45) && okay;
+    }
+    return okay;
+}
+
+bool checkObliqueStyleUnits(DRW::Version version) {
+    bool okay = true;
+    DRW_TextCodec codec;
+    codec.setVersion(version, false);
+    for (double degrees : {-15.0, 0.0, 15.0}) {
+        ObliqueLiteralFrame literal;
+        if (!makeObliqueStyleLiteral(version, degrees / ARAD, literal)) return false;
+        dwgBuffer buffer(literal.bytes.data(), literal.bytes.size(), &codec);
+        ObliqueStyleProbe parsed;
+        const bool read = parsed.parseDwg(version, &buffer, literal.handleBits);
+        okay = read && obliqueNear(parsed.oblique, degrees) && parsed.font == "txt.shx"
+            && parsed.bigFont == "big.shx" && parsed.height == 2.5 && parsed.width == 1.25
+            && parsed.genFlag == 6 && parsed.lastHeight == 3.5 && okay;
+        if (!read) {
+            std::cerr << "Oblique STYLE literal read failed version=" << version << '\n';
+            return false;
+        }
+        ObliqueStyleProbe copy(parsed), assigned; assigned = copy;
+        okay = assigned.oblique == parsed.oblique && okay;
+        parsed.reset();
+        okay = parsed.oblique == 0 && okay;
+        dwgBuffer retry(literal.bytes.data(), literal.bytes.size(), &codec);
+        okay = parsed.parseDwg(version, &retry, literal.handleBits)
+            && obliqueNear(parsed.oblique, degrees) && okay;
+        if (version >= DRW::AC1015) {
+            DRW_Textstyle source;
+            source.name = "OBLIQUE_STYLE"; source.height = 2.5; source.width = 1.25;
+            source.oblique = degrees;
+            dwgBufferW body, strings, handles, prefix;
+            if (!source.encodeDwg(version, &body, &strings, &handles)) return false;
+            if (version <= DRW::AC1018) prefix.putVariableText(version, source.name);
+            if (version > DRW::AC1018) prefix.putBitShort(0);
+            else { prefix.putBit(0); prefix.putBitShort(0); prefix.putBit(0); }
+            prefix.putBit(0); prefix.putBit(0);
+            prefix.putBitDouble(2.5); prefix.putBitDouble(1.25);
+            IndependentBitReader wire(body.data(), prefix.bitCount());
+            double angle = 0;
+            okay = wire.readBitDouble(angle) && obliqueNear(angle, degrees / ARAD)
+                && source.oblique == degrees && okay;
+        }
+    }
+    ObliqueLiteralFrame overflow;
+    if (!makeObliqueStyleLiteral(version, std::numeric_limits<double>::max(), overflow))
+        return false;
+    dwgBuffer overflowBuffer(overflow.bytes.data(), overflow.bytes.size(), &codec);
+    ObliqueStyleProbe rejected;
+    okay = !rejected.parseDwg(version, &overflowBuffer, overflow.handleBits)
+        && rejected.oblique == 0 && !overflowBuffer.isGood() && okay;
+    return okay;
+}
+
+template<class T> bool parseObliqueDxfAngle(T& value, int code, double degrees) {
+    std::ostringstream tags;
+    tags << code << '\n' << degrees << '\n';
+    std::istringstream input(tags.str());
+    std::unique_ptr<dxfReader> reader = std::make_unique<dxfReaderAscii>(&input);
+    int actualCode = 0;
+    return reader->readRec(&actualCode) && actualCode == code
+        && value.parseCode(actualCode, reader);
+}
+
+bool checkObliqueDxfPublicUnits() {
+    ObliqueCodecProbe<DRW_Text> text;
+    ObliqueCodecProbe<DRW_Attrib> attrib;
+    ObliqueCodecProbe<DRW_Attdef> attdef;
+    ObliqueStyleProbe style;
+    ObliqueShapeProbe shape;
+    return parseObliqueDxfAngle(text, 51, 30) && text.oblique == 30
+        && parseObliqueDxfAngle(text, 50, 45) && text.angle == 45
+        && parseObliqueDxfAngle(attrib, 51, -30) && attrib.oblique == -30
+        && parseObliqueDxfAngle(attdef, 51, 30) && attdef.oblique == 30
+        && parseObliqueDxfAngle(style, 50, 15) && style.oblique == 15
+        && parseObliqueDxfAngle(shape, 50, 45) && obliqueNear(shape.m_rotation, M_PI / 4)
+        && parseObliqueDxfAngle(shape, 51, 30) && obliqueNear(shape.m_oblique, M_PI / 6);
+}
+
+bool runObliqueUnitVectors() {
+    bool okay = checkObliqueDxfPublicUnits();
+    for (DRW::Version version : {DRW::AC1014, DRW::AC1015, DRW::AC1018,
+                                DRW::AC1021, DRW::AC1024, DRW::AC1027, DRW::AC1032}) {
+        const bool text = checkObliqueTextUnits<DRW_Text>(version, 1);
+        const bool attrib = checkObliqueTextUnits<DRW_Attrib>(version, 2);
+        const bool attdef = checkObliqueTextUnits<DRW_Attdef>(version, 3);
+        const bool style = checkObliqueStyleUnits(version);
+        if (!text || !attrib || !attdef || !style)
+            std::cerr << "Oblique units version " << version << " TEXT=" << text
+                      << " ATTRIB=" << attrib << " ATTDEF=" << attdef << " STYLE=" << style << '\n';
+        okay = text && attrib && attdef && style && okay;
+    }
+    return okay;
 }
 
 bool buildModelerVersionFrame(bool empty, std::uint16_t modelerVersion,
@@ -14189,6 +14522,9 @@ int main(int argc, char** argv) {
     expect(runR2013SplineBitLongBoundaryTest(),
            "synthetic AC1027 SPLINE BL fields preserve body-boundary alignment",
            failures);
+    expect(runObliqueUnitVectors(),
+           "literal DWG oblique radians and encoded fields preserve public degrees",
+           failures);
     expect(runAc1024SplineVersionBoundaryTest(),
            "synthetic AC1024 SPLINE excludes R2013+ fields and preserves alignment",
            failures);
@@ -15210,10 +15546,10 @@ int main(int argc, char** argv) {
                                            false, true),
            "local binary AC1027 ACDS projection with reversed entity order",
            failures);
-    expect(runDxfAcdsHistoryClosureRejectsAmbiguity(directory, true, false),
+    expect(runDxfAcdsHistoryClosureRejectsAmbiguity(directory, true),
            "local DWG ACDS projection rejects duplicate history proxies",
            failures);
-    expect(runDxfAcdsHistoryClosureRejectsAmbiguity(directory, false, true),
+    expect(runDxfAcdsHistoryClosureRejectsAmbiguity(directory, false),
            "local DWG ACDS projection rejects ambiguous material dictionaries",
            failures);
     expect(runDxfAcdsHistoryClosureRejectsMixedClasses(directory),

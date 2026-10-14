@@ -1077,6 +1077,9 @@ bool readBoundedDwgTextBody(
                || !readBoundedBitDouble(body, bodyEndBit, data.widthscale)) {
         return false;
     }
+    // The public TEXT/attribute model follows DXF degrees; DWG stores both
+    // rotation and oblique angles in radians (ODA20.4.3–5).
+    data.oblique *= ARAD;
     data.angle *= ARAD;
 
     if (version > DRW::AC1018 && stringStartBit >= stringEndBit) {
@@ -5961,7 +5964,7 @@ bool DRW_Text::encodeDwg(DRW::Version version, dwgBufferW *buf, std::uint32_t bs
     buf->putDefaultDouble(basePoint.y, secPoint.y);
     buf->putExtrusion(extPoint, /*b_R2000_style=*/true);
     buf->putThickness(thickness, /*b_R2000_style=*/true);
-    buf->putRawDouble(oblique);                       // oblique angle
+    buf->putRawDouble(oblique / ARAD);                // oblique radians
     // Angle: struct holds degrees; on-disk format is radians.  Reader
     // does `angle *= ARAD` (180/π) after read.  Inverse: divide here.
     buf->putRawDouble(angle / ARAD);
@@ -11648,6 +11651,7 @@ bool DRW_Text::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs){
             || !readBoundedBitDouble(*buf, bodyEndBit, widthscale))
             return fail(); /* Oblique/rotation/height/width BD */
     }
+    oblique *= ARAD;
     angle *= ARAD;
     if (!std::isfinite(basePoint.x) || !std::isfinite(basePoint.y)
         || !std::isfinite(basePoint.z) || !std::isfinite(secPoint.x)
@@ -13180,7 +13184,7 @@ bool DRW_Attrib::encodeDwg(DRW::Version version, dwgBufferW *buf, std::uint32_t 
     buf->putDefaultDouble(basePoint.y, secPoint.y);
     buf->putExtrusion(extPoint, /*b_R2000_style=*/true);
     buf->putThickness(thickness, /*b_R2000_style=*/true);
-    buf->putRawDouble(oblique);                       // oblique angle RD
+    buf->putRawDouble(oblique / ARAD);                // oblique radians RD
     buf->putRawDouble(angle / ARAD);                  // angle in radians RD
     buf->putRawDouble(height);                        // text height RD
     buf->putRawDouble(widthscale);                    // width factor RD
@@ -13412,7 +13416,7 @@ bool DRW_Attdef::encodeDwg(DRW::Version version, dwgBufferW *buf, std::uint32_t 
     buf->putDefaultDouble(basePoint.y, secPoint.y);
     buf->putExtrusion(extPoint, /*b_R2000_style=*/true);
     buf->putThickness(thickness, /*b_R2000_style=*/true);
-    buf->putRawDouble(oblique);
+    buf->putRawDouble(oblique / ARAD);
     buf->putRawDouble(angle / ARAD);
     buf->putRawDouble(height);
     buf->putRawDouble(widthscale);
