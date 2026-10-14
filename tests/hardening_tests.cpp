@@ -2847,19 +2847,46 @@ void testDimensionParserStateCopyIsolation(TestContext& t) {
     ExposedDimArc arc;
     t.expect(parseDxfRecords(arc,
                              "100\nAcDbArcDimension\n40\n1.25\n41\n2.5\n"
-                             "70\n3\n71\n1\n17\n9\n"),
+                             "70\n1\n71\n0\n17\n9\n"),
              "DIMARC partial subclass parse succeeds");
+    t.expect(arc.isPartial && !arc.hasLeader && arc.arcSymbol == 0,
+             "DIMARC subclass flags are distinct from public arcSymbol");
+    // arcSymbol remains caller-owned display state, not DXF70 partial state.
+    arc.arcSymbol = 3;
     ExposedDimArc copiedArc(arc);
     ExposedDimArc assignedArc;
     assignedArc = arc;
     t.expect(copiedArc.arcStartAngle == 1.25
                  && copiedArc.arcEndAngle == 2.5
-                 && copiedArc.arcSymbol == 3 && copiedArc.isPartial
+                 && copiedArc.arcSymbol == 3 && copiedArc.isPartial && !copiedArc.hasLeader
                  && copiedArc.leaderPt2.x == 9.0
                  && assignedArc.arcStartAngle == 1.25
                  && assignedArc.arcEndAngle == 2.5
-                 && assignedArc.arcSymbol == 3 && assignedArc.isPartial,
+                 && assignedArc.arcSymbol == 3 && assignedArc.isPartial && !assignedArc.hasLeader,
              "DIMARC copy and assignment preserve persisted arc state");
+    ExposedDimArc movedArc(std::move(assignedArc));
+    ExposedDimArc moveAssignedArc;
+    moveAssignedArc = std::move(movedArc);
+    t.expect(moveAssignedArc.arcSymbol == 3 && moveAssignedArc.isPartial
+                 && !moveAssignedArc.hasLeader && moveAssignedArc.leaderPt2.x == 9.0,
+             "DIMARC move preserves independent flags and public arcSymbol");
+    for (int partialFlag : {0, 1}) {
+        for (int leaderFlag : {0, 1}) {
+            ExposedDimArc flags;
+            const auto records = "100\nAcDbArcDimension\n70\n"
+                + std::to_string(partialFlag) + "\n71\n" + std::to_string(leaderFlag) + "\n";
+            t.expect(parseDxfRecords(flags, records)
+                         && flags.isPartial == (partialFlag != 0)
+                         && flags.hasLeader == (leaderFlag != 0) && flags.arcSymbol == 0,
+                     "DIMARC literal Boolean flag combinations preserve independent meaning");
+        }
+    }
+    ExposedDimArc tolerantFlags;
+    t.expect(parseDxfRecords(tolerantFlags,
+                 "100\nAcDbArcDimension\n70\n3\n71\n-2\n")
+                 && tolerantFlags.isPartial && tolerantFlags.hasLeader
+                 && tolerantFlags.arcSymbol == 0,
+             "DIMARC retains deliberate nonzero-Boolean read compatibility");
     std::stringstream arcRecords("40\n8.0\n");
     std::unique_ptr<dxfReader> arcReader =
         std::make_unique<dxfReaderAscii>(&arcRecords);

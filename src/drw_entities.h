@@ -4538,9 +4538,9 @@ public:
     DRW_Coord leaderPt2;           /*!< Leader point 2, code 17/27/37 */
     double arcStartAngle = 0.;     /*!< Arc start angle, code 40 in AcDbArcDimension */
     double arcEndAngle   = 0.;     /*!< Arc end angle, code 41 in AcDbArcDimension */
-    int    arcSymbol     = 0;      /*!< Arc symbol type, code 70 in AcDbArcDimension */
-    bool   isPartial     = false;  /*!< Partial arc flag, code 71 */
-    bool   hasLeader     = false;  /*!< Has leader flag (DWG only) */
+    int    arcSymbol     = 0;      /*!< Retained caller display state; not an AcDbArcDimension flag */
+    bool   isPartial     = false;  /*!< Partial arc flag, code 70 in AcDbArcDimension */
+    bool   hasLeader     = false;  /*!< Has leader flag, code 71 in AcDbArcDimension */
 
 protected:
     bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) override;

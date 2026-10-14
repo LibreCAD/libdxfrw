@@ -102,9 +102,14 @@ insertion (12), and ordinary angular arc location (16) are OCS. Use the retained
 210/220/230 vector to project individual OCS fields; do not transform every
 dimension point or apply the drawing UCS as another entity transform. This
 preserves the existing 2D consumer's field contract. ARC_DIMENSION's optional
-leader grammar is distinct from ordinary angular group 16 and remains a
-separate metadata qualification; field preservation and picture-block retention
-do not establish native dimension rendering or live associativity.
+leader grammar is distinct from ordinary angular group 16. Its subclass 70 maps
+to `isPartial`, 71 to `hasLeader`; stored leader coordinates survive even when
+the leader is inactive. The retained public `arcSymbol` display state is not
+either wire flag. Literal nonzero flag integers retain the existing tolerant
+Boolean read behavior; structured output emits 0/1. Optional leader coordinate
+frames, version-dependent subtype codes and producer rendering remain separate
+qualifications; field preservation and picture-block retention do not establish
+native dimension rendering or live associativity.
 
 | Family | Public callback and fields | Coordinate handling for a 3D consumer | Default / boundary |
 | --- | --- | --- | --- |

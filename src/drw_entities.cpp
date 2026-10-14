@@ -21180,8 +21180,8 @@ bool DRW_DimArc::parseCode(int code, const std::unique_ptr<dxfReader>& reader) {
         switch (code) {
         case 40: arcStartAngle = reader->getDouble();         return true;
         case 41: arcEndAngle   = reader->getDouble();         return true;
-        case 70: arcSymbol     = reader->getInt32();          return true;
-        case 71: isPartial     = reader->getInt32() != 0;    return true;
+        case 70: isPartial     = reader->getInt32() != 0;    return true;
+        case 71: hasLeader     = reader->getInt32() != 0;    return true;
         }
     }
     switch (code) {

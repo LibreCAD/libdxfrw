@@ -1408,9 +1408,11 @@ private:
             fields.push_back(pointField("extension1Wcs", arc->getExtLine1()));
             fields.push_back(pointField("extension2Wcs", arc->getExtLine2()));
             fields.push_back(pointField("arcCenterWcs", arc->getArcCenter()));
+            fields.push_back(boolField("isPartial", arc->isPartial));
+            fields.push_back(boolField("hasLeader", arc->hasLeader));
             // ARC_DIMENSION's optional leader grammar is distinct from the
             // ordinary angular dimension's OCS group16; preserve raw fields
-            // without inferring a coordinate conversion or flag qualification.
+            // without inferring a leader coordinate conversion.
             fields.push_back(pointField("leader1Stored", arc->getLeaderPt1()));
             fields.push_back(pointField("leader2Stored", arc->leaderPt2));
         }

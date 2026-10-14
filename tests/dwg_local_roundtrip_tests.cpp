@@ -13837,6 +13837,161 @@ bool runDxfDimensionFrames(bool binary, const std::filesystem::path& directory, 
     return valid;
 }
 
+bool writeArcDimensionFlagLiteral(const std::filesystem::path& path, bool binary) {
+    std::ofstream stream(path, std::ios::binary | std::ios::trunc);
+    if (binary) stream.write("AutoCAD Binary DXF\r\n\032\0", 22);
+    std::unique_ptr<dxfWriter> tags;
+    if (binary) tags = std::make_unique<dxfWriterBinary>(&stream);
+    else tags = std::make_unique<dxfWriterAscii>(&stream);
+    tags->setVersion("AC1027", true);
+    const auto point = [&](int code, DRW_Coord value) {
+        tags->writeDouble(code, value.x); tags->writeDouble(code + 10, value.y);
+        tags->writeDouble(code + 20, value.z);
+    };
+    tags->writeString(0, "SECTION"); tags->writeString(2, "HEADER");
+    tags->writeString(9, "$ACADVER"); tags->writeString(1, "AC1027");
+    tags->writeString(0, "ENDSEC");
+    tags->writeString(0, "SECTION"); tags->writeString(2, "BLOCKS");
+    for (int id = 0; id != 4; ++id) {
+        const auto name = "*D7AA_" + std::to_string(id);
+        tags->writeString(0, "BLOCK"); tags->writeString(5, DRW::toHexStr(0xA700u + id));
+        tags->writeString(100, "AcDbEntity"); tags->writeString(8, "0");
+        tags->writeString(100, "AcDbBlockBegin"); tags->writeString(2, name);
+        tags->writeInt16(70, 1); point(10, {0, 0, 0}); tags->writeString(3, name);
+        tags->writeString(0, "LINE"); tags->writeString(5, DRW::toHexStr(0xA710u + id));
+        tags->writeString(100, "AcDbEntity"); tags->writeString(8, "0");
+        tags->writeString(100, "AcDbLine"); point(10, {100.0 + id, 200, 300});
+        point(11, {101.0 + id, 202, 303});
+        tags->writeString(0, "ENDBLK"); tags->writeString(5, DRW::toHexStr(0xA720u + id));
+        tags->writeString(100, "AcDbEntity"); tags->writeString(8, "0");
+        tags->writeString(100, "AcDbBlockEnd");
+    }
+    tags->writeString(0, "ENDSEC");
+    tags->writeString(0, "SECTION"); tags->writeString(2, "ENTITIES");
+    for (int id = 0; id != 4; ++id) {
+        tags->writeString(0, "ARC_DIMENSION"); tags->writeString(5, DRW::toHexStr(0xA730u + id));
+        tags->writeString(100, "AcDbEntity"); tags->writeString(8, "0");
+        tags->writeString(100, "AcDbDimension"); tags->writeInt16(280, 0);
+        tags->writeString(2, "*D7AA_" + std::to_string(id));
+        point(10, {10.0 + id, 11, 12}); point(11, {13.0 + id, 14, 15});
+        tags->writeInt16(70, 37); tags->writeString(1, "A7AA-" + std::to_string(id));
+        tags->writeInt16(71, 5); tags->writeString(3, "STANDARD");
+        tags->writeString(100, "AcDbArcDimension");
+        point(13, {20.0 + id, 21, 22}); point(14, {30.0 + id, 31, 32});
+        point(15, {40.0 + id, 41, 42});
+        // Literal ODA §20.4.19 mapping, independent of writeArcDimension:
+        // subclass70 is partial, subclass71 is leader presence. Inactive
+        // leader coordinates remain stored data, not extension-point aliases.
+        tags->writeInt16(70, id / 2); tags->writeDouble(40, .25);
+        tags->writeDouble(41, 1.75); tags->writeInt16(71, id % 2);
+        point(16, {50.0 + id, 51, 52}); point(17, {60.0 + id, 61, 62});
+    }
+    tags->writeString(0, "LINE"); tags->writeString(5, "A740");
+    tags->writeString(100, "AcDbEntity"); tags->writeString(8, "0");
+    tags->writeString(100, "AcDbLine"); point(10, {71, 72, 73}); point(11, {74, 75, 76});
+    tags->writeString(0, "ENDSEC"); tags->writeString(0, "EOF");
+    return !tags->hasWriteError() && stream.good();
+}
+
+bool arcDimensionFlagsMatch(dx_data& data, int expectedArcSymbol = 0) {
+    const auto same = [](DRW_Coord a, DRW_Coord b) {
+        return nearDxfValue(a.x, b.x) && nearDxfValue(a.y, b.y) && nearDxfValue(a.z, b.z);
+    };
+    if (data.mBlock->ent.size() != 5u) return false;
+    int id = 0;
+    bool valid = true;
+    for (const auto* entity : data.mBlock->ent) {
+        if (id == 4) {
+            const auto* line = dynamic_cast<const DRW_Line*>(entity);
+            return line && same(line->basePoint, {71, 72, 73})
+                && same(line->secPoint, {74, 75, 76}) && valid;
+        }
+        const auto* arc = dynamic_cast<const DRW_DimArc*>(entity);
+        bool matches = arc && arc->eType == DRW::DIMARC
+            && arc->getText() == "A7AA-" + std::to_string(id)
+            && arc->type == 37 && arc->getAlign() == 5
+            && arc->isPartial == (id / 2 != 0) && arc->hasLeader == (id % 2 != 0)
+            && arc->arcSymbol == expectedArcSymbol
+            && nearDxfValue(arc->arcStartAngle, .25) && nearDxfValue(arc->arcEndAngle, 1.75)
+            && same(arc->getDefPoint(), {10.0 + id, 11, 12})
+            && same(arc->getTextPoint(), {13.0 + id, 14, 15})
+            && same(arc->getExtLine1(), {20.0 + id, 21, 22})
+            && same(arc->getExtLine2(), {30.0 + id, 31, 32})
+            && same(arc->getArcCenter(), {40.0 + id, 41, 42})
+            && same(arc->getLeaderPt1(), {50.0 + id, 51, 52})
+            && same(arc->leaderPt2, {60.0 + id, 61, 62});
+        bool pictureFound = false;
+        if (arc) for (const auto* block : data.blocks) {
+            if (block->name != "*D7AA_" + std::to_string(id)) continue;
+            const auto* line = block->ent.size() == 1u ? dynamic_cast<const DRW_Line*>(block->ent.front()) : nullptr;
+            pictureFound = line && same(line->basePoint, {100.0 + id, 200, 300});
+        }
+        matches = matches && pictureFound;
+        if (!matches) std::cerr << "ARC_DIMENSION flags/coordinates A7AA-" << id << " not retained\n";
+        valid = matches && valid;
+        ++id;
+    }
+    return false;
+}
+
+bool verifyArcDimensionFlagFile(const std::filesystem::path& path) {
+    bool valid = true;
+    for (bool applyExtrusion : {false, true}) {
+        dx_data data;
+        DimensionFrameCapture capture(data);
+        const auto name = path.string();
+        dxfRW reader(name.c_str());
+        const bool matches = reader.read(&capture, applyExtrusion) && arcDimensionFlagsMatch(data);
+        valid = matches && valid;
+    }
+    return valid;
+}
+
+bool runDxfArcDimensionFlags(bool binary, const std::filesystem::path& directory, bool keepOutput) {
+    const auto encoding = binary ? "binary" : "ascii";
+    const auto input = directory / (std::string("libdxfrw-arc-dimension-flags-") + encoding + "-input.dxf");
+    bool valid = writeArcDimensionFlagLiteral(input, binary) && verifyArcDimensionFlagFile(input);
+    for (bool applyExtrusion : {false, true}) {
+        dx_data data;
+        DimensionFrameCapture capture(data);
+        const auto name = input.string();
+        dxfRW reader(name.c_str());
+        const bool parsed = reader.read(&capture, applyExtrusion);
+        // Public arcSymbol is retained API state, not either wire flag. Its
+        // non-Boolean value must neither change the flags nor reject export.
+        int apiId = 0;
+        for (auto* entity : data.mBlock->ent) {
+            if (auto* arc = dynamic_cast<DRW_DimArc*>(entity)) {
+                arc->arcSymbol = 3;
+                arc->isPartial = apiId / 2 != 0;
+                arc->hasLeader = apiId % 2 != 0;
+                ++apiId;
+            }
+        }
+        const auto output = directory / (std::string("libdxfrw-arc-dimension-flags-") + encoding
+            + (applyExtrusion ? "-ext-output.dxf" : "-raw-output.dxf"));
+        dx_iface writer;
+        const bool exported = writer.fileExport(output.string(), DRW::AC1027, binary, &data, false);
+        const bool matches = parsed && exported && arcDimensionFlagsMatch(data, 3)
+            && verifyArcDimensionFlagFile(output);
+        const auto outputBytes = [&]() {
+            std::ifstream saved(output, std::ios::binary);
+            return std::string(std::istreambuf_iterator<char>{saved},
+                               std::istreambuf_iterator<char>{});
+        };
+        const auto beforeRejection = outputBytes();
+        dx_iface unsupportedWriter;
+        const bool rejectedR12 = !unsupportedWriter.fileExport(output.string(),
+            DRW::AC1009, binary, &data, false);
+        valid = matches && rejectedR12 && !beforeRejection.empty()
+            && outputBytes() == beforeRejection && arcDimensionFlagsMatch(data, 3)
+            && verifyArcDimensionFlagFile(output) && valid;
+        if (!keepOutput) { std::error_code ec; std::filesystem::remove(output, ec); }
+    }
+    if (!keepOutput) { std::error_code ec; std::filesystem::remove(input, ec); }
+    return valid;
+}
+
 } // namespace
 
 int main(int argc, char** argv) {
@@ -13858,6 +14013,11 @@ int main(int argc, char** argv) {
             std::string(argv[1]) == "--generate-mpolygon-header-binary") ? 0 : 1;
     } else if (argc == 3 && std::string(argv[1]) == "--verify-mpolygon-header") {
         return verifyMPolygonHeaderFile(argv[2]) ? 0 : 1;
+    } else if (argc == 3 && (std::string(argv[1]) == "--generate-arc-dimension-flags"
+                      || std::string(argv[1]) == "--generate-arc-dimension-flags-binary")) {
+        return writeArcDimensionFlagLiteral(argv[2], std::string(argv[1]) == "--generate-arc-dimension-flags-binary") ? 0 : 1;
+    } else if (argc == 3 && std::string(argv[1]) == "--verify-arc-dimension-flags") {
+        return verifyArcDimensionFlagFile(argv[2]) ? 0 : 1;
     } else if (argc == 3 && (std::string(argv[1]) == "--generate-dimension-frames"
                       || std::string(argv[1]) == "--generate-dimension-frames-binary")) {
         return writeDimensionFrameLiteral(argv[2], std::string(argv[1]) == "--generate-dimension-frames-binary") ? 0 : 1;
@@ -13894,6 +14054,8 @@ int main(int argc, char** argv) {
                      " [--verify-mpolygon-header DXF]"
                      " [--generate-mpolygon-metadata[-binary] DXF]"
                      " [--verify-mpolygon-metadata DXF]"
+                     " [--generate-arc-dimension-flags[-binary] DXF]"
+                     " [--verify-arc-dimension-flags DXF]"
                      " [--generate-dimension-frames[-binary] DXF]"
                      " [--verify-dimension-frames DXF]"
                      " [--generate-hatch-tangents[-binary] DXF]"
@@ -14730,6 +14892,10 @@ int main(int argc, char** argv) {
         if (!keepOutputs)
             std::filesystem::remove(output, ec);
     }
+    expect(runDxfArcDimensionFlags(false, directory, keepOutputs),
+           "local DXF ASCII ARC_DIMENSION independent partial/leader flags", failures);
+    expect(runDxfArcDimensionFlags(true, directory, keepOutputs),
+           "local DXF binary ARC_DIMENSION independent partial/leader flags", failures);
     expect(runDxfDimensionFrames(false, directory, keepOutputs),
            "local DXF ASCII DIMENSION mixed coordinate frames in both read modes", failures);
     expect(runDxfDimensionFrames(true, directory, keepOutputs),

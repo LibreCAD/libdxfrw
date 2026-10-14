@@ -377,6 +377,31 @@ foreach(_mtext_encoding IN ITEMS ascii binary)
     )
 endforeach()
 
+foreach(_arc_encoding IN ITEMS ascii binary)
+    set(_arc_generate_mode --generate-arc-dimension-flags)
+    set(_arc_conversion_options "")
+    if(_arc_encoding STREQUAL "binary")
+        set(_arc_generate_mode --generate-arc-dimension-flags-binary)
+        set(_arc_conversion_options -b)
+    endif()
+    add_test(
+        NAME dwg2dxf_arc_dimension_flags_${_arc_encoding}_cli
+        COMMAND ${CMAKE_COMMAND}
+            "-DADAPTER_TEST=$<TARGET_FILE:libdxfrw_dwg_local_roundtrip>"
+            "-DDWG2DXF=$<TARGET_FILE:dwg2dxf>"
+            "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}"
+            "-DCASE_NAME=arc-dimension-flags-${_arc_encoding}"
+            "-DGENERATE_MODE=${_arc_generate_mode}"
+            "-DVERIFY_MODE=--verify-arc-dimension-flags"
+            "-DCONVERSION_OPTIONS=${_arc_conversion_options}"
+            -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg2dxf_image_path_test.cmake
+    )
+    set_tests_properties(dwg2dxf_arc_dimension_flags_${_arc_encoding}_cli PROPERTIES
+        LABELS "cli;fast;dxf;adapter;dimension"
+        TIMEOUT 30
+    )
+endforeach()
+
 # Match FreeCAD's Draft/importDWG.py subprocess contract without requiring a
 # FreeCAD installation. The DWG fixture is already tracked in this repository.
 set(_freecad_cli_sample

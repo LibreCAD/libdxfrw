@@ -5222,12 +5222,14 @@ bool dxfRW::writeArcDimension(DRW_DimArc *d) {
     writer->writeDouble(15, d->getArcCenter().x);
     writer->writeDouble(25, d->getArcCenter().y);
     writer->writeDouble(35, d->getArcCenter().z);
-    writer->writeInt16(70, d->arcSymbol);
+    writer->writeInt16(70, d->isPartial ? 1 : 0);
     writer->writeDouble(40, d->arcStartAngle);
     writer->writeDouble(41, d->arcEndAngle);
-    writer->writeInt16(71, d->isPartial ? 1 : 0);
-    DRW_Coord lp1 = d->hasLeader ? d->getLeaderPt1() : d->getExtLine1();
-    DRW_Coord lp2 = d->hasLeader ? d->leaderPt2      : d->getExtLine2();
+    writer->writeInt16(71, d->hasLeader ? 1 : 0);
+    // The presence flag controls display, not the stored point values. Keep
+    // inactive leader points as well; do not replace them with extension points.
+    const DRW_Coord lp1 = d->getLeaderPt1();
+    const DRW_Coord lp2 = d->leaderPt2;
     writer->writeDouble(16, lp1.x); writer->writeDouble(26, lp1.y); writer->writeDouble(36, lp1.z);
     writer->writeDouble(17, lp2.x); writer->writeDouble(27, lp2.y); writer->writeDouble(37, lp2.z);
     if (!d->extData.empty() && !writeExtData(d->extData))
