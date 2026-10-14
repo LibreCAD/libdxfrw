@@ -326,6 +326,42 @@ bool parseDxfRecords(Entity& entity, const std::string& source) {
     return ok;
 }
 
+void testImageAdjustmentCarrierDomains(TestContext& t) {
+    for (const bool binary : {false, true}) {
+        for (int field = 0; field != 3; ++field) {
+            for (const int value : {-1, 0, 100, 101, 255, 256}) {
+                DRW_Image carrier;
+                int& shared = field == 0 ? carrier.brightness
+                    : field == 1 ? carrier.contrast : carrier.fade;
+                shared = value;
+                t.expect(carrier.validatePayloadFields() == (value >= 0 && value <= 255)
+                             && shared == value,
+                         "DXF admission does not narrow or clamp the shared DWG byte carrier");
+                std::stringstream stream(std::ios::in | std::ios::out | std::ios::binary);
+                std::unique_ptr<dxfWriter> output = binary
+                    ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+                    : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+                t.expect(output->writeInt16(281 + field, value), "raster parser control emits an I16 tag");
+                output.reset();
+                stream.seekg(0);
+                std::unique_ptr<dxfReader> input = binary
+                    ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&stream))
+                    : std::unique_ptr<dxfReader>(new dxfReaderAscii(&stream));
+                ExposedImage image;
+                int& parsed = field == 0 ? image.brightness
+                    : field == 1 ? image.contrast : image.fade;
+                const int initial = parsed;
+                int code = 0;
+                const bool valid = value >= 0 && value <= 100;
+                t.expect(input->readRec(&code) && code == 281 + field
+                             && image.parseCode(code, input) == valid
+                             && parsed == (valid ? value : initial),
+                         "unchanged ASCII/binary DXF reader accepts only 0..100 without partial assignment");
+            }
+        }
+    }
+}
+
 void testLeaderAdvisoryCountState(TestContext& t) {
     ExposedLeader source;
     t.expect(parseDxfRecords(source, "76\n99\n10\n1\n20\n2\n30\n3\n10\n4\n20\n6\n30\n0\n")
@@ -4828,6 +4864,7 @@ void testEmbeddedAttributeDefinitionTextRouting(TestContext& t) {
 
 int main() {
     TestContext context;
+    testImageAdjustmentCarrierDomains(context);
     testDxfOperationAdmission(context);
     testLeaderAdvisoryCountState(context);
     testPublicOwnershipContracts(context);

@@ -446,6 +446,15 @@ bool isValidDxfLineWeight(DRW_LW_Conv::lineWidth value) {
     return false;
 }
 
+// IMAGE and WIPEOUT emit the same DXF adjustment groups (281..283).
+// Their DXF percentage domain is narrower than the shared DWG RC carrier;
+// keep this admission check private to the DXF writers.
+bool isValidDxfRasterAdjustments(const DRW_Image& image) noexcept {
+    return image.brightness >= 0 && image.brightness <= 100
+        && image.contrast >= 0 && image.contrast <= 100
+        && image.fade >= 0 && image.fade <= 100;
+}
+
 bool isValidDxfEntityFields(const DRW_Entity& entity) {
     if (entity.space != DRW::ModelSpace && entity.space != DRW::PaperSpace)
         return false;
@@ -6942,7 +6951,8 @@ DRW_ImageDef* dxfRW::writeImage(DRW_Image *ent, std::string name){
     }
     if (!preflightEntity(ent))
         return nullptr;
-    if (ent == nullptr || writer == nullptr || !ent->validatePayloadFields()) {
+    if (ent == nullptr || writer == nullptr || !ent->validatePayloadFields()
+        || !isValidDxfRasterAdjustments(*ent)) {
         m_writeError = true;
         return nullptr;
     }
@@ -7284,7 +7294,7 @@ bool dxfRW::writeWipeout(DRW_Wipeout *ent) {
     if (version <= DRW::AC1009)
         return rejectUnsupportedDxfWrite();
     if (ent == nullptr || writer == nullptr || !ent->validatePayloadFields()
-        || !ent->hasValidBoundary()) {
+        || !isValidDxfRasterAdjustments(*ent) || !ent->hasValidBoundary()) {
         m_writeError = true;
         return false;
     }

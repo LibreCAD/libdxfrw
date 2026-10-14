@@ -206,6 +206,7 @@ Its historical binary diff SHA-256 is
 | Wider downgrade / application-data / compound-state review | PLAN_UPDATED / NONPROMOTING | Adds PAR-80–85: R12 ellipse metadata/space loss, group102 string transcoding, INSERT child-handle rollback, classic VERTEX identifiers, per-child coordinate-presence leakage and valid CIF semantic idempotence. Extends existing PAR-64 with named-color counterevidence instead of duplicating a codec finding. Adds ready7AT/7AU and small7AS/7AR follow-ups; preserves isolated commits and main WIP. No newly executed DWG layout/native/ACIS qualification, drawing admission or remote mutation. |
 | PAR-25 / PAR-27 / PAR-33 research controls | REPRODUCED | Locally authored ASCII inputs and rebuilt CLI: valid wide self handle rejected with exit 1/no output; `$ACADMAINTVER=70001` becomes 0 with exit 0; output STYLE/VPORT owners differ from their table handles. ezdxf 1.4.4 ordinary reads confirm the scoped observations. |
 | Broader callback / text / comparator readiness review | PLAN_UPDATED / NONPROMOTING | At25d951c, adds reproduced PAR-118 under7AG.3a/S8.1a, raising118 findings/67 subplans. Root repeats24 source-bound safe callback rows;34 codec rows refine existing MIF/codepage findings. Primary ACadSharp/ezdxf/Assimp source checks refine projection exclusions. Corrects committed Template/package queue state and records the staged optional checker’s ordinary81-pass/isolated-import failure. Root checkpoint `/private/tmp/libdxfrw-research-plan-20261014.o22JFn/research-report.json` SHA256`550663ba235a882e18a68f4e5adbf13c923147d2b37db87035dd5b53911da1c6` binds the read-only probes; the separate PAR-118 report retains its own bindings. Only two plans change; staged code, fixtures, receipts, default registrations, remote state and six deferred J dispositions remain unchanged. |
+| 7BI raster admission integration | COMMITTED / DXF_API_SCOPED | `Plan-Slice:7BI`, integrates independently reviewed3df3386c. IMAGE/WIPEOUT adjustment0..100 admission precedes record/identity/reactor mutation, with shared DWG byte carriers and readers unchanged. Main strict production/fixture TUs and affected/lc3/CLI build pass; existing DXF/hardening2/2 pass2.98s with72 writer/36 parser controls. Fresh main report065afd76 binds three actual valid converter handoffs and unchanged source hashes. No new registration, drawing fixture, dependency, receipt or support promotion. Next7AG.3a queue correction and optional verifier integration;7BC/7P.5b remain separate. |
 
 Each implementation commit appends its focused validation result and remaining
 evidence impact here. All other slices remain queued; the full objective stays
@@ -2459,7 +2460,7 @@ shared-writer changes serially.7BN.1/2 and its composed d49 sanitizer checkpoint
 named scope; do not queue them again. Remaining7F.1b typed schema migration,
 7S.2/3 accounting and7M host-XDATA routing have explicit local subplans and do
 not require native evidence first. Preserve committed7BJ.1/2 and7AK.6;
-review ready7BE,7BI and the optional verifier correction, then continue
+preserve committed7BI, review ready7BE and the optional verifier correction, then continue
 the preserved resource queue with affected-target gates. One failing
 external/platform gate does not block these steps. Keep historical receipts
 immutable and refresh current bindings at a stable checkpoint.
@@ -2540,7 +2541,7 @@ failure does not prevent completing them:
 | 7BF — LTYPE units/text/mirror authority | TEXT_COMMITTED / POLICY_PARTIAL |2 fixed-area preflight integrated with main2/2 focused passes;1 units disputed,3 legacy path/segment authority needs explicit decision | retain object-vector/local boundaries; path-only real consumer contracts and conflicting edits for3 |
 | 7BG — UCS orthographic tuples | REPRODUCED / PARSER_READY / LEGACY_POLICY | existing public vector and bounded DXF lifecycle; retain first-option projection, settle legacy edit authority before writer changes | existing DXF target, ASCII/binary tuple order/API/copy/reset/older-target controls; peer option scope excluded |
 | 7BH — CLI options/batch contract | COMMITTED_1_2 / ISOLATED_HELPER |1 exact parsing;2 bounded lists/outcomes;3 helper`a4c5d63f` needs independent review/wiring and actual CLI acceptance, FreeCAD-o retained | existing bounded scratch harness; platform source/container checks are not native qualification; no new registration per case |
-| 7BI — IMAGE/WIPEOUT adjustment admission | ISOLATED_COMMIT / MAIN_PENDING |3df3386c on9cb78f5 adds a DXF-specific0..100 gate before identity/reactor mutation; shared DWG byte-width model unchanged; independent integration review remains |72 candidate boundary cases plus36 existing-policy parser/carrier controls; existing DXF/hardening2/2 and actual CLI routes; rebind only the touched main gate |
+| 7BI — IMAGE/WIPEOUT adjustment admission | COMMITTED / DXF_API_SCOPED | Reviewed3df3386c integrated without changing shared DWG byte carriers or reader policy | Main strict production/fixture TUs, affected/lc3/CLI build, DXF/hardening2/2 in2.98s and three actual CLI handoffs pass; no registration or support promotion |
 | 7BJ — Template MEASUREMENT | COMMITTED_1_2 / POLICY_PARTIAL | six-version writer/public-reader/CLI preserve explicit0/1; canonical description grammar corrected; raw-description retention3 and survey fallback4 remain separate | main4/4 plus six strict TUs/lc3,12 generated memory reads/12 peer Template fields/48 ordinary CLI projections; historical evidence not rebound |
 | 7BK — transparency methods | REPRODUCED / CONTRACT_DECISION |48 route rows/independent3/128→DXF semantic loss; distinguish source/API/DXF/DWG methods and inheritance, preserve legacy2D consumers | literal/raw/public alpha table plus exact current consumer source checks |
 | 7BL — X11 header coexistence | COMMITTED / SOURCE_CONTRACT | macro shielding/safe aliases; configured MSVC consumer preserves toolchain context, native MSVC unexecuted; one new fast registration | main registered/source/actual-X11/installed-header controls pass; no format rebuild or ABI/native application claim |
@@ -6444,16 +6445,23 @@ ordinary peer acceptance as field validation.
    download, renderer, actual external raster file or native platform run is
    required for the scalar admission correction.
 
-**Ready handoff:** isolated `3df3386c22c13b36a8b60282665061eb8a98ecf8`
+**Integrated handoff:** isolated `3df3386c22c13b36a8b60282665061eb8a98ecf8`
 on `9cb78f5` implements both IMAGE and WIPEOUT admission without changing
 shared byte carriers or DXF reader policy. Its report
 `/private/tmp/libdxfrw-image-bi.tLzlzd/slice-report.json`, SHA256
 `9def398e5e123ac87970a276c9a0a30a23a6166829507e4fb67f3156d2a30ff0`,
 binds72 boundary cases,36 parser/carrier controls, existing DXF/hardening2/2
-and three actual converter handoffs. This is an isolated candidate, not a
-current-main integration or raster-rendering qualification. Review the three
-changed files, retain the current writer/finalizer changes, then run only the
-touched main targets. IMAGEDEF/clip/subclass work remains separate.
+and three actual converter handoffs at its original binding. Root and
+independent reviews approved the three changed files. Current-main source
+hashes match that candidate; strict production/fixture TUs and affected/lc3/
+CLI build pass, followed by DXF/hardening2/2 in2.98s. Fresh main report
+`/private/tmp/libdxfrw-image-main.L264fn/report.json`, SHA256
+`065afd7603f3636db1370c972f7109a4f1c6499257bb30299d930c15855f8830`,
+binds two generated sources/three actual converter handoffs, exact tags,
+reciprocal object counts and suffix LINE. This does not qualify raster
+rendering or the separate IMAGEDEF/clip/subclass work. The initial strict
+fixture command omitted the repository include path; the corrected command
+passed without warning suppression or production changes.
 
 **Fast gate:** all72 tiny IMAGE/WIPEOUT field cases in existing executables,
 then the touched DXF/hardening targets once. No new CTest or broad suite is

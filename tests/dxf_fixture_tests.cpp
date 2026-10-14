@@ -1027,8 +1027,9 @@ bool readTableOwnerRecords(const std::filesystem::path& path, bool binary,
                 // Presence only, not a numeric coordinate projection. Opt in
                 // so graph-only callers keep their original field inventory.
                 records.back().groups.emplace_back(code, "present");
-            } else if (code == 77 || code == 78) {
-                // Literal plot values, before a document reader can supply
+            } else if (code == 77 || code == 78
+                       || code == 281 || code == 282 || code == 283) {
+                // Literal scalar values, before a document reader can supply
                 // defaults or repair an object graph.
                 records.back().groups.emplace_back(
                     code, std::to_string(reader->getInt32()));
@@ -1039,6 +1040,155 @@ bool readTableOwnerRecords(const std::filesystem::path& path, bool binary,
         }
     }
     return false;
+}
+
+void testImageAdjustmentAdmission(TestContext& t,
+                                  const std::filesystem::path* retained = nullptr,
+                                  bool retainedBinary = false) {
+    class RasterInterface final : public dx_iface {
+    public:
+        void writeEntities() override {
+            before = dxfW->highWaterHandle();
+            rasterWritten = wipeout ? dxfW->writeWipeout(&mask)
+                : dxfW->writeImage(&image, "adjustment-control.png") != nullptr;
+            after = dxfW->highWaterHandle();
+            suffixWritten = dxfW->writeLine(&suffix);
+            afterSuffix = dxfW->highWaterHandle();
+        }
+        DRW_Image image;
+        DRW_Wipeout mask;
+        DRW_Line suffix;
+        bool wipeout{false}, rasterWritten{false}, suffixWritten{false};
+        std::uint32_t before{0}, after{0}, afterSuffix{0};
+    } adapter;
+    class RasterReader final : public dx_iface {
+    public:
+        void addImage(const DRW_Image* image) override {
+            if (image != nullptr) rasters.push_back(*image);
+            dx_iface::addImage(image);
+        }
+        void addWipeout(const DRW_Wipeout* mask) override {
+            if (mask != nullptr) rasters.push_back(*mask);
+        }
+        void addLine(const DRW_Line& line) override {
+            lines.push_back(line);
+            dx_iface::addLine(line);
+        }
+        std::vector<DRW_Image> rasters;
+        std::vector<DRW_Line> lines;
+    };
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    const auto path = std::filesystem::temp_directory_path()
+        / ("libdxfrw-image-adjustments-" + std::to_string(nonce) + ".dxf");
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() { std::error_code error; std::filesystem::remove(path, error); }
+    } cleanup{path};
+    const std::string filename = path.string();
+    for (const bool binary : {false, true}) {
+        for (const bool wipeout : {false, true}) {
+            for (int field = 0; field != 3; ++field) {
+                for (const int value : {-1, 0, 100, 101, 255, 256}) {
+                    dx_data source;
+                    source.headerC.addInt("$MEASUREMENT", 1, 70);
+                    const auto* const headerValue = source.headerC.vars.at("$MEASUREMENT");
+                    adapter.cData = &source;
+                    adapter.currentBlock = source.mBlock;
+                    adapter.image = DRW_Image();
+                    adapter.mask = DRW_Wipeout();
+                    adapter.wipeout = wipeout;
+                    DRW_Image& raster = wipeout ? static_cast<DRW_Image&>(adapter.mask) : adapter.image;
+                    raster.handle = 0xB100u;
+                    raster.secPoint = {1, 0, 0};
+                    raster.vVector = {0, 1, 0};
+                    raster.sizeu = 4;
+                    raster.sizev = 3;
+                    raster.appData = {{{102, std::string("{IMAGE_CONTROL")},
+                        {1, std::string("caller-metadata")}, {102, std::string("}")}}};
+                    if (wipeout) raster.clipPath = {{0, 0, 0}, {4, 0, 0}, {0, 3, 0}};
+                    int* adjustment = field == 0 ? &raster.brightness
+                        : field == 1 ? &raster.contrast : &raster.fade;
+                    *adjustment = value;
+                    const DRW_Image before(raster);
+                    adapter.suffix = DRW_Line();
+                    adapter.suffix.handle = 0xB200u;
+                    adapter.suffix.basePoint = {34, 35, 36};
+                    adapter.suffix.secPoint = {37, 38, 39};
+                    { std::ofstream seed(path, std::ios::binary); seed << "raster destination sentinel\n"; }
+                    dxfRW writer(filename.c_str());
+                    adapter.dxfW = &writer;
+                    t.expect(writer.reserveHandle(0xE200u), "raster control reserves a persistent identity");
+                    writer.setHandleRemap({{0xE100u, 0xE101u}});
+                    const bool valid = value >= 0 && value <= 100;
+                    t.expect(writer.write(&adapter, DRW::AC1027, binary) == valid
+                                 && adapter.rasterWritten == valid && adapter.suffixWritten == valid,
+                             "DXF IMAGE/WIPEOUT adjustments admit exactly 0..100 in both encodings");
+                    const auto headerUnchanged = [&]() {
+                        return source.headerC.vars.size() == 1
+                            && source.headerC.vars.at("$MEASUREMENT") == headerValue
+                            && headerValue->type() == DRW_Variant::INTEGER
+                            && headerValue->content.i == 1;
+                    };
+                    t.expect(headerUnchanged() && *adjustment == value
+                                 && raster.ref == before.ref && raster.m_imageDefReactorHandle == before.m_imageDefReactorHandle
+                                 && raster.appData.size() == 1 && raster.appData.front().size() == 3
+                                 && std::string(raster.appData.front().front().c_str()) == "{IMAGE_CONTROL"
+                                 && std::string(std::next(raster.appData.front().begin())->c_str()) == "caller-metadata"
+                                 && raster.clipPath.size() == before.clipPath.size(),
+                             "raster admission retains caller payload/carriers and source HEADER ownership");
+                    if (!valid) {
+                        std::ifstream preserved(path, std::ios::binary);
+                        t.expect(std::string(std::istreambuf_iterator<char>(preserved), {}) == "raster destination sentinel\n"
+                                     && adapter.before == adapter.after && adapter.after == adapter.afterSuffix
+                                     && raster.handle == 0xB100u && adapter.suffix.handle == 0xB200u,
+                                 "rejected raster allocates no identities/reactors or suffix and preserves destination");
+                        const auto* context = writer.getWritingContext();
+                        t.expect(context->sourceHandleToMintedMap.empty()
+                                     && context->writtenSourceEntityHandles.empty()
+                                     && writer.remapHandle(0xE100u) == 0xE101u
+                                     && writer.getError() == DRW::BAD_OPEN
+                                     && writer.getLastDiagnostic().code == "emit-failure",
+                                 "raster failure drops derived identities but preserves setup and first diagnostic");
+                        preserved.close();
+                        *adjustment = 0;
+                        t.expect(writer.write(&adapter, DRW::AC1027, binary)
+                                     && adapter.rasterWritten && adapter.suffixWritten && headerUnchanged()
+                                     && writer.getError() == DRW::BAD_NONE,
+                                 "correcting only adjustment permits exact same-writer same-model retry");
+                    }
+                    std::vector<TableOwnerRecord> records;
+                    t.expect(readTableOwnerRecords(path, binary, records), "raster scalar framing reaches EOF");
+                    const auto record = std::find_if(records.begin(), records.end(), [wipeout](const auto& entry) {
+                        return entry.kind == (wipeout ? "WIPEOUT" : "IMAGE");
+                    });
+                    t.expect(record != records.end()
+                                 && groupValue(record->groups, 281) == std::to_string(raster.brightness)
+                                 && groupValue(record->groups, 282) == std::to_string(raster.contrast)
+                                 && groupValue(record->groups, 283) == std::to_string(raster.fade),
+                             "accepted boundaries retain exact I16 adjustment tags without clamping");
+                    for (const std::string kind : {"IMAGEDEF", "IMAGEDEF_REACTOR"}) {
+                        t.expect(std::count_if(records.begin(), records.end(), [&kind](const auto& entry) {
+                            return entry.kind == kind;
+                        }) == (wipeout ? 0 : 1), "only accepted IMAGE publishes one definition and reactor");
+                    }
+                    RasterReader reader;
+                    dx_data decoded;
+                    t.expect(reader.fileImport(filename, &decoded, false) && reader.rasters.size() == 1
+                                 && reader.lines.size() == 1 && reader.lines.front().basePoint.x == 34,
+                             "accepted raster plus suffix LINE reaches public callbacks");
+                    if (reader.rasters.size() == 1) {
+                        const auto& read = reader.rasters.front();
+                        t.expect(read.brightness == raster.brightness && read.contrast == raster.contrast
+                                     && read.fade == raster.fade,
+                                 "public DXF raster readback keeps valid stored adjustment values");
+                    }
+                    if (retained != nullptr && !wipeout && binary == retainedBinary && field == 2 && value == 100)
+                        std::filesystem::copy_file(path, *retained, std::filesystem::copy_options::overwrite_existing);
+                    adapter.dxfW = nullptr;
+                }
+            }
+        }
+    }
 }
 
 void testSortEntsKeyRoles(TestContext& t) {
@@ -5623,6 +5773,20 @@ void testDxfWriteAttemptFailure(TestContext& t) {
 } // namespace
 
 int main(int argc, char** argv) {
+    if (argc == 2 && std::string(argv[1]) == "--image-adjustment-admission") {
+        TestContext context;
+        testImageAdjustmentAdmission(context);
+        std::cout << "IMAGE/WIPEOUT adjustment admission: " << (context.failures == 0 ? "PASS" : "FAIL") << '\n';
+        return context.failures == 0 ? 0 : 1;
+    }
+    if (argc == 3 && (std::string(argv[1]) == "--generate-image-adjustments"
+                     || std::string(argv[1]) == "--generate-image-adjustments-binary")) {
+        TestContext context;
+        const std::filesystem::path retained(argv[2]);
+        testImageAdjustmentAdmission(context, &retained,
+            std::string(argv[1]) == "--generate-image-adjustments-binary");
+        return context.failures == 0 ? 0 : 1;
+    }
     // Invoked only as an owned bounded child by the focused locale check.
     // Never change CTYPE during the ordinary registered test invocation.
     if (argc == 3 && std::string(argv[1]) == "--ascii-folding-locale") {
@@ -5716,6 +5880,7 @@ int main(int argc, char** argv) {
     if (argc != 1)
         return 2;
     TestContext context;
+    testImageAdjustmentAdmission(context);
     testAsciiOnlySymbolCasing(context);
     testDxfConsumerFinalization(context);
     testInfiniteLineDirections(context);
