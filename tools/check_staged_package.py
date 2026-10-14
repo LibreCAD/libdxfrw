@@ -1343,7 +1343,7 @@ def self_test_build_option_contract() -> None:
 
 
 def self_test_build_options(cxx: str) -> None:
-    """Exercise four real configure-only option profiles; never build targets."""
+    """Exercise four option profiles and eight probe controls; never build project targets."""
     # Keep ordinary --self-test compiler-free. Only this explicit opt-in runs
     # CMake/compiler discovery, using the invoking Python rather than PATH's
     # possibly older python3 when the tests-enabled positive is configured.
@@ -1365,7 +1365,89 @@ def self_test_build_options(cxx: str) -> None:
                 print(output, end="")
                 raise
             print("build options %s: PASS (configure-only control)" % name)
+        self_test_python_probe(cxx, source, Path(directory))
     print("build options self-test: PASS (4 profiles; no library/format build)")
+
+
+def self_test_python_probe(cxx: str, source: Path, root: Path) -> None:
+    """Owned executable sentinels; opt-in only, never a CAD/project build."""
+    from bounded_process import run_bounded
+    sentinel_project = root / "python probe project"
+    sentinel_project.mkdir()
+    sentinel_source = sentinel_project / "python probe.cpp"
+    sentinel_build = root / "python probe build"
+    sentinel_source.write_text(
+        '#include <chrono>\n#include <cstdlib>\n#include <fstream>\n'
+        '#include <string>\n#include <thread>\n'
+        'int main(int argc, char** argv) {\n'
+        '  if (argc != 3 || std::string(argv[1]) != "-c"\n'
+        '      || std::string(argv[2]).find("sys.version_info >= (3, 10)") == std::string::npos) return 7;\n'
+        '  const char* mode = std::getenv("LIBDXFRW_7AD_PROBE_MODE");\n'
+        '  if (!mode) return 7;\n'
+        '  if (std::string(mode) == "timeout") {\n'
+        '    const char* marker = std::getenv("LIBDXFRW_7AD_PROBE_MARKER");\n'
+        '    if (!marker) return 7;\n'
+        '    std::ofstream output(marker); output << "started\\n"; output.close();\n'
+        '    std::this_thread::sleep_for(std::chrono::seconds(30)); return 7;\n'
+        '  }\n'
+        '  return std::string(mode) == "valid" ? 0 : std::string(mode) == "old" ? 1 : 7;\n'
+        '}\n', encoding="utf-8")
+    # CMake selects the compiler's standard/error flags and target suffix/path;
+    # do not send GNU driver options to MSVC or clang-cl. The repository already
+    # requires CMake3.28, which supports COMPILE_WARNING_AS_ERROR for these IDs.
+    (sentinel_project / "CMakeLists.txt").write_text(
+        'cmake_minimum_required(VERSION 3.28)\n'
+        'project(libdxfrw_python_probe LANGUAGES CXX)\n'
+        'add_executable(python_probe "python probe.cpp")\n'
+        'set_target_properties(python_probe PROPERTIES CXX_STANDARD 17\n'
+        '  CXX_STANDARD_REQUIRED ON CXX_EXTENSIONS OFF COMPILE_WARNING_AS_ERROR ON)\n'
+        'file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/sentinel-$<CONFIG>.path"\n'
+        '  CONTENT "$<TARGET_FILE:python_probe>\\n")\n', encoding="utf-8")
+    for phase, command in (
+            ("configure", ["cmake", "-S", str(sentinel_project), "-B", str(sentinel_build),
+                           "-DCMAKE_CXX_COMPILER=" + cxx, "-DCMAKE_BUILD_TYPE=Release"]),
+            ("build", ["cmake", "--build", str(sentinel_build), "--config", "Release",
+                       "--target", "python_probe", "--verbose"])):
+        result = run_bounded(command, timeout=30, output_limit=65536)
+        if result.returncode:
+            raise RuntimeError("Python probe sentinel did not %s: %s" % (
+                phase, (result.stdout + result.stderr).decode("utf-8", "replace")))
+    sentinel = Path((sentinel_build / "sentinel-Release.path").read_text().strip())
+    if not sentinel.is_absolute() or not sentinel.is_file():
+        raise RuntimeError("CMake did not identify the built Python probe sentinel")
+    sentinel.resolve().relative_to(sentinel_build.resolve())
+    invalid = root / "not executable python"
+    invalid.write_text("not an executable\n", encoding="utf-8")
+    probe_failure = "LIBDXFRW_BUILD_TESTS Python version probe failed"
+    controls = (
+        ("valid", str(sentinel), "valid", True, None),
+        ("old-version", str(sentinel), "old", True, "LIBDXFRW_BUILD_TESTS requires Python 3.10 or newer"),
+        ("other-exit", str(sentinel), "other", True, probe_failure),
+        ("timeout", str(sentinel), "timeout", True, probe_failure),
+        ("launch-missing", str(root / "absent python"), "valid", True, probe_failure),
+        ("launch-invalid", str(invalid), "valid", True, probe_failure),
+        ("missing-python", "", "valid", True, "LIBDXFRW_BUILD_TESTS requires a Python 3 interpreter"),
+        ("tests-disabled", str(sentinel), "timeout", False, None),
+    )
+    for name, python, mode, tests, diagnostic in controls:
+        build = root / ("python-" + name)
+        marker = root / ("started-" + name)
+        environment = dict(os.environ, LIBDXFRW_7AD_PROBE_MODE=mode,
+                           LIBDXFRW_7AD_PROBE_MARKER=str(marker))
+        command = build_option_command(source, build, cxx, python, True, False, tests)
+        result = run_bounded(command, timeout=30, output_limit=65536, env=environment)
+        output = (result.stdout + result.stderr).decode("utf-8", "replace")
+        assert_build_option_outcome(result.returncode, output, diagnostic)
+        if diagnostic == probe_failure and "requires Python 3.10 or newer" in output:
+            raise RuntimeError("probe failure was misclassified as an unsupported version")
+        if name == "other-exit" and "(7)" not in output:
+            raise RuntimeError("probe failure lost the actual exit status")
+        if name == "timeout" and ("timeout" not in output.lower() or not marker.is_file()):
+            raise RuntimeError("timeout control did not start/time out the owned sentinel")
+        if name == "tests-disabled" and marker.exists():
+            raise RuntimeError("disabled tests unexpectedly ran the Python probe")
+        print("Python probe %s: PASS (configure-only sentinel)" % name)
+    print("Python probe self-test: PASS (8 controls; no native qualification)")
 
 
 def assert_profile_symbols(prefix: Path, libdir: str = "lib", *,
@@ -1645,7 +1727,7 @@ def main() -> int:
     parser.add_argument("--thread-metadata-self-test", action="store_true",
                         help="opt-in configure/pkg-config checks for three forced thread branches")
     parser.add_argument("--build-options-self-test", action="store_true",
-                        help="opt-in configure-only checks for four library/CLI/test profiles")
+                        help="opt-in configure-only library/CLI/test and Python-probe controls")
     parser.add_argument("--relocation-smoke", action="store_true",
                         help="copy one staged prefix and build relocated consumers")
     parser.add_argument("--cxx", default=os.environ.get("CXX", "c++"))

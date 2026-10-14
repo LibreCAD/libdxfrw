@@ -57,11 +57,13 @@ CLI CTest pass. The parity ledger binds its source/report; native selection,
 durable packets and platform execution remain open. HATCH pattern retention
 tests are also integrated with exact typed/physical tags and model/named
 owner checks; strict TU/DXF-local2/2/eight CLI handoffs pass without production
-changes. Next configure-probe timeout work requires the complete portable
-b912a963→cb22907f chain, not its GNU-only first helper build. It remains
-isolated; one compiler-free/self-test and selected-compiler configure profile
-plus the affected CLI test suffice at integration. No library/full-suite
-rebuild or native claim is required by that tooling slice.
+changes. The complete portableb912a963→cb22907f configure-probe timeout chain
+is now integrated on c6c00c5. Ordinary self-test, one selected-compiler14-child
+profile, main reconfigure and actual CLI1/1 pass. Parity7AD binds exact source,
+helper/output hashes and non-skipped JUnit; the GNU-only first helper must not
+stand alone. No project library/full-suite rebuild, native/platform claim,
+registration/fixture/receipt change follows. Next7BE and consumer7AG.1c work
+remain independent of external qualification.
 External platform/ACIS qualification does not block these local
 steps. Broader geometry comparison must preserve pattern phase as well as
 HATCH boundary geometry, and a strict declared-encoding oracle profile is

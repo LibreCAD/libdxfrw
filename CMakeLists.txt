@@ -155,20 +155,26 @@ if(LIBDXFRW_BUILD_TESTS)
     enable_testing()
     # Keep the standalone compatibility and sample-driven harness in the
     # dedicated tests/ directory.  It is added here (after dwg2dxf) so the
-    # compile-only LibreCAD_3 ABI gate can resolve the CLI target when sample
-    # tests are enabled, while remaining absent from normal library builds.
+    # compile-only LibreCAD_3 source-compatibility gate can resolve the CLI
+    # target when sample tests are enabled, while remaining absent from normal
+    # library builds.
     # Resolve and validate Python before tests/ captures it in command vectors.
     find_program(LIBDXFRW_PYTHON_EXECUTABLE NAMES python3)
     if(NOT LIBDXFRW_PYTHON_EXECUTABLE)
         message(FATAL_ERROR "LIBDXFRW_BUILD_TESTS requires a Python 3 interpreter")
     endif()
+    set(_libdxfrw_python_probe_timeout_seconds 5)
     execute_process(
         COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -c
             "import sys; raise SystemExit(0 if sys.version_info >= (3, 10) else 1)"
         RESULT_VARIABLE LIBDXFRW_PYTHON_VERSION_OK
+        TIMEOUT ${_libdxfrw_python_probe_timeout_seconds}
     )
-    if(NOT "${LIBDXFRW_PYTHON_VERSION_OK}" STREQUAL "0")
+    if("${LIBDXFRW_PYTHON_VERSION_OK}" STREQUAL "1")
         message(FATAL_ERROR "LIBDXFRW_BUILD_TESTS requires Python 3.10 or newer")
+    elseif(NOT "${LIBDXFRW_PYTHON_VERSION_OK}" STREQUAL "0")
+        message(FATAL_ERROR
+            "LIBDXFRW_BUILD_TESTS Python version probe failed (${LIBDXFRW_PYTHON_VERSION_OK})")
     endif()
     add_subdirectory(tests)
     # This compiler-only contract needs no library build or X11 dependency.
