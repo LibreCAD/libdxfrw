@@ -2672,6 +2672,161 @@ void testClassicVertexXdata(TestContext& t) {
         }
     }
 }
+
+void testInsertChildHandleRollback(TestContext& t) {
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    const auto output = std::filesystem::temp_directory_path()
+        / ("libdxfrw-insert-rollback-" + std::to_string(nonce) + ".dxf");
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() { std::error_code error; std::filesystem::remove(path, error); }
+    } cleanup{output};
+    const auto addXdata = [](DRW_Entity& entity, const std::string& text) {
+        entity.extData.push_back(std::make_shared<DRW_Variant>(1001, "INSERT_APP"));
+        entity.extData.push_back(std::make_shared<DRW_Variant>(1000, text));
+        entity.extData.push_back(std::make_shared<DRW_Variant>(1070, -7));
+    };
+    const auto marker = [](const DRW_Entity& entity) {
+        return entity.extData.size() == 3u && entity.extData[0]
+            && entity.extData[0]->code() == 1001
+            && std::string(entity.extData[0]->c_str()) == "INSERT_APP"
+            && entity.extData[1] && entity.extData[1]->code() == 1000
+                ? std::string(entity.extData[1]->c_str()) : std::string{};
+    };
+    for (const DRW::Version version : {DRW::AC1015, DRW::AC1032}) {
+        for (const bool binary : {false, true}) {
+            for (const bool alias : {false, true}) {
+                for (const bool badXdata : {false, true}) {
+                    dx_data data;
+                    DRW_AppId app;
+                    app.name = "INSERT_APP";
+                    data.appIds.push_back(app);
+                    auto* block = new dx_ifaceBlock;
+                    block->name = "LOCAL_INSERT_ROLLBACK";
+                    data.blocks.push_back(block);
+                    auto* insert = new DRW_Insert;
+                    insert->name = block->name;
+                    insert->handle = 0xA100u;
+                    insert->basePoint = DRW_Coord(12, 23, 34);
+                    insert->xscale = -2;
+                    insert->angle = 0.5;
+                    insert->color = 3;
+                    insert->appData.push_back({{102, std::string("{INSERT_META")},
+                        {1, std::string("parent-app")}, {102, std::string("}")}});
+                    addXdata(*insert, "parent-xdata");
+                    auto first = std::make_shared<DRW_Attrib>();
+                    first->handle = 0xA101u;
+                    first->tag = "FIRST";
+                    first->text = "first attribute";
+                    first->height = 2;
+                    first->basePoint = DRW_Coord(45, 56, 67);
+                    first->color = 4;
+                    first->lockPosition = true;
+                    first->appData.push_back({{102, std::string("{ATTRIB_META")},
+                        {1, std::string("first-app")}, {102, std::string("}")}});
+                    addXdata(*first, "first-xdata");
+                    auto second = std::make_shared<DRW_Attrib>(*first);
+                    second->handle = 0xA102u;
+                    second->tag = "SECOND";
+                    second->text = "second attribute";
+                    second->basePoint = DRW_Coord(78, 89, 90);
+                    second->extData.clear();
+                    addXdata(*second, "second-xdata");
+                    if (badXdata)
+                        second->extData.back() = std::make_shared<DRW_Variant>(1070, 70001);
+                    else
+                        second->appData.front().pop_back(); // late unclosed child group
+                    insert->attlist = {first, second};
+                    if (alias)
+                        insert->attlist.insert(insert->attlist.begin() + 1, first);
+                    data.mBlock->ent.push_back(insert);
+                    auto* next = new DRW_Line;
+                    next->handle = 0xA103u;
+                    next->secPoint = DRW_Coord(1, 2, 3);
+                    addXdata(*next, "next-xdata");
+                    data.mBlock->ent.push_back(next);
+                    const auto children = insert->attlist;
+                    const auto firstXdata = first->extData;
+                    const auto secondXdata = second->extData;
+                    const auto secondGroups = second->appData.size();
+                    const auto secondGroupTags = second->appData.front().size();
+                    { std::ofstream original(output); original << "existing insert destination\n"; }
+                    dx_iface adapter;
+                    adapter.cData = &data;
+                    adapter.currentBlock = data.mBlock;
+                    const std::string fileName = output.string();
+                    dxfRW codec(fileName.c_str());
+                    adapter.dxfW = &codec;
+                    t.expect(!codec.write(&adapter, version, binary),
+                             "late child appData/XDATA failure rejects the enclosing INSERT");
+                    std::ifstream bytes(output, std::ios::binary);
+                    t.expect(std::string(std::istreambuf_iterator<char>(bytes), {})
+                                 == "existing insert destination\n",
+                             "rejected INSERT preserves the destination");
+                    bytes.close();
+                    t.expect(insert->handle == 0xA100u && first->handle == 0xA101u
+                                 && second->handle == 0xA102u && next->handle == 0xA103u,
+                             "INSERT rollback restores all caller child identities, including aliases");
+                    t.expect(insert->attlist == children && first->extData == firstXdata
+                                 && second->extData == secondXdata
+                                 && second->appData.size() == secondGroups
+                                 && second->appData.front().size() == secondGroupTags
+                                 && insert->name == block->name && insert->color == 3
+                                 && insert->basePoint.x == 12 && insert->xscale == -2
+                                 && insert->angle == 0.5 && insert->appData.size() == 1u
+                                 && marker(*insert) == "parent-xdata"
+                                 && first->tag == "FIRST" && first->text == "first attribute"
+                                 && first->basePoint.z == 67 && first->color == 4
+                                 && first->lockPosition && first->appData.size() == 1u
+                                 && second->tag == "SECOND" && second->basePoint.z == 90
+                                 && marker(*first) == "first-xdata" && marker(*second) == "second-xdata"
+                                 && second->extData.back()->i_val() == (badXdata ? 70001 : -7),
+                             "failed INSERT leaves caller vectors, geometry and metadata unchanged");
+                    t.expect(codec.remapEntityHandle(0xA100u) == 0xA100u
+                                 && codec.remapEntityHandle(0xA101u) == 0xA101u
+                                 && codec.remapEntityHandle(0xA102u) == 0xA102u
+                                 && codec.remapEntityHandle(0xA103u) == 0xA103u,
+                             "failed INSERT restores parent and child source-handle journal");
+                    if (badXdata)
+                        second->extData.back() = std::make_shared<DRW_Variant>(1070, -7);
+                    else
+                        second->appData.front().push_back(DRW_Variant(102, std::string("}")));
+                    t.expect(codec.write(&adapter, version, binary),
+                             "same INSERT writer succeeds after correcting only the late child error");
+                    t.expect(insert->attlist == children && insert->handle != 0xA100u
+                                 && first->handle != 0xA101u && second->handle != 0xA102u
+                                 && marker(*first) == "first-xdata" && marker(*second) == "second-xdata",
+                             "successful INSERT retains minted-child assignment and caller metadata");
+                    adapter.dxfW = nullptr;
+                    dx_data decoded;
+                    dx_iface reader;
+                    t.expect(reader.fileImport(fileName, &decoded, false),
+                             "failed-then-valid INSERT output reads back");
+                    const auto* readInsert = decoded.mBlock->ent.empty() ? nullptr
+                        : dynamic_cast<const DRW_Insert*>(decoded.mBlock->ent.front());
+                    t.expect(decoded.mBlock->ent.size() == 2u && readInsert
+                                 && readInsert->attlist.size() == children.size()
+                                 && marker(*readInsert) == "parent-xdata"
+                                 && marker(*decoded.mBlock->ent.back()) == "next-xdata",
+                             "INSERT retry retains parent, child count and following record boundaries");
+                    if (!readInsert) continue;
+                    for (std::size_t index = 0; index < readInsert->attlist.size(); ++index) {
+                        const auto& child = readInsert->attlist[index];
+                        const bool last = index + 1u == readInsert->attlist.size();
+                        t.expect(child && child->parentHandle == readInsert->handle
+                                     && child->tag == (last ? "SECOND" : "FIRST")
+                                     && marker(*child) == (last ? "second-xdata" : "first-xdata")
+                                     && child->extData.back()->i_val() == -7
+                                     && child->appData.size() == 1u,
+                                 "INSERT retry preserves ordered child owners and distinct metadata");
+                    }
+                    // Repeated pointers are rollback robustness controls,
+                    // not a valid-source graph qualification denominator.
+                }
+            }
+        }
+    }
+}
 } // namespace
 
 int main(int argc, char** argv) {
@@ -2720,6 +2875,7 @@ int main(int argc, char** argv) {
     TestContext context;
     testClassicVertexXdata(context);
     testMTextOrientationPrecedence(context);
+    testInsertChildHandleRollback(context);
     testTableRecordOwners(context);
     testBig5(context);
     testBig5Hkscs(context);

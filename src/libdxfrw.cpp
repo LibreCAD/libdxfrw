@@ -5505,6 +5505,20 @@ bool dxfRW::writeInsert(DRW_Insert *ent){
     }
     RecordStateScope state(*this, ent);
     DxfWriterRecordScope record(*writer);
+    // Successful child scopes still belong to this compound transaction.
+    // Reverse the emitted prefix on failure, including intermediate handles
+    // when the caller's attribute list contains the same pointer more than once.
+    struct AttributeHandleRollback {
+        std::vector<std::pair<DRW_Attrib*, std::uint32_t>> handles;
+        bool committed {false};
+        ~AttributeHandleRollback() {
+            if (!committed) {
+                for (auto saved = handles.rbegin(); saved != handles.rend(); ++saved)
+                    saved->first->handle = saved->second;
+            }
+        }
+    } attributeState;
+    attributeState.handles.reserve(ent->attlist.size());
     const bool hasAttribs = !ent->attlist.empty();
     const bool isMInsert = ent->isMInsert();
     // DXF represents a multiple insert as an INSERT record with the
@@ -5547,8 +5561,11 @@ bool dxfRW::writeInsert(DRW_Insert *ent){
     if (hasAttribs) {
         const std::uint32_t insertHandle = ent->handle;
         for (const auto &att : ent->attlist) {
-            if (att && !writeAttrib(att.get(), insertHandle))
-                return false;
+            if (att) {
+                attributeState.handles.emplace_back(att.get(), att->handle);
+                if (!writeAttrib(att.get(), insertHandle))
+                    return false;
+            }
         }
         if (!writeSequenceEnd(insertHandle))
             return false;
@@ -5558,6 +5575,7 @@ bool dxfRW::writeInsert(DRW_Insert *ent){
         return false;
     }
     state.commit();
+    attributeState.committed = true;
     return true;
 }
 
