@@ -210,13 +210,14 @@ CTest is required. J256/J260/J268/J284/J293/J295 remain DEFERRED_EXTERNAL.
 isolated30343a00f7184c1e07a278e4a0b4815ce97fe24e on907b77 implements the
 named v2 box-observation contract in the existing optional checker. Its62
 mocked controls pass in two existing Python3.12.15 environments. Independent
-review of that original candidate led to correction `e8fd3b82`; main integration
-remains pending. No parser/kernel executes in those tests, and cq_acis is
+review of that original candidate led to correction `e8fd3b82`; its main
+integration includes the self-test loading successor below. No parser/kernel
+executes in those tests, and cq_acis is
 absent in the inspected oracle environment. Report
 `/private/tmp/libdxfrw-acis-contract.W0dRdz/slice-report.json`, SHA256
 `0cc8ffbc7d32b3dbbfdf236afc21ab80b58fbd11f18a15efb0843fa1969aef00`, binds
 source`a1d940b2015d1f140be02c2533c1f8a8c974bb180867d933f753396108898697`.
-Correction `e8fd3b82377fdfbb69531f3672a9f2fb1a09ae9e` is reviewed and staged
+Correction `e8fd3b82377fdfbb69531f3672a9f2fb1a09ae9e` was reviewed and staged
 with source SHA256 `6c68e91ce4dea056fd18f05fb892b98bcc74518f5c82f3fb333841d100499a8c`.
 It adds observed typed body/lump/shell/face inventory and reachable counts,
 separate from reconstructed geometry and the unavailable original SAB wire
@@ -228,12 +229,18 @@ preserves the historical62-control binding. Input admission intentionally
 requires POSIX nonblocking regular-file checks; non-POSIX capability rejects,
 without changing library/dwg2dxf/FreeCAD Windows behavior.
 
-A fresh staged-source Python3.12 probe passes81 controls with `-B`, while
-`-I -B --self-test` fails at the sibling `bounded_process` import (line778).
-Fix that self-test-only loading seam before integration and retest both modes;
-do not relax runtime isolation or change geometry predicates. No implementation
-change is made in this plan-only pass. Review the staged candidate rather than
-starting another verifier. Bounded input and observation caps are not an
+A fresh historical staged-source Python3.12 probe passed81 controls with `-B`
+but failed its isolated sibling import. The integrated successor explicitly
+loads the trusted resolved helper only inside self-test, without changing
+sys.path or normal verification imports/predicates. Fresh ordinary/isolated
+CPython3.9/3.12 runs all pass81 controls. Current source SHA256
+`01eaf3688230fe072f08508b76da21234ca8304f8b109ba024371e2048ee77e6`
+is bound by `/private/tmp/libdxfrw-image-main.L264fn/acis-report.json`, SHA256
+`374341fea34a4776308cfa75b9b3b2195fae608ac11cdbacab86abab0d290076`.
+Independent review verifies helper-shadow/path controls; no parser/kernel
+executes and qualificationEligible remains false. Earlier reports retain their
+original bindings. Preserve this contract rather than starting another
+verifier. Bounded input and observation caps are not an
 external-parser/kernel time or memory sandbox;
 version strings alone do not attest loaded code. No fixture or frozen receipt
 changes are implied.

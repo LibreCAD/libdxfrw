@@ -207,6 +207,7 @@ Its historical binary diff SHA-256 is
 | PAR-25 / PAR-27 / PAR-33 research controls | REPRODUCED | Locally authored ASCII inputs and rebuilt CLI: valid wide self handle rejected with exit 1/no output; `$ACADMAINTVER=70001` becomes 0 with exit 0; output STYLE/VPORT owners differ from their table handles. ezdxf 1.4.4 ordinary reads confirm the scoped observations. |
 | Broader callback / text / comparator readiness review | PLAN_UPDATED / NONPROMOTING | At25d951c, adds reproduced PAR-118 under7AG.3a/S8.1a, raising118 findings/67 subplans. Root repeats24 source-bound safe callback rows;34 codec rows refine existing MIF/codepage findings. Primary ACadSharp/ezdxf/Assimp source checks refine projection exclusions. Corrects committed Template/package queue state and records the staged optional checker’s ordinary81-pass/isolated-import failure. Root checkpoint `/private/tmp/libdxfrw-research-plan-20261014.o22JFn/research-report.json` SHA256`550663ba235a882e18a68f4e5adbf13c923147d2b37db87035dd5b53911da1c6` binds the read-only probes; the separate PAR-118 report retains its own bindings. Only two plans change; staged code, fixtures, receipts, default registrations, remote state and six deferred J dispositions remain unchanged. |
 | 7BI raster admission integration | COMMITTED / DXF_API_SCOPED | `Plan-Slice:7BI`, integrates independently reviewed3df3386c. IMAGE/WIPEOUT adjustment0..100 admission precedes record/identity/reactor mutation, with shared DWG byte carriers and readers unchanged. Main strict production/fixture TUs and affected/lc3/CLI build pass; existing DXF/hardening2/2 pass2.98s with72 writer/36 parser controls. Fresh main report065afd76 binds three actual valid converter handoffs and unchanged source hashes. No new registration, drawing fixture, dependency, receipt or support promotion. Next7AG.3a queue correction and optional verifier integration;7BC/7P.5b remain separate. |
+| Slice8 optional box-verifier integration | COMMITTED / CONTRACT_SCOPED | Integrates reviewed30343a00→e8fd3b82 plus independently reviewed self-test-only helper loading. Named v2 observations separate geometry, units/default scale, typed topology, raw/diagnostic coverage and eligibility; qualificationEligible is always false. Fresh81-control ordinary/isolated CPython3.9/3.12 passes bind source01eaf368/report374341fe. Actual local regular-file/FIFO admission is POSIX-only; mocks are not geometry evidence. No CAD dependency/parser/kernel, new registration, fixture or receipt changed. Native/producer/ACDS/independent-kernel gates and six deferred J items stay open. Next7AG.3a and MIF correction. |
 
 Each implementation commit appends its focused validation result and remaining
 evidence impact here. All other slices remain queued; the full objective stays
@@ -2475,7 +2476,7 @@ failure does not prevent completing them:
 | 7AG.4 plus7AG.1 capability profile | Preserve committed direct predicates; attest effective driver context, declare/check capabilities, then add the two audited supplementary callbacks. | Direct102 controls pass; controlled-build provenance/header negatives before one paired build. No existing-binary ambient-only proof or blind target-lock/170→172 update. |
 | 7F.1b /7AH | Migrate the typed result/runner together, including optional modeler source presence and readable bounded observations. | Frozen-schema compatibility plus unknown/zero/presence/omission mutations, then clean/partial/opaque read/readback sentinels. |
 | 7AK.6, integrated | Preserve policy-aware binding/first-discovery validation and exact current-source package acceptance. |20 composed original/moved static/shared components pass; old timeout remains historical. Actual older/native/Conan/ABI cells stay separate. |
-| Slice8 verifier contract | Review the staged30343a00→e8fd3b82 successor; repair its self-test-only isolated-Python helper import before integration. |81 controls pass with ordinary Python; `-I -B --self-test` currently fails on the sibling-helper import. Retest both modes; native producer/second-kernel evidence remains deferred. |
+| Slice8 verifier contract, integrated | Preserve scoped geometry/unit/typed-topology/raw-coverage separation and self-test-only explicit helper loading. |81 controls pass in ordinary/isolated CPython3.9/3.12. Native producer, parser/kernel execution and independent semantic qualification remain separate; qualificationEligible stays false. |
 | 7S.2a–d | Implement input bytes, owned snapshot, live retention and revisit work as separate commits. | Tiny caps/counters/retry controls in existing hardening targets; one sanitizer checkpoint after shared storage/lifetime changes settle. |
 
 | Sub-slice | Current readiness | Main dependency | Smallest existing validation lane |
@@ -6845,7 +6846,8 @@ reader18/21 integration vectors and allocation/publication controls.
   Those62-control results retain their original source binding. Correction
   `e8fd3b82377fdfbb69531f3672a9f2fb1a09ae9e` adds nonblocking POSIX
   regular-file admission and separate observed typed body/lump/shell/face
-  inventories. Its reviewed source is now staged, not committed. Report
+  inventories. Its originally staged source is integrated with the reviewed
+  self-test loading correction below. Report
   `/private/tmp/libdxfrw-acis-contract.W0dRdz/correction-report.json`, SHA256
   `82476f315f5f74293da15905a238d3436d0b81d1668a51c52258dad587de1814`,
   binds81 controls under ordinary CPython3.9/3.12; these mix mocked geometry
@@ -6853,14 +6855,19 @@ reader18/21 integration vectors and allocation/publication controls.
   The typed inventory is not an original SAB wire-record denominator.
   Non-POSIX input admission explicitly rejects; Windows qualification stays
   open and the library/CLI Windows contract is unaffected.
-  A fresh current-staged Python3.12 run passes81 controls with `-B`, but
-  `-I -B --self-test` fails at line778 importing sibling `bounded_process`.
-  Before integration, load that trusted helper explicitly inside self-test
-  only, retain normal CLI isolation, and retest both modes with bounded
-  capture. Do not change production geometry predicates to fix this seam or
-  relabel the earlier ordinary-mode passes as isolated-Python passes.
-  cq_acis remains absent in the inspected oracle environment. Review this
-  existing candidate rather than reimplementing it. Input and observation limits do not
+  The historical current-staged Python3.12 probe passed81 controls with `-B`
+  but failed the isolated sibling import. The integrated self-test now loads
+  only the trusted resolved sibling via an explicit importlib spec, without
+  changing sys.path or normal verification imports/predicates. Fresh main
+  ordinary/isolated CPython3.9/3.12 runs all pass81 controls. Source SHA256
+  `01eaf3688230fe072f08508b76da21234ca8304f8b109ba024371e2048ee77e6`
+  and report `/private/tmp/libdxfrw-image-main.L264fn/acis-report.json`, SHA256
+  `374341fea34a4776308cfa75b9b3b2195fae608ac11cdbacab86abab0d290076`,
+  bind this successor; earlier ordinary-mode and failure reports keep their
+  own bindings. Independent review also verified helper-shadow/path controls.
+  cq_acis remains absent in the inspected oracle environment. Preserve this
+  integrated contract; no parser/kernel executes in these controls.
+  Input and observation limits do not
   sandbox parser/kernel time or memory; version strings are not loaded-code
   attestation. Do not block narrow box-contract integration on the future
   arbitrary-shape sentinel extension or use its mocks as native semantics.
@@ -7042,7 +7049,7 @@ work on the critical path.
 | Batch | Dependency-ready work | Validation boundary |
 | --- | --- | --- |
 | A — preserved integration queue |7AY/7AV.1–3/7AX/7AK.5/7BH.1 and policy-aware7AK.6 are committed. Review canonical7AL.2 encoding302ce6a7→HEADER e90b9f57 with accepted-source accessor, residual7AW0ee3bff2. Preserve7AK.6’s exact current-source acceptance; older/native/Conan/ABI cells remain separate. Reconcile STYLE9c3a74c7 with7AV cleanup; review BLOCK98176504.7AD ca8a7fd refresh/clean checkpoint complete; do not reintegrate | Touched targets per commit.38→45 required tests refresh and clean84 inventory are verified; debug/numeric build targets included. Enumerate only new registrations; exact focused7 unchanged; no user-sample glob/full suite per edit |
-| B — narrow independent corrections | Preserve committed7BJ.1/2,7AK.6 and7AG.4 direct-option predicates; do not queue them again. Prioritize7AG.3a BLOCK callback copying, then review7BI `3df3386c` and7BE `80eca35a`→`5860915d` serially at shared writer boundaries. Fix the optional ACIS self-test import seam independently. MIF literal preservation/exact hex,7BH.3,7BG/7BC and7N.2a remain local work; effective-driver/capability gates precede new receipts, not these fixes.7N.3 still needs its named witness. | Reuse the source-bound archive for tiny red observers, then rebuild only affected targets. One composed sanitizer checkpoint after queue/storage fixes settle; no repeated native/full suite. Retain historical b4/d49 results at their actual bindings. |
+| B — narrow independent corrections | Preserve committed7BI/7BJ.1/2,7AK.6,7AG.4 direct-option predicates and optional box-verifier contract; do not queue them again. Prioritize7AG.3a BLOCK callback copying, then review7BE `80eca35a`→`5860915d` serially at shared writer boundaries. MIF literal preservation/exact hex,7BH.3,7BG/7BC and7N.2a remain local work; effective-driver/capability gates precede new receipts, not these fixes.7N.3 still needs its named witness. | Reuse the source-bound archive for tiny red observers, then rebuild only affected targets. One composed sanitizer checkpoint after queue/storage fixes settle; no repeated native/full suite. Retain historical b4/d49 results at their actual bindings. |
 | C — grammar and graph composition | Shared7AM.2/7AS.2 footer design, implemented separately;7G.2 STYLE→VIEWPORT/resources;7P.5b/c image/dictionary/GROUP reciprocity;7F.1;7M/7E.1,7AL→7K→7J,7AA.1/2,7O.2/3,7G.3 effective explicit/implicit draw order→7R;7AG handoff | Touched targets per slice; one shared-change checkpoint; raw types/reciprocity/child counts/before-load fields. Exact consumer sources on public changes; sparse draw order, subtype1 measurement and oracle limits separate |
 | D — explicit policy/safety/platform boundaries |7BK transparency representation;7BF.1 LTYPE unit witness and7BF.3 indexed-edit/mirror authority; optional7AV.4 caller-memory guarantee;7AP cache safety;7Q gradients,7S.2/3 retention/work accounting,7T narrowing,7U retention,7Y.2 precision,7AE.2/3 Unicode/filename policy,7AC bridges;7AG/7AK PIC/DLL/release ABI and7AO attribution | Resolve only the named decision/witness without blocking ready local fixes. Small configured-limit negatives; ASan/TSan once at touched unsafe boundaries, not full suites per edit. No expired-pointer journals/unconditional cache replay; source/native and release/per-commit gates stay distinct |
 | E — qualification closeout | Slices 4–6/8/9, final binding, docs/consumer/platform dispositions | Required fresh final-broad/receipt checks once the candidate is stable; external-only gates remain separately deferred |
