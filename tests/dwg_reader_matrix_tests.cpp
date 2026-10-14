@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <array>
 #include <chrono>
 #include <cstring>
@@ -7,11 +8,13 @@
 #include <iomanip>
 #include <iostream>
 #include <iterator>
+#include <limits>
 #include <map>
 #include <memory>
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -29,6 +32,13 @@
 #include "intern/dwgreader.h"
 #include "intern/dwgutil.h"
 #include "intern/drw_textcodec.h"
+#include "intern/dwgtemplate.h"
+#include "intern/dwgwriter15.h"
+#include "intern/dwgwriter18.h"
+#include "intern/dwgwriter21.h"
+#include "intern/dwgwriter24.h"
+#include "intern/dwgwriter27.h"
+#include "intern/dwgwriter32.h"
 
 namespace {
 
@@ -528,6 +538,243 @@ void testR2007ClassStringFooter(TestContext& t) {
              "AC1024 class footer rejects an overlong string-size extension");
 }
 
+class TemplateProbe final : public dwgReader15 {
+public:
+    explicit TemplateProbe(DRW::Version target)
+        : dwgReader15(nullptr, nullptr) { version = target; }
+    using dwgReader::decodeDwgTemplate;
+    using dwgReader::missingDwgTemplate;
+    const std::vector<DwgIntegrityDiagnostic>& diagnostics() const {
+        return m_integrityDiagnostics;
+    }
+};
+
+void testTemplateFields(TestContext& t) {
+    for (auto version : {DRW::AC1015, DRW::AC1018, DRW::AC1021,
+                          DRW::AC1024, DRW::AC1027, DRW::AC1032}) {
+        for (std::uint8_t value : {0, 1}) {
+            const std::array<std::uint8_t, 6> padded{{0, 0, value, 0, 0x7f, 0x6a}};
+            std::uint16_t measurement = 99;
+            t.expect(dwgTemplate::decode(padded.data(), 4, version, measurement)
+                         == dwgTemplate::DecodeResult::Valid
+                         && measurement == value,
+                     "Template consumes logical bytes, not page padding");
+            t.expect(dwgTemplate::decode(padded.data(), padded.size(), version,
+                                         measurement)
+                         == dwgTemplate::DecodeResult::Malformed,
+                     "Template does not scan trailing page bytes for a value");
+            if (version >= DRW::AC1021) {
+                const std::array<std::uint8_t, 5> canonicalNul{{1, 0, 0, value, 0}};
+                t.expect(dwgTemplate::decode(canonicalNul.data(), canonicalNul.size(),
+                                             version, measurement)
+                             == dwgTemplate::DecodeResult::Valid
+                             && measurement == value,
+                         "modern canonical one-byte NUL description uses ODA byte count");
+                const std::array<std::uint8_t, 6> oldEmpty{{1, 0, 0, 0, value, 0}};
+                t.expect(dwgTemplate::decode(oldEmpty.data(), oldEmpty.size(),
+                                             version, measurement)
+                             == dwgTemplate::DecodeResult::Valid
+                             && measurement == value,
+                         "modern one-unit UTF16 NUL Template remains compatible");
+            }
+        }
+        TemplateProbe missing(version);
+        t.expect(missing.missingDwgTemplate(), "missing Template remains compatible");
+        t.expect(version < DRW::AC1018 ? missing.diagnostics().empty()
+                     : missing.diagnostics().size() == 1
+                         && missing.diagnostics()[0].kind
+                             == DwgIntegrityCheckKind::TemplateMissing
+                         && missing.diagnostics()[0].severity
+                             == DwgIntegritySeverity::Warning,
+                 "mandatory modern Template absence has a bounded named warning");
+        std::vector<std::uint8_t> maximumDescription(0x7fffu + 4u, 'A');
+        maximumDescription[0] = 0xff;
+        maximumDescription[1] = 0x7f;
+        maximumDescription[maximumDescription.size() - 2] = 1;
+        maximumDescription.back() = 0;
+        std::uint16_t maximumMeasurement = 99;
+        t.expect(dwgTemplate::decode(maximumDescription.data(),
+                                     maximumDescription.size(), version,
+                                     maximumMeasurement)
+                     == dwgTemplate::DecodeResult::Valid
+                     && maximumMeasurement == 1,
+                 "Template accepts the largest signed byte-count description");
+    }
+    for (const std::vector<std::uint8_t>& bytes : {
+             std::vector<std::uint8_t>{}, {0, 0}, {0, 0, 1}, {0, 0, 2, 0},
+             {0xff, 0xff, 0, 0}, {0, 0x80, 0, 0},
+             {4, 0, 'A', 0, 1, 0}, {1, 0, 0, 0, 1}, {1, 0, 0, 0, 2, 0}}) {
+        TemplateProbe reader(DRW::AC1024);
+        DRW_Header header;
+        t.expect(!reader.decodeDwgTemplate(header, bytes.data(), bytes.size(), 5)
+                     && header.vars.empty()
+                     && reader.diagnostics().back().kind
+                         == DwgIntegrityCheckKind::TemplateMalformed,
+                 "malformed Template publishes no partial header variable");
+    }
+    const std::array<std::uint8_t, 7> legacyDescription{{3, 0, 'A', 'B', 'C', 1, 0}};
+    std::uint16_t measurement = 99;
+    for (auto version : {DRW::AC1015, DRW::AC1018, DRW::AC1021,
+                          DRW::AC1024, DRW::AC1027, DRW::AC1032}) {
+        measurement = 99;
+        t.expect(dwgTemplate::decode(legacyDescription.data(), legacyDescription.size(),
+                                     version, measurement)
+                     == dwgTemplate::DecodeResult::Valid && measurement == 1,
+                 "all versions use the specified Template description byte count");
+    }
+    TemplateProbe modern(DRW::AC1024);
+    DRW_Header header;
+    const std::array<std::uint8_t, 8> noncanonicalModern{{2, 0, 'A', 0, 'B', 0, 1, 0}};
+    t.expect(modern.decodeDwgTemplate(header, noncanonicalModern.data(),
+                                      noncanonicalModern.size(), 5)
+                 && header.vars.empty()
+                 && modern.diagnostics().back().kind
+                     == DwgIntegrityCheckKind::TemplateDescriptionUnsupported,
+             "noncanonical modern description remains explicit, not guessed");
+}
+
+class TemplateSink final : public dx_iface {
+public:
+    TemplateSink() { cData = &data; currentBlock = data.mBlock; }
+    void addHeader(const DRW_Header* header) override {
+        ++headers;
+        for (const auto& field : header->vars) {
+            if (field.first == "MEASUREMENT") measurement = field.second->i_val();
+            if (field.first == "INSUNITS") units = field.second->i_val();
+        }
+    }
+    void addLine(const DRW_Line& line) override {
+        if (line.basePoint.x == 11 && line.secPoint.z == 29) ++lines;
+    }
+    dx_data data;
+    int headers = 0, measurement = -9, units = -9, lines = 0;
+};
+
+template<class Writer>
+void testTemplatePublication(TestContext& t, dwgRW& reader, int measurement) {
+    std::stringbuf bytes(std::ios::out | std::ios::binary);
+    std::ofstream output;
+    static_cast<std::ostream&>(output).rdbuf(&bytes);
+    DRW_Header header;
+    header.addInt("$MEASUREMENT", measurement, 70);
+    const int units = measurement == 0 ? 4 : 1;
+    header.addInt("$INSUNITS", units, 70);
+    Writer writer(&output, &header);
+    DRW_Line line;
+    line.basePoint = {11, 13, 17}; line.secPoint = {19, 23, 29};
+    const bool written = writer.prepareDwgClassManifest()
+        && writer.writeFileHeaderStub() && writer.writeDwgHeader()
+        && writer.writeDwgClasses() && writer.writeDwgObjects()
+        && writer.encodeEntity(&line) && writer.emitDeferredBlockControl()
+        && writer.finalizeHeaderHandseed() && writer.writeDwgHandles()
+        && writer.writeSecondHeader() && writer.finalize();
+    t.expect(written, "Template six-target memory writer completes");
+    if (!written) return;
+    const auto encoded = bytes.str();
+    std::vector<std::uint8_t> source(encoded.begin(), encoded.end());
+    const auto before = source;
+    TemplateSink sink;
+    t.expect(reader.readBuffer(source.data(), source.size(), &sink, false)
+                 && sink.headers == 1 && sink.measurement == measurement
+                 && sink.units == units && sink.lines == 1 && source == before,
+             "one public header publishes Template measurement independent of units");
+    if (std::is_same<Writer, dwgWriter15>::value) {
+        // The Template locator is record4 in this locally generated file.
+        std::size_t at = 0;
+        for (unsigned i = 0; i < source[21]; ++i) {
+            const std::size_t record = 25 + 9u * i;
+            if (source[record] != 4) continue;
+            at = static_cast<std::size_t>(source[record + 1])
+                | static_cast<std::size_t>(source[record + 2]) << 8
+                | static_cast<std::size_t>(source[record + 3]) << 16
+                | static_cast<std::size_t>(source[record + 4]) << 24;
+        }
+        t.expect(at != 0 && at + 4 <= source.size(), "legacy Template locator is present");
+        if (at != 0 && at + 4 <= source.size()) {
+            source[at + 2] = 2;
+            TemplateSink invalid;
+            t.expect(!reader.readBuffer(source.data(), source.size(), &invalid, false)
+                         && reader.getError() == DRW::BAD_READ_HEADER
+                         && invalid.headers == 0 && invalid.lines == 0,
+                     "invalid Template fails Header before public callback");
+            TemplateSink retry;
+            t.expect(reader.readBuffer(before.data(), before.size(), &retry, false)
+                         && retry.measurement == measurement && retry.headers == 1,
+                     "same public reader recovers without stale Template state");
+            source = before;
+            const unsigned count = source[21];
+            for (unsigned i = 0; i < count; ++i) {
+                const std::size_t record = 25 + 9u * i;
+                if (source[record] == 4)
+                    std::fill(source.begin() + record + 1,
+                              source.begin() + record + 9, 0);
+            }
+            const std::size_t crcOffset = 25 + 9u * count;
+            dwgBuffer crcBuffer(source.data(), source.size());
+            const std::uint16_t seeds[] = {0, 0, 0, 0xa598, 0x8101, 0x3cc4, 0x8461};
+            const auto crc = static_cast<std::uint16_t>(
+                crcBuffer.crc8(0, 0, static_cast<std::int32_t>(crcOffset))
+                ^ seeds[count]);
+            source[crcOffset] = static_cast<std::uint8_t>(crc);
+            source[crcOffset + 1] = static_cast<std::uint8_t>(crc >> 8);
+            TemplateSink absent;
+            t.expect(reader.readBuffer(source.data(), source.size(), &absent, false)
+                         && absent.headers == 1 && absent.measurement == -9,
+                     "absent optional legacy Template cannot reuse prior measurement");
+        }
+    }
+}
+
+void testTemplateFilePublication(TestContext& t) {
+    const auto directory = std::filesystem::temp_directory_path()
+        / ("libdxfrw-template-" + std::to_string(
+                std::chrono::steady_clock::now().time_since_epoch().count()));
+    if (!std::filesystem::create_directory(directory)) {
+        t.expect(false, "Template test scratch directory creation");
+        return;
+    }
+    const auto path = directory / "destination.dwg";
+    for (auto version : {DRW::AC1015, DRW::AC1018, DRW::AC1021,
+                          DRW::AC1024, DRW::AC1027, DRW::AC1032}) {
+        for (int value : {-1, 2, (std::numeric_limits<int>::max)()}) {
+            { std::ofstream existing(path, std::ios::binary); existing << "sentinel"; }
+            TemplateSink source;
+            source.data.headerC.addInt("$MEASUREMENT", value, 70);
+            dwgRW writer(path.string().c_str());
+            t.expect(!writer.write(&source, version, true)
+                         && source.data.headerC.vars.at("$MEASUREMENT")->i_val() == value,
+                     "invalid explicit measurement does not mutate caller header");
+            std::ifstream unchanged(path, std::ios::binary);
+            const std::string preserved((std::istreambuf_iterator<char>(unchanged)),
+                                         std::istreambuf_iterator<char>());
+            t.expect(preserved == "sentinel", "invalid Template preserves destination file");
+            unchanged.close();
+            source.data.headerC.addInt("$MEASUREMENT", 1, 70);
+            t.expect(writer.write(&source, version, true),
+                     "corrected public writer retries and publishes");
+            TemplateSink result;
+            dwgRW reader(path.string().c_str());
+            t.expect(reader.read(&result, false) && result.headers == 1
+                         && result.measurement == 1,
+                     "file reader publishes corrected Template measurement");
+        }
+    }
+    std::filesystem::remove(path);
+    std::filesystem::remove(directory);
+}
+
+void testTemplatePublicMatrix(TestContext& t) {
+    dwgRW reader("");
+    for (int measurement : {0, 1}) {
+        testTemplatePublication<dwgWriter15>(t, reader, measurement);
+        testTemplatePublication<dwgWriter18>(t, reader, measurement);
+        testTemplatePublication<dwgWriter21>(t, reader, measurement);
+        testTemplatePublication<dwgWriter24>(t, reader, measurement);
+        testTemplatePublication<dwgWriter27>(t, reader, measurement);
+        testTemplatePublication<dwgWriter32>(t, reader, measurement);
+    }
+}
+
 }  // namespace
 
 int main() {
@@ -538,6 +785,9 @@ int main() {
     testSectionNameMatrix(context);
     testSectionNameUtf16Framing(context);
     testR2007ClassStringFooter(context);
+    testTemplateFields(context);
+    testTemplatePublicMatrix(context);
+    testTemplateFilePublication(context);
     if (context.failures != 0) {
         std::cerr << context.failures << " DWG reader matrix assertion(s) failed\n";
         return 1;

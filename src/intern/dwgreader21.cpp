@@ -19,6 +19,7 @@
 #include "drw_dbg.h"
 #include "drw_reserve.h"
 #include "dwgreader21.h"
+#include "dwgtemplate.h"
 #include "dwgsafety.h"
 #include "drw_textcodec.h"
 #include "../libdwgr.h"
@@ -1420,6 +1421,19 @@ bool dwgReader21::readDwgHeader(DRW_Header& hdr){
         return false;
     }
     return true;
+}
+
+bool dwgReader21::readDwgTemplate(DRW_Header& hdr) {
+    const auto found = sections.find(secEnum::TEMPLATE);
+    if (found == sections.end() || found->second.Id < 0)
+        return missingDwgTemplate();
+    const auto& section = found->second;
+    if (section.size > dwgTemplate::MaxSectionSize)
+        return decodeDwgTemplate(hdr, nullptr, 0, section.Id);
+    std::vector<std::uint8_t> data(static_cast<std::size_t>(section.size));
+    if (data.empty() || !parseDataPage(section, data.data()))
+        return decodeDwgTemplate(hdr, nullptr, 0, section.Id);
+    return decodeDwgTemplate(hdr, data.data(), data.size(), section.Id);
 }
 
 bool dwgReader21::readDwgClasses(){

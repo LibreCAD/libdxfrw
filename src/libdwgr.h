@@ -153,7 +153,10 @@ enum class DwgIntegrityCheckKind : std::uint8_t {
     ObjectMapCrc,
     ObjectMapDuplicateOffset,
     ObjectFrameBounds,
-    FrameLedgerTransition
+    FrameLedgerTransition,
+    TemplateMissing,
+    TemplateMalformed,
+    TemplateDescriptionUnsupported
 };
 
 /// Version of the field and enum contract carried by DwgIntegrityDiagnostic.

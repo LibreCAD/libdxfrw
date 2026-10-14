@@ -526,6 +526,7 @@ protected:
   [[nodiscard]] virtual bool readPreview() { return false; }
   [[nodiscard]] virtual bool readFileHeader() = 0;
   [[nodiscard]] virtual bool readDwgHeader(DRW_Header &hdr) = 0;
+  [[nodiscard]] virtual bool readDwgTemplate(DRW_Header&) { return true; }
   [[nodiscard]] virtual bool readDwgClasses() = 0;
   [[nodiscard]] virtual bool readDwgHandles() = 0;
   [[nodiscard]] virtual bool readDwgTables(DRW_Header &hdr) = 0;
@@ -626,6 +627,11 @@ protected:
                             bool applyPrimaryCodec);
   [[nodiscard]] bool readDwgHeader(DRW_Header &hdr, dwgBuffer *buf,
                                    dwgBuffer *hBuf);
+  [[nodiscard]] bool decodeDwgTemplate(DRW_Header& hdr,
+                                       const std::uint8_t* data,
+                                       std::size_t size,
+                                       std::int32_t sectionId);
+  [[nodiscard]] bool missingDwgTemplate();
   [[nodiscard]] bool readDwgHandles(
       dwgBuffer *dbuf, std::uint64_t offset, std::uint64_t size,
       std::uint64_t locationLimit = (std::numeric_limits<std::uint64_t>::max)(),

@@ -24,6 +24,7 @@
 #include "drw_dbg.h"
 #include "drw_reserve.h"
 #include "dwgreader18.h"
+#include "dwgtemplate.h"
 #include "dwgutil.h"
 #include "dwgsafety.h"
 #include "drw_textcodec.h"
@@ -1245,6 +1246,21 @@ bool dwgReader18::readDwgHeader(DRW_Header& hdr){
     return ret;
 }
 
+
+bool dwgReader18::readDwgTemplate(DRW_Header& hdr) {
+    const auto found = sections.find(secEnum::TEMPLATE);
+    if (found == sections.end() || found->second.Id < 0)
+        return missingDwgTemplate();
+    const auto& section = found->second;
+    if (section.size > dwgTemplate::MaxSectionSize)
+        return decodeDwgTemplate(hdr, nullptr, 0, section.Id);
+    std::unique_ptr<std::uint8_t[]> data;
+    std::uint64_t capacity = 0;
+    if (!parseDataPage(section, data, capacity) || section.size > capacity)
+        return decodeDwgTemplate(hdr, nullptr, 0, section.Id);
+    return decodeDwgTemplate(hdr, data.get(),
+                             static_cast<std::size_t>(section.size), section.Id);
+}
 
 bool dwgReader18::readDwgClasses(){
     DRW_DBG("\ndwgReader18::readDwgClasses\n");

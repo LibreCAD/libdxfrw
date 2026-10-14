@@ -12,6 +12,7 @@
 ******************************************************************************/
 
 #include "dwgreader.h"
+#include "dwgtemplate.h"
 #include "drw_dbg.h"
 #include "drw_reserve.h"
 #include "drw_textcodec.h"
@@ -32,6 +33,41 @@
 #include <string>
 #include <type_traits>
 #include <utility>
+
+bool dwgReader::missingDwgTemplate() {
+    if (version >= DRW::AC1018) {
+        // ODA requires this section, but known producers omit it. Retain the
+        // compatible read while making absence distinguishable from explicit0.
+        recordIntegrityDiagnostic(
+            DwgIntegritySeverity::Warning, DwgIntegrityAddressSpace::None,
+            DwgIntegrityPhase::SectionParser,
+            DwgIntegrityCheckKind::TemplateMissing, secEnum::TEMPLATE,
+            -1, "AcDb:Template");
+    }
+    return true;
+}
+
+bool dwgReader::decodeDwgTemplate(DRW_Header& hdr, const std::uint8_t* data,
+                                  std::size_t size, std::int32_t sectionId) {
+    std::uint16_t measurement = 0;
+    const auto result = dwgTemplate::decode(data, size, version, measurement);
+    if (result != dwgTemplate::DecodeResult::Valid) {
+        const bool unsupported =
+            result == dwgTemplate::DecodeResult::UnsupportedDescription;
+        recordIntegrityDiagnostic(
+            unsupported ? DwgIntegritySeverity::Warning
+                        : DwgIntegritySeverity::Error,
+            DwgIntegrityAddressSpace::DecodedBuffer,
+            DwgIntegrityPhase::SectionParser,
+            unsupported ? DwgIntegrityCheckKind::TemplateDescriptionUnsupported
+                        : DwgIntegrityCheckKind::TemplateMalformed,
+            secEnum::TEMPLATE, sectionId, "AcDb:Template");
+        // No guessed value is published for an unsupported modern description.
+        return unsupported;
+    }
+    hdr.addInt("MEASUREMENT", measurement, 70);
+    return true;
+}
 
 namespace {
 bool isSpaceBlockRecordName(const std::string &name);

@@ -3645,6 +3645,8 @@ bool dwgRW::processDwg() {
     try {
     reader->beginDwgClassCoverage();
     ret = reader->readDwgHeader(hdr);
+    if (ret)
+        ret = reader->readDwgTemplate(hdr);
     if (!ret) {
         recordOperationDiagnostic(
             DRW::OperationPhase::Header, DRW::OperationCause::ReadFailure,
