@@ -31,6 +31,7 @@
 #include "../handle_allocator.h"
 #include "dwgbufferw.h"
 #include "dwgutil.h"
+#include "dwgsafety.h"
 
 class DRW_TextCodec;
 class DRW_Entity;
@@ -608,10 +609,15 @@ public:
     }
 
     /// Patch the already-emitted HEADER field after all object handles have
-    /// been minted. The fixed four-byte H payload keeps section offsets stable.
+    /// been minted, then reseal its CRC before container packaging. The fixed
+    /// four-byte H payload can be unaligned but keeps section offsets stable.
     bool finalizeHeaderHandseed() {
         if (m_header == nullptr
             || m_headerHandseedBitOffset == DRW_Header::kInvalidDwgHandseedBitOffset)
+            return false;
+        std::size_t crcStart = 0;
+        std::size_t crcOffset = 0;
+        if (!headerSealingRange(crcStart, crcOffset))
             return false;
         std::uint32_t maxHandle = 0;
         if (!validateEmittedHandleMap(maxHandle)
@@ -631,6 +637,7 @@ public:
         if (!m_buf.patchRawBytesAtBit(m_headerHandseedBitOffset, bytes,
                                       sizeof(bytes)))
             return false;
+        m_buf.patchRawShort16(crcOffset, m_buf.crc16(0xC0C1u, crcStart, crcOffset));
         m_header->setHandSeed(seed);
         return true;
     }
@@ -1530,6 +1537,55 @@ protected:
             || relative > (std::numeric_limits<std::uint32_t>::max)() - dataStartBit)
             return;
         m_headerHandseedBitOffset = dataStartBit + relative;
+        m_headerDataStartBit = dataStartBit;
+    }
+
+    /// ODA v5.4.1 section 9: HEADER CRC covers RL and all declared data,
+    /// including any optional maintenance word, and precedes the end sentinel.
+    /// Use the writer's existing locator-0 range, not the accumulator's end:
+    /// CLASSES and object frames have already been appended at this stage.
+    bool headerSealingRange(std::size_t& crcStart, std::size_t& crcOffset) const {
+        const auto offset = m_sectionOffsets.find(0);
+        const auto size = m_sectionSizes.find(0);
+        const auto& data = m_buf.data();
+        if (!m_buf.isGood() || offset == m_sectionOffsets.end()
+            || size == m_sectionSizes.end() || size->second < 38u
+            || !dwgSafety::range(offset->second, size->second, data.size()))
+            return false;
+        std::uint64_t start = 0;
+        std::uint64_t payloadStart = 0;
+        std::uint64_t sectionEnd = 0;
+        if (!dwgSafety::add(offset->second, 16u, start)
+            || !dwgSafety::add(start, 4u, payloadStart)
+            || !dwgSafety::add(offset->second, size->second, sectionEnd))
+            return false;
+        const std::uint32_t declared = std::uint32_t(data[start])
+            | (std::uint32_t(data[start + 1u]) << 8u)
+            | (std::uint32_t(data[start + 2u]) << 16u)
+            | (std::uint32_t(data[start + 3u]) << 24u);
+        std::uint64_t end = 0;
+        std::uint64_t trailerEnd = 0;
+        if (!dwgSafety::add(payloadStart, declared, end)
+            || !dwgSafety::add(end, 18u, trailerEnd)
+            || trailerEnd != sectionEnd
+            || !std::equal(dwgSentinels::HEADER_BEGIN, dwgSentinels::HEADER_BEGIN + 16,
+                           data.data() + offset->second)
+            || !std::equal(dwgSentinels::HEADER_END, dwgSentinels::HEADER_END + 16,
+                           data.data() + end + 2u))
+            return false;
+        std::uint64_t firstDataBit = 0;
+        std::uint64_t crcBit = 0;
+        std::uint64_t patchEnd = 0;
+        if (!dwgSafety::multiply(payloadStart, 8u, firstDataBit)
+            || !dwgSafety::multiply(end, 8u, crcBit)
+            || !dwgSafety::add(m_headerHandseedBitOffset, 32u, patchEnd)
+            || m_headerDataStartBit < firstDataBit
+            || m_headerHandseedBitOffset < m_headerDataStartBit
+            || patchEnd > crcBit)
+            return false;
+        crcStart = static_cast<std::size_t>(start);
+        crcOffset = static_cast<std::size_t>(end);
+        return true;
     }
 
     bool sameDwgClassIdentity(const DwgClassDefinition& left,
@@ -1864,7 +1920,8 @@ protected:
     /// final flush copies to `m_stream` in one `write()` call.
     dwgBufferW m_buf;
 
-    /// Per-section start byte offsets, indexed by `secEnum::DWGSection`.
+    /// Per-section start byte offsets, indexed by legacy locator IDs
+    /// (`recno` in concrete writers), not secEnum::DWGSection values.
     /// Populated as each section begins emitting; consumed by `finalize()`
     /// to back-patch the file-header section locator records.
     std::map<int, std::uint32_t> m_sectionOffsets;
@@ -1875,6 +1932,8 @@ protected:
     std::ofstream *m_stream {nullptr};
     DRW_Header *m_header {nullptr};
     std::uint32_t m_headerHandseedBitOffset {
+        DRW_Header::kInvalidDwgHandseedBitOffset};
+    std::uint32_t m_headerDataStartBit {
         DRW_Header::kInvalidDwgHandseedBitOffset};
 
     /// Target write version.  Default AC1015 (R2000).  Subclasses for

@@ -638,6 +638,42 @@ public:
         : dwgWriter15(stream, header) {}
     std::size_t headerAddress() const { return m_sectionOffsets.at(0); }
     std::size_t classesAddress() const { return m_sectionOffsets.at(1); }
+    struct SealingState {
+        std::vector<std::uint8_t> bytes;
+        std::uint32_t offset, size, patch, dataStart;
+    };
+    SealingState sealingState() const {
+        return {buffer(), m_sectionOffsets.at(0), m_sectionSizes.at(0),
+                m_headerHandseedBitOffset, m_headerDataStartBit};
+    }
+    void corruptSealing(const std::string& name) {
+        const auto start = m_sectionOffsets.at(0);
+        const auto crc = start + m_sectionSizes.at(0) - 18u;
+        if (name == "missing-range") m_sectionOffsets.erase(0);
+        if (name == "outside-range") m_sectionOffsets[0] = 0xFFFFFFFFu;
+        if (name == "short-range") m_sectionSizes[0] = 37u;
+        if (name == "long-range") ++m_sectionSizes[0];
+        if (name == "declared-max") m_buf.patchRawLong32(start + 16u, 0xFFFFFFFFu);
+        if (name == "declared-short") m_buf.patchRawLong32(start + 16u, 1u);
+        if (name == "begin-sentinel") {
+            const std::uint8_t value = std::uint8_t(buffer()[start] ^ 1u);
+            (void)m_buf.patchRawBytesAtBit(start * 8u, &value, 1u);
+        }
+        if (name == "end-sentinel") {
+            const std::uint8_t value = std::uint8_t(buffer()[crc + 2u] ^ 1u);
+            (void)m_buf.patchRawBytesAtBit((crc + 2u) * 8u, &value, 1u);
+        }
+        if (name == "patch-prefix") m_headerHandseedBitOffset = m_headerDataStartBit - 1u;
+        if (name == "patch-crc-bit") m_headerHandseedBitOffset = crc * 8u - 31u;
+        if (name == "invalid-data-origin") m_headerDataStartBit = crc * 8u + 1u;
+    }
+    bool restoreSealing(const SealingState& state) {
+        m_sectionOffsets[0] = state.offset;
+        m_sectionSizes[0] = state.size;
+        m_headerHandseedBitOffset = state.patch;
+        m_headerDataStartBit = state.dataStart;
+        return m_buf.patchRawBytesAtBit(0u, state.bytes.data(), state.bytes.size());
+    }
 };
 
 class HeaderPublicationSink final : public dx_iface {
@@ -646,10 +682,150 @@ public:
         cData = &data;
         currentBlock = data.mBlock;
     }
-    void addHeader(const DRW_Header*) override { ++headers; }
+    void addHeader(const DRW_Header* header) override {
+        ++headers;
+        handseed = header->getHandSeed();
+    }
+    void addLine(const DRW_Line& line) override {
+        ++lines;
+        lineEnd = line.secPoint;
+    }
     std::size_t headers{0};
+    std::size_t lines{0};
+    std::uint32_t handseed{0};
+    DRW_Coord lineEnd;
     dx_data data;
 };
+
+template<class Writer>
+void testHeaderWriterSealing(TestContext& t, const std::string& version) {
+    for (const std::uint32_t suppliedSeed : {0u, 0x12345678u}) {
+        std::stringbuf output(std::ios::out | std::ios::binary);
+        std::ofstream stream;
+        static_cast<std::ostream&>(stream).rdbuf(&output);
+        DRW_Header header;
+        header.setHandSeed(suppliedSeed);
+        Writer writer(&stream, &header);
+        writer.reserveHandle(0x7000u);
+        const auto label = version + " seed=" + std::to_string(suppliedSeed);
+        const bool prepared = writer.prepareDwgClassManifest()
+            && writer.writeFileHeaderStub();
+        t.expect(prepared, "HEADER writer preparation: " + label);
+        if (!prepared) continue;
+        const auto start = writer.buffer().size();
+        if (!writer.writeDwgHeader()) {
+            t.expect(false, "HEADER writer emission: " + label);
+            continue;
+        }
+        const auto sectionSize = writer.buffer().size() - start;
+        const auto crcOffset = start + sectionSize - 18u;
+        const auto storedCrc = [&writer, crcOffset]() {
+            return std::uint16_t(writer.buffer()[crcOffset])
+                | (std::uint16_t(writer.buffer()[crcOffset + 1u]) << 8u);
+        };
+        t.expect(storedCrc() == headerTestCrc(writer.buffer(), start + 16u, crcOffset),
+                 "initial HEADER CRC matches independent bitwise projection: " + label);
+        DRW_Line line;
+        line.basePoint = DRW_Coord(1, 2, 3);
+        line.secPoint = DRW_Coord(4, 5, 6);
+        const bool objects = writer.writeDwgClasses() && writer.writeDwgObjects()
+            && writer.encodeEntity(&line) && writer.emitDeferredBlockControl();
+        t.expect(objects, "HEADER writer following-record preparation: " + label);
+        if (!objects) continue;
+        // An unemitted reservation must also contribute to the high-water
+        // seed; maxEmittedHandle+1 alone is not the complete existing policy.
+        writer.reserveHandle(0x9000u);
+        std::uint32_t maxHandle = 0;
+        t.expect(writer.validateEmittedHandleMap(maxHandle), "HEADER writer handle map: " + label);
+        const auto before = writer.buffer();
+        t.expect(writer.finalizeHeaderHandseed(), "final HANDSEED patch: " + label);
+        const auto finalSeed = header.getHandSeed();
+        t.expect(finalSeed > maxHandle && finalSeed >= writer.highWaterHandle()
+                     && (suppliedSeed == 0u || finalSeed == suppliedSeed),
+                 "HANDSEED retains supplied/high-water bounds: " + label);
+        t.expect(storedCrc() == headerTestCrc(writer.buffer(), start + 16u, crcOffset),
+                 "final HEADER CRC matches independent bitwise projection: " + label);
+        const std::size_t dataPrefix = version == "AC1015" || version == "AC1018"
+            ? 20u : version == "AC1027" || version == "AC1032" ? 28u : 24u;
+        const auto patchBit = (start + dataPrefix) * 8u + header.dwgHandseedBitOffset();
+        bool otherBitsExact = before.size() == writer.buffer().size();
+        for (std::size_t byte = 0; otherBitsExact && byte < before.size(); ++byte) {
+            const auto changed = std::uint8_t(before[byte] ^ writer.buffer()[byte]);
+            for (unsigned int bit = 0; bit < 8u; ++bit) {
+                const auto at = byte * 8u + bit;
+                if (at >= patchBit && at < patchBit + 32u) continue;
+                if (byte >= crcOffset && byte < crcOffset + 2u) continue;
+                if ((changed & (1u << (7u - bit))) != 0u) otherBitsExact = false;
+            }
+        }
+        t.expect(otherBitsExact,
+                 "only HANDSEED bits/CRC change, including unaligned neighbors: " + label);
+        if (suppliedSeed != 0u)
+            t.expect(writer.buffer() == before, "unchanged high HANDSEED leaves all bytes exact: " + label);
+        const auto once = writer.buffer();
+        t.expect(writer.finalizeHeaderHandseed() && writer.buffer() == once,
+                 "HANDSEED patch/reseal is idempotent, not container finalization: " + label);
+        t.expect(output.str().empty(), "HANDSEED finalization publishes no file prefix: " + label);
+        const bool published = writer.writeDwgHandles() && writer.writeSecondHeader()
+            && writer.finalize();
+        t.expect(published, "sealed HEADER container publication: " + label);
+        if (!published) continue;
+        const auto file = output.str();
+        std::vector<std::uint8_t> bytes(file.begin(), file.end());
+        HeaderPublicationSink sink;
+        dwgRW reader("");
+        t.expect(reader.readBuffer(bytes.data(), bytes.size(), &sink, false)
+                     && sink.headers == 1u && sink.handseed == finalSeed
+                     && sink.lines == 1u && sink.lineEnd.x == 4
+                     && sink.lineEnd.y == 5 && sink.lineEnd.z == 6,
+                 "sealed complete file retains HEADER and following LINE: " + label);
+        const auto diagnostics = reader.getIntegrityDiagnostics();
+        t.expect(std::none_of(diagnostics.begin(), diagnostics.end(), [](const auto& entry) {
+                     return entry.kind == DwgIntegrityCheckKind::HeaderSectionCrc;
+                 }), "clean writer needs no HEADER CRC warning: " + label);
+    }
+}
+
+void testHeaderWriters(TestContext& t) {
+    testHeaderWriterSealing<dwgWriter15>(t, "AC1015");
+    testHeaderWriterSealing<dwgWriter18>(t, "AC1018");
+    testHeaderWriterSealing<dwgWriter21>(t, "AC1021");
+    testHeaderWriterSealing<dwgWriter24>(t, "AC1024");
+    testHeaderWriterSealing<dwgWriter27>(t, "AC1027");
+    testHeaderWriterSealing<dwgWriter32>(t, "AC1032");
+}
+
+void testHeaderWriterSealingFailures(TestContext& t) {
+    std::stringbuf output(std::ios::out | std::ios::binary);
+    std::ofstream stream;
+    static_cast<std::ostream&>(stream).rdbuf(&output);
+    DRW_Header header;
+    FullHeaderWriterProbe writer(&stream, &header);
+    const bool prepared = writer.prepareDwgClassManifest() && writer.writeFileHeaderStub()
+        && writer.writeDwgHeader() && writer.writeDwgClasses()
+        && writer.writeDwgObjects() && writer.emitDeferredBlockControl();
+    t.expect(prepared, "writer sealing negative controls have valid preceding records");
+    if (!prepared) return;
+    const auto valid = writer.sealingState();
+    t.expect(valid.patch % 8u != 0u, "actual HEADER HANDSEED patch is unaligned");
+    for (const std::string name : {"missing-range", "outside-range", "short-range",
+            "long-range", "declared-max", "declared-short", "begin-sentinel",
+            "end-sentinel", "patch-prefix", "patch-crc-bit", "invalid-data-origin"}) {
+        writer.corruptSealing(name);
+        const auto corrupted = writer.buffer();
+        const auto priorSeed = header.getHandSeed();
+        t.expect(!writer.finalizeHeaderHandseed() && writer.buffer() == corrupted
+                     && header.getHandSeed() == priorSeed && output.str().empty(),
+                 "invalid HEADER sealing rejects before any mutation/publication: " + name);
+        t.expect(writer.restoreSealing(valid) && writer.finalizeHeaderHandseed(),
+                 "corrected internal HEADER range can be retried: " + name);
+        const auto crc = valid.offset + valid.size - 18u;
+        const auto stored = std::uint16_t(writer.buffer()[crc])
+            | (std::uint16_t(writer.buffer()[crc + 1u]) << 8u);
+        t.expect(stored == headerTestCrc(writer.buffer(), valid.offset + 16u, crc),
+                 "successful retry reseals the independently checked HEADER: " + name);
+    }
+}
 
 void testHeaderPublicRead(TestContext& t) {
     // The legacy writer takes an ofstream; its ostream buffer can be owned
@@ -699,9 +875,9 @@ void testHeaderPublicRead(TestContext& t) {
     t.expect(unmodifiedAccepted && unmodifiedSink.headers == 1u
                  && unmodifiedWarnings == (writerStoredCrc == correctedCrc ? 0 : 1),
              "unmodified writer output retains checksum-warning compatibility");
-    // finalizeHeaderHandseed() edits the already-sealed HEADER. Normalize
-    // this generated control's checksum explicitly; writer resealing is a
-    // separate concern from the reader's warning/structural policy here.
+    // Keep the reader mutation controls independent of writer sealing. This
+    // test-only normalization cannot qualify production writer integrity;
+    // testHeaderWriters checks the unmodified production CRC independently.
     original[crc] = static_cast<std::uint8_t>(correctedCrc);
     original[crc + 1u] = static_cast<std::uint8_t>(correctedCrc >> 8u);
     dwgRW reader("");
@@ -1149,6 +1325,8 @@ int main() {
     testBoundedFork(context);
     testHeaderSectionBounds(context);
     testHeaderPublicRead(context);
+    testHeaderWriters(context);
+    testHeaderWriterSealingFailures(context);
     testDwgOperationAdmission(context);
     testVersionDispatch(context);
     testReadBufferRejection(context);
