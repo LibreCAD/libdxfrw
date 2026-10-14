@@ -640,6 +640,8 @@ public:
     class EntityRecordScope;
     bool preflightEntity(const DRW_Entity *ent);
     bool preflightTableEntry(const DRW_TableEntry *ent);
+    bool resolveSortEntsEntityHandle(std::uint32_t source,
+                                     std::uint32_t& resolved) const;
     bool preflightDxfClasses();
     LIBDXFRW_TEST_SEAM_NOINLINE bool validateHatchPayload(const DRW_Hatch *ent) const;
     bool writeEntity(DRW_Entity *ent, bool captureSourceHandle = true,
@@ -666,7 +668,8 @@ public:
                            bool hasRawValues,
                            DRW::Version sourceVersion,
                            bool remapSourceHandles = true,
-                           bool useLegacyClassifier = false);
+                           bool useLegacyClassifier = false,
+                           bool sortEntsTableRecord = false);
     LIBDXFRW_TEST_SEAM_NOINLINE bool writeRawDxfSection(const DRW_RawDxfSection &section);
     bool remapAcdsAsmDataOwnerHandles(DRW_RawDxfSection &section);
     void writePlotSettingsFields(const DRW_PlotSettings *ent);

@@ -14666,6 +14666,125 @@ bool parseRawDxfHandleLexeme(const std::string& text, std::uint64_t& value) {
     return result.ec == std::errc{} && result.ptr == end;
 }
 
+// Group 5 is a self identity in a record header, but an opaque numeric sort
+// key in the SORTENTSTABLE body. Keep this exception record/subclass scoped;
+// changing the global group-code role would break ordinary identity remaps.
+class RawSortEntsScope {
+public:
+    explicit RawSortEntsScope(bool sortRecord) : m_sortRecord(sortRecord) {}
+
+    bool accept(const DRW_Variant& value) {
+        m_sortKey = false;
+        m_blockOwner = false;
+        m_entityReference = false;
+        const int code = value.code();
+        if (code == 0) {
+            if (!complete() || value.type() != DRW_Variant::STRING)
+                return false;
+            *this = RawSortEntsScope(
+                dxfKeywordEquals(value.c_str(), "SORTENTSTABLE"));
+            return true;
+        }
+        if (!m_sortRecord)
+            return true;
+        if (code == 102 && value.type() == DRW_Variant::STRING) {
+            const std::string text = value.c_str();
+            if (!text.empty() && text.front() == '{')
+                ++m_appDepth;
+            else if (text == "}" && m_appDepth != 0)
+                --m_appDepth;
+            return true;
+        }
+        if (m_appDepth != 0)
+            return true;
+        if (code == 100 && value.type() == DRW_Variant::STRING) {
+            if (std::string(value.c_str()) == "AcDbSortentsTable") {
+                if (m_bodySeen)
+                    return false;
+                m_body = true;
+                m_bodySeen = true;
+            } else if (m_body) {
+                if (!m_owner || m_pendingEntity)
+                    return false;
+                m_body = false;
+            }
+            return true;
+        }
+        if (!m_body || (code != 330 && code != 331 && code != 5))
+            return true;
+        std::uint64_t handle = 0;
+        if (value.type() != DRW_Variant::STRING
+            || !parseRawDxfHandleLexeme(value.c_str(), handle))
+            return false;
+        if (code == 330) {
+            if (m_owner || m_pendingEntity || m_entries != 0 || handle == 0)
+                return false;
+            m_owner = true;
+            m_blockOwner = true;
+        } else if (code == 331) {
+            if (!m_owner || m_pendingEntity
+                || m_entries >= DRW_SortEntsTable::kMaxEntries)
+                return false;
+            m_pendingEntity = true;
+            m_entityReference = true;
+        } else {
+            if (!m_pendingEntity)
+                return false;
+            m_sortKey = true;
+            m_pendingEntity = false;
+            ++m_entries;
+        }
+        return true;
+    }
+
+    bool complete() const noexcept {
+        return !m_sortRecord
+            || (m_bodySeen && m_owner && !m_pendingEntity && m_appDepth == 0);
+    }
+    bool isSortKey() const noexcept { return m_sortKey; }
+    bool isBlockOwner() const noexcept { return m_blockOwner; }
+    bool isEntityReference() const noexcept { return m_entityReference; }
+
+private:
+    bool m_sortRecord{false}, m_body{false}, m_bodySeen{false}, m_owner{false};
+    bool m_pendingEntity{false}, m_sortKey{false};
+    bool m_blockOwner{false}, m_entityReference{false};
+    std::size_t m_entries{0}, m_appDepth{0};
+};
+
+// ASCII source spellings must describe the same known SORTENTSTABLE carrier
+// that preflight classifies. Unknown records retain their existing raw policy.
+bool hasRawSortEntsAgreement(const std::vector<DRW_Variant>& groups,
+                            const std::vector<UTF8STRING>& rawValues,
+                            bool sortRecord) {
+    for (std::size_t index = 0; index < groups.size(); ++index) {
+        const DRW_Variant& group = groups[index];
+        const int code = group.code();
+        if (code == 0) {
+            const bool decodedSort = dxfKeywordEquals(group.c_str(), "SORTENTSTABLE");
+            const bool rawSort = dxfKeywordEquals(rawValues[index], "SORTENTSTABLE");
+            if ((sortRecord || decodedSort || rawSort)
+                && rawValues[index] != group.c_str())
+                return false;
+            sortRecord = decodedSort || rawSort;
+            continue;
+        }
+        if (!sortRecord)
+            continue;
+        if (code == 100 || code == 102) {
+            if (rawValues[index] != group.c_str())
+                return false;
+        } else if (code == 5 || code == 330 || code == 331) {
+            std::uint64_t decoded = 0, raw = 0;
+            if (!parseRawDxfHandleLexeme(group.c_str(), decoded)
+                || !parseRawDxfHandleLexeme(rawValues[index], raw)
+                || decoded != raw)
+                return false;
+        }
+    }
+    return true;
+}
+
 bool requiresDxfSelfHandle(DRW::Version sourceVersion) {
     return sourceVersion != DRW::UNKNOWNV && sourceVersion > DRW::AC1009;
 }
@@ -14725,7 +14844,24 @@ bool isValidDxfHandleString(const std::string& text) {
 }
 
 bool hasRawDxfSelfHandle(const DRW_RawDxfObject& object) {
+    const bool sortRecord = dxfKeywordEquals(object.name, "SORTENTSTABLE");
+    std::size_t appDepth = 0;
     for (const DRW_Variant& group : object.groups) {
+        if (sortRecord) {
+            if (group.code() == 102 && group.type() == DRW_Variant::STRING
+                && group.c_str() != nullptr) {
+                const std::string text = group.c_str();
+                if (!text.empty() && text.front() == '{')
+                    ++appDepth;
+                else if (text == "}" && appDepth != 0)
+                    --appDepth;
+                continue;
+            }
+            if (appDepth != 0)
+                continue;
+            if (group.code() == 100)
+                break; // A body sort key cannot supply the record's identity.
+        }
         if (group.code() != 5 || group.type() != DRW_Variant::STRING
             || group.c_str() == nullptr) {
             continue;
@@ -14733,6 +14869,8 @@ bool hasRawDxfSelfHandle(const DRW_RawDxfObject& object) {
         std::uint64_t value = 0;
         if (parseRawDxfHandleLexeme(group.c_str(), value) && value != 0)
             return true;
+        if (sortRecord)
+            return false;
     }
     return false;
 }
@@ -15843,7 +15981,8 @@ bool dxfRW::writeRawDxfGroups(
     bool hasRawValues,
     DRW::Version sourceVersion,
     bool remapSourceHandles,
-    bool useLegacyClassifier) {
+    bool useLegacyClassifier,
+    bool sortEntsTableRecord) {
     if (!preflightDxfWrite()
         || (sourceVersion != DRW::UNKNOWNV && sourceVersion != version)) {
         m_writeError = true;
@@ -15857,6 +15996,52 @@ bool dxfRW::writeRawDxfGroups(
         m_writeError = true;
         return false;
     }
+    if (!binFile && hasRawValues
+        && !hasRawSortEntsAgreement(groups, rawValues, sortEntsTableRecord))
+        return failDxfWrite();
+    const auto resolveSortReference = [this, remapSourceHandles](
+        const RawSortEntsScope& scope, const DRW_Variant& group,
+        std::uint64_t& resolved) {
+        if (!scope.isBlockOwner() && !scope.isEntityReference())
+            return true;
+        std::uint64_t source = 0;
+        if (!parseRawDxfHandleLexeme(group.c_str(), source))
+            return false;
+        resolved = source;
+        if (!remapSourceHandles)
+            return true; // Preserve the existing raw-section namespace policy.
+        // With no active entity namespace, raw 331 values (including wide or
+        // unresolved values) remain transport, not evidence of graph closure.
+        if (scope.isEntityReference()
+            && !m_writingContext.sourceHandleToMintedMap.empty()) {
+            // Active entity identity planning is 32-bit. Raw wide keys remain
+            // opaque; wide references are transport-only without this map.
+            if (source > std::numeric_limits<std::uint32_t>::max())
+                return false;
+            std::uint32_t entity = 0;
+            if (!resolveSortEntsEntityHandle(static_cast<std::uint32_t>(source), entity))
+                return false;
+            resolved = entity;
+        } else if (scope.isBlockOwner()
+                   && source <= std::numeric_limits<std::uint32_t>::max()) {
+            const auto block = m_sourceBlockRecordHandles.find(
+                static_cast<std::uint32_t>(source));
+            resolved = block != m_sourceBlockRecordHandles.end()
+                ? block->second : remapObjectHandle(static_cast<std::uint32_t>(source));
+            if (resolved == 0)
+                return false;
+        }
+        return true;
+    };
+    RawSortEntsScope preflightScope(sortEntsTableRecord);
+    for (const DRW_Variant& group : groups) {
+        std::uint64_t resolved = 0;
+        if (!preflightScope.accept(group)
+            || !resolveSortReference(preflightScope, group, resolved))
+            return failDxfWrite();
+    }
+    if (!preflightScope.complete())
+        return failDxfWrite();
 
     auto writeString = [this](int code, const std::string &value) {
         if (!writer->writeString(code, value)) {
@@ -15901,15 +16086,30 @@ bool dxfRW::writeRawDxfGroups(
         return true;
     };
 
+    RawSortEntsScope groupScope(sortEntsTableRecord);
     for (std::size_t groupIndex = 0; groupIndex < groups.size();
          ++groupIndex) {
         const DRW_Variant &v = groups[groupIndex];
+        if (!groupScope.accept(v))
+            return failDxfWrite();
+        if (groupScope.isBlockOwner() || groupScope.isEntityReference()) {
+            std::uint64_t source = 0;
+            std::uint64_t resolved = 0;
+            if (!parseRawDxfHandleLexeme(v.c_str(), source)
+                || !resolveSortReference(groupScope, v, resolved))
+                return failDxfWrite();
+            if (resolved != source) {
+                if (!writeString(v.code(), DxfNumeric::formatHex(resolved)))
+                    return false;
+                continue;
+            }
+        }
         // Apply the structural-collision handle remap to handle-reference codes.
         // The value is a hex handle string; if it names a remapped handle, emit
         // the replacement so this object (and every reference to a remapped
         // object) stays internally consistent.
         if (v.type() == DRW_Variant::STRING
-            && isDxfTranslatedHandleCode(v.code())) {
+            && isDxfTranslatedHandleCode(v.code()) && !groupScope.isSortKey()) {
             std::string s = v.c_str();
             std::uint32_t parsed = 0;
             const char* begin = s.data();
@@ -16016,7 +16216,8 @@ bool dxfRW::writeRawDxfObject(DRW_RawDxfObject *obj) {
         return false;
     if (!writeRawDxfGroups(obj->groups, obj->rawValues, obj->hasRawValues,
                             obj->m_version, /*remapSourceHandles=*/true,
-                            m_useTargetLegacyClassifier))
+                            m_useTargetLegacyClassifier,
+                            dxfKeywordEquals(obj->name, "SORTENTSTABLE")))
         return false;
     if (!preflightDxfWrite() || !record.commit()) {
         m_writeError = true;
@@ -17115,6 +17316,28 @@ bool dxfRW::writeSpatialFilter(DRW_SpatialFilter *ent) {
 // SORTENTSTABLE (AcDbSortentsTable, custom class). Entity handles are remapped
 // through the source->minted map when this is emitted after ENTITIES; direct unit
 // writers with an empty map preserve the caller-provided handles verbatim.
+bool dxfRW::resolveSortEntsEntityHandle(std::uint32_t source,
+                                       std::uint32_t& resolved) const {
+    if (source == 0
+        || m_writingContext.ambiguousSourceHandles.count(source) != 0)
+        return false;
+    const auto explicitMap = m_handleRemap.find(source);
+    if (explicitMap != m_handleRemap.end()) {
+        resolved = explicitMap->second;
+        return resolved != 0;
+    }
+    const auto& sources = m_writingContext.sourceHandleToMintedMap;
+    if (sources.empty()) {
+        resolved = source;
+        return true;
+    }
+    const auto entity = sources.find(source);
+    if (entity == sources.end())
+        return false;
+    resolved = entity->second;
+    return resolved != 0;
+}
+
 bool dxfRW::writeSortEntsTable(DRW_SortEntsTable *ent) {
     if (!preflightTableEntry(ent)
         || ent->m_blockOwnerHandle == DRW::NoHandle
@@ -17125,63 +17348,46 @@ bool dxfRW::writeSortEntsTable(DRW_SortEntsTable *ent) {
                        [](std::uint32_t handle) {
                            return handle == DRW::NoHandle;
                        }))
-        return false;
+        return failDxfWrite();
+
+    std::vector<std::uint32_t> entities;
+    try {
+        entities.reserve(ent->m_entityHandles.size());
+        for (const std::uint32_t source : ent->m_entityHandles) {
+            std::uint32_t entity = 0;
+            if (!resolveSortEntsEntityHandle(source, entity))
+                return failDxfWrite();
+            entities.push_back(entity);
+        }
+    } catch (...) {
+        return failDxfWrite();
+    }
+    const std::uint32_t self = remapObjectHandle(ent->handle);
+    const auto block = m_sourceBlockRecordHandles.find(ent->m_blockOwnerHandle);
+    const std::uint32_t owner = block != m_sourceBlockRecordHandles.end()
+        ? block->second : remapObjectHandle(ent->m_blockOwnerHandle);
+    if (self == 0 || owner == 0)
+        return failDxfWrite();
+
+    DxfWriterRecordScope record(*writer);
     writer->writeString(0, "SORTENTSTABLE");
-    writer->writeString(5, toHexStr(ent->handle));
+    writer->writeString(5, toHexStr(self));
     if (!writeTableEntryAppData(*ent))
-        return false;
+        return failDxfWrite();
     writeObjectOwner(static_cast<std::uint32_t>(ent->parentHandle));
     writer->writeString(100, "AcDbSortentsTable");
-    writer->writeString(330, toHexStr(ent->m_blockOwnerHandle));
-
-    const auto &srcToMinted = m_writingContext.sourceHandleToMintedMap;
-    const bool remapEntities = !srcToMinted.empty();
-    auto resolveEntity = [&](std::uint32_t source, std::uint32_t &resolved) {
-        if (source == 0)
-            return false;
-        if (!remapEntities) {
-            resolved = source;
-            return true;
-        }
-        auto it = srcToMinted.find(source);
-        if (it == srcToMinted.end())
-            return false;
-        resolved = it->second;
-        return true;
-    };
-    auto resolveSort = [&](std::uint32_t source, std::uint32_t &resolved) {
-        if (source == 0)
-            return true;
-        if (!remapEntities) {
-            resolved = source;
-            return true;
-        }
-        if (m_writingContext.ambiguousSourceHandles.count(source) != 0)
-            return false;
-        auto it = srcToMinted.find(source);
-        // Sort keys can target an OBJECTS record as well as an entity. Only
-        // entity source handles are remapped by this writer, so retain a
-        // non-entity key that has no entity mapping.
-        resolved = it == srcToMinted.end() ? source : it->second;
-        return true;
-    };
-
-    const std::size_t entryCount = ent->m_entityHandles.size();
-    for (std::size_t i = 0; i < entryCount; ++i) {
-        const std::uint32_t entitySource = ent->m_entityHandles[i];
-        std::uint32_t entityHandle = 0;
-        if (!resolveEntity(entitySource, entityHandle))
-            return failDxfWrite();
-        const std::uint32_t sortSource = ent->m_sortHandles[i];
-        std::uint32_t sortHandle = 0;
-        if (!resolveSort(sortSource, sortHandle))
-            return failDxfWrite();
-        writer->writeString(331, toHexStr(entityHandle));
-        writer->writeString(5, toHexStr(sortHandle));
+    writer->writeString(330, toHexStr(owner));
+    for (std::size_t i = 0; i < entities.size(); ++i) {
+        writer->writeString(331, toHexStr(entities[i]));
+        // These values determine numeric order. They are not references,
+        // even when coincident with a source identity or shared by entries.
+        writer->writeString(5, toHexStr(ent->m_sortHandles[i]));
     }
     if (!ent->extData.empty() && !writeExtData(ent->extData))
-        return false;
-    return !writer->hasWriteError();
+        return failDxfWrite();
+    if (!preflightDxfWrite() || !record.commit())
+        return failDxfWrite();
+    return true;
 }
 
 // FIELD (AcDbField, custom class). Emits the scalar field state, child/object

@@ -997,7 +997,8 @@ struct TableOwnerRecord {
 // table records before these literal graph assertions see them.
 bool readTableOwnerRecords(const std::filesystem::path& path, bool binary,
                            std::vector<TableOwnerRecord>& records,
-                           bool retainCoordinatePresence = false) {
+                           bool retainCoordinatePresence = false,
+                           bool allowWideHandles = false) {
     std::ifstream stream(path, std::ios::binary);
     if (!stream)
         return false;
@@ -1012,6 +1013,7 @@ bool readTableOwnerRecords(const std::filesystem::path& path, bool binary,
     } else {
         reader = std::make_unique<dxfReaderAscii>(&stream);
     }
+    reader->setAllowWideHandleLexemes(allowWideHandles);
     int code = 0;
     while (reader->readRec(&code)) {
         if (code == 0) {
@@ -1030,12 +1032,581 @@ bool readTableOwnerRecords(const std::filesystem::path& path, bool binary,
                 records.back().groups.emplace_back(
                     code, std::to_string(reader->getInt32()));
             } else if (code == 1 || code == 2 || code == 5 || code == 105
-                || code == 100 || code == 102 || code == 330 || code == 340 || code == 360
+                || code == 100 || code == 102 || code == 330 || code == 331 || code == 340 || code == 360
                 || code == 1000 || code == 1001 || code == 1005)
                 records.back().groups.emplace_back(code, reader->getString());
         }
     }
     return false;
+}
+
+void testSortEntsKeyRoles(TestContext& t) {
+    class SortInterface final : public dx_iface {
+    public:
+        void writeHeader(DRW_Header& header) override {
+            dx_iface::writeHeader(header);
+            dxfW->setRootDictEntries({{"RESEARCH_SORT_KEYS", "600"}});
+            std::map<std::uint32_t, std::uint32_t> remap{{0x601u, 0x701u},
+                {0x602u, 0x702u}, {0x603u, 0x703u}};
+            if (!plannedOwner)
+                remap.emplace(0x500u, 0x1Fu);
+            dxfW->setHandleRemap(remap);
+            dxfW->reserveHandle(0x703u);
+            std::vector<DRW_RawDxfSection> sections;
+            if (sectionControl) {
+                // Namespace-only raw-section control, not a CAD draw-order
+                // graph. Its following non-SORTENTSTABLE record must restore
+                // normal group-5 translation even with the same marker text.
+                DRW_RawDxfSection section;
+                section.m_name = "SORT_KEY_SCOPE_CONTROL";
+                section.m_version = dxfW->getVersion();
+                section.m_groups = {{0, std::string("SORTENTSTABLE")},
+                    {5, std::string("602")}, {330, std::string("600")},
+                    {100, std::string("AcDbSortentsTable")}, {330, std::string("500")},
+                    {331, std::string("A000")}, {5, std::string("601")},
+                    {0, std::string("RESEARCH_OTHER")}, {5, std::string("603")},
+                    {330, std::string("601")}, {100, std::string("AcDbSortentsTable")},
+                    {5, std::string("601")}};
+                sections.push_back(std::move(section));
+            }
+            dxfW->setRawDxfSections(sections);
+        }
+        void writeEntities() override {
+            dxfW->markSourceHandleAmbiguous(0xABCu);
+            for (int i = 0; i != 2; ++i) {
+                const int index = reverse ? 1 - i : i;
+                const std::uint32_t source = 0xA000u + static_cast<std::uint32_t>(index);
+                if (sourceMap) {
+                    DRW_Line line;
+                    line.handle = source;
+                    line.basePoint = DRW_Coord(index + 1, 0, 0);
+                    line.secPoint = DRW_Coord(index + 1, 1, 0);
+                    entitiesWritten = dxfW->writeLine(&line) && entitiesWritten;
+                } else {
+                    // A real no-source-map control, with already-target-bound
+                    // entity identities rather than dangling 331 references.
+                    DRW_RawDxfObject line;
+                    line.name = "LINE";
+                    line.handle = source;
+                    line.groups = {{5, dxfW->toHexStrHandle(source)},
+                        {330, std::string("1F")}, {100, std::string("AcDbEntity")},
+                        {8, std::string("0")}, {100, std::string("AcDbLine")},
+                        {10, double(index + 1)}, {20, 0.0}, {30, 0.0},
+                        {11, double(index + 1)}, {21, 1.0}, {31, 0.0}};
+                    entitiesWritten = dxfW->writeRawDxfObject(&line) && entitiesWritten;
+                }
+            }
+        }
+        void writeObjects() override {
+            DRW_Dictionary owner;
+            owner.handle = 0x600u;
+            owner.parentHandle = 0xCu;
+            owner.hardOwner = 1;
+            owner.m_entries.push_back({"ACAD_SORTENTS", 0x601u});
+            dictionaryWritten = dxfW->writeDictionary(&owner);
+            if (explicitReference) {
+                dxfW->setHandleRemap({{0x500u, 0x1Fu}, {0x601u, 0x701u},
+                    {0x602u, 0x702u}, {0x603u, 0x703u},
+                    {0xDEADu, dxfW->remapEntityHandle(0xA001u)}});
+            }
+            before = dxfW->highWaterHandle();
+            result = rawRoute ? dxfW->writeRawDxfObject(&raw)
+                              : dxfW->writeSortEntsTable(&sort);
+            after = dxfW->highWaterHandle();
+        }
+        DRW_SortEntsTable sort;
+        DRW_RawDxfObject raw;
+        bool rawRoute{false}, reverse{false}, sourceMap{true}, sectionControl{false};
+        bool plannedOwner{false};
+        bool explicitReference{false};
+        bool result{false}, entitiesWritten{true}, dictionaryWritten{false};
+        std::uint32_t before{0}, after{0};
+    } adapter;
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    const auto path = std::filesystem::temp_directory_path()
+        / ("libdxfrw-sort-keys-" + std::to_string(nonce) + ".dxf");
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() { std::error_code error; std::filesystem::remove(path, error); }
+    } cleanup{path};
+    const std::string filename = path.string();
+    const std::vector<std::array<std::string, 2>> controls{
+        {"0000a000", "1000"}, {"a000", "a001"}, {"601", "500"},
+        {"dead", "dead"}, {"0", "10"}, {"ffffffff", "1000"},
+        {"abc", "1000"}, {"100000001", "a000"}};
+    const auto hex = [](const std::string& text) {
+        std::uint64_t value = 0;
+        std::from_chars(text.data(), text.data() + text.size(), value, 16);
+        return value;
+    };
+    for (const DRW::Version version : {DRW::AC1018, DRW::AC1024}) {
+        for (const bool binary : {false, true}) {
+            for (const bool rawRoute : {false, true}) {
+                for (const bool reverse : {false, true}) {
+                    for (const bool sourceMap : {false, true}) {
+                        for (const auto& keys : controls) {
+                            const bool wide = hex(keys[0]) > std::numeric_limits<std::uint32_t>::max();
+                            if (wide && !rawRoute)
+                                continue; // 7T: the typed API still has a 32-bit boundary.
+                            dx_data source;
+                            adapter.cData = &source;
+                            adapter.currentBlock = source.mBlock;
+                            adapter.rawRoute = rawRoute;
+                            adapter.reverse = reverse;
+                            adapter.sourceMap = sourceMap;
+                            adapter.sectionControl = rawRoute && reverse && sourceMap
+                                && keys[0] == "0000a000";
+                            adapter.plannedOwner = keys[0] == "601";
+                            adapter.explicitReference = false;
+                            adapter.entitiesWritten = true;
+                            adapter.sort.reset();
+                            adapter.sort.handle = 0x601u;
+                            adapter.sort.parentHandle = 0x600u;
+                            adapter.sort.m_blockOwnerHandle = 0x500u;
+                            adapter.sort.m_entityHandles = {0xA000u, 0xA001u};
+                            adapter.sort.m_sortHandles = {static_cast<std::uint32_t>(hex(keys[0])),
+                                                         static_cast<std::uint32_t>(hex(keys[1]))};
+                            adapter.raw = DRW_RawDxfObject{};
+                            adapter.raw.name = "SORTENTSTABLE";
+                            adapter.raw.handle = 0x601u;
+                            adapter.raw.m_version = version;
+                            adapter.raw.groups = {{5, std::string("0601")},
+                                {330, std::string("600")}, {100, std::string("AcDbSortentsTable")},
+                                {330, std::string("0500")}, {331, std::string("0000a000")},
+                                {5, keys[0]}, {331, std::string("0000a001")}, {5, keys[1]}};
+                            adapter.raw.hasRawValues = !binary;
+                            if (!binary) {
+                                for (const auto& group : adapter.raw.groups)
+                                    adapter.raw.rawValues.emplace_back(group.c_str());
+                            }
+                            const auto rawBefore = adapter.raw.groups;
+                            const auto rawValuesBefore = adapter.raw.rawValues;
+                            const auto entitiesBefore = adapter.sort.m_entityHandles;
+                            const auto keysBefore = adapter.sort.m_sortHandles;
+                            dxfRW writer(filename.c_str());
+                            if (adapter.plannedOwner) {
+                                DRW_Block_Record block;
+                                block.handle = 0x500u;
+                                block.name = "*Model_Space";
+                                writer.setSourceBlockRecords({block});
+                            }
+                            adapter.dxfW = &writer;
+                            t.expect(writer.write(&adapter, version, binary) && adapter.result
+                                         && adapter.entitiesWritten && adapter.dictionaryWritten,
+                                     "SORTENTSTABLE zero/shared/colliding/ambiguous-value keys write");
+                            std::vector<TableOwnerRecord> records;
+                            t.expect(readTableOwnerRecords(path, binary, records, false, wide),
+                                     "SORTENTSTABLE literal framing reaches EOF, including raw wide keys");
+                            const auto record = std::find_if(records.begin(), records.end(),
+                                [](const auto& value) { return value.kind == "SORTENTSTABLE"; });
+                            t.expect(record != records.end(), "actual SORTENTSTABLE record is emitted");
+                            if (record != records.end()) {
+                                bool body = false;
+                                std::vector<std::string> emittedKeys, emittedEntities;
+                                for (const auto& tag : record->groups) {
+                                    if (tag == std::make_pair(100, std::string("AcDbSortentsTable")))
+                                        body = true;
+                                    else if (body && tag.first == 5)
+                                        emittedKeys.push_back(tag.second);
+                                    else if (body && tag.first == 331)
+                                        emittedEntities.push_back(tag.second);
+                                    else if (body && tag.first == 330)
+                                        t.expect(hex(tag.second) == 0x1Fu,
+                                                 "SORTENTSTABLE block owner remains an actual translated reference");
+                                }
+                                t.expect(groupValue(record->groups, 5) == "701"
+                                             && emittedKeys.size() == 2 && emittedEntities.size() == 2,
+                                         "header identity remaps independently of complete body key pairs");
+                                for (std::size_t i = 0; i < 2 && i < emittedKeys.size()
+                                     && i < emittedEntities.size(); ++i) {
+                                    t.expect(hex(emittedKeys[i]) == hex(keys[i])
+                                                 && (!rawRoute || emittedKeys[i] == keys[i]),
+                                             "numeric sort keys retain values and raw lexemes without identity translation");
+                                    t.expect(hex(emittedEntities[i]) == writer.remapEntityHandle(
+                                                 0xA000u + static_cast<std::uint32_t>(i)),
+                                             "entity references resolve after either source map insertion order");
+                                }
+                            }
+                            if (adapter.sectionControl) {
+                                const auto scoped = std::find_if(records.begin(), records.end(),
+                                    [](const auto& value) {
+                                        return value.kind == "SORTENTSTABLE"
+                                            && groupValue(value.groups, 5) == "702";
+                                    });
+                                const auto next = std::find_if(records.begin(), records.end(),
+                                    [](const auto& value) { return value.kind == "RESEARCH_OTHER"; });
+                                t.expect(scoped != records.end()
+                                             && scoped->groups.back() == std::make_pair(5, std::string("601"))
+                                             && next != records.end() && groupValue(next->groups, 5) == "703"
+                                             && next->groups.back() == std::make_pair(5, std::string("701")),
+                                         "raw record boundaries reset the narrowly scoped sort-key exception");
+                            }
+                            t.expect(adapter.sort.handle == 0x601u
+                                         && adapter.sort.m_blockOwnerHandle == 0x500u
+                                         && adapter.sort.m_entityHandles == entitiesBefore
+                                         && adapter.sort.m_sortHandles == keysBefore
+                                         && adapter.raw.groups.size() == rawBefore.size()
+                                         && adapter.raw.rawValues == rawValuesBefore
+                                         && std::string(adapter.raw.groups[5].c_str()) == keys[0],
+                                     "SORTENTSTABLE emission does not mutate caller identities or key arrays");
+                            adapter.dxfW = nullptr;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    // Complete effective redraw order relative to unlisted entities is not
+    // asserted here: their implicit identity keys still need the 7G.3 planner.
+    for (const bool rawRoute : {false, true}) {
+        for (const bool binary : {false, true}) {
+            for (const int failure : {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}) {
+                dx_data source;
+                adapter.cData = &source;
+                adapter.currentBlock = source.mBlock;
+                adapter.rawRoute = rawRoute;
+                adapter.reverse = false;
+                adapter.sourceMap = true;
+                adapter.sectionControl = false;
+                adapter.plannedOwner = false;
+                adapter.explicitReference = false;
+                adapter.sort.reset();
+                adapter.sort.handle = 0x601u;
+                adapter.sort.parentHandle = 0x600u;
+                adapter.sort.m_blockOwnerHandle = 0x500u;
+                adapter.sort.m_entityHandles = {0xA000u,
+                    failure == 1 || failure == 3 || failure == 5 || failure == 8 ? 0xDEADu
+                    : failure == 2 || failure == 4 ? 0xABCu : failure == 10 ? 0u : 0xA001u};
+                if (failure == 6 || failure == 7 || failure == 9)
+                    adapter.sort.handle = 0;
+                adapter.sort.m_sortHandles = failure == 0 ? std::vector<std::uint32_t>{0xABCu}
+                                                        : std::vector<std::uint32_t>{0xABCu, 0u};
+                adapter.raw = DRW_RawDxfObject{};
+                adapter.raw.name = "SORTENTSTABLE";
+                adapter.raw.handle = 0x601u;
+                adapter.raw.m_version = DRW::AC1024;
+                adapter.raw.groups = {{5, std::string("601")}, {330, std::string("600")},
+                    {100, std::string("AcDbSortentsTable")}, {330, std::string("500")},
+                    {331, std::string("A000")}}; // incomplete pair
+                if (failure == 1)
+                    adapter.raw.groups.push_back({331, std::string("A001")}); // duplicate pending entity
+                else if (failure == 2)
+                    adapter.raw.groups.push_back({5, std::string("not-a-handle")});
+                else if (failure >= 3) {
+                    adapter.raw.groups.push_back({5, std::string("abc")});
+                    adapter.raw.groups.push_back({331, std::string("A001")});
+                    adapter.raw.groups.push_back({5, std::string("0")});
+                    if (failure == 3 || failure == 4 || failure == 5 || failure == 10)
+                        adapter.raw.groups[4] = DRW_Variant(331,
+                            std::string(failure == 3 ? "DEAD" : failure == 4 ? "ABC"
+                                : failure == 10 ? "0" : "100000001"));
+                    else if (failure == 6)
+                        adapter.raw.groups[0] = DRW_Variant(5, std::string("0"));
+                    else if (failure == 7)
+                        adapter.raw.groups.erase(adapter.raw.groups.begin());
+                    else if (failure == 8) {
+                        adapter.raw.groups.resize(5);
+                        adapter.raw.groups.push_back({100, std::string("OtherSubclass")});
+                        adapter.raw.groups.push_back({5, std::string("601")});
+                    } else {
+                        adapter.raw.groups.erase(adapter.raw.groups.begin());
+                        adapter.raw.groups.insert(adapter.raw.groups.begin(), {
+                            {102, std::string("{IDENTITY_NOT_HERE")},
+                            {5, std::string("601")}, {102, std::string("}")}});
+                    }
+                }
+                { std::ofstream original(path, std::ios::binary); original << "sort destination unchanged\n"; }
+                dxfRW writer(filename.c_str());
+                adapter.dxfW = &writer;
+                const auto callerEntities = adapter.sort.m_entityHandles;
+                const auto callerKeys = adapter.sort.m_sortHandles;
+                const auto callerHandle = adapter.sort.handle;
+                const auto rawProjection = [](const DRW_RawDxfObject& raw) {
+                    std::vector<std::pair<int, std::string>> values;
+                    for (const auto& group : raw.groups)
+                        values.emplace_back(group.code(), group.c_str());
+                    return values;
+                };
+                const auto callerRaw = rawProjection(adapter.raw);
+                t.expect(!writer.write(&adapter, DRW::AC1024, binary) && !adapter.result
+                             && adapter.before == adapter.after
+                             && adapter.sort.m_entityHandles == callerEntities
+                             && adapter.sort.m_sortHandles == callerKeys
+                             && adapter.sort.handle == callerHandle
+                             && rawProjection(adapter.raw) == callerRaw,
+                         "invalid SORTENTSTABLE pairs/references reject before allocator/caller mutation");
+                std::ifstream preserved(path, std::ios::binary);
+                t.expect(std::string(std::istreambuf_iterator<char>(preserved), {})
+                             == "sort destination unchanged\n",
+                         "invalid SORTENTSTABLE leaves the destination byte-identical");
+                preserved.close();
+                adapter.sort.handle = 0x601u;
+                adapter.sort.m_entityHandles = {0xA000u, 0xA001u};
+                adapter.sort.m_sortHandles = {0xABCu, 0u};
+                adapter.raw.groups = {{5, std::string("601")}, {330, std::string("600")},
+                    {100, std::string("AcDbSortentsTable")}, {330, std::string("500")},
+                    {331, std::string("A000")}, {5, std::string("abc")},
+                    {331, std::string("A001")}, {5, std::string("0")}};
+                t.expect(writer.write(&adapter, DRW::AC1024, binary) && adapter.result,
+                         "correcting only invalid SORTENTSTABLE fields permits same-writer retry");
+                adapter.dxfW = nullptr;
+            }
+        }
+    }
+    for (const bool binary : {false, true}) {
+        for (const int transport : {0, 1, 2, 3}) {
+            dx_data source;
+            adapter.cData = &source;
+            adapter.currentBlock = source.mBlock;
+            adapter.rawRoute = true;
+            adapter.reverse = false;
+            adapter.sourceMap = transport >= 2;
+            adapter.sectionControl = false;
+            adapter.plannedOwner = transport == 3;
+            adapter.explicitReference = transport == 2;
+            adapter.raw = DRW_RawDxfObject{};
+            adapter.raw.name = "SORTENTSTABLE";
+            adapter.raw.handle = 0x601u;
+            adapter.raw.m_version = DRW::AC1024;
+            adapter.raw.groups = {{5, std::string("601")}, {330, std::string("600")},
+                {100, std::string("AcDbSortentsTable")}, {330, std::string("500")},
+                {331, std::string(transport == 1 ? "100000001" : transport == 3 ? "A000" : "DEAD")},
+                {5, std::string("601")}};
+            if (transport == 3) {
+                adapter.raw.groups.insert(adapter.raw.groups.end(), {
+                    {102, std::string("{BODY_APP")}, {5, std::string("601")},
+                    {330, std::string("500")}, {331, std::string("DEAD")},
+                    {100, std::string("OtherSubclass")}, {102, std::string("}")},
+                    {331, std::string("A001")}, {5, std::string("601")},
+                    {100, std::string("OtherSubclass")}, {5, std::string("601")},
+                    {330, std::string("500")}, {331, std::string("DEAD")}});
+            }
+            dxfRW writer(filename.c_str());
+            if (adapter.plannedOwner) {
+                DRW_Block_Record block;
+                block.handle = 0x500u;
+                block.name = "*Model_Space";
+                writer.setSourceBlockRecords({block});
+            }
+            adapter.dxfW = &writer;
+            t.expect(writer.write(&adapter, DRW::AC1024, binary) && adapter.result,
+                     "explicit bindings and deliberate no-map raw32/wide transport remain available");
+            std::vector<TableOwnerRecord> records;
+            t.expect(readTableOwnerRecords(path, binary, records, false, true),
+                     "raw namespace boundary controls retain literal framing");
+            const auto record = std::find_if(records.begin(), records.end(),
+                [](const auto& value) { return value.kind == "SORTENTSTABLE"; });
+            t.expect(record != records.end(), "raw namespace boundary record is emitted");
+            if (record != records.end()) {
+                std::vector<std::string> references, keys, owners;
+                for (const auto& group : record->groups) {
+                    if (group.first == 331) references.push_back(group.second);
+                    if (group.first == 5) keys.push_back(group.second);
+                    if (group.first == 330) owners.push_back(group.second);
+                }
+                if (transport < 2) {
+                    t.expect(references == std::vector<std::string>{transport == 1 ? "100000001" : "DEAD"},
+                             "no-map unresolved and wide entity references are raw transport only, not resolution evidence");
+                } else if (transport == 2) {
+                    t.expect(references.size() == 1 && hex(references.front()) == writer.remapEntityHandle(0xA001u),
+                             "an explicit actual-entity binding is accepted during source identity remapping");
+                } else {
+                    t.expect(keys == std::vector<std::string>{"701", "601", "701", "601", "701"}
+                                 && owners == std::vector<std::string>{"600", "1F", "500", "500"}
+                                 && references.size() == 4 && references[1] == "DEAD"
+                                 && references[3] == "DEAD",
+                             "102 payloads and later100 subclasses leave body keys/owner roles narrowly bounded");
+                }
+            }
+            adapter.dxfW = nullptr;
+        }
+    }
+}
+
+void testSortEntsCarrierAgreement(TestContext& t) {
+    class AgreementInterface final : public dx_iface {
+    public:
+        void writeHeader(DRW_Header& header) override {
+            dx_iface::writeHeader(header);
+            dxfW->setHandleRemap({{0x601u, 0x701u}, {0x500u, 0x1Fu}});
+            if (!sectionRoute)
+                dxfW->setRootDictEntries({{"RESEARCH_SORT", "600"}});
+            dxfW->setRawDxfSections(sectionRoute
+                ? std::vector<DRW_RawDxfSection>{section} : std::vector<DRW_RawDxfSection>{});
+        }
+        void writeEntities() override {
+            DRW_RawDxfObject line;
+            line.name = "LINE";
+            line.handle = 0xA000u;
+            line.groups = {{5, std::string("A000")}, {330, std::string("1F")},
+                {100, std::string("AcDbEntity")}, {8, std::string("0")},
+                {100, std::string("AcDbLine")}, {10, 1.0}, {20, 0.0}, {30, 0.0},
+                {11, 2.0}, {21, 0.0}, {31, 0.0}};
+            // A legitimate active map with no numeric change must not let a
+            // different raw 331 spelling evade actual-reference preflight.
+            sourceWritten = dxfW->writeRawDxfObject(&line)
+                && dxfW->bindSourceEntityHandle(0xA000u, 0xA000u);
+        }
+        void writeObjects() override {
+            if (sectionRoute)
+                return; // Namespace controls, not a reciprocal CAD graph.
+            DRW_Dictionary dictionary;
+            dictionary.handle = 0x600u;
+            dictionary.parentHandle = 0xCu;
+            dictionary.hardOwner = 1;
+            dictionary.m_entries.push_back({"ACAD_SORTENTS", 0x601u});
+            ownerWritten = dxfW->writeDictionary(&dictionary);
+            before = dxfW->highWaterHandle();
+            leafWritten = dxfW->writeRawDxfObject(&raw);
+            after = dxfW->highWaterHandle();
+        }
+        DRW_RawDxfObject raw;
+        DRW_RawDxfSection section;
+        bool sectionRoute{false}, sourceWritten{false}, ownerWritten{false}, leafWritten{false};
+        std::uint32_t before{0}, after{0};
+    } adapter;
+    const std::vector<DRW_Variant> groups{{5, std::string("601")}, {330, std::string("600")},
+        {102, std::string("{HEADER_APP")}, {330, std::string("600")}, {102, std::string("}")},
+        {100, std::string("AcDbSortentsTable")}, {330, std::string("1F")},
+        {331, std::string("A000")}, {5, std::string("601")},
+        {102, std::string("{BODY_APP")}, {330, std::string("600")}, {331, std::string("DEAD")},
+        {5, std::string("601")}, {100, std::string("OtherSubclass")}, {102, std::string("}")},
+        {100, std::string("OtherSubclass")}, {5, std::string("601")},
+        {330, std::string("500")}, {331, std::string("DEAD")}};
+    const auto spellings = [](const std::vector<DRW_Variant>& values) {
+        std::vector<UTF8STRING> result;
+        for (const auto& value : values) {
+            std::string text = value.c_str();
+            if (value.code() == 5 || value.code() == 330 || value.code() == 331) {
+                for (char& ch : text) if (ch >= 'A' && ch <= 'F') ch += 'a' - 'A';
+                text = "00" + text;
+            }
+            result.push_back(std::move(text));
+        }
+        return result;
+    };
+    const auto projection = [](const std::vector<DRW_Variant>& values) {
+        std::vector<std::pair<int, std::string>> result;
+        for (const auto& value : values) result.emplace_back(value.code(), value.c_str());
+        return result;
+    };
+    std::vector<DRW_Variant> sectionGroups{{0, std::string("RESEARCH_BEFORE")},
+        {5, std::string("DEAD")}, {100, std::string("OtherSubclass")}, {331, std::string("DEAD")},
+        {0, std::string("SORTENTSTABLE")}};
+    sectionGroups.insert(sectionGroups.end(), groups.begin(), groups.end());
+    const std::size_t following = sectionGroups.size();
+    sectionGroups.insert(sectionGroups.end(), {{0, std::string("RESEARCH_AFTER")},
+        {5, std::string("DEAD")}, {100, std::string("OtherSubclass")}, {331, std::string("DEAD")}});
+    auto sectionValues = spellings(sectionGroups);
+    sectionValues[0] = "RESEARCH_BEFORE_RAW";
+    sectionValues[1] = sectionValues[3] = "BEEF";
+    sectionValues[2] = "AcDbSortentsTable";
+    sectionValues[following + 1] = sectionValues[following + 3] = "BEEF";
+    sectionValues[following + 2] = "AcDbSortentsTable";
+    const auto path = std::filesystem::temp_directory_path() / ("libdxfrw-sort-agreement-"
+        + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()) + ".dxf");
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() { std::error_code error; std::filesystem::remove(path, error); }
+    } cleanup{path};
+    const std::string filename = path.string();
+    for (const bool binary : {false, true}) {
+        for (int control = 0; control != 15; ++control) {
+            dx_data source;
+            adapter.cData = &source;
+            adapter.currentBlock = source.mBlock;
+            adapter.sectionRoute = control >= 11;
+            adapter.raw = DRW_RawDxfObject{};
+            adapter.raw.name = "SORTENTSTABLE";
+            adapter.raw.handle = 0x601u;
+            adapter.raw.m_version = DRW::AC1024;
+            adapter.raw.groups = groups;
+            adapter.raw.rawValues = spellings(groups);
+            adapter.raw.hasRawValues = true;
+            adapter.section = DRW_RawDxfSection{};
+            adapter.section.m_name = "SORT_AGREEMENT_CONTROL";
+            adapter.section.m_version = DRW::AC1024;
+            adapter.section.m_groups = sectionGroups;
+            adapter.section.m_rawValues = sectionValues;
+            adapter.section.m_hasRawValues = true;
+            switch (control) {
+            case 1: adapter.raw.rawValues[0] = "602"; break;
+            case 2: adapter.raw.rawValues[1] = "DEAD"; break;
+            case 3: adapter.raw.rawValues[6] = "500"; break;
+            case 4: adapter.raw.rawValues[7] = "DEAD"; break;
+            case 5: adapter.raw.rawValues[8] = "DEAD"; break;
+            case 6: adapter.raw.rawValues[5] = "OtherSubclass"; break;
+            case 7: adapter.raw.groups[5] = DRW_Variant(100, std::string("OtherSubclass")); break;
+            case 8: adapter.raw.rawValues[9] = "{OTHER_APP"; break;
+            case 9: adapter.raw.rawValues[10] = "DEAD"; break;
+            case 10: adapter.raw.rawValues[15] = "AcDbSortentsTable"; break;
+            case 12: adapter.section.m_rawValues[4] = "RESEARCH_OTHER"; break;
+            case 13: adapter.section.m_groups[4] = DRW_Variant(0, std::string("RESEARCH_OTHER")); break;
+            case 14: adapter.section.m_rawValues[following] = "RESEARCH_AFTER_RAW"; break;
+            default: break;
+            }
+            const auto callerGroups = projection(adapter.raw.groups);
+            const auto callerValues = adapter.raw.rawValues;
+            const auto callerSection = projection(adapter.section.m_groups);
+            const auto callerSectionValues = adapter.section.m_rawValues;
+            { std::ofstream original(path, std::ios::binary); original << "carrier destination preserved\n"; }
+            dxfRW writer(filename.c_str());
+            adapter.dxfW = &writer;
+            const bool expected = binary ? control != 7 : control == 0 || control == 11;
+            const bool wrote = writer.write(&adapter, DRW::AC1024, binary);
+            t.expect(wrote == expected && adapter.sourceWritten,
+                     "known SORT carrier disagreement rejects; binary rawValues remain inactive");
+            t.expect(projection(adapter.raw.groups) == callerGroups && adapter.raw.rawValues == callerValues
+                         && projection(adapter.section.m_groups) == callerSection
+                         && adapter.section.m_rawValues == callerSectionValues,
+                     "SORT agreement preflight preserves both caller representations");
+            if (!expected) {
+                if (!adapter.sectionRoute)
+                    t.expect(!adapter.leafWritten && adapter.ownerWritten && adapter.before == adapter.after,
+                             "SORT disagreement rejects without leaf allocator mutation");
+                std::ifstream preserved(path, std::ios::binary);
+                t.expect(std::string(std::istreambuf_iterator<char>(preserved), {})
+                             == "carrier destination preserved\n",
+                         "SORT disagreement preserves the existing destination");
+                preserved.close();
+                adapter.raw.groups = groups;
+                adapter.raw.rawValues = spellings(groups);
+                adapter.section.m_groups = sectionGroups;
+                adapter.section.m_rawValues = sectionValues;
+                t.expect(writer.write(&adapter, DRW::AC1024, binary),
+                         "correcting only inconsistent SORT fields permits same-writer retry");
+            }
+            std::vector<TableOwnerRecord> records;
+            t.expect(readTableOwnerRecords(path, binary, records), "SORT agreement controls retain literal framing");
+            const auto record = std::find_if(records.begin(), records.end(),
+                [](const auto& value) { return value.kind == "SORTENTSTABLE"; });
+            if (!(binary && control == 13)) {
+                t.expect(record != records.end() && groupValue(record->groups, 5) == "701",
+                         "SORT header identity follows ordinary remapping");
+                if (record != records.end()) {
+                    const auto body = std::find(record->groups.begin(), record->groups.end(),
+                        std::make_pair(100, std::string("AcDbSortentsTable")));
+                    t.expect(body != record->groups.end() && std::distance(body, record->groups.end()) >= 4
+                                 && *(body + 1) == std::make_pair(330, binary ? std::string("1F") : std::string("001f"))
+                                 && *(body + 2) == std::make_pair(331, binary ? std::string("A000") : std::string("00a000"))
+                                 && *(body + 3) == std::make_pair(5, binary ? std::string("601") : std::string("00601")),
+                             "equivalent numeric spellings retain actual references and opaque sort keys");
+                }
+            }
+            if (adapter.sectionRoute) {
+                const auto next = std::find_if(records.begin(), records.end(),
+                    [](const auto& value) { return value.kind == "RESEARCH_AFTER"; });
+                t.expect(next != records.end() && groupValue(next->groups, 5) == (binary ? "DEAD" : "BEEF"),
+                         "leaving known SORT resets agreement without tightening unrelated raw fields");
+                const auto before = std::find_if(records.begin(), records.end(), [binary](const auto& value) {
+                    return value.kind == (binary ? "RESEARCH_BEFORE" : "RESEARCH_BEFORE_RAW");
+                });
+                t.expect(before != records.end() && groupValue(before->groups, 5) == (binary ? "DEAD" : "BEEF"),
+                         "unrelated raw record/marker spellings before SORT retain their existing policy");
+            }
+            adapter.dxfW = nullptr;
+        }
+    }
 }
 
 void testPlotCustomDpiAdmission(TestContext& t) {
@@ -4642,6 +5213,8 @@ int main(int argc, char** argv) {
         return 2;
     TestContext context;
     testInfiniteLineDirections(context);
+    testSortEntsKeyRoles(context);
+    testSortEntsCarrierAgreement(context);
     testPlotCustomDpiAdmission(context);
     testLeaderAdvisoryCounts(context);
     testDxfWriteAttemptFailure(context);
