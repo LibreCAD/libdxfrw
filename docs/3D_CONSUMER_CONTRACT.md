@@ -55,6 +55,16 @@ does not distinguish absent group91 from explicit zero, so zero is omitted.
 Identifier retention alone does not qualify topology, native rendering or DWG
 identifier conversion.
 
+DXF classic VERTEX coordinate children apply the existing paired-X/Y read
+policy independently to each child. Z remains optional with its existing zero
+default; a missing X/Y rejects the incomplete parent before its callback.
+POLYFACE face records are different: signed indices define their primitive and
+their location is geometrically ignored. The reader tolerates absent or partial
+face locations consistently in any record position; the writer still emits
+canonical zero XYZ. Completed-pool index validation, winding and first-zero
+termination are unchanged. Omitted-coordinate robustness tests are not evidence
+of valid-format or native geometry qualification.
+
 DXF MTEXT orientation reads retain the last supplied main direction vector
 (11/21/31) or rotation (50). Unchanged parsed records write only that active
 representation; an earlier inactive vector cannot override a later rotation.

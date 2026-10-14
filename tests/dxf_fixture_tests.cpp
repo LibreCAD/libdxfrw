@@ -686,6 +686,137 @@ void testClassicVertexIdentifierRetention(TestContext& t) {
     }
 }
 
+// Component omission controls exercise the existing reader policy, not a
+// claim that malformed coordinate children are valid interoperable DXF.
+bool generateClassicVertexPresence(const std::filesystem::path& path, bool binary,
+                                   int family, int missingIndex = -1,
+                                   int missingCode = 0, bool faceFirst = false,
+                                   int faceLocation = 0) {
+    std::ofstream stream(path, std::ios::binary | std::ios::trunc);
+    if (binary) stream.write("AutoCAD Binary DXF\r\n\032\0", 22);
+    std::unique_ptr<dxfWriter> tags;
+    if (binary) tags = std::make_unique<dxfWriterBinary>(&stream);
+    else tags = std::make_unique<dxfWriterAscii>(&stream);
+    tags->setVersion("AC1024", true);
+    const auto point = [&](int code, DRW_Coord value) {
+        tags->writeDouble(code, value.x); tags->writeDouble(code + 10, value.y);
+        tags->writeDouble(code + 20, value.z);
+    };
+    const auto line = [&](double value) {
+        tags->writeString(0, "LINE"); tags->writeString(100, "AcDbEntity");
+        tags->writeString(8, "0"); tags->writeString(100, "AcDbLine");
+        point(10, {value, 2, 3}); point(11, {value + 1, 4, 5});
+    };
+    tags->writeString(0, "SECTION"); tags->writeString(2, "HEADER");
+    tags->writeString(9, "$ACADVER"); tags->writeString(1, "AC1024");
+    tags->writeString(0, "ENDSEC"); tags->writeString(0, "SECTION");
+    tags->writeString(2, "ENTITIES"); line(101);
+    tags->writeString(0, "POLYLINE"); tags->writeString(100, "AcDbEntity");
+    tags->writeString(8, "0"); tags->writeString(100, family == 0 ? "AcDb2dPolyline"
+        : family == 8 ? "AcDb3dPolyline" : family == 16 ? "AcDbPolygonMesh" : "AcDbPolyFaceMesh");
+    point(10, {}); tags->writeInt16(70, family);
+    if (family == 16) { tags->writeInt16(71, 1); tags->writeInt16(72, 3); }
+    if (family == 64) { tags->writeInt16(71, 3); tags->writeInt16(72, 1); }
+    int coordinate = 0;
+    for (int record = 0; record != (family == 64 ? 4 : 3); ++record) {
+        const bool face = family == 64 && record == (faceFirst ? 0 : 3);
+        tags->writeString(0, "VERTEX"); tags->writeString(100, "AcDbEntity");
+        tags->writeString(8, "0");
+        if (!face) tags->writeString(100, "AcDbVertex");
+        tags->writeString(100, face ? "AcDbFaceRecord" : family == 0 ? "AcDb2dVertex"
+            : family == 8 ? "AcDb3dPolylineVertex" : family == 16
+            ? "AcDbPolygonMeshVertex" : "AcDbPolyFaceMeshVertex");
+        if (face) {
+            if (faceLocation == 0) point(10, {});
+            else if (faceLocation == 2) tags->writeDouble(10, 999); // ignored partial location
+            tags->writeInt16(70, 128); tags->writeInt16(71, 1);
+            tags->writeInt16(72, -2); tags->writeInt16(73, 3);
+        } else {
+            for (int code : {10, 20, 30})
+                if (coordinate != missingIndex || code != missingCode)
+                    tags->writeDouble(code, coordinate + (code == 10 ? 1.0 : code == 20 ? 2.0 : 3.0));
+            tags->writeInt16(70, family == 0 ? 0 : family == 8 ? 32 : family == 16 ? 64 : 192);
+            ++coordinate;
+        }
+    }
+    tags->writeString(0, "SEQEND"); tags->writeString(8, "0"); line(201);
+    tags->writeString(0, "ENDSEC"); tags->writeString(0, "EOF");
+    return !tags->hasWriteError() && stream.good();
+}
+
+bool classicPresenceMatches(const dx_data& data, int family, int optionalZ = -1) {
+    if (data.mBlock->ent.size() != 3u) return false;
+    const auto* first = dynamic_cast<const DRW_Line*>(data.mBlock->ent.front());
+    const auto* last = dynamic_cast<const DRW_Line*>(data.mBlock->ent.back());
+    const auto* polyline = dynamic_cast<const DRW_Polyline*>(*std::next(data.mBlock->ent.begin()));
+    if (!first || !last || first->basePoint.x != 101 || last->basePoint.x != 201
+        || !polyline || polyline->flags != family) return false;
+    int coordinate = 0, faces = 0;
+    for (const auto& vertex : polyline->vertlist) {
+        if (family == 64 && (vertex->flags & 192) == 128) {
+            if (vertex->vindex1 != 1 || vertex->vindex2 != -2 || vertex->vindex3 != 3) return false;
+            ++faces;
+        } else {
+            if (vertex->basePoint.x != coordinate + 1.0 || vertex->basePoint.y != coordinate + 2.0
+                || vertex->basePoint.z != (coordinate == optionalZ ? 0.0 : coordinate + 3.0)) return false;
+            ++coordinate;
+        }
+    }
+    return coordinate == 3 && faces == (family == 64 ? 1 : 0);
+}
+
+bool verifyClassicVertexPresence(const std::filesystem::path& path) {
+    dx_data data; dx_iface reader;
+    return reader.fileImport(path.string(), &data, false) && classicPresenceMatches(data, 8);
+}
+
+void testClassicVertexPresenceBoundaries(TestContext& t) {
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    for (bool binary : {false, true}) {
+        const auto path = std::filesystem::temp_directory_path()
+            / ("libdxfrw-vertex-presence-" + std::to_string(nonce) + (binary ? "-bin.dxf" : "-asc.dxf"));
+        for (int family : {0, 8, 16, 64}) {
+            for (int coordinate = 0; coordinate != 3; ++coordinate) {
+                for (int code : {10, 20}) {
+                    t.expect(generateClassicVertexPresence(path, binary, family, coordinate, code),
+                             "generate omitted-component coordinate-child control");
+                    dx_data invalid; FixtureInterface capture; capture.attach(&invalid);
+                    const std::string filename = path.string(); dxfRW reader(filename.c_str());
+                    t.expect(!reader.read(&capture, false) && reader.getError() == DRW::BAD_CODE_PARSED
+                                 && invalid.mBlock->ent.size() == 1u
+                                 && invalid.mBlock->ent.front()->eType == DRW::LINE,
+                             "every first/middle/last coordinate child requires its own X/Y pair without partial parent callback");
+                    dx_data complete; capture.attach(&complete);
+                    t.expect(generateClassicVertexPresence(path, binary, family)
+                                 && reader.read(&capture, false) && classicPresenceMatches(complete, family),
+                             "same reader accepts complete sequence after omitted-component failure");
+                }
+                dx_data sparse; dx_iface reader;
+                t.expect(generateClassicVertexPresence(path, binary, family, coordinate, 30)
+                             && reader.fileImport(path.string(), &sparse, false)
+                             && classicPresenceMatches(sparse, family, coordinate),
+                         "existing optional-Z zero-default policy holds for each coordinate child");
+            }
+        }
+        for (bool first : {false, true}) {
+            for (int location : {0, 1, 2}) {
+                dx_data data; dx_iface reader, writer;
+                t.expect(generateClassicVertexPresence(path, binary, 64, -1, 0, first, location)
+                             && reader.fileImport(path.string(), &data, false)
+                             && classicPresenceMatches(data, 64),
+                         "first/later POLYFACE faces tolerate ignored complete/absent/partial locations");
+                t.expect(writer.fileExport(path.string(), DRW::AC1024, binary, &data, false),
+                         "ignored face location remains canonically writable");
+                dx_data canonical;
+                t.expect(reader.fileImport(path.string(), &canonical, false)
+                             && classicPresenceMatches(canonical, 64),
+                         "canonical face output keeps signed topology and next-record boundary");
+            }
+        }
+        std::error_code error; std::filesystem::remove(path, error);
+    }
+}
+
 struct TableOwnerRecord {
     std::string kind;
     std::vector<std::pair<int, std::string>> groups;
@@ -3008,6 +3139,16 @@ int main(int argc, char** argv) {
         return generateXRecordCoordinateDxf(argv[2], inputMode == "binary",
                                              outputMode == "binary") ? 0 : 1;
     }
+    if (argc == 3 && (std::string(argv[1]) == "--generate-vertex-presence"
+                     || std::string(argv[1]) == "--generate-vertex-presence-binary"
+                     || std::string(argv[1]) == "--generate-vertex-presence-negative"
+                     || std::string(argv[1]) == "--generate-vertex-presence-negative-binary")) {
+        const std::string mode(argv[1]);
+        return generateClassicVertexPresence(argv[2], mode.find("binary") != std::string::npos, 8,
+                   mode.find("negative") != std::string::npos ? 1 : -1, 20) ? 0 : 1;
+    }
+    if (argc == 3 && std::string(argv[1]) == "--verify-vertex-presence")
+        return verifyClassicVertexPresence(argv[2]) ? 0 : 1;
     if (argc == 3 && (std::string(argv[1]) == "--generate-classic-vertex-ids"
                      || std::string(argv[1]) == "--generate-classic-vertex-ids-binary"))
         return generateClassicVertexIdentifiers(argv[2], std::string(argv[1]) == "--generate-classic-vertex-ids-binary") ? 0 : 1;
@@ -3049,6 +3190,7 @@ int main(int argc, char** argv) {
         return 2;
     TestContext context;
     testClassicVertexXdata(context);
+    testClassicVertexPresenceBoundaries(context);
     testClassicVertexIdentifierRetention(context);
     testMTextOrientationPrecedence(context);
     testInsertChildHandleRollback(context);

@@ -11573,7 +11573,14 @@ bool dxfRW::processVertex(DRW_Polyline *pl) {
             DRW_DBG(nextentity); DRW_DBG("\n");
             if (boundary != DxfEntityBoundary::NextEntity)
                 return setError(DRW::BAD_READ_ENTITIES);
-            if (!hasInsertionX || !hasInsertionY
+            // POLYFACE face locations are geometrically irrelevant; their
+            // signed indices define the primitive. Tolerate omitted/partial
+            // ignored coordinates consistently, including a face-first file.
+            // Coordinate children retain the existing paired-X/Y read policy.
+            const bool ignoredFaceLocation = (pl->flags & 64) != 0
+                && DRW_Polyline::polyfaceVertexRole(*v)
+                    == DRW_Polyline::PolyfaceVertexRole::Face;
+            if ((!ignoredFaceLocation && (!hasInsertionX || !hasInsertionY))
                 || !v->validatePayloadFields())
                 return setError(DRW::BAD_CODE_PARSED);
             if (dxfKeywordEquals(nextentity, "SEQEND")) {
@@ -11583,6 +11590,8 @@ bool dxfRW::processVertex(DRW_Polyline *pl) {
             if (dxfKeywordEquals(nextentity, "VERTEX")){
                 pl->appendVertex(v);
                 v = std::make_shared<DRW_Vertex>(); //another vertex
+                hasInsertionX = false;
+                hasInsertionY = false;
                 continue;
             }
             return setError(DRW::BAD_READ_ENTITIES);
