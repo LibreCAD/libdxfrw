@@ -169,6 +169,43 @@ uninterpreted. This is a second parser/placement check, not a second geometry
 kernel: CadQuery's OCP binding uses OCCT, also used by FreeCAD
 ([CadQuery repository](https://github.com/CadQuery/cadquery)).
 
+**Current verifier contract audit (2026-10-14; continuation of S2.3.9.4.19):**
+the exact-hash historical geometry results above remain unchanged. A fresh
+eight-row mocked-predicate control of the existing checker shows that missing
+`units_mm`, unsupported-schema/unknown diagnostics and an unclassified raw
+attribute can still accompany PASS. Incorrect scale and two returned shapes
+are rejected. No cq-acis parser or geometry kernel executes in these mock
+controls; they identify checker-contract work, not new drawing semantics.
+The release-pinned [cq-acis0.3.8 model contract](https://github.com/monozukuri-ai/cq-acis/blob/a2eefa38eaeeb95f17dcdabe8132bcbb18e32310/docs/model-api.md#L28-L47)
+preserves absent source facts as None and distinguishes the1mm compatibility
+default. The [converter](https://github.com/monozukuri-ai/cq-acis/blob/a2eefa38eaeeb95f17dcdabe8132bcbb18e32310/src/cq_acis/cadquery.py#L2036-L2044)
+already rejects raw bodies; an unrelated raw attribute is not evidence of a
+silent omitted body.
+
+Implement one small successor verifier contract before admitting new semantic
+evidence. Report geometry-check outcome, source-unit availability, effective
+conversion scale and its defaulted status, diagnostic/raw coverage and claim
+eligibility separately. Preserve diagnostic entity index and source byte-domain
+span. Use pinned-code/target/reachability dispositions: missing expected bodies
+or referenced geometry loss rejects the scoped geometry cell; unknown or
+unclassified coverage remains advisory/non-promoting. A reviewed benign
+non-geometric attachment need not fail geometry. Unknown source units cannot
+prove dimensional semantics even when the compatibility-scaled shape matches.
+Do not reject every warning/raw record or relabel historical parser results.
+
+The smallest gate is the existing eight dependency-free mocks plus targeted
+benign/loss/unknown diagnostics, null-versus-known units and reviewed-raw
+partners. A separate in-memory ezdxf1.4.4 calibration changes a cube surface
+to deliberately unsupported: faces fall6→5 while one mesh/eight vertices/
+identical bounds remain. Require source-topology denominators and projection
+omissions, not extent/presence alone. Report
+`/private/tmp/libdxfrw-broader-research.ccHWJz/research-report.json`, SHA256
+`11b01c8cf84a6593ac689ad0cff11224f03133f058aa47f409bb0148417d47ac`, binds
+these controls; neither runs libdxfrw's DWG decoder or qualifies native FreeCAD,
+ACDS association, independent-kernel or AutoCAD dimensional semantics. Reuse
+the existing optional checker/runtime; no new dependency, fixture or default
+CTest is required. J256/J260/J268/J284/J293/J295 remain DEFERRED_EXTERNAL.
+
 The hash-pinned
 [cadmpeg 0.6.0](https://github.com/cadmpeg/cadmpeg/releases/tag/v0.6.0)
 reader was then run on those exact SABs. It reports successful geometry

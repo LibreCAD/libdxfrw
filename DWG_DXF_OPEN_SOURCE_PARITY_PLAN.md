@@ -1,6 +1,6 @@
 # DWG/DXF open-source implementation comparison and fix plan
 
-**Status:**117 findings tracked across67 top-level implementation subplans.7F.1a bounded observations,7A.2 sort/carrier roles,7AE.1 ASCII-safe bytes,7AV.5 DXF finalization and corrected7S.1 token acquisition are integrated with focused main evidence. Composed finalizer/token ASan3/3 passes at b4f74be; historical checkpoints keep their original bindings.7S.2/3 accounting,7F.1b typed-schema migration,7G.3 sparse order and7AE.2/3 policies remain open. Repair the semantic-adapter inventory/capability gates before new receipts; correct reviewed package mapping before integration. Continue independent reader/package work without waiting for external qualification.
+**Status:**117 findings tracked across67 top-level implementation subplans.7F.1a bounded observations,7A.2 sort/carrier roles,7AE.1 ASCII-safe bytes,7AV.5 DXF finalization and corrected7S.1 token acquisition are integrated with focused main evidence. Composed finalizer/token ASan3/3 passes at b4f74be; historical checkpoints keep their original bindings.7AG.1a source cleanup is isolated, not integrated; capability/profile, compile-attestation and typed-result gates remain open.7AK.6's OLD-only mapping correction is not integration-ready for actual NEW-policy exports.7S.2/3 accounting,7G.3 sparse order and7AE.2/3 policies remain open. Independent reader/package work does not wait for external qualification.
 
 **Original baseline:** `547b808` (`codex/pr100-clean`)
 
@@ -10,11 +10,12 @@
 
 **Research snapshot:** 2026-10-14
 
-**Current research boundary:**`00497cefd28dabf70106720d380bcd68ddce471a`.
-This pass changes the plan only; isolated candidate source/test changes and
-their reports retain their own bases. Untracked user samples remain excluded.
-The preceding consumer-filing review remains bound to d49a775; none of its
-runtime, source or sanitizer results is relabelled as this revision.
+**Current research boundary:**`907b77f6e60d9c26bb9e760834567d12db6178bd`.
+This pass changes plans only. New tiny oracle and callback controls bind the
+unchanged b4 production archive and actual converter separately; isolated
+candidate source/test changes retain their own bases. User-owned untracked
+samples remain excluded. The preceding00497ce, d49a775 and b4 sanitizer/source
+results retain their original bindings; none is relabelled as a new qualification.
 
 **Further readiness audit:** production source at
 `d7174d1d20345dd8073abfd2052d9a68354ab1b2`;7AD runner/workflow and
@@ -133,7 +134,7 @@ Its historical binary diff SHA-256 is
 | 7AX debug synchronization / thread metadata | COMMITTED / NARROW_CONCURRENCY | `Plan-Slice: 7AX`, integrates7581a2a9 plusb863ec3a production metadata. Current main debug/hardening/DXF/local CTests pass4/4 in1.96s; lc3 source target builds. Global level/printer and constructor reset retained; lifetime-pinned callbacks/destruction run outside state locks, built-in fragments preserve caller formatting, eager macro effects unchanged. Main component TSan passes with test/debug/base/adapter TUs instrumented and parser archive uninstrumented; not whole-library concurrency. Three forced thread metadata branches and compiler-free checker self-test pass. PUBLIC Threads/CONFIG/MODULE/CMakeDeps bridge and conditional-pthread Cflags are integrated; actual Conan/qmake/native remain separate. One registration needs clean refreeze. README/checker acceptance follow in7AK.5. |
 | 7AK.5 package acceptance integration | COMMITTED / UNIX_STATIC_ACCEPTANCE | `Plan-Slice: 7AK.5`, integrates reviewed586813df/59dcaf8f plusb863ec3a checker controls and README separately from7AX. Fresh current installed-static/plain/override/moved consumers, archive binding, missing-private-library negatives, license/manifest and CONFIG/MODULE checks pass against archive9561d593. Compiler-free self-test passes with nonexistent CXX; three configure-only metadata branches previously passed on unchanged production metadata. Shared/moved worker evidence remains isolated; actual Conan/PIC/DLL/native qualification pending. No new CTest or format/support promotion. Next7AK.6 request-contract acceptance. |
 | 7G.1 raw-section control ownership | COMMITTED / TEST_INPUT_REPAIRED | `Plan-Slice: 7G.1.test-input`: the source-generated raw-section CLI control named owner1F without defining its BLOCK_RECORD. The unchanged pre-CLI executable813f7d95 reproduces rejection. Add a locally authored model-space BLOCK_RECORD table; the same executable then passes both raw-section conversions. No production owner relaxation, new CTest/payload fixture or semantic modeler claim. Current CLI checkpoint also passes this repaired control; next exact option parsing7BH.1. |
-| Historical isolated integration queue | SUPERSEDED_BY_LEDGER | canonical7AL.2 encoding302ce6a7→HEADER7L.5 e90b9f57, residual7AW0ee3bff2,7G.2 STYLE9c3a74c7 and7AM.1 BLOCK98176504 remain isolated commits. Ready:7AK.6 `2be123e8`,7BE.1 `80eca35a`→7BE.7 `5860915d`,7BJ.1 `e6a6a24c`→7BJ.2 `6b527e0c`; their checks bind only isolated sources.7BF.2/7BL/7BM/7BD are integrated below.7BH.3 helper`a4c5d63f` needs review/CLI integration;7AN LAYER remains WIP. Fast-CI d9cd48ea follows actual registrations and one clean default inventory refresh. New7H.4/7BN.1/7A.2 can be developed independently but shared writer edits integrate serially. Do not queue already committed slices again; Conan/native/general semantic qualification stays separate. |
+| Historical isolated integration queue | SUPERSEDED_BY_LEDGER | canonical7AL.2 encoding302ce6a7→HEADER7L.5 e90b9f57, residual7AW0ee3bff2,7G.2 STYLE9c3a74c7 and7AM.1 BLOCK98176504 remain isolated commits.7BE.1 `80eca35a`→7BE.7 `5860915d` and7BJ.1 `e6a6a24c`→7BJ.2 `6b527e0c` are review-ready; their checks bind only isolated sources.7AK.6 `2be123e8`→OLD-only333cdaad needs NEW/creation-policy correction, not integration.7BF.2/7BL/7BM/7BD are integrated below.7BH.3 helper`a4c5d63f` needs review/CLI integration;7AN LAYER remains WIP. Fast-CI d9cd48ea is superseded by the committed45-ID refresh.7H.4/7BN.1/7A.2 are integrated below; do not queue them again. Conan/native/general semantic qualification stays separate. |
 | 7BH.1 exact-token CLI controls | COMMITTED / NAMING_PENDING | `Plan-Slice: 7BH.1`: shared complete-token parsing rejects prefixes, empty/short tokens and duplicate/conflicting versions before file operations. Documented-Y/-D and leading-dash positional paths retained. Strict CLI/version build and48 bounded subprocess controls pass; four CLI/version/FreeCAD/raw-section CTests pass. One registration needs clean refreeze.7BH.2 input/outcomes are now committed;7BH.3 naming/manifest integration remains pending. No library API/format/support promotion. |
 | 7BH.2 bounded batch lists and outcomes | COMMITTED / NAMING_PENDING | `Plan-Slice: 7BH.2`: bounded128KiB filename/16MiB physical bytes/10000-item acquisition before outputs; CRLF/LF/exact-cap/no-newline and literal whitespace retained, empty-only/NUL/over-limit/partial-I/O reject without publishing parsed prefix. Regular-file checks avoid opening FIFOs. Complete lexical/existing-identity preflight protects inputs/list; noninteractive independent failures continue and aggregate nonzero. Strict CLI/version build;48 option+18 batch subprocess controls and tiny quota/I/O units pass,3focused CTests1.46s. No new registration/payload/API/support promotion.7BH.3 still owns canonical DXF names, verified actual-filesystem future-name collation and optimized identity indexing. |
 | HEADER finalization / Template / appearance / header coexistence | PLAN_UPDATED / NONPROMOTING | Adds PAR-106–109 and7BE.7/7BJ/7BK/7BL. Six writer targets retain pre-HANDSEED CRCs; MEASUREMENT disappears and fallback changes its meaning; transparency needs format-specific method handling; actual X11 includes break public headers. Adds a reproduced dimension-oracle exclusion and refreshes consumer-source pins. No main production integration, drawing admission, support metadata or remote changes. |
@@ -161,6 +162,7 @@ Its historical binary diff SHA-256 is
 | 7AV.5 consumer-finalization integration | COMMITTED / PUBLICATION_SCOPED | `Plan-Slice:7AV.5`, integrates independently reviewed ab22a514 on d36f38f. Additive default-true finalizeDxfWrite runs exactly once after flush/writer reset and before publication; vetoes/exceptions/sticky late mutations abort, preserve existing destinations and clear only derived results. Finalizer-time identity/output-registration APIs are closed; admitted whole-operation scope releases the phase after cleanup/catches/commit, rejected nested calls do not. Preserved ASCII locale, direction and sort/carrier controls during the test-only conflict resolution. Main DXF/diagnostic/writer-primitives3/3 pass3.02s; strict production/fixture TUs and actual missing-override witness now pass, lc3/current CLI build passes. Main archive SHA256`5c79a9f9d104b60e2c7d15572ac57b25964c57466ebab26e6ca1250b0c56d0f4`, DXF executable`cd1c9b6f7b70c2181a3838b83406f3ac2bde53ab6c8509b4a96fcbbf7f4b52b0`. Public virtual/private layout requires consumer rebuild; mutable aliases/full-caller rollback remain explicitly outside this guarantee. No new pure callback/registration/payload/DWG layout/receipt/support promotion. Next corrected7S.1 and7AG inventory contract; one composed current-source sanitizer checkpoint after token integration. |
 | 7S.1 corrected token-acquisition integration | COMMITTED / TOKEN_SCOPED | `Plan-Slice:7S.1`, integrates337abe95→independently reviewed0688b487 on92e6471. Physical ASCII code/value and binary NUL strings use fixed-scratch bounded acquisition, raiseable1MiB default, CR-inclusive accounting, exact-limit delimiter/EOF precedence and no excess-byte consumption/drain. Sticky ResourceLimit outranks stage fallback; admitted operation owns current-reader generation, including nested rejection and real file/memory throw→early next rejection→recovery. Combined WholeOperationScope retains both token and finalizer cleanup flags. Explicit internal failure contract clears failed/throwing token text; returned zero-byte I/O adds failbit, original badbit-mask exceptions remain first. This intentionally tightens libc++ failed-read behavior; not blanket predecessor parity. Fresh isolated correction report SHA256`71605eeea97537557cd29485173246506c5d31d0231a903bc4a85f6498c7025a`:40 normative EOF/I/O rows per STL pass, GNU24-row flag/result/exception comparison0 differences, libc++ six intentional differences; historical reports unchanged. Main hardening/diagnostic/DXF3/3 pass2.81s; strict production and project-Werror hardening TU, lc3/current CLI build pass. Main reader SHA256`67e7a9afc55a68df15ce921a78ae1d236f203e1fff74d4cf4582d0a40d27d6db`, archive`284a7f1f70e19fe006aecf51c7093803d7c4cd603576a04fe88a02632c2aa7fe`. Genuine4097-byte positive/4098 negative and lifecycle controls retain existing callback-prefix policy. No new registration/payload/dependency/DWG layout/receipt/support promotion.7S.2/3 remain open; next one composed current-source sanitizer checkpoint and7AG/7F.1b contract work. |
 | 7AV.5 /7S.1 composed lifetime checkpoint | VERIFIED / SAFETY_SCOPED | Clean tracked b4f74be913c86b43b96560ca23292aafebf1f436 checkout `/private/tmp/libdxfrw-current-safety.OPuDX0/repo`, Debug/static entire library plus hardening/DXF/reader-matrix targets instrumented with address sanitizer. `ASAN_OPTIONS=detect_stack_use_after_return=1:detect_leaks=0` exact3/3 pass7.80s. Report SHA256`afd4cac931c4cb0d5da07a78fd05020b67b5959aca983d76be4b9c2bfcac588a` binds source revision, archive/executables and successful log. Initial detect_leaks=1 attempt aborted before tests because this macOS runtime does not support it; no leak-check pass claimed. Archive`9877ff4d6de8c9c3f9fba9756e4c29c12a5242ed73f7d7d59c54bfad330fddcf`, hardening`d1ada14bb529f52ad65f0154a6b0dc2326dab8d4e8fd3b41c67d9db57a0575bc`, reader-matrix`f8db2fac4a9cf7669973915f37086b14e4bd18588ba1e8ab1d9d8e3eabde2371`, DXF`c43f62011a28bd4bf2744651aa4f399f1010fd23c20682bb124eda6cfc933442`. No full84 suite/native/runtime receipt/support promotion; d49 and ca8 historical evidence remains unchanged. Next7AG/7F.1b capability contract and corrected7AK.6 package request work. |
+| Broader profile / oracle / policy review | PLAN_UPDATED / NONPROMOTING | At907b77, extends existing7AG/7AH/7AQ/7AK.6/7S.2/Slice8 rather than adding PAR IDs. Actual metadata predicates accept contradictory side/warning flags; public-model projection misses optional shell presence/value. Eight mocked ACIS-verifier rows distinguish geometry from unknown units/diagnostics; deliberate peer calibration loses one face without changing bounds. Binary late-header and callback source-mutation controls bind current artifacts.18+6 CMake probes correct the prior NEW-policy false-reject claim and show OLD-only333 can accept unrelated output.7AG.1a50157be stays isolated;7AK.6 stays unready. Only plans change in main; no fixture/receipt/native claim or six-J promotion. |
 | 7AD clean inventory / mandatory-result refresh | COMMITTED / FAST_CHECKPOINT_PASS | `ca8a7fde44d5b9dc32a22b44a4057d9c4d48c127` / `Plan-Slice:7AD.refresh`: clean d7174d1 enumeration finds84 default CTests,24 additions/zero removals versus60; name digest`45fa729700500688f366ec0f7276a87e003f9eb19423bf3598ee0568abaf66df`. Clean tracked checkout rebound to ca8a7fd, supported Python3.12/Release/static/optional oraclesOFF: seven fast executables and exact45 executed CTests pass, CTest30.82s/zero skips. Separate exact7 focused checks pass4.78s; live84 inventory, labels, modes and JUnit outcomes validate. Qualification workflow SHA256 unchanged`72c3c75af1d3a8836564bc11ac695d787f9c8fe0f9e132b8c0571d3542f51473`; focused IDs/digest unchanged. Test-only startup/one-ULP corrections retain production deadlines, exact anchors/zeros and tight unit norm. Empty argv option values are admitted; missing/duplicate/unbuilt and skipped/disabled/nonpassing required cells reject. Four real configure-option profiles/tool self-tests pass under supported Python. Names remain generated at the unchanged-CMake ancestor d7174d1; no user samples entered. No full84 suite, hosted/native consumer run, native receipt or support promotion. Next reviewed7A.2,7BN.2 and ready7F.1/7BE/7BJ; broad/ASan/final binding gates remain separate. |
 | Linetype / UCS / CLI / raster admission review | PLAN_UPDATED / NONPROMOTING | Adds PAR-98–105 and7BF/7BG/7BH/7BI. Reproduces fixed-area text aliasing, UCS tuple loss, three CLI process-contract defects, conflicting LTYPE mirror behavior and invalid IMAGE writer admission. LTYPE units have contradictory primary/peer evidence and require a producer witness. Existing7L.5 consumer source-version and7BE boundary gates are sharpened. No main implementation, index, drawing admission or support claim changes in this pass. |
 | Masking / angle / HEADER integrity / package requests | PLAN_UPDATED / NONPROMOTING | Adds PAR-94–97 and ready7BC/7BD/7BE/7AK.6 controls. Generated ASCII/binary WIPEOUT outputs lose polygon/clip mode in an ordinary independent read; full AC1015 HEADER CRC/end mutations remain unreported; tiny package requests accept absent required components. Oblique-unit probes are recorded below. Expands existing7G ownership and7AX thread metadata gates without duplicating findings. No main implementation integration, drawing admission or support promotion in this research pass. |
@@ -2034,6 +2036,23 @@ before-load tag graph, before-audit semantic projection, and repair report as
 three distinct observations. For normalized output, assert expected fields and
 graph invariants in addition to parser/audit outcomes.
 
+Calibrate binary header discovery separately from format validity. The pinned
+[ezdxf tagger](https://github.com/mozman/ezdxf/blob/dd7f6cc34983fdbf0b2b910f2497e0720d06dd16/src/ezdxf/lldxf/tagger.py#L143-L179)
+searches only the first1024 bytes for `$ACADVER`/`$DWGCODEPAGE`, defaulting to
+R12 when version discovery fails. In a locally authored13,386-byte R2010
+binary control, moving only the version pair from byte43 to5253 changes its
+ordinary read from success to a coordinate-structure error. Current libdxfrw
+converts both controls successfully to byte-identical ASCII with the expected
+LINE endpoints. Report
+`/private/tmp/libdxfrw-binary-oracle-research.EHhoj4/report.json`
+SHA256`e32ef90b0809c3332ba672c02972b7de67109db02595dbabb695f58d895e41c7`
+binds unchanged converter/archive bytes and controlled pure-Python1.4.4 content.
+This reordered-header mutation calibrates an oracle limitation; it is not an
+independently qualified format input, native acceptance or new libdxfrw defect.
+Do not rewrite the tested input or retry recovery to turn the original cell
+green. Preserve the original failure and classify the unsupported observation;
+test the resulting ASCII projection as a different route.
+
 Separate native fields from derived world geometry and tessellated approximations
 in the existing receipt/projection schema. [ezdxf INSERT expansion](https://ezdxf.readthedocs.io/en/stable/blocks/insert.html)
 requires explicit MINSERT handling and does not apply XCLIP; nonuniform text
@@ -2219,8 +2238,10 @@ qualification promotion.7AX and its compilation-side thread metadata fix are
 committed as `70e1d4c`, with4/4 focused passes.7AK.5 `586813df` plus shared-alias
 `59dcaf8f` and thread-metadata checker controls are also committed with fresh
 static/moved acceptance; do not reintegrate either slice.
-7AK.6 package request commit `2be123e8` is ready for independent review and
-configure acceptance without a format rebuild. Integrate STYLE9c3a74c7 only after reconciling
+7AK.6 package request commit `2be123e8` and OLD-only correction333cdaad are
+not integration-ready: actual generated exports create CMP0200 NEW targets.
+Complete creation-policy/artifact-binding controls using configure-only probes,
+without a format rebuild. Integrate STYLE9c3a74c7 only after reconciling
 its new derived resource map with7AV cleanup; preserve caller registration
 inputs. Review canonical7AL.2 `302ce6a7` and BLOCK98176504 independently;
 HEADER-order/alias `e90b9f57` follows canonical7AL.2; LAYER policy remains
@@ -2311,12 +2332,24 @@ typed successor contract. These tooling gates do not block independent
 Keep the fourth
 coordinate-presence and fifth wide-handle test options independent. Integrate
 shared-writer changes serially.7BN.1/2 and its composed d49 sanitizer checkpoint are complete at their
-named scope; do not queue them again.7F.1b's typed schema migration,7S.1 token
-acquisition,7M host-XDATA routing and7AV.5 consumer veto have explicit local
-subplans and do not require native evidence first. Integrate ready7BE/7BJ and
+named scope; do not queue them again. Remaining7F.1b typed schema migration,
+7S.2/3 accounting and7M host-XDATA routing have explicit local subplans and do
+not require native evidence first. Integrate ready7BE/7BJ and
 the preserved package/resource queue with affected-target gates. One failing
 external/platform gate does not block these steps. Keep historical receipts
 immutable and refresh current bindings at a stable checkpoint.
+
+The next local steps have these bounded gates; an external qualification
+failure does not prevent completing them:
+
+| Step | Implementable boundary | Smallest gate before proceeding |
+| --- | --- | --- |
+| 7AG.1a | Review/rebind isolated50157be source cleanup without profile/schema changes. | Actual ordinary/3D TU and170 inventory; known two supplements/six target capabilities remain explicit. |
+| 7AG.4 plus7AG.1 capability profile | Fix exact side/warning predicates; declare/check capabilities, then add the two audited supplementary callbacks. | Dependency-free metadata/header-shape negatives first, then one paired target/standalone build. No blind target-lock or170→172 constant update. |
+| 7F.1b /7AH | Migrate the typed result/runner together, including optional modeler source presence and readable bounded observations. | Frozen-schema compatibility plus unknown/zero/presence/omission mutations, then clean/partial/opaque read/readback sentinels. |
+| 7AK.6 | Implement narrow policy-aware selected-artifact binding, separately from format/adapter changes. | OLD/NEW/opposite-caller configure controls; one original/moved staged-consumer checkpoint after the predicates pass. |
+| Slice8 verifier contract | Separate scoped geometry from units/coverage/eligibility using the existing optional tool. | Dependency-free mocked predicates and one optional projection calibration; native producer/second-kernel evidence remains deferred. |
+| 7S.2a–d | Implement input bytes, owned snapshot, live retention and revisit work as separate commits. | Tiny caps/counters/retry controls in existing hardening targets; one sanitizer checkpoint after shared storage/lifetime changes settle. |
 
 | Sub-slice | Current readiness | Main dependency | Smallest existing validation lane |
 | --- | --- | --- | --- |
@@ -2353,11 +2386,11 @@ immutable and refresh current bindings at a stable checkpoint.
 | 7AD — CI inventory and fast PR gates | COMMITTED / FAST_CHECKPOINT_PASS | clean inventory84; seven executables/45 required CTests and exact focused7 pass at ca8a7fd, no skips/receipt/promotion | current clean local checkpoint plus tool/contract self-tests; hosted/final-broad/native gates remain separate |
 | 7AE — symbol/string case policy | COMMITTED_1 / WIDER_POLICY |1 ASCII-safe bytes integrated;2Unicode equivalence/3filename policy separate | main3/3 plus four owned locale controls, typed names/refs and R12 font controls |
 | 7AF — zero-fit HATCH tangent state | COMMITTED | separate spline-fit and loop-boundary counts; whole-zero absence policy unchanged | literal/API ASCII/binary, zero/one fit and successive edges |
-| 7AG.1/2 — current consumer contracts | SOURCE_CONFIRMED / CAPABILITY_WORK | exact target170/current172; sink needs two named supplements, common-helper/conditional cleanup and six target-absent modeler capabilities before paired build; typed/raw retention independent | real-source ordinary/3D syntax and inventory first, named successor profile plus paired build; tiny prototypes are not receipts |
+| 7AG.1/2 — current consumer contracts | ISOLATED_1a / CAPABILITY_WORK |50157be source cleanup passes isolated ordinary/3D controls; exact target170/current172 still needs two named supplements, six target-absent modeler capabilities and compile-attestation correction before new receipts; typed/raw retention independent | actual-source preflight then named profile; dependency-free flag/side mutations before one paired build; no prototype receipts |
 | 7AH — semantic comparator contract | COMMITTED / CALIBRATION_WORK_PENDING | v2/process/scoped thin integrated; MINSERT/raw-load repair calibrations and bounded broad-oracle worker7AH.6 remain | tool mutations, current16-route evidence historical; tiny raw/preload controls, no broad corpus |
 | 7AI — bounded graph walk | COUNTS_COMMITTED / PAYLOAD_WORK_ROOTS_PENDING | node/edge/staged/source limits integrated; separate XRECORD slot-inspection allowance pending;7G root expansion separate | tiny fixed-graph/varying-payload cap controls, existing cycle/unchanged-destination tests |
 | 7AJ — polygon-mesh subclass | COMMITTED | ordinary flag16 marker fixed; vertex/grid and compatibility policy unchanged | local/3D main probes; raw-marker/mode controls retained |
-| 7AK.1/2/4/5/6/7 — package and build contracts | COMMITTED / REQUEST_CORRECTION |1/2/4/5/7 and7AX metadata integrated;6 `2be123e8` needs confirmed mapping/default-order and creation-policy controls before integration | configure-only request/mapping/option negatives; actual staged consumers at package checkpoint, Conan/PIC/DLL separately |
+| 7AK.1/2/4/5/6/7 — package and build contracts | COMMITTED / POLICY_CORRECTION |1/2/4/5/7 and7AX metadata integrated;6 `2be123e8`→333cdaad models OLD only, while actual exports create NEW; explicit UNAVAILABLE false-found confirmed, prior NEW default-first false-reject claim retracted | configure-only OLD/NEW creation and opposite-caller-policy/binding controls; staged consumers at package checkpoint, Conan/PIC/DLL separately |
 | 7AL.1/2 and7L.5 — XDATA text / HEADER order | COMMITTED / ISOLATED_COMMITS | point lifecycle integrated; canonical encoding302ce6a7→HEADER e90b9f57 ready for serial review;7K separate | DXF fixtures/four point routes; isolated encoding/header16-route checks require current integration binding |
 | 7AM.1/2 — BLOCK/ENDBLK carriers | ISOLATED_COMMIT / API_DESIGN | BLOCK98176504; additive footer design coordinated with7AS.2 | source-only repeat CLI, exact ordered carriers/legacy callback count |
 | 7AN — LAYER field policy | ISOLATED_WIP / MAIN_PENDING | narrow DXF-only validation; shared DWG CMC untouched | DXF/Wave1 signed-color/inheritance/transaction negatives |
@@ -3670,6 +3703,29 @@ DWG page/object/block caps before extending any uncovered aggregate scope.
    Use tiny repeated chunks/comments and ASCII/binary numeric-only controls;
    test decoded expansion, snapshot rejection before copying and fresh reset.
    Do not call token-byte0 a whole-file byte or retained-memory zero budget.
+   Split implementation at these independently testable boundaries:
+
+   | Step | Accounting owner and rule | Small discriminating control |
+   | --- | --- | --- |
+   | 7S.2a input/work admission | Define one logical parser-input byte counter, separate from physical disk/read-ahead and token length. Count ASCII code/value delimiters and CR, binary code bytes/numeric widths/chunk lengths/payload/NUL, including ignored records. Specify sentinel/sniff accounting once; never double-charge a re-read as new retained storage. Check remaining budget before each bounded acquisition. | Equal-size text and numeric-only ASCII/binary inputs; cap−1/cap/cap+1, ignored comments and no drain after rejection. |
+   | 7S.2b owned snapshot | Reserve the library-owned readAscii snapshot before constructing istringstream; caller content remains outside library retention. Preserve observed callback-time mutation isolation. Reject before the full copy, and unwind the charge on construction failure. | Two LINE callbacks while the first replaces caller content with EOF; both original LINEs still arrive. Tiny snapshot cap rejects before any callback and a corrected retry succeeds. |
+   | 7S.2c live text/carriers | Identify temporary getString copies, simultaneous strData/rawData, assembled MTEXT, by-value decode input/output, comments and typed/raw carriers. Charge inserted comment newlines as retention, not acquired input. Define length/capacity scope and move/replacement/rollback explicitly. | Multiple individually admitted chunks exceed a tiny aggregate; decoding expansion and replacement/clear controls distinguish live retention from cumulative work. |
+   | 7S.2d decoded work/nodes | Charge bytes actually revisited by decoding and inspected variant/container slots separately from input bytes. A final MTEXT group1 decodes the accumulated prefix; repeated group1 can revisit it repeatedly. Preserve accepted grammar unless separately changed. | Small group3…group1 positive and repeated-group1 malformed-input control with deterministic visited-byte counters, not a timing or large-allocation test. |
+
+   The current snapshot-isolation control passes against archive284a7f1f: the
+   first callback replaces caller content with six-byte EOF input, while the
+   outer read still publishes both original LINEs/error0. Report
+   `/private/tmp/libdxfrw-binary-oracle-research.EHhoj4/snapshot-report.json`
+   SHA256`06221298fc3b708af613d377609f117e4d9c1061e0dfbf363b5ff89f4c2a38ef`
+   binds the strict probe/source/object/archive bytes. This is current behavior
+   to preserve, not a new hostile-file or whole-memory proof. MTEXT repeated
+   decode work remains a source lead, not an executed DoS or valid-file defect.
+   Decide resource defaults and allocation-failure disposition once at7S.2a;
+   policy exhaustion must remain distinguishable from genuine I/O/bad_alloc.
+   Do not add a public knob per storage owner or promise to bound memory copied
+   into arbitrary consumer callbacks. Retention accounting must remain valid
+   across callback exceptions/stale owned readers, rejected nested operations
+   and sequential reuse established by7BN/7S.1.
 3. **7S.3 DWG retention/work:** inventory each allocating owner rather than
    charge a guessed multiple of file size. Include live object backing during
    raw-section staging, reader18 temporary+copy versus reader21 move, typed
@@ -4167,18 +4223,19 @@ scoped consumer handoff. LibreCAD and LibreCAD_3 stay valid 2D consumers; new
    HEAD `132265a`. Keep C++17/toolchain/rebuild requirements explicit.
    Refresh the LibreCAD discovery source to7c4a93fa while retaining f94ca6eab3's
    independently inspected contract. Include its actual finalizeDxfWrite
-   override: the current standalone interface fails even that tiny override
-   compilation.7AV.5 supplies the missing default callback and publication
-   contract; a compile-only LC3 mirror that never overrides it cannot detect
-   this LibreCAD-specific surface gap. Named gates must identify which consumer
+   override: the pre-7AV.5 standalone interface failed that tiny override
+   compilation. Committed7AV.5 now supplies the default callback/publication
+   contract and the override control passes; retain that control because an
+   LC3 mirror that never overrides it cannot detect this LibreCAD-specific
+   surface regression. Named gates must identify which consumer
    source they cover, not imply both from one abstract stub.
    Repair the actual semantic-adapter build preflight as a separate small
    tooling step: current conditional nonvirtual probe state already makes
    _adapter_override_methods reject the class. Keep an unconditional audited
    callback surface, or attest the actually preprocessed inventory for each
    declared profile; do not parse inactive branches as executable coverage.
-   The extracted current171 and candidate172 counts versus expected170 require
-   named inventory reconciliation, not a blind constant bump. Preserve frozen
+   The historical171→172 transition and current172 versus frozen target170
+   require named inventory reconciliation, not a blind constant bump. Preserve frozen
    target lock/build receipts; introduce a reviewed successor inventory/profile
    for additive lifecycle capabilities. Enforce every required common callback
    and explicitly enumerate permitted defaulted extras. Unreviewed missing,
@@ -4201,8 +4258,9 @@ scoped consumer handoff. LibreCAD and LibreCAD_3 stay valid 2D consumers; new
    chunk type, modeler source-version/ACIS/chunk fields, range bit offset and
    surface chunks. Both existing synthetic tool self-tests still pass.
 
-   Implement7AG.1a common-helper/conditional-source cleanup first, preserving
-   the existing170 sink callbacks and schema2. Require real ordinary and3D
+   Integrate/recheck isolated7AG.1a50157be common-helper/conditional-source
+   cleanup first, preserving the existing170 sink callbacks and schema2.
+   Require real ordinary and3D
    standalone syntax plus actual-source inventory reporting exactly the two
    known missing supplementary overrides, not the preprocessor failure. Then
    add dependent capability shims for target-absent modeler/range/surface fields
@@ -4215,6 +4273,18 @@ scoped consumer handoff. LibreCAD and LibreCAD_3 stay valid 2D consumers; new
    Supplementary callback ordinals/records remain visible differences or exact
    reviewed target debt; do not filter them wholesale into parity. Keep7F.1b's
    successor result schema separate. No target-lock refresh is needed.
+   Isolated7AG.1a commit50157be2c0afd4338923245c93114ea8adfcc250 on b4
+   now removes the conditional/common-helper blockers without changing the170
+   callbacks or schema2. Report
+   `/private/tmp/libdxfrw-preflight-7ag1a.hdw4MP/candidate-report.json`
+   SHA256`7ee82fc1cbe00c46ca656976f2f8bf4ce4404174b7d754ff760de3598b90495e`
+   records strict ordinary/3D full-TU compile/link and linked self-tests,
+   byte-identical default recipe output and actual target170 inventory. It
+   reuses the unchanged b4 archive read-only; no isolated library rebuild or
+   qualification receipt is claimed. Standalone inventory deliberately still
+   rejects the two missing supplementary callbacks, and target syntax still
+   reports the six absent capabilities. Integrate/recheck1a independently;
+   do not mark the whole consumer contract complete from that cleanup.
 2. **7AG.2 bounded handoff design:** [current LC3 LAYOUT](https://github.com/LibreCAD/LibreCAD_3/blob/3dcdc4009546b8c9b2aa9605c52e2434bece6901/persistence/libdxfrw/dxfimpl.h#L194)
    and [PLOTSETTINGS callbacks](https://github.com/LibreCAD/LibreCAD_3/blob/3dcdc4009546b8c9b2aa9605c52e2434bece6901/persistence/libdxfrw/dxfimpl.h#L340)
    report rather than preserve typed LAYOUT/PLOTSETTINGS. Choose consumer typed
@@ -4234,6 +4304,36 @@ scoped consumer handoff. LibreCAD and LibreCAD_3 stay valid 2D consumers; new
    mirror cannot qualify edit/save behavior. Patches in either consumer repo
    require that implementation scope; record an explicit external disposition
    if only standalone changes are authorized.
+4. **7AG.4 compile/profile attestation before receipts:** correct the existing
+   builder predicates with dependency-free metadata mutations before the
+   successor paired build. Require exactly one expected side macro/value1;
+   reject opposite-side definitions even when value0, duplicate/conflicting
+   critical definitions and undeclared side keys before set normalization.
+   Removing expected per-side differences from parity identity is permitted
+   only after verifying exclusive identity, not as a way to hide contradictions.
+   Tokenize actual compile fragments with the existing platform splitter and
+   require exact global `-Werror` or `/WX`, retaining MSVC `/bigobj`. Reject
+   negating warning-error settings and profile-critical `-D`/`-U` overrides;
+   an embedded string, specific-only `-Werror=...` or `/WX-` is not equivalent.
+   Unknown effective critical options need an explicit rejected/advisory
+   disposition; advisory results cannot attest compileContractEnforced or
+   issue eligible receipts. No generic compiler/preprocessor engine or
+   weakened flags is required.
+   [GCC warning options](https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html)
+   and [MSVC warning policy](https://learn.microsoft.com/en-us/cpp/build/reference/compiler-option-warning-level?view=msvc-170)
+   define the distinctions; metadata rows do not qualify native Windows.
+   Eight current accepted metadata rows include seven unsafe profile/flag
+   partners; two ordinary rejection controls remain effective. Report
+   `/private/tmp/libdxfrw-inventory-7ag.kedz0t/broader-profile-report.json`
+   SHA256`03294d177727edb914c5ea98cf6d7d5ace7057108bf986d4e898a7db72f2e5a5`
+   also binds the optional-modeler component controls. No actual qualified
+   receipt was minted with those mutations. Declare expected capabilities per
+   pinned side in the named successor profile, then compile-check detection
+   equals that declaration: a changed getter shape/const/noexcept contract
+   must fail rather than silently becoming legitimately unavailable. Keep
+   facade read version, qualified payload-extraction revision and normalized
+   modeler carrier version distinct. Schema1 receipt compatibility and2D
+   consumer behavior remain unchanged until their reviewed migration.
 
 **Fast gate:** named source compile (existing `lc3_compat_check` is build-only)
 plus standalone callback/publication and dedup controls. Actual Qt/native app,
@@ -4256,6 +4356,15 @@ the first commit. Reuse the existing normalization/runner contracts where safe.
    Include a coincident MINSERT2×3→1×1 mutation: compare declared groups70/71,
    spacings44/45 and attached attributes before expansion. Identical virtual
    geometry or mcount is not identical source multiplicity.
+   Add optional modeler-shell mutations through public models: absent/false/
+   true group290 and absent/present-empty/distinct-UTF8 group2 UID. The current
+   component projection treats these four changed-presence/value controls as
+   identical, while a modelerVersion mutation differs. Extend the narrow7AG
+   capability helper rather than a second adapter: API unavailable, source
+   absent and source present with false/empty/value are separate states. UID
+   is text, not a remapped handle. Preserve existing unmodeled-field exclusions
+   until this scope is actually represented; no full ACIS-support defect or
+   format loss is established by this projection test.
 2. **7AH.2 normalization boundary:** remove only explicitly declared envelope
    metadata paths, never every nested key named `date` or `generatedAt`.
    Preserve application keys/values and list ordering. Use type-aware recursive
@@ -4302,6 +4411,9 @@ the first commit. Reuse the existing normalization/runner contracts where safe.
    post-load deltas and fresh audit fixes/errors. Use7P.5b's actual ownership
    expectations; do not count this malformed oracle control as valid-format
    interoperability or assume every loader mutation is an audit fix.
+   Include the binary late-version calibration above before broadening oracle
+   inputs. An ordinary-reader error is an observed failure, not a decoded zero
+   entity count, a recovery pass or proof that libdxfrw emitted invalid bytes.
 6. **7AH.6 oracle resource boundary:** converter timeout/log caps do not bound
    hashing, tag loading, ordinary reading or audit in the parent. Add an
    explicit small drawing-byte limit before each generated source/output1/
@@ -4557,22 +4669,79 @@ this check is not a comprehensive legal-compliance assessment.
    reproduced requests take seconds; no library rebuild, format suite,
    comparator install or native FreeCAD run is a prerequisite. Package
    components must not become a shortcut for unqualified format-support claims.
-   Independent review of2be123e8 reproduced two missing configuration controls:
-   explicit MAP_IMPORTED_CONFIG_DEBUG=UNAVAILABLE must not fall back to a valid
-   default location, and mapping `;RELEASE` must preserve the first empty/default
-   element. CMake4.4.4 respectively exposes a false found→generation failure
-   and false not-found→valid default target. Existing version/component and15
-   boundary controls pass but do not test these cases. Correct the ordered
-   mapping and location-presence checks before integration, retaining repeated
-   unversioned/default-only fallback. [CMake mapping semantics](https://cmake.org/cmake/help/latest/prop_tgt/MAP_IMPORTED_CONFIG_CONFIG.html)
+   Explicit MAP_IMPORTED_CONFIG_DEBUG=UNAVAILABLE false-found→generation
+   failure is confirmed. Retract the prior `;RELEASE` false-not-found claim
+   for the actual staged export: its canonical TARGET_FILE resolves to the
+   unrelated RELEASE artifact, so2be123e8's rejection is correct for that
+   NEW-policy target. Actual libdxfrwTargets.cmake line10 declares
+   cmake_policy(VERSION2.8.12...4.2), hash
+   `dc9acf5ffcb8892675c1d9566e478de0d1bfbf9e97e488de29c6216512f07070`.
+   An earlier assumed...3.26 export was not the executed artifact.
+   OLD-only correction333cdaad3d1987d39f0dbacf91d69a768838b2ba passes12
+   explicitly OLD manual controls but must not be integrated as a universal
+   resolver. Partial report
+   `/private/tmp/libdxfrw-ak6-map.iy2uSK/partial-correction-report.json`
+   SHA256`173d6066b5ca21c81c50a4eafec95c82f5c8c5e5c944196158ef447b596cf54b`
+   preserves this retraction and integrationReady=false. Existing14+14
+   requests/15 boundary controls omit the relevant creation-policy split.
+   [CMake mapping semantics](https://cmake.org/cmake/help/latest/prop_tgt/MAP_IMPORTED_CONFIG_CONFIG.html)
    and [CMP0200](https://cmake.org/cmake/help/latest/policy/CMP0200.html)
-   require a further creation-policy boundary: current caller policy does not
-   reveal a pre-existing target's captured policy. Attest the owned exported
-   target's selection contract; for unknown caller targets, do not bless a
-   selection that differs or is unavailable under the relevant policy. Test
-   OLD/NEW target creation and opposite caller policy with tiny configure-only
-   controls. Keep any unresolved ambiguity explicit, not a blanket package-
-   acceptance or native-platform claim. No format suite is needed.
+   distinguish selection by available location under OLD from definitive
+   IMPORTED_CONFIGURATIONS under NEW; a selected NEW configuration may use
+   the configuration-agnostic location. Policy is captured at target creation,
+   so current caller policy or runtime version alone does not attest it on
+   CMP0200-capable runtimes.
+   Correct this gate before package acceptance, retaining repeated discovery,
+   default-only/NOCONFIG and both-alias positives. No format suite is needed.
+5. **Policy-aware binding implementation:** add one narrow NEW selector and
+   shared typed link-artifact resolution beside the OLD branch. Snapshot the
+   same properties for both. Until actual creation policy is attested, accept
+   only if OLD and NEW both resolve the selected canonical artifact/header
+   binding; different configuration names resolving the same artifact may
+   pass. Missing/different/unsupported selections reject with a named reason.
+   On CMP0200-capable runtimes, consensus for all existing targets is an
+   adequate first safe step; a new provenance/attestation framework is not a
+   prerequisite. Runtimes without this policy, including supported CMake3.28,
+   use the verified OLD selector; do not impose an impossible NEW-policy
+   ambiguity on them. This is [pinned3.28 source](https://github.com/Kitware/CMake/blob/5e984bb35232116a54de7db39788cb162ca7c263/Source/cmTarget.cxx#L3239)
+   verification, not a new older-runtime execution. Do not blanket-
+   reject mapped foreign targets or bless one convenient matching location.
+   Normalize aliases and NOCONFIG, distinguish unset from present-empty
+   properties and preserve ordered empty mappings. Handle only package-exported
+   library kinds/artifact roles: Windows SHARED linkage uses the import library,
+   not the runtime DLL. Check all enabled consumer configurations or report a
+   named unsupported multi-config disposition. Preserve selected-prefix version
+   metadata, quiet/required behavior, caches and moved-prefix/symlink binding.
+   [Pinned CMake selector](https://github.com/Kitware/CMake/blob/2e0b3aec14fe2e3e555faac4698e281749aae4b5/Source/cmTarget.cxx#L3331)
+   and [export policy creation](https://github.com/Kitware/CMake/blob/2e0b3aec14fe2e3e555faac4698e281749aae4b5/Source/cmExportCMakeConfigGenerator.cxx#L176)
+   are the implementation references, not a guessed historical policy upper bound.
+
+   | Reference configuration | OLD / NEW selected artifact | Unknown-policy disposition |
+   | --- | --- | --- |
+   | Default-only; or mapped provided location advertised in the configured list (or usable with no list) | A / A | Admit only if A is the selected artifact. |
+   | Default versus RELEASE, including leading empty mapping | A / B | Reject ambiguity; same target name is insufficient. |
+   | Explicit UNAVAILABLE or empty location | Missing / Missing | Not found; no default fallback. |
+   | NEW configuration with only agnostic fallback | Missing / A | Reject unknown-policy ambiguity, not a claimed invalid NEW target. |
+   | NOCONFIG divergence | A / B | Reject ambiguity; do not substitute empty caller build type. |
+
+   Fresh18 opposite-caller-policy rows and six MODULE observations take1.144s
+   on this host. Main907b77 and2be falsely find UNAVAILABLE; for `;RELEASE`,
+   main and333 find the unrelated B artifact while2be correctly rejects it.
+   Research report
+   `/private/tmp/libdxfrw-ak6-policy-research.pv4nN8/policy-research-report.json`
+   SHA256`52d3434ac0a995221556d11dbd2e1e8d1ee1762c57a1e53cc15f6e3cddedfab3`
+   binds the runtime/source/install/probes and full nine-scenario matrix.
+   Promote these controls into the existing checker, including explicit empty
+   IMPORTED_CONFIGURATIONS, lowercase/order/alias partners and import-library
+   metadata. Retain14+14 requests/15 boundaries/12 explicitly OLD controls,
+   and add a source-derived unadvertised-map negative: IMPORTED_CONFIGURATIONS
+   =RELEASE, IMPORTED_LOCATION_DEBUG=A, MAP_IMPORTED_CONFIG_DEBUG=DEBUG selects
+   A under OLD but is unavailable under NEW. It is not one of the executed18
+   rows. Keep a no-CMP0200 capability branch and actual older-runtime acceptance
+   distinct; a forced metadata branch does not execute an older CMake binary.
+   Then run one current-source original/moved tiny-consumer checkpoint. No
+   full format suite or native CAD dependency is required; native Windows
+   DLL acceptance remains separate.7AK.6 stays unready until these gates pass.
 
 **7AK.7 — build-option dependency admission (PAR-110), committed**
 
@@ -4865,6 +5034,21 @@ Preserve warn-and-continue production reading and scoped historical field
 observations; do not make all warning bits fatal or fabricate old evidence.
 No new comparator build is needed when the attested runtime already exposes
 the required read-only path; otherwise record a named unavailable cell.
+
+For a future optional acadrust lane, pin the
+[ReadStats contract](https://github.com/hakanaktt/acadrust/blob/a1a216d642d09c7548cc26ac6d3db6f79bd5a667/src/io/read.rs#L88-L173)
+and use read_with_stats rather than document-only read. Capture stream completion,
+record-stream availability, failsafe/recovery mode, source/decoded/skipped
+counts and capped diagnostics separately from output counts. recovered()==false
+only reports zero notification errors: the pinned
+[ordinary DXF reader](https://github.com/hakanaktt/acadrust/blob/a1a216d642d09c7548cc26ac6d3db6f79bd5a667/src/io/dxf/reader.rs#L379-L421)
+still rehandles defaults, resolves/rewires references and reconstructs selected
+round-trip metadata. A diagnostic-limit marker supplies no exact omitted
+cardinality. Keep raw before-load identities, post-load values and unavailable
+counts distinct, using7F.1b's typed unknowns. These are source-only contracts;
+no acadrust execution/install is required now. Add dependency-free report
+mutations first and one optional clean/unknown-record runtime control only
+when this lane is introduced, not a new mandatory oracle prerequisite.
 
 **Fast gate:** option-policy self-tests plus the already-generated proxy control
 and four current thin families; no C++ rebuild/full format suite. Native worker
@@ -6234,6 +6418,37 @@ reader18/21 integration vectors and allocation/publication controls.
   equal payload counts or one repeated cube cannot expose swapped links.
 - Retain the distinction between opaque exact bytes, partial SAB wireframe,
   valid B-rep topology, and editable/kernel-backed modeler geometry.
+- **Scoped verifier contract:** update the existing optional
+  tools/verify_acis218_sab_cqacis.py with separately named geometry outcome,
+  source-unit availability, conversion-default scale, diagnostic/raw disposition
+  and claim eligibility. Current eight mocked predicate controls show missing
+  units, unsupported-schema/unknown diagnostics and an unclassified raw
+  attribute can accompany PASS; mismatched scale and two returned shapes fail.
+  These run the real checker with mocked parser/kernel objects, not real ACIS
+  semantics. [cq-acis0.3.8's model contract](https://github.com/monozukuri-ai/cq-acis/blob/a2eefa38eaeeb95f17dcdabe8132bcbb18e32310/docs/model-api.md#L28-L47)
+  distinguishes missing source facts from compatibility defaults. Keep null
+  units as unknown; an effective1mm conversion scale does not establish
+  dimensional truth. Preserve diagnostic entity_index and named byte-domain
+  spans from the [typed diagnostic model](https://github.com/monozukuri-ai/cq-acis/blob/a2eefa38eaeeb95f17dcdabe8132bcbb18e32310/src/cq_acis/model.py#L40-L86).
+  Classify by pinned code and target/reachability, not message substrings.
+  Referenced geometry loss/missing expected bodies rejects the geometry cell;
+  unknown/unclassified/capped coverage remains non-promoting. A reviewed benign
+  non-geometric raw attachment need not invalidate scoped geometry. The
+  [converter already rejects raw bodies](https://github.com/monozukuri-ai/cq-acis/blob/a2eefa38eaeeb95f17dcdabe8132bcbb18e32310/src/cq_acis/cadquery.py#L2036-L2044);
+  do not claim a reproduced silent body drop or impose a blanket no-raw rule.
+- **Projection completeness:** retain source body/lump/shell/face denominators
+  and explicit omitted/unsupported projections. A tiny existing ezdxf1.4.4
+  API calibration changes one cube surface to deliberately unsupported: one
+  returned mesh, eight vertices and identical bounds hide6→5 faces. Its
+  [polyhedron projection](https://github.com/mozman/ezdxf/blob/dd7f6cc34983fdbf0b2b910f2497e0720d06dd16/src/ezdxf/acis/mesh.py#L81-L136)
+  is not a general B-rep oracle; this mutation is not valid-DXF interoperability
+  or a libdxfrw/peer defect. Add this positive/negative pair beside the verifier
+  predicates, without generated fixture commits or a new oracle framework.
+  Report`/private/tmp/libdxfrw-broader-research.ccHWJz/research-report.json`
+  SHA256`11b01c8cf84a6593ac689ad0cff11224f03133f058aa47f409bb0148417d47ac`
+  binds both controls and source-only future-reader refinements. Preserve
+  S2.3.9.4.19's historical exact-hash observations; use a named successor checker
+  contract rather than rewriting old evidence.
 
 **Acceptance**
 
@@ -6411,8 +6626,8 @@ work on the critical path.
 
 | Batch | Dependency-ready work | Validation boundary |
 | --- | --- | --- |
-| A — preserved integration queue |7AY/7AV.1–3/7AX/7AK.5/7BH.1 committed. Review canonical7AL.2 encoding302ce6a7→HEADER e90b9f57 with accepted-source accessor, residual7AW0ee3bff2.7AK.6 `2be123e8` needs review/current configure acceptance. Reconcile STYLE9c3a74c7 with7AV cleanup; review BLOCK98176504. 7AD ca8a7fd refresh/clean checkpoint complete; do not reintegrate | Touched targets per commit.38→45 required tests refresh and clean84 inventory are verified; debug/numeric build targets included. Enumerate only new registrations; exact focused7 unchanged; no user-sample glob/full suite per edit |
-| B — narrow independent corrections |7BH.1/2,7BF.2,7AK.7,7BL/7BM/7BD/7H.4/7BN.1/2 plus7F.1a/7A.2/7AE.1/7AV.5/corrected7S.1 committed; composed b4 lifetime gate passes at its exact binding.7AG.1a source cleanup then named capability/inventory profile precede new adapter receipts;7F.1b migration and7M.1 scope independent. Correct7AK.6 mapping/policy controls; continue7BH.3; review7BE.1 `80eca35a`→7BE.7 `5860915d` and7BJ.1 `e6a6a24c`→7BJ.2 `6b527e0c`.7N.2a reader weights independent of disputed7N.3. Then7BG/7BI/7BC and separately7BO interval work | Table-driven red/green boundaries/current binding; configure-only package changes, real-source preflight before paired build. Preserve consumer mirrors; modern HEADER strict checks, weight authority and zero-fit witness are exact-slice gates, not new dependency/full-graph/native prerequisites |
+| A — preserved integration queue |7AY/7AV.1–3/7AX/7AK.5/7BH.1 committed. Review canonical7AL.2 encoding302ce6a7→HEADER e90b9f57 with accepted-source accessor, residual7AW0ee3bff2.7AK.6 `2be123e8`→OLD-only333cdaad remains unready pending policy-aware binding. Reconcile STYLE9c3a74c7 with7AV cleanup; review BLOCK98176504.7AD ca8a7fd refresh/clean checkpoint complete; do not reintegrate | Touched targets per commit.38→45 required tests refresh and clean84 inventory are verified; debug/numeric build targets included. Enumerate only new registrations; exact focused7 unchanged; no user-sample glob/full suite per edit |
+| B — narrow independent corrections |7BH.1/2,7BF.2,7AK.7,7BL/7BM/7BD/7H.4/7BN.1/2 plus7F.1a/7A.2/7AE.1/7AV.5/corrected7S.1 committed; composed b4 lifetime gate passes at its exact binding. Review isolated7AG.1a50157be, then7AG.4 and named capability/inventory profile before new receipts;7F.1b migration and7M.1 scope independent. Correct7AK.6 OLD/NEW binding; continue7BH.3; review7BE.1 `80eca35a`→7BE.7 `5860915d` and7BJ.1 `e6a6a24c`→7BJ.2 `6b527e0c`.7N.2a reader weights independent of disputed7N.3. Then7BG/7BI/7BC and separately7BO interval work | Table-driven red/green boundaries/current binding; configure-only package changes, real-source/metadata preflight before one paired build. Preserve consumer mirrors; modern HEADER strict checks, weight authority and zero-fit witness are exact-slice gates, not new dependency/full-graph/native prerequisites |
 | C — grammar and graph composition | Shared7AM.2/7AS.2 footer design, implemented separately;7G.2 STYLE→VIEWPORT/resources;7P.5b/c image/dictionary/GROUP reciprocity;7F.1;7M/7E.1,7AL→7K→7J,7AA.1/2,7O.2/3,7G.3 effective explicit/implicit draw order→7R;7AG handoff | Touched targets per slice; one shared-change checkpoint; raw types/reciprocity/child counts/before-load fields. Exact consumer sources on public changes; sparse draw order, subtype1 measurement and oracle limits separate |
 | D — explicit policy/safety/platform boundaries |7BK transparency representation;7BF.1 LTYPE unit witness and7BF.3 indexed-edit/mirror authority; optional7AV.4 caller-memory guarantee;7AP cache safety;7Q gradients,7S.2/3 retention/work accounting,7T narrowing,7U retention,7Y.2 precision,7AE.2/3 Unicode/filename policy,7AC bridges;7AG/7AK PIC/DLL/release ABI and7AO attribution | Resolve only the named decision/witness without blocking ready local fixes. Small configured-limit negatives; ASan/TSan once at touched unsafe boundaries, not full suites per edit. No expired-pointer journals/unconditional cache replay; source/native and release/per-commit gates stay distinct |
 | E — qualification closeout | Slices 4–6/8/9, final binding, docs/consumer/platform dispositions | Required fresh final-broad/receipt checks once the candidate is stable; external-only gates remain separately deferred |
