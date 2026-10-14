@@ -34,6 +34,11 @@ namespace DRW {
 //! documents may raise it explicitly through dxfRW::setDxfReadRecordBudget().
 constexpr std::size_t kDefaultDxfReadRecordBudget = 4u * 1024u * 1024u;
 
+//! Raw bytes before one ASCII LF or binary string NUL, including ASCII CR.
+//! This is a caller-raiseable acquisition ceiling, not a DXF format maximum
+//! or a bound on string capacity, retained copies or stream-buffer read-ahead.
+constexpr std::size_t kDefaultDxfReadTokenByteBudget = 1024u * 1024u;
+
 //! Maximum number of DXF 102 application-group pairs staged per record.
 constexpr std::size_t kMaxDxfApplicationGroupPairs = 65536;
 //! Maximum nesting depth accepted inside one DXF 102 application group.

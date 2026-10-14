@@ -138,6 +138,16 @@ public:
     std::size_t dxfReadRecordBudget() const noexcept {
         return m_dxfReadRecordBudget;
     }
+    /** Bound bytes before each ASCII LF or binary string NUL on subsequent
+     * reads. ASCII's terminal CR counts before normalization. Zero permits
+     * only empty delimited tokens. The 1 MiB resource default is raiseable;
+     * this does not bound retained copies, string capacity or OS read-ahead. */
+    void setDxfReadTokenByteBudget(std::size_t maxBytes) noexcept {
+        m_dxfReadTokenByteBudget = maxBytes;
+    }
+    std::size_t dxfReadTokenByteBudget() const noexcept {
+        return m_dxfReadTokenByteBudget;
+    }
     /// Whole-document read/readAscii/write operations are not reentrant on one
     /// instance. A nested call returns false without changing the active
     /// operation, including its error/diagnostic snapshot or destination. Use
@@ -732,6 +742,10 @@ private:
     bool binFile {false};
     std::size_t m_dxfReadRecordBudget {
         4u * 1024u * 1024u};
+    std::size_t m_dxfReadTokenByteBudget {1024u * 1024u};
+    // Armed only after this operation constructs its reader. Early argument
+    // failure must not report a token flag left by a previous interrupted read.
+    bool m_readTokenBudgetActive {false};
     std::unique_ptr<dxfReader> reader;
     std::unique_ptr<dxfWriter> writer;
     DRW_Interface *iface {nullptr};

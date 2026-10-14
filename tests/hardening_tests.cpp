@@ -2639,6 +2639,446 @@ void testDxfAggregateRecordBudget(TestContext& t) {
              "raising the DXF budget permits a fresh read session");
 }
 
+// No get area: every logical extraction/lookahead crosses these hooks, so a
+// rejected token cannot hide an unlimited drain behind a buffered test input.
+class TokenCountingBuffer final : public std::streambuf {
+public:
+    explicit TokenCountingBuffer(std::string bytes, bool throwAtEnd = false)
+        : bytes_(std::move(bytes)), throwAtEnd_(throwAtEnd) {}
+    std::size_t consumed{0}, furthestLookahead{0};
+protected:
+    int_type underflow() override {
+        furthestLookahead = std::max(furthestLookahead, consumed);
+        if (consumed == bytes_.size()) {
+            if (throwAtEnd_)
+                throw std::runtime_error("intentional token I/O failure");
+            return traits_type::eof();
+        }
+        return traits_type::to_int_type(bytes_[consumed]);
+    }
+    int_type uflow() override {
+        const int_type value = underflow();
+        if (!traits_type::eq_int_type(value, traits_type::eof()))
+            ++consumed;
+        return value;
+    }
+private:
+    std::string bytes_;
+    bool throwAtEnd_;
+};
+
+void testDxfTokenByteBudget(TestContext& t) {
+    for (const bool binary : {false, true}) {
+        for (const bool pointerOverload : {false, true}) {
+            for (const std::size_t length : {0u, 7u, 8u, 9u}) {
+                for (const bool terminated : {false, true}) {
+                    const std::string value(length, 'x');
+                    std::string payload = value;
+                    if (terminated) payload += binary ? '\0' : '\n';
+                    TokenCountingBuffer buffer(payload);
+                    std::istream input(&buffer);
+                    std::unique_ptr<dxfReader> reader = binary
+                        ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                        : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+                    reader->setTokenByteBudget(8);
+                    std::string text;
+                    const bool result = binary
+                        ? (pointerOverload
+                            ? static_cast<dxfReaderBinary&>(*reader).readString(&text)
+                            : static_cast<dxfReaderBinary&>(*reader).readString())
+                        : (pointerOverload
+                            ? static_cast<dxfReaderAscii&>(*reader).readString(&text)
+                            : static_cast<dxfReaderAscii&>(*reader).readString());
+                    const bool expected = length <= 8 && (terminated || (!binary && length != 0));
+                    t.expect(result == expected
+                                 && reader->tokenByteBudgetExceeded() == (length > 8),
+                             "token delimiter/EOF/exact-cap precede overflow in both string overloads");
+                    if (expected)
+                        t.expect(reader->getRawValue() == value
+                                     && (!pointerOverload || text == value),
+                                 "bounded string acquisition preserves exact admitted bytes");
+                    t.expect(buffer.consumed == (length > 8 ? 8 : payload.size())
+                                 && buffer.furthestLookahead <= (length > 8 ? 8 : payload.size()),
+                             "token overflow does not consume the excess byte or drain its remainder");
+                }
+            }
+        }
+    }
+    // Check the fixed scratch boundary, including a zero byte inside an ASCII
+    // token: gcount, not a C-string length, defines what was acquired.
+    for (const std::size_t length : {4095u, 4096u, 4097u}) {
+        std::string value(length, 'x');
+        value[1] = '\0';
+        std::istringstream input(value + "\n");
+        dxfReaderAscii reader(&input);
+        reader.setTokenByteBudget(4096);
+        std::string text;
+        const bool result = reader.readString(&text);
+        t.expect(result == (length <= 4096)
+                     && reader.tokenByteBudgetExceeded() == (length > 4096)
+                     && (!result || text == value),
+                 "chunk boundaries and embedded ASCII NUL obey raw byte lengths");
+    }
+    for (const bool binary : {false, true}) {
+        for (const std::size_t length : {4097u, 4098u}) {
+            const std::string value(length, 'x');
+            TokenCountingBuffer buffer(value + (binary ? '\0' : '\n'));
+            std::istream input(&buffer);
+            dxfReaderAscii ascii(&input);
+            dxfReaderBinary bytes(&input);
+            ascii.setTokenByteBudget(4097);
+            bytes.setTokenByteBudget(4097);
+            std::string text = "previous";
+            const bool result = binary ? bytes.readString(&text) : ascii.readString(&text);
+            t.expect(result == (length == 4097)
+                         && (result ? text == value : text.empty())
+                         && (binary ? bytes.tokenByteBudgetExceeded() : ascii.tokenByteBudgetExceeded()) == !result
+                         && buffer.consumed == (result ? 4098u : 4097u)
+                         && buffer.furthestLookahead <= buffer.consumed,
+                     "successful two-chunk token at cap4097 and adjacent overflow are bounded");
+        }
+    }
+    for (const bool binary : {false, true}) {
+        for (const bool empty : {false, true}) {
+            std::string payload = empty ? std::string{} : "x";
+            payload += binary ? '\0' : '\n';
+            TokenCountingBuffer buffer(payload);
+            std::istream input(&buffer);
+            std::string text;
+            dxfReaderAscii ascii(&input);
+            dxfReaderBinary bytes(&input);
+            ascii.setTokenByteBudget(0);
+            bytes.setTokenByteBudget(0);
+            const bool result = binary ? bytes.readString(&text) : ascii.readString(&text);
+            t.expect(result == empty && buffer.consumed == (empty ? 1u : 0u)
+                         && (binary ? bytes.tokenByteBudgetExceeded() : ascii.tokenByteBudgetExceeded()) == !empty,
+                     "zero token cap admits only an empty delimited value");
+        }
+    }
+    for (const std::size_t length : {7u, 8u}) {
+        std::istringstream input(std::string(length, 'x') + "\r\n");
+        dxfReaderAscii reader(&input);
+        reader.setTokenByteBudget(8);
+        std::string text;
+        t.expect(reader.readString(&text) == (length == 7)
+                     && reader.tokenByteBudgetExceeded() == (length == 8)
+                     && (length != 7 || text == std::string(7, 'x')),
+                 "ASCII terminal CR consumes raw budget before normalization");
+    }
+    for (const int era : {0, 1, 2}) {
+        for (const bool oversizedCode : {false, true}) {
+            if (era != 0 && oversizedCode)
+                continue; // Binary group codes are fixed-width, not tokens.
+            std::string payload;
+            if (era == 0)
+                payload = oversizedCode ? "        1\nvalue\n" : "1\n" + std::string(64, 'x') + "\n0\nEOF\n";
+            else {
+                payload += '\1';
+                if (era == 2) payload += '\0';
+                payload += std::string(64, 'x');
+                payload += '\0';
+            }
+            TokenCountingBuffer buffer(payload);
+            std::istream input(&buffer);
+            std::unique_ptr<dxfReader> reader;
+            if (era == 0) reader = std::make_unique<dxfReaderAscii>(&input);
+            else if (era == 1) reader = std::make_unique<dxfReaderBinaryR12>(&input);
+            else reader = std::make_unique<dxfReaderBinary>(&input);
+            reader->setTokenByteBudget(8);
+            int code = -1;
+            t.expect(!reader->readRec(&code) && reader->tokenByteBudgetExceeded()
+                         && reader->type == dxfReader::INVALID && reader->getRawValue().empty()
+                         && reader->getString().empty(),
+                     "overlong code/value invalidates the record in ASCII and both binary eras");
+            const std::size_t prefix = era == 0 ? (oversizedCode ? 0u : 2u) : static_cast<std::size_t>(era);
+            const auto stopped = buffer.consumed;
+            t.expect(stopped == prefix + 8 && !reader->readRec(&code)
+                         && buffer.consumed == stopped && buffer.furthestLookahead <= stopped,
+                     "a latched token failure prevents later record acquisition");
+        }
+    }
+    for (const bool throws : {false, true}) {
+        TokenCountingBuffer buffer("abc", true);
+        std::istream input(&buffer);
+        if (throws) input.exceptions(std::ios::badbit);
+        dxfReaderAscii reader(&input);
+        reader.setTokenByteBudget(3);
+        std::string text;
+        bool escaped = false, result = true;
+        try { result = reader.readString(&text); }
+        catch (const std::runtime_error&) { escaped = true; }
+        t.expect(escaped == throws && (escaped || !result) && input.bad()
+                     && !reader.tokenByteBudgetExceeded(),
+                 "I/O failure at the cap retains stream exception-mask behavior, not ResourceLimit");
+    }
+    // Normative mask policy, independently of the STL's getline: failed text
+    // is empty; zero-byte nonthrowing I/O failure adds failbit. badbit-mask
+    // rethrows the original streambuf exception before that additional flag.
+    for (const bool binary : {false, true}) {
+        for (const std::size_t length : {0u, 1u, 3u}) {
+            for (const auto mask : {std::ios::goodbit, std::ios::failbit,
+                                    std::ios::badbit, std::ios::eofbit}) {
+                TokenCountingBuffer buffer(std::string(length, 'x'), true);
+                std::istream input(&buffer);
+                input.exceptions(mask);
+                dxfReaderAscii ascii(&input);
+                dxfReaderBinary bytes(&input);
+                ascii.setTokenByteBudget(64);
+                bytes.setTokenByteBudget(64);
+                std::string text = "previous";
+                int thrown = 0;
+                bool result = true;
+                try { result = binary ? bytes.readString(&text) : ascii.readString(&text); }
+                catch (const std::ios_base::failure&) { thrown = 1; }
+                catch (const std::runtime_error&) { thrown = 2; }
+                const bool zeroFail = length == 0 && mask != std::ios::badbit;
+                const auto expectedState = std::ios::badbit
+                    | (zeroFail ? std::ios::failbit : std::ios::goodbit);
+                const int expectedThrow = mask == std::ios::badbit ? 2
+                    : zeroFail && mask == std::ios::failbit ? 1 : 0;
+                t.expect(thrown == expectedThrow && (thrown != 0 || !result)
+                             && input.rdstate() == expectedState && text.empty()
+                             && buffer.consumed == length && buffer.furthestLookahead == length
+                             && !(binary ? bytes.tokenByteBudgetExceeded() : ascii.tokenByteBudgetExceeded()),
+                         "zero/nonzero I/O masks preserve original exceptions and never ResourceLimit or failed text");
+            }
+        }
+    }
+    for (const int code : {10, 70, 90, 160, 290, 550}) {
+        const std::string payload = std::to_string(code) + "\n000000001\n";
+        for (const std::size_t cap : {8u, 9u}) {
+            std::istringstream input(payload);
+            dxfReaderAscii reader(&input);
+            reader.setTokenByteBudget(cap);
+            int actual = 0;
+            const bool result = reader.readRec(&actual);
+            t.expect(result == (cap == 9) && reader.tokenByteBudgetExceeded() == (cap == 8)
+                         && (!result || (actual == code && reader.getRawValue() == "000000001")),
+                     "numeric ASCII overloads and unknown codes share the same token cap");
+        }
+    }
+    for (const bool binary : {false, true}) {
+        for (const bool empty : {false, true}) {
+            for (const auto mask : {std::ios::eofbit, std::ios::failbit}) {
+                std::istringstream input(empty ? "" : "abc");
+                input.exceptions(mask);
+                std::string text;
+                dxfReaderAscii ascii(&input);
+                dxfReaderBinary bytes(&input);
+                ascii.setTokenByteBudget(3);
+                bytes.setTokenByteBudget(3);
+                bool escaped = false, result = true;
+                try { result = binary ? bytes.readString(&text) : ascii.readString(&text); }
+                catch (const std::ios_base::failure&) { escaped = true; }
+                const bool expectedThrow = mask == std::ios::eofbit || empty;
+                t.expect(escaped == expectedThrow
+                             && (escaped || result == (!binary && !empty))
+                             && input.rdstate() == (std::ios::eofbit
+                                 | (empty ? std::ios::failbit : std::ios::goodbit))
+                             && (!escaped && result ? text == "abc" : text.empty())
+                             && !(binary ? bytes.tokenByteBudgetExceeded() : ascii.tokenByteBudgetExceeded()),
+                         "EOF exception masks and binary missing-NUL rejection retain getline policy");
+            }
+        }
+    }
+}
+
+void testDxfTokenFacadeBudget(TestContext& t) {
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    const auto path = std::filesystem::temp_directory_path()
+        / ("libdxfrw-token-budget-" + std::to_string(nonce) + ".dxf");
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() { std::error_code error; std::filesystem::remove(path, error); }
+    } cleanup{path};
+    const std::string filename = path.string();
+    for (const int era : {0, 1, 2}) {
+        for (const bool comments : {false, true}) {
+            const std::string value(17, 'x');
+            std::string content = "0\nSECTION\n2\nLOCAL\n";
+            content += comments ? "999\n" : "1\n";
+            content += value + "\n0\nENDSEC\n0\nEOF";
+            std::string wire = content;
+            if (era != 0) {
+                wire = "AutoCAD Binary DXF\r\n";
+                wire += static_cast<char>(26); wire += '\0';
+                const auto pair = [era, &wire](int code, const std::string& text) {
+                    if (era == 1 && code >= 255) {
+                        wire += static_cast<char>(255);
+                        wire += static_cast<char>(code & 255);
+                        wire += static_cast<char>(code >> 8);
+                    } else {
+                        wire += static_cast<char>(code & 255);
+                        if (era == 2) wire += static_cast<char>(code >> 8);
+                    }
+                    wire += text; wire += '\0';
+                };
+                pair(0, "SECTION"); pair(2, "LOCAL"); pair(comments ? 999 : 1, value);
+                pair(0, "ENDSEC"); pair(0, "EOF");
+            }
+            { std::ofstream output(path, std::ios::binary); output.write(wire.data(), static_cast<std::streamsize>(wire.size())); }
+            dxfRW reader(filename.c_str());
+            t.expect(reader.dxfReadTokenByteBudget() == DRW::kDefaultDxfReadTokenByteBudget,
+                     "facade has the documented one-MiB token acquisition default");
+            reader.setDxfReadTokenByteBudget(16);
+            FuzzInterface rejected;
+            t.expect(!reader.read(&rejected, false)
+                         && reader.getError() == DRW::BAD_CODE_PARSED
+                         && reader.getLastDiagnostic().cause == DRW::OperationCause::ResourceLimit
+                         && reader.getLastDiagnostic().code == "dxf-token-byte-budget"
+                         && rejected.rawSectionCount == 0,
+                     "file readers and ignored comments reject overlong tokens before raw-section publication");
+            t.expect(!reader.read(nullptr, false)
+                         && reader.getLastDiagnostic().cause == DRW::OperationCause::InvalidArgument,
+                     "new early argument failure cannot reuse a previous reader token diagnostic");
+            reader.setDxfReadTokenByteBudget(17);
+            FuzzInterface raised;
+            t.expect(reader.read(&raised, false) && raised.rawSectionCount == 1
+                         && reader.getLastDiagnostic().cause == DRW::OperationCause::None,
+                     "raising the token cap permits a fresh file-backed read in each era");
+            FuzzInterface memoryRejected;
+            reader.setDxfReadTokenByteBudget(16);
+            t.expect(!reader.readAscii(&memoryRejected, false, content)
+                         && reader.getLastDiagnostic().code == "dxf-token-byte-budget",
+                     "memory ASCII applies a configured cap after a binary file read");
+            reader.setDxfReadTokenByteBudget(17);
+            FuzzInterface memoryRaised;
+            t.expect(reader.readAscii(&memoryRaised, false, content)
+                         && memoryRaised.rawSectionCount == 1,
+                     "memory ASCII fresh reset/raised cap preserves final newline-less EOF");
+        }
+    }
+    const std::string crlf = "0\r\nSECTION\r\n2\r\nLOCAL\r\n1\r\n12345678\r\n0\r\nENDSEC\r\n0\r\nEOF";
+    { std::ofstream output(path, std::ios::binary); output.write(crlf.data(), static_cast<std::streamsize>(crlf.size())); }
+    dxfRW crlfReader(filename.c_str());
+    crlfReader.setDxfReadTokenByteBudget(8);
+    FuzzInterface crlfRejected;
+    t.expect(!crlfReader.read(&crlfRejected, false)
+                 && crlfReader.getLastDiagnostic().code == "dxf-token-byte-budget",
+             "file-backed ASCII counts CR before LF, including on text-translating platforms");
+    crlfReader.setDxfReadTokenByteBudget(9);
+    FuzzInterface crlfRaised;
+    t.expect(crlfReader.read(&crlfRaised, false) && crlfRaised.rawSectionCount == 1,
+             "raising the physical CRLF cap retains normal ASCII normalization");
+    // A normal entity parser reports a stage fallback after its failed token;
+    // the acquisition cause must already own the first diagnostic.
+    std::string entity = "0\nSECTION\n2\nENTITIES\n0\nTEXT\n5\nA0\n1\n"
+        + std::string(17, 'x') + "\n0\nLINE\n5\nA1\n10\n0\n20\n0\n11\n1\n21\n1\n0\nENDSEC\n0\nEOF\n";
+    dxfRW typed(nullptr);
+    typed.setDxfReadTokenByteBudget(16);
+    class EntitySink final : public FuzzInterface {
+    public:
+        void addLine(const DRW_Line&) override { ++entities; }
+        void addText(const DRW_Text&) override { ++entities; }
+        std::size_t entities{0};
+    } sink;
+    t.expect(!typed.readAscii(&sink, false, entity)
+                 && typed.getLastDiagnostic().cause == DRW::OperationCause::ResourceLimit
+                 && typed.getLastDiagnostic().code == "dxf-token-byte-budget"
+                 && sink.entities == 0,
+             "typed parse fallback preserves token ResourceLimit and publishes no later LINE");
+    typed.setError(DRW::BAD_UNKNOWN);
+    t.expect(typed.getLastDiagnostic().code == "dxf-token-byte-budget",
+             "later generic errors do not replace the first token acquisition diagnostic");
+
+    std::string repeated = "0\nSECTION\n2\nLOCAL\n";
+    for (int index = 0; index < 20; ++index) repeated += "1\n12345678\n";
+    repeated += "0\nENDSEC\n0\nEOF\n";
+    typed.setDxfReadTokenByteBudget(8);
+    FuzzInterface repeatedSink;
+    t.expect(typed.readAscii(&repeatedSink, false, repeated) && repeatedSink.rawSectionCount == 1,
+             "one-token byte ceiling is not a cumulative acquisition or retention budget");
+
+    std::string composed = "0\nSECTION\n2\nENTITIES\n"
+        "0\nLINE\n10\n1\n20\n2\n11\n3\n21\n4\n"
+        "0\nTEXT\n10\n0\n20\n0\n40\n1\n1\n" + std::string(17, 'x')
+        + "\n0\nLINE\n10\n5\n20\n6\n11\n7\n21\n8\n"
+          "0\nENDSEC\n0\nEOF\n";
+    for (int nested = 0; nested < 3; ++nested) {
+        dxfRW codec(filename.c_str());
+        codec.setDxfReadTokenByteBudget(16);
+        AdmissionInterface outer;
+        int attempts = 0;
+        outer.callback = [&]() {
+            ++attempts;
+            const auto reader = codec.reader.get();
+            const auto diagnostic = codec.getLastDiagnostic();
+            t.expect(codec.m_readTokenBudgetActive && codec.m_wholeOperationActive,
+                     "first LINE callback observes the current read budget armed");
+            FuzzInterface rejected;
+            std::string content = admissionDrawing();
+            const bool accepted = nested == 0 ? codec.readAscii(&rejected, false, content)
+                : nested == 1 ? codec.read(&rejected, false)
+                              : codec.write(&rejected, DRW::AC1024, false);
+            t.expect(!accepted && codec.reader.get() == reader
+                         && codec.m_readTokenBudgetActive && codec.m_wholeOperationActive
+                         && sameAdmissionDiagnostic(codec.getLastDiagnostic(), diagnostic),
+                     "rejected nested read/readAscii/write leaves the outer token generation armed");
+        };
+        t.expect(!codec.readAscii(&outer, false, composed) && attempts == 1
+                     && outer.lines.size() == 1 && outer.lines[0].basePoint.x == 1
+                     && codec.getError() == DRW::BAD_CODE_PARSED
+                     && codec.getLastDiagnostic().cause == DRW::OperationCause::ResourceLimit
+                     && codec.getLastDiagnostic().code == "dxf-token-byte-budget"
+                     && !codec.m_readTokenBudgetActive && !codec.m_wholeOperationActive,
+                 "outer exhaustion after nested rejection retains its cause and no later LINE");
+        codec.setDxfReadTokenByteBudget(17);
+        AdmissionInterface retry;
+        t.expect(codec.readAscii(&retry, false, composed) && retry.lines.size() == 2
+                     && retry.lines.back().secPoint.y == 8
+                     && codec.getLastDiagnostic().cause == DRW::OperationCause::None,
+                 "raised-budget retry follows nested rejection and outer overflow");
+    }
+
+    { std::ofstream output(path, std::ios::binary); output << composed; }
+    for (const bool fileBacked : {false, true}) {
+        dxfRW codec(filename.c_str());
+        codec.setDxfReadTokenByteBudget(16);
+        AdmissionInterface throwing;
+        throwing.callback = [&]() {
+            t.expect(codec.reader != nullptr && codec.m_readTokenBudgetActive
+                         && codec.m_wholeOperationActive,
+                     "actual throwing callback observes an owned reader and armed operation");
+            throw std::runtime_error("token-budget callback interruption");
+        };
+        bool caught = false;
+        try {
+            if (fileBacked) (void)codec.read(&throwing, false);
+            else (void)codec.readAscii(&throwing, false, composed);
+        } catch (const std::runtime_error&) { caught = true; }
+        const auto retained = codec.reader.get();
+        t.expect(caught && throwing.lines.size() == 1 && retained != nullptr
+                     && !codec.m_readTokenBudgetActive && !codec.m_wholeOperationActive,
+                 "actual file/memory callback throw retains its reader but disarms both operation flags");
+        t.expect(!codec.readAscii(nullptr, false, composed) && codec.reader.get() == retained
+                     && codec.getLastDiagnostic().cause == DRW::OperationCause::InvalidArgument
+                     && !codec.m_readTokenBudgetActive && !codec.m_wholeOperationActive,
+                 "early next rejection owns its diagnostic without dereferencing the interrupted stream");
+        codec.setDxfReadTokenByteBudget(17);
+        AdmissionInterface retry;
+        t.expect(codec.readAscii(&retry, false, composed) && retry.lines.size() == 2
+                     && codec.getLastDiagnostic().cause == DRW::OperationCause::None
+                     && !codec.m_readTokenBudgetActive && !codec.m_wholeOperationActive,
+                 "raised-budget fresh reader recovers after a real throw and early rejection");
+    }
+
+    // Model an interrupted operation that retained its failed owned reader.
+    // An early next rejection must not borrow that reader's acquisition flag.
+    std::istringstream staleInput("1\nlong-value\n");
+    dxfRW stale(nullptr);
+    stale.reader = std::make_unique<dxfReaderAscii>(&staleInput);
+    stale.reader->setTokenByteBudget(2);
+    int code = 0;
+    t.expect(!stale.reader->readRec(&code) && stale.reader->tokenByteBudgetExceeded(),
+             "interrupted-reader token diagnostic control is nonvacuous");
+    stale.m_readTokenBudgetActive = true;
+    t.expect(!stale.readAscii(nullptr, false, entity)
+                 && stale.reader->tokenByteBudgetExceeded()
+                 && stale.getLastDiagnostic().cause == DRW::OperationCause::InvalidArgument
+                 && !stale.m_readTokenBudgetActive,
+             "early next rejection is bound to its operation, not a stale reader token flag");
+}
+
 class ExposedDwgReader15 final : public dwgReader15 {
 public:
     ExposedDwgReader15(std::unique_ptr<dwgBuffer> buffer, dwgRW* parent)
@@ -4402,6 +4842,8 @@ int main() {
     testDxfReadResetsHeaderState(context);
     testDwgReadResetsVersionState(context);
     testDxfAggregateRecordBudget(context);
+    testDxfTokenByteBudget(context);
+    testDxfTokenFacadeBudget(context);
     testDwgAggregateObjectBudget(context);
     testDwgModelerDataStorageLinking(context);
     testMLeaderParserStateCopyIsolation(context);

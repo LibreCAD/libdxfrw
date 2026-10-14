@@ -11,6 +11,8 @@
 ******************************************************************************/
 
 #include <cerrno>
+#include <array>
+#include <algorithm>
 #include <charconv>
 #include <cctype>
 #include <cmath>
@@ -72,6 +74,92 @@ bool isUnambiguousDxfHandleCode(int code) {
 
 }  // namespace
 
+bool dxfReader::readDelimitedToken(std::string& text, char delimiter,
+                                    bool allowFinalAsciiValue) {
+    text.clear();
+    // Failed tokens are unusable, including when an exception mask rethrows.
+    // Deliberately differ from getline's retained partial failed prefix. This
+    // rollback allocates nothing and preserves the original throw.
+    struct TokenTextScope {
+        std::string& text;
+        bool accepted {false};
+        ~TokenTextScope() noexcept { if (!accepted) text.clear(); }
+    } token {text};
+    if (filestr == nullptr || m_tokenByteBudgetExceeded)
+        return false;
+    // Unformatted get performs one sentry per chunk, not per source byte.
+    // Its gcount preserves embedded NUL bytes in ASCII tokens. The extra
+    // scratch byte is get's terminator, not input beyond the remaining cap.
+    std::array<char, 4097> scratch;
+    const auto finishAtEof = [&]() {
+        if (allowFinalAsciiValue && !text.empty()) {
+            token.accepted = true;
+            return true;
+        }
+        if (text.empty())
+            filestr->setstate(std::ios::failbit);
+        return false;
+    };
+    while (true) {
+        std::char_traits<char>::int_type next;
+        try {
+            next = filestr->peek();
+        } catch (...) {
+            // peek may throw on eofbit before the empty-extraction rule runs.
+            // Add its failbit without replacing the original mask exception.
+            if (text.empty() && filestr->eof()) {
+                try { filestr->setstate(std::ios::failbit); } catch (...) {}
+            }
+            throw;
+        }
+        if (filestr->bad() || filestr->fail()) {
+            // Normative zero-extraction failure: add failbit if peek returned
+            // after an I/O failure. A badbit-mask throw has already escaped
+            // with its original exception. This matches GNU getline, while
+            // intentionally making libc++'s zero-byte failure equally strict.
+            if (text.empty())
+                filestr->setstate(std::ios::failbit);
+            return false;
+        }
+        if (next == std::char_traits<char>::eof())
+            return finishAtEof();
+        if (next == std::char_traits<char>::to_int_type(delimiter)) {
+            filestr->get();
+            token.accepted = !filestr->fail();
+            return token.accepted;
+        }
+        // Delimiter and EOF take precedence at the exact cap. An overflow
+        // peeks at, but neither consumes nor appends, the first excess byte.
+        if (text.size() == m_tokenByteBudget) {
+            m_tokenByteBudgetExceeded = true;
+            return false;
+        }
+        const std::size_t remaining = m_tokenByteBudget - text.size();
+        const std::size_t chunk = std::min(remaining, scratch.size() - 1u);
+        filestr->get(scratch.data(), static_cast<std::streamsize>(chunk + 1u), delimiter);
+        const auto extracted = filestr->gcount();
+        if (extracted > 0) {
+            try {
+                text.append(scratch.data(), static_cast<std::size_t>(extracted));
+            } catch (...) {
+                // Match getline's acquisition exception policy without
+                // swallowing exceptions raised by get/peek's EOF/I/O masks.
+                const bool rethrow = (filestr->exceptions() & std::ios::badbit) != 0;
+                try { filestr->setstate(std::ios::badbit); } catch (...) {}
+                if (rethrow)
+                    throw;
+                return false;
+            }
+        }
+        if (filestr->bad() || filestr->fail())
+            return false;
+        // Do not peek again after nonempty EOF: peek's sentry would add
+        // failbit and reject a valid final ASCII value without a newline.
+        if (filestr->eof())
+            return finishAtEof();
+    }
+}
+
 bool dxfReader::readRec(int *codeData) {
 //    std::string text;
     int code;
@@ -93,6 +181,8 @@ bool dxfReader::readRec(int *codeData) {
     m_lastInvalidHandleCode = 0;
     m_previousCode = m_currentCode;
     invalidateRecord();
+    if (m_tokenByteBudgetExceeded)
+        return false;
 
     // Comments are ignored only after the first SECTION marker. Skip a run
     // iteratively so hostile input cannot grow the call stack. Count each
@@ -142,9 +232,9 @@ bool dxfReader::readRec(int *codeData) {
         return false;
     }
 
-    // Use !fail() not good(): std::getline that reads a final record WITHOUT a
-    // trailing newline sets eofbit (good()==false) on an otherwise SUCCESSFUL
-    // extraction (fail()==false). good() would wrongly reject that last record;
+    // Use !fail() not good(): a final ASCII record WITHOUT a trailing newline
+    // sets eofbit (good()==false) on an otherwise SUCCESSFUL extraction
+    // (fail()==false). good() would wrongly reject that last record;
     // a genuine failed read sets failbit, which !fail() still catches. (Binary
     // readers gate on their own good() check, so this is a no-op for them.)
     if (!valueOk || filestr->fail()) {
@@ -238,7 +328,8 @@ bool dxfReaderBinaryR12::readCode(int *code) {
 
 bool dxfReaderBinary::readString() {
     type = STRING;
-    std::getline(*filestr, strData, '\0');
+    if (!readDelimitedToken(strData, '\0', false))
+        return false;
     rawData = strData;
     DRW_DBG(strData); DRW_DBG("\n");
     return (filestr->good());
@@ -246,7 +337,8 @@ bool dxfReaderBinary::readString() {
 
 bool dxfReaderBinary::readString(std::string *text) {
     type = STRING;
-    std::getline(*filestr, *text, '\0');
+    if (text == nullptr || !readDelimitedToken(*text, '\0', false))
+        return false;
     rawData = *text;
     DRW_DBG(*text); DRW_DBG("\n");
     return (filestr->good());
@@ -354,8 +446,7 @@ bool dxfReaderBinary::readBool() {
 
 bool dxfReaderAscii::readCode(int *code) {
     std::string text;
-    std::getline(*filestr, text);
-    if (filestr->fail())  // !fail(): accept a final newline-less line (eofbit set, fail() clear)
+    if (!readDelimitedToken(text, '\n', true))
         return false;
     if (!text.empty() && text.at(text.size()-1) == '\r')
         text.erase(text.size()-1);
@@ -376,7 +467,8 @@ bool dxfReaderAscii::readCode(int *code) {
 }
 bool dxfReaderAscii::readString(std::string *text) {
     type = STRING;
-    std::getline(*filestr, *text);
+    if (text == nullptr || !readDelimitedToken(*text, '\n', true))
+        return false;
     if (!text->empty() && text->at(text->size()-1) == '\r')
         text->erase(text->size()-1);
     rawData = *text;
@@ -385,7 +477,8 @@ bool dxfReaderAscii::readString(std::string *text) {
 
 bool dxfReaderAscii::readString() {
     type = STRING;
-    std::getline(*filestr, strData);
+    if (!readDelimitedToken(strData, '\n', true))
+        return false;
     if (!strData.empty() && strData.at(strData.size()-1) == '\r')
         strData.erase(strData.size()-1);
     rawData = strData;

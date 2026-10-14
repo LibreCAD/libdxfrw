@@ -1699,12 +1699,15 @@ class dxfRW::WholeOperationScope final {
 public:
     explicit WholeOperationScope(dxfRW& owner) noexcept
         : m_owner(owner), m_admitted(!owner.m_wholeOperationActive) {
-        if (m_admitted)
+        if (m_admitted) {
             m_owner.m_wholeOperationActive = true;
+            m_owner.m_readTokenBudgetActive = false;
+        }
     }
     ~WholeOperationScope() noexcept {
         if (m_admitted) {
             m_owner.m_dxfWriteFinalizing = false;
+            m_owner.m_readTokenBudgetActive = false;
             m_owner.m_wholeOperationActive = false;
         }
     }
@@ -1916,21 +1919,30 @@ bool dxfRW::read(DRW_Interface *interface_, bool ext){
         else
             reader = std::make_unique<dxfReaderBinary>(&filestr);
         reader->setRecordBudget(m_dxfReadRecordBudget);
+        reader->setTokenByteBudget(m_dxfReadTokenByteBudget);
         DRW_DBG("dxfRW::read binary file\n");
     } else {
         binFile = false;
-        filestr.open (std::filesystem::u8path(fileName), std::ios_base::in);
+        // Preserve physical CRLF bytes for the token ceiling on Windows too;
+        // the ASCII reader performs its existing terminal-CR normalization.
+        filestr.open (std::filesystem::u8path(fileName), std::ios_base::in | std::ios::binary);
         if (!filestr.is_open() || !filestr.good())
             return setError(DRW::BAD_OPEN);
         reader = std::make_unique<dxfReaderAscii>(&filestr);
         reader->setRecordBudget(m_dxfReadRecordBudget);
+        reader->setTokenByteBudget(m_dxfReadTokenByteBudget);
     }
     reader->setClassifierProfile(
         m_useTargetLegacyClassifier
             ? DxfClassifierProfile::LibreCadMasterLegacy
             : DxfClassifierProfile::StandaloneSafe);
 
+    m_readTokenBudgetActive = true;
     bool isOk {processDxf()};
+    if (reader->tokenByteBudgetExceeded()) {
+        failDxfReadBudget();
+        isOk = false;
+    }
     filestr.close();
     version = (DRW::Version) reader->getVersion();
     reader.reset();
@@ -1967,11 +1979,17 @@ bool dxfRW::readAscii(DRW_Interface *interface_, bool ext, std::string& content)
     std::istringstream strstream(content);
     reader = std::make_unique<dxfReaderAscii>(&strstream);
     reader->setRecordBudget(m_dxfReadRecordBudget);
+    reader->setTokenByteBudget(m_dxfReadTokenByteBudget);
     reader->setClassifierProfile(
         m_useTargetLegacyClassifier
             ? DxfClassifierProfile::LibreCadMasterLegacy
             : DxfClassifierProfile::StandaloneSafe);
+    m_readTokenBudgetActive = true;
     bool isOk {processDxf()};
+    if (reader->tokenByteBudgetExceeded()) {
+        failDxfReadBudget();
+        isOk = false;
+    }
     version = (DRW::Version) reader->getVersion();
     reader.reset();
     return isOk;
@@ -18232,13 +18250,27 @@ DRW_OperationDiagnostic dxfRW::getLastDiagnostic() const {
 }
 
 bool dxfRW::setError(const DRW::error lastError){
-    error = lastError;
-    recordOperationDiagnosticForError(lastError);
+    if (m_readTokenBudgetActive && reader != nullptr
+        && reader->tokenByteBudgetExceeded()) {
+        recordOperationDiagnostic(
+            DRW::OperationPhase::Validation, DRW::OperationCause::ResourceLimit,
+            "dxf-token-byte-budget", "a DXF token exceeded its raw-byte budget");
+        error = DRW::BAD_CODE_PARSED;
+    } else {
+        error = lastError;
+    }
+    recordOperationDiagnosticForError(error);
     return (DRW::BAD_NONE == error);
 }
 
 bool dxfRW::failDxfReadBudget() {
-    if (reader == nullptr || !reader->recordBudgetExceeded())
+    if (reader == nullptr)
+        return false;
+    if (m_readTokenBudgetActive && reader->tokenByteBudgetExceeded()) {
+        setError(DRW::BAD_CODE_PARSED);
+        return true;
+    }
+    if (!reader->recordBudgetExceeded())
         return false;
     recordOperationDiagnostic(
         DRW::OperationPhase::Validation,

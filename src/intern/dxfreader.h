@@ -52,6 +52,12 @@ public:
     bool recordBudgetExceeded() const noexcept {
         return m_recordBudgetExceeded;
     }
+    void setTokenByteBudget(std::size_t budget) noexcept {
+        m_tokenByteBudget = budget;
+    }
+    bool tokenByteBudgetExceeded() const noexcept {
+        return m_tokenByteBudgetExceeded;
+    }
     // A derived parser may consume a non-XDATA field without calling its
     // base. Coordinate assembly must still stop at that physical boundary.
     bool followsXdataPointComponent() const noexcept {
@@ -127,6 +133,11 @@ public:
     }
 
 protected:
+    // Only accepted tokens retain text. Failure/throw clears it, rather than
+    // exposing getline's partial failed prefix. Zero-byte returned I/O/EOF
+    // failure adds failbit; an original badbit-mask exception is rethrown first.
+    bool readDelimitedToken(std::string& text, char delimiter,
+                            bool allowFinalAsciiValue);
     virtual bool readCode(int *code) = 0; //return true if successful (not EOF)
     virtual bool readString(std::string *text) = 0;
     virtual bool readString() = 0;
@@ -162,6 +173,8 @@ private:
     std::size_t m_recordBudget {DRW::kDefaultDxfReadRecordBudget};
     std::size_t m_recordCount {0};
     bool m_recordBudgetExceeded {false};
+    std::size_t m_tokenByteBudget {DRW::kDefaultDxfReadTokenByteBudget};
+    bool m_tokenByteBudgetExceeded {false};
     int m_currentCode {0};
     int m_previousCode {0};
 };
