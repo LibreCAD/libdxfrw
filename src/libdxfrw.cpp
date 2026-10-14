@@ -1686,6 +1686,28 @@ private:
     bool m_committed {false};
 };
 
+// Admit before touching shared session state, including diagnostics and write
+// failure cleanup. A rejected nested scope must not release the outer scope.
+class dxfRW::WholeOperationScope final {
+public:
+    explicit WholeOperationScope(dxfRW& owner) noexcept
+        : m_owner(owner), m_admitted(!owner.m_wholeOperationActive) {
+        if (m_admitted)
+            m_owner.m_wholeOperationActive = true;
+    }
+    ~WholeOperationScope() noexcept {
+        if (m_admitted)
+            m_owner.m_wholeOperationActive = false;
+    }
+    bool admitted() const noexcept { return m_admitted; }
+    WholeOperationScope(const WholeOperationScope&) = delete;
+    WholeOperationScope& operator=(const WholeOperationScope&) = delete;
+
+private:
+    dxfRW& m_owner;
+    const bool m_admitted;
+};
+
 // Outlives all record scopes, but owns no borrowed caller records.
 class dxfRW::WriteAttemptScope final {
 public:
@@ -1823,6 +1845,9 @@ dxfRW::DxfCompatibilityProfile dxfRW::dxfCompatibilityProfile() const noexcept {
 }
 
 bool dxfRW::read(DRW_Interface *interface_, bool ext){
+    WholeOperationScope operation(*this);
+    if (!operation.admitted())
+        return false;
     beginOperationDiagnostic(DRW::OperationKind::Read);
     drw_assert(fileName.empty() == false);
     version = DRW::UNKNOWNV;
@@ -1903,6 +1928,9 @@ bool dxfRW::read(DRW_Interface *interface_, bool ext){
 
 
 bool dxfRW::readAscii(DRW_Interface *interface_, bool ext, std::string& content) {
+    WholeOperationScope operation(*this);
+    if (!operation.admitted())
+        return false;
     beginOperationDiagnostic(DRW::OperationKind::Read);
     if (nullptr == interface_) {
         return setError(DRW::BAD_UNKNOWN);
@@ -2113,7 +2141,11 @@ void dxfRW::resetDxfWriteSession() {
     m_handleAllocator->resetGenerated();
 }
 
-bool dxfRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) try {
+bool dxfRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) {
+    WholeOperationScope operation(*this);
+    if (!operation.admitted())
+        return false;
+    try {
     WriteAttemptScope attempt(*this);
     beginOperationDiagnostic(DRW::OperationKind::Write);
     if (!isSupportedDxfWriteVersion(ver)) {
@@ -2316,6 +2348,7 @@ catch (...) {
                               "a consumer callback threw during DXF write");
     setError(DRW::BAD_OPEN);
     return false;
+}
 }
 
 void dxfRW::seedReservedDxf() {

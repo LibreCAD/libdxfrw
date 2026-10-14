@@ -1,12 +1,17 @@
 #include <array>
 #include <algorithm>
 #include <cmath>
+#include <chrono>
 #include <filesystem>
+#include <fstream>
+#include <functional>
 #include <cstdint>
 #include <iostream>
+#include <iterator>
 #include <limits>
 #include <memory>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -2063,6 +2068,204 @@ public:
 
 static_assert(!std::is_abstract<FuzzInterface>::value,
               "new optional callbacks must not make legacy sinks abstract");
+
+std::string admissionDrawing() {
+    return "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1024\n0\nENDSEC\n"
+           "0\nSECTION\n2\nENTITIES\n"
+           "0\nLINE\n10\n1\n20\n2\n30\n3\n11\n4\n21\n5\n31\n6\n"
+           "0\nLINE\n10\n7\n20\n8\n30\n9\n11\n10\n21\n11\n31\n12\n"
+           "0\nENDSEC\n0\nEOF\n";
+}
+
+class AdmissionInterface final : public FuzzInterface {
+public:
+    dxfRW* codec {nullptr};
+    std::function<void()> callback;
+    std::vector<DRW_Line> lines;
+    bool recordWrites {true};
+
+    void addLine(const DRW_Line& line) override {
+        lines.push_back(line);
+        if (lines.size() == 1u && callback)
+            callback();
+    }
+    void writeEntities() override {
+        for (int i = 0; i < 2; ++i) {
+            DRW_Line line;
+            line.handle = static_cast<std::uint32_t>(0xA0 + i);
+            line.basePoint = DRW_Coord(1 + i * 6, 2 + i * 6, 3 + i * 6);
+            line.secPoint = DRW_Coord(4 + i * 6, 5 + i * 6, 6 + i * 6);
+            recordWrites = codec->writeLine(&line) && recordWrites;
+            if (i == 0 && callback)
+                callback();
+        }
+    }
+};
+
+bool sameAdmissionDiagnostic(const DRW_OperationDiagnostic& a,
+                             const DRW_OperationDiagnostic& b) {
+    if (a.operation != b.operation || a.phase != b.phase || a.cause != b.cause
+        || a.code != b.code || a.message != b.message || a.offset != b.offset
+        || a.handle != b.handle || a.hasOffset != b.hasOffset
+        || a.hasHandle != b.hasHandle || a.secondary.size() != b.secondary.size())
+        return false;
+    for (std::size_t i = 0; i < a.secondary.size(); ++i) {
+        const auto& x = a.secondary[i];
+        const auto& y = b.secondary[i];
+        if (x.phase != y.phase || x.cause != y.cause || x.code != y.code
+            || x.message != y.message || x.offset != y.offset || x.handle != y.handle
+            || x.hasOffset != y.hasOffset || x.hasHandle != y.hasHandle)
+            return false;
+    }
+    return true;
+}
+
+void testDxfOperationAdmission(TestContext& t) {
+    const auto root = std::filesystem::temp_directory_path()
+        / ("libdxfrw-admission-" + std::to_string(
+            std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::error_code ec;
+    if (!std::filesystem::create_directory(root, ec)) {
+        t.expect(false, "admission scratch directory is exclusive");
+        return;
+    }
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() {
+            std::error_code ignored;
+            std::filesystem::remove_all(path, ignored);
+        }
+    } cleanup {root};
+    const auto path = root / "drawing.dxf";
+    const std::string filename = path.u8string();
+    const auto putSource = [&]() {
+        std::ofstream output(path, std::ios::binary);
+        output << admissionDrawing();
+        return output.good();
+    };
+    const auto bytes = [&]() {
+        std::ifstream input(path, std::ios::binary);
+        return std::string(std::istreambuf_iterator<char>(input),
+                           std::istreambuf_iterator<char>());
+    };
+
+    // Every whole-operation entry must reject before changing even diagnostics
+    // or a writer's already-successful prefix. These are synchronous API tests,
+    // not malformed-file or general concurrency/qualification controls.
+    for (int outer = 0; outer < 3; ++outer) {
+        for (int nested = 0; nested < 3; ++nested) {
+            for (const bool binary : {false, true}) {
+                t.expect(putSource(), "admission source is generated locally");
+                if (outer == 1 && binary) {
+                    dxfRW generator(filename.c_str());
+                    AdmissionInterface source;
+                    source.codec = &generator;
+                    t.expect(generator.write(&source, DRW::AC1024, true)
+                        && source.recordWrites,
+                        "file-read admission has an actual binary source control");
+                }
+                dxfRW codec(filename.c_str());
+                AdmissionInterface sink;
+                sink.codec = &codec;
+                int attempts = 0;
+                sink.callback = [&]() {
+                    ++attempts;
+                    const auto diagnostic = codec.getLastDiagnostic();
+                    const auto error = codec.getError();
+                    const auto version = codec.getVersion();
+                    const auto reader = codec.reader.get();
+                    const auto writer = codec.writer.get();
+                    const auto iface = codec.iface;
+                    const auto next = codec.nextentity;
+                    const auto headerVars = codec.header.vars;
+                    const auto handles = codec.m_writingContext.sourceHandleToMintedMap;
+                    const auto blocks = codec.blockMap;
+                    const auto styles = codec.textStyleMap;
+                    const auto highWater = codec.highWaterHandle();
+                    const auto current = codec.currHandle;
+                    const bool format = codec.binFile;
+                    const bool extrusion = codec.applyExt;
+                    const bool pending = codec.m_hasPendingEntityBoundary;
+                    const bool writeFailed = codec.m_writeError;
+                    const std::string destination = bytes();
+                    FuzzInterface rejected;
+                    std::string content = admissionDrawing();
+                    const bool accepted = nested == 0
+                        ? codec.readAscii(&rejected, true, content)
+                        : nested == 1 ? codec.read(&rejected, true)
+                                      : codec.write(&rejected, DRW::AC1015, !binary);
+                    t.expect(!accepted, "same-instance whole operation rejects");
+                    t.expect(!codec.readAscii(nullptr, true, content)
+                        && !codec.read(nullptr, true)
+                        && !codec.write(nullptr, DRW::UNKNOWNV, !binary),
+                        "nested admission precedes argument/version validation");
+                    t.expect(codec.reader.get() == reader && codec.writer.get() == writer
+                        && codec.iface == iface && codec.getError() == error
+                        && codec.getVersion() == version && codec.binFile == format
+                        && codec.applyExt == extrusion
+                        && codec.m_hasPendingEntityBoundary == pending
+                        && codec.m_writeError == writeFailed
+                        && codec.nextentity == next && codec.header.vars == headerVars
+                        && codec.m_writingContext.sourceHandleToMintedMap == handles
+                        && codec.blockMap == blocks && codec.textStyleMap == styles
+                        && codec.highWaterHandle() == highWater && codec.currHandle == current
+                        && sameAdmissionDiagnostic(codec.getLastDiagnostic(), diagnostic),
+                        "nested rejection preserves outer cursors, identity maps and diagnostics");
+                    t.expect(bytes() == destination,
+                        "nested rejection does not publish over the destination");
+                    dxfRW other("");
+                    AdmissionInterface otherSink;
+                    t.expect(other.readAscii(&otherSink, false, content)
+                        && otherSink.lines.size() == 2u,
+                        "different-instance operation is allowed within callback");
+                };
+                std::string content = admissionDrawing();
+                const bool ok = outer == 0 ? codec.readAscii(&sink, false, content)
+                    : outer == 1 ? codec.read(&sink, false)
+                                 : codec.write(&sink, DRW::AC1024, binary);
+                t.expect(ok && attempts == 1 && sink.recordWrites
+                    && codec.getError() == DRW::BAD_NONE,
+                    "outer operation completes after rejected nesting");
+                sink.callback = {};
+                sink.lines.clear();
+                t.expect(codec.read(&sink, false) && sink.lines.size() == 2u
+                    && sink.lines[0].basePoint.x == 1 && sink.lines[1].secPoint.z == 12,
+                    "ASCII/binary destination and sequential file read preserve both LINEs");
+            }
+        }
+    }
+
+    dxfRW codec(filename.c_str());
+    AdmissionInterface sink;
+    sink.codec = &codec;
+    std::string content = admissionDrawing();
+    t.expect(!codec.readAscii(nullptr, false, content), "early invalid read rejects");
+    t.expect(codec.readAscii(&sink, false, content), "early failure releases admission");
+    t.expect(!codec.write(&sink, DRW::UNKNOWNV, false), "early invalid write rejects");
+    t.expect(codec.write(&sink, DRW::AC1024, false), "valid write follows early failure");
+    sink.callback = []() { throw std::runtime_error("admission read callback"); };
+    sink.lines.clear();
+    bool caught = false;
+    try {
+        (void)codec.readAscii(&sink, false, content);
+    } catch (const std::runtime_error&) {
+        caught = true;
+    }
+    t.expect(caught, "read callback exception retains existing propagation policy");
+    sink.callback = {};
+    sink.lines.clear();
+    t.expect(codec.readAscii(&sink, false, content) && sink.lines.size() == 2u,
+        "read callback exception releases admission for reuse");
+    const auto previous = bytes();
+    sink.callback = []() { throw std::runtime_error("admission write callback"); };
+    t.expect(!codec.write(&sink, DRW::AC1024, false)
+        && codec.getLastDiagnostic().cause == DRW::OperationCause::CallbackException
+        && bytes() == previous,
+        "write callback exception preserves classification and atomic destination");
+    sink.callback = {};
+    t.expect(codec.write(&sink, DRW::AC1024, true),
+        "write callback exception releases admission for reuse");
+}
 
 void testCheckedArithmetic(TestContext& t) {
     std::uint64_t result = 0;
@@ -4185,6 +4388,7 @@ void testEmbeddedAttributeDefinitionTextRouting(TestContext& t) {
 
 int main() {
     TestContext context;
+    testDxfOperationAdmission(context);
     testLeaderAdvisoryCountState(context);
     testPublicOwnershipContracts(context);
     testEmbeddedAttributeTextRouting(context);

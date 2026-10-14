@@ -138,6 +138,12 @@ public:
     std::size_t dxfReadRecordBudget() const noexcept {
         return m_dxfReadRecordBudget;
     }
+    /// Whole-document read/readAscii/write operations are not reentrant on one
+    /// instance. A nested call returns false without changing the active
+    /// operation, including its error/diagnostic snapshot or destination. Use
+    /// another instance for nested whole-document work. Getters and ordinary
+    /// write-record/registration callbacks remain available; this is not a
+    /// thread-safety guarantee or a change to callback-exception behavior.
     /// reads the file specified in constructor
     /*!
      * An interface must be provided. It is used by the class to signal various
@@ -628,6 +634,7 @@ public:
     bool preflightDxfWrite() noexcept;
     void discardDxfWriteResults() noexcept;
     void resetDxfWriteSession();
+    class WholeOperationScope;
     class WriteAttemptScope;
     class RecordStateScope;
     class EntityRecordScope;
@@ -725,6 +732,7 @@ private:
     std::uint64_t m_reservationFailureGeneration {0};
     std::uint64_t m_consumedReservationFailureGeneration {0};
     DRW_OperationDiagnostic m_lastDiagnostic;
+    bool m_wholeOperationActive {false};
     std::vector<DRW_Class> m_dxfClasses;
     bool m_dxfClassesFrozen {false};
     std::vector<DRW_RawDxfSection> m_rawDxfSections;
