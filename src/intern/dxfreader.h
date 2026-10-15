@@ -15,11 +15,76 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 #include <unordered_set>
+#include <utility>
 
 #include "dxfcode.h"
 #include "dxfparserlimits.h"
 #include "drw_textcodec.h"
+
+// Shared by one public DXF read operation so independently retained buffers
+// can use one aggregate logical-byte ceiling. This deliberately measures
+// logical lengths, not std::string/vector capacity or process RSS.
+class DxfReadRetainedBudget final {
+public:
+    explicit DxfReadRetainedBudget(std::size_t limit) noexcept
+        : m_limit(limit) {}
+
+    bool reserve(std::size_t bytes) noexcept {
+        if (m_exceeded)
+            return false;
+        if (m_used > m_limit || bytes > m_limit - m_used) {
+            m_exceeded = true;
+            return false;
+        }
+        m_used += bytes;
+        return true;
+    }
+
+    void release(std::size_t bytes) noexcept {
+        m_used = bytes <= m_used ? m_used - bytes : 0u;
+    }
+
+    std::size_t limit() const noexcept { return m_limit; }
+    std::size_t used() const noexcept { return m_used; }
+    bool exceeded() const noexcept { return m_exceeded; }
+
+private:
+    std::size_t m_limit;
+    std::size_t m_used {0};
+    bool m_exceeded {false};
+};
+
+// Reservation lifetime is lexical so exceptions during string/stream
+// construction release the logical charge automatically.
+class DxfReadRetainedReservation final {
+public:
+    DxfReadRetainedReservation(
+        std::shared_ptr<DxfReadRetainedBudget> budget,
+        std::size_t bytes) noexcept
+        : m_budget(std::move(budget)), m_bytes(bytes),
+          m_reserved(m_budget != nullptr && m_budget->reserve(bytes)) {}
+
+    ~DxfReadRetainedReservation() noexcept {
+        if (m_reserved)
+            m_budget->release(m_bytes);
+    }
+
+    DxfReadRetainedReservation(const DxfReadRetainedReservation&) = delete;
+    DxfReadRetainedReservation& operator=(
+        const DxfReadRetainedReservation&) = delete;
+    DxfReadRetainedReservation(DxfReadRetainedReservation&&) = delete;
+    DxfReadRetainedReservation& operator=(
+        DxfReadRetainedReservation&&) = delete;
+
+    bool reserved() const noexcept { return m_reserved; }
+
+private:
+    std::shared_ptr<DxfReadRetainedBudget> m_budget;
+    std::size_t m_bytes;
+    bool m_reserved;
+};
 
 class dxfReader {
 public:
@@ -76,6 +141,13 @@ public:
     }
     bool inputByteBudgetExceeded() const noexcept {
         return m_inputByteBudgetExceeded;
+    }
+    void setRetainedByteBudget(
+        std::shared_ptr<DxfReadRetainedBudget> budget) noexcept {
+        m_retainedByteBudget = std::move(budget);
+    }
+    const std::shared_ptr<DxfReadRetainedBudget>& retainedByteBudget() const noexcept {
+        return m_retainedByteBudget;
     }
     // A derived parser may consume a non-XDATA field without calling its
     // base. Coordinate assembly must still stop at that physical boundary.
@@ -205,6 +277,7 @@ private:
     std::size_t m_inputByteBudget {DRW::kDefaultDxfReadInputByteBudget};
     std::size_t m_inputByteCount {0};
     bool m_inputByteBudgetExceeded {false};
+    std::shared_ptr<DxfReadRetainedBudget> m_retainedByteBudget;
     int m_currentCode {0};
     int m_previousCode {0};
 };

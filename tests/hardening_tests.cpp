@@ -3081,6 +3081,76 @@ void testDxfInputByteBudget(TestContext& t) {
              "in-memory ASCII shares the cumulative acquisition budget and diagnostic");
 }
 
+void testDxfOwnedSnapshotBudget(TestContext& t) {
+    const std::string source = admissionDrawing();
+    std::string content = source;
+    dxfRW codec(nullptr);
+    t.expect(codec.dxfReadRetainedByteBudget()
+                     == DRW::kDefaultDxfReadRetainedByteBudget,
+             "facade publishes the aggregate retained-byte default");
+    codec.setDxfReadRetainedByteBudget(source.size() - 1u);
+    AdmissionInterface rejected;
+    rejected.codec = &codec;
+    t.expect(!codec.readAscii(&rejected, false, content)
+                 && rejected.lines.empty()
+                 && codec.getError() == DRW::BAD_CODE_PARSED
+                 && codec.getLastDiagnostic().cause
+                        == DRW::OperationCause::ResourceLimit
+                 && codec.getLastDiagnostic().code
+                        == "dxf-retained-byte-budget"
+                 && !codec.m_readInputByteBudgetActive,
+             "snapshot cap rejects before stream copy and before any callback");
+
+    codec.setDxfReadRetainedByteBudget(source.size());
+    content = source;
+    AdmissionInterface isolated;
+    isolated.codec = &codec;
+    isolated.callback = [&content]() { content = "0\nEOF\n"; };
+    t.expect(codec.readAscii(&isolated, false, content)
+                 && isolated.lines.size() == 2u
+                 && isolated.lines[0].basePoint.x == 1.0
+                 && isolated.lines[1].basePoint.x == 7.0
+                 && content == "0\nEOF\n",
+             "exact snapshot budget preserves callback-time source mutation isolation");
+
+    dxfRW interrupted(nullptr);
+    interrupted.setDxfReadRetainedByteBudget(source.size());
+    content = source;
+    AdmissionInterface throwing;
+    throwing.codec = &interrupted;
+    throwing.callback = []() { throw std::runtime_error("snapshot callback throw"); };
+    bool caught = false;
+    try {
+        (void)interrupted.readAscii(&throwing, false, content);
+    } catch (const std::runtime_error&) {
+        caught = true;
+    }
+    dxfReader* const staleReader = interrupted.reader.get();
+    t.expect(caught && throwing.lines.size() == 1u && staleReader != nullptr
+                 && staleReader->retainedByteBudget() != nullptr
+                 && staleReader->retainedByteBudget()->used() == 0u
+                 && !interrupted.m_readInputByteBudgetActive,
+             "throwing callback releases the snapshot lease but retains the stale reader safely");
+
+    interrupted.setDxfReadRetainedByteBudget(source.size() - 1u);
+    AdmissionInterface staleRejected;
+    staleRejected.codec = &interrupted;
+    t.expect(!interrupted.readAscii(&staleRejected, false, content)
+                 && interrupted.reader.get() == staleReader
+                 && staleRejected.lines.empty()
+                 && interrupted.getLastDiagnostic().code
+                        == "dxf-retained-byte-budget",
+             "snapshot rejection does not dereference or replace an interrupted operation's reader");
+    interrupted.setDxfReadRetainedByteBudget(source.size());
+    AdmissionInterface retry;
+    retry.codec = &interrupted;
+    t.expect(interrupted.readAscii(&retry, false, content)
+                 && retry.lines.size() == 2u
+                 && interrupted.getLastDiagnostic().cause
+                        == DRW::OperationCause::None,
+             "raising the retained budget recovers the same facade after snapshot rejection");
+}
+
 void testDxfTokenFacadeBudget(TestContext& t) {
     const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
     const auto path = std::filesystem::temp_directory_path()
@@ -5055,6 +5125,7 @@ int main() {
     testDxfAggregateRecordBudget(context);
     testDxfTokenByteBudget(context);
     testDxfInputByteBudget(context);
+    testDxfOwnedSnapshotBudget(context);
     testDxfTokenFacadeBudget(context);
     testDwgAggregateObjectBudget(context);
     testDwgModelerDataStorageLinking(context);

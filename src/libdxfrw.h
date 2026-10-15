@@ -169,6 +169,18 @@ public:
     std::size_t dxfReadInputByteBudget() const noexcept {
         return m_dxfReadInputByteBudget;
     }
+    /** Set the aggregate logical-byte ceiling for library-owned DXF read
+     * snapshots/copies. Caller-owned input and allocated capacity are not
+     * charged. The 1 GiB default is caller-raiseable and is not a format
+     * maximum. This applies to subsequent reads; a change from a callback
+     * takes effect on the next read. Rebuild consumers using this additive
+     * setting. */
+    void setDxfReadRetainedByteBudget(std::size_t maxBytes) noexcept {
+        m_dxfReadRetainedByteBudget = maxBytes;
+    }
+    std::size_t dxfReadRetainedByteBudget() const noexcept {
+        return m_dxfReadRetainedByteBudget;
+    }
     /// Whole-document read/readAscii/write operations are not reentrant on one
     /// instance. A nested call returns false without changing the active
     /// operation, including its error/diagnostic snapshot or destination. Use
@@ -776,6 +788,7 @@ public:
 
     bool setError(const DRW::error lastError);
     bool failDxfReadBudget();
+    bool failDxfReadRetainedBudget();
 
     LIBDXFRW_TEST_SEAM_NOINLINE void beginOperationDiagnostic(DRW::OperationKind kind);
 #if defined(_MSC_VER) && defined(LIBDXFRW_FORCE_TEST_SEAMS)
@@ -809,6 +822,7 @@ private:
         4u * 1024u * 1024u};
     std::size_t m_dxfReadTokenByteBudget {1024u * 1024u};
     std::size_t m_dxfReadInputByteBudget {1024u * 1024u * 1024u};
+    std::size_t m_dxfReadRetainedByteBudget {1024u * 1024u * 1024u};
     // Armed only after this operation constructs its reader. Early argument
     // failure must not report a token flag left by a previous interrupted read.
     bool m_readTokenBudgetActive {false};

@@ -40,6 +40,11 @@ constexpr std::size_t kDefaultDxfReadRecordBudget = 4u * 1024u * 1024u;
 //! callers with larger documents may raise it through dxfRW.
 constexpr std::size_t kDefaultDxfReadInputByteBudget = 1024u * 1024u * 1024u;
 
+//! Aggregate logical bytes retained by one DXF read operation. This includes
+//! library-owned snapshots/copies, not caller-owned input or allocated capacity.
+constexpr std::size_t kDefaultDxfReadRetainedByteBudget =
+    1024u * 1024u * 1024u;
+
 //! Raw bytes before one ASCII LF or binary string NUL, including ASCII CR.
 //! This is a caller-raiseable acquisition ceiling, not a DXF format maximum
 //! or a bound on string capacity, retained copies or stream-buffer read-ahead.

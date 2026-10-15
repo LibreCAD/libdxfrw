@@ -2023,6 +2023,8 @@ bool dxfRW::read(DRW_Interface *interface_, bool ext){
     // from a previous document into this read session.
     header = DRW_Header{};
     DRW_DBG("dxfRW::read 1def\n");
+    auto retainedBudget = std::make_shared<DxfReadRetainedBudget>(
+        m_dxfReadRetainedByteBudget);
     // Public filenames are UTF-8, not the Windows process code page.
     filestr.open (std::filesystem::u8path(fileName), std::ios_base::in | std::ios::binary);
     if (!filestr.is_open()
@@ -2077,6 +2079,7 @@ bool dxfRW::read(DRW_Interface *interface_, bool ext){
         reader->setTokenByteBudget(m_dxfReadTokenByteBudget);
         reader->setInputByteBudget(m_dxfReadInputByteBudget);
     }
+    reader->setRetainedByteBudget(std::move(retainedBudget));
     reader->setDxfTextEncoding(m_dxfTextEncoding);
     reader->setClassifierProfile(
         m_useTargetLegacyClassifier
@@ -2125,8 +2128,19 @@ bool dxfRW::readAscii(DRW_Interface *interface_, bool ext, std::string& content)
     m_readRawHandles.clear();
     applyExt = ext;
     iface = interface_;
+    auto retainedBudget = std::make_shared<DxfReadRetainedBudget>(
+        m_dxfReadRetainedByteBudget);
+    // content belongs to the caller. Reserve the logical size of the
+    // library-owned stream snapshot before istringstream copies it. Keep this
+    // reservation alive longer than strstream so every exit (including a
+    // throwing callback or stream construction) releases it after the copy.
+    DxfReadRetainedReservation snapshotReservation(retainedBudget,
+                                                   content.size());
+    if (!snapshotReservation.reserved())
+        return failDxfReadRetainedBudget();
     std::istringstream strstream(content);
     reader = std::make_unique<dxfReaderAscii>(&strstream);
+    reader->setRetainedByteBudget(std::move(retainedBudget));
     reader->setRecordBudget(m_dxfReadRecordBudget);
     reader->setTokenByteBudget(m_dxfReadTokenByteBudget);
     reader->setInputByteBudget(m_dxfReadInputByteBudget);
@@ -18750,4 +18764,14 @@ bool dxfRW::failDxfReadBudget() {
         "the aggregate DXF read-record budget was exhausted");
     setError(DRW::BAD_CODE_PARSED);
     return true;
+}
+
+bool dxfRW::failDxfReadRetainedBudget() {
+    recordOperationDiagnostic(
+        DRW::OperationPhase::Validation,
+        DRW::OperationCause::ResourceLimit,
+        "dxf-retained-byte-budget",
+        "the aggregate DXF retained-byte budget was exhausted");
+    setError(DRW::BAD_CODE_PARSED);
+    return false;
 }
