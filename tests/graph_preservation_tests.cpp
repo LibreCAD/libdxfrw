@@ -1,9 +1,11 @@
 #include <array>
+#include <algorithm>
 #include <cmath>
 #include <cstdint>
 #include <cstring>
 #include <iostream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "drw_acis.h"
@@ -353,6 +355,140 @@ void testDataStorageBounds(TestContext& t) {
                  && !malformed.replayAllowed
                  && !malformed.diagnostics.empty(),
              "DataStorage rejects invalid segment-index geometry");
+
+    constexpr std::size_t sectionSize = 448u;
+    constexpr std::size_t segmentIndexOffset = 64u;
+    constexpr std::size_t schemaIndexOffset = 192u;
+    constexpr std::size_t schemaDataOffset = 320u;
+    constexpr std::size_t schemaPayloadOffset = schemaDataOffset + 48u;
+    std::vector<std::uint8_t> raw(sectionSize, 0u);
+    const auto putU16 = [&raw](std::size_t offset, std::uint16_t value) {
+        raw[offset] = static_cast<std::uint8_t>(value & 0xffu);
+        raw[offset + 1u] = static_cast<std::uint8_t>(value >> 8);
+    };
+    const auto putU32 = [&raw](std::size_t offset, std::uint32_t value) {
+        for (unsigned byte = 0; byte < 4u; ++byte)
+            raw[offset + byte] = static_cast<std::uint8_t>(value >> (byte * 8u));
+    };
+    const auto putU64 = [&raw](std::size_t offset, std::uint64_t value) {
+        for (unsigned byte = 0; byte < 8u; ++byte)
+            raw[offset + byte] = static_cast<std::uint8_t>(value >> (byte * 8u));
+    };
+    const auto putName = [&raw](std::size_t offset, const char* name) {
+        std::size_t index = 0;
+        while (name[index] != '\0') {
+            raw[offset + index] = static_cast<std::uint8_t>(name[index]);
+            ++index;
+        }
+        raw[offset + index] = 0u;
+    };
+    const auto putSegment = [&raw, &putU16, &putU32](
+        std::size_t offset, const char* name, std::uint32_t index,
+        std::uint32_t systemDataAlignmentOffset) {
+        putU16(offset, DRW_DataStorageConst::SEGMENT_SIGNATURE);
+        for (std::size_t byte = 0; byte < 6u; ++byte)
+            raw[offset + 2u + byte] = static_cast<std::uint8_t>(name[byte]);
+        putU32(offset + 8u, index);
+        putU32(offset + 16u, 128u);
+        putU32(offset + 24u, 1u);
+        putU32(offset + 32u, systemDataAlignmentOffset);
+    };
+
+    // Three locally-authored segments: segment index, schema index, and
+    // schema data. The two AcDbDs::ID values differ byte-for-byte; a second
+    // property immediately follows to expose a cursor-alignment regression.
+    putU32(0u, 1u);
+    putU32(4u, DRW_DataStorageConst::HEADER_SIZE);
+    putU32(12u, 1u);
+    putU32(24u, static_cast<std::uint32_t>(segmentIndexOffset));
+    putU32(32u, 3u);
+    putU32(36u, 1u);
+    putU32(40u, 0xffffffffu);
+    putU32(44u, 0xffffffffu);
+    putU32(48u, 0xffffffffu);
+    putU32(52u, static_cast<std::uint32_t>(sectionSize));
+    putSegment(segmentIndexOffset, "segidx", 0u, 0u);
+    putSegment(schemaIndexOffset, "schidx", 1u, 0u);
+    putSegment(schemaDataOffset, "schdat", 2u, 7u);
+    const std::array<std::pair<std::uint64_t, std::uint32_t>, 3> segments{{
+        {segmentIndexOffset, 128u},
+        {schemaIndexOffset, 128u},
+        {schemaDataOffset, 128u}}};
+    for (std::size_t index = 0; index < segments.size(); ++index) {
+        const std::size_t entry = segmentIndexOffset + 48u + index * 12u;
+        putU64(entry, segments[index].first);
+        putU32(entry + 8u, segments[index].second);
+    }
+    putU32(schemaIndexOffset + 48u, 1u);
+    putU32(schemaIndexOffset + 52u, 0u);
+    putU32(schemaIndexOffset + 56u, 0u);
+    putU32(schemaIndexOffset + 60u, 2u);
+    putU32(schemaIndexOffset + 64u, 0u);
+    putU64(schemaIndexOffset + 68u, 0x1234u);
+    putU32(schemaIndexOffset + 76u, 0u);
+    putU32(schemaIndexOffset + 80u, 0u);
+
+    putU16(schemaPayloadOffset, 0u); // no schema indexes
+    putU16(schemaPayloadOffset + 2u, 2u); // two schema properties
+    const auto putProperty = [&putU32, &putU16, &putU64](
+        std::size_t offset, std::uint32_t nameIndex,
+        std::uint64_t first, std::uint64_t second) {
+        putU32(offset, 0u); // property flags
+        putU32(offset + 4u, nameIndex);
+        putU32(offset + 8u, 10u); // 8-byte scalar
+        putU16(offset + 12u, 2u);
+        putU64(offset + 14u, first);
+        putU64(offset + 22u, second);
+    };
+    putProperty(schemaPayloadOffset + 4u, 0u,
+                0x0102030405060708ull, 0x1112131415161718ull);
+    putProperty(schemaPayloadOffset + 34u, 1u,
+                0x2122232425262728ull, 0x3132333435363738ull);
+    const std::size_t namesOffset = schemaDataOffset + 7u * 16u;
+    putU32(namesOffset, 2u);
+    putName(namesOffset + 4u, "ID");
+    putName(namesOffset + 7u, "Tail");
+
+    const DRW_DataStorageSection parsed =
+        DRW_parseDataStorage(raw, DRW::AC1027);
+    const std::vector<std::uint8_t> firstValue{
+        0x08u, 0x07u, 0x06u, 0x05u, 0x04u, 0x03u, 0x02u, 0x01u};
+    const std::vector<std::uint8_t> secondValue{
+        0x18u, 0x17u, 0x16u, 0x15u, 0x14u, 0x13u, 0x12u, 0x11u};
+    t.expect(!parsed.parseFailed && parsed.structurallyValid
+                 && parsed.schemaCount == 1u && parsed.schemas.size() == 1u
+                 && parsed.schemas.front().properties.size() == 2u
+                 && parsed.schemas.front().properties[0].name == "ID"
+                 && parsed.schemas.front().properties[0].valueCount == 2u
+                 && parsed.schemas.front().properties[0].values
+                     == std::vector<std::vector<std::uint8_t>>{
+                            firstValue, secondValue}
+                 && parsed.schemas.front().properties[1].name == "Tail"
+                 && parsed.schemas.front().properties[1].values.size() == 2u
+                 && parsed.schemas.front().properties[1].values[0]
+                     == std::vector<std::uint8_t>{0x28u, 0x27u, 0x26u, 0x25u,
+                                                  0x24u, 0x23u, 0x22u, 0x21u},
+             "DataStorage raw schema preserves distinct values and following property");
+
+    std::vector<std::uint8_t> overrun = raw;
+    overrun[schemaPayloadOffset + 16u] = 3u;
+    overrun[schemaPayloadOffset + 17u] = 0u;
+    // Bound schema data at segment offset + 80, so the third value extends
+    // beyond the schema payload rather than consuming segment padding.
+    overrun[schemaDataOffset + 32u] = 5u;
+    overrun[schemaDataOffset + 33u] = 0u;
+    overrun[schemaDataOffset + 34u] = 0u;
+    overrun[schemaDataOffset + 35u] = 0u;
+    const DRW_DataStorageSection rejected =
+        DRW_parseDataStorage(overrun, DRW::AC1027);
+    const bool reportsValueOverrun = std::any_of(
+        rejected.diagnostics.cbegin(), rejected.diagnostics.cend(),
+        [](const DRW_DataStorageDiagnostic& diagnostic) {
+            return diagnostic.code == "datastorage-schema-property-values-truncated";
+        });
+    t.expect(!rejected.structurallyValid && rejected.schemas.empty()
+                 && reportsValueOverrun,
+             "DataStorage over-count is bounded by the schema segment end");
 }
 
 void testFramePublicationContract(TestContext& t) {
